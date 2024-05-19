@@ -14,6 +14,12 @@
 		D3536A162BFA4F4A006942D6 /* PlayolaRadioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A152BFA4F4A006942D6 /* PlayolaRadioTests.swift */; };
 		D3536A202BFA4F4A006942D6 /* PlayolaRadioUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A1F2BFA4F4A006942D6 /* PlayolaRadioUITests.swift */; };
 		D3536A222BFA4F4A006942D6 /* PlayolaRadioUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A212BFA4F4A006942D6 /* PlayolaRadioUITestsLaunchTests.swift */; };
+		D3536A302BFA5523006942D6 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = D3536A2F2BFA5523006942D6 /* ComposableArchitecture */; };
+		D3536A322BFA64AB006942D6 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A312BFA64AB006942D6 /* Models.swift */; };
+		D3536A352BFA64DC006942D6 /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3536A342BFA64DC006942D6 /* FRadioPlayer */; };
+		D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A362BFA6520006942D6 /* Bundle+Misc.swift */; };
+		D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A372BFA6520006942D6 /* Color+Hex.swift */; };
+		D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A382BFA6520006942D6 /* UIImage+Cache.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +50,10 @@
 		D3536A1B2BFA4F4A006942D6 /* PlayolaRadioUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlayolaRadioUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3536A1F2BFA4F4A006942D6 /* PlayolaRadioUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaRadioUITests.swift; sourceTree = "<group>"; };
 		D3536A212BFA4F4A006942D6 /* PlayolaRadioUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaRadioUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		D3536A312BFA64AB006942D6 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		D3536A362BFA6520006942D6 /* Bundle+Misc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Bundle+Misc.swift"; sourceTree = "<group>"; };
+		D3536A372BFA6520006942D6 /* Color+Hex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
+		D3536A382BFA6520006942D6 /* UIImage+Cache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImage+Cache.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,6 +61,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3536A352BFA64DC006942D6 /* FRadioPlayer in Frameworks */,
+				D3536A302BFA5523006942D6 /* ComposableArchitecture in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -94,10 +106,12 @@
 		D3536A032BFA4F49006942D6 /* PlayolaRadio */ = {
 			isa = PBXGroup;
 			children = (
+				D3536A392BFA6520006942D6 /* Extensions */,
 				D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */,
 				D3536A062BFA4F49006942D6 /* ContentView.swift */,
 				D3536A082BFA4F4A006942D6 /* Assets.xcassets */,
 				D3536A0A2BFA4F4A006942D6 /* Preview Content */,
+				D3536A312BFA64AB006942D6 /* Models.swift */,
 			);
 			path = PlayolaRadio;
 			sourceTree = "<group>";
@@ -127,6 +141,16 @@
 			path = PlayolaRadioUITests;
 			sourceTree = "<group>";
 		};
+		D3536A392BFA6520006942D6 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				D3536A362BFA6520006942D6 /* Bundle+Misc.swift */,
+				D3536A372BFA6520006942D6 /* Color+Hex.swift */,
+				D3536A382BFA6520006942D6 /* UIImage+Cache.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -143,6 +167,10 @@
 			dependencies = (
 			);
 			name = PlayolaRadio;
+			packageProductDependencies = (
+				D3536A2F2BFA5523006942D6 /* ComposableArchitecture */,
+				D3536A342BFA64DC006942D6 /* FRadioPlayer */,
+			);
 			productName = PlayolaRadio;
 			productReference = D3536A012BFA4F49006942D6 /* PlayolaRadio.app */;
 			productType = "com.apple.product-type.application";
@@ -215,6 +243,10 @@
 				Base,
 			);
 			mainGroup = D35369F82BFA4F49006942D6;
+			packageReferences = (
+				D3536A2E2BFA5523006942D6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
+				D3536A332BFA64DC006942D6 /* XCRemoteSwiftPackageReference "FRadioPlayer" */,
+			);
 			productRefGroup = D3536A022BFA4F49006942D6 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -257,6 +289,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
+				D3536A322BFA64AB006942D6 /* Models.swift in Sources */,
+				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
+				D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */,
 				D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
 			);
@@ -596,6 +632,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D3536A2E2BFA5523006942D6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.10.4;
+			};
+		};
+		D3536A332BFA64DC006942D6 /* XCRemoteSwiftPackageReference "FRadioPlayer" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/fethica/FRadioPlayer";
+			requirement = {
+				branch = v0.2.1;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D3536A2F2BFA5523006942D6 /* ComposableArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3536A2E2BFA5523006942D6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = ComposableArchitecture;
+		};
+		D3536A342BFA64DC006942D6 /* FRadioPlayer */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3536A332BFA64DC006942D6 /* XCRemoteSwiftPackageReference "FRadioPlayer" */;
+			productName = FRadioPlayer;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = D35369F92BFA4F49006942D6 /* Project object */;
 }
