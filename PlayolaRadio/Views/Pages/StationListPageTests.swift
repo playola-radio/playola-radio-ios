@@ -108,4 +108,19 @@ final class StationListPageTests: XCTestCase {
 
     await monitorStationStoreTask.cancel()
   }
+
+  @MainActor
+  func testShowsAboutPage() async {
+    let store = TestStore(initialState: StationListReducer.State()) {
+      StationListReducer()
+    }
+
+    await store.send(.hamburgerButtonTapped) {
+      $0.destination = .add(AboutPageReducer.State())
+    }
+
+    await store.send(.dismissAboutViewButtonTapped) {
+      $0.destination = nil
+    }
+  }
 }
