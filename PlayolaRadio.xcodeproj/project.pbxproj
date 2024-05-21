@@ -179,11 +179,11 @@
 			children = (
 				D339E55A2BFD0CE200B9E35B /* Dependencies */,
 				D3536A392BFA6520006942D6 /* Extensions */,
-				D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */,
 				D339E55B2BFD0CEE00B9E35B /* Views */,
 				D3536A082BFA4F4A006942D6 /* Assets.xcassets */,
 				D3536A0A2BFA4F4A006942D6 /* Preview Content */,
 				D3536A312BFA64AB006942D6 /* Models.swift */,
+				D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */,
 			);
 			path = PlayolaRadio;
 			sourceTree = "<group>";

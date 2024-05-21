@@ -103,6 +103,7 @@ final class StationListPageTests: XCTestCase {
 
     await store.receive(\.stationsListResponseReceived.failure) {
       $0.isLoadingStationLists = false
+      $0.alert = .stationListLoadFailure
     }
 
     await monitorStationStoreTask.cancel()
