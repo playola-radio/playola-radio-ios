@@ -92,13 +92,21 @@ struct StationListPage: View {
     .onAppear {
       self.store.send(.viewAppeared)
     }
+    .foregroundStyle(.white)
   }
 }
 
 #Preview {
-  StationListPage(store: Store(initialState: StationListReducer.State()) {
-    StationListReducer()
-      ._printChanges()
-  })
+  NavigationStack {
+    StationListPage(store: Store(initialState: StationListReducer.State()) {
+      StationListReducer()
+        ._printChanges()
+    })
+  }
+  .onAppear {
+    UINavigationBar.appearance().barStyle = .black
+    UINavigationBar.appearance().tintColor = .white
+    UINavigationBar.appearance().prefersLargeTitles = true
+  }
 }
 
