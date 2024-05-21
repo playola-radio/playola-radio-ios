@@ -26,15 +26,30 @@ struct StationListReducer {
     case dismissAboutViewButtonTapped
   }
 
+  @Dependency(\.apiClient) var apiClient
+
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
       case .alert(_):
         return .none
+
       case .viewAppeared:
+        state.isLoadingStationLists = true
+        return .run { send in
+          await send(.stationsListResponseReceived(Result { try await self.apiClient.getStationLists() } ))
+        }
+
+      case .stationsListResponseReceived(.success(let stationLists)):
+        state.isLoadingStationLists = false
+        let stationLists = stationLists.filter { state.isShowingSecretStations ? true : $0.id != "in_development" }
+        state.stationLists = IdentifiedArray(uniqueElements: stationLists)
         return .none
-      case .stationsListResponseReceived(_):
+
+      case .stationsListResponseReceived(.failure):
+        state.isLoadingStationLists = false
         return .none
+
       case .hamburgerButtonTapped:
         return .none
       case .dismissAboutViewButtonTapped:
@@ -52,17 +67,31 @@ struct StationListPage: View {
       Image("background")
         .resizable()
         .edgesIgnoringSafeArea(.all)
-      
+
       VStack {
-        EmptyView()
+        List {
+          ForEach(store.stationLists.filter { $0.stations.count > 0 }) { stationList in
+            Section(stationList.title) {
+              ForEach(stationList.stations.indices, id: \.self) { index in
 
+                StationListCellView(station: stationList.stations[index])
+                  .listRowBackground((index  % 2 == 0) ? Color(.clear) : Color(.black).opacity(0.2))
+                  .listRowSeparator(.hidden)
+              }
+            }
+          }
+        }.listStyle(.grouped)
+          .scrollContentBackground(.hidden)
+          .background(.clear)
       }
-
-//
     }
     .navigationTitle(Text("Playola Radio"))
     .navigationBarTitleDisplayMode(.automatic)
     .navigationBarHidden(false)
+    
+    .onAppear {
+      self.store.send(.viewAppeared)
+    }
   }
 }
 
