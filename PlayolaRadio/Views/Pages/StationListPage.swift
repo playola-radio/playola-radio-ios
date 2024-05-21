@@ -16,6 +16,7 @@ struct StationListReducer {
     var isLoadingStationLists: Bool = false
     var isShowingSecretStations: Bool = false
     var stationLists: IdentifiedArrayOf<StationList> = []
+    var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackState: .stopped)
   }
 
   enum Action {
@@ -24,9 +25,12 @@ struct StationListReducer {
     case stationsListResponseReceived(Result<[StationList], Error>)
     case hamburgerButtonTapped
     case dismissAboutViewButtonTapped
+    case stationPlayerStateDidChange(StationPlayer.State)
+    case stationSelected(RadioStation)
   }
 
   @Dependency(\.apiClient) var apiClient
+  @Dependency(\.stationPlayer) var stationPlayer
 
   var body: some ReducerOf<Self> {
     Reduce { state, action in
@@ -37,7 +41,16 @@ struct StationListReducer {
       case .viewAppeared:
         state.isLoadingStationLists = true
         return .run { send in
-          await send(.stationsListResponseReceived(Result { try await self.apiClient.getStationLists() } ))
+          await withTaskGroup(of: Void.self) { group in
+            group.addTask {
+              await send(.stationsListResponseReceived(Result { try await self.apiClient.getStationLists() } ))
+            }
+            group.addTask {
+              for await playerState in await self.stationPlayer.subscribeToPlayerState() {
+                await send(.stationPlayerStateDidChange(playerState))
+              }
+            }
+          }
         }
 
       case .stationsListResponseReceived(.success(let stationLists)):
@@ -52,8 +65,18 @@ struct StationListReducer {
 
       case .hamburgerButtonTapped:
         return .none
+
       case .dismissAboutViewButtonTapped:
         return .none
+
+      case .stationPlayerStateDidChange(let stationPlayerState):
+        state.stationPlayerState = stationPlayerState
+        return .none
+
+      case .stationSelected(let station):
+        return .run { send in
+          self.stationPlayer.playStation(station)
+        }
       }
     }
   }
@@ -73,10 +96,13 @@ struct StationListPage: View {
           ForEach(store.stationLists.filter { $0.stations.count > 0 }) { stationList in
             Section(stationList.title) {
               ForEach(stationList.stations.indices, id: \.self) { index in
-
                 StationListCellView(station: stationList.stations[index])
                   .listRowBackground((index  % 2 == 0) ? Color(.clear) : Color(.black).opacity(0.2))
                   .listRowSeparator(.hidden)
+                  .onTapGesture {
+                    let station = stationList.stations[index]
+                    self.store.send(.stationSelected(station))
+                  }
               }
             }
           }
@@ -88,7 +114,6 @@ struct StationListPage: View {
     .navigationTitle(Text("Playola Radio"))
     .navigationBarTitleDisplayMode(.automatic)
     .navigationBarHidden(false)
-    
     .onAppear {
       self.store.send(.viewAppeared)
     }
