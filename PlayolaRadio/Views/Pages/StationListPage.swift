@@ -13,6 +13,7 @@ struct StationListReducer {
 
   @ObservableState
   struct State: Equatable {
+    @Presents var alert: AlertState<Action.Alert>?
     var isLoadingStationLists: Bool = false
     var isShowingSecretStations: Bool = false
     var stationLists: IdentifiedArrayOf<StationList> = []
@@ -27,6 +28,9 @@ struct StationListReducer {
     case dismissAboutViewButtonTapped
     case stationPlayerStateDidChange(StationPlayer.State)
     case stationSelected(RadioStation)
+
+    @CasePathable
+    enum Alert: Equatable {}
   }
 
   @Dependency(\.apiClient) var apiClient
@@ -61,6 +65,7 @@ struct StationListReducer {
 
       case .stationsListResponseReceived(.failure):
         state.isLoadingStationLists = false
+        state.alert = .stationListLoadFailure
         return .none
 
       case .hamburgerButtonTapped:
@@ -77,6 +82,9 @@ struct StationListReducer {
         return .run { send in
           self.stationPlayer.playStation(station)
         }
+
+      case .alert(_):
+        return .none
       }
     }
   }
@@ -117,6 +125,7 @@ struct StationListPage: View {
     .onAppear {
       self.store.send(.viewAppeared)
     }
+    .alert($store.scope(state: \.alert, action: \.alert))
     .foregroundStyle(.white)
   }
 }
@@ -135,3 +144,8 @@ struct StationListPage: View {
   }
 }
 
+extension AlertState where Action == StationListReducer.Action.Alert {
+  static let stationListLoadFailure = AlertState(
+    title: TextState("Error Loading Stations"),
+    message: TextState("There was an error loading the stations. Please check yout connection and try again."))
+}
