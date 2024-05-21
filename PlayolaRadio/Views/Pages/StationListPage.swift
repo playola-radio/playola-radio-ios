@@ -41,7 +41,16 @@ struct StationListReducer {
       case .viewAppeared:
         state.isLoadingStationLists = true
         return .run { send in
-          await send(.stationsListResponseReceived(Result { try await self.apiClient.getStationLists() } ))
+          await withTaskGroup(of: Void.self) { group in
+            group.addTask {
+              await send(.stationsListResponseReceived(Result { try await self.apiClient.getStationLists() } ))
+            }
+            group.addTask {
+              for await playerState in await self.stationPlayer.subscribeToPlayerState() {
+                await send(.stationPlayerStateDidChange(playerState))
+              }
+            }
+          }
         }
 
       case .stationsListResponseReceived(.success(let stationLists)):
@@ -105,7 +114,6 @@ struct StationListPage: View {
     .navigationTitle(Text("Playola Radio"))
     .navigationBarTitleDisplayMode(.automatic)
     .navigationBarHidden(false)
-    
     .onAppear {
       self.store.send(.viewAppeared)
     }
