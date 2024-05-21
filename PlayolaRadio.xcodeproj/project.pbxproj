@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D339E5622BFD0FD800B9E35B /* NowPlayingSmallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E55E2BFD0FD800B9E35B /* NowPlayingSmallView.swift */; };
+		D339E5632BFD0FD800B9E35B /* AirplayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E55F2BFD0FD800B9E35B /* AirplayButton.swift */; };
+		D339E5642BFD0FD800B9E35B /* StationListCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5602BFD0FD800B9E35B /* StationListCellView.swift */; };
+		D339E5652BFD0FD800B9E35B /* NowPlayingEqAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5612BFD0FD800B9E35B /* NowPlayingEqAnimation.swift */; };
+		D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5662BFD10AE00B9E35B /* StationListPage.swift */; };
 		D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */; };
 		D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A062BFA4F49006942D6 /* ContentView.swift */; };
 		D3536A092BFA4F4A006942D6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3536A082BFA4F4A006942D6 /* Assets.xcassets */; };
@@ -40,6 +45,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D339E55E2BFD0FD800B9E35B /* NowPlayingSmallView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NowPlayingSmallView.swift; sourceTree = "<group>"; };
+		D339E55F2BFD0FD800B9E35B /* AirplayButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AirplayButton.swift; sourceTree = "<group>"; };
+		D339E5602BFD0FD800B9E35B /* StationListCellView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StationListCellView.swift; sourceTree = "<group>"; };
+		D339E5612BFD0FD800B9E35B /* NowPlayingEqAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NowPlayingEqAnimation.swift; sourceTree = "<group>"; };
+		D339E5662BFD10AE00B9E35B /* StationListPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPage.swift; sourceTree = "<group>"; };
 		D3536A012BFA4F49006942D6 /* PlayolaRadio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PlayolaRadio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaRadioApp.swift; sourceTree = "<group>"; };
 		D3536A062BFA4F49006942D6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -83,6 +93,42 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D339E55A2BFD0CE200B9E35B /* Dependencies */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Dependencies;
+			sourceTree = "<group>";
+		};
+		D339E55B2BFD0CEE00B9E35B /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				D339E55D2BFD0FC200B9E35B /* Components */,
+				D339E55C2BFD0FB000B9E35B /* Pages */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		D339E55C2BFD0FB000B9E35B /* Pages */ = {
+			isa = PBXGroup;
+			children = (
+				D3536A062BFA4F49006942D6 /* ContentView.swift */,
+				D339E5662BFD10AE00B9E35B /* StationListPage.swift */,
+			);
+			path = Pages;
+			sourceTree = "<group>";
+		};
+		D339E55D2BFD0FC200B9E35B /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				D339E55F2BFD0FD800B9E35B /* AirplayButton.swift */,
+				D339E5612BFD0FD800B9E35B /* NowPlayingEqAnimation.swift */,
+				D339E55E2BFD0FD800B9E35B /* NowPlayingSmallView.swift */,
+				D339E5602BFD0FD800B9E35B /* StationListCellView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
 		D35369F82BFA4F49006942D6 = {
 			isa = PBXGroup;
 			children = (
@@ -106,9 +152,10 @@
 		D3536A032BFA4F49006942D6 /* PlayolaRadio */ = {
 			isa = PBXGroup;
 			children = (
+				D339E55A2BFD0CE200B9E35B /* Dependencies */,
 				D3536A392BFA6520006942D6 /* Extensions */,
 				D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */,
-				D3536A062BFA4F49006942D6 /* ContentView.swift */,
+				D339E55B2BFD0CEE00B9E35B /* Views */,
 				D3536A082BFA4F4A006942D6 /* Assets.xcassets */,
 				D3536A0A2BFA4F4A006942D6 /* Preview Content */,
 				D3536A312BFA64AB006942D6 /* Models.swift */,
@@ -290,10 +337,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
+				D339E5622BFD0FD800B9E35B /* NowPlayingSmallView.swift in Sources */,
+				D339E5652BFD0FD800B9E35B /* NowPlayingEqAnimation.swift in Sources */,
+				D339E5642BFD0FD800B9E35B /* StationListCellView.swift in Sources */,
 				D3536A322BFA64AB006942D6 /* Models.swift in Sources */,
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
+				D339E5632BFD0FD800B9E35B /* AirplayButton.swift in Sources */,
 				D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */,
 				D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */,
+				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
