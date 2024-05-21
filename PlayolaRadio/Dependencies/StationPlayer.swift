@@ -12,26 +12,6 @@ import MediaPlayer
 import Foundation
 import UIKit
 
-struct StationPlayerClient {
-  var subscribeToPlayerState: @Sendable () async -> AsyncStream<StationPlayer.State>
-  var subscribeToAlbumImageURL: @Sendable () async -> AsyncStream<URL?>
-  var playStation: @Sendable (RadioStation) -> Void
-}
-
-private enum StationPlayerKey: DependencyKey {
-  static let liveValue: StationPlayerClient = StationPlayerClient {
-    return AsyncStream<StationPlayer.State> { continuation in
-      let cancellable = StationPlayer.shared.$state.sink { continuation.yield($0) }
-      continuation.onTermination = { _ in cancellable.cancel() }
-    }
-  } subscribeToAlbumImageURL: {
-    return AsyncStream<URL?> { continuation in
-      let cancellable = StationPlayer.shared.$albumArtworkURL.sink { continuation.yield($0) }
-      continuation.onTermination = { _ in cancellable.cancel() }
-    }
-  } playStation: { station in StationPlayer.shared.set(station: station) }
-}
-
 class StationPlayer: ObservableObject {
   struct State: Sendable, Equatable {
     static func == (lhs: StationPlayer.State, rhs: StationPlayer.State) -> Bool {
