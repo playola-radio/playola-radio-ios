@@ -10,9 +10,14 @@ import SwiftUI
 
 @Reducer
 struct StationListReducer {
+  @Reducer(state: .equatable)
+  enum Destination {
+    case add(AboutPageReducer)
+  }
 
   @ObservableState
   struct State: Equatable {
+    @Presents var destination: Destination.State?
     @Presents var alert: AlertState<Action.Alert>?
     var isLoadingStationLists: Bool = false
     var isShowingSecretStations: Bool = false
@@ -25,6 +30,7 @@ struct StationListReducer {
     case viewAppeared
     case stationsListResponseReceived(Result<[StationList], Error>)
     case hamburgerButtonTapped
+    case destination(PresentationAction<Destination.Action>)
     case dismissAboutViewButtonTapped
     case stationPlayerStateDidChange(StationPlayer.State)
     case stationSelected(RadioStation)
@@ -39,9 +45,6 @@ struct StationListReducer {
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
-      case .alert(_):
-        return .none
-
       case .viewAppeared:
         state.isLoadingStationLists = true
         return .run { send in
@@ -69,9 +72,11 @@ struct StationListReducer {
         return .none
 
       case .hamburgerButtonTapped:
+        state.destination = .add(AboutPageReducer.State())
         return .none
 
       case .dismissAboutViewButtonTapped:
+        state.destination = nil
         return .none
 
       case .stationPlayerStateDidChange(let stationPlayerState):
@@ -84,6 +89,9 @@ struct StationListReducer {
         }
 
       case .alert(_):
+        return .none
+
+      case .destination(_):
         return .none
       }
     }
@@ -122,6 +130,31 @@ struct StationListPage: View {
     .navigationTitle(Text("Playola Radio"))
     .navigationBarTitleDisplayMode(.automatic)
     .navigationBarHidden(false)
+    .toolbar(content: {
+      ToolbarItem(placement: .topBarLeading) {
+        Image(systemName: "line.3.horizontal")
+          .foregroundColor(.white)
+          .onTapGesture {
+            self.store.send(.hamburgerButtonTapped)
+          }
+      }
+    })
+    .sheet(item: $store.scope(state: \.destination?.add, action: \.destination.add)) { store in
+              NavigationStack {
+                AboutPage(store: store)
+                  .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                      Button(action: { self.store.send(.dismissAboutViewButtonTapped) }) {
+                        Image(systemName: "xmark.circle.fill")
+                          .resizable()
+                          .frame(width: 32, height: 32)
+                          .foregroundColor(.gray)
+                          .padding(20)
+                      }
+                    }
+                    }
+                  }
+              }
     .onAppear {
       self.store.send(.viewAppeared)
     }
