@@ -12,9 +12,9 @@ import SwiftUI
 @Reducer
 struct AppReducer {
   struct State: Equatable {}
-
+  
   enum Action {}
-
+  
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       return .none
@@ -26,7 +26,7 @@ struct AppReducer {
 
 struct AppView: View {
   var store: StoreOf<AppReducer>
-
+  
   @MainActor
   init(store: StoreOf<AppReducer>) {
     self.store = store
@@ -34,14 +34,14 @@ struct AppView: View {
     UINavigationBar.appearance().tintColor = .white
     UINavigationBar.appearance().prefersLargeTitles = true
   }
-
-    var body: some View {
-        StationListPage(
-          store: Store(initialState: StationListReducer.State()) {
-            StationListReducer()
-          }
-        )
-    }
+  
+  var body: some View {
+    StationListPage(
+      store: Store(initialState: StationListReducer.State()) {
+        StationListReducer()
+      }
+    )
+  }
 }
 
 #Preview {

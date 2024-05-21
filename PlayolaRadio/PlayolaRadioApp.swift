@@ -21,7 +21,7 @@ struct PlayolaRadioApp: App {
       $0.defaultFileStorage = .inMemory
     }
   }
-
+  
   var body: some Scene {
     WindowGroup {
       if _XCTIsTesting {

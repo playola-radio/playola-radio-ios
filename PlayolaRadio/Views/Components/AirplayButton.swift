@@ -18,7 +18,7 @@ struct AirPlayView: UIViewRepresentable {
     routePickerView.tintColor = .gray
     return routePickerView
   }
-
+  
   func updateUIView(_ uiView: UIView, context: Context) {
   }
 }

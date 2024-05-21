@@ -18,13 +18,13 @@ extension APIClient: DependencyKey {
       return try await API.getStations()
     }
   }
-
+  
   static var previewValue: APIClient {
     return Self {
       return try await API.getStations()
     }
   }
-
+  
   static var testValue: APIClient {
     return Self {
       return StationList.mocks
@@ -33,8 +33,8 @@ extension APIClient: DependencyKey {
 }
 
 extension DependencyValues {
-    var apiClient: APIClient {
-        get { self[APIClient.self] }
-        set { self [APIClient.self] = newValue }
-    }
+  var apiClient: APIClient {
+    get { self[APIClient.self] }
+    set { self [APIClient.self] = newValue }
+  }
 }

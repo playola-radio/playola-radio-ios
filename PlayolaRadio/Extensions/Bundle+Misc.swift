@@ -7,15 +7,15 @@
 
 import Foundation
 extension Bundle {
-    var appName: String {
-        object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ??
-        object(forInfoDictionaryKey: "CFBundleName") as? String ??
-        ""
-    }
-    var releaseVersionNumber: String? {
-        return infoDictionary?["CFBundleShortVersionString"] as? String
-    }
-    var buildVersionNumber: String? {
-        return infoDictionary?["CFBundleVersion"] as? String
-    }
+  var appName: String {
+    object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ??
+    object(forInfoDictionaryKey: "CFBundleName") as? String ??
+    ""
+  }
+  var releaseVersionNumber: String? {
+    return infoDictionary?["CFBundleShortVersionString"] as? String
+  }
+  var buildVersionNumber: String? {
+    return infoDictionary?["CFBundleVersion"] as? String
+  }
 }
