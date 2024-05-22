@@ -8,19 +8,52 @@
 import ComposableArchitecture
 import SwiftUI
 
+
+
 @Reducer
 struct NowPlayingReducer {
+  static let placeholderImageURL = URL(string: "https://playola-static.s3.amazonaws.com/PlayolaBlankAlbumImage.png")!
+
   struct State: Equatable, Sendable {
+    var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackState: .stopped)
+    var albumArtworkURL: URL = NowPlayingReducer.placeholderImageURL
   }
 
   enum Action: Equatable, Sendable {
+    case viewAppeared
+    case stationsPlayerStateDidChange(StationPlayer.State)
+    case albumArtworkDidChange(URL?)
   }
 
-  @Dependency(\.uuid) var uuid
+  @Dependency(\.stationPlayer) var stationPlayer
 
   var body: some ReducerOf<Self> {
     Reduce { state, action in
-      return .none
+      switch action {
+      case let .stationsPlayerStateDidChange(stationPlayerState):
+        state.stationPlayerState = stationPlayerState
+        return .none
+      case .viewAppeared:
+        return .run { send in
+          await withTaskGroup(of: Void.self) { group in
+            group.addTask {
+              for await managerState in await self.stationPlayer.subscribeToPlayerState() {
+                await send(.stationsPlayerStateDidChange(managerState))
+              }
+            }
+            group.addTask {
+              for await url in await self.stationPlayer.subscribeToAlbumImageURL() {
+                await send(.albumArtworkDidChange(url))
+              }
+            }
+          }
+        }
+      case let .albumArtworkDidChange(albumArtworkURL):
+        state.albumArtworkURL = albumArtworkURL ??
+        state.stationPlayerState.currentStation?.processedImageURL() ??
+        NowPlayingReducer.placeholderImageURL
+        return .none
+      }
     }
   }
 }
@@ -65,6 +98,9 @@ struct NowPlayingPage: View {
     .foregroundColor(.white)
     .accentColor(.white)
     .navigationBarTitleDisplayMode(.inline)
+    .onAppear {
+      store.send(.viewAppeared)
+    }
   }
 }
 
