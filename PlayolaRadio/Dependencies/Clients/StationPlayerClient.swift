@@ -12,6 +12,7 @@ struct StationPlayerClient {
   var subscribeToPlayerState: @Sendable () async -> AsyncStream<StationPlayer.State>
   var subscribeToAlbumImageURL: @Sendable () async -> AsyncStream<URL?>
   var playStation: @Sendable (RadioStation) -> Void
+  var stopStation: @Sendable () -> Void
 }
 
 private enum StationPlayerKey: DependencyKey {
@@ -25,7 +26,8 @@ private enum StationPlayerKey: DependencyKey {
       let cancellable = StationPlayer.shared.$albumArtworkURL.sink { continuation.yield($0) }
       continuation.onTermination = { _ in cancellable.cancel() }
     }
-  } playStation: { station in StationPlayer.shared.set(station: station) }
+  } playStation: { station in StationPlayer.shared.set(station: station)
+  } stopStation: { StationPlayer.shared.set(station: nil) }
 }
 
 extension DependencyValues {
