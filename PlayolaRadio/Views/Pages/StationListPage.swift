@@ -14,7 +14,7 @@ struct StationListReducer {
   enum Destination {
     case add(AboutPageReducer)
   }
-
+  
   @ObservableState
   struct State: Equatable {
     @Presents var destination: Destination.State?
@@ -24,7 +24,7 @@ struct StationListReducer {
     var stationLists: IdentifiedArrayOf<StationList> = []
     var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackState: .stopped)
   }
-
+  
   enum Action {
     case alert(PresentationAction<Alert>)
     case viewAppeared
@@ -34,14 +34,14 @@ struct StationListReducer {
     case dismissAboutViewButtonTapped
     case stationPlayerStateDidChange(StationPlayer.State)
     case stationSelected(RadioStation)
-
+    
     @CasePathable
     enum Alert: Equatable {}
   }
-
+  
   @Dependency(\.apiClient) var apiClient
   @Dependency(\.stationPlayer) var stationPlayer
-
+  
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
@@ -59,38 +59,38 @@ struct StationListReducer {
             }
           }
         }
-
+        
       case .stationsListResponseReceived(.success(let stationLists)):
         state.isLoadingStationLists = false
         let stationLists = stationLists.filter { state.isShowingSecretStations ? true : $0.id != "in_development" }
         state.stationLists = IdentifiedArray(uniqueElements: stationLists)
         return .none
-
+        
       case .stationsListResponseReceived(.failure):
         state.isLoadingStationLists = false
         state.alert = .stationListLoadFailure
         return .none
-
+        
       case .hamburgerButtonTapped:
         state.destination = .add(AboutPageReducer.State())
         return .none
-
+        
       case .dismissAboutViewButtonTapped:
         state.destination = nil
         return .none
-
+        
       case .stationPlayerStateDidChange(let stationPlayerState):
         state.stationPlayerState = stationPlayerState
         return .none
-
+        
       case .stationSelected(let station):
         return .run { send in
           self.stationPlayer.playStation(station)
         }
-
+        
       case .alert(_):
         return .none
-
+        
       case .destination(_):
         return .none
       }
@@ -100,13 +100,13 @@ struct StationListReducer {
 
 struct StationListPage: View {
   @Bindable var store: StoreOf<StationListReducer>
-
+  
   var body: some View {
     ZStack {
       Image("background")
         .resizable()
         .edgesIgnoringSafeArea(.all)
-
+      
       VStack {
         List {
           ForEach(store.stationLists.filter { $0.stations.count > 0 }) { stationList in
@@ -127,8 +127,8 @@ struct StationListPage: View {
           .background(.clear)
         
         NowPlayingSmallView(metadata: store.stationPlayerState.nowPlaying, stationName: store.stationPlayerState.currentStation?.name)
-            .edgesIgnoringSafeArea(.bottom)
-            .padding(.bottom, 5)
+          .edgesIgnoringSafeArea(.bottom)
+          .padding(.bottom, 5)
       }
     }
     .navigationTitle(Text("Playola Radio"))
@@ -146,7 +146,7 @@ struct StationListPage: View {
         ToolbarItem(placement: .topBarTrailing) {
           Image("btn-nowPlaying")
             .foregroundColor(.white)
-
+          
         }
       }
     })
