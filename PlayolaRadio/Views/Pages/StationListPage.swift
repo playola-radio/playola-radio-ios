@@ -125,6 +125,10 @@ struct StationListPage: View {
         }.listStyle(.grouped)
           .scrollContentBackground(.hidden)
           .background(.clear)
+        
+        NowPlayingSmallView(metadata: store.stationPlayerState.nowPlaying, stationName: store.stationPlayerState.currentStation?.name)
+          .edgesIgnoringSafeArea(.bottom)
+          .padding(.bottom, 5)
       }
     }
     .navigationTitle(Text("Playola Radio"))
@@ -137,6 +141,13 @@ struct StationListPage: View {
           .onTapGesture {
             self.store.send(.hamburgerButtonTapped)
           }
+      }
+      if store.stationPlayerState.currentStation != nil {
+        ToolbarItem(placement: .topBarTrailing) {
+          Image("btn-nowPlaying")
+            .foregroundColor(.white)
+          
+        }
       }
     })
     .sheet(item: $store.scope(state: \.destination?.add, action: \.destination.add)) { store in
