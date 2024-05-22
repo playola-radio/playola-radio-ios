@@ -124,5 +124,7 @@ final class NowPlayingPageTests: XCTestCase {
 
     await monitorStationStoreTask.cancel()
   }
+
+  // TODO: Test that stop is called on stationPlayer on .playButtonTapped action
 }
 
