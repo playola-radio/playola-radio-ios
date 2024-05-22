@@ -22,8 +22,6 @@ struct AppReducer {
   }
 }
 
-
-
 struct AppView: View {
   var store: StoreOf<AppReducer>
   
@@ -36,11 +34,13 @@ struct AppView: View {
   }
   
   var body: some View {
-    StationListPage(
-      store: Store(initialState: StationListReducer.State()) {
-        StationListReducer()
-      }
-    )
+    NavigationStack {
+      StationListPage(
+        store: Store(initialState: StationListReducer.State()) {
+          StationListReducer()
+        }
+      )
+    }
   }
 }
 
