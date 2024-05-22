@@ -34,7 +34,7 @@ final class AboutPageTests: XCTestCase {
   // TODO: Test OpensURL
 
   @MainActor
-  func testOpensURLWhenMailComposerIsNotAvailable() async {
+  func testShowsAlertWhenWaitlistWhenNoMailOptionWorkedforFeedback() async {
     let store = TestStore(initialState: AboutPageReducer.State()) {
       AboutPageReducer()
     } withDependencies: {
@@ -74,7 +74,7 @@ final class AboutPageTests: XCTestCase {
   // TODO: Test OpensURL
 
   @MainActor
-  func testOpensURLForWaitlistWhenMailComposerIsNotAvailable() async {
+  func testShowsAlertWhenWaitlistWhenNoMailOptionWorkedforWaitingList() async {
     let store = TestStore(initialState: AboutPageReducer.State()) {
       AboutPageReducer()
     } withDependencies: {
