@@ -34,8 +34,17 @@ struct NowPlayingReducer {
     case playolaIconTapped
     case dismissAboutViewButtonTapped
     case destination(PresentationAction<Destination.Action>)
-  }
+    case showStationDetailButtonTapped
+    case path(StackAction<StationDetailReducer.State, StationDetailReducer.Action>)
 
+    case delegate(Delegate)
+
+    enum Delegate {
+      case pushStationDetailOntoNavStack(RadioStation)
+    }
+  }
+  
+  @Dependency(\.dismiss) var dismiss
   @Dependency(\.stationPlayer) var stationPlayer
 
   var body: some ReducerOf<Self> {
@@ -67,7 +76,9 @@ struct NowPlayingReducer {
 
       case .playButtonTapped:
         stationPlayer.stopStation()
-        return .none
+        return .run { _ in
+          await self.dismiss()
+        }
 
       case .playolaIconTapped:
         state.destination = .add(AboutPageReducer.State())
@@ -77,10 +88,27 @@ struct NowPlayingReducer {
         state.destination = nil
         return .none
 
+      case .showStationDetailButtonTapped:
+        if let station = state.stationPlayerState.currentStation {
+          return .run { send in
+            print("sending action")
+            await send(.delegate(.pushStationDetailOntoNavStack(station)))
+          }
+        }
+        return .none
+
+
       case .destination(_):
+        return .none
+
+      case .path(_):
+          return .none
+
+      case .delegate(_):
         return .none
       }
     }
+    
   }
 }
 
@@ -89,18 +117,20 @@ struct NowPlayingPage: View {
 
   var body: some View {
     ZStack {
-      Color.black
+      Image("background")
+        .resizable()
         .edgesIgnoringSafeArea(.all)
 
       VStack {
-        AsyncImage(url: store.albumArtworkURL)
-        { result in
-          result.image?
+        AsyncImage(url: store.albumArtworkURL) { image in
+          image
             .resizable()
             .scaledToFill()
-            .frame(width: 274, height: 274)
             .padding(.top, 35)
+        } placeholder: {
+          Image("AppIcon")
         }
+        .frame(width: 274, height: 274)
 
         HStack(spacing: 12) {
 //              Image("btn-previous")
@@ -157,7 +187,7 @@ struct NowPlayingPage: View {
                 .padding(.bottom, 4)
             })
 
-            Button(action: {}, label: {
+            Button(action: { store.send(.showStationDetailButtonTapped)}, label: {
               Image(systemName: "info.circle")
                 .resizable()
                 .foregroundColor(Color(hex: "#7F7F7F"))

@@ -125,6 +125,7 @@ final class NowPlayingPageTests: XCTestCase {
     await monitorStationStoreTask.cancel()
   }
 
-  // TODO: Test that stop is called on stationPlayer on .playButtonTapped action
+  // TODO: Test that stop is called on stationPlayer and dimsiss() is called on .playButtonTapped action
+
 }
 

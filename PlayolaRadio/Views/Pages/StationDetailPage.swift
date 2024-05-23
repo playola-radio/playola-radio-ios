@@ -12,16 +12,24 @@ import SwiftUI
 struct StationDetailReducer {
 
   @ObservableState
-  struct State {
+  struct State: Equatable {
     var station: RadioStation
   }
 
   enum Action {
+    case dismissButtonTapped
   }
+
+  @Dependency(\.dismiss) var dismiss
 
   var body: some ReducerOf<Self> {
     Reduce { state, action in
-      return .none
+      switch action {
+      case .dismissButtonTapped:
+        return .run { _ in
+          await self.dismiss()
+        }
+      }
     }
   }
 }
@@ -61,7 +69,7 @@ struct StationDetailPage: View {
 
         Spacer()
 
-        Button(action: {}) {
+        Button(action: { store.send(.dismissButtonTapped) }) {
           Text("Okay")
             .frame(maxWidth: .infinity)
         }
@@ -70,6 +78,7 @@ struct StationDetailPage: View {
       }
       .padding()
     }
+    .foregroundStyle(.white)
   }
 }
 
@@ -78,7 +87,6 @@ struct StationDetailPage: View {
     StationDetailPage(store: Store(initialState: StationDetailReducer.State(station: .mock), reducer: {
       StationDetailReducer()
     }))
-    .foregroundStyle(.white)
   }
 
 }
