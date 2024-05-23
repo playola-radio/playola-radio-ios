@@ -12,7 +12,7 @@ import SwiftUI
 struct StationDetailReducer {
 
   @ObservableState
-  struct State {
+  struct State: Equatable {
     var station: RadioStation
   }
 

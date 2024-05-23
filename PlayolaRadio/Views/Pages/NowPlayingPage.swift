@@ -34,6 +34,14 @@ struct NowPlayingReducer {
     case playolaIconTapped
     case dismissAboutViewButtonTapped
     case destination(PresentationAction<Destination.Action>)
+    case showStationDetailButtonTapped
+    case path(StackAction<StationDetailReducer.State, StationDetailReducer.Action>)
+
+    case delegate(Delegate)
+
+    enum Delegate {
+      case pushStationDetailOntoNavStack(RadioStation)
+    }
   }
 
   @Dependency(\.stationPlayer) var stationPlayer
@@ -77,10 +85,27 @@ struct NowPlayingReducer {
         state.destination = nil
         return .none
 
+      case .showStationDetailButtonTapped:
+        if let station = state.stationPlayerState.currentStation {
+          return .run { send in
+            print("sending action")
+            await send(.delegate(.pushStationDetailOntoNavStack(station)))
+          }
+        }
+        return .none
+
+
       case .destination(_):
+        return .none
+
+      case .path(_):
+          return .none
+
+      case .delegate(_):
         return .none
       }
     }
+    
   }
 }
 
@@ -157,7 +182,7 @@ struct NowPlayingPage: View {
                 .padding(.bottom, 4)
             })
 
-            Button(action: {}, label: {
+            Button(action: { store.send(.showStationDetailButtonTapped)}, label: {
               Image(systemName: "info.circle")
                 .resizable()
                 .foregroundColor(Color(hex: "#7F7F7F"))
