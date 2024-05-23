@@ -34,9 +34,17 @@ struct StationListReducer {
     case dismissAboutViewButtonTapped
     case stationPlayerStateDidChange(StationPlayer.State)
     case stationSelected(RadioStation)
-    
+
+    case path(StackAction<NowPlayingReducer.State, NowPlayingReducer.Action>)
+
     @CasePathable
     enum Alert: Equatable {}
+
+    case delegate(Delegate)
+
+    enum Delegate {
+      case pushNowPlayingOntoNavStack
+    }
   }
   
   @Dependency(\.apiClient) var apiClient
@@ -86,12 +94,19 @@ struct StationListReducer {
       case .stationSelected(let station):
         return .run { send in
           self.stationPlayer.playStation(station)
+          await send(.delegate(.pushNowPlayingOntoNavStack))
         }
         
       case .alert(_):
         return .none
         
       case .destination(_):
+        return .none
+
+      case .path(_):
+        return .none
+
+      case .delegate(_):
         return .none
       }
     }
