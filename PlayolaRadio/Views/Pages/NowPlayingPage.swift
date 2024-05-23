@@ -43,7 +43,8 @@ struct NowPlayingReducer {
       case pushStationDetailOntoNavStack(RadioStation)
     }
   }
-
+  
+  @Dependency(\.dismiss) var dismiss
   @Dependency(\.stationPlayer) var stationPlayer
 
   var body: some ReducerOf<Self> {
@@ -75,7 +76,9 @@ struct NowPlayingReducer {
 
       case .playButtonTapped:
         stationPlayer.stopStation()
-        return .none
+        return .run { _ in
+          await self.dismiss()
+        }
 
       case .playolaIconTapped:
         state.destination = .add(AboutPageReducer.State())
@@ -114,18 +117,20 @@ struct NowPlayingPage: View {
 
   var body: some View {
     ZStack {
-      Color.black
+      Image("background")
+        .resizable()
         .edgesIgnoringSafeArea(.all)
 
       VStack {
-        AsyncImage(url: store.albumArtworkURL)
-        { result in
-          result.image?
+        AsyncImage(url: store.albumArtworkURL) { image in
+          image
             .resizable()
             .scaledToFill()
-            .frame(width: 274, height: 274)
             .padding(.top, 35)
+        } placeholder: {
+          Image("AppIcon")
         }
+        .frame(width: 274, height: 274)
 
         HStack(spacing: 12) {
 //              Image("btn-previous")

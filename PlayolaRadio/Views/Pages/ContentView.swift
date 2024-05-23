@@ -40,9 +40,6 @@ struct AppReducer {
     Reduce { state, action in
       switch action {
 
-      case let .element(id: _, action: .nowPlaying(.delegate(.pushStationDetailOntoNavStack(station)))):
-
-
       case .stationListReducer(.delegate(.pushNowPlayingOntoNavStack)):
         state.path.append(.nowPlaying(NowPlayingReducer.State()))
         return .none
@@ -57,8 +54,16 @@ struct AppReducer {
       case .nowPlayingReducer(_):
         return .none
 
-      case .path:
-        return .none
+      case let .path(action):
+        switch action {
+        case let .element(id: _, action: .nowPlaying(.delegate(.pushStationDetailOntoNavStack(station)))):
+          state.path.append(.stationDetail(StationDetailReducer.State(station: station)))
+          return .none
+
+        default:
+          return .none
+        }
+
       }
     }
     .forEach(\.path, action: \.path)
