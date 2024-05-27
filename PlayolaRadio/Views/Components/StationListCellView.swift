@@ -36,6 +36,7 @@ struct StationListCellView: View {
       Spacer()
     }
     .frame(height: 90)
+    .contentShape(Rectangle())
   }
 }
 
