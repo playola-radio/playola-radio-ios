@@ -17,6 +17,7 @@ struct NowPlayingReducer {
   @Reducer(state: .equatable)
   enum Destination {
     case add(AboutPageReducer)
+    case dismiss
   }
 
   @ObservableState
@@ -97,6 +98,12 @@ struct NowPlayingReducer {
         }
         return .none
 
+      case .destination(.dismiss):
+        state.destination = nil
+        return .none
+
+      case .destination(_):
+        return .none
 
       case .destination(_):
         return .none

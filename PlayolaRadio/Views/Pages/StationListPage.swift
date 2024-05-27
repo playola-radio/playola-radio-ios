@@ -34,6 +34,7 @@ struct StationListReducer {
     case dismissAboutViewButtonTapped
     case stationPlayerStateDidChange(StationPlayer.State)
     case stationSelected(RadioStation)
+    case nowPlayingButtonTapped
 
     case path(StackAction<NowPlayingReducer.State, NowPlayingReducer.Action>)
 
@@ -87,6 +88,14 @@ struct StationListReducer {
         state.destination = nil
         return .none
         
+      case .nowPlayingButtonTapped:
+        if let station = state.stationPlayerState.currentStation {
+          return .run { send in
+            await send(.delegate(.pushNowPlayingOntoNavStack))
+          }
+        }
+        return .none
+
       case .stationPlayerStateDidChange(let stationPlayerState):
         state.stationPlayerState = stationPlayerState
         return .none
@@ -99,7 +108,11 @@ struct StationListReducer {
         
       case .alert(_):
         return .none
-        
+
+      case .destination(.dismiss):
+        state.destination = nil
+        return .none
+
       case .destination(_):
         return .none
 
@@ -144,6 +157,9 @@ struct StationListPage: View {
         NowPlayingSmallView(metadata: store.stationPlayerState.nowPlaying, stationName: store.stationPlayerState.currentStation?.name)
           .edgesIgnoringSafeArea(.bottom)
           .padding(.bottom, 5)
+          .onTapGesture {
+            store.send(.nowPlayingButtonTapped)
+          }
       }
     }
     .navigationTitle(Text("Playola Radio"))
@@ -157,11 +173,13 @@ struct StationListPage: View {
             self.store.send(.hamburgerButtonTapped)
           }
       }
-      if store.stationPlayerState.currentStation != nil {
+      if let station = store.stationPlayerState.currentStation {
         ToolbarItem(placement: .topBarTrailing) {
           Image("btn-nowPlaying")
             .foregroundColor(.white)
-          
+            .onTapGesture {
+              store.send(.nowPlayingButtonTapped)
+            }
         }
       }
     })

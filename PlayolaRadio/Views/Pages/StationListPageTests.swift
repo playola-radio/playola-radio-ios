@@ -123,4 +123,7 @@ final class StationListPageTests: XCTestCase {
       $0.destination = nil
     }
   }
+
+  // TODO: Test NowPlaying pushed onto navigation stack when nowPlaying tapped
+  // TODO: Test NowPlaying pushed on to navigation stack & stationPlayer.Play() called when station selected
 }
