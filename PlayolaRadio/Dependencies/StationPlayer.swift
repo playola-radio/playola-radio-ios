@@ -45,8 +45,45 @@ class StationPlayer: ObservableObject {
   
   init() {
     player.addObserver(self)
+    setupRemoteCommandCenter()
   }
-  
+
+  private func setupRemoteCommandCenter() {
+    // Get the shared MPRemoteCommandCenter
+    let commandCenter = MPRemoteCommandCenter.shared()
+
+    // Add handler for Play Command
+    commandCenter.playCommand.addTarget { event in
+        FRadioPlayer.shared.play()
+        return .success
+    }
+
+    // Add handler for Pause Command
+    commandCenter.pauseCommand.addTarget { event in
+        FRadioPlayer.shared.pause()
+        return .success
+    }
+
+    // Add handler for Toggle Command
+    commandCenter.togglePlayPauseCommand.addTarget { event in
+        FRadioPlayer.shared.togglePlaying()
+        return .success
+    }
+
+    // TODO: Add next and previous (need to find a way to determine what these are)
+//    // Add handler for Next Command
+//    commandCenter.nextTrackCommand.addTarget { event in
+//        StationPlayer.shared.setNext()
+//        return .success
+//    }
+//
+//    // Add handler for Previous Command
+//    commandCenter.previousTrackCommand.addTarget { event in
+//        StationPlayer.shared.setPrevious()
+//        return .success
+//    }
+}
+
   func fetch(completion: (([StationList]) -> ())? = nil) {
     completion?([])
   }

@@ -38,6 +38,10 @@
 		D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A362BFA6520006942D6 /* Bundle+Misc.swift */; };
 		D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A372BFA6520006942D6 /* Color+Hex.swift */; };
 		D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A382BFA6520006942D6 /* UIImage+Cache.swift */; };
+		D3D687862D14BDD600881D2C /* PlayolaPlayerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687852D14BDD600881D2C /* PlayolaPlayerClient.swift */; };
+		D3D6878A2D14BEC500881D2C /* RemoteFilePriorityLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687892D14BEC500881D2C /* RemoteFilePriorityLevel.swift */; };
+		D3D6878C2D14BEE400881D2C /* RemoteFileDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6878B2D14BEE400881D2C /* RemoteFileDownloader.swift */; };
+		D3D6878F2D14BFB300881D2C /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D3D6878E2D14BFB300881D2C /* Alamofire */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,6 +62,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D3162F942C0526E7007BA25C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D339E55E2BFD0FD800B9E35B /* NowPlayingSmallView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NowPlayingSmallView.swift; sourceTree = "<group>"; };
 		D339E55F2BFD0FD800B9E35B /* AirplayButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AirplayButton.swift; sourceTree = "<group>"; };
 		D339E5602BFD0FD800B9E35B /* StationListCellView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StationListCellView.swift; sourceTree = "<group>"; };
@@ -90,6 +95,9 @@
 		D3536A362BFA6520006942D6 /* Bundle+Misc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Bundle+Misc.swift"; sourceTree = "<group>"; };
 		D3536A372BFA6520006942D6 /* Color+Hex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
 		D3536A382BFA6520006942D6 /* UIImage+Cache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImage+Cache.swift"; sourceTree = "<group>"; };
+		D3D687852D14BDD600881D2C /* PlayolaPlayerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaPlayerClient.swift; sourceTree = "<group>"; };
+		D3D687892D14BEC500881D2C /* RemoteFilePriorityLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFilePriorityLevel.swift; sourceTree = "<group>"; };
+		D3D6878B2D14BEE400881D2C /* RemoteFileDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFileDownloader.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +105,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3D6878F2D14BFB300881D2C /* Alamofire in Frameworks */,
 				D3536A352BFA64DC006942D6 /* FRadioPlayer in Frameworks */,
 				D3536A302BFA5523006942D6 /* ComposableArchitecture in Frameworks */,
 			);
@@ -171,6 +180,7 @@
 				D339E5702BFD322F00B9E35B /* StationPlayerClient.swift */,
 				D339E5732BFD32C600B9E35B /* APIClient.swift */,
 				D339E57D2BFD750700B9E35B /* MailClient.swift */,
+				D3D687852D14BDD600881D2C /* PlayolaPlayerClient.swift */,
 			);
 			path = Clients;
 			sourceTree = "<group>";
@@ -198,6 +208,8 @@
 		D3536A032BFA4F49006942D6 /* PlayolaRadio */ = {
 			isa = PBXGroup;
 			children = (
+				D3D687872D14BDEF00881D2C /* Libraries */,
+				D3162F942C0526E7007BA25C /* Info.plist */,
 				D339E55A2BFD0CE200B9E35B /* Dependencies */,
 				D3536A392BFA6520006942D6 /* Extensions */,
 				D339E55B2BFD0CEE00B9E35B /* Views */,
@@ -245,6 +257,23 @@
 			path = Extensions;
 			sourceTree = "<group>";
 		};
+		D3D687872D14BDEF00881D2C /* Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				D3D687882D14BEA700881D2C /* SwiftRemoteFileCache */,
+			);
+			path = Libraries;
+			sourceTree = "<group>";
+		};
+		D3D687882D14BEA700881D2C /* SwiftRemoteFileCache */ = {
+			isa = PBXGroup;
+			children = (
+				D3D687892D14BEC500881D2C /* RemoteFilePriorityLevel.swift */,
+				D3D6878B2D14BEE400881D2C /* RemoteFileDownloader.swift */,
+			);
+			path = SwiftRemoteFileCache;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -264,6 +293,7 @@
 			packageProductDependencies = (
 				D3536A2F2BFA5523006942D6 /* ComposableArchitecture */,
 				D3536A342BFA64DC006942D6 /* FRadioPlayer */,
+				D3D6878E2D14BFB300881D2C /* Alamofire */,
 			);
 			productName = PlayolaRadio;
 			productReference = D3536A012BFA4F49006942D6 /* PlayolaRadio.app */;
@@ -340,6 +370,7 @@
 			packageReferences = (
 				D3536A2E2BFA5523006942D6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				D3536A332BFA64DC006942D6 /* XCRemoteSwiftPackageReference "FRadioPlayer" */,
+				D3D6878D2D14BFB300881D2C /* XCRemoteSwiftPackageReference "Alamofire" */,
 			);
 			productRefGroup = D3536A022BFA4F49006942D6 /* Products */;
 			projectDirPath = "";
@@ -383,10 +414,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3D6878C2D14BEE400881D2C /* RemoteFileDownloader.swift in Sources */,
 				D339E5712BFD322F00B9E35B /* StationPlayerClient.swift in Sources */,
+				D3D6878A2D14BEC500881D2C /* RemoteFilePriorityLevel.swift in Sources */,
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
 				D339E5622BFD0FD800B9E35B /* NowPlayingSmallView.swift in Sources */,
 				D339E5742BFD32C600B9E35B /* APIClient.swift in Sources */,
+				D3D687862D14BDD600881D2C /* PlayolaPlayerClient.swift in Sources */,
 				D339E5802BFE57D600B9E35B /* NowPlayingPage.swift in Sources */,
 				D339E5842BFE9B6000B9E35B /* StationDetailPage.swift in Sources */,
 				D339E5652BFD0FD800B9E35B /* NowPlayingEqAnimation.swift in Sources */,
@@ -577,6 +611,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -610,6 +645,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -764,6 +800,14 @@
 				kind = branch;
 			};
 		};
+		D3D6878D2D14BFB300881D2C /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.10.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -776,6 +820,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D3536A332BFA64DC006942D6 /* XCRemoteSwiftPackageReference "FRadioPlayer" */;
 			productName = FRadioPlayer;
+		};
+		D3D6878E2D14BFB300881D2C /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3D6878D2D14BFB300881D2C /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
