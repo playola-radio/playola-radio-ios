@@ -42,6 +42,7 @@
 		D3D6878A2D14BEC500881D2C /* RemoteFilePriorityLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687892D14BEC500881D2C /* RemoteFilePriorityLevel.swift */; };
 		D3D6878C2D14BEE400881D2C /* RemoteFileDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6878B2D14BEE400881D2C /* RemoteFileDownloader.swift */; };
 		D3D6878F2D14BFB300881D2C /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D3D6878E2D14BFB300881D2C /* Alamofire */; };
+		D3D687912D14C20500881D2C /* RemoteFileCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687902D14C20500881D2C /* RemoteFileCacheManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -98,6 +99,7 @@
 		D3D687852D14BDD600881D2C /* PlayolaPlayerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaPlayerClient.swift; sourceTree = "<group>"; };
 		D3D687892D14BEC500881D2C /* RemoteFilePriorityLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFilePriorityLevel.swift; sourceTree = "<group>"; };
 		D3D6878B2D14BEE400881D2C /* RemoteFileDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFileDownloader.swift; sourceTree = "<group>"; };
+		D3D687902D14C20500881D2C /* RemoteFileCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFileCacheManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -270,6 +272,7 @@
 			children = (
 				D3D687892D14BEC500881D2C /* RemoteFilePriorityLevel.swift */,
 				D3D6878B2D14BEE400881D2C /* RemoteFileDownloader.swift */,
+				D3D687902D14C20500881D2C /* RemoteFileCacheManager.swift */,
 			);
 			path = SwiftRemoteFileCache;
 			sourceTree = "<group>";
@@ -421,6 +424,7 @@
 				D339E5622BFD0FD800B9E35B /* NowPlayingSmallView.swift in Sources */,
 				D339E5742BFD32C600B9E35B /* APIClient.swift in Sources */,
 				D3D687862D14BDD600881D2C /* PlayolaPlayerClient.swift in Sources */,
+				D3D687912D14C20500881D2C /* RemoteFileCacheManager.swift in Sources */,
 				D339E5802BFE57D600B9E35B /* NowPlayingPage.swift in Sources */,
 				D339E5842BFE9B6000B9E35B /* StationDetailPage.swift in Sources */,
 				D339E5652BFD0FD800B9E35B /* NowPlayingEqAnimation.swift in Sources */,
