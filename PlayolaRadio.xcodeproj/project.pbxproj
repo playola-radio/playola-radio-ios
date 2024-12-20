@@ -43,6 +43,11 @@
 		D3D6878C2D14BEE400881D2C /* RemoteFileDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6878B2D14BEE400881D2C /* RemoteFileDownloader.swift */; };
 		D3D6878F2D14BFB300881D2C /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D3D6878E2D14BFB300881D2C /* Alamofire */; };
 		D3D687912D14C20500881D2C /* RemoteFileCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687902D14C20500881D2C /* RemoteFileCacheManager.swift */; };
+		D3D687942D14C54700881D2C /* PAPSpin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687932D14C54700881D2C /* PAPSpin.swift */; };
+		D3D687962D14C5AB00881D2C /* Date+Comparisons.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687952D14C5AB00881D2C /* Date+Comparisons.swift */; };
+		D3D687982D14C66700881D2C /* PlayolaStationPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687972D14C66700881D2C /* PlayolaStationPlayer.swift */; };
+		D3D6879A2D15E59D00881D2C /* PlayolaMainMixer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687992D15E59D00881D2C /* PlayolaMainMixer.swift */; };
+		D3D6879C2D15E66700881D2C /* PAPSpinPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6879B2D15E66700881D2C /* PAPSpinPlayer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -100,6 +105,11 @@
 		D3D687892D14BEC500881D2C /* RemoteFilePriorityLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFilePriorityLevel.swift; sourceTree = "<group>"; };
 		D3D6878B2D14BEE400881D2C /* RemoteFileDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFileDownloader.swift; sourceTree = "<group>"; };
 		D3D687902D14C20500881D2C /* RemoteFileCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFileCacheManager.swift; sourceTree = "<group>"; };
+		D3D687932D14C54700881D2C /* PAPSpin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PAPSpin.swift; sourceTree = "<group>"; };
+		D3D687952D14C5AB00881D2C /* Date+Comparisons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Comparisons.swift"; sourceTree = "<group>"; };
+		D3D687972D14C66700881D2C /* PlayolaStationPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaStationPlayer.swift; sourceTree = "<group>"; };
+		D3D687992D15E59D00881D2C /* PlayolaMainMixer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaMainMixer.swift; sourceTree = "<group>"; };
+		D3D6879B2D15E66700881D2C /* PAPSpinPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PAPSpinPlayer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -179,6 +189,7 @@
 		D339E5722BFD32A100B9E35B /* Clients */ = {
 			isa = PBXGroup;
 			children = (
+				D3D687922D14C52B00881D2C /* PlayolaPlayer */,
 				D339E5702BFD322F00B9E35B /* StationPlayerClient.swift */,
 				D339E5732BFD32C600B9E35B /* APIClient.swift */,
 				D339E57D2BFD750700B9E35B /* MailClient.swift */,
@@ -255,6 +266,7 @@
 				D3536A372BFA6520006942D6 /* Color+Hex.swift */,
 				D3536A382BFA6520006942D6 /* UIImage+Cache.swift */,
 				D339E56E2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift */,
+				D3D687952D14C5AB00881D2C /* Date+Comparisons.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -275,6 +287,17 @@
 				D3D687902D14C20500881D2C /* RemoteFileCacheManager.swift */,
 			);
 			path = SwiftRemoteFileCache;
+			sourceTree = "<group>";
+		};
+		D3D687922D14C52B00881D2C /* PlayolaPlayer */ = {
+			isa = PBXGroup;
+			children = (
+				D3D687932D14C54700881D2C /* PAPSpin.swift */,
+				D3D687972D14C66700881D2C /* PlayolaStationPlayer.swift */,
+				D3D687992D15E59D00881D2C /* PlayolaMainMixer.swift */,
+				D3D6879B2D15E66700881D2C /* PAPSpinPlayer.swift */,
+			);
+			path = PlayolaPlayer;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -423,12 +446,17 @@
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
 				D339E5622BFD0FD800B9E35B /* NowPlayingSmallView.swift in Sources */,
 				D339E5742BFD32C600B9E35B /* APIClient.swift in Sources */,
+				D3D6879C2D15E66700881D2C /* PAPSpinPlayer.swift in Sources */,
 				D3D687862D14BDD600881D2C /* PlayolaPlayerClient.swift in Sources */,
 				D3D687912D14C20500881D2C /* RemoteFileCacheManager.swift in Sources */,
 				D339E5802BFE57D600B9E35B /* NowPlayingPage.swift in Sources */,
 				D339E5842BFE9B6000B9E35B /* StationDetailPage.swift in Sources */,
+				D3D6879A2D15E59D00881D2C /* PlayolaMainMixer.swift in Sources */,
 				D339E5652BFD0FD800B9E35B /* NowPlayingEqAnimation.swift in Sources */,
+				D3D687942D14C54700881D2C /* PAPSpin.swift in Sources */,
 				D339E57E2BFD750700B9E35B /* MailClient.swift in Sources */,
+				D3D687962D14C5AB00881D2C /* Date+Comparisons.swift in Sources */,
+				D3D687982D14C66700881D2C /* PlayolaStationPlayer.swift in Sources */,
 				D339E56F2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift in Sources */,
 				D339E5642BFD0FD800B9E35B /* StationListCellView.swift in Sources */,
 				D339E57C2BFD698600B9E35B /* Mail.swift in Sources */,
