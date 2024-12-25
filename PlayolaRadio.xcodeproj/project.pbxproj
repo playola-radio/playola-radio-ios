@@ -38,6 +38,7 @@
 		D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A362BFA6520006942D6 /* Bundle+Misc.swift */; };
 		D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A372BFA6520006942D6 /* Color+Hex.swift */; };
 		D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A382BFA6520006942D6 /* UIImage+Cache.swift */; };
+		D381D57B2D1B86470086F8DB /* AudioBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D381D57A2D1B863F0086F8DB /* AudioBlock.swift */; };
 		D3D687862D14BDD600881D2C /* PlayolaPlayerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687852D14BDD600881D2C /* PlayolaPlayerClient.swift */; };
 		D3D6878A2D14BEC500881D2C /* RemoteFilePriorityLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687892D14BEC500881D2C /* RemoteFilePriorityLevel.swift */; };
 		D3D6878C2D14BEE400881D2C /* RemoteFileDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6878B2D14BEE400881D2C /* RemoteFileDownloader.swift */; };
@@ -101,6 +102,7 @@
 		D3536A362BFA6520006942D6 /* Bundle+Misc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Bundle+Misc.swift"; sourceTree = "<group>"; };
 		D3536A372BFA6520006942D6 /* Color+Hex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
 		D3536A382BFA6520006942D6 /* UIImage+Cache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImage+Cache.swift"; sourceTree = "<group>"; };
+		D381D57A2D1B863F0086F8DB /* AudioBlock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioBlock.swift; sourceTree = "<group>"; };
 		D3D687852D14BDD600881D2C /* PlayolaPlayerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaPlayerClient.swift; sourceTree = "<group>"; };
 		D3D687892D14BEC500881D2C /* RemoteFilePriorityLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFilePriorityLevel.swift; sourceTree = "<group>"; };
 		D3D6878B2D14BEE400881D2C /* RemoteFileDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFileDownloader.swift; sourceTree = "<group>"; };
@@ -228,7 +230,7 @@
 				D339E55B2BFD0CEE00B9E35B /* Views */,
 				D3536A082BFA4F4A006942D6 /* Assets.xcassets */,
 				D3536A0A2BFA4F4A006942D6 /* Preview Content */,
-				D3536A312BFA64AB006942D6 /* Models.swift */,
+				D381D5792D1B862D0086F8DB /* Models */,
 				D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */,
 			);
 			path = PlayolaRadio;
@@ -269,6 +271,15 @@
 				D3D687952D14C5AB00881D2C /* Date+Comparisons.swift */,
 			);
 			path = Extensions;
+			sourceTree = "<group>";
+		};
+		D381D5792D1B862D0086F8DB /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				D381D57A2D1B863F0086F8DB /* AudioBlock.swift */,
+				D3536A312BFA64AB006942D6 /* Models.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 		D3D687872D14BDEF00881D2C /* Libraries */ = {
@@ -463,6 +474,7 @@
 				D3536A322BFA64AB006942D6 /* Models.swift in Sources */,
 				D339E5762BFD419400B9E35B /* AboutPage.swift in Sources */,
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
+				D381D57B2D1B86470086F8DB /* AudioBlock.swift in Sources */,
 				D339E5632BFD0FD800B9E35B /* AirplayButton.swift in Sources */,
 				D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */,
 				D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */,

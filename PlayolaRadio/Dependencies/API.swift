@@ -44,7 +44,9 @@ struct API {
       }
     }
   }
-  
+
+  static func getPlaylist(stationId: String) async throws -> [Spin]
+
   
   enum DataError: Error {
     case urlNotValid, dataNotValid, dataNotFound, fileNotFound, httpResponseNotValid
