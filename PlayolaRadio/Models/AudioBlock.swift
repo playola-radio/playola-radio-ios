@@ -17,15 +17,15 @@ struct AudioBlock: Codable {
   let type: String
   let title: String
   let artist: String
-  let album: String
+  let album: String?
   let durationMS: Int
-  let popularity: Int
+  let popularity: Int?
   let youTubeId: Int?
   let s3Key: String
   let s3BucketName: String
   let isrc: String?
   let spotifyId: String?
-  let imageUrl: String
+  let imageUrl: String?
   let createdAt: Date
   let updatedAt: Date
 }

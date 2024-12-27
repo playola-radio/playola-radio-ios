@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Alamofire
 
 struct API {
   static let stationsURL = URL(string: "https://playola-static.s3.amazonaws.com/station_lists.json")!
@@ -45,7 +46,13 @@ struct API {
     }
   }
 
-  static func getPlaylist(stationId: String) async throws -> [Spin]
+  static func getPlaylist(stationId: String) async throws -> [Spin] {
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
+    let response = AF.request(
+      "https://admin-api.playola.fm/v1/stations/f3864734-de35-414f-b0b3-e6909b0b77bd/schedule").serializingDecodable([Spin].self, decoder: decoder)
+    return try await response.value
+  }
 
   
   enum DataError: Error {

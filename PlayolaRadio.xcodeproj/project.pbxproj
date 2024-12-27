@@ -39,6 +39,8 @@
 		D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A372BFA6520006942D6 /* Color+Hex.swift */; };
 		D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A382BFA6520006942D6 /* UIImage+Cache.swift */; };
 		D381D57B2D1B86470086F8DB /* AudioBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D381D57A2D1B863F0086F8DB /* AudioBlock.swift */; };
+		D381D57D2D1C84570086F8DB /* Spin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D381D57C2D1C84540086F8DB /* Spin.swift */; };
+		D381D57F2D1E45C50086F8DB /* DateFormatter+Iso8601Full.swift in Sources */ = {isa = PBXBuildFile; fileRef = D381D57E2D1E45B90086F8DB /* DateFormatter+Iso8601Full.swift */; };
 		D3D687862D14BDD600881D2C /* PlayolaPlayerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687852D14BDD600881D2C /* PlayolaPlayerClient.swift */; };
 		D3D6878A2D14BEC500881D2C /* RemoteFilePriorityLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687892D14BEC500881D2C /* RemoteFilePriorityLevel.swift */; };
 		D3D6878C2D14BEE400881D2C /* RemoteFileDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6878B2D14BEE400881D2C /* RemoteFileDownloader.swift */; };
@@ -103,6 +105,8 @@
 		D3536A372BFA6520006942D6 /* Color+Hex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
 		D3536A382BFA6520006942D6 /* UIImage+Cache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImage+Cache.swift"; sourceTree = "<group>"; };
 		D381D57A2D1B863F0086F8DB /* AudioBlock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioBlock.swift; sourceTree = "<group>"; };
+		D381D57C2D1C84540086F8DB /* Spin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spin.swift; sourceTree = "<group>"; };
+		D381D57E2D1E45B90086F8DB /* DateFormatter+Iso8601Full.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DateFormatter+Iso8601Full.swift"; sourceTree = "<group>"; };
 		D3D687852D14BDD600881D2C /* PlayolaPlayerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaPlayerClient.swift; sourceTree = "<group>"; };
 		D3D687892D14BEC500881D2C /* RemoteFilePriorityLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFilePriorityLevel.swift; sourceTree = "<group>"; };
 		D3D6878B2D14BEE400881D2C /* RemoteFileDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFileDownloader.swift; sourceTree = "<group>"; };
@@ -264,6 +268,7 @@
 		D3536A392BFA6520006942D6 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				D381D57E2D1E45B90086F8DB /* DateFormatter+Iso8601Full.swift */,
 				D3536A362BFA6520006942D6 /* Bundle+Misc.swift */,
 				D3536A372BFA6520006942D6 /* Color+Hex.swift */,
 				D3536A382BFA6520006942D6 /* UIImage+Cache.swift */,
@@ -276,6 +281,7 @@
 		D381D5792D1B862D0086F8DB /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				D381D57C2D1C84540086F8DB /* Spin.swift */,
 				D381D57A2D1B863F0086F8DB /* AudioBlock.swift */,
 				D3536A312BFA64AB006942D6 /* Models.swift */,
 			);
@@ -459,6 +465,7 @@
 				D339E5742BFD32C600B9E35B /* APIClient.swift in Sources */,
 				D3D6879C2D15E66700881D2C /* PAPSpinPlayer.swift in Sources */,
 				D3D687862D14BDD600881D2C /* PlayolaPlayerClient.swift in Sources */,
+				D381D57F2D1E45C50086F8DB /* DateFormatter+Iso8601Full.swift in Sources */,
 				D3D687912D14C20500881D2C /* RemoteFileCacheManager.swift in Sources */,
 				D339E5802BFE57D600B9E35B /* NowPlayingPage.swift in Sources */,
 				D339E5842BFE9B6000B9E35B /* StationDetailPage.swift in Sources */,
@@ -482,6 +489,7 @@
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				D339E5692BFD1C0800B9E35B /* API.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
+				D381D57D2D1C84570086F8DB /* Spin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
