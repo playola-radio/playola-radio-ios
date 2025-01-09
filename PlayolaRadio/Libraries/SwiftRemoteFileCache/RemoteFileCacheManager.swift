@@ -28,12 +28,9 @@ public class RemoteFileCacheManager {
         fileDirectoryURL = documentsDirectoryURL.appendingPathComponent(subFolder)
 
         let fileManager = FileManager.default
-        do
-        {
+        do {
             try fileManager.createDirectory(atPath: fileDirectoryURL.path, withIntermediateDirectories: false, attributes: nil)
-        }
-        catch let error as NSError
-        {
+        } catch let error as NSError {
             print(error.localizedDescription);
         }
     }

@@ -9,8 +9,8 @@ import Foundation
 import Alamofire
 
 struct API {
-  static let stationsURL = URL(string: "https://playola-static.s3.amazonaws.com/station_lists.json")!
-  
+  static let stationsURL = URL(string: "https://admin-api.playola.fm/v1/developer/stationLists")!
+
   // Helper struct to get either local or remote JSON
   static func getStations(completion: @escaping ((Result<[StationList], Error>) -> Void)) {
     DispatchQueue.global(qos: .userInitiated).async {

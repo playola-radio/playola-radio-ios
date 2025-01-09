@@ -39,6 +39,7 @@ struct RadioStation: Decodable, Identifiable, Equatable, Sendable {
   enum StationType: String, Decodable {
     case artist = "artist"
     case fm = "fm"
+    case playola = "playola"
   }
   
   var longName: String {
