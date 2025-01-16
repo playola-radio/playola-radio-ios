@@ -47,12 +47,16 @@ extension DependencyValues {
   }
 }
 
-struct MailService {
+public class MailService {
   func canSendEmail() async -> Bool {
     return await MFMailComposeViewController.canSendMail()
   }
 
   func mailSendURL(recipientEmail: String, subject: String) -> URL? {
     return EmailService.createEmailUrl(to: recipientEmail, subject: subject)
+  }
+
+  func openEmailUrl(url: URL) {
+    UIApplication.shared.open(url)
   }
 }

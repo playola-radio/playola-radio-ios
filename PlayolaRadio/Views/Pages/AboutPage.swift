@@ -18,8 +18,8 @@ class AboutPageModel {
 
   @ObservationIgnored var mailService = MailService()
 
-  init(canSendEmail: Bool,
-       isShowingMailComposer: Bool,
+  init(canSendEmail: Bool = false,
+       isShowingMailComposer: Bool = false,
        mailURL: URL? = nil,
        isShowingCannotOpenMailAlert: Bool = false,
        presentedAlert: PlayolaAlert? = nil,
@@ -39,13 +39,25 @@ class AboutPageModel {
   func handleWaitingListButtonTapped() {
     if canSendEmail {
       self.isShowingMailComposer = true
-    } else if let url = mailService.mailSendURL(recipientEmail: "waitlist@playola.fm", subject: "Add Me To The Waitlist") {
+    } else if let url = mailService.mailSendURL(
+      recipientEmail: "waitlist@playola.fm", subject: "Add Me To The Waitlist") {
       Task { await UIApplication.shared.open(url) }
     } else {
       self.presentedAlert = .cannotOpenMailAlert
     }
   }
-  func handleFeedbackButtonTapped() {}
+
+  func handleFeedbackButtonTapped() {
+    if canSendEmail {
+      isShowingMailComposer = true
+    } else if let url = mailService.mailSendURL(
+      recipientEmail: "feedback@playola.fm",
+      subject: "What I Think About Playola") {
+      mailService.openEmailUrl(url: url)
+    } else {
+      self.presentedAlert = .cannotOpenMailAlert
+    }
+  }
   func handleViewDisappeared() {}
 }
 
@@ -118,7 +130,7 @@ struct AboutPage: View {
 
         Spacer()
 
-        Button(action: { /*model.handleWaitingListButtonTapped()*/ model.presentedAlert = .cannotOpenMailAlert }) {
+        Button(action: { model.handleWaitingListButtonTapped() }) {
           Text("Join Waitlist")
             .bold()
             .padding()

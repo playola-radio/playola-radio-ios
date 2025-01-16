@@ -1,93 +1,88 @@
 //
-//  AboutPageTests.swift
-//  PlayolaRadioTests
+//  Untitled.swift
+//  PlayolaRadio
 //
-//  Created by Brian D Keane on 5/21/24.
+//  Created by Brian D Keane on 1/16/25.
 //
 
-import ComposableArchitecture
-import XCTest
-
+import Testing
 @testable import PlayolaRadio
 
-final class AboutPageTests: XCTestCase {
-  @MainActor
-  func testShowsFeedbackEmailWhenMailComposerIsAvailable() async {
-    let store = TestStore(initialState: AboutPageReducer.State()) {
-      AboutPageReducer()
-    } withDependencies: {
-      $0.mailClient = MailClient(canSendEmail: {
-        return true
-      }, mailSendURL: { recipientEmail, subject in
-        return nil
-      })
-    }
-    await store.send(.viewAppeared)
-    await store.receive(\.canSendEmailAnswered) {
-      $0.canSendEmail = true
-    }
-    await store.send(.feedbackButtonTapped) {
-      $0.isShowingMailComposer = true
-    }
-  }
-  
-  // TODO: Test OpensURL
+struct AboutPageTests {
 
-  @MainActor
-  func testShowsAlertWhenWaitlistWhenNoMailOptionWorkedforFeedback() async {
-    let store = TestStore(initialState: AboutPageReducer.State()) {
-      AboutPageReducer()
-    } withDependencies: {
-      $0.mailClient = MailClient(canSendEmail: {
-        return false
-      }, mailSendURL: { recipientEmail, subject in
-        return nil
-      })
-    }
-    await store.send(.viewAppeared)
-    await store.receive(\.canSendEmailAnswered)
-    await store.send(.feedbackButtonTapped) {
-      $0.alert = .cannotOpenMailFailure
-    }
+  @Test("Correctly sets canSendEmail when true")
+  func testCorrectlySetsCanSendEmailWhenTrue() async {
+    let aboutPage = AboutPageModel(mailService: MailServiceMock(shouldBeAbleToSendEmail: true))
+    await aboutPage.handleViewAppeared()
+    #expect(aboutPage.canSendEmail == true)
   }
 
-  @MainActor
-  func testShowsWaitlistEmailWhenMailComposerIsAvailable() async {
-    let store = TestStore(initialState: AboutPageReducer.State()) {
-      AboutPageReducer()
-    } withDependencies: {
-      $0.mailClient = MailClient(canSendEmail: {
-        return true
-      }, mailSendURL: { recipientEmail, subject in
-        return nil
-      })
+  @Test("Correctly sets canSendEmail when false")
+  func testCorrectlySetsCanSendEmailWhenFalse() async {
+    let aboutPage = AboutPageModel(mailService: MailServiceMock(shouldBeAbleToSendEmail: false))
+    await aboutPage.handleViewAppeared()
+    #expect(aboutPage.canSendEmail == false)
+  }
+
+  @Suite("Feedback Button")
+  struct FeedbackTests {
+
+    @Test("Correctly sets canSendEmail when false")
+    func testCorrectlySetsCanSendEmailWhenFalse() async {
+      let aboutPage = AboutPageModel(mailService: MailServiceMock(shouldBeAbleToSendEmail: false))
+      await aboutPage.handleViewAppeared()
+      #expect(aboutPage.canSendEmail == false)
     }
-    await store.send(.viewAppeared)
-    await store.receive(\.canSendEmailAnswered) {
-      $0.canSendEmail = true
+
+    @Test("Shows Feedback Email when MailComposer is available")
+    func testShowsFeedbackEmailWhenMailComposerIsAvailable() async {
+      let aboutPage = AboutPageModel(canSendEmail: true)
+      aboutPage.handleFeedbackButtonTapped()
+      #expect(aboutPage.isShowingMailComposer == true)
     }
-    await store.send(.waitingListButtonTapped) {
-      $0.isShowingMailComposer = true
+
+    @Test("Shows Feedback Email when MailComposer is unavailable but url can be created")
+    func testShowsFeedbackEmailWhenMailComposerIsUnavavailable() async {
+      let mailServiceMock = MailServiceMock(canCreateUrl: true)
+      let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
+      aboutPage.handleFeedbackButtonTapped()
+      #expect(mailServiceMock.receivedEmail == "feedback@playola.fm")
+      #expect(mailServiceMock.receivedSubject == "What I Think About Playola")
+    }
+
+    @Test("Shows Alert when no mail program could be opened")
+    func testShowsFeedbackEmailWhenMailCannotBeOpened() async {
+      let mailServiceMock = MailServiceMock(canCreateUrl: false)
+      let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
+      aboutPage.handleFeedbackButtonTapped()
+      #expect(aboutPage.presentedAlert == .cannotOpenMailAlert)
     }
   }
 
-  // TODO: Test OpensURL
-
-  @MainActor
-  func testShowsAlertWhenWaitlistWhenNoMailOptionWorkedforWaitingList() async {
-    let store = TestStore(initialState: AboutPageReducer.State()) {
-      AboutPageReducer()
-    } withDependencies: {
-      $0.mailClient = MailClient(canSendEmail: {
-        return false
-      }, mailSendURL: { recipientEmail, subject in
-        return nil
-      })
+  @Suite("WaitlistButton")
+  struct WaitlistButtonTests {
+    @Test("Shows Feedback Email when MailComposer is available")
+    func testShowsFeedbackEmailWhenMailComposerIsAvailable() async {
+      let aboutPage = AboutPageModel(canSendEmail: true)
+      aboutPage.handleWaitingListButtonTapped()
+      #expect(aboutPage.isShowingMailComposer == true)
     }
-    await store.send(.viewAppeared)
-    await store.receive(\.canSendEmailAnswered)
-    await store.send(.waitingListButtonTapped) {
-      $0.alert = .cannotOpenMailFailure
+
+    @Test("Shows Feedback Email when MailComposer is unavailable but url can be created")
+    func testShowsFeedbackEmailWhenMailComposerIsUnavavailable() async {
+      let mailServiceMock = MailServiceMock(canCreateUrl: true)
+      let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
+      aboutPage.handleWaitingListButtonTapped()
+      #expect(mailServiceMock.receivedEmail == "waitlist@playola.fm")
+      #expect(mailServiceMock.receivedSubject == "Add Me To The Waitlist")
+    }
+
+    @Test("Shows Alert when no mail program could be opened")
+    func testShowsFeedbackEmailWhenMailCannotBeOpened() async {
+      let mailServiceMock = MailServiceMock(canCreateUrl: false)
+      let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
+      aboutPage.handleWaitingListButtonTapped()
+      #expect(aboutPage.presentedAlert == .cannotOpenMailAlert)
     }
   }
 }
