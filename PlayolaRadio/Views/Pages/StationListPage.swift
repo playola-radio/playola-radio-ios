@@ -12,7 +12,7 @@ import SwiftUI
 struct StationListReducer {
   @Reducer(state: .equatable)
   enum Destination {
-    case add(AboutPageReducer)
+//    case add(AboutPageReducer)
   }
   
   @ObservableState
@@ -72,7 +72,7 @@ struct StationListReducer {
         return .none
         
       case .hamburgerButtonTapped:
-        state.destination = .add(AboutPageReducer.State())
+//        state.destination = .add(AboutPageReducer.State())
         return .none
         
       case .dismissAboutViewButtonTapped:
@@ -150,22 +150,22 @@ struct StationListPage: View {
         }
       }
     })
-    .sheet(item: $store.scope(state: \.destination?.add, action: \.destination.add)) { store in
-      NavigationStack {
-        AboutPage(store: store)
-          .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-              Button(action: { self.store.send(.dismissAboutViewButtonTapped) }) {
-                Image(systemName: "xmark.circle.fill")
-                  .resizable()
-                  .frame(width: 32, height: 32)
-                  .foregroundColor(.gray)
-                  .padding(20)
-              }
-            }
-          }
-      }
-    }
+//    .sheet(item: $store.scope(state: \.destination?.add, action: \.destination.add)) { store in
+//      NavigationStack {
+//        AboutPage(store: store)
+//          .toolbar {
+//            ToolbarItem(placement: .confirmationAction) {
+//              Button(action: { self.store.send(.dismissAboutViewButtonTapped) }) {
+//                Image(systemName: "xmark.circle.fill")
+//                  .resizable()
+//                  .frame(width: 32, height: 32)
+//                  .foregroundColor(.gray)
+//                  .padding(20)
+//              }
+//            }
+//          }
+//      }
+//    }
     .onAppear {
       self.store.send(.viewAppeared)
     }

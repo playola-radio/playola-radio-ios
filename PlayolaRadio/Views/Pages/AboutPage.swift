@@ -162,11 +162,11 @@ struct AboutPage: View {
   }
 }
 
-extension AlertState where Action == AboutPageReducer.Action.Alert {
-  static let cannotOpenMailFailure = AlertState(
-    title: TextState("Error Opening Mail"),
-    message: TextState("There was an error opening the email program."))
-}
+//extension AlertState where Action == AboutPageReducer.Action.Alert {
+//  static let cannotOpenMailFailure = AlertState(
+//    title: TextState("Error Opening Mail"),
+//    message: TextState("There was an error opening the email program."))
+//}
 
 #Preview {
   AboutPage(model: .init(canSendEmail: true, isShowingMailComposer: false))
