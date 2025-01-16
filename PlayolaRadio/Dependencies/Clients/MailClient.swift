@@ -46,3 +46,13 @@ extension DependencyValues {
     set { self [MailClient.self] = newValue }
   }
 }
+
+struct MailService {
+  func canSendEmail() async -> Bool {
+    return await MFMailComposeViewController.canSendMail()
+  }
+
+  func mailSendURL(recipientEmail: String, subject: String) -> URL? {
+    return EmailService.createEmailUrl(to: recipientEmail, subject: subject)
+  }
+}
