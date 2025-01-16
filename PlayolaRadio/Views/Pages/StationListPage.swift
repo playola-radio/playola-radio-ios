@@ -9,96 +9,6 @@ import ComposableArchitecture
 import SwiftUI
 import Combine
 
-@Reducer
-struct StationListReducer {
-//  @Reducer(state: .equatable)
-//  enum Destination {
-//    case add(AboutPageReducer)
-//  }
-  
-  @ObservableState
-  struct State: Equatable {
-//    @Presents var destination: Destination.State?
-    @Presents var alert: AlertState<Action.Alert>?
-    var isLoadingStationLists: Bool = false
-    var isShowingSecretStations: Bool = false
-    var stationLists: IdentifiedArrayOf<StationList> = []
-    var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackState: .stopped)
-  }
-  
-  enum Action {
-    case alert(PresentationAction<Alert>)
-    case viewAppeared
-    case stationsListResponseReceived(Result<[StationList], Error>)
-    case hamburgerButtonTapped
-//    case destination(PresentationAction<Destination.Action>)
-    case dismissAboutViewButtonTapped
-    case stationPlayerStateDidChange(StationPlayer.State)
-    case stationSelected(RadioStation)
-    
-    @CasePathable
-    enum Alert: Equatable {}
-  }
-  
-  @Dependency(\.apiClient) var apiClient
-  @Dependency(\.stationPlayer) var stationPlayer
-  
-  var body: some ReducerOf<Self> {
-    Reduce { state, action in
-      switch action {
-      case .viewAppeared:
-        state.isLoadingStationLists = true
-        return .run { send in
-          await withTaskGroup(of: Void.self) { group in
-            group.addTask {
-              await send(.stationsListResponseReceived(Result { try await self.apiClient.getStationLists() } ))
-            }
-            group.addTask {
-              for await playerState in await self.stationPlayer.subscribeToPlayerState() {
-                await send(.stationPlayerStateDidChange(playerState))
-              }
-            }
-          }
-        }
-        
-      case .stationsListResponseReceived(.success(let stationLists)):
-        state.isLoadingStationLists = false
-        let stationLists = stationLists.filter { state.isShowingSecretStations ? true : $0.id != "in_development" }
-        state.stationLists = IdentifiedArray(uniqueElements: stationLists)
-        return .none
-        
-      case .stationsListResponseReceived(.failure):
-        state.isLoadingStationLists = false
-        state.alert = .stationListLoadFailure
-        return .none
-        
-      case .hamburgerButtonTapped:
-//        state.destination = /*.add*/(AboutPageReducer.State())
-        return .none
-        
-      case .dismissAboutViewButtonTapped:
-//        state.destination = nil
-        return .none
-        
-      case .stationPlayerStateDidChange(let stationPlayerState):
-        state.stationPlayerState = stationPlayerState
-        return .none
-        
-      case .stationSelected(let station):
-        return .run { send in
-          self.stationPlayer.playStation(station)
-        }
-        
-      case .alert(_):
-        return .none
-        
-//      case .destination(_):
-//        return .none
-      }
-    }
-  }
-}
-
 @Observable
 class StationListModel {
   var disposeBag: Set<AnyCancellable> = Set()
@@ -132,7 +42,9 @@ class StationListModel {
   }
   func hamburgerButtonTapped() {}
   func dismissAboutViewButtonTapped() {}
-  func stationSelected(_ station: RadioStation) {}
+  func stationSelected(_ station: RadioStation) {
+    stationPlayer.set(station: station)
+  }
 }
 
 extension PlayolaAlert {
@@ -228,10 +140,4 @@ struct StationListPage: View {
     UINavigationBar.appearance().tintColor = .white
     UINavigationBar.appearance().prefersLargeTitles = true
   }
-}
-
-extension AlertState where Action == StationListReducer.Action.Alert {
-  static let stationListLoadFailure = AlertState(
-    title: TextState("Error Loading Stations"),
-    message: TextState("There was an error loading the stations. Please check yout connection and try again."))
 }
