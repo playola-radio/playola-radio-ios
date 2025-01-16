@@ -58,7 +58,7 @@ extension PlayolaAlert {
 }
 
 struct AboutPage: View {
-  let model: AboutPageModel
+  @Bindable var model: AboutPageModel
   @Environment(\.openURL) var openURL
 
   var body: some View {
@@ -118,7 +118,7 @@ struct AboutPage: View {
 
         Spacer()
 
-        Button(action: { model.handleWaitingListButtonTapped() }) {
+        Button(action: { /*model.handleWaitingListButtonTapped()*/ model.presentedAlert = .cannotOpenMailAlert }) {
           Text("Join Waitlist")
             .bold()
             .padding()
@@ -156,6 +156,10 @@ struct AboutPage: View {
 //      Text("Here it is")
 //    })
 //    .alert(item: model.$presentedAlert) { playolaAlert in
+//      playolaAlert.alert
+//    }
+    .alert(item: $model.presentedAlert) { $0.alert }
+//    .alert($model.destination) { playolaAlert in
 //      playolaAlert.alert
 //    }
 
