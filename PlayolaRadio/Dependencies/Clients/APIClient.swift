@@ -13,15 +13,16 @@ struct APIClient {
 }
 
 extension APIClient: DependencyKey {
+  static let api = API()
   static var liveValue: APIClient {
     return APIClient {
-      return try await API.getStations()
+      return try await api.getStations()
     }
   }
   
   static var previewValue: APIClient {
     return Self {
-      return try await API.getStations()
+      return try await api.getStations()
     }
   }
   
