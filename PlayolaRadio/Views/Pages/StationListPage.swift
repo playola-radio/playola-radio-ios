@@ -10,14 +10,14 @@ import SwiftUI
 
 @Reducer
 struct StationListReducer {
-  @Reducer(state: .equatable)
-  enum Destination {
+//  @Reducer(state: .equatable)
+//  enum Destination {
 //    case add(AboutPageReducer)
-  }
+//  }
   
   @ObservableState
   struct State: Equatable {
-    @Presents var destination: Destination.State?
+//    @Presents var destination: Destination.State?
     @Presents var alert: AlertState<Action.Alert>?
     var isLoadingStationLists: Bool = false
     var isShowingSecretStations: Bool = false
@@ -30,7 +30,7 @@ struct StationListReducer {
     case viewAppeared
     case stationsListResponseReceived(Result<[StationList], Error>)
     case hamburgerButtonTapped
-    case destination(PresentationAction<Destination.Action>)
+//    case destination(PresentationAction<Destination.Action>)
     case dismissAboutViewButtonTapped
     case stationPlayerStateDidChange(StationPlayer.State)
     case stationSelected(RadioStation)
@@ -72,11 +72,11 @@ struct StationListReducer {
         return .none
         
       case .hamburgerButtonTapped:
-//        state.destination = .add(AboutPageReducer.State())
+//        state.destination = /*.add*/(AboutPageReducer.State())
         return .none
         
       case .dismissAboutViewButtonTapped:
-        state.destination = nil
+//        state.destination = nil
         return .none
         
       case .stationPlayerStateDidChange(let stationPlayerState):
@@ -91,8 +91,8 @@ struct StationListReducer {
       case .alert(_):
         return .none
         
-      case .destination(_):
-        return .none
+//      case .destination(_):
+//        return .none
       }
     }
   }

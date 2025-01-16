@@ -32,34 +32,35 @@ class AboutPageModel {
     self.mailService = mailService
   }
 
-  func handleViewAppeared() async {
+  // MARK: Actions
+  func viewAppeared() async {
     self.canSendEmail = await mailService.canSendEmail()
   }
 
-  func handleWaitingListButtonTapped() {
+  func waitingListButtonTapped() {
+    sendEmail(recipientEmail: "waitlist@playola.fm",
+              subject: "Add Me To The Waitlist")
+  }
+
+  func feedbackButtonTapped() {
+    sendEmail(recipientEmail: "feedback@playola.fm",
+              subject: "What I Think About Playola")
+  }
+
+  // MARK: Other Functions
+  private func sendEmail(recipientEmail: String, subject: String) {
     if canSendEmail {
       self.isShowingMailComposer = true
     } else if let url = mailService.mailSendURL(
-      recipientEmail: "waitlist@playola.fm", subject: "Add Me To The Waitlist") {
+      recipientEmail: recipientEmail, subject: subject) {
       Task { await UIApplication.shared.open(url) }
     } else {
       self.presentedAlert = .cannotOpenMailAlert
     }
   }
-
-  func handleFeedbackButtonTapped() {
-    if canSendEmail {
-      isShowingMailComposer = true
-    } else if let url = mailService.mailSendURL(
-      recipientEmail: "feedback@playola.fm",
-      subject: "What I Think About Playola") {
-      mailService.openEmailUrl(url: url)
-    } else {
-      self.presentedAlert = .cannotOpenMailAlert
-    }
-  }
-  func handleViewDisappeared() {}
 }
+
+
 
 extension PlayolaAlert {
   static var cannotOpenMailAlert: PlayolaAlert {
@@ -118,7 +119,7 @@ struct AboutPage: View {
           .font(.system(size: 14))
           .bold()
 
-        Button(action: { model.handleFeedbackButtonTapped() }) {
+        Button(action: { model.feedbackButtonTapped() }) {
           Text("Let Us Know")
             .bold()
             .padding()
@@ -130,7 +131,7 @@ struct AboutPage: View {
 
         Spacer()
 
-        Button(action: { model.handleWaitingListButtonTapped() }) {
+        Button(action: { model.waitingListButtonTapped() }) {
           Text("Join Waitlist")
             .bold()
             .padding()
@@ -161,28 +162,12 @@ struct AboutPage: View {
       }
     }
     .foregroundColor(.white)
-//    .onAppear {
-//      Task { await model.handleViewAppeared() }
-//    }
-//    .sheet(isPresented: $store.isShowingMailComposer , content: {
-//      Text("Here it is")
-//    })
-//    .alert(item: model.$presentedAlert) { playolaAlert in
-//      playolaAlert.alert
-//    }
+    .onAppear {
+      Task { await model.viewAppeared() }
+    }
     .alert(item: $model.presentedAlert) { $0.alert }
-//    .alert($model.destination) { playolaAlert in
-//      playolaAlert.alert
-//    }
-
   }
 }
-
-//extension AlertState where Action == AboutPageReducer.Action.Alert {
-//  static let cannotOpenMailFailure = AlertState(
-//    title: TextState("Error Opening Mail"),
-//    message: TextState("There was an error opening the email program."))
-//}
 
 #Preview {
   AboutPage(model: .init(canSendEmail: true, isShowingMailComposer: false))

@@ -13,14 +13,14 @@ struct AboutPageTests {
   @Test("Correctly sets canSendEmail when true")
   func testCorrectlySetsCanSendEmailWhenTrue() async {
     let aboutPage = AboutPageModel(mailService: MailServiceMock(shouldBeAbleToSendEmail: true))
-    await aboutPage.handleViewAppeared()
+    await aboutPage.viewAppeared()
     #expect(aboutPage.canSendEmail == true)
   }
 
   @Test("Correctly sets canSendEmail when false")
   func testCorrectlySetsCanSendEmailWhenFalse() async {
     let aboutPage = AboutPageModel(mailService: MailServiceMock(shouldBeAbleToSendEmail: false))
-    await aboutPage.handleViewAppeared()
+    await aboutPage.viewAppeared()
     #expect(aboutPage.canSendEmail == false)
   }
 
@@ -30,14 +30,14 @@ struct AboutPageTests {
     @Test("Correctly sets canSendEmail when false")
     func testCorrectlySetsCanSendEmailWhenFalse() async {
       let aboutPage = AboutPageModel(mailService: MailServiceMock(shouldBeAbleToSendEmail: false))
-      await aboutPage.handleViewAppeared()
+      await aboutPage.viewAppeared()
       #expect(aboutPage.canSendEmail == false)
     }
 
     @Test("Shows Feedback Email when MailComposer is available")
     func testShowsFeedbackEmailWhenMailComposerIsAvailable() async {
       let aboutPage = AboutPageModel(canSendEmail: true)
-      aboutPage.handleFeedbackButtonTapped()
+      aboutPage.feedbackButtonTapped()
       #expect(aboutPage.isShowingMailComposer == true)
     }
 
@@ -45,7 +45,7 @@ struct AboutPageTests {
     func testShowsFeedbackEmailWhenMailComposerIsUnavavailable() async {
       let mailServiceMock = MailServiceMock(canCreateUrl: true)
       let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
-      aboutPage.handleFeedbackButtonTapped()
+      aboutPage.feedbackButtonTapped()
       #expect(mailServiceMock.receivedEmail == "feedback@playola.fm")
       #expect(mailServiceMock.receivedSubject == "What I Think About Playola")
     }
@@ -54,7 +54,7 @@ struct AboutPageTests {
     func testShowsFeedbackEmailWhenMailCannotBeOpened() async {
       let mailServiceMock = MailServiceMock(canCreateUrl: false)
       let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
-      aboutPage.handleFeedbackButtonTapped()
+      aboutPage.feedbackButtonTapped()
       #expect(aboutPage.presentedAlert == .cannotOpenMailAlert)
     }
   }
@@ -64,7 +64,7 @@ struct AboutPageTests {
     @Test("Shows Feedback Email when MailComposer is available")
     func testShowsFeedbackEmailWhenMailComposerIsAvailable() async {
       let aboutPage = AboutPageModel(canSendEmail: true)
-      aboutPage.handleWaitingListButtonTapped()
+      aboutPage.waitingListButtonTapped()
       #expect(aboutPage.isShowingMailComposer == true)
     }
 
@@ -72,7 +72,7 @@ struct AboutPageTests {
     func testShowsFeedbackEmailWhenMailComposerIsUnavavailable() async {
       let mailServiceMock = MailServiceMock(canCreateUrl: true)
       let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
-      aboutPage.handleWaitingListButtonTapped()
+      aboutPage.waitingListButtonTapped()
       #expect(mailServiceMock.receivedEmail == "waitlist@playola.fm")
       #expect(mailServiceMock.receivedSubject == "Add Me To The Waitlist")
     }
@@ -81,7 +81,7 @@ struct AboutPageTests {
     func testShowsFeedbackEmailWhenMailCannotBeOpened() async {
       let mailServiceMock = MailServiceMock(canCreateUrl: false)
       let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
-      aboutPage.handleWaitingListButtonTapped()
+      aboutPage.waitingListButtonTapped()
       #expect(aboutPage.presentedAlert == .cannotOpenMailAlert)
     }
   }
