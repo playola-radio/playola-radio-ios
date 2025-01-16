@@ -8,6 +8,17 @@
 import ComposableArchitecture
 import SwiftUI
 
+// possibly use later for navigation
+class ViewModel {
+  static func == (lhs: ViewModel, rhs: ViewModel) -> Bool {
+    ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+  }
+
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(ObjectIdentifier(self))
+  }
+}
+
 
 @Reducer
 struct AppReducer {
@@ -36,9 +47,7 @@ struct AppView: View {
   var body: some View {
     NavigationStack {
       StationListPage(
-        store: Store(initialState: StationListReducer.State()) {
-          StationListReducer()
-        }
+        model: StationListModel()
       )
     }
   }

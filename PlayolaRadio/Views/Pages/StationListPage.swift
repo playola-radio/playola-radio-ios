@@ -7,6 +7,7 @@
 
 import ComposableArchitecture
 import SwiftUI
+import Combine
 
 @Reducer
 struct StationListReducer {
@@ -98,9 +99,47 @@ struct StationListReducer {
   }
 }
 
+@Observable
+class StationListModel {
+  var disposeBag: Set<AnyCancellable> = Set()
+
+  // MARK: State
+  var isLoadingStationLists: Bool = false
+  var isShowingSecretStations: Bool = false
+  var stationLists: IdentifiedArrayOf<StationList> = []
+  var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackState: .stopped)
+  var presentedAlert: PlayolaAlert?
+
+  @ObservationIgnored var api: API = API()
+  @ObservationIgnored var stationPlayer: StationPlayer = StationPlayer.shared
+
+  // MARK: Actions
+  func viewAppeared() async {
+    self.isLoadingStationLists = true
+    do {
+      let stationListsRaw = try await self.api.getStations()
+      self.stationLists = IdentifiedArray(uniqueElements: stationListsRaw)
+    } catch (_) {
+      self.presentedAlert = .errorLoadingStations
+    }
+    self.stationPlayer.$state.sink { self.stationPlayerState = $0 }.store(in: &disposeBag)
+  }
+  func hamburgerButtonTapped() {}
+  func dismissAboutViewButtonTapped() {}
+  func stationSelected(_ station: RadioStation) {}
+}
+
+extension PlayolaAlert {
+  static var errorLoadingStations: PlayolaAlert {
+    return PlayolaAlert(title: "Error Loading Stations",
+                        message: "There was an error loading the stations. Please check yout connection and try again.",
+                        dismissButton: .cancel(Text("OK")))
+  }
+}
+
 struct StationListPage: View {
-  @Bindable var store: StoreOf<StationListReducer>
-  
+  @Bindable var model: StationListModel
+
   var body: some View {
     ZStack {
       Image("background")
@@ -109,7 +148,7 @@ struct StationListPage: View {
       
       VStack {
         List {
-          ForEach(store.stationLists.filter { $0.stations.count > 0 }) { stationList in
+          ForEach(model.stationLists.filter { $0.stations.count > 0 }) { stationList in
             Section(stationList.title) {
               ForEach(stationList.stations.indices, id: \.self) { index in
                 StationListCellView(station: stationList.stations[index])
@@ -117,7 +156,7 @@ struct StationListPage: View {
                   .listRowSeparator(.hidden)
                   .onTapGesture {
                     let station = stationList.stations[index]
-                    self.store.send(.stationSelected(station))
+                    model.stationSelected(station)
                   }
               }
             }
@@ -126,7 +165,7 @@ struct StationListPage: View {
           .scrollContentBackground(.hidden)
           .background(.clear)
         
-        NowPlayingSmallView(metadata: store.stationPlayerState.nowPlaying, stationName: store.stationPlayerState.currentStation?.name)
+        NowPlayingSmallView(metadata: model.stationPlayerState.nowPlaying, stationName: model.stationPlayerState.currentStation?.name)
           .edgesIgnoringSafeArea(.bottom)
           .padding(.bottom, 5)
       }
@@ -139,10 +178,10 @@ struct StationListPage: View {
         Image(systemName: "line.3.horizontal")
           .foregroundColor(.white)
           .onTapGesture {
-            self.store.send(.hamburgerButtonTapped)
+            self.model.hamburgerButtonTapped()
           }
       }
-      if store.stationPlayerState.currentStation != nil {
+      if model.stationPlayerState.currentStation != nil {
         ToolbarItem(placement: .topBarTrailing) {
           Image("btn-nowPlaying")
             .foregroundColor(.white)
@@ -167,19 +206,16 @@ struct StationListPage: View {
 //      }
 //    }
     .onAppear {
-      self.store.send(.viewAppeared)
+      Task { await self.model.viewAppeared() }
     }
-    .alert($store.scope(state: \.alert, action: \.alert))
+//    .alert($store.scope(state: \.alert, action: \.alert))
     .foregroundStyle(.white)
   }
 }
 
 #Preview {
   NavigationStack {
-    StationListPage(store: Store(initialState: StationListReducer.State()) {
-      StationListReducer()
-        ._printChanges()
-    })
+    StationListPage(model: StationListModel())
   }
   .onAppear {
     UINavigationBar.appearance().barStyle = .black
