@@ -11,7 +11,7 @@ import FRadioPlayer
 
 @testable import PlayolaRadio
 
-final class StationListPageTests: XCTestCase {
+final class StationListPageTestsOld: XCTestCase {
   @MainActor
   func testMonitorsStationState() async {
     let (subscribeToPlayerState, sendPlayerState) = AsyncStream.makeStream(of: StationPlayer.State.self)

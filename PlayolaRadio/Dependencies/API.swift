@@ -7,20 +7,20 @@
 
 import Foundation
 
-struct API {
+class API {
   static let stationsURL = URL(string: "https://playola-static.s3.amazonaws.com/station_lists.json")!
   
   // Helper struct to get either local or remote JSON
   func getStations(completion: @escaping ((Result<[StationList], Error>) -> Void)) {
     DispatchQueue.global(qos: .userInitiated).async {
-      loadHttp { remoteResult in
+      self.loadHttp { remoteResult in
         if case.success = remoteResult {
           print("Remote StationLists Loaded")
           DispatchQueue.main.async {
             completion(remoteResult)
           }
         } else {
-          loadLocal { stationListResult in
+          self.loadLocal { stationListResult in
             print("Error loading remote StationLists. Falling back to local version.")
             DispatchQueue.main.async {
               completion(stationListResult)
@@ -54,7 +54,7 @@ struct API {
     DispatchQueue.main.async {
       switch dataResult {
       case .success(let data):
-        let result = decode(data)
+        let result = self.decode(data)
         completion(result)
       case .failure(let error):
         completion(.failure(error))
@@ -124,7 +124,7 @@ struct API {
         return
       }
       
-      completion(decode(data))
+      completion(self.decode(data))
     }
     loadDataTask.resume()
   }

@@ -113,9 +113,15 @@ class StationListModel {
   @ObservationIgnored var api: API = API()
   @ObservationIgnored var stationPlayer: StationPlayer = StationPlayer.shared
 
+  init(api:API? = nil, stationPlayer: StationPlayer? = nil) {
+    self.api = api ?? API()
+    self.stationPlayer = stationPlayer ?? StationPlayer.shared
+  }
+
   // MARK: Actions
   func viewAppeared() async {
     self.isLoadingStationLists = true
+    defer { self.isLoadingStationLists = false }
     do {
       let stationListsRaw = try await self.api.getStations()
       self.stationLists = IdentifiedArray(uniqueElements: stationListsRaw)

@@ -10,13 +10,15 @@
 		D3137DBB2D3976580070033A /* PlayolaAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBA2D3976550070033A /* PlayolaAlert.swift */; };
 		D3137DBD2D397FD10070033A /* AboutPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBC2D397FBA0070033A /* AboutPageTests.swift */; };
 		D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBF2D3981880070033A /* MailServiceMock.swift */; };
+		D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DC12D39B4FC0070033A /* StationListPageTests.swift */; };
+		D3137DC42D39B5E60070033A /* APIMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DC32D39B5E40070033A /* APIMock.swift */; };
 		D339E5622BFD0FD800B9E35B /* NowPlayingSmallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E55E2BFD0FD800B9E35B /* NowPlayingSmallView.swift */; };
 		D339E5632BFD0FD800B9E35B /* AirplayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E55F2BFD0FD800B9E35B /* AirplayButton.swift */; };
 		D339E5642BFD0FD800B9E35B /* StationListCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5602BFD0FD800B9E35B /* StationListCellView.swift */; };
 		D339E5652BFD0FD800B9E35B /* NowPlayingEqAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5612BFD0FD800B9E35B /* NowPlayingEqAnimation.swift */; };
 		D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5662BFD10AE00B9E35B /* StationListPage.swift */; };
 		D339E5692BFD1C0800B9E35B /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5682BFD1C0800B9E35B /* API.swift */; };
-		D339E56B2BFD296D00B9E35B /* StationListPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E56A2BFD296D00B9E35B /* StationListPageTests.swift */; };
+		D339E56B2BFD296D00B9E35B /* StationListPageTestsOld.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E56A2BFD296D00B9E35B /* StationListPageTestsOld.swift */; };
 		D339E56D2BFD2FAB00B9E35B /* StationPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E56C2BFD2FAB00B9E35B /* StationPlayer.swift */; };
 		D339E56F2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E56E2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift */; };
 		D339E5712BFD322F00B9E35B /* StationPlayerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5702BFD322F00B9E35B /* StationPlayerClient.swift */; };
@@ -60,13 +62,15 @@
 		D3137DBA2D3976550070033A /* PlayolaAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaAlert.swift; sourceTree = "<group>"; };
 		D3137DBC2D397FBA0070033A /* AboutPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutPageTests.swift; sourceTree = "<group>"; };
 		D3137DBF2D3981880070033A /* MailServiceMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailServiceMock.swift; sourceTree = "<group>"; };
+		D3137DC12D39B4FC0070033A /* StationListPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPageTests.swift; sourceTree = "<group>"; };
+		D3137DC32D39B5E40070033A /* APIMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIMock.swift; sourceTree = "<group>"; };
 		D339E55E2BFD0FD800B9E35B /* NowPlayingSmallView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NowPlayingSmallView.swift; sourceTree = "<group>"; };
 		D339E55F2BFD0FD800B9E35B /* AirplayButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AirplayButton.swift; sourceTree = "<group>"; };
 		D339E5602BFD0FD800B9E35B /* StationListCellView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StationListCellView.swift; sourceTree = "<group>"; };
 		D339E5612BFD0FD800B9E35B /* NowPlayingEqAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NowPlayingEqAnimation.swift; sourceTree = "<group>"; };
 		D339E5662BFD10AE00B9E35B /* StationListPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPage.swift; sourceTree = "<group>"; };
 		D339E5682BFD1C0800B9E35B /* API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
-		D339E56A2BFD296D00B9E35B /* StationListPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPageTests.swift; sourceTree = "<group>"; };
+		D339E56A2BFD296D00B9E35B /* StationListPageTestsOld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPageTestsOld.swift; sourceTree = "<group>"; };
 		D339E56C2BFD2FAB00B9E35B /* StationPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayer.swift; sourceTree = "<group>"; };
 		D339E56E2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FRadioPlayerMetadata+Equatable.swift"; sourceTree = "<group>"; };
 		D339E5702BFD322F00B9E35B /* StationPlayerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerClient.swift; sourceTree = "<group>"; };
@@ -120,6 +124,7 @@
 		D3137DBE2D3981750070033A /* Mocks */ = {
 			isa = PBXGroup;
 			children = (
+				D3137DC32D39B5E40070033A /* APIMock.swift */,
 				D3137DBF2D3981880070033A /* MailServiceMock.swift */,
 			);
 			path = Mocks;
@@ -150,7 +155,8 @@
 			children = (
 				D3536A062BFA4F49006942D6 /* ContentView.swift */,
 				D339E5662BFD10AE00B9E35B /* StationListPage.swift */,
-				D339E56A2BFD296D00B9E35B /* StationListPageTests.swift */,
+				D3137DC12D39B4FC0070033A /* StationListPageTests.swift */,
+				D339E56A2BFD296D00B9E35B /* StationListPageTestsOld.swift */,
 				D339E5752BFD419400B9E35B /* AboutPage.swift */,
 				D3137DBC2D397FBA0070033A /* AboutPageTests.swift */,
 			);
@@ -415,10 +421,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3137DC42D39B5E60070033A /* APIMock.swift in Sources */,
 				D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */,
+				D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */,
 				D3536A162BFA4F4A006942D6 /* PlayolaRadioTests.swift in Sources */,
 				D3137DBD2D397FD10070033A /* AboutPageTests.swift in Sources */,
-				D339E56B2BFD296D00B9E35B /* StationListPageTests.swift in Sources */,
+				D339E56B2BFD296D00B9E35B /* StationListPageTestsOld.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
