@@ -3,10 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D3137DA12D38288D0070033A /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3137DA02D38288D0070033A /* PlayolaPlayer */; };
+		D3137DA42D382B3E0070033A /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3137DA32D382B3E0070033A /* PlayolaPlayer */; };
 		D339E5622BFD0FD800B9E35B /* NowPlayingSmallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E55E2BFD0FD800B9E35B /* NowPlayingSmallView.swift */; };
 		D339E5632BFD0FD800B9E35B /* AirplayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E55F2BFD0FD800B9E35B /* AirplayButton.swift */; };
 		D339E5642BFD0FD800B9E35B /* StationListCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5602BFD0FD800B9E35B /* StationListCellView.swift */; };
@@ -42,15 +44,8 @@
 		D381D57D2D1C84570086F8DB /* Spin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D381D57C2D1C84540086F8DB /* Spin.swift */; };
 		D381D57F2D1E45C50086F8DB /* DateFormatter+Iso8601Full.swift in Sources */ = {isa = PBXBuildFile; fileRef = D381D57E2D1E45B90086F8DB /* DateFormatter+Iso8601Full.swift */; };
 		D3D687862D14BDD600881D2C /* PlayolaPlayerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687852D14BDD600881D2C /* PlayolaPlayerClient.swift */; };
-		D3D6878A2D14BEC500881D2C /* RemoteFilePriorityLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687892D14BEC500881D2C /* RemoteFilePriorityLevel.swift */; };
-		D3D6878C2D14BEE400881D2C /* RemoteFileDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6878B2D14BEE400881D2C /* RemoteFileDownloader.swift */; };
 		D3D6878F2D14BFB300881D2C /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D3D6878E2D14BFB300881D2C /* Alamofire */; };
-		D3D687912D14C20500881D2C /* RemoteFileCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687902D14C20500881D2C /* RemoteFileCacheManager.swift */; };
-		D3D687942D14C54700881D2C /* PAPSpin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687932D14C54700881D2C /* PAPSpin.swift */; };
 		D3D687962D14C5AB00881D2C /* Date+Comparisons.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687952D14C5AB00881D2C /* Date+Comparisons.swift */; };
-		D3D687982D14C66700881D2C /* PlayolaStationPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687972D14C66700881D2C /* PlayolaStationPlayer.swift */; };
-		D3D6879A2D15E59D00881D2C /* PlayolaMainMixer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D687992D15E59D00881D2C /* PlayolaMainMixer.swift */; };
-		D3D6879C2D15E66700881D2C /* PAPSpinPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6879B2D15E66700881D2C /* PAPSpinPlayer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -108,14 +103,7 @@
 		D381D57C2D1C84540086F8DB /* Spin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spin.swift; sourceTree = "<group>"; };
 		D381D57E2D1E45B90086F8DB /* DateFormatter+Iso8601Full.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DateFormatter+Iso8601Full.swift"; sourceTree = "<group>"; };
 		D3D687852D14BDD600881D2C /* PlayolaPlayerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaPlayerClient.swift; sourceTree = "<group>"; };
-		D3D687892D14BEC500881D2C /* RemoteFilePriorityLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFilePriorityLevel.swift; sourceTree = "<group>"; };
-		D3D6878B2D14BEE400881D2C /* RemoteFileDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFileDownloader.swift; sourceTree = "<group>"; };
-		D3D687902D14C20500881D2C /* RemoteFileCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFileCacheManager.swift; sourceTree = "<group>"; };
-		D3D687932D14C54700881D2C /* PAPSpin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PAPSpin.swift; sourceTree = "<group>"; };
 		D3D687952D14C5AB00881D2C /* Date+Comparisons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Comparisons.swift"; sourceTree = "<group>"; };
-		D3D687972D14C66700881D2C /* PlayolaStationPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaStationPlayer.swift; sourceTree = "<group>"; };
-		D3D687992D15E59D00881D2C /* PlayolaMainMixer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaMainMixer.swift; sourceTree = "<group>"; };
-		D3D6879B2D15E66700881D2C /* PAPSpinPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PAPSpinPlayer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,7 +111,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3137DA12D38288D0070033A /* PlayolaPlayer in Frameworks */,
 				D3D6878F2D14BFB300881D2C /* Alamofire in Frameworks */,
+				D3137DA42D382B3E0070033A /* PlayolaPlayer in Frameworks */,
 				D3536A352BFA64DC006942D6 /* FRadioPlayer in Frameworks */,
 				D3536A302BFA5523006942D6 /* ComposableArchitecture in Frameworks */,
 			);
@@ -195,7 +185,6 @@
 		D339E5722BFD32A100B9E35B /* Clients */ = {
 			isa = PBXGroup;
 			children = (
-				D3D687922D14C52B00881D2C /* PlayolaPlayer */,
 				D339E5702BFD322F00B9E35B /* StationPlayerClient.swift */,
 				D339E5732BFD32C600B9E35B /* APIClient.swift */,
 				D339E57D2BFD750700B9E35B /* MailClient.swift */,
@@ -227,7 +216,6 @@
 		D3536A032BFA4F49006942D6 /* PlayolaRadio */ = {
 			isa = PBXGroup;
 			children = (
-				D3D687872D14BDEF00881D2C /* Libraries */,
 				D3162F942C0526E7007BA25C /* Info.plist */,
 				D339E55A2BFD0CE200B9E35B /* Dependencies */,
 				D3536A392BFA6520006942D6 /* Extensions */,
@@ -288,35 +276,6 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
-		D3D687872D14BDEF00881D2C /* Libraries */ = {
-			isa = PBXGroup;
-			children = (
-				D3D687882D14BEA700881D2C /* SwiftRemoteFileCache */,
-			);
-			path = Libraries;
-			sourceTree = "<group>";
-		};
-		D3D687882D14BEA700881D2C /* SwiftRemoteFileCache */ = {
-			isa = PBXGroup;
-			children = (
-				D3D687892D14BEC500881D2C /* RemoteFilePriorityLevel.swift */,
-				D3D6878B2D14BEE400881D2C /* RemoteFileDownloader.swift */,
-				D3D687902D14C20500881D2C /* RemoteFileCacheManager.swift */,
-			);
-			path = SwiftRemoteFileCache;
-			sourceTree = "<group>";
-		};
-		D3D687922D14C52B00881D2C /* PlayolaPlayer */ = {
-			isa = PBXGroup;
-			children = (
-				D3D687932D14C54700881D2C /* PAPSpin.swift */,
-				D3D687972D14C66700881D2C /* PlayolaStationPlayer.swift */,
-				D3D687992D15E59D00881D2C /* PlayolaMainMixer.swift */,
-				D3D6879B2D15E66700881D2C /* PAPSpinPlayer.swift */,
-			);
-			path = PlayolaPlayer;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -337,6 +296,8 @@
 				D3536A2F2BFA5523006942D6 /* ComposableArchitecture */,
 				D3536A342BFA64DC006942D6 /* FRadioPlayer */,
 				D3D6878E2D14BFB300881D2C /* Alamofire */,
+				D3137DA02D38288D0070033A /* PlayolaPlayer */,
+				D3137DA32D382B3E0070033A /* PlayolaPlayer */,
 			);
 			productName = PlayolaRadio;
 			productReference = D3536A012BFA4F49006942D6 /* PlayolaRadio.app */;
@@ -414,6 +375,7 @@
 				D3536A2E2BFA5523006942D6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				D3536A332BFA64DC006942D6 /* XCRemoteSwiftPackageReference "FRadioPlayer" */,
 				D3D6878D2D14BFB300881D2C /* XCRemoteSwiftPackageReference "Alamofire" */,
+				D3137DA22D382B3E0070033A /* XCLocalSwiftPackageReference "../../PlayolaPlayer" */,
 			);
 			productRefGroup = D3536A022BFA4F49006942D6 /* Products */;
 			projectDirPath = "";
@@ -457,24 +419,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D3D6878C2D14BEE400881D2C /* RemoteFileDownloader.swift in Sources */,
 				D339E5712BFD322F00B9E35B /* StationPlayerClient.swift in Sources */,
-				D3D6878A2D14BEC500881D2C /* RemoteFilePriorityLevel.swift in Sources */,
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
 				D339E5622BFD0FD800B9E35B /* NowPlayingSmallView.swift in Sources */,
 				D339E5742BFD32C600B9E35B /* APIClient.swift in Sources */,
-				D3D6879C2D15E66700881D2C /* PAPSpinPlayer.swift in Sources */,
 				D3D687862D14BDD600881D2C /* PlayolaPlayerClient.swift in Sources */,
 				D381D57F2D1E45C50086F8DB /* DateFormatter+Iso8601Full.swift in Sources */,
-				D3D687912D14C20500881D2C /* RemoteFileCacheManager.swift in Sources */,
 				D339E5802BFE57D600B9E35B /* NowPlayingPage.swift in Sources */,
 				D339E5842BFE9B6000B9E35B /* StationDetailPage.swift in Sources */,
-				D3D6879A2D15E59D00881D2C /* PlayolaMainMixer.swift in Sources */,
 				D339E5652BFD0FD800B9E35B /* NowPlayingEqAnimation.swift in Sources */,
-				D3D687942D14C54700881D2C /* PAPSpin.swift in Sources */,
 				D339E57E2BFD750700B9E35B /* MailClient.swift in Sources */,
 				D3D687962D14C5AB00881D2C /* Date+Comparisons.swift in Sources */,
-				D3D687982D14C66700881D2C /* PlayolaStationPlayer.swift in Sources */,
 				D339E56F2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift in Sources */,
 				D339E5642BFD0FD800B9E35B /* StationListCellView.swift in Sources */,
 				D339E57C2BFD698600B9E35B /* Mail.swift in Sources */,
@@ -669,6 +624,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -703,6 +659,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -835,6 +792,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		D3137DA22D382B3E0070033A /* XCLocalSwiftPackageReference "../../PlayolaPlayer" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../../PlayolaPlayer;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		D3536A2E2BFA5523006942D6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -863,6 +827,14 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		D3137DA02D38288D0070033A /* PlayolaPlayer */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PlayolaPlayer;
+		};
+		D3137DA32D382B3E0070033A /* PlayolaPlayer */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PlayolaPlayer;
+		};
 		D3536A2F2BFA5523006942D6 /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D3536A2E2BFA5523006942D6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;

@@ -83,10 +83,10 @@ struct AppView: View {
   
   var body: some View {
     NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
-      StationListPage(
-        store: store.scope(state: \.stationListReducer,
-                           action: \.stationListReducer)
-      )
+//      StationListPage(
+//        model: store.scope(state: \.stationListReducer,
+//                           action: \.stationListReducer)
+//      )
     } destination: { store in
       switch store.case {
       case let .nowPlaying(store):

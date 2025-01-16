@@ -126,9 +126,40 @@ struct StationListReducer {
   }
 }
 
+@Observable
+class StationListViewModel {
+  enum Destination {
+    case about
+    case nowPlayingPage(RadioStation)
+  }
+  var destination: Destination? = nil
+  var isLoadingStationLists: Bool = false
+  var isShowingSecretStations: Bool = false
+  var stationLists: IdentifiedArrayOf<StationList> = []
+  var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackState: .stopped)
+
+  init(isLoadingStationLists: Bool, isShowingSecretStations: Bool, stationLists: IdentifiedArrayOf<StationList>) {
+    self.isLoadingStationLists = isLoadingStationLists
+    self.isShowingSecretStations = isShowingSecretStations
+    self.stationLists = stationLists
+  }
+
+  func handleViewAppeared() {
+    Task { @MainActor in
+      let stationLists = try await API.getStations()
+      self.stationLists = IdentifiedArray(uniqueElements: stationLists.filter { self.isShowingSecretStations ? true : $0.id != "in_development" })
+    }
+  }
+  func handleHamburgerButtonTapped() {
+    self.aboutSheetIsPresented = true
+  }
+  func handleNowPlayingButtonTapped() {}
+  func handleStationSelected(_ station: RadioStation) {}
+}
+
 struct StationListPage: View {
-  @Bindable var store: StoreOf<StationListReducer>
-  
+  @Bindable var model: StationListViewModel
+
   var body: some View {
     ZStack {
       Image("background")
@@ -137,7 +168,7 @@ struct StationListPage: View {
       
       VStack {
         List {
-          ForEach(store.stationLists.filter { $0.stations.count > 0 }) { stationList in
+          ForEach(model.stationLists.filter { $0.stations.count > 0 }) { stationList in
             Section(stationList.title) {
               ForEach(stationList.stations.indices, id: \.self) { index in
                 StationListCellView(station: stationList.stations[index])
@@ -145,7 +176,7 @@ struct StationListPage: View {
                   .listRowSeparator(.hidden)
                   .onTapGesture {
                     let station = stationList.stations[index]
-                    self.store.send(.stationSelected(station))
+                    model.handleStationSelected(station)
                   }
               }
             }
@@ -154,11 +185,11 @@ struct StationListPage: View {
           .scrollContentBackground(.hidden)
           .background(.clear)
         
-        NowPlayingSmallView(metadata: store.stationPlayerState.nowPlaying, stationName: store.stationPlayerState.currentStation?.name)
+        NowPlayingSmallView(metadata: model.stationPlayerState.nowPlaying, stationName: model.stationPlayerState.currentStation?.name)
           .edgesIgnoringSafeArea(.bottom)
           .padding(.bottom, 5)
           .onTapGesture {
-            store.send(.nowPlayingButtonTapped)
+            model.handleNowPlayingButtonTapped()
           }
       }
     }
@@ -170,49 +201,53 @@ struct StationListPage: View {
         Image(systemName: "line.3.horizontal")
           .foregroundColor(.white)
           .onTapGesture {
-            self.store.send(.hamburgerButtonTapped)
+            self.model.handleHamburgerButtonTapped()
           }
       }
-      if let station = store.stationPlayerState.currentStation {
+      if let station = model.stationPlayerState.currentStation {
         ToolbarItem(placement: .topBarTrailing) {
           Image("btn-nowPlaying")
             .foregroundColor(.white)
             .onTapGesture {
-              store.send(.nowPlayingButtonTapped)
+              model.handleNowPlayingButtonTapped()
             }
         }
       }
     })
-    .sheet(item: $store.scope(state: \.destination?.add, action: \.destination.add)) { store in
-      NavigationStack {
-        AboutPage(store: store)
-          .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-              Button(action: { self.store.send(.dismissAboutViewButtonTapped) }) {
-                Image(systemName: "xmark.circle.fill")
-                  .resizable()
-                  .frame(width: 32, height: 32)
-                  .foregroundColor(.gray)
-                  .padding(20)
-              }
-            }
-          }
-      }
-    }
+    .sheet(isPresented: $model.aboutSheetIsPresented , content: {
+      EmptyView()
+    })
+//    .sheet(isPresented: $model.aboutSheetIsPresented, content: EmptyView())
+//    .sheet(item: $store.scope(state: \.destination?.add, action: \.destination.add)) { store in
+//      NavigationStack {
+//        AboutPage(store: store)
+//          .toolbar {
+//            ToolbarItem(placement: .confirmationAction) {
+//              Button(action: { self.store.send(.dismissAboutViewButtonTapped) }) {
+//                Image(systemName: "xmark.circle.fill")
+//                  .resizable()
+//                  .frame(width: 32, height: 32)
+//                  .foregroundColor(.gray)
+//                  .padding(20)
+//              }
+//            }
+//          }
+//      }
+//    }
     .onAppear {
-      self.store.send(.viewAppeared)
+      model.handleViewAppeared()
     }
-    .alert($store.scope(state: \.alert, action: \.alert))
+//    .alert($store.scope(state: \.alert, action: \.alert))
     .foregroundStyle(.white)
   }
 }
 
 #Preview {
   NavigationStack {
-    StationListPage(store: Store(initialState: StationListReducer.State()) {
-      StationListReducer()
-        ._printChanges()
-    })
+    StationListPage(model: StationListViewModel(
+      isLoadingStationLists: false,
+      isShowingSecretStations: true,
+      stationLists: []))
   }
   .onAppear {
     UINavigationBar.appearance().barStyle = .black

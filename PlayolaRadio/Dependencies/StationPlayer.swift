@@ -122,12 +122,11 @@ extension StationPlayer {
   }
   
   private func updateLockScreen(with artworkImage: UIImage?) {
-    
-    // Define Now Playing Info
     var nowPlayingInfo = [String : Any]()
     
     if let image = artworkImage {
-      nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size, requestHandler: { size -> UIImage in
+      nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size,
+                                                                      requestHandler: { size -> UIImage in
         return image
       })
     }
@@ -139,8 +138,7 @@ extension StationPlayer {
     if let trackName = currentStation?.trackName {
       nowPlayingInfo[MPMediaItemPropertyTitle] = trackName
     }
-    
-    // Set the metadata
+
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
   }
 }
