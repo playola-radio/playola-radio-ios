@@ -30,3 +30,14 @@ extension PlayolaSheet: EnumTypeEquatable {
     }
   }
 }
+
+extension NavigationCoordinator.Path: EnumTypeEquatable {
+  static func ~=(lhs: Self, rhs: Self) -> Bool {
+      switch (lhs, rhs) {
+      case (.stationListPage, .stationListPage): return true
+      case (.aboutPage, .aboutPage): return true
+      case (.nowPlayingPage, .nowPlayingPage): return true
+      default: return false
+    }
+  }
+}

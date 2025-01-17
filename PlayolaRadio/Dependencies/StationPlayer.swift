@@ -44,9 +44,13 @@ public class StationPlayer: ObservableObject {
   private let player = FRadioPlayer.shared
   
   init() {
+    addObserverToPlayer()
+  }
+
+  func addObserverToPlayer() {
     player.addObserver(self)
   }
-  
+
   func fetch(completion: (([StationList]) -> ())? = nil) {
     completion?([])
   }
