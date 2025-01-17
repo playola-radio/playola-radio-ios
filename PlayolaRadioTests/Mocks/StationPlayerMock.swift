@@ -15,7 +15,7 @@ class StationPlayerMock: StationPlayer {
   func setNowPlaying(station: RadioStation, artist: String, title: String) {
     self.state = StationPlayer.State(
       playbackState: .playing,
-      playerStatus: .readyToPlay,
+      playerStatus: .loadingFinished,
       currentStation: station,
       nowPlaying: FRadioPlayer.Metadata(
         artistName: artist,

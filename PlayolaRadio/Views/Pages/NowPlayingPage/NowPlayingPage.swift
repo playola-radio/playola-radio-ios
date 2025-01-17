@@ -19,7 +19,8 @@ class NowPlayingPageModel: ViewModel {
   var navigationBarTitle: String = ""
   var presentedSheet: PlayolaSheet?
 
-  init(stationPlayer: StationPlayer? = nil, presentedSheet: PlayolaSheet? = nil) {
+  init(stationPlayer: StationPlayer? = nil, presentedSheet: PlayolaSheet? = nil,
+       albumArtworkURL: URL? = nil) {
     self.stationPlayer = stationPlayer ?? StationPlayer.shared
   }
 
@@ -59,7 +60,7 @@ class NowPlayingPageModel: ViewModel {
         self.nowPlayingArtist = "Station Loading..."
         self.nowPlayingTitle = "\(currentStation.name) \(currentStation.desc)"
       }
-    case .readyToPlay:
+    case .loadingFinished:
       self.nowPlayingTitle = state.nowPlaying?.trackName ?? "-------"
       self.nowPlayingArtist = state.nowPlaying?.artistName ?? "-------"
 
@@ -72,7 +73,7 @@ class NowPlayingPageModel: ViewModel {
 struct NowPlayingView: View {
   @Bindable var model: NowPlayingPageModel
 
-//  @State private var sliderValue: Double = .zero
+  //  @State private var sliderValue: Double = .zero
 
   @MainActor
   init(model: NowPlayingPageModel? = nil) {
@@ -88,57 +89,57 @@ struct NowPlayingView: View {
         .edgesIgnoringSafeArea(.all)
 
       VStack {
-//        AsyncImage(url: model.albumArtworkURL ??
-//                   store.stationsManagerState.currentStation?.processedImageURL() ??
-//                   Bundle.main.url(forResource: "AppIcon", withExtension: "PNG")
-//        )
-        AsyncImage(url: Bundle.main.url(forResource: "AppIcon", withExtension: "PNG"))
-                   { result in
-              result.image?
-                  .resizable()
-                  .scaledToFill()
-                  .frame(width: 274, height: 274)
-                  .padding(.top, 35)
-          }
+        AsyncImage(url: self.model.albumArtUrl ??
+                   Bundle.main.url(forResource: "AppIcon", withExtension: "PNG"), transaction: Transaction(animation: .bouncy()))
+        { result in
+          result.image?
+            .resizable()
+            .scaledToFill()
+            .frame(width: 274, height: 274)
+            .padding(.top, 35)
+            .transition(.move(edge: .top))
+        }
+        .frame(width: 274, height: 274)
+
 
         HStack(spacing: 12) {
-//              Image("btn-previous")
-//                  .resizable()
-//                  .frame(width: 45, height: 45)
-//                  .onTapGesture {
-//                      print("Back")
-//                  }
-//              Image("btn-play")
-//                  .resizable()
-//                  .frame(width: 45, height: 45)
-//                  .onTapGesture {
-//                      print("Back")
-//                  }
-//          Image(store.stationsManagerState.playbackState == .playing ? "btn-stop" : "btn-play")
+          //              Image("btn-previous")
+          //                  .resizable()
+          //                  .frame(width: 45, height: 45)
+          //                  .onTapGesture {
+          //                      print("Back")
+          //                  }
+          //              Image("btn-play")
+          //                  .resizable()
+          //                  .frame(width: 45, height: 45)
+          //                  .onTapGesture {
+          //                      print("Back")
+          //                  }
+          //          Image(store.stationsManagerState.playbackState == .playing ? "btn-stop" : "btn-play")
           Image("btn-play")
-                  .resizable()
-                  .frame(width: 45, height: 45)
-                  .onTapGesture {
-                      print("Back")
-                  }
-//              Image("btn-next")
-//                  .resizable()
-//                  .frame(width: 45, height: 45)
-//                  .onTapGesture {
-//                      print("Back")
-//                  }
-          }
+            .resizable()
+            .frame(width: 45, height: 45)
+            .onTapGesture {
+              print("Back")
+            }
+          //              Image("btn-next")
+          //                  .resizable()
+          //                  .frame(width: 45, height: 45)
+          //                  .onTapGesture {
+          //                      print("Back")
+          //                  }
+        }
         .padding(.top, 30)
 
-//        HStack {
-//          Image("vol-min")
-//            .frame(width: 18, height: 16)
-//
-//          Slider(value: $sliderValue)
-//
-//          Image("vol-max")
-//            .frame(width: 18, height: 16)
-//        }
+        //        HStack {
+        //          Image("vol-min")
+        //            .frame(width: 18, height: 16)
+        //
+        //          Slider(value: $sliderValue)
+        //
+        //          Image("vol-max")
+        //            .frame(width: 18, height: 16)
+        //        }
 
         Text(model.nowPlayingTitle)
           .font(.title)
@@ -179,7 +180,6 @@ struct NowPlayingView: View {
     .accentColor(.white)
     .navigationTitle(model.navigationBarTitle)
     .navigationBarTitleDisplayMode(.inline)
-
   }
 
 }
@@ -190,7 +190,8 @@ struct NowPlayingView: View {
       Color.black
         .edgesIgnoringSafeArea(.all)
 
-      NowPlayingView(model: NowPlayingPageModel(stationPlayer: .mock))
+      NowPlayingView(model: NowPlayingPageModel(
+        stationPlayer: .mock, albumArtworkURL: URL(string: "https://playola-static.s3.amazonaws.com/bri_banned_logo.png")!))
     }
   }
   .accentColor(.white)
