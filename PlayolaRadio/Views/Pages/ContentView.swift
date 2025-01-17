@@ -56,6 +56,7 @@ struct AppView: View {
           }
         }
       }
+    .accentColor(.white)
   }
 }
 
