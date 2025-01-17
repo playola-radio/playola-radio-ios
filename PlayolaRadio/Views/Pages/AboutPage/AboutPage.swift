@@ -9,7 +9,7 @@ import SwiftUI
 
 @Observable
 class AboutPageModel: ViewModel {
-  // State
+  // MARK: State
   var canSendEmail: Bool = false
   var isShowingMailComposer: Bool = false
   var mailURL: URL? = nil

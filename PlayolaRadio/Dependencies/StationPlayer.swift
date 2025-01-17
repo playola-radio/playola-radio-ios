@@ -12,7 +12,7 @@ import MediaPlayer
 import Foundation
 import UIKit
 
-class StationPlayer: ObservableObject {
+public class StationPlayer: ObservableObject {
   struct State: Sendable, Equatable {
     static func == (lhs: StationPlayer.State, rhs: StationPlayer.State) -> Bool {
       return lhs.playerStatus == rhs.playerStatus &&
@@ -23,7 +23,7 @@ class StationPlayer: ObservableObject {
     
     var playbackState: FRadioPlayer.PlaybackState
     var playerStatus: FRadioPlayer.State?
-    var currentStation: RadioStation?
+    public var currentStation: RadioStation?
     var nowPlaying: FRadioPlayer.Metadata?
   }
   
@@ -112,7 +112,7 @@ extension StationPlayer {
 
 extension StationPlayer: FRadioPlayerObserver {
   
-  func radioPlayer(_ player: FRadioPlayer, metadataDidChange metadata: FRadioPlayer.Metadata?) {
+  public func radioPlayer(_ player: FRadioPlayer, metadataDidChange metadata: FRadioPlayer.Metadata?) {
     self.state = State(playbackState: FRadioPlayer.shared.playbackState,
                        playerStatus: FRadioPlayer.shared.state,
                        currentStation: self.currentStation,
@@ -120,7 +120,7 @@ extension StationPlayer: FRadioPlayerObserver {
     resetArtwork(with: currentStation)
   }
   
-  func radioPlayer(_ player: FRadioPlayer, artworkDidChange artworkURL: URL?) {
+  public func radioPlayer(_ player: FRadioPlayer, artworkDidChange artworkURL: URL?) {
     self.albumArtworkURL = artworkURL
     guard let artworkURL = artworkURL else {
       resetArtwork(with: currentStation)
@@ -137,14 +137,14 @@ extension StationPlayer: FRadioPlayerObserver {
     }
   }
   
-  func radioPlayer(_ player: FRadioPlayer, playerStateDidChange state: FRadioPlayer.State) {
+  public func radioPlayer(_ player: FRadioPlayer, playerStateDidChange state: FRadioPlayer.State) {
     self.state = State(playbackState: FRadioPlayer.shared.playbackState,
                        playerStatus: FRadioPlayer.shared.state,
                        currentStation: self.currentStation,
                        nowPlaying: self.player.currentMetadata)
   }
   
-  func radioPlayer(_ player: FRadioPlayer, playbackStateDidChange state: FRadioPlayer.PlaybackState) {
+  public func radioPlayer(_ player: FRadioPlayer, playbackStateDidChange state: FRadioPlayer.PlaybackState) {
     self.state = State(playbackState: FRadioPlayer.shared.playbackState,
                        playerStatus: FRadioPlayer.shared.state,
                        currentStation: self.currentStation,
@@ -152,3 +152,10 @@ extension StationPlayer: FRadioPlayerObserver {
   }
 }
 
+extension StationPlayer {
+  static var mock: StationPlayer {
+      let stationPlayer = StationPlayer()
+    stationPlayer.state = State(playbackState: .playing, playerStatus: .readyToPlay, nowPlaying: FRadioPlayer.Metadata(artistName: "Rachel Loy", trackName: "Selfie", rawValue: nil, groups: []))
+    return stationPlayer
+  }
+}

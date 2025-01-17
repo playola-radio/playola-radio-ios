@@ -13,21 +13,15 @@ import Combine
 class StationListModel: ViewModel {
   var disposeBag: Set<AnyCancellable> = Set()
 
-  enum Sheet: Hashable, Identifiable {
-    var id: Self {
-      return self
-    }
-    case about(AboutPageModel)
-  }
-
   // MARK: State
   var isLoadingStationLists: Bool = false
   var isShowingSecretStations: Bool = false
   var stationLists: IdentifiedArrayOf<StationList> = []
   var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackState: .stopped)
   var presentedAlert: PlayolaAlert?
-  var presentedSheet: Sheet?
+  var presentedSheet: PlayolaSheet?
 
+  // MARK: Dependencies
   @ObservationIgnored var api: API = API()
   @ObservationIgnored var stationPlayer: StationPlayer = StationPlayer.shared
 
