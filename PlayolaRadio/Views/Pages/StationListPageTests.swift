@@ -55,7 +55,7 @@ struct StationListPageTests {
 
   @Suite("Station Selected")
   struct StationSelected {
-    
+
   }
 
 }

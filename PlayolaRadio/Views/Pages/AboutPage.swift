@@ -8,7 +8,7 @@
 import SwiftUI
 
 @Observable
-class AboutPageModel {
+class AboutPageModel: ViewModel {
   // State
   var canSendEmail: Bool = false
   var isShowingMailComposer: Bool = false

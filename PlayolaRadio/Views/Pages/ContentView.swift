@@ -9,55 +9,55 @@ import ComposableArchitecture
 import SwiftUI
 
 // possibly use later for navigation
-class ViewModel {
-  static func == (lhs: ViewModel, rhs: ViewModel) -> Bool {
+class ViewModel: Hashable {
+  nonisolated static func == (lhs: ViewModel, rhs: ViewModel) -> Bool {
     ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
   }
 
-  func hash(into hasher: inout Hasher) {
+  nonisolated func hash(into hasher: inout Hasher) {
     hasher.combine(ObjectIdentifier(self))
   }
 }
 
+@Observable
+class NavigationCoordinator {
+  static let shared = NavigationCoordinator()
+  var path: [Path] = []
 
-@Reducer
-struct AppReducer {
-  struct State: Equatable {}
-  
-  enum Action {}
-  
-  var body: some ReducerOf<Self> {
-    Reduce { state, action in
-      return .none
-    }
+  enum Path: Hashable {
+    case stationListPage(StationListModel)
+    case aboutPage(AboutPageModel)
   }
 }
 
 struct AppView: View {
-  var store: StoreOf<AppReducer>
-  
+  @Bindable var navigationCoordinator: NavigationCoordinator = NavigationCoordinator()
+
   @MainActor
-  init(store: StoreOf<AppReducer>) {
-    self.store = store
+  init() {
+    self.navigationCoordinator = NavigationCoordinator.shared
     UINavigationBar.appearance().barStyle = .black
     UINavigationBar.appearance().tintColor = .white
     UINavigationBar.appearance().prefersLargeTitles = true
   }
   
   var body: some View {
-    NavigationStack {
-      StationListPage(
-        model: StationListModel()
-      )
-    }
+    NavigationStack(path: $navigationCoordinator.path) {
+        StationListPage(model: StationListModel())
+        .navigationDestination(for: NavigationCoordinator.Path.self) { path in
+          switch path {
+          case let .aboutPage(model):
+            AboutPage(model: model)
+          case let .stationListPage(model):
+            StationListPage(model: model)
+          }
+        }
+      }
   }
 }
 
 #Preview {
   NavigationStack {
-    AppView(store: Store(initialState: AppReducer.State()) {
-      AppReducer()
-        ._printChanges()
-    })
+    AppView()
   }
 }

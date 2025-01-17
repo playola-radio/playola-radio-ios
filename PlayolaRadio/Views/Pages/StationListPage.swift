@@ -10,8 +10,15 @@ import SwiftUI
 import Combine
 
 @Observable
-class StationListModel {
+class StationListModel: ViewModel {
   var disposeBag: Set<AnyCancellable> = Set()
+
+  enum Sheet: Hashable, Identifiable {
+    var id: Self {
+      return self
+    }
+    case about(AboutPageModel)
+  }
 
   // MARK: State
   var isLoadingStationLists: Bool = false
@@ -19,6 +26,7 @@ class StationListModel {
   var stationLists: IdentifiedArrayOf<StationList> = []
   var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackState: .stopped)
   var presentedAlert: PlayolaAlert?
+  var presentedSheet: Sheet?
 
   @ObservationIgnored var api: API = API()
   @ObservationIgnored var stationPlayer: StationPlayer = StationPlayer.shared
@@ -40,10 +48,15 @@ class StationListModel {
     }
     self.stationPlayer.$state.sink { self.stationPlayerState = $0 }.store(in: &disposeBag)
   }
-  func hamburgerButtonTapped() {}
+  func hamburgerButtonTapped() {
+    self.presentedSheet = .about(AboutPageModel())
+  }
   func dismissAboutViewButtonTapped() {}
   func stationSelected(_ station: RadioStation) {
     stationPlayer.set(station: station)
+  }
+  func dismissButtonInSheetTapped() {
+    self.presentedSheet = nil
   }
 }
 
@@ -107,26 +120,28 @@ struct StationListPage: View {
         }
       }
     })
-//    .sheet(item: $store.scope(state: \.destination?.add, action: \.destination.add)) { store in
-//      NavigationStack {
-//        AboutPage(store: store)
-//          .toolbar {
-//            ToolbarItem(placement: .confirmationAction) {
-//              Button(action: { self.store.send(.dismissAboutViewButtonTapped) }) {
-//                Image(systemName: "xmark.circle.fill")
-//                  .resizable()
-//                  .frame(width: 32, height: 32)
-//                  .foregroundColor(.gray)
-//                  .padding(20)
-//              }
-//            }
-//          }
-//      }
-//    }
+    .sheet(item: $model.presentedSheet, content: { item in
+      switch item {
+      case .about(let aboutModel):
+        NavigationStack {
+          AboutPage(model: aboutModel)
+            .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                      Button(action: { model.dismissButtonInSheetTapped()  }) {
+                        Image(systemName: "xmark.circle.fill")
+                          .resizable()
+                          .frame(width: 32, height: 32)
+                          .foregroundColor(.gray)
+                          .padding(20)
+                      }
+                    }
+              }
+        }
+      }
+    })
     .onAppear {
       Task { await self.model.viewAppeared() }
     }
-//    .alert($store.scope(state: \.alert, action: \.alert))
     .foregroundStyle(.white)
   }
 }
