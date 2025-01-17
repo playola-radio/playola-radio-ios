@@ -7,100 +7,70 @@
 
 import ComposableArchitecture
 import SwiftUI
+import Combine
 
-@Reducer
-struct StationListReducer {
-  @Reducer(state: .equatable)
-  enum Destination {
-    case add(AboutPageReducer)
-  }
-  
-  @ObservableState
-  struct State: Equatable {
-    @Presents var destination: Destination.State?
-    @Presents var alert: AlertState<Action.Alert>?
-    var isLoadingStationLists: Bool = false
-    var isShowingSecretStations: Bool = false
-    var stationLists: IdentifiedArrayOf<StationList> = []
-    var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackState: .stopped)
-  }
-  
-  enum Action {
-    case alert(PresentationAction<Alert>)
-    case viewAppeared
-    case stationsListResponseReceived(Result<[StationList], Error>)
-    case hamburgerButtonTapped
-    case destination(PresentationAction<Destination.Action>)
-    case dismissAboutViewButtonTapped
-    case stationPlayerStateDidChange(StationPlayer.State)
-    case stationSelected(RadioStation)
-    
-    @CasePathable
-    enum Alert: Equatable {}
-  }
-  
-  @Dependency(\.apiClient) var apiClient
-  @Dependency(\.stationPlayer) var stationPlayer
-  
-  var body: some ReducerOf<Self> {
-    Reduce { state, action in
-      switch action {
-      case .viewAppeared:
-        state.isLoadingStationLists = true
-        return .run { send in
-          await withTaskGroup(of: Void.self) { group in
-            group.addTask {
-              await send(.stationsListResponseReceived(Result { try await self.apiClient.getStationLists() } ))
-            }
-            group.addTask {
-              for await playerState in await self.stationPlayer.subscribeToPlayerState() {
-                await send(.stationPlayerStateDidChange(playerState))
-              }
-            }
-          }
-        }
-        
-      case .stationsListResponseReceived(.success(let stationLists)):
-        state.isLoadingStationLists = false
-        let stationLists = stationLists.filter { state.isShowingSecretStations ? true : $0.id != "in_development" }
-        state.stationLists = IdentifiedArray(uniqueElements: stationLists)
-        return .none
-        
-      case .stationsListResponseReceived(.failure):
-        state.isLoadingStationLists = false
-        state.alert = .stationListLoadFailure
-        return .none
-        
-      case .hamburgerButtonTapped:
-        state.destination = .add(AboutPageReducer.State())
-        return .none
-        
-      case .dismissAboutViewButtonTapped:
-        state.destination = nil
-        return .none
-        
-      case .stationPlayerStateDidChange(let stationPlayerState):
-        state.stationPlayerState = stationPlayerState
-        return .none
-        
-      case .stationSelected(let station):
-        return .run { send in
-          self.stationPlayer.playStation(station)
-        }
-        
-      case .alert(_):
-        return .none
-        
-      case .destination(_):
-        return .none
-      }
+@Observable
+class StationListModel: ViewModel {
+  var disposeBag: Set<AnyCancellable> = Set()
+
+  enum Sheet: Hashable, Identifiable {
+    var id: Self {
+      return self
     }
+    case about(AboutPageModel)
+  }
+
+  // MARK: State
+  var isLoadingStationLists: Bool = false
+  var isShowingSecretStations: Bool = false
+  var stationLists: IdentifiedArrayOf<StationList> = []
+  var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackState: .stopped)
+  var presentedAlert: PlayolaAlert?
+  var presentedSheet: Sheet?
+
+  @ObservationIgnored var api: API = API()
+  @ObservationIgnored var stationPlayer: StationPlayer = StationPlayer.shared
+
+  init(api:API? = nil, stationPlayer: StationPlayer? = nil) {
+    self.api = api ?? API()
+    self.stationPlayer = stationPlayer ?? StationPlayer.shared
+  }
+
+  // MARK: Actions
+  func viewAppeared() async {
+    self.isLoadingStationLists = true
+    defer { self.isLoadingStationLists = false }
+    do {
+      let stationListsRaw = try await self.api.getStations()
+      self.stationLists = IdentifiedArray(uniqueElements: stationListsRaw)
+    } catch (_) {
+      self.presentedAlert = .errorLoadingStations
+    }
+    self.stationPlayer.$state.sink { self.stationPlayerState = $0 }.store(in: &disposeBag)
+  }
+  func hamburgerButtonTapped() {
+    self.presentedSheet = .about(AboutPageModel())
+  }
+  func dismissAboutViewButtonTapped() {}
+  func stationSelected(_ station: RadioStation) {
+    stationPlayer.set(station: station)
+  }
+  func dismissButtonInSheetTapped() {
+    self.presentedSheet = nil
+  }
+}
+
+extension PlayolaAlert {
+  static var errorLoadingStations: PlayolaAlert {
+    return PlayolaAlert(title: "Error Loading Stations",
+                        message: "There was an error loading the stations. Please check yout connection and try again.",
+                        dismissButton: .cancel(Text("OK")))
   }
 }
 
 struct StationListPage: View {
-  @Bindable var store: StoreOf<StationListReducer>
-  
+  @Bindable var model: StationListModel
+
   var body: some View {
     ZStack {
       Image("background")
@@ -109,7 +79,7 @@ struct StationListPage: View {
       
       VStack {
         List {
-          ForEach(store.stationLists.filter { $0.stations.count > 0 }) { stationList in
+          ForEach(model.stationLists.filter { $0.stations.count > 0 }) { stationList in
             Section(stationList.title) {
               ForEach(stationList.stations.indices, id: \.self) { index in
                 StationListCellView(station: stationList.stations[index])
@@ -117,7 +87,7 @@ struct StationListPage: View {
                   .listRowSeparator(.hidden)
                   .onTapGesture {
                     let station = stationList.stations[index]
-                    self.store.send(.stationSelected(station))
+                    model.stationSelected(station)
                   }
               }
             }
@@ -126,7 +96,7 @@ struct StationListPage: View {
           .scrollContentBackground(.hidden)
           .background(.clear)
         
-        NowPlayingSmallView(metadata: store.stationPlayerState.nowPlaying, stationName: store.stationPlayerState.currentStation?.name)
+        NowPlayingSmallView(metadata: model.stationPlayerState.nowPlaying, stationName: model.stationPlayerState.currentStation?.name)
           .edgesIgnoringSafeArea(.bottom)
           .padding(.bottom, 5)
       }
@@ -139,10 +109,10 @@ struct StationListPage: View {
         Image(systemName: "line.3.horizontal")
           .foregroundColor(.white)
           .onTapGesture {
-            self.store.send(.hamburgerButtonTapped)
+            self.model.hamburgerButtonTapped()
           }
       }
-      if store.stationPlayerState.currentStation != nil {
+      if model.stationPlayerState.currentStation != nil {
         ToolbarItem(placement: .topBarTrailing) {
           Image("btn-nowPlaying")
             .foregroundColor(.white)
@@ -150,46 +120,39 @@ struct StationListPage: View {
         }
       }
     })
-    .sheet(item: $store.scope(state: \.destination?.add, action: \.destination.add)) { store in
-      NavigationStack {
-        AboutPage(store: store)
-          .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-              Button(action: { self.store.send(.dismissAboutViewButtonTapped) }) {
-                Image(systemName: "xmark.circle.fill")
-                  .resizable()
-                  .frame(width: 32, height: 32)
-                  .foregroundColor(.gray)
-                  .padding(20)
+    .sheet(item: $model.presentedSheet, content: { item in
+      switch item {
+      case .about(let aboutModel):
+        NavigationStack {
+          AboutPage(model: aboutModel)
+            .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                      Button(action: { model.dismissButtonInSheetTapped()  }) {
+                        Image(systemName: "xmark.circle.fill")
+                          .resizable()
+                          .frame(width: 32, height: 32)
+                          .foregroundColor(.gray)
+                          .padding(20)
+                      }
+                    }
               }
-            }
-          }
+        }
       }
-    }
+    })
     .onAppear {
-      self.store.send(.viewAppeared)
+      Task { await self.model.viewAppeared() }
     }
-    .alert($store.scope(state: \.alert, action: \.alert))
     .foregroundStyle(.white)
   }
 }
 
 #Preview {
   NavigationStack {
-    StationListPage(store: Store(initialState: StationListReducer.State()) {
-      StationListReducer()
-        ._printChanges()
-    })
+    StationListPage(model: StationListModel())
   }
   .onAppear {
     UINavigationBar.appearance().barStyle = .black
     UINavigationBar.appearance().tintColor = .white
     UINavigationBar.appearance().prefersLargeTitles = true
   }
-}
-
-extension AlertState where Action == StationListReducer.Action.Alert {
-  static let stationListLoadFailure = AlertState(
-    title: TextState("Error Loading Stations"),
-    message: TextState("There was an error loading the stations. Please check yout connection and try again."))
 }

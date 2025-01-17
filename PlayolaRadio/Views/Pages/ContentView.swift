@@ -8,47 +8,56 @@
 import ComposableArchitecture
 import SwiftUI
 
+// possibly use later for navigation
+class ViewModel: Hashable {
+  nonisolated static func == (lhs: ViewModel, rhs: ViewModel) -> Bool {
+    ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+  }
 
-@Reducer
-struct AppReducer {
-  struct State: Equatable {}
-  
-  enum Action {}
-  
-  var body: some ReducerOf<Self> {
-    Reduce { state, action in
-      return .none
-    }
+  nonisolated func hash(into hasher: inout Hasher) {
+    hasher.combine(ObjectIdentifier(self))
+  }
+}
+
+@Observable
+class NavigationCoordinator {
+  static let shared = NavigationCoordinator()
+  var path: [Path] = []
+
+  enum Path: Hashable {
+    case stationListPage(StationListModel)
+    case aboutPage(AboutPageModel)
   }
 }
 
 struct AppView: View {
-  var store: StoreOf<AppReducer>
-  
+  @Bindable var navigationCoordinator: NavigationCoordinator = NavigationCoordinator()
+
   @MainActor
-  init(store: StoreOf<AppReducer>) {
-    self.store = store
+  init() {
+    self.navigationCoordinator = NavigationCoordinator.shared
     UINavigationBar.appearance().barStyle = .black
     UINavigationBar.appearance().tintColor = .white
     UINavigationBar.appearance().prefersLargeTitles = true
   }
   
   var body: some View {
-    NavigationStack {
-      StationListPage(
-        store: Store(initialState: StationListReducer.State()) {
-          StationListReducer()
+    NavigationStack(path: $navigationCoordinator.path) {
+        StationListPage(model: StationListModel())
+        .navigationDestination(for: NavigationCoordinator.Path.self) { path in
+          switch path {
+          case let .aboutPage(model):
+            AboutPage(model: model)
+          case let .stationListPage(model):
+            StationListPage(model: model)
+          }
         }
-      )
-    }
+      }
   }
 }
 
 #Preview {
   NavigationStack {
-    AppView(store: Store(initialState: AppReducer.State()) {
-      AppReducer()
-        ._printChanges()
-    })
+    AppView()
   }
 }

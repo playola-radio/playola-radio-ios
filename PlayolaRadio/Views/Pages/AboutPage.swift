@@ -5,81 +5,73 @@
 //  Created by Brian D Keane on 5/21/24.
 //
 
-import ComposableArchitecture
 import SwiftUI
 
-@Reducer
-struct AboutPageReducer {
-  @ObservableState
-  struct State: Equatable, Sendable {
-    @Presents var alert: AlertState<Action.Alert>?
-    var canSendEmail:Bool = false
-    var isShowingMailComposer:Bool = false
-    var mailURL: URL? = nil
+@Observable
+class AboutPageModel: ViewModel {
+  // State
+  var canSendEmail: Bool = false
+  var isShowingMailComposer: Bool = false
+  var mailURL: URL? = nil
+  var isShowingCannotOpenMailAlert = false
+  var presentedAlert: PlayolaAlert?
+
+  @ObservationIgnored var mailService = MailService()
+
+  init(canSendEmail: Bool = false,
+       isShowingMailComposer: Bool = false,
+       mailURL: URL? = nil,
+       isShowingCannotOpenMailAlert: Bool = false,
+       presentedAlert: PlayolaAlert? = nil,
+       mailService: MailService = MailService()) {
+    self.canSendEmail = canSendEmail
+    self.isShowingMailComposer = isShowingMailComposer
+    self.mailURL = mailURL
+    self.isShowingCannotOpenMailAlert = isShowingCannotOpenMailAlert
+    self.presentedAlert = presentedAlert
+    self.mailService = mailService
   }
 
-  enum Action: BindableAction, Equatable, Sendable {
-    case alert(PresentationAction<Alert>)
-    case binding(BindingAction<State>)
-    case waitingListButtonTapped
-    case feedbackButtonTapped
-    case viewAppeared
-    case canSendEmailAnswered(Bool)
-
-    @CasePathable
-    enum Alert: Equatable {}
+  // MARK: Actions
+  func viewAppeared() async {
+    self.canSendEmail = await mailService.canSendEmail()
   }
 
-  @Dependency(\.mailClient) var mailClient
+  func waitingListButtonTapped() {
+    sendEmail(recipientEmail: "waitlist@playola.fm",
+              subject: "Add Me To The Waitlist")
+  }
 
-  var body: some ReducerOf<Self> {
-    BindingReducer()
+  func feedbackButtonTapped() {
+    sendEmail(recipientEmail: "feedback@playola.fm",
+              subject: "What I Think About Playola")
+  }
 
-    Reduce { state, action in
-      switch action {
-
-      case .viewAppeared:
-        return .run { send in
-          let canSend = await mailClient.canSendEmail()
-          await send(.canSendEmailAnswered(canSend))
-        }
-
-      case .waitingListButtonTapped:
-        if state.canSendEmail {
-          state.isShowingMailComposer = true
-        } else if let url = mailClient.mailSendURL("waitlist@playola.fm", "Add Me To The Waitlist") {
-          UIApplication.shared.open(url)
-        } else {
-          state.alert = .cannotOpenMailFailure
-        }
-        return .none
-
-      case .feedbackButtonTapped:
-        if state.canSendEmail {
-          state.isShowingMailComposer = true
-        } else if let url = mailClient.mailSendURL("feedback@playola.fm", "Playola Feedback") {
-          UIApplication.shared.open(url)
-        } else {
-          state.alert = .cannotOpenMailFailure
-        }
-        return .none
-
-      case let .canSendEmailAnswered(canSend):
-        state.canSendEmail = canSend
-        return .none
-      
-      case .binding(_):
-        return .none
-
-      case .alert:
-        return .none
-      }
+  // MARK: Other Functions
+  private func sendEmail(recipientEmail: String, subject: String) {
+    if canSendEmail {
+      self.isShowingMailComposer = true
+    } else if let url = mailService.mailSendURL(
+      recipientEmail: recipientEmail, subject: subject) {
+      Task { await UIApplication.shared.open(url) }
+    } else {
+      self.presentedAlert = .cannotOpenMailAlert
     }
   }
 }
 
+
+
+extension PlayolaAlert {
+  static var cannotOpenMailAlert: PlayolaAlert {
+    return PlayolaAlert(title: "Error Opening Mail",
+                        message: "There was an error opening the email program",
+                        dismissButton: .cancel(Text("Ok")))
+  }
+}
+
 struct AboutPage: View {
-  @Bindable var store: StoreOf<AboutPageReducer>
+  @Bindable var model: AboutPageModel
   @Environment(\.openURL) var openURL
 
   var body: some View {
@@ -127,7 +119,7 @@ struct AboutPage: View {
           .font(.system(size: 14))
           .bold()
 
-        Button(action: { store.send(.feedbackButtonTapped) }) {
+        Button(action: { model.feedbackButtonTapped() }) {
           Text("Let Us Know")
             .bold()
             .padding()
@@ -139,7 +131,7 @@ struct AboutPage: View {
 
         Spacer()
 
-        Button(action: { store.send(.waitingListButtonTapped) }) {
+        Button(action: { model.waitingListButtonTapped() }) {
           Text("Join Waitlist")
             .bold()
             .padding()
@@ -171,23 +163,12 @@ struct AboutPage: View {
     }
     .foregroundColor(.white)
     .onAppear {
-      store.send(.viewAppeared)
+      Task { await model.viewAppeared() }
     }
-    .sheet(isPresented: $store.isShowingMailComposer , content: {
-      Text("Here it is")
-    })
-    .alert($store.scope(state: \.alert, action: \.alert))
+    .alert(item: $model.presentedAlert) { $0.alert }
   }
 }
 
-extension AlertState where Action == AboutPageReducer.Action.Alert {
-  static let cannotOpenMailFailure = AlertState(
-    title: TextState("Error Opening Mail"),
-    message: TextState("There was an error opening the email program."))
-}
-
 #Preview {
-  AboutPage(store: Store(initialState: AboutPageReducer.State()) {
-    AboutPageReducer()
-  })
+  AboutPage(model: .init(canSendEmail: true, isShowingMailComposer: false))
 }

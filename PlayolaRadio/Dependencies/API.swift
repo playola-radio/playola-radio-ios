@@ -7,20 +7,20 @@
 
 import Foundation
 
-struct API {
+class API {
   static let stationsURL = URL(string: "https://playola-static.s3.amazonaws.com/station_lists.json")!
   
   // Helper struct to get either local or remote JSON
-  static func getStations(completion: @escaping ((Result<[StationList], Error>) -> Void)) {
+  func getStations(completion: @escaping ((Result<[StationList], Error>) -> Void)) {
     DispatchQueue.global(qos: .userInitiated).async {
-      loadHttp { remoteResult in
+      self.loadHttp { remoteResult in
         if case.success = remoteResult {
           print("Remote StationLists Loaded")
           DispatchQueue.main.async {
             completion(remoteResult)
           }
         } else {
-          loadLocal { stationListResult in
+          self.loadLocal { stationListResult in
             print("Error loading remote StationLists. Falling back to local version.")
             DispatchQueue.main.async {
               completion(stationListResult)
@@ -31,7 +31,7 @@ struct API {
     }
   }
   
-  static func getStations() async throws -> [StationList] {
+  func getStations() async throws -> [StationList] {
     try await withCheckedThrowingContinuation { continuation in
       getStations { stationListResult in
         switch stationListResult {
@@ -50,11 +50,11 @@ struct API {
     case urlNotValid, dataNotValid, dataNotFound, fileNotFound, httpResponseNotValid
   }
   
-  private static func handle(_ dataResult: Result<Data?, Error>, _ completion: @escaping ((Result<[StationList], Error>) -> Void)) {
+  private func handle(_ dataResult: Result<Data?, Error>, _ completion: @escaping ((Result<[StationList], Error>) -> Void)) {
     DispatchQueue.main.async {
       switch dataResult {
       case .success(let data):
-        let result = decode(data)
+        let result = self.decode(data)
         completion(result)
       case .failure(let error):
         completion(.failure(error))
@@ -62,7 +62,7 @@ struct API {
     }
   }
   
-  private static func decode(_ data: Data?) -> Result<[StationList], Error> {
+  private func decode(_ data: Data?) -> Result<[StationList], Error> {
     guard let data = data else {
       return .failure(DataError.dataNotFound)
     }
@@ -84,7 +84,7 @@ struct API {
   
   // Load local JSON Data
   
-  static func loadLocal(_ completion: (Result<[StationList], Error>) -> Void) {
+  func loadLocal(_ completion: (Result<[StationList], Error>) -> Void) {
     let filePathURL = Bundle.main.url(forResource: "station_lists", withExtension: "json")
     guard let filePathURL = filePathURL else {
       completion(.failure(DataError.fileNotFound))
@@ -100,7 +100,7 @@ struct API {
   }
   
   // Load http JSON Data
-  private static func loadHttp(_ completion: @escaping (Result<[StationList], Error>) -> Void) {
+  private func loadHttp(_ completion: @escaping (Result<[StationList], Error>) -> Void) {
     let config = URLSessionConfiguration.default
     config.requestCachePolicy = .reloadIgnoringLocalCacheData
     
@@ -124,7 +124,7 @@ struct API {
         return
       }
       
-      completion(decode(data))
+      completion(self.decode(data))
     }
     loadDataTask.resume()
   }
