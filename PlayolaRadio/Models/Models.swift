@@ -83,7 +83,7 @@ struct StationListResponse: Decodable {
 // MARK: Mocks
 extension StationList {
   static var mocks: [StationList] {
-    return [StationList(id: "in_development", title: "In Development", stations: [wcgStation]),
+    return [StationList(id: "in_development", title: "In Development", stations: [briStation]),
             StationList(id: "artist_stations", title: "Artists", stations: artistStations),
             StationList(id: "fm_stations", title: "FM Stations", stations: fmStations)]
   }
@@ -94,13 +94,13 @@ extension RadioStation {
 }
 
 
-private let wcgStation = RadioStation(
-  id: "william_clark_green",
-  name: "William Clark Green\'s",
+private let briStation = RadioStation(
+  id: "bri_bagwell",
+  name: "Bri Bagwell\'s",
   streamURL: "https://playoutonestreaming.com/proxy/billgreaseradio?mp=/stream",
   imageURL: "https://playola-static.s3.amazonaws.com/wcg_bgr_logo.jpeg",
-  desc: "Bill Grease Radio",
-  longDesc: "William Clark Green talks about his songs -- how they were written, the story " +
+  desc: "Banned Radio",
+  longDesc: "Bri Bagwell talks about her songs -- how they were written, the story " +
   "behind the recordings, and lots of little tidbits you won\'t hear anywhere else, all while " +
   "spinning his favorite songs and hanging out with some friends.",
   type: .artist)

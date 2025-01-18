@@ -27,6 +27,7 @@ class NavigationCoordinator {
   enum Path: Hashable {
     case stationListPage(StationListModel)
     case aboutPage(AboutPageModel)
+    case nowPlayingPage(NowPlayingPageModel)
   }
 }
 
@@ -50,9 +51,12 @@ struct AppView: View {
             AboutPage(model: model)
           case let .stationListPage(model):
             StationListPage(model: model)
+          case let .nowPlayingPage(model):
+            NowPlayingView(model: model)
           }
         }
       }
+    .accentColor(.white)
   }
 }
 

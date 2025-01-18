@@ -55,7 +55,29 @@ struct StationListPageTests {
 
   @Suite("Station Selected")
   struct StationSelected {
+    @Test("Navigates to now playing when NowPlaying is tapped")
+    func testNavigatesToNowPlayingWhenNowPlayingIsTapped() async {
+      let stationPlayerMock: StationPlayerMock = .mockPlayingPlayer()
+      let navigationCoordinator = NavigationCoordinator()
+      let stationListPage = StationListModel(stationPlayer: stationPlayerMock,
+                                             navigationCoordinator: navigationCoordinator)
+      await stationListPage.viewAppeared()
+      stationListPage.nowPlayingToolbarButtonTapped()
+      #expect(navigationCoordinator.path.last ~= .nowPlayingPage(NowPlayingPageModel()))
+    }
 
+    @Test("Navigates nowhere if it is tapped while a station is not playing")
+    func testNavigatesNowhereIfTappedWhileAStationIsNotPlaying() async {
+      let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+
+      let navigationCoordinator = NavigationCoordinator()
+      let previousCount = navigationCoordinator.path.count
+      let stationListPage = StationListModel(stationPlayer: stationPlayerMock,
+                                             navigationCoordinator: navigationCoordinator)
+      await stationListPage.viewAppeared()
+      stationListPage.nowPlayingToolbarButtonTapped()
+      #expect(navigationCoordinator.path.count == previousCount)
+    }
   }
 
 }

@@ -9,7 +9,7 @@ import SwiftUI
 
 @Observable
 class AboutPageModel: ViewModel {
-  // State
+  // MARK: State
   var canSendEmail: Bool = false
   var isShowingMailComposer: Bool = false
   var mailURL: URL? = nil
@@ -53,7 +53,7 @@ class AboutPageModel: ViewModel {
       self.isShowingMailComposer = true
     } else if let url = mailService.mailSendURL(
       recipientEmail: recipientEmail, subject: subject) {
-      Task { await UIApplication.shared.open(url) }
+      mailService.openEmailUrl(url: url)
     } else {
       self.presentedAlert = .cannotOpenMailAlert
     }

@@ -13,27 +13,23 @@ import Combine
 class StationListModel: ViewModel {
   var disposeBag: Set<AnyCancellable> = Set()
 
-  enum Sheet: Hashable, Identifiable {
-    var id: Self {
-      return self
-    }
-    case about(AboutPageModel)
-  }
-
   // MARK: State
   var isLoadingStationLists: Bool = false
   var isShowingSecretStations: Bool = false
   var stationLists: IdentifiedArrayOf<StationList> = []
   var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackState: .stopped)
   var presentedAlert: PlayolaAlert?
-  var presentedSheet: Sheet?
+  var presentedSheet: PlayolaSheet?
 
-  @ObservationIgnored var api: API = API()
-  @ObservationIgnored var stationPlayer: StationPlayer = StationPlayer.shared
+  // MARK: Dependencies
+  @ObservationIgnored var api: API
+  @ObservationIgnored var stationPlayer: StationPlayer
+  @ObservationIgnored var navigationCoordinator: NavigationCoordinator
 
-  init(api:API? = nil, stationPlayer: StationPlayer? = nil) {
+  init(api:API? = nil, stationPlayer: StationPlayer? = nil, navigationCoordinator: NavigationCoordinator? = nil) {
     self.api = api ?? API()
     self.stationPlayer = stationPlayer ?? StationPlayer.shared
+    self.navigationCoordinator = navigationCoordinator ?? NavigationCoordinator.shared
   }
 
   // MARK: Actions
@@ -57,6 +53,12 @@ class StationListModel: ViewModel {
   }
   func dismissButtonInSheetTapped() {
     self.presentedSheet = nil
+  }
+  func nowPlayingToolbarButtonTapped() {
+    if stationPlayerState.currentStation != nil {
+      navigationCoordinator.path.append(.nowPlayingPage(NowPlayingPageModel()))
+    }
+
   }
 }
 
@@ -116,7 +118,10 @@ struct StationListPage: View {
         ToolbarItem(placement: .topBarTrailing) {
           Image("btn-nowPlaying")
             .foregroundColor(.white)
-          
+            .onTapGesture {
+              self.model.nowPlayingToolbarButtonTapped()
+            }
+
         }
       }
     })
