@@ -53,7 +53,7 @@ class AboutPageModel: ViewModel {
       self.isShowingMailComposer = true
     } else if let url = mailService.mailSendURL(
       recipientEmail: recipientEmail, subject: subject) {
-      Task { await UIApplication.shared.open(url) }
+      mailService.openEmailUrl(url: url)
     } else {
       self.presentedAlert = .cannotOpenMailAlert
     }
