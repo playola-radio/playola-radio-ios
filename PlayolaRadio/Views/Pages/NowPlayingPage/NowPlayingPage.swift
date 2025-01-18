@@ -20,13 +20,16 @@ class NowPlayingPageModel: ViewModel {
   var presentedSheet: PlayolaSheet?
 
   init(stationPlayer: StationPlayer? = nil,
-       presentedSheet: PlayolaSheet? = nil,
-       albumArtworkURL: URL? = nil) {
+       navigationCoordinator: NavigationCoordinator? = nil,
+       presentedSheet: PlayolaSheet? = nil) {
     self.stationPlayer = stationPlayer ?? StationPlayer.shared
+    self.navigationCoordinator = navigationCoordinator ?? .shared
+    self.presentedSheet = presentedSheet
   }
 
   // MARK: Dependencies
   @ObservationIgnored var stationPlayer: StationPlayer
+  @ObservationIgnored var navigationCoordinator: NavigationCoordinator
 
   func viewAppeared() {
     processNewStationState(stationPlayer.state)
@@ -38,11 +41,13 @@ class NowPlayingPageModel: ViewModel {
     self.presentedSheet = .about(AboutPageModel())
   }
 
-  func airPlayButtonTapped() {}
   func infoButtonTapped() {}
   func shareButtonTapped() {}
   func dismissAboutSheetButtonTapped() {
     self.presentedSheet = nil
+  }
+  func stopButtonTapped() {
+    navigationCoordinator.path.removeLast()
   }
 
   // MARK: Actions
@@ -119,12 +124,12 @@ struct NowPlayingView: View {
           //                  .onTapGesture {
           //                      print("Back")
           //                  }
-          //          Image(store.stationsManagerState.playbackState == .playing ? "btn-stop" : "btn-play")
-          Image("btn-play")
+          Image(model.stationPlayer.currentStation != nil ? "btn-stop" : "btn-play")
+//          Image("btn-play")
             .resizable()
             .frame(width: 45, height: 45)
             .onTapGesture {
-              print("Back")
+              model.stopButtonTapped()
             }
           //              Image("btn-next")
           //                  .resizable()
@@ -196,7 +201,7 @@ struct NowPlayingView: View {
         .edgesIgnoringSafeArea(.all)
 
       NowPlayingView(model: NowPlayingPageModel(
-        stationPlayer: .shared, albumArtworkURL: URL(string: "https://playola-static.s3.amazonaws.com/bri_banned_logo.png")!))
+        stationPlayer: .shared))
     }
   }
   .accentColor(.white)

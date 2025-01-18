@@ -69,13 +69,12 @@ struct StationListPageTests {
     func testNavigatesNowhereIfTappedWhileAStationIsNotPlaying() async {
       let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
 
-      let navigationCoordinator = NavigationCoordinator()
-      let previousCount = navigationCoordinator.path.count
+      let navigationCoordinator = NavigationCoordinatorMock()
       let stationListPage = StationListModel(stationPlayer: stationPlayerMock,
                                              navigationCoordinator: navigationCoordinator)
       await stationListPage.viewAppeared()
       stationListPage.nowPlayingToolbarButtonTapped()
-      #expect(navigationCoordinator.path.count == previousCount)
+      #expect(navigationCoordinator.changesToPathCount == 0)
     }
 
     @Test("Selecting a station starts it and moves to nowPlaying")
@@ -84,7 +83,6 @@ struct StationListPageTests {
       let station: RadioStation = .mock
 
       let navigationCoordinator = NavigationCoordinatorMock()
-      let previousCount = navigationCoordinator.path.count
       let stationListPage = StationListModel(stationPlayer: stationPlayerMock,
                                              navigationCoordinator: navigationCoordinator)
       await stationListPage.viewAppeared()

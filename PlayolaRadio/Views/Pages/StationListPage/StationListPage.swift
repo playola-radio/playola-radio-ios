@@ -50,7 +50,9 @@ class StationListModel: ViewModel {
   }
   func dismissAboutViewButtonTapped() {}
   func stationSelected(_ station: RadioStation) {
-    stationPlayer.play(station: station)
+    if self.stationPlayer.currentStation != station {
+      stationPlayer.play(station: station)
+    }
     navigationCoordinator.path.append(.nowPlayingPage(NowPlayingPageModel()))
   }
   func dismissButtonInSheetTapped() {
