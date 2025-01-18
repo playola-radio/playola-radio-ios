@@ -19,24 +19,19 @@ class NowPlayingPageModel: ViewModel {
   var navigationBarTitle: String = ""
   var presentedSheet: PlayolaSheet?
 
-  init(stationPlayer: URLStreamPlayer? = nil, presentedSheet: PlayolaSheet? = nil,
+  init(stationPlayer: StationPlayer? = nil,
+       presentedSheet: PlayolaSheet? = nil,
        albumArtworkURL: URL? = nil) {
-    self.stationPlayer = stationPlayer ?? URLStreamPlayer.shared
+    self.stationPlayer = stationPlayer ?? StationPlayer.shared
   }
 
   // MARK: Dependencies
-  @ObservationIgnored var stationPlayer: URLStreamPlayer = URLStreamPlayer.shared
+  @ObservationIgnored var stationPlayer: StationPlayer
 
   func viewAppeared() {
-    if let currentStation = stationPlayer.state.currentStation {
-      self.navigationBarTitle = "\(currentStation.name) \(currentStation.desc)"
-    } else {
-      self.navigationBarTitle = "Playola Radio"
-    }
     processNewStationState(stationPlayer.state)
 
     stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &disposeBag)
-    stationPlayer.$albumArtworkURL.sink { self.albumArtUrl = $0 }.store(in: &disposeBag)
   }
 
   func aboutButtonTapped() {
@@ -53,19 +48,24 @@ class NowPlayingPageModel: ViewModel {
   // MARK: Actions
 
   // MARK: Helpers
-  func processNewStationState(_ state: URLStreamPlayer.State) {
-    switch state.playerStatus {
-    case .loading:
-      if let currentStation = stationPlayer.state.currentStation {
-        self.nowPlayingArtist = "Station Loading..."
-        self.nowPlayingTitle = "\(currentStation.name) \(currentStation.desc)"
-      }
-    case .loadingFinished:
-      self.nowPlayingTitle = state.nowPlaying?.trackName ?? "-------"
-      self.nowPlayingArtist = state.nowPlaying?.artistName ?? "-------"
-
-    default:
-      print("default")
+  func processNewStationState(_ state: StationPlayer.State) {
+    switch state.playbackStatus {
+    case .playing(let radioStation):
+      self.navigationBarTitle = "\(radioStation.name) \(radioStation.desc)"
+      self.nowPlayingTitle = state.titlePlaying ?? "-------"
+      self.nowPlayingArtist = state.artistPlaying ?? "-------"
+    case .loading(let radioStation):
+      self.navigationBarTitle = "\(radioStation.name) \(radioStation.desc)"
+      self.nowPlayingArtist = "Station Loading..."
+      self.nowPlayingTitle = "Station Loading..."
+    case .stopped:
+      self.navigationBarTitle = "Playola Radio"
+      self.nowPlayingArtist = "Player Stopped"
+      self.nowPlayingTitle = "Player Stopped"
+    case .error:
+      self.navigationBarTitle = "Playola Radio"
+      self.nowPlayingTitle = ""
+      self.nowPlayingArtist = "Error Playing Station"
     }
   }
 }
@@ -191,7 +191,7 @@ struct NowPlayingView: View {
         .edgesIgnoringSafeArea(.all)
 
       NowPlayingView(model: NowPlayingPageModel(
-        stationPlayer: .mock, albumArtworkURL: URL(string: "https://playola-static.s3.amazonaws.com/bri_banned_logo.png")!))
+        stationPlayer: .shared, albumArtworkURL: URL(string: "https://playola-static.s3.amazonaws.com/bri_banned_logo.png")!))
     }
   }
   .accentColor(.white)

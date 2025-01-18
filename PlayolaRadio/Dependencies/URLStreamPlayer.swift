@@ -159,7 +159,13 @@ extension URLStreamPlayer: FRadioPlayerObserver {
 extension URLStreamPlayer {
   static var mock: URLStreamPlayer {
       let stationPlayer = URLStreamPlayer()
-    stationPlayer.state = State(playbackState: .playing, playerStatus: .readyToPlay, nowPlaying: FRadioPlayer.Metadata(artistName: "Rachel Loy", trackName: "Selfie", rawValue: nil, groups: []))
+    stationPlayer.state = State(playbackState: .playing,
+                                playerStatus: .readyToPlay,
+                                nowPlaying: FRadioPlayer.Metadata(
+                                  artistName: "Rachel Loy",
+                                  trackName: "Selfie",
+                                  rawValue: nil,
+                                  groups: []))
     return stationPlayer
   }
 }

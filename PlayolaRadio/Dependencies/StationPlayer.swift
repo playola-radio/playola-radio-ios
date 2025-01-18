@@ -11,18 +11,27 @@ import FRadioPlayer
 class StationPlayer: ObservableObject {
   var disposeBag: Set<AnyCancellable> = Set()
   enum  PlaybackStatus {
-    case playing
+    case playing(RadioStation)
     case stopped
-    case loading
+    case loading(RadioStation)
+    case error
   }
   struct State {
     var playbackStatus: PlaybackStatus
     var artistPlaying: String?
     var titlePlaying: String?
-    var stationPlaying: RadioStation?
     var albumArtworkUrl: URL?
   }
-  var state = State(playbackStatus: .stopped)
+  @Published var state = State(playbackStatus: .stopped)
+
+  public var currentStation: RadioStation? {
+    switch self.state.playbackStatus {
+    case .playing(let radioStation), .loading(let radioStation):
+      return radioStation
+    case .error, .stopped:
+      return nil
+    }
+  }
 
   static let shared = StationPlayer()
 
@@ -43,7 +52,7 @@ class StationPlayer: ObservableObject {
 
   // MARK: Public Interface
   public func play(station: RadioStation) {
-    self.state = State(playbackStatus: .loading, stationPlaying: station)
+    self.state = State(playbackStatus: .loading(station))
     urlStreamPlayer.set(station: station)
   }
 
@@ -53,12 +62,27 @@ class StationPlayer: ObservableObject {
   }
 
   private func processUrlStreamStateChanged(_ urlStreamPlayerState: URLStreamPlayer.State) {
-    self.state = State(
-      playbackStatus: self.state.playbackStatus,
-      artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
-      titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
-      stationPlaying: urlStreamPlayerState.currentStation,
-      albumArtworkUrl: self.state.albumArtworkUrl)
+    switch urlStreamPlayerState.playerStatus {
+    case .loading:
+      guard let currentStation else {
+        print("Error -- currentStation is nil while URLStreamPlayer.state.playerStatus is .loading")
+        return
+      }
+      self.state = State(playbackStatus: .loading(currentStation))
+    case .loadingFinished:
+      guard let currentStation else {
+        print("Error -- currentStation is nil while URLStreamPlayer.state.playerStatus is .loadingFinished")
+        return
+      }
+      self.state = State(playbackStatus: .playing(currentStation),
+                         artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
+                         titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
+                         albumArtworkUrl: nil)
+    case .error:
+      self.state = State(playbackStatus: .error)
+    case .readyToPlay, .urlNotSet, .none:
+      self.state = State(playbackStatus: .stopped)
+    }
   }
 
   private func processAlbumArtworkURLChanged(_ albumArtworkURL: URL?) {
@@ -66,7 +90,6 @@ class StationPlayer: ObservableObject {
       playbackStatus: self.state.playbackStatus,
       artistPlaying: self.state.artistPlaying,
       titlePlaying: self.state.titlePlaying,
-      stationPlaying: self.state.stationPlaying,
       albumArtworkUrl: albumArtworkURL)
   }
 }
