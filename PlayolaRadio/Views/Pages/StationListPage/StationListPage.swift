@@ -51,6 +51,7 @@ class StationListModel: ViewModel {
   func dismissAboutViewButtonTapped() {}
   func stationSelected(_ station: RadioStation) {
     stationPlayer.play(station: station)
+    navigationCoordinator.path.append(.nowPlayingPage(NowPlayingPageModel()))
   }
   func dismissButtonInSheetTapped() {
     self.presentedSheet = nil
@@ -81,24 +82,26 @@ struct StationListPage: View {
       
       VStack {
         List {
-//          ForEach(model.stationLists.filter { $0.stations.count > 0 }) { stationList in
-//            Section(stationList.title) {
-//              ForEach(stationList.stations.indices, id: \.self) { index in
-//                StationListCellView(station: stationList.stations[index])
-//                  .listRowBackground((index  % 2 == 0) ? Color(.clear) : Color(.black).opacity(0.2))
-//                  .listRowSeparator(.hidden)
-//                  .onTapGesture {
-//                    let station = stationList.stations[index]
-//                    model.stationSelected(station)
-//                  }
-//              }
-//            }
-//          }
+          ForEach(model.stationLists.filter { $0.stations.count > 0 }) { stationList in
+            Section(stationList.title) {
+              ForEach(stationList.stations.indices, id: \.self) { index in
+                StationListCellView(station: stationList.stations[index])
+                  .listRowBackground((index  % 2 == 0) ? Color(.clear) : Color(.black).opacity(0.2))
+                  .listRowSeparator(.hidden)
+                  .onTapGesture {
+                    let station = stationList.stations[index]
+                    model.stationSelected(station)
+                  }
+              }
+            }
+          }
         }.listStyle(.grouped)
           .scrollContentBackground(.hidden)
           .background(.clear)
         
-        NowPlayingSmallView(artist: model.stationPlayerState.artistPlaying, title: model.stationPlayerState.titlePlaying, stationName: model.stationPlayer.currentStation?.name)
+        NowPlayingSmallView(artist: model.stationPlayerState.artistPlaying,
+                            title: model.stationPlayerState.titlePlaying,
+                            stationName: model.stationPlayer.currentStation?.name)
           .edgesIgnoringSafeArea(.bottom)
           .padding(.bottom, 5)
       }

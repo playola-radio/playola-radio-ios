@@ -52,8 +52,8 @@ struct StationListPageTests {
     }
   }
 
-  @Suite("Station Selected")
-  struct StationSelected {
+  @Suite("NowPlaying little view")
+  struct NowPlayingLittleView {
     @Test("Navigates to now playing when NowPlaying is tapped")
     func testNavigatesToNowPlayingWhenNowPlayingIsTapped() async {
       let stationPlayerMock: StationPlayerMock = .mockPlayingPlayer()
@@ -76,6 +76,22 @@ struct StationListPageTests {
       await stationListPage.viewAppeared()
       stationListPage.nowPlayingToolbarButtonTapped()
       #expect(navigationCoordinator.path.count == previousCount)
+    }
+
+    @Test("Selecting a station starts it and moves to nowPlaying")
+    func testSelectingAStationStartsItAndMovesToNowPlaying() async {
+      let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+      let station: RadioStation = .mock
+
+      let navigationCoordinator = NavigationCoordinatorMock()
+      let previousCount = navigationCoordinator.path.count
+      let stationListPage = StationListModel(stationPlayer: stationPlayerMock,
+                                             navigationCoordinator: navigationCoordinator)
+      await stationListPage.viewAppeared()
+      stationListPage.stationSelected(station)
+      #expect(navigationCoordinator.changesToPathCount == 1)
+      #expect(navigationCoordinator.path.last ~= .nowPlayingPage(NowPlayingPageModel()))
+      #expect(stationPlayerMock.callsToPlay.count == 1)
     }
   }
 

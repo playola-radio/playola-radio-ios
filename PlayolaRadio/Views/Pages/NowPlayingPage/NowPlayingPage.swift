@@ -54,18 +54,22 @@ class NowPlayingPageModel: ViewModel {
       self.navigationBarTitle = "\(radioStation.name) \(radioStation.desc)"
       self.nowPlayingTitle = state.titlePlaying ?? "-------"
       self.nowPlayingArtist = state.artistPlaying ?? "-------"
+      self.albumArtUrl = state.albumArtworkUrl ?? URL(string: radioStation.imageURL)
     case .loading(let radioStation):
       self.navigationBarTitle = "\(radioStation.name) \(radioStation.desc)"
       self.nowPlayingTitle = "\(radioStation.name) \(radioStation.desc)"
       self.nowPlayingArtist = "Station Loading..."
+      self.albumArtUrl = URL(string: radioStation.imageURL)
     case .stopped:
       self.navigationBarTitle = "Playola Radio"
       self.nowPlayingArtist = "Player Stopped"
       self.nowPlayingTitle = "Player Stopped"
+      self.albumArtUrl = nil
     case .error:
       self.navigationBarTitle = "Playola Radio"
       self.nowPlayingTitle = ""
       self.nowPlayingArtist = "Error Playing Station"
+      self.albumArtUrl = nil
     }
   }
 }
@@ -170,6 +174,7 @@ struct NowPlayingView: View {
           })
         }.padding(.leading, 35)
           .padding(.trailing, 35)
+          .padding(.bottom, 75)
       }
     }
     .edgesIgnoringSafeArea(.bottom)

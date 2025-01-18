@@ -16,6 +16,7 @@ class StationPlayer: ObservableObject {
     case loading(RadioStation)
     case error
   }
+
   struct State {
     var playbackStatus: PlaybackStatus
     var artistPlaying: String?
@@ -41,11 +42,11 @@ class StationPlayer: ObservableObject {
   init(urlStreamPlayer: URLStreamPlayer? = nil) {
     self.urlStreamPlayer = urlStreamPlayer ?? .shared
 
-    urlStreamPlayer?.$state.sink(receiveValue: { state in
+    self.urlStreamPlayer.$state.sink(receiveValue: { state in
       self.processUrlStreamStateChanged(state)
     }).store(in: &disposeBag)
 
-    urlStreamPlayer?.$albumArtworkURL.sink(receiveValue: { url in
+    self.urlStreamPlayer.$albumArtworkURL.sink(receiveValue: { url in
       self.processAlbumArtworkURLChanged(url)
     }).store(in: &disposeBag)
   }
@@ -69,7 +70,7 @@ class StationPlayer: ObservableObject {
         return
       }
       self.state = State(playbackStatus: .loading(currentStation))
-    case .loadingFinished:
+    case .loadingFinished, .readyToPlay:
       guard let currentStation else {
         print("Error -- currentStation is nil while URLStreamPlayer.state.playerStatus is .loadingFinished")
         return
@@ -80,7 +81,7 @@ class StationPlayer: ObservableObject {
                          albumArtworkUrl: nil)
     case .error:
       self.state = State(playbackStatus: .error)
-    case .readyToPlay, .urlNotSet, .none:
+    case .urlNotSet, .none:
       self.state = State(playbackStatus: .stopped)
     }
   }
