@@ -56,8 +56,8 @@ class NowPlayingPageModel: ViewModel {
       self.nowPlayingArtist = state.artistPlaying ?? "-------"
     case .loading(let radioStation):
       self.navigationBarTitle = "\(radioStation.name) \(radioStation.desc)"
+      self.nowPlayingTitle = "\(radioStation.name) \(radioStation.desc)"
       self.nowPlayingArtist = "Station Loading..."
-      self.nowPlayingTitle = "Station Loading..."
     case .stopped:
       self.navigationBarTitle = "Playola Radio"
       self.nowPlayingArtist = "Player Stopped"
