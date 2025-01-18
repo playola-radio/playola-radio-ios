@@ -18,4 +18,18 @@ class StationPlayerMock: StationPlayer {
   public override func stop() {
     self.stopCalledCount += 1
   }
+
+  public static func mockPlayingPlayer(artist: String = "Rachel Loy", title: String = "Selfie") -> StationPlayerMock {
+    let player = StationPlayerMock()
+    player.state = StationPlayer.State(
+      playbackStatus: .playing(.mock),
+      artistPlaying: artist,
+      titlePlaying: title)
+    return player
+  }
+  public static func mockStoppedPlayer() -> StationPlayerMock {
+    let player = StationPlayerMock()
+    player.state = StationPlayer.State(playbackStatus: .stopped)
+    return player
+  }
 }

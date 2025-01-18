@@ -17,18 +17,19 @@ class StationListModel: ViewModel {
   var isLoadingStationLists: Bool = false
   var isShowingSecretStations: Bool = false
   var stationLists: IdentifiedArrayOf<StationList> = []
-  var stationPlayerState: URLStreamPlayer.State = URLStreamPlayer.State(playbackState: .stopped)
   var presentedAlert: PlayolaAlert?
   var presentedSheet: PlayolaSheet?
+  var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackStatus: .stopped)
 
   // MARK: Dependencies
   @ObservationIgnored var api: API
-  @ObservationIgnored var stationPlayer: URLStreamPlayer
+  @ObservationIgnored var stationPlayer: StationPlayer
   @ObservationIgnored var navigationCoordinator: NavigationCoordinator
 
-  init(api:API? = nil, stationPlayer: URLStreamPlayer? = nil, navigationCoordinator: NavigationCoordinator? = nil) {
+  init(api:API? = nil, stationPlayer: StationPlayer? = nil,
+       navigationCoordinator: NavigationCoordinator? = nil) {
     self.api = api ?? API()
-    self.stationPlayer = stationPlayer ?? URLStreamPlayer.shared
+    self.stationPlayer = stationPlayer ?? StationPlayer.shared
     self.navigationCoordinator = navigationCoordinator ?? NavigationCoordinator.shared
   }
 
@@ -49,16 +50,15 @@ class StationListModel: ViewModel {
   }
   func dismissAboutViewButtonTapped() {}
   func stationSelected(_ station: RadioStation) {
-    stationPlayer.set(station: station)
+    stationPlayer.play(station: station)
   }
   func dismissButtonInSheetTapped() {
     self.presentedSheet = nil
   }
   func nowPlayingToolbarButtonTapped() {
-    if stationPlayerState.currentStation != nil {
+    if stationPlayer.currentStation != nil {
       navigationCoordinator.path.append(.nowPlayingPage(NowPlayingPageModel()))
     }
-
   }
 }
 
@@ -81,24 +81,24 @@ struct StationListPage: View {
       
       VStack {
         List {
-          ForEach(model.stationLists.filter { $0.stations.count > 0 }) { stationList in
-            Section(stationList.title) {
-              ForEach(stationList.stations.indices, id: \.self) { index in
-                StationListCellView(station: stationList.stations[index])
-                  .listRowBackground((index  % 2 == 0) ? Color(.clear) : Color(.black).opacity(0.2))
-                  .listRowSeparator(.hidden)
-                  .onTapGesture {
-                    let station = stationList.stations[index]
-                    model.stationSelected(station)
-                  }
-              }
-            }
-          }
+//          ForEach(model.stationLists.filter { $0.stations.count > 0 }) { stationList in
+//            Section(stationList.title) {
+//              ForEach(stationList.stations.indices, id: \.self) { index in
+//                StationListCellView(station: stationList.stations[index])
+//                  .listRowBackground((index  % 2 == 0) ? Color(.clear) : Color(.black).opacity(0.2))
+//                  .listRowSeparator(.hidden)
+//                  .onTapGesture {
+//                    let station = stationList.stations[index]
+//                    model.stationSelected(station)
+//                  }
+//              }
+//            }
+//          }
         }.listStyle(.grouped)
           .scrollContentBackground(.hidden)
           .background(.clear)
         
-        NowPlayingSmallView(metadata: model.stationPlayerState.nowPlaying, stationName: model.stationPlayerState.currentStation?.name)
+        NowPlayingSmallView(artist: model.stationPlayerState.artistPlaying, title: model.stationPlayerState.titlePlaying, stationName: model.stationPlayer.currentStation?.name)
           .edgesIgnoringSafeArea(.bottom)
           .padding(.bottom, 5)
       }
@@ -114,7 +114,7 @@ struct StationListPage: View {
             self.model.hamburgerButtonTapped()
           }
       }
-      if model.stationPlayerState.currentStation != nil {
+      if model.stationPlayer.currentStation != nil {
         ToolbarItem(placement: .topBarTrailing) {
           Image("btn-nowPlaying")
             .foregroundColor(.white)

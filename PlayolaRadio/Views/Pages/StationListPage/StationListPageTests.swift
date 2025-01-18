@@ -39,13 +39,12 @@ struct StationListPageTests {
 
     @Test("Subscribes to stationPlayer changes")
     func testSubscribesToStationPlayerChanges() async {
-      let stationPlayerMock = URLStreamPlayerMock()
+      let stationPlayerMock = StationPlayerMock()
       let apiMock = APIMock()
       let stationListModel = StationListModel(api: apiMock, stationPlayer: stationPlayerMock)
-      #expect(stationListModel.stationPlayerState == URLStreamPlayer.State(playbackState: .stopped))
+      #expect(stationListModel.stationPlayerState.playbackStatus ~=  .stopped)
 
-      let newState = URLStreamPlayer.State(playbackState: .playing, currentStation: RadioStation.mock, nowPlaying: FRadioPlayer.Metadata(artistName: "Test", trackName: "test", rawValue: nil, groups: []))
-
+      let newState = StationPlayer.State(playbackStatus: .playing(.mock), artistPlaying: "Rachel Loy", titlePlaying: "Selfie")
       stationPlayerMock.state = newState
 
       // TODO: Figure out how to wait for this value to change
@@ -57,7 +56,7 @@ struct StationListPageTests {
   struct StationSelected {
     @Test("Navigates to now playing when NowPlaying is tapped")
     func testNavigatesToNowPlayingWhenNowPlayingIsTapped() async {
-      let stationPlayerMock: URLStreamPlayerMock = .mockPlayingPlayer()
+      let stationPlayerMock: StationPlayerMock = .mockPlayingPlayer()
       let navigationCoordinator = NavigationCoordinator()
       let stationListPage = StationListModel(stationPlayer: stationPlayerMock,
                                              navigationCoordinator: navigationCoordinator)
@@ -68,7 +67,7 @@ struct StationListPageTests {
 
     @Test("Navigates nowhere if it is tapped while a station is not playing")
     func testNavigatesNowhereIfTappedWhileAStationIsNotPlaying() async {
-      let stationPlayerMock: URLStreamPlayerMock = .mockStoppedPlayer()
+      let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
 
       let navigationCoordinator = NavigationCoordinator()
       let previousCount = navigationCoordinator.path.count
