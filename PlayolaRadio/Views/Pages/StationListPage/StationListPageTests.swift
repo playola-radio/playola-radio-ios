@@ -42,10 +42,9 @@ struct StationListPageTests {
       let stationPlayerMock = StationPlayerMock()
       let apiMock = APIMock()
       let stationListModel = StationListModel(api: apiMock, stationPlayer: stationPlayerMock)
-      #expect(stationListModel.stationPlayerState == StationPlayer.State(playbackState: .stopped))
+      #expect(stationListModel.stationPlayerState.playbackStatus ~=  .stopped)
 
-      let newState = StationPlayer.State(playbackState: .playing, currentStation: RadioStation.mock, nowPlaying: FRadioPlayer.Metadata(artistName: "Test", trackName: "test", rawValue: nil, groups: []))
-
+      let newState = StationPlayer.State(playbackStatus: .playing(.mock), artistPlaying: "Rachel Loy", titlePlaying: "Selfie")
       stationPlayerMock.state = newState
 
       // TODO: Figure out how to wait for this value to change
@@ -53,8 +52,8 @@ struct StationListPageTests {
     }
   }
 
-  @Suite("Station Selected")
-  struct StationSelected {
+  @Suite("NowPlaying little view")
+  struct NowPlayingLittleView {
     @Test("Navigates to now playing when NowPlaying is tapped")
     func testNavigatesToNowPlayingWhenNowPlayingIsTapped() async {
       let stationPlayerMock: StationPlayerMock = .mockPlayingPlayer()
@@ -70,13 +69,27 @@ struct StationListPageTests {
     func testNavigatesNowhereIfTappedWhileAStationIsNotPlaying() async {
       let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
 
-      let navigationCoordinator = NavigationCoordinator()
-      let previousCount = navigationCoordinator.path.count
+      let navigationCoordinator = NavigationCoordinatorMock()
       let stationListPage = StationListModel(stationPlayer: stationPlayerMock,
                                              navigationCoordinator: navigationCoordinator)
       await stationListPage.viewAppeared()
       stationListPage.nowPlayingToolbarButtonTapped()
-      #expect(navigationCoordinator.path.count == previousCount)
+      #expect(navigationCoordinator.changesToPathCount == 0)
+    }
+
+    @Test("Selecting a station starts it and moves to nowPlaying")
+    func testSelectingAStationStartsItAndMovesToNowPlaying() async {
+      let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+      let station: RadioStation = .mock
+
+      let navigationCoordinator = NavigationCoordinatorMock()
+      let stationListPage = StationListModel(stationPlayer: stationPlayerMock,
+                                             navigationCoordinator: navigationCoordinator)
+      await stationListPage.viewAppeared()
+      stationListPage.stationSelected(station)
+      #expect(navigationCoordinator.changesToPathCount == 1)
+      #expect(navigationCoordinator.path.last ~= .nowPlayingPage(NowPlayingPageModel()))
+      #expect(stationPlayerMock.callsToPlay.count == 1)
     }
   }
 

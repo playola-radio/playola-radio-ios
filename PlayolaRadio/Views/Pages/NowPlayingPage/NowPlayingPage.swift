@@ -19,53 +19,62 @@ class NowPlayingPageModel: ViewModel {
   var navigationBarTitle: String = ""
   var presentedSheet: PlayolaSheet?
 
-  init(stationPlayer: StationPlayer? = nil, presentedSheet: PlayolaSheet? = nil,
-       albumArtworkURL: URL? = nil) {
+  init(stationPlayer: StationPlayer? = nil,
+       navigationCoordinator: NavigationCoordinator? = nil,
+       presentedSheet: PlayolaSheet? = nil) {
     self.stationPlayer = stationPlayer ?? StationPlayer.shared
+    self.navigationCoordinator = navigationCoordinator ?? .shared
+    self.presentedSheet = presentedSheet
   }
 
   // MARK: Dependencies
-  @ObservationIgnored var stationPlayer: StationPlayer = StationPlayer.shared
+  @ObservationIgnored var stationPlayer: StationPlayer
+  @ObservationIgnored var navigationCoordinator: NavigationCoordinator
 
   func viewAppeared() {
-    if let currentStation = stationPlayer.state.currentStation {
-      self.navigationBarTitle = "\(currentStation.name) \(currentStation.desc)"
-    } else {
-      self.navigationBarTitle = "Playola Radio"
-    }
     processNewStationState(stationPlayer.state)
 
     stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &disposeBag)
-    stationPlayer.$albumArtworkURL.sink { self.albumArtUrl = $0 }.store(in: &disposeBag)
   }
 
   func aboutButtonTapped() {
     self.presentedSheet = .about(AboutPageModel())
   }
 
-  func airPlayButtonTapped() {}
   func infoButtonTapped() {}
   func shareButtonTapped() {}
   func dismissAboutSheetButtonTapped() {
     self.presentedSheet = nil
+  }
+  func stopButtonTapped() {
+    navigationCoordinator.path.removeLast()
   }
 
   // MARK: Actions
 
   // MARK: Helpers
   func processNewStationState(_ state: StationPlayer.State) {
-    switch state.playerStatus {
-    case .loading:
-      if let currentStation = stationPlayer.state.currentStation {
-        self.nowPlayingArtist = "Station Loading..."
-        self.nowPlayingTitle = "\(currentStation.name) \(currentStation.desc)"
-      }
-    case .loadingFinished:
-      self.nowPlayingTitle = state.nowPlaying?.trackName ?? "-------"
-      self.nowPlayingArtist = state.nowPlaying?.artistName ?? "-------"
-
-    default:
-      print("default")
+    switch state.playbackStatus {
+    case .playing(let radioStation):
+      self.navigationBarTitle = "\(radioStation.name) \(radioStation.desc)"
+      self.nowPlayingTitle = state.titlePlaying ?? "-------"
+      self.nowPlayingArtist = state.artistPlaying ?? "-------"
+      self.albumArtUrl = state.albumArtworkUrl ?? URL(string: radioStation.imageURL)
+    case .loading(let radioStation):
+      self.navigationBarTitle = "\(radioStation.name) \(radioStation.desc)"
+      self.nowPlayingTitle = "\(radioStation.name) \(radioStation.desc)"
+      self.nowPlayingArtist = "Station Loading..."
+      self.albumArtUrl = URL(string: radioStation.imageURL)
+    case .stopped:
+      self.navigationBarTitle = "Playola Radio"
+      self.nowPlayingArtist = "Player Stopped"
+      self.nowPlayingTitle = "Player Stopped"
+      self.albumArtUrl = nil
+    case .error:
+      self.navigationBarTitle = "Playola Radio"
+      self.nowPlayingTitle = ""
+      self.nowPlayingArtist = "Error Playing Station"
+      self.albumArtUrl = nil
     }
   }
 }
@@ -115,12 +124,12 @@ struct NowPlayingView: View {
           //                  .onTapGesture {
           //                      print("Back")
           //                  }
-          //          Image(store.stationsManagerState.playbackState == .playing ? "btn-stop" : "btn-play")
-          Image("btn-play")
+          Image(model.stationPlayer.currentStation != nil ? "btn-stop" : "btn-play")
+//          Image("btn-play")
             .resizable()
             .frame(width: 45, height: 45)
             .onTapGesture {
-              print("Back")
+              model.stopButtonTapped()
             }
           //              Image("btn-next")
           //                  .resizable()
@@ -170,6 +179,7 @@ struct NowPlayingView: View {
           })
         }.padding(.leading, 35)
           .padding(.trailing, 35)
+          .padding(.bottom, 75)
       }
     }
     .edgesIgnoringSafeArea(.bottom)
@@ -191,7 +201,7 @@ struct NowPlayingView: View {
         .edgesIgnoringSafeArea(.all)
 
       NowPlayingView(model: NowPlayingPageModel(
-        stationPlayer: .mock, albumArtworkURL: URL(string: "https://playola-static.s3.amazonaws.com/bri_banned_logo.png")!))
+        stationPlayer: .shared))
     }
   }
   .accentColor(.white)

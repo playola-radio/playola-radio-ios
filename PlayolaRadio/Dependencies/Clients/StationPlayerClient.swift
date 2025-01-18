@@ -9,23 +9,23 @@ import Foundation
 import ComposableArchitecture
 
 struct StationPlayerClient {
-  var subscribeToPlayerState: @Sendable () async -> AsyncStream<StationPlayer.State>
+  var subscribeToPlayerState: @Sendable () async -> AsyncStream<URLStreamPlayer.State>
   var subscribeToAlbumImageURL: @Sendable () async -> AsyncStream<URL?>
   var playStation: @Sendable (RadioStation) -> Void
 }
 
 private enum StationPlayerKey: DependencyKey {
   static let liveValue: StationPlayerClient = StationPlayerClient {
-    return AsyncStream<StationPlayer.State> { continuation in
-      let cancellable = StationPlayer.shared.$state.sink { continuation.yield($0) }
+    return AsyncStream<URLStreamPlayer.State> { continuation in
+      let cancellable = URLStreamPlayer.shared.$state.sink { continuation.yield($0) }
       continuation.onTermination = { _ in cancellable.cancel() }
     }
   } subscribeToAlbumImageURL: {
     return AsyncStream<URL?> { continuation in
-      let cancellable = StationPlayer.shared.$albumArtworkURL.sink { continuation.yield($0) }
+      let cancellable = URLStreamPlayer.shared.$albumArtworkURL.sink { continuation.yield($0) }
       continuation.onTermination = { _ in cancellable.cancel() }
     }
-  } playStation: { station in StationPlayer.shared.set(station: station) }
+  } playStation: { station in URLStreamPlayer.shared.set(station: station) }
 }
 
 extension DependencyValues {

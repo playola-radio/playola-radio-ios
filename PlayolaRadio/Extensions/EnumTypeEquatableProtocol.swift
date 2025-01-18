@@ -31,6 +31,18 @@ extension PlayolaSheet: EnumTypeEquatable {
   }
 }
 
+extension StationPlayer.PlaybackStatus: EnumTypeEquatable {
+  static func ~=(lhs: Self, rhs: Self) -> Bool {
+      switch (lhs, rhs) {
+      case (.stopped, .stopped): return true
+      case (.playing, .playing): return true
+      case (.loading, .loading): return true
+      case (.error, .error): return true
+      default: return false
+    }
+  }
+}
+
 extension NavigationCoordinator.Path: EnumTypeEquatable {
   static func ~=(lhs: Self, rhs: Self) -> Bool {
       switch (lhs, rhs) {

@@ -2,46 +2,34 @@
 //  StationPlayerMock.swift
 //  PlayolaRadio
 //
-//  Created by Brian D Keane on 1/16/25.
+//  Created by Brian D Keane on 1/18/25.
 //
-
-import Foundation
-import FRadioPlayer
 @testable import PlayolaRadio
 
 class StationPlayerMock: StationPlayer {
-  override func addObserverToPlayer() {}
-
-  func setNowPlaying(station: RadioStation, artist: String, title: String) {
-    self.state = StationPlayer.State(
-      playbackState: .playing,
-      playerStatus: .loadingFinished,
-      currentStation: station,
-      nowPlaying: FRadioPlayer.Metadata(
-        artistName: artist,
-        trackName: title,
-        rawValue: nil, 
-        groups: []))
+  var callsToPlay: [RadioStation] = []
+  var stopCalledCount = 0
+  override init(urlStreamPlayer: URLStreamPlayer? = nil) {
+    super.init(urlStreamPlayer: URLStreamPlayerMock())
+  }
+  public override func play(station: RadioStation) {
+    self.callsToPlay.append(station)
+  }
+  public override func stop() {
+    self.stopCalledCount += 1
   }
 
-  static func mockPlayingPlayer(artist: String = "Rachel Loy", title: String = "Selfie") -> StationPlayerMock {
-    let stationPlayerMock = StationPlayerMock()
-    stationPlayerMock.state = State(playbackState: .playing,
-                                    playerStatus: .readyToPlay,
-                                    currentStation: .mock,
-                                    nowPlaying: FRadioPlayer.Metadata(
-                                      artistName: artist,
-                                      trackName: title,
-                                      rawValue: nil,
-                                      groups: []))
-    return stationPlayerMock
+  public static func mockPlayingPlayer(artist: String = "Rachel Loy", title: String = "Selfie") -> StationPlayerMock {
+    let player = StationPlayerMock()
+    player.state = StationPlayer.State(
+      playbackStatus: .playing(.mock),
+      artistPlaying: artist,
+      titlePlaying: title)
+    return player
   }
-
-  static func mockStoppedPlayer() -> StationPlayerMock {
-    let stationPlayerMock = StationPlayerMock()
-    stationPlayerMock.state = State(playbackState: .stopped,
-                                    playerStatus: .none,
-                                    nowPlaying: nil)
-    return stationPlayerMock
+  public static func mockStoppedPlayer() -> StationPlayerMock {
+    let player = StationPlayerMock()
+    player.state = StationPlayer.State(playbackStatus: .stopped)
+    return player
   }
 }

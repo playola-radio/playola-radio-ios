@@ -10,15 +10,16 @@ import SwiftUI
 import FRadioPlayer
 
 struct NowPlayingSmallView: View {
-  var metadata: FRadioPlayer.Metadata?
+  var artist: String?
+  var title: String?
   var stationName: String?
   
   var body: some View {
     func nowPlayingTitle() -> String? {
-      guard let trackName = metadata?.trackName, let artistName = metadata?.artistName else {
+      guard let artist, let title else {
         return nil
       }
-      return "\(trackName) - \(artistName)"
+      return "\(title) - \(artist)"
     }
     
     return VStack {
@@ -59,7 +60,7 @@ struct NowPlayingSmallView: View {
     
     VStack {
       NowPlayingSmallView()
-      NowPlayingSmallView(metadata: FRadioPlayer.Metadata(artistName: "Bob Schneider", trackName: "The World Exploded into Love", rawValue: nil, groups: []))
+      NowPlayingSmallView(artist: "Bob Schneider", title: "The World Exploded into Love")
     }
   }
 }

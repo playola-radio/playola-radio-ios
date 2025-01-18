@@ -12,7 +12,7 @@ public struct GenericNowPlaying {
   let artist: String
   let albumArtUrl: URL? = nil
 
-  init?(stationPlayerState: StationPlayer.State) {
+  init?(stationPlayerState: URLStreamPlayer.State) {
     guard let nowPlaying = stationPlayerState.nowPlaying else {
       return nil
     }

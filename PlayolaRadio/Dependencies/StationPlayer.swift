@@ -2,164 +2,95 @@
 //  StationPlayer.swift
 //  PlayolaRadio
 //
-//  Created by Brian D Keane on 5/21/24.
+//  Created by Brian D Keane on 1/18/25.
 //
-
-import ComposableArchitecture
+import Foundation
 import Combine
 import FRadioPlayer
-import MediaPlayer
-import Foundation
-import UIKit
 
-public class StationPlayer: ObservableObject {
-  struct State: Sendable, Equatable {
-    static func == (lhs: StationPlayer.State, rhs: StationPlayer.State) -> Bool {
-      return lhs.playerStatus == rhs.playerStatus &&
-      lhs.playbackState == rhs.playbackState &&
-      lhs.currentStation == rhs.currentStation &&
-      lhs.nowPlaying == rhs.nowPlaying
-    }
-    
-    var playbackState: FRadioPlayer.PlaybackState
-    var playerStatus: FRadioPlayer.State?
-    public var currentStation: RadioStation?
-    var nowPlaying: FRadioPlayer.Metadata?
+class StationPlayer: ObservableObject {
+  var disposeBag: Set<AnyCancellable> = Set()
+  enum  PlaybackStatus {
+    case playing(RadioStation)
+    case stopped
+    case loading(RadioStation)
+    case error
   }
-  
-  @Published var state: StationPlayer.State = {
-    State(playbackState: .stopped, playerStatus: nil, currentStation: nil, nowPlaying: nil)
-  }()
-  
-  @Published var albumArtworkURL: URL?
-  
+
+  struct State {
+    var playbackStatus: PlaybackStatus
+    var artistPlaying: String?
+    var titlePlaying: String?
+    var albumArtworkUrl: URL?
+  }
+  @Published var state = State(playbackStatus: .stopped)
+
+  public var currentStation: RadioStation? {
+    switch self.state.playbackStatus {
+    case .playing(let radioStation), .loading(let radioStation):
+      return radioStation
+    case .error, .stopped:
+      return nil
+    }
+  }
+
   static let shared = StationPlayer()
-  
-  //  private var trackingService: TrackingService = TrackingService.shared
-  
-  @Published private(set) var currentStation: RadioStation?
-  
-  var searchedStations: [RadioStation] = []
-  
-  private let player = FRadioPlayer.shared
-  
-  init() {
-    addObserverToPlayer()
+
+  // MARK: Dependencies
+  var urlStreamPlayer: URLStreamPlayer
+
+  init(urlStreamPlayer: URLStreamPlayer? = nil) {
+    self.urlStreamPlayer = urlStreamPlayer ?? .shared
+
+    self.urlStreamPlayer.$state.sink(receiveValue: { state in
+      self.processUrlStreamStateChanged(state)
+    }).store(in: &disposeBag)
+
+    self.urlStreamPlayer.$albumArtworkURL.sink(receiveValue: { url in
+      self.processAlbumArtworkURLChanged(url)
+    }).store(in: &disposeBag)
   }
 
-  func addObserverToPlayer() {
-    player.addObserver(self)
+  // MARK: Public Interface
+  public func play(station: RadioStation) {
+    self.state = State(playbackStatus: .loading(station))
+    urlStreamPlayer.set(station: station)
   }
 
-  func fetch(completion: (([StationList]) -> ())? = nil) {
-    completion?([])
+  public func stop() {
+    urlStreamPlayer.reset()
+    self.state = State(playbackStatus: .stopped)
   }
-  
-  func set(station: RadioStation?) {
-    guard let station = station else {
-      reset()
-      return
-    }
-    
-    currentStation = station
-    player.radioURL = URL(string: station.streamURL)
-  }
-  
-  private func reset() {
-    currentStation = nil
-    player.radioURL = nil
-  }
-}
 
-
-// MARK: - MPNowPlayingInfoCenter (Lock screen)
-
-extension StationPlayer {
-  
-  private func resetArtwork(with station: RadioStation?) {
-    
-    guard let station = station else {
-      updateLockScreen(with: nil)
-      return
-    }
-    
-    station.getImage { [weak self] image in
-      self?.updateLockScreen(with: image)
-    }
-  }
-  
-  private func updateLockScreen(with artworkImage: UIImage?) {
-    
-    // Define Now Playing Info
-    var nowPlayingInfo = [String : Any]()
-    
-    if let image = artworkImage {
-      nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size, requestHandler: { size -> UIImage in
-        return image
-      })
-    }
-    
-    if let artistName = currentStation?.artistName {
-      nowPlayingInfo[MPMediaItemPropertyArtist] = artistName
-    }
-    
-    if let trackName = currentStation?.trackName {
-      nowPlayingInfo[MPMediaItemPropertyTitle] = trackName
-    }
-    
-    // Set the metadata
-    MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-  }
-}
-
-// MARK: - FRadioPlayerObserver
-
-extension StationPlayer: FRadioPlayerObserver {
-  
-  public func radioPlayer(_ player: FRadioPlayer, metadataDidChange metadata: FRadioPlayer.Metadata?) {
-    self.state = State(playbackState: FRadioPlayer.shared.playbackState,
-                       playerStatus: FRadioPlayer.shared.state,
-                       currentStation: self.currentStation,
-                       nowPlaying: self.player.currentMetadata)
-    resetArtwork(with: currentStation)
-  }
-  
-  public func radioPlayer(_ player: FRadioPlayer, artworkDidChange artworkURL: URL?) {
-    self.albumArtworkURL = artworkURL
-    guard let artworkURL = artworkURL else {
-      resetArtwork(with: currentStation)
-      return
-    }
-    
-    UIImage.image(from: artworkURL) { [weak self] image in
-      guard let image = image else {
-        self?.resetArtwork(with: self?.currentStation)
+  private func processUrlStreamStateChanged(_ urlStreamPlayerState: URLStreamPlayer.State) {
+    switch urlStreamPlayerState.playerStatus {
+    case .loading:
+      guard let currentStation else {
+        print("Error -- currentStation is nil while URLStreamPlayer.state.playerStatus is .loading")
         return
       }
-      
-      self?.updateLockScreen(with: image)
+      self.state = State(playbackStatus: .loading(currentStation))
+    case .loadingFinished, .readyToPlay:
+      guard let currentStation else {
+        print("Error -- currentStation is nil while URLStreamPlayer.state.playerStatus is .loadingFinished")
+        return
+      }
+      self.state = State(playbackStatus: .playing(currentStation),
+                         artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
+                         titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
+                         albumArtworkUrl: nil)
+    case .error:
+      self.state = State(playbackStatus: .error)
+    case .urlNotSet, .none:
+      self.state = State(playbackStatus: .stopped)
     }
   }
-  
-  public func radioPlayer(_ player: FRadioPlayer, playerStateDidChange state: FRadioPlayer.State) {
-    self.state = State(playbackState: FRadioPlayer.shared.playbackState,
-                       playerStatus: FRadioPlayer.shared.state,
-                       currentStation: self.currentStation,
-                       nowPlaying: self.player.currentMetadata)
-  }
-  
-  public func radioPlayer(_ player: FRadioPlayer, playbackStateDidChange state: FRadioPlayer.PlaybackState) {
-    self.state = State(playbackState: FRadioPlayer.shared.playbackState,
-                       playerStatus: FRadioPlayer.shared.state,
-                       currentStation: self.currentStation,
-                       nowPlaying: self.player.currentMetadata)
-  }
-}
 
-extension StationPlayer {
-  static var mock: StationPlayer {
-      let stationPlayer = StationPlayer()
-    stationPlayer.state = State(playbackState: .playing, playerStatus: .readyToPlay, nowPlaying: FRadioPlayer.Metadata(artistName: "Rachel Loy", trackName: "Selfie", rawValue: nil, groups: []))
-    return stationPlayer
+  private func processAlbumArtworkURLChanged(_ albumArtworkURL: URL?) {
+    self.state = State(
+      playbackStatus: self.state.playbackStatus,
+      artistPlaying: self.state.artistPlaying,
+      titlePlaying: self.state.titlePlaying,
+      albumArtworkUrl: albumArtworkURL)
   }
 }

@@ -17,16 +17,17 @@ class StationListModel: ViewModel {
   var isLoadingStationLists: Bool = false
   var isShowingSecretStations: Bool = false
   var stationLists: IdentifiedArrayOf<StationList> = []
-  var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackState: .stopped)
   var presentedAlert: PlayolaAlert?
   var presentedSheet: PlayolaSheet?
+  var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackStatus: .stopped)
 
   // MARK: Dependencies
   @ObservationIgnored var api: API
   @ObservationIgnored var stationPlayer: StationPlayer
   @ObservationIgnored var navigationCoordinator: NavigationCoordinator
 
-  init(api:API? = nil, stationPlayer: StationPlayer? = nil, navigationCoordinator: NavigationCoordinator? = nil) {
+  init(api:API? = nil, stationPlayer: StationPlayer? = nil,
+       navigationCoordinator: NavigationCoordinator? = nil) {
     self.api = api ?? API()
     self.stationPlayer = stationPlayer ?? StationPlayer.shared
     self.navigationCoordinator = navigationCoordinator ?? NavigationCoordinator.shared
@@ -49,16 +50,18 @@ class StationListModel: ViewModel {
   }
   func dismissAboutViewButtonTapped() {}
   func stationSelected(_ station: RadioStation) {
-    stationPlayer.set(station: station)
+    if self.stationPlayer.currentStation != station {
+      stationPlayer.play(station: station)
+    }
+    navigationCoordinator.path.append(.nowPlayingPage(NowPlayingPageModel()))
   }
   func dismissButtonInSheetTapped() {
     self.presentedSheet = nil
   }
   func nowPlayingToolbarButtonTapped() {
-    if stationPlayerState.currentStation != nil {
+    if stationPlayer.currentStation != nil {
       navigationCoordinator.path.append(.nowPlayingPage(NowPlayingPageModel()))
     }
-
   }
 }
 
@@ -98,7 +101,9 @@ struct StationListPage: View {
           .scrollContentBackground(.hidden)
           .background(.clear)
         
-        NowPlayingSmallView(metadata: model.stationPlayerState.nowPlaying, stationName: model.stationPlayerState.currentStation?.name)
+        NowPlayingSmallView(artist: model.stationPlayerState.artistPlaying,
+                            title: model.stationPlayerState.titlePlaying,
+                            stationName: model.stationPlayer.currentStation?.name)
           .edgesIgnoringSafeArea(.bottom)
           .padding(.bottom, 5)
       }
@@ -114,7 +119,7 @@ struct StationListPage: View {
             self.model.hamburgerButtonTapped()
           }
       }
-      if model.stationPlayerState.currentStation != nil {
+      if model.stationPlayer.currentStation != nil {
         ToolbarItem(placement: .topBarTrailing) {
           Image("btn-nowPlaying")
             .foregroundColor(.white)
