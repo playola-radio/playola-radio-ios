@@ -65,7 +65,7 @@ public class URLStreamPlayer: ObservableObject {
     player.radioURL = URL(string: station.streamURL)
   }
   
-  private func reset() {
+  public func reset() {
     currentStation = nil
     player.radioURL = nil
   }
