@@ -12,9 +12,9 @@ import MediaPlayer
 import Foundation
 import UIKit
 
-public class StationPlayer: ObservableObject {
+public class URLStreamPlayer: ObservableObject {
   struct State: Sendable, Equatable {
-    static func == (lhs: StationPlayer.State, rhs: StationPlayer.State) -> Bool {
+    static func == (lhs: URLStreamPlayer.State, rhs: URLStreamPlayer.State) -> Bool {
       return lhs.playerStatus == rhs.playerStatus &&
       lhs.playbackState == rhs.playbackState &&
       lhs.currentStation == rhs.currentStation &&
@@ -27,13 +27,13 @@ public class StationPlayer: ObservableObject {
     var nowPlaying: FRadioPlayer.Metadata?
   }
   
-  @Published var state: StationPlayer.State = {
+  @Published var state: URLStreamPlayer.State = {
     State(playbackState: .stopped, playerStatus: nil, currentStation: nil, nowPlaying: nil)
   }()
   
   @Published var albumArtworkURL: URL?
   
-  static let shared = StationPlayer()
+  static let shared = URLStreamPlayer()
   
   //  private var trackingService: TrackingService = TrackingService.shared
   
@@ -74,7 +74,7 @@ public class StationPlayer: ObservableObject {
 
 // MARK: - MPNowPlayingInfoCenter (Lock screen)
 
-extension StationPlayer {
+extension URLStreamPlayer {
   
   private func resetArtwork(with station: RadioStation?) {
     
@@ -114,7 +114,7 @@ extension StationPlayer {
 
 // MARK: - FRadioPlayerObserver
 
-extension StationPlayer: FRadioPlayerObserver {
+extension URLStreamPlayer: FRadioPlayerObserver {
   
   public func radioPlayer(_ player: FRadioPlayer, metadataDidChange metadata: FRadioPlayer.Metadata?) {
     self.state = State(playbackState: FRadioPlayer.shared.playbackState,
@@ -156,9 +156,9 @@ extension StationPlayer: FRadioPlayerObserver {
   }
 }
 
-extension StationPlayer {
-  static var mock: StationPlayer {
-      let stationPlayer = StationPlayer()
+extension URLStreamPlayer {
+  static var mock: URLStreamPlayer {
+      let stationPlayer = URLStreamPlayer()
     stationPlayer.state = State(playbackState: .playing, playerStatus: .readyToPlay, nowPlaying: FRadioPlayer.Metadata(artistName: "Rachel Loy", trackName: "Selfie", rawValue: nil, groups: []))
     return stationPlayer
   }

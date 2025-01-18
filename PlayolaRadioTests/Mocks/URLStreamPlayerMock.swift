@@ -9,11 +9,11 @@ import Foundation
 import FRadioPlayer
 @testable import PlayolaRadio
 
-class StationPlayerMock: StationPlayer {
+class URLStreamPlayerMock: URLStreamPlayer {
   override func addObserverToPlayer() {}
 
   func setNowPlaying(station: RadioStation, artist: String, title: String) {
-    self.state = StationPlayer.State(
+    self.state = URLStreamPlayer.State(
       playbackState: .playing,
       playerStatus: .loadingFinished,
       currentStation: station,
@@ -24,8 +24,8 @@ class StationPlayerMock: StationPlayer {
         groups: []))
   }
 
-  static func mockPlayingPlayer(artist: String = "Rachel Loy", title: String = "Selfie") -> StationPlayerMock {
-    let stationPlayerMock = StationPlayerMock()
+  static func mockPlayingPlayer(artist: String = "Rachel Loy", title: String = "Selfie") -> URLStreamPlayerMock {
+    let stationPlayerMock = URLStreamPlayerMock()
     stationPlayerMock.state = State(playbackState: .playing,
                                     playerStatus: .readyToPlay,
                                     currentStation: .mock,
@@ -37,8 +37,8 @@ class StationPlayerMock: StationPlayer {
     return stationPlayerMock
   }
 
-  static func mockStoppedPlayer() -> StationPlayerMock {
-    let stationPlayerMock = StationPlayerMock()
+  static func mockStoppedPlayer() -> URLStreamPlayerMock {
+    let stationPlayerMock = URLStreamPlayerMock()
     stationPlayerMock.state = State(playbackState: .stopped,
                                     playerStatus: .none,
                                     nowPlaying: nil)

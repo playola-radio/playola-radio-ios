@@ -19,13 +19,13 @@ class NowPlayingPageModel: ViewModel {
   var navigationBarTitle: String = ""
   var presentedSheet: PlayolaSheet?
 
-  init(stationPlayer: StationPlayer? = nil, presentedSheet: PlayolaSheet? = nil,
+  init(stationPlayer: URLStreamPlayer? = nil, presentedSheet: PlayolaSheet? = nil,
        albumArtworkURL: URL? = nil) {
-    self.stationPlayer = stationPlayer ?? StationPlayer.shared
+    self.stationPlayer = stationPlayer ?? URLStreamPlayer.shared
   }
 
   // MARK: Dependencies
-  @ObservationIgnored var stationPlayer: StationPlayer = StationPlayer.shared
+  @ObservationIgnored var stationPlayer: URLStreamPlayer = URLStreamPlayer.shared
 
   func viewAppeared() {
     if let currentStation = stationPlayer.state.currentStation {
@@ -53,7 +53,7 @@ class NowPlayingPageModel: ViewModel {
   // MARK: Actions
 
   // MARK: Helpers
-  func processNewStationState(_ state: StationPlayer.State) {
+  func processNewStationState(_ state: URLStreamPlayer.State) {
     switch state.playerStatus {
     case .loading:
       if let currentStation = stationPlayer.state.currentStation {

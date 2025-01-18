@@ -39,12 +39,12 @@ struct StationListPageTests {
 
     @Test("Subscribes to stationPlayer changes")
     func testSubscribesToStationPlayerChanges() async {
-      let stationPlayerMock = StationPlayerMock()
+      let stationPlayerMock = URLStreamPlayerMock()
       let apiMock = APIMock()
       let stationListModel = StationListModel(api: apiMock, stationPlayer: stationPlayerMock)
-      #expect(stationListModel.stationPlayerState == StationPlayer.State(playbackState: .stopped))
+      #expect(stationListModel.stationPlayerState == URLStreamPlayer.State(playbackState: .stopped))
 
-      let newState = StationPlayer.State(playbackState: .playing, currentStation: RadioStation.mock, nowPlaying: FRadioPlayer.Metadata(artistName: "Test", trackName: "test", rawValue: nil, groups: []))
+      let newState = URLStreamPlayer.State(playbackState: .playing, currentStation: RadioStation.mock, nowPlaying: FRadioPlayer.Metadata(artistName: "Test", trackName: "test", rawValue: nil, groups: []))
 
       stationPlayerMock.state = newState
 
@@ -57,7 +57,7 @@ struct StationListPageTests {
   struct StationSelected {
     @Test("Navigates to now playing when NowPlaying is tapped")
     func testNavigatesToNowPlayingWhenNowPlayingIsTapped() async {
-      let stationPlayerMock: StationPlayerMock = .mockPlayingPlayer()
+      let stationPlayerMock: URLStreamPlayerMock = .mockPlayingPlayer()
       let navigationCoordinator = NavigationCoordinator()
       let stationListPage = StationListModel(stationPlayer: stationPlayerMock,
                                              navigationCoordinator: navigationCoordinator)
@@ -68,7 +68,7 @@ struct StationListPageTests {
 
     @Test("Navigates nowhere if it is tapped while a station is not playing")
     func testNavigatesNowhereIfTappedWhileAStationIsNotPlaying() async {
-      let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+      let stationPlayerMock: URLStreamPlayerMock = .mockStoppedPlayer()
 
       let navigationCoordinator = NavigationCoordinator()
       let previousCount = navigationCoordinator.path.count

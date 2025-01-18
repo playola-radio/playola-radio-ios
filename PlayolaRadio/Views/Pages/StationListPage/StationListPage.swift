@@ -17,18 +17,18 @@ class StationListModel: ViewModel {
   var isLoadingStationLists: Bool = false
   var isShowingSecretStations: Bool = false
   var stationLists: IdentifiedArrayOf<StationList> = []
-  var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackState: .stopped)
+  var stationPlayerState: URLStreamPlayer.State = URLStreamPlayer.State(playbackState: .stopped)
   var presentedAlert: PlayolaAlert?
   var presentedSheet: PlayolaSheet?
 
   // MARK: Dependencies
   @ObservationIgnored var api: API
-  @ObservationIgnored var stationPlayer: StationPlayer
+  @ObservationIgnored var stationPlayer: URLStreamPlayer
   @ObservationIgnored var navigationCoordinator: NavigationCoordinator
 
-  init(api:API? = nil, stationPlayer: StationPlayer? = nil, navigationCoordinator: NavigationCoordinator? = nil) {
+  init(api:API? = nil, stationPlayer: URLStreamPlayer? = nil, navigationCoordinator: NavigationCoordinator? = nil) {
     self.api = api ?? API()
-    self.stationPlayer = stationPlayer ?? StationPlayer.shared
+    self.stationPlayer = stationPlayer ?? URLStreamPlayer.shared
     self.navigationCoordinator = navigationCoordinator ?? NavigationCoordinator.shared
   }
 

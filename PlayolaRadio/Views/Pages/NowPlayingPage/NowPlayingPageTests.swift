@@ -14,8 +14,8 @@ struct NowPlayingPageTests {
   struct ViewAppearedTests {
     @Test("Populates correctly when loading")
     func testNowPlayingPopulatesCorrectlyWhenLoading() {
-      let player = StationPlayerMock()
-      player.state = StationPlayer.State(playbackState: .playing, playerStatus: .loading, currentStation: .mock)
+      let player = URLStreamPlayerMock()
+      player.state = URLStreamPlayer.State(playbackState: .playing, playerStatus: .loading, currentStation: .mock)
       let nowPlayingPage = NowPlayingPageModel(stationPlayer: player)
       nowPlayingPage.viewAppeared()
       #expect(nowPlayingPage.navigationBarTitle == "Bri Bagwell's Banned Radio")
@@ -25,7 +25,7 @@ struct NowPlayingPageTests {
 
     @Test("Populates correctly when something is playing")
     func testNowPlayingPopulatesCorrectlyWhenSomethingIsPlaying() {
-      let player = StationPlayerMock()
+      let player = URLStreamPlayerMock()
       let station = RadioStation.mock
       player.setNowPlaying(station: station, artist: "Rachel Loy", title: "Selfie")
 
