@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 1/16/25.
 //
 import Foundation
+import IdentifiedCollections
 @testable import PlayolaRadio
 
 class APIMock: API {
@@ -19,7 +20,7 @@ class APIMock: API {
     self.getStationListsShouldSucceed = getStationListsShouldSucceed
   }
 
-  override func getStations() async throws -> [StationList] {
+  override func getStations() async throws -> IdentifiedArrayOf<StationList> {
     beforeAssertions?()
     if getStationListsShouldSucceed {
       return StationList.mocks
@@ -27,5 +28,4 @@ class APIMock: API {
       throw MockError.runtimeError("Some API Error")
     }
   }
-  
 }

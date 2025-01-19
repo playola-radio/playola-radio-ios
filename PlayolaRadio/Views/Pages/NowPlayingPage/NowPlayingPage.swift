@@ -8,6 +8,7 @@
 import SwiftUI
 import Combine
 
+@MainActor
 @Observable
 class NowPlayingPageModel: ViewModel {
   var disposeBag: Set<AnyCancellable> = Set()
@@ -47,6 +48,7 @@ class NowPlayingPageModel: ViewModel {
     self.presentedSheet = nil
   }
   func stopButtonTapped() {
+    stationPlayer.stop()
     navigationCoordinator.path.removeLast()
   }
 
@@ -60,10 +62,15 @@ class NowPlayingPageModel: ViewModel {
       self.nowPlayingTitle = state.titlePlaying ?? "-------"
       self.nowPlayingArtist = state.artistPlaying ?? "-------"
       self.albumArtUrl = state.albumArtworkUrl ?? URL(string: radioStation.imageURL)
-    case .loading(let radioStation):
+    case .loading(let radioStation, let progress):
       self.navigationBarTitle = "\(radioStation.name) \(radioStation.desc)"
       self.nowPlayingTitle = "\(radioStation.name) \(radioStation.desc)"
-      self.nowPlayingArtist = "Station Loading..."
+      if let progress {
+        self.nowPlayingArtist = "Station Loading... \(Int(round(progress*100)))%"
+      } else {
+        self.nowPlayingArtist = "Station Loading..."
+      }
+
       self.albumArtUrl = URL(string: radioStation.imageURL)
     case .stopped:
       self.navigationBarTitle = "Playola Radio"

@@ -9,23 +9,40 @@ import IdentifiedCollections
 import SwiftUI
 import FRadioPlayer
 
-struct StationList: Decodable, Identifiable, Equatable, Sendable {
+struct StationList: Codable, Identifiable, Equatable, Sendable {
   static func == (lhs: StationList, rhs: StationList) -> Bool {
     return lhs.id == rhs.id
   }
   
   var id: String
   var title: String
+  var hidden: Bool = false
   var stations: [RadioStation]
+
+  init(from decoder: any Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    self.id = try container.decode(String.self, forKey: .id)
+    self.title = try container.decode(String.self, forKey: .title)
+    self.hidden = (try? container.decode(Bool.self, forKey: .hidden)) ?? false
+    self.stations = try container.decode([RadioStation].self, forKey: .stations)
+  }
+
+  init(id: String, title: String, hidden: Bool = false, stations: [RadioStation]) {
+    self.id = id
+    self.title = title
+    self.hidden = hidden
+    self.stations = stations
+  }
 }
 
-struct RadioStation: Decodable, Identifiable, Equatable, Sendable {
+struct RadioStation: Codable, Identifiable, Equatable, Sendable {
   static func == (lhs: RadioStation, rhs: RadioStation) -> Bool {
     return lhs.id == rhs.id
   }
   var id: String
   var name: String
-  var streamURL: String
+  var playolaID: String?
+  var streamURL: String?
   var imageURL: String
   var desc: String
   var longDesc: String
@@ -36,9 +53,10 @@ struct RadioStation: Decodable, Identifiable, Equatable, Sendable {
     return Bundle.main.url(forResource: "AppIcon", withExtension: "PNG")!
   }
   
-  enum StationType: String, Decodable {
+  enum StationType: String, Codable {
     case artist = "artist"
     case fm = "fm"
+    case playola = "playola"
   }
   
   var longName: String {
@@ -78,14 +96,13 @@ struct StationListResponse: Decodable {
   var stationLists: [StationList]
 }
 
-
-
 // MARK: Mocks
 extension StationList {
-  static var mocks: [StationList] {
-    return [StationList(id: "in_development", title: "In Development", stations: [briStation]),
-            StationList(id: "artist_stations", title: "Artists", stations: artistStations),
-            StationList(id: "fm_stations", title: "FM Stations", stations: fmStations)]
+  static var mocks: IdentifiedArrayOf<StationList> {
+    return IdentifiedArray(uniqueElements:
+                            [StationList(id: "in_development", title: "In Development", stations: [briStation]),
+                             StationList(id: "artist_stations", title: "Artists", stations: artistStations),
+                             StationList(id: "fm_stations", title: "FM Stations", stations: fmStations)])
   }
 }
 

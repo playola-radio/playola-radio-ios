@@ -6,15 +6,18 @@
 //
 import Testing
 import FRadioPlayer
+import Sharing
 @testable import PlayolaRadio
 
 struct StationListPageTests {
 
-  @Suite("ViewAppeared")
+  @MainActor @Suite("ViewAppeared")
   struct ViewAppeared {
-
+    
     @Test("Retrieves the list -- working")
     func testCorrectlyRetrievesStationListsWhenApiIsSuccessful() async {
+      @Shared(.stationListsLoaded) var stationListsLoaded = false
+      @Shared(.stationLists) var stationLists = StationList.mocks
       let apiMock = APIMock(getStationListsShouldSucceed: true)
       let stationListModel = StationListModel(api: apiMock)
       apiMock.beforeAssertions = {
@@ -51,8 +54,8 @@ struct StationListPageTests {
 //      #expect(stationListModel.stationPlayerState == newState)
     }
   }
-
-  @Suite("NowPlaying little view")
+  
+  @MainActor @Suite("NowPlaying little view")
   struct NowPlayingLittleView {
     @Test("Navigates to now playing when NowPlaying is tapped")
     func testNavigatesToNowPlayingWhenNowPlayingIsTapped() async {
