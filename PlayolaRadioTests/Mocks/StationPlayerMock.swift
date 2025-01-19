@@ -5,11 +5,13 @@
 //  Created by Brian D Keane on 1/18/25.
 //
 @testable import PlayolaRadio
+import PlayolaPlayer
 
 class StationPlayerMock: StationPlayer {
   var callsToPlay: [RadioStation] = []
   var stopCalledCount = 0
-  override init(urlStreamPlayer: URLStreamPlayer? = nil) {
+  override init(urlStreamPlayer: URLStreamPlayer? = nil,
+                playolaStationPlayer: PlayolaStationPlayer? = nil) {
     super.init(urlStreamPlayer: URLStreamPlayerMock())
   }
   public override func play(station: RadioStation) {

@@ -9,11 +9,12 @@ import Testing
 import FRadioPlayer
 @testable import PlayolaRadio
 
+@MainActor
 struct NowPlayingPageTests {
   @Suite("viewAppeared")
   struct ViewAppearedTests {
     @Test("Populates correctly when loading")
-    func testNowPlayingPopulatesCorrectlyWhenLoading() {
+    @MainActor func testNowPlayingPopulatesCorrectlyWhenLoading() {
 //      let player = URLStreamPlayerMock()
 //
 //      player.state = URLStreamPlayer.State(playbackState: .playing, playerStatus: .loading, currentStation: .mock)
@@ -27,7 +28,7 @@ struct NowPlayingPageTests {
     }
 
     @Test("Populates correctly when something is playing")
-    func testNowPlayingPopulatesCorrectlyWhenSomethingIsPlaying() {
+    @MainActor func testNowPlayingPopulatesCorrectlyWhenSomethingIsPlaying() {
       let station = RadioStation.mock
       let playerMock = StationPlayerMock()
       playerMock.state = StationPlayer.State(
@@ -45,7 +46,7 @@ struct NowPlayingPageTests {
   @Suite("About Display")
   struct AboutDisplay {
     @Test("Tapping about button displays about as a sheet")
-    func testTappingAboutButtonDisplaysAboutPageAsSheet() {
+    @MainActor func testTappingAboutButtonDisplaysAboutPageAsSheet() {
       let nowPlayingPage = NowPlayingPageModel()
       #expect(nowPlayingPage.presentedSheet == nil)
       nowPlayingPage.aboutButtonTapped()
@@ -53,16 +54,11 @@ struct NowPlayingPageTests {
     }
 
     @Test("Can be dismissed")
-    func testTappingAboutButtonDismissWorks() {
+    @MainActor func testTappingAboutButtonDismissWorks() {
       let nowPlayingPage = NowPlayingPageModel(presentedSheet: .about(AboutPageModel()))
       nowPlayingPage.dismissAboutSheetButtonTapped()
       #expect(nowPlayingPage.presentedSheet == nil)
     }
-  }
-
-  @Test("Airplay Button")
-  func testAirplayButtonTappedShowsAirplayStuff() {
-
   }
 
   @Test("Info Button Tapped")

@@ -6,9 +6,28 @@
 //
 
 import Testing
+import Sharing
 @testable import PlayolaRadio
 
 struct AboutPageTests {
+  @Test("Tapping the icon 10 times changes the defaults and displays an alert")
+  func testTurnsOnTheSecretStations() {
+    let aboutPage = AboutPageModel()
+    #expect(aboutPage.showSecretStations == false)
+    aboutPage.handlePlayolaIconTapped10Times()
+    #expect(aboutPage.showSecretStations == true)
+    #expect(aboutPage.presentedAlert == .secretStationsTurnedOnAlert)
+  }
+
+  @Test("Tapping the icon 10 times changes the defaults and displays an alert")
+  func testTurnsOffTheSecretStations() {
+    @Shared(.showSecretStations) var showSecretStations = true
+    let aboutPage = AboutPageModel()
+    #expect(aboutPage.showSecretStations == true)
+    aboutPage.handlePlayolaIconTapped10Times()
+    #expect(aboutPage.showSecretStations == false)
+    #expect(aboutPage.presentedAlert == .secretStationsHiddenAlert)
+  }
 
   @Test("Correctly sets canSendEmail when true")
   func testCorrectlySetsCanSendEmailWhenTrue() async {

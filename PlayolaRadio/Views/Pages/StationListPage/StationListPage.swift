@@ -9,6 +9,7 @@ import ComposableArchitecture
 import SwiftUI
 import Combine
 
+@MainActor
 @Observable
 class StationListModel: ViewModel {
   var disposeBag: Set<AnyCancellable> = Set()

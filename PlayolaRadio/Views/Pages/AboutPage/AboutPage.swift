@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Sharing
 
 @Observable
 class AboutPageModel: ViewModel {
@@ -18,6 +19,7 @@ class AboutPageModel: ViewModel {
 
   @ObservationIgnored var mailService = MailService()
 
+  @ObservationIgnored @Shared(.showSecretStations) var showSecretStations
   init(canSendEmail: Bool = false,
        isShowingMailComposer: Bool = false,
        mailURL: URL? = nil,
@@ -47,6 +49,15 @@ class AboutPageModel: ViewModel {
               subject: "What I Think About Playola")
   }
 
+  func handlePlayolaIconTapped10Times() {
+    $showSecretStations.withLock { $0 = !$0 }
+    if self.showSecretStations {
+      presentedAlert = .secretStationsTurnedOnAlert
+    } else {
+      presentedAlert = .secretStationsHiddenAlert
+    }
+  }
+
   // MARK: Other Functions
   private func sendEmail(recipientEmail: String, subject: String) {
     if canSendEmail {
@@ -66,7 +77,19 @@ extension PlayolaAlert {
   static var cannotOpenMailAlert: PlayolaAlert {
     return PlayolaAlert(title: "Error Opening Mail",
                         message: "There was an error opening the email program",
-                        dismissButton: .cancel(Text("Ok")))
+                        dismissButton: .cancel(Text("OK")))
+  }
+
+  static var secretStationsTurnedOnAlert: PlayolaAlert {
+    return PlayolaAlert(title: "Congratulations",
+                        message: "Secret Stations Unlocked",
+                        dismissButton: .cancel(Text("OK")))
+  }
+
+  static var secretStationsHiddenAlert: PlayolaAlert {
+    return PlayolaAlert(title: "Secret Stations",
+                        message: "Secret Stations Hidden",
+                        dismissButton: .cancel(Text("OK")))
   }
 }
 
@@ -86,7 +109,7 @@ struct AboutPage: View {
           .frame(width: 50, height: 100)
           .padding(.top, 30)
           .onTapGesture(count: 10, perform: {
-            //          toggleSecretStations()
+            model.handlePlayolaIconTapped10Times()
           })
 
         Image("PlayolaWordLogo")
