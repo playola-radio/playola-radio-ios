@@ -66,9 +66,15 @@ class StationPlayer: ObservableObject {
 
   // MARK: Public Interface
   public func play(station: RadioStation) {
+    guard currentStation != station else { return }
+    stop()
     self.state = State(playbackStatus: .loading(station))
-//    urlStreamPlayer.set(station: station)
-    Task { try! await playolaStationPlayer.play(stationId: "f3864734-de35-414f-b0b3-e6909b0b77bd") }
+    if let _ = station.streamURL {
+      urlStreamPlayer.set(station: station)
+    } else if let playolaID = station.playolaID {
+      urlStreamPlayer.reset()
+      Task { try? await playolaStationPlayer.play(stationId: playolaID) }
+    }
   }
 
   public func stop() {

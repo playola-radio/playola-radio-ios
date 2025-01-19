@@ -56,13 +56,13 @@ public class URLStreamPlayer: ObservableObject {
   }
   
   func set(station: RadioStation?) {
-    guard let station = station else {
+    guard let station = station, let streamURL = station.streamURL else {
       reset()
       return
     }
     
     currentStation = station
-    player.radioURL = URL(string: station.streamURL)
+    player.radioURL = URL(string: streamURL)
   }
   
   public func reset() {

@@ -41,8 +41,6 @@
 		D3536A092BFA4F4A006942D6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3536A082BFA4F4A006942D6 /* Assets.xcassets */; };
 		D3536A0C2BFA4F4A006942D6 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3536A0B2BFA4F4A006942D6 /* Preview Assets.xcassets */; };
 		D3536A162BFA4F4A006942D6 /* PlayolaRadioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A152BFA4F4A006942D6 /* PlayolaRadioTests.swift */; };
-		D3536A202BFA4F4A006942D6 /* PlayolaRadioUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A1F2BFA4F4A006942D6 /* PlayolaRadioUITests.swift */; };
-		D3536A222BFA4F4A006942D6 /* PlayolaRadioUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A212BFA4F4A006942D6 /* PlayolaRadioUITestsLaunchTests.swift */; };
 		D3536A302BFA5523006942D6 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = D3536A2F2BFA5523006942D6 /* ComposableArchitecture */; };
 		D3536A322BFA64AB006942D6 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A312BFA64AB006942D6 /* Models.swift */; };
 		D3536A352BFA64DC006942D6 /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3536A342BFA64DC006942D6 /* FRadioPlayer */; };
@@ -107,8 +105,6 @@
 		D3536A112BFA4F4A006942D6 /* PlayolaRadioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlayolaRadioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3536A152BFA4F4A006942D6 /* PlayolaRadioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaRadioTests.swift; sourceTree = "<group>"; };
 		D3536A1B2BFA4F4A006942D6 /* PlayolaRadioUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlayolaRadioUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		D3536A1F2BFA4F4A006942D6 /* PlayolaRadioUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaRadioUITests.swift; sourceTree = "<group>"; };
-		D3536A212BFA4F4A006942D6 /* PlayolaRadioUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaRadioUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		D3536A312BFA64AB006942D6 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		D3536A362BFA6520006942D6 /* Bundle+Misc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Bundle+Misc.swift"; sourceTree = "<group>"; };
 		D3536A372BFA6520006942D6 /* Color+Hex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
@@ -255,7 +251,6 @@
 			children = (
 				D3536A032BFA4F49006942D6 /* PlayolaRadio */,
 				D3536A142BFA4F4A006942D6 /* PlayolaRadioTests */,
-				D3536A1E2BFA4F4A006942D6 /* PlayolaRadioUITests */,
 				D3536A022BFA4F49006942D6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -299,15 +294,6 @@
 				D3536A152BFA4F4A006942D6 /* PlayolaRadioTests.swift */,
 			);
 			path = PlayolaRadioTests;
-			sourceTree = "<group>";
-		};
-		D3536A1E2BFA4F4A006942D6 /* PlayolaRadioUITests */ = {
-			isa = PBXGroup;
-			children = (
-				D3536A1F2BFA4F4A006942D6 /* PlayolaRadioUITests.swift */,
-				D3536A212BFA4F4A006942D6 /* PlayolaRadioUITestsLaunchTests.swift */,
-			);
-			path = PlayolaRadioUITests;
 			sourceTree = "<group>";
 		};
 		D3536A392BFA6520006942D6 /* Extensions */ = {
@@ -513,8 +499,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D3536A202BFA4F4A006942D6 /* PlayolaRadioUITests.swift in Sources */,
-				D3536A222BFA4F4A006942D6 /* PlayolaRadioUITestsLaunchTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -658,12 +642,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = FSRSPV9N9Q;
+				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -676,11 +659,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 3.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development fm.playola.playolaradio";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -692,12 +674,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = FSRSPV9N9Q;
+				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -710,11 +691,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 3.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development fm.playola.playolaradio";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -724,7 +704,6 @@
 		D3536A292BFA4F4A006942D6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -744,7 +723,6 @@
 		D3536A2A2BFA4F4A006942D6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -764,7 +742,6 @@
 		D3536A2C2BFA4F4A006942D6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 896JR349G2;
@@ -782,7 +759,6 @@
 		D3536A2D2BFA4F4A006942D6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 896JR349G2;

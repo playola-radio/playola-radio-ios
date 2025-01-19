@@ -10,7 +10,7 @@ import Sharing
 import IdentifiedCollections
 
 class API {
-  static let stationsURL = URL(string: "https://playola-static.s3.amazonaws.com/station_lists.json")!
+  static let stationsURL = URL(string: "https://admin-api.playola.fm/v1/developer/stationLists")!
 
   @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
   @Shared(.stationListsLoaded) var stationListsLoaded: Bool

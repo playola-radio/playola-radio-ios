@@ -16,7 +16,7 @@ class StationListModel: ViewModel {
 
   // MARK: State
   var isLoadingStationLists: Bool = false
-  var isShowingSecretStations: Bool = false
+  @ObservationIgnored @Shared(.showSecretStations) var showSecretStations
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
   var presentedAlert: PlayolaAlert?
   var presentedSheet: PlayolaSheet?
@@ -48,7 +48,8 @@ class StationListModel: ViewModel {
     } catch (_) {
       self.presentedAlert = .errorLoadingStations
     }
-    self.stationPlayer.$state.sink { self.stationPlayerState = $0 }.store(in: &disposeBag)
+    self.stationPlayer.$state.sink { self.stationPlayerState = $0 }
+      .store(in: &disposeBag)
   }
   func hamburgerButtonTapped() {
     self.presentedSheet = .about(AboutPageModel())
@@ -72,9 +73,10 @@ class StationListModel: ViewModel {
 
 extension PlayolaAlert {
   static var errorLoadingStations: PlayolaAlert {
-    return PlayolaAlert(title: "Error Loading Stations",
-                        message: "There was an error loading the stations. Please check yout connection and try again.",
-                        dismissButton: .cancel(Text("OK")))
+    return PlayolaAlert(
+      title: "Error Loading Stations",
+      message: "There was an error loading the stations. Please check yout connection and try again.",
+      dismissButton: .cancel(Text("OK")))
   }
 }
 
@@ -89,7 +91,10 @@ struct StationListPage: View {
       
       VStack {
         List {
-          ForEach(model.stationLists.filter { $0.stations.count > 0 }) { stationList in
+          ForEach(model.stationLists
+            .filter { $0.stations.count > 0 }
+            .filter { model.showSecretStations ? true : $0.hidden != true })
+          { stationList in
             Section(stationList.title) {
               ForEach(stationList.stations.indices, id: \.self) { index in
                 StationListCellView(station: stationList.stations[index])
