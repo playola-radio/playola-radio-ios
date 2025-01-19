@@ -6,32 +6,40 @@
 //
 
 import Foundation
+import Sharing
+import IdentifiedCollections
 
 class API {
   static let stationsURL = URL(string: "https://playola-static.s3.amazonaws.com/station_lists.json")!
-  
+
+  @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
+  @Shared(.stationListsLoaded) var stationListsLoaded: Bool
+
   // Helper struct to get either local or remote JSON
-  func getStations(completion: @escaping ((Result<[StationList], Error>) -> Void)) {
+  func getStations(completion: @escaping ((Result<IdentifiedArrayOf<StationList>, Error>) -> Void)) {
     DispatchQueue.global(qos: .userInitiated).async {
       self.loadHttp { remoteResult in
-        if case.success = remoteResult {
+        switch remoteResult {
+        case .success(let stationLists):
           print("Remote StationLists Loaded")
+          self.$stationLists.withLock { $0 = IdentifiedArrayOf(uniqueElements: stationLists) }
+          self.$stationListsLoaded.withLock { $0 = true }
           DispatchQueue.main.async {
-            completion(remoteResult)
+            completion(.success(self.stationLists))
           }
-        } else {
+        default:
           self.loadLocal { stationListResult in
             print("Error loading remote StationLists. Falling back to local version.")
             DispatchQueue.main.async {
-              completion(stationListResult)
+              completion(.success(self.stationLists))
             }
           }
         }
       }
     }
   }
-  
-  func getStations() async throws -> [StationList] {
+
+  func getStations() async throws -> IdentifiedArrayOf<StationList> {
     try await withCheckedThrowingContinuation { continuation in
       getStations { stationListResult in
         switch stationListResult {

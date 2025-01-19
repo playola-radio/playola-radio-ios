@@ -18,8 +18,8 @@ class AboutPageModel: ViewModel {
   var presentedAlert: PlayolaAlert?
 
   @ObservationIgnored var mailService = MailService()
-
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations
+
   init(canSendEmail: Bool = false,
        isShowingMailComposer: Bool = false,
        mailURL: URL? = nil,

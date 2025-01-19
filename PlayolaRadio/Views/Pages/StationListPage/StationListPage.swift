@@ -17,7 +17,7 @@ class StationListModel: ViewModel {
   // MARK: State
   var isLoadingStationLists: Bool = false
   var isShowingSecretStations: Bool = false
-  var stationLists: IdentifiedArrayOf<StationList> = []
+  @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
   var presentedAlert: PlayolaAlert?
   var presentedSheet: PlayolaSheet?
   var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackStatus: .stopped)
@@ -26,6 +26,8 @@ class StationListModel: ViewModel {
   @ObservationIgnored var api: API
   @ObservationIgnored var stationPlayer: StationPlayer
   @ObservationIgnored var navigationCoordinator: NavigationCoordinator
+
+  @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
 
   init(api:API? = nil, stationPlayer: StationPlayer? = nil,
        navigationCoordinator: NavigationCoordinator? = nil) {
@@ -39,8 +41,10 @@ class StationListModel: ViewModel {
     self.isLoadingStationLists = true
     defer { self.isLoadingStationLists = false }
     do {
-      let stationListsRaw = try await self.api.getStations()
-      self.stationLists = IdentifiedArray(uniqueElements: stationListsRaw)
+      if !stationListsLoaded {
+        let stationListsRaw = try await self.api.getStations()
+//        self.stationLists = IdentifiedArray(uniqueElements: stationListsRaw)
+      }
     } catch (_) {
       self.presentedAlert = .errorLoadingStations
     }

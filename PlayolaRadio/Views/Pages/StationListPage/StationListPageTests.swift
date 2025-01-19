@@ -6,6 +6,7 @@
 //
 import Testing
 import FRadioPlayer
+import Sharing
 @testable import PlayolaRadio
 
 struct StationListPageTests {
@@ -15,6 +16,8 @@ struct StationListPageTests {
     
     @Test("Retrieves the list -- working")
     func testCorrectlyRetrievesStationListsWhenApiIsSuccessful() async {
+      @Shared(.stationListsLoaded) var stationListsLoaded = false
+      @Shared(.stationLists) var stationLists = StationList.mocks
       let apiMock = APIMock(getStationListsShouldSucceed: true)
       let stationListModel = StationListModel(api: apiMock)
       apiMock.beforeAssertions = {
