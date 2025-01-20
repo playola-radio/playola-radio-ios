@@ -39,6 +39,11 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   // dependency injection
   var stationPlayer: StationPlayer { return StationPlayer.shared }
 
+  override init() {
+    super.init()
+    setupNowPlayingTemplate()
+  }
+
   private func playStation(_ station: RadioStation?) {
     guard let station else { return }
     self.stationPlayer.play(station: station)
@@ -105,6 +110,10 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     } else {
       interfaceController?.pushTemplate(CPNowPlayingTemplate.shared, animated: animated, completion: nil)
     }
+  }
+
+  private func setupNowPlayingTemplate() {
+//    MPNowPlayingSession
   }
 
   public func cPListItemFrom(station: RadioStation) -> CPListItem {
