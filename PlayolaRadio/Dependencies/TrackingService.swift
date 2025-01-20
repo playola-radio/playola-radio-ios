@@ -20,6 +20,7 @@ class TrackingService {
     init() {
         let nc = NotificationCenter.default
         nc.addObserver(self, selector: #selector(handleRouteChange), name: AVAudioSession.routeChangeNotification, object: nil)
+      initializeTrackingLibraries()
     }
 
     @objc func handleRouteChange(notification: Notification) {

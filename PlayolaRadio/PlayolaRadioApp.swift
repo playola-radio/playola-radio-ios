@@ -10,6 +10,9 @@ import SwiftUI
 
 @main
 struct PlayolaRadioApp: App {
+  init() {
+    NowPlayingUpdater.shared.setupRemoteControlCenter()
+  }
   var body: some Scene {
     WindowGroup {
       if _XCTIsTesting || isTesting {

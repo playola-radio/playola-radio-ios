@@ -56,6 +56,8 @@
 		D35673C02D3DCA3F00E4E926 /* Secrets-Example.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D35673BF2D3DCA3600E4E926 /* Secrets-Example.xcconfig */; };
 		D35673C32D3E872600E4E926 /* CPListItem+InitWithRemoteUrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C22D3E871800E4E926 /* CPListItem+InitWithRemoteUrl.swift */; };
 		D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C52D3E91B900E4E926 /* MainSceneDelegate.swift */; };
+		D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */; };
+		D35673CB2D3EE5E900E4E926 /* Secrets-Development.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */; };
 		D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3CE19022D3C825C0091B888 /* PlayolaPlayer */; };
 		D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */; };
 /* End PBXBuildFile section */
@@ -128,6 +130,8 @@
 		D35673C22D3E871800E4E926 /* CPListItem+InitWithRemoteUrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CPListItem+InitWithRemoteUrl.swift"; sourceTree = "<group>"; };
 		D35673C42D3E8E1E00E4E926 /* PlayolaRadio.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PlayolaRadio.entitlements; sourceTree = "<group>"; };
 		D35673C52D3E91B900E4E926 /* MainSceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainSceneDelegate.swift; sourceTree = "<group>"; };
+		D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingUpdater.swift; sourceTree = "<group>"; };
+		D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Development.xcconfig"; sourceTree = "<group>"; };
 		D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserDefaults.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -290,6 +294,7 @@
 		D3536A032BFA4F49006942D6 /* PlayolaRadio */ = {
 			isa = PBXGroup;
 			children = (
+				D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */,
 				D35673C42D3E8E1E00E4E926 /* PlayolaRadio.entitlements */,
 				D35673C12D3DCF6000E4E926 /* Info.plist */,
 				D35673B82D3DC9DE00E4E926 /* Config */,
@@ -347,6 +352,7 @@
 		D35673B82D3DC9DE00E4E926 /* Config */ = {
 			isa = PBXGroup;
 			children = (
+				D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */,
 				D35673BF2D3DCA3600E4E926 /* Secrets-Example.xcconfig */,
 				D35673BD2D3DCA1E00E4E926 /* Secrets.xcconfig */,
 				D35673B92D3DC9ED00E4E926 /* Config.swift */,
@@ -474,6 +480,7 @@
 				D3536A0C2BFA4F4A006942D6 /* Preview Assets.xcassets in Resources */,
 				D35673C02D3DCA3F00E4E926 /* Secrets-Example.xcconfig in Resources */,
 				D3536A092BFA4F4A006942D6 /* Assets.xcassets in Resources */,
+				D35673CB2D3EE5E900E4E926 /* Secrets-Development.xcconfig in Resources */,
 				D35673BE2D3DCA2600E4E926 /* Secrets.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -522,6 +529,7 @@
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
 				D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */,
 				D339E5632BFD0FD800B9E35B /* AirplayButton.swift in Sources */,
+				D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */,
 				D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */,
 				D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */,
 				D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */,
@@ -695,6 +703,7 @@
 		};
 		D3536A262BFA4F4A006942D6 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -707,6 +716,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -729,6 +739,7 @@
 		};
 		D3536A272BFA4F4A006942D6 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D35673BD2D3DCA1E00E4E926 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -741,6 +752,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
