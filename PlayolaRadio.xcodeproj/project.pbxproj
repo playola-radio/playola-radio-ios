@@ -49,6 +49,12 @@
 		D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A382BFA6520006942D6 /* UIImage+Cache.swift */; };
 		D35673B02D3DC55900E4E926 /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673AF2D3DC54F00E4E926 /* CarPlaySceneDelegate.swift */; };
 		D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673B12D3DC59100E4E926 /* RadioStation.swift */; };
+		D35673B42D3DC6D100E4E926 /* TrackingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673B32D3DC6CE00E4E926 /* TrackingService.swift */; };
+		D35673B72D3DC6EC00E4E926 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D35673B62D3DC6EC00E4E926 /* Mixpanel */; };
+		D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673B92D3DC9ED00E4E926 /* Config.swift */; };
+		D35673BE2D3DCA2600E4E926 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D35673BD2D3DCA1E00E4E926 /* Secrets.xcconfig */; };
+		D35673C02D3DCA3F00E4E926 /* Secrets-Example.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D35673BF2D3DCA3600E4E926 /* Secrets-Example.xcconfig */; };
+		D35673C32D3E872600E4E926 /* CPListItem+InitWithRemoteUrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C22D3E871800E4E926 /* CPListItem+InitWithRemoteUrl.swift */; };
 		D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3CE19022D3C825C0091B888 /* PlayolaPlayer */; };
 		D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */; };
 /* End PBXBuildFile section */
@@ -113,6 +119,12 @@
 		D3536A382BFA6520006942D6 /* UIImage+Cache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImage+Cache.swift"; sourceTree = "<group>"; };
 		D35673AF2D3DC54F00E4E926 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
 		D35673B12D3DC59100E4E926 /* RadioStation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioStation.swift; sourceTree = "<group>"; };
+		D35673B32D3DC6CE00E4E926 /* TrackingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingService.swift; sourceTree = "<group>"; };
+		D35673B92D3DC9ED00E4E926 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		D35673BD2D3DCA1E00E4E926 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		D35673BF2D3DCA3600E4E926 /* Secrets-Example.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Example.xcconfig"; sourceTree = "<group>"; };
+		D35673C12D3DCF6000E4E926 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		D35673C22D3E871800E4E926 /* CPListItem+InitWithRemoteUrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CPListItem+InitWithRemoteUrl.swift"; sourceTree = "<group>"; };
 		D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserDefaults.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -122,6 +134,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */,
+				D35673B72D3DC6EC00E4E926 /* Mixpanel in Frameworks */,
 				D31C43D42D3C783B0021AAE4 /* PlayolaPlayer in Frameworks */,
 				D3536A352BFA64DC006942D6 /* FRadioPlayer in Frameworks */,
 				D3536A302BFA5523006942D6 /* ComposableArchitecture in Frameworks */,
@@ -197,6 +210,7 @@
 		D339E55A2BFD0CE200B9E35B /* Dependencies */ = {
 			isa = PBXGroup;
 			children = (
+				D35673B32D3DC6CE00E4E926 /* TrackingService.swift */,
 				D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */,
 				D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */,
 				D339E5722BFD32A100B9E35B /* Clients */,
@@ -273,6 +287,8 @@
 		D3536A032BFA4F49006942D6 /* PlayolaRadio */ = {
 			isa = PBXGroup;
 			children = (
+				D35673C12D3DCF6000E4E926 /* Info.plist */,
+				D35673B82D3DC9DE00E4E926 /* Config */,
 				D35673AE2D3DC54300E4E926 /* CarPlay */,
 				D339E55A2BFD0CE200B9E35B /* Dependencies */,
 				D3536A392BFA6520006942D6 /* Extensions */,
@@ -305,6 +321,7 @@
 		D3536A392BFA6520006942D6 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				D35673C22D3E871800E4E926 /* CPListItem+InitWithRemoteUrl.swift */,
 				D3137DD32D3AC9B40070033A /* EnumTypeEquatableProtocol.swift */,
 				D3536A362BFA6520006942D6 /* Bundle+Misc.swift */,
 				D3536A372BFA6520006942D6 /* Color+Hex.swift */,
@@ -320,6 +337,16 @@
 				D35673AF2D3DC54F00E4E926 /* CarPlaySceneDelegate.swift */,
 			);
 			path = CarPlay;
+			sourceTree = "<group>";
+		};
+		D35673B82D3DC9DE00E4E926 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				D35673BF2D3DCA3600E4E926 /* Secrets-Example.xcconfig */,
+				D35673BD2D3DCA1E00E4E926 /* Secrets.xcconfig */,
+				D35673B92D3DC9ED00E4E926 /* Config.swift */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -343,6 +370,7 @@
 				D3536A342BFA64DC006942D6 /* FRadioPlayer */,
 				D31C43D32D3C783B0021AAE4 /* PlayolaPlayer */,
 				D3CE19022D3C825C0091B888 /* PlayolaPlayer */,
+				D35673B62D3DC6EC00E4E926 /* Mixpanel */,
 			);
 			productName = PlayolaRadio;
 			productReference = D3536A012BFA4F49006942D6 /* PlayolaRadio.app */;
@@ -420,6 +448,7 @@
 				D3536A2E2BFA5523006942D6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				D3536A332BFA64DC006942D6 /* XCRemoteSwiftPackageReference "FRadioPlayer" */,
 				D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */,
+				D35673B52D3DC6EC00E4E926 /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
 			);
 			productRefGroup = D3536A022BFA4F49006942D6 /* Products */;
 			projectDirPath = "";
@@ -438,7 +467,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				D3536A0C2BFA4F4A006942D6 /* Preview Assets.xcassets in Resources */,
+				D35673C02D3DCA3F00E4E926 /* Secrets-Example.xcconfig in Resources */,
 				D3536A092BFA4F4A006942D6 /* Assets.xcassets in Resources */,
+				D35673BE2D3DCA2600E4E926 /* Secrets.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -465,12 +496,14 @@
 			files = (
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
 				D339E5712BFD322F00B9E35B /* StationPlayerClient.swift in Sources */,
+				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
 				D339E5622BFD0FD800B9E35B /* NowPlayingSmallView.swift in Sources */,
 				D3137DBB2D3976580070033A /* PlayolaAlert.swift in Sources */,
 				D339E5742BFD32C600B9E35B /* APIClient.swift in Sources */,
 				D339E5652BFD0FD800B9E35B /* NowPlayingEqAnimation.swift in Sources */,
 				D35673B02D3DC55900E4E926 /* CarPlaySceneDelegate.swift in Sources */,
+				D35673C32D3E872600E4E926 /* CPListItem+InitWithRemoteUrl.swift in Sources */,
 				D339E57E2BFD750700B9E35B /* MailClient.swift in Sources */,
 				D339E56F2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift in Sources */,
 				D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */,
@@ -491,6 +524,7 @@
 				D3137DD62D3AD2CC0070033A /* AirPlayView.swift in Sources */,
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				D339E5692BFD1C0800B9E35B /* API.swift in Sources */,
+				D35673B42D3DC6D100E4E926 /* TrackingService.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -665,6 +699,7 @@
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -697,6 +732,7 @@
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -847,6 +883,14 @@
 				kind = branch;
 			};
 		};
+		D35673B52D3DC6EC00E4E926 /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mixpanel/mixpanel-swift";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 		D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
@@ -871,6 +915,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D3536A332BFA64DC006942D6 /* XCRemoteSwiftPackageReference "FRadioPlayer" */;
 			productName = FRadioPlayer;
+		};
+		D35673B62D3DC6EC00E4E926 /* Mixpanel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D35673B52D3DC6EC00E4E926 /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
+			productName = Mixpanel;
 		};
 		D3CE19022D3C825C0091B888 /* PlayolaPlayer */ = {
 			isa = XCSwiftPackageProductDependency;
