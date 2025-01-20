@@ -28,6 +28,7 @@ extension CPListItem {
               print("Error downlaoding image")
             }
           }
+          dataTask.resume()
         }
 
         var identifier: String? {

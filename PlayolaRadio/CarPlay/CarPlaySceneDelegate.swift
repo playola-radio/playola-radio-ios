@@ -108,7 +108,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   }
 
   public func cPListItemFrom(station: RadioStation) -> CPListItem {
-      var listItem = CPListItem(text: station.name, detailText: station.desc, remoteImageUrl: URL(string: station.imageURL), placeholder: nil)
+      let listItem = CPListItem(text: station.name, detailText: station.desc, remoteImageUrl: URL(string: station.imageURL), placeholder: nil)
       listItem.handler = { _, completion in
         self.stationPlayer.play(station: station)
           completion()
