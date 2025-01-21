@@ -43,7 +43,6 @@
 		D3536A162BFA4F4A006942D6 /* PlayolaRadioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A152BFA4F4A006942D6 /* PlayolaRadioTests.swift */; };
 		D3536A302BFA5523006942D6 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = D3536A2F2BFA5523006942D6 /* ComposableArchitecture */; };
 		D3536A322BFA64AB006942D6 /* StationList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A312BFA64AB006942D6 /* StationList.swift */; };
-		D3536A352BFA64DC006942D6 /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3536A342BFA64DC006942D6 /* FRadioPlayer */; };
 		D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A362BFA6520006942D6 /* Bundle+Misc.swift */; };
 		D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A372BFA6520006942D6 /* Color+Hex.swift */; };
 		D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A382BFA6520006942D6 /* UIImage+Cache.swift */; };
@@ -58,6 +57,7 @@
 		D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C52D3E91B900E4E926 /* MainSceneDelegate.swift */; };
 		D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */; };
 		D35673CB2D3EE5E900E4E926 /* Secrets-Development.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */; };
+		D3B662682D3F58E700975D2F /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3B662672D3F58E700975D2F /* FRadioPlayer */; };
 		D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3CE19022D3C825C0091B888 /* PlayolaPlayer */; };
 		D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */; };
 /* End PBXBuildFile section */
@@ -143,8 +143,8 @@
 				D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */,
 				D35673B72D3DC6EC00E4E926 /* Mixpanel in Frameworks */,
 				D31C43D42D3C783B0021AAE4 /* PlayolaPlayer in Frameworks */,
-				D3536A352BFA64DC006942D6 /* FRadioPlayer in Frameworks */,
 				D3536A302BFA5523006942D6 /* ComposableArchitecture in Frameworks */,
+				D3B662682D3F58E700975D2F /* FRadioPlayer in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -378,10 +378,10 @@
 			name = PlayolaRadio;
 			packageProductDependencies = (
 				D3536A2F2BFA5523006942D6 /* ComposableArchitecture */,
-				D3536A342BFA64DC006942D6 /* FRadioPlayer */,
 				D31C43D32D3C783B0021AAE4 /* PlayolaPlayer */,
 				D3CE19022D3C825C0091B888 /* PlayolaPlayer */,
 				D35673B62D3DC6EC00E4E926 /* Mixpanel */,
+				D3B662672D3F58E700975D2F /* FRadioPlayer */,
 			);
 			productName = PlayolaRadio;
 			productReference = D3536A012BFA4F49006942D6 /* PlayolaRadio.app */;
@@ -457,9 +457,9 @@
 			mainGroup = D35369F82BFA4F49006942D6;
 			packageReferences = (
 				D3536A2E2BFA5523006942D6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
-				D3536A332BFA64DC006942D6 /* XCRemoteSwiftPackageReference "FRadioPlayer" */,
 				D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */,
 				D35673B52D3DC6EC00E4E926 /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
+				D3B662662D3F58E700975D2F /* XCRemoteSwiftPackageReference "FRadioPlayer" */,
 			);
 			productRefGroup = D3536A022BFA4F49006942D6 /* Products */;
 			projectDirPath = "";
@@ -710,7 +710,7 @@
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
@@ -727,7 +727,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.0.0;
+				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -746,7 +746,7 @@
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
@@ -763,7 +763,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.0.0;
+				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -895,14 +895,6 @@
 				minimumVersion = 1.10.4;
 			};
 		};
-		D3536A332BFA64DC006942D6 /* XCRemoteSwiftPackageReference "FRadioPlayer" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/fethica/FRadioPlayer";
-			requirement = {
-				branch = v0.2.1;
-				kind = branch;
-			};
-		};
 		D35673B52D3DC6EC00E4E926 /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mixpanel/mixpanel-swift";
@@ -911,12 +903,20 @@
 				kind = branch;
 			};
 		};
+		D3B662662D3F58E700975D2F /* XCRemoteSwiftPackageReference "FRadioPlayer" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/fethica/FRadioPlayer";
+			requirement = {
+				branch = v0.2.1;
+				kind = branch;
+			};
+		};
 		D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -931,15 +931,15 @@
 			package = D3536A2E2BFA5523006942D6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
 			productName = ComposableArchitecture;
 		};
-		D3536A342BFA64DC006942D6 /* FRadioPlayer */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D3536A332BFA64DC006942D6 /* XCRemoteSwiftPackageReference "FRadioPlayer" */;
-			productName = FRadioPlayer;
-		};
 		D35673B62D3DC6EC00E4E926 /* Mixpanel */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D35673B52D3DC6EC00E4E926 /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
 			productName = Mixpanel;
+		};
+		D3B662672D3F58E700975D2F /* FRadioPlayer */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3B662662D3F58E700975D2F /* XCRemoteSwiftPackageReference "FRadioPlayer" */;
+			productName = FRadioPlayer;
 		};
 		D3CE19022D3C825C0091B888 /* PlayolaPlayer */ = {
 			isa = XCSwiftPackageProductDependency;
