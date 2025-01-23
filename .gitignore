@@ -3,6 +3,8 @@
 *.xcscmblueprint
 xcuserdata
 
-**/Secrets.xcconfig
+**/**/Secrets.xcconfig
+**/**/Secrets-Development.xcconfig
+**/**/Secrets-Local.xcconfig
 # probably should remove this later
 Package.resolved

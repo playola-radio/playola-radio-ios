@@ -8,35 +8,31 @@ import Combine
 import UIKit
 
 class Config: ObservableObject {
-    public static let shared = Config()
+  public static let shared = Config()
 
-    var debugLog = true
+  let environment: DevelopmentEnvironment = DevelopmentEnvironment(rawValue: Config.get("DEV_ENVIRONMENT", varType: String.self))!
+  let mixpanelToken: String = Config.get("MIXPANEL_TOKEN", varType: String.self)
+  let heapAppID: String = Config.get("HEAP_APP_ID", varType: String.self)
 
-    let mixpanelToken: String = {
-        guard let token = Bundle.main.infoDictionary?["MIXPANEL_TOKEN"] as? String,
-              !token.isEmpty else {
-            fatalError("Environment Variable MIXPANEL_TOKEN not initialized")
-        }
-        return token
-    }()
-
-    let heapAppID: String = {
-        guard let token = Bundle.main.infoDictionary?["HEAP_APP_ID"] as? String,
-              !token.isEmpty else {
-            fatalError("Environment Variable HEAP_APP_ID not initialized")
-        }
-        return token
-    }()
-
-//    // unused but leaving as an example of how to use future config
-//    @Published public var showInDevelopmentStations:Bool! = UserDefaults.standard.bool(forKey: Config.developmentStationsKey) {
-//        didSet {
-//            UserDefaults.standard.setValue(showInDevelopmentStations, forKey: Config.developmentStationsKey)
-//            StationsManager.shared.loadStations()
-//        }
-//    }
-
-    init(debugLog: Bool = true) {
-        self.debugLog = debugLog
+  var baseUrl: String {
+    switch environment {
+    case .local:
+      return "https://localhost:10020"
+    case .development, .production:
+      return "https://admin-api.playola.fm"
     }
+  }
+
+  static func get<T>(_ environmentVarName: String, varType: T.Type) -> T {
+    guard let token = Bundle.main.infoDictionary?[environmentVarName] as? T else {
+      fatalError("Environment Variable \(environmentVarName) not initialized")
+    }
+    return token
+  }
+}
+
+enum DevelopmentEnvironment: String {
+  case local = "local"
+  case development = "development"
+  case production = "production"
 }
