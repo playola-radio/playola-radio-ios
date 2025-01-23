@@ -10,10 +10,8 @@ import Sharing
 import IdentifiedCollections
 import Alamofire
 
-let PLAYOLA_BASE_URL = "http://127.0.0.1:10020"
-
 class API {
-  static let stationsURL = URL(string: "http:localhost:10020/v1/developer/stationLists")!
+  static let stationsURL = URL(string: "\(Config.shared.baseUrl)/v1/developer/stationLists")!
 
   @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
   @Shared(.stationListsLoaded) var stationListsLoaded: Bool
@@ -55,7 +53,7 @@ class API {
     if let displayName {
       parameters["displayName"] = displayName
     }
-    AF.request("\(PLAYOLA_BASE_URL)/v1/auth/apple/mobile/signup",
+    AF.request("\(Config.shared.baseUrl)/v1/auth/apple/mobile/signup",
                method: .post,
                parameters: parameters,
                encoding: JSONEncoding.default).responseDecodable(of: LoginResponse.self) { response in

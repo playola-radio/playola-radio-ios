@@ -6,8 +6,6 @@
 	<array>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	</array>
-	<key>DEV_ENVIRONMENT</key>
-	<string>$(DEV_ENVIRONMENT)</string>
 	<key>HEAP_APP_ID</key>
 	<string>$(HEAP_APP_ID)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
