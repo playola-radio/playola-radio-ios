@@ -19,18 +19,6 @@ class ViewModel: Hashable {
   }
 }
 
-@Observable
-class NavigationCoordinator {
-  static let shared = NavigationCoordinator()
-  var path: [Path] = []
-
-  enum Path: Hashable {
-    case stationListPage(StationListModel)
-    case aboutPage(AboutPageModel)
-    case nowPlayingPage(NowPlayingPageModel)
-  }
-}
-
 struct AppView: View {
   @Bindable var navigationCoordinator: NavigationCoordinator = NavigationCoordinator()
 
