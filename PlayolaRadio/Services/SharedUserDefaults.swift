@@ -25,3 +25,20 @@ extension SharedKey where Self == InMemoryKey<Bool>.Default {
     Self[.inMemory("stationListsLoaded"), default: false]
   }
 }
+
+//extension SharedKey where Self == AppStorageKey<AppleSignInInfo?>.Default {
+//  static var appleSignInInfo: Self {
+//    Self[.appStorage("appleSignInInfo"), default: nil]
+//  }
+//}
+extension SharedKey where Self == FileStorageKey<AppleSignInInfo?>.Default {
+  static var appleSignInInfo: Self {
+    Self[.fileStorage(dump(.documentsDirectory.appending(component: "apple-user.json"))), default: nil]
+  }
+}
+
+extension SharedKey where Self == FileStorageKey<Auth>.Default {
+  static var auth: Self {
+    Self[.fileStorage(dump(.documentsDirectory.appending(component: "auth.json"))), default: Auth()]
+  }
+}

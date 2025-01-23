@@ -8,12 +8,16 @@
 import Foundation
 import Sharing
 import IdentifiedCollections
+import Alamofire
+
+let PLAYOLA_BASE_URL = "http://127.0.0.1:10020"
 
 class API {
-  static let stationsURL = URL(string: "https://admin-api.playola.fm/v1/developer/stationLists")!
+  static let stationsURL = URL(string: "http:localhost:10020/v1/developer/stationLists")!
 
   @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
   @Shared(.stationListsLoaded) var stationListsLoaded: Bool
+  @Shared(.auth) var auth: Auth
 
   // Helper struct to get either local or remote JSON
   func getStations(completion: @escaping ((Result<IdentifiedArrayOf<StationList>, Error>) -> Void)) {
@@ -39,6 +43,33 @@ class API {
     }
   }
 
+  func signInViaApple(identityToken: String,
+                      email: String,
+                      authCode: String,
+                      displayName: String?) {
+    var parameters: [String: Any] = [
+      "identityToken": identityToken,
+      "authCode": authCode,
+      "email": email
+    ]
+    if let displayName {
+      parameters["displayName"] = displayName
+    }
+    AF.request("\(PLAYOLA_BASE_URL)/v1/auth/apple/mobile/signup",
+               method: .post,
+               parameters: parameters,
+               encoding: JSONEncoding.default).responseDecodable(of: LoginResponse.self) { response in
+      switch response.result {
+      case .success(let loginResponse):
+        self.$auth.withLock { $0 = Auth(jwtToken: loginResponse.playolaToken) }
+      case .failure(let error):
+        print("Failure to log in: \(error)")
+      }
+    }
+  }
+
+
+
   func getStations() async throws -> IdentifiedArrayOf<StationList> {
     try await withCheckedThrowingContinuation { continuation in
       getStations { stationListResult in
@@ -48,16 +79,16 @@ class API {
         case .failure(let error):
           continuation.resume(throwing: error)
         }
-        
+
       }
     }
   }
-  
-  
+
+
   enum DataError: Error {
     case urlNotValid, dataNotValid, dataNotFound, fileNotFound, httpResponseNotValid
   }
-  
+
   private func handle(_ dataResult: Result<Data?, Error>, _ completion: @escaping ((Result<[StationList], Error>) -> Void)) {
     DispatchQueue.main.async {
       switch dataResult {
@@ -69,36 +100,36 @@ class API {
       }
     }
   }
-  
+
   private func decode(_ data: Data?) -> Result<[StationList], Error> {
     guard let data = data else {
       return .failure(DataError.dataNotFound)
     }
-    
+
     let jsonDictionary: [String: [StationList]]
-    
+
     do {
       jsonDictionary = try JSONDecoder().decode([String: [StationList]].self, from: data)
     } catch let error {
       return .failure(error)
     }
-    
+
     guard let stationLists = jsonDictionary["stationLists"] else {
       return .failure(DataError.dataNotValid)
     }
-    
+
     return .success(stationLists)
   }
-  
+
   // Load local JSON Data
-  
+
   func loadLocal(_ completion: (Result<[StationList], Error>) -> Void) {
     let filePathURL = Bundle.main.url(forResource: "station_lists", withExtension: "json")
     guard let filePathURL = filePathURL else {
       completion(.failure(DataError.fileNotFound))
       return
     }
-    
+
     do {
       let data = try Data(contentsOf: filePathURL, options: .uncached)
       completion(decode(data))
@@ -106,34 +137,38 @@ class API {
       completion(.failure(error))
     }
   }
-  
+
   // Load http JSON Data
   private func loadHttp(_ completion: @escaping (Result<[StationList], Error>) -> Void) {
     let config = URLSessionConfiguration.default
     config.requestCachePolicy = .reloadIgnoringLocalCacheData
-    
+
     let session = URLSession(configuration: config)
-    
+
     // Use URLSession to get data from an NSURL
     let loadDataTask = session.dataTask(with: API.stationsURL) { data, response, error in
-      
+
       if let error = error {
         completion(.failure(error))
         return
       }
-      
+
       guard let httpResponse = response as? HTTPURLResponse, 200...299 ~= httpResponse.statusCode else {
         completion(.failure(DataError.httpResponseNotValid))
         return
       }
-      
+
       guard let data = data else {
         completion(.failure(DataError.dataNotFound))
         return
       }
-      
+
       completion(self.decode(data))
     }
     loadDataTask.resume()
   }
+}
+
+struct LoginResponse: Decodable {
+  let playolaToken: String
 }
