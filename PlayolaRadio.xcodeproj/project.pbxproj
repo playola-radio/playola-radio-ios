@@ -57,6 +57,8 @@
 		D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C52D3E91B900E4E926 /* MainSceneDelegate.swift */; };
 		D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */; };
 		D35673CB2D3EE5E900E4E926 /* Secrets-Development.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */; };
+		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
+		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3B662682D3F58E700975D2F /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3B662672D3F58E700975D2F /* FRadioPlayer */; };
 		D3B6626A2D40103C00975D2F /* SignInPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662692D40103800975D2F /* SignInPage.swift */; };
 		D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */; };
@@ -149,9 +151,11 @@
 				D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */,
 				D35673B72D3DC6EC00E4E926 /* Mixpanel in Frameworks */,
 				D31C43D42D3C783B0021AAE4 /* PlayolaPlayer in Frameworks */,
+				D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */,
 				D3B662702D40352500975D2F /* Alamofire in Frameworks */,
 				D3536A302BFA5523006942D6 /* ComposableArchitecture in Frameworks */,
 				D3B662682D3F58E700975D2F /* FRadioPlayer in Frameworks */,
+				D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -405,6 +409,8 @@
 				D35673B62D3DC6EC00E4E926 /* Mixpanel */,
 				D3B662672D3F58E700975D2F /* FRadioPlayer */,
 				D3B6626F2D40352500975D2F /* Alamofire */,
+				D3A2761D2D43C747006055AF /* GoogleSignIn */,
+				D3A2761F2D43C747006055AF /* GoogleSignInSwift */,
 			);
 			productName = PlayolaRadio;
 			productReference = D3536A012BFA4F49006942D6 /* PlayolaRadio.app */;
@@ -462,6 +468,7 @@
 				D35673B52D3DC6EC00E4E926 /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
 				D3B662662D3F58E700975D2F /* XCRemoteSwiftPackageReference "FRadioPlayer" */,
 				D3B6626E2D40352500975D2F /* XCRemoteSwiftPackageReference "Alamofire" */,
+				D3A2761C2D43C747006055AF /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			productRefGroup = D3536A022BFA4F49006942D6 /* Products */;
 			projectDirPath = "";
@@ -969,6 +976,14 @@
 				kind = branch;
 			};
 		};
+		D3A2761C2D43C747006055AF /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 		D3B662662D3F58E700975D2F /* XCRemoteSwiftPackageReference "FRadioPlayer" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/fethica/FRadioPlayer";
@@ -1009,6 +1024,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D35673B52D3DC6EC00E4E926 /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
 			productName = Mixpanel;
+		};
+		D3A2761D2D43C747006055AF /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3A2761C2D43C747006055AF /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		D3A2761F2D43C747006055AF /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3A2761C2D43C747006055AF /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
 		};
 		D3B662672D3F58E700975D2F /* FRadioPlayer */ = {
 			isa = XCSwiftPackageProductDependency;

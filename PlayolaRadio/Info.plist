@@ -6,8 +6,25 @@
 	<array>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string></string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.126767027087-5ediuop75anadcrbqsugutvet366i9mu</string>
+			</array>
+		</dict>
+	</array>
 	<key>DEV_ENVIRONMENT</key>
 	<string>$(DEV_ENVIRONMENT)</string>
+	<key>GIDClientID</key>
+	<string>126767027087-5ediuop75anadcrbqsugutvet366i9mu.apps.googleusercontent.com</string>
+	<key>GIDServerClientID</key>
+	<string>126767027087-2gp2aiprh5564qsstjmp6uuqcdg64hev.apps.googleusercontent.com</string>
 	<key>HEAP_APP_ID</key>
 	<string>$(HEAP_APP_ID)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
