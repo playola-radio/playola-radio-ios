@@ -144,7 +144,8 @@ struct StationListPage: View {
       switch item {
       case .about(let aboutModel):
         NavigationStack {
-          AboutPage(model: aboutModel)
+//          AboutPage(model: aboutModel)
+          SignInPage(model: SignInPageModel())
             .toolbar {
                     ToolbarItem(placement: .confirmationAction) {
                       Button(action: { model.dismissButtonInSheetTapped()  }) {

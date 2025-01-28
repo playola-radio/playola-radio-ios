@@ -7,6 +7,8 @@
 import SwiftUI
 import AuthenticationServices
 import Sharing
+import GoogleSignInSwift
+import GoogleSignIn
 
 @Observable
 class SignInPageModel: ViewModel {
@@ -53,8 +55,31 @@ class SignInPageModel: ViewModel {
     }
   }
 
+  func signInWithGoogleButtonTapped() {
+    guard let presentingVC = UIApplication.shared.keyWindowPresentedController else {
+      print("Error presenting VC -- no key window")
+      return
+    }
+    GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { signInResult, error in
+      guard let signInResult else {
+        return
+      }
+      print(signInResult)
+
+      signInResult.user.refreshTokensIfNeeded { user, error in
+        guard error == nil else { return }
+        guard let authCode = signInResult.serverAuthCode else {
+          print("Error signing into Google -- no serverAuthCode on signInResult.")
+          return
+        }
+        API().signInViaGoogle(code: signInResult.serverAuthCode!)
+      }
+    }
+  }
+
   func logOutButtonTapped() {
     self.$auth.withLock { $0 = Auth() }
+    API().revokeAppleCredentials(appleUserId: "000014.59c02331e3a642fd8bebedd86d191ed3.1758")
   }
 }
 
@@ -86,7 +111,18 @@ struct SignInPage: View {
                 .frame(height: 60)
                 .padding([.leading, .trailing], 20)
                 .padding()
+
+              Spacer()
+
+              GoogleSignInButton {
+                model.signInWithGoogleButtonTapped()
+              }
+              .frame(height: 60)
+              .padding([.leading, .trailing], 20)
+              .padding()
+
             }
+
             Spacer()
             Spacer()
           }

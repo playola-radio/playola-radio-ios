@@ -17,7 +17,7 @@ class Config: ObservableObject {
   var baseUrl: String {
     switch environment {
     case .local:
-      return "https://localhost:10020"
+      return "http://localhost:10020"
     case .development, .production:
       return "https://admin-api.playola.fm"
     }
