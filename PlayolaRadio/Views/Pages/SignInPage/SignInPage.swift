@@ -51,6 +51,7 @@ class SignInPageModel: ViewModel {
                            authCode: authCode,
                            displayName: appleIDCredential.fullName?.formatted())
     case .failure(let error):
+      print(error)
       break
     }
   }
@@ -68,11 +69,11 @@ class SignInPageModel: ViewModel {
 
       signInResult.user.refreshTokensIfNeeded { user, error in
         guard error == nil else { return }
-        guard let authCode = signInResult.serverAuthCode else {
+        guard let serverAuthCode = signInResult.serverAuthCode else {
           print("Error signing into Google -- no serverAuthCode on signInResult.")
           return
         }
-        API().signInViaGoogle(code: signInResult.serverAuthCode!)
+        API().signInViaGoogle(code: serverAuthCode)
       }
     }
   }
