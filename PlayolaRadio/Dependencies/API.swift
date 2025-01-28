@@ -66,6 +66,40 @@ class API {
     }
   }
 
+  func revokeAppleCredentials(appleUserId: String) {
+    let parameters: [String: Any] = ["appleUserId": appleUserId]
+    AF.request("\(Config.shared.baseUrl)/v1/auth/apple/revoke",
+               method: .put,
+               parameters: parameters,
+               encoding: JSONEncoding.default)
+    .validate(statusCode: 200..<300)
+    .response { data in
+      AuthService.shared.signOut()
+      AuthService.shared.clearAppleUser()
+    }
+  }
+
+  func signInViaGoogle(code: String) {
+    let parameters: [String: Any] = [
+      "code": code,
+      "originatesFromIOS": true
+    ]
+
+    AF.request("\(Config.shared.baseUrl)/v1/auth/google/signin",
+               method: .post,
+               parameters: parameters,
+               encoding: JSONEncoding.default)
+      .validate(statusCode: 200..<300)
+      .responseDecodable(of: LoginResponse.self)
+    { response in
+      switch response.result {
+      case .success(let loginResponse):
+        self.$auth.withLock { $0 = Auth(jwtToken: loginResponse.playolaToken) }
+      case .failure(let error):
+        print("Failure to log in: \(error)")
+      }
+    }
+  }
 
 
   func getStations() async throws -> IdentifiedArrayOf<StationList> {

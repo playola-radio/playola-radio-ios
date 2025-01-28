@@ -5,6 +5,8 @@
 //  Created by Brian D Keane on 1/22/25.
 //
 import Foundation
+import AuthenticationServices
+import Sharing
 
 struct Auth: Codable {
   let currentUser: LoggedInUser?
@@ -68,7 +70,28 @@ struct LoggedInUser: Codable {
       let json = try? JSONSerialization.jsonObject(with: bodyData, options: []), let payload = json as? [String: Any] else {
         return nil
     }
-
     return payload
+  }
+}
+
+class AuthService {
+  static let shared = AuthService()
+  @Shared(.appleSignInInfo) var appleSignInInfo
+  @Shared(.auth) var auth: Auth
+
+  init() {
+    let sessionNotificationName = ASAuthorizationAppleIDProvider.credentialRevokedNotification
+    NotificationCenter.default.addObserver(forName: sessionNotificationName, object: nil, queue: nil) { notification in
+      guard let appleSignInInfo = self.appleSignInInfo else { return }
+      API().revokeAppleCredentials(appleUserId: appleSignInInfo.appleUserId)
+    }
+  }
+  
+  func signOut() {
+    self.$auth.withLock { $0 = Auth() }
+  }
+
+  func clearAppleUser() {
+    self.$appleSignInInfo.withLock{ $0 = nil }
   }
 }

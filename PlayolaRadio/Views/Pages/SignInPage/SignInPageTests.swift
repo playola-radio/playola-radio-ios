@@ -29,5 +29,6 @@ struct SignInPageTests {
     // @Test("Provides the results to the API")
   }
 
+  // @Suite("SignInWithGoogle")
   // @Test("LogOutButtonTapped()")
 }
