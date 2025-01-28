@@ -8,3 +8,6 @@ xcuserdata
 **/**/Secrets-Local.xcconfig
 # probably should remove this later
 Package.resolved
+
+fastlane/test_output/report.html
+fastlane/test_output/report.junit
