@@ -33,7 +33,7 @@ platform :ios do
       parallel_testing: false,
       scheme: "PlayolaRadio",
       xcargs: "-skipMacroValidation",
-      # xcodebuild_formatter: "xcbeautify",
+      xcodebuild_formatter: "xcbeautify",
       output_directory: './fastlane/test_output/xctest')
   end
 

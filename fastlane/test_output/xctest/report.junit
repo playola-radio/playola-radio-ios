@@ -1,2 +1,12 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<testsuites tests='0' failures='0'/>
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="2" failures="0">
+    <testsuite name="PlayolaRadioTests" tests="2" failures="0" skipped="0" time="0.4401090145111084">
+        <properties>
+          <property name="Configuration" value="Test Scheme Action"/>
+        </properties>
+        <testcase classname="PlayolaRadioTests" name="testExample()" time="0.0010139942169189453">
+        </testcase>
+        <testcase classname="PlayolaRadioTests" name="testPerformanceExample()" time="0.43909502029418945">
+        </testcase>
+    </testsuite>
+</testsuites>

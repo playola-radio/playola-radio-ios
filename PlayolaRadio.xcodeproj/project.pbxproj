@@ -68,6 +68,7 @@
 		D3B662742D419C3300975D2F /* LoggedInUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662732D419C3100975D2F /* LoggedInUser.swift */; };
 		D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662752D41B0C700975D2F /* SignInPageTests.swift */; };
 		D3B662C32D4272F900975D2F /* Secrets-Local.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D3B662C22D4272ED00975D2F /* Secrets-Local.xcconfig */; };
+		D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */ = {isa = PBXBuildFile; productRef = D3BEE95C2D49A3BD00469CDC /* Testing */; };
 		D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3CE19022D3C825C0091B888 /* PlayolaPlayer */; };
 		D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */; };
 /* End PBXBuildFile section */
@@ -165,6 +166,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -433,6 +435,9 @@
 				D3536A132BFA4F4A006942D6 /* PBXTargetDependency */,
 			);
 			name = PlayolaRadioTests;
+			packageProductDependencies = (
+				D3BEE95C2D49A3BD00469CDC /* Testing */,
+			);
 			productName = PlayolaRadioTests;
 			productReference = D3536A112BFA4F4A006942D6 /* PlayolaRadioTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -472,6 +477,7 @@
 				D3B662662D3F58E700975D2F /* XCRemoteSwiftPackageReference "FRadioPlayer" */,
 				D3B6626E2D40352500975D2F /* XCRemoteSwiftPackageReference "Alamofire" */,
 				D3A2761C2D43C747006055AF /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				D3BEE95B2D49A3BD00469CDC /* XCRemoteSwiftPackageReference "swift-testing" */,
 			);
 			productRefGroup = D3536A022BFA4F49006942D6 /* Products */;
 			projectDirPath = "";
@@ -1004,6 +1010,14 @@
 				minimumVersion = 5.10.2;
 			};
 		};
+		D3BEE95B2D49A3BD00469CDC /* XCRemoteSwiftPackageReference "swift-testing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/swiftlang/swift-testing";
+			requirement = {
+				kind = exactVersion;
+				version = 0.10.0;
+			};
+		};
 		D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
@@ -1048,6 +1062,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D3B6626E2D40352500975D2F /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
+		};
+		D3BEE95C2D49A3BD00469CDC /* Testing */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3BEE95B2D49A3BD00469CDC /* XCRemoteSwiftPackageReference "swift-testing" */;
+			productName = Testing;
 		};
 		D3CE19022D3C825C0091B888 /* PlayolaPlayer */ = {
 			isa = XCSwiftPackageProductDependency;
