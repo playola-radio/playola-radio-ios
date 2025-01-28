@@ -31,6 +31,7 @@ platform :ios do
     scan(
       include_simulator_logs: false,
       scheme: "PlayolaRadio",
+      xcargs: "-skipMacroValidation",
       output_directory: './fastlane/test_output/xctest')
   end
 
