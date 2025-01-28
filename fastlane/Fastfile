@@ -30,8 +30,10 @@ platform :ios do
   lane :test do
     scan(
       include_simulator_logs: false,
+      parallel_testing: false,
       scheme: "PlayolaRadio",
       xcargs: "-skipMacroValidation",
+      # xcodebuild_formatter: "xcbeautify",
       output_directory: './fastlane/test_output/xctest')
   end
 
