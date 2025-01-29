@@ -5,174 +5,182 @@
 //  Created by Brian D Keane on 5/21/24.
 //
 
+import Combine
 import ComposableArchitecture
 import SwiftUI
-import Combine
 
 @MainActor
 @Observable
 class StationListModel: ViewModel {
-  var disposeBag: Set<AnyCancellable> = Set()
+    var disposeBag: Set<AnyCancellable> = Set()
 
-  // MARK: State
-  var isLoadingStationLists: Bool = false
-  @ObservationIgnored @Shared(.showSecretStations) var showSecretStations
-  @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
-  var presentedAlert: PlayolaAlert?
-  var presentedSheet: PlayolaSheet?
-  var stationPlayerState: StationPlayer.State = StationPlayer.State(playbackStatus: .stopped)
+    // MARK: State
 
-  // MARK: Dependencies
-  @ObservationIgnored var api: API
-  @ObservationIgnored var stationPlayer: StationPlayer
-  @ObservationIgnored var navigationCoordinator: NavigationCoordinator
+    var isLoadingStationLists: Bool = false
+    @ObservationIgnored @Shared(.showSecretStations) var showSecretStations
+    @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
+    var presentedAlert: PlayolaAlert?
+    var presentedSheet: PlayolaSheet?
+    var stationPlayerState: StationPlayer.State = .init(playbackStatus: .stopped)
 
-  @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
+    // MARK: Dependencies
 
-  init(api:API? = nil, stationPlayer: StationPlayer? = nil,
-       navigationCoordinator: NavigationCoordinator? = nil) {
-    self.api = api ?? API()
-    self.stationPlayer = stationPlayer ?? StationPlayer.shared
-    self.navigationCoordinator = navigationCoordinator ?? NavigationCoordinator.shared
-  }
+    @ObservationIgnored var api: API
+    @ObservationIgnored var stationPlayer: StationPlayer
+    @ObservationIgnored var navigationCoordinator: NavigationCoordinator
 
-  // MARK: Actions
-  func viewAppeared() async {
-    self.isLoadingStationLists = true
-    defer { self.isLoadingStationLists = false }
-    do {
-      if !stationListsLoaded {
-        let stationListsRaw = try await self.api.getStations()
+    @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
+
+    init(api: API? = nil, stationPlayer: StationPlayer? = nil,
+         navigationCoordinator: NavigationCoordinator? = nil)
+    {
+        self.api = api ?? API()
+        self.stationPlayer = stationPlayer ?? StationPlayer.shared
+        self.navigationCoordinator = navigationCoordinator ?? NavigationCoordinator.shared
+    }
+
+    // MARK: Actions
+
+    func viewAppeared() async {
+        isLoadingStationLists = true
+        defer { self.isLoadingStationLists = false }
+        do {
+            if !stationListsLoaded {
+                let stationListsRaw = try await api.getStations()
 //        self.stationLists = IdentifiedArray(uniqueElements: stationListsRaw)
-      }
-    } catch (_) {
-      self.presentedAlert = .errorLoadingStations
+            }
+        } catch (_) {
+            presentedAlert = .errorLoadingStations
+        }
+        stationPlayer.$state.sink { self.stationPlayerState = $0 }
+            .store(in: &disposeBag)
     }
-    self.stationPlayer.$state.sink { self.stationPlayerState = $0 }
-      .store(in: &disposeBag)
-  }
-  func hamburgerButtonTapped() {
-    self.presentedSheet = .about(AboutPageModel())
-  }
-  func dismissAboutViewButtonTapped() {}
-  func stationSelected(_ station: RadioStation) {
-    if self.stationPlayer.currentStation != station {
-      stationPlayer.play(station: station)
+
+    func hamburgerButtonTapped() {
+        presentedSheet = .about(AboutPageModel())
     }
-    navigationCoordinator.path.append(.nowPlayingPage(NowPlayingPageModel()))
-  }
-  func dismissButtonInSheetTapped() {
-    self.presentedSheet = nil
-  }
-  func nowPlayingToolbarButtonTapped() {
-    if stationPlayer.currentStation != nil {
-      navigationCoordinator.path.append(.nowPlayingPage(NowPlayingPageModel()))
+
+    func dismissAboutViewButtonTapped() {}
+    func stationSelected(_ station: RadioStation) {
+        if stationPlayer.currentStation != station {
+            stationPlayer.play(station: station)
+        }
+        navigationCoordinator.path.append(.nowPlayingPage(NowPlayingPageModel()))
     }
-  }
+
+    func dismissButtonInSheetTapped() {
+        presentedSheet = nil
+    }
+
+    func nowPlayingToolbarButtonTapped() {
+        if stationPlayer.currentStation != nil {
+            navigationCoordinator.path.append(.nowPlayingPage(NowPlayingPageModel()))
+        }
+    }
 }
 
 extension PlayolaAlert {
-  static var errorLoadingStations: PlayolaAlert {
-    return PlayolaAlert(
-      title: "Error Loading Stations",
-      message: "There was an error loading the stations. Please check yout connection and try again.",
-      dismissButton: .cancel(Text("OK")))
-  }
+    static var errorLoadingStations: PlayolaAlert {
+        PlayolaAlert(
+            title: "Error Loading Stations",
+            message: "There was an error loading the stations. Please check yout connection and try again.",
+            dismissButton: .cancel(Text("OK"))
+        )
+    }
 }
 
 struct StationListPage: View {
-  @Bindable var model: StationListModel
+    @Bindable var model: StationListModel
 
-  var body: some View {
-    ZStack {
-      Image("background")
-        .resizable()
-        .edgesIgnoringSafeArea(.all)
-      
-      VStack {
-        List {
-          ForEach(model.stationLists
-            .filter { $0.stations.count > 0 }
-            .filter { model.showSecretStations ? true : $0.hidden != true })
-          { stationList in
-            Section(stationList.title) {
-              ForEach(stationList.stations.indices, id: \.self) { index in
-                StationListCellView(station: stationList.stations[index])
-                  .listRowBackground((index  % 2 == 0) ? Color(.clear) : Color(.black).opacity(0.2))
-                  .listRowSeparator(.hidden)
-                  .onTapGesture {
-                    let station = stationList.stations[index]
-                    model.stationSelected(station)
-                  }
-              }
-            }
-          }
-        }.listStyle(.grouped)
-          .scrollContentBackground(.hidden)
-          .background(.clear)
-        
-        NowPlayingSmallView(artist: model.stationPlayerState.artistPlaying,
-                            title: model.stationPlayerState.titlePlaying,
-                            stationName: model.stationPlayer.currentStation?.name)
-          .edgesIgnoringSafeArea(.bottom)
-          .padding(.bottom, 5)
-      }
-    }
-    .navigationTitle(Text("Playola Radio"))
-    .navigationBarTitleDisplayMode(.automatic)
-    .navigationBarHidden(false)
-    .toolbar(content: {
-      ToolbarItem(placement: .topBarLeading) {
-        Image(systemName: "line.3.horizontal")
-          .foregroundColor(.white)
-          .onTapGesture {
-            self.model.hamburgerButtonTapped()
-          }
-      }
-      if model.stationPlayer.currentStation != nil {
-        ToolbarItem(placement: .topBarTrailing) {
-          Image("btn-nowPlaying")
-            .foregroundColor(.white)
-            .onTapGesture {
-              self.model.nowPlayingToolbarButtonTapped()
-            }
+    var body: some View {
+        ZStack {
+            Image("background")
+                .resizable()
+                .edgesIgnoringSafeArea(.all)
 
-        }
-      }
-    })
-    .sheet(item: $model.presentedSheet, content: { item in
-      switch item {
-      case .about(let aboutModel):
-        NavigationStack {
-          AboutPage(model: aboutModel)
-            .toolbar {
-                    ToolbarItem(placement: .confirmationAction) {
-                      Button(action: { model.dismissButtonInSheetTapped()  }) {
-                        Image(systemName: "xmark.circle.fill")
-                          .resizable()
-                          .frame(width: 32, height: 32)
-                          .foregroundColor(.gray)
-                          .padding(20)
-                      }
+            VStack {
+                List {
+                    ForEach(model.stationLists
+                        .filter { $0.stations.count > 0 }
+                        .filter { model.showSecretStations ? true : $0.hidden != true })
+                    { stationList in
+                        Section(stationList.title) {
+                            ForEach(stationList.stations.indices, id: \.self) { index in
+                                StationListCellView(station: stationList.stations[index])
+                                    .listRowBackground((index % 2 == 0) ? Color(.clear) : Color(.black).opacity(0.2))
+                                    .listRowSeparator(.hidden)
+                                    .onTapGesture {
+                                        let station = stationList.stations[index]
+                                        model.stationSelected(station)
+                                    }
+                            }
+                        }
                     }
-              }
+                }.listStyle(.grouped)
+                    .scrollContentBackground(.hidden)
+                    .background(.clear)
+
+                NowPlayingSmallView(artist: model.stationPlayerState.artistPlaying,
+                                    title: model.stationPlayerState.titlePlaying,
+                                    stationName: model.stationPlayer.currentStation?.name)
+                    .edgesIgnoringSafeArea(.bottom)
+                    .padding(.bottom, 5)
+            }
         }
-      }
-    })
-    .onAppear {
-      Task { await self.model.viewAppeared() }
+        .navigationTitle(Text("Playola Radio"))
+        .navigationBarTitleDisplayMode(.automatic)
+        .navigationBarHidden(false)
+        .toolbar(content: {
+            ToolbarItem(placement: .topBarLeading) {
+                Image(systemName: "line.3.horizontal")
+                    .foregroundColor(.white)
+                    .onTapGesture {
+                        model.hamburgerButtonTapped()
+                    }
+            }
+            if model.stationPlayer.currentStation != nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Image("btn-nowPlaying")
+                        .foregroundColor(.white)
+                        .onTapGesture {
+                            model.nowPlayingToolbarButtonTapped()
+                        }
+                }
+            }
+        })
+        .sheet(item: $model.presentedSheet, content: { item in
+            switch item {
+            case let .about(aboutModel):
+                NavigationStack {
+                    AboutPage(model: aboutModel)
+                        .toolbar {
+                            ToolbarItem(placement: .confirmationAction) {
+                                Button(action: { model.dismissButtonInSheetTapped() }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .resizable()
+                                        .frame(width: 32, height: 32)
+                                        .foregroundColor(.gray)
+                                        .padding(20)
+                                }
+                            }
+                        }
+                }
+            }
+        })
+        .onAppear {
+            Task { await model.viewAppeared() }
+        }
+        .foregroundStyle(.white)
     }
-    .foregroundStyle(.white)
-  }
 }
 
 #Preview {
-  NavigationStack {
-    StationListPage(model: StationListModel())
-  }
-  .onAppear {
-    UINavigationBar.appearance().barStyle = .black
-    UINavigationBar.appearance().tintColor = .white
-    UINavigationBar.appearance().prefersLargeTitles = true
-  }
+    NavigationStack {
+        StationListPage(model: StationListModel())
+    }
+    .onAppear {
+        UINavigationBar.appearance().barStyle = .black
+        UINavigationBar.appearance().tintColor = .white
+        UINavigationBar.appearance().prefersLargeTitles = true
+    }
 }

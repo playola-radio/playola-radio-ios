@@ -4,12 +4,12 @@
 //
 //  Created by Brian D Keane on 1/17/25.
 //
+import AVKit
+import Foundation
 import SwiftUI
 import UIKit
-import Foundation
-import AVKit
 
-//struct AirPlayView: UIViewRepresentable {
+// struct AirPlayView: UIViewRepresentable {
 //  func makeUIView(context: Context) -> UIView {
 //    let routePickerView = AVRoutePickerView()
 //    routePickerView.backgroundColor = .clear
@@ -20,12 +20,12 @@ import AVKit
 //
 //  func updateUIView(_ uiView: UIView, context: Context) {
 //  }
-//}
+// }
 
 #Preview {
-  ZStack {
-    Color.black
+    ZStack {
+        Color.black
 
-    AirPlayView()
-  }
+        AirPlayView()
+    }
 }

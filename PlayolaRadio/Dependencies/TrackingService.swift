@@ -4,9 +4,9 @@
 //
 //  Created by Brian D Keane on 1/19/25.
 //
+import AVFoundation
 import Foundation
 import Mixpanel
-import AVFoundation
 
 enum TrackingEvent: String {
     case audioOutputChanged = "audio_output_changed"
@@ -20,14 +20,14 @@ class TrackingService {
     init() {
         let nc = NotificationCenter.default
         nc.addObserver(self, selector: #selector(handleRouteChange), name: AVAudioSession.routeChangeNotification, object: nil)
-      initializeTrackingLibraries()
+        initializeTrackingLibraries()
     }
 
-    @objc func handleRouteChange(notification: Notification) {
+    @objc func handleRouteChange(notification _: Notification) {
         let session = AVAudioSession.sharedInstance()
         let currentRoute = session.currentRoute
         let outputTypes = currentRoute.outputs
-            .map { $0.portType.rawValue }
+            .map(\.portType.rawValue)
 
         reportEvent(.audioOutputChanged, properties: ["output_types": outputTypes])
     }
@@ -39,7 +39,7 @@ class TrackingService {
 //        Heap.iOSAutocaptureSource.register(isDefault: true)
     }
 
-    func reportEvent(_ event: TrackingEvent, properties: Dictionary<String, any MixpanelType>? = nil) {
+    func reportEvent(_ event: TrackingEvent, properties: [String: any MixpanelType]? = nil) {
         Mixpanel.mainInstance().track(event: event.rawValue, properties: properties)
     }
 }
