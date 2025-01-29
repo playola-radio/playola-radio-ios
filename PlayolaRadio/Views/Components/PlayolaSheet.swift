@@ -6,8 +6,9 @@
 //
 
 enum PlayolaSheet: Hashable, Identifiable, Equatable {
-  var id: Self {
-    return self
-  }
-  case about(AboutPageModel)
+    var id: Self {
+        self
+    }
+
+    case about(AboutPageModel)
 }

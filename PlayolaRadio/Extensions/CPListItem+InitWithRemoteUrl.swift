@@ -17,18 +17,17 @@ extension CPListItem {
     ) {
         self.init(text: text, detailText: detailText, image: placeholder)
 
-        if let remoteImageUrl = remoteImageUrl {
-          let dataTask = URLSession.shared.dataTask(with: remoteImageUrl) { [weak self] data, _, _ in
-            if let data, let image = UIImage(data: data) {
-              DispatchQueue.main.async { [weak self] in
-                self?.setImage(image)
-
-              }
-            } else {
-              print("Error downlaoding image")
+        if let remoteImageUrl {
+            let dataTask = URLSession.shared.dataTask(with: remoteImageUrl) { [weak self] data, _, _ in
+                if let data, let image = UIImage(data: data) {
+                    DispatchQueue.main.async { [weak self] in
+                        self?.setImage(image)
+                    }
+                } else {
+                    print("Error downlaoding image")
+                }
             }
-          }
-          dataTask.resume()
+            dataTask.resume()
         }
 
         var identifier: String? {

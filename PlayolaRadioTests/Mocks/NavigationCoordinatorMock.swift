@@ -7,11 +7,11 @@
 @testable import PlayolaRadio
 
 class NavigationCoordinatorMock: NavigationCoordinator {
-  var changesToPathCount = 0
+    var changesToPathCount = 0
 
-  override var path: [NavigationCoordinator.Path] {
-    didSet {
-      changesToPathCount += 1
+    override var path: [NavigationCoordinator.Path] {
+        didSet {
+            changesToPathCount += 1
+        }
     }
-  }
 }

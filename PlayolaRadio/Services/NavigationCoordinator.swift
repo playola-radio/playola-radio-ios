@@ -8,12 +8,12 @@ import SwiftUI
 
 @Observable
 class NavigationCoordinator {
-  static let shared = NavigationCoordinator()
-  var path: [Path] = []
+    static let shared = NavigationCoordinator()
+    var path: [Path] = []
 
-  enum Path: Hashable {
-    case stationListPage(StationListModel)
-    case aboutPage(AboutPageModel)
-    case nowPlayingPage(NowPlayingPageModel)
-  }
+    enum Path: Hashable {
+        case stationListPage(StationListModel)
+        case aboutPage(AboutPageModel)
+        case nowPlayingPage(NowPlayingPageModel)
+    }
 }

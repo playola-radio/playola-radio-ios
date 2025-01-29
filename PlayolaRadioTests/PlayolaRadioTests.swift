@@ -5,11 +5,10 @@
 //  Created by Brian D Keane on 5/19/24.
 //
 
-import XCTest
 @testable import PlayolaRadio
+import XCTest
 
 final class PlayolaRadioTests: XCTestCase {
-
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
     }
@@ -28,9 +27,8 @@ final class PlayolaRadioTests: XCTestCase {
 
     func testPerformanceExample() throws {
         // This is an example of a performance test case.
-        self.measure {
+        measure {
             // Put the code you want to measure the time of here.
         }
     }
-
 }
