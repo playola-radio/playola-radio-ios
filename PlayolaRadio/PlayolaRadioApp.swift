@@ -5,7 +5,6 @@
 //  Created by Brian D Keane on 5/19/24.
 //
 
-import ComposableArchitecture
 import GoogleSignIn
 import GoogleSignInSwift
 import SwiftUI
@@ -18,7 +17,7 @@ struct PlayolaRadioApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if _XCTIsTesting || isTesting {
+            if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
                 // NB: Don't run application in tests to avoid interference between the app and the test.
                 EmptyView()
             } else {

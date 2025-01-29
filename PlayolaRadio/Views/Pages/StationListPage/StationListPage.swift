@@ -6,8 +6,9 @@
 //
 
 import Combine
-import ComposableArchitecture
 import SwiftUI
+import IdentifiedCollections
+import Sharing
 
 @MainActor
 @Observable
