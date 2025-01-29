@@ -1,0 +1,1 @@
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/playola-radio/playola-radio-ios/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/playola-radio/playola-radio-ios/tree/main)
