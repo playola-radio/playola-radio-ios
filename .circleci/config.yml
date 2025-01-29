@@ -1,0 +1,52 @@
+version: 2.1
+jobs:
+  build-and-test:
+    macos:
+      xcode: 16.2.0
+    environment:
+      FL_OUTPUT_DIR: output
+      FASTLANE_LANE: test
+    steps:
+      - checkout
+      - run: brew install xcbeautify
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets.xcconfig
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Development.xcconfig
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Local.xcconfig
+      - run: bundle install
+      - run:
+          name: Fastlane
+          command: bundle exec fastlane $FASTLANE_LANE
+      - store_artifacts:
+          path: output
+      - store_test_results:
+          path: "./fastlane/test_output"
+
+  adhoc:
+    macos:
+      xcode: 16.2.0
+    environment:
+      FL_OUTPUT_DIR: output
+      FASTLANE_LANE: adhoc
+    steps:
+      - checkout
+      - run: brew install xcbeautify
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets.xcconfig
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Development.xcconfig
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Local.xcconfig
+      - run: bundle install
+      - run:
+          name: Fastlane
+          command: bundle exec fastlane $FASTLANE_LANE
+      - store_artifacts:
+          path: output
+
+workflows:
+  build-test-adhoc:
+    jobs:
+      - build-and-test
+      - adhoc:
+          filters:
+            branches:
+              only: development
+          requires:
+            - build-and-test
