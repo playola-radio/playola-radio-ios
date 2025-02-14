@@ -9,6 +9,7 @@
 import FRadioPlayer
 import SwiftUI
 
+@MainActor
 struct NowPlayingSmallView: View {
     var artist: String?
     var title: String?

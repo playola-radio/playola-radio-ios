@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 struct StationListCellView: View {
     var station: RadioStation
 

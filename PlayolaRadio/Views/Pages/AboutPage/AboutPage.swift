@@ -8,6 +8,7 @@
 import Sharing
 import SwiftUI
 
+@MainActor
 @Observable
 class AboutPageModel: ViewModel {
     // MARK: State
@@ -96,6 +97,7 @@ extension PlayolaAlert {
     }
 }
 
+@MainActor
 struct AboutPage: View {
     @Bindable var model: AboutPageModel
     @Environment(\.openURL) var openURL

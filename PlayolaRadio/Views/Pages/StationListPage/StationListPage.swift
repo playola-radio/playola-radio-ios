@@ -90,6 +90,7 @@ extension PlayolaAlert {
     }
 }
 
+@MainActor
 struct StationListPage: View {
     @Bindable var model: StationListModel
 

@@ -84,7 +84,6 @@ class AuthService {
         let sessionNotificationName = ASAuthorizationAppleIDProvider.credentialRevokedNotification
         NotificationCenter.default.addObserver(forName: sessionNotificationName, object: nil, queue: nil) { _ in
             guard let appleSignInInfo = self.appleSignInInfo else { return }
-            API().revokeAppleCredentials(appleUserId: appleSignInInfo.appleUserId)
         }
     }
 
