@@ -91,6 +91,7 @@ class NowPlayingPageModel: ViewModel {
     }
 }
 
+@MainActor
 struct NowPlayingView: View {
     @Bindable var model: NowPlayingPageModel
 

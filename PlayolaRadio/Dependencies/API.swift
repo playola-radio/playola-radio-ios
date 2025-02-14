@@ -44,7 +44,7 @@ class API {
     func signInViaApple(identityToken: String,
                         email: String,
                         authCode: String,
-                        displayName: String?)
+                        displayName: String?) async
     {
         var parameters: [String: Any] = [
             "identityToken": identityToken,
@@ -54,7 +54,7 @@ class API {
         if let displayName {
             parameters["displayName"] = displayName
         }
-        AF.request("\(Config.shared.baseUrl)/v1/auth/apple/mobile/signup",
+        AF.request("\(await Config.shared.baseUrl)/v1/auth/apple/mobile/signup",
                    method: .post,
                    parameters: parameters,
                    encoding: JSONEncoding.default).responseDecodable(of: LoginResponse.self) { response in
@@ -67,9 +67,9 @@ class API {
         }
     }
 
-    func revokeAppleCredentials(appleUserId: String) {
+  func revokeAppleCredentials(appleUserId: String) async {
         let parameters: [String: Any] = ["appleUserId": appleUserId]
-        AF.request("\(Config.shared.baseUrl)/v1/auth/apple/revoke",
+        AF.request("\(await Config.shared.baseUrl)/v1/auth/apple/revoke",
                    method: .put,
                    parameters: parameters,
                    encoding: JSONEncoding.default)
@@ -80,13 +80,13 @@ class API {
             }
     }
 
-    func signInViaGoogle(code: String) {
+    func signInViaGoogle(code: String) async {
         let parameters: [String: Any] = [
             "code": code,
             "originatesFromIOS": true,
         ]
 
-        AF.request("\(Config.shared.baseUrl)/v1/auth/google/signin",
+        AF.request("\(await Config.shared.baseUrl)/v1/auth/google/signin",
                    method: .post,
                    parameters: parameters,
                    encoding: JSONEncoding.default)

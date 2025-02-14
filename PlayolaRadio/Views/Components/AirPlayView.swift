@@ -10,6 +10,7 @@ import Foundation
 import SwiftUI
 import UIKit
 
+@MainActor
 struct AirPlayView: UIViewRepresentable {
     func makeUIView(context _: Context) -> UIView {
         let routePickerView = AVRoutePickerView()

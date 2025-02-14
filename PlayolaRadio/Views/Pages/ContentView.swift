@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-// possibly use later for navigation
+@MainActor
 class ViewModel: Hashable {
     nonisolated static func == (lhs: ViewModel, rhs: ViewModel) -> Bool {
         ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
@@ -18,6 +18,7 @@ class ViewModel: Hashable {
     }
 }
 
+@MainActor
 struct AppView: View {
     @Bindable var navigationCoordinator: NavigationCoordinator = .init()
 

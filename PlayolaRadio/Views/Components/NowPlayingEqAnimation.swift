@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+@MainActor
 struct NowPlayingEqualiserBarsUsageDemoNative: View {
     @State private var nowPlayingIndex = -1
 
