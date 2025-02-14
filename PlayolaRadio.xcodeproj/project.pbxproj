@@ -68,6 +68,7 @@
 		D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */ = {isa = PBXBuildFile; productRef = D3BEE95C2D49A3BD00469CDC /* Testing */; };
 		D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3CE19022D3C825C0091B888 /* PlayolaPlayer */; };
 		D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */; };
+		D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -137,6 +138,7 @@
 		D3B662752D41B0C700975D2F /* SignInPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageTests.swift; sourceTree = "<group>"; };
 		D3B662C22D4272ED00975D2F /* Secrets-Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Local.xcconfig"; sourceTree = "<group>"; };
 		D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserDefaults.swift; sourceTree = "<group>"; };
+		D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlStreamListeningSessionReporter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -221,6 +223,7 @@
 			isa = PBXGroup;
 			children = (
 				D35673B32D3DC6CE00E4E926 /* TrackingService.swift */,
+				D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */,
 				D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */,
 				D339E5682BFD1C0800B9E35B /* API.swift */,
 				D339E56C2BFD2FAB00B9E35B /* URLStreamPlayer.swift */,
@@ -498,6 +501,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */,
 				D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */,
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
