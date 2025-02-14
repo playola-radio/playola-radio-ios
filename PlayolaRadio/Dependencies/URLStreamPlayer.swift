@@ -12,6 +12,7 @@ import MediaPlayer
 import UIKit
 
 public class URLStreamPlayer: ObservableObject {
+  var urlStreamReporter: UrlStreamListeningSessionReporter? = nil
     struct State: Sendable, Equatable {
         static func == (lhs: URLStreamPlayer.State, rhs: URLStreamPlayer.State) -> Bool {
             lhs.playerStatus == rhs.playerStatus &&
@@ -26,7 +27,11 @@ public class URLStreamPlayer: ObservableObject {
         var nowPlaying: FRadioPlayer.Metadata?
     }
 
-    @Published var state: URLStreamPlayer.State = State(playbackState: .stopped, playerStatus: nil, currentStation: nil, nowPlaying: nil)
+    @Published var state: URLStreamPlayer.State = State(
+      playbackState: .stopped,
+      playerStatus: nil,
+      currentStation: nil,
+      nowPlaying: nil)
 
     @Published var albumArtworkURL: URL?
 
@@ -42,6 +47,9 @@ public class URLStreamPlayer: ObservableObject {
 
     init() {
         addObserverToPlayer()
+      Task {
+        self.urlStreamReporter = await UrlStreamListeningSessionReporter(urlStreamPlayer: self)
+      }
     }
 
     func addObserverToPlayer() {
