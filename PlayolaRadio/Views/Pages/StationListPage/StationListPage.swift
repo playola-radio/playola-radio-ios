@@ -15,6 +15,8 @@ import Sharing
 class StationListModel: ViewModel {
     var disposeBag: Set<AnyCancellable> = Set()
 
+    var slideOutMenuModel = SlideOutViewModel()
+
     // MARK: State
 
     var isLoadingStationLists: Bool = false
@@ -58,7 +60,8 @@ class StationListModel: ViewModel {
     }
 
     func hamburgerButtonTapped() {
-        presentedSheet = .about(AboutPageModel())
+      self.slideOutMenuModel.isShowing = true
+//        presentedSheet = .about(AboutPageModel())
     }
 
     func dismissAboutViewButtonTapped() {}
@@ -128,14 +131,29 @@ struct StationListPage: View {
                     .edgesIgnoringSafeArea(.bottom)
                     .padding(.bottom, 5)
             }
+          // SlideOutView as an overlay on top of everything
+          if model.slideOutMenuModel.isShowing {
+            Color.black.opacity(0.5)
+              .edgesIgnoringSafeArea(.all)
+              .onTapGesture {
+                model.slideOutMenuModel.isShowing = false
+              }
+
+            SideMenu(
+              isShowing: $model.slideOutMenuModel.isShowing,
+              content: AnyView(
+                SideMenuView(
+                  selectedSideMenuTab: $model.slideOutMenuModel.selectedSideMenuTab,
+                  presentSideMenu: $model.slideOutMenuModel.isShowing)))
+          }
         }
         .navigationTitle(Text("Playola Radio"))
         .navigationBarTitleDisplayMode(.automatic)
         .navigationBarHidden(false)
         .toolbar(content: {
-            ToolbarItem(placement: .topBarLeading) {
-                Image(systemName: "line.3.horizontal")
-                    .foregroundColor(.white)
+          ToolbarItem(placement: .topBarLeading) {
+            Image(systemName: "line.3.horizontal")
+              .foregroundColor(.white)
                     .onTapGesture {
                         model.hamburgerButtonTapped()
                     }
