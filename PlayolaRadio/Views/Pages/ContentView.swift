@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Sharing
 
 @MainActor
 class ViewModel: Hashable {
@@ -18,8 +19,12 @@ class ViewModel: Hashable {
     }
 }
 
+
+
 @MainActor
 struct AppView: View {
+  @Shared(.slideOutViewModel) var slideOutViewModel
+  @State var tempIsShowing: Bool = true
     @Bindable var navigationCoordinator: NavigationCoordinator = .init()
 
     @MainActor
@@ -31,20 +36,29 @@ struct AppView: View {
     }
 
     var body: some View {
+      ZStack {
+        
+        
         NavigationStack(path: $navigationCoordinator.path) {
-            StationListPage(model: StationListModel())
-                .navigationDestination(for: NavigationCoordinator.Path.self) { path in
-                    switch path {
-                    case let .aboutPage(model):
-                        AboutPage(model: model)
-                    case let .stationListPage(model):
-                        StationListPage(model: model)
-                    case let .nowPlayingPage(model):
-                        NowPlayingView(model: model)
-                    }
-                }
+          StationListPage(model: StationListModel())
+            .navigationDestination(for: NavigationCoordinator.Path.self) { path in
+              switch path {
+              case let .aboutPage(model):
+                AboutPage(model: model)
+              case let .stationListPage(model):
+                StationListPage(model: model)
+              case let .nowPlayingPage(model):
+                NowPlayingView(model: model)
+              }
+            }
         }
         .accentColor(.white)
+        
+        SideMenu(
+          isShowing: self.slideOutViewModel.isShowing,
+          content: AnyView(
+            SideMenuView()))
+      }
     }
 }
 

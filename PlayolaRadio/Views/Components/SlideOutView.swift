@@ -1,11 +1,11 @@
 import SwiftUI
+import Sharing
 
 @Observable
 class SlideOutViewModel: ViewModel {
     var isShowing = false
   var selectedSideMenuTab = 0
 }
-import SwiftUI
 
 enum SideMenuRowType: Int, CaseIterable{
     case home = 0
@@ -42,7 +42,8 @@ enum SideMenuRowType: Int, CaseIterable{
 
 
 struct SideMenu: View {
-    @Binding var isShowing: Bool
+  @Shared(.slideOutViewModel) var slideOutViewModel
+    var isShowing: Bool
     var content: AnyView
     var edgeTransition: AnyTransition = .move(edge: .leading)
     var body: some View {
@@ -52,7 +53,7 @@ struct SideMenu: View {
                     .opacity(0.3)
                     .ignoresSafeArea()
                     .onTapGesture {
-                        isShowing.toggle()
+                      $slideOutViewModel.withLock { $0.isShowing = !$0.isShowing }
                     }
                 content
                     .transition(edgeTransition)
@@ -68,12 +69,10 @@ struct SideMenu: View {
 }
 
 struct SideMenuView: View {
-    @Binding var selectedSideMenuTab: Int
-    @Binding var presentSideMenu: Bool
+  @Shared(.slideOutViewModel) var slideOutViewModel
 
     var body: some View {
         HStack {
-
             ZStack{
                 Rectangle()
                     .fill(.white)
@@ -86,9 +85,11 @@ struct SideMenuView: View {
                         .padding(.bottom, 30)
 
                     ForEach(SideMenuRowType.allCases, id: \.self){ row in
-                        RowView(isSelected: selectedSideMenuTab == row.rawValue, imageName: row.iconName, title: row.title) {
-                            selectedSideMenuTab = row.rawValue
-                            presentSideMenu.toggle()
+                      RowView(isSelected: slideOutViewModel.selectedSideMenuTab == row.rawValue, imageName: row.iconName, title: row.title) {
+                          $slideOutViewModel.withLock {
+                            $0.selectedSideMenuTab = row.rawValue
+                            $0.isShowing.toggle()
+                          }
                         }
                     }
 
