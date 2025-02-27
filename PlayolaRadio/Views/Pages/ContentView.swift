@@ -56,18 +56,18 @@ struct AppView: View {
               SignInPage(model: SignInPageModel())
             }
           }
-            .navigationDestination(for: NavigationCoordinator.Path.self) { path in
-              switch path {
-              case let .aboutPage(model):
-                AboutPage(model: model)
-              case let .stationListPage(model):
-                StationListPage(model: model)
-              case let .nowPlayingPage(model):
-                NowPlayingView(model: model)
-              case let .signInPage(model):
-                SignInPage(model: model)
-              }
+          .navigationDestination(for: NavigationCoordinator.Path.self) { path in
+            switch path {
+            case let .aboutPage(model):
+              AboutPage(model: model)
+            case let .stationListPage(model):
+              StationListPage(model: model)
+            case let .nowPlayingPage(model):
+              NowPlayingView(model: model)
+            case let .signInPage(model):
+              SignInPage(model: model)
             }
+          }
         }
         .accentColor(.white)
         .offset(x: max(self.offset + self.gestureOffset, 0))

@@ -46,26 +46,26 @@ class SideMenuViewModel: ViewModel {
 }
 
 enum SideMenuRowType: Int, CaseIterable, Equatable {
-    case listen = 0
-    case about
+  case listen = 0
+  case about
 
-    var title: String{
-        switch self {
-        case .listen:
-            return "Listen"
-        case .about:
-            return "About"
-        }
+  var title: String{
+    switch self {
+    case .listen:
+      return "Listen"
+    case .about:
+      return "About"
     }
+  }
 
-    var iconName: String{
-        switch self {
-        case .listen:
-            return "headphones"
-        case .about:
-          return "info.circle"
-        }
+  var iconName: String{
+    switch self {
+    case .listen:
+      return "headphones"
+    case .about:
+      return "info.circle"
     }
+  }
 }
 
 struct SideMenuView: View {

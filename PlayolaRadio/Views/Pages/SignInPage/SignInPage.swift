@@ -22,17 +22,17 @@ class SignInPageModel: ViewModel {
   }
 
   // MARK: State
-  
+
   // MARK: Actions
-  
+
   func signInWithAppleButtonTapped(request: ASAuthorizationAppleIDRequest) {
     request.requestedScopes = [.email, .fullName]
   }
-  
+
   func signInWithAppleCompleted(result: Result<ASAuthorization, any Error>) {
     switch result {
     case let .success(authorization):
-      
+
       guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential,
             let identityTokenData = appleIDCredential.identityToken,
             let identityToken = String(data: identityTokenData, encoding: .utf8),
@@ -49,7 +49,7 @@ class SignInPageModel: ViewModel {
           appleUserId: appleIDCredential.user, email: email, displayName: appleIDCredential.fullName?.formatted()
         ) }
       }
-      
+
       guard let email = appleIDCredential.email ?? appleSignInInfo?.email else {
         print("Error trying to sign in -- no email ever.")
         return
@@ -65,7 +65,7 @@ class SignInPageModel: ViewModel {
       print(error)
     }
   }
-  
+
   func signInWithGoogleButtonTapped() {
     guard let presentingVC = UIApplication.shared.keyWindowPresentedController else {
       print("Error presenting VC -- no key window")
@@ -76,7 +76,7 @@ class SignInPageModel: ViewModel {
         return
       }
       print(signInResult)
-      
+
       signInResult.user.refreshTokensIfNeeded { _, error in
         guard error == nil else { return }
         guard let serverAuthCode = signInResult.serverAuthCode else {
@@ -90,7 +90,7 @@ class SignInPageModel: ViewModel {
       }
     }
   }
-  
+
   func logOutButtonTapped() {
     $auth.withLock { $0 = Auth() }
     Task { await API().revokeAppleCredentials(appleUserId: "000014.59c02331e3a642fd8bebedd86d191ed3.1758") }
@@ -174,14 +174,14 @@ struct SignInPage: View {
               .frame(height: 56)
               .cornerRadius(12)
               .padding(.horizontal, 30)
-              
+
               CustomGoogleSignInButton {
                 model.signInWithGoogleButtonTapped()
               }
               .padding(.horizontal, 30)
             }
           }
-          
+
           Spacer()
 
           // Footer
@@ -217,30 +217,30 @@ struct SignInPage: View {
 }
 
 struct CustomGoogleSignInButton: View {
-    let action: () -> Void
+  let action: () -> Void
 
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                Image("google-icon") // Make sure you have this asset in your asset catalog
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 24, height: 24)
+  var body: some View {
+    Button(action: action) {
+      HStack {
+        Image("google-icon") // Make sure you have this asset in your asset catalog
+          .resizable()
+          .scaledToFit()
+          .frame(width: 24, height: 24)
 
-                Text("Sign in with Google")
-                    .fontWeight(.semibold)
-                    .foregroundColor(.black)
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(Color.white)
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-            )
-        }
+        Text("Sign in with Google")
+          .fontWeight(.semibold)
+          .foregroundColor(.black)
+      }
+      .frame(maxWidth: .infinity)
+      .frame(height: 56)
+      .background(Color.white)
+      .cornerRadius(12)
+      .overlay(
+        RoundedRectangle(cornerRadius: 12)
+          .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+      )
     }
+  }
 }
 
 #Preview {
