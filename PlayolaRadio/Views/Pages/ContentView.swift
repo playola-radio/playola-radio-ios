@@ -26,10 +26,12 @@ struct AppView: View {
   @GestureState var gestureOffset: CGFloat = 0
   @State var tempIsShowing: Bool = true
   @Bindable var navigationCoordinator: NavigationCoordinator
+  @Shared(.auth) var auth
 
   @MainActor
   init(navigationCoordinator: NavigationCoordinator = .shared) {
     self.navigationCoordinator = navigationCoordinator
+    navigationCoordinator.activePath = auth.isLoggedIn ? .listen : .signIn
     UINavigationBar.appearance().barStyle = .black
     UINavigationBar.appearance().tintColor = .white
     UINavigationBar.appearance().prefersLargeTitles = true

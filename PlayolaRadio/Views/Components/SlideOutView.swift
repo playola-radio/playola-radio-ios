@@ -40,6 +40,8 @@ class SideMenuViewModel: ViewModel {
   func signOutTapped() {
     navigationCoordinator.activePath = .signIn
     StationPlayer.shared.stop()
+    AuthService.shared.signOut()
+    navigationCoordinator.slideOutMenuIsShowing = false
   }
 }
 

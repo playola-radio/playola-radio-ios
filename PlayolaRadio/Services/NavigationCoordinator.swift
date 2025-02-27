@@ -20,7 +20,7 @@ class NavigationCoordinator: ViewModel {
     case signIn
   }
   var slideOutMenuIsShowing = false
-  var activePath: Paths = .signIn
+  var activePath: Paths = .listen
 
   var aboutPath: [Path] = []
   var listenPath: [Path] = []
