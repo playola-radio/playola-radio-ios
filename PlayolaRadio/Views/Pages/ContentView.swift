@@ -141,7 +141,6 @@ struct AppView: View {
   }
 }
 
-
 #Preview {
   NavigationStack {
     AppView()

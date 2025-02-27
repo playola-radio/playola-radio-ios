@@ -5,10 +5,14 @@ import Sharing
 class SideMenuViewModel: ViewModel {
   var navigationCoordinator: NavigationCoordinator
   var stationPlayer: StationPlayer
+  var authService: AuthService
+
   init(navigationCoordinator: NavigationCoordinator = .shared,
-       stationPlayer: StationPlayer = .shared) {
+       stationPlayer: StationPlayer = .shared,
+       authService: AuthService = .shared) {
     self.navigationCoordinator = navigationCoordinator
     self.stationPlayer = stationPlayer
+    self.authService = authService
   }
 
   var selectedSideMenuTab: SideMenuRowType {
@@ -39,8 +43,8 @@ class SideMenuViewModel: ViewModel {
 
   func signOutTapped() {
     navigationCoordinator.activePath = .signIn
-    StationPlayer.shared.stop()
-    AuthService.shared.signOut()
+    stationPlayer.stop()
+    authService.signOut()
     navigationCoordinator.slideOutMenuIsShowing = false
   }
 }

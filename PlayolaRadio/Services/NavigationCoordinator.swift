@@ -11,9 +11,9 @@ import Sharing
 @MainActor
 class NavigationCoordinator: ViewModel {
   static let shared = NavigationCoordinator()
-  
+
   @ObservationIgnored @Shared(.auth) var auth
-  
+
   enum Paths {
     case about
     case listen
@@ -21,17 +21,11 @@ class NavigationCoordinator: ViewModel {
   }
   var slideOutMenuIsShowing = false
   var activePath: Paths = .listen
-  
+
   var aboutPath: [Path] = []
   var listenPath: [Path] = []
   var signInPath: [Path] = []
-  
-  public func setupPaths() {
-    aboutPath = [.aboutPage(AboutPageModel())]
-    listenPath = [.stationListPage(StationListModel())]
-    signInPath = [.signInPage(SignInPageModel())]
-  }
-  
+
   var path: [Path] {
     get {
       if !auth.isLoggedIn {
@@ -57,7 +51,7 @@ class NavigationCoordinator: ViewModel {
       }
     }
   }
-  
+
   enum Path: Hashable {
     case stationListPage(StationListModel)
     case aboutPage(AboutPageModel)
