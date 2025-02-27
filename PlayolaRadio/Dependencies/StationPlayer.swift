@@ -90,7 +90,8 @@ class StationPlayer: ObservableObject {
         case .idle:
             state = .init(playbackStatus: .stopped, artistPlaying: nil, titlePlaying: nil, albumArtworkUrl: nil)
         case let .loading(progress):
-            state = .init(playbackStatus: .loading(currentStation!, progress), titlePlaying: nil, albumArtworkUrl: nil)
+          guard let currentStation else { return }
+            state = .init(playbackStatus: .loading(currentStation, progress), titlePlaying: nil, albumArtworkUrl: nil)
         case let .playing(nowPlaying):
             state = .init(playbackStatus: .playing(currentStation!),
                           artistPlaying: nowPlaying.artist,
