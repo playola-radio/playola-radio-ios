@@ -26,7 +26,6 @@ enum SideMenuRowType: Int, CaseIterable{
             return "headphones"
         case .settings:
           return "info.circle"
-//            return "rectangle.portrait.and.arrow.right"
         }
     }
 }

@@ -26,11 +26,11 @@ struct AppView: View {
   @GestureState var gestureOffset: CGFloat = 0
   @Shared(.slideOutViewModel) var slideOutViewModel
   @State var tempIsShowing: Bool = true
-  @Bindable var navigationCoordinator: NavigationCoordinator = .init()
+  @Bindable var navigationCoordinator: NavigationCoordinator
 
   @MainActor
-  init() {
-    navigationCoordinator = NavigationCoordinator.shared
+  init(navigationCoordinator: NavigationCoordinator = .shared) {
+    self.navigationCoordinator = navigationCoordinator
     UINavigationBar.appearance().barStyle = .black
     UINavigationBar.appearance().tintColor = .white
     UINavigationBar.appearance().prefersLargeTitles = true
@@ -54,6 +54,8 @@ struct AppView: View {
                 StationListPage(model: model)
               case let .nowPlayingPage(model):
                 NowPlayingView(model: model)
+              case let .signInPage(model):
+                SignInPage(model: model)
               }
             }
         }
