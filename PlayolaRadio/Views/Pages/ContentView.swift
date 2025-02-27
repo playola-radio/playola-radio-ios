@@ -24,7 +24,6 @@ struct AppView: View {
   var sideBarWidth = UIScreen.main.bounds.size.width * 0.5
   @State var offset: CGFloat = 0
   @GestureState var gestureOffset: CGFloat = 0
-  @Shared(.slideOutViewModel) var slideOutViewModel
   @State var tempIsShowing: Bool = true
   @Bindable var navigationCoordinator: NavigationCoordinator
 
@@ -45,7 +44,16 @@ struct AppView: View {
     GeometryReader { geometry in
       ZStack(alignment: .leading) {
         NavigationStack(path: $navigationCoordinator.path) {
-          StationListPage(model: StationListModel())
+          Group {
+            switch navigationCoordinator.activePath {
+            case .about:
+              AboutPage(model: AboutPageModel())
+            case .listen:
+              StationListPage(model: StationListModel())
+            case .signIn:
+              SignInPage(model: SignInPageModel())
+            }
+          }
             .navigationDestination(for: NavigationCoordinator.Path.self) { path in
               switch path {
               case let .aboutPage(model):
@@ -77,13 +85,13 @@ struct AppView: View {
               response: 0.5,
               dampingFraction: 0.8,
               blendDuration: 0),
-                       value: slideOutViewModel.isShowing)
+                       value: navigationCoordinator.slideOutMenuIsShowing)
             .onTapGesture {
-              withAnimation { $slideOutViewModel.withLock { $0.isShowing.toggle() } }
+              withAnimation { navigationCoordinator.slideOutMenuIsShowing.toggle() }
             }
         )
 
-        SideMenuView()
+        SideMenuView(model: SideMenuViewModel())
           .frame(width:  sideBarWidth)
           .animation(.interactiveSpring(
             response: 0.5,
@@ -97,7 +105,7 @@ struct AppView: View {
       .gesture(
         DragGesture()
           .updating($gestureOffset, body: { value, out, _ in
-            if value.translation.width > 0 && slideOutViewModel.isShowing {
+            if value.translation.width > 0 && navigationCoordinator.slideOutMenuIsShowing {
               out = value.translation.width * 0.1
             } else {
               out = min(value.translation.width, sideBarWidth)
@@ -105,7 +113,7 @@ struct AppView: View {
           })
           .onEnded(onEnd(value:))
       )
-      .onChange(of: slideOutViewModel.isShowing) { _, newValue in
+      .onChange(of: navigationCoordinator.slideOutMenuIsShowing) { _, newValue in
         withAnimation {
           if newValue {
             offset = sideBarWidth
@@ -119,14 +127,14 @@ struct AppView: View {
   func onEnd(value: DragGesture.Value){
     let translation = value.translation.width
     if translation > 0 && translation > (sideBarWidth * 0.6) {
-      $slideOutViewModel.withLock { $0.isShowing = true }
+      navigationCoordinator.slideOutMenuIsShowing = true
     } else if -translation > (sideBarWidth / 2) {
-      $slideOutViewModel.withLock { $0.isShowing = false }
+      navigationCoordinator.slideOutMenuIsShowing = false
     } else {
-      if offset == 0 || !slideOutViewModel.isShowing{
+      if offset == 0 || !navigationCoordinator.slideOutMenuIsShowing {
         return
       }
-      $slideOutViewModel.withLock { $0.isShowing = true }
+      navigationCoordinator.slideOutMenuIsShowing = true
     }
   }
 }

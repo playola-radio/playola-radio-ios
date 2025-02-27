@@ -41,9 +41,3 @@ extension SharedKey where Self == FileStorageKey<Auth>.Default {
         Self[.fileStorage(dump(.documentsDirectory.appending(component: "auth.json"))), default: Auth()]
     }
 }
-
-extension SharedKey where Self == InMemoryKey<SlideOutViewModel>.Default {
-  static var slideOutViewModel: Self {
-    Self[.inMemory("slideOutViewModel"), default: SlideOutViewModel()]
-  }
-}

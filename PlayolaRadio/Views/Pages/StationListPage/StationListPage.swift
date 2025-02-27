@@ -15,8 +15,6 @@ import Sharing
 class StationListModel: ViewModel {
   var disposeBag: Set<AnyCancellable> = Set()
 
-  @ObservationIgnored @Shared(.slideOutViewModel) var slideOutViewModel: SlideOutViewModel
-
   // MARK: State
 
   var isLoadingStationLists: Bool = false
@@ -60,8 +58,7 @@ class StationListModel: ViewModel {
   }
 
   func hamburgerButtonTapped() {
-    self.slideOutViewModel.isShowing = true
-    //        presentedSheet = .about(AboutPageModel())
+    self.navigationCoordinator.slideOutMenuIsShowing = true
   }
 
   func dismissAboutViewButtonTapped() {}
@@ -183,6 +180,7 @@ struct StationListPage: View {
     .onAppear {
       Task { await model.viewAppeared() }
     }
+    .animation(nil)
     .foregroundStyle(.white)
   }
 }

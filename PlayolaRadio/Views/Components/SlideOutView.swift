@@ -2,20 +2,56 @@ import SwiftUI
 import Sharing
 
 @Observable
-class SlideOutViewModel: ViewModel {
-    var isShowing = false
-  var selectedSideMenuTab = 0
+class SideMenuViewModel: ViewModel {
+  var navigationCoordinator: NavigationCoordinator
+  var stationPlayer: StationPlayer
+  init(navigationCoordinator: NavigationCoordinator = .shared,
+       stationPlayer: StationPlayer = .shared) {
+    self.navigationCoordinator = navigationCoordinator
+    self.stationPlayer = stationPlayer
+  }
+
+  var selectedSideMenuTab: SideMenuRowType {
+    get {
+      switch navigationCoordinator.activePath {
+      case .about:
+        return .about
+      case .listen:
+        return .listen
+      case .signIn:
+        return .listen
+      }
+    }
+    set {
+      switch newValue {
+      case .about:
+        self.navigationCoordinator.activePath = .about
+      case .listen:
+        self.navigationCoordinator.activePath = .listen
+      }
+    }
+  }
+
+  func rowTapped(row: SideMenuRowType) {
+    self.selectedSideMenuTab = row
+    self.navigationCoordinator.slideOutMenuIsShowing = false
+  }
+
+  func signOutTapped() {
+    navigationCoordinator.activePath = .signIn
+    StationPlayer.shared.stop()
+  }
 }
 
-enum SideMenuRowType: Int, CaseIterable{
+enum SideMenuRowType: Int, CaseIterable, Equatable {
     case listen = 0
-    case settings
+    case about
 
     var title: String{
         switch self {
         case .listen:
             return "Listen"
-        case .settings:
+        case .about:
             return "About"
         }
     }
@@ -24,34 +60,30 @@ enum SideMenuRowType: Int, CaseIterable{
         switch self {
         case .listen:
             return "headphones"
-        case .settings:
+        case .about:
           return "info.circle"
         }
     }
 }
 
 struct SideMenuView: View {
-  @Shared(.slideOutViewModel) var slideOutViewModel
-
+  var model: SideMenuViewModel
   var body: some View {
     HStack {
       ZStack {
 
         VStack(alignment: .leading, spacing: 0) {
           ForEach(SideMenuRowType.allCases, id: \.self) { row in
-            RowView(isSelected: slideOutViewModel.selectedSideMenuTab == row.rawValue, imageName: row.iconName, title: row.title) {
-              $slideOutViewModel.withLock {
-                $0.selectedSideMenuTab = row.rawValue
-                $0.isShowing.toggle()
-              }
+            RowView(isSelected: model.selectedSideMenuTab == row,
+                    imageName: row.iconName,
+                    title: row.title) {
+              model.rowTapped(row: row)
             }
           }
           Spacer()
 
           RowView(isSelected: false, imageName: "rectangle.portrait.and.arrow.right", title: "Sign Out") {
-            $slideOutViewModel.withLock {
-              $0.isShowing.toggle()
-            }
+            model.signOutTapped()
           }
           .padding(.bottom, 30) // Adjust bottom padding as needed
         }

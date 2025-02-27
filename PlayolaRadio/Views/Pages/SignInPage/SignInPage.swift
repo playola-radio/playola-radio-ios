@@ -15,7 +15,12 @@ import SwiftUI
 class SignInPageModel: ViewModel {
   @ObservationIgnored @Shared(.appleSignInInfo) var appleSignInInfo: AppleSignInInfo?
   @ObservationIgnored @Shared(.auth) var auth: Auth
-  
+  var navigationCoordinator: NavigationCoordinator
+
+  init(navigationCoordinator: NavigationCoordinator = .shared) {
+    self.navigationCoordinator = navigationCoordinator
+  }
+
   // MARK: State
   
   // MARK: Actions
@@ -54,6 +59,7 @@ class SignInPageModel: ViewModel {
                                    email: email,
                                    authCode: authCode,
                                    displayName: appleIDCredential.fullName?.formatted())
+        self.navigationCoordinator.activePath = .listen
       }
     case let .failure(error):
       print(error)
@@ -77,7 +83,10 @@ class SignInPageModel: ViewModel {
           print("Error signing into Google -- no serverAuthCode on signInResult.")
           return
         }
-        Task { await API().signInViaGoogle(code: serverAuthCode) }
+        Task {
+          await API().signInViaGoogle(code: serverAuthCode)
+          self.navigationCoordinator.activePath = .listen
+        }
       }
     }
   }
