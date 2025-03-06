@@ -18,6 +18,7 @@ class NavigationCoordinator: ViewModel {
     case about
     case listen
     case signIn
+    case myStation
   }
   var slideOutMenuIsShowing = false
   var activePath: Paths = .listen
@@ -25,6 +26,7 @@ class NavigationCoordinator: ViewModel {
   var aboutPath: [Path] = []
   var listenPath: [Path] = []
   var signInPath: [Path] = []
+  var myStationPath: [Path] = []
 
   var path: [Path] {
     get {
@@ -38,6 +40,8 @@ class NavigationCoordinator: ViewModel {
         return aboutPath
       case .listen:
         return listenPath
+      case .myStation:
+        return myStationPath
       }
     }
     set {
@@ -47,6 +51,8 @@ class NavigationCoordinator: ViewModel {
       case .listen:
         listenPath = newValue
       case .signIn:
+        signInPath = newValue
+      case .myStation:
         signInPath = newValue
       }
     }

@@ -54,6 +54,8 @@ struct AppView: View {
               StationListPage(model: StationListModel())
             case .signIn:
               SignInPage(model: SignInPageModel())
+            case .myStation:
+              SignInPage(model: SignInPageModel())
             }
           }
           .navigationDestination(for: NavigationCoordinator.Path.self) { path in

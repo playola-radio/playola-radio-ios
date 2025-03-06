@@ -41,3 +41,10 @@ extension SharedKey where Self == FileStorageKey<Auth>.Default {
         Self[.fileStorage(dump(.documentsDirectory.appending(component: "auth.json"))), default: Auth()]
     }
 }
+
+extension SharedKey where Self == FileStorageKey<User?>.Default {
+  static var currentUser: Self {
+    Self[.fileStorage(dump(.documentsDirectory.appending(component: "user.json"))),
+         default: nil]
+  }
+}

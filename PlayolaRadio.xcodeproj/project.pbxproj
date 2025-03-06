@@ -40,7 +40,6 @@
 		D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A062BFA4F49006942D6 /* ContentView.swift */; };
 		D3536A092BFA4F4A006942D6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3536A082BFA4F4A006942D6 /* Assets.xcassets */; };
 		D3536A0C2BFA4F4A006942D6 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3536A0B2BFA4F4A006942D6 /* Preview Assets.xcassets */; };
-		D3536A162BFA4F4A006942D6 /* PlayolaRadioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A152BFA4F4A006942D6 /* PlayolaRadioTests.swift */; };
 		D3536A302BFA5523006942D6 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = D3536A2F2BFA5523006942D6 /* ComposableArchitecture */; };
 		D3536A322BFA64AB006942D6 /* StationList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A312BFA64AB006942D6 /* StationList.swift */; };
 		D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A362BFA6520006942D6 /* Bundle+Misc.swift */; };
@@ -57,6 +56,9 @@
 		D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C52D3E91B900E4E926 /* MainSceneDelegate.swift */; };
 		D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */; };
 		D35673CB2D3EE5E900E4E926 /* Secrets-Development.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */; };
+		D35E43D62D78ED7600A1BD20 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35E43D52D78ED7400A1BD20 /* User.swift */; };
+		D35E43D82D78EDAF00A1BD20 /* Station.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35E43D72D78EDAC00A1BD20 /* Station.swift */; };
+		D35E43DA2D78EE4600A1BD20 /* UserStation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35E43D92D78EE4400A1BD20 /* UserStation.swift */; };
 		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
 		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
@@ -65,7 +67,7 @@
 		D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */; };
 		D3B662702D40352500975D2F /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D3B6626F2D40352500975D2F /* Alamofire */; };
 		D3B662722D4161E100975D2F /* AppleSignInInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662712D41618500975D2F /* AppleSignInInfo.swift */; };
-		D3B662742D419C3300975D2F /* LoggedInUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662732D419C3100975D2F /* LoggedInUser.swift */; };
+		D3B662742D419C3300975D2F /* JWTUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662732D419C3100975D2F /* JWTUser.swift */; };
 		D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662752D41B0C700975D2F /* SignInPageTests.swift */; };
 		D3B662C32D4272F900975D2F /* Secrets-Local.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D3B662C22D4272ED00975D2F /* Secrets-Local.xcconfig */; };
 		D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */ = {isa = PBXBuildFile; productRef = D3BEE95C2D49A3BD00469CDC /* Testing */; };
@@ -119,7 +121,6 @@
 		D3536A082BFA4F4A006942D6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D3536A0B2BFA4F4A006942D6 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		D3536A112BFA4F4A006942D6 /* PlayolaRadioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlayolaRadioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		D3536A152BFA4F4A006942D6 /* PlayolaRadioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaRadioTests.swift; sourceTree = "<group>"; };
 		D3536A312BFA64AB006942D6 /* StationList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationList.swift; sourceTree = "<group>"; };
 		D3536A362BFA6520006942D6 /* Bundle+Misc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Bundle+Misc.swift"; sourceTree = "<group>"; };
 		D3536A372BFA6520006942D6 /* Color+Hex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
@@ -136,11 +137,14 @@
 		D35673C52D3E91B900E4E926 /* MainSceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainSceneDelegate.swift; sourceTree = "<group>"; };
 		D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingUpdater.swift; sourceTree = "<group>"; };
 		D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Development.xcconfig"; sourceTree = "<group>"; };
+		D35E43D52D78ED7400A1BD20 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		D35E43D72D78EDAC00A1BD20 /* Station.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Station.swift; sourceTree = "<group>"; };
+		D35E43D92D78EE4400A1BD20 /* UserStation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserStation.swift; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
 		D3B662692D40103800975D2F /* SignInPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPage.swift; sourceTree = "<group>"; };
 		D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinator.swift; sourceTree = "<group>"; };
 		D3B662712D41618500975D2F /* AppleSignInInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInInfo.swift; sourceTree = "<group>"; };
-		D3B662732D419C3100975D2F /* LoggedInUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggedInUser.swift; sourceTree = "<group>"; };
+		D3B662732D419C3100975D2F /* JWTUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTUser.swift; sourceTree = "<group>"; };
 		D3B662752D41B0C700975D2F /* SignInPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageTests.swift; sourceTree = "<group>"; };
 		D3B662C22D4272ED00975D2F /* Secrets-Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Local.xcconfig"; sourceTree = "<group>"; };
 		D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserDefaults.swift; sourceTree = "<group>"; };
@@ -217,7 +221,10 @@
 		D3137DD02D3ABB490070033A /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				D3B662732D419C3100975D2F /* LoggedInUser.swift */,
+				D35E43D92D78EE4400A1BD20 /* UserStation.swift */,
+				D35E43D72D78EDAC00A1BD20 /* Station.swift */,
+				D35E43D52D78ED7400A1BD20 /* User.swift */,
+				D3B662732D419C3100975D2F /* JWTUser.swift */,
 				D3B662712D41618500975D2F /* AppleSignInInfo.swift */,
 				D35673B12D3DC59100E4E926 /* RadioStation.swift */,
 				D3137DD12D3ABB4F0070033A /* GenericNowPlaying.swift */,
@@ -332,7 +339,6 @@
 			isa = PBXGroup;
 			children = (
 				D3137DBE2D3981750070033A /* Mocks */,
-				D3536A152BFA4F4A006942D6 /* PlayolaRadioTests.swift */,
 			);
 			path = PlayolaRadioTests;
 			sourceTree = "<group>";
@@ -522,6 +528,7 @@
 				D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */,
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
+				D35E43DA2D78EE4600A1BD20 /* UserStation.swift in Sources */,
 				D3B6626A2D40103C00975D2F /* SignInPage.swift in Sources */,
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
 				D339E5622BFD0FD800B9E35B /* NowPlayingSmallView.swift in Sources */,
@@ -535,7 +542,7 @@
 				D31C43A82D3C19640021AAE4 /* StationPlayer.swift in Sources */,
 				D339E5642BFD0FD800B9E35B /* StationListCellView.swift in Sources */,
 				D339E57C2BFD698600B9E35B /* Mail.swift in Sources */,
-				D3B662742D419C3300975D2F /* LoggedInUser.swift in Sources */,
+				D3B662742D419C3300975D2F /* JWTUser.swift in Sources */,
 				D3536A322BFA64AB006942D6 /* StationList.swift in Sources */,
 				D339E5762BFD419400B9E35B /* AboutPage.swift in Sources */,
 				D3137DD22D3ABB520070033A /* GenericNowPlaying.swift in Sources */,
@@ -544,6 +551,8 @@
 				D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */,
 				D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */,
 				D339E5632BFD0FD800B9E35B /* AirPlayView.swift in Sources */,
+				D35E43D82D78EDAF00A1BD20 /* Station.swift in Sources */,
+				D35E43D62D78ED7600A1BD20 /* User.swift in Sources */,
 				D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */,
 				D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */,
 				D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */,
@@ -573,7 +582,6 @@
 				D34D5C362D7105EE00148048 /* SideMenuTests.swift in Sources */,
 				D3137DCA2D3A9F940070033A /* NowPlayingPageTests.swift in Sources */,
 				D34D5C392D7106CD00148048 /* AuthServiceMock.swift in Sources */,
-				D3536A162BFA4F4A006942D6 /* PlayolaRadioTests.swift in Sources */,
 				D3137DBD2D397FD10070033A /* AboutPageTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -47,7 +47,7 @@ class StationListModel: ViewModel {
     defer { self.isLoadingStationLists = false }
     do {
       if !stationListsLoaded {
-        let stationListsRaw = try await api.getStations()
+        _ = try await api.getStations()
       }
     } catch (_) {
       presentedAlert = .errorLoadingStations
@@ -85,7 +85,7 @@ extension PlayolaAlert {
   static var errorLoadingStations: PlayolaAlert {
     PlayolaAlert(
       title: "Error Loading Stations",
-      message: "There was an error loading the stations. Please check yout connection and try again.",
+      message: "There was an error loading the stations. Please check your connection and try again.",
       dismissButton: .cancel(Text("OK"))
     )
   }

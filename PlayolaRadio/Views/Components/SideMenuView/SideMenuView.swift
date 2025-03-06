@@ -1,40 +1,68 @@
 import SwiftUI
 import Sharing
 
+@MainActor
 @Observable
 class SideMenuViewModel: ViewModel {
   var navigationCoordinator: NavigationCoordinator
   var stationPlayer: StationPlayer
   var authService: AuthService
+  var api: API
+  var user: User? = nil
+
+  var menuItems: [SideMenuRowType] {
+      if let user = user, user.stations != nil {
+        return SideMenuRowType.allCases
+      }
+      return SideMenuRowType.allCases.filter { $0 != .myStation }
+    }
 
   init(navigationCoordinator: NavigationCoordinator = .shared,
        stationPlayer: StationPlayer = .shared,
-       authService: AuthService = .shared) {
+       authService: AuthService = .shared,
+       api: API = API()) {
     self.navigationCoordinator = navigationCoordinator
     self.stationPlayer = stationPlayer
     self.authService = authService
+    self.api = api
+    super.init()
+    Task { await getUser() }
+  }
+
+  func getUser() async {
+    guard let userId = authService.auth.jwtUser?.id else { return }
+    do {
+      self.user = try await self.api.getUser(userId: userId)
+    } catch (let err) {
+      print("Failed to fetch user \(err.localizedDescription)")
+    }
   }
 
   var selectedSideMenuTab: SideMenuRowType {
-    get {
-      switch navigationCoordinator.activePath {
-      case .about:
-        return .about
-      case .listen:
-        return .listen
-      case .signIn:
-        return .listen
+      get {
+        switch navigationCoordinator.activePath {
+        case .about:
+          return .about
+        case .listen:
+          return .listen
+        case .signIn:
+          return .listen
+        case .myStation:
+          return .about
+        }
+      }
+      set {
+        switch newValue {
+        case .about:
+          self.navigationCoordinator.activePath = .about
+        case .listen:
+          self.navigationCoordinator.activePath = .listen
+        case .myStation:
+          // TODO: Add navigation to my station screen
+          break
+        }
       }
     }
-    set {
-      switch newValue {
-      case .about:
-        self.navigationCoordinator.activePath = .about
-      case .listen:
-        self.navigationCoordinator.activePath = .listen
-      }
-    }
-  }
 
   func rowTapped(row: SideMenuRowType) {
     self.selectedSideMenuTab = row
@@ -52,6 +80,7 @@ class SideMenuViewModel: ViewModel {
 enum SideMenuRowType: Int, CaseIterable, Equatable {
   case listen = 0
   case about
+  case myStation
 
   var title: String{
     switch self {
@@ -59,6 +88,8 @@ enum SideMenuRowType: Int, CaseIterable, Equatable {
       return "Listen"
     case .about:
       return "About"
+    case .myStation:
+      return "My Station"
     }
   }
 
@@ -68,10 +99,13 @@ enum SideMenuRowType: Int, CaseIterable, Equatable {
       return "headphones"
     case .about:
       return "info.circle"
+    case .myStation:
+      return "antenna.radiowaves.left.and.right"
     }
   }
 }
 
+@MainActor
 struct SideMenuView: View {
   var model: SideMenuViewModel
   var body: some View {

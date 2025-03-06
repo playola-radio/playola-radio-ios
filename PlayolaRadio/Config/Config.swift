@@ -14,7 +14,7 @@ actor Config {
     let mixpanelToken: String
     let heapAppID: String
 
-    var baseUrl: String {
+    nonisolated var baseUrl: String {
         switch environment {
         case .local:
             return "http://localhost:10020"
@@ -29,7 +29,7 @@ actor Config {
         self.heapAppID = Config.get("HEAP_APP_ID", varType: String.self)
     }
 
-    static func get<T>(_ environmentVarName: String, varType _: T.Type) -> T {
+    nonisolated static func get<T>(_ environmentVarName: String, varType _: T.Type) -> T {
         guard let token = Bundle.main.infoDictionary?[environmentVarName] as? T else {
             fatalError("Environment Variable \(environmentVarName) not initialized")
         }
