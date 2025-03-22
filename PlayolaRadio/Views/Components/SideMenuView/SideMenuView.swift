@@ -10,8 +10,8 @@ class SideMenuViewModel: ViewModel {
   var api: API
   var user: User? = nil
 
-  var menuItems: [SideMenuRowType] {
-      if let user = user, user.stations != nil {
+  public var menuItems: [SideMenuRowType] {
+    if user?.stations?.first != nil {
         return SideMenuRowType.allCases
       }
       return SideMenuRowType.allCases.filter { $0 != .myStation }

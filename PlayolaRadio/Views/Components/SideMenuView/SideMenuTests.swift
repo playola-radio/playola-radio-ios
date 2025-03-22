@@ -12,6 +12,35 @@ import Testing
 
 enum SideMenuViewModelTests {
 
+
+  @MainActor @Suite("Menu Items Display")
+    struct MenuItemsDisplay {
+      @Test("Shows all menu items including My Station when user has a station")
+      func testMenuItemsWithStation() async {
+        let navigationCoordinator = NavigationCoordinatorMock()
+        let viewModel = SideMenuViewModel(navigationCoordinator: navigationCoordinator)
+
+        let userWithStation: User = .mockWithStation
+        viewModel.user = userWithStation
+
+        let menuItems = viewModel.menuItems
+        #expect(menuItems.contains(.myStation))
+      }
+
+      @Test("Hides My Station menu item when user has no station")
+      func testMenuItemsWithoutStation() async {
+        let navigationCoordinator = NavigationCoordinatorMock()
+        let viewModel = SideMenuViewModel(navigationCoordinator: navigationCoordinator)
+
+        let userWithoutStation: User = .mockWithoutStation
+        viewModel.user = userWithoutStation
+
+        let menuItems = viewModel.menuItems
+        #expect(!menuItems.contains(.myStation))
+      }
+    }
+
+
   // MARK: - Initial State
 
   @MainActor @Suite("Initial State")

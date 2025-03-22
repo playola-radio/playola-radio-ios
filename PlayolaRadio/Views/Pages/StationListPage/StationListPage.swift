@@ -130,6 +130,9 @@ struct StationListPage: View {
         .padding(.bottom, 5)
       }
     }
+    .transaction { transaction in
+      transaction.animation = nil
+    }
     .navigationTitle(Text("Playola Radio"))
     .navigationBarTitleDisplayMode(.automatic)
     .navigationBarHidden(false)

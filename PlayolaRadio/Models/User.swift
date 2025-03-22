@@ -13,3 +13,16 @@ struct User: Codable {
     let role: String
     let stations: [Station]?
 }
+
+
+extension User {
+  public static var mockWithStation: User {
+    return User(id: "12345", displayName: "Bob", email: "bob@bob.com", profileImageUrl: nil, role: "admin", stations: [
+      .mock
+    ])
+  }
+
+  public static var mockWithoutStation: User {
+    return User(id: "12345", displayName: "Sue", email: "sue@sue.com", profileImageUrl: nil, role: "admin", stations: [])
+  }
+}
