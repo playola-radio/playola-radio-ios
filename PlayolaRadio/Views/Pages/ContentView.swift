@@ -51,6 +51,9 @@ struct AppView: View {
   var body: some View {
     GeometryReader { geometry in
       ZStack(alignment: .leading) {
+        Color.black.edgesIgnoringSafeArea(.all)
+
+        
         NavigationStack(path: $navigationCoordinator.path) {
           Group {
             switch navigationCoordinator.activePath {

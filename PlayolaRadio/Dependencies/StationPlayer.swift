@@ -64,7 +64,7 @@ class StationPlayer: ObservableObject {
       self.processPlayolaStationPlayerState(state)
     }).store(in: &disposeBag)
   }
-  
+
   // MARK: Public Interface
   
   public func play(station: RadioStation) {
