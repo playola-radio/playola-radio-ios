@@ -1,6 +1,7 @@
 import SwiftUI
 import Sharing
 
+
 @MainActor
 @Observable
 class SideMenuViewModel: ViewModel {
@@ -52,14 +53,16 @@ class SideMenuViewModel: ViewModel {
         }
       }
       set {
-        switch newValue {
-        case .about:
-          self.navigationCoordinator.activePath = .about
-        case .listen:
-          self.navigationCoordinator.activePath = .listen
-        case .myStation:
-          // TODO: Add navigation to my station screen
-          break
+        withAnimation {
+          switch newValue {
+          case .about:
+            self.navigationCoordinator.activePath = .about
+          case .listen:
+            self.navigationCoordinator.activePath = .listen
+          case .myStation:
+            // TODO: Add navigation to my station screen
+            break
+          }
         }
       }
     }
@@ -108,6 +111,9 @@ enum SideMenuRowType: Int, CaseIterable, Equatable {
 @MainActor
 struct SideMenuView: View {
   var model: SideMenuViewModel
+
+  private let menuAnimation = Animation.spring(response: 0.35, dampingFraction: 0.8, blendDuration: 0)
+
   var body: some View {
     HStack {
       ZStack {
@@ -164,5 +170,6 @@ struct SideMenuView: View {
                      startPoint: .leading,
                      endPoint: .trailing)
     )
+    .animation(menuAnimation, value: isSelected)
   }
 }

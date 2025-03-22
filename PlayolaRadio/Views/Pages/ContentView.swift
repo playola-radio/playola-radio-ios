@@ -24,9 +24,15 @@ struct AppView: View {
   var sideBarWidth = UIScreen.main.bounds.size.width * 0.5
   @State var offset: CGFloat = 0
   @GestureState var gestureOffset: CGFloat = 0
-  @State var tempIsShowing: Bool = true
   @Bindable var navigationCoordinator: NavigationCoordinator
   @Shared(.auth) var auth
+
+  // Add animation configuration
+  private let menuTransitionAnimation = Animation.interactiveSpring(
+    response: 0.5,
+    dampingFraction: 0.8,
+    blendDuration: 0
+  )
 
   @MainActor
   init(navigationCoordinator: NavigationCoordinator = .shared) {
@@ -38,7 +44,7 @@ struct AppView: View {
   }
 
   func getBlurRadius() -> CGFloat {
-    let progress =  (offset + gestureOffset) / (UIScreen.main.bounds.height * 0.50)
+    let progress = (offset + gestureOffset) / (UIScreen.main.bounds.height * 0.50)
     return progress
   }
 
@@ -52,6 +58,7 @@ struct AppView: View {
               AboutPage(model: AboutPageModel())
             case .listen:
               StationListPage(model: StationListModel())
+                .transition(.opacity) // Add smooth transition between views
             case .signIn:
               SignInPage(model: SignInPageModel())
             case .myStation:
@@ -73,36 +80,27 @@ struct AppView: View {
         }
         .accentColor(.white)
         .offset(x: max(self.offset + self.gestureOffset, 0))
-        .animation(.interactiveSpring(
-          response: 0.5,
-          dampingFraction: 0.8,
-          blendDuration: 0),
-                   value: gestureOffset
-        )
+        // Apply consistent animation
+        .animation(menuTransitionAnimation, value: gestureOffset)
+        .animation(menuTransitionAnimation, value: offset)
         .overlay(
           GeometryReader { _ in
             EmptyView()
           }
-            .background(.black.opacity(0.6))
-            .opacity(getBlurRadius())
-            .animation(.interactiveSpring(
-              response: 0.5,
-              dampingFraction: 0.8,
-              blendDuration: 0),
-                       value: navigationCoordinator.slideOutMenuIsShowing)
-            .onTapGesture {
-              withAnimation { navigationCoordinator.slideOutMenuIsShowing.toggle() }
+          .background(.black.opacity(0.6))
+          .opacity(getBlurRadius())
+          .animation(menuTransitionAnimation, value: navigationCoordinator.slideOutMenuIsShowing)
+          .onTapGesture {
+            withAnimation(menuTransitionAnimation) {
+              navigationCoordinator.slideOutMenuIsShowing.toggle()
             }
+          }
         )
 
         SideMenuView(model: SideMenuViewModel())
-          .frame(width:  sideBarWidth)
-          .animation(.interactiveSpring(
-            response: 0.5,
-            dampingFraction: 0.8,
-            blendDuration: 0),
-                     value: gestureOffset
-          )
+          .frame(width: sideBarWidth)
+          // Make the animation consistent
+          .animation(menuTransitionAnimation, value: gestureOffset)
           .offset(x: -sideBarWidth)
           .offset(x: max(self.offset + self.gestureOffset, 0))
       }
@@ -118,7 +116,7 @@ struct AppView: View {
           .onEnded(onEnd(value:))
       )
       .onChange(of: navigationCoordinator.slideOutMenuIsShowing) { _, newValue in
-        withAnimation {
+        withAnimation(menuTransitionAnimation) {
           if newValue {
             offset = sideBarWidth
           } else {
@@ -128,17 +126,21 @@ struct AppView: View {
       }
     }
   }
-  func onEnd(value: DragGesture.Value){
+
+  func onEnd(value: DragGesture.Value) {
     let translation = value.translation.width
-    if translation > 0 && translation > (sideBarWidth * 0.6) {
-      navigationCoordinator.slideOutMenuIsShowing = true
-    } else if -translation > (sideBarWidth / 2) {
-      navigationCoordinator.slideOutMenuIsShowing = false
-    } else {
-      if offset == 0 || !navigationCoordinator.slideOutMenuIsShowing {
-        return
+
+    withAnimation(menuTransitionAnimation) {
+      if translation > 0 && translation > (sideBarWidth * 0.6) {
+        navigationCoordinator.slideOutMenuIsShowing = true
+      } else if -translation > (sideBarWidth / 2) {
+        navigationCoordinator.slideOutMenuIsShowing = false
+      } else {
+        if offset == 0 || !navigationCoordinator.slideOutMenuIsShowing {
+          return
+        }
+        navigationCoordinator.slideOutMenuIsShowing = true
       }
-      navigationCoordinator.slideOutMenuIsShowing = true
     }
   }
 }
