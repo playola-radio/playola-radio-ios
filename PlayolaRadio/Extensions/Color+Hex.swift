@@ -42,5 +42,5 @@ extension Color {
         Color(hex: "#6962EF")
     }
     
-    public static var playolaGray: Color = Color(hex: "868686")
+    public static let playolaGray: Color = Color(hex: "868686")
 }

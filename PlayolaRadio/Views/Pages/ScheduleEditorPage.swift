@@ -484,155 +484,155 @@ enum AudioBlockType: String {
     case audioimage
     case productionpiece
 }
-
-struct ScheduleEditorView: View {
-    @Bindable var model: SchedulePageModel
-
-    var body: some View {
-        GeometryReader { _ in
-            VStack(spacing: 0) {
-                // Staging Audio Blocks Section
-                if !model.stagingAudioBlocks.isEmpty {
-                    VStack(spacing: 0) {
-                        List {
-                            ForEach(model.stagingAudioBlocks, id: \.id) { audioBlock in
-                                StagingCellView(audioBlock: audioBlock)
-                                    .listRowInsets(EdgeInsets())
-                                    .listRowSeparator(.hidden)
-                                    .background(Color.black)
-                                    .onDrag { NSItemProvider(object: audioBlock.id as NSString) }
-                            }
-                            .onMove(perform: moveStagingAudioBlock)
-                            .onDelete(perform: deleteStagingAudioBlock)
-                        }
-                        .listStyle(PlainListStyle())
-                        .frame(height: CGFloat(model.stagingAudioBlocks.count * 45))
-                        .background(Color.black)
-
-                        Image("myScheduleArrows")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(height: 20)
-                            .background(Color.clear)
-                            .foregroundColor(.gray)
-                            .padding(.vertical, 10)
-                    }
-                    .background(Color.black)
-                }
-
-                // Now Playing Section
-                if let nowPlaying = model.nowPlaying {
-                    ScheduleNowPlayingView2(
-                        title: nowPlaying.audioBlock?.title ?? "Unknown Title",
-                        artist: nowPlaying.audioBlock?.artist ?? "Unknown Artist",
-                        imageUrl: nowPlaying.audioBlock?.imageUrl,
-                        type: nowPlaying.audioBlock?.type ?? "",
-                        airtime: nowPlaying.airtime,
-                        endTime: model.playlist.first?.airtime ?? nowPlaying.airtime
-                    )
-                }
-
-                // Playlist Section
-                List {
-                    ForEach(model.playlist, id: \.id) { spin in
-                        ScheduleCellView(
-                            id: spin.id,
-                            title: spin.audioBlock?.title ?? "Unknown Title",
-                            artist: spin.audioBlock?.artist ?? "Unknown Artist",
-                            imageUrl: spin.audioBlock?.imageUrl,
-                            type: spin.audioBlock?.type ?? "",
-                            airtime: spin.airtime,
-                            isBeingScheduled: false,
-                            playPreview: nil
-                        )
-                        .listRowInsets(EdgeInsets())
-                        .listRowSeparator(.hidden)
-                        .background(Color.black)
-                        .onDrag { NSItemProvider(object: spin.id as NSString) }
-                    }
-                    .onMove(perform: movePlaylistItem)
-                    .onInsert(of: ["public.text"], perform: dropAudioBlockIntoPlaylist)
-                    .onDelete(perform: deleteScheduledSpin)
-                }
-                .environment(\.defaultMinListRowHeight, 33)
-                .listStyle(PlainListStyle())
-                .background(Color.black)
-
-                Spacer()
-            }
-            .background(Color.black)
-        }
-    }
-
-    // Existing methods remain the same
-    func deleteStagingAudioBlock(at offsets: IndexSet) {
-        model.stagingAudioBlocks.remove(atOffsets: offsets)
-    }
-
-    func deleteScheduledSpin(at offsets: IndexSet) {
-        offsets.forEach { index in
-            let spinToRemove = model.playlist[index]
-            // Implement actual removal logic
-        }
-    }
-
-    func dropAudioBlockIntoPlaylist(at index: Int, _ items: [NSItemProvider]) {
-        for item in items {
-            _ = item.loadObject(ofClass: String.self) { audioBlockId, _ in
-                if let audioBlockId = audioBlockId {
-                    DispatchQueue.main.async {
-                        if let audioBlock = self.model.stagingAudioBlocks.first(where: { $0.id == audioBlockId }) {
-                            // Remove from staging
-                            self.model.stagingAudioBlocks.removeAll { $0.id == audioBlockId }
-
-                            // TODO: Implement spin insertion
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    func moveStagingAudioBlock(from source: IndexSet, to destination: Int) {
-        model.stagingAudioBlocks.move(fromOffsets: source, toOffset: destination)
-    }
-
-    func movePlaylistItem(from source: IndexSet, to destination: Int) {
-        model.playlist.move(fromOffsets: source, toOffset: destination)
-    }
-}
-
-// Simple StagingCellView adapted to use AudioBlock
-struct StagingCellView: View {
-    let audioBlock: AudioBlock
-
-    var body: some View {
-        HStack {
-          AsyncImage(url: audioBlock.imageUrl) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 45, height: 45)
-                    .clipped()
-            } placeholder: {
-                Image("emptyAlbumWithOverlay")
-                    .resizable()
-                    .frame(width: 45, height: 45)
-            }
-
-            VStack(alignment: .leading) {
-                Text(audioBlock.title)
-                    .foregroundColor(.white)
-                Text(audioBlock.artist)
-                    .foregroundColor(.gray)
-                    .font(.caption)
-            }
-
-            Spacer()
-        }
-        .background(Color(hex: "333333"))
-    }
-}
+//
+//struct ScheduleEditorView: View {
+//    @Bindable var model: SchedulePageModel
+//
+//    var body: some View {
+//        GeometryReader { _ in
+//            VStack(spacing: 0) {
+//                // Staging Audio Blocks Section
+//                if !model.stagingAudioBlocks.isEmpty {
+//                    VStack(spacing: 0) {
+//                        List {
+//                            ForEach(model.stagingAudioBlocks, id: \.id) { audioBlock in
+//                                StagingCellView(audioBlock: audioBlock)
+//                                    .listRowInsets(EdgeInsets())
+//                                    .listRowSeparator(.hidden)
+//                                    .background(Color.black)
+//                                    .onDrag { NSItemProvider(object: audioBlock.id as NSString) }
+//                            }
+//                            .onMove(perform: moveStagingAudioBlock)
+//                            .onDelete(perform: deleteStagingAudioBlock)
+//                        }
+//                        .listStyle(PlainListStyle())
+//                        .frame(height: CGFloat(model.stagingAudioBlocks.count * 45))
+//                        .background(Color.black)
+//
+//                        Image("myScheduleArrows")
+//                            .resizable()
+//                            .aspectRatio(contentMode: .fit)
+//                            .frame(height: 20)
+//                            .background(Color.clear)
+//                            .foregroundColor(.gray)
+//                            .padding(.vertical, 10)
+//                    }
+//                    .background(Color.black)
+//                }
+//
+//                // Now Playing Section
+//                if let nowPlaying = model.nowPlaying {
+//                    ScheduleNowPlayingView2(
+//                        title: nowPlaying.audioBlock?.title ?? "Unknown Title",
+//                        artist: nowPlaying.audioBlock?.artist ?? "Unknown Artist",
+//                        imageUrl: nowPlaying.audioBlock?.imageUrl,
+//                        type: nowPlaying.audioBlock?.type ?? "",
+//                        airtime: nowPlaying.airtime,
+//                        endTime: model.playlist.first?.airtime ?? nowPlaying.airtime
+//                    )
+//                }
+//
+//                // Playlist Section
+//                List {
+//                    ForEach(model.playlist, id: \.id) { spin in
+//                        ScheduleCellView(
+//                            id: spin.id,
+//                            title: spin.audioBlock?.title ?? "Unknown Title",
+//                            artist: spin.audioBlock?.artist ?? "Unknown Artist",
+//                            imageUrl: spin.audioBlock?.imageUrl,
+//                            type: spin.audioBlock?.type ?? "",
+//                            airtime: spin.airtime,
+//                            isBeingScheduled: false,
+//                            playPreview: nil
+//                        )
+//                        .listRowInsets(EdgeInsets())
+//                        .listRowSeparator(.hidden)
+//                        .background(Color.black)
+//                        .onDrag { NSItemProvider(object: spin.id as NSString) }
+//                    }
+//                    .onMove(perform: movePlaylistItem)
+//                    .onInsert(of: ["public.text"], perform: dropAudioBlockIntoPlaylist)
+//                    .onDelete(perform: deleteScheduledSpin)
+//                }
+//                .environment(\.defaultMinListRowHeight, 33)
+//                .listStyle(PlainListStyle())
+//                .background(Color.black)
+//
+//                Spacer()
+//            }
+//            .background(Color.black)
+//        }
+//    }
+//
+//    // Existing methods remain the same
+//    func deleteStagingAudioBlock(at offsets: IndexSet) {
+//        model.stagingAudioBlocks.remove(atOffsets: offsets)
+//    }
+//
+//    func deleteScheduledSpin(at offsets: IndexSet) {
+//        offsets.forEach { index in
+//            let spinToRemove = model.playlist[index]
+//            // Implement actual removal logic
+//        }
+//    }
+//
+//    func dropAudioBlockIntoPlaylist(at index: Int, _ items: [NSItemProvider]) {
+//        for item in items {
+//            _ = item.loadObject(ofClass: String.self) { audioBlockId, _ in
+//                if let audioBlockId = audioBlockId {
+//                    DispatchQueue.main.async {
+//                        if let audioBlock = self.model.stagingAudioBlocks.first(where: { $0.id == audioBlockId }) {
+//                            // Remove from staging
+//                            self.model.stagingAudioBlocks.removeAll { $0.id == audioBlockId }
+//
+//                            // TODO: Implement spin insertion
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    func moveStagingAudioBlock(from source: IndexSet, to destination: Int) {
+//        model.stagingAudioBlocks.move(fromOffsets: source, toOffset: destination)
+//    }
+//
+//    func movePlaylistItem(from source: IndexSet, to destination: Int) {
+//        model.playlist.move(fromOffsets: source, toOffset: destination)
+//    }
+//}
+//
+//// Simple StagingCellView adapted to use AudioBlock
+//struct StagingCellView: View {
+//    let audioBlock: AudioBlock
+//
+//    var body: some View {
+//        HStack {
+//          AsyncImage(url: audioBlock.imageUrl) { image in
+//                image
+//                    .resizable()
+//                    .aspectRatio(contentMode: .fill)
+//                    .frame(width: 45, height: 45)
+//                    .clipped()
+//            } placeholder: {
+//                Image("emptyAlbumWithOverlay")
+//                    .resizable()
+//                    .frame(width: 45, height: 45)
+//            }
+//
+//            VStack(alignment: .leading) {
+//                Text(audioBlock.title)
+//                    .foregroundColor(.white)
+//                Text(audioBlock.artist)
+//                    .foregroundColor(.gray)
+//                    .font(.caption)
+//            }
+//
+//            Spacer()
+//        }
+//        .background(Color(hex: "333333"))
+//    }
+//}
 
 // ScheduleNowPlayingView to match the original design
 struct ScheduleNowPlayingView2: View {
@@ -678,9 +678,105 @@ struct ScheduleNowPlayingView2: View {
 }
 
 
-// Preview with mock data
-struct ScheduleEditorView_Previews: PreviewProvider {
+//// Preview with mock data
+//struct ScheduleEditorView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ScheduleEditorView(model: SchedulePageModel())
+//    }
+//}
+
+import SwiftUI
+
+struct BroadcastView: View {
+//    var scheduleEditor: ScheduleEditor
+
+    init() {
+        UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: UIColor.white]
+//        audioRecorder = PlayolaAudioRecorder()
+//        spotifyTrackPicker = SpotifyTrackPicker()
+//        scheduleEditor = ScheduleEditor(user: sessionStore.user!, audioRecorder: audioRecorder, spotifyTrackPicker: spotifyTrackPicker)
+    }
+
+//    var audioRecorder: PlayolaAudioRecorder = .init()
+//    var spotifyTrackPicker: SpotifyTrackPicker = .init()
+
+    @State var recordingViewIsPresented: Bool = false
+    @State var addSongViewIsPresented: Bool = false
+
+    var body: some View {
+        ZStack {
+            Color.black
+                .edgesIgnoringSafeArea(.all)
+
+            VStack {
+                Spacer()
+                    .frame(height: 20.0)
+                HStack {
+                    Spacer()
+                    Spacer()
+                    VStack {
+                        Button {
+                            recordingViewIsPresented = true
+                        } label: {
+                            Image("recordVoicetrackIcon")
+                                .resizable()
+                                .frame(width: 100.0, height: 100.0)
+                        }
+                        Text("Add a VoiceTrack")
+                            .font(.custom("OpenSans", size: 12.0))
+                    }
+
+                    Spacer()
+
+                    VStack {
+                        Button {
+                            addSongViewIsPresented = true
+
+                        } label: {
+                            Image("addSongIcon")
+                                .resizable()
+                                .frame(width: 100.0, height: 100.0)
+                        }
+                        Text("Add a Song")
+                            .font(.custom("OpenSans", size: 12.0))
+                    }
+
+                    Spacer()
+                    Spacer()
+                }
+
+                Spacer()
+                    .frame(height: 20.0)
+                
+//                if let _ = self.sessionStore.user {
+//                    ScheduleEditorView(scheduleEditor: self.scheduleEditor)
+//                        .frame(maxHeight: .infinity)
+//                }
+            }
+
+        }
+        .foregroundStyle(.white)
+//        .sheet(isPresented: $recordingViewIsPresented) {
+//            VoiceTrackRecorderView(audioRecorder: self.audioRecorder, isPresented: $recordingViewIsPresented)
+//        }
+//        .sheet(isPresented: $addSongViewIsPresented) {
+//            AddSongView(isPresented: $addSongViewIsPresented)
+//        }.environmentObject(spotifyTrackPicker)
+    }
+}
+
+struct BroadcastView_Previews: PreviewProvider {
     static var previews: some View {
-        ScheduleEditorView(model: SchedulePageModel())
+        TabView {
+            NavigationView {
+                BroadcastView()
+                    .navigationTitle("Broadcast")
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+            .tabItem {
+                Image(systemName: "play.fill")
+                Text("Broadcast")
+            }
+        }
     }
 }

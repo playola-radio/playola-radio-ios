@@ -125,7 +125,8 @@ struct BroadcastBasePage: View {
 struct ScheduleTabView: View {
     var body: some View {
 
-          ScheduleEditorView(model: SchedulePageModel())
+      EmptyView()
+//          ScheduleEditorView(model: SchedulePageModel())
 
     }
 }
