@@ -124,16 +124,9 @@ struct BroadcastBasePage: View {
 
 struct ScheduleTabView: View {
     var body: some View {
-        VStack {
-            Spacer()
-            Text("Schedule Tab")
-                .font(.title)
-                .foregroundColor(.white)
-            Text("Station schedule placeholder")
-                .foregroundColor(.gray)
-                .padding()
-            Spacer()
-        }
+
+          ScheduleEditorView(model: SchedulePageModel())
+
     }
 }
 

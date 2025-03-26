@@ -64,6 +64,8 @@
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
 		D3AD1CAB2D943A4D00E4FA22 /* BroadcastBasePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AD1CAA2D943A3F00E4FA22 /* BroadcastBasePage.swift */; };
 		D3AD1CAD2D943AB600E4FA22 /* SelectStationsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AD1CAC2D943AA500E4FA22 /* SelectStationsPage.swift */; };
+		D3AD1CAF2D94437B00E4FA22 /* ScheduleEditorPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AD1CAE2D94437500E4FA22 /* ScheduleEditorPage.swift */; };
+		D3AD1CB22D945DCC00E4FA22 /* ScheduleNowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AD1CB12D945DC200E4FA22 /* ScheduleNowPlayingView.swift */; };
 		D3B662682D3F58E700975D2F /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3B662672D3F58E700975D2F /* FRadioPlayer */; };
 		D3B6626A2D40103C00975D2F /* SignInPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662692D40103800975D2F /* SignInPage.swift */; };
 		D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */; };
@@ -145,6 +147,8 @@
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
 		D3AD1CAA2D943A3F00E4FA22 /* BroadcastBasePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastBasePage.swift; sourceTree = "<group>"; };
 		D3AD1CAC2D943AA500E4FA22 /* SelectStationsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectStationsPage.swift; sourceTree = "<group>"; };
+		D3AD1CAE2D94437500E4FA22 /* ScheduleEditorPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleEditorPage.swift; sourceTree = "<group>"; };
+		D3AD1CB12D945DC200E4FA22 /* ScheduleNowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleNowPlayingView.swift; sourceTree = "<group>"; };
 		D3B662692D40103800975D2F /* SignInPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPage.swift; sourceTree = "<group>"; };
 		D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinator.swift; sourceTree = "<group>"; };
 		D3B662712D41618500975D2F /* AppleSignInInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInInfo.swift; sourceTree = "<group>"; };
@@ -262,6 +266,7 @@
 		D339E55C2BFD0FB000B9E35B /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				D3AD1CAE2D94437500E4FA22 /* ScheduleEditorPage.swift */,
 				D3AD1CAC2D943AA500E4FA22 /* SelectStationsPage.swift */,
 				D3AD1CAA2D943A3F00E4FA22 /* BroadcastBasePage.swift */,
 				D3B662772D41B10600975D2F /* SignInPage */,
@@ -276,6 +281,7 @@
 		D339E55D2BFD0FC200B9E35B /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				D3AD1CB02D945DB700E4FA22 /* ScheduleEditor */,
 				D34D5C372D71062E00148048 /* SideMenuView */,
 				D3137DCE2D3AA1E10070033A /* PlayolaSheet.swift */,
 				D3137DBA2D3976550070033A /* PlayolaAlert.swift */,
@@ -382,6 +388,14 @@
 				D35673B92D3DC9ED00E4E926 /* Config.swift */,
 			);
 			path = Config;
+			sourceTree = "<group>";
+		};
+		D3AD1CB02D945DB700E4FA22 /* ScheduleEditor */ = {
+			isa = PBXGroup;
+			children = (
+				D3AD1CB12D945DC200E4FA22 /* ScheduleNowPlayingView.swift */,
+			);
+			path = ScheduleEditor;
 			sourceTree = "<group>";
 		};
 		D3B6626B2D4016B900975D2F /* Services */ = {
@@ -542,6 +556,7 @@
 				D339E5652BFD0FD800B9E35B /* NowPlayingEqAnimation.swift in Sources */,
 				D35673B02D3DC55900E4E926 /* CarPlaySceneDelegate.swift in Sources */,
 				D35673C32D3E872600E4E926 /* CPListItem+InitWithRemoteUrl.swift in Sources */,
+				D3AD1CAF2D94437B00E4FA22 /* ScheduleEditorPage.swift in Sources */,
 				D339E57E2BFD750700B9E35B /* MailService.swift in Sources */,
 				D339E56F2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift in Sources */,
 				D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */,
@@ -571,6 +586,7 @@
 				D339E56D2BFD2FAB00B9E35B /* URLStreamPlayer.swift in Sources */,
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				D339E5692BFD1C0800B9E35B /* API.swift in Sources */,
+				D3AD1CB22D945DCC00E4FA22 /* ScheduleNowPlayingView.swift in Sources */,
 				D35673B42D3DC6D100E4E926 /* TrackingService.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
 			);
@@ -1043,8 +1059,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.1.3;
+				kind = exactVersion;
+				version = 0.3.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
