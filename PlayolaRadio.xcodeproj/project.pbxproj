@@ -24,6 +24,7 @@
 		D31C43D42D3C783B0021AAE4 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D31C43D32D3C783B0021AAE4 /* PlayolaPlayer */; };
 		D335ECA02D94877F00CC6A10 /* ScheduleEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D335EC9F2D94877800CC6A10 /* ScheduleEditorView.swift */; };
 		D335ECA22D94891300CC6A10 /* StagingCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D335ECA12D94891000CC6A10 /* StagingCellView.swift */; };
+		D335ECA42D948CBB00CC6A10 /* ScheduleCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D335ECA32D948CB700CC6A10 /* ScheduleCellView.swift */; };
 		D3361FE42D6E980000A859FF /* SideMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3361FE32D6E97FD00A859FF /* SideMenuView.swift */; };
 		D339E5622BFD0FD800B9E35B /* NowPlayingSmallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E55E2BFD0FD800B9E35B /* NowPlayingSmallView.swift */; };
 		D339E5632BFD0FD800B9E35B /* AirPlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E55F2BFD0FD800B9E35B /* AirPlayView.swift */; };
@@ -109,6 +110,7 @@
 		D31C43AB2D3C657F0021AAE4 /* NavigationCoordinatorMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinatorMock.swift; sourceTree = "<group>"; };
 		D335EC9F2D94877800CC6A10 /* ScheduleEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleEditorView.swift; sourceTree = "<group>"; };
 		D335ECA12D94891000CC6A10 /* StagingCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StagingCellView.swift; sourceTree = "<group>"; };
+		D335ECA32D948CB700CC6A10 /* ScheduleCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleCellView.swift; sourceTree = "<group>"; };
 		D3361FE32D6E97FD00A859FF /* SideMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideMenuView.swift; sourceTree = "<group>"; };
 		D339E55E2BFD0FD800B9E35B /* NowPlayingSmallView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NowPlayingSmallView.swift; sourceTree = "<group>"; };
 		D339E55F2BFD0FD800B9E35B /* AirPlayView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AirPlayView.swift; sourceTree = "<group>"; };
@@ -397,6 +399,7 @@
 		D3AD1CB02D945DB700E4FA22 /* ScheduleEditor */ = {
 			isa = PBXGroup;
 			children = (
+				D335ECA32D948CB700CC6A10 /* ScheduleCellView.swift */,
 				D335ECA12D94891000CC6A10 /* StagingCellView.swift */,
 				D335EC9F2D94877800CC6A10 /* ScheduleEditorView.swift */,
 				D3AD1CB12D945DC200E4FA22 /* ScheduleNowPlayingView.swift */,
@@ -575,6 +578,7 @@
 				D3536A322BFA64AB006942D6 /* StationList.swift in Sources */,
 				D339E5762BFD419400B9E35B /* AboutPage.swift in Sources */,
 				D3AD1CAB2D943A4D00E4FA22 /* BroadcastBasePage.swift in Sources */,
+				D335ECA42D948CBB00CC6A10 /* ScheduleCellView.swift in Sources */,
 				D3137DD22D3ABB520070033A /* GenericNowPlaying.swift in Sources */,
 				D3361FE42D6E980000A859FF /* SideMenuView.swift in Sources */,
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,

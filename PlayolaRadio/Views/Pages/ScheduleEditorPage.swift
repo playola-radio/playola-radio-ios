@@ -382,99 +382,99 @@ func formatTime(_ date: Date) -> String {
     formatter.dateFormat = "h:mm a"
     return formatter.string(from: date)
 }
-struct ScheduleCellView: View {
-    let id: String
-    let title: String
-    let artist: String
-    let imageUrl: URL?
-    let type: String
-    let airtime: Date
-    let isBeingScheduled: Bool
-    let playPreview: ((ScheduleCellView) -> Void)?
-
-    @State private var voiceTrackPreviewIsLoading: Bool = false
-    @State private var voiceTrackPreviewLoadingProgress: Double = 0.0
-
-    var body: some View {
-        HStack {
-            // Image handling
-            switch type {
-            case "commercial":
-                Image("greedyFace")
-                    .resizable()
-                    .frame(width: 45, height: 33)
-                    .padding(.zero)
-            case "voicetrack":
-                Image("voiceTrackAlbumArtwork")
-                    .resizable()
-                    .frame(width: 45, height: 45)
-                    .padding(.zero)
-            default:
-              AsyncImage(url: imageUrl) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 45, height: 45)
-                        .clipped()
-                } placeholder: {
-                    Image("emptyAlbumWithOverlay")
-                        .resizable()
-                        .frame(width: 45, height: 45)
-                }
-            }
-
-            Spacer().frame(width: 10)
-
-            VStack(alignment: .leading) {
-                Text(title)
-                    .foregroundColor(.white)
-                    .font(.system(size: 12, weight: .bold))
-
-                if type != "voicetrack" && type != "commercial" {
-                    Text(artist)
-                        .foregroundColor(.gray)
-                        .font(.system(size: 10, weight: .semibold))
-                }
-            }
-
-            Spacer()
-
-            // Voice track preview or airtime
-            if type == "voicetrack" {
-                if voiceTrackPreviewIsLoading {
-                    // Implement circular progress view if needed
-                    Text("Loading...")
-                        .foregroundColor(.gray)
-                } else {
-                    Button(action: {
-                        playPreview?(self)
-                    }) {
-                        Image("myScheduleCellPlayEnabled")
-                            .resizable()
-                            .frame(width: 20, height: 20)
-                    }
-                }
-            }
-
-            // Scheduling indicator or airtime
-            if isBeingScheduled {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    .frame(width: 23, height: 23)
-            } else {
-                Text("at \(airtime.toBeautifulString())")
-                    .font(.system(size: 11))
-                    .foregroundColor(.gray)
-            }
-
-            // Reorder handle
-            Image("myScheduleCellHandle")
-                .padding(.trailing, 10)
-        }
-        .frame(height: type == "commercial" ? 33 : 45)
-        .background(type == "commercial" ? Color.black : Color(hex: "333333"))
-    }
-}
+//struct ScheduleCellView: View {
+//    let id: String
+//    let title: String
+//    let artist: String
+//    let imageUrl: URL?
+//    let type: String
+//    let airtime: Date
+//    let isBeingScheduled: Bool
+//    let playPreview: ((ScheduleCellView) -> Void)?
+//
+//    @State private var voiceTrackPreviewIsLoading: Bool = false
+//    @State private var voiceTrackPreviewLoadingProgress: Double = 0.0
+//
+//    var body: some View {
+//        HStack {
+//            // Image handling
+//            switch type {
+//            case "commercial":
+//                Image("greedyFace")
+//                    .resizable()
+//                    .frame(width: 45, height: 33)
+//                    .padding(.zero)
+//            case "voicetrack":
+//                Image("voiceTrackAlbumArtwork")
+//                    .resizable()
+//                    .frame(width: 45, height: 45)
+//                    .padding(.zero)
+//            default:
+//              AsyncImage(url: imageUrl) { image in
+//                    image
+//                        .resizable()
+//                        .aspectRatio(contentMode: .fill)
+//                        .frame(width: 45, height: 45)
+//                        .clipped()
+//                } placeholder: {
+//                    Image("emptyAlbumWithOverlay")
+//                        .resizable()
+//                        .frame(width: 45, height: 45)
+//                }
+//            }
+//
+//            Spacer().frame(width: 10)
+//
+//            VStack(alignment: .leading) {
+//                Text(title)
+//                    .foregroundColor(.white)
+//                    .font(.system(size: 12, weight: .bold))
+//
+//                if type != "voicetrack" && type != "commercial" {
+//                    Text(artist)
+//                        .foregroundColor(.gray)
+//                        .font(.system(size: 10, weight: .semibold))
+//                }
+//            }
+//
+//            Spacer()
+//
+//            // Voice track preview or airtime
+//            if type == "voicetrack" {
+//                if voiceTrackPreviewIsLoading {
+//                    // Implement circular progress view if needed
+//                    Text("Loading...")
+//                        .foregroundColor(.gray)
+//                } else {
+//                    Button(action: {
+//                        playPreview?(self)
+//                    }) {
+//                        Image("myScheduleCellPlayEnabled")
+//                            .resizable()
+//                            .frame(width: 20, height: 20)
+//                    }
+//                }
+//            }
+//
+//            // Scheduling indicator or airtime
+//            if isBeingScheduled {
+//                ProgressView()
+//                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+//                    .frame(width: 23, height: 23)
+//            } else {
+//                Text("at \(airtime.toBeautifulString())")
+//                    .font(.system(size: 11))
+//                    .foregroundColor(.gray)
+//            }
+//
+//            // Reorder handle
+//            Image("myScheduleCellHandle")
+//                .padding(.trailing, 10)
+//        }
+//        .frame(height: type == "commercial" ? 33 : 45)
+//        .background(type == "commercial" ? Color.black : Color(hex: "333333"))
+//    }
+//}
 
 // Enum to match the type string in AudioBlock
 enum AudioBlockType: String {
