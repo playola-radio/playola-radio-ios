@@ -18,7 +18,7 @@ class NavigationCoordinator: ViewModel {
     case about
     case listen
     case signIn
-    case myStation
+    case broadcast
   }
   var slideOutMenuIsShowing = false
   var activePath: Paths = .listen
@@ -26,7 +26,7 @@ class NavigationCoordinator: ViewModel {
   var aboutPath: [Path] = []
   var listenPath: [Path] = []
   var signInPath: [Path] = []
-  var myStationPath: [Path] = []
+  var broadcastPath: [Path] = []
 
   var path: [Path] {
     get {
@@ -40,8 +40,8 @@ class NavigationCoordinator: ViewModel {
         return aboutPath
       case .listen:
         return listenPath
-      case .myStation:
-        return myStationPath
+      case .broadcast:
+        return broadcastPath
       }
     }
     set {
@@ -52,8 +52,8 @@ class NavigationCoordinator: ViewModel {
         listenPath = newValue
       case .signIn:
         signInPath = newValue
-      case .myStation:
-        signInPath = newValue
+      case .broadcast:
+        broadcastPath = newValue
       }
     }
   }
@@ -63,5 +63,6 @@ class NavigationCoordinator: ViewModel {
     case aboutPage(AboutPageModel)
     case nowPlayingPage(NowPlayingPageModel)
     case signInPage(SignInPageModel)
+    case broadcast(BroadcastBaseModel)
   }
 }

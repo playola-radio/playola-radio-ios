@@ -129,7 +129,7 @@ struct StationListPage: View {
         .edgesIgnoringSafeArea(.bottom)
         .padding(.bottom, 5)
       }
-    }
+    } 
     .navigationTitle(Text("Playola Radio"))
     .navigationBarTitleDisplayMode(.automatic)
     .navigationBarHidden(false)

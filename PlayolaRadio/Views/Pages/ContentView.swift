@@ -64,8 +64,8 @@ struct AppView: View {
                 .transition(.opacity) // Add smooth transition between views
             case .signIn:
               SignInPage(model: SignInPageModel())
-            case .myStation:
-              SignInPage(model: SignInPageModel())
+            case .broadcast:
+              BroadcastBasePage(model: BroadcastBaseModel())
             }
           }
           .navigationDestination(for: NavigationCoordinator.Path.self) { path in
@@ -78,6 +78,8 @@ struct AppView: View {
               NowPlayingView(model: model)
             case let .signInPage(model):
               SignInPage(model: model)
+            case let .broadcast(model: model):
+              BroadcastBasePage(model: model)
             }
           }
         }

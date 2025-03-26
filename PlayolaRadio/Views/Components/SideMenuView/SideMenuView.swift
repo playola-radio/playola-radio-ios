@@ -15,7 +15,7 @@ class SideMenuViewModel: ViewModel {
     if user?.stations?.first != nil {
         return SideMenuRowType.allCases
       }
-      return SideMenuRowType.allCases.filter { $0 != .myStation }
+      return SideMenuRowType.allCases.filter { $0 != .broadcast }
     }
 
   init(navigationCoordinator: NavigationCoordinator = .shared,
@@ -48,8 +48,8 @@ class SideMenuViewModel: ViewModel {
           return .listen
         case .signIn:
           return .listen
-        case .myStation:
-          return .about
+        case .broadcast:
+          return .broadcast
         }
       }
       set {
@@ -59,9 +59,8 @@ class SideMenuViewModel: ViewModel {
             self.navigationCoordinator.activePath = .about
           case .listen:
             self.navigationCoordinator.activePath = .listen
-          case .myStation:
-            // TODO: Add navigation to my station screen
-            break
+          case .broadcast:
+            self.navigationCoordinator.activePath = .broadcast
           }
         }
       }
@@ -83,7 +82,7 @@ class SideMenuViewModel: ViewModel {
 enum SideMenuRowType: Int, CaseIterable, Equatable {
   case listen = 0
   case about
-  case myStation
+  case broadcast
 
   var title: String{
     switch self {
@@ -91,8 +90,8 @@ enum SideMenuRowType: Int, CaseIterable, Equatable {
       return "Listen"
     case .about:
       return "About"
-    case .myStation:
-      return "My Station"
+    case .broadcast:
+      return "Broadcast"
     }
   }
 
@@ -102,7 +101,7 @@ enum SideMenuRowType: Int, CaseIterable, Equatable {
       return "headphones"
     case .about:
       return "info.circle"
-    case .myStation:
+    case .broadcast:
       return "antenna.radiowaves.left.and.right"
     }
   }
