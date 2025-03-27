@@ -8,12 +8,25 @@
 import Combine
 import SwiftUI
 import PlayolaPlayer
+import Dependencies
 
 @MainActor
 @Observable
 class ScheduleEditorModel: ViewModel {
-  var stagingAreaAudioBlocks: [AudioBlock] = [.mock]
-  var schedule:Schedule = .mock
+  var station: Station
+  var stagingAreaAudioBlocks: [AudioBlock] = []
+  var schedule: Schedule? = .mock
+
+  @ObservationIgnored
+  @Dependency(APIClient.self) var apiClient
+  
+  public init(station: Station) {
+    self.station = station
+    super.init()
+    Task {
+      self.schedule = try await apiClient.fetchSchedule(stationId: station.id)
+    }
+  }
 }
 
 @MainActor
@@ -55,13 +68,13 @@ struct ScheduleEditorView: View {
                         .background(.black)
                     }
 
-                  if let nowPlaying = model.schedule.nowPlaying {
+                  if let nowPlaying = model.schedule?.nowPlaying {
                     ScheduleNowPlayingView(spin: nowPlaying)
                   }
 
 
                     List {
-                        ForEach(model.schedule.current, id: \.self) { spin in
+                        ForEach(model.schedule?.current ?? [], id: \.self) { spin in
                           ScheduleCellView(model: .init(spin: spin))
 //                                .onDrag { NSItemProvider(object: spin.id as NSString) }
                         }
@@ -147,7 +160,7 @@ struct ScheduleEditorView_Previews: PreviewProvider {
     static var previews: some View {
       ZStack {
         Color.black
-        ScheduleEditorView(model: .init())
+        ScheduleEditorView(model: .init(station: .mock))
       }
     }
 }

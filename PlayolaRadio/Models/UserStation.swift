@@ -5,9 +5,9 @@
 //  Created by Brian D Keane on 3/5/25.
 //
 
-struct UserStation: Codable {
-  let id: String
-  let stationId: String
-  let userId: String
-  let role: String
+public struct UserStation: Codable, Sendable {
+  public let id: String
+  public let stationId: String
+  public let userId: String
+  public let role: String
 }

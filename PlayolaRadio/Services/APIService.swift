@@ -9,10 +9,12 @@ import Foundation
 import Alamofire
 import PlayolaPlayer
 import Sharing
+import Dependencies
 
 public enum APIError: Error {
   case networkError(Error)
   case decodingError(Error)
+  case unauthorized
   case invalidResponse
   case serverError(Int)
   case other(Error)
@@ -27,15 +29,15 @@ public enum APIError: Error {
       return "Invalid server response"
     case .serverError(let code):
       return "Server error with code: \(code)"
+    case .unauthorized:
+      return "You must be signed in for this request."
     case .other(let error):
       return "Error: \(error.localizedDescription)"
     }
   }
 }
 
-public actor APIService {
-  public static let shared = APIService()
-
+public actor APIClient {
   private let baseURL = "https://admin-api.playola.fm/v1"
   private let defaultHeaders: HTTPHeaders = [
     "Content-Type": "application/json",
@@ -46,9 +48,7 @@ public actor APIService {
   private var authToken: String? {
     return auth.jwt
   }
-
-  private init() {}
-
+  
   // Get headers including authentication token if available
   private var headers: HTTPHeaders {
     var headers = defaultHeaders
@@ -83,6 +83,28 @@ public actor APIService {
       throw mapToAPIError(error)
     }
   }
+
+  /// Fetch stations for a user
+  /// - Parameter userId: The ID of the user
+  /// - Returns: An array of Station objects
+  public func fetchUserStations(userId: String) async throws -> [Station] {
+      guard authToken != nil else {
+          throw APIError.unauthorized
+      }
+
+      let urlString = "\(baseURL)/users/\(userId)/stations"
+
+      do {
+          // Make the network request
+          return try await performRequest(
+              urlString: urlString,
+              method: .get
+          )
+      } catch {
+          throw mapToAPIError(error)
+      }
+  }
+
 
   // MARK: - Private Helper Methods
 
@@ -138,4 +160,8 @@ public actor APIService {
     }
     return .other(error)
   }
+}
+
+extension APIClient: DependencyKey {
+  public static let liveValue = APIClient()
 }
