@@ -27,6 +27,8 @@ struct AppView: View {
   @Bindable var navigationCoordinator: NavigationCoordinator
   @Shared(.auth) var auth
 
+  let broadcastBaseModel = BroadcastBaseModel()
+
   // Add animation configuration
   private let menuTransitionAnimation = Animation.interactiveSpring(
     response: 0.5,
@@ -65,7 +67,7 @@ struct AppView: View {
             case .signIn:
               SignInPage(model: SignInPageModel())
             case .broadcast:
-              BroadcastBasePage(model: BroadcastBaseModel())
+              BroadcastBasePage(model: broadcastBaseModel)
             }
           }
           .navigationDestination(for: NavigationCoordinator.Path.self) { path in
