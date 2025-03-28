@@ -24,7 +24,7 @@ enum SideMenuViewModelTests {
         viewModel.user = userWithStation
 
         let menuItems = viewModel.menuItems
-        #expect(menuItems.contains(.myStation))
+        #expect(menuItems.contains(.broadcast))
       }
 
       @Test("Hides My Station menu item when user has no station")
@@ -36,7 +36,7 @@ enum SideMenuViewModelTests {
         viewModel.user = userWithoutStation
 
         let menuItems = viewModel.menuItems
-        #expect(!menuItems.contains(.myStation))
+        #expect(!menuItems.contains(.broadcast))
       }
     }
 

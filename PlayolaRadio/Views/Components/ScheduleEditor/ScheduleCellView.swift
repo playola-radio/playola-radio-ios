@@ -31,7 +31,7 @@ struct ScheduleCellView: View {
     var body: some View {
         HStack {
           switch model.spin.audioBlock?.type {
-            case "commercial":
+            case "commercialblock":
                 Image("greedyFace")
                     .resizable()
                     .frame(width: 45.0, height: 33.0)
@@ -121,10 +121,11 @@ struct ScheduleCellView: View {
                 .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 10))
         }
         .edgesIgnoringSafeArea(.all)
-        .background(model.spin.audioBlock?.type == "commercial" ? Color.black : Color(hex: "333333"))
+        .background(model.spin.audioBlock?.type == "commercialblock" ? Color.black : Color(hex: "333333"))
         .padding(.zero)
         .listRowInsets(EdgeInsets())
-        .frame(height: model.spin.audioBlock?.type == "commercial" ? 33 : 45)
+        .frame(height: model.spin.audioBlock?.type == "commercialblock" ? 33 : 45)
+        .listRowSeparator(.hidden)
     }
 }
 

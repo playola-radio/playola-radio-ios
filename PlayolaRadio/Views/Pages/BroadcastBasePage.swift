@@ -57,7 +57,7 @@ class BroadcastBaseModel: ViewModel {
 
       if (self.stations.count >= 1) {
         print("Setting selectedStation to: \(self.stations[0].id)")
-        selectedStation = self.stations[0]
+        selectedStation = self.stations.first { $0.id == "f3864734-de35-414f-b0b3-e6909b0b77bd" }
         print("selectedStation now set to: \(selectedStation?.id ?? "nil") on \(self.id)")
       } else {
         print("No stations found")
@@ -114,7 +114,7 @@ struct BroadcastBasePage: View {
     .alert(item: $model.presentedAlert) { alert in
       alert.alert
     }
-    .navigationTitle("My Station")
+    .navigationTitle(model.selectedStation?.name ?? "My Station")
     .navigationBarTitleDisplayMode(.inline)
     .toolbar(content: {
       ToolbarItem(placement: .topBarLeading) {

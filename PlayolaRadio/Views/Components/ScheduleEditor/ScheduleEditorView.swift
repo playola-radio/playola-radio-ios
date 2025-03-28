@@ -15,7 +15,7 @@ import Dependencies
 class ScheduleEditorModel: ViewModel {
   var station: Station
   var stagingAreaAudioBlocks: [AudioBlock] = []
-  var schedule: Schedule? = .mock
+  var schedule: Schedule? = nil
 
   @ObservationIgnored
   @Dependency(APIClient.self) var apiClient
@@ -23,8 +23,12 @@ class ScheduleEditorModel: ViewModel {
   public init(station: Station) {
     self.station = station
     super.init()
-    Task {
+  }
+  func viewAppeared() async {
+    do {
       self.schedule = try await apiClient.fetchSchedule(stationId: station.id)
+    } catch (let err) {
+      print("error downloading schedule: \(err)")
     }
   }
 }
@@ -74,7 +78,7 @@ struct ScheduleEditorView: View {
 
 
                     List {
-                        ForEach(model.schedule?.current ?? [], id: \.self) { spin in
+                      ForEach((model.schedule?.current ?? []).filter { $0 != model.schedule?.nowPlaying}, id: \.self) { spin in
                           ScheduleCellView(model: .init(spin: spin))
 //                                .onDrag { NSItemProvider(object: spin.id as NSString) }
                         }
@@ -87,10 +91,15 @@ struct ScheduleEditorView: View {
                     .frame(maxWidth: .infinity)
                     .edgesIgnoringSafeArea(.all)
                     .listStyle(.plain)
+                    .listRowSpacing(0)
                     .animation(.default)
                     Spacer()
                 }
             }
+        }.onAppear {
+          Task {
+            await model.viewAppeared()
+          }
         }
     }
 //
