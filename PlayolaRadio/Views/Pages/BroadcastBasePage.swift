@@ -11,7 +11,7 @@ import Sharing
 import Dependencies
 import PlayolaPlayer
 
-enum MyStationTab {
+enum BroadcastTab {
   case schedule
   case songs
 }
@@ -23,7 +23,7 @@ class BroadcastBaseModel: ViewModel {
 
   // MARK: - State
   var id = UUID()
-  var selectedTab: MyStationTab = .schedule
+  var selectedTab: BroadcastTab = .schedule
   var presentedAlert: PlayolaAlert?
   var stations: [Station] = []
   var selectedStation: Station?
@@ -38,7 +38,7 @@ class BroadcastBaseModel: ViewModel {
 
   init(navigationCoordinator: NavigationCoordinator = .shared,
        api: API = API(),
-       selectedTab: MyStationTab = .schedule) {
+       selectedTab: BroadcastTab = .schedule) {
     self.navigationCoordinator = navigationCoordinator
     self.api = api
     self.selectedTab = selectedTab
@@ -47,18 +47,14 @@ class BroadcastBaseModel: ViewModel {
 
   // MARK: - Actions
   func viewAppeared() async {
-    defer { print("setting isLoading to false"); self.isLoading = false }
+    defer { self.isLoading = false }
     isLoading = true
     do {
-      print("Fetching stations...")
       let stations = try await apiClient.fetchUserStations(userId: auth.jwtUser!.id)
       self.stations = stations
-      print("Stations fetched: \(self.stations.count)")
 
       if (self.stations.count >= 1) {
-        print("Setting selectedStation to: \(self.stations[0].id)")
         selectedStation = self.stations.first { $0.id == "f3864734-de35-414f-b0b3-e6909b0b77bd" }
-        print("selectedStation now set to: \(selectedStation?.id ?? "nil") on \(self.id)")
       } else {
         print("No stations found")
       }
@@ -71,7 +67,7 @@ class BroadcastBaseModel: ViewModel {
     navigationCoordinator.slideOutMenuIsShowing = true
   }
 
-  func selectTab(_ tab: MyStationTab) {
+  func selectTab(_ tab: BroadcastTab) {
     selectedTab = tab
   }
 }
@@ -85,8 +81,6 @@ extension PlayolaAlert {
     )
   }
 }
-
-import SwiftUI
 
 @MainActor
 struct BroadcastBasePage: View {
@@ -106,7 +100,7 @@ struct BroadcastBasePage: View {
         }
 
         // Custom Tab Bar
-        CustomTabBar(selectedTab: model.selectedTab) { tab in
+        BroadcastTabBar(selectedTab: model.selectedTab) { tab in
           model.selectTab(tab)
         }
       }
@@ -140,10 +134,8 @@ struct ScheduleTabView: View {
 
   var body: some View {
     if let selectedStation {
-      let _ = print("ScheduleTabView rendering with station: \(selectedStation.id)")
       BroadcastPage(model: BroadcastPageModel(station: selectedStation))
     } else {
-      let _ = print("ScheduleTabView rendering with NO station")
       Spacer()
       Text("No Selected Station")
         .foregroundStyle(.white)
@@ -169,60 +161,6 @@ struct SongsTabView: View {
 }
 
 // MARK: - Custom Tab Bar
-
-struct CustomTabBar: View {
-  var selectedTab: MyStationTab
-  var onTabSelected: (MyStationTab) -> Void
-
-  var body: some View {
-    HStack(spacing: 0) {
-      TabButton(
-        title: "Schedule",
-        systemImage: "calendar",
-        isSelected: selectedTab == .schedule,
-        action: { onTabSelected(.schedule) }
-      )
-
-      TabButton(
-        title: "Songs",
-        systemImage: "music.note.list",
-        isSelected: selectedTab == .songs,
-        action: { onTabSelected(.songs) }
-      )
-    }
-    .frame(height: 60)
-    .background(Color(hex: "#1C1C1E"))
-    .edgesIgnoringSafeArea(.bottom)
-  }
-}
-
-struct TabButton: View {
-  var title: String
-  var systemImage: String
-  var isSelected: Bool
-  var action: () -> Void
-
-  var body: some View {
-    Button(action: action) {
-      VStack(spacing: 4) {
-        Image(systemName: systemImage)
-          .font(.system(size: 24))
-
-        Text(title)
-          .font(.system(size: 12))
-      }
-      .foregroundColor(isSelected ? .white : .gray)
-      .frame(maxWidth: .infinity)
-      .padding(.vertical, 8)
-    }
-    .background(
-      isSelected ?
-      Color.playolaLightPurple.opacity(0.2) :
-        Color.clear
-    )
-  }
-}
-
 #Preview {
   NavigationStack {
     BroadcastBasePage(model: BroadcastBaseModel())

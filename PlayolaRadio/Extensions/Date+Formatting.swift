@@ -7,9 +7,9 @@
 import Foundation
 
 extension Date {
-  func toBeautifulString() -> String {
+  func toBeautifulStringWithSecs() -> String {
     let formatter = DateFormatter()
-    formatter.dateFormat = "h:mm a"
+    formatter.dateFormat = "h:mm:ss a"
     return formatter.string(from: self)
   }
 }

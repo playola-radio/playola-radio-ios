@@ -64,11 +64,11 @@
 		D35E43DA2D78EE4600A1BD20 /* UserStation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35E43D92D78EE4400A1BD20 /* UserStation.swift */; };
 		D363EC9F2D94A70F001FD05B /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363EC9E2D94A705001FD05B /* APIService.swift */; };
 		D363ECA12D96E915001FD05B /* Date+Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363ECA02D96E912001FD05B /* Date+Formatting.swift */; };
+		D363ECA32D96EA13001FD05B /* BroadcastTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363ECA22D96E9FB001FD05B /* BroadcastTabBar.swift */; };
 		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
 		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
 		D3AD1CAB2D943A4D00E4FA22 /* BroadcastBasePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AD1CAA2D943A3F00E4FA22 /* BroadcastBasePage.swift */; };
-		D3AD1CAD2D943AB600E4FA22 /* SelectStationsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AD1CAC2D943AA500E4FA22 /* SelectStationsPage.swift */; };
 		D3AD1CAF2D94437B00E4FA22 /* BroadcastPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AD1CAE2D94437500E4FA22 /* BroadcastPage.swift */; };
 		D3AD1CB22D945DCC00E4FA22 /* ScheduleNowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AD1CB12D945DC200E4FA22 /* ScheduleNowPlayingView.swift */; };
 		D3B662682D3F58E700975D2F /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3B662672D3F58E700975D2F /* FRadioPlayer */; };
@@ -154,9 +154,9 @@
 		D35E43D92D78EE4400A1BD20 /* UserStation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserStation.swift; sourceTree = "<group>"; };
 		D363EC9E2D94A705001FD05B /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 		D363ECA02D96E912001FD05B /* Date+Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Formatting.swift"; sourceTree = "<group>"; };
+		D363ECA22D96E9FB001FD05B /* BroadcastTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastTabBar.swift; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
 		D3AD1CAA2D943A3F00E4FA22 /* BroadcastBasePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastBasePage.swift; sourceTree = "<group>"; };
-		D3AD1CAC2D943AA500E4FA22 /* SelectStationsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectStationsPage.swift; sourceTree = "<group>"; };
 		D3AD1CAE2D94437500E4FA22 /* BroadcastPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPage.swift; sourceTree = "<group>"; };
 		D3AD1CB12D945DC200E4FA22 /* ScheduleNowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleNowPlayingView.swift; sourceTree = "<group>"; };
 		D3B662692D40103800975D2F /* SignInPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPage.swift; sourceTree = "<group>"; };
@@ -277,7 +277,6 @@
 			isa = PBXGroup;
 			children = (
 				D3AD1CAE2D94437500E4FA22 /* BroadcastPage.swift */,
-				D3AD1CAC2D943AA500E4FA22 /* SelectStationsPage.swift */,
 				D3AD1CAA2D943A3F00E4FA22 /* BroadcastBasePage.swift */,
 				D3B662772D41B10600975D2F /* SignInPage */,
 				D3137DCB2D3A9F9E0070033A /* NowPlayingPage */,
@@ -291,6 +290,7 @@
 		D339E55D2BFD0FC200B9E35B /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				D363ECA22D96E9FB001FD05B /* BroadcastTabBar.swift */,
 				D3AD1CB02D945DB700E4FA22 /* ScheduleEditor */,
 				D34D5C372D71062E00148048 /* SideMenuView */,
 				D3137DCE2D3AA1E10070033A /* PlayolaSheet.swift */,
@@ -568,6 +568,7 @@
 				D3B6626A2D40103C00975D2F /* SignInPage.swift in Sources */,
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
 				D339E5622BFD0FD800B9E35B /* NowPlayingSmallView.swift in Sources */,
+				D363ECA32D96EA13001FD05B /* BroadcastTabBar.swift in Sources */,
 				D3137DBB2D3976580070033A /* PlayolaAlert.swift in Sources */,
 				D339E5652BFD0FD800B9E35B /* NowPlayingEqAnimation.swift in Sources */,
 				D335ECA02D94877F00CC6A10 /* ScheduleEditorView.swift in Sources */,
@@ -591,7 +592,6 @@
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
 				D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */,
 				D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */,
-				D3AD1CAD2D943AB600E4FA22 /* SelectStationsPage.swift in Sources */,
 				D339E5632BFD0FD800B9E35B /* AirPlayView.swift in Sources */,
 				D35E43D82D78EDAF00A1BD20 /* Station.swift in Sources */,
 				D35E43D62D78ED7600A1BD20 /* User.swift in Sources */,

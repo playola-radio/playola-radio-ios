@@ -68,6 +68,7 @@ class StationPlayer: ObservableObject {
   // MARK: Public Interface
   
   public func play(station: RadioStation) {
+    print("PLAYING STATION: \(station.id)")
     guard currentStation != station else { return }
     stop()
     state = State(playbackStatus: .loading(station))
