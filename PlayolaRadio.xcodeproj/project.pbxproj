@@ -88,6 +88,11 @@
 		D3F6BB6B2D9EC86100F05C4D /* SignInPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB6A2D9EC85D00F05C4D /* SignInPageModel.swift */; };
 		D3F6BB6D2D9EC8B900F05C4D /* NowPlayingPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB6C2D9EC8B400F05C4D /* NowPlayingPageModel.swift */; };
 		D3F6BB6F2D9EC92500F05C4D /* StationListPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB6E2D9EC92200F05C4D /* StationListPageModel.swift */; };
+		D3F6BB712D9EC9B400F05C4D /* AboutPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB702D9EC9B200F05C4D /* AboutPageModel.swift */; };
+		D3F6BB742D9ED5F800F05C4D /* BroadcastBaseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB732D9ED5F500F05C4D /* BroadcastBaseModel.swift */; };
+		D3F6BB772D9ED63E00F05C4D /* BroadcastStationSelectionPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB762D9ED63800F05C4D /* BroadcastStationSelectionPageModel.swift */; };
+		D3F6BB792D9ED64800F05C4D /* BroadcastStationSelectionPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB782D9ED64200F05C4D /* BroadcastStationSelectionPage.swift */; };
+		D3F6BB7C2D9ED7EA00F05C4D /* BroadcastStationSelectionRowContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB7B2D9ED7DB00F05C4D /* BroadcastStationSelectionRowContent.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -177,6 +182,11 @@
 		D3F6BB6A2D9EC85D00F05C4D /* SignInPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageModel.swift; sourceTree = "<group>"; };
 		D3F6BB6C2D9EC8B400F05C4D /* NowPlayingPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingPageModel.swift; sourceTree = "<group>"; };
 		D3F6BB6E2D9EC92200F05C4D /* StationListPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPageModel.swift; sourceTree = "<group>"; };
+		D3F6BB702D9EC9B200F05C4D /* AboutPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutPageModel.swift; sourceTree = "<group>"; };
+		D3F6BB732D9ED5F500F05C4D /* BroadcastBaseModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastBaseModel.swift; sourceTree = "<group>"; };
+		D3F6BB762D9ED63800F05C4D /* BroadcastStationSelectionPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastStationSelectionPageModel.swift; sourceTree = "<group>"; };
+		D3F6BB782D9ED64200F05C4D /* BroadcastStationSelectionPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastStationSelectionPage.swift; sourceTree = "<group>"; };
+		D3F6BB7B2D9ED7DB00F05C4D /* BroadcastStationSelectionRowContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastStationSelectionRowContent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -242,6 +252,7 @@
 		D3137DCD2D3A9FD20070033A /* AboutPage */ = {
 			isa = PBXGroup;
 			children = (
+				D3F6BB702D9EC9B200F05C4D /* AboutPageModel.swift */,
 				D339E5752BFD419400B9E35B /* AboutPage.swift */,
 				D3137DBC2D397FBA0070033A /* AboutPageTests.swift */,
 			);
@@ -289,8 +300,9 @@
 		D339E55C2BFD0FB000B9E35B /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				D3F6BB752D9ED62700F05C4D /* BroadcastStationSelectionPage */,
 				D3F6BB652D9EB6BF00F05C4D /* BroadcastPage */,
-				D3AD1CAA2D943A3F00E4FA22 /* BroadcastBasePage.swift */,
+				D3F6BB722D9ED5EB00F05C4D /* BroadcastBasePage */,
 				D3B662772D41B10600975D2F /* SignInPage */,
 				D3137DCB2D3A9F9E0070033A /* NowPlayingPage */,
 				D3536A062BFA4F49006942D6 /* AppView.swift */,
@@ -456,6 +468,33 @@
 			path = BroadcastPage;
 			sourceTree = "<group>";
 		};
+		D3F6BB722D9ED5EB00F05C4D /* BroadcastBasePage */ = {
+			isa = PBXGroup;
+			children = (
+				D3F6BB732D9ED5F500F05C4D /* BroadcastBaseModel.swift */,
+				D3AD1CAA2D943A3F00E4FA22 /* BroadcastBasePage.swift */,
+			);
+			path = BroadcastBasePage;
+			sourceTree = "<group>";
+		};
+		D3F6BB752D9ED62700F05C4D /* BroadcastStationSelectionPage */ = {
+			isa = PBXGroup;
+			children = (
+				D3F6BB7A2D9ED7C300F05C4D /* PrivateComponents */,
+				D3F6BB782D9ED64200F05C4D /* BroadcastStationSelectionPage.swift */,
+				D3F6BB762D9ED63800F05C4D /* BroadcastStationSelectionPageModel.swift */,
+			);
+			path = BroadcastStationSelectionPage;
+			sourceTree = "<group>";
+		};
+		D3F6BB7A2D9ED7C300F05C4D /* PrivateComponents */ = {
+			isa = PBXGroup;
+			children = (
+				D3F6BB7B2D9ED7DB00F05C4D /* BroadcastStationSelectionRowContent.swift */,
+			);
+			path = PrivateComponents;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -599,6 +638,8 @@
 				D3F6BB6F2D9EC92500F05C4D /* StationListPageModel.swift in Sources */,
 				D335ECA02D94877F00CC6A10 /* ScheduleEditorView.swift in Sources */,
 				D35673B02D3DC55900E4E926 /* CarPlaySceneDelegate.swift in Sources */,
+				D3F6BB742D9ED5F800F05C4D /* BroadcastBaseModel.swift in Sources */,
+				D3F6BB7C2D9ED7EA00F05C4D /* BroadcastStationSelectionRowContent.swift in Sources */,
 				D35673C32D3E872600E4E926 /* CPListItem+InitWithRemoteUrl.swift in Sources */,
 				D3AD1CAF2D94437B00E4FA22 /* BroadcastPage.swift in Sources */,
 				D339E57E2BFD750700B9E35B /* MailService.swift in Sources */,
@@ -614,6 +655,7 @@
 				D3AD1CAB2D943A4D00E4FA22 /* BroadcastBasePage.swift in Sources */,
 				D335ECA42D948CBB00CC6A10 /* ScheduleCellView.swift in Sources */,
 				D3137DD22D3ABB520070033A /* GenericNowPlaying.swift in Sources */,
+				D3F6BB712D9EC9B400F05C4D /* AboutPageModel.swift in Sources */,
 				D3361FE42D6E980000A859FF /* SideMenuView.swift in Sources */,
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
 				D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */,
@@ -636,6 +678,8 @@
 				D339E5692BFD1C0800B9E35B /* API.swift in Sources */,
 				D3AD1CB22D945DCC00E4FA22 /* ScheduleNowPlayingView.swift in Sources */,
 				D35673B42D3DC6D100E4E926 /* TrackingService.swift in Sources */,
+				D3F6BB772D9ED63E00F05C4D /* BroadcastStationSelectionPageModel.swift in Sources */,
+				D3F6BB792D9ED64800F05C4D /* BroadcastStationSelectionPage.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

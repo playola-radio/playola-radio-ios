@@ -8,6 +8,7 @@
 import Foundation
 import MessageUI
 
+@MainActor
 public class MailService {
     func canSendEmail() async -> Bool {
         await MFMailComposeViewController.canSendMail()
