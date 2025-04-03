@@ -48,7 +48,7 @@ class SideMenuViewModel: ViewModel {
           return .listen
         case .signIn:
           return .listen
-        case .broadcast:
+        case .broadcastBase:
           return .broadcast
         }
       }
@@ -60,7 +60,7 @@ class SideMenuViewModel: ViewModel {
           case .listen:
             self.navigationCoordinator.activePath = .listen
           case .broadcast:
-            self.navigationCoordinator.activePath = .broadcast
+            self.navigationCoordinator.activePath = .broadcastBase
           }
         }
       }

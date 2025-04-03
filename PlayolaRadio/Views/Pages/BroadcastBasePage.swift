@@ -25,8 +25,8 @@ class BroadcastBaseModel: ViewModel {
   var id = UUID()
   var selectedTab: BroadcastTab = .schedule
   var presentedAlert: PlayolaAlert?
-  var stations: [Station] = []
-  var selectedStation: Station?
+  var stations: [PlayolaPlayer.Station] = []
+  var selectedStation: PlayolaPlayer.Station?
   var isLoading: Bool = false
 
   // MARK: - Dependencies
@@ -94,7 +94,7 @@ struct BroadcastBasePage: View {
       VStack(spacing: 0) {
         // Main content area based on selected tab
         if model.selectedTab == .schedule {
-          ScheduleTabView(selectedStation: $model.selectedStation)
+          ScheduleTabView(selectedStation: $model.selectedStation, stations: model.stations)
         } else {
           SongsTabView()
         }
@@ -108,8 +108,7 @@ struct BroadcastBasePage: View {
     .alert(item: $model.presentedAlert) { alert in
       alert.alert
     }
-    .navigationTitle(model.selectedStation?.name ?? "My Station")
-    .navigationBarTitleDisplayMode(.inline)
+
     .toolbar(content: {
       ToolbarItem(placement: .topBarLeading) {
         Image(systemName: "line.3.horizontal")
@@ -129,19 +128,116 @@ struct BroadcastBasePage: View {
 // MARK: - Tab Views
 // Simple placeholder tab views
 
+@MainActor
+@Observable
+class StationSelectionModel: ViewModel {
+    let stations: [PlayolaPlayer.Station]
+    private let navigationCoordinator: NavigationCoordinator
+
+    init(stations: [PlayolaPlayer.Station],
+         navigationCoordinator: NavigationCoordinator = .shared) {
+        self.stations = stations
+        self.navigationCoordinator = navigationCoordinator
+        super.init()
+    }
+
+    func stationSelected(_ station: PlayolaPlayer.Station) {
+      navigationCoordinator.path.append(.broadcastPage(BroadcastPageModel(station: station)))
+    }
+}
+
 struct ScheduleTabView: View {
-  @Binding var selectedStation: Station?
+  @Binding var selectedStation: PlayolaPlayer.Station?
+  let stations: [PlayolaPlayer.Station]
 
   var body: some View {
-    if let selectedStation {
-      BroadcastPage(model: BroadcastPageModel(station: selectedStation))
-    } else {
+    Group {
+      if stations.isEmpty {
+        EmptyStateView()
+      } else if stations.count == 1 {
+        BroadcastPage(model: BroadcastPageModel(station: stations[0]))
+      } else {
+        StationSelectionList(model: StationSelectionModel(stations: stations))
+      }
+    }
+  }
+}
+
+private struct StationSelectionList: View {
+    @Bindable var model: StationSelectionModel
+
+    var body: some View {
+        ScrollView {
+            stationList
+        }
+        .navigationTitle("Select a Station")
+        .navigationBarTitleDisplayMode(.inline)
+        .background(Color.black)
+    }
+
+    private var stationList: some View {
+        LazyVStack(spacing: 12) {
+            ForEach(model.stations, id: \.id) { station in
+                stationRow(for: station)
+            }
+        }
+        .padding()
+    }
+
+    private func stationRow(for station: PlayolaPlayer.Station) -> some View {
+        Button {
+            model.stationSelected(station)
+        } label: {
+            StationRowContent(station: station)
+        }
+    }
+}
+
+private struct EmptyStateView: View {
+  var body: some View {
+    VStack {
       Spacer()
-      Text("No Selected Station")
+      Text("No Stations Available")
         .foregroundStyle(.white)
         .padding()
+      Text("Please contact support to create a station.")
+        .foregroundStyle(.gray)
+        .font(.subheadline)
       Spacer()
     }
+  }
+}
+
+private struct StationRowContent: View {
+  let station: PlayolaPlayer.Station
+
+  var body: some View {
+    HStack(spacing: 12) {
+      AsyncImage(url: station.imageUrl) { image in
+        image
+          .resizable()
+          .aspectRatio(contentMode: .fill)
+      } placeholder: {
+        Color.gray.opacity(0.3)
+      }
+      .frame(width: 60, height: 60)
+      .clipShape(RoundedRectangle(cornerRadius: 8))
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text("\(station.curatorName)'s \(station.name)")
+          .foregroundStyle(.white)
+          .font(.headline)
+      }
+
+      Spacer()
+
+      Image(systemName: "chevron.right")
+        .foregroundStyle(.gray)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding()
+    .background(Color.black.opacity(0.3))
+    .cornerRadius(8)
   }
 }
 

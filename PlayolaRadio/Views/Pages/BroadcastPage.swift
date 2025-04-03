@@ -121,6 +121,8 @@ struct BroadcastPage: View {
       }
 
     }
+    .navigationTitle(model.station.name)
+    .navigationBarTitleDisplayMode(.inline)
     .foregroundStyle(.white)
     .onAppear {
       Task {

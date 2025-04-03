@@ -66,7 +66,7 @@ struct AppView: View {
                 .transition(.opacity) // Add smooth transition between views
             case .signIn:
               SignInPage(model: SignInPageModel())
-            case .broadcast:
+            case .broadcastBase:
               BroadcastBasePage(model: broadcastBaseModel)
             }
           }
@@ -80,8 +80,10 @@ struct AppView: View {
               NowPlayingView(model: model)
             case let .signInPage(model):
               SignInPage(model: model)
-            case let .broadcast(model: model):
+            case let .broadcastBase(model: model):
               BroadcastBasePage(model: model)
+            case let .broadcastPage(model: model):
+              BroadcastPage(model: model)
             }
           }
         }
