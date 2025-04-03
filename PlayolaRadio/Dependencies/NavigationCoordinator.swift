@@ -20,15 +20,24 @@ class NavigationCoordinator: ViewModel {
         case signIn
         case broadcastBase
     }
+
+    enum BroadcastTabs {
+      case schedule
+      case songs
+      case none
+    }
     var slideOutMenuIsShowing = false
     var activePath: Paths = .listen
+    var activeBroadcastTab: BroadcastTabs = .none
 
     var aboutPath: [Path] = []
     var listenPath: [Path] = []
     var signInPath: [Path] = []
     var broadcastPath: [Path] = []
+    var broadcastScheduleTabPath: [Path] = []
+    var broadcastSongsTabPath: [Path] = []
 
-    @ObservationIgnored private lazy var broadcastBaseModel: BroadcastBaseModel = BroadcastBaseModel(navigationCoordinator: self)
+  @ObservationIgnored lazy var broadcastStationSelectionPageModel = BroadcastStationSelectionPageModel()
 
     override init() {
         super.init()
@@ -52,7 +61,14 @@ class NavigationCoordinator: ViewModel {
             case .listen:
                 return listenPath
             case .broadcastBase:
+              switch self.activeBroadcastTab {
+              case .schedule:
+                return broadcastScheduleTabPath
+              case .songs:
+                return broadcastSongsTabPath
+              case .none:
                 return broadcastPath
+              }
             }
         }
         set {
@@ -84,7 +100,7 @@ class NavigationCoordinator: ViewModel {
                 case .signIn:
                     SignInPage(model: SignInPageModel())
                 case .broadcastBase:
-                    BroadcastBasePage(model: broadcastBaseModel)
+                  BroadcastStationSelectionPage(model: broadcastStationSelectionPageModel)
                 }
             }
             .navigationDestination(for: Path.self) { path in
@@ -101,6 +117,8 @@ class NavigationCoordinator: ViewModel {
                     BroadcastBasePage(model: model)
                 case let .broadcastPage(model: model):
                     BroadcastPage(model: model)
+                case let .broadcastStationSelectionPage(model: model):
+                  BroadcastStationSelectionPage(model: model)
                 }
             }
         }
@@ -114,5 +132,6 @@ class NavigationCoordinator: ViewModel {
         case signInPage(SignInPageModel)
         case broadcastBase(BroadcastBaseModel)
         case broadcastPage(BroadcastPageModel)
+        case broadcastStationSelectionPage(BroadcastStationSelectionPageModel)
     }
 }

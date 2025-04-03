@@ -7,8 +7,8 @@
 import SwiftUI
 
 struct BroadcastTabBar: View {
-  var selectedTab: BroadcastTab
-  var onTabSelected: (BroadcastTab) -> Void
+  var selectedTab: NavigationCoordinator.BroadcastTabs
+  var onTabSelected: (NavigationCoordinator.BroadcastTabs) -> Void
   
   var body: some View {
     HStack(spacing: 0) {

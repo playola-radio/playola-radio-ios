@@ -28,6 +28,7 @@ class NowPlayingPageModel: ViewModel {
          presentedSheet: PlayolaSheet? = nil)
     {
         self.stationPlayer = stationPlayer ?? StationPlayer.shared
+        self.navigationCoordinator = navigationCoordinator
         self.presentedSheet = presentedSheet
     }
 

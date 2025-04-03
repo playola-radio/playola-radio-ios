@@ -11,23 +11,20 @@ import Sharing
 import Dependencies
 import PlayolaPlayer
 
-enum BroadcastTab {
-  case schedule
-  case songs
-}
-
 @MainActor
 @Observable
 class BroadcastBaseModel: ViewModel {
   var disposeBag: Set<AnyCancellable> = Set()
+  var station: PlayolaPlayer.Station
+  var selectedTab: NavigationCoordinator.BroadcastTabs = .schedule {
+    didSet {
+      navigationCoordinator.activeBroadcastTab = selectedTab
+    }
+  }
 
   // MARK: - State
   var id = UUID()
-  var selectedTab: BroadcastTab = .schedule
   var presentedAlert: PlayolaAlert?
-  var stations: [PlayolaPlayer.Station] = []
-  var selectedStation: PlayolaPlayer.Station?
-  var isLoading: Bool = false
 
   // MARK: - Dependencies
   @ObservationIgnored @Shared(.currentUser) var currentUser: User?
@@ -37,37 +34,18 @@ class BroadcastBaseModel: ViewModel {
   var navigationCoordinator: NavigationCoordinator!
 
   @MainActor
-  init(selectedTab: BroadcastTab = .schedule,
-       navigationCoordinator: NavigationCoordinator = .shared) {
-    self.selectedTab = selectedTab
+  init(station: PlayolaPlayer.Station, navigationCoordinator: NavigationCoordinator = .shared) {
+    self.station = station
     self.navigationCoordinator = navigationCoordinator
     super.init()
   }
 
-  // MARK: - Actions
-  func viewAppeared() async {
-    defer { self.isLoading = false }
-    isLoading = true
-    do {
-      let stations = try await apiClient.fetchUserStations(userId: auth.jwtUser!.id)
-      self.stations = stations
-
-      if (self.stations.count >= 1) {
-        selectedStation = self.stations.first { $0.id == "f3864734-de35-414f-b0b3-e6909b0b77bd" }
-      } else {
-        print("No stations found")
-      }
-    } catch (let err) {
-      print("Error downloading stations: \(err)")
-    }
+  func selectTab(_ tab: NavigationCoordinator.BroadcastTabs) {
+    selectedTab = tab
   }
 
   func hamburgerButtonTapped() {
     navigationCoordinator.slideOutMenuIsShowing = true
-  }
-
-  func selectTab(_ tab: BroadcastTab) {
-    selectedTab = tab
   }
 }
 

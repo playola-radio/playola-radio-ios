@@ -16,8 +16,6 @@ struct AppView: View {
   @Bindable var navigationCoordinator: NavigationCoordinator = .shared
   @Shared(.auth) var auth
 
-  let broadcastBaseModel = BroadcastBaseModel()
-
   // Add animation configuration
   private let menuTransitionAnimation = Animation.interactiveSpring(
     response: 0.5,
