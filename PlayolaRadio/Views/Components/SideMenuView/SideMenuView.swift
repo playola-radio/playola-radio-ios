@@ -109,7 +109,7 @@ enum SideMenuRowType: Int, CaseIterable, Equatable {
 
 @MainActor
 struct SideMenuView: View {
-  var model: SideMenuViewModel
+  @Bindable var model: SideMenuViewModel
 
   private let menuAnimation = Animation.spring(response: 0.35, dampingFraction: 0.8, blendDuration: 0)
 

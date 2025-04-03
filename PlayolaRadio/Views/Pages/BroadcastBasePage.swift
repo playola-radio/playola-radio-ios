@@ -30,18 +30,17 @@ class BroadcastBaseModel: ViewModel {
   var isLoading: Bool = false
 
   // MARK: - Dependencies
-  @ObservationIgnored var navigationCoordinator: NavigationCoordinator
-  @ObservationIgnored var api: API
   @ObservationIgnored @Shared(.currentUser) var currentUser: User?
   @ObservationIgnored @Dependency(APIClient.self) var apiClient
   @ObservationIgnored @Shared(.auth) var auth: Auth
 
-  init(navigationCoordinator: NavigationCoordinator = .shared,
-       api: API = API(),
-       selectedTab: BroadcastTab = .schedule) {
-    self.navigationCoordinator = navigationCoordinator
-    self.api = api
+  var navigationCoordinator: NavigationCoordinator!
+
+  @MainActor
+  init(selectedTab: BroadcastTab = .schedule,
+       navigationCoordinator: NavigationCoordinator = .shared) {
     self.selectedTab = selectedTab
+    self.navigationCoordinator = navigationCoordinator
     super.init()
   }
 
@@ -132,12 +131,12 @@ struct BroadcastBasePage: View {
 @Observable
 class StationSelectionModel: ViewModel {
     let stations: [PlayolaPlayer.Station]
-    private let navigationCoordinator: NavigationCoordinator
 
-    init(stations: [PlayolaPlayer.Station],
-         navigationCoordinator: NavigationCoordinator = .shared) {
+  var navigationCoordinator: NavigationCoordinator!
+
+  init(stations: [PlayolaPlayer.Station], navigationCoordinator: NavigationCoordinator = .shared) {
         self.stations = stations
-        self.navigationCoordinator = navigationCoordinator
+    self.navigationCoordinator = navigationCoordinator
         super.init()
     }
 

@@ -15,24 +15,23 @@ import SwiftUI
 class SignInPageModel: ViewModel {
   @ObservationIgnored @Shared(.appleSignInInfo) var appleSignInInfo: AppleSignInInfo?
   @ObservationIgnored @Shared(.auth) var auth: Auth
-  var navigationCoordinator: NavigationCoordinator
+  var navigationCoordinator: NavigationCoordinator!
   var api: API
-  
-  init(navigationCoordinator: NavigationCoordinator = .shared,
-       api: API? = nil) {
-    self.navigationCoordinator = navigationCoordinator
+
+  init(api: API? = nil, navigationCoordinator: NavigationCoordinator = .shared) {
     self.api = api ?? API()
+    self.navigationCoordinator = navigationCoordinator
   }
-  
+
   // MARK: State
   var presentedAlert: PlayolaAlert?
-  
+
   // MARK: Actions
-  
+
   func signInWithAppleButtonTapped(request: ASAuthorizationAppleIDRequest) {
     request.requestedScopes = [.email, .fullName]
   }
-  
+
   func signInWithAppleCompleted(result: Result<ASAuthorization, any Error>) {
     switch result {
     case let .success(authorization):
@@ -45,7 +44,7 @@ class SignInPageModel: ViewModel {
         self.presentedAlert = PlayolaAlert.appleSignInError("Error decoding sign in info from Apple.")
         return
       }
-      
+
       // Cache the email if this is the first time.
       if appleIDCredential.user != appleSignInInfo?.appleUserId,
          let email = appleIDCredential.email {
@@ -57,13 +56,13 @@ class SignInPageModel: ViewModel {
           )
         }
       }
-      
+
       // Use the email from this sign in or from cache.
       guard let email = appleIDCredential.email ?? appleSignInInfo?.email else {
         self.presentedAlert = PlayolaAlert.appleSignInError("Error trying to sign in -- no email ever.")
         return
       }
-      
+
       Task { @MainActor in
         do {
           try await self.api.signInViaApple(identityToken: identityToken,
@@ -75,49 +74,49 @@ class SignInPageModel: ViewModel {
           self.presentedAlert = PlayolaAlert.appleSignInError("Error signing in via Apple: \(error.localizedDescription)")
         }
       }
-      
+
     case let .failure(error):
       self.presentedAlert = PlayolaAlert.appleSignInError(error.localizedDescription)
     }
   }
-  
+
   func signInWithGoogleButtonTapped() {
     // Obtain a valid presenting view controller.
     guard let presentingVC = UIApplication.shared.keyWindowPresentedController else {
       self.presentedAlert = .googleSignInError("No key window available for presenting view controller.")
       return
     }
-    
+
     GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { [weak self] signInResult, error in
       guard let self = self else { return }
-      
+
       if let error = error {
         self.presentedAlert = .googleSignInError(error.localizedDescription)
         return
       }
-      
+
       guard let signInResult = signInResult else {
         self.presentedAlert = .googleSignInError("signInResult is nil.")
         return
       }
-      
+
       print("Google sign in result: \(signInResult)")
-      
+
       // Refresh tokens if needed.
       signInResult.user.refreshTokensIfNeeded { [weak self] _, error in
         guard let self = self else { return }
-        
+
         if let error = error {
           self.presentedAlert = .googleSignInError("Error refreshing tokens: \(error.localizedDescription)")
           return
         }
-        
+
         guard let serverAuthCode = signInResult.serverAuthCode else {
           self.presentedAlert = .googleSignInError(
             "Error signing into Google -- no serverAuthCode on signInResult.")
           return
         }
-        
+
         Task { @MainActor in
           do {
             try await self.api.signInViaGoogle(code: serverAuthCode)
@@ -130,7 +129,7 @@ class SignInPageModel: ViewModel {
       }
     }
   }
-  
+
   func logOutButtonTapped() {
     $auth.withLock { $0 = Auth() }
     Task { try await API().revokeAppleCredentials(appleUserId: "000014.59c02331e3a642fd8bebedd86d191ed3.1758") }
@@ -145,7 +144,7 @@ extension PlayolaAlert {
       dismissButton: .cancel(Text("OK"))
     )
   }
-  
+
   static func appleSignInError(_ message: String) -> PlayolaAlert {
     return PlayolaAlert(
       title: "Error Signing In With Apple",
@@ -157,8 +156,8 @@ extension PlayolaAlert {
 
 @MainActor
 struct SignInPage: View {
-  var model: SignInPageModel
-  
+  @Bindable var model: SignInPageModel
+
   var body: some View {
     NavigationView {
       ZStack {
@@ -169,44 +168,44 @@ struct SignInPage: View {
           endPoint: .bottom
         )
         .edgesIgnoringSafeArea(.all)
-        
+
         VStack(spacing: 30) {
           Spacer()
-          
+
           // Logo section
           VStack(spacing: 15) {
             Image("LogoMark")
               .resizable()
               .scaledToFit()
               .frame(height: 80)
-            
+
             Image("PlayolaWordLogo")
               .resizable()
               .scaledToFit()
               .frame(width: 180)
           }
           .padding(.bottom, 40)
-          
+
           // Welcome text
           Text("Welcome to Playola")
             .font(.title)
             .fontWeight(.bold)
             .foregroundColor(.white)
-          
+
           Text("Sign in to access your personalized radio stations")
             .font(.subheadline)
             .foregroundColor(Color.white.opacity(0.7))
             .multilineTextAlignment(.center)
             .padding(.horizontal, 40)
             .padding(.bottom, 20)
-          
+
           if model.auth.isLoggedIn {
             // Logged in state
             VStack(spacing: 15) {
               Text("You're signed in")
                 .font(.headline)
                 .foregroundColor(.white)
-              
+
               Button {
                 model.logOutButtonTapped()
               } label: {
@@ -232,32 +231,32 @@ struct SignInPage: View {
               .frame(height: 56)
               .cornerRadius(12)
               .padding(.horizontal, 30)
-              
+
               CustomGoogleSignInButton {
                 model.signInWithGoogleButtonTapped()
               }
               .padding(.horizontal, 30)
             }
           }
-          
+
           Spacer()
-          
+
           // Footer
           VStack(spacing: 8) {
             Text("By signing in, you agree to our")
               .font(.footnote)
               .foregroundColor(Color.white.opacity(0.6))
-            
+
             HStack(spacing: 4) {
               Text("Terms of Service")
                 .font(.footnote)
                 .foregroundColor(.playolaRed)
                 .underline()
-              
+
               Text("and")
                 .font(.footnote)
                 .foregroundColor(Color.white.opacity(0.6))
-              
+
               Text("Privacy Policy")
                 .font(.footnote)
                 .foregroundColor(.playolaRed)
@@ -276,7 +275,7 @@ struct SignInPage: View {
 
 struct CustomGoogleSignInButton: View {
   let action: () -> Void
-  
+
   var body: some View {
     Button(action: action) {
       HStack {
@@ -284,7 +283,7 @@ struct CustomGoogleSignInButton: View {
           .resizable()
           .scaledToFit()
           .frame(width: 24, height: 24)
-        
+
         Text("Sign in with Google")
           .fontWeight(.semibold)
           .foregroundColor(.black)

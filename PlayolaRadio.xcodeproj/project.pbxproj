@@ -40,7 +40,7 @@
 		D34D5C362D7105EE00148048 /* SideMenuTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34D5C352D7105E100148048 /* SideMenuTests.swift */; };
 		D34D5C392D7106CD00148048 /* AuthServiceMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34D5C382D7106CA00148048 /* AuthServiceMock.swift */; };
 		D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */; };
-		D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A062BFA4F49006942D6 /* ContentView.swift */; };
+		D3536A072BFA4F49006942D6 /* AppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A062BFA4F49006942D6 /* AppView.swift */; };
 		D3536A092BFA4F4A006942D6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3536A082BFA4F4A006942D6 /* Assets.xcassets */; };
 		D3536A0C2BFA4F4A006942D6 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3536A0B2BFA4F4A006942D6 /* Preview Assets.xcassets */; };
 		D3536A302BFA5523006942D6 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = D3536A2F2BFA5523006942D6 /* ComposableArchitecture */; };
@@ -83,6 +83,8 @@
 		D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3CE19022D3C825C0091B888 /* PlayolaPlayer */; };
 		D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */; };
 		D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */; };
+		D3F6BB672D9EB6CC00F05C4D /* BroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB662D9EB6C900F05C4D /* BroadcastPageModel.swift */; };
+		D3F6BB692D9EB73C00F05C4D /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB682D9EB73900F05C4D /* ViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -129,7 +131,7 @@
 		D34D5C382D7106CA00148048 /* AuthServiceMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthServiceMock.swift; sourceTree = "<group>"; };
 		D3536A012BFA4F49006942D6 /* PlayolaRadio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PlayolaRadio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaRadioApp.swift; sourceTree = "<group>"; };
-		D3536A062BFA4F49006942D6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		D3536A062BFA4F49006942D6 /* AppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
 		D3536A082BFA4F4A006942D6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D3536A0B2BFA4F4A006942D6 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		D3536A112BFA4F4A006942D6 /* PlayolaRadioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlayolaRadioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -167,6 +169,8 @@
 		D3B662C22D4272ED00975D2F /* Secrets-Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Local.xcconfig"; sourceTree = "<group>"; };
 		D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserDefaults.swift; sourceTree = "<group>"; };
 		D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlStreamListeningSessionReporter.swift; sourceTree = "<group>"; };
+		D3F6BB662D9EB6C900F05C4D /* BroadcastPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageModel.swift; sourceTree = "<group>"; };
+		D3F6BB682D9EB73900F05C4D /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -254,6 +258,7 @@
 		D339E55A2BFD0CE200B9E35B /* Dependencies */ = {
 			isa = PBXGroup;
 			children = (
+				D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */,
 				D35673B32D3DC6CE00E4E926 /* TrackingService.swift */,
 				D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */,
 				D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */,
@@ -276,11 +281,11 @@
 		D339E55C2BFD0FB000B9E35B /* Pages */ = {
 			isa = PBXGroup;
 			children = (
-				D3AD1CAE2D94437500E4FA22 /* BroadcastPage.swift */,
+				D3F6BB652D9EB6BF00F05C4D /* BroadcastPage */,
 				D3AD1CAA2D943A3F00E4FA22 /* BroadcastBasePage.swift */,
 				D3B662772D41B10600975D2F /* SignInPage */,
 				D3137DCB2D3A9F9E0070033A /* NowPlayingPage */,
-				D3536A062BFA4F49006942D6 /* ContentView.swift */,
+				D3536A062BFA4F49006942D6 /* AppView.swift */,
 				D3137DCC2D3A9FAA0070033A /* StationListPage */,
 				D3137DCD2D3A9FD20070033A /* AboutPage */,
 			);
@@ -368,6 +373,7 @@
 		D3536A392BFA6520006942D6 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				D3F6BB682D9EB73900F05C4D /* ViewModel.swift */,
 				D363ECA02D96E912001FD05B /* Date+Formatting.swift */,
 				D3A276682D496282006055AF /* UIApplication+keyWindow.swift */,
 				D35673C22D3E871800E4E926 /* CPListItem+InitWithRemoteUrl.swift */,
@@ -417,7 +423,6 @@
 			children = (
 				D363EC9E2D94A705001FD05B /* APIService.swift */,
 				D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */,
-				D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */,
 				D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */,
 				D339E57D2BFD750700B9E35B /* MailService.swift */,
 			);
@@ -431,6 +436,15 @@
 				D3B662752D41B0C700975D2F /* SignInPageTests.swift */,
 			);
 			path = SignInPage;
+			sourceTree = "<group>";
+		};
+		D3F6BB652D9EB6BF00F05C4D /* BroadcastPage */ = {
+			isa = PBXGroup;
+			children = (
+				D3F6BB662D9EB6C900F05C4D /* BroadcastPageModel.swift */,
+				D3AD1CAE2D94437500E4FA22 /* BroadcastPage.swift */,
+			);
+			path = BroadcastPage;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -565,6 +579,7 @@
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
 				D35E43DA2D78EE4600A1BD20 /* UserStation.swift in Sources */,
+				D3F6BB692D9EB73C00F05C4D /* ViewModel.swift in Sources */,
 				D3B6626A2D40103C00975D2F /* SignInPage.swift in Sources */,
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
 				D339E5622BFD0FD800B9E35B /* NowPlayingSmallView.swift in Sources */,
@@ -598,10 +613,11 @@
 				D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */,
 				D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */,
 				D363ECA12D96E915001FD05B /* Date+Formatting.swift in Sources */,
+				D3F6BB672D9EB6CC00F05C4D /* BroadcastPageModel.swift in Sources */,
 				D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */,
 				D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */,
 				D3B662722D4161E100975D2F /* AppleSignInInfo.swift in Sources */,
-				D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */,
+				D3536A072BFA4F49006942D6 /* AppView.swift in Sources */,
 				D3137DC82D3A92EC0070033A /* NowPlayingPage.swift in Sources */,
 				D339E56D2BFD2FAB00B9E35B /* URLStreamPlayer.swift in Sources */,
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,

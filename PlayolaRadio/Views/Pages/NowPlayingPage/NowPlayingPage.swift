@@ -7,6 +7,7 @@
 
 import Combine
 import SwiftUI
+import Sharing
 
 @MainActor
 @Observable
@@ -21,19 +22,19 @@ class NowPlayingPageModel: ViewModel {
     var navigationBarTitle: String = ""
     var presentedSheet: PlayolaSheet?
 
+  var navigationCoordinator: NavigationCoordinator!
+
     init(stationPlayer: StationPlayer? = nil,
-         navigationCoordinator: NavigationCoordinator? = nil,
+         navigationCoordinator: NavigationCoordinator = .shared,
          presentedSheet: PlayolaSheet? = nil)
     {
         self.stationPlayer = stationPlayer ?? StationPlayer.shared
-        self.navigationCoordinator = navigationCoordinator ?? .shared
         self.presentedSheet = presentedSheet
     }
 
     // MARK: Dependencies
 
     @ObservationIgnored var stationPlayer: StationPlayer
-    @ObservationIgnored var navigationCoordinator: NavigationCoordinator
 
     func viewAppeared() {
         processNewStationState(stationPlayer.state)
@@ -88,6 +89,15 @@ class NowPlayingPageModel: ViewModel {
             nowPlayingArtist = "Error Playing Station"
             albumArtUrl = nil
         }
+    }
+}
+
+@MainActor
+struct NowPlayingPage: View {
+    @Bindable var model: NowPlayingPageModel
+
+    var body: some View {
+        NowPlayingView(model: model)
     }
 }
 
@@ -210,7 +220,7 @@ struct NowPlayingView: View {
             Color.black
                 .edgesIgnoringSafeArea(.all)
 
-            NowPlayingView(model: NowPlayingPageModel(
+            NowPlayingPage(model: NowPlayingPageModel(
                 stationPlayer: .shared))
         }
     }

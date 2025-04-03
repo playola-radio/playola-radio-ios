@@ -28,16 +28,15 @@ class StationListModel: ViewModel {
 
   @ObservationIgnored var api: API
   @ObservationIgnored var stationPlayer: StationPlayer
-  @ObservationIgnored var navigationCoordinator: NavigationCoordinator
+  var navigationCoordinator: NavigationCoordinator!
 
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
 
-  init(api: API? = nil, stationPlayer: StationPlayer? = nil,
-       navigationCoordinator: NavigationCoordinator? = nil)
+  init(api: API? = nil, stationPlayer: StationPlayer? = nil, navigationCoordinator: NavigationCoordinator = .shared)
   {
     self.api = api ?? API()
     self.stationPlayer = stationPlayer ?? StationPlayer.shared
-    self.navigationCoordinator = navigationCoordinator ?? NavigationCoordinator.shared
+    self.navigationCoordinator = navigationCoordinator
   }
 
   // MARK: Actions
@@ -129,7 +128,7 @@ struct StationListPage: View {
         .edgesIgnoringSafeArea(.bottom)
         .padding(.bottom, 5)
       }
-    } 
+    }
     .navigationTitle(Text("Playola Radio"))
     .navigationBarTitleDisplayMode(.automatic)
     .navigationBarHidden(false)
