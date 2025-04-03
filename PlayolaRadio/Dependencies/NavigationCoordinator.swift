@@ -87,7 +87,6 @@ class NavigationCoordinator: ViewModel {
 
     @ViewBuilder
     func createNavigationStack() -> some View {
-        // Create a Bindable wrapper for self since we're in a non-View context
         let binding = Bindable(self).path
 
         NavigationStack(path: binding) {

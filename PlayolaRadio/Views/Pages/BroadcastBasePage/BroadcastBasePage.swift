@@ -19,7 +19,7 @@ struct BroadcastBasePage: View {
       let _ = print("RENDERING BROADCASTBASEPAGE: \(model.id)")
       VStack(spacing: 0) {
           if model.selectedTab == .schedule {
-            BroadcastPage(model: BroadcastPageModel(station: model.station))
+            BroadcastPage(model: model.broadcastPageModel)
           } else {
             SongsTabView()
           }

@@ -54,6 +54,6 @@ class BroadcastStationSelectionPageModel: ViewModel {
   }
 
   func stationSelected(_ station: PlayolaPlayer.Station) {
-    navigationCoordinator.path.append(.broadcastPage(BroadcastPageModel(station: station)))
+    navigationCoordinator.path.append(.broadcastBase(BroadcastBaseModel(station: station)))
   }
 }

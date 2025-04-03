@@ -16,11 +16,8 @@ import PlayolaPlayer
 class BroadcastBaseModel: ViewModel {
   var disposeBag: Set<AnyCancellable> = Set()
   var station: PlayolaPlayer.Station
-  var selectedTab: NavigationCoordinator.BroadcastTabs = .schedule {
-    didSet {
-      navigationCoordinator.activeBroadcastTab = selectedTab
-    }
-  }
+  var selectedTab: NavigationCoordinator.BroadcastTabs = .schedule
+  var broadcastPageModel: BroadcastPageModel!
 
   // MARK: - State
   var id = UUID()
@@ -37,6 +34,7 @@ class BroadcastBaseModel: ViewModel {
   init(station: PlayolaPlayer.Station, navigationCoordinator: NavigationCoordinator = .shared) {
     self.station = station
     self.navigationCoordinator = navigationCoordinator
+    self.broadcastPageModel = BroadcastPageModel(station: station)
     super.init()
   }
 
