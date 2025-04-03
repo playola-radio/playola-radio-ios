@@ -85,6 +85,9 @@
 		D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */; };
 		D3F6BB672D9EB6CC00F05C4D /* BroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB662D9EB6C900F05C4D /* BroadcastPageModel.swift */; };
 		D3F6BB692D9EB73C00F05C4D /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB682D9EB73900F05C4D /* ViewModel.swift */; };
+		D3F6BB6B2D9EC86100F05C4D /* SignInPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB6A2D9EC85D00F05C4D /* SignInPageModel.swift */; };
+		D3F6BB6D2D9EC8B900F05C4D /* NowPlayingPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB6C2D9EC8B400F05C4D /* NowPlayingPageModel.swift */; };
+		D3F6BB6F2D9EC92500F05C4D /* StationListPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB6E2D9EC92200F05C4D /* StationListPageModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -171,6 +174,9 @@
 		D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlStreamListeningSessionReporter.swift; sourceTree = "<group>"; };
 		D3F6BB662D9EB6C900F05C4D /* BroadcastPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageModel.swift; sourceTree = "<group>"; };
 		D3F6BB682D9EB73900F05C4D /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
+		D3F6BB6A2D9EC85D00F05C4D /* SignInPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageModel.swift; sourceTree = "<group>"; };
+		D3F6BB6C2D9EC8B400F05C4D /* NowPlayingPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingPageModel.swift; sourceTree = "<group>"; };
+		D3F6BB6E2D9EC92200F05C4D /* StationListPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPageModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -216,6 +222,7 @@
 		D3137DCB2D3A9F9E0070033A /* NowPlayingPage */ = {
 			isa = PBXGroup;
 			children = (
+				D3F6BB6C2D9EC8B400F05C4D /* NowPlayingPageModel.swift */,
 				D3137DC72D3A92E70070033A /* NowPlayingPage.swift */,
 				D3137DC92D3A9F8E0070033A /* NowPlayingPageTests.swift */,
 			);
@@ -225,6 +232,7 @@
 		D3137DCC2D3A9FAA0070033A /* StationListPage */ = {
 			isa = PBXGroup;
 			children = (
+				D3F6BB6E2D9EC92200F05C4D /* StationListPageModel.swift */,
 				D339E5662BFD10AE00B9E35B /* StationListPage.swift */,
 				D3137DC12D39B4FC0070033A /* StationListPageTests.swift */,
 			);
@@ -432,6 +440,7 @@
 		D3B662772D41B10600975D2F /* SignInPage */ = {
 			isa = PBXGroup;
 			children = (
+				D3F6BB6A2D9EC85D00F05C4D /* SignInPageModel.swift */,
 				D3B662692D40103800975D2F /* SignInPage.swift */,
 				D3B662752D41B0C700975D2F /* SignInPageTests.swift */,
 			);
@@ -573,6 +582,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3F6BB6D2D9EC8B900F05C4D /* NowPlayingPageModel.swift in Sources */,
 				D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */,
 				D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */,
 				D363EC9F2D94A70F001FD05B /* APIService.swift in Sources */,
@@ -586,6 +596,7 @@
 				D363ECA32D96EA13001FD05B /* BroadcastTabBar.swift in Sources */,
 				D3137DBB2D3976580070033A /* PlayolaAlert.swift in Sources */,
 				D339E5652BFD0FD800B9E35B /* NowPlayingEqAnimation.swift in Sources */,
+				D3F6BB6F2D9EC92500F05C4D /* StationListPageModel.swift in Sources */,
 				D335ECA02D94877F00CC6A10 /* ScheduleEditorView.swift in Sources */,
 				D35673B02D3DC55900E4E926 /* CarPlaySceneDelegate.swift in Sources */,
 				D35673C32D3E872600E4E926 /* CPListItem+InitWithRemoteUrl.swift in Sources */,
@@ -608,6 +619,7 @@
 				D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */,
 				D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */,
 				D339E5632BFD0FD800B9E35B /* AirPlayView.swift in Sources */,
+				D3F6BB6B2D9EC86100F05C4D /* SignInPageModel.swift in Sources */,
 				D35E43D82D78EDAF00A1BD20 /* Station.swift in Sources */,
 				D35E43D62D78ED7600A1BD20 /* User.swift in Sources */,
 				D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */,

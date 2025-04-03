@@ -52,7 +52,7 @@ public class UrlStreamListeningSessionReporter {
       return
     }
 
-    var request = createPostRequest(url: url, jsonData: jsonData)
+    let request = createPostRequest(url: url, jsonData: jsonData)
     // Create a URLSession task to send the request
     let task = URLSession.shared.dataTask(with: request) { data, response, error in
       if let error = error {
@@ -87,7 +87,7 @@ public class UrlStreamListeningSessionReporter {
     }
 
     // Create the request
-    var request = createPostRequest(url: url, jsonData: jsonData)
+    let request = createPostRequest(url: url, jsonData: jsonData)
 
     // Create a URLSession task to send the request
     let task = URLSession.shared.dataTask(with: request) { data, response, error in
