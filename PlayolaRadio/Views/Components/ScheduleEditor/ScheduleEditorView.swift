@@ -41,6 +41,7 @@ class ScheduleEditorModel: ViewModel {
   }
 
   @ObservationIgnored private var cancellables = Set<AnyCancellable>()
+  @ObservationIgnored private var refreshTimer: Timer?
   @ObservationIgnored @Dependency(APIClient.self) var apiClient
 
   public init(station: Station) {
@@ -50,6 +51,21 @@ class ScheduleEditorModel: ViewModel {
 
   func viewAppeared() async {
     await refreshSchedule()
+    setupRefreshTimer()
+  }
+
+  func viewDisappeared() {
+    refreshTimer?.invalidate()
+    refreshTimer = nil
+  }
+
+  private func setupRefreshTimer() {
+    refreshTimer?.invalidate()
+    refreshTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
+      Task { [weak self] in
+        await self?.refreshSchedule()
+      }
+    }
   }
 
   func refreshSchedule() async {
@@ -65,7 +81,7 @@ class ScheduleEditorModel: ViewModel {
 struct ScheduleEditorView: View {
   var model: ScheduleEditorModel
   @State private var isTransitioning = false
-  
+
   var body: some View {
     GeometryReader { _ in
       VStack {
@@ -73,7 +89,7 @@ struct ScheduleEditorView: View {
           Spacer()
             .frame(width: 10)
         }
-        
+
         VStack(spacing: 0) {
           if model.stagingAreaAudioBlocks.count > 0 {
             VStack {
@@ -137,6 +153,9 @@ struct ScheduleEditorView: View {
       Task {
         await model.viewAppeared()
       }
+    }
+    .onDisappear {
+      model.viewDisappeared()
     }
   }
 
