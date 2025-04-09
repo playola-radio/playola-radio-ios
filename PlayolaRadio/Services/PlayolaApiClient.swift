@@ -1,5 +1,5 @@
 //
-//  APIClient.swift
+//  PlayolaApiClient.swift
 //  PlayolaPlayer
 //
 //  Created by Brian D Keane on 3/26/25.
@@ -37,7 +37,7 @@ public enum APIError: Error {
   }
 }
 
-public actor APIClient {
+public actor PlayolaApiClient {
   private let baseURL = "https://admin-api.playola.fm/v1"
   private let defaultHeaders: HTTPHeaders = [
     "Content-Type": "application/json",
@@ -162,6 +162,6 @@ public actor APIClient {
   }
 }
 
-extension APIClient: DependencyKey {
-  public static let liveValue = APIClient()
+extension PlayolaApiClient: DependencyKey {
+  public static let liveValue = PlayolaApiClient()
 }

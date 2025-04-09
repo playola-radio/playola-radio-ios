@@ -62,7 +62,7 @@
 		D35E43D62D78ED7600A1BD20 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35E43D52D78ED7400A1BD20 /* User.swift */; };
 		D35E43D82D78EDAF00A1BD20 /* Station.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35E43D72D78EDAC00A1BD20 /* Station.swift */; };
 		D35E43DA2D78EE4600A1BD20 /* UserStation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35E43D92D78EE4400A1BD20 /* UserStation.swift */; };
-		D363EC9F2D94A70F001FD05B /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363EC9E2D94A705001FD05B /* APIClient.swift */; };
+		D363EC9F2D94A70F001FD05B /* PlayolaApiClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363EC9E2D94A705001FD05B /* PlayolaApiClient.swift */; };
 		D363ECA12D96E915001FD05B /* Date+Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363ECA02D96E912001FD05B /* Date+Formatting.swift */; };
 		D363ECA32D96EA13001FD05B /* BroadcastTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363ECA22D96E9FB001FD05B /* BroadcastTabBar.swift */; };
 		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
@@ -164,7 +164,7 @@
 		D35E43D52D78ED7400A1BD20 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		D35E43D72D78EDAC00A1BD20 /* Station.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Station.swift; sourceTree = "<group>"; };
 		D35E43D92D78EE4400A1BD20 /* UserStation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserStation.swift; sourceTree = "<group>"; };
-		D363EC9E2D94A705001FD05B /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		D363EC9E2D94A705001FD05B /* PlayolaApiClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaApiClient.swift; sourceTree = "<group>"; };
 		D363ECA02D96E912001FD05B /* Date+Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Formatting.swift"; sourceTree = "<group>"; };
 		D363ECA22D96E9FB001FD05B /* BroadcastTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastTabBar.swift; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
@@ -446,7 +446,7 @@
 		D3B6626B2D4016B900975D2F /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				D363EC9E2D94A705001FD05B /* APIClient.swift */,
+				D363EC9E2D94A705001FD05B /* PlayolaApiClient.swift */,
 				D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */,
 				D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */,
 				D339E57D2BFD750700B9E35B /* MailService.swift */,
@@ -638,7 +638,7 @@
 				D3F6BB6D2D9EC8B900F05C4D /* NowPlayingPageModel.swift in Sources */,
 				D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */,
 				D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */,
-				D363EC9F2D94A70F001FD05B /* APIClient.swift in Sources */,
+				D363EC9F2D94A70F001FD05B /* PlayolaApiClient.swift in Sources */,
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
 				D35E43DA2D78EE4600A1BD20 /* UserStation.swift in Sources */,

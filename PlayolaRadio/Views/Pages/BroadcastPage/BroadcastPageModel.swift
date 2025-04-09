@@ -31,7 +31,7 @@ class BroadcastPageModel: ViewModel {
   var nowPlaying: Spin?
 
   // MARK: - Dependencies
-  @ObservationIgnored @Dependency(APIClient.self) var apiClient
+  @ObservationIgnored @Dependency(PlayolaApiClient.self) var playolaApiClient
   @ObservationIgnored @Dependency(AudioRecorder.self) var audioRecorder
 
   init(station: Station, navigationCoordinator: NavigationCoordinator = .shared) {
@@ -43,7 +43,7 @@ class BroadcastPageModel: ViewModel {
 
   // MARK: - Actions
   func viewAppeared() async {
-    self.schedule = try? await apiClient.fetchSchedule(stationId: station.id)
+    self.schedule = try? await playolaApiClient.fetchSchedule(stationId: station.id)
   }
 
   func showRecordingView() {

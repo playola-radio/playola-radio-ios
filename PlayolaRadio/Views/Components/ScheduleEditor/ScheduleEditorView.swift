@@ -42,7 +42,7 @@ class ScheduleEditorModel: ViewModel {
 
   @ObservationIgnored private var cancellables = Set<AnyCancellable>()
   @ObservationIgnored private var refreshTimer: Timer?
-  @ObservationIgnored @Dependency(APIClient.self) var apiClient
+  @ObservationIgnored @Dependency(PlayolaApiClient.self) var playolaApiClient
 
   public init(station: Station) {
     self.station = station
@@ -70,7 +70,7 @@ class ScheduleEditorModel: ViewModel {
 
   func refreshSchedule() async {
     do {
-      self.schedule = try await apiClient.fetchSchedule(stationId: station.id)
+      self.schedule = try await playolaApiClient.fetchSchedule(stationId: station.id)
     } catch (let err) {
       print("error downloading schedule: \(err)")
     }

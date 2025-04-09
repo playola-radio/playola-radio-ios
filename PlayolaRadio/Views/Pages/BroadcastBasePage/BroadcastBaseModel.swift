@@ -25,7 +25,7 @@ class BroadcastBaseModel: ViewModel {
 
   // MARK: - Dependencies
   @ObservationIgnored @Shared(.currentUser) var currentUser: User?
-  @ObservationIgnored @Dependency(APIClient.self) var apiClient
+  @ObservationIgnored @Dependency(PlayolaApiClient.self) var playolaApiClient
   @ObservationIgnored @Shared(.auth) var auth: Auth
 
   var navigationCoordinator: NavigationCoordinator!
