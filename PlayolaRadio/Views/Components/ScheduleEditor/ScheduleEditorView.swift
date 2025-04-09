@@ -15,16 +15,44 @@ import Dependencies
 class ScheduleEditorModel: ViewModel {
   var station: Station
   var stagingAreaAudioBlocks: [AudioBlock] = []
-  var schedule: Schedule? = nil
+  var nowPlaying: Spin? = nil
+  var upcomingSpins: [Spin] = []
 
-  @ObservationIgnored
-  @Dependency(APIClient.self) var apiClient
-  
+  var schedule: Schedule? = nil {
+    didSet {
+      // Cancel existing subscriptions
+      cancellables.removeAll()
+
+      // Setup new subscription if schedule exists
+      if let schedule = schedule {
+        schedule.$nowPlaying
+          .receive(on: RunLoop.main)
+          .sink { [weak self] nowPlaying in
+            self?.nowPlaying = nowPlaying
+            self?.upcomingSpins = schedule.current.filter { $0 != nowPlaying }
+          }
+          .store(in: &cancellables)
+
+        // Initial population
+        self.nowPlaying = schedule.nowPlaying
+        self.upcomingSpins = schedule.current.filter { $0 != schedule.nowPlaying }
+      }
+    }
+  }
+
+  @ObservationIgnored private var cancellables = Set<AnyCancellable>()
+  @ObservationIgnored @Dependency(APIClient.self) var apiClient
+
   public init(station: Station) {
     self.station = station
     super.init()
   }
+
   func viewAppeared() async {
+    await refreshSchedule()
+  }
+
+  func refreshSchedule() async {
     do {
       self.schedule = try await apiClient.fetchSchedule(stationId: station.id)
     } catch (let err) {
@@ -72,13 +100,13 @@ struct ScheduleEditorView: View {
                         .background(.black)
                     }
 
-                  if let nowPlaying = model.schedule?.nowPlaying {
+                  if let nowPlaying = model.nowPlaying {
                     ScheduleNowPlayingView(spin: nowPlaying)
                   }
 
 
                     List {
-                      ForEach((model.schedule?.current ?? []).filter { $0 != model.schedule?.nowPlaying}, id: \.self) { spin in
+                      ForEach(model.upcomingSpins, id: \.self) { spin in
                           ScheduleCellView(model: .init(spin: spin))
 //                                .onDrag { NSItemProvider(object: spin.id as NSString) }
                         }

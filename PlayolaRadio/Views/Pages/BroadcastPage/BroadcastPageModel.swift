@@ -32,20 +32,20 @@ class BroadcastPageModel: ViewModel {
 
   // MARK: - Dependencies
   @ObservationIgnored @Dependency(APIClient.self) var apiClient
+  @ObservationIgnored @Dependency(AudioRecorder.self) var audioRecorder
 
   init(station: Station, navigationCoordinator: NavigationCoordinator = .shared) {
     self.station = station
     self.scheduleEditorModel = ScheduleEditorModel(station: station)
-    print("BroadcastPageModel init with station: \(station.id)")
     self.navigationCoordinator = navigationCoordinator
     super.init()
   }
 
   // MARK: - Actions
   func viewAppeared() async {
-    print("BroadcastPageModel viewAppeared for station: \(station.id)")
     self.schedule = try? await apiClient.fetchSchedule(stationId: station.id)
   }
+
   func showRecordingView() {
     recordingViewIsPresented = true
   }

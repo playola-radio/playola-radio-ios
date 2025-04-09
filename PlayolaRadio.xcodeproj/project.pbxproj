@@ -93,6 +93,8 @@
 		D3F6BB772D9ED63E00F05C4D /* BroadcastStationSelectionPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB762D9ED63800F05C4D /* BroadcastStationSelectionPageModel.swift */; };
 		D3F6BB792D9ED64800F05C4D /* BroadcastStationSelectionPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB782D9ED64200F05C4D /* BroadcastStationSelectionPage.swift */; };
 		D3F6BB7C2D9ED7EA00F05C4D /* BroadcastStationSelectionRowContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB7B2D9ED7DB00F05C4D /* BroadcastStationSelectionRowContent.swift */; };
+		D3F6BB832D9F2D8500F05C4D /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB822D9F2D7C00F05C4D /* AudioRecorder.swift */; };
+		D3F6BB852DA0200800F05C4D /* CountdownOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F6BB842DA0200000F05C4D /* CountdownOverlay.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -187,6 +189,8 @@
 		D3F6BB762D9ED63800F05C4D /* BroadcastStationSelectionPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastStationSelectionPageModel.swift; sourceTree = "<group>"; };
 		D3F6BB782D9ED64200F05C4D /* BroadcastStationSelectionPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastStationSelectionPage.swift; sourceTree = "<group>"; };
 		D3F6BB7B2D9ED7DB00F05C4D /* BroadcastStationSelectionRowContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastStationSelectionRowContent.swift; sourceTree = "<group>"; };
+		D3F6BB822D9F2D7C00F05C4D /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
+		D3F6BB842DA0200000F05C4D /* CountdownOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownOverlay.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -277,6 +281,7 @@
 		D339E55A2BFD0CE200B9E35B /* Dependencies */ = {
 			isa = PBXGroup;
 			children = (
+				D3F6BB822D9F2D7C00F05C4D /* AudioRecorder.swift */,
 				D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */,
 				D35673B32D3DC6CE00E4E926 /* TrackingService.swift */,
 				D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */,
@@ -462,6 +467,7 @@
 		D3F6BB652D9EB6BF00F05C4D /* BroadcastPage */ = {
 			isa = PBXGroup;
 			children = (
+				D3F6BB862DA0206600F05C4D /* Components */,
 				D3F6BB662D9EB6C900F05C4D /* BroadcastPageModel.swift */,
 				D3AD1CAE2D94437500E4FA22 /* BroadcastPage.swift */,
 			);
@@ -493,6 +499,14 @@
 				D3F6BB7B2D9ED7DB00F05C4D /* BroadcastStationSelectionRowContent.swift */,
 			);
 			path = PrivateComponents;
+			sourceTree = "<group>";
+		};
+		D3F6BB862DA0206600F05C4D /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				D3F6BB842DA0200000F05C4D /* CountdownOverlay.swift */,
+			);
+			path = Components;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -652,6 +666,7 @@
 				D3B662742D419C3300975D2F /* JWTUser.swift in Sources */,
 				D3536A322BFA64AB006942D6 /* StationList.swift in Sources */,
 				D339E5762BFD419400B9E35B /* AboutPage.swift in Sources */,
+				D3F6BB832D9F2D8500F05C4D /* AudioRecorder.swift in Sources */,
 				D3AD1CAB2D943A4D00E4FA22 /* BroadcastBasePage.swift in Sources */,
 				D335ECA42D948CBB00CC6A10 /* ScheduleCellView.swift in Sources */,
 				D3137DD22D3ABB520070033A /* GenericNowPlaying.swift in Sources */,
@@ -676,6 +691,7 @@
 				D339E56D2BFD2FAB00B9E35B /* URLStreamPlayer.swift in Sources */,
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				D339E5692BFD1C0800B9E35B /* API.swift in Sources */,
+				D3F6BB852DA0200800F05C4D /* CountdownOverlay.swift in Sources */,
 				D3AD1CB22D945DCC00E4FA22 /* ScheduleNowPlayingView.swift in Sources */,
 				D35673B42D3DC6D100E4E926 /* TrackingService.swift in Sources */,
 				D3F6BB772D9ED63E00F05C4D /* BroadcastStationSelectionPageModel.swift in Sources */,
@@ -1152,7 +1168,7 @@
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
 			requirement = {
 				kind = exactVersion;
-				version = 0.3.2;
+				version = 0.3.3;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
