@@ -7,6 +7,7 @@
 import Sharing
 import PlayolaPlayer
 import Dependencies
+import Sharing
 import SwiftUI
 import Combine
 
@@ -31,8 +32,9 @@ class BroadcastPageModel: ViewModel {
   var nowPlaying: Spin?
 
   // MARK: - Dependencies
-  @ObservationIgnored @Dependency(PlayolaApiClient.self) var playolaApiClient
   @ObservationIgnored @Dependency(AudioRecorder.self) var audioRecorder
+  @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Dependency(GenericApiClient.self) var apiClient
 
   init(station: Station, navigationCoordinator: NavigationCoordinator = .shared) {
     self.station = station
@@ -43,7 +45,7 @@ class BroadcastPageModel: ViewModel {
 
   // MARK: - Actions
   func viewAppeared() async {
-    self.schedule = try? await playolaApiClient.fetchSchedule(stationId: station.id)
+    self.schedule = try? await apiClient.fetchSchedule(station.id, true, auth)
   }
 
   func showRecordingView() {

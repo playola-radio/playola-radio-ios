@@ -22,6 +22,7 @@ struct GenericApiClient : Sendable {
   var signInViaGoogle: @Sendable (_ code: String) async throws -> Auth
   var getUser: @Sendable (_ userId: String, _ auth: Auth) async throws -> User
   var fetchUserStations: @Sendable(_ userId: String, _ auth: Auth) async throws -> [PlayolaPlayer.Station]
+  var fetchSchedule: @Sendable(_ stationId: String, _ extended: Bool, _ auth: Auth) async throws -> Schedule
 
   // Helper Functions
   static let playolaBaseUrl = "https://admin-api.playola.fm/v1"
@@ -176,6 +177,24 @@ extension GenericApiClient: DependencyKey {
           )
       } catch {
           throw mapToAPIError(error)
+      }
+    } fetchSchedule: { stationId, extended, auth in
+      let urlString = "\(Self.playolaBaseUrl)/stations/\(stationId)/schedule"
+      let parameters: [String: Bool] = ["extended": extended]
+      
+      do {
+        // Make the network request
+        let spins: [Spin] = try await performRequest(
+          urlString: urlString,
+          method: .get,
+          parameters: parameters,
+          auth: auth
+        )
+        
+        // Create and return the schedule
+        return Schedule(stationId: stationId, spins: spins)
+      } catch {
+        throw mapToAPIError(error)
       }
     }
   }

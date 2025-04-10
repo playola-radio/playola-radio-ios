@@ -9,40 +9,34 @@ import Combine
 import SwiftUI
 import PlayolaPlayer
 import Dependencies
+import Sharing
 
 @MainActor
 @Observable
 class ScheduleEditorModel: ViewModel {
   var station: Station
   var stagingAreaAudioBlocks: [AudioBlock] = []
-  var nowPlaying: Spin? = nil
+  var nowPlaying: Spin? = nil {
+    didSet {
+      scheduleNextNowPlayingUpdate()
+    }
+  }
   var upcomingSpins: [Spin] = []
+
+  var nowPlayingTimer: Timer? = nil
 
   var schedule: Schedule? = nil {
     didSet {
-      // Cancel existing subscriptions
-      cancellables.removeAll()
-
-      // Setup new subscription if schedule exists
-      if let schedule = schedule {
-        schedule.$nowPlaying
-          .receive(on: RunLoop.main)
-          .sink { [weak self] nowPlaying in
-            self?.nowPlaying = nowPlaying
-            self?.upcomingSpins = schedule.current.filter { $0 != nowPlaying }
-          }
-          .store(in: &cancellables)
-
-        // Initial population
-        self.nowPlaying = schedule.nowPlaying
-        self.upcomingSpins = schedule.current.filter { $0 != schedule.nowPlaying }
-      }
+      updateNowPlaying()
     }
   }
 
   @ObservationIgnored private var cancellables = Set<AnyCancellable>()
   @ObservationIgnored private var refreshTimer: Timer?
-  @ObservationIgnored @Dependency(PlayolaApiClient.self) var playolaApiClient
+  @ObservationIgnored @Dependency(GenericApiClient.self) var genericApiClient
+  @ObservationIgnored @Dependency(\.date.now) var now
+
+  @ObservationIgnored @Shared(.auth) var auth
 
   public init(station: Station) {
     self.station = station
@@ -70,9 +64,34 @@ class ScheduleEditorModel: ViewModel {
 
   func refreshSchedule() async {
     do {
-      self.schedule = try await playolaApiClient.fetchSchedule(stationId: station.id)
+      self.schedule = try await genericApiClient.fetchSchedule(station.id, true, auth)
     } catch (let err) {
       print("error downloading schedule: \(err)")
+    }
+  }
+
+  private func updateNowPlaying() {
+    if nowPlaying != schedule?.nowPlaying {
+      self.nowPlaying = nowPlaying
+    }
+  }
+
+  private func nextAirtime(for schedule: Schedule?) -> Date? {
+    guard let schedule else { return nil }
+    return schedule.spins.filter { $0.airtime > now }.first?.airtime
+  }
+
+  private func scheduleNextNowPlayingUpdate() {
+    nowPlayingTimer?.invalidate()
+
+    if let fireTime = nextAirtime(for: self.schedule) {
+      nowPlayingTimer = Timer.scheduledTimer(withTimeInterval: now.timeIntervalSince(fireTime), repeats: false) { @MainActor [weak self] _ in
+        if self?.nowPlaying != self?.schedule?.nowPlaying {
+          self?.nowPlaying = self?.schedule?.nowPlaying
+          self?.upcomingSpins = self?.schedule?.current.filter { $0 != self?.schedule?.nowPlaying } ?? []
+        }
+        self?.scheduleNextNowPlayingUpdate()
+      }
     }
   }
 }
