@@ -78,7 +78,7 @@ struct JWTUser: Codable {
 class AuthService {
   static let shared = AuthService()
 
-  var api: API = API()
+  var api: GenericApiClient = GenericApiClient()
   @Shared(.appleSignInInfo) var appleSignInInfo
   @Shared(.auth) var auth: Auth
   @Shared(.currentUser) var currentUser: User?

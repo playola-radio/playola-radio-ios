@@ -8,7 +8,7 @@ class SideMenuViewModel: ViewModel {
   var navigationCoordinator: NavigationCoordinator
   var stationPlayer: StationPlayer
   var authService: AuthService
-  var api: API
+  var api: GenericApiClient
   var user: User? = nil
 
   public var menuItems: [SideMenuRowType] {
@@ -21,7 +21,7 @@ class SideMenuViewModel: ViewModel {
   init(navigationCoordinator: NavigationCoordinator = .shared,
        stationPlayer: StationPlayer = .shared,
        authService: AuthService = .shared,
-       api: API = API()) {
+       api: GenericApiClient = GenericApiClient()) {
     self.navigationCoordinator = navigationCoordinator
     self.stationPlayer = stationPlayer
     self.authService = authService

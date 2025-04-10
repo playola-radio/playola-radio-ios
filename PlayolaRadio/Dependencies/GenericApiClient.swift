@@ -1,5 +1,5 @@
 //
-//  API.swift
+//  GenericApiClient.swift
 //  PlayolaRadio
 //
 //  Created by Brian D Keane on 5/21/24.
@@ -10,7 +10,7 @@ import Foundation
 import IdentifiedCollections
 import Sharing
 
-class API: Sendable {
+class GenericApiClient: Sendable {
   let stationsURL = URL(string: "\(Config.shared.baseUrl)/v1/developer/stationLists")!
 
   @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>

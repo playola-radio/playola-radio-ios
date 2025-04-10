@@ -25,15 +25,15 @@ class StationListModel: ViewModel {
 
   // MARK: Dependencies
 
-  @ObservationIgnored var api: API
+  @ObservationIgnored var api: GenericApiClient
   @ObservationIgnored var stationPlayer: StationPlayer
   var navigationCoordinator: NavigationCoordinator!
 
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
 
-  init(api: API? = nil, stationPlayer: StationPlayer? = nil, navigationCoordinator: NavigationCoordinator = .shared)
+  init(api: GenericApiClient? = nil, stationPlayer: StationPlayer? = nil, navigationCoordinator: NavigationCoordinator = .shared)
   {
-    self.api = api ?? API()
+    self.api = api ?? GenericApiClient()
     self.stationPlayer = stationPlayer ?? StationPlayer.shared
     self.navigationCoordinator = navigationCoordinator
   }

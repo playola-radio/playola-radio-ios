@@ -17,10 +17,10 @@ class SignInPageModel: ViewModel {
   @ObservationIgnored @Shared(.appleSignInInfo) var appleSignInInfo: AppleSignInInfo?
   @ObservationIgnored @Shared(.auth) var auth: Auth
   var navigationCoordinator: NavigationCoordinator!
-  var api: API
+  var api: GenericApiClient
 
-  init(api: API? = nil, navigationCoordinator: NavigationCoordinator = .shared) {
-    self.api = api ?? API()
+  init(api: GenericApiClient? = nil, navigationCoordinator: NavigationCoordinator = .shared) {
+    self.api = api ?? GenericApiClient()
     self.navigationCoordinator = navigationCoordinator
   }
 
@@ -133,7 +133,7 @@ class SignInPageModel: ViewModel {
 
   func logOutButtonTapped() {
     $auth.withLock { $0 = Auth() }
-    Task { try await API().revokeAppleCredentials(appleUserId: "000014.59c02331e3a642fd8bebedd86d191ed3.1758") }
+    Task { try await GenericApiClient().revokeAppleCredentials(appleUserId: "000014.59c02331e3a642fd8bebedd86d191ed3.1758") }
   }
 }
 
