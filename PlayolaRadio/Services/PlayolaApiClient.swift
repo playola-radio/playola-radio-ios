@@ -84,27 +84,6 @@ public actor PlayolaApiClient {
     }
   }
 
-  /// Fetch stations for a user
-  /// - Parameter userId: The ID of the user
-  /// - Returns: An array of Station objects
-  public func fetchUserStations(userId: String) async throws -> [Station] {
-      guard authToken != nil else {
-          throw APIError.unauthorized
-      }
-
-      let urlString = "\(baseURL)/users/\(userId)/stations"
-
-      do {
-          // Make the network request
-          return try await performRequest(
-              urlString: urlString,
-              method: .get
-          )
-      } catch {
-          throw mapToAPIError(error)
-      }
-  }
-
 
   // MARK: - Private Helper Methods
 

@@ -19,9 +19,11 @@ class BroadcastStationSelectionPageModel: ViewModel {
 
   // Dependencies should be marked with @ObservationIgnored
   @ObservationIgnored var navigationCoordinator: NavigationCoordinator
-  @ObservationIgnored @Shared(.currentUser) var currentUser: User?
-  @ObservationIgnored @Dependency(PlayolaApiClient.self) var playolaApiClient
+
+  @ObservationIgnored @Dependency(GenericApiClient.self) var genericApiClient
+
   @ObservationIgnored @Shared(.auth) var auth: Auth
+  @ObservationIgnored @Shared(.currentUser) var currentUser: User?
 
   init(navigationCoordinator: NavigationCoordinator = .shared) {
     self.navigationCoordinator = navigationCoordinator
@@ -36,7 +38,7 @@ class BroadcastStationSelectionPageModel: ViewModel {
         isLoading = true
         print("🔄 Set isLoading to true")
         
-        let fetchedStations = try await playolaApiClient.fetchUserStations(userId: auth.jwtUser!.id)
+      let fetchedStations = try await genericApiClient.fetchUserStations(auth.jwtUser!.id, auth)
         print("✅ Fetched \(fetchedStations.count) stations")
         
         // Update all related state together

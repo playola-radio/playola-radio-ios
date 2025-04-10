@@ -21,8 +21,43 @@ struct GenericApiClient : Sendable {
   var revokeAppleCredentials: @Sendable (_ appleUserId: String) async throws -> Void
   var signInViaGoogle: @Sendable (_ code: String) async throws -> Auth
   var getUser: @Sendable (_ userId: String, _ auth: Auth) async throws -> User
+  var fetchUserStations: @Sendable(_ userId: String, _ auth: Auth) async throws -> [PlayolaPlayer.Station]
 
-  @Shared(.auth) var auth: Auth
+  // Helper Functions
+  static let playolaBaseUrl = "https://admin-api.playola.fm/v1"
+
+  static private func mapToAPIError(_ error: Error) -> APIError {
+    if let afError = error as? AFError {
+      switch afError {
+      case .sessionTaskFailed(let error):
+        return .networkError(error)
+      case .responseSerializationFailed(let reason):
+        if case .decodingFailed(let error) = reason {
+          return .decodingError(error)
+        }
+        return .decodingError(afError)
+      case .responseValidationFailed(let reason):
+        if case .unacceptableStatusCode(let code) = reason, code >= 400 {
+          return .serverError(code)
+        }
+        return .invalidResponse
+      default:
+        return .other(afError)
+      }
+    }
+    return .other(error)
+  }
+
+  static func headers(auth: Auth?) -> HTTPHeaders {
+    var headers: HTTPHeaders = [
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    ]
+    if let jwt = auth?.jwt {
+      headers.add(name: "Authorization", value: "Bearer \(jwt)")
+    }
+    return headers
+  }
 }
 
 extension GenericApiClient: DependencyKey {
@@ -33,12 +68,14 @@ extension GenericApiClient: DependencyKey {
   ///   - urlString: The URL string for the API endpoint
   ///   - method: The HTTP method to use
   ///   - parameters: Optional query parameters
+  ///   - auth: Authentication details for the request
   ///   - encoding: Parameter encoding (defaults to URLEncoding.default)
   /// - Returns: Decoded object of specified type
   private static func performRequest<T: Decodable & Sendable>(
     urlString: String,
     method: HTTPMethod,
     parameters: Parameters? = nil,
+    auth: Auth? = nil,
     encoding: ParameterEncoding = URLEncoding.default
   ) async throws -> T {
     // Use Alamofire's native async API
@@ -48,7 +85,8 @@ extension GenericApiClient: DependencyKey {
       urlString,
       method: method,
       parameters: parameters,
-      encoding: encoding
+      encoding: encoding,
+      headers: headers(auth: auth)
     )
       .validate(statusCode: 200..<300)
       .serializingDecodable(T.self, decoder: decoder)
@@ -122,6 +160,23 @@ extension GenericApiClient: DependencyKey {
       .validate(statusCode: 200..<300)
       .serializingDecodable(User.self)
       .value
+    } fetchUserStations: { userId, auth in
+      guard let authToken = auth.jwt else {
+          throw APIError.unauthorized
+      }
+
+      let urlString = "\(Self.playolaBaseUrl)/users/\(userId)/stations"
+
+      do {
+          // Make the network request
+          return try await performRequest(
+              urlString: urlString,
+              method: .get,
+              auth: auth
+          )
+      } catch {
+          throw mapToAPIError(error)
+      }
     }
   }
 
@@ -130,10 +185,12 @@ extension GenericApiClient: DependencyKey {
   }
 
   enum APIError: Error {
+    case unauthorized
     case networkError(Error)
     case decodingError(Error)
     case invalidResponse
     case serverError(Int)
+    case other(Error)
   }
 
   struct LoginResponse: Decodable {
