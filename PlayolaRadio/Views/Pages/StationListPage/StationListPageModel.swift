@@ -32,7 +32,7 @@ class StationListModel: ViewModel {
 
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
 
-  init(api: GenericApiClient? = nil, stationPlayer: StationPlayer? = nil, navigationCoordinator: NavigationCoordinator = .shared)
+  init(stationPlayer: StationPlayer? = nil, navigationCoordinator: NavigationCoordinator = .shared)
   {
     self.stationPlayer = stationPlayer ?? StationPlayer.shared
     self.navigationCoordinator = navigationCoordinator

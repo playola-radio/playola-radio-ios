@@ -8,7 +8,7 @@ import Foundation
 import IdentifiedCollections
 @testable import PlayolaRadio
 
-class APIMock: API {
+class APIMock {
     enum MockError: Error {
         case runtimeError(String)
     }
@@ -20,7 +20,7 @@ class APIMock: API {
         self.getStationListsShouldSucceed = getStationListsShouldSucceed
     }
 
-    override func getStations() async throws -> IdentifiedArrayOf<StationList> {
+    func getStations() async throws -> IdentifiedArrayOf<StationList> {
         beforeAssertions?()
         if getStationListsShouldSucceed {
             return StationList.mocks

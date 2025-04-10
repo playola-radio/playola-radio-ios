@@ -1,58 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites tests="25" failures="0">
-    <testsuite name="PlayolaRadioTests" tests="25" failures="0" skipped="0" time="1.671158790588379">
+<testsuites tests="29" failures="0">
+    <testsuite name="PlayolaRadioTests" tests="29" failures="0" skipped="0" time="0.5849509239196777">
         <properties>
           <property name="Configuration" value="Test Scheme Action"/>
         </properties>
-        <testcase classname="PlayolaRadioTests" name="testExample()" time="0.001096963882446289">
+        <testcase classname="FeedbackTests" name="testCorrectlySetsCanSendEmailWhenFalse()" time="0.03194999694824219">
         </testcase>
-        <testcase classname="PlayolaRadioTests" name="testPerformanceExample()" time="0.42618894577026367">
+        <testcase classname="FeedbackTests" name="testShowsFeedbackEmailWhenMailCannotBeOpened()" time="0.006038188934326172">
         </testcase>
-        <testcase classname="FeedbackTests" name="testCorrectlySetsCanSendEmailWhenFalse()" time="0.019316911697387695">
+        <testcase classname="FeedbackTests" name="testShowsFeedbackEmailWhenMailComposerIsAvailable()" time="0.005322933197021484">
         </testcase>
-        <testcase classname="FeedbackTests" name="testShowsFeedbackEmailWhenMailCannotBeOpened()" time="0.006138801574707031">
+        <testcase classname="FeedbackTests" name="testShowsFeedbackEmailWhenMailComposerIsUnavavailable()" time="0.005681037902832031">
         </testcase>
-        <testcase classname="FeedbackTests" name="testShowsFeedbackEmailWhenMailComposerIsAvailable()" time="0.005800008773803711">
+        <testcase classname="WaitlistButtonTests" name="testShowsFeedbackEmailWhenMailCannotBeOpened()" time="0.005650043487548828">
         </testcase>
-        <testcase classname="FeedbackTests" name="testShowsFeedbackEmailWhenMailComposerIsUnavavailable()" time="0.005922079086303711">
+        <testcase classname="WaitlistButtonTests" name="testShowsFeedbackEmailWhenMailComposerIsAvailable()" time="0.0056760311126708984">
         </testcase>
-        <testcase classname="WaitlistButtonTests" name="testShowsFeedbackEmailWhenMailCannotBeOpened()" time="0.007905960083007812">
+        <testcase classname="WaitlistButtonTests" name="testShowsFeedbackEmailWhenMailComposerIsUnavavailable()" time="0.024006128311157227">
         </testcase>
-        <testcase classname="WaitlistButtonTests" name="testShowsFeedbackEmailWhenMailComposerIsAvailable()" time="0.013243913650512695">
+        <testcase classname="AboutPageTests" name="testCorrectlySetsCanSendEmailWhenFalse()" time="0.006276845932006836">
         </testcase>
-        <testcase classname="WaitlistButtonTests" name="testShowsFeedbackEmailWhenMailComposerIsUnavavailable()" time="0.006907939910888672">
+        <testcase classname="AboutPageTests" name="testCorrectlySetsCanSendEmailWhenTrue()" time="0.00516510009765625">
         </testcase>
-        <testcase classname="AboutPageTests" name="testCorrectlySetsCanSendEmailWhenFalse()" time="0.005440950393676758">
+        <testcase classname="AboutPageTests" name="testTurnsOffTheSecretStations()" time="0.009742975234985352">
         </testcase>
-        <testcase classname="AboutPageTests" name="testCorrectlySetsCanSendEmailWhenTrue()" time="0.0052831172943115234">
+        <testcase classname="AboutPageTests" name="testTurnsOnTheSecretStations()" time="0.008539199829101562">
         </testcase>
-        <testcase classname="AboutPageTests" name="testTurnsOffTheSecretStations()" time="0.010045051574707031">
+        <testcase classname="AboutDisplay" name="testTappingAboutButtonDismissWorks()" time="0.005809783935546875">
         </testcase>
-        <testcase classname="AboutPageTests" name="testTurnsOnTheSecretStations()" time="0.008571863174438477">
+        <testcase classname="AboutDisplay" name="testTappingAboutButtonDisplaysAboutPageAsSheet()" time="0.006434202194213867">
         </testcase>
-        <testcase classname="AboutDisplay" name="testTappingAboutButtonDismissWorks()" time="0.006062030792236328">
+        <testcase classname="ViewAppearedTests" name="testNowPlayingPopulatesCorrectlyWhenLoading()" time="0.003139972686767578">
         </testcase>
-        <testcase classname="AboutDisplay" name="testTappingAboutButtonDisplaysAboutPageAsSheet()" time="0.0059740543365478516">
+        <testcase classname="ViewAppearedTests" name="testNowPlayingPopulatesCorrectlyWhenSomethingIsPlaying()" time="0.0007560253143310547">
         </testcase>
-        <testcase classname="ViewAppearedTests" name="testNowPlayingPopulatesCorrectlyWhenLoading()" time="0.002846956253051758">
+        <testcase classname="NowPlayingPageTests" name="testInfoButtonPushesInfoOntoTheNavigationStack()" time="0.0007128715515136719">
         </testcase>
-        <testcase classname="ViewAppearedTests" name="testNowPlayingPopulatesCorrectlyWhenSomethingIsPlaying()" time="0.0007729530334472656">
+        <testcase classname="InitialState" name="testSelectedTabWhenActivePathIsAbout()" time="0.0059909820556640625">
         </testcase>
-        <testcase classname="NowPlayingPageTests" name="testInfoButtonPushesInfoOntoTheNavigationStack()" time="0.0007219314575195312">
+        <testcase classname="InitialState" name="testSelectedTabWhenActivePathIsListen()" time="0.004113912582397461">
         </testcase>
-        <testcase classname="SignInPageTests" name="testCorrectlyAddsScopeToTheAppleSignInRequest()" time="0.013217926025390625">
+        <testcase classname="MenuItemsDisplay" name="testMenuItemsWithStation()" time="0.004331827163696289">
         </testcase>
-        <testcase classname="NowPlayingLittleView" name="testNavigatesNowhereIfTappedWhileAStationIsNotPlaying()" time="0.38608217239379883">
+        <testcase classname="MenuItemsDisplay" name="testMenuItemsWithoutStation()" time="0.00418400764465332">
         </testcase>
-        <testcase classname="NowPlayingLittleView" name="testNavigatesToNowPlayingWhenNowPlayingIsTapped()" time="0.39780712127685547">
+        <testcase classname="RowTapping" name="testRowTappedUpdatesTabAndHidesMenu()" time="0.004008054733276367">
         </testcase>
-        <testcase classname="NowPlayingLittleView" name="testSelectingAStationStartsItAndMovesToNowPlaying()" time="0.287869930267334">
+        <testcase classname="SignOut" name="testSignOutTapped()" time="0.008269071578979492">
         </testcase>
-        <testcase classname="ViewAppeared" name="testCorrectlyRetrievesStationListsWhenApiIsSuccessful()" time="0.01978302001953125">
+        <testcase classname="SignInPageTests" name="testCorrectlyAddsScopeToTheAppleSignInRequest()" time="0.005266904830932617">
         </testcase>
-        <testcase classname="ViewAppeared" name="testDisplaysAnErrorAlertOnApiError()" time="0.014339208602905273">
+        <testcase classname="NowPlayingLittleView" name="testNavigatesNowhereIfTappedWhileAStationIsNotPlaying()" time="0.015092134475708008">
         </testcase>
-        <testcase classname="ViewAppeared" name="testSubscribesToStationPlayerChanges()" time="0.013818979263305664">
+        <testcase classname="NowPlayingLittleView" name="testNavigatesToNowPlayingWhenNowPlayingIsTapped()" time="0.012090921401977539">
+        </testcase>
+        <testcase classname="NowPlayingLittleView" name="testSelectingAStationStartsItAndMovesToNowPlaying()" time="0.012534856796264648">
+        </testcase>
+        <testcase classname="ViewAppeared" name="testCorrectlyRetrievesStationListsWhenApiIsSuccessful()" time="0.2670779228210449">
+        </testcase>
+        <testcase classname="ViewAppeared" name="testDisplaysAnErrorAlertOnApiError()" time="0.0998849868774414">
+        </testcase>
+        <testcase classname="ViewAppeared" name="testSubscribesToStationPlayerChanges()" time="0.011204004287719727">
         </testcase>
     </testsuite>
 </testsuites>

@@ -11,8 +11,6 @@ import Sharing
 import Testing
 
 enum SideMenuViewModelTests {
-
-
   @MainActor @Suite("Menu Items Display")
     struct MenuItemsDisplay {
       @Test("Shows all menu items including My Station when user has a station")
@@ -91,17 +89,18 @@ enum SideMenuViewModelTests {
       navigationCoordinator.slideOutMenuIsShowing = true
 
       let stationPlayerMock = StationPlayerMock() // Expected to set a flag when stop() is called.
-      let authServiceMock = AuthServiceMock()     // Expected to set a flag when signOut() is called.
+      @Shared(.auth) var auth = Auth(currentUser: JWTUser(jwtToken: "token"), jwt: "asdf")
 
       let viewModel = SideMenuViewModel(navigationCoordinator: navigationCoordinator,
-                                        stationPlayer: stationPlayerMock,
-                                        authService: authServiceMock)
+                                        stationPlayer: stationPlayerMock)
       viewModel.signOutTapped()
 
       #expect(navigationCoordinator.activePath == .signIn)
       #expect(navigationCoordinator.slideOutMenuIsShowing == false)
       #expect(stationPlayerMock.stopCalledCount == 1)
-      #expect(authServiceMock.signOutCallCount == 1)
+      #expect(auth.jwtUser == nil)
+      #expect(auth.jwt == nil)
+      #expect(auth.isLoggedIn == false)
     }
   }
 }

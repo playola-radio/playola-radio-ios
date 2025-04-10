@@ -17,7 +17,7 @@ enum StationListPageTests {
       @Shared(.stationListsLoaded) var stationListsLoaded = false
       @Shared(.stationLists) var stationLists = StationList.mocks
       let apiMock = APIMock(getStationListsShouldSucceed: true)
-      let stationListModel = StationListModel(api: apiMock)
+      let stationListModel = StationListModel()
       apiMock.beforeAssertions = {
         #expect(stationListModel.isLoadingStationLists == true)
       }
@@ -31,7 +31,7 @@ enum StationListPageTests {
       @Shared(.stationListsLoaded) var stationListsLoaded = false
       @Shared(.stationLists) var stationLists = StationList.mocks
       let apiMock = APIMock(getStationListsShouldSucceed: false)
-      let stationListModel = StationListModel(api: apiMock)
+      let stationListModel = StationListModel()
       apiMock.beforeAssertions = {
         #expect(stationListModel.isLoadingStationLists == true)
       }
@@ -46,7 +46,7 @@ enum StationListPageTests {
       @Shared(.stationLists) var stationLists = StationList.mocks
       let stationPlayerMock = StationPlayerMock()
       let apiMock = APIMock()
-      let stationListModel = StationListModel(api: apiMock, stationPlayer: stationPlayerMock)
+      let stationListModel = StationListModel(stationPlayer: stationPlayerMock)
       #expect(stationListModel.stationPlayerState.playbackStatus ~= .stopped)
 
       let newState = StationPlayer.State(playbackStatus: .playing(.mock), artistPlaying: "Rachel Loy", titlePlaying: "Selfie")
