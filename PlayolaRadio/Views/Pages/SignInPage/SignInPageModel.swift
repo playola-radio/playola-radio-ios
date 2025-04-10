@@ -9,6 +9,7 @@ import AuthenticationServices
 import GoogleSignIn
 import GoogleSignInSwift
 import Sharing
+import Dependencies
 import SwiftUI
 
 @MainActor
@@ -16,11 +17,12 @@ import SwiftUI
 class SignInPageModel: ViewModel {
   @ObservationIgnored @Shared(.appleSignInInfo) var appleSignInInfo: AppleSignInInfo?
   @ObservationIgnored @Shared(.auth) var auth: Auth
-  var navigationCoordinator: NavigationCoordinator!
-  var api: GenericApiClient
 
-  init(api: GenericApiClient? = nil, navigationCoordinator: NavigationCoordinator = .shared) {
-    self.api = api ?? GenericApiClient()
+  @ObservationIgnored @Dependency(\.genericApiClient) var genericApiClient
+
+  var navigationCoordinator: NavigationCoordinator!
+
+  init(navigationCoordinator: NavigationCoordinator = .shared) {
     self.navigationCoordinator = navigationCoordinator
   }
 
@@ -66,11 +68,12 @@ class SignInPageModel: ViewModel {
 
       Task { @MainActor in
         do {
-          try await self.api.signInViaApple(identityToken: identityToken,
-                                            email: email,
-                                            authCode: authCode,
-                                            displayName: appleIDCredential.fullName?.formatted())
+          let result = try await self.genericApiClient.signInViaApple(identityToken,
+                                            email,
+                                             authCode,
+                                            appleIDCredential.fullName?.formatted())
           self.navigationCoordinator.activePath = .listen
+          $auth.withLock { $0 = result }
         } catch {
           self.presentedAlert = PlayolaAlert.appleSignInError("Error signing in via Apple: \(error.localizedDescription)")
         }
@@ -120,7 +123,8 @@ class SignInPageModel: ViewModel {
 
         Task { @MainActor in
           do {
-            try await self.api.signInViaGoogle(code: serverAuthCode)
+            let result = try await self.genericApiClient.signInViaGoogle(serverAuthCode)
+            self.$auth.withLock { $0 = result }
             self.navigationCoordinator.activePath = .listen
           } catch (let error) {
             self.presentedAlert = .googleSignInError(
@@ -133,7 +137,7 @@ class SignInPageModel: ViewModel {
 
   func logOutButtonTapped() {
     $auth.withLock { $0 = Auth() }
-    Task { try await GenericApiClient().revokeAppleCredentials(appleUserId: "000014.59c02331e3a642fd8bebedd86d191ed3.1758") }
+    Task { try await genericApiClient.revokeAppleCredentials( "000014.59c02331e3a642fd8bebedd86d191ed3.1758") }
   }
 }
 

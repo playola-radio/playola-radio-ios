@@ -7,6 +7,7 @@
 import AuthenticationServices
 import Foundation
 import Sharing
+import Dependencies
 
 struct Auth: Codable {
   let jwtUser: JWTUser?
@@ -76,9 +77,8 @@ struct JWTUser: Codable {
 }
 
 class AuthService {
-  static let shared = AuthService()
 
-  var api: GenericApiClient = GenericApiClient()
+  @Dependency(\.genericApiClient) var genericApiClient
   @Shared(.appleSignInInfo) var appleSignInInfo
   @Shared(.auth) var auth: Auth
   @Shared(.currentUser) var currentUser: User?
@@ -95,7 +95,7 @@ class AuthService {
         return
       }
       Task {
-        let user = try await self?.api.getUser(userId: userId)
+        let user = try await self?.genericApiClient.getUser(userId, auth)
         self?.$currentUser.withLock { $0 = user }
       }
     }

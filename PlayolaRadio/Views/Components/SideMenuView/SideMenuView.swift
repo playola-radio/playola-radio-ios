@@ -1,5 +1,6 @@
 import SwiftUI
 import Sharing
+import Dependencies
 
 
 @MainActor
@@ -7,9 +8,10 @@ import Sharing
 class SideMenuViewModel: ViewModel {
   var navigationCoordinator: NavigationCoordinator
   var stationPlayer: StationPlayer
-  var authService: AuthService
-  var api: GenericApiClient
   var user: User? = nil
+
+  @ObservationIgnored @Dependency(\.genericApiClient) var genericApiClient
+  @ObservationIgnored @Shared(.auth) var auth
 
   public var menuItems: [SideMenuRowType] {
     if user?.stations?.first != nil {
@@ -19,21 +21,17 @@ class SideMenuViewModel: ViewModel {
     }
 
   init(navigationCoordinator: NavigationCoordinator = .shared,
-       stationPlayer: StationPlayer = .shared,
-       authService: AuthService = .shared,
-       api: GenericApiClient = GenericApiClient()) {
+       stationPlayer: StationPlayer = .shared) {
     self.navigationCoordinator = navigationCoordinator
     self.stationPlayer = stationPlayer
-    self.authService = authService
-    self.api = api
     super.init()
     Task { await getUser() }
   }
 
   func getUser() async {
-    guard let userId = authService.auth.jwtUser?.id else { return }
+    guard let userId = auth.jwtUser?.id else { return }
     do {
-      self.user = try await self.api.getUser(userId: userId)
+      self.user = try await genericApiClient.getUser(userId, auth)
     } catch (let err) {
       print("Failed to fetch user \(err.localizedDescription)")
     }
@@ -74,7 +72,7 @@ class SideMenuViewModel: ViewModel {
   func signOutTapped() {
     navigationCoordinator.activePath = .signIn
     stationPlayer.stop()
-    authService.signOut()
+    self.$auth.withLock { $0 = Auth() }
     navigationCoordinator.slideOutMenuIsShowing = false
   }
 }

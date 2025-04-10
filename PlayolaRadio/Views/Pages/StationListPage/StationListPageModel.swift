@@ -8,6 +8,7 @@ import Observation
 import Combine
 import IdentifiedCollections
 import Sharing
+import Dependencies
 
 @MainActor
 @Observable
@@ -19,13 +20,13 @@ class StationListModel: ViewModel {
   var isLoadingStationLists: Bool = false
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
+  @ObservationIgnored @Dependency(\.genericApiClient) var genericApiClient
   var presentedAlert: PlayolaAlert?
   var presentedSheet: PlayolaSheet?
   var stationPlayerState: StationPlayer.State = .init(playbackStatus: .stopped)
 
   // MARK: Dependencies
 
-  @ObservationIgnored var api: GenericApiClient
   @ObservationIgnored var stationPlayer: StationPlayer
   var navigationCoordinator: NavigationCoordinator!
 
@@ -33,7 +34,6 @@ class StationListModel: ViewModel {
 
   init(api: GenericApiClient? = nil, stationPlayer: StationPlayer? = nil, navigationCoordinator: NavigationCoordinator = .shared)
   {
-    self.api = api ?? GenericApiClient()
     self.stationPlayer = stationPlayer ?? StationPlayer.shared
     self.navigationCoordinator = navigationCoordinator
   }
@@ -45,7 +45,7 @@ class StationListModel: ViewModel {
     defer { self.isLoadingStationLists = false }
     do {
       if !stationListsLoaded {
-        _ = try await api.getStations()
+        _ = try await genericApiClient.getStations()
       }
     } catch (_) {
       presentedAlert = .errorLoadingStations
@@ -78,3 +78,5 @@ class StationListModel: ViewModel {
     }
   }
 }
+
+

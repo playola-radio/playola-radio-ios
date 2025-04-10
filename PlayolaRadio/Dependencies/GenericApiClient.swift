@@ -9,148 +9,120 @@ import Alamofire
 import Foundation
 import IdentifiedCollections
 import Sharing
+import PlayolaPlayer
+import Dependencies
 
-class GenericApiClient: Sendable {
-  let stationsURL = URL(string: "\(Config.shared.baseUrl)/v1/developer/stationLists")!
+struct GenericApiClient : Sendable {
+  var getStations: @Sendable () async throws -> IdentifiedArrayOf<StationList>
+  var signInViaApple: @Sendable (_ identityToken: String,
+                       _ email: String,
+                       _ authCode: String,
+                       _ displayName: String?) async throws -> Auth
+  var revokeAppleCredentials: @Sendable (_ appleUserId: String) async throws -> Void
+  var signInViaGoogle: @Sendable (_ code: String) async throws -> Auth
+  var getUser: @Sendable (_ userId: String, _ auth: Auth) async throws -> User
 
-  @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
-  @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @Shared(.auth) var auth: Auth
-  @Shared(.currentUser) var currentUser: User?
+}
 
+extension GenericApiClient: DependencyKey {
+  // MARK: - Private Helper Methods
 
-  // Helper struct to get either local or remote JSON
-  func getStations() async throws -> IdentifiedArrayOf<StationList> {
-    // Create local copy to avoid repeated property access
-    if stationListsLoaded {
-      return stationLists
-    }
+  /// Perform a network request and decode the response using Alamofire's native async/await support
+  /// - Parameters:
+  ///   - urlString: The URL string for the API endpoint
+  ///   - method: The HTTP method to use
+  ///   - parameters: Optional query parameters
+  ///   - encoding: Parameter encoding (defaults to URLEncoding.default)
+  /// - Returns: Decoded object of specified type
+  private static func performRequest<T: Decodable & Sendable>(
+    urlString: String,
+    method: HTTPMethod,
+    parameters: Parameters? = nil,
+    encoding: ParameterEncoding = URLEncoding.default
+  ) async throws -> T {
+    // Use Alamofire's native async API
+    let decoder = JSONDecoderWithIsoFull()
 
-    do {
-      let stationLists = try await loadHttp()
-      self.$stationLists.withLock { $0 = IdentifiedArrayOf(uniqueElements: stationLists) }
-      self.$stationListsLoaded.withLock { $0 = true }
-      return self.stationLists
-    } catch {
-      // Fall back to local
-      let localStations = try await loadLocal()
-      print("Error loading remote StationLists. Falling back to local version.")
-      return IdentifiedArrayOf(uniqueElements: localStations)
-    }
-  }
-
-  func signInViaApple(identityToken: String,
-                      email: String,
-                      authCode: String,
-                      displayName: String?) async throws
-  {
-    var parameters: [String: any Any & Sendable] = [
-      "identityToken": identityToken,
-      "authCode": authCode,
-      "email": email,
-    ]
-    if let displayName {
-      parameters["displayName"] = displayName
-    }
-
-    let response = try await AF.request("\(Config.shared.baseUrl)/v1/auth/apple/mobile/signup",
-                                      method: .post,
-                                      parameters: parameters,
-                                      encoding: JSONEncoding.default)
-      .serializingDecodable(LoginResponse.self)
-      .value
-
-    self.$auth.withLock { $0 = Auth(jwtToken: response.playolaToken) }
-  }
-
-  func revokeAppleCredentials(appleUserId: String) async throws {
-    let parameters: [String: any Any & Sendable] = ["appleUserId": appleUserId]
-
-    _ = try await AF.request("\(Config.shared.baseUrl)/v1/auth/apple/revoke",
-                            method: .put,
-                            parameters: parameters,
-                            encoding: JSONEncoding.default)
+    let response = try await AF.request(
+      urlString,
+      method: method,
+      parameters: parameters,
+      encoding: encoding
+    )
       .validate(statusCode: 200..<300)
-      .serializingString()
-      .value
-
-    AuthService.shared.signOut()
-    AuthService.shared.clearAppleUser()
-  }
-
-  func getUser(userId: String) async throws -> User {
-    let baseUrl = Config.shared.baseUrl
-
-    guard let token = auth.jwt else {
-      throw APIError.invalidResponse
-    }
-
-    let headers: HTTPHeaders = [
-      "Authorization": "Bearer \(token)"
-    ]
-
-    let response = try await AF.request("\(baseUrl)/v1/users/\(userId)",
-                                        method: .get,
-                                        headers: headers)
-      .validate(statusCode: 200..<300)
-      .serializingDecodable(User.self)
+      .serializingDecodable(T.self, decoder: decoder)
       .value
 
     return response
   }
 
-  func signInViaGoogle(code: String) async throws {
-    let parameters: [String: any Any & Sendable] = [
-      "code": code,
-      "originatesFromIOS": true,
-    ]
+  static var liveValue: Self {
+    let stationsUrlStr: String = "\(Config.shared.baseUrl)/v1/developer/stationLists"
 
-    let response = try await AF.request("\(Config.shared.baseUrl)/v1/auth/google/signin",
-                                      method: .post,
-                                      parameters: parameters,
-                                      encoding: JSONEncoding.default)
+    return Self {
+      try await performRequest(urlString: stationsUrlStr, method: .get)
+    } signInViaApple: { identityToken, email, authCode, displayName in
+      var parameters: [String: any Any & Sendable] = [
+        "identityToken": identityToken,
+        "authCode": authCode,
+        "email": email,
+      ]
+      if let displayName {
+        parameters["displayName"] = displayName
+      }
+
+      let response = try await AF.request("\(Config.shared.baseUrl)/v1/auth/apple/mobile/signup",
+                                          method: .post,
+                                          parameters: parameters,
+                                          encoding: JSONEncoding.default)
+        .serializingDecodable(LoginResponse.self)
+        .value
+      return Auth(jwtToken: response.playolaToken)
+
+    } revokeAppleCredentials: { appleUserId in
+      let parameters: [String: any Any & Sendable] = ["appleUserId": appleUserId]
+
+      _ = try await AF.request("\(Config.shared.baseUrl)/v1/auth/apple/revoke",
+                               method: .put,
+                               parameters: parameters,
+                               encoding: JSONEncoding.default)
       .validate(statusCode: 200..<300)
-      .serializingDecodable(LoginResponse.self)
+      .serializingString()
       .value
+    } signInViaGoogle: { code in
+      let parameters: [String: any Any & Sendable] = [
+        "code": code,
+        "originatesFromIOS": true,
+      ]
 
-    let newAuth = Auth(jwtToken: response.playolaToken)
-    self.$auth.withLock { $0 = newAuth }
-  }
+      let response = try await AF.request("\(Config.shared.baseUrl)/v1/auth/google/signin",
+                                          method: .post,
+                                          parameters: parameters,
+                                          encoding: JSONEncoding.default)
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(LoginResponse.self)
+        .value
 
-  private func loadLocal() async throws -> [StationList] {
-    let filePathURL = Bundle.main.url(forResource: "station_lists", withExtension: "json")
-    guard let filePathURL else {
-      throw DataError.fileNotFound
+      return Auth(jwtToken: response.playolaToken)
+    } getUser: { userId, auth in
+      let baseUrl = Config.shared.baseUrl
+
+      guard let token = auth.jwt else {
+        throw APIError.invalidResponse
+      }
+
+      let headers: HTTPHeaders = [
+        "Authorization": "Bearer \(token)"
+      ]
+
+      return try await AF.request("\(baseUrl)/v1/users/\(userId)",
+                                  method: .get,
+                                  headers: headers)
+      .validate(statusCode: 200..<300)
+      .serializingDecodable(User.self)
+      .value
     }
-
-    let data = try Data(contentsOf: filePathURL, options: .uncached)
-    return try decodeStationLists(from: data)
-  }
-
-  private func loadHttp() async throws -> [StationList] {
-    let config = URLSessionConfiguration.default
-    config.requestCachePolicy = .reloadIgnoringLocalCacheData
-
-    let session = URLSession(configuration: config)
-
-    let (data, response) = try await session.data(from: stationsURL)
-
-    guard let httpResponse = response as? HTTPURLResponse,
-          200 ... 299 ~= httpResponse.statusCode else {
-      throw DataError.httpResponseNotValid
-    }
-
-    return try decodeStationLists(from: data)
-  }
-
-  private func decodeStationLists(from data: Data) throws -> [StationList] {
-    let jsonDictionary = try JSONDecoder().decode([String: [StationList]].self, from: data)
-
-    guard let stationLists = jsonDictionary["stationLists"] else {
-      throw DataError.dataNotValid
-    }
-
-    return stationLists
   }
 
   enum DataError: Error {
@@ -166,5 +138,12 @@ class GenericApiClient: Sendable {
 
   struct LoginResponse: Decodable {
     let playolaToken: String
+  }
+}
+
+extension DependencyValues {
+  var genericApiClient: GenericApiClient {
+    get { self[GenericApiClient.self] }
+    set { self[GenericApiClient.self] = newValue }
   }
 }
