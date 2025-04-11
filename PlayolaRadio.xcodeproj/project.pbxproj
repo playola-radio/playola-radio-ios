@@ -64,6 +64,7 @@
 		D35E43DA2D78EE4600A1BD20 /* UserStation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35E43D92D78EE4400A1BD20 /* UserStation.swift */; };
 		D363ECA12D96E915001FD05B /* Date+Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363ECA02D96E912001FD05B /* Date+Formatting.swift */; };
 		D363ECA32D96EA13001FD05B /* BroadcastTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363ECA22D96E9FB001FD05B /* BroadcastTabBar.swift */; };
+		D39150542DA89D41001E0D40 /* ScheduleEditorModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39150532DA89D3D001E0D40 /* ScheduleEditorModel.swift */; };
 		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
 		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
@@ -165,6 +166,7 @@
 		D35E43D92D78EE4400A1BD20 /* UserStation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserStation.swift; sourceTree = "<group>"; };
 		D363ECA02D96E912001FD05B /* Date+Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Formatting.swift"; sourceTree = "<group>"; };
 		D363ECA22D96E9FB001FD05B /* BroadcastTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastTabBar.swift; sourceTree = "<group>"; };
+		D39150532DA89D3D001E0D40 /* ScheduleEditorModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleEditorModel.swift; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
 		D3AD1CAA2D943A3F00E4FA22 /* BroadcastBasePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastBasePage.swift; sourceTree = "<group>"; };
 		D3AD1CAE2D94437500E4FA22 /* BroadcastPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPage.swift; sourceTree = "<group>"; };
@@ -433,6 +435,7 @@
 		D3AD1CB02D945DB700E4FA22 /* ScheduleEditor */ = {
 			isa = PBXGroup;
 			children = (
+				D39150532DA89D3D001E0D40 /* ScheduleEditorModel.swift */,
 				D335ECA32D948CB700CC6A10 /* ScheduleCellView.swift */,
 				D335ECA12D94891000CC6A10 /* StagingCellView.swift */,
 				D335EC9F2D94877800CC6A10 /* ScheduleEditorView.swift */,
@@ -693,6 +696,7 @@
 				D3F6BB772D9ED63E00F05C4D /* BroadcastStationSelectionPageModel.swift in Sources */,
 				D3F6BB792D9ED64800F05C4D /* BroadcastStationSelectionPage.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
+				D39150542DA89D41001E0D40 /* ScheduleEditorModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
