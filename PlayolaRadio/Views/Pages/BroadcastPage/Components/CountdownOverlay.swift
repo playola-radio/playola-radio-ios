@@ -8,22 +8,29 @@
 import SwiftUI
 
 struct CountdownOverlay: View {
-    let text: String
+    let count: Int
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.7)
-                .edgesIgnoringSafeArea(.all)
+            Circle()
+                .stroke(Color.white.opacity(0.3), lineWidth: 4)
+                .frame(width: 120, height: 120)
 
-            Text(text)
-                .font(.system(size: 120, weight: .bold))
-                .foregroundColor(.white)
-                .scaleEffect(1.0)
-                .transition(.scale(scale: 0.1).combined(with: .opacity))
+            Circle()
+                .fill(Color.white.opacity(0.2))
+                .frame(width: 120, height: 120)
+
+            Text("\(count)")
+                .font(.system(size: 60, weight: .bold))
+                .foregroundStyle(.white)
         }
+        .transition(.scale)
     }
 }
 
 #Preview {
-    CountdownOverlay(text: "3")
+    ZStack {
+        Color.black
+        CountdownOverlay(count: 3)
+    }
 }

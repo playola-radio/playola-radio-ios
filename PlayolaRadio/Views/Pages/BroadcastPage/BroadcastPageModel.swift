@@ -4,7 +4,6 @@
 //
 //  Created by Brian D Keane on 4/3/25.
 //
-import Sharing
 import PlayolaPlayer
 import Dependencies
 import Sharing
@@ -58,5 +57,11 @@ class BroadcastPageModel: ViewModel {
 
   func hamburgerButtonTapped() {
     navigationCoordinator.slideOutMenuIsShowing = true
+  }
+  
+  // MARK: - Recording Completion Handler
+  func handleRecordingComplete(url: URL) {
+    // TODO: Handle the recorded audio file
+    recordingViewIsPresented = false
   }
 }

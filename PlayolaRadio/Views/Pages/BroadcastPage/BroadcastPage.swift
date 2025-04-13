@@ -13,14 +13,11 @@ import Dependencies
 
 
 struct BroadcastPage: View {
-  var model: BroadcastPageModel
+  @Bindable var model: BroadcastPageModel
 
   init(model: BroadcastPageModel) {
     self.model = model
   }
-
-  @State var recordingViewIsPresented: Bool = false
-  @State var addSongViewIsPresented: Bool = false
 
   var body: some View {
     ZStack {
@@ -35,7 +32,7 @@ struct BroadcastPage: View {
           Spacer()
           VStack {
             Button {
-              recordingViewIsPresented = true
+              model.showRecordingView()
             } label: {
               Image("recordVoicetrackIcon")
                 .resizable()
@@ -49,8 +46,7 @@ struct BroadcastPage: View {
 
           VStack {
             Button {
-              addSongViewIsPresented = true
-
+              model.showAddSongView()
             } label: {
               Image("addSongIcon")
                 .resizable()
@@ -81,12 +77,13 @@ struct BroadcastPage: View {
         await model.viewAppeared()
       }
     }
-    //        .sheet(isPresented: $recordingViewIsPresented) {
-    //            VoiceTrackRecorderView(audioRecorder: self.audioRecorder, isPresented: $recordingViewIsPresented)
-    //        }
-    //        .sheet(isPresented: $addSongViewIsPresented) {
-    //            AddSongView(isPresented: $addSongViewIsPresented)
-    //        }.environmentObject(spotifyTrackPicker)
+    .sheet(isPresented: $model.recordingViewIsPresented) {
+      RecordingView(model: RecordingViewModel())
+    }
+    .sheet(isPresented: $model.addSongViewIsPresented) {
+      // ADD: Uncomment when AddSongView is ready
+      // AddSongView(isPresented: $addSongViewIsPresented)
+    }
   }
 }
 

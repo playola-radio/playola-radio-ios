@@ -65,6 +65,10 @@
 		D363ECA12D96E915001FD05B /* Date+Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363ECA02D96E912001FD05B /* Date+Formatting.swift */; };
 		D363ECA32D96EA13001FD05B /* BroadcastTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363ECA22D96E9FB001FD05B /* BroadcastTabBar.swift */; };
 		D39150542DA89D41001E0D40 /* ScheduleEditorModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39150532DA89D3D001E0D40 /* ScheduleEditorModel.swift */; };
+		D39150592DA9A112001E0D40 /* RecordingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39150582DA9A108001E0D40 /* RecordingView.swift */; };
+		D391505F2DAA0802001E0D40 /* RecordingViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D391505D2DAA0802001E0D40 /* RecordingViewTests.swift */; };
+		D39150612DAA0C46001E0D40 /* RecordingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39150602DAA0C41001E0D40 /* RecordingViewModel.swift */; };
+		D39150632DAA1CE0001E0D40 /* LocalVoicetrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39150622DAA1CDA001E0D40 /* LocalVoicetrack.swift */; };
 		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
 		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
@@ -167,6 +171,10 @@
 		D363ECA02D96E912001FD05B /* Date+Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Formatting.swift"; sourceTree = "<group>"; };
 		D363ECA22D96E9FB001FD05B /* BroadcastTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastTabBar.swift; sourceTree = "<group>"; };
 		D39150532DA89D3D001E0D40 /* ScheduleEditorModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleEditorModel.swift; sourceTree = "<group>"; };
+		D39150582DA9A108001E0D40 /* RecordingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingView.swift; sourceTree = "<group>"; };
+		D391505D2DAA0802001E0D40 /* RecordingViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingViewTests.swift; sourceTree = "<group>"; };
+		D39150602DAA0C41001E0D40 /* RecordingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingViewModel.swift; sourceTree = "<group>"; };
+		D39150622DAA1CDA001E0D40 /* LocalVoicetrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalVoicetrack.swift; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
 		D3AD1CAA2D943A3F00E4FA22 /* BroadcastBasePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastBasePage.swift; sourceTree = "<group>"; };
 		D3AD1CAE2D94437500E4FA22 /* BroadcastPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPage.swift; sourceTree = "<group>"; };
@@ -266,6 +274,7 @@
 		D3137DD02D3ABB490070033A /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				D39150622DAA1CDA001E0D40 /* LocalVoicetrack.swift */,
 				D35E43D92D78EE4400A1BD20 /* UserStation.swift */,
 				D35E43D72D78EDAC00A1BD20 /* Station.swift */,
 				D35E43D52D78ED7400A1BD20 /* User.swift */,
@@ -477,6 +486,9 @@
 		D3F6BB722D9ED5EB00F05C4D /* BroadcastBasePage */ = {
 			isa = PBXGroup;
 			children = (
+				D39150602DAA0C41001E0D40 /* RecordingViewModel.swift */,
+				D39150582DA9A108001E0D40 /* RecordingView.swift */,
+				D391505D2DAA0802001E0D40 /* RecordingViewTests.swift */,
 				D3F6BB732D9ED5F500F05C4D /* BroadcastBaseModel.swift */,
 				D3AD1CAA2D943A3F00E4FA22 /* BroadcastBasePage.swift */,
 			);
@@ -663,8 +675,10 @@
 				D339E5642BFD0FD800B9E35B /* StationListCellView.swift in Sources */,
 				D339E57C2BFD698600B9E35B /* Mail.swift in Sources */,
 				D3B662742D419C3300975D2F /* JWTUser.swift in Sources */,
+				D39150612DAA0C46001E0D40 /* RecordingViewModel.swift in Sources */,
 				D3536A322BFA64AB006942D6 /* StationList.swift in Sources */,
 				D339E5762BFD419400B9E35B /* AboutPage.swift in Sources */,
+				D39150632DAA1CE0001E0D40 /* LocalVoicetrack.swift in Sources */,
 				D3F6BB832D9F2D8500F05C4D /* AudioRecorder.swift in Sources */,
 				D3AD1CAB2D943A4D00E4FA22 /* BroadcastBasePage.swift in Sources */,
 				D335ECA42D948CBB00CC6A10 /* ScheduleCellView.swift in Sources */,
@@ -673,6 +687,7 @@
 				D3361FE42D6E980000A859FF /* SideMenuView.swift in Sources */,
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
 				D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */,
+				D39150592DA9A112001E0D40 /* RecordingView.swift in Sources */,
 				D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */,
 				D339E5632BFD0FD800B9E35B /* AirPlayView.swift in Sources */,
 				D3F6BB6B2D9EC86100F05C4D /* SignInPageModel.swift in Sources */,
@@ -710,6 +725,7 @@
 				D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */,
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,
 				D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */,
+				D391505F2DAA0802001E0D40 /* RecordingViewTests.swift in Sources */,
 				D31C43AC2D3C65840021AAE4 /* NavigationCoordinatorMock.swift in Sources */,
 				D34D5C362D7105EE00148048 /* SideMenuTests.swift in Sources */,
 				D3137DCA2D3A9F940070033A /* NowPlayingPageTests.swift in Sources */,
@@ -865,10 +881,10 @@
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Playola would like to use your microphone to record VoiceTracks to air on your station.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -902,10 +918,10 @@
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Playola would like to use your microphone to record VoiceTracks to air on your station.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1040,10 +1056,10 @@
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Playola would like to use your microphone to record VoiceTracks to air on your station.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
