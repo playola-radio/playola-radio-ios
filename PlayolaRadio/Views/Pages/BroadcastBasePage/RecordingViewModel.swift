@@ -12,6 +12,13 @@ import Dependencies
 @MainActor
 @Observable
 class RecordingViewModel: ViewModel {
+  var completionHandler: ((LocalVoicetrack) -> Void)?
+
+  init(completionHandler: ((LocalVoicetrack) -> Void)?) {
+    self.completionHandler = completionHandler
+    super.init()
+  }
+
   @ObservationIgnored @Dependency(\.audioRecorder) private var audioRecorder
   @ObservationIgnored @Dependency(\.continuousClock) private var clock
 
@@ -56,7 +63,12 @@ class RecordingViewModel: ViewModel {
   func cancelButtonTapped() {}
 
   func recordButtonTapped() {
-    countdownAndStartRecording()
+    // if audio is running
+    if recordButtonImage == .record {
+      countdownAndStartRecording()
+    } else {
+      Task { await stopButtonTapped() }
+    }
   }
 
   func stopButtonTapped() async {
@@ -82,12 +94,7 @@ class RecordingViewModel: ViewModel {
   var peakPower: Float = -160
   var duration: TimeInterval = 0
 
-  private var countdownTimer: Timer?
-  private var meterUpdateTimer: Timer?
   private var countdownValue = 3
-  private var completionHandler: ((LocalVoicetrack) -> Void)?
-
-
 
   override init() {
     super.init()
