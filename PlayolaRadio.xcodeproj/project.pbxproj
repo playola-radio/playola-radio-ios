@@ -69,6 +69,7 @@
 		D391505F2DAA0802001E0D40 /* RecordingViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D391505D2DAA0802001E0D40 /* RecordingViewTests.swift */; };
 		D39150612DAA0C46001E0D40 /* RecordingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39150602DAA0C41001E0D40 /* RecordingViewModel.swift */; };
 		D39150632DAA1CE0001E0D40 /* LocalVoicetrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39150622DAA1CDA001E0D40 /* LocalVoicetrack.swift */; };
+		D39150652DAC40E8001E0D40 /* PresignedUrlUploadInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39150642DAC40E3001E0D40 /* PresignedUrlUploadInfo.swift */; };
 		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
 		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
@@ -175,6 +176,7 @@
 		D391505D2DAA0802001E0D40 /* RecordingViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingViewTests.swift; sourceTree = "<group>"; };
 		D39150602DAA0C41001E0D40 /* RecordingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingViewModel.swift; sourceTree = "<group>"; };
 		D39150622DAA1CDA001E0D40 /* LocalVoicetrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalVoicetrack.swift; sourceTree = "<group>"; };
+		D39150642DAC40E3001E0D40 /* PresignedUrlUploadInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresignedUrlUploadInfo.swift; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
 		D3AD1CAA2D943A3F00E4FA22 /* BroadcastBasePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastBasePage.swift; sourceTree = "<group>"; };
 		D3AD1CAE2D94437500E4FA22 /* BroadcastPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPage.swift; sourceTree = "<group>"; };
@@ -274,6 +276,7 @@
 		D3137DD02D3ABB490070033A /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				D39150642DAC40E3001E0D40 /* PresignedUrlUploadInfo.swift */,
 				D39150622DAA1CDA001E0D40 /* LocalVoicetrack.swift */,
 				D35E43D92D78EE4400A1BD20 /* UserStation.swift */,
 				D35E43D72D78EDAC00A1BD20 /* Station.swift */,
@@ -689,6 +692,7 @@
 				D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */,
 				D39150592DA9A112001E0D40 /* RecordingView.swift in Sources */,
 				D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */,
+				D39150652DAC40E8001E0D40 /* PresignedUrlUploadInfo.swift in Sources */,
 				D339E5632BFD0FD800B9E35B /* AirPlayView.swift in Sources */,
 				D3F6BB6B2D9EC86100F05C4D /* SignInPageModel.swift in Sources */,
 				D35E43D82D78EDAF00A1BD20 /* Station.swift in Sources */,

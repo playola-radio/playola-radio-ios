@@ -82,9 +82,14 @@ struct RecordingView: View {
             CountdownOverlay(count: count)
         case .recording:
             recordingView
-        case .processing:
-            ProgressView()
-                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+        case .processing(let message):
+            VStack {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                Text(message)
+                    .font(.custom("OpenSans", size: 16))
+                    .padding(.top, 8)
+            }
         case .error(let errorMessage):
             Text(errorMessage)
                 .foregroundStyle(.red)
@@ -152,5 +157,5 @@ struct RecordingView: View {
 }
 
 #Preview {
-    RecordingView(model: RecordingViewModel())
+  RecordingView(model: RecordingViewModel(stationId: "testId"))
 }

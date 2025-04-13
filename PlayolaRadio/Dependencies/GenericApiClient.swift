@@ -15,14 +15,20 @@ import Dependencies
 struct GenericApiClient : Sendable {
   var getStations: @Sendable () async throws -> IdentifiedArrayOf<StationList>
   var signInViaApple: @Sendable (_ identityToken: String,
-                       _ email: String,
-                       _ authCode: String,
-                       _ displayName: String?) async throws -> Auth
+                                 _ email: String,
+                                 _ authCode: String,
+                                 _ displayName: String?) async throws -> Auth
   var revokeAppleCredentials: @Sendable (_ appleUserId: String) async throws -> Void
   var signInViaGoogle: @Sendable (_ code: String) async throws -> Auth
   var getUser: @Sendable (_ userId: String, _ auth: Auth) async throws -> User
   var fetchUserStations: @Sendable(_ userId: String, _ auth: Auth) async throws -> [PlayolaPlayer.Station]
   var fetchSchedule: @Sendable(_ stationId: String, _ extended: Bool, _ auth: Auth) async throws -> Schedule
+  var getVoicetrackPresignedUrl: @Sendable(_ stationId: String, _ auth: Auth) async throws -> PresignedUrlUploadInfo
+  var uploadFileToPresignedUrl: @Sendable (
+    _ presignedUrl: String,
+    _ fileUrl: URL,
+    _ progress: @escaping @Sendable (Double) -> Void
+  ) async throws -> Void
 
   // Helper Functions
   static let playolaBaseUrl = "https://admin-api.playola.fm/v1"
@@ -99,104 +105,147 @@ extension GenericApiClient: DependencyKey {
   static var liveValue: Self {
     let stationsUrlStr: String = "\(Config.shared.baseUrl)/v1/developer/stationLists"
 
-    return Self {
-      try await performRequest(urlString: stationsUrlStr, method: .get)
-    } signInViaApple: { identityToken, email, authCode, displayName in
-      var parameters: [String: any Any & Sendable] = [
-        "identityToken": identityToken,
-        "authCode": authCode,
-        "email": email,
-      ]
-      if let displayName {
-        parameters["displayName"] = displayName
-      }
+    return Self(
+      getStations: {
+        try await performRequest(urlString: stationsUrlStr, method: .get)
+      },
+      signInViaApple: { identityToken, email, authCode, displayName in
+        var parameters: [String: any Any & Sendable] = [
+          "identityToken": identityToken,
+          "authCode": authCode,
+          "email": email,
+        ]
+        if let displayName {
+          parameters["displayName"] = displayName
+        }
 
-      let response = try await AF.request("\(Config.shared.baseUrl)/v1/auth/apple/mobile/signup",
-                                          method: .post,
-                                          parameters: parameters,
-                                          encoding: JSONEncoding.default)
-        .serializingDecodable(LoginResponse.self)
-        .value
-      return Auth(jwtToken: response.playolaToken)
+        let response = try await AF.request("\(Config.shared.baseUrl)/v1/auth/apple/mobile/signup",
+                                            method: .post,
+                                            parameters: parameters,
+                                            encoding: JSONEncoding.default)
+          .serializingDecodable(LoginResponse.self)
+          .value
+        return Auth(jwtToken: response.playolaToken)
+      },
+      revokeAppleCredentials: { appleUserId in
+        let parameters: [String: any Any & Sendable] = ["appleUserId": appleUserId]
 
-    } revokeAppleCredentials: { appleUserId in
-      let parameters: [String: any Any & Sendable] = ["appleUserId": appleUserId]
-
-      _ = try await AF.request("\(Config.shared.baseUrl)/v1/auth/apple/revoke",
-                               method: .put,
-                               parameters: parameters,
-                               encoding: JSONEncoding.default)
-      .validate(statusCode: 200..<300)
-      .serializingString()
-      .value
-    } signInViaGoogle: { code in
-      let parameters: [String: any Any & Sendable] = [
-        "code": code,
-        "originatesFromIOS": true,
-      ]
-
-      let response = try await AF.request("\(Config.shared.baseUrl)/v1/auth/google/signin",
-                                          method: .post,
-                                          parameters: parameters,
-                                          encoding: JSONEncoding.default)
+        _ = try await AF.request("\(Config.shared.baseUrl)/v1/auth/apple/revoke",
+                                 method: .put,
+                                 parameters: parameters,
+                                 encoding: JSONEncoding.default)
         .validate(statusCode: 200..<300)
-        .serializingDecodable(LoginResponse.self)
+        .serializingString()
         .value
+      },
+      signInViaGoogle: { code in
+        let parameters: [String: any Any & Sendable] = [
+          "code": code,
+          "originatesFromIOS": true,
+        ]
 
-      return Auth(jwtToken: response.playolaToken)
-    } getUser: { userId, auth in
-      let baseUrl = Config.shared.baseUrl
+        let response = try await AF.request("\(Config.shared.baseUrl)/v1/auth/google/signin",
+                                            method: .post,
+                                            parameters: parameters,
+                                            encoding: JSONEncoding.default)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable(LoginResponse.self)
+          .value
 
-      guard let token = auth.jwt else {
-        throw APIError.invalidResponse
-      }
+        return Auth(jwtToken: response.playolaToken)
+      },
+      getUser: { userId, auth in
+        let baseUrl = Config.shared.baseUrl
 
-      let headers: HTTPHeaders = [
-        "Authorization": "Bearer \(token)"
-      ]
+        guard let token = auth.jwt else {
+          throw APIError.invalidResponse
+        }
 
-      return try await AF.request("\(baseUrl)/v1/users/\(userId)",
-                                  method: .get,
-                                  headers: headers)
-      .validate(statusCode: 200..<300)
-      .serializingDecodable(User.self)
-      .value
-    } fetchUserStations: { userId, auth in
-      guard let authToken = auth.jwt else {
+        let headers: HTTPHeaders = [
+          "Authorization": "Bearer \(token)"
+        ]
+
+        return try await AF.request("\(baseUrl)/v1/users/\(userId)",
+                                    method: .get,
+                                    headers: headers)
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(User.self)
+        .value
+      },
+      fetchUserStations: { userId, auth in
+        guard let authToken = auth.jwt else {
           throw APIError.unauthorized
-      }
+        }
 
-      let urlString = "\(Self.playolaBaseUrl)/users/\(userId)/stations"
+        let urlString = "\(Self.playolaBaseUrl)/users/\(userId)/stations"
 
-      do {
-          // Make the network request
+        do {
           return try await performRequest(
-              urlString: urlString,
-              method: .get,
-              auth: auth
+            urlString: urlString,
+            method: .get,
+            auth: auth
           )
-      } catch {
+        } catch {
           throw mapToAPIError(error)
-      }
-    } fetchSchedule: { stationId, extended, auth in
-      let urlString = "\(Self.playolaBaseUrl)/stations/\(stationId)/schedule"
-      let parameters: [String: Bool] = ["extended": extended]
-      
-      do {
-        // Make the network request
-        let spins: [Spin] = try await performRequest(
+        }
+      },
+      fetchSchedule: { stationId, extended, auth in
+        let urlString = "\(Self.playolaBaseUrl)/stations/\(stationId)/schedule"
+        let parameters: [String: Bool] = ["extended": extended]
+
+        do {
+          let spins: [Spin] = try await performRequest(
+            urlString: urlString,
+            method: .get,
+            parameters: parameters,
+            auth: auth
+          )
+
+          return Schedule(stationId: stationId, spins: spins)
+        } catch {
+          throw mapToAPIError(error)
+        }
+      },
+      getVoicetrackPresignedUrl: { stationId, auth in
+        guard let authToken = auth.jwt else {
+          throw APIError.unauthorized
+        }
+
+        let urlString = "\(Self.playolaBaseUrl)/stations/\(stationId)/voicetrack-presigned-url"
+
+        return try await performRequest(
           urlString: urlString,
-          method: .get,
-          parameters: parameters,
+          method: .post,
           auth: auth
         )
-        
-        // Create and return the schedule
-        return Schedule(stationId: stationId, spins: spins)
-      } catch {
-        throw mapToAPIError(error)
-      }
-    }
+      },
+      uploadFileToPresignedUrl: { presignedUrl, fileUrl, progress in
+                guard let url = URL(string: presignedUrl) else {
+                    throw APIError.invalidResponse
+                }
+
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    AF.upload(fileUrl, to: url, method: .put)
+                        .uploadProgress { progressValue in
+                            progress(progressValue.fractionCompleted)
+                        }
+                        .response { response in
+                            if let error = response.error {
+                                continuation.resume(throwing: error)
+                                return
+                            }
+
+                            guard let statusCode = response.response?.statusCode,
+                                  (200...299).contains(statusCode) else {
+                                continuation.resume(throwing: APIError.serverError(response.response?.statusCode ?? 500))
+                                return
+                            }
+
+                            continuation.resume(returning: ())
+                        }
+                }
+            }
+    )
   }
 
   enum DataError: Error {

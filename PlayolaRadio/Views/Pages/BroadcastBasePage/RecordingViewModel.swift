@@ -8,19 +8,24 @@ import SwiftUI
 import Foundation
 import AVFoundation
 import Dependencies
+import Sharing
 
 @MainActor
 @Observable
 class RecordingViewModel: ViewModel {
   var completionHandler: ((LocalVoicetrack) -> Void)?
+  var stationId: String
 
-  init(completionHandler: ((LocalVoicetrack) -> Void)?) {
+  init(stationId: String, completionHandler: ((LocalVoicetrack) -> Void)? = nil) {
+    self.stationId = stationId
     self.completionHandler = completionHandler
     super.init()
   }
 
   @ObservationIgnored @Dependency(\.audioRecorder) private var audioRecorder
   @ObservationIgnored @Dependency(\.continuousClock) private var clock
+  @ObservationIgnored @Dependency(\.genericApiClient) private var apiClient
+  @ObservationIgnored @Shared(.auth) private var auth
 
   private var meterUpdateTimerTask: Task<Never, Error>?
 
@@ -33,7 +38,7 @@ class RecordingViewModel: ViewModel {
     case idle(String)
     case counting(Int)
     case recording
-    case processing
+    case processing(String)
     case error(String)
 
     static func == (lhs: StatusViews, rhs: StatusViews) -> Bool {
@@ -44,8 +49,8 @@ class RecordingViewModel: ViewModel {
         return lhsCount == rhsCount
       case (.recording, .recording):
         return true
-      case (.processing, .processing):
-        return true
+      case (.processing(let lhsMsg), .processing(let rhsMsg)):
+        return lhsMsg == rhsMsg
       case (.error(let lhsMessage), .error(let rhsMessage)):
         return lhsMessage == rhsMessage
       default:
@@ -73,15 +78,38 @@ class RecordingViewModel: ViewModel {
 
   func stopButtonTapped() async {
     stopMeterUpdates()
-    activeStatusView = .processing
+    activeStatusView = .processing("Processing Audio")
     do {
-      let voicetrack = try await audioRecorder.stopRecording()
-      completionHandler?(voicetrack)
+      let localVoicetrack = try await audioRecorder.stopRecording()
+      activeStatusView = .processing("Getting Upload Permission")
+      let uploadInfo = try await apiClient.getVoicetrackPresignedUrl(self.stationId, auth)
+      try await uploadVoicetrack(localVoicetrack, uploadInfo: uploadInfo)
     } catch (let error) {
       activeStatusView = .error(error.localizedDescription)
       recordButtonEnabled = true
       showCancelButton = true
     }
+  }
+
+  private func uploadVoicetrack(_ localVoicetrack: LocalVoicetrack, uploadInfo: PresignedUrlUploadInfo) async throws {
+    self.activeStatusView = .processing("Uploading Voicetrack...")
+    do {
+      try await apiClient.uploadFileToPresignedUrl(
+          uploadInfo.presignedUrl,
+          localVoicetrack.fileURL
+      ) { progress in
+          // Update status with upload progress
+        Task { @MainActor in self.activeStatusView = .processing("Uploading Voicetrack: \(Int(progress * 100))%") }
+      }
+      createVoicetrack(localVoicetrack)
+    } catch (let error) {
+      print(error)
+    }
+
+  }
+
+  private func createVoicetrack(_ localVoicetrack: LocalVoicetrack) {
+    
   }
 
 
@@ -93,12 +121,6 @@ class RecordingViewModel: ViewModel {
   var averagePower: Float = -160
   var peakPower: Float = -160
   var duration: TimeInterval = 0
-
-  private var countdownValue = 3
-
-  override init() {
-    super.init()
-  }
 
   // MARK: - Public Methods
 

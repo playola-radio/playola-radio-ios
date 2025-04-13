@@ -78,7 +78,7 @@ struct BroadcastPage: View {
       }
     }
     .sheet(isPresented: $model.recordingViewIsPresented) {
-      RecordingView(model: RecordingViewModel())
+      RecordingView(model: RecordingViewModel(stationId: model.station.id))
     }
     .sheet(isPresented: $model.addSongViewIsPresented) {
       // ADD: Uncomment when AddSongView is ready
