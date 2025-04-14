@@ -109,7 +109,7 @@ class RecordingViewModel: ViewModel {
   }
 
   private func createVoicetrack(_ localVoicetrack: LocalVoicetrack) {
-    
+
   }
 
 

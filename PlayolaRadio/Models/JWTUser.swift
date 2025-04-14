@@ -28,6 +28,12 @@ struct Auth: Codable {
   }
 }
 
+extension Auth: Equatable {
+  static func == (lhs: Auth, rhs: Auth) -> Bool {
+    return lhs.jwtUser == rhs.jwtUser && lhs.jwt == rhs.jwt
+  }
+}
+
 struct JWTUser: Codable {
   let id: String
   let displayName: String
@@ -43,6 +49,15 @@ struct JWTUser: Codable {
     email = userDict["email"] as! String
     profileImageUrl = userDict["profileImageUrl"] as? String
     role = userDict["role"] as! String
+    self.jwt = jwt
+  }
+
+  init(id: String, displayName: String, email: String, profileImageUrl: String?, role: String, jwt: String) {
+    self.id = id
+    self.displayName = displayName
+    self.email = email
+    self.profileImageUrl = profileImageUrl
+    self.role = role
     self.jwt = jwt
   }
 
@@ -108,4 +123,22 @@ class AuthService {
   func clearAppleUser() {
     $appleSignInInfo.withLock { $0 = nil }
   }
+}
+
+extension JWTUser: Equatable {
+  static func == (lhs: JWTUser, rhs: JWTUser) -> Bool {
+    return lhs.id == rhs.id &&
+    lhs.displayName == rhs.displayName &&
+    lhs.email == rhs.email &&
+    lhs.profileImageUrl == rhs.profileImageUrl &&
+    lhs.role == rhs.role &&
+    lhs.jwt == rhs.jwt
+  }
+}
+
+extension JWTUser {
+  static let mock = JWTUser(id: "myId", displayName: "Testy McTesterson", email: "testy.mctesterson@gmail.com", profileImageUrl: "https://testyimage.com", role: "user", jwt: "jwtString")
+}
+extension Auth {
+  static let mock = Auth(currentUser: .mock, jwt: JWTUser.mock.jwt)
 }
