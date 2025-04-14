@@ -29,6 +29,12 @@ struct GenericApiClient : Sendable {
     _ fileUrl: URL,
     _ progress: @escaping @Sendable (Double) -> Void
   ) async throws -> Void
+  var createVoicetrack: @Sendable (
+    _ stationId: String,
+    _ s3Key: String,
+    _ durationMS: Int,
+    _ auth: Auth
+  ) async throws -> AudioBlock
 
   // Helper Functions
   static let playolaBaseUrl = "https://admin-api.playola.fm/v1"
@@ -220,31 +226,50 @@ extension GenericApiClient: DependencyKey {
         )
       },
       uploadFileToPresignedUrl: { presignedUrl, fileUrl, progress in
-                guard let url = URL(string: presignedUrl) else {
-                    throw APIError.invalidResponse
-                }
+        guard let url = URL(string: presignedUrl) else {
+          throw APIError.invalidResponse
+        }
 
-                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                    AF.upload(fileUrl, to: url, method: .put)
-                        .uploadProgress { progressValue in
-                            progress(progressValue.fractionCompleted)
-                        }
-                        .response { response in
-                            if let error = response.error {
-                                continuation.resume(throwing: error)
-                                return
-                            }
-
-                            guard let statusCode = response.response?.statusCode,
-                                  (200...299).contains(statusCode) else {
-                                continuation.resume(throwing: APIError.serverError(response.response?.statusCode ?? 500))
-                                return
-                            }
-
-                            continuation.resume(returning: ())
-                        }
-                }
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+          AF.upload(fileUrl, to: url, method: .put)
+            .uploadProgress { progressValue in
+              progress(progressValue.fractionCompleted)
             }
+            .response { response in
+              if let error = response.error {
+                continuation.resume(throwing: error)
+                return
+              }
+
+              guard let statusCode = response.response?.statusCode,
+                    (200...299).contains(statusCode) else {
+                continuation.resume(throwing: APIError.serverError(response.response?.statusCode ?? 500))
+                return
+              }
+
+              continuation.resume(returning: ())
+            }
+        }
+      },
+      createVoicetrack: { stationId, s3Key, durationMS, auth in
+        guard let authToken = auth.jwt else {
+          throw APIError.unauthorized
+        }
+
+        let urlString = "\(Self.playolaBaseUrl)/stations/\(stationId)/voicetracks"
+        let parameters: Parameters = [
+          "s3Key": s3Key,
+          "durationMS": durationMS
+        ]
+
+        return try await performRequest(
+          urlString: urlString,
+          method: .post,
+          parameters: parameters,
+          auth: auth,
+          encoding: JSONEncoding.default
+        )
+      }
     )
   }
 

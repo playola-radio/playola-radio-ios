@@ -9,14 +9,15 @@ import Foundation
 import AVFoundation
 import Dependencies
 import Sharing
+import PlayolaPlayer
 
 @MainActor
 @Observable
 class RecordingViewModel: ViewModel {
-  var completionHandler: ((LocalVoicetrack) -> Void)?
+  var completionHandler: ((AudioBlock) -> Void)?
   var stationId: String
 
-  init(stationId: String, completionHandler: ((LocalVoicetrack) -> Void)? = nil) {
+  init(stationId: String, completionHandler: ((AudioBlock?) -> Void)? = nil) {
     self.stationId = stationId
     self.completionHandler = completionHandler
     super.init()
@@ -39,6 +40,7 @@ class RecordingViewModel: ViewModel {
     case counting(Int)
     case recording
     case processing(String)
+    case completed
     case error(String)
 
     static func == (lhs: StatusViews, rhs: StatusViews) -> Bool {
@@ -53,6 +55,8 @@ class RecordingViewModel: ViewModel {
         return lhsMsg == rhsMsg
       case (.error(let lhsMessage), .error(let rhsMessage)):
         return lhsMessage == rhsMessage
+      case (.completed, .completed):
+        return true
       default:
         return false
       }
@@ -93,25 +97,35 @@ class RecordingViewModel: ViewModel {
 
   private func uploadVoicetrack(_ localVoicetrack: LocalVoicetrack, uploadInfo: PresignedUrlUploadInfo) async throws {
     self.activeStatusView = .processing("Uploading Voicetrack...")
-    do {
-      try await apiClient.uploadFileToPresignedUrl(
-          uploadInfo.presignedUrl,
-          localVoicetrack.fileURL
-      ) { progress in
-          // Update status with upload progress
-        Task { @MainActor in self.activeStatusView = .processing("Uploading Voicetrack: \(Int(progress * 100))%") }
-      }
-      createVoicetrack(localVoicetrack)
-    } catch (let error) {
-      print(error)
+    try await apiClient.uploadFileToPresignedUrl(
+        uploadInfo.presignedUrl,
+        localVoicetrack.fileURL
+    ) { progress in
+        // Update status with upload progress
+        Task { @MainActor in
+            self.activeStatusView = .processing("Uploading Voicetrack: \(Int(progress * 100))%")
+        }
     }
-
+    // After successful upload, create the voicetrack
+    await createVoicetrack(localVoicetrack, s3Key: uploadInfo.s3Key)
   }
 
-  private func createVoicetrack(_ localVoicetrack: LocalVoicetrack) {
-
+  private func createVoicetrack(_ localVoicetrack: LocalVoicetrack, s3Key: String) async {
+    do {
+        let audioBlock = try await apiClient.createVoicetrack(
+            self.stationId,
+            s3Key,
+            localVoicetrack.durationMS,
+            auth
+        )
+        self.activeStatusView = .completed
+        completionHandler?(audioBlock)
+    } catch (let error) {
+        self.activeStatusView = .error(error.localizedDescription)
+        self.recordButtonEnabled = true
+        self.showCancelButton = true
+    }
   }
-
 
   // MARK: - Properties
   var recordingURL: URL?

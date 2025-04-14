@@ -90,6 +90,16 @@ struct RecordingView: View {
                     .font(.custom("OpenSans", size: 16))
                     .padding(.top, 8)
             }
+        case .completed:
+            VStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .resizable()
+                    .frame(width: 50, height: 50)
+                    .foregroundStyle(.green)
+                Text("Voicetrack Added!")
+                    .font(.custom("OpenSans", size: 18))
+                    .padding(.top, 8)
+            }
         case .error(let errorMessage):
             Text(errorMessage)
                 .foregroundStyle(.red)
