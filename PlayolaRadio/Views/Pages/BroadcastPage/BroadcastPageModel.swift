@@ -26,7 +26,6 @@ class BroadcastPageModel: ViewModel {
   var presentedAlert: PlayolaAlert?
 
   // Demo data for display
-  var stagingAudioBlocks: [AudioBlock] = []
   var playlist: [Spin] = []
   var nowPlaying: Spin?
 
@@ -58,9 +57,12 @@ class BroadcastPageModel: ViewModel {
   func hamburgerButtonTapped() {
     navigationCoordinator.slideOutMenuIsShowing = true
   }
-  
+
   // MARK: - Recording Completion Handler
-  func handleRecordingComplete(url: URL) {
+  func handleRecordingComplete(audioBlock: AudioBlock?) {
+    if let audioBlock {
+      scheduleEditorModel.stagingAreaAudioBlocks.append(audioBlock)
+    }
     // TODO: Handle the recorded audio file
     recordingViewIsPresented = false
   }

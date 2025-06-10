@@ -73,6 +73,14 @@ class ScheduleEditorModel: ViewModel {
 
   }
 
+  public func spinWasMoved(from source: IndexSet, to destination: Int) {
+    let startingIndex = source.first!
+    let playlist = self.schedule!.current
+    let movedSpin = playlist[startingIndex]
+    let destinationSpin = playlist[destination]
+    print("picked up \(movedSpin.audioBlock!.title) and moved it to be scheduled after \(destinationSpin.audioBlock!.title)")
+  }
+
   func refreshSchedule() async {
     do {
       self.schedule = try await genericApiClient.fetchSchedule(station.id, true, auth)

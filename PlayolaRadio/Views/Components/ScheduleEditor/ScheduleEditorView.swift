@@ -71,7 +71,9 @@ struct ScheduleEditorView: View {
           List {
             ForEach(model.upcomingSpins, id: \.self) { spin in
               ScheduleCellView(model: .init(spin: spin))
+                .onDrag { NSItemProvider(object: spin.id as NSString) }
             }
+            .onMove(perform: model.spinWasMoved)
           }
           .environment(\.defaultMinListRowHeight, 33)
           .background(Color.black)

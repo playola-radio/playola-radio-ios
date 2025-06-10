@@ -37,7 +37,7 @@ struct ScheduleCellView: View {
           .frame(width: 45.0, height: 33.0)
           .padding(.zero)
       case "voicetrack":
-        Image("voiceTrackAlbumArtwork")
+        Image("voicetrackAlbumArtwork")
           .resizable()
           .frame(width: 45.0, height: 45.0)
           .padding(.zero)

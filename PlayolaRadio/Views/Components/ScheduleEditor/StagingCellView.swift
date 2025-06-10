@@ -14,7 +14,7 @@ struct StagingCellView: View {
         HStack {
           switch audioBlock.type {
             case "clientOnlyVoicetrack", "voicetrack":
-                Image("voiceTrackAlbumArtwork")
+                Image("voicetrackAlbumArtwork")
                     .resizable()
                     .frame(width: 45.0, height: 45.0)
                     .padding(.zero)
