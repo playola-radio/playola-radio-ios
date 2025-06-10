@@ -96,7 +96,7 @@ class StationPlayer: ObservableObject {
       state = .init(playbackStatus: .playing(currentStation!),
                     artistPlaying: nowPlaying.artist,
                     titlePlaying: nowPlaying.title,
-                    albumArtworkUrl: nowPlaying.imageUrl != nil ? URL(string: nowPlaying.imageUrl!) : nil)
+                    albumArtworkUrl: nowPlaying.imageUrl)
     case .none:
       state = .init(playbackStatus: .error)
     }
