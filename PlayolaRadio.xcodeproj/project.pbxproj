@@ -63,6 +63,8 @@
 		D37257B72DF88DCD001BC6F9 /* CircleSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B62DF88DBF001BC6F9 /* CircleSection.swift */; };
 		D37257BB2DF891D5001BC6F9 /* SpaceGrotesk.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D37257BA2DF891D5001BC6F9 /* SpaceGrotesk.ttf */; };
 		D37257BD2DF893C6001BC6F9 /* View+ListInstalledFonts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257BC2DF893BB001BC6F9 /* View+ListInstalledFonts.swift */; };
+		D37257C02DF8E407001BC6F9 /* Inter-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D37257BF2DF8E407001BC6F9 /* Inter-Italic.ttf */; };
+		D37257C12DF8E407001BC6F9 /* Inter.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D37257BE2DF8E407001BC6F9 /* Inter.ttf */; };
 		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
 		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
@@ -148,6 +150,8 @@
 		D37257B62DF88DBF001BC6F9 /* CircleSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircleSection.swift; sourceTree = "<group>"; };
 		D37257BA2DF891D5001BC6F9 /* SpaceGrotesk.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SpaceGrotesk.ttf; sourceTree = "<group>"; };
 		D37257BC2DF893BB001BC6F9 /* View+ListInstalledFonts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+ListInstalledFonts.swift"; sourceTree = "<group>"; };
+		D37257BE2DF8E407001BC6F9 /* Inter.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Inter.ttf; sourceTree = "<group>"; };
+		D37257BF2DF8E407001BC6F9 /* Inter-Italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Italic.ttf"; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
 		D3B662692D40103800975D2F /* SignInPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPage.swift; sourceTree = "<group>"; };
 		D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinator.swift; sourceTree = "<group>"; };
@@ -410,6 +414,8 @@
 			isa = PBXGroup;
 			children = (
 				D37257BA2DF891D5001BC6F9 /* SpaceGrotesk.ttf */,
+				D37257BE2DF8E407001BC6F9 /* Inter.ttf */,
+				D37257BF2DF8E407001BC6F9 /* Inter-Italic.ttf */,
 			);
 			path = Fonts;
 			sourceTree = "<group>";
@@ -537,6 +543,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D37257C02DF8E407001BC6F9 /* Inter-Italic.ttf in Resources */,
+				D37257C12DF8E407001BC6F9 /* Inter.ttf in Resources */,
 				D3B662C32D4272F900975D2F /* Secrets-Local.xcconfig in Resources */,
 				D3536A0C2BFA4F4A006942D6 /* Preview Assets.xcassets in Resources */,
 				D37257BB2DF891D5001BC6F9 /* SpaceGrotesk.ttf in Resources */,
