@@ -57,6 +57,12 @@
 		D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C52D3E91B900E4E926 /* MainSceneDelegate.swift */; };
 		D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */; };
 		D35673CB2D3EE5E900E4E926 /* Secrets-Development.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */; };
+		D37257B02DF88BB7001BC6F9 /* HomePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257AF2DF88BB2001BC6F9 /* HomePageView.swift */; };
+		D37257B22DF88BC1001BC6F9 /* HomePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B12DF88BBD001BC6F9 /* HomePageModel.swift */; };
+		D37257B42DF88BDD001BC6F9 /* HomePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B32DF88BD9001BC6F9 /* HomePageTests.swift */; };
+		D37257B72DF88DCD001BC6F9 /* CircleSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B62DF88DBF001BC6F9 /* CircleSection.swift */; };
+		D37257BB2DF891D5001BC6F9 /* SpaceGrotesk.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D37257BA2DF891D5001BC6F9 /* SpaceGrotesk.ttf */; };
+		D37257BD2DF893C6001BC6F9 /* View+ListInstalledFonts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257BC2DF893BB001BC6F9 /* View+ListInstalledFonts.swift */; };
 		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
 		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
@@ -136,6 +142,12 @@
 		D35673C52D3E91B900E4E926 /* MainSceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainSceneDelegate.swift; sourceTree = "<group>"; };
 		D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingUpdater.swift; sourceTree = "<group>"; };
 		D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Development.xcconfig"; sourceTree = "<group>"; };
+		D37257AF2DF88BB2001BC6F9 /* HomePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePageView.swift; sourceTree = "<group>"; };
+		D37257B12DF88BBD001BC6F9 /* HomePageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePageModel.swift; sourceTree = "<group>"; };
+		D37257B32DF88BD9001BC6F9 /* HomePageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePageTests.swift; sourceTree = "<group>"; };
+		D37257B62DF88DBF001BC6F9 /* CircleSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircleSection.swift; sourceTree = "<group>"; };
+		D37257BA2DF891D5001BC6F9 /* SpaceGrotesk.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SpaceGrotesk.ttf; sourceTree = "<group>"; };
+		D37257BC2DF893BB001BC6F9 /* View+ListInstalledFonts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+ListInstalledFonts.swift"; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
 		D3B662692D40103800975D2F /* SignInPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPage.swift; sourceTree = "<group>"; };
 		D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinator.swift; sourceTree = "<group>"; };
@@ -251,6 +263,7 @@
 		D339E55C2BFD0FB000B9E35B /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				D37257AC2DF88B89001BC6F9 /* HomePage */,
 				D3B662772D41B10600975D2F /* SignInPage */,
 				D3137DCB2D3A9F9E0070033A /* NowPlayingPage */,
 				D3536A062BFA4F49006942D6 /* ContentView.swift */,
@@ -340,6 +353,7 @@
 		D3536A392BFA6520006942D6 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				D37257BC2DF893BB001BC6F9 /* View+ListInstalledFonts.swift */,
 				D3A276682D496282006055AF /* UIApplication+keyWindow.swift */,
 				D35673C22D3E871800E4E926 /* CPListItem+InitWithRemoteUrl.swift */,
 				D3137DD32D3AC9B40070033A /* EnumTypeEquatableProtocol.swift */,
@@ -363,6 +377,7 @@
 		D35673B82D3DC9DE00E4E926 /* Config */ = {
 			isa = PBXGroup;
 			children = (
+				D37257B92DF891C8001BC6F9 /* Fonts */,
 				D3B662C22D4272ED00975D2F /* Secrets-Local.xcconfig */,
 				D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */,
 				D35673BF2D3DCA3600E4E926 /* Secrets-Example.xcconfig */,
@@ -370,6 +385,33 @@
 				D35673B92D3DC9ED00E4E926 /* Config.swift */,
 			);
 			path = Config;
+			sourceTree = "<group>";
+		};
+		D37257AC2DF88B89001BC6F9 /* HomePage */ = {
+			isa = PBXGroup;
+			children = (
+				D37257B52DF88DB3001BC6F9 /* UI Components */,
+				D37257B32DF88BD9001BC6F9 /* HomePageTests.swift */,
+				D37257B12DF88BBD001BC6F9 /* HomePageModel.swift */,
+				D37257AF2DF88BB2001BC6F9 /* HomePageView.swift */,
+			);
+			path = HomePage;
+			sourceTree = "<group>";
+		};
+		D37257B52DF88DB3001BC6F9 /* UI Components */ = {
+			isa = PBXGroup;
+			children = (
+				D37257B62DF88DBF001BC6F9 /* CircleSection.swift */,
+			);
+			path = "UI Components";
+			sourceTree = "<group>";
+		};
+		D37257B92DF891C8001BC6F9 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				D37257BA2DF891D5001BC6F9 /* SpaceGrotesk.ttf */,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 		D3B6626B2D4016B900975D2F /* Services */ = {
@@ -497,6 +539,7 @@
 			files = (
 				D3B662C32D4272F900975D2F /* Secrets-Local.xcconfig in Resources */,
 				D3536A0C2BFA4F4A006942D6 /* Preview Assets.xcassets in Resources */,
+				D37257BB2DF891D5001BC6F9 /* SpaceGrotesk.ttf in Resources */,
 				D35673C02D3DCA3F00E4E926 /* Secrets-Example.xcconfig in Resources */,
 				D3536A092BFA4F4A006942D6 /* Assets.xcassets in Resources */,
 				D35673CB2D3EE5E900E4E926 /* Secrets-Development.xcconfig in Resources */,
@@ -519,13 +562,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */,
+				D37257B02DF88BB7001BC6F9 /* HomePageView.swift in Sources */,
 				D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */,
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
+				D37257B22DF88BC1001BC6F9 /* HomePageModel.swift in Sources */,
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
 				D3B6626A2D40103C00975D2F /* SignInPage.swift in Sources */,
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
 				D339E5622BFD0FD800B9E35B /* NowPlayingSmallView.swift in Sources */,
 				D3137DBB2D3976580070033A /* PlayolaAlert.swift in Sources */,
+				D37257BD2DF893C6001BC6F9 /* View+ListInstalledFonts.swift in Sources */,
 				D339E5652BFD0FD800B9E35B /* NowPlayingEqAnimation.swift in Sources */,
 				D35673B02D3DC55900E4E926 /* CarPlaySceneDelegate.swift in Sources */,
 				D35673C32D3E872600E4E926 /* CPListItem+InitWithRemoteUrl.swift in Sources */,
@@ -537,6 +583,7 @@
 				D339E57C2BFD698600B9E35B /* Mail.swift in Sources */,
 				D3B662742D419C3300975D2F /* LoggedInUser.swift in Sources */,
 				D3536A322BFA64AB006942D6 /* StationList.swift in Sources */,
+				D37257B72DF88DCD001BC6F9 /* CircleSection.swift in Sources */,
 				D339E5762BFD419400B9E35B /* AboutPage.swift in Sources */,
 				D3137DD22D3ABB520070033A /* GenericNowPlaying.swift in Sources */,
 				D3361FE42D6E980000A859FF /* SideMenuView.swift in Sources */,
@@ -548,6 +595,7 @@
 				D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */,
 				D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */,
 				D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */,
+				D37257B42DF88BDD001BC6F9 /* HomePageTests.swift in Sources */,
 				D3B662722D4161E100975D2F /* AppleSignInInfo.swift in Sources */,
 				D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */,
 				D3137DC82D3A92EC0070033A /* NowPlayingPage.swift in Sources */,
@@ -724,6 +772,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -761,6 +810,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -899,6 +949,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
