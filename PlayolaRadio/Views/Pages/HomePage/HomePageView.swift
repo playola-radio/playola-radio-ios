@@ -25,15 +25,29 @@ struct HomePageView: View {
     ]
 
     var body: some View {
-      ScrollView {
+      VStack {
         VStack {
-          HomeIntroSection()
+          Text("Welcome, Brian")
+              .font(.custom("SpaceGrotesk-Light_Bold", size: 32))
+              .fontWeight(.bold)
+              .foregroundColor(.white)
+              .padding(.horizontal, 18)
+              .padding(.top, 12)
+              .padding(.bottom, 8)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .background(Color.black)
 
-          HomePageStationList()
+        ScrollView {
+
+            HomeIntroSection()
+
+            HomePageStationList()
+          }
+          .padding(.horizontal, 24)
         }
-        .padding(.horizontal, 24)
+        .circleBackground(offsetY: -180)
       }
-      .circleBackground(offsetY: -120)
+
     }
 }
 

@@ -9,15 +9,6 @@ import SwiftUI
 struct HomeIntroSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Welcome, Brian")
-                .font(.custom("SpaceGrotesk-Light_Bold", size: 32))
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-                .padding(.horizontal, 18)
-                .padding(.top, 12)
-                .padding(.bottom, 57)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
             // Content with circles
             VStack(spacing: 20) {
                 Image("LogoMark")
