@@ -91,7 +91,6 @@ struct HomePageStationList: View {
                     StationCardView(station: station)
                 }
             }
-            .padding(.horizontal, 24)
         }
         .padding(.vertical, 20)
         .background(Color.black)
@@ -102,5 +101,6 @@ struct HomePageStationList_Previews: PreviewProvider {
     static var previews: some View {
         HomePageStationList()
             .preferredColorScheme(.dark)
+            .padding(.horizontal, 24)
     }
 }

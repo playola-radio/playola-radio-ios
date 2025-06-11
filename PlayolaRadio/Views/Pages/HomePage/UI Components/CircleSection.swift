@@ -9,23 +9,22 @@ import SwiftUI
 struct HomeIntroSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Welcome text - flush with top, minimal padding
             Text("Welcome, Brian")
-                .font(.custom("SpaceGrotesk-Light_Bold", size: 34))
+                .font(.custom("SpaceGrotesk-Light_Bold", size: 32))
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .padding(.horizontal, 18)
                 .padding(.top, 12)
-                .padding(.bottom, 16)
+                .padding(.bottom, 57)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.black)
 
             // Content with circles
             VStack(spacing: 20) {
                 Image("LogoMark")
                     .resizable()
                     .scaledToFit()
-                    .frame(height: 80)
+                    .frame(width: 76, height: 98)
+                    .padding(.bottom, 32)
 
                 Text("Discover music through independent artist made radio stations.")
                     .foregroundColor(.white)
@@ -41,13 +40,13 @@ struct HomeIntroSection: View {
             .clipped()
         }
         .background(Color.clear)
-        .onAppear { listInstalledFonts() }
     }
 }
 
 struct CircleSection_Previews: PreviewProvider {
     static var previews: some View {
       HomeIntroSection()
+        .padding(.horizontal, 24)
         .background(Color.black)
     }
 }
