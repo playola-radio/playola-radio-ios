@@ -67,6 +67,7 @@
 		D37257C12DF8E407001BC6F9 /* Inter.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D37257BE2DF8E407001BC6F9 /* Inter.ttf */; };
 		D37257C42DF8F885001BC6F9 /* circleBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257C32DF8F87F001BC6F9 /* circleBackground.swift */; };
 		D37257C62DF9F064001BC6F9 /* HomePageStationList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257C52DF9EF8D001BC6F9 /* HomePageStationList.swift */; };
+		D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257C82DFA247A001BC6F9 /* MainContainer.swift */; };
 		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
 		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
@@ -156,6 +157,7 @@
 		D37257BF2DF8E407001BC6F9 /* Inter-Italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Italic.ttf"; sourceTree = "<group>"; };
 		D37257C32DF8F87F001BC6F9 /* circleBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = circleBackground.swift; sourceTree = "<group>"; };
 		D37257C52DF9EF8D001BC6F9 /* HomePageStationList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePageStationList.swift; sourceTree = "<group>"; };
+		D37257C82DFA247A001BC6F9 /* MainContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainer.swift; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
 		D3B662692D40103800975D2F /* SignInPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPage.swift; sourceTree = "<group>"; };
 		D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinator.swift; sourceTree = "<group>"; };
@@ -271,6 +273,7 @@
 		D339E55C2BFD0FB000B9E35B /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				D37257C72DFA2470001BC6F9 /* MainContainer */,
 				D37257AC2DF88B89001BC6F9 /* HomePage */,
 				D3B662772D41B10600975D2F /* SignInPage */,
 				D3137DCB2D3A9F9E0070033A /* NowPlayingPage */,
@@ -432,6 +435,14 @@
 				D37257C32DF8F87F001BC6F9 /* circleBackground.swift */,
 			);
 			path = "SwiftUI Modifiers";
+			sourceTree = "<group>";
+		};
+		D37257C72DFA2470001BC6F9 /* MainContainer */ = {
+			isa = PBXGroup;
+			children = (
+				D37257C82DFA247A001BC6F9 /* MainContainer.swift */,
+			);
+			path = MainContainer;
 			sourceTree = "<group>";
 		};
 		D3B6626B2D4016B900975D2F /* Services */ = {
@@ -625,6 +636,7 @@
 				D37257C62DF9F064001BC6F9 /* HomePageStationList.swift in Sources */,
 				D339E56D2BFD2FAB00B9E35B /* URLStreamPlayer.swift in Sources */,
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
+				D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */,
 				D339E5692BFD1C0800B9E35B /* API.swift in Sources */,
 				D35673B42D3DC6D100E4E926 /* TrackingService.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,

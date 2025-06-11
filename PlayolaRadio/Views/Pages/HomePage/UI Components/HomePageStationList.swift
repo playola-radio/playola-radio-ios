@@ -17,7 +17,7 @@ struct Station: Identifiable {
 
 struct StationCardView: View {
   let station: Station
-  
+
   var body: some View {
     HStack(spacing: 0) {
       AsyncImage(url: URL(string: station.imageUrl)) { image in
@@ -29,28 +29,27 @@ struct StationCardView: View {
       }
       .frame(width: 160, height: 160)
       .clipped()
-      
+
       // Right side - Text content
       VStack(alignment: .leading, spacing: 8) {
         Text(station.stationName)
-          .font(.custom("Inter-Regular", size: 12))  // Smaller station name
+          .font(.custom("Inter-Regular", size: 12))
           .foregroundColor(Color(hex: "#C7C7C7"))
-        
+
         Text(station.name)
-          .font(.custom("SpaceGrotesk-Light_Bold", size: 16))  // Adjusted name size
+          .font(.custom("SpaceGrotesk-Light_Bold", size: 16))
           .fontWeight(.bold)
           .foregroundColor(.white)
           .padding(.bottom, 4)
-        
+
         Text(station.description)
           .font(.custom("Inter-Regular", size: 14))
           .foregroundColor(Color(hex: "#C7C7C7"))
           .lineLimit(nil)
           .lineSpacing(4)
-//        Spacer()
       }
       .padding(.horizontal, 24)
-      .padding(.vertical, 20)
+      .padding(.bottom, 20)
       .frame(maxWidth: .infinity,
              maxHeight: 160,
              alignment: .leading)
@@ -78,13 +77,12 @@ struct HomePageStationList: View {
     ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {  // Reduced spacing
+        VStack(alignment: .leading) {
             Text("Artist stations for you")
                 .font(.custom("SpaceGrotesk-Light_Bold", size: 24))
                 .fontWeight(.bold)
                 .foregroundColor(.white)
-                .padding(.horizontal, 32)
-                .padding(.bottom, 8)  // Add some space after the header
+                .padding(.bottom, 8)
 
             VStack(spacing: 12) {  // Reduced spacing between cards
                 ForEach(stations) { station in

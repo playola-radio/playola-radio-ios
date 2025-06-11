@@ -38,7 +38,6 @@ struct HomePageView: View {
               .background(Color.black)
 
         ScrollView {
-
             HomeIntroSection()
 
             HomePageStationList()
