@@ -119,12 +119,12 @@ struct PlayerPage: View {
                 .foregroundColor(.white)
 
               Text("This song really hits home for me. It brings back memories of warm summer nights with friends, filled with laughter and joy. Its beautiful melodies and touching lyrics make it a special part of my musical journey, and I hope it resonates with others too.")
-                .font(.custom(FontNames.Inter_400_Regular, size: 16))
+                .font(.custom(FontNames.Inter_400_Regular, size: 14))
                 .foregroundColor(.gray)
                 .lineSpacing(4)
 
               Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.")
-                .font(.custom(FontNames.Inter_400_Regular, size: 16))
+                .font(.custom(FontNames.Inter_400_Regular, size: 14))
                 .foregroundColor(.gray)
                 .lineSpacing(4)
             }
