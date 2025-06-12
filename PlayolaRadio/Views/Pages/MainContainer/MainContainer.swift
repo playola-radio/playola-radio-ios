@@ -19,7 +19,7 @@ struct MainContainer: View {
                 }
                 .tag(0)
             
-            HomePageView() // Temporarily using HomePageView
+            StationListPage()
                 .tabItem {
                     Image("RadioStationsTabImage")
                     Text("Radio Stations")

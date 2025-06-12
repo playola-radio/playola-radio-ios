@@ -43,6 +43,7 @@ struct HomePageView: View {
             HomePageStationList()
           }
           .padding(.horizontal, 24)
+          .scrollIndicators(.hidden)
         }
         .circleBackground(offsetY: -180)
       }
