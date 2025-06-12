@@ -69,21 +69,32 @@ struct PlayerPage: View {
                 .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 24))
                 .foregroundColor(.white)
 
+              ProgressView(value: 1.0)
+                .progressViewStyle(LinearProgressViewStyle(tint: Color.playolaRed))
+                .cornerRadius(8)
+                .scaleEffect(y: 2, anchor: .center)
+                .padding(.top, 32)
+
               // Live indicator
               HStack(spacing: 8) {
                 Text("ON AIR")
-                  .font(.custom(FontNames.Inter_500_Medium, size: 12))
-                  .foregroundColor(.white)
+                  .font(.custom(FontNames.Inter_400_Regular, size: 12))
+                  .foregroundColor(.gray)
+
+                Spacer()
 
                 Text("LIVE")
-                  .font(.custom(FontNames.Inter_500_Medium, size: 12))
-                  .foregroundColor(.white)
+                  .font(.custom(FontNames.Inter_400_Regular, size: 12))
+                  .foregroundColor(.gray)
 
-                Circle()
-                  .fill(Color.playolaRed)
+                Image("LiveIcon")
+                  .resizable()
+                  .foregroundColor(Color.playolaRed)
                   .frame(width: 8, height: 8)
               }
-              .padding(.top, 4)
+              .padding(.top, 8)
+
+
             }
             .frame(maxWidth: .infinity, alignment: .center)
             .padding(.horizontal, 24)
@@ -102,7 +113,6 @@ struct PlayerPage: View {
             }
             .padding(.top, 32)
 
-            // Why I chose this song
             VStack(alignment: .leading, spacing: 16) {
               Text("Why I chose this song")
                 .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 18))
@@ -119,9 +129,11 @@ struct PlayerPage: View {
                 .lineSpacing(4)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+            .background(Color(hex: "#333333"))
             .padding(.horizontal, 24)
             .padding(.top, 32)
-            .background(Color(hex: "#333333"))
           }
           .scrollIndicators(.hidden)
 
