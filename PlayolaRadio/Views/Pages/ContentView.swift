@@ -20,7 +20,7 @@ class ViewModel: Hashable {
 }
 
 @MainActor
-struct AppView: View {
+struct ContentView: View {
   var sideBarWidth = UIScreen.main.bounds.size.width * 0.5
   @State var offset: CGFloat = 0
   @GestureState var gestureOffset: CGFloat = 0
@@ -143,6 +143,6 @@ struct AppView: View {
 
 #Preview {
   NavigationStack {
-    AppView()
+    ContentView()
   }
 }
