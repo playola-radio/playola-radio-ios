@@ -6,45 +6,96 @@
 //
 
 import SwiftUI
+import Sharing
 
+@MainActor
+@Observable
+class MainContainerModel: ViewModel {
+  var api: API!
+
+  @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
+
+
+  enum ActiveTab {
+    case home
+    case stationsList
+    case profile
+  }
+
+  var selectedTab: ActiveTab = .home
+  var presentedAlert: PlayolaAlert? = nil
+
+  init(api: API? = nil) {
+    self.api = api ?? API()
+  }
+
+  func viewAppeared() async {
+    do {
+      if !stationListsLoaded {
+        do {
+          try await api.getStations()
+        } catch (_) {
+          self.presentedAlert = .errorLoadingStations
+        }
+      }
+    }
+  }
+}
+
+extension PlayolaAlert {
+  static var errorLoadingStations: PlayolaAlert {
+    PlayolaAlert(
+      title: "Error Loading Stations",
+      message: "There was an error loading the stations. Please check yout connection and try again.",
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+}
+
+@MainActor
 struct MainContainer: View {
-    @State private var selectedTab = 0
-    
+  @Bindable var model: MainContainerModel
+
     var body: some View {
-        TabView(selection: $selectedTab) {
+      TabView(selection: $model.selectedTab) {
             HomePageView()
                 .tabItem {
                     Image("HomeTabImage")
                     Text("Home")
                 }
-                .tag(0)
-            
+                .tag(MainContainerModel.ActiveTab.home)
+
             StationListPage()
                 .tabItem {
                     Image("RadioStationsTabImage")
                     Text("Radio Stations")
                 }
-                .tag(1)
-            
+                .tag(MainContainerModel.ActiveTab.stationsList)
+
             HomePageView() // Temporarily using HomePageView
                 .tabItem {
                     Image("ProfileTabImage")
                     Text("Profile")
                 }
-                .tag(2)
+                .tag(MainContainerModel.ActiveTab.profile)
         }
         .accentColor(.white) // Makes the selected tab icon white
         .onAppear {
-            // Custom styling for TabView
+            let tabBarAppearance = UITabBarAppearance()
+            tabBarAppearance.configureWithOpaqueBackground()
+            tabBarAppearance.backgroundColor = .black
+
+            UITabBar.appearance().standardAppearance = tabBarAppearance
+            UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
             UITabBar.appearance().unselectedItemTintColor = UIColor(white: 0.7, alpha: 1.0)
-            UITabBar.appearance().backgroundColor = .black
         }
+        .alert(item: $model.presentedAlert) { $0.alert }
     }
 }
 
 struct MainContainer_Previews: PreviewProvider {
     static var previews: some View {
-        MainContainer()
+      MainContainer(model: MainContainerModel())
             .preferredColorScheme(.dark)
     }
 }

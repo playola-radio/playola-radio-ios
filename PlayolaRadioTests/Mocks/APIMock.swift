@@ -14,6 +14,7 @@ class APIMock: API {
     }
 
     var getStationListsShouldSucceed = true
+    var getStationListsCallCount = 0
     var beforeAssertions: (() -> Void)? = nil
 
     init(getStationListsShouldSucceed: Bool = true) {
@@ -22,6 +23,7 @@ class APIMock: API {
 
     override func getStations() async throws -> IdentifiedArrayOf<StationList> {
         beforeAssertions?()
+        getStationListsCallCount += 1
         if getStationListsShouldSucceed {
             return StationList.mocks
         } else {
