@@ -21,7 +21,7 @@ struct PlayolaRadioApp: App {
                 // NB: Don't run application in tests to avoid interference between the app and the test.
                 EmptyView()
             } else {
-                AppView()
+                ContentView()
                     .onOpenURL { url in
                         GIDSignIn.sharedInstance.handle(url)
                     }

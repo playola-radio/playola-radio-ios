@@ -101,6 +101,7 @@ class API {
             }
     }
 
+    @discardableResult
     func getStations() async throws -> IdentifiedArrayOf<StationList> {
         try await withCheckedThrowingContinuation { continuation in
             getStations { stationListResult in
