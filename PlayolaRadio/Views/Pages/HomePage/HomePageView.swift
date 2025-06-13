@@ -8,52 +8,40 @@ import SwiftUI
 import PlayolaPlayer
 
 struct HomePageView: View {
-    // Sample data
-    let stations = [
-        Station(
-            name: "Jacob Stelly",
-            stationName: "Moondog Radio",
-            description: "Hey fans, I'm really into classic country. Take a listen to my favs.",
-            imageUrl: "https://playola-static.s3.amazonaws.com/station-images/Jacob-Stelly-1-116029.jpg"
-        ),
-        Station(
-            name: "Bri Bagwell",
-            stationName: "Banned Radio",
-            description: "Hey fans, I'm really into classic country. Take a listen to my favs.",
-            imageUrl: "https://playola-static.s3.amazonaws.com/bri_banned_logo.png"
-        )
-    ]
+  @Bindable var model: HomePageModel
 
-    var body: some View {
+  var body: some View {
+    VStack {
       VStack {
-        VStack {
-          Text("Welcome, Brian")
-              .font(.custom("SpaceGrotesk-Light_Bold", size: 32))
-              .fontWeight(.bold)
-              .foregroundColor(.white)
-              .padding(.horizontal, 18)
-              .padding(.top, 12)
-              .padding(.bottom, 8)
-              .frame(maxWidth: .infinity, alignment: .leading)
-              .background(Color.black)
+        Text("Welcome, Brian")
+          .font(.custom("SpaceGrotesk-Light_Bold", size: 32))
+          .fontWeight(.bold)
+          .foregroundColor(.white)
+          .padding(.horizontal, 18)
+          .padding(.top, 12)
+          .padding(.bottom, 8)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .background(Color.black)
 
         ScrollView {
-            HomeIntroSection()
+          HomeIntroSection(
+            onIconTapped10Times: model.handlePlayolaIconTapped10Times)
 
-            HomePageStationList()
-          }
-          .padding(.horizontal, 24)
-          .scrollIndicators(.hidden)
+          HomePageStationList(stations: model.forYouStations)
         }
-        .circleBackground(offsetY: -180)
+        .padding(.horizontal, 24)
+        .scrollIndicators(.hidden)
       }
-
+      .circleBackground(offsetY: -180)
     }
+    .alert(item: $model.presentedAlert) { $0.alert }
+    .onAppear { Task { await model.viewAppeared() } }
+  }
 }
 
 struct HomePageView_Previews: PreviewProvider {
-    static var previews: some View {
-        HomePageView()
-            .preferredColorScheme(.dark)
-    }
+  static var previews: some View {
+    HomePageView(model: HomePageModel())
+      .preferredColorScheme(.dark)
+  }
 }

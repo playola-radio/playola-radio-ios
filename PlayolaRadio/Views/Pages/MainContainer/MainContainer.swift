@@ -25,19 +25,21 @@ class MainContainerModel: ViewModel {
   var selectedTab: ActiveTab = .home
   var presentedAlert: PlayolaAlert? = nil
 
+  var homePageModel = HomePageModel()
+
   init(api: API? = nil) {
     self.api = api ?? API()
   }
 
   func viewAppeared() async {
+    // Exit early if we already have the data.
+    guard !stationListsLoaded else { return }
+    guard let api = self.api else { return }
+
     do {
-      if !stationListsLoaded {
-        do {
-          try await api.getStations()
-        } catch (_) {
-          self.presentedAlert = .errorLoadingStations
-        }
-      }
+      try await api.getStations()
+    } catch {
+      presentedAlert = .errorLoadingStations
     }
   }
 }
@@ -46,7 +48,7 @@ extension PlayolaAlert {
   static var errorLoadingStations: PlayolaAlert {
     PlayolaAlert(
       title: "Error Loading Stations",
-      message: "There was an error loading the stations. Please check yout connection and try again.",
+      message: "There was an error loading the stations. Please check your connection and try again.",
       dismissButton: .cancel(Text("OK"))
     )
   }
@@ -58,7 +60,7 @@ struct MainContainer: View {
 
     var body: some View {
       TabView(selection: $model.selectedTab) {
-            HomePageView()
+        HomePageView(model: model.homePageModel)
                 .tabItem {
                     Image("HomeTabImage")
                     Text("Home")
@@ -72,7 +74,7 @@ struct MainContainer: View {
                 }
                 .tag(MainContainerModel.ActiveTab.stationsList)
 
-            HomePageView() // Temporarily using HomePageView
+        HomePageView(model: model.homePageModel) // Temporarily using HomePageView
                 .tabItem {
                     Image("ProfileTabImage")
                     Text("Profile")
@@ -90,6 +92,7 @@ struct MainContainer: View {
             UITabBar.appearance().unselectedItemTintColor = UIColor(white: 0.7, alpha: 1.0)
         }
         .alert(item: $model.presentedAlert) { $0.alert }
+        .onAppear { Task { await model.viewAppeared() } }
     }
 }
 

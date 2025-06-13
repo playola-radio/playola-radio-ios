@@ -36,6 +36,7 @@
 		D339E5762BFD419400B9E35B /* AboutPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5752BFD419400B9E35B /* AboutPage.swift */; };
 		D339E57C2BFD698600B9E35B /* Mail.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E57B2BFD698600B9E35B /* Mail.swift */; };
 		D339E57E2BFD750700B9E35B /* MailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E57D2BFD750700B9E35B /* MailService.swift */; };
+		D342A0C72DFCB368002BAC30 /* HomePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B32DF88BD9001BC6F9 /* HomePageTests.swift */; };
 		D34D5C362D7105EE00148048 /* SideMenuTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34D5C352D7105E100148048 /* SideMenuTests.swift */; };
 		D34D5C392D7106CD00148048 /* AuthServiceMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34D5C382D7106CA00148048 /* AuthServiceMock.swift */; };
 		D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */; };
@@ -61,7 +62,6 @@
 		D35673CB2D3EE5E900E4E926 /* Secrets-Development.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */; };
 		D37257B02DF88BB7001BC6F9 /* HomePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257AF2DF88BB2001BC6F9 /* HomePageView.swift */; };
 		D37257B22DF88BC1001BC6F9 /* HomePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B12DF88BBD001BC6F9 /* HomePageModel.swift */; };
-		D37257B42DF88BDD001BC6F9 /* HomePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B32DF88BD9001BC6F9 /* HomePageTests.swift */; };
 		D37257B72DF88DCD001BC6F9 /* CircleSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B62DF88DBF001BC6F9 /* CircleSection.swift */; };
 		D37257BB2DF891D5001BC6F9 /* SpaceGrotesk.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D37257BA2DF891D5001BC6F9 /* SpaceGrotesk.ttf */; };
 		D37257BD2DF893C6001BC6F9 /* View+ListInstalledFonts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257BC2DF893BB001BC6F9 /* View+ListInstalledFonts.swift */; };
@@ -652,7 +652,6 @@
 				D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */,
 				D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */,
 				D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */,
-				D37257B42DF88BDD001BC6F9 /* HomePageTests.swift in Sources */,
 				D3B662722D4161E100975D2F /* AppleSignInInfo.swift in Sources */,
 				D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */,
 				D3137DC82D3A92EC0070033A /* NowPlayingPage.swift in Sources */,
@@ -681,6 +680,7 @@
 				D3137DCA2D3A9F940070033A /* NowPlayingPageTests.swift in Sources */,
 				D34D5C392D7106CD00148048 /* AuthServiceMock.swift in Sources */,
 				D3536A162BFA4F4A006942D6 /* PlayolaRadioTests.swift in Sources */,
+				D342A0C72DFCB368002BAC30 /* HomePageTests.swift in Sources */,
 				D3137DBD2D397FD10070033A /* AboutPageTests.swift in Sources */,
 				D31CD5272DFBB4DF009B9780 /* MainContainerTests.swift in Sources */,
 			);

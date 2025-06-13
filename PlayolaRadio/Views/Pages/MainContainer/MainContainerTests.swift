@@ -20,15 +20,15 @@ enum MainContainerTests {
       await mainContainerModel.viewAppeared()
       #expect(apiMock.getStationListsCallCount == 1)
     }
-
+    
     @Test("Displays an error alert on api error")
-        func testDisplaysAnErrorAlertOnApiError() async {
-          @Shared(.stationListsLoaded) var stationListsLoaded = false
-          @Shared(.stationLists) var stationLists = StationList.mocks
-          let apiMock = APIMock(getStationListsShouldSucceed: false)
-          let mainContainerModel = MainContainerModel(api: apiMock)
-          await mainContainerModel.viewAppeared()
-          #expect(mainContainerModel.presentedAlert == .errorLoadingStations)
-        }
+    func testDisplaysAnErrorAlertOnApiError() async {
+      @Shared(.stationListsLoaded) var stationListsLoaded = false
+      @Shared(.stationLists) var stationLists = StationList.mocks
+      let apiMock = APIMock(getStationListsShouldSucceed: false)
+      let mainContainerModel = MainContainerModel(api: apiMock)
+      await mainContainerModel.viewAppeared()
+      #expect(mainContainerModel.presentedAlert == .errorLoadingStations)
+    }
   }
 }
