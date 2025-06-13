@@ -27,8 +27,6 @@
 	<string>126767027087-2gp2aiprh5564qsstjmp6uuqcdg64hev.apps.googleusercontent.com</string>
 	<key>HEAP_APP_ID</key>
 	<string>$(HEAP_APP_ID)</string>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string></string>
