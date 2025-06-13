@@ -8,12 +8,19 @@
 @testable import PlayolaRadio
 import Sharing
 import Testing
+import IdentifiedCollections
 
 enum HomePageTests {
   @MainActor @Suite("ViewAppeared")
   struct ViewAppeared {
     @Test("Populates forYouStations based on initial value of shared stationLists")
     func testPopulatesForYouStationsBasedOnInitialValueOfSharedStationLists() async {
+      @Shared(.stationLists) var stationLists = StationList.mocks
+      let artistStations = stationLists.first { $0.id == "artist_stations"}
+      #expect(artistStations != nil)
+      let model = HomePageModel()
+      await model.viewAppeared()
+      #expect(model.forYouStations.elements == artistStations!.stations)
     }
 
     @Test("Repopulates forYouStations when shared stationLists changes")
