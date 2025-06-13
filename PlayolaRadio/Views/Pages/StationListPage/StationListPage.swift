@@ -15,8 +15,6 @@ struct TempStation: Identifiable {
     let isArtistStation: Bool
 }
 
-class StationListModel: ViewModel {}
-
 struct StationListPage: View {
     @State private var selectedSegment = "All"
     let segments = ["All", "Artist Stations", "FM Stations"]
