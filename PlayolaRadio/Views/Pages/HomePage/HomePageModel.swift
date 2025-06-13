@@ -26,7 +26,7 @@ class HomePageModel: ViewModel {
   func viewAppeared() async {
     $stationLists.publisher
       .sink { lists in
-      guard let artistList = lists.first(where: { $0.id == "artist_list" }) else { return }
+        guard let artistList = lists.first(where: { $0.id == StationList.artistListId }) else { return }
       self.forYouStations = IdentifiedArray(uniqueElements: artistList.stations)
     }
     .store(in: &disposeBag)

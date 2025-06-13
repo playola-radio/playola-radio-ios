@@ -50,10 +50,16 @@ struct StationListResponse: Decodable {
 extension StationList {
     static var mocks: IdentifiedArrayOf<StationList> {
         IdentifiedArray(uniqueElements:
-            [StationList(id: "in_development", title: "In Development", stations: [briStation]),
-             StationList(id: "artist_stations", title: "Artists", stations: artistStations),
-             StationList(id: "fm_stations", title: "FM Stations", stations: fmStations)])
+            [StationList(id: "in_development_list", title: "In Development", stations: [briStation]),
+             StationList(id: "artist_list", title: "Artists", stations: artistStations),
+             StationList(id: "fm_list", title: "FM Stations", stations: fmStations)])
     }
+}
+
+extension StationList {
+  static var artistListId: String { return "artist_list" }
+  static var inDevelopmentListId: String { return "in_development_list" }
+  static var fmListId: String { return "fm_list" }
 }
 
 extension RadioStation {

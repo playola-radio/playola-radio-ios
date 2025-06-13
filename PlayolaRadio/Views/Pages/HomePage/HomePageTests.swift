@@ -16,7 +16,7 @@ enum HomePageTests {
     @Test("Populates forYouStations based on initial value of shared stationLists")
     func testPopulatesForYouStationsBasedOnInitialValueOfSharedStationLists() async {
       @Shared(.stationLists) var stationLists = StationList.mocks
-      let artistStations = stationLists.first { $0.id == "artist_stations"}
+      let artistStations = stationLists.first { $0.id == StationList.artistListId }
       #expect(artistStations != nil)
       let model = HomePageModel()
       await model.viewAppeared()
@@ -25,6 +25,21 @@ enum HomePageTests {
 
     @Test("Repopulates forYouStations when shared stationLists changes")
     func testRepopulatesForYouStationsWhenSharedStationListsChanges() async {
+      @Shared(.stationLists) var stationLists = StationList.mocks
+      let artistStations = stationLists.first { $0.id == StationList.artistListId }
+      let inDevelopmentStations = stationLists.first { $0.id == StationList.inDevelopmentListId }
+      #expect(artistStations != nil)
+      #expect(inDevelopmentStations != nil)
+      #expect(artistStations!.stations != inDevelopmentStations!.stations)
+      let model = HomePageModel()
+      await model.viewAppeared()
+      #expect(model.forYouStations.elements == artistStations!.stations)
+      $stationLists.withLock { $0 = IdentifiedArray(
+        uniqueElements: [StationList(
+          id: StationList.artistListId,
+          title: "Changed",
+          stations: inDevelopmentStations!.stations)]) }
+      #expect(model.forYouStations.elements == inDevelopmentStations!.stations)
     }
   }
 
