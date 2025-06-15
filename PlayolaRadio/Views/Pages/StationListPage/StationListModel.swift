@@ -51,13 +51,6 @@ class StationListModel: ViewModel {
     }
   }
 
-  func handlePlayolaIconTapped10Times() {
-    $showSecretStations.withLock { $0 = !$0 }
-    presentedAlert = showSecretStations ? .secretStationsTurnedOnAlert : .secretStationsHiddenAlert
-
-    loadStationListsForDisplay(stationLists)
-  }
-
   func segmentSelected(_ segmentTitle: String) {
     selectedSegment = segmentTitle
     loadStationListsForDisplay(stationLists)

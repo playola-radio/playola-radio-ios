@@ -110,43 +110,4 @@ enum StationListPageTests {
       #expect(model.stationListsForDisplay == expectedVisibleAfterUpdate)
     }
   }
-
-  // -------------------------------------------------------------
-  // MARK: - Tapping The Playola Icon
-  // -------------------------------------------------------------
-  @MainActor
-  struct tappingTheP {
-    @Test("Turns on the secret stations")
-    func testTurnsOnSecretStations() async {
-      @Shared(.stationLists) var stationLists = StationList.mocks
-      let model = StationListModel()
-      await model.viewAppeared()
-      #expect(model.showSecretStations == false)
-
-      model.handlePlayolaIconTapped10Times()
-      #expect(model.showSecretStations == true)
-      #expect(model.presentedAlert == .secretStationsTurnedOnAlert)
-
-      // After turning on, inDevelopment list should now be present
-      let expectedLists = stationLists
-      #expect(model.stationListsForDisplay == expectedLists)
-    }
-
-    @Test("Hides the secret stations")
-    func testHidesTheSecretStations() async {
-      @Shared(.showSecretStations) var showSecretStations = true
-      @Shared(.stationLists) var stationLists = StationList.mocks
-      let model = StationListModel()
-      await model.viewAppeared()
-      #expect(model.showSecretStations == true)
-
-      model.handlePlayolaIconTapped10Times()
-      #expect(model.showSecretStations == false)
-      #expect(model.presentedAlert == .secretStationsHiddenAlert)
-
-      // After turning off, inDevelopment list should now be removed
-      let expectedLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
-      #expect(model.stationListsForDisplay == expectedLists)
-    }
-  }
 }
