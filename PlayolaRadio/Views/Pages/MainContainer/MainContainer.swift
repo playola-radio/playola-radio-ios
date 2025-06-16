@@ -131,7 +131,7 @@ struct MainContainer: View {
 //                              }
                       }
                   case let .player(playerPageModel):
-                    PlayerPage()
+                    PlayerPage(model: PlayerPageModel())
                   }
               })
         .onAppear { Task { await model.viewAppeared() } }
