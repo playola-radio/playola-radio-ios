@@ -126,7 +126,6 @@ enum StationListPageTests {
 
       #expect(stationPlayerMock.callsToPlay.count == 1)
       #expect(stationPlayerMock.callsToPlay.first?.id == station.id)
-
     }
   }
 }

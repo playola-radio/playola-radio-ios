@@ -64,4 +64,19 @@ enum HomePageTests {
       #expect(homePage.presentedAlert == .secretStationsHiddenAlert)
     }
   }
+
+  @MainActor @Suite("PlayerInteraction")
+  struct StationPlayerInteraction {
+    @Test("Plays a station when it is tapped")
+    func testPlaysAStationWhenItIsTapped() {
+      let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+      let station: RadioStation = .mock
+
+      let homePageModel = HomePageModel(stationPlayer: stationPlayerMock)
+      homePageModel.handleStationTapped(station)
+
+      #expect(stationPlayerMock.callsToPlay.count == 1)
+      #expect(stationPlayerMock.callsToPlay.first?.id == station.id)
+    }
+  }
 }
