@@ -10,7 +10,7 @@ import IdentifiedCollections
 
 struct StationListPage: View {
   // MARK: - Model
-  @Bindable private var model = StationListModel()
+  @Bindable var model: StationListModel
 
   // MARK: - View
   var body: some View {
@@ -142,7 +142,7 @@ private struct StationRowView: View {
 // ------------------------------------------------------------------
 #Preview {
   NavigationStack {
-    StationListPage()
+    StationListPage(model: StationListModel())
   }
   .preferredColorScheme(.dark)
 }

@@ -31,6 +31,7 @@ class MainContainerModel: ViewModel {
   var presentedSheet: PlayolaSheet? = nil
 
   var homePageModel = HomePageModel()
+  var stationListModel = StationListModel()
 
   init(api: API? = nil, stationPlayer: StationPlayer? = nil) {
     self.api = api ?? API()
@@ -88,7 +89,7 @@ struct MainContainer: View {
                 }
                 .tag(MainContainerModel.ActiveTab.home)
 
-            StationListPage()
+        StationListPage(model: model.stationListModel)
                 .tabItem {
                     Image("RadioStationsTabImage")
                     Text("Radio Stations")

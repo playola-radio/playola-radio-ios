@@ -39,7 +39,7 @@ struct PlayerPageTests {
       let station     = RadioStation.mock
       let playerMock  = StationPlayerMock()
       playerMock.state = StationPlayer.State(
-        playbackStatus: .loading(station, 0.42)   // 42 %
+        playbackStatus: .loading(station, 0.42)
       )
       
       let model = PlayerPageModel(stationPlayer: playerMock)
@@ -47,7 +47,8 @@ struct PlayerPageTests {
       
       #expect(model.primaryNavBarTitle   == station.name)
       #expect(model.secondaryNavBarTitle == station.desc)
-      #expect(model.nowPlayingText       == "Station Loading... 42%")
+      #expect(model.nowPlayingText       == "Station Loading...")
+      #expect(model.loadingPercentage == 0.42)
     }
     
     @Test("Populates correctly when something is playing")

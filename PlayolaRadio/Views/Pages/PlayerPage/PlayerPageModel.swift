@@ -17,11 +17,14 @@ class PlayerPageModel: ViewModel {
   var nowPlayingText: String = ""
   var primaryNavBarTitle: String = ""
   var secondaryNavBarTitle: String = ""
+  var stationArtUrl: URL? = nil
+  var previouslyPlayingStation: RadioStation? = nil
+  var loadingPercentage: Float = 1.0
+
 
   // Unused for now
   var albumArtUrl: URL? = nil
-  var stationArtUrl: URL? = nil
-  var previouslyPlayingStation: RadioStation? = nil
+
 
   enum PlayerButtonImageName: String {
     case play = "play.fill"
@@ -53,13 +56,13 @@ class PlayerPageModel: ViewModel {
       stationArtUrl = URL(string: radioStation.imageURL)
       self.playerButtonImageName = .stop
       self.previouslyPlayingStation = radioStation
+      self.loadingPercentage = 1.0
     case let .loading(radioStation, progress):
       primaryNavBarTitle = radioStation.name
       secondaryNavBarTitle = radioStation.desc
+      nowPlayingText = "Station Loading..."
       if let progress {
-        nowPlayingText = "Station Loading... \(Int(round(progress * 100)))%"
-      } else {
-        nowPlayingText = "Station Loading..."
+        self.loadingPercentage = progress
       }
       albumArtUrl = URL(string: radioStation.imageURL)
       self.playerButtonImageName = .stop

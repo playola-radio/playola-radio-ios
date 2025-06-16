@@ -64,6 +64,5 @@ class StationListModel: ViewModel {
 
   func stationSelected(_ station: RadioStation) {
     stationPlayer.play(station: station)
-
   }
 }

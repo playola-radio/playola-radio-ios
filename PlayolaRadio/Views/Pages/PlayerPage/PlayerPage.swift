@@ -71,8 +71,9 @@ struct PlayerPage: View {
               Text(model.nowPlayingText)
                 .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 24))
                 .foregroundColor(.white)
+                .multilineTextAlignment(.center)
 
-              ProgressView(value: 1.0)
+              ProgressView(value: model.loadingPercentage)
                 .progressViewStyle(LinearProgressViewStyle(tint: Color.playolaRed))
                 .cornerRadius(8)
                 .scaleEffect(y: 2, anchor: .center)
