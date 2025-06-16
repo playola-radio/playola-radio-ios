@@ -87,6 +87,8 @@ class NowPlayingPageModel: ViewModel {
             nowPlayingTitle = ""
             nowPlayingArtist = "Error Playing Station"
             albumArtUrl = nil
+        default:
+          return
         }
     }
 }

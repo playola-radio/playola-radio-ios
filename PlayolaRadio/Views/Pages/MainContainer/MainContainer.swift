@@ -7,11 +7,15 @@
 
 import SwiftUI
 import Sharing
+import Combine
 
 @MainActor
 @Observable
 class MainContainerModel: ViewModel {
-  var api: API!
+  var cancellables: Set<AnyCancellable> = []
+
+  @ObservationIgnored var api: API!
+  @ObservationIgnored var stationPlayer: StationPlayer!
 
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
 
@@ -24,11 +28,13 @@ class MainContainerModel: ViewModel {
 
   var selectedTab: ActiveTab = .home
   var presentedAlert: PlayolaAlert? = nil
+  var presentedSheet: PlayolaSheet? = nil
 
   var homePageModel = HomePageModel()
 
-  init(api: API? = nil) {
+  init(api: API? = nil, stationPlayer: StationPlayer? = nil) {
     self.api = api ?? API()
+    self.stationPlayer = stationPlayer ?? .shared
   }
 
   func viewAppeared() async {
@@ -40,6 +46,21 @@ class MainContainerModel: ViewModel {
       try await api.getStations()
     } catch {
       presentedAlert = .errorLoadingStations
+    }
+
+    stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &cancellables)
+  }
+
+  func dismissButtonInSheetTapped() {
+    self.presentedSheet = nil
+  }
+
+  func processNewStationState(_ newState: StationPlayer.State) {
+    switch newState.playbackStatus {
+    case let .startingNewStation(station):
+      self.presentedSheet = .player(PlayerPageModel())
+    default:
+      return
     }
   }
 }
@@ -92,6 +113,27 @@ struct MainContainer: View {
             UITabBar.appearance().unselectedItemTintColor = UIColor(white: 0.7, alpha: 1.0)
         }
         .alert(item: $model.presentedAlert) { $0.alert }
+        .sheet(item: $model.presentedSheet, content: { item in
+                  switch item {
+                  case let .about(aboutModel):
+                      NavigationStack {
+                          AboutPage(model: aboutModel)
+//                              .toolbar {
+//                                  ToolbarItem(placement: .confirmationAction) {
+//                                      Button(action: { model.dismissButtonInSheetTapped() }) {
+//                                          Image(systemName: "xmark.circle.fill")
+//                                              .resizable()
+//                                              .frame(width: 32, height: 32)
+//                                              .foregroundColor(.gray)
+//                                              .padding(20)
+//                                      }
+//                                  }
+//                              }
+                      }
+                  case let .player(playerPageModel):
+                    PlayerPage()
+                  }
+              })
         .onAppear { Task { await model.viewAppeared() } }
     }
 }

@@ -13,6 +13,7 @@ import PlayolaPlayer
 class StationPlayer: ObservableObject {
   var disposeBag: Set<AnyCancellable> = Set()
   enum PlaybackStatus {
+    case startingNewStation(RadioStation)
     case playing(RadioStation)
     case stopped
     case loading(RadioStation, Float? = nil)
@@ -30,6 +31,8 @@ class StationPlayer: ObservableObject {
   
   public var currentStation: RadioStation? {
     switch state.playbackStatus {
+    case let .startingNewStation(radioStation):
+      return radioStation
     case let .playing(radioStation):
       return radioStation
     case let .loading(radioStation, _):
@@ -70,6 +73,7 @@ class StationPlayer: ObservableObject {
   public func play(station: RadioStation) {
     guard currentStation != station else { return }
     stop()
+    state = State(playbackStatus: .startingNewStation(station))
     state = State(playbackStatus: .loading(station))
     if let _ = station.streamURL {
       urlStreamPlayer.set(station: station)
