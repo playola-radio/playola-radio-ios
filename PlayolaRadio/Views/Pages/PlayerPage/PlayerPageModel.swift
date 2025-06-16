@@ -48,7 +48,7 @@ class PlayerPageModel: ViewModel {
     switch state.playbackStatus {
     case let .playing(radioStation):
       if let titlePlaying = state.titlePlaying, let artistPlaying = state.artistPlaying {
-        nowPlayingText = "\(titlePlaying) / \(artistPlaying)"
+        nowPlayingText = "\(titlePlaying) - \(artistPlaying)"
       } else {
         nowPlayingText = ""
       }

@@ -65,7 +65,7 @@ struct PlayerPageTests {
       let model = PlayerPageModel(stationPlayer: playerMock)
       model.viewAppeared()
       
-      #expect(model.nowPlayingText     == "Selfie / Rachel Loy")
+      #expect(model.nowPlayingText     == "Selfie - Rachel Loy")
       #expect(model.stationArtUrl      == URL(string: station.imageURL))
     }
     

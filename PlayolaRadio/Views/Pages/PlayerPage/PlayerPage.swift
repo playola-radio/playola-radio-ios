@@ -69,7 +69,7 @@ struct PlayerPage: View {
                 .foregroundColor(.gray)
 
               Text(model.nowPlayingText)
-                .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 24))
+                .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 20))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
 
