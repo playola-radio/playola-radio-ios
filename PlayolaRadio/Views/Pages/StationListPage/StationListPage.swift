@@ -84,7 +84,9 @@ struct StationListPage: View {
 
         VStack(spacing: 1) {
           ForEach(stations) { station in
-            StationRowView(station: station)
+            StationRowView(station: station, action: {
+              model.stationSelected(station)
+            })
           }
         }
       }
@@ -97,9 +99,10 @@ struct StationListPage: View {
 // ------------------------------------------------------------------
 private struct StationRowView: View {
   let station: RadioStation
+  let action: (() -> Void)
 
   var body: some View {
-    Button(action: {}) {
+    Button(action: action) {
       HStack(spacing: 12) {
         if let url = URL(string: station.imageURL)
         {
