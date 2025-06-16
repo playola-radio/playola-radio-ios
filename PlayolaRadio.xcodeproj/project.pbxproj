@@ -60,6 +60,8 @@
 		D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C52D3E91B900E4E926 /* MainSceneDelegate.swift */; };
 		D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */; };
 		D35673CB2D3EE5E900E4E926 /* Secrets-Development.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */; };
+		D35905EC2DFCDA140064A9C1 /* StationListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35905EB2DFCDA110064A9C1 /* StationListModel.swift */; };
+		D37257AB2DF87C72001BC6F9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D37257AA2DF87C72001BC6F9 /* LaunchScreen.storyboard */; };
 		D37257B02DF88BB7001BC6F9 /* HomePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257AF2DF88BB2001BC6F9 /* HomePageView.swift */; };
 		D37257B22DF88BC1001BC6F9 /* HomePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B12DF88BBD001BC6F9 /* HomePageModel.swift */; };
 		D37257B72DF88DCD001BC6F9 /* CircleSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B62DF88DBF001BC6F9 /* CircleSection.swift */; };
@@ -72,7 +74,6 @@
 		D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257C82DFA247A001BC6F9 /* MainContainer.swift */; };
 		D37257CC2DFA3F83001BC6F9 /* FontNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257CB2DFA3F7F001BC6F9 /* FontNames.swift */; };
 		D37257D02DFB4368001BC6F9 /* PlayerPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */; };
-		D37257AB2DF87C72001BC6F9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D37257AA2DF87C72001BC6F9 /* LaunchScreen.storyboard */; };
 		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
 		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
@@ -154,6 +155,8 @@
 		D35673C52D3E91B900E4E926 /* MainSceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainSceneDelegate.swift; sourceTree = "<group>"; };
 		D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingUpdater.swift; sourceTree = "<group>"; };
 		D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Development.xcconfig"; sourceTree = "<group>"; };
+		D35905EB2DFCDA110064A9C1 /* StationListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListModel.swift; sourceTree = "<group>"; };
+		D37257AA2DF87C72001BC6F9 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D37257AF2DF88BB2001BC6F9 /* HomePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePageView.swift; sourceTree = "<group>"; };
 		D37257B12DF88BBD001BC6F9 /* HomePageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePageModel.swift; sourceTree = "<group>"; };
 		D37257B32DF88BD9001BC6F9 /* HomePageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePageTests.swift; sourceTree = "<group>"; };
@@ -167,7 +170,6 @@
 		D37257C82DFA247A001BC6F9 /* MainContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainer.swift; sourceTree = "<group>"; };
 		D37257CB2DFA3F7F001BC6F9 /* FontNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontNames.swift; sourceTree = "<group>"; };
 		D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPage.swift; sourceTree = "<group>"; };
-		D37257AA2DF87C72001BC6F9 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
 		D3B662692D40103800975D2F /* SignInPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPage.swift; sourceTree = "<group>"; };
 		D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinator.swift; sourceTree = "<group>"; };
@@ -231,6 +233,7 @@
 		D3137DCC2D3A9FAA0070033A /* StationListPage */ = {
 			isa = PBXGroup;
 			children = (
+				D35905EB2DFCDA110064A9C1 /* StationListModel.swift */,
 				D339E5662BFD10AE00B9E35B /* StationListPage.swift */,
 				D3137DC12D39B4FC0070033A /* StationListPageTests.swift */,
 			);
@@ -660,6 +663,7 @@
 				D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */,
 				D3137DC82D3A92EC0070033A /* NowPlayingPage.swift in Sources */,
 				D37257C62DF9F064001BC6F9 /* HomePageStationList.swift in Sources */,
+				D35905EC2DFCDA140064A9C1 /* StationListModel.swift in Sources */,
 				D339E56D2BFD2FAB00B9E35B /* URLStreamPlayer.swift in Sources */,
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */,
