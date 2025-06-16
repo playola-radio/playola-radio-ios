@@ -104,12 +104,12 @@ struct PlayerPage: View {
             .padding(.top, 32)
 
             // Play Button
-            Button(action: {}) {
+            Button(action: { model.playPauseButtonTapped() }) {
               Circle()
                 .fill(Color.white)
                 .frame(width: 80, height: 80)
                 .overlay(
-                  Image(systemName: "stop.fill")
+                  Image(systemName: model.playerButtonImageName.rawValue)
                     .foregroundColor(.black)
                     .font(.system(size: 40))
                 )
