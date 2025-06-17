@@ -18,50 +18,54 @@ struct Station: Identifiable {
 
 struct StationCardView: View {
   let station: RadioStation
+  let onRadioStationSelected: (RadioStation) -> Void
 
   var body: some View {
-    HStack(spacing: 0) {
-      AsyncImage(url: URL(string: station.imageURL )) { image in
-        image
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-      } placeholder: {
-        Color(white: 0.3)
+    Button(action: { onRadioStationSelected(station) }) {
+      HStack(spacing: 0) {
+        AsyncImage(url: URL(string: station.imageURL )) { image in
+          image
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+        } placeholder: {
+          Color(white: 0.3)
+        }
+        .frame(width: 160, height: 160)
+        .clipped()
+        
+        // Right side - Text content
+        VStack(alignment: .leading, spacing: 8) {
+          Text(station.name)
+            .font(.custom("Inter-Regular", size: 12))
+            .foregroundColor(Color(hex: "#C7C7C7"))
+          
+          Text(station.desc)
+            .font(.custom("SpaceGrotesk-Light_Bold", size: 16))
+            .fontWeight(.bold)
+            .foregroundColor(.white)
+            .padding(.bottom, 4)
+          
+          Text(station.longDesc)
+            .font(.custom("Inter-Regular", size: 14))
+            .foregroundColor(Color(hex: "#C7C7C7"))
+            .lineLimit(nil)
+            .lineSpacing(4)
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 20)
+        .frame(maxWidth: .infinity,
+               maxHeight: 160,
+               alignment: .leading)
       }
-      .frame(width: 160, height: 160)
-      .clipped()
-
-      // Right side - Text content
-      VStack(alignment: .leading, spacing: 8) {
-        Text(station.name)
-          .font(.custom("Inter-Regular", size: 12))
-          .foregroundColor(Color(hex: "#C7C7C7"))
-
-        Text(station.desc)
-          .font(.custom("SpaceGrotesk-Light_Bold", size: 16))
-          .fontWeight(.bold)
-          .foregroundColor(.white)
-          .padding(.bottom, 4)
-
-        Text(station.longDesc)
-          .font(.custom("Inter-Regular", size: 14))
-          .foregroundColor(Color(hex: "#C7C7C7"))
-          .lineLimit(nil)
-          .lineSpacing(4)
-      }
-      .padding(.horizontal, 24)
-      .padding(.bottom, 20)
-      .frame(maxWidth: .infinity,
-             maxHeight: 160,
-             alignment: .leading)
+      .background(Color(white: 0.15))
+      .cornerRadius(6)
     }
-    .background(Color(white: 0.15))
-    .cornerRadius(6)
   }
 }
 
 struct HomePageStationList: View {
   var stations: IdentifiedArrayOf<RadioStation>
+  var onRadioStationSelected: (RadioStation) -> Void
 
   var body: some View {
     VStack(alignment: .leading) {
@@ -73,7 +77,9 @@ struct HomePageStationList: View {
 
       VStack(spacing: 12) {  // Reduced spacing between cards
         ForEach(stations) { station in
-          StationCardView(station: station)
+          StationCardView(station: station) {
+            onRadioStationSelected($0)
+          }
         }
       }
     }
@@ -84,7 +90,7 @@ struct HomePageStationList: View {
 
 struct HomePageStationList_Previews: PreviewProvider {
   static var previews: some View {
-    HomePageStationList(stations: [.mock])
+    HomePageStationList(stations: [.mock], onRadioStationSelected: { _ in })
       .preferredColorScheme(.dark)
       .padding(.horizontal, 24)
   }

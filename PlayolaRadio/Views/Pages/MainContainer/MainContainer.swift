@@ -7,11 +7,15 @@
 
 import SwiftUI
 import Sharing
+import Combine
 
 @MainActor
 @Observable
 class MainContainerModel: ViewModel {
-  var api: API!
+  var cancellables: Set<AnyCancellable> = []
+
+  @ObservationIgnored var api: API!
+  @ObservationIgnored var stationPlayer: StationPlayer!
 
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
 
@@ -24,11 +28,35 @@ class MainContainerModel: ViewModel {
 
   var selectedTab: ActiveTab = .home
   var presentedAlert: PlayolaAlert? = nil
+  var presentedSheet: PlayolaSheet? = nil
 
   var homePageModel = HomePageModel()
+  var stationListModel = StationListModel()
 
-  init(api: API? = nil) {
+  var shouldShowSmallPlayer: Bool {
+    switch stationPlayer.state.playbackStatus {
+    case .playing, .loading:
+      return true
+    case .stopped, .error, .startingNewStation:
+      return false
+    }
+  }
+
+  var smallPlayerMainTitle: String {
+    stationPlayer.currentStation?.name ?? ""
+  }
+
+  var smallPlayerSecondaryTitle: String {
+      return stationPlayer.currentStation?.desc ?? ""
+  }
+
+  var smallPlayerArtworkURL: URL {
+    stationPlayer.state.albumArtworkUrl ?? stationPlayer.currentStation?.processedImageURL() ?? URL(string: "https://example.com")!
+  }
+
+  init(api: API? = nil, stationPlayer: StationPlayer? = nil) {
     self.api = api ?? API()
+    self.stationPlayer = stationPlayer ?? .shared
   }
 
   func viewAppeared() async {
@@ -41,6 +69,29 @@ class MainContainerModel: ViewModel {
     } catch {
       presentedAlert = .errorLoadingStations
     }
+
+    stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &cancellables)
+  }
+
+  func dismissButtonInSheetTapped() {
+    self.presentedSheet = nil
+  }
+
+  func processNewStationState(_ newState: StationPlayer.State) {
+    switch newState.playbackStatus {
+    case let .startingNewStation(station):
+      self.presentedSheet = .player(PlayerPageModel())
+    default:
+      return
+    }
+  }
+
+  func onSmallPlayerStopTapped() {
+    stationPlayer.stop()
+  }
+
+  func onSmallPlayerTapped() {
+    self.presentedSheet = .player(PlayerPageModel())
   }
 }
 
@@ -58,47 +109,84 @@ extension PlayolaAlert {
 struct MainContainer: View {
   @Bindable var model: MainContainerModel
 
-    var body: some View {
+  var body: some View {
+    VStack(spacing: 0) {
       TabView(selection: $model.selectedTab) {
-        HomePageView(model: model.homePageModel)
-                .tabItem {
-                    Image("HomeTabImage")
-                    Text("Home")
-                }
-                .tag(MainContainerModel.ActiveTab.home)
-
-            StationListPage()
-                .tabItem {
-                    Image("RadioStationsTabImage")
-                    Text("Radio Stations")
-                }
-                .tag(MainContainerModel.ActiveTab.stationsList)
-
-        HomePageView(model: model.homePageModel) // Temporarily using HomePageView
-                .tabItem {
-                    Image("ProfileTabImage")
-                    Text("Profile")
-                }
-                .tag(MainContainerModel.ActiveTab.profile)
+        TabContentWithSmallPlayer(content: {
+          HomePageView(model: model.homePageModel)
+        })
+        .tabItem {
+          Image("HomeTabImage")
+          Text("Home")
         }
-        .accentColor(.white) // Makes the selected tab icon white
-        .onAppear {
-            let tabBarAppearance = UITabBarAppearance()
-            tabBarAppearance.configureWithOpaqueBackground()
-            tabBarAppearance.backgroundColor = .black
+        .tag(MainContainerModel.ActiveTab.home)
 
-            UITabBar.appearance().standardAppearance = tabBarAppearance
-            UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
-            UITabBar.appearance().unselectedItemTintColor = UIColor(white: 0.7, alpha: 1.0)
+        TabContentWithSmallPlayer(content: {
+          StationListPage(model: model.stationListModel)
+        })
+        .tabItem {
+          Image("RadioStationsTabImage")
+          Text("Radio Stations")
         }
-        .alert(item: $model.presentedAlert) { $0.alert }
-        .onAppear { Task { await model.viewAppeared() } }
+        .tag(MainContainerModel.ActiveTab.stationsList)
+
+        TabContentWithSmallPlayer(content: {
+          HomePageView(model: model.homePageModel) // Temporarily using HomePageView
+        })
+        .tabItem {
+          Image("ProfileTabImage")
+          Text("Profile")
+        }
+        .tag(MainContainerModel.ActiveTab.profile)
+      }
+      .accentColor(.white) // Makes the selected tab icon white
+      .onAppear {
+        let tabBarAppearance = UITabBarAppearance()
+        tabBarAppearance.configureWithOpaqueBackground()
+        tabBarAppearance.backgroundColor = .black
+
+        UITabBar.appearance().standardAppearance = tabBarAppearance
+        UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+        UITabBar.appearance().unselectedItemTintColor = UIColor(white: 0.7, alpha: 1.0)
+      }
     }
+    .alert(item: $model.presentedAlert) { $0.alert }
+    .sheet(item: $model.presentedSheet, content: { item in
+      switch item {
+      case let .about(aboutModel):
+        NavigationStack {
+          AboutPage(model: aboutModel)
+        }
+      case let .player(playerPageModel):
+        PlayerPage(model: PlayerPageModel())
+      }
+    })
+    .onAppear { Task { await model.viewAppeared() } }
+  }
+
+  @ViewBuilder
+  private func TabContentWithSmallPlayer<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+    VStack(spacing: 0) {
+      content()
+
+      if model.shouldShowSmallPlayer {
+        SmallPlayer(
+          mainTitle: model.smallPlayerMainTitle,
+          secondaryTitle: model.smallPlayerSecondaryTitle,
+          artworkURL: model.smallPlayerArtworkURL,
+          onStopButtonTapped: model.onSmallPlayerStopTapped
+        )
+        .onTapGesture {
+          model.onSmallPlayerTapped()
+        }
+      }
+    }
+  }
 }
 
 struct MainContainer_Previews: PreviewProvider {
-    static var previews: some View {
-      MainContainer(model: MainContainerModel())
-            .preferredColorScheme(.dark)
-    }
+  static var previews: some View {
+    MainContainer(model: MainContainerModel())
+      .preferredColorScheme(.dark)
+  }
 }

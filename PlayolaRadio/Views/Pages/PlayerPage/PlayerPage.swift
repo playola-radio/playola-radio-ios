@@ -7,8 +7,11 @@
 
 import SwiftUI
 
+
+
 struct PlayerPage: View {
     @Environment(\.dismiss) private var dismiss
+  @Bindable var model: PlayerPageModel
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,10 +26,10 @@ struct PlayerPage: View {
                 Spacer()
 
                 VStack(spacing: 4) {
-                    Text("Jacob Stelly's")
+                  Text(model.primaryNavBarTitle)
                         .font(.custom(FontNames.Inter_500_Medium, size: 20))
                         .foregroundColor(.white)
-                    Text("Moondog Radio")
+                  Text(model.secondaryNavBarTitle)
                         .font(.custom(FontNames.Inter_400_Regular, size: 14))
                         .foregroundColor(Color(hex: "#C7C7C7"))
                 }
@@ -47,7 +50,7 @@ struct PlayerPage: View {
 
 
             // Main Image
-            AsyncImage(url: URL(string: "https://playola-static.s3.amazonaws.com/station-images/Jacob-Stelly-1-116029.jpg")) { image in
+            AsyncImage(url: model.stationArtUrl) { image in
               image
                 .resizable()
                 .aspectRatio(contentMode: .fill)
@@ -65,11 +68,12 @@ struct PlayerPage: View {
                 .font(.custom(FontNames.Inter_500_Medium, size: 12))
                 .foregroundColor(.gray)
 
-              Text("Jacob Stelly - Sweet Irene")
-                .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 24))
+              Text(model.nowPlayingText)
+                .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 20))
                 .foregroundColor(.white)
+                .multilineTextAlignment(.center)
 
-              ProgressView(value: 1.0)
+              ProgressView(value: model.loadingPercentage)
                 .progressViewStyle(LinearProgressViewStyle(tint: Color.playolaRed))
                 .cornerRadius(8)
                 .scaleEffect(y: 2, anchor: .center)
@@ -101,12 +105,12 @@ struct PlayerPage: View {
             .padding(.top, 32)
 
             // Play Button
-            Button(action: {}) {
+            Button(action: { model.playPauseButtonTapped() }) {
               Circle()
                 .fill(Color.white)
                 .frame(width: 80, height: 80)
                 .overlay(
-                  Image(systemName: "stop.fill")
+                  Image(systemName: model.playerButtonImageName.rawValue)
                     .foregroundColor(.black)
                     .font(.system(size: 40))
                 )
@@ -140,10 +144,11 @@ struct PlayerPage: View {
 //            Spacer()
         }
         .background(Color.black)
+        .onAppear { model.viewAppeared() }
     }
 }
 
 #Preview {
-    PlayerPage()
+  PlayerPage(model: PlayerPageModel())
         .preferredColorScheme(.dark)
 }

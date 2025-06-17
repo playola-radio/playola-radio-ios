@@ -7,6 +7,7 @@
 @testable import PlayolaRadio
 import Sharing
 import Testing
+import Foundation
 
 enum MainContainerTests {
   @MainActor @Suite("ViewAppeared")
@@ -20,7 +21,7 @@ enum MainContainerTests {
       await mainContainerModel.viewAppeared()
       #expect(apiMock.getStationListsCallCount == 1)
     }
-    
+
     @Test("Displays an error alert on api error")
     func testDisplaysAnErrorAlertOnApiError() async {
       @Shared(.stationListsLoaded) var stationListsLoaded = false
@@ -29,6 +30,183 @@ enum MainContainerTests {
       let mainContainerModel = MainContainerModel(api: apiMock)
       await mainContainerModel.viewAppeared()
       #expect(mainContainerModel.presentedAlert == .errorLoadingStations)
+    }
+  }
+
+  @MainActor @Suite("SmallPlayer Properties")
+  struct SmallPlayerProperties {
+    @Test("shouldShowSmallPlayer returns true when playing")
+    func testShouldShowSmallPlayerWhenPlaying() {
+      let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+      #expect(mainContainerModel.shouldShowSmallPlayer == true)
+    }
+
+    @Test("shouldShowSmallPlayer returns true when loading")
+    func testShouldShowSmallPlayerWhenLoading() {
+      let stationPlayerMock = StationPlayerMock()
+      stationPlayerMock.state = StationPlayer.State(playbackStatus: .loading(.mock))
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+      #expect(mainContainerModel.shouldShowSmallPlayer == true)
+    }
+
+    @Test("shouldShowSmallPlayer returns false when stopped")
+    func testShouldShowSmallPlayerWhenStopped() {
+      let stationPlayerMock = StationPlayerMock.mockStoppedPlayer()
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+      #expect(mainContainerModel.shouldShowSmallPlayer == false)
+    }
+
+    @Test("shouldShowSmallPlayer returns false when error")
+    func testShouldShowSmallPlayerWhenError() {
+      let stationPlayerMock = StationPlayerMock()
+      stationPlayerMock.state = StationPlayer.State(playbackStatus: .error)
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+      #expect(mainContainerModel.shouldShowSmallPlayer == false)
+    }
+
+    @Test("shouldShowSmallPlayer returns false when startingNewStation")
+    func testShouldShowSmallPlayerWhenStartingNewStation() {
+      let stationPlayerMock = StationPlayerMock()
+      stationPlayerMock.state = StationPlayer.State(playbackStatus: .startingNewStation(.mock))
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+      #expect(mainContainerModel.shouldShowSmallPlayer == false)
+    }
+
+    @Test("smallPlayerMainTitle returns station name")
+    func testSmallPlayerMainTitleReturnsStationName() {
+      let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+      #expect(mainContainerModel.smallPlayerMainTitle == RadioStation.mock.name)
+    }
+
+    @Test("smallPlayerMainTitle returns empty string when no current station")
+    func testSmallPlayerMainTitleWhenNoCurrentStation() {
+      let stationPlayerMock = StationPlayerMock.mockStoppedPlayer()
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+      #expect(mainContainerModel.smallPlayerMainTitle == "")
+    }
+
+    @Test("smallPlayerSecondaryTitle returns station description")
+    func testSmallPlayerSecondaryTitleReturnsStationDescription() {
+      let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+      #expect(mainContainerModel.smallPlayerSecondaryTitle == RadioStation.mock.desc)
+    }
+
+    @Test("smallPlayerSecondaryTitle returns empty string when no current station")
+    func testSmallPlayerSecondaryTitleWhenNoCurrentStation() {
+      let stationPlayerMock = StationPlayerMock.mockStoppedPlayer()
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+      #expect(mainContainerModel.smallPlayerSecondaryTitle == "")
+    }
+
+    @Test("smallPlayerArtworkURL returns album artwork URL when available")
+    func testSmallPlayerArtworkURLReturnsAlbumArtwork() {
+      let stationPlayerMock = StationPlayerMock()
+      let testURL = URL(string: "https://example.com/artwork.jpg")!
+      stationPlayerMock.state = StationPlayer.State(
+        playbackStatus: .playing(.mock),
+        albumArtworkUrl: testURL
+      )
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+      #expect(mainContainerModel.smallPlayerArtworkURL == testURL)
+    }
+
+    @Test("smallPlayerArtworkURL returns station image URL when no album artwork")
+    func testSmallPlayerArtworkURLReturnsStationImage() {
+      let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+      #expect(mainContainerModel.smallPlayerArtworkURL == RadioStation.mock.processedImageURL())
+    }
+
+    @Test("smallPlayerArtworkURL returns fallback URL when no station or artwork")
+    func testSmallPlayerArtworkURLReturnsFallback() {
+      let stationPlayerMock = StationPlayerMock.mockStoppedPlayer()
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+      #expect(mainContainerModel.smallPlayerArtworkURL == URL(string: "https://example.com")!)
+    }
+  }
+
+  @MainActor @Suite("SmallPlayer Actions")
+  struct SmallPlayerActions {
+    @Test("onSmallPlayerStopTapped calls station player stop")
+    func testOnSmallPlayerStopTapped() {
+      let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+
+      mainContainerModel.onSmallPlayerStopTapped()
+
+      #expect(stationPlayerMock.stopCalledCount == 1)
+    }
+
+    @Test("onSmallPlayerTapped presents player sheet")
+    func testOnSmallPlayerTapped() {
+      let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+
+      mainContainerModel.onSmallPlayerTapped()
+
+      #expect(mainContainerModel.presentedSheet != nil)
+      if case .player = mainContainerModel.presentedSheet {
+        // Test passes
+      } else {
+        #expect(Bool(false), "Expected player sheet to be presented")
+      }
+    }
+  }
+
+  @MainActor @Suite("ProcessNewStationState")
+  struct ProcessNewStationState {
+    @Test("processNewStationState presents player sheet when starting new station")
+    func testProcessNewStationStatePresentsPlayerSheetWhenStartingNewStation() {
+      let stationPlayerMock = StationPlayerMock()
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+
+      let newState = StationPlayer.State(playbackStatus: .startingNewStation(.mock))
+      mainContainerModel.processNewStationState(newState)
+
+      #expect(mainContainerModel.presentedSheet != nil)
+      if case .player = mainContainerModel.presentedSheet {
+        // Test passes
+      } else {
+        #expect(Bool(false), "Expected player sheet to be presented")
+      }
+    }
+
+    @Test("processNewStationState does not present sheet for other states")
+    func testProcessNewStationStateDoesNotPresentSheetForOtherStates() {
+      let stationPlayerMock = StationPlayerMock()
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+
+      let playingState = StationPlayer.State(playbackStatus: .playing(.mock))
+      mainContainerModel.processNewStationState(playingState)
+      #expect(mainContainerModel.presentedSheet == nil)
+
+      let stoppedState = StationPlayer.State(playbackStatus: .stopped)
+      mainContainerModel.processNewStationState(stoppedState)
+      #expect(mainContainerModel.presentedSheet == nil)
+
+      let loadingState = StationPlayer.State(playbackStatus: .loading(.mock))
+      mainContainerModel.processNewStationState(loadingState)
+      #expect(mainContainerModel.presentedSheet == nil)
+
+      let errorState = StationPlayer.State(playbackStatus: .error)
+      mainContainerModel.processNewStationState(errorState)
+      #expect(mainContainerModel.presentedSheet == nil)
+    }
+  }
+
+  @MainActor @Suite("DismissButtonInSheetTapped")
+  struct DismissButtonInSheetTapped {
+    @Test("dismissButtonInSheetTapped clears presented sheet")
+    func testDismissButtonInSheetTappedClearsPresentedSheet() {
+      let mainContainerModel = MainContainerModel()
+      mainContainerModel.presentedSheet = .about(AboutPageModel())
+
+      mainContainerModel.dismissButtonInSheetTapped()
+
+      #expect(mainContainerModel.presentedSheet == nil)
     }
   }
 }

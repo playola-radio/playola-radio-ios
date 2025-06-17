@@ -110,4 +110,22 @@ enum StationListPageTests {
       #expect(model.stationListsForDisplay == expectedVisibleAfterUpdate)
     }
   }
+
+  // -------------------------------------------------------------
+  // MARK: - Player interaction
+  // -------------------------------------------------------------
+  @MainActor @Suite("PlayerInteraction")
+  struct StationPlayerInteraction {
+    @Test("Plays a station when it is tapped")
+    func testPlaysAStationWhenItIsTapped() {
+      let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+      let station: RadioStation = .mock
+
+      let stationListModel = StationListModel(stationPlayer: stationPlayerMock)
+      stationListModel.stationSelected(station)
+
+      #expect(stationPlayerMock.callsToPlay.count == 1)
+      #expect(stationPlayerMock.callsToPlay.first?.id == station.id)
+    }
+  }
 }

@@ -27,7 +27,9 @@ struct HomePageView: View {
           HomeIntroSection(
             onIconTapped10Times: model.handlePlayolaIconTapped10Times)
 
-          HomePageStationList(stations: model.forYouStations)
+          HomePageStationList(stations: model.forYouStations) {
+            model.handleStationTapped($0)
+          }
         }
         .padding(.horizontal, 24)
         .scrollIndicators(.hidden)

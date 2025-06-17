@@ -18,11 +18,16 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
 
+  @ObservationIgnored var stationPlayer: StationPlayer
+
   var forYouStations: IdentifiedArrayOf<RadioStation> = []
   var presentedAlert: PlayolaAlert? = nil
 
+  init(stationPlayer: StationPlayer? = nil) {
+    self.stationPlayer = stationPlayer ?? .shared
+  }
+
   // MARK: Actions
-  
   func viewAppeared() async {
     $stationLists.publisher
       .sink { lists in
@@ -35,5 +40,9 @@ class HomePageModel: ViewModel {
   func handlePlayolaIconTapped10Times() {
     $showSecretStations.withLock { $0 = !$0 }
     presentedAlert = showSecretStations ? .secretStationsTurnedOnAlert : .secretStationsHiddenAlert
+  }
+
+  func handleStationTapped(_ station: RadioStation) {
+    stationPlayer.play(station: station)
   }
 }
