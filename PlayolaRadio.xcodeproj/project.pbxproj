@@ -75,9 +75,12 @@
 		D37257CC2DFA3F83001BC6F9 /* FontNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257CB2DFA3F7F001BC6F9 /* FontNames.swift */; };
 		D37257D02DFB4368001BC6F9 /* PlayerPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */; };
 		D38031352E00AFD20011DD64 /* PlayerPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38031332E00AD9F0011DD64 /* PlayerPageTests.swift */; };
+		D382671C2E00C1460006BAC2 /* SmallPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D382671B2E00C13E0006BAC2 /* SmallPlayer.swift */; };
 		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
 		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
+		D3AACEEB2E0111F800DFAA24 /* SmallPlayerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AACEEA2E0111F500DFAA24 /* SmallPlayerModel.swift */; };
+		D3AACEED2E0111FE00DFAA24 /* SmallPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AACEEC2E0111FB00DFAA24 /* SmallPlayerTests.swift */; };
 		D3B662682D3F58E700975D2F /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3B662672D3F58E700975D2F /* FRadioPlayer */; };
 		D3B6626A2D40103C00975D2F /* SignInPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662692D40103800975D2F /* SignInPage.swift */; };
 		D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */; };
@@ -173,7 +176,10 @@
 		D37257CB2DFA3F7F001BC6F9 /* FontNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontNames.swift; sourceTree = "<group>"; };
 		D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPage.swift; sourceTree = "<group>"; };
 		D38031332E00AD9F0011DD64 /* PlayerPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPageTests.swift; sourceTree = "<group>"; };
+		D382671B2E00C13E0006BAC2 /* SmallPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmallPlayer.swift; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
+		D3AACEEA2E0111F500DFAA24 /* SmallPlayerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmallPlayerModel.swift; sourceTree = "<group>"; };
+		D3AACEEC2E0111FB00DFAA24 /* SmallPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmallPlayerTests.swift; sourceTree = "<group>"; };
 		D3B662692D40103800975D2F /* SignInPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPage.swift; sourceTree = "<group>"; };
 		D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinator.swift; sourceTree = "<group>"; };
 		D3B662712D41618500975D2F /* AppleSignInInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInInfo.swift; sourceTree = "<group>"; };
@@ -305,6 +311,7 @@
 		D339E55D2BFD0FC200B9E35B /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				D3AACEE92E0111E600DFAA24 /* SmallPlayer */,
 				D31CD5222DFBA1EC009B9780 /* ViewModel.swift */,
 				D34D5C372D71062E00148048 /* SideMenuView */,
 				D3137DBA2D3976550070033A /* PlayolaAlert.swift */,
@@ -477,6 +484,16 @@
 			path = PlayerPage;
 			sourceTree = "<group>";
 		};
+		D3AACEE92E0111E600DFAA24 /* SmallPlayer */ = {
+			isa = PBXGroup;
+			children = (
+				D3AACEEC2E0111FB00DFAA24 /* SmallPlayerTests.swift */,
+				D3AACEEA2E0111F500DFAA24 /* SmallPlayerModel.swift */,
+				D382671B2E00C13E0006BAC2 /* SmallPlayer.swift */,
+			);
+			path = SmallPlayer;
+			sourceTree = "<group>";
+		};
 		D3B6626B2D4016B900975D2F /* Services */ = {
 			isa = PBXGroup;
 			children = (
@@ -627,6 +644,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3AACEEB2E0111F800DFAA24 /* SmallPlayerModel.swift in Sources */,
 				D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */,
 				D37257B02DF88BB7001BC6F9 /* HomePageView.swift in Sources */,
 				D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */,
@@ -657,6 +675,7 @@
 				D339E5762BFD419400B9E35B /* AboutPage.swift in Sources */,
 				D3137DD22D3ABB520070033A /* GenericNowPlaying.swift in Sources */,
 				D3361FE42D6E980000A859FF /* SideMenuView.swift in Sources */,
+				D3AACEED2E0111FE00DFAA24 /* SmallPlayerTests.swift in Sources */,
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
 				D37257C42DF8F885001BC6F9 /* circleBackground.swift in Sources */,
 				D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */,
@@ -675,6 +694,7 @@
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */,
 				D339E5692BFD1C0800B9E35B /* API.swift in Sources */,
+				D382671C2E00C1460006BAC2 /* SmallPlayer.swift in Sources */,
 				D35673B42D3DC6D100E4E926 /* TrackingService.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
 			);
