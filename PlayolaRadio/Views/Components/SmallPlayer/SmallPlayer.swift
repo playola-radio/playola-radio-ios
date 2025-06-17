@@ -47,8 +47,7 @@ struct SmallPlayer: View {
 
                Spacer()
 
-               // Play / pause button
-               Button(action: {}) {
+               Button(action: onStopButtonTapped) {
                    Image(systemName: "stop.fill")
                        .foregroundColor(.black)
                        .frame(width: 34, height: 34)
