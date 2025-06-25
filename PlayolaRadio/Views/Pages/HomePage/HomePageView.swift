@@ -30,6 +30,7 @@ struct HomePageView: View {
           HomePageStationList(stations: model.forYouStations) {
             model.handleStationTapped($0)
           }
+          .padding(.top, -48)
         }
         .padding(.horizontal, 24)
         .scrollIndicators(.hidden)
