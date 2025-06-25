@@ -22,7 +22,7 @@ struct StationCardView: View {
 
   var body: some View {
     Button(action: { onRadioStationSelected(station) }) {
-      HStack(spacing: 0) {
+      HStack(spacing: 2) {
         AsyncImage(url: URL(string: station.imageURL )) { image in
           image
             .resizable()
@@ -34,19 +34,19 @@ struct StationCardView: View {
         .clipped()
         
         // Right side - Text content
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
           Text(station.name)
-            .font(.custom("Inter-Regular", size: 12))
+            .font(.custom(FontNames.Inter_500_Medium, size: 12))
             .foregroundColor(Color(hex: "#C7C7C7"))
-          
+            .padding(.top, 10)
+
           Text(station.desc)
-            .font(.custom("SpaceGrotesk-Light_Bold", size: 16))
+            .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .fontWeight(.bold)
             .foregroundColor(.white)
-            .padding(.bottom, 4)
           
           Text(station.longDesc)
-            .font(.custom("Inter-Regular", size: 14))
+            .font(.custom(FontNames.Inter_400_Regular, size: 12))
             .foregroundColor(Color(hex: "#C7C7C7"))
             .lineLimit(nil)
             .lineSpacing(4)
@@ -59,6 +59,7 @@ struct StationCardView: View {
       }
       .background(Color(white: 0.15))
       .cornerRadius(6)
+      .multilineTextAlignment(.leading)
     }
   }
 }
@@ -84,7 +85,6 @@ struct HomePageStationList: View {
       }
     }
     .padding(.vertical, 20)
-    .background(Color.black)
   }
 }
 
