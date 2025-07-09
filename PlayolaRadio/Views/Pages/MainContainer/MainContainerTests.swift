@@ -154,6 +154,24 @@ enum MainContainerTests {
         #expect(Bool(false), "Expected player sheet to be presented")
       }
     }
+
+    @Test("small player hides when stop button is pressed")
+    func testSmallPlayerHidesWhenStopButtonPressed() {
+      let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+
+      // Verify small player should be showing initially
+      #expect(mainContainerModel.shouldShowSmallPlayer == true)
+
+      // Simulate the stop button being pressed
+      mainContainerModel.onSmallPlayerStopTapped()
+
+      // Update the mock to reflect the stopped state
+      stationPlayerMock.state = StationPlayer.State(playbackStatus: .stopped)
+
+      // Verify small player should now be hidden
+      #expect(mainContainerModel.shouldShowSmallPlayer == false)
+    }
   }
 
   @MainActor @Suite("ProcessNewStationState")

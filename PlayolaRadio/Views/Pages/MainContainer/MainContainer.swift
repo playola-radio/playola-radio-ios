@@ -33,14 +33,7 @@ class MainContainerModel: ViewModel {
   var homePageModel = HomePageModel()
   var stationListModel = StationListModel()
 
-  var shouldShowSmallPlayer: Bool {
-    switch stationPlayer.state.playbackStatus {
-    case .playing, .loading:
-      return true
-    case .stopped, .error, .startingNewStation:
-      return false
-    }
-  }
+  var shouldShowSmallPlayer: Bool = false
 
   var smallPlayerMainTitle: String {
     stationPlayer.currentStation?.name ?? ""
@@ -79,12 +72,23 @@ class MainContainerModel: ViewModel {
 
   func processNewStationState(_ newState: StationPlayer.State) {
     switch newState.playbackStatus {
-    case let .startingNewStation(station):
+    case let .startingNewStation(_):
       self.presentedSheet = .player(PlayerPageModel(onDismiss: {
         self.presentedSheet = nil
       }))
-    default:
-      return
+    default: break
+    }
+    self.setShouldShowSmallPlayer(newState)
+  }
+
+  func setShouldShowSmallPlayer(_ stationPlayerState: StationPlayer.State) {
+    withAnimation {
+      switch stationPlayerState.playbackStatus {
+      case .playing, .startingNewStation, .loading:
+        self.shouldShowSmallPlayer = true
+      default:
+        self.shouldShowSmallPlayer = false
+      }
     }
   }
 
@@ -181,6 +185,8 @@ struct MainContainer: View {
         .onTapGesture {
           model.onSmallPlayerTapped()
         }
+        .transition(.move(edge: .bottom))
+        .zIndex(1)
       }
     }
   }
