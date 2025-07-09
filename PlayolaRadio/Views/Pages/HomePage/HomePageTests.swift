@@ -43,6 +43,35 @@ enum HomePageTests {
     }
   }
 
+  @MainActor @Suite("WelcomeMessage")
+  struct WelcomeMessage {
+    @Test("Shows generic welcome message when no user is logged in")
+    func testShowsGenericWelcomeMessageWhenNoUserIsLoggedIn() {
+      @Shared(.auth) var auth = Auth()
+      let model = HomePageModel()
+      #expect(model.welcomeMessage == "Welcome to Playola")
+    }
+
+    @Test("Shows personalized welcome message when user is logged in")
+    func testShowsPersonalizedWelcomeMessageWhenUserIsLoggedIn() {
+      let mockJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWFpbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
+      @Shared(.auth) var auth = Auth(jwtToken: mockJWT)
+      let model = HomePageModel()
+      #expect(model.welcomeMessage == "Welcome, John Doe")
+    }
+
+    @Test("Updates welcome message when auth changes")
+    func testUpdatesWelcomeMessageWhenAuthChanges() {
+      @Shared(.auth) var auth = Auth()
+      let model = HomePageModel()
+      #expect(model.welcomeMessage == "Welcome to Playola")
+      
+      let mockJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWFpbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
+      $auth.withLock { $0 = Auth(jwtToken: mockJWT) }
+      #expect(model.welcomeMessage == "Welcome, John Doe")
+    }
+  }
+
   @MainActor
   struct tappingTheP {
     @Test("Turns on the secret stations")
