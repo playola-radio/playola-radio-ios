@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import PlayolaPlayer
 
 @MainActor
 @Observable
@@ -20,7 +21,16 @@ class PlayerPageModel: ViewModel {
   var stationArtUrl: URL? = nil
   var previouslyPlayingStation: RadioStation? = nil
   var loadingPercentage: Float = 1.0
+  var playolaSpinPlaying: Spin? = nil {
+    didSet {
+      self.playolaAudioBlockPlaying = playolaSpinPlaying?.audioBlock
+      setRelatedText(playolaSpinPlaying)
+    }
+  }
 
+  var playolaAudioBlockPlaying: AudioBlock? = nil
+
+  var relatedText: RelatedText? = nil
 
   // Unused for now
   var albumArtUrl: URL? = nil
@@ -44,6 +54,20 @@ class PlayerPageModel: ViewModel {
     stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &cancellables)
   }
 
+  func setRelatedText(_ currentSpin: Spin?) {
+    guard let currentSpin else {
+      self.relatedText = nil
+      return
+    }
+    if let transcription = currentSpin.audioBlock.transcription {
+      self.relatedText = .init(title: "Why I chose this song", body: transcription)
+    } else if let relatedTexts = currentSpin.relatedTexts?.randomElement() {
+      self.relatedText = relatedTexts
+    } else {
+      self.relatedText = nil
+    }
+  }
+
   func processNewStationState(_ state: StationPlayer.State) {
     switch state.playbackStatus {
     case let .playing(radioStation):
@@ -57,6 +81,7 @@ class PlayerPageModel: ViewModel {
       self.playerButtonImageName = .stop
       self.previouslyPlayingStation = radioStation
       self.loadingPercentage = 1.0
+      self.playolaSpinPlaying = state.playolaSpinPlaying
     case let .loading(radioStation, progress):
       primaryNavBarTitle = radioStation.name
       secondaryNavBarTitle = radioStation.desc
@@ -67,16 +92,19 @@ class PlayerPageModel: ViewModel {
       albumArtUrl = URL(string: radioStation.imageURL)
       self.playerButtonImageName = .stop
       self.previouslyPlayingStation = radioStation
+      self.playolaSpinPlaying = state.playolaSpinPlaying
     case .stopped:
       albumArtUrl = nil
       nowPlayingText = ""
       self.playerButtonImageName = .play
+      self.playolaSpinPlaying = nil
     case .error:
       primaryNavBarTitle = ""
       secondaryNavBarTitle = ""
       nowPlayingText = "Error Playing Station"
       albumArtUrl = nil
       self.playerButtonImageName = .play
+      self.playolaSpinPlaying = nil
     case let .startingNewStation(radioStation):
       primaryNavBarTitle = radioStation.name
       secondaryNavBarTitle = radioStation.desc
@@ -84,6 +112,7 @@ class PlayerPageModel: ViewModel {
       albumArtUrl = URL(string: radioStation.imageURL)
       self.previouslyPlayingStation = radioStation
       self.playerButtonImageName = .stop
+      self.playolaSpinPlaying = state.playolaSpinPlaying
     }
   }
 
@@ -91,7 +120,7 @@ class PlayerPageModel: ViewModel {
     // compared with `!=`.  Use pattern matching instead.
     switch stationPlayer.state.playbackStatus {
     case .stopped:
-      // If it’s currently stopped, start playing.
+      // If it's currently stopped, start playing.
       if let station = self.previouslyPlayingStation {
         stationPlayer.play(station: station)
       }
