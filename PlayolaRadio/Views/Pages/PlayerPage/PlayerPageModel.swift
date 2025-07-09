@@ -32,6 +32,9 @@ class PlayerPageModel: ViewModel {
 
   var relatedText: RelatedText? = nil
 
+  // MARK: Callbacks
+  var onDismiss: (() -> Void)?
+
   // Unused for now
   var albumArtUrl: URL? = nil
 
@@ -45,8 +48,9 @@ class PlayerPageModel: ViewModel {
 
   @ObservationIgnored var stationPlayer: StationPlayer
 
-  init(stationPlayer: StationPlayer? = nil) {
+  init(stationPlayer: StationPlayer? = nil, onDismiss: (() -> Void)? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
+    self.onDismiss = onDismiss
   }
 
   func viewAppeared() {
@@ -126,6 +130,7 @@ class PlayerPageModel: ViewModel {
       }
     default:
       stationPlayer.stop()
+      onDismiss?()
     }
   }
 }

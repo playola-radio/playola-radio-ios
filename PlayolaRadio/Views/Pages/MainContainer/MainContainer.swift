@@ -80,7 +80,9 @@ class MainContainerModel: ViewModel {
   func processNewStationState(_ newState: StationPlayer.State) {
     switch newState.playbackStatus {
     case let .startingNewStation(station):
-      self.presentedSheet = .player(PlayerPageModel())
+      self.presentedSheet = .player(PlayerPageModel(onDismiss: {
+        self.presentedSheet = nil
+      }))
     default:
       return
     }
@@ -91,7 +93,7 @@ class MainContainerModel: ViewModel {
   }
 
   func onSmallPlayerTapped() {
-    self.presentedSheet = .player(PlayerPageModel())
+    self.presentedSheet = .player(PlayerPageModel(onDismiss: { self.presentedSheet = nil }))
   }
 }
 
@@ -158,7 +160,7 @@ struct MainContainer: View {
           AboutPage(model: aboutModel)
         }
       case let .player(playerPageModel):
-        PlayerPage(model: PlayerPageModel())
+        PlayerPage(model: playerPageModel)
       }
     })
     .onAppear { Task { await model.viewAppeared() } }
