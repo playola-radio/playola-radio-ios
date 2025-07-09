@@ -13,7 +13,7 @@ struct HomePageView: View {
   var body: some View {
     VStack {
       VStack {
-        Text("Welcome, Brian")
+        Text(model.welcomeMessage)
           .font(.custom("SpaceGrotesk-Light_Bold", size: 32))
           .fontWeight(.bold)
           .foregroundColor(.white)

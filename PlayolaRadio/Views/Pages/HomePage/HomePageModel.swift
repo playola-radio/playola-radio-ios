@@ -17,11 +17,20 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
+  @ObservationIgnored @Shared(.auth) var auth: Auth
 
   @ObservationIgnored var stationPlayer: StationPlayer
 
   var forYouStations: IdentifiedArrayOf<RadioStation> = []
   var presentedAlert: PlayolaAlert? = nil
+
+  var welcomeMessage: String {
+    if let displayName = auth.currentUser?.displayName {
+      return "Welcome, \(displayName)"
+    } else {
+      return "Welcome to Playola"
+    }
+  }
 
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
