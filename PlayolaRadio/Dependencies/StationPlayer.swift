@@ -25,6 +25,7 @@ class StationPlayer: ObservableObject {
     var artistPlaying: String?
     var titlePlaying: String?
     var albumArtworkUrl: URL?
+    var playolaSpinPlaying: Spin?
   }
   
   @Published var state = State(playbackStatus: .stopped)
@@ -92,20 +93,22 @@ class StationPlayer: ObservableObject {
   func processPlayolaStationPlayerState(_ playolaState: PlayolaStationPlayer.State?) {
     switch playolaState {
     case .idle:
-      state = .init(playbackStatus: .stopped, artistPlaying: nil, titlePlaying: nil, albumArtworkUrl: nil)
+      state = .init(playbackStatus: .stopped, artistPlaying: nil, titlePlaying: nil, albumArtworkUrl: nil, playolaSpinPlaying: nil)
     case let .loading(progress):
       guard let currentStation else { return }
-      state = .init(playbackStatus: .loading(currentStation, progress), titlePlaying: nil, albumArtworkUrl: nil)
+      state = .init(playbackStatus: .loading(currentStation, progress), artistPlaying: nil, titlePlaying: nil, albumArtworkUrl: nil, playolaSpinPlaying: nil)
     case let .playing(nowPlaying):
       if let currentStation {
+        let audioBlock = (nowPlaying as? AudioBlockProvider)?.audioBlock
         state = .init(playbackStatus: .playing(currentStation),
-                      artistPlaying: nowPlaying.artist,
-                      titlePlaying: nowPlaying.title,
-                      albumArtworkUrl: nowPlaying.imageUrl)
+                      artistPlaying: nowPlaying.audioBlock.artist,
+                      titlePlaying: nowPlaying.audioBlock.title,
+                      albumArtworkUrl: nowPlaying.audioBlock.imageUrl,
+                      playolaSpinPlaying: nowPlaying)
       }
 
     case .none:
-      state = .init(playbackStatus: .error)
+      state = .init(playbackStatus: .error, artistPlaying: nil, titlePlaying: nil, albumArtworkUrl: nil, playolaSpinPlaying: nil)
     }
   }
   
@@ -138,7 +141,13 @@ class StationPlayer: ObservableObject {
       playbackStatus: state.playbackStatus,
       artistPlaying: state.artistPlaying,
       titlePlaying: state.titlePlaying,
-      albumArtworkUrl: albumArtworkURL
+      albumArtworkUrl: albumArtworkURL,
+      playolaSpinPlaying: state.playolaSpinPlaying
     )
   }
+}
+
+// MARK: - AudioBlockProvider Protocol
+protocol AudioBlockProvider {
+  var audioBlock: AudioBlock? { get }
 }
