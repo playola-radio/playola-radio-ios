@@ -208,5 +208,29 @@ enum MainContainerTests {
 
       #expect(mainContainerModel.presentedSheet == nil)
     }
+    
+    @Test("PlayerPage onDismiss clears presentedSheet")
+    func testPlayerPageOnDismissClearsPresentedSheet() {
+      let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
+      let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+      
+      // Trigger the presentation of the player sheet
+      mainContainerModel.onSmallPlayerTapped()
+      
+      // Verify the sheet is presented
+      #expect(mainContainerModel.presentedSheet != nil)
+      
+      // Extract the PlayerPageModel from the presented sheet
+      guard case let .player(playerPageModel) = mainContainerModel.presentedSheet else {
+        #expect(Bool(false), "Expected player sheet to be presented")
+        return
+      }
+      
+      // Call the onDismiss callback
+      playerPageModel.onDismiss?()
+      
+      // Verify the sheet is now nil
+      #expect(mainContainerModel.presentedSheet == nil)
+    }
   }
 }
