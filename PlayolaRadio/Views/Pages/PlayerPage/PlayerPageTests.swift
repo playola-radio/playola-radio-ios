@@ -268,5 +268,24 @@ struct PlayerPageTests {
       #expect(spy.callsToPlay[0]  == station)
       #expect(spy.stopCalledCount == 0)
     }
+    
+    @Test("Dismisses the player when stop button is pressed during playback")
+    @MainActor
+    func testDismissesWhenStopButtonPressed() {
+      let station = RadioStation.mock
+      let spy     = StationPlayerMock()
+      spy.state = StationPlayer.State(
+        playbackStatus: .playing(station)
+      )
+      
+      var dismissCalled = false
+      let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+      model.viewAppeared()
+      
+      model.playPauseButtonTapped()
+      
+      #expect(spy.stopCalledCount == 1)
+      #expect(dismissCalled == true)
+    }
   }
 }
