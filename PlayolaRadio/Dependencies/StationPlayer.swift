@@ -8,6 +8,7 @@ import Combine
 import Foundation
 import FRadioPlayer
 import PlayolaPlayer
+import Sharing
 
 @MainActor
 class StationPlayer: ObservableObject {
@@ -29,7 +30,8 @@ class StationPlayer: ObservableObject {
   }
   
   @Published var state = State(playbackStatus: .stopped)
-  
+  let authProvider: PlayolaTokenProvider = .init()
+
   public var currentStation: RadioStation? {
     switch state.playbackStatus {
     case let .startingNewStation(radioStation):
@@ -67,6 +69,8 @@ class StationPlayer: ObservableObject {
     self.playolaStationPlayer.$state.sink(receiveValue: { state in
       self.processPlayolaStationPlayerState(state)
     }).store(in: &disposeBag)
+
+    self.playolaStationPlayer.configure(authProvider: self.authProvider, baseURL: Config.shared.baseUrl)
   }
   
   // MARK: Public Interface

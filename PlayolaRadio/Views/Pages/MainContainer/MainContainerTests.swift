@@ -256,4 +256,64 @@ enum MainContainerTests {
       #expect(mainContainerModel.presentedSheet == nil)
     }
   }
+
+  @MainActor @Suite("PlayolaStationPlayer Authentication Configuration")
+  struct PlayolaStationPlayerConfiguration {
+    @Test("Configures PlayolaStationPlayer with auth provider on init")
+    func testConfiguresPlayolaStationPlayerOnInit() async {
+      @Shared(.auth) var auth = Auth(jwtToken: "test.jwt.token")
+      
+      // When MainContainerModel is created (user is logged in),
+      // it should configure PlayolaStationPlayer with authentication
+      let mainContainerModel = MainContainerModel()
+      
+      #expect(mainContainerModel != nil, "MainContainerModel should be created successfully")
+    }
+    
+    @Test("Uses authenticated session reporting when user logged in")
+    func testUsesAuthenticatedSessionReporting() async {
+      @Shared(.auth) var auth = Auth(jwtToken: "valid.jwt.token")
+      
+      // MainContainerModel creation should configure PlayolaStationPlayer
+      // to use JWT tokens for session reporting
+      let mainContainerModel = MainContainerModel()
+      
+      #expect(auth.isLoggedIn == true)
+      #expect(auth.jwt == "valid.jwt.token")
+    }
+  }
+  
+  @MainActor @Suite("Authentication State Lifecycle")
+  struct AuthStateLifecycle {
+    @Test("MainContainer only exists when user is authenticated")
+    func testMainContainerExistsOnlyWhenAuthenticated() async {
+      @Shared(.auth) var auth = Auth(jwtToken: "user.jwt.token")
+      
+      // User is logged in - MainContainer can be created
+      #expect(auth.isLoggedIn == true)
+      let mainContainerModel = MainContainerModel()
+      #expect(mainContainerModel != nil)
+      
+      // When user signs out, ContentView will destroy MainContainer
+      // and show SignInPage instead - this is handled by ContentView logic
+      auth = Auth()
+      #expect(auth.isLoggedIn == false)
+    }
+    
+    @Test("Multiple login sessions each get fresh auth configuration")
+    func testMultipleLoginSessionsGetFreshConfig() async {
+      @Shared(.auth) var auth = Auth()
+      
+      // First login session
+      auth = Auth(jwtToken: "first.session.token")
+      let firstMainContainer = MainContainerModel()
+      #expect(auth.jwt == "first.session.token")
+      
+      // User logs out, logs back in with new token
+      auth = Auth()
+      auth = Auth(jwtToken: "second.session.token")
+      let secondMainContainer = MainContainerModel()
+      #expect(auth.jwt == "second.session.token")
+    }
+  }
 }

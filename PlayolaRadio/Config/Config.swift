@@ -6,20 +6,21 @@
 //
 import Combine
 import UIKit
+import Foundation
 
-actor Config {
+class Config {
     public static let shared = Config()
 
     let environment: DevelopmentEnvironment
     let mixpanelToken: String
     let heapAppID: String
 
-    var baseUrl: String {
+    var baseUrl: URL {
         switch environment {
         case .local:
-            return "http://localhost:10020"
+          return URL(string: "http://localhost:10020")!
         case .development, .production:
-            return "https://admin-api.playola.fm"
+          return URL(string: "https://admin-api.playola.fm")!
         }
     }
 

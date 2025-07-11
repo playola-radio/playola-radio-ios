@@ -89,6 +89,8 @@
 		D3B662742D419C3300975D2F /* LoggedInUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662732D419C3100975D2F /* LoggedInUser.swift */; };
 		D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662752D41B0C700975D2F /* SignInPageTests.swift */; };
 		D3B662C32D4272F900975D2F /* Secrets-Local.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D3B662C22D4272ED00975D2F /* Secrets-Local.xcconfig */; };
+		D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */; };
+		D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */; };
 		D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */ = {isa = PBXBuildFile; productRef = D3BEE95C2D49A3BD00469CDC /* Testing */; };
 		D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3CE19022D3C825C0091B888 /* PlayolaPlayer */; };
 		D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */; };
@@ -186,6 +188,8 @@
 		D3B662732D419C3100975D2F /* LoggedInUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggedInUser.swift; sourceTree = "<group>"; };
 		D3B662752D41B0C700975D2F /* SignInPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageTests.swift; sourceTree = "<group>"; };
 		D3B662C22D4272ED00975D2F /* Secrets-Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Local.xcconfig"; sourceTree = "<group>"; };
+		D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProviderTests.swift; sourceTree = "<group>"; };
+		D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProvider.swift; sourceTree = "<group>"; };
 		D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserDefaults.swift; sourceTree = "<group>"; };
 		D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlStreamListeningSessionReporter.swift; sourceTree = "<group>"; };
 		D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPageModel.swift; sourceTree = "<group>"; };
@@ -274,6 +278,7 @@
 		D339E55A2BFD0CE200B9E35B /* Dependencies */ = {
 			isa = PBXGroup;
 			children = (
+				D3BECAC22E2017CB0009E618 /* PlayolaTokenProvider */,
 				D35673B32D3DC6CE00E4E926 /* TrackingService.swift */,
 				D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */,
 				D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */,
@@ -514,6 +519,15 @@
 			path = SignInPage;
 			sourceTree = "<group>";
 		};
+		D3BECAC22E2017CB0009E618 /* PlayolaTokenProvider */ = {
+			isa = PBXGroup;
+			children = (
+				D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */,
+				D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */,
+			);
+			path = PlayolaTokenProvider;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -677,6 +691,7 @@
 				D3361FE42D6E980000A859FF /* SideMenuView.swift in Sources */,
 				D3AACEED2E0111FE00DFAA24 /* SmallPlayerTests.swift in Sources */,
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
+				D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */,
 				D37257C42DF8F885001BC6F9 /* circleBackground.swift in Sources */,
 				D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */,
 				D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */,
@@ -715,6 +730,7 @@
 				D34D5C362D7105EE00148048 /* SideMenuTests.swift in Sources */,
 				D3137DCA2D3A9F940070033A /* NowPlayingPageTests.swift in Sources */,
 				D34D5C392D7106CD00148048 /* AuthServiceMock.swift in Sources */,
+				D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */,
 				D3536A162BFA4F4A006942D6 /* PlayolaRadioTests.swift in Sources */,
 				D342A0C72DFCB368002BAC30 /* HomePageTests.swift in Sources */,
 				D3137DBD2D397FD10070033A /* AboutPageTests.swift in Sources */,
@@ -1181,7 +1197,7 @@
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.4.1;
+				minimumVersion = 0.5.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

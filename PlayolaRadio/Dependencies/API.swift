@@ -11,7 +11,7 @@ import IdentifiedCollections
 import Sharing
 
 class API {
-    static let stationsURL = URL(string: "\(Config.shared.baseUrl)/v1/developer/stationLists")!
+    static let stationsURL = URL(string: "\(Config.shared.baseUrl.absoluteString)/v1/developer/stationLists")!
 
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
     @Shared(.stationListsLoaded) var stationListsLoaded: Bool
@@ -54,7 +54,7 @@ class API {
         if let displayName {
             parameters["displayName"] = displayName
         }
-        AF.request("\(await Config.shared.baseUrl)/v1/auth/apple/mobile/signup",
+        AF.request("\(Config.shared.baseUrl.absoluteString)/v1/auth/apple/mobile/signup",
                    method: .post,
                    parameters: parameters,
                    encoding: JSONEncoding.default).responseDecodable(of: LoginResponse.self) { response in
@@ -69,7 +69,7 @@ class API {
 
   func revokeAppleCredentials(appleUserId: String) async {
         let parameters: [String: Any] = ["appleUserId": appleUserId]
-        AF.request("\(await Config.shared.baseUrl)/v1/auth/apple/revoke",
+        AF.request("\(Config.shared.baseUrl.absoluteString)/v1/auth/apple/revoke",
                    method: .put,
                    parameters: parameters,
                    encoding: JSONEncoding.default)
@@ -86,7 +86,7 @@ class API {
             "originatesFromIOS": true,
         ]
 
-        AF.request("\(await Config.shared.baseUrl)/v1/auth/google/signin",
+        AF.request("\(Config.shared.baseUrl.absoluteString)/v1/auth/google/signin",
                    method: .post,
                    parameters: parameters,
                    encoding: JSONEncoding.default)
