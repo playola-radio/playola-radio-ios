@@ -8,9 +8,45 @@
 @testable import PlayolaRadio
 import Sharing
 import Testing
+import Foundation
 
 @MainActor
 struct PlayolaTokenProviderTests {
+    
+    // Helper function to create valid JWT tokens for testing
+    static func createTestJWT(
+        id: String = "test-user-123",
+        displayName: String = "Test User",
+        email: String = "test@example.com",
+        profileImageUrl: String? = nil,
+        role: String = "user"
+    ) -> String {
+        let header = ["alg": "HS256", "typ": "JWT"]
+        var payload: [String: Any] = [
+            "id": id,
+            "displayName": displayName,
+            "email": email,
+            "role": role
+        ]
+        if let profileImageUrl = profileImageUrl {
+            payload["profileImageUrl"] = profileImageUrl
+        }
+        
+        let headerData = try! JSONSerialization.data(withJSONObject: header)
+        let payloadData = try! JSONSerialization.data(withJSONObject: payload)
+        
+        let headerString = headerData.base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
+        
+        let payloadString = payloadData.base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
+        
+        return "\(headerString).\(payloadString).fake_signature"
+    }
     
     @Suite("getCurrentToken")
     struct GetCurrentToken {
@@ -26,7 +62,7 @@ struct PlayolaTokenProviderTests {
         
         @Test("Returns JWT when user is logged in")
         func testReturnsJWTWhenUserLoggedIn() async {
-            let expectedJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.signature"
+            let expectedJWT = await createTestJWT()
             @Shared(.auth) var auth = Auth(jwtToken: expectedJWT)
             let tokenProvider = PlayolaTokenProvider()
             
@@ -37,11 +73,12 @@ struct PlayolaTokenProviderTests {
         
         @Test("Returns nil immediately after user signs out")
         func testReturnsNilAfterUserSignsOut() async {
-            @Shared(.auth) var auth = Auth(jwtToken: "initial.jwt.token")
+            let initialJWT = await createTestJWT()
+            @Shared(.auth) var auth = Auth(jwtToken: initialJWT)
             let tokenProvider = PlayolaTokenProvider()
             
             // Sign out user
-            auth = Auth()
+            $auth.withLock { $0 = Auth() }
             
             let token = await tokenProvider.getCurrentToken()
             #expect(token == nil)
@@ -62,7 +99,7 @@ struct PlayolaTokenProviderTests {
         
         @Test("Returns current JWT when user is logged in")
         func testReturnsCurrentJWTWhenUserLoggedIn() async {
-            let expectedJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.signature"
+            let expectedJWT = await createTestJWT()
             @Shared(.auth) var auth = Auth(jwtToken: expectedJWT)
             let tokenProvider = PlayolaTokenProvider()
             
@@ -83,14 +120,14 @@ struct PlayolaTokenProviderTests {
             #expect(await tokenProvider.getCurrentToken() == nil)
             
             // User logs in
-            let jwt = "new.jwt.token"
-            auth = Auth(jwtToken: jwt)
+            let jwt = await createTestJWT()
+            $auth.withLock { $0 = Auth(jwtToken: jwt) }
             
             // Token provider immediately reflects the change
             #expect(await tokenProvider.getCurrentToken() == jwt)
             
             // User logs out
-            auth = Auth()
+            $auth.withLock { $0 = Auth() }
             
             // Token provider immediately reflects the logout
             #expect(await tokenProvider.getCurrentToken() == nil)
@@ -101,16 +138,20 @@ struct PlayolaTokenProviderTests {
             @Shared(.auth) var auth = Auth()
             let tokenProvider = PlayolaTokenProvider()
             
-            let tokens = ["first.jwt.token", "second.jwt.token", "third.jwt.token"]
+            let tokens = [
+              await createTestJWT(id: "user1", displayName: "User One"),
+              await createTestJWT(id: "user2", displayName: "User Two"),
+              await createTestJWT(id: "user3", displayName: "User Three")
+            ]
             
             for expectedToken in tokens {
-                auth = Auth(jwtToken: expectedToken)
+                $auth.withLock { $0 = Auth(jwtToken: expectedToken) }
                 let actualToken = await tokenProvider.getCurrentToken()
                 #expect(actualToken == expectedToken)
             }
             
             // Final logout
-            auth = Auth()
+            $auth.withLock { $0 = Auth() }
             #expect(await tokenProvider.getCurrentToken() == nil)
         }
     }
