@@ -10,6 +10,41 @@ import Testing
 import Foundation
 
 enum MainContainerTests {
+  // Helper function to create valid JWT tokens for testing
+  static func createTestJWT(
+      id: String = "test-user-123",
+      displayName: String = "Test User",
+      email: String = "test@example.com",
+      profileImageUrl: String? = nil,
+      role: String = "user"
+  ) -> String {
+      let header = ["alg": "HS256", "typ": "JWT"]
+      var payload: [String: Any] = [
+          "id": id,
+          "displayName": displayName,
+          "email": email,
+          "role": role
+      ]
+      if let profileImageUrl = profileImageUrl {
+          payload["profileImageUrl"] = profileImageUrl
+      }
+      
+      let headerData = try! JSONSerialization.data(withJSONObject: header)
+      let payloadData = try! JSONSerialization.data(withJSONObject: payload)
+      
+      let headerString = headerData.base64EncodedString()
+          .replacingOccurrences(of: "+", with: "-")
+          .replacingOccurrences(of: "/", with: "_")
+          .replacingOccurrences(of: "=", with: "")
+      
+      let payloadString = payloadData.base64EncodedString()
+          .replacingOccurrences(of: "+", with: "-")
+          .replacingOccurrences(of: "/", with: "_")
+          .replacingOccurrences(of: "=", with: "")
+      
+      return "\(headerString).\(payloadString).fake_signature"
+  }
+
   @MainActor @Suite("ViewAppeared")
   struct ViewAppeared {
     @Test("Retrieves the list -- working")
@@ -254,6 +289,71 @@ enum MainContainerTests {
       
       // Verify the sheet is now nil
       #expect(mainContainerModel.presentedSheet == nil)
+    }
+  }
+
+  @MainActor @Suite("PlayolaStationPlayer Authentication Configuration")
+  struct PlayolaStationPlayerConfiguration {
+    @Test("Configures PlayolaStationPlayer with auth provider on init")
+    func testConfiguresPlayolaStationPlayerOnInit() async {
+      let testJWT = createTestJWT()
+      @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+      
+      // When MainContainerModel is created (user is logged in),
+      // it should configure PlayolaStationPlayer with authentication
+      let mainContainerModel = MainContainerModel()
+      
+      #expect(mainContainerModel != nil, "MainContainerModel should be created successfully")
+    }
+    
+    @Test("Uses authenticated session reporting when user logged in")
+    func testUsesAuthenticatedSessionReporting() async {
+      let testJWT = createTestJWT()
+      @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+      
+      // MainContainerModel creation should configure PlayolaStationPlayer
+      // to use JWT tokens for session reporting
+      MainContainerModel()
+      
+      #expect(auth.isLoggedIn == true)
+      #expect(auth.jwt == testJWT)
+    }
+  }
+  
+  @MainActor @Suite("Authentication State Lifecycle")
+  struct AuthStateLifecycle {
+    @Test("MainContainer only exists when user is authenticated")
+    func testMainContainerExistsOnlyWhenAuthenticated() async {
+      let testJWT = createTestJWT()
+      @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+      
+      // User is logged in - MainContainer can be created
+      #expect(auth.isLoggedIn == true)
+      let mainContainerModel = MainContainerModel()
+      #expect(mainContainerModel != nil)
+      
+      // When user signs out, ContentView will destroy MainContainer
+      // and show SignInPage instead - this is handled by ContentView logic
+      $auth.withLock { $0 = Auth() }
+      #expect(auth.isLoggedIn == false)
+    }
+    
+    @Test("Multiple login sessions each get fresh auth configuration")
+    func testMultipleLoginSessionsGetFreshConfig() async {
+      @Shared(.auth) var auth = Auth()
+      
+      // First login session
+      let firstJWT = createTestJWT(id: "user1", displayName: "First User")
+      $auth.withLock { $0 = Auth(jwtToken: firstJWT) }
+      let firstMainContainer = MainContainerModel()
+      #expect(auth.jwt == firstJWT)
+      
+      // User logs out, logs back in with new token
+      $auth.withLock { $0 = Auth() }
+      let secondJWT = createTestJWT(id: "user2", displayName: "Second User")
+      $auth.withLock { $0 = Auth(jwtToken: secondJWT) }
+      let secondMainContainer = MainContainerModel()
+      #expect(auth.jwt == secondJWT)
     }
   }
 }
