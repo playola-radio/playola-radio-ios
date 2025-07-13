@@ -37,11 +37,25 @@ struct LoggedInUser: Codable {
 
     init(jwtToken jwt: String) {
         let userDict = LoggedInUser.decode(jwtToken: jwt)
-        id = userDict["id"] as! String
-        displayName = userDict["displayName"] as! String
-        email = userDict["email"] as! String
-        profileImageUrl = userDict["profileImageUrl"] as? String
-        role = userDict["role"] as! String
+
+        guard let id = userDict["id"] as? String,
+              let displayName = userDict["displayName"] as? String,
+              let email = userDict["email"] as? String,
+              let role = userDict["role"] as? String else {
+            self.id = ""
+            self.displayName = "Unknown User"
+            self.email = ""
+            self.profileImageUrl = nil
+            self.role = "user"
+            self.jwt = jwt
+            return
+        }
+
+        self.id = id
+        self.displayName = displayName
+        self.email = email
+        self.profileImageUrl = userDict["profileImageUrl"] as? String
+        self.role = role
         self.jwt = jwt
     }
 
@@ -59,16 +73,18 @@ struct LoggedInUser: Codable {
         let requiredLength = 4 * ceil(length / 4.0)
         let paddingLength = requiredLength - length
         if paddingLength > 0 {
-            let padding = "".padding(toLength: Int(paddingLength), withPad: "=", startingAt: 0)
-            base64 = base64 + padding
+            let padding = "".padding(toLength: Int(paddingLength),
+                                   withPad: "=",
+                                   startingAt: 0)
+            base64 += padding
         }
         return Data(base64Encoded: base64, options: .ignoreUnknownCharacters)
     }
 
     static func decodeJWTPart(_ value: String) -> [String: Any]? {
         guard let bodyData = LoggedInUser.base64UrlDecode(value),
-              let json = try? JSONSerialization.jsonObject(with: bodyData, options: []), let payload = json as? [String: Any]
-        else {
+              let json = try? JSONSerialization.jsonObject(with: bodyData, options: []),
+              let payload = json as? [String: Any] else {
             return nil
         }
         return payload
@@ -82,7 +98,11 @@ class AuthService {
 
     init() {
         let sessionNotificationName = ASAuthorizationAppleIDProvider.credentialRevokedNotification
-        NotificationCenter.default.addObserver(forName: sessionNotificationName, object: nil, queue: nil) { _ in
+        NotificationCenter.default.addObserver(
+            forName: sessionNotificationName,
+            object: nil,
+            queue: nil
+        ) { _ in
             guard let appleSignInInfo = self.appleSignInInfo else { return }
         }
     }

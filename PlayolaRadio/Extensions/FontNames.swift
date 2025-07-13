@@ -4,6 +4,7 @@
 //
 //  Created by Brian D Keane on 6/11/25.
 //
+// swiftlint:disable identifier_name
 import SwiftUI
 
 struct FontNames {

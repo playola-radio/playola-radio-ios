@@ -3,13 +3,12 @@
 //  PlayolaRadio
 //
 //  Created by Brian D Keane on 5/2/24.
-//  Copyright © 2024 matthewfecher.com. All rights reserved.
-//
+//  Copyright 2024 matthewfecher.com. All rights reserved.
 
 import SwiftUI
 
 @MainActor
-struct NowPlayingEqualiserBarsUsageDemoNative: View {
+struct NowPlayingEqDemoView: View {
     @State private var nowPlayingIndex = -1
 
     var body: some View {
@@ -29,7 +28,9 @@ struct NowPlayingEqualiserBarsUsageDemoNative: View {
                 } label: {
                     ZStack(alignment: .bottomLeading) {
                         Rectangle()
-                            .fill(Color.blue.opacity(opacityDeltaPerItem + opacityDeltaPerItem * Double(index)))
+                            .fill(Color.blue.opacity(
+                                opacityDeltaPerItem + opacityDeltaPerItem * Double(index)
+                            ))
                             .frame(height: 120)
                         if isNowPlaying {
                             NowPlayingEqualiserBars()
@@ -62,10 +63,14 @@ public struct NowPlayingEqualiserBars: View {
             let spacerWidth = barWidth * spacerWidthRatio
             HStack(spacing: spacerWidth) {
                 ForEach(0 ..< numBars, id: \.self) { _ in
-                    Bar(minHeightFraction: 0.1, maxHeightFraction: 1, completion: animating ? 1 : 0)
-                        .fill(Color.white)
-                        .frame(width: barWidth)
-                        .animation(createAnimation(), value: animating)
+                    Bar(
+                        minHeightFraction: 0.1,
+                        maxHeightFraction: 1,
+                        completion: animating ? 1 : 0
+                    )
+                    .fill(Color.white)
+                    .frame(width: barWidth)
+                    .animation(createAnimation(), value: animating)
                 }
             }
         }
@@ -114,10 +119,10 @@ private struct Bar: Shape {
     }
 }
 
-struct NowPlayingEqualiserBarsUsageDemoNative_Previews: PreviewProvider {
-    struct NowPlayingEqualiserBarsUsageDemoNative_Harness: View {
+struct NowPlayingEqDemoView_Previews: PreviewProvider {
+    struct DemoHarness: View {
         var body: some View {
-            NowPlayingEqualiserBarsUsageDemoNative()
+            NowPlayingEqDemoView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .foregroundColor(.white)
                 .background(Color(white: 0.1))
@@ -126,7 +131,7 @@ struct NowPlayingEqualiserBarsUsageDemoNative_Previews: PreviewProvider {
     }
 
     static var previews: some View {
-        NowPlayingEqualiserBarsUsageDemoNative_Harness()
+        DemoHarness()
             .previewDevice("iPhone 12 Pro Max")
             .previewDisplayName("iPhone 12 Pro Max")
     }

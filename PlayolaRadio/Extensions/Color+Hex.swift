@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 extension Color {
+    // swiftlint:disable identifier_name
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
@@ -33,6 +34,7 @@ extension Color {
             opacity: Double(a) / 255
         )
     }
+    // swiftlint:enable identifier_name
 
     static var playolaRed: Color {
         Color(hex: "#EF6962")

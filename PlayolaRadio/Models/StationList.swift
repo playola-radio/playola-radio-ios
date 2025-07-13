@@ -111,7 +111,11 @@ private let fmStations: [RadioStation] = [
         streamURL: "https://ice24.securenetsystems.net/KGFY",
         imageURL: "https://playola-static.s3.amazonaws.com/kgfy_logo.png",
         desc: "Stillwater, OK",
-        longDesc: "We play the hottest country music from Carrie Underwood, Keith Urban, Luke Bryan, Jason Aldean, Kenny Chesney to Miranda Lambert. Playing the best in Red Dirt from Aaron Watson, The Randy Rogers Band, The Turnpike Troubadours, Josh Abbott, and The Casey Donahew Band; plus so much more. Besides playing the best in country music, Cowboy Country 105.5 is also the voice of OSU Cowgirl Sports and Perkins Tryon High School sports. Stillwater knows country music. Hear it on KGFY Cowboy Country 105.5!"
+        longDesc: "We play the hottest country music from Carrie Underwood, Keith Urban, Luke Bryan, Jason Aldean, " +
+            "Kenny Chesney to Miranda Lambert. Playing the best in Red Dirt from Aaron Watson, The Randy Rogers Band, " +
+            "The Turnpike Troubadours, Josh Abbott, and The Casey Donahew Band; plus so much more. Besides playing the " +
+            "best in country music, Cowboy Country 105.5 is also the voice of OSU Cowgirl Sports and Perkins Tryon " +
+            "High School sports. Stillwater knows country music. Hear it on KGFY Cowboy Country 105.5!"
     ),
     RadioStation(
         id: "lonestar_102_5",

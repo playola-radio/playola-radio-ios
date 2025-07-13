@@ -117,7 +117,7 @@ struct MainContainer: View {
   var body: some View {
     VStack(spacing: 0) {
       TabView(selection: $model.selectedTab) {
-        TabContentWithSmallPlayer(content: {
+        tabContentWithSmallPlayer(content: {
           HomePageView(model: model.homePageModel)
         })
         .tabItem {
@@ -126,7 +126,7 @@ struct MainContainer: View {
         }
         .tag(MainContainerModel.ActiveTab.home)
 
-        TabContentWithSmallPlayer(content: {
+        tabContentWithSmallPlayer(content: {
           StationListPage(model: model.stationListModel)
         })
         .tabItem {
@@ -135,7 +135,7 @@ struct MainContainer: View {
         }
         .tag(MainContainerModel.ActiveTab.stationsList)
 
-        TabContentWithSmallPlayer(content: {
+        tabContentWithSmallPlayer(content: {
           HomePageView(model: model.homePageModel) // Temporarily using HomePageView
         })
         .tabItem {
@@ -170,7 +170,7 @@ struct MainContainer: View {
   }
 
   @ViewBuilder
-  private func TabContentWithSmallPlayer<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+  private func tabContentWithSmallPlayer<Content: View>(@ViewBuilder content: () -> Content) -> some View {
     VStack(spacing: 0) {
       content()
 
