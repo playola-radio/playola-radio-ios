@@ -542,6 +542,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				D384837B2E242DB5008676BB /* PBXTargetDependency */,
 			);
 			name = PlayolaRadio;
 			packageProductDependencies = (
@@ -615,6 +616,7 @@
 				D3B6626E2D40352500975D2F /* XCRemoteSwiftPackageReference "Alamofire" */,
 				D3A2761C2D43C747006055AF /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				D3BEE95B2D49A3BD00469CDC /* XCRemoteSwiftPackageReference "swift-testing" */,
+				D38483792E242D61008676BB /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
 			);
 			productRefGroup = D3536A022BFA4F49006942D6 /* Products */;
 			projectDirPath = "";
@@ -745,6 +747,10 @@
 			isa = PBXTargetDependency;
 			target = D3536A002BFA4F49006942D6 /* PlayolaRadio */;
 			targetProxy = D3536A122BFA4F4A006942D6 /* PBXContainerItemProxy */;
+		};
+		D384837B2E242DB5008676BB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = D384837A2E242DB5008676BB /* SwiftLintBuildToolPlugin */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1160,6 +1166,14 @@
 				kind = branch;
 			};
 		};
+		D38483792E242D61008676BB /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SimplyDanny/SwiftLintPlugins";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.59.1;
+			};
+		};
 		D3A2761C2D43C747006055AF /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
@@ -1216,6 +1230,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D35673B52D3DC6EC00E4E926 /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
 			productName = Mixpanel;
+		};
+		D384837A2E242DB5008676BB /* SwiftLintBuildToolPlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D38483792E242D61008676BB /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */;
+			productName = "plugin:SwiftLintBuildToolPlugin";
 		};
 		D3A2761D2D43C747006055AF /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;

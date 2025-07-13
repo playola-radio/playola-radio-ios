@@ -7,7 +7,7 @@
 
 import SwiftUI
 import Sharing
-  
+
 @MainActor
 struct ContentView: View {
   @Shared(.auth) var auth

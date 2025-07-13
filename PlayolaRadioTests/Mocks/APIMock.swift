@@ -15,7 +15,7 @@ class APIMock: API {
 
     var getStationListsShouldSucceed = true
     var getStationListsCallCount = 0
-    var beforeAssertions: (() -> Void)? = nil
+    var beforeAssertions: (() -> Void)?
 
     init(getStationListsShouldSucceed: Bool = true) {
         self.getStationListsShouldSucceed = getStationListsShouldSucceed

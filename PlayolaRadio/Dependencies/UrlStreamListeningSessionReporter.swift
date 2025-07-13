@@ -23,7 +23,7 @@ public class UrlStreamListeningSessionReporter {
   init(urlStreamPlayer: URLStreamPlayer) {
     self.urlStreamPlayer = urlStreamPlayer
 
-    urlStreamPlayer.$state.sink { state in
+    urlStreamPlayer.$state.sink { _ in
       if let stationUrl = urlStreamPlayer.currentStation?.streamURL {
         if stationUrl != self.lastSendStreamUrl {
           self.lastSendStreamUrl = stationUrl
@@ -108,7 +108,7 @@ public class UrlStreamListeningSessionReporter {
   }
 
   private func startPeriodicNotifications() {
-    self.timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true, block: { [weak self] timer in
+    self.timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true, block: { [weak self] _ in
       guard let self else { return }
       guard let stationUrl = self.urlStreamPlayer?.currentStation?.streamURL else {
         print("Error -- stationId should exist")

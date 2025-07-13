@@ -43,8 +43,7 @@ class SignInPageModel: ViewModel {
         return
       }
       if appleIDCredential.user != appleSignInInfo?.appleUserId,
-         let email = appleIDCredential.email
-      {
+         let email = appleIDCredential.email {
         $appleSignInInfo.withLock { $0 = AppleSignInInfo(
           appleUserId: appleIDCredential.user, email: email, displayName: appleIDCredential.fullName?.formatted()
         ) }

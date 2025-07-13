@@ -12,7 +12,7 @@ extension View {
           GeometryReader { geometry in
             ZStack {
                 Color.black
-                ZStack() {
+                ZStack {
                     Ellipse()
                         .foregroundColor(.clear)
                         .frame(width: 171 * 1.2, height: 171 * 1.2)

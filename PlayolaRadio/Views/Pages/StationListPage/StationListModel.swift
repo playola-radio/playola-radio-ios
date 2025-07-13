@@ -24,7 +24,7 @@ class StationListModel: ViewModel {
   var stationListsForDisplay: IdentifiedArrayOf<StationList> = []
   var segmentTitles: [String] = ["All"]
   var selectedSegment = "All"
-  var presentedAlert: PlayolaAlert? = nil
+  var presentedAlert: PlayolaAlert?
 
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared

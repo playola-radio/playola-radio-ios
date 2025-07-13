@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-
-
 struct PlayerPage: View {
   @Environment(\.dismiss) private var dismiss
   @Bindable var model: PlayerPageModel
@@ -46,8 +44,6 @@ struct PlayerPage: View {
       .padding(.top, 8)
 
       ScrollView {
-
-
 
         // Main Image
         AsyncImage(url: model.stationArtUrl) { image in
@@ -98,7 +94,6 @@ struct PlayerPage: View {
           }
           .padding(.top, 8)
 
-
         }
         .frame(maxWidth: .infinity, alignment: .center)
         .padding(.horizontal, 24)
@@ -118,7 +113,6 @@ struct PlayerPage: View {
         .padding(.top, 32)
 
         if let relatedText = model.relatedText {
-
 
           VStack(alignment: .leading, spacing: 16) {
             Text(relatedText.title)

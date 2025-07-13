@@ -20,7 +20,7 @@ class StationPlayer: ObservableObject {
     case loading(RadioStation, Float? = nil)
     case error
   }
-  
+
   struct State {
     var playbackStatus: PlaybackStatus
     var artistPlaying: String?
@@ -28,7 +28,7 @@ class StationPlayer: ObservableObject {
     var albumArtworkUrl: URL?
     var playolaSpinPlaying: Spin?
   }
-  
+
   @Published var state = State(playbackStatus: .stopped)
   let authProvider: PlayolaTokenProvider = .init()
 
@@ -44,37 +44,36 @@ class StationPlayer: ObservableObject {
       return nil
     }
   }
-  
+
   static let shared = StationPlayer()
-  
+
   // MARK: Dependencies
-  
+
   var urlStreamPlayer: URLStreamPlayer
   var playolaStationPlayer: PlayolaStationPlayer
-  
+
   init(urlStreamPlayer: URLStreamPlayer? = nil,
-       playolaStationPlayer: PlayolaStationPlayer? = nil)
-  {
+       playolaStationPlayer: PlayolaStationPlayer? = nil) {
     self.urlStreamPlayer = urlStreamPlayer ?? .shared
     self.playolaStationPlayer = playolaStationPlayer ?? .shared
-    
+
     self.urlStreamPlayer.$state.sink(receiveValue: { state in
       self.processUrlStreamStateChanged(state)
     }).store(in: &disposeBag)
-    
+
     self.urlStreamPlayer.$albumArtworkURL.sink(receiveValue: { url in
       self.processAlbumArtworkURLChanged(url)
     }).store(in: &disposeBag)
-    
+
     self.playolaStationPlayer.$state.sink(receiveValue: { state in
       self.processPlayolaStationPlayerState(state)
     }).store(in: &disposeBag)
 
     self.playolaStationPlayer.configure(authProvider: self.authProvider, baseURL: Config.shared.baseUrl)
   }
-  
+
   // MARK: Public Interface
-  
+
   public func play(station: RadioStation) {
     guard currentStation != station else { return }
     stop()
@@ -87,13 +86,13 @@ class StationPlayer: ObservableObject {
       Task { try? await playolaStationPlayer.play(stationId: playolaID) }
     }
   }
-  
+
   public func stop() {
     urlStreamPlayer.reset()
     playolaStationPlayer.stop()
     state = State(playbackStatus: .stopped)
   }
-  
+
   func processPlayolaStationPlayerState(_ playolaState: PlayolaStationPlayer.State?) {
     switch playolaState {
     case .idle:
@@ -115,7 +114,7 @@ class StationPlayer: ObservableObject {
       state = .init(playbackStatus: .error, artistPlaying: nil, titlePlaying: nil, albumArtworkUrl: nil, playolaSpinPlaying: nil)
     }
   }
-  
+
   private func processUrlStreamStateChanged(_ urlStreamPlayerState: URLStreamPlayer.State) {
     switch urlStreamPlayerState.playerStatus {
     case .loading:
@@ -139,7 +138,7 @@ class StationPlayer: ObservableObject {
       state = State(playbackStatus: .stopped)
     }
   }
-  
+
   private func processAlbumArtworkURLChanged(_ albumArtworkURL: URL?) {
     state = State(
       playbackStatus: state.playbackStatus,

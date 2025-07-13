@@ -22,7 +22,7 @@ class HomePageModel: ViewModel {
   @ObservationIgnored var stationPlayer: StationPlayer
 
   var forYouStations: IdentifiedArrayOf<RadioStation> = []
-  var presentedAlert: PlayolaAlert? = nil
+  var presentedAlert: PlayolaAlert?
 
   var welcomeMessage: String {
     if let displayName = auth.currentUser?.displayName {

@@ -160,5 +160,5 @@ private let fmStations: [RadioStation] = [
         imageURL: "https://playola-static.s3.amazonaws.com/ksel_105_9_logo.png",
         desc: "Portales, NM",
         longDesc: "Your Kinda Country"
-    ),
+    )
 ]

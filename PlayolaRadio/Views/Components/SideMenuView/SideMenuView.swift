@@ -53,7 +53,7 @@ enum SideMenuRowType: Int, CaseIterable, Equatable {
   case listen = 0
   case about
 
-  var title: String{
+  var title: String {
     switch self {
     case .listen:
       return "Listen"
@@ -62,7 +62,7 @@ enum SideMenuRowType: Int, CaseIterable, Equatable {
     }
   }
 
-  var iconName: String{
+  var iconName: String {
     switch self {
     case .listen:
       return "headphones"
@@ -100,7 +100,7 @@ struct SideMenuView: View {
     .background(.black)
   }
 
-  func RowView(isSelected: Bool, imageName: String, title: String, hideDivider: Bool = false, action: @escaping (()->())) -> some View {
+  func RowView(isSelected: Bool, imageName: String, title: String, hideDivider: Bool = false, action: @escaping (() -> Void)) -> some View {
     Button {
       action()
     } label: {

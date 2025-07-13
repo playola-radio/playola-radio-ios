@@ -28,20 +28,20 @@ enum MainContainerTests {
       if let profileImageUrl = profileImageUrl {
           payload["profileImageUrl"] = profileImageUrl
       }
-      
+
       let headerData = try! JSONSerialization.data(withJSONObject: header)
       let payloadData = try! JSONSerialization.data(withJSONObject: payload)
-      
+
       let headerString = headerData.base64EncodedString()
           .replacingOccurrences(of: "+", with: "-")
           .replacingOccurrences(of: "/", with: "_")
           .replacingOccurrences(of: "=", with: "")
-      
+
       let payloadString = payloadData.base64EncodedString()
           .replacingOccurrences(of: "+", with: "-")
           .replacingOccurrences(of: "/", with: "_")
           .replacingOccurrences(of: "=", with: "")
-      
+
       return "\(headerString).\(payloadString).fake_signature"
   }
 
@@ -266,27 +266,27 @@ enum MainContainerTests {
 
       #expect(mainContainerModel.presentedSheet == nil)
     }
-    
+
     @Test("PlayerPage onDismiss clears presentedSheet")
     func testPlayerPageOnDismissClearsPresentedSheet() {
       let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
       let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
-      
+
       // Trigger the presentation of the player sheet
       mainContainerModel.onSmallPlayerTapped()
-      
+
       // Verify the sheet is presented
       #expect(mainContainerModel.presentedSheet != nil)
-      
+
       // Extract the PlayerPageModel from the presented sheet
       guard case let .player(playerPageModel) = mainContainerModel.presentedSheet else {
         #expect(Bool(false), "Expected player sheet to be presented")
         return
       }
-      
+
       // Call the onDismiss callback
       playerPageModel.onDismiss?()
-      
+
       // Verify the sheet is now nil
       #expect(mainContainerModel.presentedSheet == nil)
     }
@@ -298,56 +298,56 @@ enum MainContainerTests {
     func testConfiguresPlayolaStationPlayerOnInit() async {
       let testJWT = createTestJWT()
       @Shared(.auth) var auth = Auth(jwtToken: testJWT)
-      
+
       // When MainContainerModel is created (user is logged in),
       // it should configure PlayolaStationPlayer with authentication
       let mainContainerModel = MainContainerModel()
-      
+
       #expect(mainContainerModel != nil, "MainContainerModel should be created successfully")
     }
-    
+
     @Test("Uses authenticated session reporting when user logged in")
     func testUsesAuthenticatedSessionReporting() async {
       let testJWT = createTestJWT()
       @Shared(.auth) var auth = Auth(jwtToken: testJWT)
-      
+
       // MainContainerModel creation should configure PlayolaStationPlayer
       // to use JWT tokens for session reporting
       MainContainerModel()
-      
+
       #expect(auth.isLoggedIn == true)
       #expect(auth.jwt == testJWT)
     }
   }
-  
+
   @MainActor @Suite("Authentication State Lifecycle")
   struct AuthStateLifecycle {
     @Test("MainContainer only exists when user is authenticated")
     func testMainContainerExistsOnlyWhenAuthenticated() async {
       let testJWT = createTestJWT()
       @Shared(.auth) var auth = Auth(jwtToken: testJWT)
-      
+
       // User is logged in - MainContainer can be created
       #expect(auth.isLoggedIn == true)
       let mainContainerModel = MainContainerModel()
       #expect(mainContainerModel != nil)
-      
+
       // When user signs out, ContentView will destroy MainContainer
       // and show SignInPage instead - this is handled by ContentView logic
       $auth.withLock { $0 = Auth() }
       #expect(auth.isLoggedIn == false)
     }
-    
+
     @Test("Multiple login sessions each get fresh auth configuration")
     func testMultipleLoginSessionsGetFreshConfig() async {
       @Shared(.auth) var auth = Auth()
-      
+
       // First login session
       let firstJWT = createTestJWT(id: "user1", displayName: "First User")
       $auth.withLock { $0 = Auth(jwtToken: firstJWT) }
       let firstMainContainer = MainContainerModel()
       #expect(auth.jwt == firstJWT)
-      
+
       // User logs out, logs back in with new token
       $auth.withLock { $0 = Auth() }
       let secondJWT = createTestJWT(id: "user2", displayName: "Second User")

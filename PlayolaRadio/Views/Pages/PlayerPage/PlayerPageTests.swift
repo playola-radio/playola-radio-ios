@@ -60,9 +60,9 @@ struct PlayerPageTests {
       let station     = RadioStation.mock
       let playerMock  = StationPlayerMock()
       playerMock.state = StationPlayer.State(
-        playbackStatus : .playing(station),
-        artistPlaying  : "Rachel Loy",
-        titlePlaying   : "Selfie"
+        playbackStatus: .playing(station),
+        artistPlaying: "Rachel Loy",
+        titlePlaying: "Selfie"
       )
 
       let model = PlayerPageModel(stationPlayer: playerMock)
@@ -81,9 +81,9 @@ struct PlayerPageTests {
       let spin        = Spin.mockWith(audioBlock: audioBlock)
       let playerMock  = StationPlayerMock()
       playerMock.state = StationPlayer.State(
-        playbackStatus : .playing(station),
-        artistPlaying  : "Rachel Loy",
-        titlePlaying   : "Selfie",
+        playbackStatus: .playing(station),
+        artistPlaying: "Rachel Loy",
+        titlePlaying: "Selfie",
         playolaSpinPlaying: spin
       )
 
@@ -101,7 +101,7 @@ struct PlayerPageTests {
       let station     = RadioStation.mock
       let transcription = "This is the transcription"
       let audioBlock  = AudioBlock.mockWith(transcription: transcription)
-    
+
       let relatedTexts = [
         RelatedText(title: "title1", body: "body1"),
         RelatedText(title: "title2", body: "body2")
@@ -109,9 +109,9 @@ struct PlayerPageTests {
       let spin        = Spin.mockWith(audioBlock: audioBlock, relatedTexts: relatedTexts)
       let playerMock  = StationPlayerMock()
       playerMock.state = StationPlayer.State(
-        playbackStatus : .playing(station),
-        artistPlaying  : "Rachel Loy",
-        titlePlaying   : "Selfie",
+        playbackStatus: .playing(station),
+        artistPlaying: "Rachel Loy",
+        titlePlaying: "Selfie",
         playolaSpinPlaying: spin
       )
 
@@ -136,9 +136,9 @@ struct PlayerPageTests {
       let spin        = Spin.mockWith(audioBlock: audioBlock, relatedTexts: relatedTexts)
       let playerMock  = StationPlayerMock()
       playerMock.state = StationPlayer.State(
-        playbackStatus : .playing(station),
-        artistPlaying  : "Rachel Loy",
-        titlePlaying   : "Selfie",
+        playbackStatus: .playing(station),
+        artistPlaying: "Rachel Loy",
+        titlePlaying: "Selfie",
         playolaSpinPlaying: spin
       )
 
@@ -268,7 +268,7 @@ struct PlayerPageTests {
       #expect(spy.callsToPlay[0]  == station)
       #expect(spy.stopCalledCount == 0)
     }
-    
+
     @Test("Dismisses the player when stop button is pressed during playback")
     @MainActor
     func testDismissesWhenStopButtonPressed() {
@@ -277,13 +277,13 @@ struct PlayerPageTests {
       spy.state = StationPlayer.State(
         playbackStatus: .playing(station)
       )
-      
+
       var dismissCalled = false
       let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
       model.viewAppeared()
-      
+
       model.playPauseButtonTapped()
-      
+
       #expect(spy.stopCalledCount == 1)
       #expect(dismissCalled == true)
     }

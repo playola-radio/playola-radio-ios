@@ -12,7 +12,7 @@ import MediaPlayer
 import UIKit
 
 public class URLStreamPlayer: ObservableObject {
-  var urlStreamReporter: UrlStreamListeningSessionReporter? = nil
+  var urlStreamReporter: UrlStreamListeningSessionReporter?
     struct State: Sendable, Equatable {
         static func == (lhs: URLStreamPlayer.State, rhs: URLStreamPlayer.State) -> Bool {
             lhs.playerStatus == rhs.playerStatus &&

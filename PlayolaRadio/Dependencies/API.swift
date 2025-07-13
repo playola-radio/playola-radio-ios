@@ -44,12 +44,11 @@ class API {
     func signInViaApple(identityToken: String,
                         email: String,
                         authCode: String,
-                        displayName: String?) async
-    {
+                        displayName: String?) async {
         var parameters: [String: Any] = [
             "identityToken": identityToken,
             "authCode": authCode,
-            "email": email,
+            "email": email
         ]
         if let displayName {
             parameters["displayName"] = displayName
@@ -83,7 +82,7 @@ class API {
     func signInViaGoogle(code: String) async {
         let parameters: [String: Any] = [
             "code": code,
-            "originatesFromIOS": true,
+            "originatesFromIOS": true
         ]
 
         AF.request("\(Config.shared.baseUrl.absoluteString)/v1/auth/google/signin",

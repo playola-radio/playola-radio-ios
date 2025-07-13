@@ -32,7 +32,7 @@ struct StationCardView: View {
         }
         .frame(width: 160, height: 160)
         .clipped()
-        
+
         // Right side - Text content
         VStack(alignment: .leading, spacing: 6) {
           Text(station.name)
@@ -44,7 +44,7 @@ struct StationCardView: View {
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .fontWeight(.bold)
             .foregroundColor(.white)
-          
+
           Text(station.longDesc)
             .font(.custom(FontNames.Inter_400_Regular, size: 12))
             .foregroundColor(Color(hex: "#C7C7C7"))

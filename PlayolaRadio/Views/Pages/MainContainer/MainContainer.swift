@@ -19,7 +19,6 @@ class MainContainerModel: ViewModel {
 
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
 
-
   enum ActiveTab {
     case home
     case stationsList
@@ -27,8 +26,8 @@ class MainContainerModel: ViewModel {
   }
 
   var selectedTab: ActiveTab = .home
-  var presentedAlert: PlayolaAlert? = nil
-  var presentedSheet: PlayolaSheet? = nil
+  var presentedAlert: PlayolaAlert?
+  var presentedSheet: PlayolaSheet?
 
   var homePageModel = HomePageModel()
   var stationListModel = StationListModel()

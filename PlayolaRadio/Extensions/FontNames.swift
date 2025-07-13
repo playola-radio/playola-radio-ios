@@ -33,8 +33,6 @@ struct FontNames {
   static let Inter_700_Bold = "Inter-Regular_Bold"
   static let Inter_900_Black = "Inter-Regular_Black"
 
-
-
   static let SpaceGrotesk_300_Light = "SpaceGrotesk-Light"
   static let SpaceGrotesk_400_Regular = "SpaceGrotesk-Light_Regular"
   static let SpaceGrotesk_3500_Medium = "SpaceGrotesk-Light_Medium"

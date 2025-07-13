@@ -104,8 +104,7 @@ private struct StationRowView: View {
   var body: some View {
     Button(action: action) {
       HStack(spacing: 12) {
-        if let url = URL(string: station.imageURL)
-        {
+        if let url = URL(string: station.imageURL) {
           AsyncImage(url: url) { image in
             image
               .resizable()
@@ -122,12 +121,10 @@ private struct StationRowView: View {
             .font(.custom(FontNames.Inter_500_Medium, size: 22))
             .foregroundColor(.white)
 
-
           Text(station.desc)
               .font(.custom(FontNames.Inter_400_Regular, size: 14))
               .foregroundColor(.white)
           }
-
 
         Spacer()
       }

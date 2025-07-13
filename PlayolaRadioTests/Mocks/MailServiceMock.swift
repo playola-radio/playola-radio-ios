@@ -14,7 +14,7 @@ class MailServiceMock: MailService {
     var receivedEmail: String?
     var receivedSubject: String?
 
-    var openedUrl: URL? = nil
+    var openedUrl: URL?
 
     init(shouldBeAbleToSendEmail: Bool = true, canCreateUrl: Bool = true) {
         self.shouldBeAbleToSendEmail = shouldBeAbleToSendEmail

@@ -11,8 +11,7 @@ class StationPlayerMock: StationPlayer {
     var callsToPlay: [RadioStation] = []
     var stopCalledCount = 0
     override init(urlStreamPlayer _: URLStreamPlayer? = nil,
-                  playolaStationPlayer _: PlayolaStationPlayer? = nil)
-    {
+                  playolaStationPlayer _: PlayolaStationPlayer? = nil) {
         super.init(urlStreamPlayer: URLStreamPlayerMock())
     }
 

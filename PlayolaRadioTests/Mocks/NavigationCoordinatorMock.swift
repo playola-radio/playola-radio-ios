@@ -8,7 +8,7 @@
 
 class NavigationCoordinatorMock: NavigationCoordinator {
   var changesToPathCount = 0
-  
+
   override var path: [NavigationCoordinator.Path] {
     set {
       changesToPathCount += 1

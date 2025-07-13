@@ -23,8 +23,7 @@ class NowPlayingPageModel: ViewModel {
 
     init(stationPlayer: StationPlayer? = nil,
          navigationCoordinator: NavigationCoordinator? = nil,
-         presentedSheet: PlayolaSheet? = nil)
-    {
+         presentedSheet: PlayolaSheet? = nil) {
         self.stationPlayer = stationPlayer ?? StationPlayer.shared
         self.navigationCoordinator = navigationCoordinator ?? .shared
         self.presentedSheet = presentedSheet
@@ -114,8 +113,7 @@ struct NowPlayingView: View {
 
             VStack {
                 AsyncImage(url: model.albumArtUrl ??
-                    Bundle.main.url(forResource: "AppIcon", withExtension: "PNG"), transaction: Transaction(animation: .bouncy()))
-                { result in
+                    Bundle.main.url(forResource: "AppIcon", withExtension: "PNG"), transaction: Transaction(animation: .bouncy())) { result in
                     result.image?
                         .resizable()
                         .scaledToFill()

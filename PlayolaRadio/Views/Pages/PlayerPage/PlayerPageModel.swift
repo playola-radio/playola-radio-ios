@@ -18,26 +18,25 @@ class PlayerPageModel: ViewModel {
   var nowPlayingText: String = ""
   var primaryNavBarTitle: String = ""
   var secondaryNavBarTitle: String = ""
-  var stationArtUrl: URL? = nil
-  var previouslyPlayingStation: RadioStation? = nil
+  var stationArtUrl: URL?
+  var previouslyPlayingStation: RadioStation?
   var loadingPercentage: Float = 1.0
-  var playolaSpinPlaying: Spin? = nil {
+  var playolaSpinPlaying: Spin? {
     didSet {
       self.playolaAudioBlockPlaying = playolaSpinPlaying?.audioBlock
       setRelatedText(playolaSpinPlaying)
     }
   }
 
-  var playolaAudioBlockPlaying: AudioBlock? = nil
+  var playolaAudioBlockPlaying: AudioBlock?
 
-  var relatedText: RelatedText? = nil
+  var relatedText: RelatedText?
 
   // MARK: Callbacks
   var onDismiss: (() -> Void)?
 
   // Unused for now
-  var albumArtUrl: URL? = nil
-
+  var albumArtUrl: URL?
 
   enum PlayerButtonImageName: String {
     case play = "play.fill"
