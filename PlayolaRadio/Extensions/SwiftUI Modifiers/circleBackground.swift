@@ -6,6 +6,7 @@
 //
 import SwiftUI
 
+// swiftlint:disable function_body_length
 extension View {
   func circleBackground(offsetY: CGFloat = 0, lineWidth: CGFloat = 12)
     -> some View
@@ -70,3 +71,4 @@ extension View {
     )
   }
 }
+// swiftlint:enable function_body_length
