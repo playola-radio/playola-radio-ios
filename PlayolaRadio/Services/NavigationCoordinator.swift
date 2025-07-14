@@ -1,3 +1,4 @@
+import Sharing
 //
 //  NavigationCoordinator.swift
 //  PlayolaRadio
@@ -5,7 +6,6 @@
 //  Created by Brian D Keane on 1/21/25.
 //
 import SwiftUI
-import Sharing
 
 @Observable
 @MainActor

@@ -22,7 +22,7 @@ enum HomePageTests {
       await model.viewAppeared()
       #expect(model.forYouStations.elements == artistStations!.stations)
     }
-
+    
     @Test("Repopulates forYouStations when shared stationLists changes")
     func testRepopulatesForYouStationsWhenSharedStationListsChanges() async {
       @Shared(.stationLists) var stationLists = StationList.mocks
@@ -42,7 +42,7 @@ enum HomePageTests {
       #expect(model.forYouStations.elements == inDevelopmentStations!.stations)
     }
   }
-
+  
   @MainActor @Suite("WelcomeMessage")
   struct WelcomeMessage {
     @Test("Shows generic welcome message when no user is logged in")
@@ -51,7 +51,7 @@ enum HomePageTests {
       let model = HomePageModel()
       #expect(model.welcomeMessage == "Welcome to Playola")
     }
-
+    
     @Test("Shows personalized welcome message when user is logged in")
     func testShowsPersonalizedWelcomeMessageWhenUserIsLoggedIn() {
       let mockJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWFpbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
@@ -59,19 +59,19 @@ enum HomePageTests {
       let model = HomePageModel()
       #expect(model.welcomeMessage == "Welcome, John Doe")
     }
-
+    
     @Test("Updates welcome message when auth changes")
     func testUpdatesWelcomeMessageWhenAuthChanges() {
       @Shared(.auth) var auth = Auth()
       let model = HomePageModel()
       #expect(model.welcomeMessage == "Welcome to Playola")
-
+      
       let mockJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWFpbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
       $auth.withLock { $0 = Auth(jwtToken: mockJWT) }
       #expect(model.welcomeMessage == "Welcome, John Doe")
     }
   }
-
+  
   @MainActor
   struct tappingTheP {
     @Test("Turns on the secret stations")
@@ -82,7 +82,7 @@ enum HomePageTests {
       #expect(homePage.showSecretStations == true)
       #expect(homePage.presentedAlert == .secretStationsTurnedOnAlert)
     }
-
+    
     @Test("Hides the secret stations")
     func testHidesTheSecretStations() {
       @Shared(.showSecretStations) var showSecretStations = true
@@ -93,17 +93,17 @@ enum HomePageTests {
       #expect(homePage.presentedAlert == .secretStationsHiddenAlert)
     }
   }
-
+  
   @MainActor @Suite("PlayerInteraction")
   struct StationPlayerInteraction {
     @Test("Plays a station when it is tapped")
     func testPlaysAStationWhenItIsTapped() {
       let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
       let station: RadioStation = .mock
-
+      
       let homePageModel = HomePageModel(stationPlayer: stationPlayerMock)
       homePageModel.handleStationTapped(station)
-
+      
       #expect(stationPlayerMock.callsToPlay.count == 1)
       #expect(stationPlayerMock.callsToPlay.first?.id == station.id)
     }

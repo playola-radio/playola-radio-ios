@@ -1,0 +1,35 @@
+# SwiftLint Configuration
+
+# Rules to disable for test files
+force_try:
+  excluded:
+    - "**/Tests/**"
+    - "**/*Tests.swift"
+    - "**/*Test.swift"
+    - "**/Mocks/**"
+    - "**/*Mock.swift"
+
+# General configuration
+line_length:
+  warning: 120
+  error: 200
+
+# Disable blanket disable command warning for specific cases
+blanket_disable_command:
+  excluded:
+    - "**/FontNames.swift"
+
+# Allow shorter variable names in specific contexts
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1
+  excluded:
+    - "to"  # Common parameter name in Mail.swift
+    - "fm"  # Enum case in RadioStation.swift
+
+# Allow TODO comments in test files
+todo:
+  excluded:
+    - "**/*Tests.swift"
+    - "**/*Test.swift"

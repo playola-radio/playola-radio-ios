@@ -16,23 +16,23 @@ class SignInPageModel: ViewModel {
   @ObservationIgnored @Shared(.appleSignInInfo) var appleSignInInfo: AppleSignInInfo?
   @ObservationIgnored @Shared(.auth) var auth: Auth
   var navigationCoordinator: NavigationCoordinator
-
+  
   init(navigationCoordinator: NavigationCoordinator = .shared) {
     self.navigationCoordinator = navigationCoordinator
   }
-
+  
   // MARK: State
-
+  
   // MARK: Actions
-
+  
   func signInWithAppleButtonTapped(request: ASAuthorizationAppleIDRequest) {
     request.requestedScopes = [.email, .fullName]
   }
-
+  
   func signInWithAppleCompleted(result: Result<ASAuthorization, any Error>) {
     switch result {
     case let .success(authorization):
-
+      
       guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential,
             let identityTokenData = appleIDCredential.identityToken,
             let identityToken = String(data: identityTokenData, encoding: .utf8),
@@ -48,7 +48,7 @@ class SignInPageModel: ViewModel {
           appleUserId: appleIDCredential.user, email: email, displayName: appleIDCredential.fullName?.formatted()
         ) }
       }
-
+      
       guard let email = appleIDCredential.email ?? appleSignInInfo?.email else {
         print("Error trying to sign in -- no email ever.")
         return
@@ -64,7 +64,7 @@ class SignInPageModel: ViewModel {
       print(error)
     }
   }
-
+  
   func signInWithGoogleButtonTapped() {
     guard let presentingVC = UIApplication.shared.keyWindowPresentedController else {
       print("Error presenting VC -- no key window")
@@ -75,7 +75,7 @@ class SignInPageModel: ViewModel {
         return
       }
       print(signInResult)
-
+      
       signInResult.user.refreshTokensIfNeeded { _, error in
         guard error == nil else { return }
         guard let serverAuthCode = signInResult.serverAuthCode else {
@@ -89,7 +89,7 @@ class SignInPageModel: ViewModel {
       }
     }
   }
-
+  
   func logOutButtonTapped() {
     $auth.withLock { $0 = Auth() }
     Task { await API().revokeAppleCredentials(appleUserId: "000014.59c02331e3a642fd8bebedd86d191ed3.1758") }
@@ -99,7 +99,7 @@ class SignInPageModel: ViewModel {
 @MainActor
 struct SignInPage: View {
   var model: SignInPageModel
-
+  
   var body: some View {
     NavigationView {
       ZStack {
@@ -110,44 +110,44 @@ struct SignInPage: View {
           endPoint: .bottom
         )
         .edgesIgnoringSafeArea(.all)
-
+        
         VStack(spacing: 30) {
           Spacer()
-
+          
           // Logo section
           VStack(spacing: 15) {
             Image("LogoMark")
               .resizable()
               .scaledToFit()
               .frame(height: 80)
-
+            
             Image("PlayolaWordLogo")
               .resizable()
               .scaledToFit()
               .frame(width: 180)
           }
           .padding(.bottom, 40)
-
+          
           // Welcome text
           Text("Welcome to Playola")
             .font(.title)
             .fontWeight(.bold)
             .foregroundColor(.white)
-
+          
           Text("Sign in to access your personalized radio stations")
             .font(.subheadline)
             .foregroundColor(Color.white.opacity(0.7))
             .multilineTextAlignment(.center)
             .padding(.horizontal, 40)
             .padding(.bottom, 20)
-
+          
           if model.auth.isLoggedIn {
             // Logged in state
             VStack(spacing: 15) {
               Text("You're signed in")
                 .font(.headline)
                 .foregroundColor(.white)
-
+              
               Button {
                 model.logOutButtonTapped()
               } label: {
@@ -173,32 +173,32 @@ struct SignInPage: View {
               .frame(height: 56)
               .cornerRadius(12)
               .padding(.horizontal, 30)
-
+              
               CustomGoogleSignInButton {
                 model.signInWithGoogleButtonTapped()
               }
               .padding(.horizontal, 30)
             }
           }
-
+          
           Spacer()
-
+          
           // Footer
           VStack(spacing: 8) {
             Text("By signing in, you agree to our")
               .font(.footnote)
               .foregroundColor(Color.white.opacity(0.6))
-
+            
             HStack(spacing: 4) {
               Text("Terms of Service")
                 .font(.footnote)
                 .foregroundColor(.playolaRed)
                 .underline()
-
+              
               Text("and")
                 .font(.footnote)
                 .foregroundColor(Color.white.opacity(0.6))
-
+              
               Text("Privacy Policy")
                 .font(.footnote)
                 .foregroundColor(.playolaRed)
@@ -217,7 +217,7 @@ struct SignInPage: View {
 
 struct CustomGoogleSignInButton: View {
   let action: () -> Void
-
+  
   var body: some View {
     Button(action: action) {
       HStack {
@@ -225,7 +225,7 @@ struct CustomGoogleSignInButton: View {
           .resizable()
           .scaledToFit()
           .frame(width: 24, height: 24)
-
+        
         Text("Sign in with Google")
           .fontWeight(.semibold)
           .foregroundColor(.black)

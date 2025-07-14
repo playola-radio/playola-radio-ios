@@ -9,15 +9,15 @@ import Foundation
 import MessageUI
 
 public class MailService {
-    func canSendEmail() async -> Bool {
-        await MFMailComposeViewController.canSendMail()
-    }
+  func canSendEmail() async -> Bool {
+    await MFMailComposeViewController.canSendMail()
+  }
 
-    func mailSendURL(recipientEmail: String, subject: String) -> URL? {
-        EmailService.createEmailUrl(to: recipientEmail, subject: subject)
-    }
+  func mailSendURL(recipientEmail: String, subject: String) -> URL? {
+    EmailService.createEmailUrl(to: recipientEmail, subject: subject)
+  }
 
-    func openEmailUrl(url: URL) {
-        UIApplication.shared.open(url)
-    }
+  func openEmailUrl(url: URL) {
+    UIApplication.shared.open(url)
+  }
 }

@@ -39,3 +39,5 @@ struct FontNames {
   static let SpaceGrotesk_3500_Medium = "SpaceGrotesk-Light_Medium"
   static let SpaceGrotesk_700_Bold = "SpaceGrotesk-Light_Bold"
 }
+
+// swiftlint:enable identifier_name

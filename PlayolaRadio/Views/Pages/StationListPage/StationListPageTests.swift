@@ -27,7 +27,7 @@ enum StationListPageTests {
       #expect(model.selectedSegment == "All")
     }
   }
-
+  
   // -------------------------------------------------------------
   // MARK: - Segment Selection
   // -------------------------------------------------------------
@@ -48,7 +48,7 @@ enum StationListPageTests {
       #expect(model.stationListsForDisplay == [firstList])
     }
   }
-
+  
   // -------------------------------------------------------------
   // MARK: - Shared stationLists Updates
   // -------------------------------------------------------------
@@ -62,11 +62,11 @@ enum StationListPageTests {
         #expect(true, "StationList.mocks should have at least one non-development list")
         return
       }
-
+      
       let model = StationListModel()
       await model.viewAppeared()
       model.segmentSelected(targetList.title)
-
+      
       // mutate shared lists but keep a list with the same title
       $stationLists.withLock { lists in
         lists = IdentifiedArray(
@@ -77,12 +77,12 @@ enum StationListPageTests {
           )]
         )
       }
-
+      
       #expect(model.selectedSegment == targetList.title)
       #expect(model.stationListsForDisplay.count == 1)
       #expect(model.stationListsForDisplay.first?.title == targetList.title)
     }
-
+    
     @Test("Resets selected segment to All when updated lists no longer contain the segment")
     func testResetsSelectedSegmentWhenSegmentMissing() async {
       @Shared(.stationLists) var stationLists = StationList.mocks
@@ -91,11 +91,11 @@ enum StationListPageTests {
         #expect(true, "StationList.mocks should have at least one non-development list")
         return
       }
-
+      
       let model = StationListModel()
       await model.viewAppeared()
       model.segmentSelected(targetList.title)
-
+      
       // mutate shared lists and remove the previously selected segment
       $stationLists.withLock { lists in
         lists = IdentifiedArray(
@@ -104,13 +104,13 @@ enum StationListPageTests {
             .map { StationList(id: $0.id, title: $0.title, stations: $0.stations) }
         )
       }
-
+      
       let expectedVisibleAfterUpdate = stationLists.filter { $0.id != StationList.inDevelopmentListId }
       #expect(model.selectedSegment == "All")
       #expect(model.stationListsForDisplay == expectedVisibleAfterUpdate)
     }
   }
-
+  
   // -------------------------------------------------------------
   // MARK: - Player interaction
   // -------------------------------------------------------------
@@ -120,10 +120,10 @@ enum StationListPageTests {
     func testPlaysAStationWhenItIsTapped() {
       let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
       let station: RadioStation = .mock
-
+      
       let stationListModel = StationListModel(stationPlayer: stationPlayerMock)
       stationListModel.stationSelected(station)
-
+      
       #expect(stationPlayerMock.callsToPlay.count == 1)
       #expect(stationPlayerMock.callsToPlay.first?.id == station.id)
     }

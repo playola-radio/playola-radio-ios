@@ -19,9 +19,10 @@ struct Station: Identifiable {
 struct StationCardView: View {
   let station: RadioStation
   let onRadioStationSelected: (RadioStation) -> Void
-
+  
   var body: some View {
-    Button(action: { onRadioStationSelected(station) }) {
+    Button(action: { onRadioStationSelected(station) },
+           label: {
       HStack(spacing: 2) {
         AsyncImage(url: URL(string: station.imageURL )) { image in
           image
@@ -32,19 +33,19 @@ struct StationCardView: View {
         }
         .frame(width: 160, height: 160)
         .clipped()
-
+        
         // Right side - Text content
         VStack(alignment: .leading, spacing: 6) {
           Text(station.name)
             .font(.custom(FontNames.Inter_500_Medium, size: 12))
             .foregroundColor(Color(hex: "#C7C7C7"))
             .padding(.top, 10)
-
+          
           Text(station.desc)
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .fontWeight(.bold)
             .foregroundColor(.white)
-
+          
           Text(station.longDesc)
             .font(.custom(FontNames.Inter_400_Regular, size: 12))
             .foregroundColor(Color(hex: "#C7C7C7"))
@@ -60,14 +61,14 @@ struct StationCardView: View {
       .background(Color(white: 0.15))
       .cornerRadius(6)
       .multilineTextAlignment(.leading)
-    }
+    })
   }
 }
 
 struct HomePageStationList: View {
   var stations: IdentifiedArrayOf<RadioStation>
   var onRadioStationSelected: (RadioStation) -> Void
-
+  
   var body: some View {
     VStack(alignment: .leading) {
       Text("Artist stations for you")
@@ -75,7 +76,7 @@ struct HomePageStationList: View {
         .fontWeight(.bold)
         .foregroundColor(.white)
         .padding(.bottom, 8)
-
+      
       VStack(spacing: 12) {  // Reduced spacing between cards
         ForEach(stations) { station in
           StationCardView(station: station) {

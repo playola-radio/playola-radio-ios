@@ -9,7 +9,7 @@ enum PlayolaSheet: Hashable, Identifiable, Equatable {
   var id: Self {
     self
   }
-
+  
   case about(AboutPageModel)
   case player(PlayerPageModel)
 }

@@ -5,14 +5,15 @@
 //  Created by Brian D Keane on 1/18/25.
 //
 import Combine
-import Foundation
 import FRadioPlayer
+import Foundation
 import PlayolaPlayer
 import Sharing
 
 @MainActor
 class StationPlayer: ObservableObject {
   var disposeBag: Set<AnyCancellable> = Set()
+
   enum PlaybackStatus {
     case startingNewStation(RadioStation)
     case playing(RadioStation)
@@ -32,6 +33,7 @@ class StationPlayer: ObservableObject {
   @Published var state = State(playbackStatus: .stopped)
   let authProvider: PlayolaTokenProvider = .init()
 
+  /// The currently playing radio station, if any
   public var currentStation: RadioStation? {
     switch state.playbackStatus {
     case let .startingNewStation(radioStation):
@@ -52,8 +54,10 @@ class StationPlayer: ObservableObject {
   var urlStreamPlayer: URLStreamPlayer
   var playolaStationPlayer: PlayolaStationPlayer
 
-  init(urlStreamPlayer: URLStreamPlayer? = nil,
-       playolaStationPlayer: PlayolaStationPlayer? = nil) {
+  init(
+    urlStreamPlayer: URLStreamPlayer? = nil,
+    playolaStationPlayer: PlayolaStationPlayer? = nil
+  ) {
     self.urlStreamPlayer = urlStreamPlayer ?? .shared
     self.playolaStationPlayer = playolaStationPlayer ?? .shared
 
@@ -69,17 +73,21 @@ class StationPlayer: ObservableObject {
       self.processPlayolaStationPlayerState(state)
     }).store(in: &disposeBag)
 
-    self.playolaStationPlayer.configure(authProvider: self.authProvider, baseURL: Config.shared.baseUrl)
+    self.playolaStationPlayer.configure(
+      authProvider: self.authProvider, baseURL: Config.shared.baseUrl)
   }
 
   // MARK: Public Interface
 
+  /// Starts playing the specified radio station
+  /// - Parameter station: The radio station to play
   public func play(station: RadioStation) {
     guard currentStation != station else { return }
     stop()
     state = State(playbackStatus: .startingNewStation(station))
     state = State(playbackStatus: .loading(station))
-    if let _ = station.streamURL {
+
+    if station.streamURL != nil {
       urlStreamPlayer.set(station: station)
     } else if let playolaID = station.playolaID {
       urlStreamPlayer.reset()
@@ -87,51 +95,77 @@ class StationPlayer: ObservableObject {
     }
   }
 
+  /// Stops the currently playing station
   public func stop() {
     urlStreamPlayer.reset()
     playolaStationPlayer.stop()
     state = State(playbackStatus: .stopped)
   }
 
-  func processPlayolaStationPlayerState(_ playolaState: PlayolaStationPlayer.State?) {
+  func processPlayolaStationPlayerState(
+    _ playolaState: PlayolaStationPlayer.State?
+  ) {
     switch playolaState {
     case .idle:
-      state = .init(playbackStatus: .stopped, artistPlaying: nil, titlePlaying: nil, albumArtworkUrl: nil, playolaSpinPlaying: nil)
+      state = .init(
+        playbackStatus: .stopped,
+        artistPlaying: nil,
+        titlePlaying: nil,
+        albumArtworkUrl: nil,
+        playolaSpinPlaying: nil
+      )
     case let .loading(progress):
       guard let currentStation else { return }
-      state = .init(playbackStatus: .loading(currentStation, progress), artistPlaying: nil, titlePlaying: nil, albumArtworkUrl: nil, playolaSpinPlaying: nil)
+      state = .init(
+        playbackStatus: .loading(currentStation, progress),
+        artistPlaying: nil,
+        titlePlaying: nil,
+        albumArtworkUrl: nil,
+        playolaSpinPlaying: nil
+      )
     case let .playing(nowPlaying):
       if let currentStation {
-        let audioBlock = (nowPlaying as? AudioBlockProvider)?.audioBlock
-        state = .init(playbackStatus: .playing(currentStation),
-                      artistPlaying: nowPlaying.audioBlock.artist,
-                      titlePlaying: nowPlaying.audioBlock.title,
-                      albumArtworkUrl: nowPlaying.audioBlock.imageUrl,
-                      playolaSpinPlaying: nowPlaying)
+        state = .init(
+          playbackStatus: .playing(currentStation),
+          artistPlaying: nowPlaying.audioBlock.artist,
+          titlePlaying: nowPlaying.audioBlock.title,
+          albumArtworkUrl: nowPlaying.audioBlock.imageUrl,
+          playolaSpinPlaying: nowPlaying
+        )
       }
 
     case .none:
-      state = .init(playbackStatus: .error, artistPlaying: nil, titlePlaying: nil, albumArtworkUrl: nil, playolaSpinPlaying: nil)
+      state = .init(
+        playbackStatus: .error,
+        artistPlaying: nil,
+        titlePlaying: nil,
+        albumArtworkUrl: nil,
+        playolaSpinPlaying: nil
+      )
     }
   }
 
-  private func processUrlStreamStateChanged(_ urlStreamPlayerState: URLStreamPlayer.State) {
+  private func processUrlStreamStateChanged(
+    _ urlStreamPlayerState: URLStreamPlayer.State
+  ) {
     switch urlStreamPlayerState.playerStatus {
     case .loading:
       guard let currentStation else {
-        print("Error -- currentStation is nil while URLStreamPlayer.state.playerStatus is .loading")
+        // Log error: currentStation is nil while URLStreamPlayer.state.playerStatus is .loading
         return
       }
       state = State(playbackStatus: .loading(currentStation))
     case .loadingFinished, .readyToPlay:
       guard let currentStation else {
-        print("Error -- currentStation is nil while URLStreamPlayer.state.playerStatus is .loadingFinished")
+        // Log error: currentStation is nil while URLStreamPlayer.state.playerStatus is .loadingFinished
         return
       }
-      state = State(playbackStatus: .playing(currentStation),
-                    artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
-                    titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
-                    albumArtworkUrl: nil)
+      state = State(
+        playbackStatus: .playing(currentStation),
+        artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
+        titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
+        albumArtworkUrl: nil
+      )
     case .error:
       state = State(playbackStatus: .error)
     case .urlNotSet, .none:
