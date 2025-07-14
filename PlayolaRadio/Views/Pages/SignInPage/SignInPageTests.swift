@@ -22,7 +22,7 @@ struct SignInPageTests {
   
   // TODO: Create these tests:
   @Suite("signInWithAppleCompleted()")
-  struct signInWithAppleCompleted {
+  struct SignInWithAppleCompleted {
     // @Test("Can handle decoding error on appleIDCredential")
     // @Test("Stores appleSignInInfo if the email was received")
     // @Test("Notifies the user if there was no email cached and none provided")

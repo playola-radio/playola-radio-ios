@@ -539,6 +539,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				D351296B2E2546E400209795 /* PBXTargetDependency */,
 				D3536A132BFA4F4A006942D6 /* PBXTargetDependency */,
 			);
 			name = PlayolaRadioTests;
@@ -707,6 +708,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		D351296B2E2546E400209795 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = D351296A2E2546E400209795 /* SwiftLintBuildToolPlugin */;
+		};
 		D3536A132BFA4F4A006942D6 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D3536A002BFA4F49006942D6 /* PlayolaRadio */;
@@ -1184,6 +1189,11 @@
 		D31C43D32D3C783B0021AAE4 /* PlayolaPlayer */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PlayolaPlayer;
+		};
+		D351296A2E2546E400209795 /* SwiftLintBuildToolPlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D38483792E242D61008676BB /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */;
+			productName = "plugin:SwiftLintBuildToolPlugin";
 		};
 		D3536A2F2BFA5523006942D6 /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;

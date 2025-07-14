@@ -4,7 +4,9 @@
 //
 //  Created by Brian D Keane on 6/12/25.
 //
+
 // swiftlint:disable force_try
+
 @testable import PlayolaRadio
 import Sharing
 import Testing
@@ -358,3 +360,4 @@ enum MainContainerTests {
     }
   }
 }
+// swiftlint:enable force_try

@@ -37,6 +37,15 @@ platform :ios do
       output_directory: './fastlane/test_output/xctest')
   end
 
+  lane :lint_code do
+    swiftlint(
+        mode: :lint,
+        strict: true, # Fails on warnings
+        config_file: ".swiftlint.yml",
+        executable: "swiftlint"
+    )
+  end
+
   desc "Ad-hoc build"
   lane :adhoc do
     match(type: "adhoc")

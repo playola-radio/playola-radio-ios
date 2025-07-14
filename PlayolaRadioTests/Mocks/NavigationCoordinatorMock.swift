@@ -8,14 +8,14 @@
 
 class NavigationCoordinatorMock: NavigationCoordinator {
   var changesToPathCount = 0
-  
+
   override var path: [NavigationCoordinator.Path] {
+    get {
+      return _path
+    }
     set {
       changesToPathCount += 1
       _path = newValue
-    }
-    get {
-      return _path
     }
   }
   var _path: [NavigationCoordinator.Path] = []

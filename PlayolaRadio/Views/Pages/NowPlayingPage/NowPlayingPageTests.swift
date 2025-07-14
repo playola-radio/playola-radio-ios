@@ -6,8 +6,9 @@
 //
 
 import FRadioPlayer
-@testable import PlayolaRadio
 import Testing
+
+@testable import PlayolaRadio
 
 @MainActor
 struct NowPlayingPageTests {
@@ -15,9 +16,8 @@ struct NowPlayingPageTests {
   struct ViewAppearedTests {
     @Test("Populates correctly when loading")
     @MainActor func testNowPlayingPopulatesCorrectlyWhenLoading() {
-      //      let player = URLStreamPlayerMock()
-      //
-      //      player.state = URLStreamPlayer.State(playbackState: .playing, playerStatus: .loading, currentStation: .mock)
+      //  let player = URLStreamPlayerMock()
+      //  player.state = URLStreamPlayer.State(playbackState: .playing, playerStatus: .loading, currentStation: .mock)
       let playerMock = StationPlayerMock()
       playerMock.state = StationPlayer.State(playbackStatus: .loading(.mock))
       let nowPlayingPage = NowPlayingPageModel(stationPlayer: playerMock)
@@ -26,7 +26,7 @@ struct NowPlayingPageTests {
       #expect(nowPlayingPage.nowPlayingArtist == "Station Loading...")
       #expect(nowPlayingPage.nowPlayingTitle == "Bri Bagwell's Banned Radio")
     }
-    
+
     @Test("Populates correctly when something is playing")
     @MainActor func testNowPlayingPopulatesCorrectlyWhenSomethingIsPlaying() {
       let station = RadioStation.mock
@@ -43,7 +43,7 @@ struct NowPlayingPageTests {
       #expect(nowPlayingPage.nowPlayingTitle == "Selfie")
     }
   }
-  
+
   @Suite("About Display")
   struct AboutDisplay {
     @Test("Tapping about button displays about as a sheet")
@@ -53,15 +53,16 @@ struct NowPlayingPageTests {
       nowPlayingPage.aboutButtonTapped()
       #expect(nowPlayingPage.presentedSheet ~= .about(AboutPageModel()))
     }
-    
+
     @Test("Can be dismissed")
     @MainActor func testTappingAboutButtonDismissWorks() {
-      let nowPlayingPage = NowPlayingPageModel(presentedSheet: .about(AboutPageModel()))
+      let nowPlayingPage = NowPlayingPageModel(
+        presentedSheet: .about(AboutPageModel()))
       nowPlayingPage.dismissAboutSheetButtonTapped()
       #expect(nowPlayingPage.presentedSheet == nil)
     }
   }
-  
+
   @Test("Info Button Tapped")
   func testInfoButtonPushesInfoOntoTheNavigationStack() {}
 }

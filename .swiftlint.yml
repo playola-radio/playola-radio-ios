@@ -19,3 +19,10 @@ identifier_name:
   excluded:
     - "to"  # Common parameter name in Mail.swift
     - "fm"  # Enum case in RadioStation.swift
+  allowed_symbols:
+    - "_"  # Common in variable names
+
+type_body_length:
+  warning: 1000
+  error: 1000
+

@@ -4,7 +4,6 @@
 //
 //  Created by Brian D Keane on 6/11/25.
 //
-// swiftlint:disable identifier_name
 import SwiftUI
 
 struct FontNames {
@@ -39,5 +38,3 @@ struct FontNames {
   static let SpaceGrotesk_3500_Medium = "SpaceGrotesk-Light_Medium"
   static let SpaceGrotesk_700_Bold = "SpaceGrotesk-Light_Bold"
 }
-
-// swiftlint:enable identifier_name
