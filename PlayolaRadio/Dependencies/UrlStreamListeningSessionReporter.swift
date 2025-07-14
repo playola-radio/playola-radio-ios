@@ -19,11 +19,11 @@ public class UrlStreamListeningSessionReporter {
   weak var urlStreamPlayer: URLStreamPlayer?
   var currentListeningSessionID: String?
   var lastSendStreamUrl: String?
-
+  
   init(urlStreamPlayer: URLStreamPlayer) {
     self.urlStreamPlayer = urlStreamPlayer
-
-    urlStreamPlayer.$state.sink { state in
+    
+    urlStreamPlayer.$state.sink { _ in
       if let stationUrl = urlStreamPlayer.currentStation?.streamURL {
         if stationUrl != self.lastSendStreamUrl {
           self.lastSendStreamUrl = stationUrl
@@ -38,7 +38,7 @@ public class UrlStreamListeningSessionReporter {
       }
     }.store(in: &disposeBag)
   }
-
+  
   public func endListeningSession() {
     guard let deviceId else {
       print("Cannot send listeningSession -- missing identifier")
@@ -46,12 +46,12 @@ public class UrlStreamListeningSessionReporter {
     }
     let url = URL(string: "https://admin-api.playola.fm/v1/listeningSessions/end")!
     let requestBody = [ "deviceId": deviceId]
-
+    
     guard let jsonData = try? JSONEncoder().encode(requestBody) else {
       print("Error: unable to encode request body to JSON for end listeningSession")
       return
     }
-
+    
     var request = createPostRequest(url: url, jsonData: jsonData)
     // Create a URLSession task to send the request
     let task = URLSession.shared.dataTask(with: request) { data, response, error in
@@ -59,56 +59,56 @@ public class UrlStreamListeningSessionReporter {
         print("Error: \(error.localizedDescription)")
         return
       }
-
+      
       if let httpResponse = response as? HTTPURLResponse {
         print("Response Status Code: \(httpResponse.statusCode)")
       }
-
+      
       if let data = data, let responseString = String(data: data, encoding: .utf8) {
         print("Response Data: \(responseString)")
       }
     }
     task.resume()
   }
-
+  
   public func reportOrExtendListeningSession(_ stationUrl: String) {
     let url = URL(string: "https://admin-api.playola.fm/v1/listeningSessions")!
-
+    
     // Create an instance of the Codable struct
     let requestBody = [
       "deviceId": deviceId,
       "stationUrl": stationUrl
-      ]
-
+    ]
+    
     // Convert the Codable struct to JSON data
     guard let jsonData = try? JSONEncoder().encode(requestBody) else {
       print("Error: Unable to encode request body to JSON")
       return
     }
-
+    
     // Create the request
     var request = createPostRequest(url: url, jsonData: jsonData)
-
+    
     // Create a URLSession task to send the request
     let task = URLSession.shared.dataTask(with: request) { data, response, error in
       if let error = error {
         print("Error: \(error.localizedDescription)")
         return
       }
-
+      
       if let httpResponse = response as? HTTPURLResponse {
         print("Response Status Code: \(httpResponse.statusCode)")
       }
-
+      
       if let data = data, let responseString = String(data: data, encoding: .utf8) {
         print("Response Data: \(responseString)")
       }
     }
     task.resume()
   }
-
+  
   private func startPeriodicNotifications() {
-    self.timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true, block: { [weak self] timer in
+    self.timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true, block: { [weak self] _ in
       guard let self else { return }
       guard let stationUrl = self.urlStreamPlayer?.currentStation?.streamURL else {
         print("Error -- stationId should exist")
@@ -117,11 +117,11 @@ public class UrlStreamListeningSessionReporter {
       self.reportOrExtendListeningSession(stationUrl)
     })
   }
-
+  
   private func stopPeriodicNotifications() {
     self.timer?.invalidate()
   }
-
+  
   private func createPostRequest(url: URL, jsonData: Data) -> URLRequest {
     var request = URLRequest(url: url)
     request.httpMethod = "POST"

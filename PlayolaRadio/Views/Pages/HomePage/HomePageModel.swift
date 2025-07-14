@@ -18,12 +18,12 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
   @ObservationIgnored @Shared(.auth) var auth: Auth
-
+  
   @ObservationIgnored var stationPlayer: StationPlayer
-
+  
   var forYouStations: IdentifiedArrayOf<RadioStation> = []
-  var presentedAlert: PlayolaAlert? = nil
-
+  var presentedAlert: PlayolaAlert?
+  
   var welcomeMessage: String {
     if let displayName = auth.currentUser?.displayName {
       return "Welcome, \(displayName)"
@@ -31,26 +31,26 @@ class HomePageModel: ViewModel {
       return "Welcome to Playola"
     }
   }
-
+  
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
   }
-
+  
   // MARK: Actions
   func viewAppeared() async {
     $stationLists.publisher
       .sink { lists in
         guard let artistList = lists.first(where: { $0.id == StationList.artistListId }) else { return }
-      self.forYouStations = IdentifiedArray(uniqueElements: artistList.stations)
-    }
-    .store(in: &disposeBag)
+        self.forYouStations = IdentifiedArray(uniqueElements: artistList.stations)
+      }
+      .store(in: &disposeBag)
   }
-
+  
   func handlePlayolaIconTapped10Times() {
     $showSecretStations.withLock { $0 = !$0 }
     presentedAlert = showSecretStations ? .secretStationsTurnedOnAlert : .secretStationsHiddenAlert
   }
-
+  
   func handleStationTapped(_ station: RadioStation) {
     stationPlayer.play(station: station)
   }

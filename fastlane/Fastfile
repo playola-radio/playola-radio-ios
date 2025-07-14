@@ -32,9 +32,18 @@ platform :ios do
       include_simulator_logs: false,
       parallel_testing: false,
       scheme: "PlayolaRadio",
-      xcargs: "-skipMacroValidation",
+      xcargs: "-skipMacroValidation -skipPackagePluginValidation",
       xcodebuild_formatter: "xcbeautify",
       output_directory: './fastlane/test_output/xctest')
+  end
+
+  lane :lint_code do
+    swiftlint(
+        mode: :lint,
+        strict: true, # Fails on warnings
+        config_file: ".swiftlint.yml",
+        executable: "swiftlint"
+    )
   end
 
   desc "Ad-hoc build"

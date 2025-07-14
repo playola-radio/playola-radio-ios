@@ -31,6 +31,14 @@ Push a new beta build to TestFlight
 
 Runs all the tests
 
+### ios lint_code
+
+```sh
+[bundle exec] fastlane ios lint_code
+```
+
+
+
 ### ios adhoc
 
 ```sh

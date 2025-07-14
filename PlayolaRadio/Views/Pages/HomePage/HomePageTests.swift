@@ -5,18 +5,24 @@
 //  Created by Brian D Keane on 6/10/25.
 //
 
-@testable import PlayolaRadio
+import IdentifiedCollections
 import Sharing
 import Testing
-import IdentifiedCollections
+
+@testable import PlayolaRadio
 
 enum HomePageTests {
   @MainActor @Suite("ViewAppeared")
   struct ViewAppeared {
-    @Test("Populates forYouStations based on initial value of shared stationLists")
-    func testPopulatesForYouStationsBasedOnInitialValueOfSharedStationLists() async {
+    @Test(
+      "Populates forYouStations based on initial value of shared stationLists")
+    func testPopulatesForYouStationsBasedOnInitialValueOfSharedStationLists()
+      async
+    {
       @Shared(.stationLists) var stationLists = StationList.mocks
-      let artistStations = stationLists.first { $0.id == StationList.artistListId }
+      let artistStations = stationLists.first {
+        $0.id == StationList.artistListId
+      }
       #expect(artistStations != nil)
       let model = HomePageModel()
       await model.viewAppeared()
@@ -26,19 +32,27 @@ enum HomePageTests {
     @Test("Repopulates forYouStations when shared stationLists changes")
     func testRepopulatesForYouStationsWhenSharedStationListsChanges() async {
       @Shared(.stationLists) var stationLists = StationList.mocks
-      let artistStations = stationLists.first { $0.id == StationList.artistListId }
-      let inDevelopmentStations = stationLists.first { $0.id == StationList.inDevelopmentListId }
+      let artistStations = stationLists.first {
+        $0.id == StationList.artistListId
+      }
+      let inDevelopmentStations = stationLists.first {
+        $0.id == StationList.inDevelopmentListId
+      }
       #expect(artistStations != nil)
       #expect(inDevelopmentStations != nil)
       #expect(artistStations!.stations != inDevelopmentStations!.stations)
       let model = HomePageModel()
       await model.viewAppeared()
       #expect(model.forYouStations.elements == artistStations!.stations)
-      $stationLists.withLock { $0 = IdentifiedArray(
-        uniqueElements: [StationList(
-          id: StationList.artistListId,
-          title: "Changed",
-          stations: inDevelopmentStations!.stations)]) }
+      $stationLists.withLock {
+        $0 = IdentifiedArray(
+          uniqueElements: [
+            StationList(
+              id: StationList.artistListId,
+              title: "Changed",
+              stations: inDevelopmentStations!.stations)
+          ])
+      }
       #expect(model.forYouStations.elements == inDevelopmentStations!.stations)
     }
   }
@@ -54,7 +68,9 @@ enum HomePageTests {
 
     @Test("Shows personalized welcome message when user is logged in")
     func testShowsPersonalizedWelcomeMessageWhenUserIsLoggedIn() {
-      let mockJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWFpbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
+      let mockJWT =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWF" +
+      "pbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
       @Shared(.auth) var auth = Auth(jwtToken: mockJWT)
       let model = HomePageModel()
       #expect(model.welcomeMessage == "Welcome, John Doe")
@@ -65,15 +81,17 @@ enum HomePageTests {
       @Shared(.auth) var auth = Auth()
       let model = HomePageModel()
       #expect(model.welcomeMessage == "Welcome to Playola")
-      
-      let mockJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWFpbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
+
+      let mockJWT =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWF" +
+      "pbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
       $auth.withLock { $0 = Auth(jwtToken: mockJWT) }
       #expect(model.welcomeMessage == "Welcome, John Doe")
     }
   }
 
   @MainActor
-  struct tappingTheP {
+  struct TappingTheP {
     @Test("Turns on the secret stations")
     func testTurnsOnTheSecretStations() {
       let homePage = HomePageModel()

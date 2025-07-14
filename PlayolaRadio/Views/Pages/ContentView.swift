@@ -7,11 +7,11 @@
 
 import SwiftUI
 import Sharing
-  
+
 @MainActor
 struct ContentView: View {
   @Shared(.auth) var auth
-
+  
   var body: some View {
     if auth.isLoggedIn {
       MainContainer(model: MainContainerModel())

@@ -12,13 +12,13 @@ import UIKit
 
 @MainActor
 struct AirPlayView: UIViewRepresentable {
-    func makeUIView(context _: Context) -> UIView {
-        let routePickerView = AVRoutePickerView()
-        routePickerView.backgroundColor = .clear
-        routePickerView.activeTintColor = .white
-        routePickerView.tintColor = .gray
-        return routePickerView
-    }
-
-    func updateUIView(_: UIView, context _: Context) {}
+  func makeUIView(context _: Context) -> UIView {
+    let routePickerView = AVRoutePickerView()
+    routePickerView.backgroundColor = .clear
+    routePickerView.activeTintColor = .white
+    routePickerView.tintColor = .gray
+    return routePickerView
+  }
+  
+  func updateUIView(_: UIView, context _: Context) {}
 }

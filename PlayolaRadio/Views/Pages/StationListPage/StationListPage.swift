@@ -11,7 +11,7 @@ import IdentifiedCollections
 struct StationListPage: View {
   // MARK: - Model
   @Bindable var model: StationListModel
-
+  
   // MARK: - View
   var body: some View {
     VStack(spacing: 0) {
@@ -24,7 +24,7 @@ struct StationListPage: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal)
         .padding(.bottom, 24)
-
+      
       // ---------------------------------------------------------
       // Segment Control
       // ---------------------------------------------------------
@@ -41,8 +41,8 @@ struct StationListPage: View {
                 .padding(.vertical, 8)
                 .background(
                   model.selectedSegment == segment
-                    ? Color.playolaRed
-                    : Color(white: 0.2)
+                  ? Color.playolaRed
+                  : Color(white: 0.2)
                 )
                 .cornerRadius(20)
             }
@@ -51,7 +51,7 @@ struct StationListPage: View {
         .padding(.horizontal)
       }
       .padding(.vertical, 8)
-
+      
       // ---------------------------------------------------------
       // Station Lists
       // ---------------------------------------------------------
@@ -70,7 +70,7 @@ struct StationListPage: View {
     .task { await model.viewAppeared() }
     .alert(item: $model.presentedAlert) { $0.alert }
   }
-
+  
   // MARK: - Helpers
   @ViewBuilder
   private func stationSection(title: String, stations: [RadioStation]) -> some View {
@@ -81,7 +81,7 @@ struct StationListPage: View {
           .foregroundColor(.white)
           .padding(.horizontal)
           .padding(.bottom, 8)
-
+        
         VStack(spacing: 1) {
           ForEach(stations) { station in
             StationRowView(station: station, action: {
@@ -100,12 +100,11 @@ struct StationListPage: View {
 private struct StationRowView: View {
   let station: RadioStation
   let action: (() -> Void)
-
+  
   var body: some View {
     Button(action: action) {
       HStack(spacing: 12) {
-        if let url = URL(string: station.imageURL)
-        {
+        if let url = URL(string: station.imageURL) {
           AsyncImage(url: url) { image in
             image
               .resizable()
@@ -116,19 +115,17 @@ private struct StationRowView: View {
           .frame(width: 64, height: 64)
           .cornerRadius(6)
         }
-
+        
         VStack(alignment: .leading, spacing: 2) {
           Text(station.name)
             .font(.custom(FontNames.Inter_500_Medium, size: 22))
             .foregroundColor(.white)
-
-
+          
           Text(station.desc)
-              .font(.custom(FontNames.Inter_400_Regular, size: 14))
-              .foregroundColor(.white)
-          }
-
-
+            .font(.custom(FontNames.Inter_400_Regular, size: 14))
+            .foregroundColor(.white)
+        }
+        
         Spacer()
       }
       .padding(.horizontal)

@@ -15,7 +15,7 @@ class AboutPageModel: ViewModel {
   
   var canSendEmail: Bool = false
   var isShowingMailComposer: Bool = false
-  var mailURL: URL? = nil
+  var mailURL: URL?
   var isShowingCannotOpenMailAlert = false
   var presentedAlert: PlayolaAlert?
   
@@ -30,8 +30,7 @@ class AboutPageModel: ViewModel {
        isShowingCannotOpenMailAlert: Bool = false,
        presentedAlert: PlayolaAlert? = nil,
        mailService: MailService = MailService(),
-       navigationCoordinator: NavigationCoordinator = .shared)
-  {
+       navigationCoordinator: NavigationCoordinator = .shared) {
     self.canSendEmail = canSendEmail
     self.isShowingMailComposer = isShowingMailComposer
     self.mailURL = mailURL
@@ -154,7 +153,8 @@ struct AboutPage: View {
           .font(.system(size: 14))
           .bold()
         
-        Button(action: { model.feedbackButtonTapped() }) {
+        Button(action: { model.feedbackButtonTapped() },
+               label: {
           Text("Let Us Know")
             .bold()
             .padding()
@@ -162,11 +162,12 @@ struct AboutPage: View {
             .background(Color.playolaRed)
             .cornerRadius(15)
             .foregroundStyle(.black)
-        }
+        })
         
         Spacer()
         
-        Button(action: { model.waitingListButtonTapped() }) {
+        Button(action: { model.waitingListButtonTapped() },
+               label: {
           Text("Join Waitlist")
             .bold()
             .padding()
@@ -174,7 +175,7 @@ struct AboutPage: View {
             .background(.white)
             .cornerRadius(15)
             .foregroundStyle(Color(hex: "6962EF"))
-        }
+        })
         .padding(.bottom, -15)
         
         Text("Get early access to make your own station...")
