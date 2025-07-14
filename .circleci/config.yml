@@ -1,5 +1,20 @@
 version: 2.1
 jobs:
+  swiftlint_check:
+    macos:
+      xcode: 16.2.0
+    steps:
+      - checkout
+      - run:
+          name: Install Bundler
+          command: gem install bundler
+      - run:
+          name: Install Fastlane
+          command: bundle install
+      - run:
+          name: Run SwiftLint
+          command: bundle exec fastlane lint_code
+
   build-and-test:
     macos:
       xcode: 16.2.0
@@ -45,6 +60,10 @@ jobs:
           path: test-results
 
 workflows:
+  lint-codebase:
+    jobs:
+      - swiftlint_check
+
   build-test-adhoc:
     jobs:
       - build-and-test
