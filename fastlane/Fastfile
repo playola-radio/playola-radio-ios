@@ -32,7 +32,7 @@ platform :ios do
       include_simulator_logs: false,
       parallel_testing: false,
       scheme: "PlayolaRadio",
-      xcargs: "-skipMacroValidation",
+      xcargs: "-skipMacroValidation -skipPackagePluginValidation",
       xcodebuild_formatter: "xcbeautify",
       output_directory: './fastlane/test_output/xctest')
   end

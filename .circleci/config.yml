@@ -1,4 +1,5 @@
 version: 2.1
+
 jobs:
   swiftlint_check:
     macos:
@@ -12,7 +13,10 @@ jobs:
           name: Install Fastlane
           command: bundle install
       - run:
-          name: Run SwiftLint
+          name: Install SwiftLint (Homebrew)
+          command: brew install swiftlint
+      - run:
+          name: Run SwiftLint via Fastlane
           command: bundle exec fastlane lint_code
 
   build-and-test:
@@ -28,6 +32,9 @@ jobs:
       - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Development.xcconfig
       - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Local.xcconfig
       - run: bundle install
+      - run:
+          name: Resolve Swift Package Dependencies
+          command: xcodebuild -resolvePackageDependencies -project PlayolaRadio.xcodeproj
       - run:
           name: Fastlane
           command: bundle exec fastlane $FASTLANE_LANE
