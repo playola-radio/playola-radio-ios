@@ -317,7 +317,7 @@ enum MainContainerTests {
 
       // MainContainerModel creation should configure PlayolaStationPlayer
       // to use JWT tokens for session reporting
-      MainContainerModel()
+      _ = MainContainerModel()
 
       #expect(auth.isLoggedIn == true)
       #expect(auth.jwt == testJWT)
@@ -349,14 +349,14 @@ enum MainContainerTests {
       // First login session
       let firstJWT = createTestJWT(id: "user1", displayName: "First User")
       $auth.withLock { $0 = Auth(jwtToken: firstJWT) }
-      let firstMainContainer = MainContainerModel()
+      _ = MainContainerModel()
       #expect(auth.jwt == firstJWT)
 
       // User logs out, logs back in with new token
       $auth.withLock { $0 = Auth() }
       let secondJWT = createTestJWT(id: "user2", displayName: "Second User")
       $auth.withLock { $0 = Auth(jwtToken: secondJWT) }
-      let secondMainContainer = MainContainerModel()
+      _ = MainContainerModel()
       #expect(auth.jwt == secondJWT)
     }
   }
