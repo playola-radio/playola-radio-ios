@@ -1,3 +1,4 @@
+import PlayolaPlayer
 //
 //  HomePageView.swift
 //  PlayolaRadio
@@ -5,11 +6,10 @@
 //  Created by Brian D Keane on 6/10/25.
 //
 import SwiftUI
-import PlayolaPlayer
 
 struct HomePageView: View {
   @Bindable var model: HomePageModel
-  
+
   var body: some View {
     VStack {
       VStack {
@@ -22,11 +22,11 @@ struct HomePageView: View {
           .padding(.bottom, 8)
           .frame(maxWidth: .infinity, alignment: .leading)
           .background(Color.black)
-        
+
         ScrollView {
           HomeIntroSection(
             onIconTapped10Times: model.handlePlayolaIconTapped10Times)
-          
+
           HomePageStationList(stations: model.forYouStations) {
             model.handleStationTapped($0)
           }

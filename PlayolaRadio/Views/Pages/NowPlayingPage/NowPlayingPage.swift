@@ -12,53 +12,55 @@ import SwiftUI
 @Observable
 class NowPlayingPageModel: ViewModel {
   var disposeBag: Set<AnyCancellable> = Set()
-  
+
   // MARK: State
-  
+
   var albumArtUrl: URL?
   var nowPlayingArtist: String = ""
   var nowPlayingTitle: String = ""
   var navigationBarTitle: String = ""
   var presentedSheet: PlayolaSheet?
-  
-  init(stationPlayer: StationPlayer? = nil,
-       navigationCoordinator: NavigationCoordinator? = nil,
-       presentedSheet: PlayolaSheet? = nil) {
+
+  init(
+    stationPlayer: StationPlayer? = nil,
+    navigationCoordinator: NavigationCoordinator? = nil,
+    presentedSheet: PlayolaSheet? = nil
+  ) {
     self.stationPlayer = stationPlayer ?? StationPlayer.shared
     self.navigationCoordinator = navigationCoordinator ?? .shared
     self.presentedSheet = presentedSheet
   }
-  
+
   // MARK: Dependencies
-  
+
   @ObservationIgnored var stationPlayer: StationPlayer
   @ObservationIgnored var navigationCoordinator: NavigationCoordinator
-  
+
   func viewAppeared() {
     processNewStationState(stationPlayer.state)
-    
+
     stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &disposeBag)
   }
-  
+
   func aboutButtonTapped() {
     presentedSheet = .about(AboutPageModel())
   }
-  
+
   func infoButtonTapped() {}
   func shareButtonTapped() {}
   func dismissAboutSheetButtonTapped() {
     presentedSheet = nil
   }
-  
+
   func stopButtonTapped() {
     stationPlayer.stop()
     navigationCoordinator.path.removeLast()
   }
-  
+
   // MARK: Actions
-  
+
   // MARK: Helpers
-  
+
   func processNewStationState(_ state: StationPlayer.State) {
     switch state.playbackStatus {
     case let .playing(radioStation):
@@ -74,7 +76,7 @@ class NowPlayingPageModel: ViewModel {
       } else {
         nowPlayingArtist = "Station Loading..."
       }
-      
+
       albumArtUrl = URL(string: radioStation.imageURL)
     case .stopped:
       navigationBarTitle = "Playola Radio"
@@ -95,9 +97,9 @@ class NowPlayingPageModel: ViewModel {
 @MainActor
 struct NowPlayingView: View {
   @Bindable var model: NowPlayingPageModel
-  
+
   //  @State private var sliderValue: Double = .zero
-  
+
   @MainActor
   init(model: NowPlayingPageModel? = nil) {
     self.model = model ?? NowPlayingPageModel()
@@ -105,17 +107,20 @@ struct NowPlayingView: View {
     UINavigationBar.appearance().tintColor = .white
     UINavigationBar.appearance().prefersLargeTitles = false
   }
-  
+
   var body: some View {
     ZStack {
       Color.black
         .edgesIgnoringSafeArea(.all)
-      
+
       VStack {
-        AsyncImage(url: model.albumArtUrl ??
-                   Bundle.main.url(forResource: "AppIcon",
-                                   withExtension: "PNG"),
-                   transaction: Transaction(animation: .bouncy())) { result in
+        AsyncImage(
+          url: model.albumArtUrl
+            ?? Bundle.main.url(
+              forResource: "AppIcon",
+              withExtension: "PNG"),
+          transaction: Transaction(animation: .bouncy())
+        ) { result in
           result.image?
             .resizable()
             .scaledToFill()
@@ -123,8 +128,8 @@ struct NowPlayingView: View {
             .padding(.top, 35)
             .transition(.move(edge: .top))
         }
-                   .frame(width: 274, height: 274)
-        
+        .frame(width: 274, height: 274)
+
         HStack(spacing: 12) {
           //              Image("btn-previous")
           //                  .resizable()
@@ -139,7 +144,7 @@ struct NowPlayingView: View {
           //                      print("Back")
           //                  }
           Image(model.stationPlayer.currentStation != nil ? "btn-stop" : "btn-play")
-          //          Image("btn-play")
+            //          Image("btn-play")
             .resizable()
             .frame(width: 45, height: 45)
             .onTapGesture {
@@ -153,7 +158,7 @@ struct NowPlayingView: View {
           //                  }
         }
         .padding(.top, 30)
-        
+
         //        HStack {
         //          Image("vol-min")
         //            .frame(width: 18, height: 16)
@@ -163,33 +168,37 @@ struct NowPlayingView: View {
         //          Image("vol-max")
         //            .frame(width: 18, height: 16)
         //        }
-        
+
         Text(model.nowPlayingTitle)
           .font(.title)
-        
+
         Text(model.nowPlayingArtist)
-        
+
         Spacer()
-        
+
         HStack {
           AirPlayView()
             .frame(width: 42, height: 45)
-          
+
           Spacer()
-          
-          Button(action: {}, label: {
-            Image("share")
-              .resizable()
-              .foregroundColor(Color(hex: "#7F7F7F"))
-              .frame(width: 26, height: 26)
-          })
-          
-          Button(action: {}, label: {
-            Image(systemName: "info.circle")
-              .resizable()
-              .foregroundColor(Color(hex: "#7F7F7F"))
-              .frame(width: 22, height: 22)
-          })
+
+          Button(
+            action: {},
+            label: {
+              Image("share")
+                .resizable()
+                .foregroundColor(Color(hex: "#7F7F7F"))
+                .frame(width: 26, height: 26)
+            })
+
+          Button(
+            action: {},
+            label: {
+              Image(systemName: "info.circle")
+                .resizable()
+                .foregroundColor(Color(hex: "#7F7F7F"))
+                .frame(width: 22, height: 22)
+            })
         }.padding(.leading, 35)
           .padding(.trailing, 35)
           .padding(.bottom, 75)
@@ -211,9 +220,10 @@ struct NowPlayingView: View {
     ZStack {
       Color.black
         .edgesIgnoringSafeArea(.all)
-      
-      NowPlayingView(model: NowPlayingPageModel(
-        stationPlayer: .shared))
+
+      NowPlayingView(
+        model: NowPlayingPageModel(
+          stationPlayer: .shared))
     }
   }
   .accentColor(.white)

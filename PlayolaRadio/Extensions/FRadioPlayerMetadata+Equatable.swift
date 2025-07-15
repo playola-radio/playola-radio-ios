@@ -5,13 +5,12 @@
 //  Created by Brian D Keane on 5/21/24.
 //
 
-import Foundation
 import FRadioPlayer
+import Foundation
 
 extension FRadioPlayer.Metadata: Equatable {
   public static func == (lhs: FRadioPlayer.Metadata, rhs: FRadioPlayer.Metadata) -> Bool {
-    lhs.artistName == rhs.artistName &&
-    lhs.trackName == rhs.trackName
+    lhs.artistName == rhs.artistName && lhs.trackName == rhs.trackName
   }
 }
 

@@ -69,8 +69,8 @@ enum HomePageTests {
     @Test("Shows personalized welcome message when user is logged in")
     func testShowsPersonalizedWelcomeMessageWhenUserIsLoggedIn() {
       let mockJWT =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWF" +
-      "pbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWF"
+        + "pbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
       @Shared(.auth) var auth = Auth(jwtToken: mockJWT)
       let model = HomePageModel()
       #expect(model.welcomeMessage == "Welcome, John Doe")
@@ -83,8 +83,8 @@ enum HomePageTests {
       #expect(model.welcomeMessage == "Welcome to Playola")
 
       let mockJWT =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWF" +
-      "pbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWF"
+        + "pbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
       $auth.withLock { $0 = Auth(jwtToken: mockJWT) }
       #expect(model.welcomeMessage == "Welcome, John Doe")
     }

@@ -5,15 +5,15 @@
 //  Created by Brian D Keane on 6/16/25.
 //
 
-import SwiftUI
 import Foundation
+import SwiftUI
 
 struct SmallPlayer: View {
   var mainTitle: String
   var secondaryTitle: String
   var artworkURL: URL
   var onStopButtonTapped: () -> Void
-  
+
   // MARK: - Body
   var body: some View {
     VStack(spacing: 0) {
@@ -33,7 +33,7 @@ struct SmallPlayer: View {
         .frame(width: 48, height: 48)
         .padding(.leading, 16)
         .clipShape(RoundedRectangle(cornerRadius: 6))
-        
+
         // Title & subtitle
         VStack(alignment: .leading, spacing: 4) {
           Text(mainTitle)
@@ -44,9 +44,9 @@ struct SmallPlayer: View {
             .foregroundColor(.gray)
         }
         .padding(.vertical, 12)
-        
+
         Spacer()
-        
+
         Button(action: onStopButtonTapped) {
           Image(systemName: "stop.fill")
             .foregroundColor(.black)
@@ -59,7 +59,7 @@ struct SmallPlayer: View {
       .padding(.horizontal, 12)
       .padding(.vertical, 8)
       .background(Color.black.opacity(0.85))
-      
+
       // Progress bar
       GeometryReader { geo in
         Rectangle()
@@ -78,7 +78,8 @@ struct SmallPlayer_Previews: PreviewProvider {
     SmallPlayer(
       mainTitle: "Jacob Stelly's",
       secondaryTitle: "Moondog Radio",
-      artworkURL: URL(string: "https://playola-static.s3.amazonaws.com/station-images/Jacob-Stelly-1-116029.jpg")!,
+      artworkURL: URL(
+        string: "https://playola-static.s3.amazonaws.com/station-images/Jacob-Stelly-1-116029.jpg")!,
       onStopButtonTapped: {})
   }
 }

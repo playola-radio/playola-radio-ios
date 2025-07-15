@@ -5,15 +5,15 @@
 //  Created by Brian D Keane on 6/16/25.
 //
 
-import SwiftUI
 import Combine
 import PlayolaPlayer
+import SwiftUI
 
 @MainActor
 @Observable
 class PlayerPageModel: ViewModel {
   var cancellables: Set<AnyCancellable> = []
-  
+
   // MARK: State
   var nowPlayingText: String = ""
   var primaryNavBarTitle: String = ""
@@ -27,36 +27,36 @@ class PlayerPageModel: ViewModel {
       setRelatedText(playolaSpinPlaying)
     }
   }
-  
+
   var playolaAudioBlockPlaying: AudioBlock?
-  
+
   var relatedText: RelatedText?
-  
+
   // MARK: Callbacks
   var onDismiss: (() -> Void)?
-  
+
   // Unused for now
   var albumArtUrl: URL?
-  
+
   enum PlayerButtonImageName: String {
     case play = "play.fill"
     case stop = "stop.fill"
   }
-  
+
   var playerButtonImageName = PlayerButtonImageName.stop
-  
+
   @ObservationIgnored var stationPlayer: StationPlayer
-  
+
   init(stationPlayer: StationPlayer? = nil, onDismiss: (() -> Void)? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
     self.onDismiss = onDismiss
   }
-  
+
   func viewAppeared() {
     processNewStationState(stationPlayer.state)
     stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &cancellables)
   }
-  
+
   func setRelatedText(_ currentSpin: Spin?) {
     guard let currentSpin else {
       self.relatedText = nil
@@ -70,7 +70,7 @@ class PlayerPageModel: ViewModel {
       self.relatedText = nil
     }
   }
-  
+
   func processNewStationState(_ state: StationPlayer.State) {
     switch state.playbackStatus {
     case let .playing(radioStation):
@@ -118,7 +118,7 @@ class PlayerPageModel: ViewModel {
       self.playolaSpinPlaying = state.playolaSpinPlaying
     }
   }
-  
+
   func playPauseButtonTapped() {
     // compared with `!=`.  Use pattern matching instead.
     switch stationPlayer.state.playbackStatus {

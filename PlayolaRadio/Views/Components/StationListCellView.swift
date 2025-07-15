@@ -10,7 +10,7 @@ import SwiftUI
 @MainActor
 struct StationListCellView: View {
   var station: RadioStation
-  
+
   var body: some View {
     HStack {
       AsyncImage(url: URL(string: station.imageURL)!) { image in
@@ -28,7 +28,7 @@ struct StationListCellView: View {
           .lineLimit(2)
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(.bottom, 6)
-        
+
         Text(station.desc)
           .font(.footnote)
           .frame(maxWidth: .infinity, alignment: .leading)

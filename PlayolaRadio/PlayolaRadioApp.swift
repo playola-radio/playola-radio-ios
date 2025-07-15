@@ -14,7 +14,7 @@ struct PlayolaRadioApp: App {
   init() {
     NowPlayingUpdater.shared.setupRemoteControlCenter()
   }
-  
+
   var body: some Scene {
     WindowGroup {
       if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {

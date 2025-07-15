@@ -6,8 +6,8 @@
 //
 import SwiftUI
 
-public extension View {
-  func listInstalledFonts() {
+extension View {
+  public func listInstalledFonts() {
     let fontFamilies = UIFont.familyNames.sorted()
     for family in fontFamilies {
       print(family)
