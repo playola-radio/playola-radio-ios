@@ -8,7 +8,7 @@ import CarPlay
 
 extension CPListItem {
   private static let identifierUserInfoKey = "CPListItem.Identifier"
-  
+
   public convenience init(
     text: String?,
     detailText: String?,
@@ -16,7 +16,7 @@ extension CPListItem {
     placeholder: UIImage?
   ) {
     self.init(text: text, detailText: detailText, image: placeholder)
-    
+
     if let remoteImageUrl {
       let dataTask = URLSession.shared.dataTask(with: remoteImageUrl) { [weak self] data, _, _ in
         if let data, let image = UIImage(data: data) {
@@ -29,7 +29,7 @@ extension CPListItem {
       }
       dataTask.resume()
     }
-    
+
     var identifier: String? {
       (userInfo as? [String: Any])?[Self.identifierUserInfoKey] as? String
     }

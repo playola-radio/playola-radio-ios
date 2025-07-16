@@ -8,7 +8,7 @@
 
 class AuthServiceMock: AuthService {
   var signOutCallCount = 0
-  
+
   override func signOut() {
     signOutCallCount += 1
   }

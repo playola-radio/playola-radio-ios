@@ -13,10 +13,10 @@ extension UIImage {
       completion(nil)
       return
     }
-    
+
     let cache = URLCache.shared
     let request = URLRequest(url: url)
-    
+
     if let data = cache.cachedResponse(for: request)?.data, let image = UIImage(data: data) {
       DispatchQueue.main.async {
         completion(image)
@@ -24,13 +24,14 @@ extension UIImage {
     } else {
       URLSession.shared.dataTask(with: request) { data, response, _ in
         guard let data,
-              let httpResponse = response as? HTTPURLResponse,
-              200 ... 299 ~= httpResponse.statusCode,
-              let image = UIImage(data: data) else {
+          let httpResponse = response as? HTTPURLResponse,
+          200...299 ~= httpResponse.statusCode,
+          let image = UIImage(data: data)
+        else {
           DispatchQueue.main.async { completion(nil) }
           return
         }
-        
+
         let cachedData = CachedURLResponse(response: httpResponse, data: data)
         cache.storeCachedResponse(cachedData, for: request)
         DispatchQueue.main.async { completion(image) }

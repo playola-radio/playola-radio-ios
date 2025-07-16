@@ -5,13 +5,13 @@
 //  Created by Brian D Keane on 5/19/24.
 //
 
-import SwiftUI
 import Sharing
+import SwiftUI
 
 @MainActor
 struct ContentView: View {
   @Shared(.auth) var auth
-  
+
   var body: some View {
     if auth.isLoggedIn {
       MainContainer(model: MainContainerModel())

@@ -16,7 +16,7 @@ extension EnumTypeEquatable {
     guard let lhs else { return false }
     return lhs ~= rhs
   }
-  
+
   static func ~= (lhs: Self, rhs: Self?) -> Bool {
     guard let rhs else { return false }
     return lhs ~= rhs

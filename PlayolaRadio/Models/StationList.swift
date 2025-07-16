@@ -15,16 +15,16 @@ struct StationList: Codable, Identifiable, Equatable, Sendable {
     case inDevelopmentList = "in_development_list"
     case fmStationsList = "fm_list"
   }
-  
+
   static func == (lhs: StationList, rhs: StationList) -> Bool {
     lhs.id == rhs.id
   }
-  
+
   var id: String
   var title: String
   var hidden: Bool = false
   var stations: [RadioStation]
-  
+
   init(from decoder: any Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     id = try container.decode(String.self, forKey: .id)
@@ -32,7 +32,7 @@ struct StationList: Codable, Identifiable, Equatable, Sendable {
     hidden = (try? container.decode(Bool.self, forKey: .hidden)) ?? false
     stations = try container.decode([RadioStation].self, forKey: .stations)
   }
-  
+
   init(id: String, title: String, hidden: Bool = false, stations: [RadioStation]) {
     self.id = id
     self.title = title
@@ -49,10 +49,11 @@ struct StationListResponse: Decodable {
 
 extension StationList {
   static var mocks: IdentifiedArrayOf<StationList> {
-    IdentifiedArray(uniqueElements:
-                      [StationList(id: "in_development_list", title: "In Development", stations: [briStation]),
-                       StationList(id: "artist_list", title: "Artists", stations: artistStations),
-                       StationList(id: "fm_list", title: "FM Stations", stations: fmStations)])
+    IdentifiedArray(uniqueElements: [
+      StationList(id: "in_development_list", title: "In Development", stations: [briStation]),
+      StationList(id: "artist_list", title: "Artists", stations: artistStations),
+      StationList(id: "fm_list", title: "FM Stations", stations: fmStations),
+    ])
   }
 }
 
@@ -72,9 +73,9 @@ private let briStation = RadioStation(
   streamURL: "https://playoutonestreaming.com/proxy/billgreaseradio?mp=/stream",
   imageURL: "https://playola-static.s3.amazonaws.com/wcg_bgr_logo.jpeg",
   desc: "Banned Radio",
-  longDesc: "Bri Bagwell talks about her songs -- how they were written, the story " +
-  "behind the recordings, and lots of little tidbits you won\'t hear anywhere else, all while " +
-  "spinning his favorite songs and hanging out with some friends.",
+  longDesc: "Bri Bagwell talks about her songs -- how they were written, the story "
+    + "behind the recordings, and lots of little tidbits you won\'t hear anywhere else, all while "
+    + "spinning his favorite songs and hanging out with some friends.",
   type: .artist
 )
 
@@ -87,7 +88,8 @@ private let fmStations: [RadioStation] = [
     streamURL: "https://arn.leanstream.co/KOKEFM-MP3",
     imageURL: "https://playola-static.s3.amazonaws.com/koke-fm-logo.jpeg",
     desc: "Austin, TX",
-    longDesc: #"KOKE FM is an Austin, Texas based alternative country station. "Country Without Apology"."#
+    longDesc:
+      #"KOKE FM is an Austin, Texas based alternative country station. "Country Without Apology"."#
   ),
   RadioStation(
     id: "lakes_country",
@@ -95,8 +97,9 @@ private let fmStations: [RadioStation] = [
     streamURL: "https://14833.live.streamtheworld.com/KEOKFMAAC.aac",
     imageURL: "https://playola-static.s3.amazonaws.com/KEOK_SMALL.jpeg",
     desc: "Tahlequah, OK",
-    longDesc: "Lakes Country 102.1 provides today\'s best country (including Red Dirt & Local Music) " +
-    "along with community information, news & sports!"
+    longDesc:
+      "Lakes Country 102.1 provides today\'s best country (including Red Dirt & Local Music) "
+      + "along with community information, news & sports!"
   ),
   RadioStation(
     id: "kftx",
@@ -104,8 +107,8 @@ private let fmStations: [RadioStation] = [
     streamURL: "https://ice7.securenetsystems.net/KFTX",
     imageURL: "https://playola-static.s3.amazonaws.com/kftx_logo.png",
     desc: "Corpus Christi, TX",
-    longDesc: "KFTX.com is your 24 hour a day connection to yesterday\'s & today\'s " +
-    "REAL COUNTRY HITS and all your favorites!"
+    longDesc: "KFTX.com is your 24 hour a day connection to yesterday\'s & today\'s "
+      + "REAL COUNTRY HITS and all your favorites!"
   ),
   RadioStation(
     id: "kgfy",
@@ -113,11 +116,12 @@ private let fmStations: [RadioStation] = [
     streamURL: "https://ice24.securenetsystems.net/KGFY",
     imageURL: "https://playola-static.s3.amazonaws.com/kgfy_logo.png",
     desc: "Stillwater, OK",
-    longDesc: "We play the hottest country music from Carrie Underwood, Keith Urban, Luke Bryan, Jason Aldean, " +
-    "Kenny Chesney to Miranda Lambert. Playing the best in Red Dirt from Aaron Watson, The Randy Rogers " +
-    "Band, The Turnpike Troubadours, Josh Abbott, and The Casey Donahew Band; plus so much more. Besides " +
-    "playing the best in country music, Cowboy Country 105.5 is also the voice of OSU Cowgirl Sports and " +
-    "Perkins Tryon High School sports. Stillwater knows country music. Hear it on KGFY Cowboy Country 105.5!"
+    longDesc:
+      "We play the hottest country music from Carrie Underwood, Keith Urban, Luke Bryan, Jason Aldean, "
+      + "Kenny Chesney to Miranda Lambert. Playing the best in Red Dirt from Aaron Watson, The Randy Rogers "
+      + "Band, The Turnpike Troubadours, Josh Abbott, and The Casey Donahew Band; plus so much more. Besides "
+      + "playing the best in country music, Cowboy Country 105.5 is also the voice of OSU Cowgirl Sports and "
+      + "Perkins Tryon High School sports. Stillwater knows country music. Hear it on KGFY Cowboy Country 105.5!"
   ),
   RadioStation(
     id: "lonestar_102_5",
@@ -125,8 +129,8 @@ private let fmStations: [RadioStation] = [
     streamURL: "https://ice42.securenetsystems.net/KHLB",
     imageURL: "https://playola-static.s3.amazonaws.com/KHLB_Logo.png",
     desc: "Mason, TX",
-    longDesc: "Community-centered radio that offers dynamic, local news programming " +
-    "and country-music entertainment of the Texas Hill Country."
+    longDesc: "Community-centered radio that offers dynamic, local news programming "
+      + "and country-music entertainment of the Texas Hill Country."
   ),
   RadioStation(
     id: "k95",
@@ -167,5 +171,5 @@ private let fmStations: [RadioStation] = [
     imageURL: "https://playola-static.s3.amazonaws.com/ksel_105_9_logo.png",
     desc: "Portales, NM",
     longDesc: "Your Kinda Country"
-  )
+  ),
 ]

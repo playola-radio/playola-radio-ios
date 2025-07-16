@@ -14,7 +14,7 @@ struct NowPlayingSmallView: View {
   var artist: String?
   var title: String?
   var stationName: String?
-  
+
   var body: some View {
     func nowPlayingTitle() -> String? {
       guard let artist, let title else {
@@ -22,7 +22,7 @@ struct NowPlayingSmallView: View {
       }
       return "\(title) - \(artist)"
     }
-    
+
     return VStack {
       HStack {
         VStack(alignment: .leading) {
@@ -31,14 +31,14 @@ struct NowPlayingSmallView: View {
               .foregroundColor(Color(UIColor.lightText))
               .font(Font(UIFont.preferredFont(forTextStyle: .callout)))
           }
-          
+
           Text(stationName ?? "Choose a station above to begin...")
             .foregroundColor(Color(UIColor.lightText))
             .font(Font(UIFont.preferredFont(forTextStyle: .callout)))
         }.animation(.easeInOut(duration: 0.8), value: UUID())
-        
+
         Spacer()
-        
+
         if stationName != nil {
           NowPlayingEqualiserBars()
             .frame(width: 20, height: 20)
@@ -57,7 +57,7 @@ struct NowPlayingSmallView: View {
 #Preview {
   ZStack {
     Color.black
-    
+
     VStack {
       NowPlayingSmallView()
       NowPlayingSmallView(artist: "Bob Schneider", title: "The World Exploded into Love")

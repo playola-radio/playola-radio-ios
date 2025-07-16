@@ -1,3 +1,4 @@
+import FRadioPlayer
 //
 //  RadioStation.swift
 //  PlayolaRadio
@@ -5,14 +6,13 @@
 //  Created by Brian D Keane on 1/19/25.
 //
 import Foundation
-import FRadioPlayer
 import UIKit
 
 struct RadioStation: Codable, Identifiable, Equatable, Sendable {
   static func == (lhs: RadioStation, rhs: RadioStation) -> Bool {
     lhs.id == rhs.id
   }
-  
+
   var id: String
   var name: String
   var playolaID: String?
@@ -21,22 +21,22 @@ struct RadioStation: Codable, Identifiable, Equatable, Sendable {
   var desc: String
   var longDesc: String
   var type: StationType = .fm
-  
+
   func processedImageURL() -> URL {
     if let url = URL(string: imageURL) { return url }
     return Bundle.main.url(forResource: "AppIcon", withExtension: "PNG")!
   }
-  
+
   enum StationType: String, Codable {
     case artist
     case fm
     case playola
   }
-  
+
   var longName: String {
     type == .artist
-    ? "\(name) \(desc)"
-    : name
+      ? "\(name) \(desc)"
+      : name
   }
 }
 
@@ -59,7 +59,7 @@ extension RadioStation {
   var trackName: String {
     FRadioPlayer.shared.currentMetadata?.trackName ?? name
   }
-  
+
   var artistName: String {
     FRadioPlayer.shared.currentMetadata?.artistName ?? desc
   }

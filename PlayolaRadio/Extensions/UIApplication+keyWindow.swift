@@ -7,8 +7,8 @@
 import Foundation
 import SwiftUI
 
-public extension UIApplication {
-  var keyWindow: UIWindow? {
+extension UIApplication {
+  public var keyWindow: UIWindow? {
     Self
       .shared
       .connectedScenes
@@ -16,14 +16,14 @@ public extension UIApplication {
       .flatMap(\.windows)
       .last { $0.isKeyWindow }
   }
-  
-  var keyWindowPresentedController: UIViewController? {
+
+  public var keyWindowPresentedController: UIViewController? {
     var viewController = keyWindow?.rootViewController
-    
+
     if let presentedController = viewController as? UITabBarController {
       viewController = presentedController.selectedViewController
     }
-    
+
     // Go deeper to find the last presented `UIViewController`
     while let presentedController = viewController?.presentedViewController {
       if let presentedController = presentedController as? UITabBarController {

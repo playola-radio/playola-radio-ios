@@ -8,7 +8,7 @@ import SwiftUI
 
 struct HomeIntroSection: View {
   var onIconTapped10Times: () -> Void = {}
-  
+
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       // Content with circles
@@ -18,9 +18,10 @@ struct HomeIntroSection: View {
           .scaledToFit()
           .frame(width: 76, height: 98)
           .padding(.bottom, 32)
-          .onTapGesture(count: 10,
-                        perform: onIconTapped10Times)
-        
+          .onTapGesture(
+            count: 10,
+            perform: onIconTapped10Times)
+
         Text("Discover music through independent artist made radio stations.")
           .foregroundColor(.white)
           .font(.custom("Inter-Regular", size: 20))

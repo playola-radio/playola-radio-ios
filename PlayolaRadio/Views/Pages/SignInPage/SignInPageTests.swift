@@ -6,8 +6,9 @@
 //
 
 import AuthenticationServices
-@testable import PlayolaRadio
 import Testing
+
+@testable import PlayolaRadio
 
 @MainActor
 struct SignInPageTests {
@@ -19,7 +20,7 @@ struct SignInPageTests {
     model.signInWithAppleButtonTapped(request: request)
     #expect(request.requestedScopes == [.email, .fullName])
   }
-  
+
   // TODO: Create these tests:
   @Suite("signInWithAppleCompleted()")
   struct SignInWithAppleCompleted {
@@ -28,7 +29,7 @@ struct SignInPageTests {
     // @Test("Notifies the user if there was no email cached and none provided")
     // @Test("Provides the results to the API")
   }
-  
+
   // @Suite("SignInWithGoogle")
   // @Test("LogOutButtonTapped()")
 }
