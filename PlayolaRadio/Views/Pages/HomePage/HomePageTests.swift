@@ -7,123 +7,109 @@
 
 import IdentifiedCollections
 import Sharing
-import Testing
+import XCTest
 
 @testable import PlayolaRadio
 
-enum HomePageTests {
-  @MainActor @Suite("ViewAppeared")
-  struct ViewAppeared {
-    @Test(
-      "Populates forYouStations based on initial value of shared stationLists")
-    func testPopulatesForYouStationsBasedOnInitialValueOfSharedStationLists()
-      async
-    {
-      @Shared(.stationLists) var stationLists = StationList.mocks
-      let artistStations = stationLists.first {
-        $0.id == StationList.artistListId
-      }
-      #expect(artistStations != nil)
-      let model = HomePageModel()
-      await model.viewAppeared()
-      #expect(model.forYouStations.elements == artistStations!.stations)
-    }
+@MainActor
+final class HomePageTests: XCTestCase {
+  // MARK: - ViewAppeared Tests
 
-    @Test("Repopulates forYouStations when shared stationLists changes")
-    func testRepopulatesForYouStationsWhenSharedStationListsChanges() async {
-      @Shared(.stationLists) var stationLists = StationList.mocks
-      let artistStations = stationLists.first {
-        $0.id == StationList.artistListId
-      }
-      let inDevelopmentStations = stationLists.first {
-        $0.id == StationList.inDevelopmentListId
-      }
-      #expect(artistStations != nil)
-      #expect(inDevelopmentStations != nil)
-      #expect(artistStations!.stations != inDevelopmentStations!.stations)
-      let model = HomePageModel()
-      await model.viewAppeared()
-      #expect(model.forYouStations.elements == artistStations!.stations)
-      $stationLists.withLock {
-        $0 = IdentifiedArray(
-          uniqueElements: [
-            StationList(
-              id: StationList.artistListId,
-              title: "Changed",
-              stations: inDevelopmentStations!.stations)
-          ])
-      }
-      #expect(model.forYouStations.elements == inDevelopmentStations!.stations)
+  func testViewAppeared_PopulatesForYouStationsBasedOnInitialValueOfSharedStationLists() async {
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    let artistStations = stationLists.first {
+      $0.id == StationList.artistListId
     }
+    XCTAssertNotNil(artistStations)
+    let model = HomePageModel()
+    await model.viewAppeared()
+    XCTAssertEqual(model.forYouStations.elements, artistStations!.stations)
   }
 
-  @MainActor @Suite("WelcomeMessage")
-  struct WelcomeMessage {
-    @Test("Shows generic welcome message when no user is logged in")
-    func testShowsGenericWelcomeMessageWhenNoUserIsLoggedIn() {
-      @Shared(.auth) var auth = Auth()
-      let model = HomePageModel()
-      #expect(model.welcomeMessage == "Welcome to Playola")
+  func testViewAppeared_RepopulatesForYouStationsWhenSharedStationListsChanges() async {
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    let artistStations = stationLists.first {
+      $0.id == StationList.artistListId
     }
-
-    @Test("Shows personalized welcome message when user is logged in")
-    func testShowsPersonalizedWelcomeMessageWhenUserIsLoggedIn() {
-      let mockJWT =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWF"
-        + "pbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
-      @Shared(.auth) var auth = Auth(jwtToken: mockJWT)
-      let model = HomePageModel()
-      #expect(model.welcomeMessage == "Welcome, John Doe")
+    let inDevelopmentStations = stationLists.first {
+      $0.id == StationList.inDevelopmentListId
     }
-
-    @Test("Updates welcome message when auth changes")
-    func testUpdatesWelcomeMessageWhenAuthChanges() {
-      @Shared(.auth) var auth = Auth()
-      let model = HomePageModel()
-      #expect(model.welcomeMessage == "Welcome to Playola")
-
-      let mockJWT =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWF"
-        + "pbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
-      $auth.withLock { $0 = Auth(jwtToken: mockJWT) }
-      #expect(model.welcomeMessage == "Welcome, John Doe")
+    XCTAssertNotNil(artistStations)
+    XCTAssertNotNil(inDevelopmentStations)
+    XCTAssertNotEqual(artistStations!.stations, inDevelopmentStations!.stations)
+    let model = HomePageModel()
+    await model.viewAppeared()
+    XCTAssertEqual(model.forYouStations.elements, artistStations!.stations)
+    $stationLists.withLock {
+      $0 = IdentifiedArray(
+        uniqueElements: [
+          StationList(
+            id: StationList.artistListId,
+            title: "Changed",
+            stations: inDevelopmentStations!.stations)
+        ])
     }
+    XCTAssertEqual(model.forYouStations.elements, inDevelopmentStations!.stations)
   }
 
-  @MainActor
-  struct TappingTheP {
-    @Test("Turns on the secret stations")
-    func testTurnsOnTheSecretStations() {
-      let homePage = HomePageModel()
-      #expect(homePage.showSecretStations == false)
-      homePage.handlePlayolaIconTapped10Times()
-      #expect(homePage.showSecretStations == true)
-      #expect(homePage.presentedAlert == .secretStationsTurnedOnAlert)
-    }
+  // MARK: - Welcome Message Tests
 
-    @Test("Hides the secret stations")
-    func testHidesTheSecretStations() {
-      @Shared(.showSecretStations) var showSecretStations = true
-      let homePage = HomePageModel()
-      #expect(homePage.showSecretStations == true)
-      homePage.handlePlayolaIconTapped10Times()
-      #expect(homePage.showSecretStations == false)
-      #expect(homePage.presentedAlert == .secretStationsHiddenAlert)
-    }
+  func testWelcomeMessage_ShowsGenericWelcomeMessageWhenNoUserIsLoggedIn() {
+    @Shared(.auth) var auth = Auth()
+    let model = HomePageModel()
+    XCTAssertEqual(model.welcomeMessage, "Welcome to Playola")
   }
 
-  @MainActor @Suite("PlayerInteraction")
-  struct StationPlayerInteraction {
-    @Test("Plays a station when it is tapped")
-    func testPlaysAStationWhenItIsTapped() {
-      let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
-      let station: RadioStation = .mock
+  func testWelcomeMessage_ShowsPersonalizedWelcomeMessageWhenUserIsLoggedIn() {
+    let mockJWT =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWF"
+      + "pbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
+    @Shared(.auth) var auth = Auth(jwtToken: mockJWT)
+    let model = HomePageModel()
+    XCTAssertEqual(model.welcomeMessage, "Welcome, John Doe")
+  }
 
-      let homePageModel = HomePageModel(stationPlayer: stationPlayerMock)
-      homePageModel.handleStationTapped(station)
+  func testWelcomeMessage_UpdatesWelcomeMessageWhenAuthChanges() {
+    @Shared(.auth) var auth = Auth()
+    let model = HomePageModel()
+    XCTAssertEqual(model.welcomeMessage, "Welcome to Playola")
 
-      #expect(stationPlayerMock.callsToPlay.count == 1)
-      #expect(stationPlayerMock.callsToPlay.first?.id == station.id)
-    }
+    let mockJWT =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWF"
+      + "pbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
+    $auth.withLock { $0 = Auth(jwtToken: mockJWT) }
+    XCTAssertEqual(model.welcomeMessage, "Welcome, John Doe")
+  }
+
+  // MARK: - Tapping The P Tests
+
+  func testTappingTheP_TurnsOnTheSecretStations() {
+    let homePage = HomePageModel()
+    XCTAssertFalse(homePage.showSecretStations)
+    homePage.handlePlayolaIconTapped10Times()
+    XCTAssertTrue(homePage.showSecretStations)
+    XCTAssertEqual(homePage.presentedAlert, .secretStationsTurnedOnAlert)
+  }
+
+  func testTappingTheP_HidesTheSecretStations() {
+    @Shared(.showSecretStations) var showSecretStations = true
+    let homePage = HomePageModel()
+    XCTAssertTrue(homePage.showSecretStations)
+    homePage.handlePlayolaIconTapped10Times()
+    XCTAssertFalse(homePage.showSecretStations)
+    XCTAssertEqual(homePage.presentedAlert, .secretStationsHiddenAlert)
+  }
+
+  // MARK: - Player Interaction Tests
+
+  func testPlayerInteraction_PlaysAStationWhenItIsTapped() {
+    let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+    let station: RadioStation = .mock
+
+    let homePageModel = HomePageModel(stationPlayer: stationPlayerMock)
+    homePageModel.handleStationTapped(station)
+
+    XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
+    XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, station.id)
   }
 }

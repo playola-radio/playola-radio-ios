@@ -6,105 +6,90 @@
 //
 
 import Sharing
-import Testing
+import XCTest
 
 @testable import PlayolaRadio
 
 @MainActor
-struct AboutPageTests {
-  @Test("Tapping the icon 10 times changes the defaults and displays an alert")
-  func testTurnsOnTheSecretStations() {
+final class AboutPageTests: XCTestCase {
+  func testPlayolaIcon_TurnsOnTheSecretStations() {
     let aboutPage = AboutPageModel()
-    #expect(aboutPage.showSecretStations == false)
+    XCTAssertFalse(aboutPage.showSecretStations)
     aboutPage.handlePlayolaIconTapped10Times()
-    #expect(aboutPage.showSecretStations == true)
-    #expect(aboutPage.presentedAlert == .secretStationsTurnedOnAlert)
+    XCTAssertTrue(aboutPage.showSecretStations)
+    XCTAssertEqual(aboutPage.presentedAlert, .secretStationsTurnedOnAlert)
   }
 
-  @Test("Tapping the icon 10 times changes the defaults and displays an alert")
-  func testTurnsOffTheSecretStations() {
+  func testPlayolaIcon_TurnsOffTheSecretStations() {
     @Shared(.showSecretStations) var showSecretStations = true
     let aboutPage = AboutPageModel()
-    #expect(aboutPage.showSecretStations == true)
+    XCTAssertTrue(aboutPage.showSecretStations)
     aboutPage.handlePlayolaIconTapped10Times()
-    #expect(aboutPage.showSecretStations == false)
-    #expect(aboutPage.presentedAlert == .secretStationsHiddenAlert)
+    XCTAssertFalse(aboutPage.showSecretStations)
+    XCTAssertEqual(aboutPage.presentedAlert, .secretStationsHiddenAlert)
   }
 
-  @Test("Correctly sets canSendEmail when true")
-  func testCorrectlySetsCanSendEmailWhenTrue() async {
+  func testViewAppeared_CorrectlySetsCanSendEmailWhenTrue() async {
     let aboutPage = AboutPageModel(mailService: MailServiceMock(shouldBeAbleToSendEmail: true))
     await aboutPage.viewAppeared()
-    #expect(aboutPage.canSendEmail == true)
+    XCTAssertTrue(aboutPage.canSendEmail)
   }
 
-  @Test("Correctly sets canSendEmail when false")
-  func testCorrectlySetsCanSendEmailWhenFalse() async {
+  func testViewAppeared_CorrectlySetsCanSendEmailWhenFalse() async {
     let aboutPage = AboutPageModel(mailService: MailServiceMock(shouldBeAbleToSendEmail: false))
     await aboutPage.viewAppeared()
-    #expect(aboutPage.canSendEmail == false)
+    XCTAssertFalse(aboutPage.canSendEmail)
   }
 
-  @MainActor
-  @Suite("Feedback Button")
-  struct FeedbackTests {
-    @Test("Correctly sets canSendEmail when false")
-    func testCorrectlySetsCanSendEmailWhenFalse() async {
-      let aboutPage = AboutPageModel(mailService: MailServiceMock(shouldBeAbleToSendEmail: false))
-      await aboutPage.viewAppeared()
-      #expect(aboutPage.canSendEmail == false)
-    }
+  // MARK: - Feedback Button Tests
 
-    @Test("Shows Feedback Email when MailComposer is available")
-    func testShowsFeedbackEmailWhenMailComposerIsAvailable() async {
-      let aboutPage = AboutPageModel(canSendEmail: true)
-      aboutPage.feedbackButtonTapped()
-      #expect(aboutPage.isShowingMailComposer == true)
-    }
-
-    @Test("Shows Feedback Email when MailComposer is unavailable but url can be created")
-    func testShowsFeedbackEmailWhenMailComposerIsUnavavailable() async {
-      let mailServiceMock = MailServiceMock(canCreateUrl: true)
-      let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
-      aboutPage.feedbackButtonTapped()
-      #expect(mailServiceMock.receivedEmail == "feedback@playola.fm")
-      #expect(mailServiceMock.receivedSubject == "What I Think About Playola")
-    }
-
-    @Test("Shows Alert when no mail program could be opened")
-    func testShowsFeedbackEmailWhenMailCannotBeOpened() async {
-      let mailServiceMock = MailServiceMock(canCreateUrl: false)
-      let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
-      aboutPage.feedbackButtonTapped()
-      #expect(aboutPage.presentedAlert == .cannotOpenMailAlert)
-    }
+  func testFeedbackButton_CorrectlySetsCanSendEmailWhenFalse() async {
+    let aboutPage = AboutPageModel(mailService: MailServiceMock(shouldBeAbleToSendEmail: false))
+    await aboutPage.viewAppeared()
+    XCTAssertFalse(aboutPage.canSendEmail)
   }
 
-  @MainActor
-  @Suite("WaitlistButton")
-  struct WaitlistButtonTests {
-    @Test("Shows Feedback Email when MailComposer is available")
-    func testShowsFeedbackEmailWhenMailComposerIsAvailable() async {
-      let aboutPage = AboutPageModel(canSendEmail: true)
-      aboutPage.waitingListButtonTapped()
-      #expect(aboutPage.isShowingMailComposer == true)
-    }
+  func testFeedbackButton_ShowsFeedbackEmailWhenMailComposerIsAvailable() async {
+    let aboutPage = AboutPageModel(canSendEmail: true)
+    aboutPage.feedbackButtonTapped()
+    XCTAssertTrue(aboutPage.isShowingMailComposer)
+  }
 
-    @Test("Shows Feedback Email when MailComposer is unavailable but url can be created")
-    func testShowsFeedbackEmailWhenMailComposerIsUnavavailable() async {
-      let mailServiceMock = MailServiceMock(canCreateUrl: true)
-      let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
-      aboutPage.waitingListButtonTapped()
-      #expect(mailServiceMock.receivedEmail == "waitlist@playola.fm")
-      #expect(mailServiceMock.receivedSubject == "Add Me To The Waitlist")
-    }
+  func testFeedbackButton_ShowsFeedbackEmailWhenMailComposerIsUnavailable() async {
+    let mailServiceMock = MailServiceMock(canCreateUrl: true)
+    let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
+    aboutPage.feedbackButtonTapped()
+    XCTAssertEqual(mailServiceMock.receivedEmail, "feedback@playola.fm")
+    XCTAssertEqual(mailServiceMock.receivedSubject, "What I Think About Playola")
+  }
 
-    @Test("Shows Alert when no mail program could be opened")
-    func testShowsFeedbackEmailWhenMailCannotBeOpened() async {
-      let mailServiceMock = MailServiceMock(canCreateUrl: false)
-      let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
-      aboutPage.waitingListButtonTapped()
-      #expect(aboutPage.presentedAlert == .cannotOpenMailAlert)
-    }
+  func testFeedbackButton_ShowsAlertWhenMailCannotBeOpened() async {
+    let mailServiceMock = MailServiceMock(canCreateUrl: false)
+    let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
+    aboutPage.feedbackButtonTapped()
+    XCTAssertEqual(aboutPage.presentedAlert, .cannotOpenMailAlert)
+  }
+
+  // MARK: - Waitlist Button Tests
+
+  func testWaitlistButton_ShowsFeedbackEmailWhenMailComposerIsAvailable() async {
+    let aboutPage = AboutPageModel(canSendEmail: true)
+    aboutPage.waitingListButtonTapped()
+    XCTAssertTrue(aboutPage.isShowingMailComposer)
+  }
+
+  func testWaitlistButton_ShowsFeedbackEmailWhenMailComposerIsUnavailable() async {
+    let mailServiceMock = MailServiceMock(canCreateUrl: true)
+    let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
+    aboutPage.waitingListButtonTapped()
+    XCTAssertEqual(mailServiceMock.receivedEmail, "waitlist@playola.fm")
+    XCTAssertEqual(mailServiceMock.receivedSubject, "Add Me To The Waitlist")
+  }
+
+  func testWaitlistButton_ShowsAlertWhenMailCannotBeOpened() async {
+    let mailServiceMock = MailServiceMock(canCreateUrl: false)
+    let aboutPage = AboutPageModel(canSendEmail: false, mailService: mailServiceMock)
+    aboutPage.waitingListButtonTapped()
+    XCTAssertEqual(aboutPage.presentedAlert, .cannotOpenMailAlert)
   }
 }
