@@ -15,3 +15,5 @@ fastlane/report.xml
 
 # Claude generated files
 claude-files/
+
+DerivedData/
