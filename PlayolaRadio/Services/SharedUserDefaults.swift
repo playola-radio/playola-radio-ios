@@ -50,3 +50,9 @@ extension SharedKey where Self == FileStorageKey<Auth>.Default {
       default: Auth()]
   }
 }
+
+extension SharedKey where Self == InMemoryKey<RewardsProfile?>.Default {
+  static var rewardsProfile: Self {
+    Self[.inMemory("rewardsProfile"), default: nil]
+  }
+}

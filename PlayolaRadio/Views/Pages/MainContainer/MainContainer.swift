@@ -64,6 +64,7 @@ class MainContainerModel: ViewModel {
     }
 
     stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &cancellables)
+
   }
 
   func dismissButtonInSheetTapped() {
