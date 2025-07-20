@@ -84,6 +84,9 @@
 		D3B662742D419C3300975D2F /* LoggedInUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662732D419C3100975D2F /* LoggedInUser.swift */; };
 		D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662752D41B0C700975D2F /* SignInPageTests.swift */; };
 		D3B662C32D4272F900975D2F /* Secrets-Local.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D3B662C22D4272ED00975D2F /* Secrets-Local.xcconfig */; };
+		D3B744902E2D472B0042A427 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = D3B7448F2E2D472B0042A427 /* Dependencies */; };
+		D3B744922E2D472B0042A427 /* DependenciesMacros in Frameworks */ = {isa = PBXBuildFile; productRef = D3B744912E2D472B0042A427 /* DependenciesMacros */; };
+		D3B744942E2D472B0042A427 /* DependenciesTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = D3B744932E2D472B0042A427 /* DependenciesTestSupport */; };
 		D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */; };
 		D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */; };
 		D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */ = {isa = PBXBuildFile; productRef = D3BEE95C2D49A3BD00469CDC /* Testing */; };
@@ -192,7 +195,9 @@
 			files = (
 				D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */,
 				D35673B72D3DC6EC00E4E926 /* Mixpanel in Frameworks */,
+				D3B744922E2D472B0042A427 /* DependenciesMacros in Frameworks */,
 				D31C43D42D3C783B0021AAE4 /* PlayolaPlayer in Frameworks */,
+				D3B744902E2D472B0042A427 /* Dependencies in Frameworks */,
 				D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */,
 				D3B662702D40352500975D2F /* Alamofire in Frameworks */,
 				D3536A302BFA5523006942D6 /* ComposableArchitecture in Frameworks */,
@@ -206,6 +211,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */,
+				D3B744942E2D472B0042A427 /* DependenciesTestSupport in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -523,6 +529,8 @@
 				D3B6626F2D40352500975D2F /* Alamofire */,
 				D3A2761D2D43C747006055AF /* GoogleSignIn */,
 				D3A2761F2D43C747006055AF /* GoogleSignInSwift */,
+				D3B7448F2E2D472B0042A427 /* Dependencies */,
+				D3B744912E2D472B0042A427 /* DependenciesMacros */,
 			);
 			productName = PlayolaRadio;
 			productReference = D3536A012BFA4F49006942D6 /* PlayolaRadio.app */;
@@ -545,6 +553,7 @@
 			name = PlayolaRadioTests;
 			packageProductDependencies = (
 				D3BEE95C2D49A3BD00469CDC /* Testing */,
+				D3B744932E2D472B0042A427 /* DependenciesTestSupport */,
 			);
 			productName = PlayolaRadioTests;
 			productReference = D3536A112BFA4F4A006942D6 /* PlayolaRadioTests.xctest */;
@@ -586,6 +595,7 @@
 				D3A2761C2D43C747006055AF /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				D3BEE95B2D49A3BD00469CDC /* XCRemoteSwiftPackageReference "swift-testing" */,
 				D38483792E242D61008676BB /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
+				D3B7448E2E2D472B0042A427 /* XCRemoteSwiftPackageReference "swift-dependencies" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D3536A022BFA4F49006942D6 /* Products */;
@@ -1167,6 +1177,14 @@
 				minimumVersion = 5.10.2;
 			};
 		};
+		D3B7448E2E2D472B0042A427 /* XCRemoteSwiftPackageReference "swift-dependencies" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-dependencies";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.9.2;
+			};
+		};
 		D3BEE95B2D49A3BD00469CDC /* XCRemoteSwiftPackageReference "swift-testing" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/swiftlang/swift-testing";
@@ -1229,6 +1247,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D3B6626E2D40352500975D2F /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
+		};
+		D3B7448F2E2D472B0042A427 /* Dependencies */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3B7448E2E2D472B0042A427 /* XCRemoteSwiftPackageReference "swift-dependencies" */;
+			productName = Dependencies;
+		};
+		D3B744912E2D472B0042A427 /* DependenciesMacros */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3B7448E2E2D472B0042A427 /* XCRemoteSwiftPackageReference "swift-dependencies" */;
+			productName = DependenciesMacros;
+		};
+		D3B744932E2D472B0042A427 /* DependenciesTestSupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3B7448E2E2D472B0042A427 /* XCRemoteSwiftPackageReference "swift-dependencies" */;
+			productName = DependenciesTestSupport;
 		};
 		D3BEE95C2D49A3BD00469CDC /* Testing */ = {
 			isa = XCSwiftPackageProductDependency;
