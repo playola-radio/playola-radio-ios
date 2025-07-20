@@ -87,6 +87,8 @@
 		D3B744902E2D472B0042A427 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = D3B7448F2E2D472B0042A427 /* Dependencies */; };
 		D3B744922E2D472B0042A427 /* DependenciesMacros in Frameworks */ = {isa = PBXBuildFile; productRef = D3B744912E2D472B0042A427 /* DependenciesMacros */; };
 		D3B744942E2D472B0042A427 /* DependenciesTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = D3B744932E2D472B0042A427 /* DependenciesTestSupport */; };
+		D3B744972E2D478D0042A427 /* RewardsProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744962E2D478A0042A427 /* RewardsProfile.swift */; };
+		D3B7449A2E2D479C0042A427 /* RewardsProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744982E2D47910042A427 /* RewardsProfileTests.swift */; };
 		D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */; };
 		D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */; };
 		D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */ = {isa = PBXBuildFile; productRef = D3BEE95C2D49A3BD00469CDC /* Testing */; };
@@ -181,6 +183,8 @@
 		D3B662732D419C3100975D2F /* LoggedInUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggedInUser.swift; sourceTree = "<group>"; };
 		D3B662752D41B0C700975D2F /* SignInPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageTests.swift; sourceTree = "<group>"; };
 		D3B662C22D4272ED00975D2F /* Secrets-Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Local.xcconfig"; sourceTree = "<group>"; };
+		D3B744962E2D478A0042A427 /* RewardsProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsProfile.swift; sourceTree = "<group>"; };
+		D3B744982E2D47910042A427 /* RewardsProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsProfileTests.swift; sourceTree = "<group>"; };
 		D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProviderTests.swift; sourceTree = "<group>"; };
 		D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProvider.swift; sourceTree = "<group>"; };
 		D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserDefaults.swift; sourceTree = "<group>"; };
@@ -262,6 +266,7 @@
 		D3137DD02D3ABB490070033A /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				D3B744952E2D47800042A427 /* RewardsProfile */,
 				D3B662732D419C3100975D2F /* LoggedInUser.swift */,
 				D3B662712D41618500975D2F /* AppleSignInInfo.swift */,
 				D35673B12D3DC59100E4E926 /* RadioStation.swift */,
@@ -494,6 +499,15 @@
 			path = SignInPage;
 			sourceTree = "<group>";
 		};
+		D3B744952E2D47800042A427 /* RewardsProfile */ = {
+			isa = PBXGroup;
+			children = (
+				D3B744962E2D478A0042A427 /* RewardsProfile.swift */,
+				D3B744982E2D47910042A427 /* RewardsProfileTests.swift */,
+			);
+			path = RewardsProfile;
+			sourceTree = "<group>";
+		};
 		D3BECAC22E2017CB0009E618 /* PlayolaTokenProvider */ = {
 			isa = PBXGroup;
 			children = (
@@ -688,6 +702,7 @@
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */,
 				D339E5692BFD1C0800B9E35B /* API.swift in Sources */,
+				D3B744972E2D478D0042A427 /* RewardsProfile.swift in Sources */,
 				D382671C2E00C1460006BAC2 /* SmallPlayer.swift in Sources */,
 				D35673B42D3DC6D100E4E926 /* TrackingService.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
@@ -703,6 +718,7 @@
 				D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */,
 				D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */,
 				D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */,
+				D3B7449A2E2D479C0042A427 /* RewardsProfileTests.swift in Sources */,
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,
 				D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */,
 				D31C43AC2D3C65840021AAE4 /* NavigationCoordinatorMock.swift in Sources */,
