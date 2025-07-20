@@ -32,7 +32,7 @@ extension PlayolaSheet: EnumTypeEquatable {
   }
 }
 
-extension StationPlayer.PlaybackStatus: EnumTypeEquatable {
+extension StationPlayerPlaybackStatus: EnumTypeEquatable {
   static func ~= (lhs: Self, rhs: Self) -> Bool {
     switch (lhs, rhs) {
     case (.stopped, .stopped): return true

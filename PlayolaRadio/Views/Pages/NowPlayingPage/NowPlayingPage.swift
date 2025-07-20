@@ -6,6 +6,7 @@
 //
 
 import Combine
+import Dependencies
 import SwiftUI
 
 @MainActor
@@ -22,24 +23,22 @@ class NowPlayingPageModel: ViewModel {
   var presentedSheet: PlayolaSheet?
 
   init(
-    stationPlayer: StationPlayer? = nil,
     navigationCoordinator: NavigationCoordinator? = nil,
     presentedSheet: PlayolaSheet? = nil
   ) {
-    self.stationPlayer = stationPlayer ?? StationPlayer.shared
     self.navigationCoordinator = navigationCoordinator ?? .shared
     self.presentedSheet = presentedSheet
   }
 
   // MARK: Dependencies
 
-  @ObservationIgnored var stationPlayer: StationPlayer
+  @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
   @ObservationIgnored var navigationCoordinator: NavigationCoordinator
 
   func viewAppeared() {
-    processNewStationState(stationPlayer.state)
+    processNewStationState(stationPlayer.currentState())
 
-    stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &disposeBag)
+    stationPlayer.statePublisher.sink { self.processNewStationState($0) }.store(in: &disposeBag)
   }
 
   func aboutButtonTapped() {
@@ -53,7 +52,7 @@ class NowPlayingPageModel: ViewModel {
   }
 
   func stopButtonTapped() {
-    stationPlayer.stop()
+    Task { await stationPlayer.stop() }
     navigationCoordinator.path.removeLast()
   }
 
@@ -61,7 +60,7 @@ class NowPlayingPageModel: ViewModel {
 
   // MARK: Helpers
 
-  func processNewStationState(_ state: StationPlayer.State) {
+  func processNewStationState(_ state: StationPlayerState) {
     switch state.playbackStatus {
     case let .playing(radioStation):
       navigationBarTitle = "\(radioStation.name) \(radioStation.desc)"
@@ -143,7 +142,7 @@ struct NowPlayingView: View {
           //                  .onTapGesture {
           //                      print("Back")
           //                  }
-          Image(model.stationPlayer.currentStation != nil ? "btn-stop" : "btn-play")
+          Image(model.stationPlayer.currentState().currentStation != nil ? "btn-stop" : "btn-play")
             //          Image("btn-play")
             .resizable()
             .frame(width: 45, height: 45)
@@ -222,8 +221,7 @@ struct NowPlayingView: View {
         .edgesIgnoringSafeArea(.all)
 
       NowPlayingView(
-        model: NowPlayingPageModel(
-          stationPlayer: .shared))
+        model: NowPlayingPageModel())
     }
   }
   .accentColor(.white)

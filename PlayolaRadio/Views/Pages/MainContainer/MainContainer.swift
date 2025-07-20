@@ -6,6 +6,7 @@
 //
 
 import Combine
+import Dependencies
 import Sharing
 import SwiftUI
 
@@ -15,7 +16,7 @@ class MainContainerModel: ViewModel {
   var cancellables: Set<AnyCancellable> = []
 
   @ObservationIgnored var api: API!
-  @ObservationIgnored var stationPlayer: StationPlayer!
+  @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
 
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
 
@@ -35,21 +36,21 @@ class MainContainerModel: ViewModel {
   var shouldShowSmallPlayer: Bool = false
 
   var smallPlayerMainTitle: String {
-    stationPlayer.currentStation?.name ?? ""
+    stationPlayer.currentState().currentStation?.name ?? ""
   }
 
   var smallPlayerSecondaryTitle: String {
-    return stationPlayer.currentStation?.desc ?? ""
+    return stationPlayer.currentState().currentStation?.desc ?? ""
   }
 
   var smallPlayerArtworkURL: URL {
-    stationPlayer.state.albumArtworkUrl ?? stationPlayer.currentStation?.processedImageURL() ?? URL(
+    let currentState = stationPlayer.currentState()
+    return currentState.albumArtworkUrl ?? currentState.currentStation?.processedImageURL() ?? URL(
       string: "https://example.com")!
   }
 
-  init(api: API? = nil, stationPlayer: StationPlayer? = nil) {
+  init(api: API? = nil) {
     self.api = api ?? API()
-    self.stationPlayer = stationPlayer ?? .shared
   }
 
   func viewAppeared() async {
@@ -63,14 +64,14 @@ class MainContainerModel: ViewModel {
       presentedAlert = .errorLoadingStations
     }
 
-    stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &cancellables)
+    stationPlayer.statePublisher.sink { self.processNewStationState($0) }.store(in: &cancellables)
   }
 
   func dismissButtonInSheetTapped() {
     self.presentedSheet = nil
   }
 
-  func processNewStationState(_ newState: StationPlayer.State) {
+  func processNewStationState(_ newState: StationPlayerState) {
     switch newState.playbackStatus {
     case let .startingNewStation(_):
       self.presentedSheet = .player(
@@ -82,7 +83,7 @@ class MainContainerModel: ViewModel {
     self.setShouldShowSmallPlayer(newState)
   }
 
-  func setShouldShowSmallPlayer(_ stationPlayerState: StationPlayer.State) {
+  func setShouldShowSmallPlayer(_ stationPlayerState: StationPlayerState) {
     withAnimation {
       switch stationPlayerState.playbackStatus {
       case .playing, .startingNewStation, .loading:
@@ -94,7 +95,7 @@ class MainContainerModel: ViewModel {
   }
 
   func onSmallPlayerStopTapped() {
-    stationPlayer.stop()
+    Task { await stationPlayer.stop() }
   }
 
   func onSmallPlayerTapped() {

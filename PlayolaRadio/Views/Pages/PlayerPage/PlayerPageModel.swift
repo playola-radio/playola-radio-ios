@@ -6,6 +6,7 @@
 //
 
 import Combine
+import Dependencies
 import PlayolaPlayer
 import SwiftUI
 
@@ -45,16 +46,15 @@ class PlayerPageModel: ViewModel {
 
   var playerButtonImageName = PlayerButtonImageName.stop
 
-  @ObservationIgnored var stationPlayer: StationPlayer
+  @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
 
-  init(stationPlayer: StationPlayer? = nil, onDismiss: (() -> Void)? = nil) {
-    self.stationPlayer = stationPlayer ?? .shared
+  init(onDismiss: (() -> Void)? = nil) {
     self.onDismiss = onDismiss
   }
 
   func viewAppeared() {
-    processNewStationState(stationPlayer.state)
-    stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &cancellables)
+    processNewStationState(stationPlayer.currentState())
+    stationPlayer.statePublisher.sink { self.processNewStationState($0) }.store(in: &cancellables)
   }
 
   func setRelatedText(_ currentSpin: Spin?) {
@@ -71,7 +71,7 @@ class PlayerPageModel: ViewModel {
     }
   }
 
-  func processNewStationState(_ state: StationPlayer.State) {
+  func processNewStationState(_ state: StationPlayerState) {
     switch state.playbackStatus {
     case let .playing(radioStation):
       if let titlePlaying = state.titlePlaying, let artistPlaying = state.artistPlaying {
@@ -121,14 +121,14 @@ class PlayerPageModel: ViewModel {
 
   func playPauseButtonTapped() {
     // compared with `!=`.  Use pattern matching instead.
-    switch stationPlayer.state.playbackStatus {
+    switch stationPlayer.currentState().playbackStatus {
     case .stopped:
       // If it's currently stopped, start playing.
       if let station = self.previouslyPlayingStation {
-        stationPlayer.play(station: station)
+        Task { await stationPlayer.play(station) }
       }
     default:
-      stationPlayer.stop()
+      Task { await stationPlayer.stop() }
       onDismiss?()
     }
   }

@@ -4,38 +4,35 @@
 //
 //  Created by Brian D Keane on 1/18/25.
 //
+
 import Combine
+import Dependencies
+import DependenciesMacros
 import FRadioPlayer
 import Foundation
 import PlayolaPlayer
 import Sharing
 
-@MainActor
-class StationPlayer: ObservableObject {
-  var disposeBag: Set<AnyCancellable> = Set()
+// MARK: - StationPlayer Types
 
-  enum PlaybackStatus {
-    case startingNewStation(RadioStation)
-    case playing(RadioStation)
-    case stopped
-    case loading(RadioStation, Float? = nil)
-    case error
-  }
+enum StationPlayerPlaybackStatus {
+  case startingNewStation(RadioStation)
+  case playing(RadioStation)
+  case stopped
+  case loading(RadioStation, Float? = nil)
+  case error
+}
 
-  struct State {
-    var playbackStatus: PlaybackStatus
-    var artistPlaying: String?
-    var titlePlaying: String?
-    var albumArtworkUrl: URL?
-    var playolaSpinPlaying: Spin?
-  }
-
-  @Published var state = State(playbackStatus: .stopped)
-  let authProvider: PlayolaTokenProvider = .init()
+struct StationPlayerState {
+  var playbackStatus: StationPlayerPlaybackStatus
+  var artistPlaying: String?
+  var titlePlaying: String?
+  var albumArtworkUrl: URL?
+  var playolaSpinPlaying: Spin?
 
   /// The currently playing radio station, if any
-  public var currentStation: RadioStation? {
-    switch state.playbackStatus {
+  var currentStation: RadioStation? {
+    switch playbackStatus {
     case let .startingNewStation(radioStation):
       return radioStation
     case let .playing(radioStation):
@@ -46,13 +43,51 @@ class StationPlayer: ObservableObject {
       return nil
     }
   }
+}
 
-  static let shared = StationPlayer()
+// MARK: - StationPlayer Dependency
 
-  // MARK: Dependencies
+@DependencyClient
+struct StationPlayerClient {
+  var statePublisher: AnyPublisher<StationPlayerState, Never> = Empty().eraseToAnyPublisher()
+  var play: (RadioStation) async -> Void = { _ in }
+  var stop: () async -> Void = {}
+  var currentState: () -> StationPlayerState = { StationPlayerState(playbackStatus: .stopped) }
+}
 
-  var urlStreamPlayer: URLStreamPlayer
-  var playolaStationPlayer: PlayolaStationPlayer
+extension StationPlayerClient: DependencyKey {
+  static let liveValue: Self = {
+    let coordinator = StationPlayerCoordinator.shared
+    return Self(
+      statePublisher: coordinator.$state.eraseToAnyPublisher(),
+      play: { station in await coordinator.play(station: station) },
+      stop: { await coordinator.stop() },
+      currentState: { coordinator.state }
+    )
+  }()
+
+  static let testValue = Self()
+}
+
+extension DependencyValues {
+  var stationPlayer: StationPlayerClient {
+    get { self[StationPlayerClient.self] }
+    set { self[StationPlayerClient.self] = newValue }
+  }
+}
+
+// MARK: - StationPlayer Coordinator (Internal Implementation)
+
+@MainActor
+private class StationPlayerCoordinator: ObservableObject {
+  static let shared = StationPlayerCoordinator()
+
+  @Published var state = StationPlayerState(playbackStatus: .stopped)
+
+  private var disposeBag: Set<AnyCancellable> = Set()
+  private let authProvider: PlayolaTokenProvider = .init()
+  private let urlStreamPlayer: URLStreamPlayer
+  private let playolaStationPlayer: PlayolaStationPlayer
 
   init(
     urlStreamPlayer: URLStreamPlayer? = nil,
@@ -61,53 +96,60 @@ class StationPlayer: ObservableObject {
     self.urlStreamPlayer = urlStreamPlayer ?? .shared
     self.playolaStationPlayer = playolaStationPlayer ?? .shared
 
-    self.urlStreamPlayer.$state.sink(receiveValue: { state in
-      self.processUrlStreamStateChanged(state)
-    }).store(in: &disposeBag)
-
-    self.urlStreamPlayer.$albumArtworkURL.sink(receiveValue: { url in
-      self.processAlbumArtworkURLChanged(url)
-    }).store(in: &disposeBag)
-
-    self.playolaStationPlayer.$state.sink(receiveValue: { state in
-      self.processPlayolaStationPlayerState(state)
-    }).store(in: &disposeBag)
-
-    self.playolaStationPlayer.configure(
-      authProvider: self.authProvider, baseURL: Config.shared.baseUrl)
+    setupObservers()
+    configurePlayolaPlayer()
   }
 
-  // MARK: Public Interface
+  private func setupObservers() {
+    urlStreamPlayer.$state.sink { [weak self] state in
+      self?.processUrlStreamStateChanged(state)
+    }.store(in: &disposeBag)
 
-  /// Starts playing the specified radio station
-  /// - Parameter station: The radio station to play
-  public func play(station: RadioStation) {
-    guard currentStation != station else { return }
-    stop()
-    state = State(playbackStatus: .startingNewStation(station))
-    state = State(playbackStatus: .loading(station))
+    urlStreamPlayer.$albumArtworkURL.sink { [weak self] url in
+      self?.processAlbumArtworkURLChanged(url)
+    }.store(in: &disposeBag)
+
+    playolaStationPlayer.$state.sink { [weak self] state in
+      self?.processPlayolaStationPlayerState(state)
+    }.store(in: &disposeBag)
+  }
+
+  private func configurePlayolaPlayer() {
+    playolaStationPlayer.configure(
+      authProvider: authProvider,
+      baseURL: Config.shared.baseUrl
+    )
+  }
+
+  // MARK: - Public Interface
+
+  func play(station: RadioStation) async {
+    guard state.currentStation != station else { return }
+    await stop()
+
+    state = StationPlayerState(playbackStatus: .startingNewStation(station))
+    state = StationPlayerState(playbackStatus: .loading(station))
 
     if station.streamURL != nil {
       urlStreamPlayer.set(station: station)
     } else if let playolaID = station.playolaID {
       urlStreamPlayer.reset()
-      Task { try? await playolaStationPlayer.play(stationId: playolaID) }
+      try? await playolaStationPlayer.play(stationId: playolaID)
     }
   }
 
-  /// Stops the currently playing station
-  public func stop() {
+  func stop() async {
     urlStreamPlayer.reset()
     playolaStationPlayer.stop()
-    state = State(playbackStatus: .stopped)
+    state = StationPlayerState(playbackStatus: .stopped)
   }
 
-  func processPlayolaStationPlayerState(
-    _ playolaState: PlayolaStationPlayer.State?
-  ) {
+  // MARK: - State Processing
+
+  private func processPlayolaStationPlayerState(_ playolaState: PlayolaStationPlayer.State?) {
     switch playolaState {
     case .idle:
-      state = .init(
+      state = StationPlayerState(
         playbackStatus: .stopped,
         artistPlaying: nil,
         titlePlaying: nil,
@@ -115,8 +157,8 @@ class StationPlayer: ObservableObject {
         playolaSpinPlaying: nil
       )
     case let .loading(progress):
-      guard let currentStation else { return }
-      state = .init(
+      guard let currentStation = state.currentStation else { return }
+      state = StationPlayerState(
         playbackStatus: .loading(currentStation, progress),
         artistPlaying: nil,
         titlePlaying: nil,
@@ -124,8 +166,8 @@ class StationPlayer: ObservableObject {
         playolaSpinPlaying: nil
       )
     case let .playing(nowPlaying):
-      if let currentStation {
-        state = .init(
+      if let currentStation = state.currentStation {
+        state = StationPlayerState(
           playbackStatus: .playing(currentStation),
           artistPlaying: nowPlaying.audioBlock.artist,
           titlePlaying: nowPlaying.audioBlock.title,
@@ -133,9 +175,8 @@ class StationPlayer: ObservableObject {
           playolaSpinPlaying: nowPlaying
         )
       }
-
     case .none:
-      state = .init(
+      state = StationPlayerState(
         playbackStatus: .error,
         artistPlaying: nil,
         titlePlaying: nil,
@@ -145,36 +186,34 @@ class StationPlayer: ObservableObject {
     }
   }
 
-  private func processUrlStreamStateChanged(
-    _ urlStreamPlayerState: URLStreamPlayer.State
-  ) {
+  private func processUrlStreamStateChanged(_ urlStreamPlayerState: URLStreamPlayer.State) {
     switch urlStreamPlayerState.playerStatus {
     case .loading:
-      guard let currentStation else {
+      guard let currentStation = state.currentStation else {
         // Log error: currentStation is nil while URLStreamPlayer.state.playerStatus is .loading
         return
       }
-      state = State(playbackStatus: .loading(currentStation))
+      state = StationPlayerState(playbackStatus: .loading(currentStation))
     case .loadingFinished, .readyToPlay:
-      guard let currentStation else {
+      guard let currentStation = state.currentStation else {
         // Log error: currentStation is nil while URLStreamPlayer.state.playerStatus is .loadingFinished
         return
       }
-      state = State(
+      state = StationPlayerState(
         playbackStatus: .playing(currentStation),
         artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
         titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
         albumArtworkUrl: nil
       )
     case .error:
-      state = State(playbackStatus: .error)
+      state = StationPlayerState(playbackStatus: .error)
     case .urlNotSet, .none:
-      state = State(playbackStatus: .stopped)
+      state = StationPlayerState(playbackStatus: .stopped)
     }
   }
 
   private func processAlbumArtworkURLChanged(_ albumArtworkURL: URL?) {
-    state = State(
+    state = StationPlayerState(
       playbackStatus: state.playbackStatus,
       artistPlaying: state.artistPlaying,
       titlePlaying: state.titlePlaying,
@@ -184,7 +223,43 @@ class StationPlayer: ObservableObject {
   }
 }
 
+// MARK: - Legacy Support (Deprecated)
+
+@MainActor
+@available(*, deprecated, message: "Use StationPlayerClient dependency instead")
+class StationPlayer: ObservableObject {
+  var state: StationPlayerState {
+    get { StationPlayerCoordinator.shared.state }
+    set { StationPlayerCoordinator.shared.state = newValue }
+  }
+
+  var currentStation: RadioStation? {
+    StationPlayerCoordinator.shared.state.currentStation
+  }
+
+  static let shared = StationPlayer()
+
+  private init() {}
+
+  func play(station: RadioStation) {
+    Task { await StationPlayerCoordinator.shared.play(station: station) }
+  }
+
+  func stop() {
+    Task { await StationPlayerCoordinator.shared.stop() }
+  }
+}
+
+// MARK: - Backward Compatibility Type Aliases
+
+@available(*, deprecated, renamed: "StationPlayerPlaybackStatus")
+typealias PlaybackStatus = StationPlayerPlaybackStatus
+
+@available(*, deprecated, renamed: "StationPlayerState")
+typealias State = StationPlayerState
+
 // MARK: - AudioBlockProvider Protocol
+
 protocol AudioBlockProvider {
   var audioBlock: AudioBlock? { get }
 }

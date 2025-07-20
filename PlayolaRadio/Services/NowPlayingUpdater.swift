@@ -5,19 +5,20 @@
 //  Created by Brian D Keane on 1/20/25.
 //
 import Combine
+import Dependencies
 import MediaPlayer
 
 @MainActor
 class NowPlayingUpdater {
-  var stationPlayer: StationPlayer
+  @Dependency(\.stationPlayer) var stationPlayer
 
   static var shared = NowPlayingUpdater()
 
   private var disposeBag = Set<AnyCancellable>()
-  private func updateNowPlaying(with stationPlayerState: StationPlayer.State) {
+  private func updateNowPlaying(with stationPlayerState: StationPlayerState) {
     var nowPlayingInfo = [String: Any]()
 
-    guard let currentStation = stationPlayer.currentStation else {
+    guard let currentStation = stationPlayerState.currentStation else {
       MPNowPlayingInfoCenter.default().playbackState = .stopped
       return
     }
@@ -55,9 +56,8 @@ class NowPlayingUpdater {
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
   }
 
-  init(stationPlayer: StationPlayer? = nil) {
-    self.stationPlayer = stationPlayer ?? .shared
-    self.stationPlayer.$state.sink { state in
+  init() {
+    stationPlayer.statePublisher.sink { state in
       self.updateNowPlaying(with: state)
     }.store(in: &disposeBag)
     setupRemoteControlCenter()
@@ -68,7 +68,7 @@ class NowPlayingUpdater {
     let commandCenter = MPRemoteCommandCenter.shared()
     commandCenter.stopCommand.isEnabled = true
     commandCenter.stopCommand.addTarget { _ in
-      self.stationPlayer.stop()
+      Task { await self.stationPlayer.stop() }
       return .success
     }
   }
