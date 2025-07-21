@@ -314,15 +314,6 @@ final class MainContainerTests: XCTestCase {
 
   // MARK: - Dismiss Button Tests
 
-  func testDismissButton_DismissButtonInSheetTappedClearsPresentedSheet() {
-    let mainContainerModel = MainContainerModel()
-    mainContainerModel.presentedSheet = .about(AboutPageModel())
-
-    mainContainerModel.dismissButtonInSheetTapped()
-
-    XCTAssertNil(mainContainerModel.presentedSheet)
-  }
-
   func testDismissButton_PlayerPageOnDismissClearsPresentedSheet() {
     let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
     let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)

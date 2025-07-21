@@ -42,10 +42,6 @@ class NowPlayingPageModel: ViewModel {
     stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &disposeBag)
   }
 
-  func aboutButtonTapped() {
-    presentedSheet = .about(AboutPageModel())
-  }
-
   func infoButtonTapped() {}
   func shareButtonTapped() {}
   func dismissAboutSheetButtonTapped() {

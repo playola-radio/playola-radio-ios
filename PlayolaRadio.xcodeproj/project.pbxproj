@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		D3137DBB2D3976580070033A /* PlayolaAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBA2D3976550070033A /* PlayolaAlert.swift */; };
-		D3137DBD2D397FD10070033A /* AboutPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBC2D397FBA0070033A /* AboutPageTests.swift */; };
 		D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBF2D3981880070033A /* MailServiceMock.swift */; };
 		D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DC12D39B4FC0070033A /* StationListPageTests.swift */; };
 		D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DC52D39BEDD0070033A /* URLStreamPlayerMock.swift */; };
@@ -31,7 +30,6 @@
 		D339E5692BFD1C0800B9E35B /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5682BFD1C0800B9E35B /* API.swift */; };
 		D339E56D2BFD2FAB00B9E35B /* URLStreamPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E56C2BFD2FAB00B9E35B /* URLStreamPlayer.swift */; };
 		D339E56F2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E56E2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift */; };
-		D339E5762BFD419400B9E35B /* AboutPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5752BFD419400B9E35B /* AboutPage.swift */; };
 		D339E57C2BFD698600B9E35B /* Mail.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E57B2BFD698600B9E35B /* Mail.swift */; };
 		D339E57E2BFD750700B9E35B /* MailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E57D2BFD750700B9E35B /* MailService.swift */; };
 		D342A0C72DFCB368002BAC30 /* HomePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B32DF88BD9001BC6F9 /* HomePageTests.swift */; };
@@ -106,7 +104,6 @@
 
 /* Begin PBXFileReference section */
 		D3137DBA2D3976550070033A /* PlayolaAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaAlert.swift; sourceTree = "<group>"; };
-		D3137DBC2D397FBA0070033A /* AboutPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutPageTests.swift; sourceTree = "<group>"; };
 		D3137DBF2D3981880070033A /* MailServiceMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailServiceMock.swift; sourceTree = "<group>"; };
 		D3137DC12D39B4FC0070033A /* StationListPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPageTests.swift; sourceTree = "<group>"; };
 		D3137DC52D39BEDD0070033A /* URLStreamPlayerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLStreamPlayerMock.swift; sourceTree = "<group>"; };
@@ -128,7 +125,6 @@
 		D339E5682BFD1C0800B9E35B /* API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
 		D339E56C2BFD2FAB00B9E35B /* URLStreamPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLStreamPlayer.swift; sourceTree = "<group>"; };
 		D339E56E2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FRadioPlayerMetadata+Equatable.swift"; sourceTree = "<group>"; };
-		D339E5752BFD419400B9E35B /* AboutPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutPage.swift; sourceTree = "<group>"; };
 		D339E57B2BFD698600B9E35B /* Mail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mail.swift; sourceTree = "<group>"; };
 		D339E57D2BFD750700B9E35B /* MailService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailService.swift; sourceTree = "<group>"; };
 		D34D5C382D7106CA00148048 /* AuthServiceMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthServiceMock.swift; sourceTree = "<group>"; };
@@ -245,15 +241,6 @@
 			path = StationListPage;
 			sourceTree = "<group>";
 		};
-		D3137DCD2D3A9FD20070033A /* AboutPage */ = {
-			isa = PBXGroup;
-			children = (
-				D339E5752BFD419400B9E35B /* AboutPage.swift */,
-				D3137DBC2D397FBA0070033A /* AboutPageTests.swift */,
-			);
-			path = AboutPage;
-			sourceTree = "<group>";
-		};
 		D3137DD02D3ABB490070033A /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -299,7 +286,6 @@
 				D3137DCB2D3A9F9E0070033A /* NowPlayingPage */,
 				D3536A062BFA4F49006942D6 /* ContentView.swift */,
 				D3137DCC2D3A9FAA0070033A /* StationListPage */,
-				D3137DCD2D3A9FD20070033A /* AboutPage */,
 			);
 			path = Pages;
 			sourceTree = "<group>";
@@ -661,7 +647,6 @@
 				D3B662742D419C3300975D2F /* LoggedInUser.swift in Sources */,
 				D3536A322BFA64AB006942D6 /* StationList.swift in Sources */,
 				D37257B72DF88DCD001BC6F9 /* CircleSection.swift in Sources */,
-				D339E5762BFD419400B9E35B /* AboutPage.swift in Sources */,
 				D3137DD22D3ABB520070033A /* GenericNowPlaying.swift in Sources */,
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
 				D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */,
@@ -703,7 +688,6 @@
 				D34D5C392D7106CD00148048 /* AuthServiceMock.swift in Sources */,
 				D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */,
 				D342A0C72DFCB368002BAC30 /* HomePageTests.swift in Sources */,
-				D3137DBD2D397FD10070033A /* AboutPageTests.swift in Sources */,
 				D31CD5272DFBB4DF009B9780 /* MainContainerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

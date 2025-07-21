@@ -166,10 +166,6 @@ struct MainContainer: View {
       item: $model.presentedSheet,
       content: { item in
         switch item {
-        case let .about(aboutModel):
-          NavigationStack {
-            AboutPage(model: aboutModel)
-          }
         case let .player(playerPageModel):
           PlayerPage(model: playerPageModel)
         }
