@@ -6,6 +6,8 @@
 //
 
 import AuthenticationServices
+import Dependencies
+import Sharing
 import XCTest
 
 @testable import PlayolaRadio

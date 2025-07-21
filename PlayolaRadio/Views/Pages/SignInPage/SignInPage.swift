@@ -58,12 +58,17 @@ class SignInPageModel: ViewModel {
         return
       }
       Task {
-        await api.signInViaApple(
-          identityToken,
-          email,
-          authCode,
-          appleIDCredential.fullName?.formatted())
-        self.navigationCoordinator.activePath = .listen
+        do {
+          let token = try await api.signInViaApple(
+            identityToken,
+            email,
+            authCode,
+            appleIDCredential.fullName?.formatted())
+          $auth.withLock { $0 = Auth(jwtToken: token) }
+          self.navigationCoordinator.activePath = .listen
+        } catch {
+          print("Sign in failed: \(error)")
+        }
       }
     case let .failure(error):
       print(error)
@@ -88,8 +93,13 @@ class SignInPageModel: ViewModel {
           return
         }
         Task {
-          await self.api.signInViaGoogle(serverAuthCode)
-          self.navigationCoordinator.activePath = .listen
+          do {
+            let token = try await self.api.signInViaGoogle(serverAuthCode)
+            self.$auth.withLock { $0 = Auth(jwtToken: token) }
+            self.navigationCoordinator.activePath = .listen
+          } catch {
+            print("Google sign in failed: \(error)")
+          }
         }
       }
     }
