@@ -6,17 +6,66 @@
 //
 
 import Alamofire
+import Dependencies
+import DependenciesMacros
 import Foundation
 import IdentifiedCollections
 import Sharing
 
-class API {
-  static let stationsURL = URL(
-    string: "\(Config.shared.baseUrl.absoluteString)/v1/developer/stationLists")!
+// MARK: - API Dependency
+
+@DependencyClient
+struct APIClient {
+  var getStations: () async throws -> IdentifiedArrayOf<StationList> = { [] }
+  var signInViaApple: (String, String, String, String?) async -> Void = { _, _, _, _ in }
+  var revokeAppleCredentials: (String) async -> Void = { _ in }
+  var signInViaGoogle: (String) async -> Void = { _ in }
+}
+
+extension APIClient: DependencyKey {
+  static let liveValue: Self = {
+    let coordinator = APICoordinator.shared
+    return Self(
+      getStations: { try await coordinator.getStations() },
+      signInViaApple: { identityToken, email, authCode, displayName in
+        await coordinator.signInViaApple(
+          identityToken: identityToken,
+          email: email,
+          authCode: authCode,
+          displayName: displayName
+        )
+      },
+      revokeAppleCredentials: { appleUserId in
+        await coordinator.revokeAppleCredentials(appleUserId: appleUserId)
+      },
+      signInViaGoogle: { code in
+        await coordinator.signInViaGoogle(code: code)
+      }
+    )
+  }()
+
+  static let testValue = Self()
+}
+
+extension DependencyValues {
+  var api: APIClient {
+    get { self[APIClient.self] }
+    set { self[APIClient.self] = newValue }
+  }
+}
+
+// MARK: - API Coordinator (Internal Implementation)
+
+@MainActor
+private class APICoordinator {
+  static let shared = APICoordinator()
 
   @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
   @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @Shared(.auth) var auth: Auth
+
+  private let stationsURL = URL(
+    string: "\(Config.shared.baseUrl.absoluteString)/v1/developer/stationLists")!
 
   // Helper struct to get either local or remote JSON
   func getStations(
@@ -200,7 +249,7 @@ class API {
     let session = URLSession(configuration: config)
 
     // Use URLSession to get data from an NSURL
-    let loadDataTask = session.dataTask(with: API.stationsURL) {
+    let loadDataTask = session.dataTask(with: stationsURL) {
       data, response, error in
 
       if let error {

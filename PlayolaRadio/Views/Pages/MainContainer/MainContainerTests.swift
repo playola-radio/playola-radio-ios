@@ -7,7 +7,9 @@
 
 // swiftlint:disable force_try
 
+import Dependencies
 import Foundation
+import IdentifiedCollections
 import Sharing
 import XCTest
 
@@ -55,17 +57,34 @@ final class MainContainerTests: XCTestCase {
   func testViewAppeared_CorrectlyRetrievesStationListsWhenApiIsSuccessful() async {
     @Shared(.stationListsLoaded) var stationListsLoaded = false
     @Shared(.stationLists) var stationLists = StationList.mocks
-    let apiMock = APIMock(getStationListsShouldSucceed: true)
-    let mainContainerModel = MainContainerModel(api: apiMock)
+    var getStationsCallCount = 0
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = {
+        getStationsCallCount += 1
+        return StationList.mocks
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
     await mainContainerModel.viewAppeared()
-    XCTAssertEqual(apiMock.getStationListsCallCount, 1)
+    XCTAssertEqual(getStationsCallCount, 1)
   }
 
   func testViewAppeared_DisplaysAnErrorAlertOnApiError() async {
     @Shared(.stationListsLoaded) var stationListsLoaded = false
     @Shared(.stationLists) var stationLists = StationList.mocks
-    let apiMock = APIMock(getStationListsShouldSucceed: false)
-    let mainContainerModel = MainContainerModel(api: apiMock)
+    struct TestError: Error {}
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = {
+        throw TestError()
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
     await mainContainerModel.viewAppeared()
     XCTAssertEqual(mainContainerModel.presentedAlert, .errorLoadingStations)
   }
@@ -74,7 +93,13 @@ final class MainContainerTests: XCTestCase {
 
   func testSmallPlayerProperties_ShouldShowSmallPlayerWhenPlaying() async {
     let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
-    let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+    } operation: {
+      MainContainerModel(stationPlayer: stationPlayerMock)
+    }
+
     await mainContainerModel.viewAppeared()
     XCTAssertTrue(mainContainerModel.shouldShowSmallPlayer)
   }
@@ -82,14 +107,26 @@ final class MainContainerTests: XCTestCase {
   func testSmallPlayerProperties_ShouldShowSmallPlayerWhenLoading() async {
     let stationPlayerMock = StationPlayerMock()
     stationPlayerMock.state = StationPlayer.State(playbackStatus: .loading(.mock))
-    let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+    } operation: {
+      MainContainerModel(stationPlayer: stationPlayerMock)
+    }
+
     await mainContainerModel.viewAppeared()
     XCTAssertTrue(mainContainerModel.shouldShowSmallPlayer)
   }
 
   func testSmallPlayerProperties_ShouldShowSmallPlayerWhenStopped() async {
     let stationPlayerMock = StationPlayerMock.mockStoppedPlayer()
-    let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+    } operation: {
+      MainContainerModel(stationPlayer: stationPlayerMock)
+    }
+
     await mainContainerModel.viewAppeared()
     XCTAssertFalse(mainContainerModel.shouldShowSmallPlayer)
   }
@@ -97,7 +134,13 @@ final class MainContainerTests: XCTestCase {
   func testSmallPlayerProperties_ShouldShowSmallPlayerWhenError() async {
     let stationPlayerMock = StationPlayerMock()
     stationPlayerMock.state = StationPlayer.State(playbackStatus: .error)
-    let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+    } operation: {
+      MainContainerModel(stationPlayer: stationPlayerMock)
+    }
+
     await mainContainerModel.viewAppeared()
     XCTAssertFalse(mainContainerModel.shouldShowSmallPlayer)
   }
@@ -105,7 +148,13 @@ final class MainContainerTests: XCTestCase {
   func testSmallPlayerProperties_ShouldShowSmallPlayerWhenStartingNewStation() async {
     let stationPlayerMock = StationPlayerMock()
     stationPlayerMock.state = StationPlayer.State(playbackStatus: .startingNewStation(.mock))
-    let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+    } operation: {
+      MainContainerModel(stationPlayer: stationPlayerMock)
+    }
+
     await mainContainerModel.viewAppeared()
     XCTAssertTrue(mainContainerModel.shouldShowSmallPlayer)
   }
@@ -184,7 +233,13 @@ final class MainContainerTests: XCTestCase {
 
   func testSmallPlayerActions_SmallPlayerHidesWhenStopButtonPressed() async {
     let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
-    let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+    } operation: {
+      MainContainerModel(stationPlayer: stationPlayerMock)
+    }
+
     await mainContainerModel.viewAppeared()
     // Verify small player should be showing initially
     XCTAssertTrue(mainContainerModel.shouldShowSmallPlayer)
