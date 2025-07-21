@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 1/21/25.
 //
 import AuthenticationServices
+import Dependencies
 import GoogleSignIn
 import GoogleSignInSwift
 import Sharing
@@ -13,6 +14,7 @@ import SwiftUI
 @MainActor
 @Observable
 class SignInPageModel: ViewModel {
+  @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Shared(.appleSignInInfo) var appleSignInInfo: AppleSignInInfo?
   @ObservationIgnored @Shared(.auth) var auth: Auth
   var navigationCoordinator: NavigationCoordinator
@@ -20,8 +22,6 @@ class SignInPageModel: ViewModel {
   init(navigationCoordinator: NavigationCoordinator = .shared) {
     self.navigationCoordinator = navigationCoordinator
   }
-
-  // MARK: State
 
   // MARK: Actions
 
@@ -58,11 +58,11 @@ class SignInPageModel: ViewModel {
         return
       }
       Task {
-        await API().signInViaApple(
-          identityToken: identityToken,
-          email: email,
-          authCode: authCode,
-          displayName: appleIDCredential.fullName?.formatted())
+        await api.signInViaApple(
+          identityToken,
+          email,
+          authCode,
+          appleIDCredential.fullName?.formatted())
         self.navigationCoordinator.activePath = .listen
       }
     case let .failure(error):
@@ -88,7 +88,7 @@ class SignInPageModel: ViewModel {
           return
         }
         Task {
-          await API().signInViaGoogle(code: serverAuthCode)
+          await self.api.signInViaGoogle(serverAuthCode)
           self.navigationCoordinator.activePath = .listen
         }
       }
@@ -98,8 +98,8 @@ class SignInPageModel: ViewModel {
   func logOutButtonTapped() {
     $auth.withLock { $0 = Auth() }
     Task {
-      await API().revokeAppleCredentials(
-        appleUserId: "000014.59c02331e3a642fd8bebedd86d191ed3.1758")
+      //      await API().revokeAppleCredentials(
+      //        appleUserId: "000014.59c02331e3a642fd8bebedd86d191ed3.1758")
     }
   }
 }

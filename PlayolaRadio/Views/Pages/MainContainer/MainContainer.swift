@@ -6,6 +6,7 @@
 //
 
 import Combine
+import Dependencies
 import Sharing
 import SwiftUI
 
@@ -14,7 +15,7 @@ import SwiftUI
 class MainContainerModel: ViewModel {
   var cancellables: Set<AnyCancellable> = []
 
-  @ObservationIgnored var api: API!
+  @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored var stationPlayer: StationPlayer!
 
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
@@ -47,15 +48,13 @@ class MainContainerModel: ViewModel {
       string: "https://example.com")!
   }
 
-  init(api: API? = nil, stationPlayer: StationPlayer? = nil) {
-    self.api = api ?? API()
+  init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
   }
 
   func viewAppeared() async {
     // Exit early if we already have the data.
     guard !stationListsLoaded else { return }
-    guard let api = self.api else { return }
 
     do {
       try await api.getStations()
