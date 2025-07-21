@@ -23,7 +23,7 @@ struct APIClient {
   var signInViaGoogle: (String) async throws -> String = { _ in "" }
 }
 
-extension APIClient: DependencyKey {
+extension APIClient: DependencyKey, Sendable {
   static let liveValue: Self = {
     return Self(
       getStations: {
@@ -36,7 +36,7 @@ extension APIClient: DependencyKey {
         return IdentifiedArray(uniqueElements: stationLists)
       },
       signInViaApple: { identityToken, email, authCode, displayName in
-        var parameters: [String: Any] = [
+        var parameters: [String: String] = [
           "identityToken": identityToken,
           "authCode": authCode,
           "email": email,
@@ -54,7 +54,7 @@ extension APIClient: DependencyKey {
         return response.playolaToken
       },
       revokeAppleCredentials: { appleUserId in
-        let parameters: [String: Any] = ["appleUserId": appleUserId]
+        let parameters: [String: String] = ["appleUserId": appleUserId]
         _ = try await AF.request(
           "\(Config.shared.baseUrl.absoluteString)/v1/auth/apple/revoke",
           method: .put,
@@ -69,7 +69,7 @@ extension APIClient: DependencyKey {
         AuthService.shared.clearAppleUser()
       },
       signInViaGoogle: { code in
-        let parameters: [String: Any] = [
+        let parameters: [String: Sendable] = [
           "code": code,
           "originatesFromIOS": true,
         ]
