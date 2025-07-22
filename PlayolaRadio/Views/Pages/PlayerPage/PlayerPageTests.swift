@@ -224,6 +224,41 @@ final class PlayerPageTests: XCTestCase {
     XCTAssertEqual(model.playolaAudioBlockPlaying, audioBlock)
   }
 
+  func testRelatedText_ReturnsConsistentValueForSameSpin() {
+    let station = RadioStation.mock
+    let audioBlock = AudioBlock.mockWith(transcription: nil)
+
+    let relatedTexts = [
+      RelatedText(title: "title1", body: "body1"),
+      RelatedText(title: "title2", body: "body2"),
+    ]
+    let spin = Spin.mockWith(audioBlock: audioBlock, relatedTexts: relatedTexts)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "Rachel Loy",
+      titlePlaying: "Selfie",
+      playolaSpinPlaying: spin,
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+    model.viewAppeared()
+
+    // Get the first relatedText result
+    let firstResult = model.relatedText
+    XCTAssertNotNil(firstResult)
+
+    // Get it again - should be the same
+    let secondResult = model.relatedText
+    XCTAssertEqual(firstResult, secondResult)
+
+    // And again - should still be the same
+    let thirdResult = model.relatedText
+    XCTAssertEqual(firstResult, thirdResult)
+  }
+
   // MARK: - playPauseButtonTapped Tests
 
   func testPlayPauseButtonTapped_StopsWhenPlaying() {

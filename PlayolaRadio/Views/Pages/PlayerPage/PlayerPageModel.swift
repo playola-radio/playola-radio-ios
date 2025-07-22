@@ -91,14 +91,20 @@ class PlayerPageModel: ViewModel {
 
   var relatedText: RelatedText? {
     guard let currentSpin = playolaSpinPlaying else { return nil }
+    guard _chosenRelatedText.1 != currentSpin.id else {
+      return _chosenRelatedText.0
+    }
     if let transcription = currentSpin.audioBlock.transcription {
       return RelatedText(title: "Why I chose this song", body: transcription)
-    } else if let relatedTexts = currentSpin.relatedTexts?.randomElement() {
-      return relatedTexts
+    } else if let relatedText = currentSpin.relatedTexts?.randomElement() {
+      _chosenRelatedText = (relatedText, currentSpin.id)
+      return relatedText
     } else {
       return nil
     }
   }
+
+  var _chosenRelatedText: (RelatedText?, String) = (nil, "")
 
   // MARK: Callbacks
   var onDismiss: (() -> Void)?
