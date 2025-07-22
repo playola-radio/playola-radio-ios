@@ -84,6 +84,8 @@
 		D3B744AD2E2FCD930042A427 /* MainContainerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744AC2E2FCD8E0042A427 /* MainContainerModel.swift */; };
 		D3B744B02E2FE6FB0042A427 /* RewardsProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */; };
 		D3B744B42E2FECE10042A427 /* LocalListeningSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744B32E2FECC80042A427 /* LocalListeningSession.swift */; };
+		D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744B62E2FED8D0042A427 /* ListeningTracker.swift */; };
+		D3B744B92E2FF16F0042A427 /* ListeningTimeTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744B82E2FF1600042A427 /* ListeningTimeTile.swift */; };
 		D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */; };
 		D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */; };
 		D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */ = {isa = PBXBuildFile; productRef = D3BEE95C2D49A3BD00469CDC /* Testing */; };
@@ -176,6 +178,8 @@
 		D3B744AC2E2FCD8E0042A427 /* MainContainerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainerModel.swift; sourceTree = "<group>"; };
 		D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsProfile.swift; sourceTree = "<group>"; };
 		D3B744B32E2FECC80042A427 /* LocalListeningSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalListeningSession.swift; sourceTree = "<group>"; };
+		D3B744B62E2FED8D0042A427 /* ListeningTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTracker.swift; sourceTree = "<group>"; };
+		D3B744B82E2FF1600042A427 /* ListeningTimeTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTimeTile.swift; sourceTree = "<group>"; };
 		D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProviderTests.swift; sourceTree = "<group>"; };
 		D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProvider.swift; sourceTree = "<group>"; };
 		D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserDefaults.swift; sourceTree = "<group>"; };
@@ -287,6 +291,7 @@
 		D339E55D2BFD0FC200B9E35B /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				D3B744B82E2FF1600042A427 /* ListeningTimeTile.swift */,
 				D31CD5222DFBA1EC009B9780 /* ViewModel.swift */,
 				D3137DBA2D3976550070033A /* PlayolaAlert.swift */,
 				D339E55F2BFD0FD800B9E35B /* AirPlayView.swift */,
@@ -324,6 +329,7 @@
 				D35673B82D3DC9DE00E4E926 /* Config */,
 				D35673AE2D3DC54300E4E926 /* CarPlay */,
 				D339E55A2BFD0CE200B9E35B /* Dependencies */,
+				D3B744B52E2FED6E0042A427 /* Shared */,
 				D3536A392BFA6520006942D6 /* Extensions */,
 				D339E55B2BFD0CEE00B9E35B /* Views */,
 				D3536A082BFA4F4A006942D6 /* Assets.xcassets */,
@@ -478,6 +484,14 @@
 			path = SmallPlayer;
 			sourceTree = "<group>";
 		};
+		D3B744B52E2FED6E0042A427 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				D3B744B62E2FED8D0042A427 /* ListeningTracker.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		D3BECAC22E2017CB0009E618 /* PlayolaTokenProvider */ = {
 			isa = PBXGroup;
 			children = (
@@ -629,6 +643,7 @@
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
 				D37257B22DF88BC1001BC6F9 /* HomePageModel.swift in Sources */,
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
+				D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */,
 				D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */,
 				D3B6626A2D40103C00975D2F /* SignInPage.swift in Sources */,
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
@@ -651,6 +666,7 @@
 				D3B662742D419C3300975D2F /* LoggedInUser.swift in Sources */,
 				D3536A322BFA64AB006942D6 /* StationList.swift in Sources */,
 				D37257B72DF88DCD001BC6F9 /* CircleSection.swift in Sources */,
+				D3B744B92E2FF16F0042A427 /* ListeningTimeTile.swift in Sources */,
 				D3137DD22D3ABB520070033A /* GenericNowPlaying.swift in Sources */,
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
 				D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */,
@@ -858,7 +874,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -898,7 +914,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1039,7 +1055,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

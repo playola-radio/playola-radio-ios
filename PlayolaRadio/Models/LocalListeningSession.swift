@@ -7,7 +7,11 @@
 import Foundation
 
 struct LocalListeningSession {
-  var id: UUID = UUID()
   var startTime: Date!
-  var endTime: Date?
+  var endTime: Date? = nil
+
+  var totalTimeMS: Int {
+    let finishTime: Date = endTime ?? .now
+    return Int(finishTime.timeIntervalSince(startTime) * 1000)
+  }
 }

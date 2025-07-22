@@ -1,0 +1,58 @@
+//
+//  ListeningTimeTile.swift
+//  PlayolaRadio
+//
+//  Created by Brian D Keane on 7/22/25.
+//
+
+import SwiftUI
+
+struct ListeningTimeTile: View {
+  let totalHours: Int = 30
+  let totalMinutes: Int = 21
+  let totalSeconds: Int = 18
+  let onRedeemRewards: () -> Void = {}
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      HStack {
+        Image(systemName: "radio")
+          .foregroundColor(.white)
+
+        Text("Listening Time")
+          .font(.custom(FontNames.SpaceGrotesk_500_Medium, size: 16))
+          .foregroundColor(.white)
+
+        Spacer()
+      }
+
+      Text("\(totalHours)h \(totalMinutes)m \(totalSeconds)s")
+        .font(.custom(FontNames.Inter_700_Bold, size: 32))
+        .foregroundColor(.white)
+
+      Button(action: onRedeemRewards) {
+        HStack {
+          Spacer()
+          Text("Redeem Your Rewards!")
+            .font(.custom(FontNames.Inter_500_Medium, size: 16))
+            .foregroundColor(.white)
+          Spacer()
+        }
+        .padding(.vertical, 16)
+        .background(Color(red: 0.8, green: 0.4, blue: 0.4))
+        .foregroundColor(.white)
+        .cornerRadius(6)
+      }
+    }
+    .padding(20)
+    .background(Color(white: 0.15))
+    .cornerRadius(8)
+  }
+}
+
+// MARK: - Preview
+#Preview {
+  ListeningTimeTile()
+    .padding()
+    .background(Color.black)
+}
