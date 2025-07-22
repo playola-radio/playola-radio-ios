@@ -36,19 +36,6 @@ class MainContainerModel: ViewModel {
 
   var shouldShowSmallPlayer: Bool = false
 
-  var smallPlayerMainTitle: String {
-    stationPlayer.currentStation?.name ?? ""
-  }
-
-  var smallPlayerSecondaryTitle: String {
-    return stationPlayer.currentStation?.desc ?? ""
-  }
-
-  var smallPlayerArtworkURL: URL {
-    stationPlayer.state.albumArtworkUrl ?? stationPlayer.currentStation?.processedImageURL() ?? URL(
-      string: "https://example.com")!
-  }
-
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
     super.init()
@@ -94,10 +81,6 @@ class MainContainerModel: ViewModel {
         self.shouldShowSmallPlayer = false
       }
     }
-  }
-
-  func onSmallPlayerStopTapped() {
-    stationPlayer.stop()
   }
 
   func onSmallPlayerTapped() {
@@ -182,18 +165,12 @@ struct MainContainer: View {
       content()
 
       if model.shouldShowSmallPlayer {
-        SmallPlayer(
-          mainTitle: model.smallPlayerMainTitle,
-
-          secondaryTitle: model.smallPlayerSecondaryTitle,
-          artworkURL: model.smallPlayerArtworkURL,
-          onStopButtonTapped: model.onSmallPlayerStopTapped
-        )
-        .onTapGesture {
-          model.onSmallPlayerTapped()
-        }
-        .transition(.move(edge: .bottom))
-        .zIndex(1)
+        SmallPlayer()
+          .onTapGesture {
+            model.onSmallPlayerTapped()
+          }
+          .transition(.move(edge: .bottom))
+          .zIndex(1)
       }
     }
   }

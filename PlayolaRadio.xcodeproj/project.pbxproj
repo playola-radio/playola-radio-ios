@@ -83,6 +83,7 @@
 		D3B662C32D4272F900975D2F /* Secrets-Local.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D3B662C22D4272ED00975D2F /* Secrets-Local.xcconfig */; };
 		D3B744A12E2ED6AC0042A427 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = D3B744A02E2ED6AC0042A427 /* Dependencies */; };
 		D3B744A32E2ED6AC0042A427 /* DependenciesMacros in Frameworks */ = {isa = PBXBuildFile; productRef = D3B744A22E2ED6AC0042A427 /* DependenciesMacros */; };
+		D3B744A82E2F185F0042A427 /* SmallPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744A62E2F18530042A427 /* SmallPlayerTests.swift */; };
 		D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */; };
 		D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */; };
 		D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */ = {isa = PBXBuildFile; productRef = D3BEE95C2D49A3BD00469CDC /* Testing */; };
@@ -174,6 +175,7 @@
 		D3B662732D419C3100975D2F /* LoggedInUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggedInUser.swift; sourceTree = "<group>"; };
 		D3B662752D41B0C700975D2F /* SignInPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageTests.swift; sourceTree = "<group>"; };
 		D3B662C22D4272ED00975D2F /* Secrets-Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Local.xcconfig"; sourceTree = "<group>"; };
+		D3B744A62E2F18530042A427 /* SmallPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmallPlayerTests.swift; sourceTree = "<group>"; };
 		D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProviderTests.swift; sourceTree = "<group>"; };
 		D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProvider.swift; sourceTree = "<group>"; };
 		D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserDefaults.swift; sourceTree = "<group>"; };
@@ -299,7 +301,7 @@
 				D339E5612BFD0FD800B9E35B /* NowPlayingEqAnimation.swift */,
 				D339E55E2BFD0FD800B9E35B /* NowPlayingSmallView.swift */,
 				D339E5602BFD0FD800B9E35B /* StationListCellView.swift */,
-				D382671B2E00C13E0006BAC2 /* SmallPlayer.swift */,
+				D3B744A92E2F18690042A427 /* SmallPlayer */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -473,6 +475,15 @@
 				D3B662752D41B0C700975D2F /* SignInPageTests.swift */,
 			);
 			path = SignInPage;
+			sourceTree = "<group>";
+		};
+		D3B744A92E2F18690042A427 /* SmallPlayer */ = {
+			isa = PBXGroup;
+			children = (
+				D382671B2E00C13E0006BAC2 /* SmallPlayer.swift */,
+				D3B744A62E2F18530042A427 /* SmallPlayerTests.swift */,
+			);
+			path = SmallPlayer;
 			sourceTree = "<group>";
 		};
 		D3BECAC22E2017CB0009E618 /* PlayolaTokenProvider */ = {
@@ -689,6 +700,7 @@
 				D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */,
 				D342A0C72DFCB368002BAC30 /* HomePageTests.swift in Sources */,
 				D31CD5272DFBB4DF009B9780 /* MainContainerTests.swift in Sources */,
+				D3B744A82E2F185F0042A427 /* SmallPlayerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
