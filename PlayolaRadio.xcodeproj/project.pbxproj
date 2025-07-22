@@ -11,8 +11,6 @@
 		D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBF2D3981880070033A /* MailServiceMock.swift */; };
 		D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DC12D39B4FC0070033A /* StationListPageTests.swift */; };
 		D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DC52D39BEDD0070033A /* URLStreamPlayerMock.swift */; };
-		D3137DC82D3A92EC0070033A /* NowPlayingPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DC72D3A92E70070033A /* NowPlayingPage.swift */; };
-		D3137DCA2D3A9F940070033A /* NowPlayingPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DC92D3A9F8E0070033A /* NowPlayingPageTests.swift */; };
 		D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DCE2D3AA1E10070033A /* PlayolaSheet.swift */; };
 		D3137DD22D3ABB520070033A /* GenericNowPlaying.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DD12D3ABB4F0070033A /* GenericNowPlaying.swift */; };
 		D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DD32D3AC9B40070033A /* EnumTypeEquatableProtocol.swift */; };
@@ -107,8 +105,6 @@
 		D3137DBF2D3981880070033A /* MailServiceMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailServiceMock.swift; sourceTree = "<group>"; };
 		D3137DC12D39B4FC0070033A /* StationListPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPageTests.swift; sourceTree = "<group>"; };
 		D3137DC52D39BEDD0070033A /* URLStreamPlayerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLStreamPlayerMock.swift; sourceTree = "<group>"; };
-		D3137DC72D3A92E70070033A /* NowPlayingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingPage.swift; sourceTree = "<group>"; };
-		D3137DC92D3A9F8E0070033A /* NowPlayingPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingPageTests.swift; sourceTree = "<group>"; };
 		D3137DCE2D3AA1E10070033A /* PlayolaSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaSheet.swift; sourceTree = "<group>"; };
 		D3137DD12D3ABB4F0070033A /* GenericNowPlaying.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericNowPlaying.swift; sourceTree = "<group>"; };
 		D3137DD32D3AC9B40070033A /* EnumTypeEquatableProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnumTypeEquatableProtocol.swift; sourceTree = "<group>"; };
@@ -222,15 +218,6 @@
 			path = Mocks;
 			sourceTree = "<group>";
 		};
-		D3137DCB2D3A9F9E0070033A /* NowPlayingPage */ = {
-			isa = PBXGroup;
-			children = (
-				D3137DC72D3A92E70070033A /* NowPlayingPage.swift */,
-				D3137DC92D3A9F8E0070033A /* NowPlayingPageTests.swift */,
-			);
-			path = NowPlayingPage;
-			sourceTree = "<group>";
-		};
 		D3137DCC2D3A9FAA0070033A /* StationListPage */ = {
 			isa = PBXGroup;
 			children = (
@@ -283,7 +270,6 @@
 				D37257C72DFA2470001BC6F9 /* MainContainer */,
 				D37257AC2DF88B89001BC6F9 /* HomePage */,
 				D3B662772D41B10600975D2F /* SignInPage */,
-				D3137DCB2D3A9F9E0070033A /* NowPlayingPage */,
 				D3536A062BFA4F49006942D6 /* ContentView.swift */,
 				D3137DCC2D3A9FAA0070033A /* StationListPage */,
 			);
@@ -667,7 +653,6 @@
 				D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */,
 				D3B662722D4161E100975D2F /* AppleSignInInfo.swift in Sources */,
 				D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */,
-				D3137DC82D3A92EC0070033A /* NowPlayingPage.swift in Sources */,
 				D37257C62DF9F064001BC6F9 /* HomePageStationList.swift in Sources */,
 				D35905EC2DFCDA140064A9C1 /* StationListModel.swift in Sources */,
 				D339E56D2BFD2FAB00B9E35B /* URLStreamPlayer.swift in Sources */,
@@ -691,7 +676,6 @@
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,
 				D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */,
 				D31C43AC2D3C65840021AAE4 /* NavigationCoordinatorMock.swift in Sources */,
-				D3137DCA2D3A9F940070033A /* NowPlayingPageTests.swift in Sources */,
 				D34D5C392D7106CD00148048 /* AuthServiceMock.swift in Sources */,
 				D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */,
 				D342A0C72DFCB368002BAC30 /* HomePageTests.swift in Sources */,

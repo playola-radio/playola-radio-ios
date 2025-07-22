@@ -66,13 +66,16 @@ struct SmallPlayer: View {
 
         Spacer()
 
-        Button(action: { StationPlayer.shared.stop() }) {
-          Image(systemName: "stop.fill")
-            .foregroundColor(.black)
-            .frame(width: 34, height: 34)
-            .background(.white)
-            .clipShape(Circle())
-        }
+        Button(
+          action: { StationPlayer.shared.stop() },
+          label: {
+            Image(systemName: "stop.fill")
+              .foregroundColor(.black)
+              .frame(width: 34, height: 34)
+              .background(.white)
+              .clipShape(Circle())
+          }
+        )
         .padding(.trailing, 24)
       }
       .padding(.horizontal, 12)
