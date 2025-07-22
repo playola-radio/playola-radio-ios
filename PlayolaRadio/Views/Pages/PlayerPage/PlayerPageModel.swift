@@ -26,14 +26,12 @@ class PlayerPageModel: ViewModel {
       } else {
         return ""
       }
-    case .loading:
+    case .loading, .startingNewStation:
       return "Station Loading..."
     case .stopped:
       return ""
     case .error:
       return "Error Playing Station"
-    case .startingNewStation:
-      return ""
     case .none:
       return ""
     }
@@ -75,7 +73,9 @@ class PlayerPageModel: ViewModel {
   var loadingPercentage: Float {
     switch nowPlaying?.playbackStatus {
     case let .loading(_, progress):
-      return progress ?? 1.0
+      return progress ?? 0.0
+    case .startingNewStation:
+      return 0.0
     default:
       return 1.0
     }
