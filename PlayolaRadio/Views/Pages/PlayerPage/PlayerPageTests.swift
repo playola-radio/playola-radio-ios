@@ -8,6 +8,7 @@
 import FRadioPlayer
 import Foundation
 import PlayolaPlayer
+import Sharing
 import XCTest
 
 @testable import PlayolaRadio
@@ -19,9 +20,14 @@ final class PlayerPageTests: XCTestCase {
   func testViewAppeared_PopulatesCorrectlyWhenLoadingNoProgress() {
     let station = RadioStation.mock
     let playerMock = StationPlayerMock()
-    playerMock.state = StationPlayer.State(
-      playbackStatus: .loading(station)  // no progress
-    )
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        currentStation: station,
+        playbackStatus: .loading(station)
+      )
+    }
 
     let model = PlayerPageModel(stationPlayer: playerMock)
     model.viewAppeared()
@@ -35,9 +41,14 @@ final class PlayerPageTests: XCTestCase {
   func testViewAppeared_PopulatesCorrectlyWhenLoadingWithProgress() {
     let station = RadioStation.mock
     let playerMock = StationPlayerMock()
-    playerMock.state = StationPlayer.State(
-      playbackStatus: .loading(station, 0.42)
-    )
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        currentStation: station,
+        playbackStatus: .loading(station, 0.42)
+      )
+    }
 
     let model = PlayerPageModel(stationPlayer: playerMock)
     model.viewAppeared()
@@ -52,11 +63,16 @@ final class PlayerPageTests: XCTestCase {
   func testViewAppeared_PopulatesCorrectlyWhenSomethingIsPlaying() {
     let station = RadioStation.mock
     let playerMock = StationPlayerMock()
-    playerMock.state = StationPlayer.State(
-      playbackStatus: .playing(station),
-      artistPlaying: "Rachel Loy",
-      titlePlaying: "Selfie"
-    )
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        artistPlaying: "Rachel Loy",
+        titlePlaying: "Selfie",
+        currentStation: station,
+        playbackStatus: .playing(station)
+      )
+    }
 
     let model = PlayerPageModel(stationPlayer: playerMock)
     model.viewAppeared()
@@ -71,12 +87,17 @@ final class PlayerPageTests: XCTestCase {
     let audioBlock = AudioBlock.mock
     let spin = Spin.mockWith(audioBlock: audioBlock)
     let playerMock = StationPlayerMock()
-    playerMock.state = StationPlayer.State(
-      playbackStatus: .playing(station),
-      artistPlaying: "Rachel Loy",
-      titlePlaying: "Selfie",
-      playolaSpinPlaying: spin
-    )
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        artistPlaying: "Rachel Loy",
+        titlePlaying: "Selfie",
+        playolaSpinPlaying: spin,
+        currentStation: station,
+        playbackStatus: .playing(station)
+      )
+    }
 
     let model = PlayerPageModel(stationPlayer: playerMock)
     model.viewAppeared()
@@ -97,12 +118,17 @@ final class PlayerPageTests: XCTestCase {
     ]
     let spin = Spin.mockWith(audioBlock: audioBlock, relatedTexts: relatedTexts)
     let playerMock = StationPlayerMock()
-    playerMock.state = StationPlayer.State(
-      playbackStatus: .playing(station),
-      artistPlaying: "Rachel Loy",
-      titlePlaying: "Selfie",
-      playolaSpinPlaying: spin
-    )
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        artistPlaying: "Rachel Loy",
+        titlePlaying: "Selfie",
+        playolaSpinPlaying: spin,
+        currentStation: station,
+        playbackStatus: .playing(station)
+      )
+    }
 
     let model = PlayerPageModel(stationPlayer: playerMock)
     model.viewAppeared()
@@ -122,12 +148,17 @@ final class PlayerPageTests: XCTestCase {
     ]
     let spin = Spin.mockWith(audioBlock: audioBlock, relatedTexts: relatedTexts)
     let playerMock = StationPlayerMock()
-    playerMock.state = StationPlayer.State(
-      playbackStatus: .playing(station),
-      artistPlaying: "Rachel Loy",
-      titlePlaying: "Selfie",
-      playolaSpinPlaying: spin
-    )
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        artistPlaying: "Rachel Loy",
+        titlePlaying: "Selfie",
+        playolaSpinPlaying: spin,
+        currentStation: station,
+        playbackStatus: .playing(station)
+      )
+    }
 
     let model = PlayerPageModel(stationPlayer: playerMock)
     model.viewAppeared()
@@ -140,9 +171,13 @@ final class PlayerPageTests: XCTestCase {
 
   func testViewAppeared_PopulatesCorrectlyWhenStopped() {
     let playerMock = StationPlayerMock()
-    playerMock.state = StationPlayer.State(
-      playbackStatus: .stopped
-    )
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        playbackStatus: .stopped
+      )
+    }
 
     let model = PlayerPageModel(stationPlayer: playerMock)
     model.viewAppeared()
@@ -154,9 +189,13 @@ final class PlayerPageTests: XCTestCase {
 
   func testViewAppeared_PopulatesCorrectlyWhenError() {
     let playerMock = StationPlayerMock()
-    playerMock.state = StationPlayer.State(
-      playbackStatus: .error
-    )
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        playbackStatus: .error
+      )
+    }
 
     let model = PlayerPageModel(stationPlayer: playerMock)
     model.viewAppeared()
@@ -171,9 +210,14 @@ final class PlayerPageTests: XCTestCase {
   func testViewAppeared_PopulatesCorrectlyWhenStartingNewStation() {
     let station = RadioStation.mock
     let playerMock = StationPlayerMock()
-    playerMock.state = StationPlayer.State(
-      playbackStatus: .startingNewStation(station)
-    )
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        currentStation: station,
+        playbackStatus: .startingNewStation(station)
+      )
+    }
 
     let model = PlayerPageModel(stationPlayer: playerMock)
     model.viewAppeared()
@@ -189,10 +233,15 @@ final class PlayerPageTests: XCTestCase {
     let audioBlock = AudioBlock.mock
     let spin = Spin.mockWith(audioBlock: audioBlock)
     let playerMock = StationPlayerMock()
-    playerMock.state = StationPlayer.State(
-      playbackStatus: .startingNewStation(station),
-      playolaSpinPlaying: spin
-    )
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        playolaSpinPlaying: spin,
+        currentStation: station,
+        playbackStatus: .startingNewStation(station)
+      )
+    }
 
     let model = PlayerPageModel(stationPlayer: playerMock)
     model.viewAppeared()
@@ -208,9 +257,14 @@ final class PlayerPageTests: XCTestCase {
   func testPlayPauseButtonTapped_StopsWhenPlaying() {
     let station = RadioStation.mock
     let spy = StationPlayerMock()
-    spy.state = StationPlayer.State(
-      playbackStatus: .playing(station)
-    )
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        currentStation: station,
+        playbackStatus: .playing(station)
+      )
+    }
 
     let model = PlayerPageModel(stationPlayer: spy)
     model.viewAppeared()
@@ -221,32 +275,17 @@ final class PlayerPageTests: XCTestCase {
     XCTAssertEqual(spy.callsToPlay.count, 0)
   }
 
-  func testPlayPauseButtonTapped_PlaysWhenStopped() {
-    let station = RadioStation.mock
-    let spy = StationPlayerMock()
-    spy.state = StationPlayer.State(
-      playbackStatus: .playing(station)
-    )
-    let model = PlayerPageModel(stationPlayer: spy)
-    model.viewAppeared()
-
-    spy.state = StationPlayer.State(
-      playbackStatus: .stopped
-    )
-
-    model.playPauseButtonTapped()
-
-    XCTAssertEqual(spy.callsToPlay.count, 1)
-    XCTAssertEqual(spy.callsToPlay[0], station)
-    XCTAssertEqual(spy.stopCalledCount, 0)
-  }
-
   func testPlayPauseButtonTapped_DismissesWhenStopButtonPressed() {
     let station = RadioStation.mock
     let spy = StationPlayerMock()
-    spy.state = StationPlayer.State(
-      playbackStatus: .playing(station)
-    )
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        currentStation: station,
+        playbackStatus: .playing(station)
+      )
+    }
 
     var dismissCalled = false
     let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })

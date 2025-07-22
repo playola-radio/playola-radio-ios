@@ -18,19 +18,22 @@ struct NowPlaying: Equatable, Codable {
   let albumArtworkUrl: URL?
   let playolaSpinPlaying: Spin?
   let currentStation: RadioStation?
+  let playbackStatus: StationPlayer.PlaybackStatus
 
   init(
     artistPlaying: String? = nil,
     titlePlaying: String? = nil,
     albumArtworkUrl: URL? = nil,
     playolaSpinPlaying: Spin? = nil,
-    currentStation: RadioStation? = nil
+    currentStation: RadioStation? = nil,
+    playbackStatus: StationPlayer.PlaybackStatus = .stopped
   ) {
     self.artistPlaying = artistPlaying
     self.titlePlaying = titlePlaying
     self.albumArtworkUrl = albumArtworkUrl
     self.playolaSpinPlaying = playolaSpinPlaying
     self.currentStation = currentStation
+    self.playbackStatus = playbackStatus
   }
 }
 
@@ -42,7 +45,8 @@ class NowPlayingUpdater {
 
   static var shared = NowPlayingUpdater()
 
-  @Shared(.nowPlaying) private var nowPlaying: NowPlaying?
+  @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
+
   private var disposeBag = Set<AnyCancellable>()
   private func updateNowPlaying(with stationPlayerState: StationPlayer.State) {
     var nowPlayingInfo = [String: Any]()
@@ -114,9 +118,7 @@ class NowPlayingUpdater {
 
   // MARK: - State Processing Methods (duplicated from StationPlayer)
 
-  private func processPlayolaStationPlayerState(_ playolaState: PlayolaStationPlayer.State?) {
-    let currentStation = stationPlayer.currentStation
-
+  func processPlayolaStationPlayerState(_ playolaState: PlayolaStationPlayer.State?) {
     switch playolaState {
     case .idle:
       $nowPlaying.withLock {
@@ -125,32 +127,35 @@ class NowPlayingUpdater {
           titlePlaying: nil,
           albumArtworkUrl: nil,
           playolaSpinPlaying: nil,
-          currentStation: currentStation
+          currentStation: nil,
+          playbackStatus: .stopped
         )
       }
-
-    case let .loading(_):
+    case let .loading(progress):
+      guard let currentStation = stationPlayer.currentStation else { return }
       $nowPlaying.withLock {
         $0 = NowPlaying(
           artistPlaying: nil,
           titlePlaying: nil,
           albumArtworkUrl: nil,
           playolaSpinPlaying: nil,
-          currentStation: currentStation
+          currentStation: currentStation,
+          playbackStatus: .loading(currentStation, progress)
         )
       }
-
-    case let .playing(spin):
-      $nowPlaying.withLock {
-        $0 = NowPlaying(
-          artistPlaying: spin.audioBlock.artist,
-          titlePlaying: spin.audioBlock.title,
-          albumArtworkUrl: spin.audioBlock.imageUrl,
-          playolaSpinPlaying: spin,
-          currentStation: currentStation
-        )
+    case let .playing(nowPlayingData):
+      if let currentStation = stationPlayer.currentStation {
+        $nowPlaying.withLock {
+          $0 = NowPlaying(
+            artistPlaying: nowPlayingData.audioBlock.artist,
+            titlePlaying: nowPlayingData.audioBlock.title,
+            albumArtworkUrl: nowPlayingData.audioBlock.imageUrl,
+            playolaSpinPlaying: nowPlayingData,
+            currentStation: currentStation,
+            playbackStatus: .playing(currentStation)
+          )
+        }
       }
-
     case .none:
       $nowPlaying.withLock {
         $0 = NowPlaying(
@@ -158,38 +163,39 @@ class NowPlayingUpdater {
           titlePlaying: nil,
           albumArtworkUrl: nil,
           playolaSpinPlaying: nil,
-          currentStation: currentStation
+          currentStation: nil,
+          playbackStatus: .error
         )
       }
     }
   }
 
   private func processUrlStreamStateChanged(_ urlStreamPlayerState: URLStreamPlayer.State) {
-    let currentStation = stationPlayer.currentStation
-
     switch urlStreamPlayerState.playerStatus {
     case .loading:
+      guard let currentStation = stationPlayer.currentStation else { return }
       $nowPlaying.withLock {
         $0 = NowPlaying(
           artistPlaying: nil,
           titlePlaying: nil,
           albumArtworkUrl: nil,
           playolaSpinPlaying: nil,
-          currentStation: currentStation
+          currentStation: currentStation,
+          playbackStatus: .loading(currentStation)
         )
       }
-
     case .loadingFinished, .readyToPlay:
+      guard let currentStation = stationPlayer.currentStation else { return }
       $nowPlaying.withLock {
         $0 = NowPlaying(
           artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
           titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
-          albumArtworkUrl: nil,  // URLStreamPlayer doesn't provide artwork directly
+          albumArtworkUrl: nil,
           playolaSpinPlaying: nil,
-          currentStation: currentStation
+          currentStation: currentStation,
+          playbackStatus: .playing(currentStation)
         )
       }
-
     case .error:
       $nowPlaying.withLock {
         $0 = NowPlaying(
@@ -197,10 +203,10 @@ class NowPlayingUpdater {
           titlePlaying: nil,
           albumArtworkUrl: nil,
           playolaSpinPlaying: nil,
-          currentStation: currentStation
+          currentStation: nil,
+          playbackStatus: .error
         )
       }
-
     case .urlNotSet, .none:
       $nowPlaying.withLock {
         $0 = NowPlaying(
@@ -208,7 +214,8 @@ class NowPlayingUpdater {
           titlePlaying: nil,
           albumArtworkUrl: nil,
           playolaSpinPlaying: nil,
-          currentStation: currentStation
+          currentStation: nil,
+          playbackStatus: .stopped
         )
       }
     }

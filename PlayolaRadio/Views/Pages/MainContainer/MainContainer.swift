@@ -18,7 +18,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored var stationPlayer: StationPlayer!
   @ObservationIgnored @Shared(.stationLists) var stationLists
-
+  @ObservationIgnored @Shared(.nowPlaying) var nowPlaying: NowPlaying?
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
 
   enum ActiveTab {
