@@ -12,6 +12,7 @@ import SwiftUI
 class ListeningTracker {
   var rewardsProfile: RewardsProfile
   var localListeningSessions: [LocalListeningSession]
+  private var cancellables = Set<AnyCancellable>()
 
   var isListening: Bool {
     localListeningSessions.last?.endTime == nil
@@ -23,13 +24,21 @@ class ListeningTracker {
     self.rewardsProfile = rewardsProfile
     self.localListeningSessions = localListeningSessions
 
-    //    nowPlaying?.publisher.$sink { nowPlaying in
-    //      if nowPlaying.playbackStatus == .playing && !.isListening {
-    //        self.localListeningSessions.append(LocalListeningSession(startTime: .now))
-    //      } else if nowPlaying.playbackStatus != .playing && .isListening {
-    //        self.localListeningSessions.last?.endTime = .now
-    //      }
-    //    }
+    $nowPlaying.publisher.sink { nowPlaying in
+      if self.isCurrentlyPlaying(nowPlaying?.playbackStatus) && !self.isListening {
+        self.localListeningSessions.append(LocalListeningSession(startTime: .now))
+      } else if !self.isCurrentlyPlaying(nowPlaying?.playbackStatus) && self.isListening {
+        if var lastSession = self.localListeningSessions.last {
+          lastSession.endTime = .now
+        }
+      }
+    }.store(in: &cancellables)
+  }
+
+  private func isCurrentlyPlaying(_ status: StationPlayer.PlaybackStatus?) -> Bool {
+    guard let status else { return false }
+    if case .playing = status { return true }
+    return false
   }
 
   var totalListenTimeMS: Int {
