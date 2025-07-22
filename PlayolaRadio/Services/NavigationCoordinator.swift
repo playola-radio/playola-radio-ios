@@ -15,14 +15,12 @@ class NavigationCoordinator: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth
 
   enum Paths {
-    case about
     case listen
     case signIn
   }
   var slideOutMenuIsShowing = false
   var activePath: Paths = .listen
 
-  var aboutPath: [Path] = []
   var listenPath: [Path] = []
   var signInPath: [Path] = []
 
@@ -34,16 +32,12 @@ class NavigationCoordinator: ViewModel {
       switch self.activePath {
       case .signIn:
         return signInPath
-      case .about:
-        return aboutPath
       case .listen:
         return listenPath
       }
     }
     set {
       switch self.activePath {
-      case .about:
-        aboutPath = newValue
       case .listen:
         listenPath = newValue
       case .signIn:
@@ -54,7 +48,6 @@ class NavigationCoordinator: ViewModel {
 
   enum Path: Hashable {
     case stationListPage(StationListModel)
-    case aboutPage(AboutPageModel)
     case nowPlayingPage(NowPlayingPageModel)
     case signInPage(SignInPageModel)
   }

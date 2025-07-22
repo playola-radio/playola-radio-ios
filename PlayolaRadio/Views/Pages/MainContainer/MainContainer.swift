@@ -17,8 +17,9 @@ class MainContainerModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored var stationPlayer: StationPlayer!
+  @ObservationIgnored @Shared(.stationLists) var stationLists
 
-  @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
+  @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
 
   enum ActiveTab {
     case home
@@ -50,6 +51,7 @@ class MainContainerModel: ViewModel {
 
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
+    super.init()
   }
 
   func viewAppeared() async {
@@ -57,7 +59,9 @@ class MainContainerModel: ViewModel {
     guard !stationListsLoaded else { return }
 
     do {
-      try await api.getStations()
+      let retrievedStationsLists = try await api.getStations()
+      self.$stationLists.withLock { $0 = retrievedStationsLists }
+      self.$stationListsLoaded.withLock { $0 = true }
     } catch {
       presentedAlert = .errorLoadingStations
     }
@@ -162,10 +166,6 @@ struct MainContainer: View {
       item: $model.presentedSheet,
       content: { item in
         switch item {
-        case let .about(aboutModel):
-          NavigationStack {
-            AboutPage(model: aboutModel)
-          }
         case let .player(playerPageModel):
           PlayerPage(model: playerPageModel)
         }

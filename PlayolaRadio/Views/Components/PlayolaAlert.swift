@@ -35,3 +35,26 @@ class PlayolaAlert: Equatable, Identifiable, Hashable {
     hasher.combine(message)
   }
 }
+
+extension PlayolaAlert {
+  static var cannotOpenMailAlert: PlayolaAlert {
+    PlayolaAlert(
+      title: "Error Opening Mail",
+      message: "There was an error opening the email program",
+      dismissButton: .cancel(Text("OK")))
+  }
+
+  static var secretStationsTurnedOnAlert: PlayolaAlert {
+    PlayolaAlert(
+      title: "Congratulations",
+      message: "Secret Stations Unlocked",
+      dismissButton: .cancel(Text("OK")))
+  }
+
+  static var secretStationsHiddenAlert: PlayolaAlert {
+    PlayolaAlert(
+      title: "Secret Stations",
+      message: "Secret Stations Hidden",
+      dismissButton: .cancel(Text("OK")))
+  }
+}

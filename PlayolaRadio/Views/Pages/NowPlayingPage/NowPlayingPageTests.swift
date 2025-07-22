@@ -45,30 +45,4 @@ final class NowPlayingPageTests: XCTestCase {
     XCTAssertEqual(nowPlayingPage.nowPlayingArtist, testArtist)
     XCTAssertEqual(nowPlayingPage.nowPlayingTitle, testTitle)
   }
-
-  // MARK: - About Display Tests
-
-  func testAboutDisplay_TappingAboutButtonDisplaysAboutPageAsSheet() {
-    let nowPlayingPage = NowPlayingPageModel()
-    XCTAssertNil(nowPlayingPage.presentedSheet)
-    nowPlayingPage.aboutButtonTapped()
-    if case .about = nowPlayingPage.presentedSheet {
-      // Success - sheet is presented
-    } else {
-      XCTFail("Expected about sheet to be presented")
-    }
-  }
-
-  func testAboutDisplay_CanBeDismissed() {
-    let nowPlayingPage = NowPlayingPageModel(
-      presentedSheet: .about(AboutPageModel()))
-    nowPlayingPage.dismissAboutSheetButtonTapped()
-    XCTAssertNil(nowPlayingPage.presentedSheet)
-  }
-
-  // MARK: - Info Button Tests
-
-  func testInfoButtonTapped_PushesInfoOntoTheNavigationStack() {
-    // TODO: Implement test
-  }
 }

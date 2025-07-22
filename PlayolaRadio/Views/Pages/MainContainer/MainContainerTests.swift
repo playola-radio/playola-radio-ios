@@ -56,7 +56,7 @@ final class MainContainerTests: XCTestCase {
 
   func testViewAppeared_CorrectlyRetrievesStationListsWhenApiIsSuccessful() async {
     @Shared(.stationListsLoaded) var stationListsLoaded = false
-    @Shared(.stationLists) var stationLists = StationList.mocks
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
     var getStationsCallCount = 0
 
     let mainContainerModel = withDependencies {
@@ -70,11 +70,13 @@ final class MainContainerTests: XCTestCase {
 
     await mainContainerModel.viewAppeared()
     XCTAssertEqual(getStationsCallCount, 1)
+    XCTAssertEqual(stationLists, StationList.mocks)
+    XCTAssertTrue(stationListsLoaded)
   }
 
   func testViewAppeared_DisplaysAnErrorAlertOnApiError() async {
     @Shared(.stationListsLoaded) var stationListsLoaded = false
-    @Shared(.stationLists) var stationLists = StationList.mocks
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
     struct TestError: Error {}
 
     let mainContainerModel = withDependencies {
@@ -87,6 +89,24 @@ final class MainContainerTests: XCTestCase {
 
     await mainContainerModel.viewAppeared()
     XCTAssertEqual(mainContainerModel.presentedAlert, .errorLoadingStations)
+    XCTAssertFalse(stationListsLoaded)
+  }
+
+  func testViewAppeared_ExitsEarlyWhenStationListsAlreadyLoaded() async {
+    @Shared(.stationListsLoaded) var stationListsLoaded = true
+    var getStationsCallCount = 0
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = {
+        getStationsCallCount += 1
+        return StationList.mocks
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.viewAppeared()
+    XCTAssertEqual(getStationsCallCount, 0)
   }
 
   // MARK: - Small Player Properties Tests
@@ -293,15 +313,6 @@ final class MainContainerTests: XCTestCase {
   }
 
   // MARK: - Dismiss Button Tests
-
-  func testDismissButton_DismissButtonInSheetTappedClearsPresentedSheet() {
-    let mainContainerModel = MainContainerModel()
-    mainContainerModel.presentedSheet = .about(AboutPageModel())
-
-    mainContainerModel.dismissButtonInSheetTapped()
-
-    XCTAssertNil(mainContainerModel.presentedSheet)
-  }
 
   func testDismissButton_PlayerPageOnDismissClearsPresentedSheet() {
     let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()

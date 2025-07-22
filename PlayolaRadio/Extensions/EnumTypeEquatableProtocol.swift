@@ -26,7 +26,7 @@ extension EnumTypeEquatable {
 extension PlayolaSheet: EnumTypeEquatable {
   static func ~= (lhs: Self, rhs: Self) -> Bool {
     switch (lhs, rhs) {
-    case (.about, .about): return true
+    case (.player, .player): return true
     default: return false
     }
   }
@@ -48,7 +48,6 @@ extension NavigationCoordinator.Path: EnumTypeEquatable {
   static func ~= (lhs: Self, rhs: Self) -> Bool {
     switch (lhs, rhs) {
     case (.stationListPage, .stationListPage): return true
-    case (.aboutPage, .aboutPage): return true
     case (.nowPlayingPage, .nowPlayingPage): return true
     default: return false
     }
