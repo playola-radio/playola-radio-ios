@@ -16,11 +16,36 @@ import Sharing
 
 @DependencyClient
 struct APIClient {
+  /// Fetches all available radio station lists
   var getStations: () async throws -> IdentifiedArrayOf<StationList> = { [] }
-  var signInViaApple: (String, String, String, String?) async throws -> String = { _, _, _, _ in ""
+
+  /// Signs in user via Apple authentication
+  /// - Parameters:
+  ///   - identityToken: The Apple identity token
+  ///   - email: User's email address
+  ///   - authCode: Apple authorization code
+  ///   - displayName: Optional display name for the user
+  /// - Returns: JWT token string
+  var signInViaApple:
+    (_ identityToken: String, _ email: String, _ authCode: String, _ displayName: String?)
+      async throws -> String = { _, _, _, _ in ""
+      }
+
+  /// Revokes Apple credentials for the user
+  /// - Parameter appleUserId: The Apple user ID to revoke
+  var revokeAppleCredentials: (_ appleUserId: String) async throws -> Void = { _ in }
+
+  /// Signs in user via Google authentication
+  /// - Parameter code: Google authentication code
+  /// - Returns: JWT token string
+  var signInViaGoogle: (_ code: String) async throws -> String = { _ in "" }
+
+  /// Fetches the rewards profile for the authenticated user
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: RewardsProfile containing listening time and rewards data
+  var getRewardsProfile: (_ jwtToken: String) async throws -> RewardsProfile = { _ in
+    RewardsProfile(totalTimeListenedMS: 0, totalMSAvailableForRewards: 0, accurateAsOfTime: Date())
   }
-  var revokeAppleCredentials: (String) async throws -> Void = { _ in }
-  var signInViaGoogle: (String) async throws -> String = { _ in "" }
 }
 
 extension APIClient: DependencyKey, Sendable {
@@ -84,6 +109,22 @@ extension APIClient: DependencyKey, Sendable {
         .serializingDecodable(LoginResponse.self).value
 
         return response.playolaToken
+      },
+      getRewardsProfile: { jwtToken in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/users/me/profile"
+        let headers: HTTPHeaders = [
+          "Authorization": "Bearer \(jwtToken)"
+        ]
+
+        let response = try await AF.request(
+          url,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(RewardsProfile.self)
+        .value
+
+        return response
       }
     )
   }()
