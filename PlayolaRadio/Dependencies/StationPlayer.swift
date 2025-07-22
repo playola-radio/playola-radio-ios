@@ -14,7 +14,7 @@ import Sharing
 class StationPlayer: ObservableObject {
   var disposeBag: Set<AnyCancellable> = Set()
 
-  enum PlaybackStatus {
+  enum PlaybackStatus: Codable, Equatable {
     case startingNewStation(RadioStation)
     case playing(RadioStation)
     case stopped

@@ -48,7 +48,6 @@ class NavigationCoordinator: ViewModel {
 
   enum Path: Hashable {
     case stationListPage(StationListModel)
-    case nowPlayingPage(NowPlayingPageModel)
     case signInPage(SignInPageModel)
   }
 }
