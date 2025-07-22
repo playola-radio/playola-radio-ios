@@ -4,6 +4,7 @@
 //
 //  Created by Brian D Keane on 7/22/25.
 //
+
 import Combine
 import Dependencies
 import Sharing
@@ -17,7 +18,6 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored var stationPlayer: StationPlayer!
   @ObservationIgnored @Shared(.stationLists) var stationLists
-  @ObservationIgnored @Shared(.nowPlaying) var nowPlaying: NowPlaying?
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
 
   enum ActiveTab {
@@ -52,6 +52,10 @@ class MainContainerModel: ViewModel {
       presentedAlert = .errorLoadingStations
     }
 
+    // NOTE: For now, this has to stay connected to the Singleton in order to avoid reloading
+    // the entire app every time a nowPlaying.publisher event is received.  That seems to be
+    // what happens when we use the Shared nowPlaying value.  In the future we should figure out
+    // how to get this to work with the nowPlaying shared state.
     stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &cancellables)
   }
 
