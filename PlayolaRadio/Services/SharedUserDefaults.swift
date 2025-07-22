@@ -50,3 +50,9 @@ extension SharedKey where Self == FileStorageKey<Auth>.Default {
       default: Auth()]
   }
 }
+
+extension SharedKey where Self == InMemoryKey<NowPlaying?>.Default {
+  static var nowPlaying: Self {
+    Self[.inMemory("nowPlaying"), default: nil]
+  }
+}

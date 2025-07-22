@@ -256,11 +256,11 @@
 		D339E55A2BFD0CE200B9E35B /* Dependencies */ = {
 			isa = PBXGroup;
 			children = (
+				D339E5682BFD1C0800B9E35B /* API.swift */,
 				D3BECAC22E2017CB0009E618 /* PlayolaTokenProvider */,
 				D35673B32D3DC6CE00E4E926 /* TrackingService.swift */,
 				D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */,
 				D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */,
-				D339E5682BFD1C0800B9E35B /* API.swift */,
 				D339E56C2BFD2FAB00B9E35B /* URLStreamPlayer.swift */,
 				D339E57B2BFD698600B9E35B /* Mail.swift */,
 			);
