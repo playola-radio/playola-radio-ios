@@ -25,6 +25,7 @@ class MainContainerModel: ViewModel {
   enum ActiveTab {
     case home
     case stationsList
+    case rewards
     case profile
   }
 
@@ -34,6 +35,7 @@ class MainContainerModel: ViewModel {
 
   var homePageModel = HomePageModel()
   var stationListModel = StationListModel()
+  var rewardsPageModel = RewardsPageModel()
 
   var shouldShowSmallPlayer: Bool = false
 

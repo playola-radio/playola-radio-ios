@@ -112,6 +112,7 @@ struct RewardTierRow: View {
 
 struct RewardsPageView: View {
   @State private var listeningTileModel = ListeningTimeTileModel()
+  @Bindable var model: RewardsPageModel
 
   var body: some View {
     ScrollView {
@@ -198,7 +199,7 @@ struct RewardsPageView: View {
 // MARK: - Preview
 struct RewardsPageView_Previews: PreviewProvider {
   static var previews: some View {
-    RewardsPageView()
+    RewardsPageView(model: RewardsPageModel())
       .background(Color.black)
   }
 }

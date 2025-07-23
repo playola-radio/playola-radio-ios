@@ -36,6 +36,15 @@ struct MainContainer: View {
         .tag(MainContainerModel.ActiveTab.stationsList)
 
         tabContentWithSmallPlayer(content: {
+          RewardsPageView(model: model.rewardsPageModel)
+        })
+        .tabItem {
+          Image(systemName: "gift")
+          Text("Rewards")
+        }
+        .tag(MainContainerModel.ActiveTab.rewards)
+
+        tabContentWithSmallPlayer(content: {
           HomePageView(model: model.homePageModel)  // Temporarily using HomePageView
         })
         .tabItem {
