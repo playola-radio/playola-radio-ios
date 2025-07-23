@@ -32,7 +32,10 @@ class HomePageModel: ViewModel {
     }
   }
 
-  var listeningTimeTileModel = ListeningTimeModel()
+  var listeningTimeTileModel = ListeningTimeTileModel(
+    buttonText: "Redeem Your Rewards!",
+    buttonAction: {}
+  )
 
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared

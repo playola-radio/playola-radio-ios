@@ -86,6 +86,12 @@
 		D3B744B42E2FECE10042A427 /* LocalListeningSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744B32E2FECC80042A427 /* LocalListeningSession.swift */; };
 		D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744B62E2FED8D0042A427 /* ListeningTracker.swift */; };
 		D3B744B92E2FF16F0042A427 /* ListeningTimeTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744B82E2FF1600042A427 /* ListeningTimeTile.swift */; };
+		D3B744BC2E312FB60042A427 /* ListeningTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744BA2E312FA80042A427 /* ListeningTrackerTests.swift */; };
+		D3B744C02E3131730042A427 /* RewardsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744BF2E31316D0042A427 /* RewardsPageModel.swift */; };
+		D3B744C22E31317B0042A427 /* RewardsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C12E3131770042A427 /* RewardsPageView.swift */; };
+		D3B744C52E31318A0042A427 /* RewardsPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C32E31317F0042A427 /* RewardsPageTests.swift */; };
+		D3B744C82E31399E0042A427 /* ListeningTimeTileModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C72E3139960042A427 /* ListeningTimeTileModel.swift */; };
+		D3B744CB2E313B230042A427 /* ListeningTimeTileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C92E313B170042A427 /* ListeningTimeTileTests.swift */; };
 		D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */; };
 		D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */; };
 		D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */ = {isa = PBXBuildFile; productRef = D3BEE95C2D49A3BD00469CDC /* Testing */; };
@@ -180,6 +186,12 @@
 		D3B744B32E2FECC80042A427 /* LocalListeningSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalListeningSession.swift; sourceTree = "<group>"; };
 		D3B744B62E2FED8D0042A427 /* ListeningTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTracker.swift; sourceTree = "<group>"; };
 		D3B744B82E2FF1600042A427 /* ListeningTimeTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTimeTile.swift; sourceTree = "<group>"; };
+		D3B744BA2E312FA80042A427 /* ListeningTrackerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTrackerTests.swift; sourceTree = "<group>"; };
+		D3B744BF2E31316D0042A427 /* RewardsPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsPageModel.swift; sourceTree = "<group>"; };
+		D3B744C12E3131770042A427 /* RewardsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsPageView.swift; sourceTree = "<group>"; };
+		D3B744C32E31317F0042A427 /* RewardsPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsPageTests.swift; sourceTree = "<group>"; };
+		D3B744C72E3139960042A427 /* ListeningTimeTileModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTimeTileModel.swift; sourceTree = "<group>"; };
+		D3B744C92E313B170042A427 /* ListeningTimeTileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTimeTileTests.swift; sourceTree = "<group>"; };
 		D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProviderTests.swift; sourceTree = "<group>"; };
 		D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProvider.swift; sourceTree = "<group>"; };
 		D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserDefaults.swift; sourceTree = "<group>"; };
@@ -278,6 +290,7 @@
 		D339E55C2BFD0FB000B9E35B /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				D3B744BE2E3131630042A427 /* RewardsPage */,
 				D37257CE2DFB4358001BC6F9 /* PlayerPage */,
 				D37257C72DFA2470001BC6F9 /* MainContainer */,
 				D37257AC2DF88B89001BC6F9 /* HomePage */,
@@ -291,7 +304,7 @@
 		D339E55D2BFD0FC200B9E35B /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				D3B744B82E2FF1600042A427 /* ListeningTimeTile.swift */,
+				D3B744C62E3139860042A427 /* ListeningTimeTile */,
 				D31CD5222DFBA1EC009B9780 /* ViewModel.swift */,
 				D3137DBA2D3976550070033A /* PlayolaAlert.swift */,
 				D339E55F2BFD0FD800B9E35B /* AirPlayView.swift */,
@@ -487,9 +500,30 @@
 		D3B744B52E2FED6E0042A427 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				D3B744BA2E312FA80042A427 /* ListeningTrackerTests.swift */,
 				D3B744B62E2FED8D0042A427 /* ListeningTracker.swift */,
 			);
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		D3B744BE2E3131630042A427 /* RewardsPage */ = {
+			isa = PBXGroup;
+			children = (
+				D3B744C32E31317F0042A427 /* RewardsPageTests.swift */,
+				D3B744C12E3131770042A427 /* RewardsPageView.swift */,
+				D3B744BF2E31316D0042A427 /* RewardsPageModel.swift */,
+			);
+			path = RewardsPage;
+			sourceTree = "<group>";
+		};
+		D3B744C62E3139860042A427 /* ListeningTimeTile */ = {
+			isa = PBXGroup;
+			children = (
+				D3B744C92E313B170042A427 /* ListeningTimeTileTests.swift */,
+				D3B744C72E3139960042A427 /* ListeningTimeTileModel.swift */,
+				D3B744B82E2FF1600042A427 /* ListeningTimeTile.swift */,
+			);
+			path = ListeningTimeTile;
 			sourceTree = "<group>";
 		};
 		D3BECAC22E2017CB0009E618 /* PlayolaTokenProvider */ = {
@@ -641,6 +675,7 @@
 				D37257B02DF88BB7001BC6F9 /* HomePageView.swift in Sources */,
 				D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */,
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
+				D3B744C22E31317B0042A427 /* RewardsPageView.swift in Sources */,
 				D37257B22DF88BC1001BC6F9 /* HomePageModel.swift in Sources */,
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
 				D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */,
@@ -662,6 +697,7 @@
 				D339E5642BFD0FD800B9E35B /* StationListCellView.swift in Sources */,
 				D3B744B42E2FECE10042A427 /* LocalListeningSession.swift in Sources */,
 				D37257D02DFB4368001BC6F9 /* PlayerPage.swift in Sources */,
+				D3B744C82E31399E0042A427 /* ListeningTimeTileModel.swift in Sources */,
 				D339E57C2BFD698600B9E35B /* Mail.swift in Sources */,
 				D3B662742D419C3300975D2F /* LoggedInUser.swift in Sources */,
 				D3536A322BFA64AB006942D6 /* StationList.swift in Sources */,
@@ -672,6 +708,7 @@
 				D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */,
 				D37257C42DF8F885001BC6F9 /* circleBackground.swift in Sources */,
 				D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */,
+				D3B744C02E3131730042A427 /* RewardsPageModel.swift in Sources */,
 				D3B744B02E2FE6FB0042A427 /* RewardsProfile.swift in Sources */,
 				D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */,
 				D339E5632BFD0FD800B9E35B /* AirPlayView.swift in Sources */,
@@ -700,6 +737,8 @@
 				D38031352E00AFD20011DD64 /* PlayerPageTests.swift in Sources */,
 				D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */,
 				D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */,
+				D3B744CB2E313B230042A427 /* ListeningTimeTileTests.swift in Sources */,
+				D3B744C52E31318A0042A427 /* RewardsPageTests.swift in Sources */,
 				D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */,
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,
 				D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */,
@@ -708,6 +747,7 @@
 				D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */,
 				D342A0C72DFCB368002BAC30 /* HomePageTests.swift in Sources */,
 				D31CD5272DFBB4DF009B9780 /* MainContainerTests.swift in Sources */,
+				D3B744BC2E312FB60042A427 /* ListeningTrackerTests.swift in Sources */,
 				D3B744A82E2F185F0042A427 /* SmallPlayerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -938,7 +978,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 896JR349G2;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.PlayolaRadioTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -957,7 +997,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 896JR349G2;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.PlayolaRadioTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1079,7 +1119,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 896JR349G2;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.PlayolaRadioTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
