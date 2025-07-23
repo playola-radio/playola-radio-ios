@@ -39,7 +39,7 @@ struct MainContainer: View {
           RewardsPageView(model: model.rewardsPageModel)
         })
         .tabItem {
-          Image(systemName: "gift")
+          Image("gift")
           Text("Rewards")
         }
         .tag(MainContainerModel.ActiveTab.rewards)
