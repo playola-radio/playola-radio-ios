@@ -13,8 +13,6 @@ import SwiftUI
 struct ListeningTimeTile: View {
   @Bindable var model: ListeningTimeTileModel
 
-  let onRedeemRewards: () -> Void = {}
-
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       HStack {
@@ -33,7 +31,7 @@ struct ListeningTimeTile: View {
         .foregroundColor(.white)
 
       if let buttonText = model.buttonText {
-        Button(action: onRedeemRewards) {
+        Button(action: model.onButtonTapped) {
           HStack {
             Spacer()
             Text(buttonText)

@@ -68,6 +68,10 @@ class ListeningTimeTileModel: ViewModel {
     }
   }
 
+  func onButtonTapped() {
+    buttonAction?()
+  }
+
   func viewDisappeared() {
     refreshTask?.cancel()
     refreshTask = nil
