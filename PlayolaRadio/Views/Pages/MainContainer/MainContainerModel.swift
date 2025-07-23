@@ -21,6 +21,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker
   @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.activeTab) var activeTab
 
   enum ActiveTab {
     case home
@@ -29,7 +30,6 @@ class MainContainerModel: ViewModel {
     case profile
   }
 
-  var selectedTab: ActiveTab = .home
   var presentedAlert: PlayolaAlert?
   var presentedSheet: PlayolaSheet?
 

@@ -62,3 +62,9 @@ extension SharedKey where Self == InMemoryKey<ListeningTracker?>.Default {
     Self[.inMemory("listeningTracker"), default: nil]
   }
 }
+
+extension SharedKey where Self == InMemoryKey<MainContainerModel.ActiveTab>.Default {
+  static var activeTab: Self {
+    Self[.inMemory("activeTab"), default: .home]
+  }
+}
