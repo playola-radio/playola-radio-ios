@@ -5,12 +5,65 @@
 //  Created by Brian D Keane on 7/22/25.
 //
 
+import Combine
+import Dependencies
+import Sharing
 import SwiftUI
 
+@MainActor
+@Observable
+class ListeningTimeModel {
+  @ObservationIgnored @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
+  @ObservationIgnored @Dependency(\.continuousClock) var clock
+
+  var totalListeningTime: Int = 0
+
+  var hourString: String {
+    let totalSeconds = totalListeningTime / 1000
+    let hours = totalSeconds / 3600
+    return String(format: "%02d", hours)
+  }
+
+  var minString: String {
+    let totalSeconds = totalListeningTime / 1000
+    let minutes = (totalSeconds % 3600) / 60
+    return String(format: "%02d", minutes)
+  }
+
+  var secString: String {
+    let totalSeconds = totalListeningTime / 1000
+    let seconds = totalSeconds % 60
+    return String(format: "%02d", seconds)
+  }
+
+  private var refreshTask: Task<Void, Never>?
+
+  func viewAppeared() {
+    refreshTask?.cancel()
+    refreshTask = Task {
+      while !Task.isCancelled {
+        if let ms = listeningTracker?.totalListenTimeMS {
+          print("Updating listening time to", ms)
+          totalListeningTime = ms
+        } else {
+          print("Tracker missing or zero")
+          totalListeningTime = 0
+        }
+
+        try? await clock.sleep(for: .seconds(1))
+      }
+    }
+  }
+
+  func viewDisappeared() {
+    refreshTask?.cancel()
+    refreshTask = nil
+  }
+}
+
 struct ListeningTimeTile: View {
-  let totalHours: Int = 30
-  let totalMinutes: Int = 21
-  let totalSeconds: Int = 18
+  @Bindable var model: ListeningTimeModel
+
   let onRedeemRewards: () -> Void = {}
 
   var body: some View {
@@ -26,7 +79,7 @@ struct ListeningTimeTile: View {
         Spacer()
       }
 
-      Text("\(totalHours)h \(totalMinutes)m \(totalSeconds)s")
+      Text("\(model.hourString)h \(model.minString)m \(model.secString)s")
         .font(.custom(FontNames.Inter_700_Bold, size: 32))
         .foregroundColor(.white)
 
@@ -47,12 +100,14 @@ struct ListeningTimeTile: View {
     .padding(20)
     .background(Color(white: 0.15))
     .cornerRadius(8)
+    .onAppear { model.viewAppeared() }
+    .onDisappear { model.viewDisappeared() }
   }
 }
 
 // MARK: - Preview
 #Preview {
-  ListeningTimeTile()
+  ListeningTimeTile(model: ListeningTimeModel())
     .padding()
     .background(Color.black)
 }

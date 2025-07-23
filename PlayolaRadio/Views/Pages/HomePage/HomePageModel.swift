@@ -32,6 +32,8 @@ class HomePageModel: ViewModel {
     }
   }
 
+  var listeningTimeTileModel = ListeningTimeModel()
+
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
   }

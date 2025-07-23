@@ -10,6 +10,7 @@ import Dependencies
 import DependenciesMacros
 import Foundation
 import IdentifiedCollections
+import PlayolaPlayer
 import Sharing
 
 // MARK: - API Dependency
@@ -50,6 +51,10 @@ struct APIClient {
 
 extension APIClient: DependencyKey, Sendable {
   static let liveValue: Self = {
+    // Create a custom decoder for dates
+    let isoDecoder = JSONDecoder()
+    isoDecoder.dateDecodingStrategy = .iso8601
+
     return Self(
       getStations: {
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/developer/stationLists"
@@ -121,7 +126,7 @@ extension APIClient: DependencyKey, Sendable {
           headers: headers
         )
         .validate(statusCode: 200..<300)
-        .serializingDecodable(RewardsProfile.self)
+        .serializingDecodable(RewardsProfile.self, decoder: JSONDecoderWithIsoFull())
         .value
 
         return response

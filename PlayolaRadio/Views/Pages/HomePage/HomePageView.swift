@@ -27,7 +27,7 @@ struct HomePageView: View {
           HomeIntroSection(
             onIconTapped10Times: model.handlePlayolaIconTapped10Times)
 
-          ListeningTimeTile()
+          ListeningTimeTile(model: model.listeningTimeTileModel)
 
           HomePageStationList(stations: model.forYouStations) {
             model.handleStationTapped($0)

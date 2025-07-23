@@ -9,13 +9,16 @@ import Foundation
 import Sharing
 import SwiftUI
 
-class ListeningTracker {
-  var rewardsProfile: RewardsProfile
+final class ListeningTracker: Sendable {
+  let rewardsProfile: RewardsProfile
   var localListeningSessions: [LocalListeningSession]
   private var cancellables = Set<AnyCancellable>()
 
   var isListening: Bool {
-    localListeningSessions.last?.endTime == nil
+    guard let lastSession = localListeningSessions.last else {
+      return false
+    }
+    return lastSession.endTime == nil
   }
 
   @Shared(.nowPlaying) var nowPlaying
@@ -25,11 +28,15 @@ class ListeningTracker {
     self.localListeningSessions = localListeningSessions
 
     $nowPlaying.publisher.sink { nowPlaying in
+
       if self.isCurrentlyPlaying(nowPlaying?.playbackStatus) && !self.isListening {
+        print("Starting a new session!")
         self.localListeningSessions.append(LocalListeningSession(startTime: .now))
       } else if !self.isCurrentlyPlaying(nowPlaying?.playbackStatus) && self.isListening {
-        if var lastSession = self.localListeningSessions.last {
-          lastSession.endTime = .now
+        if !self.localListeningSessions.isEmpty {
+          print("Ending the current session")
+          let lastIndex = self.localListeningSessions.count - 1
+          self.localListeningSessions[lastIndex].endTime = .now
         }
       }
     }.store(in: &cancellables)
@@ -42,7 +49,7 @@ class ListeningTracker {
   }
 
   var totalListenTimeMS: Int {
-    let localListeningMS = localListeningSessions.reduce(into: 0) { $0 + $1.totalTimeMS }
+    let localListeningMS = localListeningSessions.reduce(0) { $0 + $1.totalTimeMS }
     let serverListeningTimeMS = rewardsProfile.totalTimeListenedMS
     return localListeningMS + serverListeningTimeMS
   }
