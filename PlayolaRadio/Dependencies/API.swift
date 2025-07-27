@@ -47,13 +47,16 @@ struct APIClient {
   var getRewardsProfile: (_ jwtToken: String) async throws -> RewardsProfile = { _ in
     RewardsProfile(totalTimeListenedMS: 0, totalMSAvailableForRewards: 0, accurateAsOfTime: Date())
   }
+
+  /// Fetches all available prizes from the rewards system
+  /// - Returns: Array of Prize objects
+  var getPrizes: () async throws -> [Prize] = { [] }
 }
 
 extension APIClient: DependencyKey, Sendable {
   static let liveValue: Self = {
     // Create a custom decoder for dates
-    let isoDecoder = JSONDecoder()
-    isoDecoder.dateDecodingStrategy = .iso8601
+    let isoDecoder = JSONDecoderWithIsoFull()
 
     return Self(
       getStations: {
@@ -128,6 +131,16 @@ extension APIClient: DependencyKey, Sendable {
         .validate(statusCode: 200..<300)
         .serializingDecodable(RewardsProfile.self, decoder: JSONDecoderWithIsoFull())
         .value
+
+        return response
+      },
+      getPrizes: {
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/prizes"
+
+        let response = try await AF.request(url)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([Prize].self, decoder: isoDecoder)
+          .value
 
         return response
       }
