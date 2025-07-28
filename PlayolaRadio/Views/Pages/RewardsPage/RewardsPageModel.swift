@@ -16,18 +16,18 @@ class RewardsPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
 
-  var prizes: [Prize] = []
+  var prizeTiers: [PrizeTier] = []
 
   func onViewAppeared() async {
-    await loadPrizes()
+    await loadPrizeTiers()
   }
 
-  func loadPrizes() async {
+  func loadPrizeTiers() async {
     do {
-      prizes = try await api.getPrizes()
+      prizeTiers = try await api.getPrizeTiers()
     } catch {
       // TODO: Add error handling
-      print("Failed to load prizes: \(error)")
+      print("Failed to load prize tiers: \(error)")
     }
   }
 }

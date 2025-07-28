@@ -100,6 +100,7 @@
 		D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */; };
 		D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */; };
 		D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */; };
+		D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -199,6 +200,7 @@
 		D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserDefaults.swift; sourceTree = "<group>"; };
 		D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlStreamListeningSessionReporter.swift; sourceTree = "<group>"; };
 		D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPageModel.swift; sourceTree = "<group>"; };
+		D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTier.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -255,6 +257,7 @@
 		D3137DD02D3ABB490070033A /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */,
 				D3B744CC2E368D790042A427 /* Prize.swift */,
 				D3B744B32E2FECC80042A427 /* LocalListeningSession.swift */,
 				D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */,
@@ -694,6 +697,7 @@
 				D3B744AD2E2FCD930042A427 /* MainContainerModel.swift in Sources */,
 				D339E57E2BFD750700B9E35B /* MailService.swift in Sources */,
 				D339E56F2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift in Sources */,
+				D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */,
 				D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */,
 				D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */,
 				D31C43A82D3C19640021AAE4 /* StationPlayer.swift in Sources */,

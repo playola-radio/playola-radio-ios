@@ -48,9 +48,9 @@ struct APIClient {
     RewardsProfile(totalTimeListenedMS: 0, totalMSAvailableForRewards: 0, accurateAsOfTime: Date())
   }
 
-  /// Fetches all available prizes from the rewards system
-  /// - Returns: Array of Prize objects
-  var getPrizes: () async throws -> [Prize] = { [] }
+  /// Fetches all available prize tiers from the rewards system
+  /// - Returns: Array of PrizeTier objects containing tiers and their associated prizes
+  var getPrizeTiers: () async throws -> [PrizeTier] = { [] }
 }
 
 extension APIClient: DependencyKey, Sendable {
@@ -134,12 +134,12 @@ extension APIClient: DependencyKey, Sendable {
 
         return response
       },
-      getPrizes: {
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/prizes"
+      getPrizeTiers: {
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/tiers"
 
         let response = try await AF.request(url)
           .validate(statusCode: 200..<300)
-          .serializingDecodable([Prize].self, decoder: isoDecoder)
+          .serializingDecodable([PrizeTier].self, decoder: isoDecoder)
           .value
 
         return response

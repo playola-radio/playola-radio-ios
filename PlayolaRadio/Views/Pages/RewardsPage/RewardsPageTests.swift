@@ -13,7 +13,7 @@ import XCTest
 
 @testable import PlayolaRadio
 
-// swiftlint:disable force_cast redundant_optional_initialization
+// swiftlint:disable redundant_optional_initialization
 
 @MainActor
 final class RewardsPageModelTests: XCTestCase {
@@ -26,26 +26,47 @@ final class RewardsPageModelTests: XCTestCase {
     return ListeningTracker(rewardsProfile: rewardsProfile)
   }
 
-  // MARK: - Prizes Loading Tests
+  // MARK: - Prize Tiers Loading Tests
 
-  func testOnViewAppeared_LoadsPrizes() async {
+  func testOnViewAppeared_LoadsPrizeTiers() async {
     @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(totalTimeMS: 0)
-    let mockPrizes = Prize.mocks
+    let mockPrizeTiers = PrizeTier.mocks
 
     let model = withDependencies {
-      $0.api.getPrizes = { mockPrizes }
+      $0.api.getPrizeTiers = { mockPrizeTiers }
     } operation: {
       RewardsPageModel()
     }
 
-    XCTAssertTrue(model.prizes.isEmpty)
+    XCTAssertTrue(model.prizeTiers.isEmpty)
 
     await model.onViewAppeared()
 
-    XCTAssertEqual(model.prizes.count, mockPrizes.count)
-    XCTAssertEqual(model.prizes, mockPrizes)
+    XCTAssertEqual(model.prizeTiers.count, mockPrizeTiers.count)
+    XCTAssertEqual(model.prizeTiers, mockPrizeTiers)
   }
 
+  func testOnViewAppeared_LoadsPrizesFromTiers() async {
+    @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(totalTimeMS: 0)
+    let mockPrizeTiers = PrizeTier.mocks
+    let expectedPrizeCount = mockPrizeTiers.flatMap { $0.prizes }.count
+
+    let model = withDependencies {
+      $0.api.getPrizeTiers = { mockPrizeTiers }
+    } operation: {
+      RewardsPageModel()
+    }
+
+    await model.onViewAppeared()
+
+    XCTAssertEqual(model.prizeTiers.count, 3)  // Based on our mock data
+
+    // Verify we have the expected tiers
+    let tierNames = model.prizeTiers.map { $0.name }
+    XCTAssertTrue(tierNames.contains("Koozie"))
+    XCTAssertTrue(tierNames.contains("T-Shirt"))
+    XCTAssertTrue(tierNames.contains("Show Tix"))
+  }
 }
 
-// swiftlint:enable force_cast redundant_optional_initialization
+// swiftlint:enable redundant_optional_initialization
