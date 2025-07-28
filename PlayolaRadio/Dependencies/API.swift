@@ -16,7 +16,7 @@ import Sharing
 // MARK: - API Dependency
 
 @DependencyClient
-struct APIClient {
+struct APIClient: Sendable {
   /// Fetches all available radio station lists
   var getStations: () async throws -> IdentifiedArrayOf<StationList> = { [] }
 
@@ -53,7 +53,7 @@ struct APIClient {
   var getPrizeTiers: () async throws -> [PrizeTier] = { [] }
 }
 
-extension APIClient: DependencyKey, Sendable {
+extension APIClient: DependencyKey {
   static let liveValue: Self = {
     // Create a custom decoder for dates
     let isoDecoder = JSONDecoderWithIsoFull()

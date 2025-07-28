@@ -52,6 +52,7 @@
 		D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */; };
 		D35673CB2D3EE5E900E4E926 /* Secrets-Development.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */; };
 		D35905EC2DFCDA140064A9C1 /* StationListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35905EB2DFCDA110064A9C1 /* StationListModel.swift */; };
+		D36FBCC02E37FC8100D1241C /* PrizeTierRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D36FBCBF2E37FC7800D1241C /* PrizeTierRow.swift */; };
 		D37257AB2DF87C72001BC6F9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D37257AA2DF87C72001BC6F9 /* LaunchScreen.storyboard */; };
 		D37257B02DF88BB7001BC6F9 /* HomePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257AF2DF88BB2001BC6F9 /* HomePageView.swift */; };
 		D37257B22DF88BC1001BC6F9 /* HomePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B12DF88BBD001BC6F9 /* HomePageModel.swift */; };
@@ -67,6 +68,8 @@
 		D37257D02DFB4368001BC6F9 /* PlayerPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */; };
 		D38031352E00AFD20011DD64 /* PlayerPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38031332E00AD9F0011DD64 /* PlayerPageTests.swift */; };
 		D382671C2E00C1460006BAC2 /* SmallPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D382671B2E00C13E0006BAC2 /* SmallPlayer.swift */; };
+		D395910F2E38069200720CF8 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D395910E2E38069200720CF8 /* SDWebImageSwiftUI */; };
+		D39591122E3808A900720CF8 /* SDWebImageSVGCoder in Frameworks */ = {isa = PBXBuildFile; productRef = D39591112E3808A900720CF8 /* SDWebImageSVGCoder */; };
 		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
 		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
@@ -159,6 +162,7 @@
 		D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingUpdater.swift; sourceTree = "<group>"; };
 		D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Development.xcconfig"; sourceTree = "<group>"; };
 		D35905EB2DFCDA110064A9C1 /* StationListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListModel.swift; sourceTree = "<group>"; };
+		D36FBCBF2E37FC7800D1241C /* PrizeTierRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTierRow.swift; sourceTree = "<group>"; };
 		D37257AA2DF87C72001BC6F9 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D37257AF2DF88BB2001BC6F9 /* HomePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePageView.swift; sourceTree = "<group>"; };
 		D37257B12DF88BBD001BC6F9 /* HomePageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePageModel.swift; sourceTree = "<group>"; };
@@ -211,11 +215,13 @@
 				D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */,
 				D35673B72D3DC6EC00E4E926 /* Mixpanel in Frameworks */,
 				D3B744A32E2ED6AC0042A427 /* DependenciesMacros in Frameworks */,
+				D39591122E3808A900720CF8 /* SDWebImageSVGCoder in Frameworks */,
 				D31C43D42D3C783B0021AAE4 /* PlayolaPlayer in Frameworks */,
 				D3B744A12E2ED6AC0042A427 /* Dependencies in Frameworks */,
 				D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */,
 				D3B662702D40352500975D2F /* Alamofire in Frameworks */,
 				D3536A302BFA5523006942D6 /* ComposableArchitecture in Frameworks */,
+				D395910F2E38069200720CF8 /* SDWebImageSwiftUI in Frameworks */,
 				D3B662682D3F58E700975D2F /* FRadioPlayer in Frameworks */,
 				D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */,
 			);
@@ -515,6 +521,7 @@
 		D3B744BE2E3131630042A427 /* RewardsPage */ = {
 			isa = PBXGroup;
 			children = (
+				D36FBCBF2E37FC7800D1241C /* PrizeTierRow.swift */,
 				D3B744C32E31317F0042A427 /* RewardsPageTests.swift */,
 				D3B744C12E3131770042A427 /* RewardsPageView.swift */,
 				D3B744BF2E31316D0042A427 /* RewardsPageModel.swift */,
@@ -569,6 +576,8 @@
 				D3A2761F2D43C747006055AF /* GoogleSignInSwift */,
 				D3B744A02E2ED6AC0042A427 /* Dependencies */,
 				D3B744A22E2ED6AC0042A427 /* DependenciesMacros */,
+				D395910E2E38069200720CF8 /* SDWebImageSwiftUI */,
+				D39591112E3808A900720CF8 /* SDWebImageSVGCoder */,
 			);
 			productName = PlayolaRadio;
 			productReference = D3536A012BFA4F49006942D6 /* PlayolaRadio.app */;
@@ -633,6 +642,8 @@
 				D3BEE95B2D49A3BD00469CDC /* XCRemoteSwiftPackageReference "swift-testing" */,
 				D38483792E242D61008676BB /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
 				D3B7449F2E2ED6AC0042A427 /* XCRemoteSwiftPackageReference "swift-dependencies" */,
+				D395910D2E38069200720CF8 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
+				D39591102E3808A900720CF8 /* XCRemoteSwiftPackageReference "SDWebImageSVGCoder" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D3536A022BFA4F49006942D6 /* Products */;
@@ -701,6 +712,7 @@
 				D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */,
 				D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */,
 				D31C43A82D3C19640021AAE4 /* StationPlayer.swift in Sources */,
+				D36FBCC02E37FC8100D1241C /* PrizeTierRow.swift in Sources */,
 				D339E5642BFD0FD800B9E35B /* StationListCellView.swift in Sources */,
 				D3B744B42E2FECE10042A427 /* LocalListeningSession.swift in Sources */,
 				D37257D02DFB4368001BC6F9 /* PlayerPage.swift in Sources */,
@@ -1198,6 +1210,22 @@
 				minimumVersion = 0.59.1;
 			};
 		};
+		D395910D2E38069200720CF8 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImageSwiftUI";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.1.3;
+			};
+		};
+		D39591102E3808A900720CF8 /* XCRemoteSwiftPackageReference "SDWebImageSVGCoder" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImageSVGCoder";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.8.0;
+			};
+		};
 		D3A2761C2D43C747006055AF /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
@@ -1272,6 +1300,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D38483792E242D61008676BB /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */;
 			productName = "plugin:SwiftLintBuildToolPlugin";
+		};
+		D395910E2E38069200720CF8 /* SDWebImageSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D395910D2E38069200720CF8 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
+			productName = SDWebImageSwiftUI;
+		};
+		D39591112E3808A900720CF8 /* SDWebImageSVGCoder */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D39591102E3808A900720CF8 /* XCRemoteSwiftPackageReference "SDWebImageSVGCoder" */;
+			productName = SDWebImageSVGCoder;
 		};
 		D3A2761D2D43C747006055AF /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;
