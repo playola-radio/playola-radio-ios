@@ -8,7 +8,7 @@ import Foundation
 
 struct LocalListeningSession {
   var startTime: Date!
-  var endTime: Date? = nil
+  var endTime: Date?
 
   var totalTimeMS: Int {
     let finishTime: Date = endTime ?? .now
