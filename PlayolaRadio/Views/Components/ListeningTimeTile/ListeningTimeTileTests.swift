@@ -13,7 +13,7 @@ import XCTest
 
 @testable import PlayolaRadio
 
-// swiftlint:disable force_cast redundant_optional_initialization
+// swiftlint:disable redundant_optional_initialization
 
 @MainActor
 final class ListeningTimeTileModelTests: XCTestCase {
@@ -249,7 +249,7 @@ final class ListeningTimeTileModelTests: XCTestCase {
 
     // Simulate rapid updates by adding sessions
     var sessions: [LocalListeningSession] = []
-    for i in 1...5 {
+    for index in 1...5 {
       let session = LocalListeningSession(
         startTime: Date().addingTimeInterval(-1),
         endTime: Date()
@@ -269,7 +269,7 @@ final class ListeningTimeTileModelTests: XCTestCase {
       // Allow shared state to propagate before advancing clock
       await Task.yield()
       await clock.advance(by: .seconds(1))
-      XCTAssertEqual(model.totalListeningTime, i * 1000)
+      XCTAssertEqual(model.totalListeningTime, index * 1000)
     }
 
     model.viewDisappeared()
@@ -313,4 +313,4 @@ final class ListeningTimeTileModelTests: XCTestCase {
     model.viewDisappeared()
   }
 }
-// swiftlint:enable force_cast redundant_optional_initialization
+// swiftlint:enable redundant_optional_initialization

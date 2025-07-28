@@ -73,7 +73,7 @@ class MainContainerModel: ViewModel {
     do {
       let rewards = try await api.getRewardsProfile(authJWT)
       self.$listeningTracker.withLock { $0 = ListeningTracker(rewardsProfile: rewards) }
-    } catch (let err) {
+    } catch let err {
       print(err)
     }
   }
