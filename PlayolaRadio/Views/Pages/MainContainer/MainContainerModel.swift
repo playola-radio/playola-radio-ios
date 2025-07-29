@@ -19,19 +19,23 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored var stationPlayer: StationPlayer!
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
+  @ObservationIgnored @Shared(.listeningTracker) var listeningTracker
+  @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.activeTab) var activeTab
 
   enum ActiveTab {
     case home
     case stationsList
+    case rewards
     case profile
   }
 
-  var selectedTab: ActiveTab = .home
   var presentedAlert: PlayolaAlert?
   var presentedSheet: PlayolaSheet?
 
   var homePageModel = HomePageModel()
   var stationListModel = StationListModel()
+  var rewardsPageModel = RewardsPageModel()
 
   var shouldShowSmallPlayer: Bool = false
 
@@ -57,8 +61,22 @@ class MainContainerModel: ViewModel {
     // what happens when we use the Shared nowPlaying value.  In the future we should figure out
     // how to get this to work with the nowPlaying shared state.
     stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &cancellables)
+
+    await loadListeningTracker()
   }
 
+  func loadListeningTracker() async {
+    guard let authJWT = auth.jwt else {
+      print("Error not signed in")
+      return
+    }
+    do {
+      let rewards = try await api.getRewardsProfile(authJWT)
+      self.$listeningTracker.withLock { $0 = ListeningTracker(rewardsProfile: rewards) }
+    } catch let err {
+      print(err)
+    }
+  }
   func dismissButtonInSheetTapped() {
     self.presentedSheet = nil
   }

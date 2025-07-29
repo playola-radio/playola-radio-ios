@@ -10,21 +10,54 @@ import Dependencies
 import DependenciesMacros
 import Foundation
 import IdentifiedCollections
+import PlayolaPlayer
 import Sharing
 
 // MARK: - API Dependency
 
 @DependencyClient
-struct APIClient {
+struct APIClient: Sendable {
+  /// Fetches all available radio station lists
   var getStations: () async throws -> IdentifiedArrayOf<StationList> = { [] }
-  var signInViaApple: (String, String, String, String?) async throws -> String = { _, _, _, _ in ""
+
+  /// Signs in user via Apple authentication
+  /// - Parameters:
+  ///   - identityToken: The Apple identity token
+  ///   - email: User's email address
+  ///   - authCode: Apple authorization code
+  ///   - displayName: Optional display name for the user
+  /// - Returns: JWT token string
+  var signInViaApple:
+    (_ identityToken: String, _ email: String, _ authCode: String, _ displayName: String?)
+      async throws -> String = { _, _, _, _ in ""
+      }
+
+  /// Revokes Apple credentials for the user
+  /// - Parameter appleUserId: The Apple user ID to revoke
+  var revokeAppleCredentials: (_ appleUserId: String) async throws -> Void = { _ in }
+
+  /// Signs in user via Google authentication
+  /// - Parameter code: Google authentication code
+  /// - Returns: JWT token string
+  var signInViaGoogle: (_ code: String) async throws -> String = { _ in "" }
+
+  /// Fetches the rewards profile for the authenticated user
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: RewardsProfile containing listening time and rewards data
+  var getRewardsProfile: (_ jwtToken: String) async throws -> RewardsProfile = { _ in
+    RewardsProfile(totalTimeListenedMS: 0, totalMSAvailableForRewards: 0, accurateAsOfTime: Date())
   }
-  var revokeAppleCredentials: (String) async throws -> Void = { _ in }
-  var signInViaGoogle: (String) async throws -> String = { _ in "" }
+
+  /// Fetches all available prize tiers from the rewards system
+  /// - Returns: Array of PrizeTier objects containing tiers and their associated prizes
+  var getPrizeTiers: () async throws -> [PrizeTier] = { [] }
 }
 
-extension APIClient: DependencyKey, Sendable {
+extension APIClient: DependencyKey {
   static let liveValue: Self = {
+    // Create a custom decoder for dates
+    let isoDecoder = JSONDecoderWithIsoFull()
+
     return Self(
       getStations: {
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/developer/stationLists"
@@ -84,6 +117,32 @@ extension APIClient: DependencyKey, Sendable {
         .serializingDecodable(LoginResponse.self).value
 
         return response.playolaToken
+      },
+      getRewardsProfile: { jwtToken in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/users/me/profile"
+        let headers: HTTPHeaders = [
+          "Authorization": "Bearer \(jwtToken)"
+        ]
+
+        let response = try await AF.request(
+          url,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(RewardsProfile.self, decoder: JSONDecoderWithIsoFull())
+        .value
+
+        return response
+      },
+      getPrizeTiers: {
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/tiers"
+
+        let response = try await AF.request(url)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([PrizeTier].self, decoder: isoDecoder)
+          .value
+
+        return response
       }
     )
   }()

@@ -7,11 +7,16 @@
 
 import GoogleSignIn
 import GoogleSignInSwift
+import SDWebImage
+import SDWebImageSVGCoder
 import SwiftUI
 
 @main
 struct PlayolaRadioApp: App {
   init() {
+    // Register SVG coder for SDWebImage
+    SDImageCodersManager.shared.addCoder(SDImageSVGCoder.shared)
+
     NowPlayingUpdater.shared.setupRemoteControlCenter()
   }
 

@@ -19,7 +19,7 @@ struct HomePageView: View {
           .foregroundColor(.white)
           .padding(.horizontal, 18)
           .padding(.top, 12)
-          .padding(.bottom, 8)
+          .padding(.bottom, 4)
           .frame(maxWidth: .infinity, alignment: .leading)
           .background(Color.black)
 
@@ -27,10 +27,11 @@ struct HomePageView: View {
           HomeIntroSection(
             onIconTapped10Times: model.handlePlayolaIconTapped10Times)
 
+          ListeningTimeTile(model: model.listeningTimeTileModel)
+
           HomePageStationList(stations: model.forYouStations) {
             model.handleStationTapped($0)
           }
-          .padding(.top, -48)
         }
         .padding(.horizontal, 24)
         .scrollIndicators(.hidden)

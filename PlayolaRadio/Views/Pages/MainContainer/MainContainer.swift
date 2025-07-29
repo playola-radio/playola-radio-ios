@@ -16,7 +16,7 @@ struct MainContainer: View {
 
   var body: some View {
     VStack(spacing: 0) {
-      TabView(selection: $model.selectedTab) {
+      TabView(selection: $model.activeTab) {
         tabContentWithSmallPlayer(content: {
           HomePageView(model: model.homePageModel)
         })
@@ -34,6 +34,15 @@ struct MainContainer: View {
           Text("Radio Stations")
         }
         .tag(MainContainerModel.ActiveTab.stationsList)
+
+        tabContentWithSmallPlayer(content: {
+          RewardsPageView(model: model.rewardsPageModel)
+        })
+        .tabItem {
+          Image("gift")
+          Text("Rewards")
+        }
+        .tag(MainContainerModel.ActiveTab.rewards)
 
         tabContentWithSmallPlayer(content: {
           HomePageView(model: model.homePageModel)  // Temporarily using HomePageView
