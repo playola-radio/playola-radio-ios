@@ -6,30 +6,46 @@
 //
 
 import AuthenticationServices
-import Testing
+import Dependencies
+import Sharing
+import XCTest
 
 @testable import PlayolaRadio
 
 @MainActor
-struct SignInPageTests {
+final class SignInPageTests: XCTestCase {
   // TODO: Add these tests
-  @Test("Correctly adds scope to an apple sign in request")
-  func testCorrectlyAddsScopeToTheAppleSignInRequest() {
+  func testSignInWithApple_CorrectlyAddsScopeToTheAppleSignInRequest() {
     let request = ASAuthorizationAppleIDRequest(coder: NSCoder())!
     let model = SignInPageModel()
     model.signInWithAppleButtonTapped(request: request)
-    #expect(request.requestedScopes == [.email, .fullName])
+    XCTAssertEqual(request.requestedScopes, [.email, .fullName])
   }
 
   // TODO: Create these tests:
-  @Suite("signInWithAppleCompleted()")
-  struct SignInWithAppleCompleted {
-    // @Test("Can handle decoding error on appleIDCredential")
-    // @Test("Stores appleSignInInfo if the email was received")
-    // @Test("Notifies the user if there was no email cached and none provided")
-    // @Test("Provides the results to the API")
-  }
+  // MARK: - signInWithAppleCompleted() Tests
 
-  // @Suite("SignInWithGoogle")
-  // @Test("LogOutButtonTapped()")
+  // func testSignInWithAppleCompleted_CanHandleDecodingErrorOnAppleIDCredential() {
+  //   // TODO: Implement test
+  // }
+
+  // func testSignInWithAppleCompleted_StoresAppleSignInInfoIfEmailWasReceived() {
+  //   // TODO: Implement test
+  // }
+
+  // func testSignInWithAppleCompleted_NotifiesUserIfNoEmailCachedAndNoneProvided() {
+  //   // TODO: Implement test
+  // }
+
+  // func testSignInWithAppleCompleted_ProvidesResultsToAPI() {
+  //   // TODO: Implement test
+  // }
+
+  // MARK: - SignInWithGoogle Tests
+  // TODO: Implement Google sign in tests
+
+  // MARK: - LogOutButtonTapped Tests
+  // func testLogOutButtonTapped() {
+  //   // TODO: Implement test
+  // }
 }

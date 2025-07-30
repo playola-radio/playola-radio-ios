@@ -6,13 +6,32 @@
 //
 
 import Foundation
+import Sharing
 import SwiftUI
 
 struct SmallPlayer: View {
-  var mainTitle: String
-  var secondaryTitle: String
-  var artworkURL: URL
-  var onStopButtonTapped: () -> Void
+  @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+
+  // Computed properties from nowPlaying data
+  var mainTitle: String {
+    nowPlaying?.currentStation?.name ?? ""
+  }
+
+  var secondaryTitle: String {
+    if let artistPlaying = nowPlaying?.artistPlaying,
+      let titlePlaying = nowPlaying?.titlePlaying
+    {
+      return "\(artistPlaying) - \(titlePlaying)"
+    } else {
+      return nowPlaying?.currentStation?.desc ?? ""
+    }
+  }
+
+  var artworkURL: URL {
+    nowPlaying?.albumArtworkUrl
+      ?? nowPlaying?.currentStation?.processedImageURL()
+      ?? URL(string: "https://example.com")!
+  }
 
   // MARK: - Body
   var body: some View {
@@ -47,13 +66,16 @@ struct SmallPlayer: View {
 
         Spacer()
 
-        Button(action: onStopButtonTapped) {
-          Image(systemName: "stop.fill")
-            .foregroundColor(.black)
-            .frame(width: 34, height: 34)
-            .background(.white)
-            .clipShape(Circle())
-        }
+        Button(
+          action: { StationPlayer.shared.stop() },
+          label: {
+            Image(systemName: "stop.fill")
+              .foregroundColor(.black)
+              .frame(width: 34, height: 34)
+              .background(.white)
+              .clipShape(Circle())
+          }
+        )
         .padding(.trailing, 24)
       }
       .padding(.horizontal, 12)
@@ -75,11 +97,6 @@ struct SmallPlayer: View {
 
 struct SmallPlayer_Previews: PreviewProvider {
   static var previews: some View {
-    SmallPlayer(
-      mainTitle: "Jacob Stelly's",
-      secondaryTitle: "Moondog Radio",
-      artworkURL: URL(
-        string: "https://playola-static.s3.amazonaws.com/station-images/Jacob-Stelly-1-116029.jpg")!,
-      onStopButtonTapped: {})
+    SmallPlayer()
   }
 }

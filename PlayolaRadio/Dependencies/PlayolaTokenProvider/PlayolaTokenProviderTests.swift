@@ -9,15 +9,15 @@
 
 import Foundation
 import Sharing
-import Testing
+import XCTest
 
 @testable import PlayolaRadio
 
 @MainActor
-struct PlayolaTokenProviderTests {
+final class PlayolaTokenProviderTests: XCTestCase {
 
   // Helper function to create valid JWT tokens for testing
-  static func createTestJWT(
+  func createTestJWT(
     id: String = "test-user-123",
     displayName: String = "Test User",
     email: String = "test@example.com",
@@ -51,112 +51,106 @@ struct PlayolaTokenProviderTests {
     return "\(headerString).\(payloadString).fake_signature"
   }
 
-  @Suite("getCurrentToken")
-  struct GetCurrentToken {
-    @Test("Returns nil when user not logged in")
-    func testReturnsNilWhenUserNotLoggedIn() async {
-      @Shared(.auth) var auth = Auth()
-      let tokenProvider = PlayolaTokenProvider()
+  // MARK: - getCurrentToken Tests
 
-      let token = await tokenProvider.getCurrentToken()
+  func testGetCurrentToken_ReturnsNilWhenUserNotLoggedIn() async {
+    @Shared(.auth) var auth = Auth()
+    let tokenProvider = PlayolaTokenProvider()
 
-      #expect(token == nil)
-    }
+    let token = await tokenProvider.getCurrentToken()
 
-    @Test("Returns JWT when user is logged in")
-    func testReturnsJWTWhenUserLoggedIn() async {
-      let expectedJWT = await createTestJWT()
-      @Shared(.auth) var auth = Auth(jwtToken: expectedJWT)
-      let tokenProvider = PlayolaTokenProvider()
-
-      let token = await tokenProvider.getCurrentToken()
-
-      #expect(token == expectedJWT)
-    }
-
-    @Test("Returns nil immediately after user signs out")
-    func testReturnsNilAfterUserSignsOut() async {
-      let initialJWT = await createTestJWT()
-      @Shared(.auth) var auth = Auth(jwtToken: initialJWT)
-      let tokenProvider = PlayolaTokenProvider()
-
-      // Sign out user
-      $auth.withLock { $0 = Auth() }
-
-      let token = await tokenProvider.getCurrentToken()
-      #expect(token == nil)
-    }
+    XCTAssertNil(token)
   }
 
-  @Suite("refreshToken")
-  struct RefreshToken {
-    @Test("Returns nil when user not logged in")
-    func testReturnsNilWhenUserNotLoggedIn() async {
-      @Shared(.auth) var auth = Auth()
-      let tokenProvider = PlayolaTokenProvider()
+  func testGetCurrentToken_ReturnsJWTWhenUserLoggedIn() async {
+    let expectedJWT = createTestJWT()
+    @Shared(.auth) var auth = Auth(jwtToken: expectedJWT)
+    let tokenProvider = PlayolaTokenProvider()
 
-      let token = await tokenProvider.refreshToken()
+    let token = await tokenProvider.getCurrentToken()
 
-      #expect(token == nil)
-    }
-
-    @Test("Returns current JWT when user is logged in")
-    func testReturnsCurrentJWTWhenUserLoggedIn() async {
-      let expectedJWT = await createTestJWT()
-      @Shared(.auth) var auth = Auth(jwtToken: expectedJWT)
-      let tokenProvider = PlayolaTokenProvider()
-
-      let token = await tokenProvider.refreshToken()
-
-      #expect(token == expectedJWT)
-    }
+    XCTAssertEqual(token, expectedJWT)
   }
 
-  @Suite("Reactive Authentication State Changes")
-  struct ReactiveAuthChanges {
-    @Test("Immediately reflects auth state changes")
-    func testImmediatelyReflectsAuthStateChanges() async {
-      @Shared(.auth) var auth = Auth()
-      let tokenProvider = PlayolaTokenProvider()
+  func testGetCurrentToken_ReturnsNilAfterUserSignsOut() async {
+    let initialJWT = createTestJWT()
+    @Shared(.auth) var auth = Auth(jwtToken: initialJWT)
+    let tokenProvider = PlayolaTokenProvider()
 
-      // Initially no token
-      #expect(await tokenProvider.getCurrentToken() == nil)
+    // Sign out user
+    $auth.withLock { $0 = Auth() }
 
-      // User logs in
-      let jwt = await createTestJWT()
-      $auth.withLock { $0 = Auth(jwtToken: jwt) }
+    let token = await tokenProvider.getCurrentToken()
+    XCTAssertNil(token)
+  }
 
-      // Token provider immediately reflects the change
-      #expect(await tokenProvider.getCurrentToken() == jwt)
+  // MARK: - refreshToken Tests
 
-      // User logs out
-      $auth.withLock { $0 = Auth() }
+  func testRefreshToken_ReturnsNilWhenUserNotLoggedIn() async {
+    @Shared(.auth) var auth = Auth()
+    let tokenProvider = PlayolaTokenProvider()
 
-      // Token provider immediately reflects the logout
-      #expect(await tokenProvider.getCurrentToken() == nil)
+    let token = await tokenProvider.refreshToken()
+
+    XCTAssertNil(token)
+  }
+
+  func testRefreshToken_ReturnsCurrentJWTWhenUserLoggedIn() async {
+    let expectedJWT = createTestJWT()
+    @Shared(.auth) var auth = Auth(jwtToken: expectedJWT)
+    let tokenProvider = PlayolaTokenProvider()
+
+    let token = await tokenProvider.refreshToken()
+
+    XCTAssertEqual(token, expectedJWT)
+  }
+
+  // MARK: - Reactive Authentication State Changes Tests
+
+  func testReactiveAuth_ImmediatelyReflectsAuthStateChanges() async {
+    @Shared(.auth) var auth = Auth()
+    let tokenProvider = PlayolaTokenProvider()
+
+    // Initially no token
+    let initialToken = await tokenProvider.getCurrentToken()
+    XCTAssertNil(initialToken)
+
+    // User logs in
+    let jwt = createTestJWT()
+    $auth.withLock { $0 = Auth(jwtToken: jwt) }
+
+    // Token provider immediately reflects the change
+    let newToken = await tokenProvider.getCurrentToken()
+    XCTAssertEqual(newToken, jwt)
+
+    // User logs out
+    $auth.withLock { $0 = Auth() }
+
+    // Token provider immediately reflects the logout
+    let loggedOutToken = await tokenProvider.getCurrentToken()
+    XCTAssertNil(loggedOutToken)
+  }
+
+  func testReactiveAuth_MultipleAuthStateChangesTracked() async {
+    @Shared(.auth) var auth = Auth()
+    let tokenProvider = PlayolaTokenProvider()
+
+    let tokens = [
+      createTestJWT(id: "user1", displayName: "User One"),
+      createTestJWT(id: "user2", displayName: "User Two"),
+      createTestJWT(id: "user3", displayName: "User Three"),
+    ]
+
+    for expectedToken in tokens {
+      $auth.withLock { $0 = Auth(jwtToken: expectedToken) }
+      let actualToken = await tokenProvider.getCurrentToken()
+      XCTAssertEqual(actualToken, expectedToken)
     }
 
-    @Test("Multiple auth state changes are tracked correctly")
-    func testMultipleAuthStateChangesTracked() async {
-      @Shared(.auth) var auth = Auth()
-      let tokenProvider = PlayolaTokenProvider()
-
-      let tokens = [
-        await createTestJWT(id: "user1", displayName: "User One"),
-        await createTestJWT(id: "user2", displayName: "User Two"),
-        await createTestJWT(id: "user3", displayName: "User Three"),
-      ]
-
-      for expectedToken in tokens {
-        $auth.withLock { $0 = Auth(jwtToken: expectedToken) }
-        let actualToken = await tokenProvider.getCurrentToken()
-        #expect(actualToken == expectedToken)
-      }
-
-      // Final logout
-      $auth.withLock { $0 = Auth() }
-      #expect(await tokenProvider.getCurrentToken() == nil)
-    }
+    // Final logout
+    $auth.withLock { $0 = Auth() }
+    let finalToken = await tokenProvider.getCurrentToken()
+    XCTAssertNil(finalToken)
   }
 }
 

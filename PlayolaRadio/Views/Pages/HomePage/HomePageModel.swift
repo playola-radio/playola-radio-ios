@@ -18,6 +18,7 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
   @ObservationIgnored @Shared(.auth) var auth: Auth
+  @ObservationIgnored @Shared(.activeTab) var activeTab
 
   @ObservationIgnored var stationPlayer: StationPlayer
 
@@ -30,6 +31,15 @@ class HomePageModel: ViewModel {
     } else {
       return "Welcome to Playola"
     }
+  }
+
+  var listeningTimeTileModel: ListeningTimeTileModel {
+    ListeningTimeTileModel(
+      buttonText: "Redeem Your Rewards!",
+      buttonAction: {
+        self.$activeTab.withLock { $0 = .rewards }
+      }
+    )
   }
 
   init(stationPlayer: StationPlayer? = nil) {

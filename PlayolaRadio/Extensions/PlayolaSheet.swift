@@ -10,6 +10,5 @@ enum PlayolaSheet: Hashable, Identifiable, Equatable {
     self
   }
 
-  case about(AboutPageModel)
   case player(PlayerPageModel)
 }

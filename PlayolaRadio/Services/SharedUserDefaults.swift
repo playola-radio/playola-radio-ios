@@ -50,3 +50,21 @@ extension SharedKey where Self == FileStorageKey<Auth>.Default {
       default: Auth()]
   }
 }
+
+extension SharedKey where Self == InMemoryKey<NowPlaying?>.Default {
+  static var nowPlaying: Self {
+    Self[.inMemory("nowPlaying"), default: nil]
+  }
+}
+
+extension SharedKey where Self == InMemoryKey<ListeningTracker?>.Default {
+  static var listeningTracker: Self {
+    Self[.inMemory("listeningTracker"), default: nil]
+  }
+}
+
+extension SharedKey where Self == InMemoryKey<MainContainerModel.ActiveTab>.Default {
+  static var activeTab: Self {
+    Self[.inMemory("activeTab"), default: .home]
+  }
+}

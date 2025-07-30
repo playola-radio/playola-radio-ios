@@ -6,223 +6,156 @@
 //
 
 import Alamofire
+import Dependencies
+import DependenciesMacros
 import Foundation
 import IdentifiedCollections
+import PlayolaPlayer
 import Sharing
 
-class API {
-  static let stationsURL = URL(
-    string: "\(Config.shared.baseUrl.absoluteString)/v1/developer/stationLists")!
+// MARK: - API Dependency
 
-  @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
-  @Shared(.stationListsLoaded) var stationListsLoaded: Bool
-  @Shared(.auth) var auth: Auth
+@DependencyClient
+struct APIClient: Sendable {
+  /// Fetches all available radio station lists
+  var getStations: () async throws -> IdentifiedArrayOf<StationList> = { [] }
 
-  // Helper struct to get either local or remote JSON
-  func getStations(
-    completion: @escaping (
-      (Result<IdentifiedArrayOf<StationList>, Error>) -> Void
-    )
-  ) {
-    DispatchQueue.global(qos: .userInitiated).async {
-      self.loadHttp { remoteResult in
-        switch remoteResult {
-        case let .success(stationLists):
-          print("Remote StationLists Loaded")
-          self.$stationLists.withLock {
-            $0 = IdentifiedArrayOf(uniqueElements: stationLists)
-          }
-          self.$stationListsLoaded.withLock { $0 = true }
-          DispatchQueue.main.async {
-            completion(.success(self.stationLists))
-          }
-        default:
-          self.loadLocal { _ in
-            print(
-              "Error loading remote StationLists. Falling back to local version."
-            )
-            DispatchQueue.main.async {
-              completion(.success(self.stationLists))
-            }
-          }
+  /// Signs in user via Apple authentication
+  /// - Parameters:
+  ///   - identityToken: The Apple identity token
+  ///   - email: User's email address
+  ///   - authCode: Apple authorization code
+  ///   - displayName: Optional display name for the user
+  /// - Returns: JWT token string
+  var signInViaApple:
+    (_ identityToken: String, _ email: String, _ authCode: String, _ displayName: String?)
+      async throws -> String = { _, _, _, _ in ""
+      }
+
+  /// Revokes Apple credentials for the user
+  /// - Parameter appleUserId: The Apple user ID to revoke
+  var revokeAppleCredentials: (_ appleUserId: String) async throws -> Void = { _ in }
+
+  /// Signs in user via Google authentication
+  /// - Parameter code: Google authentication code
+  /// - Returns: JWT token string
+  var signInViaGoogle: (_ code: String) async throws -> String = { _ in "" }
+
+  /// Fetches the rewards profile for the authenticated user
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: RewardsProfile containing listening time and rewards data
+  var getRewardsProfile: (_ jwtToken: String) async throws -> RewardsProfile = { _ in
+    RewardsProfile(totalTimeListenedMS: 0, totalMSAvailableForRewards: 0, accurateAsOfTime: Date())
+  }
+
+  /// Fetches all available prize tiers from the rewards system
+  /// - Returns: Array of PrizeTier objects containing tiers and their associated prizes
+  var getPrizeTiers: () async throws -> [PrizeTier] = { [] }
+}
+
+extension APIClient: DependencyKey {
+  static let liveValue: Self = {
+    // Create a custom decoder for dates
+    let isoDecoder = JSONDecoderWithIsoFull()
+
+    return Self(
+      getStations: {
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/developer/stationLists"
+        let response = try await AF.request(url).serializingDecodable([String: [StationList]].self)
+          .value
+        guard let stationLists = response["stationLists"] else {
+          throw APIError.dataNotValid
         }
-      }
-    }
-  }
-
-  func signInViaApple(
-    identityToken: String,
-    email: String,
-    authCode: String,
-    displayName: String?
-  ) async {
-    var parameters: [String: Any] = [
-      "identityToken": identityToken,
-      "authCode": authCode,
-      "email": email,
-    ]
-    if let displayName {
-      parameters["displayName"] = displayName
-    }
-    AF.request(
-      "\(Config.shared.baseUrl.absoluteString)/v1/auth/apple/mobile/signup",
-      method: .post,
-      parameters: parameters,
-      encoding: JSONEncoding.default
-    ).responseDecodable(of: LoginResponse.self) { response in
-      switch response.result {
-      case let .success(loginResponse):
-        self.$auth.withLock { $0 = Auth(jwtToken: loginResponse.playolaToken) }
-      case let .failure(error):
-        print("Failure to log in: \(error)")
-      }
-    }
-  }
-
-  func revokeAppleCredentials(appleUserId: String) async {
-    let parameters: [String: Any] = ["appleUserId": appleUserId]
-    AF.request(
-      "\(Config.shared.baseUrl.absoluteString)/v1/auth/apple/revoke",
-      method: .put,
-      parameters: parameters,
-      encoding: JSONEncoding.default
-    )
-    .validate(statusCode: 200..<300)
-    .response { _ in
-      AuthService.shared.signOut()
-      AuthService.shared.clearAppleUser()
-    }
-  }
-
-  func signInViaGoogle(code: String) async {
-    let parameters: [String: Any] = [
-      "code": code,
-      "originatesFromIOS": true,
-    ]
-
-    AF.request(
-      "\(Config.shared.baseUrl.absoluteString)/v1/auth/google/signin",
-      method: .post,
-      parameters: parameters,
-      encoding: JSONEncoding.default
-    )
-    .validate(statusCode: 200..<300)
-    .responseDecodable(of: LoginResponse.self) { response in
-      switch response.result {
-      case let .success(loginResponse):
-        self.$auth.withLock { $0 = Auth(jwtToken: loginResponse.playolaToken) }
-      case let .failure(error):
-        print("Failure to log in: \(error)")
-      }
-    }
-  }
-
-  @discardableResult
-  func getStations() async throws -> IdentifiedArrayOf<StationList> {
-    try await withCheckedThrowingContinuation { continuation in
-      getStations { stationListResult in
-        switch stationListResult {
-        case let .success(stationLists):
-          continuation.resume(returning: stationLists)
-        case let .failure(error):
-          continuation.resume(throwing: error)
+        return IdentifiedArray(uniqueElements: stationLists)
+      },
+      signInViaApple: { identityToken, email, authCode, displayName in
+        var parameters: [String: String] = [
+          "identityToken": identityToken,
+          "authCode": authCode,
+          "email": email,
+        ]
+        if let displayName {
+          parameters["displayName"] = displayName
         }
+        let response = try await AF.request(
+          "\(Config.shared.baseUrl.absoluteString)/v1/auth/apple/mobile/signup",
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default
+        ).serializingDecodable(LoginResponse.self).value
+
+        return response.playolaToken
+      },
+      revokeAppleCredentials: { appleUserId in
+        let parameters: [String: String] = ["appleUserId": appleUserId]
+        _ = try await AF.request(
+          "\(Config.shared.baseUrl.absoluteString)/v1/auth/apple/revoke",
+          method: .put,
+          parameters: parameters,
+          encoding: JSONEncoding.default
+        )
+        .validate(statusCode: 200..<300)
+        .serializingData()
+        .value
+
+        AuthService.shared.signOut()
+        AuthService.shared.clearAppleUser()
+      },
+      signInViaGoogle: { code in
+        let parameters: [String: Sendable] = [
+          "code": code,
+          "originatesFromIOS": true,
+        ]
+
+        let response = try await AF.request(
+          "\(Config.shared.baseUrl.absoluteString)/v1/auth/google/signin",
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(LoginResponse.self).value
+
+        return response.playolaToken
+      },
+      getRewardsProfile: { jwtToken in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/users/me/profile"
+        let headers: HTTPHeaders = [
+          "Authorization": "Bearer \(jwtToken)"
+        ]
+
+        let response = try await AF.request(
+          url,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(RewardsProfile.self, decoder: JSONDecoderWithIsoFull())
+        .value
+
+        return response
+      },
+      getPrizeTiers: {
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/tiers"
+
+        let response = try await AF.request(url)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([PrizeTier].self, decoder: isoDecoder)
+          .value
+
+        return response
       }
-    }
-  }
+    )
+  }()
+}
 
-  enum DataError: Error {
-    case urlNotValid, dataNotValid, dataNotFound, fileNotFound,
-      httpResponseNotValid
-  }
+enum APIError: Error {
+  case dataNotValid
+}
 
-  private func handle(
-    _ dataResult: Result<Data?, Error>,
-    _ completion: @escaping ((Result<[StationList], Error>) -> Void)
-  ) {
-    DispatchQueue.main.async {
-      switch dataResult {
-      case let .success(data):
-        let result = self.decode(data)
-        completion(result)
-      case let .failure(error):
-        completion(.failure(error))
-      }
-    }
-  }
-
-  private func decode(_ data: Data?) -> Result<[StationList], Error> {
-    guard let data else {
-      return .failure(DataError.dataNotFound)
-    }
-
-    let jsonDictionary: [String: [StationList]]
-
-    do {
-      jsonDictionary = try JSONDecoder().decode(
-        [String: [StationList]].self, from: data)
-    } catch {
-      return .failure(error)
-    }
-
-    guard let stationLists = jsonDictionary["stationLists"] else {
-      return .failure(DataError.dataNotValid)
-    }
-
-    return .success(stationLists)
-  }
-
-  // Load local JSON Data
-
-  func loadLocal(_ completion: (Result<[StationList], Error>) -> Void) {
-    let filePathURL = Bundle.main.url(
-      forResource: "station_lists", withExtension: "json")
-    guard let filePathURL else {
-      completion(.failure(DataError.fileNotFound))
-      return
-    }
-
-    do {
-      let data = try Data(contentsOf: filePathURL, options: .uncached)
-      completion(decode(data))
-    } catch {
-      completion(.failure(error))
-    }
-  }
-
-  // Load http JSON Data
-  private func loadHttp(
-    _ completion: @escaping (Result<[StationList], Error>) -> Void
-  ) {
-    let config = URLSessionConfiguration.default
-    config.requestCachePolicy = .reloadIgnoringLocalCacheData
-
-    let session = URLSession(configuration: config)
-
-    // Use URLSession to get data from an NSURL
-    let loadDataTask = session.dataTask(with: API.stationsURL) {
-      data, response, error in
-
-      if let error {
-        completion(.failure(error))
-        return
-      }
-
-      guard let httpResponse = response as? HTTPURLResponse,
-        200...299 ~= httpResponse.statusCode
-      else {
-        completion(.failure(DataError.httpResponseNotValid))
-        return
-      }
-
-      guard let data else {
-        completion(.failure(DataError.dataNotFound))
-        return
-      }
-
-      completion(self.decode(data))
-    }
-    loadDataTask.resume()
+extension DependencyValues {
+  var api: APIClient {
+    get { self[APIClient.self] }
+    set { self[APIClient.self] = newValue }
   }
 }
 

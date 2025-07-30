@@ -7,6 +7,7 @@
 
 import Combine
 import PlayolaPlayer
+import Sharing
 import SwiftUI
 
 @MainActor
@@ -15,35 +16,116 @@ class PlayerPageModel: ViewModel {
   var cancellables: Set<AnyCancellable> = []
 
   // MARK: State
-  var nowPlayingText: String = ""
-  var primaryNavBarTitle: String = ""
-  var secondaryNavBarTitle: String = ""
-  var stationArtUrl: URL?
-  var previouslyPlayingStation: RadioStation?
-  var loadingPercentage: Float = 1.0
-  var playolaSpinPlaying: Spin? {
-    didSet {
-      self.playolaAudioBlockPlaying = playolaSpinPlaying?.audioBlock
-      setRelatedText(playolaSpinPlaying)
+  @ObservationIgnored @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  var nowPlayingText: String {
+    switch nowPlaying?.playbackStatus {
+    case .playing:
+      if let titlePlaying = nowPlaying?.titlePlaying, let artistPlaying = nowPlaying?.artistPlaying
+      {
+        return "\(titlePlaying) - \(artistPlaying)"
+      } else {
+        return ""
+      }
+    case .loading, .startingNewStation:
+      return "Station Loading..."
+    case .stopped:
+      return ""
+    case .error:
+      return "Error Playing Station"
+    case .none:
+      return ""
+    }
+  }
+  var primaryNavBarTitle: String {
+    guard let currentStation = nowPlaying?.currentStation else { return "" }
+    switch nowPlaying?.playbackStatus {
+    case .loading, .startingNewStation:
+      return currentStation.name
+    default:
+      return ""
     }
   }
 
-  var playolaAudioBlockPlaying: AudioBlock?
+  var secondaryNavBarTitle: String {
+    guard let currentStation = nowPlaying?.currentStation else { return "" }
+    switch nowPlaying?.playbackStatus {
+    case .loading, .startingNewStation:
+      return currentStation.desc
+    default:
+      return ""
+    }
+  }
 
-  var relatedText: RelatedText?
+  var stationArtUrl: URL? {
+    guard let currentStation = nowPlaying?.currentStation else { return nil }
+    switch nowPlaying?.playbackStatus {
+    case .playing, .loading, .startingNewStation:
+      return URL(string: currentStation.imageURL)
+    default:
+      return nil
+    }
+  }
+
+  var previouslyPlayingStation: RadioStation? {
+    nowPlaying?.currentStation
+  }
+
+  var loadingPercentage: Float {
+    switch nowPlaying?.playbackStatus {
+    case let .loading(_, progress):
+      return progress ?? 0.0
+    case .startingNewStation:
+      return 0.0
+    default:
+      return 1.0
+    }
+  }
+
+  var playolaSpinPlaying: Spin? {
+    nowPlaying?.playolaSpinPlaying
+  }
+
+  var playolaAudioBlockPlaying: AudioBlock? {
+    playolaSpinPlaying?.audioBlock
+  }
+
+  var relatedText: RelatedText? {
+    guard let currentSpin = playolaSpinPlaying else { return nil }
+    guard _chosenRelatedText.1 != currentSpin.id else {
+      return _chosenRelatedText.0
+    }
+    if let transcription = currentSpin.audioBlock.transcription {
+      return RelatedText(title: "Why I chose this song", body: transcription)
+    } else if let relatedText = currentSpin.relatedTexts?.randomElement() {
+      _chosenRelatedText = (relatedText, currentSpin.id)
+      return relatedText
+    } else {
+      return nil
+    }
+  }
+
+  var _chosenRelatedText: (RelatedText?, String) = (nil, "")
 
   // MARK: Callbacks
   var onDismiss: (() -> Void)?
 
-  // Unused for now
-  var albumArtUrl: URL?
+  var albumArtUrl: URL? {
+    nowPlaying?.albumArtworkUrl
+  }
 
   enum PlayerButtonImageName: String {
     case play = "play.fill"
     case stop = "stop.fill"
   }
 
-  var playerButtonImageName = PlayerButtonImageName.stop
+  var playerButtonImageName: PlayerButtonImageName {
+    switch nowPlaying?.playbackStatus {
+    case .stopped, .error:
+      return .play
+    default:
+      return .stop
+    }
+  }
 
   @ObservationIgnored var stationPlayer: StationPlayer
 
@@ -53,83 +135,11 @@ class PlayerPageModel: ViewModel {
   }
 
   func viewAppeared() {
-    processNewStationState(stationPlayer.state)
-    stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &cancellables)
-  }
-
-  func setRelatedText(_ currentSpin: Spin?) {
-    guard let currentSpin else {
-      self.relatedText = nil
-      return
-    }
-    if let transcription = currentSpin.audioBlock.transcription {
-      self.relatedText = .init(title: "Why I chose this song", body: transcription)
-    } else if let relatedTexts = currentSpin.relatedTexts?.randomElement() {
-      self.relatedText = relatedTexts
-    } else {
-      self.relatedText = nil
-    }
-  }
-
-  func processNewStationState(_ state: StationPlayer.State) {
-    switch state.playbackStatus {
-    case let .playing(radioStation):
-      if let titlePlaying = state.titlePlaying, let artistPlaying = state.artistPlaying {
-        nowPlayingText = "\(titlePlaying) - \(artistPlaying)"
-      } else {
-        nowPlayingText = ""
-      }
-      albumArtUrl = state.albumArtworkUrl
-      stationArtUrl = URL(string: radioStation.imageURL)
-      self.playerButtonImageName = .stop
-      self.previouslyPlayingStation = radioStation
-      self.loadingPercentage = 1.0
-      self.playolaSpinPlaying = state.playolaSpinPlaying
-    case let .loading(radioStation, progress):
-      primaryNavBarTitle = radioStation.name
-      secondaryNavBarTitle = radioStation.desc
-      nowPlayingText = "Station Loading..."
-      if let progress {
-        self.loadingPercentage = progress
-      }
-      albumArtUrl = URL(string: radioStation.imageURL)
-      self.playerButtonImageName = .stop
-      self.previouslyPlayingStation = radioStation
-      self.playolaSpinPlaying = state.playolaSpinPlaying
-    case .stopped:
-      albumArtUrl = nil
-      nowPlayingText = ""
-      self.playerButtonImageName = .play
-      self.playolaSpinPlaying = nil
-    case .error:
-      primaryNavBarTitle = ""
-      secondaryNavBarTitle = ""
-      nowPlayingText = "Error Playing Station"
-      albumArtUrl = nil
-      self.playerButtonImageName = .play
-      self.playolaSpinPlaying = nil
-    case let .startingNewStation(radioStation):
-      primaryNavBarTitle = radioStation.name
-      secondaryNavBarTitle = radioStation.desc
-      nowPlayingText = ""
-      albumArtUrl = URL(string: radioStation.imageURL)
-      self.previouslyPlayingStation = radioStation
-      self.playerButtonImageName = .stop
-      self.playolaSpinPlaying = state.playolaSpinPlaying
-    }
+    // No longer needed - all properties are computed from nowPlaying
   }
 
   func playPauseButtonTapped() {
-    // compared with `!=`.  Use pattern matching instead.
-    switch stationPlayer.state.playbackStatus {
-    case .stopped:
-      // If it's currently stopped, start playing.
-      if let station = self.previouslyPlayingStation {
-        stationPlayer.play(station: station)
-      }
-    default:
-      stationPlayer.stop()
-      onDismiss?()
-    }
+    stationPlayer.stop()
+    onDismiss?()
   }
 }
