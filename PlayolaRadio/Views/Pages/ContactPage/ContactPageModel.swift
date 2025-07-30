@@ -6,12 +6,19 @@
 //
 
 import Dependencies
+import PlayolaPlayer
 import Sharing
 import SwiftUI
 
 @MainActor
 @Observable
 class ContactPageModel: ViewModel {
+  @ObservationIgnored var stationPlayer: StationPlayer
+  @ObservationIgnored @Shared(.auth) var auth
+
+  init(stationPlayer: StationPlayer? = nil) {
+    self.stationPlayer = stationPlayer ?? StationPlayer.shared
+  }
 
   func onViewAppeared() async {
     // TODO: Load user profile data
@@ -23,7 +30,7 @@ class ContactPageModel: ViewModel {
   }
 
   func onLogOutTapped() {
-    // TODO: Implement log out functionality
-    print("Log out tapped")
+    stationPlayer.stop()
+    $auth.withLock { $0 = Auth() }
   }
 }
