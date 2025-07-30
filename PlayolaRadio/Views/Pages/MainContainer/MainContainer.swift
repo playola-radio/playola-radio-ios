@@ -45,11 +45,11 @@ struct MainContainer: View {
         .tag(MainContainerModel.ActiveTab.rewards)
 
         tabContentWithSmallPlayer(content: {
-          HomePageView(model: model.homePageModel)  // Temporarily using HomePageView
+          ContactPageView(model: model.contactPageModel)
         })
         .tabItem {
           Image("ProfileTabImage")
-          Text("Profile")
+          Text("Your Profile")
         }
         .tag(MainContainerModel.ActiveTab.profile)
       }

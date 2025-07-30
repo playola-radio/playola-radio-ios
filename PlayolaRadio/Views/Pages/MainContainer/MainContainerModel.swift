@@ -36,6 +36,7 @@ class MainContainerModel: ViewModel {
   var homePageModel = HomePageModel()
   var stationListModel = StationListModel()
   var rewardsPageModel = RewardsPageModel()
+  var contactPageModel = ContactPageModel()
 
   var shouldShowSmallPlayer: Bool = false
 

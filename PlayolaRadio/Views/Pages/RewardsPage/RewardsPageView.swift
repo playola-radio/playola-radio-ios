@@ -43,7 +43,7 @@ struct RewardsPageView: View {
               .foregroundColor(.white)
 
             Text("Earn rewards from your fav artists for being an early Playola listener!")
-              .font(.custom("Inter_500_Medium", size: 16))
+              .font(.custom(FontNames.Inter_500_Medium, size: 16))
               .foregroundColor(.white)
               .lineLimit(nil)
           }
