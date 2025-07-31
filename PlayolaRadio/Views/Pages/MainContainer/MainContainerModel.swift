@@ -10,16 +10,6 @@ import Dependencies
 import Sharing
 import SwiftUI
 
-struct MainContainerNavigationCoordinator {
-  static let shared = MainContainerNavigationCoordinator()
-
-  enum Path: Sendable, Hashable {
-    case editProfilePage(EditProfilePageModel)
-  }
-
-  var path: [Path] = []
-}
-
 @MainActor
 @Observable
 class MainContainerModel: ViewModel {
@@ -118,8 +108,10 @@ class MainContainerModel: ViewModel {
   }
 
   func onSmallPlayerTapped() {
-    //    self.presentedSheet = .player(PlayerPageModel(onDismiss: { self.presentedSheet = nil }))
+    //        self.presentedSheet = .player(PlayerPageModel(onDismiss: { self.presentedSheet = nil }))
     self.mainContainerNavigationCoordinator.path.append(.editProfilePage(EditProfilePageModel()))
+    print("in maincontainerview")
+    print(self.mainContainerNavigationCoordinator.path)
   }
 }
 
