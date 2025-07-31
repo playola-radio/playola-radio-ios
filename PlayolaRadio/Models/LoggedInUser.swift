@@ -34,7 +34,8 @@ struct Auth: Codable {
 
 struct LoggedInUser: Codable {
   let id: String
-  let displayName: String
+  let firstName: String
+  let lastName: String?
   let email: String
   let profileImageUrl: String?
   let role: String
@@ -44,12 +45,13 @@ struct LoggedInUser: Codable {
     let userDict = LoggedInUser.decode(jwtToken: jwt)
 
     guard let id = userDict["id"] as? String,
-      let displayName = userDict["displayName"] as? String,
+      let firstName = userDict["firstName"] as? String,
       let email = userDict["email"] as? String,
       let role = userDict["role"] as? String
     else {
       self.id = ""
-      self.displayName = "Unknown User"
+      self.firstName = "Unknown"
+      self.lastName = "User"
       self.email = ""
       self.profileImageUrl = nil
       self.role = "user"
@@ -58,7 +60,8 @@ struct LoggedInUser: Codable {
     }
 
     self.id = id
-    self.displayName = displayName
+    self.firstName = firstName
+    self.lastName = userDict["lastName"] as? String
     self.email = email
     self.profileImageUrl = userDict["profileImageUrl"] as? String
     self.role = role
@@ -66,25 +69,30 @@ struct LoggedInUser: Codable {
   }
 
   init(
-    id: String, displayName: String, email: String, profileImageUrl: String? = nil,
+    id: String, firstName: String, lastName: String? = nil, email: String,
+    profileImageUrl: String? = nil,
     role: String = "user"
   ) {
     self.id = id
-    self.displayName = displayName
+    self.firstName = firstName
+    self.lastName = lastName
     self.email = email
     self.profileImageUrl = profileImageUrl
     self.role = role
     self.jwt = LoggedInUser.generateJWT(
-      id: id, displayName: displayName, email: email, profileImageUrl: profileImageUrl, role: role)
+      id: id, firstName: firstName, lastName: lastName, email: email,
+      profileImageUrl: profileImageUrl, role: role)
   }
 
   private static func generateJWT(
-    id: String, displayName: String, email: String, profileImageUrl: String?, role: String
+    id: String, firstName: String, lastName: String? = nil, email: String, profileImageUrl: String?,
+    role: String
   ) -> String {
     let header = ["alg": "HS256", "typ": "JWT"]
     var payload: [String: Any] = [
       "id": id,
-      "displayName": displayName,
+      "firstName": firstName,
+      "lastName": lastName ?? "",
       "email": email,
       "role": role,
     ]

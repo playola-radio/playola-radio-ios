@@ -25,6 +25,14 @@ class HomePageModel: ViewModel {
   var forYouStations: IdentifiedArrayOf<RadioStation> = []
   var presentedAlert: PlayolaAlert?
 
+  var welcomeMessage: String {
+    if let currentUser = auth.currentUser {
+      return "Welcome, \(currentUser.firstName)"
+    } else {
+      return "Welcome to Playola"
+    }
+  }
+
   @ObservationIgnored lazy var listeningTimeTileModel: ListeningTimeTileModel =
     ListeningTimeTileModel(
       buttonText: "Redeem Your Rewards!",
@@ -32,14 +40,6 @@ class HomePageModel: ViewModel {
         self.$activeTab.withLock { $0 = .rewards }
       }
     )
-
-  var welcomeMessage: String {
-    if let displayName = auth.currentUser?.displayName {
-      return "Welcome, \(displayName)"
-    } else {
-      return "Welcome to Playola"
-    }
-  }
 
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared

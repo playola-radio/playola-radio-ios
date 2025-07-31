@@ -5,6 +5,8 @@
 //  Created by Brian D Keane on 6/10/25.
 //
 
+// swiftlint:disable force_try
+
 import IdentifiedCollections
 import Sharing
 import XCTest
@@ -60,13 +62,50 @@ final class HomePageTests: XCTestCase {
     XCTAssertEqual(model.welcomeMessage, "Welcome to Playola")
   }
 
+  // Helper function to create valid JWT tokens for testing
+  static func createTestJWT(
+    id: String = "test-user-123",
+    firstName: String = "John",
+    lastName: String? = "Doe",
+    email: String = "john@example.com",
+    profileImageUrl: String? = nil,
+    role: String = "user"
+  ) -> String {
+    let header = ["alg": "HS256", "typ": "JWT"]
+    var payload: [String: Any] = [
+      "id": id,
+      "firstName": firstName,
+      "email": email,
+      "role": role,
+    ]
+    if let lastName = lastName {
+      payload["lastName"] = lastName
+    }
+    if let profileImageUrl = profileImageUrl {
+      payload["profileImageUrl"] = profileImageUrl
+    }
+
+    let headerData = try! JSONSerialization.data(withJSONObject: header)
+    let payloadData = try! JSONSerialization.data(withJSONObject: payload)
+
+    let headerString = headerData.base64EncodedString()
+      .replacingOccurrences(of: "+", with: "-")
+      .replacingOccurrences(of: "/", with: "_")
+      .replacingOccurrences(of: "=", with: "")
+
+    let payloadString = payloadData.base64EncodedString()
+      .replacingOccurrences(of: "+", with: "-")
+      .replacingOccurrences(of: "/", with: "_")
+      .replacingOccurrences(of: "=", with: "")
+
+    return "\(headerString).\(payloadString).fake_signature"
+  }
+
   func testWelcomeMessage_ShowsPersonalizedWelcomeMessageWhenUserIsLoggedIn() {
-    let mockJWT =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWF"
-      + "pbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
+    let mockJWT = HomePageTests.createTestJWT(firstName: "John")
     @Shared(.auth) var auth = Auth(jwtToken: mockJWT)
     let model = HomePageModel()
-    XCTAssertEqual(model.welcomeMessage, "Welcome, John Doe")
+    XCTAssertEqual(model.welcomeMessage, "Welcome, John")
   }
 
   func testWelcomeMessage_UpdatesWelcomeMessageWhenAuthChanges() {
@@ -74,11 +113,9 @@ final class HomePageTests: XCTestCase {
     let model = HomePageModel()
     XCTAssertEqual(model.welcomeMessage, "Welcome to Playola")
 
-    let mockJWT =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImRpc3BsYXlOYW1lIjoiSm9obiBEb2UiLCJlbWF"
-      + "pbCI6ImpvaG5AZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciJ9.fake_signature"
+    let mockJWT = HomePageTests.createTestJWT(firstName: "John")
     $auth.withLock { $0 = Auth(jwtToken: mockJWT) }
-    XCTAssertEqual(model.welcomeMessage, "Welcome, John Doe")
+    XCTAssertEqual(model.welcomeMessage, "Welcome, John")
   }
 
   // MARK: - Tapping The P Tests
@@ -113,3 +150,5 @@ final class HomePageTests: XCTestCase {
     XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, station.id)
   }
 }
+
+// swiftlint:enable force_try
