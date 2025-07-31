@@ -73,6 +73,8 @@
 		D39591152E39932000720CF8 /* ContactPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39591142E39931D00720CF8 /* ContactPageView.swift */; };
 		D39591172E39932600720CF8 /* ContactPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39591162E39932300720CF8 /* ContactPageModel.swift */; };
 		D395911A2E39933800720CF8 /* ContactPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39591182E39932800720CF8 /* ContactPageTests.swift */; };
+		D39591262E3BB70000720CF8 /* EditProfilePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39591252E3BB6FC00720CF8 /* EditProfilePageView.swift */; };
+		D39591282E3BB70B00720CF8 /* EditProfilePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39591272E3BB70500720CF8 /* EditProfilePageModel.swift */; };
 		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
 		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
@@ -185,6 +187,8 @@
 		D39591142E39931D00720CF8 /* ContactPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactPageView.swift; sourceTree = "<group>"; };
 		D39591162E39932300720CF8 /* ContactPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactPageModel.swift; sourceTree = "<group>"; };
 		D39591182E39932800720CF8 /* ContactPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactPageTests.swift; sourceTree = "<group>"; };
+		D39591252E3BB6FC00720CF8 /* EditProfilePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfilePageView.swift; sourceTree = "<group>"; };
+		D39591272E3BB70500720CF8 /* EditProfilePageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfilePageModel.swift; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
 		D3B662692D40103800975D2F /* SignInPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPage.swift; sourceTree = "<group>"; };
 		D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinator.swift; sourceTree = "<group>"; };
@@ -308,6 +312,7 @@
 		D339E55C2BFD0FB000B9E35B /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				D39591242E3BB6F400720CF8 /* EditProfilePage */,
 				D39591132E39930500720CF8 /* ContactPage */,
 				D3B744BE2E3131630042A427 /* RewardsPage */,
 				D37257CE2DFB4358001BC6F9 /* PlayerPage */,
@@ -495,6 +500,15 @@
 				D39591142E39931D00720CF8 /* ContactPageView.swift */,
 			);
 			path = ContactPage;
+			sourceTree = "<group>";
+		};
+		D39591242E3BB6F400720CF8 /* EditProfilePage */ = {
+			isa = PBXGroup;
+			children = (
+				D39591272E3BB70500720CF8 /* EditProfilePageModel.swift */,
+				D39591252E3BB6FC00720CF8 /* EditProfilePageView.swift */,
+			);
+			path = EditProfilePage;
 			sourceTree = "<group>";
 		};
 		D3B6626B2D4016B900975D2F /* Services */ = {
@@ -717,6 +731,7 @@
 				D3B6626A2D40103C00975D2F /* SignInPage.swift in Sources */,
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
 				D3137DBB2D3976580070033A /* PlayolaAlert.swift in Sources */,
+				D39591262E3BB70000720CF8 /* EditProfilePageView.swift in Sources */,
 				D37257BD2DF893C6001BC6F9 /* View+ListInstalledFonts.swift in Sources */,
 				D37257CC2DFA3F83001BC6F9 /* FontNames.swift in Sources */,
 				D339E5652BFD0FD800B9E35B /* NowPlayingEqAnimation.swift in Sources */,
@@ -735,6 +750,7 @@
 				D3B744B42E2FECE10042A427 /* LocalListeningSession.swift in Sources */,
 				D37257D02DFB4368001BC6F9 /* PlayerPage.swift in Sources */,
 				D3B744C82E31399E0042A427 /* ListeningTimeTileModel.swift in Sources */,
+				D39591282E3BB70B00720CF8 /* EditProfilePageModel.swift in Sources */,
 				D339E57C2BFD698600B9E35B /* Mail.swift in Sources */,
 				D3B662742D419C3300975D2F /* LoggedInUser.swift in Sources */,
 				D3536A322BFA64AB006942D6 /* StationList.swift in Sources */,

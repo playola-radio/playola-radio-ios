@@ -15,53 +15,55 @@ struct MainContainer: View {
   @Bindable var model: MainContainerModel
 
   var body: some View {
-    VStack(spacing: 0) {
-      TabView(selection: $model.activeTab) {
-        tabContentWithSmallPlayer(content: {
-          HomePageView(model: model.homePageModel)
-        })
-        .tabItem {
-          Image("HomeTabImage")
-          Text("Home")
-        }
-        .tag(MainContainerModel.ActiveTab.home)
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.path) {
+      VStack(spacing: 0) {
+        TabView(selection: $model.activeTab) {
+          tabContentWithSmallPlayer(content: {
+            HomePageView(model: model.homePageModel)
+          })
+          .tabItem {
+            Image("HomeTabImage")
+            Text("Home")
+          }
+          .tag(MainContainerModel.ActiveTab.home)
 
-        tabContentWithSmallPlayer(content: {
-          StationListPage(model: model.stationListModel)
-        })
-        .tabItem {
-          Image("RadioStationsTabImage")
-          Text("Radio Stations")
-        }
-        .tag(MainContainerModel.ActiveTab.stationsList)
+          tabContentWithSmallPlayer(content: {
+            StationListPage(model: model.stationListModel)
+          })
+          .tabItem {
+            Image("RadioStationsTabImage")
+            Text("Radio Stations")
+          }
+          .tag(MainContainerModel.ActiveTab.stationsList)
 
-        tabContentWithSmallPlayer(content: {
-          RewardsPageView(model: model.rewardsPageModel)
-        })
-        .tabItem {
-          Image("gift")
-          Text("Rewards")
-        }
-        .tag(MainContainerModel.ActiveTab.rewards)
+          tabContentWithSmallPlayer(content: {
+            RewardsPageView(model: model.rewardsPageModel)
+          })
+          .tabItem {
+            Image("gift")
+            Text("Rewards")
+          }
+          .tag(MainContainerModel.ActiveTab.rewards)
 
-        tabContentWithSmallPlayer(content: {
-          ContactPageView(model: model.contactPageModel)
-        })
-        .tabItem {
-          Image("ProfileTabImage")
-          Text("Your Profile")
+          tabContentWithSmallPlayer(content: {
+            ContactPageView(model: model.contactPageModel)
+          })
+          .tabItem {
+            Image("ProfileTabImage")
+            Text("Your Profile")
+          }
+          .tag(MainContainerModel.ActiveTab.profile)
         }
-        .tag(MainContainerModel.ActiveTab.profile)
-      }
-      .accentColor(.white)  // Makes the selected tab icon white
-      .onAppear {
-        let tabBarAppearance = UITabBarAppearance()
-        tabBarAppearance.configureWithOpaqueBackground()
-        tabBarAppearance.backgroundColor = .black
+        .accentColor(.white)  // Makes the selected tab icon white
+        .onAppear {
+          let tabBarAppearance = UITabBarAppearance()
+          tabBarAppearance.configureWithOpaqueBackground()
+          tabBarAppearance.backgroundColor = .black
 
-        UITabBar.appearance().standardAppearance = tabBarAppearance
-        UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
-        UITabBar.appearance().unselectedItemTintColor = UIColor(white: 0.7, alpha: 1.0)
+          UITabBar.appearance().standardAppearance = tabBarAppearance
+          UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+          UITabBar.appearance().unselectedItemTintColor = UIColor(white: 0.7, alpha: 1.0)
+        }
       }
     }
     .alert(item: $model.presentedAlert) { $0.alert }
@@ -75,6 +77,12 @@ struct MainContainer: View {
       }
     )
     .onAppear { Task { await model.viewAppeared() } }
+    .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+      switch path {
+      case let .editProfilePage(model):
+        EditProfilePageView(model: model)
+      }
+    }
   }
 
   @ViewBuilder
