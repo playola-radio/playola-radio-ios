@@ -15,13 +15,15 @@ struct EditProfilePageView: View {
       VStack(spacing: 0) {
         // Header
         HStack {
-          Button(action: {
-            // Back action - will implement later
-          }) {
-            Image(systemName: "chevron.left")
-              .foregroundColor(.white)
-              .font(.title2)
-          }
+          Button(
+            action: {
+              // Back action - will implement later
+            },
+            label: {
+              Image(systemName: "chevron.left")
+                .foregroundColor(.white)
+                .font(.title2)
+            })
 
           Spacer()
 
@@ -98,17 +100,20 @@ struct EditProfilePageView: View {
           }
 
           // Save Button
-          Button(action: {
-            // Save action - will implement later
-          }) {
-            Text("Save Profile")
-              .font(.custom(FontNames.Inter_500_Medium, size: 16))
-              .foregroundColor(.white)
-              .frame(maxWidth: .infinity)
-              .padding(.vertical, 16)
-              .background(Color(red: 0.9, green: 0.4, blue: 0.4))
-              .cornerRadius(6)
-          }
+          Button(
+            action: {
+              // Save action - will implement later
+            },
+            label: {
+              Text("Save Profile")
+                .font(.custom(FontNames.Inter_500_Medium, size: 16))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(Color(red: 0.9, green: 0.4, blue: 0.4))
+                .cornerRadius(6)
+            }
+          )
           .padding(.top, 16)
 
           Spacer()

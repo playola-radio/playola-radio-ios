@@ -11,7 +11,7 @@ import XCTest
 
 @MainActor
 final class ContactPageTests: XCTestCase {
-  override class func setUp() {
+  override static func setUp() {
     super.setUp()
     @Shared(.auth) var auth
   }
@@ -20,7 +20,8 @@ final class ContactPageTests: XCTestCase {
     // Set up initial logged-in state using the new LoggedInUser initializer
     let loggedInUser = LoggedInUser(
       id: "123",
-      displayName: "John Doe",
+      firstName: "John",
+      lastName: "Doe",
       email: "john@example.com",
       role: "user"
     )
@@ -31,7 +32,8 @@ final class ContactPageTests: XCTestCase {
 
     // Verify initial state
     XCTAssertTrue(auth.isLoggedIn)
-    XCTAssertEqual(auth.currentUser?.displayName, "John Doe")
+    XCTAssertEqual(auth.currentUser?.firstName, "John")
+    XCTAssertEqual(auth.currentUser?.lastName, "Doe")
     XCTAssertEqual(auth.currentUser?.email, "john@example.com")
     XCTAssertEqual(stationPlayerMock.stopCalledCount, 0)
 

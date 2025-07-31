@@ -63,14 +63,17 @@ struct ContactPageView: View {
           VStack {
             HStack {
               Spacer()
-              Button(action: {
-                model.onEditProfileTapped()
-              }) {
-                Image("pencil")
-                  .font(.system(size: 16, weight: .medium))
-                  .foregroundColor(.white)
-                  .padding(8)
-              }
+              Button(
+                action: {
+                  model.onEditProfileTapped()
+                },
+                label: {
+                  Image("pencil")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(8)
+                }
+              )
               .padding(.trailing, 16)
               .padding(.top, 16)
             }
@@ -80,26 +83,29 @@ struct ContactPageView: View {
         .padding(.horizontal, 20)
 
         // Log Out Button
-        Button(action: {
-          model.onLogOutTapped()
-        }) {
-          HStack(spacing: 8) {
-            Image("signout-icon")
-              .renderingMode(.template)
-              .foregroundColor(.white)
+        Button(
+          action: {
+            model.onLogOutTapped()
+          },
+          label: {
+            HStack(spacing: 8) {
+              Image("signout-icon")
+                .renderingMode(.template)
+                .foregroundColor(.white)
 
-            Text("Log out")
-              .font(.custom(FontNames.Inter_500_Medium, size: 16))
-              .foregroundColor(.white)
+              Text("Log out")
+                .font(.custom(FontNames.Inter_500_Medium, size: 16))
+                .foregroundColor(.white)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(Color.clear)
+            .overlay(
+              RoundedRectangle(cornerRadius: 6)
+                .stroke(Color(hex: "#827876"), lineWidth: 1)
+            )
           }
-          .frame(maxWidth: .infinity)
-          .frame(height: 50)
-          .background(Color.clear)
-          .overlay(
-            RoundedRectangle(cornerRadius: 6)
-              .stroke(Color(hex: "#827876"), lineWidth: 1)
-          )
-        }
+        )
         .padding(.horizontal, 20)
       }
       .padding(.top, 20)
