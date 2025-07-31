@@ -331,14 +331,16 @@ final class MainContainerTests: XCTestCase {
     @Shared(.auth) var auth = Auth()
 
     // First login session
-    let firstJWT = MainContainerTests.createTestJWT(id: "user1", firstName: "First", lastName: "User")
+    let firstJWT = MainContainerTests.createTestJWT(
+      id: "user1", firstName: "First", lastName: "User")
     $auth.withLock { $0 = Auth(jwtToken: firstJWT) }
     _ = MainContainerModel()
     XCTAssertEqual(auth.jwt, firstJWT)
 
     // User logs out, logs back in with new token
     $auth.withLock { $0 = Auth() }
-    let secondJWT = MainContainerTests.createTestJWT(id: "user2", firstName: "Second", lastName: "User")
+    let secondJWT = MainContainerTests.createTestJWT(
+      id: "user2", firstName: "Second", lastName: "User")
     $auth.withLock { $0 = Auth(jwtToken: secondJWT) }
     _ = MainContainerModel()
     XCTAssertEqual(auth.jwt, secondJWT)

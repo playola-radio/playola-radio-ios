@@ -47,7 +47,7 @@ class SignInPageModel: ViewModel {
       {
         $appleSignInInfo.withLock {
           $0 = AppleSignInInfo(
-            appleUserId: appleIDCredential.user, 
+            appleUserId: appleIDCredential.user,
             email: email,
             firstName: appleIDCredential.fullName?.givenName,
             lastName: appleIDCredential.fullName?.familyName

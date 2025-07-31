@@ -29,7 +29,10 @@ struct APIClient: Sendable {
   ///   - lastName: Optional last name for the user
   /// - Returns: JWT token string
   var signInViaApple:
-    (_ identityToken: String, _ email: String, _ authCode: String, _ firstName: String, _ lastName: String?)
+    (
+      _ identityToken: String, _ email: String, _ authCode: String, _ firstName: String,
+      _ lastName: String?
+    )
       async throws -> String = { _, _, _, _, _ in ""
       }
 
