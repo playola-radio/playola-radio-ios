@@ -47,8 +47,10 @@ class SignInPageModel: ViewModel {
       {
         $appleSignInInfo.withLock {
           $0 = AppleSignInInfo(
-            appleUserId: appleIDCredential.user, email: email,
-            displayName: appleIDCredential.fullName?.formatted()
+            appleUserId: appleIDCredential.user, 
+            email: email,
+            firstName: appleIDCredential.fullName?.givenName,
+            lastName: appleIDCredential.fullName?.familyName
           )
         }
       }
@@ -59,11 +61,14 @@ class SignInPageModel: ViewModel {
       }
       Task {
         do {
+          let firstName = appleIDCredential.fullName?.givenName ?? ""
+          let lastName = appleIDCredential.fullName?.familyName
           let token = try await api.signInViaApple(
             identityToken,
             email,
             authCode,
-            appleIDCredential.fullName?.formatted())
+            firstName,
+            lastName)
           $auth.withLock { $0 = Auth(jwtToken: token) }
           self.navigationCoordinator.activePath = .listen
         } catch {

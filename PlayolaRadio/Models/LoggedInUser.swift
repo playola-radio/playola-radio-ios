@@ -29,7 +29,8 @@ struct Auth: Codable {
 
 struct LoggedInUser: Codable {
   let id: String
-  let displayName: String
+  let firstName: String
+  let lastName: String?
   let email: String
   let profileImageUrl: String?
   let role: String
@@ -39,12 +40,13 @@ struct LoggedInUser: Codable {
     let userDict = LoggedInUser.decode(jwtToken: jwt)
 
     guard let id = userDict["id"] as? String,
-      let displayName = userDict["displayName"] as? String,
+      let firstName = userDict["firstName"] as? String,
       let email = userDict["email"] as? String,
       let role = userDict["role"] as? String
     else {
       self.id = ""
-      self.displayName = "Unknown User"
+      self.firstName = "Unknown"
+      self.lastName = "User"
       self.email = ""
       self.profileImageUrl = nil
       self.role = "user"
@@ -53,7 +55,8 @@ struct LoggedInUser: Codable {
     }
 
     self.id = id
-    self.displayName = displayName
+    self.firstName = firstName
+    self.lastName = userDict["lastName"] as? String
     self.email = email
     self.profileImageUrl = userDict["profileImageUrl"] as? String
     self.role = role

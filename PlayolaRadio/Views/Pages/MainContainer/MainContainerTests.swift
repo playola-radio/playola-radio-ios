@@ -20,7 +20,8 @@ final class MainContainerTests: XCTestCase {
   // Helper function to create valid JWT tokens for testing
   static func createTestJWT(
     id: String = "test-user-123",
-    displayName: String = "Test User",
+    firstName: String = "Test",
+    lastName: String? = "User",
     email: String = "test@example.com",
     profileImageUrl: String? = nil,
     role: String = "user"
@@ -28,10 +29,13 @@ final class MainContainerTests: XCTestCase {
     let header = ["alg": "HS256", "typ": "JWT"]
     var payload: [String: Any] = [
       "id": id,
-      "displayName": displayName,
+      "firstName": firstName,
       "email": email,
       "role": role,
     ]
+    if let lastName = lastName {
+      payload["lastName"] = lastName
+    }
     if let profileImageUrl = profileImageUrl {
       payload["profileImageUrl"] = profileImageUrl
     }
@@ -327,14 +331,14 @@ final class MainContainerTests: XCTestCase {
     @Shared(.auth) var auth = Auth()
 
     // First login session
-    let firstJWT = MainContainerTests.createTestJWT(id: "user1", displayName: "First User")
+    let firstJWT = MainContainerTests.createTestJWT(id: "user1", firstName: "First", lastName: "User")
     $auth.withLock { $0 = Auth(jwtToken: firstJWT) }
     _ = MainContainerModel()
     XCTAssertEqual(auth.jwt, firstJWT)
 
     // User logs out, logs back in with new token
     $auth.withLock { $0 = Auth() }
-    let secondJWT = MainContainerTests.createTestJWT(id: "user2", displayName: "Second User")
+    let secondJWT = MainContainerTests.createTestJWT(id: "user2", firstName: "Second", lastName: "User")
     $auth.withLock { $0 = Auth(jwtToken: secondJWT) }
     _ = MainContainerModel()
     XCTAssertEqual(auth.jwt, secondJWT)

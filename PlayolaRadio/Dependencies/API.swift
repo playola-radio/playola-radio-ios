@@ -25,11 +25,12 @@ struct APIClient: Sendable {
   ///   - identityToken: The Apple identity token
   ///   - email: User's email address
   ///   - authCode: Apple authorization code
-  ///   - displayName: Optional display name for the user
+  ///   - firstName: User's first name
+  ///   - lastName: Optional last name for the user
   /// - Returns: JWT token string
   var signInViaApple:
-    (_ identityToken: String, _ email: String, _ authCode: String, _ displayName: String?)
-      async throws -> String = { _, _, _, _ in ""
+    (_ identityToken: String, _ email: String, _ authCode: String, _ firstName: String, _ lastName: String?)
+      async throws -> String = { _, _, _, _, _ in ""
       }
 
   /// Revokes Apple credentials for the user
@@ -68,14 +69,15 @@ extension APIClient: DependencyKey {
         }
         return IdentifiedArray(uniqueElements: stationLists)
       },
-      signInViaApple: { identityToken, email, authCode, displayName in
+      signInViaApple: { identityToken, email, authCode, firstName, lastName in
         var parameters: [String: String] = [
           "identityToken": identityToken,
           "authCode": authCode,
           "email": email,
+          "firstName": firstName,
         ]
-        if let displayName {
-          parameters["displayName"] = displayName
+        if let lastName {
+          parameters["lastName"] = lastName
         }
         let response = try await AF.request(
           "\(Config.shared.baseUrl.absoluteString)/v1/auth/apple/mobile/signup",

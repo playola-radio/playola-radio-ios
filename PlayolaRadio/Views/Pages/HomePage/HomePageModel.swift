@@ -26,8 +26,8 @@ class HomePageModel: ViewModel {
   var presentedAlert: PlayolaAlert?
 
   var welcomeMessage: String {
-    if let displayName = auth.currentUser?.displayName {
-      return "Welcome, \(displayName)"
+    if let currentUser = auth.currentUser {
+      return "Welcome, \(currentUser.firstName)"
     } else {
       return "Welcome to Playola"
     }

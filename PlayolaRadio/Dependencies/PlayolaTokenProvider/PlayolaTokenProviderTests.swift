@@ -19,7 +19,8 @@ final class PlayolaTokenProviderTests: XCTestCase {
   // Helper function to create valid JWT tokens for testing
   func createTestJWT(
     id: String = "test-user-123",
-    displayName: String = "Test User",
+    firstName: String = "Test",
+    lastName: String? = "User",
     email: String = "test@example.com",
     profileImageUrl: String? = nil,
     role: String = "user"
@@ -27,10 +28,13 @@ final class PlayolaTokenProviderTests: XCTestCase {
     let header = ["alg": "HS256", "typ": "JWT"]
     var payload: [String: Any] = [
       "id": id,
-      "displayName": displayName,
+      "firstName": firstName,
       "email": email,
       "role": role,
     ]
+    if let lastName = lastName {
+      payload["lastName"] = lastName
+    }
     if let profileImageUrl = profileImageUrl {
       payload["profileImageUrl"] = profileImageUrl
     }
@@ -136,9 +140,9 @@ final class PlayolaTokenProviderTests: XCTestCase {
     let tokenProvider = PlayolaTokenProvider()
 
     let tokens = [
-      createTestJWT(id: "user1", displayName: "User One"),
-      createTestJWT(id: "user2", displayName: "User Two"),
-      createTestJWT(id: "user3", displayName: "User Three"),
+      createTestJWT(id: "user1", firstName: "User", lastName: "One"),
+      createTestJWT(id: "user2", firstName: "User", lastName: "Two"),
+      createTestJWT(id: "user3", firstName: "User", lastName: "Three"),
     ]
 
     for expectedToken in tokens {
