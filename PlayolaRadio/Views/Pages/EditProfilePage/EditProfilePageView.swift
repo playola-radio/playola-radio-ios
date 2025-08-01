@@ -21,7 +21,7 @@ struct EditProfilePageView: View {
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .foregroundColor(.white)
 
-          TextField("", text: .constant("Brian"))
+          TextField("", text: $model.firstName)
             .textFieldStyle(PlainTextFieldStyle())
             .padding(.horizontal, 16)
             .padding(.vertical, 16)
@@ -37,7 +37,7 @@ struct EditProfilePageView: View {
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .foregroundColor(.white)
 
-          TextField("", text: .constant("Keane"))
+          TextField("", text: $model.lastName)
             .textFieldStyle(PlainTextFieldStyle())
             .padding(.horizontal, 16)
             .padding(.vertical, 16)
@@ -53,7 +53,7 @@ struct EditProfilePageView: View {
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .foregroundColor(.white)
 
-          TextField("", text: .constant("briank@gmail.com"))
+          TextField("", text: $model.email)
             .textFieldStyle(PlainTextFieldStyle())
             .padding(.horizontal, 16)
             .padding(.vertical, 16)
@@ -84,6 +84,8 @@ struct EditProfilePageView: View {
               .cornerRadius(6)
           }
         )
+        .disabled(!model.isSaveButtonEnabled)
+        .opacity(model.isSaveButtonEnabled ? 1.0 : 0.4)  // dim when disabled
         .padding(.top, 16)
 
         Spacer()
@@ -122,7 +124,10 @@ struct EditProfilePageView: View {
       UINavigationBar.appearance().standardAppearance = appearance
       UINavigationBar.appearance().scrollEdgeAppearance = appearance
       UINavigationBar.appearance().compactAppearance = appearance
+
+      model.viewAppeared()
     }
+
   }
 }
 
