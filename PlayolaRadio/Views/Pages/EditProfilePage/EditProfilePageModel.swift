@@ -14,10 +14,19 @@ import SwiftUI
 @Observable
 class EditProfilePageModel: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.continuousClock) var clock
+  var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator!
 
-  var firstName: String = ""
-  var lastName: String = ""
-  var email: String = ""
+  var firstName: String! = ""
+  var lastName: String! = ""
+  var email: String! = ""
+
+  var presentedAlert: PlayolaAlert?
+
+  init(mainContainerNavigationCoordinator: MainContainerNavigationCoordinator? = nil) {
+    self.mainContainerNavigationCoordinator = mainContainerNavigationCoordinator ?? .shared
+  }
 
   var isSaveButtonEnabled: Bool {
     let originalFirstName = auth.currentUser?.firstName ?? ""
@@ -39,9 +48,43 @@ class EditProfilePageModel: ViewModel {
     return false
   }
 
+  func saveButtonTapped() async {
+    guard let jwt = auth.jwt else { return }
+    do {
+      let result = try await api.updateUser(
+        jwtToken: jwt, firstName: firstName, lastName: lastName ?? nil)
+      $auth.withLock { $0 = result }
+      self.presentedAlert = .updateProfileSuccessfullAlert
+
+      // Dismiss the view after showing the alert
+      try? await clock.sleep(for: .seconds(1.5))
+      self.mainContainerNavigationCoordinator.pop()
+
+    } catch let error {
+      print(error)
+      self.presentedAlert = .updateProfileErrorAlert
+    }
+  }
+
   func viewAppeared() {
     self.firstName = auth.currentUser?.firstName ?? ""
     self.lastName = auth.currentUser?.lastName ?? ""
     self.email = auth.currentUser?.email ?? ""
+  }
+}
+
+extension PlayolaAlert {
+  static var updateProfileSuccessfullAlert: PlayolaAlert {
+    PlayolaAlert(
+      title: "Update Successful",
+      message: "Your profile has been successfully updated.",
+      dismissButton: .cancel(Text("OK")))
+  }
+
+  static var updateProfileErrorAlert: PlayolaAlert {
+    PlayolaAlert(
+      title: "Error",
+      message: "There was a problem updating your profile. Please try again later.",
+      dismissButton: .cancel(Text("OK")))
   }
 }

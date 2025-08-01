@@ -72,7 +72,7 @@ struct EditProfilePageView: View {
         // Save Button
         Button(
           action: {
-            // Save action - will implement later
+            Task { await model.saveButtonTapped() }
           },
           label: {
             Text("Save Profile")
@@ -127,7 +127,7 @@ struct EditProfilePageView: View {
 
       model.viewAppeared()
     }
-
+    .alert(item: $model.presentedAlert) { $0.alert }
   }
 }
 

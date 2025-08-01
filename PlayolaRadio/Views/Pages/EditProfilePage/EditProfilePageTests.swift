@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 8/1/25.
 //
 
+import Dependencies
 import Sharing
 import XCTest
 
@@ -164,5 +165,79 @@ final class EditProfilePageTests: XCTestCase {
     model.firstName = "John"  // Revert back
 
     XCTAssertFalse(model.isSaveButtonEnabled)
+  }
+
+  func testSaveButtonTapped_UpdateUserIsSuccessful() async {
+    let loggedInUser = LoggedInUser(
+      id: "123",
+      firstName: "John",
+      lastName: "Doe",
+      email: "john@example.com"
+    )
+    @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
+
+    let updatedUser = LoggedInUser(
+      id: "123",
+      firstName: "Jane",
+      lastName: "Smith",
+      email: "john@example.com"
+    )
+    let expectedAuth = Auth(currentUser: updatedUser, jwt: "new-jwt-token")
+
+    let model = withDependencies {
+      $0.api.updateUser = { jwtToken, firstName, lastName in
+        XCTAssertEqual(jwtToken, loggedInUser.jwt)
+        XCTAssertEqual(firstName, "Joe")
+        XCTAssertEqual(lastName, "Jones")
+        return expectedAuth
+      }
+    } operation: {
+      EditProfilePageModel()
+    }
+
+    model.viewAppeared()
+    model.firstName = "Joe"
+    model.lastName = "Jones"
+
+    await model.saveButtonTapped()
+
+    XCTAssertEqual(auth.currentUser?.firstName, "Jane")
+    XCTAssertEqual(auth.currentUser?.lastName, "Smith")
+    XCTAssertEqual(auth.jwt, "new-jwt-token")
+    XCTAssertNotNil(model.presentedAlert)
+    XCTAssertEqual(model.presentedAlert, PlayolaAlert.updateProfileSuccessfullAlert)
+  }
+
+  func testSaveButtonTapped_UpdateUserFails() async {
+    let loggedInUser = LoggedInUser(
+      id: "123",
+      firstName: "John",
+      lastName: "Doe",
+      email: "john@example.com"
+    )
+    @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
+
+    let model = withDependencies {
+      $0.api.updateUser = { jwtToken, firstName, lastName in
+        throw APIError.dataNotValid
+      }
+    } operation: {
+      EditProfilePageModel()
+    }
+
+    model.viewAppeared()
+    model.firstName = "Jane"
+    model.lastName = "Smith"
+
+    await model.saveButtonTapped()
+
+    // Auth should remain unchanged on error
+    XCTAssertEqual(auth.currentUser?.firstName, "John")
+    XCTAssertEqual(auth.currentUser?.lastName, "Doe")
+    XCTAssertEqual(auth.jwt, loggedInUser.jwt)
+
+    // Error alert should be presented
+    XCTAssertNotNil(model.presentedAlert)
+    XCTAssertEqual(model.presentedAlert, PlayolaAlert.updateProfileErrorAlert)
   }
 }
