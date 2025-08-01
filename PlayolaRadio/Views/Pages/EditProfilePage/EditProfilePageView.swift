@@ -98,13 +98,15 @@ struct EditProfilePageView: View {
     .navigationBarBackButtonHidden(true)
     .toolbar {
       ToolbarItem(placement: .navigationBarLeading) {
-        Button(action: {
-          dismiss()
-        }, label: {
-          Image(systemName: "chevron.left")
-            .foregroundColor(.white)
-            .font(.title2)
-        })
+        Button(
+          action: {
+            dismiss()
+          },
+          label: {
+            Image(systemName: "chevron.left")
+              .foregroundColor(.white)
+              .font(.title2)
+          })
       }
     }
     .onAppear {
@@ -114,9 +116,9 @@ struct EditProfilePageView: View {
       appearance.backgroundColor = UIColor.black
       appearance.titleTextAttributes = [
         .foregroundColor: UIColor.white,
-        .font: UIFont.systemFont(ofSize: 18, weight: .medium)
+        .font: UIFont.systemFont(ofSize: 18, weight: .medium),
       ]
-      
+
       UINavigationBar.appearance().standardAppearance = appearance
       UINavigationBar.appearance().scrollEdgeAppearance = appearance
       UINavigationBar.appearance().compactAppearance = appearance

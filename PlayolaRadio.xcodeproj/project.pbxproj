@@ -76,6 +76,7 @@
 		D39591262E3BB70000720CF8 /* EditProfilePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39591252E3BB6FC00720CF8 /* EditProfilePageView.swift */; };
 		D39591282E3BB70B00720CF8 /* EditProfilePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39591272E3BB70500720CF8 /* EditProfilePageModel.swift */; };
 		D395912A2E3BD02B00720CF8 /* MainContainerNavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39591292E3BD02300720CF8 /* MainContainerNavigationCoordinator.swift */; };
+		D395912D2E3D1E1E00720CF8 /* EditProfilePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D395912B2E3D1E0F00720CF8 /* EditProfilePageTests.swift */; };
 		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
 		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
@@ -191,6 +192,7 @@
 		D39591252E3BB6FC00720CF8 /* EditProfilePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfilePageView.swift; sourceTree = "<group>"; };
 		D39591272E3BB70500720CF8 /* EditProfilePageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfilePageModel.swift; sourceTree = "<group>"; };
 		D39591292E3BD02300720CF8 /* MainContainerNavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainerNavigationCoordinator.swift; sourceTree = "<group>"; };
+		D395912B2E3D1E0F00720CF8 /* EditProfilePageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfilePageTests.swift; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
 		D3B662692D40103800975D2F /* SignInPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPage.swift; sourceTree = "<group>"; };
 		D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinator.swift; sourceTree = "<group>"; };
@@ -508,6 +510,7 @@
 		D39591242E3BB6F400720CF8 /* EditProfilePage */ = {
 			isa = PBXGroup;
 			children = (
+				D395912B2E3D1E0F00720CF8 /* EditProfilePageTests.swift */,
 				D39591272E3BB70500720CF8 /* EditProfilePageModel.swift */,
 				D39591252E3BB6FC00720CF8 /* EditProfilePageView.swift */,
 			);
@@ -801,6 +804,7 @@
 				D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */,
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,
 				D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */,
+				D395912D2E3D1E1E00720CF8 /* EditProfilePageTests.swift in Sources */,
 				D31C43AC2D3C65840021AAE4 /* NavigationCoordinatorMock.swift in Sources */,
 				D34D5C392D7106CD00148048 /* AuthServiceMock.swift in Sources */,
 				D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */,

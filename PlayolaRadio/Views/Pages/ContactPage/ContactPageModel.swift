@@ -15,7 +15,7 @@ import SwiftUI
 class ContactPageModel: ViewModel {
   @ObservationIgnored var stationPlayer: StationPlayer
   @ObservationIgnored @Shared(.auth) var auth
-  let editProfilePageModel = EditProfilePageModel()
+  var editProfilePageModel: EditProfilePageModel = EditProfilePageModel()
 
   var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator!
 
