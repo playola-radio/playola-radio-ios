@@ -65,6 +65,12 @@ struct MainContainer: View {
           UITabBar.appearance().unselectedItemTintColor = UIColor(white: 0.7, alpha: 1.0)
         }
       }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        switch path {
+        case let .editProfilePage(model):
+          EditProfilePageView(model: model)
+        }
+      }
     }
     .alert(item: $model.presentedAlert) { $0.alert }
     .sheet(
@@ -77,12 +83,7 @@ struct MainContainer: View {
       }
     )
     .onAppear { Task { await model.viewAppeared() } }
-    .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
-      switch path {
-      case let .editProfilePage(model):
-        EditProfilePageView(model: model)
-      }
-    }
+
   }
 
   @ViewBuilder

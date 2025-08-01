@@ -2,10 +2,9 @@
 //  MainContainerNavigationCoordinator.swift
 //  PlayolaRadio
 //
-//  Created by Brian D Keane on 7/31/25.
+//  Created by Brian D Keane on 7/22/25.
 //
 
-import SwiftNavigation
 import SwiftUI
 
 /// This class coordinates any ViewControllers that need to be pushed onto the
@@ -17,8 +16,7 @@ final class MainContainerNavigationCoordinator: Sendable {
 
   var path: [Path] = []
 
-  @CasePathable
-  enum Path: Hashable, Equatable {
+  enum Path: Hashable {
     case editProfilePage(EditProfilePageModel)
   }
 
