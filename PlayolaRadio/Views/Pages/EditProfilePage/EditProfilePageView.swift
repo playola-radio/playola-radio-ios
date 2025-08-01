@@ -9,27 +9,10 @@ import SwiftUI
 
 struct EditProfilePageView: View {
   @Bindable var model: EditProfilePageModel
+  @Environment(\.dismiss) private var dismiss
 
   var body: some View {
     VStack(spacing: 0) {
-      // Header
-      HStack {
-        Text("Edit Profile")
-          .font(.title2)
-          .fontWeight(.medium)
-          .foregroundColor(.white)
-
-        Spacer()
-
-        // Invisible spacer to center the title
-        Image(systemName: "chevron.left")
-          .opacity(0)
-          .font(.title2)
-      }
-      .padding(.horizontal, 20)
-      .padding(.top, 10)
-      .padding(.bottom, 30)
-
       // Form Content
       VStack(spacing: 16) {
         // First Name Section
@@ -80,7 +63,7 @@ struct EditProfilePageView: View {
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .disabled(true)
 
-          Text("This email is linked to your Google Account and can't be changed here.")
+          Text("This email is linked to your Apple ID and can't be changed here.")
             .font(.custom(FontNames.Inter_400_Regular, size: 12))
             .foregroundColor(Color(hex: "#BABABA"))
             .padding(.top, 4)
@@ -107,14 +90,45 @@ struct EditProfilePageView: View {
 
       }
       .padding(.horizontal, 20)
+      .padding(.top, 24)
     }
     .background(Color.black)
+    .navigationTitle("Edit Profile")
+    .navigationBarTitleDisplayMode(.inline)
+    .navigationBarBackButtonHidden(true)
+    .toolbar {
+      ToolbarItem(placement: .navigationBarLeading) {
+        Button(action: {
+          dismiss()
+        }, label: {
+          Image(systemName: "chevron.left")
+            .foregroundColor(.white)
+            .font(.title2)
+        })
+      }
+    }
+    .onAppear {
+      // Configure navigation bar appearance
+      let appearance = UINavigationBarAppearance()
+      appearance.configureWithOpaqueBackground()
+      appearance.backgroundColor = UIColor.black
+      appearance.titleTextAttributes = [
+        .foregroundColor: UIColor.white,
+        .font: UIFont.systemFont(ofSize: 18, weight: .medium)
+      ]
+      
+      UINavigationBar.appearance().standardAppearance = appearance
+      UINavigationBar.appearance().scrollEdgeAppearance = appearance
+      UINavigationBar.appearance().compactAppearance = appearance
+    }
   }
 }
 
 // MARK: - Preview
 struct EditContactPageView_Previews: PreviewProvider {
   static var previews: some View {
-    EditProfilePageView(model: EditProfilePageModel())
+    NavigationStack {
+      EditProfilePageView(model: EditProfilePageModel())
+    }
   }
 }

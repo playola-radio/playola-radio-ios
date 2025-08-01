@@ -12,4 +12,6 @@ import SwiftUI
 
 @MainActor
 @Observable
-class EditProfilePageModel: ViewModel {}
+class EditProfilePageModel: ViewModel {
+  
+}
