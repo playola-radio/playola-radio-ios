@@ -33,14 +33,13 @@ class HomePageModel: ViewModel {
     }
   }
 
-  var listeningTimeTileModel: ListeningTimeTileModel {
+  @ObservationIgnored lazy var listeningTimeTileModel: ListeningTimeTileModel =
     ListeningTimeTileModel(
       buttonText: "Redeem Your Rewards!",
       buttonAction: {
         self.$activeTab.withLock { $0 = .rewards }
       }
     )
-  }
 
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared

@@ -55,6 +55,15 @@ struct APIClient: Sendable {
   /// Fetches all available prize tiers from the rewards system
   /// - Returns: Array of PrizeTier objects containing tiers and their associated prizes
   var getPrizeTiers: () async throws -> [PrizeTier] = { [] }
+
+  ///   - jwtToken: Current JWT
+  ///   - firstName: New first name
+  ///   - lastName: New last name (optional, "" treated as nil)
+  /// - Returns: Updated `Auth` containing fresh token & user
+  var updateUser:
+    (_ jwtToken: String, _ firstName: String, _ lastName: String?) async throws -> Auth = {
+      _, _, _ in Auth()
+    }
 }
 
 extension APIClient: DependencyKey {
@@ -148,6 +157,43 @@ extension APIClient: DependencyKey {
           .value
 
         return response
+      },
+      updateUser: { jwtToken, firstName, lastName in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me"
+
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        var params: [String: String] = ["firstName": firstName]
+        if let lastName { params["lastName"] = lastName }
+
+        let request = AF.request(
+          url,
+          method: .put,
+          parameters: params,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+
+        // Capture decoded body *and* the HTTPURLResponse
+        let dataResponse = try await request.serializingDecodable(UpdateUserResponse.self).response
+        guard
+          let body = dataResponse.value
+        else {
+          throw APIError.dataNotValid
+        }
+
+        let newToken = dataResponse.response?.headers["X-New-Access-Token"] ?? jwtToken
+        let updatedUser = LoggedInUser(
+          id: body.id,
+          firstName: body.firstName,
+          lastName: body.lastName,
+          email: body.email,
+          profileImageUrl: body.profileImageUrl,
+          role: body.role
+        )
+
+        return Auth(currentUser: updatedUser, jwt: newToken)
       }
     )
   }()
@@ -166,4 +212,12 @@ extension DependencyValues {
 
 struct LoginResponse: Decodable {
   let playolaToken: String
+}
+struct UpdateUserResponse: Decodable {
+  let id: String
+  let firstName: String
+  let lastName: String?
+  let email: String
+  let profileImageUrl: String?
+  let role: String
 }

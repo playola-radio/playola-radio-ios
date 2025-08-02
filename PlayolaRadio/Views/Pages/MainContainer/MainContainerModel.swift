@@ -22,6 +22,8 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
 
   enum ActiveTab {
     case home
@@ -36,6 +38,7 @@ class MainContainerModel: ViewModel {
   var homePageModel = HomePageModel()
   var stationListModel = StationListModel()
   var rewardsPageModel = RewardsPageModel()
+  var contactPageModel = ContactPageModel()
 
   var shouldShowSmallPlayer: Bool = false
 
