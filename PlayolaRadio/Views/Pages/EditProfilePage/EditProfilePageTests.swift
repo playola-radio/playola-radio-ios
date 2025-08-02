@@ -185,8 +185,8 @@ final class EditProfilePageTests: XCTestCase {
     let expectedAuth = Auth(currentUser: updatedUser, jwt: "new-jwt-token")
 
     let model = withDependencies {
-      $0.api.updateUser = { _, _, _ in
-        XCTAssertEqual(jwtToken, loggedInUser.jwt)
+      $0.api.updateUser = { jwtToken, firstName, lastName in
+        XCTAssertEqual(jwtToken, auth.jwt)
         XCTAssertEqual(firstName, "Joe")
         XCTAssertEqual(lastName, "Jones")
         return expectedAuth
