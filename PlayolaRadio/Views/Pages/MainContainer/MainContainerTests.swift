@@ -263,7 +263,8 @@ final class MainContainerTests: XCTestCase {
   // MARK: - Dismiss Button Tests
 
   func testDismissButton_PlayerPageOnDismissClearsPresentedSheet() {
-    //    @Shared(.mainContainerNavigationCoordinator) var mainContainerNavigationCoordinator = MainContainerNavigationCoordinator()
+    // @Shared(.mainContainerNavigationCoordinator)
+    // var mainContainerNavigationCoordinator = MainContainerNavigationCoordinator()
     //
     let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
     let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)

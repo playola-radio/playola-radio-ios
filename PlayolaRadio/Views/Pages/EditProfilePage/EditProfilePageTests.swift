@@ -185,7 +185,7 @@ final class EditProfilePageTests: XCTestCase {
     let expectedAuth = Auth(currentUser: updatedUser, jwt: "new-jwt-token")
 
     let model = withDependencies {
-      $0.api.updateUser = { jwtToken, firstName, lastName in
+      $0.api.updateUser = { _, _, _ in
         XCTAssertEqual(jwtToken, loggedInUser.jwt)
         XCTAssertEqual(firstName, "Joe")
         XCTAssertEqual(lastName, "Jones")
@@ -219,7 +219,7 @@ final class EditProfilePageTests: XCTestCase {
     @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
 
     let model = withDependencies {
-      $0.api.updateUser = { jwtToken, firstName, lastName in
+      $0.api.updateUser = { _, _, _ in
         throw APIError.dataNotValid
       }
       $0.continuousClock = ImmediateClock()
@@ -265,7 +265,7 @@ final class EditProfilePageTests: XCTestCase {
     let expectedAuth = Auth(currentUser: updatedUser, jwt: "new-jwt-token")
 
     let model = withDependencies {
-      $0.api.updateUser = { jwtToken, firstName, lastName in
+      $0.api.updateUser = { _, _, _ in
         return expectedAuth
       }
       $0.continuousClock = ImmediateClock()
