@@ -16,17 +16,14 @@ class EditProfilePageModel: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.continuousClock) var clock
-  var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator!
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
 
   var firstName: String! = ""
   var lastName: String! = ""
   var email: String! = ""
 
   var presentedAlert: PlayolaAlert?
-
-  init(mainContainerNavigationCoordinator: MainContainerNavigationCoordinator? = nil) {
-    self.mainContainerNavigationCoordinator = mainContainerNavigationCoordinator ?? .shared
-  }
 
   var isSaveButtonEnabled: Bool {
     let originalFirstName = auth.currentUser?.firstName ?? ""

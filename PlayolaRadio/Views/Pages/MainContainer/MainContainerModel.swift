@@ -22,8 +22,8 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
-
-  var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator = .shared
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
 
   enum ActiveTab {
     case home
@@ -108,10 +108,7 @@ class MainContainerModel: ViewModel {
   }
 
   func onSmallPlayerTapped() {
-    //        self.presentedSheet = .player(PlayerPageModel(onDismiss: { self.presentedSheet = nil }))
-    self.mainContainerNavigationCoordinator.path.append(.editProfilePage(EditProfilePageModel()))
-    print("in maincontainerview")
-    print(self.mainContainerNavigationCoordinator.path)
+    self.presentedSheet = .player(PlayerPageModel(onDismiss: { self.presentedSheet = nil }))
   }
 }
 

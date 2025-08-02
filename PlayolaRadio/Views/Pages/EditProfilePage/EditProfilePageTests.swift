@@ -191,6 +191,7 @@ final class EditProfilePageTests: XCTestCase {
         XCTAssertEqual(lastName, "Jones")
         return expectedAuth
       }
+      $0.continuousClock = ImmediateClock()
     } operation: {
       EditProfilePageModel()
     }
@@ -221,6 +222,7 @@ final class EditProfilePageTests: XCTestCase {
       $0.api.updateUser = { jwtToken, firstName, lastName in
         throw APIError.dataNotValid
       }
+      $0.continuousClock = ImmediateClock()
     } operation: {
       EditProfilePageModel()
     }
@@ -239,5 +241,52 @@ final class EditProfilePageTests: XCTestCase {
     // Error alert should be presented
     XCTAssertNotNil(model.presentedAlert)
     XCTAssertEqual(model.presentedAlert, PlayolaAlert.updateProfileErrorAlert)
+  }
+
+  func testSaveButtonTapped_NavigationPopsAfterSuccess() async {
+    let loggedInUser = LoggedInUser(
+      id: "123",
+      firstName: "John",
+      lastName: "Doe",
+      email: "john@example.com"
+    )
+    @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
+    @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator
+
+    // Clear navigation and add a test path
+    navigationCoordinator.popToRoot()
+
+    let updatedUser = LoggedInUser(
+      id: "123",
+      firstName: "Jane",
+      lastName: "Smith",
+      email: "john@example.com"
+    )
+    let expectedAuth = Auth(currentUser: updatedUser, jwt: "new-jwt-token")
+
+    let model = withDependencies {
+      $0.api.updateUser = { jwtToken, firstName, lastName in
+        return expectedAuth
+      }
+      $0.continuousClock = ImmediateClock()
+    } operation: {
+      EditProfilePageModel()
+    }
+
+    // Add the model to the navigation stack
+    navigationCoordinator.push(.editProfilePage(model))
+    XCTAssertEqual(navigationCoordinator.path.count, 1)
+
+    model.viewAppeared()
+    model.firstName = "Jane"
+    model.lastName = "Smith"
+
+    await model.saveButtonTapped()
+
+    // Verify navigation was popped
+    XCTAssertEqual(navigationCoordinator.path.count, 0)
+
+    // Clean up
+    navigationCoordinator.popToRoot()
   }
 }

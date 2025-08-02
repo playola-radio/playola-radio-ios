@@ -22,8 +22,6 @@ final class MainContainerNavigationCoordinator: Sendable {
     case editProfilePage(EditProfilePageModel)
   }
 
-  private init() {}
-
   func push(_ path: Path) {
     self.path.append(path)
   }

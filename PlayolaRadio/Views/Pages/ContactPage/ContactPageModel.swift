@@ -15,16 +15,14 @@ import SwiftUI
 class ContactPageModel: ViewModel {
   @ObservationIgnored var stationPlayer: StationPlayer
   @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
   var editProfilePageModel: EditProfilePageModel = EditProfilePageModel()
 
-  var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator!
-
   init(
-    stationPlayer: StationPlayer? = nil,
-    mainContainerNavigationCoordinator: MainContainerNavigationCoordinator? = nil
+    stationPlayer: StationPlayer? = nil
   ) {
     self.stationPlayer = stationPlayer ?? .shared
-    self.mainContainerNavigationCoordinator = mainContainerNavigationCoordinator ?? .shared
   }
 
   func onViewAppeared() async {
