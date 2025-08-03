@@ -53,8 +53,15 @@ class NowPlayingUpdater {
   private var inactivityTask: Task<Void, Never>?
   private let inactivityTimeout: Duration = .seconds(15 * 60)  // 15 minutes
   private var lastPlayedStation: RadioStation?
+  private var currentArtworkURL: String?
   private func updateNowPlaying(with stationPlayerState: StationPlayer.State) {
+    print(
+      "🎵 NowPlayingUpdater: updateNowPlaying called with status: \(stationPlayerState.playbackStatus)"
+    )
+    print("🎵 Current station: \(stationPlayer.currentStation?.name ?? "nil")")
+
     guard let currentStation = stationPlayer.currentStation else {
+      print("🎵 No current station - clearing now playing info")
       clearNowPlayingInfo()
       return
     }
@@ -63,20 +70,47 @@ class NowPlayingUpdater {
     var nowPlayingInfo = buildNowPlayingInfo(for: stationPlayerState, station: currentStation)
     updatePlaybackState(for: stationPlayerState.playbackStatus)
     setPlaybackRate(for: stationPlayerState.playbackStatus, in: &nowPlayingInfo)
-    loadStationArtwork(from: stationPlayerState, station: currentStation)
+
+    // Handle artwork based on playback status
+    switch stationPlayerState.playbackStatus {
+    case .loading, .stopped:
+      // For loading/stopped states, preserve existing artwork if available, otherwise load new
+      if let existingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo,
+        let existingArtwork = existingInfo[MPMediaItemPropertyArtwork]
+      {
+        nowPlayingInfo[MPMediaItemPropertyArtwork] = existingArtwork
+      } else {
+        // Only load if we don't already have this station's artwork
+        if currentArtworkURL != currentStation.imageURL {
+          loadStationArtwork(from: stationPlayerState, station: currentStation)
+        }
+      }
+    case .playing:
+      // Preserve existing artwork
+      if let existingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo,
+        let existingArtwork = existingInfo[MPMediaItemPropertyArtwork]
+      {
+        nowPlayingInfo[MPMediaItemPropertyArtwork] = existingArtwork
+      }
+    default:
+      break
+    }
 
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
   }
 
   private func clearNowPlayingInfo() {
+    print("🧹 Clearing now playing info")
     MPNowPlayingInfoCenter.default().playbackState = .stopped
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+    currentArtworkURL = nil
   }
 
   private func buildNowPlayingInfo(for state: StationPlayer.State, station: RadioStation)
     -> [String: Any]
   {
     var nowPlayingInfo = [String: Any]()
+    nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = true
 
     switch state.playbackStatus {
     case .playing:
@@ -98,6 +132,7 @@ class NowPlayingUpdater {
     switch status {
     case .playing, .loading, .startingNewStation:
       cancelInactivityTimer()
+      setupRemoteControlCenter()
       MPNowPlayingInfoCenter.default().playbackState = .playing
     case .stopped, .error:
       if case .stopped = status { startInactivityTimer() }
@@ -153,11 +188,18 @@ class NowPlayingUpdater {
   }
 
   private func loadStationArtwork(from state: StationPlayer.State, station: RadioStation) {
-    guard let imageUrl = state.albumArtworkUrl ?? URL(string: station.imageURL) else { return }
+    // Skip if we're already displaying this station's artwork
+    if currentArtworkURL == station.imageURL {
+      return
+    }
 
-    UIImage.image(from: imageUrl) { image in
-      if let image {
-        Task { await self.updateNowPlayingImage(image) }
+    // For CarPlay/Lock Screen: always use station image, ignore album artwork
+    station.getImage { image in
+      Task {
+        self.updateNowPlayingImage(image)
+        await MainActor.run {
+          self.currentArtworkURL = station.imageURL
+        }
       }
     }
   }
@@ -168,7 +210,7 @@ class NowPlayingUpdater {
     nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(
       boundsSize: image.size,
       requestHandler: { _ in
-        image
+        return image
       })
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
   }
@@ -319,6 +361,10 @@ class NowPlayingUpdater {
     commandCenter.seekBackwardCommand.isEnabled = false
     commandCenter.changePlaybackPositionCommand.isEnabled = false
 
+    commandCenter.stopCommand.removeTarget(nil)
+    commandCenter.playCommand.removeTarget(nil)
+    commandCenter.pauseCommand.removeTarget(nil)
+
     // Enable play/pause toggle
     commandCenter.playCommand.isEnabled = true
     commandCenter.playCommand.addTarget { _ in
@@ -345,6 +391,22 @@ class NowPlayingUpdater {
     }
   }
 
+  func releaseRemoteControlCenter() {
+    let commandCenter = MPRemoteCommandCenter.shared()
+
+    // Remove all targets from commands
+    commandCenter.playCommand.removeTarget(nil)
+    commandCenter.pauseCommand.removeTarget(nil)
+    commandCenter.stopCommand.removeTarget(nil)
+
+    // Clear now playing info
+    MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+    MPNowPlayingInfoCenter.default().playbackState = .stopped
+
+    // Stop receiving remote control events
+    UIApplication.shared.endReceivingRemoteControlEvents()
+  }
+
   // MARK: - Inactivity Timer
 
   private func startInactivityTimer() {
@@ -358,8 +420,7 @@ class NowPlayingUpdater {
 
         // Clear Now Playing info after inactivity timeout
         await MainActor.run {
-          MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-          MPNowPlayingInfoCenter.default().playbackState = .stopped
+          self.releaseRemoteControlCenter()
           self.lastPlayedStation = nil  // Clear the last played station too
         }
       } catch {
