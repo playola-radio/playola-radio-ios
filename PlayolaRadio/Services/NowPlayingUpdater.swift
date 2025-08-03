@@ -54,87 +54,112 @@ class NowPlayingUpdater {
   private let inactivityTimeout: Duration = .seconds(15 * 60)  // 15 minutes
   private var lastPlayedStation: RadioStation?
   private func updateNowPlaying(with stationPlayerState: StationPlayer.State) {
-    var nowPlayingInfo = [String: Any]()
-
     guard let currentStation = stationPlayer.currentStation else {
-      MPNowPlayingInfoCenter.default().playbackState = .stopped
-      MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+      clearNowPlayingInfo()
       return
     }
 
-    // Save the station for resume functionality
     lastPlayedStation = currentStation
-
-    // Handle different playback states
-    switch stationPlayerState.playbackStatus {
-    case .playing:
-      cancelInactivityTimer()
-      MPNowPlayingInfoCenter.default().playbackState = .playing
-
-      if let artistPlaying = stationPlayerState.artistPlaying {
-        nowPlayingInfo[MPMediaItemPropertyArtist] = artistPlaying
-      }
-
-      if let titlePlaying = stationPlayerState.titlePlaying {
-        nowPlayingInfo[MPMediaItemPropertyTitle] = titlePlaying
-      }
-
-    case let .loading(_, progress):
-      MPNowPlayingInfoCenter.default().playbackState = .playing
-
-      // Show loading status
-      nowPlayingInfo[MPMediaItemPropertyTitle] = "Loading \(currentStation.name)..."
-      nowPlayingInfo[MPMediaItemPropertyArtist] = currentStation.desc
-
-      // Use progress bar to show loading progress
-      if let progress = progress {
-        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = Double(progress * 100)
-        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = 100.0
-      }
-
-    case .stopped:
-      startInactivityTimer()
-      MPNowPlayingInfoCenter.default().playbackState = .stopped
-
-      // Keep last playing info when stopped
-      if let artistPlaying = stationPlayerState.artistPlaying {
-        nowPlayingInfo[MPMediaItemPropertyArtist] = artistPlaying
-      }
-
-      if let titlePlaying = stationPlayerState.titlePlaying {
-        nowPlayingInfo[MPMediaItemPropertyTitle] = titlePlaying
-      }
-
-    case .startingNewStation:
-      MPNowPlayingInfoCenter.default().playbackState = .playing
-      nowPlayingInfo[MPMediaItemPropertyTitle] = "Connecting to \(currentStation.name)..."
-      nowPlayingInfo[MPMediaItemPropertyArtist] = currentStation.desc
-
-    case .error:
-      MPNowPlayingInfoCenter.default().playbackState = .stopped
-      nowPlayingInfo[MPMediaItemPropertyTitle] = "Connection Error"
-      nowPlayingInfo[MPMediaItemPropertyArtist] = currentStation.name
-    }
-
-    if let imageUrl = stationPlayerState.albumArtworkUrl
-      ?? URL(string: currentStation.imageURL)
-    {
-      UIImage.image(from: imageUrl) { image in
-        if let image {
-          Task { await self.updateNowPlayingImage(image) }
-        }
-      }
-    }
-
-    // Set playback rate for all states except loading (where we use progress)
-    if case .loading = stationPlayerState.playbackStatus {
-      // Don't set playback rate during loading to show progress
-    } else {
-      // For live streams, set playback rate to indicate it's playing but no duration
-      nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
-    }
+    var nowPlayingInfo = buildNowPlayingInfo(for: stationPlayerState, station: currentStation)
+    updatePlaybackState(for: stationPlayerState.playbackStatus)
+    setPlaybackRate(for: stationPlayerState.playbackStatus, in: &nowPlayingInfo)
+    loadStationArtwork(from: stationPlayerState, station: currentStation)
 
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+  }
+
+  private func clearNowPlayingInfo() {
+    MPNowPlayingInfoCenter.default().playbackState = .stopped
+    MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+  }
+
+  private func buildNowPlayingInfo(for state: StationPlayer.State, station: RadioStation)
+    -> [String: Any]
+  {
+    var nowPlayingInfo = [String: Any]()
+
+    switch state.playbackStatus {
+    case .playing:
+      populatePlayingInfo(&nowPlayingInfo, state: state)
+    case let .loading(_, progress):
+      populateLoadingInfo(&nowPlayingInfo, station: station, progress: progress)
+    case .stopped:
+      populateStoppedInfo(&nowPlayingInfo, state: state)
+    case .startingNewStation:
+      populateConnectingInfo(&nowPlayingInfo, station: station)
+    case .error:
+      populateErrorInfo(&nowPlayingInfo, station: station)
+    }
+
+    return nowPlayingInfo
+  }
+
+  private func updatePlaybackState(for status: StationPlayer.PlaybackStatus) {
+    switch status {
+    case .playing, .loading, .startingNewStation:
+      cancelInactivityTimer()
+      MPNowPlayingInfoCenter.default().playbackState = .playing
+    case .stopped, .error:
+      if case .stopped = status { startInactivityTimer() }
+      MPNowPlayingInfoCenter.default().playbackState = .stopped
+    }
+  }
+
+  private func populatePlayingInfo(_ info: inout [String: Any], state: StationPlayer.State) {
+    if let artistPlaying = state.artistPlaying {
+      info[MPMediaItemPropertyArtist] = artistPlaying
+    }
+    if let titlePlaying = state.titlePlaying {
+      info[MPMediaItemPropertyTitle] = titlePlaying
+    }
+  }
+
+  private func populateLoadingInfo(
+    _ info: inout [String: Any], station: RadioStation, progress: Float?
+  ) {
+    info[MPMediaItemPropertyTitle] = "Loading \(station.name)..."
+    info[MPMediaItemPropertyArtist] = station.desc
+
+    if let progress = progress {
+      info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = Double(progress * 100)
+      info[MPMediaItemPropertyPlaybackDuration] = 100.0
+    }
+  }
+
+  private func populateStoppedInfo(_ info: inout [String: Any], state: StationPlayer.State) {
+    if let artistPlaying = state.artistPlaying {
+      info[MPMediaItemPropertyArtist] = artistPlaying
+    }
+    if let titlePlaying = state.titlePlaying {
+      info[MPMediaItemPropertyTitle] = titlePlaying
+    }
+  }
+
+  private func populateConnectingInfo(_ info: inout [String: Any], station: RadioStation) {
+    info[MPMediaItemPropertyTitle] = "Connecting to \(station.name)..."
+    info[MPMediaItemPropertyArtist] = station.desc
+  }
+
+  private func populateErrorInfo(_ info: inout [String: Any], station: RadioStation) {
+    info[MPMediaItemPropertyTitle] = "Connection Error"
+    info[MPMediaItemPropertyArtist] = station.name
+  }
+
+  private func setPlaybackRate(
+    for status: StationPlayer.PlaybackStatus, in info: inout [String: Any]
+  ) {
+    guard !status.isLoading else { return }
+    info[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
+  }
+
+  private func loadStationArtwork(from state: StationPlayer.State, station: RadioStation) {
+    guard let imageUrl = state.albumArtworkUrl ?? URL(string: station.imageURL) else { return }
+
+    UIImage.image(from: imageUrl) { image in
+      if let image {
+        Task { await self.updateNowPlayingImage(image) }
+      }
+    }
   }
 
   private func updateNowPlayingImage(_ image: UIImage) {
@@ -346,5 +371,14 @@ class NowPlayingUpdater {
   private func cancelInactivityTimer() {
     inactivityTask?.cancel()
     inactivityTask = nil
+  }
+}
+
+// MARK: - Extensions
+
+extension StationPlayer.PlaybackStatus {
+  var isLoading: Bool {
+    if case .loading = self { return true }
+    return false
   }
 }
