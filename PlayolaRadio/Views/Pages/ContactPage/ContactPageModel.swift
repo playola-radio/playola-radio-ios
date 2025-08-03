@@ -19,6 +19,14 @@ class ContactPageModel: ViewModel {
   var mainContainerNavigationCoordinator
   var editProfilePageModel: EditProfilePageModel = EditProfilePageModel()
 
+  var name: String {
+    return auth.currentUser?.fullName ?? "Anonymous"
+  }
+
+  var email: String {
+    return auth.currentUser?.email ?? "Unknown"
+  }
+
   init(
     stationPlayer: StationPlayer? = nil
   ) {

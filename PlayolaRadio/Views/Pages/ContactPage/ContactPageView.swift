@@ -42,11 +42,11 @@ struct ContactPageView: View {
 
               // Name and Email
               VStack(spacing: 4) {
-                Text("Brian Keane")
+                Text(model.name)
                   .font(.custom(FontNames.Inter_500_Medium, size: 20))
                   .foregroundColor(.white)
 
-                Text(verbatim: "briank@gmail.com")
+                Text(verbatim: model.email)
                   .font(.custom(FontNames.Inter_400_Regular, size: 14))
                   .foregroundColor(Color(hex: "#BABABA"))
 
