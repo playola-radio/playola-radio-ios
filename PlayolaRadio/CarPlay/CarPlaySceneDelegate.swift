@@ -37,7 +37,7 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
   var trackingService = TrackingService.shared
 
   private var isTransitioningToNowPlaying = false
-  
+
   var stationPlayer: StationPlayer { StationPlayer.shared }
 
   override init() {
