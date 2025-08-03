@@ -52,6 +52,7 @@ class NowPlayingUpdater {
   private var disposeBag = Set<AnyCancellable>()
   private var inactivityTask: Task<Void, Never>?
   private let inactivityTimeout: Duration = .seconds(15 * 60)  // 15 minutes
+  private var lastPlayedStation: RadioStation?
   private func updateNowPlaying(with stationPlayerState: StationPlayer.State) {
     var nowPlayingInfo = [String: Any]()
 
@@ -60,6 +61,9 @@ class NowPlayingUpdater {
       MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
       return
     }
+
+    // Save the station for resume functionality
+    lastPlayedStation = currentStation
 
     // Handle different playback states
     switch stationPlayerState.playbackStatus {
@@ -293,8 +297,11 @@ class NowPlayingUpdater {
     // Enable play/pause toggle
     commandCenter.playCommand.isEnabled = true
     commandCenter.playCommand.addTarget { _ in
+      // Try current station first, fall back to last played station
       if let currentStation = self.stationPlayer.currentStation {
         self.stationPlayer.play(station: currentStation)
+      } else if let lastStation = self.lastPlayedStation {
+        self.stationPlayer.play(station: lastStation)
       }
       return .success
     }
@@ -328,6 +335,7 @@ class NowPlayingUpdater {
         await MainActor.run {
           MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
           MPNowPlayingInfoCenter.default().playbackState = .stopped
+          self.lastPlayedStation = nil  // Clear the last played station too
         }
       } catch {
         // Task was cancelled
