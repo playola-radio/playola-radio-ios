@@ -134,12 +134,19 @@ class PlayerPageModel: ViewModel {
     self.onDismiss = onDismiss
   }
 
-  func viewAppeared() {
-    // No longer needed - all properties are computed from nowPlaying
-  }
-
   func playPauseButtonTapped() {
     stationPlayer.stop()
     onDismiss?()
+  }
+
+  func scenePhaseChanged(newPhase: ScenePhase) {
+    if newPhase == .active {
+      switch stationPlayer.state.playbackStatus {
+      case .stopped, .error:
+        onDismiss?()
+      default:
+        break
+      }
+    }
   }
 }

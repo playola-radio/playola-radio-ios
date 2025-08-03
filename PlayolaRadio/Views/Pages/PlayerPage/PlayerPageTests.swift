@@ -297,4 +297,93 @@ final class PlayerPageTests: XCTestCase {
     XCTAssertEqual(spy.stopCalledCount, 1)
     XCTAssertTrue(dismissCalled)
   }
+
+  // MARK: - scenePhaseChanged Tests
+
+  func testScenePhaseChanged_DismissesWhenActiveAndPlayerStopped() {
+    let spy = StationPlayerMock()
+    spy.state = StationPlayer.State(playbackStatus: .stopped)
+
+    var dismissCalled = false
+    let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+
+    model.scenePhaseChanged(newPhase: .active)
+
+    XCTAssertTrue(dismissCalled)
+  }
+
+  func testScenePhaseChanged_DismissesWhenActiveAndPlayerError() {
+    let spy = StationPlayerMock()
+    spy.state = StationPlayer.State(playbackStatus: .error)
+
+    var dismissCalled = false
+    let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+
+    model.scenePhaseChanged(newPhase: .active)
+
+    XCTAssertTrue(dismissCalled)
+  }
+
+  func testScenePhaseChanged_DoesNotDismissWhenActiveAndPlayerPlaying() {
+    let station = RadioStation.mock
+    let spy = StationPlayerMock()
+    spy.state = StationPlayer.State(playbackStatus: .playing(station))
+
+    var dismissCalled = false
+    let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+
+    model.scenePhaseChanged(newPhase: .active)
+
+    XCTAssertFalse(dismissCalled)
+  }
+
+  func testScenePhaseChanged_DoesNotDismissWhenActiveAndPlayerLoading() {
+    let station = RadioStation.mock
+    let spy = StationPlayerMock()
+    spy.state = StationPlayer.State(playbackStatus: .loading(station))
+
+    var dismissCalled = false
+    let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+
+    model.scenePhaseChanged(newPhase: .active)
+
+    XCTAssertFalse(dismissCalled)
+  }
+
+  func testScenePhaseChanged_DoesNotDismissWhenActiveAndPlayerStartingNewStation() {
+    let station = RadioStation.mock
+    let spy = StationPlayerMock()
+    spy.state = StationPlayer.State(playbackStatus: .startingNewStation(station))
+
+    var dismissCalled = false
+    let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+
+    model.scenePhaseChanged(newPhase: .active)
+
+    XCTAssertFalse(dismissCalled)
+  }
+
+  func testScenePhaseChanged_DoesNotDismissWhenBackgroundPhase() {
+    let spy = StationPlayerMock()
+    spy.state = StationPlayer.State(playbackStatus: .stopped)
+
+    var dismissCalled = false
+    let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+
+    model.scenePhaseChanged(newPhase: .background)
+
+    XCTAssertFalse(dismissCalled)
+  }
+
+  func testScenePhaseChanged_DoesNotDismissWhenInactivePhase() {
+    let spy = StationPlayerMock()
+    spy.state = StationPlayer.State(playbackStatus: .stopped)
+
+    var dismissCalled = false
+    let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+
+    model.scenePhaseChanged(newPhase: .inactive)
+
+    XCTAssertFalse(dismissCalled)
+  }
 }
