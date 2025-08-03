@@ -37,8 +37,7 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
   var trackingService = TrackingService.shared
 
   private var isTransitioningToNowPlaying = false
-
-  // dependency injection
+  
   var stationPlayer: StationPlayer { StationPlayer.shared }
 
   override init() {
@@ -109,13 +108,10 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
   ) {
     self.interfaceController = nil
 
-    // Cancel all observers
     for observer in observers {
       observer.cancel()
     }
     observers.removeAll()
-
-    // Clear image cache when disconnecting to free memory
     CPListItem.clearImageCache()
   }
 
@@ -172,14 +168,8 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
   }
 
   private func setupNowPlayingTemplate() {
-    // Ensure NowPlayingUpdater is active for CarPlay
     _ = NowPlayingUpdater.shared
-
-    // The shared CPNowPlayingTemplate automatically displays content from MPNowPlayingInfoCenter,
-    // which is managed by our NowPlayingUpdater service
   }
-
-  // MARK: - Error Handling
 
   private func observePlaybackErrors() {
     stationPlayer.$state
@@ -190,13 +180,10 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
         case .error:
           self.handlePlaybackError()
         case .loading, .startingNewStation:
-          // Station is loading - implement best practice navigation
           self.handleStationLoading()
         case .playing:
-          // Successfully playing
           break
         case .stopped:
-          // Station is stopped - remove now playing template
           self.handleStationStopped()
         default:
           break
