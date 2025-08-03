@@ -110,6 +110,7 @@ class NowPlayingUpdater {
     -> [String: Any]
   {
     var nowPlayingInfo = [String: Any]()
+    nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = true
 
     switch state.playbackStatus {
     case .playing:
@@ -131,6 +132,7 @@ class NowPlayingUpdater {
     switch status {
     case .playing, .loading, .startingNewStation:
       cancelInactivityTimer()
+      setupRemoteControlCenter()
       MPNowPlayingInfoCenter.default().playbackState = .playing
     case .stopped, .error:
       if case .stopped = status { startInactivityTimer() }
@@ -359,6 +361,10 @@ class NowPlayingUpdater {
     commandCenter.seekBackwardCommand.isEnabled = false
     commandCenter.changePlaybackPositionCommand.isEnabled = false
 
+    commandCenter.stopCommand.removeTarget(nil)
+    commandCenter.playCommand.removeTarget(nil)
+    commandCenter.pauseCommand.removeTarget(nil)
+
     // Enable play/pause toggle
     commandCenter.playCommand.isEnabled = true
     commandCenter.playCommand.addTarget { _ in
@@ -385,6 +391,22 @@ class NowPlayingUpdater {
     }
   }
 
+  func releaseRemoteControlCenter() {
+    let commandCenter = MPRemoteCommandCenter.shared()
+
+    // Remove all targets from commands
+    commandCenter.playCommand.removeTarget(nil)
+    commandCenter.pauseCommand.removeTarget(nil)
+    commandCenter.stopCommand.removeTarget(nil)
+
+    // Clear now playing info
+    MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+    MPNowPlayingInfoCenter.default().playbackState = .stopped
+
+    // Stop receiving remote control events
+    UIApplication.shared.endReceivingRemoteControlEvents()
+  }
+
   // MARK: - Inactivity Timer
 
   private func startInactivityTimer() {
@@ -398,8 +420,7 @@ class NowPlayingUpdater {
 
         // Clear Now Playing info after inactivity timeout
         await MainActor.run {
-          MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-          MPNowPlayingInfoCenter.default().playbackState = .stopped
+          self.releaseRemoteControlCenter()
           self.lastPlayedStation = nil  // Clear the last played station too
         }
       } catch {
