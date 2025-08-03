@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 1/20/25.
 //
 import Combine
+import Dependencies
 import Foundation
 import MediaPlayer
 import PlayolaPlayer
@@ -46,36 +47,119 @@ class NowPlayingUpdater {
   static var shared = NowPlayingUpdater()
 
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
+  @ObservationIgnored @Dependency(\.continuousClock) var clock
 
   private var disposeBag = Set<AnyCancellable>()
+  private var inactivityTask: Task<Void, Never>?
+  private let inactivityTimeout: Duration = .seconds(15 * 60)  // 15 minutes
+  private var lastPlayedStation: RadioStation?
   private func updateNowPlaying(with stationPlayerState: StationPlayer.State) {
-    var nowPlayingInfo = [String: Any]()
-
     guard let currentStation = stationPlayer.currentStation else {
-      MPNowPlayingInfoCenter.default().playbackState = .stopped
+      clearNowPlayingInfo()
       return
     }
-    MPNowPlayingInfoCenter.default().playbackState = .playing
 
-    if let artistPlaying = stationPlayerState.artistPlaying {
-      nowPlayingInfo[MPMediaItemPropertyArtist] = artistPlaying
-    }
-
-    if let titlePlaying = stationPlayerState.titlePlaying {
-      nowPlayingInfo[MPMediaItemPropertyTitle] = titlePlaying
-    }
-
-    if let imageUrl = stationPlayerState.albumArtworkUrl
-      ?? URL(string: currentStation.imageURL)
-    {
-      UIImage.image(from: imageUrl) { image in
-        if let image {
-          Task { await self.updateNowPlayingImage(image) }
-        }
-      }
-    }
+    lastPlayedStation = currentStation
+    var nowPlayingInfo = buildNowPlayingInfo(for: stationPlayerState, station: currentStation)
+    updatePlaybackState(for: stationPlayerState.playbackStatus)
+    setPlaybackRate(for: stationPlayerState.playbackStatus, in: &nowPlayingInfo)
+    loadStationArtwork(from: stationPlayerState, station: currentStation)
 
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+  }
+
+  private func clearNowPlayingInfo() {
+    MPNowPlayingInfoCenter.default().playbackState = .stopped
+    MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+  }
+
+  private func buildNowPlayingInfo(for state: StationPlayer.State, station: RadioStation)
+    -> [String: Any]
+  {
+    var nowPlayingInfo = [String: Any]()
+
+    switch state.playbackStatus {
+    case .playing:
+      populatePlayingInfo(&nowPlayingInfo, state: state)
+    case let .loading(_, progress):
+      populateLoadingInfo(&nowPlayingInfo, station: station, progress: progress)
+    case .stopped:
+      populateStoppedInfo(&nowPlayingInfo, state: state)
+    case .startingNewStation:
+      populateConnectingInfo(&nowPlayingInfo, station: station)
+    case .error:
+      populateErrorInfo(&nowPlayingInfo, station: station)
+    }
+
+    return nowPlayingInfo
+  }
+
+  private func updatePlaybackState(for status: StationPlayer.PlaybackStatus) {
+    switch status {
+    case .playing, .loading, .startingNewStation:
+      cancelInactivityTimer()
+      MPNowPlayingInfoCenter.default().playbackState = .playing
+    case .stopped, .error:
+      if case .stopped = status { startInactivityTimer() }
+      MPNowPlayingInfoCenter.default().playbackState = .stopped
+    }
+  }
+
+  private func populatePlayingInfo(_ info: inout [String: Any], state: StationPlayer.State) {
+    if let artistPlaying = state.artistPlaying {
+      info[MPMediaItemPropertyArtist] = artistPlaying
+    }
+    if let titlePlaying = state.titlePlaying {
+      info[MPMediaItemPropertyTitle] = titlePlaying
+    }
+  }
+
+  private func populateLoadingInfo(
+    _ info: inout [String: Any], station: RadioStation, progress: Float?
+  ) {
+    info[MPMediaItemPropertyTitle] = "Loading \(station.name)..."
+    info[MPMediaItemPropertyArtist] = station.desc
+
+    if let progress = progress {
+      info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = Double(progress * 100)
+      info[MPMediaItemPropertyPlaybackDuration] = 100.0
+    }
+  }
+
+  private func populateStoppedInfo(_ info: inout [String: Any], state: StationPlayer.State) {
+    if let artistPlaying = state.artistPlaying {
+      info[MPMediaItemPropertyArtist] = artistPlaying
+    }
+    if let titlePlaying = state.titlePlaying {
+      info[MPMediaItemPropertyTitle] = titlePlaying
+    }
+  }
+
+  private func populateConnectingInfo(_ info: inout [String: Any], station: RadioStation) {
+    info[MPMediaItemPropertyTitle] = "Connecting to \(station.name)..."
+    info[MPMediaItemPropertyArtist] = station.desc
+  }
+
+  private func populateErrorInfo(_ info: inout [String: Any], station: RadioStation) {
+    info[MPMediaItemPropertyTitle] = "Connection Error"
+    info[MPMediaItemPropertyArtist] = station.name
+  }
+
+  private func setPlaybackRate(
+    for status: StationPlayer.PlaybackStatus, in info: inout [String: Any]
+  ) {
+    guard !status.isLoading else { return }
+    info[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
+  }
+
+  private func loadStationArtwork(from state: StationPlayer.State, station: RadioStation) {
+    guard let imageUrl = state.albumArtworkUrl ?? URL(string: station.imageURL) else { return }
+
+    UIImage.image(from: imageUrl) { image in
+      if let image {
+        Task { await self.updateNowPlayingImage(image) }
+      }
+    }
   }
 
   private func updateNowPlayingImage(_ image: UIImage) {
@@ -224,10 +308,77 @@ class NowPlayingUpdater {
   func setupRemoteControlCenter() {
     UIApplication.shared.beginReceivingRemoteControlEvents()
     let commandCenter = MPRemoteCommandCenter.shared()
+
+    // Disable commands that don't make sense for live radio
+    commandCenter.skipForwardCommand.isEnabled = false
+    commandCenter.skipBackwardCommand.isEnabled = false
+    commandCenter.nextTrackCommand.isEnabled = false
+    commandCenter.previousTrackCommand.isEnabled = false
+    commandCenter.changePlaybackRateCommand.isEnabled = false
+    commandCenter.seekForwardCommand.isEnabled = false
+    commandCenter.seekBackwardCommand.isEnabled = false
+    commandCenter.changePlaybackPositionCommand.isEnabled = false
+
+    // Enable play/pause toggle
+    commandCenter.playCommand.isEnabled = true
+    commandCenter.playCommand.addTarget { _ in
+      // Try current station first, fall back to last played station
+      if let currentStation = self.stationPlayer.currentStation {
+        self.stationPlayer.play(station: currentStation)
+      } else if let lastStation = self.lastPlayedStation {
+        self.stationPlayer.play(station: lastStation)
+      }
+      return .success
+    }
+
+    commandCenter.pauseCommand.isEnabled = true
+    commandCenter.pauseCommand.addTarget { _ in
+      self.stationPlayer.stop()
+      return .success
+    }
+
+    // Stop command
     commandCenter.stopCommand.isEnabled = true
     commandCenter.stopCommand.addTarget { _ in
       self.stationPlayer.stop()
       return .success
     }
+  }
+
+  // MARK: - Inactivity Timer
+
+  private func startInactivityTimer() {
+    cancelInactivityTimer()
+
+    inactivityTask = Task { [weak self] in
+      guard let self else { return }
+
+      do {
+        try await self.clock.sleep(for: self.inactivityTimeout)
+
+        // Clear Now Playing info after inactivity timeout
+        await MainActor.run {
+          MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+          MPNowPlayingInfoCenter.default().playbackState = .stopped
+          self.lastPlayedStation = nil  // Clear the last played station too
+        }
+      } catch {
+        // Task was cancelled
+      }
+    }
+  }
+
+  private func cancelInactivityTimer() {
+    inactivityTask?.cancel()
+    inactivityTask = nil
+  }
+}
+
+// MARK: - Extensions
+
+extension StationPlayer.PlaybackStatus {
+  var isLoading: Bool {
+    if case .loading = self { return true }
+    return false
   }
 }
