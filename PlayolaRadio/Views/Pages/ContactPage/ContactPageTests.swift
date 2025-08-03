@@ -48,4 +48,50 @@ final class ContactPageTests: XCTestCase {
     XCTAssertNil(auth.currentUser)
     XCTAssertNil(auth.jwt)
   }
+
+  func testNameDisplay_ReturnsFullNameWhenLoggedIn() {
+    let loggedInUser = LoggedInUser(
+      id: "123",
+      firstName: "Jane",
+      lastName: "Smith",
+      email: "jane@example.com",
+      role: "user"
+    )
+    @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
+
+    let model = ContactPageModel()
+
+    XCTAssertEqual(model.name, "Jane Smith")
+  }
+
+  func testNameDisplay_ReturnsAnonymousWhenNotLoggedIn() {
+    @Shared(.auth) var auth = Auth()
+
+    let model = ContactPageModel()
+
+    XCTAssertEqual(model.name, "Anonymous")
+  }
+
+  func testEmailDisplay_ReturnsEmailWhenLoggedIn() {
+    let loggedInUser = LoggedInUser(
+      id: "456",
+      firstName: "Bob",
+      lastName: "Johnson",
+      email: "bob@test.com",
+      role: "admin"
+    )
+    @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
+
+    let model = ContactPageModel()
+
+    XCTAssertEqual(model.email, "bob@test.com")
+  }
+
+  func testEmailDisplay_ReturnsUnknownWhenNotLoggedIn() {
+    @Shared(.auth) var auth = Auth()
+
+    let model = ContactPageModel()
+
+    XCTAssertEqual(model.email, "Unknown")
+  }
 }

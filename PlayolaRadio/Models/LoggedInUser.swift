@@ -84,6 +84,14 @@ struct LoggedInUser: Codable {
       profileImageUrl: profileImageUrl, role: role)
   }
 
+  var fullName: String {
+    var constructedName = firstName
+    if let lastName {
+      constructedName += " \(lastName)"
+    }
+    return constructedName
+  }
+
   private static func generateJWT(
     id: String, firstName: String, lastName: String? = nil, email: String, profileImageUrl: String?,
     role: String
