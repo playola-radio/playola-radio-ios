@@ -207,7 +207,7 @@ class NowPlayingUpdater {
       MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [String: Any]()
     nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(
       boundsSize: image.size,
-      requestHandler: { size in
+      requestHandler: { _ in
         return image
       })
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo

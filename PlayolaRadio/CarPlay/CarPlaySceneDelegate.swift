@@ -147,7 +147,7 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
     if interfaceController.templates.contains(CPNowPlayingTemplate.shared) {
       print("Now playing template in stack, popping to it")
       interfaceController.pop(to: CPNowPlayingTemplate.shared, animated: animated) {
-        success, error in
+        _, error in
         if let error = error {
           print("Error popping to now playing template: \(error)")
         } else {
@@ -157,7 +157,7 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
     } else {
       print("Pushing now playing template to stack")
       interfaceController.pushTemplate(CPNowPlayingTemplate.shared, animated: animated) {
-        success, error in
+        _, error in
         if let error = error {
           print("Error pushing now playing template: \(error)")
         } else {
@@ -198,7 +198,7 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
     // 1) Dismiss any alerts
     if let presentedTemplate = interfaceController.presentedTemplate {
       print("Dismissing presented template: \(presentedTemplate)")
-      interfaceController.dismissTemplate(animated: true) { success, error in
+      interfaceController.dismissTemplate(animated: true) { _, error in
         if let error = error {
           print("Error dismissing template: \(error)")
         }
@@ -214,7 +214,7 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
     // 3) If there is a nowplaying template on the stack, pop to it
     if interfaceController.templates.contains(CPNowPlayingTemplate.shared) {
       print("Now playing template in stack, popping to it")
-      interfaceController.pop(to: CPNowPlayingTemplate.shared, animated: true) { success, error in
+      interfaceController.pop(to: CPNowPlayingTemplate.shared, animated: true) { _, error in
         if let error = error {
           print("Error popping to now playing template: \(error)")
         } else {
@@ -225,7 +225,7 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
       // 4) If there is no nowplaying template on the stack, push to it
       print("Pushing now playing template to stack")
       interfaceController.pushTemplate(CPNowPlayingTemplate.shared, animated: true) {
-        success, error in
+        _, error in
         if let error = error {
           print("Error pushing now playing template: \(error)")
         } else {
@@ -241,7 +241,7 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
     // If Now Playing template is in the stack, remove it by popping back to root
     if interfaceController.templates.contains(CPNowPlayingTemplate.shared) {
       print("Station stopped - removing now playing template from stack")
-      interfaceController.popToRootTemplate(animated: true) { success, error in
+      interfaceController.popToRootTemplate(animated: true) { _, error in
         if let error = error {
           print("Error popping to root after stop: \(error)")
         } else {
@@ -292,7 +292,7 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
 
     // First dismiss any presented alert
     if interfaceController.presentedTemplate != nil {
-      interfaceController.dismissTemplate(animated: true) { success, error in
+      interfaceController.dismissTemplate(animated: true) { _, error in
         if let error = error {
           print("Error dismissing template: \(error)")
         }
@@ -301,7 +301,7 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
 
     // If we're not already at the root, pop to it
     if interfaceController.templates.count > 1 {
-      interfaceController.popToRootTemplate(animated: true) { success, error in
+      interfaceController.popToRootTemplate(animated: true) { _, error in
         if let error = error {
           print("Error popping to root: \(error)")
         }
