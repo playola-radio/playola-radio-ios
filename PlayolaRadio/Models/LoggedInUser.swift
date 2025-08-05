@@ -25,6 +25,11 @@ struct Auth: Codable {
     currentUser = LoggedInUser(jwtToken: jwtToken)
     jwt = jwtToken
   }
+
+  init(loggedInUser: LoggedInUser) {
+    currentUser = loggedInUser
+    jwt = loggedInUser.jwt
+  }
 }
 
 struct LoggedInUser: Codable {
@@ -61,6 +66,64 @@ struct LoggedInUser: Codable {
     self.profileImageUrl = userDict["profileImageUrl"] as? String
     self.role = role
     self.jwt = jwt
+  }
+
+  init(
+    id: String, firstName: String, lastName: String? = nil, email: String,
+    profileImageUrl: String? = nil,
+    role: String = "user"
+  ) {
+    self.id = id
+    self.firstName = firstName
+    self.lastName = lastName
+    self.email = email
+    self.profileImageUrl = profileImageUrl
+    self.role = role
+    self.jwt = LoggedInUser.generateJWT(
+      id: id, firstName: firstName, lastName: lastName, email: email,
+      profileImageUrl: profileImageUrl, role: role)
+  }
+
+  var fullName: String {
+    var constructedName = firstName
+    if let lastName {
+      constructedName += " \(lastName)"
+    }
+    return constructedName
+  }
+
+  private static func generateJWT(
+    id: String, firstName: String, lastName: String? = nil, email: String, profileImageUrl: String?,
+    role: String
+  ) -> String {
+    let header = ["alg": "HS256", "typ": "JWT"]
+    var payload: [String: Any] = [
+      "id": id,
+      "firstName": firstName,
+      "lastName": lastName ?? "",
+      "email": email,
+      "role": role,
+    ]
+
+    if let profileImageUrl = profileImageUrl {
+      payload["profileImageUrl"] = profileImageUrl
+    }
+
+    let encodedHeader = LoggedInUser.base64URLEncode(dictionary: header)
+    let encodedPayload = LoggedInUser.base64URLEncode(dictionary: payload)
+
+    return "\(encodedHeader).\(encodedPayload).fake_signature"
+  }
+
+  private static func base64URLEncode(dictionary: [String: Any]) -> String {
+    guard let data = try? JSONSerialization.data(withJSONObject: dictionary, options: []) else {
+      return ""
+    }
+
+    return data.base64EncodedString()
+      .replacingOccurrences(of: "+", with: "-")
+      .replacingOccurrences(of: "/", with: "_")
+      .replacingOccurrences(of: "=", with: "")
   }
 
   static func decode(jwtToken jwt: String) -> [String: Any] {

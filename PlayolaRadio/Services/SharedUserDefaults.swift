@@ -68,3 +68,11 @@ extension SharedKey where Self == InMemoryKey<MainContainerModel.ActiveTab>.Defa
     Self[.inMemory("activeTab"), default: .home]
   }
 }
+
+extension SharedKey where Self == InMemoryKey<MainContainerNavigationCoordinator>.Default {
+  static var mainContainerNavigationCoordinator: Self {
+    Self[
+      .inMemory("mainContainerNavigationCoordinator"), default: MainContainerNavigationCoordinator()
+    ]
+  }
+}

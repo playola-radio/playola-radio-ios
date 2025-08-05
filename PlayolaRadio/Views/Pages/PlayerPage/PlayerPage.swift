@@ -9,6 +9,7 @@ import SwiftUI
 
 struct PlayerPage: View {
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.scenePhase) var scenePhase
   @Bindable var model: PlayerPageModel
 
   var body: some View {
@@ -144,7 +145,9 @@ struct PlayerPage: View {
       //            Spacer()
     }
     .background(Color.black)
-    .onAppear { model.viewAppeared() }
+    .onChange(of: scenePhase) { _, newValue in
+      model.scenePhaseChanged(newPhase: newValue)
+    }
   }
 }
 

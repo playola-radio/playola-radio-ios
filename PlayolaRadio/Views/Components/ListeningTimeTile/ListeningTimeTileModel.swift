@@ -56,7 +56,6 @@ class ListeningTimeTileModel: ViewModel {
     refreshTask = Task {
       while !Task.isCancelled {
         if let ms = listeningTracker?.totalListenTimeMS {
-          print("Updating listening time to", ms)
           totalListeningTime = ms
         } else {
           print("Tracker missing or zero")
