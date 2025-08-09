@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 1/19/25.
 //
 import AVFoundation
+import Dependencies
 import Foundation
 import Mixpanel
 
@@ -16,6 +17,7 @@ enum TrackingEvent: String {
 
 class TrackingService {
   public static let shared = TrackingService()
+  @Dependency(\.appConfig) private var appConfig
 
   init() {
     let notificationCenter = NotificationCenter.default
@@ -43,7 +45,7 @@ class TrackingService {
 
   /// Initializes tracking libraries for analytics
   public func initializeTrackingLibraries() {
-    Mixpanel.initialize(token: Config.shared.mixpanelToken, trackAutomaticEvents: false)
+    Mixpanel.initialize(token: appConfig.mixpanelToken(), trackAutomaticEvents: false)
   }
 
   /// Reports a tracking event with optional properties

@@ -5,7 +5,10 @@
 //  Created by Brian D Keane on 1/19/25.
 //
 import Combine
+import Dependencies
+import DependenciesMacros
 import Foundation
+import PlayolaCore
 import UIKit
 
 class Config {
@@ -42,4 +45,31 @@ enum DevelopmentEnvironment: String {
   case local
   case development
   case production
+}
+
+// MARK: - App Config Client
+
+@DependencyClient
+struct AppConfigClient: Sendable {
+  var mixpanelToken: @Sendable () -> String = { "" }
+  var heapAppID: @Sendable () -> String = { "" }
+}
+
+extension AppConfigClient: DependencyKey {
+  static let liveValue = Self(
+    mixpanelToken: { Config.get("MIXPANEL_TOKEN", varType: String.self) },
+    heapAppID: { Config.get("HEAP_APP_ID", varType: String.self) }
+  )
+
+  static let testValue = Self(
+    mixpanelToken: { "test-mixpanel-token" },
+    heapAppID: { "test-heap-id" }
+  )
+}
+
+extension DependencyValues {
+  var appConfig: AppConfigClient {
+    get { self[AppConfigClient.self] }
+    set { self[AppConfigClient.self] = newValue }
+  }
 }

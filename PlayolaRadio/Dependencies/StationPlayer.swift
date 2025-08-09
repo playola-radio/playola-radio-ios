@@ -5,8 +5,10 @@
 //  Created by Brian D Keane on 1/18/25.
 //
 import Combine
+import Dependencies
 import FRadioPlayer
 import Foundation
+import PlayolaCore
 import PlayolaPlayer
 import Sharing
 
@@ -53,6 +55,7 @@ class StationPlayer: ObservableObject {
 
   var urlStreamPlayer: URLStreamPlayer
   var playolaStationPlayer: PlayolaStationPlayer
+  @Dependency(\.coreConfig) private var coreConfig
 
   init(
     urlStreamPlayer: URLStreamPlayer? = nil,
@@ -74,7 +77,7 @@ class StationPlayer: ObservableObject {
     }).store(in: &disposeBag)
 
     self.playolaStationPlayer.configure(
-      authProvider: self.authProvider, baseURL: Config.shared.baseUrl)
+      authProvider: self.authProvider, baseURL: coreConfig.baseUrl())
   }
 
   // MARK: Public Interface

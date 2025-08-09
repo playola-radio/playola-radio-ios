@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 1/18/25.
 //
 import IdentifiedCollections
+import PlayolaCore
 import Sharing
 
 extension SharedKey where Self == AppStorageKey<Bool>.Default {
@@ -40,14 +41,6 @@ extension SharedKey where Self == FileStorageKey<AppleSignInInfo?>.Default {
       .fileStorage(
         dump(.documentsDirectory.appending(component: "apple-user.json"))),
       default: nil]
-  }
-}
-
-extension SharedKey where Self == FileStorageKey<Auth>.Default {
-  static var auth: Self {
-    Self[
-      .fileStorage(dump(.documentsDirectory.appending(component: "auth.json"))),
-      default: Auth()]
   }
 }
 

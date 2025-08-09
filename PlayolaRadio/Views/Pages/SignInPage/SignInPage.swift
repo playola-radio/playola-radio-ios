@@ -8,6 +8,7 @@ import AuthenticationServices
 import Dependencies
 import GoogleSignIn
 import GoogleSignInSwift
+import PlayolaCore
 import Sharing
 import SwiftUI
 
