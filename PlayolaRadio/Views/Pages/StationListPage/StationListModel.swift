@@ -7,6 +7,7 @@
 
 import Combine
 import IdentifiedCollections
+import PlayolaCore
 import Sharing
 import SwiftUI
 

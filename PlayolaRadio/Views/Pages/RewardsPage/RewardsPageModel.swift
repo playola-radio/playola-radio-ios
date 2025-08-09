@@ -7,13 +7,14 @@
 
 import Combine
 import Dependencies
+import PlayolaCore
 import Sharing
 import SwiftUI
 
 @MainActor
 @Observable
 class RewardsPageModel: ViewModel {
-  @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.api) var api: APIClient
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
 
   var prizeTiers: [PrizeTier] = []

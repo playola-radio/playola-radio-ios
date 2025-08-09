@@ -6,6 +6,7 @@
 //
 
 import Combine
+import PlayolaCore
 import PlayolaPlayer
 import Sharing
 import SwiftUI

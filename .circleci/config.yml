@@ -33,6 +33,9 @@ jobs:
       - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Local.xcconfig
       - run: bundle install
       - run:
+          name: Configure Git for private repos
+          command: git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+      - run:
           name: Resolve Swift Package Dependencies
           command: xcodebuild -resolvePackageDependencies -project PlayolaRadio.xcodeproj
       - run:
@@ -58,6 +61,9 @@ jobs:
       - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Development.xcconfig
       - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Local.xcconfig
       - run: bundle install
+      - run:
+          name: Configure Git for private repos
+          command: git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
       - run:
           name: Fastlane
           command: bundle exec fastlane $FASTLANE_LANE

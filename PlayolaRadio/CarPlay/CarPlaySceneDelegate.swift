@@ -8,6 +8,7 @@ import CarPlay
 import Combine
 import FRadioPlayer
 import IdentifiedCollections
+import PlayolaCore
 import Sharing
 
 @MainActor
