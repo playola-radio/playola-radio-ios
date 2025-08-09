@@ -7,6 +7,7 @@
 
 import FRadioPlayer
 import Foundation
+import PlayolaCore
 
 @testable import PlayolaRadio
 

@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		D3137DBB2D3976580070033A /* PlayolaAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBA2D3976550070033A /* PlayolaAlert.swift */; };
-		D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBF2D3981880070033A /* MailServiceMock.swift */; };
 		D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DC12D39B4FC0070033A /* StationListPageTests.swift */; };
 		D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DC52D39BEDD0070033A /* URLStreamPlayerMock.swift */; };
 		D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DCE2D3AA1E10070033A /* PlayolaSheet.swift */; };
@@ -109,7 +108,6 @@
 
 /* Begin PBXFileReference section */
 		D3137DBA2D3976550070033A /* PlayolaAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaAlert.swift; sourceTree = "<group>"; };
-		D3137DBF2D3981880070033A /* MailServiceMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailServiceMock.swift; sourceTree = "<group>"; };
 		D3137DC12D39B4FC0070033A /* StationListPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPageTests.swift; sourceTree = "<group>"; };
 		D3137DC52D39BEDD0070033A /* URLStreamPlayerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLStreamPlayerMock.swift; sourceTree = "<group>"; };
 		D3137DCE2D3AA1E10070033A /* PlayolaSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaSheet.swift; sourceTree = "<group>"; };
@@ -227,7 +225,6 @@
 				D31C43AB2D3C657F0021AAE4 /* NavigationCoordinatorMock.swift */,
 				D31C43A92D3C390C0021AAE4 /* StationPlayerMock.swift */,
 				D3137DC52D39BEDD0070033A /* URLStreamPlayerMock.swift */,
-				D3137DBF2D3981880070033A /* MailServiceMock.swift */,
 			);
 			path = Mocks;
 			sourceTree = "<group>";
@@ -725,7 +722,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D38031352E00AFD20011DD64 /* PlayerPageTests.swift in Sources */,
-				D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */,
 				D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */,
 				D3B744CB2E313B230042A427 /* ListeningTimeTileTests.swift in Sources */,
 				D3B744C52E31318A0042A427 /* RewardsPageTests.swift in Sources */,
@@ -1162,7 +1158,7 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/playola-radio/playola-core";
 			requirement = {
-				branch = main;
+				branch = bugfix/fix;
 				kind = branch;
 			};
 		};

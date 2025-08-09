@@ -6,6 +6,7 @@
 //
 
 import Dependencies
+import PlayolaCore
 import Sharing
 import XCTest
 

@@ -4,6 +4,8 @@
 //
 //  Created by Brian D Keane on 2/27/25.
 //
+import PlayolaCore
+
 @testable import PlayolaRadio
 
 class AuthServiceMock: AuthService {

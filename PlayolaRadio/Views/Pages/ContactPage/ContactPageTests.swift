@@ -1,3 +1,4 @@
+import PlayolaCore
 //
 //  ContactPageTests.swift
 //  PlayolaRadio

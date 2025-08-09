@@ -8,6 +8,7 @@
 import Combine
 import Dependencies
 import Foundation
+import PlayolaCore
 import Sharing
 import XCTest
 

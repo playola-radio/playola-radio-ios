@@ -10,6 +10,7 @@
 import Dependencies
 import Foundation
 import IdentifiedCollections
+import PlayolaCore
 import Sharing
 import XCTest
 
