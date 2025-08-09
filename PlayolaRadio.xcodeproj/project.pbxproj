@@ -23,8 +23,6 @@
 		D339E5642BFD0FD800B9E35B /* StationListCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5602BFD0FD800B9E35B /* StationListCellView.swift */; };
 		D339E5652BFD0FD800B9E35B /* NowPlayingEqAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5612BFD0FD800B9E35B /* NowPlayingEqAnimation.swift */; };
 		D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5662BFD10AE00B9E35B /* StationListPage.swift */; };
-		D339E57C2BFD698600B9E35B /* Mail.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E57B2BFD698600B9E35B /* Mail.swift */; };
-		D339E57E2BFD750700B9E35B /* MailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E57D2BFD750700B9E35B /* MailService.swift */; };
 		D33FE6592E46B0C3004D382F /* PlayolaCore in Frameworks */ = {isa = PBXBuildFile; productRef = D33FE6582E46B0C3004D382F /* PlayolaCore */; };
 		D342A0C72DFCB368002BAC30 /* HomePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B32DF88BD9001BC6F9 /* HomePageTests.swift */; };
 		D34D5C392D7106CD00148048 /* AuthServiceMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34D5C382D7106CA00148048 /* AuthServiceMock.swift */; };
@@ -125,8 +123,6 @@
 		D339E5602BFD0FD800B9E35B /* StationListCellView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StationListCellView.swift; sourceTree = "<group>"; };
 		D339E5612BFD0FD800B9E35B /* NowPlayingEqAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NowPlayingEqAnimation.swift; sourceTree = "<group>"; };
 		D339E5662BFD10AE00B9E35B /* StationListPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPage.swift; sourceTree = "<group>"; };
-		D339E57B2BFD698600B9E35B /* Mail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mail.swift; sourceTree = "<group>"; };
-		D339E57D2BFD750700B9E35B /* MailService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailService.swift; sourceTree = "<group>"; };
 		D34D5C382D7106CA00148048 /* AuthServiceMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthServiceMock.swift; sourceTree = "<group>"; };
 		D3536A012BFA4F49006942D6 /* PlayolaRadio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PlayolaRadio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaRadioApp.swift; sourceTree = "<group>"; };
@@ -253,7 +249,6 @@
 				D3BECAC22E2017CB0009E618 /* PlayolaTokenProvider */,
 				D35673B32D3DC6CE00E4E926 /* TrackingService.swift */,
 				D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */,
-				D339E57B2BFD698600B9E35B /* Mail.swift */,
 			);
 			path = Dependencies;
 			sourceTree = "<group>";
@@ -473,7 +468,6 @@
 				D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */,
 				D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */,
 				D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */,
-				D339E57D2BFD750700B9E35B /* MailService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -693,7 +687,6 @@
 				D35673C32D3E872600E4E926 /* CPListItem+InitWithRemoteUrl.swift in Sources */,
 				D3B744AD2E2FCD930042A427 /* MainContainerModel.swift in Sources */,
 				D39591172E39932600720CF8 /* ContactPageModel.swift in Sources */,
-				D339E57E2BFD750700B9E35B /* MailService.swift in Sources */,
 				D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */,
 				D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */,
 				D31C43A82D3C19640021AAE4 /* StationPlayer.swift in Sources */,
@@ -702,7 +695,6 @@
 				D37257D02DFB4368001BC6F9 /* PlayerPage.swift in Sources */,
 				D3B744C82E31399E0042A427 /* ListeningTimeTileModel.swift in Sources */,
 				D39591282E3BB70B00720CF8 /* EditProfilePageModel.swift in Sources */,
-				D339E57C2BFD698600B9E35B /* Mail.swift in Sources */,
 				D37257B72DF88DCD001BC6F9 /* CircleSection.swift in Sources */,
 				D3B744B92E2FF16F0042A427 /* ListeningTimeTile.swift in Sources */,
 				D39591152E39932000720CF8 /* ContactPageView.swift in Sources */,
