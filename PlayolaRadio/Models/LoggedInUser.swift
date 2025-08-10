@@ -8,40 +8,40 @@ import AuthenticationServices
 import Foundation
 import Sharing
 
-struct Auth: Codable {
-  let currentUser: LoggedInUser?
-  let jwt: String?
+public struct Auth: Codable {
+  public let currentUser: LoggedInUser?
+  public let jwt: String?
 
-  var isLoggedIn: Bool {
+  public var isLoggedIn: Bool {
     jwt != nil
   }
 
-  init(currentUser: LoggedInUser? = nil, jwt: String? = nil) {
+  public init(currentUser: LoggedInUser? = nil, jwt: String? = nil) {
     self.currentUser = currentUser
     self.jwt = jwt
   }
 
-  init(jwtToken: String) {
+  public init(jwtToken: String) {
     currentUser = LoggedInUser(jwtToken: jwtToken)
     jwt = jwtToken
   }
 
-  init(loggedInUser: LoggedInUser) {
+  public init(loggedInUser: LoggedInUser) {
     currentUser = loggedInUser
     jwt = loggedInUser.jwt
   }
 }
 
-struct LoggedInUser: Codable {
-  let id: String
-  let firstName: String
-  let lastName: String?
-  let email: String
-  let profileImageUrl: String?
-  let role: String
-  let jwt: String
+public struct LoggedInUser: Codable {
+  public let id: String
+  public let firstName: String
+  public let lastName: String?
+  public let email: String
+  public let profileImageUrl: String?
+  public let role: String
+  public let jwt: String
 
-  init(jwtToken jwt: String) {
+  public init(jwtToken jwt: String) {
     let userDict = LoggedInUser.decode(jwtToken: jwt)
 
     guard let id = userDict["id"] as? String,
@@ -68,7 +68,7 @@ struct LoggedInUser: Codable {
     self.jwt = jwt
   }
 
-  init(
+  public init(
     id: String, firstName: String, lastName: String? = nil, email: String,
     profileImageUrl: String? = nil,
     role: String = "user"
@@ -84,7 +84,7 @@ struct LoggedInUser: Codable {
       profileImageUrl: profileImageUrl, role: role)
   }
 
-  var fullName: String {
+  public var fullName: String {
     var constructedName = firstName
     if let lastName {
       constructedName += " \(lastName)"
@@ -126,12 +126,12 @@ struct LoggedInUser: Codable {
       .replacingOccurrences(of: "=", with: "")
   }
 
-  static func decode(jwtToken jwt: String) -> [String: Any] {
+  public static func decode(jwtToken jwt: String) -> [String: Any] {
     let segments = jwt.components(separatedBy: ".")
     return LoggedInUser.decodeJWTPart(segments[1]) ?? [:]
   }
 
-  static func base64UrlDecode(_ value: String) -> Data? {
+  public static func base64UrlDecode(_ value: String) -> Data? {
     var base64 =
       value
       .replacingOccurrences(of: "-", with: "+")
@@ -150,7 +150,7 @@ struct LoggedInUser: Codable {
     return Data(base64Encoded: base64, options: .ignoreUnknownCharacters)
   }
 
-  static func decodeJWTPart(_ value: String) -> [String: Any]? {
+  public static func decodeJWTPart(_ value: String) -> [String: Any]? {
     guard let bodyData = LoggedInUser.base64UrlDecode(value),
       let json = try? JSONSerialization.jsonObject(with: bodyData, options: []),
       let payload = json as? [String: Any]
@@ -161,12 +161,12 @@ struct LoggedInUser: Codable {
   }
 }
 
-class AuthService {
-  static let shared = AuthService()
+open class AuthService {
+  public static let shared = AuthService()
   @Shared(.appleSignInInfo) var appleSignInInfo
   @Shared(.auth) var auth: Auth
 
-  init() {
+  public init() {
     let sessionNotificationName = ASAuthorizationAppleIDProvider.credentialRevokedNotification
     NotificationCenter.default.addObserver(
       forName: sessionNotificationName,
@@ -177,11 +177,11 @@ class AuthService {
     }
   }
 
-  func signOut() {
+  open func signOut() {
     $auth.withLock { $0 = Auth() }
   }
 
-  func clearAppleUser() {
+  public func clearAppleUser() {
     $appleSignInInfo.withLock { $0 = nil }
   }
 }

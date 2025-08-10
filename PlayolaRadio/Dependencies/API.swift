@@ -10,6 +10,7 @@ import Dependencies
 import DependenciesMacros
 import Foundation
 import IdentifiedCollections
+import PlayolaCore
 import PlayolaPlayer
 import Sharing
 
@@ -176,7 +177,7 @@ extension APIClient: DependencyKey {
         .validate(statusCode: 200..<300)
 
         // Capture decoded body *and* the HTTPURLResponse
-        let dataResponse = try await request.serializingDecodable(UpdateUserResponse.self).response
+        let dataResponse = await request.serializingDecodable(UpdateUserResponse.self).response
         guard
           let body = dataResponse.value
         else {

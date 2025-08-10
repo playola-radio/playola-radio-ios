@@ -7,6 +7,7 @@
 import Combine
 import FRadioPlayer
 import Foundation
+import PlayolaCore
 import PlayolaPlayer
 import Sharing
 

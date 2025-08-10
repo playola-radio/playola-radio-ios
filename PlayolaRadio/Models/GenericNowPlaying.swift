@@ -8,11 +8,11 @@ import FRadioPlayer
 import Foundation
 
 public struct GenericNowPlaying {
-  let title: String
-  let artist: String
-  let albumArtUrl: URL? = nil
+  public let title: String
+  public let artist: String
+  public let albumArtUrl: URL? = nil
 
-  init?(stationPlayerState: URLStreamPlayer.State) {
+  public init?(stationPlayerState: URLStreamPlayer.State) {
     guard let nowPlaying = stationPlayerState.nowPlaying else {
       return nil
     }

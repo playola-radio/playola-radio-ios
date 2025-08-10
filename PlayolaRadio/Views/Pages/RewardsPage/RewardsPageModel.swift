@@ -7,6 +7,7 @@
 
 import Combine
 import Dependencies
+import PlayolaCore
 import Sharing
 import SwiftUI
 

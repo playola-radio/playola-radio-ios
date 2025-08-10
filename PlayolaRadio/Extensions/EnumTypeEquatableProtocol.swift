@@ -4,6 +4,7 @@
 //
 //  Created by Brian D Keane on 1/17/25.
 //
+import PlayolaCore
 
 protocol EnumTypeEquatable {
   static func ~= (lhs: Self, rhs: Self) -> Bool

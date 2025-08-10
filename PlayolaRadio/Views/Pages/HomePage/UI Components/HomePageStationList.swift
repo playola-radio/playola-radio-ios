@@ -7,6 +7,7 @@
 
 import IdentifiedCollections
 import SwiftUI
+import PlayolaCore
 
 struct Station: Identifiable {
   let id = UUID()

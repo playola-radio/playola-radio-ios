@@ -8,6 +8,7 @@ import Combine
 import Dependencies
 import Foundation
 import MediaPlayer
+import PlayolaCore
 import PlayolaPlayer
 import Sharing
 

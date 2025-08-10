@@ -9,12 +9,13 @@ import Combine
 import FRadioPlayer
 import Foundation
 import MediaPlayer
+import PlayolaCore
 import UIKit
 
 public class URLStreamPlayer: ObservableObject {
-  var urlStreamReporter: UrlStreamListeningSessionReporter?
-  struct State: Sendable, Equatable {
-    static func == (lhs: URLStreamPlayer.State, rhs: URLStreamPlayer.State)
+  public var urlStreamReporter: UrlStreamListeningSessionReporter?
+  public struct State: Sendable, Equatable {
+    public static func == (lhs: URLStreamPlayer.State, rhs: URLStreamPlayer.State)
       -> Bool
     {
       lhs.playerStatus == rhs.playerStatus
@@ -23,10 +24,10 @@ public class URLStreamPlayer: ObservableObject {
         && lhs.nowPlaying == rhs.nowPlaying
     }
 
-    var playbackState: FRadioPlayer.PlaybackState
-    var playerStatus: FRadioPlayer.State?
+    public var playbackState: FRadioPlayer.PlaybackState
+    public var playerStatus: FRadioPlayer.State?
     public var currentStation: RadioStation?
-    var nowPlaying: FRadioPlayer.Metadata?
+    public var nowPlaying: FRadioPlayer.Metadata?
   }
 
   @Published var state: URLStreamPlayer.State = State(
@@ -37,17 +38,17 @@ public class URLStreamPlayer: ObservableObject {
 
   @Published var albumArtworkURL: URL?
 
-  static let shared = URLStreamPlayer()
+  public static let shared = URLStreamPlayer()
 
   //  private var trackingService: TrackingService = TrackingService.shared
 
   @Published private(set) var currentStation: RadioStation?
 
-  var searchedStations: [RadioStation] = []
+  public var searchedStations: [RadioStation] = []
 
   private let player = FRadioPlayer.shared
 
-  init() {
+  public init() {
     addObserverToPlayer()
     Task {
       self.urlStreamReporter = await UrlStreamListeningSessionReporter(
@@ -55,15 +56,15 @@ public class URLStreamPlayer: ObservableObject {
     }
   }
 
-  func addObserverToPlayer() {
+  public func addObserverToPlayer() {
     player.addObserver(self)
   }
 
-  func fetch(completion: (([StationList]) -> Void)? = nil) {
+  public func fetch(completion: (([StationList]) -> Void)? = nil) {
     completion?([])
   }
 
-  func set(station: RadioStation?) {
+  public func set(station: RadioStation?) {
     guard let station, let streamURL = station.streamURL else {
       reset()
       return
