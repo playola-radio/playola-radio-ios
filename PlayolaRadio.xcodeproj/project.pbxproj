@@ -1250,8 +1250,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/playola-radio/playola-core";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.0;
 			};
 		};
 		D3A2761C2D43C747006055AF /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
