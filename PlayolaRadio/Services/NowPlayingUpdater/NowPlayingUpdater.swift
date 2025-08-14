@@ -523,36 +523,7 @@ extension NowPlayingUpdater {
     // Track station switches
     case (.playing(let fromStation), .playing(let toStation))
     where fromStation.id != toStation.id:
-      if let startTime = sessionStartTime {
-        let duration = Date().timeIntervalSince(startTime)
-
-        // End current session
-        await analytics.track(
-          .listeningSessionEnded(
-            station: StationInfo(from: fromStation),
-            sessionLengthSec: Int(duration)
-          )
-        )
-
-        // Track the switch
-        await analytics.track(
-          .switchedStation(
-            from: StationInfo(from: fromStation),
-            to: StationInfo(from: toStation),
-            timeBeforeSwitchSec: Int(duration),
-            reason: .userInitiated
-          )
-        )
-
-        // Start new session
-        await analytics.track(
-          .listeningSessionStarted(
-            station: StationInfo(from: toStation)
-          )
-        )
-
-        sessionStartTime = Date()
-      }
+      await trackStationSwitch(from: fromStation, to: toStation)
 
     // Track errors
     case (_, .error):
@@ -568,5 +539,38 @@ extension NowPlayingUpdater {
     default:
       break
     }
+  }
+
+  private func trackStationSwitch(from fromStation: RadioStation, to toStation: RadioStation) async
+  {
+    guard let startTime = sessionStartTime else { return }
+    let duration = Date().timeIntervalSince(startTime)
+
+    // End current session
+    await analytics.track(
+      .listeningSessionEnded(
+        station: StationInfo(from: fromStation),
+        sessionLengthSec: Int(duration)
+      )
+    )
+
+    // Track the switch
+    await analytics.track(
+      .switchedStation(
+        from: StationInfo(from: fromStation),
+        to: StationInfo(from: toStation),
+        timeBeforeSwitchSec: Int(duration),
+        reason: .userInitiated
+      )
+    )
+
+    // Start new session
+    await analytics.track(
+      .listeningSessionStarted(
+        station: StationInfo(from: toStation)
+      )
+    )
+
+    sessionStartTime = Date()
   }
 }
