@@ -32,7 +32,7 @@ struct StationListPage: View {
         HStack(spacing: 8) {
           ForEach(model.segmentTitles, id: \.self) { segment in
             Button {
-              model.segmentSelected(segment)
+              Task { await model.segmentSelected(segment) }
             } label: {
               Text(segment)
                 .font(.custom(FontNames.Inter_500_Medium, size: 16))
@@ -87,7 +87,7 @@ struct StationListPage: View {
             StationRowView(
               station: station,
               action: {
-                model.stationSelected(station)
+                Task { await model.stationSelected(station) }
               })
           }
         }

@@ -31,7 +31,7 @@ struct ListeningTimeTile: View {
         .foregroundColor(.white)
 
       if let buttonText = model.buttonText {
-        Button(action: model.onButtonTapped) {
+        Button(action: { Task { await model.onButtonTapped() } }) {
           HStack {
             Spacer()
             Text(buttonText)

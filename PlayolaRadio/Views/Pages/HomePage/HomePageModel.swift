@@ -1,4 +1,5 @@
 import Combine
+import Dependencies
 import IdentifiedCollections
 //
 //  HomePageViewModel.swift
@@ -19,6 +20,7 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
   @ObservationIgnored @Shared(.auth) var auth: Auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
+  @ObservationIgnored @Dependency(\.analytics) var analytics
 
   @ObservationIgnored var stationPlayer: StationPlayer
 
@@ -36,8 +38,10 @@ class HomePageModel: ViewModel {
   @ObservationIgnored lazy var listeningTimeTileModel: ListeningTimeTileModel =
     ListeningTimeTileModel(
       buttonText: "Redeem Your Rewards!",
-      buttonAction: {
-        self.$activeTab.withLock { $0 = .rewards }
+      buttonAction: { [weak self] in
+        guard let self = self else { return }
+        await self.analytics.track(.navigatedToRewardsFromListeningTile)
+        await self.$activeTab.withLock { $0 = .rewards }
       }
     )
 
@@ -62,7 +66,12 @@ class HomePageModel: ViewModel {
     presentedAlert = showSecretStations ? .secretStationsTurnedOnAlert : .secretStationsHiddenAlert
   }
 
-  func handleStationTapped(_ station: RadioStation) {
+  func handleStationTapped(_ station: RadioStation) async {
+    await analytics.track(
+      .startedStation(
+        station: StationInfo(from: station),
+        entryPoint: "home_recommendations"
+      ))
     stationPlayer.play(station: station)
   }
 }

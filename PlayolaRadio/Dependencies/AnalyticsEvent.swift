@@ -39,6 +39,7 @@ enum AnalyticsEvent: Equatable {
   case viewedRewardsScreen(currentHours: Double)
   case tappedRedeemRewards(currentHours: Double)
   case unlockedRewardTier(tierName: String, hoursRequired: Int)
+  case navigatedToRewardsFromListeningTile
 
   // MARK: Profile
   case viewedProfile
@@ -49,6 +50,9 @@ enum AnalyticsEvent: Equatable {
   case audioOutputChanged(outputTypes: [String])
   case carPlayInitialized
   case stationChanged(from: String?, to: String)
+
+  // MARK: Errors
+  case apiError(endpoint: String, error: String)
 }
 
 // MARK: - Event Properties
@@ -74,12 +78,14 @@ extension AnalyticsEvent {
     case .viewedRewardsScreen: return "Viewed Rewards Screen"
     case .tappedRedeemRewards: return "Tapped Redeem Rewards"
     case .unlockedRewardTier: return "Unlocked Reward Tier"
+    case .navigatedToRewardsFromListeningTile: return "Navigated To Rewards From Listening Tile"
     case .viewedProfile: return "Viewed Profile"
     case .updatedProfile: return "Updated Profile"
     case .uploadedProfilePhoto: return "Uploaded Profile Photo"
     case .audioOutputChanged: return "Audio Output Changed"
     case .carPlayInitialized: return "CarPlay Initialized"
     case .stationChanged: return "Station Changed"
+    case .apiError: return "API Error"
     }
   }
 
@@ -169,6 +175,9 @@ extension AnalyticsEvent {
         "hours_required": hoursRequired,
       ]
 
+    case .navigatedToRewardsFromListeningTile:
+      return [:]
+
     case .viewedProfile:
       return [:]
 
@@ -190,6 +199,12 @@ extension AnalyticsEvent {
         props["from"] = from
       }
       return props
+
+    case let .apiError(endpoint, error):
+      return [
+        "endpoint": endpoint,
+        "error": error,
+      ]
     }
   }
 }
