@@ -9,6 +9,7 @@ import Dependencies
 import DependenciesMacros
 import Foundation
 import Mixpanel
+import Sharing
 
 // MARK: - Analytics Client Dependency
 
@@ -71,9 +72,17 @@ extension AnalyticsClient {
   static let liveValue = Self(
     track: { event in
       await MainActor.run {
+        @Shared(.auth) var auth: Auth
+        var properties = event.properties
+
+        // Automatically add userId to all events when available
+        if let userId = auth.currentUser?.id {
+          properties["user_id"] = userId
+        }
+
         Mixpanel.mainInstance().track(
           event: event.name,
-          properties: event.properties
+          properties: properties
         )
       }
     },
