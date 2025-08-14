@@ -42,7 +42,6 @@
 		D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A382BFA6520006942D6 /* UIImage+Cache.swift */; };
 		D35673B02D3DC55900E4E926 /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673AF2D3DC54F00E4E926 /* CarPlaySceneDelegate.swift */; };
 		D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673B12D3DC59100E4E926 /* RadioStation.swift */; };
-		D35673B42D3DC6D100E4E926 /* TrackingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673B32D3DC6CE00E4E926 /* TrackingService.swift */; };
 		D35673B72D3DC6EC00E4E926 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D35673B62D3DC6EC00E4E926 /* Mixpanel */; };
 		D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673B92D3DC9ED00E4E926 /* Config.swift */; };
 		D35673BE2D3DCA2600E4E926 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D35673BD2D3DCA1E00E4E926 /* Secrets.xcconfig */; };
@@ -77,6 +76,8 @@
 		D39591282E3BB70B00720CF8 /* EditProfilePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39591272E3BB70500720CF8 /* EditProfilePageModel.swift */; };
 		D395912A2E3BD02B00720CF8 /* MainContainerNavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39591292E3BD02300720CF8 /* MainContainerNavigationCoordinator.swift */; };
 		D395912D2E3D1E1E00720CF8 /* EditProfilePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D395912B2E3D1E0F00720CF8 /* EditProfilePageTests.swift */; };
+		D3A08A2F2E4E2A35002468E0 /* AnalyticsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A08A2E2E4E2A31002468E0 /* AnalyticsClient.swift */; };
+		D3A08A312E4E2E2A002468E0 /* AnalyticsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A08A302E4E2E0F002468E0 /* AnalyticsEvent.swift */; };
 		D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761D2D43C747006055AF /* GoogleSignIn */; };
 		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
@@ -158,7 +159,6 @@
 		D3536A382BFA6520006942D6 /* UIImage+Cache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImage+Cache.swift"; sourceTree = "<group>"; };
 		D35673AF2D3DC54F00E4E926 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
 		D35673B12D3DC59100E4E926 /* RadioStation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioStation.swift; sourceTree = "<group>"; };
-		D35673B32D3DC6CE00E4E926 /* TrackingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingService.swift; sourceTree = "<group>"; };
 		D35673B92D3DC9ED00E4E926 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		D35673BD2D3DCA1E00E4E926 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		D35673BF2D3DCA3600E4E926 /* Secrets-Example.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Example.xcconfig"; sourceTree = "<group>"; };
@@ -193,6 +193,8 @@
 		D39591272E3BB70500720CF8 /* EditProfilePageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfilePageModel.swift; sourceTree = "<group>"; };
 		D39591292E3BD02300720CF8 /* MainContainerNavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainerNavigationCoordinator.swift; sourceTree = "<group>"; };
 		D395912B2E3D1E0F00720CF8 /* EditProfilePageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfilePageTests.swift; sourceTree = "<group>"; };
+		D3A08A2E2E4E2A31002468E0 /* AnalyticsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsClient.swift; sourceTree = "<group>"; };
+		D3A08A302E4E2E0F002468E0 /* AnalyticsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEvent.swift; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
 		D3B662692D40103800975D2F /* SignInPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPage.swift; sourceTree = "<group>"; };
 		D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinator.swift; sourceTree = "<group>"; };
@@ -293,10 +295,11 @@
 		D339E55A2BFD0CE200B9E35B /* Dependencies */ = {
 			isa = PBXGroup;
 			children = (
+				D3A08A302E4E2E0F002468E0 /* AnalyticsEvent.swift */,
+				D3A08A2E2E4E2A31002468E0 /* AnalyticsClient.swift */,
 				D39591292E3BD02300720CF8 /* MainContainerNavigationCoordinator.swift */,
 				D339E5682BFD1C0800B9E35B /* API.swift */,
 				D3BECAC22E2017CB0009E618 /* PlayolaTokenProvider */,
-				D35673B32D3DC6CE00E4E926 /* TrackingService.swift */,
 				D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */,
 				D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */,
 				D339E56C2BFD2FAB00B9E35B /* URLStreamPlayer.swift */,
@@ -750,6 +753,7 @@
 				D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */,
 				D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */,
 				D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */,
+				D3A08A2F2E4E2A35002468E0 /* AnalyticsClient.swift in Sources */,
 				D31C43A82D3C19640021AAE4 /* StationPlayer.swift in Sources */,
 				D36FBCC02E37FC8100D1241C /* PrizeTierRow.swift in Sources */,
 				D339E5642BFD0FD800B9E35B /* StationListCellView.swift in Sources */,
@@ -781,12 +785,12 @@
 				D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */,
 				D37257C62DF9F064001BC6F9 /* HomePageStationList.swift in Sources */,
 				D35905EC2DFCDA140064A9C1 /* StationListModel.swift in Sources */,
+				D3A08A312E4E2E2A002468E0 /* AnalyticsEvent.swift in Sources */,
 				D339E56D2BFD2FAB00B9E35B /* URLStreamPlayer.swift in Sources */,
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */,
 				D339E5692BFD1C0800B9E35B /* API.swift in Sources */,
 				D382671C2E00C1460006BAC2 /* SmallPlayer.swift in Sources */,
-				D35673B42D3DC6D100E4E926 /* TrackingService.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
 				D395912A2E3BD02B00720CF8 /* MainContainerNavigationCoordinator.swift in Sources */,
 			);

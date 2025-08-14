@@ -14,12 +14,58 @@ import XCTest
 
 @MainActor
 final class SignInPageTests: XCTestCase {
-  // TODO: Add these tests
-  func testSignInWithApple_CorrectlyAddsScopeToTheAppleSignInRequest() {
+  func testSignInWithApple_CorrectlyAddsScopeToTheAppleSignInRequest() async {
     let request = ASAuthorizationAppleIDRequest(coder: NSCoder())!
     let model = SignInPageModel()
-    model.signInWithAppleButtonTapped(request: request)
+    await model.signInWithAppleButtonTapped(request: request)
     XCTAssertEqual(request.requestedScopes, [.email, .fullName])
+  }
+
+  func testSignInWithApple_TracksSignInStartedEvent() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    let model = withDependencies {
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      SignInPageModel()
+    }
+
+    let request = ASAuthorizationAppleIDRequest(coder: NSCoder())!
+    await model.signInWithAppleButtonTapped(request: request)
+
+    let hasSignInStartedEvent = capturedEvents.value.contains { event in
+      if case .signInStarted(let method) = event {
+        return method == .apple
+      }
+      return false
+    }
+
+    XCTAssertTrue(hasSignInStartedEvent, "Should track signInStarted event for Apple")
+  }
+
+  func testSignInWithGoogle_TracksSignInStartedEvent() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    let model = withDependencies {
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      SignInPageModel()
+    }
+
+    await model.signInWithGoogleButtonTapped()
+
+    let hasSignInStartedEvent = capturedEvents.value.contains { event in
+      if case .signInStarted(let method) = event {
+        return method == .google
+      }
+      return false
+    }
+
+    XCTAssertTrue(hasSignInStartedEvent, "Should track signInStarted event for Google")
   }
 
   // TODO: Create these tests:
@@ -43,9 +89,4 @@ final class SignInPageTests: XCTestCase {
 
   // MARK: - SignInWithGoogle Tests
   // TODO: Implement Google sign in tests
-
-  // MARK: - LogOutButtonTapped Tests
-  // func testLogOutButtonTapped() {
-  //   // TODO: Implement test
-  // }
 }
