@@ -495,6 +495,11 @@ extension NowPlayingUpdater {
     previousStatus: StationPlayer.PlaybackStatus
   ) async {
     switch (previousStatus, currentStatus) {
+    // Track station switches (must come before generic playing case)
+    case (.playing(let fromStation), .playing(let toStation))
+    where fromStation.id != toStation.id:
+      await trackStationSwitch(from: fromStation, to: toStation)
+
     // Start session when transitioning to playing
     case (_, .playing(let station)):
       if sessionStartTime == nil {
@@ -519,11 +524,6 @@ extension NowPlayingUpdater {
         )
         sessionStartTime = nil
       }
-
-    // Track station switches
-    case (.playing(let fromStation), .playing(let toStation))
-    where fromStation.id != toStation.id:
-      await trackStationSwitch(from: fromStation, to: toStation)
 
     // Track errors
     case (_, .error):
