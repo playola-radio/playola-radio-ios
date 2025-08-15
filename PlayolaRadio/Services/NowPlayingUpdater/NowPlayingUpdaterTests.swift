@@ -83,7 +83,7 @@ final class NowPlayingUpdaterTests: XCTestCase {
     }
   }
 
-  func testTrackListeningSession_TracksStationSwitch() async {
+  func testTrackListeningSession_InitiatesSessionBeforeSwitch() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
     let station1 = RadioStation.mock
     let station2 = RadioStation(
@@ -113,13 +113,49 @@ final class NowPlayingUpdaterTests: XCTestCase {
     // Verify session was started
     let initialEvents = capturedEvents.value
     XCTAssertEqual(initialEvents.count, 1, "Expected 1 event after starting session")
-    if case .listeningSessionStarted = initialEvents.first {
-      // Expected
-    } else {
+    guard case .listeningSessionStarted = initialEvents.first else {
       XCTFail("Expected listeningSessionStarted event after starting session")
+      return
     }
 
-    // Clear events
+    // Clear events and switch to station 2
+    capturedEvents.withValue { $0.removeAll() }
+    await updater.trackListeningSession(
+      currentStatus: .playing(station2),
+      previousStatus: .playing(station1)
+    )
+
+    // Verify switch generated events
+    let events = capturedEvents.value
+    XCTAssertEqual(events.count, 3, "Station switch must generate exactly 3 events")
+  }
+
+  func testTrackListeningSession_TracksStationSwitchEvents() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    let station1 = RadioStation.mock
+    let station2 = RadioStation(
+      id: "station2",
+      name: "Station 2",
+      streamURL: "https://stream2.example.com",
+      imageURL: "https://example.com/station2.jpg",
+      desc: "Description 2",
+      longDesc: "Long description for Station 2",
+      type: .artist
+    )
+
+    let updater = withDependencies {
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      NowPlayingUpdater()
+    }
+
+    // Setup: Start playing station 1 first
+    await updater.trackListeningSession(
+      currentStatus: .playing(station1),
+      previousStatus: .stopped
+    )
     capturedEvents.withValue { $0.removeAll() }
 
     // Switch to station 2
@@ -128,46 +164,35 @@ final class NowPlayingUpdaterTests: XCTestCase {
       previousStatus: .playing(station1)
     )
 
-    // Verify all switch events were tracked
+    // Verify the three expected events
     let events = capturedEvents.value
+    XCTAssertEqual(events.count, 3, "Expected exactly 3 events when switching stations")
 
-    // Check if we got any events at all
-    guard events.count > 0 else {
-      XCTFail(
-        "No events were captured when switching stations. This likely means sessionStartTime was nil."
-      )
+    guard events.count == 3 else { return }
+
+    // Event 1: session ended for station 1
+    guard case let .listeningSessionEnded(stationInfo, _) = events[0] else {
+      XCTFail("Expected listeningSessionEnded event first, got: \(events[0])")
       return
     }
+    XCTAssertEqual(stationInfo.id, station1.id)
 
-    XCTAssertEqual(
-      events.count, 3, "Expected 3 events when switching stations, got \(events.count)")
-
-    // Only check array elements if we have enough events
-    if events.count >= 3 {
-      // First event: session ended for station 1
-      if case let .listeningSessionEnded(stationInfo, _) = events[0] {
-        XCTAssertEqual(stationInfo.id, station1.id)
-      } else {
-        XCTFail("Expected listeningSessionEnded event first, got: \(events[0])")
-      }
-
-      // Second event: switched station
-      if case let .switchedStation(from, to, timeBeforeSwitchSec, reason) = events[1] {
-        XCTAssertEqual(from.id, station1.id)
-        XCTAssertEqual(to.id, station2.id)
-        XCTAssertGreaterThanOrEqual(timeBeforeSwitchSec, 0)
-        XCTAssertEqual(reason, .userInitiated)
-      } else {
-        XCTFail("Expected switchedStation event second, got: \(events[1])")
-      }
-
-      // Third event: session started for station 2
-      if case let .listeningSessionStarted(stationInfo) = events[2] {
-        XCTAssertEqual(stationInfo.id, station2.id)
-      } else {
-        XCTFail("Expected listeningSessionStarted event third, got: \(events[2])")
-      }
+    // Event 2: switched station
+    guard case let .switchedStation(from, to, timeBeforeSwitchSec, reason) = events[1] else {
+      XCTFail("Expected switchedStation event second, got: \(events[1])")
+      return
     }
+    XCTAssertEqual(from.id, station1.id)
+    XCTAssertEqual(to.id, station2.id)
+    XCTAssertGreaterThanOrEqual(timeBeforeSwitchSec, 0)
+    XCTAssertEqual(reason, .userInitiated)
+
+    // Event 3: session started for station 2
+    guard case let .listeningSessionStarted(stationInfo) = events[2] else {
+      XCTFail("Expected listeningSessionStarted event third, got: \(events[2])")
+      return
+    }
+    XCTAssertEqual(stationInfo.id, station2.id)
   }
 
   func testTrackListeningSession_TracksPlaybackError() async {
