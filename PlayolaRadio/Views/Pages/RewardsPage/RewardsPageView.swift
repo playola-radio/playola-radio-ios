@@ -57,8 +57,7 @@ struct RewardsPageView: View {
                 prizeTier: prizeTier,
                 status: model.redemptionStatus(for: prizeTier),
                 onRedeem: {
-                  print("Redeeming \(prizeTier.name)")
-                  // TODO: Implement actual redemption logic
+                  Task { await model.redeemPrize(for: prizeTier) }
                 }
               )
             }

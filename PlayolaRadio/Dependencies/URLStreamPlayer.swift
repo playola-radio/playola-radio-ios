@@ -39,8 +39,6 @@ public class URLStreamPlayer: ObservableObject {
 
   static let shared = URLStreamPlayer()
 
-  //  private var trackingService: TrackingService = TrackingService.shared
-
   @Published private(set) var currentStation: RadioStation?
 
   var searchedStations: [RadioStation] = []

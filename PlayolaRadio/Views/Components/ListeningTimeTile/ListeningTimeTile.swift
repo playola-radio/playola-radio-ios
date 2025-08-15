@@ -31,19 +31,21 @@ struct ListeningTimeTile: View {
         .foregroundColor(.white)
 
       if let buttonText = model.buttonText {
-        Button(action: model.onButtonTapped) {
-          HStack {
-            Spacer()
-            Text(buttonText)
-              .font(.custom(FontNames.Inter_500_Medium, size: 16))
-              .foregroundColor(.white)
-            Spacer()
-          }
-          .padding(.vertical, 16)
-          .background(Color(red: 0.8, green: 0.4, blue: 0.4))
-          .foregroundColor(.white)
-          .cornerRadius(6)
-        }
+        Button(
+          action: { Task { await model.onButtonTapped() } },
+          label: {
+            HStack {
+              Spacer()
+              Text(buttonText)
+                .font(.custom(FontNames.Inter_500_Medium, size: 16))
+                .foregroundColor(.white)
+              Spacer()
+            }
+            .padding(.vertical, 16)
+            .background(Color(red: 0.8, green: 0.4, blue: 0.4))
+            .foregroundColor(.white)
+            .cornerRadius(6)
+          })
       }
     }
     .padding(20)

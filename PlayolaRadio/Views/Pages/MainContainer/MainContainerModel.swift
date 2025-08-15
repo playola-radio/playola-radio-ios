@@ -16,6 +16,7 @@ class MainContainerModel: ViewModel {
   var cancellables: Set<AnyCancellable> = []
 
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored var stationPlayer: StationPlayer!
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
@@ -57,6 +58,11 @@ class MainContainerModel: ViewModel {
       self.$stationListsLoaded.withLock { $0 = true }
     } catch {
       presentedAlert = .errorLoadingStations
+      await analytics.track(
+        .apiError(
+          endpoint: "getStations",
+          error: error.localizedDescription
+        ))
     }
 
     // NOTE: For now, this has to stay connected to the Singleton in order to avoid reloading

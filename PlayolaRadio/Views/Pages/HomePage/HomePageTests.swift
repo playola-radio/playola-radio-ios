@@ -7,6 +7,7 @@
 
 // swiftlint:disable force_try
 
+import Dependencies
 import IdentifiedCollections
 import Sharing
 import XCTest
@@ -137,17 +138,62 @@ final class HomePageTests: XCTestCase {
     XCTAssertEqual(homePage.presentedAlert, .secretStationsHiddenAlert)
   }
 
+  // MARK: - Listening Tile Navigation Tests
+
+  func testListeningTile_NavigationToRewardsTracksAnalytics() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    @Shared(.activeTab) var activeTab = MainContainerModel.ActiveTab.home
+
+    let homePageModel = withDependencies {
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      HomePageModel()
+    }
+
+    // Call the button action on the listening tile model
+    await homePageModel.listeningTimeTileModel.buttonAction?()
+
+    // Verify navigation happened
+    XCTAssertEqual(activeTab, .rewards)
+
+    // Verify analytics event was tracked
+    let events = capturedEvents.value
+    XCTAssertEqual(events.count, 1)
+    XCTAssertEqual(events.first, .navigatedToRewardsFromListeningTile)
+  }
+
   // MARK: - Player Interaction Tests
 
-  func testPlayerInteraction_PlaysAStationWhenItIsTapped() {
+  func testPlayerInteraction_PlaysAStationWhenItIsTapped() async {
     let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
     let station: RadioStation = .mock
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
-    let homePageModel = HomePageModel(stationPlayer: stationPlayerMock)
-    homePageModel.handleStationTapped(station)
+    let homePageModel = withDependencies {
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      HomePageModel(stationPlayer: stationPlayerMock)
+    }
+
+    await homePageModel.handleStationTapped(station)
 
     XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
     XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, station.id)
+
+    // Verify analytics event was tracked
+    let events = capturedEvents.value
+    XCTAssertEqual(events.count, 1)
+    if case let .startedStation(stationInfo, entryPoint) = events.first {
+      XCTAssertEqual(stationInfo.id, station.id)
+      XCTAssertEqual(stationInfo.name, station.name)
+      XCTAssertEqual(entryPoint, "home_recommendations")
+    } else {
+      XCTFail("Expected startedStation event, got: \(String(describing: events.first))")
+    }
   }
 }
 

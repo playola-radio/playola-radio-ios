@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 6/13/25.
 //
 
+import Dependencies
 import IdentifiedCollections
 import Sharing
 import XCTest
@@ -36,7 +37,7 @@ final class StationListPageTests: XCTestCase {
     }
     let model = StationListModel()
     await model.viewAppeared()
-    model.segmentSelected(firstList.title)
+    await model.segmentSelected(firstList.title)
     XCTAssertEqual(model.selectedSegment, firstList.title)
     XCTAssertEqual(model.stationListsForDisplay, [firstList])
   }
@@ -53,7 +54,7 @@ final class StationListPageTests: XCTestCase {
 
     let model = StationListModel()
     await model.viewAppeared()
-    model.segmentSelected(targetList.title)
+    await model.segmentSelected(targetList.title)
 
     // mutate shared lists but keep a list with the same title
     $stationLists.withLock { lists in
@@ -83,7 +84,7 @@ final class StationListPageTests: XCTestCase {
 
     let model = StationListModel()
     await model.viewAppeared()
-    model.segmentSelected(targetList.title)
+    await model.segmentSelected(targetList.title)
 
     // mutate shared lists and remove the previously selected segment
     $stationLists.withLock { lists in
@@ -104,14 +105,43 @@ final class StationListPageTests: XCTestCase {
 
   // MARK: - Player Interaction Tests
 
-  func testPlayerInteraction_PlaysAStationWhenItIsTapped() {
+  func testPlayerInteraction_PlaysAStationWhenItIsTapped() async {
     let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
     let station: RadioStation = .mock
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
-    let stationListModel = StationListModel(stationPlayer: stationPlayerMock)
-    stationListModel.stationSelected(station)
+    let stationListModel = withDependencies {
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      StationListModel(stationPlayer: stationPlayerMock)
+    }
+
+    await stationListModel.stationSelected(station)
 
     XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
     XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, station.id)
+
+    // Verify analytics events were tracked
+    let events = capturedEvents.value
+    XCTAssertEqual(events.count, 2)
+
+    // First event should be tappedStationCard
+    if case let .tappedStationCard(stationInfo, position, totalStations) = events[0] {
+      XCTAssertEqual(stationInfo.id, station.id)
+      XCTAssertEqual(position, 0)
+      XCTAssertEqual(totalStations, 0)  // Empty list for this test
+    } else {
+      XCTFail("Expected tappedStationCard event, got: \(events[0])")
+    }
+
+    // Second event should be startedStation
+    if case let .startedStation(stationInfo, entryPoint) = events[1] {
+      XCTAssertEqual(stationInfo.id, station.id)
+      XCTAssertEqual(entryPoint, "station_list")
+    } else {
+      XCTFail("Expected startedStation event, got: \(events[1])")
+    }
   }
 }

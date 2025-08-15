@@ -6,6 +6,7 @@
 //
 
 import Combine
+import Dependencies
 import IdentifiedCollections
 import Sharing
 import SwiftUI
@@ -18,6 +19,7 @@ class StationListModel: ViewModel {
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
+  @ObservationIgnored @Dependency(\.analytics) var analytics
 
   @ObservationIgnored var stationPlayer: StationPlayer
 
@@ -58,12 +60,49 @@ class StationListModel: ViewModel {
     }
   }
 
-  func segmentSelected(_ segmentTitle: String) {
+  func segmentSelected(_ segmentTitle: String) async {
+    let previousSegment = selectedSegment
     selectedSegment = segmentTitle
     loadStationListsForDisplay(stationLists)
+
+    // Only track if this is actually a change
+    guard previousSegment != segmentTitle else { return }
+
+    let listType: StationListType = {
+      switch segmentTitle {
+      case "All": return .all
+      case "Artists": return .artists
+      case "FM": return .fm
+      case "Featured": return .featured
+      default: return .all
+      }
+    }()
+
+    await analytics.track(
+      .viewedStationList(
+        listType: listType,
+        screen: "station_list_page"
+      ))
   }
 
-  func stationSelected(_ station: RadioStation) {
+  func stationSelected(_ station: RadioStation) async {
+    // Find the station's position in the current display list
+    let allStations = stationListsForDisplay.flatMap { $0.stations }
+    let position = allStations.firstIndex(where: { $0.id == station.id }) ?? 0
+
+    await analytics.track(
+      .tappedStationCard(
+        station: StationInfo(from: station),
+        position: position,
+        totalStations: allStations.count
+      ))
+
+    await analytics.track(
+      .startedStation(
+        station: StationInfo(from: station),
+        entryPoint: "station_list"
+      ))
+
     stationPlayer.play(station: station)
   }
 }
