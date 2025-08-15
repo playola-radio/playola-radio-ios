@@ -19,9 +19,9 @@ class ListeningTimeTileModel: ViewModel {
   var totalListeningTime: Int = 0
 
   var buttonText: String?
-  var buttonAction: (() -> Void)?
+  var buttonAction: (() async -> Void)?
 
-  init(buttonText: String? = nil, buttonAction: (() -> Void)? = nil) {
+  init(buttonText: String? = nil, buttonAction: (() async -> Void)? = nil) {
     self.buttonText = buttonText
     self.buttonAction = buttonAction
     super.init()
@@ -67,8 +67,8 @@ class ListeningTimeTileModel: ViewModel {
     }
   }
 
-  func onButtonTapped() {
-    buttonAction?()
+  func onButtonTapped() async {
+    await buttonAction?()
   }
 
   func viewDisappeared() {

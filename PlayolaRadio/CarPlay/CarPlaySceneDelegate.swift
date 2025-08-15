@@ -6,6 +6,7 @@
 //
 import CarPlay
 import Combine
+import Dependencies
 import FRadioPlayer
 import IdentifiedCollections
 import Sharing
@@ -34,7 +35,7 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
 
   var observers = Set<AnyCancellable>()
 
-  var trackingService = TrackingService.shared
+  @Dependency(\.analytics) var analytics
 
   private var isTransitioningToNowPlaying = false
 
@@ -84,7 +85,9 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
     _ scene: CPTemplateApplicationScene,
     didConnect interfaceController: CPInterfaceController
   ) {
-    trackingService.reportEvent(.carplayInitialized)
+    Task {
+      await analytics.track(.carPlayInitialized)
+    }
     $stationLists.publisher
       .sink { stationLists in
         let newTemplates = self.generateTemplates(stationLists)

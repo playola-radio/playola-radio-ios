@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 5/19/24.
 //
 
+import Dependencies
 import GoogleSignIn
 import GoogleSignInSwift
 import SDWebImage
@@ -18,6 +19,12 @@ struct PlayolaRadioApp: App {
     SDImageCodersManager.shared.addCoder(SDImageSVGCoder.shared)
 
     NowPlayingUpdater.shared.setupRemoteControlCenter()
+
+    // Initialize analytics
+    Task {
+      @Dependency(\.analytics) var analytics
+      await analytics.initialize()
+    }
   }
 
   var body: some Scene {

@@ -15,6 +15,7 @@ import SwiftUI
 @Observable
 class SignInPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Shared(.appleSignInInfo) var appleSignInInfo: AppleSignInInfo?
   @ObservationIgnored @Shared(.auth) var auth: Auth
   var navigationCoordinator: NavigationCoordinator
@@ -25,8 +26,9 @@ class SignInPageModel: ViewModel {
 
   // MARK: Actions
 
-  func signInWithAppleButtonTapped(request: ASAuthorizationAppleIDRequest) {
+  func signInWithAppleButtonTapped(request: ASAuthorizationAppleIDRequest) async {
     request.requestedScopes = [.email, .fullName]
+    await analytics.track(.signInStarted(method: .apple))
   }
 
   func signInWithAppleCompleted(result: Result<ASAuthorization, any Error>) {
@@ -70,9 +72,11 @@ class SignInPageModel: ViewModel {
             firstName,
             lastName)
           $auth.withLock { $0 = Auth(jwtToken: token) }
+          await analytics.track(.signInCompleted(method: .apple, userId: appleIDCredential.user))
           self.navigationCoordinator.activePath = .listen
         } catch {
           print("Sign in failed: \(error)")
+          await analytics.track(.signInFailed(method: .apple, error: error.localizedDescription))
         }
       }
     case let .failure(error):
@@ -80,7 +84,8 @@ class SignInPageModel: ViewModel {
     }
   }
 
-  func signInWithGoogleButtonTapped() {
+  func signInWithGoogleButtonTapped() async {
+    await analytics.track(.signInStarted(method: .google))
     guard let presentingVC = UIApplication.shared.keyWindowPresentedController else {
       print("Error presenting VC -- no key window")
       return
@@ -101,22 +106,19 @@ class SignInPageModel: ViewModel {
           do {
             let token = try await self.api.signInViaGoogle(serverAuthCode)
             self.$auth.withLock { $0 = Auth(jwtToken: token) }
+            await self.analytics.track(
+              .signInCompleted(method: .google, userId: signInResult.user.userID ?? "unknown"))
             self.navigationCoordinator.activePath = .listen
           } catch {
             print("Google sign in failed: \(error)")
+            await self.analytics.track(
+              .signInFailed(method: .google, error: error.localizedDescription))
           }
         }
       }
     }
   }
 
-  func logOutButtonTapped() {
-    $auth.withLock { $0 = Auth() }
-    Task {
-      //      await API().revokeAppleCredentials(
-      //        appleUserId: "000014.59c02331e3a642fd8bebedd86d191ed3.1758")
-    }
-  }
 }
 
 @MainActor
@@ -164,44 +166,26 @@ struct SignInPage: View {
             .padding(.horizontal, 40)
             .padding(.bottom, 20)
 
-          if model.auth.isLoggedIn {
-            // Logged in state
-            VStack(spacing: 15) {
-              Text("You're signed in")
-                .font(.headline)
-                .foregroundColor(.white)
+          // Auth buttons
+          VStack(spacing: 16) {
+            SignInWithAppleButton(.signIn) { request in
+              Task {
+                await model.signInWithAppleButtonTapped(request: request)
+              }
+            } onCompletion: { result in
+              model.signInWithAppleCompleted(result: result)
+            }
+            .signInWithAppleButtonStyle(.white)
+            .frame(height: 56)
+            .cornerRadius(12)
+            .padding(.horizontal, 30)
 
-              Button {
-                model.logOutButtonTapped()
-              } label: {
-                Text("Sign Out")
-                  .fontWeight(.semibold)
-                  .foregroundColor(.white)
-                  .frame(maxWidth: .infinity)
-                  .frame(height: 56)
-                  .background(Color.playolaRed)
-                  .cornerRadius(12)
-                  .padding(.horizontal, 30)
+            CustomGoogleSignInButton {
+              Task {
+                await model.signInWithGoogleButtonTapped()
               }
             }
-          } else {
-            // Auth buttons
-            VStack(spacing: 16) {
-              SignInWithAppleButton(.signIn) { request in
-                model.signInWithAppleButtonTapped(request: request)
-              } onCompletion: { result in
-                model.signInWithAppleCompleted(result: result)
-              }
-              .signInWithAppleButtonStyle(.white)
-              .frame(height: 56)
-              .cornerRadius(12)
-              .padding(.horizontal, 30)
-
-              CustomGoogleSignInButton {
-                model.signInWithGoogleButtonTapped()
-              }
-              .padding(.horizontal, 30)
-            }
+            .padding(.horizontal, 30)
           }
 
           Spacer()

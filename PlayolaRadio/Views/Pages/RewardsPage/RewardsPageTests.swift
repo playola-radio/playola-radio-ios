@@ -50,6 +50,62 @@ final class RewardsPageModelTests: XCTestCase {
     XCTAssertTrue(tierNames.contains("Show Tix"))
   }
 
+  // MARK: - Analytics Tests
+
+  func testOnViewAppeared_TracksRewardsScreenAnalytics() async {
+    @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(
+      totalTimeMS: 54_000_000)  // 15 hours
+    let mockPrizeTiers = PrizeTier.mocks
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    let model = withDependencies {
+      $0.api.getPrizeTiers = { mockPrizeTiers }
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      RewardsPageModel()
+    }
+
+    await model.onViewAppeared()
+
+    // Verify analytics event was tracked
+    let events = capturedEvents.value
+    XCTAssertEqual(events.count, 1)
+    if case let .viewedRewardsScreen(currentHours) = events.first {
+      XCTAssertEqual(currentHours, 15.0, accuracy: 0.1)
+    } else {
+      XCTFail("Expected viewedRewardsScreen event, got: \(String(describing: events.first))")
+    }
+  }
+
+  func testRedeemPrize_TracksRedeemAnalytics() async {
+    @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(
+      totalTimeMS: 108_000_000)  // 30 hours
+    let mockPrizeTiers = PrizeTier.mocks
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    let model = withDependencies {
+      $0.api.getPrizeTiers = { mockPrizeTiers }
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      RewardsPageModel()
+    }
+
+    await model.redeemPrize(for: mockPrizeTiers[0])  // Redeem Koozie
+
+    // Verify analytics event was tracked
+    let events = capturedEvents.value
+    XCTAssertEqual(events.count, 1)
+    if case let .tappedRedeemRewards(currentHours) = events.first {
+      XCTAssertEqual(currentHours, 30.0, accuracy: 0.1)
+    } else {
+      XCTFail("Expected tappedRedeemRewards event, got: \(String(describing: events.first))")
+    }
+  }
+
   // MARK: - Redemption Status Tests
 
   func testRedemptionStatus_Redeemed() async {

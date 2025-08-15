@@ -29,8 +29,8 @@ struct HomePageView: View {
 
           ListeningTimeTile(model: model.listeningTimeTileModel)
 
-          HomePageStationList(stations: model.forYouStations) {
-            model.handleStationTapped($0)
+          HomePageStationList(stations: model.forYouStations) { station in
+            Task { await model.handleStationTapped(station) }
           }
         }
         .padding(.horizontal, 24)

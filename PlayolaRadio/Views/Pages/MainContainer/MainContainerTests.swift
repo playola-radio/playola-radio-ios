@@ -81,11 +81,18 @@ final class MainContainerTests: XCTestCase {
   func testViewAppeared_DisplaysAnErrorAlertOnApiError() async {
     @Shared(.stationListsLoaded) var stationListsLoaded = false
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
-    struct TestError: Error {}
+    struct TestError: Error {
+      var localizedDescription: String { "Test error message" }
+    }
+
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = {
         throw TestError()
+      }
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
       }
     } operation: {
       MainContainerModel()
@@ -94,6 +101,17 @@ final class MainContainerTests: XCTestCase {
     await mainContainerModel.viewAppeared()
     XCTAssertEqual(mainContainerModel.presentedAlert, .errorLoadingStations)
     XCTAssertFalse(stationListsLoaded)
+
+    // Verify analytics event was tracked
+    let events = capturedEvents.value
+    XCTAssertEqual(events.count, 1)
+    if case let .apiError(endpoint, error) = events.first {
+      XCTAssertEqual(endpoint, "getStations")
+      XCTAssertTrue(
+        error.contains("TestError"), "Expected error to contain 'TestError', got: \(error)")
+    } else {
+      XCTFail("Expected apiError event, got: \(String(describing: events.first))")
+    }
   }
 
   func testViewAppeared_ExitsEarlyWhenStationListsAlreadyLoaded() async {

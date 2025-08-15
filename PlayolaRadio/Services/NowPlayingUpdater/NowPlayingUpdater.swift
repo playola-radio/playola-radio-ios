@@ -48,12 +48,17 @@ class NowPlayingUpdater {
 
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
   @ObservationIgnored @Dependency(\.continuousClock) var clock
+  @ObservationIgnored @Dependency(\.analytics) var analytics
 
   private var disposeBag = Set<AnyCancellable>()
   private var inactivityTask: Task<Void, Never>?
   private let inactivityTimeout: Duration = .seconds(15 * 60)  // 15 minutes
-  private var lastPlayedStation: RadioStation?
+  var lastPlayedStation: RadioStation?
   private var currentArtworkURL: String?
+
+  // Analytics tracking
+  private var sessionStartTime: Date?
+  private var lastPlaybackStatus: StationPlayer.PlaybackStatus = .stopped
   private func updateNowPlaying(with stationPlayerState: StationPlayer.State) {
     print(
       "🎵 NowPlayingUpdater: updateNowPlaying called with status: \(stationPlayerState.playbackStatus)"
@@ -67,7 +72,10 @@ class NowPlayingUpdater {
     }
 
     lastPlayedStation = currentStation
-    var nowPlayingInfo = buildNowPlayingInfo(for: stationPlayerState, station: currentStation)
+    var nowPlayingInfo = buildNowPlayingInfo(
+      for: stationPlayerState,
+      station: currentStation
+    )
     updatePlaybackState(for: stationPlayerState.playbackStatus)
     setPlaybackRate(for: stationPlayerState.playbackStatus, in: &nowPlayingInfo)
 
@@ -106,7 +114,10 @@ class NowPlayingUpdater {
     currentArtworkURL = nil
   }
 
-  private func buildNowPlayingInfo(for state: StationPlayer.State, station: RadioStation)
+  private func buildNowPlayingInfo(
+    for state: StationPlayer.State,
+    station: RadioStation
+  )
     -> [String: Any]
   {
     var nowPlayingInfo = [String: Any]()
@@ -129,6 +140,15 @@ class NowPlayingUpdater {
   }
 
   private func updatePlaybackState(for status: StationPlayer.PlaybackStatus) {
+    // Track listening sessions based on state transitions
+    Task {
+      await trackListeningSession(
+        currentStatus: status,
+        previousStatus: lastPlaybackStatus
+      )
+    }
+    lastPlaybackStatus = status
+
     switch status {
     case .playing, .loading, .startingNewStation:
       cancelInactivityTimer()
@@ -140,7 +160,10 @@ class NowPlayingUpdater {
     }
   }
 
-  private func populatePlayingInfo(_ info: inout [String: Any], state: StationPlayer.State) {
+  private func populatePlayingInfo(
+    _ info: inout [String: Any],
+    state: StationPlayer.State
+  ) {
     if let artistPlaying = state.artistPlaying {
       info[MPMediaItemPropertyArtist] = artistPlaying
     }
@@ -150,7 +173,9 @@ class NowPlayingUpdater {
   }
 
   private func populateLoadingInfo(
-    _ info: inout [String: Any], station: RadioStation, progress: Float?
+    _ info: inout [String: Any],
+    station: RadioStation,
+    progress: Float?
   ) {
     info[MPMediaItemPropertyTitle] = "Loading \(station.name)..."
     info[MPMediaItemPropertyArtist] = station.desc
@@ -161,7 +186,10 @@ class NowPlayingUpdater {
     }
   }
 
-  private func populateStoppedInfo(_ info: inout [String: Any], state: StationPlayer.State) {
+  private func populateStoppedInfo(
+    _ info: inout [String: Any],
+    state: StationPlayer.State
+  ) {
     if let artistPlaying = state.artistPlaying {
       info[MPMediaItemPropertyArtist] = artistPlaying
     }
@@ -170,24 +198,34 @@ class NowPlayingUpdater {
     }
   }
 
-  private func populateConnectingInfo(_ info: inout [String: Any], station: RadioStation) {
+  private func populateConnectingInfo(
+    _ info: inout [String: Any],
+    station: RadioStation
+  ) {
     info[MPMediaItemPropertyTitle] = "Connecting to \(station.name)..."
     info[MPMediaItemPropertyArtist] = station.desc
   }
 
-  private func populateErrorInfo(_ info: inout [String: Any], station: RadioStation) {
+  private func populateErrorInfo(
+    _ info: inout [String: Any],
+    station: RadioStation
+  ) {
     info[MPMediaItemPropertyTitle] = "Connection Error"
     info[MPMediaItemPropertyArtist] = station.name
   }
 
   private func setPlaybackRate(
-    for status: StationPlayer.PlaybackStatus, in info: inout [String: Any]
+    for status: StationPlayer.PlaybackStatus,
+    in info: inout [String: Any]
   ) {
     guard !status.isLoading else { return }
     info[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
   }
 
-  private func loadStationArtwork(from state: StationPlayer.State, station: RadioStation) {
+  private func loadStationArtwork(
+    from state: StationPlayer.State,
+    station: RadioStation
+  ) {
     // Skip if we're already displaying this station's artwork
     if currentArtworkURL == station.imageURL {
       return
@@ -211,7 +249,8 @@ class NowPlayingUpdater {
       boundsSize: image.size,
       requestHandler: { _ in
         return image
-      })
+      }
+    )
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
   }
 
@@ -244,7 +283,9 @@ class NowPlayingUpdater {
 
   // MARK: - State Processing Methods (duplicated from StationPlayer)
 
-  func processPlayolaStationPlayerState(_ playolaState: PlayolaStationPlayer.State?) {
+  func processPlayolaStationPlayerState(
+    _ playolaState: PlayolaStationPlayer.State?
+  ) {
     switch playolaState {
     case .idle:
       $nowPlaying.withLock {
@@ -296,7 +337,9 @@ class NowPlayingUpdater {
     }
   }
 
-  private func processUrlStreamStateChanged(_ urlStreamPlayerState: URLStreamPlayer.State) {
+  private func processUrlStreamStateChanged(
+    _ urlStreamPlayerState: URLStreamPlayer.State
+  ) {
     switch urlStreamPlayerState.playerStatus {
     case .loading:
       guard let currentStation = stationPlayer.currentStation else { return }
@@ -441,5 +484,93 @@ extension StationPlayer.PlaybackStatus {
   var isLoading: Bool {
     if case .loading = self { return true }
     return false
+  }
+}
+
+// MARK: - Analytics Tracking
+
+extension NowPlayingUpdater {
+  func trackListeningSession(
+    currentStatus: StationPlayer.PlaybackStatus,
+    previousStatus: StationPlayer.PlaybackStatus
+  ) async {
+    switch (previousStatus, currentStatus) {
+    // Track station switches (must come before generic playing case)
+    case (.playing(let fromStation), .playing(let toStation))
+    where fromStation.id != toStation.id:
+      await trackStationSwitch(from: fromStation, to: toStation)
+
+    // Start session when transitioning to playing
+    case (_, .playing(let station)):
+      if sessionStartTime == nil {
+        sessionStartTime = Date()
+        await analytics.track(
+          .listeningSessionStarted(
+            station: StationInfo(from: station)
+          )
+        )
+      }
+
+    // End session when stopping from playing state
+    case (.playing(let station), .stopped),
+      (.playing(let station), .error):
+      if let startTime = sessionStartTime {
+        let duration = Date().timeIntervalSince(startTime)
+        await analytics.track(
+          .listeningSessionEnded(
+            station: StationInfo(from: station),
+            sessionLengthSec: Int(duration)
+          )
+        )
+        sessionStartTime = nil
+      }
+
+    // Track errors
+    case (_, .error):
+      if let lastStation = lastPlayedStation {
+        await analytics.track(
+          .playbackError(
+            station: StationInfo(from: lastStation),
+            error: "Playback error occurred"
+          )
+        )
+      }
+
+    default:
+      break
+    }
+  }
+
+  private func trackStationSwitch(from fromStation: RadioStation, to toStation: RadioStation) async
+  {
+    guard let startTime = sessionStartTime else { return }
+    let duration = Date().timeIntervalSince(startTime)
+
+    // End current session
+    await analytics.track(
+      .listeningSessionEnded(
+        station: StationInfo(from: fromStation),
+        sessionLengthSec: Int(duration)
+      )
+    )
+
+    // Track the switch
+    await analytics.track(
+      .switchedStation(
+        from: StationInfo(from: fromStation),
+        to: StationInfo(from: toStation),
+        timeBeforeSwitchSec: Int(duration),
+        reason: .userInitiated
+      )
+    )
+
+    // Start new session
+    await analytics.track(
+      .listeningSessionStarted(
+        station: StationInfo(from: toStation)
+      )
+    )
+
+    sessionStartTime = Date()
   }
 }

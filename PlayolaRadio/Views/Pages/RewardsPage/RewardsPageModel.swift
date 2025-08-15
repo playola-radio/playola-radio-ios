@@ -14,12 +14,17 @@ import SwiftUI
 @Observable
 class RewardsPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
 
   var prizeTiers: [PrizeTier] = []
   var redeemedPrizeTierIds: Set<String> = []
 
   func onViewAppeared() async {
+    // Track rewards screen view with current hours
+    let currentHours = getCurrentListeningHours()
+    await analytics.track(.viewedRewardsScreen(currentHours: currentHours))
+
     await loadPrizeTiers()
     await loadUserPrizes()
   }
@@ -81,5 +86,21 @@ class RewardsPageModel: ViewModel {
     //    } catch {
     //      print("Failed to load user prizes: \(error)")
     //    }
+  }
+
+  func redeemPrize(for prizeTier: PrizeTier) async {
+    let currentHours = getCurrentListeningHours()
+    await analytics.track(.tappedRedeemRewards(currentHours: currentHours))
+
+    // TODO: Implement actual redemption logic
+    print("Redeeming \(prizeTier.name)")
+  }
+
+  private func getCurrentListeningHours() -> Double {
+    guard let totalMSListened = listeningTracker?.totalListenTimeMS, totalMSListened > 0 else {
+      return 0.0
+    }
+    let totalSeconds = Double(totalMSListened) / 1000.0
+    return totalSeconds / 3600.0
   }
 }
