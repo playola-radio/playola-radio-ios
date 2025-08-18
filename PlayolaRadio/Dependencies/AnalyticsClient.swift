@@ -68,7 +68,7 @@ extension DependencyValues {
 
 // MARK: - Live Implementation
 
-extension AnalyticsClient {
+extension AnalyticsClient: DependencyKey {
   static let liveValue = Self(
     track: { event in
       await MainActor.run {
