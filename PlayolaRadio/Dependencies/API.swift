@@ -64,6 +64,18 @@ struct APIClient: Sendable {
     (_ jwtToken: String, _ firstName: String, _ lastName: String?) async throws -> Auth = {
       _, _, _ in Auth()
     }
+
+  /// Verifies if an invitation code is valid
+  /// - Parameter code: The invitation code to verify
+  /// - Throws: InvitationCodeError if the code is invalid, expired, or at max uses
+  var verifyInvitationCode: (_ code: String) async throws -> Void = { _ in }
+
+  /// Registers a user with an invitation code
+  /// - Parameters:
+  ///   - userId: The user ID to register
+  ///   - code: The invitation code to use for registration
+  /// - Throws: InvitationCodeError if the registration fails
+  var registerInvitationCode: (_ userId: String, _ code: String) async throws -> Void = { _, _ in }
 }
 
 extension APIClient: DependencyKey {
@@ -194,6 +206,68 @@ extension APIClient: DependencyKey {
         )
 
         return Auth(currentUser: updatedUser, jwt: newToken)
+      },
+      verifyInvitationCode: { code in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/invitationCode/verify"
+        let parameters = ["code": code]
+        
+        let dataResponse = try await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default
+        )
+        .serializingData()
+        .response
+        
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw APIError.dataNotValid
+        }
+        
+        if statusCode == 200 {
+          if let data = dataResponse.value,
+             let jsonResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+             let valid = jsonResponse["valid"] as? Bool,
+             valid {
+            return
+          }
+          throw InvitationCodeError.invalidCode("Invalid invitation code")
+        } else {
+          // Try to parse server error message
+          if let data = dataResponse.value,
+             let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+             let errorObj = errorResponse["error"] as? [String: Any],
+             let message = errorObj["message"] as? String {
+            throw InvitationCodeError.invalidCode(message)
+          }
+          
+          // Fall back to standard validation error
+          let request = AF.request(
+            url,
+            method: .post,
+            parameters: parameters,
+            encoding: JSONEncoding.default
+          )
+          _ = try await request.validate(statusCode: 200..<300).serializingData().value
+        }
+      },
+      registerInvitationCode: { userId, code in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/invitationCode/register"
+        let parameters = ["userId": userId, "code": code]
+        
+        let response = try await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable([String: Bool].self)
+        .value
+        
+        guard response["success"] == true else {
+          throw InvitationCodeError.registrationFailed("Failed to register with invitation code")
+        }
       }
     )
   }()
@@ -201,6 +275,19 @@ extension APIClient: DependencyKey {
 
 enum APIError: Error {
   case dataNotValid
+}
+
+enum InvitationCodeError: Error {
+  case invalidCode(String)
+  case registrationFailed(String)
+  
+  var localizedDescription: String {
+    switch self {
+    case .invalidCode(let message),
+         .registrationFailed(let message):
+      return message
+    }
+  }
 }
 
 extension DependencyValues {
