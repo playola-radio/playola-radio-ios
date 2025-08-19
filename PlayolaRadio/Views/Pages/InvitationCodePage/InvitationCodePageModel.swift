@@ -15,7 +15,7 @@ import SwiftUI
 class InvitationCodePageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.continuousClock) var clock
-  
+
   var email: String! = ""
   var invitationCode: String! = ""
   var errorMessage: String? = nil
@@ -35,7 +35,7 @@ class InvitationCodePageModel: ViewModel {
       errorMessage = "Please enter an invitation code"
       return
     }
-    
+
     do {
       try await api.verifyInvitationCode(invitationCode)
       // Clear any previous error message

@@ -210,7 +210,7 @@ extension APIClient: DependencyKey {
       verifyInvitationCode: { code in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/invitationCode/verify"
         let parameters = ["code": code]
-        
+
         let dataResponse = try await AF.request(
           url,
           method: .post,
@@ -219,28 +219,30 @@ extension APIClient: DependencyKey {
         )
         .serializingData()
         .response
-        
+
         guard let statusCode = dataResponse.response?.statusCode else {
           throw APIError.dataNotValid
         }
-        
+
         if statusCode == 200 {
           if let data = dataResponse.value,
-             let jsonResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-             let valid = jsonResponse["valid"] as? Bool,
-             valid {
+            let jsonResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let valid = jsonResponse["valid"] as? Bool,
+            valid
+          {
             return
           }
           throw InvitationCodeError.invalidCode("Invalid invitation code")
         } else {
           // Try to parse server error message
           if let data = dataResponse.value,
-             let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-             let errorObj = errorResponse["error"] as? [String: Any],
-             let message = errorObj["message"] as? String {
+            let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let errorObj = errorResponse["error"] as? [String: Any],
+            let message = errorObj["message"] as? String
+          {
             throw InvitationCodeError.invalidCode(message)
           }
-          
+
           // Fall back to standard validation error
           let request = AF.request(
             url,
@@ -254,7 +256,7 @@ extension APIClient: DependencyKey {
       registerInvitationCode: { userId, code in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/invitationCode/register"
         let parameters = ["userId": userId, "code": code]
-        
+
         let response = try await AF.request(
           url,
           method: .post,
@@ -264,7 +266,7 @@ extension APIClient: DependencyKey {
         .validate(statusCode: 200..<300)
         .serializingDecodable([String: Bool].self)
         .value
-        
+
         guard response["success"] == true else {
           throw InvitationCodeError.registrationFailed("Failed to register with invitation code")
         }
@@ -280,11 +282,11 @@ enum APIError: Error {
 enum InvitationCodeError: Error {
   case invalidCode(String)
   case registrationFailed(String)
-  
+
   var localizedDescription: String {
     switch self {
     case .invalidCode(let message),
-         .registrationFailed(let message):
+      .registrationFailed(let message):
       return message
     }
   }
