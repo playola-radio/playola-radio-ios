@@ -12,7 +12,6 @@ struct InvitationCodePageView: View {
 
   var body: some View {
     VStack(spacing: 0) {
-      Spacer()
 
       // Logo and branding
       VStack(spacing: 32) {
@@ -20,13 +19,15 @@ struct InvitationCodePageView: View {
         Image("PlayolaLogo")
           .resizable()
           .scaledToFit()
-          .frame(height: 120)
+          .frame(height: 156)
+          .padding(.top, 16)
 
         VStack(spacing: 16) {
           Text("Invite only, for now!")
-            .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 26))
+            .font(.custom(FontNames.Inter_700_Bold, size: 26))
             .foregroundColor(.white)
             .multilineTextAlignment(.center)
+            .padding(.top, 20)
 
           Text("Discover music through independent artist-\nmade radio stations")
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
@@ -34,13 +35,12 @@ struct InvitationCodePageView: View {
             .multilineTextAlignment(.center)
             .lineSpacing(2)
         }
+        //        .padding(.horizontal, 38)
       }
-
-      Spacer()
 
       // Form section
       VStack(spacing: 24) {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
           Text("Enter invite code")
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .foregroundColor(.white)
@@ -48,13 +48,14 @@ struct InvitationCodePageView: View {
           TextField("", text: $model.invitationCode)
             .textFieldStyle(PlainTextFieldStyle())
             .padding(.horizontal, 16)
-            .padding(.vertical, 16)
+            .padding(.vertical, 14)
             .background(Color(hex: "#333333"))
             .cornerRadius(6)
             .foregroundColor(.white)
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .autocapitalization(.allCharacters)
             .disableAutocorrection(true)
+            .frame(minHeight: 48)
 
           // Error message
           if let errorMessage = model.errorMessage {
@@ -88,7 +89,7 @@ struct InvitationCodePageView: View {
               .foregroundColor(.white)
           }
           .frame(maxWidth: .infinity)
-          .padding(.vertical, 18)
+          .padding(.vertical, 14)
           .background(Color.playolaRed)
           .cornerRadius(6)
         }
@@ -96,7 +97,7 @@ struct InvitationCodePageView: View {
         VStack(spacing: 16) {
           Text("Don't have an invite code?")
             .font(.custom(FontNames.Inter_400_Regular, size: 16))
-            .foregroundColor(.white)
+            .foregroundColor(Color(hex: "#C7C7C7"))
 
           // Join waitlist button
           Button(action: {
@@ -114,20 +115,22 @@ struct InvitationCodePageView: View {
                 .foregroundColor(.white)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 18)
+            .padding(.vertical, 14)
             .background(Color.clear)
             .overlay(
               RoundedRectangle(cornerRadius: 6)
-                .stroke(.white, lineWidth: 1)
+                .stroke(Color(hex: "#827876"), lineWidth: 1)
             )
           }
         }
+        .padding(.top, 8)
       }
       .padding(.horizontal, 24)
+      .padding(.top, 32)
 
       Spacer()
     }
-    .background(Color.black)
+    .background(Color(hex: "#130000"))
   }
 }
 

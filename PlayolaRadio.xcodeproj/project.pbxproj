@@ -62,6 +62,8 @@
 		D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257C82DFA247A001BC6F9 /* MainContainer.swift */; };
 		D37257CC2DFA3F83001BC6F9 /* FontNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257CB2DFA3F7F001BC6F9 /* FontNames.swift */; };
 		D37257D02DFB4368001BC6F9 /* PlayerPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */; };
+		D378CCCC2E55F09200497A4A /* UserDefault.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCB2E55F08D00497A4A /* UserDefault.swift */; };
+		D378CCCE2E56011A00497A4A /* SignInPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCD2E56011500497A4A /* SignInPageModel.swift */; };
 		D38031352E00AFD20011DD64 /* PlayerPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38031332E00AD9F0011DD64 /* PlayerPageTests.swift */; };
 		D382671C2E00C1460006BAC2 /* SmallPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D382671B2E00C13E0006BAC2 /* SmallPlayer.swift */; };
 		D395910F2E38069200720CF8 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D395910E2E38069200720CF8 /* SDWebImageSwiftUI */; };
@@ -83,7 +85,7 @@
 		D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D3A2761F2D43C747006055AF /* GoogleSignInSwift */; };
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
 		D3B662682D3F58E700975D2F /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3B662672D3F58E700975D2F /* FRadioPlayer */; };
-		D3B6626A2D40103C00975D2F /* SignInPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662692D40103800975D2F /* SignInPage.swift */; };
+		D3B6626A2D40103C00975D2F /* SignInPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662692D40103800975D2F /* SignInPageView.swift */; };
 		D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */; };
 		D3B662702D40352500975D2F /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D3B6626F2D40352500975D2F /* Alamofire */; };
 		D3B662722D4161E100975D2F /* AppleSignInInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662712D41618500975D2F /* AppleSignInInfo.swift */; };
@@ -182,6 +184,8 @@
 		D37257C82DFA247A001BC6F9 /* MainContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainer.swift; sourceTree = "<group>"; };
 		D37257CB2DFA3F7F001BC6F9 /* FontNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontNames.swift; sourceTree = "<group>"; };
 		D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPage.swift; sourceTree = "<group>"; };
+		D378CCCB2E55F08D00497A4A /* UserDefault.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefault.swift; sourceTree = "<group>"; };
+		D378CCCD2E56011500497A4A /* SignInPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageModel.swift; sourceTree = "<group>"; };
 		D38031332E00AD9F0011DD64 /* PlayerPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPageTests.swift; sourceTree = "<group>"; };
 		D382671B2E00C13E0006BAC2 /* SmallPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmallPlayer.swift; sourceTree = "<group>"; };
 		D39591142E39931D00720CF8 /* ContactPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactPageView.swift; sourceTree = "<group>"; };
@@ -198,7 +202,7 @@
 		D3A08A392E53A784002468E0 /* InvitationCodePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitationCodePageView.swift; sourceTree = "<group>"; };
 		D3A08A3B2E53A78C002468E0 /* InvitationCodePageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitationCodePageTests.swift; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
-		D3B662692D40103800975D2F /* SignInPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPage.swift; sourceTree = "<group>"; };
+		D3B662692D40103800975D2F /* SignInPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageView.swift; sourceTree = "<group>"; };
 		D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinator.swift; sourceTree = "<group>"; };
 		D3B662712D41618500975D2F /* AppleSignInInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInInfo.swift; sourceTree = "<group>"; };
 		D3B662732D419C3100975D2F /* LoggedInUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggedInUser.swift; sourceTree = "<group>"; };
@@ -542,6 +546,7 @@
 		D3B6626B2D4016B900975D2F /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				D378CCCB2E55F08D00497A4A /* UserDefault.swift */,
 				D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */,
 				D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */,
 				D3A08A322E4E6F57002468E0 /* NowPlayingUpdater */,
@@ -553,7 +558,8 @@
 		D3B662772D41B10600975D2F /* SignInPage */ = {
 			isa = PBXGroup;
 			children = (
-				D3B662692D40103800975D2F /* SignInPage.swift */,
+				D378CCCD2E56011500497A4A /* SignInPageModel.swift */,
+				D3B662692D40103800975D2F /* SignInPageView.swift */,
 				D3B662752D41B0C700975D2F /* SignInPageTests.swift */,
 			);
 			path = SignInPage;
@@ -749,6 +755,7 @@
 			files = (
 				D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */,
 				D37257B02DF88BB7001BC6F9 /* HomePageView.swift in Sources */,
+				D378CCCC2E55F09200497A4A /* UserDefault.swift in Sources */,
 				D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */,
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
 				D3B744C22E31317B0042A427 /* RewardsPageView.swift in Sources */,
@@ -756,7 +763,7 @@
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
 				D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */,
 				D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */,
-				D3B6626A2D40103C00975D2F /* SignInPage.swift in Sources */,
+				D3B6626A2D40103C00975D2F /* SignInPageView.swift in Sources */,
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
 				D3137DBB2D3976580070033A /* PlayolaAlert.swift in Sources */,
 				D39591262E3BB70000720CF8 /* EditProfilePageView.swift in Sources */,
@@ -810,6 +817,7 @@
 				D339E5692BFD1C0800B9E35B /* API.swift in Sources */,
 				D382671C2E00C1460006BAC2 /* SmallPlayer.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
+				D378CCCE2E56011A00497A4A /* SignInPageModel.swift in Sources */,
 				D395912A2E3BD02B00720CF8 /* MainContainerNavigationCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

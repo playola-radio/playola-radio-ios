@@ -211,7 +211,7 @@ extension APIClient: DependencyKey {
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/invitationCode/verify"
         let parameters = ["code": code]
 
-        let dataResponse = try await AF.request(
+        let dataResponse = await AF.request(
           url,
           method: .post,
           parameters: parameters,
