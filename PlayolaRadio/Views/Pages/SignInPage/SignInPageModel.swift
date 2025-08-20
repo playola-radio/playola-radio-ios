@@ -19,9 +19,16 @@ class SignInPageModel: ViewModel {
   @ObservationIgnored @Shared(.appleSignInInfo) var appleSignInInfo: AppleSignInInfo?
   @ObservationIgnored @Shared(.auth) var auth: Auth
   var navigationCoordinator: NavigationCoordinator
+  var config: Config
 
-  init(navigationCoordinator: NavigationCoordinator = .shared) {
+  private var _invitationCodesPageModel = InvitationCodePageModel()
+  var invitationCodesPageModel: InvitationCodePageModel? {
+    return self.config.shouldShowInvitationCodePage ? _invitationCodesPageModel : nil
+  }
+
+  init(navigationCoordinator: NavigationCoordinator = .shared, config: Config = .shared) {
     self.navigationCoordinator = navigationCoordinator
+    self.config = config
   }
 
   // MARK: Actions

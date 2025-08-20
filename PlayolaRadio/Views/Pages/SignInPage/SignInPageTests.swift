@@ -89,4 +89,58 @@ final class SignInPageTests: XCTestCase {
 
   // MARK: - SignInWithGoogle Tests
   // TODO: Implement Google sign in tests
+
+  // MARK: - Invitation Code Page Tests
+
+  func testInvitationCodesPageModel_HasBeenUnlockedTrue_InvitationCodeNil_ReturnsModel() {
+    Config.shared.hasBeenUnlocked = true
+    Config.shared.invitationCode = nil
+
+    let model = SignInPageModel()
+
+    XCTAssertNotNil(model.invitationCodesPageModel)
+
+    // Clean up
+    Config.shared.hasBeenUnlocked = false
+    Config.shared.invitationCode = nil
+  }
+
+  func testInvitationCodesPageModel_HasBeenUnlockedFalse_InvitationCodeNotNil_ReturnsModel() {
+    Config.shared.hasBeenUnlocked = false
+    Config.shared.invitationCode = "TEST123"
+
+    let model = SignInPageModel()
+
+    XCTAssertNotNil(model.invitationCodesPageModel)
+
+    // Clean up
+    Config.shared.hasBeenUnlocked = false
+    Config.shared.invitationCode = nil
+  }
+
+  func testInvitationCodesPageModel_HasBeenUnlockedTrue_InvitationCodeNotNil_ReturnsModel() {
+    Config.shared.hasBeenUnlocked = true
+    Config.shared.invitationCode = "TEST123"
+
+    let model = SignInPageModel()
+
+    XCTAssertNotNil(model.invitationCodesPageModel)
+
+    // Clean up
+    Config.shared.hasBeenUnlocked = false
+    Config.shared.invitationCode = nil
+  }
+
+  func testInvitationCodesPageModel_HasBeenUnlockedFalse_InvitationCodeNil_ReturnsNil() {
+    Config.shared.hasBeenUnlocked = false
+    Config.shared.invitationCode = nil
+
+    let model = SignInPageModel()
+
+    XCTAssertNil(model.invitationCodesPageModel)
+
+    // Clean up
+    Config.shared.hasBeenUnlocked = false
+    Config.shared.invitationCode = nil
+  }
 }

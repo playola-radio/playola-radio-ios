@@ -7,6 +7,14 @@
 
 import Foundation
 
+private protocol AnyOptional {
+  var isNil: Bool { get }
+}
+
+extension Optional: AnyOptional {
+  var isNil: Bool { self == nil }
+}
+
 @propertyWrapper
 struct UserDefault<Value> {
   let key: String
@@ -24,7 +32,11 @@ struct UserDefault<Value> {
       return storage.object(forKey: key) as? Value ?? defaultValue
     }
     set {
-      storage.set(newValue, forKey: key)
+      if let optionalValue = newValue as? AnyOptional, optionalValue.isNil {
+        storage.removeObject(forKey: key)
+      } else {
+        storage.set(newValue, forKey: key)
+      }
     }
   }
 }
