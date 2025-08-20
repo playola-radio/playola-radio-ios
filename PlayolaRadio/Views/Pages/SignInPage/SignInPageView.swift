@@ -13,7 +13,7 @@ import SwiftUI
 
 @MainActor
 struct SignInPage: View {
-  var model: SignInPageModel
+  @Bindable var model: SignInPageModel
 
   var body: some View {
     NavigationView {
@@ -109,6 +109,15 @@ struct SignInPage: View {
       .navigationBarHidden(true)
     }
     .navigationViewStyle(StackNavigationViewStyle())
+    .sheet(item: $model.presentedSheet) { item in
+      switch item {
+      case let .invitationCode(invitationModel):
+        InvitationCodePageView(model: invitationModel)
+          .interactiveDismissDisabled(true)
+      case .player:
+        EmptyView()  // This case shouldn't occur in SignInPage
+      }
+    }
   }
 }
 

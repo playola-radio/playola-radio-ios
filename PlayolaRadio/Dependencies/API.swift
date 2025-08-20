@@ -208,7 +208,7 @@ extension APIClient: DependencyKey {
         return Auth(currentUser: updatedUser, jwt: newToken)
       },
       verifyInvitationCode: { code in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/invitationCode/verify"
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/invitation-codes/verify"
         let parameters = ["code": code]
 
         let dataResponse = await AF.request(
@@ -254,7 +254,7 @@ extension APIClient: DependencyKey {
         }
       },
       registerInvitationCode: { userId, code in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/invitationCode/register"
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/invitation-codes/register"
         let parameters = ["userId": userId, "code": code]
 
         let response = try await AF.request(

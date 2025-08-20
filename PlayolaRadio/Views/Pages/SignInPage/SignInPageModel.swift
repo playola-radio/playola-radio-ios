@@ -18,17 +18,30 @@ class SignInPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Shared(.appleSignInInfo) var appleSignInInfo: AppleSignInInfo?
   @ObservationIgnored @Shared(.auth) var auth: Auth
+  @ObservationIgnored @Shared(.hasBeenUnlocked) var hasBeenUnlocked: Bool
+  @ObservationIgnored @Shared(.invitationCode) var invitationCode: String?
   var navigationCoordinator: NavigationCoordinator
-  var config: Config
+  var presentedSheet: PlayolaSheet?
 
   private var _invitationCodesPageModel = InvitationCodePageModel()
-  var invitationCodesPageModel: InvitationCodePageModel? {
-    return self.config.shouldShowInvitationCodePage ? _invitationCodesPageModel : nil
+
+  init(navigationCoordinator: NavigationCoordinator = .shared) {
+    self.navigationCoordinator = navigationCoordinator
+    super.init()
+    updateSheetPresentation()
+
+    // Set up the invitation code page success callback
+    _invitationCodesPageModel.onDismiss = { [weak self] in
+      self?.updateSheetPresentation()
+    }
   }
 
-  init(navigationCoordinator: NavigationCoordinator = .shared, config: Config = .shared) {
-    self.navigationCoordinator = navigationCoordinator
-    self.config = config
+  private func updateSheetPresentation() {
+    if !hasBeenUnlocked && invitationCode == nil {
+      presentedSheet = .invitationCode(_invitationCodesPageModel)
+    } else {
+      presentedSheet = nil
+    }
   }
 
   // MARK: Actions

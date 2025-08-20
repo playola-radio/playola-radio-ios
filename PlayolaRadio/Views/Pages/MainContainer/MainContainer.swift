@@ -79,6 +79,8 @@ struct MainContainer: View {
         switch item {
         case let .player(playerPageModel):
           PlayerPage(model: playerPageModel)
+        default:
+          fatalError("Unsupported sheet item")
         }
       }
     )

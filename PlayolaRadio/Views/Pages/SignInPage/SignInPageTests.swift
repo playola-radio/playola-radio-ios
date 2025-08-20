@@ -90,57 +90,45 @@ final class SignInPageTests: XCTestCase {
   // MARK: - SignInWithGoogle Tests
   // TODO: Implement Google sign in tests
 
-  // MARK: - Invitation Code Page Tests
+  // MARK: - Presented Sheet Tests
 
-  func testInvitationCodesPageModel_HasBeenUnlockedTrue_InvitationCodeNil_ReturnsModel() {
-    Config.shared.hasBeenUnlocked = true
-    Config.shared.invitationCode = nil
+  func testPresentedSheet_HasBeenUnlockedTrue_InvitationCodeNil_ReturnsNil() {
+    @Shared(.hasBeenUnlocked) var hasBeenUnlocked = true
+    @Shared(.invitationCode) var invitationCode: String? = nil
 
     let model = SignInPageModel()
 
-    XCTAssertNotNil(model.invitationCodesPageModel)
-
-    // Clean up
-    Config.shared.hasBeenUnlocked = false
-    Config.shared.invitationCode = nil
+    XCTAssertNil(model.presentedSheet)
   }
 
-  func testInvitationCodesPageModel_HasBeenUnlockedFalse_InvitationCodeNotNil_ReturnsModel() {
-    Config.shared.hasBeenUnlocked = false
-    Config.shared.invitationCode = "TEST123"
+  func testPresentedSheet_HasBeenUnlockedFalse_InvitationCodeNotNil_ReturnsNil() {
+    @Shared(.hasBeenUnlocked) var hasBeenUnlocked = false
+    @Shared(.invitationCode) var invitationCode: String? = "TEST123"
 
     let model = SignInPageModel()
 
-    XCTAssertNotNil(model.invitationCodesPageModel)
-
-    // Clean up
-    Config.shared.hasBeenUnlocked = false
-    Config.shared.invitationCode = nil
+    XCTAssertNil(model.presentedSheet)
   }
 
-  func testInvitationCodesPageModel_HasBeenUnlockedTrue_InvitationCodeNotNil_ReturnsModel() {
-    Config.shared.hasBeenUnlocked = true
-    Config.shared.invitationCode = "TEST123"
+  func testPresentedSheet_HasBeenUnlockedTrue_InvitationCodeNotNil_ReturnsNil() {
+    @Shared(.hasBeenUnlocked) var hasBeenUnlocked = true
+    @Shared(.invitationCode) var invitationCode: String? = "TEST123"
 
     let model = SignInPageModel()
 
-    XCTAssertNotNil(model.invitationCodesPageModel)
-
-    // Clean up
-    Config.shared.hasBeenUnlocked = false
-    Config.shared.invitationCode = nil
+    XCTAssertNil(model.presentedSheet)
   }
 
-  func testInvitationCodesPageModel_HasBeenUnlockedFalse_InvitationCodeNil_ReturnsNil() {
-    Config.shared.hasBeenUnlocked = false
-    Config.shared.invitationCode = nil
+  func testPresentedSheet_HasBeenUnlockedFalse_InvitationCodeNil_ReturnsInvitationCodeSheet() {
+    @Shared(.hasBeenUnlocked) var hasBeenUnlocked = false
+    @Shared(.invitationCode) var invitationCode: String? = nil
 
     let model = SignInPageModel()
 
-    XCTAssertNil(model.invitationCodesPageModel)
-
-    // Clean up
-    Config.shared.hasBeenUnlocked = false
-    Config.shared.invitationCode = nil
+    if case .invitationCode = model.presentedSheet {
+      XCTAssertTrue(true)
+    } else {
+      XCTFail("Expected invitation code sheet to be presented")
+    }
   }
 }

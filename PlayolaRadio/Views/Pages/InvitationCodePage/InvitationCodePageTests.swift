@@ -107,4 +107,43 @@ final class InvitationCodePageTests: XCTestCase {
 
     XCTAssertTrue(dismissCalled)
   }
+
+  func testChangeModeButtonTapped_TogglesMode() async {
+    let model = InvitationCodePageModel()
+
+    // Initially in invitationCodeInput mode
+    XCTAssertEqual(model.mode, .invitationCodeInput)
+
+    // Tap to change to waitingListInput mode
+    await model.changeModeButtonTapped()
+    XCTAssertEqual(model.mode, .waitingListInput)
+
+    // Tap again to change back to invitationCodeInput mode
+    await model.changeModeButtonTapped()
+    XCTAssertEqual(model.mode, .invitationCodeInput)
+  }
+
+  func testInvitationCodeInputMode_DisplaysCorrectText() async {
+    let model = InvitationCodePageModel()
+    model.mode = .invitationCodeInput
+
+    XCTAssertEqual(model.inputLabelTitleText, "Enter invite code")
+    XCTAssertEqual(model.actionButtonText, "Sign in")
+    XCTAssertEqual(model.actionButtonImageName, "KeyHorizontal")
+    XCTAssertEqual(model.changeModeLabelIntroText, "Don't have an invite code?")
+    XCTAssertEqual(model.changeModeButtonText, "Join waitlist")
+    XCTAssertEqual(model.changeModeButtonImageName, "Envelope")
+  }
+
+  func testWaitingListInputMode_DisplaysCorrectText() async {
+    let model = InvitationCodePageModel()
+    model.mode = .waitingListInput
+
+    XCTAssertEqual(model.inputLabelTitleText, "Enter your email to join waitlist")
+    XCTAssertEqual(model.actionButtonText, " Join waitlist")
+    XCTAssertEqual(model.actionButtonImageName, "Envelope")
+    XCTAssertEqual(model.changeModeLabelIntroText, "Have an invite code?")
+    XCTAssertEqual(model.changeModeButtonText, "Sign In")
+    XCTAssertEqual(model.changeModeButtonImageName, "KeyHorizontal")
+  }
 }

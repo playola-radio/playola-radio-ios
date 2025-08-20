@@ -76,3 +76,15 @@ extension SharedKey where Self == InMemoryKey<MainContainerNavigationCoordinator
     ]
   }
 }
+
+extension SharedKey where Self == AppStorageKey<Bool>.Default {
+  static var hasBeenUnlocked: Self {
+    Self[.appStorage("hasBeenUnlocked"), default: false]
+  }
+}
+
+extension SharedKey where Self == AppStorageKey<String?>.Default {
+  static var invitationCode: Self {
+    Self[.appStorage("invitationCode"), default: nil]
+  }
+}

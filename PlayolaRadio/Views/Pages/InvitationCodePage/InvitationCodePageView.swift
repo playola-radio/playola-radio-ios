@@ -41,7 +41,7 @@ struct InvitationCodePageView: View {
       // Form section
       VStack(spacing: 24) {
         VStack(alignment: .leading, spacing: 8) {
-          Text("Enter invite code")
+          Text(model.inputLabelTitleText)
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .foregroundColor(.white)
 
@@ -80,11 +80,11 @@ struct InvitationCodePageView: View {
           }
         }) {
           HStack {
-            Image("KeyHorizontal")
+            Image(model.actionButtonImageName)
               .font(.system(size: 16, weight: .medium))
               .foregroundColor(.white)
 
-            Text("Sign in")
+            Text(model.actionButtonText)
               .font(.custom(FontNames.Inter_500_Medium, size: 16))
               .foregroundColor(.white)
           }
@@ -95,22 +95,22 @@ struct InvitationCodePageView: View {
         }
 
         VStack(spacing: 16) {
-          Text("Don't have an invite code?")
+          Text(model.changeModeLabelIntroText)
             .font(.custom(FontNames.Inter_400_Regular, size: 16))
             .foregroundColor(Color(hex: "#C7C7C7"))
 
           // Join waitlist button
           Button(action: {
             Task {
-              await model.joinWaitlistButtonTapped()
+              await model.changeModeButtonTapped()
             }
           }) {
             HStack {
-              Image(systemName: "envelope")
+              Image(model.changeModeButtonImageName)
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(.white)
 
-              Text("Join waitlist")
+              Text(model.changeModeButtonText)
                 .font(.custom(FontNames.Inter_500_Medium, size: 16))
                 .foregroundColor(.white)
             }

@@ -24,13 +24,6 @@ class Config {
     }
   }
 
-  @UserDefault("hasBeenUnlocked", defaultValue: false) var hasBeenUnlocked: Bool
-  @UserDefault("invitationCode", defaultValue: nil) var invitationCode: String?
-
-  var shouldShowInvitationCodePage: Bool {
-    return self.hasBeenUnlocked || self.invitationCode != nil
-  }
-
   private init() {
     self.environment = .init(rawValue: Config.get("DEV_ENVIRONMENT", varType: String.self))!
     self.mixpanelToken = Config.get("MIXPANEL_TOKEN", varType: String.self)
