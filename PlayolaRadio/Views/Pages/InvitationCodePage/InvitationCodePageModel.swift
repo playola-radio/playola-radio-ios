@@ -16,8 +16,10 @@ class InvitationCodePageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.continuousClock) var clock
 
+  @ObservationIgnored @Shared(.invitationCode) var invitationCode
+
   var email: String! = ""
-  var invitationCode: String! = ""
+  var invitationCodeInputStr: String! = ""
   var errorMessage: String? = nil
   var onDismiss: (() -> Void)?
 
@@ -86,16 +88,16 @@ class InvitationCodePageModel: ViewModel {
   }
 
   func signInButtonTapped() async {
-    guard !invitationCode.isEmpty else {
+    guard !invitationCodeInputStr.isEmpty else {
       errorMessage = "Please enter an invitation code"
       return
     }
 
     do {
-      try await api.verifyInvitationCode(invitationCode)
-      // Clear any previous error message
+      try await api.verifyInvitationCode(invitationCodeInputStr)
+
       errorMessage = nil
-      // Dismiss the view after successful validation
+      $invitationCode.withLock { $0 = invitationCodeInputStr }
       onDismiss?()
     } catch let error as InvitationCodeError {
       errorMessage = error.localizedDescription

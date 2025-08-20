@@ -45,7 +45,7 @@ struct InvitationCodePageView: View {
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .foregroundColor(.white)
 
-          TextField("", text: $model.invitationCode)
+          TextField("", text: $model.invitationCodeInputStr)
             .textFieldStyle(PlainTextFieldStyle())
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
