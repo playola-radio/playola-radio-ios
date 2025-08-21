@@ -1,14 +1,14 @@
-//
-//  SignInPage.swift
-//  PlayolaRadio
-//
-//  Created by Brian D Keane on 1/21/25.
-//
 import AuthenticationServices
 import Dependencies
 import GoogleSignIn
 import GoogleSignInSwift
 import Sharing
+//
+//  SignInPageModel.swift
+//  PlayolaRadio
+//
+//  Created by Brian D Keane on 8/20/25.
+//
 import SwiftUI
 
 @MainActor
@@ -18,10 +18,30 @@ class SignInPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Shared(.appleSignInInfo) var appleSignInInfo: AppleSignInInfo?
   @ObservationIgnored @Shared(.auth) var auth: Auth
+  @ObservationIgnored @Shared(.hasBeenUnlocked) var hasBeenUnlocked: Bool
+  @ObservationIgnored @Shared(.invitationCode) var invitationCode: String?
   var navigationCoordinator: NavigationCoordinator
+  var presentedSheet: PlayolaSheet?
+
+  private var _invitationCodesPageModel = InvitationCodePageModel()
 
   init(navigationCoordinator: NavigationCoordinator = .shared) {
     self.navigationCoordinator = navigationCoordinator
+    super.init()
+    updateSheetPresentation()
+
+    // Set up the invitation code page success callback
+    _invitationCodesPageModel.onDismiss = { [weak self] in
+      self?.updateSheetPresentation()
+    }
+  }
+
+  private func updateSheetPresentation() {
+    if !hasBeenUnlocked && invitationCode == nil {
+      presentedSheet = .invitationCode(_invitationCodesPageModel)
+    } else {
+      presentedSheet = nil
+    }
   }
 
   // MARK: Actions
@@ -117,145 +137,5 @@ class SignInPageModel: ViewModel {
         }
       }
     }
-  }
-
-}
-
-@MainActor
-struct SignInPage: View {
-  var model: SignInPageModel
-
-  var body: some View {
-    NavigationView {
-      ZStack {
-        // Background gradient
-        LinearGradient(
-          gradient: Gradient(colors: [Color.black, Color(hex: "#1C1C1E")]),
-          startPoint: .top,
-          endPoint: .bottom
-        )
-        .edgesIgnoringSafeArea(.all)
-
-        VStack(spacing: 30) {
-          Spacer()
-
-          // Logo section
-          VStack(spacing: 15) {
-            Image("LogoMark")
-              .resizable()
-              .scaledToFit()
-              .frame(height: 80)
-
-            Image("PlayolaWordLogo")
-              .resizable()
-              .scaledToFit()
-              .frame(width: 180)
-          }
-          .padding(.bottom, 40)
-
-          // Welcome text
-          Text("Welcome to Playola")
-            .font(.title)
-            .fontWeight(.bold)
-            .foregroundColor(.white)
-
-          Text("Sign in to access your personalized radio stations")
-            .font(.subheadline)
-            .foregroundColor(Color.white.opacity(0.7))
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 40)
-            .padding(.bottom, 20)
-
-          // Auth buttons
-          VStack(spacing: 16) {
-            SignInWithAppleButton(.signIn) { request in
-              Task {
-                await model.signInWithAppleButtonTapped(request: request)
-              }
-            } onCompletion: { result in
-              model.signInWithAppleCompleted(result: result)
-            }
-            .signInWithAppleButtonStyle(.white)
-            .frame(height: 56)
-            .cornerRadius(12)
-            .padding(.horizontal, 30)
-
-            CustomGoogleSignInButton {
-              Task {
-                await model.signInWithGoogleButtonTapped()
-              }
-            }
-            .padding(.horizontal, 30)
-          }
-
-          Spacer()
-
-          // Footer
-          VStack(spacing: 8) {
-            Text("By signing in, you agree to our")
-              .font(.footnote)
-              .foregroundColor(Color.white.opacity(0.6))
-
-            HStack(spacing: 4) {
-              Text("Terms of Service")
-                .font(.footnote)
-                .foregroundColor(.playolaRed)
-                .underline()
-
-              Text("and")
-                .font(.footnote)
-                .foregroundColor(Color.white.opacity(0.6))
-
-              Text("Privacy Policy")
-                .font(.footnote)
-                .foregroundColor(.playolaRed)
-                .underline()
-            }
-          }
-          .padding(.bottom, 20)
-        }
-        .padding()
-      }
-      .navigationBarHidden(true)
-    }
-    .navigationViewStyle(StackNavigationViewStyle())
-  }
-}
-
-struct CustomGoogleSignInButton: View {
-  let action: () -> Void
-
-  var body: some View {
-    Button(action: action) {
-      HStack {
-        Image("google-icon")  // Make sure you have this asset in your asset catalog
-          .resizable()
-          .scaledToFit()
-          .frame(width: 24, height: 24)
-
-        Text("Sign in with Google")
-          .fontWeight(.semibold)
-          .foregroundColor(.black)
-      }
-      .frame(maxWidth: .infinity)
-      .frame(height: 56)
-      .background(Color.white)
-      .cornerRadius(12)
-      .overlay(
-        RoundedRectangle(cornerRadius: 12)
-          .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-      )
-    }
-  }
-}
-
-#Preview {
-  NavigationStack {
-    SignInPage(model: SignInPageModel())
-  }
-  .onAppear {
-    UINavigationBar.appearance().barStyle = .black
-    UINavigationBar.appearance().tintColor = .white
-    UINavigationBar.appearance().prefersLargeTitles = true
   }
 }
