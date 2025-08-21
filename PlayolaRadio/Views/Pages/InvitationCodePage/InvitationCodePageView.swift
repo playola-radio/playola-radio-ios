@@ -84,20 +84,21 @@ struct InvitationCodePageView: View {
             }
           },
           label: {
-          HStack {
-            Image(model.actionButtonImageName)
-              .font(.system(size: 16, weight: .medium))
-              .foregroundColor(.white)
+            HStack {
+              Image(model.actionButtonImageName)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.white)
 
-            Text(model.actionButtonText)
-              .font(.custom(FontNames.Inter_500_Medium, size: 16))
-              .foregroundColor(.white)
+              Text(model.actionButtonText)
+                .font(.custom(FontNames.Inter_500_Medium, size: 16))
+                .foregroundColor(.white)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(Color.playolaRed)
+            .cornerRadius(6)
           }
-          .frame(maxWidth: .infinity)
-          .padding(.vertical, 14)
-          .background(Color.playolaRed)
-          .cornerRadius(6)
-        }
+        )
 
         // Change mode section
         VStack(spacing: 16) {
@@ -113,23 +114,24 @@ struct InvitationCodePageView: View {
               }
             },
             label: {
-            HStack {
-              Image(model.changeModeButtonImageName)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.white)
+              HStack {
+                Image(model.changeModeButtonImageName)
+                  .font(.system(size: 16, weight: .medium))
+                  .foregroundColor(.white)
 
-              Text(model.changeModeButtonText)
-                .font(.custom(FontNames.Inter_500_Medium, size: 16))
-                .foregroundColor(.white)
+                Text(model.changeModeButtonText)
+                  .font(.custom(FontNames.Inter_500_Medium, size: 16))
+                  .foregroundColor(.white)
+              }
+              .frame(maxWidth: .infinity)
+              .padding(.vertical, 14)
+              .background(Color.clear)
+              .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                  .stroke(Color(hex: "#827876"), lineWidth: 1)
+              )
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .background(Color.clear)
-            .overlay(
-              RoundedRectangle(cornerRadius: 6)
-                .stroke(Color(hex: "#827876"), lineWidth: 1)
-            )
-          }
+          )
         }
         .padding(.top, 8)
       }
