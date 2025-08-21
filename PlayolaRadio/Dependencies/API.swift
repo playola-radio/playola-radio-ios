@@ -76,6 +76,11 @@ struct APIClient: Sendable {
   ///   - code: The invitation code to use for registration
   /// - Throws: InvitationCodeError if the registration fails
   var registerInvitationCode: (_ userId: String, _ code: String) async throws -> Void = { _, _ in }
+
+  /// Adds an email address to the waiting list
+  /// - Parameter email: The email address to add to the waiting list
+  /// - Throws: Error if the email is invalid or already exists
+  var addToWaitingList: (_ email: String) async throws -> Void = { _ in }
 }
 
 extension APIClient: DependencyKey {
@@ -270,6 +275,44 @@ extension APIClient: DependencyKey {
         guard response["success"] == true else {
           throw InvitationCodeError.registrationFailed("Failed to register with invitation code")
         }
+      },
+      addToWaitingList: { email in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/waitingListEntries"
+        let parameters = ["email": email]
+
+        let dataResponse = await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default
+        )
+        .serializingData()
+        .response
+
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw APIError.dataNotValid
+        }
+
+        if statusCode >= 200 && statusCode < 300 {
+          return
+        } else {
+          // Try to parse server error message
+          if let data = dataResponse.value,
+            let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let message = errorResponse["message"] as? String
+          {
+            throw APIError.validationError(message)
+          }
+
+          // Fall back to validation error
+          let request = AF.request(
+            url,
+            method: .post,
+            parameters: parameters,
+            encoding: JSONEncoding.default
+          )
+          _ = try await request.validate(statusCode: 200..<300).serializingData().value
+        }
       }
     )
   }()
@@ -277,6 +320,7 @@ extension APIClient: DependencyKey {
 
 enum APIError: Error {
   case dataNotValid
+  case validationError(String)
 }
 
 enum InvitationCodeError: Error {

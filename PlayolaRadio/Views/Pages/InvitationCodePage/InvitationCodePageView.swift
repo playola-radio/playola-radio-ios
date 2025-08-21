@@ -23,60 +23,63 @@ struct InvitationCodePageView: View {
           .padding(.top, 16)
 
         VStack(spacing: 16) {
-          Text("Invite only, for now!")
+          Text(model.titleText)
             .font(.custom(FontNames.Inter_700_Bold, size: 26))
             .foregroundColor(.white)
             .multilineTextAlignment(.center)
             .padding(.top, 20)
 
-          Text("Discover music through independent artist-\nmade radio stations")
+          Text(model.attributedSubtitleText)
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .foregroundColor(Color(hex: "#C7C7C7"))
             .multilineTextAlignment(.center)
             .lineSpacing(2)
+            .padding(.horizontal, 38)
         }
         //        .padding(.horizontal, 38)
       }
 
       // Form section
       VStack(spacing: 24) {
-        VStack(alignment: .leading, spacing: 8) {
-          Text(model.inputLabelTitleText)
-            .font(.custom(FontNames.Inter_500_Medium, size: 16))
-            .foregroundColor(.white)
+        if !model.shouldHideInput {
+          VStack(alignment: .leading, spacing: 8) {
+            Text(model.inputLabelTitleText)
+              .font(.custom(FontNames.Inter_500_Medium, size: 16))
+              .foregroundColor(.white)
 
-          TextField("", text: $model.invitationCodeInputStr)
-            .textFieldStyle(PlainTextFieldStyle())
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .background(Color(hex: "#333333"))
-            .cornerRadius(6)
-            .foregroundColor(.white)
-            .font(.custom(FontNames.Inter_500_Medium, size: 16))
-            .autocapitalization(.allCharacters)
-            .disableAutocorrection(true)
-            .frame(minHeight: 48)
+            TextField("", text: $model.inputText)
+              .textFieldStyle(PlainTextFieldStyle())
+              .padding(.horizontal, 16)
+              .padding(.vertical, 14)
+              .background(Color(hex: "#333333"))
+              .cornerRadius(6)
+              .foregroundColor(.white)
+              .font(.custom(FontNames.Inter_500_Medium, size: 16))
+              .autocapitalization(.allCharacters)
+              .disableAutocorrection(true)
+              .frame(minHeight: 48)
 
-          // Error message
-          if let errorMessage = model.errorMessage {
-            HStack {
-              Image(systemName: "exclamationmark.circle")
-                .foregroundColor(.playolaRed)
-                .font(.system(size: 14))
+            // Error message
+            if let errorMessage = model.errorMessage {
+              HStack {
+                Image(systemName: "exclamationmark.circle")
+                  .foregroundColor(.playolaRed)
+                  .font(.system(size: 14))
 
-              Text(errorMessage)
-                .font(.custom(FontNames.Inter_500_Medium, size: 16))
-                .foregroundColor(.playolaRed)
+                Text(errorMessage)
+                  .font(.custom(FontNames.Inter_500_Medium, size: 16))
+                  .foregroundColor(.playolaRed)
 
-              Spacer()
+                Spacer()
+              }
             }
           }
         }
 
-        // Sign in button
+        // Action button
         Button(action: {
           Task {
-            await model.signInButtonTapped()
+            await model.actionButtonTapped()
           }
         }) {
           HStack {
@@ -94,6 +97,7 @@ struct InvitationCodePageView: View {
           .cornerRadius(6)
         }
 
+        // Change mode section
         VStack(spacing: 16) {
           Text(model.changeModeLabelIntroText)
             .font(.custom(FontNames.Inter_400_Regular, size: 16))
@@ -131,6 +135,12 @@ struct InvitationCodePageView: View {
       Spacer()
     }
     .background(Color(hex: "#130000"))
+    .sheet(isPresented: $model.showingShareSheet) {
+      ShareSheet(items: [
+        "https://apps.apple.com/us/app/playola-radio/id6480465361",
+        "Playola: Discover music through artist-made radio stations.",
+      ])
+    }
   }
 }
 

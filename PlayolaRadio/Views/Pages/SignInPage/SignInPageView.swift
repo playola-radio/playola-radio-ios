@@ -109,11 +109,10 @@ struct SignInPage: View {
       .navigationBarHidden(true)
     }
     .navigationViewStyle(StackNavigationViewStyle())
-    .sheet(item: $model.presentedSheet) { item in
+    .fullScreenCover(item: $model.presentedSheet) { item in
       switch item {
       case let .invitationCode(invitationModel):
         InvitationCodePageView(model: invitationModel)
-          .interactiveDismissDisabled(true)
       case .player:
         EmptyView()  // This case shouldn't occur in SignInPage
       }
