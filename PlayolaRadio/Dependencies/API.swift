@@ -90,7 +90,7 @@ extension APIClient: DependencyKey {
 
     return Self(
       getStations: {
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/developer/stationLists"
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/developer/station-lists"
         let response = try await AF.request(url).serializingDecodable([String: [StationList]].self)
           .value
         guard let stationLists = response["stationLists"] else {
@@ -277,7 +277,7 @@ extension APIClient: DependencyKey {
         }
       },
       addToWaitingList: { email in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/waitingListEntries"
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/waiting-list-entries"
         let parameters = ["email": email]
 
         let dataResponse = await AF.request(
