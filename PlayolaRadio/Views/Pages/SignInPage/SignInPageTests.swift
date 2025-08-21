@@ -94,7 +94,7 @@ final class SignInPageTests: XCTestCase {
 
   func testPresentedSheet_HasBeenUnlockedTrue_InvitationCodeNil_ReturnsNil() {
     @Shared(.hasBeenUnlocked) var hasBeenUnlocked = true
-    @Shared(.invitationCode) var invitationCode: String? = nil
+    @Shared(.invitationCode) var invitationCode: String?
 
     let model = SignInPageModel()
 
@@ -121,7 +121,7 @@ final class SignInPageTests: XCTestCase {
 
   func testPresentedSheet_HasBeenUnlockedFalse_InvitationCodeNil_ReturnsInvitationCodeSheet() {
     @Shared(.hasBeenUnlocked) var hasBeenUnlocked = false
-    @Shared(.invitationCode) var invitationCode: String? = nil
+    @Shared(.invitationCode) var invitationCode: String?
 
     let model = SignInPageModel()
 

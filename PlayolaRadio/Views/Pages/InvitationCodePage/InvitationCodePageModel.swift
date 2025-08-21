@@ -22,7 +22,7 @@ class InvitationCodePageModel: ViewModel {
 
   var email: String! = ""
   var invitationCodeInputStr: String! = ""
-  var errorMessage: String? = nil
+  var errorMessage: String?
   var onDismiss: (() -> Void)?
   var showingShareSheet = false
 

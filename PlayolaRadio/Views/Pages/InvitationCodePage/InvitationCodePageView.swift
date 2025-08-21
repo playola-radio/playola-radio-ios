@@ -77,11 +77,13 @@ struct InvitationCodePageView: View {
         }
 
         // Action button
-        Button(action: {
-          Task {
-            await model.actionButtonTapped()
-          }
-        }) {
+        Button(
+          action: {
+            Task {
+              await model.actionButtonTapped()
+            }
+          },
+          label: {
           HStack {
             Image(model.actionButtonImageName)
               .font(.system(size: 16, weight: .medium))
@@ -104,11 +106,13 @@ struct InvitationCodePageView: View {
             .foregroundColor(Color(hex: "#C7C7C7"))
 
           // Join waitlist button
-          Button(action: {
-            Task {
-              await model.changeModeButtonTapped()
-            }
-          }) {
+          Button(
+            action: {
+              Task {
+                await model.changeModeButtonTapped()
+              }
+            },
+            label: {
             HStack {
               Image(model.changeModeButtonImageName)
                 .font(.system(size: 16, weight: .medium))
