@@ -45,11 +45,11 @@ extension RadioStation {
     if imageURL.range(of: "http") != nil, let url = URL(string: imageURL) {
       // load current station image from network
       UIImage.image(from: url) { image in
-        completion(image ?? #imageLiteral(resourceName: "stationImage"))
+        completion(image ?? UIImage(named: "stationImage"))
       }
     } else {
       // load local station image
-      let image = UIImage(named: imageURL) ?? #imageLiteral(resourceName: "stationImage")
+      let image = UIImage(named: imageURL) ?? UIImage(named: "stationImage")
       completion(image)
     }
   }
