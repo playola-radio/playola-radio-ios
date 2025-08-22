@@ -10,6 +10,9 @@ import SwiftUI
 struct InvitationCodePageView: View {
   @Bindable var model: InvitationCodePageModel
 
+  // Keyboard focus for the single text field
+  @FocusState private var isInputFocused: Bool
+
   var body: some View {
     VStack(spacing: 0) {
 
@@ -35,8 +38,9 @@ struct InvitationCodePageView: View {
             .multilineTextAlignment(.center)
             .lineSpacing(2)
             .padding(.horizontal, 38)
+            // don't compress vertically when keyboard is showing
+            .fixedSize(horizontal: false, vertical: true)
         }
-        //        .padding(.horizontal, 38)
       }
 
       // Form section
@@ -58,6 +62,11 @@ struct InvitationCodePageView: View {
               .autocapitalization(.allCharacters)
               .disableAutocorrection(true)
               .frame(minHeight: 48)
+              .focused($isInputFocused)  // ← bind focus to enable dismissals
+              .submitLabel(.send)
+              .onSubmit {
+                Task { await model.actionButtonTapped() }
+              }
 
             // Error message
             if let errorMessage = model.errorMessage {
@@ -79,9 +88,7 @@ struct InvitationCodePageView: View {
         // Action button
         Button(
           action: {
-            Task {
-              await model.actionButtonTapped()
-            }
+            Task { await model.actionButtonTapped() }
           },
           label: {
             HStack {
@@ -109,9 +116,7 @@ struct InvitationCodePageView: View {
           // Join waitlist button
           Button(
             action: {
-              Task {
-                await model.changeModeButtonTapped()
-              }
+              Task { await model.changeModeButtonTapped() }
             },
             label: {
               HStack {
@@ -141,6 +146,33 @@ struct InvitationCodePageView: View {
       Spacer()
     }
     .background(Color(hex: "#130000"))
+
+    // 1) Tap anywhere outside the field to dismiss keyboard
+    .contentShape(Rectangle())
+    .onTapGesture {
+      isInputFocused = false
+    }
+
+    // 2) Drag down anywhere to dismiss (simple, non-interactive)
+    .simultaneousGesture(
+      DragGesture(minimumDistance: 10)
+        .onEnded { value in
+          if value.translation.height > 30 { isInputFocused = false }
+        }
+    )
+
+    // 3) Keyboard toolbar "Hide" button
+    .toolbar {
+      ToolbarItemGroup(placement: .keyboard) {
+        Spacer()
+        Button {
+          isInputFocused = false
+        } label: {
+          Image(systemName: "keyboard.chevron.compact.down")
+          Text("Hide")
+        }
+      }
+    }
     .sheet(isPresented: $model.showingShareSheet) {
       ShareSheet(items: [
         "https://apps.apple.com/us/app/playola-radio/id6480465361",
