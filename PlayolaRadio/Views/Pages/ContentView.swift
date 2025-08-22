@@ -15,6 +15,12 @@ struct ContentView: View {
   @Dependency(\.analytics) var analytics
   @State private var hasTrackedAppOpen = false
 
+  init() {
+    // Ensure StationPlayer and NowPlayingUpdater are initialized early
+    _ = StationPlayer.shared
+    _ = NowPlayingUpdater.shared
+  }
+
   var body: some View {
     Group {
       if auth.isLoggedIn {

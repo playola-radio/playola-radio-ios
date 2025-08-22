@@ -38,6 +38,8 @@ struct InvitationCodePageView: View {
             .multilineTextAlignment(.center)
             .lineSpacing(2)
             .padding(.horizontal, 38)
+            // don't compress vertically when keyboard is showing
+            .fixedSize(horizontal: false, vertical: true)
         }
       }
 
