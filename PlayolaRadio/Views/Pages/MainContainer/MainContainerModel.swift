@@ -25,6 +25,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
+  @ObservationIgnored @Shared(.hasBeenUnlocked) var hasBeenUnlocked
 
   enum ActiveTab {
     case home
@@ -49,6 +50,9 @@ class MainContainerModel: ViewModel {
   }
 
   func viewAppeared() async {
+    // Mark that the main container has been unlocked/shown
+    $hasBeenUnlocked.withLock { $0 = true }
+
     // Exit early if we already have the data.
     guard !stationListsLoaded else { return }
 

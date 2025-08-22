@@ -11,4 +11,5 @@ enum PlayolaSheet: Hashable, Identifiable, Equatable {
   }
 
   case player(PlayerPageModel)
+  case invitationCode(InvitationCodePageModel)
 }

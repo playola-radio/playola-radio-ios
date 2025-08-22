@@ -89,4 +89,46 @@ final class SignInPageTests: XCTestCase {
 
   // MARK: - SignInWithGoogle Tests
   // TODO: Implement Google sign in tests
+
+  // MARK: - Presented Sheet Tests
+
+  func testPresentedSheet_HasBeenUnlockedTrue_InvitationCodeNil_ReturnsNil() {
+    @Shared(.hasBeenUnlocked) var hasBeenUnlocked = true
+    @Shared(.invitationCode) var invitationCode: String?
+
+    let model = SignInPageModel()
+
+    XCTAssertNil(model.presentedSheet)
+  }
+
+  func testPresentedSheet_HasBeenUnlockedFalse_InvitationCodeNotNil_ReturnsNil() {
+    @Shared(.hasBeenUnlocked) var hasBeenUnlocked = false
+    @Shared(.invitationCode) var invitationCode: String? = "TEST123"
+
+    let model = SignInPageModel()
+
+    XCTAssertNil(model.presentedSheet)
+  }
+
+  func testPresentedSheet_HasBeenUnlockedTrue_InvitationCodeNotNil_ReturnsNil() {
+    @Shared(.hasBeenUnlocked) var hasBeenUnlocked = true
+    @Shared(.invitationCode) var invitationCode: String? = "TEST123"
+
+    let model = SignInPageModel()
+
+    XCTAssertNil(model.presentedSheet)
+  }
+
+  func testPresentedSheet_HasBeenUnlockedFalse_InvitationCodeNil_ReturnsInvitationCodeSheet() {
+    @Shared(.hasBeenUnlocked) var hasBeenUnlocked = false
+    @Shared(.invitationCode) var invitationCode: String?
+
+    let model = SignInPageModel()
+
+    if case .invitationCode = model.presentedSheet {
+      XCTAssertTrue(true)
+    } else {
+      XCTFail("Expected invitation code sheet to be presented")
+    }
+  }
 }

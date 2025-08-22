@@ -44,7 +44,7 @@ public class UrlStreamListeningSessionReporter {
       print("Cannot send listeningSession -- missing identifier")
       return
     }
-    let url = URL(string: "https://admin-api.playola.fm/v1/listeningSessions/end")!
+    let url = URL(string: "https://admin-api.playola.fm/v1/listening-sessions/end")!
     let requestBody = ["deviceId": deviceId]
 
     guard let jsonData = try? JSONEncoder().encode(requestBody) else {
@@ -72,7 +72,7 @@ public class UrlStreamListeningSessionReporter {
   }
 
   public func reportOrExtendListeningSession(_ stationUrl: String) {
-    let url = URL(string: "https://admin-api.playola.fm/v1/listeningSessions")!
+    let url = URL(string: "https://admin-api.playola.fm/v1/listening-sessions")!
 
     // Create an instance of the Codable struct
     let requestBody = [
