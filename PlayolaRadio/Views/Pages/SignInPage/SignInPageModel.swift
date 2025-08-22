@@ -92,6 +92,20 @@ class SignInPageModel: ViewModel {
             firstName,
             lastName)
           $auth.withLock { $0 = Auth(jwtToken: token) }
+
+          // Register invitation code if one was provided (fire-and-forget)
+          if let invitationCode = invitationCode,
+            let userId = auth.currentUser?.id
+          {
+            Task {
+              do {
+                try await api.registerInvitationCode(userId, invitationCode)
+              } catch {
+                print("Failed to register invitation code: \(error)")
+              }
+            }
+          }
+
           await analytics.track(.signInCompleted(method: .apple, userId: appleIDCredential.user))
           self.navigationCoordinator.activePath = .listen
         } catch {
@@ -126,6 +140,20 @@ class SignInPageModel: ViewModel {
           do {
             let token = try await self.api.signInViaGoogle(serverAuthCode)
             self.$auth.withLock { $0 = Auth(jwtToken: token) }
+
+            // Register invitation code if one was provided (fire-and-forget)
+            if let invitationCode = self.invitationCode,
+              let userId = self.auth.currentUser?.id
+            {
+              Task {
+                do {
+                  try await self.api.registerInvitationCode(userId, invitationCode)
+                } catch {
+                  print("Failed to register invitation code: \(error)")
+                }
+              }
+            }
+
             await self.analytics.track(
               .signInCompleted(method: .google, userId: signInResult.user.userID ?? "unknown"))
             self.navigationCoordinator.activePath = .listen
