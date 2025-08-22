@@ -72,7 +72,7 @@ final class RewardsPageModelTests: XCTestCase {
     // Verify analytics event was tracked
     let events = capturedEvents.value
     XCTAssertEqual(events.count, 1)
-    if case let .viewedRewardsScreen(currentHours) = events.first {
+    if case .viewedRewardsScreen(let currentHours) = events.first {
       XCTAssertEqual(currentHours, 15.0, accuracy: 0.1)
     } else {
       XCTFail("Expected viewedRewardsScreen event, got: \(String(describing: events.first))")
@@ -99,7 +99,7 @@ final class RewardsPageModelTests: XCTestCase {
     // Verify analytics event was tracked
     let events = capturedEvents.value
     XCTAssertEqual(events.count, 1)
-    if case let .tappedRedeemRewards(currentHours) = events.first {
+    if case .tappedRedeemRewards(let currentHours) = events.first {
       XCTAssertEqual(currentHours, 30.0, accuracy: 0.1)
     } else {
       XCTFail("Expected tappedRedeemRewards event, got: \(String(describing: events.first))")

@@ -36,7 +36,7 @@ final class NowPlayingUpdaterTests: XCTestCase {
     // Verify session started event was tracked
     let events = capturedEvents.value
     XCTAssertEqual(events.count, 1)
-    if case let .listeningSessionStarted(stationInfo) = events.first {
+    if case .listeningSessionStarted(let stationInfo) = events.first {
       XCTAssertEqual(stationInfo.id, station.id)
       XCTAssertEqual(stationInfo.name, station.name)
     } else {
@@ -74,7 +74,7 @@ final class NowPlayingUpdaterTests: XCTestCase {
     // Verify session ended event was tracked
     let events = capturedEvents.value
     XCTAssertEqual(events.count, 1)
-    if case let .listeningSessionEnded(stationInfo, sessionLengthSec) = events.first {
+    if case .listeningSessionEnded(let stationInfo, let sessionLengthSec) = events.first {
       XCTAssertEqual(stationInfo.id, station.id)
       XCTAssertEqual(stationInfo.name, station.name)
       XCTAssertGreaterThanOrEqual(sessionLengthSec, 0)
@@ -171,14 +171,15 @@ final class NowPlayingUpdaterTests: XCTestCase {
     guard events.count == 3 else { return }
 
     // Event 1: session ended for station 1
-    guard case let .listeningSessionEnded(stationInfo, _) = events[0] else {
+    guard case .listeningSessionEnded(let stationInfo, _) = events[0] else {
       XCTFail("Expected listeningSessionEnded event first, got: \(events[0])")
       return
     }
     XCTAssertEqual(stationInfo.id, station1.id)
 
     // Event 2: switched station
-    guard case let .switchedStation(from, to, timeBeforeSwitchSec, reason) = events[1] else {
+    guard case .switchedStation(let from, let to, let timeBeforeSwitchSec, let reason) = events[1]
+    else {
       XCTFail("Expected switchedStation event second, got: \(events[1])")
       return
     }
@@ -188,7 +189,7 @@ final class NowPlayingUpdaterTests: XCTestCase {
     XCTAssertEqual(reason, .userInitiated)
 
     // Event 3: session started for station 2
-    guard case let .listeningSessionStarted(stationInfo) = events[2] else {
+    guard case .listeningSessionStarted(let stationInfo) = events[2] else {
       XCTFail("Expected listeningSessionStarted event third, got: \(events[2])")
       return
     }
@@ -296,7 +297,7 @@ final class NowPlayingUpdaterTests: XCTestCase {
     // Verify session started
     let events = capturedEvents.value
     XCTAssertEqual(events.count, 1)
-    if case let .listeningSessionStarted(stationInfo) = events.first {
+    if case .listeningSessionStarted(let stationInfo) = events.first {
       XCTAssertEqual(stationInfo.id, station.id)
     } else {
       XCTFail("Expected listeningSessionStarted event, got: \(String(describing: events.first))")

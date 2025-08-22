@@ -96,7 +96,7 @@ class MainContainerModel: ViewModel {
 
   func processNewStationState(_ newState: StationPlayer.State) {
     switch newState.playbackStatus {
-    case let .startingNewStation(_):
+    case .startingNewStation(_):
       self.presentedSheet = .player(
         PlayerPageModel(onDismiss: {
           self.presentedSheet = nil
