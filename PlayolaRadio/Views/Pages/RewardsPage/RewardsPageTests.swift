@@ -183,7 +183,7 @@ final class RewardsPageModelTests: XCTestCase {
   }
 
   func testRedemptionStatus_ZeroListeningTime() async {
-    @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(totalTimeMS: 0)  // 0 hours
+    @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(totalTimeMS: 0)
     let mockPrizeTiers = PrizeTier.mocks
 
     let model = withDependencies {
