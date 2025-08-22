@@ -36,11 +36,11 @@ class StationPlayer: ObservableObject {
   /// The currently playing radio station, if any
   public var currentStation: RadioStation? {
     switch state.playbackStatus {
-    case let .startingNewStation(radioStation):
+    case .startingNewStation(let radioStation):
       return radioStation
-    case let .playing(radioStation):
+    case .playing(let radioStation):
       return radioStation
-    case let .loading(radioStation, _):
+    case .loading(let radioStation, _):
       return radioStation
     case .error, .stopped:
       return nil
@@ -114,7 +114,7 @@ class StationPlayer: ObservableObject {
         albumArtworkUrl: nil,
         playolaSpinPlaying: nil
       )
-    case let .loading(progress):
+    case .loading(let progress):
       guard let currentStation else { return }
       state = .init(
         playbackStatus: .loading(currentStation, progress),
@@ -123,7 +123,7 @@ class StationPlayer: ObservableObject {
         albumArtworkUrl: nil,
         playolaSpinPlaying: nil
       )
-    case let .playing(nowPlaying):
+    case .playing(let nowPlaying):
       if let currentStation {
         state = .init(
           playbackStatus: .playing(currentStation),

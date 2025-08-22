@@ -24,6 +24,7 @@ struct RadioStation: Codable, Identifiable, Equatable, Sendable {
 
   func processedImageURL() -> URL {
     if let url = URL(string: imageURL) { return url }
+    // swiftlint:disable:next force_unwrapping
     return Bundle.main.url(forResource: "AppIcon", withExtension: "PNG")!
   }
 
@@ -45,11 +46,13 @@ extension RadioStation {
     if imageURL.range(of: "http") != nil, let url = URL(string: imageURL) {
       // load current station image from network
       UIImage.image(from: url) { image in
-        completion(image ?? #imageLiteral(resourceName: "stationImage"))
+        // swiftlint:disable:next force_unwrapping
+        completion(image ?? UIImage(named: "stationImage")!)
       }
     } else {
       // load local station image
-      let image = UIImage(named: imageURL) ?? #imageLiteral(resourceName: "stationImage")
+      // swiftlint:disable:next force_unwrapping
+      let image = UIImage(named: imageURL) ?? UIImage(named: "stationImage")!
       completion(image)
     }
   }

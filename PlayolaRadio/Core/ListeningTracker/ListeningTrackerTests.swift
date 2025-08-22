@@ -150,9 +150,11 @@ final class ListeningTrackerTests: XCTestCase {
     let rewardsProfile = createMockRewardsProfile(totalTimeListenedMS: 1000)
     let baseTime = Date()
     let existingSessions = [
-      LocalListeningSession(startTime: baseTime, endTime: baseTime.addingTimeInterval(5)),  // 5000ms
+      // 5000ms
+      LocalListeningSession(startTime: baseTime, endTime: baseTime.addingTimeInterval(5)),
       LocalListeningSession(
-        startTime: baseTime.addingTimeInterval(10), endTime: baseTime.addingTimeInterval(13)),  // 3000ms
+        // 3000ms
+        startTime: baseTime.addingTimeInterval(10), endTime: baseTime.addingTimeInterval(13)),
     ]
     let tracker = ListeningTracker(
       rewardsProfile: rewardsProfile, localListeningSessions: existingSessions)

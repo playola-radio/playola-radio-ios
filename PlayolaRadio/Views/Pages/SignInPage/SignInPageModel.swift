@@ -67,7 +67,7 @@ class SignInPageModel: ViewModel {
 
   func signInWithAppleCompleted(result: Result<ASAuthorization, any Error>) {
     switch result {
-    case let .success(authorization):
+    case .success(let authorization):
 
       guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential,
         let identityTokenData = appleIDCredential.identityToken,
@@ -114,7 +114,7 @@ class SignInPageModel: ViewModel {
           await analytics.track(.signInFailed(method: .apple, error: error.localizedDescription))
         }
       }
-    case let .failure(error):
+    case .failure(let error):
       print(error)
     }
   }

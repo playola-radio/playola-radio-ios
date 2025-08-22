@@ -128,7 +128,7 @@ final class StationListPageTests: XCTestCase {
     XCTAssertEqual(events.count, 2)
 
     // First event should be tappedStationCard
-    if case let .tappedStationCard(stationInfo, position, totalStations) = events[0] {
+    if case .tappedStationCard(let stationInfo, let position, let totalStations) = events[0] {
       XCTAssertEqual(stationInfo.id, station.id)
       XCTAssertEqual(position, 0)
       XCTAssertEqual(totalStations, 0)  // Empty list for this test
@@ -137,7 +137,7 @@ final class StationListPageTests: XCTestCase {
     }
 
     // Second event should be startedStation
-    if case let .startedStation(stationInfo, entryPoint) = events[1] {
+    if case .startedStation(let stationInfo, let entryPoint) = events[1] {
       XCTAssertEqual(stationInfo.id, station.id)
       XCTAssertEqual(entryPoint, "station_list")
     } else {

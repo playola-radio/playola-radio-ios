@@ -18,6 +18,9 @@ jobs:
       - run:
           name: Run SwiftLint via Fastlane
           command: bundle exec fastlane lint_code
+      - run:
+          name: Run Swift Format Check
+          command: bundle exec fastlane format_check
 
   build-and-test:
     macos:

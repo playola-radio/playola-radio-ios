@@ -6,6 +6,7 @@
 //
 import SwiftUI
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 struct FontNames {
   //  Inter-Italic
   //  Inter-Italic_Black-Italic

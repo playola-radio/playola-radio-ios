@@ -415,7 +415,7 @@ final class InvitationCodePageTests: XCTestCase {
       XCTFail("Expected analytics event to be tracked")
       return
     }
-    if case let .invitationCodeVerified(code) = event {
+    if case .invitationCodeVerified(let code) = event {
       XCTAssertEqual(code, "ANALYTICS123")
     } else {
       XCTFail("Expected invitationCodeVerified event")

@@ -111,7 +111,7 @@ struct SignInPage: View {
     .navigationViewStyle(StackNavigationViewStyle())
     .fullScreenCover(item: $model.presentedSheet) { item in
       switch item {
-      case let .invitationCode(invitationModel):
+      case .invitationCode(let invitationModel):
         InvitationCodePageView(model: invitationModel)
       case .player:
         EmptyView()  // This case shouldn't occur in SignInPage
