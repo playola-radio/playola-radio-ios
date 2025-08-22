@@ -31,7 +31,11 @@ class InvitationCodePageModel: ViewModel {
       return mode == .invitationCodeInput ? invitationCodeInputStr : email
     }
     set {
-      mode == .invitationCodeInput ? (invitationCodeInputStr = newValue) : (email = newValue)
+      if mode == .invitationCodeInput {
+        invitationCodeInputStr = newValue
+      } else {
+        email = newValue
+      }
     }
   }
 
