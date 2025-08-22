@@ -48,7 +48,7 @@ platform :ios do
 
   desc "Run swift-format lint check"
   lane :format_check do
-    sh("find .. -name '*.swift' -not -path '../.build/*' -not -path '../DerivedData/*' | xargs xcrun swift-format lint")
+    sh("find .. -name '*.swift' -not -path '../.build/*' -not -path '../DerivedData/*' | xargs xcrun swift-format lint --strict")
   end
 
   desc "Ad-hoc build"
