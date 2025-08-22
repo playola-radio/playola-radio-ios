@@ -107,7 +107,7 @@ final class MainContainerTests: XCTestCase {
     // Verify analytics event was tracked
     let events = capturedEvents.value
     XCTAssertEqual(events.count, 1)
-    if case let .apiError(endpoint, error) = events.first {
+    if case .apiError(let endpoint, let error) = events.first {
       XCTAssertEqual(endpoint, "getStations")
       XCTAssertTrue(
         error.contains("TestError"), "Expected error to contain 'TestError', got: \(error)")
@@ -298,7 +298,7 @@ final class MainContainerTests: XCTestCase {
     XCTAssertNotNil(mainContainerModel.presentedSheet)
 
     // Extract the PlayerPageModel from the presented sheet
-    guard case let .player(playerPageModel) = mainContainerModel.presentedSheet else {
+    guard case .player(let playerPageModel) = mainContainerModel.presentedSheet else {
       XCTFail("Expected player sheet to be presented")
       return
     }

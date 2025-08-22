@@ -126,7 +126,7 @@ class NowPlayingUpdater {
     switch state.playbackStatus {
     case .playing:
       populatePlayingInfo(&nowPlayingInfo, state: state)
-    case let .loading(_, progress):
+    case .loading(_, let progress):
       populateLoadingInfo(&nowPlayingInfo, station: station, progress: progress)
     case .stopped:
       populateStoppedInfo(&nowPlayingInfo, state: state)
@@ -298,7 +298,7 @@ class NowPlayingUpdater {
           playbackStatus: .stopped
         )
       }
-    case let .loading(progress):
+    case .loading(let progress):
       guard let currentStation = stationPlayer.currentStation else { return }
       $nowPlaying.withLock {
         $0 = NowPlaying(
@@ -310,7 +310,7 @@ class NowPlayingUpdater {
           playbackStatus: .loading(currentStation, progress)
         )
       }
-    case let .playing(nowPlayingData):
+    case .playing(let nowPlayingData):
       if let currentStation = stationPlayer.currentStation {
         $nowPlaying.withLock {
           $0 = NowPlaying(
