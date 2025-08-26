@@ -23,17 +23,23 @@ final class SignInPageTests: XCTestCase {
 
   func testSignInWithApple_TracksSignInStartedEvent() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    let expectation = XCTestExpectation(description: "Analytics event tracked")
 
     let model = withDependencies {
       $0.analytics.track = { event in
         capturedEvents.withValue { $0.append(event) }
+        if case .signInStarted(let method) = event, method == .apple {
+          expectation.fulfill()
+        }
       }
     } operation: {
       SignInPageModel()
     }
 
     let request = ASAuthorizationAppleIDRequest(coder: NSCoder())!
-    await model.signInWithAppleButtonTapped(request: request)
+    model.signInWithAppleButtonTapped(request: request)
+
+    await fulfillment(of: [expectation], timeout: 1.0)
 
     let hasSignInStartedEvent = capturedEvents.value.contains { event in
       if case .signInStarted(let method) = event {
