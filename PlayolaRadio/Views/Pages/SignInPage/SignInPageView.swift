@@ -59,9 +59,7 @@ struct SignInPage: View {
           // Auth buttons
           VStack(spacing: 16) {
             SignInWithAppleButton(.signIn) { request in
-              Task {
-                await model.signInWithAppleButtonTapped(request: request)
-              }
+              model.signInWithAppleButtonTapped(request: request)
             } onCompletion: { result in
               model.signInWithAppleCompleted(result: result)
             }

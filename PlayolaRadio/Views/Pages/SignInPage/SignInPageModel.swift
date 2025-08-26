@@ -60,9 +60,9 @@ class SignInPageModel: ViewModel {
     }
   }
 
-  func signInWithAppleButtonTapped(request: ASAuthorizationAppleIDRequest) async {
+  func signInWithAppleButtonTapped(request: ASAuthorizationAppleIDRequest) {
     request.requestedScopes = [.email, .fullName]
-    await analytics.track(.signInStarted(method: .apple))
+    Task { await analytics.track(.signInStarted(method: .apple)) }
   }
 
   func signInWithAppleCompleted(result: Result<ASAuthorization, any Error>) {
@@ -93,6 +93,7 @@ class SignInPageModel: ViewModel {
 
       guard let email = appleIDCredential.email ?? appleSignInInfo?.email else {
         print("Error trying to sign in -- no email ever.")
+        Task { await analytics.track(.signInFailed(method: .apple, error: "No email ever.")) }
         return
       }
       Task {
