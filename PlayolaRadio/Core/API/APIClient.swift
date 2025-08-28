@@ -30,7 +30,7 @@ struct APIClient: Sendable {
   /// - Returns: JWT token string
   var signInViaApple:
     (
-      _ identityToken: String, _ email: String, _ authCode: String, _ firstName: String,
+      _ identityToken: String, _ email: String?, _ authCode: String, _ firstName: String,
       _ lastName: String?
     )
       async throws -> String = { _, _, _, _, _ in ""
@@ -102,9 +102,11 @@ extension APIClient: DependencyKey {
         var parameters: [String: String] = [
           "identityToken": identityToken,
           "authCode": authCode,
-          "email": email,
           "firstName": firstName,
         ]
+        if let email {
+          parameters["email"] = email
+        }
         if let lastName {
           parameters["lastName"] = lastName
         }
@@ -130,7 +132,6 @@ extension APIClient: DependencyKey {
         .value
 
         AuthService.shared.signOut()
-        AuthService.shared.clearAppleUser()
       },
       signInViaGoogle: { code in
         let parameters: [String: Sendable] = [
