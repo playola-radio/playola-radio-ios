@@ -16,7 +16,6 @@ import SwiftUI
 class SignInPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
-  @ObservationIgnored @Shared(.appleSignInInfo) var appleSignInInfo: AppleSignInInfo?
   @ObservationIgnored @Shared(.auth) var auth: Auth
   @ObservationIgnored @Shared(.hasBeenUnlocked) var hasBeenUnlocked: Bool
   @ObservationIgnored @Shared(.invitationCode) var invitationCode: String?
@@ -78,31 +77,16 @@ class SignInPageModel: ViewModel {
         print("Error decoding signin info from apple")
         return
       }
-      if appleIDCredential.user != appleSignInInfo?.appleUserId,
-        let email = appleIDCredential.email
-      {
-        $appleSignInInfo.withLock {
-          $0 = AppleSignInInfo(
-            appleUserId: appleIDCredential.user,
-            email: email,
-            firstName: appleIDCredential.fullName?.givenName,
-            lastName: appleIDCredential.fullName?.familyName
-          )
-        }
-      }
 
-      guard let email = appleIDCredential.email ?? appleSignInInfo?.email else {
-        print("Error trying to sign in -- no email ever.")
-        Task { await analytics.track(.signInFailed(method: .apple, error: "No email ever.")) }
-        return
-      }
+      let email = appleIDCredential.email
+
       Task {
         do {
           let firstName = appleIDCredential.fullName?.givenName ?? ""
           let lastName = appleIDCredential.fullName?.familyName
           let token = try await api.signInViaApple(
             identityToken,
-            email,
+            email,  // Now optional - can be nil
             authCode,
             firstName,
             lastName)

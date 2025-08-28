@@ -163,7 +163,6 @@ struct LoggedInUser: Codable {
 
 class AuthService {
   static let shared = AuthService()
-  @Shared(.appleSignInInfo) var appleSignInInfo
   @Shared(.auth) var auth: Auth
 
   init() {
@@ -173,7 +172,6 @@ class AuthService {
       object: nil,
       queue: nil
     ) { _ in
-      guard let appleSignInInfo = self.appleSignInInfo else { return }
     }
   }
 
@@ -181,7 +179,4 @@ class AuthService {
     $auth.withLock { $0 = Auth() }
   }
 
-  func clearAppleUser() {
-    $appleSignInInfo.withLock { $0 = nil }
-  }
 }
