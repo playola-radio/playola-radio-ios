@@ -72,7 +72,7 @@ class PlayerPageModel: ViewModel {
 
   var loadingPercentage: Float {
     switch nowPlaying?.playbackStatus {
-    case let .loading(_, progress):
+    case .loading(_, let progress):
       return progress ?? 0.0
     case .startingNewStation:
       return 0.0

@@ -67,7 +67,7 @@ struct MainContainer: View {
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
         switch path {
-        case let .editProfilePage(model):
+        case .editProfilePage(let model):
           EditProfilePageView(model: model)
         }
       }
@@ -77,7 +77,7 @@ struct MainContainer: View {
       item: $model.presentedSheet,
       content: { item in
         switch item {
-        case let .player(playerPageModel):
+        case .player(let playerPageModel):
           PlayerPage(model: playerPageModel)
         default:
           fatalError("Unsupported sheet item")

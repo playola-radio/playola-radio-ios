@@ -97,7 +97,7 @@ extension AnalyticsEvent {
 
   var properties: [String: any MixpanelType] {
     switch self {
-    case let .appOpened(source, isFirstOpen):
+    case .appOpened(let source, let isFirstOpen):
       return [
         "source": source.rawValue,
         "is_first_open": isFirstOpen,
@@ -106,16 +106,16 @@ extension AnalyticsEvent {
     case .appBackgrounded, .appForegrounded:
       return [:]
 
-    case let .signInStarted(method):
+    case .signInStarted(let method):
       return ["method": method.rawValue]
 
-    case let .signInCompleted(method, userId):
+    case .signInCompleted(let method, let userId):
       return [
         "method": method.rawValue,
         "user_id": userId,
       ]
 
-    case let .signInFailed(method, error):
+    case .signInFailed(let method, let error):
       return [
         "method": method.rawValue,
         "error": error,
@@ -124,41 +124,41 @@ extension AnalyticsEvent {
     case .signedOut:
       return [:]
 
-    case let .invitationCodeVerified(code):
+    case .invitationCodeVerified(let code):
       return ["invitation_code": code]
 
     case .shareWithFriendsTapped:
       return [:]
 
-    case let .viewedStationList(listType, screen):
+    case .viewedStationList(let listType, let screen):
       return [
         "list_type": listType.rawValue,
         "screen": screen,
       ]
 
-    case let .tappedStationCard(station, position, totalStations):
+    case .tappedStationCard(let station, let position, let totalStations):
       var props = station.properties
       props["station_position"] = position
       props["station_count"] = totalStations
       return props
 
-    case let .viewedStationDetail(station):
+    case .viewedStationDetail(let station):
       return station.properties
 
-    case let .startedStation(station, entryPoint):
+    case .startedStation(let station, let entryPoint):
       var props = station.properties
       props["entry_point"] = entryPoint
       return props
 
-    case let .listeningSessionStarted(station):
+    case .listeningSessionStarted(let station):
       return station.properties
 
-    case let .listeningSessionEnded(station, sessionLengthSec):
+    case .listeningSessionEnded(let station, let sessionLengthSec):
       var props = station.properties
       props["session_length_sec"] = sessionLengthSec
       return props
 
-    case let .switchedStation(from, to, timeBeforeSwitchSec, reason):
+    case .switchedStation(let from, let to, let timeBeforeSwitchSec, let reason):
       return [
         "from_station_id": from.id,
         "from_station_name": from.name,
@@ -170,18 +170,18 @@ extension AnalyticsEvent {
         "switch_reason": reason.rawValue,
       ]
 
-    case let .playbackError(station, error):
+    case .playbackError(let station, let error):
       var props = station.properties
       props["error"] = error
       return props
 
-    case let .viewedRewardsScreen(currentHours):
+    case .viewedRewardsScreen(let currentHours):
       return ["current_hours": currentHours]
 
-    case let .tappedRedeemRewards(currentHours):
+    case .tappedRedeemRewards(let currentHours):
       return ["current_hours": currentHours]
 
-    case let .unlockedRewardTier(tierName, hoursRequired):
+    case .unlockedRewardTier(let tierName, let hoursRequired):
       return [
         "tier_name": tierName,
         "hours_required": hoursRequired,
@@ -193,26 +193,26 @@ extension AnalyticsEvent {
     case .viewedProfile:
       return [:]
 
-    case let .updatedProfile(fields):
+    case .updatedProfile(let fields):
       return ["updated_fields": fields.joined(separator: ",")]
 
     case .uploadedProfilePhoto:
       return [:]
 
-    case let .audioOutputChanged(outputTypes):
+    case .audioOutputChanged(let outputTypes):
       return ["output_types": outputTypes]
 
     case .carPlayInitialized:
       return [:]
 
-    case let .stationChanged(from, to):
+    case .stationChanged(let from, let to):
       var props: [String: any MixpanelType] = ["to": to]
       if let from = from {
         props["from"] = from
       }
       return props
 
-    case let .apiError(endpoint, error):
+    case .apiError(let endpoint, let error):
       return [
         "endpoint": endpoint,
         "error": error,
