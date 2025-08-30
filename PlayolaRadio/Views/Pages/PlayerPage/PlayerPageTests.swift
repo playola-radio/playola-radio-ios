@@ -394,6 +394,7 @@ final class PlayerPageTests: XCTestCase {
 
     XCTAssertEqual(model.heartState, .hidden)
     XCTAssertEqual(model.heartState.imageName, "")
+    XCTAssertEqual(model.heartState.imageColorHex, "")
   }
 
   func testHeartState_EmptyWhenPlayingUnlikedSong() async {
@@ -417,6 +418,7 @@ final class PlayerPageTests: XCTestCase {
 
       XCTAssertEqual(model.heartState, .empty)
       XCTAssertEqual(model.heartState.imageName, "heart")
+      XCTAssertEqual(model.heartState.imageColorHex, "#BABABA")
     }
   }
 
@@ -444,6 +446,7 @@ final class PlayerPageTests: XCTestCase {
 
       XCTAssertEqual(model.heartState, .filled)
       XCTAssertEqual(model.heartState.imageName, "heart.fill")
+      XCTAssertEqual(model.heartState.imageColorHex, "#EF6962")
     }
   }
 

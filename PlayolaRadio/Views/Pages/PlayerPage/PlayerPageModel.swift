@@ -135,6 +135,17 @@ class PlayerPageModel: ViewModel {
         return "heart.fill"
       }
     }
+
+    var imageColorHex: String {
+      switch self {
+      case .empty:
+        return "#BABABA"
+      case .filled:
+        return "#EF6962"
+      case .hidden:
+        return ""
+      }
+    }
   }
 
   var playerButtonImageName: PlayerButtonImageName {

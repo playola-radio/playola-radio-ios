@@ -69,10 +69,20 @@ struct PlayerPage: View {
             .font(.custom(FontNames.Inter_500_Medium, size: 12))
             .foregroundColor(.gray)
 
-          Text(model.nowPlayingText)
-            .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 20))
-            .foregroundColor(.white)
-            .multilineTextAlignment(.center)
+          HStack(spacing: 12) {
+            Text(model.nowPlayingText)
+              .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 20))
+              .foregroundColor(.white)
+              .multilineTextAlignment(.center)
+
+            if model.heartState != .hidden {
+              Button(action: { model.heartButtonTapped() }) {
+                Image(systemName: model.heartState.imageName)
+                  .foregroundColor(Color(hex: model.heartState.imageColorHex))
+                  .font(.system(size: 24))
+              }
+            }
+          }
 
           ProgressView(value: model.loadingPercentage)
             .progressViewStyle(LinearProgressViewStyle(tint: Color.playolaRed))
