@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D302576B2E63423D00F4228B /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302576A2E63423B00F4228B /* Toast.swift */; };
+		D302576D2E63428800F4228B /* ToastClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302576C2E63428700F4228B /* ToastClient.swift */; };
+		D30257712E6342B400F4228B /* ToastModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257702E6342B200F4228B /* ToastModifier.swift */; };
+		D30257732E6342BA00F4228B /* ToastPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257722E6342B800F4228B /* ToastPreview.swift */; };
+		D30257762E6342C900F4228B /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257752E6342C600F4228B /* ToastView.swift */; };
 		D3137DBB2D3976580070033A /* PlayolaAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBA2D3976550070033A /* PlayolaAlert.swift */; };
 		D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBF2D3981880070033A /* MailServiceMock.swift */; };
 		D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DC12D39B4FC0070033A /* StationListPageTests.swift */; };
@@ -127,6 +132,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D302576A2E63423B00F4228B /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
+		D302576C2E63428700F4228B /* ToastClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastClient.swift; sourceTree = "<group>"; };
+		D30257702E6342B200F4228B /* ToastModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastModifier.swift; sourceTree = "<group>"; };
+		D30257722E6342B800F4228B /* ToastPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastPreview.swift; sourceTree = "<group>"; };
+		D30257752E6342C600F4228B /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
 		D3137DBA2D3976550070033A /* PlayolaAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaAlert.swift; sourceTree = "<group>"; };
 		D3137DBF2D3981880070033A /* MailServiceMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailServiceMock.swift; sourceTree = "<group>"; };
 		D3137DC12D39B4FC0070033A /* StationListPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPageTests.swift; sourceTree = "<group>"; };
@@ -258,6 +268,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D302576E2E63429000F4228B /* Toast */ = {
+			isa = PBXGroup;
+			children = (
+				D302576C2E63428700F4228B /* ToastClient.swift */,
+			);
+			path = Toast;
+			sourceTree = "<group>";
+		};
+		D302576F2E6342AC00F4228B /* Toast */ = {
+			isa = PBXGroup;
+			children = (
+				D30257752E6342C600F4228B /* ToastView.swift */,
+				D30257722E6342B800F4228B /* ToastPreview.swift */,
+				D30257702E6342B200F4228B /* ToastModifier.swift */,
+			);
+			path = Toast;
+			sourceTree = "<group>";
+		};
 		D3137DBE2D3981750070033A /* Mocks */ = {
 			isa = PBXGroup;
 			children = (
@@ -283,6 +311,7 @@
 		D3137DD02D3ABB490070033A /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				D302576A2E63423B00F4228B /* Toast.swift */,
 				D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */,
 				D3B744CC2E368D790042A427 /* Prize.swift */,
 				D3B744B32E2FECC80042A427 /* LocalListeningSession.swift */,
@@ -324,6 +353,7 @@
 		D339E55D2BFD0FC200B9E35B /* Reusable Components */ = {
 			isa = PBXGroup;
 			children = (
+				D302576F2E6342AC00F4228B /* Toast */,
 				D37257C22DF8F875001BC6F9 /* SwiftUI Modifiers */,
 				D3B744C62E3139860042A427 /* ListeningTimeTile */,
 				D31CD5222DFBA1EC009B9780 /* ViewModel.swift */,
@@ -488,6 +518,7 @@
 		D378CCD12E58C37D00497A4A /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				D302576E2E63429000F4228B /* Toast */,
 				D378CCD22E58C38D00497A4A /* Analytics */,
 				D378CCD32E58C3B100497A4A /* API */,
 				D378CCD42E58C3DC00497A4A /* Audio */,
@@ -804,8 +835,10 @@
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
 				D3B744C22E31317B0042A427 /* RewardsPageView.swift in Sources */,
 				D37257B22DF88BC1001BC6F9 /* HomePageModel.swift in Sources */,
+				D30257732E6342BA00F4228B /* ToastPreview.swift in Sources */,
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
 				D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */,
+				D30257712E6342B400F4228B /* ToastModifier.swift in Sources */,
 				D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */,
 				D3B6626A2D40103C00975D2F /* SignInPageView.swift in Sources */,
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
@@ -817,6 +850,7 @@
 				D35673C32D3E872600E4E926 /* CPListItem+InitWithRemoteUrl.swift in Sources */,
 				D3B744AD2E2FCD930042A427 /* MainContainerModel.swift in Sources */,
 				D39591172E39932600720CF8 /* ContactPageModel.swift in Sources */,
+				D302576B2E63423D00F4228B /* Toast.swift in Sources */,
 				D339E57E2BFD750700B9E35B /* MailService.swift in Sources */,
 				D339E56F2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift in Sources */,
 				D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */,
@@ -843,6 +877,7 @@
 				D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */,
 				D378CCD02E57947800497A4A /* ShareSheet.swift in Sources */,
 				D3B744C02E3131730042A427 /* RewardsPageModel.swift in Sources */,
+				D302576D2E63428800F4228B /* ToastClient.swift in Sources */,
 				D3B744B02E2FE6FB0042A427 /* RewardsProfile.swift in Sources */,
 				D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */,
 				D3A08A3A2E53A788002468E0 /* InvitationCodePageView.swift in Sources */,
@@ -858,6 +893,7 @@
 				D339E56D2BFD2FAB00B9E35B /* URLStreamPlayer.swift in Sources */,
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */,
+				D30257762E6342C900F4228B /* ToastView.swift in Sources */,
 				D339E5692BFD1C0800B9E35B /* APIClient.swift in Sources */,
 				D382671C2E00C1460006BAC2 /* SmallPlayer.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
