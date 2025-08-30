@@ -1,0 +1,69 @@
+import Dependencies
+import Foundation
+import PlayolaPlayer
+import Sharing
+import SwiftUI
+
+@MainActor
+@Observable
+class LikedSongsPageModel: ViewModel {
+  @ObservationIgnored @Dependency(\.likesManager) var likesManager: LikesManager
+
+  var groupedLikedSongs: [(String, [AudioBlock])] {
+    let songs = likesManager.allLikedAudioBlocks
+
+    let grouped = Dictionary(grouping: songs) { audioBlock in
+      let date = audioBlock.createdAt
+      return formatSectionTitle(for: date)
+    }
+
+    return
+      grouped
+      .sorted { first, second in
+        let firstDate = parseSectionTitle(first.key)
+        let secondDate = parseSectionTitle(second.key)
+        return firstDate > secondDate
+      }
+      .map { (key, value) in
+        let sortedSongs = value.sorted { first, second in
+          let firstDate = first.createdAt
+          let secondDate = second.createdAt
+          return firstDate > secondDate
+        }
+        return (key, sortedSongs)
+      }
+  }
+
+  func menuButtonTapped(for audioBlock: AudioBlock) {
+
+  }
+
+  private func formatSectionTitle(for date: Date) -> String {
+    let calendar = Calendar.current
+    let now = Date()
+
+    if calendar.isDate(date, equalTo: now, toGranularity: .weekOfYear) {
+      return "Last Week"
+    } else {
+      let formatter = DateFormatter()
+      formatter.dateFormat = "MMMM yyyy"
+      return formatter.string(from: date)
+    }
+  }
+
+  private func parseSectionTitle(_ title: String) -> Date {
+    if title == "Last Week" {
+      return Date()
+    } else {
+      let formatter = DateFormatter()
+      formatter.dateFormat = "MMMM yyyy"
+      return formatter.date(from: title) ?? Date.distantPast
+    }
+  }
+
+  func formatTimestamp(for audioBlock: AudioBlock) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMMM d, yyyy 'at' h:mm a"
+    return formatter.string(from: audioBlock.createdAt)
+  }
+}
