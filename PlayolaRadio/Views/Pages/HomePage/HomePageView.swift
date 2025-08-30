@@ -29,15 +29,6 @@ struct HomePageView: View {
 
           ListeningTimeTile(model: model.listeningTimeTileModel)
 
-          // Temporary test button for toast
-          Button("Test Toast") {
-            model.testShowToast()
-          }
-          .padding()
-          .background(Color.white)
-          .foregroundColor(.black)
-          .cornerRadius(8)
-
           HomePageStationList(stations: model.forYouStations) { station in
             Task { await model.handleStationTapped(station) }
           }
