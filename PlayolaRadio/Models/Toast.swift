@@ -7,14 +7,14 @@
 
 import Foundation
 
-struct PlayolaToast: Identifiable {
-  let id = UUID()
-  let message: String
-  let buttonTitle: String
-  let duration: TimeInterval
-  let action: (() -> Void)?
+public struct PlayolaToast: Identifiable {
+  public let id = UUID()
+  public let message: String
+  public let buttonTitle: String
+  public let duration: TimeInterval
+  public let action: (() -> Void)?
 
-  init(
+  public init(
     message: String,
     buttonTitle: String,
     duration: TimeInterval = 3.0,
@@ -28,7 +28,7 @@ struct PlayolaToast: Identifiable {
 }
 
 extension PlayolaToast: Equatable {
-  static func == (lhs: PlayolaToast, rhs: PlayolaToast) -> Bool {
+  public static func == (lhs: PlayolaToast, rhs: PlayolaToast) -> Bool {
     lhs.id == rhs.id
   }
 }

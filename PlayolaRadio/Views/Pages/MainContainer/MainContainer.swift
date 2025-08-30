@@ -84,6 +84,15 @@ struct MainContainer: View {
         }
       }
     )
+    .overlay(alignment: .bottom) {
+      if let toast = model.presentedToast {
+        ToastView(toast: toast)
+          .padding(.horizontal, 20)
+          .padding(.bottom, 0)
+          .transition(.move(edge: .bottom).combined(with: .opacity))
+      }
+    }
+    .animation(.easeInOut(duration: 0.3), value: model.presentedToast)
     .onAppear { Task { await model.viewAppeared() } }
 
   }

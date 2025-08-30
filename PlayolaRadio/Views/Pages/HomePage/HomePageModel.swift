@@ -21,6 +21,7 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth: Auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.toast) var toast
 
   @ObservationIgnored var stationPlayer: StationPlayer
 
@@ -73,5 +74,19 @@ class HomePageModel: ViewModel {
         entryPoint: "home_recommendations"
       ))
     stationPlayer.play(station: station)
+  }
+
+  func testShowToast() {
+    Task {
+      await toast.show(
+        PlayolaToast(
+          message: "Added to Liked Songs",
+          buttonTitle: "View all",
+          action: {
+            print("View all tapped!")
+          }
+        )
+      )
+    }
   }
 }

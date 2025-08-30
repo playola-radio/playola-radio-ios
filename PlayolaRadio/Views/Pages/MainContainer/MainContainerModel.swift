@@ -17,6 +17,7 @@ class MainContainerModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.toast) var toast
   @ObservationIgnored var stationPlayer: StationPlayer!
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
@@ -36,6 +37,7 @@ class MainContainerModel: ViewModel {
 
   var presentedAlert: PlayolaAlert?
   var presentedSheet: PlayolaSheet?
+  var presentedToast: PlayolaToast?
 
   var homePageModel = HomePageModel()
   var stationListModel = StationListModel()
@@ -74,6 +76,9 @@ class MainContainerModel: ViewModel {
     // what happens when we use the Shared nowPlaying value.  In the future we should figure out
     // how to get this to work with the nowPlaying shared state.
     stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &cancellables)
+
+    // Start observing toasts
+    observeToasts()
 
     await loadListeningTracker()
   }
@@ -119,6 +124,34 @@ class MainContainerModel: ViewModel {
 
   func onSmallPlayerTapped() {
     self.presentedSheet = .player(PlayerPageModel(onDismiss: { self.presentedSheet = nil }))
+  }
+
+  // Test method for showing toasts
+  func testShowToast() {
+    Task {
+      await toast.show(
+        PlayolaToast(
+          message: "Added to Liked Songs",
+          buttonTitle: "View all",
+          action: {
+            print("View all tapped!")
+          }
+        )
+      )
+    }
+  }
+
+  func observeToasts() {
+    Task { @MainActor in
+      while true {
+        if let currentToast = await toast.currentToast() {
+          self.presentedToast = currentToast
+        } else {
+          self.presentedToast = nil
+        }
+        try? await Task.sleep(for: .milliseconds(100))
+      }
+    }
   }
 }
 
