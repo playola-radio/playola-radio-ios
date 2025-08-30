@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		D302576B2E63423D00F4228B /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302576A2E63423B00F4228B /* Toast.swift */; };
 		D302576D2E63428800F4228B /* ToastClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302576C2E63428700F4228B /* ToastClient.swift */; };
-		D30257732E6342BA00F4228B /* ToastPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257722E6342B800F4228B /* ToastPreview.swift */; };
 		D30257762E6342C900F4228B /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257752E6342C600F4228B /* ToastView.swift */; };
 		D30257792E634A2600F4228B /* ToastClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257772E634A1C00F4228B /* ToastClientTests.swift */; };
 		D3137DBB2D3976580070033A /* PlayolaAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBA2D3976550070033A /* PlayolaAlert.swift */; };
@@ -134,7 +133,6 @@
 /* Begin PBXFileReference section */
 		D302576A2E63423B00F4228B /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		D302576C2E63428700F4228B /* ToastClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastClient.swift; sourceTree = "<group>"; };
-		D30257722E6342B800F4228B /* ToastPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastPreview.swift; sourceTree = "<group>"; };
 		D30257752E6342C600F4228B /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
 		D30257772E634A1C00F4228B /* ToastClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastClientTests.swift; sourceTree = "<group>"; };
 		D3137DBA2D3976550070033A /* PlayolaAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaAlert.swift; sourceTree = "<group>"; };
@@ -277,15 +275,6 @@
 			path = Toast;
 			sourceTree = "<group>";
 		};
-		D302576F2E6342AC00F4228B /* Toast */ = {
-			isa = PBXGroup;
-			children = (
-				D30257752E6342C600F4228B /* ToastView.swift */,
-				D30257722E6342B800F4228B /* ToastPreview.swift */,
-			);
-			path = Toast;
-			sourceTree = "<group>";
-		};
 		D3137DBE2D3981750070033A /* Mocks */ = {
 			isa = PBXGroup;
 			children = (
@@ -353,7 +342,7 @@
 		D339E55D2BFD0FC200B9E35B /* Reusable Components */ = {
 			isa = PBXGroup;
 			children = (
-				D302576F2E6342AC00F4228B /* Toast */,
+				D30257752E6342C600F4228B /* ToastView.swift */,
 				D37257C22DF8F875001BC6F9 /* SwiftUI Modifiers */,
 				D3B744C62E3139860042A427 /* ListeningTimeTile */,
 				D31CD5222DFBA1EC009B9780 /* ViewModel.swift */,
@@ -835,7 +824,6 @@
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
 				D3B744C22E31317B0042A427 /* RewardsPageView.swift in Sources */,
 				D37257B22DF88BC1001BC6F9 /* HomePageModel.swift in Sources */,
-				D30257732E6342BA00F4228B /* ToastPreview.swift in Sources */,
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
 				D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */,
 				D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */,
