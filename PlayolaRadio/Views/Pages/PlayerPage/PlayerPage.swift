@@ -22,7 +22,8 @@ struct PlayerPage: View {
             Image(systemName: "chevron.down")
               .foregroundColor(.white)
               .font(.system(size: 24))
-          })
+          }
+        )
 
         Spacer()
 
@@ -43,7 +44,8 @@ struct PlayerPage: View {
             Image(systemName: "ellipsis")
               .foregroundColor(.white)
               .font(.system(size: 24))
-          })
+          }
+        )
       }
       .padding(.horizontal)
       .padding(.top, 8)
@@ -58,29 +60,43 @@ struct PlayerPage: View {
         } placeholder: {
           Color(white: 0.2)
         }
-        .frame(width: UIScreen.main.bounds.width - 148, height: UIScreen.main.bounds.width - 148)
+        .frame(
+          width: UIScreen.main.bounds.width - 148,
+          height: UIScreen.main.bounds.width - 148
+        )
         .cornerRadius(14)
         .padding(.top, 32)
         .padding(.horizontal, 74)
 
         // Now Playing Section
-        VStack(alignment: .center, spacing: 4) {
-          Text("NOW PLAYING")
-            .font(.custom(FontNames.Inter_500_Medium, size: 12))
-            .foregroundColor(.gray)
-
+        VStack(alignment: .leading, spacing: 4) {
           HStack(spacing: 12) {
-            Text(model.nowPlayingText)
-              .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 20))
-              .foregroundColor(.white)
-              .multilineTextAlignment(.center)
+            VStack(alignment: .leading, spacing: 8) {
+              Text("NOW PLAYING")
+                .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
+                .foregroundColor(Color(hex: "#C7C7C7"))
+
+              Text(model.nowPlayingText)
+                .font(.custom(FontNames.Inter_500_Medium, size: 20))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.leading)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+            }
+            .layoutPriority(1)
+
+            Spacer()
 
             if model.heartState != .hidden {
-              Button(action: { model.heartButtonTapped() }) {
-                Image(systemName: model.heartState.imageName)
-                  .foregroundColor(Color(hex: model.heartState.imageColorHex))
-                  .font(.system(size: 24))
-              }
+              Button(
+                action: { model.heartButtonTapped() },
+                label: {
+                  Image(systemName: model.heartState.imageName)
+                    .foregroundColor(Color(hex: model.heartState.imageColorHex))
+                    .font(.system(size: 24))
+                }
+              )
+              .layoutPriority(0)
             }
           }
 
