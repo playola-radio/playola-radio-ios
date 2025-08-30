@@ -34,6 +34,18 @@ extension ToastClient: DependencyKey {
   }
 }
 
+extension ToastClient: TestDependencyKey {
+  public static let testValue = ToastClient.noop
+}
+
+extension ToastClient {
+  static let noop = ToastClient(
+    show: { _ in },
+    currentToast: { nil },
+    dismiss: {}
+  )
+}
+
 private actor ToastState {
   private(set) var currentToast: PlayolaToast?
   private var toastQueue: [PlayolaToast] = []
