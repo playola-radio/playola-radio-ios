@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		D302576B2E63423D00F4228B /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302576A2E63423B00F4228B /* Toast.swift */; };
 		D302576D2E63428800F4228B /* ToastClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302576C2E63428700F4228B /* ToastClient.swift */; };
-		D30257712E6342B400F4228B /* ToastModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257702E6342B200F4228B /* ToastModifier.swift */; };
 		D30257732E6342BA00F4228B /* ToastPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257722E6342B800F4228B /* ToastPreview.swift */; };
 		D30257762E6342C900F4228B /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257752E6342C600F4228B /* ToastView.swift */; };
 		D30257792E634A2600F4228B /* ToastClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257772E634A1C00F4228B /* ToastClientTests.swift */; };
@@ -135,7 +134,6 @@
 /* Begin PBXFileReference section */
 		D302576A2E63423B00F4228B /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		D302576C2E63428700F4228B /* ToastClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastClient.swift; sourceTree = "<group>"; };
-		D30257702E6342B200F4228B /* ToastModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastModifier.swift; sourceTree = "<group>"; };
 		D30257722E6342B800F4228B /* ToastPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastPreview.swift; sourceTree = "<group>"; };
 		D30257752E6342C600F4228B /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
 		D30257772E634A1C00F4228B /* ToastClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastClientTests.swift; sourceTree = "<group>"; };
@@ -284,7 +282,6 @@
 			children = (
 				D30257752E6342C600F4228B /* ToastView.swift */,
 				D30257722E6342B800F4228B /* ToastPreview.swift */,
-				D30257702E6342B200F4228B /* ToastModifier.swift */,
 			);
 			path = Toast;
 			sourceTree = "<group>";
@@ -841,7 +838,6 @@
 				D30257732E6342BA00F4228B /* ToastPreview.swift in Sources */,
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
 				D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */,
-				D30257712E6342B400F4228B /* ToastModifier.swift in Sources */,
 				D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */,
 				D3B6626A2D40103C00975D2F /* SignInPageView.swift in Sources */,
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
