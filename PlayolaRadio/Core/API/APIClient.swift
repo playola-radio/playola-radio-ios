@@ -81,6 +81,26 @@ struct APIClient: Sendable {
   /// - Parameter email: The email address to add to the waiting list
   /// - Throws: Error if the email is invalid or already exists
   var addToWaitingList: (_ email: String) async throws -> Void = { _ in }
+
+  /// Likes a song for the authenticated user
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - songId: The ID of the song to like
+  /// - Throws: APIError if the request fails
+  var likeSong: (_ jwtToken: String, _ songId: String) async throws -> Void = { _, _ in }
+
+  /// Unlikes a song for the authenticated user
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - songId: The ID of the song to unlike
+  /// - Throws: APIError if the request fails
+  var unlikeSong: (_ jwtToken: String, _ songId: String) async throws -> Void = { _, _ in }
+
+  /// Fetches all liked songs for the authenticated user
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: Array of liked AudioBlock objects
+  /// - Throws: APIError if the request fails
+  var getLikedSongs: (_ jwtToken: String) async throws -> [AudioBlock] = { _ in [] }
 }
 
 extension APIClient: DependencyKey {
@@ -314,6 +334,52 @@ extension APIClient: DependencyKey {
           )
           _ = try await request.validate(statusCode: 200..<300).serializingData().value
         }
+      },
+      likeSong: { jwtToken, songId in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/likes"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters = ["songId": songId]
+
+        _ = try await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingData()
+        .value
+      },
+      unlikeSong: { jwtToken, songId in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/likes"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters = ["songId": songId]
+
+        _ = try await AF.request(
+          url,
+          method: .delete,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingData()
+        .value
+      },
+      getLikedSongs: { jwtToken in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/likes"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(
+          url,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable([AudioBlock].self, decoder: isoDecoder)
+        .value
+
+        return response
       }
     )
   }()
