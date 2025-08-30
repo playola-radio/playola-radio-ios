@@ -24,14 +24,14 @@ struct ToastView: View {
             
             Button(action: {
                 toast.action?()
-            }) {
+            }, label: {
                 Text(toast.buttonTitle)
                     .font(.custom("Inter", size: 16))
                     .fontWeight(.semibold)
                     .foregroundColor(Color(hex: "#EF6962"))
                     .padding(.vertical, 12)
                     .padding(.trailing, 16)
-            }
+            })
         }
         .frame(maxWidth: .infinity)
         .background(Color.white)
