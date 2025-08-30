@@ -6,6 +6,7 @@
 //
 
 import Combine
+import Dependencies
 import PlayolaPlayer
 import Sharing
 import SwiftUI
@@ -17,6 +18,7 @@ class PlayerPageModel: ViewModel {
 
   // MARK: State
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @ObservationIgnored @Dependency(\.likesManager) var likesManager
   var nowPlayingText: String {
     switch nowPlaying?.playbackStatus {
     case .playing:
@@ -118,6 +120,23 @@ class PlayerPageModel: ViewModel {
     case stop = "stop.fill"
   }
 
+  enum HeartState {
+    case hidden  // Not playing a Playola song
+    case empty  // Playing a song, not liked
+    case filled  // Playing a song, liked
+
+    var imageName: String {
+      switch self {
+      case .hidden:
+        return ""
+      case .empty:
+        return "heart"
+      case .filled:
+        return "heart.fill"
+      }
+    }
+  }
+
   var playerButtonImageName: PlayerButtonImageName {
     switch nowPlaying?.playbackStatus {
     case .stopped, .error:
@@ -125,6 +144,14 @@ class PlayerPageModel: ViewModel {
     default:
       return .stop
     }
+  }
+
+  var heartState: HeartState {
+    guard let audioBlock = playolaAudioBlockPlaying else {
+      return .hidden
+    }
+
+    return likesManager.isLiked(audioBlock.id) ? .filled : .empty
   }
 
   @ObservationIgnored var stationPlayer: StationPlayer
@@ -137,6 +164,11 @@ class PlayerPageModel: ViewModel {
   func playPauseButtonTapped() {
     stationPlayer.stop()
     onDismiss?()
+  }
+
+  func heartButtonTapped() {
+    guard let audioBlock = playolaAudioBlockPlaying else { return }
+    likesManager.toggleLike(audioBlock)
   }
 
   func scenePhaseChanged(newPhase: ScenePhase) {
