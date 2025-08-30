@@ -77,7 +77,6 @@ class MainContainerModel: ViewModel {
     // how to get this to work with the nowPlaying shared state.
     stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &cancellables)
 
-    // Start observing toasts
     observeToasts()
 
     await loadListeningTracker()
