@@ -13,8 +13,6 @@ import SwiftUI
 /// tabs.
 @Observable
 final class MainContainerNavigationCoordinator: Sendable {
-  static let shared = MainContainerNavigationCoordinator()
-
   var path: [Path] = []
 
   @CasePathable
