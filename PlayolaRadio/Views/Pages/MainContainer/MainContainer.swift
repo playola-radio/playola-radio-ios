@@ -90,7 +90,7 @@ struct MainContainer: View {
             Spacer()
             ToastOverlayView()
           }
-          .allowsHitTesting(false)
+          .zIndex(1)  // Ensure toast appears above PlayerPage
         }
       }
     )

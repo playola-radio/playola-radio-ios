@@ -59,14 +59,18 @@ struct LikedSongsPage: View {
               // Songs in Section
               ForEach(songsWithTimestamps, id: \.0.id) { audioBlockWithTimestamp in
                 let (audioBlock, likedDate) = audioBlockWithTimestamp
-                SongRow(audioBlock: audioBlock, likedDate: likedDate, model: model)
-                  .opacity(removingAudioBlockIds.contains(audioBlock.id) ? 0 : 1)
-                  .scaleEffect(removingAudioBlockIds.contains(audioBlock.id) ? 0.8 : 1.0)
-                  .animation(
-                    .easeInOut(duration: 0.3), value: removingAudioBlockIds.contains(audioBlock.id))
+                if !removingAudioBlockIds.contains(audioBlock.id) {
+                  SongRow(audioBlock: audioBlock, likedDate: likedDate, model: model)
+                    .transition(
+                      .asymmetric(
+                        insertion: .opacity.combined(with: .move(edge: .trailing)),
+                        removal: .opacity.combined(with: .scale(scale: 0.95))
+                      ))
+                }
               }
             }
           }
+          .animation(.easeInOut(duration: 0.3), value: removingAudioBlockIds)
         }
         .scrollIndicators(.hidden)
       }
