@@ -78,11 +78,19 @@ struct MainContainer: View {
     .sheet(
       item: $model.presentedSheet,
       content: { item in
-        switch item {
-        case .player(let playerPageModel):
-          PlayerPage(model: playerPageModel)
-        default:
-          fatalError("Unsupported sheet item")
+        ZStack {
+          switch item {
+          case .player(let playerPageModel):
+            PlayerPage(model: playerPageModel)
+          default:
+            fatalError("Unsupported sheet item")
+          }
+
+          VStack {
+            Spacer()
+            ToastOverlayView()
+          }
+          .allowsHitTesting(false)
         }
       }
     )

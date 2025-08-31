@@ -14,13 +14,13 @@ struct ToastOverlayView: View {
   @State private var presentedToast: PlayolaToast?
   
   var body: some View {
-    Group {
+    VStack {
+      Spacer()
       if let currentToast = presentedToast {
         ToastView(toast: currentToast)
           .padding(.horizontal, 20)
-          .padding(.bottom, 50) // Add more padding to clear above tabs/small player
+          .padding(.bottom, 0)
           .transition(.move(edge: .bottom).combined(with: .opacity))
-          .zIndex(1000) // High z-index to appear above sheets
       }
     }
     .animation(.easeInOut(duration: 0.3), value: presentedToast)
