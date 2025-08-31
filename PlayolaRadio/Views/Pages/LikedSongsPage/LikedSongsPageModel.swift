@@ -40,6 +40,10 @@ class LikedSongsPageModel: ViewModel {
     presentedSongActionSheet = SongActionSheet(audioBlock: audioBlock, likedDate: likedDate)
   }
 
+  func removeSong(_ audioBlock: AudioBlock) {
+    likesManager.unlike(audioBlock)
+  }
+
   private func formatSectionTitle(for date: Date) -> String {
     let calendar = Calendar.current
     let now = Date()

@@ -31,6 +31,9 @@ struct LikeOperation: Codable, Equatable, Identifiable {
   /// Number of times we've tried to sync this operation
   var retryCount: Int
 
+  /// Optional spin ID for context where the like occurred
+  let spinId: String?
+
   /// Maximum number of retries before giving up
   static let maxRetries = 3
 
@@ -39,13 +42,15 @@ struct LikeOperation: Codable, Equatable, Identifiable {
     audioBlock: AudioBlock,
     type: OperationType,
     timestamp: Date = Date(),
-    retryCount: Int = 0
+    retryCount: Int = 0,
+    spinId: String? = nil
   ) {
     self.id = id
     self.audioBlock = audioBlock
     self.type = type
     self.timestamp = timestamp
     self.retryCount = retryCount
+    self.spinId = spinId
   }
 
   /// Creates a new operation with an incremented retry count
@@ -55,7 +60,8 @@ struct LikeOperation: Codable, Equatable, Identifiable {
       audioBlock: audioBlock,
       type: type,
       timestamp: timestamp,
-      retryCount: retryCount + 1
+      retryCount: retryCount + 1,
+      spinId: spinId
     )
   }
 

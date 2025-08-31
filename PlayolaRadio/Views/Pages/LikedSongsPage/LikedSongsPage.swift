@@ -4,6 +4,7 @@ import SwiftUI
 struct LikedSongsPage: View {
   @Environment(\.dismiss) private var dismiss
   @Bindable var model: LikedSongsPageModel
+  @State private var removingAudioBlockIds: Set<String> = []
 
   var body: some View {
     VStack(spacing: 0) {
@@ -59,6 +60,10 @@ struct LikedSongsPage: View {
               ForEach(songsWithTimestamps, id: \.0.id) { audioBlockWithTimestamp in
                 let (audioBlock, likedDate) = audioBlockWithTimestamp
                 SongRow(audioBlock: audioBlock, likedDate: likedDate, model: model)
+                  .opacity(removingAudioBlockIds.contains(audioBlock.id) ? 0 : 1)
+                  .scaleEffect(removingAudioBlockIds.contains(audioBlock.id) ? 0.8 : 1.0)
+                  .animation(
+                    .easeInOut(duration: 0.3), value: removingAudioBlockIds.contains(audioBlock.id))
               }
             }
           }
@@ -73,13 +78,26 @@ struct LikedSongsPage: View {
         model: SongDrawerModel(
           audioBlock: sheet.audioBlock,
           likedDate: sheet.likedDate,
-          onDismiss: { model.presentedSongActionSheet = nil }
+          onDismiss: { model.presentedSongActionSheet = nil },
+          onRemove: { audioBlock in animateRemoval(of: audioBlock) }
         )
       )
       .presentationCornerRadius(20)
-      .presentationDetents([.height(280)])
+      .presentationDetents([.height(320), .medium])
       .presentationDragIndicator(.visible)
       .presentationBackground(Color(hex: "#323232"))
+    }
+  }
+
+  private func animateRemoval(of audioBlock: AudioBlock) {
+    // Add to removing set for animation
+    removingAudioBlockIds.insert(audioBlock.id)
+
+    // Remove from data after animation completes
+    Task { @MainActor in
+      try? await Task.sleep(nanoseconds: 300_000_000)  // 0.3 seconds
+      model.removeSong(audioBlock)
+      removingAudioBlockIds.remove(audioBlock.id)
     }
   }
 }

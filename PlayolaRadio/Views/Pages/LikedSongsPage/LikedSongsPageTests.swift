@@ -10,9 +10,9 @@ final class LikedSongsPageTests: XCTestCase {
 
   override func setUp() async throws {
     try await super.setUp()
-    @Shared(.likedAudioBlocks) var likedAudioBlocks: [String: AudioBlock] = [:]
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
     @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
-    $likedAudioBlocks.withLock { $0 = [:] }
+    $userLikes.withLock { $0 = [:] }
     $pendingOperations.withLock { $0 = [] }
   }
 
@@ -54,6 +54,27 @@ final class LikedSongsPageTests: XCTestCase {
 
       XCTAssertFalse(result.isEmpty)
       XCTAssertTrue(result.contains("at"))
+    }
+  }
+
+  func testRemoveSong() async {
+    let audioBlock = AudioBlock.mock
+
+    await withDependencies {
+      let likesManager = LikesManager()
+      likesManager.like(audioBlock)
+      $0.likesManager = likesManager
+    } operation: {
+      let model = LikedSongsPageModel()
+
+      // Verify song is initially liked
+      XCTAssertFalse(model.groupedLikedSongs.isEmpty)
+
+      // Remove the song
+      model.removeSong(audioBlock)
+
+      // Verify song is no longer liked
+      XCTAssertTrue(model.groupedLikedSongs.isEmpty)
     }
   }
 }

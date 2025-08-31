@@ -19,20 +19,52 @@ class SongDrawerModel: ViewModel {
   let audioBlock: AudioBlock
   let likedDate: Date
   let onDismiss: () -> Void
+  let onRemove: ((AudioBlock) -> Void)?
   
-  init(audioBlock: AudioBlock, likedDate: Date, onDismiss: @escaping () -> Void) {
+  init(audioBlock: AudioBlock, likedDate: Date, onDismiss: @escaping () -> Void, onRemove: ((AudioBlock) -> Void)? = nil) {
     self.audioBlock = audioBlock
     self.likedDate = likedDate
     self.onDismiss = onDismiss
+    self.onRemove = onRemove
+  }
+  
+  var shouldShowSpotify: Bool {
+    return audioBlock.spotifyId != nil && !(audioBlock.spotifyId?.isEmpty ?? true)
+  }
+  
+  var shouldShowAppleMusic: Bool {
+    return !audioBlock.title.isEmpty && !audioBlock.artist.isEmpty
   }
   
   func removeFromLikedSongs() {
-    likesManager.unlike(audioBlock)
+    print("🗑️ removeFromLikedSongs called for: \(audioBlock.title)")
+    if let onRemove = onRemove {
+      // Use animated removal if callback is provided
+      onRemove(audioBlock)
+    } else {
+      // Fallback to direct removal
+      likesManager.unlike(audioBlock)
+    }
     onDismiss()
   }
   
   func openAppleMusic() {
-    // TODO: Implement Apple Music deep link
+    // Apple Music deep linking can use search if no direct ID is available
+    let artist = audioBlock.artist.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+    let title = audioBlock.title.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+    
+    // Try Apple Music app first with search URL
+    let appleMusicAppURL = URL(string: "music://music.apple.com/search?term=\(artist)+\(title)")
+    let appleMusicWebURL = URL(string: "https://music.apple.com/search?term=\(artist)+\(title)")
+    
+    if let appleMusicAppURL = appleMusicAppURL, UIApplication.shared.canOpenURL(appleMusicAppURL) {
+      // Open in Apple Music app if available
+      UIApplication.shared.open(appleMusicAppURL)
+    } else if let appleMusicWebURL = appleMusicWebURL {
+      // Fallback to web version
+      UIApplication.shared.open(appleMusicWebURL)
+    }
+    
     onDismiss()
   }
   

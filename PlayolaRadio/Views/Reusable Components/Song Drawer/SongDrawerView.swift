@@ -58,7 +58,8 @@ struct SongDrawerView: View {
       VStack(spacing: 0) {
 
         // Apple Music
-        Button(action: { model.openAppleMusic() }) {
+        if model.shouldShowAppleMusic {
+          Button(action: { model.openAppleMusic() }) {
           HStack(spacing: 16) {
             // Replace with your branded asset if you have it
             Image("appleMusicIcon")
@@ -74,11 +75,13 @@ struct SongDrawerView: View {
           .padding(.horizontal, 24)
           .padding(.vertical, 16)
           .contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
 
         // Spotify
-        Button(action: { model.openSpotify() }, label: {
+        if model.shouldShowSpotify {
+          Button(action: { model.openSpotify() }, label: {
           HStack(spacing: 16) {
             // Replace with a Spotify glyph asset for perfect branding
             Image("spotifyIcon")
@@ -94,8 +97,9 @@ struct SongDrawerView: View {
           .padding(.horizontal, 24)
           .padding(.vertical, 16)
           .contentShape(Rectangle())
-        })
-        .buttonStyle(.plain)
+          })
+          .buttonStyle(.plain)
+        }
 
         // Remove from liked songs
         Button(action: { model.removeFromLikedSongs() }) {

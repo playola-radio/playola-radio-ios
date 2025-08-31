@@ -78,10 +78,10 @@ extension SharedKey where Self == AppStorageKey<String?>.Default {
 
 // MARK: - Likes
 
-extension SharedKey where Self == FileStorageKey<[String: AudioBlock]>.Default {
-  static var likedAudioBlocks: Self {
+extension SharedKey where Self == FileStorageKey<[String: UserSongLike]>.Default {
+  static var userLikes: Self {
     Self[
-      .fileStorage(.documentsDirectory.appending(component: "liked-audio-blocks.json")),
+      .fileStorage(.documentsDirectory.appending(component: "user-likes.json")),
       default: [:]
     ]
   }

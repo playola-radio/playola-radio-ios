@@ -86,8 +86,11 @@ struct APIClient: Sendable {
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
   ///   - songId: The ID of the song to like
+  ///   - spinId: Optional ID of the spin context where the like occurred
   /// - Throws: APIError if the request fails
-  var likeSong: (_ jwtToken: String, _ songId: String) async throws -> Void = { _, _ in }
+  var likeSong: (_ jwtToken: String, _ songId: String, _ spinId: String?) async throws -> Void = {
+    _, _, _ in
+  }
 
   /// Unlikes a song for the authenticated user
   /// - Parameters:
@@ -98,9 +101,9 @@ struct APIClient: Sendable {
 
   /// Fetches all liked songs for the authenticated user
   /// - Parameter jwtToken: The JWT token for authentication
-  /// - Returns: Array of liked AudioBlock objects
+  /// - Returns: Array of UserSongLike objects containing AudioBlocks and timestamps
   /// - Throws: APIError if the request fails
-  var getLikedSongs: (_ jwtToken: String) async throws -> [AudioBlock] = { _ in [] }
+  var getLikedSongs: (_ jwtToken: String) async throws -> [UserSongLike] = { _ in [] }
 }
 
 extension APIClient: DependencyKey {
@@ -335,10 +338,13 @@ extension APIClient: DependencyKey {
           _ = try await request.validate(statusCode: 200..<300).serializingData().value
         }
       },
-      likeSong: { jwtToken, songId in
+      likeSong: { jwtToken, songId, spinId in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/likes"
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        let parameters = ["songId": songId]
+        var parameters: [String: String] = ["audioBlockId": songId]
+        if let spinId = spinId {
+          parameters["spinId"] = spinId
+        }
 
         _ = try await AF.request(
           url,
@@ -352,15 +358,12 @@ extension APIClient: DependencyKey {
         .value
       },
       unlikeSong: { jwtToken, songId in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/likes"
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/likes/\(songId)"
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        let parameters = ["songId": songId]
 
         _ = try await AF.request(
           url,
           method: .delete,
-          parameters: parameters,
-          encoding: JSONEncoding.default,
           headers: headers
         )
         .validate(statusCode: 200..<300)
@@ -376,7 +379,7 @@ extension APIClient: DependencyKey {
           headers: headers
         )
         .validate(statusCode: 200..<300)
-        .serializingDecodable([AudioBlock].self, decoder: isoDecoder)
+        .serializingDecodable([UserSongLike].self, decoder: isoDecoder)
         .value
 
         return response

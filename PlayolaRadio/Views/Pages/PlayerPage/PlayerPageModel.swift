@@ -179,7 +179,7 @@ class PlayerPageModel: ViewModel {
 
   func heartButtonTapped() {
     guard let audioBlock = playolaAudioBlockPlaying else { return }
-    likesManager.toggleLike(audioBlock)
+    likesManager.toggleLike(audioBlock, spinId: playolaSpinPlaying?.id)
   }
 
   func scenePhaseChanged(newPhase: ScenePhase) {
