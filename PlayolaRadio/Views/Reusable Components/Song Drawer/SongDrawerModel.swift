@@ -37,7 +37,6 @@ class SongDrawerModel: ViewModel {
   }
   
   func removeFromLikedSongs() {
-    print("🗑️ removeFromLikedSongs called for: \(audioBlock.title)")
     if let onRemove = onRemove {
       // Use animated removal if callback is provided
       onRemove(audioBlock)

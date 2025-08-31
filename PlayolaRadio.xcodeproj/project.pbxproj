@@ -21,6 +21,7 @@
 		D30257902E63C13400F4228B /* SongDrawerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302578F2E63C13400F4228B /* SongDrawerView.swift */; };
 		D30257912E63C13400F4228B /* SongDrawerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302578E2E63C13400F4228B /* SongDrawerModel.swift */; };
 		D30257A42E63E95200F4228B /* UserSongLike.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257A32E63E95200F4228B /* UserSongLike.swift */; };
+		D30257A62E64D62300F4228B /* ToastOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257A52E64D62300F4228B /* ToastOverlayView.swift */; };
 		D3137DBB2D3976580070033A /* PlayolaAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBA2D3976550070033A /* PlayolaAlert.swift */; };
 		D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBF2D3981880070033A /* MailServiceMock.swift */; };
 		D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DC12D39B4FC0070033A /* StationListPageTests.swift */; };
@@ -155,6 +156,7 @@
 		D302578E2E63C13400F4228B /* SongDrawerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongDrawerModel.swift; sourceTree = "<group>"; };
 		D302578F2E63C13400F4228B /* SongDrawerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongDrawerView.swift; sourceTree = "<group>"; };
 		D30257A32E63E95200F4228B /* UserSongLike.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSongLike.swift; sourceTree = "<group>"; };
+		D30257A52E64D62300F4228B /* ToastOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastOverlayView.swift; sourceTree = "<group>"; };
 		D3137DBA2D3976550070033A /* PlayolaAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaAlert.swift; sourceTree = "<group>"; };
 		D3137DBF2D3981880070033A /* MailServiceMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailServiceMock.swift; sourceTree = "<group>"; };
 		D3137DC12D39B4FC0070033A /* StationListPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPageTests.swift; sourceTree = "<group>"; };
@@ -396,6 +398,7 @@
 			children = (
 				D302578D2E63C08F00F4228B /* Song Drawer */,
 				D30257752E6342C600F4228B /* ToastView.swift */,
+				D30257A52E64D62300F4228B /* ToastOverlayView.swift */,
 				D37257C22DF8F875001BC6F9 /* SwiftUI Modifiers */,
 				D3B744C62E3139860042A427 /* ListeningTimeTile */,
 				D31CD5222DFBA1EC009B9780 /* ViewModel.swift */,
@@ -909,6 +912,7 @@
 				D3B744C82E31399E0042A427 /* ListeningTimeTileModel.swift in Sources */,
 				D3A08A382E53A774002468E0 /* InvitationCodePageModel.swift in Sources */,
 				D39591282E3BB70B00720CF8 /* EditProfilePageModel.swift in Sources */,
+				D30257A62E64D62300F4228B /* ToastOverlayView.swift in Sources */,
 				D339E57C2BFD698600B9E35B /* Mail.swift in Sources */,
 				D3B662742D419C3300975D2F /* LoggedInUser.swift in Sources */,
 				D3536A322BFA64AB006942D6 /* StationList.swift in Sources */,

@@ -25,7 +25,9 @@ final class LikesManager: ObservableObject {
   // MARK: - Dependencies
 
   @Dependency(\.api) private var api
+  @Dependency(\.toast) private var toast
   @Shared(.auth) private var auth
+  @Shared(.mainContainerNavigationCoordinator) private var navigationCoordinator
 
   private var authCancellable: AnyCancellable?
   private var lastJWT: String?
@@ -89,10 +91,7 @@ final class LikesManager: ObservableObject {
   /// Gets all liked audio blocks with their like timestamps
   /// - Returns: Array of tuples containing audio blocks and their like timestamps
   var allLikedAudioBlocksWithTimestamps: [(AudioBlock, Date)] {
-    let result = userLikes.values.map { ($0.audioBlock, $0.createdAt) }
-    print("🔍 allLikedAudioBlocksWithTimestamps - userLikes keys: \(Array(userLikes.keys))")
-    print("🔍 allLikedAudioBlocksWithTimestamps - audioBlock IDs: \(result.map { $0.0.id })")
-    return result
+    return userLikes.values.map { ($0.audioBlock, $0.createdAt) }
   }
 
   /// Toggles the like status of an audio block
@@ -136,22 +135,29 @@ final class LikesManager: ObservableObject {
 
     Task {
       await syncPendingOperations()
+      await showLikedToast()
     }
+  }
+
+  private func showLikedToast() async {
+    let likedToast = PlayolaToast(
+      message: "Added to Liked Songs",
+      buttonTitle: "View all",
+      duration: 3.0
+    ) {
+      Task { @MainActor in
+        let model = LikedSongsPageModel()
+        self.navigationCoordinator.push(.likedSongsPage(model))
+      }
+    }
+
+    await toast.show(likedToast)
   }
 
   /// Unlikes an audio block
   /// - Parameter audioBlock: The audio block to unlike
   func unlike(_ audioBlock: AudioBlock) {
-    print("🔍 Unlike attempt for: \(audioBlock.title), ID: \(audioBlock.id)")
-    print("🔍 Is liked check: \(isLiked(audioBlock.id))")
-    print("🔍 UserLikes keys: \(Array(userLikes.keys))")
-
-    guard isLiked(audioBlock.id) else {
-      print("❌ Unlike failed - not in liked songs")
-      return
-    }
-
-    print("🔄 Unlike called for: \(audioBlock.title)")
+    guard isLiked(audioBlock.id) else { return }
 
     $userLikes.withLock {
       $0[audioBlock.id] = nil
@@ -164,8 +170,6 @@ final class LikesManager: ObservableObject {
     $pendingOperations.withLock {
       $0.append(operation)
     }
-
-    print("🔄 Pending unlike operations: \(pendingOperations.count)")
 
     Task {
       await syncPendingOperations()
@@ -209,7 +213,6 @@ final class LikesManager: ObservableObject {
         case .like:
           try await api.likeSong(jwt, operation.audioBlock.id, operation.spinId)
         case .unlike:
-          print("🔄 Syncing unlike for: \(operation.audioBlock.title)")
           try await api.unlikeSong(jwt, operation.audioBlock.id)
         }
 
