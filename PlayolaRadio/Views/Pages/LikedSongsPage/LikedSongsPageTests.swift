@@ -48,9 +48,9 @@ final class LikedSongsPageTests: XCTestCase {
       $0.likesManager = LikesManager()
     } operation: {
       let model = LikedSongsPageModel()
-      let audioBlock = AudioBlock.mock
+      let testDate = Date()
 
-      let result = model.formatTimestamp(for: audioBlock)
+      let result = model.formatTimestamp(for: testDate)
 
       XCTAssertFalse(result.isEmpty)
       XCTAssertTrue(result.contains("at"))

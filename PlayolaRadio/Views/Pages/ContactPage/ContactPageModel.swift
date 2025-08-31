@@ -18,6 +18,7 @@ class ContactPageModel: ViewModel {
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
   var editProfilePageModel: EditProfilePageModel = EditProfilePageModel()
+  var likedSongsPageModel: LikedSongsPageModel = LikedSongsPageModel()
 
   var name: String {
     return auth.currentUser?.fullName ?? "Anonymous"
@@ -43,6 +44,11 @@ class ContactPageModel: ViewModel {
     print("Edit profile tapped")
     mainContainerNavigationCoordinator.path.append(.editProfilePage(self.editProfilePageModel))
     print(mainContainerNavigationCoordinator.path)
+  }
+
+  @MainActor
+  func onLikedSongsTapped() {
+    mainContainerNavigationCoordinator.path.append(.likedSongsPage(self.likedSongsPageModel))
   }
 
   func onLogOutTapped() {

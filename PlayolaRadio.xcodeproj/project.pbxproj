@@ -18,6 +18,8 @@
 		D30257872E63B6BB00F4228B /* LikedSongsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257862E63B6B700F4228B /* LikedSongsPage.swift */; };
 		D30257892E63B6C100F4228B /* LikedSongsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257882E63B6BE00F4228B /* LikedSongsPageModel.swift */; };
 		D302578C2E63B6D100F4228B /* LikedSongsPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302578A2E63B6C800F4228B /* LikedSongsPageTests.swift */; };
+		D30257902E63C13400F4228B /* SongDrawerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302578F2E63C13400F4228B /* SongDrawerView.swift */; };
+		D30257912E63C13400F4228B /* SongDrawerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302578E2E63C13400F4228B /* SongDrawerModel.swift */; };
 		D3137DBB2D3976580070033A /* PlayolaAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBA2D3976550070033A /* PlayolaAlert.swift */; };
 		D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DBF2D3981880070033A /* MailServiceMock.swift */; };
 		D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DC12D39B4FC0070033A /* StationListPageTests.swift */; };
@@ -149,6 +151,8 @@
 		D30257862E63B6B700F4228B /* LikedSongsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedSongsPage.swift; sourceTree = "<group>"; };
 		D30257882E63B6BE00F4228B /* LikedSongsPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedSongsPageModel.swift; sourceTree = "<group>"; };
 		D302578A2E63B6C800F4228B /* LikedSongsPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedSongsPageTests.swift; sourceTree = "<group>"; };
+		D302578E2E63C13400F4228B /* SongDrawerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongDrawerModel.swift; sourceTree = "<group>"; };
+		D302578F2E63C13400F4228B /* SongDrawerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongDrawerView.swift; sourceTree = "<group>"; };
 		D3137DBA2D3976550070033A /* PlayolaAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaAlert.swift; sourceTree = "<group>"; };
 		D3137DBF2D3981880070033A /* MailServiceMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailServiceMock.swift; sourceTree = "<group>"; };
 		D3137DC12D39B4FC0070033A /* StationListPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPageTests.swift; sourceTree = "<group>"; };
@@ -310,6 +314,15 @@
 			path = LikedSongsPage;
 			sourceTree = "<group>";
 		};
+		D302578D2E63C08F00F4228B /* Song Drawer */ = {
+			isa = PBXGroup;
+			children = (
+				D302578E2E63C13400F4228B /* SongDrawerModel.swift */,
+				D302578F2E63C13400F4228B /* SongDrawerView.swift */,
+			);
+			path = "Song Drawer";
+			sourceTree = "<group>";
+		};
 		D3137DBE2D3981750070033A /* Mocks */ = {
 			isa = PBXGroup;
 			children = (
@@ -378,6 +391,7 @@
 		D339E55D2BFD0FC200B9E35B /* Reusable Components */ = {
 			isa = PBXGroup;
 			children = (
+				D302578D2E63C08F00F4228B /* Song Drawer */,
 				D30257752E6342C600F4228B /* ToastView.swift */,
 				D37257C22DF8F875001BC6F9 /* SwiftUI Modifiers */,
 				D3B744C62E3139860042A427 /* ListeningTimeTile */,
@@ -861,6 +875,8 @@
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
 				D3B744C22E31317B0042A427 /* RewardsPageView.swift in Sources */,
 				D37257B22DF88BC1001BC6F9 /* HomePageModel.swift in Sources */,
+				D30257902E63C13400F4228B /* SongDrawerView.swift in Sources */,
+				D30257912E63C13400F4228B /* SongDrawerModel.swift in Sources */,
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
 				D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */,
 				D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */,
@@ -1465,7 +1481,7 @@
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.8.0;
+				minimumVersion = 0.8.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

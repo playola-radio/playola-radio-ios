@@ -44,7 +44,7 @@ struct LikedSongsPage: View {
         ScrollView {
           LazyVStack(alignment: .leading, spacing: 0) {
             ForEach(model.groupedLikedSongs, id: \.0) { section in
-              let (sectionTitle, songs) = section
+              let (sectionTitle, songsWithTimestamps) = section
 
               // Section Header
               Text(sectionTitle)
@@ -56,8 +56,9 @@ struct LikedSongsPage: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
               // Songs in Section
-              ForEach(songs, id: \.id) { audioBlock in
-                SongRow(audioBlock: audioBlock, model: model)
+              ForEach(songsWithTimestamps, id: \.0.id) { audioBlockWithTimestamp in
+                let (audioBlock, likedDate) = audioBlockWithTimestamp
+                SongRow(audioBlock: audioBlock, likedDate: likedDate, model: model)
               }
             }
           }
@@ -67,11 +68,25 @@ struct LikedSongsPage: View {
     }
     .background(Color.black)
     .navigationBarHidden(true)
+    .sheet(item: $model.presentedSongActionSheet) { sheet in
+      SongDrawerView(
+        model: SongDrawerModel(
+          audioBlock: sheet.audioBlock,
+          likedDate: sheet.likedDate,
+          onDismiss: { model.presentedSongActionSheet = nil }
+        )
+      )
+      .presentationCornerRadius(20)
+      .presentationDetents([.height(280)])
+      .presentationDragIndicator(.visible)
+      .presentationBackground(Color(hex: "#323232"))
+    }
   }
 }
 
 struct SongRow: View {
   let audioBlock: AudioBlock
+  let likedDate: Date
   let model: LikedSongsPageModel
 
   var body: some View {
@@ -105,7 +120,7 @@ struct SongRow: View {
           .foregroundColor(Color(hex: "#C7C7C7"))
           .lineLimit(1)
 
-        Text(model.formatTimestamp(for: audioBlock))
+        Text(model.formatTimestamp(for: likedDate))
           .font(.custom(FontNames.Inter_400_Regular, size: 12))
           .foregroundColor(Color(hex: "#888888"))
           .lineLimit(1)
@@ -115,11 +130,10 @@ struct SongRow: View {
       Spacer()
 
       // Menu Button
-      Button(action: { model.menuButtonTapped(for: audioBlock) }) {
+      Button(action: { model.menuButtonTapped(for: audioBlock, likedDate: likedDate) }) {
         Image(systemName: "ellipsis")
           .foregroundColor(Color(hex: "#C7C7C7"))
           .font(.system(size: 16))
-          .rotationEffect(.degrees(90))
       }
     }
     .padding(.horizontal, 24)

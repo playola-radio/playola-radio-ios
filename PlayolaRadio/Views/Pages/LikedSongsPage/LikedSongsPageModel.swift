@@ -9,12 +9,14 @@ import SwiftUI
 class LikedSongsPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.likesManager) var likesManager: LikesManager
 
-  var groupedLikedSongs: [(String, [AudioBlock])] {
-    let songs = likesManager.allLikedAudioBlocks
+  var presentedSongActionSheet: SongActionSheet? = nil
 
-    let grouped = Dictionary(grouping: songs) { audioBlock in
-      let date = audioBlock.createdAt
-      return formatSectionTitle(for: date)
+  var groupedLikedSongs: [(String, [(AudioBlock, Date)])] {
+    let songsWithTimestamps = likesManager.allLikedAudioBlocksWithTimestamps
+
+    let grouped = Dictionary(grouping: songsWithTimestamps) { audioBlockWithTimestamp in
+      let (_, likedDate) = audioBlockWithTimestamp
+      return formatSectionTitle(for: likedDate)
     }
 
     return
@@ -26,16 +28,16 @@ class LikedSongsPageModel: ViewModel {
       }
       .map { (key, value) in
         let sortedSongs = value.sorted { first, second in
-          let firstDate = first.createdAt
-          let secondDate = second.createdAt
+          let (_, firstDate) = first
+          let (_, secondDate) = second
           return firstDate > secondDate
         }
         return (key, sortedSongs)
       }
   }
 
-  func menuButtonTapped(for audioBlock: AudioBlock) {
-
+  func menuButtonTapped(for audioBlock: AudioBlock, likedDate: Date) {
+    presentedSongActionSheet = SongActionSheet(audioBlock: audioBlock, likedDate: likedDate)
   }
 
   private func formatSectionTitle(for date: Date) -> String {
@@ -61,9 +63,15 @@ class LikedSongsPageModel: ViewModel {
     }
   }
 
-  func formatTimestamp(for audioBlock: AudioBlock) -> String {
+  func formatTimestamp(for date: Date) -> String {
     let formatter = DateFormatter()
     formatter.dateFormat = "MMMM d, yyyy 'at' h:mm a"
-    return formatter.string(from: audioBlock.createdAt)
+    return formatter.string(from: date)
   }
+}
+
+struct SongActionSheet: Identifiable {
+  let id = UUID()
+  let audioBlock: AudioBlock
+  let likedDate: Date
 }

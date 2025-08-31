@@ -69,6 +69,8 @@ struct MainContainer: View {
         switch path {
         case .editProfilePage(let model):
           EditProfilePageView(model: model)
+        case .likedSongsPage(let model):
+          LikedSongsPage(model: model)
         }
       }
     }

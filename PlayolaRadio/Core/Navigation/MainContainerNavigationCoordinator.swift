@@ -20,6 +20,7 @@ final class MainContainerNavigationCoordinator: Sendable {
   @CasePathable
   enum Path: Hashable, Equatable {
     case editProfilePage(EditProfilePageModel)
+    case likedSongsPage(LikedSongsPageModel)
   }
 
   func push(_ path: Path) {

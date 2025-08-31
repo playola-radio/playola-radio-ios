@@ -47,6 +47,29 @@ final class LikesManager: ObservableObject {
     Array(likedAudioBlocks.values)
   }
 
+  /// Gets the timestamp when an audio block was liked
+  /// - Parameter audioBlockId: The ID of the audio block
+  /// - Returns: The timestamp when it was liked, or nil if not liked
+  func getLikedTimestamp(_ audioBlockId: String) -> Date? {
+    // Find the most recent like operation for this audio block
+    return
+      pendingOperations
+      .filter { $0.audioBlock.id == audioBlockId && $0.type == .like }
+      .max(by: { $0.timestamp < $1.timestamp })?
+      .timestamp
+  }
+
+  /// Gets all liked audio blocks with their like timestamps
+  /// - Returns: Array of tuples containing audio blocks and their like timestamps
+  var allLikedAudioBlocksWithTimestamps: [(AudioBlock, Date)] {
+    return likedAudioBlocks.values.compactMap { audioBlock in
+      if let likedTimestamp = getLikedTimestamp(audioBlock.id) {
+        return (audioBlock, likedTimestamp)
+      }
+      return nil
+    }
+  }
+
   /// Toggles the like status of an audio block
   /// - Parameter audioBlock: The audio block to like or unlike
   func toggleLike(_ audioBlock: AudioBlock) {
