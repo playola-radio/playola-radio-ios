@@ -31,7 +31,6 @@
 		D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DD32D3AC9B40070033A /* EnumTypeEquatableProtocol.swift */; };
 		D31C43A82D3C19640021AAE4 /* StationPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */; };
 		D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31C43A92D3C390C0021AAE4 /* StationPlayerMock.swift */; };
-		D31C43AC2D3C65840021AAE4 /* NavigationCoordinatorMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31C43AB2D3C657F0021AAE4 /* NavigationCoordinatorMock.swift */; };
 		D31C43D42D3C783B0021AAE4 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D31C43D32D3C783B0021AAE4 /* PlayolaPlayer */; };
 		D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31CD5222DFBA1EC009B9780 /* ViewModel.swift */; };
 		D31CD5272DFBB4DF009B9780 /* MainContainerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31CD5252DFBB47D009B9780 /* MainContainerTests.swift */; };
@@ -101,7 +100,6 @@
 		D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
 		D3B662682D3F58E700975D2F /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3B662672D3F58E700975D2F /* FRadioPlayer */; };
 		D3B6626A2D40103C00975D2F /* SignInPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662692D40103800975D2F /* SignInPageView.swift */; };
-		D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */; };
 		D3B662702D40352500975D2F /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D3B6626F2D40352500975D2F /* Alamofire */; };
 		D3B662742D419C3300975D2F /* LoggedInUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662732D419C3100975D2F /* LoggedInUser.swift */; };
 		D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B662752D41B0C700975D2F /* SignInPageTests.swift */; };
@@ -166,7 +164,6 @@
 		D3137DD32D3AC9B40070033A /* EnumTypeEquatableProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnumTypeEquatableProtocol.swift; sourceTree = "<group>"; };
 		D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayer.swift; sourceTree = "<group>"; };
 		D31C43A92D3C390C0021AAE4 /* StationPlayerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerMock.swift; sourceTree = "<group>"; };
-		D31C43AB2D3C657F0021AAE4 /* NavigationCoordinatorMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinatorMock.swift; sourceTree = "<group>"; };
 		D31CD5222DFBA1EC009B9780 /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
 		D31CD5252DFBB47D009B9780 /* MainContainerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainerTests.swift; sourceTree = "<group>"; };
 		D339E5662BFD10AE00B9E35B /* StationListPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPage.swift; sourceTree = "<group>"; };
@@ -232,7 +229,6 @@
 		D3A08A3B2E53A78C002468E0 /* InvitationCodePageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitationCodePageTests.swift; sourceTree = "<group>"; };
 		D3A276682D496282006055AF /* UIApplication+keyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+keyWindow.swift"; sourceTree = "<group>"; };
 		D3B662692D40103800975D2F /* SignInPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageView.swift; sourceTree = "<group>"; };
-		D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinator.swift; sourceTree = "<group>"; };
 		D3B662732D419C3100975D2F /* LoggedInUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggedInUser.swift; sourceTree = "<group>"; };
 		D3B662752D41B0C700975D2F /* SignInPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageTests.swift; sourceTree = "<group>"; };
 		D3B662C22D4272ED00975D2F /* Secrets-Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Local.xcconfig"; sourceTree = "<group>"; };
@@ -331,7 +327,6 @@
 			isa = PBXGroup;
 			children = (
 				D34D5C382D7106CA00148048 /* AuthServiceMock.swift */,
-				D31C43AB2D3C657F0021AAE4 /* NavigationCoordinatorMock.swift */,
 				D31C43A92D3C390C0021AAE4 /* StationPlayerMock.swift */,
 				D3137DC52D39BEDD0070033A /* URLStreamPlayerMock.swift */,
 				D3137DBF2D3981880070033A /* MailServiceMock.swift */,
@@ -607,7 +602,6 @@
 		D378CCD52E58C42D00497A4A /* Navigation */ = {
 			isa = PBXGroup;
 			children = (
-				D3B6626C2D4016BF00975D2F /* NavigationCoordinator.swift */,
 				D39591292E3BD02300720CF8 /* MainContainerNavigationCoordinator.swift */,
 			);
 			path = Navigation;
@@ -923,7 +917,6 @@
 				D39591152E39932000720CF8 /* ContactPageView.swift in Sources */,
 				D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */,
 				D37257C42DF8F885001BC6F9 /* circleBackground.swift in Sources */,
-				D3B6626D2D4016C200975D2F /* NavigationCoordinator.swift in Sources */,
 				D378CCD02E57947800497A4A /* ShareSheet.swift in Sources */,
 				D3B744C02E3131730042A427 /* RewardsPageModel.swift in Sources */,
 				D302576D2E63428800F4228B /* ToastClient.swift in Sources */,
@@ -970,7 +963,6 @@
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,
 				D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */,
 				D395912D2E3D1E1E00720CF8 /* EditProfilePageTests.swift in Sources */,
-				D31C43AC2D3C65840021AAE4 /* NavigationCoordinatorMock.swift in Sources */,
 				D34D5C392D7106CD00148048 /* AuthServiceMock.swift in Sources */,
 				D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */,
 				D342A0C72DFCB368002BAC30 /* HomePageTests.swift in Sources */,
