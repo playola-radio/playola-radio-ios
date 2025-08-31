@@ -14,6 +14,7 @@ import SwiftUI
 @Observable
 final class MainContainerNavigationCoordinator: Sendable {
   var path: [Path] = []
+  var presentedSheet: PlayolaSheet?
 
   @CasePathable
   enum Path: Hashable, Equatable {
@@ -35,5 +36,15 @@ final class MainContainerNavigationCoordinator: Sendable {
 
   func replace(with path: Path) {
     self.path = [path]
+  }
+
+  @MainActor
+  func navigateToLikedSongs() {
+    // Dismiss any presented sheet first
+    presentedSheet = nil
+
+    // Navigate to liked songs page
+    let likedSongsModel = LikedSongsPageModel()
+    push(.likedSongsPage(likedSongsModel))
   }
 }

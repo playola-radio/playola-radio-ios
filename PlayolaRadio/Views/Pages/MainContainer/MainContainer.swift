@@ -76,7 +76,7 @@ struct MainContainer: View {
     }
     .alert(item: $model.presentedAlert) { $0.alert }
     .sheet(
-      item: $model.presentedSheet,
+      item: $model.mainContainerNavigationCoordinator.presentedSheet,
       content: { item in
         ZStack {
           switch item {

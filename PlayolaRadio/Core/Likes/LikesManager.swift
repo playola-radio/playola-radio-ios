@@ -146,8 +146,7 @@ final class LikesManager: ObservableObject {
       duration: 3.0
     ) {
       Task { @MainActor in
-        let model = LikedSongsPageModel()
-        self.navigationCoordinator.push(.likedSongsPage(model))
+        self.navigationCoordinator.navigateToLikedSongs()
       }
     }
 

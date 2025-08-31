@@ -213,8 +213,8 @@ final class MainContainerTests: XCTestCase {
 
     mainContainerModel.onSmallPlayerTapped()
 
-    XCTAssertNotNil(mainContainerModel.presentedSheet)
-    if case .player = mainContainerModel.presentedSheet {
+    XCTAssertNotNil(mainContainerModel.mainContainerNavigationCoordinator.presentedSheet)
+    if case .player = mainContainerModel.mainContainerNavigationCoordinator.presentedSheet {
       // Test passes
     } else {
       XCTFail("Expected player sheet to be presented")
@@ -253,8 +253,8 @@ final class MainContainerTests: XCTestCase {
     let newState = StationPlayer.State(playbackStatus: .startingNewStation(.mock))
     mainContainerModel.processNewStationState(newState)
 
-    XCTAssertNotNil(mainContainerModel.presentedSheet)
-    if case .player = mainContainerModel.presentedSheet {
+    XCTAssertNotNil(mainContainerModel.mainContainerNavigationCoordinator.presentedSheet)
+    if case .player = mainContainerModel.mainContainerNavigationCoordinator.presentedSheet {
       // Test passes
     } else {
       XCTFail("Expected player sheet to be presented")
@@ -267,19 +267,19 @@ final class MainContainerTests: XCTestCase {
 
     let playingState = StationPlayer.State(playbackStatus: .playing(.mock))
     mainContainerModel.processNewStationState(playingState)
-    XCTAssertNil(mainContainerModel.presentedSheet)
+    XCTAssertNil(mainContainerModel.mainContainerNavigationCoordinator.presentedSheet)
 
     let stoppedState = StationPlayer.State(playbackStatus: .stopped)
     mainContainerModel.processNewStationState(stoppedState)
-    XCTAssertNil(mainContainerModel.presentedSheet)
+    XCTAssertNil(mainContainerModel.mainContainerNavigationCoordinator.presentedSheet)
 
     let loadingState = StationPlayer.State(playbackStatus: .loading(.mock))
     mainContainerModel.processNewStationState(loadingState)
-    XCTAssertNil(mainContainerModel.presentedSheet)
+    XCTAssertNil(mainContainerModel.mainContainerNavigationCoordinator.presentedSheet)
 
     let errorState = StationPlayer.State(playbackStatus: .error)
     mainContainerModel.processNewStationState(errorState)
-    XCTAssertNil(mainContainerModel.presentedSheet)
+    XCTAssertNil(mainContainerModel.mainContainerNavigationCoordinator.presentedSheet)
   }
 
   // MARK: - Dismiss Button Tests
@@ -298,7 +298,10 @@ final class MainContainerTests: XCTestCase {
     XCTAssertNotNil(mainContainerModel.presentedSheet)
 
     // Extract the PlayerPageModel from the presented sheet
-    guard case .player(let playerPageModel) = mainContainerModel.presentedSheet else {
+    guard
+      case .player(let playerPageModel) = mainContainerModel.mainContainerNavigationCoordinator
+        .presentedSheet
+    else {
       XCTFail("Expected player sheet to be presented")
       return
     }
@@ -307,7 +310,7 @@ final class MainContainerTests: XCTestCase {
     playerPageModel.onDismiss?()
 
     // Verify the sheet is now nil
-    XCTAssertNil(mainContainerModel.presentedSheet)
+    XCTAssertNil(mainContainerModel.mainContainerNavigationCoordinator.presentedSheet)
   }
 
   // MARK: - Playola Station Player Configuration Tests

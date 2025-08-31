@@ -36,7 +36,6 @@ class MainContainerModel: ViewModel {
   }
 
   var presentedAlert: PlayolaAlert?
-  var presentedSheet: PlayolaSheet?
   var presentedToast: PlayolaToast?
 
   var homePageModel = HomePageModel()
@@ -95,15 +94,15 @@ class MainContainerModel: ViewModel {
     }
   }
   func dismissButtonInSheetTapped() {
-    self.presentedSheet = nil
+    self.mainContainerNavigationCoordinator.presentedSheet = nil
   }
 
   func processNewStationState(_ newState: StationPlayer.State) {
     switch newState.playbackStatus {
     case .startingNewStation:
-      self.presentedSheet = .player(
+      self.mainContainerNavigationCoordinator.presentedSheet = .player(
         PlayerPageModel(onDismiss: {
-          self.presentedSheet = nil
+          self.mainContainerNavigationCoordinator.presentedSheet = nil
         }))
     default: break
     }
@@ -122,7 +121,8 @@ class MainContainerModel: ViewModel {
   }
 
   func onSmallPlayerTapped() {
-    self.presentedSheet = .player(PlayerPageModel(onDismiss: { self.presentedSheet = nil }))
+    self.mainContainerNavigationCoordinator.presentedSheet = .player(
+      PlayerPageModel(onDismiss: { self.mainContainerNavigationCoordinator.presentedSheet = nil }))
   }
 
   // Test method for showing toasts
