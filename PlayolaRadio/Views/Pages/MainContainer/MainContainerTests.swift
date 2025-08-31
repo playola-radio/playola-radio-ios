@@ -295,7 +295,7 @@ final class MainContainerTests: XCTestCase {
     mainContainerModel.onSmallPlayerTapped()
 
     // Verify the sheet is presented
-    XCTAssertNotNil(mainContainerModel.presentedSheet)
+    XCTAssertNotNil(mainContainerModel.mainContainerNavigationCoordinator.presentedSheet)
 
     // Extract the PlayerPageModel from the presented sheet
     guard

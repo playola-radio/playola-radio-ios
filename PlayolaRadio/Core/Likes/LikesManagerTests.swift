@@ -19,15 +19,15 @@ final class LikesManagerTests: XCTestCase {
 
   override func setUp() async throws {
     try await super.setUp()
-    @Shared(.likedAudioBlocks) var likedAudioBlocks: [String: AudioBlock] = [:]
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
     @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
-    $likedAudioBlocks.withLock { $0 = [:] }
+    $userLikes.withLock { $0 = [:] }
     $pendingOperations.withLock { $0 = [] }
   }
 
   // MARK: - Like Tests
 
-  func testLike_AddsToLikedAudioBlocks() async {
+  func testLike_AddsToUserLikes() async {
     let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
@@ -50,6 +50,19 @@ final class LikesManagerTests: XCTestCase {
     XCTAssertEqual(manager.pendingOperations.first?.type, .like)
   }
 
+  func testLike_CreatesUserSongLikeWithTimestamp() async {
+    let manager = LikesManager()
+    let audioBlock = AudioBlock.mock
+    let beforeLike = Date()
+
+    manager.like(audioBlock)
+
+    let timestamp = manager.getLikedTimestamp(audioBlock.id)
+    XCTAssertNotNil(timestamp)
+    XCTAssertTrue(timestamp! >= beforeLike)
+    XCTAssertTrue(timestamp! <= Date())
+  }
+
   func testLike_DoesNotDuplicateIfAlreadyLiked() async {
     let manager = LikesManager()
     let audioBlock = AudioBlock.mock
@@ -63,7 +76,7 @@ final class LikesManagerTests: XCTestCase {
 
   // MARK: - Unlike Tests
 
-  func testUnlike_RemovesFromLikedAudioBlocks() async {
+  func testUnlike_RemovesFromUserLikes() async {
     let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
