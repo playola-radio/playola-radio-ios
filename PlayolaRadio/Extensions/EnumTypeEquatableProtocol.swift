@@ -43,13 +43,3 @@ extension StationPlayer.PlaybackStatus: EnumTypeEquatable {
     }
   }
 }
-
-extension NavigationCoordinator.Path: EnumTypeEquatable {
-  static func ~= (lhs: Self, rhs: Self) -> Bool {
-    switch (lhs, rhs) {
-    case (.stationListPage, .stationListPage): return true
-    case (.signInPage, .signInPage): return true
-    default: return false
-    }
-  }
-}

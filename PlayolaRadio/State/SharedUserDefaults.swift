@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 1/18/25.
 //
 import IdentifiedCollections
+import PlayolaPlayer
 import Sharing
 
 extension SharedKey where Self == AppStorageKey<Bool>.Default {
@@ -72,5 +73,25 @@ extension SharedKey where Self == AppStorageKey<Bool>.Default {
 extension SharedKey where Self == AppStorageKey<String?>.Default {
   static var invitationCode: Self {
     Self[.appStorage("invitationCode"), default: nil]
+  }
+}
+
+// MARK: - Likes
+
+extension SharedKey where Self == FileStorageKey<[String: UserSongLike]>.Default {
+  static var userLikes: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "user-likes.json")),
+      default: [:]
+    ]
+  }
+}
+
+extension SharedKey where Self == FileStorageKey<[LikeOperation]>.Default {
+  static var pendingLikeOperations: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "pending-like-operations.json")),
+      default: []
+    ]
   }
 }

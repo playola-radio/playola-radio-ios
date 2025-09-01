@@ -94,4 +94,23 @@ final class ContactPageTests: XCTestCase {
 
     XCTAssertEqual(model.email, "Unknown")
   }
+
+  func testOnLikedSongsTapped_NavigatesToLikedSongsPage() {
+    let model = ContactPageModel()
+
+    // Verify initial navigation state
+    XCTAssertTrue(model.mainContainerNavigationCoordinator.path.isEmpty)
+
+    // Tap liked songs button
+    model.onLikedSongsTapped()
+
+    // Verify navigation occurred
+    XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
+
+    if case .likedSongsPage = model.mainContainerNavigationCoordinator.path.first {
+      // Successfully navigated to liked songs page
+    } else {
+      XCTFail("Expected navigation to liked songs page")
+    }
+  }
 }

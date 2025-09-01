@@ -5,6 +5,8 @@
 //  Created by Brian D Keane on 7/31/25.
 //
 
+import Dependencies
+import Sharing
 import SwiftNavigation
 import SwiftUI
 
@@ -13,13 +15,16 @@ import SwiftUI
 /// tabs.
 @Observable
 final class MainContainerNavigationCoordinator: Sendable {
-  static let shared = MainContainerNavigationCoordinator()
-
   var path: [Path] = []
+  var presentedSheet: PlayolaSheet?
+
+  @ObservationIgnored @Shared(.activeTab) var activeTab
+  @ObservationIgnored @Dependency(\.continuousClock) var clock
 
   @CasePathable
   enum Path: Hashable, Equatable {
     case editProfilePage(EditProfilePageModel)
+    case likedSongsPage(LikedSongsPageModel)
   }
 
   func push(_ path: Path) {
@@ -36,5 +41,32 @@ final class MainContainerNavigationCoordinator: Sendable {
 
   func replace(with path: Path) {
     self.path = [path]
+  }
+
+  @MainActor
+  func navigateToLikedSongs() async {
+    // Dismiss any presented sheet if needed
+    if presentedSheet != nil {
+      withAnimation(.easeInOut(duration: 0.3)) {
+        presentedSheet = nil
+      }
+
+      // Wait for sheet dismissal animation
+      try? await clock.sleep(for: .milliseconds(300))
+    }
+
+    // Set active tab to profile if needed
+    if activeTab != .profile {
+      withAnimation(.easeInOut(duration: 0.3)) {
+        $activeTab.withLock { $0 = .profile }
+      }
+
+      // Wait for tab transition animation
+      try? await clock.sleep(for: .milliseconds(300))
+    }
+
+    // Navigate to liked songs page
+    let likedSongsModel = LikedSongsPageModel()
+    push(.likedSongsPage(likedSongsModel))
   }
 }

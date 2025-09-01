@@ -15,6 +15,8 @@ struct ContentView: View {
   @Dependency(\.analytics) var analytics
   @State private var hasTrackedAppOpen = false
 
+  var mainContainerModel = MainContainerModel()
+
   init() {
     // Ensure StationPlayer and NowPlayingUpdater are initialized early
     _ = StationPlayer.shared
@@ -24,7 +26,7 @@ struct ContentView: View {
   var body: some View {
     Group {
       if auth.isLoggedIn {
-        MainContainer(model: MainContainerModel())
+        MainContainer(model: mainContainerModel)
       } else {
         SignInPage(model: SignInPageModel())
       }
