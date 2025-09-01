@@ -152,11 +152,14 @@ struct SongRow: View {
       Spacer()
 
       // Menu Button
-      Button(action: { model.menuButtonTapped(for: audioBlock, likedDate: likedDate) }) {
-        Image(systemName: "ellipsis")
-          .foregroundColor(Color(hex: "#C7C7C7"))
-          .font(.system(size: 16))
-      }
+      Button(
+        action: { model.menuButtonTapped(for: audioBlock, likedDate: likedDate) },
+        label: {
+          Image(systemName: "ellipsis")
+            .foregroundColor(Color(hex: "#C7C7C7"))
+            .font(.system(size: 16))
+        }
+      )
     }
     .padding(.horizontal, 24)
     .padding(.vertical, 8)

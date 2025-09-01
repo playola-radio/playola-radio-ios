@@ -158,7 +158,9 @@ class PlayerPageModel: ViewModel {
   }
 
   var heartState: HeartState {
-    guard let audioBlock = playolaAudioBlockPlaying else {
+    guard let audioBlock = playolaAudioBlockPlaying,
+      audioBlock.type == "song"
+    else {
       return .hidden
     }
 
@@ -178,7 +180,9 @@ class PlayerPageModel: ViewModel {
   }
 
   func heartButtonTapped() {
-    guard let audioBlock = playolaAudioBlockPlaying else { return }
+    guard let audioBlock = playolaAudioBlockPlaying,
+      audioBlock.type == "song"
+    else { return }
     likesManager.toggleLike(audioBlock, spinId: playolaSpinPlaying?.id)
   }
 

@@ -59,7 +59,9 @@ struct SongDrawerView: View {
 
         // Apple Music
         if model.shouldShowAppleMusic {
-          Button(action: { model.openAppleMusic() }) {
+          Button(
+            action: { model.openAppleMusic() },
+            label: {
           HStack(spacing: 16) {
             // Replace with your branded asset if you have it
             Image("appleMusicIcon")
@@ -75,7 +77,8 @@ struct SongDrawerView: View {
           .padding(.horizontal, 24)
           .padding(.vertical, 16)
           .contentShape(Rectangle())
-          }
+            }
+          )
           .buttonStyle(.plain)
         }
 
@@ -102,7 +105,9 @@ struct SongDrawerView: View {
         }
 
         // Remove from liked songs
-        Button(action: { model.removeFromLikedSongs() }) {
+        Button(
+          action: { model.removeFromLikedSongs() },
+          label: {
           HStack(spacing: 16) {
             Image(systemName: "xmark")
               .font(.system(size: 16, weight: .semibold))
@@ -118,7 +123,8 @@ struct SongDrawerView: View {
           .padding(.horizontal, 24)
           .padding(.vertical, 16)
           .contentShape(Rectangle())
-        }
+          }
+        )
         .buttonStyle(.plain)
       }
       .padding(.top, 8)

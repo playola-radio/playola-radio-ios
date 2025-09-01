@@ -78,13 +78,11 @@ struct SmallPlayer: View {
 
         Spacer()
 
-        // Heart button
-        if currentAudioBlock != nil {
+        // Heart button (only for songs)
+        if let audioBlock = currentAudioBlock, audioBlock.type == "song" {
           Button(
             action: { 
-              if let audioBlock = currentAudioBlock {
-                likesManager.toggleLike(audioBlock)
-              }
+              likesManager.toggleLike(audioBlock)
             },
             label: {
               Image(systemName: isCurrentSongLiked ? "heart.fill" : "heart")

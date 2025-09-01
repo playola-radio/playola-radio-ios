@@ -9,7 +9,7 @@ import SwiftUI
 class LikedSongsPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.likesManager) var likesManager: LikesManager
 
-  var presentedSongActionSheet: SongActionSheet? = nil
+  var presentedSongActionSheet: SongActionSheet?
 
   var groupedLikedSongs: [(String, [(AudioBlock, Date)])] {
     let songsWithTimestamps = likesManager.allLikedAudioBlocksWithTimestamps

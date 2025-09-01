@@ -21,7 +21,12 @@ class SongDrawerModel: ViewModel {
   let onDismiss: () -> Void
   let onRemove: ((AudioBlock) -> Void)?
   
-  init(audioBlock: AudioBlock, likedDate: Date, onDismiss: @escaping () -> Void, onRemove: ((AudioBlock) -> Void)? = nil) {
+  init(
+    audioBlock: AudioBlock,
+    likedDate: Date,
+    onDismiss: @escaping () -> Void,
+    onRemove: ((AudioBlock) -> Void)? = nil
+  ) {
     self.audioBlock = audioBlock
     self.likedDate = likedDate
     self.onDismiss = onDismiss
