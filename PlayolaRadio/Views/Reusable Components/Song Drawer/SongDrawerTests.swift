@@ -208,4 +208,3 @@ final class SongDrawerTests: XCTestCase {
     }
   }
 }
-}
