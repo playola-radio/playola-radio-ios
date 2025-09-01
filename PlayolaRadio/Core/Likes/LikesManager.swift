@@ -28,6 +28,7 @@ final class LikesManager: ObservableObject {
   @Dependency(\.toast) private var toast
   @Shared(.auth) private var auth
   @Shared(.mainContainerNavigationCoordinator) private var navigationCoordinator
+  @Shared(.activeTab) private var activeTab
 
   private var authCancellable: AnyCancellable?
   private var lastJWT: String?
@@ -146,7 +147,7 @@ final class LikesManager: ObservableObject {
       duration: 3.0
     ) {
       Task { @MainActor in
-        self.navigationCoordinator.navigateToLikedSongs()
+        await self.navigationCoordinator.navigateToLikedSongs()
       }
     }
 

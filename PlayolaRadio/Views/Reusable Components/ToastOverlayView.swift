@@ -12,7 +12,7 @@ import SwiftUI
 struct ToastOverlayView: View {
   @Dependency(\.toast) var toast
   @State private var presentedToast: PlayolaToast?
-  
+
   var body: some View {
     VStack {
       Spacer()
