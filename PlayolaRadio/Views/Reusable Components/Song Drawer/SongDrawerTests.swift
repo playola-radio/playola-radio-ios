@@ -201,7 +201,10 @@ final class SongDrawerTests: XCTestCase {
       XCTAssertTrue(dismissCalled, "Should call onDismiss")
       
       // Verify song is still liked (since onRemove callback handles the removal)
-      XCTAssertTrue(model.likesManager.isLiked(audioBlock.id), "Song should still be liked when using onRemove callback")
+      XCTAssertTrue(
+        model.likesManager.isLiked(audioBlock.id),
+        "Song should still be liked when using onRemove callback"
+      )
     }
   }
 }
