@@ -5,12 +5,15 @@
 //  Created by Brian D Keane on 6/16/25.
 //
 
+import Dependencies
 import Foundation
+import PlayolaPlayer
 import Sharing
 import SwiftUI
 
 struct SmallPlayer: View {
   @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Dependency(\.likesManager) var likesManager
 
   // Computed properties from nowPlaying data
   var mainTitle: String {
@@ -31,6 +34,15 @@ struct SmallPlayer: View {
     nowPlaying?.albumArtworkUrl
       ?? nowPlaying?.currentStation?.processedImageURL()
       ?? URL(string: "https://example.com")!
+  }
+
+  var currentAudioBlock: AudioBlock? {
+    nowPlaying?.playolaSpinPlaying?.audioBlock
+  }
+
+  var isCurrentSongLiked: Bool {
+    guard let audioBlock = currentAudioBlock else { return false }
+    return likesManager.isLiked(audioBlock.id)
   }
 
   // MARK: - Body
@@ -60,11 +72,27 @@ struct SmallPlayer: View {
             .foregroundColor(.white)
           Text(secondaryTitle)
             .font(.custom(FontNames.Inter_400_Regular, size: 14))
-            .foregroundColor(.gray)
+            .foregroundColor(Color(hex: "#C7C7C7"))
         }
         .padding(.vertical, 12)
 
         Spacer()
+
+        // Heart button (only for songs)
+        if let audioBlock = currentAudioBlock, audioBlock.type == "song" {
+          Button(
+            action: { 
+              likesManager.toggleLike(audioBlock)
+            },
+            label: {
+              Image(systemName: isCurrentSongLiked ? "heart.fill" : "heart")
+                .foregroundColor(isCurrentSongLiked ? Color(hex: "#EF6962") : Color(hex: "#BABABA"))
+                .font(.system(size: 20))
+                .frame(width: 20, height: 20)
+            }
+          )
+          .padding(.trailing, 12)
+        }
 
         Button(
           action: { StationPlayer.shared.stop() },

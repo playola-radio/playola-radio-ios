@@ -19,13 +19,12 @@ class SignInPageModel: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth: Auth
   @ObservationIgnored @Shared(.hasBeenUnlocked) var hasBeenUnlocked: Bool
   @ObservationIgnored @Shared(.invitationCode) var invitationCode: String?
-  var navigationCoordinator: NavigationCoordinator
   var presentedSheet: PlayolaSheet?
 
   private var _invitationCodesPageModel = InvitationCodePageModel()
 
-  init(navigationCoordinator: NavigationCoordinator = .shared) {
-    self.navigationCoordinator = navigationCoordinator
+  @MainActor
+  override init() {
     super.init()
     updateSheetPresentation()
 
@@ -93,7 +92,6 @@ class SignInPageModel: ViewModel {
           $auth.withLock { $0 = Auth(jwtToken: token) }
           registerInvitationCodeIfPresent()
           await analytics.track(.signInCompleted(method: .apple, userId: appleIDCredential.user))
-          self.navigationCoordinator.activePath = .listen
         } catch {
           print("Sign in failed: \(error)")
           await analytics.track(.signInFailed(method: .apple, error: error.localizedDescription))
@@ -129,7 +127,6 @@ class SignInPageModel: ViewModel {
             self.registerInvitationCodeIfPresent()
             await self.analytics.track(
               .signInCompleted(method: .google, userId: signInResult.user.userID ?? "unknown"))
-            self.navigationCoordinator.activePath = .listen
           } catch {
             print("Google sign in failed: \(error)")
             await self.analytics.track(

@@ -69,18 +69,28 @@ struct MainContainer: View {
         switch path {
         case .editProfilePage(let model):
           EditProfilePageView(model: model)
+        case .likedSongsPage(let model):
+          LikedSongsPage(model: model)
         }
       }
     }
     .alert(item: $model.presentedAlert) { $0.alert }
     .sheet(
-      item: $model.presentedSheet,
+      item: $model.mainContainerNavigationCoordinator.presentedSheet,
       content: { item in
-        switch item {
-        case .player(let playerPageModel):
-          PlayerPage(model: playerPageModel)
-        default:
-          fatalError("Unsupported sheet item")
+        ZStack {
+          switch item {
+          case .player(let playerPageModel):
+            PlayerPage(model: playerPageModel)
+          default:
+            fatalError("Unsupported sheet item")
+          }
+
+          VStack {
+            Spacer()
+            ToastOverlayView()
+          }
+          .zIndex(1)  // Ensure toast appears above PlayerPage
         }
       }
     )

@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 6/16/25.
 //
 
+import Dependencies
 import FRadioPlayer
 import Foundation
 import PlayolaPlayer
@@ -72,7 +73,7 @@ final class PlayerPageTests: XCTestCase {
 
   func testViewAppeared_PopulatesCorrectlyWhenSomethingIsPlayingWithAudioBlock() {
     let station = RadioStation.mock
-    let audioBlock = AudioBlock.mock
+    let audioBlock = AudioBlock.mockWith(type: "song")
     let spin = Spin.mockWith(audioBlock: audioBlock)
     let playerMock = StationPlayerMock()
 
@@ -94,7 +95,7 @@ final class PlayerPageTests: XCTestCase {
   func testViewAppeared_PopulatesRelatedTextPrioritizingTheAudioBlockTranscription() {
     let station = RadioStation.mock
     let transcription = "This is the transcription"
-    let audioBlock = AudioBlock.mockWith(transcription: transcription)
+    let audioBlock = AudioBlock.mockWith(type: "song", transcription: transcription)
 
     let relatedTexts = [
       RelatedText(title: "title1", body: "body1"),
@@ -120,7 +121,7 @@ final class PlayerPageTests: XCTestCase {
 
   func testViewAppeared_PopulatesRelatedTextWhenRelatedTextButNoTranscription() {
     let station = RadioStation.mock
-    let audioBlock = AudioBlock.mockWith(transcription: nil)
+    let audioBlock = AudioBlock.mockWith(type: "song", transcription: nil)
 
     let relatedTexts = [
       RelatedText(title: "title1", body: "body1"),
@@ -195,7 +196,7 @@ final class PlayerPageTests: XCTestCase {
 
   func testViewAppeared_PopulatesCorrectlyWhenStartingNewStationWithAudioBlock() {
     let station = RadioStation.mock
-    let audioBlock = AudioBlock.mock
+    let audioBlock = AudioBlock.mockWith(type: "song")
     let spin = Spin.mockWith(audioBlock: audioBlock)
     let playerMock = StationPlayerMock()
 
@@ -216,7 +217,7 @@ final class PlayerPageTests: XCTestCase {
 
   func testRelatedText_ReturnsConsistentValueForSameSpin() {
     let station = RadioStation.mock
-    let audioBlock = AudioBlock.mockWith(transcription: nil)
+    let audioBlock = AudioBlock.mockWith(type: "song", transcription: nil)
 
     let relatedTexts = [
       RelatedText(title: "title1", body: "body1"),
@@ -373,5 +374,276 @@ final class PlayerPageTests: XCTestCase {
     model.scenePhaseChanged(newPhase: .inactive)
 
     XCTAssertFalse(dismissCalled)
+  }
+
+  // MARK: - Heart State Tests
+
+  func testHeartState_HiddenWhenNotPlayingPlayolaSong() {
+    let station = RadioStation.mock
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "Rachel Loy",
+      titlePlaying: "Selfie",
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+    // No playolaSpinPlaying, so no AudioBlock
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertEqual(model.heartState, .hidden)
+    XCTAssertEqual(model.heartState.imageName, "")
+    XCTAssertEqual(model.heartState.imageColorHex, "")
+  }
+
+  func testHeartState_EmptyWhenPlayingUnlikedSong() async {
+    let station = RadioStation.mock
+    let audioBlock = AudioBlock.mockWith(type: "song")
+    let spin = Spin.mockWith(audioBlock: audioBlock)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "Rachel Loy",
+      titlePlaying: "Selfie",
+      playolaSpinPlaying: spin,
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+
+    await withDependencies {
+      $0.likesManager = LikesManager()
+    } operation: {
+      let model = PlayerPageModel(stationPlayer: playerMock)
+
+      XCTAssertEqual(model.heartState, .empty)
+      XCTAssertEqual(model.heartState.imageName, "heart")
+      XCTAssertEqual(model.heartState.imageColorHex, "#BABABA")
+    }
+  }
+
+  func testHeartState_FilledWhenPlayingLikedSong() async {
+    let station = RadioStation.mock
+    let audioBlock = AudioBlock.mockWith(type: "song")
+    let spin = Spin.mockWith(audioBlock: audioBlock)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "Rachel Loy",
+      titlePlaying: "Selfie",
+      playolaSpinPlaying: spin,
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+
+    await withDependencies {
+      let likesManager = LikesManager()
+      // Pre-like the song
+      likesManager.like(audioBlock)
+      $0.likesManager = likesManager
+    } operation: {
+      let model = PlayerPageModel(stationPlayer: playerMock)
+
+      XCTAssertEqual(model.heartState, .filled)
+      XCTAssertEqual(model.heartState.imageName, "heart.fill")
+      XCTAssertEqual(model.heartState.imageColorHex, "#EF6962")
+    }
+  }
+
+  // MARK: - Heart Button Tap Tests
+
+  func testHeartButtonTapped_DoesNothingWhenNoAudioBlock() async {
+    let station = RadioStation.mock
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "Rachel Loy",
+      titlePlaying: "Selfie",
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+    // No playolaSpinPlaying
+
+    await withDependencies {
+      let likesManager = LikesManager()
+      $0.likesManager = likesManager
+    } operation: {
+      let model = PlayerPageModel(stationPlayer: playerMock)
+
+      model.heartButtonTapped()
+
+      // Should not crash and likes should remain empty
+      XCTAssertEqual(model.likesManager.allLikedAudioBlocks.count, 0)
+    }
+  }
+
+  func testHeartButtonTapped_LikesUnlikedSong() async {
+    let station = RadioStation.mock
+    let audioBlock = AudioBlock.mockWith(type: "song")
+    let spin = Spin.mockWith(audioBlock: audioBlock)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "Rachel Loy",
+      titlePlaying: "Selfie",
+      playolaSpinPlaying: spin,
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+
+    await withDependencies {
+      let likesManager = LikesManager()
+      $0.likesManager = likesManager
+    } operation: {
+      let model = PlayerPageModel(stationPlayer: playerMock)
+
+      XCTAssertEqual(model.heartState, .empty)
+
+      model.heartButtonTapped()
+
+      XCTAssertEqual(model.heartState, .filled)
+      XCTAssertTrue(model.likesManager.isLiked(audioBlock.id))
+      XCTAssertEqual(model.likesManager.allLikedAudioBlocks.count, 1)
+    }
+  }
+
+  func testHeartButtonTapped_UnlikesLikedSong() async {
+    let station = RadioStation.mock
+    let audioBlock = AudioBlock.mockWith(type: "song")
+    let spin = Spin.mockWith(audioBlock: audioBlock)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "Rachel Loy",
+      titlePlaying: "Selfie",
+      playolaSpinPlaying: spin,
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+
+    await withDependencies {
+      let likesManager = LikesManager()
+      // Pre-like the song
+      likesManager.like(audioBlock)
+      $0.likesManager = likesManager
+    } operation: {
+      let model = PlayerPageModel(stationPlayer: playerMock)
+
+      XCTAssertEqual(model.heartState, .filled)
+
+      model.heartButtonTapped()
+
+      XCTAssertEqual(model.heartState, .empty)
+      XCTAssertFalse(model.likesManager.isLiked(audioBlock.id))
+      XCTAssertEqual(model.likesManager.allLikedAudioBlocks.count, 0)
+    }
+  }
+
+  func testHeartButtonTapped_CreatesPendingOperation() async {
+    let station = RadioStation.mock
+    let audioBlock = AudioBlock.mockWith(type: "song")
+    let spin = Spin.mockWith(audioBlock: audioBlock)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "Rachel Loy",
+      titlePlaying: "Selfie",
+      playolaSpinPlaying: spin,
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+
+    await withDependencies {
+      let likesManager = LikesManager()
+      $0.likesManager = likesManager
+    } operation: {
+      let model = PlayerPageModel(stationPlayer: playerMock)
+
+      model.heartButtonTapped()
+
+      XCTAssertEqual(model.likesManager.pendingOperations.count, 1)
+      XCTAssertEqual(model.likesManager.pendingOperations.first?.type, .like)
+      XCTAssertEqual(model.likesManager.pendingOperations.first?.audioBlock.id, audioBlock.id)
+    }
+  }
+
+  // MARK: - Button Visibility Tests (Type-based)
+
+  func testHeartState_HiddenWhenPlayingNonSongAudioBlock() async {
+    let station = RadioStation.mock
+    let commercialBlock = AudioBlock.mockWith(type: "commercial")
+    let spin = Spin.mockWith(audioBlock: commercialBlock)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "Ad Content",
+      titlePlaying: "Commercial",
+      playolaSpinPlaying: spin,
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+
+    await withDependencies {
+      $0.likesManager = LikesManager()
+    } operation: {
+      let model = PlayerPageModel(stationPlayer: playerMock)
+
+      XCTAssertEqual(model.heartState, .hidden)
+      XCTAssertEqual(model.heartState.imageName, "")
+      XCTAssertEqual(model.heartState.imageColorHex, "")
+    }
+  }
+
+  func testHeartState_VisibleWhenPlayingSongAudioBlock() async {
+    let station = RadioStation.mock
+    let songBlock = AudioBlock.mockWith(type: "song")
+    let spin = Spin.mockWith(audioBlock: songBlock)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "Rachel Loy",
+      titlePlaying: "Selfie",
+      playolaSpinPlaying: spin,
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+
+    await withDependencies {
+      $0.likesManager = LikesManager()
+    } operation: {
+      let model = PlayerPageModel(stationPlayer: playerMock)
+
+      XCTAssertEqual(model.heartState, .empty)
+      XCTAssertEqual(model.heartState.imageName, "heart")
+      XCTAssertEqual(model.heartState.imageColorHex, "#BABABA")
+    }
+  }
+
+  func testHeartButtonTapped_DoesNothingWhenPlayingNonSongAudioBlock() async {
+    let station = RadioStation.mock
+    let commercialBlock = AudioBlock.mockWith(type: "commercial")
+    let spin = Spin.mockWith(audioBlock: commercialBlock)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "Ad Content",
+      titlePlaying: "Commercial",
+      playolaSpinPlaying: spin,
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+
+    await withDependencies {
+      let likesManager = LikesManager()
+      $0.likesManager = likesManager
+    } operation: {
+      let model = PlayerPageModel(stationPlayer: playerMock)
+
+      model.heartButtonTapped()
+
+      // Should not create any likes or pending operations
+      XCTAssertEqual(model.likesManager.allLikedAudioBlocks.count, 0)
+      XCTAssertEqual(model.likesManager.pendingOperations.count, 0)
+    }
   }
 }

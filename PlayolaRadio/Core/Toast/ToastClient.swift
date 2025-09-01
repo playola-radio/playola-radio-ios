@@ -14,6 +14,7 @@ public struct ToastClient {
   public var show: @Sendable (PlayolaToast) async -> Void
   public var currentToast: @Sendable () async -> PlayolaToast?
   public var dismiss: @Sendable () async -> Void
+  public var stream: @Sendable () -> AsyncStream<PlayolaToast?> = { AsyncStream { _ in } }
 }
 
 extension ToastClient: DependencyKey {
@@ -29,6 +30,13 @@ extension ToastClient: DependencyKey {
       },
       dismiss: {
         await toastState.dismiss()
+      },
+      stream: {
+        AsyncStream { continuation in
+          Task {
+            await toastState.setContinuation(continuation)
+          }
+        }
       }
     )
   }
@@ -42,7 +50,12 @@ extension ToastClient {
   static let noop = ToastClient(
     show: { _ in },
     currentToast: { nil },
-    dismiss: {}
+    dismiss: {},
+    stream: {
+      AsyncStream { continuation in
+        continuation.finish()
+      }
+    }
   )
 }
 
@@ -50,7 +63,13 @@ private actor ToastState {
   private(set) var currentToast: PlayolaToast?
   private var toastQueue: [PlayolaToast] = []
   private var dismissTask: Task<Void, Never>?
+  private var continuation: AsyncStream<PlayolaToast?>.Continuation?
   @Dependency(\.continuousClock) var clock
+
+  func setContinuation(_ continuation: AsyncStream<PlayolaToast?>.Continuation) {
+    self.continuation = continuation
+    continuation.yield(currentToast)
+  }
 
   func show(_ toast: PlayolaToast) {
     toastQueue.append(toast)
@@ -65,6 +84,7 @@ private actor ToastState {
     dismissTask?.cancel()
     dismissTask = nil
     currentToast = nil
+    continuation?.yield(nil)
     Task {
       await showNext()
     }
@@ -75,11 +95,13 @@ private actor ToastState {
 
     let toast = toastQueue.removeFirst()
     currentToast = toast
+    continuation?.yield(toast)
 
     dismissTask = Task {
       try? await clock.sleep(for: .seconds(toast.duration))
       guard !Task.isCancelled else { return }
       currentToast = nil
+      continuation?.yield(nil)
       await showNext()
     }
   }
