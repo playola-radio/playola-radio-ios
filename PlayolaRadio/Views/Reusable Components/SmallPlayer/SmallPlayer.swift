@@ -49,7 +49,7 @@ struct SmallPlayer: View {
   var body: some View {
     VStack(spacing: 0) {
       // Player bar
-      HStack(spacing: 12) {
+      HStack(spacing: 16) {
         // Artwork
         AsyncImage(url: artworkURL) { phase in
           switch phase {
