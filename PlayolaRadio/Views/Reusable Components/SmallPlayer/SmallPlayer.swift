@@ -61,8 +61,8 @@ struct SmallPlayer: View {
             Color.gray.opacity(0.3)
           }
         }
-        .frame(width: 48, height: 48)
-        .padding(.leading, 16)
+        .frame(width: 64, height: 64)
+        .clipped()
         .clipShape(RoundedRectangle(cornerRadius: 6))
 
         // Title & subtitle
@@ -106,7 +106,7 @@ struct SmallPlayer: View {
         )
         .padding(.trailing, 24)
       }
-      .padding(.horizontal, 12)
+      .padding(.horizontal)
       .padding(.vertical, 8)
       .background(Color.black.opacity(0.85))
 

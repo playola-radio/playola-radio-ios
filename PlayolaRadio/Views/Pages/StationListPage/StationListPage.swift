@@ -115,6 +115,7 @@ private struct StationRowView: View {
             Color(white: 0.2)
           }
           .frame(width: 64, height: 64)
+          .clipped()
           .cornerRadius(6)
         }
 
