@@ -6,6 +6,7 @@
 //
 
 import Dependencies
+import MediaPlayer
 import XCTest
 
 @testable import PlayolaRadio
