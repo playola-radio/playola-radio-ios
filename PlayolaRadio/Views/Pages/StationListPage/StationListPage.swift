@@ -105,7 +105,7 @@ private struct StationRowView: View {
 
   var body: some View {
     Button(action: action) {
-      HStack(spacing: 12) {
+      HStack(spacing: 16) {
         if let url = URL(string: station.imageURL) {
           AsyncImage(url: url) { image in
             image
@@ -115,6 +115,7 @@ private struct StationRowView: View {
             Color(white: 0.2)
           }
           .frame(width: 64, height: 64)
+          .clipped()
           .cornerRadius(6)
         }
 
