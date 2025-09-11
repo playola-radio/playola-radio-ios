@@ -16,41 +16,46 @@ struct StationListPage: View {
   var body: some View {
     VStack(spacing: 0) {
       // ---------------------------------------------------------
-      // Page Title
+      // Sticky Header
       // ---------------------------------------------------------
-      Text("Radio Stations")
-        .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 34))
-        .foregroundColor(.white)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal)
-        .padding(.bottom, 24)
+      VStack(spacing: 0) {
+        // Page Title
+        HStack {
+          Text("Radio Stations")
+            .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 32))
+            .foregroundColor(.white)
+          Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 20)
 
-      // ---------------------------------------------------------
-      // Segment Control
-      // ---------------------------------------------------------
-      ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 8) {
-          ForEach(model.segmentTitles, id: \.self) { segment in
-            Button {
-              Task { await model.segmentSelected(segment) }
-            } label: {
-              Text(segment)
-                .font(.custom(FontNames.Inter_500_Medium, size: 16))
-                .foregroundColor(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(
-                  model.selectedSegment == segment
-                    ? Color.playolaRed
-                    : Color(white: 0.2)
-                )
-                .cornerRadius(20)
+        // Segment Control
+        ScrollView(.horizontal, showsIndicators: false) {
+          HStack(spacing: 8) {
+            ForEach(model.segmentTitles, id: \.self) { segment in
+              Button {
+                Task { await model.segmentSelected(segment) }
+              } label: {
+                Text(segment)
+                  .font(.custom(FontNames.Inter_500_Medium, size: 16))
+                  .foregroundColor(.white)
+                  .padding(.horizontal, 16)
+                  .padding(.vertical, 8)
+                  .background(
+                    model.selectedSegment == segment
+                      ? Color.playolaRed
+                      : Color(white: 0.2)
+                  )
+                  .cornerRadius(20)
+              }
             }
           }
+          .padding(.horizontal)
+          .padding(.top, 24)
         }
-        .padding(.horizontal)
+        .padding(.vertical, 8)
       }
-      .padding(.vertical, 8)
+      .background(Color.black)
 
       // ---------------------------------------------------------
       // Station Lists
@@ -123,10 +128,12 @@ private struct StationRowView: View {
           Text(station.name)
             .font(.custom(FontNames.Inter_500_Medium, size: 22))
             .foregroundColor(.white)
+            .multilineTextAlignment(.leading)
 
           Text(station.desc)
             .font(.custom(FontNames.Inter_400_Regular, size: 14))
             .foregroundColor(.white)
+            .multilineTextAlignment(.leading)
         }
 
         Spacer()
