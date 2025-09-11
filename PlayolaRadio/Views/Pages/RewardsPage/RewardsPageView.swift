@@ -64,7 +64,6 @@ struct RewardsPageView: View {
           }
           .background(Color(white: 0.08))
           .cornerRadius(12)
-          .padding(.horizontal, 20)
         }
       }
       .padding(.top, 20)

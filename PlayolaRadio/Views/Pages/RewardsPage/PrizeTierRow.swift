@@ -95,11 +95,11 @@ struct PrizeTierRow: View {
             .foregroundColor(.white)
             .fixedSize(horizontal: true, vertical: false)
         }
-        .frame(minWidth: 150, alignment: .trailing)
+        .frame(maxWidth: .infinity, alignment: .leading)
       }
     }
     .padding(.vertical, 12)
-    .padding(.horizontal, 16)
+    .padding(.horizontal, 20)
     .background(Color.black)
     .cornerRadius(12)
   }

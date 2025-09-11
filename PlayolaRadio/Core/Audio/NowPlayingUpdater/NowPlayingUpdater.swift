@@ -406,31 +406,24 @@ class NowPlayingUpdater {
 
     commandCenter.stopCommand.removeTarget(nil)
     commandCenter.playCommand.removeTarget(nil)
-    commandCenter.pauseCommand.removeTarget(nil)
-
-    // Enable play/pause toggle
-    commandCenter.playCommand.isEnabled = true
-    commandCenter.playCommand.addTarget { _ in
-      // Try current station first, fall back to last played station
-      if let currentStation = self.stationPlayer.currentStation {
-        self.stationPlayer.play(station: currentStation)
-      } else if let lastStation = self.lastPlayedStation {
-        self.stationPlayer.play(station: lastStation)
-      }
-      return .success
-    }
-
-    commandCenter.pauseCommand.isEnabled = true
-    commandCenter.pauseCommand.addTarget { _ in
-      self.stationPlayer.stop()
-      return .success
-    }
 
     // Stop command
     commandCenter.stopCommand.isEnabled = true
     commandCenter.stopCommand.addTarget { _ in
       self.stationPlayer.stop()
       return .success
+    }
+
+    // Play command - restart last played station when stopped
+    commandCenter.playCommand.isEnabled = true
+    commandCenter.playCommand.addTarget { _ in
+      if let lastStation = self.lastPlayedStation,
+        self.stationPlayer.currentStation == nil
+      {
+        self.stationPlayer.play(station: lastStation)
+        return .success
+      }
+      return .commandFailed
     }
   }
 
@@ -439,7 +432,6 @@ class NowPlayingUpdater {
 
     // Remove all targets from commands
     commandCenter.playCommand.removeTarget(nil)
-    commandCenter.pauseCommand.removeTarget(nil)
     commandCenter.stopCommand.removeTarget(nil)
 
     // Clear now playing info
@@ -452,7 +444,7 @@ class NowPlayingUpdater {
 
   // MARK: - Inactivity Timer
 
-  private func startInactivityTimer() {
+  func startInactivityTimer() {
     cancelInactivityTimer()
 
     inactivityTask = Task { [weak self] in
@@ -464,7 +456,6 @@ class NowPlayingUpdater {
         // Clear Now Playing info after inactivity timeout
         await MainActor.run {
           self.releaseRemoteControlCenter()
-          self.lastPlayedStation = nil  // Clear the last played station too
         }
       } catch {
         // Task was cancelled
