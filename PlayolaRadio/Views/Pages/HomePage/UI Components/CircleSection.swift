@@ -17,7 +17,7 @@ struct HomeIntroSection: View {
           .resizable()
           .scaledToFit()
           .frame(width: 76, height: 98)
-          .padding(.bottom, 32)
+          .padding(.bottom, 24)
           .onTapGesture(
             count: 10,
             perform: onIconTapped10Times)
@@ -31,7 +31,7 @@ struct HomeIntroSection: View {
           .padding(.horizontal, 32)
       }
       .padding(.top, 40)
-      .padding(.bottom, 80)
+      .padding(.bottom, 60)
       .frame(maxWidth: .infinity)
       .clipped()
     }
