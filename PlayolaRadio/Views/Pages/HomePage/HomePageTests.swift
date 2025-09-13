@@ -45,20 +45,6 @@ final class HomePageTests: XCTestCase {
     await model.viewAppeared()
 
     XCTAssertEqual(model.forYouStations.elements, artistStations!.stations)
-    // Create a different station to verify the update
-    let differentStation = AnyStation.url(
-      UrlStation(
-        id: "different-station",
-        name: "Different Station",
-        streamUrl: "https://different.stream.url",
-        imageUrl: "https://different.image.url",
-        description: "A different station",
-        website: nil,
-        location: "Different City, TX",
-        active: true,
-        createdAt: Date(),
-        updatedAt: Date()
-      ))
 
     $stationLists.withLock {
       $0 = IdentifiedArray(
@@ -90,7 +76,6 @@ final class HomePageTests: XCTestCase {
         ])
     }
 
-    // Should now show the different station
     XCTAssertEqual(model.forYouStations.elements.count, 1)
     XCTAssertEqual(model.forYouStations.elements.first?.id, "different-station")
   }

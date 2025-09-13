@@ -138,19 +138,7 @@ final class NowPlayingUpdaterTests: XCTestCase {
   func testTrackListeningSession_TracksStationSwitchEvents() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
     let station1 = AnyStation.mock
-    let station2 = AnyStation.url(
-      UrlStation(
-        id: "station2",
-        name: "Station 2",
-        streamUrl: "https://stream2.example.com",
-        imageUrl: "https://example.com/station2.jpg",
-        description: "Description 2",
-        website: nil,
-        location: nil,
-        active: true,
-        createdAt: Date(),
-        updatedAt: Date()
-      ))
+    let station2 = makeTestStation2()
 
     let updater = withDependencies {
       $0.analytics.track = { event in
@@ -176,33 +164,12 @@ final class NowPlayingUpdaterTests: XCTestCase {
     // Verify the three expected events
     let events = capturedEvents.value
     XCTAssertEqual(events.count, 3, "Expected exactly 3 events when switching stations")
-
     guard events.count == 3 else { return }
 
-    // Event 1: session ended for station 1
-    guard case .listeningSessionEnded(let stationInfo, _) = events[0] else {
-      XCTFail("Expected listeningSessionEnded event first, got: \(events[0])")
-      return
-    }
-    XCTAssertEqual(stationInfo.id, station1.id)
-
-    // Event 2: switched station
-    guard case .switchedStation(let from, let to, let timeBeforeSwitchSec, let reason) = events[1]
-    else {
-      XCTFail("Expected switchedStation event second, got: \(events[1])")
-      return
-    }
-    XCTAssertEqual(from.id, station1.id)
-    XCTAssertEqual(to.id, station2.id)
-    XCTAssertGreaterThanOrEqual(timeBeforeSwitchSec, 0)
-    XCTAssertEqual(reason, .userInitiated)
-
-    // Event 3: session started for station 2
-    guard case .listeningSessionStarted(let stationInfo) = events[2] else {
-      XCTFail("Expected listeningSessionStarted event third, got: \(events[2])")
-      return
-    }
-    XCTAssertEqual(stationInfo.id, station2.id)
+    verifySessionEndedEvent(events[0], expectedStationId: station1.id, eventIndex: 0)
+    verifySwitchedStationEvent(
+      events[1], fromStationId: station1.id, toStationId: station2.id, eventIndex: 1)
+    verifySessionStartedEvent(events[2], expectedStationId: station2.id, eventIndex: 2)
   }
 
   func testTrackListeningSession_TracksPlaybackError() async {
@@ -343,5 +310,60 @@ final class NowPlayingUpdaterTests: XCTestCase {
     // Verify no events were tracked
     let events = capturedEvents.value
     XCTAssertEqual(events.count, 0)
+  }
+
+  // MARK: - Helper Methods
+
+  private func makeTestStation2() -> AnyStation {
+    return AnyStation.url(
+      UrlStation(
+        id: "station2",
+        name: "Station 2",
+        streamUrl: "https://stream2.example.com",
+        imageUrl: "https://example.com/station2.jpg",
+        description: "Description 2",
+        website: nil,
+        location: nil,
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      ))
+  }
+
+  private func verifySessionEndedEvent(
+    _ event: AnalyticsEvent, expectedStationId: String, eventIndex: Int
+  ) {
+    guard case .listeningSessionEnded(let stationInfo, _) = event else {
+      XCTFail("Expected listeningSessionEnded event at index \(eventIndex), got: \(event)")
+      return
+    }
+    XCTAssertEqual(stationInfo.id, expectedStationId)
+  }
+
+  private func verifySwitchedStationEvent(
+    _ event: AnalyticsEvent,
+    fromStationId: String,
+    toStationId: String,
+    eventIndex: Int
+  ) {
+    guard case .switchedStation(let from, let to, let timeBeforeSwitchSec, let reason) = event
+    else {
+      XCTFail("Expected switchedStation event at index \(eventIndex), got: \(event)")
+      return
+    }
+    XCTAssertEqual(from.id, fromStationId)
+    XCTAssertEqual(to.id, toStationId)
+    XCTAssertGreaterThanOrEqual(timeBeforeSwitchSec, 0)
+    XCTAssertEqual(reason, .userInitiated)
+  }
+
+  private func verifySessionStartedEvent(
+    _ event: AnalyticsEvent, expectedStationId: String, eventIndex: Int
+  ) {
+    guard case .listeningSessionStarted(let stationInfo) = event else {
+      XCTFail("Expected listeningSessionStarted event at index \(eventIndex), got: \(event)")
+      return
+    }
+    XCTAssertEqual(stationInfo.id, expectedStationId)
   }
 }
