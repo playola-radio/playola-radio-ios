@@ -30,7 +30,11 @@ final class PlayerPageTests: XCTestCase {
     let model = PlayerPageModel(stationPlayer: playerMock)
 
     XCTAssertEqual(model.primaryNavBarTitle, station.name)
-    XCTAssertEqual(model.secondaryNavBarTitle, station.description)
+    if station.isPlayolaStation {
+      XCTAssertEqual(model.secondaryNavBarTitle, station.stationName)
+    } else {
+      XCTAssertEqual(model.secondaryNavBarTitle, station.location ?? "")
+    }
     XCTAssertEqual(model.nowPlayingText, "Station Loading...")
     XCTAssertNil(model.playolaAudioBlockPlaying)
   }
@@ -47,7 +51,11 @@ final class PlayerPageTests: XCTestCase {
     let model = PlayerPageModel(stationPlayer: playerMock)
 
     XCTAssertEqual(model.primaryNavBarTitle, station.name)
-    XCTAssertEqual(model.secondaryNavBarTitle, station.description)
+    if station.isPlayolaStation {
+      XCTAssertEqual(model.secondaryNavBarTitle, station.stationName)
+    } else {
+      XCTAssertEqual(model.secondaryNavBarTitle, station.location ?? "")
+    }
     XCTAssertEqual(model.nowPlayingText, "Station Loading...")
     XCTAssertEqual(model.loadingPercentage, 0.42)
     XCTAssertNil(model.playolaAudioBlockPlaying)
@@ -188,7 +196,11 @@ final class PlayerPageTests: XCTestCase {
     let model = PlayerPageModel(stationPlayer: playerMock)
 
     XCTAssertEqual(model.primaryNavBarTitle, station.name)
-    XCTAssertEqual(model.secondaryNavBarTitle, station.description)
+    if station.isPlayolaStation {
+      XCTAssertEqual(model.secondaryNavBarTitle, station.stationName)
+    } else {
+      XCTAssertEqual(model.secondaryNavBarTitle, station.location ?? "")
+    }
     XCTAssertEqual(model.nowPlayingText, "Station Loading...")
     XCTAssertEqual(model.loadingPercentage, 0.0)  // Just starting, 0% loaded
     XCTAssertNil(model.playolaAudioBlockPlaying)
@@ -209,7 +221,11 @@ final class PlayerPageTests: XCTestCase {
     let model = PlayerPageModel(stationPlayer: playerMock)
 
     XCTAssertEqual(model.primaryNavBarTitle, station.name)
-    XCTAssertEqual(model.secondaryNavBarTitle, station.description)
+    if station.isPlayolaStation {
+      XCTAssertEqual(model.secondaryNavBarTitle, station.stationName)
+    } else {
+      XCTAssertEqual(model.secondaryNavBarTitle, station.location ?? "")
+    }
     XCTAssertEqual(model.nowPlayingText, "Station Loading...")
     XCTAssertEqual(model.loadingPercentage, 0.0)  // Just starting, 0% loaded
     XCTAssertEqual(model.playolaAudioBlockPlaying, audioBlock)
@@ -645,5 +661,166 @@ final class PlayerPageTests: XCTestCase {
       XCTAssertEqual(model.likesManager.allLikedAudioBlocks.count, 0)
       XCTAssertEqual(model.likesManager.pendingOperations.count, 0)
     }
+  }
+
+  // MARK: - Navigation Bar Title Tests
+
+  func testNavBarTitles_PlayolaStationLoading() {
+    let playolaStation = AnyStation.playola(
+      PlayolaPlayer.Station(
+        id: "test-playola-id",
+        name: "Test Radio Show",
+        curatorName: "Test Curator",
+        imageUrl: "https://test.image.url",
+        description: "Test Description",
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      ))
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      currentStation: playolaStation,
+      playbackStatus: .loading(playolaStation)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertEqual(model.primaryNavBarTitle, "Test Curator")
+    XCTAssertEqual(model.secondaryNavBarTitle, "Test Radio Show")
+  }
+
+  func testNavBarTitles_PlayolaStationStartingNewStation() {
+    let playolaStation = AnyStation.playola(
+      PlayolaPlayer.Station(
+        id: "test-playola-id",
+        name: "Another Radio Show",
+        curatorName: "Another Curator",
+        imageUrl: "https://test.image.url",
+        description: "Another Description",
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      ))
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      currentStation: playolaStation,
+      playbackStatus: .startingNewStation(playolaStation)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertEqual(model.primaryNavBarTitle, "Another Curator")
+    XCTAssertEqual(model.secondaryNavBarTitle, "Another Radio Show")
+  }
+
+  func testNavBarTitles_UrlStationLoading() {
+    let urlStation = AnyStation.url(
+      UrlStation(
+        id: "test-url-id",
+        name: "Test FM",
+        streamUrl: "https://test.stream.url",
+        imageUrl: "https://test.image.url",
+        description: "Test FM Station",
+        website: nil,
+        location: "Test City, TX",
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      ))
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      currentStation: urlStation,
+      playbackStatus: .loading(urlStation)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertEqual(model.primaryNavBarTitle, "Test FM")
+    XCTAssertEqual(model.secondaryNavBarTitle, "Test City, TX")
+  }
+
+  func testNavBarTitles_UrlStationStartingNewStation() {
+    let urlStation = AnyStation.url(
+      UrlStation(
+        id: "test-url-id2",
+        name: "Another FM",
+        streamUrl: "https://test.stream.url",
+        imageUrl: "https://test.image.url",
+        description: "Another FM Station",
+        website: nil,
+        location: "Another City, CA",
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      ))
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      currentStation: urlStation,
+      playbackStatus: .startingNewStation(urlStation)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertEqual(model.primaryNavBarTitle, "Another FM")
+    XCTAssertEqual(model.secondaryNavBarTitle, "Another City, CA")
+  }
+
+  func testNavBarTitles_UrlStationWithoutLocation() {
+    let urlStationNoLocation = AnyStation.url(
+      UrlStation(
+        id: "test-url-no-location",
+        name: "No Location FM",
+        streamUrl: "https://test.stream.url",
+        imageUrl: "https://test.image.url",
+        description: "FM Station without location",
+        website: nil,
+        location: nil,
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      ))
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      currentStation: urlStationNoLocation,
+      playbackStatus: .loading(urlStationNoLocation)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertEqual(model.primaryNavBarTitle, "No Location FM")
+    XCTAssertEqual(model.secondaryNavBarTitle, "")
+  }
+
+  func testNavBarTitles_EmptyWhenPlaying() {
+    let station = AnyStation.mock
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertEqual(model.primaryNavBarTitle, "")
+    XCTAssertEqual(model.secondaryNavBarTitle, "")
+  }
+
+  func testNavBarTitles_EmptyWhenStopped() {
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      playbackStatus: .stopped
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertEqual(model.primaryNavBarTitle, "")
+    XCTAssertEqual(model.secondaryNavBarTitle, "")
   }
 }

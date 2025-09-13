@@ -52,7 +52,11 @@ class PlayerPageModel: ViewModel {
     guard let currentStation = nowPlaying?.currentStation else { return "" }
     switch nowPlaying?.playbackStatus {
     case .loading, .startingNewStation:
-      return currentStation.description
+      if currentStation.isPlayolaStation {
+        return currentStation.stationName
+      } else {
+        return currentStation.location ?? ""
+      }
     default:
       return ""
     }
