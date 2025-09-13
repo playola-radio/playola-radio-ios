@@ -78,7 +78,7 @@ struct StationListPage: View {
 
   // MARK: - Helpers
   @ViewBuilder
-  private func stationSection(title: String, stations: [RadioStation]) -> some View {
+  private func stationSection(title: String, stations: [AnyStation]) -> some View {
     if !stations.isEmpty {
       VStack(alignment: .leading, spacing: 1) {
         Text(title)
@@ -105,13 +105,13 @@ struct StationListPage: View {
 // MARK: - Station Row
 // ------------------------------------------------------------------
 private struct StationRowView: View {
-  let station: RadioStation
+  let station: AnyStation
   let action: (() -> Void)
 
   var body: some View {
     Button(action: action) {
       HStack(spacing: 16) {
-        if let url = URL(string: station.imageURL) {
+        if let url = station.imageUrl {
           AsyncImage(url: url) { image in
             image
               .resizable()
@@ -125,12 +125,12 @@ private struct StationRowView: View {
         }
 
         VStack(alignment: .leading, spacing: 2) {
-          Text(station.name)
+          Text(station.stationName)
             .font(.custom(FontNames.Inter_500_Medium, size: 22))
             .foregroundColor(.white)
             .multilineTextAlignment(.leading)
 
-          Text(station.desc)
+          Text(station.name)
             .font(.custom(FontNames.Inter_400_Regular, size: 14))
             .foregroundColor(.white)
             .multilineTextAlignment(.leading)

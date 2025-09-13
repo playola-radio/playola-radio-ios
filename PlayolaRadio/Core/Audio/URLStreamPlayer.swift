@@ -25,7 +25,7 @@ public class URLStreamPlayer: ObservableObject {
 
     var playbackState: FRadioPlayer.PlaybackState
     var playerStatus: FRadioPlayer.State?
-    public var currentStation: RadioStation?
+    public var currentStation: UrlStation?
     var nowPlaying: FRadioPlayer.Metadata?
   }
 
@@ -39,9 +39,9 @@ public class URLStreamPlayer: ObservableObject {
 
   static let shared = URLStreamPlayer()
 
-  @Published private(set) var currentStation: RadioStation?
+  @Published private(set) var currentStation: UrlStation?
 
-  var searchedStations: [RadioStation] = []
+  var searchedStations: [UrlStation] = []
 
   private let player = FRadioPlayer.shared
 
@@ -61,14 +61,14 @@ public class URLStreamPlayer: ObservableObject {
     completion?([])
   }
 
-  func set(station: RadioStation?) {
-    guard let station, let streamURL = station.streamURL else {
+  func set(station: UrlStation?) {
+    guard let station else {
       reset()
       return
     }
 
     currentStation = station
-    player.radioURL = URL(string: streamURL)
+    player.radioURL = URL(string: station.streamUrl)
   }
 
   public func reset() {
@@ -80,7 +80,7 @@ public class URLStreamPlayer: ObservableObject {
 // MARK: - MPNowPlayingInfoCenter (Lock screen)
 
 extension URLStreamPlayer {
-  private func resetArtwork(with station: RadioStation?) {
+  private func resetArtwork(with station: UrlStation?) {
     guard let station else {
       updateLockScreen(with: nil)
       return

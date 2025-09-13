@@ -18,7 +18,7 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
   func testTrackListeningSession_StartsSessionWhenTransitioningToPlaying() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-    let station = RadioStation.mock
+    let station = AnyStation.mock
 
     let updater = withDependencies {
       $0.analytics.track = { event in
@@ -47,7 +47,7 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
   func testTrackListeningSession_EndsSessionWhenStoppingFromPlaying() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-    let station = RadioStation.mock
+    let station = AnyStation.mock
 
     let updater = withDependencies {
       $0.analytics.track = { event in
@@ -86,16 +86,20 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
   func testTrackListeningSession_InitiatesSessionBeforeSwitch() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-    let station1 = RadioStation.mock
-    let station2 = RadioStation(
-      id: "station2",
-      name: "Station 2",
-      streamURL: "https://stream2.example.com",
-      imageURL: "https://example.com/station2.jpg",
-      desc: "Description 2",
-      longDesc: "Long description for Station 2",
-      type: .artist
-    )
+    let station1 = AnyStation.mock
+    let station2 = AnyStation.url(
+      UrlStation(
+        id: "station2",
+        name: "Station 2",
+        streamUrl: "https://stream2.example.com",
+        imageUrl: "https://example.com/station2.jpg",
+        description: "Description 2",
+        website: nil,
+        location: nil,
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      ))
 
     let updater = withDependencies {
       $0.analytics.track = { event in
@@ -133,16 +137,20 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
   func testTrackListeningSession_TracksStationSwitchEvents() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-    let station1 = RadioStation.mock
-    let station2 = RadioStation(
-      id: "station2",
-      name: "Station 2",
-      streamURL: "https://stream2.example.com",
-      imageURL: "https://example.com/station2.jpg",
-      desc: "Description 2",
-      longDesc: "Long description for Station 2",
-      type: .artist
-    )
+    let station1 = AnyStation.mock
+    let station2 = AnyStation.url(
+      UrlStation(
+        id: "station2",
+        name: "Station 2",
+        streamUrl: "https://stream2.example.com",
+        imageUrl: "https://example.com/station2.jpg",
+        description: "Description 2",
+        website: nil,
+        location: nil,
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      ))
 
     let updater = withDependencies {
       $0.analytics.track = { event in
@@ -210,7 +218,7 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
     // First start a session to set up the session state
     await updater.trackListeningSession(
-      currentStatus: .playing(RadioStation.mock),
+      currentStatus: .playing(AnyStation.mock),
       previousStatus: .stopped
     )
 
@@ -218,12 +226,12 @@ final class NowPlayingUpdaterTests: XCTestCase {
     capturedEvents.withValue { $0.removeAll() }
 
     // Set last played station for error tracking
-    updater.lastPlayedStation = RadioStation.mock
+    updater.lastPlayedStation = AnyStation.mock
 
     // Transition to error state
     await updater.trackListeningSession(
       currentStatus: .error,
-      previousStatus: .playing(RadioStation.mock)
+      previousStatus: .playing(AnyStation.mock)
     )
 
     // Verify events were tracked
@@ -247,7 +255,7 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
   func testTrackListeningSession_DoesNotStartMultipleSessions() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-    let station = RadioStation.mock
+    let station = AnyStation.mock
 
     let updater = withDependencies {
       $0.analytics.track = { event in
@@ -279,7 +287,7 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
   func testTrackListeningSession_HandlesLoadingToPlayingTransition() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-    let station = RadioStation.mock
+    let station = AnyStation.mock
 
     let updater = withDependencies {
       $0.analytics.track = { event in
@@ -307,7 +315,7 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
   func testTrackListeningSession_DoesNotTrackSameStationSwitch() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-    let station = RadioStation.mock
+    let station = AnyStation.mock
 
     let updater = withDependencies {
       $0.analytics.track = { event in

@@ -18,7 +18,7 @@ struct NowPlaying: Equatable, Codable {
   let titlePlaying: String?
   let albumArtworkUrl: URL?
   let playolaSpinPlaying: Spin?
-  let currentStation: RadioStation?
+  let currentStation: AnyStation?
   let playbackStatus: StationPlayer.PlaybackStatus
 
   init(
@@ -26,7 +26,7 @@ struct NowPlaying: Equatable, Codable {
     titlePlaying: String? = nil,
     albumArtworkUrl: URL? = nil,
     playolaSpinPlaying: Spin? = nil,
-    currentStation: RadioStation? = nil,
+    currentStation: AnyStation? = nil,
     playbackStatus: StationPlayer.PlaybackStatus = .stopped
   ) {
     self.artistPlaying = artistPlaying
@@ -53,7 +53,7 @@ class NowPlayingUpdater {
   private var disposeBag = Set<AnyCancellable>()
   private var inactivityTask: Task<Void, Never>?
   private let inactivityTimeout: Duration = .seconds(15 * 60)  // 15 minutes
-  var lastPlayedStation: RadioStation?
+  var lastPlayedStation: AnyStation?
   private var currentArtworkURL: String?
 
   // Analytics tracking
@@ -89,7 +89,7 @@ class NowPlayingUpdater {
         nowPlayingInfo[MPMediaItemPropertyArtwork] = existingArtwork
       } else {
         // Only load if we don't already have this station's artwork
-        if currentArtworkURL != currentStation.imageURL {
+        if currentArtworkURL != currentStation.imageUrl?.absoluteString {
           loadStationArtwork(from: stationPlayerState, station: currentStation)
         }
       }
@@ -116,7 +116,7 @@ class NowPlayingUpdater {
 
   private func buildNowPlayingInfo(
     for state: StationPlayer.State,
-    station: RadioStation
+    station: AnyStation
   )
     -> [String: Any]
   {
@@ -174,11 +174,11 @@ class NowPlayingUpdater {
 
   private func populateLoadingInfo(
     _ info: inout [String: Any],
-    station: RadioStation,
+    station: AnyStation,
     progress: Float?
   ) {
     info[MPMediaItemPropertyTitle] = "Loading \(station.name)..."
-    info[MPMediaItemPropertyArtist] = station.desc
+    info[MPMediaItemPropertyArtist] = station.name
 
     if let progress = progress {
       info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = Double(progress * 100)
@@ -200,15 +200,15 @@ class NowPlayingUpdater {
 
   private func populateConnectingInfo(
     _ info: inout [String: Any],
-    station: RadioStation
+    station: AnyStation
   ) {
     info[MPMediaItemPropertyTitle] = "Connecting to \(station.name)..."
-    info[MPMediaItemPropertyArtist] = station.desc
+    info[MPMediaItemPropertyArtist] = station.name
   }
 
   private func populateErrorInfo(
     _ info: inout [String: Any],
-    station: RadioStation
+    station: AnyStation
   ) {
     info[MPMediaItemPropertyTitle] = "Connection Error"
     info[MPMediaItemPropertyArtist] = station.name
@@ -224,10 +224,10 @@ class NowPlayingUpdater {
 
   private func loadStationArtwork(
     from state: StationPlayer.State,
-    station: RadioStation
+    station: AnyStation
   ) {
     // Skip if we're already displaying this station's artwork
-    if currentArtworkURL == station.imageURL {
+    if currentArtworkURL == station.imageUrl?.absoluteString {
       return
     }
 
@@ -236,7 +236,7 @@ class NowPlayingUpdater {
       Task {
         self.updateNowPlayingImage(image)
         await MainActor.run {
-          self.currentArtworkURL = station.imageURL
+          self.currentArtworkURL = station.imageUrl?.absoluteString
         }
       }
     }
@@ -532,8 +532,7 @@ extension NowPlayingUpdater {
     }
   }
 
-  private func trackStationSwitch(from fromStation: RadioStation, to toStation: RadioStation) async
-  {
+  private func trackStationSwitch(from fromStation: AnyStation, to toStation: AnyStation) async {
     guard let startTime = sessionStartTime else { return }
     let duration = Date().timeIntervalSince(startTime)
 

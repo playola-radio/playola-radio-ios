@@ -21,7 +21,7 @@ final class HomePageTests: XCTestCase {
   func testViewAppeared_PopulatesForYouStationsBasedOnInitialValueOfSharedStationLists() async {
     @Shared(.stationLists) var stationLists = StationList.mocks
     let artistStations = stationLists.first {
-      $0.id == StationList.artistListId
+      $0.slug == StationList.artistListSlug
     }
     XCTAssertNotNil(artistStations)
     let model = HomePageModel()
@@ -32,7 +32,7 @@ final class HomePageTests: XCTestCase {
   func testViewAppeared_RepopulatesForYouStationsWhenSharedStationListsChanges() async {
     @Shared(.stationLists) var stationLists = StationList.mocks
     let artistStations = stationLists.first {
-      $0.id == StationList.artistListId
+      $0.slug == StationList.artistListSlug
     }
     let inDevelopmentStations = stationLists.first {
       $0.id == StationList.inDevelopmentListId
@@ -40,19 +40,59 @@ final class HomePageTests: XCTestCase {
     XCTAssertNotNil(artistStations)
     XCTAssertNotNil(inDevelopmentStations)
     XCTAssertNotEqual(artistStations!.stations, inDevelopmentStations!.stations)
+
     let model = HomePageModel()
     await model.viewAppeared()
+
     XCTAssertEqual(model.forYouStations.elements, artistStations!.stations)
+    // Create a different station to verify the update
+    let differentStation = AnyStation.url(
+      UrlStation(
+        id: "different-station",
+        name: "Different Station",
+        streamUrl: "https://different.stream.url",
+        imageUrl: "https://different.image.url",
+        description: "A different station",
+        website: nil,
+        location: "Different City, TX",
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      ))
+
     $stationLists.withLock {
       $0 = IdentifiedArray(
         uniqueElements: [
           StationList(
-            id: StationList.artistListId,
-            title: "Changed",
-            stations: inDevelopmentStations!.stations)
+            id: "artist_list",
+            name: "Changed",
+            slug: StationList.artistListSlug,
+            hidden: false,
+            sortOrder: 1,
+            createdAt: Date(),
+            updatedAt: Date(),
+            items: [
+              APIStationItem(
+                sortOrder: 0, station: nil,
+                urlStation: UrlStation(
+                  id: "different-station",
+                  name: "Different Station",
+                  streamUrl: "https://different.stream.url",
+                  imageUrl: "https://different.image.url",
+                  description: "A different station",
+                  website: nil,
+                  location: "Different City, TX",
+                  active: true,
+                  createdAt: Date(),
+                  updatedAt: Date()
+                ))
+            ])
         ])
     }
-    XCTAssertEqual(model.forYouStations.elements, inDevelopmentStations!.stations)
+
+    // Should now show the different station
+    XCTAssertEqual(model.forYouStations.elements.count, 1)
+    XCTAssertEqual(model.forYouStations.elements.first?.id, "different-station")
   }
 
   // MARK: - Welcome Message Tests
@@ -168,7 +208,7 @@ final class HomePageTests: XCTestCase {
 
   func testPlayerInteraction_PlaysAStationWhenItIsTapped() async {
     let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
-    let station: RadioStation = .mock
+    let station: AnyStation = .mock
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     let homePageModel = withDependencies {
