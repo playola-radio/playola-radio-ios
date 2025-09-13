@@ -85,7 +85,7 @@ class StationListModel: ViewModel {
       ))
   }
 
-  func stationSelected(_ station: RadioStation) async {
+  func stationSelected(_ station: AnyStation) async {
     // Find the station's position in the current display list
     let allStations = stationListsForDisplay.flatMap { $0.stations }
     let position = allStations.firstIndex(where: { $0.id == station.id }) ?? 0

@@ -47,14 +47,14 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
     observePlaybackErrors()
   }
 
-  private func playStation(_ station: RadioStation?) {
+  private func playStation(_ station: AnyStation?) {
     guard let station else { return }
 
     stationPlayer.play(station: station)
     showNowPlayingTemplate()
   }
 
-  private func sectionFromStations(_ stations: [RadioStation]) -> CPListSection {
+  private func sectionFromStations(_ stations: [AnyStation]) -> CPListSection {
     let listItems: [CPListItem] = stations.map { station in
       let listItem = self.cPListItemFrom(station: station)
       listItem.handler = { _, completion in
@@ -315,14 +315,14 @@ class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSc
   /// Creates a CPListItem from a RadioStation
   /// - Parameter station: The radio station to convert
   /// - Returns: A configured CPListItem
-  public func cPListItemFrom(station: RadioStation) -> CPListItem {
+  public func cPListItemFrom(station: AnyStation) -> CPListItem {
     // Use a default placeholder image for better UX
     let placeholder = UIImage(systemName: "radio") ?? UIImage()
 
     let listItem = CPListItem(
-      text: station.name,
-      detailText: station.desc,
-      remoteImageUrl: URL(string: station.imageURL),
+      text: station.stationName,
+      detailText: station.name,
+      remoteImageUrl: station.imageUrl,
       placeholder: placeholder
     )
     listItem.handler = { _, completion in

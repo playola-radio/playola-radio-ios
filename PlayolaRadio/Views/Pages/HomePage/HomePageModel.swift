@@ -24,7 +24,7 @@ class HomePageModel: ViewModel {
 
   @ObservationIgnored var stationPlayer: StationPlayer
 
-  var forYouStations: IdentifiedArrayOf<RadioStation> = []
+  var forYouStations: IdentifiedArrayOf<AnyStation> = []
   var presentedAlert: PlayolaAlert?
 
   var welcomeMessage: String {
@@ -53,7 +53,7 @@ class HomePageModel: ViewModel {
   func viewAppeared() async {
     $stationLists.publisher
       .sink { lists in
-        guard let artistList = lists.first(where: { $0.id == StationList.artistListId }) else {
+        guard let artistList = lists.first(where: { $0.slug == StationList.artistListSlug }) else {
           return
         }
         self.forYouStations = IdentifiedArray(uniqueElements: artistList.stations)
@@ -66,7 +66,7 @@ class HomePageModel: ViewModel {
     presentedAlert = showSecretStations ? .secretStationsTurnedOnAlert : .secretStationsHiddenAlert
   }
 
-  func handleStationTapped(_ station: RadioStation) async {
+  func handleStationTapped(_ station: AnyStation) async {
     await analytics.track(
       .startedStation(
         station: StationInfo(from: station),

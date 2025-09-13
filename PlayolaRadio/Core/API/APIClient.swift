@@ -113,13 +113,11 @@ extension APIClient: DependencyKey {
 
     return Self(
       getStations: {
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/developer/station-lists"
-        let response = try await AF.request(url).serializingDecodable([String: [StationList]].self)
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/station-lists"
+        let response = try await AF.request(url)
+          .serializingDecodable([StationList].self, decoder: JSONDecoderWithIsoFull())
           .value
-        guard let stationLists = response["stationLists"] else {
-          throw APIError.dataNotValid
-        }
-        return IdentifiedArray(uniqueElements: stationLists)
+        return IdentifiedArray(uniqueElements: response)
       },
       signInViaApple: { identityToken, email, authCode, firstName, lastName in
         var parameters: [String: String] = [

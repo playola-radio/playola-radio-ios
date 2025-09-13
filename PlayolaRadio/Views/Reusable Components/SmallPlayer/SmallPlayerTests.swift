@@ -26,7 +26,7 @@ final class SmallPlayerTests: XCTestCase {
 
   func testMainTitle_ReturnsStationNameWhenAvailable() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying?
-    let mockStation = RadioStation.mock
+    let mockStation = AnyStation.mock
 
     $nowPlaying.withLock { $0 = NowPlaying(currentStation: mockStation) }
 
@@ -52,7 +52,7 @@ final class SmallPlayerTests: XCTestCase {
 
   func testSecondaryTitle_ReturnsArtistAndTitleWhenAvailable() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying?
-    let mockStation = RadioStation.mock
+    let mockStation = AnyStation.mock
 
     $nowPlaying.withLock {
       $0 = NowPlaying(
@@ -68,17 +68,17 @@ final class SmallPlayerTests: XCTestCase {
 
   func testSecondaryTitle_ReturnsStationDescWhenNoArtistTitle() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying?
-    let mockStation = RadioStation.mock
+    let mockStation = AnyStation.mock
 
     $nowPlaying.withLock { $0 = NowPlaying(currentStation: mockStation) }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.secondaryTitle, mockStation.desc)
+    XCTAssertEqual(smallPlayer.secondaryTitle, mockStation.description)
   }
 
   func testSecondaryTitle_ReturnsStationDescWhenOnlyArtistAvailable() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying?
-    let mockStation = RadioStation.mock
+    let mockStation = AnyStation.mock
 
     $nowPlaying.withLock {
       $0 = NowPlaying(
@@ -88,12 +88,12 @@ final class SmallPlayerTests: XCTestCase {
     }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.secondaryTitle, mockStation.desc)
+    XCTAssertEqual(smallPlayer.secondaryTitle, mockStation.description)
   }
 
   func testSecondaryTitle_ReturnsStationDescWhenOnlyTitleAvailable() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying?
-    let mockStation = RadioStation.mock
+    let mockStation = AnyStation.mock
 
     $nowPlaying.withLock {
       $0 = NowPlaying(
@@ -103,7 +103,7 @@ final class SmallPlayerTests: XCTestCase {
     }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.secondaryTitle, mockStation.desc)
+    XCTAssertEqual(smallPlayer.secondaryTitle, mockStation.description)
   }
 
   func testSecondaryTitle_ReturnsEmptyStringWhenNothingAvailable() {
@@ -120,7 +120,7 @@ final class SmallPlayerTests: XCTestCase {
   func testArtworkURL_ReturnsAlbumArtworkWhenAvailable() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying?
     let testURL = URL(string: "https://example.com/album.jpg")!
-    let mockStation = RadioStation.mock
+    let mockStation = AnyStation.mock
 
     $nowPlaying.withLock {
       $0 = NowPlaying(
@@ -135,7 +135,7 @@ final class SmallPlayerTests: XCTestCase {
 
   func testArtworkURL_ReturnsStationImageWhenNoAlbumArtwork() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying?
-    let mockStation = RadioStation.mock
+    let mockStation = AnyStation.mock
 
     $nowPlaying.withLock { $0 = NowPlaying(currentStation: mockStation) }
 
@@ -161,14 +161,14 @@ final class SmallPlayerTests: XCTestCase {
 
   func testSmallPlayer_UpdatesWhenNowPlayingChanges() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying?
-    let mockStation = RadioStation.mock
+    let mockStation = AnyStation.mock
 
     // Initial state - no track info
     $nowPlaying.withLock { $0 = NowPlaying(currentStation: mockStation) }
 
     let smallPlayer = SmallPlayer()
     XCTAssertEqual(smallPlayer.mainTitle, mockStation.name)
-    XCTAssertEqual(smallPlayer.secondaryTitle, mockStation.desc)
+    XCTAssertEqual(smallPlayer.secondaryTitle, mockStation.description)
 
     // Update with artist/title - should now show track info
     $nowPlaying.withLock {
@@ -185,7 +185,7 @@ final class SmallPlayerTests: XCTestCase {
 
   func testSmallPlayer_HandlesNilToDataTransition() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying?
-    let mockStation = RadioStation.mock
+    let mockStation = AnyStation.mock
 
     let smallPlayer = SmallPlayer()
 
@@ -208,7 +208,7 @@ final class SmallPlayerTests: XCTestCase {
 
   func testSmallPlayer_HandlesDataToNilTransition() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying?
-    let mockStation = RadioStation.mock
+    let mockStation = AnyStation.mock
 
     // Start with data
     $nowPlaying.withLock {
@@ -234,7 +234,7 @@ final class SmallPlayerTests: XCTestCase {
 
   func testSmallPlayer_DisplaysSpinDataCorrectly() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying?
-    let mockStation = RadioStation.mock
+    let mockStation = AnyStation.mock
     let mockSpin = Spin.mock
     let testArtist = "Test Artist"
     let testTitle = "Test Song"
