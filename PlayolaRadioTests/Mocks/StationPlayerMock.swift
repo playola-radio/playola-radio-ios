@@ -9,7 +9,7 @@ import PlayolaPlayer
 @testable import PlayolaRadio
 
 class StationPlayerMock: StationPlayer {
-  var callsToPlay: [RadioStation] = []
+  var callsToPlay: [AnyStation] = []
   var stopCalledCount = 0
   override init(
     urlStreamPlayer _: URLStreamPlayer? = nil,
@@ -18,7 +18,7 @@ class StationPlayerMock: StationPlayer {
     super.init(urlStreamPlayer: URLStreamPlayerMock())
   }
 
-  override public func play(station: RadioStation) {
+  override public func play(station: AnyStation) {
     callsToPlay.append(station)
   }
 

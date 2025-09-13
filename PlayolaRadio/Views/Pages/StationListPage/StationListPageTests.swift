@@ -62,8 +62,13 @@ final class StationListPageTests: XCTestCase {
         uniqueElements: [
           StationList(
             id: targetList.id,
-            title: targetList.title,
-            stations: targetList.stations.reversed()
+            name: targetList.title,
+            slug: targetList.id,
+            hidden: false,
+            sortOrder: 0,
+            createdAt: Date(),
+            updatedAt: Date(),
+            items: []
           )
         ]
       )
@@ -92,7 +97,18 @@ final class StationListPageTests: XCTestCase {
         uniqueElements:
           visibleLists
           .filter { $0.id != targetList.id }
-          .map { StationList(id: $0.id, title: $0.title, stations: $0.stations) }
+          .map {
+            StationList(
+              id: $0.id,
+              name: $0.title,
+              slug: $0.id,
+              hidden: false,
+              sortOrder: 0,
+              createdAt: Date(),
+              updatedAt: Date(),
+              items: []
+            )
+          }
       )
     }
 
@@ -107,7 +123,7 @@ final class StationListPageTests: XCTestCase {
 
   func testPlayerInteraction_PlaysAStationWhenItIsTapped() async {
     let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
-    let station: RadioStation = .mock
+    let station: AnyStation = .mock
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     let stationListModel = withDependencies {

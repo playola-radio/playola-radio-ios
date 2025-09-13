@@ -13,7 +13,7 @@ import Foundation
 class URLStreamPlayerMock: URLStreamPlayer {
   override func addObserverToPlayer() {}
 
-  func setNowPlaying(station: RadioStation, artist: String, title: String) {
+  func setNowPlaying(station: UrlStation, artist: String, title: String) {
     state = URLStreamPlayer.State(
       playbackState: .playing,
       playerStatus: .loadingFinished,

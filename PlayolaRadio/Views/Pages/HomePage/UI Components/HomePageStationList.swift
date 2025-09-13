@@ -17,15 +17,15 @@ struct Station: Identifiable {
 }
 
 struct StationCardView: View {
-  let station: RadioStation
-  let onRadioStationSelected: (RadioStation) -> Void
+  let station: AnyStation
+  let onRadioStationSelected: (AnyStation) -> Void
 
   var body: some View {
     Button(
       action: { onRadioStationSelected(station) },
       label: {
         HStack(spacing: 2) {
-          AsyncImage(url: URL(string: station.imageURL)) { image in
+          AsyncImage(url: station.imageUrl) { image in
             image
               .resizable()
               .aspectRatio(contentMode: .fill)
@@ -37,17 +37,17 @@ struct StationCardView: View {
 
           // Right side - Text content
           VStack(alignment: .leading, spacing: 6) {
-            Text(station.name)
+            Text(station.stationName)
               .font(.custom(FontNames.Inter_500_Medium, size: 12))
               .foregroundColor(Color(hex: "#C7C7C7"))
               .padding(.top, 10)
 
-            Text(station.desc)
+            Text(station.name)
               .font(.custom(FontNames.Inter_500_Medium, size: 16))
               .fontWeight(.bold)
               .foregroundColor(.white)
 
-            Text(station.longDesc)
+            Text(station.description)
               .font(.custom(FontNames.Inter_400_Regular, size: 12))
               .foregroundColor(Color(hex: "#C7C7C7"))
               .lineLimit(nil)
@@ -68,8 +68,8 @@ struct StationCardView: View {
 }
 
 struct HomePageStationList: View {
-  var stations: IdentifiedArrayOf<RadioStation>
-  var onRadioStationSelected: (RadioStation) -> Void
+  var stations: IdentifiedArrayOf<AnyStation>
+  var onRadioStationSelected: (AnyStation) -> Void
 
   var body: some View {
     VStack(alignment: .leading) {
@@ -93,7 +93,10 @@ struct HomePageStationList: View {
 
 struct HomePageStationList_Previews: PreviewProvider {
   static var previews: some View {
-    HomePageStationList(stations: [.mock], onRadioStationSelected: { _ in })
+    HomePageStationList(
+      stations: IdentifiedArray(uniqueElements: [AnyStation.mock]),
+      onRadioStationSelected: { _ in }
+    )
       .preferredColorScheme(.dark)
       .padding(.horizontal, 24)
   }

@@ -1,58 +1,279 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites tests="25" failures="0">
-    <testsuite name="PlayolaRadioTests" tests="25" failures="0" skipped="0" time="1.671158790588379">
-        <properties>
-          <property name="Configuration" value="Test Scheme Action"/>
-        </properties>
-        <testcase classname="PlayolaRadioTests" name="testExample()" time="0.001096963882446289">
-        </testcase>
-        <testcase classname="PlayolaRadioTests" name="testPerformanceExample()" time="0.42618894577026367">
-        </testcase>
-        <testcase classname="FeedbackTests" name="testCorrectlySetsCanSendEmailWhenFalse()" time="0.019316911697387695">
-        </testcase>
-        <testcase classname="FeedbackTests" name="testShowsFeedbackEmailWhenMailCannotBeOpened()" time="0.006138801574707031">
-        </testcase>
-        <testcase classname="FeedbackTests" name="testShowsFeedbackEmailWhenMailComposerIsAvailable()" time="0.005800008773803711">
-        </testcase>
-        <testcase classname="FeedbackTests" name="testShowsFeedbackEmailWhenMailComposerIsUnavavailable()" time="0.005922079086303711">
-        </testcase>
-        <testcase classname="WaitlistButtonTests" name="testShowsFeedbackEmailWhenMailCannotBeOpened()" time="0.007905960083007812">
-        </testcase>
-        <testcase classname="WaitlistButtonTests" name="testShowsFeedbackEmailWhenMailComposerIsAvailable()" time="0.013243913650512695">
-        </testcase>
-        <testcase classname="WaitlistButtonTests" name="testShowsFeedbackEmailWhenMailComposerIsUnavavailable()" time="0.006907939910888672">
-        </testcase>
-        <testcase classname="AboutPageTests" name="testCorrectlySetsCanSendEmailWhenFalse()" time="0.005440950393676758">
-        </testcase>
-        <testcase classname="AboutPageTests" name="testCorrectlySetsCanSendEmailWhenTrue()" time="0.0052831172943115234">
-        </testcase>
-        <testcase classname="AboutPageTests" name="testTurnsOffTheSecretStations()" time="0.010045051574707031">
-        </testcase>
-        <testcase classname="AboutPageTests" name="testTurnsOnTheSecretStations()" time="0.008571863174438477">
-        </testcase>
-        <testcase classname="AboutDisplay" name="testTappingAboutButtonDismissWorks()" time="0.006062030792236328">
-        </testcase>
-        <testcase classname="AboutDisplay" name="testTappingAboutButtonDisplaysAboutPageAsSheet()" time="0.0059740543365478516">
-        </testcase>
-        <testcase classname="ViewAppearedTests" name="testNowPlayingPopulatesCorrectlyWhenLoading()" time="0.002846956253051758">
-        </testcase>
-        <testcase classname="ViewAppearedTests" name="testNowPlayingPopulatesCorrectlyWhenSomethingIsPlaying()" time="0.0007729530334472656">
-        </testcase>
-        <testcase classname="NowPlayingPageTests" name="testInfoButtonPushesInfoOntoTheNavigationStack()" time="0.0007219314575195312">
-        </testcase>
-        <testcase classname="SignInPageTests" name="testCorrectlyAddsScopeToTheAppleSignInRequest()" time="0.013217926025390625">
-        </testcase>
-        <testcase classname="NowPlayingLittleView" name="testNavigatesNowhereIfTappedWhileAStationIsNotPlaying()" time="0.38608217239379883">
-        </testcase>
-        <testcase classname="NowPlayingLittleView" name="testNavigatesToNowPlayingWhenNowPlayingIsTapped()" time="0.39780712127685547">
-        </testcase>
-        <testcase classname="NowPlayingLittleView" name="testSelectingAStationStartsItAndMovesToNowPlaying()" time="0.287869930267334">
-        </testcase>
-        <testcase classname="ViewAppeared" name="testCorrectlyRetrievesStationListsWhenApiIsSuccessful()" time="0.01978302001953125">
-        </testcase>
-        <testcase classname="ViewAppeared" name="testDisplaysAnErrorAlertOnApiError()" time="0.014339208602905273">
-        </testcase>
-        <testcase classname="ViewAppeared" name="testSubscribesToStationPlayerChanges()" time="0.013818979263305664">
-        </testcase>
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites tests='230' failures='0' skipped='0' time='44.41907'>
+  <testsuite name='PlayolaRadioTests' time='44.41907' tests='230' failures='0' skipped='0'>
+    <testsuite name='ContactPageTests' time='0.0605' tests='6' failures='0' skipped='0'>
+      <testcase name='testEmailDisplay_ReturnsEmailWhenLoggedIn()' classname='ContactPageTests' time='0.017'/>
+      <testcase name='testEmailDisplay_ReturnsUnknownWhenNotLoggedIn()' classname='ContactPageTests' time='0.0071'/>
+      <testcase name='testNameDisplay_ReturnsAnonymousWhenNotLoggedIn()' classname='ContactPageTests' time='0.0072'/>
+      <testcase name='testNameDisplay_ReturnsFullNameWhenLoggedIn()' classname='ContactPageTests' time='0.0075'/>
+      <testcase name='testOnLikedSongsTapped_NavigatesToLikedSongsPage()' classname='ContactPageTests' time='0.0077'/>
+      <testcase name='testOnLogOutTapped_StopsPlayerAndClearsAuth()' classname='ContactPageTests' time='0.014'/>
     </testsuite>
+    <testsuite name='EditProfilePageTests' time='16.0783' tests='12' failures='0' skipped='0'>
+      <testcase name='testInit_WithLoggedInUser_SetsInitialValues()' classname='EditProfilePageTests' time='0.009'/>
+      <testcase name='testInit_WithNoLoggedInUser_SetsEmptyValues()' classname='EditProfilePageTests' time='0.0063'/>
+      <testcase name='testInit_WithPartialUserData_SetsAvailableValues()' classname='EditProfilePageTests' time='0.0064'/>
+      <testcase name='testSaveButtonEnabled_FirstNameChanged_ReturnsTrue()' classname='EditProfilePageTests' time='0.0067'/>
+      <testcase name='testSaveButtonEnabled_LastNameChanged_ReturnsTrue()' classname='EditProfilePageTests' time='0.007'/>
+      <testcase name='testSaveButtonEnabled_LastNameEmptyToValue_ReturnsTrue()' classname='EditProfilePageTests' time='0.0068'/>
+      <testcase name='testSaveButtonEnabled_LastNameNilToEmpty_ReturnsFalse()' classname='EditProfilePageTests' time='0.0071'/>
+      <testcase name='testSaveButtonEnabled_NoChanges_ReturnsFalse()' classname='EditProfilePageTests' time='0.0071'/>
+      <testcase name='testSaveButtonEnabled_RevertChanges_ReturnsFalse()' classname='EditProfilePageTests' time='0.0079'/>
+      <testcase name='testSaveButtonTapped_NavigationPopsAfterSuccess()' classname='EditProfilePageTests' time='12.0'/>
+      <testcase name='testSaveButtonTapped_UpdateUserFails()' classname='EditProfilePageTests' time='0.014'/>
+      <testcase name='testSaveButtonTapped_UpdateUserIsSuccessful()' classname='EditProfilePageTests' time='4.0'/>
+    </testsuite>
+    <testsuite name='HomePageTests' time='0.145' tests='9' failures='0' skipped='0'>
+      <testcase name='testListeningTile_NavigationToRewardsTracksAnalytics()' classname='HomePageTests' time='0.022'/>
+      <testcase name='testPlayerInteraction_PlaysAStationWhenItIsTapped()' classname='HomePageTests' time='0.014'/>
+      <testcase name='testTappingTheP_HidesTheSecretStations()' classname='HomePageTests' time='0.015'/>
+      <testcase name='testTappingTheP_TurnsOnTheSecretStations()' classname='HomePageTests' time='0.014'/>
+      <testcase name='testViewAppeared_PopulatesForYouStationsBasedOnInitialValueOfSharedStationLists()' classname='HomePageTests' time='0.02'/>
+      <testcase name='testViewAppeared_RepopulatesForYouStationsWhenSharedStationListsChanges()' classname='HomePageTests' time='0.023'/>
+      <testcase name='testWelcomeMessage_ShowsGenericWelcomeMessageWhenNoUserIsLoggedIn()' classname='HomePageTests' time='0.012'/>
+      <testcase name='testWelcomeMessage_ShowsPersonalizedWelcomeMessageWhenUserIsLoggedIn()' classname='HomePageTests' time='0.012'/>
+      <testcase name='testWelcomeMessage_UpdatesWelcomeMessageWhenAuthChanges()' classname='HomePageTests' time='0.013'/>
+    </testsuite>
+    <testsuite name='InvitationCodePageTests' time='0.1576' tests='23' failures='0' skipped='0'>
+      <testcase name='testActionButtonTapped_InvitationCodeMode_CallsSignInButton()' classname='InvitationCodePageTests' time='0.013'/>
+      <testcase name='testActionButtonTapped_WaitingListMode_CallsJoinWaitlistButton()' classname='InvitationCodePageTests' time='0.0073'/>
+      <testcase name='testActionButtonTapped_WaitingListSuccessState_ShowsShareSheet()' classname='InvitationCodePageTests' time='0.0074'/>
+      <testcase name='testChangeModeButtonTapped_TogglesMode()' classname='InvitationCodePageTests' time='0.0057'/>
+      <testcase name='testChangingMode_clearsError()' classname='InvitationCodePageTests' time='0.0057'/>
+      <testcase name='testChangingMode_storesOldTextFieldEntry()' classname='InvitationCodePageTests' time='0.0056'/>
+      <testcase name='testInit_SetsInitialValues()' classname='InvitationCodePageTests' time='0.0053'/>
+      <testcase name='testInvitationCodeInputMode_DisplaysCorrectText()' classname='InvitationCodePageTests' time='0.0051'/>
+      <testcase name='testInvitationCodeMode_ShowsCorrectState()' classname='InvitationCodePageTests' time='0.0059'/>
+      <testcase name='testJoinWaitlistButtonTapped_EmptyEmail_ShowsErrorMessage()' classname='InvitationCodePageTests' time='0.0061'/>
+      <testcase name='testJoinWaitlistButtonTapped_UnexpectedError_ShowsGenericErrorMessage()' classname='InvitationCodePageTests' time='0.0057'/>
+      <testcase name='testJoinWaitlistButtonTapped_ValidationError_ShowsServerErrorMessage()' classname='InvitationCodePageTests' time='0.0058'/>
+      <testcase name='testJoinWaitlistButtonTapped_ValidEmail_CallsAPIAndDismisses()' classname='InvitationCodePageTests' time='0.0063'/>
+      <testcase name='testShareWithFriendsButtonTapped_SetsShowingShareSheet()' classname='InvitationCodePageTests' time='0.0063'/>
+      <testcase name='testSignInButtonTapped_EmptyCode_ShowsErrorMessage()' classname='InvitationCodePageTests' time='0.0056'/>
+      <testcase name='testSignInButtonTapped_InvalidCode_ShowsServerErrorMessage()' classname='InvitationCodePageTests' time='0.0091'/>
+      <testcase name='testSignInButtonTapped_UnexpectedError_ShowsGenericErrorMessage()' classname='InvitationCodePageTests' time='0.006'/>
+      <testcase name='testSignInButtonTapped_ValidCode_CallsDismiss()' classname='InvitationCodePageTests' time='0.01'/>
+      <testcase name='testSignInButtonTapped_ValidCode_ClearsErrorAndCallsDismiss()' classname='InvitationCodePageTests' time='0.009'/>
+      <testcase name='testSignInButtonTapped_ValidCode_TracksAnalyticsAndSetsUserProperty()' classname='InvitationCodePageTests' time='0.0077'/>
+      <testcase name='testWaitingListInputMode_DisplaysCorrectText()' classname='InvitationCodePageTests' time='0.0057'/>
+      <testcase name='testWaitingListMode_WithExistingEmail_ShowsSuccessState()' classname='InvitationCodePageTests' time='0.0074'/>
+      <testcase name='testWaitingListMode_WithoutExistingEmail_ShowsInputState()' classname='InvitationCodePageTests' time='0.0059'/>
+    </testsuite>
+    <testsuite name='LikeOperationTests' time='0.009559999999999999' tests='10' failures='0' skipped='0'>
+      <testcase name='testCodable()' classname='LikeOperationTests' time='0.0046'/>
+      <testcase name='testEquatable_Equal()' classname='LikeOperationTests' time='0.00062'/>
+      <testcase name='testEquatable_NotEqual_DifferentId()' classname='LikeOperationTests' time='0.00059'/>
+      <testcase name='testEquatable_NotEqual_DifferentType()' classname='LikeOperationTests' time='0.00044'/>
+      <testcase name='testIncrementingRetryCount()' classname='LikeOperationTests' time='0.00046'/>
+      <testcase name='testInit_CustomValues()' classname='LikeOperationTests' time='0.00043'/>
+      <testcase name='testInit_DefaultValues()' classname='LikeOperationTests' time='0.00098'/>
+      <testcase name='testIsExpired()' classname='LikeOperationTests' time='0.00054'/>
+      <testcase name='testOperationType_RawValues()' classname='LikeOperationTests' time='0.00047'/>
+      <testcase name='testShouldRetry()' classname='LikeOperationTests' time='0.00043'/>
+    </testsuite>
+    <testsuite name='LikedSongsPageTests' time='0.075' tests='4' failures='0' skipped='0'>
+      <testcase name='testFormatTimestamp()' classname='LikedSongsPageTests' time='0.018'/>
+      <testcase name='testGroupedLikedSongs_EmptyWhenNoLikes()' classname='LikedSongsPageTests' time='0.014'/>
+      <testcase name='testGroupedLikedSongs_GroupsBySectionTitle()' classname='LikedSongsPageTests' time='0.021'/>
+      <testcase name='testRemoveSong()' classname='LikedSongsPageTests' time='0.022'/>
+    </testsuite>
+    <testsuite name='LikesManagerTests' time='0.241' tests='12' failures='0' skipped='0'>
+      <testcase name='testCleanupExpiredOperations()' classname='LikesManagerTests' time='0.018'/>
+      <testcase name='testLike_AddsToUserLikes()' classname='LikesManagerTests' time='0.017'/>
+      <testcase name='testLike_CreatesPendingOperation()' classname='LikesManagerTests' time='0.019'/>
+      <testcase name='testLike_CreatesUserSongLikeWithTimestamp()' classname='LikesManagerTests' time='0.019'/>
+      <testcase name='testLike_DoesNotDuplicateIfAlreadyLiked()' classname='LikesManagerTests' time='0.019'/>
+      <testcase name='testMultipleLikes()' classname='LikesManagerTests' time='0.025'/>
+      <testcase name='testPersistenceBetweenInstances()' classname='LikesManagerTests' time='0.025'/>
+      <testcase name='testToggleLike_LikesIfNotLiked()' classname='LikesManagerTests' time='0.019'/>
+      <testcase name='testToggleLike_UnlikesIfLiked()' classname='LikesManagerTests' time='0.022'/>
+      <testcase name='testUnlike_CreatesPendingOperation()' classname='LikesManagerTests' time='0.023'/>
+      <testcase name='testUnlike_DoesNothingIfNotLiked()' classname='LikesManagerTests' time='0.016'/>
+      <testcase name='testUnlike_RemovesFromUserLikes()' classname='LikesManagerTests' time='0.019'/>
+    </testsuite>
+    <testsuite name='ListeningTimeTileModelTests' time='19.2126' tests='11' failures='0' skipped='0'>
+      <testcase name='testConcurrentUpdates()' classname='ListeningTimeTileModelTests' time='14.0'/>
+      <testcase name='testIntegrationWithRealTimeTracking()' classname='ListeningTimeTileModelTests' time='0.028'/>
+      <testcase name='testListeningTimeDisplayString_FormatsHours()' classname='ListeningTimeTileModelTests' time='0.0038'/>
+      <testcase name='testListeningTimeDisplayString_FormatsLargeHours()' classname='ListeningTimeTileModelTests' time='0.0039'/>
+      <testcase name='testListeningTimeDisplayString_FormatsMinutes()' classname='ListeningTimeTileModelTests' time='0.0041'/>
+      <testcase name='testListeningTimeDisplayString_FormatsSeconds()' classname='ListeningTimeTileModelTests' time='0.0039'/>
+      <testcase name='testListeningTimeDisplayString_FormatsZeroTime()' classname='ListeningTimeTileModelTests' time='0.0042'/>
+      <testcase name='testMultipleViewAppeared_CancelsPreviousTask()' classname='ListeningTimeTileModelTests' time='4.0'/>
+      <testcase name='testViewAppeared_HandlesNilTracker()' classname='ListeningTimeTileModelTests' time='0.0047'/>
+      <testcase name='testViewAppeared_UpdatesFromListeningTracker()' classname='ListeningTimeTileModelTests' time='0.79'/>
+      <testcase name='testViewDisappeared_CancelsRefreshTask()' classname='ListeningTimeTileModelTests' time='0.37'/>
+    </testsuite>
+    <testsuite name='ListeningTrackerTests' time='0.0977' tests='18' failures='0' skipped='0'>
+      <testcase name='testInit_WithEmptyLocalSessions()' classname='ListeningTrackerTests' time='0.004'/>
+      <testcase name='testInit_WithExistingLocalSessions()' classname='ListeningTrackerTests' time='0.0038'/>
+      <testcase name='testIsListening_ReturnsFalseWhenLastSessionEnded()' classname='ListeningTrackerTests' time='0.0037'/>
+      <testcase name='testIsListening_ReturnsFalseWhenNoSessions()' classname='ListeningTrackerTests' time='0.0037'/>
+      <testcase name='testIsListening_ReturnsTrueWhenLastSessionNotEnded()' classname='ListeningTrackerTests' time='0.0058'/>
+      <testcase name='testMultiplePlaybackStateChanges()' classname='ListeningTrackerTests' time='0.0091'/>
+      <testcase name='testPlaybackStateChange_DoesNotEndSessionWhenNoSessionsExist()' classname='ListeningTrackerTests' time='0.0056'/>
+      <testcase name='testPlaybackStateChange_DoesNotStartDuplicateSessionWhenAlreadyPlaying()' classname='ListeningTrackerTests' time='0.0068'/>
+      <testcase name='testPlaybackStateChange_EndsSessionWhenPlaybackStopped()' classname='ListeningTrackerTests' time='0.0074'/>
+      <testcase name='testPlaybackStateChange_HandlesErrorStateAsNonPlaying()' classname='ListeningTrackerTests' time='0.0071'/>
+      <testcase name='testPlaybackStateChange_HandlesLoadingStateAsNonPlaying()' classname='ListeningTrackerTests' time='0.007'/>
+      <testcase name='testPlaybackStateChange_HandlesNilNowPlayingAsNonPlaying()' classname='ListeningTrackerTests' time='0.0067'/>
+      <testcase name='testPlaybackStateChange_StartsNewSessionWhenPlayingStarted()' classname='ListeningTrackerTests' time='0.0056'/>
+      <testcase name='testSessionDuration_CalculatesCorrectly()' classname='ListeningTrackerTests' time='0.0064'/>
+      <testcase name='testTotalListenTimeMS_WithBothServerAndLocalTime()' classname='ListeningTrackerTests' time='0.0036'/>
+      <testcase name='testTotalListenTimeMS_WithMultipleLocalSessions()' classname='ListeningTrackerTests' time='0.0037'/>
+      <testcase name='testTotalListenTimeMS_WithOnlyLocalSessions()' classname='ListeningTrackerTests' time='0.0038'/>
+      <testcase name='testTotalListenTimeMS_WithOnlyServerTime()' classname='ListeningTrackerTests' time='0.0039'/>
+    </testsuite>
+    <testsuite name='MainContainerNavigationCoordinatorTests' time='0.403' tests='5' failures='0' skipped='0'>
+      <testcase name='testNavigateToLikedSongs_CreatesLikedSongsPageModel()' classname='MainContainerNavigationCoordinatorTests' time='0.0082'/>
+      <testcase name='testNavigateToLikedSongs_NoSheetAndCorrectTab()' classname='MainContainerNavigationCoordinatorTests' time='0.0068'/>
+      <testcase name='testNavigateToLikedSongs_WithDifferentTabButNoSheet()' classname='MainContainerNavigationCoordinatorTests' time='0.28'/>
+      <testcase name='testNavigateToLikedSongs_WithSheetAndDifferentTab()' classname='MainContainerNavigationCoordinatorTests' time='0.098'/>
+      <testcase name='testNavigateToLikedSongs_WithSheetButCorrectTab()' classname='MainContainerNavigationCoordinatorTests' time='0.01'/>
+    </testsuite>
+    <testsuite name='MainContainerTests' time='0.4857' tests='17' failures='0' skipped='0'>
+      <testcase name='testAuthStateLifecycle_MainContainerExistsOnlyWhenAuthenticated()' classname='MainContainerTests' time='0.031'/>
+      <testcase name='testAuthStateLifecycle_MultipleLoginSessionsGetFreshConfig()' classname='MainContainerTests' time='0.05'/>
+      <testcase name='testDismissButton_PlayerPageOnDismissClearsPresentedSheet()' classname='MainContainerTests' time='0.03'/>
+      <testcase name='testPlayolaStationPlayer_ConfiguresPlayolaStationPlayerOnInit()' classname='MainContainerTests' time='0.025'/>
+      <testcase name='testPlayolaStationPlayer_UsesAuthenticatedSessionReporting()' classname='MainContainerTests' time='0.026'/>
+      <testcase name='testProcessNewStationState_DoesNotPresentSheetForOtherStates()' classname='MainContainerTests' time='0.026'/>
+      <testcase name='testProcessNewStationState_PresentsPlayerSheetWhenStartingNewStation()' classname='MainContainerTests' time='0.026'/>
+      <testcase name='testSmallPlayerActions_OnSmallPlayerTapped()' classname='MainContainerTests' time='0.026'/>
+      <testcase name='testSmallPlayerActions_SmallPlayerHidesWhenStopButtonPressed()' classname='MainContainerTests' time='0.0017'/>
+      <testcase name='testSmallPlayerProperties_ShouldShowSmallPlayerWhenError()' classname='MainContainerTests' time='0.029'/>
+      <testcase name='testSmallPlayerProperties_ShouldShowSmallPlayerWhenLoading()' classname='MainContainerTests' time='0.029'/>
+      <testcase name='testSmallPlayerProperties_ShouldShowSmallPlayerWhenPlaying()' classname='MainContainerTests' time='0.031'/>
+      <testcase name='testSmallPlayerProperties_ShouldShowSmallPlayerWhenStartingNewStation()' classname='MainContainerTests' time='0.031'/>
+      <testcase name='testSmallPlayerProperties_ShouldShowSmallPlayerWhenStopped()' classname='MainContainerTests' time='0.031'/>
+      <testcase name='testViewAppeared_CorrectlyRetrievesStationListsWhenApiIsSuccessful()' classname='MainContainerTests' time='0.033'/>
+      <testcase name='testViewAppeared_DisplaysAnErrorAlertOnApiError()' classname='MainContainerTests' time='0.032'/>
+      <testcase name='testViewAppeared_ExitsEarlyWhenStationListsAlreadyLoaded()' classname='MainContainerTests' time='0.028'/>
+    </testsuite>
+    <testsuite name='NowPlayingUpdaterTests' time='0.0462' tests='8' failures='0' skipped='0'>
+      <testcase name='testTrackListeningSession_DoesNotStartMultipleSessions()' classname='NowPlayingUpdaterTests' time='0.0067'/>
+      <testcase name='testTrackListeningSession_DoesNotTrackSameStationSwitch()' classname='NowPlayingUpdaterTests' time='0.0058'/>
+      <testcase name='testTrackListeningSession_EndsSessionWhenStoppingFromPlaying()' classname='NowPlayingUpdaterTests' time='0.0056'/>
+      <testcase name='testTrackListeningSession_HandlesLoadingToPlayingTransition()' classname='NowPlayingUpdaterTests' time='0.0055'/>
+      <testcase name='testTrackListeningSession_InitiatesSessionBeforeSwitch()' classname='NowPlayingUpdaterTests' time='0.0057'/>
+      <testcase name='testTrackListeningSession_StartsSessionWhenTransitioningToPlaying()' classname='NowPlayingUpdaterTests' time='0.0053'/>
+      <testcase name='testTrackListeningSession_TracksPlaybackError()' classname='NowPlayingUpdaterTests' time='0.0056'/>
+      <testcase name='testTrackListeningSession_TracksStationSwitchEvents()' classname='NowPlayingUpdaterTests' time='0.006'/>
+    </testsuite>
+    <testsuite name='PlayerPageTests' time='0.2368' tests='30' failures='0' skipped='0'>
+      <testcase name='testHeartButtonTapped_CreatesPendingOperation()' classname='PlayerPageTests' time='0.016'/>
+      <testcase name='testHeartButtonTapped_DoesNothingWhenNoAudioBlock()' classname='PlayerPageTests' time='0.014'/>
+      <testcase name='testHeartButtonTapped_DoesNothingWhenPlayingNonSongAudioBlock()' classname='PlayerPageTests' time='0.013'/>
+      <testcase name='testHeartButtonTapped_LikesUnlikedSong()' classname='PlayerPageTests' time='0.016'/>
+      <testcase name='testHeartButtonTapped_UnlikesLikedSong()' classname='PlayerPageTests' time='0.022'/>
+      <testcase name='testHeartState_EmptyWhenPlayingUnlikedSong()' classname='PlayerPageTests' time='0.016'/>
+      <testcase name='testHeartState_FilledWhenPlayingLikedSong()' classname='PlayerPageTests' time='0.015'/>
+      <testcase name='testHeartState_HiddenWhenNotPlayingPlayolaSong()' classname='PlayerPageTests' time='0.0047'/>
+      <testcase name='testHeartState_HiddenWhenPlayingNonSongAudioBlock()' classname='PlayerPageTests' time='0.016'/>
+      <testcase name='testHeartState_VisibleWhenPlayingSongAudioBlock()' classname='PlayerPageTests' time='0.013'/>
+      <testcase name='testPlayPauseButtonTapped_DismissesWhenStopButtonPressed()' classname='PlayerPageTests' time='0.0037'/>
+      <testcase name='testPlayPauseButtonTapped_StopsWhenPlaying()' classname='PlayerPageTests' time='0.0037'/>
+      <testcase name='testRelatedText_ReturnsConsistentValueForSameSpin()' classname='PlayerPageTests' time='0.0063'/>
+      <testcase name='testScenePhaseChanged_DismissesWhenActiveAndPlayerError()' classname='PlayerPageTests' time='0.0031'/>
+      <testcase name='testScenePhaseChanged_DismissesWhenActiveAndPlayerStopped()' classname='PlayerPageTests' time='0.0031'/>
+      <testcase name='testScenePhaseChanged_DoesNotDismissWhenActiveAndPlayerLoading()' classname='PlayerPageTests' time='0.003'/>
+      <testcase name='testScenePhaseChanged_DoesNotDismissWhenActiveAndPlayerPlaying()' classname='PlayerPageTests' time='0.0031'/>
+      <testcase name='testScenePhaseChanged_DoesNotDismissWhenActiveAndPlayerStartingNewStation()' classname='PlayerPageTests' time='0.003'/>
+      <testcase name='testScenePhaseChanged_DoesNotDismissWhenBackgroundPhase()' classname='PlayerPageTests' time='0.0033'/>
+      <testcase name='testScenePhaseChanged_DoesNotDismissWhenInactivePhase()' classname='PlayerPageTests' time='0.0031'/>
+      <testcase name='testViewAppeared_PopulatesCorrectlyWhenError()' classname='PlayerPageTests' time='0.0055'/>
+      <testcase name='testViewAppeared_PopulatesCorrectlyWhenLoadingNoProgress()' classname='PlayerPageTests' time='0.006'/>
+      <testcase name='testViewAppeared_PopulatesCorrectlyWhenLoadingWithProgress()' classname='PlayerPageTests' time='0.0059'/>
+      <testcase name='testViewAppeared_PopulatesCorrectlyWhenSomethingIsPlaying()' classname='PlayerPageTests' time='0.0058'/>
+      <testcase name='testViewAppeared_PopulatesCorrectlyWhenSomethingIsPlayingWithAudioBlock()' classname='PlayerPageTests' time='0.0057'/>
+      <testcase name='testViewAppeared_PopulatesCorrectlyWhenStartingNewStation()' classname='PlayerPageTests' time='0.006'/>
+      <testcase name='testViewAppeared_PopulatesCorrectlyWhenStartingNewStationWithAudioBlock()' classname='PlayerPageTests' time='0.0063'/>
+      <testcase name='testViewAppeared_PopulatesCorrectlyWhenStopped()' classname='PlayerPageTests' time='0.0048'/>
+      <testcase name='testViewAppeared_PopulatesRelatedTextPrioritizingTheAudioBlockTranscription()' classname='PlayerPageTests' time='0.0046'/>
+      <testcase name='testViewAppeared_PopulatesRelatedTextWhenRelatedTextButNoTranscription()' classname='PlayerPageTests' time='0.0051'/>
+    </testsuite>
+    <testsuite name='PlayolaTokenProviderTests' time='0.0452' tests='7' failures='0' skipped='0'>
+      <testcase name='testGetCurrentToken_ReturnsJWTWhenUserLoggedIn()' classname='PlayolaTokenProviderTests' time='0.015'/>
+      <testcase name='testGetCurrentToken_ReturnsNilAfterUserSignsOut()' classname='PlayolaTokenProviderTests' time='0.0052'/>
+      <testcase name='testGetCurrentToken_ReturnsNilWhenUserNotLoggedIn()' classname='PlayolaTokenProviderTests' time='0.0034'/>
+      <testcase name='testReactiveAuth_ImmediatelyReflectsAuthStateChanges()' classname='PlayolaTokenProviderTests' time='0.0064'/>
+      <testcase name='testReactiveAuth_MultipleAuthStateChangesTracked()' classname='PlayolaTokenProviderTests' time='0.0089'/>
+      <testcase name='testRefreshToken_ReturnsCurrentJWTWhenUserLoggedIn()' classname='PlayolaTokenProviderTests' time='0.0031'/>
+      <testcase name='testRefreshToken_ReturnsNilWhenUserNotLoggedIn()' classname='PlayolaTokenProviderTests' time='0.0032'/>
+    </testsuite>
+    <testsuite name='RewardsPageModelTests' time='0.0426' tests='8' failures='0' skipped='0'>
+      <testcase name='testOnViewAppeared_LoadsPrizeTiers()' classname='RewardsPageModelTests' time='0.0054'/>
+      <testcase name='testOnViewAppeared_TracksRewardsScreenAnalytics()' classname='RewardsPageModelTests' time='0.005'/>
+      <testcase name='testRedeemPrize_TracksRedeemAnalytics()' classname='RewardsPageModelTests' time='0.0052'/>
+      <testcase name='testRedemptionStatus_MoreTimeRequired()' classname='RewardsPageModelTests' time='0.0058'/>
+      <testcase name='testRedemptionStatus_NilListeningTracker()' classname='RewardsPageModelTests' time='0.0043'/>
+      <testcase name='testRedemptionStatus_Redeemable()' classname='RewardsPageModelTests' time='0.0056'/>
+      <testcase name='testRedemptionStatus_Redeemed()' classname='RewardsPageModelTests' time='0.0054'/>
+      <testcase name='testRedemptionStatus_ZeroListeningTime()' classname='RewardsPageModelTests' time='0.0059'/>
+    </testsuite>
+    <testsuite name='SignInPageTests' time='0.4557' tests='7' failures='0' skipped='0'>
+      <testcase name='testPresentedSheet_HasBeenUnlockedFalse_InvitationCodeNil_ReturnsInvitationCodeSheet()' classname='SignInPageTests' time='0.012'/>
+      <testcase name='testPresentedSheet_HasBeenUnlockedFalse_InvitationCodeNotNil_ReturnsNil()' classname='SignInPageTests' time='0.01'/>
+      <testcase name='testPresentedSheet_HasBeenUnlockedTrue_InvitationCodeNil_ReturnsNil()' classname='SignInPageTests' time='0.0097'/>
+      <testcase name='testPresentedSheet_HasBeenUnlockedTrue_InvitationCodeNotNil_ReturnsNil()' classname='SignInPageTests' time='0.011'/>
+      <testcase name='testSignInWithApple_CorrectlyAddsScopeToTheAppleSignInRequest()' classname='SignInPageTests' time='0.011'/>
+      <testcase name='testSignInWithApple_TracksSignInStartedEvent()' classname='SignInPageTests' time='0.012'/>
+      <testcase name='testSignInWithGoogle_TracksSignInStartedEvent()' classname='SignInPageTests' time='0.39'/>
+    </testsuite>
+    <testsuite name='SmallPlayerTests' time='0.1022' tests='16' failures='0' skipped='0'>
+      <testcase name='testArtworkURL_ReturnsAlbumArtworkWhenAvailable()' classname='SmallPlayerTests' time='0.0064'/>
+      <testcase name='testArtworkURL_ReturnsFallbackWhenNothingAvailable()' classname='SmallPlayerTests' time='0.0062'/>
+      <testcase name='testArtworkURL_ReturnsFallbackWhenNowPlayingIsNil()' classname='SmallPlayerTests' time='0.0043'/>
+      <testcase name='testArtworkURL_ReturnsStationImageWhenNoAlbumArtwork()' classname='SmallPlayerTests' time='0.006'/>
+      <testcase name='testMainTitle_ReturnsEmptyStringWhenNoStation()' classname='SmallPlayerTests' time='0.0055'/>
+      <testcase name='testMainTitle_ReturnsEmptyStringWhenNowPlayingIsNil()' classname='SmallPlayerTests' time='0.0038'/>
+      <testcase name='testMainTitle_ReturnsStationNameWhenAvailable()' classname='SmallPlayerTests' time='0.0056'/>
+      <testcase name='testSecondaryTitle_ReturnsArtistAndTitleWhenAvailable()' classname='SmallPlayerTests' time='0.0064'/>
+      <testcase name='testSecondaryTitle_ReturnsEmptyStringWhenNothingAvailable()' classname='SmallPlayerTests' time='0.0062'/>
+      <testcase name='testSecondaryTitle_ReturnsStationDescWhenNoArtistTitle()' classname='SmallPlayerTests' time='0.0067'/>
+      <testcase name='testSecondaryTitle_ReturnsStationDescWhenOnlyArtistAvailable()' classname='SmallPlayerTests' time='0.0067'/>
+      <testcase name='testSecondaryTitle_ReturnsStationDescWhenOnlyTitleAvailable()' classname='SmallPlayerTests' time='0.0061'/>
+      <testcase name='testSmallPlayer_DisplaysSpinDataCorrectly()' classname='SmallPlayerTests' time='0.0068'/>
+      <testcase name='testSmallPlayer_HandlesDataToNilTransition()' classname='SmallPlayerTests' time='0.0084'/>
+      <testcase name='testSmallPlayer_HandlesNilToDataTransition()' classname='SmallPlayerTests' time='0.0076'/>
+      <testcase name='testSmallPlayer_UpdatesWhenNowPlayingChanges()' classname='SmallPlayerTests' time='0.0095'/>
+    </testsuite>
+    <testsuite name='SongDrawerTests' time='0.05408' tests='10' failures='0' skipped='0'>
+      <testcase name='testOpenAppleMusic_HandlesSpecialCharacters()' classname='SongDrawerTests' time='0.013'/>
+      <testcase name='testOpenAppleMusic_OpensSearchURL()' classname='SongDrawerTests' time='0.0011'/>
+      <testcase name='testOpenSpotify_WithoutSpotifyId_JustDismisses()' classname='SongDrawerTests' time='0.0005'/>
+      <testcase name='testOpenSpotify_WithSpotifyId_OpensCorrectURL()' classname='SongDrawerTests' time='0.0012'/>
+      <testcase name='testRemoveFromLikedSongs_UnlikesAndDismisses()' classname='SongDrawerTests' time='0.02'/>
+      <testcase name='testRemoveFromLikedSongs_WithOnRemoveCallback()' classname='SongDrawerTests' time='0.016'/>
+      <testcase name='testShouldShowAppleMusic_FalseWhenTitleOrArtistEmpty()' classname='SongDrawerTests' time='0.00054'/>
+      <testcase name='testShouldShowAppleMusic_TrueWhenTitleAndArtistExist()' classname='SongDrawerTests' time='0.00058'/>
+      <testcase name='testShouldShowSpotify_FalseWhenSpotifyIdIsNil()' classname='SongDrawerTests' time='0.00062'/>
+      <testcase name='testShouldShowSpotify_TrueWhenSpotifyIdExists()' classname='SongDrawerTests' time='0.00054'/>
+    </testsuite>
+    <testsuite name='StationListPageTests' time='0.064' tests='5' failures='0' skipped='0'>
+      <testcase name='testPlayerInteraction_PlaysAStationWhenItIsTapped()' classname='StationListPageTests' time='0.014'/>
+      <testcase name='testSegmentSelection_FiltersWhenSegmentSelected()' classname='StationListPageTests' time='0.011'/>
+      <testcase name='testSharedStationListsUpdates_KeepsSelectedSegmentWhenStillPresent()' classname='StationListPageTests' time='0.013'/>
+      <testcase name='testSharedStationListsUpdates_ResetsSelectedSegmentWhenSegmentMissing()' classname='StationListPageTests' time='0.016'/>
+      <testcase name='testViewAppeared_PopulatesFromInitialSharedStationLists()' classname='StationListPageTests' time='0.01'/>
+    </testsuite>
+    <testsuite name='ToastClientTests' time='6.40633' tests='12' failures='0' skipped='0'>
+      <testcase name='testAutoDismiss_AfterSpecifiedDuration()' classname='ToastClientTests' time='5.0'/>
+      <testcase name='testAutoDismiss_ShowsNextToastInQueue()' classname='ToastClientTests' time='1.0'/>
+      <testcase name='testConcurrentShow_SafelyQueuesAllToasts()' classname='ToastClientTests' time='0.0059'/>
+      <testcase name='testDismiss_ClearsCurrentToast()' classname='ToastClientTests' time='0.0025'/>
+      <testcase name='testDismiss_WhenNoCurrentToast_DoesNothing()' classname='ToastClientTests' time='0.0019'/>
+      <testcase name='testManualDismiss_CancelsAutoDismissTimer()' classname='ToastClientTests' time='0.39'/>
+      <testcase name='testManualDismiss_ShowsNextToastInQueue()' classname='ToastClientTests' time='0.0012'/>
+      <testcase name='testQueue_ShowsToastsInOrder()' classname='ToastClientTests' time='0.0012'/>
+      <testcase name='testShow_QueuesMultipleToasts()' classname='ToastClientTests' time='0.0013'/>
+      <testcase name='testShow_SetsCurrentToast()' classname='ToastClientTests' time='0.0009'/>
+      <testcase name='testShow_WithZeroDuration_StillShowsToast()' classname='ToastClientTests' time='0.00091'/>
+      <testcase name='testToastAction_ExecutesWhenInvoked()' classname='ToastClientTests' time='0.00052'/>
+    </testsuite>
+    <properties>
+      <property name='Configuration' value='Test Scheme Action'/>
+      <property name='device' value='iPhone 16 Pro (18.1)'/>
+    </properties>
+  </testsuite>
 </testsuites>

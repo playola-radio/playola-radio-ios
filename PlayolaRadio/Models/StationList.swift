@@ -2,12 +2,104 @@
 //  StationList.swift
 //  PlayolaRadio
 //
-//  Created by Brian D Keane on 5/19/24.
+//  Updated for Modern API Support
 //
 
 import FRadioPlayer
 import IdentifiedCollections
+import PlayolaPlayer
 import SwiftUI
+
+// Type-erased enum for station types that works with IdentifiedArray
+enum AnyStation: Identifiable, Codable, Equatable {
+  case playola(PlayolaPlayer.Station)
+  case url(UrlStation)
+
+  var id: String {
+    switch self {
+    case .playola(let station): return station.id
+    case .url(let station): return station.id
+    }
+  }
+
+  var name: String {
+    switch self {
+    case .playola(let station): return station.curatorName
+    case .url(let station): return station.name
+    }
+  }
+
+  var imageUrl: URL? {
+    switch self {
+    case .playola(let station): return station.imageUrl
+    case .url(let station): return station.imageUrl
+    }
+  }
+
+  var description: String {
+    switch self {
+    case .playola(let station): return station.description
+    case .url(let station): return station.description
+    }
+  }
+
+  var stationName: String {
+    switch self {
+    case .playola(let station): return station.name
+    case .url(let station): return station.name
+    }
+  }
+
+  var location: String? {
+    switch self {
+    case .playola: return nil
+    case .url(let station): return station.location
+    }
+  }
+
+  // Helper methods
+  func processedImageURL() -> URL {
+    if let url = imageUrl { return url }
+    // swiftlint:disable:next force_unwrapping
+    return Bundle.main.url(forResource: "AppIcon", withExtension: "PNG")!
+  }
+
+  var displayName: String {
+    if let location = location {
+      return "\(name) - \(location)"
+    }
+    return name
+  }
+
+  var isPlayolaStation: Bool {
+    if case .playola = self { return true }
+    return false
+  }
+
+  var isUrlStation: Bool {
+    if case .url = self { return true }
+    return false
+  }
+
+  // Image loading method for UI components
+  func getImage(completion: @escaping (_ image: UIImage) -> Void) {
+    switch self {
+    case .playola(let station):
+      if let imageUrl = station.imageUrl {
+        UIImage.image(from: imageUrl) { image in
+          // swiftlint:disable:next force_unwrapping
+          completion(image ?? UIImage(named: "stationImage")!)
+        }
+      } else {
+        // swiftlint:disable:next force_unwrapping
+        let image = UIImage(named: "stationImage")!
+        completion(image)
+      }
+    case .url(let station):
+      station.getImage(completion: completion)
+    }
+  }
+}
 
 struct StationList: Codable, Identifiable, Equatable, Sendable {
   public enum KnownIDs: String {
@@ -20,156 +112,209 @@ struct StationList: Codable, Identifiable, Equatable, Sendable {
     lhs.id == rhs.id
   }
 
-  var id: String
-  var title: String
-  var hidden: Bool = false
-  var stations: [RadioStation]
+  // Modern API fields
+  var id: String  // Now UUID instead of slug
+  var name: String  // Was "title"
+  var slug: String  // URL-friendly identifier
+  var hidden: Bool
+  var sortOrder: Int
+  var createdAt: Date
+  var updatedAt: Date
 
-  init(from decoder: any Decoder) throws {
-    let container = try decoder.container(keyedBy: CodingKeys.self)
-    id = try container.decode(String.self, forKey: .id)
-    title = try container.decode(String.self, forKey: .title)
-    hidden = (try? container.decode(Bool.self, forKey: .hidden)) ?? false
-    stations = try container.decode([RadioStation].self, forKey: .stations)
+  // Private - just for API decoding
+  private var items: [APIStationItem]?
+
+  // Computed properties for backward compatibility
+  var title: String { name }
+
+  // Return separate arrays of properly typed stations
+  var playolaStations: [PlayolaPlayer.Station] {
+    guard let items = items else { return [] }
+    return
+      items
+      .sorted { $0.sortOrder < $1.sortOrder }
+      .compactMap { $0.station }
   }
 
-  init(id: String, title: String, hidden: Bool = false, stations: [RadioStation]) {
+  var urlStations: [UrlStation] {
+    guard let items = items else { return [] }
+    return
+      items
+      .sorted { $0.sortOrder < $1.sortOrder }
+      .compactMap { $0.urlStation }
+  }
+
+  // Combined array of AnyStation enum objects
+  var stations: [AnyStation] {
+    guard let items = items else { return [] }
+    let sortedItems = items.sorted { $0.sortOrder < $1.sortOrder }
+    var result: [AnyStation] = []
+
+    for item in sortedItems {
+      if let station = item.station {
+        result.append(.playola(station))
+      } else if let urlStation = item.urlStation {
+        result.append(.url(urlStation))
+      }
+    }
+
+    return result
+  }
+
+  init(
+    id: String, name: String, slug: String, hidden: Bool = false, sortOrder: Int = 0,
+    createdAt: Date, updatedAt: Date, items: [APIStationItem]? = nil
+  ) {
     self.id = id
-    self.title = title
+    self.name = name
+    self.slug = slug
     self.hidden = hidden
-    self.stations = stations
+    self.sortOrder = sortOrder
+    self.createdAt = createdAt
+    self.updatedAt = updatedAt
+    self.items = items
+  }
+
+  // Custom decoder to handle the API response format
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+
+    id = try container.decode(String.self, forKey: .id)
+    name = try container.decode(String.self, forKey: .name)
+    slug = try container.decode(String.self, forKey: .slug)
+    hidden = try container.decode(Bool.self, forKey: .hidden)
+    sortOrder = try container.decode(Int.self, forKey: .sortOrder)
+    createdAt = try container.decode(Date.self, forKey: .createdAt)
+    updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+    items = try container.decodeIfPresent([APIStationItem].self, forKey: .items)
+  }
+
+  private enum CodingKeys: String, CodingKey {
+    case id, name, slug, hidden, sortOrder, createdAt, updatedAt, items
   }
 }
 
-struct StationListResponse: Decodable {
-  var stationLists: [StationList]
+struct APIStationItem: Codable {
+  var sortOrder: Int
+  var station: PlayolaPlayer.Station?
+  var urlStation: UrlStation?
 }
 
-// MARK: Mocks
+// MARK: Mocks - Updated for modern structure
 
 extension StationList {
   static var mocks: IdentifiedArrayOf<StationList> {
-    IdentifiedArray(uniqueElements: [
-      StationList(id: "in_development_list", title: "In Development", stations: [briStation]),
-      StationList(id: "artist_list", title: "Artists", stations: artistStations),
-      StationList(id: "fm_list", title: "FM Stations", stations: fmStations),
+    let now = Date()
+    return IdentifiedArray(uniqueElements: [
+      StationList(
+        id: "in_development_list", name: "In Development", slug: "in_development_list",
+        hidden: true, sortOrder: 0, createdAt: now, updatedAt: now,
+        items: [APIStationItem(sortOrder: 0, station: mockPlayolaStation, urlStation: nil)]
+      ),
+      StationList(
+        id: "artist_list", name: "Artists", slug: "artist-list",
+        hidden: false, sortOrder: 1, createdAt: now, updatedAt: now,
+        items: [APIStationItem(sortOrder: 0, station: nil, urlStation: mockUrlStation)]
+      ),
+      StationList(
+        id: "fm_list", name: "FM Stations", slug: "fm_list",
+        hidden: false, sortOrder: 2, createdAt: now, updatedAt: now,
+        items: mockFMStationItems
+      ),
     ])
   }
 }
 
 extension StationList {
-  static var artistListId: String { return "artist_list" }
+  static var artistListSlug: String { return "artist-list" }
   static var inDevelopmentListId: String { return "in_development_list" }
   static var fmListId: String { return "fm_list" }
 }
 
-extension RadioStation {
-  static var mock: RadioStation { StationList.mocks[0].stations[0] }
+extension AnyStation {
+  static var mock: AnyStation {
+    StationList.mocks.first(where: { !$0.stations.isEmpty })?.stations.first ?? .url(mockUrlStation)
+  }
 }
 
-private let briStation = RadioStation(
-  id: "bri_bagwell",
-  name: "Bri Bagwell\'s",
-  streamURL: "https://playoutonestreaming.com/proxy/billgreaseradio?mp=/stream",
-  imageURL: "https://playola-static.s3.amazonaws.com/wcg_bgr_logo.jpeg",
-  desc: "Banned Radio",
-  longDesc: "Bri Bagwell talks about her songs -- how they were written, the story "
-    + "behind the recordings, and lots of little tidbits you won\'t hear anywhere else, all while "
-    + "spinning his favorite songs and hanging out with some friends.",
-  type: .artist
+// Mock data for testing
+private let mockPlayolaStation = PlayolaPlayer.Station(
+  id: "mock-playola-id",
+  name: "Banned Radio",
+  curatorName: "Bri Bagwell",
+  imageUrl: "https://playola-static.s3.amazonaws.com/wcg_bgr_logo.jpeg",
+  description: "Bri Bagwell talks about her songs -- how they were written, the story "
+    + "behind the recordings, and lots of little tidbits you won't hear anywhere else, all while "
+    + "spinning her favorite songs and hanging out with some friends.",
+  active: true,
+  createdAt: Date(),
+  updatedAt: Date()
 )
 
-private let artistStations: [RadioStation] = []
+private let mockUrlStation = UrlStation(
+  id: "mock-url-id",
+  name: "Mock FM",
+  streamUrl: "https://mock.stream.url",
+  imageUrl: "https://mock.image.url",
+  description: "Mock FM Station",
+  website: nil,
+  location: "Mock City, TX",
+  active: true,
+  createdAt: Date(),
+  updatedAt: Date()
+)
 
-private let fmStations: [RadioStation] = [
-  RadioStation(
-    id: "koke_fm",
-    name: "KOKE FM",
-    streamURL: "https://arn.leanstream.co/KOKEFM-MP3",
-    imageURL: "https://playola-static.s3.amazonaws.com/koke-fm-logo.jpeg",
-    desc: "Austin, TX",
-    longDesc:
-      #"KOKE FM is an Austin, Texas based alternative country station. "Country Without Apology"."#
+private let mockFMStationItems: [APIStationItem] = [
+  APIStationItem(
+    sortOrder: 0,
+    station: nil,
+    urlStation: UrlStation(
+      id: "koke-fm-id",
+      name: "KOKE FM",
+      streamUrl: "https://arn.leanstream.co/KOKEFM-MP3",
+      imageUrl: "https://playola-static.s3.amazonaws.com/koke-fm-logo.jpeg",
+      description:
+        "KOKE FM is an Austin, Texas based alternative country station. \"Country Without Apology\".",
+      website: "https://kokefm.com/",
+      location: "Austin, TX",
+      active: true,
+      createdAt: Date(),
+      updatedAt: Date()
+    )
   ),
-  RadioStation(
-    id: "lakes_country",
-    name: "Lakes Country 102.1",
-    streamURL: "https://14833.live.streamtheworld.com/KEOKFMAAC.aac",
-    imageURL: "https://playola-static.s3.amazonaws.com/KEOK_SMALL.jpeg",
-    desc: "Tahlequah, OK",
-    longDesc:
-      "Lakes Country 102.1 provides today\'s best country (including Red Dirt & Local Music) "
-      + "along with community information, news & sports!"
+  APIStationItem(
+    sortOrder: 1,
+    station: nil,
+    urlStation: UrlStation(
+      id: "lakes-country-id",
+      name: "Lakes Country 102.1",
+      streamUrl: "https://14833.live.streamtheworld.com/KEOKFMAAC.aac",
+      imageUrl: "https://playola-static.s3.amazonaws.com/KEOK_SMALL.jpeg",
+      description:
+        "Lakes Country 102.1 provides today's best country (including Red Dirt & Local Music) "
+        + "along with community information, news & sports!",
+      website: nil,
+      location: "Tahlequah, OK",
+      active: true,
+      createdAt: Date(),
+      updatedAt: Date()
+    )
   ),
-  RadioStation(
-    id: "kftx",
-    name: "97.5 KFTX",
-    streamURL: "https://ice7.securenetsystems.net/KFTX",
-    imageURL: "https://playola-static.s3.amazonaws.com/kftx_logo.png",
-    desc: "Corpus Christi, TX",
-    longDesc: "KFTX.com is your 24 hour a day connection to yesterday\'s & today\'s "
-      + "REAL COUNTRY HITS and all your favorites!"
-  ),
-  RadioStation(
-    id: "kgfy",
-    name: "105.5 KGFY - Cowboy Country",
-    streamURL: "https://ice24.securenetsystems.net/KGFY",
-    imageURL: "https://playola-static.s3.amazonaws.com/kgfy_logo.png",
-    desc: "Stillwater, OK",
-    longDesc:
-      "We play the hottest country music from Carrie Underwood, Keith Urban, Luke Bryan, Jason Aldean, "
-      + "Kenny Chesney to Miranda Lambert. Playing the best in Red Dirt from Aaron Watson, The Randy Rogers "
-      + "Band, The Turnpike Troubadours, Josh Abbott, and The Casey Donahew Band; plus so much more. Besides "
-      + "playing the best in country music, Cowboy Country 105.5 is also the voice of OSU Cowgirl Sports and "
-      + "Perkins Tryon High School sports. Stillwater knows country music. Hear it on KGFY Cowboy Country 105.5!"
-  ),
-  RadioStation(
-    id: "lonestar_102_5",
-    name: "Lonestar 102.5 - KHLB",
-    streamURL: "https://ice42.securenetsystems.net/KHLB",
-    imageURL: "https://playola-static.s3.amazonaws.com/KHLB_Logo.png",
-    desc: "Mason, TX",
-    longDesc: "Community-centered radio that offers dynamic, local news programming "
-      + "and country-music entertainment of the Texas Hill Country."
-  ),
-  RadioStation(
-    id: "k95",
-    name: "K-95.5 Continuous Country - KITX",
-    streamURL: "https://prod-52-201-124-63.amperwave.net/wmpayne-kitxfmaac-hlsc2.m3u8",
-    imageURL: "https://playola-static.s3.amazonaws.com/kitx_logo.jpeg",
-    desc: "Paris, TX",
-    longDesc: "The #1 radio station in Northeast Texas and Southeastern Oklahoma."
-  ),
-  RadioStation(
-    id: "knes",
-    name: "KNES Texas 99.1 FM",
-    streamURL: "https://ice5.securenetsystems.net/KNES",
-    imageURL: "https://playola-static.s3.amazonaws.com/knes_991_logo.png",
-    desc: "Fairfield, TX",
-    longDesc: "We\'re Taking Country Back"
-  ),
-  RadioStation(
-    id: "krun",
-    name: "KRUN 1400 AM",
-    streamURL: "https://s29.myradiostream.com/12352/;?type=http",
-    imageURL: "https://playola-static.s3.amazonaws.com/krun_1400am_logo.jpeg",
-    desc: "Ballinger, TX",
-    longDesc: "The #1 radio station in Northeast Texas and Southeastern Oklahoma."
-  ),
-  RadioStation(
-    id: "KPUR",
-    name: "95.7 KPUR FM",
-    streamURL: "https://22963.live.streamtheworld.com/KPURFMAAC.aac",
-    imageURL: "https://playola-static.s3.amazonaws.com/kpur_95_7_logo.png",
-    desc: "Amarillo, TX",
-    longDesc: "Amarillo\'s Country Music Station"
-  ),
-  RadioStation(
-    id: "ksel",
-    name: "KSEL Country 105.9 FM",
-    streamURL: "https://streaming.live365.com/a44766",
-    imageURL: "https://playola-static.s3.amazonaws.com/ksel_105_9_logo.png",
-    desc: "Portales, NM",
-    longDesc: "Your Kinda Country"
+  APIStationItem(
+    sortOrder: 2,
+    station: nil,
+    urlStation: UrlStation(
+      id: "kftx-id",
+      name: "97.5 KFTX",
+      streamUrl: "https://ice7.securenetsystems.net/KFTX",
+      imageUrl: "https://playola-static.s3.amazonaws.com/kftx_logo.png",
+      description: "KFTX.com is your 24 hour a day connection to yesterday's & today's "
+        + "REAL COUNTRY HITS and all your favorites!",
+      website: nil,
+      location: "Corpus Christi, TX",
+      active: true,
+      createdAt: Date(),
+      updatedAt: Date()
+    )
   ),
 ]

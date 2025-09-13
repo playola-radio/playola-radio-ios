@@ -263,9 +263,14 @@ struct StationInfo: Equatable {
     ]
   }
 
-  init(from station: RadioStation) {
+  init(from station: AnyStation) {
     self.id = station.id
     self.name = station.name
-    self.type = station.type.rawValue
+    switch station {
+    case .playola:
+      self.type = "artist"
+    case .url:
+      self.type = "fm"
+    }
   }
 }

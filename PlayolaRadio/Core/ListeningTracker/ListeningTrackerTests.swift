@@ -45,7 +45,7 @@ final class ListeningTrackerTests: XCTestCase {
       titlePlaying: "Test Song",
       albumArtworkUrl: nil,
       playolaSpinPlaying: nil,
-      currentStation: RadioStation.mock,
+      currentStation: AnyStation.mock,
       playbackStatus: playbackStatus
     )
   }
@@ -100,7 +100,7 @@ final class ListeningTrackerTests: XCTestCase {
     let rewardsProfile = createMockRewardsProfile()
 
     // Set playing state to match the open session
-    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(RadioStation.mock)) }
+    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(AnyStation.mock)) }
 
     let existingSessions = [
       LocalListeningSession(startTime: Date().addingTimeInterval(-100), endTime: nil)
@@ -175,7 +175,7 @@ final class ListeningTrackerTests: XCTestCase {
     XCTAssertFalse(tracker.isListening)
 
     // Update the shared state synchronously
-    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(RadioStation.mock)) }
+    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(AnyStation.mock)) }
 
     // The publisher should have already fired synchronously
     XCTAssertEqual(tracker.localListeningSessions.count, 1)
@@ -189,7 +189,7 @@ final class ListeningTrackerTests: XCTestCase {
     let rewardsProfile = createMockRewardsProfile()
 
     // Set initial playing state before creating tracker
-    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(RadioStation.mock)) }
+    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(AnyStation.mock)) }
 
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
@@ -211,7 +211,7 @@ final class ListeningTrackerTests: XCTestCase {
     let rewardsProfile = createMockRewardsProfile()
 
     // Set initial playing state
-    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(RadioStation.mock)) }
+    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(AnyStation.mock)) }
 
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
@@ -219,7 +219,7 @@ final class ListeningTrackerTests: XCTestCase {
     XCTAssertTrue(tracker.isListening)
 
     // Simulate another playing state (should not create new session)
-    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(RadioStation.mock)) }
+    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(AnyStation.mock)) }
 
     // Should still have only one session
     XCTAssertEqual(tracker.localListeningSessions.count, 1)
@@ -231,7 +231,7 @@ final class ListeningTrackerTests: XCTestCase {
     let rewardsProfile = createMockRewardsProfile()
 
     // Set initial playing state
-    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(RadioStation.mock)) }
+    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(AnyStation.mock)) }
 
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
@@ -239,7 +239,7 @@ final class ListeningTrackerTests: XCTestCase {
     XCTAssertTrue(tracker.isListening)
 
     // Simulate loading state (should end session)
-    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .loading(RadioStation.mock)) }
+    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .loading(AnyStation.mock)) }
 
     XCTAssertEqual(tracker.localListeningSessions.count, 1)
     XCTAssertFalse(tracker.isListening)
@@ -251,7 +251,7 @@ final class ListeningTrackerTests: XCTestCase {
     let rewardsProfile = createMockRewardsProfile()
 
     // Set initial playing state
-    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(RadioStation.mock)) }
+    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(AnyStation.mock)) }
 
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
@@ -271,7 +271,7 @@ final class ListeningTrackerTests: XCTestCase {
     let rewardsProfile = createMockRewardsProfile()
 
     // Set initial playing state
-    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(RadioStation.mock)) }
+    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(AnyStation.mock)) }
 
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
@@ -307,7 +307,7 @@ final class ListeningTrackerTests: XCTestCase {
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
     // Start playing
-    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(RadioStation.mock)) }
+    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(AnyStation.mock)) }
 
     XCTAssertEqual(tracker.localListeningSessions.count, 1)
     XCTAssertTrue(tracker.isListening)
@@ -319,7 +319,7 @@ final class ListeningTrackerTests: XCTestCase {
     XCTAssertFalse(tracker.isListening)
 
     // Start playing again
-    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(RadioStation.mock)) }
+    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(AnyStation.mock)) }
 
     XCTAssertEqual(tracker.localListeningSessions.count, 2)
     XCTAssertTrue(tracker.isListening)
@@ -338,7 +338,7 @@ final class ListeningTrackerTests: XCTestCase {
     let rewardsProfile = createMockRewardsProfile()
 
     // Start with a playing state
-    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(RadioStation.mock)) }
+    $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(AnyStation.mock)) }
 
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 

@@ -24,7 +24,7 @@ public class UrlStreamListeningSessionReporter {
     self.urlStreamPlayer = urlStreamPlayer
 
     urlStreamPlayer.$state.sink { _ in
-      if let stationUrl = urlStreamPlayer.currentStation?.streamURL {
+      if let stationUrl = urlStreamPlayer.currentStation?.streamUrl {
         if stationUrl != self.lastSendStreamUrl {
           self.lastSendStreamUrl = stationUrl
           self.reportOrExtendListeningSession(stationUrl)
@@ -112,7 +112,7 @@ public class UrlStreamListeningSessionReporter {
       withTimeInterval: 10.0, repeats: true,
       block: { [weak self] _ in
         guard let self else { return }
-        guard let stationUrl = self.urlStreamPlayer?.currentStation?.streamURL else {
+        guard let stationUrl = self.urlStreamPlayer?.currentStation?.streamUrl else {
           print("Error -- stationId should exist")
           return
         }

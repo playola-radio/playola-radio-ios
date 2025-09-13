@@ -52,7 +52,11 @@ class PlayerPageModel: ViewModel {
     guard let currentStation = nowPlaying?.currentStation else { return "" }
     switch nowPlaying?.playbackStatus {
     case .loading, .startingNewStation:
-      return currentStation.desc
+      if currentStation.isPlayolaStation {
+        return currentStation.stationName
+      } else {
+        return currentStation.location ?? ""
+      }
     default:
       return ""
     }
@@ -62,13 +66,13 @@ class PlayerPageModel: ViewModel {
     guard let currentStation = nowPlaying?.currentStation else { return nil }
     switch nowPlaying?.playbackStatus {
     case .playing, .loading, .startingNewStation:
-      return URL(string: currentStation.imageURL)
+      return currentStation.imageUrl
     default:
       return nil
     }
   }
 
-  var previouslyPlayingStation: RadioStation? {
+  var previouslyPlayingStation: AnyStation? {
     nowPlaying?.currentStation
   }
 

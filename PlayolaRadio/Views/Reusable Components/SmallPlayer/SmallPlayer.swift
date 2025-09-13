@@ -26,7 +26,7 @@ struct SmallPlayer: View {
     {
       return "\(artistPlaying) - \(titlePlaying)"
     } else {
-      return nowPlaying?.currentStation?.desc ?? ""
+      return nowPlaying?.currentStation?.description ?? ""
     }
   }
 

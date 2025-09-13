@@ -39,6 +39,14 @@ Runs all the tests
 
 
 
+### ios format_check
+
+```sh
+[bundle exec] fastlane ios format_check
+```
+
+Run swift-format lint check
+
 ### ios adhoc
 
 ```sh
