@@ -128,6 +128,7 @@
 		D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3CE19022D3C825C0091B888 /* PlayolaPlayer */; };
 		D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */; };
 		D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */; };
+		D3EAC9232E817326001194CF /* Secrets-Staging.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D3EAC9222E81731A001194CF /* Secrets-Staging.xcconfig */; };
 		D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */; };
 		D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */; };
 /* End PBXBuildFile section */
@@ -255,6 +256,7 @@
 		D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProvider.swift; sourceTree = "<group>"; };
 		D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserDefaults.swift; sourceTree = "<group>"; };
 		D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlStreamListeningSessionReporter.swift; sourceTree = "<group>"; };
+		D3EAC9222E81731A001194CF /* Secrets-Staging.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Staging.xcconfig"; sourceTree = "<group>"; };
 		D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPageModel.swift; sourceTree = "<group>"; };
 		D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTier.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -497,6 +499,7 @@
 				D37257B92DF891C8001BC6F9 /* Fonts */,
 				D3B662C22D4272ED00975D2F /* Secrets-Local.xcconfig */,
 				D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */,
+				D3EAC9222E81731A001194CF /* Secrets-Staging.xcconfig */,
 				D35673BF2D3DCA3600E4E926 /* Secrets-Example.xcconfig */,
 				D35673BD2D3DCA1E00E4E926 /* Secrets.xcconfig */,
 				D35673B92D3DC9ED00E4E926 /* Config.swift */,
@@ -858,6 +861,7 @@
 				D37257BB2DF891D5001BC6F9 /* SpaceGrotesk.ttf in Resources */,
 				D35673C02D3DCA3F00E4E926 /* Secrets-Example.xcconfig in Resources */,
 				D3536A092BFA4F4A006942D6 /* Assets.xcassets in Resources */,
+				D3EAC9232E817326001194CF /* Secrets-Staging.xcconfig in Resources */,
 				D37257AB2DF87C72001BC6F9 /* LaunchScreen.storyboard in Resources */,
 				D35673CB2D3EE5E900E4E926 /* Secrets-Development.xcconfig in Resources */,
 				D35673BE2D3DCA2600E4E926 /* Secrets.xcconfig in Resources */,

@@ -6,6 +6,8 @@ xcuserdata
 **/**/Secrets.xcconfig
 **/**/Secrets-Development.xcconfig
 **/**/Secrets-Local.xcconfig
+**/**/Secrets-Staging.xcconfig
+
 # probably should remove this later
 Package.resolved
 
