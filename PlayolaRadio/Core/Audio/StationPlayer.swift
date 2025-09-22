@@ -15,10 +15,10 @@ class StationPlayer: ObservableObject {
   var disposeBag: Set<AnyCancellable> = Set()
 
   enum PlaybackStatus: Codable, Equatable {
-    case startingNewStation(RadioStation)
-    case playing(RadioStation)
+    case startingNewStation(AnyStation)
+    case playing(AnyStation)
     case stopped
-    case loading(RadioStation, Float? = nil)
+    case loading(AnyStation, Float? = nil)
     case error
   }
 
@@ -34,14 +34,14 @@ class StationPlayer: ObservableObject {
   let authProvider: PlayolaTokenProvider = .init()
 
   /// The currently playing radio station, if any
-  public var currentStation: RadioStation? {
+  public var currentStation: AnyStation? {
     switch state.playbackStatus {
-    case .startingNewStation(let radioStation):
-      return radioStation
-    case .playing(let radioStation):
-      return radioStation
-    case .loading(let radioStation, _):
-      return radioStation
+    case .startingNewStation(let station):
+      return station
+    case .playing(let station):
+      return station
+    case .loading(let station, _):
+      return station
     case .error, .stopped:
       return nil
     }
@@ -79,19 +79,20 @@ class StationPlayer: ObservableObject {
 
   // MARK: Public Interface
 
-  /// Starts playing the specified radio station
-  /// - Parameter station: The radio station to play
-  public func play(station: RadioStation) {
+  /// Starts playing the specified station
+  /// - Parameter station: The station to play
+  public func play(station: AnyStation) {
     guard currentStation != station else { return }
     stop()
     state = State(playbackStatus: .startingNewStation(station))
     state = State(playbackStatus: .loading(station))
 
-    if station.streamURL != nil {
-      urlStreamPlayer.set(station: station)
-    } else if let playolaID = station.playolaID {
+    switch station {
+    case .url(let urlStation):
+      urlStreamPlayer.set(station: urlStation)
+    case .playola(let playolaStation):
       urlStreamPlayer.reset()
-      Task { try? await playolaStationPlayer.play(stationId: playolaID) }
+      Task { try? await playolaStationPlayer.play(stationId: playolaStation.id) }
     }
   }
 
