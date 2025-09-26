@@ -75,6 +75,7 @@ PlayolaRadio/
    cp PlayolaRadio/Config/Secrets-Example.xcconfig PlayolaRadio/Config/Secrets-Local.xcconfig
    ```
    Edit `Secrets-Local.xcconfig` with your API keys and tokens.
+   Edit `Secrets-Staging.xcconfig` with your API keys and tokens.
 
 4. **Install Git hooks**
    ```bash
@@ -89,6 +90,7 @@ PlayolaRadio/
 6. **Select scheme and run**
    - Use `PlayolaRadio` scheme for production
    - Use `PlayolaRadio-Local` scheme for local development
+   - Use `PlayolaRadio-Staging` scheme for staging environment
 
 ## Development Conventions
 

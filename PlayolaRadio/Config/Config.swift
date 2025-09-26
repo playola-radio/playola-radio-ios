@@ -21,6 +21,8 @@ class Config {
       return URL(string: "http://localhost:10020")!
     case .development, .production:
       return URL(string: "https://admin-api.playola.fm")!
+    case .staging:
+      return URL(string: "https://admin-api-staging.playola.fm")!
     }
   }
 
@@ -41,5 +43,6 @@ class Config {
 enum DevelopmentEnvironment: String {
   case local
   case development
+  case staging
   case production
 }
