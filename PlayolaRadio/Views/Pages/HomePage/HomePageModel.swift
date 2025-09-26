@@ -51,14 +51,14 @@ class HomePageModel: ViewModel {
 
   // MARK: Actions
   func viewAppeared() async {
-    $stationLists.publisher
-      .sink { lists in
-        guard let artistList = lists.first(where: { $0.slug == StationList.artistListSlug }) else {
-          return
-        }
-        self.forYouStations = IdentifiedArray(uniqueElements: artistList.stations)
-      }
-      .store(in: &disposeBag)
+    Publishers.CombineLatest(
+      $stationLists.publisher,
+      $showSecretStations.publisher
+    )
+    .sink { [weak self] lists, showSecrets in
+      self?.loadForYouStations(lists: lists, includeHidden: showSecrets)
+    }
+    .store(in: &disposeBag)
   }
 
   func handlePlayolaIconTapped10Times() {
@@ -73,5 +73,22 @@ class HomePageModel: ViewModel {
         entryPoint: "home_recommendations"
       ))
     stationPlayer.play(station: station)
+  }
+
+  private func loadForYouStations(
+    lists: IdentifiedArrayOf<StationList>,
+    includeHidden: Bool
+  ) {
+    guard let artistList = lists.first(where: { $0.slug == StationList.artistListSlug }) else {
+      forYouStations = []
+      return
+    }
+
+    let stations =
+      artistList
+      .stationItems(includeHidden: includeHidden)
+      .compactMap { $0.anyStation }
+
+    forYouStations = IdentifiedArray(uniqueElements: stations)
   }
 }

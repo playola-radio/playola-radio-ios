@@ -273,6 +273,25 @@ final class HomePageTests: XCTestCase {
       XCTFail("Expected startedStation event, got: \(String(describing: events.first))")
     }
   }
+
+  func testShowSecretStationsToggleUpdatesForYouStations() async {
+    @Shared(.stationLists) var stationLists =
+      IdentifiedArray(uniqueElements: [makeArtistListWithHiddenStation()])
+    @Shared(.showSecretStations) var showSecretStations = false
+
+    let model = HomePageModel()
+    await model.viewAppeared()
+
+    XCTAssertEqual(model.forYouStations.count, 1)
+
+    $showSecretStations.withLock { $0 = true }
+    await Task.yield()
+    XCTAssertEqual(model.forYouStations.count, 2)
+
+    $showSecretStations.withLock { $0 = false }
+    await Task.yield()
+    XCTAssertEqual(model.forYouStations.count, 1)
+  }
 }
 
 extension HomePageTests {
@@ -380,6 +399,48 @@ extension HomePageTests {
       unknownPlayola: unknownPlayola,
       comingSoonUrl: comingSoonUrl,
       hiddenUrl: hiddenUrl,
+      items: items
+    )
+  }
+
+  fileprivate func makeArtistListWithHiddenStation() -> StationList {
+    let now = Date(timeIntervalSince1970: 1_758_915_200)
+
+    let visiblePlayola = PlayolaPlayer.Station(
+      id: "visible-playola",
+      name: "Visible Playola",
+      curatorName: "DJ Visible",
+      imageUrl: URL(string: "https://example.com/visible.png"),
+      description: "Visible station",
+      active: true,
+      createdAt: now,
+      updatedAt: now
+    )
+
+    let hiddenPlayola = PlayolaPlayer.Station(
+      id: "hidden-playola",
+      name: "Hidden Playola",
+      curatorName: "DJ Hidden",
+      imageUrl: URL(string: "https://example.com/hidden.png"),
+      description: "Hidden station",
+      active: true,
+      createdAt: now,
+      updatedAt: now
+    )
+
+    let items: [APIStationItem] = [
+      APIStationItem(sortOrder: 0, visibility: .visible, station: visiblePlayola, urlStation: nil),
+      APIStationItem(sortOrder: 1, visibility: .hidden, station: hiddenPlayola, urlStation: nil),
+    ]
+
+    return StationList(
+      id: StationList.KnownIDs.artistList.rawValue,
+      name: "Artists",
+      slug: StationList.KnownIDs.artistList.rawValue,
+      hidden: false,
+      sortOrder: 0,
+      createdAt: now,
+      updatedAt: now,
       items: items
     )
   }
