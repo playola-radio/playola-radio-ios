@@ -101,6 +101,33 @@ enum AnyStation: Identifiable, Codable, Equatable {
   }
 }
 
+enum StationListItemVisibility: String, Codable, Equatable, Sendable {
+  case visible = "visible"
+  case comingSoon = "coming-soon"
+  case hidden = "hidden"
+  case unknown
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    let rawValue = try container.decode(String.self)
+    self = StationListItemVisibility(rawValue: rawValue) ?? .unknown
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .visible:
+      try container.encode("visible")
+    case .comingSoon:
+      try container.encode("coming-soon")
+    case .hidden:
+      try container.encode("hidden")
+    case .unknown:
+      try container.encode("unknown")
+    }
+  }
+}
+
 struct StationList: Codable, Identifiable, Equatable, Sendable {
   public enum KnownIDs: String {
     case artistList = "artist_list"
@@ -122,43 +149,70 @@ struct StationList: Codable, Identifiable, Equatable, Sendable {
   var updatedAt: Date
 
   // Private - just for API decoding
-  private var items: [APIStationItem]?
+  public var items: [APIStationItem]?
 
   // Computed properties for backward compatibility
   var title: String { name }
 
-  // Return separate arrays of properly typed stations
-  var playolaStations: [PlayolaPlayer.Station] {
-    guard let items = items else { return [] }
-    return
-      items
-      .sorted { $0.sortOrder < $1.sortOrder }
-      .compactMap { $0.station }
+  private var sortedItems: [APIStationItem] {
+    (items ?? []).sorted { $0.sortOrder < $1.sortOrder }
   }
 
-  var urlStations: [UrlStation] {
-    guard let items = items else { return [] }
-    return
-      items
-      .sorted { $0.sortOrder < $1.sortOrder }
-      .compactMap { $0.urlStation }
+  private var comingSoonItems: [APIStationItem] {
+    sortedItems.filter { $0.visibility == .comingSoon }
   }
 
-  // Combined array of AnyStation enum objects
-  var stations: [AnyStation] {
-    guard let items = items else { return [] }
-    let sortedItems = items.sorted { $0.sortOrder < $1.sortOrder }
-    var result: [AnyStation] = []
+  private var hiddenItems: [APIStationItem] {
+    sortedItems.filter { $0.visibility == .hidden }
+  }
 
-    for item in sortedItems {
+  func stationItems(includeHidden: Bool) -> [APIStationItem] {
+    sortedItems.filter { item in
+      switch item.visibility {
+      case .visible, .unknown:
+        return true
+      case .comingSoon:
+        return false
+      case .hidden:
+        return includeHidden
+      }
+    }
+  }
+
+  private func anyStations(from items: [APIStationItem]) -> [AnyStation] {
+    items.reduce(into: [AnyStation]()) { result, item in
       if let station = item.station {
         result.append(.playola(station))
       } else if let urlStation = item.urlStation {
         result.append(.url(urlStation))
       }
     }
+  }
 
-    return result
+  var visibleStationItems: [APIStationItem] { stationItems(includeHidden: false) }
+  var comingSoonStationItems: [APIStationItem] { comingSoonItems }
+  var hiddenStationItems: [APIStationItem] { hiddenItems }
+
+  // Return separate arrays of properly typed stations
+  var playolaStations: [PlayolaPlayer.Station] {
+    stationItems(includeHidden: false).compactMap { $0.station }
+  }
+
+  var urlStations: [UrlStation] {
+    stationItems(includeHidden: false).compactMap { $0.urlStation }
+  }
+
+  // Combined array of AnyStation enum objects
+  var stations: [AnyStation] {
+    anyStations(from: stationItems(includeHidden: false))
+  }
+
+  var comingSoonStations: [AnyStation] {
+    anyStations(from: comingSoonItems)
+  }
+
+  var hiddenStations: [AnyStation] {
+    anyStations(from: hiddenItems)
   }
 
   init(
@@ -196,8 +250,43 @@ struct StationList: Codable, Identifiable, Equatable, Sendable {
 
 struct APIStationItem: Codable {
   var sortOrder: Int
+  var visibility: StationListItemVisibility
   var station: PlayolaPlayer.Station?
   var urlStation: UrlStation?
+
+  init(
+    sortOrder: Int,
+    visibility: StationListItemVisibility = .visible,
+    station: PlayolaPlayer.Station?,
+    urlStation: UrlStation?
+  ) {
+    self.sortOrder = sortOrder
+    self.visibility = visibility
+    self.station = station
+    self.urlStation = urlStation
+  }
+
+  private enum CodingKeys: String, CodingKey {
+    case sortOrder, visibility, station, urlStation
+  }
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    sortOrder = try container.decode(Int.self, forKey: .sortOrder)
+    visibility =
+      try container.decodeIfPresent(StationListItemVisibility.self, forKey: .visibility)
+      ?? .visible
+    station = try container.decodeIfPresent(PlayolaPlayer.Station.self, forKey: .station)
+    urlStation = try container.decodeIfPresent(UrlStation.self, forKey: .urlStation)
+  }
+}
+
+extension APIStationItem {
+  var anyStation: AnyStation? {
+    if let station { return .playola(station) }
+    if let urlStation { return .url(urlStation) }
+    return nil
+  }
 }
 
 // MARK: Mocks - Updated for modern structure
@@ -267,6 +356,7 @@ private let mockUrlStation = UrlStation(
 private let mockFMStationItems: [APIStationItem] = [
   APIStationItem(
     sortOrder: 0,
+    visibility: .visible,
     station: nil,
     urlStation: UrlStation(
       id: "koke-fm-id",
@@ -284,6 +374,7 @@ private let mockFMStationItems: [APIStationItem] = [
   ),
   APIStationItem(
     sortOrder: 1,
+    visibility: .comingSoon,
     station: nil,
     urlStation: UrlStation(
       id: "lakes-country-id",
@@ -302,6 +393,7 @@ private let mockFMStationItems: [APIStationItem] = [
   ),
   APIStationItem(
     sortOrder: 2,
+    visibility: .hidden,
     station: nil,
     urlStation: UrlStation(
       id: "kftx-id",

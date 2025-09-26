@@ -7,6 +7,7 @@
 
 import Dependencies
 import IdentifiedCollections
+import PlayolaPlayer
 import Sharing
 import XCTest
 
@@ -17,6 +18,7 @@ final class StationListPageTests: XCTestCase {
   // MARK: - View Appeared Tests
 
   func testViewAppeared_PopulatesFromInitialSharedStationLists() async {
+    @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
     let expectedVisibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
     let model = StationListModel()
@@ -29,6 +31,7 @@ final class StationListPageTests: XCTestCase {
   // MARK: - Segment Selection Tests
 
   func testSegmentSelection_FiltersWhenSegmentSelected() async {
+    @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
     let visibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
     guard let firstList = visibleLists.first else {
@@ -45,6 +48,7 @@ final class StationListPageTests: XCTestCase {
   // MARK: - Shared stationLists Updates Tests
 
   func testSharedStationListsUpdates_KeepsSelectedSegmentWhenStillPresent() async {
+    @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
     let visibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
     guard let targetList = visibleLists.first else {
@@ -80,6 +84,7 @@ final class StationListPageTests: XCTestCase {
   }
 
   func testSharedStationListsUpdates_ResetsSelectedSegmentWhenSegmentMissing() async {
+    @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
     let visibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
     guard let targetList = visibleLists.first else {
@@ -117,6 +122,16 @@ final class StationListPageTests: XCTestCase {
     }
     XCTAssertEqual(model.selectedSegment, "All")
     XCTAssertEqual(model.stationListsForDisplay, expectedVisibleAfterUpdate)
+  }
+
+  func testViewAppeared_IncludesHiddenListsWhenSecretsEnabled() async {
+    @Shared(.showSecretStations) var showSecretStations = true
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    XCTAssertEqual(model.stationListsForDisplay, stationLists)
+    XCTAssertEqual(model.segmentTitles, ["All"] + stationLists.map { $0.title })
   }
 
   // MARK: - Player Interaction Tests
@@ -159,5 +174,111 @@ final class StationListPageTests: XCTestCase {
     } else {
       XCTFail("Expected startedStation event, got: \(events[1])")
     }
+  }
+
+  // MARK: - Hidden Station Filtering
+
+  func testHiddenStationsFilteredWhenSecretsOff() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let now = Date()
+    let visibleStation = PlayolaPlayer.Station(
+      id: "visible-playola",
+      name: "Visible Playola",
+      curatorName: "DJ Visible",
+      imageUrl: URL(string: "https://example.com/visible.png"),
+      description: "Visible station",
+      active: true,
+      createdAt: now,
+      updatedAt: now
+    )
+
+    let hiddenStation = PlayolaPlayer.Station(
+      id: "hidden-playola",
+      name: "Hidden Playola",
+      curatorName: "DJ Hidden",
+      imageUrl: URL(string: "https://example.com/hidden.png"),
+      description: "Hidden station",
+      active: true,
+      createdAt: now,
+      updatedAt: now
+    )
+
+    let secretList = StationList(
+      id: "secret-list",
+      name: "Secret Stations",
+      slug: "secret-list",
+      hidden: true,
+      sortOrder: 0,
+      createdAt: now,
+      updatedAt: now,
+      items: [
+        APIStationItem(
+          sortOrder: 0, visibility: .visible, station: visibleStation, urlStation: nil),
+        APIStationItem(sortOrder: 1, visibility: .hidden, station: hiddenStation, urlStation: nil),
+      ]
+    )
+
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    model.stationListsForDisplay = IdentifiedArray(uniqueElements: [secretList])
+
+    let includeHidden = model.showSecretStations || !secretList.hidden
+    let filteredItems = secretList.stationItems(includeHidden: includeHidden)
+
+    XCTAssertEqual(filteredItems.count, 1)
+    XCTAssertEqual(filteredItems.first?.visibility, .visible)
+  }
+
+  func testHiddenStationsIncludedWhenSecretsOn() async {
+    @Shared(.showSecretStations) var showSecretStations = true
+    let now = Date()
+    let visibleStation = PlayolaPlayer.Station(
+      id: "visible-playola",
+      name: "Visible Playola",
+      curatorName: "DJ Visible",
+      imageUrl: URL(string: "https://example.com/visible.png"),
+      description: "Visible station",
+      active: true,
+      createdAt: now,
+      updatedAt: now
+    )
+
+    let hiddenStation = PlayolaPlayer.Station(
+      id: "hidden-playola",
+      name: "Hidden Playola",
+      curatorName: "DJ Hidden",
+      imageUrl: URL(string: "https://example.com/hidden.png"),
+      description: "Hidden station",
+      active: true,
+      createdAt: now,
+      updatedAt: now
+    )
+
+    let secretList = StationList(
+      id: "secret-list",
+      name: "Secret Stations",
+      slug: "secret-list",
+      hidden: true,
+      sortOrder: 0,
+      createdAt: now,
+      updatedAt: now,
+      items: [
+        APIStationItem(
+          sortOrder: 0, visibility: .visible, station: visibleStation, urlStation: nil),
+        APIStationItem(sortOrder: 1, visibility: .hidden, station: hiddenStation, urlStation: nil),
+      ]
+    )
+
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    model.stationListsForDisplay = IdentifiedArray(uniqueElements: [secretList])
+
+    let includeHidden = model.showSecretStations || !secretList.hidden
+    let filteredItems = secretList.stationItems(includeHidden: includeHidden)
+
+    XCTAssertEqual(filteredItems.count, 2)
+    XCTAssertEqual(filteredItems.last?.visibility, .hidden)
   }
 }

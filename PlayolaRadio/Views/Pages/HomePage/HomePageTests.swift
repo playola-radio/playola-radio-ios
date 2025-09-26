@@ -9,6 +9,7 @@
 
 import Dependencies
 import IdentifiedCollections
+import PlayolaPlayer
 import Sharing
 import XCTest
 
@@ -78,6 +79,58 @@ final class HomePageTests: XCTestCase {
 
     XCTAssertEqual(model.forYouStations.elements.count, 1)
     XCTAssertEqual(model.forYouStations.elements.first?.id, "different-station")
+  }
+
+  func testStationListItemVisibilityDecodesKnownValue() throws {
+    let jsonData = "\"coming-soon\"".data(using: .utf8)!
+    let visibility = try JSONDecoder().decode(StationListItemVisibility.self, from: jsonData)
+    XCTAssertEqual(visibility, .comingSoon)
+  }
+
+  func testStationListItemVisibilityDecodesUnknownValueAsUnknown() throws {
+    let jsonData = "\"future-release\"".data(using: .utf8)!
+    let visibility = try JSONDecoder().decode(StationListItemVisibility.self, from: jsonData)
+    XCTAssertEqual(visibility, .unknown)
+  }
+
+  func testStationListStationsFiltersByVisibility() {
+    let fixture = makeVisibilityFixture()
+
+    let visibleItems = fixture.list.stationItems(includeHidden: false)
+    XCTAssertEqual(visibleItems.count, 2)
+    XCTAssertTrue(
+      visibleItems.allSatisfy {
+        $0.visibility != StationListItemVisibility.hidden
+          && $0.visibility != StationListItemVisibility.comingSoon
+      }
+    )
+
+    let visibleStations = visibleItems.compactMap { $0.anyStation }
+    XCTAssertEqual(visibleStations.count, 2)
+    if case let .playola(station) = visibleStations[0] {
+      XCTAssertEqual(station.id, fixture.visiblePlayola.id)
+    } else {
+      XCTFail("Expected first visible station to be playola")
+    }
+
+    if case let .playola(station) = visibleStations[1] {
+      XCTAssertEqual(station.id, fixture.unknownPlayola.id)
+    } else {
+      XCTFail("Expected second visible station to be playola")
+    }
+
+    XCTAssertEqual(
+      fixture.items.filter { $0.visibility == StationListItemVisibility.comingSoon }.count,
+      1
+    )
+    let allItemsIncludingHidden = fixture.list.stationItems(includeHidden: true)
+    XCTAssertTrue(allItemsIncludingHidden.contains { $0.visibility == .hidden })
+
+    let hiddenItems = allItemsIncludingHidden.filter {
+      $0.visibility == StationListItemVisibility.hidden
+    }
+    XCTAssertEqual(hiddenItems.count, 1)
+    XCTAssertEqual(hiddenItems.first?.urlStation?.id, fixture.hiddenUrl.id)
   }
 
   // MARK: - Welcome Message Tests
@@ -219,6 +272,116 @@ final class HomePageTests: XCTestCase {
     } else {
       XCTFail("Expected startedStation event, got: \(String(describing: events.first))")
     }
+  }
+}
+
+extension HomePageTests {
+  fileprivate struct VisibilityFixture {
+    let list: StationList
+    let visiblePlayola: PlayolaPlayer.Station
+    let unknownPlayola: PlayolaPlayer.Station
+    let comingSoonUrl: UrlStation
+    let hiddenUrl: UrlStation
+    let items: [APIStationItem]
+  }
+
+  fileprivate func makeVisibilityFixture() -> VisibilityFixture {
+    let now = Date(timeIntervalSince1970: 1_758_915_200)
+
+    let visiblePlayola = PlayolaPlayer.Station(
+      id: "visible-playola",
+      name: "Visible Playola",
+      curatorName: "DJ Visible",
+      imageUrl: URL(string: "https://example.com/visible.png"),
+      description: "Visible station",
+      active: true,
+      createdAt: now,
+      updatedAt: now
+    )
+
+    let unknownPlayola = PlayolaPlayer.Station(
+      id: "unknown-playola",
+      name: "Unknown Playola",
+      curatorName: "DJ Mystery",
+      imageUrl: nil as URL?,
+      description: "Unknown visibility treated as visible",
+      active: true,
+      createdAt: now,
+      updatedAt: now
+    )
+
+    let comingSoonUrl = UrlStation(
+      id: "coming-soon-url",
+      name: "Coming Soon FM",
+      streamUrl: "https://example.com/coming",
+      imageUrl: URL(string: "https://example.com/coming.png"),
+      description: "Coming soon station",
+      website: nil,
+      location: "Austin, TX",
+      active: true,
+      createdAt: now,
+      updatedAt: now
+    )
+
+    let hiddenUrl = UrlStation(
+      id: "hidden-url",
+      name: "Hidden FM",
+      streamUrl: "https://example.com/hidden",
+      imageUrl: URL(string: "https://example.com/hidden.png"),
+      description: "Hidden station",
+      website: nil,
+      location: "Dallas, TX",
+      active: true,
+      createdAt: now,
+      updatedAt: now
+    )
+
+    let items: [APIStationItem] = [
+      APIStationItem(
+        sortOrder: 0,
+        visibility: .visible,
+        station: visiblePlayola,
+        urlStation: nil
+      ),
+      APIStationItem(
+        sortOrder: 1,
+        visibility: .comingSoon,
+        station: nil,
+        urlStation: comingSoonUrl
+      ),
+      APIStationItem(
+        sortOrder: 2,
+        visibility: .hidden,
+        station: nil,
+        urlStation: hiddenUrl
+      ),
+      APIStationItem(
+        sortOrder: 3,
+        visibility: .unknown,
+        station: unknownPlayola,
+        urlStation: nil
+      ),
+    ]
+
+    let list = StationList(
+      id: "test-list",
+      name: "Test List",
+      slug: "test-list",
+      hidden: false,
+      sortOrder: 0,
+      createdAt: now,
+      updatedAt: now,
+      items: items
+    )
+
+    return VisibilityFixture(
+      list: list,
+      visiblePlayola: visiblePlayola,
+      unknownPlayola: unknownPlayola,
+      comingSoonUrl: comingSoonUrl,
+      hiddenUrl: hiddenUrl,
+      items: items
+    )
   }
 }
 

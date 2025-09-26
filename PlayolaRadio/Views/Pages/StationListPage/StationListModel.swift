@@ -42,10 +42,8 @@ class StationListModel: ViewModel {
   }
 
   private func loadStationListsForDisplay(_ rawList: IdentifiedArrayOf<StationList>) {
-    let visibleLists =
-      showSecretStations
-      ? rawList
-      : rawList.filter { $0.id != StationList.inDevelopmentListId }
+    let includeHidden = showSecretStations
+    let visibleLists = includeHidden ? rawList : rawList.filter { !$0.hidden }
 
     segmentTitles = ["All"] + visibleLists.map { $0.title }
 
@@ -68,19 +66,9 @@ class StationListModel: ViewModel {
     // Only track if this is actually a change
     guard previousSegment != segmentTitle else { return }
 
-    let listType: StationListType = {
-      switch segmentTitle {
-      case "All": return .all
-      case "Artists": return .artists
-      case "FM": return .fm
-      case "Featured": return .featured
-      default: return .all
-      }
-    }()
-
     await analytics.track(
       .viewedStationList(
-        listType: listType,
+        listName: segmentTitle,
         screen: "station_list_page"
       ))
   }

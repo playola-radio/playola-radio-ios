@@ -27,7 +27,7 @@ enum AnalyticsEvent: Equatable {
   case shareWithFriendsTapped
 
   // MARK: Station Discovery
-  case viewedStationList(listType: StationListType, screen: String)
+  case viewedStationList(listName: String, screen: String)
   case tappedStationCard(station: StationInfo, position: Int, totalStations: Int)
   case viewedStationDetail(station: StationInfo)
 
@@ -130,9 +130,9 @@ extension AnalyticsEvent {
     case .shareWithFriendsTapped:
       return [:]
 
-    case .viewedStationList(let listType, let screen):
+    case .viewedStationList(let listName, let screen):
       return [
-        "list_type": listType.rawValue,
+        "list_name": listName,
         "screen": screen,
       ]
 
