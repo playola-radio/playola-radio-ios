@@ -166,13 +166,13 @@ struct StationList: Codable, Identifiable, Equatable, Sendable {
     sortedItems.filter { $0.visibility == .hidden }
   }
 
-  func stationItems(includeHidden: Bool) -> [APIStationItem] {
+  func stationItems(includeHidden: Bool, includeComingSoon: Bool = true) -> [APIStationItem] {
     sortedItems.filter { item in
       switch item.visibility {
       case .visible, .unknown:
         return true
       case .comingSoon:
-        return false
+        return includeComingSoon
       case .hidden:
         return includeHidden
       }
@@ -282,10 +282,10 @@ struct APIStationItem: Codable {
 }
 
 extension APIStationItem {
-  var anyStation: AnyStation? {
+  var anyStation: AnyStation {
     if let station { return .playola(station) }
     if let urlStation { return .url(urlStation) }
-    return nil
+    fatalError("Station is neither a playola station or a urlStation")
   }
 }
 

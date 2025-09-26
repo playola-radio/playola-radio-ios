@@ -6,28 +6,34 @@
 //
 
 import Foundation
+import Sharing
 
-struct StationListStationRowModel: Equatable {
-  let imageUrl: URL
-  let titleText: String
-  let subtitleText: String
+struct StationListStationRowModel {
+  @Shared(.showSecretStations) var showSecretStations: Bool
+  let item: APIStationItem
 
-  init(item: APIStationItem) {
-    if let station = item.anyStation {
-      imageUrl = station.imageUrl ?? station.processedImageURL()
-      titleText = station.name
-      subtitleText = station.stationName
-    } else {
-      let fallback = AnyStation.mock
-      imageUrl = fallback.imageUrl ?? fallback.processedImageURL()
-      titleText = fallback.name
-      subtitleText = fallback.stationName
-    }
+  var imageUrl: URL {
+    return item.anyStation.processedImageURL()
   }
 
-  init(imageUrl: URL, titleText: String, subtitleText: String) {
-    self.imageUrl = imageUrl
-    self.titleText = titleText
-    self.subtitleText = subtitleText
+  var titleText: String {
+    return item.anyStation.name
+  }
+
+  var subtitleText: String {
+    if item.visibility == .comingSoon && !showSecretStations {
+      return "Coming Soon"
+    }
+    return item.anyStation.stationName
+  }
+
+  init(item: APIStationItem) {
+    self.item = item
+  }
+}
+
+extension StationListStationRowModel: Equatable {
+  static func == (lhs: StationListStationRowModel, rhs: StationListStationRowModel) -> Bool {
+    return lhs.item.anyStation.id == rhs.item.anyStation.id
   }
 }

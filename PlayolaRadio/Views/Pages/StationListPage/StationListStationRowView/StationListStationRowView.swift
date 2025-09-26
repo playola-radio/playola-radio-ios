@@ -26,12 +26,12 @@ struct StationListStationRowView: View {
         .cornerRadius(6)
 
         VStack(alignment: .leading, spacing: 2) {
-          Text(model.subtitleText)
+          Text(model.titleText)
             .font(.custom(FontNames.Inter_500_Medium, size: 22))
             .foregroundColor(.white)
             .multilineTextAlignment(.leading)
 
-          Text(model.titleText)
+          Text(model.subtitleText)
             .font(.custom(FontNames.Inter_400_Regular, size: 14))
             .foregroundColor(.white)
             .multilineTextAlignment(.leading)

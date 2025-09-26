@@ -82,7 +82,7 @@ struct StationListPage: View {
     let includeHiddenItems = model.showSecretStations
     let items = list.stationItems(includeHidden: includeHiddenItems)
     let stationPairs = items.compactMap { item -> (APIStationItem, AnyStation)? in
-      guard let station = item.anyStation else { return nil }
+      let station = item.anyStation
       return (item, station)
     }
 
@@ -96,7 +96,8 @@ struct StationListPage: View {
 
         VStack(spacing: 1) {
           ForEach(Array(stationPairs.enumerated()), id: \.offset) { _, pair in
-            let rowModel = StationListStationRowModel(item: pair.0)
+            let rowModel = StationListStationRowModel(
+              item: pair.0)
             StationListStationRowView(
               model: rowModel,
               action: {
