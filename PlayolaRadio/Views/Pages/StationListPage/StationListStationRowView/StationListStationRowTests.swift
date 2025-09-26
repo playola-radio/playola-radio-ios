@@ -111,8 +111,8 @@ final class StationListStationRowTests: XCTestCase {
     let model = StationListStationRowModel(item: item)
 
     XCTAssertEqual(model.titleText, comingSoonStation.curatorName)
-    XCTAssertEqual(model.subtitleText, "Coming Soon")
-    XCTAssertEqual(model.subtitleColor, Color.playolaRed)
+    XCTAssertEqual(model.subtitleText, comingSoonStation.name)
+    XCTAssertEqual(model.subtitleColor, Color.white)
     XCTAssertEqual(
       model.imageUrl, comingSoonStation.imageUrl)
   }
