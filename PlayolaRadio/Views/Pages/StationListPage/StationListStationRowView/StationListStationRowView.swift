@@ -33,7 +33,7 @@ struct StationListStationRowView: View {
 
           Text(model.subtitleText)
             .font(.custom(FontNames.Inter_400_Regular, size: 14))
-            .foregroundColor(.white)
+            .foregroundColor(model.subtitleColor)
             .multilineTextAlignment(.leading)
         }
 

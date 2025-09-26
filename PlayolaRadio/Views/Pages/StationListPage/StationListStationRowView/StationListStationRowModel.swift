@@ -6,7 +6,9 @@
 //
 
 import Foundation
+import PlayolaPlayer
 import Sharing
+import SwiftUI
 
 struct StationListStationRowModel {
   @Shared(.showSecretStations) var showSecretStations: Bool
@@ -21,10 +23,22 @@ struct StationListStationRowModel {
   }
 
   var subtitleText: String {
-    if item.visibility == .comingSoon && !showSecretStations {
-      return "Coming Soon"
+    let comingSoonText = "Coming Soon"
+    if item.visibility == .comingSoon {
+      if !showSecretStations {
+        return comingSoonText
+      }
+      if let isActiveStation = item.station?.active,
+        !isActiveStation
+      {
+        return comingSoonText
+      }
     }
     return item.anyStation.stationName
+  }
+
+  var subtitleColor: Color {
+    return subtitleText == "Coming Soon" ? Color.playolaRed : Color.white
   }
 
   init(item: APIStationItem) {
