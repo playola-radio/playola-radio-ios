@@ -295,6 +295,43 @@ final class StationListPageTests: XCTestCase {
     }
   }
 
+  func testInactiveStationDoesNotPlay() async {
+    @Shared(.showSecretStations) var showSecretStations = true
+
+    let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    let stationListModel = withDependencies {
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      StationListModel(stationPlayer: stationPlayerMock)
+    }
+
+    let now = Date()
+    let inactiveItem = makeComingSoonItem(active: false, date: now)
+
+    stationListModel.stationListsForDisplay = IdentifiedArray(
+      uniqueElements: [
+        StationList(
+          id: StationList.KnownIDs.artistList.rawValue,
+          name: "Artists",
+          slug: StationList.artistListSlug,
+          hidden: false,
+          sortOrder: 0,
+          createdAt: now,
+          updatedAt: now,
+          items: [inactiveItem]
+        )
+      ])
+
+    await stationListModel.stationSelected(inactiveItem)
+
+    XCTAssertTrue(stationPlayerMock.callsToPlay.isEmpty)
+    XCTAssertTrue(capturedEvents.value.isEmpty)
+  }
+
   // MARK: - Hidden Station Filtering
 
   func testHiddenStationsFilteredWhenSecretsOff() async {
@@ -400,4 +437,25 @@ final class StationListPageTests: XCTestCase {
     XCTAssertEqual(filteredItems.count, 2)
     XCTAssertEqual(filteredItems.last?.visibility, .hidden)
   }
+}
+
+private func makeComingSoonItem(active: Bool, date: Date) -> APIStationItem {
+  let station = PlayolaPlayer.Station(
+    id: active ? "coming-soon" : "inactive-station",
+    name: active ? "Moondog Radio" : "Dormant Station",
+    curatorName: active ? "Jacob Stelly" : "Inactive DJ",
+    imageUrl: URL(
+      string: active ? "https://example.com/moondog.png" : "https://example.com/inactive.png"),
+    description: active ? "Coming soon" : "This station is inactive",
+    active: active,
+    createdAt: date,
+    updatedAt: date
+  )
+
+  return APIStationItem(
+    sortOrder: 0,
+    visibility: .comingSoon,
+    station: station,
+    urlStation: nil
+  )
 }

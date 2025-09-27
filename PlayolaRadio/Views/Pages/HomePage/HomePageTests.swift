@@ -82,13 +82,13 @@ final class HomePageTests: XCTestCase {
   }
 
   func testStationListItemVisibilityDecodesKnownValue() throws {
-    let jsonData = "\"coming-soon\"".data(using: .utf8)!
+    let jsonData = Data("\"coming-soon\"".utf8)
     let visibility = try JSONDecoder().decode(StationListItemVisibility.self, from: jsonData)
     XCTAssertEqual(visibility, .comingSoon)
   }
 
   func testStationListItemVisibilityDecodesUnknownValueAsUnknown() throws {
-    let jsonData = "\"future-release\"".data(using: .utf8)!
+    let jsonData = Data("\"future-release\"".utf8)
     let visibility = try JSONDecoder().decode(StationListItemVisibility.self, from: jsonData)
     XCTAssertEqual(visibility, .unknown)
   }
@@ -298,83 +298,17 @@ extension HomePageTests {
     let items: [APIStationItem]
   }
 
+  private struct VisibilityStations {
+    let visiblePlayola: PlayolaPlayer.Station
+    let unknownPlayola: PlayolaPlayer.Station
+    let comingSoonUrl: UrlStation
+    let hiddenUrl: UrlStation
+  }
+
   fileprivate func makeVisibilityFixture() -> VisibilityFixture {
     let now = Date(timeIntervalSince1970: 1_758_915_200)
-
-    let visiblePlayola = PlayolaPlayer.Station(
-      id: "visible-playola",
-      name: "Visible Playola",
-      curatorName: "DJ Visible",
-      imageUrl: URL(string: "https://example.com/visible.png"),
-      description: "Visible station",
-      active: true,
-      createdAt: now,
-      updatedAt: now
-    )
-
-    let unknownPlayola = PlayolaPlayer.Station(
-      id: "unknown-playola",
-      name: "Unknown Playola",
-      curatorName: "DJ Mystery",
-      imageUrl: nil as URL?,
-      description: "Unknown visibility treated as visible",
-      active: true,
-      createdAt: now,
-      updatedAt: now
-    )
-
-    let comingSoonUrl = UrlStation(
-      id: "coming-soon-url",
-      name: "Coming Soon FM",
-      streamUrl: "https://example.com/coming",
-      imageUrl: URL(string: "https://example.com/coming.png"),
-      description: "Coming soon station",
-      website: nil,
-      location: "Austin, TX",
-      active: true,
-      createdAt: now,
-      updatedAt: now
-    )
-
-    let hiddenUrl = UrlStation(
-      id: "hidden-url",
-      name: "Hidden FM",
-      streamUrl: "https://example.com/hidden",
-      imageUrl: URL(string: "https://example.com/hidden.png"),
-      description: "Hidden station",
-      website: nil,
-      location: "Dallas, TX",
-      active: true,
-      createdAt: now,
-      updatedAt: now
-    )
-
-    let items: [APIStationItem] = [
-      APIStationItem(
-        sortOrder: 0,
-        visibility: .visible,
-        station: visiblePlayola,
-        urlStation: nil
-      ),
-      APIStationItem(
-        sortOrder: 1,
-        visibility: .comingSoon,
-        station: nil,
-        urlStation: comingSoonUrl
-      ),
-      APIStationItem(
-        sortOrder: 2,
-        visibility: .hidden,
-        station: nil,
-        urlStation: hiddenUrl
-      ),
-      APIStationItem(
-        sortOrder: 3,
-        visibility: .unknown,
-        station: unknownPlayola,
-        urlStation: nil
-      ),
-    ]
+    let stations = makeVisibilityStations(date: now)
+    let items = makeVisibilityItems(from: stations)
 
     let list = StationList(
       id: "test-list",
@@ -389,10 +323,10 @@ extension HomePageTests {
 
     return VisibilityFixture(
       list: list,
-      visiblePlayola: visiblePlayola,
-      unknownPlayola: unknownPlayola,
-      comingSoonUrl: comingSoonUrl,
-      hiddenUrl: hiddenUrl,
+      visiblePlayola: stations.visiblePlayola,
+      unknownPlayola: stations.unknownPlayola,
+      comingSoonUrl: stations.comingSoonUrl,
+      hiddenUrl: stations.hiddenUrl,
       items: items
     )
   }
@@ -437,6 +371,92 @@ extension HomePageTests {
       updatedAt: now,
       items: items
     )
+  }
+
+  private func makeVisibilityStations(date: Date) -> VisibilityStations {
+    let visiblePlayola = PlayolaPlayer.Station(
+      id: "visible-playola",
+      name: "Visible Playola",
+      curatorName: "DJ Visible",
+      imageUrl: URL(string: "https://example.com/visible.png"),
+      description: "Visible station",
+      active: true,
+      createdAt: date,
+      updatedAt: date
+    )
+
+    let unknownPlayola = PlayolaPlayer.Station(
+      id: "unknown-playola",
+      name: "Unknown Playola",
+      curatorName: "DJ Mystery",
+      imageUrl: nil as URL?,
+      description: "Unknown visibility treated as visible",
+      active: true,
+      createdAt: date,
+      updatedAt: date
+    )
+
+    let comingSoonUrl = UrlStation(
+      id: "coming-soon-url",
+      name: "Coming Soon FM",
+      streamUrl: "https://example.com/coming",
+      imageUrl: URL(string: "https://example.com/coming.png"),
+      description: "Coming soon station",
+      website: nil,
+      location: "Austin, TX",
+      active: true,
+      createdAt: date,
+      updatedAt: date
+    )
+
+    let hiddenUrl = UrlStation(
+      id: "hidden-url",
+      name: "Hidden FM",
+      streamUrl: "https://example.com/hidden",
+      imageUrl: URL(string: "https://example.com/hidden.png"),
+      description: "Hidden station",
+      website: nil,
+      location: "Dallas, TX",
+      active: true,
+      createdAt: date,
+      updatedAt: date
+    )
+
+    return VisibilityStations(
+      visiblePlayola: visiblePlayola,
+      unknownPlayola: unknownPlayola,
+      comingSoonUrl: comingSoonUrl,
+      hiddenUrl: hiddenUrl
+    )
+  }
+
+  private func makeVisibilityItems(from stations: VisibilityStations) -> [APIStationItem] {
+    [
+      APIStationItem(
+        sortOrder: 0,
+        visibility: .visible,
+        station: stations.visiblePlayola,
+        urlStation: nil
+      ),
+      APIStationItem(
+        sortOrder: 1,
+        visibility: .comingSoon,
+        station: nil,
+        urlStation: stations.comingSoonUrl
+      ),
+      APIStationItem(
+        sortOrder: 2,
+        visibility: .hidden,
+        station: nil,
+        urlStation: stations.hiddenUrl
+      ),
+      APIStationItem(
+        sortOrder: 3,
+        visibility: .unknown,
+        station: stations.unknownPlayola,
+        urlStation: nil
+      ),
+    ]
   }
 }
 
