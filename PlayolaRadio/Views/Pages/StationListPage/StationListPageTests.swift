@@ -140,72 +140,19 @@ final class StationListPageTests: XCTestCase {
     let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
-    let stationListModel = withDependencies {
-      $0.analytics.track = { event in
-        capturedEvents.withValue { $0.append(event) }
-      }
-    } operation: {
-      StationListModel(stationPlayer: stationPlayerMock)
-    }
+    let stationListModel = makeStationListModel(
+      analyticsSink: capturedEvents, stationPlayer: stationPlayerMock)
 
-    let now = Date()
-    let visibleStation = PlayolaPlayer.Station(
-      id: "visible-station",
-      name: "Visible Station",
-      curatorName: "DJ Visible",
-      imageUrl: URL(string: "https://example.com/visible.png"),
-      description: "Visible description",
-      active: true,
-      createdAt: now,
-      updatedAt: now
-    )
+    let item = makeVisibleItem()
 
-    let item = APIStationItem(
-      sortOrder: 0,
-      visibility: .visible,
-      station: visibleStation,
-      urlStation: nil
-    )
-
-    stationListModel.stationListsForDisplay = IdentifiedArray(
-      uniqueElements: [
-        StationList(
-          id: StationList.KnownIDs.artistList.rawValue,
-          name: "Artists",
-          slug: StationList.artistListSlug,
-          hidden: false,
-          sortOrder: 0,
-          createdAt: now,
-          updatedAt: now,
-          items: [item]
-        )
-      ])
+    stationListModel.stationListsForDisplay =
+      IdentifiedArray(uniqueElements: [makeList(with: [item])])
 
     await stationListModel.stationSelected(item)
 
     XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
     XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, item.anyStation.id)
-
-    // Verify analytics events were tracked
-    let events = capturedEvents.value
-    XCTAssertEqual(events.count, 2)
-
-    // First event should be tappedStationCard
-    if case .tappedStationCard(let stationInfo, let position, let totalStations) = events[0] {
-      XCTAssertEqual(stationInfo.id, item.anyStation.id)
-      XCTAssertEqual(position, 0)
-      XCTAssertEqual(totalStations, 1)
-    } else {
-      XCTFail("Expected tappedStationCard event, got: \(events[0])")
-    }
-
-    // Second event should be startedStation
-    if case .startedStation(let stationInfo, let entryPoint) = events[1] {
-      XCTAssertEqual(stationInfo.id, item.anyStation.id)
-      XCTAssertEqual(entryPoint, "station_list")
-    } else {
-      XCTFail("Expected startedStation event, got: \(events[1])")
-    }
+    assertPlayedEvents(capturedEvents.value, stationId: item.anyStation.id)
   }
 
   func testComingSoonStationDoesNotPlayWhenSecretsHidden() async {
@@ -439,6 +386,32 @@ final class StationListPageTests: XCTestCase {
   }
 }
 
+private func assertPlayedEvents(
+  _ events: [AnalyticsEvent],
+  stationId: PlayolaPlayer.Station.ID
+) {
+  XCTAssertEqual(events.count, 2)
+
+  guard let firstEvent = events.first else {
+    return XCTFail("Expected tappedStationCard event, but events were empty")
+  }
+  guard case let .tappedStationCard(stationInfo, position, totalStations) = firstEvent else {
+    return XCTFail("Expected tappedStationCard event, got: \(String(describing: firstEvent))")
+  }
+  XCTAssertEqual(stationInfo.id, stationId)
+  XCTAssertEqual(position, 0)
+  XCTAssertEqual(totalStations, 1)
+
+  guard let secondEvent = events.dropFirst().first else {
+    return XCTFail("Expected startedStation event, but only found one event")
+  }
+  guard case let .startedStation(startedInfo, entryPoint) = secondEvent else {
+    return XCTFail("Expected startedStation event, got: \(String(describing: secondEvent))")
+  }
+  XCTAssertEqual(startedInfo.id, stationId)
+  XCTAssertEqual(entryPoint, "station_list")
+}
+
 private func makeComingSoonItem(active: Bool, date: Date) -> APIStationItem {
   let station = PlayolaPlayer.Station(
     id: active ? "coming-soon" : "inactive-station",
@@ -458,4 +431,50 @@ private func makeComingSoonItem(active: Bool, date: Date) -> APIStationItem {
     station: station,
     urlStation: nil
   )
+}
+
+private func makeVisibleItem(date: Date = Date()) -> APIStationItem {
+  let station = PlayolaPlayer.Station(
+    id: "playable-station",
+    name: "Moondog Radio",
+    curatorName: "Jacob Stelly",
+    imageUrl: URL(string: "https://example.com/moondog.png"),
+    description: "A playable station",
+    active: true,
+    createdAt: date,
+    updatedAt: date
+  )
+
+  return APIStationItem(
+    sortOrder: 0,
+    visibility: .visible,
+    station: station,
+    urlStation: nil
+  )
+}
+
+private func makeList(with items: [APIStationItem], date: Date = Date()) -> StationList {
+  StationList(
+    id: "test-list",
+    name: "Test List",
+    slug: "test-list",
+    hidden: false,
+    sortOrder: 0,
+    createdAt: date,
+    updatedAt: date,
+    items: items
+  )
+}
+
+private func makeStationListModel(
+  analyticsSink: LockIsolated<[AnalyticsEvent]>,
+  stationPlayer: StationPlayerMock
+) -> StationListModel {
+  withDependencies {
+    $0.analytics.track = { event in
+      analyticsSink.withValue { $0.append(event) }
+    }
+  } operation: {
+    StationListModel(stationPlayer: stationPlayer)
+  }
 }
