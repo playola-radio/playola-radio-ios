@@ -72,8 +72,10 @@ final class HomePageTests: XCTestCase {
                   active: true,
                   createdAt: Date(),
                   updatedAt: Date()
-                ))
-            ])
+                )
+              )
+            ]
+          )
         ])
     }
 
@@ -261,7 +263,7 @@ final class HomePageTests: XCTestCase {
     // Verify analytics event was tracked
     let events = capturedEvents.value
     XCTAssertEqual(events.count, 1)
-    if case .startedStation(let stationInfo, let entryPoint) = events.first {
+    if case let .startedStation(stationInfo, entryPoint) = events.first {
       XCTAssertEqual(stationInfo.id, station.id)
       XCTAssertEqual(stationInfo.name, station.name)
       XCTAssertEqual(entryPoint, "home_recommendations")

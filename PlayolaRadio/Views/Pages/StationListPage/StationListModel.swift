@@ -15,7 +15,9 @@ import SwiftUI
 @Observable
 class StationListModel: ViewModel {
   var cancellables = Set<AnyCancellable>()
+
   // MARK: State
+
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
@@ -33,6 +35,7 @@ class StationListModel: ViewModel {
   }
 
   // MARK: Actions
+
   func viewAppeared() async {
     $stationLists.publisher
       .sink { [weak self] lists in
