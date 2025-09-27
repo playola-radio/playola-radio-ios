@@ -83,14 +83,14 @@ class StationListModel: ViewModel {
 
     let station = item.anyStation
 
-    if case let .playola(playolaStation) = station,
+    if case .playola(let playolaStation) = station,
       let isActive = playolaStation.active,
       isActive == false
     {
       return
     }
 
-    if case let .url(urlStation) = station,
+    if case .url(let urlStation) = station,
       let isActive = urlStation.active,
       isActive == false
     {

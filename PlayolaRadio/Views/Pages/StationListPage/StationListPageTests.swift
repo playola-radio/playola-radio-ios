@@ -395,7 +395,9 @@ private func assertPlayedEvents(
   guard let firstEvent = events.first else {
     return XCTFail("Expected tappedStationCard event, but events were empty")
   }
-  guard case let .tappedStationCard(stationInfo, position, totalStations) = firstEvent else {
+  guard
+    case .tappedStationCard(let stationInfo, let position, let totalStations) = firstEvent
+  else {
     return XCTFail("Expected tappedStationCard event, got: \(String(describing: firstEvent))")
   }
   XCTAssertEqual(stationInfo.id, stationId)
@@ -405,7 +407,9 @@ private func assertPlayedEvents(
   guard let secondEvent = events.dropFirst().first else {
     return XCTFail("Expected startedStation event, but only found one event")
   }
-  guard case let .startedStation(startedInfo, entryPoint) = secondEvent else {
+  guard
+    case .startedStation(let startedInfo, let entryPoint) = secondEvent
+  else {
     return XCTFail("Expected startedStation event, got: \(String(describing: secondEvent))")
   }
   XCTAssertEqual(startedInfo.id, stationId)

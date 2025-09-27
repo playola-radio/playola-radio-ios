@@ -103,19 +103,19 @@ final class HomePageTests: XCTestCase {
 
     let visibleStations = visibleItems.map { $0.anyStation }
     XCTAssertEqual(visibleStations.count, 3)
-    if case let .playola(station) = visibleStations[0] {
+    if case .playola(let station) = visibleStations[0] {
       XCTAssertEqual(station.id, fixture.visiblePlayola.id)
     } else {
       XCTFail("Expected first visible station to be playola")
     }
 
-    if case let .url(station) = visibleStations[1] {
+    if case .url(let station) = visibleStations[1] {
       XCTAssertEqual(station.id, fixture.comingSoonUrl.id)
     } else {
       XCTFail("Expected second visible station to be coming soon url station")
     }
 
-    if case let .playola(station) = visibleStations[2] {
+    if case .playola(let station) = visibleStations[2] {
       XCTAssertEqual(station.id, fixture.unknownPlayola.id)
     } else {
       XCTFail("Expected second visible station to be playola")
@@ -263,7 +263,7 @@ final class HomePageTests: XCTestCase {
     // Verify analytics event was tracked
     let events = capturedEvents.value
     XCTAssertEqual(events.count, 1)
-    if case let .startedStation(stationInfo, entryPoint) = events.first {
+    if case .startedStation(let stationInfo, let entryPoint) = events.first {
       XCTAssertEqual(stationInfo.id, station.id)
       XCTAssertEqual(stationInfo.name, station.name)
       XCTAssertEqual(entryPoint, "home_recommendations")
