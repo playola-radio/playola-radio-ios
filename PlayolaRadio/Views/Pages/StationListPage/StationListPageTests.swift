@@ -138,7 +138,6 @@ final class StationListPageTests: XCTestCase {
 
   func testPlayerInteraction_PlaysAStationWhenItIsTapped() async {
     let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
-    let station: AnyStation = .mock
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     let stationListModel = withDependencies {
@@ -149,10 +148,43 @@ final class StationListPageTests: XCTestCase {
       StationListModel(stationPlayer: stationPlayerMock)
     }
 
-    await stationListModel.stationSelected(station)
+    let now = Date()
+    let visibleStation = PlayolaPlayer.Station(
+      id: "visible-station",
+      name: "Visible Station",
+      curatorName: "DJ Visible",
+      imageUrl: URL(string: "https://example.com/visible.png"),
+      description: "Visible description",
+      active: true,
+      createdAt: now,
+      updatedAt: now
+    )
+
+    let item = APIStationItem(
+      sortOrder: 0,
+      visibility: .visible,
+      station: visibleStation,
+      urlStation: nil
+    )
+
+    stationListModel.stationListsForDisplay = IdentifiedArray(
+      uniqueElements: [
+        StationList(
+          id: StationList.KnownIDs.artistList.rawValue,
+          name: "Artists",
+          slug: StationList.artistListSlug,
+          hidden: false,
+          sortOrder: 0,
+          createdAt: now,
+          updatedAt: now,
+          items: [item]
+        )
+      ])
+
+    await stationListModel.stationSelected(item)
 
     XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
-    XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, station.id)
+    XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, item.anyStation.id)
 
     // Verify analytics events were tracked
     let events = capturedEvents.value
@@ -160,19 +192,106 @@ final class StationListPageTests: XCTestCase {
 
     // First event should be tappedStationCard
     if case .tappedStationCard(let stationInfo, let position, let totalStations) = events[0] {
-      XCTAssertEqual(stationInfo.id, station.id)
+      XCTAssertEqual(stationInfo.id, item.anyStation.id)
       XCTAssertEqual(position, 0)
-      XCTAssertEqual(totalStations, 0)  // Empty list for this test
+      XCTAssertEqual(totalStations, 1)
     } else {
       XCTFail("Expected tappedStationCard event, got: \(events[0])")
     }
 
     // Second event should be startedStation
     if case .startedStation(let stationInfo, let entryPoint) = events[1] {
-      XCTAssertEqual(stationInfo.id, station.id)
+      XCTAssertEqual(stationInfo.id, item.anyStation.id)
       XCTAssertEqual(entryPoint, "station_list")
     } else {
       XCTFail("Expected startedStation event, got: \(events[1])")
+    }
+  }
+
+  func testComingSoonStationDoesNotPlayWhenSecretsHidden() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+
+    let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    let stationListModel = withDependencies {
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      StationListModel(stationPlayer: stationPlayerMock)
+    }
+
+    let now = Date()
+    let comingSoonItem = makeComingSoonItem(active: true, date: now)
+
+    stationListModel.stationListsForDisplay = IdentifiedArray(
+      uniqueElements: [
+        StationList(
+          id: StationList.KnownIDs.artistList.rawValue,
+          name: "Artists",
+          slug: StationList.artistListSlug,
+          hidden: false,
+          sortOrder: 0,
+          createdAt: now,
+          updatedAt: now,
+          items: [comingSoonItem]
+        )
+      ])
+
+    await stationListModel.stationSelected(comingSoonItem)
+
+    XCTAssertTrue(stationPlayerMock.callsToPlay.isEmpty)
+    XCTAssertTrue(capturedEvents.value.isEmpty)
+  }
+
+  func testComingSoonStationPlaysWhenSecretsShown() async {
+    @Shared(.showSecretStations) var showSecretStations = true
+
+    let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    let stationListModel = withDependencies {
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      StationListModel(stationPlayer: stationPlayerMock)
+    }
+
+    let now = Date()
+    let comingSoonItem = makeComingSoonItem(active: true, date: now)
+
+    stationListModel.stationListsForDisplay = IdentifiedArray(
+      uniqueElements: [
+        StationList(
+          id: StationList.KnownIDs.artistList.rawValue,
+          name: "Artists",
+          slug: StationList.artistListSlug,
+          hidden: false,
+          sortOrder: 0,
+          createdAt: now,
+          updatedAt: now,
+          items: [comingSoonItem]
+        )
+      ])
+
+    await stationListModel.stationSelected(comingSoonItem)
+
+    XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
+    XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, comingSoonItem.anyStation.id)
+
+    let events = capturedEvents.value
+    XCTAssertEqual(events.count, 2)
+    if case .tappedStationCard(let stationInfo, _, _) = events[0] {
+      XCTAssertEqual(stationInfo.id, comingSoonItem.anyStation.id)
+    } else {
+      XCTFail("Expected tappedStationCard event")
+    }
+    if case .startedStation(let stationInfo, _) = events[1] {
+      XCTAssertEqual(stationInfo.id, comingSoonItem.anyStation.id)
+    } else {
+      XCTFail("Expected startedStation event")
     }
   }
 

@@ -57,6 +57,15 @@ enum AnyStation: Identifiable, Codable, Equatable {
     }
   }
 
+  var active: Bool {
+    switch self {
+    case .playola(let playolaStation):
+      return playolaStation.active ?? true
+    default:
+      return true
+    }
+  }
+
   // Helper methods
   func processedImageURL() -> URL {
     if let url = imageUrl { return url }

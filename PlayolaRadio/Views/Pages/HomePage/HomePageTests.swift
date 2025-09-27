@@ -97,38 +97,34 @@ final class HomePageTests: XCTestCase {
     let fixture = makeVisibilityFixture()
 
     let visibleItems = fixture.list.stationItems(includeHidden: false)
-    XCTAssertEqual(visibleItems.count, 2)
-    XCTAssertTrue(
-      visibleItems.allSatisfy {
-        $0.visibility != StationListItemVisibility.hidden
-          && $0.visibility != StationListItemVisibility.comingSoon
-      }
-    )
+    XCTAssertEqual(visibleItems.map(\.visibility), [.visible, .comingSoon, .unknown])
 
-    let visibleStations = visibleItems.compactMap { $0.anyStation }
-    XCTAssertEqual(visibleStations.count, 2)
+    let visibleStations = visibleItems.map { $0.anyStation }
+    XCTAssertEqual(visibleStations.count, 3)
     if case let .playola(station) = visibleStations[0] {
       XCTAssertEqual(station.id, fixture.visiblePlayola.id)
     } else {
       XCTFail("Expected first visible station to be playola")
     }
 
-    if case let .playola(station) = visibleStations[1] {
+    if case let .url(station) = visibleStations[1] {
+      XCTAssertEqual(station.id, fixture.comingSoonUrl.id)
+    } else {
+      XCTFail("Expected second visible station to be coming soon url station")
+    }
+
+    if case let .playola(station) = visibleStations[2] {
       XCTAssertEqual(station.id, fixture.unknownPlayola.id)
     } else {
       XCTFail("Expected second visible station to be playola")
     }
 
-    XCTAssertEqual(
-      fixture.items.filter { $0.visibility == StationListItemVisibility.comingSoon }.count,
-      1
-    )
     let allItemsIncludingHidden = fixture.list.stationItems(includeHidden: true)
-    XCTAssertTrue(allItemsIncludingHidden.contains { $0.visibility == .hidden })
+    let comingSoonItems = allItemsIncludingHidden.filter { $0.visibility == .comingSoon }
+    XCTAssertEqual(comingSoonItems.count, 1)
+    XCTAssertEqual(comingSoonItems.first?.urlStation?.id, fixture.comingSoonUrl.id)
 
-    let hiddenItems = allItemsIncludingHidden.filter {
-      $0.visibility == StationListItemVisibility.hidden
-    }
+    let hiddenItems = allItemsIncludingHidden.filter { $0.visibility == .hidden }
     XCTAssertEqual(hiddenItems.count, 1)
     XCTAssertEqual(hiddenItems.first?.urlStation?.id, fixture.hiddenUrl.id)
   }
@@ -282,15 +278,13 @@ final class HomePageTests: XCTestCase {
     let model = HomePageModel()
     await model.viewAppeared()
 
-    XCTAssertEqual(model.forYouStations.count, 1)
+    await assertEventually(model.forYouStations.count == 1)
 
     $showSecretStations.withLock { $0 = true }
-    await Task.yield()
-    XCTAssertEqual(model.forYouStations.count, 2)
+    await assertEventually(model.forYouStations.count == 2)
 
     $showSecretStations.withLock { $0 = false }
-    await Task.yield()
-    XCTAssertEqual(model.forYouStations.count, 1)
+    await assertEventually(model.forYouStations.count == 1)
   }
 }
 
@@ -436,7 +430,7 @@ extension HomePageTests {
     return StationList(
       id: StationList.KnownIDs.artistList.rawValue,
       name: "Artists",
-      slug: StationList.KnownIDs.artistList.rawValue,
+      slug: StationList.artistListSlug,
       hidden: false,
       sortOrder: 0,
       createdAt: now,
@@ -447,3 +441,19 @@ extension HomePageTests {
 }
 
 // swiftlint:enable force_try
+
+extension HomePageTests {
+  fileprivate func assertEventually(
+    _ condition: @autoclosure @escaping () -> Bool,
+    timeout: TimeInterval = 1.0,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) async {
+    let deadline = Date().addingTimeInterval(timeout)
+    while Date() < deadline {
+      if condition() { return }
+      try? await Task.sleep(nanoseconds: 50_000_000)
+    }
+    XCTFail("Condition not satisfied within timeout", file: file, line: line)
+  }
+}

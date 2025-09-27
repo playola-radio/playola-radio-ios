@@ -81,12 +81,7 @@ struct StationListPage: View {
   private func stationSection(list: StationList) -> some View {
     let includeHiddenItems = model.showSecretStations
     let items = list.stationItems(includeHidden: includeHiddenItems)
-    let stationPairs = items.compactMap { item -> (APIStationItem, AnyStation)? in
-      let station = item.anyStation
-      return (item, station)
-    }
-
-    if !stationPairs.isEmpty {
+    if !items.isEmpty {
       VStack(alignment: .leading, spacing: 1) {
         Text(list.title)
           .font(.custom("Inter-Regular", size: 16))
@@ -95,13 +90,12 @@ struct StationListPage: View {
           .padding(.bottom, 8)
 
         VStack(spacing: 1) {
-          ForEach(Array(stationPairs.enumerated()), id: \.offset) { _, pair in
-            let rowModel = StationListStationRowModel(
-              item: pair.0)
+          ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+            let rowModel = StationListStationRowModel(item: item)
             StationListStationRowView(
               model: rowModel,
               action: {
-                Task { await model.stationSelected(pair.1) }
+                Task { await model.stationSelected(item) }
               })
           }
         }

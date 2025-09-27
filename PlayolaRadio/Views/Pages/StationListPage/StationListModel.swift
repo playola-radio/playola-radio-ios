@@ -73,9 +73,32 @@ class StationListModel: ViewModel {
       ))
   }
 
-  func stationSelected(_ station: AnyStation) async {
-    // Find the station's position in the current display list
-    let allStations = stationListsForDisplay.flatMap { $0.stations }
+  func stationSelected(_ item: APIStationItem) async {
+    if item.visibility == .comingSoon && showSecretStations == false {
+      return
+    }
+
+    let station = item.anyStation
+
+    if case let .playola(playolaStation) = station,
+      let isActive = playolaStation.active,
+      isActive == false
+    {
+      return
+    }
+
+    if case let .url(urlStation) = station,
+      let isActive = urlStation.active,
+      isActive == false
+    {
+      return
+    }
+
+    let allItems = stationListsForDisplay.flatMap {
+      $0.stationItems(includeHidden: showSecretStations)
+    }
+
+    let allStations = allItems.map { $0.anyStation }
     let position = allStations.firstIndex(where: { $0.id == station.id }) ?? 0
 
     await analytics.track(

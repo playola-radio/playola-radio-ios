@@ -51,6 +51,8 @@ class HomePageModel: ViewModel {
 
   // MARK: Actions
   func viewAppeared() async {
+    loadForYouStations(lists: stationLists, includeHidden: showSecretStations)
+
     Publishers.CombineLatest(
       $stationLists.publisher,
       $showSecretStations.publisher
@@ -86,7 +88,7 @@ class HomePageModel: ViewModel {
 
     let stations =
       artistList
-      .stationItems(includeHidden: includeHidden)
+      .stationItems(includeHidden: includeHidden, includeComingSoon: true)
       .compactMap { $0.anyStation }
 
     forYouStations = IdentifiedArray(uniqueElements: stations)
