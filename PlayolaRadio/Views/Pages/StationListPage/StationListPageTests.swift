@@ -388,7 +388,7 @@ final class StationListPageTests: XCTestCase {
 
 private func assertPlayedEvents(
   _ events: [AnalyticsEvent],
-  stationId: PlayolaPlayer.Station.ID
+  stationId: String
 ) {
   XCTAssertEqual(events.count, 2)
 
