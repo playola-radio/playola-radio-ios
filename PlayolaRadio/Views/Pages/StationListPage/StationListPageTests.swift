@@ -470,6 +470,7 @@ private func makeList(with items: [APIStationItem], date: Date = Date()) -> Stat
   )
 }
 
+@MainActor
 private func makeStationListModel(
   analyticsSink: LockIsolated<[AnalyticsEvent]>,
   stationPlayer: StationPlayerMock
