@@ -267,7 +267,7 @@
 		D30257AA2E652F8D00F4228B /* SongDrawerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongDrawerTests.swift; sourceTree = "<group>"; };
 		D30AE8A62E75C91E00D9FBCA /* UrlStation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlStation.swift; sourceTree = "<group>"; };
 		D30F00B32E8592F0007BCC73 /* PlayolaRadio Staging.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PlayolaRadio Staging.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		D30F00B42E8592F0007BCC73 /* Info-Staging.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Info-Staging.plist"; path = "/Users/brian/playola/playola-radio-ios/Info-Staging.plist"; sourceTree = "<absolute>"; };
+		D30F00B42E8592F0007BCC73 /* Info-Staging.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Info-Staging.plist"; path = "/Users/brian/playola/playola-radio-ios/PlayolaRadio/Info-Staging.plist"; sourceTree = "<absolute>"; };
 		D30F00B62E871940007BCC73 /* StationListStationRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListStationRowView.swift; sourceTree = "<group>"; };
 		D30F00B92E871948007BCC73 /* StationListStationRowModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListStationRowModel.swift; sourceTree = "<group>"; };
 		D30F00BC2E871956007BCC73 /* StationListStationRowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListStationRowTests.swift; sourceTree = "<group>"; };
@@ -559,7 +559,6 @@
 			children = (
 				D3536A032BFA4F49006942D6 /* PlayolaRadio */,
 				D3536A142BFA4F4A006942D6 /* PlayolaRadioTests */,
-				D30F00B42E8592F0007BCC73 /* Info-Staging.plist */,
 				D3536A022BFA4F49006942D6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -588,6 +587,7 @@
 				D3536A0A2BFA4F4A006942D6 /* Preview Content */,
 				D35673C42D3E8E1E00E4E926 /* PlayolaRadio.entitlements */,
 				D35673C12D3DCF6000E4E926 /* Info.plist */,
+				D30F00B42E8592F0007BCC73 /* Info-Staging.plist */,
 				D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */,
 			);
 			path = PlayolaRadio;
@@ -1310,7 +1310,7 @@
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "PlayolaRadio copy2-Info.plist";
+				INFOPLIST_FILE = "PlayolaRadio/Info-Staging.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Playola Radio Staging";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
@@ -1352,7 +1352,7 @@
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "PlayolaRadio copy2-Info.plist";
+				INFOPLIST_FILE = "PlayolaRadio/Info-Staging.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Playola Radio Staging";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
@@ -1394,7 +1394,7 @@
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "PlayolaRadio copy2-Info.plist";
+				INFOPLIST_FILE = "PlayolaRadio/Info-Staging.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Playola Radio Staging";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";

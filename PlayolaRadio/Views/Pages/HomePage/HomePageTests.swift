@@ -15,6 +15,8 @@ import XCTest
 
 @testable import PlayolaRadio
 
+private let homePageTestDate = Date(timeIntervalSince1970: 1_758_915_200)
+
 @MainActor
 final class HomePageTests: XCTestCase {
   // MARK: - ViewAppeared Tests
@@ -81,6 +83,130 @@ final class HomePageTests: XCTestCase {
 
     XCTAssertEqual(model.forYouStations.elements.count, 1)
     XCTAssertEqual(model.forYouStations.elements.first?.id, "different-station")
+  }
+
+  func testViewAppeared_ExcludesComingSoonStationsFromForYouList() async {
+    let visibleStation = makePlayolaStation(
+      id: "visible-station",
+      name: "Visible Station",
+      curatorName: "DJ Visible"
+    )
+    let comingSoonItem = makeStationItem(
+      sortOrder: 1,
+      visibility: .comingSoon,
+      urlStation: makeUrlStation(
+        id: "coming-soon-station",
+        name: "Coming Soon Station",
+        streamUrl: "https://example.com/comingSoon",
+        imageUrl: "https://example.com/comingsoon.png",
+        description: "Coming soon station description",
+        location: "Austin, TX"
+      )
+    )
+
+    let artistList = makeArtistList(
+      items: [
+        makeStationItem(
+          sortOrder: 0,
+          visibility: .visible,
+          station: visibleStation
+        ),
+        comingSoonItem,
+      ]
+    )
+
+    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [artistList])
+
+    let model = HomePageModel()
+    await model.viewAppeared()
+
+    await assertEventually(model.forYouStations.count == 1)
+    XCTAssertEqual(model.forYouStations.first?.id, visibleStation.id)
+    XCTAssertNil(model.forYouStations[id: "coming-soon-station"])
+  }
+
+  func testShowSecretStationsIncludesActiveComingSoonStations() async {
+    let visibleStation = makePlayolaStation(
+      id: "visible-station",
+      name: "Visible Station",
+      curatorName: "DJ Visible"
+    )
+    let comingSoonStation = makePlayolaStation(
+      id: "coming-soon-station",
+      name: "Coming Soon Station",
+      curatorName: "DJ Soon",
+      imageUrl: URL(string: "https://example.com/comingsoon.png"),
+      description: "Coming soon station description"
+    )
+
+    let artistList = makeArtistList(
+      items: [
+        makeStationItem(
+          sortOrder: 0,
+          visibility: .visible,
+          station: visibleStation
+        ),
+        makeStationItem(
+          sortOrder: 1,
+          visibility: .comingSoon,
+          station: comingSoonStation
+        ),
+      ]
+    )
+
+    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [artistList])
+    @Shared(.showSecretStations) var showSecretStations = false
+
+    let model = HomePageModel()
+    await model.viewAppeared()
+
+    await assertEventually(model.forYouStations.count == 1)
+    XCTAssertNil(model.forYouStations[id: comingSoonStation.id])
+
+    $showSecretStations.withLock { $0 = true }
+
+    await assertEventually(model.forYouStations[id: comingSoonStation.id] != nil)
+    await assertEventually(model.forYouStations.count == 2)
+  }
+
+  func testShowSecretStationsStillHidesInactiveComingSoonStations() async {
+    let visibleStation = makePlayolaStation(
+      id: "visible-station",
+      name: "Visible Station",
+      curatorName: "DJ Visible"
+    )
+    let inactiveComingSoonStation = makePlayolaStation(
+      id: "inactive-coming-soon",
+      name: "Inactive Coming Soon",
+      curatorName: "DJ Snooze",
+      imageUrl: URL(string: "https://example.com/inactive.png"),
+      description: "Inactive coming soon description",
+      active: false
+    )
+
+    let artistList = makeArtistList(
+      items: [
+        makeStationItem(
+          sortOrder: 0,
+          visibility: .visible,
+          station: visibleStation
+        ),
+        makeStationItem(
+          sortOrder: 1,
+          visibility: .comingSoon,
+          station: inactiveComingSoonStation
+        ),
+      ]
+    )
+
+    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [artistList])
+    @Shared(.showSecretStations) var showSecretStations = true
+
+    let model = HomePageModel()
+    await model.viewAppeared()
+
+    await assertEventually(model.forYouStations.count == 1)
+    XCTAssertNil(model.forYouStations[id: inactiveComingSoonStation.id])
   }
 
   func testStationListItemVisibilityDecodesKnownValue() throws {
@@ -459,6 +585,77 @@ extension HomePageTests {
         urlStation: nil
       ),
     ]
+  }
+
+  fileprivate func makeArtistList(items: [APIStationItem]) -> StationList {
+    StationList(
+      id: StationList.KnownIDs.artistList.rawValue,
+      name: "Artists",
+      slug: StationList.artistListSlug,
+      hidden: false,
+      sortOrder: 0,
+      createdAt: homePageTestDate,
+      updatedAt: homePageTestDate,
+      items: items
+    )
+  }
+
+  fileprivate func makeStationItem(
+    sortOrder: Int,
+    visibility: StationListItemVisibility,
+    station: PlayolaPlayer.Station? = nil,
+    urlStation: UrlStation? = nil
+  ) -> APIStationItem {
+    APIStationItem(
+      sortOrder: sortOrder,
+      visibility: visibility,
+      station: station,
+      urlStation: urlStation
+    )
+  }
+
+  fileprivate func makePlayolaStation(
+    id: String,
+    name: String,
+    curatorName: String,
+    imageUrl: URL? = URL(string: "https://example.com/visible.png"),
+    description: String = "Visible station description",
+    active: Bool = true
+  ) -> PlayolaPlayer.Station {
+    PlayolaPlayer.Station(
+      id: id,
+      name: name,
+      curatorName: curatorName,
+      imageUrl: imageUrl,
+      description: description,
+      active: active,
+      createdAt: homePageTestDate,
+      updatedAt: homePageTestDate
+    )
+  }
+
+  fileprivate func makeUrlStation(
+    id: String,
+    name: String,
+    streamUrl: String,
+    imageUrl: String,
+    description: String,
+    website: String? = nil,
+    location: String? = nil,
+    active: Bool = true
+  ) -> UrlStation {
+    UrlStation(
+      id: id,
+      name: name,
+      streamUrl: streamUrl,
+      imageUrl: imageUrl,
+      description: description,
+      website: website,
+      location: location,
+      active: active,
+      createdAt: homePageTestDate,
+      updatedAt: homePageTestDate
+    )
   }
 }
 
