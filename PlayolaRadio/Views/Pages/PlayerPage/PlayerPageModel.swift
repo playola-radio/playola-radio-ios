@@ -40,25 +40,15 @@ class PlayerPageModel: ViewModel {
   }
   var primaryNavBarTitle: String {
     guard let currentStation = nowPlaying?.currentStation else { return "" }
-    switch nowPlaying?.playbackStatus {
-    case .loading, .startingNewStation:
-      return currentStation.name
-    default:
-      return ""
-    }
+    return currentStation.name
   }
 
   var secondaryNavBarTitle: String {
     guard let currentStation = nowPlaying?.currentStation else { return "" }
-    switch nowPlaying?.playbackStatus {
-    case .loading, .startingNewStation:
-      if currentStation.isPlayolaStation {
-        return currentStation.stationName
-      } else {
-        return currentStation.location ?? ""
-      }
-    default:
-      return ""
+    if currentStation.isPlayolaStation {
+      return currentStation.stationName
+    } else {
+      return currentStation.location ?? ""
     }
   }
 
