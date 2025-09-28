@@ -21,11 +21,13 @@ struct StationCardView: View {
   let onRadioStationSelected: (AnyStation) -> Void
 
   var body: some View {
+    let imageURL = station.imageUrl ?? station.processedImageURL()
+
     Button(
       action: { onRadioStationSelected(station) },
       label: {
         HStack(spacing: 2) {
-          AsyncImage(url: station.imageUrl) { image in
+          AsyncImage(url: imageURL) { image in
             image
               .resizable()
               .aspectRatio(contentMode: .fill)

@@ -93,7 +93,7 @@ final class MainContainerTests: XCTestCase {
       $0.api.getStations = {
         throw TestError()
       }
-      $0.analytics.track = { event in
+      $0.analytics.track = { @Sendable event in
         capturedEvents.withValue { $0.append(event) }
       }
     } operation: {

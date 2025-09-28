@@ -15,7 +15,9 @@ import SwiftUI
 @Observable
 class StationListModel: ViewModel {
   var cancellables = Set<AnyCancellable>()
+
   // MARK: State
+
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
@@ -33,6 +35,7 @@ class StationListModel: ViewModel {
   }
 
   // MARK: Actions
+
   func viewAppeared() async {
     $stationLists.publisher
       .sink { [weak self] lists in
@@ -42,10 +45,8 @@ class StationListModel: ViewModel {
   }
 
   private func loadStationListsForDisplay(_ rawList: IdentifiedArrayOf<StationList>) {
-    let visibleLists =
-      showSecretStations
-      ? rawList
-      : rawList.filter { $0.id != StationList.inDevelopmentListId }
+    let includeHidden = showSecretStations
+    let visibleLists = includeHidden ? rawList : rawList.filter { !$0.hidden }
 
     segmentTitles = ["All"] + visibleLists.map { $0.title }
 
@@ -68,26 +69,39 @@ class StationListModel: ViewModel {
     // Only track if this is actually a change
     guard previousSegment != segmentTitle else { return }
 
-    let listType: StationListType = {
-      switch segmentTitle {
-      case "All": return .all
-      case "Artists": return .artists
-      case "FM": return .fm
-      case "Featured": return .featured
-      default: return .all
-      }
-    }()
-
     await analytics.track(
       .viewedStationList(
-        listType: listType,
+        listName: segmentTitle,
         screen: "station_list_page"
       ))
   }
 
-  func stationSelected(_ station: AnyStation) async {
-    // Find the station's position in the current display list
-    let allStations = stationListsForDisplay.flatMap { $0.stations }
+  func stationSelected(_ item: APIStationItem) async {
+    if item.visibility == .comingSoon && showSecretStations == false {
+      return
+    }
+
+    let station = item.anyStation
+
+    if case .playola(let playolaStation) = station,
+      let isActive = playolaStation.active,
+      isActive == false
+    {
+      return
+    }
+
+    if case .url(let urlStation) = station,
+      let isActive = urlStation.active,
+      isActive == false
+    {
+      return
+    }
+
+    let allItems = stationListsForDisplay.flatMap {
+      $0.stationItems(includeHidden: showSecretStations)
+    }
+
+    let allStations = allItems.map { $0.anyStation }
     let position = allStations.firstIndex(where: { $0.id == station.id }) ?? 0
 
     await analytics.track(
