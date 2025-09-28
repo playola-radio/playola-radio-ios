@@ -33,7 +33,8 @@ public class URLStreamPlayer: ObservableObject {
     playbackState: .stopped,
     playerStatus: nil,
     currentStation: nil,
-    nowPlaying: nil)
+    nowPlaying: nil
+  )
 
   @Published var albumArtworkURL: URL?
 
@@ -100,7 +101,8 @@ extension URLStreamPlayer {
         boundsSize: image.size,
         requestHandler: { _ -> UIImage in
           return image
-        })
+        }
+      )
     }
 
     if let artistName = currentStation?.artistName {
@@ -126,7 +128,8 @@ extension URLStreamPlayer: FRadioPlayerObserver {
       playbackState: FRadioPlayer.shared.playbackState,
       playerStatus: FRadioPlayer.shared.state,
       currentStation: currentStation,
-      nowPlaying: player.currentMetadata)
+      nowPlaying: player.currentMetadata
+    )
     resetArtwork(with: currentStation)
   }
 
@@ -154,7 +157,8 @@ extension URLStreamPlayer: FRadioPlayerObserver {
       playbackState: FRadioPlayer.shared.playbackState,
       playerStatus: FRadioPlayer.shared.state,
       currentStation: currentStation,
-      nowPlaying: player.currentMetadata)
+      nowPlaying: player.currentMetadata
+    )
   }
 
   public func radioPlayer(
@@ -164,7 +168,8 @@ extension URLStreamPlayer: FRadioPlayerObserver {
       playbackState: FRadioPlayer.shared.playbackState,
       playerStatus: FRadioPlayer.shared.state,
       currentStation: currentStation,
-      nowPlaying: player.currentMetadata)
+      nowPlaying: player.currentMetadata
+    )
   }
 }
 
@@ -179,7 +184,8 @@ extension URLStreamPlayer {
         trackName: "Selfie",
         rawValue: nil,
         groups: []
-      ))
+      )
+    )
     return stationPlayer
   }
 }

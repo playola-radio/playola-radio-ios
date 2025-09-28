@@ -1,5 +1,5 @@
 //
-//  PlayerPageView.swift
+//  PlayerPage.swift
 //  PlayolaRadio
 //
 //  Created by Brian D Keane on 6/12/25.
@@ -51,7 +51,6 @@ struct PlayerPage: View {
       .padding(.top, 8)
 
       ScrollView {
-
         // Main Image
         AsyncImage(url: model.stationArtUrl) { image in
           image
@@ -124,7 +123,6 @@ struct PlayerPage: View {
               .frame(width: 8, height: 8)
           }
           .padding(.top, 8)
-
         }
         .frame(maxWidth: .infinity, alignment: .center)
         .padding(.horizontal, 24)
@@ -147,7 +145,6 @@ struct PlayerPage: View {
         .padding(.top, 32)
 
         if let relatedText = model.relatedText {
-
           VStack(alignment: .leading, spacing: 16) {
             Text(relatedText.title)
               .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 18))

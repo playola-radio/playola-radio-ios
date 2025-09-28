@@ -136,7 +136,7 @@ class InvitationCodePageModel: ViewModel {
   var mode: Mode = .invitationCodeInput
 
   func changeModeButtonTapped() async {
-    self.errorMessage = nil
+    errorMessage = nil
     switch mode {
     case .invitationCodeInput:
       mode = .waitingListInput

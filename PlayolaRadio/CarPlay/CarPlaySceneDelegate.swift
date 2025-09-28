@@ -82,7 +82,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   }
 
   func templateApplicationScene(
-    _ scene: CPTemplateApplicationScene,
+    _: CPTemplateApplicationScene,
     didConnect interfaceController: CPInterfaceController
   ) {
     Task {
@@ -106,10 +106,10 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   }
 
   func templateApplicationScene(
-    _ scene: CPTemplateApplicationScene,
-    didDisconnectInterfaceController interfaceController: CPInterfaceController
+    _: CPTemplateApplicationScene,
+    didDisconnectInterfaceController _: CPInterfaceController
   ) {
-    self.interfaceController = nil
+    interfaceController = nil
 
     for observer in observers {
       observer.cancel()
@@ -336,25 +336,25 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 }
 
 extension CarPlaySceneDelegate: @preconcurrency CPTabBarTemplateDelegate {
-  func tabBarTemplate(_ tabBarTemplate: CPTabBarTemplate, didSelect selectedTemplate: CPTemplate) {
+  func tabBarTemplate(_: CPTabBarTemplate, didSelect _: CPTemplate) {
     // Handle tab selection
   }
 }
 
 extension CarPlaySceneDelegate: @preconcurrency CPInterfaceControllerDelegate {
-  func templateWillAppear(_ aTemplate: CPTemplate, animated: Bool) {
+  func templateWillAppear(_: CPTemplate, animated _: Bool) {
     // Handle template will appear
   }
 
-  func templateDidAppear(_ aTemplate: CPTemplate, animated: Bool) {
+  func templateDidAppear(_: CPTemplate, animated _: Bool) {
     // Handle template did appear
   }
 
-  func templateWillDisappear(_ aTemplate: CPTemplate, animated: Bool) {
+  func templateWillDisappear(_: CPTemplate, animated _: Bool) {
     // Handle template will disappear
   }
 
-  func templateDidDisappear(_ aTemplate: CPTemplate, animated: Bool) {
+  func templateDidDisappear(_: CPTemplate, animated _: Bool) {
     // Handle template did disappear
   }
 }

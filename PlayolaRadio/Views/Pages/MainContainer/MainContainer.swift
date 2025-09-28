@@ -104,7 +104,6 @@ struct MainContainer: View {
     }
     .animation(.easeInOut(duration: 0.3), value: model.presentedToast)
     .onAppear { Task { await model.viewAppeared() } }
-
   }
 
   @ViewBuilder

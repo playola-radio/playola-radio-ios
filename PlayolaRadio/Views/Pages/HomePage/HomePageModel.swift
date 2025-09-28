@@ -15,7 +15,9 @@ import SwiftUI
 @Observable
 class HomePageModel: ViewModel {
   var disposeBag = Set<AnyCancellable>()
+
   // MARK: State
+
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
@@ -37,7 +39,7 @@ class HomePageModel: ViewModel {
   }
 
   @ObservationIgnored lazy var listeningTimeTileModel: ListeningTimeTileModel =
-    ListeningTimeTileModel(
+    .init(
       buttonText: "Redeem Your Rewards!",
       buttonAction: { [weak self] in
         guard let self = self else { return }
@@ -51,6 +53,7 @@ class HomePageModel: ViewModel {
   }
 
   // MARK: Actions
+
   func viewAppeared() async {
     loadForYouStations(lists: stationLists, showSecretStationsNewValue: showSecretStations)
 

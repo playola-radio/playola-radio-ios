@@ -315,7 +315,7 @@ extension APIClient: DependencyKey {
           throw APIError.dataNotValid
         }
 
-        if statusCode >= 200 && statusCode < 300 {
+        if statusCode >= 200, statusCode < 300 {
           return
         } else {
           // Try to parse server error message
@@ -414,6 +414,7 @@ extension DependencyValues {
 struct LoginResponse: Decodable {
   let playolaToken: String
 }
+
 struct UpdateUserResponse: Decodable {
   let id: String
   let firstName: String

@@ -12,50 +12,60 @@ import Mixpanel
 
 enum AnalyticsEvent: Equatable {
   // MARK: App Lifecycle
+
   case appOpened(source: AppOpenSource, isFirstOpen: Bool)
   case appBackgrounded
   case appForegrounded
 
   // MARK: Authentication
+
   case signInStarted(method: AuthMethod)
   case signInCompleted(method: AuthMethod, userId: String)
   case signInFailed(method: AuthMethod, error: String)
   case signedOut
 
   // MARK: Invitation Codes
+
   case invitationCodeVerified(code: String)
   case shareWithFriendsTapped
 
   // MARK: Station Discovery
+
   case viewedStationList(listName: String, screen: String)
   case tappedStationCard(station: StationInfo, position: Int, totalStations: Int)
   case viewedStationDetail(station: StationInfo)
 
   // MARK: Playback
+
   case startedStation(station: StationInfo, entryPoint: String)
   case listeningSessionStarted(station: StationInfo)
   case listeningSessionEnded(station: StationInfo, sessionLengthSec: Int)
   case switchedStation(
-    from: StationInfo, to: StationInfo, timeBeforeSwitchSec: Int, reason: SwitchReason)
+    from: StationInfo, to: StationInfo, timeBeforeSwitchSec: Int, reason: SwitchReason
+  )
   case playbackError(station: StationInfo, error: String)
 
   // MARK: Rewards
+
   case viewedRewardsScreen(currentHours: Double)
   case tappedRedeemRewards(currentHours: Double)
   case unlockedRewardTier(tierName: String, hoursRequired: Int)
   case navigatedToRewardsFromListeningTile
 
   // MARK: Profile
+
   case viewedProfile
   case updatedProfile(fields: [String])
   case uploadedProfilePhoto
 
   // MARK: Engagement
+
   case audioOutputChanged(outputTypes: [String])
   case carPlayInitialized
   case stationChanged(from: String?, to: String)
 
   // MARK: Errors
+
   case apiError(endpoint: String, error: String)
 }
 
@@ -224,7 +234,7 @@ extension AnalyticsEvent {
 // MARK: - Supporting Types
 
 enum AppOpenSource: String {
-  case direct = "direct"
+  case direct
   case pushNotification = "push_notification"
   case sharedLink = "shared_link"
   case deepLink = "deep_link"
@@ -264,13 +274,13 @@ struct StationInfo: Equatable {
   }
 
   init(from station: AnyStation) {
-    self.id = station.id
-    self.name = station.name
+    id = station.id
+    name = station.name
     switch station {
     case .playola:
-      self.type = "artist"
+      type = "artist"
     case .url:
-      self.type = "fm"
+      type = "fm"
     }
   }
 }

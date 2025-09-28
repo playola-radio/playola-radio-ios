@@ -111,9 +111,9 @@ enum AnyStation: Identifiable, Codable, Equatable {
 }
 
 enum StationListItemVisibility: String, Codable, Equatable, Sendable {
-  case visible = "visible"
+  case visible
   case comingSoon = "coming-soon"
-  case hidden = "hidden"
+  case hidden
   case unknown
 
   init(from decoder: Decoder) throws {

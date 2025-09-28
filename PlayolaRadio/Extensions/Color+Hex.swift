@@ -37,6 +37,7 @@ extension Color {
       opacity: Double(a) / 255
     )
   }
+
   // swiftlint:enable identifier_name
 
   static var playolaRed: Color {

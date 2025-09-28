@@ -223,7 +223,7 @@ class NowPlayingUpdater {
   }
 
   private func loadStationArtwork(
-    from state: StationPlayer.State,
+    from _: StationPlayer.State,
     station: AnyStation
   ) {
     // Skip if we're already displaying this station's artwork
@@ -248,7 +248,7 @@ class NowPlayingUpdater {
     nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(
       boundsSize: image.size,
       requestHandler: { _ in
-        return image
+        image
       }
     )
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo

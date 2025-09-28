@@ -141,7 +141,8 @@ final class StationListPageTests: XCTestCase {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     let stationListModel = makeStationListModel(
-      analyticsSink: capturedEvents, stationPlayer: stationPlayerMock)
+      analyticsSink: capturedEvents, stationPlayer: stationPlayerMock
+    )
 
     let item = makeVisibleItem()
 
@@ -316,7 +317,8 @@ final class StationListPageTests: XCTestCase {
       updatedAt: now,
       items: [
         APIStationItem(
-          sortOrder: 0, visibility: .visible, station: visibleStation, urlStation: nil),
+          sortOrder: 0, visibility: .visible, station: visibleStation, urlStation: nil
+        ),
         APIStationItem(sortOrder: 1, visibility: .hidden, station: hiddenStation, urlStation: nil),
       ]
     )
@@ -368,7 +370,8 @@ final class StationListPageTests: XCTestCase {
       updatedAt: now,
       items: [
         APIStationItem(
-          sortOrder: 0, visibility: .visible, station: visibleStation, urlStation: nil),
+          sortOrder: 0, visibility: .visible, station: visibleStation, urlStation: nil
+        ),
         APIStationItem(sortOrder: 1, visibility: .hidden, station: hiddenStation, urlStation: nil),
       ]
     )

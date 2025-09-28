@@ -17,8 +17,8 @@ class ContactPageModel: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
-  var editProfilePageModel: EditProfilePageModel = EditProfilePageModel()
-  var likedSongsPageModel: LikedSongsPageModel = LikedSongsPageModel()
+  var editProfilePageModel: EditProfilePageModel = .init()
+  var likedSongsPageModel: LikedSongsPageModel = .init()
 
   var name: String {
     return auth.currentUser?.fullName ?? "Anonymous"
@@ -42,13 +42,13 @@ class ContactPageModel: ViewModel {
   func onEditProfileTapped() {
     // TODO: Navigate to edit profile view
     print("Edit profile tapped")
-    mainContainerNavigationCoordinator.path.append(.editProfilePage(self.editProfilePageModel))
+    mainContainerNavigationCoordinator.path.append(.editProfilePage(editProfilePageModel))
     print(mainContainerNavigationCoordinator.path)
   }
 
   @MainActor
   func onLikedSongsTapped() {
-    mainContainerNavigationCoordinator.path.append(.likedSongsPage(self.likedSongsPageModel))
+    mainContainerNavigationCoordinator.path.append(.likedSongsPage(likedSongsPageModel))
   }
 
   func onLogOutTapped() {

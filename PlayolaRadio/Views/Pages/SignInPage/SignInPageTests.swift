@@ -75,6 +75,7 @@ final class SignInPageTests: XCTestCase {
   }
 
   // TODO: Create these tests:
+
   // MARK: - signInWithAppleCompleted() Tests
 
   // func testSignInWithAppleCompleted_CanHandleDecodingErrorOnAppleIDCredential() {
@@ -94,6 +95,7 @@ final class SignInPageTests: XCTestCase {
   // }
 
   // MARK: - SignInWithGoogle Tests
+
   // TODO: Implement Google sign in tests
 
   // MARK: - Presented Sheet Tests

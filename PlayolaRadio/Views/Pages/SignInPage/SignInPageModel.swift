@@ -88,7 +88,8 @@ class SignInPageModel: ViewModel {
             email,  // Now optional - can be nil
             authCode,
             firstName,
-            lastName)
+            lastName
+          )
           $auth.withLock { $0 = Auth(jwtToken: token) }
           registerInvitationCodeIfPresent()
           await analytics.track(.signInCompleted(method: .apple, userId: appleIDCredential.user))

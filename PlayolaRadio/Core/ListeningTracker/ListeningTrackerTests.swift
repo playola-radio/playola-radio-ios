@@ -16,7 +16,6 @@ import XCTest
 
 @MainActor
 final class ListeningTrackerTests: XCTestCase {
-
   private var cancellables = Set<AnyCancellable>()
 
   override func setUp() {
@@ -65,10 +64,12 @@ final class ListeningTrackerTests: XCTestCase {
     let rewardsProfile = createMockRewardsProfile()
     let existingSessions = [
       LocalListeningSession(
-        startTime: Date().addingTimeInterval(-100), endTime: Date().addingTimeInterval(-50))
+        startTime: Date().addingTimeInterval(-100), endTime: Date().addingTimeInterval(-50)
+      )
     ]
     let tracker = ListeningTracker(
-      rewardsProfile: rewardsProfile, localListeningSessions: existingSessions)
+      rewardsProfile: rewardsProfile, localListeningSessions: existingSessions
+    )
 
     XCTAssertEqual(tracker.localListeningSessions.count, 1)
     XCTAssertFalse(tracker.isListening)
@@ -87,10 +88,12 @@ final class ListeningTrackerTests: XCTestCase {
     let rewardsProfile = createMockRewardsProfile()
     let existingSessions = [
       LocalListeningSession(
-        startTime: Date().addingTimeInterval(-100), endTime: Date().addingTimeInterval(-50))
+        startTime: Date().addingTimeInterval(-100), endTime: Date().addingTimeInterval(-50)
+      )
     ]
     let tracker = ListeningTracker(
-      rewardsProfile: rewardsProfile, localListeningSessions: existingSessions)
+      rewardsProfile: rewardsProfile, localListeningSessions: existingSessions
+    )
 
     XCTAssertFalse(tracker.isListening)
   }
@@ -106,7 +109,8 @@ final class ListeningTrackerTests: XCTestCase {
       LocalListeningSession(startTime: Date().addingTimeInterval(-100), endTime: nil)
     ]
     let tracker = ListeningTracker(
-      rewardsProfile: rewardsProfile, localListeningSessions: existingSessions)
+      rewardsProfile: rewardsProfile, localListeningSessions: existingSessions
+    )
 
     XCTAssertTrue(tracker.isListening)
   }
@@ -128,7 +132,8 @@ final class ListeningTrackerTests: XCTestCase {
       LocalListeningSession(startTime: startTime, endTime: endTime)
     ]
     let tracker = ListeningTracker(
-      rewardsProfile: rewardsProfile, localListeningSessions: existingSessions)
+      rewardsProfile: rewardsProfile, localListeningSessions: existingSessions
+    )
 
     XCTAssertEqual(tracker.totalListenTimeMS, 10000)
   }
@@ -141,7 +146,8 @@ final class ListeningTrackerTests: XCTestCase {
       LocalListeningSession(startTime: startTime, endTime: endTime)
     ]
     let tracker = ListeningTracker(
-      rewardsProfile: rewardsProfile, localListeningSessions: existingSessions)
+      rewardsProfile: rewardsProfile, localListeningSessions: existingSessions
+    )
 
     XCTAssertEqual(tracker.totalListenTimeMS, 15000)
   }
@@ -154,10 +160,12 @@ final class ListeningTrackerTests: XCTestCase {
       LocalListeningSession(startTime: baseTime, endTime: baseTime.addingTimeInterval(5)),
       LocalListeningSession(
         // 3000ms
-        startTime: baseTime.addingTimeInterval(10), endTime: baseTime.addingTimeInterval(13)),
+        startTime: baseTime.addingTimeInterval(10), endTime: baseTime.addingTimeInterval(13)
+      ),
     ]
     let tracker = ListeningTracker(
-      rewardsProfile: rewardsProfile, localListeningSessions: existingSessions)
+      rewardsProfile: rewardsProfile, localListeningSessions: existingSessions
+    )
 
     XCTAssertEqual(tracker.totalListenTimeMS, 9000)  // 1000 + 5000 + 3000
   }

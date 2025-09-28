@@ -32,11 +32,11 @@ final class MainContainerNavigationCoordinator: Sendable {
   }
 
   func pop() {
-    _ = self.path.popLast()
+    _ = path.popLast()
   }
 
   func popToRoot() {
-    self.path.removeAll()
+    path.removeAll()
   }
 
   func replace(with path: Path) {

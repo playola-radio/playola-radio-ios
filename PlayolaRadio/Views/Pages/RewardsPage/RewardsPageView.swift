@@ -81,6 +81,7 @@ struct RewardsPageView: View {
 }
 
 // MARK: - Preview
+
 struct RewardsPageView_Previews: PreviewProvider {
   static var previews: some View {
     RewardsPageView(model: RewardsPageModel())

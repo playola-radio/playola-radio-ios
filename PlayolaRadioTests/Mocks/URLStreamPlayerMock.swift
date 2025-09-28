@@ -40,7 +40,8 @@ class URLStreamPlayerMock: URLStreamPlayer {
         trackName: title,
         rawValue: nil,
         groups: []
-      ))
+      )
+    )
     return stationPlayerMock
   }
 
@@ -49,7 +50,8 @@ class URLStreamPlayerMock: URLStreamPlayer {
     stationPlayerMock.state = State(
       playbackState: .stopped,
       playerStatus: .none,
-      nowPlaying: nil)
+      nowPlaying: nil
+    )
     return stationPlayerMock
   }
 }

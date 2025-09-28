@@ -17,6 +17,7 @@ class PlayerPageModel: ViewModel {
   var cancellables: Set<AnyCancellable> = []
 
   // MARK: State
+
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying: NowPlaying?
   @ObservationIgnored @Dependency(\.likesManager) var likesManager
   var nowPlayingText: String {
@@ -38,6 +39,7 @@ class PlayerPageModel: ViewModel {
       return ""
     }
   }
+
   var primaryNavBarTitle: String {
     guard let currentStation = nowPlaying?.currentStation else { return "" }
     switch nowPlaying?.playbackStatus {
@@ -113,6 +115,7 @@ class PlayerPageModel: ViewModel {
   var _chosenRelatedText: (RelatedText?, String) = (nil, "")
 
   // MARK: Callbacks
+
   var onDismiss: (() -> Void)?
 
   var albumArtUrl: URL? {

@@ -13,7 +13,6 @@ import XCTest
 
 @MainActor
 final class NowPlayingUpdaterTests: XCTestCase {
-
   // MARK: - Analytics Tests
 
   func testTrackListeningSession_StartsSessionWhenTransitioningToPlaying() async {
@@ -168,7 +167,8 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
     verifySessionEndedEvent(events[0], expectedStationId: station1.id, eventIndex: 0)
     verifySwitchedStationEvent(
-      events[1], fromStationId: station1.id, toStationId: station2.id, eventIndex: 1)
+      events[1], fromStationId: station1.id, toStationId: station2.id, eventIndex: 1
+    )
     verifySessionStartedEvent(events[2], expectedStationId: station2.id, eventIndex: 2)
   }
 

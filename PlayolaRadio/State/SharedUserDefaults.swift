@@ -20,7 +20,8 @@ where Self == FileStorageKey<IdentifiedArrayOf<StationList>>.Default {
     Self[
       .fileStorage(
         dump(.documentsDirectory.appending(component: "station-lists.json"))),
-      default: []]
+      default: []
+    ]
   }
 }
 
@@ -34,7 +35,8 @@ extension SharedKey where Self == FileStorageKey<Auth>.Default {
   static var auth: Self {
     Self[
       .fileStorage(dump(.documentsDirectory.appending(component: "auth.json"))),
-      default: Auth()]
+      default: Auth()
+    ]
   }
 }
 

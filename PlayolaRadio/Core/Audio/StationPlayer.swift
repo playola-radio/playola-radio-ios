@@ -74,7 +74,8 @@ class StationPlayer: ObservableObject {
     }).store(in: &disposeBag)
 
     self.playolaStationPlayer.configure(
-      authProvider: self.authProvider, baseURL: Config.shared.baseUrl)
+      authProvider: authProvider, baseURL: Config.shared.baseUrl
+    )
   }
 
   // MARK: Public Interface
@@ -134,7 +135,6 @@ class StationPlayer: ObservableObject {
           playolaSpinPlaying: nowPlaying
         )
       }
-
     case .none:
       state = .init(
         playbackStatus: .error,
@@ -186,6 +186,7 @@ class StationPlayer: ObservableObject {
 }
 
 // MARK: - AudioBlockProvider Protocol
+
 protocol AudioBlockProvider {
   var audioBlock: AudioBlock? { get }
 }

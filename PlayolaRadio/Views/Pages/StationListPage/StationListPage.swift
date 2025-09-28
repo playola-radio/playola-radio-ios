@@ -10,9 +10,11 @@ import SwiftUI
 
 struct StationListPage: View {
   // MARK: - Model
+
   @Bindable var model: StationListModel
 
   // MARK: - View
+
   var body: some View {
     VStack(spacing: 0) {
       // ---------------------------------------------------------
@@ -77,6 +79,7 @@ struct StationListPage: View {
   }
 
   // MARK: - Helpers
+
   @ViewBuilder
   private func stationSection(list: StationList) -> some View {
     let includeHiddenItems = model.showSecretStations
@@ -96,15 +99,19 @@ struct StationListPage: View {
               model: rowModel,
               action: {
                 Task { await model.stationSelected(item) }
-              })
+              }
+            )
           }
         }
       }
     }
   }
 }
+
 // ------------------------------------------------------------------
+
 // MARK: - Preview
+
 // ------------------------------------------------------------------
 #Preview {
   NavigationStack {

@@ -62,6 +62,7 @@ extension Prize {
   public static var mocks: [Prize] {
     return PrizeTier.mocks.flatMap { $0.prizes }
   }
+
   public static var mock: Prize {
     return .mocks.first!
   }

@@ -133,7 +133,8 @@ extension AnalyticsClient: DependencyKey {
       await MainActor.run {
         // Store current timestamp for calculating pause duration
         UserDefaults.standard.set(
-          Date().timeIntervalSince1970, forKey: "analytics_session_paused_at")
+          Date().timeIntervalSince1970, forKey: "analytics_session_paused_at"
+        )
       }
     },
     resumeListeningSession: {

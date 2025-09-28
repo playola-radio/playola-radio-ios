@@ -36,9 +36,10 @@ class RewardsPageModel: ViewModel {
 
   var prizeTierInfos: [PrizeTierInfo] {
     return prizeTiers.map {
-      return PrizeTierInfo(
+      PrizeTierInfo(
         prizeTier: $0,
-        status: redemptionStatus(for: $0))
+        status: redemptionStatus(for: $0)
+      )
     }
   }
 

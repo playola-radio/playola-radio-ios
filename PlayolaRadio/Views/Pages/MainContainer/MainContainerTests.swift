@@ -110,7 +110,8 @@ final class MainContainerTests: XCTestCase {
     if case .apiError(let endpoint, let error) = events.first {
       XCTAssertEqual(endpoint, "getStations")
       XCTAssertTrue(
-        error.contains("TestError"), "Expected error to contain 'TestError', got: \(error)")
+        error.contains("TestError"), "Expected error to contain 'TestError', got: \(error)"
+      )
     } else {
       XCTFail("Expected apiError event, got: \(String(describing: events.first))")
     }
@@ -360,7 +361,8 @@ final class MainContainerTests: XCTestCase {
 
     // First login session
     let firstJWT = MainContainerTests.createTestJWT(
-      id: "user1", firstName: "First", lastName: "User")
+      id: "user1", firstName: "First", lastName: "User"
+    )
     $auth.withLock { $0 = Auth(jwtToken: firstJWT) }
     _ = MainContainerModel()
     XCTAssertEqual(auth.jwt, firstJWT)
@@ -368,10 +370,12 @@ final class MainContainerTests: XCTestCase {
     // User logs out, logs back in with new token
     $auth.withLock { $0 = Auth() }
     let secondJWT = MainContainerTests.createTestJWT(
-      id: "user2", firstName: "Second", lastName: "User")
+      id: "user2", firstName: "Second", lastName: "User"
+    )
     $auth.withLock { $0 = Auth(jwtToken: secondJWT) }
     _ = MainContainerModel()
     XCTAssertEqual(auth.jwt, secondJWT)
   }
 }
+
 // swiftlint:enable force_try

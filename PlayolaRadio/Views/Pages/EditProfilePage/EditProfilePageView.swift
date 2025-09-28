@@ -1,5 +1,5 @@
 //
-//  EditProfilePage.swift
+//  EditProfilePageView.swift
 //  PlayolaRadio
 //
 //  Created by Brian D Keane on 7/31/25.
@@ -89,7 +89,6 @@ struct EditProfilePageView: View {
         .padding(.top, 16)
 
         Spacer()
-
       }
       .padding(.horizontal, 20)
       .padding(.top, 24)
@@ -108,7 +107,8 @@ struct EditProfilePageView: View {
             Image(systemName: "chevron.left")
               .foregroundColor(.white)
               .font(.title2)
-          })
+          }
+        )
       }
     }
     .onAppear {
@@ -132,6 +132,7 @@ struct EditProfilePageView: View {
 }
 
 // MARK: - Preview
+
 struct EditContactPageView_Previews: PreviewProvider {
   static var previews: some View {
     NavigationStack {

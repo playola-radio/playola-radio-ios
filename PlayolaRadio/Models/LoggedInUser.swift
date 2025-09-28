@@ -51,9 +51,9 @@ struct LoggedInUser: Codable {
     else {
       self.id = ""
       self.firstName = "Unknown"
-      self.lastName = "User"
+      lastName = "User"
       self.email = ""
-      self.profileImageUrl = nil
+      profileImageUrl = nil
       self.role = "user"
       self.jwt = jwt
       return
@@ -61,9 +61,9 @@ struct LoggedInUser: Codable {
 
     self.id = id
     self.firstName = firstName
-    self.lastName = userDict["lastName"] as? String
+    lastName = userDict["lastName"] as? String
     self.email = email
-    self.profileImageUrl = userDict["profileImageUrl"] as? String
+    profileImageUrl = userDict["profileImageUrl"] as? String
     self.role = role
     self.jwt = jwt
   }
@@ -79,9 +79,10 @@ struct LoggedInUser: Codable {
     self.email = email
     self.profileImageUrl = profileImageUrl
     self.role = role
-    self.jwt = LoggedInUser.generateJWT(
+    jwt = LoggedInUser.generateJWT(
       id: id, firstName: firstName, lastName: lastName, email: email,
-      profileImageUrl: profileImageUrl, role: role)
+      profileImageUrl: profileImageUrl, role: role
+    )
   }
 
   var fullName: String {
@@ -178,5 +179,4 @@ class AuthService {
   func signOut() {
     $auth.withLock { $0 = Auth() }
   }
-
 }

@@ -12,7 +12,6 @@ import XCTest
 
 @MainActor
 final class ToastClientTests: XCTestCase {
-
   // MARK: - Basic Show/Dismiss
 
   func testShow_SetsCurrentToast() async {

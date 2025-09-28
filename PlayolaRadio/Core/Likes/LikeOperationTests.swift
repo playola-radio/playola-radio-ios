@@ -11,7 +11,6 @@ import XCTest
 @testable import PlayolaRadio
 
 final class LikeOperationTests: XCTestCase {
-
   // MARK: - Test Data
 
   private let testAudioBlock = AudioBlock.mock
@@ -165,7 +164,8 @@ final class LikeOperationTests: XCTestCase {
     XCTAssertEqual(decodedOperation.retryCount, operation.retryCount)
     XCTAssertEqual(
       decodedOperation.timestamp.timeIntervalSince1970, operation.timestamp.timeIntervalSince1970,
-      accuracy: 0.001)
+      accuracy: 0.001
+    )
   }
 
   func testOperationType_RawValues() {

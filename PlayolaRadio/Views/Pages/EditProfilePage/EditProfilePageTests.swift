@@ -266,7 +266,7 @@ final class EditProfilePageTests: XCTestCase {
 
     let model = withDependencies {
       $0.api.updateUser = { _, _, _ in
-        return expectedAuth
+        expectedAuth
       }
       $0.continuousClock = ImmediateClock()
     } operation: {

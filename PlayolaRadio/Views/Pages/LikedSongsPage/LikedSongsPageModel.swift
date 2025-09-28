@@ -26,7 +26,7 @@ class LikedSongsPageModel: ViewModel {
         let secondDate = parseSectionTitle(second.key)
         return firstDate > secondDate
       }
-      .map { (key, value) in
+      .map { key, value in
         let sortedSongs = value.sorted { first, second in
           let (_, firstDate) = first
           let (_, secondDate) = second

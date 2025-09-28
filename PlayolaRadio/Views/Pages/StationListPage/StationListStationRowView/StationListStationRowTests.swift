@@ -14,7 +14,7 @@ import XCTest
 
 final class StationListStationRowTests: XCTestCase {
   func testModelInitializationFromStation() {
-    @Shared(.showSecretStations) var showSecretStations: Bool = true
+    @Shared(.showSecretStations) var showSecretStations = true
     let stationList = StationList.mocks.first { !$0.visibleStationItems.isEmpty }!
     let item = stationList.visibleStationItems.first!
     let station = item.anyStation
@@ -28,7 +28,7 @@ final class StationListStationRowTests: XCTestCase {
   }
 
   func testComingSoonItemShowsComingSoonWhenSecretsHidden() {
-    @Shared(.showSecretStations) var showSecretStations: Bool = false
+    @Shared(.showSecretStations) var showSecretStations = false
     let now = Date(timeIntervalSince1970: 1_758_915_200)
     let comingSoonStation = PlayolaPlayer.Station(
       id: "coming-soon",
@@ -54,11 +54,12 @@ final class StationListStationRowTests: XCTestCase {
     XCTAssertEqual(model.subtitleText, "Coming Soon")
     XCTAssertEqual(model.subtitleColor, Color.playolaRed)
     XCTAssertEqual(
-      model.imageUrl, comingSoonStation.imageUrl)
+      model.imageUrl, comingSoonStation.imageUrl
+    )
   }
 
   func testComingSoonItemShowsComingSoonWhenSecretsShowingAndInactive() {
-    @Shared(.showSecretStations) var showSecretStations: Bool = true
+    @Shared(.showSecretStations) var showSecretStations = true
     let now = Date(timeIntervalSince1970: 1_758_915_200)
     let comingSoonStation = PlayolaPlayer.Station(
       id: "coming-soon",
@@ -84,11 +85,12 @@ final class StationListStationRowTests: XCTestCase {
     XCTAssertEqual(model.subtitleText, "Coming Soon")
     XCTAssertEqual(model.subtitleColor, Color.playolaRed)
     XCTAssertEqual(
-      model.imageUrl, comingSoonStation.imageUrl)
+      model.imageUrl, comingSoonStation.imageUrl
+    )
   }
 
   func testComingSoonItemShowsNormallyWhenSecretsShowingAndActive() {
-    @Shared(.showSecretStations) var showSecretStations: Bool = true
+    @Shared(.showSecretStations) var showSecretStations = true
     let now = Date(timeIntervalSince1970: 1_758_915_200)
     let comingSoonStation = PlayolaPlayer.Station(
       id: "coming-soon",
@@ -114,6 +116,7 @@ final class StationListStationRowTests: XCTestCase {
     XCTAssertEqual(model.subtitleText, comingSoonStation.name)
     XCTAssertEqual(model.subtitleColor, Color.white)
     XCTAssertEqual(
-      model.imageUrl, comingSoonStation.imageUrl)
+      model.imageUrl, comingSoonStation.imageUrl
+    )
   }
 }

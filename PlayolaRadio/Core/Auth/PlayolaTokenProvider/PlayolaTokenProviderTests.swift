@@ -15,7 +15,6 @@ import XCTest
 
 @MainActor
 final class PlayolaTokenProviderTests: XCTestCase {
-
   // Helper function to create valid JWT tokens for testing
   func createTestJWT(
     id: String = "test-user-123",

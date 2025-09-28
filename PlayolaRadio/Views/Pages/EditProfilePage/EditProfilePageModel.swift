@@ -1,5 +1,5 @@
 //
-//  EditProfileModel.swift
+//  EditProfilePageModel.swift
 //  PlayolaRadio
 //
 //  Created by Brian D Keane on 7/31/25.
@@ -49,24 +49,25 @@ class EditProfilePageModel: ViewModel {
     guard let jwt = auth.jwt else { return }
     do {
       let result = try await api.updateUser(
-        jwtToken: jwt, firstName: firstName, lastName: lastName ?? nil)
+        jwtToken: jwt, firstName: firstName, lastName: lastName ?? nil
+      )
       $auth.withLock { $0 = result }
-      self.presentedAlert = .updateProfileSuccessfullAlert
+      presentedAlert = .updateProfileSuccessfullAlert
 
       // Dismiss the view after showing the alert
       try? await clock.sleep(for: .seconds(1.5))
-      self.mainContainerNavigationCoordinator.pop()
+      mainContainerNavigationCoordinator.pop()
 
-    } catch let error {
+    } catch {
       print(error)
-      self.presentedAlert = .updateProfileErrorAlert
+      presentedAlert = .updateProfileErrorAlert
     }
   }
 
   func viewAppeared() {
-    self.firstName = auth.currentUser?.firstName ?? ""
-    self.lastName = auth.currentUser?.lastName ?? ""
-    self.email = auth.currentUser?.email ?? ""
+    firstName = auth.currentUser?.firstName ?? ""
+    lastName = auth.currentUser?.lastName ?? ""
+    email = auth.currentUser?.email ?? ""
   }
 }
 
@@ -75,13 +76,15 @@ extension PlayolaAlert {
     PlayolaAlert(
       title: "Update Successful",
       message: "Your profile has been successfully updated.",
-      dismissButton: .cancel(Text("OK")))
+      dismissButton: .cancel(Text("OK"))
+    )
   }
 
   static var updateProfileErrorAlert: PlayolaAlert {
     PlayolaAlert(
       title: "Error",
       message: "There was a problem updating your profile. Please try again later.",
-      dismissButton: .cancel(Text("OK")))
+      dismissButton: .cancel(Text("OK"))
+    )
   }
 }

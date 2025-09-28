@@ -59,8 +59,8 @@ class MainContainerModel: ViewModel {
 
     do {
       let retrievedStationsLists = try await api.getStations()
-      self.$stationLists.withLock { $0 = retrievedStationsLists }
-      self.$stationListsLoaded.withLock { $0 = true }
+      $stationLists.withLock { $0 = retrievedStationsLists }
+      $stationListsLoaded.withLock { $0 = true }
     } catch {
       presentedAlert = .errorLoadingStations
       await analytics.track(
@@ -88,25 +88,26 @@ class MainContainerModel: ViewModel {
     }
     do {
       let rewards = try await api.getRewardsProfile(authJWT)
-      self.$listeningTracker.withLock { $0 = ListeningTracker(rewardsProfile: rewards) }
+      $listeningTracker.withLock { $0 = ListeningTracker(rewardsProfile: rewards) }
     } catch let err {
       print(err)
     }
   }
+
   func dismissButtonInSheetTapped() {
-    self.mainContainerNavigationCoordinator.presentedSheet = nil
+    mainContainerNavigationCoordinator.presentedSheet = nil
   }
 
   func processNewStationState(_ newState: StationPlayer.State) {
     switch newState.playbackStatus {
     case .startingNewStation:
-      self.mainContainerNavigationCoordinator.presentedSheet = .player(
+      mainContainerNavigationCoordinator.presentedSheet = .player(
         PlayerPageModel(onDismiss: {
           self.mainContainerNavigationCoordinator.presentedSheet = nil
         }))
     default: break
     }
-    self.setShouldShowSmallPlayer(newState)
+    setShouldShowSmallPlayer(newState)
   }
 
   func setShouldShowSmallPlayer(_ stationPlayerState: StationPlayer.State) {
@@ -121,7 +122,7 @@ class MainContainerModel: ViewModel {
   }
 
   func onSmallPlayerTapped() {
-    self.mainContainerNavigationCoordinator.presentedSheet = .player(
+    mainContainerNavigationCoordinator.presentedSheet = .player(
       PlayerPageModel(onDismiss: { self.mainContainerNavigationCoordinator.presentedSheet = nil }))
   }
 

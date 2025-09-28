@@ -16,7 +16,8 @@ struct LikedSongsPage: View {
             Image(systemName: "chevron.left")
               .foregroundColor(.white)
               .font(.system(size: 20))
-          })
+          }
+        )
 
         Spacer()
 

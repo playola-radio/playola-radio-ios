@@ -27,9 +27,9 @@ class Config {
   }
 
   private init() {
-    self.environment = .init(rawValue: Config.get("DEV_ENVIRONMENT", varType: String.self))!
-    self.mixpanelToken = Config.get("MIXPANEL_TOKEN", varType: String.self)
-    self.heapAppID = Config.get("HEAP_APP_ID", varType: String.self)
+    environment = .init(rawValue: Config.get("DEV_ENVIRONMENT", varType: String.self))!
+    mixpanelToken = Config.get("MIXPANEL_TOKEN", varType: String.self)
+    heapAppID = Config.get("HEAP_APP_ID", varType: String.self)
   }
 
   static func get<T>(_ environmentVarName: String, varType _: T.Type) -> T {

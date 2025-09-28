@@ -13,6 +13,7 @@ public class UrlStreamListeningSessionReporter {
   var deviceId: String? {
     return UIDevice.current.identifierForVendor?.uuidString
   }
+
   var timer: Timer?
   let basicToken = "aW9zQXBwOnNwb3RpZnlTdWNrc0FCaWcx"  // TODO: De-hard-code this
   var disposeBag = Set<AnyCancellable>()
@@ -108,7 +109,7 @@ public class UrlStreamListeningSessionReporter {
   }
 
   private func startPeriodicNotifications() {
-    self.timer = Timer.scheduledTimer(
+    timer = Timer.scheduledTimer(
       withTimeInterval: 10.0, repeats: true,
       block: { [weak self] _ in
         guard let self else { return }
@@ -117,11 +118,12 @@ public class UrlStreamListeningSessionReporter {
           return
         }
         self.reportOrExtendListeningSession(stationUrl)
-      })
+      }
+    )
   }
 
   private func stopPeriodicNotifications() {
-    self.timer?.invalidate()
+    timer?.invalidate()
   }
 
   private func createPostRequest(url: URL, jsonData: Data) -> URLRequest {

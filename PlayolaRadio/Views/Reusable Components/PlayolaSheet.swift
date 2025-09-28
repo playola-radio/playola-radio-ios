@@ -6,10 +6,10 @@
 //
 
 enum PlayolaSheet: Hashable, Identifiable, Equatable {
-  var id: Self {
-    self
-  }
+    var id: Self {
+        self
+    }
 
-  case player(PlayerPageModel)
-  case invitationCode(InvitationCodePageModel)
+    case player(PlayerPageModel)
+    case invitationCode(InvitationCodePageModel)
 }

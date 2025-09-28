@@ -13,7 +13,6 @@ import XCTest
 
 @MainActor
 final class MainContainerNavigationCoordinatorTests: XCTestCase {
-
   // MARK: - Setup
 
   override func setUp() async throws {

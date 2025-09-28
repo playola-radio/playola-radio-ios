@@ -7,7 +7,6 @@ import XCTest
 
 @MainActor
 final class LikedSongsPageTests: XCTestCase {
-
   override func setUp() async throws {
     try await super.setUp()
     @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]

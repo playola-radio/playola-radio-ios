@@ -53,7 +53,6 @@ struct ContactPageView: View {
                   Text(verbatim: model.email)
                     .font(.custom(FontNames.Inter_400_Regular, size: 14))
                     .foregroundColor(Color(hex: "#BABABA"))
-
                 }
               }
               .padding(.top, 20)
@@ -151,6 +150,7 @@ struct ContactPageView: View {
 }
 
 // MARK: - Preview
+
 struct ContactPageView_Previews: PreviewProvider {
   static var previews: some View {
     ContactPageView(model: ContactPageModel())

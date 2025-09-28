@@ -325,7 +325,8 @@ final class InvitationCodePageTests: XCTestCase {
 
     XCTAssertEqual(model.titleText, "Invite only, for now!")
     XCTAssertEqual(
-      model.subtitleText, "Discover music through independent artist-made radio stations")
+      model.subtitleText, "Discover music through independent artist-made radio stations"
+    )
     XCTAssertEqual(model.actionButtonText, " Join waitlist")
     XCTAssertEqual(model.actionButtonImageName, "Envelope")
     XCTAssertFalse(model.shouldHideInput)
@@ -338,7 +339,8 @@ final class InvitationCodePageTests: XCTestCase {
 
     XCTAssertEqual(model.titleText, "Invite only, for now!")
     XCTAssertEqual(
-      model.subtitleText, "Discover music through independent artist-made radio stations")
+      model.subtitleText, "Discover music through independent artist-made radio stations"
+    )
     XCTAssertEqual(model.actionButtonText, "Sign in")
     XCTAssertEqual(model.actionButtonImageName, "KeyHorizontal")
     XCTAssertFalse(model.shouldHideInput)

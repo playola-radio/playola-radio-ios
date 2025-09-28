@@ -106,12 +106,14 @@ struct PrizeTierRow: View {
 }
 
 // MARK: - Preview
+
 struct PrizeTierRow_Previews: PreviewProvider {
   static var previews: some View {
     PrizeTierRow(
       tier: 1,
       prizeTier: .mock,
       status: .redeemable,
-      onRedeem: {})
+      onRedeem: {}
+    )
   }
 }

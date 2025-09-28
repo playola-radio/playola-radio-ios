@@ -46,6 +46,7 @@ extension MailServiceMock {
   static var ableToSendEmail: MailServiceMock {
     MailServiceMock(shouldBeAbleToSendEmail: true)
   }
+
   static var unableToSendEmail: MailServiceMock {
     MailServiceMock(shouldBeAbleToSendEmail: false)
   }

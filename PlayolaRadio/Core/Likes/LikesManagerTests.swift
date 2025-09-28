@@ -14,7 +14,6 @@ import XCTest
 
 @MainActor
 final class LikesManagerTests: XCTestCase {
-
   // MARK: - Setup
 
   override func setUp() async throws {

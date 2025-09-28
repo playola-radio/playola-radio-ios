@@ -45,15 +45,15 @@ struct UserSongLike: Codable, Equatable, Identifiable {
   // Custom decoding to ensure isLocal is false when from server
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
-    self.id = try container.decode(String.self, forKey: .id)
-    self.userId = try container.decode(String.self, forKey: .userId)
-    self.audioBlockId = try container.decode(String.self, forKey: .audioBlockId)
-    self.spinId = try container.decodeIfPresent(String.self, forKey: .spinId)
-    self.audioBlock = try container.decode(AudioBlock.self, forKey: .audioBlock)
-    self.spin = try container.decodeIfPresent(Spin.self, forKey: .spin)
-    self.createdAt = try container.decode(Date.self, forKey: .createdAt)
-    self.updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
-    self.isLocal = false  // Always false when decoded from server
+    id = try container.decode(String.self, forKey: .id)
+    userId = try container.decode(String.self, forKey: .userId)
+    audioBlockId = try container.decode(String.self, forKey: .audioBlockId)
+    spinId = try container.decodeIfPresent(String.self, forKey: .spinId)
+    audioBlock = try container.decode(AudioBlock.self, forKey: .audioBlock)
+    spin = try container.decodeIfPresent(Spin.self, forKey: .spin)
+    createdAt = try container.decode(Date.self, forKey: .createdAt)
+    updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
+    isLocal = false  // Always false when decoded from server
   }
 
   enum CodingKeys: String, CodingKey {

@@ -15,7 +15,6 @@ struct InvitationCodePageView: View {
 
   var body: some View {
     VStack(spacing: 0) {
-
       // Logo and branding
       VStack(spacing: 32) {
         // Playola logo with text
@@ -146,7 +145,6 @@ struct InvitationCodePageView: View {
       Spacer()
     }
     .background(Color(hex: "#130000"))
-
     // 1) Tap anywhere outside the field to dismiss keyboard
     .contentShape(Rectangle())
     .onTapGesture {
