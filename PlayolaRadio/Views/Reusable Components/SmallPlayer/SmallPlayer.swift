@@ -20,16 +20,17 @@ struct SmallPlayer: View {
         nowPlaying?.currentStation?.name ?? ""
     }
 
-  var secondaryTitle: String {
-    if nowPlaying?.playbackStatus.isLoading == true {
-      return "Loading..."
-    }
-    if let artistPlaying = nowPlaying?.artistPlaying,
-      let titlePlaying = nowPlaying?.titlePlaying
-    {
-      return "\(artistPlaying) - \(titlePlaying)"
-    } else {
-      return nowPlaying?.currentStation?.description ?? ""
+    var secondaryTitle: String {
+        if nowPlaying?.playbackStatus.isLoading == true {
+            return "Loading..."
+        }
+        if let artistPlaying = nowPlaying?.artistPlaying,
+           let titlePlaying = nowPlaying?.titlePlaying
+        {
+            return "\(artistPlaying) - \(titlePlaying)"
+        } else {
+            return nowPlaying?.currentStation?.description ?? ""
+        }
     }
 
     var artworkURL: URL {
