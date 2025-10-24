@@ -135,6 +135,115 @@ final class MainContainerTests: XCTestCase {
     XCTAssertTrue(hasBeenUnlocked)  // Should still be set even when exiting early
   }
 
+  func testViewAppeared_CorrectlyRetrievesScheduledShowsWhenApiIsSuccessful() async {
+    @Shared(.scheduledShowsLoaded) var scheduledShowsLoaded = false
+    @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+    @Shared(.stationListsLoaded) var stationListsLoaded = true
+    let testJWT = MainContainerTests.createTestJWT()
+    @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+    var getScheduledShowsCallCount = 0
+
+    let mockScheduledShow = ScheduledShow.mock
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.api.getScheduledShows = { _, _, _ in
+        getScheduledShowsCallCount += 1
+        return [mockScheduledShow]
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.viewAppeared()
+    XCTAssertEqual(getScheduledShowsCallCount, 1)
+    XCTAssertEqual(scheduledShows.count, 1)
+    XCTAssertEqual(scheduledShows.first?.id, mockScheduledShow.id)
+    XCTAssertTrue(scheduledShowsLoaded)
+  }
+
+  func testViewAppeared_DoesNotLoadScheduledShowsWhenNotAuthenticated() async {
+    @Shared(.scheduledShowsLoaded) var scheduledShowsLoaded = false
+    @Shared(.stationListsLoaded) var stationListsLoaded = true
+    @Shared(.auth) var auth = Auth()
+    var getScheduledShowsCallCount = 0
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.api.getScheduledShows = { _, _, _ in
+        getScheduledShowsCallCount += 1
+        return []
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.viewAppeared()
+    XCTAssertEqual(getScheduledShowsCallCount, 0)
+    XCTAssertFalse(scheduledShowsLoaded)
+  }
+
+  func testViewAppeared_DoesNotShowAlertOnScheduledShowsApiError() async {
+    @Shared(.scheduledShowsLoaded) var scheduledShowsLoaded = false
+    @Shared(.stationListsLoaded) var stationListsLoaded = true
+    let testJWT = MainContainerTests.createTestJWT()
+    @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+
+    struct TestError: Error {
+      var localizedDescription: String { "Test error message" }
+    }
+
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.api.getScheduledShows = { _, _, _ in
+        throw TestError()
+      }
+      $0.analytics.track = { @Sendable event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.viewAppeared()
+    XCTAssertNil(mainContainerModel.presentedAlert)
+    XCTAssertFalse(scheduledShowsLoaded)
+
+    // Verify analytics event was tracked
+    let events = capturedEvents.value
+    XCTAssertEqual(events.count, 1)
+    if case .apiError(let endpoint, let error) = events.first {
+      XCTAssertEqual(endpoint, "getScheduledShows")
+      XCTAssertTrue(
+        error.contains("TestError"), "Expected error to contain 'TestError', got: \(error)")
+    } else {
+      XCTFail("Expected apiError event, got: \(String(describing: events.first))")
+    }
+  }
+
+  func testViewAppeared_SkipsScheduledShowsWhenAlreadyLoaded() async {
+    @Shared(.scheduledShowsLoaded) var scheduledShowsLoaded = true
+    @Shared(.stationListsLoaded) var stationListsLoaded = true
+    let testJWT = MainContainerTests.createTestJWT()
+    @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+    var getScheduledShowsCallCount = 0
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.api.getScheduledShows = { _, _, _ in
+        getScheduledShowsCallCount += 1
+        return []
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.viewAppeared()
+    XCTAssertEqual(getScheduledShowsCallCount, 0)
+  }
+
   // MARK: - Small Player Properties Tests
 
   func testSmallPlayerProperties_ShouldShowSmallPlayerWhenPlaying() async {
