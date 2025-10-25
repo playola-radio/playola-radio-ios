@@ -77,11 +77,16 @@ class MainContainerModel: ViewModel {
     if !scheduledShowsLoaded, let jwt = auth.jwt {
       do {
         let retrievedScheduledShows = try await api.getScheduledShows(jwt, nil, nil)
+        print("📺 Retrieved \(retrievedScheduledShows.count) scheduled shows")
         self.$scheduledShows.withLock {
           $0 = IdentifiedArray(uniqueElements: retrievedScheduledShows)
         }
         self.$scheduledShowsLoaded.withLock { $0 = true }
       } catch {
+        print("❌ Error loading scheduled shows: \(error)")
+        if let decodingError = error as? DecodingError {
+          print("🔍 Decoding error details: \(decodingError)")
+        }
         // Don't show alert for scheduled shows failure, just log it
         await analytics.track(
           .apiError(
