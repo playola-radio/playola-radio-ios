@@ -32,6 +32,11 @@ struct ScheduledShow: Codable, Equatable, Identifiable {
     @Dependency(\.date.now) var now
     return endTime <= now
   }
+
+  var isLive: Bool {
+    @Dependency(\.date.now) var now
+    return airtime <= now && !hasEnded
+  }
 }
 
 extension ScheduledShow {

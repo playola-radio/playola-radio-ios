@@ -186,6 +186,7 @@
 		D37257CC2DFA3F83001BC6F9 /* FontNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257CB2DFA3F7F001BC6F9 /* FontNames.swift */; };
 		D37257D02DFB4368001BC6F9 /* PlayerPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */; };
 		D37786E82EAD3DA20084B8B8 /* ScheduledShowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37786E52EAD3D960084B8B8 /* ScheduledShowTests.swift */; };
+		D37786EA2EAD4AE80084B8B8 /* LiveShowsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E8D6872E96D9340028CEBD /* LiveShowsTests.swift */; };
 		D378CCCE2E56011A00497A4A /* SignInPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCD2E56011500497A4A /* SignInPageModel.swift */; };
 		D378CCD02E57947800497A4A /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCF2E57947800497A4A /* ShareSheet.swift */; };
 		D38031352E00AFD20011DD64 /* PlayerPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38031332E00AD9F0011DD64 /* PlayerPageTests.swift */; };
@@ -237,8 +238,6 @@
 		D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */; };
 		D3E8D6842E96D39C0028CEBD /* Show.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E8D6832E96D39A0028CEBD /* Show.swift */; };
 		D3E8D6852E96D39C0028CEBD /* Show.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E8D6832E96D39A0028CEBD /* Show.swift */; };
-		D3E8D6882E96D9380028CEBD /* LiveShowsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E8D6872E96D9340028CEBD /* LiveShowsTests.swift */; };
-		D3E8D6892E96D9380028CEBD /* LiveShowsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E8D6872E96D9340028CEBD /* LiveShowsTests.swift */; };
 		D3E8D68B2E96D9560028CEBD /* LiveShowsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E8D68A2E96D9520028CEBD /* LiveShowsView.swift */; };
 		D3E8D68C2E96D9560028CEBD /* LiveShowsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E8D68A2E96D9520028CEBD /* LiveShowsView.swift */; };
 		D3E8D68E2E96D9630028CEBD /* LiveShowsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E8D68D2E96D95B0028CEBD /* LiveShowsModel.swift */; };
@@ -1166,7 +1165,6 @@
 				D30F00772E8592F0007BCC73 /* UIImage+Cache.swift in Sources */,
 				D30F00782E8592F0007BCC73 /* ContactPageView.swift in Sources */,
 				D30F00792E8592F0007BCC73 /* PlayolaTokenProvider.swift in Sources */,
-				D3E8D6892E96D9380028CEBD /* LiveShowsTests.swift in Sources */,
 				D30F007A2E8592F0007BCC73 /* circleBackground.swift in Sources */,
 				D30F007B2E8592F0007BCC73 /* ShareSheet.swift in Sources */,
 				D30F007C2E8592F0007BCC73 /* RewardsPageModel.swift in Sources */,
@@ -1256,7 +1254,6 @@
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
 				D39591152E39932000720CF8 /* ContactPageView.swift in Sources */,
 				D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */,
-				D3E8D6882E96D9380028CEBD /* LiveShowsTests.swift in Sources */,
 				D37257C42DF8F885001BC6F9 /* circleBackground.swift in Sources */,
 				D378CCD02E57947800497A4A /* ShareSheet.swift in Sources */,
 				D3B744C02E3131730042A427 /* RewardsPageModel.swift in Sources */,
@@ -1302,6 +1299,7 @@
 				D37786E82EAD3DA20084B8B8 /* ScheduledShowTests.swift in Sources */,
 				D3B744CB2E313B230042A427 /* ListeningTimeTileTests.swift in Sources */,
 				D3B744C52E31318A0042A427 /* RewardsPageTests.swift in Sources */,
+				D37786EA2EAD4AE80084B8B8 /* LiveShowsTests.swift in Sources */,
 				D3A08A352E4E6F66002468E0 /* NowPlayingUpdaterTests.swift in Sources */,
 				D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */,
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,

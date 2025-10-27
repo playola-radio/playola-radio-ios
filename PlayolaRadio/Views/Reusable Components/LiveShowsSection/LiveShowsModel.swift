@@ -36,14 +36,14 @@ struct ScheduledShowDisplay: Identifiable, Equatable {
   }
 
   /// Creates a display model from a ScheduledShow
-  static func from(_ scheduledShow: ScheduledShow, endTime: Date? = nil, isLive: Bool = false) -> ScheduledShowDisplay {
+  static func from(_ scheduledShow: ScheduledShow) -> ScheduledShowDisplay {
     ScheduledShowDisplay(
       id: scheduledShow.id,
       showId: scheduledShow.showId,
       showTitle: scheduledShow.show?.title ?? "Unknown Show",
       airtime: scheduledShow.airtime,
-      endTime: endTime,
-      isLive: isLive
+      endTime: scheduledShow.endTime,
+      isLive: scheduledShow.isLive
     )
   }
 }
@@ -67,9 +67,7 @@ class LiveShowsModel {
       let now = Date()
 
       scheduledShows = rawScheduledShows.map { scheduledShow in
-        let isLive = scheduledShow.airtime <= now
-        // TODO: Calculate endTime from show segments duration
-        return ScheduledShowDisplay.from(scheduledShow, endTime: nil, isLive: isLive)
+        ScheduledShowDisplay.from(scheduledShow)
       }
     } catch {
       // TODO: Handle error
