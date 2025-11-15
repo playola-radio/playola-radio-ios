@@ -25,13 +25,33 @@ platform :ios do
     ensure_git_status_clean
     ensure_git_branch(branch: 'develop')
 
+    match(
+      type: "appstore",
+      app_identifier: "fm.playola.playolaradio.staging",
+      readonly: true
+    )
+
     build_app(
       project: "PlayolaRadio.xcodeproj",
       scheme: "PlayolaRadio-Staging",
-      export_method: "app-store"
+      export_method: "app-store",
+      output_directory: "./build",
+      export_options: {
+        method: "app-store",
+        provisioningProfiles: {
+          "fm.playola.playolaradio.staging" => "match AppStore fm.playola.playolaradio.staging"
+        }
+      }
+    )
+
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
+      key_content: File.read(ENV["APP_STORE_CONNECT_API_KEY_PATH"])
     )
 
     upload_to_testflight(
+      api_key: api_key,
       app_identifier: "fm.playola.playolaradio.staging",
       skip_waiting_for_build_processing: true,
       distribute_external: false,
