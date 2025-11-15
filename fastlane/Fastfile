@@ -17,10 +17,72 @@ default_platform(:ios)
 
 platform :ios do
   before_all do
-    setup_circle_ci
+    setup_circle_ci if ENV['CI']
   end
 
-  desc "Push a new beta build to TestFlight"
+  desc "Release STAGING build to TestFlight (Internal Only)"
+  lane :release_staging do
+    ensure_git_status_clean
+    ensure_git_branch(branch: 'develop')
+
+    build_app(
+      project: "PlayolaRadio.xcodeproj",
+      scheme: "PlayolaRadio-Staging",
+      export_method: "app-store"
+    )
+
+    upload_to_testflight(
+      app_identifier: "fm.playola.playolaradio.staging",
+      skip_waiting_for_build_processing: true,
+      distribute_external: false,
+      notify_external_testers: false
+    )
+
+    puts "✅ Staging build uploaded to TestFlight!"
+    puts "📱 App: fm.playola.playolaradio.staging"
+  end
+
+  desc "Release PRODUCTION build to TestFlight"
+  lane :release_production do
+    ensure_git_status_clean
+    ensure_git_branch(branch: 'main')
+
+    # Run tests before releasing to production
+    scan(
+      include_simulator_logs: false,
+      parallel_testing: false,
+      scheme: "PlayolaRadio",
+      xcargs: "-skipMacroValidation -skipPackagePluginValidation",
+      xcodebuild_formatter: "xcbeautify"
+    )
+
+    # Increment build number
+    increment_build_number(xcodeproj: "PlayolaRadio.xcodeproj")
+
+    build_app(
+      project: "PlayolaRadio.xcodeproj",
+      scheme: "PlayolaRadio",
+      export_method: "app-store"
+    )
+
+    upload_to_testflight(
+      app_identifier: "fm.playola.playolaradio",
+      skip_waiting_for_build_processing: true
+    )
+
+    # Commit build number bump
+    commit_version_bump(
+      message: "Bump build number",
+      xcodeproj: "PlayolaRadio.xcodeproj"
+    )
+
+    push_to_git_remote
+
+    puts "✅ Production build uploaded to TestFlight!"
+    puts "📱 App: fm.playola.playolaradio"
+  end
+
+  desc "Push a new beta build to TestFlight (Legacy - use release_production instead)"
   lane :beta do
     build_app(project: "PlayolaRadio.xcodeproj", scheme: "PlayolaRadio")
     upload_to_testflight
