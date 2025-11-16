@@ -50,4 +50,24 @@ extension ScheduledShow {
     show: .mock,
     station: nil
   )
+
+  public static func mockWith(
+    id: String? = nil,
+    showId: String? = nil,
+    stationId: String? = nil,
+    airtime: Date? = nil,
+    show: Show? = nil,
+    station: PlayolaPlayer.Station? = nil
+  ) -> ScheduledShow {
+    let mock = Self.mock
+    return ScheduledShow(
+      id: id ?? mock.id,
+      showId: showId ?? mock.showId,
+      stationId: stationId ?? mock.stationId,
+      airtime: airtime ?? mock.airtime,
+      createdAt: Date(),
+      updatedAt: Date(),
+      show: show ?? mock.show,
+      station: station ?? mock.station)
+  }
 }

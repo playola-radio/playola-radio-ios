@@ -8,15 +8,21 @@
 import SwiftUI
 
 struct LiveShowsView: View {
-  @Bindable var model: LiveShowsModel
+  @Bindable var model: ScheduledShowsListModel
 
   var body: some View {
     ScrollView(.horizontal, showsIndicators: false) {
       HStack(spacing: 12) {
         ForEach(model.scheduledShows) { scheduledShow in
-          LiveShowTile(scheduledShow: scheduledShow) {
-            Task { await model.handleShowTapped(scheduledShow) }
-          }
+          LiveShowTile(
+            scheduledShow: scheduledShow,
+            onTap: {
+              Task { await model.handleShowTapped(scheduledShow) }
+            },
+            onNotifyMeTap: {
+              Task { await model.scheduleNotification(for: scheduledShow) }
+            }
+          )
         }
       }
     }
@@ -28,54 +34,70 @@ struct LiveShowsView: View {
 private struct LiveShowTile: View {
   let scheduledShow: ScheduledShowDisplay
   let onTap: () -> Void
+  let onNotifyMeTap: () -> Void
 
   var body: some View {
-    Button(action: onTap) {
-      VStack(alignment: .leading, spacing: 8) {
-        // Status badge
-        HStack {
-          HStack(spacing: 8) {
-            if scheduledShow.isLive {
-              Image("MicrophoneForNowPlaying")
-                .resizable()
-                .renderingMode(.template)
-                .foregroundColor(Color(hex: "#FF5252"))
-                .frame(width: 10, height: 15)
-            }
-
-            Text(scheduledShow.statusText)
-              .font(.custom(FontNames.Inter_500_Medium, size: 14))
-              .foregroundColor(scheduledShow.isLive ? Color(hex: "#FF5252") : Color(hex: "##FFC107"))
-          }
-          .padding(.horizontal, 12)
-          .padding(.vertical, 8)
-          .background(scheduledShow.isLive ? Color(red: 0.3, green: 0.1, blue: 0.1) : Color(hex: "#3D3420"))
-          .cornerRadius(12)
-
-          Spacer()
+    VStack(alignment: .leading) {
+      // Status badge
+      HStack {
+        if scheduledShow.isLive {
+          LiveNowBadge()
+        } else {
+          UpcomingBadge()
         }
+      }
+      .padding(.top, 2)
 
+      VStack(alignment: .leading, spacing: 4) {
         // Show title
         Text(scheduledShow.showTitle)
-          .font(.custom(FontNames.Inter_700_Bold, size: 22))
+          .font(.custom(FontNames.Inter_700_Bold, size: 20))
           .foregroundColor(.white)
           .lineLimit(3)
           .fixedSize(horizontal: false, vertical: true)
           .multilineTextAlignment(.leading)
           .frame(maxWidth: .infinity, alignment: .leading)
 
-        Spacer(minLength: 0)
+        // Show subtitle/description
+        Text("In the Van with the Stelly Band")
+          .font(.custom(FontNames.Inter_700_Bold, size: 14))
+          .foregroundColor(Color(hex: "#F3F0EF"))
+          .lineLimit(2)
 
         // Date/time
         Text(scheduledShow.timeDisplayString)
           .font(.custom(FontNames.Inter_400_Regular, size: 14))
-          .foregroundColor(.white)
+          .foregroundColor(.white.opacity(0.7))
       }
-      .padding(16)
-      .frame(width: 280, height: 140)
-      .background(Color(white: 0.15))
-      .cornerRadius(8)
+      .padding(.bottom, 16)
+
+      // Notify Me button
+      Button(action: onNotifyMeTap) {
+        HStack(spacing: 10) {
+          Image("AlertMe")
+            .resizable()
+            .renderingMode(.template)
+            .foregroundColor(.white.opacity(0.9))
+            .frame(width: 22, height: 22)
+
+          Text("Notify Me")
+            .font(.custom(FontNames.Inter_500_Medium, size: 18))
+            .foregroundColor(.white.opacity(0.9))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
+        .background(Color.clear)
+        .overlay(
+          RoundedRectangle(cornerRadius: 8)
+            .stroke(Color.white.opacity(0.25), lineWidth: 1.5)
+        )
+      }
+      .buttonStyle(PlainButtonStyle())
     }
+    .padding(.vertical, 16)
+    .padding(.horizontal, 20)
+    .background(Color(white: 0.15))
+    .cornerRadius(8)
   }
 }
 
@@ -84,7 +106,7 @@ private struct LiveShowTile: View {
 #Preview {
   let now = Date()
   let calendar = Calendar.current
-
+  
   let mockShows: [ScheduledShowDisplay] = [
     ScheduledShowDisplay(
       id: "1",
@@ -111,13 +133,13 @@ private struct LiveShowTile: View {
       isLive: false
     )
   ]
-
+  
   return VStack(alignment: .leading, spacing: 12) {
     Text("Live shows")
       .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 24))
       .foregroundColor(.white)
-
-    LiveShowsView(model: LiveShowsModel(scheduledShows: mockShows))
+    
+    LiveShowsView(model: ScheduledShowsListModel(scheduledShows: mockShows))
   }
   .padding()
   .background(Color.black)

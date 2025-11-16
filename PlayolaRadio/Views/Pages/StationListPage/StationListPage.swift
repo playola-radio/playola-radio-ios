@@ -90,7 +90,7 @@ struct StationListPage: View {
         .padding(.horizontal, 20)
 
       LiveShowsView(
-        model: LiveShowsModel(
+        model: ScheduledShowsListModel(
           scheduledShows: model.scheduledShows
             .filter { !$0.hasEnded }
             .map { ScheduledShowDisplay.from($0) }

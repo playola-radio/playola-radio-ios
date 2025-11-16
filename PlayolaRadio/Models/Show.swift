@@ -43,4 +43,24 @@ extension Show {
   static let mock: Show = .init(
     id: "theId", stationId: "theStationId", title: "On The Road with Stelly",
     durationMS: 1000 * 60 * 30, createdAt: Date(), updatedAt: Date(), segments: [])
+
+  public static func mockWith(
+    id: String? = nil,
+    stationId: String? = nil,
+    title: String? = nil,
+    durationMS: Int? = nil,
+    createdAt: Date? = nil,
+    updatedAt: Date? = nil,
+    segments: [ShowSegment]? = nil
+  ) -> Show {
+    let mock = Self.mock
+    return .init(
+      id: id ?? mock.id,
+      stationId: stationId ?? mock.stationId,
+      title: title ?? mock.title,
+      durationMS: durationMS ?? mock.durationMS,
+      createdAt: createdAt ?? mock.createdAt,
+      updatedAt: updatedAt ?? mock.updatedAt,
+      segments: segments ?? mock.segments)
+  }
 }
