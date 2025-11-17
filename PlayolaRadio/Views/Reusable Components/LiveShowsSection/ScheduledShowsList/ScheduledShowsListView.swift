@@ -9,12 +9,14 @@ import SwiftUI
 
 struct ScheduledShowsListView: View {
   @Bindable var model: ScheduledShowsListModel
+  // Workaround: SwiftUI does not propagate alerts through ScrollViews
+  var presentAlert: (PlayolaAlert) -> Void = { _ in }
 
   var body: some View {
     ScrollView(.horizontal, showsIndicators: false) {
       HStack(spacing: 12) {
         ForEach(model.tileModels, id: \.scheduledShow.id) { tileModel in
-          ScheduledShowTile(model: tileModel)
+          ScheduledShowTile(model: tileModel, presentAlert: presentAlert)
         }
       }
     }

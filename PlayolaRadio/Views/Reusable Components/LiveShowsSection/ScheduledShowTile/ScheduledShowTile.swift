@@ -8,6 +8,7 @@ import SwiftUI
 
 struct ScheduledShowTile: View {
   @Bindable var model: ScheduledShowTileModel
+  var presentAlert: (PlayolaAlert) -> Void = { _ in }
 
   var body: some View {
     VStack(alignment: .leading) {
@@ -49,7 +50,11 @@ struct ScheduledShowTile: View {
     .padding(.horizontal, 20)
     .background(Color(white: 0.15))
     .cornerRadius(8)
-    .alert(item: $model.presentedAlert) { $0.alert }
+    // Workaround: SwiftUI does not propagate alerts through ScrollViews
+    .alert(item: $model.presentedAlert) { alert in
+      presentAlert(alert)
+      return alert.alert
+    }
   }
 }
 

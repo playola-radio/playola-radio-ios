@@ -93,7 +93,8 @@ struct StationListPage: View {
         model: ScheduledShowsListModel(
           scheduledShows: model.scheduledShows
             .filter { !$0.hasEnded }
-        )
+        ),
+        presentAlert: { model.presentedAlert = $0 }
       )
       .padding(.horizontal, 20)
     }
