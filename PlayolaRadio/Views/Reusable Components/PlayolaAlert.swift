@@ -95,4 +95,18 @@ extension PlayolaAlert {
       })
     )
   }
+
+  static var notificationScheduled: PlayolaAlert {
+    PlayolaAlert(
+      title: "Reminder Set",
+      message: "You'll be notified when this show is about to start!",
+      dismissButton: .cancel(Text("OK")))
+  }
+
+  static var errorSchedulingNotification: PlayolaAlert {
+    PlayolaAlert(
+      title: "Error",
+      message: "There was an error scheduling your notification. Please try again.",
+      dismissButton: .cancel(Text("OK")))
+  }
 }

@@ -47,6 +47,86 @@ final class ScheduledShowTileTests: XCTestCase {
     }
   }
 
+  // MARK: - timeDisplayString Tests
+
+  func testTimeDisplayString_AMTime() {
+    let calendar = Calendar.current
+    // Create a date: Wed, Oct 1 at 7:00am
+    var components = DateComponents()
+    components.year = 2025
+    components.month = 10
+    components.day = 1
+    components.hour = 7
+    components.minute = 0
+    let airtime = calendar.date(from: components)!
+
+    // Create end time: 10:00am
+    components.hour = 10
+    let endTime = calendar.date(from: components)!
+
+    let show = Show.mockWith(durationMS: Int((endTime.timeIntervalSince(airtime)) * 1000))
+    let scheduledShow = ScheduledShow.mockWith(
+      airtime: airtime,
+      show: show
+    )
+
+    let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
+
+    XCTAssertEqual(model.timeDisplayString, "Wed, Oct 1 at 7:00am - 10:00am")
+  }
+
+  func testTimeDisplayString_PMTime() {
+    let calendar = Calendar.current
+    // Create a date: Wed, Oct 1 at 7:00pm
+    var components = DateComponents()
+    components.year = 2025
+    components.month = 10
+    components.day = 1
+    components.hour = 19
+    components.minute = 0
+    let airtime = calendar.date(from: components)!
+
+    // Create end time: 10:00pm
+    components.hour = 22
+    let endTime = calendar.date(from: components)!
+
+    let show = Show.mockWith(durationMS: Int((endTime.timeIntervalSince(airtime)) * 1000))
+    let scheduledShow = ScheduledShow.mockWith(
+      airtime: airtime,
+      show: show
+    )
+
+    let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
+
+    XCTAssertEqual(model.timeDisplayString, "Wed, Oct 1 at 7:00pm - 10:00pm")
+  }
+
+  func testTimeDisplayString_CrossingNoonBoundary() {
+    let calendar = Calendar.current
+    // Create a date: Wed, Oct 1 at 10:00am
+    var components = DateComponents()
+    components.year = 2025
+    components.month = 10
+    components.day = 1
+    components.hour = 10
+    components.minute = 0
+    let airtime = calendar.date(from: components)!
+
+    // Create end time: 2:00pm
+    components.hour = 14
+    let endTime = calendar.date(from: components)!
+
+    let show = Show.mockWith(durationMS: Int((endTime.timeIntervalSince(airtime)) * 1000))
+    let scheduledShow = ScheduledShow.mockWith(
+      airtime: airtime,
+      show: show
+    )
+
+    let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
+
+    XCTAssertEqual(model.timeDisplayString, "Wed, Oct 1 at 10:00am - 2:00pm")
+  }
+
   // MARK: - buttonType Tests
 
   func testButtonType_RemindMeWhenShowIsFarInFuture() async {
@@ -212,6 +292,72 @@ final class ScheduledShowTileTests: XCTestCase {
 
       XCTAssertNotNil(model.presentedAlert)
       XCTAssertEqual(model.presentedAlert, .notificationsDisabled)
+    }
+  }
+
+  func testRemindMeButtonTapped_ShowsSuccessAlertWhenNotificationScheduled() async {
+    let station = PlayolaPlayer.Station(
+      id: "test-station",
+      name: "Moondog Radio",
+      curatorName: "Jacob Stelly",
+      imageUrl: URL(string: "https://example.com/image.png"),
+      description: "Test station description",
+      active: true,
+      createdAt: Date(),
+      updatedAt: Date()
+    )
+    let scheduledShow = ScheduledShow.mockWith(
+      airtime: Date().addingTimeInterval(3600),
+      station: station
+    )
+
+    await withDependencies {
+      $0.pushNotifications.scheduleNotification = { _, _, _, _ in }
+      $0.pushNotifications.requestAuthorization = { true }
+    } operation: {
+      let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
+
+      XCTAssertNil(model.presentedAlert)
+
+      await model.remindMeButtonTapped()
+
+      XCTAssertNotNil(model.presentedAlert)
+      XCTAssertEqual(model.presentedAlert, .notificationScheduled)
+    }
+  }
+
+  func testRemindMeButtonTapped_ShowsErrorAlertWhenSchedulingFails() async {
+    let station = PlayolaPlayer.Station(
+      id: "test-station",
+      name: "Moondog Radio",
+      curatorName: "Jacob Stelly",
+      imageUrl: URL(string: "https://example.com/image.png"),
+      description: "Test station description",
+      active: true,
+      createdAt: Date(),
+      updatedAt: Date()
+    )
+    let scheduledShow = ScheduledShow.mockWith(
+      airtime: Date().addingTimeInterval(3600),
+      station: station
+    )
+
+    struct TestError: Error {}
+
+    await withDependencies {
+      $0.pushNotifications.scheduleNotification = { _, _, _, _ in
+        throw TestError()
+      }
+      $0.pushNotifications.requestAuthorization = { true }
+    } operation: {
+      let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
+
+      XCTAssertNil(model.presentedAlert)
+
+      await model.remindMeButtonTapped()
+
+      XCTAssertNotNil(model.presentedAlert)
+      XCTAssertEqual(model.presentedAlert, .errorSchedulingNotification)
     }
   }
 }

@@ -6,10 +6,18 @@
 //
 import Dependencies
 import Observation
+import Foundation
 
 @MainActor
 @Observable
 class ScheduledShowTileModel {
+  @ObservationIgnored
+  @Dependency(\.date.now) var now
+
+  @ObservationIgnored
+  @Dependency(\.pushNotifications) var pushNotifications
+  @ObservationIgnored var stationPlayer: StationPlayer
+
   var scheduledShow: ScheduledShow
   var presentedAlert: PlayolaAlert?
 
@@ -18,18 +26,23 @@ class ScheduledShowTileModel {
     self.stationPlayer = stationPlayer ?? .shared
   }
 
-  @ObservationIgnored
-  @Dependency(\.date.now) var now
+  var timeDisplayString: String {
+    let formatter = DateFormatter()
 
-  @ObservationIgnored
-  @Dependency(\.pushNotifications) var pushNotifications
+    // Format date part: "Wed, Oct 1"
+    formatter.dateFormat = "E, MMM d"
+    let dateString = formatter.string(from: scheduledShow.airtime)
 
-  @ObservationIgnored var stationPlayer: StationPlayer
+    formatter.dateFormat = "h:mma"
+    let startTimeString = formatter.string(from: scheduledShow.airtime).lowercased()
+
+    let endTimeString = formatter.string(from: scheduledShow.endTime).lowercased()
+    return "\(dateString) at \(startTimeString) - \(endTimeString)"
+  }
 
   var isLive: Bool { return scheduledShow.isLive }
 
-  enum ScheduledShowTileButtonType
-  {
+  enum ScheduledShowTileButtonType {
     case listenNow
     case remindMe
   }
@@ -67,10 +80,9 @@ class ScheduledShowTileModel {
         message,
         notificationDate
       )
-
-      print("Notification scheduled for \(station.name)")
+      presentedAlert = .notificationScheduled
     } catch {
-      print("Error scheduling notification: \(error)")
+      presentedAlert = .errorSchedulingNotification
     }
   }
   
