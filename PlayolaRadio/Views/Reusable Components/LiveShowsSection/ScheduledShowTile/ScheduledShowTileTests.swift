@@ -224,7 +224,7 @@ final class ScheduledShowTileTests: XCTestCase {
 
   // MARK: - Notification Tests
 
-  func testRemindMeButtonTapped_SchedulesNotificationWithCorrectTitleAndMessage() async {
+  func testnotifyMeButtonTapped_SchedulesNotificationWithCorrectTitleAndMessage() async {
     let station = PlayolaPlayer.Station(
       id: "test-station",
       name: "Moondog Radio",
@@ -255,7 +255,7 @@ final class ScheduledShowTileTests: XCTestCase {
       $0.pushNotifications.requestAuthorization = { true }
     } operation: {
       let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
-      await model.remindMeButtonTapped()
+      await model.notifyMeButtonTapped()
 
       XCTAssertEqual(capturedTitle, "Playola Radio")
       XCTAssertEqual(
@@ -265,7 +265,7 @@ final class ScheduledShowTileTests: XCTestCase {
     }
   }
 
-  func testRemindMeButtonTapped_ShowsAlertWhenNotificationsDenied() async {
+  func testnotifyMeButtonTapped_ShowsAlertWhenNotificationsDenied() async {
     let station = PlayolaPlayer.Station(
       id: "test-station",
       name: "Moondog Radio",
@@ -288,14 +288,14 @@ final class ScheduledShowTileTests: XCTestCase {
 
       XCTAssertNil(model.presentedAlert)
 
-      await model.remindMeButtonTapped()
+      await model.notifyMeButtonTapped()
 
       XCTAssertNotNil(model.presentedAlert)
       XCTAssertEqual(model.presentedAlert, .notificationsDisabled)
     }
   }
 
-  func testRemindMeButtonTapped_ShowsSuccessAlertWhenNotificationScheduled() async {
+  func testnotifyMeButtonTapped_ShowsSuccessAlertWhenNotificationScheduled() async {
     let station = PlayolaPlayer.Station(
       id: "test-station",
       name: "Moondog Radio",
@@ -319,14 +319,14 @@ final class ScheduledShowTileTests: XCTestCase {
 
       XCTAssertNil(model.presentedAlert)
 
-      await model.remindMeButtonTapped()
+      await model.notifyMeButtonTapped()
 
       XCTAssertNotNil(model.presentedAlert)
       XCTAssertEqual(model.presentedAlert, .notificationScheduled)
     }
   }
 
-  func testRemindMeButtonTapped_ShowsErrorAlertWhenSchedulingFails() async {
+  func testnotifyMeButtonTapped_ShowsErrorAlertWhenSchedulingFails() async {
     let station = PlayolaPlayer.Station(
       id: "test-station",
       name: "Moondog Radio",
@@ -354,7 +354,7 @@ final class ScheduledShowTileTests: XCTestCase {
 
       XCTAssertNil(model.presentedAlert)
 
-      await model.remindMeButtonTapped()
+      await model.notifyMeButtonTapped()
 
       XCTAssertNotNil(model.presentedAlert)
       XCTAssertEqual(model.presentedAlert, .errorSchedulingNotification)

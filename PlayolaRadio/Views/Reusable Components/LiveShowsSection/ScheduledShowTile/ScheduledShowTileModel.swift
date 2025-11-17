@@ -26,6 +26,9 @@ class ScheduledShowTileModel {
     self.stationPlayer = stationPlayer ?? .shared
   }
 
+  var stationTitle: String { "\(scheduledShow.station!.curatorName)'s \(scheduledShow.station!.name)" }
+  var showTitle: String { scheduledShow.show!.title }
+
   var timeDisplayString: String {
     let formatter = DateFormatter()
 
@@ -54,7 +57,7 @@ class ScheduledShowTileModel {
     return .listenNow
   }
 
-  func remindMeButtonTapped() async {
+  func notifyMeButtonTapped() async {
     do {
       // Request authorization first
       let authorized = try await pushNotifications.requestAuthorization()

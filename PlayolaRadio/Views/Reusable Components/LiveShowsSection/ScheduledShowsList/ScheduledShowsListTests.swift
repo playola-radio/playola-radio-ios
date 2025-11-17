@@ -1,248 +1,142 @@
 //
-//  LiveShowTests.swift
+//  ScheduledShowsListTests.swift
 //  PlayolaRadio
 //
 //  Created by Brian D Keane on 10/8/25.
 //
-//
-//import Dependencies
-//import IdentifiedCollections
-//import PlayolaPlayer
-//import XCTest
-//
-//@testable import PlayolaRadio
-//
-//@MainActor
-//final class LiveShowsTests: XCTestCase {
-//  func testScheduledShowDisplay_IsLiveWhenShowHasStartedAndNotEnded() async {
-//    withDependencies {
-//      $0.date.now = Date()
-//    } operation: {
-//      @Dependency(\.date.now) var now
-//
-//      let showDurationInSeconds = TimeInterval(Show.mock.durationMS) / 1000.0
-//      let timeAgo = showDurationInSeconds / 2
-//
-//      let scheduledShow = ScheduledShow(
-//        id: "live-show",
-//        showId: "show-1",
-//        stationId: "station-1",
-//        airtime: now.addingTimeInterval(-timeAgo),
-//        createdAt: now,
-//        updatedAt: now,
-//        show: Show.mock,
-//        station: nil
-//      )
-//
-//      let display = ScheduledShowDisplay.from(scheduledShow)
-//
-//      XCTAssertTrue(display.isLive)
-//      XCTAssertEqual(display.statusText, "LIVE NOW")
-//    }
-//  }
-//
-//  func testScheduledShowDisplay_IsNotLiveWhenShowHasNotStarted() async {
-//    withDependencies {
-//      $0.date.now = Date()
-//    } operation: {
-//      @Dependency(\.date.now) var now
-//
-//      let scheduledShow = ScheduledShow(
-//        id: "upcoming-show",
-//        showId: "show-1",
-//        stationId: "station-1",
-//        airtime: now.addingTimeInterval(3600),
-//        createdAt: now,
-//        updatedAt: now,
-//        show: Show.mock,
-//        station: nil
-//      )
-//
-//      let display = ScheduledShowDisplay.from(scheduledShow)
-//
-//      XCTAssertFalse(display.isLive)
-//      XCTAssertEqual(display.statusText, "UPCOMING")
-//    }
-//  }
-//
-//  func testScheduledShowDisplay_IsNotLiveWhenShowHasEnded() async {
-//    withDependencies {
-//      $0.date.now = Date()
-//    } operation: {
-//      @Dependency(\.date.now) var now
-//
-//      let showDurationInSeconds = TimeInterval(Show.mock.durationMS) / 1000.0
-//
-//      let scheduledShow = ScheduledShow(
-//        id: "ended-show",
-//        showId: "show-1",
-//        stationId: "station-1",
-//        airtime: now.addingTimeInterval(-(showDurationInSeconds + 3600)),
-//        createdAt: now,
-//        updatedAt: now,
-//        show: Show.mock,
-//        station: nil
-//      )
-//
-//      let display = ScheduledShowDisplay.from(scheduledShow)
-//
-//      XCTAssertFalse(display.isLive)
-//      XCTAssertEqual(display.statusText, "UPCOMING")
-//    }
-//  }
-//
-//  func testTimeDisplayString_AMTime() {
-//    let calendar = Calendar.current
-//    // Create a date: Wed, Oct 1 at 7:00am
-//    var components = DateComponents()
-//    components.year = 2025
-//    components.month = 10
-//    components.day = 1
-//    components.hour = 7
-//    components.minute = 0
-//    let airtime = calendar.date(from: components)!
-//
-//    // Create end time: 10:00am
-//    components.hour = 10
-//    let endTime = calendar.date(from: components)!
-//
-//    let display = ScheduledShowDisplay(
-//      id: "test-show",
-//      showId: "show-1",
-//      showTitle: "Morning Show",
-//      airtime: airtime,
-//      endTime: endTime,
-//      isLive: false
-//    )
-//
-//    XCTAssertEqual(display.timeDisplayString, "Wed, Oct 1 at 7:00am - 10:00am")
-//  }
-//
-//  func testTimeDisplayString_PMTime() {
-//    let calendar = Calendar.current
-//    // Create a date: Wed, Oct 1 at 7:00pm
-//    var components = DateComponents()
-//    components.year = 2025
-//    components.month = 10
-//    components.day = 1
-//    components.hour = 19
-//    components.minute = 0
-//    let airtime = calendar.date(from: components)!
-//
-//    // Create end time: 10:00pm
-//    components.hour = 22
-//    let endTime = calendar.date(from: components)!
-//
-//    let display = ScheduledShowDisplay(
-//      id: "test-show",
-//      showId: "show-1",
-//      showTitle: "Evening Show",
-//      airtime: airtime,
-//      endTime: endTime,
-//      isLive: false
-//    )
-//
-//    XCTAssertEqual(display.timeDisplayString, "Wed, Oct 1 at 7:00pm - 10:00pm")
-//  }
-//
-//  func testTimeDisplayString_WithoutEndTime() {
-//    let calendar = Calendar.current
-//    // Create a date: Wed, Oct 1 at 7:00pm
-//    var components = DateComponents()
-//    components.year = 2025
-//    components.month = 10
-//    components.day = 1
-//    components.hour = 19
-//    components.minute = 0
-//    let airtime = calendar.date(from: components)!
-//
-//    let display = ScheduledShowDisplay(
-//      id: "test-show",
-//      showId: "show-1",
-//      showTitle: "Evening Show",
-//      airtime: airtime,
-//      endTime: nil,
-//      isLive: false
-//    )
-//
-//    XCTAssertEqual(display.timeDisplayString, "Wed, Oct 1 at 7:00pm")
-//  }
-//
-//  // MARK: - LiveShowsModel Tests
-//
-//  func testLoadScheduledShows_LoadsShowsFromAPI() async {
-//    let calendar = Calendar.current
-//    var components = DateComponents()
-//    components.year = 2025
-//    components.month = 10
-//    components.day = 1
-//    components.hour = 19
-//    components.minute = 0
-//    let airtime = calendar.date(from: components)!
-//
-//    let mockScheduledShows = [
-//      ScheduledShow(
-//        id: "show-1",
-//        showId: "show-id-1",
-//        stationId: "station-1",
-//        airtime: airtime,
-//        createdAt: Date(),
-//        updatedAt: Date(),
-//        show: Show(
-//          id: "show-id-1",
-//          stationId: "station-1",
-//          title: "Evening Show",
-//          durationMS: 3_600_000,
-//          createdAt: Date(),
-//          updatedAt: Date(),
-//          segments: nil
-//        ),
-//        station: nil
-//      )
-//    ]
-//
-//    await withDependencies {
-//      $0.api.getScheduledShows = { _, _, _ in mockScheduledShows }
-//    } operation: {
-//      let model = LiveShowsListModel()
-//
-//      XCTAssertEqual(model.scheduledShows.count, 0)
-//
-//      await model.loadScheduledShows(jwtToken: "test-token")
-//
-//      XCTAssertEqual(model.scheduledShows.count, 1)
-//      XCTAssertEqual(model.scheduledShows[0].showTitle, "Evening Show")
-//      XCTAssertEqual(model.scheduledShows[0].showId, "show-id-1")
-//    }
-//  }
-//
-//  func testLoadScheduledShows_FiltersByStationId() async {
-//    let mockScheduledShows = [
-//      ScheduledShow(
-//        id: "show-1",
-//        showId: "show-id-1",
-//        stationId: "station-1",
-//        airtime: Date(),
-//        createdAt: Date(),
-//        updatedAt: Date(),
-//        show: Show.mock,
-//        station: nil
-//      )
-//    ]
-//
-//    var capturedStationId: String?
-//
-//    await withDependencies {
-//      $0.api.getScheduledShows = { _, _, stationId in
-//        capturedStationId = stationId
-//        return mockScheduledShows
-//      }
-//    } operation: {
-//      let model = LiveShowsListModel(stationId: "test-station-id")
-//
-//      await model.loadScheduledShows(jwtToken: "test-token")
-//
-//      XCTAssertEqual(capturedStationId, "test-station-id")
-//    }
-//  }
-//}
+
+import Dependencies
+import Foundation
+import XCTest
+
+@testable import PlayolaRadio
+
+@MainActor
+final class ScheduledShowsListTests: XCTestCase {
+  // MARK: - Initialization Tests
+
+  func testInitWithDefaultValues() {
+    let model = ScheduledShowsListModel()
+
+    XCTAssertNil(model.stationId)
+    XCTAssertEqual(model.scheduledShows.count, 0)
+    XCTAssertEqual(model.tileModels.count, 0)
+    XCTAssertNil(model.presentedAlert)
+  }
+
+  func testInitWithProvidedValues() {
+    let scheduledShows = [
+      ScheduledShow.mockWith(id: "show1"),
+      ScheduledShow.mockWith(id: "show2"),
+      ScheduledShow.mockWith(id: "show3"),
+    ]
+    let stationId = "test-station-id"
+
+    let model = ScheduledShowsListModel(stationId: stationId, scheduledShows: scheduledShows)
+
+    XCTAssertEqual(model.stationId, stationId)
+    XCTAssertEqual(model.scheduledShows.count, 3)
+    XCTAssertEqual(model.scheduledShows[0].id, "show1")
+    XCTAssertEqual(model.scheduledShows[1].id, "show2")
+    XCTAssertEqual(model.scheduledShows[2].id, "show3")
+
+    // Verify tileModels are created for each scheduledShow
+    XCTAssertEqual(model.tileModels.count, 3)
+    XCTAssertEqual(model.tileModels[0].scheduledShow.id, "show1")
+    XCTAssertEqual(model.tileModels[1].scheduledShow.id, "show2")
+    XCTAssertEqual(model.tileModels[2].scheduledShow.id, "show3")
+  }
+
+  // MARK: - loadScheduledShows Tests
+
+  func testLoadScheduledShows_Success_NoFiltering() async {
+    let mockShows = [
+      ScheduledShow.mockWith(id: "show1"),
+      ScheduledShow.mockWith(id: "show2"),
+    ]
+
+    var capturedToken: String?
+    var capturedShowId: String??
+    var capturedStationId: String??
+
+    await withDependencies {
+      $0.api.getScheduledShows = { jwtToken, showId, stationId in
+        capturedToken = jwtToken
+        capturedShowId = showId
+        capturedStationId = stationId
+        return mockShows
+      }
+    } operation: {
+      let model = ScheduledShowsListModel()
+
+      XCTAssertEqual(model.scheduledShows.count, 0)
+
+      await model.loadScheduledShows(jwtToken: "test-token")
+
+      XCTAssertEqual(capturedToken, "test-token")
+      XCTAssertNil(capturedShowId)
+      XCTAssertNil(capturedStationId)
+      XCTAssertEqual(model.scheduledShows.count, 2)
+      XCTAssertEqual(model.scheduledShows[0].id, "show1")
+      XCTAssertEqual(model.scheduledShows[1].id, "show2")
+
+      // Verify tileModels are updated
+      XCTAssertEqual(model.tileModels.count, 2)
+      XCTAssertEqual(model.tileModels[0].scheduledShow.id, "show1")
+      XCTAssertEqual(model.tileModels[1].scheduledShow.id, "show2")
+    }
+  }
+
+  func testLoadScheduledShows_Success_WithStationIdFiltering() async {
+    let mockShows = [
+      ScheduledShow.mockWith(id: "show1", stationId: "station-123"),
+      ScheduledShow.mockWith(id: "show2", stationId: "station-123"),
+    ]
+
+    var capturedToken: String?
+    var capturedShowId: String??
+    var capturedStationId: String??
+
+    await withDependencies {
+      $0.api.getScheduledShows = { jwtToken, showId, stationId in
+        capturedToken = jwtToken
+        capturedShowId = showId
+        capturedStationId = stationId
+        return mockShows
+      }
+    } operation: {
+      let model = ScheduledShowsListModel(stationId: "station-123")
+
+      await model.loadScheduledShows(jwtToken: "test-token")
+
+      XCTAssertEqual(capturedToken, "test-token")
+      XCTAssertNil(capturedShowId)
+      XCTAssertEqual(capturedStationId, "station-123")
+      XCTAssertEqual(model.scheduledShows.count, 2)
+      XCTAssertEqual(model.scheduledShows[0].stationId, "station-123")
+      XCTAssertEqual(model.scheduledShows[1].stationId, "station-123")
+    }
+  }
+
+  func testLoadScheduledShows_ErrorHandling() async {
+    struct TestError: Error {}
+
+    let initialShows = [ScheduledShow.mockWith(id: "initial")]
+
+    await withDependencies {
+      $0.api.getScheduledShows = { _, _, _ in
+        throw TestError()
+      }
+    } operation: {
+      let model = ScheduledShowsListModel(scheduledShows: initialShows)
+
+      XCTAssertEqual(model.scheduledShows.count, 1)
+
+      await model.loadScheduledShows(jwtToken: "test-token")
+
+      // scheduledShows should remain unchanged on error
+      XCTAssertEqual(model.scheduledShows.count, 1)
+      XCTAssertEqual(model.scheduledShows[0].id, "initial")
+    }
+  }
+}

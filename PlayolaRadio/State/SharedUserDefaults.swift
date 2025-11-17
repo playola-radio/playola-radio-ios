@@ -66,6 +66,12 @@ extension SharedKey where Self == InMemoryKey<ListeningTracker?>.Default {
   }
 }
 
+extension SharedKey where Self == InMemoryKey<PlayolaAlert?>.Default {
+  static var presentedAlert: Self {
+    Self[.inMemory("presentedAlert"), default: nil]
+  }
+}
+
 extension SharedKey where Self == InMemoryKey<MainContainerModel.ActiveTab>.Default {
   static var activeTab: Self {
     Self[.inMemory("activeTab"), default: .home]

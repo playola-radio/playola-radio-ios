@@ -89,11 +89,10 @@ struct StationListPage: View {
         .foregroundColor(.white)
         .padding(.horizontal, 20)
 
-      LiveShowsView(
+      ScheduledShowsListView(
         model: ScheduledShowsListModel(
           scheduledShows: model.scheduledShows
             .filter { !$0.hasEnded }
-            .map { ScheduledShowDisplay.from($0) }
         )
       )
       .padding(.horizontal, 20)
