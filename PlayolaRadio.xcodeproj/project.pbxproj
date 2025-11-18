@@ -997,7 +997,7 @@
 			);
 			name = "PlayolaRadio Staging";
 			packageProductDependencies = (
-					D30F00362E8592F0007BCC73 /* PlayolaPlayer */,
+				D30F00362E8592F0007BCC73 /* PlayolaPlayer */,
 				D30F00372E8592F0007BCC73 /* PlayolaPlayer */,
 				D30F00392E8592F0007BCC73 /* Mixpanel */,
 				D30F003B2E8592F0007BCC73 /* FRadioPlayer */,
@@ -2110,7 +2110,7 @@
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 0.10.2;
+				minimumVersion = 0.10.3;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
