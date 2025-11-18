@@ -109,7 +109,6 @@
 		D30F009C2E8592F0007BCC73 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = D30F00422E8592F0007BCC73 /* Dependencies */; };
 		D30F009D2E8592F0007BCC73 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D30F00412E8592F0007BCC73 /* GoogleSignInSwift */; };
 		D30F009E2E8592F0007BCC73 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D30F003D2E8592F0007BCC73 /* Alamofire */; };
-		D30F009F2E8592F0007BCC73 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = D30F00342E8592F0007BCC73 /* ComposableArchitecture */; };
 		D30F00A02E8592F0007BCC73 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D30F00452E8592F0007BCC73 /* SDWebImageSwiftUI */; };
 		D30F00A12E8592F0007BCC73 /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D30F003B2E8592F0007BCC73 /* FRadioPlayer */; };
 		D30F00A22E8592F0007BCC73 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D30F003F2E8592F0007BCC73 /* GoogleSignIn */; };
@@ -153,7 +152,6 @@
 		D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A062BFA4F49006942D6 /* ContentView.swift */; };
 		D3536A092BFA4F4A006942D6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3536A082BFA4F4A006942D6 /* Assets.xcassets */; };
 		D3536A0C2BFA4F4A006942D6 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3536A0B2BFA4F4A006942D6 /* Preview Assets.xcassets */; };
-		D3536A302BFA5523006942D6 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = D3536A2F2BFA5523006942D6 /* ComposableArchitecture */; };
 		D3536A322BFA64AB006942D6 /* StationList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A312BFA64AB006942D6 /* StationList.swift */; };
 		D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A362BFA6520006942D6 /* Bundle+Misc.swift */; };
 		D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A372BFA6520006942D6 /* Color+Hex.swift */; };
@@ -202,6 +200,10 @@
 		D37B74942ECA3A69009806C6 /* ScheduledShowTileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37B748E2ECA3A4D009806C6 /* ScheduledShowTileTests.swift */; };
 		D38031352E00AFD20011DD64 /* PlayerPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38031332E00AD9F0011DD64 /* PlayerPageTests.swift */; };
 		D382671C2E00C1460006BAC2 /* SmallPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D382671B2E00C13E0006BAC2 /* SmallPlayer.swift */; };
+		D3916A672ECD229B00CAAD50 /* IdentifiedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = D3916A662ECD229B00CAAD50 /* IdentifiedCollections */; };
+		D3916A692ECD22E600CAAD50 /* IdentifiedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = D3916A682ECD22E600CAAD50 /* IdentifiedCollections */; };
+		D3916A6C2ECD231200CAAD50 /* Sharing in Frameworks */ = {isa = PBXBuildFile; productRef = D3916A6B2ECD231200CAAD50 /* Sharing */; };
+		D3916A6E2ECD231E00CAAD50 /* Sharing in Frameworks */ = {isa = PBXBuildFile; productRef = D3916A6D2ECD231E00CAAD50 /* Sharing */; };
 		D395910F2E38069200720CF8 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D395910E2E38069200720CF8 /* SDWebImageSwiftUI */; };
 		D39591122E3808A900720CF8 /* SDWebImageSVGCoder in Frameworks */ = {isa = PBXBuildFile; productRef = D39591112E3808A900720CF8 /* SDWebImageSVGCoder */; };
 		D39591152E39932000720CF8 /* ContactPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39591142E39931D00720CF8 /* ContactPageView.swift */; };
@@ -411,14 +413,15 @@
 				D30F00972E8592F0007BCC73 /* PlayolaPlayer in Frameworks */,
 				D30F00982E8592F0007BCC73 /* Mixpanel in Frameworks */,
 				D30F00992E8592F0007BCC73 /* DependenciesMacros in Frameworks */,
+				D3916A6E2ECD231E00CAAD50 /* Sharing in Frameworks */,
 				D30F009A2E8592F0007BCC73 /* SDWebImageSVGCoder in Frameworks */,
 				D30F009B2E8592F0007BCC73 /* PlayolaPlayer in Frameworks */,
 				D30F009C2E8592F0007BCC73 /* Dependencies in Frameworks */,
 				D30F009D2E8592F0007BCC73 /* GoogleSignInSwift in Frameworks */,
 				D30F009E2E8592F0007BCC73 /* Alamofire in Frameworks */,
-				D30F009F2E8592F0007BCC73 /* ComposableArchitecture in Frameworks */,
 				D30F00A02E8592F0007BCC73 /* SDWebImageSwiftUI in Frameworks */,
 				D30F00A12E8592F0007BCC73 /* FRadioPlayer in Frameworks */,
+				D3916A692ECD22E600CAAD50 /* IdentifiedCollections in Frameworks */,
 				D30F00A22E8592F0007BCC73 /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -434,9 +437,10 @@
 				D31C43D42D3C783B0021AAE4 /* PlayolaPlayer in Frameworks */,
 				D3B744A12E2ED6AC0042A427 /* Dependencies in Frameworks */,
 				D3A276202D43C747006055AF /* GoogleSignInSwift in Frameworks */,
+				D3916A6C2ECD231200CAAD50 /* Sharing in Frameworks */,
 				D3B662702D40352500975D2F /* Alamofire in Frameworks */,
-				D3536A302BFA5523006942D6 /* ComposableArchitecture in Frameworks */,
 				D395910F2E38069200720CF8 /* SDWebImageSwiftUI in Frameworks */,
+				D3916A672ECD229B00CAAD50 /* IdentifiedCollections in Frameworks */,
 				D3B662682D3F58E700975D2F /* FRadioPlayer in Frameworks */,
 				D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */,
 			);
@@ -993,8 +997,7 @@
 			);
 			name = "PlayolaRadio Staging";
 			packageProductDependencies = (
-				D30F00342E8592F0007BCC73 /* ComposableArchitecture */,
-				D30F00362E8592F0007BCC73 /* PlayolaPlayer */,
+					D30F00362E8592F0007BCC73 /* PlayolaPlayer */,
 				D30F00372E8592F0007BCC73 /* PlayolaPlayer */,
 				D30F00392E8592F0007BCC73 /* Mixpanel */,
 				D30F003B2E8592F0007BCC73 /* FRadioPlayer */,
@@ -1005,6 +1008,8 @@
 				D30F00442E8592F0007BCC73 /* DependenciesMacros */,
 				D30F00452E8592F0007BCC73 /* SDWebImageSwiftUI */,
 				D30F00472E8592F0007BCC73 /* SDWebImageSVGCoder */,
+				D3916A682ECD22E600CAAD50 /* IdentifiedCollections */,
+				D3916A6D2ECD231E00CAAD50 /* Sharing */,
 			);
 			productName = PlayolaRadio;
 			productReference = D30F00B32E8592F0007BCC73 /* PlayolaRadio Staging.app */;
@@ -1025,7 +1030,6 @@
 			);
 			name = PlayolaRadio;
 			packageProductDependencies = (
-				D3536A2F2BFA5523006942D6 /* ComposableArchitecture */,
 				D31C43D32D3C783B0021AAE4 /* PlayolaPlayer */,
 				D3CE19022D3C825C0091B888 /* PlayolaPlayer */,
 				D35673B62D3DC6EC00E4E926 /* Mixpanel */,
@@ -1037,6 +1041,8 @@
 				D3B744A22E2ED6AC0042A427 /* DependenciesMacros */,
 				D395910E2E38069200720CF8 /* SDWebImageSwiftUI */,
 				D39591112E3808A900720CF8 /* SDWebImageSVGCoder */,
+				D3916A662ECD229B00CAAD50 /* IdentifiedCollections */,
+				D3916A6B2ECD231200CAAD50 /* Sharing */,
 			);
 			productName = PlayolaRadio;
 			productReference = D3536A012BFA4F49006942D6 /* PlayolaRadio.app */;
@@ -1092,7 +1098,6 @@
 			);
 			mainGroup = D35369F82BFA4F49006942D6;
 			packageReferences = (
-				D3536A2E2BFA5523006942D6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */,
 				D35673B52D3DC6EC00E4E926 /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
 				D3B662662D3F58E700975D2F /* XCRemoteSwiftPackageReference "FRadioPlayer" */,
@@ -1103,6 +1108,8 @@
 				D3B7449F2E2ED6AC0042A427 /* XCRemoteSwiftPackageReference "swift-dependencies" */,
 				D395910D2E38069200720CF8 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				D39591102E3808A900720CF8 /* XCRemoteSwiftPackageReference "SDWebImageSVGCoder" */,
+				D3916A652ECD229B00CAAD50 /* XCRemoteSwiftPackageReference "swift-identified-collections" */,
+				D3916A6A2ECD231200CAAD50 /* XCRemoteSwiftPackageReference "swift-sharing" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D3536A022BFA4F49006942D6 /* Products */;
@@ -1946,14 +1953,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		D30F00352E8592F0007BCC73 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.10.4;
-			};
-		};
 		D30F00382E8592F0007BCC73 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
@@ -2018,14 +2017,6 @@
 				minimumVersion = 1.8.0;
 			};
 		};
-		D3536A2E2BFA5523006942D6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.10.4;
-			};
-		};
 		D35673B52D3DC6EC00E4E926 /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mixpanel/mixpanel-swift";
@@ -2040,6 +2031,22 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 0.59.1;
+			};
+		};
+		D3916A652ECD229B00CAAD50 /* XCRemoteSwiftPackageReference "swift-identified-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-identified-collections";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.1;
+			};
+		};
+		D3916A6A2ECD231200CAAD50 /* XCRemoteSwiftPackageReference "swift-sharing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-sharing";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.7.4;
 			};
 		};
 		D395910D2E38069200720CF8 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
@@ -2109,11 +2116,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		D30F00342E8592F0007BCC73 /* ComposableArchitecture */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D30F00352E8592F0007BCC73 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
-			productName = ComposableArchitecture;
-		};
 		D30F00362E8592F0007BCC73 /* PlayolaPlayer */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PlayolaPlayer;
@@ -2177,11 +2179,6 @@
 			package = D38483792E242D61008676BB /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */;
 			productName = "plugin:SwiftLintBuildToolPlugin";
 		};
-		D3536A2F2BFA5523006942D6 /* ComposableArchitecture */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D3536A2E2BFA5523006942D6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
-			productName = ComposableArchitecture;
-		};
 		D35673B62D3DC6EC00E4E926 /* Mixpanel */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D35673B52D3DC6EC00E4E926 /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
@@ -2191,6 +2188,26 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D38483792E242D61008676BB /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */;
 			productName = "plugin:SwiftLintBuildToolPlugin";
+		};
+		D3916A662ECD229B00CAAD50 /* IdentifiedCollections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3916A652ECD229B00CAAD50 /* XCRemoteSwiftPackageReference "swift-identified-collections" */;
+			productName = IdentifiedCollections;
+		};
+		D3916A682ECD22E600CAAD50 /* IdentifiedCollections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3916A652ECD229B00CAAD50 /* XCRemoteSwiftPackageReference "swift-identified-collections" */;
+			productName = IdentifiedCollections;
+		};
+		D3916A6B2ECD231200CAAD50 /* Sharing */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3916A6A2ECD231200CAAD50 /* XCRemoteSwiftPackageReference "swift-sharing" */;
+			productName = Sharing;
+		};
+		D3916A6D2ECD231E00CAAD50 /* Sharing */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3916A6A2ECD231200CAAD50 /* XCRemoteSwiftPackageReference "swift-sharing" */;
+			productName = Sharing;
 		};
 		D395910E2E38069200720CF8 /* SDWebImageSwiftUI */ = {
 			isa = XCSwiftPackageProductDependency;
