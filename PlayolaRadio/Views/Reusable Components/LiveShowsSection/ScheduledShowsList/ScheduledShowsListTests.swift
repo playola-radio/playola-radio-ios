@@ -74,8 +74,8 @@ final class ScheduledShowsListTests: XCTestCase {
       await model.loadScheduledShows(jwtToken: "test-token")
 
       XCTAssertEqual(capturedToken, "test-token")
-      XCTAssertNil(capturedShowId)
-      XCTAssertNil(capturedStationId)
+      XCTAssertNil(capturedShowId!)
+      XCTAssertNil(capturedStationId!)
       XCTAssertEqual(model.scheduledShows.count, 2)
       XCTAssertEqual(model.scheduledShows[0].id, "show1")
       XCTAssertEqual(model.scheduledShows[1].id, "show2")
@@ -110,7 +110,7 @@ final class ScheduledShowsListTests: XCTestCase {
       await model.loadScheduledShows(jwtToken: "test-token")
 
       XCTAssertEqual(capturedToken, "test-token")
-      XCTAssertNil(capturedShowId)
+      XCTAssertNil(capturedShowId!)
       XCTAssertEqual(capturedStationId, "station-123")
       XCTAssertEqual(model.scheduledShows.count, 2)
       XCTAssertEqual(model.scheduledShows[0].stationId, "station-123")
