@@ -116,4 +116,35 @@ final class StationListStationRowTests: XCTestCase {
     XCTAssertEqual(
       model.imageUrl, comingSoonStation.imageUrl)
   }
+
+  func testComingSoonItemShowsDateWhenItExists() {
+    @Shared(.showSecretStations) var showSecretStations: Bool = false
+    let now = Date(timeIntervalSince1970: 1_758_915_200)
+    let comingSoonStation = PlayolaPlayer.Station(
+      id: "coming-soon",
+      name: "Moondog Radio",
+      curatorName: "Jacob Stelly",
+      imageUrl: URL(string: "https://example.com/moondog.png"),
+      description: "Coming soon",
+      active: true,
+      releaseDate: Calendar.current.date(from: DateComponents(year: 2025, month: 12, day: 25))!,
+      createdAt: now,
+      updatedAt: now
+    )
+
+    let item = APIStationItem(
+      sortOrder: 0,
+      visibility: .comingSoon,
+      station: comingSoonStation,
+      urlStation: nil
+    )
+
+    let model = StationListStationRowModel(item: item)
+
+    XCTAssertEqual(model.titleText, comingSoonStation.curatorName)
+    XCTAssertEqual(model.subtitleText, "Coming Dec 25th")
+    XCTAssertEqual(model.subtitleColor, Color.playolaRed)
+    XCTAssertEqual(
+      model.imageUrl, comingSoonStation.imageUrl)
+  }
 }
