@@ -63,7 +63,7 @@ struct StationListPage: View {
       ScrollView {
         VStack(alignment: .leading, spacing: 20) {
           ForEach(model.stationListsForDisplay) { list in
-            stationSection(title: list.title, stations: list.stations)
+            stationSection(list: list)
           }
         }
         .padding(.top, 8)
@@ -78,21 +78,24 @@ struct StationListPage: View {
 
   // MARK: - Helpers
   @ViewBuilder
-  private func stationSection(title: String, stations: [AnyStation]) -> some View {
-    if !stations.isEmpty {
+  private func stationSection(list: StationList) -> some View {
+    let includeHiddenItems = model.showSecretStations
+    let items = list.stationItems(includeHidden: includeHiddenItems)
+    if !items.isEmpty {
       VStack(alignment: .leading, spacing: 1) {
-        Text(title)
+        Text(list.title)
           .font(.custom("Inter-Regular", size: 16))
           .foregroundColor(.white)
           .padding(.horizontal)
           .padding(.bottom, 8)
 
         VStack(spacing: 1) {
-          ForEach(stations) { station in
-            StationRowView(
-              station: station,
+          ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+            let rowModel = StationListStationRowModel(item: item)
+            StationListStationRowView(
+              model: rowModel,
               action: {
-                Task { await model.stationSelected(station) }
+                Task { await model.stationSelected(item) }
               })
           }
         }
@@ -100,50 +103,6 @@ struct StationListPage: View {
     }
   }
 }
-
-// ------------------------------------------------------------------
-// MARK: - Station Row
-// ------------------------------------------------------------------
-private struct StationRowView: View {
-  let station: AnyStation
-  let action: (() -> Void)
-
-  var body: some View {
-    Button(action: action) {
-      HStack(spacing: 16) {
-        if let url = station.imageUrl {
-          AsyncImage(url: url) { image in
-            image
-              .resizable()
-              .aspectRatio(contentMode: .fill)
-          } placeholder: {
-            Color(white: 0.2)
-          }
-          .frame(width: 64, height: 64)
-          .clipped()
-          .cornerRadius(6)
-        }
-
-        VStack(alignment: .leading, spacing: 2) {
-          Text(station.stationName)
-            .font(.custom(FontNames.Inter_500_Medium, size: 22))
-            .foregroundColor(.white)
-            .multilineTextAlignment(.leading)
-
-          Text(station.name)
-            .font(.custom(FontNames.Inter_400_Regular, size: 14))
-            .foregroundColor(.white)
-            .multilineTextAlignment(.leading)
-        }
-
-        Spacer()
-      }
-      .padding(.horizontal)
-      .padding(.vertical, 12)
-    }
-  }
-}
-
 // ------------------------------------------------------------------
 // MARK: - Preview
 // ------------------------------------------------------------------

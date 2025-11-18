@@ -76,6 +76,38 @@ final class SmallPlayerTests: XCTestCase {
     XCTAssertEqual(smallPlayer.secondaryTitle, mockStation.description)
   }
 
+  func testSecondaryTitle_ReturnsLoadingWhenPlaybackStatusIsLoading() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+    let mockStation = AnyStation.mock
+
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        currentStation: mockStation,
+        playbackStatus: .loading(mockStation)
+      )
+    }
+
+    let smallPlayer = SmallPlayer()
+    XCTAssertEqual(smallPlayer.secondaryTitle, "Loading...")
+  }
+
+  func testSecondaryTitle_ReturnsLoadingWhenLoadingEvenWithTrackInfo() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+    let mockStation = AnyStation.mock
+
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        artistPlaying: "Test Artist",
+        titlePlaying: "Test Song",
+        currentStation: mockStation,
+        playbackStatus: .loading(mockStation)
+      )
+    }
+
+    let smallPlayer = SmallPlayer()
+    XCTAssertEqual(smallPlayer.secondaryTitle, "Loading...")
+  }
+
   func testSecondaryTitle_ReturnsStationDescWhenOnlyArtistAvailable() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying?
     let mockStation = AnyStation.mock

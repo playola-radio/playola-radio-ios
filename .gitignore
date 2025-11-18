@@ -6,12 +6,17 @@ xcuserdata
 **/**/Secrets.xcconfig
 **/**/Secrets-Development.xcconfig
 **/**/Secrets-Local.xcconfig
+**/**/Secrets-Staging.xcconfig
+
 # probably should remove this later
 Package.resolved
 
 fastlane/test_output/report.html
 fastlane/test_output/report.junit
 fastlane/report.xml
+
+# Build artifacts
+build/
 
 # Claude generated files
 claude-files/

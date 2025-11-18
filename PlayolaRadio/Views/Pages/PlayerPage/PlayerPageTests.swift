@@ -427,7 +427,7 @@ final class PlayerPageTests: XCTestCase {
       playbackStatus: .playing(station)
     )
 
-    await withDependencies {
+    withDependencies {
       $0.likesManager = LikesManager()
     } operation: {
       let model = PlayerPageModel(stationPlayer: playerMock)
@@ -452,7 +452,7 @@ final class PlayerPageTests: XCTestCase {
       playbackStatus: .playing(station)
     )
 
-    await withDependencies {
+    withDependencies {
       let likesManager = LikesManager()
       // Pre-like the song
       likesManager.like(audioBlock)
@@ -480,7 +480,7 @@ final class PlayerPageTests: XCTestCase {
     )
     // No playolaSpinPlaying
 
-    await withDependencies {
+    withDependencies {
       let likesManager = LikesManager()
       $0.likesManager = likesManager
     } operation: {
@@ -507,7 +507,7 @@ final class PlayerPageTests: XCTestCase {
       playbackStatus: .playing(station)
     )
 
-    await withDependencies {
+    withDependencies {
       let likesManager = LikesManager()
       $0.likesManager = likesManager
     } operation: {
@@ -537,7 +537,7 @@ final class PlayerPageTests: XCTestCase {
       playbackStatus: .playing(station)
     )
 
-    await withDependencies {
+    withDependencies {
       let likesManager = LikesManager()
       // Pre-like the song
       likesManager.like(audioBlock)
@@ -569,7 +569,7 @@ final class PlayerPageTests: XCTestCase {
       playbackStatus: .playing(station)
     )
 
-    await withDependencies {
+    withDependencies {
       let likesManager = LikesManager()
       $0.likesManager = likesManager
     } operation: {
@@ -599,7 +599,7 @@ final class PlayerPageTests: XCTestCase {
       playbackStatus: .playing(station)
     )
 
-    await withDependencies {
+    withDependencies {
       $0.likesManager = LikesManager()
     } operation: {
       let model = PlayerPageModel(stationPlayer: playerMock)
@@ -624,7 +624,7 @@ final class PlayerPageTests: XCTestCase {
       playbackStatus: .playing(station)
     )
 
-    await withDependencies {
+    withDependencies {
       $0.likesManager = LikesManager()
     } operation: {
       let model = PlayerPageModel(stationPlayer: playerMock)
@@ -649,7 +649,7 @@ final class PlayerPageTests: XCTestCase {
       playbackStatus: .playing(station)
     )
 
-    await withDependencies {
+    withDependencies {
       let likesManager = LikesManager()
       $0.likesManager = likesManager
     } operation: {
@@ -796,7 +796,7 @@ final class PlayerPageTests: XCTestCase {
     XCTAssertEqual(model.secondaryNavBarTitle, "")
   }
 
-  func testNavBarTitles_EmptyWhenPlaying() {
+  func testNavBarTitles_WhenPlaying() {
     let station = AnyStation.mock
     let playerMock = StationPlayerMock()
 
@@ -807,8 +807,12 @@ final class PlayerPageTests: XCTestCase {
 
     let model = PlayerPageModel(stationPlayer: playerMock)
 
-    XCTAssertEqual(model.primaryNavBarTitle, "")
-    XCTAssertEqual(model.secondaryNavBarTitle, "")
+    XCTAssertEqual(model.primaryNavBarTitle, station.name)
+    if station.isPlayolaStation {
+      XCTAssertEqual(model.secondaryNavBarTitle, station.stationName)
+    } else {
+      XCTAssertEqual(model.secondaryNavBarTitle, station.location ?? "")
+    }
   }
 
   func testNavBarTitles_EmptyWhenStopped() {

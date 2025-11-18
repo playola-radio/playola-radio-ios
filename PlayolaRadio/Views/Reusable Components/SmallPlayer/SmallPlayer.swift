@@ -21,6 +21,9 @@ struct SmallPlayer: View {
   }
 
   var secondaryTitle: String {
+    if nowPlaying?.playbackStatus.isLoading == true {
+      return "Loading..."
+    }
     if let artistPlaying = nowPlaying?.artistPlaying,
       let titlePlaying = nowPlaying?.titlePlaying
     {
