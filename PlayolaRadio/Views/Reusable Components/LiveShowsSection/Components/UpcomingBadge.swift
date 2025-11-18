@@ -10,7 +10,7 @@ import SwiftUI
 struct UpcomingBadge: View {
   var body: some View {
     HStack(spacing: 8) {
-      Text("UPCOMING")
+      Text("UPCOMING LIVE SHOW")
         .font(.custom(FontNames.Inter_500_Medium, size: 14))
         .foregroundColor(Color(hex: "##FFC107"))
     }

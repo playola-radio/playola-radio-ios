@@ -129,7 +129,7 @@ final class ScheduledShowTileTests: XCTestCase {
 
   // MARK: - buttonType Tests
 
-  func testButtonType_RemindMeWhenShowIsFarInFuture() async {
+  func testButtonType_notifyMeWhenShowIsFarInFuture() async {
     withDependencies {
       $0.date.now = Date(timeIntervalSince1970: 1_000_000)
     } operation: {
@@ -141,11 +141,11 @@ final class ScheduledShowTileTests: XCTestCase {
         show: show
       )
       let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
-      XCTAssertEqual(model.buttonType, .remindMe)
+      XCTAssertEqual(model.buttonType, .notifyMe)
     }
   }
 
-  func testButtonType_ListenNowWhenShowIsStartingSoon() async {
+  func testButtonType_listenInWhenShowIsStartingSoon() async {
     withDependencies {
       $0.date.now = Date(timeIntervalSince1970: 1_000_000)
     } operation: {
@@ -157,11 +157,11 @@ final class ScheduledShowTileTests: XCTestCase {
         show: show
       )
       let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
-      XCTAssertEqual(model.buttonType, .listenNow)
+      XCTAssertEqual(model.buttonType, .listenIn)
     }
   }
 
-  func testButtonType_ListenNowWhenShowIsLive() async {
+  func testButtonType_listenInWhenShowIsLive() async {
     withDependencies {
       $0.date.now = Date(timeIntervalSince1970: 1_000_000)
     } operation: {
@@ -173,13 +173,13 @@ final class ScheduledShowTileTests: XCTestCase {
         show: show
       )
       let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
-      XCTAssertEqual(model.buttonType, .listenNow)
+      XCTAssertEqual(model.buttonType, .listenIn)
     }
   }
 
   // MARK: - Error Handling Tests
 
-  func testListenNowButtonTapped_ShowsAlertWhenStationIsNil() async {
+  func testlistenInButtonTapped_ShowsAlertWhenStationIsNil() async {
     let scheduledShow = ScheduledShow.mockWith(
       station: nil
     )
@@ -187,13 +187,13 @@ final class ScheduledShowTileTests: XCTestCase {
 
     XCTAssertNil(model.presentedAlert)
 
-    model.listenNowButtonTapped()
+    model.listenInButtonTapped()
 
     XCTAssertNotNil(model.presentedAlert)
     XCTAssertEqual(model.presentedAlert, .errorLoadingStation)
   }
 
-  func testListenNowButtonTapped_PlaysStationWhenStationIsAvailable() async {
+  func testlistenInButtonTapped_PlaysStationWhenStationIsAvailable() async {
     let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
     let station = PlayolaPlayer.Station(
       id: "test-station",
@@ -210,7 +210,7 @@ final class ScheduledShowTileTests: XCTestCase {
     )
     let model = ScheduledShowTileModel(scheduledShow: scheduledShow, stationPlayer: stationPlayerMock)
 
-    model.listenNowButtonTapped()
+    model.listenInButtonTapped()
 
     XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
     XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, station.id)

@@ -16,7 +16,7 @@ struct LiveNowBadge: View {
         .foregroundColor(Color(hex: "#FF5252"))
         .frame(width: 10, height: 15)
 
-      Text("LIVE NOW")
+      Text("LIVE NOW!")
         .font(.custom(FontNames.Inter_500_Medium, size: 14))
         .foregroundColor(Color(hex: "#FF5252"))
     }

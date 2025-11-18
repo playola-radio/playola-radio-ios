@@ -46,15 +46,15 @@ class ScheduledShowTileModel {
   var isLive: Bool { return scheduledShow.isLive }
 
   enum ScheduledShowTileButtonType {
-    case listenNow
-    case remindMe
+    case listenIn
+    case notifyMe
   }
 
   var buttonType: ScheduledShowTileButtonType {
     if scheduledShow.airtime.addingTimeInterval(60 * -5) > self.now {
-      return .remindMe
+      return .notifyMe
     }
-    return .listenNow
+    return .listenIn
   }
 
   func notifyMeButtonTapped() async {
@@ -89,7 +89,7 @@ class ScheduledShowTileModel {
     }
   }
   
-  func listenNowButtonTapped() {
+  func listenInButtonTapped() {
     guard let station = scheduledShow.station else {
       presentedAlert = .errorLoadingStation
       return
