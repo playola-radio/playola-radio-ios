@@ -384,6 +384,324 @@ final class StationListPageTests: XCTestCase {
     XCTAssertEqual(filteredItems.count, 2)
     XCTAssertEqual(filteredItems.last?.visibility, .hidden)
   }
+
+  // MARK: - Live Shows Tests
+
+  func testLiveShows_ShowsLiveShowsSectionWhenLiveShowsExist() async {
+    await withDependencies {
+      $0.date.now = Date()
+    } operation: {
+      @Dependency(\.date.now) var now
+      @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+      @Shared(.stationLists) var stationLists = StationList.mocks
+
+      // Create a live show that started recently and hasn't ended yet
+      let showDurationInSeconds = TimeInterval(Show.mock.durationMS) / 1000.0
+      let timeAgo = showDurationInSeconds / 2  // Started halfway through
+
+      let liveShow = ScheduledShow(
+        id: "live-show-1",
+        showId: "show-1",
+        stationId: "station-1",
+        airtime: now.addingTimeInterval(-timeAgo),
+        createdAt: now,
+        updatedAt: now,
+        show: Show.mock,
+        station: nil
+      )
+
+      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: [liveShow]) }
+
+      let model = StationListModel()
+      await model.viewAppeared()
+
+      XCTAssertTrue(model.hasLiveShows)
+      // Should add "Live Shows" segment even when there's only one show
+      XCTAssertTrue(model.segmentTitles.contains("Live Shows"))
+      XCTAssertEqual(model.segmentTitles[0], "All")
+      XCTAssertEqual(model.segmentTitles[1], "Live Shows")
+    }
+  }
+
+  func testLiveShows_HidesLiveShowsSectionWhenNoLiveShows() async {
+    await withDependencies {
+      $0.date.now = Date()
+    } operation: {
+      @Dependency(\.date.now) var now
+      @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+
+      // Create a show that has already ended
+      let showDurationInSeconds = TimeInterval(Show.mock.durationMS) / 1000.0
+      let endedShow = ScheduledShow(
+        id: "ended-show-1",
+        showId: "show-1",
+        stationId: "station-1",
+        airtime: now.addingTimeInterval(-(showDurationInSeconds + 3600)),
+        createdAt: now,
+        updatedAt: now,
+        show: Show.mock,
+        station: nil
+      )
+
+      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: [endedShow]) }
+
+      let model = StationListModel()
+      await model.viewAppeared()
+
+      XCTAssertFalse(model.hasLiveShows)
+      XCTAssertFalse(model.segmentTitles.contains("Live Shows"))
+    }
+  }
+
+  func testLiveShows_HidesLiveShowsSectionWhenNoScheduledShows() async {
+    @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    XCTAssertFalse(model.hasLiveShows)
+    XCTAssertFalse(model.segmentTitles.contains("Live Shows"))
+  }
+
+  func testLiveShows_AddsLiveShowsSegmentWhenMultipleLiveShows() async {
+    await withDependencies {
+      $0.date.now = Date()
+    } operation: {
+      @Dependency(\.date.now) var now
+      @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+      @Shared(.stationLists) var stationLists = StationList.mocks
+
+      let showDurationInSeconds = TimeInterval(Show.mock.durationMS) / 1000.0
+      let timeAgo1 = showDurationInSeconds / 3  // Started 1/3 through
+
+      let liveShow1 = ScheduledShow(
+        id: "live-show-1",
+        showId: "show-1",
+        stationId: "station-1",
+        airtime: now.addingTimeInterval(-timeAgo1),
+        createdAt: now,
+        updatedAt: now,
+        show: Show.mock,
+        station: nil
+      )
+
+      let show2DurationMS = 7_200_000
+      let show2DurationInSeconds = TimeInterval(show2DurationMS) / 1000.0
+      let timeAgo2ForShow2 = show2DurationInSeconds / 4
+
+      let liveShow2 = ScheduledShow(
+        id: "live-show-2",
+        showId: "show-2",
+        stationId: "station-2",
+        airtime: now.addingTimeInterval(-timeAgo2ForShow2),
+        createdAt: now,
+        updatedAt: now,
+        show: Show(
+          id: "show-2",
+          stationId: "station-2",
+          title: "Evening Jazz",
+          durationMS: show2DurationMS,
+          createdAt: now,
+          updatedAt: now,
+          segments: nil
+        ),
+        station: nil
+      )
+
+      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: [liveShow1, liveShow2]) }
+
+      let model = StationListModel()
+      await model.viewAppeared()
+
+      XCTAssertTrue(model.hasLiveShows)
+      XCTAssertTrue(model.segmentTitles.contains("Live Shows"))
+      // "Live Shows" should be second, after "All"
+      XCTAssertEqual(model.segmentTitles[0], "All")
+      XCTAssertEqual(model.segmentTitles[1], "Live Shows")
+    }
+  }
+
+  func testLiveShows_FiltersToOnlyLiveShowsWhenSegmentSelected() async {
+    await withDependencies {
+      $0.date.now = Date()
+    } operation: {
+      @Dependency(\.date.now) var now
+      @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+      @Shared(.stationLists) var stationLists = StationList.mocks
+
+      let showDurationInSeconds = TimeInterval(Show.mock.durationMS) / 1000.0
+      let timeAgo1 = showDurationInSeconds / 3
+
+      let liveShow1 = ScheduledShow(
+        id: "live-show-1",
+        showId: "show-1",
+        stationId: "station-1",
+        airtime: now.addingTimeInterval(-timeAgo1),
+        createdAt: now,
+        updatedAt: now,
+        show: Show.mock,
+        station: nil
+      )
+
+      let show2DurationMS = 7_200_000
+      let show2DurationInSeconds = TimeInterval(show2DurationMS) / 1000.0
+      let timeAgo2 = show2DurationInSeconds / 4
+
+      let liveShow2 = ScheduledShow(
+        id: "live-show-2",
+        showId: "show-2",
+        stationId: "station-2",
+        airtime: now.addingTimeInterval(-timeAgo2),
+        createdAt: now,
+        updatedAt: now,
+        show: Show(
+          id: "show-2",
+          stationId: "station-2",
+          title: "Evening Jazz",
+          durationMS: show2DurationMS,
+          createdAt: now,
+          updatedAt: now,
+          segments: nil
+        ),
+        station: nil
+      )
+
+      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: [liveShow1, liveShow2]) }
+
+      let model = StationListModel()
+      await model.viewAppeared()
+
+      // Select "Live Shows" segment
+      await model.segmentSelected("Live Shows")
+
+      XCTAssertEqual(model.selectedSegment, "Live Shows")
+      XCTAssertTrue(model.isShowingLiveShows)
+    }
+  }
+
+  func testLiveShows_DoesNotShowStationsWhenLiveShowsSegmentSelected() async {
+    await withDependencies {
+      $0.date.now = Date()
+    } operation: {
+      @Dependency(\.date.now) var now
+      @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+      @Shared(.stationLists) var stationLists = StationList.mocks
+
+      let showDurationInSeconds = TimeInterval(Show.mock.durationMS) / 1000.0
+      let timeAgo1 = showDurationInSeconds / 3
+
+      let liveShow1 = ScheduledShow(
+        id: "live-show-1",
+        showId: "show-1",
+        stationId: "station-1",
+        airtime: now.addingTimeInterval(-timeAgo1),
+        createdAt: now,
+        updatedAt: now,
+        show: Show.mock,
+        station: nil
+      )
+
+      let show2DurationMS = 7_200_000
+      let show2DurationInSeconds = TimeInterval(show2DurationMS) / 1000.0
+      let timeAgo2 = show2DurationInSeconds / 4
+
+      let liveShow2 = ScheduledShow(
+        id: "live-show-2",
+        showId: "show-2",
+        stationId: "station-2",
+        airtime: now.addingTimeInterval(-timeAgo2),
+        createdAt: now,
+        updatedAt: now,
+        show: Show(
+          id: "show-2",
+          stationId: "station-2",
+          title: "Evening Jazz",
+          durationMS: show2DurationMS,
+          createdAt: now,
+          updatedAt: now,
+          segments: nil
+        ),
+        station: nil
+      )
+
+      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: [liveShow1, liveShow2]) }
+
+      let model = StationListModel()
+      await model.viewAppeared()
+
+      // Initially should show station lists
+      XCTAssertFalse(model.stationListsForDisplay.isEmpty)
+
+      // Select "Live Shows" segment
+      await model.segmentSelected("Live Shows")
+
+      // Should hide station lists when Live Shows is selected
+      XCTAssertTrue(model.stationListsForDisplay.isEmpty)
+      XCTAssertTrue(model.isShowingLiveShows)
+    }
+  }
+
+  func testLiveShows_ShowsStationsAgainWhenAllSegmentReselected() async {
+    await withDependencies {
+      $0.date.now = Date()
+    } operation: {
+      @Dependency(\.date.now) var now
+      @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+      @Shared(.stationLists) var stationLists = StationList.mocks
+
+      let showDurationInSeconds = TimeInterval(Show.mock.durationMS) / 1000.0
+      let timeAgo1 = showDurationInSeconds / 3
+
+      let liveShow1 = ScheduledShow(
+        id: "live-show-1",
+        showId: "show-1",
+        stationId: "station-1",
+        airtime: now.addingTimeInterval(-timeAgo1),
+        createdAt: now,
+        updatedAt: now,
+        show: Show.mock,
+        station: nil
+      )
+
+      let show2DurationMS = 7_200_000
+      let show2DurationInSeconds = TimeInterval(show2DurationMS) / 1000.0
+      let timeAgo2 = show2DurationInSeconds / 4
+
+      let liveShow2 = ScheduledShow(
+        id: "live-show-2",
+        showId: "show-2",
+        stationId: "station-2",
+        airtime: now.addingTimeInterval(-timeAgo2),
+        createdAt: now,
+        updatedAt: now,
+        show: Show(
+          id: "show-2",
+          stationId: "station-2",
+          title: "Evening Jazz",
+          durationMS: show2DurationMS,
+          createdAt: now,
+          updatedAt: now,
+          segments: nil
+        ),
+        station: nil
+      )
+
+      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: [liveShow1, liveShow2]) }
+
+      let model = StationListModel()
+      await model.viewAppeared()
+
+      // Select "Live Shows" segment
+      await model.segmentSelected("Live Shows")
+      XCTAssertTrue(model.stationListsForDisplay.isEmpty)
+
+      // Select "All" segment again
+      await model.segmentSelected("All")
+      XCTAssertEqual(model.selectedSegment, "All")
+      XCTAssertFalse(model.isShowingLiveShows)
+      XCTAssertFalse(model.stationListsForDisplay.isEmpty)
+    }
+  }
 }
 
 private func assertPlayedEvents(

@@ -7,6 +7,7 @@
 
 import Combine
 import Dependencies
+import IdentifiedCollections
 import Sharing
 import SwiftUI
 
@@ -21,6 +22,8 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored var stationPlayer: StationPlayer!
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
+  @ObservationIgnored @Shared(.scheduledShows) var scheduledShows
+  @ObservationIgnored @Shared(.scheduledShowsLoaded) var scheduledShowsLoaded: Bool = false
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
@@ -54,20 +57,43 @@ class MainContainerModel: ViewModel {
     // Mark that the main container has been unlocked/shown
     $hasBeenUnlocked.withLock { $0 = true }
 
-    // Exit early if we already have the data.
-    guard !stationListsLoaded else { return }
+    // Load station lists if not already loaded
+    if !stationListsLoaded {
+      do {
+        let retrievedStationsLists = try await api.getStations()
+        self.$stationLists.withLock { $0 = retrievedStationsLists }
+        self.$stationListsLoaded.withLock { $0 = true }
+      } catch {
+        presentedAlert = .errorLoadingStations
+        await analytics.track(
+          .apiError(
+            endpoint: "getStations",
+            error: error.localizedDescription
+          ))
+      }
+    }
 
-    do {
-      let retrievedStationsLists = try await api.getStations()
-      self.$stationLists.withLock { $0 = retrievedStationsLists }
-      self.$stationListsLoaded.withLock { $0 = true }
-    } catch {
-      presentedAlert = .errorLoadingStations
-      await analytics.track(
-        .apiError(
-          endpoint: "getStations",
-          error: error.localizedDescription
-        ))
+    // Load scheduled shows if not already loaded and user is authenticated
+    if !scheduledShowsLoaded, let jwt = auth.jwt {
+      do {
+        let retrievedScheduledShows = try await api.getScheduledShows(jwt, nil, nil)
+        print("📺 Retrieved \(retrievedScheduledShows.count) scheduled shows")
+        self.$scheduledShows.withLock {
+          $0 = IdentifiedArray(uniqueElements: retrievedScheduledShows)
+        }
+        self.$scheduledShowsLoaded.withLock { $0 = true }
+      } catch {
+        print("❌ Error loading scheduled shows: \(error)")
+        if let decodingError = error as? DecodingError {
+          print("🔍 Decoding error details: \(decodingError)")
+        }
+        // Don't show alert for scheduled shows failure, just log it
+        await analytics.track(
+          .apiError(
+            endpoint: "getScheduledShows",
+            error: error.localizedDescription
+          ))
+      }
     }
 
     // NOTE: For now, this has to stay connected to the Singleton in order to avoid reloading

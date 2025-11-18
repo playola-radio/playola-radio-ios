@@ -104,6 +104,41 @@ struct APIClient: Sendable {
   /// - Returns: Array of UserSongLike objects containing AudioBlocks and timestamps
   /// - Throws: APIError if the request fails
   var getLikedSongs: (_ jwtToken: String) async throws -> [UserSongLike] = { _ in [] }
+
+  /// Fetches all shows for the authenticated user
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - includeSegments: Whether to include show segments in the response
+  ///   - stationId: Optional station ID to filter shows by station
+  /// - Returns: Array of Show objects
+  /// - Throws: APIError if the request fails
+  var getShows:
+    (_ jwtToken: String, _ includeSegments: Bool, _ stationId: String?) async throws -> [Show] = {
+      _, _, _ in []
+    }
+
+  /// Fetches a single show by ID
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - showId: The ID of the show to fetch
+  ///   - includeSegments: Whether to include show segments in the response (defaults to true)
+  /// - Returns: Show object or nil if not found
+  /// - Throws: APIError if the request fails
+  var getShowById:
+    (_ jwtToken: String, _ showId: String, _ includeSegments: Bool) async throws -> Show? = {
+      _, _, _ in nil
+    }
+
+  /// Fetches scheduled shows
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - showId: Optional show ID to filter by specific show
+  ///   - stationId: Optional station ID to filter by specific station
+  /// - Returns: Array of ScheduledShow objects
+  /// - Throws: APIError if the request fails
+  var getScheduledShows:
+    (_ jwtToken: String, _ showId: String?, _ stationId: String?) async throws -> [ScheduledShow] =
+      { _, _, _ in [] }
 }
 
 extension APIClient: DependencyKey {
@@ -378,6 +413,77 @@ extension APIClient: DependencyKey {
         )
         .validate(statusCode: 200..<300)
         .serializingDecodable([UserSongLike].self, decoder: isoDecoder)
+        .value
+
+        return response
+      },
+      getShows: { jwtToken, includeSegments, stationId in
+        var url = "\(Config.shared.baseUrl.absoluteString)/v1/shows"
+        var queryParams: [String] = []
+
+        if includeSegments {
+          queryParams.append("includeSegments=true")
+        }
+        if let stationId = stationId {
+          queryParams.append("stationId=\(stationId)")
+        }
+
+        if !queryParams.isEmpty {
+          url += "?" + queryParams.joined(separator: "&")
+        }
+
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(
+          url,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable([Show].self, decoder: isoDecoder)
+        .value
+
+        return response
+      },
+      getShowById: { jwtToken, showId, includeSegments in
+        var url = "\(Config.shared.baseUrl.absoluteString)/v1/shows/\(showId)"
+        if !includeSegments {
+          url += "?includeSegments=false"
+        }
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(
+          url,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(Show?.self, decoder: isoDecoder)
+        .value
+
+        return response
+      },
+      getScheduledShows: { jwtToken, showId, stationId in
+        var url = "\(Config.shared.baseUrl.absoluteString)/v1/shows/schedule"
+        var queryParams: [String] = []
+
+        if let showId = showId {
+          queryParams.append("showId=\(showId)")
+        }
+        if let stationId = stationId {
+          queryParams.append("stationId=\(stationId)")
+        }
+
+        if !queryParams.isEmpty {
+          url += "?" + queryParams.joined(separator: "&")
+        }
+
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(
+          url,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable([ScheduledShow].self, decoder: isoDecoder)
         .value
 
         return response
