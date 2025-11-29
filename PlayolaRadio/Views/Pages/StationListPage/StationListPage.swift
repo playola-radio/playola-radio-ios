@@ -76,7 +76,7 @@ struct StationListPage: View {
     .toolbarBackground(.hidden, for: .navigationBar)
     .navigationBarTitleDisplayMode(.inline)
     .background(Color.black)
-    .task { await model.viewAppeared() }
+    .onAppear { Task { await model.viewAppeared() } }
     .alert(item: $model.presentedAlert) { $0.alert }
   }
 
@@ -84,7 +84,7 @@ struct StationListPage: View {
   @ViewBuilder
   private func liveShowsSection() -> some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text("Live Shows")
+      Text("Going Live")
         .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 24))
         .foregroundColor(.white)
         .padding(.horizontal, 20)

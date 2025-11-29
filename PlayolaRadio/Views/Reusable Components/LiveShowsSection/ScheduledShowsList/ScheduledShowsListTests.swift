@@ -7,6 +7,8 @@
 
 import Dependencies
 import Foundation
+import IdentifiedCollections
+import Sharing
 import XCTest
 
 @testable import PlayolaRadio
@@ -137,6 +139,34 @@ final class ScheduledShowsListTests: XCTestCase {
       // scheduledShows should remain unchanged on error
       XCTAssertEqual(model.scheduledShows.count, 1)
       XCTAssertEqual(model.scheduledShows[0].id, "initial")
+    }
+  }
+
+  // MARK: - Shared State Tests
+
+  func testLoadScheduledShows_UpdatesSharedState() async {
+    let mockShows = [
+      ScheduledShow.mockWith(id: "show1"),
+      ScheduledShow.mockWith(id: "show2"),
+    ]
+
+    @Shared(.scheduledShows) var sharedScheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+
+    await withDependencies {
+      $0.api.getScheduledShows = { _, _, _ in
+        return mockShows
+      }
+    } operation: {
+      // Verify shared state starts empty
+      XCTAssertEqual(sharedScheduledShows.count, 0)
+
+      let model = ScheduledShowsListModel()
+      await model.loadScheduledShows(jwtToken: "test-token")
+
+      // Verify shared state is updated
+      XCTAssertEqual(sharedScheduledShows.count, 2)
+      XCTAssertEqual(sharedScheduledShows[0].id, "show1")
+      XCTAssertEqual(sharedScheduledShows[1].id, "show2")
     }
   }
 }
