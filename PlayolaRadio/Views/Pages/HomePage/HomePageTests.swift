@@ -414,6 +414,69 @@ final class HomePageTests: XCTestCase {
     $showSecretStations.withLock { $0 = false }
     await assertEventually(model.forYouStations.count == 1)
   }
+
+  // MARK: - Live Shows Tests
+
+  func testLiveShows_HasLiveShowsReturnsTrueWhenLiveShowExists() async {
+    await withDependencies {
+      $0.date.now = Date()
+    } operation: {
+      @Dependency(\.date.now) var now
+      @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+
+      let showDurationInSeconds = TimeInterval(Show.mock.durationMS) / 1000.0
+      let timeAgo = showDurationInSeconds / 2
+
+      let liveShow = ScheduledShow(
+        id: "live-show-1",
+        showId: "show-1",
+        stationId: "station-1",
+        airtime: now.addingTimeInterval(-timeAgo),
+        createdAt: now,
+        updatedAt: now,
+        show: Show.mock,
+        station: nil
+      )
+
+      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: [liveShow]) }
+
+      let model = HomePageModel()
+      XCTAssertTrue(model.hasLiveShows)
+    }
+  }
+
+  func testLiveShows_HasLiveShowsReturnsFalseWhenNoScheduledShows() async {
+    @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+
+    let model = HomePageModel()
+    XCTAssertFalse(model.hasLiveShows)
+  }
+
+  func testLiveShows_HasLiveShowsReturnsFalseWhenAllShowsHaveEnded() async {
+    await withDependencies {
+      $0.date.now = Date()
+    } operation: {
+      @Dependency(\.date.now) var now
+      @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+
+      let showDurationInSeconds = TimeInterval(Show.mock.durationMS) / 1000.0
+      let endedShow = ScheduledShow(
+        id: "ended-show-1",
+        showId: "show-1",
+        stationId: "station-1",
+        airtime: now.addingTimeInterval(-(showDurationInSeconds + 3600)),
+        createdAt: now,
+        updatedAt: now,
+        show: Show.mock,
+        station: nil
+      )
+
+      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: [endedShow]) }
+
+      let model = HomePageModel()
+      XCTAssertFalse(model.hasLiveShows)
+    }
+  }
 }
 
 extension HomePageTests {
