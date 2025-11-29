@@ -5,8 +5,8 @@
 //  Created by Brian D Keane on 11/16/25.
 //
 import Dependencies
-import Observation
 import Foundation
+import Observation
 
 @MainActor
 @Observable
@@ -21,12 +21,14 @@ class ScheduledShowTileModel {
   var scheduledShow: ScheduledShow
   var presentedAlert: PlayolaAlert?
 
-  init(scheduledShow: ScheduledShow, stationPlayer: StationPlayer? = nil ) {
+  init(scheduledShow: ScheduledShow, stationPlayer: StationPlayer? = nil) {
     self.scheduledShow = scheduledShow
     self.stationPlayer = stationPlayer ?? .shared
   }
 
-  var stationTitle: String { "\(scheduledShow.station!.curatorName)'s \(scheduledShow.station!.name)" }
+  var stationTitle: String {
+    "\(scheduledShow.station!.curatorName)'s \(scheduledShow.station!.name)"
+  }
   var showTitle: String { scheduledShow.show!.title }
 
   var timeDisplayString: String {
@@ -88,7 +90,7 @@ class ScheduledShowTileModel {
       presentedAlert = .errorSchedulingNotification
     }
   }
-  
+
   func listenInButtonTapped() {
     guard let station = scheduledShow.station else {
       presentedAlert = .errorLoadingStation

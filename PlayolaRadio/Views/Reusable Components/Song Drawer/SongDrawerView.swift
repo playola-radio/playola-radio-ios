@@ -48,7 +48,7 @@ struct SongDrawerView: View {
         Spacer(minLength: 0)
       }
       .padding(.horizontal, 24)
-      .padding(.top, 8)          // small top inset; system handle sits above
+      .padding(.top, 8)  // small top inset; system handle sits above
       .padding(.bottom, 12)
 
       // thin divider under header (like the mock)
@@ -62,21 +62,21 @@ struct SongDrawerView: View {
           Button(
             action: { model.openAppleMusic() },
             label: {
-          HStack(spacing: 16) {
-            // Replace with your branded asset if you have it
-            Image("appleMusicIcon")
-              .resizable()
-              .frame(width: 32, height: 32)
+              HStack(spacing: 16) {
+                // Replace with your branded asset if you have it
+                Image("appleMusicIcon")
+                  .resizable()
+                  .frame(width: 32, height: 32)
 
-            Text("Listen on Apple Music")
-              .font(.custom(FontNames.Inter_400_Regular, size: 16))
-              .foregroundColor(.white)
+                Text("Listen on Apple Music")
+                  .font(.custom(FontNames.Inter_400_Regular, size: 16))
+                  .foregroundColor(.white)
 
-            Spacer()
-          }
-          .padding(.horizontal, 24)
-          .padding(.vertical, 16)
-          .contentShape(Rectangle())
+                Spacer()
+              }
+              .padding(.horizontal, 24)
+              .padding(.vertical, 16)
+              .contentShape(Rectangle())
             }
           )
           .buttonStyle(.plain)
@@ -84,23 +84,26 @@ struct SongDrawerView: View {
 
         // Spotify
         if model.shouldShowSpotify {
-          Button(action: { model.openSpotify() }, label: {
-          HStack(spacing: 16) {
-            // Replace with a Spotify glyph asset for perfect branding
-            Image("spotifyIcon")
-              .resizable()
-              .frame(width: 32, height: 32)
+          Button(
+            action: { model.openSpotify() },
+            label: {
+              HStack(spacing: 16) {
+                // Replace with a Spotify glyph asset for perfect branding
+                Image("spotifyIcon")
+                  .resizable()
+                  .frame(width: 32, height: 32)
 
-            Text("Listen on Spotify")
-              .font(.custom(FontNames.Inter_400_Regular, size: 16))
-              .foregroundColor(.white)
+                Text("Listen on Spotify")
+                  .font(.custom(FontNames.Inter_400_Regular, size: 16))
+                  .foregroundColor(.white)
 
-            Spacer()
-          }
-          .padding(.horizontal, 24)
-          .padding(.vertical, 16)
-          .contentShape(Rectangle())
-          })
+                Spacer()
+              }
+              .padding(.horizontal, 24)
+              .padding(.vertical, 16)
+              .contentShape(Rectangle())
+            }
+          )
           .buttonStyle(.plain)
         }
 
@@ -108,21 +111,21 @@ struct SongDrawerView: View {
         Button(
           action: { model.removeFromLikedSongs() },
           label: {
-          HStack(spacing: 16) {
-            Image(systemName: "xmark")
-              .font(.system(size: 16, weight: .semibold))
-              .frame(width: 24, height: 24)
-              .foregroundColor(.white)
+            HStack(spacing: 16) {
+              Image(systemName: "xmark")
+                .font(.system(size: 16, weight: .semibold))
+                .frame(width: 24, height: 24)
+                .foregroundColor(.white)
 
-            Text("Remove from Liked Songs")
-              .font(.custom(FontNames.Inter_400_Regular, size: 16))
-              .foregroundColor(.white)
+              Text("Remove from Liked Songs")
+                .font(.custom(FontNames.Inter_400_Regular, size: 16))
+                .foregroundColor(.white)
 
-            Spacer()
-          }
-          .padding(.horizontal, 24)
-          .padding(.vertical, 16)
-          .contentShape(Rectangle())
+              Spacer()
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
+            .contentShape(Rectangle())
           }
         )
         .buttonStyle(.plain)
@@ -148,5 +151,5 @@ struct SongDrawerView: View {
     )
   )
   .preferredColorScheme(.dark)
-  .background(Color.black) // preview helper only
+  .background(Color.black)  // preview helper only
 }

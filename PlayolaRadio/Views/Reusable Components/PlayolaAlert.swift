@@ -88,11 +88,13 @@ extension PlayolaAlert {
       message:
         "If you'd like to receive notifications for this, please turn on notifications in your settings.",
       dismissButton: .cancel(Text("OK")),
-      secondaryButton: .default(Text("Settings"), action: {
-        if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
-          UIApplication.shared.open(settingsUrl)
-        }
-      })
+      secondaryButton: .default(
+        Text("Settings"),
+        action: {
+          if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(settingsUrl)
+          }
+        })
     )
   }
 
