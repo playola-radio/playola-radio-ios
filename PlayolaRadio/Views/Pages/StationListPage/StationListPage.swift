@@ -62,7 +62,7 @@ struct StationListPage: View {
       // ---------------------------------------------------------
       ScrollView {
         VStack(alignment: .leading, spacing: 20) {
-          if model.hasLiveShows && (model.selectedSegment == "All" || model.isShowingLiveShows) {
+          if model.hasLiveShows {
             liveShowsSection()
           }
 
@@ -84,10 +84,6 @@ struct StationListPage: View {
   @ViewBuilder
   private func liveShowsSection() -> some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text("Going Live")
-        .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 24))
-        .foregroundColor(.white)
-        .padding(.horizontal, 20)
 
       ScheduledShowsListView(
         model: ScheduledShowsListModel(
