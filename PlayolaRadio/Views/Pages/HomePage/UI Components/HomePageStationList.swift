@@ -99,7 +99,7 @@ struct HomePageStationList_Previews: PreviewProvider {
       stations: IdentifiedArray(uniqueElements: [AnyStation.mock]),
       onRadioStationSelected: { _ in }
     )
-      .preferredColorScheme(.dark)
-      .padding(.horizontal, 24)
+    .preferredColorScheme(.dark)
+    .padding(.horizontal, 24)
   }
 }

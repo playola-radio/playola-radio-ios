@@ -137,7 +137,7 @@ final class ScheduledShowTileTests: XCTestCase {
 
       let show = Show.mockWith(durationMS: 1000 * 60 * 10)
       let scheduledShow = ScheduledShow.mockWith(
-        airtime: now.addingTimeInterval(60 * 60), // 1 hour in the future
+        airtime: now.addingTimeInterval(60 * 60),  // 1 hour in the future
         show: show
       )
       let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
@@ -153,7 +153,7 @@ final class ScheduledShowTileTests: XCTestCase {
 
       let show = Show.mockWith(durationMS: 1000 * 60 * 10)
       let scheduledShow = ScheduledShow.mockWith(
-        airtime: now.addingTimeInterval(3 * 60), // 3 minutes in the future
+        airtime: now.addingTimeInterval(3 * 60),  // 3 minutes in the future
         show: show
       )
       let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
@@ -169,7 +169,7 @@ final class ScheduledShowTileTests: XCTestCase {
 
       let show = Show.mockWith(durationMS: 1000 * 60 * 10)
       let scheduledShow = ScheduledShow.mockWith(
-        airtime: now.addingTimeInterval(-2 * 60), // Started 2 minutes ago
+        airtime: now.addingTimeInterval(-2 * 60),  // Started 2 minutes ago
         show: show
       )
       let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
@@ -208,7 +208,8 @@ final class ScheduledShowTileTests: XCTestCase {
     let scheduledShow = ScheduledShow.mockWith(
       station: station
     )
-    let model = ScheduledShowTileModel(scheduledShow: scheduledShow, stationPlayer: stationPlayerMock)
+    let model = ScheduledShowTileModel(
+      scheduledShow: scheduledShow, stationPlayer: stationPlayerMock)
 
     model.listenInButtonTapped()
 
@@ -236,7 +237,7 @@ final class ScheduledShowTileTests: XCTestCase {
       updatedAt: Date()
     )
     let scheduledShow = ScheduledShow.mockWith(
-      airtime: Date().addingTimeInterval(3600), // 1 hour from now
+      airtime: Date().addingTimeInterval(3600),  // 1 hour from now
       station: station
     )
 

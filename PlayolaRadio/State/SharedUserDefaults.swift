@@ -40,12 +40,6 @@ where Self == FileStorageKey<IdentifiedArrayOf<ScheduledShow>>.Default {
   }
 }
 
-extension SharedKey where Self == InMemoryKey<Bool>.Default {
-  static var scheduledShowsLoaded: Self {
-    Self[.inMemory("scheduledShowsLoaded"), default: false]
-  }
-}
-
 extension SharedKey where Self == FileStorageKey<Auth>.Default {
   static var auth: Self {
     Self[

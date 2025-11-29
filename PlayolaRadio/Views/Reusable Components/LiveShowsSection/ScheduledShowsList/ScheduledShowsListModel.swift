@@ -7,6 +7,8 @@
 
 import Dependencies
 import Foundation
+import IdentifiedCollections
+import Sharing
 
 @MainActor
 @Observable
@@ -16,6 +18,9 @@ class ScheduledShowsListModel {
 
   @ObservationIgnored
   @Dependency(\.pushNotifications) var pushNotifications
+
+  @ObservationIgnored
+  @Shared(.scheduledShows) var sharedScheduledShows: IdentifiedArrayOf<ScheduledShow> = []
 
   var scheduledShows: [ScheduledShow] = [] {
     didSet {
@@ -38,9 +43,16 @@ class ScheduledShowsListModel {
 
   func loadScheduledShows(jwtToken: String) async {
     do {
-      self.scheduledShows = try await api.getScheduledShows(jwtToken, nil, stationId)
+      let fetchedShows = try await api.getScheduledShows(jwtToken, nil, stationId)
+
+      // Update shared state so other components (like StationListModel) can observe
+      $sharedScheduledShows.withLock {
+        $0 = IdentifiedArray(uniqueElements: fetchedShows)
+      }
+
+      // Update local state for display
+      self.scheduledShows = fetchedShows
     } catch {
-      // TODO: Handle error
       print("Error loading scheduled shows: \(error)")
     }
   }

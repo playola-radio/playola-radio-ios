@@ -47,7 +47,7 @@ struct ScheduledShowsListView: View {
       showId: "show3",
       airtime: calendar.date(byAdding: .day, value: 2, to: now)!,
       show: Show.mockWith(title: "Midnight Jazz Session", durationMS: 180 * 60 * 1000)
-    )
+    ),
   ]
 
   VStack(alignment: .leading, spacing: 12) {

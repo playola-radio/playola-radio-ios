@@ -385,7 +385,7 @@ final class StationListPageTests: XCTestCase {
     XCTAssertEqual(filteredItems.last?.visibility, .hidden)
   }
 
-  // MARK: - Live Shows Tests
+  // MARK: - Going Live Tests
 
   func testLiveShows_ShowsLiveShowsSectionWhenLiveShowsExist() async {
     await withDependencies {
@@ -416,10 +416,10 @@ final class StationListPageTests: XCTestCase {
       await model.viewAppeared()
 
       XCTAssertTrue(model.hasLiveShows)
-      // Should add "Live Shows" segment even when there's only one show
-      XCTAssertTrue(model.segmentTitles.contains("Live Shows"))
+      // Should add "Going Live" segment even when there's only one show
+      XCTAssertTrue(model.segmentTitles.contains("Going Live"))
       XCTAssertEqual(model.segmentTitles[0], "All")
-      XCTAssertEqual(model.segmentTitles[1], "Live Shows")
+      XCTAssertEqual(model.segmentTitles[1], "Going Live")
     }
   }
 
@@ -449,7 +449,7 @@ final class StationListPageTests: XCTestCase {
       await model.viewAppeared()
 
       XCTAssertFalse(model.hasLiveShows)
-      XCTAssertFalse(model.segmentTitles.contains("Live Shows"))
+      XCTAssertFalse(model.segmentTitles.contains("Going Live"))
     }
   }
 
@@ -460,7 +460,7 @@ final class StationListPageTests: XCTestCase {
     await model.viewAppeared()
 
     XCTAssertFalse(model.hasLiveShows)
-    XCTAssertFalse(model.segmentTitles.contains("Live Shows"))
+    XCTAssertFalse(model.segmentTitles.contains("Going Live"))
   }
 
   func testLiveShows_AddsLiveShowsSegmentWhenMultipleLiveShows() async {
@@ -514,10 +514,10 @@ final class StationListPageTests: XCTestCase {
       await model.viewAppeared()
 
       XCTAssertTrue(model.hasLiveShows)
-      XCTAssertTrue(model.segmentTitles.contains("Live Shows"))
-      // "Live Shows" should be second, after "All"
+      XCTAssertTrue(model.segmentTitles.contains("Going Live"))
+      // "Going Live" should be second, after "All"
       XCTAssertEqual(model.segmentTitles[0], "All")
-      XCTAssertEqual(model.segmentTitles[1], "Live Shows")
+      XCTAssertEqual(model.segmentTitles[1], "Going Live")
     }
   }
 
@@ -571,10 +571,10 @@ final class StationListPageTests: XCTestCase {
       let model = StationListModel()
       await model.viewAppeared()
 
-      // Select "Live Shows" segment
-      await model.segmentSelected("Live Shows")
+      // Select "Going Live" segment
+      await model.segmentSelected("Going Live")
 
-      XCTAssertEqual(model.selectedSegment, "Live Shows")
+      XCTAssertEqual(model.selectedSegment, "Going Live")
       XCTAssertTrue(model.isShowingLiveShows)
     }
   }
@@ -632,10 +632,10 @@ final class StationListPageTests: XCTestCase {
       // Initially should show station lists
       XCTAssertFalse(model.stationListsForDisplay.isEmpty)
 
-      // Select "Live Shows" segment
-      await model.segmentSelected("Live Shows")
+      // Select "Going Live" segment
+      await model.segmentSelected("Going Live")
 
-      // Should hide station lists when Live Shows is selected
+      // Should hide station lists when Going Live is selected
       XCTAssertTrue(model.stationListsForDisplay.isEmpty)
       XCTAssertTrue(model.isShowingLiveShows)
     }
@@ -691,8 +691,8 @@ final class StationListPageTests: XCTestCase {
       let model = StationListModel()
       await model.viewAppeared()
 
-      // Select "Live Shows" segment
-      await model.segmentSelected("Live Shows")
+      // Select "Going Live" segment
+      await model.segmentSelected("Going Live")
       XCTAssertTrue(model.stationListsForDisplay.isEmpty)
 
       // Select "All" segment again
