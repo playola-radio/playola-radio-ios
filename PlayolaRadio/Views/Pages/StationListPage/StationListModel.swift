@@ -60,11 +60,8 @@ class StationListModel: ViewModel {
     let includeHidden = showSecretStations
     let visibleLists = includeHidden ? rawList : rawList.filter { !$0.hidden }
 
-    // Build segment titles: ["All", "Going Live" (if live shows exist), ...station list titles]
+    // Build segment titles: ["All", ...station list titles]
     var titles = ["All"]
-    if hasLiveShows {
-      titles.append("Going Live")
-    }
     titles.append(contentsOf: visibleLists.map { $0.title })
     segmentTitles = titles
 
@@ -72,10 +69,7 @@ class StationListModel: ViewModel {
       selectedSegment = "All"
     }
 
-    // When "Going Live" is selected, hide station lists
-    if selectedSegment == "Going Live" {
-      stationListsForDisplay = []
-    } else if selectedSegment == "All" {
+    if selectedSegment == "All" {
       stationListsForDisplay = visibleLists
     } else {
       stationListsForDisplay = visibleLists.filter { $0.title == selectedSegment }
