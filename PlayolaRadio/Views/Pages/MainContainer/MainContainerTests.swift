@@ -373,5 +373,140 @@ final class MainContainerTests: XCTestCase {
     _ = MainContainerModel()
     XCTAssertEqual(auth.jwt, secondJWT)
   }
+
+  // MARK: - Refresh On Foreground Tests
+
+  func testRefreshOnForeground_RefreshesStationListsAndScheduledShows() async {
+    let testJWT = MainContainerTests.createTestJWT()
+    @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
+    @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+
+    var getStationsCallCount = 0
+    var getScheduledShowsCallCount = 0
+    let mockScheduledShows = [
+      ScheduledShow.mockWith(id: "show1"),
+      ScheduledShow.mockWith(id: "show2"),
+    ]
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = {
+        getStationsCallCount += 1
+        return StationList.mocks
+      }
+      $0.api.getScheduledShows = { _, _, _ in
+        getScheduledShowsCallCount += 1
+        return mockScheduledShows
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.refreshOnForeground()
+
+    XCTAssertEqual(getStationsCallCount, 1)
+    XCTAssertEqual(getScheduledShowsCallCount, 1)
+    XCTAssertEqual(stationLists, StationList.mocks)
+    XCTAssertEqual(scheduledShows.count, 2)
+    XCTAssertEqual(scheduledShows[id: "show1"]?.id, "show1")
+    XCTAssertEqual(scheduledShows[id: "show2"]?.id, "show2")
+  }
+
+  func testRefreshOnForeground_SkipsScheduledShowsWhenNotLoggedIn() async {
+    @Shared(.auth) var auth = Auth()
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
+    @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+
+    var getStationsCallCount = 0
+    var getScheduledShowsCallCount = 0
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = {
+        getStationsCallCount += 1
+        return StationList.mocks
+      }
+      $0.api.getScheduledShows = { _, _, _ in
+        getScheduledShowsCallCount += 1
+        return []
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.refreshOnForeground()
+
+    XCTAssertEqual(getStationsCallCount, 1)
+    XCTAssertEqual(getScheduledShowsCallCount, 0)
+    XCTAssertEqual(stationLists, StationList.mocks)
+    XCTAssertTrue(scheduledShows.isEmpty)
+  }
+
+  func testRefreshOnForeground_TracksAnalyticsOnStationsError() async {
+    let testJWT = MainContainerTests.createTestJWT()
+    @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+
+    struct TestError: Error {
+      var localizedDescription: String { "Test stations error" }
+    }
+
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = {
+        throw TestError()
+      }
+      $0.api.getScheduledShows = { _, _, _ in [] }
+      $0.analytics.track = { @Sendable event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.refreshOnForeground()
+
+    let events = capturedEvents.value
+    XCTAssertTrue(
+      events.contains { event in
+        if case .apiError(let endpoint, _) = event {
+          return endpoint == "getStations"
+        }
+        return false
+      })
+  }
+
+  func testRefreshOnForeground_TracksAnalyticsOnScheduledShowsError() async {
+    let testJWT = MainContainerTests.createTestJWT()
+    @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+
+    struct TestError: Error {
+      var localizedDescription: String { "Test scheduled shows error" }
+    }
+
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.api.getScheduledShows = { _, _, _ in
+        throw TestError()
+      }
+      $0.analytics.track = { @Sendable event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.refreshOnForeground()
+
+    let events = capturedEvents.value
+    XCTAssertTrue(
+      events.contains { event in
+        if case .apiError(let endpoint, _) = event {
+          return endpoint == "getScheduledShows"
+        }
+        return false
+      })
+  }
 }
 // swiftlint:enable force_try

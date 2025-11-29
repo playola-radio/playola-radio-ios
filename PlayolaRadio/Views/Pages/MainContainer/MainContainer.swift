@@ -13,6 +13,7 @@ import SwiftUI
 @MainActor
 struct MainContainer: View {
   @Bindable var model: MainContainerModel
+  @Environment(\.scenePhase) private var scenePhase
 
   var body: some View {
     NavigationStack(path: $model.mainContainerNavigationCoordinator.path) {
@@ -104,6 +105,11 @@ struct MainContainer: View {
     }
     .animation(.easeInOut(duration: 0.3), value: model.presentedToast)
     .onAppear { Task { await model.viewAppeared() } }
+    .onChange(of: scenePhase) { _, newPhase in
+      if newPhase == .active {
+        Task { await model.refreshOnForeground() }
+      }
+    }
 
   }
 
