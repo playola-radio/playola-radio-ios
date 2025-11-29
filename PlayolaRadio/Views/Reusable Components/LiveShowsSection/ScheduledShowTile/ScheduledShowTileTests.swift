@@ -361,4 +361,124 @@ final class ScheduledShowTileTests: XCTestCase {
       XCTAssertEqual(model.presentedAlert, .errorSchedulingNotification)
     }
   }
+
+  // MARK: - Analytics Tests
+
+  func testnotifyMeButtonTapped_TracksAnalyticsEvent() async {
+    let station = PlayolaPlayer.Station(
+      id: "test-station",
+      name: "Moondog Radio",
+      curatorName: "Jacob Stelly",
+      imageUrl: URL(string: "https://example.com/image.png"),
+      description: "Test station description",
+      active: true,
+      createdAt: Date(),
+      updatedAt: Date()
+    )
+    let show = Show(
+      id: "test-show-id",
+      stationId: "test-station",
+      title: "Morning Vibes",
+      durationMS: 3_600_000,
+      createdAt: Date(),
+      updatedAt: Date(),
+      segments: nil
+    )
+    let scheduledShow = ScheduledShow.mockWith(
+      showId: "test-show-id",
+      airtime: Date().addingTimeInterval(3600),
+      show: show,
+      station: station
+    )
+
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    await withDependencies {
+      $0.pushNotifications.scheduleNotification = { _, _, _, _ in }
+      $0.pushNotifications.requestAuthorization = { true }
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
+      await model.notifyMeButtonTapped()
+
+      let events = capturedEvents.value
+      XCTAssertEqual(events.count, 1)
+
+      if case .notifyMeRequested(let showId, let showName, let stationName) = events.first {
+        XCTAssertEqual(showId, "test-show-id")
+        XCTAssertEqual(showName, "Morning Vibes")
+        XCTAssertEqual(stationName, "Moondog Radio")
+      } else {
+        XCTFail("Expected notifyMeRequested event, got: \(String(describing: events.first))")
+      }
+    }
+  }
+
+  func testnotifyMeButtonTapped_DoesNotTrackAnalyticsWhenNotificationDenied() async {
+    let station = PlayolaPlayer.Station(
+      id: "test-station",
+      name: "Moondog Radio",
+      curatorName: "Jacob Stelly",
+      imageUrl: URL(string: "https://example.com/image.png"),
+      description: "Test station description",
+      active: true,
+      createdAt: Date(),
+      updatedAt: Date()
+    )
+    let scheduledShow = ScheduledShow.mockWith(
+      airtime: Date().addingTimeInterval(3600),
+      station: station
+    )
+
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    await withDependencies {
+      $0.pushNotifications.requestAuthorization = { false }
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
+      await model.notifyMeButtonTapped()
+
+      XCTAssertTrue(capturedEvents.value.isEmpty)
+    }
+  }
+
+  func testnotifyMeButtonTapped_DoesNotTrackAnalyticsWhenSchedulingFails() async {
+    let station = PlayolaPlayer.Station(
+      id: "test-station",
+      name: "Moondog Radio",
+      curatorName: "Jacob Stelly",
+      imageUrl: URL(string: "https://example.com/image.png"),
+      description: "Test station description",
+      active: true,
+      createdAt: Date(),
+      updatedAt: Date()
+    )
+    let scheduledShow = ScheduledShow.mockWith(
+      airtime: Date().addingTimeInterval(3600),
+      station: station
+    )
+
+    struct TestError: Error {}
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    await withDependencies {
+      $0.pushNotifications.requestAuthorization = { true }
+      $0.pushNotifications.scheduleNotification = { _, _, _, _ in
+        throw TestError()
+      }
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
+      await model.notifyMeButtonTapped()
+
+      XCTAssertTrue(capturedEvents.value.isEmpty)
+    }
+  }
 }

@@ -16,6 +16,8 @@ class ScheduledShowTileModel {
 
   @ObservationIgnored
   @Dependency(\.pushNotifications) var pushNotifications
+  @ObservationIgnored
+  @Dependency(\.analytics) var analytics
   @ObservationIgnored var stationPlayer: StationPlayer
 
   var scheduledShow: ScheduledShow
@@ -85,6 +87,15 @@ class ScheduledShowTileModel {
         message,
         notificationDate
       )
+
+      await analytics.track(
+        .notifyMeRequested(
+          showId: scheduledShow.showId,
+          showName: scheduledShow.show?.title ?? "Unknown",
+          stationName: station.name
+        )
+      )
+
       presentedAlert = .notificationScheduled
     } catch {
       presentedAlert = .errorSchedulingNotification
