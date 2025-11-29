@@ -38,6 +38,7 @@ struct HomePageView: View {
       }
       .circleBackground(offsetY: -180)
     }
+    .background(Color.black.ignoresSafeArea())
     .alert(item: $model.presentedAlert) { $0.alert }
     .onAppear { Task { await model.viewAppeared() } }
   }
