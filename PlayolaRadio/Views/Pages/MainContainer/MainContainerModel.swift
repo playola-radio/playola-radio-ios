@@ -22,6 +22,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored var stationPlayer: StationPlayer!
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
+  @ObservationIgnored @Shared(.scheduledShows) var scheduledShows
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
@@ -80,6 +81,32 @@ class MainContainerModel: ViewModel {
     observeToasts()
 
     await loadListeningTracker()
+  }
+
+  func refreshOnForeground() async {
+    do {
+      let retrievedStationsLists = try await api.getStations()
+      self.$stationLists.withLock { $0 = retrievedStationsLists }
+    } catch {
+      await analytics.track(
+        .apiError(
+          endpoint: "getStations",
+          error: error.localizedDescription
+        ))
+    }
+
+    if let token = auth.jwt {
+      do {
+        let shows = try await api.getScheduledShows(token, nil, nil)
+        $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: shows) }
+      } catch {
+        await analytics.track(
+          .apiError(
+            endpoint: "getScheduledShows",
+            error: error.localizedDescription
+          ))
+      }
+    }
   }
 
   func loadListeningTracker() async {
