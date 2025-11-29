@@ -147,4 +147,39 @@ final class StationListStationRowTests: XCTestCase {
     XCTAssertEqual(
       model.imageUrl, comingSoonStation.imageUrl)
   }
+
+  func testComingSoonDateFormattingUsesUTCTimezone() {
+    @Shared(.showSecretStations) var showSecretStations: Bool = false
+    let now = Date(timeIntervalSince1970: 1_758_915_200)
+
+    // Simulate how the server sends dates: "2025-12-25" parsed as UTC midnight
+    // This is 2025-12-25 00:00:00 UTC, which in US timezones would be Dec 24th local time
+    var utcCalendar = Calendar(identifier: .gregorian)
+    utcCalendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    let releaseDateAsUTC = utcCalendar.date(from: DateComponents(year: 2025, month: 12, day: 25))!
+
+    let comingSoonStation = PlayolaPlayer.Station(
+      id: "coming-soon",
+      name: "Moondog Radio",
+      curatorName: "Jacob Stelly",
+      imageUrl: URL(string: "https://example.com/moondog.png"),
+      description: "Coming soon",
+      active: true,
+      releaseDate: releaseDateAsUTC,
+      createdAt: now,
+      updatedAt: now
+    )
+
+    let item = APIStationItem(
+      sortOrder: 0,
+      visibility: .comingSoon,
+      station: comingSoonStation,
+      urlStation: nil
+    )
+
+    let model = StationListStationRowModel(item: item)
+
+    // Should show Dec 25th (the UTC date), not Dec 24th (what it would be in US timezones)
+    XCTAssertEqual(model.subtitleText, "Coming Dec 25th")
+  }
 }

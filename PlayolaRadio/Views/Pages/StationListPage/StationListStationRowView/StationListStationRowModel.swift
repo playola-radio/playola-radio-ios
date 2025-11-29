@@ -31,7 +31,9 @@ struct StationListStationRowModel {
   }
 
   func formattedMonthDay(with date: Date) -> String {
-    let calendar = Calendar.current
+    // Use UTC calendar to match how releaseDate is parsed from server
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
     let day = calendar.component(.day, from: date)
 
     // Ordinal suffix
@@ -49,6 +51,7 @@ struct StationListStationRowModel {
 
     // Month abbreviation
     let formatter = DateFormatter()
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
     formatter.dateFormat = "MMM"
     let month = formatter.string(from: date)
 
