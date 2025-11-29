@@ -19,6 +19,7 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
+  @ObservationIgnored @Shared(.scheduledShows) var scheduledShows
   @ObservationIgnored @Shared(.auth) var auth: Auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Dependency(\.analytics) var analytics
@@ -27,6 +28,10 @@ class HomePageModel: ViewModel {
 
   var forYouStations: IdentifiedArrayOf<AnyStation> = []
   var presentedAlert: PlayolaAlert?
+
+  var hasLiveShows: Bool {
+    scheduledShows.contains { !$0.hasEnded }
+  }
 
   var welcomeMessage: String {
     if let currentUser = auth.currentUser {
