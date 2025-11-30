@@ -135,6 +135,34 @@ final class MainContainerTests: XCTestCase {
     XCTAssertTrue(hasBeenUnlocked)  // Should still be set even when exiting early
   }
 
+  func testViewAppeared_LoadsScheduledShowsWhenLoggedIn() async {
+    let testJWT = MainContainerTests.createTestJWT()
+    @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+    @Shared(.stationListsLoaded) var stationListsLoaded = false
+    @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+
+    var getScheduledShowsCallCount = 0
+    let mockScheduledShows = [
+      ScheduledShow.mockWith(id: "show1"),
+      ScheduledShow.mockWith(id: "show2"),
+    ]
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { StationList.mocks }
+      $0.api.getScheduledShows = { _, _, _ in
+        getScheduledShowsCallCount += 1
+        return mockScheduledShows
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.viewAppeared()
+
+    XCTAssertEqual(getScheduledShowsCallCount, 1)
+    XCTAssertEqual(scheduledShows.count, 2)
+  }
+
   // MARK: - Small Player Properties Tests
 
   func testSmallPlayerProperties_ShouldShowSmallPlayerWhenPlaying() async {
