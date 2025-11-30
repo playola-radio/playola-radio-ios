@@ -81,6 +81,7 @@ class MainContainerModel: ViewModel {
     observeToasts()
 
     await loadListeningTracker()
+    await loadScheduledShows()
   }
 
   func refreshOnForeground() async {
@@ -95,17 +96,20 @@ class MainContainerModel: ViewModel {
         ))
     }
 
-    if let token = auth.jwt {
-      do {
-        let shows = try await api.getScheduledShows(token, nil, nil)
-        $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: shows) }
-      } catch {
-        await analytics.track(
-          .apiError(
-            endpoint: "getScheduledShows",
-            error: error.localizedDescription
-          ))
-      }
+    await loadScheduledShows()
+  }
+
+  func loadScheduledShows() async {
+    guard let token = auth.jwt else { return }
+    do {
+      let shows = try await api.getScheduledShows(token, nil, nil)
+      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: shows) }
+    } catch {
+      await analytics.track(
+        .apiError(
+          endpoint: "getScheduledShows",
+          error: error.localizedDescription
+        ))
     }
   }
 
