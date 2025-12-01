@@ -7,7 +7,6 @@
 
 import Dependencies
 import Sharing
-import SwiftNavigation
 import SwiftUI
 
 /// This class coordinates any ViewControllers that need to be pushed onto the
@@ -21,7 +20,6 @@ final class MainContainerNavigationCoordinator: Sendable {
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Dependency(\.continuousClock) var clock
 
-  @CasePathable
   enum Path: Hashable, Equatable {
     case editProfilePage(EditProfilePageModel)
     case likedSongsPage(LikedSongsPageModel)

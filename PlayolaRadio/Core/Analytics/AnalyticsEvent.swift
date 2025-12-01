@@ -54,6 +54,7 @@ enum AnalyticsEvent: Equatable {
   case audioOutputChanged(outputTypes: [String])
   case carPlayInitialized
   case stationChanged(from: String?, to: String)
+  case notifyMeRequested(showId: String, showName: String, stationName: String)
 
   // MARK: Errors
   case apiError(endpoint: String, error: String)
@@ -91,6 +92,7 @@ extension AnalyticsEvent {
     case .audioOutputChanged: return "Audio Output Changed"
     case .carPlayInitialized: return "CarPlay Initialized"
     case .stationChanged: return "Station Changed"
+    case .notifyMeRequested: return "Notify Me Requested"
     case .apiError: return "API Error"
     }
   }
@@ -211,6 +213,13 @@ extension AnalyticsEvent {
         props["from"] = from
       }
       return props
+
+    case .notifyMeRequested(let showId, let showName, let stationName):
+      return [
+        "show_id": showId,
+        "show_name": showName,
+        "station_name": stationName,
+      ]
 
     case .apiError(let endpoint, let error):
       return [

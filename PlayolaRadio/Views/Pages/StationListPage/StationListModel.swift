@@ -21,6 +21,8 @@ class StationListModel: ViewModel {
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
+  @ObservationIgnored @Shared(.scheduledShows) var scheduledShows:
+    IdentifiedArrayOf<ScheduledShow> = []
   @ObservationIgnored @Dependency(\.analytics) var analytics
 
   @ObservationIgnored var stationPlayer: StationPlayer
@@ -29,6 +31,16 @@ class StationListModel: ViewModel {
   var segmentTitles: [String] = ["All"]
   var selectedSegment = "All"
   var presentedAlert: PlayolaAlert?
+
+  var hasLiveShows: Bool {
+    return scheduledShows.contains { show in
+      !show.hasEnded
+    }
+  }
+
+  var isShowingLiveShows: Bool {
+    selectedSegment == "Going Live"
+  }
 
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
@@ -48,7 +60,10 @@ class StationListModel: ViewModel {
     let includeHidden = showSecretStations
     let visibleLists = includeHidden ? rawList : rawList.filter { !$0.hidden }
 
-    segmentTitles = ["All"] + visibleLists.map { $0.title }
+    // Build segment titles: ["All", ...station list titles]
+    var titles = ["All"]
+    titles.append(contentsOf: visibleLists.map { $0.title })
+    segmentTitles = titles
 
     if !segmentTitles.contains(selectedSegment) {
       selectedSegment = "All"

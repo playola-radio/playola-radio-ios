@@ -5,8 +5,8 @@
 //  Created by Brian D Keane on 8/30/25.
 //
 
-import ComposableArchitecture
 import Dependencies
+import DependenciesMacros
 import Foundation
 
 @DependencyClient

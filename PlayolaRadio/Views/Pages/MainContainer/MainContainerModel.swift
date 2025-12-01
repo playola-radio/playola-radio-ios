@@ -7,6 +7,7 @@
 
 import Combine
 import Dependencies
+import IdentifiedCollections
 import Sharing
 import SwiftUI
 
@@ -21,6 +22,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored var stationPlayer: StationPlayer!
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
+  @ObservationIgnored @Shared(.scheduledShows) var scheduledShows
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
@@ -54,20 +56,20 @@ class MainContainerModel: ViewModel {
     // Mark that the main container has been unlocked/shown
     $hasBeenUnlocked.withLock { $0 = true }
 
-    // Exit early if we already have the data.
-    guard !stationListsLoaded else { return }
-
-    do {
-      let retrievedStationsLists = try await api.getStations()
-      self.$stationLists.withLock { $0 = retrievedStationsLists }
-      self.$stationListsLoaded.withLock { $0 = true }
-    } catch {
-      presentedAlert = .errorLoadingStations
-      await analytics.track(
-        .apiError(
-          endpoint: "getStations",
-          error: error.localizedDescription
-        ))
+    // Load station lists if not already loaded
+    if !stationListsLoaded {
+      do {
+        let retrievedStationsLists = try await api.getStations()
+        self.$stationLists.withLock { $0 = retrievedStationsLists }
+        self.$stationListsLoaded.withLock { $0 = true }
+      } catch {
+        presentedAlert = .errorLoadingStations
+        await analytics.track(
+          .apiError(
+            endpoint: "getStations",
+            error: error.localizedDescription
+          ))
+      }
     }
 
     // NOTE: For now, this has to stay connected to the Singleton in order to avoid reloading
@@ -79,6 +81,36 @@ class MainContainerModel: ViewModel {
     observeToasts()
 
     await loadListeningTracker()
+    await loadScheduledShows()
+  }
+
+  func refreshOnForeground() async {
+    do {
+      let retrievedStationsLists = try await api.getStations()
+      self.$stationLists.withLock { $0 = retrievedStationsLists }
+    } catch {
+      await analytics.track(
+        .apiError(
+          endpoint: "getStations",
+          error: error.localizedDescription
+        ))
+    }
+
+    await loadScheduledShows()
+  }
+
+  func loadScheduledShows() async {
+    guard let token = auth.jwt else { return }
+    do {
+      let shows = try await api.getScheduledShows(token, nil, nil)
+      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: shows) }
+    } catch {
+      await analytics.track(
+        .apiError(
+          endpoint: "getScheduledShows",
+          error: error.localizedDescription
+        ))
+    }
   }
 
   func loadListeningTracker() async {

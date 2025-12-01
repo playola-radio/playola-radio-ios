@@ -84,7 +84,7 @@ struct SmallPlayer: View {
         // Heart button (only for songs)
         if let audioBlock = currentAudioBlock, audioBlock.type == "song" {
           Button(
-            action: { 
+            action: {
               likesManager.toggleLike(audioBlock)
             },
             label: {

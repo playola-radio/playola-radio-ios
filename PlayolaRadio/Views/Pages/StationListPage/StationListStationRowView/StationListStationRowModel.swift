@@ -22,8 +22,43 @@ struct StationListStationRowModel {
     return item.anyStation.name
   }
 
+  var comingSoonText: String {
+    if let date = item.station?.releaseDate {
+      return "Coming \(formattedMonthDay(with: date))"
+    } else {
+      return "Coming Soon"
+    }
+  }
+
+  func formattedMonthDay(with date: Date) -> String {
+    // Use UTC calendar to match how releaseDate is parsed from server
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    let day = calendar.component(.day, from: date)
+
+    // Ordinal suffix
+    let suffix: String
+    switch day {
+    case 11, 12, 13: suffix = "th"
+    default:
+      switch day % 10 {
+      case 1: suffix = "st"
+      case 2: suffix = "nd"
+      case 3: suffix = "rd"
+      default: suffix = "th"
+      }
+    }
+
+    // Month abbreviation
+    let formatter = DateFormatter()
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    formatter.dateFormat = "MMM"
+    let month = formatter.string(from: date)
+
+    return "\(month) \(day)\(suffix)"
+  }
+
   var subtitleText: String {
-    let comingSoonText = "Coming Soon"
     if item.visibility == .comingSoon {
       if !showSecretStations {
         return comingSoonText
@@ -38,7 +73,7 @@ struct StationListStationRowModel {
   }
 
   var subtitleColor: Color {
-    return subtitleText == "Coming Soon" ? Color.playolaRed : Color.white
+    return subtitleText == comingSoonText ? Color.playolaRed : Color.white
   }
 
   init(item: APIStationItem) {

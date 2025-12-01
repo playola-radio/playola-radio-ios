@@ -29,6 +29,10 @@ struct HomePageView: View {
 
           ListeningTimeTile(model: model.listeningTimeTileModel)
 
+          if model.hasLiveShows {
+            liveShowsSection()
+          }
+
           HomePageStationList(stations: model.forYouStations) { station in
             Task { await model.handleStationTapped(station) }
           }
@@ -38,8 +42,26 @@ struct HomePageView: View {
       }
       .circleBackground(offsetY: -180)
     }
+    .background(Color.black.ignoresSafeArea())
     .alert(item: $model.presentedAlert) { $0.alert }
     .onAppear { Task { await model.viewAppeared() } }
+  }
+
+  @ViewBuilder
+  private func liveShowsSection() -> some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text("Stations broadcasting live")
+        .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 24))
+        .foregroundColor(.white)
+
+      ScheduledShowsListView(
+        model: ScheduledShowsListModel(
+          scheduledShows: model.scheduledShows.filter { !$0.hasEnded }
+        ),
+        presentAlert: { model.presentedAlert = $0 }
+      )
+    }
+    .padding(.top, 16)
   }
 }
 

@@ -384,6 +384,7 @@ final class StationListPageTests: XCTestCase {
     XCTAssertEqual(filteredItems.count, 2)
     XCTAssertEqual(filteredItems.last?.visibility, .hidden)
   }
+
 }
 
 private func assertPlayedEvents(
