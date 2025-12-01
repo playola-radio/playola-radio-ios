@@ -143,10 +143,10 @@ struct APIClient: Sendable {
   /// Fetches the schedule for a station
   /// - Parameters:
   ///   - stationId: The station ID to fetch the schedule for
-  ///   - count: Number of spins to return (default 10, max 500)
+  ///   - extended: Whether to fetch extended schedule (more spins)
   /// - Returns: Array of Spin objects representing the schedule
   /// - Throws: Error if the request fails
-  var fetchSchedule: (_ stationId: String, _ count: Int?) async throws -> [Spin] = { _, _ in [] }
+  var fetchSchedule: (_ stationId: String, _ extended: Bool) async throws -> [Spin] = { _, _ in [] }
 }
 
 extension APIClient: DependencyKey {
@@ -358,7 +358,7 @@ extension APIClient: DependencyKey {
           throw APIError.dataNotValid
         }
 
-        if statusCode >= 200 && statusCode < 300 {
+        if statusCode >= 200, statusCode < 300 {
           return
         } else {
           // Try to parse server error message
@@ -496,11 +496,11 @@ extension APIClient: DependencyKey {
 
         return response
       },
-      fetchSchedule: { stationId, count in
+      fetchSchedule: { stationId, extended in
         var url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/schedule"
 
-        if let count = count {
-          url += "?count=\(count)"
+        if extended {
+          url += "?extended=true"
         }
 
         let response = try await AF.request(url)
@@ -542,6 +542,7 @@ extension DependencyValues {
 struct LoginResponse: Decodable {
   let playolaToken: String
 }
+
 struct UpdateUserResponse: Decodable {
   let id: String
   let firstName: String

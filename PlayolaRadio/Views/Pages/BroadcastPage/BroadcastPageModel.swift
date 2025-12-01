@@ -26,8 +26,10 @@ class BroadcastPageModel: ViewModel {
   var schedule: Schedule?
   var isLoading: Bool = false
   var presentedAlert: PlayolaAlert?
+  var currentNowPlayingId: String?
 
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.date.now) var now
 
   init(stationId: String) {
     self.stationId = stationId
@@ -43,9 +45,11 @@ class BroadcastPageModel: ViewModel {
     defer { isLoading = false }
 
     do {
-      let spins = try await api.fetchSchedule(stationId, 500)
+      let spins = try await api.fetchSchedule(stationId, true)
       schedule = Schedule(
-        stationId: stationId, spins: spins, dateProvider: DependencyDateProvider())
+        stationId: stationId, spins: spins, dateProvider: DependencyDateProvider()
+      )
+      currentNowPlayingId = nowPlaying?.id
     } catch {
       presentedAlert = .errorLoadingSchedule
     }
@@ -57,7 +61,22 @@ class BroadcastPageModel: ViewModel {
 
   var upcomingSpins: [Spin] {
     guard let schedule else { return [] }
-    return schedule.current().filter { $0.id != nowPlaying?.id }
+    return schedule.current().filter { $0.airtime > now }
+  }
+
+  var nowPlayingProgress: Double {
+    guard let spin = nowPlaying else { return 0 }
+    let elapsed = now.timeIntervalSince(spin.airtime)
+    let duration = Double(spin.audioBlock.endOfMessageMS) / 1000.0
+    guard duration > 0 else { return 0 }
+    return min(max(elapsed / duration, 0), 1)
+  }
+
+  func tick() {
+    let newNowPlayingId = nowPlaying?.id
+    if newNowPlayingId != currentNowPlayingId {
+      currentNowPlayingId = newNowPlayingId
+    }
   }
 }
 
@@ -66,6 +85,7 @@ extension PlayolaAlert {
     PlayolaAlert(
       title: "Error",
       message: "Unable to load the station schedule. Please try again.",
-      dismissButton: .cancel(Text("OK")))
+      dismissButton: .cancel(Text("OK"))
+    )
   }
 }
