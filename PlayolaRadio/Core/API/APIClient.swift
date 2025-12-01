@@ -139,6 +139,14 @@ struct APIClient: Sendable {
   var getScheduledShows:
     (_ jwtToken: String, _ showId: String?, _ stationId: String?) async throws -> [ScheduledShow] =
       { _, _, _ in [] }
+
+  /// Fetches the schedule for a station
+  /// - Parameters:
+  ///   - stationId: The station ID to fetch the schedule for
+  ///   - count: Number of spins to return (default 10, max 500)
+  /// - Returns: Array of Spin objects representing the schedule
+  /// - Throws: Error if the request fails
+  var fetchSchedule: (_ stationId: String, _ count: Int?) async throws -> [Spin] = { _, _ in [] }
 }
 
 extension APIClient: DependencyKey {
@@ -485,6 +493,20 @@ extension APIClient: DependencyKey {
         .validate(statusCode: 200..<300)
         .serializingDecodable([ScheduledShow].self, decoder: isoDecoder)
         .value
+
+        return response
+      },
+      fetchSchedule: { stationId, count in
+        var url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/schedule"
+
+        if let count = count {
+          url += "?count=\(count)"
+        }
+
+        let response = try await AF.request(url)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([Spin].self, decoder: isoDecoder)
+          .value
 
         return response
       }

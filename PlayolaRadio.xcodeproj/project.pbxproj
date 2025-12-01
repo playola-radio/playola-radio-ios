@@ -140,6 +140,11 @@
 		D31C43D42D3C783B0021AAE4 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D31C43D32D3C783B0021AAE4 /* PlayolaPlayer */; };
 		D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31CD5222DFBA1EC009B9780 /* ViewModel.swift */; };
 		D31CD5272DFBB4DF009B9780 /* MainContainerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31CD5252DFBB47D009B9780 /* MainContainerTests.swift */; };
+		D3219C172EDD22150008AFDA /* BroadcastPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C162EDD22100008AFDA /* BroadcastPageView.swift */; };
+		D3219C182EDD22150008AFDA /* BroadcastPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C162EDD22100008AFDA /* BroadcastPageView.swift */; };
+		D3219C1A2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */; };
+		D3219C1B2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */; };
+		D3219C1F2EDD22360008AFDA /* BroadcastPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C1C2EDD22230008AFDA /* BroadcastPageTests.swift */; };
 		D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5662BFD10AE00B9E35B /* StationListPage.swift */; };
 		D339E5692BFD1C0800B9E35B /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5682BFD1C0800B9E35B /* APIClient.swift */; };
 		D339E56D2BFD2FAB00B9E35B /* URLStreamPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E56C2BFD2FAB00B9E35B /* URLStreamPlayer.swift */; };
@@ -305,6 +310,9 @@
 		D31C43A92D3C390C0021AAE4 /* StationPlayerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerMock.swift; sourceTree = "<group>"; };
 		D31CD5222DFBA1EC009B9780 /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
 		D31CD5252DFBB47D009B9780 /* MainContainerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainerTests.swift; sourceTree = "<group>"; };
+		D3219C162EDD22100008AFDA /* BroadcastPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageView.swift; sourceTree = "<group>"; };
+		D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageModel.swift; sourceTree = "<group>"; };
+		D3219C1C2EDD22230008AFDA /* BroadcastPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageTests.swift; sourceTree = "<group>"; };
 		D339E5662BFD10AE00B9E35B /* StationListPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPage.swift; sourceTree = "<group>"; };
 		D339E5682BFD1C0800B9E35B /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		D339E56C2BFD2FAB00B9E35B /* URLStreamPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLStreamPlayer.swift; sourceTree = "<group>"; };
@@ -549,6 +557,16 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		D3219C152EDD22060008AFDA /* BroadcastPage */ = {
+			isa = PBXGroup;
+			children = (
+				D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */,
+				D3219C162EDD22100008AFDA /* BroadcastPageView.swift */,
+				D3219C1C2EDD22230008AFDA /* BroadcastPageTests.swift */,
+			);
+			path = BroadcastPage;
+			sourceTree = "<group>";
+		};
 		D339E55B2BFD0CEE00B9E35B /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -561,6 +579,7 @@
 		D339E55C2BFD0FB000B9E35B /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				D3219C152EDD22060008AFDA /* BroadcastPage */,
 				D30257852E63B6AD00F4228B /* LikedSongsPage */,
 				D3A08A362E53A761002468E0 /* InvitationCodePage */,
 				D39591242E3BB6F400720CF8 /* EditProfilePage */,
@@ -1208,6 +1227,7 @@
 				D30F00612E8592F0007BCC73 /* Toast.swift in Sources */,
 				D30F00622E8592F0007BCC73 /* MailService.swift in Sources */,
 				D30F00632E8592F0007BCC73 /* FRadioPlayerMetadata+Equatable.swift in Sources */,
+				D3219C1A2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */,
 				D30F00642E8592F0007BCC73 /* PrizeTier.swift in Sources */,
 				D30F00652E8592F0007BCC73 /* PlayolaSheet.swift in Sources */,
 				D30F00662E8592F0007BCC73 /* PlayerPageModel.swift in Sources */,
@@ -1243,6 +1263,7 @@
 				D3E8D6842E96D39C0028CEBD /* Show.swift in Sources */,
 				D30F00822E8592F0007BCC73 /* LikedSongsPageModel.swift in Sources */,
 				D30F00832E8592F0007BCC73 /* UIApplication+keyWindow.swift in Sources */,
+				D3219C172EDD22150008AFDA /* BroadcastPageView.swift in Sources */,
 				D30F00842E8592F0007BCC73 /* Prize.swift in Sources */,
 				D30F00852E8592F0007BCC73 /* NowPlayingUpdater.swift in Sources */,
 				D30F00862E8592F0007BCC73 /* Bundle+Misc.swift in Sources */,
@@ -1302,6 +1323,7 @@
 				D302576B2E63423D00F4228B /* Toast.swift in Sources */,
 				D339E57E2BFD750700B9E35B /* MailService.swift in Sources */,
 				D339E56F2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift in Sources */,
+				D3219C1B2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */,
 				D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */,
 				D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */,
 				D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */,
@@ -1337,6 +1359,7 @@
 				D3E8D6852E96D39C0028CEBD /* Show.swift in Sources */,
 				D30257892E63B6C100F4228B /* LikedSongsPageModel.swift in Sources */,
 				D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */,
+				D3219C182EDD22150008AFDA /* BroadcastPageView.swift in Sources */,
 				D3B744CD2E368DB50042A427 /* Prize.swift in Sources */,
 				D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */,
 				D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */,
@@ -1367,6 +1390,7 @@
 				D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */,
 				D30257A92E651C9E00F4228B /* MainContainerNavigationCoordinatorTests.swift in Sources */,
 				D30257792E634A2600F4228B /* ToastClientTests.swift in Sources */,
+				D3219C1F2EDD22360008AFDA /* BroadcastPageTests.swift in Sources */,
 				D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */,
 				D37B74942ECA3A69009806C6 /* ScheduledShowTileTests.swift in Sources */,
 				D37786E82EAD3DA20084B8B8 /* ScheduledShowTests.swift in Sources */,
