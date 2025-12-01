@@ -19,6 +19,7 @@ class ContactPageModel: ViewModel {
   var mainContainerNavigationCoordinator
   var editProfilePageModel: EditProfilePageModel = EditProfilePageModel()
   var likedSongsPageModel: LikedSongsPageModel = LikedSongsPageModel()
+  var broadcastPageModel: BroadcastPageModel?
 
   var name: String {
     return auth.currentUser?.fullName ?? "Anonymous"
@@ -49,6 +50,15 @@ class ContactPageModel: ViewModel {
   @MainActor
   func onLikedSongsTapped() {
     mainContainerNavigationCoordinator.path.append(.likedSongsPage(self.likedSongsPageModel))
+  }
+
+  @MainActor
+  func onMyStationTapped() {
+    // TODO: Fetch stationId from API instead of hardcoding
+    let stationId = "f3864734-de35-414f-b0b3-e6909b0b77bd"
+    let model = BroadcastPageModel(stationId: stationId)
+    broadcastPageModel = model
+    mainContainerNavigationCoordinator.path.append(.broadcastPage(model))
   }
 
   func onLogOutTapped() {

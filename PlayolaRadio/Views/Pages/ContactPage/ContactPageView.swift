@@ -114,6 +114,34 @@ struct ContactPageView: View {
           )
           .padding(.horizontal, 20)
 
+          // My Station Button (temporary)
+          Button(
+            action: {
+              model.onMyStationTapped()
+            },
+            label: {
+              HStack(spacing: 12) {
+                Image(systemName: "radio")
+                  .foregroundColor(.white)
+                  .font(.system(size: 16))
+
+                Text("My Station")
+                  .font(.custom(FontNames.Inter_500_Medium, size: 16))
+                  .foregroundColor(.white)
+
+                Image(systemName: "chevron.right")
+                  .foregroundColor(.white)
+                  .font(.system(size: 14))
+              }
+              .frame(maxWidth: .infinity)
+              .frame(height: 50)
+              .padding(.horizontal, 16)
+              .background(Color(hex: "#EF6962"))
+              .cornerRadius(6)
+            }
+          )
+          .padding(.horizontal, 20)
+
           // Log Out Button
           Button(
             action: {

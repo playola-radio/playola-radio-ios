@@ -113,4 +113,23 @@ final class ContactPageTests: XCTestCase {
       XCTFail("Expected navigation to liked songs page")
     }
   }
+
+  func testOnMyStationTapped_NavigatesToBroadcastPage() {
+    let model = ContactPageModel()
+
+    // Verify initial navigation state
+    XCTAssertTrue(model.mainContainerNavigationCoordinator.path.isEmpty)
+
+    // Tap my station button
+    model.onMyStationTapped()
+
+    // Verify navigation occurred
+    XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
+
+    if case .broadcastPage = model.mainContainerNavigationCoordinator.path.first {
+      // Successfully navigated to broadcast page
+    } else {
+      XCTFail("Expected navigation to broadcast page")
+    }
+  }
 }
