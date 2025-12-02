@@ -76,4 +76,24 @@ final class ChooseStationToBroadcastPageTests: XCTestCase {
       XCTFail("Expected navigation to broadcast page")
     }
   }
+
+  func testSortedStations_FiltersOutInactiveStations() {
+    let stations = [
+      Station.mockWith(id: "active-1", name: "Active Station", curatorName: "Alice", active: true),
+      Station.mockWith(
+        id: "inactive-1", name: "Inactive Station", curatorName: "Bob", active: false),
+      Station.mockWith(
+        id: "active-2", name: "Another Active", curatorName: "Charlie", active: true),
+      Station.mockWith(
+        id: "nil-active", name: "Nil Active Station", curatorName: "Dave", active: nil),
+    ]
+
+    let model = ChooseStationToBroadcastPageModel(stations: stations)
+
+    XCTAssertEqual(model.sortedStations.count, 3)
+    XCTAssertFalse(model.sortedStations.contains { $0.id == "inactive-1" })
+    XCTAssertTrue(model.sortedStations.contains { $0.id == "active-1" })
+    XCTAssertTrue(model.sortedStations.contains { $0.id == "active-2" })
+    XCTAssertTrue(model.sortedStations.contains { $0.id == "nil-active" })
+  }
 }

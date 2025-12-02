@@ -118,7 +118,9 @@ struct ContactPageView: View {
           if model.myStationButtonVisible {
             Button(
               action: {
-                model.onMyStationTapped()
+                Task {
+                  await model.onMyStationTapped()
+                }
               },
               label: {
                 HStack(spacing: 12) {
@@ -126,7 +128,7 @@ struct ContactPageView: View {
                     .foregroundColor(.white)
                     .font(.system(size: 16))
 
-                  Text("My Station")
+                  Text(model.myStationButtonLabel)
                     .font(.custom(FontNames.Inter_500_Medium, size: 16))
                     .foregroundColor(.white)
 

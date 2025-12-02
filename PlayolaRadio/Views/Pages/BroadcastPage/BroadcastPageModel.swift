@@ -112,6 +112,14 @@ class BroadcastPageModel: ViewModel {
     }
   }
 
+  func onAddVoiceTrackTapped() {
+    presentedAlert = .comingSoon
+  }
+
+  func onAddSongTapped() {
+    presentedAlert = .comingSoon
+  }
+
   /// Handles moving spins in the list, automatically including grouped spins
   func moveSpins(from source: IndexSet, to destination: Int) {
     var spins = upcomingSpins
@@ -161,6 +169,14 @@ extension PlayolaAlert {
     PlayolaAlert(
       title: "Error",
       message: "Unable to load the station schedule. Please try again.",
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static var comingSoon: PlayolaAlert {
+    PlayolaAlert(
+      title: "Coming Soon",
+      message: "This feature is coming soon!",
       dismissButton: .cancel(Text("OK"))
     )
   }

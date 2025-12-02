@@ -19,9 +19,11 @@ class ChooseStationToBroadcastPageModel: ViewModel {
   let stations: [Station]
 
   var sortedStations: [Station] {
-    stations.sorted {
-      $0.curatorName.localizedCaseInsensitiveCompare($1.curatorName) == .orderedAscending
-    }
+    stations
+      .filter { $0.active != false }
+      .sorted {
+        $0.curatorName.localizedCaseInsensitiveCompare($1.curatorName) == .orderedAscending
+      }
   }
 
   init(stations: [Station]) {

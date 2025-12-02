@@ -132,7 +132,7 @@ final class ContactPageTests: XCTestCase {
       XCTAssertTrue(model.mainContainerNavigationCoordinator.path.isEmpty)
 
       // Tap my station button
-      model.onMyStationTapped()
+      await model.onMyStationTapped()
 
       // Verify navigation occurred
       XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
@@ -221,7 +221,7 @@ final class ContactPageTests: XCTestCase {
       let model = ContactPageModel()
 
       await model.onViewAppeared()
-      model.onMyStationTapped()
+      await model.onMyStationTapped()
 
       XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
 
@@ -249,7 +249,7 @@ final class ContactPageTests: XCTestCase {
       let model = ContactPageModel()
 
       await model.onViewAppeared()
-      model.onMyStationTapped()
+      await model.onMyStationTapped()
 
       XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
 
@@ -280,7 +280,7 @@ final class ContactPageTests: XCTestCase {
       let model = ContactPageModel()
 
       await model.onViewAppeared()
-      model.onMyStationTapped()
+      await model.onMyStationTapped()
 
       XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
 
@@ -292,6 +292,96 @@ final class ContactPageTests: XCTestCase {
       } else {
         XCTFail("Expected navigation to choose station page")
       }
+    }
+  }
+
+  // MARK: - My Station Button Label Tests
+
+  func testMyStationButtonLabel_ReturnsSingularWhenOneStation() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let mockStations = [Station.mockWith(id: "station-1", name: "My Only Station")]
+
+    await withDependencies {
+      $0.api.fetchUserStations = { _ in mockStations }
+    } operation: {
+      let model = ContactPageModel()
+
+      await model.onViewAppeared()
+
+      XCTAssertEqual(model.myStationButtonLabel, "My Station")
+    }
+  }
+
+  func testMyStationButtonLabel_ReturnsPluralWhenMultipleStations() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let mockStations = [
+      Station.mockWith(id: "station-1", name: "First Station"),
+      Station.mockWith(id: "station-2", name: "Second Station"),
+    ]
+
+    await withDependencies {
+      $0.api.fetchUserStations = { _ in mockStations }
+    } operation: {
+      let model = ContactPageModel()
+
+      await model.onViewAppeared()
+
+      XCTAssertEqual(model.myStationButtonLabel, "My Stations")
+    }
+  }
+
+  // MARK: - Analytics Tests
+
+  func testOnMyStationTapped_WithSingleStation_TracksAnalyticsEvent() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let mockStation = Station.mockWith(id: "my-station-id", name: "My Station")
+    let (analyticsClient, storage) = AnalyticsClient.mockWithStorage()
+
+    await withDependencies {
+      $0.api.fetchUserStations = { _ in [mockStation] }
+      $0.analytics = analyticsClient
+    } operation: {
+      let model = ContactPageModel()
+
+      await model.onViewAppeared()
+      await model.onMyStationTapped()
+
+      XCTAssertTrue(
+        storage.hasEvent { event in
+          if case .viewedBroadcastScreen(let stationId, let stationName) = event {
+            return stationId == "my-station-id" && stationName == "My Station"
+          }
+          return false
+        }
+      )
+    }
+  }
+
+  func testOnMyStationTapped_WithMultipleStations_DoesNotTrackAnalyticsEvent() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let mockStations = [
+      Station.mockWith(id: "station-1", name: "Station 1"),
+      Station.mockWith(id: "station-2", name: "Station 2"),
+    ]
+    let (analyticsClient, storage) = AnalyticsClient.mockWithStorage()
+
+    await withDependencies {
+      $0.api.fetchUserStations = { _ in mockStations }
+      $0.analytics = analyticsClient
+    } operation: {
+      let model = ContactPageModel()
+
+      await model.onViewAppeared()
+      await model.onMyStationTapped()
+
+      XCTAssertFalse(
+        storage.hasEvent { event in
+          if case .viewedBroadcastScreen = event {
+            return true
+          }
+          return false
+        }
+      )
     }
   }
 }

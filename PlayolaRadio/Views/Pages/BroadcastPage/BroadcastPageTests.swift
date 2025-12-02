@@ -346,6 +346,32 @@ final class BroadcastPageTests: XCTestCase {
     }
   }
 
+  // MARK: - Coming Soon Alert Tests
+
+  func testOnAddVoiceTrackTapped_ShowsComingSoonAlert() {
+    let model = BroadcastPageModel(stationId: "test-station")
+
+    XCTAssertNil(model.presentedAlert)
+
+    model.onAddVoiceTrackTapped()
+
+    XCTAssertNotNil(model.presentedAlert)
+    XCTAssertEqual(model.presentedAlert?.title, "Coming Soon")
+  }
+
+  func testOnAddSongTapped_ShowsComingSoonAlert() {
+    let model = BroadcastPageModel(stationId: "test-station")
+
+    XCTAssertNil(model.presentedAlert)
+
+    model.onAddSongTapped()
+
+    XCTAssertNotNil(model.presentedAlert)
+    XCTAssertEqual(model.presentedAlert?.title, "Coming Soon")
+  }
+
+  // MARK: - Grouped Spin Tests
+
   func testMoveSpins_MovesGroupToBeginning() async {
     let stationId = "test-station-id"
     let fixedNow = Date(timeIntervalSince1970: 1_000_000)
@@ -375,6 +401,7 @@ final class BroadcastPageTests: XCTestCase {
       XCTAssertEqual(ids, ["spin-1", "spin-2", "spin-A", "spin-B"])
     }
   }
+
 }
 
 private enum TestError: Error {

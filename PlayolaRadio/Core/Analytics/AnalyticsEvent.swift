@@ -50,6 +50,9 @@ enum AnalyticsEvent: Equatable {
   case updatedProfile(fields: [String])
   case uploadedProfilePhoto
 
+  // MARK: Broadcasting
+  case viewedBroadcastScreen(stationId: String, stationName: String)
+
   // MARK: Engagement
   case audioOutputChanged(outputTypes: [String])
   case carPlayInitialized
@@ -89,6 +92,7 @@ extension AnalyticsEvent {
     case .viewedProfile: return "Viewed Profile"
     case .updatedProfile: return "Updated Profile"
     case .uploadedProfilePhoto: return "Uploaded Profile Photo"
+    case .viewedBroadcastScreen: return "Viewed Broadcast Screen"
     case .audioOutputChanged: return "Audio Output Changed"
     case .carPlayInitialized: return "CarPlay Initialized"
     case .stationChanged: return "Station Changed"
@@ -200,6 +204,12 @@ extension AnalyticsEvent {
 
     case .uploadedProfilePhoto:
       return [:]
+
+    case .viewedBroadcastScreen(let stationId, let stationName):
+      return [
+        "station_id": stationId,
+        "station_name": stationName,
+      ]
 
     case .audioOutputChanged(let outputTypes):
       return ["output_types": outputTypes]

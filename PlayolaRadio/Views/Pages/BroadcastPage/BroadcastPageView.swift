@@ -25,7 +25,7 @@ struct BroadcastPageView: View {
 
           VStack(spacing: 8) {
             Button {
-              // Add VoiceTrack action
+              model.onAddVoiceTrackTapped()
             } label: {
               ZStack {
                 Circle()
@@ -51,7 +51,7 @@ struct BroadcastPageView: View {
 
           VStack(spacing: 8) {
             Button {
-              // Add Song action
+              model.onAddSongTapped()
             } label: {
               ZStack {
                 Circle()
@@ -85,7 +85,8 @@ struct BroadcastPageView: View {
           Spacer()
         } else {
           TimelineView(.periodic(from: .now, by: 0.5)) { _ in
-            _ = model.tick()  // Safe: only updates state if nowPlaying actually changed
+            // swiftlint:disable:next redundant_discardable_let
+            let _ = model.tick()  // Safe: only updates state if nowPlaying actually changed
 
             // Now Playing (fixed, doesn't scroll)
             if let nowPlaying = model.nowPlaying {

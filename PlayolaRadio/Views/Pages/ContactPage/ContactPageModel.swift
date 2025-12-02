@@ -18,6 +18,7 @@ class ContactPageModel: ViewModel {
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.analytics) var analytics
   var editProfilePageModel: EditProfilePageModel = EditProfilePageModel()
   var likedSongsPageModel: LikedSongsPageModel = LikedSongsPageModel()
   var broadcastPageModel: BroadcastPageModel?
@@ -31,6 +32,10 @@ class ContactPageModel: ViewModel {
 
   var myStationButtonVisible: Bool {
     !userStations.isEmpty
+  }
+
+  var myStationButtonLabel: String {
+    userStations.count > 1 ? "My Stations" : "My Station"
   }
 
   var name: String {
@@ -74,13 +79,15 @@ class ContactPageModel: ViewModel {
   }
 
   @MainActor
-  func onMyStationTapped() {
+  func onMyStationTapped() async {
     guard !userStations.isEmpty else { return }
 
-    if userStations.count == 1, let stationId = stationIdToTransitionTo {
-      let model = BroadcastPageModel(stationId: stationId)
+    if userStations.count == 1, let station = userStations.first {
+      let model = BroadcastPageModel(stationId: station.id)
       broadcastPageModel = model
       mainContainerNavigationCoordinator.path.append(.broadcastPage(model))
+      await analytics.track(
+        .viewedBroadcastScreen(stationId: station.id, stationName: station.name))
     } else {
       let model = ChooseStationToBroadcastPageModel(stations: userStations)
       chooseStationToBroadcastPageModel = model
