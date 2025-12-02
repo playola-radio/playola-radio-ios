@@ -4,6 +4,8 @@
 //
 //  Created by Brian D Keane on 7/29/25.
 //
+import Dependencies
+import PlayolaPlayer
 import Sharing
 import XCTest
 
@@ -114,22 +116,182 @@ final class ContactPageTests: XCTestCase {
     }
   }
 
-  func testOnMyStationTapped_NavigatesToBroadcastPage() {
+  func testOnMyStationTapped_NavigatesToBroadcastPage() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let mockStations = [Station.mockWith(id: "test-station-id")]
+
+    await withDependencies {
+      $0.api.fetchUserStations = { _ in mockStations }
+    } operation: {
+      let model = ContactPageModel()
+
+      // Load stations first
+      await model.onViewAppeared()
+
+      // Verify initial navigation state
+      XCTAssertTrue(model.mainContainerNavigationCoordinator.path.isEmpty)
+
+      // Tap my station button
+      model.onMyStationTapped()
+
+      // Verify navigation occurred
+      XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
+
+      if case .broadcastPage = model.mainContainerNavigationCoordinator.path.first {
+        // Successfully navigated to broadcast page
+      } else {
+        XCTFail("Expected navigation to broadcast page")
+      }
+    }
+  }
+
+  // MARK: - My Station Button Visibility Tests
+
+  func testMyStationButtonVisible_IsFalseInitially() {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
     let model = ContactPageModel()
 
-    // Verify initial navigation state
-    XCTAssertTrue(model.mainContainerNavigationCoordinator.path.isEmpty)
+    XCTAssertFalse(model.myStationButtonVisible)
+    XCTAssertNil(model.stationIdToTransitionTo)
+  }
 
-    // Tap my station button
-    model.onMyStationTapped()
+  func testMyStationButtonVisible_IsFalseWhenUserHasNoStations() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
-    // Verify navigation occurred
-    XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
+    await withDependencies {
+      $0.api.fetchUserStations = { _ in [] }
+    } operation: {
+      let model = ContactPageModel()
 
-    if case .broadcastPage = model.mainContainerNavigationCoordinator.path.first {
-      // Successfully navigated to broadcast page
-    } else {
-      XCTFail("Expected navigation to broadcast page")
+      await model.onViewAppeared()
+
+      XCTAssertFalse(model.myStationButtonVisible)
+      XCTAssertNil(model.stationIdToTransitionTo)
+    }
+  }
+
+  func testMyStationButtonVisible_IsTrueWhenUserHasStations() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let mockStations = [
+      Station.mockWith(id: "station-1", name: "First Station"),
+      Station.mockWith(id: "station-2", name: "Second Station"),
+    ]
+
+    await withDependencies {
+      $0.api.fetchUserStations = { _ in mockStations }
+    } operation: {
+      let model = ContactPageModel()
+
+      await model.onViewAppeared()
+
+      XCTAssertTrue(model.myStationButtonVisible)
+      XCTAssertEqual(model.stationIdToTransitionTo, "station-1")
+    }
+  }
+
+  func testStationIdToTransitionTo_IsFirstStationId() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let mockStations = [
+      Station.mockWith(id: "first-station-id", name: "First Station"),
+      Station.mockWith(id: "second-station-id", name: "Second Station"),
+      Station.mockWith(id: "third-station-id", name: "Third Station"),
+    ]
+
+    await withDependencies {
+      $0.api.fetchUserStations = { _ in mockStations }
+    } operation: {
+      let model = ContactPageModel()
+
+      await model.onViewAppeared()
+
+      XCTAssertEqual(model.stationIdToTransitionTo, "first-station-id")
+    }
+  }
+
+  func testOnMyStationTapped_WithSingleStation_NavigatesDirectlyToBroadcastPage() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let mockStations = [
+      Station.mockWith(id: "single-station-id", name: "My Only Station")
+    ]
+
+    await withDependencies {
+      $0.api.fetchUserStations = { _ in mockStations }
+    } operation: {
+      let model = ContactPageModel()
+
+      await model.onViewAppeared()
+      model.onMyStationTapped()
+
+      XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
+
+      if case .broadcastPage(let broadcastModel) = model.mainContainerNavigationCoordinator.path
+        .first
+      {
+        XCTAssertEqual(broadcastModel.stationId, "single-station-id")
+      } else {
+        XCTFail("Expected navigation to broadcast page with correct station ID")
+      }
+    }
+  }
+
+  func testOnMyStationTapped_WithMultipleStations_NavigatesToChooseStationPage() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let mockStations = [
+      Station.mockWith(id: "station-1", name: "First Station"),
+      Station.mockWith(id: "station-2", name: "Second Station"),
+      Station.mockWith(id: "station-3", name: "Third Station"),
+    ]
+
+    await withDependencies {
+      $0.api.fetchUserStations = { _ in mockStations }
+    } operation: {
+      let model = ContactPageModel()
+
+      await model.onViewAppeared()
+      model.onMyStationTapped()
+
+      XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
+
+      if case .chooseStationToBroadcastPage(let chooseModel) = model
+        .mainContainerNavigationCoordinator
+        .path.first
+      {
+        XCTAssertEqual(chooseModel.stations.count, 3)
+        XCTAssertEqual(chooseModel.stations[0].id, "station-1")
+        XCTAssertEqual(chooseModel.stations[1].id, "station-2")
+        XCTAssertEqual(chooseModel.stations[2].id, "station-3")
+      } else {
+        XCTFail("Expected navigation to choose station page")
+      }
+    }
+  }
+
+  func testOnMyStationTapped_WithTwoStations_NavigatesToChooseStationPage() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let mockStations = [
+      Station.mockWith(id: "station-a", name: "Station A"),
+      Station.mockWith(id: "station-b", name: "Station B"),
+    ]
+
+    await withDependencies {
+      $0.api.fetchUserStations = { _ in mockStations }
+    } operation: {
+      let model = ContactPageModel()
+
+      await model.onViewAppeared()
+      model.onMyStationTapped()
+
+      XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
+
+      if case .chooseStationToBroadcastPage(let chooseModel) = model
+        .mainContainerNavigationCoordinator
+        .path.first
+      {
+        XCTAssertEqual(chooseModel.stations.count, 2)
+      } else {
+        XCTFail("Expected navigation to choose station page")
+      }
     }
   }
 }

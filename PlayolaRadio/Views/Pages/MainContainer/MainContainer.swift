@@ -74,6 +74,8 @@ struct MainContainer: View {
           LikedSongsPage(model: model)
         case .broadcastPage(let model):
           BroadcastPageView(model: model)
+        case .chooseStationToBroadcastPage(let model):
+          ChooseStationToBroadcastPageView(model: model)
         }
       }
     }

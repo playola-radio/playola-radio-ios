@@ -7,6 +7,7 @@
 
 import Dependencies
 import PlayolaPlayer
+import Sharing
 import XCTest
 
 @testable import PlayolaRadio
@@ -199,6 +200,179 @@ final class BroadcastPageTests: XCTestCase {
       model.tick()
 
       XCTAssertEqual(model.currentNowPlayingId, "spin-1")
+    }
+  }
+
+  // MARK: - Station Name Tests
+
+  func testNavigationTitle_UsesStationNameWhenProvided() async {
+    let stationId = "test-station-id"
+    let stationName = "My Awesome Station"
+
+    await withDependencies {
+      $0.api.fetchSchedule = { _, _ in [] }
+      $0.api.fetchStation = { _, _ in nil }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId, stationName: stationName)
+
+      XCTAssertEqual(model.navigationTitle, stationName)
+    }
+  }
+
+  func testNavigationTitle_FetchesStationNameOnLoad() async {
+    let stationId = "test-station-id"
+    let fetchedStationName = "Fetched Station Name"
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.api.fetchSchedule = { _, _ in [] }
+      $0.api.fetchStation = { _, requestedId in
+        XCTAssertEqual(requestedId, stationId)
+        return Station.mockWith(name: fetchedStationName)
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      XCTAssertEqual(model.navigationTitle, "My Station")  // Default before load
+
+      await model.viewAppeared()
+
+      XCTAssertEqual(model.navigationTitle, fetchedStationName)
+    }
+  }
+
+  func testNavigationTitle_FallsBackToDefaultWhenFetchFails() async {
+    let stationId = "test-station-id"
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.api.fetchSchedule = { _, _ in [] }
+      $0.api.fetchStation = { _, _ in nil }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      XCTAssertEqual(model.navigationTitle, "My Station")
+    }
+  }
+
+  // MARK: - Grouped Spin Tests
+
+  func testMoveSpins_MovesUngroupedSpinNormally() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let mockSpins = [
+      Spin.mockWith(id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
+      Spin.mockWith(id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
+      Spin.mockWith(id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
+    ]
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      // Move spin-1 to position 2 (after spin-2)
+      model.moveSpins(from: IndexSet(integer: 0), to: 2)
+
+      let ids = model.upcomingSpins.map { $0.id }
+      XCTAssertEqual(ids, ["spin-2", "spin-1", "spin-3"])
+    }
+  }
+
+  func testMoveSpins_MovesEntireGroupTogether() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let groupId = "group-1"
+    let mockSpins = [
+      Spin.mockWith(
+        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId,
+        spinGroupId: groupId),
+      Spin.mockWith(
+        id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId,
+        spinGroupId: groupId),
+      Spin.mockWith(id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
+      Spin.mockWith(id: "spin-4", airtime: fixedNow.addingTimeInterval(240), stationId: stationId),
+    ]
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      // Move spin-1 (part of group) to position 3 (after spin-3)
+      // Should move both spin-1 and spin-2 together
+      model.moveSpins(from: IndexSet(integer: 0), to: 3)
+
+      let ids = model.upcomingSpins.map { $0.id }
+      XCTAssertEqual(ids, ["spin-3", "spin-1", "spin-2", "spin-4"])
+    }
+  }
+
+  func testMoveSpins_PreservesRelativeOrderWithinGroup() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let groupId = "group-1"
+    let mockSpins = [
+      Spin.mockWith(id: "spin-A", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
+      Spin.mockWith(
+        id: "spin-1", airtime: fixedNow.addingTimeInterval(120), stationId: stationId,
+        spinGroupId: groupId),
+      Spin.mockWith(
+        id: "spin-2", airtime: fixedNow.addingTimeInterval(180), stationId: stationId,
+        spinGroupId: groupId),
+      Spin.mockWith(
+        id: "spin-3", airtime: fixedNow.addingTimeInterval(240), stationId: stationId,
+        spinGroupId: groupId),
+      Spin.mockWith(id: "spin-B", airtime: fixedNow.addingTimeInterval(300), stationId: stationId),
+    ]
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      // Move spin-2 (middle of group) to the end
+      // Should move entire group (spin-1, spin-2, spin-3) and preserve their order
+      model.moveSpins(from: IndexSet(integer: 2), to: 5)
+
+      let ids = model.upcomingSpins.map { $0.id }
+      XCTAssertEqual(ids, ["spin-A", "spin-B", "spin-1", "spin-2", "spin-3"])
+    }
+  }
+
+  func testMoveSpins_MovesGroupToBeginning() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let groupId = "group-1"
+    let mockSpins = [
+      Spin.mockWith(id: "spin-A", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
+      Spin.mockWith(id: "spin-B", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
+      Spin.mockWith(
+        id: "spin-1", airtime: fixedNow.addingTimeInterval(180), stationId: stationId,
+        spinGroupId: groupId),
+      Spin.mockWith(
+        id: "spin-2", airtime: fixedNow.addingTimeInterval(240), stationId: stationId,
+        spinGroupId: groupId),
+    ]
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      // Move spin-1 (part of group) to position 0
+      model.moveSpins(from: IndexSet(integer: 2), to: 0)
+
+      let ids = model.upcomingSpins.map { $0.id }
+      XCTAssertEqual(ids, ["spin-1", "spin-2", "spin-A", "spin-B"])
     }
   }
 }

@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 11/30/25.
 //
 
+import Dependencies
 import PlayolaPlayer
 import SDWebImageSwiftUI
 import SwiftUI
@@ -109,7 +110,9 @@ struct BroadcastPageView: View {
                   .listRowBackground(Color.clear)
                   .transition(.opacity.combined(with: .move(edge: .top)))
               }
-              .onMove { _, _ in }
+              .onMove { source, destination in
+                model.moveSpins(from: source, to: destination)
+              }
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
@@ -119,9 +122,11 @@ struct BroadcastPageView: View {
         }
       }
     }
-    .navigationTitle("Broadcast")
+    .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
-    .foregroundStyle(.white)
+    .toolbarBackground(.visible, for: .navigationBar)
+    .toolbarBackground(Color.black, for: .navigationBar)
+    .toolbarColorScheme(.dark, for: .navigationBar)
     .task {
       await model.viewAppeared()
     }
@@ -176,6 +181,7 @@ struct NowPlayingContentView: View {
 
 struct ScheduleRowView: View {
   let spin: Spin
+  var isGrouped: Bool { spin.spinGroupId != nil }
 
   private var timeString: String {
     let formatter = DateFormatter()
@@ -184,50 +190,60 @@ struct ScheduleRowView: View {
   }
 
   var body: some View {
-    HStack(spacing: 12) {
-      // Artwork / Icon
-      ScheduleItemImage(spin: spin)
-        .frame(width: 45, height: 45)
-
-      // Title & Artist
-      VStack(alignment: .leading, spacing: 2) {
-        Text(spin.audioBlock.title)
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
-          .foregroundColor(.white)
-          .lineLimit(1)
-
-        Text(spin.audioBlock.artist)
-          .font(.custom(FontNames.Inter_400_Regular, size: 12))
-          .foregroundColor(.playolaGray)
-          .lineLimit(1)
+    HStack(spacing: 0) {
+      // Group indicator bar
+      if isGrouped {
+        RoundedRectangle(cornerRadius: 2)
+          .fill(Color.playolaRed)
+          .frame(width: 4)
+          .padding(.vertical, 4)
       }
 
-      Spacer()
+      HStack(spacing: 12) {
+        // Artwork / Icon
+        ScheduleItemImage(spin: spin)
+          .frame(width: 45, height: 45)
 
-      // VoiceTrack play button
-      if spin.audioBlock.type == "voiceTrack" {
-        Button {
-          // Play preview
-        } label: {
-          Image(systemName: "play.circle")
-            .font(.system(size: 24))
+        // Title & Artist
+        VStack(alignment: .leading, spacing: 2) {
+          Text(spin.audioBlock.title)
+            .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
             .foregroundColor(.white)
+            .lineLimit(1)
+
+          Text(spin.audioBlock.artist)
+            .font(.custom(FontNames.Inter_400_Regular, size: 12))
+            .foregroundColor(.playolaGray)
+            .lineLimit(1)
         }
+
+        Spacer()
+
+        // VoiceTrack play button
+        if spin.audioBlock.type == "voiceTrack" {
+          Button {
+            // Play preview
+          } label: {
+            Image(systemName: "play.circle")
+              .font(.system(size: 24))
+              .foregroundColor(.white)
+          }
+        }
+
+        // Time
+        Text("at \(timeString)")
+          .font(.custom(FontNames.Inter_400_Regular, size: 11))
+          .foregroundColor(.playolaGray)
+
+        // Drag handle
+        Image(systemName: "line.3.horizontal")
+          .font(.system(size: 14, weight: .bold))
+          .foregroundColor(.playolaGray)
+          .padding(.leading, 8)
       }
-
-      // Time
-      Text("at \(timeString)")
-        .font(.custom(FontNames.Inter_400_Regular, size: 11))
-        .foregroundColor(.playolaGray)
-
-      // Drag handle
-      Image(systemName: "line.3.horizontal")
-        .font(.system(size: 14, weight: .bold))
-        .foregroundColor(.playolaGray)
-        .padding(.leading, 8)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 8)
     }
-    .padding(.horizontal, 12)
-    .padding(.vertical, 8)
     .background(spin.audioBlock.type == "commercial" ? Color.black : Color(hex: "#333333"))
   }
 }
@@ -283,8 +299,72 @@ struct ScheduleItemImage: View {
 }
 
 #Preview {
+  let now = Date()
+  let groupId = "voicetrack-group-1"
+
+  let previewSpins = [
+    // Now playing
+    Spin.mockWith(
+      id: "now-playing",
+      airtime: now.addingTimeInterval(-30),
+      audioBlock: AudioBlock.mockWith(
+        title: "Currently Playing Song",
+        artist: "Current Artist",
+        endOfMessageMS: 180_000
+      )
+    ),
+    // Upcoming - grouped voicetrack + song
+    Spin.mockWith(
+      id: "vt-1",
+      airtime: now.addingTimeInterval(150),
+      audioBlock: AudioBlock.mockWith(
+        title: "DJ Intro",
+        artist: "Your Voice",
+        endOfMessageMS: 15_000,
+        type: "voiceTrack"
+      ),
+      spinGroupId: groupId
+    ),
+    Spin.mockWith(
+      id: "song-after-vt",
+      airtime: now.addingTimeInterval(165),
+      audioBlock: AudioBlock.mockWith(
+        title: "Song After VoiceTrack",
+        artist: "Grouped Artist",
+        endOfMessageMS: 200_000
+      ),
+      spinGroupId: groupId
+    ),
+    // Regular songs
+    Spin.mockWith(
+      id: "song-2",
+      airtime: now.addingTimeInterval(365),
+      audioBlock: AudioBlock.mockWith(
+        title: "Ungrouped Song",
+        artist: "Solo Artist",
+        endOfMessageMS: 180_000
+      )
+    ),
+    Spin.mockWith(
+      id: "song-3",
+      airtime: now.addingTimeInterval(545),
+      audioBlock: AudioBlock.mockWith(
+        title: "Another Song",
+        artist: "Another Artist",
+        endOfMessageMS: 210_000
+      )
+    ),
+  ]
+
   NavigationStack {
-    BroadcastPageView(model: BroadcastPageModel(stationId: "preview-station"))
+    BroadcastPageView(
+      model: withDependencies {
+        $0.date.now = now
+        $0.api.fetchSchedule = { _, _ in previewSpins }
+      } operation: {
+        BroadcastPageModel(stationId: "preview-station", stationName: "Brian's Station")
+      }
+    )
   }
   .preferredColorScheme(.dark)
 }

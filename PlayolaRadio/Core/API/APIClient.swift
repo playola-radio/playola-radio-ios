@@ -147,6 +147,20 @@ struct APIClient: Sendable {
   /// - Returns: Array of Spin objects representing the schedule
   /// - Throws: Error if the request fails
   var fetchSchedule: (_ stationId: String, _ extended: Bool) async throws -> [Spin] = { _, _ in [] }
+
+  /// Fetches a station by ID
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to fetch
+  /// - Returns: Station object or nil if not found
+  var fetchStation: (_ jwtToken: String, _ stationId: String) async throws -> Station? = { _, _ in
+    nil
+  }
+
+  /// Fetches all stations for a user
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: Array of Station objects the user has access to
+  var fetchUserStations: (_ jwtToken: String) async throws -> [Station] = { _ in [] }
 }
 
 extension APIClient: DependencyKey {
@@ -506,6 +520,28 @@ extension APIClient: DependencyKey {
         let response = try await AF.request(url)
           .validate(statusCode: 200..<300)
           .serializingDecodable([Spin].self, decoder: isoDecoder)
+          .value
+
+        return response
+      },
+      fetchStation: { jwtToken, stationId in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable(Station.self, decoder: isoDecoder)
+          .value
+
+        return response
+      },
+      fetchUserStations: { jwtToken in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/stations"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([Station].self, decoder: isoDecoder)
           .value
 
         return response

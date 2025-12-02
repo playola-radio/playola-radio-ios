@@ -263,6 +263,11 @@
 		D3EAC9232E817326001194CF /* Secrets-Staging.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D3EAC9222E81731A001194CF /* Secrets-Staging.xcconfig */; };
 		D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */; };
 		D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */; };
+		D3FEC8082EDF646A00A33AE8 /* ChooseStationToBroadcastPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */; };
+		D3FEC8092EDF646A00A33AE8 /* ChooseStationToBroadcastPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */; };
+		D3FEC80B2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */; };
+		D3FEC80C2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */; };
+		D3FEC80D2EDF689F00A33AE8 /* ChooseStationToBroadcastPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -411,6 +416,9 @@
 		D3EAC9222E81731A001194CF /* Secrets-Staging.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Staging.xcconfig"; sourceTree = "<group>"; };
 		D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPageModel.swift; sourceTree = "<group>"; };
 		D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTier.swift; sourceTree = "<group>"; };
+		D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageTests.swift; sourceTree = "<group>"; };
+		D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageView.swift; sourceTree = "<group>"; };
+		D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -579,6 +587,7 @@
 		D339E55C2BFD0FB000B9E35B /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */,
 				D3219C152EDD22060008AFDA /* BroadcastPage */,
 				D30257852E63B6AD00F4228B /* LikedSongsPage */,
 				D3A08A362E53A761002468E0 /* InvitationCodePage */,
@@ -998,6 +1007,16 @@
 			path = LiveShowsSection;
 			sourceTree = "<group>";
 		};
+		D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */ = {
+			isa = PBXGroup;
+			children = (
+				D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */,
+				D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */,
+				D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */,
+			);
+			path = ChooseStationToBroadcastPage;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1277,9 +1296,11 @@
 				D30F008E2E8592F0007BCC73 /* StationListPage.swift in Sources */,
 				D30F008F2E8592F0007BCC73 /* MainContainer.swift in Sources */,
 				D30F00902E8592F0007BCC73 /* ToastView.swift in Sources */,
+				D3FEC80C2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */,
 				D30F00912E8592F0007BCC73 /* APIClient.swift in Sources */,
 				D30F00922E8592F0007BCC73 /* SmallPlayer.swift in Sources */,
 				D30F00932E8592F0007BCC73 /* PlayolaRadioApp.swift in Sources */,
+				D3FEC8092EDF646A00A33AE8 /* ChooseStationToBroadcastPageView.swift in Sources */,
 				D30F00942E8592F0007BCC73 /* SignInPageModel.swift in Sources */,
 				D30F00952E8592F0007BCC73 /* MainContainerNavigationCoordinator.swift in Sources */,
 			);
@@ -1373,9 +1394,11 @@
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */,
 				D30257762E6342C900F4228B /* ToastView.swift in Sources */,
+				D3FEC80B2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */,
 				D339E5692BFD1C0800B9E35B /* APIClient.swift in Sources */,
 				D382671C2E00C1460006BAC2 /* SmallPlayer.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
+				D3FEC8082EDF646A00A33AE8 /* ChooseStationToBroadcastPageView.swift in Sources */,
 				D378CCCE2E56011A00497A4A /* SignInPageModel.swift in Sources */,
 				D395912A2E3BD02B00720CF8 /* MainContainerNavigationCoordinator.swift in Sources */,
 			);
@@ -1394,6 +1417,7 @@
 				D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */,
 				D37B74942ECA3A69009806C6 /* ScheduledShowTileTests.swift in Sources */,
 				D37786E82EAD3DA20084B8B8 /* ScheduledShowTests.swift in Sources */,
+				D3FEC80D2EDF689F00A33AE8 /* ChooseStationToBroadcastPageTests.swift in Sources */,
 				D3B744CB2E313B230042A427 /* ListeningTimeTileTests.swift in Sources */,
 				D3B744C52E31318A0042A427 /* RewardsPageTests.swift in Sources */,
 				D37786EA2EAD4AE80084B8B8 /* ScheduledShowsListTests.swift in Sources */,
