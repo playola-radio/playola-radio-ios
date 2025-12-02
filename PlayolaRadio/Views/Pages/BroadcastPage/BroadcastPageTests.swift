@@ -23,6 +23,7 @@ final class BroadcastPageTests: XCTestCase {
     ]
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.fetchSchedule = { requestedStationId, extended in
         XCTAssertEqual(requestedStationId, stationId)
         XCTAssertTrue(extended)
@@ -209,7 +210,7 @@ final class BroadcastPageTests: XCTestCase {
     let stationId = "test-station-id"
     let stationName = "My Awesome Station"
 
-    await withDependencies {
+    withDependencies {
       $0.date.now = Date()
       $0.api.fetchSchedule = { _, _ in [] }
       $0.api.fetchStation = { _, _ in nil }
