@@ -85,7 +85,7 @@ struct BroadcastPageView: View {
           Spacer()
         } else {
           TimelineView(.periodic(from: .now, by: 0.5)) { _ in
-            let _ = model.tick()  // Safe: only updates state if nowPlaying actually changed
+            _ = model.tick()  // Safe: only updates state if nowPlaying actually changed
 
             // Now Playing (fixed, doesn't scroll)
             if let nowPlaying = model.nowPlaying {
@@ -110,9 +110,10 @@ struct BroadcastPageView: View {
                   .listRowBackground(Color.clear)
                   .transition(.opacity.combined(with: .move(edge: .top)))
               }
-              .onMove { source, destination in
-                model.moveSpins(from: source, to: destination)
-              }
+              // TODO: Re-enable reordering when ready
+              // .onMove { source, destination in
+              //   model.moveSpins(from: source, to: destination)
+              // }
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)

@@ -123,8 +123,8 @@ class BroadcastPageModel: ViewModel {
       let spin = spins[index]
       if let groupId = spin.spinGroupId {
         // Find all spins in the same group and add their indices
-        for (i, s) in spins.enumerated() where s.spinGroupId == groupId {
-          indicesToMove.insert(i)
+        for (index, spin) in spins.enumerated() where spin.spinGroupId == groupId {
+          indicesToMove.insert(index)
         }
       }
     }
