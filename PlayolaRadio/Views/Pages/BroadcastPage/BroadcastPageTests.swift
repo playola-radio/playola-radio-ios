@@ -210,6 +210,7 @@ final class BroadcastPageTests: XCTestCase {
     let stationName = "My Awesome Station"
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.fetchSchedule = { _, _ in [] }
       $0.api.fetchStation = { _, _ in nil }
     } operation: {
@@ -225,6 +226,7 @@ final class BroadcastPageTests: XCTestCase {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.fetchSchedule = { _, _ in [] }
       $0.api.fetchStation = { _, requestedId in
         XCTAssertEqual(requestedId, stationId)
@@ -245,6 +247,7 @@ final class BroadcastPageTests: XCTestCase {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.fetchSchedule = { _, _ in [] }
       $0.api.fetchStation = { _, _ in nil }
     } operation: {
