@@ -335,25 +335,27 @@ final class ContactPageTests: XCTestCase {
   func testOnMyStationTapped_WithSingleStation_TracksAnalyticsEvent() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockStation = Station.mockWith(id: "my-station-id", name: "My Station")
-    let (analyticsClient, storage) = AnalyticsClient.mockWithStorage()
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     await withDependencies {
       $0.api.fetchUserStations = { _ in [mockStation] }
-      $0.analytics = analyticsClient
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
     } operation: {
       let model = ContactPageModel()
 
       await model.onViewAppeared()
       await model.onMyStationTapped()
 
-      XCTAssertTrue(
-        storage.hasEvent { event in
-          if case .viewedBroadcastScreen(let stationId, let stationName) = event {
-            return stationId == "my-station-id" && stationName == "My Station"
-          }
-          return false
+      let events = capturedEvents.value
+      let hasViewedBroadcastEvent = events.contains { event in
+        if case .viewedBroadcastScreen(let stationId, let stationName) = event {
+          return stationId == "my-station-id" && stationName == "My Station"
         }
-      )
+        return false
+      }
+      XCTAssertTrue(hasViewedBroadcastEvent)
     }
   }
 
@@ -363,25 +365,27 @@ final class ContactPageTests: XCTestCase {
       Station.mockWith(id: "station-1", name: "Station 1"),
       Station.mockWith(id: "station-2", name: "Station 2"),
     ]
-    let (analyticsClient, storage) = AnalyticsClient.mockWithStorage()
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     await withDependencies {
       $0.api.fetchUserStations = { _ in mockStations }
-      $0.analytics = analyticsClient
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
     } operation: {
       let model = ContactPageModel()
 
       await model.onViewAppeared()
       await model.onMyStationTapped()
 
-      XCTAssertFalse(
-        storage.hasEvent { event in
-          if case .viewedBroadcastScreen = event {
-            return true
-          }
-          return false
+      let events = capturedEvents.value
+      let hasViewedBroadcastEvent = events.contains { event in
+        if case .viewedBroadcastScreen = event {
+          return true
         }
-      )
+        return false
+      }
+      XCTAssertFalse(hasViewedBroadcastEvent)
     }
   }
 }

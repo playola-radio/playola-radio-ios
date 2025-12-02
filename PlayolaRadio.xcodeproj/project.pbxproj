@@ -268,6 +268,8 @@
 		D3FEC80B2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */; };
 		D3FEC80C2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */; };
 		D3FEC80D2EDF689F00A33AE8 /* ChooseStationToBroadcastPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */; };
+		D3FEC80F2EDF8B3B00A33AE8 /* Station+Mock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC80E2EDF8B3600A33AE8 /* Station+Mock.swift */; };
+		D3FEC8102EDF8B3B00A33AE8 /* Station+Mock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC80E2EDF8B3600A33AE8 /* Station+Mock.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -419,6 +421,7 @@
 		D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageTests.swift; sourceTree = "<group>"; };
 		D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageView.swift; sourceTree = "<group>"; };
 		D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageModel.swift; sourceTree = "<group>"; };
+		D3FEC80E2EDF8B3600A33AE8 /* Station+Mock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Station+Mock.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -680,6 +683,7 @@
 		D3536A392BFA6520006942D6 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				D3FEC80E2EDF8B3600A33AE8 /* Station+Mock.swift */,
 				D37257CB2DFA3F7F001BC6F9 /* FontNames.swift */,
 				D37257BC2DF893BB001BC6F9 /* View+ListInstalledFonts.swift */,
 				D3A276682D496282006055AF /* UIApplication+keyWindow.swift */,
@@ -1252,6 +1256,7 @@
 				D30F00662E8592F0007BCC73 /* PlayerPageModel.swift in Sources */,
 				D37B74832EC93285009806C6 /* UpcomingBadge.swift in Sources */,
 				D30F00672E8592F0007BCC73 /* LikesManager.swift in Sources */,
+				D3FEC8102EDF8B3B00A33AE8 /* Station+Mock.swift in Sources */,
 				D30F00682E8592F0007BCC73 /* AnalyticsClient.swift in Sources */,
 				D30F00692E8592F0007BCC73 /* StationPlayer.swift in Sources */,
 				D30F006A2E8592F0007BCC73 /* PrizeTierRow.swift in Sources */,
@@ -1350,6 +1355,7 @@
 				D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */,
 				D37B74842EC93285009806C6 /* UpcomingBadge.swift in Sources */,
 				D302577C2E639FB800F4228B /* LikesManager.swift in Sources */,
+				D3FEC80F2EDF8B3B00A33AE8 /* Station+Mock.swift in Sources */,
 				D3A08A2F2E4E2A35002468E0 /* AnalyticsClient.swift in Sources */,
 				D31C43A82D3C19640021AAE4 /* StationPlayer.swift in Sources */,
 				D36FBCC02E37FC8100D1241C /* PrizeTierRow.swift in Sources */,
