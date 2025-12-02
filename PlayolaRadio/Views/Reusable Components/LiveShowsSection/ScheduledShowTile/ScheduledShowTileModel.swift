@@ -13,6 +13,8 @@ import Observation
 class ScheduledShowTileModel {
   @ObservationIgnored
   @Dependency(\.date.now) var now
+  @ObservationIgnored
+  @Dependency(\.continuousClock) var clock
 
   @ObservationIgnored
   @Dependency(\.pushNotifications) var pushNotifications
@@ -22,10 +24,12 @@ class ScheduledShowTileModel {
 
   var scheduledShow: ScheduledShow
   var presentedAlert: PlayolaAlert?
+  var buttonType: ScheduledShowTileButtonType = .notifyMe
 
   init(scheduledShow: ScheduledShow, stationPlayer: StationPlayer? = nil) {
     self.scheduledShow = scheduledShow
     self.stationPlayer = stationPlayer ?? .shared
+    self.buttonType = computeButtonType()
   }
 
   var stationTitle: String {
@@ -54,11 +58,19 @@ class ScheduledShowTileModel {
     case notifyMe
   }
 
-  var buttonType: ScheduledShowTileButtonType {
+  private func computeButtonType() -> ScheduledShowTileButtonType {
     if scheduledShow.airtime.addingTimeInterval(60 * -5) > self.now {
       return .notifyMe
     }
     return .listenIn
+  }
+
+  func viewAppeared() async {
+    let showStartWindow = scheduledShow.airtime.addingTimeInterval(-5 * 60)
+    let delay = showStartWindow.timeIntervalSince(now) + 5
+    guard delay > 0 else { return }
+    try? await clock.sleep(for: .seconds(delay))
+    buttonType = .listenIn
   }
 
   func notifyMeButtonTapped() async {

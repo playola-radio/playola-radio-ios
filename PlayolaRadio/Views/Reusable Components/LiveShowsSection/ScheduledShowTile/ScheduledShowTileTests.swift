@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 11/16/25.
 //
 
+import Clocks
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -173,6 +174,35 @@ final class ScheduledShowTileTests: XCTestCase {
         show: show
       )
       let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
+      XCTAssertEqual(model.buttonType, .listenIn)
+    }
+  }
+
+  func testButtonType_updatesToListenInAfterViewAppearedAndTimeAdvances() async {
+    let testClock = TestClock()
+
+    await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.continuousClock = testClock
+    } operation: {
+      @Dependency(\.date.now) var now
+
+      let show = Show.mockWith(durationMS: 1000 * 60 * 10)
+      let scheduledShow = ScheduledShow.mockWith(
+        airtime: now.addingTimeInterval(10 * 60),  // 10 minutes in the future
+        show: show
+      )
+      let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
+
+      XCTAssertEqual(model.buttonType, .notifyMe)
+
+      async let viewAppearedTask: Void = model.viewAppeared()
+
+      // Advance clock past the 5-minute threshold plus the 5-second buffer
+      await testClock.advance(by: .seconds(5 * 60 + 5))
+
+      await viewAppearedTask
+
       XCTAssertEqual(model.buttonType, .listenIn)
     }
   }
