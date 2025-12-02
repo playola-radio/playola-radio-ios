@@ -72,6 +72,10 @@ struct MainContainer: View {
           EditProfilePageView(model: model)
         case .likedSongsPage(let model):
           LikedSongsPage(model: model)
+        case .broadcastPage(let model):
+          BroadcastPageView(model: model)
+        case .chooseStationToBroadcastPage(let model):
+          ChooseStationToBroadcastPageView(model: model)
         }
       }
     }
@@ -110,7 +114,6 @@ struct MainContainer: View {
         Task { await model.refreshOnForeground() }
       }
     }
-
   }
 
   @ViewBuilder

@@ -139,6 +139,28 @@ struct APIClient: Sendable {
   var getScheduledShows:
     (_ jwtToken: String, _ showId: String?, _ stationId: String?) async throws -> [ScheduledShow] =
       { _, _, _ in [] }
+
+  /// Fetches the schedule for a station
+  /// - Parameters:
+  ///   - stationId: The station ID to fetch the schedule for
+  ///   - extended: Whether to fetch extended schedule (more spins)
+  /// - Returns: Array of Spin objects representing the schedule
+  /// - Throws: Error if the request fails
+  var fetchSchedule: (_ stationId: String, _ extended: Bool) async throws -> [Spin] = { _, _ in [] }
+
+  /// Fetches a station by ID
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to fetch
+  /// - Returns: Station object or nil if not found
+  var fetchStation: (_ jwtToken: String, _ stationId: String) async throws -> Station? = { _, _ in
+    nil
+  }
+
+  /// Fetches all stations for a user
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: Array of Station objects the user has access to
+  var fetchUserStations: (_ jwtToken: String) async throws -> [Station] = { _ in [] }
 }
 
 extension APIClient: DependencyKey {
@@ -350,7 +372,7 @@ extension APIClient: DependencyKey {
           throw APIError.dataNotValid
         }
 
-        if statusCode >= 200 && statusCode < 300 {
+        if statusCode >= 200, statusCode < 300 {
           return
         } else {
           // Try to parse server error message
@@ -487,6 +509,42 @@ extension APIClient: DependencyKey {
         .value
 
         return response
+      },
+      fetchSchedule: { stationId, extended in
+        var url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/schedule"
+
+        if extended {
+          url += "?extended=true"
+        }
+
+        let response = try await AF.request(url)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([Spin].self, decoder: isoDecoder)
+          .value
+
+        return response
+      },
+      fetchStation: { jwtToken, stationId in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable(Station.self, decoder: isoDecoder)
+          .value
+
+        return response
+      },
+      fetchUserStations: { jwtToken in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/stations"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([Station].self, decoder: isoDecoder)
+          .value
+
+        return response
       }
     )
   }()
@@ -520,6 +578,7 @@ extension DependencyValues {
 struct LoginResponse: Decodable {
   let playolaToken: String
 }
+
 struct UpdateUserResponse: Decodable {
   let id: String
   let firstName: String

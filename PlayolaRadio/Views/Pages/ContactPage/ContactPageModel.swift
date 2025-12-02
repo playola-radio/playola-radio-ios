@@ -17,8 +17,26 @@ class ContactPageModel: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
+  @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.analytics) var analytics
   var editProfilePageModel: EditProfilePageModel = EditProfilePageModel()
   var likedSongsPageModel: LikedSongsPageModel = LikedSongsPageModel()
+  var broadcastPageModel: BroadcastPageModel?
+  var chooseStationToBroadcastPageModel: ChooseStationToBroadcastPageModel?
+
+  private var userStations: [Station] = []
+
+  var stationIdToTransitionTo: String? {
+    userStations.first?.id
+  }
+
+  var myStationButtonVisible: Bool {
+    !userStations.isEmpty
+  }
+
+  var myStationButtonLabel: String {
+    userStations.count > 1 ? "My Stations" : "My Station"
+  }
 
   var name: String {
     return auth.currentUser?.fullName ?? "Anonymous"
@@ -35,7 +53,16 @@ class ContactPageModel: ViewModel {
   }
 
   func onViewAppeared() async {
-    // TODO: Load user profile data
+    await loadUserStations()
+  }
+
+  private func loadUserStations() async {
+    guard let jwt = auth.jwt else { return }
+    do {
+      userStations = try await api.fetchUserStations(jwt)
+    } catch {
+      // Silently fail - button will remain hidden
+    }
   }
 
   @MainActor
@@ -49,6 +76,23 @@ class ContactPageModel: ViewModel {
   @MainActor
   func onLikedSongsTapped() {
     mainContainerNavigationCoordinator.path.append(.likedSongsPage(self.likedSongsPageModel))
+  }
+
+  @MainActor
+  func onMyStationTapped() async {
+    guard !userStations.isEmpty else { return }
+
+    if userStations.count == 1, let station = userStations.first {
+      let model = BroadcastPageModel(stationId: station.id)
+      broadcastPageModel = model
+      mainContainerNavigationCoordinator.path.append(.broadcastPage(model))
+      await analytics.track(
+        .viewedBroadcastScreen(stationId: station.id, stationName: station.name))
+    } else {
+      let model = ChooseStationToBroadcastPageModel(stations: userStations)
+      chooseStationToBroadcastPageModel = model
+      mainContainerNavigationCoordinator.path.append(.chooseStationToBroadcastPage(model))
+    }
   }
 
   func onLogOutTapped() {

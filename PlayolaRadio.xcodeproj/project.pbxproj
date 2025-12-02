@@ -140,6 +140,11 @@
 		D31C43D42D3C783B0021AAE4 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D31C43D32D3C783B0021AAE4 /* PlayolaPlayer */; };
 		D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31CD5222DFBA1EC009B9780 /* ViewModel.swift */; };
 		D31CD5272DFBB4DF009B9780 /* MainContainerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31CD5252DFBB47D009B9780 /* MainContainerTests.swift */; };
+		D3219C172EDD22150008AFDA /* BroadcastPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C162EDD22100008AFDA /* BroadcastPageView.swift */; };
+		D3219C182EDD22150008AFDA /* BroadcastPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C162EDD22100008AFDA /* BroadcastPageView.swift */; };
+		D3219C1A2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */; };
+		D3219C1B2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */; };
+		D3219C1F2EDD22360008AFDA /* BroadcastPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C1C2EDD22230008AFDA /* BroadcastPageTests.swift */; };
 		D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5662BFD10AE00B9E35B /* StationListPage.swift */; };
 		D339E5692BFD1C0800B9E35B /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5682BFD1C0800B9E35B /* APIClient.swift */; };
 		D339E56D2BFD2FAB00B9E35B /* URLStreamPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E56C2BFD2FAB00B9E35B /* URLStreamPlayer.swift */; };
@@ -258,6 +263,13 @@
 		D3EAC9232E817326001194CF /* Secrets-Staging.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D3EAC9222E81731A001194CF /* Secrets-Staging.xcconfig */; };
 		D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */; };
 		D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */; };
+		D3FEC8082EDF646A00A33AE8 /* ChooseStationToBroadcastPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */; };
+		D3FEC8092EDF646A00A33AE8 /* ChooseStationToBroadcastPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */; };
+		D3FEC80B2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */; };
+		D3FEC80C2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */; };
+		D3FEC80D2EDF689F00A33AE8 /* ChooseStationToBroadcastPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */; };
+		D3FEC80F2EDF8B3B00A33AE8 /* Station+Mock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC80E2EDF8B3600A33AE8 /* Station+Mock.swift */; };
+		D3FEC8102EDF8B3B00A33AE8 /* Station+Mock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC80E2EDF8B3600A33AE8 /* Station+Mock.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -305,6 +317,9 @@
 		D31C43A92D3C390C0021AAE4 /* StationPlayerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerMock.swift; sourceTree = "<group>"; };
 		D31CD5222DFBA1EC009B9780 /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
 		D31CD5252DFBB47D009B9780 /* MainContainerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainerTests.swift; sourceTree = "<group>"; };
+		D3219C162EDD22100008AFDA /* BroadcastPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageView.swift; sourceTree = "<group>"; };
+		D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageModel.swift; sourceTree = "<group>"; };
+		D3219C1C2EDD22230008AFDA /* BroadcastPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageTests.swift; sourceTree = "<group>"; };
 		D339E5662BFD10AE00B9E35B /* StationListPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPage.swift; sourceTree = "<group>"; };
 		D339E5682BFD1C0800B9E35B /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		D339E56C2BFD2FAB00B9E35B /* URLStreamPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLStreamPlayer.swift; sourceTree = "<group>"; };
@@ -403,6 +418,10 @@
 		D3EAC9222E81731A001194CF /* Secrets-Staging.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Staging.xcconfig"; sourceTree = "<group>"; };
 		D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPageModel.swift; sourceTree = "<group>"; };
 		D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTier.swift; sourceTree = "<group>"; };
+		D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageTests.swift; sourceTree = "<group>"; };
+		D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageView.swift; sourceTree = "<group>"; };
+		D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageModel.swift; sourceTree = "<group>"; };
+		D3FEC80E2EDF8B3600A33AE8 /* Station+Mock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Station+Mock.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -549,6 +568,16 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		D3219C152EDD22060008AFDA /* BroadcastPage */ = {
+			isa = PBXGroup;
+			children = (
+				D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */,
+				D3219C162EDD22100008AFDA /* BroadcastPageView.swift */,
+				D3219C1C2EDD22230008AFDA /* BroadcastPageTests.swift */,
+			);
+			path = BroadcastPage;
+			sourceTree = "<group>";
+		};
 		D339E55B2BFD0CEE00B9E35B /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -561,6 +590,8 @@
 		D339E55C2BFD0FB000B9E35B /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */,
+				D3219C152EDD22060008AFDA /* BroadcastPage */,
 				D30257852E63B6AD00F4228B /* LikedSongsPage */,
 				D3A08A362E53A761002468E0 /* InvitationCodePage */,
 				D39591242E3BB6F400720CF8 /* EditProfilePage */,
@@ -652,6 +683,7 @@
 		D3536A392BFA6520006942D6 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				D3FEC80E2EDF8B3600A33AE8 /* Station+Mock.swift */,
 				D37257CB2DFA3F7F001BC6F9 /* FontNames.swift */,
 				D37257BC2DF893BB001BC6F9 /* View+ListInstalledFonts.swift */,
 				D3A276682D496282006055AF /* UIApplication+keyWindow.swift */,
@@ -979,6 +1011,16 @@
 			path = LiveShowsSection;
 			sourceTree = "<group>";
 		};
+		D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */ = {
+			isa = PBXGroup;
+			children = (
+				D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */,
+				D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */,
+				D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */,
+			);
+			path = ChooseStationToBroadcastPage;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1208,11 +1250,13 @@
 				D30F00612E8592F0007BCC73 /* Toast.swift in Sources */,
 				D30F00622E8592F0007BCC73 /* MailService.swift in Sources */,
 				D30F00632E8592F0007BCC73 /* FRadioPlayerMetadata+Equatable.swift in Sources */,
+				D3219C1A2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */,
 				D30F00642E8592F0007BCC73 /* PrizeTier.swift in Sources */,
 				D30F00652E8592F0007BCC73 /* PlayolaSheet.swift in Sources */,
 				D30F00662E8592F0007BCC73 /* PlayerPageModel.swift in Sources */,
 				D37B74832EC93285009806C6 /* UpcomingBadge.swift in Sources */,
 				D30F00672E8592F0007BCC73 /* LikesManager.swift in Sources */,
+				D3FEC8102EDF8B3B00A33AE8 /* Station+Mock.swift in Sources */,
 				D30F00682E8592F0007BCC73 /* AnalyticsClient.swift in Sources */,
 				D30F00692E8592F0007BCC73 /* StationPlayer.swift in Sources */,
 				D30F006A2E8592F0007BCC73 /* PrizeTierRow.swift in Sources */,
@@ -1243,6 +1287,7 @@
 				D3E8D6842E96D39C0028CEBD /* Show.swift in Sources */,
 				D30F00822E8592F0007BCC73 /* LikedSongsPageModel.swift in Sources */,
 				D30F00832E8592F0007BCC73 /* UIApplication+keyWindow.swift in Sources */,
+				D3219C172EDD22150008AFDA /* BroadcastPageView.swift in Sources */,
 				D30F00842E8592F0007BCC73 /* Prize.swift in Sources */,
 				D30F00852E8592F0007BCC73 /* NowPlayingUpdater.swift in Sources */,
 				D30F00862E8592F0007BCC73 /* Bundle+Misc.swift in Sources */,
@@ -1256,9 +1301,11 @@
 				D30F008E2E8592F0007BCC73 /* StationListPage.swift in Sources */,
 				D30F008F2E8592F0007BCC73 /* MainContainer.swift in Sources */,
 				D30F00902E8592F0007BCC73 /* ToastView.swift in Sources */,
+				D3FEC80C2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */,
 				D30F00912E8592F0007BCC73 /* APIClient.swift in Sources */,
 				D30F00922E8592F0007BCC73 /* SmallPlayer.swift in Sources */,
 				D30F00932E8592F0007BCC73 /* PlayolaRadioApp.swift in Sources */,
+				D3FEC8092EDF646A00A33AE8 /* ChooseStationToBroadcastPageView.swift in Sources */,
 				D30F00942E8592F0007BCC73 /* SignInPageModel.swift in Sources */,
 				D30F00952E8592F0007BCC73 /* MainContainerNavigationCoordinator.swift in Sources */,
 			);
@@ -1302,11 +1349,13 @@
 				D302576B2E63423D00F4228B /* Toast.swift in Sources */,
 				D339E57E2BFD750700B9E35B /* MailService.swift in Sources */,
 				D339E56F2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift in Sources */,
+				D3219C1B2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */,
 				D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */,
 				D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */,
 				D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */,
 				D37B74842EC93285009806C6 /* UpcomingBadge.swift in Sources */,
 				D302577C2E639FB800F4228B /* LikesManager.swift in Sources */,
+				D3FEC80F2EDF8B3B00A33AE8 /* Station+Mock.swift in Sources */,
 				D3A08A2F2E4E2A35002468E0 /* AnalyticsClient.swift in Sources */,
 				D31C43A82D3C19640021AAE4 /* StationPlayer.swift in Sources */,
 				D36FBCC02E37FC8100D1241C /* PrizeTierRow.swift in Sources */,
@@ -1337,6 +1386,7 @@
 				D3E8D6852E96D39C0028CEBD /* Show.swift in Sources */,
 				D30257892E63B6C100F4228B /* LikedSongsPageModel.swift in Sources */,
 				D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */,
+				D3219C182EDD22150008AFDA /* BroadcastPageView.swift in Sources */,
 				D3B744CD2E368DB50042A427 /* Prize.swift in Sources */,
 				D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */,
 				D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */,
@@ -1350,9 +1400,11 @@
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */,
 				D30257762E6342C900F4228B /* ToastView.swift in Sources */,
+				D3FEC80B2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */,
 				D339E5692BFD1C0800B9E35B /* APIClient.swift in Sources */,
 				D382671C2E00C1460006BAC2 /* SmallPlayer.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
+				D3FEC8082EDF646A00A33AE8 /* ChooseStationToBroadcastPageView.swift in Sources */,
 				D378CCCE2E56011A00497A4A /* SignInPageModel.swift in Sources */,
 				D395912A2E3BD02B00720CF8 /* MainContainerNavigationCoordinator.swift in Sources */,
 			);
@@ -1367,9 +1419,11 @@
 				D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */,
 				D30257A92E651C9E00F4228B /* MainContainerNavigationCoordinatorTests.swift in Sources */,
 				D30257792E634A2600F4228B /* ToastClientTests.swift in Sources */,
+				D3219C1F2EDD22360008AFDA /* BroadcastPageTests.swift in Sources */,
 				D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */,
 				D37B74942ECA3A69009806C6 /* ScheduledShowTileTests.swift in Sources */,
 				D37786E82EAD3DA20084B8B8 /* ScheduledShowTests.swift in Sources */,
+				D3FEC80D2EDF689F00A33AE8 /* ChooseStationToBroadcastPageTests.swift in Sources */,
 				D3B744CB2E313B230042A427 /* ListeningTimeTileTests.swift in Sources */,
 				D3B744C52E31318A0042A427 /* RewardsPageTests.swift in Sources */,
 				D37786EA2EAD4AE80084B8B8 /* ScheduledShowsListTests.swift in Sources */,
@@ -2110,7 +2164,7 @@
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 0.10.3;
+				minimumVersion = 0.10.4;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
