@@ -13,6 +13,9 @@ import SwiftUI
 @MainActor
 @Observable
 class ChooseStationToBroadcastPageModel: ViewModel {
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
+
   let stations: [Station]
 
   var sortedStations: [Station] {
@@ -28,5 +31,10 @@ class ChooseStationToBroadcastPageModel: ViewModel {
 
   func displayName(for station: Station) -> String {
     "\(station.curatorName) - \(station.name)"
+  }
+
+  func onStationSelected(_ station: Station) {
+    let model = BroadcastPageModel(stationId: station.id)
+    mainContainerNavigationCoordinator.path.append(.broadcastPage(model))
   }
 }

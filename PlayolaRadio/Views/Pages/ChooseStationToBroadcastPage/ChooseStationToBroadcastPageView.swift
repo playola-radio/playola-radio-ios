@@ -14,12 +14,17 @@ struct ChooseStationToBroadcastPageView: View {
   var body: some View {
     List {
       ForEach(model.sortedStations, id: \.id) { station in
-        Text(model.displayName(for: station))
-          .font(.custom(FontNames.Inter_500_Medium, size: 16))
-          .foregroundColor(.white)
-          .padding(.vertical, 12)
-          .listRowBackground(Color.black)
-          .listRowSeparatorTint(.playolaGray.opacity(0.3))
+        Button {
+          model.onStationSelected(station)
+        } label: {
+          Text(model.displayName(for: station))
+            .font(.custom(FontNames.Inter_500_Medium, size: 16))
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 12)
+        }
+        .listRowBackground(Color.black)
+        .listRowSeparatorTint(.playolaGray.opacity(0.3))
       }
     }
     .listStyle(.plain)
