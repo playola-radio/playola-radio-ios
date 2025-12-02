@@ -51,81 +51,93 @@ final class ScheduledShowTileTests: XCTestCase {
   // MARK: - timeDisplayString Tests
 
   func testTimeDisplayString_AMTime() {
-    let calendar = Calendar.current
-    // Create a date: Wed, Oct 1 at 7:00am
-    var components = DateComponents()
-    components.year = 2025
-    components.month = 10
-    components.day = 1
-    components.hour = 7
-    components.minute = 0
-    let airtime = calendar.date(from: components)!
+    withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+    } operation: {
+      let calendar = Calendar.current
+      // Create a date: Wed, Oct 1 at 7:00am
+      var components = DateComponents()
+      components.year = 2025
+      components.month = 10
+      components.day = 1
+      components.hour = 7
+      components.minute = 0
+      let airtime = calendar.date(from: components)!
 
-    // Create end time: 10:00am
-    components.hour = 10
-    let endTime = calendar.date(from: components)!
+      // Create end time: 10:00am
+      components.hour = 10
+      let endTime = calendar.date(from: components)!
 
-    let show = Show.mockWith(durationMS: Int((endTime.timeIntervalSince(airtime)) * 1000))
-    let scheduledShow = ScheduledShow.mockWith(
-      airtime: airtime,
-      show: show
-    )
+      let show = Show.mockWith(durationMS: Int((endTime.timeIntervalSince(airtime)) * 1000))
+      let scheduledShow = ScheduledShow.mockWith(
+        airtime: airtime,
+        show: show
+      )
 
-    let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
+      let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
 
-    XCTAssertEqual(model.timeDisplayString, "Wed, Oct 1 at 7:00am - 10:00am")
+      XCTAssertEqual(model.timeDisplayString, "Wed, Oct 1 at 7:00am - 10:00am")
+    }
   }
 
   func testTimeDisplayString_PMTime() {
-    let calendar = Calendar.current
-    // Create a date: Wed, Oct 1 at 7:00pm
-    var components = DateComponents()
-    components.year = 2025
-    components.month = 10
-    components.day = 1
-    components.hour = 19
-    components.minute = 0
-    let airtime = calendar.date(from: components)!
+    withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+    } operation: {
+      let calendar = Calendar.current
+      // Create a date: Wed, Oct 1 at 7:00pm
+      var components = DateComponents()
+      components.year = 2025
+      components.month = 10
+      components.day = 1
+      components.hour = 19
+      components.minute = 0
+      let airtime = calendar.date(from: components)!
 
-    // Create end time: 10:00pm
-    components.hour = 22
-    let endTime = calendar.date(from: components)!
+      // Create end time: 10:00pm
+      components.hour = 22
+      let endTime = calendar.date(from: components)!
 
-    let show = Show.mockWith(durationMS: Int((endTime.timeIntervalSince(airtime)) * 1000))
-    let scheduledShow = ScheduledShow.mockWith(
-      airtime: airtime,
-      show: show
-    )
+      let show = Show.mockWith(durationMS: Int((endTime.timeIntervalSince(airtime)) * 1000))
+      let scheduledShow = ScheduledShow.mockWith(
+        airtime: airtime,
+        show: show
+      )
 
-    let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
+      let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
 
-    XCTAssertEqual(model.timeDisplayString, "Wed, Oct 1 at 7:00pm - 10:00pm")
+      XCTAssertEqual(model.timeDisplayString, "Wed, Oct 1 at 7:00pm - 10:00pm")
+    }
   }
 
   func testTimeDisplayString_CrossingNoonBoundary() {
-    let calendar = Calendar.current
-    // Create a date: Wed, Oct 1 at 10:00am
-    var components = DateComponents()
-    components.year = 2025
-    components.month = 10
-    components.day = 1
-    components.hour = 10
-    components.minute = 0
-    let airtime = calendar.date(from: components)!
+    withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+    } operation: {
+      let calendar = Calendar.current
+      // Create a date: Wed, Oct 1 at 10:00am
+      var components = DateComponents()
+      components.year = 2025
+      components.month = 10
+      components.day = 1
+      components.hour = 10
+      components.minute = 0
+      let airtime = calendar.date(from: components)!
 
-    // Create end time: 2:00pm
-    components.hour = 14
-    let endTime = calendar.date(from: components)!
+      // Create end time: 2:00pm
+      components.hour = 14
+      let endTime = calendar.date(from: components)!
 
-    let show = Show.mockWith(durationMS: Int((endTime.timeIntervalSince(airtime)) * 1000))
-    let scheduledShow = ScheduledShow.mockWith(
-      airtime: airtime,
-      show: show
-    )
+      let show = Show.mockWith(durationMS: Int((endTime.timeIntervalSince(airtime)) * 1000))
+      let scheduledShow = ScheduledShow.mockWith(
+        airtime: airtime,
+        show: show
+      )
 
-    let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
+      let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
 
-    XCTAssertEqual(model.timeDisplayString, "Wed, Oct 1 at 10:00am - 2:00pm")
+      XCTAssertEqual(model.timeDisplayString, "Wed, Oct 1 at 10:00am - 2:00pm")
+    }
   }
 
   // MARK: - buttonType Tests
@@ -210,46 +222,54 @@ final class ScheduledShowTileTests: XCTestCase {
   // MARK: - Error Handling Tests
 
   func testlistenInButtonTapped_ShowsAlertWhenStationIsNil() async {
-    let scheduledShow = ScheduledShow.mockWith(
-      station: nil
-    )
-    let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
+    withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+    } operation: {
+      let scheduledShow = ScheduledShow.mockWith(
+        station: nil
+      )
+      let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
 
-    XCTAssertNil(model.presentedAlert)
+      XCTAssertNil(model.presentedAlert)
 
-    model.listenInButtonTapped()
+      model.listenInButtonTapped()
 
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert, .errorLoadingStation)
+      XCTAssertNotNil(model.presentedAlert)
+      XCTAssertEqual(model.presentedAlert, .errorLoadingStation)
+    }
   }
 
   func testlistenInButtonTapped_PlaysStationWhenStationIsAvailable() async {
-    let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
-    let station = PlayolaPlayer.Station(
-      id: "test-station",
-      name: "Test Station",
-      curatorName: "Test DJ",
-      imageUrl: URL(string: "https://example.com/image.png"),
-      description: "Test station description",
-      active: true,
-      createdAt: Date(),
-      updatedAt: Date()
-    )
-    let scheduledShow = ScheduledShow.mockWith(
-      station: station
-    )
-    let model = ScheduledShowTileModel(
-      scheduledShow: scheduledShow, stationPlayer: stationPlayerMock)
+    withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+    } operation: {
+      let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+      let station = PlayolaPlayer.Station(
+        id: "test-station",
+        name: "Test Station",
+        curatorName: "Test DJ",
+        imageUrl: URL(string: "https://example.com/image.png"),
+        description: "Test station description",
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      )
+      let scheduledShow = ScheduledShow.mockWith(
+        station: station
+      )
+      let model = ScheduledShowTileModel(
+        scheduledShow: scheduledShow, stationPlayer: stationPlayerMock)
 
-    model.listenInButtonTapped()
+      model.listenInButtonTapped()
 
-    XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
-    XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, station.id)
-    if case .playola(let playedStation) = stationPlayerMock.callsToPlay.first {
-      XCTAssertEqual(playedStation.id, station.id)
-      XCTAssertEqual(playedStation.curatorName, station.curatorName)
-    } else {
-      XCTFail("Expected playola station to be played")
+      XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
+      XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, station.id)
+      if case .playola(let playedStation) = stationPlayerMock.callsToPlay.first {
+        XCTAssertEqual(playedStation.id, station.id)
+        XCTAssertEqual(playedStation.curatorName, station.curatorName)
+      } else {
+        XCTFail("Expected playola station to be played")
+      }
     }
   }
 
@@ -277,6 +297,7 @@ final class ScheduledShowTileTests: XCTestCase {
     var capturedDate: Date?
 
     await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.pushNotifications.scheduleNotification = { identifier, title, body, date in
         capturedIdentifier = identifier
         capturedTitle = title
@@ -313,6 +334,7 @@ final class ScheduledShowTileTests: XCTestCase {
     )
 
     await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.pushNotifications.requestAuthorization = { false }
     } operation: {
       let model = ScheduledShowTileModel(scheduledShow: scheduledShow)
@@ -343,6 +365,7 @@ final class ScheduledShowTileTests: XCTestCase {
     )
 
     await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.pushNotifications.scheduleNotification = { _, _, _, _ in }
       $0.pushNotifications.requestAuthorization = { true }
     } operation: {
@@ -376,6 +399,7 @@ final class ScheduledShowTileTests: XCTestCase {
     struct TestError: Error {}
 
     await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.pushNotifications.scheduleNotification = { _, _, _, _ in
         throw TestError()
       }
@@ -424,6 +448,7 @@ final class ScheduledShowTileTests: XCTestCase {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.pushNotifications.scheduleNotification = { _, _, _, _ in }
       $0.pushNotifications.requestAuthorization = { true }
       $0.analytics.track = { event in
@@ -465,6 +490,7 @@ final class ScheduledShowTileTests: XCTestCase {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.pushNotifications.requestAuthorization = { false }
       $0.analytics.track = { event in
         capturedEvents.withValue { $0.append(event) }
@@ -497,6 +523,7 @@ final class ScheduledShowTileTests: XCTestCase {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.pushNotifications.requestAuthorization = { true }
       $0.pushNotifications.scheduleNotification = { _, _, _, _ in
         throw TestError()
