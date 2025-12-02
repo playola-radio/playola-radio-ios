@@ -18,35 +18,43 @@ final class ScheduledShowsListTests: XCTestCase {
   // MARK: - Initialization Tests
 
   func testInitWithDefaultValues() {
-    let model = ScheduledShowsListModel()
+    withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+    } operation: {
+      let model = ScheduledShowsListModel()
 
-    XCTAssertNil(model.stationId)
-    XCTAssertEqual(model.scheduledShows.count, 0)
-    XCTAssertEqual(model.tileModels.count, 0)
-    XCTAssertNil(model.presentedAlert)
+      XCTAssertNil(model.stationId)
+      XCTAssertEqual(model.scheduledShows.count, 0)
+      XCTAssertEqual(model.tileModels.count, 0)
+      XCTAssertNil(model.presentedAlert)
+    }
   }
 
   func testInitWithProvidedValues() {
-    let scheduledShows = [
-      ScheduledShow.mockWith(id: "show1"),
-      ScheduledShow.mockWith(id: "show2"),
-      ScheduledShow.mockWith(id: "show3"),
-    ]
-    let stationId = "test-station-id"
+    withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+    } operation: {
+      let scheduledShows = [
+        ScheduledShow.mockWith(id: "show1"),
+        ScheduledShow.mockWith(id: "show2"),
+        ScheduledShow.mockWith(id: "show3"),
+      ]
+      let stationId = "test-station-id"
 
-    let model = ScheduledShowsListModel(stationId: stationId, scheduledShows: scheduledShows)
+      let model = ScheduledShowsListModel(stationId: stationId, scheduledShows: scheduledShows)
 
-    XCTAssertEqual(model.stationId, stationId)
-    XCTAssertEqual(model.scheduledShows.count, 3)
-    XCTAssertEqual(model.scheduledShows[0].id, "show1")
-    XCTAssertEqual(model.scheduledShows[1].id, "show2")
-    XCTAssertEqual(model.scheduledShows[2].id, "show3")
+      XCTAssertEqual(model.stationId, stationId)
+      XCTAssertEqual(model.scheduledShows.count, 3)
+      XCTAssertEqual(model.scheduledShows[0].id, "show1")
+      XCTAssertEqual(model.scheduledShows[1].id, "show2")
+      XCTAssertEqual(model.scheduledShows[2].id, "show3")
 
-    // Verify tileModels are created for each scheduledShow
-    XCTAssertEqual(model.tileModels.count, 3)
-    XCTAssertEqual(model.tileModels[0].scheduledShow.id, "show1")
-    XCTAssertEqual(model.tileModels[1].scheduledShow.id, "show2")
-    XCTAssertEqual(model.tileModels[2].scheduledShow.id, "show3")
+      // Verify tileModels are created for each scheduledShow
+      XCTAssertEqual(model.tileModels.count, 3)
+      XCTAssertEqual(model.tileModels[0].scheduledShow.id, "show1")
+      XCTAssertEqual(model.tileModels[1].scheduledShow.id, "show2")
+      XCTAssertEqual(model.tileModels[2].scheduledShow.id, "show3")
+    }
   }
 
   // MARK: - loadScheduledShows Tests
@@ -62,6 +70,7 @@ final class ScheduledShowsListTests: XCTestCase {
     var capturedStationId: String??
 
     await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.api.getScheduledShows = { jwtToken, showId, stationId in
         capturedToken = jwtToken
         capturedShowId = showId
@@ -100,6 +109,7 @@ final class ScheduledShowsListTests: XCTestCase {
     var capturedStationId: String??
 
     await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.api.getScheduledShows = { jwtToken, showId, stationId in
         capturedToken = jwtToken
         capturedShowId = showId
@@ -126,6 +136,7 @@ final class ScheduledShowsListTests: XCTestCase {
     let initialShows = [ScheduledShow.mockWith(id: "initial")]
 
     await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.api.getScheduledShows = { _, _, _ in
         throw TestError()
       }
@@ -153,6 +164,7 @@ final class ScheduledShowsListTests: XCTestCase {
     @Shared(.scheduledShows) var sharedScheduledShows: IdentifiedArrayOf<ScheduledShow> = []
 
     await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.api.getScheduledShows = { _, _, _ in
         return mockShows
       }
