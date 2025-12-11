@@ -161,6 +161,14 @@ struct APIClient: Sendable {
   /// - Parameter jwtToken: The JWT token for authentication
   /// - Returns: Array of Station objects the user has access to
   var fetchUserStations: (_ jwtToken: String) async throws -> [Station] = { _ in [] }
+
+  /// Deletes a spin from the station's schedule
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - spinId: The ID of the spin to delete
+  /// - Returns: Updated array of Spin objects representing the new schedule
+  /// - Throws: APIError if the request fails
+  var deleteSpin: (_ jwtToken: String, _ spinId: String) async throws -> [Spin] = { _, _ in [] }
 }
 
 extension APIClient: DependencyKey {
@@ -543,6 +551,21 @@ extension APIClient: DependencyKey {
           .validate(statusCode: 200..<300)
           .serializingDecodable([Station].self, decoder: isoDecoder)
           .value
+
+        return response
+      },
+      deleteSpin: { jwtToken, spinId in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/spins/\(spinId)"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(
+          url,
+          method: .delete,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable([Spin].self, decoder: isoDecoder)
+        .value
 
         return response
       }

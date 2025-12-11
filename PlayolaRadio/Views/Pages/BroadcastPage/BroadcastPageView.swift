@@ -105,11 +105,21 @@ struct BroadcastPageView: View {
             // Schedule List (scrolls)
             List {
               ForEach(model.upcomingSpins, id: \.id) { spin in
-                ScheduleRowView(spin: spin)
-                  .listRowInsets(EdgeInsets())
-                  .listRowSeparator(.hidden)
-                  .listRowBackground(Color.clear)
-                  .transition(.opacity.combined(with: .move(edge: .top)))
+                ScheduleRowView(
+                  spin: spin,
+                  isBeingRescheduled: model.spinIdsBeingRescheduled.contains(spin.id)
+                )
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+              }
+              .onDelete { indexSet in
+                guard let index = indexSet.first else { return }
+                let spin = model.upcomingSpins[index]
+                Task {
+                  await model.deleteSpin(spin)
+                }
               }
               // TODO: Re-enable reordering when ready
               // .onMove { source, destination in
@@ -183,6 +193,13 @@ struct NowPlayingContentView: View {
 
 struct ScheduleRowView: View {
   let spin: Spin
+  let isBeingRescheduled: Bool
+
+  init(spin: Spin, isBeingRescheduled: Bool = false) {
+    self.spin = spin
+    self.isBeingRescheduled = isBeingRescheduled
+  }
+
   var isGrouped: Bool { spin.spinGroupId != nil }
 
   private var timeString: String {
@@ -232,10 +249,16 @@ struct ScheduleRowView: View {
           }
         }
 
-        // Time
-        Text("at \(timeString)")
-          .font(.custom(FontNames.Inter_400_Regular, size: 11))
-          .foregroundColor(.playolaGray)
+        // Time or rescheduling indicator
+        if isBeingRescheduled {
+          ProgressView()
+            .tint(.playolaGray)
+            .scaleEffect(0.8)
+        } else {
+          Text("at \(timeString)")
+            .font(.custom(FontNames.Inter_400_Regular, size: 11))
+            .foregroundColor(.playolaGray)
+        }
 
         // Drag handle
         Image(systemName: "line.3.horizontal")

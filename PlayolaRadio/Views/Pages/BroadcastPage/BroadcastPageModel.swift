@@ -27,6 +27,7 @@ class BroadcastPageModel: ViewModel {
   private var fetchedStationName: String?
   var schedule: Schedule?
   var isLoading: Bool = false
+  var spinIdsBeingRescheduled: Set<String> = []
   var presentedAlert: PlayolaAlert?
   var currentNowPlayingId: String?
   private var reorderedSpinIds: [String]?  // nil means use default order
@@ -120,6 +121,52 @@ class BroadcastPageModel: ViewModel {
     presentedAlert = .comingSoon
   }
 
+  func deleteSpin(_ spin: Spin) async {
+    guard let jwt = auth.jwt else { return }
+
+    let originalSchedule = schedule
+    let originalReorderedIds = reorderedSpinIds
+
+    // Mark spins after the deleted one as being rescheduled
+    if let currentSpins = schedule?.current() {
+      let affectedIds =
+        currentSpins
+        .filter { $0.airtime > spin.airtime }
+        .map { $0.id }
+      spinIdsBeingRescheduled = Set(affectedIds)
+    }
+
+    // Optimistically remove the spin
+    if let currentSchedule = schedule {
+      let filteredSpins = currentSchedule.current().filter { $0.id != spin.id }
+      schedule = Schedule(
+        stationId: stationId,
+        spins: filteredSpins,
+        dateProvider: DependencyDateProvider()
+      )
+      if reorderedSpinIds != nil {
+        reorderedSpinIds = reorderedSpinIds?.filter { $0 != spin.id }
+      }
+    }
+
+    do {
+      let newSpins = try await api.deleteSpin(jwt, spin.id)
+      schedule = Schedule(
+        stationId: stationId,
+        spins: newSpins,
+        dateProvider: DependencyDateProvider()
+      )
+      reorderedSpinIds = nil
+      currentNowPlayingId = nowPlaying?.id
+    } catch {
+      schedule = originalSchedule
+      reorderedSpinIds = originalReorderedIds
+      presentedAlert = .errorDeletingSpin(error.localizedDescription)
+    }
+
+    spinIdsBeingRescheduled = []
+  }
+
   /// Handles moving spins in the list, automatically including grouped spins
   func moveSpins(from source: IndexSet, to destination: Int) {
     var spins = upcomingSpins
@@ -177,6 +224,14 @@ extension PlayolaAlert {
     PlayolaAlert(
       title: "Coming Soon",
       message: "This feature is coming soon!",
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static func errorDeletingSpin(_ message: String) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Error",
+      message: message,
       dismissButton: .cancel(Text("OK"))
     )
   }
