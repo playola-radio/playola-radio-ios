@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Pre-commit hook to run swift-format on staged Swift files
-# Uses the same check as CI: xcrun swift-format lint --strict
+# 1. Auto-format staged files
+# 2. Verify with make format-check (same as CI)
 
 set -e  # Exit on any error
 
@@ -13,26 +14,23 @@ if [ -z "$STAGED_SWIFT_FILES" ]; then
     exit 0
 fi
 
-echo "Running swift-format lint on staged Swift files..."
+echo "Formatting staged Swift files..."
 
-# Check each staged Swift file with lint --strict (same as CI)
-FAILED_FILES=()
+# Format each staged Swift file
 for FILE in $STAGED_SWIFT_FILES; do
     if [ -f "$FILE" ]; then
-        if ! xcrun swift-format lint --strict "$FILE" 2>/dev/null; then
-            FAILED_FILES+=("$FILE")
-        fi
+        xcrun swift-format format -i "$FILE"
+        git add "$FILE"
     fi
 done
 
-if [ ${#FAILED_FILES[@]} -gt 0 ]; then
+echo "Running format check (same as CI)..."
+
+if ! make format-check; then
     echo ""
-    echo "The following files have formatting issues:"
-    printf '  %s\n' "${FAILED_FILES[@]}"
-    echo ""
-    echo "Run 'xcrun swift-format format -i <file>' to fix, or 'make format' to fix all."
+    echo "Format check failed. Please fix the issues above and try again."
     exit 1
 fi
 
-echo "All staged Swift files pass format check."
+echo "All files pass format check."
 exit 0
