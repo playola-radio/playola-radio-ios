@@ -422,7 +422,7 @@ private enum TestError: Error, LocalizedError {
 // MARK: - canDeleteSpin Tests
 
 extension BroadcastPageTests {
-  func testCanDeleteSpin_ReturnsTrueForSpinMoreThanTwoMinutesAway() async {
+  func testCanDeleteSpinReturnsTrueForSpinMoreThanTwoMinutesAway() async {
     let stationId = "test-station-id"
     let fixedNow = Date(timeIntervalSince1970: 1_000_000)
     let spinMoreThanTwoMinutesAway = Spin.mockWith(
@@ -442,7 +442,7 @@ extension BroadcastPageTests {
     }
   }
 
-  func testCanDeleteSpin_ReturnsFalseForSpinExactlyTwoMinutesAway() async {
+  func testCanDeleteSpinReturnsFalseForSpinExactlyTwoMinutesAway() async {
     let stationId = "test-station-id"
     let fixedNow = Date(timeIntervalSince1970: 1_000_000)
     let spinExactlyTwoMinutesAway = Spin.mockWith(
@@ -462,7 +462,7 @@ extension BroadcastPageTests {
     }
   }
 
-  func testCanDeleteSpin_ReturnsFalseForSpinLessThanTwoMinutesAway() async {
+  func testCanDeleteSpinReturnsFalseForSpinLessThanTwoMinutesAway() async {
     let stationId = "test-station-id"
     let fixedNow = Date(timeIntervalSince1970: 1_000_000)
     let spinLessThanTwoMinutesAway = Spin.mockWith(
@@ -486,7 +486,7 @@ extension BroadcastPageTests {
 // MARK: - Delete Spin Tests
 
 extension BroadcastPageTests {
-  func testDeleteSpin_Success_UpdatesScheduleWithReturnedSpins() async {
+  func testDeleteSpinSuccessUpdatesScheduleWithReturnedSpins() async {
     let stationId = "test-station-id"
     let fixedNow = Date(timeIntervalSince1970: 1_000_000)
     let initialSpins = [
@@ -527,7 +527,7 @@ extension BroadcastPageTests {
     }
   }
 
-  func testDeleteSpin_MarksSpinsAfterDeletedAsReschedulingDuringCall() async {
+  func testDeleteSpinMarksSpinsAfterDeletedAsReschedulingDuringCall() async {
     let stationId = "test-station-id"
     let fixedNow = Date(timeIntervalSince1970: 1_000_000)
     let initialSpins = [
@@ -567,7 +567,7 @@ extension BroadcastPageTests {
     }
   }
 
-  func testDeleteSpin_Error_RestoresOriginalSchedule() async {
+  func testDeleteSpinErrorRestoresOriginalSchedule() async {
     let stationId = "test-station-id"
     let fixedNow = Date(timeIntervalSince1970: 1_000_000)
     let initialSpins = [
@@ -601,7 +601,7 @@ extension BroadcastPageTests {
     }
   }
 
-  func testDeleteSpin_Error_ShowsErrorAlert() async {
+  func testDeleteSpinErrorShowsErrorAlert() async {
     let stationId = "test-station-id"
     let fixedNow = Date(timeIntervalSince1970: 1_000_000)
     let initialSpins = [
