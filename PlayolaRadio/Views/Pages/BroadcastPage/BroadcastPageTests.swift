@@ -408,6 +408,224 @@ final class BroadcastPageTests: XCTestCase {
 
 }
 
-private enum TestError: Error {
+private enum TestError: Error, LocalizedError {
   case networkError
+
+  var errorDescription: String? {
+    switch self {
+    case .networkError:
+      return "Network error occurred"
+    }
+  }
+}
+
+// MARK: - canDeleteSpin Tests
+
+extension BroadcastPageTests {
+  func testCanDeleteSpinReturnsTrueForSpinMoreThanTwoMinutesAway() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let spinMoreThanTwoMinutesAway = Spin.mockWith(
+      id: "spin-1",
+      airtime: fixedNow.addingTimeInterval(121),  // 2 min 1 sec away
+      stationId: stationId
+    )
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [spinMoreThanTwoMinutesAway] }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      XCTAssertTrue(model.canDeleteSpin(spinMoreThanTwoMinutesAway))
+    }
+  }
+
+  func testCanDeleteSpinReturnsFalseForSpinExactlyTwoMinutesAway() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let spinExactlyTwoMinutesAway = Spin.mockWith(
+      id: "spin-1",
+      airtime: fixedNow.addingTimeInterval(120),  // exactly 2 min away
+      stationId: stationId
+    )
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [spinExactlyTwoMinutesAway] }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      XCTAssertFalse(model.canDeleteSpin(spinExactlyTwoMinutesAway))
+    }
+  }
+
+  func testCanDeleteSpinReturnsFalseForSpinLessThanTwoMinutesAway() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let spinLessThanTwoMinutesAway = Spin.mockWith(
+      id: "spin-1",
+      airtime: fixedNow.addingTimeInterval(60),  // 1 min away
+      stationId: stationId
+    )
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [spinLessThanTwoMinutesAway] }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      XCTAssertFalse(model.canDeleteSpin(spinLessThanTwoMinutesAway))
+    }
+  }
+}
+
+// MARK: - Delete Spin Tests
+
+extension BroadcastPageTests {
+  func testDeleteSpinSuccessUpdatesScheduleWithReturnedSpins() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let initialSpins = [
+      Spin.mockWith(
+        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
+      Spin.mockWith(
+        id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
+      Spin.mockWith(
+        id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
+    ]
+    let updatedSpins = [
+      Spin.mockWith(
+        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
+      Spin.mockWith(
+        id: "spin-3", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
+    ]
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in initialSpins }
+      $0.api.deleteSpin = { _, spinId in
+        XCTAssertEqual(spinId, "spin-2")
+        return updatedSpins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      XCTAssertEqual(model.upcomingSpins.map { $0.id }, ["spin-1", "spin-2", "spin-3"])
+
+      let spinToDelete = initialSpins[1]
+      await model.deleteSpin(spinToDelete)
+
+      XCTAssertEqual(model.upcomingSpins.map { $0.id }, ["spin-1", "spin-3"])
+      XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
+      XCTAssertNil(model.presentedAlert)
+    }
+  }
+
+  func testDeleteSpinMarksSpinsAfterDeletedAsReschedulingDuringCall() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let initialSpins = [
+      Spin.mockWith(
+        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
+      Spin.mockWith(
+        id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
+      Spin.mockWith(
+        id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
+    ]
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    nonisolated(unsafe) var model: BroadcastPageModel!
+    nonisolated(unsafe) var capturedReschedulingIds: Set<String> = []
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in initialSpins }
+      $0.api.deleteSpin = { _, _ in
+        await MainActor.run {
+          capturedReschedulingIds = model.spinIdsBeingRescheduled
+        }
+        return [initialSpins[0], initialSpins[2]]
+      }
+    } operation: {
+      model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
+
+      await model.deleteSpin(initialSpins[1])
+
+      // During the call, spin-3 should have been marked as rescheduling (it comes after spin-2)
+      XCTAssertEqual(capturedReschedulingIds, ["spin-3"])
+      // After the call completes, the set should be cleared
+      XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
+    }
+  }
+
+  func testDeleteSpinErrorRestoresOriginalSchedule() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let initialSpins = [
+      Spin.mockWith(
+        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
+      Spin.mockWith(
+        id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
+      Spin.mockWith(
+        id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
+    ]
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in initialSpins }
+      $0.api.deleteSpin = { _, _ in
+        throw TestError.networkError
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      let originalIds = model.upcomingSpins.map { $0.id }
+      XCTAssertEqual(originalIds, ["spin-1", "spin-2", "spin-3"])
+
+      await model.deleteSpin(initialSpins[1])
+
+      let restoredIds = model.upcomingSpins.map { $0.id }
+      XCTAssertEqual(restoredIds, ["spin-1", "spin-2", "spin-3"])
+      XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
+    }
+  }
+
+  func testDeleteSpinErrorShowsErrorAlert() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let initialSpins = [
+      Spin.mockWith(
+        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId)
+    ]
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in initialSpins }
+      $0.api.deleteSpin = { _, _ in
+        throw TestError.networkError
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      XCTAssertNil(model.presentedAlert)
+
+      await model.deleteSpin(initialSpins[0])
+
+      XCTAssertNotNil(model.presentedAlert)
+      XCTAssertEqual(model.presentedAlert?.title, "Error")
+    }
+  }
 }

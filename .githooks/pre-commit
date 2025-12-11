@@ -1,16 +1,10 @@
 #!/bin/bash
 
 # Pre-commit hook to run swift-format on staged Swift files
+# 1. Auto-format staged files
+# 2. Verify with make format-check (same as CI)
 
 set -e  # Exit on any error
-
-# Find swift-format using xcrun with fallback
-SWIFT_FORMAT=$(xcrun --find swift-format 2>/dev/null || which swift-format 2>/dev/null)
-
-if [ -z "$SWIFT_FORMAT" ]; then
-    echo "Error: swift-format not found. Please ensure Xcode 16+ is installed or swift-format is in PATH."
-    exit 1
-fi
 
 # Get list of staged Swift files
 STAGED_SWIFT_FILES=$(git diff --cached --name-only --diff-filter=d | grep -E '\.swift$' || true)
@@ -20,51 +14,23 @@ if [ -z "$STAGED_SWIFT_FILES" ]; then
     exit 0
 fi
 
-echo "Running swift-format on staged Swift files..."
+echo "Formatting staged Swift files..."
 
 # Format each staged Swift file
-FORMATTED_FILES=()
 for FILE in $STAGED_SWIFT_FILES; do
     if [ -f "$FILE" ]; then
-        echo "Checking format: $FILE"
-        
-        # Create a backup of the current staged version
-        git show ":$FILE" > "${FILE}.staged.tmp"
-        
-        # Format the staged version
-        "$SWIFT_FORMAT" format "${FILE}.staged.tmp" > "${FILE}.formatted.tmp"
-        
-        # Check if formatting changed anything
-        if ! cmp -s "${FILE}.staged.tmp" "${FILE}.formatted.tmp"; then
-            echo "Formatting $FILE..."
-            
-            # Apply formatting to the working copy
-            "$SWIFT_FORMAT" format -i "$FILE"
-            
-            FORMATTED_FILES+=("$FILE")
-        fi
-        
-        # Cleanup temp files
-        rm -f "${FILE}.staged.tmp" "${FILE}.formatted.tmp"
+        xcrun swift-format format -i "$FILE"
+        git add "$FILE"
     fi
 done
 
-# If any files were formatted, add them back to staging
-if [ ${#FORMATTED_FILES[@]} -gt 0 ]; then
+echo "Running format check (same as CI)..."
+
+if ! make format-check; then
     echo ""
-    echo "The following files were formatted:"
-    printf '  %s\n' "${FORMATTED_FILES[@]}"
-    echo ""
-    echo "Adding formatted files back to staging..."
-    
-    # Re-stage only the files we formatted
-    for FILE in "${FORMATTED_FILES[@]}"; do
-        git add "$FILE"
-    done
-    
-    echo "Files have been formatted and re-staged."
-else
-    echo "All staged Swift files are already properly formatted."
+    echo "Format check failed. Please fix the issues above and try again."
+    exit 1
 fi
 
+echo "All files pass format check."
 exit 0

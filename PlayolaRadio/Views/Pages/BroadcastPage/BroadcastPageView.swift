@@ -105,11 +105,24 @@ struct BroadcastPageView: View {
             // Schedule List (scrolls)
             List {
               ForEach(model.upcomingSpins, id: \.id) { spin in
-                ScheduleRowView(spin: spin)
-                  .listRowInsets(EdgeInsets())
-                  .listRowSeparator(.hidden)
-                  .listRowBackground(Color.clear)
-                  .transition(.opacity.combined(with: .move(edge: .top)))
+                let isDeletable = model.canDeleteSpin(spin)
+                ScheduleRowView(
+                  spin: spin,
+                  isBeingRescheduled: model.spinIdsBeingRescheduled.contains(spin.id),
+                  isDeletable: isDeletable
+                )
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+                .deleteDisabled(!isDeletable)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+              }
+              .onDelete { indexSet in
+                guard let index = indexSet.first else { return }
+                let spin = model.upcomingSpins[index]
+                Task {
+                  await model.deleteSpin(spin)
+                }
               }
               // TODO: Re-enable reordering when ready
               // .onMove { source, destination in
@@ -183,12 +196,28 @@ struct NowPlayingContentView: View {
 
 struct ScheduleRowView: View {
   let spin: Spin
+  let isBeingRescheduled: Bool
+  let isDeletable: Bool
+
+  init(spin: Spin, isBeingRescheduled: Bool = false, isDeletable: Bool = true) {
+    self.spin = spin
+    self.isBeingRescheduled = isBeingRescheduled
+    self.isDeletable = isDeletable
+  }
+
   var isGrouped: Bool { spin.spinGroupId != nil }
 
   private var timeString: String {
     let formatter = DateFormatter()
     formatter.dateFormat = "h:mm:ssa"
     return formatter.string(from: spin.airtime).lowercased()
+  }
+
+  private var rowBackgroundColor: Color {
+    if spin.audioBlock.type == "commercial" {
+      return Color.black
+    }
+    return isDeletable ? Color(hex: "#333333") : Color(hex: "#444444")
   }
 
   var body: some View {
@@ -232,10 +261,16 @@ struct ScheduleRowView: View {
           }
         }
 
-        // Time
-        Text("at \(timeString)")
-          .font(.custom(FontNames.Inter_400_Regular, size: 11))
-          .foregroundColor(.playolaGray)
+        // Time or rescheduling indicator
+        if isBeingRescheduled {
+          ProgressView()
+            .tint(.playolaGray)
+            .scaleEffect(0.8)
+        } else {
+          Text("at \(timeString)")
+            .font(.custom(FontNames.Inter_400_Regular, size: 11))
+            .foregroundColor(.playolaGray)
+        }
 
         // Drag handle
         Image(systemName: "line.3.horizontal")
@@ -246,7 +281,7 @@ struct ScheduleRowView: View {
       .padding(.horizontal, 12)
       .padding(.vertical, 8)
     }
-    .background(spin.audioBlock.type == "commercial" ? Color.black : Color(hex: "#333333"))
+    .background(rowBackgroundColor)
   }
 }
 
