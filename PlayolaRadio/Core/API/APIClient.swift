@@ -558,24 +558,51 @@ extension APIClient: DependencyKey {
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/spins/\(spinId)"
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
 
-        let response = try await AF.request(
+        let dataResponse = await AF.request(
           url,
           method: .delete,
           headers: headers
         )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable([Spin].self, decoder: isoDecoder)
-        .value
+        .serializingData()
+        .response
 
-        return response
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw APIError.dataNotValid
+        }
+
+        guard let data = dataResponse.value else {
+          throw APIError.dataNotValid
+        }
+
+        if statusCode >= 200, statusCode < 300 {
+          let spins = try isoDecoder.decode([Spin].self, from: data)
+          return spins
+        } else {
+          if let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let errorObj = errorResponse["error"] as? [String: Any],
+            let message = errorObj["message"] as? String
+          {
+            throw APIError.validationError(message)
+          }
+          throw APIError.validationError("Failed to delete spin")
+        }
       }
     )
   }()
 }
 
-enum APIError: Error {
+enum APIError: Error, LocalizedError {
   case dataNotValid
   case validationError(String)
+
+  var errorDescription: String? {
+    switch self {
+    case .dataNotValid:
+      return "Invalid data received from server"
+    case .validationError(let message):
+      return message
+    }
+  }
 }
 
 enum InvitationCodeError: Error {

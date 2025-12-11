@@ -106,6 +106,11 @@ class BroadcastPageModel: ViewModel {
     return min(max(elapsed / duration, 0), 1)
   }
 
+  func canDeleteSpin(_ spin: Spin) -> Bool {
+    let twoMinutesFromNow = now.addingTimeInterval(120)
+    return spin.airtime > twoMinutesFromNow
+  }
+
   func tick() {
     let newNowPlayingId = nowPlaying?.id
     if newNowPlayingId != currentNowPlayingId {

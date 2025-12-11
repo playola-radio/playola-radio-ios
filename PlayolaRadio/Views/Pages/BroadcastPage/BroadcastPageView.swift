@@ -105,13 +105,16 @@ struct BroadcastPageView: View {
             // Schedule List (scrolls)
             List {
               ForEach(model.upcomingSpins, id: \.id) { spin in
+                let isDeletable = model.canDeleteSpin(spin)
                 ScheduleRowView(
                   spin: spin,
-                  isBeingRescheduled: model.spinIdsBeingRescheduled.contains(spin.id)
+                  isBeingRescheduled: model.spinIdsBeingRescheduled.contains(spin.id),
+                  isDeletable: isDeletable
                 )
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
+                .deleteDisabled(!isDeletable)
                 .transition(.opacity.combined(with: .move(edge: .top)))
               }
               .onDelete { indexSet in
@@ -194,10 +197,12 @@ struct NowPlayingContentView: View {
 struct ScheduleRowView: View {
   let spin: Spin
   let isBeingRescheduled: Bool
+  let isDeletable: Bool
 
-  init(spin: Spin, isBeingRescheduled: Bool = false) {
+  init(spin: Spin, isBeingRescheduled: Bool = false, isDeletable: Bool = true) {
     self.spin = spin
     self.isBeingRescheduled = isBeingRescheduled
+    self.isDeletable = isDeletable
   }
 
   var isGrouped: Bool { spin.spinGroupId != nil }
@@ -206,6 +211,13 @@ struct ScheduleRowView: View {
     let formatter = DateFormatter()
     formatter.dateFormat = "h:mm:ssa"
     return formatter.string(from: spin.airtime).lowercased()
+  }
+
+  private var rowBackgroundColor: Color {
+    if spin.audioBlock.type == "commercial" {
+      return Color.black
+    }
+    return isDeletable ? Color(hex: "#333333") : Color(hex: "#444444")
   }
 
   var body: some View {
@@ -269,7 +281,7 @@ struct ScheduleRowView: View {
       .padding(.horizontal, 12)
       .padding(.vertical, 8)
     }
-    .background(spin.audioBlock.type == "commercial" ? Color.black : Color(hex: "#333333"))
+    .background(rowBackgroundColor)
   }
 }
 

@@ -419,6 +419,70 @@ private enum TestError: Error, LocalizedError {
   }
 }
 
+// MARK: - canDeleteSpin Tests
+
+extension BroadcastPageTests {
+  func testCanDeleteSpin_ReturnsTrueForSpinMoreThanTwoMinutesAway() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let spinMoreThanTwoMinutesAway = Spin.mockWith(
+      id: "spin-1",
+      airtime: fixedNow.addingTimeInterval(121),  // 2 min 1 sec away
+      stationId: stationId
+    )
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [spinMoreThanTwoMinutesAway] }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      XCTAssertTrue(model.canDeleteSpin(spinMoreThanTwoMinutesAway))
+    }
+  }
+
+  func testCanDeleteSpin_ReturnsFalseForSpinExactlyTwoMinutesAway() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let spinExactlyTwoMinutesAway = Spin.mockWith(
+      id: "spin-1",
+      airtime: fixedNow.addingTimeInterval(120),  // exactly 2 min away
+      stationId: stationId
+    )
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [spinExactlyTwoMinutesAway] }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      XCTAssertFalse(model.canDeleteSpin(spinExactlyTwoMinutesAway))
+    }
+  }
+
+  func testCanDeleteSpin_ReturnsFalseForSpinLessThanTwoMinutesAway() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let spinLessThanTwoMinutesAway = Spin.mockWith(
+      id: "spin-1",
+      airtime: fixedNow.addingTimeInterval(60),  // 1 min away
+      stationId: stationId
+    )
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [spinLessThanTwoMinutesAway] }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      XCTAssertFalse(model.canDeleteSpin(spinLessThanTwoMinutesAway))
+    }
+  }
+}
+
 // MARK: - Delete Spin Tests
 
 extension BroadcastPageTests {
