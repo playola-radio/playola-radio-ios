@@ -76,6 +76,8 @@ struct MainContainer: View {
           BroadcastPageView(model: model)
         case .chooseStationToBroadcastPage(let model):
           ChooseStationToBroadcastPageView(model: model)
+        case .recordPage(let model):
+          RecordPageView(model: model)
         }
       }
     }

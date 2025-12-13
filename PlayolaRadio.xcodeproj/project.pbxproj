@@ -261,6 +261,11 @@
 		D3E8D68E2E96D9630028CEBD /* ScheduledShowsListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E8D68D2E96D95B0028CEBD /* ScheduledShowsListModel.swift */; };
 		D3E8D68F2E96D9630028CEBD /* ScheduledShowsListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E8D68D2E96D95B0028CEBD /* ScheduledShowsListModel.swift */; };
 		D3EAC9232E817326001194CF /* Secrets-Staging.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D3EAC9222E81731A001194CF /* Secrets-Staging.xcconfig */; };
+		D3F493B82EEDD2AC008ED463 /* RecordPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493B72EEDD2A7008ED463 /* RecordPageModel.swift */; };
+		D3F493B92EEDD2AC008ED463 /* RecordPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493B72EEDD2A7008ED463 /* RecordPageModel.swift */; };
+		D3F493BB2EEDD2B3008ED463 /* RecordPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493BA2EEDD2B1008ED463 /* RecordPageView.swift */; };
+		D3F493BC2EEDD2B3008ED463 /* RecordPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493BA2EEDD2B1008ED463 /* RecordPageView.swift */; };
+		D3F493C02EEDD2D2008ED463 /* RecordPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493BD2EEDD2B7008ED463 /* RecordPageTests.swift */; };
 		D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */; };
 		D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */; };
 		D3FEC8082EDF646A00A33AE8 /* ChooseStationToBroadcastPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */; };
@@ -414,6 +419,9 @@
 		D3E8D68A2E96D9520028CEBD /* ScheduledShowsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduledShowsListView.swift; sourceTree = "<group>"; };
 		D3E8D68D2E96D95B0028CEBD /* ScheduledShowsListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduledShowsListModel.swift; sourceTree = "<group>"; };
 		D3EAC9222E81731A001194CF /* Secrets-Staging.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Staging.xcconfig"; sourceTree = "<group>"; };
+		D3F493B72EEDD2A7008ED463 /* RecordPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordPageModel.swift; sourceTree = "<group>"; };
+		D3F493BA2EEDD2B1008ED463 /* RecordPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordPageView.swift; sourceTree = "<group>"; };
+		D3F493BD2EEDD2B7008ED463 /* RecordPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordPageTests.swift; sourceTree = "<group>"; };
 		D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPageModel.swift; sourceTree = "<group>"; };
 		D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTier.swift; sourceTree = "<group>"; };
 		D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageTests.swift; sourceTree = "<group>"; };
@@ -587,6 +595,7 @@
 		D339E55C2BFD0FB000B9E35B /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				D3F493B62EEDD29F008ED463 /* RecordPage */,
 				D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */,
 				D3219C152EDD22060008AFDA /* BroadcastPage */,
 				D30257852E63B6AD00F4228B /* LikedSongsPage */,
@@ -1007,6 +1016,16 @@
 			path = LiveShowsSection;
 			sourceTree = "<group>";
 		};
+		D3F493B62EEDD29F008ED463 /* RecordPage */ = {
+			isa = PBXGroup;
+			children = (
+				D3F493BD2EEDD2B7008ED463 /* RecordPageTests.swift */,
+				D3F493BA2EEDD2B1008ED463 /* RecordPageView.swift */,
+				D3F493B72EEDD2A7008ED463 /* RecordPageModel.swift */,
+			);
+			path = RecordPage;
+			sourceTree = "<group>";
+		};
 		D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */ = {
 			isa = PBXGroup;
 			children = (
@@ -1221,6 +1240,7 @@
 				D30F004C2E8592F0007BCC73 /* MainSceneDelegate.swift in Sources */,
 				D30F004D2E8592F0007BCC73 /* RadioStation.swift in Sources */,
 				D30F004E2E8592F0007BCC73 /* RewardsPageView.swift in Sources */,
+				D3F493B82EEDD2AC008ED463 /* RecordPageModel.swift in Sources */,
 				D30F004F2E8592F0007BCC73 /* HomePageModel.swift in Sources */,
 				D3E8D68F2E96D9630028CEBD /* ScheduledShowsListModel.swift in Sources */,
 				D30F00502E8592F0007BCC73 /* SongDrawerView.swift in Sources */,
@@ -1243,6 +1263,7 @@
 				D30F005E2E8592F0007BCC73 /* CPListItem+InitWithRemoteUrl.swift in Sources */,
 				D30F005F2E8592F0007BCC73 /* MainContainerModel.swift in Sources */,
 				D30F00602E8592F0007BCC73 /* ContactPageModel.swift in Sources */,
+				D3F493BB2EEDD2B3008ED463 /* RecordPageView.swift in Sources */,
 				D30F00612E8592F0007BCC73 /* Toast.swift in Sources */,
 				D30F00622E8592F0007BCC73 /* MailService.swift in Sources */,
 				D30F00632E8592F0007BCC73 /* FRadioPlayerMetadata+Equatable.swift in Sources */,
@@ -1319,6 +1340,7 @@
 				D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */,
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
 				D3B744C22E31317B0042A427 /* RewardsPageView.swift in Sources */,
+				D3F493B92EEDD2AC008ED463 /* RecordPageModel.swift in Sources */,
 				D37257B22DF88BC1001BC6F9 /* HomePageModel.swift in Sources */,
 				D3E8D68E2E96D9630028CEBD /* ScheduledShowsListModel.swift in Sources */,
 				D30257902E63C13400F4228B /* SongDrawerView.swift in Sources */,
@@ -1341,6 +1363,7 @@
 				D35673C32D3E872600E4E926 /* CPListItem+InitWithRemoteUrl.swift in Sources */,
 				D3B744AD2E2FCD930042A427 /* MainContainerModel.swift in Sources */,
 				D39591172E39932600720CF8 /* ContactPageModel.swift in Sources */,
+				D3F493BC2EEDD2B3008ED463 /* RecordPageView.swift in Sources */,
 				D302576B2E63423D00F4228B /* Toast.swift in Sources */,
 				D339E57E2BFD750700B9E35B /* MailService.swift in Sources */,
 				D339E56F2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift in Sources */,
@@ -1421,6 +1444,7 @@
 				D3B744CB2E313B230042A427 /* ListeningTimeTileTests.swift in Sources */,
 				D3B744C52E31318A0042A427 /* RewardsPageTests.swift in Sources */,
 				D37786EA2EAD4AE80084B8B8 /* ScheduledShowsListTests.swift in Sources */,
+				D3F493C02EEDD2D2008ED463 /* RecordPageTests.swift in Sources */,
 				D3A08A352E4E6F66002468E0 /* NowPlayingUpdaterTests.swift in Sources */,
 				D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */,
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,

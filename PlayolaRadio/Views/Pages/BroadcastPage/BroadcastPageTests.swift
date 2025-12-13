@@ -352,15 +352,23 @@ final class BroadcastPageTests: XCTestCase {
 
   // MARK: - Coming Soon Alert Tests
 
-  func testOnAddVoiceTrackTapped_ShowsComingSoonAlert() {
+  func testOnAddVoiceTrackTapped_NavigatesToRecordPage() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+
     let model = BroadcastPageModel(stationId: "test-station")
 
-    XCTAssertNil(model.presentedAlert)
+    XCTAssertTrue(mainContainerNavigationCoordinator.path.isEmpty)
 
     model.onAddVoiceTrackTapped()
 
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert?.title, "Coming Soon")
+    XCTAssertNotNil(model.recordPageModel)
+    XCTAssertEqual(mainContainerNavigationCoordinator.path.count, 1)
+    if case .recordPage = mainContainerNavigationCoordinator.path.first {
+      // Success - navigated to record page
+    } else {
+      XCTFail("Expected recordPage navigation")
+    }
   }
 
   func testOnAddSongTapped_ShowsComingSoonAlert() {

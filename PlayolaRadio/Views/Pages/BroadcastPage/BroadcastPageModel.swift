@@ -35,6 +35,10 @@ class BroadcastPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
+
+  var recordPageModel: RecordPageModel?
 
   var navigationTitle: String {
     providedStationName ?? fetchedStationName ?? "My Station"
@@ -119,7 +123,9 @@ class BroadcastPageModel: ViewModel {
   }
 
   func onAddVoiceTrackTapped() {
-    presentedAlert = .comingSoon
+    let model = RecordPageModel()
+    recordPageModel = model
+    mainContainerNavigationCoordinator.push(.recordPage(model))
   }
 
   func onAddSongTapped() {
