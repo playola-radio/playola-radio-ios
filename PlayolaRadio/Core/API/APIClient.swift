@@ -169,6 +169,17 @@ struct APIClient: Sendable {
   /// - Returns: Updated array of Spin objects representing the new schedule
   /// - Throws: APIError if the request fails
   var deleteSpin: (_ jwtToken: String, _ spinId: String) async throws -> [Spin] = { _, _ in [] }
+
+  /// Moves a spin to a new position in the playlist
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - spinId: The ID of the spin to move
+  ///   - placeAfterSpinId: The ID of the spin after which to place the moved spin, or nil to place at the beginning
+  /// - Returns: Updated array of Spin objects representing the new schedule
+  /// - Throws: APIError if the request fails
+  var moveSpin:
+    (_ jwtToken: String, _ spinId: String, _ placeAfterSpinId: String?) async throws
+      -> [Spin] = { _, _, _ in [] }
 }
 
 extension APIClient: DependencyKey {
@@ -585,6 +596,42 @@ extension APIClient: DependencyKey {
             throw APIError.validationError(message)
           }
           throw APIError.validationError("Failed to delete spin")
+        }
+      },
+      moveSpin: { jwtToken, spinId, placeAfterSpinId in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/spins/\(spinId)"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters: [String: Any] = ["placeAfterSpinId": placeAfterSpinId as Any]
+
+        let dataResponse = await AF.request(
+          url,
+          method: .put,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .serializingData()
+        .response
+
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw APIError.dataNotValid
+        }
+
+        guard let data = dataResponse.value else {
+          throw APIError.dataNotValid
+        }
+
+        if statusCode >= 200, statusCode < 300 {
+          let spins = try isoDecoder.decode([Spin].self, from: data)
+          return spins
+        } else {
+          if let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let errorObj = errorResponse["error"] as? [String: Any],
+            let message = errorObj["message"] as? String
+          {
+            throw APIError.validationError(message)
+          }
+          throw APIError.validationError("Failed to move spin")
         }
       }
     )
