@@ -13,9 +13,22 @@ import XCTest
 
 @MainActor
 final class RecordPageTests: XCTestCase {
-  func testViewAppeared() async {
+  override func setUp() {
+    super.setUp()
+    @Shared(.mainContainerNavigationCoordinator) var coordinator
+    coordinator.presentedSheet = nil
+  }
+
+  func testOnDoneTapped_DismissesSheet() {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator
+
     let model = RecordPageModel()
-    await model.viewAppeared()
-    // TODO: Add assertions when functionality is implemented
+    coordinator.presentedSheet = .recordPage(model)
+
+    XCTAssertNotNil(coordinator.presentedSheet)
+
+    model.onDoneTapped()
+
+    XCTAssertNil(coordinator.presentedSheet)
   }
 }

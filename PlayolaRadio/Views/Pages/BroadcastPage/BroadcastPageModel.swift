@@ -124,8 +124,15 @@ class BroadcastPageModel: ViewModel {
 
   func onAddVoiceTrackTapped() {
     let model = RecordPageModel()
+    model.onRecordingAccepted = { [weak self] url in
+      self?.handleAcceptedRecording(url)
+    }
     recordPageModel = model
-    mainContainerNavigationCoordinator.push(.recordPage(model))
+    mainContainerNavigationCoordinator.presentedSheet = .recordPage(model)
+  }
+
+  private func handleAcceptedRecording(_ url: URL) {
+    // TODO: Stage the recording, convert to m4a, upload
   }
 
   func onAddSongTapped() {

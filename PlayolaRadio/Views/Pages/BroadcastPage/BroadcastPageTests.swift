@@ -352,22 +352,21 @@ final class BroadcastPageTests: XCTestCase {
 
   // MARK: - Coming Soon Alert Tests
 
-  func testOnAddVoiceTrackTapped_NavigatesToRecordPage() {
+  func testOnAddVoiceTrackTapped_PresentsRecordPageSheet() {
     @Shared(.mainContainerNavigationCoordinator)
     var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
 
     let model = BroadcastPageModel(stationId: "test-station")
 
-    XCTAssertTrue(mainContainerNavigationCoordinator.path.isEmpty)
+    XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
 
     model.onAddVoiceTrackTapped()
 
     XCTAssertNotNil(model.recordPageModel)
-    XCTAssertEqual(mainContainerNavigationCoordinator.path.count, 1)
-    if case .recordPage = mainContainerNavigationCoordinator.path.first {
-      // Success - navigated to record page
+    if case .recordPage = mainContainerNavigationCoordinator.presentedSheet {
+      // Success - presented record page sheet
     } else {
-      XCTFail("Expected recordPage navigation")
+      XCTFail("Expected recordPage sheet presentation")
     }
   }
 
