@@ -33,6 +33,8 @@ class RecordPageModel: ViewModel {
 
   // MARK: - Dependencies
 
+  @ObservationIgnored @Dependency(\.audioRecorder) var audioRecorder
+  @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
 
@@ -56,31 +58,57 @@ class RecordPageModel: ViewModel {
   // MARK: - Recording Actions
 
   func onRecordTapped() async {
-    // TODO: Start recording
-    recordingPhase = .recording
+    do {
+      try await audioRecorder.startRecording()
+      recordingPhase = .recording
+    } catch {
+      presentedAlert = .recordingFailedAlert(error.localizedDescription)
+    }
   }
 
   func onStopTapped() async {
-    // TODO: Stop recording, get URL
-    recordingPhase = .review
+    do {
+      recordingDuration = await audioRecorder.currentTime()
+      let url = try await audioRecorder.stopRecording()
+      recordingURL = url
+      try await audioPlayer.loadFile(url)
+      recordingDuration = await audioPlayer.duration()
+      recordingPhase = .review
+    } catch {
+      presentedAlert = .recordingFailedAlert(error.localizedDescription)
+    }
   }
 
   // MARK: - Playback Actions
 
   func onPlayPauseTapped() {
-    isPlaying.toggle()
-    // TODO: Play/pause audio
+    Task {
+      if isPlaying {
+        await audioPlayer.pause()
+        isPlaying = false
+      } else {
+        await audioPlayer.play()
+        isPlaying = true
+      }
+    }
   }
 
   func onRewindTapped() {
-    playbackPosition = 0
-    // TODO: Seek to beginning
+    Task {
+      await audioPlayer.seek(0)
+      playbackPosition = 0
+    }
   }
 
   // MARK: - Review Actions
 
   func onReRecordTapped() {
-    // TODO: Delete current recording
+    Task {
+      await audioPlayer.stop()
+      if let url = recordingURL {
+        await audioRecorder.deleteRecording(url)
+      }
+    }
     recordingURL = nil
     recordingDuration = 0
     playbackPosition = 0
@@ -89,7 +117,12 @@ class RecordPageModel: ViewModel {
   }
 
   func onDiscardTapped() {
-    // TODO: Show confirmation alert, then dismiss
+    Task {
+      await audioPlayer.stop()
+      if let url = recordingURL {
+        await audioRecorder.deleteRecording(url)
+      }
+    }
     mainContainerNavigationCoordinator.presentedSheet = nil
   }
 
@@ -111,5 +144,28 @@ class RecordPageModel: ViewModel {
     let minutes = (totalSeconds % 3600) / 60
     let secs = totalSeconds % 60
     return String(format: "%02d:%02d:%02d", hours, minutes, secs)
+  }
+}
+
+extension PlayolaAlert {
+  static func recordingFailedAlert(_ message: String) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Recording Error",
+      message: message,
+      dismissButton: .cancel(Text("OK")))
+  }
+
+  static var microphonePermissionDeniedAlert: PlayolaAlert {
+    PlayolaAlert(
+      title: "Microphone Access Required",
+      message: "Please enable microphone access in Settings to record voice tracks.",
+      dismissButton: .cancel(Text("OK")),
+      secondaryButton: .default(
+        Text("Settings"),
+        action: {
+          if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(settingsUrl)
+          }
+        }))
   }
 }

@@ -268,6 +268,8 @@
 		D3F493C02EEDD2D2008ED463 /* RecordPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493BD2EEDD2B7008ED463 /* RecordPageTests.swift */; };
 		D3F493C42EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493C32EEDD9F1008ED463 /* AudioRecorderClient.swift */; };
 		D3F493C52EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493C32EEDD9F1008ED463 /* AudioRecorderClient.swift */; };
+		D3F493C72EEE03F3008ED463 /* AudioPlayerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493C62EEE03F3008ED463 /* AudioPlayerClient.swift */; };
+		D3F493C82EEE03F3008ED463 /* AudioPlayerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493C62EEE03F3008ED463 /* AudioPlayerClient.swift */; };
 		D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */; };
 		D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */; };
 		D3FEC8082EDF646A00A33AE8 /* ChooseStationToBroadcastPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */; };
@@ -425,6 +427,7 @@
 		D3F493BA2EEDD2B1008ED463 /* RecordPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordPageView.swift; sourceTree = "<group>"; };
 		D3F493BD2EEDD2B7008ED463 /* RecordPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordPageTests.swift; sourceTree = "<group>"; };
 		D3F493C32EEDD9F1008ED463 /* AudioRecorderClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderClient.swift; sourceTree = "<group>"; };
+		D3F493C62EEE03F3008ED463 /* AudioPlayerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerClient.swift; sourceTree = "<group>"; };
 		D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPageModel.swift; sourceTree = "<group>"; };
 		D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTier.swift; sourceTree = "<group>"; };
 		D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageTests.swift; sourceTree = "<group>"; };
@@ -1033,6 +1036,7 @@
 		D3F493C22EEDD987008ED463 /* AudioRecording */ = {
 			isa = PBXGroup;
 			children = (
+				D3F493C62EEE03F3008ED463 /* AudioPlayerClient.swift */,
 				D3F493C32EEDD9F1008ED463 /* AudioRecorderClient.swift */,
 			);
 			path = AudioRecording;
@@ -1318,6 +1322,7 @@
 				D30F00832E8592F0007BCC73 /* UIApplication+keyWindow.swift in Sources */,
 				D3219C172EDD22150008AFDA /* BroadcastPageView.swift in Sources */,
 				D30F00842E8592F0007BCC73 /* Prize.swift in Sources */,
+				D3F493C82EEE03F3008ED463 /* AudioPlayerClient.swift in Sources */,
 				D30F00852E8592F0007BCC73 /* NowPlayingUpdater.swift in Sources */,
 				D30F00862E8592F0007BCC73 /* Bundle+Misc.swift in Sources */,
 				D30F00872E8592F0007BCC73 /* SharedUserDefaults.swift in Sources */,
@@ -1419,6 +1424,7 @@
 				D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */,
 				D3219C182EDD22150008AFDA /* BroadcastPageView.swift in Sources */,
 				D3B744CD2E368DB50042A427 /* Prize.swift in Sources */,
+				D3F493C72EEE03F3008ED463 /* AudioPlayerClient.swift in Sources */,
 				D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */,
 				D3536A3A2BFA6520006942D6 /* Bundle+Misc.swift in Sources */,
 				D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */,

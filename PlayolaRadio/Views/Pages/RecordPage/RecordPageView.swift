@@ -16,89 +16,14 @@ struct RecordPageView: View {
         .edgesIgnoringSafeArea(.all)
 
       VStack(spacing: 0) {
-        // Waveform visualization
-        WaveformView(progress: 0.6)
-          .frame(height: 150)
-          .padding(.top, 60)
-          .padding(.horizontal, 20)
-
-        // Time display
-        Text("00:02:14")
-          .font(.custom(FontNames.Inter_400_Regular, size: 32))
-          .foregroundColor(.white)
-          .padding(.top, 40)
-
-        // Main action button (Play/Record)
-        Button {
-          // Play action
-        } label: {
-          ZStack {
-            Circle()
-              .fill(Color.playolaRed)
-              .frame(width: 100, height: 100)
-            Image(systemName: "play.fill")
-              .font(.system(size: 40))
-              .foregroundColor(.white)
-              .offset(x: 4)
-          }
+        switch model.recordingPhase {
+        case .idle:
+          idleView
+        case .recording:
+          recordingView
+        case .review:
+          reviewView
         }
-        .padding(.top, 30)
-
-        // Re-record label
-        Button {
-          // Re-record action
-        } label: {
-          Text("Re-record")
-            .font(.custom(FontNames.Inter_400_Regular, size: 16))
-            .foregroundColor(.playolaRed)
-        }
-        .padding(.top, 12)
-
-        Spacer()
-
-        // Playback scrubber
-        PlaybackScrubberView(currentTime: 134, totalTime: 134)
-          .padding(.horizontal, 20)
-          .padding(.bottom, 20)
-
-        // Bottom action buttons
-        HStack(spacing: 16) {
-          // Discard button
-          Button {
-            // Discard action
-          } label: {
-            HStack(spacing: 8) {
-              Image(systemName: "trash")
-              Text("Discard")
-            }
-            .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
-            .foregroundColor(.playolaRed)
-            .frame(maxWidth: .infinity)
-            .frame(height: 50)
-            .overlay(
-              RoundedRectangle(cornerRadius: 25)
-                .stroke(Color.playolaRed, lineWidth: 2)
-            )
-          }
-
-          // Accept Recording button
-          Button {
-            // Accept action
-          } label: {
-            HStack(spacing: 8) {
-              Image(systemName: "checkmark.circle.fill")
-              Text("Accept Recording")
-            }
-            .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 50)
-            .background(Color.playolaRed)
-            .cornerRadius(25)
-          }
-        }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 40)
       }
     }
     .navigationTitle("Audio Recording")
@@ -114,8 +39,175 @@ struct RecordPageView: View {
         .foregroundColor(.white)
       }
     }
+    .alert(item: $model.presentedAlert) { $0.alert }
     .task {
       await model.viewAppeared()
+    }
+  }
+
+  // MARK: - Idle View (Ready to Record)
+
+  private var idleView: some View {
+    VStack {
+      Spacer()
+
+      Text("Tap to Record")
+        .font(.custom(FontNames.Inter_400_Regular, size: 18))
+        .foregroundColor(.playolaGray)
+        .padding(.bottom, 30)
+
+      Button {
+        Task { await model.onRecordTapped() }
+      } label: {
+        ZStack {
+          Circle()
+            .fill(Color.playolaRed)
+            .frame(width: 120, height: 120)
+          Image(systemName: "mic.fill")
+            .font(.system(size: 50))
+            .foregroundColor(.white)
+        }
+      }
+
+      Spacer()
+    }
+  }
+
+  // MARK: - Recording View
+
+  private var recordingView: some View {
+    VStack {
+      Spacer()
+
+      // Recording indicator
+      HStack(spacing: 8) {
+        Circle()
+          .fill(Color.playolaRed)
+          .frame(width: 12, height: 12)
+        Text("Recording")
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
+          .foregroundColor(.playolaRed)
+      }
+      .padding(.bottom, 20)
+
+      // Time display
+      Text(model.displayTime)
+        .font(.custom(FontNames.Inter_400_Regular, size: 48))
+        .foregroundColor(.white)
+        .monospacedDigit()
+        .padding(.bottom, 40)
+
+      // Stop button
+      Button {
+        Task { await model.onStopTapped() }
+      } label: {
+        ZStack {
+          Circle()
+            .fill(Color.playolaRed)
+            .frame(width: 120, height: 120)
+          RoundedRectangle(cornerRadius: 8)
+            .fill(Color.white)
+            .frame(width: 40, height: 40)
+        }
+      }
+
+      Spacer()
+    }
+  }
+
+  // MARK: - Review View
+
+  private var reviewView: some View {
+    VStack(spacing: 0) {
+      // Waveform visualization
+      WaveformView(progress: 1.0)
+        .frame(height: 150)
+        .padding(.top, 60)
+        .padding(.horizontal, 20)
+
+      // Time display
+      Text(model.displayTime)
+        .font(.custom(FontNames.Inter_400_Regular, size: 32))
+        .foregroundColor(.white)
+        .padding(.top, 40)
+
+      // Play button
+      Button {
+        model.onPlayPauseTapped()
+      } label: {
+        ZStack {
+          Circle()
+            .fill(Color.playolaRed)
+            .frame(width: 100, height: 100)
+          Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
+            .font(.system(size: 40))
+            .foregroundColor(.white)
+            .offset(x: model.isPlaying ? 0 : 4)
+        }
+      }
+      .padding(.top, 30)
+
+      // Re-record label
+      Button {
+        model.onReRecordTapped()
+      } label: {
+        Text("Re-record")
+          .font(.custom(FontNames.Inter_400_Regular, size: 16))
+          .foregroundColor(.playolaRed)
+      }
+      .padding(.top, 12)
+
+      Spacer()
+
+      // Playback scrubber
+      PlaybackScrubberView(
+        currentTime: Int(model.playbackPosition),
+        totalTime: Int(model.recordingDuration),
+        isPlaying: model.isPlaying,
+        onPlayPause: { model.onPlayPauseTapped() },
+        onRewind: { model.onRewindTapped() }
+      )
+      .padding(.horizontal, 20)
+      .padding(.bottom, 20)
+
+      // Bottom action buttons
+      HStack(spacing: 16) {
+        // Discard button
+        Button {
+          model.onDiscardTapped()
+        } label: {
+          HStack(spacing: 8) {
+            Image(systemName: "trash")
+            Text("Discard")
+          }
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
+          .foregroundColor(.playolaRed)
+          .frame(maxWidth: .infinity)
+          .frame(height: 50)
+          .overlay(
+            RoundedRectangle(cornerRadius: 25)
+              .stroke(Color.playolaRed, lineWidth: 2)
+          )
+        }
+
+        // Accept Recording button
+        Button {
+          model.onAcceptRecordingTapped()
+        } label: {
+          HStack(spacing: 8) {
+            Image(systemName: "checkmark.circle.fill")
+            Text("Accept Recording")
+          }
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
+          .foregroundColor(.white)
+          .frame(maxWidth: .infinity)
+          .frame(height: 50)
+          .background(Color.playolaRed)
+          .cornerRadius(25)
+        }
+      }
+      .padding(.horizontal, 20)
+      .padding(.bottom, 40)
     }
   }
 }
@@ -143,13 +235,9 @@ struct WaveformView: View {
   }
 
   private func barHeight(for index: Int, totalHeight: CGFloat) -> CGFloat {
-    // Generate pseudo-random heights that look like audio waveform
     let seed = sin(Double(index) * 0.5) * cos(Double(index) * 0.3)
     let normalizedHeight = abs(seed) * 0.7 + 0.15
-
-    // Add some variation in the middle
     let centerBoost = 1.0 - abs(Double(index - barCount / 2) / Double(barCount / 2)) * 0.5
-
     return CGFloat(normalizedHeight * centerBoost) * totalHeight
   }
 }
@@ -157,8 +245,11 @@ struct WaveformView: View {
 // MARK: - Playback Scrubber View
 
 struct PlaybackScrubberView: View {
-  let currentTime: Int  // in seconds
-  let totalTime: Int  // in seconds
+  let currentTime: Int
+  let totalTime: Int
+  let isPlaying: Bool
+  let onPlayPause: () -> Void
+  let onRewind: () -> Void
 
   var progress: Double {
     guard totalTime > 0 else { return 0 }
@@ -167,29 +258,22 @@ struct PlaybackScrubberView: View {
 
   var body: some View {
     HStack(spacing: 12) {
-      // Play button
-      Button {
-        // Play/pause
-      } label: {
-        Image(systemName: "play.fill")
+      Button(action: onPlayPause) {
+        Image(systemName: isPlaying ? "pause.fill" : "play.fill")
           .font(.system(size: 16))
           .foregroundColor(.white)
       }
 
-      // Progress bar
       GeometryReader { geometry in
         ZStack(alignment: .leading) {
-          // Background track
           RoundedRectangle(cornerRadius: 2)
             .fill(Color(hex: "#4A4A4A"))
             .frame(height: 4)
 
-          // Progress track
           RoundedRectangle(cornerRadius: 2)
             .fill(Color.playolaRed)
             .frame(width: geometry.size.width * progress, height: 4)
 
-          // Thumb
           Circle()
             .fill(Color.playolaRed)
             .frame(width: 14, height: 14)
@@ -198,16 +282,12 @@ struct PlaybackScrubberView: View {
       }
       .frame(height: 14)
 
-      // Time label
       Text(formatTime(currentTime))
         .font(.custom(FontNames.Inter_400_Regular, size: 14))
         .foregroundColor(.white)
         .monospacedDigit()
 
-      // Rewind button
-      Button {
-        // Rewind
-      } label: {
+      Button(action: onRewind) {
         Image(systemName: "backward.end.fill")
           .font(.system(size: 14))
           .foregroundColor(.white)
@@ -227,9 +307,36 @@ struct PlaybackScrubberView: View {
   }
 }
 
-#Preview {
+#Preview("Idle") {
   NavigationStack {
     RecordPageView(model: RecordPageModel())
   }
   .preferredColorScheme(.dark)
+}
+
+#Preview("Recording") {
+  NavigationStack {
+    RecordPageView(model: makeRecordingPreviewModel())
+  }
+  .preferredColorScheme(.dark)
+}
+
+#Preview("Review") {
+  NavigationStack {
+    RecordPageView(model: makeReviewPreviewModel())
+  }
+  .preferredColorScheme(.dark)
+}
+
+private func makeRecordingPreviewModel() -> RecordPageModel {
+  let model = RecordPageModel()
+  model.recordingPhase = .recording
+  return model
+}
+
+private func makeReviewPreviewModel() -> RecordPageModel {
+  let model = RecordPageModel()
+  model.recordingPhase = .review
+  model.recordingDuration = 134
+  return model
 }
