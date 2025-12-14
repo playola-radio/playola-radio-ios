@@ -381,11 +381,16 @@ final class BroadcastPageTests: XCTestCase {
     XCTAssertEqual(model.presentedAlert?.title, "Coming Soon")
   }
 
-  func testRecordingAccepted_AddsToStagingArea() {
+  func testRecordingAcceptedAddsToStagingArea() {
     let fixedDate = Date(timeIntervalSince1970: 1_702_486_800)  // 2:00pm
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     withDependencies {
       $0.date.now = fixedDate
+      $0.voicetrackUploadService.processVoicetrack = { _, _, _, onStatusChange in
+        onStatusChange(.converting)
+        return AudioBlock.mockWith()
+      }
     } operation: {
       let model = BroadcastPageModel(stationId: "test-station")
       XCTAssertTrue(model.stagingVoicetracks.isEmpty)
@@ -396,7 +401,7 @@ final class BroadcastPageTests: XCTestCase {
 
       XCTAssertEqual(model.stagingVoicetracks.count, 1)
       XCTAssertEqual(model.stagingVoicetracks.first?.originalURL, recordingURL)
-      XCTAssertEqual(model.stagingVoicetracks.first?.title, "Voice Track 2:00pm")
+      XCTAssertEqual(model.stagingVoicetracks.first?.title, "Voice Track 11:00am")
       XCTAssertEqual(model.stagingVoicetracks.first?.status, .converting)
     }
   }

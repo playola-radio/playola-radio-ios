@@ -107,6 +107,8 @@ final class RecordPageTests: XCTestCase {
     await withDependencies {
       $0.audioRecorder.currentTime = { 5.0 }
       $0.audioRecorder.stopRecording = { expectedURL }
+      $0.audioPlayer.loadFile = { _ in }
+      $0.audioPlayer.duration = { 5.0 }
     } operation: {
       let model = RecordPageModel()
       model.recordingPhase = .recording
@@ -226,6 +228,8 @@ final class RecordPageTests: XCTestCase {
 
     await withDependencies {
       $0.audioPlayer.play = { playCalled = true }
+      $0.audioPlayer.currentTime = { 0 }
+      $0.audioPlayer.isPlaying = { true }
     } operation: {
       let model = RecordPageModel()
       model.isPlaying = false
