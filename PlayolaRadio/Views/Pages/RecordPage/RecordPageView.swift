@@ -265,9 +265,9 @@ struct LiveWaveformView: View {
     // Resample to barCount
     let step = max(1, samples.count / Self.barCount)
     var result: [Float] = []
-    for i in stride(from: 0, to: samples.count, by: step) {
-      let end = min(i + step, samples.count)
-      let avg = samples[i..<end].reduce(0, +) / Float(end - i)
+    for sampleIndex in stride(from: 0, to: samples.count, by: step) {
+      let end = min(sampleIndex + step, samples.count)
+      let avg = samples[sampleIndex..<end].reduce(0, +) / Float(end - sampleIndex)
       result.append(avg)
     }
     return Array(result.prefix(Self.barCount))
@@ -289,10 +289,10 @@ struct WaveformView: View {
       let barWidth = (geometry.size.width - CGFloat(Self.barCount - 1) * 2) / CGFloat(Self.barCount)
       HStack(alignment: .center, spacing: 2) {
         let normalizedSamples = resampledSamples()
-        ForEach(0..<Self.barCount, id: \.self) { index in
+        ForEach(0..<Self.barCount, id: \.self) { barIndex in
           let height =
-            index < normalizedSamples.count
-            ? CGFloat(normalizedSamples[index]) * geometry.size.height
+            barIndex < normalizedSamples.count
+            ? CGFloat(normalizedSamples[barIndex]) * geometry.size.height
             : geometry.size.height * 0.2
           RoundedRectangle(cornerRadius: 1.5)
             .fill(Color.playolaRed)
@@ -307,9 +307,9 @@ struct WaveformView: View {
     guard !samples.isEmpty else { return [] }
     let step = max(1, samples.count / Self.barCount)
     var result: [Float] = []
-    for i in stride(from: 0, to: samples.count, by: step) {
-      let end = min(i + step, samples.count)
-      let avg = samples[i..<end].reduce(0, +) / Float(end - i)
+    for sampleIndex in stride(from: 0, to: samples.count, by: step) {
+      let end = min(sampleIndex + step, samples.count)
+      let avg = samples[sampleIndex..<end].reduce(0, +) / Float(end - sampleIndex)
       result.append(avg)
     }
     return Array(result.prefix(Self.barCount))
