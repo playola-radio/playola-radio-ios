@@ -382,7 +382,9 @@ final class BroadcastPageTests: XCTestCase {
   }
 
   func testRecordingAcceptedAddsToStagingArea() {
-    let fixedDate = Date(timeIntervalSince1970: 1_702_486_800)  // 2:00pm
+    let calendar = Calendar.current
+    let components = DateComponents(year: 2023, month: 12, day: 13, hour: 11, minute: 0)
+    let fixedDate = calendar.date(from: components)!
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     withDependencies {
