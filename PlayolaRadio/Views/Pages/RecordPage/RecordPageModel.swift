@@ -26,6 +26,9 @@ class RecordPageModel: ViewModel {
   var isPlaying: Bool = false
   var presentedAlert: PlayolaAlert?
   var recordingURL: URL?
+  var waveformSamples: [Float] = []
+  private var recordingTask: Task<Void, Never>?
+  private var playbackTask: Task<Void, Never>?
 
   // MARK: - Callbacks
 
@@ -49,26 +52,36 @@ class RecordPageModel: ViewModel {
     return playbackPosition / recordingDuration
   }
 
+  var shouldShowDoneButton: Bool {
+    recordingPhase == .idle
+  }
+
   // MARK: - Lifecycle
 
   func viewAppeared() async {
-    // TODO: Request microphone permission
+    do {
+      try await audioRecorder.prepareForRecording()
+    } catch {
+      // Preparation failed - recording will still work but may have latency
+    }
   }
 
   // MARK: - Recording Actions
 
   func onRecordTapped() async {
     do {
+      waveformSamples = []
       try await audioRecorder.startRecording()
       recordingPhase = .recording
+      startRecordingUpdates()
     } catch {
       presentedAlert = .recordingFailedAlert(error.localizedDescription)
     }
   }
 
   func onStopTapped() async {
+    stopRecordingUpdates()
     do {
-      recordingDuration = await audioRecorder.currentTime()
       let url = try await audioRecorder.stopRecording()
       recordingURL = url
       try await audioPlayer.loadFile(url)
@@ -79,15 +92,33 @@ class RecordPageModel: ViewModel {
     }
   }
 
+  private func startRecordingUpdates() {
+    recordingTask = Task {
+      while !Task.isCancelled {
+        recordingDuration = await audioRecorder.currentTime()
+        let level = await audioRecorder.getAudioLevel()
+        waveformSamples.append(level)
+        try? await Task.sleep(for: .milliseconds(100))
+      }
+    }
+  }
+
+  private func stopRecordingUpdates() {
+    recordingTask?.cancel()
+    recordingTask = nil
+  }
+
   // MARK: - Playback Actions
 
   func onPlayPauseTapped() {
     Task {
       if isPlaying {
         await audioPlayer.pause()
+        stopPlaybackUpdates()
         isPlaying = false
       } else {
         await audioPlayer.play()
+        startPlaybackUpdates()
         isPlaying = true
       }
     }
@@ -100,9 +131,37 @@ class RecordPageModel: ViewModel {
     }
   }
 
+  func seekTo(_ time: TimeInterval) {
+    Task {
+      await audioPlayer.seek(time)
+      playbackPosition = time
+    }
+  }
+
+  private func startPlaybackUpdates() {
+    playbackTask = Task {
+      while !Task.isCancelled {
+        playbackPosition = await audioPlayer.currentTime()
+        let playing = await audioPlayer.isPlaying()
+        if !playing {
+          isPlaying = false
+          stopPlaybackUpdates()
+          break
+        }
+        try? await Task.sleep(for: .milliseconds(100))
+      }
+    }
+  }
+
+  private func stopPlaybackUpdates() {
+    playbackTask?.cancel()
+    playbackTask = nil
+  }
+
   // MARK: - Review Actions
 
   func onReRecordTapped() {
+    stopPlaybackUpdates()
     Task {
       await audioPlayer.stop()
       if let url = recordingURL {
@@ -113,10 +172,18 @@ class RecordPageModel: ViewModel {
     recordingDuration = 0
     playbackPosition = 0
     isPlaying = false
+    waveformSamples = []
     recordingPhase = .idle
   }
 
   func onDiscardTapped() {
+    stopPlaybackUpdates()
+    presentedAlert = .discardRecordingConfirmation { [weak self] in
+      self?.confirmDiscard()
+    }
+  }
+
+  func confirmDiscard() {
     Task {
       await audioPlayer.stop()
       if let url = recordingURL {
@@ -143,7 +210,10 @@ class RecordPageModel: ViewModel {
     let hours = totalSeconds / 3600
     let minutes = (totalSeconds % 3600) / 60
     let secs = totalSeconds % 60
-    return String(format: "%02d:%02d:%02d", hours, minutes, secs)
+    if hours > 0 {
+      return String(format: "%d:%02d:%02d", hours, minutes, secs)
+    }
+    return String(format: "%d:%02d", minutes, secs)
   }
 }
 
@@ -153,6 +223,14 @@ extension PlayolaAlert {
       title: "Recording Error",
       message: message,
       dismissButton: .cancel(Text("OK")))
+  }
+
+  static func discardRecordingConfirmation(_ onConfirm: @escaping () -> Void) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Discard Recording?",
+      message: "This recording will be permanently deleted.",
+      dismissButton: .cancel(Text("Cancel")),
+      secondaryButton: .destructive(Text("Discard"), action: onConfirm))
   }
 
   static var microphonePermissionDeniedAlert: PlayolaAlert {

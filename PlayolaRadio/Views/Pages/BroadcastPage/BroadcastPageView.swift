@@ -78,6 +78,12 @@ struct BroadcastPageView: View {
         .padding(.top, 20)
         .padding(.bottom, 20)
 
+        // Staging Area
+        if !model.stagingVoicetracks.isEmpty {
+          stagingSection
+            .padding(.bottom, 16)
+        }
+
         if model.isLoading {
           Spacer()
           ProgressView()
@@ -146,6 +152,108 @@ struct BroadcastPageView: View {
       await model.viewAppeared()
     }
     .alert(item: $model.presentedAlert) { $0.alert }
+  }
+
+  // MARK: - Staging Section
+
+  private var stagingSection: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      Text("READY TO PLACE")
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
+        .foregroundColor(.playolaGray)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+
+      ForEach(model.stagingVoicetracks) { voicetrack in
+        StagingRowView(voicetrack: voicetrack)
+      }
+    }
+    .background(Color(hex: "#1A1A1A"))
+  }
+}
+
+// MARK: - Staging Row View
+
+struct StagingRowView: View {
+  let voicetrack: LocalVoicetrack
+
+  var body: some View {
+    HStack(spacing: 12) {
+      // Mic icon
+      ZStack {
+        Circle()
+          .fill(Color.playolaRed)
+          .frame(width: 40, height: 40)
+        Image(systemName: "mic.fill")
+          .font(.system(size: 16))
+          .foregroundColor(.white)
+      }
+
+      // Title
+      VStack(alignment: .leading, spacing: 2) {
+        Text(voicetrack.title)
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+          .foregroundColor(.white)
+          .lineLimit(1)
+
+        Text(statusText)
+          .font(.custom(FontNames.Inter_400_Regular, size: 12))
+          .foregroundColor(statusColor)
+          .lineLimit(1)
+      }
+
+      Spacer()
+
+      // Status indicator
+      statusIndicator
+    }
+    .padding(.horizontal, 16)
+    .padding(.vertical, 10)
+    .background(Color(hex: "#2A2A2A"))
+  }
+
+  private var statusText: String {
+    switch voicetrack.status {
+    case .converting:
+      return "Converting..."
+    case .uploading(let progress):
+      return "Uploading \(Int(progress * 100))%"
+    case .finalizing:
+      return "Finalizing..."
+    case .completed:
+      return "Ready"
+    case .failed(let error):
+      return error
+    }
+  }
+
+  private var statusColor: Color {
+    switch voicetrack.status {
+    case .completed:
+      return .green
+    case .failed:
+      return .playolaRed
+    default:
+      return .playolaGray
+    }
+  }
+
+  @ViewBuilder
+  private var statusIndicator: some View {
+    switch voicetrack.status {
+    case .converting, .uploading, .finalizing:
+      ProgressView()
+        .tint(.white)
+        .scaleEffect(0.8)
+    case .completed:
+      Image(systemName: "checkmark.circle.fill")
+        .font(.system(size: 20))
+        .foregroundColor(.green)
+    case .failed:
+      Image(systemName: "xmark.circle.fill")
+        .font(.system(size: 20))
+        .foregroundColor(.playolaRed)
+    }
   }
 }
 

@@ -19,7 +19,38 @@ final class RecordPageTests: XCTestCase {
     coordinator.presentedSheet = nil
   }
 
+  // MARK: - Lifecycle
+
+  func testViewAppeared_PreparesForRecording() async {
+    var prepareCalled = false
+
+    await withDependencies {
+      $0.audioRecorder.prepareForRecording = {
+        prepareCalled = true
+      }
+    } operation: {
+      let model = RecordPageModel()
+
+      await model.viewAppeared()
+
+      XCTAssertTrue(prepareCalled)
+    }
+  }
+
   // MARK: - Done Button
+
+  func testShouldShowDoneButton_TrueOnlyInIdlePhase() {
+    let model = RecordPageModel()
+
+    model.recordingPhase = .idle
+    XCTAssertTrue(model.shouldShowDoneButton)
+
+    model.recordingPhase = .recording
+    XCTAssertFalse(model.shouldShowDoneButton)
+
+    model.recordingPhase = .review
+    XCTAssertFalse(model.shouldShowDoneButton)
+  }
 
   func testOnDoneTapped_DismissesSheet() {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
@@ -126,13 +157,25 @@ final class RecordPageTests: XCTestCase {
 
   // MARK: - Discard
 
-  func testOnDiscardTapped_DismissesSheet() {
+  func testOnDiscardTapped_ShowsConfirmationAlert() {
+    let model = RecordPageModel()
+    model.recordingPhase = .review
+
+    XCTAssertNil(model.presentedAlert)
+
+    model.onDiscardTapped()
+
+    XCTAssertNotNil(model.presentedAlert)
+    XCTAssertEqual(model.presentedAlert?.title, "Discard Recording?")
+  }
+
+  func testConfirmDiscard_DismissesSheet() {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
 
     let model = RecordPageModel()
     coordinator.presentedSheet = .recordPage(model)
 
-    model.onDiscardTapped()
+    model.confirmDiscard()
 
     XCTAssertNil(coordinator.presentedSheet)
   }
@@ -174,5 +217,79 @@ final class RecordPageTests: XCTestCase {
 
     XCTAssertFalse(callbackCalled)
     XCTAssertNotNil(coordinator.presentedSheet)
+  }
+
+  // MARK: - Playback
+
+  func testOnPlayPauseTapped_PlaysWhenNotPlaying() async {
+    var playCalled = false
+
+    await withDependencies {
+      $0.audioPlayer.play = { playCalled = true }
+    } operation: {
+      let model = RecordPageModel()
+      model.isPlaying = false
+
+      model.onPlayPauseTapped()
+      // Allow Task to execute
+      try? await Task.sleep(for: .milliseconds(10))
+
+      XCTAssertTrue(playCalled)
+      XCTAssertTrue(model.isPlaying)
+    }
+  }
+
+  func testOnPlayPauseTapped_PausesWhenPlaying() async {
+    var pauseCalled = false
+
+    await withDependencies {
+      $0.audioPlayer.pause = { pauseCalled = true }
+    } operation: {
+      let model = RecordPageModel()
+      model.isPlaying = true
+
+      model.onPlayPauseTapped()
+      // Allow Task to execute
+      try? await Task.sleep(for: .milliseconds(10))
+
+      XCTAssertTrue(pauseCalled)
+      XCTAssertFalse(model.isPlaying)
+    }
+  }
+
+  func testOnRewindTapped_SeeksToZero() async {
+    var seekTime: TimeInterval?
+
+    await withDependencies {
+      $0.audioPlayer.seek = { time in seekTime = time }
+    } operation: {
+      let model = RecordPageModel()
+      model.playbackPosition = 30.0
+
+      model.onRewindTapped()
+      // Allow Task to execute
+      try? await Task.sleep(for: .milliseconds(10))
+
+      XCTAssertEqual(seekTime, 0)
+      XCTAssertEqual(model.playbackPosition, 0)
+    }
+  }
+
+  func testSeekTo_UpdatesPlaybackPosition() async {
+    var seekTime: TimeInterval?
+
+    await withDependencies {
+      $0.audioPlayer.seek = { time in seekTime = time }
+    } operation: {
+      let model = RecordPageModel()
+      model.recordingDuration = 60.0
+
+      model.seekTo(30.0)
+      // Allow Task to execute
+      try? await Task.sleep(for: .milliseconds(10))
+
+      XCTAssertEqual(seekTime, 30.0)
+      XCTAssertEqual(model.playbackPosition, 30.0)
+    }
   }
 }

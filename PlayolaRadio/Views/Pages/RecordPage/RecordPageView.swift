@@ -16,14 +16,28 @@ struct RecordPageView: View {
         .edgesIgnoringSafeArea(.all)
 
       VStack(spacing: 0) {
-        switch model.recordingPhase {
-        case .idle:
-          idleView
-        case .recording:
-          recordingView
-        case .review:
-          reviewView
-        }
+        // MARK: - Top: Waveform Area
+        waveformSection
+          .frame(height: 120)
+          .padding(.top, 40)
+          .padding(.horizontal, 20)
+
+        // MARK: - Center: Status + Button
+        Spacer()
+
+        statusSection
+
+        mainButtonSection
+          .padding(.top, 24)
+
+        buttonLabelSection
+          .frame(height: 44)
+          .padding(.top, 8)
+
+        Spacer()
+
+        // MARK: - Bottom: Playback Controls (review only)
+        bottomSection
       }
     }
     .navigationTitle("Audio Recording")
@@ -32,11 +46,13 @@ struct RecordPageView: View {
     .toolbarBackground(Color.black, for: .navigationBar)
     .toolbarColorScheme(.dark, for: .navigationBar)
     .toolbar {
-      ToolbarItem(placement: .navigationBarTrailing) {
-        Button("Done") {
-          model.onDoneTapped()
+      if model.shouldShowDoneButton {
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button("Done") {
+            model.onDoneTapped()
+          }
+          .foregroundColor(.white)
         }
-        .foregroundColor(.white)
       }
     }
     .alert(item: $model.presentedAlert) { $0.alert }
@@ -45,215 +61,274 @@ struct RecordPageView: View {
     }
   }
 
-  // MARK: - Idle View (Ready to Record)
+  // MARK: - Waveform Section
 
-  private var idleView: some View {
-    VStack {
-      Spacer()
+  @ViewBuilder
+  private var waveformSection: some View {
+    switch model.recordingPhase {
+    case .idle:
+      RoundedRectangle(cornerRadius: 8)
+        .fill(Color(hex: "#1A1A1A"))
+        .overlay(
+          Text("Your recording will appear here")
+            .font(.custom(FontNames.Inter_400_Regular, size: 14))
+            .foregroundColor(Color(hex: "#4A4A4A"))
+        )
+    case .recording:
+      LiveWaveformView(samples: model.waveformSamples)
+    case .review:
+      WaveformView(samples: model.waveformSamples)
+    }
+  }
 
-      Text("Tap to Record")
-        .font(.custom(FontNames.Inter_400_Regular, size: 18))
-        .foregroundColor(.playolaGray)
-        .padding(.bottom, 30)
+  // MARK: - Status Section
 
+  @ViewBuilder
+  private var statusSection: some View {
+    switch model.recordingPhase {
+    case .idle:
+      Color.clear.frame(height: 60)
+    case .recording:
+      VStack(spacing: 8) {
+        HStack(spacing: 8) {
+          Circle()
+            .fill(Color.playolaRed)
+            .frame(width: 10, height: 10)
+          Text("Recording")
+            .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+            .foregroundColor(.playolaRed)
+        }
+        Text(model.displayTime)
+          .font(.custom(FontNames.Inter_400_Regular, size: 32))
+          .foregroundColor(.white)
+          .monospacedDigit()
+      }
+      .frame(height: 60)
+    case .review:
+      Color.clear.frame(height: 60)
+    }
+  }
+
+  // MARK: - Main Button Section
+
+  @ViewBuilder
+  private var mainButtonSection: some View {
+    switch model.recordingPhase {
+    case .idle:
       Button {
         Task { await model.onRecordTapped() }
       } label: {
         ZStack {
           Circle()
             .fill(Color.playolaRed)
-            .frame(width: 120, height: 120)
+            .frame(width: 100, height: 100)
           Image(systemName: "mic.fill")
-            .font(.system(size: 50))
+            .font(.system(size: 40))
             .foregroundColor(.white)
         }
       }
-
-      Spacer()
-    }
-  }
-
-  // MARK: - Recording View
-
-  private var recordingView: some View {
-    VStack {
-      Spacer()
-
-      // Recording indicator
-      HStack(spacing: 8) {
-        Circle()
-          .fill(Color.playolaRed)
-          .frame(width: 12, height: 12)
-        Text("Recording")
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
-          .foregroundColor(.playolaRed)
-      }
-      .padding(.bottom, 20)
-
-      // Time display
-      Text(model.displayTime)
-        .font(.custom(FontNames.Inter_400_Regular, size: 48))
-        .foregroundColor(.white)
-        .monospacedDigit()
-        .padding(.bottom, 40)
-
-      // Stop button
+    case .recording:
       Button {
         Task { await model.onStopTapped() }
       } label: {
         ZStack {
           Circle()
             .fill(Color.playolaRed)
-            .frame(width: 120, height: 120)
-          RoundedRectangle(cornerRadius: 8)
+            .frame(width: 100, height: 100)
+          RoundedRectangle(cornerRadius: 6)
             .fill(Color.white)
-            .frame(width: 40, height: 40)
+            .frame(width: 32, height: 32)
         }
       }
-
-      Spacer()
-    }
-  }
-
-  // MARK: - Review View
-
-  private var reviewView: some View {
-    VStack(spacing: 0) {
-      // Waveform visualization
-      WaveformView(progress: 1.0)
-        .frame(height: 150)
-        .padding(.top, 60)
-        .padding(.horizontal, 20)
-
-      // Time display
-      Text(model.displayTime)
-        .font(.custom(FontNames.Inter_400_Regular, size: 32))
-        .foregroundColor(.white)
-        .padding(.top, 40)
-
-      // Play button
+    case .review:
       Button {
-        model.onPlayPauseTapped()
+        model.onReRecordTapped()
       } label: {
         ZStack {
           Circle()
             .fill(Color.playolaRed)
             .frame(width: 100, height: 100)
-          Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
+          Image(systemName: "mic.fill")
             .font(.system(size: 40))
             .foregroundColor(.white)
-            .offset(x: model.isPlaying ? 0 : 4)
         }
       }
-      .padding(.top, 30)
+    }
+  }
 
-      // Re-record label
-      Button {
-        model.onReRecordTapped()
-      } label: {
-        Text("Re-record")
-          .font(.custom(FontNames.Inter_400_Regular, size: 16))
-          .foregroundColor(.playolaRed)
-      }
-      .padding(.top, 12)
+  // MARK: - Button Label Section
 
-      Spacer()
+  @ViewBuilder
+  private var buttonLabelSection: some View {
+    switch model.recordingPhase {
+    case .idle:
+      Text("Tap to Record")
+        .font(.custom(FontNames.Inter_400_Regular, size: 16))
+        .foregroundColor(.playolaGray)
+    case .recording:
+      Text("Tap to Stop")
+        .font(.custom(FontNames.Inter_400_Regular, size: 16))
+        .foregroundColor(.playolaGray)
+    case .review:
+      Text("Try Again")
+        .font(.custom(FontNames.Inter_400_Regular, size: 16))
+        .foregroundColor(.playolaGray)
+    }
+  }
 
-      // Playback scrubber
-      PlaybackScrubberView(
-        currentTime: Int(model.playbackPosition),
-        totalTime: Int(model.recordingDuration),
-        isPlaying: model.isPlaying,
-        onPlayPause: { model.onPlayPauseTapped() },
-        onRewind: { model.onRewindTapped() }
-      )
-      .padding(.horizontal, 20)
-      .padding(.bottom, 20)
+  // MARK: - Bottom Section
 
-      // Bottom action buttons
-      HStack(spacing: 16) {
-        // Discard button
-        Button {
-          model.onDiscardTapped()
-        } label: {
-          HStack(spacing: 8) {
-            Image(systemName: "trash")
-            Text("Discard")
+  @ViewBuilder
+  private var bottomSection: some View {
+    if model.recordingPhase == .review {
+      VStack(spacing: 16) {
+        PlaybackScrubberView(
+          currentTime: model.playbackPosition,
+          totalTime: model.recordingDuration,
+          isPlaying: model.isPlaying,
+          onPlayPause: { model.onPlayPauseTapped() },
+          onRewind: { model.onRewindTapped() },
+          onSeek: { model.seekTo($0) }
+        )
+
+        HStack(spacing: 12) {
+          Button {
+            model.onDiscardTapped()
+          } label: {
+            HStack(spacing: 6) {
+              Image(systemName: "trash")
+              Text("Discard")
+            }
+            .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
+            .foregroundColor(.playolaRed)
+            .frame(maxWidth: .infinity)
+            .frame(height: 48)
+            .overlay(
+              RoundedRectangle(cornerRadius: 24)
+                .stroke(Color.playolaRed, lineWidth: 2)
+            )
           }
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
-          .foregroundColor(.playolaRed)
-          .frame(maxWidth: .infinity)
-          .frame(height: 50)
-          .overlay(
-            RoundedRectangle(cornerRadius: 25)
-              .stroke(Color.playolaRed, lineWidth: 2)
-          )
-        }
 
-        // Accept Recording button
-        Button {
-          model.onAcceptRecordingTapped()
-        } label: {
-          HStack(spacing: 8) {
-            Image(systemName: "checkmark.circle.fill")
-            Text("Accept Recording")
+          Button {
+            model.onAcceptRecordingTapped()
+          } label: {
+            HStack(spacing: 6) {
+              Image(systemName: "checkmark")
+              Text("Use Recording")
+            }
+            .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 48)
+            .background(Color.playolaRed)
+            .cornerRadius(24)
           }
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
-          .foregroundColor(.white)
-          .frame(maxWidth: .infinity)
-          .frame(height: 50)
-          .background(Color.playolaRed)
-          .cornerRadius(25)
         }
       }
       .padding(.horizontal, 20)
-      .padding(.bottom, 40)
+      .padding(.bottom, 32)
+      .transition(.move(edge: .bottom).combined(with: .opacity))
     }
   }
 }
 
-// MARK: - Waveform View
+// MARK: - Live Waveform View (during recording)
 
-struct WaveformView: View {
-  let progress: Double
-  let barCount = 60
+struct LiveWaveformView: View {
+  let samples: [Float]
+  private static let barCount = 60
 
   var body: some View {
     GeometryReader { geometry in
+      let barWidth = (geometry.size.width - CGFloat(Self.barCount - 1) * 2) / CGFloat(Self.barCount)
       HStack(alignment: .center, spacing: 2) {
-        ForEach(0..<barCount, id: \.self) { index in
-          let normalizedIndex = Double(index) / Double(barCount)
-          let isRecorded = normalizedIndex <= progress
-
+        let displaySamples = resampledSamples()
+        ForEach(0..<Self.barCount, id: \.self) { index in
+          let height: CGFloat =
+            index < displaySamples.count
+            ? CGFloat(displaySamples[index]) * geometry.size.height
+            : 4
           RoundedRectangle(cornerRadius: 1.5)
-            .fill(isRecorded ? Color.playolaRed : Color(hex: "#4A4A4A"))
-            .frame(width: 3, height: barHeight(for: index, totalHeight: geometry.size.height))
+            .fill(index < displaySamples.count ? Color.playolaRed : Color(hex: "#4A4A4A"))
+            .frame(width: barWidth, height: max(4, height))
         }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
   }
 
-  private func barHeight(for index: Int, totalHeight: CGFloat) -> CGFloat {
-    let seed = sin(Double(index) * 0.5) * cos(Double(index) * 0.3)
-    let normalizedHeight = abs(seed) * 0.7 + 0.15
-    let centerBoost = 1.0 - abs(Double(index - barCount / 2) / Double(barCount / 2)) * 0.5
-    return CGFloat(normalizedHeight * centerBoost) * totalHeight
+  private func resampledSamples() -> [Float] {
+    guard !samples.isEmpty else { return [] }
+    if samples.count <= Self.barCount {
+      return samples
+    }
+    // Resample to barCount
+    let step = max(1, samples.count / Self.barCount)
+    var result: [Float] = []
+    for i in stride(from: 0, to: samples.count, by: step) {
+      let end = min(i + step, samples.count)
+      let avg = samples[i..<end].reduce(0, +) / Float(end - i)
+      result.append(avg)
+    }
+    return Array(result.prefix(Self.barCount))
+  }
+}
+
+// MARK: - Waveform View (static, for review)
+
+struct WaveformView: View {
+  let samples: [Float]
+  private static let barCount = 60
+
+  init(samples: [Float]) {
+    self.samples = samples
+  }
+
+  var body: some View {
+    GeometryReader { geometry in
+      let barWidth = (geometry.size.width - CGFloat(Self.barCount - 1) * 2) / CGFloat(Self.barCount)
+      HStack(alignment: .center, spacing: 2) {
+        let normalizedSamples = resampledSamples()
+        ForEach(0..<Self.barCount, id: \.self) { index in
+          let height =
+            index < normalizedSamples.count
+            ? CGFloat(normalizedSamples[index]) * geometry.size.height
+            : geometry.size.height * 0.2
+          RoundedRectangle(cornerRadius: 1.5)
+            .fill(Color.playolaRed)
+            .frame(width: barWidth, height: max(4, height))
+        }
+      }
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+  }
+
+  private func resampledSamples() -> [Float] {
+    guard !samples.isEmpty else { return [] }
+    let step = max(1, samples.count / Self.barCount)
+    var result: [Float] = []
+    for i in stride(from: 0, to: samples.count, by: step) {
+      let end = min(i + step, samples.count)
+      let avg = samples[i..<end].reduce(0, +) / Float(end - i)
+      result.append(avg)
+    }
+    return Array(result.prefix(Self.barCount))
   }
 }
 
 // MARK: - Playback Scrubber View
 
 struct PlaybackScrubberView: View {
-  let currentTime: Int
-  let totalTime: Int
+  let currentTime: TimeInterval
+  let totalTime: TimeInterval
   let isPlaying: Bool
   let onPlayPause: () -> Void
   let onRewind: () -> Void
+  let onSeek: (TimeInterval) -> Void
 
   var progress: Double {
     guard totalTime > 0 else { return 0 }
-    return Double(currentTime) / Double(totalTime)
+    return currentTime / totalTime
   }
 
   var body: some View {
@@ -279,6 +354,15 @@ struct PlaybackScrubberView: View {
             .frame(width: 14, height: 14)
             .offset(x: geometry.size.width * progress - 7)
         }
+        .contentShape(Rectangle())
+        .gesture(
+          DragGesture(minimumDistance: 0)
+            .onChanged { value in
+              let percent = max(0, min(1, value.location.x / geometry.size.width))
+              let newTime = percent * totalTime
+              onSeek(newTime)
+            }
+        )
       }
       .frame(height: 14)
 
@@ -299,11 +383,15 @@ struct PlaybackScrubberView: View {
     .cornerRadius(8)
   }
 
-  private func formatTime(_ seconds: Int) -> String {
-    let hours = seconds / 3600
-    let minutes = (seconds % 3600) / 60
-    let secs = seconds % 60
-    return String(format: "%02d:%02d:%02d", hours, minutes, secs)
+  private func formatTime(_ time: TimeInterval) -> String {
+    let totalSeconds = Int(time)
+    let hours = totalSeconds / 3600
+    let minutes = (totalSeconds % 3600) / 60
+    let secs = totalSeconds % 60
+    if hours > 0 {
+      return String(format: "%d:%02d:%02d", hours, minutes, secs)
+    }
+    return String(format: "%d:%02d", minutes, secs)
   }
 }
 
@@ -328,15 +416,21 @@ struct PlaybackScrubberView: View {
   .preferredColorScheme(.dark)
 }
 
+@MainActor
 private func makeRecordingPreviewModel() -> RecordPageModel {
   let model = RecordPageModel()
   model.recordingPhase = .recording
+  model.recordingDuration = 5.3
+  model.waveformSamples = (0..<30).map { _ in Float.random(in: 0.2...0.9) }
   return model
 }
 
+@MainActor
 private func makeReviewPreviewModel() -> RecordPageModel {
   let model = RecordPageModel()
   model.recordingPhase = .review
-  model.recordingDuration = 134
+  model.recordingDuration = 45
+  model.playbackPosition = 12
+  model.waveformSamples = (0..<100).map { _ in Float.random(in: 0.2...0.9) }
   return model
 }

@@ -381,6 +381,26 @@ final class BroadcastPageTests: XCTestCase {
     XCTAssertEqual(model.presentedAlert?.title, "Coming Soon")
   }
 
+  func testRecordingAccepted_AddsToStagingArea() {
+    let fixedDate = Date(timeIntervalSince1970: 1_702_486_800)  // 2:00pm
+
+    withDependencies {
+      $0.date.now = fixedDate
+    } operation: {
+      let model = BroadcastPageModel(stationId: "test-station")
+      XCTAssertTrue(model.stagingVoicetracks.isEmpty)
+
+      model.onAddVoiceTrackTapped()
+      let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
+      model.recordPageModel?.onRecordingAccepted?(recordingURL)
+
+      XCTAssertEqual(model.stagingVoicetracks.count, 1)
+      XCTAssertEqual(model.stagingVoicetracks.first?.originalURL, recordingURL)
+      XCTAssertEqual(model.stagingVoicetracks.first?.title, "Voice Track 2:00pm")
+      XCTAssertEqual(model.stagingVoicetracks.first?.status, .converting)
+    }
+  }
+
   // MARK: - Grouped Spin Tests
 
   func testMoveSpins_MovesGroupToBeginning() async {
@@ -633,6 +653,40 @@ extension BroadcastPageTests {
 
       XCTAssertNotNil(model.presentedAlert)
       XCTAssertEqual(model.presentedAlert?.title, "Error")
+    }
+  }
+}
+
+// MARK: - Voicetrack Upload Tests
+
+extension BroadcastPageTests {
+  func testVoicetrackUploadErrorShowsAlertWithServerErrorMessage() async {
+    let stationId = "test-station-id"
+    let fixedDate = Date(timeIntervalSince1970: 1_702_486_800)
+    let serverErrorMessage = "Station has reached voicetrack limit"
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedDate
+      $0.voicetrackUploadService.processVoicetrack = { _, _, _, onStatusChange in
+        onStatusChange(.converting)
+        throw APIError.validationError(serverErrorMessage)
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+
+      XCTAssertNil(model.presentedAlert)
+
+      model.onAddVoiceTrackTapped()
+      let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
+      model.recordPageModel?.onRecordingAccepted?(recordingURL)
+
+      // Wait for async processing
+      try? await Task.sleep(for: .milliseconds(100))
+
+      XCTAssertNotNil(model.presentedAlert)
+      XCTAssertEqual(model.presentedAlert?.title, "Upload Failed")
+      XCTAssertEqual(model.presentedAlert?.message, serverErrorMessage)
     }
   }
 }

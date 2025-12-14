@@ -31,9 +31,11 @@ class BroadcastPageModel: ViewModel {
   var presentedAlert: PlayolaAlert?
   var currentNowPlayingId: String?
   private var reorderedSpinIds: [String]?  // nil means use default order
+  var stagingVoicetracks: [LocalVoicetrack] = []
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
@@ -132,7 +134,47 @@ class BroadcastPageModel: ViewModel {
   }
 
   private func handleAcceptedRecording(_ url: URL) {
-    // TODO: Stage the recording, convert to m4a, upload
+    let formatter = DateFormatter()
+    formatter.dateFormat = "h:mma"
+    let timeString = formatter.string(from: now).lowercased()
+    let title = "Voice Track \(timeString)"
+
+    let voicetrack = LocalVoicetrack(
+      originalURL: url,
+      title: title
+    )
+    stagingVoicetracks.append(voicetrack)
+
+    Task {
+      await processVoicetrack(voicetrack)
+    }
+  }
+
+  private func processVoicetrack(_ voicetrack: LocalVoicetrack) async {
+    guard let jwt = auth.jwt else {
+      updateVoicetrackStatus(id: voicetrack.id, status: .failed(error: "Not authenticated"))
+      return
+    }
+
+    do {
+      _ = try await voicetrackUploadService.processVoicetrack(
+        voicetrack,
+        stationId,
+        jwt
+      ) { [weak self] status in
+        Task { @MainActor in
+          self?.updateVoicetrackStatus(id: voicetrack.id, status: status)
+        }
+      }
+    } catch {
+      updateVoicetrackStatus(id: voicetrack.id, status: .failed(error: error.localizedDescription))
+      presentedAlert = .voicetrackUploadFailed(error.localizedDescription)
+    }
+  }
+
+  private func updateVoicetrackStatus(id: UUID, status: LocalVoicetrackStatus) {
+    guard let index = stagingVoicetracks.firstIndex(where: { $0.id == id }) else { return }
+    stagingVoicetracks[index].status = status
   }
 
   func onAddSongTapped() {
@@ -249,6 +291,14 @@ extension PlayolaAlert {
   static func errorDeletingSpin(_ message: String) -> PlayolaAlert {
     PlayolaAlert(
       title: "Error",
+      message: message,
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static func voicetrackUploadFailed(_ message: String) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Upload Failed",
       message: message,
       dismissButton: .cancel(Text("OK"))
     )

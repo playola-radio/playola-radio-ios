@@ -270,6 +270,14 @@
 		D3F493C52EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493C32EEDD9F1008ED463 /* AudioRecorderClient.swift */; };
 		D3F493C72EEE03F3008ED463 /* AudioPlayerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493C62EEE03F3008ED463 /* AudioPlayerClient.swift */; };
 		D3F493C82EEE03F3008ED463 /* AudioPlayerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493C62EEE03F3008ED463 /* AudioPlayerClient.swift */; };
+		D3F493CA2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493C92EEE4133008ED463 /* LocalVoicetrack.swift */; };
+		D3F493CB2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493C92EEE4133008ED463 /* LocalVoicetrack.swift */; };
+		D3F493CD2EEE50A4008ED463 /* AudioConverterClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493CC2EEE50A4008ED463 /* AudioConverterClient.swift */; };
+		D3F493CE2EEE50A4008ED463 /* AudioConverterClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493CC2EEE50A4008ED463 /* AudioConverterClient.swift */; };
+		D3F493D02EEE52F9008ED463 /* PresignedURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493CF2EEE52F4008ED463 /* PresignedURLResponse.swift */; };
+		D3F493D12EEE52F9008ED463 /* PresignedURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493CF2EEE52F4008ED463 /* PresignedURLResponse.swift */; };
+		D3F493D32EEE58CF008ED463 /* VoicetrackUploadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493D22EEE58CF008ED463 /* VoicetrackUploadService.swift */; };
+		D3F493D42EEE58CF008ED463 /* VoicetrackUploadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493D22EEE58CF008ED463 /* VoicetrackUploadService.swift */; };
 		D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */; };
 		D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */; };
 		D3FEC8082EDF646A00A33AE8 /* ChooseStationToBroadcastPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */; };
@@ -428,6 +436,10 @@
 		D3F493BD2EEDD2B7008ED463 /* RecordPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordPageTests.swift; sourceTree = "<group>"; };
 		D3F493C32EEDD9F1008ED463 /* AudioRecorderClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderClient.swift; sourceTree = "<group>"; };
 		D3F493C62EEE03F3008ED463 /* AudioPlayerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerClient.swift; sourceTree = "<group>"; };
+		D3F493C92EEE4133008ED463 /* LocalVoicetrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalVoicetrack.swift; sourceTree = "<group>"; };
+		D3F493CC2EEE50A4008ED463 /* AudioConverterClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioConverterClient.swift; sourceTree = "<group>"; };
+		D3F493CF2EEE52F4008ED463 /* PresignedURLResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresignedURLResponse.swift; sourceTree = "<group>"; };
+		D3F493D22EEE58CF008ED463 /* VoicetrackUploadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicetrackUploadService.swift; sourceTree = "<group>"; };
 		D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPageModel.swift; sourceTree = "<group>"; };
 		D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTier.swift; sourceTree = "<group>"; };
 		D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageTests.swift; sourceTree = "<group>"; };
@@ -562,6 +574,8 @@
 		D3137DD02D3ABB490070033A /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				D3F493CF2EEE52F4008ED463 /* PresignedURLResponse.swift */,
+				D3F493C92EEE4133008ED463 /* LocalVoicetrack.swift */,
 				D37786E92EAD3DA80084B8B8 /* ScheduledShow */,
 				D3E8D6832E96D39A0028CEBD /* Show.swift */,
 				D30AE8A62E75C91E00D9FBCA /* UrlStation.swift */,
@@ -1036,6 +1050,8 @@
 		D3F493C22EEDD987008ED463 /* AudioRecording */ = {
 			isa = PBXGroup;
 			children = (
+				D3F493D22EEE58CF008ED463 /* VoicetrackUploadService.swift */,
+				D3F493CC2EEE50A4008ED463 /* AudioConverterClient.swift */,
 				D3F493C62EEE03F3008ED463 /* AudioPlayerClient.swift */,
 				D3F493C32EEDD9F1008ED463 /* AudioRecorderClient.swift */,
 			);
@@ -1260,6 +1276,7 @@
 				D30F004F2E8592F0007BCC73 /* HomePageModel.swift in Sources */,
 				D3E8D68F2E96D9630028CEBD /* ScheduledShowsListModel.swift in Sources */,
 				D30F00502E8592F0007BCC73 /* SongDrawerView.swift in Sources */,
+				D3F493CE2EEE50A4008ED463 /* AudioConverterClient.swift in Sources */,
 				D37B74872EC94427009806C6 /* PushNotifications.swift in Sources */,
 				D30F00512E8592F0007BCC73 /* SongDrawerModel.swift in Sources */,
 				D30F00522E8592F0007BCC73 /* Config.swift in Sources */,
@@ -1290,6 +1307,7 @@
 				D37B74832EC93285009806C6 /* UpcomingBadge.swift in Sources */,
 				D30F00672E8592F0007BCC73 /* LikesManager.swift in Sources */,
 				D30F00682E8592F0007BCC73 /* AnalyticsClient.swift in Sources */,
+				D3F493D12EEE52F9008ED463 /* PresignedURLResponse.swift in Sources */,
 				D30F00692E8592F0007BCC73 /* StationPlayer.swift in Sources */,
 				D30F006A2E8592F0007BCC73 /* PrizeTierRow.swift in Sources */,
 				D30F006B2E8592F0007BCC73 /* LocalListeningSession.swift in Sources */,
@@ -1317,6 +1335,7 @@
 				D30F00802E8592F0007BCC73 /* EnumTypeEquatableProtocol.swift in Sources */,
 				D30F00812E8592F0007BCC73 /* InvitationCodePageView.swift in Sources */,
 				D3E8D6842E96D39C0028CEBD /* Show.swift in Sources */,
+				D3F493CA2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */,
 				D30F00822E8592F0007BCC73 /* LikedSongsPageModel.swift in Sources */,
 				D3F493C52EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */,
 				D30F00832E8592F0007BCC73 /* UIApplication+keyWindow.swift in Sources */,
@@ -1332,6 +1351,7 @@
 				D30F008B2E8592F0007BCC73 /* StationListModel.swift in Sources */,
 				D30F008C2E8592F0007BCC73 /* AnalyticsEvent.swift in Sources */,
 				D30F008D2E8592F0007BCC73 /* URLStreamPlayer.swift in Sources */,
+				D3F493D42EEE58CF008ED463 /* VoicetrackUploadService.swift in Sources */,
 				D30F008E2E8592F0007BCC73 /* StationListPage.swift in Sources */,
 				D30F008F2E8592F0007BCC73 /* MainContainer.swift in Sources */,
 				D30F00902E8592F0007BCC73 /* ToastView.swift in Sources */,
@@ -1362,6 +1382,7 @@
 				D37257B22DF88BC1001BC6F9 /* HomePageModel.swift in Sources */,
 				D3E8D68E2E96D9630028CEBD /* ScheduledShowsListModel.swift in Sources */,
 				D30257902E63C13400F4228B /* SongDrawerView.swift in Sources */,
+				D3F493CD2EEE50A4008ED463 /* AudioConverterClient.swift in Sources */,
 				D37B74882EC94427009806C6 /* PushNotifications.swift in Sources */,
 				D30257912E63C13400F4228B /* SongDrawerModel.swift in Sources */,
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
@@ -1392,6 +1413,7 @@
 				D37B74842EC93285009806C6 /* UpcomingBadge.swift in Sources */,
 				D302577C2E639FB800F4228B /* LikesManager.swift in Sources */,
 				D3A08A2F2E4E2A35002468E0 /* AnalyticsClient.swift in Sources */,
+				D3F493D02EEE52F9008ED463 /* PresignedURLResponse.swift in Sources */,
 				D31C43A82D3C19640021AAE4 /* StationPlayer.swift in Sources */,
 				D36FBCC02E37FC8100D1241C /* PrizeTierRow.swift in Sources */,
 				D3B744B42E2FECE10042A427 /* LocalListeningSession.swift in Sources */,
@@ -1419,6 +1441,7 @@
 				D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */,
 				D3A08A3A2E53A788002468E0 /* InvitationCodePageView.swift in Sources */,
 				D3E8D6852E96D39C0028CEBD /* Show.swift in Sources */,
+				D3F493CB2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */,
 				D30257892E63B6C100F4228B /* LikedSongsPageModel.swift in Sources */,
 				D3F493C42EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */,
 				D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */,
@@ -1434,6 +1457,7 @@
 				D35905EC2DFCDA140064A9C1 /* StationListModel.swift in Sources */,
 				D3A08A312E4E2E2A002468E0 /* AnalyticsEvent.swift in Sources */,
 				D339E56D2BFD2FAB00B9E35B /* URLStreamPlayer.swift in Sources */,
+				D3F493D32EEE58CF008ED463 /* VoicetrackUploadService.swift in Sources */,
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */,
 				D30257762E6342C900F4228B /* ToastView.swift in Sources */,

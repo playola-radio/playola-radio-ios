@@ -1,0 +1,88 @@
+//
+//  VoicetrackUploadService.swift
+//  PlayolaRadio
+//
+//  Created by Brian D Keane on 12/13/25.
+//
+
+import Dependencies
+import Foundation
+import PlayolaPlayer
+
+struct VoicetrackUploadService: Sendable {
+  var processVoicetrack:
+    @Sendable (
+      _ voicetrack: LocalVoicetrack,
+      _ stationId: String,
+      _ jwtToken: String,
+      _ onStatusChange: @escaping @Sendable (LocalVoicetrackStatus) -> Void
+    ) async throws -> AudioBlock
+}
+
+// MARK: - Live Implementation
+
+extension VoicetrackUploadService: DependencyKey {
+  static var liveValue: VoicetrackUploadService {
+    @Dependency(\.audioConverter) var audioConverter
+    @Dependency(\.api) var api
+
+    return VoicetrackUploadService(
+      processVoicetrack: { voicetrack, stationId, jwtToken, onStatusChange in
+        // Step 1: Convert .wav to .m4a
+        onStatusChange(.converting)
+        let m4aURL = try await audioConverter.convertToM4A(voicetrack.originalURL)
+        let durationMS = try await audioConverter.getDuration(m4aURL)
+
+        // Step 2: Get presigned URL
+        onStatusChange(.uploading(progress: 0))
+        let presignedResponse = try await api.getVoicetrackPresignedURL(jwtToken, stationId)
+
+        // Step 3: Upload to S3
+        try await api.uploadToS3(
+          presignedResponse.presignedUrl,
+          m4aURL,
+          "audio/mp4"
+        ) { progress in
+          onStatusChange(.uploading(progress: progress))
+        }
+
+        // Step 4: Create voicetrack
+        onStatusChange(.finalizing)
+        let audioBlock = try await api.createVoicetrack(
+          jwtToken,
+          stationId,
+          presignedResponse.s3Key,
+          durationMS
+        )
+
+        // Step 5: Cleanup temp files
+        try? FileManager.default.removeItem(at: m4aURL)
+
+        onStatusChange(.completed)
+        return audioBlock
+      }
+    )
+  }
+}
+
+// MARK: - Test Implementation
+
+extension VoicetrackUploadService: TestDependencyKey {
+  static var testValue: VoicetrackUploadService {
+    VoicetrackUploadService(
+      processVoicetrack: { _, _, _, onStatusChange in
+        onStatusChange(.completed)
+        return AudioBlock.mockWith()
+      }
+    )
+  }
+}
+
+// MARK: - Dependency Values
+
+extension DependencyValues {
+  var voicetrackUploadService: VoicetrackUploadService {
+    get { self[VoicetrackUploadService.self] }
+    set { self[VoicetrackUploadService.self] = newValue }
+  }
+}
