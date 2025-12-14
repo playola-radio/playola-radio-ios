@@ -424,6 +424,7 @@
 		D3B744CC2E368D790042A427 /* Prize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Prize.swift; sourceTree = "<group>"; };
 		D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProviderTests.swift; sourceTree = "<group>"; };
 		D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProvider.swift; sourceTree = "<group>"; };
+		D3C7E5D82EEF741600EDD3ED /* PlayolaRadio.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = PlayolaRadio.xctestplan; path = "PlayolaRadioTests/Test Plans/PlayolaRadio.xctestplan"; sourceTree = "<group>"; };
 		D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserDefaults.swift; sourceTree = "<group>"; };
 		D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlStreamListeningSessionReporter.swift; sourceTree = "<group>"; };
 		D3E8D6832E96D39A0028CEBD /* Show.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Show.swift; sourceTree = "<group>"; };
@@ -654,6 +655,7 @@
 		D35369F82BFA4F49006942D6 = {
 			isa = PBXGroup;
 			children = (
+				D3C7E5D82EEF741600EDD3ED /* PlayolaRadio.xctestplan */,
 				D3536A032BFA4F49006942D6 /* PlayolaRadio */,
 				D3536A142BFA4F4A006942D6 /* PlayolaRadioTests */,
 				D3536A022BFA4F49006942D6 /* Products */,

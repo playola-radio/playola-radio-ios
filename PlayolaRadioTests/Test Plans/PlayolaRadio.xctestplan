@@ -1,0 +1,38 @@
+{
+  "configurations" : [
+    {
+      "id" : "82EEEFF8-BAD5-4C58-BC01-49DCBE5756D3",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:PlayolaRadio.xcodeproj",
+      "identifier" : "D3536A002BFA4F49006942D6",
+      "name" : "PlayolaRadio"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:PlayolaRadio.xcodeproj",
+        "identifier" : "D3536A102BFA4F4A006942D6",
+        "name" : "PlayolaRadioTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:PlayolaRadio.xcodeproj",
+        "identifier" : "D3536A1A2BFA4F4A006942D6",
+        "name" : "PlayolaRadioUITests"
+      }
+    }
+  ],
+  "version" : 1
+}
