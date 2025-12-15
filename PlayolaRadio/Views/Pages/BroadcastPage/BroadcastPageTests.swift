@@ -4,7 +4,6 @@
 //
 //  Created by Brian D Keane on 11/30/25.
 //
-// swiftlint:disable file_length
 
 import Dependencies
 import PlayolaPlayer
