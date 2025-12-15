@@ -130,8 +130,9 @@ struct BroadcastPageView: View {
                 }
                 .dropDestination(for: String.self) { items, _ in
                   guard let voicetrackId = items.first else { return false }
-                  print("Dropped voicetrack \(voicetrackId) before spin \(spin.id)")
-                  // TODO: Handle the actual drop
+                  Task {
+                    await model.insertVoicetrack(voicetrackId: voicetrackId, beforeSpinId: spin.id)
+                  }
                   return true
                 } isTargeted: { isTargeted in
                   withAnimation(.easeInOut(duration: 0.2)) {
@@ -186,12 +187,16 @@ struct BroadcastPageView: View {
         .padding(.vertical, 8)
 
       ForEach(model.stagingVoicetracks) { voicetrack in
-        StagingRowView(voicetrack: voicetrack)
-          .draggable(voicetrack.id.uuidString) {
-            StagingRowView(voicetrack: voicetrack)
-              .frame(width: 300)
-              .opacity(0.8)
-          }
+        if voicetrack.isComplete {
+          StagingRowView(voicetrack: voicetrack)
+            .draggable(voicetrack.id.uuidString) {
+              StagingRowView(voicetrack: voicetrack)
+                .frame(width: 300)
+                .opacity(0.8)
+            }
+        } else {
+          StagingRowView(voicetrack: voicetrack)
+        }
       }
     }
     .background(Color(hex: "#1A1A1A"))

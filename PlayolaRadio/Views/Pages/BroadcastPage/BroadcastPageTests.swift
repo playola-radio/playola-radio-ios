@@ -665,6 +665,132 @@ extension BroadcastPageTests {
   }
 }
 
+// MARK: - Insert Voicetrack Tests
+
+extension BroadcastPageTests {
+  func testInsertVoicetrackCallsAPIWithCorrectParameters() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let voicetrackAudioBlockId = "voicetrack-audio-block-id"
+    let initialSpins = [
+      Spin.mockWith(id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
+      Spin.mockWith(id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
+      Spin.mockWith(id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
+    ]
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    var capturedAudioBlockId: String?
+    var capturedPlaceAfterSpinId: String?
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in initialSpins }
+      $0.api.insertSpin = { _, audioBlockId, placeAfterSpinId in
+        capturedAudioBlockId = audioBlockId
+        capturedPlaceAfterSpinId = placeAfterSpinId
+        return initialSpins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      // Simulate a completed voicetrack in staging
+      let voicetrackId = UUID()
+      model.stagingVoicetracks = [
+        LocalVoicetrack(
+          id: voicetrackId,
+          originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
+          status: .completed,
+          title: "Test Voicetrack",
+          audioBlockId: voicetrackAudioBlockId
+        )
+      ]
+
+      // Drop voicetrack before spin-2 (should insert after spin-1)
+      await model.insertVoicetrack(voicetrackId: voicetrackId.uuidString, beforeSpinId: "spin-2")
+
+      XCTAssertEqual(capturedAudioBlockId, voicetrackAudioBlockId)
+      XCTAssertEqual(capturedPlaceAfterSpinId, "spin-1")
+    }
+  }
+
+  func testInsertVoicetrackRemovesFromStagingOnSuccess() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let initialSpins = [
+      Spin.mockWith(id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
+      Spin.mockWith(id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
+    ]
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in initialSpins }
+      $0.api.insertSpin = { _, _, _ in initialSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      let voicetrackId = UUID()
+      model.stagingVoicetracks = [
+        LocalVoicetrack(
+          id: voicetrackId,
+          originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
+          status: .completed,
+          title: "Test Voicetrack",
+          audioBlockId: "audio-block-id"
+        )
+      ]
+
+      XCTAssertEqual(model.stagingVoicetracks.count, 1)
+
+      await model.insertVoicetrack(voicetrackId: voicetrackId.uuidString, beforeSpinId: "spin-2")
+
+      XCTAssertEqual(model.stagingVoicetracks.count, 0)
+    }
+  }
+
+  func testInsertVoicetrackUpdatesScheduleWithResponse() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let initialSpins = [
+      Spin.mockWith(id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
+      Spin.mockWith(id: "spin-2", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
+    ]
+    let updatedSpins = [
+      Spin.mockWith(id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
+      Spin.mockWith(
+        id: "new-spin", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
+      Spin.mockWith(id: "spin-2", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
+    ]
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in initialSpins }
+      $0.api.insertSpin = { _, _, _ in updatedSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      let voicetrackId = UUID()
+      model.stagingVoicetracks = [
+        LocalVoicetrack(
+          id: voicetrackId,
+          originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
+          status: .completed,
+          title: "Test Voicetrack",
+          audioBlockId: "audio-block-id"
+        )
+      ]
+
+      await model.insertVoicetrack(voicetrackId: voicetrackId.uuidString, beforeSpinId: "spin-2")
+
+      XCTAssertEqual(model.upcomingSpins.map { $0.id }, ["spin-1", "new-spin", "spin-2"])
+    }
+  }
+}
+
 // MARK: - Voicetrack Upload Tests
 
 extension BroadcastPageTests {

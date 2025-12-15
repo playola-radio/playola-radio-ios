@@ -183,6 +183,59 @@ class BroadcastPageModel: ViewModel {
     presentedAlert = .comingSoon
   }
 
+  func insertVoicetrack(voicetrackId: String, beforeSpinId: String) async {
+    guard let jwt = auth.jwt else {
+      print("insertVoicetrack: No JWT")
+      return
+    }
+
+    // Find the voicetrack
+    guard let voicetrackUUID = UUID(uuidString: voicetrackId) else {
+      print("insertVoicetrack: Invalid voicetrack UUID: \(voicetrackId)")
+      return
+    }
+
+    guard let voicetrack = stagingVoicetracks.first(where: { $0.id == voicetrackUUID }) else {
+      print("insertVoicetrack: Voicetrack not found in staging")
+      return
+    }
+
+    guard let audioBlockId = voicetrack.audioBlockId else {
+      print("insertVoicetrack: Voicetrack has no audioBlockId (upload may not be complete)")
+      return
+    }
+
+    // Find the spin to place after (the one before beforeSpinId)
+    guard let beforeIndex = upcomingSpins.firstIndex(where: { $0.id == beforeSpinId }) else {
+      print("insertVoicetrack: Target spin not found: \(beforeSpinId)")
+      return
+    }
+
+    guard beforeIndex > 0 else {
+      print("insertVoicetrack: Cannot insert before first spin (no spin to place after)")
+      presentedAlert = .cannotInsertBeforeFirstSpin
+      return
+    }
+
+    let placeAfterSpinId = upcomingSpins[beforeIndex - 1].id
+
+    do {
+      let newSpins = try await api.insertSpin(jwt, audioBlockId, placeAfterSpinId)
+      schedule = Schedule(
+        stationId: stationId,
+        spins: newSpins,
+        dateProvider: DependencyDateProvider()
+      )
+      reorderedSpinIds = nil
+      currentNowPlayingId = nowPlaying?.id
+
+      // Remove from staging
+      stagingVoicetracks.removeAll { $0.id == voicetrackUUID }
+    } catch {
+      presentedAlert = .errorInsertingSpin(error.localizedDescription)
+    }
+  }
+
   func deleteSpin(_ spin: Spin) async {
     guard let jwt = auth.jwt else { return }
 
@@ -294,6 +347,22 @@ extension PlayolaAlert {
     PlayolaAlert(
       title: "Error",
       message: message,
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static func errorInsertingSpin(_ message: String) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Error",
+      message: message,
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static var cannotInsertBeforeFirstSpin: PlayolaAlert {
+    PlayolaAlert(
+      title: "Cannot Place Here",
+      message: "Voice tracks cannot be placed before the first song in the schedule.",
       dismissButton: .cancel(Text("OK"))
     )
   }
