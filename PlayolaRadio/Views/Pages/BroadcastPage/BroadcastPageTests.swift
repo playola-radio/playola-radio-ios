@@ -352,15 +352,22 @@ final class BroadcastPageTests: XCTestCase {
 
   // MARK: - Coming Soon Alert Tests
 
-  func testOnAddVoiceTrackTapped_ShowsComingSoonAlert() {
+  func testOnAddVoiceTrackTapped_PresentsRecordPageSheet() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+
     let model = BroadcastPageModel(stationId: "test-station")
 
-    XCTAssertNil(model.presentedAlert)
+    XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
 
     model.onAddVoiceTrackTapped()
 
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert?.title, "Coming Soon")
+    XCTAssertNotNil(model.recordPageModel)
+    if case .recordPage = mainContainerNavigationCoordinator.presentedSheet {
+      // Success - presented record page sheet
+    } else {
+      XCTFail("Expected recordPage sheet presentation")
+    }
   }
 
   func testOnAddSongTapped_ShowsComingSoonAlert() {
@@ -372,6 +379,34 @@ final class BroadcastPageTests: XCTestCase {
 
     XCTAssertNotNil(model.presentedAlert)
     XCTAssertEqual(model.presentedAlert?.title, "Coming Soon")
+  }
+
+  func testRecordingAcceptedAddsToStagingArea() async {
+    let calendar = Calendar.current
+    let components = DateComponents(year: 2023, month: 12, day: 13, hour: 11, minute: 0)
+    let fixedDate = calendar.date(from: components)!
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedDate
+      $0.voicetrackUploadService.processVoicetrack = { _, _, _, onStatusChange in
+        await onStatusChange(.converting)
+        await onStatusChange(.completed)
+        return AudioBlock.mockWith()
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: "test-station")
+      XCTAssertTrue(model.stagingVoicetracks.isEmpty)
+
+      model.onAddVoiceTrackTapped()
+      let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
+      await model.recordPageModel?.onRecordingAccepted?(recordingURL)
+
+      XCTAssertEqual(model.stagingVoicetracks.count, 1)
+      XCTAssertEqual(model.stagingVoicetracks.first?.originalURL, recordingURL)
+      XCTAssertEqual(model.stagingVoicetracks.first?.title, "Voice Track 11:00am")
+      XCTAssertEqual(model.stagingVoicetracks.first?.status, .completed)
+    }
   }
 
   // MARK: - Grouped Spin Tests
@@ -626,6 +661,233 @@ extension BroadcastPageTests {
 
       XCTAssertNotNil(model.presentedAlert)
       XCTAssertEqual(model.presentedAlert?.title, "Error")
+    }
+  }
+}
+
+// MARK: - Insert Voicetrack Tests
+
+extension BroadcastPageTests {
+  func testInsertVoicetrackCallsAPIWithCorrectParameters() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let voicetrackAudioBlockId = "voicetrack-audio-block-id"
+    let initialSpins = [
+      Spin.mockWith(id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
+      Spin.mockWith(id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
+      Spin.mockWith(id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
+    ]
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    var capturedAudioBlockId: String?
+    var capturedPlaceAfterSpinId: String?
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in initialSpins }
+      $0.api.insertSpin = { _, audioBlockId, placeAfterSpinId in
+        capturedAudioBlockId = audioBlockId
+        capturedPlaceAfterSpinId = placeAfterSpinId
+        return initialSpins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      // Simulate a completed voicetrack in staging
+      let voicetrackId = UUID()
+      model.stagingVoicetracks = [
+        LocalVoicetrack(
+          id: voicetrackId,
+          originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
+          status: .completed,
+          title: "Test Voicetrack",
+          audioBlockId: voicetrackAudioBlockId
+        )
+      ]
+
+      // Drop voicetrack before spin-2 (should insert after spin-1)
+      await model.insertVoicetrack(voicetrackId: voicetrackId.uuidString, beforeSpinId: "spin-2")
+
+      XCTAssertEqual(capturedAudioBlockId, voicetrackAudioBlockId)
+      XCTAssertEqual(capturedPlaceAfterSpinId, "spin-1")
+    }
+  }
+
+  func testInsertVoicetrackRemovesFromStagingOnSuccess() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let initialSpins = [
+      Spin.mockWith(id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
+      Spin.mockWith(id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
+    ]
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in initialSpins }
+      $0.api.insertSpin = { _, _, _ in initialSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      let voicetrackId = UUID()
+      model.stagingVoicetracks = [
+        LocalVoicetrack(
+          id: voicetrackId,
+          originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
+          status: .completed,
+          title: "Test Voicetrack",
+          audioBlockId: "audio-block-id"
+        )
+      ]
+
+      XCTAssertEqual(model.stagingVoicetracks.count, 1)
+
+      await model.insertVoicetrack(voicetrackId: voicetrackId.uuidString, beforeSpinId: "spin-2")
+
+      XCTAssertEqual(model.stagingVoicetracks.count, 0)
+    }
+  }
+
+  func testInsertVoicetrackUpdatesScheduleWithResponse() async {
+    let stationId = "test-station-id"
+    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+    let initialSpins = [
+      Spin.mockWith(id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
+      Spin.mockWith(id: "spin-2", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
+    ]
+    let updatedSpins = [
+      Spin.mockWith(id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
+      Spin.mockWith(
+        id: "new-spin", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
+      Spin.mockWith(id: "spin-2", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
+    ]
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in initialSpins }
+      $0.api.insertSpin = { _, _, _ in updatedSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+      await model.viewAppeared()
+
+      let voicetrackId = UUID()
+      model.stagingVoicetracks = [
+        LocalVoicetrack(
+          id: voicetrackId,
+          originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
+          status: .completed,
+          title: "Test Voicetrack",
+          audioBlockId: "audio-block-id"
+        )
+      ]
+
+      await model.insertVoicetrack(voicetrackId: voicetrackId.uuidString, beforeSpinId: "spin-2")
+
+      XCTAssertEqual(model.upcomingSpins.map { $0.id }, ["spin-1", "new-spin", "spin-2"])
+    }
+  }
+}
+
+// MARK: - Voicetrack Upload Tests
+
+extension BroadcastPageTests {
+  func testVoicetrackStatusUpdatesAsUploadProgresses() async {
+    let stationId = "test-station-id"
+    let fixedDate = Date(timeIntervalSince1970: 1_702_486_800)
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    var capturedStatuses: [LocalVoicetrackStatus] = []
+
+    await withDependencies {
+      $0.date.now = fixedDate
+      $0.voicetrackUploadService.processVoicetrack = { _, _, _, onStatusChange in
+        let statuses: [LocalVoicetrackStatus] = [
+          .converting,
+          .uploading(progress: 0.0),
+          .uploading(progress: 0.5),
+          .uploading(progress: 1.0),
+          .finalizing,
+          .completed,
+        ]
+        for status in statuses {
+          await onStatusChange(status)
+          capturedStatuses.append(status)
+        }
+        return AudioBlock.mockWith()
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+
+      model.onAddVoiceTrackTapped()
+      let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
+      await model.recordPageModel?.onRecordingAccepted?(recordingURL)
+
+      XCTAssertEqual(capturedStatuses.count, 6)
+      XCTAssertEqual(capturedStatuses[0], .converting)
+      XCTAssertEqual(capturedStatuses[1], .uploading(progress: 0.0))
+      XCTAssertEqual(capturedStatuses[2], .uploading(progress: 0.5))
+      XCTAssertEqual(capturedStatuses[3], .uploading(progress: 1.0))
+      XCTAssertEqual(capturedStatuses[4], .finalizing)
+      XCTAssertEqual(capturedStatuses[5], .completed)
+      XCTAssertEqual(model.stagingVoicetracks.first?.status, .completed)
+    }
+  }
+
+  func testVoicetrackUploadSuccessStoresAudioBlockId() async {
+    let stationId = "test-station-id"
+    let fixedDate = Date(timeIntervalSince1970: 1_702_486_800)
+    let expectedAudioBlockId = "server-audio-block-id-123"
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedDate
+      $0.voicetrackUploadService.processVoicetrack = { _, _, _, onStatusChange in
+        await onStatusChange(.converting)
+        await onStatusChange(.uploading(progress: 0.5))
+        await onStatusChange(.finalizing)
+        await onStatusChange(.completed)
+        return AudioBlock.mockWith(id: expectedAudioBlockId)
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+
+      model.onAddVoiceTrackTapped()
+      let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
+      await model.recordPageModel?.onRecordingAccepted?(recordingURL)
+
+      XCTAssertEqual(model.stagingVoicetracks.count, 1)
+      XCTAssertEqual(model.stagingVoicetracks.first?.audioBlockId, expectedAudioBlockId)
+      XCTAssertEqual(model.stagingVoicetracks.first?.status, .completed)
+    }
+  }
+
+  func testVoicetrackUploadErrorShowsAlertWithServerErrorMessage() async {
+    let stationId = "test-station-id"
+    let fixedDate = Date(timeIntervalSince1970: 1_702_486_800)
+    let serverErrorMessage = "Station has reached voicetrack limit"
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedDate
+      $0.voicetrackUploadService.processVoicetrack = { _, _, _, onStatusChange in
+        await onStatusChange(.converting)
+        throw APIError.validationError(serverErrorMessage)
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+
+      XCTAssertNil(model.presentedAlert)
+
+      model.onAddVoiceTrackTapped()
+      let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
+      await model.recordPageModel?.onRecordingAccepted?(recordingURL)
+
+      XCTAssertNotNil(model.presentedAlert)
+      XCTAssertEqual(model.presentedAlert?.title, "Upload Failed")
+      XCTAssertEqual(model.presentedAlert?.message, serverErrorMessage)
     }
   }
 }

@@ -1,8 +1,8 @@
 .PHONY: lint format format-check
 
-# Run SwiftLint
+# Run SwiftLint (strict mode to match CI)
 lint:
-	swiftlint
+	swiftlint --strict
 
 # Auto-fix formatting issues
 format:
