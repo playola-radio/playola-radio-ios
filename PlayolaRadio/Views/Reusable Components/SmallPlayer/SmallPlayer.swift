@@ -123,6 +123,7 @@ struct SmallPlayer: View {
       }
       .frame(height: 2)
     }
+    .background(Color.black)
   }
 }
 
