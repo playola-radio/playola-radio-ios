@@ -170,6 +170,17 @@ struct APIClient: Sendable {
   /// - Throws: APIError if the request fails
   var deleteSpin: (_ jwtToken: String, _ spinId: String) async throws -> [Spin] = { _, _ in [] }
 
+  /// Inserts a spin into the station's schedule
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - audioBlockId: The ID of the audio block to insert
+  ///   - placeAfterSpinId: The ID of the spin to place the new spin after
+  /// - Returns: Updated array of Spin objects representing the new schedule
+  /// - Throws: APIError if the request fails
+  var insertSpin:
+    (_ jwtToken: String, _ audioBlockId: String, _ placeAfterSpinId: String) async throws -> [Spin] =
+      { _, _, _ in [] }
+
   /// Gets a presigned URL for uploading a voicetrack to S3
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
@@ -617,13 +628,42 @@ extension APIClient: DependencyKey {
           let spins = try isoDecoder.decode([Spin].self, from: data)
           return spins
         } else {
-          if let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let errorObj = errorResponse["error"] as? [String: Any],
-            let message = errorObj["message"] as? String
-          {
-            throw APIError.validationError(message)
-          }
-          throw APIError.validationError("Failed to delete spin")
+          let message = parsePlayolaErrorMessage(from: data) ?? "Failed to delete spin"
+          throw APIError.validationError(message)
+        }
+      },
+      insertSpin: { jwtToken, audioBlockId, placeAfterSpinId in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/spins"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters: [String: String] = [
+          "audioBlockId": audioBlockId,
+          "placeAfterSpinId": placeAfterSpinId,
+        ]
+
+        let dataResponse = await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .serializingData()
+        .response
+
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw APIError.dataNotValid
+        }
+
+        guard let data = dataResponse.value else {
+          throw APIError.dataNotValid
+        }
+
+        if statusCode >= 200, statusCode < 300 {
+          let spins = try isoDecoder.decode([Spin].self, from: data)
+          return spins
+        } else {
+          let message = parsePlayolaErrorMessage(from: data) ?? "Failed to insert spin"
+          throw APIError.validationError(message)
         }
       },
       getVoicetrackPresignedURL: { jwtToken, stationId in
@@ -696,13 +736,8 @@ extension APIClient: DependencyKey {
           let audioBlock = try isoDecoder.decode(AudioBlock.self, from: data)
           return audioBlock
         } else {
-          if let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let errorObj = errorResponse["error"] as? [String: Any],
-            let message = errorObj["message"] as? String
-          {
-            throw APIError.validationError(message)
-          }
-          throw APIError.validationError("Failed to create voicetrack")
+          let message = parsePlayolaErrorMessage(from: data) ?? "Failed to create voicetrack"
+          throw APIError.validationError(message)
         }
       }
     )
@@ -721,6 +756,16 @@ enum APIError: Error, LocalizedError {
       return message
     }
   }
+}
+
+func parsePlayolaErrorMessage(from data: Data) -> String? {
+  guard let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+    let errorObj = errorResponse["error"] as? [String: Any],
+    let message = errorObj["message"] as? String
+  else {
+    return nil
+  }
+  return message
 }
 
 enum InvitationCodeError: Error {
