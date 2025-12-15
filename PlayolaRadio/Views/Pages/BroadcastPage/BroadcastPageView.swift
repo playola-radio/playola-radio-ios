@@ -12,6 +12,7 @@ import SwiftUI
 
 struct BroadcastPageView: View {
   @Bindable var model: BroadcastPageModel
+  @State private var dropTargetSpinId: String?
 
   var body: some View {
     ZStack {
@@ -112,11 +113,31 @@ struct BroadcastPageView: View {
             List {
               ForEach(model.upcomingSpins, id: \.id) { spin in
                 let isDeletable = model.canDeleteSpin(spin)
-                ScheduleRowView(
-                  spin: spin,
-                  isBeingRescheduled: model.spinIdsBeingRescheduled.contains(spin.id),
-                  isDeletable: isDeletable
-                )
+                VStack(spacing: 0) {
+                  // Drop indicator above this row
+                  if dropTargetSpinId == spin.id {
+                    Rectangle()
+                      .fill(Color.playolaRed)
+                      .frame(height: 3)
+                      .transition(.opacity)
+                  }
+
+                  ScheduleRowView(
+                    spin: spin,
+                    isBeingRescheduled: model.spinIdsBeingRescheduled.contains(spin.id),
+                    isDeletable: isDeletable
+                  )
+                }
+                .dropDestination(for: String.self) { items, _ in
+                  guard let voicetrackId = items.first else { return false }
+                  print("Dropped voicetrack \(voicetrackId) before spin \(spin.id)")
+                  // TODO: Handle the actual drop
+                  return true
+                } isTargeted: { isTargeted in
+                  withAnimation(.easeInOut(duration: 0.2)) {
+                    dropTargetSpinId = isTargeted ? spin.id : nil
+                  }
+                }
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
@@ -166,6 +187,11 @@ struct BroadcastPageView: View {
 
       ForEach(model.stagingVoicetracks) { voicetrack in
         StagingRowView(voicetrack: voicetrack)
+          .draggable(voicetrack.id.uuidString) {
+            StagingRowView(voicetrack: voicetrack)
+              .frame(width: 300)
+              .opacity(0.8)
+          }
       }
     }
     .background(Color(hex: "#1A1A1A"))
