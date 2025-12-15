@@ -276,14 +276,16 @@ class BroadcastPageModel: ViewModel {
     } catch {
       schedule = originalSchedule
       reorderedSpinIds = originalReorderedIds
-      presentedAlert = .errorDeletingSpin(error.localizedDescription)
+      presentedAlert = .schedulingError(error.localizedDescription)
     }
 
     spinIdsBeingRescheduled = []
   }
 
   /// Handles moving spins in the list, automatically including grouped spins
-  func moveSpins(from source: IndexSet, to destination: Int) {
+  func moveSpins(from source: IndexSet, to destination: Int) async {
+    guard let jwt = auth.jwt else { return }
+
     var spins = upcomingSpins
 
     // Get the indices being moved and check for grouped spins
@@ -293,8 +295,8 @@ class BroadcastPageModel: ViewModel {
       let spin = spins[index]
       if let groupId = spin.spinGroupId {
         // Find all spins in the same group and add their indices
-        for (index, spin) in spins.enumerated() where spin.spinGroupId == groupId {
-          indicesToMove.insert(index)
+        for (idx, otherSpin) in spins.enumerated() where otherSpin.spinGroupId == groupId {
+          indicesToMove.insert(idx)
         }
       }
     }
@@ -304,6 +306,15 @@ class BroadcastPageModel: ViewModel {
 
     // Extract the spins to move (in order)
     let spinsToMove = sortedIndices.map { spins[$0] }
+
+    guard let spinToMove = spinsToMove.first else { return }
+
+    // Save original state for rollback
+    let originalSchedule = schedule
+    let originalReorderedIds = reorderedSpinIds
+
+    // Mark all spins as being rescheduled
+    spinIdsBeingRescheduled = Set(spins.map { $0.id })
 
     // Remove from original positions (in reverse to maintain indices)
     for index in sortedIndices.reversed() {
@@ -317,12 +328,31 @@ class BroadcastPageModel: ViewModel {
     )
 
     // Insert at destination
-    spins.insert(contentsOf: spinsToMove, at: max(0, adjustedDestination))
+    let insertionIndex = max(0, adjustedDestination)
+    spins.insert(contentsOf: spinsToMove, at: insertionIndex)
 
-    // Store the new order
+    // Determine placeAfterSpinId: the spin just before the insertion point, or nil if at beginning
+    let placeAfterSpinId: String? = insertionIndex > 0 ? spins[insertionIndex - 1].id : nil
+
+    // Optimistically store the new order
     reorderedSpinIds = spins.map { $0.id }
 
-    // TODO: Sync to API
+    do {
+      let newSpins = try await api.moveSpin(jwt, spinToMove.id, placeAfterSpinId)
+      schedule = Schedule(
+        stationId: stationId,
+        spins: newSpins,
+        dateProvider: DependencyDateProvider()
+      )
+      reorderedSpinIds = nil
+      currentNowPlayingId = nowPlaying?.id
+    } catch {
+      schedule = originalSchedule
+      reorderedSpinIds = originalReorderedIds
+      presentedAlert = .schedulingError(error.localizedDescription)
+    }
+
+    spinIdsBeingRescheduled = []
   }
 }
 
@@ -343,7 +373,7 @@ extension PlayolaAlert {
     )
   }
 
-  static func errorDeletingSpin(_ message: String) -> PlayolaAlert {
+  static func schedulingError(_ message: String) -> PlayolaAlert {
     PlayolaAlert(
       title: "Error",
       message: message,

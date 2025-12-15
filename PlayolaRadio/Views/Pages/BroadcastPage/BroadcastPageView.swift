@@ -143,6 +143,7 @@ struct BroadcastPageView: View {
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
                 .deleteDisabled(!isDeletable)
+                .moveDisabled(!isDeletable)
                 .transition(.opacity.combined(with: .move(edge: .top)))
               }
               .onDelete { indexSet in
@@ -152,10 +153,11 @@ struct BroadcastPageView: View {
                   await model.deleteSpin(spin)
                 }
               }
-              // TODO: Re-enable reordering when ready
-              // .onMove { source, destination in
-              //   model.moveSpins(from: source, to: destination)
-              // }
+              .onMove { source, destination in
+                Task {
+                  await model.moveSpins(from: source, to: destination)
+                }
+              }
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
