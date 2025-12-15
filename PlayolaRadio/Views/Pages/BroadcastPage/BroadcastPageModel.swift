@@ -295,7 +295,7 @@ class BroadcastPageModel: ViewModel {
       let spin = spins[index]
       if let groupId = spin.spinGroupId {
         // Find all spins in the same group and add their indices
-        for (idx, s) in spins.enumerated() where s.spinGroupId == groupId {
+        for (idx, otherSpin) in spins.enumerated() where otherSpin.spinGroupId == groupId {
           indicesToMove.insert(idx)
         }
       }

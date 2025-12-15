@@ -4,6 +4,7 @@
 //
 //  Created by Brian D Keane on 11/30/25.
 //
+// swiftlint:disable file_length
 
 import Dependencies
 import PlayolaPlayer
@@ -14,23 +15,56 @@ import XCTest
 
 @MainActor
 final class BroadcastPageTests: XCTestCase {
+  // MARK: - Test Helpers
+
+  private let testStationId = "test-station-id"
+  private let fixedNow = Date(timeIntervalSince1970: 1_000_000)
+
+  private func makeSpins(
+    ids: [String],
+    startOffset: TimeInterval = 60,
+    interval: TimeInterval = 60,
+    groupId: String? = nil,
+    audioBlock: AudioBlock? = nil
+  ) -> [Spin] {
+    ids.enumerated().map { index, id in
+      Spin.mockWith(
+        id: id,
+        airtime: fixedNow.addingTimeInterval(startOffset + TimeInterval(index) * interval),
+        stationId: testStationId,
+        audioBlock: audioBlock ?? .mockWith(),
+        spinGroupId: groupId
+      )
+    }
+  }
+
+  private func makeStagingVoicetrack(
+    id: UUID = UUID(),
+    audioBlockId: String = "audio-block-id"
+  ) -> LocalVoicetrack {
+    LocalVoicetrack(
+      id: id,
+      originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
+      status: .completed,
+      title: "Test Voicetrack",
+      audioBlockId: audioBlockId
+    )
+  }
+
+  // MARK: - Schedule Loading Tests
+
   func testViewAppeared_LoadsScheduleSuccessfully() async {
-    let stationId = "test-station-id"
-    let mockSpins = [
-      Spin.mockWith(id: "spin-1", stationId: stationId),
-      Spin.mockWith(id: "spin-2", stationId: stationId),
-      Spin.mockWith(id: "spin-3", stationId: stationId),
-    ]
+    let mockSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
 
     await withDependencies {
-      $0.date.now = Date()
+      $0.date.now = fixedNow
       $0.api.fetchSchedule = { requestedStationId, extended in
-        XCTAssertEqual(requestedStationId, stationId)
+        XCTAssertEqual(requestedStationId, self.testStationId)
         XCTAssertTrue(extended)
         return mockSpins
       }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       XCTAssertNotNil(model.schedule)
@@ -40,14 +74,12 @@ final class BroadcastPageTests: XCTestCase {
   }
 
   func testViewAppeared_ShowsErrorAlertOnFailure() async {
-    let stationId = "test-station-id"
-
     await withDependencies {
       $0.api.fetchSchedule = { _, _ in
         throw TestError.networkError
       }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       XCTAssertNil(model.schedule)
@@ -262,18 +294,8 @@ final class BroadcastPageTests: XCTestCase {
   // MARK: - Grouped Spin Tests
 
   func testMoveSpins_MovesUngroupedSpinNormally() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    let mockSpins = [
-      Spin.mockWith(id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-      Spin.mockWith(id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
-    ]
-    let reorderedSpins = [
-      Spin.mockWith(id: "spin-2", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(id: "spin-1", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-      Spin.mockWith(id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
-    ]
+    let mockSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
+    let reorderedSpins = makeSpins(ids: ["spin-2", "spin-1", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
@@ -281,7 +303,7 @@ final class BroadcastPageTests: XCTestCase {
       $0.api.fetchSchedule = { _, _ in mockSpins }
       $0.api.moveSpin = { _, _, _ in reorderedSpins }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       // Move spin-1 to position 2 (after spin-2)
@@ -293,29 +315,14 @@ final class BroadcastPageTests: XCTestCase {
   }
 
   func testMoveSpins_MovesEntireGroupTogether() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
     let groupId = "group-1"
-    let mockSpins = [
-      Spin.mockWith(
-        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId,
-        spinGroupId: groupId),
-      Spin.mockWith(
-        id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId,
-        spinGroupId: groupId),
-      Spin.mockWith(id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
-      Spin.mockWith(id: "spin-4", airtime: fixedNow.addingTimeInterval(240), stationId: stationId),
-    ]
-    let reorderedSpins = [
-      Spin.mockWith(id: "spin-3", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-1", airtime: fixedNow.addingTimeInterval(120), stationId: stationId,
-        spinGroupId: groupId),
-      Spin.mockWith(
-        id: "spin-2", airtime: fixedNow.addingTimeInterval(180), stationId: stationId,
-        spinGroupId: groupId),
-      Spin.mockWith(id: "spin-4", airtime: fixedNow.addingTimeInterval(240), stationId: stationId),
-    ]
+    let mockSpins =
+      makeSpins(ids: ["spin-1", "spin-2"], groupId: groupId)
+      + makeSpins(ids: ["spin-3", "spin-4"], startOffset: 180)
+    let reorderedSpins =
+      [makeSpins(ids: ["spin-3"]).first!]
+      + makeSpins(ids: ["spin-1", "spin-2"], startOffset: 120, groupId: groupId)
+      + [makeSpins(ids: ["spin-4"], startOffset: 240).first!]
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
@@ -323,7 +330,7 @@ final class BroadcastPageTests: XCTestCase {
       $0.api.fetchSchedule = { _, _ in mockSpins }
       $0.api.moveSpin = { _, _, _ in reorderedSpins }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       // Move spin-1 (part of group) to position 3 (after spin-3)
@@ -504,19 +511,13 @@ private enum TestError: Error, LocalizedError {
 
 extension BroadcastPageTests {
   func testCanDeleteSpinReturnsTrueForSpinMoreThanTwoMinutesAway() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    let spinMoreThanTwoMinutesAway = Spin.mockWith(
-      id: "spin-1",
-      airtime: fixedNow.addingTimeInterval(121),  // 2 min 1 sec away
-      stationId: stationId
-    )
+    let spinMoreThanTwoMinutesAway = makeSpins(ids: ["spin-1"], startOffset: 121).first!
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in [spinMoreThanTwoMinutesAway] }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       XCTAssertTrue(model.canDeleteSpin(spinMoreThanTwoMinutesAway))
@@ -524,19 +525,13 @@ extension BroadcastPageTests {
   }
 
   func testCanDeleteSpinReturnsFalseForSpinExactlyTwoMinutesAway() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    let spinExactlyTwoMinutesAway = Spin.mockWith(
-      id: "spin-1",
-      airtime: fixedNow.addingTimeInterval(120),  // exactly 2 min away
-      stationId: stationId
-    )
+    let spinExactlyTwoMinutesAway = makeSpins(ids: ["spin-1"], startOffset: 120).first!
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in [spinExactlyTwoMinutesAway] }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       XCTAssertFalse(model.canDeleteSpin(spinExactlyTwoMinutesAway))
@@ -544,19 +539,13 @@ extension BroadcastPageTests {
   }
 
   func testCanDeleteSpinReturnsFalseForSpinLessThanTwoMinutesAway() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    let spinLessThanTwoMinutesAway = Spin.mockWith(
-      id: "spin-1",
-      airtime: fixedNow.addingTimeInterval(60),  // 1 min away
-      stationId: stationId
-    )
+    let spinLessThanTwoMinutesAway = makeSpins(ids: ["spin-1"]).first!
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in [spinLessThanTwoMinutesAway] }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       XCTAssertFalse(model.canDeleteSpin(spinLessThanTwoMinutesAway))
@@ -568,24 +557,8 @@ extension BroadcastPageTests {
 
 extension BroadcastPageTests {
   func testMoveSpinSuccessUpdatesScheduleWithReturnedSpins() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    let initialSpins = [
-      Spin.mockWith(
-        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
-    ]
-    let updatedSpins = [
-      Spin.mockWith(
-        id: "spin-2", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-1", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
-    ]
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
+    let updatedSpins = makeSpins(ids: ["spin-2", "spin-1", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
@@ -597,7 +570,7 @@ extension BroadcastPageTests {
         return updatedSpins
       }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       XCTAssertEqual(model.upcomingSpins.map { $0.id }, ["spin-1", "spin-2", "spin-3"])
@@ -612,24 +585,8 @@ extension BroadcastPageTests {
   }
 
   func testMoveSpinToBeginningCallsAPIWithNilPlaceAfterSpinId() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    let initialSpins = [
-      Spin.mockWith(
-        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
-    ]
-    let updatedSpins = [
-      Spin.mockWith(
-        id: "spin-3", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-1", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-2", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
-    ]
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
+    let updatedSpins = makeSpins(ids: ["spin-3", "spin-1", "spin-2"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
@@ -641,7 +598,7 @@ extension BroadcastPageTests {
         return updatedSpins
       }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       // Move spin-3 to beginning
@@ -652,16 +609,7 @@ extension BroadcastPageTests {
   }
 
   func testMoveSpinMarksAllSpinsAsReschedulingDuringCall() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    let initialSpins = [
-      Spin.mockWith(
-        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
-    ]
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     nonisolated(unsafe) var model: BroadcastPageModel!
@@ -677,7 +625,7 @@ extension BroadcastPageTests {
         return initialSpins
       }
     } operation: {
-      model = BroadcastPageModel(stationId: stationId)
+      model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
@@ -692,16 +640,7 @@ extension BroadcastPageTests {
   }
 
   func testMoveSpinErrorRestoresOriginalSchedule() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    let initialSpins = [
-      Spin.mockWith(
-        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
-    ]
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
@@ -711,7 +650,7 @@ extension BroadcastPageTests {
         throw TestError.networkError
       }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       let originalIds = model.upcomingSpins.map { $0.id }
@@ -726,14 +665,7 @@ extension BroadcastPageTests {
   }
 
   func testMoveSpinErrorShowsErrorAlert() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    let initialSpins = [
-      Spin.mockWith(
-        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-    ]
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
@@ -743,7 +675,7 @@ extension BroadcastPageTests {
         throw TestError.networkError
       }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       XCTAssertNil(model.presentedAlert)
@@ -760,22 +692,8 @@ extension BroadcastPageTests {
 
 extension BroadcastPageTests {
   func testDeleteSpinSuccessUpdatesScheduleWithReturnedSpins() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    let initialSpins = [
-      Spin.mockWith(
-        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
-    ]
-    let updatedSpins = [
-      Spin.mockWith(
-        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-3", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-    ]
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
+    let updatedSpins = makeSpins(ids: ["spin-1", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
@@ -786,7 +704,7 @@ extension BroadcastPageTests {
         return updatedSpins
       }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       XCTAssertEqual(model.upcomingSpins.map { $0.id }, ["spin-1", "spin-2", "spin-3"])
@@ -801,16 +719,7 @@ extension BroadcastPageTests {
   }
 
   func testDeleteSpinMarksSpinsAfterDeletedAsReschedulingDuringCall() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    let initialSpins = [
-      Spin.mockWith(
-        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
-    ]
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     nonisolated(unsafe) var model: BroadcastPageModel!
@@ -826,7 +735,7 @@ extension BroadcastPageTests {
         return [initialSpins[0], initialSpins[2]]
       }
     } operation: {
-      model = BroadcastPageModel(stationId: stationId)
+      model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
@@ -841,16 +750,7 @@ extension BroadcastPageTests {
   }
 
   func testDeleteSpinErrorRestoresOriginalSchedule() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    let initialSpins = [
-      Spin.mockWith(
-        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-      Spin.mockWith(
-        id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
-    ]
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
@@ -860,7 +760,7 @@ extension BroadcastPageTests {
         throw TestError.networkError
       }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       let originalIds = model.upcomingSpins.map { $0.id }
@@ -875,12 +775,7 @@ extension BroadcastPageTests {
   }
 
   func testDeleteSpinErrorShowsErrorAlert() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    let initialSpins = [
-      Spin.mockWith(
-        id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId)
-    ]
+    let initialSpins = makeSpins(ids: ["spin-1"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
@@ -890,7 +785,7 @@ extension BroadcastPageTests {
         throw TestError.networkError
       }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       XCTAssertNil(model.presentedAlert)
@@ -907,14 +802,8 @@ extension BroadcastPageTests {
 
 extension BroadcastPageTests {
   func testInsertVoicetrackCallsAPIWithCorrectParameters() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
     let voicetrackAudioBlockId = "voicetrack-audio-block-id"
-    let initialSpins = [
-      Spin.mockWith(id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-      Spin.mockWith(id: "spin-3", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
-    ]
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     var capturedAudioBlockId: String?
@@ -929,19 +818,12 @@ extension BroadcastPageTests {
         return initialSpins
       }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      // Simulate a completed voicetrack in staging
       let voicetrackId = UUID()
       model.stagingVoicetracks = [
-        LocalVoicetrack(
-          id: voicetrackId,
-          originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
-          status: .completed,
-          title: "Test Voicetrack",
-          audioBlockId: voicetrackAudioBlockId
-        )
+        makeStagingVoicetrack(id: voicetrackId, audioBlockId: voicetrackAudioBlockId)
       ]
 
       // Drop voicetrack before spin-2 (should insert after spin-1)
@@ -953,12 +835,7 @@ extension BroadcastPageTests {
   }
 
   func testInsertVoicetrackRemovesFromStagingOnSuccess() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    let initialSpins = [
-      Spin.mockWith(id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(id: "spin-2", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-    ]
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
@@ -966,19 +843,11 @@ extension BroadcastPageTests {
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.insertSpin = { _, _, _ in initialSpins }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       let voicetrackId = UUID()
-      model.stagingVoicetracks = [
-        LocalVoicetrack(
-          id: voicetrackId,
-          originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
-          status: .completed,
-          title: "Test Voicetrack",
-          audioBlockId: "audio-block-id"
-        )
-      ]
+      model.stagingVoicetracks = [makeStagingVoicetrack(id: voicetrackId)]
 
       XCTAssertEqual(model.stagingVoicetracks.count, 1)
 
@@ -989,18 +858,8 @@ extension BroadcastPageTests {
   }
 
   func testInsertVoicetrackUpdatesScheduleWithResponse() async {
-    let stationId = "test-station-id"
-    let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    let initialSpins = [
-      Spin.mockWith(id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(id: "spin-2", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
-    ]
-    let updatedSpins = [
-      Spin.mockWith(id: "spin-1", airtime: fixedNow.addingTimeInterval(60), stationId: stationId),
-      Spin.mockWith(
-        id: "new-spin", airtime: fixedNow.addingTimeInterval(120), stationId: stationId),
-      Spin.mockWith(id: "spin-2", airtime: fixedNow.addingTimeInterval(180), stationId: stationId),
-    ]
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2"], interval: 120)
+    let updatedSpins = makeSpins(ids: ["spin-1", "new-spin", "spin-2"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
@@ -1008,19 +867,11 @@ extension BroadcastPageTests {
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.insertSpin = { _, _, _ in updatedSpins }
     } operation: {
-      let model = BroadcastPageModel(stationId: stationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       let voicetrackId = UUID()
-      model.stagingVoicetracks = [
-        LocalVoicetrack(
-          id: voicetrackId,
-          originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
-          status: .completed,
-          title: "Test Voicetrack",
-          audioBlockId: "audio-block-id"
-        )
-      ]
+      model.stagingVoicetracks = [makeStagingVoicetrack(id: voicetrackId)]
 
       await model.insertVoicetrack(voicetrackId: voicetrackId.uuidString, beforeSpinId: "spin-2")
 
