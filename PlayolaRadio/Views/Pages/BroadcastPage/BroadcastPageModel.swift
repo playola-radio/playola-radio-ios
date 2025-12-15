@@ -242,16 +242,18 @@ class BroadcastPageModel: ViewModel {
 
     do {
       let newSpins = try await api.insertSpin(jwt, audioBlockId, placeAfterSpinId)
-      schedule = Schedule(
-        stationId: stationId,
-        spins: newSpins,
-        dateProvider: DependencyDateProvider()
-      )
-      reorderedSpinIds = nil
-      currentNowPlayingId = nowPlaying?.id
+      withAnimation(.easeInOut(duration: 0.3)) {
+        schedule = Schedule(
+          stationId: stationId,
+          spins: newSpins,
+          dateProvider: DependencyDateProvider()
+        )
+        reorderedSpinIds = nil
+        currentNowPlayingId = nowPlaying?.id
 
-      // Remove from staging
-      stagingItems.removeAll { $0.stagingId == stagingId }
+        // Remove from staging
+        stagingItems.removeAll { $0.stagingId == stagingId }
+      }
     } catch {
       presentedAlert = .errorInsertingSpin(error.localizedDescription)
     }
