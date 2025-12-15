@@ -41,6 +41,7 @@ class BroadcastPageModel: ViewModel {
   var mainContainerNavigationCoordinator
 
   var recordPageModel: RecordPageModel?
+  var songSearchPageModel: SongSearchPageModel?
 
   var navigationTitle: String {
     providedStationName ?? fetchedStationName ?? "My Station"
@@ -180,7 +181,12 @@ class BroadcastPageModel: ViewModel {
   }
 
   func onAddSongTapped() {
-    presentedAlert = .comingSoon
+    let model = SongSearchPageModel()
+    model.onDismiss = { [weak self] in
+      self?.mainContainerNavigationCoordinator.presentedSheet = nil
+    }
+    songSearchPageModel = model
+    mainContainerNavigationCoordinator.presentedSheet = .songSearchPage(model)
   }
 
   func insertVoicetrack(voicetrackId: String, beforeSpinId: String) async {
@@ -361,14 +367,6 @@ extension PlayolaAlert {
     PlayolaAlert(
       title: "Error",
       message: "Unable to load the station schedule. Please try again.",
-      dismissButton: .cancel(Text("OK"))
-    )
-  }
-
-  static var comingSoon: PlayolaAlert {
-    PlayolaAlert(
-      title: "Coming Soon",
-      message: "This feature is coming soon!",
       dismissButton: .cancel(Text("OK"))
     )
   }

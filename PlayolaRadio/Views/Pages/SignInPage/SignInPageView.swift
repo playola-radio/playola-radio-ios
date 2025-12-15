@@ -111,7 +111,7 @@ struct SignInPage: View {
       switch item {
       case .invitationCode(let invitationModel):
         InvitationCodePageView(model: invitationModel)
-      case .player, .recordPage:
+      case .player, .recordPage, .songSearchPage:
         EmptyView()  // These cases shouldn't occur in SignInPage
       }
     }

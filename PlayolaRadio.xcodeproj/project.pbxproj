@@ -251,6 +251,14 @@
 		D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */; };
 		D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */; };
 		D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */ = {isa = PBXBuildFile; productRef = D3BEE95C2D49A3BD00469CDC /* Testing */; };
+		D3C7E5DB2EF0A43000EDD3ED /* SongSearchPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5DA2EF0A42B00EDD3ED /* SongSearchPageModel.swift */; };
+		D3C7E5DC2EF0A43000EDD3ED /* SongSearchPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5DA2EF0A42B00EDD3ED /* SongSearchPageModel.swift */; };
+		D3C7E5E12EF0A44400EDD3ED /* SongSearchPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5E02EF0A43E00EDD3ED /* SongSearchPageView.swift */; };
+		D3C7E5E22EF0A44400EDD3ED /* SongSearchPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5E02EF0A43E00EDD3ED /* SongSearchPageView.swift */; };
+		D3C7E5E32EF0A44D00EDD3ED /* SongSearchPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5DD2EF0A43900EDD3ED /* SongSearchPageTests.swift */; };
+		D3C7E5E92EF0C56200EDD3ED /* StagingItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5E82EF0C56000EDD3ED /* StagingItem.swift */; };
+		D3C7E5EA2EF0C56200EDD3ED /* StagingItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5E82EF0C56000EDD3ED /* StagingItem.swift */; };
+		D3C7E5EF2EF0C58900EDD3ED /* StagingItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5EC2EF0C57E00EDD3ED /* StagingItemTests.swift */; };
 		D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3CE19022D3C825C0091B888 /* PlayolaPlayer */; };
 		D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */; };
 		D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */; };
@@ -425,6 +433,11 @@
 		D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProviderTests.swift; sourceTree = "<group>"; };
 		D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProvider.swift; sourceTree = "<group>"; };
 		D3C7E5D82EEF741600EDD3ED /* PlayolaRadio.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = PlayolaRadio.xctestplan; path = "PlayolaRadioTests/Test Plans/PlayolaRadio.xctestplan"; sourceTree = "<group>"; };
+		D3C7E5DA2EF0A42B00EDD3ED /* SongSearchPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongSearchPageModel.swift; sourceTree = "<group>"; };
+		D3C7E5DD2EF0A43900EDD3ED /* SongSearchPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongSearchPageTests.swift; sourceTree = "<group>"; };
+		D3C7E5E02EF0A43E00EDD3ED /* SongSearchPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongSearchPageView.swift; sourceTree = "<group>"; };
+		D3C7E5E82EF0C56000EDD3ED /* StagingItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StagingItem.swift; sourceTree = "<group>"; };
+		D3C7E5EC2EF0C57E00EDD3ED /* StagingItemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StagingItemTests.swift; sourceTree = "<group>"; };
 		D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserDefaults.swift; sourceTree = "<group>"; };
 		D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlStreamListeningSessionReporter.swift; sourceTree = "<group>"; };
 		D3E8D6832E96D39A0028CEBD /* Show.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Show.swift; sourceTree = "<group>"; };
@@ -575,21 +588,22 @@
 		D3137DD02D3ABB490070033A /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				D3137DD12D3ABB4F0070033A /* GenericNowPlaying.swift */,
 				D3F493CF2EEE52F4008ED463 /* PresignedURLResponse.swift */,
+				D3B744B32E2FECC80042A427 /* LocalListeningSession.swift */,
 				D3F493C92EEE4133008ED463 /* LocalVoicetrack.swift */,
+				D3B662732D419C3100975D2F /* LoggedInUser.swift */,
+				D3B744CC2E368D790042A427 /* Prize.swift */,
+				D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */,
+				D35673B12D3DC59100E4E926 /* RadioStation.swift */,
+				D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */,
 				D37786E92EAD3DA80084B8B8 /* ScheduledShow */,
 				D3E8D6832E96D39A0028CEBD /* Show.swift */,
+				D3C7E5E42EF0C51500EDD3ED /* StagingItem */,
+				D3536A312BFA64AB006942D6 /* StationList.swift */,
+				D302576A2E63423B00F4228B /* Toast.swift */,
 				D30AE8A62E75C91E00D9FBCA /* UrlStation.swift */,
 				D30257A32E63E95200F4228B /* UserSongLike.swift */,
-				D302576A2E63423B00F4228B /* Toast.swift */,
-				D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */,
-				D3B744CC2E368D790042A427 /* Prize.swift */,
-				D3B744B32E2FECC80042A427 /* LocalListeningSession.swift */,
-				D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */,
-				D3B662732D419C3100975D2F /* LoggedInUser.swift */,
-				D35673B12D3DC59100E4E926 /* RadioStation.swift */,
-				D3137DD12D3ABB4F0070033A /* GenericNowPlaying.swift */,
-				D3536A312BFA64AB006942D6 /* StationList.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -616,6 +630,7 @@
 		D339E55C2BFD0FB000B9E35B /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				D3C7E5D92EF0A42100EDD3ED /* SongSearchPage */,
 				D3F493B62EEDD29F008ED463 /* RecordPage */,
 				D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */,
 				D3219C152EDD22060008AFDA /* BroadcastPage */,
@@ -1029,6 +1044,25 @@
 			path = PlayolaTokenProvider;
 			sourceTree = "<group>";
 		};
+		D3C7E5D92EF0A42100EDD3ED /* SongSearchPage */ = {
+			isa = PBXGroup;
+			children = (
+				D3C7E5E02EF0A43E00EDD3ED /* SongSearchPageView.swift */,
+				D3C7E5DA2EF0A42B00EDD3ED /* SongSearchPageModel.swift */,
+				D3C7E5DD2EF0A43900EDD3ED /* SongSearchPageTests.swift */,
+			);
+			path = SongSearchPage;
+			sourceTree = "<group>";
+		};
+		D3C7E5E42EF0C51500EDD3ED /* StagingItem */ = {
+			isa = PBXGroup;
+			children = (
+				D3C7E5E82EF0C56000EDD3ED /* StagingItem.swift */,
+				D3C7E5EC2EF0C57E00EDD3ED /* StagingItemTests.swift */,
+			);
+			path = StagingItem;
+			sourceTree = "<group>";
+		};
 		D3E8D6862E96D9290028CEBD /* LiveShowsSection */ = {
 			isa = PBXGroup;
 			children = (
@@ -1286,6 +1320,7 @@
 				D30F00542E8592F0007BCC73 /* ViewModel.swift in Sources */,
 				D30F00552E8592F0007BCC73 /* SignInPageView.swift in Sources */,
 				D30F00562E8592F0007BCC73 /* UrlStation.swift in Sources */,
+				D3C7E5DB2EF0A43000EDD3ED /* SongSearchPageModel.swift in Sources */,
 				D30F00572E8592F0007BCC73 /* Color+Hex.swift in Sources */,
 				D30F00582E8592F0007BCC73 /* PlayolaAlert.swift in Sources */,
 				D3E8D68C2E96D9560028CEBD /* ScheduledShowsListView.swift in Sources */,
@@ -1305,6 +1340,7 @@
 				D3219C1A2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */,
 				D30F00642E8592F0007BCC73 /* PrizeTier.swift in Sources */,
 				D30F00652E8592F0007BCC73 /* PlayolaSheet.swift in Sources */,
+				D3C7E5E92EF0C56200EDD3ED /* StagingItem.swift in Sources */,
 				D30F00662E8592F0007BCC73 /* PlayerPageModel.swift in Sources */,
 				D37B74832EC93285009806C6 /* UpcomingBadge.swift in Sources */,
 				D30F00672E8592F0007BCC73 /* LikesManager.swift in Sources */,
@@ -1325,6 +1361,7 @@
 				D30F00752E8592F0007BCC73 /* ListeningTimeTile.swift in Sources */,
 				D37B748D2ECA3A44009806C6 /* ScheduledShowTile.swift in Sources */,
 				D30F00762E8592F0007BCC73 /* GenericNowPlaying.swift in Sources */,
+				D3C7E5E12EF0A44400EDD3ED /* SongSearchPageView.swift in Sources */,
 				D30F00772E8592F0007BCC73 /* UIImage+Cache.swift in Sources */,
 				D30F00782E8592F0007BCC73 /* ContactPageView.swift in Sources */,
 				D30F00792E8592F0007BCC73 /* PlayolaTokenProvider.swift in Sources */,
@@ -1392,6 +1429,7 @@
 				D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */,
 				D3B6626A2D40103C00975D2F /* SignInPageView.swift in Sources */,
 				D30AE8A72E75C92700D9FBCA /* UrlStation.swift in Sources */,
+				D3C7E5DC2EF0A43000EDD3ED /* SongSearchPageModel.swift in Sources */,
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
 				D3137DBB2D3976580070033A /* PlayolaAlert.swift in Sources */,
 				D3E8D68B2E96D9560028CEBD /* ScheduledShowsListView.swift in Sources */,
@@ -1411,6 +1449,7 @@
 				D3219C1B2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */,
 				D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */,
 				D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */,
+				D3C7E5EA2EF0C56200EDD3ED /* StagingItem.swift in Sources */,
 				D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */,
 				D37B74842EC93285009806C6 /* UpcomingBadge.swift in Sources */,
 				D302577C2E639FB800F4228B /* LikesManager.swift in Sources */,
@@ -1431,6 +1470,7 @@
 				D3B744B92E2FF16F0042A427 /* ListeningTimeTile.swift in Sources */,
 				D37B748C2ECA3A44009806C6 /* ScheduledShowTile.swift in Sources */,
 				D3137DD22D3ABB520070033A /* GenericNowPlaying.swift in Sources */,
+				D3C7E5E22EF0A44400EDD3ED /* SongSearchPageView.swift in Sources */,
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
 				D39591152E39932000720CF8 /* ContactPageView.swift in Sources */,
 				D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */,
@@ -1494,6 +1534,8 @@
 				D3A08A352E4E6F66002468E0 /* NowPlayingUpdaterTests.swift in Sources */,
 				D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */,
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,
+				D3C7E5EF2EF0C58900EDD3ED /* StagingItemTests.swift in Sources */,
+				D3C7E5E32EF0A44D00EDD3ED /* SongSearchPageTests.swift in Sources */,
 				D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */,
 				D30F00BF2E87196A007BCC73 /* StationListStationRowTests.swift in Sources */,
 				D395912D2E3D1E1E00720CF8 /* EditProfilePageTests.swift in Sources */,

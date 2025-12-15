@@ -229,6 +229,16 @@ struct APIClient: Sendable {
       -> AudioBlock = { _, _, _, _ in
         AudioBlock.mockWith()
       }
+
+  /// Searches for songs by keywords
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - keywords: The search keywords
+  /// - Returns: Array of AudioBlocks matching the search
+  /// - Throws: APIError if the request fails
+  var searchSongs: (_ jwtToken: String, _ keywords: String) async throws -> [AudioBlock] = { _, _ in
+    []
+  }
 }
 
 extension APIClient: DependencyKey {
@@ -785,6 +795,20 @@ extension APIClient: DependencyKey {
           let message = parsePlayolaErrorMessage(from: data) ?? "Failed to create voicetrack"
           throw APIError.validationError(message)
         }
+      },
+      searchSongs: { jwtToken, keywords in
+        let encodedKeywords =
+          keywords.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? keywords
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/songs/search?keywords=\(encodedKeywords)"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([AudioBlock].self, decoder: isoDecoder)
+          .value
+
+        return response
       }
     )
   }()

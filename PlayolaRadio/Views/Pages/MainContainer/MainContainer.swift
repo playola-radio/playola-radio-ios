@@ -110,18 +110,25 @@ struct MainContainer: View {
     .fullScreenCover(
       item: Binding(
         get: {
-          if case .recordPage = model.mainContainerNavigationCoordinator.presentedSheet {
+          switch model.mainContainerNavigationCoordinator.presentedSheet {
+          case .recordPage, .songSearchPage:
             return model.mainContainerNavigationCoordinator.presentedSheet
+          default:
+            return nil
           }
-          return nil
         },
         set: { model.mainContainerNavigationCoordinator.presentedSheet = $0 }
       ),
       content: { item in
-        if case .recordPage(let recordPageModel) = item {
+        switch item {
+        case .recordPage(let recordPageModel):
           NavigationStack {
             RecordPageView(model: recordPageModel)
           }
+        case .songSearchPage(let songSearchPageModel):
+          SongSearchPageView(model: songSearchPageModel)
+        default:
+          EmptyView()
         }
       }
     )

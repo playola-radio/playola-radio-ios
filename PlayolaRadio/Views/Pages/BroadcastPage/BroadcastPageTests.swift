@@ -410,15 +410,23 @@ final class BroadcastPageTests: XCTestCase {
     }
   }
 
-  func testOnAddSongTapped_ShowsComingSoonAlert() {
+  func testOnAddSongTapped_PresentsSongSearchPageSheet() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+
     let model = BroadcastPageModel(stationId: "test-station")
 
-    XCTAssertNil(model.presentedAlert)
+    XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
+    XCTAssertNil(model.songSearchPageModel)
 
     model.onAddSongTapped()
 
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert?.title, "Coming Soon")
+    XCTAssertNotNil(model.songSearchPageModel)
+    if case .songSearchPage = mainContainerNavigationCoordinator.presentedSheet {
+      // Success - presented song search page sheet
+    } else {
+      XCTFail("Expected songSearchPage sheet presentation")
+    }
   }
 
   func testRecordingAcceptedAddsToStagingArea() async {
