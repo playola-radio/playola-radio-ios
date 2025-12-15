@@ -31,7 +31,7 @@ class BroadcastPageModel: ViewModel {
   var presentedAlert: PlayolaAlert?
   var currentNowPlayingId: String?
   private var reorderedSpinIds: [String]?  // nil means use default order
-  var stagingVoicetracks: [LocalVoicetrack] = []
+  var stagingItems: [any StagingItem] = []
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
@@ -144,7 +144,7 @@ class BroadcastPageModel: ViewModel {
       originalURL: url,
       title: title
     )
-    stagingVoicetracks.append(voicetrack)
+    stagingItems.append(voicetrack)
 
     await processVoicetrack(voicetrack)
   }
@@ -171,13 +171,25 @@ class BroadcastPageModel: ViewModel {
   }
 
   private func updateVoicetrackStatus(id: UUID, status: LocalVoicetrackStatus) {
-    guard let index = stagingVoicetracks.firstIndex(where: { $0.id == id }) else { return }
-    stagingVoicetracks[index].status = status
+    guard
+      let index = stagingItems.firstIndex(where: {
+        ($0 as? LocalVoicetrack)?.id == id
+      })
+    else { return }
+    guard var voicetrack = stagingItems[index] as? LocalVoicetrack else { return }
+    voicetrack.status = status
+    stagingItems[index] = voicetrack
   }
 
   private func updateVoicetrackAudioBlockId(id: UUID, audioBlockId: String) {
-    guard let index = stagingVoicetracks.firstIndex(where: { $0.id == id }) else { return }
-    stagingVoicetracks[index].audioBlockId = audioBlockId
+    guard
+      let index = stagingItems.firstIndex(where: {
+        ($0 as? LocalVoicetrack)?.id == id
+      })
+    else { return }
+    guard var voicetrack = stagingItems[index] as? LocalVoicetrack else { return }
+    voicetrack.audioBlockId = audioBlockId
+    stagingItems[index] = voicetrack
   }
 
   func onAddSongTapped() {
@@ -185,40 +197,43 @@ class BroadcastPageModel: ViewModel {
     model.onDismiss = { [weak self] in
       self?.mainContainerNavigationCoordinator.presentedSheet = nil
     }
+    model.onSongSelected = { [weak self] audioBlock in
+      self?.addSongToStaging(audioBlock)
+      self?.mainContainerNavigationCoordinator.presentedSheet = nil
+    }
     songSearchPageModel = model
     mainContainerNavigationCoordinator.presentedSheet = .songSearchPage(model)
   }
 
-  func insertVoicetrack(voicetrackId: String, beforeSpinId: String) async {
+  func addSongToStaging(_ audioBlock: AudioBlock) {
+    guard !stagingItems.contains(where: { $0.stagingId == audioBlock.id }) else { return }
+    stagingItems.append(audioBlock)
+  }
+
+  func insertStagingItem(stagingId: String, beforeSpinId: String) async {
     guard let jwt = auth.jwt else {
-      print("insertVoicetrack: No JWT")
+      print("insertStagingItem: No JWT")
       return
     }
 
-    // Find the voicetrack
-    guard let voicetrackUUID = UUID(uuidString: voicetrackId) else {
-      print("insertVoicetrack: Invalid voicetrack UUID: \(voicetrackId)")
+    guard let stagingItem = stagingItems.first(where: { $0.stagingId == stagingId }) else {
+      print("insertStagingItem: Item not found in staging")
       return
     }
 
-    guard let voicetrack = stagingVoicetracks.first(where: { $0.id == voicetrackUUID }) else {
-      print("insertVoicetrack: Voicetrack not found in staging")
-      return
-    }
-
-    guard let audioBlockId = voicetrack.audioBlockId else {
-      print("insertVoicetrack: Voicetrack has no audioBlockId (upload may not be complete)")
+    guard let audioBlockId = stagingItem.audioBlockId else {
+      print("insertStagingItem: Item has no audioBlockId (upload may not be complete)")
       return
     }
 
     // Find the spin to place after (the one before beforeSpinId)
     guard let beforeIndex = upcomingSpins.firstIndex(where: { $0.id == beforeSpinId }) else {
-      print("insertVoicetrack: Target spin not found: \(beforeSpinId)")
+      print("insertStagingItem: Target spin not found: \(beforeSpinId)")
       return
     }
 
     guard beforeIndex > 0 else {
-      print("insertVoicetrack: Cannot insert before first spin (no spin to place after)")
+      print("insertStagingItem: Cannot insert before first spin (no spin to place after)")
       presentedAlert = .cannotInsertBeforeFirstSpin
       return
     }
@@ -236,7 +251,7 @@ class BroadcastPageModel: ViewModel {
       currentNowPlayingId = nowPlaying?.id
 
       // Remove from staging
-      stagingVoicetracks.removeAll { $0.id == voicetrackUUID }
+      stagingItems.removeAll { $0.stagingId == stagingId }
     } catch {
       presentedAlert = .errorInsertingSpin(error.localizedDescription)
     }
