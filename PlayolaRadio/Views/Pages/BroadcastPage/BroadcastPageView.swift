@@ -12,6 +12,7 @@ import SwiftUI
 
 struct BroadcastPageView: View {
   @Bindable var model: BroadcastPageModel
+  @State private var dropTargetSpinId: String?
 
   var body: some View {
     ZStack {
@@ -78,6 +79,12 @@ struct BroadcastPageView: View {
         .padding(.top, 20)
         .padding(.bottom, 20)
 
+        // Staging Area
+        if !model.stagingVoicetracks.isEmpty {
+          stagingSection
+            .padding(.bottom, 16)
+        }
+
         if model.isLoading {
           Spacer()
           ProgressView()
@@ -106,11 +113,32 @@ struct BroadcastPageView: View {
             List {
               ForEach(model.upcomingSpins, id: \.id) { spin in
                 let isDeletable = model.canDeleteSpin(spin)
-                ScheduleRowView(
-                  spin: spin,
-                  isBeingRescheduled: model.spinIdsBeingRescheduled.contains(spin.id),
-                  isDeletable: isDeletable
-                )
+                VStack(spacing: 0) {
+                  // Drop indicator above this row
+                  if dropTargetSpinId == spin.id {
+                    Rectangle()
+                      .fill(Color.playolaRed)
+                      .frame(height: 3)
+                      .transition(.opacity)
+                  }
+
+                  ScheduleRowView(
+                    spin: spin,
+                    isBeingRescheduled: model.spinIdsBeingRescheduled.contains(spin.id),
+                    isDeletable: isDeletable
+                  )
+                }
+                .dropDestination(for: String.self) { items, _ in
+                  guard let voicetrackId = items.first else { return false }
+                  Task {
+                    await model.insertVoicetrack(voicetrackId: voicetrackId, beforeSpinId: spin.id)
+                  }
+                  return true
+                } isTargeted: { isTargeted in
+                  withAnimation(.easeInOut(duration: 0.2)) {
+                    dropTargetSpinId = isTargeted ? spin.id : nil
+                  }
+                }
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
@@ -148,6 +176,117 @@ struct BroadcastPageView: View {
       await model.viewAppeared()
     }
     .alert(item: $model.presentedAlert) { $0.alert }
+  }
+
+  // MARK: - Staging Section
+
+  private var stagingSection: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      Text("READY TO PLACE")
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
+        .foregroundColor(.playolaGray)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+
+      ForEach(model.stagingVoicetracks) { voicetrack in
+        if voicetrack.isComplete {
+          StagingRowView(voicetrack: voicetrack)
+            .draggable(voicetrack.id.uuidString) {
+              StagingRowView(voicetrack: voicetrack)
+                .frame(width: 300)
+                .opacity(0.8)
+            }
+        } else {
+          StagingRowView(voicetrack: voicetrack)
+        }
+      }
+    }
+    .background(Color(hex: "#1A1A1A"))
+  }
+}
+
+// MARK: - Staging Row View
+
+struct StagingRowView: View {
+  let voicetrack: LocalVoicetrack
+
+  var body: some View {
+    HStack(spacing: 12) {
+      // Mic icon
+      ZStack {
+        Circle()
+          .fill(Color.playolaRed)
+          .frame(width: 40, height: 40)
+        Image(systemName: "mic.fill")
+          .font(.system(size: 16))
+          .foregroundColor(.white)
+      }
+
+      // Title
+      VStack(alignment: .leading, spacing: 2) {
+        Text(voicetrack.title)
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+          .foregroundColor(.white)
+          .lineLimit(1)
+
+        Text(statusText)
+          .font(.custom(FontNames.Inter_400_Regular, size: 12))
+          .foregroundColor(statusColor)
+          .lineLimit(1)
+      }
+
+      Spacer()
+
+      // Status indicator
+      statusIndicator
+    }
+    .padding(.horizontal, 16)
+    .padding(.vertical, 10)
+    .background(Color(hex: "#2A2A2A"))
+  }
+
+  private var statusText: String {
+    switch voicetrack.status {
+    case .converting:
+      return "Converting..."
+    case .uploading(let progress):
+      return "Uploading \(Int(progress * 100))%"
+    case .finalizing:
+      return "Finalizing..."
+    case .completed:
+      return "Ready"
+    case .failed(let error):
+      return error
+    }
+  }
+
+  private var statusColor: Color {
+    switch voicetrack.status {
+    case .completed:
+      return .green
+    case .failed:
+      return .playolaRed
+    default:
+      return .playolaGray
+    }
+  }
+
+  @ViewBuilder
+  private var statusIndicator: some View {
+    switch voicetrack.status {
+    case .converting, .uploading, .finalizing:
+      ProgressView()
+        .tint(.white)
+        .scaleEffect(0.8)
+    case .completed:
+      Image(systemName: "checkmark.circle.fill")
+        .font(.system(size: 20))
+        .foregroundColor(.green)
+    case .failed:
+      Image(systemName: "xmark.circle.fill")
+        .font(.system(size: 20))
+        .foregroundColor(.playolaRed)
+    }
   }
 }
 

@@ -180,6 +180,55 @@ struct APIClient: Sendable {
   var moveSpin:
     (_ jwtToken: String, _ spinId: String, _ placeAfterSpinId: String?) async throws
       -> [Spin] = { _, _, _ in [] }
+  /// Inserts a spin into the station's schedule
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - audioBlockId: The ID of the audio block to insert
+  ///   - placeAfterSpinId: The ID of the spin to place the new spin after
+  /// - Returns: Updated array of Spin objects representing the new schedule
+  /// - Throws: APIError if the request fails
+  var insertSpin:
+    (_ jwtToken: String, _ audioBlockId: String, _ placeAfterSpinId: String) async throws -> [Spin] =
+      { _, _, _ in [] }
+
+  /// Gets a presigned URL for uploading a voicetrack to S3
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to upload the voicetrack for
+  /// - Returns: PresignedURLResponse containing the upload URL and S3 key
+  /// - Throws: APIError if the request fails
+  var getVoicetrackPresignedURL:
+    (_ jwtToken: String, _ stationId: String) async throws
+      -> PresignedURLResponse = { _, _ in
+        PresignedURLResponse(presignedUrl: URL(string: "https://example.com")!, s3Key: "test.m4a")
+      }
+
+  /// Uploads a file to S3 using a presigned URL
+  /// - Parameters:
+  ///   - presignedURL: The presigned URL to upload to
+  ///   - fileURL: The local file URL to upload
+  ///   - contentType: The content type of the file
+  ///   - onProgress: Callback for upload progress (0.0 to 1.0)
+  /// - Throws: APIError if the upload fails
+  var uploadToS3:
+    (
+      _ presignedURL: URL, _ fileURL: URL, _ contentType: String,
+      _ onProgress: @escaping @Sendable (Double) -> Void
+    ) async throws -> Void = { _, _, _, _ in }
+
+  /// Creates a voicetrack AudioBlock after uploading to S3
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to create the voicetrack for
+  ///   - s3Key: The S3 key where the file was uploaded
+  ///   - durationMS: The duration in milliseconds
+  /// - Returns: The created AudioBlock
+  /// - Throws: APIError if the request fails
+  var createVoicetrack:
+    (_ jwtToken: String, _ stationId: String, _ s3Key: String, _ durationMS: Int) async throws
+      -> AudioBlock = { _, _, _, _ in
+        AudioBlock.mockWith()
+      }
 }
 
 extension APIClient: DependencyKey {
@@ -589,13 +638,8 @@ extension APIClient: DependencyKey {
           let spins = try isoDecoder.decode([Spin].self, from: data)
           return spins
         } else {
-          if let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let errorObj = errorResponse["error"] as? [String: Any],
-            let message = errorObj["message"] as? String
-          {
-            throw APIError.validationError(message)
-          }
-          throw APIError.validationError("Failed to delete spin")
+          let message = parsePlayolaErrorMessage(from: data) ?? "Failed to delete spin"
+          throw APIError.validationError(message)
         }
       },
       moveSpin: { jwtToken, spinId, placeAfterSpinId in
@@ -633,6 +677,114 @@ extension APIClient: DependencyKey {
           }
           throw APIError.validationError("Failed to move spin")
         }
+      },
+      insertSpin: { jwtToken, audioBlockId, placeAfterSpinId in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/spins"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters: [String: String] = [
+          "audioBlockId": audioBlockId,
+          "placeAfterSpinId": placeAfterSpinId,
+        ]
+
+        let dataResponse = await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .serializingData()
+        .response
+
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw APIError.dataNotValid
+        }
+
+        guard let data = dataResponse.value else {
+          throw APIError.dataNotValid
+        }
+
+        if statusCode >= 200, statusCode < 300 {
+          let spins = try isoDecoder.decode([Spin].self, from: data)
+          return spins
+        } else {
+          let message = parsePlayolaErrorMessage(from: data) ?? "Failed to insert spin"
+          throw APIError.validationError(message)
+        }
+      },
+      getVoicetrackPresignedURL: { jwtToken, stationId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/voicetrack-presigned-url"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(
+          url,
+          method: .post,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(PresignedURLResponse.self)
+        .value
+
+        return response
+      },
+      uploadToS3: { presignedURL, fileURL, contentType, onProgress in
+        let headers: HTTPHeaders = [
+          "Content-Type": contentType
+        ]
+
+        try await withCheckedThrowingContinuation {
+          (continuation: CheckedContinuation<Void, Error>) in
+          AF.upload(fileURL, to: presignedURL, method: .put, headers: headers)
+            .uploadProgress { progress in
+              onProgress(progress.fractionCompleted)
+            }
+            .response { response in
+              if let error = response.error {
+                continuation.resume(throwing: error)
+              } else if let statusCode = response.response?.statusCode,
+                statusCode >= 200, statusCode < 300
+              {
+                continuation.resume(returning: ())
+              } else {
+                continuation.resume(throwing: APIError.validationError("S3 upload failed"))
+              }
+            }
+        }
+      },
+      createVoicetrack: { jwtToken, stationId, s3Key, durationMS in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/voicetracks"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters: [String: Any] = [
+          "s3Key": s3Key,
+          "durationMS": durationMS,
+        ]
+
+        let dataResponse = await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .serializingData()
+        .response
+
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw APIError.dataNotValid
+        }
+
+        guard let data = dataResponse.value else {
+          throw APIError.dataNotValid
+        }
+
+        if statusCode >= 200, statusCode < 300 {
+          let audioBlock = try isoDecoder.decode(AudioBlock.self, from: data)
+          return audioBlock
+        } else {
+          let message = parsePlayolaErrorMessage(from: data) ?? "Failed to create voicetrack"
+          throw APIError.validationError(message)
+        }
       }
     )
   }()
@@ -650,6 +802,16 @@ enum APIError: Error, LocalizedError {
       return message
     }
   }
+}
+
+func parsePlayolaErrorMessage(from data: Data) -> String? {
+  guard let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+    let errorObj = errorResponse["error"] as? [String: Any],
+    let message = errorObj["message"] as? String
+  else {
+    return nil
+  }
+  return message
 }
 
 enum InvitationCodeError: Error {

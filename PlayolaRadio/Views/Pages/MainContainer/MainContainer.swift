@@ -81,14 +81,22 @@ struct MainContainer: View {
     }
     .alert(item: $model.presentedAlert) { $0.alert }
     .sheet(
-      item: $model.mainContainerNavigationCoordinator.presentedSheet,
+      item: Binding(
+        get: {
+          if case .player = model.mainContainerNavigationCoordinator.presentedSheet {
+            return model.mainContainerNavigationCoordinator.presentedSheet
+          }
+          return nil
+        },
+        set: { model.mainContainerNavigationCoordinator.presentedSheet = $0 }
+      ),
       content: { item in
         ZStack {
           switch item {
           case .player(let playerPageModel):
             PlayerPage(model: playerPageModel)
           default:
-            fatalError("Unsupported sheet item")
+            EmptyView()
           }
 
           VStack {
@@ -96,6 +104,24 @@ struct MainContainer: View {
             ToastOverlayView()
           }
           .zIndex(1)  // Ensure toast appears above PlayerPage
+        }
+      }
+    )
+    .fullScreenCover(
+      item: Binding(
+        get: {
+          if case .recordPage = model.mainContainerNavigationCoordinator.presentedSheet {
+            return model.mainContainerNavigationCoordinator.presentedSheet
+          }
+          return nil
+        },
+        set: { model.mainContainerNavigationCoordinator.presentedSheet = $0 }
+      ),
+      content: { item in
+        if case .recordPage(let recordPageModel) = item {
+          NavigationStack {
+            RecordPageView(model: recordPageModel)
+          }
         }
       }
     )

@@ -31,10 +31,16 @@ class BroadcastPageModel: ViewModel {
   var presentedAlert: PlayolaAlert?
   var currentNowPlayingId: String?
   private var reorderedSpinIds: [String]?  // nil means use default order
+  var stagingVoicetracks: [LocalVoicetrack] = []
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
   @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
+
+  var recordPageModel: RecordPageModel?
 
   var navigationTitle: String {
     providedStationName ?? fetchedStationName ?? "My Station"
@@ -119,11 +125,115 @@ class BroadcastPageModel: ViewModel {
   }
 
   func onAddVoiceTrackTapped() {
-    presentedAlert = .comingSoon
+    let model = RecordPageModel()
+    model.onRecordingAccepted = { [weak self] url in
+      await self?.handleAcceptedRecording(url)
+    }
+    recordPageModel = model
+    mainContainerNavigationCoordinator.presentedSheet = .recordPage(model)
+  }
+
+  func handleAcceptedRecording(_ url: URL) async {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "h:mma"
+    let timeString = formatter.string(from: now).lowercased()
+    let title = "Voice Track \(timeString)"
+
+    let voicetrack = LocalVoicetrack(
+      originalURL: url,
+      title: title
+    )
+    stagingVoicetracks.append(voicetrack)
+
+    await processVoicetrack(voicetrack)
+  }
+
+  private func processVoicetrack(_ voicetrack: LocalVoicetrack) async {
+    guard let jwt = auth.jwt else {
+      updateVoicetrackStatus(id: voicetrack.id, status: .failed(error: "Not authenticated"))
+      return
+    }
+
+    do {
+      let audioBlock = try await voicetrackUploadService.processVoicetrack(
+        voicetrack,
+        stationId,
+        jwt
+      ) { [weak self] status in
+        self?.updateVoicetrackStatus(id: voicetrack.id, status: status)
+      }
+      updateVoicetrackAudioBlockId(id: voicetrack.id, audioBlockId: audioBlock.id)
+    } catch {
+      updateVoicetrackStatus(id: voicetrack.id, status: .failed(error: error.localizedDescription))
+      presentedAlert = .voicetrackUploadFailed(error.localizedDescription)
+    }
+  }
+
+  private func updateVoicetrackStatus(id: UUID, status: LocalVoicetrackStatus) {
+    guard let index = stagingVoicetracks.firstIndex(where: { $0.id == id }) else { return }
+    stagingVoicetracks[index].status = status
+  }
+
+  private func updateVoicetrackAudioBlockId(id: UUID, audioBlockId: String) {
+    guard let index = stagingVoicetracks.firstIndex(where: { $0.id == id }) else { return }
+    stagingVoicetracks[index].audioBlockId = audioBlockId
   }
 
   func onAddSongTapped() {
     presentedAlert = .comingSoon
+  }
+
+  func insertVoicetrack(voicetrackId: String, beforeSpinId: String) async {
+    guard let jwt = auth.jwt else {
+      print("insertVoicetrack: No JWT")
+      return
+    }
+
+    // Find the voicetrack
+    guard let voicetrackUUID = UUID(uuidString: voicetrackId) else {
+      print("insertVoicetrack: Invalid voicetrack UUID: \(voicetrackId)")
+      return
+    }
+
+    guard let voicetrack = stagingVoicetracks.first(where: { $0.id == voicetrackUUID }) else {
+      print("insertVoicetrack: Voicetrack not found in staging")
+      return
+    }
+
+    guard let audioBlockId = voicetrack.audioBlockId else {
+      print("insertVoicetrack: Voicetrack has no audioBlockId (upload may not be complete)")
+      return
+    }
+
+    // Find the spin to place after (the one before beforeSpinId)
+    guard let beforeIndex = upcomingSpins.firstIndex(where: { $0.id == beforeSpinId }) else {
+      print("insertVoicetrack: Target spin not found: \(beforeSpinId)")
+      return
+    }
+
+    guard beforeIndex > 0 else {
+      print("insertVoicetrack: Cannot insert before first spin (no spin to place after)")
+      presentedAlert = .cannotInsertBeforeFirstSpin
+      return
+    }
+
+    let placeAfterSpinId = upcomingSpins[beforeIndex - 1].id
+
+    do {
+      let newSpins = try await api.insertSpin(jwt, audioBlockId, placeAfterSpinId)
+      schedule = Schedule(
+        stationId: stationId,
+        spins: newSpins,
+        dateProvider: DependencyDateProvider()
+      )
+      reorderedSpinIds = nil
+      currentNowPlayingId = nowPlaying?.id
+
+      // Remove from staging
+      stagingVoicetracks.removeAll { $0.id == voicetrackUUID }
+    } catch {
+      presentedAlert = .errorInsertingSpin(error.localizedDescription)
+    }
   }
 
   func deleteSpin(_ spin: Spin) async {
@@ -266,6 +376,30 @@ extension PlayolaAlert {
   static func schedulingError(_ message: String) -> PlayolaAlert {
     PlayolaAlert(
       title: "Error",
+      message: message,
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static func errorInsertingSpin(_ message: String) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Error",
+      message: message,
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static var cannotInsertBeforeFirstSpin: PlayolaAlert {
+    PlayolaAlert(
+      title: "Cannot Place Here",
+      message: "Voice tracks cannot be placed before the first song in the schedule.",
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static func voicetrackUploadFailed(_ message: String) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Upload Failed",
       message: message,
       dismissButton: .cancel(Text("OK"))
     )
