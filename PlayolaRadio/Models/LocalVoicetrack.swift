@@ -22,6 +22,7 @@ struct LocalVoicetrack: Identifiable, Equatable {
   var status: LocalVoicetrackStatus
   let createdAt: Date
   var title: String
+  var audioBlockId: String?
 
   init(
     id: UUID = UUID(),
@@ -29,7 +30,8 @@ struct LocalVoicetrack: Identifiable, Equatable {
     convertedURL: URL? = nil,
     status: LocalVoicetrackStatus = .converting,
     createdAt: Date = Date(),
-    title: String
+    title: String,
+    audioBlockId: String? = nil
   ) {
     self.id = id
     self.originalURL = originalURL
@@ -37,6 +39,7 @@ struct LocalVoicetrack: Identifiable, Equatable {
     self.status = status
     self.createdAt = createdAt
     self.title = title
+    self.audioBlockId = audioBlockId
   }
 }
 

@@ -381,16 +381,17 @@ final class BroadcastPageTests: XCTestCase {
     XCTAssertEqual(model.presentedAlert?.title, "Coming Soon")
   }
 
-  func testRecordingAcceptedAddsToStagingArea() {
+  func testRecordingAcceptedAddsToStagingArea() async {
     let calendar = Calendar.current
     let components = DateComponents(year: 2023, month: 12, day: 13, hour: 11, minute: 0)
     let fixedDate = calendar.date(from: components)!
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
-    withDependencies {
+    await withDependencies {
       $0.date.now = fixedDate
       $0.voicetrackUploadService.processVoicetrack = { _, _, _, onStatusChange in
-        onStatusChange(.converting)
+        await onStatusChange(.converting)
+        await onStatusChange(.completed)
         return AudioBlock.mockWith()
       }
     } operation: {
@@ -399,12 +400,12 @@ final class BroadcastPageTests: XCTestCase {
 
       model.onAddVoiceTrackTapped()
       let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
-      model.recordPageModel?.onRecordingAccepted?(recordingURL)
+      await model.recordPageModel?.onRecordingAccepted?(recordingURL)
 
       XCTAssertEqual(model.stagingVoicetracks.count, 1)
       XCTAssertEqual(model.stagingVoicetracks.first?.originalURL, recordingURL)
       XCTAssertEqual(model.stagingVoicetracks.first?.title, "Voice Track 11:00am")
-      XCTAssertEqual(model.stagingVoicetracks.first?.status, .converting)
+      XCTAssertEqual(model.stagingVoicetracks.first?.status, .completed)
     }
   }
 
@@ -667,6 +668,76 @@ extension BroadcastPageTests {
 // MARK: - Voicetrack Upload Tests
 
 extension BroadcastPageTests {
+  func testVoicetrackStatusUpdatesAsUploadProgresses() async {
+    let stationId = "test-station-id"
+    let fixedDate = Date(timeIntervalSince1970: 1_702_486_800)
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    var capturedStatuses: [LocalVoicetrackStatus] = []
+
+    await withDependencies {
+      $0.date.now = fixedDate
+      $0.voicetrackUploadService.processVoicetrack = { _, _, _, onStatusChange in
+        let statuses: [LocalVoicetrackStatus] = [
+          .converting,
+          .uploading(progress: 0.0),
+          .uploading(progress: 0.5),
+          .uploading(progress: 1.0),
+          .finalizing,
+          .completed,
+        ]
+        for status in statuses {
+          await onStatusChange(status)
+          capturedStatuses.append(status)
+        }
+        return AudioBlock.mockWith()
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+
+      model.onAddVoiceTrackTapped()
+      let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
+      await model.recordPageModel?.onRecordingAccepted?(recordingURL)
+
+      XCTAssertEqual(capturedStatuses.count, 6)
+      XCTAssertEqual(capturedStatuses[0], .converting)
+      XCTAssertEqual(capturedStatuses[1], .uploading(progress: 0.0))
+      XCTAssertEqual(capturedStatuses[2], .uploading(progress: 0.5))
+      XCTAssertEqual(capturedStatuses[3], .uploading(progress: 1.0))
+      XCTAssertEqual(capturedStatuses[4], .finalizing)
+      XCTAssertEqual(capturedStatuses[5], .completed)
+      XCTAssertEqual(model.stagingVoicetracks.first?.status, .completed)
+    }
+  }
+
+  func testVoicetrackUploadSuccessStoresAudioBlockId() async {
+    let stationId = "test-station-id"
+    let fixedDate = Date(timeIntervalSince1970: 1_702_486_800)
+    let expectedAudioBlockId = "server-audio-block-id-123"
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedDate
+      $0.voicetrackUploadService.processVoicetrack = { _, _, _, onStatusChange in
+        await onStatusChange(.converting)
+        await onStatusChange(.uploading(progress: 0.5))
+        await onStatusChange(.finalizing)
+        await onStatusChange(.completed)
+        return AudioBlock.mockWith(id: expectedAudioBlockId)
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: stationId)
+
+      model.onAddVoiceTrackTapped()
+      let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
+      await model.recordPageModel?.onRecordingAccepted?(recordingURL)
+
+      XCTAssertEqual(model.stagingVoicetracks.count, 1)
+      XCTAssertEqual(model.stagingVoicetracks.first?.audioBlockId, expectedAudioBlockId)
+      XCTAssertEqual(model.stagingVoicetracks.first?.status, .completed)
+    }
+  }
+
   func testVoicetrackUploadErrorShowsAlertWithServerErrorMessage() async {
     let stationId = "test-station-id"
     let fixedDate = Date(timeIntervalSince1970: 1_702_486_800)
@@ -676,7 +747,7 @@ extension BroadcastPageTests {
     await withDependencies {
       $0.date.now = fixedDate
       $0.voicetrackUploadService.processVoicetrack = { _, _, _, onStatusChange in
-        onStatusChange(.converting)
+        await onStatusChange(.converting)
         throw APIError.validationError(serverErrorMessage)
       }
     } operation: {
@@ -686,10 +757,7 @@ extension BroadcastPageTests {
 
       model.onAddVoiceTrackTapped()
       let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
-      model.recordPageModel?.onRecordingAccepted?(recordingURL)
-
-      // Wait for async processing
-      try? await Task.sleep(for: .milliseconds(100))
+      await model.recordPageModel?.onRecordingAccepted?(recordingURL)
 
       XCTAssertNotNil(model.presentedAlert)
       XCTAssertEqual(model.presentedAlert?.title, "Upload Failed")

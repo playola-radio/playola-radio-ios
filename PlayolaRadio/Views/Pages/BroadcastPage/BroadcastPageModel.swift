@@ -127,13 +127,13 @@ class BroadcastPageModel: ViewModel {
   func onAddVoiceTrackTapped() {
     let model = RecordPageModel()
     model.onRecordingAccepted = { [weak self] url in
-      self?.handleAcceptedRecording(url)
+      await self?.handleAcceptedRecording(url)
     }
     recordPageModel = model
     mainContainerNavigationCoordinator.presentedSheet = .recordPage(model)
   }
 
-  private func handleAcceptedRecording(_ url: URL) {
+  func handleAcceptedRecording(_ url: URL) async {
     let formatter = DateFormatter()
     formatter.dateFormat = "h:mma"
     let timeString = formatter.string(from: now).lowercased()
@@ -145,9 +145,7 @@ class BroadcastPageModel: ViewModel {
     )
     stagingVoicetracks.append(voicetrack)
 
-    Task {
-      await processVoicetrack(voicetrack)
-    }
+    await processVoicetrack(voicetrack)
   }
 
   private func processVoicetrack(_ voicetrack: LocalVoicetrack) async {
@@ -157,15 +155,14 @@ class BroadcastPageModel: ViewModel {
     }
 
     do {
-      _ = try await voicetrackUploadService.processVoicetrack(
+      let audioBlock = try await voicetrackUploadService.processVoicetrack(
         voicetrack,
         stationId,
         jwt
       ) { [weak self] status in
-        Task { @MainActor in
-          self?.updateVoicetrackStatus(id: voicetrack.id, status: status)
-        }
+        self?.updateVoicetrackStatus(id: voicetrack.id, status: status)
       }
+      updateVoicetrackAudioBlockId(id: voicetrack.id, audioBlockId: audioBlock.id)
     } catch {
       updateVoicetrackStatus(id: voicetrack.id, status: .failed(error: error.localizedDescription))
       presentedAlert = .voicetrackUploadFailed(error.localizedDescription)
@@ -175,6 +172,11 @@ class BroadcastPageModel: ViewModel {
   private func updateVoicetrackStatus(id: UUID, status: LocalVoicetrackStatus) {
     guard let index = stagingVoicetracks.firstIndex(where: { $0.id == id }) else { return }
     stagingVoicetracks[index].status = status
+  }
+
+  private func updateVoicetrackAudioBlockId(id: UUID, audioBlockId: String) {
+    guard let index = stagingVoicetracks.firstIndex(where: { $0.id == id }) else { return }
+    stagingVoicetracks[index].audioBlockId = audioBlockId
   }
 
   func onAddSongTapped() {

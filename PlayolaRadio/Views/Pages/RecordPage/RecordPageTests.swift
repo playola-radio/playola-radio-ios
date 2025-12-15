@@ -184,7 +184,7 @@ final class RecordPageTests: XCTestCase {
 
   // MARK: - Accept Recording
 
-  func testOnAcceptRecordingTapped_CallsCallbackAndDismisses() {
+  func testOnAcceptRecordingTapped_CallsCallbackAndDismisses() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
 
     let expectedURL = URL(fileURLWithPath: "/tmp/test.wav")
@@ -197,13 +197,13 @@ final class RecordPageTests: XCTestCase {
     }
     coordinator.presentedSheet = .recordPage(model)
 
-    model.onAcceptRecordingTapped()
+    await model.onAcceptRecordingTapped()
 
     XCTAssertEqual(receivedURL, expectedURL)
     XCTAssertNil(coordinator.presentedSheet)
   }
 
-  func testOnAcceptRecordingTapped_DoesNothingWithoutURL() {
+  func testOnAcceptRecordingTapped_DoesNothingWithoutURL() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
 
     var callbackCalled = false
@@ -215,7 +215,7 @@ final class RecordPageTests: XCTestCase {
     }
     coordinator.presentedSheet = .recordPage(model)
 
-    model.onAcceptRecordingTapped()
+    await model.onAcceptRecordingTapped()
 
     XCTAssertFalse(callbackCalled)
     XCTAssertNotNil(coordinator.presentedSheet)

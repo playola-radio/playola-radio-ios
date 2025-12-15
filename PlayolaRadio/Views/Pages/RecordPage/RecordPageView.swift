@@ -210,7 +210,9 @@ struct RecordPageView: View {
           }
 
           Button {
-            model.onAcceptRecordingTapped()
+            Task {
+              await model.onAcceptRecordingTapped()
+            }
           } label: {
             HStack(spacing: 6) {
               Image(systemName: "checkmark")

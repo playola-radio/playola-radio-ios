@@ -32,7 +32,7 @@ class RecordPageModel: ViewModel {
 
   // MARK: - Callbacks
 
-  var onRecordingAccepted: ((URL) -> Void)?
+  var onRecordingAccepted: ((URL) async -> Void)?
 
   // MARK: - Dependencies
 
@@ -193,9 +193,9 @@ class RecordPageModel: ViewModel {
     mainContainerNavigationCoordinator.presentedSheet = nil
   }
 
-  func onAcceptRecordingTapped() {
+  func onAcceptRecordingTapped() async {
     guard let url = recordingURL else { return }
-    onRecordingAccepted?(url)
+    await onRecordingAccepted?(url)
     mainContainerNavigationCoordinator.presentedSheet = nil
   }
 

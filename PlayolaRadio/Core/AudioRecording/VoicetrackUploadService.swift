@@ -15,7 +15,7 @@ struct VoicetrackUploadService: Sendable {
       _ voicetrack: LocalVoicetrack,
       _ stationId: String,
       _ jwtToken: String,
-      _ onStatusChange: @escaping @Sendable (LocalVoicetrackStatus) -> Void
+      _ onStatusChange: @escaping @MainActor @Sendable (LocalVoicetrackStatus) -> Void
     ) async throws -> AudioBlock
 }
 
@@ -29,12 +29,12 @@ extension VoicetrackUploadService: DependencyKey {
     return VoicetrackUploadService(
       processVoicetrack: { voicetrack, stationId, jwtToken, onStatusChange in
         // Step 1: Convert .wav to .m4a
-        onStatusChange(.converting)
+        await onStatusChange(.converting)
         let m4aURL = try await audioConverter.convertToM4A(voicetrack.originalURL)
         let durationMS = try await audioConverter.getDuration(m4aURL)
 
         // Step 2: Get presigned URL
-        onStatusChange(.uploading(progress: 0))
+        await onStatusChange(.uploading(progress: 0))
         let presignedResponse = try await api.getVoicetrackPresignedURL(jwtToken, stationId)
 
         // Step 3: Upload to S3
@@ -43,11 +43,13 @@ extension VoicetrackUploadService: DependencyKey {
           m4aURL,
           "audio/mp4"
         ) { progress in
-          onStatusChange(.uploading(progress: progress))
+          Task { @MainActor in
+            onStatusChange(.uploading(progress: progress))
+          }
         }
 
         // Step 4: Create voicetrack
-        onStatusChange(.finalizing)
+        await onStatusChange(.finalizing)
         let audioBlock = try await api.createVoicetrack(
           jwtToken,
           stationId,
@@ -58,7 +60,7 @@ extension VoicetrackUploadService: DependencyKey {
         // Step 5: Cleanup temp files
         try? FileManager.default.removeItem(at: m4aURL)
 
-        onStatusChange(.completed)
+        await onStatusChange(.completed)
         return audioBlock
       }
     )
@@ -71,7 +73,7 @@ extension VoicetrackUploadService: TestDependencyKey {
   static var testValue: VoicetrackUploadService {
     VoicetrackUploadService(
       processVoicetrack: { _, _, _, onStatusChange in
-        onStatusChange(.completed)
+        await onStatusChange(.completed)
         return AudioBlock.mockWith()
       }
     )
