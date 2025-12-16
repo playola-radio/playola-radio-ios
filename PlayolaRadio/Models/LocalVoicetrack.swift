@@ -10,6 +10,7 @@ import Foundation
 enum LocalVoicetrackStatus: Equatable {
   case converting
   case uploading(progress: Double)
+  case normalizing
   case finalizing
   case completed
   case failed(error: String)
@@ -48,7 +49,7 @@ struct LocalVoicetrack: Identifiable, Equatable {
 extension LocalVoicetrack {
   var isProcessing: Bool {
     switch status {
-    case .converting, .uploading, .finalizing:
+    case .converting, .uploading, .normalizing, .finalizing:
       return true
     case .completed, .failed:
       return false

@@ -37,6 +37,8 @@ extension LocalVoicetrack: StagingItem {
       return "Converting..."
     case .uploading(let progress):
       return "Uploading \(Int(progress * 100))%"
+    case .normalizing:
+      return "Normalizing..."
     case .finalizing:
       return "Finalizing..."
     case .completed:
