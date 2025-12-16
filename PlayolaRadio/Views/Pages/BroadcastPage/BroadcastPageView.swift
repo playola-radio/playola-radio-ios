@@ -427,9 +427,9 @@ struct ScheduleItemImage: View {
     case "voiceTrack":
       ZStack {
         RoundedRectangle(cornerRadius: 4)
-          .fill(Color.playolaRed.opacity(0.3))
+          .fill(Color.playolaRed)
         Image(systemName: "mic.fill")
-          .foregroundColor(.playolaRed)
+          .foregroundColor(.white)
           .font(.system(size: 20))
       }
     case "commercial":

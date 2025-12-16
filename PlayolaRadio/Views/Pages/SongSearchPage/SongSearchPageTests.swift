@@ -241,8 +241,8 @@ final class SongSearchPageTests: XCTestCase {
     let clock = TestClock()
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockSongSeeds = [
-      SongSeed.mockWith(spotifyId: "spotify-1", title: "Spotify Song 1"),
-      SongSeed.mockWith(spotifyId: "spotify-2", title: "Spotify Song 2"),
+      SongSeed.mockWith(title: "Spotify Song 1", spotifyId: "spotify-1"),
+      SongSeed.mockWith(title: "Spotify Song 2", spotifyId: "spotify-2"),
     ]
 
     await withDependencies {
@@ -312,7 +312,7 @@ final class SongSearchPageTests: XCTestCase {
   func testOnRequestSongSeed_CallsOnSongSeedRequestedCallback() {
     var requestedSongSeed: SongSeed?
     let model = SongSearchPageModel()
-    let testSongSeed = SongSeed.mockWith(spotifyId: "test-spotify-id", title: "Test Seed")
+    let testSongSeed = SongSeed.mockWith(title: "Test Seed", spotifyId: "test-spotify-id")
     model.onSongSeedRequested = { requestedSongSeed = $0 }
 
     model.onRequestSongSeed(testSongSeed)

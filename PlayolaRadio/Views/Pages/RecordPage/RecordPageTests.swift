@@ -197,10 +197,15 @@ final class RecordPageTests: XCTestCase {
     }
     coordinator.presentedSheet = .recordPage(model)
 
-    await model.onAcceptRecordingTapped()
+    model.onAcceptRecordingTapped()
+
+    // Sheet dismisses immediately
+    XCTAssertNil(coordinator.presentedSheet)
+
+    // Allow spawned Task to complete
+    await Task.yield()
 
     XCTAssertEqual(receivedURL, expectedURL)
-    XCTAssertNil(coordinator.presentedSheet)
   }
 
   func testOnAcceptRecordingTapped_DoesNothingWithoutURL() async {
@@ -215,7 +220,10 @@ final class RecordPageTests: XCTestCase {
     }
     coordinator.presentedSheet = .recordPage(model)
 
-    await model.onAcceptRecordingTapped()
+    model.onAcceptRecordingTapped()
+
+    // Allow any spawned Task to complete
+    await Task.yield()
 
     XCTAssertFalse(callbackCalled)
     XCTAssertNotNil(coordinator.presentedSheet)
