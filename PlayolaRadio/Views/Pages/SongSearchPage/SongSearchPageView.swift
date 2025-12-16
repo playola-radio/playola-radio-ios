@@ -12,6 +12,10 @@ import SwiftUI
 struct SongSearchPageView: View {
   @Bindable var model: SongSearchPageModel
 
+  private var hasResults: Bool {
+    !model.searchResults.isEmpty || !model.songSeedResults.isEmpty
+  }
+
   var body: some View {
     ZStack {
       Color.black
@@ -36,7 +40,7 @@ struct SongSearchPageView: View {
           }
           .padding(.horizontal, 40)
           Spacer()
-        } else if model.searchResults.isEmpty {
+        } else if !hasResults {
           Spacer()
           VStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
@@ -49,13 +53,40 @@ struct SongSearchPageView: View {
           Spacer()
         } else {
           List {
-            ForEach(model.searchResults, id: \.id) { audioBlock in
-              SongSearchResultRow(audioBlock: audioBlock) {
-                model.onSelectSong(audioBlock)
+            // Playola library results
+            if !model.searchResults.isEmpty {
+              Section {
+                ForEach(model.searchResults, id: \.id) { audioBlock in
+                  SongSearchResultRow(audioBlock: audioBlock) {
+                    model.onSelectSong(audioBlock)
+                  }
+                  .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                  .listRowSeparator(.hidden)
+                  .listRowBackground(Color.clear)
+                }
+              } header: {
+                Text("LIBRARY")
+                  .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
+                  .foregroundColor(.playolaGray)
               }
-              .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-              .listRowSeparator(.hidden)
-              .listRowBackground(Color.clear)
+            }
+
+            // Spotify song seed results
+            if !model.songSeedResults.isEmpty {
+              Section {
+                ForEach(model.songSeedResults, id: \.id) { songSeed in
+                  SongSeedResultRow(songSeed: songSeed) {
+                    model.onRequestSongSeed(songSeed)
+                  }
+                  .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                  .listRowSeparator(.hidden)
+                  .listRowBackground(Color.clear)
+                }
+              } header: {
+                Text("AVAILABLE SOON BY REQUEST")
+                  .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
+                  .foregroundColor(.playolaGray)
+              }
             }
           }
           .listStyle(.plain)
@@ -133,6 +164,58 @@ struct SongSearchResultRow: View {
 
       Button(action: onSelect) {
         Text("SELECT")
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
+          .foregroundColor(.white)
+          .padding(.horizontal, 12)
+          .padding(.vertical, 6)
+          .background(Color.playolaRed)
+          .cornerRadius(4)
+      }
+    }
+    .padding(.horizontal, 12)
+    .padding(.vertical, 8)
+    .background(Color(hex: "#333333"))
+  }
+}
+
+struct SongSeedResultRow: View {
+  let songSeed: SongSeed
+  let onRequest: () -> Void
+
+  var body: some View {
+    HStack(spacing: 12) {
+      if let imageUrl = songSeed.imageUrl {
+        WebImage(url: imageUrl)
+          .resizable()
+          .aspectRatio(contentMode: .fill)
+          .frame(width: 45, height: 45)
+          .clipped()
+      } else {
+        RoundedRectangle(cornerRadius: 4)
+          .fill(Color(hex: "#666666"))
+          .frame(width: 45, height: 45)
+          .overlay(
+            Image(systemName: "music.note")
+              .foregroundColor(Color(hex: "#999999"))
+          )
+      }
+
+      VStack(alignment: .leading, spacing: 2) {
+        Text(songSeed.title)
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+          .foregroundColor(.white)
+          .lineLimit(1)
+
+        Text(songSeed.artist)
+          .font(.custom(FontNames.Inter_400_Regular, size: 12))
+          .foregroundColor(.playolaGray)
+          .lineLimit(1)
+      }
+
+      Spacer()
+
+      Button(action: onRequest) {
+        Text("REQUEST")
           .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
           .foregroundColor(.white)
           .padding(.horizontal, 12)

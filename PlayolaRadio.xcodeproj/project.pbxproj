@@ -259,6 +259,9 @@
 		D3C7E5E92EF0C56200EDD3ED /* StagingItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5E82EF0C56000EDD3ED /* StagingItem.swift */; };
 		D3C7E5EA2EF0C56200EDD3ED /* StagingItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5E82EF0C56000EDD3ED /* StagingItem.swift */; };
 		D3C7E5EF2EF0C58900EDD3ED /* StagingItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5EC2EF0C57E00EDD3ED /* StagingItemTests.swift */; };
+		D3C7E5F62EF0D12A00EDD3ED /* SongSeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5F32EF0D12A00EDD3ED /* SongSeed.swift */; };
+		D3C7E5F82EF0D12A00EDD3ED /* SongSeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5F32EF0D12A00EDD3ED /* SongSeed.swift */; };
+		D3C7E5FA2EF0D13800EDD3ED /* SongSeedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5F42EF0D12A00EDD3ED /* SongSeedTests.swift */; };
 		D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D3CE19022D3C825C0091B888 /* PlayolaPlayer */; };
 		D3CE19052D3CA6180091B888 /* SharedUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */; };
 		D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */; };
@@ -438,6 +441,8 @@
 		D3C7E5E02EF0A43E00EDD3ED /* SongSearchPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongSearchPageView.swift; sourceTree = "<group>"; };
 		D3C7E5E82EF0C56000EDD3ED /* StagingItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StagingItem.swift; sourceTree = "<group>"; };
 		D3C7E5EC2EF0C57E00EDD3ED /* StagingItemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StagingItemTests.swift; sourceTree = "<group>"; };
+		D3C7E5F32EF0D12A00EDD3ED /* SongSeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongSeed.swift; sourceTree = "<group>"; };
+		D3C7E5F42EF0D12A00EDD3ED /* SongSeedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongSeedTests.swift; sourceTree = "<group>"; };
 		D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserDefaults.swift; sourceTree = "<group>"; };
 		D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlStreamListeningSessionReporter.swift; sourceTree = "<group>"; };
 		D3E8D6832E96D39A0028CEBD /* Show.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Show.swift; sourceTree = "<group>"; };
@@ -599,6 +604,7 @@
 				D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */,
 				D37786E92EAD3DA80084B8B8 /* ScheduledShow */,
 				D3E8D6832E96D39A0028CEBD /* Show.swift */,
+				D3C7E5F52EF0D12A00EDD3ED /* SongSeed */,
 				D3C7E5E42EF0C51500EDD3ED /* StagingItem */,
 				D3536A312BFA64AB006942D6 /* StationList.swift */,
 				D302576A2E63423B00F4228B /* Toast.swift */,
@@ -1063,6 +1069,15 @@
 			path = StagingItem;
 			sourceTree = "<group>";
 		};
+		D3C7E5F52EF0D12A00EDD3ED /* SongSeed */ = {
+			isa = PBXGroup;
+			children = (
+				D3C7E5F32EF0D12A00EDD3ED /* SongSeed.swift */,
+				D3C7E5F42EF0D12A00EDD3ED /* SongSeedTests.swift */,
+			);
+			path = SongSeed;
+			sourceTree = "<group>";
+		};
 		D3E8D6862E96D9290028CEBD /* LiveShowsSection */ = {
 			isa = PBXGroup;
 			children = (
@@ -1372,6 +1387,7 @@
 				D30F007E2E8592F0007BCC73 /* RewardsProfile.swift in Sources */,
 				D30F007F2E8592F0007BCC73 /* LikedSongsPage.swift in Sources */,
 				D30F00802E8592F0007BCC73 /* EnumTypeEquatableProtocol.swift in Sources */,
+				D3C7E5F82EF0D12A00EDD3ED /* SongSeed.swift in Sources */,
 				D30F00812E8592F0007BCC73 /* InvitationCodePageView.swift in Sources */,
 				D3E8D6842E96D39C0028CEBD /* Show.swift in Sources */,
 				D3F493CA2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */,
@@ -1481,6 +1497,7 @@
 				D3B744B02E2FE6FB0042A427 /* RewardsProfile.swift in Sources */,
 				D30257872E63B6BB00F4228B /* LikedSongsPage.swift in Sources */,
 				D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */,
+				D3C7E5F62EF0D12A00EDD3ED /* SongSeed.swift in Sources */,
 				D3A08A3A2E53A788002468E0 /* InvitationCodePageView.swift in Sources */,
 				D3E8D6852E96D39C0028CEBD /* Show.swift in Sources */,
 				D3F493CB2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */,
@@ -1522,6 +1539,7 @@
 				D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */,
 				D30257A92E651C9E00F4228B /* MainContainerNavigationCoordinatorTests.swift in Sources */,
 				D30257792E634A2600F4228B /* ToastClientTests.swift in Sources */,
+				D3C7E5FA2EF0D13800EDD3ED /* SongSeedTests.swift in Sources */,
 				D3219C1F2EDD22360008AFDA /* BroadcastPageTests.swift in Sources */,
 				D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */,
 				D37B74942ECA3A69009806C6 /* ScheduledShowTileTests.swift in Sources */,

@@ -19,6 +19,7 @@ class SongSearchPageModel: ViewModel {
     }
   }
   var searchResults: [AudioBlock] = []
+  var songSeedResults: [SongSeed] = []
   var isSearching: Bool = false
   var presentedAlert: PlayolaAlert?
 
@@ -30,6 +31,7 @@ class SongSearchPageModel: ViewModel {
 
   var onDismiss: (() -> Void)?
   var onSongSelected: ((AudioBlock) -> Void)?
+  var onSongSeedRequested: ((SongSeed) -> Void)?
 
   override init() {
     super.init()
@@ -55,6 +57,7 @@ class SongSearchPageModel: ViewModel {
 
     guard !trimmedQuery.isEmpty else {
       searchResults = []
+      songSeedResults = []
       isSearching = false
       return
     }
@@ -66,16 +69,35 @@ class SongSearchPageModel: ViewModel {
 
     isSearching = true
 
+    await withTaskGroup(of: Void.self) { group in
+      group.addTask { await self.searchSongs(jwt: jwt, query: trimmedQuery) }
+      group.addTask { await self.searchSongSeeds(jwt: jwt, query: trimmedQuery) }
+    }
+
+    isSearching = false
+  }
+
+  private func searchSongs(jwt: String, query: String) async {
     do {
-      let results = try await api.searchSongs(jwt, trimmedQuery)
+      let results = try await api.searchSongs(jwt, query)
       guard !Task.isCancelled else { return }
       searchResults = results
     } catch {
       guard !Task.isCancelled else { return }
       presentedAlert = .searchError(error.localizedDescription)
     }
+  }
 
-    isSearching = false
+  private func searchSongSeeds(jwt: String, query: String) async {
+    do {
+      let results = try await api.searchSongSeeds(jwt, query)
+      guard !Task.isCancelled else { return }
+      songSeedResults = results
+    } catch {
+      // Silently fail for song seeds - don't show error to user
+      guard !Task.isCancelled else { return }
+      songSeedResults = []
+    }
   }
 
   func onCancelTapped() {
@@ -85,6 +107,10 @@ class SongSearchPageModel: ViewModel {
 
   func onSelectSong(_ audioBlock: AudioBlock) {
     onSongSelected?(audioBlock)
+  }
+
+  func onRequestSongSeed(_ songSeed: SongSeed) {
+    onSongSeedRequested?(songSeed)
   }
 }
 

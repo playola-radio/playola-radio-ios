@@ -239,6 +239,17 @@ struct APIClient: Sendable {
   var searchSongs: (_ jwtToken: String, _ keywords: String) async throws -> [AudioBlock] = { _, _ in
     []
   }
+
+  /// Searches for song seeds (Spotify results) by keywords
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - keywords: The search keywords
+  /// - Returns: Array of SongSeeds matching the search
+  /// - Throws: APIError if the request fails
+  var searchSongSeeds: (_ jwtToken: String, _ keywords: String) async throws -> [SongSeed] = {
+    _, _ in
+    []
+  }
 }
 
 extension APIClient: DependencyKey {
@@ -806,6 +817,20 @@ extension APIClient: DependencyKey {
         let response = try await AF.request(url, headers: headers)
           .validate(statusCode: 200..<300)
           .serializingDecodable([AudioBlock].self, decoder: isoDecoder)
+          .value
+
+        return response
+      },
+      searchSongSeeds: { jwtToken, keywords in
+        let encodedKeywords =
+          keywords.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? keywords
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/songs/search-song-seeds?keywords=\(encodedKeywords)"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([SongSeed].self, decoder: isoDecoder)
           .value
 
         return response
