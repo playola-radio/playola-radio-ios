@@ -12,7 +12,7 @@ import XCTest
 final class SongRequestTests: XCTestCase {
 
   func testSongRequestDecodesFromJSON() throws {
-    let json = """
+    let jsonString = """
       {
         "title": "Like a Rolling Stone",
         "artist": "Bob Dylan",
@@ -24,7 +24,8 @@ final class SongRequestTests: XCTestCase {
         "spotifyId": "3AhXZa8sUQht0UEdBJgpGc",
         "imageUrl": "https://i.scdn.co/image/test"
       }
-      """.data(using: .utf8)!
+      """
+    let json = Data(jsonString.utf8)
 
     let songRequest = try JSONDecoder().decode(SongRequest.self, from: json)
 
@@ -41,7 +42,7 @@ final class SongRequestTests: XCTestCase {
   }
 
   func testSongRequestDecodesWithRequestId() throws {
-    let json = """
+    let jsonString = """
       {
         "id": "request-abc-123",
         "title": "Like a Rolling Stone",
@@ -54,7 +55,8 @@ final class SongRequestTests: XCTestCase {
         "spotifyId": "3AhXZa8sUQht0UEdBJgpGc",
         "imageUrl": "https://i.scdn.co/image/test"
       }
-      """.data(using: .utf8)!
+      """
+    let json = Data(jsonString.utf8)
 
     let songRequest = try JSONDecoder().decode(SongRequest.self, from: json)
 
@@ -62,7 +64,7 @@ final class SongRequestTests: XCTestCase {
   }
 
   func testSongRequestDecodesWithNullImageUrl() throws {
-    let json = """
+    let jsonString = """
       {
         "title": "Test Song",
         "artist": "Test Artist",
@@ -74,7 +76,8 @@ final class SongRequestTests: XCTestCase {
         "spotifyId": "spotifyId123",
         "imageUrl": null
       }
-      """.data(using: .utf8)!
+      """
+    let json = Data(jsonString.utf8)
 
     let songRequest = try JSONDecoder().decode(SongRequest.self, from: json)
 
@@ -82,7 +85,7 @@ final class SongRequestTests: XCTestCase {
   }
 
   func testSongRequestDecodesWithMissingImageUrl() throws {
-    let json = """
+    let jsonString = """
       {
         "title": "Test Song",
         "artist": "Test Artist",
@@ -93,7 +96,8 @@ final class SongRequestTests: XCTestCase {
         "isrc": "TEST123",
         "spotifyId": "spotifyId123"
       }
-      """.data(using: .utf8)!
+      """
+    let json = Data(jsonString.utf8)
 
     let songRequest = try JSONDecoder().decode(SongRequest.self, from: json)
 
