@@ -193,10 +193,12 @@ class RecordPageModel: ViewModel {
     mainContainerNavigationCoordinator.presentedSheet = nil
   }
 
-  func onAcceptRecordingTapped() async {
+  func onAcceptRecordingTapped() {
     guard let url = recordingURL else { return }
-    await onRecordingAccepted?(url)
     mainContainerNavigationCoordinator.presentedSheet = nil
+    Task {
+      await onRecordingAccepted?(url)
+    }
   }
 
   func onDoneTapped() {

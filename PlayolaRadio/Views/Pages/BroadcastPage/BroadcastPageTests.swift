@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  BroadcastPageTests.swift
 //  PlayolaRadio
@@ -410,15 +411,79 @@ final class BroadcastPageTests: XCTestCase {
     }
   }
 
-  func testOnAddSongTapped_ShowsComingSoonAlert() {
+  func testOnAddSongTapped_PresentsSongSearchPageSheet() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+
     let model = BroadcastPageModel(stationId: "test-station")
 
-    XCTAssertNil(model.presentedAlert)
+    XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
+    XCTAssertNil(model.songSearchPageModel)
 
     model.onAddSongTapped()
 
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert?.title, "Coming Soon")
+    XCTAssertNotNil(model.songSearchPageModel)
+    if case .songSearchPage = mainContainerNavigationCoordinator.presentedSheet {
+      // Success - presented song search page sheet
+    } else {
+      XCTFail("Expected songSearchPage sheet presentation")
+    }
+  }
+
+  func testOnAddSongTapped_SongSelectedCallbackAddsSongToStaging() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+
+    let model = BroadcastPageModel(stationId: "test-station")
+    XCTAssertTrue(model.stagingItems.isEmpty)
+
+    model.onAddSongTapped()
+
+    let testSong = AudioBlock.mockWith(
+      id: "test-song-123", title: "Test Song", artist: "Test Artist")
+    model.songSearchPageModel?.onSongSelected?(testSong)
+
+    XCTAssertEqual(model.stagingItems.count, 1)
+    XCTAssertEqual(model.stagingItems.first?.stagingId, "test-song-123")
+    XCTAssertEqual(model.stagingItems.first?.titleText, "Test Song")
+  }
+
+  func testOnAddSongTapped_SongSelectedCallbackDismissesSheet() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+
+    let model = BroadcastPageModel(stationId: "test-station")
+    model.onAddSongTapped()
+
+    XCTAssertNotNil(mainContainerNavigationCoordinator.presentedSheet)
+
+    let testSong = AudioBlock.mockWith(id: "test-song-123")
+    model.songSearchPageModel?.onSongSelected?(testSong)
+
+    XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
+  }
+
+  func testAddSongToStaging_DoesNotAddDuplicates() {
+    let model = BroadcastPageModel(stationId: "test-station")
+    let testSong = AudioBlock.mockWith(id: "test-song-123")
+
+    model.addSongToStaging(testSong)
+    model.addSongToStaging(testSong)
+
+    XCTAssertEqual(model.stagingItems.count, 1)
+  }
+
+  func testAddSongToStaging_AddsMultipleDifferentSongs() {
+    let model = BroadcastPageModel(stationId: "test-station")
+    let song1 = AudioBlock.mockWith(id: "song-1", title: "First Song")
+    let song2 = AudioBlock.mockWith(id: "song-2", title: "Second Song")
+
+    model.addSongToStaging(song1)
+    model.addSongToStaging(song2)
+
+    XCTAssertEqual(model.stagingItems.count, 2)
+    XCTAssertEqual(model.stagingItems[0].stagingId, "song-1")
+    XCTAssertEqual(model.stagingItems[1].stagingId, "song-2")
   }
 
   func testRecordingAcceptedAddsToStagingArea() async {
@@ -436,16 +501,17 @@ final class BroadcastPageTests: XCTestCase {
       }
     } operation: {
       let model = BroadcastPageModel(stationId: "test-station")
-      XCTAssertTrue(model.stagingVoicetracks.isEmpty)
+      XCTAssertTrue(model.stagingItems.isEmpty)
 
       model.onAddVoiceTrackTapped()
       let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
       await model.recordPageModel?.onRecordingAccepted?(recordingURL)
 
-      XCTAssertEqual(model.stagingVoicetracks.count, 1)
-      XCTAssertEqual(model.stagingVoicetracks.first?.originalURL, recordingURL)
-      XCTAssertEqual(model.stagingVoicetracks.first?.title, "Voice Track 11:00am")
-      XCTAssertEqual(model.stagingVoicetracks.first?.status, .completed)
+      XCTAssertEqual(model.stagingItems.count, 1)
+      let voicetrack = model.stagingItems.first as? LocalVoicetrack
+      XCTAssertEqual(voicetrack?.originalURL, recordingURL)
+      XCTAssertEqual(voicetrack?.title, "Voice Track 11:00am")
+      XCTAssertEqual(voicetrack?.status, .completed)
     }
   }
 
@@ -821,19 +887,19 @@ extension BroadcastPageTests {
       await model.viewAppeared()
 
       let voicetrackId = UUID()
-      model.stagingVoicetracks = [
+      model.stagingItems = [
         makeStagingVoicetrack(id: voicetrackId, audioBlockId: voicetrackAudioBlockId)
       ]
 
       // Drop voicetrack before spin-2 (should insert after spin-1)
-      await model.insertVoicetrack(voicetrackId: voicetrackId.uuidString, beforeSpinId: "spin-2")
+      await model.insertStagingItem(stagingId: voicetrackId.uuidString, beforeSpinId: "spin-2")
 
       XCTAssertEqual(capturedAudioBlockId, voicetrackAudioBlockId)
       XCTAssertEqual(capturedPlaceAfterSpinId, "spin-1")
     }
   }
 
-  func testInsertVoicetrackRemovesFromStagingOnSuccess() async {
+  func testInsertStagingItemRemovesFromStagingOnSuccess() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
@@ -846,17 +912,17 @@ extension BroadcastPageTests {
       await model.viewAppeared()
 
       let voicetrackId = UUID()
-      model.stagingVoicetracks = [makeStagingVoicetrack(id: voicetrackId)]
+      model.stagingItems = [makeStagingVoicetrack(id: voicetrackId)]
 
-      XCTAssertEqual(model.stagingVoicetracks.count, 1)
+      XCTAssertEqual(model.stagingItems.count, 1)
 
-      await model.insertVoicetrack(voicetrackId: voicetrackId.uuidString, beforeSpinId: "spin-2")
+      await model.insertStagingItem(stagingId: voicetrackId.uuidString, beforeSpinId: "spin-2")
 
-      XCTAssertEqual(model.stagingVoicetracks.count, 0)
+      XCTAssertEqual(model.stagingItems.count, 0)
     }
   }
 
-  func testInsertVoicetrackUpdatesScheduleWithResponse() async {
+  func testInsertStagingItemUpdatesScheduleWithResponse() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2"], interval: 120)
     let updatedSpins = makeSpins(ids: ["spin-1", "new-spin", "spin-2"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -870,9 +936,9 @@ extension BroadcastPageTests {
       await model.viewAppeared()
 
       let voicetrackId = UUID()
-      model.stagingVoicetracks = [makeStagingVoicetrack(id: voicetrackId)]
+      model.stagingItems = [makeStagingVoicetrack(id: voicetrackId)]
 
-      await model.insertVoicetrack(voicetrackId: voicetrackId.uuidString, beforeSpinId: "spin-2")
+      await model.insertStagingItem(stagingId: voicetrackId.uuidString, beforeSpinId: "spin-2")
 
       XCTAssertEqual(model.upcomingSpins.map { $0.id }, ["spin-1", "new-spin", "spin-2"])
     }
@@ -920,7 +986,8 @@ extension BroadcastPageTests {
       XCTAssertEqual(capturedStatuses[3], .uploading(progress: 1.0))
       XCTAssertEqual(capturedStatuses[4], .finalizing)
       XCTAssertEqual(capturedStatuses[5], .completed)
-      XCTAssertEqual(model.stagingVoicetracks.first?.status, .completed)
+      let voicetrack = model.stagingItems.first as? LocalVoicetrack
+      XCTAssertEqual(voicetrack?.status, .completed)
     }
   }
 
@@ -946,9 +1013,10 @@ extension BroadcastPageTests {
       let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
       await model.recordPageModel?.onRecordingAccepted?(recordingURL)
 
-      XCTAssertEqual(model.stagingVoicetracks.count, 1)
-      XCTAssertEqual(model.stagingVoicetracks.first?.audioBlockId, expectedAudioBlockId)
-      XCTAssertEqual(model.stagingVoicetracks.first?.status, .completed)
+      XCTAssertEqual(model.stagingItems.count, 1)
+      let voicetrack = model.stagingItems.first as? LocalVoicetrack
+      XCTAssertEqual(voicetrack?.audioBlockId, expectedAudioBlockId)
+      XCTAssertEqual(voicetrack?.status, .completed)
     }
   }
 
