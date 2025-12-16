@@ -10,4 +10,5 @@ import Foundation
 struct PresignedURLResponse: Decodable, Equatable {
   let presignedUrl: URL
   let s3Key: String
+  let voicetrackUrl: URL
 }

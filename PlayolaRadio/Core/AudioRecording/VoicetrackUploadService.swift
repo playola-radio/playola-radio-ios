@@ -48,7 +48,25 @@ extension VoicetrackUploadService: DependencyKey {
           }
         }
 
-        // Step 4: Create voicetrack
+        // Step 4: Wait for normalization to complete
+        await onStatusChange(.normalizing)
+        let maxWaitTimeSeconds = 120
+        let pollIntervalSeconds: UInt64 = 2
+        let startTime = Date()
+
+        while Date().timeIntervalSince(startTime) < Double(maxWaitTimeSeconds) {
+          let status = try await api.getVoicetrackStatus(
+            jwtToken,
+            stationId,
+            presignedResponse.s3Key
+          )
+          if status.ready {
+            break
+          }
+          try await Task.sleep(nanoseconds: pollIntervalSeconds * 1_000_000_000)
+        }
+
+        // Step 5: Create voicetrack
         await onStatusChange(.finalizing)
         let audioBlock = try await api.createVoicetrack(
           jwtToken,

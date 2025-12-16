@@ -200,7 +200,11 @@ struct APIClient: Sendable {
   var getVoicetrackPresignedURL:
     (_ jwtToken: String, _ stationId: String) async throws
       -> PresignedURLResponse = { _, _ in
-        PresignedURLResponse(presignedUrl: URL(string: "https://example.com")!, s3Key: "test.m4a")
+        PresignedURLResponse(
+          presignedUrl: URL(string: "https://example.com")!,
+          s3Key: "test.m4a",
+          voicetrackUrl: URL(string: "https://example.com/test.m4a")!
+        )
       }
 
   /// Uploads a file to S3 using a presigned URL
@@ -228,6 +232,19 @@ struct APIClient: Sendable {
     (_ jwtToken: String, _ stationId: String, _ s3Key: String, _ durationMS: Int) async throws
       -> AudioBlock = { _, _, _, _ in
         AudioBlock.mockWith()
+      }
+
+  /// Checks if a voicetrack file has been normalized and is ready in the voicetracks bucket
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - s3Key: The S3 key to check
+  /// - Returns: VoicetrackStatusResponse indicating if the file is ready
+  /// - Throws: APIError if the request fails
+  var getVoicetrackStatus:
+    (_ jwtToken: String, _ stationId: String, _ s3Key: String) async throws
+      -> VoicetrackStatusResponse = { _, _, _ in
+        VoicetrackStatusResponse(ready: true, s3Key: "test.m4a")
       }
 
   /// Searches for songs by keywords
@@ -813,6 +830,20 @@ extension APIClient: DependencyKey {
           let message = parsePlayolaErrorMessage(from: data) ?? "Failed to create voicetrack"
           throw APIError.validationError(message)
         }
+      },
+      getVoicetrackStatus: { jwtToken, stationId, s3Key in
+        let encodedS3Key =
+          s3Key.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? s3Key
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/voicetrack-status/\(encodedS3Key)"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable(VoicetrackStatusResponse.self)
+          .value
+
+        return response
       },
       searchSongs: { jwtToken, keywords in
         let encodedKeywords =
