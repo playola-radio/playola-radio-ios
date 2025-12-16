@@ -15,47 +15,69 @@ import XCTest
 
 @MainActor
 final class SongSearchPageTests: XCTestCase {
-  func testOnCancelTapped_CallsOnDismissCallback() {
+  func testOnCancelTappedCallsOnDismissCallback() async {
     var dismissCalled = false
-    let model = SongSearchPageModel()
-    model.onDismiss = { dismissCalled = true }
 
-    model.onCancelTapped()
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel()
+      model.onDismiss = { dismissCalled = true }
 
-    XCTAssertTrue(dismissCalled)
+      model.onCancelTapped()
+
+      XCTAssertTrue(dismissCalled)
+    }
   }
 
-  func testInitialState_SearchTextIsEmpty() {
-    let model = SongSearchPageModel()
+  func testInitialStateSearchTextIsEmpty() async {
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel()
 
-    XCTAssertEqual(model.searchText, "")
+      XCTAssertEqual(model.searchText, "")
+    }
   }
 
-  func testInitialState_IsNotSearching() {
-    let model = SongSearchPageModel()
+  func testInitialStateIsNotSearching() async {
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel()
 
-    XCTAssertFalse(model.isSearching)
+      XCTAssertFalse(model.isSearching)
+    }
   }
 
-  func testInitialState_SearchResultsAreEmpty() {
-    let model = SongSearchPageModel()
+  func testInitialStateSearchResultsAreEmpty() async {
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel()
 
-    XCTAssertTrue(model.searchResults.isEmpty)
+      XCTAssertTrue(model.searchResults.isEmpty)
+    }
   }
 
-  func testOnSelectSong_CallsOnSongSelectedCallback() {
+  func testOnSelectSongCallsOnSongSelectedCallback() async {
     var selectedSong: AudioBlock?
-    let model = SongSearchPageModel()
-    let testAudioBlock = AudioBlock.mockWith(id: "test-song-id", title: "Test Song")
-    model.onSongSelected = { selectedSong = $0 }
 
-    model.onSelectSong(testAudioBlock)
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel()
+      let testAudioBlock = AudioBlock.mockWith(id: "test-song-id", title: "Test Song")
+      model.onSongSelected = { selectedSong = $0 }
 
-    XCTAssertEqual(selectedSong?.id, "test-song-id")
-    XCTAssertEqual(selectedSong?.title, "Test Song")
+      model.onSelectSong(testAudioBlock)
+
+      XCTAssertEqual(selectedSong?.id, "test-song-id")
+      XCTAssertEqual(selectedSong?.title, "Test Song")
+    }
   }
 
-  func testPerformSearch_UpdatesSearchResults() async {
+  func testPerformSearchUpdatesSearchResults() async {
     let clock = TestClock()
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockResults = [
@@ -65,6 +87,7 @@ final class SongSearchPageTests: XCTestCase {
 
     await withDependencies {
       $0.continuousClock = clock
+      $0.date = .constant(Date())
       $0.api.searchSongs = { _, _ in mockResults }
     } operation: {
       let model = SongSearchPageModel()
@@ -78,12 +101,13 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testPerformSearch_ClearsResultsWhenQueryIsEmpty() async {
+  func testPerformSearchClearsResultsWhenQueryIsEmpty() async {
     let clock = TestClock()
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
       $0.continuousClock = clock
+      $0.date = .constant(Date())
       $0.api.searchSongs = { _, _ in [AudioBlock.mockWith()] }
     } operation: {
       let model = SongSearchPageModel()
@@ -98,12 +122,13 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testPerformSearch_ShowsAlertOnError() async {
+  func testPerformSearchShowsAlertOnError() async {
     let clock = TestClock()
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
       $0.continuousClock = clock
+      $0.date = .constant(Date())
       $0.api.searchSongs = { _, _ in
         throw APIError.validationError("Search failed")
       }
@@ -119,12 +144,13 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testPerformSearch_ShowsAlertWhenNotAuthenticated() async {
+  func testPerformSearchShowsAlertWhenNotAuthenticated() async {
     let clock = TestClock()
     @Shared(.auth) var auth = Auth()
 
     await withDependencies {
       $0.continuousClock = clock
+      $0.date = .constant(Date())
     } operation: {
       let model = SongSearchPageModel()
       XCTAssertNil(model.presentedAlert)
@@ -137,13 +163,14 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testPerformSearch_PassesCorrectKeywordsToAPI() async {
+  func testPerformSearchPassesCorrectKeywordsToAPI() async {
     let clock = TestClock()
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     var capturedKeywords: String?
 
     await withDependencies {
       $0.continuousClock = clock
+      $0.date = .constant(Date())
       $0.api.searchSongs = { _, keywords in
         capturedKeywords = keywords
         return []
@@ -158,13 +185,14 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testPerformSearch_TrimsWhitespace() async {
+  func testPerformSearchTrimsWhitespace() async {
     let clock = TestClock()
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     var capturedKeywords: String?
 
     await withDependencies {
       $0.continuousClock = clock
+      $0.date = .constant(Date())
       $0.api.searchSongs = { _, keywords in
         capturedKeywords = keywords
         return []
@@ -179,13 +207,14 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testDebounce_OnlySearchesOnceForRapidChanges() async {
+  func testDebounceOnlySearchesOnceForRapidChanges() async {
     let clock = TestClock()
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     var searchCount = 0
 
     await withDependencies {
       $0.continuousClock = clock
+      $0.date = .constant(Date())
       $0.api.searchSongs = { _, _ in
         searchCount += 1
         return []
@@ -204,13 +233,14 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testDebounce_DoesNotSearchBeforeDebounceTime() async {
+  func testDebounceDoesNotSearchBeforeDebounceTime() async {
     let clock = TestClock()
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     var searchCount = 0
 
     await withDependencies {
       $0.continuousClock = clock
+      $0.date = .constant(Date())
       $0.api.searchSongs = { _, _ in
         searchCount += 1
         return []
@@ -229,52 +259,58 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  // MARK: - Song Seed Tests
+  // MARK: - Song Request Tests
 
-  func testInitialState_SongSeedResultsAreEmpty() {
-    let model = SongSearchPageModel()
+  func testInitialStateSongRequestResultsAreEmpty() async {
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel()
 
-    XCTAssertTrue(model.songSeedResults.isEmpty)
+      XCTAssertTrue(model.songRequestResults.isEmpty)
+    }
   }
 
-  func testPerformSearch_UpdatesSongSeedResults() async {
+  func testPerformSearchUpdatesSongRequestResults() async {
     let clock = TestClock()
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    let mockSongSeeds = [
-      SongSeed.mockWith(title: "Spotify Song 1", spotifyId: "spotify-1"),
-      SongSeed.mockWith(title: "Spotify Song 2", spotifyId: "spotify-2"),
+    let mockSongRequests = [
+      SongRequest.mockWith(title: "Spotify Song 1", spotifyId: "spotify-1"),
+      SongRequest.mockWith(title: "Spotify Song 2", spotifyId: "spotify-2"),
     ]
 
     await withDependencies {
       $0.continuousClock = clock
+      $0.date = .constant(Date())
       $0.api.searchSongs = { _, _ in [] }
-      $0.api.searchSongSeeds = { _, _ in mockSongSeeds }
+      $0.api.searchSongRequests = { _, _ in mockSongRequests }
     } operation: {
       let model = SongSearchPageModel()
       model.searchText = "test"
 
       await clock.advance(by: .milliseconds(300))
 
-      XCTAssertEqual(model.songSeedResults.count, 2)
-      XCTAssertEqual(model.songSeedResults[0].spotifyId, "spotify-1")
-      XCTAssertEqual(model.songSeedResults[1].spotifyId, "spotify-2")
+      XCTAssertEqual(model.songRequestResults.count, 2)
+      XCTAssertEqual(model.songRequestResults[0].spotifyId, "spotify-1")
+      XCTAssertEqual(model.songRequestResults[1].spotifyId, "spotify-2")
     }
   }
 
-  func testPerformSearch_SearchesBothSourcesSimultaneously() async {
+  func testPerformSearchSearchesBothSourcesSimultaneously() async {
     let clock = TestClock()
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     var songsSearchCalled = false
-    var songSeedsSearchCalled = false
+    var songRequestsSearchCalled = false
 
     await withDependencies {
       $0.continuousClock = clock
+      $0.date = .constant(Date())
       $0.api.searchSongs = { _, _ in
         songsSearchCalled = true
         return []
       }
-      $0.api.searchSongSeeds = { _, _ in
-        songSeedsSearchCalled = true
+      $0.api.searchSongRequests = { _, _ in
+        songRequestsSearchCalled = true
         return []
       }
     } operation: {
@@ -284,52 +320,62 @@ final class SongSearchPageTests: XCTestCase {
       await clock.advance(by: .milliseconds(300))
 
       XCTAssertTrue(songsSearchCalled)
-      XCTAssertTrue(songSeedsSearchCalled)
+      XCTAssertTrue(songRequestsSearchCalled)
     }
   }
 
-  func testPerformSearch_ClearsSongSeedResultsWhenQueryIsEmpty() async {
+  func testPerformSearchClearsSongRequestResultsWhenQueryIsEmpty() async {
     let clock = TestClock()
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
       $0.continuousClock = clock
+      $0.date = .constant(Date())
       $0.api.searchSongs = { _, _ in [] }
-      $0.api.searchSongSeeds = { _, _ in [SongSeed.mockWith()] }
+      $0.api.searchSongRequests = { _, _ in [SongRequest.mockWith()] }
     } operation: {
       let model = SongSearchPageModel()
 
       model.searchText = "test"
       await clock.advance(by: .milliseconds(300))
-      XCTAssertEqual(model.songSeedResults.count, 1)
+      XCTAssertEqual(model.songRequestResults.count, 1)
 
       model.searchText = ""
       await clock.advance(by: .milliseconds(300))
-      XCTAssertTrue(model.songSeedResults.isEmpty)
+      XCTAssertTrue(model.songRequestResults.isEmpty)
     }
   }
 
-  func testOnRequestSongSeed_CallsOnSongSeedRequestedCallback() {
-    var requestedSongSeed: SongSeed?
-    let model = SongSearchPageModel()
-    let testSongSeed = SongSeed.mockWith(title: "Test Seed", spotifyId: "test-spotify-id")
-    model.onSongSeedRequested = { requestedSongSeed = $0 }
+  func testOnRequestSongCallsOnSongRequestedCallback() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    var requestedSongRequest: SongRequest?
 
-    model.onRequestSongSeed(testSongSeed)
+    await withDependencies {
+      $0.date = .constant(Date())
+      $0.api.requestSong = { _, _ in }
+    } operation: {
+      let model = SongSearchPageModel()
+      let testSongRequest = SongRequest.mockWith(
+        title: "Test Request", spotifyId: "test-spotify-id")
+      model.onSongRequested = { requestedSongRequest = $0 }
 
-    XCTAssertEqual(requestedSongSeed?.spotifyId, "test-spotify-id")
-    XCTAssertEqual(requestedSongSeed?.title, "Test Seed")
+      await model.onRequestSong(testSongRequest)
+
+      XCTAssertEqual(requestedSongRequest?.spotifyId, "test-spotify-id")
+      XCTAssertEqual(requestedSongRequest?.title, "Test Request")
+    }
   }
 
-  func testPerformSearch_SongSeedErrorDoesNotAffectSongResults() async {
+  func testPerformSearchSongRequestErrorDoesNotAffectSongResults() async {
     let clock = TestClock()
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockSongs = [AudioBlock.mockWith(id: "song-1")]
 
     await withDependencies {
       $0.continuousClock = clock
+      $0.date = .constant(Date())
       $0.api.searchSongs = { _, _ in mockSongs }
-      $0.api.searchSongSeeds = { _, _ in
+      $0.api.searchSongRequests = { _, _ in
         throw APIError.validationError("Spotify search failed")
       }
     } operation: {
@@ -339,7 +385,102 @@ final class SongSearchPageTests: XCTestCase {
       await clock.advance(by: .milliseconds(300))
 
       XCTAssertEqual(model.searchResults.count, 1)
-      XCTAssertTrue(model.songSeedResults.isEmpty)
+      XCTAssertTrue(model.songRequestResults.isEmpty)
+    }
+  }
+
+  // MARK: - SongRequest Status Tests
+
+  func testSongRequestWithNoRequestIdHasUnrequestedStatus() {
+    let songRequest = SongRequest.mockWith(requestId: nil)
+
+    XCTAssertEqual(songRequest.requestStatus, .unrequested)
+    XCTAssertFalse(songRequest.requestStatus.isRequested)
+    XCTAssertNil(songRequest.requestStatus.displayText)
+  }
+
+  func testSongRequestWithRequestIdAndCreatedAtHasRequestedStatus() {
+    let requestDate = Date(timeIntervalSince1970: 1_000_000)
+    let songRequest = SongRequest.mockWith(requestId: "request-123", createdAt: requestDate)
+
+    XCTAssertEqual(songRequest.requestStatus, .requested(requestDate))
+    XCTAssertTrue(songRequest.requestStatus.isRequested)
+    XCTAssertEqual(songRequest.requestStatus.requestedDate, requestDate)
+  }
+
+  func testSongRequestRequestedStatusDisplaysFormattedDate() {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone.current
+    let components = DateComponents(year: 2025, month: 9, day: 14)
+    let requestDate = calendar.date(from: components)!
+    let songRequest = SongRequest.mockWith(requestId: "request-123", createdAt: requestDate)
+
+    XCTAssertEqual(songRequest.requestStatus.displayText, "Requested 9/14")
+  }
+
+  func testOnRequestSongCallsAPIWithSpotifyId() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    var capturedSpotifyId: String?
+
+    await withDependencies {
+      $0.date = .constant(Date())
+      $0.api.requestSong = { _, spotifyId in
+        capturedSpotifyId = spotifyId
+      }
+    } operation: {
+      let model = SongSearchPageModel()
+      let testSongRequest = SongRequest.mockWith(spotifyId: "test-spotify-123")
+
+      await model.onRequestSong(testSongRequest)
+
+      XCTAssertEqual(capturedSpotifyId, "test-spotify-123")
+    }
+  }
+
+  func testOnRequestSongUpdatesSongRequestToRequested() async {
+    let clock = TestClock()
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let mockSongRequests = [
+      SongRequest.mockWith(title: "Song 1", spotifyId: "spotify-1"),
+      SongRequest.mockWith(title: "Song 2", spotifyId: "spotify-2"),
+    ]
+
+    await withDependencies {
+      $0.continuousClock = clock
+      $0.date = .constant(Date())
+      $0.api.searchSongs = { _, _ in [] }
+      $0.api.searchSongRequests = { _, _ in mockSongRequests }
+      $0.api.requestSong = { _, _ in }
+    } operation: {
+      let model = SongSearchPageModel()
+      model.searchText = "test"
+      await clock.advance(by: .milliseconds(300))
+
+      XCTAssertFalse(model.songRequestResults[0].requestStatus.isRequested)
+
+      await model.onRequestSong(model.songRequestResults[0])
+
+      XCTAssertTrue(model.songRequestResults[0].requestStatus.isRequested)
+    }
+  }
+
+  func testOnRequestSongShowsAlertOnError() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date = .constant(Date())
+      $0.api.requestSong = { _, _ in
+        throw APIError.validationError("Request failed")
+      }
+    } operation: {
+      let model = SongSearchPageModel()
+      let testSongRequest = SongRequest.mockWith(spotifyId: "test-spotify-123")
+
+      XCTAssertNil(model.presentedAlert)
+
+      await model.onRequestSong(testSongRequest)
+
+      XCTAssertNotNil(model.presentedAlert)
     }
   }
 }

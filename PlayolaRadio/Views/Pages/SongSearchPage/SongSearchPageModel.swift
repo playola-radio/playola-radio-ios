@@ -19,19 +19,20 @@ class SongSearchPageModel: ViewModel {
     }
   }
   var searchResults: [AudioBlock] = []
-  var songSeedResults: [SongSeed] = []
+  var songRequestResults: [SongRequest] = []
   var isSearching: Bool = false
   var presentedAlert: PlayolaAlert?
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.continuousClock) var clock
+  @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Shared(.auth) var auth
 
   @ObservationIgnored private var debounceTask: Task<Void, Never>?
 
   var onDismiss: (() -> Void)?
   var onSongSelected: ((AudioBlock) -> Void)?
-  var onSongSeedRequested: ((SongSeed) -> Void)?
+  var onSongRequested: ((SongRequest) -> Void)?
 
   override init() {
     super.init()
@@ -57,7 +58,7 @@ class SongSearchPageModel: ViewModel {
 
     guard !trimmedQuery.isEmpty else {
       searchResults = []
-      songSeedResults = []
+      songRequestResults = []
       isSearching = false
       return
     }
@@ -71,7 +72,7 @@ class SongSearchPageModel: ViewModel {
 
     await withTaskGroup(of: Void.self) { group in
       group.addTask { await self.searchSongs(jwt: jwt, query: trimmedQuery) }
-      group.addTask { await self.searchSongSeeds(jwt: jwt, query: trimmedQuery) }
+      group.addTask { await self.searchSongRequests(jwt: jwt, query: trimmedQuery) }
     }
 
     isSearching = false
@@ -88,15 +89,15 @@ class SongSearchPageModel: ViewModel {
     }
   }
 
-  private func searchSongSeeds(jwt: String, query: String) async {
+  private func searchSongRequests(jwt: String, query: String) async {
     do {
-      let results = try await api.searchSongSeeds(jwt, query)
+      let results = try await api.searchSongRequests(jwt, query)
       guard !Task.isCancelled else { return }
-      songSeedResults = results
+      songRequestResults = results
     } catch {
-      // Silently fail for song seeds - don't show error to user
+      // Silently fail for song requests - don't show error to user
       guard !Task.isCancelled else { return }
-      songSeedResults = []
+      songRequestResults = []
     }
   }
 
@@ -109,8 +110,40 @@ class SongSearchPageModel: ViewModel {
     onSongSelected?(audioBlock)
   }
 
-  func onRequestSongSeed(_ songSeed: SongSeed) {
-    onSongSeedRequested?(songSeed)
+  func onRequestSong(_ songRequest: SongRequest) async {
+    guard let jwt = auth.jwt else {
+      presentedAlert = .notAuthenticated
+      return
+    }
+
+    do {
+      try await api.requestSong(jwt, songRequest.spotifyId)
+      updateSongRequestToRequested(songRequest)
+      onSongRequested?(songRequest)
+    } catch {
+      presentedAlert = .songRequestError(error.localizedDescription)
+    }
+  }
+
+  private func updateSongRequestToRequested(_ songRequest: SongRequest) {
+    guard
+      let index = songRequestResults.firstIndex(where: { $0.spotifyId == songRequest.spotifyId })
+    else { return }
+
+    let updatedSongRequest = SongRequest.mockWith(
+      requestId: UUID().uuidString,
+      title: songRequest.title,
+      artist: songRequest.artist,
+      album: songRequest.album,
+      durationMS: songRequest.durationMS,
+      popularity: songRequest.popularity,
+      releaseDate: songRequest.releaseDate,
+      isrc: songRequest.isrc,
+      spotifyId: songRequest.spotifyId,
+      imageUrl: songRequest.imageUrl,
+      createdAt: now
+    )
+    songRequestResults[index] = updatedSongRequest
   }
 }
 
@@ -126,6 +159,14 @@ extension PlayolaAlert {
   static func searchError(_ message: String) -> PlayolaAlert {
     PlayolaAlert(
       title: "Search Error",
+      message: message,
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static func songRequestError(_ message: String) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Request Failed",
       message: message,
       dismissButton: .cancel(Text("OK"))
     )

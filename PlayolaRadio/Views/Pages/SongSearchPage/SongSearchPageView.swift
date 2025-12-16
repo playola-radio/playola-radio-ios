@@ -13,7 +13,7 @@ struct SongSearchPageView: View {
   @Bindable var model: SongSearchPageModel
 
   private var hasResults: Bool {
-    !model.searchResults.isEmpty || !model.songSeedResults.isEmpty
+    !model.searchResults.isEmpty || !model.songRequestResults.isEmpty
   }
 
   var body: some View {
@@ -71,12 +71,14 @@ struct SongSearchPageView: View {
               }
             }
 
-            // Spotify song seed results
-            if !model.songSeedResults.isEmpty {
+            // Song request results
+            if !model.songRequestResults.isEmpty {
               Section {
-                ForEach(model.songSeedResults, id: \.id) { songSeed in
-                  SongSeedResultRow(songSeed: songSeed) {
-                    model.onRequestSongSeed(songSeed)
+                ForEach(model.songRequestResults, id: \.id) { songRequest in
+                  SongRequestResultRow(songRequest: songRequest) {
+                    Task {
+                      await model.onRequestSong(songRequest)
+                    }
                   }
                   .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                   .listRowSeparator(.hidden)
@@ -178,13 +180,13 @@ struct SongSearchResultRow: View {
   }
 }
 
-struct SongSeedResultRow: View {
-  let songSeed: SongSeed
+struct SongRequestResultRow: View {
+  let songRequest: SongRequest
   let onRequest: () -> Void
 
   var body: some View {
     HStack(spacing: 12) {
-      if let imageUrl = songSeed.imageUrl {
+      if let imageUrl = songRequest.imageUrl {
         WebImage(url: imageUrl)
           .resizable()
           .aspectRatio(contentMode: .fill)
@@ -201,12 +203,12 @@ struct SongSeedResultRow: View {
       }
 
       VStack(alignment: .leading, spacing: 2) {
-        Text(songSeed.title)
+        Text(songRequest.title)
           .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
           .foregroundColor(.white)
           .lineLimit(1)
 
-        Text(songSeed.artist)
+        Text(songRequest.artist)
           .font(.custom(FontNames.Inter_400_Regular, size: 12))
           .foregroundColor(.playolaGray)
           .lineLimit(1)
@@ -214,14 +216,20 @@ struct SongSeedResultRow: View {
 
       Spacer()
 
-      Button(action: onRequest) {
-        Text("REQUEST")
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
-          .foregroundColor(.white)
-          .padding(.horizontal, 12)
-          .padding(.vertical, 6)
-          .background(Color.playolaRed)
-          .cornerRadius(4)
+      if let displayText = songRequest.requestStatus.displayText {
+        Text(displayText)
+          .font(.custom(FontNames.Inter_400_Regular, size: 12))
+          .foregroundColor(.playolaGray)
+      } else {
+        Button(action: onRequest) {
+          Text("REQUEST")
+            .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
+            .foregroundColor(.white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color.playolaRed)
+            .cornerRadius(4)
+        }
       }
     }
     .padding(.horizontal, 12)

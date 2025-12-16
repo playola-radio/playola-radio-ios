@@ -240,16 +240,23 @@ struct APIClient: Sendable {
     []
   }
 
-  /// Searches for song seeds (Spotify results) by keywords
+  /// Searches for song requests by keywords
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
   ///   - keywords: The search keywords
-  /// - Returns: Array of SongSeeds matching the search
+  /// - Returns: Array of SongRequests matching the search
   /// - Throws: APIError if the request fails
-  var searchSongSeeds: (_ jwtToken: String, _ keywords: String) async throws -> [SongSeed] = {
+  var searchSongRequests: (_ jwtToken: String, _ keywords: String) async throws -> [SongRequest] = {
     _, _ in
     []
   }
+
+  /// Requests a song to be added to the library
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - spotifyId: The Spotify ID of the song to request
+  /// - Throws: APIError if the request fails
+  var requestSong: (_ jwtToken: String, _ spotifyId: String) async throws -> Void = { _, _ in }
 }
 
 extension APIClient: DependencyKey {
@@ -821,7 +828,7 @@ extension APIClient: DependencyKey {
 
         return response
       },
-      searchSongSeeds: { jwtToken, keywords in
+      searchSongRequests: { jwtToken, keywords in
         let encodedKeywords =
           keywords.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? keywords
         let url =
@@ -830,10 +837,26 @@ extension APIClient: DependencyKey {
 
         let response = try await AF.request(url, headers: headers)
           .validate(statusCode: 200..<300)
-          .serializingDecodable([SongSeed].self, decoder: isoDecoder)
+          .serializingDecodable([SongRequest].self, decoder: isoDecoder)
           .value
 
         return response
+      },
+      requestSong: { jwtToken, spotifyId in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/songs/requests"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters = ["spotifyId": spotifyId]
+
+        _ = try await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingData()
+        .value
       }
     )
   }()
