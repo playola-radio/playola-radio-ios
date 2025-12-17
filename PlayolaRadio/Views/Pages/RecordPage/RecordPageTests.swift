@@ -67,11 +67,18 @@ final class RecordPageTests: XCTestCase {
 
   // MARK: - Recording
 
-  func testOnRecordTapped_StartsRecordingAndChangesPhase() async {
+  func testOnRecordTappedRequestsPermissionBeforeRecording() async {
+    var requestPermissionCalled = false
     var startRecordingCalled = false
 
     await withDependencies {
+      $0.audioRecorder.requestPermission = {
+        requestPermissionCalled = true
+        return true
+      }
       $0.audioRecorder.startRecording = {
+        XCTAssertTrue(
+          requestPermissionCalled, "Permission should be requested before recording starts")
         startRecordingCalled = true
       }
     } operation: {
@@ -80,13 +87,35 @@ final class RecordPageTests: XCTestCase {
 
       await model.onRecordTapped()
 
+      XCTAssertTrue(requestPermissionCalled)
       XCTAssertTrue(startRecordingCalled)
       XCTAssertEqual(model.recordingPhase, .recording)
     }
   }
 
+  func testOnRecordTappedDoesNotRecordWhenPermissionDenied() async {
+    var startRecordingCalled = false
+
+    await withDependencies {
+      $0.audioRecorder.requestPermission = { false }
+      $0.audioRecorder.startRecording = {
+        startRecordingCalled = true
+      }
+    } operation: {
+      let model = RecordPageModel()
+
+      await model.onRecordTapped()
+
+      XCTAssertFalse(startRecordingCalled, "Recording should not start when permission is denied")
+      XCTAssertEqual(model.recordingPhase, .idle)
+      XCTAssertNotNil(model.presentedAlert)
+      XCTAssertEqual(model.presentedAlert?.title, "Microphone Access Required")
+    }
+  }
+
   func testOnRecordTapped_ShowsAlertOnError() async {
     await withDependencies {
+      $0.audioRecorder.requestPermission = { true }
       $0.audioRecorder.startRecording = {
         throw AudioRecorderError.permissionDenied
       }
