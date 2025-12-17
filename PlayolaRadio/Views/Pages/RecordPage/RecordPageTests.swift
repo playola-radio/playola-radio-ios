@@ -67,7 +67,7 @@ final class RecordPageTests: XCTestCase {
 
   // MARK: - Recording
 
-  func testOnRecordTapped_RequestsPermissionBeforeRecording() async {
+  func testOnRecordTappedRequestsPermissionBeforeRecording() async {
     var requestPermissionCalled = false
     var startRecordingCalled = false
 
@@ -93,7 +93,7 @@ final class RecordPageTests: XCTestCase {
     }
   }
 
-  func testOnRecordTapped_DoesNotRecordWhenPermissionDenied() async {
+  func testOnRecordTappedDoesNotRecordWhenPermissionDenied() async {
     var startRecordingCalled = false
 
     await withDependencies {
