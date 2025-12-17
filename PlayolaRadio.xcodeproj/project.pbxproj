@@ -138,6 +138,9 @@
 		D317C0CF2EF200D100DBC82E /* VoicetrackUploadServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D317C0CE2EF200D100DBC82E /* VoicetrackUploadServiceTests.swift */; };
 		D317C0D12EF2027000DBC82E /* VoicetrackStatusResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D317C0D02EF2027000DBC82E /* VoicetrackStatusResponse.swift */; };
 		D317C0D22EF2027000DBC82E /* VoicetrackStatusResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D317C0D02EF2027000DBC82E /* VoicetrackStatusResponse.swift */; };
+		D317C0D62EF33DB000DBC82E /* PushNotificationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D317C0D32EF33DA600DBC82E /* PushNotificationsTests.swift */; };
+		D317C0D82EF3500B00DBC82E /* APIClient+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = D317C0D72EF3500500DBC82E /* APIClient+Live.swift */; };
+		D317C0D92EF3500B00DBC82E /* APIClient+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = D317C0D72EF3500500DBC82E /* APIClient+Live.swift */; };
 		D31C43A82D3C19640021AAE4 /* StationPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */; };
 		D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31C43A92D3C390C0021AAE4 /* StationPlayerMock.swift */; };
 		D31C43D42D3C783B0021AAE4 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D31C43D32D3C783B0021AAE4 /* PlayolaPlayer */; };
@@ -344,6 +347,8 @@
 		D3137DD32D3AC9B40070033A /* EnumTypeEquatableProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnumTypeEquatableProtocol.swift; sourceTree = "<group>"; };
 		D317C0CE2EF200D100DBC82E /* VoicetrackUploadServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicetrackUploadServiceTests.swift; sourceTree = "<group>"; };
 		D317C0D02EF2027000DBC82E /* VoicetrackStatusResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicetrackStatusResponse.swift; sourceTree = "<group>"; };
+		D317C0D32EF33DA600DBC82E /* PushNotificationsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationsTests.swift; sourceTree = "<group>"; };
+		D317C0D72EF3500500DBC82E /* APIClient+Live.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "APIClient+Live.swift"; sourceTree = "<group>"; };
 		D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayer.swift; sourceTree = "<group>"; };
 		D31C43A92D3C390C0021AAE4 /* StationPlayerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerMock.swift; sourceTree = "<group>"; };
 		D31CD5222DFBA1EC009B9780 /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
@@ -872,6 +877,7 @@
 		D378CCD32E58C3B100497A4A /* API */ = {
 			isa = PBXGroup;
 			children = (
+				D317C0D72EF3500500DBC82E /* APIClient+Live.swift */,
 				D339E5682BFD1C0800B9E35B /* APIClient.swift */,
 			);
 			path = API;
@@ -934,6 +940,7 @@
 		D37B74852EC9441C009806C6 /* PushNotifications */ = {
 			isa = PBXGroup;
 			children = (
+				D317C0D32EF33DA600DBC82E /* PushNotificationsTests.swift */,
 				D37B74862EC94426009806C6 /* PushNotifications.swift */,
 			);
 			path = PushNotifications;
@@ -1323,6 +1330,7 @@
 			files = (
 				D37B74932ECA3A61009806C6 /* ScheduledShowTileModel.swift in Sources */,
 				D30F004A2E8592F0007BCC73 /* UrlStreamListeningSessionReporter.swift in Sources */,
+				D317C0D92EF3500B00DBC82E /* APIClient+Live.swift in Sources */,
 				D366BA032E96E2A600A0E08C /* ScheduledShow.swift in Sources */,
 				D30F004B2E8592F0007BCC73 /* HomePageView.swift in Sources */,
 				D30F00BA2E87194D007BCC73 /* StationListStationRowModel.swift in Sources */,
@@ -1434,6 +1442,7 @@
 			files = (
 				D37B74922ECA3A61009806C6 /* ScheduledShowTileModel.swift in Sources */,
 				D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */,
+				D317C0D82EF3500B00DBC82E /* APIClient+Live.swift in Sources */,
 				D366BA042E96E2A600A0E08C /* ScheduledShow.swift in Sources */,
 				D37257B02DF88BB7001BC6F9 /* HomePageView.swift in Sources */,
 				D30F00BB2E87194D007BCC73 /* StationListStationRowModel.swift in Sources */,
@@ -1559,6 +1568,7 @@
 				D37786EA2EAD4AE80084B8B8 /* ScheduledShowsListTests.swift in Sources */,
 				D3F493C02EEDD2D2008ED463 /* RecordPageTests.swift in Sources */,
 				D3A08A352E4E6F66002468E0 /* NowPlayingUpdaterTests.swift in Sources */,
+				D317C0D62EF33DB000DBC82E /* PushNotificationsTests.swift in Sources */,
 				D317C0CF2EF200D100DBC82E /* VoicetrackUploadServiceTests.swift in Sources */,
 				D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */,
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,

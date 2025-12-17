@@ -111,4 +111,12 @@ extension PlayolaAlert {
       message: "There was an error scheduling your notification. Please try again.",
       dismissButton: .cancel(Text("OK")))
   }
+
+  static var notificationPermissionPrompt: PlayolaAlert {
+    PlayolaAlert(
+      title: "Stay in the Loop?",
+      message: "Get notified when your favorite artists go live!",
+      dismissButton: .default(Text("Yes")),
+      secondaryButton: .cancel(Text("No Thanks")))
+  }
 }

@@ -8,6 +8,8 @@
 import Dependencies
 import DependenciesMacros
 import Foundation
+import Sharing
+import UIKit
 import UserNotifications
 
 @DependencyClient
@@ -34,10 +36,21 @@ struct PushNotificationsClient: Sendable {
 
   /// Cancel all pending notifications
   var cancelAllNotifications: @Sendable () async -> Void
+
+  /// Register for remote notifications with APNs
+  var registerForRemoteNotifications: @Sendable () async -> Void
+
+  /// Handle device token received from APNs and register with server
+  /// - Parameter deviceToken: The raw device token data from APNs
+  var handleDeviceToken: @Sendable (_ deviceToken: Data) async -> Void
 }
 
 extension PushNotificationsClient: DependencyKey {
   static let liveValue: Self = {
+    @Dependency(\.api) var api
+    @Shared(.auth) var auth
+    @Shared(.registeredDeviceId) var registeredDeviceId
+
     return Self(
       scheduleNotification: { identifier, title, body, date in
         let content = UNMutableNotificationContent()
@@ -71,6 +84,29 @@ extension PushNotificationsClient: DependencyKey {
       },
       cancelAllNotifications: {
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+      },
+      registerForRemoteNotifications: {
+        await MainActor.run {
+          UIApplication.shared.registerForRemoteNotifications()
+        }
+      },
+      handleDeviceToken: { deviceToken in
+        let hexToken = deviceToken.map { String(format: "%02x", $0) }.joined()
+        let appVersion =
+          Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+
+        guard let jwt = auth.jwt else {
+          return
+        }
+
+        do {
+          let device = try await api.registerDevice(jwt, hexToken, "ios", appVersion)
+          await MainActor.run {
+            $registeredDeviceId.withLock { $0 = device.id }
+          }
+        } catch {
+          print("Failed to register device: \(error)")
+        }
       }
     )
   }()

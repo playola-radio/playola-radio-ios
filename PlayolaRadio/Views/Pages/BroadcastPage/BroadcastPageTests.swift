@@ -945,6 +945,302 @@ extension BroadcastPageTests {
   }
 }
 
+// MARK: - Notify Listeners Tests
+
+extension BroadcastPageTests {
+  func testOnNotifyListenersTappedShowsSheet() {
+    let model = BroadcastPageModel(stationId: testStationId)
+
+    XCTAssertFalse(model.showNotifyListenersSheet)
+
+    model.onNotifyListenersTapped()
+
+    XCTAssertTrue(model.showNotifyListenersSheet)
+  }
+
+  func testCancelNotifyListenersDismissesSheet() {
+    let model = BroadcastPageModel(stationId: testStationId)
+    model.showNotifyListenersSheet = true
+    model.notifyMessage = "Some message"
+
+    model.cancelNotifyListeners()
+
+    XCTAssertFalse(model.showNotifyListenersSheet)
+    XCTAssertEqual(model.notifyMessage, "")
+  }
+
+  func testSendNotificationCallsAPIWithMessage() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    var capturedStationId: String?
+    var capturedMessage: String?
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.sendStationNotification = { _, stationId, message in
+        capturedStationId = stationId
+        capturedMessage = message
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      model.notifyMessage = "I'm going live from the van!"
+
+      await model.sendNotification()
+
+      XCTAssertEqual(capturedStationId, testStationId)
+      XCTAssertEqual(capturedMessage, "I'm going live from the van!")
+    }
+  }
+
+  func testSendNotificationDismissesSheetAndClearsMessage() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.sendStationNotification = { _, _, _ in }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      model.showNotifyListenersSheet = true
+      model.notifyMessage = "Test message"
+
+      await model.sendNotification()
+
+      XCTAssertFalse(model.showNotifyListenersSheet)
+      XCTAssertEqual(model.notifyMessage, "")
+    }
+  }
+
+  func testSendNotificationUpdatesLastSentTime() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [:]
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.sendStationNotification = { _, _, _ in }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      model.notifyMessage = "Test"
+
+      await model.sendNotification()
+
+      XCTAssertEqual(lastSent[testStationId], fixedNow)
+    }
+  }
+
+  func testCanSendNotificationReturnsTrueWhenNeverSent() {
+    @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [:]
+
+    withDependencies {
+      $0.date.now = fixedNow
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+
+      XCTAssertTrue(model.canSendNotification)
+    }
+  }
+
+  func testCanSendNotificationReturnsFalseWithin12Hours() {
+    let elevenHoursAgo = fixedNow.addingTimeInterval(-11 * 60 * 60)
+    @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [testStationId: elevenHoursAgo]
+
+    withDependencies {
+      $0.date.now = fixedNow
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+
+      XCTAssertFalse(model.canSendNotification)
+    }
+  }
+
+  func testCanSendNotificationReturnsTrueAfter12Hours() {
+    let thirteenHoursAgo = fixedNow.addingTimeInterval(-13 * 60 * 60)
+    @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [
+      testStationId: thirteenHoursAgo
+    ]
+
+    withDependencies {
+      $0.date.now = fixedNow
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+
+      XCTAssertTrue(model.canSendNotification)
+    }
+  }
+
+  func testTimeUntilNextNotificationReturnsNilWhenCanSend() {
+    @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [:]
+
+    withDependencies {
+      $0.date.now = fixedNow
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+
+      XCTAssertNil(model.timeUntilNextNotification)
+    }
+  }
+
+  func testTimeUntilNextNotificationReturnsRemainingTime() {
+    let elevenHoursAgo = fixedNow.addingTimeInterval(-11 * 60 * 60)
+    @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [testStationId: elevenHoursAgo]
+
+    withDependencies {
+      $0.date.now = fixedNow
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+
+      // Should be approximately 1 hour (3600 seconds) remaining
+      XCTAssertNotNil(model.timeUntilNextNotification)
+      XCTAssertEqual(model.timeUntilNextNotification!, 3600, accuracy: 1)
+    }
+  }
+
+  func testSendNotificationShowsErrorAlertOnFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.sendStationNotification = { _, _, _ in
+        throw TestError.networkError
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      model.notifyMessage = "Test"
+
+      XCTAssertNil(model.presentedAlert)
+
+      await model.sendNotification()
+
+      XCTAssertNotNil(model.presentedAlert)
+      XCTAssertEqual(model.presentedAlert?.title, "Error")
+    }
+  }
+
+  func testSendNotificationDoesNotUpdateLastSentOnFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [:]
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.sendStationNotification = { _, _, _ in
+        throw TestError.networkError
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      model.notifyMessage = "Test"
+
+      await model.sendNotification()
+
+      XCTAssertNil(lastSent[testStationId])
+    }
+  }
+
+  func testSendNotificationDoesNothingWhenMessageIsEmpty() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    var apiWasCalled = false
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.sendStationNotification = { _, _, _ in
+        apiWasCalled = true
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      model.showNotifyListenersSheet = true
+      model.notifyMessage = ""
+
+      await model.sendNotification()
+
+      XCTAssertFalse(apiWasCalled)
+      XCTAssertTrue(model.showNotifyListenersSheet)
+    }
+  }
+
+  func testSendNotificationDoesNothingWhenMessageIsWhitespaceOnly() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    var apiWasCalled = false
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.sendStationNotification = { _, _, _ in
+        apiWasCalled = true
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      model.showNotifyListenersSheet = true
+      model.notifyMessage = "   \n\t  "
+
+      await model.sendNotification()
+
+      XCTAssertFalse(apiWasCalled)
+      XCTAssertTrue(model.showNotifyListenersSheet)
+    }
+  }
+
+  func testNotificationRestTimeRemainingStringReturnsNilWhenCanSend() {
+    @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [:]
+
+    withDependencies {
+      $0.date.now = fixedNow
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+
+      XCTAssertNil(model.notificationRestTimeRemainingString)
+    }
+  }
+
+  func testNotificationRestTimeRemainingStringShowsHoursAndMinutes() {
+    let elevenHoursAgo = fixedNow.addingTimeInterval(-11 * 60 * 60)
+    @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [testStationId: elevenHoursAgo]
+
+    withDependencies {
+      $0.date.now = fixedNow
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+
+      XCTAssertEqual(model.notificationRestTimeRemainingString, "1h 0m")
+    }
+  }
+
+  func testNotificationRestTimeRemainingStringShowsOnlyMinutesWhenUnderOneHour() {
+    let elevenAndAHalfHoursAgo = fixedNow.addingTimeInterval(-11.5 * 60 * 60)
+    @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [
+      testStationId: elevenAndAHalfHoursAgo
+    ]
+
+    withDependencies {
+      $0.date.now = fixedNow
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+
+      XCTAssertEqual(model.notificationRestTimeRemainingString, "30m")
+    }
+  }
+
+  func testIsSendingNotificationTracksLoadingState() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    nonisolated(unsafe) var model: BroadcastPageModel!
+    nonisolated(unsafe) var capturedIsSending = false
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.sendStationNotification = { _, _, _ in
+        await MainActor.run {
+          capturedIsSending = model.isSendingNotification
+        }
+      }
+    } operation: {
+      model = BroadcastPageModel(stationId: testStationId)
+      model.notifyMessage = "Test"
+
+      XCTAssertFalse(model.isSendingNotification)
+
+      await model.sendNotification()
+
+      XCTAssertTrue(capturedIsSending)
+      XCTAssertFalse(model.isSendingNotification)
+    }
+  }
+}
+
 // MARK: - Voicetrack Upload Tests
 
 extension BroadcastPageTests {

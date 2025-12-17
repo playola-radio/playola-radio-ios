@@ -21,58 +21,28 @@ struct BroadcastPageView: View {
 
       VStack(spacing: 0) {
         // Action Buttons
-        HStack {
+        HStack(spacing: 0) {
           Spacer()
 
-          VStack(spacing: 8) {
-            Button {
-              model.onAddVoiceTrackTapped()
-            } label: {
-              ZStack {
-                Circle()
-                  .fill(Color.playolaRed)
-                  .frame(width: 100, height: 100)
-                  .overlay(
-                    Circle()
-                      .stroke(Color.white, lineWidth: 4)
-                  )
-                Image("BroadcastMicIcon")
-                  .resizable()
-                  .renderingMode(.template)
-                  .foregroundColor(.white)
-                  .frame(width: 40, height: 50)
-              }
-            }
-            Text("Add a VoiceTrack")
-              .font(.custom(FontNames.Inter_400_Regular, size: 12))
-              .foregroundColor(.white)
-          }
+          BroadcastActionButton(
+            icon: .asset("BroadcastMicIcon", width: 32, height: 40),
+            label: "VoiceTrack",
+            action: model.onAddVoiceTrackTapped
+          )
 
-          Spacer()
+          BroadcastActionButton(
+            icon: .asset("BroadcastAddSongIcon", width: 40, height: 40),
+            label: "Add Song",
+            action: model.onAddSongTapped
+          )
 
-          VStack(spacing: 8) {
-            Button {
-              model.onAddSongTapped()
-            } label: {
-              ZStack {
-                Circle()
-                  .fill(Color.playolaRed)
-                  .frame(width: 100, height: 100)
-                  .overlay(
-                    Circle()
-                      .stroke(Color.white, lineWidth: 4)
-                  )
-                Image("BroadcastAddSongIcon")
-                  .resizable()
-                  .renderingMode(.template)
-                  .foregroundColor(.white)
-                  .frame(width: 50, height: 50)
-              }
-            }
-            Text("Add a Song")
-              .font(.custom(FontNames.Inter_400_Regular, size: 12))
-              .foregroundColor(.white)
-          }
+          BroadcastActionButton(
+            icon: .system("bell.fill"),
+            label: "Notify",
+            isEnabled: model.canSendNotification,
+            sublabel: model.notificationRestTimeRemainingString,
+            action: model.onNotifyListenersTapped
+          )
 
           Spacer()
         }
@@ -176,6 +146,9 @@ struct BroadcastPageView: View {
       await model.viewAppeared()
     }
     .alert(item: $model.presentedAlert) { $0.alert }
+    .sheet(isPresented: $model.showNotifyListenersSheet) {
+      NotifyListenersSheet(model: model)
+    }
   }
 
   // MARK: - Staging Section
@@ -399,6 +372,175 @@ struct ScheduleRowView: View {
       .padding(.vertical, 8)
     }
     .background(rowBackgroundColor)
+  }
+}
+
+// MARK: - Notify Listeners Sheet
+
+struct NotifyListenersSheet: View {
+  @Bindable var model: BroadcastPageModel
+  @FocusState private var isTextFieldFocused: Bool
+
+  private let placeholderText = """
+    Tell your listeners what you're up to...
+
+    "I'm going live from the van!"
+    "Playing my favorite road songs today"
+    """
+
+  var body: some View {
+    NavigationStack {
+      ZStack {
+        Color.black.ignoresSafeArea()
+
+        VStack(spacing: 20) {
+          Text("Tell your listeners you're about to go live.")
+            .font(.custom(FontNames.Inter_400_Regular, size: 14))
+            .foregroundColor(.playolaGray)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal)
+
+          ZStack(alignment: .topLeading) {
+            if model.notifyMessage.isEmpty {
+              Text(placeholderText)
+                .font(.custom(FontNames.Inter_400_Regular, size: 16))
+                .foregroundColor(Color(hex: "#666666"))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 12)
+            }
+
+            TextEditor(text: $model.notifyMessage)
+              .font(.custom(FontNames.Inter_400_Regular, size: 16))
+              .foregroundColor(.white)
+              .scrollContentBackground(.hidden)
+              .padding(8)
+              .focused($isTextFieldFocused)
+          }
+          .frame(height: 150)
+          .background(Color(hex: "#1A1A1A"))
+          .cornerRadius(8)
+          .overlay(
+            RoundedRectangle(cornerRadius: 8)
+              .stroke(Color(hex: "#333333"), lineWidth: 1)
+          )
+          .padding(.horizontal)
+
+          Spacer()
+
+          Button {
+            Task {
+              await model.sendNotification()
+            }
+          } label: {
+            if model.isSendingNotification {
+              ProgressView()
+                .tint(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+            } else {
+              Text("Send Notification")
+                .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+            }
+          }
+          .background(
+            model.notifyMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              ? Color(hex: "#666666")
+              : Color.playolaRed
+          )
+          .cornerRadius(8)
+          .disabled(
+            model.notifyMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              || model.isSendingNotification
+          )
+          .padding(.horizontal)
+          .padding(.bottom)
+        }
+        .padding(.top, 20)
+      }
+      .navigationTitle("Notify Listeners")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbarBackground(.visible, for: .navigationBar)
+      .toolbarBackground(Color.black, for: .navigationBar)
+      .toolbarColorScheme(.dark, for: .navigationBar)
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Cancel") {
+            model.cancelNotifyListeners()
+          }
+          .foregroundColor(.white)
+        }
+      }
+    }
+    .presentationDetents([.medium])
+    .onAppear {
+      isTextFieldFocused = true
+    }
+    .alert(item: $model.presentedAlert) { $0.alert }
+  }
+}
+
+// MARK: - Broadcast Action Button
+
+struct BroadcastActionButton: View {
+  enum IconType {
+    case asset(String, width: CGFloat, height: CGFloat)
+    case system(String)
+  }
+
+  let icon: IconType
+  let label: String
+  var isEnabled: Bool = true
+  var sublabel: String?
+  let action: () -> Void
+
+  private var fillColor: Color {
+    isEnabled ? .playolaRed : Color(hex: "#666666")
+  }
+
+  private var strokeColor: Color {
+    isEnabled ? .white : Color(hex: "#888888")
+  }
+
+  private var iconColor: Color {
+    isEnabled ? .white : Color(hex: "#AAAAAA")
+  }
+
+  var body: some View {
+    VStack(spacing: 8) {
+      Button(action: action) {
+        ZStack {
+          Circle()
+            .fill(fillColor)
+            .frame(width: 80, height: 80)
+            .overlay(
+              Circle()
+                .stroke(strokeColor, lineWidth: 3)
+            )
+
+          switch icon {
+          case .asset(let name, let width, let height):
+            Image(name)
+              .resizable()
+              .renderingMode(.template)
+              .foregroundColor(iconColor)
+              .frame(width: width, height: height)
+          case .system(let name):
+            Image(systemName: name)
+              .font(.system(size: 32))
+              .foregroundColor(iconColor)
+          }
+        }
+      }
+      .disabled(!isEnabled)
+
+      Text(sublabel ?? label)
+        .font(.custom(FontNames.Inter_400_Regular, size: 11))
+        .foregroundColor(sublabel != nil ? .playolaGray : (isEnabled ? .white : .playolaGray))
+    }
+    .frame(maxWidth: .infinity)
   }
 }
 

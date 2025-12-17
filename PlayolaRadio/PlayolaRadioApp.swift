@@ -11,9 +11,32 @@ import GoogleSignInSwift
 import SDWebImage
 import SDWebImageSVGCoder
 import SwiftUI
+import UIKit
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+  @Dependency(\.pushNotifications) var pushNotifications
+
+  func application(
+    _ application: UIApplication,
+    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+  ) {
+    Task {
+      await pushNotifications.handleDeviceToken(deviceToken)
+    }
+  }
+
+  func application(
+    _ application: UIApplication,
+    didFailToRegisterForRemoteNotificationsWithError error: Error
+  ) {
+    print("Failed to register for remote notifications: \(error)")
+  }
+}
 
 @main
 struct PlayolaRadioApp: App {
+  @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
   init() {
     // Register SVG coder for SDWebImage
     SDImageCodersManager.shared.addCoder(SDImageSVGCoder.shared)

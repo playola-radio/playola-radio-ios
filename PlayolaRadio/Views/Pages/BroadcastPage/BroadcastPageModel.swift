@@ -33,15 +33,45 @@ class BroadcastPageModel: ViewModel {
   private var reorderedSpinIds: [String]?  // nil means use default order
   var stagingItems: [any StagingItem] = []
 
+  // Notify Listeners state
+  var showNotifyListenersSheet: Bool = false
+  var notifyMessage: String = ""
+  var isSendingNotification: Bool = false
+
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
+  @ObservationIgnored @Shared(.lastNotificationSentAt) var lastNotificationSentAt
 
   var recordPageModel: RecordPageModel?
   var songSearchPageModel: SongSearchPageModel?
+
+  private let notificationCooldownSeconds: TimeInterval = 12 * 60 * 60
+
+  var canSendNotification: Bool {
+    guard let lastSent = lastNotificationSentAt[stationId] else { return true }
+    return now.timeIntervalSince(lastSent) >= notificationCooldownSeconds
+  }
+
+  var timeUntilNextNotification: TimeInterval? {
+    guard let lastSent = lastNotificationSentAt[stationId] else { return nil }
+    let elapsed = now.timeIntervalSince(lastSent)
+    let remaining = notificationCooldownSeconds - elapsed
+    return remaining > 0 ? remaining : nil
+  }
+
+  var notificationRestTimeRemainingString: String? {
+    guard let seconds = timeUntilNextNotification else { return nil }
+    let hours = Int(seconds) / 3600
+    let minutes = (Int(seconds) % 3600) / 60
+    if hours > 0 {
+      return "\(hours)h \(minutes)m"
+    }
+    return "\(minutes)m"
+  }
 
   var navigationTitle: String {
     providedStationName ?? fetchedStationName ?? "My Station"
@@ -208,6 +238,32 @@ class BroadcastPageModel: ViewModel {
   func addSongToStaging(_ audioBlock: AudioBlock) {
     guard !stagingItems.contains(where: { $0.stagingId == audioBlock.id }) else { return }
     stagingItems.append(audioBlock)
+  }
+
+  func onNotifyListenersTapped() {
+    showNotifyListenersSheet = true
+  }
+
+  func cancelNotifyListeners() {
+    showNotifyListenersSheet = false
+    notifyMessage = ""
+  }
+
+  func sendNotification() async {
+    guard let jwt = auth.jwt else { return }
+    guard !notifyMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+
+    isSendingNotification = true
+    defer { isSendingNotification = false }
+
+    do {
+      try await api.sendStationNotification(jwt, stationId, notifyMessage)
+      $lastNotificationSentAt.withLock { $0[stationId] = now }
+      showNotifyListenersSheet = false
+      notifyMessage = ""
+    } catch {
+      presentedAlert = .notificationSendFailed(error.localizedDescription)
+    }
   }
 
   func insertStagingItem(stagingId: String, beforeSpinId: String) async {
@@ -415,6 +471,14 @@ extension PlayolaAlert {
   static func voicetrackUploadFailed(_ message: String) -> PlayolaAlert {
     PlayolaAlert(
       title: "Upload Failed",
+      message: message,
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static func notificationSendFailed(_ message: String) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Error",
       message: message,
       dismissButton: .cancel(Text("OK"))
     )

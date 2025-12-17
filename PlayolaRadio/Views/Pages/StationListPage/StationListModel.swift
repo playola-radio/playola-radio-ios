@@ -23,7 +23,10 @@ class StationListModel: ViewModel {
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
   @ObservationIgnored @Shared(.scheduledShows) var scheduledShows:
     IdentifiedArrayOf<ScheduledShow> = []
+  @ObservationIgnored @Shared(.hasAskedForNotificationPermission)
+  var hasAskedForNotificationPermission: Bool
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
 
   @ObservationIgnored var stationPlayer: StationPlayer
 
@@ -54,6 +57,29 @@ class StationListModel: ViewModel {
         self?.loadStationListsForDisplay(lists)
       }
       .store(in: &cancellables)
+
+    if !hasAskedForNotificationPermission {
+      presentedAlert = .notificationPermissionPrompt
+    }
+  }
+
+  func notificationAlertYesTapped() async {
+    $hasAskedForNotificationPermission.withLock { $0 = true }
+    presentedAlert = nil
+
+    do {
+      let granted = try await pushNotifications.requestAuthorization()
+      if granted {
+        await pushNotifications.registerForRemoteNotifications()
+      }
+    } catch {
+      print("Failed to request notification authorization: \(error)")
+    }
+  }
+
+  func notificationAlertNoTapped() async {
+    $hasAskedForNotificationPermission.withLock { $0 = true }
+    presentedAlert = nil
   }
 
   private func loadStationListsForDisplay(_ rawList: IdentifiedArrayOf<StationList>) {
