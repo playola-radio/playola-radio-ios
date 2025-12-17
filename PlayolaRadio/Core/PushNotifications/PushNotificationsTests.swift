@@ -81,4 +81,58 @@ final class PushNotificationsTests: XCTestCase {
     XCTAssertEqual(capturedPlatform, "ios")
     XCTAssertEqual(capturedAppVersion, "1.0.0")
   }
+
+  // MARK: - Notification Payload Parsing
+
+  func testParseNotificationPayloadExtractsStationId() {
+    let userInfo: [AnyHashable: Any] = [
+      "aps": [
+        "alert": [
+          "title": "Brian's Station",
+          "body": "I'm going live!",
+        ],
+        "sound": "default",
+      ],
+      "stationId": "test-station-123",
+    ]
+
+    let stationId = NotificationPayload.stationId(from: userInfo)
+
+    XCTAssertEqual(stationId, "test-station-123")
+  }
+
+  func testParseNotificationPayloadReturnsNilWhenNoStationId() {
+    let userInfo: [AnyHashable: Any] = [
+      "aps": [
+        "alert": [
+          "title": "Test",
+          "body": "Test message",
+        ]
+      ]
+    ]
+
+    let stationId = NotificationPayload.stationId(from: userInfo)
+
+    XCTAssertNil(stationId)
+  }
+
+  // MARK: - Notification Response Handling
+
+  func testHandleNotificationResponsePlaysStation() async {
+    var playedStationId: String?
+
+    await withDependencies {
+      $0.pushNotifications.handleNotificationTap = { userInfo in
+        if let stationId = userInfo["stationId"] as? String {
+          playedStationId = stationId
+        }
+      }
+    } operation: {
+      @Dependency(\.pushNotifications) var pushNotifications
+      let userInfo: [AnyHashable: Any] = ["stationId": "station-abc"]
+      await pushNotifications.handleNotificationTap(userInfo)
+    }
+
+    XCTAssertEqual(playedStationId, "station-abc")
+  }
 }

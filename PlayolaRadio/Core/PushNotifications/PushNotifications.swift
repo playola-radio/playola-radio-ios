@@ -12,6 +12,12 @@ import Sharing
 import UIKit
 import UserNotifications
 
+enum NotificationPayload {
+  static func stationId(from userInfo: [AnyHashable: Any]) -> String? {
+    userInfo["stationId"] as? String
+  }
+}
+
 @DependencyClient
 struct PushNotificationsClient: Sendable {
   /// Schedule a local notification
@@ -43,6 +49,10 @@ struct PushNotificationsClient: Sendable {
   /// Handle device token received from APNs and register with server
   /// - Parameter deviceToken: The raw device token data from APNs
   var handleDeviceToken: @Sendable (_ deviceToken: Data) async -> Void
+
+  /// Handle notification tap - extracts station ID and plays it
+  /// - Parameter userInfo: The notification payload
+  var handleNotificationTap: @Sendable (_ userInfo: [AnyHashable: Any]) async -> Void
 }
 
 extension PushNotificationsClient: DependencyKey {
@@ -50,6 +60,7 @@ extension PushNotificationsClient: DependencyKey {
     @Dependency(\.api) var api
     @Shared(.auth) var auth
     @Shared(.registeredDeviceId) var registeredDeviceId
+    @Shared(.stationLists) var stationLists
 
     return Self(
       scheduleNotification: { identifier, title, body, date in
@@ -106,6 +117,22 @@ extension PushNotificationsClient: DependencyKey {
           }
         } catch {
           print("Failed to register device: \(error)")
+        }
+      },
+      handleNotificationTap: { userInfo in
+        guard let stationId = NotificationPayload.stationId(from: userInfo) else {
+          return
+        }
+
+        let allStations = stationLists.flatMap { $0.stationItems(includeHidden: true) }
+          .map { $0.anyStation }
+
+        guard let station = allStations.first(where: { $0.id == stationId }) else {
+          return
+        }
+
+        await MainActor.run {
+          StationPlayer.shared.play(station: station)
         }
       }
     )
