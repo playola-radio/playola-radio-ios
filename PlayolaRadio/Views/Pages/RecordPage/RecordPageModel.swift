@@ -69,6 +69,12 @@ class RecordPageModel: ViewModel {
   // MARK: - Recording Actions
 
   func onRecordTapped() async {
+    let hasPermission = await audioRecorder.requestPermission()
+    guard hasPermission else {
+      presentedAlert = .microphonePermissionDeniedAlert
+      return
+    }
+
     do {
       waveformSamples = []
       try await audioRecorder.startRecording()
