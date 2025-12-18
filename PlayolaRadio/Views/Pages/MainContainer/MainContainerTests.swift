@@ -58,6 +58,23 @@ final class MainContainerTests: XCTestCase {
 
   // MARK: - ViewAppeared Tests
 
+  func testViewAppearedRegistersForRemoteNotifications() async {
+    @Shared(.stationListsLoaded) var stationListsLoaded = false
+    var registerForRemoteNotificationsCalled = false
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.pushNotifications.registerForRemoteNotifications = {
+        registerForRemoteNotificationsCalled = true
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.viewAppeared()
+    XCTAssertTrue(registerForRemoteNotificationsCalled)
+  }
+
   func testViewAppeared_CorrectlyRetrievesStationListsWhenApiIsSuccessful() async {
     @Shared(.stationListsLoaded) var stationListsLoaded = false
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []

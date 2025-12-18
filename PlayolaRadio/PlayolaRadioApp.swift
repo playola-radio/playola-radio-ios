@@ -48,6 +48,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     willPresent notification: UNNotification,
     withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
   ) {
+    print("📬 Notification received in foreground: \(notification.request.content.title)")
     completionHandler([.banner, .sound])
   }
 

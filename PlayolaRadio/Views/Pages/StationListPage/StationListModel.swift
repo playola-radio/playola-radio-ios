@@ -59,7 +59,14 @@ class StationListModel: ViewModel {
       .store(in: &cancellables)
 
     if !hasAskedForNotificationPermission {
-      presentedAlert = .notificationPermissionPrompt
+      presentedAlert = .notificationPermissionPrompt(
+        onYes: { [weak self] in
+          await self?.notificationAlertYesTapped()
+        },
+        onNo: { [weak self] in
+          await self?.notificationAlertNoTapped()
+        }
+      )
     }
   }
 
@@ -159,5 +166,21 @@ class StationListModel: ViewModel {
       ))
 
     stationPlayer.play(station: station)
+  }
+}
+
+extension PlayolaAlert {
+  static func notificationPermissionPrompt(
+    onYes: @escaping () async -> Void,
+    onNo: @escaping () async -> Void
+  ) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Stay in the Loop?",
+      message: "Allow the artists to notify you when they go live?",
+      primaryButtonText: "Yes",
+      primaryAction: onYes,
+      secondaryButtonText: "No Thanks",
+      secondaryAction: onNo
+    )
   }
 }

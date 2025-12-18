@@ -106,17 +106,22 @@ extension PushNotificationsClient: DependencyKey {
         let appVersion =
           Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
 
+        print("📱 Device token received: \(hexToken.prefix(20))...")
+
         guard let jwt = auth.jwt else {
+          print("📱 No JWT available, skipping device registration")
           return
         }
 
+        print("📱 Registering device with server...")
         do {
           let device = try await api.registerDevice(jwt, hexToken, "ios", appVersion)
+          print("📱 Device registered successfully: \(device.id)")
           await MainActor.run {
             $registeredDeviceId.withLock { $0 = device.id }
           }
         } catch {
-          print("Failed to register device: \(error)")
+          print("📱 Failed to register device: \(error)")
         }
       },
       handleNotificationTap: { userInfo in
