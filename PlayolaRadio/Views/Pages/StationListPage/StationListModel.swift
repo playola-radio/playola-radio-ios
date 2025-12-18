@@ -23,7 +23,10 @@ class StationListModel: ViewModel {
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
   @ObservationIgnored @Shared(.scheduledShows) var scheduledShows:
     IdentifiedArrayOf<ScheduledShow> = []
+  @ObservationIgnored @Shared(.hasAskedForNotificationPermission)
+  var hasAskedForNotificationPermission: Bool
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
 
   @ObservationIgnored var stationPlayer: StationPlayer
 
@@ -54,6 +57,36 @@ class StationListModel: ViewModel {
         self?.loadStationListsForDisplay(lists)
       }
       .store(in: &cancellables)
+
+    if !hasAskedForNotificationPermission {
+      presentedAlert = .notificationPermissionPrompt(
+        onYes: { [weak self] in
+          await self?.notificationAlertYesTapped()
+        },
+        onNo: { [weak self] in
+          await self?.notificationAlertNoTapped()
+        }
+      )
+    }
+  }
+
+  func notificationAlertYesTapped() async {
+    $hasAskedForNotificationPermission.withLock { $0 = true }
+    presentedAlert = nil
+
+    do {
+      let granted = try await pushNotifications.requestAuthorization()
+      if granted {
+        await pushNotifications.registerForRemoteNotifications()
+      }
+    } catch {
+      print("Failed to request notification authorization: \(error)")
+    }
+  }
+
+  func notificationAlertNoTapped() async {
+    $hasAskedForNotificationPermission.withLock { $0 = true }
+    presentedAlert = nil
   }
 
   private func loadStationListsForDisplay(_ rawList: IdentifiedArrayOf<StationList>) {
@@ -133,5 +166,21 @@ class StationListModel: ViewModel {
       ))
 
     stationPlayer.play(station: station)
+  }
+}
+
+extension PlayolaAlert {
+  static func notificationPermissionPrompt(
+    onYes: @escaping () async -> Void,
+    onNo: @escaping () async -> Void
+  ) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Stay in the Loop?",
+      message: "Allow the artists to notify you when they go live?",
+      primaryButtonText: "Yes",
+      primaryAction: onYes,
+      secondaryButtonText: "No Thanks",
+      secondaryAction: onNo
+    )
   }
 }

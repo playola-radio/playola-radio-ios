@@ -11,9 +11,64 @@ import GoogleSignInSwift
 import SDWebImage
 import SDWebImageSVGCoder
 import SwiftUI
+import UIKit
+import UserNotifications
+
+class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+  @Dependency(\.pushNotifications) var pushNotifications
+
+  func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+  ) -> Bool {
+    UNUserNotificationCenter.current().delegate = self
+    return true
+  }
+
+  func application(
+    _ application: UIApplication,
+    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+  ) {
+    Task {
+      await pushNotifications.handleDeviceToken(deviceToken)
+    }
+  }
+
+  func application(
+    _ application: UIApplication,
+    didFailToRegisterForRemoteNotificationsWithError error: Error
+  ) {
+    print("Failed to register for remote notifications: \(error)")
+  }
+
+  // MARK: - UNUserNotificationCenterDelegate
+
+  func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
+    print("📬 Notification received in foreground: \(notification.request.content.title)")
+    completionHandler([.banner, .sound])
+  }
+
+  func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    let userInfo = response.notification.request.content.userInfo
+    Task {
+      await pushNotifications.handleNotificationTap(userInfo)
+    }
+    completionHandler()
+  }
+}
 
 @main
 struct PlayolaRadioApp: App {
+  @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
   init() {
     // Register SVG coder for SDWebImage
     SDImageCodersManager.shared.addCoder(SDImageSVGCoder.shared)

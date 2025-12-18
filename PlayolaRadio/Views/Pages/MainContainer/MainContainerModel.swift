@@ -19,6 +19,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.toast) var toast
+  @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
   @ObservationIgnored var stationPlayer: StationPlayer!
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
@@ -55,6 +56,9 @@ class MainContainerModel: ViewModel {
   func viewAppeared() async {
     // Mark that the main container has been unlocked/shown
     $hasBeenUnlocked.withLock { $0 = true }
+
+    // Register for remote notifications (user is now logged in)
+    await pushNotifications.registerForRemoteNotifications()
 
     // Load station lists if not already loaded
     if !stationListsLoaded {

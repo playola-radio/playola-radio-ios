@@ -484,3 +484,107 @@ private func makeStationListModel(
     StationListModel(stationPlayer: stationPlayer)
   }
 }
+
+// MARK: - Notification Permission Prompt Tests
+
+@MainActor
+final class StationListNotificationPromptTests: XCTestCase {
+
+  func testViewAppearedShowsNotificationAlertOnFirstVisit() async {
+    @Shared(.hasAskedForNotificationPermission) var hasAsked = false
+
+    let model = withDependencies {
+      $0.pushNotifications.requestAuthorization = { true }
+      $0.pushNotifications.registerForRemoteNotifications = {}
+    } operation: {
+      StationListModel()
+    }
+
+    await model.viewAppeared()
+
+    XCTAssertNotNil(model.presentedAlert)
+    XCTAssertEqual(model.presentedAlert?.title, "Stay in the Loop?")
+  }
+
+  func testViewAppearedDoesNotShowAlertIfAlreadyAsked() async {
+    @Shared(.hasAskedForNotificationPermission) var hasAsked = true
+
+    let model = withDependencies {
+      $0.pushNotifications.requestAuthorization = { true }
+      $0.pushNotifications.registerForRemoteNotifications = {}
+    } operation: {
+      StationListModel()
+    }
+
+    await model.viewAppeared()
+
+    XCTAssertNil(model.presentedAlert)
+  }
+
+  func testNotificationAlertYesTappedRequestsPermission() async {
+    @Shared(.hasAskedForNotificationPermission) var hasAsked = false
+    var authorizationRequested = false
+    var registrationCalled = false
+
+    let model = withDependencies {
+      $0.pushNotifications.requestAuthorization = {
+        authorizationRequested = true
+        return true
+      }
+      $0.pushNotifications.registerForRemoteNotifications = {
+        registrationCalled = true
+      }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.notificationAlertYesTapped()
+
+    XCTAssertTrue(authorizationRequested)
+    XCTAssertTrue(registrationCalled)
+    XCTAssertTrue(hasAsked)
+    XCTAssertNil(model.presentedAlert)
+  }
+
+  func testNotificationAlertNoTappedSetsHasAskedWithoutRequesting() async {
+    @Shared(.hasAskedForNotificationPermission) var hasAsked = false
+    var authorizationRequested = false
+
+    let model = withDependencies {
+      $0.pushNotifications.requestAuthorization = {
+        authorizationRequested = true
+        return true
+      }
+      $0.pushNotifications.registerForRemoteNotifications = {}
+    } operation: {
+      StationListModel()
+    }
+
+    await model.notificationAlertNoTapped()
+
+    XCTAssertFalse(authorizationRequested)
+    XCTAssertTrue(hasAsked)
+    XCTAssertNil(model.presentedAlert)
+  }
+
+  func testNotificationAlertDoesNotRegisterIfPermissionDenied() async {
+    @Shared(.hasAskedForNotificationPermission) var hasAsked = false
+    var registrationCalled = false
+
+    let model = withDependencies {
+      $0.pushNotifications.requestAuthorization = {
+        return false
+      }
+      $0.pushNotifications.registerForRemoteNotifications = {
+        registrationCalled = true
+      }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.notificationAlertYesTapped()
+
+    XCTAssertFalse(registrationCalled)
+    XCTAssertTrue(hasAsked)
+  }
+}

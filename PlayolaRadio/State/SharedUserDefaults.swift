@@ -4,6 +4,7 @@
 //
 //  Created by Brian D Keane on 1/18/25.
 //
+import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
@@ -102,6 +103,29 @@ extension SharedKey where Self == FileStorageKey<[LikeOperation]>.Default {
     Self[
       .fileStorage(.documentsDirectory.appending(component: "pending-like-operations.json")),
       default: []
+    ]
+  }
+}
+
+// MARK: - Push Notifications
+
+extension SharedKey where Self == AppStorageKey<String?>.Default {
+  static var registeredDeviceId: Self {
+    Self[.appStorage("registeredDeviceId"), default: nil]
+  }
+}
+
+extension SharedKey where Self == AppStorageKey<Bool>.Default {
+  static var hasAskedForNotificationPermission: Self {
+    Self[.appStorage("hasAskedForNotificationPermission"), default: false]
+  }
+}
+
+extension SharedKey where Self == FileStorageKey<[String: Date]>.Default {
+  static var lastNotificationSentAt: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "last-notification-sent.json")),
+      default: [:]
     ]
   }
 }
