@@ -6,6 +6,7 @@
 //
 
 import Clocks
+import ConcurrencyExtras
 import Dependencies
 import PlayolaPlayer
 import Sharing
@@ -102,23 +103,25 @@ final class SongSearchPageTests: XCTestCase {
   }
 
   func testPerformSearchClearsResultsWhenQueryIsEmpty() async {
-    let clock = TestClock()
-    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
-    await withDependencies {
-      $0.continuousClock = clock
-      $0.date = .constant(Date())
-      $0.api.searchSongs = { _, _ in [AudioBlock.mockWith()] }
-    } operation: {
-      let model = SongSearchPageModel()
+      await withDependencies {
+        $0.continuousClock = clock
+        $0.date = .constant(Date())
+        $0.api.searchSongs = { _, _ in [AudioBlock.mockWith()] }
+      } operation: {
+        let model = SongSearchPageModel()
 
-      model.searchText = "test"
-      await clock.advance(by: .milliseconds(300))
-      XCTAssertEqual(model.searchResults.count, 1)
+        model.searchText = "test"
+        await clock.advance(by: .milliseconds(300))
+        XCTAssertEqual(model.searchResults.count, 1)
 
-      model.searchText = ""
-      await clock.advance(by: .milliseconds(300))
-      XCTAssertTrue(model.searchResults.isEmpty)
+        model.searchText = ""
+        await clock.advance(by: .milliseconds(300))
+        XCTAssertTrue(model.searchResults.isEmpty)
+      }
     }
   }
 
@@ -297,55 +300,56 @@ final class SongSearchPageTests: XCTestCase {
   }
 
   func testPerformSearchSearchesBothSourcesSimultaneously() async {
-    let clock = TestClock()
-    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    var songsSearchCalled = false
-    var songRequestsSearchCalled = false
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      var songsSearchCalled = false
+      var songRequestsSearchCalled = false
 
-    await withDependencies {
-      $0.continuousClock = clock
-      $0.date = .constant(Date())
-      $0.api.searchSongs = { _, _ in
-        songsSearchCalled = true
-        return []
+      await withDependencies {
+        $0.continuousClock = clock
+        $0.date = .constant(Date())
+        $0.api.searchSongs = { _, _ in
+          songsSearchCalled = true
+          return []
+        }
+        $0.api.searchSongRequests = { _, _ in
+          songRequestsSearchCalled = true
+          return []
+        }
+      } operation: {
+        let model = SongSearchPageModel()
+        model.searchText = "test"
+
+        await clock.advance(by: .milliseconds(300))
+
+        XCTAssertTrue(songsSearchCalled)
+        XCTAssertTrue(songRequestsSearchCalled)
       }
-      $0.api.searchSongRequests = { _, _ in
-        songRequestsSearchCalled = true
-        return []
-      }
-    } operation: {
-      let model = SongSearchPageModel()
-      model.searchText = "test"
-
-      await clock.advance(by: .milliseconds(300))
-      await Task.yield()
-
-      XCTAssertTrue(songsSearchCalled)
-      XCTAssertTrue(songRequestsSearchCalled)
     }
   }
 
   func testPerformSearchClearsSongRequestResultsWhenQueryIsEmpty() async {
-    let clock = TestClock()
-    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
-    await withDependencies {
-      $0.continuousClock = clock
-      $0.date = .constant(Date())
-      $0.api.searchSongs = { _, _ in [] }
-      $0.api.searchSongRequests = { _, _ in [SongRequest.mockWith()] }
-    } operation: {
-      let model = SongSearchPageModel()
+      await withDependencies {
+        $0.continuousClock = clock
+        $0.date = .constant(Date())
+        $0.api.searchSongs = { _, _ in [] }
+        $0.api.searchSongRequests = { _, _ in [SongRequest.mockWith()] }
+      } operation: {
+        let model = SongSearchPageModel()
 
-      model.searchText = "test"
-      await clock.advance(by: .milliseconds(300))
-      await Task.yield()
-      XCTAssertEqual(model.songRequestResults.count, 1)
+        model.searchText = "test"
+        await clock.advance(by: .milliseconds(300))
+        XCTAssertEqual(model.songRequestResults.count, 1)
 
-      model.searchText = ""
-      await clock.advance(by: .milliseconds(300))
-      await Task.yield()
-      XCTAssertTrue(model.songRequestResults.isEmpty)
+        model.searchText = ""
+        await clock.advance(by: .milliseconds(300))
+        XCTAssertTrue(model.songRequestResults.isEmpty)
+      }
     }
   }
 

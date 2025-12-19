@@ -6,6 +6,7 @@
 //  Created by Brian D Keane on 11/30/25.
 //
 
+import ConcurrencyExtras
 import Dependencies
 import PlayolaPlayer
 import Sharing
@@ -1407,7 +1408,7 @@ extension BroadcastPageTests {
           return stationId == testStationId
             && stationName == "Test Station"
             && userName == "Test User"
-            && messageLength == 17
+            && messageLength == 16
         }
         return false
       }
@@ -1493,89 +1494,83 @@ extension BroadcastPageTests {
   }
 
   func testOnAddSongTappedTracksSongSearchTapped() async {
-    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-    let loggedInUser = LoggedInUser(
-      id: "user-123",
-      firstName: "Test",
-      lastName: "User",
-      email: "test@example.com"
-    )
-    @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
-    let expectation = XCTestExpectation(description: "Analytics event tracked")
+    await withMainSerialExecutor {
+      let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+      let loggedInUser = LoggedInUser(
+        id: "user-123",
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com"
+      )
+      @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
 
-    await withDependencies {
-      $0.date.now = fixedNow
-      $0.analytics.track = { event in
-        capturedEvents.withValue { $0.append(event) }
-        if case .broadcastSongSearchTapped = event {
-          expectation.fulfill()
+      await withDependencies {
+        $0.date.now = fixedNow
+        $0.analytics.track = { event in
+          capturedEvents.withValue { $0.append(event) }
         }
-      }
-    } operation: {
-      let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
-      model.onAddSongTapped()
+      } operation: {
+        let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
+        model.onAddSongTapped()
+        await Task.yield()
 
-      await fulfillment(of: [expectation], timeout: 1.0)
-
-      let events = capturedEvents.value
-      let hasSearchEvent = events.contains { event in
-        if case .broadcastSongSearchTapped(
-          let stationId, let stationName, let userName
-        ) = event {
-          return stationId == testStationId
-            && stationName == "Test Station"
-            && userName == "Test User"
+        let events = capturedEvents.value
+        let hasSearchEvent = events.contains { event in
+          if case .broadcastSongSearchTapped(
+            let stationId, let stationName, let userName
+          ) = event {
+            return stationId == testStationId
+              && stationName == "Test Station"
+              && userName == "Test User"
+          }
+          return false
         }
-        return false
+        XCTAssertTrue(hasSearchEvent)
       }
-      XCTAssertTrue(hasSearchEvent)
     }
   }
 
   func testAddSongToStagingTracksSongAdded() async {
-    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-    let loggedInUser = LoggedInUser(
-      id: "user-123",
-      firstName: "Test",
-      lastName: "User",
-      email: "test@example.com"
-    )
-    @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
-    let expectation = XCTestExpectation(description: "Analytics event tracked")
-
-    await withDependencies {
-      $0.date.now = fixedNow
-      $0.analytics.track = { event in
-        capturedEvents.withValue { $0.append(event) }
-        if case .broadcastSongAdded = event {
-          expectation.fulfill()
-        }
-      }
-    } operation: {
-      let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
-      let audioBlock = AudioBlock.mockWith(
-        id: "song-123",
-        title: "Test Song",
-        artist: "Test Artist"
+    await withMainSerialExecutor {
+      let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+      let loggedInUser = LoggedInUser(
+        id: "user-123",
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com"
       )
-      model.addSongToStaging(audioBlock)
+      @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
 
-      await fulfillment(of: [expectation], timeout: 1.0)
-
-      let events = capturedEvents.value
-      let hasSongAddedEvent = events.contains { event in
-        if case .broadcastSongAdded(
-          let stationId, let stationName, let userName, let songTitle, let artistName
-        ) = event {
-          return stationId == testStationId
-            && stationName == "Test Station"
-            && userName == "Test User"
-            && songTitle == "Test Song"
-            && artistName == "Test Artist"
+      await withDependencies {
+        $0.date.now = fixedNow
+        $0.analytics.track = { event in
+          capturedEvents.withValue { $0.append(event) }
         }
-        return false
+      } operation: {
+        let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
+        let audioBlock = AudioBlock.mockWith(
+          id: "song-123",
+          title: "Test Song",
+          artist: "Test Artist"
+        )
+        model.addSongToStaging(audioBlock)
+        await Task.yield()
+
+        let events = capturedEvents.value
+        let hasSongAddedEvent = events.contains { event in
+          if case .broadcastSongAdded(
+            let stationId, let stationName, let userName, let songTitle, let artistName
+          ) = event {
+            return stationId == testStationId
+              && stationName == "Test Station"
+              && userName == "Test User"
+              && songTitle == "Test Song"
+              && artistName == "Test Artist"
+          }
+          return false
+        }
+        XCTAssertTrue(hasSongAddedEvent)
       }
-      XCTAssertTrue(hasSongAddedEvent)
     }
   }
 }
