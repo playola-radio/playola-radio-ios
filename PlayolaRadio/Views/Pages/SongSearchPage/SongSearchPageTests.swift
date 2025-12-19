@@ -318,6 +318,7 @@ final class SongSearchPageTests: XCTestCase {
       model.searchText = "test"
 
       await clock.advance(by: .milliseconds(300))
+      await Task.yield()
 
       XCTAssertTrue(songsSearchCalled)
       XCTAssertTrue(songRequestsSearchCalled)
