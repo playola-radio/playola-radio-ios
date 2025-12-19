@@ -350,7 +350,7 @@ final class ContactPageTests: XCTestCase {
 
       let events = capturedEvents.value
       let hasViewedBroadcastEvent = events.contains { event in
-        if case .viewedBroadcastScreen(let stationId, let stationName) = event {
+        if case .viewedBroadcastScreen(let stationId, let stationName, _) = event {
           return stationId == "my-station-id" && stationName == "My Station"
         }
         return false

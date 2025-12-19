@@ -87,7 +87,11 @@ class ContactPageModel: ViewModel {
       broadcastPageModel = model
       mainContainerNavigationCoordinator.path.append(.broadcastPage(model))
       await analytics.track(
-        .viewedBroadcastScreen(stationId: station.id, stationName: station.name))
+        .viewedBroadcastScreen(
+          stationId: station.id,
+          stationName: station.name,
+          userName: auth.currentUser?.fullName ?? "Unknown"
+        ))
     } else {
       let model = ChooseStationToBroadcastPageModel(stations: userStations)
       chooseStationToBroadcastPageModel = model
