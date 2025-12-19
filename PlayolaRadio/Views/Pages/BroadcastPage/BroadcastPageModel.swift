@@ -41,6 +41,7 @@ class BroadcastPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
+  @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
@@ -77,6 +78,10 @@ class BroadcastPageModel: ViewModel {
     providedStationName ?? fetchedStationName ?? "My Station"
   }
 
+  private var userName: String {
+    auth.currentUser?.fullName ?? "Unknown"
+  }
+
   init(stationId: String, stationName: String? = nil) {
     self.stationId = stationId
     self.providedStationName = stationName
@@ -84,6 +89,12 @@ class BroadcastPageModel: ViewModel {
   }
 
   func viewAppeared() async {
+    await analytics.track(
+      .viewedBroadcastScreen(
+        stationId: stationId,
+        stationName: navigationTitle,
+        userName: userName
+      ))
     await withTaskGroup(of: Void.self) { group in
       group.addTask { await self.loadSchedule() }
       group.addTask { await self.loadStation() }
@@ -165,6 +176,13 @@ class BroadcastPageModel: ViewModel {
   }
 
   func handleAcceptedRecording(_ url: URL) async {
+    await analytics.track(
+      .broadcastVoicetrackRecorded(
+        stationId: stationId,
+        stationName: navigationTitle,
+        userName: userName
+      ))
+
     let formatter = DateFormatter()
     formatter.dateFormat = "h:mma"
     let timeString = formatter.string(from: now).lowercased()
@@ -194,6 +212,12 @@ class BroadcastPageModel: ViewModel {
         self?.updateVoicetrackStatus(id: voicetrack.id, status: status)
       }
       updateVoicetrackAudioBlockId(id: voicetrack.id, audioBlockId: audioBlock.id)
+      await analytics.track(
+        .broadcastVoicetrackUploaded(
+          stationId: stationId,
+          stationName: navigationTitle,
+          userName: userName
+        ))
     } catch {
       updateVoicetrackStatus(id: voicetrack.id, status: .failed(error: error.localizedDescription))
       presentedAlert = .voicetrackUploadFailed(error.localizedDescription)
@@ -223,6 +247,14 @@ class BroadcastPageModel: ViewModel {
   }
 
   func onAddSongTapped() {
+    Task {
+      await analytics.track(
+        .broadcastSongSearchTapped(
+          stationId: stationId,
+          stationName: navigationTitle,
+          userName: userName
+        ))
+    }
     let model = SongSearchPageModel()
     model.onDismiss = { [weak self] in
       self?.mainContainerNavigationCoordinator.presentedSheet = nil
@@ -238,6 +270,16 @@ class BroadcastPageModel: ViewModel {
   func addSongToStaging(_ audioBlock: AudioBlock) {
     guard !stagingItems.contains(where: { $0.stagingId == audioBlock.id }) else { return }
     stagingItems.append(audioBlock)
+    Task {
+      await analytics.track(
+        .broadcastSongAdded(
+          stationId: stationId,
+          stationName: navigationTitle,
+          userName: userName,
+          songTitle: audioBlock.title,
+          artistName: audioBlock.artist
+        ))
+    }
   }
 
   func onNotifyListenersTapped() {
@@ -256,9 +298,18 @@ class BroadcastPageModel: ViewModel {
     isSendingNotification = true
     defer { isSendingNotification = false }
 
+    let messageLength = notifyMessage.count
+
     do {
       try await api.sendStationNotification(jwt, stationId, notifyMessage)
       $lastNotificationSentAt.withLock { $0[stationId] = now }
+      await analytics.track(
+        .broadcastNotificationSent(
+          stationId: stationId,
+          stationName: navigationTitle,
+          userName: userName,
+          messageLength: messageLength
+        ))
       showNotifyListenersSheet = false
       notifyMessage = ""
     } catch {

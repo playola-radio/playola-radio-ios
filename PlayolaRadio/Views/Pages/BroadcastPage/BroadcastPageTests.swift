@@ -6,6 +6,7 @@
 //  Created by Brian D Keane on 11/30/25.
 //
 
+import ConcurrencyExtras
 import Dependencies
 import PlayolaPlayer
 import Sharing
@@ -1340,6 +1341,236 @@ extension BroadcastPageTests {
       XCTAssertNotNil(model.presentedAlert)
       XCTAssertEqual(model.presentedAlert?.title, "Upload Failed")
       XCTAssertEqual(model.presentedAlert?.message, serverErrorMessage)
+    }
+  }
+
+  // MARK: - Analytics Tests
+
+  func testViewAppearedTracksViewedBroadcastScreen() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    let loggedInUser = LoggedInUser(
+      id: "user-123",
+      firstName: "Test",
+      lastName: "User",
+      email: "test@example.com"
+    )
+    @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [] }
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
+      await model.viewAppeared()
+
+      let events = capturedEvents.value
+      let hasViewedEvent = events.contains { event in
+        if case .viewedBroadcastScreen(let stationId, let stationName, let userName) = event {
+          return stationId == testStationId
+            && stationName == "Test Station"
+            && userName == "Test User"
+        }
+        return false
+      }
+      XCTAssertTrue(hasViewedEvent)
+    }
+  }
+
+  func testSendNotificationTracksNotificationSent() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    let loggedInUser = LoggedInUser(
+      id: "user-123",
+      firstName: "Test",
+      lastName: "User",
+      email: "test@example.com"
+    )
+    @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.sendStationNotification = { _, _, _ in }
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
+      model.notifyMessage = "Hello listeners!"
+      await model.sendNotification()
+
+      let events = capturedEvents.value
+      let hasNotificationEvent = events.contains { event in
+        if case .broadcastNotificationSent(
+          let stationId, let stationName, let userName, let messageLength
+        ) = event {
+          return stationId == testStationId
+            && stationName == "Test Station"
+            && userName == "Test User"
+            && messageLength == 16
+        }
+        return false
+      }
+      XCTAssertTrue(hasNotificationEvent)
+    }
+  }
+
+  func testHandleAcceptedRecordingTracksVoicetrackRecorded() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    let loggedInUser = LoggedInUser(
+      id: "user-123",
+      firstName: "Test",
+      lastName: "User",
+      email: "test@example.com"
+    )
+    @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.voicetrackUploadService.processVoicetrack = { _, _, _, _ in
+        AudioBlock.mockWith()
+      }
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
+      let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
+      await model.handleAcceptedRecording(recordingURL)
+
+      let events = capturedEvents.value
+      let hasRecordedEvent = events.contains { event in
+        if case .broadcastVoicetrackRecorded(
+          let stationId, let stationName, let userName
+        ) = event {
+          return stationId == testStationId
+            && stationName == "Test Station"
+            && userName == "Test User"
+        }
+        return false
+      }
+      XCTAssertTrue(hasRecordedEvent)
+    }
+  }
+
+  func testVoicetrackUploadCompletedTracksVoicetrackUploaded() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    let loggedInUser = LoggedInUser(
+      id: "user-123",
+      firstName: "Test",
+      lastName: "User",
+      email: "test@example.com"
+    )
+    @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.voicetrackUploadService.processVoicetrack = { _, _, _, onStatusChange in
+        await onStatusChange(.completed)
+        return AudioBlock.mockWith()
+      }
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
+      let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
+      await model.handleAcceptedRecording(recordingURL)
+
+      let events = capturedEvents.value
+      let hasUploadedEvent = events.contains { event in
+        if case .broadcastVoicetrackUploaded(
+          let stationId, let stationName, let userName
+        ) = event {
+          return stationId == testStationId
+            && stationName == "Test Station"
+            && userName == "Test User"
+        }
+        return false
+      }
+      XCTAssertTrue(hasUploadedEvent)
+    }
+  }
+
+  func testOnAddSongTappedTracksSongSearchTapped() async {
+    await withMainSerialExecutor {
+      let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+      let loggedInUser = LoggedInUser(
+        id: "user-123",
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com"
+      )
+      @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
+
+      await withDependencies {
+        $0.date.now = fixedNow
+        $0.analytics.track = { event in
+          capturedEvents.withValue { $0.append(event) }
+        }
+      } operation: {
+        let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
+        model.onAddSongTapped()
+        await Task.yield()
+
+        let events = capturedEvents.value
+        let hasSearchEvent = events.contains { event in
+          if case .broadcastSongSearchTapped(
+            let stationId, let stationName, let userName
+          ) = event {
+            return stationId == testStationId
+              && stationName == "Test Station"
+              && userName == "Test User"
+          }
+          return false
+        }
+        XCTAssertTrue(hasSearchEvent)
+      }
+    }
+  }
+
+  func testAddSongToStagingTracksSongAdded() async {
+    await withMainSerialExecutor {
+      let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+      let loggedInUser = LoggedInUser(
+        id: "user-123",
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com"
+      )
+      @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
+
+      await withDependencies {
+        $0.date.now = fixedNow
+        $0.analytics.track = { event in
+          capturedEvents.withValue { $0.append(event) }
+        }
+      } operation: {
+        let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
+        let audioBlock = AudioBlock.mockWith(
+          id: "song-123",
+          title: "Test Song",
+          artist: "Test Artist"
+        )
+        model.addSongToStaging(audioBlock)
+        await Task.yield()
+
+        let events = capturedEvents.value
+        let hasSongAddedEvent = events.contains { event in
+          if case .broadcastSongAdded(
+            let stationId, let stationName, let userName, let songTitle, let artistName
+          ) = event {
+            return stationId == testStationId
+              && stationName == "Test Station"
+              && userName == "Test User"
+              && songTitle == "Test Song"
+              && artistName == "Test Artist"
+          }
+          return false
+        }
+        XCTAssertTrue(hasSongAddedEvent)
+      }
     }
   }
 }

@@ -51,7 +51,14 @@ enum AnalyticsEvent: Equatable {
   case uploadedProfilePhoto
 
   // MARK: Broadcasting
-  case viewedBroadcastScreen(stationId: String, stationName: String)
+  case viewedBroadcastScreen(stationId: String, stationName: String, userName: String)
+  case broadcastNotificationSent(
+    stationId: String, stationName: String, userName: String, messageLength: Int)
+  case broadcastVoicetrackRecorded(stationId: String, stationName: String, userName: String)
+  case broadcastVoicetrackUploaded(stationId: String, stationName: String, userName: String)
+  case broadcastSongSearchTapped(stationId: String, stationName: String, userName: String)
+  case broadcastSongAdded(
+    stationId: String, stationName: String, userName: String, songTitle: String, artistName: String)
 
   // MARK: Engagement
   case audioOutputChanged(outputTypes: [String])
@@ -93,6 +100,11 @@ extension AnalyticsEvent {
     case .updatedProfile: return "Updated Profile"
     case .uploadedProfilePhoto: return "Uploaded Profile Photo"
     case .viewedBroadcastScreen: return "Viewed Broadcast Screen"
+    case .broadcastNotificationSent: return "Broadcast Notification Sent"
+    case .broadcastVoicetrackRecorded: return "Broadcast Voicetrack Recorded"
+    case .broadcastVoicetrackUploaded: return "Broadcast Voicetrack Uploaded"
+    case .broadcastSongSearchTapped: return "Broadcast Song Search Tapped"
+    case .broadcastSongAdded: return "Broadcast Song Added"
     case .audioOutputChanged: return "Audio Output Changed"
     case .carPlayInitialized: return "CarPlay Initialized"
     case .stationChanged: return "Station Changed"
@@ -205,10 +217,50 @@ extension AnalyticsEvent {
     case .uploadedProfilePhoto:
       return [:]
 
-    case .viewedBroadcastScreen(let stationId, let stationName):
+    case .viewedBroadcastScreen(let stationId, let stationName, let userName):
       return [
         "station_id": stationId,
         "station_name": stationName,
+        "user_name": userName,
+      ]
+
+    case .broadcastNotificationSent(let stationId, let stationName, let userName, let messageLength):
+      return [
+        "station_id": stationId,
+        "station_name": stationName,
+        "user_name": userName,
+        "message_length": messageLength,
+      ]
+
+    case .broadcastVoicetrackRecorded(let stationId, let stationName, let userName):
+      return [
+        "station_id": stationId,
+        "station_name": stationName,
+        "user_name": userName,
+      ]
+
+    case .broadcastVoicetrackUploaded(let stationId, let stationName, let userName):
+      return [
+        "station_id": stationId,
+        "station_name": stationName,
+        "user_name": userName,
+      ]
+
+    case .broadcastSongSearchTapped(let stationId, let stationName, let userName):
+      return [
+        "station_id": stationId,
+        "station_name": stationName,
+        "user_name": userName,
+      ]
+
+    case .broadcastSongAdded(
+      let stationId, let stationName, let userName, let songTitle, let artistName):
+      return [
+        "station_id": stationId,
+        "station_name": stationName,
+        "user_name": userName,
+        "song_title": songTitle,
+        "artist_name": artistName,
       ]
 
     case .audioOutputChanged(let outputTypes):
