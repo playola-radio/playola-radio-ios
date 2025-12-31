@@ -561,8 +561,10 @@ extension APIClient: DependencyKey {
         }
       },
       getVoicetrackStatus: { jwtToken, stationId, s3Key in
+        var allowedCharacters = CharacterSet.urlPathAllowed
+        allowedCharacters.remove("/")
         let encodedS3Key =
-          s3Key.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? s3Key
+          s3Key.addingPercentEncoding(withAllowedCharacters: allowedCharacters) ?? s3Key
         let url =
           "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/voicetrack-status/\(encodedS3Key)"
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
