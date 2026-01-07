@@ -562,7 +562,7 @@ extension APIClient: DependencyKey {
       },
       getVoicetrackStatus: { jwtToken, stationId, s3Key in
         let encodedS3Key =
-          s3Key.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? s3Key
+          s3Key.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? s3Key
         let url =
           "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/voicetrack-status/\(encodedS3Key)"
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
@@ -668,6 +668,52 @@ extension APIClient: DependencyKey {
         .validate(statusCode: 200..<300)
         .serializingData()
         .value
+      },
+      getPushNotificationSubscriptions: { jwtToken in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/users/me/push-notification-subscriptions"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable(
+            [PushNotificationSubscriptionWithStation].self, decoder: isoDecoder
+          )
+          .value
+
+        return response
+      },
+      subscribeToStationNotifications: { jwtToken, stationId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/push-notification-subscription/subscribe"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(
+          url,
+          method: .post,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(PushNotificationSubscription.self, decoder: isoDecoder)
+        .value
+
+        return response
+      },
+      unsubscribeFromStationNotifications: { jwtToken, stationId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/push-notification-subscription/unsubscribe"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(
+          url,
+          method: .post,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(PushNotificationSubscription.self, decoder: isoDecoder)
+        .value
+
+        return response
       }
     )
   }()

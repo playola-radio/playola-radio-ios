@@ -151,6 +151,13 @@
 		D3219C1A2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */; };
 		D3219C1B2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */; };
 		D3219C1F2EDD22360008AFDA /* BroadcastPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C1C2EDD22230008AFDA /* BroadcastPageTests.swift */; };
+		D3367BF92F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3367BF52F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift */; };
+		D3367BFB2F08B7DC00AF87FA /* NotificationsSettingsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3367BF72F08B7DC00AF87FA /* NotificationsSettingsPageView.swift */; };
+		D3367BFC2F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3367BF52F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift */; };
+		D3367BFE2F08B7DC00AF87FA /* NotificationsSettingsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3367BF72F08B7DC00AF87FA /* NotificationsSettingsPageView.swift */; };
+		D3367BFF2F08B7E900AF87FA /* NotificationsSettingsPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3367BF62F08B7DC00AF87FA /* NotificationsSettingsPageTests.swift */; };
+		D3367C012F097D0D00AF87FA /* PushNotificationSubscription.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3367C002F097D0D00AF87FA /* PushNotificationSubscription.swift */; };
+		D3367C022F097D0D00AF87FA /* PushNotificationSubscription.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3367C002F097D0D00AF87FA /* PushNotificationSubscription.swift */; };
 		D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5662BFD10AE00B9E35B /* StationListPage.swift */; };
 		D339E5692BFD1C0800B9E35B /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5682BFD1C0800B9E35B /* APIClient.swift */; };
 		D339E56D2BFD2FAB00B9E35B /* URLStreamPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E56C2BFD2FAB00B9E35B /* URLStreamPlayer.swift */; };
@@ -356,6 +363,10 @@
 		D3219C162EDD22100008AFDA /* BroadcastPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageView.swift; sourceTree = "<group>"; };
 		D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageModel.swift; sourceTree = "<group>"; };
 		D3219C1C2EDD22230008AFDA /* BroadcastPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageTests.swift; sourceTree = "<group>"; };
+		D3367BF52F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsSettingsPageModel.swift; sourceTree = "<group>"; };
+		D3367BF62F08B7DC00AF87FA /* NotificationsSettingsPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsSettingsPageTests.swift; sourceTree = "<group>"; };
+		D3367BF72F08B7DC00AF87FA /* NotificationsSettingsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsSettingsPageView.swift; sourceTree = "<group>"; };
+		D3367C002F097D0D00AF87FA /* PushNotificationSubscription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationSubscription.swift; sourceTree = "<group>"; };
 		D339E5662BFD10AE00B9E35B /* StationListPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPage.swift; sourceTree = "<group>"; };
 		D339E5682BFD1C0800B9E35B /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		D339E56C2BFD2FAB00B9E35B /* URLStreamPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLStreamPlayer.swift; sourceTree = "<group>"; };
@@ -610,6 +621,7 @@
 				D3B662732D419C3100975D2F /* LoggedInUser.swift */,
 				D3B744CC2E368D790042A427 /* Prize.swift */,
 				D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */,
+				D3367C002F097D0D00AF87FA /* PushNotificationSubscription.swift */,
 				D35673B12D3DC59100E4E926 /* RadioStation.swift */,
 				D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */,
 				D37786E92EAD3DA80084B8B8 /* ScheduledShow */,
@@ -635,6 +647,16 @@
 			path = BroadcastPage;
 			sourceTree = "<group>";
 		};
+		D3367BF82F08B7DC00AF87FA /* NotificationsSettingsPage */ = {
+			isa = PBXGroup;
+			children = (
+				D3367BF52F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift */,
+				D3367BF62F08B7DC00AF87FA /* NotificationsSettingsPageTests.swift */,
+				D3367BF72F08B7DC00AF87FA /* NotificationsSettingsPageView.swift */,
+			);
+			path = NotificationsSettingsPage;
+			sourceTree = "<group>";
+		};
 		D339E55B2BFD0CEE00B9E35B /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -647,6 +669,7 @@
 		D339E55C2BFD0FB000B9E35B /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				D3367BF82F08B7DC00AF87FA /* NotificationsSettingsPage */,
 				D3C7E5D92EF0A42100EDD3ED /* SongSearchPage */,
 				D3F493B62EEDD29F008ED463 /* RecordPage */,
 				D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */,
@@ -1389,6 +1412,7 @@
 				D30F00722E8592F0007BCC73 /* LoggedInUser.swift in Sources */,
 				D30F00732E8592F0007BCC73 /* StationList.swift in Sources */,
 				D30F00742E8592F0007BCC73 /* CircleSection.swift in Sources */,
+				D3367C022F097D0D00AF87FA /* PushNotificationSubscription.swift in Sources */,
 				D30F00752E8592F0007BCC73 /* ListeningTimeTile.swift in Sources */,
 				D37B748D2ECA3A44009806C6 /* ScheduledShowTile.swift in Sources */,
 				D30F00762E8592F0007BCC73 /* GenericNowPlaying.swift in Sources */,
@@ -1401,6 +1425,8 @@
 				D30F007C2E8592F0007BCC73 /* RewardsPageModel.swift in Sources */,
 				D30F007D2E8592F0007BCC73 /* ToastClient.swift in Sources */,
 				D30F007E2E8592F0007BCC73 /* RewardsProfile.swift in Sources */,
+				D3367BF92F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */,
+				D3367BFB2F08B7DC00AF87FA /* NotificationsSettingsPageView.swift in Sources */,
 				D30F007F2E8592F0007BCC73 /* LikedSongsPage.swift in Sources */,
 				D30F00802E8592F0007BCC73 /* EnumTypeEquatableProtocol.swift in Sources */,
 				D3C7E5F82EF0D12A00EDD3ED /* SongSeed.swift in Sources */,
@@ -1501,6 +1527,7 @@
 				D3B662742D419C3300975D2F /* LoggedInUser.swift in Sources */,
 				D3536A322BFA64AB006942D6 /* StationList.swift in Sources */,
 				D37257B72DF88DCD001BC6F9 /* CircleSection.swift in Sources */,
+				D3367C012F097D0D00AF87FA /* PushNotificationSubscription.swift in Sources */,
 				D3B744B92E2FF16F0042A427 /* ListeningTimeTile.swift in Sources */,
 				D37B748C2ECA3A44009806C6 /* ScheduledShowTile.swift in Sources */,
 				D3137DD22D3ABB520070033A /* GenericNowPlaying.swift in Sources */,
@@ -1513,6 +1540,8 @@
 				D3B744C02E3131730042A427 /* RewardsPageModel.swift in Sources */,
 				D302576D2E63428800F4228B /* ToastClient.swift in Sources */,
 				D3B744B02E2FE6FB0042A427 /* RewardsProfile.swift in Sources */,
+				D3367BFC2F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */,
+				D3367BFE2F08B7DC00AF87FA /* NotificationsSettingsPageView.swift in Sources */,
 				D30257872E63B6BB00F4228B /* LikedSongsPage.swift in Sources */,
 				D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */,
 				D3C7E5F62EF0D12A00EDD3ED /* SongSeed.swift in Sources */,
@@ -1573,6 +1602,7 @@
 				D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */,
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,
 				D3C7E5EF2EF0C58900EDD3ED /* StagingItemTests.swift in Sources */,
+				D3367BFF2F08B7E900AF87FA /* NotificationsSettingsPageTests.swift in Sources */,
 				D3C7E5E32EF0A44D00EDD3ED /* SongSearchPageTests.swift in Sources */,
 				D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */,
 				D30F00BF2E87196A007BCC73 /* StationListStationRowTests.swift in Sources */,
