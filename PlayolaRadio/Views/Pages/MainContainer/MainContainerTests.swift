@@ -58,6 +58,23 @@ final class MainContainerTests: XCTestCase {
 
   // MARK: - ViewAppeared Tests
 
+  func testViewAppearedRegistersForRemoteNotifications() async {
+    @Shared(.stationListsLoaded) var stationListsLoaded = false
+    var registerForRemoteNotificationsCalled = false
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.pushNotifications.registerForRemoteNotifications = {
+        registerForRemoteNotificationsCalled = true
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.viewAppeared()
+    XCTAssertTrue(registerForRemoteNotificationsCalled)
+  }
+
   func testViewAppeared_CorrectlyRetrievesStationListsWhenApiIsSuccessful() async {
     @Shared(.stationListsLoaded) var stationListsLoaded = false
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
@@ -69,6 +86,7 @@ final class MainContainerTests: XCTestCase {
         getStationsCallCount += 1
         return StationList.mocks
       }
+      $0.pushNotifications.registerForRemoteNotifications = {}
     } operation: {
       MainContainerModel()
     }
@@ -96,6 +114,7 @@ final class MainContainerTests: XCTestCase {
       $0.analytics.track = { @Sendable event in
         capturedEvents.withValue { $0.append(event) }
       }
+      $0.pushNotifications.registerForRemoteNotifications = {}
     } operation: {
       MainContainerModel()
     }
@@ -126,6 +145,7 @@ final class MainContainerTests: XCTestCase {
         getStationsCallCount += 1
         return StationList.mocks
       }
+      $0.pushNotifications.registerForRemoteNotifications = {}
     } operation: {
       MainContainerModel()
     }
@@ -153,6 +173,7 @@ final class MainContainerTests: XCTestCase {
         getScheduledShowsCallCount += 1
         return mockScheduledShows
       }
+      $0.pushNotifications.registerForRemoteNotifications = {}
     } operation: {
       MainContainerModel()
     }
@@ -170,6 +191,7 @@ final class MainContainerTests: XCTestCase {
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
+      $0.pushNotifications.registerForRemoteNotifications = {}
     } operation: {
       MainContainerModel(stationPlayer: stationPlayerMock)
     }
@@ -184,6 +206,7 @@ final class MainContainerTests: XCTestCase {
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
+      $0.pushNotifications.registerForRemoteNotifications = {}
     } operation: {
       MainContainerModel(stationPlayer: stationPlayerMock)
     }
@@ -197,6 +220,7 @@ final class MainContainerTests: XCTestCase {
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
+      $0.pushNotifications.registerForRemoteNotifications = {}
     } operation: {
       MainContainerModel(stationPlayer: stationPlayerMock)
     }
@@ -211,6 +235,7 @@ final class MainContainerTests: XCTestCase {
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
+      $0.pushNotifications.registerForRemoteNotifications = {}
     } operation: {
       MainContainerModel(stationPlayer: stationPlayerMock)
     }
@@ -225,6 +250,7 @@ final class MainContainerTests: XCTestCase {
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
+      $0.pushNotifications.registerForRemoteNotifications = {}
     } operation: {
       MainContainerModel(stationPlayer: stationPlayerMock)
     }

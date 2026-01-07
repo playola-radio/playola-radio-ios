@@ -60,6 +60,9 @@ struct ScheduledShowTile: View {
       presentAlert(alert)
       return alert.alert
     }
+    .task {
+      await model.viewAppeared()
+    }
   }
 }
 

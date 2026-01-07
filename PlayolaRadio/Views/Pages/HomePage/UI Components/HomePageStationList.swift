@@ -8,14 +8,6 @@
 import IdentifiedCollections
 import SwiftUI
 
-struct Station: Identifiable {
-  let id = UUID()
-  let name: String
-  let stationName: String
-  let description: String
-  let imageUrl: String
-}
-
 struct StationCardView: View {
   let station: AnyStation
   let onRadioStationSelected: (AnyStation) -> Void

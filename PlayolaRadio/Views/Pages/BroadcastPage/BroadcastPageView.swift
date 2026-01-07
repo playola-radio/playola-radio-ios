@@ -1,0 +1,666 @@
+//
+//  BroadcastPageView.swift
+//  PlayolaRadio
+//
+//  Created by Brian D Keane on 11/30/25.
+//
+
+import Dependencies
+import PlayolaPlayer
+import SDWebImageSwiftUI
+import SwiftUI
+
+struct BroadcastPageView: View {
+  @Bindable var model: BroadcastPageModel
+  @State private var dropTargetSpinId: String?
+
+  var body: some View {
+    ZStack {
+      Color.black
+        .edgesIgnoringSafeArea(.all)
+
+      VStack(spacing: 0) {
+        // Action Buttons
+        HStack(spacing: 0) {
+          Spacer()
+
+          BroadcastActionButton(
+            icon: .asset("BroadcastMicIcon", width: 32, height: 40),
+            label: "VoiceTrack",
+            action: model.onAddVoiceTrackTapped
+          )
+
+          BroadcastActionButton(
+            icon: .asset("BroadcastAddSongIcon", width: 40, height: 40),
+            label: "Add Song",
+            action: model.onAddSongTapped
+          )
+
+          BroadcastActionButton(
+            icon: .system("bell.fill"),
+            label: "Notify",
+            isEnabled: model.canSendNotification,
+            sublabel: model.notificationRestTimeRemainingString,
+            action: model.onNotifyListenersTapped
+          )
+
+          Spacer()
+        }
+        .padding(.top, 20)
+        .padding(.bottom, 20)
+
+        // Staging Area
+        if !model.stagingItems.isEmpty {
+          stagingSection
+            .padding(.bottom, 16)
+        }
+
+        if model.isLoading {
+          Spacer()
+          ProgressView()
+            .tint(.white)
+          Spacer()
+        } else {
+          TimelineView(.periodic(from: .now, by: 0.5)) { _ in
+            // swiftlint:disable:next redundant_discardable_let
+            let _ = model.tick()  // Safe: only updates state if nowPlaying actually changed
+
+            // Now Playing (fixed, doesn't scroll)
+            if let nowPlaying = model.nowPlaying {
+              VStack(spacing: 0) {
+                NowPlayingContentView(spin: nowPlaying)
+                  .id(nowPlaying.id)
+                  .transition(.opacity)
+
+                // Progress bar (doesn't animate with content)
+                ProgressView(value: model.nowPlayingProgress)
+                  .progressViewStyle(LinearProgressViewStyle(tint: .playolaRed))
+                  .background(Color(hex: "#5E5F5F"))
+              }
+            }
+
+            // Schedule List (scrolls)
+            List {
+              ForEach(model.upcomingSpins, id: \.id) { spin in
+                let isDeletable = model.canDeleteSpin(spin)
+                VStack(spacing: 0) {
+                  // Drop indicator above this row
+                  if dropTargetSpinId == spin.id {
+                    Rectangle()
+                      .fill(Color.playolaRed)
+                      .frame(height: 3)
+                      .transition(.opacity)
+                  }
+
+                  ScheduleRowView(
+                    spin: spin,
+                    isBeingRescheduled: model.spinIdsBeingRescheduled.contains(spin.id),
+                    isDeletable: isDeletable
+                  )
+                }
+                .dropDestination(for: String.self) { items, _ in
+                  guard let voicetrackId = items.first else { return false }
+                  Task {
+                    await model.insertStagingItem(stagingId: voicetrackId, beforeSpinId: spin.id)
+                  }
+                  return true
+                } isTargeted: { isTargeted in
+                  withAnimation(.easeInOut(duration: 0.2)) {
+                    dropTargetSpinId = isTargeted ? spin.id : nil
+                  }
+                }
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+                .deleteDisabled(!isDeletable)
+                .moveDisabled(!isDeletable)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+              }
+              .onDelete { indexSet in
+                guard let index = indexSet.first else { return }
+                let spin = model.upcomingSpins[index]
+                Task {
+                  await model.deleteSpin(spin)
+                }
+              }
+              .onMove { source, destination in
+                Task {
+                  await model.moveSpins(from: source, to: destination)
+                }
+              }
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(Color.black)
+          }
+          .animation(.easeInOut(duration: 0.3), value: model.currentNowPlayingId)
+        }
+      }
+    }
+    .navigationTitle(model.navigationTitle)
+    .navigationBarTitleDisplayMode(.inline)
+    .toolbarBackground(.visible, for: .navigationBar)
+    .toolbarBackground(Color.black, for: .navigationBar)
+    .toolbarColorScheme(.dark, for: .navigationBar)
+    .task {
+      await model.viewAppeared()
+    }
+    .alert(item: $model.presentedAlert) { $0.alert }
+    .sheet(isPresented: $model.showNotifyListenersSheet) {
+      NotifyListenersSheet(model: model)
+    }
+  }
+
+  // MARK: - Staging Section
+
+  private var stagingSection: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      Text("READY TO PLACE")
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
+        .foregroundColor(.playolaGray)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+
+      ForEach(Array(model.stagingItems.enumerated()), id: \.element.stagingId) { _, item in
+        if item.isReady {
+          StagingRowView(item: item)
+            .draggable(item.stagingId) {
+              StagingRowView(item: item)
+                .frame(width: 300)
+                .opacity(0.8)
+            }
+        } else {
+          StagingRowView(item: item)
+        }
+      }
+    }
+    .background(Color(hex: "#1A1A1A"))
+  }
+}
+
+// MARK: - Staging Row View
+
+struct StagingRowView: View {
+  let item: any StagingItem
+
+  var body: some View {
+    HStack(spacing: 12) {
+      // Icon or album image
+      if let imageUrl = item.albumImageUrl {
+        WebImage(url: imageUrl)
+          .resizable()
+          .aspectRatio(contentMode: .fill)
+          .frame(width: 40, height: 40)
+          .clipShape(Circle())
+      } else if let icon = item.icon {
+        ZStack {
+          Circle()
+            .fill(Color.playolaRed)
+            .frame(width: 40, height: 40)
+          Image(systemName: icon)
+            .font(.system(size: 16))
+            .foregroundColor(.white)
+        }
+      }
+
+      // Title and subtitle
+      VStack(alignment: .leading, spacing: 2) {
+        Text(item.titleText)
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+          .foregroundColor(.white)
+          .lineLimit(1)
+
+        Text(item.subtitleText)
+          .font(.custom(FontNames.Inter_400_Regular, size: 12))
+          .foregroundColor(item.subtitleColor)
+          .lineLimit(1)
+      }
+
+      Spacer()
+
+      // Status indicator
+      if item.isProcessing {
+        ProgressView()
+          .tint(.white)
+          .scaleEffect(0.8)
+      } else if item.isReady {
+        Image(systemName: "checkmark.circle.fill")
+          .font(.system(size: 20))
+          .foregroundColor(.green)
+      } else {
+        Image(systemName: "xmark.circle.fill")
+          .font(.system(size: 20))
+          .foregroundColor(.playolaRed)
+      }
+    }
+    .padding(.horizontal, 16)
+    .padding(.vertical, 10)
+    .background(Color(hex: "#2A2A2A"))
+  }
+}
+
+// MARK: - Now Playing Content View (slides during transition)
+
+struct NowPlayingContentView: View {
+  let spin: Spin
+
+  var body: some View {
+    HStack(spacing: 12) {
+      // Artwork
+      ScheduleItemImage(spin: spin)
+        .frame(width: 45, height: 45)
+
+      // Title & Artist
+      VStack(alignment: .leading, spacing: 2) {
+        Text(spin.audioBlock.title)
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+          .foregroundColor(.white)
+          .lineLimit(1)
+
+        Text(spin.audioBlock.artist)
+          .font(.custom(FontNames.Inter_400_Regular, size: 12))
+          .foregroundColor(.playolaGray)
+          .lineLimit(1)
+      }
+
+      Spacer()
+
+      // Live Now badge
+      Text("LIVE NOW")
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 10))
+        .foregroundColor(.playolaRed)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .overlay(
+          RoundedRectangle(cornerRadius: 4)
+            .stroke(Color.playolaRed, lineWidth: 1)
+        )
+    }
+    .padding(.horizontal, 12)
+    .padding(.vertical, 8)
+    .background(Color(hex: "#333333"))
+  }
+}
+
+// MARK: - Schedule Row View
+
+struct ScheduleRowView: View {
+  let spin: Spin
+  let isBeingRescheduled: Bool
+  let isDeletable: Bool
+
+  init(spin: Spin, isBeingRescheduled: Bool = false, isDeletable: Bool = true) {
+    self.spin = spin
+    self.isBeingRescheduled = isBeingRescheduled
+    self.isDeletable = isDeletable
+  }
+
+  var isGrouped: Bool { spin.spinGroupId != nil }
+
+  private var timeString: String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "h:mm:ssa"
+    return formatter.string(from: spin.airtime).lowercased()
+  }
+
+  private var rowBackgroundColor: Color {
+    if spin.audioBlock.type == "commercial" {
+      return Color.black
+    }
+    return isDeletable ? Color(hex: "#333333") : Color(hex: "#444444")
+  }
+
+  var body: some View {
+    HStack(spacing: 0) {
+      // Group indicator bar
+      if isGrouped {
+        RoundedRectangle(cornerRadius: 2)
+          .fill(Color.playolaRed)
+          .frame(width: 4)
+          .padding(.vertical, 4)
+      }
+
+      HStack(spacing: 12) {
+        // Artwork / Icon
+        ScheduleItemImage(spin: spin)
+          .frame(width: 45, height: 45)
+
+        // Title & Artist
+        VStack(alignment: .leading, spacing: 2) {
+          Text(spin.audioBlock.title)
+            .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+            .foregroundColor(.white)
+            .lineLimit(1)
+
+          Text(spin.audioBlock.artist)
+            .font(.custom(FontNames.Inter_400_Regular, size: 12))
+            .foregroundColor(.playolaGray)
+            .lineLimit(1)
+        }
+
+        Spacer()
+
+        // VoiceTrack play button
+        if spin.audioBlock.type == "voiceTrack" {
+          Button {
+            // Play preview
+          } label: {
+            Image(systemName: "play.circle")
+              .font(.system(size: 24))
+              .foregroundColor(.white)
+          }
+        }
+
+        // Time or rescheduling indicator
+        if isBeingRescheduled {
+          ProgressView()
+            .tint(.playolaGray)
+            .scaleEffect(0.8)
+        } else {
+          Text("at \(timeString)")
+            .font(.custom(FontNames.Inter_400_Regular, size: 11))
+            .foregroundColor(.playolaGray)
+        }
+
+        // Drag handle
+        Image(systemName: "line.3.horizontal")
+          .font(.system(size: 14, weight: .bold))
+          .foregroundColor(.playolaGray)
+          .padding(.leading, 8)
+      }
+      .padding(.horizontal, 12)
+      .padding(.vertical, 8)
+    }
+    .background(rowBackgroundColor)
+  }
+}
+
+// MARK: - Notify Listeners Sheet
+
+struct NotifyListenersSheet: View {
+  @Bindable var model: BroadcastPageModel
+  @FocusState private var isTextFieldFocused: Bool
+
+  private let placeholderText = """
+    Tell your listeners what you're up to...
+
+    "I'm going live from the van!"
+    "Playing my favorite road songs today"
+    """
+
+  var body: some View {
+    NavigationStack {
+      ZStack {
+        Color.black.ignoresSafeArea()
+
+        VStack(spacing: 20) {
+          Text("Tell your listeners you're about to go live.")
+            .font(.custom(FontNames.Inter_400_Regular, size: 14))
+            .foregroundColor(.playolaGray)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal)
+
+          ZStack(alignment: .topLeading) {
+            if model.notifyMessage.isEmpty {
+              Text(placeholderText)
+                .font(.custom(FontNames.Inter_400_Regular, size: 16))
+                .foregroundColor(Color(hex: "#666666"))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 12)
+            }
+
+            TextEditor(text: $model.notifyMessage)
+              .font(.custom(FontNames.Inter_400_Regular, size: 16))
+              .foregroundColor(.white)
+              .scrollContentBackground(.hidden)
+              .padding(8)
+              .focused($isTextFieldFocused)
+          }
+          .frame(height: 150)
+          .background(Color(hex: "#1A1A1A"))
+          .cornerRadius(8)
+          .overlay(
+            RoundedRectangle(cornerRadius: 8)
+              .stroke(Color(hex: "#333333"), lineWidth: 1)
+          )
+          .padding(.horizontal)
+
+          Spacer()
+
+          Button {
+            Task {
+              await model.sendNotification()
+            }
+          } label: {
+            if model.isSendingNotification {
+              ProgressView()
+                .tint(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+            } else {
+              Text("Send Notification")
+                .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+            }
+          }
+          .background(
+            model.notifyMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              ? Color(hex: "#666666")
+              : Color.playolaRed
+          )
+          .cornerRadius(8)
+          .disabled(
+            model.notifyMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              || model.isSendingNotification
+          )
+          .padding(.horizontal)
+          .padding(.bottom)
+        }
+        .padding(.top, 20)
+      }
+      .navigationTitle("Notify Listeners")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbarBackground(.visible, for: .navigationBar)
+      .toolbarBackground(Color.black, for: .navigationBar)
+      .toolbarColorScheme(.dark, for: .navigationBar)
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Cancel") {
+            model.cancelNotifyListeners()
+          }
+          .foregroundColor(.white)
+        }
+      }
+    }
+    .presentationDetents([.medium])
+    .onAppear {
+      isTextFieldFocused = true
+    }
+    .alert(item: $model.presentedAlert) { $0.alert }
+  }
+}
+
+// MARK: - Broadcast Action Button
+
+struct BroadcastActionButton: View {
+  enum IconType {
+    case asset(String, width: CGFloat, height: CGFloat)
+    case system(String)
+  }
+
+  let icon: IconType
+  let label: String
+  var isEnabled: Bool = true
+  var sublabel: String?
+  let action: () -> Void
+
+  private var fillColor: Color {
+    isEnabled ? .playolaRed : Color(hex: "#666666")
+  }
+
+  private var strokeColor: Color {
+    isEnabled ? .white : Color(hex: "#888888")
+  }
+
+  private var iconColor: Color {
+    isEnabled ? .white : Color(hex: "#AAAAAA")
+  }
+
+  var body: some View {
+    VStack(spacing: 8) {
+      Button(action: action) {
+        ZStack {
+          Circle()
+            .fill(fillColor)
+            .frame(width: 80, height: 80)
+            .overlay(
+              Circle()
+                .stroke(strokeColor, lineWidth: 3)
+            )
+
+          switch icon {
+          case .asset(let name, let width, let height):
+            Image(name)
+              .resizable()
+              .renderingMode(.template)
+              .foregroundColor(iconColor)
+              .frame(width: width, height: height)
+          case .system(let name):
+            Image(systemName: name)
+              .font(.system(size: 32))
+              .foregroundColor(iconColor)
+          }
+        }
+      }
+      .disabled(!isEnabled)
+
+      Text(sublabel ?? label)
+        .font(.custom(FontNames.Inter_400_Regular, size: 11))
+        .foregroundColor(sublabel != nil ? .playolaGray : (isEnabled ? .white : .playolaGray))
+    }
+    .frame(maxWidth: .infinity)
+  }
+}
+
+// MARK: - Schedule Item Image
+
+struct ScheduleItemImage: View {
+  let spin: Spin
+
+  var body: some View {
+    switch spin.audioBlock.type {
+    case "song":
+      if let imageUrl = spin.audioBlock.imageUrl {
+        WebImage(url: imageUrl)
+          .resizable()
+          .aspectRatio(contentMode: .fill)
+          .frame(width: 45, height: 45)
+          .clipped()
+      } else {
+        RoundedRectangle(cornerRadius: 4)
+          .fill(Color(hex: "#666666"))
+          .overlay(
+            Image(systemName: "music.note")
+              .foregroundColor(Color(hex: "#999999"))
+          )
+      }
+    case "voiceTrack":
+      ZStack {
+        RoundedRectangle(cornerRadius: 4)
+          .fill(Color.playolaRed)
+        Image(systemName: "mic.fill")
+          .foregroundColor(.white)
+          .font(.system(size: 20))
+      }
+    case "commercial":
+      ZStack {
+        Circle()
+          .fill(Color(hex: "#2E7D32"))
+          .frame(width: 40, height: 40)
+        Text("$")
+          .font(.system(size: 20, weight: .bold))
+          .foregroundColor(.white)
+      }
+    default:
+      RoundedRectangle(cornerRadius: 4)
+        .fill(Color(hex: "#666666"))
+        .overlay(
+          Image(systemName: "music.note")
+            .foregroundColor(Color(hex: "#999999"))
+        )
+    }
+  }
+}
+
+#Preview {
+  let now = Date()
+  let groupId = "voicetrack-group-1"
+
+  let previewSpins = [
+    // Now playing
+    Spin.mockWith(
+      id: "now-playing",
+      airtime: now.addingTimeInterval(-30),
+      audioBlock: AudioBlock.mockWith(
+        title: "Currently Playing Song",
+        artist: "Current Artist",
+        endOfMessageMS: 180_000
+      )
+    ),
+    // Upcoming - grouped voicetrack + song
+    Spin.mockWith(
+      id: "vt-1",
+      airtime: now.addingTimeInterval(150),
+      audioBlock: AudioBlock.mockWith(
+        title: "DJ Intro",
+        artist: "Your Voice",
+        endOfMessageMS: 15_000,
+        type: "voiceTrack"
+      ),
+      spinGroupId: groupId
+    ),
+    Spin.mockWith(
+      id: "song-after-vt",
+      airtime: now.addingTimeInterval(165),
+      audioBlock: AudioBlock.mockWith(
+        title: "Song After VoiceTrack",
+        artist: "Grouped Artist",
+        endOfMessageMS: 200_000
+      ),
+      spinGroupId: groupId
+    ),
+    // Regular songs
+    Spin.mockWith(
+      id: "song-2",
+      airtime: now.addingTimeInterval(365),
+      audioBlock: AudioBlock.mockWith(
+        title: "Ungrouped Song",
+        artist: "Solo Artist",
+        endOfMessageMS: 180_000
+      )
+    ),
+    Spin.mockWith(
+      id: "song-3",
+      airtime: now.addingTimeInterval(545),
+      audioBlock: AudioBlock.mockWith(
+        title: "Another Song",
+        artist: "Another Artist",
+        endOfMessageMS: 210_000
+      )
+    ),
+  ]
+
+  NavigationStack {
+    BroadcastPageView(
+      model: withDependencies {
+        $0.date.now = now
+        $0.api.fetchSchedule = { _, _ in previewSpins }
+      } operation: {
+        BroadcastPageModel(stationId: "preview-station", stationName: "Brian's Station")
+      }
+    )
+  }
+  .preferredColorScheme(.dark)
+}

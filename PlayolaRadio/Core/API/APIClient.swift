@@ -139,362 +139,197 @@ struct APIClient: Sendable {
   var getScheduledShows:
     (_ jwtToken: String, _ showId: String?, _ stationId: String?) async throws -> [ScheduledShow] =
       { _, _, _ in [] }
-}
 
-extension APIClient: DependencyKey {
-  static let liveValue: Self = {
-    // Create a custom decoder for dates
-    let isoDecoder = JSONDecoderWithIsoFull()
+  /// Fetches the schedule for a station
+  /// - Parameters:
+  ///   - stationId: The station ID to fetch the schedule for
+  ///   - extended: Whether to fetch extended schedule (more spins)
+  /// - Returns: Array of Spin objects representing the schedule
+  /// - Throws: Error if the request fails
+  var fetchSchedule: (_ stationId: String, _ extended: Bool) async throws -> [Spin] = { _, _ in [] }
 
-    return Self(
-      getStations: {
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/station-lists"
-        let response = try await AF.request(url)
-          .serializingDecodable([StationList].self, decoder: JSONDecoderWithIsoFull())
-          .value
-        return IdentifiedArray(uniqueElements: response)
-      },
-      signInViaApple: { identityToken, email, authCode, firstName, lastName in
-        var parameters: [String: String] = [
-          "identityToken": identityToken,
-          "authCode": authCode,
-          "firstName": firstName,
-        ]
-        if let email {
-          parameters["email"] = email
-        }
-        if let lastName {
-          parameters["lastName"] = lastName
-        }
-        let response = try await AF.request(
-          "\(Config.shared.baseUrl.absoluteString)/v1/auth/apple/mobile/signup",
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default
-        ).serializingDecodable(LoginResponse.self).value
+  /// Fetches a station by ID
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to fetch
+  /// - Returns: Station object or nil if not found
+  var fetchStation: (_ jwtToken: String, _ stationId: String) async throws -> Station? = { _, _ in
+    nil
+  }
 
-        return response.playolaToken
-      },
-      revokeAppleCredentials: { appleUserId in
-        let parameters: [String: String] = ["appleUserId": appleUserId]
-        _ = try await AF.request(
-          "\(Config.shared.baseUrl.absoluteString)/v1/auth/apple/revoke",
-          method: .put,
-          parameters: parameters,
-          encoding: JSONEncoding.default
+  /// Fetches all stations for a user
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: Array of Station objects the user has access to
+  var fetchUserStations: (_ jwtToken: String) async throws -> [Station] = { _ in [] }
+
+  /// Deletes a spin from the station's schedule
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - spinId: The ID of the spin to delete
+  /// - Returns: Updated array of Spin objects representing the new schedule
+  /// - Throws: APIError if the request fails
+  var deleteSpin: (_ jwtToken: String, _ spinId: String) async throws -> [Spin] = { _, _ in [] }
+
+  /// Moves a spin to a new position in the playlist
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - spinId: The ID of the spin to move
+  ///   - placeAfterSpinId: The ID of the spin after which to place the moved spin, or nil to place at the beginning
+  /// - Returns: Updated array of Spin objects representing the new schedule
+  /// - Throws: APIError if the request fails
+  var moveSpin:
+    (_ jwtToken: String, _ spinId: String, _ placeAfterSpinId: String?) async throws
+      -> [Spin] = { _, _, _ in [] }
+  /// Inserts a spin into the station's schedule
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - audioBlockId: The ID of the audio block to insert
+  ///   - placeAfterSpinId: The ID of the spin to place the new spin after
+  /// - Returns: Updated array of Spin objects representing the new schedule
+  /// - Throws: APIError if the request fails
+  var insertSpin:
+    (_ jwtToken: String, _ audioBlockId: String, _ placeAfterSpinId: String) async throws -> [Spin] =
+      { _, _, _ in [] }
+
+  /// Gets a presigned URL for uploading a voicetrack to S3
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to upload the voicetrack for
+  /// - Returns: PresignedURLResponse containing the upload URL and S3 key
+  /// - Throws: APIError if the request fails
+  var getVoicetrackPresignedURL:
+    (_ jwtToken: String, _ stationId: String) async throws
+      -> PresignedURLResponse = { _, _ in
+        PresignedURLResponse(
+          presignedUrl: URL(string: "https://example.com")!,
+          s3Key: "test.m4a",
+          voicetrackUrl: URL(string: "https://example.com/test.m4a")!
         )
-        .validate(statusCode: 200..<300)
-        .serializingData()
-        .value
-
-        AuthService.shared.signOut()
-      },
-      signInViaGoogle: { code in
-        let parameters: [String: Sendable] = [
-          "code": code,
-          "originatesFromIOS": true,
-        ]
-
-        let response = try await AF.request(
-          "\(Config.shared.baseUrl.absoluteString)/v1/auth/google/signin",
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default
-        )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(LoginResponse.self).value
-
-        return response.playolaToken
-      },
-      getRewardsProfile: { jwtToken in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/users/me/profile"
-        let headers: HTTPHeaders = [
-          "Authorization": "Bearer \(jwtToken)"
-        ]
-
-        let response = try await AF.request(
-          url,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(RewardsProfile.self, decoder: JSONDecoderWithIsoFull())
-        .value
-
-        return response
-      },
-      getPrizeTiers: {
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/tiers"
-
-        let response = try await AF.request(url)
-          .validate(statusCode: 200..<300)
-          .serializingDecodable([PrizeTier].self, decoder: isoDecoder)
-          .value
-
-        return response
-      },
-      updateUser: { jwtToken, firstName, lastName in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me"
-
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        var params: [String: String] = ["firstName": firstName]
-        if let lastName { params["lastName"] = lastName }
-
-        let request = AF.request(
-          url,
-          method: .put,
-          parameters: params,
-          encoding: JSONEncoding.default,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-
-        // Capture decoded body *and* the HTTPURLResponse
-        let dataResponse = try await request.serializingDecodable(UpdateUserResponse.self).response
-        guard
-          let body = dataResponse.value
-        else {
-          throw APIError.dataNotValid
-        }
-
-        let newToken = dataResponse.response?.headers["X-New-Access-Token"] ?? jwtToken
-        let updatedUser = LoggedInUser(
-          id: body.id,
-          firstName: body.firstName,
-          lastName: body.lastName,
-          email: body.email,
-          profileImageUrl: body.profileImageUrl,
-          role: body.role
-        )
-
-        return Auth(currentUser: updatedUser, jwt: newToken)
-      },
-      verifyInvitationCode: { code in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/invitation-codes/verify"
-        let parameters = ["code": code]
-
-        let dataResponse = await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default
-        )
-        .serializingData()
-        .response
-
-        guard let statusCode = dataResponse.response?.statusCode else {
-          throw APIError.dataNotValid
-        }
-
-        if statusCode == 200 {
-          if let data = dataResponse.value,
-            let jsonResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let valid = jsonResponse["valid"] as? Bool,
-            valid
-          {
-            return
-          }
-          throw InvitationCodeError.invalidCode("Invalid invitation code")
-        } else {
-          // Try to parse server error message
-          if let data = dataResponse.value,
-            let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let errorObj = errorResponse["error"] as? [String: Any],
-            let message = errorObj["message"] as? String
-          {
-            throw InvitationCodeError.invalidCode(message)
-          }
-
-          // Fall back to standard validation error
-          let request = AF.request(
-            url,
-            method: .post,
-            parameters: parameters,
-            encoding: JSONEncoding.default
-          )
-          _ = try await request.validate(statusCode: 200..<300).serializingData().value
-        }
-      },
-      registerInvitationCode: { userId, code in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/invitation-codes/register"
-        let parameters = ["userId": userId, "code": code]
-
-        let response = try await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default
-        )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable([String: Bool].self)
-        .value
-
-        guard response["success"] == true else {
-          throw InvitationCodeError.registrationFailed("Failed to register with invitation code")
-        }
-      },
-      addToWaitingList: { email in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/waiting-list-entries"
-        let parameters = ["email": email]
-
-        let dataResponse = await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default
-        )
-        .serializingData()
-        .response
-
-        guard let statusCode = dataResponse.response?.statusCode else {
-          throw APIError.dataNotValid
-        }
-
-        if statusCode >= 200 && statusCode < 300 {
-          return
-        } else {
-          // Try to parse server error message
-          if let data = dataResponse.value,
-            let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let message = errorResponse["message"] as? String
-          {
-            throw APIError.validationError(message)
-          }
-
-          // Fall back to validation error
-          let request = AF.request(
-            url,
-            method: .post,
-            parameters: parameters,
-            encoding: JSONEncoding.default
-          )
-          _ = try await request.validate(statusCode: 200..<300).serializingData().value
-        }
-      },
-      likeSong: { jwtToken, songId, spinId in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/likes"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        var parameters: [String: String] = ["audioBlockId": songId]
-        if let spinId = spinId {
-          parameters["spinId"] = spinId
-        }
-
-        _ = try await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-        .serializingData()
-        .value
-      },
-      unlikeSong: { jwtToken, songId in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/likes/\(songId)"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        _ = try await AF.request(
-          url,
-          method: .delete,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-        .serializingData()
-        .value
-      },
-      getLikedSongs: { jwtToken in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/likes"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(
-          url,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable([UserSongLike].self, decoder: isoDecoder)
-        .value
-
-        return response
-      },
-      getShows: { jwtToken, includeSegments, stationId in
-        var url = "\(Config.shared.baseUrl.absoluteString)/v1/shows"
-        var queryParams: [String] = []
-
-        if includeSegments {
-          queryParams.append("includeSegments=true")
-        }
-        if let stationId = stationId {
-          queryParams.append("stationId=\(stationId)")
-        }
-
-        if !queryParams.isEmpty {
-          url += "?" + queryParams.joined(separator: "&")
-        }
-
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(
-          url,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable([Show].self, decoder: isoDecoder)
-        .value
-
-        return response
-      },
-      getShowById: { jwtToken, showId, includeSegments in
-        var url = "\(Config.shared.baseUrl.absoluteString)/v1/shows/\(showId)"
-        if !includeSegments {
-          url += "?includeSegments=false"
-        }
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(
-          url,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(Show?.self, decoder: isoDecoder)
-        .value
-
-        return response
-      },
-      getScheduledShows: { jwtToken, showId, stationId in
-        var url = "\(Config.shared.baseUrl.absoluteString)/v1/shows/schedule"
-        var queryParams: [String] = []
-
-        if let showId = showId {
-          queryParams.append("showId=\(showId)")
-        }
-        if let stationId = stationId {
-          queryParams.append("stationId=\(stationId)")
-        }
-
-        if !queryParams.isEmpty {
-          url += "?" + queryParams.joined(separator: "&")
-        }
-
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(
-          url,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable([ScheduledShow].self, decoder: isoDecoder)
-        .value
-
-        return response
       }
-    )
-  }()
+
+  /// Uploads a file to S3 using a presigned URL
+  /// - Parameters:
+  ///   - presignedURL: The presigned URL to upload to
+  ///   - fileURL: The local file URL to upload
+  ///   - contentType: The content type of the file
+  ///   - onProgress: Callback for upload progress (0.0 to 1.0)
+  /// - Throws: APIError if the upload fails
+  var uploadToS3:
+    (
+      _ presignedURL: URL, _ fileURL: URL, _ contentType: String,
+      _ onProgress: @escaping @Sendable (Double) -> Void
+    ) async throws -> Void = { _, _, _, _ in }
+
+  /// Creates a voicetrack AudioBlock after uploading to S3
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to create the voicetrack for
+  ///   - s3Key: The S3 key where the file was uploaded
+  ///   - durationMS: The duration in milliseconds
+  /// - Returns: The created AudioBlock
+  /// - Throws: APIError if the request fails
+  var createVoicetrack:
+    (_ jwtToken: String, _ stationId: String, _ s3Key: String, _ durationMS: Int) async throws
+      -> AudioBlock = { _, _, _, _ in
+        AudioBlock.mockWith()
+      }
+
+  /// Checks if a voicetrack file has been normalized and is ready in the voicetracks bucket
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - s3Key: The S3 key to check
+  /// - Returns: VoicetrackStatusResponse indicating if the file is ready
+  /// - Throws: APIError if the request fails
+  var getVoicetrackStatus:
+    (_ jwtToken: String, _ stationId: String, _ s3Key: String) async throws
+      -> VoicetrackStatusResponse = { _, _, _ in
+        VoicetrackStatusResponse(ready: true, s3Key: "test.m4a")
+      }
+
+  /// Searches for songs by keywords
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - keywords: The search keywords
+  /// - Returns: Array of AudioBlocks matching the search
+  /// - Throws: APIError if the request fails
+  var searchSongs: (_ jwtToken: String, _ keywords: String) async throws -> [AudioBlock] = { _, _ in
+    []
+  }
+
+  /// Searches for song requests by keywords
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - keywords: The search keywords
+  /// - Returns: Array of SongRequests matching the search
+  /// - Throws: APIError if the request fails
+  var searchSongRequests: (_ jwtToken: String, _ keywords: String) async throws -> [SongRequest] = {
+    _, _ in
+    []
+  }
+
+  /// Requests a song to be added to the library
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - spotifyId: The Spotify ID of the song to request
+  /// - Throws: APIError if the request fails
+  var requestSong: (_ jwtToken: String, _ spotifyId: String) async throws -> Void = { _, _ in }
+
+  /// Registers a device for push notifications
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - deviceToken: The APNs device token as a hex string
+  ///   - platform: The platform (ios or android)
+  ///   - appVersion: The app version string
+  /// - Returns: RegisteredDevice containing the device ID
+  /// - Throws: APIError if the request fails
+  var registerDevice:
+    (_ jwtToken: String, _ deviceToken: String, _ platform: String, _ appVersion: String)
+      async throws
+      -> RegisteredDevice = { _, _, _, _ in
+        RegisteredDevice(id: "", deviceToken: "", platform: "ios", isActive: true)
+      }
+
+  /// Unregisters a device from push notifications
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - deviceId: The device ID to unregister
+  /// - Throws: APIError if the request fails
+  var unregisterDevice: (_ jwtToken: String, _ deviceId: String) async throws -> Void = { _, _ in }
+
+  /// Sends a push notification to all listeners of a station
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to send notification for
+  ///   - message: The notification message
+  /// - Throws: APIError if the request fails
+  var sendStationNotification:
+    (_ jwtToken: String, _ stationId: String, _ message: String) async throws -> Void = { _, _, _ in
+    }
 }
 
-enum APIError: Error {
+enum APIError: Error, LocalizedError {
   case dataNotValid
   case validationError(String)
+
+  var errorDescription: String? {
+    switch self {
+    case .dataNotValid:
+      return "Invalid data received from server"
+    case .validationError(let message):
+      return message
+    }
+  }
+}
+
+func parsePlayolaErrorMessage(from data: Data) -> String? {
+  guard let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+    let errorObj = errorResponse["error"] as? [String: Any],
+    let message = errorObj["message"] as? String
+  else {
+    return nil
+  }
+  return message
 }
 
 enum InvitationCodeError: Error {
@@ -520,6 +355,7 @@ extension DependencyValues {
 struct LoginResponse: Decodable {
   let playolaToken: String
 }
+
 struct UpdateUserResponse: Decodable {
   let id: String
   let firstName: String
@@ -527,4 +363,11 @@ struct UpdateUserResponse: Decodable {
   let email: String
   let profileImageUrl: String?
   let role: String
+}
+
+struct RegisteredDevice: Decodable, Equatable {
+  let id: String
+  let deviceToken: String
+  let platform: String
+  let isActive: Bool
 }

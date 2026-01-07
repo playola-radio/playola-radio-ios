@@ -46,4 +46,8 @@ extension Color {
   static var playolaLightPurple: Color {
     Color(hex: "#6962EF")
   }
+
+  static var playolaGray: Color {
+    Color(hex: "#868686")
+  }
 }

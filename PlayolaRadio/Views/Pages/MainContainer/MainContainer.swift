@@ -72,19 +72,31 @@ struct MainContainer: View {
           EditProfilePageView(model: model)
         case .likedSongsPage(let model):
           LikedSongsPage(model: model)
+        case .broadcastPage(let model):
+          BroadcastPageView(model: model)
+        case .chooseStationToBroadcastPage(let model):
+          ChooseStationToBroadcastPageView(model: model)
         }
       }
     }
     .alert(item: $model.presentedAlert) { $0.alert }
     .sheet(
-      item: $model.mainContainerNavigationCoordinator.presentedSheet,
+      item: Binding(
+        get: {
+          if case .player = model.mainContainerNavigationCoordinator.presentedSheet {
+            return model.mainContainerNavigationCoordinator.presentedSheet
+          }
+          return nil
+        },
+        set: { model.mainContainerNavigationCoordinator.presentedSheet = $0 }
+      ),
       content: { item in
         ZStack {
           switch item {
           case .player(let playerPageModel):
             PlayerPage(model: playerPageModel)
           default:
-            fatalError("Unsupported sheet item")
+            EmptyView()
           }
 
           VStack {
@@ -92,6 +104,31 @@ struct MainContainer: View {
             ToastOverlayView()
           }
           .zIndex(1)  // Ensure toast appears above PlayerPage
+        }
+      }
+    )
+    .fullScreenCover(
+      item: Binding(
+        get: {
+          switch model.mainContainerNavigationCoordinator.presentedSheet {
+          case .recordPage, .songSearchPage:
+            return model.mainContainerNavigationCoordinator.presentedSheet
+          default:
+            return nil
+          }
+        },
+        set: { model.mainContainerNavigationCoordinator.presentedSheet = $0 }
+      ),
+      content: { item in
+        switch item {
+        case .recordPage(let recordPageModel):
+          NavigationStack {
+            RecordPageView(model: recordPageModel)
+          }
+        case .songSearchPage(let songSearchPageModel):
+          SongSearchPageView(model: songSearchPageModel)
+        default:
+          EmptyView()
         }
       }
     )
@@ -110,7 +147,6 @@ struct MainContainer: View {
         Task { await model.refreshOnForeground() }
       }
     }
-
   }
 
   @ViewBuilder
