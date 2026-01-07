@@ -23,13 +23,10 @@ final class APIClientTests: XCTestCase {
       s3Key.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? s3Key
     let url = "\(baseUrl)/v1/stations/\(stationId)/voicetrack-status/\(encodedS3Key)"
 
-    XCTAssertTrue(
-      url.contains("voicetracks%2Fstation123%2Fabc-def-123.m4a"),
-      "S3 key slashes should be percent-encoded. Got: \(url)"
-    )
-    XCTAssertFalse(
-      url.hasSuffix("voicetracks/station123/abc-def-123.m4a"),
-      "S3 key should not contain unencoded slashes in path"
+    XCTAssertEqual(
+      url,
+      "https://api.example.com/v1/stations/station-123/voicetrack-status/"
+        + "voicetracks%2Fstation123%2Fabc%2Ddef%2D123%2Em4a"
     )
   }
 
