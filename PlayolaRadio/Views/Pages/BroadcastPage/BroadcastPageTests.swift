@@ -944,6 +944,74 @@ extension BroadcastPageTests {
       XCTAssertEqual(model.upcomingSpins.map { $0.id }, ["spin-1", "new-spin", "spin-2"])
     }
   }
+
+  func testInsertStagingItemAtTopUsesNowPlayingAsPlaceAfter() async {
+    let nowPlayingAudioBlock = AudioBlock.mockWith(endOfMessageMS: 180_000)
+    let nowPlayingSpin = Spin.mockWith(
+      id: "now-playing",
+      airtime: fixedNow.addingTimeInterval(-60),
+      stationId: testStationId,
+      audioBlock: nowPlayingAudioBlock
+    )
+    let upcomingSpins = makeSpins(ids: ["spin-1", "spin-2"])
+    let allSpins = [nowPlayingSpin] + upcomingSpins
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    var capturedPlaceAfterSpinId: String?
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in allSpins }
+      $0.api.insertSpin = { _, _, placeAfterSpinId in
+        capturedPlaceAfterSpinId = placeAfterSpinId
+        return allSpins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      XCTAssertEqual(model.nowPlaying?.id, "now-playing")
+      XCTAssertEqual(model.upcomingSpins.first?.id, "spin-1")
+
+      let voicetrackId = UUID()
+      model.stagingItems = [makeStagingVoicetrack(id: voicetrackId)]
+
+      await model.insertStagingItem(stagingId: voicetrackId.uuidString, beforeSpinId: "spin-1")
+
+      XCTAssertEqual(capturedPlaceAfterSpinId, "now-playing")
+      XCTAssertNil(model.presentedAlert)
+    }
+  }
+
+  func testInsertStagingItemAtTopWithNoNowPlayingShowsError() async {
+    let upcomingSpins = makeSpins(ids: ["spin-1", "spin-2"])
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    var apiWasCalled = false
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in upcomingSpins }
+      $0.api.insertSpin = { _, _, _ in
+        apiWasCalled = true
+        return upcomingSpins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      XCTAssertNil(model.nowPlaying)
+
+      let voicetrackId = UUID()
+      model.stagingItems = [makeStagingVoicetrack(id: voicetrackId)]
+
+      await model.insertStagingItem(stagingId: voicetrackId.uuidString, beforeSpinId: "spin-1")
+
+      XCTAssertFalse(apiWasCalled)
+      XCTAssertNotNil(model.presentedAlert)
+      XCTAssertEqual(model.presentedAlert?.title, "Cannot Place Here")
+    }
+  }
 }
 
 // MARK: - Notify Listeners Tests
