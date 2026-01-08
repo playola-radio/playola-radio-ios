@@ -23,7 +23,7 @@ struct NotificationsSettingsPageView: View {
       } else {
         ScrollView {
           VStack(alignment: .leading, spacing: 0) {
-            masterToggleSection
+            primaryToggleSection
             Divider()
               .background(Color(hex: "#333333"))
               .padding(.horizontal, 20)
@@ -87,7 +87,7 @@ struct NotificationsSettingsPageView: View {
     }
   }
 
-  private var masterToggleSection: some View {
+  private var primaryToggleSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
         VStack(alignment: .leading, spacing: 4) {

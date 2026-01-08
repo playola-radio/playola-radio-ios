@@ -177,20 +177,16 @@ class NotificationsSettingsPageModel: ViewModel {
     let shouldSubscribe = !allNotificationsEnabled
     let items = stationItems
 
-    for item in items {
-      if item.isSubscribed != shouldSubscribe {
-        togglingStationIds.insert(item.station.id)
-      }
+    for item in items where item.isSubscribed != shouldSubscribe {
+      togglingStationIds.insert(item.station.id)
     }
 
     do {
-      for item in items {
-        if item.isSubscribed != shouldSubscribe {
-          if shouldSubscribe {
-            _ = try await api.subscribeToStationNotifications(jwt, item.station.id)
-          } else {
-            _ = try await api.unsubscribeFromStationNotifications(jwt, item.station.id)
-          }
+      for item in items where item.isSubscribed != shouldSubscribe {
+        if shouldSubscribe {
+          _ = try await api.subscribeToStationNotifications(jwt, item.station.id)
+        } else {
+          _ = try await api.unsubscribeFromStationNotifications(jwt, item.station.id)
         }
       }
       await loadSubscriptions()
