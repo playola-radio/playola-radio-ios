@@ -429,8 +429,6 @@ class NowPlayingUpdater {
     // Disable commands that don't make sense for live radio
     commandCenter.skipForwardCommand.isEnabled = false
     commandCenter.skipBackwardCommand.isEnabled = false
-    commandCenter.nextTrackCommand.isEnabled = false
-    commandCenter.previousTrackCommand.isEnabled = false
     commandCenter.changePlaybackRateCommand.isEnabled = false
     commandCenter.seekForwardCommand.isEnabled = false
     commandCenter.seekBackwardCommand.isEnabled = false
@@ -438,6 +436,25 @@ class NowPlayingUpdater {
 
     commandCenter.stopCommand.removeTarget(nil)
     commandCenter.playCommand.removeTarget(nil)
+    commandCenter.nextTrackCommand.removeTarget(nil)
+    commandCenter.previousTrackCommand.removeTarget(nil)
+
+    // Next/previous track commands for station seeking
+    commandCenter.nextTrackCommand.isEnabled = true
+    commandCenter.nextTrackCommand.addTarget { [weak self] _ in
+      Task { @MainActor in
+        self?.stationPlayer.seekNext()
+      }
+      return .success
+    }
+
+    commandCenter.previousTrackCommand.isEnabled = true
+    commandCenter.previousTrackCommand.addTarget { [weak self] _ in
+      Task { @MainActor in
+        self?.stationPlayer.seekPrevious()
+      }
+      return .success
+    }
 
     // Stop command
     commandCenter.stopCommand.isEnabled = true
@@ -465,6 +482,8 @@ class NowPlayingUpdater {
     // Remove all targets from commands
     commandCenter.playCommand.removeTarget(nil)
     commandCenter.stopCommand.removeTarget(nil)
+    commandCenter.nextTrackCommand.removeTarget(nil)
+    commandCenter.previousTrackCommand.removeTarget(nil)
 
     // Clear now playing info
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil

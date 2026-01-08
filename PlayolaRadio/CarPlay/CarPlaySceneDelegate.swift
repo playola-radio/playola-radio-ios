@@ -241,6 +241,12 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   private func handleStationStopped() {
     guard let interfaceController = interfaceController else { return }
 
+    // Don't dismiss if we're just seeking to another station
+    if stationPlayer.isSeeking {
+      print("Station stopped during seek - keeping now playing template")
+      return
+    }
+
     // If Now Playing template is in the stack, remove it by popping back to root
     if interfaceController.templates.contains(CPNowPlayingTemplate.shared) {
       print("Station stopped - removing now playing template from stack")

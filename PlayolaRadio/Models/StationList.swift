@@ -61,8 +61,8 @@ enum AnyStation: Identifiable, Codable, Equatable {
     switch self {
     case .playola(let playolaStation):
       return playolaStation.active ?? true
-    default:
-      return true
+    case .url(let urlStation):
+      return urlStation.active ?? true
     }
   }
 
