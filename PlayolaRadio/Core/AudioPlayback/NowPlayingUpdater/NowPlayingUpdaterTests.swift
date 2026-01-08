@@ -317,14 +317,14 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
   func testPopulatePlayingInfo_CommercialShowsPlayolaPaysAndStationName() {
     let station = AnyStation.playola(
-      PlayolaStation.mockWith(
-        stationName: "Test Station Name"
+      Station.mockWith(
+        name: "Test Station Name"
       )
     )
     let commercialAudioBlock = AudioBlock.mockWith(
-      type: "commercial",
       title: "Some Commercial Title",
-      artist: "Some Commercial Artist"
+      artist: "Some Commercial Artist",
+      type: "commercial"
     )
     let spin = Spin.mockWith(audioBlock: commercialAudioBlock, airing: nil)
 
@@ -341,14 +341,14 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
   func testPopulatePlayingInfo_SongShowsTitleAndArtist() {
     let station = AnyStation.playola(
-      PlayolaStation.mockWith(
-        stationName: "Test Station Name"
+      Station.mockWith(
+        name: "Test Station Name"
       )
     )
     let songAudioBlock = AudioBlock.mockWith(
-      type: "song",
       title: "My Song Title",
-      artist: "My Song Artist"
+      artist: "My Song Artist",
+      type: "song"
     )
     let spin = Spin.mockWith(audioBlock: songAudioBlock, airing: nil)
 
@@ -365,14 +365,14 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
   func testPopulatePlayingInfo_SongWithAiringShowsTitleAndArtist() {
     let station = AnyStation.playola(
-      PlayolaStation.mockWith(
-        stationName: "Test Station Name"
+      Station.mockWith(
+        name: "Test Station Name"
       )
     )
     let songAudioBlock = AudioBlock.mockWith(
-      type: "song",
       title: "My Song Title",
-      artist: "My Song Artist"
+      artist: "My Song Artist",
+      type: "song"
     )
     let airing = Airing.mockWith(
       episode: Episode.mockWith(title: "Episode Title")
@@ -392,14 +392,14 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
   func testPopulatePlayingInfo_NonSongWithAiringShowsEpisodeTitleAndStationName() {
     let station = AnyStation.playola(
-      PlayolaStation.mockWith(
-        stationName: "Test Station Name"
+      Station.mockWith(
+        name: "Test Station Name"
       )
     )
     let nonSongAudioBlock = AudioBlock.mockWith(
-      type: "voiceTrack",
       title: "Voice Track Title",
-      artist: "Voice Track Artist"
+      artist: "Voice Track Artist",
+      type: "voiceTrack"
     )
     let airing = Airing.mockWith(
       episode: Episode.mockWith(title: "Episode Title")
@@ -419,14 +419,14 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
   func testPopulatePlayingInfo_NonSongWithoutAiringShowsStationNameAndEmptyArtist() {
     let station = AnyStation.playola(
-      PlayolaStation.mockWith(
-        stationName: "Test Station Name"
+      Station.mockWith(
+        name: "Test Station Name"
       )
     )
     let nonSongAudioBlock = AudioBlock.mockWith(
-      type: "voiceTrack",
       title: "Voice Track Title",
-      artist: "Voice Track Artist"
+      artist: "Voice Track Artist",
+      type: "voiceTrack"
     )
     let spin = Spin.mockWith(audioBlock: nonSongAudioBlock, airing: nil)
 

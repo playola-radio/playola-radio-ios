@@ -125,7 +125,7 @@ class NowPlayingUpdater {
 
     switch state.playbackStatus {
     case .playing:
-      populatePlayingInfo(&nowPlayingInfo, state: state)
+      populatePlayingInfo(&nowPlayingInfo, state: state, station: station)
     case .loading(_, let progress):
       populateLoadingInfo(&nowPlayingInfo, station: station, progress: progress)
     case .stopped:
@@ -162,11 +162,10 @@ class NowPlayingUpdater {
 
   private func populatePlayingInfo(
     _ info: inout [String: Any],
-    state: StationPlayer.State
+    state: StationPlayer.State,
+    station: AnyStation
   ) {
-    if let spin = nowPlaying?.playolaSpinPlaying,
-      let station = nowPlaying?.currentStation
-    {
+    if let spin = state.playolaSpinPlaying {
       let (title, artist) = nowPlayingTitleAndArtist(spin: spin, station: station)
       info[MPMediaItemPropertyTitle] = title
       if !artist.isEmpty {
