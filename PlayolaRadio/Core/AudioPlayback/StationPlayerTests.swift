@@ -211,6 +211,50 @@ final class StationPlayerTests: XCTestCase {
       "StationPlayer should see artist-list slug")
   }
 
+  // MARK: - isSeeking Flag Tests
+
+  func testIsSeekingIsFalseByDefault() {
+    let stationPlayer = StationPlayer()
+    XCTAssertFalse(stationPlayer.isSeeking)
+  }
+
+  func testIsSeekingIsFalseAfterSeekNextCompletes() {
+    @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
+    @Shared(.showSecretStations) var showSecretStations = false
+
+    let stationPlayer = StationPlayer()
+    let stations = stationLists.first!.stations
+    stationPlayer.play(station: stations[0])
+
+    stationPlayer.seekNext()
+
+    XCTAssertFalse(stationPlayer.isSeeking, "isSeeking should be false after seek completes")
+  }
+
+  func testIsSeekingIsFalseAfterSeekPreviousCompletes() {
+    @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
+    @Shared(.showSecretStations) var showSecretStations = false
+
+    let stationPlayer = StationPlayer()
+    let stations = stationLists.first!.stations
+    stationPlayer.play(station: stations[1])
+
+    stationPlayer.seekPrevious()
+
+    XCTAssertFalse(stationPlayer.isSeeking, "isSeeking should be false after seek completes")
+  }
+
+  func testIsSeekingIsFalseWhenSeekHasNoStations() {
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
+    @Shared(.showSecretStations) var showSecretStations = false
+
+    let stationPlayer = StationPlayer()
+
+    stationPlayer.seekNext()
+
+    XCTAssertFalse(stationPlayer.isSeeking, "isSeeking should remain false when no stations")
+  }
+
   // MARK: - Helper Methods
 
   private func makeArtistListWithThreeStations() -> IdentifiedArrayOf<StationList> {

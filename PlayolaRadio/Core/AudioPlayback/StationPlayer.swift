@@ -37,6 +37,7 @@ class StationPlayer: ObservableObject {
   }
 
   @Published var state = State(playbackStatus: .stopped)
+  @Published var isSeeking = false
   let authProvider: PlayolaTokenProvider = .init()
 
   /// The currently playing radio station, if any
@@ -114,6 +115,9 @@ class StationPlayer: ObservableObject {
     let stations = seekableStations()
     guard !stations.isEmpty else { return }
 
+    isSeeking = true
+    defer { isSeeking = false }
+
     guard let current = currentStation,
       let currentIndex = stations.firstIndex(where: { $0.id == current.id })
     else {
@@ -129,6 +133,9 @@ class StationPlayer: ObservableObject {
   public func seekPrevious() {
     let stations = seekableStations()
     guard !stations.isEmpty else { return }
+
+    isSeeking = true
+    defer { isSeeking = false }
 
     guard let current = currentStation,
       let currentIndex = stations.firstIndex(where: { $0.id == current.id })
