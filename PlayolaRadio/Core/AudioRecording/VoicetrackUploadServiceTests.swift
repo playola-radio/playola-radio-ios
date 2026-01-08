@@ -29,6 +29,40 @@ final class VoicetrackUploadServiceTests: XCTestCase {
 
   // MARK: - Normalization Polling Tests
 
+  func testProcessVoicetrack_handlesS3KeyWithSlash() async throws {
+    var capturedS3Key: String?
+    let voicetrack = createTestVoicetrack()
+    let s3KeyWithSlash = "station123/mock-uuid.m4a"
+
+    let service = withDependencies {
+      $0.audioConverter = .testValue
+      $0.api.getVoicetrackPresignedURL = { _, _ in
+        PresignedURLResponse(
+          presignedUrl: URL(string: "https://intake.s3.amazonaws.com/test.m4a")!,
+          s3Key: s3KeyWithSlash,
+          voicetrackUrl: URL(string: "https://voicetracks.s3.amazonaws.com/test.m4a")!
+        )
+      }
+      $0.api.uploadToS3 = { _, _, _, _ in }
+      $0.api.getVoicetrackStatus = { _, _, s3Key in
+        capturedS3Key = s3Key
+        return VoicetrackStatusResponse(ready: true, s3Key: s3Key)
+      }
+      $0.api.createVoicetrack = { _, _, _, _ in AudioBlock.mockWith() }
+    } operation: {
+      VoicetrackUploadService.liveValue
+    }
+
+    _ = try await service.processVoicetrack(
+      voicetrack,
+      testStationId,
+      testJwtToken
+    ) { _ in }
+
+    XCTAssertEqual(
+      capturedS3Key, s3KeyWithSlash, "s3Key with slash should be passed through correctly")
+  }
+
   func testProcessVoicetrack_transitionsThroughNormalizingStatus() async throws {
     var statusChanges: [LocalVoicetrackStatus] = []
     let voicetrack = createTestVoicetrack()
@@ -81,5 +115,38 @@ final class VoicetrackUploadServiceTests: XCTestCase {
     {
       XCTAssertLessThan(normalizingIndex, finalizingIndex)
     }
+  }
+
+  func testProcessVoicetrackPassesS3KeyWithSlashesToStatusCheck() async throws {
+    let voicetrack = createTestVoicetrack()
+    let s3KeyWithSlashes = "voicetracks/station123/abc-def-123.m4a"
+    var capturedS3Key: String?
+
+    let service = withDependencies {
+      $0.audioConverter = .testValue
+      $0.api.getVoicetrackPresignedURL = { _, _ in
+        PresignedURLResponse(
+          presignedUrl: URL(string: "https://intake.s3.amazonaws.com/test.m4a")!,
+          s3Key: s3KeyWithSlashes,
+          voicetrackUrl: URL(string: "https://voicetracks.s3.amazonaws.com/test.m4a")!
+        )
+      }
+      $0.api.uploadToS3 = { _, _, _, _ in }
+      $0.api.getVoicetrackStatus = { _, _, s3Key in
+        capturedS3Key = s3Key
+        return VoicetrackStatusResponse(ready: true, s3Key: s3Key)
+      }
+      $0.api.createVoicetrack = { _, _, _, _ in AudioBlock.mockWith() }
+    } operation: {
+      VoicetrackUploadService.liveValue
+    }
+
+    _ = try await service.processVoicetrack(
+      voicetrack,
+      testStationId,
+      testJwtToken
+    ) { _ in }
+
+    XCTAssertEqual(capturedS3Key, s3KeyWithSlashes)
   }
 }

@@ -339,13 +339,17 @@ class BroadcastPageModel: ViewModel {
       return
     }
 
-    guard beforeIndex > 0 else {
-      print("insertStagingItem: Cannot insert before first spin (no spin to place after)")
-      presentedAlert = .cannotInsertBeforeFirstSpin
-      return
+    let placeAfterSpinId: String
+    if beforeIndex == 0 {
+      guard let nowPlayingId = nowPlaying?.id else {
+        print("insertStagingItem: Cannot insert before first spin (no nowPlaying to place after)")
+        presentedAlert = .cannotInsertBeforeFirstSpin
+        return
+      }
+      placeAfterSpinId = nowPlayingId
+    } else {
+      placeAfterSpinId = upcomingSpins[beforeIndex - 1].id
     }
-
-    let placeAfterSpinId = upcomingSpins[beforeIndex - 1].id
 
     do {
       let newSpins = try await api.insertSpin(jwt, audioBlockId, placeAfterSpinId)

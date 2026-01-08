@@ -7,6 +7,7 @@
 
 import Dependencies
 import MediaPlayer
+import PlayolaPlayer
 import XCTest
 
 @testable import PlayolaRadio
@@ -310,6 +311,134 @@ final class NowPlayingUpdaterTests: XCTestCase {
     // Verify no events were tracked
     let events = capturedEvents.value
     XCTAssertEqual(events.count, 0)
+  }
+
+  // MARK: - Now Playing Title/Artist Tests
+
+  func testPopulatePlayingInfo_CommercialShowsPlayolaPaysAndStationName() {
+    let station = AnyStation.playola(
+      Station.mockWith(
+        name: "Test Station Name"
+      )
+    )
+    let commercialAudioBlock = AudioBlock.mockWith(
+      title: "Some Commercial Title",
+      artist: "Some Commercial Artist",
+      type: "commercial"
+    )
+    let spin = Spin.mockWith(audioBlock: commercialAudioBlock, airing: nil)
+
+    let updater = NowPlayingUpdater()
+
+    let (title, artist) = updater.nowPlayingTitleAndArtist(
+      spin: spin,
+      station: station
+    )
+
+    XCTAssertEqual(title, "Playola Pays")
+    XCTAssertEqual(artist, "Test Station Name")
+  }
+
+  func testPopulatePlayingInfo_SongShowsTitleAndArtist() {
+    let station = AnyStation.playola(
+      Station.mockWith(
+        name: "Test Station Name"
+      )
+    )
+    let songAudioBlock = AudioBlock.mockWith(
+      title: "My Song Title",
+      artist: "My Song Artist",
+      type: "song"
+    )
+    let spin = Spin.mockWith(audioBlock: songAudioBlock, airing: nil)
+
+    let updater = NowPlayingUpdater()
+
+    let (title, artist) = updater.nowPlayingTitleAndArtist(
+      spin: spin,
+      station: station
+    )
+
+    XCTAssertEqual(title, "My Song Title")
+    XCTAssertEqual(artist, "My Song Artist")
+  }
+
+  func testPopulatePlayingInfo_SongWithAiringShowsTitleAndArtist() {
+    let station = AnyStation.playola(
+      Station.mockWith(
+        name: "Test Station Name"
+      )
+    )
+    let songAudioBlock = AudioBlock.mockWith(
+      title: "My Song Title",
+      artist: "My Song Artist",
+      type: "song"
+    )
+    let airing = Airing.mockWith(
+      episode: Episode.mockWith(title: "Episode Title")
+    )
+    let spin = Spin.mockWith(audioBlock: songAudioBlock, airing: airing)
+
+    let updater = NowPlayingUpdater()
+
+    let (title, artist) = updater.nowPlayingTitleAndArtist(
+      spin: spin,
+      station: station
+    )
+
+    XCTAssertEqual(title, "My Song Title")
+    XCTAssertEqual(artist, "My Song Artist")
+  }
+
+  func testPopulatePlayingInfo_NonSongWithAiringShowsEpisodeTitleAndStationName() {
+    let station = AnyStation.playola(
+      Station.mockWith(
+        name: "Test Station Name"
+      )
+    )
+    let nonSongAudioBlock = AudioBlock.mockWith(
+      title: "Voice Track Title",
+      artist: "Voice Track Artist",
+      type: "voiceTrack"
+    )
+    let airing = Airing.mockWith(
+      episode: Episode.mockWith(title: "Episode Title")
+    )
+    let spin = Spin.mockWith(audioBlock: nonSongAudioBlock, airing: airing)
+
+    let updater = NowPlayingUpdater()
+
+    let (title, artist) = updater.nowPlayingTitleAndArtist(
+      spin: spin,
+      station: station
+    )
+
+    XCTAssertEqual(title, "Episode Title")
+    XCTAssertEqual(artist, "Test Station Name")
+  }
+
+  func testPopulatePlayingInfo_NonSongWithoutAiringShowsStationNameAndEmptyArtist() {
+    let station = AnyStation.playola(
+      Station.mockWith(
+        name: "Test Station Name"
+      )
+    )
+    let nonSongAudioBlock = AudioBlock.mockWith(
+      title: "Voice Track Title",
+      artist: "Voice Track Artist",
+      type: "voiceTrack"
+    )
+    let spin = Spin.mockWith(audioBlock: nonSongAudioBlock, airing: nil)
+
+    let updater = NowPlayingUpdater()
+
+    let (title, artist) = updater.nowPlayingTitleAndArtist(
+      spin: spin,
+      station: station
+    )
+
+    XCTAssertEqual(title, "Test Station Name")
+    XCTAssertEqual(artist, "")
   }
 
   // MARK: - Helper Methods
