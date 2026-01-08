@@ -125,7 +125,7 @@ class NowPlayingUpdater {
 
     switch state.playbackStatus {
     case .playing:
-      populatePlayingInfo(&nowPlayingInfo, state: state)
+      populatePlayingInfo(&nowPlayingInfo, state: state, station: station)
     case .loading(_, let progress):
       populateLoadingInfo(&nowPlayingInfo, station: station, progress: progress)
     case .stopped:
@@ -162,14 +162,46 @@ class NowPlayingUpdater {
 
   private func populatePlayingInfo(
     _ info: inout [String: Any],
-    state: StationPlayer.State
+    state: StationPlayer.State,
+    station: AnyStation
   ) {
-    if let artistPlaying = state.artistPlaying {
-      info[MPMediaItemPropertyArtist] = artistPlaying
+    if let spin = state.playolaSpinPlaying {
+      let (title, artist) = nowPlayingTitleAndArtist(spin: spin, station: station)
+      info[MPMediaItemPropertyTitle] = title
+      if !artist.isEmpty {
+        info[MPMediaItemPropertyArtist] = artist
+      }
+    } else {
+      if let artistPlaying = state.artistPlaying {
+        info[MPMediaItemPropertyArtist] = artistPlaying
+      }
+      if let titlePlaying = state.titlePlaying {
+        info[MPMediaItemPropertyTitle] = titlePlaying
+      }
     }
-    if let titlePlaying = state.titlePlaying {
-      info[MPMediaItemPropertyTitle] = titlePlaying
+  }
+
+  func nowPlayingTitleAndArtist(spin: Spin, station: AnyStation) -> (title: String, artist: String)
+  {
+    let audioBlock = spin.audioBlock
+
+    // Commercial → "Playola Pays" / Station name
+    if audioBlock.type == "commercial" {
+      return ("Playola Pays", station.stationName)
     }
+
+    // Song → title / artist (even if part of an Airing)
+    if audioBlock.type == "song" {
+      return (audioBlock.title, audioBlock.artist)
+    }
+
+    // Non-song with Airing → Episode title / Station name
+    if let episodeTitle = spin.airing?.episode?.title {
+      return (episodeTitle, station.stationName)
+    }
+
+    // Non-song without Airing → Station name / empty
+    return (station.stationName, "")
   }
 
   private func populateLoadingInfo(
