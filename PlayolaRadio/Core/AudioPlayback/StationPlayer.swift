@@ -7,12 +7,18 @@
 import Combine
 import FRadioPlayer
 import Foundation
+import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
 
 @MainActor
 class StationPlayer: ObservableObject {
   var disposeBag: Set<AnyCancellable> = Set()
+
+  // MARK: Shared State
+
+  @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
+  @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
 
   enum PlaybackStatus: Codable, Equatable {
     case startingNewStation(AnyStation)
@@ -101,6 +107,55 @@ class StationPlayer: ObservableObject {
     urlStreamPlayer.reset()
     playolaStationPlayer.stop()
     state = State(playbackStatus: .stopped)
+  }
+
+  /// Seeks to the next station in the artist list, wrapping around if at the end
+  public func seekNext() {
+    let stations = seekableStations()
+    guard !stations.isEmpty else { return }
+
+    guard let current = currentStation,
+      let currentIndex = stations.firstIndex(where: { $0.id == current.id })
+    else {
+      play(station: stations[0])
+      return
+    }
+
+    let nextIndex = (currentIndex + 1) % stations.count
+    play(station: stations[nextIndex])
+  }
+
+  /// Seeks to the previous station in the artist list, wrapping around if at the beginning
+  public func seekPrevious() {
+    let stations = seekableStations()
+    guard !stations.isEmpty else { return }
+
+    guard let current = currentStation,
+      let currentIndex = stations.firstIndex(where: { $0.id == current.id })
+    else {
+      play(station: stations[0])
+      return
+    }
+
+    let previousIndex = (currentIndex - 1 + stations.count) % stations.count
+    play(station: stations[previousIndex])
+  }
+
+  func seekableStations() -> [AnyStation] {
+    guard let artistList = stationLists.first(where: { $0.slug == StationList.artistListSlug })
+    else {
+      return []
+    }
+
+    let items = artistList.stationItems(
+      includeHidden: showSecretStations,
+      includeComingSoon: showSecretStations
+    )
+
+    return
+      items
+      .map { $0.anyStation }
+      .filter { $0.active }
   }
 
   func processPlayolaStationPlayerState(
