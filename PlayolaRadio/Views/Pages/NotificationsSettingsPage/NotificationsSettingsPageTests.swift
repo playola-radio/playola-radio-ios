@@ -284,46 +284,21 @@ final class NotificationsSettingsPageTests: XCTestCase {
           APIStationItem(
             sortOrder: 0,
             visibility: .visible,
-            station: Station(
-              id: "station-charlie",
-              name: "Charlie's Station",
-              curatorName: "Charlie",
-              imageUrl: "https://example.com/charlie.jpg",
-              description: "Charlie's station",
-              active: true,
-              createdAt: now,
-              updatedAt: now
-            ),
+            station: Station.mockWith(
+              id: "station-charlie", name: "Charlie's Station", curatorName: "Charlie"),
             urlStation: nil
           ),
           APIStationItem(
             sortOrder: 1,
             visibility: .visible,
-            station: Station(
-              id: "station-alice",
-              name: "Alice's Station",
-              curatorName: "Alice",
-              imageUrl: "https://example.com/alice.jpg",
-              description: "Alice's station",
-              active: true,
-              createdAt: now,
-              updatedAt: now
-            ),
+            station: Station.mockWith(
+              id: "station-alice", name: "Alice's Station", curatorName: "Alice"),
             urlStation: nil
           ),
           APIStationItem(
             sortOrder: 2,
             visibility: .visible,
-            station: Station(
-              id: "station-bob",
-              name: "Bob's Station",
-              curatorName: "Bob",
-              imageUrl: "https://example.com/bob.jpg",
-              description: "Bob's station",
-              active: true,
-              createdAt: now,
-              updatedAt: now
-            ),
+            station: Station.mockWith(id: "station-bob", name: "Bob's Station", curatorName: "Bob"),
             urlStation: nil
           ),
         ]

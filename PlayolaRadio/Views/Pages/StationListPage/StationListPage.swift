@@ -85,10 +85,13 @@ struct StationListPage: View {
   private func liveShowsSection() -> some View {
     VStack(alignment: .leading, spacing: 12) {
 
-      ScheduledShowsListView(
-        model: ScheduledShowsListModel(
-          scheduledShows: model.scheduledShows
-            .filter { !$0.hasEnded }
+      AiringsListView(
+        model: AiringsListModel(
+          airings: model.airings.elements.filter { airing in
+            let durationMS = airing.episode?.durationMS ?? 0
+            let endTime = airing.airtime.addingTimeInterval(TimeInterval(durationMS) / 1000.0)
+            return endTime > Date()
+          }
         ),
         presentAlert: { model.presentedAlert = $0 }
       )

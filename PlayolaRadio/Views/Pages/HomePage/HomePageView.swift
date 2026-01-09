@@ -54,9 +54,13 @@ struct HomePageView: View {
         .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 24))
         .foregroundColor(.white)
 
-      ScheduledShowsListView(
-        model: ScheduledShowsListModel(
-          scheduledShows: model.scheduledShows.filter { !$0.hasEnded }
+      AiringsListView(
+        model: AiringsListModel(
+          airings: model.airings.elements.filter { airing in
+            let durationMS = airing.episode?.durationMS ?? 0
+            let endTime = airing.airtime.addingTimeInterval(TimeInterval(durationMS) / 1000.0)
+            return endTime > Date()
+          }
         ),
         presentAlert: { model.presentedAlert = $0 }
       )

@@ -325,19 +325,11 @@ extension APIClient: DependencyKey {
 
         return response
       },
-      getScheduledShows: { jwtToken, showId, stationId in
-        var url = "\(Config.shared.baseUrl.absoluteString)/v1/shows/schedule"
-        var queryParams: [String] = []
+      getAirings: { jwtToken, stationId in
+        var url = "\(Config.shared.baseUrl.absoluteString)/v1/airings"
 
-        if let showId = showId {
-          queryParams.append("showId=\(showId)")
-        }
         if let stationId = stationId {
-          queryParams.append("stationId=\(stationId)")
-        }
-
-        if !queryParams.isEmpty {
-          url += "?" + queryParams.joined(separator: "&")
+          url += "?stationId=\(stationId)"
         }
 
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
@@ -347,7 +339,7 @@ extension APIClient: DependencyKey {
           headers: headers
         )
         .validate(statusCode: 200..<300)
-        .serializingDecodable([ScheduledShow].self, decoder: isoDecoder)
+        .serializingDecodable([Airing].self, decoder: isoDecoder)
         .value
 
         return response

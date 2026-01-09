@@ -8,6 +8,7 @@
 import Combine
 import Dependencies
 import IdentifiedCollections
+import PlayolaPlayer
 import Sharing
 import SwiftUI
 
@@ -21,8 +22,7 @@ class StationListModel: ViewModel {
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
-  @ObservationIgnored @Shared(.scheduledShows) var scheduledShows:
-    IdentifiedArrayOf<ScheduledShow> = []
+  @ObservationIgnored @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
   @ObservationIgnored @Shared(.hasAskedForNotificationPermission)
   var hasAskedForNotificationPermission: Bool
   @ObservationIgnored @Dependency(\.analytics) var analytics
@@ -36,8 +36,10 @@ class StationListModel: ViewModel {
   var presentedAlert: PlayolaAlert?
 
   var hasLiveShows: Bool {
-    return scheduledShows.contains { show in
-      !show.hasEnded
+    return airings.contains { airing in
+      let durationMS = airing.episode?.durationMS ?? 0
+      let endTime = airing.airtime.addingTimeInterval(TimeInterval(durationMS) / 1000.0)
+      return endTime > Date()
     }
   }
 

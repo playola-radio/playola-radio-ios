@@ -8,6 +8,7 @@
 import Combine
 import Dependencies
 import IdentifiedCollections
+import PlayolaPlayer
 import Sharing
 import SwiftUI
 
@@ -23,7 +24,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored var stationPlayer: StationPlayer!
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
-  @ObservationIgnored @Shared(.scheduledShows) var scheduledShows
+  @ObservationIgnored @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
@@ -85,7 +86,7 @@ class MainContainerModel: ViewModel {
     observeToasts()
 
     await loadListeningTracker()
-    await loadScheduledShows()
+    await loadAirings()
   }
 
   func refreshOnForeground() async {
@@ -100,18 +101,18 @@ class MainContainerModel: ViewModel {
         ))
     }
 
-    await loadScheduledShows()
+    await loadAirings()
   }
 
-  func loadScheduledShows() async {
+  func loadAirings() async {
     guard let token = auth.jwt else { return }
     do {
-      let shows = try await api.getScheduledShows(token, nil, nil)
-      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: shows) }
+      let fetchedAirings = try await api.getAirings(token, nil)
+      $airings.withLock { $0 = IdentifiedArray(uniqueElements: fetchedAirings) }
     } catch {
       await analytics.track(
         .apiError(
-          endpoint: "getScheduledShows",
+          endpoint: "getAirings",
           error: error.localizedDescription
         ))
     }

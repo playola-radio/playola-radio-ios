@@ -8,9 +8,11 @@
 import SwiftUI
 
 struct UpcomingBadge: View {
+  var text: String = "UPCOMING LIVE SHOW"
+
   var body: some View {
     HStack(spacing: 8) {
-      Text("UPCOMING LIVE SHOW")
+      Text(text)
         .font(.custom(FontNames.Inter_500_Medium, size: 14))
         .foregroundColor(Color(hex: "##FFC107"))
     }
@@ -22,7 +24,11 @@ struct UpcomingBadge: View {
 }
 
 #Preview {
-  UpcomingBadge()
-    .padding()
-    .background(Color.black)
+  VStack(spacing: 16) {
+    UpcomingBadge()
+    UpcomingBadge(text: "Mondays at 4pm")
+    UpcomingBadge(text: "Wednesdays and Fridays at 8pm")
+  }
+  .padding()
+  .background(Color.black)
 }

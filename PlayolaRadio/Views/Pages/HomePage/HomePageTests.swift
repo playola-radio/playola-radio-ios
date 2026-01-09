@@ -417,65 +417,44 @@ final class HomePageTests: XCTestCase {
 
   // MARK: - Live Shows Tests
 
-  func testLiveShows_HasLiveShowsReturnsTrueWhenLiveShowExists() async {
-    await withDependencies {
-      $0.date.now = Date()
-    } operation: {
-      @Dependency(\.date.now) var now
-      @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+  func testLiveShowsHasLiveShowsReturnsTrueWhenLiveShowExists() async {
+    let now = Date()
+    let episodeDurationInSeconds = TimeInterval(Episode.mock.durationMS ?? 0) / 1000.0
+    let timeAgo = episodeDurationInSeconds / 2
 
-      let showDurationInSeconds = TimeInterval(Show.mock.durationMS) / 1000.0
-      let timeAgo = showDurationInSeconds / 2
+    let liveAiring = Airing.mockWith(
+      id: "live-airing-1",
+      airtime: now.addingTimeInterval(-timeAgo)
+    )
 
-      let liveShow = ScheduledShow(
-        id: "live-show-1",
-        showId: "show-1",
-        stationId: "station-1",
-        airtime: now.addingTimeInterval(-timeAgo),
-        createdAt: now,
-        updatedAt: now,
-        show: Show.mock,
-        station: nil
-      )
+    @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = IdentifiedArray(
+      uniqueElements: [liveAiring])
 
-      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: [liveShow]) }
-
-      let model = HomePageModel()
-      XCTAssertTrue(model.hasLiveShows)
-    }
+    let model = HomePageModel()
+    XCTAssertTrue(model.hasLiveShows)
   }
 
-  func testLiveShows_HasLiveShowsReturnsFalseWhenNoScheduledShows() async {
-    @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+  func testLiveShowsHasLiveShowsReturnsFalseWhenNoAirings() async {
+    @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
 
     let model = HomePageModel()
     XCTAssertFalse(model.hasLiveShows)
   }
 
-  func testLiveShows_HasLiveShowsReturnsFalseWhenAllShowsHaveEnded() async {
-    await withDependencies {
-      $0.date.now = Date()
-    } operation: {
-      @Dependency(\.date.now) var now
-      @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+  func testLiveShowsHasLiveShowsReturnsFalseWhenAllShowsHaveEnded() async {
+    let now = Date()
+    let episodeDurationInSeconds = TimeInterval(Episode.mock.durationMS ?? 0) / 1000.0
 
-      let showDurationInSeconds = TimeInterval(Show.mock.durationMS) / 1000.0
-      let endedShow = ScheduledShow(
-        id: "ended-show-1",
-        showId: "show-1",
-        stationId: "station-1",
-        airtime: now.addingTimeInterval(-(showDurationInSeconds + 3600)),
-        createdAt: now,
-        updatedAt: now,
-        show: Show.mock,
-        station: nil
-      )
+    let endedAiring = Airing.mockWith(
+      id: "ended-airing-1",
+      airtime: now.addingTimeInterval(-(episodeDurationInSeconds + 3600))
+    )
 
-      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: [endedShow]) }
+    @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = IdentifiedArray(
+      uniqueElements: [endedAiring])
 
-      let model = HomePageModel()
-      XCTAssertFalse(model.hasLiveShows)
-    }
+    let model = HomePageModel()
+    XCTAssertFalse(model.hasLiveShows)
   }
 }
 
