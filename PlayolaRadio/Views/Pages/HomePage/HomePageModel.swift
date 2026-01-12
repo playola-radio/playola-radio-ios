@@ -56,9 +56,9 @@ class HomePageModel: ViewModel {
       iconName: "sparkles",
       isSystemImage: true,
       label: "New Feature",
-      content: "Regularly Scheduled Shows",
+      content: "Radio Shows",
       paragraph:
-        "Your favorite artists streaming live at regularly scheduled times... Check it out!",
+        "Your favorite artists hosting their own radio shows. Check them out!",
       buttonText: "See Upcoming Shows",
       buttonAction: { [weak self] in
         guard let self = self else { return }

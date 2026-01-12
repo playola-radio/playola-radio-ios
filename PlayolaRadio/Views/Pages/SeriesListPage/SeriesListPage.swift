@@ -12,7 +12,7 @@ struct SeriesListPage: View {
     VStack(spacing: 0) {
       // Page Title
       HStack {
-        Text("Regularly Scheduled Shows")
+        Text("Radio Shows")
           .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 24))
           .tracking(0.12)
           .foregroundColor(.white)
