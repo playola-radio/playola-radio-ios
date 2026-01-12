@@ -415,47 +415,6 @@ final class HomePageTests: XCTestCase {
     await assertEventually(model.forYouStations.count == 1)
   }
 
-  // MARK: - Live Shows Tests
-
-  func testLiveShowsHasLiveShowsReturnsTrueWhenLiveShowExists() async {
-    let now = Date()
-    let episodeDurationInSeconds = TimeInterval(Episode.mock.durationMS ?? 0) / 1000.0
-    let timeAgo = episodeDurationInSeconds / 2
-
-    let liveAiring = Airing.mockWith(
-      id: "live-airing-1",
-      airtime: now.addingTimeInterval(-timeAgo)
-    )
-
-    @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = IdentifiedArray(
-      uniqueElements: [liveAiring])
-
-    let model = HomePageModel()
-    XCTAssertTrue(model.hasLiveShows)
-  }
-
-  func testLiveShowsHasLiveShowsReturnsFalseWhenNoAirings() async {
-    @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
-
-    let model = HomePageModel()
-    XCTAssertFalse(model.hasLiveShows)
-  }
-
-  func testLiveShowsHasLiveShowsReturnsFalseWhenAllShowsHaveEnded() async {
-    let now = Date()
-    let episodeDurationInSeconds = TimeInterval(Episode.mock.durationMS ?? 0) / 1000.0
-
-    let endedAiring = Airing.mockWith(
-      id: "ended-airing-1",
-      airtime: now.addingTimeInterval(-(episodeDurationInSeconds + 3600))
-    )
-
-    @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = IdentifiedArray(
-      uniqueElements: [endedAiring])
-
-    let model = HomePageModel()
-    XCTAssertFalse(model.hasLiveShows)
-  }
 }
 
 extension HomePageTests {

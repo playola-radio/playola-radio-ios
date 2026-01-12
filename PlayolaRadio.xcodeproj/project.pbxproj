@@ -187,16 +187,6 @@
 		D35905EC2DFCDA140064A9C1 /* StationListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35905EB2DFCDA110064A9C1 /* StationListModel.swift */; };
 		D35EFBD72F0EC6F7000F64A4 /* APIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBD62F0EC6F7000F64A4 /* APIClientTests.swift */; };
 		D35EFBD92F101A76000F64A4 /* StationPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */; };
-		D35EFBDC2F10661E000F64A4 /* AiringTileModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBDA2F10661E000F64A4 /* AiringTileModel.swift */; };
-		D35EFBDD2F10661E000F64A4 /* AiringTileModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBDA2F10661E000F64A4 /* AiringTileModel.swift */; };
-		D35EFBDF2F10668E000F64A4 /* AiringTileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBDE2F10668E000F64A4 /* AiringTileTests.swift */; };
-		D35EFBE12F1066AE000F64A4 /* AiringTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBE02F1066AE000F64A4 /* AiringTile.swift */; };
-		D35EFBE22F1066AE000F64A4 /* AiringTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBE02F1066AE000F64A4 /* AiringTile.swift */; };
-		D35EFBE42F10697E000F64A4 /* AiringsListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBE32F10697E000F64A4 /* AiringsListModel.swift */; };
-		D35EFBE52F10697E000F64A4 /* AiringsListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBE32F10697E000F64A4 /* AiringsListModel.swift */; };
-		D35EFBE72F1069AC000F64A4 /* AiringsListTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBE62F1069AC000F64A4 /* AiringsListTests.swift */; };
-		D35EFBEA2F106A4C000F64A4 /* AiringsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBE92F106A4C000F64A4 /* AiringsListView.swift */; };
-		D35EFBEB2F106A4C000F64A4 /* AiringsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBE92F106A4C000F64A4 /* AiringsListView.swift */; };
 		D35EFBEE2F1092A7000F64A4 /* RRuleFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBEC2F1092A7000F64A4 /* RRuleFormatterTests.swift */; };
 		D35EFBF02F1092D7000F64A4 /* RRuleFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBEF2F1092D7000F64A4 /* RRuleFormatter.swift */; };
 		D35EFBF12F1092D7000F64A4 /* RRuleFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBEF2F1092D7000F64A4 /* RRuleFormatter.swift */; };
@@ -216,10 +206,6 @@
 		D37257D02DFB4368001BC6F9 /* PlayerPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */; };
 		D378CCCE2E56011A00497A4A /* SignInPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCD2E56011500497A4A /* SignInPageModel.swift */; };
 		D378CCD02E57947800497A4A /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCF2E57947800497A4A /* ShareSheet.swift */; };
-		D37B74802EC9326E009806C6 /* LiveNowBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37B747F2EC93267009806C6 /* LiveNowBadge.swift */; };
-		D37B74812EC9326E009806C6 /* LiveNowBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37B747F2EC93267009806C6 /* LiveNowBadge.swift */; };
-		D37B74832EC93285009806C6 /* UpcomingBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37B74822EC93276009806C6 /* UpcomingBadge.swift */; };
-		D37B74842EC93285009806C6 /* UpcomingBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37B74822EC93276009806C6 /* UpcomingBadge.swift */; };
 		D37B74872EC94427009806C6 /* PushNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37B74862EC94426009806C6 /* PushNotifications.swift */; };
 		D37B74882EC94427009806C6 /* PushNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37B74862EC94426009806C6 /* PushNotifications.swift */; };
 		D38031352E00AFD20011DD64 /* PlayerPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38031332E00AD9F0011DD64 /* PlayerPageTests.swift */; };
@@ -398,12 +384,6 @@
 		D35905EB2DFCDA110064A9C1 /* StationListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListModel.swift; sourceTree = "<group>"; };
 		D35EFBD62F0EC6F7000F64A4 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
 		D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerTests.swift; sourceTree = "<group>"; };
-		D35EFBDA2F10661E000F64A4 /* AiringTileModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AiringTileModel.swift; sourceTree = "<group>"; };
-		D35EFBDE2F10668E000F64A4 /* AiringTileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AiringTileTests.swift; sourceTree = "<group>"; };
-		D35EFBE02F1066AE000F64A4 /* AiringTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AiringTile.swift; sourceTree = "<group>"; };
-		D35EFBE32F10697E000F64A4 /* AiringsListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AiringsListModel.swift; sourceTree = "<group>"; };
-		D35EFBE62F1069AC000F64A4 /* AiringsListTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AiringsListTests.swift; sourceTree = "<group>"; };
-		D35EFBE92F106A4C000F64A4 /* AiringsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AiringsListView.swift; sourceTree = "<group>"; };
 		D35EFBEC2F1092A7000F64A4 /* RRuleFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RRuleFormatterTests.swift; sourceTree = "<group>"; };
 		D35EFBEF2F1092D7000F64A4 /* RRuleFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RRuleFormatter.swift; sourceTree = "<group>"; };
 		D36FBCBF2E37FC7800D1241C /* PrizeTierRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTierRow.swift; sourceTree = "<group>"; };
@@ -423,8 +403,6 @@
 		D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPage.swift; sourceTree = "<group>"; };
 		D378CCCD2E56011500497A4A /* SignInPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageModel.swift; sourceTree = "<group>"; };
 		D378CCCF2E57947800497A4A /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
-		D37B747F2EC93267009806C6 /* LiveNowBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveNowBadge.swift; sourceTree = "<group>"; };
-		D37B74822EC93276009806C6 /* UpcomingBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingBadge.swift; sourceTree = "<group>"; };
 		D37B74862EC94426009806C6 /* PushNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotifications.swift; sourceTree = "<group>"; };
 		D38031332E00AD9F0011DD64 /* PlayerPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPageTests.swift; sourceTree = "<group>"; };
 		D382671B2E00C13E0006BAC2 /* SmallPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmallPlayer.swift; sourceTree = "<group>"; };
@@ -691,7 +669,6 @@
 		D339E55D2BFD0FC200B9E35B /* Reusable Components */ = {
 			isa = PBXGroup;
 			children = (
-				D3E8D6862E96D9290028CEBD /* LiveShowsSection */,
 				D302578D2E63C08F00F4228B /* Song Drawer */,
 				D30257752E6342C600F4228B /* ToastView.swift */,
 				D30257A52E64D62300F4228B /* ToastOverlayView.swift */,
@@ -800,26 +777,6 @@
 				D37257AA2DF87C72001BC6F9 /* LaunchScreen.storyboard */,
 			);
 			path = Config;
-			sourceTree = "<group>";
-		};
-		D35EFBDB2F10661E000F64A4 /* AiringTile */ = {
-			isa = PBXGroup;
-			children = (
-				D35EFBE02F1066AE000F64A4 /* AiringTile.swift */,
-				D35EFBDE2F10668E000F64A4 /* AiringTileTests.swift */,
-				D35EFBDA2F10661E000F64A4 /* AiringTileModel.swift */,
-			);
-			path = AiringTile;
-			sourceTree = "<group>";
-		};
-		D35EFBE82F1069B2000F64A4 /* AiringsList */ = {
-			isa = PBXGroup;
-			children = (
-				D35EFBE92F106A4C000F64A4 /* AiringsListView.swift */,
-				D35EFBE32F10697E000F64A4 /* AiringsListModel.swift */,
-				D35EFBE62F1069AC000F64A4 /* AiringsListTests.swift */,
-			);
-			path = AiringsList;
 			sourceTree = "<group>";
 		};
 		D35EFBED2F1092A7000F64A4 /* Formatters */ = {
@@ -973,15 +930,6 @@
 			path = Mail;
 			sourceTree = "<group>";
 		};
-		D37B747E2EC9325A009806C6 /* Components */ = {
-			isa = PBXGroup;
-			children = (
-				D37B74822EC93276009806C6 /* UpcomingBadge.swift */,
-				D37B747F2EC93267009806C6 /* LiveNowBadge.swift */,
-			);
-			path = Components;
-			sourceTree = "<group>";
-		};
 		D37B74852EC9441C009806C6 /* PushNotifications */ = {
 			isa = PBXGroup;
 			children = (
@@ -1114,16 +1062,6 @@
 				D3C7E5F42EF0D12A00EDD3ED /* SongSeedTests.swift */,
 			);
 			path = SongSeed;
-			sourceTree = "<group>";
-		};
-		D3E8D6862E96D9290028CEBD /* LiveShowsSection */ = {
-			isa = PBXGroup;
-			children = (
-				D35EFBE82F1069B2000F64A4 /* AiringsList */,
-				D35EFBDB2F10661E000F64A4 /* AiringTile */,
-				D37B747E2EC9325A009806C6 /* Components */,
-			);
-			path = LiveShowsSection;
 			sourceTree = "<group>";
 		};
 		D3F493B62EEDD29F008ED463 /* RecordPage */ = {
@@ -1372,7 +1310,6 @@
 				D30F00542E8592F0007BCC73 /* ViewModel.swift in Sources */,
 				D30F00552E8592F0007BCC73 /* SignInPageView.swift in Sources */,
 				D30F00562E8592F0007BCC73 /* UrlStation.swift in Sources */,
-				D35EFBDD2F10661E000F64A4 /* AiringTileModel.swift in Sources */,
 				D3C7E5DB2EF0A43000EDD3ED /* SongSearchPageModel.swift in Sources */,
 				D30F00572E8592F0007BCC73 /* Color+Hex.swift in Sources */,
 				D30F00582E8592F0007BCC73 /* PlayolaAlert.swift in Sources */,
@@ -1381,7 +1318,6 @@
 				D30F005B2E8592F0007BCC73 /* View+ListInstalledFonts.swift in Sources */,
 				D35EFBF12F1092D7000F64A4 /* RRuleFormatter.swift in Sources */,
 				D30F005C2E8592F0007BCC73 /* FontNames.swift in Sources */,
-				D37B74802EC9326E009806C6 /* LiveNowBadge.swift in Sources */,
 				D30F005D2E8592F0007BCC73 /* CarPlaySceneDelegate.swift in Sources */,
 				D317C0D22EF2027000DBC82E /* VoicetrackStatusResponse.swift in Sources */,
 				D30F005E2E8592F0007BCC73 /* CPListItem+InitWithRemoteUrl.swift in Sources */,
@@ -1394,10 +1330,8 @@
 				D3219C1A2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */,
 				D30F00642E8592F0007BCC73 /* PrizeTier.swift in Sources */,
 				D30F00652E8592F0007BCC73 /* PlayolaSheet.swift in Sources */,
-				D35EFBE42F10697E000F64A4 /* AiringsListModel.swift in Sources */,
 				D3C7E5E92EF0C56200EDD3ED /* StagingItem.swift in Sources */,
 				D30F00662E8592F0007BCC73 /* PlayerPageModel.swift in Sources */,
-				D37B74832EC93285009806C6 /* UpcomingBadge.swift in Sources */,
 				D30F00672E8592F0007BCC73 /* LikesManager.swift in Sources */,
 				D30F00682E8592F0007BCC73 /* AnalyticsClient.swift in Sources */,
 				D3F493D12EEE52F9008ED463 /* PresignedURLResponse.swift in Sources */,
@@ -1417,7 +1351,6 @@
 				D30F00752E8592F0007BCC73 /* ListeningTimeTile.swift in Sources */,
 				D30F00762E8592F0007BCC73 /* GenericNowPlaying.swift in Sources */,
 				D3C7E5E12EF0A44400EDD3ED /* SongSearchPageView.swift in Sources */,
-				D35EFBEA2F106A4C000F64A4 /* AiringsListView.swift in Sources */,
 				D30F00772E8592F0007BCC73 /* UIImage+Cache.swift in Sources */,
 				D30F00782E8592F0007BCC73 /* ContactPageView.swift in Sources */,
 				D30F00792E8592F0007BCC73 /* PlayolaTokenProvider.swift in Sources */,
@@ -1432,7 +1365,6 @@
 				D30F00802E8592F0007BCC73 /* EnumTypeEquatableProtocol.swift in Sources */,
 				D3C7E5F82EF0D12A00EDD3ED /* SongSeed.swift in Sources */,
 				D30F00812E8592F0007BCC73 /* InvitationCodePageView.swift in Sources */,
-				D35EFBE22F1066AE000F64A4 /* AiringTile.swift in Sources */,
 				D3F493CA2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */,
 				D30F00822E8592F0007BCC73 /* LikedSongsPageModel.swift in Sources */,
 				D3F493C52EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */,
@@ -1486,7 +1418,6 @@
 				D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */,
 				D3B6626A2D40103C00975D2F /* SignInPageView.swift in Sources */,
 				D30AE8A72E75C92700D9FBCA /* UrlStation.swift in Sources */,
-				D35EFBDC2F10661E000F64A4 /* AiringTileModel.swift in Sources */,
 				D3C7E5DC2EF0A43000EDD3ED /* SongSearchPageModel.swift in Sources */,
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
 				D3137DBB2D3976580070033A /* PlayolaAlert.swift in Sources */,
@@ -1495,7 +1426,6 @@
 				D37257BD2DF893C6001BC6F9 /* View+ListInstalledFonts.swift in Sources */,
 				D35EFBF02F1092D7000F64A4 /* RRuleFormatter.swift in Sources */,
 				D37257CC2DFA3F83001BC6F9 /* FontNames.swift in Sources */,
-				D37B74812EC9326E009806C6 /* LiveNowBadge.swift in Sources */,
 				D35673B02D3DC55900E4E926 /* CarPlaySceneDelegate.swift in Sources */,
 				D317C0D12EF2027000DBC82E /* VoicetrackStatusResponse.swift in Sources */,
 				D35673C32D3E872600E4E926 /* CPListItem+InitWithRemoteUrl.swift in Sources */,
@@ -1508,10 +1438,8 @@
 				D3219C1B2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */,
 				D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */,
 				D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */,
-				D35EFBE52F10697E000F64A4 /* AiringsListModel.swift in Sources */,
 				D3C7E5EA2EF0C56200EDD3ED /* StagingItem.swift in Sources */,
 				D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */,
-				D37B74842EC93285009806C6 /* UpcomingBadge.swift in Sources */,
 				D302577C2E639FB800F4228B /* LikesManager.swift in Sources */,
 				D3A08A2F2E4E2A35002468E0 /* AnalyticsClient.swift in Sources */,
 				D3F493D02EEE52F9008ED463 /* PresignedURLResponse.swift in Sources */,
@@ -1531,7 +1459,6 @@
 				D3B744B92E2FF16F0042A427 /* ListeningTimeTile.swift in Sources */,
 				D3137DD22D3ABB520070033A /* GenericNowPlaying.swift in Sources */,
 				D3C7E5E22EF0A44400EDD3ED /* SongSearchPageView.swift in Sources */,
-				D35EFBEB2F106A4C000F64A4 /* AiringsListView.swift in Sources */,
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
 				D39591152E39932000720CF8 /* ContactPageView.swift in Sources */,
 				D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */,
@@ -1546,7 +1473,6 @@
 				D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */,
 				D3C7E5F62EF0D12A00EDD3ED /* SongSeed.swift in Sources */,
 				D3A08A3A2E53A788002468E0 /* InvitationCodePageView.swift in Sources */,
-				D35EFBE12F1066AE000F64A4 /* AiringTile.swift in Sources */,
 				D3F493CB2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */,
 				D30257892E63B6C100F4228B /* LikedSongsPageModel.swift in Sources */,
 				D3F493C42EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */,
@@ -1589,7 +1515,6 @@
 				D3C7E5FA2EF0D13800EDD3ED /* SongSeedTests.swift in Sources */,
 				D3219C1F2EDD22360008AFDA /* BroadcastPageTests.swift in Sources */,
 				D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */,
-				D35EFBE72F1069AC000F64A4 /* AiringsListTests.swift in Sources */,
 				D3FEC80D2EDF689F00A33AE8 /* ChooseStationToBroadcastPageTests.swift in Sources */,
 				D3B744CB2E313B230042A427 /* ListeningTimeTileTests.swift in Sources */,
 				D3B744C52E31318A0042A427 /* RewardsPageTests.swift in Sources */,
@@ -1598,7 +1523,6 @@
 				D317C0D62EF33DB000DBC82E /* PushNotificationsTests.swift in Sources */,
 				D317C0CF2EF200D100DBC82E /* VoicetrackUploadServiceTests.swift in Sources */,
 				D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */,
-				D35EFBDF2F10668E000F64A4 /* AiringTileTests.swift in Sources */,
 				D35EFBD72F0EC6F7000F64A4 /* APIClientTests.swift in Sources */,
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,
 				D3C7E5EF2EF0C58900EDD3ED /* StagingItemTests.swift in Sources */,
