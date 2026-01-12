@@ -35,28 +35,30 @@ final class SeriesListPageModelTests: XCTestCase {
 
   func testViewAppearedPopulatesShowsGroupedByShow() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date()
     let show1 = Show.mockWith(id: "show-1", title: "Morning Show")
     let show2 = Show.mockWith(id: "show-2", title: "Evening Show")
 
     let airings = [
       Airing.mockWith(
         id: "airing-1",
-        airtime: Date().addingTimeInterval(86400),
-        episode: .mockWith(id: "ep-1", show: show1)
+        airtime: now.addingTimeInterval(86400),
+        episode: .mockWith(id: "ep-1", durationMS: 3_600_000, show: show1)
       ),
       Airing.mockWith(
         id: "airing-2",
-        airtime: Date().addingTimeInterval(86400 * 2),
-        episode: .mockWith(id: "ep-2", show: show1)
+        airtime: now.addingTimeInterval(86400 * 2),
+        episode: .mockWith(id: "ep-2", durationMS: 3_600_000, show: show1)
       ),
       Airing.mockWith(
         id: "airing-3",
-        airtime: Date().addingTimeInterval(86400 * 3),
-        episode: .mockWith(id: "ep-3", show: show2)
+        airtime: now.addingTimeInterval(86400 * 3),
+        episode: .mockWith(id: "ep-3", durationMS: 3_600_000, show: show2)
       ),
     ]
 
     await withDependencies {
+      $0.date.now = now
       $0.api.getAirings = { _, _ in airings }
     } operation: {
       let model = SeriesListPageModel()

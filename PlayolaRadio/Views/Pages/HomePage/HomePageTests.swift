@@ -419,11 +419,17 @@ final class HomePageTests: XCTestCase {
 
   func testViewAppearedSetsHasScheduledShowsToTrueWhenAiringsExist() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date()
+
+    let futureAiring = Airing.mockWith(
+      id: "future-airing",
+      airtime: now.addingTimeInterval(3600),
+      episode: .mockWith(durationMS: 3_600_000)
+    )
 
     await withDependencies {
-      $0.api.getAirings = { _, _ in
-        [Airing.mockWith()]
-      }
+      $0.date.now = now
+      $0.api.getAirings = { _, _ in [futureAiring] }
     } operation: {
       let model = HomePageModel()
 
