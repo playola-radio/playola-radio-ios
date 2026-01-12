@@ -129,16 +129,14 @@ struct APIClient: Sendable {
       _, _, _ in nil
     }
 
-  /// Fetches scheduled shows
+  /// Fetches airings (scheduled broadcasts of episodes)
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
-  ///   - showId: Optional show ID to filter by specific show
   ///   - stationId: Optional station ID to filter by specific station
-  /// - Returns: Array of ScheduledShow objects
+  /// - Returns: Array of Airing objects with nested episode, show, and station data
   /// - Throws: APIError if the request fails
-  var getScheduledShows:
-    (_ jwtToken: String, _ showId: String?, _ stationId: String?) async throws -> [ScheduledShow] =
-      { _, _, _ in [] }
+  var getAirings: (_ jwtToken: String, _ stationId: String?) async throws -> [Airing] =
+    { _, _ in [] }
 
   /// Fetches the schedule for a station
   /// - Parameters:

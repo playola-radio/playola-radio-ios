@@ -10,6 +10,7 @@
 import Dependencies
 import Foundation
 import IdentifiedCollections
+import PlayolaPlayer
 import Sharing
 import XCTest
 
@@ -155,23 +156,23 @@ final class MainContainerTests: XCTestCase {
     XCTAssertTrue(hasBeenUnlocked)  // Should still be set even when exiting early
   }
 
-  func testViewAppeared_LoadsScheduledShowsWhenLoggedIn() async {
+  func testViewAppearedLoadsAiringsWhenLoggedIn() async {
     let testJWT = MainContainerTests.createTestJWT()
     @Shared(.auth) var auth = Auth(jwtToken: testJWT)
     @Shared(.stationListsLoaded) var stationListsLoaded = false
-    @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+    @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
 
-    var getScheduledShowsCallCount = 0
-    let mockScheduledShows = [
-      ScheduledShow.mockWith(id: "show1"),
-      ScheduledShow.mockWith(id: "show2"),
+    var getAiringsCallCount = 0
+    let mockAirings = [
+      Airing.mockWith(id: "airing1"),
+      Airing.mockWith(id: "airing2"),
     ]
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = { StationList.mocks }
-      $0.api.getScheduledShows = { _, _, _ in
-        getScheduledShowsCallCount += 1
-        return mockScheduledShows
+      $0.api.getAirings = { _, _ in
+        getAiringsCallCount += 1
+        return mockAirings
       }
       $0.pushNotifications.registerForRemoteNotifications = {}
     } operation: {
@@ -180,8 +181,8 @@ final class MainContainerTests: XCTestCase {
 
     await mainContainerModel.viewAppeared()
 
-    XCTAssertEqual(getScheduledShowsCallCount, 1)
-    XCTAssertEqual(scheduledShows.count, 2)
+    XCTAssertEqual(getAiringsCallCount, 1)
+    XCTAssertEqual(airings.count, 2)
   }
 
   // MARK: - Small Player Properties Tests
@@ -430,17 +431,17 @@ final class MainContainerTests: XCTestCase {
 
   // MARK: - Refresh On Foreground Tests
 
-  func testRefreshOnForeground_RefreshesStationListsAndScheduledShows() async {
+  func testRefreshOnForegroundRefreshesStationListsAndAirings() async {
     let testJWT = MainContainerTests.createTestJWT()
     @Shared(.auth) var auth = Auth(jwtToken: testJWT)
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
-    @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+    @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
 
     var getStationsCallCount = 0
-    var getScheduledShowsCallCount = 0
-    let mockScheduledShows = [
-      ScheduledShow.mockWith(id: "show1"),
-      ScheduledShow.mockWith(id: "show2"),
+    var getAiringsCallCount = 0
+    let mockAirings = [
+      Airing.mockWith(id: "airing1"),
+      Airing.mockWith(id: "airing2"),
     ]
 
     let mainContainerModel = withDependencies {
@@ -448,9 +449,9 @@ final class MainContainerTests: XCTestCase {
         getStationsCallCount += 1
         return StationList.mocks
       }
-      $0.api.getScheduledShows = { _, _, _ in
-        getScheduledShowsCallCount += 1
-        return mockScheduledShows
+      $0.api.getAirings = { _, _ in
+        getAiringsCallCount += 1
+        return mockAirings
       }
     } operation: {
       MainContainerModel()
@@ -459,28 +460,28 @@ final class MainContainerTests: XCTestCase {
     await mainContainerModel.refreshOnForeground()
 
     XCTAssertEqual(getStationsCallCount, 1)
-    XCTAssertEqual(getScheduledShowsCallCount, 1)
+    XCTAssertEqual(getAiringsCallCount, 1)
     XCTAssertEqual(stationLists, StationList.mocks)
-    XCTAssertEqual(scheduledShows.count, 2)
-    XCTAssertEqual(scheduledShows[id: "show1"]?.id, "show1")
-    XCTAssertEqual(scheduledShows[id: "show2"]?.id, "show2")
+    XCTAssertEqual(airings.count, 2)
+    XCTAssertEqual(airings[id: "airing1"]?.id, "airing1")
+    XCTAssertEqual(airings[id: "airing2"]?.id, "airing2")
   }
 
-  func testRefreshOnForeground_SkipsScheduledShowsWhenNotLoggedIn() async {
+  func testRefreshOnForegroundSkipsAiringsWhenNotLoggedIn() async {
     @Shared(.auth) var auth = Auth()
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
-    @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+    @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
 
     var getStationsCallCount = 0
-    var getScheduledShowsCallCount = 0
+    var getAiringsCallCount = 0
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = {
         getStationsCallCount += 1
         return StationList.mocks
       }
-      $0.api.getScheduledShows = { _, _, _ in
-        getScheduledShowsCallCount += 1
+      $0.api.getAirings = { _, _ in
+        getAiringsCallCount += 1
         return []
       }
     } operation: {
@@ -490,9 +491,9 @@ final class MainContainerTests: XCTestCase {
     await mainContainerModel.refreshOnForeground()
 
     XCTAssertEqual(getStationsCallCount, 1)
-    XCTAssertEqual(getScheduledShowsCallCount, 0)
+    XCTAssertEqual(getAiringsCallCount, 0)
     XCTAssertEqual(stationLists, StationList.mocks)
-    XCTAssertTrue(scheduledShows.isEmpty)
+    XCTAssertTrue(airings.isEmpty)
   }
 
   func testRefreshOnForeground_TracksAnalyticsOnStationsError() async {
@@ -509,7 +510,7 @@ final class MainContainerTests: XCTestCase {
       $0.api.getStations = {
         throw TestError()
       }
-      $0.api.getScheduledShows = { _, _, _ in [] }
+      $0.api.getAirings = { _, _ in [] }
       $0.analytics.track = { @Sendable event in
         capturedEvents.withValue { $0.append(event) }
       }
@@ -529,19 +530,19 @@ final class MainContainerTests: XCTestCase {
       })
   }
 
-  func testRefreshOnForeground_TracksAnalyticsOnScheduledShowsError() async {
+  func testRefreshOnForegroundTracksAnalyticsOnAiringsError() async {
     let testJWT = MainContainerTests.createTestJWT()
     @Shared(.auth) var auth = Auth(jwtToken: testJWT)
 
     struct TestError: Error {
-      var localizedDescription: String { "Test scheduled shows error" }
+      var localizedDescription: String { "Test airings error" }
     }
 
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
-      $0.api.getScheduledShows = { _, _, _ in
+      $0.api.getAirings = { _, _ in
         throw TestError()
       }
       $0.analytics.track = { @Sendable event in
@@ -557,7 +558,7 @@ final class MainContainerTests: XCTestCase {
     XCTAssertTrue(
       events.contains { event in
         if case .apiError(let endpoint, _) = event {
-          return endpoint == "getScheduledShows"
+          return endpoint == "getAirings"
         }
         return false
       })

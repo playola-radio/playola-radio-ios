@@ -62,10 +62,6 @@ struct StationListPage: View {
       // ---------------------------------------------------------
       ScrollView {
         VStack(alignment: .leading, spacing: 20) {
-          if model.hasLiveShows {
-            liveShowsSection()
-          }
-
           ForEach(model.stationListsForDisplay) { list in
             stationSection(list: list)
           }
@@ -81,21 +77,6 @@ struct StationListPage: View {
   }
 
   // MARK: - Helpers
-  @ViewBuilder
-  private func liveShowsSection() -> some View {
-    VStack(alignment: .leading, spacing: 12) {
-
-      ScheduledShowsListView(
-        model: ScheduledShowsListModel(
-          scheduledShows: model.scheduledShows
-            .filter { !$0.hasEnded }
-        ),
-        presentAlert: { model.presentedAlert = $0 }
-      )
-      .padding(.horizontal, 20)
-    }
-  }
-
   @ViewBuilder
   private func stationSection(list: StationList) -> some View {
     let includeHiddenItems = model.showSecretStations

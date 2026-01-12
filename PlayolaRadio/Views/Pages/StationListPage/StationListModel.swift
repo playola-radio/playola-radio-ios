@@ -8,6 +8,7 @@
 import Combine
 import Dependencies
 import IdentifiedCollections
+import PlayolaPlayer
 import Sharing
 import SwiftUI
 
@@ -21,8 +22,6 @@ class StationListModel: ViewModel {
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
-  @ObservationIgnored @Shared(.scheduledShows) var scheduledShows:
-    IdentifiedArrayOf<ScheduledShow> = []
   @ObservationIgnored @Shared(.hasAskedForNotificationPermission)
   var hasAskedForNotificationPermission: Bool
   @ObservationIgnored @Dependency(\.analytics) var analytics
@@ -34,16 +33,6 @@ class StationListModel: ViewModel {
   var segmentTitles: [String] = ["All"]
   var selectedSegment = "All"
   var presentedAlert: PlayolaAlert?
-
-  var hasLiveShows: Bool {
-    return scheduledShows.contains { show in
-      !show.hasEnded
-    }
-  }
-
-  var isShowingLiveShows: Bool {
-    selectedSegment == "Going Live"
-  }
 
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
