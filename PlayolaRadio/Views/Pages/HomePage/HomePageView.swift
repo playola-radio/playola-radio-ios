@@ -27,6 +27,11 @@ struct HomePageView: View {
           HomeIntroSection(
             onIconTapped10Times: model.handlePlayolaIconTapped10Times)
 
+          if model.hasScheduledShows {
+            NewFeatureTile(model: model.scheduledShowsTileModel)
+              .padding(.bottom, 20)
+          }
+
           ListeningTimeTile(model: model.listeningTimeTileModel)
 
           HomePageStationList(stations: model.forYouStations) { station in

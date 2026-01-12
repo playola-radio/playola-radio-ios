@@ -78,6 +78,8 @@ struct MainContainer: View {
           ChooseStationToBroadcastPageView(model: model)
         case .notificationsSettingsPage(let model):
           NotificationsSettingsPageView(model: model)
+        case .seriesListPage(let model):
+          SeriesListPage(model: model)
         }
       }
     }

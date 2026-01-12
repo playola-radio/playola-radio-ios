@@ -26,6 +26,7 @@ final class MainContainerNavigationCoordinator: Sendable {
     case broadcastPage(BroadcastPageModel)
     case chooseStationToBroadcastPage(ChooseStationToBroadcastPageModel)
     case notificationsSettingsPage(NotificationsSettingsPageModel)
+    case seriesListPage(SeriesListPageModel)
   }
 
   func push(_ path: Path) {
