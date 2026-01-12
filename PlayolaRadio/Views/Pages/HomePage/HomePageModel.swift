@@ -19,19 +19,19 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
-  @ObservationIgnored @Shared(.scheduledShows) var scheduledShows
   @ObservationIgnored @Shared(.auth) var auth: Auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.date.now) var now
 
   @ObservationIgnored var stationPlayer: StationPlayer
 
   var forYouStations: IdentifiedArrayOf<AnyStation> = []
   var presentedAlert: PlayolaAlert?
-
-  var hasLiveShows: Bool {
-    scheduledShows.contains { !$0.hasEnded }
-  }
+  var hasScheduledShows = false
 
   var welcomeMessage: String {
     if let currentUser = auth.currentUser {
@@ -51,6 +51,27 @@ class HomePageModel: ViewModel {
       }
     )
 
+  @ObservationIgnored lazy var scheduledShowsTileModel: NewFeatureTileModel =
+    NewFeatureTileModel(
+      iconName: "sparkles",
+      isSystemImage: true,
+      label: "New Feature",
+      content: "Radio Shows",
+      paragraph:
+        "Your favorite artists hosting their own radio shows. Check them out!",
+      buttonText: "See Upcoming Shows",
+      buttonAction: { [weak self] in
+        guard let self = self else { return }
+        self.navigateToSeriesListPage()
+      }
+    )
+
+  @MainActor
+  func navigateToSeriesListPage() {
+    let model = SeriesListPageModel()
+    mainContainerNavigationCoordinator.push(.seriesListPage(model))
+  }
+
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
   }
@@ -58,6 +79,10 @@ class HomePageModel: ViewModel {
   // MARK: Actions
   func viewAppeared() async {
     loadForYouStations(lists: stationLists, showSecretStationsNewValue: showSecretStations)
+    await checkForScheduledShows()
+
+    // Only set up subscription once
+    guard disposeBag.isEmpty else { return }
 
     Publishers.CombineLatest(
       $stationLists.publisher,
@@ -67,6 +92,22 @@ class HomePageModel: ViewModel {
       self?.loadForYouStations(lists: lists, showSecretStationsNewValue: showSecrets)
     }
     .store(in: &disposeBag)
+  }
+
+  private func checkForScheduledShows() async {
+    guard let jwt = auth.jwt else { return }
+
+    do {
+      let airings = try await api.getAirings(jwt, nil)
+      let upcomingAirings = airings.filter { airing in
+        let durationMS = airing.episode?.durationMS ?? 0
+        let endTime = airing.airtime.addingTimeInterval(TimeInterval(durationMS) / 1000.0)
+        return endTime > now
+      }
+      hasScheduledShows = !upcomingAirings.isEmpty
+    } catch {
+      hasScheduledShows = false
+    }
   }
 
   func handlePlayolaIconTapped10Times() {

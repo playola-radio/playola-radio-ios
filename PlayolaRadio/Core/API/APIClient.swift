@@ -129,16 +129,14 @@ struct APIClient: Sendable {
       _, _, _ in nil
     }
 
-  /// Fetches scheduled shows
+  /// Fetches airings (scheduled broadcasts of episodes)
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
-  ///   - showId: Optional show ID to filter by specific show
   ///   - stationId: Optional station ID to filter by specific station
-  /// - Returns: Array of ScheduledShow objects
+  /// - Returns: Array of Airing objects with nested episode, show, and station data
   /// - Throws: APIError if the request fails
-  var getScheduledShows:
-    (_ jwtToken: String, _ showId: String?, _ stationId: String?) async throws -> [ScheduledShow] =
-      { _, _, _ in [] }
+  var getAirings: (_ jwtToken: String, _ stationId: String?) async throws -> [Airing] =
+    { _, _ in [] }
 
   /// Fetches the schedule for a station
   /// - Parameters:
@@ -305,6 +303,57 @@ struct APIClient: Sendable {
   /// - Throws: APIError if the request fails
   var sendStationNotification:
     (_ jwtToken: String, _ stationId: String, _ message: String) async throws -> Void = { _, _, _ in
+    }
+
+  /// Fetches all push notification subscriptions for the current user
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: Array of PushNotificationSubscriptionWithStation objects
+  /// - Throws: APIError if the request fails
+  var getPushNotificationSubscriptions:
+    (_ jwtToken: String) async throws -> [PushNotificationSubscriptionWithStation] = { _ in [] }
+
+  /// Subscribes to push notifications for a station
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to subscribe to
+  /// - Returns: The updated PushNotificationSubscription
+  /// - Throws: APIError if the request fails
+  var subscribeToStationNotifications:
+    (_ jwtToken: String, _ stationId: String) async throws -> PushNotificationSubscription = {
+      _, _ in
+      PushNotificationSubscription(
+        id: "",
+        userId: "",
+        stationId: "",
+        isSubscribed: true,
+        optedOutAt: nil,
+        autoSubscribedAt: nil,
+        manualSubscribedAt: nil,
+        createdAt: Date(),
+        updatedAt: Date()
+      )
+    }
+
+  /// Unsubscribes from push notifications for a station
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to unsubscribe from
+  /// - Returns: The updated PushNotificationSubscription
+  /// - Throws: APIError if the request fails
+  var unsubscribeFromStationNotifications:
+    (_ jwtToken: String, _ stationId: String) async throws -> PushNotificationSubscription = {
+      _, _ in
+      PushNotificationSubscription(
+        id: "",
+        userId: "",
+        stationId: "",
+        isSubscribed: false,
+        optedOutAt: nil,
+        autoSubscribedAt: nil,
+        manualSubscribedAt: nil,
+        createdAt: Date(),
+        updatedAt: Date()
+      )
     }
 }
 

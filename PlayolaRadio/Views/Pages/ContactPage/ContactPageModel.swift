@@ -21,6 +21,8 @@ class ContactPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.analytics) var analytics
   var editProfilePageModel: EditProfilePageModel = EditProfilePageModel()
   var likedSongsPageModel: LikedSongsPageModel = LikedSongsPageModel()
+  var notificationsSettingsPageModel: NotificationsSettingsPageModel =
+    NotificationsSettingsPageModel()
   var broadcastPageModel: BroadcastPageModel?
   var chooseStationToBroadcastPageModel: ChooseStationToBroadcastPageModel?
 
@@ -76,6 +78,12 @@ class ContactPageModel: ViewModel {
   @MainActor
   func onLikedSongsTapped() {
     mainContainerNavigationCoordinator.path.append(.likedSongsPage(self.likedSongsPageModel))
+  }
+
+  @MainActor
+  func onNotificationsTapped() {
+    mainContainerNavigationCoordinator.path.append(
+      .notificationsSettingsPage(self.notificationsSettingsPageModel))
   }
 
   @MainActor

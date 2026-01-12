@@ -32,11 +32,11 @@ extension SharedKey where Self == InMemoryKey<Bool>.Default {
 }
 
 extension SharedKey
-where Self == FileStorageKey<IdentifiedArrayOf<ScheduledShow>>.Default {
-  static var scheduledShows: Self {
+where Self == FileStorageKey<IdentifiedArrayOf<Airing>>.Default {
+  static var airings: Self {
     Self[
       .fileStorage(
-        dump(.documentsDirectory.appending(component: "scheduled-shows.json"))),
+        dump(.documentsDirectory.appending(component: "airings.json"))),
       default: []]
   }
 }
