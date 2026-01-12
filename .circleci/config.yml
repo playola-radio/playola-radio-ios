@@ -4,6 +4,7 @@ jobs:
   swiftlint_check:
     macos:
       xcode: 16.2.0
+    resource_class: m4pro.medium
     steps:
       - checkout
       - run:
@@ -25,6 +26,7 @@ jobs:
   build-and-test:
     macos:
       xcode: 16.2.0
+    resource_class: m4pro.medium
     environment:
       FL_OUTPUT_DIR: output
       FASTLANE_LANE: test
@@ -52,6 +54,7 @@ jobs:
   adhoc:
     macos:
       xcode: 16.2.0
+    resource_class: m4pro.medium
     environment:
       FL_OUTPUT_DIR: output
       FASTLANE_LANE: adhoc
