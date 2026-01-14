@@ -100,7 +100,13 @@ struct StationListPage: View {
           }
         }
       }
-      .animation(.easeInOut(duration: 0.5), value: items.map { $0.anyStation.id })
+      .animation(
+        .easeInOut(duration: 0.5),
+        value: items.map { item in
+          let liveStatus = model.liveStatusForStation(item.anyStation.id)
+          return "\(item.anyStation.id)-\(liveStatus?.rawValue ?? "none")"
+        }
+      )
     }
   }
 }
