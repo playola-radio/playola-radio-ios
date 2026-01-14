@@ -37,7 +37,7 @@ final class LiveStationsPoller {
   }
 
   func fetchLiveStations() async {
-    guard let jwtToken = auth?.jwt else { return }
+    guard let jwtToken = auth.jwt else { return }
 
     do {
       let stations = try await api.fetchLiveStations(jwtToken)
