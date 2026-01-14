@@ -385,6 +385,154 @@ final class StationListPageTests: XCTestCase {
     XCTAssertEqual(filteredItems.last?.visibility, .hidden)
   }
 
+  // MARK: - Live Station Tests
+
+  func testLiveStatusForStationReturnsNilWhenNotLive() async {
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    let status = model.liveStatusForStation("some-station-id")
+
+    XCTAssertNil(status)
+  }
+
+  func testLiveStatusForStationReturnsVoicetrackingStatus() async {
+    let station = Station.mockWith(id: "live-station")
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = [
+      LiveStationInfo(stationId: "live-station", liveStatus: .voicetracking, station: station)
+    ]
+
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    let status = model.liveStatusForStation("live-station")
+
+    XCTAssertEqual(status, .voicetracking)
+  }
+
+  func testLiveStatusForStationReturnsShowAiringStatus() async {
+    let station = Station.mockWith(id: "show-station")
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = [
+      LiveStationInfo(stationId: "show-station", liveStatus: .showAiring, station: station)
+    ]
+
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    let status = model.liveStatusForStation("show-station")
+
+    XCTAssertEqual(status, .showAiring)
+  }
+
+  func testSortedStationItemsPutsLiveStationsFirst() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let now = Date()
+
+    let station1 = Station.mockWith(id: "station-1", name: "Station 1")
+    let station2 = Station.mockWith(id: "station-2", name: "Station 2")
+    let station3 = Station.mockWith(id: "station-3", name: "Station 3")
+
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = [
+      LiveStationInfo(stationId: "station-2", liveStatus: .voicetracking, station: station2)
+    ]
+
+    let list = StationList(
+      id: "test-list",
+      name: "Test List",
+      slug: "test-list",
+      hidden: false,
+      sortOrder: 0,
+      createdAt: now,
+      updatedAt: now,
+      items: [
+        APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil),
+        APIStationItem(sortOrder: 1, visibility: .visible, station: station2, urlStation: nil),
+        APIStationItem(sortOrder: 2, visibility: .visible, station: station3, urlStation: nil),
+      ]
+    )
+
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    let sortedItems = model.sortedStationItems(for: list)
+
+    XCTAssertEqual(sortedItems.count, 3)
+    XCTAssertEqual(sortedItems[0].anyStation.id, "station-2")
+  }
+
+  func testSortedStationItemsPutsVoicetrackingBeforeShowAiring() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let now = Date()
+
+    let station1 = Station.mockWith(id: "station-1", name: "Station 1")
+    let station2 = Station.mockWith(id: "station-2", name: "Station 2")
+    let station3 = Station.mockWith(id: "station-3", name: "Station 3")
+
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = [
+      LiveStationInfo(stationId: "station-1", liveStatus: .showAiring, station: station1),
+      LiveStationInfo(stationId: "station-3", liveStatus: .voicetracking, station: station3),
+    ]
+
+    let list = StationList(
+      id: "test-list",
+      name: "Test List",
+      slug: "test-list",
+      hidden: false,
+      sortOrder: 0,
+      createdAt: now,
+      updatedAt: now,
+      items: [
+        APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil),
+        APIStationItem(sortOrder: 1, visibility: .visible, station: station2, urlStation: nil),
+        APIStationItem(sortOrder: 2, visibility: .visible, station: station3, urlStation: nil),
+      ]
+    )
+
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    let sortedItems = model.sortedStationItems(for: list)
+
+    XCTAssertEqual(sortedItems.count, 3)
+    XCTAssertEqual(sortedItems[0].anyStation.id, "station-3")  // voicetracking first
+    XCTAssertEqual(sortedItems[1].anyStation.id, "station-1")  // showAiring second
+    XCTAssertEqual(sortedItems[2].anyStation.id, "station-2")  // not live last
+  }
+
+  func testSortedStationItemsPreservesOrderWhenNoLiveStations() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+    let now = Date()
+
+    let station1 = Station.mockWith(id: "station-1", name: "Station 1")
+    let station2 = Station.mockWith(id: "station-2", name: "Station 2")
+
+    let list = StationList(
+      id: "test-list",
+      name: "Test List",
+      slug: "test-list",
+      hidden: false,
+      sortOrder: 0,
+      createdAt: now,
+      updatedAt: now,
+      items: [
+        APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil),
+        APIStationItem(sortOrder: 1, visibility: .visible, station: station2, urlStation: nil),
+      ]
+    )
+
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    let sortedItems = model.sortedStationItems(for: list)
+
+    XCTAssertEqual(sortedItems.count, 2)
+    XCTAssertEqual(sortedItems[0].anyStation.id, "station-1")
+    XCTAssertEqual(sortedItems[1].anyStation.id, "station-2")
+  }
+
 }
 
 private func assertPlayedEvents(
