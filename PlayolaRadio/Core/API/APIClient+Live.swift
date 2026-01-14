@@ -709,10 +709,11 @@ extension APIClient: DependencyKey {
 
         return response
       },
-      fetchLiveStations: {
+      fetchLiveStations: { jwtToken in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/live"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
 
-        let response = try await AF.request(url)
+        let response = try await AF.request(url, headers: headers)
           .validate(statusCode: 200..<300)
           .serializingDecodable([LiveStationInfo].self, decoder: isoDecoder)
           .value

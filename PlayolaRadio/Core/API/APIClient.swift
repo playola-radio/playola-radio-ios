@@ -357,9 +357,10 @@ struct APIClient: Sendable {
     }
 
   /// Fetches currently live stations
+  /// - Parameter jwtToken: The JWT token for authentication
   /// - Returns: Array of LiveStationInfo containing stations that are currently live
   /// - Throws: APIError if the request fails
-  var fetchLiveStations: () async throws -> [LiveStationInfo] = { [] }
+  var fetchLiveStations: (_ jwtToken: String) async throws -> [LiveStationInfo] = { _ in [] }
 }
 
 enum APIError: Error, LocalizedError {

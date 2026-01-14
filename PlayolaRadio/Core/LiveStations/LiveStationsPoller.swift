@@ -13,6 +13,7 @@ import Sharing
 @Observable
 final class LiveStationsPoller {
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
 
   private var pollingTask: Task<Void, Never>?
@@ -36,8 +37,10 @@ final class LiveStationsPoller {
   }
 
   func fetchLiveStations() async {
+    guard let jwtToken = auth?.jwt else { return }
+
     do {
-      let stations = try await api.fetchLiveStations()
+      let stations = try await api.fetchLiveStations(jwtToken)
       $liveStations.withLock { $0 = stations }
     } catch {
       // Silently fail, keep existing data
