@@ -42,6 +42,7 @@ struct StationListStationRowView: View {
         if let liveStatus = model.liveStatus {
           LiveBadge(status: liveStatus)
             .padding(.trailing, 8)
+            .transition(.opacity.combined(with: .scale))
         }
       }
       .padding(.horizontal)
