@@ -107,6 +107,14 @@ extension SharedKey where Self == FileStorageKey<[LikeOperation]>.Default {
   }
 }
 
+// MARK: - Live Stations
+
+extension SharedKey where Self == InMemoryKey<[LiveStationInfo]>.Default {
+  static var liveStations: Self {
+    Self[.inMemory("liveStations"), default: []]
+  }
+}
+
 // MARK: - Push Notifications
 
 extension SharedKey where Self == AppStorageKey<String?>.Default {

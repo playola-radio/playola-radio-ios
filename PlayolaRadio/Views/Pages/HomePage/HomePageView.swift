@@ -34,7 +34,10 @@ struct HomePageView: View {
 
           ListeningTimeTile(model: model.listeningTimeTileModel)
 
-          HomePageStationList(stations: model.forYouStations) { station in
+          HomePageStationList(
+            stations: model.forYouStations,
+            liveStatusForStation: model.liveStatusForStation
+          ) { station in
             Task { await model.handleStationTapped(station) }
           }
         }

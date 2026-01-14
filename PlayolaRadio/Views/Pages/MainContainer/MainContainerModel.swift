@@ -46,6 +46,7 @@ class MainContainerModel: ViewModel {
   var stationListModel = StationListModel()
   var rewardsPageModel = RewardsPageModel()
   var contactPageModel = ContactPageModel()
+  var liveStationsPoller = LiveStationsPoller()
 
   var shouldShowSmallPlayer: Bool = false
 
@@ -87,6 +88,8 @@ class MainContainerModel: ViewModel {
 
     await loadListeningTracker()
     await loadAirings()
+
+    liveStationsPoller.startPolling()
   }
 
   func refreshOnForeground() async {
@@ -102,6 +105,17 @@ class MainContainerModel: ViewModel {
     }
 
     await loadAirings()
+  }
+
+  func handleScenePhaseChange(_ phase: ScenePhase) {
+    switch phase {
+    case .active:
+      liveStationsPoller.startPolling()
+    case .background, .inactive:
+      liveStationsPoller.stopPolling()
+    @unknown default:
+      break
+    }
   }
 
   func loadAirings() async {

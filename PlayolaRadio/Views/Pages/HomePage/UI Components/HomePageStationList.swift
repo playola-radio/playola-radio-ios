@@ -10,6 +10,7 @@ import SwiftUI
 
 struct StationCardView: View {
   let station: AnyStation
+  let liveStatus: LiveStatus?
   let onRadioStationSelected: (AnyStation) -> Void
 
   var body: some View {
@@ -19,15 +20,22 @@ struct StationCardView: View {
       action: { onRadioStationSelected(station) },
       label: {
         HStack(spacing: 2) {
-          AsyncImage(url: imageURL) { image in
-            image
-              .resizable()
-              .aspectRatio(contentMode: .fill)
-          } placeholder: {
-            Color(white: 0.3)
+          ZStack(alignment: .topLeading) {
+            AsyncImage(url: imageURL) { image in
+              image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+            } placeholder: {
+              Color(white: 0.3)
+            }
+            .frame(width: 160, height: 160)
+            .clipped()
+
+            if let liveStatus = liveStatus {
+              LiveBadge(status: liveStatus)
+                .offset(x: 8, y: 8)
+            }
           }
-          .frame(width: 160, height: 160)
-          .clipped()
 
           // Right side - Text content
           VStack(alignment: .leading, spacing: 6) {
@@ -63,6 +71,7 @@ struct StationCardView: View {
 
 struct HomePageStationList: View {
   var stations: IdentifiedArrayOf<AnyStation>
+  var liveStatusForStation: (String) -> LiveStatus?
   var onRadioStationSelected: (AnyStation) -> Void
 
   var body: some View {
@@ -73,9 +82,12 @@ struct HomePageStationList: View {
         .foregroundColor(.white)
         .padding(.bottom, 8)
 
-      VStack(spacing: 12) {  // Reduced spacing between cards
+      VStack(spacing: 12) {
         ForEach(stations) { station in
-          StationCardView(station: station) {
+          StationCardView(
+            station: station,
+            liveStatus: liveStatusForStation(station.id)
+          ) {
             onRadioStationSelected($0)
           }
         }
@@ -89,6 +101,7 @@ struct HomePageStationList_Previews: PreviewProvider {
   static var previews: some View {
     HomePageStationList(
       stations: IdentifiedArray(uniqueElements: [AnyStation.mock]),
+      liveStatusForStation: { _ in nil },
       onRadioStationSelected: { _ in }
     )
     .preferredColorScheme(.dark)
