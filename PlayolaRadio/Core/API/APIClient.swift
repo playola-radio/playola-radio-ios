@@ -355,6 +355,11 @@ struct APIClient: Sendable {
         updatedAt: Date()
       )
     }
+
+  /// Fetches currently live stations
+  /// - Returns: Array of LiveStationInfo containing stations that are currently live
+  /// - Throws: APIError if the request fails
+  var fetchLiveStations: () async throws -> [LiveStationInfo] = { [] }
 }
 
 enum APIError: Error, LocalizedError {

@@ -19,6 +19,7 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
+  @ObservationIgnored @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
   @ObservationIgnored @Shared(.auth) var auth: Auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
@@ -122,6 +123,10 @@ class HomePageModel: ViewModel {
         entryPoint: "home_recommendations"
       ))
     stationPlayer.play(station: station)
+  }
+
+  func liveStatusForStation(_ stationId: String) -> LiveStatus? {
+    liveStations.first { $0.stationId == stationId }?.liveStatus
   }
 
   private func shouldShowStationItem(_ item: APIStationItem, showSecretStations: Bool) -> Bool {

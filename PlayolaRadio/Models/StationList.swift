@@ -296,6 +296,14 @@ extension APIStationItem {
     if let urlStation { return .url(urlStation) }
     fatalError("Station is neither a playola station or a urlStation")
   }
+
+  func liveSortPriority(_ liveStations: [LiveStationInfo]) -> Int {
+    guard let status = liveStations.first(where: { $0.stationId == anyStation.id })?.liveStatus
+    else {
+      return 2
+    }
+    return status == .voicetracking ? 0 : 1
+  }
 }
 
 // MARK: Mocks - Updated for modern structure

@@ -708,6 +708,16 @@ extension APIClient: DependencyKey {
         .value
 
         return response
+      },
+      fetchLiveStations: {
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/live"
+
+        let response = try await AF.request(url)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([LiveStationInfo].self, decoder: isoDecoder)
+          .value
+
+        return response
       }
     )
   }()

@@ -210,6 +210,14 @@
 		D35EFC122F1595BE000F64A4 /* SeriesCardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC0E2F1595BE000F64A4 /* SeriesCardModel.swift */; };
 		D35EFC142F1595C5000F64A4 /* SeriesCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC0F2F1595BE000F64A4 /* SeriesCardTests.swift */; };
 		D35EFC172F159728000F64A4 /* SeriesListPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC162F159728000F64A4 /* SeriesListPageTests.swift */; };
+		D35EFC192F17D33E000F64A4 /* LocalVoicetrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC182F17D33E000F64A4 /* LocalVoicetrack.swift */; };
+		D35EFC1A2F17D33E000F64A4 /* LocalVoicetrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC182F17D33E000F64A4 /* LocalVoicetrack.swift */; };
+		D35EFC1C2F17D361000F64A4 /* LiveStationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC1B2F17D361000F64A4 /* LiveStationInfo.swift */; };
+		D35EFC1D2F17D361000F64A4 /* LiveStationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC1B2F17D361000F64A4 /* LiveStationInfo.swift */; };
+		D35EFC202F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC1E2F17D47F000F64A4 /* LiveStationsPoller.swift */; };
+		D35EFC212F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC1E2F17D47F000F64A4 /* LiveStationsPoller.swift */; };
+		D35EFC232F17D4CC000F64A4 /* LiveBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */; };
+		D35EFC242F17D4CC000F64A4 /* LiveBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */; };
 		D36FBCC02E37FC8100D1241C /* PrizeTierRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D36FBCBF2E37FC7800D1241C /* PrizeTierRow.swift */; };
 		D37257AB2DF87C72001BC6F9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D37257AA2DF87C72001BC6F9 /* LaunchScreen.storyboard */; };
 		D37257B02DF88BB7001BC6F9 /* HomePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257AF2DF88BB2001BC6F9 /* HomePageView.swift */; };
@@ -418,6 +426,10 @@
 		D35EFC0E2F1595BE000F64A4 /* SeriesCardModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesCardModel.swift; sourceTree = "<group>"; };
 		D35EFC0F2F1595BE000F64A4 /* SeriesCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesCardTests.swift; sourceTree = "<group>"; };
 		D35EFC162F159728000F64A4 /* SeriesListPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesListPageTests.swift; sourceTree = "<group>"; };
+		D35EFC182F17D33E000F64A4 /* LocalVoicetrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalVoicetrack.swift; sourceTree = "<group>"; };
+		D35EFC1B2F17D361000F64A4 /* LiveStationInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveStationInfo.swift; sourceTree = "<group>"; };
+		D35EFC1E2F17D47F000F64A4 /* LiveStationsPoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveStationsPoller.swift; sourceTree = "<group>"; };
+		D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveBadge.swift; sourceTree = "<group>"; };
 		D36FBCBF2E37FC7800D1241C /* PrizeTierRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTierRow.swift; sourceTree = "<group>"; };
 		D37257AA2DF87C72001BC6F9 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D37257AF2DF88BB2001BC6F9 /* HomePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePageView.swift; sourceTree = "<group>"; };
@@ -626,6 +638,7 @@
 			isa = PBXGroup;
 			children = (
 				D3137DD12D3ABB4F0070033A /* GenericNowPlaying.swift */,
+				D35EFC1B2F17D361000F64A4 /* LiveStationInfo.swift */,
 				D3B744B32E2FECC80042A427 /* LocalListeningSession.swift */,
 				D3F493C92EEE4133008ED463 /* LocalVoicetrack.swift */,
 				D3B662732D419C3100975D2F /* LoggedInUser.swift */,
@@ -642,6 +655,7 @@
 				D30AE8A62E75C91E00D9FBCA /* UrlStation.swift */,
 				D30257A32E63E95200F4228B /* UserSongLike.swift */,
 				D317C0D02EF2027000DBC82E /* VoicetrackStatusResponse.swift */,
+				D35EFC182F17D33E000F64A4 /* LocalVoicetrack.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -703,12 +717,13 @@
 			isa = PBXGroup;
 			children = (
 				D3B744C62E3139860042A427 /* ListeningTimeTile */,
+				D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */,
 				D35EFBF42F1576EF000F64A4 /* NewFeatureTile */,
-				D302578D2E63C08F00F4228B /* Song Drawer */,
 				D3137DBA2D3976550070033A /* PlayolaAlert.swift */,
 				D3137DCE2D3AA1E10070033A /* PlayolaSheet.swift */,
 				D378CCCF2E57947800497A4A /* ShareSheet.swift */,
 				D3B744A92E2F18690042A427 /* SmallPlayer */,
+				D302578D2E63C08F00F4228B /* Song Drawer */,
 				D37257C22DF8F875001BC6F9 /* SwiftUI Modifiers */,
 				D30257A52E64D62300F4228B /* ToastOverlayView.swift */,
 				D30257752E6342C600F4228B /* ToastView.swift */,
@@ -864,6 +879,14 @@
 			path = SeriesCard;
 			sourceTree = "<group>";
 		};
+		D35EFC1F2F17D47F000F64A4 /* LiveStations */ = {
+			isa = PBXGroup;
+			children = (
+				D35EFC1E2F17D47F000F64A4 /* LiveStationsPoller.swift */,
+			);
+			path = LiveStations;
+			sourceTree = "<group>";
+		};
 		D37257AC2DF88B89001BC6F9 /* HomePage */ = {
 			isa = PBXGroup;
 			children = (
@@ -932,6 +955,7 @@
 				D378CCD62E58C49F00497A4A /* Auth */,
 				D302577A2E639FAB00F4228B /* Likes */,
 				D3B744B52E2FED6E0042A427 /* ListeningTracker */,
+				D35EFC1F2F17D47F000F64A4 /* LiveStations */,
 				D378CCD82E58C6CE00497A4A /* Mail */,
 				D378CCD52E58C42D00497A4A /* Navigation */,
 				D37B74852EC9441C009806C6 /* PushNotifications */,
@@ -1373,6 +1397,8 @@
 				D30F00BA2E87194D007BCC73 /* StationListStationRowModel.swift in Sources */,
 				D30F00B82E871945007BCC73 /* StationListStationRowView.swift in Sources */,
 				D30F004C2E8592F0007BCC73 /* MainSceneDelegate.swift in Sources */,
+				D35EFC202F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */,
+				D35EFC1A2F17D33E000F64A4 /* LocalVoicetrack.swift in Sources */,
 				D30F004D2E8592F0007BCC73 /* RadioStation.swift in Sources */,
 				D30F004E2E8592F0007BCC73 /* RewardsPageView.swift in Sources */,
 				D3F493B82EEDD2AC008ED463 /* RecordPageModel.swift in Sources */,
@@ -1383,6 +1409,7 @@
 				D30F00512E8592F0007BCC73 /* SongDrawerModel.swift in Sources */,
 				D30F00522E8592F0007BCC73 /* Config.swift in Sources */,
 				D30F00532E8592F0007BCC73 /* ListeningTracker.swift in Sources */,
+				D35EFC242F17D4CC000F64A4 /* LiveBadge.swift in Sources */,
 				D30F00542E8592F0007BCC73 /* ViewModel.swift in Sources */,
 				D30F00552E8592F0007BCC73 /* SignInPageView.swift in Sources */,
 				D30F00562E8592F0007BCC73 /* UrlStation.swift in Sources */,
@@ -1436,6 +1463,7 @@
 				D30F00792E8592F0007BCC73 /* PlayolaTokenProvider.swift in Sources */,
 				D30F007A2E8592F0007BCC73 /* circleBackground.swift in Sources */,
 				D30F007B2E8592F0007BCC73 /* ShareSheet.swift in Sources */,
+				D35EFC1D2F17D361000F64A4 /* LiveStationInfo.swift in Sources */,
 				D30F007C2E8592F0007BCC73 /* RewardsPageModel.swift in Sources */,
 				D30F007D2E8592F0007BCC73 /* ToastClient.swift in Sources */,
 				D30F007E2E8592F0007BCC73 /* RewardsProfile.swift in Sources */,
@@ -1489,6 +1517,8 @@
 				D30F00BB2E87194D007BCC73 /* StationListStationRowModel.swift in Sources */,
 				D30F00B72E871945007BCC73 /* StationListStationRowView.swift in Sources */,
 				D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */,
+				D35EFC212F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */,
+				D35EFC192F17D33E000F64A4 /* LocalVoicetrack.swift in Sources */,
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
 				D3B744C22E31317B0042A427 /* RewardsPageView.swift in Sources */,
 				D3F493B92EEDD2AC008ED463 /* RecordPageModel.swift in Sources */,
@@ -1499,6 +1529,7 @@
 				D30257912E63C13400F4228B /* SongDrawerModel.swift in Sources */,
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
 				D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */,
+				D35EFC232F17D4CC000F64A4 /* LiveBadge.swift in Sources */,
 				D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */,
 				D3B6626A2D40103C00975D2F /* SignInPageView.swift in Sources */,
 				D30AE8A72E75C92700D9FBCA /* UrlStation.swift in Sources */,
@@ -1552,6 +1583,7 @@
 				D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */,
 				D37257C42DF8F885001BC6F9 /* circleBackground.swift in Sources */,
 				D378CCD02E57947800497A4A /* ShareSheet.swift in Sources */,
+				D35EFC1C2F17D361000F64A4 /* LiveStationInfo.swift in Sources */,
 				D3B744C02E3131730042A427 /* RewardsPageModel.swift in Sources */,
 				D302576D2E63428800F4228B /* ToastClient.swift in Sources */,
 				D3B744B02E2FE6FB0042A427 /* RewardsProfile.swift in Sources */,
