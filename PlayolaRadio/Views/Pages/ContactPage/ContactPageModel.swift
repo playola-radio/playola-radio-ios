@@ -17,6 +17,7 @@ class ContactPageModel: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
+  @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
   var editProfilePageModel: EditProfilePageModel = EditProfilePageModel()
@@ -28,6 +29,10 @@ class ContactPageModel: ViewModel {
   var supportPageModel: SupportPageModel?
   var isCheckingSupport = false
   var presentedAlert: PlayolaAlert?
+
+  var unreadBadgeCount: Int {
+    unreadSupportCount
+  }
 
   private var userStations: [Station] = []
 

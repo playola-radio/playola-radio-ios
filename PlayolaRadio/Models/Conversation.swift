@@ -14,6 +14,7 @@ struct Conversation: Codable, Identifiable, Equatable {
   let createdAt: Date
   let updatedAt: Date
   let participants: [ConversationParticipant]?
+  let unreadCount: Int?
 
   var isOpen: Bool {
     status == "open"

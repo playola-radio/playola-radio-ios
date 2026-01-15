@@ -408,6 +408,15 @@ struct APIClient: Sendable {
         sender: nil
       )
     }
+
+  /// Marks a conversation as read
+  /// - Parameters:
+  ///   - jwtToken: The user's JWT token
+  ///   - conversationId: The conversation ID
+  /// - Throws: APIError if the request fails
+  var markConversationRead: (_ jwtToken: String, _ conversationId: String) async throws -> Void = {
+    _, _ in
+  }
 }
 
 enum APIError: Error, LocalizedError {

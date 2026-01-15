@@ -10,9 +10,14 @@ import GoogleSignIn
 import GoogleSignInSwift
 import SDWebImage
 import SDWebImageSVGCoder
+import Sharing
 import SwiftUI
 import UIKit
 import UserNotifications
+
+extension Notification.Name {
+  static let refreshSupportMessages = Notification.Name("refreshSupportMessages")
+}
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
   @Dependency(\.pushNotifications) var pushNotifications
@@ -48,8 +53,32 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     willPresent notification: UNNotification,
     withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
   ) {
+    let userInfo = notification.request.content.userInfo
     print("📬 Notification received in foreground: \(notification.request.content.title)")
-    completionHandler([.banner, .sound])
+
+    if userInfo["type"] as? String == "support_message" {
+      @Shared(.unreadSupportCount) var unreadCount
+      if let badge = userInfo["badge"] as? Int {
+        unreadCount = badge
+      } else {
+        unreadCount += 1
+      }
+
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      let isSupportPageVisible = navCoordinator.path.contains { pathItem in
+        if case .supportPage = pathItem { return true }
+        return false
+      }
+
+      if isSupportPageVisible {
+        NotificationCenter.default.post(name: .refreshSupportMessages, object: nil)
+        completionHandler([])
+      } else {
+        completionHandler([.banner, .sound])
+      }
+    } else {
+      completionHandler([.banner, .sound])
+    }
   }
 
   func userNotificationCenter(

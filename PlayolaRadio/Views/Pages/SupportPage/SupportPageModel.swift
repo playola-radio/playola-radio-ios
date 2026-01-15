@@ -6,11 +6,13 @@
 import Dependencies
 import Sharing
 import SwiftUI
+import UserNotifications
 
 @MainActor
 @Observable
 class SupportPageModel: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
   @ObservationIgnored @Dependency(\.api) var api
 
   var conversation: Conversation?
@@ -35,17 +37,31 @@ class SupportPageModel: ViewModel {
   func onViewAppeared() async {
     guard let jwt = auth.jwt else { return }
     isLoading = true
+    startListeningForRefresh()
 
     do {
       conversation = try await api.getSupportConversation(jwt)
       if let conversationId = conversation?.id {
         messages = try await api.getConversationMessages(jwt, conversationId)
+        await markAsRead()
       }
     } catch {
       presentedAlert = .errorLoadingConversation
     }
 
     isLoading = false
+  }
+
+  private func markAsRead() async {
+    guard let jwt = auth.jwt, let conversationId = conversation?.id else { return }
+
+    do {
+      try await api.markConversationRead(jwt, conversationId)
+      unreadSupportCount = 0
+      try? await UNUserNotificationCenter.current().setBadgeCount(0)
+    } catch {
+      // Silently fail - not critical
+    }
   }
 
   func sendMessage() async {
@@ -76,8 +92,21 @@ class SupportPageModel: ViewModel {
 
     do {
       messages = try await api.getConversationMessages(jwt, conversationId)
+      await markAsRead()
     } catch {
       // Silently fail on refresh
+    }
+  }
+
+  func startListeningForRefresh() {
+    NotificationCenter.default.addObserver(
+      forName: .refreshSupportMessages,
+      object: nil,
+      queue: .main
+    ) { [weak self] _ in
+      Task { @MainActor in
+        await self?.refreshMessages()
+      }
     }
   }
 }

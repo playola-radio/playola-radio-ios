@@ -31,6 +31,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
   @ObservationIgnored @Shared(.hasBeenUnlocked) var hasBeenUnlocked
+  @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
 
   enum ActiveTab {
     case home
@@ -77,6 +78,8 @@ class MainContainerModel: ViewModel {
           ))
       }
     }
+
+    await fetchUnreadSupportCount()
 
     // NOTE: For now, this has to stay connected to the Singleton in order to avoid reloading
     // the entire app every time a nowPlaying.publisher event is received.  That seems to be
@@ -144,6 +147,17 @@ class MainContainerModel: ViewModel {
       print(err)
     }
   }
+
+  func fetchUnreadSupportCount() async {
+    guard let jwt = auth.jwt else { return }
+    do {
+      let conversation = try await api.getSupportConversation(jwt)
+      unreadSupportCount = conversation.unreadCount ?? 0
+    } catch {
+      // Silently fail
+    }
+  }
+
   func dismissButtonInSheetTapped() {
     self.mainContainerNavigationCoordinator.presentedSheet = nil
   }

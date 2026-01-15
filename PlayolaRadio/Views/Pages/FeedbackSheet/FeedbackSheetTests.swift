@@ -22,7 +22,8 @@ struct FeedbackSheetTests {
       status: "open",
       createdAt: Date(),
       updatedAt: Date(),
-      participants: nil
+      participants: nil,
+      unreadCount: 0
     )
 
     let model = FeedbackSheetModel(conversation: conversation)
@@ -47,7 +48,8 @@ struct FeedbackSheetTests {
       status: "open",
       createdAt: Date(),
       updatedAt: Date(),
-      participants: nil
+      participants: nil,
+      unreadCount: 0
     )
 
     let model = FeedbackSheetModel(conversation: conversation)
@@ -82,7 +84,8 @@ struct FeedbackSheetTests {
       status: "open",
       createdAt: Date(),
       updatedAt: Date(),
-      participants: nil
+      participants: nil,
+      unreadCount: 0
     )
 
     let sentMessage = Message(
@@ -135,7 +138,8 @@ struct FeedbackSheetTests {
       status: "open",
       createdAt: Date(),
       updatedAt: Date(),
-      participants: nil
+      participants: nil,
+      unreadCount: 0
     )
 
     let sentMessage = Message(
@@ -188,7 +192,8 @@ struct FeedbackSheetTests {
       status: "open",
       createdAt: Date(),
       updatedAt: Date(),
-      participants: nil
+      participants: nil,
+      unreadCount: 0
     )
 
     let model = withDependencies {
@@ -220,7 +225,8 @@ struct FeedbackSheetTests {
       status: "open",
       createdAt: Date(),
       updatedAt: Date(),
-      participants: nil
+      participants: nil,
+      unreadCount: 0
     )
 
     let model = FeedbackSheetModel(conversation: conversation)

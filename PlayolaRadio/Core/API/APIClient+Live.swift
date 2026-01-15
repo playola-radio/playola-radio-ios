@@ -761,6 +761,20 @@ extension APIClient: DependencyKey {
         .value
 
         return response
+      },
+      markConversationRead: { jwtToken, conversationId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/conversations/\(conversationId)/read"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        _ = try await AF.request(
+          url,
+          method: .put,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingData()
+        .value
       }
     )
   }()

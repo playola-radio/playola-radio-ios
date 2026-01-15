@@ -156,9 +156,20 @@ struct ContactPageView: View {
                     .tint(.white)
                     .frame(width: 16, height: 16)
                 } else {
-                  Image(systemName: "bubble.left.fill")
-                    .foregroundColor(.white)
-                    .font(.system(size: 16))
+                  ZStack(alignment: .topTrailing) {
+                    Image(systemName: "bubble.left.fill")
+                      .foregroundColor(.white)
+                      .font(.system(size: 16))
+
+                    if model.unreadBadgeCount > 0 {
+                      Text("\(model.unreadBadgeCount)")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(Color(hex: "#EF6962"))
+                        .frame(minWidth: 16, minHeight: 16)
+                        .background(Circle().fill(Color.white))
+                        .offset(x: 8, y: -8)
+                    }
+                  }
                 }
 
                 Text("Contact Us")
