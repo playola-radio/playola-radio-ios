@@ -218,6 +218,20 @@
 		D35EFC212F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC1E2F17D47F000F64A4 /* LiveStationsPoller.swift */; };
 		D35EFC232F17D4CC000F64A4 /* LiveBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */; };
 		D35EFC242F17D4CC000F64A4 /* LiveBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */; };
+		D35EFC262F192AAF000F64A4 /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC252F192AAF000F64A4 /* Conversation.swift */; };
+		D35EFC272F192AAF000F64A4 /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC252F192AAF000F64A4 /* Conversation.swift */; };
+		D35EFC292F192AB9000F64A4 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC282F192AB9000F64A4 /* Message.swift */; };
+		D35EFC2A2F192AB9000F64A4 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC282F192AB9000F64A4 /* Message.swift */; };
+		D35EFC392F192C76000F64A4 /* SupportPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC352F192C76000F64A4 /* SupportPageModel.swift */; };
+		D35EFC3A2F192C76000F64A4 /* SupportPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC372F192C76000F64A4 /* SupportPageView.swift */; };
+		D35EFC3C2F192C76000F64A4 /* SupportPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC352F192C76000F64A4 /* SupportPageModel.swift */; };
+		D35EFC3D2F192C76000F64A4 /* SupportPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC372F192C76000F64A4 /* SupportPageView.swift */; };
+		D35EFC3F2F192C8F000F64A4 /* SupportPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC362F192C76000F64A4 /* SupportPageTests.swift */; };
+		D35EFC432F1930C8000F64A4 /* FeedbackSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC402F1930C8000F64A4 /* FeedbackSheetModel.swift */; };
+		D35EFC442F1930C8000F64A4 /* FeedbackSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC412F1930C8000F64A4 /* FeedbackSheetView.swift */; };
+		D35EFC452F1930C8000F64A4 /* FeedbackSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC402F1930C8000F64A4 /* FeedbackSheetModel.swift */; };
+		D35EFC462F1930C8000F64A4 /* FeedbackSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC412F1930C8000F64A4 /* FeedbackSheetView.swift */; };
+		D35EFC482F19314E000F64A4 /* FeedbackSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC472F19314E000F64A4 /* FeedbackSheetTests.swift */; };
 		D36FBCC02E37FC8100D1241C /* PrizeTierRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D36FBCBF2E37FC7800D1241C /* PrizeTierRow.swift */; };
 		D37257AB2DF87C72001BC6F9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D37257AA2DF87C72001BC6F9 /* LaunchScreen.storyboard */; };
 		D37257B02DF88BB7001BC6F9 /* HomePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257AF2DF88BB2001BC6F9 /* HomePageView.swift */; };
@@ -430,6 +444,14 @@
 		D35EFC1B2F17D361000F64A4 /* LiveStationInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveStationInfo.swift; sourceTree = "<group>"; };
 		D35EFC1E2F17D47F000F64A4 /* LiveStationsPoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveStationsPoller.swift; sourceTree = "<group>"; };
 		D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveBadge.swift; sourceTree = "<group>"; };
+		D35EFC252F192AAF000F64A4 /* Conversation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Conversation.swift; sourceTree = "<group>"; };
+		D35EFC282F192AB9000F64A4 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
+		D35EFC352F192C76000F64A4 /* SupportPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportPageModel.swift; sourceTree = "<group>"; };
+		D35EFC362F192C76000F64A4 /* SupportPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportPageTests.swift; sourceTree = "<group>"; };
+		D35EFC372F192C76000F64A4 /* SupportPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportPageView.swift; sourceTree = "<group>"; };
+		D35EFC402F1930C8000F64A4 /* FeedbackSheetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSheetModel.swift; sourceTree = "<group>"; };
+		D35EFC412F1930C8000F64A4 /* FeedbackSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSheetView.swift; sourceTree = "<group>"; };
+		D35EFC472F19314E000F64A4 /* FeedbackSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSheetTests.swift; sourceTree = "<group>"; };
 		D36FBCBF2E37FC7800D1241C /* PrizeTierRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTierRow.swift; sourceTree = "<group>"; };
 		D37257AA2DF87C72001BC6F9 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D37257AF2DF88BB2001BC6F9 /* HomePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePageView.swift; sourceTree = "<group>"; };
@@ -637,11 +659,13 @@
 		D3137DD02D3ABB490070033A /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				D35EFC252F192AAF000F64A4 /* Conversation.swift */,
 				D3137DD12D3ABB4F0070033A /* GenericNowPlaying.swift */,
 				D35EFC1B2F17D361000F64A4 /* LiveStationInfo.swift */,
 				D3B744B32E2FECC80042A427 /* LocalListeningSession.swift */,
 				D3F493C92EEE4133008ED463 /* LocalVoicetrack.swift */,
 				D3B662732D419C3100975D2F /* LoggedInUser.swift */,
+				D35EFC282F192AB9000F64A4 /* Message.swift */,
 				D3F493CF2EEE52F4008ED463 /* PresignedURLResponse.swift */,
 				D3B744CC2E368D790042A427 /* Prize.swift */,
 				D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */,
@@ -696,6 +720,7 @@
 				D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */,
 				D39591132E39930500720CF8 /* ContactPage */,
 				D39591242E3BB6F400720CF8 /* EditProfilePage */,
+				D35EFC422F1930C8000F64A4 /* FeedbackSheet */,
 				D37257AC2DF88B89001BC6F9 /* HomePage */,
 				D3A08A362E53A761002468E0 /* InvitationCodePage */,
 				D30257852E63B6AD00F4228B /* LikedSongsPage */,
@@ -708,6 +733,7 @@
 				D3B662772D41B10600975D2F /* SignInPage */,
 				D3C7E5D92EF0A42100EDD3ED /* SongSearchPage */,
 				D3137DCC2D3A9FAA0070033A /* StationListPage */,
+				D35EFC382F192C76000F64A4 /* SupportPage */,
 				D3536A062BFA4F49006942D6 /* ContentView.swift */,
 			);
 			path = Pages;
@@ -885,6 +911,26 @@
 				D35EFC1E2F17D47F000F64A4 /* LiveStationsPoller.swift */,
 			);
 			path = LiveStations;
+			sourceTree = "<group>";
+		};
+		D35EFC382F192C76000F64A4 /* SupportPage */ = {
+			isa = PBXGroup;
+			children = (
+				D35EFC372F192C76000F64A4 /* SupportPageView.swift */,
+				D35EFC352F192C76000F64A4 /* SupportPageModel.swift */,
+				D35EFC362F192C76000F64A4 /* SupportPageTests.swift */,
+			);
+			path = SupportPage;
+			sourceTree = "<group>";
+		};
+		D35EFC422F1930C8000F64A4 /* FeedbackSheet */ = {
+			isa = PBXGroup;
+			children = (
+				D35EFC402F1930C8000F64A4 /* FeedbackSheetModel.swift */,
+				D35EFC412F1930C8000F64A4 /* FeedbackSheetView.swift */,
+				D35EFC472F19314E000F64A4 /* FeedbackSheetTests.swift */,
+			);
+			path = FeedbackSheet;
 			sourceTree = "<group>";
 		};
 		D37257AC2DF88B89001BC6F9 /* HomePage */ = {
@@ -1408,6 +1454,7 @@
 				D37B74872EC94427009806C6 /* PushNotifications.swift in Sources */,
 				D30F00512E8592F0007BCC73 /* SongDrawerModel.swift in Sources */,
 				D30F00522E8592F0007BCC73 /* Config.swift in Sources */,
+				D35EFC292F192AB9000F64A4 /* Message.swift in Sources */,
 				D30F00532E8592F0007BCC73 /* ListeningTracker.swift in Sources */,
 				D35EFC242F17D4CC000F64A4 /* LiveBadge.swift in Sources */,
 				D30F00542E8592F0007BCC73 /* ViewModel.swift in Sources */,
@@ -1439,6 +1486,7 @@
 				D30F00652E8592F0007BCC73 /* PlayolaSheet.swift in Sources */,
 				D3C7E5E92EF0C56200EDD3ED /* StagingItem.swift in Sources */,
 				D30F00662E8592F0007BCC73 /* PlayerPageModel.swift in Sources */,
+				D35EFC272F192AAF000F64A4 /* Conversation.swift in Sources */,
 				D30F00672E8592F0007BCC73 /* LikesManager.swift in Sources */,
 				D30F00682E8592F0007BCC73 /* AnalyticsClient.swift in Sources */,
 				D3F493D12EEE52F9008ED463 /* PresignedURLResponse.swift in Sources */,
@@ -1476,6 +1524,8 @@
 				D3F493CA2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */,
 				D30F00822E8592F0007BCC73 /* LikedSongsPageModel.swift in Sources */,
 				D3F493C52EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */,
+				D35EFC432F1930C8000F64A4 /* FeedbackSheetModel.swift in Sources */,
+				D35EFC442F1930C8000F64A4 /* FeedbackSheetView.swift in Sources */,
 				D30F00832E8592F0007BCC73 /* UIApplication+keyWindow.swift in Sources */,
 				D3219C172EDD22150008AFDA /* BroadcastPageView.swift in Sources */,
 				D30F00842E8592F0007BCC73 /* Prize.swift in Sources */,
@@ -1496,6 +1546,8 @@
 				D30F00902E8592F0007BCC73 /* ToastView.swift in Sources */,
 				D3FEC80C2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */,
 				D30F00912E8592F0007BCC73 /* APIClient.swift in Sources */,
+				D35EFC3C2F192C76000F64A4 /* SupportPageModel.swift in Sources */,
+				D35EFC3D2F192C76000F64A4 /* SupportPageView.swift in Sources */,
 				D30F00922E8592F0007BCC73 /* SmallPlayer.swift in Sources */,
 				D30F00932E8592F0007BCC73 /* PlayolaRadioApp.swift in Sources */,
 				D35EFC0B2F15915C000F64A4 /* EpisodeRowModel.swift in Sources */,
@@ -1528,6 +1580,7 @@
 				D37B74882EC94427009806C6 /* PushNotifications.swift in Sources */,
 				D30257912E63C13400F4228B /* SongDrawerModel.swift in Sources */,
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
+				D35EFC2A2F192AB9000F64A4 /* Message.swift in Sources */,
 				D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */,
 				D35EFC232F17D4CC000F64A4 /* LiveBadge.swift in Sources */,
 				D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */,
@@ -1559,6 +1612,7 @@
 				D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */,
 				D3C7E5EA2EF0C56200EDD3ED /* StagingItem.swift in Sources */,
 				D3FA612A2E00584200E9DF49 /* PlayerPageModel.swift in Sources */,
+				D35EFC262F192AAF000F64A4 /* Conversation.swift in Sources */,
 				D302577C2E639FB800F4228B /* LikesManager.swift in Sources */,
 				D3A08A2F2E4E2A35002468E0 /* AnalyticsClient.swift in Sources */,
 				D3F493D02EEE52F9008ED463 /* PresignedURLResponse.swift in Sources */,
@@ -1596,6 +1650,8 @@
 				D3F493CB2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */,
 				D30257892E63B6C100F4228B /* LikedSongsPageModel.swift in Sources */,
 				D3F493C42EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */,
+				D35EFC452F1930C8000F64A4 /* FeedbackSheetModel.swift in Sources */,
+				D35EFC462F1930C8000F64A4 /* FeedbackSheetView.swift in Sources */,
 				D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */,
 				D3219C182EDD22150008AFDA /* BroadcastPageView.swift in Sources */,
 				D3B744CD2E368DB50042A427 /* Prize.swift in Sources */,
@@ -1616,6 +1672,8 @@
 				D30257762E6342C900F4228B /* ToastView.swift in Sources */,
 				D3FEC80B2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */,
 				D339E5692BFD1C0800B9E35B /* APIClient.swift in Sources */,
+				D35EFC392F192C76000F64A4 /* SupportPageModel.swift in Sources */,
+				D35EFC3A2F192C76000F64A4 /* SupportPageView.swift in Sources */,
 				D382671C2E00C1460006BAC2 /* SmallPlayer.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
 				D35EFC0C2F15915C000F64A4 /* EpisodeRowModel.swift in Sources */,
@@ -1633,6 +1691,7 @@
 			files = (
 				D35EFC142F1595C5000F64A4 /* SeriesCardTests.swift in Sources */,
 				D302578C2E63B6D100F4228B /* LikedSongsPageTests.swift in Sources */,
+				D35EFC3F2F192C8F000F64A4 /* SupportPageTests.swift in Sources */,
 				D38031352E00AFD20011DD64 /* PlayerPageTests.swift in Sources */,
 				D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */,
 				D30257A92E651C9E00F4228B /* MainContainerNavigationCoordinatorTests.swift in Sources */,
@@ -1653,6 +1712,7 @@
 				D35EFBD72F0EC6F7000F64A4 /* APIClientTests.swift in Sources */,
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,
 				D3C7E5EF2EF0C58900EDD3ED /* StagingItemTests.swift in Sources */,
+				D35EFC482F19314E000F64A4 /* FeedbackSheetTests.swift in Sources */,
 				D3367BFF2F08B7E900AF87FA /* NotificationsSettingsPageTests.swift in Sources */,
 				D3C7E5E32EF0A44D00EDD3ED /* SongSearchPageTests.swift in Sources */,
 				D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */,
@@ -1723,7 +1783,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1766,7 +1826,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1809,7 +1869,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1971,7 +2031,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2014,7 +2074,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2158,7 +2218,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

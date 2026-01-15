@@ -55,6 +55,7 @@ struct MainContainer: View {
           }
           .tag(MainContainerModel.ActiveTab.profile)
         }
+        .tabBarMinimizeBehavior(.onScrollDown)
         .accentColor(.white)  // Makes the selected tab icon white
         .onAppear {
           let tabBarAppearance = UITabBarAppearance()
@@ -80,6 +81,8 @@ struct MainContainer: View {
           NotificationsSettingsPageView(model: model)
         case .seriesListPage(let model):
           SeriesListPage(model: model)
+        case .supportPage(let model):
+          SupportPageView(model: model)
         }
       }
     }
@@ -87,10 +90,12 @@ struct MainContainer: View {
     .sheet(
       item: Binding(
         get: {
-          if case .player = model.mainContainerNavigationCoordinator.presentedSheet {
+          switch model.mainContainerNavigationCoordinator.presentedSheet {
+          case .player, .feedbackSheet:
             return model.mainContainerNavigationCoordinator.presentedSheet
+          default:
+            return nil
           }
-          return nil
         },
         set: { model.mainContainerNavigationCoordinator.presentedSheet = $0 }
       ),
@@ -99,6 +104,8 @@ struct MainContainer: View {
           switch item {
           case .player(let playerPageModel):
             PlayerPage(model: playerPageModel)
+          case .feedbackSheet(let feedbackModel):
+            FeedbackSheetView(model: feedbackModel)
           default:
             EmptyView()
           }
@@ -107,7 +114,7 @@ struct MainContainer: View {
             Spacer()
             ToastOverlayView()
           }
-          .zIndex(1)  // Ensure toast appears above PlayerPage
+          .zIndex(1)  // Ensure toast appears above content
         }
       }
     )

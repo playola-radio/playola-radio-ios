@@ -361,6 +361,53 @@ struct APIClient: Sendable {
   /// - Returns: Array of LiveStationInfo containing stations that are currently live
   /// - Throws: APIError if the request fails
   var fetchLiveStations: (_ jwtToken: String) async throws -> [LiveStationInfo] = { _ in [] }
+
+  /// Gets or creates the user's support conversation
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: The user's support Conversation
+  /// - Throws: APIError if the request fails
+  var getSupportConversation: (_ jwtToken: String) async throws -> Conversation = { _ in
+    Conversation(
+      id: "",
+      type: "support",
+      contextType: nil,
+      contextId: nil,
+      status: "open",
+      createdAt: Date(),
+      updatedAt: Date(),
+      participants: nil
+    )
+  }
+
+  /// Fetches messages for a conversation
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - conversationId: The ID of the conversation
+  /// - Returns: Array of Message objects
+  /// - Throws: APIError if the request fails
+  var getConversationMessages:
+    (_ jwtToken: String, _ conversationId: String) async throws -> [Message] = { _, _ in [] }
+
+  /// Sends a message to a conversation
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - conversationId: The ID of the conversation
+  ///   - message: The message text to send
+  /// - Returns: The created Message
+  /// - Throws: APIError if the request fails
+  var sendConversationMessage:
+    (_ jwtToken: String, _ conversationId: String, _ message: String) async throws -> Message = {
+      _, _, _ in
+      Message(
+        id: "",
+        conversationId: "",
+        senderId: "",
+        message: "",
+        createdAt: Date(),
+        updatedAt: Date(),
+        sender: nil
+      )
+    }
 }
 
 enum APIError: Error, LocalizedError {

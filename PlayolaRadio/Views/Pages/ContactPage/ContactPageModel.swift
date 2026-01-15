@@ -25,6 +25,9 @@ class ContactPageModel: ViewModel {
     NotificationsSettingsPageModel()
   var broadcastPageModel: BroadcastPageModel?
   var chooseStationToBroadcastPageModel: ChooseStationToBroadcastPageModel?
+  var supportPageModel: SupportPageModel?
+  var isCheckingSupport = false
+  var presentedAlert: PlayolaAlert?
 
   private var userStations: [Station] = []
 
@@ -110,5 +113,38 @@ class ContactPageModel: ViewModel {
   func onLogOutTapped() {
     stationPlayer.stop()
     $auth.withLock { $0 = Auth() }
+  }
+
+  @MainActor
+  func onContactUsTapped() async {
+    guard let jwt = auth.jwt else { return }
+
+    isCheckingSupport = true
+
+    do {
+      let conversation = try await api.getSupportConversation(jwt)
+      let messages = try await api.getConversationMessages(jwt, conversation.id)
+
+      isCheckingSupport = false
+
+      if messages.isEmpty {
+        // No messages yet - show feedback sheet
+        let feedbackModel = FeedbackSheetModel(conversation: conversation) { [weak self] in
+          self?.presentedAlert = .messageSentSuccess
+        }
+        mainContainerNavigationCoordinator.presentedSheet = .feedbackSheet(feedbackModel)
+      } else {
+        // Has messages - navigate to chat page
+        let model = SupportPageModel()
+        model.conversation = conversation
+        model.messages = messages
+        model.isLoading = false
+        supportPageModel = model
+        mainContainerNavigationCoordinator.path.append(.supportPage(model))
+      }
+    } catch {
+      isCheckingSupport = false
+      presentedAlert = .errorLoadingConversation
+    }
   }
 }
