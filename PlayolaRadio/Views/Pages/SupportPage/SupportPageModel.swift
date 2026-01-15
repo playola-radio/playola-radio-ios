@@ -57,7 +57,7 @@ class SupportPageModel: ViewModel {
 
     do {
       try await api.markConversationRead(jwt, conversationId)
-      unreadSupportCount = 0
+      $unreadSupportCount.withLock { $0 = 0 }
       try? await UNUserNotificationCenter.current().setBadgeCount(0)
     } catch {
       // Silently fail - not critical

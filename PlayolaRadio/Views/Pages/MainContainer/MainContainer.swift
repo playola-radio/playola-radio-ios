@@ -55,7 +55,7 @@ struct MainContainer: View {
           }
           .tag(MainContainerModel.ActiveTab.profile)
         }
-        .tabBarMinimizeBehavior(.onScrollDown)
+        //        .tabBarMinimizeBehavior(.onScrollDown)  // add in iOS 26
         .accentColor(.white)  // Makes the selected tab icon white
         .onAppear {
           let tabBarAppearance = UITabBarAppearance()

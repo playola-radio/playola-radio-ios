@@ -59,9 +59,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     if userInfo["type"] as? String == "support_message" {
       @Shared(.unreadSupportCount) var unreadCount
       if let badge = userInfo["badge"] as? Int {
-        unreadCount = badge
+        $unreadCount.withLock { $0 = badge }
       } else {
-        unreadCount += 1
+        $unreadCount.withLock { $0 += 1 }
       }
 
       @Shared(.mainContainerNavigationCoordinator) var navCoordinator

@@ -16,6 +16,28 @@ struct Conversation: Codable, Identifiable, Equatable {
   let participants: [ConversationParticipant]?
   let unreadCount: Int?
 
+  init(
+    id: String,
+    type: String,
+    contextType: String?,
+    contextId: String?,
+    status: String,
+    createdAt: Date,
+    updatedAt: Date,
+    participants: [ConversationParticipant]?,
+    unreadCount: Int? = nil
+  ) {
+    self.id = id
+    self.type = type
+    self.contextType = contextType
+    self.contextId = contextId
+    self.status = status
+    self.createdAt = createdAt
+    self.updatedAt = updatedAt
+    self.participants = participants
+    self.unreadCount = unreadCount
+  }
+
   var isOpen: Bool {
     status == "open"
   }
