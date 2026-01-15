@@ -27,6 +27,11 @@ struct HomePageView: View {
           HomeIntroSection(
             onIconTapped10Times: model.handlePlayolaIconTapped10Times)
 
+          if model.hasUnreadSupportMessages {
+            NewFeatureTile(model: model.supportMessageTileModel)
+              .padding(.bottom, 20)
+          }
+
           if model.hasScheduledShows {
             NewFeatureTile(model: model.scheduledShowsTileModel)
               .padding(.bottom, 20)

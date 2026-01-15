@@ -72,4 +72,30 @@ final class MainContainerNavigationCoordinator: Sendable {
     let likedSongsModel = LikedSongsPageModel()
     push(.likedSongsPage(likedSongsModel))
   }
+
+  @MainActor
+  func navigateToSupport(_ model: SupportPageModel) async {
+    // Dismiss any presented sheet if needed
+    if presentedSheet != nil {
+      withAnimation(.easeInOut(duration: 0.3)) {
+        presentedSheet = nil
+      }
+
+      // Wait for sheet dismissal animation
+      try? await clock.sleep(for: .milliseconds(300))
+    }
+
+    // Set active tab to profile if needed
+    if activeTab != .profile {
+      withAnimation(.easeInOut(duration: 0.3)) {
+        $activeTab.withLock { $0 = .profile }
+      }
+
+      // Wait for tab transition animation
+      try? await clock.sleep(for: .milliseconds(300))
+    }
+
+    // Navigate to support page
+    push(.supportPage(model))
+  }
 }

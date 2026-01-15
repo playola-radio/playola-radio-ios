@@ -24,6 +24,7 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
+  @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
@@ -33,6 +34,9 @@ class HomePageModel: ViewModel {
   var forYouStations: IdentifiedArrayOf<AnyStation> = []
   var presentedAlert: PlayolaAlert?
   var hasScheduledShows = false
+  var hasUnreadSupportMessages: Bool {
+    unreadSupportCount > 0
+  }
 
   var welcomeMessage: String {
     if let currentUser = auth.currentUser {
@@ -67,6 +71,46 @@ class HomePageModel: ViewModel {
       }
     )
 
+  var supportMessageTileContent: String {
+    let count = unreadSupportCount
+    return count == 1 ? "1 New Message" : "\(count) New Messages"
+  }
+
+  @ObservationIgnored lazy var supportMessageTileModel: NewFeatureTileModel =
+    NewFeatureTileModel(
+      iconName: "bubble.left.fill",
+      isSystemImage: true,
+      label: "Messages",
+      content: "",
+      paragraph: "You have a message from our support team.",
+      buttonText: "View Messages",
+      buttonAction: { [weak self] in
+        guard let self = self else { return }
+        await self.navigateToSupportPage()
+      }
+    )
+
+  @MainActor
+  func updateSupportMessageTile() {
+    supportMessageTileModel.content = supportMessageTileContent
+  }
+
+  @MainActor
+  func navigateToSupportPage() async {
+    guard let jwt = auth.jwt else { return }
+    do {
+      let conversation = try await api.getSupportConversation(jwt)
+      let messages = try await api.getConversationMessages(jwt, conversation.id)
+      let model = SupportPageModel()
+      model.conversation = conversation
+      model.messages = messages
+      model.isLoading = false
+      await mainContainerNavigationCoordinator.navigateToSupport(model)
+    } catch {
+      presentedAlert = .errorLoadingConversation
+    }
+  }
+
   @MainActor
   func navigateToSeriesListPage() {
     let model = SeriesListPageModel()
@@ -80,6 +124,7 @@ class HomePageModel: ViewModel {
   // MARK: Actions
   func viewAppeared() async {
     loadForYouStations(lists: stationLists, showSecretStationsNewValue: showSecretStations)
+    updateSupportMessageTile()
     await checkForScheduledShows()
 
     // Only set up subscription once
@@ -93,6 +138,12 @@ class HomePageModel: ViewModel {
       self?.loadForYouStations(lists: lists, showSecretStationsNewValue: showSecrets)
     }
     .store(in: &disposeBag)
+
+    $unreadSupportCount.publisher
+      .sink { [weak self] _ in
+        self?.updateSupportMessageTile()
+      }
+      .store(in: &disposeBag)
   }
 
   private func checkForScheduledShows() async {
