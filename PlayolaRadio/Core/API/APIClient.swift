@@ -364,18 +364,22 @@ struct APIClient: Sendable {
 
   /// Gets or creates the user's support conversation
   /// - Parameter jwtToken: The JWT token for authentication
-  /// - Returns: The user's support Conversation
+  /// - Returns: SupportConversationResponse containing the conversation and unread count
   /// - Throws: APIError if the request fails
-  var getSupportConversation: (_ jwtToken: String) async throws -> Conversation = { _ in
-    Conversation(
-      id: "",
-      type: "support",
-      contextType: nil,
-      contextId: nil,
-      status: "open",
-      createdAt: Date(),
-      updatedAt: Date(),
-      participants: nil
+  var getSupportConversation: (_ jwtToken: String) async throws -> SupportConversationResponse = {
+    _ in
+    SupportConversationResponse(
+      conversation: Conversation(
+        id: "",
+        type: "support",
+        contextType: nil,
+        contextId: nil,
+        status: "open",
+        createdAt: Date(),
+        updatedAt: Date(),
+        participants: nil
+      ),
+      unreadCount: 0
     )
   }
 
@@ -417,6 +421,17 @@ struct APIClient: Sendable {
   var markConversationRead: (_ jwtToken: String, _ conversationId: String) async throws -> Void = {
     _, _ in
   }
+
+  /// Gets all conversations for admin users
+  /// - Parameters:
+  ///   - jwtToken: The user's JWT token
+  ///   - status: Optional status filter ("open" or "closed")
+  /// - Returns: Array of AdminConversationResponse with unread counts
+  /// - Throws: APIError if the request fails
+  var getConversations:
+    (_ jwtToken: String, _ status: String?) async throws -> [AdminConversationResponse] = { _, _ in
+      []
+    }
 }
 
 enum APIError: Error, LocalizedError {

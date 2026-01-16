@@ -52,7 +52,9 @@ struct SupportPageTests {
     ]
 
     let model = withDependencies {
-      $0.api.getSupportConversation = { _ in testConversation }
+      $0.api.getSupportConversation = { _ in
+        SupportConversationResponse(conversation: testConversation, unreadCount: 0)
+      }
       $0.api.getConversationMessages = { _, _ in testMessages }
     } operation: {
       SupportPageModel()
@@ -95,7 +97,9 @@ struct SupportPageTests {
     )
 
     let model = withDependencies {
-      $0.api.getSupportConversation = { _ in testConversation }
+      $0.api.getSupportConversation = { _ in
+        SupportConversationResponse(conversation: testConversation, unreadCount: 0)
+      }
       $0.api.getConversationMessages = { _, _ in [] }
     } operation: {
       SupportPageModel()
@@ -142,7 +146,9 @@ struct SupportPageTests {
     )
 
     let model = withDependencies {
-      $0.api.getSupportConversation = { _ in testConversation }
+      $0.api.getSupportConversation = { _ in
+        SupportConversationResponse(conversation: testConversation, unreadCount: 0)
+      }
       $0.api.getConversationMessages = { _, _ in [] }
       $0.api.sendConversationMessage = { _, _, _ in newMessage }
     } operation: {
@@ -173,5 +179,81 @@ struct SupportPageTests {
 
     model.newMessage = "Hello"
     #expect(model.canSend == true)
+  }
+
+  @Test
+  func testOnViewAppearedDoesNotOverwritePresetConversation() async {
+    // Regression test: When navigating from ConversationListPage, the model
+    // already has a conversation set. onViewAppeared should NOT overwrite it
+    // by calling getSupportConversation.
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "admin-1",
+        firstName: "Admin",
+        lastName: "User",
+        email: "admin@example.com",
+        profileImageUrl: nil,
+        role: "admin"
+      ),
+      jwt: "test-jwt"
+    )
+
+    let presetConversation = Conversation(
+      id: "preset-conv-id",
+      type: "support",
+      contextType: nil,
+      contextId: nil,
+      status: "open",
+      createdAt: Date(),
+      updatedAt: Date(),
+      participants: nil
+    )
+
+    let wrongConversation = Conversation(
+      id: "wrong-conv-id",
+      type: "support",
+      contextType: nil,
+      contextId: nil,
+      status: "open",
+      createdAt: Date(),
+      updatedAt: Date(),
+      participants: nil
+    )
+
+    let presetMessages = [
+      Message(
+        id: "preset-msg",
+        conversationId: "preset-conv-id",
+        senderId: "user-1",
+        message: "Preset message",
+        createdAt: Date(),
+        updatedAt: Date(),
+        sender: nil
+      )
+    ]
+
+    var getSupportConversationCalled = false
+
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in
+        getSupportConversationCalled = true
+        return SupportConversationResponse(conversation: wrongConversation, unreadCount: 0)
+      }
+      $0.api.getConversationMessages = { _, _ in [] }
+      $0.api.markConversationRead = { _, _ in }
+    } operation: {
+      SupportPageModel()
+    }
+
+    // Simulate what ConversationListPage does: preset the conversation and messages
+    model.conversation = presetConversation
+    model.messages = presetMessages
+    model.isLoading = false
+
+    await model.onViewAppeared()
+
+    // The preset conversation should NOT be overwritten
+    #expect(model.conversation?.id == "preset-conv-id")
+    #expect(getSupportConversationCalled == false)
   }
 }

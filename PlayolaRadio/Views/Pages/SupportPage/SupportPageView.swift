@@ -42,16 +42,16 @@ struct FeedbackFormView: View {
   @FocusState private var isTextFieldFocused: Bool
 
   private let placeholderText = """
-    How can we help?
-
-    "I have a question about..."
-    "I'd like to suggest..."
-    "I found an issue with..."
+      Tell us about a bug?
+      Have an idea for a new feature?
+      Just want to say hi to the team?
+      
+      We would LOVE to hear from you for any reason at all...
     """
 
   var body: some View {
     VStack(spacing: 20) {
-      Text("Send us a message and we'll get back to you as soon as possible.")
+      Text("Send us a message and we'll get back to you as soon as we can!")
         .font(.custom(FontNames.Inter_400_Regular, size: 14))
         .foregroundColor(.playolaGray)
         .multilineTextAlignment(.center)
@@ -205,6 +205,13 @@ struct MessageBubble: View {
       }
 
       VStack(alignment: isFromCurrentUser ? .trailing : .leading, spacing: 4) {
+        // Show sender name for messages not from current user
+        if !isFromCurrentUser, let senderName = message.sender?.displayName {
+          Text(senderName)
+            .font(.custom(FontNames.Inter_500_Medium, size: 12))
+            .foregroundColor(Color(hex: "#AAAAAA"))
+        }
+
         Text(message.message)
           .font(.custom(FontNames.Inter_400_Regular, size: 16))
           .foregroundColor(.white)

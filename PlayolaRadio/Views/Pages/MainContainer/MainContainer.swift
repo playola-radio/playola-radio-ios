@@ -83,6 +83,8 @@ struct MainContainer: View {
           SeriesListPage(model: model)
         case .supportPage(let model):
           SupportPageView(model: model)
+        case .conversationListPage(let model):
+          ConversationListPageView(model: model)
         }
       }
     }

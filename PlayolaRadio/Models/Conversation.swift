@@ -14,7 +14,6 @@ struct Conversation: Codable, Identifiable, Equatable {
   let createdAt: Date
   let updatedAt: Date
   let participants: [ConversationParticipant]?
-  let unreadCount: Int?
 
   init(
     id: String,
@@ -24,8 +23,7 @@ struct Conversation: Codable, Identifiable, Equatable {
     status: String,
     createdAt: Date,
     updatedAt: Date,
-    participants: [ConversationParticipant]?,
-    unreadCount: Int? = nil
+    participants: [ConversationParticipant]?
   ) {
     self.id = id
     self.type = type
@@ -35,7 +33,6 @@ struct Conversation: Codable, Identifiable, Equatable {
     self.createdAt = createdAt
     self.updatedAt = updatedAt
     self.participants = participants
-    self.unreadCount = unreadCount
   }
 
   var isOpen: Bool {
@@ -70,4 +67,16 @@ struct ParticipantUser: Codable, Equatable {
   var fullName: String {
     [firstName, lastName].compactMap { $0 }.joined(separator: " ")
   }
+}
+
+struct SupportConversationResponse: Codable, Equatable {
+  let conversation: Conversation
+  let unreadCount: Int
+}
+
+struct AdminConversationResponse: Codable, Identifiable, Equatable {
+  let conversation: Conversation
+  let unreadCountFromOwner: Int
+
+  var id: String { conversation.id }
 }

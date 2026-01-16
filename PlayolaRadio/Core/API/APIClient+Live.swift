@@ -726,7 +726,7 @@ extension APIClient: DependencyKey {
 
         let response = try await AF.request(url, headers: headers)
           .validate(statusCode: 200..<300)
-          .serializingDecodable(Conversation.self, decoder: isoDecoder)
+          .serializingDecodable(SupportConversationResponse.self, decoder: isoDecoder)
           .value
 
         return response
@@ -775,6 +775,20 @@ extension APIClient: DependencyKey {
         .validate(statusCode: 200..<300)
         .serializingData()
         .value
+      },
+      getConversations: { jwtToken, status in
+        var url = "\(Config.shared.baseUrl.absoluteString)/v1/conversations"
+        if let status = status {
+          url += "?status=\(status)"
+        }
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([AdminConversationResponse].self, decoder: isoDecoder)
+          .value
+
+        return response
       }
     )
   }()

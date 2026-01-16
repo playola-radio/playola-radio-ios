@@ -99,10 +99,10 @@ class HomePageModel: ViewModel {
   func navigateToSupportPage() async {
     guard let jwt = auth.jwt else { return }
     do {
-      let conversation = try await api.getSupportConversation(jwt)
-      let messages = try await api.getConversationMessages(jwt, conversation.id)
+      let response = try await api.getSupportConversation(jwt)
+      let messages = try await api.getConversationMessages(jwt, response.conversation.id)
       let model = SupportPageModel()
-      model.conversation = conversation
+      model.conversation = response.conversation
       model.messages = messages
       model.isLoading = false
       await mainContainerNavigationCoordinator.navigateToSupport(model)

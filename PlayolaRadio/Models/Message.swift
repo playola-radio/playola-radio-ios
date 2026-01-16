@@ -25,4 +25,12 @@ struct MessageSender: Codable, Equatable {
   var fullName: String {
     [firstName, lastName].compactMap { $0 }.joined(separator: " ")
   }
+
+  /// Display name as "First L." format (e.g., "John D.")
+  var displayName: String {
+    if let lastName = lastName, let lastInitial = lastName.first {
+      return "\(firstName) \(lastInitial)."
+    }
+    return firstName
+  }
 }

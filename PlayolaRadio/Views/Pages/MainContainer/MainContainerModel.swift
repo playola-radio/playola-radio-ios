@@ -151,8 +151,8 @@ class MainContainerModel: ViewModel {
   func fetchUnreadSupportCount() async {
     guard let jwt = auth.jwt else { return }
     do {
-      let conversation = try await api.getSupportConversation(jwt)
-      $unreadSupportCount.withLock { $0 = conversation.unreadCount ?? 0 }
+      let response = try await api.getSupportConversation(jwt)
+      $unreadSupportCount.withLock { $0 = response.unreadCount }
     } catch {
       // Silently fail
     }
