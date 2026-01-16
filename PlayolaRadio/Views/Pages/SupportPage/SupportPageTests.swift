@@ -14,6 +14,33 @@ import Testing
 
 @MainActor
 struct SupportPageTests {
+  private func makeConversation(id: String) -> Conversation {
+    Conversation(
+      id: id,
+      type: "support",
+      contextType: nil,
+      contextId: nil,
+      status: "open",
+      createdAt: Date(),
+      updatedAt: Date(),
+      participants: nil
+    )
+  }
+
+  private func makeMessage(id: String, conversationId: String, senderId: String, text: String)
+    -> Message
+  {
+    Message(
+      id: id,
+      conversationId: conversationId,
+      senderId: senderId,
+      message: text,
+      createdAt: Date(),
+      updatedAt: Date(),
+      sender: nil
+    )
+  }
+
   @Test
   func testOnViewAppearedLoadsConversationAndMessages() async {
     @Shared(.auth) var auth = Auth(
@@ -184,51 +211,20 @@ struct SupportPageTests {
   @Test
   func testOnViewAppearedDoesNotOverwritePresetConversation() async {
     // Regression test: When navigating from ConversationListPage, the model
-    // already has a conversation set. onViewAppeared should NOT overwrite it
-    // by calling getSupportConversation.
+    // already has a conversation set. onViewAppeared should NOT overwrite it.
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
-        id: "admin-1",
-        firstName: "Admin",
-        lastName: "User",
-        email: "admin@example.com",
-        profileImageUrl: nil,
-        role: "admin"
+        id: "admin-1", firstName: "Admin", lastName: "User",
+        email: "admin@example.com", profileImageUrl: nil, role: "admin"
       ),
       jwt: "test-jwt"
     )
 
-    let presetConversation = Conversation(
-      id: "preset-conv-id",
-      type: "support",
-      contextType: nil,
-      contextId: nil,
-      status: "open",
-      createdAt: Date(),
-      updatedAt: Date(),
-      participants: nil
-    )
-
-    let wrongConversation = Conversation(
-      id: "wrong-conv-id",
-      type: "support",
-      contextType: nil,
-      contextId: nil,
-      status: "open",
-      createdAt: Date(),
-      updatedAt: Date(),
-      participants: nil
-    )
-
+    let presetConversation = makeConversation(id: "preset-conv-id")
+    let wrongConversation = makeConversation(id: "wrong-conv-id")
     let presetMessages = [
-      Message(
-        id: "preset-msg",
-        conversationId: "preset-conv-id",
-        senderId: "user-1",
-        message: "Preset message",
-        createdAt: Date(),
-        updatedAt: Date(),
-        sender: nil
+      makeMessage(
+        id: "preset-msg", conversationId: "preset-conv-id", senderId: "user-1", text: "Preset"
       )
     ]
 
@@ -245,14 +241,12 @@ struct SupportPageTests {
       SupportPageModel()
     }
 
-    // Simulate what ConversationListPage does: preset the conversation and messages
     model.conversation = presetConversation
     model.messages = presetMessages
     model.isLoading = false
 
     await model.onViewAppeared()
 
-    // The preset conversation should NOT be overwritten
     #expect(model.conversation?.id == "preset-conv-id")
     #expect(getSupportConversationCalled == false)
   }
