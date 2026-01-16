@@ -10,11 +10,11 @@ struct FeedbackSheetView: View {
   @FocusState private var isTextFieldFocused: Bool
 
   private let placeholderText = """
-    How can we help?
+    Found a bug?
+    Have an idea for a new feature?
+    Just want to say hi to the team?
 
-    "I have a question about..."
-    "I'd like to suggest..."
-    "I found an issue with..."
+    We would LOVE to hear from you for any reason at all...
     """
 
   var body: some View {
@@ -23,7 +23,7 @@ struct FeedbackSheetView: View {
         Color.black.ignoresSafeArea()
 
         VStack(spacing: 20) {
-          Text("Send us a message and we'll get back to you as soon as possible.")
+          Text("Send us a message and we'll get back to you as soon as we can!")
             .font(.custom(FontNames.Inter_400_Regular, size: 14))
             .foregroundColor(.playolaGray)
             .multilineTextAlignment(.center)

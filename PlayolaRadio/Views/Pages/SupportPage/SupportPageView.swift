@@ -17,10 +17,8 @@ struct SupportPageView: View {
       if model.isLoading {
         ProgressView()
           .tint(.white)
-      } else if model.hasExistingMessages {
-        ChatView(model: model)
       } else {
-        FeedbackFormView(model: model)
+        ChatView(model: model)
       }
     }
     .navigationTitle("Contact Us")
@@ -35,87 +33,7 @@ struct SupportPageView: View {
   }
 }
 
-// MARK: - Feedback Form (First-time users)
-
-struct FeedbackFormView: View {
-  @Bindable var model: SupportPageModel
-  @FocusState private var isTextFieldFocused: Bool
-
-  private let placeholderText = """
-      Tell us about a bug?
-      Have an idea for a new feature?
-      Just want to say hi to the team?
-      
-      We would LOVE to hear from you for any reason at all...
-    """
-
-  var body: some View {
-    VStack(spacing: 20) {
-      Text("Send us a message and we'll get back to you as soon as we can!")
-        .font(.custom(FontNames.Inter_400_Regular, size: 14))
-        .foregroundColor(.playolaGray)
-        .multilineTextAlignment(.center)
-        .padding(.horizontal)
-
-      ZStack(alignment: .topLeading) {
-        if model.newMessage.isEmpty {
-          Text(placeholderText)
-            .font(.custom(FontNames.Inter_400_Regular, size: 16))
-            .foregroundColor(Color(hex: "#666666"))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 12)
-        }
-
-        TextEditor(text: $model.newMessage)
-          .font(.custom(FontNames.Inter_400_Regular, size: 16))
-          .foregroundColor(.white)
-          .scrollContentBackground(.hidden)
-          .padding(8)
-          .focused($isTextFieldFocused)
-      }
-      .frame(height: 180)
-      .background(Color(hex: "#1A1A1A"))
-      .cornerRadius(8)
-      .overlay(
-        RoundedRectangle(cornerRadius: 8)
-          .stroke(Color(hex: "#333333"), lineWidth: 1)
-      )
-      .padding(.horizontal)
-
-      Spacer()
-
-      Button {
-        Task {
-          await model.sendMessage()
-        }
-      } label: {
-        if model.isSending {
-          ProgressView()
-            .tint(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 50)
-        } else {
-          Text("Send Message")
-            .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 50)
-        }
-      }
-      .background(model.canSend ? Color.playolaRed : Color(hex: "#666666"))
-      .cornerRadius(8)
-      .disabled(!model.canSend)
-      .padding(.horizontal)
-      .padding(.bottom)
-    }
-    .padding(.top, 20)
-    .onAppear {
-      isTextFieldFocused = true
-    }
-  }
-}
-
-// MARK: - Chat View (Returning users)
+// MARK: - Chat View
 
 struct ChatView: View {
   @Bindable var model: SupportPageModel
