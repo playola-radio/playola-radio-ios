@@ -1,0 +1,13 @@
+{
+  "Simulator Target Bundle": "fm.playola.playolaradio",
+  "aps": {
+    "alert": {
+      "title": "Brian (Playola)",
+      "body": "Just following up on your question about the rewards program."
+    },
+    "sound": "default",
+    "badge": 3
+  },
+  "type": "support_message",
+  "conversationId": "test-conversation-123"
+}

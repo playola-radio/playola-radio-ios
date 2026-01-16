@@ -14,4 +14,5 @@ enum PlayolaSheet: Hashable, Identifiable, Equatable {
   case invitationCode(InvitationCodePageModel)
   case recordPage(RecordPageModel)
   case songSearchPage(SongSearchPageModel)
+  case feedbackSheet(FeedbackSheetModel)
 }

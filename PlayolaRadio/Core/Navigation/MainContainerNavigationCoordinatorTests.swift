@@ -144,4 +144,124 @@ final class MainContainerNavigationCoordinatorTests: XCTestCase {
       }
     }
   }
+
+  // MARK: - navigateToSupport Tests
+
+  func testNavigateToSupport_WithSheetAndDifferentTab() async {
+    await withDependencies {
+      $0.continuousClock = ImmediateClock()
+    } operation: {
+      @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .home
+
+      let coordinator = MainContainerNavigationCoordinator()
+      coordinator.presentedSheet = .player(PlayerPageModel())
+      $activeTab.withLock { $0 = .home }
+
+      let supportModel = SupportPageModel()
+      await coordinator.navigateToSupport(supportModel)
+
+      XCTAssertNil(coordinator.presentedSheet)
+      XCTAssertEqual(activeTab, .profile)
+      XCTAssertEqual(coordinator.path.count, 1)
+      if case .supportPage = coordinator.path.first {
+        // Success
+      } else {
+        XCTFail("Expected supportPage to be pushed")
+      }
+    }
+  }
+
+  func testNavigateToSupport_WithSheetButCorrectTab() async {
+    await withDependencies {
+      $0.continuousClock = ImmediateClock()
+    } operation: {
+      @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .profile
+
+      let coordinator = MainContainerNavigationCoordinator()
+      coordinator.presentedSheet = .player(PlayerPageModel())
+      $activeTab.withLock { $0 = .profile }
+
+      let supportModel = SupportPageModel()
+      await coordinator.navigateToSupport(supportModel)
+
+      XCTAssertNil(coordinator.presentedSheet)
+      XCTAssertEqual(activeTab, .profile)
+      XCTAssertEqual(coordinator.path.count, 1)
+      if case .supportPage = coordinator.path.first {
+        // Success
+      } else {
+        XCTFail("Expected supportPage to be pushed")
+      }
+    }
+  }
+
+  func testNavigateToSupport_WithDifferentTabButNoSheet() async {
+    await withDependencies {
+      $0.continuousClock = ImmediateClock()
+    } operation: {
+      @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .home
+
+      let coordinator = MainContainerNavigationCoordinator()
+      coordinator.presentedSheet = nil
+      $activeTab.withLock { $0 = .home }
+
+      let supportModel = SupportPageModel()
+      await coordinator.navigateToSupport(supportModel)
+
+      XCTAssertEqual(activeTab, .profile)
+      XCTAssertEqual(coordinator.path.count, 1)
+      if case .supportPage = coordinator.path.first {
+        // Success
+      } else {
+        XCTFail("Expected supportPage to be pushed")
+      }
+    }
+  }
+
+  func testNavigateToSupport_NoSheetAndCorrectTab() async {
+    await withDependencies {
+      $0.continuousClock = ImmediateClock()
+    } operation: {
+      @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .profile
+
+      let coordinator = MainContainerNavigationCoordinator()
+      coordinator.presentedSheet = nil
+      $activeTab.withLock { $0 = .profile }
+
+      let supportModel = SupportPageModel()
+      await coordinator.navigateToSupport(supportModel)
+
+      XCTAssertEqual(coordinator.path.count, 1)
+      XCTAssertEqual(activeTab, .profile)
+      XCTAssertNil(coordinator.presentedSheet)
+
+      if case .supportPage = coordinator.path.first {
+        // Success
+      } else {
+        XCTFail("Expected supportPage to be pushed")
+      }
+    }
+  }
+
+  func testNavigateToSupport_UsesProvidedModel() async {
+    await withDependencies {
+      $0.continuousClock = ImmediateClock()
+    } operation: {
+      @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .profile
+
+      let coordinator = MainContainerNavigationCoordinator()
+      coordinator.presentedSheet = nil
+      $activeTab.withLock { $0 = .profile }
+
+      let supportModel = SupportPageModel()
+      await coordinator.navigateToSupport(supportModel)
+
+      XCTAssertEqual(coordinator.path.count, 1)
+      if case .supportPage(let model) = coordinator.path.first {
+        XCTAssertTrue(model === supportModel)
+      } else {
+        XCTFail("Expected supportPage with the provided model to be pushed")
+      }
+    }
+  }
 }

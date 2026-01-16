@@ -137,3 +137,11 @@ extension SharedKey where Self == FileStorageKey<[String: Date]>.Default {
     ]
   }
 }
+
+// MARK: - Support
+
+extension SharedKey where Self == InMemoryKey<Int>.Default {
+  static var unreadSupportCount: Self {
+    Self[.inMemory("unreadSupportCount"), default: 0]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "Simulator Target Bundle": "fm.playola.playolaradio",
+  "aps": {
+    "alert": {
+      "title": "Sarah (Playola)",
+      "body": "Thanks for reaching out! We'll look into this for you."
+    },
+    "sound": "default",
+    "badge": 1
+  },
+  "type": "support_message",
+  "conversationId": "test-conversation-123"
+}

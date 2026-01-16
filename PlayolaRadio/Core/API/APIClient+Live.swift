@@ -719,6 +719,76 @@ extension APIClient: DependencyKey {
           .value
 
         return response
+      },
+      getSupportConversation: { jwtToken in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/conversations/support"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable(SupportConversationResponse.self, decoder: isoDecoder)
+          .value
+
+        return response
+      },
+      getConversationMessages: { jwtToken, conversationId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/conversations/\(conversationId)/messages"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([Message].self, decoder: isoDecoder)
+          .value
+
+        return response
+      },
+      sendConversationMessage: { jwtToken, conversationId, message in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/conversations/\(conversationId)/messages"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters = ["message": message]
+
+        let response = try await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(Message.self, decoder: isoDecoder)
+        .value
+
+        return response
+      },
+      markConversationRead: { jwtToken, conversationId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/conversations/\(conversationId)/read"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        _ = try await AF.request(
+          url,
+          method: .put,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingData()
+        .value
+      },
+      getConversations: { jwtToken, status in
+        var url = "\(Config.shared.baseUrl.absoluteString)/v1/conversations"
+        if let status = status {
+          url += "?status=\(status)"
+        }
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([AdminConversationResponse].self, decoder: isoDecoder)
+          .value
+
+        return response
       }
     )
   }()

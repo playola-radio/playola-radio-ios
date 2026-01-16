@@ -17,6 +17,7 @@ class ContactPageModel: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
+  @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
   var editProfilePageModel: EditProfilePageModel = EditProfilePageModel()
@@ -25,6 +26,18 @@ class ContactPageModel: ViewModel {
     NotificationsSettingsPageModel()
   var broadcastPageModel: BroadcastPageModel?
   var chooseStationToBroadcastPageModel: ChooseStationToBroadcastPageModel?
+  var supportPageModel: SupportPageModel?
+  var conversationListPageModel: ConversationListPageModel?
+  var isCheckingSupport = false
+  var presentedAlert: PlayolaAlert?
+
+  var isAdmin: Bool {
+    auth.currentUser?.role == "admin"
+  }
+
+  var unreadBadgeCount: Int {
+    unreadSupportCount
+  }
 
   private var userStations: [Station] = []
 
@@ -110,5 +123,85 @@ class ContactPageModel: ViewModel {
   func onLogOutTapped() {
     stationPlayer.stop()
     $auth.withLock { $0 = Auth() }
+  }
+
+  @MainActor
+  func onContactUsTapped() async {
+    guard let jwt = auth.jwt else { return }
+
+    isCheckingSupport = true
+
+    // Admin flow: check for multiple conversations
+    if isAdmin {
+      do {
+        let conversations = try await api.getConversations(jwt, "open")
+
+        isCheckingSupport = false
+
+        if conversations.count > 1 {
+          // Multiple conversations - show list page
+          let model = ConversationListPageModel()
+          model.conversations = conversations
+          model.isLoading = false
+          conversationListPageModel = model
+          mainContainerNavigationCoordinator.path.append(.conversationListPage(model))
+        } else if let item = conversations.first {
+          // Single conversation - go directly to it
+          await navigateToConversation(item.conversation, jwt: jwt)
+        } else {
+          // No conversations - fall through to regular user flow
+          await handleRegularUserFlow(jwt: jwt)
+        }
+      } catch {
+        isCheckingSupport = false
+        presentedAlert = .errorLoadingConversation
+      }
+    } else {
+      // Regular user flow
+      await handleRegularUserFlow(jwt: jwt)
+    }
+  }
+
+  private func handleRegularUserFlow(jwt: String) async {
+    do {
+      let response = try await api.getSupportConversation(jwt)
+      let messages = try await api.getConversationMessages(jwt, response.conversation.id)
+
+      isCheckingSupport = false
+
+      if messages.isEmpty {
+        // No messages yet - show feedback sheet
+        let feedbackModel = FeedbackSheetModel(conversation: response.conversation) { [weak self] in
+          self?.presentedAlert = .messageSentSuccess
+        }
+        mainContainerNavigationCoordinator.presentedSheet = .feedbackSheet(feedbackModel)
+      } else {
+        // Has messages - navigate to chat page
+        let model = SupportPageModel()
+        model.conversation = response.conversation
+        model.messages = messages
+        model.isLoading = false
+        supportPageModel = model
+        mainContainerNavigationCoordinator.path.append(.supportPage(model))
+      }
+    } catch {
+      isCheckingSupport = false
+      presentedAlert = .errorLoadingConversation
+    }
+  }
+
+  private func navigateToConversation(_ conversation: Conversation, jwt: String) async {
+    do {
+      let messages = try await api.getConversationMessages(jwt, conversation.id)
+
+      let model = SupportPageModel()
+      model.conversation = conversation
+      model.messages = messages
+      model.isLoading = false
+      supportPageModel = model
+      mainContainerNavigationCoordinator.path.append(.supportPage(model))
+    } catch {
+      presentedAlert = .errorLoadingConversation
+    }
   }
 }
