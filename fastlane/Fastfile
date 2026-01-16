@@ -72,6 +72,7 @@ platform :ios do
       include_simulator_logs: false,
       parallel_testing: false,
       scheme: "PlayolaRadio",
+      device: "iPhone 16 Pro",
       xcargs: "-skipMacroValidation -skipPackagePluginValidation",
       xcodebuild_formatter: "xcbeautify"
     )
@@ -114,6 +115,7 @@ platform :ios do
       include_simulator_logs: false,
       parallel_testing: false,
       scheme: "PlayolaRadio",
+      device: "iPhone 16 Pro",
       xcargs: "-skipMacroValidation -skipPackagePluginValidation",
       xcodebuild_formatter: "xcbeautify",
       output_directory: './fastlane/test_output/xctest')
