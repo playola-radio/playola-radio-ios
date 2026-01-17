@@ -80,3 +80,41 @@ struct AdminConversationResponse: Codable, Identifiable, Equatable {
 
   var id: String { conversation.id }
 }
+
+// MARK: - Mock Helpers
+
+extension Conversation {
+  static func mockWith(
+    id: String = "conv-1",
+    type: String = "support",
+    contextType: String? = nil,
+    contextId: String? = nil,
+    status: String = "open",
+    createdAt: Date = Date(),
+    updatedAt: Date = Date(),
+    participants: [ConversationParticipant]? = nil
+  ) -> Conversation {
+    Conversation(
+      id: id,
+      type: type,
+      contextType: contextType,
+      contextId: contextId,
+      status: status,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      participants: participants
+    )
+  }
+}
+
+extension SupportConversationResponse {
+  static func mockWith(
+    conversation: Conversation = .mockWith(),
+    unreadCount: Int = 0
+  ) -> SupportConversationResponse {
+    SupportConversationResponse(
+      conversation: conversation,
+      unreadCount: unreadCount
+    )
+  }
+}

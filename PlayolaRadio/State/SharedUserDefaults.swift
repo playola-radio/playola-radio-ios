@@ -145,3 +145,23 @@ extension SharedKey where Self == InMemoryKey<Int>.Default {
     Self[.inMemory("unreadSupportCount"), default: 0]
   }
 }
+
+// MARK: - App Rating
+
+extension SharedKey where Self == AppStorageKey<Date?>.Default {
+  static var appInstallDate: Self {
+    Self[.appStorage("appInstallDate"), default: nil]
+  }
+}
+
+extension SharedKey where Self == AppStorageKey<String?>.Default {
+  static var lastRatingPromptVersion: Self {
+    Self[.appStorage("lastRatingPromptVersion"), default: nil]
+  }
+}
+
+extension SharedKey where Self == AppStorageKey<Date?>.Default {
+  static var lastRatingPromptDismissDate: Self {
+    Self[.appStorage("lastRatingPromptDismissDate"), default: nil]
+  }
+}

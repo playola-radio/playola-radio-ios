@@ -5,10 +5,12 @@
 //  Created by Brian D Keane on 7/23/25.
 //
 
+import Sharing
 import SwiftUI
 
 struct ContactPageView: View {
   @Bindable var model: ContactPageModel
+  @Shared(.unreadSupportCount) var unreadSupportCount
 
   var body: some View {
     VStack(spacing: 0) {
@@ -161,8 +163,8 @@ struct ContactPageView: View {
                       .foregroundColor(.white)
                       .font(.system(size: 16))
 
-                    if model.unreadBadgeCount > 0 {
-                      Text("\(model.unreadBadgeCount)")
+                    if unreadSupportCount > 0 {
+                      Text("\(unreadSupportCount)")
                         .font(.system(size: 10, weight: .bold))
                         .foregroundColor(Color(hex: "#EF6962"))
                         .frame(minWidth: 16, minHeight: 16)
