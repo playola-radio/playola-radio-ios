@@ -6,14 +6,13 @@
 import Dependencies
 import Sharing
 import SwiftUI
-import UserNotifications
 
 @MainActor
 @Observable
 class SupportPageModel: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth
-  @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
 
   var conversation: Conversation?
   var messages: [Message] = []
@@ -65,8 +64,7 @@ class SupportPageModel: ViewModel {
 
     do {
       try await api.markConversationRead(jwt, conversationId)
-      $unreadSupportCount.withLock { $0 = 0 }
-      try? await UNUserNotificationCenter.current().setBadgeCount(0)
+      await pushNotifications.clearSupportBadge()
     } catch {
       // Silently fail - not critical
     }

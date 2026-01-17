@@ -769,12 +769,7 @@ final class MainContainerTests: XCTestCase {
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
-      $0.api.getSupportConversation = { _ in
-        GetSupportConversationResponse(
-          conversation: Conversation(id: "conv-1", createdAt: Date(), messages: []),
-          unreadCount: 0
-        )
-      }
+      $0.api.getSupportConversation = { _ in .mockWith() }
       $0.pushNotifications.registerForRemoteNotifications = {}
       $0.appRating.shouldShowRatingPrompt = { _ in true }
       $0.appRating.markRatingPromptShown = { markShownCalled = true }
