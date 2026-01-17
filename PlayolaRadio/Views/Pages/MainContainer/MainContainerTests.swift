@@ -563,5 +563,282 @@ final class MainContainerTests: XCTestCase {
         return false
       })
   }
+  // MARK: - Rating Prompt Tests
+
+  func testCheckRatingPromptShowsAlertWhenEligible() {
+    @Shared(.appInstallDate) var appInstallDate = Calendar.current.date(
+      byAdding: .day, value: -10, to: Date()
+    )
+    @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String?
+    @Shared(.listeningTracker) var listeningTracker = ListeningTracker(
+      rewardsProfile: RewardsProfile(
+        totalTimeListenedMS: 2 * 60 * 60 * 1000,
+        totalMSAvailableForRewards: 0,
+        accurateAsOfTime: Date()
+      )
+    )
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.appRating = .liveValue
+    } operation: {
+      MainContainerModel()
+    }
+
+    mainContainerModel.checkAndShowRatingPromptIfNeeded()
+
+    XCTAssertNotNil(mainContainerModel.presentedAlert)
+    XCTAssertEqual(mainContainerModel.presentedAlert?.title, "Are you enjoying Playola Radio?")
+  }
+
+  func testCheckRatingPromptDoesNotShowWhenNotEligible() {
+    @Shared(.appInstallDate) var appInstallDate = Calendar.current.date(
+      byAdding: .day, value: -3, to: Date()
+    )
+    @Shared(.listeningTracker) var listeningTracker = ListeningTracker(
+      rewardsProfile: RewardsProfile(
+        totalTimeListenedMS: 2 * 60 * 60 * 1000,
+        totalMSAvailableForRewards: 0,
+        accurateAsOfTime: Date()
+      )
+    )
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.appRating = .liveValue
+    } operation: {
+      MainContainerModel()
+    }
+
+    mainContainerModel.checkAndShowRatingPromptIfNeeded()
+
+    XCTAssertNil(mainContainerModel.presentedAlert)
+  }
+
+  func testCheckRatingPromptOnlyChecksOncePerSession() {
+    @Shared(.appInstallDate) var appInstallDate = Calendar.current.date(
+      byAdding: .day, value: -10, to: Date()
+    )
+    @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String?
+    @Shared(.listeningTracker) var listeningTracker = ListeningTracker(
+      rewardsProfile: RewardsProfile(
+        totalTimeListenedMS: 2 * 60 * 60 * 1000,
+        totalMSAvailableForRewards: 0,
+        accurateAsOfTime: Date()
+      )
+    )
+
+    var shouldShowCallCount = 0
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.appRating.shouldShowRatingPrompt = { _ in
+        shouldShowCallCount += 1
+        return true
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    mainContainerModel.checkAndShowRatingPromptIfNeeded()
+    mainContainerModel.checkAndShowRatingPromptIfNeeded()
+    mainContainerModel.checkAndShowRatingPromptIfNeeded()
+
+    XCTAssertEqual(shouldShowCallCount, 1)
+  }
+
+  func testCheckRatingPromptDoesNotShowWhenNoListeningTracker() {
+    @Shared(.appInstallDate) var appInstallDate = Calendar.current.date(
+      byAdding: .day, value: -10, to: Date()
+    )
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
+
+    var shouldShowCalled = false
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.appRating.shouldShowRatingPrompt = { _ in
+        shouldShowCalled = true
+        return true
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    mainContainerModel.checkAndShowRatingPromptIfNeeded()
+
+    XCTAssertFalse(shouldShowCalled)
+    XCTAssertNil(mainContainerModel.presentedAlert)
+  }
+
+  func testTabChangeChecksRatingPrompt() {
+    @Shared(.appInstallDate) var appInstallDate = Calendar.current.date(
+      byAdding: .day, value: -10, to: Date()
+    )
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .home
+    @Shared(.listeningTracker) var listeningTracker = ListeningTracker(
+      rewardsProfile: RewardsProfile(
+        totalTimeListenedMS: 2 * 60 * 60 * 1000,
+        totalMSAvailableForRewards: 0,
+        accurateAsOfTime: Date()
+      )
+    )
+
+    var shouldShowCalled = false
+
+    let stationPlayerMock = StationPlayerMock()
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.appRating.shouldShowRatingPrompt = { _ in
+        shouldShowCalled = true
+        return false
+      }
+    } operation: {
+      MainContainerModel(stationPlayer: stationPlayerMock)
+    }
+
+    // Simulate tab change - this is what onChange(of: model.activeTab) responds to
+    $activeTab.withLock { $0 = .stationsList }
+    mainContainerModel.checkAndShowRatingPromptIfNeeded()
+
+    XCTAssertTrue(shouldShowCalled)
+  }
+
+  func testRatingPromptEnjoyingTracksAnalyticsAndRequestsReview() async {
+    @Shared(.appInstallDate) var appInstallDate = Calendar.current.date(
+      byAdding: .day, value: -10, to: Date()
+    )
+    @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String?
+    @Shared(.listeningTracker) var listeningTracker = ListeningTracker(
+      rewardsProfile: RewardsProfile(
+        totalTimeListenedMS: 2 * 60 * 60 * 1000,
+        totalMSAvailableForRewards: 0,
+        accurateAsOfTime: Date()
+      )
+    )
+
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    var markShownCalled = false
+    var requestReviewCalled = false
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.appRating.shouldShowRatingPrompt = { _ in true }
+      $0.appRating.markRatingPromptShown = { markShownCalled = true }
+      $0.appRating.requestAppStoreReview = { requestReviewCalled = true }
+      $0.analytics.track = { @Sendable event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    mainContainerModel.checkAndShowRatingPromptIfNeeded()
+
+    // Simulate tapping "Yes!"
+    await mainContainerModel.presentedAlert?.primaryAction?()
+
+    XCTAssertTrue(markShownCalled)
+    XCTAssertTrue(requestReviewCalled)
+    XCTAssertTrue(capturedEvents.value.contains { $0 == .ratingPromptEnjoying })
+  }
+
+  func testRatingPromptNotEnjoyingTracksAnalyticsAndShowsFeedback() async {
+    let testJWT = MainContainerTests.createTestJWT()
+    @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+    @Shared(.appInstallDate) var appInstallDate = Calendar.current.date(
+      byAdding: .day, value: -10, to: Date()
+    )
+    @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String?
+    @Shared(.listeningTracker) var listeningTracker = ListeningTracker(
+      rewardsProfile: RewardsProfile(
+        totalTimeListenedMS: 2 * 60 * 60 * 1000,
+        totalMSAvailableForRewards: 0,
+        accurateAsOfTime: Date()
+      )
+    )
+
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    var markShownCalled = false
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.api.getSupportConversation = { _ in
+        GetSupportConversationResponse(
+          conversation: Conversation(id: "conv-1", createdAt: Date(), messages: []),
+          unreadCount: 0
+        )
+      }
+      $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.appRating.shouldShowRatingPrompt = { _ in true }
+      $0.appRating.markRatingPromptShown = { markShownCalled = true }
+      $0.analytics.track = { @Sendable event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    mainContainerModel.checkAndShowRatingPromptIfNeeded()
+
+    // Simulate tapping "Not really"
+    await mainContainerModel.presentedAlert?.secondaryAction?()
+
+    // Give time for the async feedback sheet to load
+    try? await Task.sleep(for: .milliseconds(100))
+
+    XCTAssertTrue(markShownCalled)
+    XCTAssertTrue(capturedEvents.value.contains { $0 == .ratingPromptNotEnjoying })
+    XCTAssertNil(
+      mainContainerModel.presentedAlert, "Alert should be dismissed before showing feedback sheet")
+    if case .feedbackSheet = mainContainerModel.mainContainerNavigationCoordinator.presentedSheet {
+      // Test passes - feedback sheet is presented
+    } else {
+      XCTFail("Expected feedback sheet to be presented")
+    }
+  }
+
+  func testRatingPromptDismissedTracksAnalyticsAndMarksDismissed() async {
+    @Shared(.appInstallDate) var appInstallDate = Calendar.current.date(
+      byAdding: .day, value: -10, to: Date()
+    )
+    @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String?
+    @Shared(.listeningTracker) var listeningTracker = ListeningTracker(
+      rewardsProfile: RewardsProfile(
+        totalTimeListenedMS: 2 * 60 * 60 * 1000,
+        totalMSAvailableForRewards: 0,
+        accurateAsOfTime: Date()
+      )
+    )
+
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    var markDismissedCalled = false
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.appRating.shouldShowRatingPrompt = { _ in true }
+      $0.appRating.markRatingPromptDismissed = { markDismissedCalled = true }
+      $0.analytics.track = { @Sendable event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    mainContainerModel.checkAndShowRatingPromptIfNeeded()
+
+    // Simulate tapping "Not now"
+    await mainContainerModel.presentedAlert?.tertiaryAction?()
+
+    XCTAssertTrue(markDismissedCalled)
+    XCTAssertTrue(capturedEvents.value.contains { $0 == .ratingPromptDismissed })
+  }
 }
 // swiftlint:enable force_try

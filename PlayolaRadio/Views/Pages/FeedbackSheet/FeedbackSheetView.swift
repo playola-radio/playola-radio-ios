@@ -9,29 +9,21 @@ struct FeedbackSheetView: View {
   @Bindable var model: FeedbackSheetModel
   @FocusState private var isTextFieldFocused: Bool
 
-  private let placeholderText = """
-    Found a bug?
-    Have an idea for a new feature?
-    Just want to say hi to the team?
-
-    We would LOVE to hear from you for any reason at all...
-    """
-
   var body: some View {
     NavigationStack {
       ZStack {
         Color.black.ignoresSafeArea()
 
         VStack(spacing: 20) {
-          Text("Send us a message and we'll get back to you as soon as we can!")
+          Text(model.title)
             .font(.custom(FontNames.Inter_400_Regular, size: 14))
             .foregroundColor(.playolaGray)
             .multilineTextAlignment(.center)
             .padding(.horizontal)
 
           ZStack(alignment: .topLeading) {
-            if model.message.isEmpty {
-              Text(placeholderText)
+            if model.message.isEmpty && !model.placeholderText.isEmpty {
+              Text(model.placeholderText)
                 .font(.custom(FontNames.Inter_400_Regular, size: 16))
                 .foregroundColor(Color(hex: "#666666"))
                 .padding(.horizontal, 12)

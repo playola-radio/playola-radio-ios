@@ -68,6 +68,11 @@ enum AnalyticsEvent: Equatable {
 
   // MARK: Errors
   case apiError(endpoint: String, error: String)
+
+  // MARK: App Rating
+  case ratingPromptEnjoying
+  case ratingPromptNotEnjoying
+  case ratingPromptDismissed
 }
 
 // MARK: - Event Properties
@@ -110,6 +115,9 @@ extension AnalyticsEvent {
     case .stationChanged: return "Station Changed"
     case .notifyMeRequested: return "Notify Me Requested"
     case .apiError: return "API Error"
+    case .ratingPromptEnjoying: return "Rating Prompt Enjoying"
+    case .ratingPromptNotEnjoying: return "Rating Prompt Not Enjoying"
+    case .ratingPromptDismissed: return "Rating Prompt Dismissed"
     }
   }
 
@@ -288,6 +296,9 @@ extension AnalyticsEvent {
         "endpoint": endpoint,
         "error": error,
       ]
+
+    case .ratingPromptEnjoying, .ratingPromptNotEnjoying, .ratingPromptDismissed:
+      return [:]
     }
   }
 }

@@ -16,6 +16,7 @@ import SwiftUI
 class SignInPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.appRating) var appRating
   @ObservationIgnored @Shared(.auth) var auth: Auth
   @ObservationIgnored @Shared(.hasBeenUnlocked) var hasBeenUnlocked: Bool
   @ObservationIgnored @Shared(.invitationCode) var invitationCode: String?
@@ -90,6 +91,7 @@ class SignInPageModel: ViewModel {
             firstName,
             lastName)
           $auth.withLock { $0 = Auth(jwtToken: token) }
+          appRating.recordInstallDateIfNeeded()
           registerInvitationCodeIfPresent()
           await analytics.track(.signInCompleted(method: .apple, userId: appleIDCredential.user))
         } catch {
@@ -124,6 +126,7 @@ class SignInPageModel: ViewModel {
           do {
             let token = try await self.api.signInViaGoogle(serverAuthCode)
             self.$auth.withLock { $0 = Auth(jwtToken: token) }
+            self.appRating.recordInstallDateIfNeeded()
             self.registerInvitationCodeIfPresent()
             await self.analytics.track(
               .signInCompleted(method: .google, userId: signInResult.user.userID ?? "unknown"))

@@ -21,6 +21,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.toast) var toast
   @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
+  @ObservationIgnored @Dependency(\.appRating) var appRating
   @ObservationIgnored var stationPlayer: StationPlayer!
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
@@ -50,6 +51,7 @@ class MainContainerModel: ViewModel {
   var liveStationsPoller = LiveStationsPoller()
 
   var shouldShowSmallPlayer: Bool = false
+  private var hasCheckedRatingPromptThisSession = false
 
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
@@ -174,6 +176,59 @@ class MainContainerModel: ViewModel {
     self.setShouldShowSmallPlayer(newState)
   }
 
+  func checkAndShowRatingPromptIfNeeded() {
+    guard !hasCheckedRatingPromptThisSession else { return }
+    guard let tracker = listeningTracker else { return }
+
+    if appRating.shouldShowRatingPrompt(tracker.totalListenTimeMS) {
+      hasCheckedRatingPromptThisSession = true
+      showRatingPrompt()
+    }
+  }
+
+  private func showRatingPrompt() {
+    presentedAlert = .ratingPrompt(
+      onEnjoying: { [weak self] in
+        guard let self else { return }
+        await self.analytics.track(.ratingPromptEnjoying)
+        self.appRating.markRatingPromptShown()
+        await self.appRating.requestAppStoreReview()
+      },
+      onNotEnjoying: { [weak self] in
+        guard let self else { return }
+        await self.analytics.track(.ratingPromptNotEnjoying)
+        self.appRating.markRatingPromptShown()
+        self.presentedAlert = nil
+        self.showFeedbackSheet()
+      },
+      onNotNow: { [weak self] in
+        guard let self else { return }
+        await self.analytics.track(.ratingPromptDismissed)
+        self.appRating.markRatingPromptDismissed()
+      }
+    )
+  }
+
+  private func showFeedbackSheet() {
+    guard let jwt = auth.jwt else { return }
+    Task {
+      do {
+        let response = try await api.getSupportConversation(jwt)
+        let feedbackModel = FeedbackSheetModel(
+          conversation: response.conversation,
+          title: "Would you be up for letting us know what we can do better?",
+          placeholderText: "",
+          onSuccess: { [weak self] in
+            self?.presentedAlert = .thankYouForFeedback
+          }
+        )
+        mainContainerNavigationCoordinator.presentedSheet = .feedbackSheet(feedbackModel)
+      } catch {
+        // Silently fail
+      }
+    }
+  }
+
   func setShouldShowSmallPlayer(_ stationPlayerState: StationPlayer.State) {
     withAnimation {
       switch stationPlayerState.playbackStatus {
@@ -225,6 +280,15 @@ extension PlayolaAlert {
       title: "Error Loading Stations",
       message:
         "There was an error loading the stations. Please check your connection and try again.",
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static var thankYouForFeedback: PlayolaAlert {
+    PlayolaAlert(
+      title: "Thank You for the Feedback!",
+      message:
+        "Thank you so much. Someone will get back to you soon.",
       dismissButton: .cancel(Text("OK"))
     )
   }
