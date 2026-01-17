@@ -16,17 +16,37 @@ class FeedbackSheetModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
 
   let conversation: Conversation
-  var message: String = ""
+  let title: String
+  let placeholderText: String
+  var message: String
   var isSending = false
   var presentedAlert: PlayolaAlert?
   var onSuccess: (() -> Void)?
+
+  static let defaultTitle = "Send us a message and we'll get back to you as soon as we can!"
+  static let defaultPlaceholderText = """
+    Found a bug?
+    Have an idea for a new feature?
+    Just want to say hi to the team?
+
+    We would LOVE to hear from you for any reason at all...
+    """
 
   var canSend: Bool {
     !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSending
   }
 
-  init(conversation: Conversation, onSuccess: (() -> Void)? = nil) {
+  init(
+    conversation: Conversation,
+    title: String = defaultTitle,
+    message: String = "",
+    placeholderText: String = defaultPlaceholderText,
+    onSuccess: (() -> Void)? = nil
+  ) {
     self.conversation = conversation
+    self.title = title
+    self.message = message
+    self.placeholderText = placeholderText
     self.onSuccess = onSuccess
   }
 

@@ -88,7 +88,10 @@ struct MainContainer: View {
         }
       }
     }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
+    .onChange(of: model.activeTab) {
+      model.checkAndShowRatingPromptIfNeeded()
+    }
     .sheet(
       item: Binding(
         get: {

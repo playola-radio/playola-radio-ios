@@ -57,11 +57,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     print("📬 Notification received in foreground: \(notification.request.content.title)")
 
     if userInfo["type"] as? String == "support_message" {
-      @Shared(.unreadSupportCount) var unreadCount
-      if let badge = userInfo["badge"] as? Int {
-        $unreadCount.withLock { $0 = badge }
-      } else {
-        $unreadCount.withLock { $0 += 1 }
+      let badgeFromPayload = userInfo["badge"] as? Int
+      Task {
+        await pushNotifications.handleSupportNotificationBadge(badgeFromPayload)
       }
 
       @Shared(.mainContainerNavigationCoordinator) var navCoordinator

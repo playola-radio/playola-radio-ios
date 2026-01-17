@@ -19,8 +19,10 @@ class PlayolaAlert: Equatable, Identifiable, Hashable {
   let secondaryButton: Alert.Button?
   let primaryButtonText: String?
   let secondaryButtonText: String?
+  let tertiaryButtonText: String?
   let primaryAction: (() async -> Void)?
   let secondaryAction: (() async -> Void)?
+  let tertiaryAction: (() async -> Void)?
 
   init(
     title: String,
@@ -34,8 +36,10 @@ class PlayolaAlert: Equatable, Identifiable, Hashable {
     self.secondaryButton = secondaryButton
     self.primaryButtonText = nil
     self.secondaryButtonText = nil
+    self.tertiaryButtonText = nil
     self.primaryAction = nil
     self.secondaryAction = nil
+    self.tertiaryAction = nil
   }
 
   init(
@@ -52,8 +56,36 @@ class PlayolaAlert: Equatable, Identifiable, Hashable {
     self.secondaryButton = nil
     self.primaryButtonText = primaryButtonText
     self.secondaryButtonText = secondaryButtonText
+    self.tertiaryButtonText = nil
     self.primaryAction = primaryAction
     self.secondaryAction = secondaryAction
+    self.tertiaryAction = nil
+  }
+
+  init(
+    title: String,
+    message: String?,
+    primaryButtonText: String,
+    primaryAction: @escaping () async -> Void,
+    secondaryButtonText: String,
+    secondaryAction: @escaping () async -> Void,
+    tertiaryButtonText: String,
+    tertiaryAction: @escaping () async -> Void
+  ) {
+    self.title = title
+    self.message = message
+    self.dismissButton = nil
+    self.secondaryButton = nil
+    self.primaryButtonText = primaryButtonText
+    self.secondaryButtonText = secondaryButtonText
+    self.tertiaryButtonText = tertiaryButtonText
+    self.primaryAction = primaryAction
+    self.secondaryAction = secondaryAction
+    self.tertiaryAction = tertiaryAction
+  }
+
+  var hasThreeButtons: Bool {
+    tertiaryButtonText != nil
   }
 
   var alert: Alert {
@@ -85,9 +117,55 @@ class PlayolaAlert: Equatable, Identifiable, Hashable {
     }
   }
 
+  @ViewBuilder
+  var alertButtons: some View {
+    if let primaryText = primaryButtonText {
+      Button(primaryText) {
+        Task { await self.primaryAction?() }
+      }
+    }
+    if let secondaryText = secondaryButtonText {
+      Button(secondaryText) {
+        Task { await self.secondaryAction?() }
+      }
+    }
+    if let tertiaryText = tertiaryButtonText {
+      Button(tertiaryText, role: .cancel) {
+        Task { await self.tertiaryAction?() }
+      }
+    }
+    let hasNoCustomButtons =
+      primaryButtonText == nil && secondaryButtonText == nil && tertiaryButtonText == nil
+    if dismissButton != nil || hasNoCustomButtons {
+      Button("OK", role: .cancel) {}
+    }
+  }
+
+  @ViewBuilder
+  var alertMessage: some View {
+    if let message {
+      Text(message)
+    }
+  }
+
   func hash(into hasher: inout Hasher) {
     hasher.combine(title)
     hasher.combine(message)
+  }
+}
+
+extension View {
+  func playolaAlert(_ alert: Binding<PlayolaAlert?>) -> some View {
+    self.alert(
+      alert.wrappedValue?.title ?? "",
+      isPresented: Binding(
+        get: { alert.wrappedValue != nil },
+        set: { if !$0 { alert.wrappedValue = nil } }
+      ),
+      presenting: alert.wrappedValue,
+      actions: { $0.alertButtons },
+      message: { $0.alertMessage }
+    )
   }
 }
 
@@ -148,5 +226,22 @@ extension PlayolaAlert {
       title: "Error",
       message: "There was an error scheduling your notification. Please try again.",
       dismissButton: .cancel(Text("OK")))
+  }
+
+  static func ratingPrompt(
+    onEnjoying: @escaping () async -> Void,
+    onNotEnjoying: @escaping () async -> Void,
+    onNotNow: @escaping () async -> Void
+  ) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Are you enjoying Playola Radio?",
+      message: nil,
+      primaryButtonText: "Yes!",
+      primaryAction: onEnjoying,
+      secondaryButtonText: "Not really",
+      secondaryAction: onNotEnjoying,
+      tertiaryButtonText: "Not now",
+      tertiaryAction: onNotNow
+    )
   }
 }
