@@ -24,6 +24,10 @@ func testSomething() {
 
 Do NOT use class-level `@Shared` properties or `$shared.withLock` in tests.
 
+### Test anti-patterns
+
+- **NEVER use `Task.sleep` in tests** - it makes tests slow and flaky. Use synchronous assertions or test doubles that execute synchronously.
+
 ## Architecture
 
 **Pattern**: MV with `@Observable` models (not MVVM)

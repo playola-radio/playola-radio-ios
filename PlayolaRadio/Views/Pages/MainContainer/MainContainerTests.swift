@@ -530,6 +530,42 @@ final class MainContainerTests: XCTestCase {
       })
   }
 
+  func testRefreshOnForegroundRefreshesUnreadSupportCount() async {
+    let testJWT = MainContainerTests.createTestJWT()
+    @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+    @Shared(.unreadSupportCount) var unreadSupportCount = 0
+
+    var getSupportConversationCallCount = 0
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { [] }
+      $0.api.getAirings = { _, _ in [] }
+      $0.api.getSupportConversation = { _ in
+        getSupportConversationCallCount += 1
+        return SupportConversationResponse(
+          conversation: Conversation(
+            id: "conv-1",
+            type: "support",
+            contextType: nil,
+            contextId: nil,
+            status: "open",
+            createdAt: Date(),
+            updatedAt: Date(),
+            participants: nil
+          ),
+          unreadCount: 3
+        )
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.refreshOnForeground()
+
+    XCTAssertEqual(getSupportConversationCallCount, 1)
+    XCTAssertEqual(unreadSupportCount, 3)
+  }
+
   func testRefreshOnForegroundTracksAnalyticsOnAiringsError() async {
     let testJWT = MainContainerTests.createTestJWT()
     @Shared(.auth) var auth = Auth(jwtToken: testJWT)

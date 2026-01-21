@@ -134,6 +134,21 @@ extension PushNotificationsClient: DependencyKey {
       }
     },
     handleNotificationTap: { userInfo in
+      if userInfo["type"] as? String == "support_message" {
+        @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+        let isSupportPageVisible = navCoordinator.path.contains { pathItem in
+          if case .supportPage = pathItem { return true }
+          return false
+        }
+
+        if isSupportPageVisible {
+          await MainActor.run {
+            NotificationCenter.default.post(name: .refreshSupportMessages, object: nil)
+          }
+        }
+        return
+      }
+
       @Shared(.stationLists) var stationLists
 
       guard let stationId = NotificationPayload.stationId(from: userInfo) else {

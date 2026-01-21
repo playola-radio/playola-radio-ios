@@ -193,4 +193,40 @@ final class PushNotificationsTests: XCTestCase {
     XCTAssertEqual(unreadSupportCount, 0)
     XCTAssertEqual(capturedBadgeCount, 0)
   }
+
+  // MARK: - Support Message Notification Tap
+
+  func testHandleNotificationTapPostsRefreshWhenSupportMessageAndOnSupportPage() async {
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
+
+    // Simulate being on the support page
+    let supportModel = SupportPageModel()
+    navCoordinator.path.append(.supportPage(supportModel))
+
+    var refreshNotificationPosted = false
+    let observer = NotificationCenter.default.addObserver(
+      forName: .refreshSupportMessages,
+      object: nil,
+      queue: nil
+    ) { _ in
+      refreshNotificationPosted = true
+    }
+
+    defer { NotificationCenter.default.removeObserver(observer) }
+
+    await withDependencies {
+      $0.pushNotifications.handleNotificationTap =
+        PushNotificationsClient.liveValue.handleNotificationTap
+    } operation: {
+      @Dependency(\.pushNotifications) var pushNotifications
+      let userInfo: [AnyHashable: Any] = [
+        "type": "support_message",
+        "conversationId": "conv-123",
+      ]
+      await pushNotifications.handleNotificationTap(userInfo)
+    }
+
+    XCTAssertTrue(refreshNotificationPosted)
+  }
 }
