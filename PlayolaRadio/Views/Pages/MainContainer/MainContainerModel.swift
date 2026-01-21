@@ -110,6 +110,7 @@ class MainContainerModel: ViewModel {
     }
 
     await loadAirings()
+    await fetchUnreadSupportCount()
   }
 
   func handleScenePhaseChange(_ phase: ScenePhase) {

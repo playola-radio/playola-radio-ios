@@ -250,4 +250,51 @@ struct SupportPageTests {
     #expect(model.conversation?.id == "preset-conv-id")
     #expect(getSupportConversationCalled == false)
   }
+
+  @Test
+  func testOnViewAppearedRefreshesMessagesWhenConversationAlreadySet() async {
+    // Regression test: When navigating to support page with conversation already set,
+    // onViewAppeared should still refresh the messages to get any new ones.
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "user-1", firstName: "Test", lastName: "User",
+        email: "test@example.com", profileImageUrl: nil, role: "user"
+      ),
+      jwt: "test-jwt"
+    )
+
+    let presetConversation = makeConversation(id: "conv-1")
+    let oldMessages = [
+      makeMessage(
+        id: "old-msg", conversationId: "conv-1", senderId: "support-1", text: "Old message")
+    ]
+    let newMessages = [
+      makeMessage(
+        id: "old-msg", conversationId: "conv-1", senderId: "support-1", text: "Old message"),
+      makeMessage(
+        id: "new-msg", conversationId: "conv-1", senderId: "support-1", text: "New message"),
+    ]
+
+    var getConversationMessagesCalled = false
+
+    let model = withDependencies {
+      $0.api.getConversationMessages = { _, _ in
+        getConversationMessagesCalled = true
+        return newMessages
+      }
+      $0.api.markConversationRead = { _, _ in }
+    } operation: {
+      SupportPageModel()
+    }
+
+    model.conversation = presetConversation
+    model.messages = oldMessages
+    model.isLoading = false
+
+    await model.onViewAppeared()
+
+    #expect(getConversationMessagesCalled == true)
+    #expect(model.messages.count == 2)
+    #expect(model.messages.last?.message == "New message")
+  }
 }
