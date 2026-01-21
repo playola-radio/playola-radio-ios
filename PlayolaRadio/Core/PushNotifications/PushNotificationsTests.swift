@@ -208,24 +208,18 @@ final class PushNotificationsTests: XCTestCase {
     let observer = NotificationCenter.default.addObserver(
       forName: .refreshSupportMessages,
       object: nil,
-      queue: nil
+      queue: .main
     ) { _ in
       refreshNotificationPosted = true
     }
 
     defer { NotificationCenter.default.removeObserver(observer) }
 
-    await withDependencies {
-      $0.pushNotifications.handleNotificationTap =
-        PushNotificationsClient.liveValue.handleNotificationTap
-    } operation: {
-      @Dependency(\.pushNotifications) var pushNotifications
-      let userInfo: [AnyHashable: Any] = [
-        "type": "support_message",
-        "conversationId": "conv-123",
-      ]
-      await pushNotifications.handleNotificationTap(userInfo)
-    }
+    let userInfo: [AnyHashable: Any] = [
+      "type": "support_message",
+      "conversationId": "conv-123",
+    ]
+    await PushNotificationsClient.liveValue.handleNotificationTap(userInfo)
 
     XCTAssertTrue(refreshNotificationPosted)
   }
