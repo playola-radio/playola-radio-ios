@@ -16,6 +16,10 @@ enum NotificationPayload {
   static func stationId(from userInfo: [AnyHashable: Any]) -> String? {
     userInfo["stationId"] as? String
   }
+
+  static func notificationType(from userInfo: [AnyHashable: Any]) -> String? {
+    userInfo["type"] as? String
+  }
 }
 
 @DependencyClient
@@ -134,8 +138,13 @@ extension PushNotificationsClient: DependencyKey {
       }
     },
     handleNotificationTap: { userInfo in
-      if userInfo["type"] as? String == "support_message" {
-        @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      @Shared(.stationLists) var stationLists
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      @Shared(.hasBeenUnlocked) var hasBeenUnlocked
+
+      if NotificationPayload.notificationType(from: userInfo) == "support_message" {
+        guard hasBeenUnlocked else { return }
+
         let isSupportPageVisible = navCoordinator.path.contains { pathItem in
           if case .supportPage = pathItem { return true }
           return false
@@ -145,11 +154,14 @@ extension PushNotificationsClient: DependencyKey {
           await MainActor.run {
             NotificationCenter.default.post(name: .refreshSupportMessages, object: nil)
           }
+        } else {
+          await MainActor.run {
+            let supportModel = SupportPageModel()
+            Task { await navCoordinator.navigateToSupport(supportModel) }
+          }
         }
         return
       }
-
-      @Shared(.stationLists) var stationLists
 
       guard let stationId = NotificationPayload.stationId(from: userInfo) else {
         return

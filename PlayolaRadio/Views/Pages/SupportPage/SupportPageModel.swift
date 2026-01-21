@@ -104,6 +104,11 @@ class SupportPageModel: ViewModel {
     }
   }
 
+  func handleScenePhaseChange(_ phase: ScenePhase) async {
+    guard phase == .active else { return }
+    await refreshMessages()
+  }
+
   func startListeningForRefresh() {
     NotificationCenter.default.addObserver(
       forName: .refreshSupportMessages,

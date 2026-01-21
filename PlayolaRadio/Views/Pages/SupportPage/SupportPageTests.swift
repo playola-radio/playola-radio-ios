@@ -8,6 +8,7 @@
 import Dependencies
 import Foundation
 import Sharing
+import SwiftUI
 import Testing
 
 @testable import PlayolaRadio
@@ -296,5 +297,74 @@ struct SupportPageTests {
     #expect(getConversationMessagesCalled == true)
     #expect(model.messages.count == 2)
     #expect(model.messages.last?.message == "New message")
+  }
+
+  @Test
+  func testHandleScenePhaseChangeRefreshesMessagesWhenActive() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "user-1", firstName: "Test", lastName: "User",
+        email: "test@example.com", profileImageUrl: nil, role: "user"
+      ),
+      jwt: "test-jwt"
+    )
+
+    let conversation = makeConversation(id: "conv-1")
+    let updatedMessages = [
+      makeMessage(id: "msg-1", conversationId: "conv-1", senderId: "support", text: "New reply")
+    ]
+
+    var getConversationMessagesCalled = false
+
+    let model = withDependencies {
+      $0.api.getConversationMessages = { _, _ in
+        getConversationMessagesCalled = true
+        return updatedMessages
+      }
+      $0.api.markConversationRead = { _, _ in }
+    } operation: {
+      SupportPageModel()
+    }
+
+    model.conversation = conversation
+    model.messages = []
+
+    await model.handleScenePhaseChange(.active)
+
+    #expect(getConversationMessagesCalled == true)
+    #expect(model.messages.count == 1)
+    #expect(model.messages.first?.message == "New reply")
+  }
+
+  @Test
+  func testHandleScenePhaseChangeDoesNothingWhenNotActive() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "user-1", firstName: "Test", lastName: "User",
+        email: "test@example.com", profileImageUrl: nil, role: "user"
+      ),
+      jwt: "test-jwt"
+    )
+
+    let conversation = makeConversation(id: "conv-1")
+
+    var getConversationMessagesCalled = false
+
+    let model = withDependencies {
+      $0.api.getConversationMessages = { _, _ in
+        getConversationMessagesCalled = true
+        return []
+      }
+    } operation: {
+      SupportPageModel()
+    }
+
+    model.conversation = conversation
+
+    await model.handleScenePhaseChange(.background)
+    #expect(getConversationMessagesCalled == false)
+
+    await model.handleScenePhaseChange(.inactive)
+    #expect(getConversationMessagesCalled == false)
   }
 }
