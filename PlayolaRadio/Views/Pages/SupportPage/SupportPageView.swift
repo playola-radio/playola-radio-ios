@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SupportPageView: View {
   @Bindable var model: SupportPageModel
+  @Environment(\.scenePhase) private var scenePhase
 
   var body: some View {
     ZStack {
@@ -30,6 +31,9 @@ struct SupportPageView: View {
       await model.onViewAppeared()
     }
     .alert(item: $model.presentedAlert) { $0.alert }
+    .onChange(of: scenePhase) { _, newPhase in
+      Task { await model.handleScenePhaseChange(newPhase) }
+    }
   }
 }
 
