@@ -14,6 +14,16 @@ enum AskQuestionRecordingPhase: Equatable {
   case review
 }
 
+enum AskQuestionUploadPhase: Equatable {
+  case notStarted
+  case converting
+  case uploading(progress: Double)
+  case normalizing
+  case finalizing
+  case completed
+  case failed(error: String)
+}
+
 @MainActor
 @Observable
 class AskQuestionPageModel: ViewModel {
@@ -22,6 +32,7 @@ class AskQuestionPageModel: ViewModel {
   let station: Station
 
   var recordingPhase: AskQuestionRecordingPhase = .idle
+  var uploadPhase: AskQuestionUploadPhase = .notStarted
   var recordingDuration: TimeInterval = 0
   var playbackPosition: TimeInterval = 0
   var isPlaying: Bool = false
@@ -30,13 +41,18 @@ class AskQuestionPageModel: ViewModel {
   var waveformSamples: [Float] = []
   private var recordingTask: Task<Void, Never>?
   private var playbackTask: Task<Void, Never>?
+  private var stationToResume: AnyStation?
 
   // MARK: - Dependencies
 
   @ObservationIgnored @Dependency(\.audioRecorder) var audioRecorder
   @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
+  @ObservationIgnored @Dependency(\.audioConverter) var audioConverter
+  @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
+  @ObservationIgnored var stationPlayer: StationPlayer
 
   // MARK: - Computed Properties
 
@@ -53,16 +69,46 @@ class AskQuestionPageModel: ViewModel {
     return playbackPosition / recordingDuration
   }
 
+  var isUploading: Bool {
+    switch uploadPhase {
+    case .notStarted, .completed, .failed:
+      return false
+    case .converting, .uploading, .normalizing, .finalizing:
+      return true
+    }
+  }
+
+  var uploadStatusText: String {
+    switch uploadPhase {
+    case .notStarted:
+      return ""
+    case .converting:
+      return "Converting audio..."
+    case .uploading(let progress):
+      return "Uploading \(Int(progress * 100))%"
+    case .normalizing:
+      return "Processing..."
+    case .finalizing:
+      return "Finalizing..."
+    case .completed:
+      return "Complete!"
+    case .failed(let error):
+      return "Failed: \(error)"
+    }
+  }
+
   // MARK: - Init
 
-  init(station: Station) {
+  init(station: Station, stationPlayer: StationPlayer? = nil) {
     self.station = station
+    self.stationPlayer = stationPlayer ?? .shared
     super.init()
   }
 
   // MARK: - Lifecycle
 
   func viewAppeared() async {
+    pauseStationIfPlaying()
     do {
       try await audioRecorder.prepareForRecording()
     } catch {
@@ -204,15 +250,96 @@ class AskQuestionPageModel: ViewModel {
         await audioRecorder.deleteRecording(url)
       }
     }
+    resumeStationIfNeeded()
     mainContainerNavigationCoordinator.pop()
   }
 
   func submitTapped() async {
-    // TODO: Upload question to server
-    print("Submit question for station: \(station.curatorName)")
+    guard let url = recordingURL, let jwt = auth.jwt else { return }
+
+    stopPlaybackUpdates()
+    await audioPlayer.stop()
+
+    do {
+      // Step 1: Convert to m4a
+      uploadPhase = .converting
+      let m4aURL = try await audioConverter.convertToM4A(url)
+      let durationMS = try await audioConverter.getDuration(m4aURL)
+
+      // Step 2: Get presigned URL for listener question
+      uploadPhase = .uploading(progress: 0)
+      let presignedResponse = try await api.getListenerQuestionPresignedURL(jwt, station.id)
+
+      // Step 3: Upload to S3
+      try await api.uploadToS3(
+        presignedResponse.presignedUrl,
+        m4aURL,
+        "audio/mp4"
+      ) { [weak self] progress in
+        Task { @MainActor in
+          self?.uploadPhase = .uploading(progress: progress)
+        }
+      }
+
+      // Step 4: Wait for normalization
+      uploadPhase = .normalizing
+      try await waitForNormalization(jwt: jwt, s3Key: presignedResponse.s3Key)
+
+      // Step 5: Create voicetrack AudioBlock
+      uploadPhase = .finalizing
+      let audioBlock = try await api.createVoicetrack(
+        jwt, station.id, presignedResponse.s3Key, durationMS)
+
+      // Step 6: Create listener question with the audioBlock
+      _ = try await api.createListenerQuestion(jwt, station.id, audioBlock.id)
+
+      // Step 7: Cleanup temp files
+      try? FileManager.default.removeItem(at: m4aURL)
+
+      // Step 8: Show success and dismiss
+      uploadPhase = .completed
+      presentedAlert = .questionSentSuccess(curatorName: station.curatorName) { [weak self] in
+        self?.resumeStationIfNeeded()
+        self?.mainContainerNavigationCoordinator.popToRoot()
+      }
+
+    } catch {
+      print("DEBUG AskQuestionPage error: \(error)")
+      uploadPhase = .failed(error: error.localizedDescription)
+    }
+  }
+
+  private func waitForNormalization(jwt: String, s3Key: String) async throws {
+    let maxWaitTimeSeconds = 120
+    let pollIntervalSeconds: UInt64 = 2
+    let startTime = Date()
+
+    while Date().timeIntervalSince(startTime) < Double(maxWaitTimeSeconds) {
+      let status = try await api.getVoicetrackStatus(jwt, station.id, s3Key)
+      if status.ready {
+        return
+      }
+      try await Task.sleep(nanoseconds: pollIntervalSeconds * 1_000_000_000)
+    }
+
+    throw AskQuestionError.normalizationTimeout
   }
 
   // MARK: - Helpers
+
+  private func pauseStationIfPlaying() {
+    if case .playing(let station) = stationPlayer.state.playbackStatus {
+      stationToResume = station
+      stationPlayer.stop()
+    }
+  }
+
+  private func resumeStationIfNeeded() {
+    if let station = stationToResume {
+      stationPlayer.play(station: station)
+      stationToResume = nil
+    }
+  }
 
   private func formatTime(_ seconds: TimeInterval) -> String {
     let totalSeconds = Int(seconds)
@@ -223,5 +350,34 @@ class AskQuestionPageModel: ViewModel {
       return String(format: "%d:%02d:%02d", hours, minutes, secs)
     }
     return String(format: "%d:%02d", minutes, secs)
+  }
+}
+
+// MARK: - Errors
+
+enum AskQuestionError: LocalizedError {
+  case normalizationTimeout
+
+  var errorDescription: String? {
+    switch self {
+    case .normalizationTimeout:
+      return "Audio processing timed out. Please try again."
+    }
+  }
+}
+
+// MARK: - Alerts
+
+extension PlayolaAlert {
+  static func questionSentSuccess(
+    curatorName: String,
+    onDismiss: @escaping () -> Void
+  ) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Question Sent!",
+      message:
+        "Your question has been sent to \(curatorName). If they answer it, we'll let you know when it will air!",
+      dismissButton: .default(Text("OK"), action: onDismiss)
+    )
   }
 }

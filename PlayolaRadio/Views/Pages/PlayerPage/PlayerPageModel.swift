@@ -18,6 +18,8 @@ class PlayerPageModel: ViewModel {
 
   // MARK: State
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
   @ObservationIgnored @Dependency(\.likesManager) var likesManager
   var nowPlayingText: String {
     switch nowPlaying?.playbackStatus {
@@ -209,5 +211,25 @@ class PlayerPageModel: ViewModel {
         break
       }
     }
+  }
+
+  // MARK: - Ask Question
+
+  var canAskQuestion: Bool {
+    nowPlaying?.currentStation?.isPlayolaStation == true
+  }
+
+  var currentPlayolaStation: Station? {
+    guard let anyStation = nowPlaying?.currentStation,
+      case .playola(let station) = anyStation
+    else { return nil }
+    return station
+  }
+
+  func askQuestionButtonTapped() {
+    guard let station = currentPlayolaStation else { return }
+    let model = AskQuestionPageModel(station: station)
+    mainContainerNavigationCoordinator.path.append(.askQuestionPage(model))
+    onDismiss?()
   }
 }

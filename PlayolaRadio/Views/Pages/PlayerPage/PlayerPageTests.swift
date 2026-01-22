@@ -961,4 +961,191 @@ final class PlayerPageTests: XCTestCase {
 
     XCTAssertEqual(model.nowPlayingText, "Test Station Name")
   }
+
+  // MARK: - Ask Question Tests
+
+  func testCanAskQuestionTrueForPlayolaStation() {
+    let playolaStation = AnyStation.playola(
+      PlayolaPlayer.Station(
+        id: "test-playola-id",
+        name: "Test Radio Show",
+        curatorName: "Test Curator",
+        imageUrl: "https://test.image.url",
+        description: "Test Description",
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      )
+    )
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      currentStation: playolaStation,
+      playbackStatus: .playing(playolaStation)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertTrue(model.canAskQuestion)
+  }
+
+  func testCanAskQuestionFalseForUrlStation() {
+    let urlStation = AnyStation.url(
+      UrlStation(
+        id: "test-url-id",
+        name: "Test FM",
+        streamUrl: "https://test.stream.url",
+        imageUrl: "https://test.image.url",
+        description: "Test FM Station",
+        website: nil,
+        location: "Test City, TX",
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      )
+    )
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      currentStation: urlStation,
+      playbackStatus: .playing(urlStation)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertFalse(model.canAskQuestion)
+  }
+
+  func testCanAskQuestionFalseWhenNoStation() {
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      playbackStatus: .stopped
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertFalse(model.canAskQuestion)
+  }
+
+  func testCurrentPlayolaStationReturnsStationForPlayolaStation() {
+    let station = PlayolaPlayer.Station(
+      id: "test-playola-id",
+      name: "Test Radio Show",
+      curatorName: "Test Curator",
+      imageUrl: "https://test.image.url",
+      description: "Test Description",
+      active: true,
+      createdAt: Date(),
+      updatedAt: Date()
+    )
+    let playolaStation = AnyStation.playola(station)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      currentStation: playolaStation,
+      playbackStatus: .playing(playolaStation)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertEqual(model.currentPlayolaStation?.id, station.id)
+    XCTAssertEqual(model.currentPlayolaStation?.curatorName, "Test Curator")
+  }
+
+  func testCurrentPlayolaStationReturnsNilForUrlStation() {
+    let urlStation = AnyStation.url(
+      UrlStation(
+        id: "test-url-id",
+        name: "Test FM",
+        streamUrl: "https://test.stream.url",
+        imageUrl: "https://test.image.url",
+        description: "Test FM Station",
+        website: nil,
+        location: "Test City, TX",
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      )
+    )
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      currentStation: urlStation,
+      playbackStatus: .playing(urlStation)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertNil(model.currentPlayolaStation)
+  }
+
+  func testAskQuestionButtonTappedNavigatesToAskQuestionPageAndDismisses() {
+    let station = PlayolaPlayer.Station(
+      id: "test-playola-id",
+      name: "Test Radio Show",
+      curatorName: "Test Curator",
+      imageUrl: "https://test.image.url",
+      description: "Test Description",
+      active: true,
+      createdAt: Date(),
+      updatedAt: Date()
+    )
+    let playolaStation = AnyStation.playola(station)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      currentStation: playolaStation,
+      playbackStatus: .playing(playolaStation)
+    )
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
+
+    var dismissCalled = false
+    let model = PlayerPageModel(stationPlayer: playerMock, onDismiss: { dismissCalled = true })
+
+    XCTAssertTrue(navCoordinator.path.isEmpty)
+
+    model.askQuestionButtonTapped()
+
+    XCTAssertEqual(navCoordinator.path.count, 1)
+    if case .askQuestionPage(let askModel) = navCoordinator.path.first {
+      XCTAssertEqual(askModel.station.id, station.id)
+      XCTAssertEqual(askModel.curatorName, "Test Curator")
+    } else {
+      XCTFail("Expected askQuestionPage in navigation path")
+    }
+    XCTAssertTrue(dismissCalled)
+  }
+
+  func testAskQuestionButtonTappedDoesNothingForUrlStation() {
+    let urlStation = AnyStation.url(
+      UrlStation(
+        id: "test-url-id",
+        name: "Test FM",
+        streamUrl: "https://test.stream.url",
+        imageUrl: "https://test.image.url",
+        description: "Test FM Station",
+        website: nil,
+        location: "Test City, TX",
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      )
+    )
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      currentStation: urlStation,
+      playbackStatus: .playing(urlStation)
+    )
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    model.askQuestionButtonTapped()
+
+    XCTAssertTrue(navCoordinator.path.isEmpty)
+  }
 }

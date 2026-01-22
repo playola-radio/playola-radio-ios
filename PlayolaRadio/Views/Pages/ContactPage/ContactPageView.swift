@@ -231,11 +231,11 @@ struct ContactPageView: View {
             },
             label: {
               HStack(spacing: 12) {
-                Image(systemName: "phone.fill")
+                Image(systemName: "mic.fill")
                   .foregroundColor(.white)
                   .font(.system(size: 16))
 
-                Text("Call In To A Station")
+                Text("Ask An Artist A Question")
                   .font(.custom(FontNames.Inter_500_Medium, size: 16))
                   .foregroundColor(.white)
 

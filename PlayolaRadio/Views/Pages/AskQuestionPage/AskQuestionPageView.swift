@@ -40,11 +40,13 @@ struct AskQuestionPageView: View {
     .toolbarBackground(Color.black, for: .navigationBar)
     .toolbarColorScheme(.dark, for: .navigationBar)
     .toolbar {
-      ToolbarItem(placement: .navigationBarLeading) {
-        Button("Cancel") {
-          model.cancelTapped()
+      if !model.isUploading {
+        ToolbarItem(placement: .navigationBarLeading) {
+          Button("Cancel") {
+            model.cancelTapped()
+          }
+          .foregroundColor(.white)
         }
-        .foregroundColor(.white)
       }
     }
     .alert(item: $model.presentedAlert) { $0.alert }
@@ -57,20 +59,12 @@ struct AskQuestionPageView: View {
 
   @ViewBuilder
   private var instructionsHeader: some View {
-    VStack(spacing: 12) {
-      Text("Say your name and where you're from. Then ask \(model.curatorName) anything you want!")
-        .font(.custom(FontNames.Inter_500_Medium, size: 16))
-        .foregroundColor(.white)
-        .multilineTextAlignment(.center)
-
-      Text(
-        "Example: \"I'm Rachel from Austin, Texas, and I'd like to know who is playing bass on your last record?\""
-      )
-      .font(.custom(FontNames.Inter_400_Regular, size: 14))
-      .foregroundColor(.playolaGray)
-      .italic()
-      .multilineTextAlignment(.center)
-    }
+    Text(
+      "Start with your name and where you're from. Then ask \(model.curatorName) anything you want!"
+    )
+    .font(.custom(FontNames.Inter_500_Medium, size: 16))
+    .foregroundColor(.white)
+    .multilineTextAlignment(.center)
     .padding(.vertical, 16)
     .padding(.horizontal, 12)
     .background(Color(hex: "#1A1A1A"))
@@ -181,24 +175,16 @@ struct AskQuestionPageView: View {
   @ViewBuilder
   private var reviewControls: some View {
     VStack(spacing: 16) {
-      // Playback controls
-      HStack(spacing: 24) {
-        Button {
-          model.rewindTapped()
-        } label: {
-          Image(systemName: "backward.fill")
-            .font(.system(size: 24))
-            .foregroundColor(.white)
-        }
-
-        Button {
-          model.playPauseTapped()
-        } label: {
-          Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
-            .font(.system(size: 32))
-            .foregroundColor(.white)
-        }
-      }
+      PlaybackScrubberView(
+        currentTime: model.playbackPosition,
+        totalTime: model.recordingDuration,
+        isPlaying: model.isPlaying,
+        onPlayPause: { model.playPauseTapped() },
+        onRewind: { model.rewindTapped() },
+        onSeek: { model.seekTo($0) }
+      )
+      .disabled(model.isUploading)
+      .opacity(model.isUploading ? 0.5 : 1)
 
       // Submit button
       Button {
@@ -212,12 +198,36 @@ struct AskQuestionPageView: View {
         .foregroundColor(.white)
         .frame(maxWidth: .infinity)
         .frame(height: 48)
-        .background(Color.playolaRed)
+        .background(model.isUploading ? Color.gray : Color.playolaRed)
         .cornerRadius(24)
+      }
+      .disabled(model.isUploading)
+
+      // Upload status indicator
+      if model.uploadPhase != .notStarted {
+        HStack(spacing: 12) {
+          if model.isUploading {
+            ProgressView()
+              .tint(.playolaRed)
+          } else if case .completed = model.uploadPhase {
+            Image(systemName: "checkmark.circle.fill")
+              .foregroundColor(.green)
+          } else if case .failed = model.uploadPhase {
+            Image(systemName: "exclamationmark.circle.fill")
+              .foregroundColor(.playolaRed)
+          }
+
+          Text(model.uploadStatusText)
+            .font(.custom(FontNames.Inter_500_Medium, size: 14))
+            .foregroundColor(.white)
+        }
+        .frame(height: 24)
+        .transition(.opacity.combined(with: .move(edge: .top)))
       }
     }
     .padding(.horizontal, 20)
     .padding(.bottom, 32)
+    .animation(.easeInOut(duration: 0.2), value: model.uploadPhase)
   }
 }
 

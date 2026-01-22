@@ -97,13 +97,9 @@ private final class LiveAudioRecorder: @unchecked Sendable {
   }
 
   func startRecording() async throws {
-    lock.lock()
-    let prepared = isPrepared
-    lock.unlock()
-
-    if !prepared {
-      try await prepareForRecording()
-    }
+    // Always prepare audio session before recording - the session may have been
+    // reconfigured by other audio components (e.g., StationPlayer) since last prepare
+    try await prepareForRecording()
 
     let url = FileManager.default.temporaryDirectory
       .appendingPathComponent("voicetrack_\(UUID().uuidString).wav")

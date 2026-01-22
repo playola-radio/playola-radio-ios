@@ -228,4 +228,78 @@ final class AskQuestionPageTests: XCTestCase {
     model.recordingDuration = 3661
     XCTAssertEqual(model.displayTime, "1:01:01")
   }
+
+  // MARK: - Station Pause/Resume on Page Lifecycle
+
+  func testViewAppearedPausesStationWhenPlaying() async {
+    let playingStation = AnyStation.mock
+    let stationPlayerMock = StationPlayerMock()
+    stationPlayerMock.state = StationPlayer.State(playbackStatus: .playing(playingStation))
+
+    await withDependencies {
+      $0.audioRecorder.prepareForRecording = {}
+    } operation: {
+      let model = AskQuestionPageModel(station: .mock, stationPlayer: stationPlayerMock)
+
+      await model.viewAppeared()
+
+      XCTAssertEqual(stationPlayerMock.stopCalledCount, 1)
+    }
+  }
+
+  func testViewAppearedDoesNotPauseStationWhenNotPlaying() async {
+    let stationPlayerMock = StationPlayerMock()
+    stationPlayerMock.state = StationPlayer.State(playbackStatus: .stopped)
+
+    await withDependencies {
+      $0.audioRecorder.prepareForRecording = {}
+    } operation: {
+      let model = AskQuestionPageModel(station: .mock, stationPlayer: stationPlayerMock)
+
+      await model.viewAppeared()
+
+      XCTAssertEqual(stationPlayerMock.stopCalledCount, 0)
+    }
+  }
+
+  func testConfirmCancelResumesStationIfWasPaused() async {
+    let playingStation = AnyStation.mock
+    let stationPlayerMock = StationPlayerMock()
+    stationPlayerMock.state = StationPlayer.State(playbackStatus: .playing(playingStation))
+    @Shared(.mainContainerNavigationCoordinator) var coordinator
+
+    await withDependencies {
+      $0.audioRecorder.prepareForRecording = {}
+    } operation: {
+      let model = AskQuestionPageModel(station: .mock, stationPlayer: stationPlayerMock)
+      coordinator.path = [.askQuestionPage(model)]
+
+      await model.viewAppeared()
+      stationPlayerMock.callsToPlay = []
+
+      model.confirmCancel()
+
+      XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
+      XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, playingStation.id)
+    }
+  }
+
+  func testConfirmCancelDoesNotResumeStationIfWasNotPaused() async {
+    let stationPlayerMock = StationPlayerMock()
+    stationPlayerMock.state = StationPlayer.State(playbackStatus: .stopped)
+    @Shared(.mainContainerNavigationCoordinator) var coordinator
+
+    await withDependencies {
+      $0.audioRecorder.prepareForRecording = {}
+    } operation: {
+      let model = AskQuestionPageModel(station: .mock, stationPlayer: stationPlayerMock)
+      coordinator.path = [.askQuestionPage(model)]
+
+      await model.viewAppeared()
+
+      model.confirmCancel()
+
+      XCTAssertEqual(stationPlayerMock.callsToPlay.count, 0)
+    }
+  }
 }
