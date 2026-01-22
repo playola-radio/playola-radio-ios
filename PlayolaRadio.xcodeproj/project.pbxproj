@@ -2500,7 +2500,7 @@
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 0.12.6;
+				minimumVersion = 0.12.7;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
