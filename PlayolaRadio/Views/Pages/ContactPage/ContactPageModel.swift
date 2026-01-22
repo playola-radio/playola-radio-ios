@@ -134,7 +134,8 @@ class ContactPageModel: ViewModel {
   }
 
   private func stationSelectedForCallIn(_ station: Station) {
-    print("Selected station for call-in: \(station.curatorName)")
+    let model = AskQuestionPageModel(station: station)
+    mainContainerNavigationCoordinator.path.append(.askQuestionPage(model))
   }
 
   @MainActor

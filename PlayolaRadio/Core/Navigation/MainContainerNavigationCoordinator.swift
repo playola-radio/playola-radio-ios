@@ -26,6 +26,7 @@ final class MainContainerNavigationCoordinator: Sendable {
     case broadcastPage(BroadcastPageModel)
     case chooseStationToBroadcastPage(ChooseStationToBroadcastPageModel)
     case chooseStationPage(ChooseStationPageModel)
+    case askQuestionPage(AskQuestionPageModel)
     case notificationsSettingsPage(NotificationsSettingsPageModel)
     case seriesListPage(SeriesListPageModel)
     case supportPage(SupportPageModel)
