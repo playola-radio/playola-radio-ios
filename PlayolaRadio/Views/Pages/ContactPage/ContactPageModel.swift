@@ -6,6 +6,7 @@
 //
 
 import Dependencies
+import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
 import SwiftUI
@@ -15,6 +16,7 @@ import SwiftUI
 class ContactPageModel: ViewModel {
   @ObservationIgnored var stationPlayer: StationPlayer
   @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
   @ObservationIgnored @Dependency(\.api) var api
@@ -118,6 +120,21 @@ class ContactPageModel: ViewModel {
   func onLogOutTapped() {
     stationPlayer.stop()
     $auth.withLock { $0 = Auth() }
+  }
+
+  func callIntoStationButtonTapped() {
+    let allPlayolaStations = stationLists.flatMap { $0.playolaStations }
+    let model = ChooseStationPageModel(
+      stations: allPlayolaStations,
+      onStationSelected: { [weak self] station in
+        self?.stationSelectedForCallIn(station)
+      }
+    )
+    mainContainerNavigationCoordinator.path.append(.chooseStationPage(model))
+  }
+
+  private func stationSelectedForCallIn(_ station: Station) {
+    print("Selected station for call-in: \(station.curatorName)")
   }
 
   @MainActor
