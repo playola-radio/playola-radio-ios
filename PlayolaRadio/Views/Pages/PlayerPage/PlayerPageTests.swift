@@ -552,17 +552,17 @@ final class PlayerPageTests: XCTestCase {
   }
 
   func testNowPlayingTextShowsTitleArtistForSongEvenWithAiring() {
-    let songBlock = AudioBlock.mockWith(type: "song")
+    let songBlock = AudioBlock.mockWith(
+      title: "Airing Song",
+      artist: "Airing Artist",
+      type: "song"
+    )
     let airing = Airing.mockWith(
       episode: Episode.mockWith(title: "Episode Title")
     )
     let spin = Spin.mockWith(audioBlock: songBlock, airing: airing)
 
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
-      artistPlaying: "Airing Artist",
-      titlePlaying: "Airing Song",
-      spin: spin
-    )
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
 
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
