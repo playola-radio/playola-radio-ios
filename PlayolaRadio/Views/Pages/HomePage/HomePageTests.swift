@@ -415,68 +415,106 @@ final class HomePageTests: XCTestCase {
     await assertEventually(model.forYouStations.count == 1)
   }
 
-  // MARK: - Live Shows Tests
+  // MARK: - Scheduled Shows Tests
 
-  func testLiveShows_HasLiveShowsReturnsTrueWhenLiveShowExists() async {
+  func testViewAppearedSetsHasScheduledShowsToTrueWhenAiringsExist() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date()
+
+    let futureAiring = Airing.mockWith(
+      id: "future-airing",
+      airtime: now.addingTimeInterval(3600),
+      episode: .mockWith(durationMS: 3_600_000)
+    )
+
     await withDependencies {
-      $0.date.now = Date()
+      $0.date.now = now
+      $0.api.getAirings = { _, _ in [futureAiring] }
     } operation: {
-      @Dependency(\.date.now) var now
-      @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
-
-      let showDurationInSeconds = TimeInterval(Show.mock.durationMS) / 1000.0
-      let timeAgo = showDurationInSeconds / 2
-
-      let liveShow = ScheduledShow(
-        id: "live-show-1",
-        showId: "show-1",
-        stationId: "station-1",
-        airtime: now.addingTimeInterval(-timeAgo),
-        createdAt: now,
-        updatedAt: now,
-        show: Show.mock,
-        station: nil
-      )
-
-      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: [liveShow]) }
-
       let model = HomePageModel()
-      XCTAssertTrue(model.hasLiveShows)
+
+      await model.viewAppeared()
+
+      XCTAssertTrue(model.hasScheduledShows)
     }
   }
 
-  func testLiveShows_HasLiveShowsReturnsFalseWhenNoScheduledShows() async {
-    @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+  func testViewAppearedSetsHasScheduledShowsToFalseWhenNoAirings() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.api.getAirings = { _, _ in [] }
+    } operation: {
+      let model = HomePageModel()
+
+      await model.viewAppeared()
+
+      XCTAssertFalse(model.hasScheduledShows)
+    }
+  }
+
+  func testViewAppearedSetsHasScheduledShowsToFalseOnError() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.api.getAirings = { _, _ in
+        throw APIError.dataNotValid
+      }
+    } operation: {
+      let model = HomePageModel()
+
+      await model.viewAppeared()
+
+      XCTAssertFalse(model.hasScheduledShows)
+    }
+  }
+
+  func testScheduledShowsTileNavigatesToSeriesListPage() async {
+    @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator =
+      MainContainerNavigationCoordinator()
 
     let model = HomePageModel()
-    XCTAssertFalse(model.hasLiveShows)
-  }
 
-  func testLiveShows_HasLiveShowsReturnsFalseWhenAllShowsHaveEnded() async {
-    await withDependencies {
-      $0.date.now = Date()
-    } operation: {
-      @Dependency(\.date.now) var now
-      @Shared(.scheduledShows) var scheduledShows: IdentifiedArrayOf<ScheduledShow> = []
+    model.navigateToSeriesListPage()
 
-      let showDurationInSeconds = TimeInterval(Show.mock.durationMS) / 1000.0
-      let endedShow = ScheduledShow(
-        id: "ended-show-1",
-        showId: "show-1",
-        stationId: "station-1",
-        airtime: now.addingTimeInterval(-(showDurationInSeconds + 3600)),
-        createdAt: now,
-        updatedAt: now,
-        show: Show.mock,
-        station: nil
-      )
-
-      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: [endedShow]) }
-
-      let model = HomePageModel()
-      XCTAssertFalse(model.hasLiveShows)
+    XCTAssertEqual(navigationCoordinator.path.count, 1)
+    if case .seriesListPage = navigationCoordinator.path.first {
+      // Success
+    } else {
+      XCTFail(
+        "Expected seriesListPage, got: \(String(describing: navigationCoordinator.path.first))")
     }
   }
+
+  func testViewAppearedSetsHasScheduledShowsToFalseWhenAllAiringsEnded() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date()
+
+    let endedAirings = [
+      Airing.mockWith(
+        id: "ended-1",
+        airtime: now.addingTimeInterval(-7200),
+        episode: .mockWith(durationMS: 3_600_000)
+      ),
+      Airing.mockWith(
+        id: "ended-2",
+        airtime: now.addingTimeInterval(-3600),
+        episode: .mockWith(durationMS: 1_800_000)
+      ),
+    ]
+
+    await withDependencies {
+      $0.date.now = now
+      $0.api.getAirings = { _, _ in endedAirings }
+    } operation: {
+      let model = HomePageModel()
+
+      await model.viewAppeared()
+
+      XCTAssertFalse(model.hasScheduledShows)
+    }
+  }
+
 }
 
 extension HomePageTests {

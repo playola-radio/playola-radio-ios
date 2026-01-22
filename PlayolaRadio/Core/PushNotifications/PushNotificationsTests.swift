@@ -135,4 +135,93 @@ final class PushNotificationsTests: XCTestCase {
 
     XCTAssertEqual(playedStationId, "station-abc")
   }
+
+  // MARK: - Support Notification Badge Handling
+
+  func testHandleSupportNotificationBadgeSetsCountFromPayload() async {
+    @Shared(.unreadSupportCount) var unreadSupportCount = 0
+    var capturedBadgeCount: Int?
+
+    await withDependencies {
+      $0.pushNotifications.setBadgeCount = { count in
+        capturedBadgeCount = count
+      }
+      $0.pushNotifications.handleSupportNotificationBadge =
+        PushNotificationsClient.liveValue.handleSupportNotificationBadge
+    } operation: {
+      @Dependency(\.pushNotifications) var pushNotifications
+      await pushNotifications.handleSupportNotificationBadge(badgeFromPayload: 5)
+    }
+
+    XCTAssertEqual(unreadSupportCount, 5)
+    XCTAssertEqual(capturedBadgeCount, 5)
+  }
+
+  func testHandleSupportNotificationBadgeIncrementsWhenNoPayload() async {
+    @Shared(.unreadSupportCount) var unreadSupportCount = 2
+    var capturedBadgeCount: Int?
+
+    await withDependencies {
+      $0.pushNotifications.setBadgeCount = { count in
+        capturedBadgeCount = count
+      }
+      $0.pushNotifications.handleSupportNotificationBadge =
+        PushNotificationsClient.liveValue.handleSupportNotificationBadge
+    } operation: {
+      @Dependency(\.pushNotifications) var pushNotifications
+      await pushNotifications.handleSupportNotificationBadge(badgeFromPayload: nil)
+    }
+
+    XCTAssertEqual(unreadSupportCount, 3)
+    XCTAssertEqual(capturedBadgeCount, 3)
+  }
+
+  func testClearSupportBadgeSetsCountToZero() async {
+    @Shared(.unreadSupportCount) var unreadSupportCount = 5
+    var capturedBadgeCount: Int?
+
+    await withDependencies {
+      $0.pushNotifications.setBadgeCount = { count in
+        capturedBadgeCount = count
+      }
+      $0.pushNotifications.clearSupportBadge = PushNotificationsClient.liveValue.clearSupportBadge
+    } operation: {
+      @Dependency(\.pushNotifications) var pushNotifications
+      await pushNotifications.clearSupportBadge()
+    }
+
+    XCTAssertEqual(unreadSupportCount, 0)
+    XCTAssertEqual(capturedBadgeCount, 0)
+  }
+
+  // MARK: - Support Message Notification Tap
+
+  func testHandleNotificationTapPostsRefreshWhenSupportMessageAndOnSupportPage() async {
+    @Shared(.hasBeenUnlocked) var hasBeenUnlocked = true
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
+
+    // Simulate being on the support page
+    let supportModel = SupportPageModel()
+    navCoordinator.path.append(.supportPage(supportModel))
+
+    var refreshNotificationPosted = false
+    let observer = NotificationCenter.default.addObserver(
+      forName: .refreshSupportMessages,
+      object: nil,
+      queue: .main
+    ) { _ in
+      refreshNotificationPosted = true
+    }
+
+    defer { NotificationCenter.default.removeObserver(observer) }
+
+    let userInfo: [AnyHashable: Any] = [
+      "type": "support_message",
+      "conversationId": "conv-123",
+    ]
+    await PushNotificationsClient.liveValue.handleNotificationTap(userInfo)
+
+    XCTAssertTrue(refreshNotificationPosted)
+  }
 }

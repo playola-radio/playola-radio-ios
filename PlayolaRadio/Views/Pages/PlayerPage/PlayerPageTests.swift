@@ -81,7 +81,11 @@ final class PlayerPageTests: XCTestCase {
 
   func testViewAppeared_PopulatesCorrectlyWhenSomethingIsPlayingWithAudioBlock() {
     let station = AnyStation.mock
-    let audioBlock = AudioBlock.mockWith(type: "song")
+    let audioBlock = AudioBlock.mockWith(
+      title: "Selfie",
+      artist: "Rachel Loy",
+      type: "song"
+    )
     let spin = Spin.mockWith(audioBlock: audioBlock)
     let playerMock = StationPlayerMock()
 
@@ -826,5 +830,135 @@ final class PlayerPageTests: XCTestCase {
 
     XCTAssertEqual(model.primaryNavBarTitle, "")
     XCTAssertEqual(model.secondaryNavBarTitle, "")
+  }
+
+  // MARK: - Now Playing Text Tests
+
+  func testNowPlayingTextShowsPlayolaPaysForCommercial() {
+    let station = AnyStation.mock
+    let commercialBlock = AudioBlock.mockWith(type: "commercial")
+    let spin = Spin.mockWith(audioBlock: commercialBlock)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "Ad Content",
+      titlePlaying: "Commercial",
+      playolaSpinPlaying: spin,
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertEqual(model.nowPlayingText, "Playola Pays")
+  }
+
+  func testNowPlayingTextShowsTitleArtistForSong() {
+    let station = AnyStation.mock
+    let songBlock = AudioBlock.mockWith(
+      title: "Test Song",
+      artist: "Test Artist",
+      type: "song"
+    )
+    let spin = Spin.mockWith(audioBlock: songBlock)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "Test Artist",
+      titlePlaying: "Test Song",
+      playolaSpinPlaying: spin,
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertEqual(model.nowPlayingText, "Test Song - Test Artist")
+  }
+
+  func testNowPlayingTextShowsTitleArtistForSongEvenWithAiring() {
+    let station = AnyStation.mock
+    let songBlock = AudioBlock.mockWith(
+      title: "Airing Song",
+      artist: "Airing Artist",
+      type: "song"
+    )
+    let airing = Airing.mockWith(
+      episode: Episode.mockWith(title: "Episode Title")
+    )
+    let spin = Spin.mockWith(audioBlock: songBlock, airing: airing)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "Airing Artist",
+      titlePlaying: "Airing Song",
+      playolaSpinPlaying: spin,
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertEqual(model.nowPlayingText, "Airing Song - Airing Artist")
+  }
+
+  func testNowPlayingTextShowsEpisodeTitleForNonSongWithAiring() {
+    let station = AnyStation.mock
+    let voiceTrackBlock = AudioBlock.mockWith(
+      title: "VoiceTrack",
+      artist: "DJ",
+      type: "voicetrack"
+    )
+    let airing = Airing.mockWith(
+      episode: Episode.mockWith(title: "My Cool Episode")
+    )
+    let spin = Spin.mockWith(audioBlock: voiceTrackBlock, airing: airing)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "DJ",
+      titlePlaying: "VoiceTrack",
+      playolaSpinPlaying: spin,
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertEqual(model.nowPlayingText, "My Cool Episode")
+  }
+
+  func testNowPlayingTextShowsStationNameForNonSongWithoutAiring() {
+    let station = AnyStation.playola(
+      PlayolaPlayer.Station(
+        id: "test-station-id",
+        name: "Test Station Name",
+        curatorName: "Test Curator",
+        imageUrl: "https://test.image.url",
+        description: "Test Description",
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      )
+    )
+    let voiceTrackBlock = AudioBlock.mockWith(
+      title: "VoiceTrack",
+      artist: "DJ",
+      type: "voicetrack"
+    )
+    let spin = Spin.mockWith(audioBlock: voiceTrackBlock, airing: nil)
+    let playerMock = StationPlayerMock()
+
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying(
+      artistPlaying: "DJ",
+      titlePlaying: "VoiceTrack",
+      playolaSpinPlaying: spin,
+      currentStation: station,
+      playbackStatus: .playing(station)
+    )
+
+    let model = PlayerPageModel(stationPlayer: playerMock)
+
+    XCTAssertEqual(model.nowPlayingText, "Test Station Name")
   }
 }

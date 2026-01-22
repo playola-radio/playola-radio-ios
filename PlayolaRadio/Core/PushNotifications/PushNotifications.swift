@@ -16,6 +16,10 @@ enum NotificationPayload {
   static func stationId(from userInfo: [AnyHashable: Any]) -> String? {
     userInfo["stationId"] as? String
   }
+
+  static func notificationType(from userInfo: [AnyHashable: Any]) -> String? {
+    userInfo["type"] as? String
+  }
 }
 
 @DependencyClient
@@ -53,6 +57,17 @@ struct PushNotificationsClient: Sendable {
   /// Handle notification tap - extracts station ID and plays it
   /// - Parameter userInfo: The notification payload
   var handleNotificationTap: @Sendable (_ userInfo: [AnyHashable: Any]) async -> Void
+
+  /// Set the app icon badge count
+  /// - Parameter count: The badge count to display
+  var setBadgeCount: @Sendable (_ count: Int) async -> Void
+
+  /// Handle support notification badge - updates shared state and app icon badge
+  /// - Parameter badgeFromPayload: Badge count from notification payload, or nil to increment
+  var handleSupportNotificationBadge: @Sendable (_ badgeFromPayload: Int?) async -> Void
+
+  /// Clear support badge - sets count to zero
+  var clearSupportBadge: @Sendable () async -> Void
 }
 
 extension PushNotificationsClient: DependencyKey {
@@ -124,6 +139,29 @@ extension PushNotificationsClient: DependencyKey {
     },
     handleNotificationTap: { userInfo in
       @Shared(.stationLists) var stationLists
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      @Shared(.hasBeenUnlocked) var hasBeenUnlocked
+
+      if NotificationPayload.notificationType(from: userInfo) == "support_message" {
+        guard hasBeenUnlocked else { return }
+
+        let isSupportPageVisible = navCoordinator.path.contains { pathItem in
+          if case .supportPage = pathItem { return true }
+          return false
+        }
+
+        if isSupportPageVisible {
+          await MainActor.run {
+            NotificationCenter.default.post(name: .refreshSupportMessages, object: nil)
+          }
+        } else {
+          await MainActor.run {
+            let supportModel = SupportPageModel()
+            Task { await navCoordinator.navigateToSupport(supportModel) }
+          }
+        }
+        return
+      }
 
       guard let stationId = NotificationPayload.stationId(from: userInfo) else {
         return
@@ -139,6 +177,30 @@ extension PushNotificationsClient: DependencyKey {
       await MainActor.run {
         StationPlayer.shared.play(station: station)
       }
+    },
+    setBadgeCount: { count in
+      try? await UNUserNotificationCenter.current().setBadgeCount(count)
+    },
+    handleSupportNotificationBadge: { badgeFromPayload in
+      @Shared(.unreadSupportCount) var unreadSupportCount
+      @Dependency(\.pushNotifications) var pushNotifications
+
+      let newCount: Int
+      if let badge = badgeFromPayload {
+        newCount = badge
+        $unreadSupportCount.withLock { $0 = badge }
+      } else {
+        $unreadSupportCount.withLock { $0 += 1 }
+        newCount = unreadSupportCount
+      }
+      await pushNotifications.setBadgeCount(newCount)
+    },
+    clearSupportBadge: {
+      @Shared(.unreadSupportCount) var unreadSupportCount
+      @Dependency(\.pushNotifications) var pushNotifications
+
+      $unreadSupportCount.withLock { $0 = 0 }
+      await pushNotifications.setBadgeCount(0)
     }
   )
 }

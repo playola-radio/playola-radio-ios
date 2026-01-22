@@ -32,11 +32,11 @@ extension SharedKey where Self == InMemoryKey<Bool>.Default {
 }
 
 extension SharedKey
-where Self == FileStorageKey<IdentifiedArrayOf<ScheduledShow>>.Default {
-  static var scheduledShows: Self {
+where Self == FileStorageKey<IdentifiedArrayOf<Airing>>.Default {
+  static var airings: Self {
     Self[
       .fileStorage(
-        dump(.documentsDirectory.appending(component: "scheduled-shows.json"))),
+        dump(.documentsDirectory.appending(component: "airings.json"))),
       default: []]
   }
 }
@@ -107,6 +107,14 @@ extension SharedKey where Self == FileStorageKey<[LikeOperation]>.Default {
   }
 }
 
+// MARK: - Live Stations
+
+extension SharedKey where Self == InMemoryKey<[LiveStationInfo]>.Default {
+  static var liveStations: Self {
+    Self[.inMemory("liveStations"), default: []]
+  }
+}
+
 // MARK: - Push Notifications
 
 extension SharedKey where Self == AppStorageKey<String?>.Default {
@@ -127,5 +135,33 @@ extension SharedKey where Self == FileStorageKey<[String: Date]>.Default {
       .fileStorage(.documentsDirectory.appending(component: "last-notification-sent.json")),
       default: [:]
     ]
+  }
+}
+
+// MARK: - Support
+
+extension SharedKey where Self == InMemoryKey<Int>.Default {
+  static var unreadSupportCount: Self {
+    Self[.inMemory("unreadSupportCount"), default: 0]
+  }
+}
+
+// MARK: - App Rating
+
+extension SharedKey where Self == AppStorageKey<Date?>.Default {
+  static var appInstallDate: Self {
+    Self[.appStorage("appInstallDate"), default: nil]
+  }
+}
+
+extension SharedKey where Self == AppStorageKey<String?>.Default {
+  static var lastRatingPromptVersion: Self {
+    Self[.appStorage("lastRatingPromptVersion"), default: nil]
+  }
+}
+
+extension SharedKey where Self == AppStorageKey<Date?>.Default {
+  static var lastRatingPromptDismissDate: Self {
+    Self[.appStorage("lastRatingPromptDismissDate"), default: nil]
   }
 }

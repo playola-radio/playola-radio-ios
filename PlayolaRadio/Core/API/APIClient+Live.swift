@@ -325,19 +325,11 @@ extension APIClient: DependencyKey {
 
         return response
       },
-      getScheduledShows: { jwtToken, showId, stationId in
-        var url = "\(Config.shared.baseUrl.absoluteString)/v1/shows/schedule"
-        var queryParams: [String] = []
+      getAirings: { jwtToken, stationId in
+        var url = "\(Config.shared.baseUrl.absoluteString)/v1/airings"
 
-        if let showId = showId {
-          queryParams.append("showId=\(showId)")
-        }
         if let stationId = stationId {
-          queryParams.append("stationId=\(stationId)")
-        }
-
-        if !queryParams.isEmpty {
-          url += "?" + queryParams.joined(separator: "&")
+          url += "?stationId=\(stationId)"
         }
 
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
@@ -347,7 +339,7 @@ extension APIClient: DependencyKey {
           headers: headers
         )
         .validate(statusCode: 200..<300)
-        .serializingDecodable([ScheduledShow].self, decoder: isoDecoder)
+        .serializingDecodable([Airing].self, decoder: isoDecoder)
         .value
 
         return response
@@ -670,6 +662,133 @@ extension APIClient: DependencyKey {
         .validate(statusCode: 200..<300)
         .serializingData()
         .value
+      },
+      getPushNotificationSubscriptions: { jwtToken in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/users/me/push-notification-subscriptions"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable(
+            [PushNotificationSubscriptionWithStation].self, decoder: isoDecoder
+          )
+          .value
+
+        return response
+      },
+      subscribeToStationNotifications: { jwtToken, stationId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/push-notification-subscription/subscribe"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(
+          url,
+          method: .post,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(PushNotificationSubscription.self, decoder: isoDecoder)
+        .value
+
+        return response
+      },
+      unsubscribeFromStationNotifications: { jwtToken, stationId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/push-notification-subscription/unsubscribe"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(
+          url,
+          method: .post,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(PushNotificationSubscription.self, decoder: isoDecoder)
+        .value
+
+        return response
+      },
+      fetchLiveStations: { jwtToken in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/live"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([LiveStationInfo].self, decoder: isoDecoder)
+          .value
+
+        return response
+      },
+      getSupportConversation: { jwtToken in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/conversations/support"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable(SupportConversationResponse.self, decoder: isoDecoder)
+          .value
+
+        return response
+      },
+      getConversationMessages: { jwtToken, conversationId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/conversations/\(conversationId)/messages"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([Message].self, decoder: isoDecoder)
+          .value
+
+        return response
+      },
+      sendConversationMessage: { jwtToken, conversationId, message in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/conversations/\(conversationId)/messages"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters = ["message": message]
+
+        let response = try await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(Message.self, decoder: isoDecoder)
+        .value
+
+        return response
+      },
+      markConversationRead: { jwtToken, conversationId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/conversations/\(conversationId)/read"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        _ = try await AF.request(
+          url,
+          method: .put,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingData()
+        .value
+      },
+      getConversations: { jwtToken, status in
+        var url = "\(Config.shared.baseUrl.absoluteString)/v1/conversations"
+        if let status = status {
+          url += "?status=\(status)"
+        }
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([AdminConversationResponse].self, decoder: isoDecoder)
+          .value
+
+        return response
       }
     )
   }()

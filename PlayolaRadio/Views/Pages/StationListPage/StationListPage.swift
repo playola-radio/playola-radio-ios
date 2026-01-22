@@ -62,10 +62,6 @@ struct StationListPage: View {
       // ---------------------------------------------------------
       ScrollView {
         VStack(alignment: .leading, spacing: 20) {
-          if model.hasLiveShows {
-            liveShowsSection()
-          }
-
           ForEach(model.stationListsForDisplay) { list in
             stationSection(list: list)
           }
@@ -82,24 +78,8 @@ struct StationListPage: View {
 
   // MARK: - Helpers
   @ViewBuilder
-  private func liveShowsSection() -> some View {
-    VStack(alignment: .leading, spacing: 12) {
-
-      ScheduledShowsListView(
-        model: ScheduledShowsListModel(
-          scheduledShows: model.scheduledShows
-            .filter { !$0.hasEnded }
-        ),
-        presentAlert: { model.presentedAlert = $0 }
-      )
-      .padding(.horizontal, 20)
-    }
-  }
-
-  @ViewBuilder
   private func stationSection(list: StationList) -> some View {
-    let includeHiddenItems = model.showSecretStations
-    let items = list.stationItems(includeHidden: includeHiddenItems)
+    let items = model.sortedStationItems(for: list)
     if !items.isEmpty {
       VStack(alignment: .leading, spacing: 1) {
         Text(list.title)
@@ -109,8 +89,9 @@ struct StationListPage: View {
           .padding(.bottom, 8)
 
         VStack(spacing: 1) {
-          ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-            let rowModel = StationListStationRowModel(item: item)
+          ForEach(items, id: \.anyStation.id) { item in
+            let liveStatus = model.liveStatusForStation(item.anyStation.id)
+            let rowModel = StationListStationRowModel(item: item, liveStatus: liveStatus)
             StationListStationRowView(
               model: rowModel,
               action: {
@@ -119,6 +100,13 @@ struct StationListPage: View {
           }
         }
       }
+      .animation(
+        .easeInOut(duration: 0.5),
+        value: items.map { item in
+          let liveStatus = model.liveStatusForStation(item.anyStation.id)
+          return "\(item.anyStation.id)-\(liveStatus?.rawValue ?? "none")"
+        }
+      )
     }
   }
 }

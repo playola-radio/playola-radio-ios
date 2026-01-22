@@ -8,6 +8,7 @@
 import Combine
 import Dependencies
 import IdentifiedCollections
+import PlayolaPlayer
 import Sharing
 import SwiftUI
 
@@ -20,16 +21,18 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.toast) var toast
   @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
+  @ObservationIgnored @Dependency(\.appRating) var appRating
   @ObservationIgnored var stationPlayer: StationPlayer!
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
-  @ObservationIgnored @Shared(.scheduledShows) var scheduledShows
+  @ObservationIgnored @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
   @ObservationIgnored @Shared(.hasBeenUnlocked) var hasBeenUnlocked
+  @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
 
   enum ActiveTab {
     case home
@@ -45,8 +48,10 @@ class MainContainerModel: ViewModel {
   var stationListModel = StationListModel()
   var rewardsPageModel = RewardsPageModel()
   var contactPageModel = ContactPageModel()
+  var liveStationsPoller = LiveStationsPoller()
 
   var shouldShowSmallPlayer: Bool = false
+  private var hasCheckedRatingPromptThisSession = false
 
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
@@ -76,6 +81,8 @@ class MainContainerModel: ViewModel {
       }
     }
 
+    await fetchUnreadSupportCount()
+
     // NOTE: For now, this has to stay connected to the Singleton in order to avoid reloading
     // the entire app every time a nowPlaying.publisher event is received.  That seems to be
     // what happens when we use the Shared nowPlaying value.  In the future we should figure out
@@ -85,7 +92,9 @@ class MainContainerModel: ViewModel {
     observeToasts()
 
     await loadListeningTracker()
-    await loadScheduledShows()
+    await loadAirings()
+
+    liveStationsPoller.startPolling()
   }
 
   func refreshOnForeground() async {
@@ -100,18 +109,30 @@ class MainContainerModel: ViewModel {
         ))
     }
 
-    await loadScheduledShows()
+    await loadAirings()
+    await fetchUnreadSupportCount()
   }
 
-  func loadScheduledShows() async {
+  func handleScenePhaseChange(_ phase: ScenePhase) {
+    switch phase {
+    case .active:
+      liveStationsPoller.startPolling()
+    case .background, .inactive:
+      liveStationsPoller.stopPolling()
+    @unknown default:
+      break
+    }
+  }
+
+  func loadAirings() async {
     guard let token = auth.jwt else { return }
     do {
-      let shows = try await api.getScheduledShows(token, nil, nil)
-      $scheduledShows.withLock { $0 = IdentifiedArray(uniqueElements: shows) }
+      let fetchedAirings = try await api.getAirings(token, nil)
+      $airings.withLock { $0 = IdentifiedArray(uniqueElements: fetchedAirings) }
     } catch {
       await analytics.track(
         .apiError(
-          endpoint: "getScheduledShows",
+          endpoint: "getAirings",
           error: error.localizedDescription
         ))
     }
@@ -129,6 +150,17 @@ class MainContainerModel: ViewModel {
       print(err)
     }
   }
+
+  func fetchUnreadSupportCount() async {
+    guard let jwt = auth.jwt else { return }
+    do {
+      let response = try await api.getSupportConversation(jwt)
+      $unreadSupportCount.withLock { $0 = response.unreadCount }
+    } catch {
+      // Silently fail
+    }
+  }
+
   func dismissButtonInSheetTapped() {
     self.mainContainerNavigationCoordinator.presentedSheet = nil
   }
@@ -143,6 +175,59 @@ class MainContainerModel: ViewModel {
     default: break
     }
     self.setShouldShowSmallPlayer(newState)
+  }
+
+  func checkAndShowRatingPromptIfNeeded() {
+    guard !hasCheckedRatingPromptThisSession else { return }
+    guard let tracker = listeningTracker else { return }
+
+    if appRating.shouldShowRatingPrompt(tracker.totalListenTimeMS) {
+      hasCheckedRatingPromptThisSession = true
+      showRatingPrompt()
+    }
+  }
+
+  private func showRatingPrompt() {
+    presentedAlert = .ratingPrompt(
+      onEnjoying: { [weak self] in
+        guard let self else { return }
+        await self.analytics.track(.ratingPromptEnjoying)
+        self.appRating.markRatingPromptShown()
+        await self.appRating.requestAppStoreReview()
+      },
+      onNotEnjoying: { [weak self] in
+        guard let self else { return }
+        await self.analytics.track(.ratingPromptNotEnjoying)
+        self.appRating.markRatingPromptShown()
+        self.presentedAlert = nil
+        self.showFeedbackSheet()
+      },
+      onNotNow: { [weak self] in
+        guard let self else { return }
+        await self.analytics.track(.ratingPromptDismissed)
+        self.appRating.markRatingPromptDismissed()
+      }
+    )
+  }
+
+  private func showFeedbackSheet() {
+    guard let jwt = auth.jwt else { return }
+    Task {
+      do {
+        let response = try await api.getSupportConversation(jwt)
+        let feedbackModel = FeedbackSheetModel(
+          conversation: response.conversation,
+          title: "Would you be up for letting us know what we can do better?",
+          placeholderText: "",
+          onSuccess: { [weak self] in
+            self?.presentedAlert = .thankYouForFeedback
+          }
+        )
+        mainContainerNavigationCoordinator.presentedSheet = .feedbackSheet(feedbackModel)
+      } catch {
+        // Silently fail
+      }
+    }
   }
 
   func setShouldShowSmallPlayer(_ stationPlayerState: StationPlayer.State) {
@@ -196,6 +281,15 @@ extension PlayolaAlert {
       title: "Error Loading Stations",
       message:
         "There was an error loading the stations. Please check your connection and try again.",
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static var thankYouForFeedback: PlayolaAlert {
+    PlayolaAlert(
+      title: "Thank You for the Feedback!",
+      message:
+        "Thank you so much. Someone will get back to you soon.",
       dismissButton: .cancel(Text("OK"))
     )
   }

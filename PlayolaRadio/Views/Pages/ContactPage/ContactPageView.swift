@@ -5,10 +5,12 @@
 //  Created by Brian D Keane on 7/23/25.
 //
 
+import Sharing
 import SwiftUI
 
 struct ContactPageView: View {
   @Bindable var model: ContactPageModel
+  @Shared(.unreadSupportCount) var unreadSupportCount
 
   var body: some View {
     VStack(spacing: 0) {
@@ -114,6 +116,82 @@ struct ContactPageView: View {
           )
           .padding(.horizontal, 20)
 
+          // Notifications Button
+          Button(
+            action: {
+              model.onNotificationsTapped()
+            },
+            label: {
+              HStack(spacing: 12) {
+                Image(systemName: "bell.fill")
+                  .foregroundColor(.white)
+                  .font(.system(size: 16))
+
+                Text("Notifications")
+                  .font(.custom(FontNames.Inter_500_Medium, size: 16))
+                  .foregroundColor(.white)
+
+                Image(systemName: "chevron.right")
+                  .foregroundColor(.white)
+                  .font(.system(size: 14))
+              }
+              .frame(maxWidth: .infinity)
+              .frame(height: 50)
+              .padding(.horizontal, 16)
+              .background(Color(hex: "#EF6962"))
+              .cornerRadius(6)
+            }
+          )
+          .padding(.horizontal, 20)
+
+          // Contact Us Button
+          Button(
+            action: {
+              Task {
+                await model.onContactUsTapped()
+              }
+            },
+            label: {
+              HStack(spacing: 12) {
+                if model.isCheckingSupport {
+                  ProgressView()
+                    .tint(.white)
+                    .frame(width: 16, height: 16)
+                } else {
+                  ZStack(alignment: .topTrailing) {
+                    Image(systemName: "bubble.left.fill")
+                      .foregroundColor(.white)
+                      .font(.system(size: 16))
+
+                    if unreadSupportCount > 0 {
+                      Text("\(unreadSupportCount)")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(Color(hex: "#EF6962"))
+                        .frame(minWidth: 16, minHeight: 16)
+                        .background(Circle().fill(Color.white))
+                        .offset(x: 8, y: -8)
+                    }
+                  }
+                }
+
+                Text("Contact Us")
+                  .font(.custom(FontNames.Inter_500_Medium, size: 16))
+                  .foregroundColor(.white)
+
+                Image(systemName: "chevron.right")
+                  .foregroundColor(.white)
+                  .font(.system(size: 14))
+              }
+              .frame(maxWidth: .infinity)
+              .frame(height: 50)
+              .padding(.horizontal, 16)
+              .background(Color(hex: "#EF6962"))
+              .cornerRadius(6)
+            }
+          )
+          .disabled(model.isCheckingSupport)
+          .padding(.horizontal, 20)
+
           // My Station Button
           if model.myStationButtonVisible {
             Button(
@@ -179,6 +257,7 @@ struct ContactPageView: View {
     .task {
       await model.onViewAppeared()
     }
+    .alert(item: $model.presentedAlert) { $0.alert }
   }
 }
 

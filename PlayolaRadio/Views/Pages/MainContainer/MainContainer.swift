@@ -55,6 +55,7 @@ struct MainContainer: View {
           }
           .tag(MainContainerModel.ActiveTab.profile)
         }
+        //        .tabBarMinimizeBehavior(.onScrollDown)  // add in iOS 26
         .accentColor(.white)  // Makes the selected tab icon white
         .onAppear {
           let tabBarAppearance = UITabBarAppearance()
@@ -76,17 +77,30 @@ struct MainContainer: View {
           BroadcastPageView(model: model)
         case .chooseStationToBroadcastPage(let model):
           ChooseStationToBroadcastPageView(model: model)
+        case .notificationsSettingsPage(let model):
+          NotificationsSettingsPageView(model: model)
+        case .seriesListPage(let model):
+          SeriesListPage(model: model)
+        case .supportPage(let model):
+          SupportPageView(model: model)
+        case .conversationListPage(let model):
+          ConversationListPageView(model: model)
         }
       }
     }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
+    .onChange(of: model.activeTab) {
+      model.checkAndShowRatingPromptIfNeeded()
+    }
     .sheet(
       item: Binding(
         get: {
-          if case .player = model.mainContainerNavigationCoordinator.presentedSheet {
+          switch model.mainContainerNavigationCoordinator.presentedSheet {
+          case .player, .feedbackSheet:
             return model.mainContainerNavigationCoordinator.presentedSheet
+          default:
+            return nil
           }
-          return nil
         },
         set: { model.mainContainerNavigationCoordinator.presentedSheet = $0 }
       ),
@@ -95,6 +109,8 @@ struct MainContainer: View {
           switch item {
           case .player(let playerPageModel):
             PlayerPage(model: playerPageModel)
+          case .feedbackSheet(let feedbackModel):
+            FeedbackSheetView(model: feedbackModel)
           default:
             EmptyView()
           }
@@ -103,7 +119,7 @@ struct MainContainer: View {
             Spacer()
             ToastOverlayView()
           }
-          .zIndex(1)  // Ensure toast appears above PlayerPage
+          .zIndex(1)  // Ensure toast appears above content
         }
       }
     )
@@ -143,6 +159,7 @@ struct MainContainer: View {
     .animation(.easeInOut(duration: 0.3), value: model.presentedToast)
     .onAppear { Task { await model.viewAppeared() } }
     .onChange(of: scenePhase) { _, newPhase in
+      model.handleScenePhaseChange(newPhase)
       if newPhase == .active {
         Task { await model.refreshOnForeground() }
       }

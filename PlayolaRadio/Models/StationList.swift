@@ -61,8 +61,8 @@ enum AnyStation: Identifiable, Codable, Equatable {
     switch self {
     case .playola(let playolaStation):
       return playolaStation.active ?? true
-    default:
-      return true
+    case .url(let urlStation):
+      return urlStation.active ?? true
     }
   }
 
@@ -295,6 +295,14 @@ extension APIStationItem {
     if let station { return .playola(station) }
     if let urlStation { return .url(urlStation) }
     fatalError("Station is neither a playola station or a urlStation")
+  }
+
+  func liveSortPriority(_ liveStations: [LiveStationInfo]) -> Int {
+    guard let status = liveStations.first(where: { $0.stationId == anyStation.id })?.liveStatus
+    else {
+      return 2
+    }
+    return status == .voicetracking ? 0 : 1
   }
 }
 

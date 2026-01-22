@@ -8,6 +8,7 @@
 import Combine
 import Dependencies
 import IdentifiedCollections
+import PlayolaPlayer
 import Sharing
 import SwiftUI
 
@@ -21,8 +22,7 @@ class StationListModel: ViewModel {
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
-  @ObservationIgnored @Shared(.scheduledShows) var scheduledShows:
-    IdentifiedArrayOf<ScheduledShow> = []
+  @ObservationIgnored @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
   @ObservationIgnored @Shared(.hasAskedForNotificationPermission)
   var hasAskedForNotificationPermission: Bool
   @ObservationIgnored @Dependency(\.analytics) var analytics
@@ -35,16 +35,6 @@ class StationListModel: ViewModel {
   var selectedSegment = "All"
   var presentedAlert: PlayolaAlert?
 
-  var hasLiveShows: Bool {
-    return scheduledShows.contains { show in
-      !show.hasEnded
-    }
-  }
-
-  var isShowingLiveShows: Bool {
-    selectedSegment == "Going Live"
-  }
-
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
   }
@@ -55,6 +45,13 @@ class StationListModel: ViewModel {
     $stationLists.publisher
       .sink { [weak self] lists in
         self?.loadStationListsForDisplay(lists)
+      }
+      .store(in: &cancellables)
+
+    $liveStations.publisher
+      .sink { [weak self] _ in
+        guard let self else { return }
+        self.loadStationListsForDisplay(self.stationLists)
       }
       .store(in: &cancellables)
 
@@ -122,6 +119,17 @@ class StationListModel: ViewModel {
         listName: segmentTitle,
         screen: "station_list_page"
       ))
+  }
+
+  func liveStatusForStation(_ stationId: String) -> LiveStatus? {
+    liveStations.first { $0.stationId == stationId }?.liveStatus
+  }
+
+  func sortedStationItems(for list: StationList) -> [APIStationItem] {
+    let items = list.stationItems(includeHidden: showSecretStations)
+    return items.sorted { item1, item2 in
+      item1.liveSortPriority(liveStations) < item2.liveSortPriority(liveStations)
+    }
   }
 
   func stationSelected(_ item: APIStationItem) async {

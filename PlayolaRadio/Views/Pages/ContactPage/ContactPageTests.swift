@@ -116,6 +116,25 @@ final class ContactPageTests: XCTestCase {
     }
   }
 
+  func testOnNotificationsTapped_NavigatesToNotificationsSettingsPage() {
+    let model = ContactPageModel()
+
+    // Verify initial navigation state
+    XCTAssertTrue(model.mainContainerNavigationCoordinator.path.isEmpty)
+
+    // Tap notifications button
+    model.onNotificationsTapped()
+
+    // Verify navigation occurred
+    XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
+
+    if case .notificationsSettingsPage = model.mainContainerNavigationCoordinator.path.first {
+      // Successfully navigated to notifications settings page
+    } else {
+      XCTFail("Expected navigation to notifications settings page")
+    }
+  }
+
   func testOnMyStationTapped_NavigatesToBroadcastPage() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockStations = [Station.mockWith(id: "test-station-id")]

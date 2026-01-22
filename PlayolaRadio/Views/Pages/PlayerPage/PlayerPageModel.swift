@@ -22,12 +22,32 @@ class PlayerPageModel: ViewModel {
   var nowPlayingText: String {
     switch nowPlaying?.playbackStatus {
     case .playing:
-      if let titlePlaying = nowPlaying?.titlePlaying, let artistPlaying = nowPlaying?.artistPlaying
-      {
-        return "\(titlePlaying) - \(artistPlaying)"
-      } else {
+      guard let audioBlock = playolaAudioBlockPlaying else {
+        // Non-Playola station - use title/artist if available
+        if let title = nowPlaying?.titlePlaying, let artist = nowPlaying?.artistPlaying {
+          return "\(title) - \(artist)"
+        }
         return ""
       }
+
+      // Commercial → "Playola Pays"
+      if audioBlock.type == "commercial" {
+        return "Playola Pays"
+      }
+
+      // Song → "{title} - {artist}"
+      if audioBlock.type == "song" {
+        return "\(audioBlock.title) - \(audioBlock.artist)"
+      }
+
+      // Non-song with Airing → Episode title
+      if let episodeTitle = playolaSpinPlaying?.airing?.episode?.title {
+        return episodeTitle
+      }
+
+      // Non-song without Airing → station name
+      return nowPlaying?.currentStation?.stationName ?? ""
+
     case .loading, .startingNewStation:
       return "Station Loading..."
     case .stopped:

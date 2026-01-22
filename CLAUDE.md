@@ -8,6 +8,26 @@
 - **Tests colocated with code**: `HomePageModel.swift` → `HomePageTests.swift` in same folder
 - **Framework**: XCTest with `@MainActor` on all test classes
 
+### Testing with @Shared state
+
+Declare `@Shared` locally inside each test method with an initial value:
+
+```swift
+func testSomething() {
+  @Shared(.stationLists) var stationLists = makeTestStationLists()
+  @Shared(.showSecretStations) var showSecretStations = false
+
+  let model = SomeModel()
+  // test...
+}
+```
+
+Do NOT use class-level `@Shared` properties or `$shared.withLock` in tests.
+
+### Test anti-patterns
+
+- **NEVER use `Task.sleep` in tests** - it makes tests slow and flaky. Use synchronous assertions or test doubles that execute synchronously.
+
 ## Architecture
 
 **Pattern**: MV with `@Observable` models (not MVVM)

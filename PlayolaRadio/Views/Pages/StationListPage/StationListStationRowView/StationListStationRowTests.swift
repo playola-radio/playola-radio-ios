@@ -182,4 +182,85 @@ final class StationListStationRowTests: XCTestCase {
     // Should show Dec 25th (the UTC date), not Dec 24th (what it would be in US timezones)
     XCTAssertEqual(model.subtitleText, "Coming Dec 25th")
   }
+
+  // MARK: - Live Sort Priority Tests
+
+  func testLiveSortPriorityReturnsZeroForVoicetracking() {
+    let station = Station.mockWith(id: "live-station")
+    let item = APIStationItem(
+      sortOrder: 0,
+      visibility: .visible,
+      station: station,
+      urlStation: nil
+    )
+    let liveStations = [
+      LiveStationInfo(stationId: "live-station", liveStatus: .voicetracking, station: station)
+    ]
+
+    let priority = item.liveSortPriority(liveStations)
+
+    XCTAssertEqual(priority, 0)
+  }
+
+  func testLiveSortPriorityReturnsOneForShowAiring() {
+    let station = Station.mockWith(id: "show-station")
+    let item = APIStationItem(
+      sortOrder: 0,
+      visibility: .visible,
+      station: station,
+      urlStation: nil
+    )
+    let liveStations = [
+      LiveStationInfo(stationId: "show-station", liveStatus: .showAiring, station: station)
+    ]
+
+    let priority = item.liveSortPriority(liveStations)
+
+    XCTAssertEqual(priority, 1)
+  }
+
+  func testLiveSortPriorityReturnsTwoForNotLive() {
+    let station = Station.mockWith(id: "not-live-station")
+    let item = APIStationItem(
+      sortOrder: 0,
+      visibility: .visible,
+      station: station,
+      urlStation: nil
+    )
+    let liveStations: [LiveStationInfo] = []
+
+    let priority = item.liveSortPriority(liveStations)
+
+    XCTAssertEqual(priority, 2)
+  }
+
+  // MARK: - Live Status in Row Model Tests
+
+  func testRowModelStoresLiveStatus() {
+    let station = Station.mockWith(id: "live-station")
+    let item = APIStationItem(
+      sortOrder: 0,
+      visibility: .visible,
+      station: station,
+      urlStation: nil
+    )
+
+    let model = StationListStationRowModel(item: item, liveStatus: .voicetracking)
+
+    XCTAssertEqual(model.liveStatus, .voicetracking)
+  }
+
+  func testRowModelLiveStatusDefaultsToNil() {
+    let station = Station.mockWith(id: "station")
+    let item = APIStationItem(
+      sortOrder: 0,
+      visibility: .visible,
+      station: station,
+      urlStation: nil
+    )
+
+    let model = StationListStationRowModel(item: item)
+
+    XCTAssertNil(model.liveStatus)
+  }
 }
