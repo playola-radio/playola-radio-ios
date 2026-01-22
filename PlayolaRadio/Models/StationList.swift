@@ -341,6 +341,34 @@ extension AnyStation {
   static var mock: AnyStation {
     StationList.mocks.first(where: { !$0.stations.isEmpty })?.stations.first ?? .url(mockUrlStation)
   }
+
+  static func mockPlayola(
+    id: String = "mock-playola-id",
+    name: String = "Mock Radio Show",
+    curatorName: String = "Mock Curator"
+  ) -> AnyStation {
+    .playola(Station.mockWith(id: id, name: name, curatorName: curatorName))
+  }
+
+  static func mockUrl(
+    id: String = "mock-url-id",
+    name: String = "Mock FM",
+    location: String = "Mock City, TX"
+  ) -> AnyStation {
+    .url(
+      UrlStation(
+        id: id,
+        name: name,
+        streamUrl: "https://mock.stream.url",
+        imageUrl: "https://mock.image.url",
+        description: "Mock FM Station",
+        website: nil,
+        location: location,
+        active: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      ))
+  }
 }
 
 // Mock data for testing
