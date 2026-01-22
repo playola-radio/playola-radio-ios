@@ -254,6 +254,20 @@
 		D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257C82DFA247A001BC6F9 /* MainContainer.swift */; };
 		D37257CC2DFA3F83001BC6F9 /* FontNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257CB2DFA3F7F001BC6F9 /* FontNames.swift */; };
 		D37257D02DFB4368001BC6F9 /* PlayerPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */; };
+		D37769F92F22B38700200ADF /* ChooseStationPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37769F62F22B38700200ADF /* ChooseStationPageModel.swift */; };
+		D37769FA2F22B38700200ADF /* ChooseStationPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37769F72F22B38700200ADF /* ChooseStationPageView.swift */; };
+		D37769FB2F22B38700200ADF /* ChooseStationPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37769F62F22B38700200ADF /* ChooseStationPageModel.swift */; };
+		D37769FC2F22B38700200ADF /* ChooseStationPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37769F72F22B38700200ADF /* ChooseStationPageView.swift */; };
+		D37769FE2F22B70600200ADF /* ChooseStationPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37769FD2F22B70600200ADF /* ChooseStationPageTests.swift */; };
+		D3776A032F22BA1A00200ADF /* AskQuestionPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37769FF2F22BA1A00200ADF /* AskQuestionPageModel.swift */; };
+		D3776A042F22BA1A00200ADF /* AskQuestionPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A012F22BA1A00200ADF /* AskQuestionPageView.swift */; };
+		D3776A062F22BA1A00200ADF /* AskQuestionPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37769FF2F22BA1A00200ADF /* AskQuestionPageModel.swift */; };
+		D3776A072F22BA1A00200ADF /* AskQuestionPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A012F22BA1A00200ADF /* AskQuestionPageView.swift */; };
+		D3776A092F22BA2100200ADF /* AskQuestionPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A002F22BA1A00200ADF /* AskQuestionPageTests.swift */; };
+		D3776A0B2F22BF6A00200ADF /* ListenerQuestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A0A2F22BF6A00200ADF /* ListenerQuestion.swift */; };
+		D3776A0C2F22BF6A00200ADF /* ListenerQuestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A0A2F22BF6A00200ADF /* ListenerQuestion.swift */; };
+		D3776A0E2F22CB8600200ADF /* ListenerQuestionPresignedURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A0D2F22CB8600200ADF /* ListenerQuestionPresignedURLResponse.swift */; };
+		D3776A0F2F22CB8600200ADF /* ListenerQuestionPresignedURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A0D2F22CB8600200ADF /* ListenerQuestionPresignedURLResponse.swift */; };
 		D378CCCE2E56011A00497A4A /* SignInPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCD2E56011500497A4A /* SignInPageModel.swift */; };
 		D378CCD02E57947800497A4A /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCF2E57947800497A4A /* ShareSheet.swift */; };
 		D37B74872EC94427009806C6 /* PushNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37B74862EC94426009806C6 /* PushNotifications.swift */; };
@@ -480,6 +494,14 @@
 		D37257C82DFA247A001BC6F9 /* MainContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainer.swift; sourceTree = "<group>"; };
 		D37257CB2DFA3F7F001BC6F9 /* FontNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontNames.swift; sourceTree = "<group>"; };
 		D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPage.swift; sourceTree = "<group>"; };
+		D37769F62F22B38700200ADF /* ChooseStationPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationPageModel.swift; sourceTree = "<group>"; };
+		D37769F72F22B38700200ADF /* ChooseStationPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationPageView.swift; sourceTree = "<group>"; };
+		D37769FD2F22B70600200ADF /* ChooseStationPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationPageTests.swift; sourceTree = "<group>"; };
+		D37769FF2F22BA1A00200ADF /* AskQuestionPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskQuestionPageModel.swift; sourceTree = "<group>"; };
+		D3776A002F22BA1A00200ADF /* AskQuestionPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskQuestionPageTests.swift; sourceTree = "<group>"; };
+		D3776A012F22BA1A00200ADF /* AskQuestionPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskQuestionPageView.swift; sourceTree = "<group>"; };
+		D3776A0A2F22BF6A00200ADF /* ListenerQuestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenerQuestion.swift; sourceTree = "<group>"; };
+		D3776A0D2F22CB8600200ADF /* ListenerQuestionPresignedURLResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenerQuestionPresignedURLResponse.swift; sourceTree = "<group>"; };
 		D378CCCD2E56011500497A4A /* SignInPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageModel.swift; sourceTree = "<group>"; };
 		D378CCCF2E57947800497A4A /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		D37B74862EC94426009806C6 /* PushNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotifications.swift; sourceTree = "<group>"; };
@@ -674,6 +696,8 @@
 			children = (
 				D35EFC252F192AAF000F64A4 /* Conversation.swift */,
 				D3137DD12D3ABB4F0070033A /* GenericNowPlaying.swift */,
+				D3776A0A2F22BF6A00200ADF /* ListenerQuestion.swift */,
+				D3776A0D2F22CB8600200ADF /* ListenerQuestionPresignedURLResponse.swift */,
 				D35EFC1B2F17D361000F64A4 /* LiveStationInfo.swift */,
 				D3B744B32E2FECC80042A427 /* LocalListeningSession.swift */,
 				D3F493C92EEE4133008ED463 /* LocalVoicetrack.swift */,
@@ -729,7 +753,9 @@
 		D339E55C2BFD0FB000B9E35B /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				D3776A022F22BA1A00200ADF /* AskQuestionPage */,
 				D3219C152EDD22060008AFDA /* BroadcastPage */,
+				D37769F82F22B38700200ADF /* ChooseStationPage */,
 				D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */,
 				D39591132E39930500720CF8 /* ContactPage */,
 				D35EFC4C2F1A9911000F64A4 /* ConversationListPage */,
@@ -1022,6 +1048,26 @@
 				D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */,
 			);
 			path = PlayerPage;
+			sourceTree = "<group>";
+		};
+		D37769F82F22B38700200ADF /* ChooseStationPage */ = {
+			isa = PBXGroup;
+			children = (
+				D37769F62F22B38700200ADF /* ChooseStationPageModel.swift */,
+				D37769FD2F22B70600200ADF /* ChooseStationPageTests.swift */,
+				D37769F72F22B38700200ADF /* ChooseStationPageView.swift */,
+			);
+			path = ChooseStationPage;
+			sourceTree = "<group>";
+		};
+		D3776A022F22BA1A00200ADF /* AskQuestionPage */ = {
+			isa = PBXGroup;
+			children = (
+				D37769FF2F22BA1A00200ADF /* AskQuestionPageModel.swift */,
+				D3776A002F22BA1A00200ADF /* AskQuestionPageTests.swift */,
+				D3776A012F22BA1A00200ADF /* AskQuestionPageView.swift */,
+			);
+			path = AskQuestionPage;
 			sourceTree = "<group>";
 		};
 		D378CCD12E58C37D00497A4A /* Core */ = {
@@ -1475,6 +1521,9 @@
 				D35EFC4F2F1A9911000F64A4 /* ConversationListPageView.swift in Sources */,
 				D30F004A2E8592F0007BCC73 /* UrlStreamListeningSessionReporter.swift in Sources */,
 				D317C0D92EF3500B00DBC82E /* APIClient+Live.swift in Sources */,
+				D3776A062F22BA1A00200ADF /* AskQuestionPageModel.swift in Sources */,
+				D3776A072F22BA1A00200ADF /* AskQuestionPageView.swift in Sources */,
+				D3776A0E2F22CB8600200ADF /* ListenerQuestionPresignedURLResponse.swift in Sources */,
 				D30F004B2E8592F0007BCC73 /* HomePageView.swift in Sources */,
 				D30F00BA2E87194D007BCC73 /* StationListStationRowModel.swift in Sources */,
 				D30F00B82E871945007BCC73 /* StationListStationRowView.swift in Sources */,
@@ -1491,6 +1540,8 @@
 				D30F00512E8592F0007BCC73 /* SongDrawerModel.swift in Sources */,
 				D30F00522E8592F0007BCC73 /* Config.swift in Sources */,
 				D35EFC292F192AB9000F64A4 /* Message.swift in Sources */,
+				D37769F92F22B38700200ADF /* ChooseStationPageModel.swift in Sources */,
+				D37769FA2F22B38700200ADF /* ChooseStationPageView.swift in Sources */,
 				D30F00532E8592F0007BCC73 /* ListeningTracker.swift in Sources */,
 				D35EFC242F17D4CC000F64A4 /* LiveBadge.swift in Sources */,
 				D30F00542E8592F0007BCC73 /* ViewModel.swift in Sources */,
@@ -1561,6 +1612,7 @@
 				D3F493CA2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */,
 				D30F00822E8592F0007BCC73 /* LikedSongsPageModel.swift in Sources */,
 				D3F493C52EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */,
+				D3776A0B2F22BF6A00200ADF /* ListenerQuestion.swift in Sources */,
 				D35EFC432F1930C8000F64A4 /* FeedbackSheetModel.swift in Sources */,
 				D35EFC442F1930C8000F64A4 /* FeedbackSheetView.swift in Sources */,
 				D30F00832E8592F0007BCC73 /* UIApplication+keyWindow.swift in Sources */,
@@ -1604,6 +1656,9 @@
 				D35EFC522F1A9911000F64A4 /* ConversationListPageView.swift in Sources */,
 				D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */,
 				D317C0D82EF3500B00DBC82E /* APIClient+Live.swift in Sources */,
+				D3776A032F22BA1A00200ADF /* AskQuestionPageModel.swift in Sources */,
+				D3776A042F22BA1A00200ADF /* AskQuestionPageView.swift in Sources */,
+				D3776A0F2F22CB8600200ADF /* ListenerQuestionPresignedURLResponse.swift in Sources */,
 				D37257B02DF88BB7001BC6F9 /* HomePageView.swift in Sources */,
 				D30F00BB2E87194D007BCC73 /* StationListStationRowModel.swift in Sources */,
 				D30F00B72E871945007BCC73 /* StationListStationRowView.swift in Sources */,
@@ -1620,6 +1675,8 @@
 				D30257912E63C13400F4228B /* SongDrawerModel.swift in Sources */,
 				D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */,
 				D35EFC2A2F192AB9000F64A4 /* Message.swift in Sources */,
+				D37769FB2F22B38700200ADF /* ChooseStationPageModel.swift in Sources */,
+				D37769FC2F22B38700200ADF /* ChooseStationPageView.swift in Sources */,
 				D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */,
 				D35EFC232F17D4CC000F64A4 /* LiveBadge.swift in Sources */,
 				D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */,
@@ -1690,6 +1747,7 @@
 				D3F493CB2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */,
 				D30257892E63B6C100F4228B /* LikedSongsPageModel.swift in Sources */,
 				D3F493C42EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */,
+				D3776A0C2F22BF6A00200ADF /* ListenerQuestion.swift in Sources */,
 				D35EFC452F1930C8000F64A4 /* FeedbackSheetModel.swift in Sources */,
 				D35EFC462F1930C8000F64A4 /* FeedbackSheetView.swift in Sources */,
 				D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */,
@@ -1769,6 +1827,8 @@
 				D35EFC092F159014000F64A4 /* EpisodeRowTests.swift in Sources */,
 				D30257842E63A37400F4228B /* LikeOperationTests.swift in Sources */,
 				D31CD5272DFBB4DF009B9780 /* MainContainerTests.swift in Sources */,
+				D3776A092F22BA2100200ADF /* AskQuestionPageTests.swift in Sources */,
+				D37769FE2F22B70600200ADF /* ChooseStationPageTests.swift in Sources */,
 				D35EFBD92F101A76000F64A4 /* StationPlayerTests.swift in Sources */,
 				D395911A2E39933800720CF8 /* ContactPageTests.swift in Sources */,
 				D3B744BC2E312FB60042A427 /* ListeningTrackerTests.swift in Sources */,

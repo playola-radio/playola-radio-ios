@@ -146,6 +146,27 @@ struct PlayerPage: View {
         )
         .padding(.top, 32)
 
+        // Ask Question Button
+        if model.canAskQuestion {
+          Button(
+            action: { model.askQuestionButtonTapped() },
+            label: {
+              HStack(spacing: 8) {
+                Image(systemName: "mic.fill")
+                  .font(.system(size: 14))
+                Text("Ask A Question")
+                  .font(.custom(FontNames.Inter_500_Medium, size: 14))
+              }
+              .foregroundColor(.white)
+              .padding(.horizontal, 20)
+              .padding(.vertical, 12)
+              .background(Color(hex: "#333333"))
+              .cornerRadius(20)
+            }
+          )
+          .padding(.top, 16)
+        }
+
         if let relatedText = model.relatedText {
 
           VStack(alignment: .leading, spacing: 16) {

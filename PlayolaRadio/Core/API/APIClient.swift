@@ -245,6 +245,37 @@ struct APIClient: Sendable {
         VoicetrackStatusResponse(ready: true, s3Key: "test.m4a")
       }
 
+  // MARK: - Listener Questions
+
+  /// Gets a presigned URL for uploading a listener question to S3
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to upload the question for
+  /// - Returns: ListenerQuestionPresignedURLResponse containing the upload URL and S3 key
+  /// - Throws: APIError if the request fails
+  var getListenerQuestionPresignedURL:
+    (_ jwtToken: String, _ stationId: String) async throws
+      -> ListenerQuestionPresignedURLResponse = { _, _ in
+        ListenerQuestionPresignedURLResponse(
+          presignedUrl: URL(string: "https://example.com")!,
+          s3Key: "test.m4a",
+          questionUrl: URL(string: "https://example.com/test.m4a")!
+        )
+      }
+
+  /// Creates a listener question linking to an existing AudioBlock
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - audioBlockId: The AudioBlock ID for the question audio
+  /// - Returns: The created ListenerQuestion
+  /// - Throws: APIError if the request fails
+  var createListenerQuestion:
+    (_ jwtToken: String, _ stationId: String, _ audioBlockId: String) async throws
+      -> ListenerQuestion = { _, _, _ in
+        ListenerQuestion.mock
+      }
+
   /// Searches for songs by keywords
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication

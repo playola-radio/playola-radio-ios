@@ -568,6 +568,44 @@ extension APIClient: DependencyKey {
 
         return response
       },
+      getListenerQuestionPresignedURL: { jwtToken, stationId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/listener-questions/presigned-url"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters: [String: String] = ["stationId": stationId]
+
+        let response = try await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(ListenerQuestionPresignedURLResponse.self, decoder: isoDecoder)
+        .value
+
+        return response
+      },
+      createListenerQuestion: { jwtToken, stationId, audioBlockId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/listener-questions"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters: [String: String] = ["stationId": stationId, "audioBlockId": audioBlockId]
+
+        let response = try await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(ListenerQuestion.self, decoder: isoDecoder)
+        .value
+
+        return response
+      },
       searchSongs: { jwtToken, keywords in
         let encodedKeywords =
           keywords.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? keywords

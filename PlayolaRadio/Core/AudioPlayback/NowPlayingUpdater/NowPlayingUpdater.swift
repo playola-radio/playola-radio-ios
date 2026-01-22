@@ -36,6 +36,23 @@ struct NowPlaying: Equatable, Codable {
     self.currentStation = currentStation
     self.playbackStatus = playbackStatus
   }
+
+  static func mockWith(
+    artistPlaying: String? = nil,
+    titlePlaying: String? = nil,
+    spin: Spin? = nil,
+    station: AnyStation? = .mock,
+    status: StationPlayer.PlaybackStatus? = nil
+  ) -> NowPlaying {
+    let resolvedStatus = status ?? (station.map { .playing($0) } ?? .stopped)
+    return NowPlaying(
+      artistPlaying: artistPlaying ?? "Rachel Loy",
+      titlePlaying: titlePlaying ?? "Selfie",
+      playolaSpinPlaying: spin,
+      currentStation: station,
+      playbackStatus: resolvedStatus
+    )
+  }
 }
 
 // MARK: - Shared Storage Extension
