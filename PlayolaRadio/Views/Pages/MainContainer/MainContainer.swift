@@ -19,41 +19,15 @@ struct MainContainer: View {
     NavigationStack(path: $model.mainContainerNavigationCoordinator.path) {
       VStack(spacing: 0) {
         TabView(selection: $model.activeTab) {
-          tabContentWithSmallPlayer(content: {
-            HomePageView(model: model.homePageModel)
-          })
-          .tabItem {
-            Image("HomeTabImage")
-            Text("Home")
+          if model.isInBroadcastMode {
+            broadcastTab
+            settingsTab
+          } else {
+            homeTab
+            stationsTab
+            rewardsTab
+            profileTab
           }
-          .tag(MainContainerModel.ActiveTab.home)
-
-          tabContentWithSmallPlayer(content: {
-            StationListPage(model: model.stationListModel)
-          })
-          .tabItem {
-            Image("RadioStationsTabImage")
-            Text("Radio Stations")
-          }
-          .tag(MainContainerModel.ActiveTab.stationsList)
-
-          tabContentWithSmallPlayer(content: {
-            RewardsPageView(model: model.rewardsPageModel)
-          })
-          .tabItem {
-            Image("gift")
-            Text("Rewards")
-          }
-          .tag(MainContainerModel.ActiveTab.rewards)
-
-          tabContentWithSmallPlayer(content: {
-            ContactPageView(model: model.contactPageModel)
-          })
-          .tabItem {
-            Image("ProfileTabImage")
-            Text("Your Profile")
-          }
-          .tag(MainContainerModel.ActiveTab.profile)
         }
         //        .tabBarMinimizeBehavior(.onScrollDown)  // add in iOS 26
         .accentColor(.white)  // Makes the selected tab icon white
@@ -168,7 +142,95 @@ struct MainContainer: View {
         Task { await model.refreshOnForeground() }
       }
     }
+    .onChange(of: model.mainContainerNavigationCoordinator.appMode) { _, newMode in
+      if case .broadcasting = newMode {
+        model.ensureBroadcastModels()
+        model.$activeTab.withLock { $0 = .broadcast }
+      } else {
+        model.$activeTab.withLock { $0 = .home }
+      }
+    }
   }
+
+  // MARK: - Listening Mode Tabs
+
+  @ViewBuilder
+  private var homeTab: some View {
+    tabContentWithSmallPlayer {
+      HomePageView(model: model.homePageModel)
+    }
+    .tabItem {
+      Image("HomeTabImage")
+      Text("Home")
+    }
+    .tag(MainContainerModel.ActiveTab.home)
+  }
+
+  @ViewBuilder
+  private var stationsTab: some View {
+    tabContentWithSmallPlayer {
+      StationListPage(model: model.stationListModel)
+    }
+    .tabItem {
+      Image("RadioStationsTabImage")
+      Text("Radio Stations")
+    }
+    .tag(MainContainerModel.ActiveTab.stationsList)
+  }
+
+  @ViewBuilder
+  private var rewardsTab: some View {
+    tabContentWithSmallPlayer {
+      RewardsPageView(model: model.rewardsPageModel)
+    }
+    .tabItem {
+      Image("gift")
+      Text("Rewards")
+    }
+    .tag(MainContainerModel.ActiveTab.rewards)
+  }
+
+  @ViewBuilder
+  private var profileTab: some View {
+    tabContentWithSmallPlayer {
+      ContactPageView(model: model.contactPageModel)
+    }
+    .tabItem {
+      Image("ProfileTabImage")
+      Text("Your Profile")
+    }
+    .tag(MainContainerModel.ActiveTab.profile)
+  }
+
+  // MARK: - Broadcast Mode Tabs
+
+  @ViewBuilder
+  private var broadcastTab: some View {
+    tabContentWithSmallPlayer {
+      if let broadcastModel = model.broadcastPageModel {
+        BroadcastPageView(model: broadcastModel)
+      }
+    }
+    .tabItem {
+      Image(systemName: "antenna.radiowaves.left.and.right")
+      Text("Broadcast")
+    }
+    .tag(MainContainerModel.ActiveTab.broadcast)
+  }
+
+  @ViewBuilder
+  private var settingsTab: some View {
+    tabContentWithSmallPlayer {
+      ContactPageView(model: model.contactPageModel)
+    }
+    .tabItem {
+      Image("ProfileTabImage")
+      Text("Profile")
+    }
+    .tag(MainContainerModel.ActiveTab.settings)
+  }
+
+  // MARK: - Helper Views
 
   @ViewBuilder
   private func tabContentWithSmallPlayer<Content: View>(@ViewBuilder content: () -> Content)

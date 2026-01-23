@@ -25,7 +25,6 @@ class ContactPageModel: ViewModel {
   var likedSongsPageModel: LikedSongsPageModel = LikedSongsPageModel()
   var notificationsSettingsPageModel: NotificationsSettingsPageModel =
     NotificationsSettingsPageModel()
-  var broadcastPageModel: BroadcastPageModel?
   var chooseStationToBroadcastPageModel: ChooseStationToBroadcastPageModel?
   var supportPageModel: SupportPageModel?
   var conversationListPageModel: ConversationListPageModel?
@@ -43,7 +42,7 @@ class ContactPageModel: ViewModel {
   }
 
   var myStationButtonVisible: Bool {
-    !userStations.isEmpty
+    !userStations.isEmpty && !isInBroadcastMode
   }
 
   var myStationButtonLabel: String {
@@ -56,6 +55,17 @@ class ContactPageModel: ViewModel {
 
   var email: String {
     return auth.currentUser?.email ?? "Unknown"
+  }
+
+  var isInBroadcastMode: Bool {
+    if case .broadcasting = mainContainerNavigationCoordinator.appMode {
+      return true
+    }
+    return false
+  }
+
+  func switchToListeningMode() {
+    mainContainerNavigationCoordinator.switchToListeningMode()
   }
 
   init(
@@ -101,9 +111,7 @@ class ContactPageModel: ViewModel {
     guard !userStations.isEmpty else { return }
 
     if userStations.count == 1, let station = userStations.first {
-      let model = BroadcastPageModel(stationId: station.id)
-      broadcastPageModel = model
-      mainContainerNavigationCoordinator.path.append(.broadcastPage(model))
+      mainContainerNavigationCoordinator.switchToBroadcastMode(stationId: station.id)
       await analytics.track(
         .viewedBroadcastScreen(
           stationId: station.id,
@@ -113,12 +121,13 @@ class ContactPageModel: ViewModel {
     } else {
       let model = ChooseStationToBroadcastPageModel(stations: userStations)
       chooseStationToBroadcastPageModel = model
-      mainContainerNavigationCoordinator.path.append(.chooseStationToBroadcastPage(model))
+      mainContainerNavigationCoordinator.push(.chooseStationToBroadcastPage(model))
     }
   }
 
   func onLogOutTapped() {
     stationPlayer.stop()
+    mainContainerNavigationCoordinator.switchToListeningMode()
     $auth.withLock { $0 = Auth() }
   }
 

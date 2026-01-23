@@ -36,7 +36,6 @@ class ChooseStationToBroadcastPageModel: ViewModel {
   }
 
   func onStationSelected(_ station: Station) {
-    let model = BroadcastPageModel(stationId: station.id)
-    mainContainerNavigationCoordinator.path.append(.broadcastPage(model))
+    mainContainerNavigationCoordinator.switchToBroadcastMode(stationId: station.id)
   }
 }
