@@ -871,5 +871,90 @@ final class MainContainerTests: XCTestCase {
     XCTAssertTrue(markDismissedCalled)
     XCTAssertTrue(capturedEvents.value.contains { $0 == .ratingPromptDismissed })
   }
+
+  // MARK: - Mode-Aware Properties Tests
+
+  func testIsInBroadcastModeReturnsFalseWhenListening() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    coordinator.appMode = .listening
+
+    let mainContainerModel = MainContainerModel()
+
+    XCTAssertFalse(mainContainerModel.isInBroadcastMode)
+  }
+
+  func testIsInBroadcastModeReturnsTrueWhenBroadcasting() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    coordinator.appMode = .broadcasting(stationId: "station-123")
+
+    let mainContainerModel = MainContainerModel()
+
+    XCTAssertTrue(mainContainerModel.isInBroadcastMode)
+  }
+
+  func testBroadcastStationIdReturnsNilWhenListening() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    coordinator.appMode = .listening
+
+    let mainContainerModel = MainContainerModel()
+
+    XCTAssertNil(mainContainerModel.broadcastStationId)
+  }
+
+  func testBroadcastStationIdReturnsStationIdWhenBroadcasting() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    coordinator.appMode = .broadcasting(stationId: "station-123")
+
+    let mainContainerModel = MainContainerModel()
+
+    XCTAssertEqual(mainContainerModel.broadcastStationId, "station-123")
+  }
+
+  func testEnsureBroadcastModelsCreatesBroadcastPageModel() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    coordinator.appMode = .broadcasting(stationId: "station-123")
+
+    let mainContainerModel = MainContainerModel()
+    XCTAssertNil(mainContainerModel.broadcastPageModel)
+
+    mainContainerModel.ensureBroadcastModels()
+
+    XCTAssertNotNil(mainContainerModel.broadcastPageModel)
+    XCTAssertEqual(mainContainerModel.broadcastPageModel?.stationId, "station-123")
+  }
+
+  func testEnsureBroadcastModelsDoesNothingWhenListening() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    coordinator.appMode = .listening
+
+    let mainContainerModel = MainContainerModel()
+    mainContainerModel.ensureBroadcastModels()
+
+    XCTAssertNil(mainContainerModel.broadcastPageModel)
+  }
+
+  func testEnsureBroadcastModelsRecreatesModelsWhenStationIdChanges() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    coordinator.appMode = .broadcasting(stationId: "station-123")
+
+    let mainContainerModel = MainContainerModel()
+    mainContainerModel.ensureBroadcastModels()
+
+    let originalModel = mainContainerModel.broadcastPageModel
+    XCTAssertEqual(originalModel?.stationId, "station-123")
+
+    coordinator.appMode = .broadcasting(stationId: "station-456")
+    mainContainerModel.ensureBroadcastModels()
+
+    XCTAssertEqual(mainContainerModel.broadcastPageModel?.stationId, "station-456")
+    XCTAssertFalse(mainContainerModel.broadcastPageModel === originalModel)
+  }
 }
 // swiftlint:enable force_try

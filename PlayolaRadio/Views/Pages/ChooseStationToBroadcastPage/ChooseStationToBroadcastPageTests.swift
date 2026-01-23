@@ -55,7 +55,7 @@ final class ChooseStationToBroadcastPageTests: XCTestCase {
     XCTAssertEqual(model.displayName(for: station), "DJ Awesome - Cool Station")
   }
 
-  func testOnStationSelected_NavigatesToBroadcastPage() {
+  func testOnStationSelected_SwitchesToBroadcastMode() {
     let stations = [
       Station.mockWith(id: "station-1", name: "First Station"),
       Station.mockWith(id: "station-2", name: "Second Station"),
@@ -63,18 +63,15 @@ final class ChooseStationToBroadcastPageTests: XCTestCase {
 
     let model = ChooseStationToBroadcastPageModel(stations: stations)
 
-    XCTAssertTrue(model.mainContainerNavigationCoordinator.path.isEmpty)
+    XCTAssertEqual(model.mainContainerNavigationCoordinator.appMode, .listening)
 
     model.onStationSelected(stations[1])
 
-    XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
-
-    if case .broadcastPage(let broadcastModel) = model.mainContainerNavigationCoordinator.path.first
-    {
-      XCTAssertEqual(broadcastModel.stationId, "station-2")
-    } else {
-      XCTFail("Expected navigation to broadcast page")
-    }
+    XCTAssertEqual(
+      model.mainContainerNavigationCoordinator.appMode,
+      .broadcasting(stationId: "station-2")
+    )
+    XCTAssertTrue(model.mainContainerNavigationCoordinator.path.isEmpty)
   }
 
   func testSortedStations_FiltersOutInactiveStations() {

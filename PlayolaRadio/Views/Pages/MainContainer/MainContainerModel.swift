@@ -35,10 +35,14 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
 
   enum ActiveTab {
+    // Listening mode tabs
     case home
     case stationsList
     case rewards
     case profile
+    // Broadcast mode tabs
+    case broadcast
+    case settings
   }
 
   var presentedAlert: PlayolaAlert?
@@ -50,12 +54,38 @@ class MainContainerModel: ViewModel {
   var contactPageModel = ContactPageModel()
   var liveStationsPoller = LiveStationsPoller()
 
+  // Broadcast mode models
+  var broadcastPageModel: BroadcastPageModel?
+
   var shouldShowSmallPlayer: Bool = false
   private var hasCheckedRatingPromptThisSession = false
 
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
     super.init()
+  }
+
+  // MARK: - Mode-Aware Properties
+
+  var isInBroadcastMode: Bool {
+    if case .broadcasting = mainContainerNavigationCoordinator.appMode {
+      return true
+    }
+    return false
+  }
+
+  var broadcastStationId: String? {
+    if case .broadcasting(let stationId) = mainContainerNavigationCoordinator.appMode {
+      return stationId
+    }
+    return nil
+  }
+
+  func ensureBroadcastModels() {
+    guard let stationId = broadcastStationId else { return }
+    if broadcastPageModel?.stationId != stationId {
+      broadcastPageModel = BroadcastPageModel(stationId: stationId)
+    }
   }
 
   func viewAppeared() async {

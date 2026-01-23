@@ -9,6 +9,11 @@ import Dependencies
 import Sharing
 import SwiftUI
 
+enum AppMode: Equatable {
+  case listening
+  case broadcasting(stationId: String)
+}
+
 /// This class coordinates any ViewControllers that need to be pushed onto the
 /// top stack, meaning they will be presented over the MainContainer, covering the
 /// tabs.
@@ -16,6 +21,7 @@ import SwiftUI
 final class MainContainerNavigationCoordinator: Sendable {
   var path: [Path] = []
   var presentedSheet: PlayolaSheet?
+  var appMode: AppMode = .listening
 
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Dependency(\.continuousClock) var clock
@@ -45,12 +51,27 @@ final class MainContainerNavigationCoordinator: Sendable {
     self.path.removeAll()
   }
 
+  func switchToBroadcastMode(stationId: String) {
+    path = []
+    appMode = .broadcasting(stationId: stationId)
+  }
+
+  func switchToListeningMode() {
+    path = []
+    appMode = .listening
+  }
+
   func replace(with path: Path) {
     self.path = [path]
   }
 
   @MainActor
   func navigateToLikedSongs() async {
+    // If in broadcast mode, switch to listening first
+    if case .broadcasting = appMode {
+      switchToListeningMode()
+    }
+
     // Dismiss any presented sheet if needed
     if presentedSheet != nil {
       withAnimation(.easeInOut(duration: 0.3)) {
@@ -78,6 +99,11 @@ final class MainContainerNavigationCoordinator: Sendable {
 
   @MainActor
   func navigateToSupport(_ model: SupportPageModel) async {
+    // If in broadcast mode, switch to listening first
+    if case .broadcasting = appMode {
+      switchToListeningMode()
+    }
+
     // Dismiss any presented sheet if needed
     if presentedSheet != nil {
       withAnimation(.easeInOut(duration: 0.3)) {
