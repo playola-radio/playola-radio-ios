@@ -270,6 +270,11 @@
 		D3776A0F2F22CB8600200ADF /* ListenerQuestionPresignedURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A0D2F22CB8600200ADF /* ListenerQuestionPresignedURLResponse.swift */; };
 		D3776A112F242E1500200ADF /* Color+Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A102F242DFD00200ADF /* Color+Palette.swift */; };
 		D3776A122F242E1500200ADF /* Color+Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A102F242DFD00200ADF /* Color+Palette.swift */; };
+		D3776A172F243F7A00200ADF /* BroadcastersListenerQuestionPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A132F243F7A00200ADF /* BroadcastersListenerQuestionPageModel.swift */; };
+		D3776A192F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A152F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift */; };
+		D3776A1A2F243F7A00200ADF /* BroadcastersListenerQuestionPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A132F243F7A00200ADF /* BroadcastersListenerQuestionPageModel.swift */; };
+		D3776A1C2F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A152F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift */; };
+		D3776A1D2F243F8600200ADF /* BroadcastersListenerQuestionPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A142F243F7A00200ADF /* BroadcastersListenerQuestionPageTests.swift */; };
 		D378CCCE2E56011A00497A4A /* SignInPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCD2E56011500497A4A /* SignInPageModel.swift */; };
 		D378CCD02E57947800497A4A /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCF2E57947800497A4A /* ShareSheet.swift */; };
 		D37B74872EC94427009806C6 /* PushNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37B74862EC94426009806C6 /* PushNotifications.swift */; };
@@ -505,6 +510,9 @@
 		D3776A0A2F22BF6A00200ADF /* ListenerQuestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenerQuestion.swift; sourceTree = "<group>"; };
 		D3776A0D2F22CB8600200ADF /* ListenerQuestionPresignedURLResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenerQuestionPresignedURLResponse.swift; sourceTree = "<group>"; };
 		D3776A102F242DFD00200ADF /* Color+Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Palette.swift"; sourceTree = "<group>"; };
+		D3776A132F243F7A00200ADF /* BroadcastersListenerQuestionPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastersListenerQuestionPageModel.swift; sourceTree = "<group>"; };
+		D3776A142F243F7A00200ADF /* BroadcastersListenerQuestionPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastersListenerQuestionPageTests.swift; sourceTree = "<group>"; };
+		D3776A152F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastersListenerQuestionPageView.swift; sourceTree = "<group>"; };
 		D378CCCD2E56011500497A4A /* SignInPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageModel.swift; sourceTree = "<group>"; };
 		D378CCCF2E57947800497A4A /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		D37B74862EC94426009806C6 /* PushNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotifications.swift; sourceTree = "<group>"; };
@@ -757,6 +765,7 @@
 			isa = PBXGroup;
 			children = (
 				D3776A022F22BA1A00200ADF /* AskQuestionPage */,
+				D3776A162F243F7A00200ADF /* BroadcastersListenerQuestionPage */,
 				D3219C152EDD22060008AFDA /* BroadcastPage */,
 				D37769F82F22B38700200ADF /* ChooseStationPage */,
 				D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */,
@@ -1072,6 +1081,16 @@
 				D3776A012F22BA1A00200ADF /* AskQuestionPageView.swift */,
 			);
 			path = AskQuestionPage;
+			sourceTree = "<group>";
+		};
+		D3776A162F243F7A00200ADF /* BroadcastersListenerQuestionPage */ = {
+			isa = PBXGroup;
+			children = (
+				D3776A132F243F7A00200ADF /* BroadcastersListenerQuestionPageModel.swift */,
+				D3776A142F243F7A00200ADF /* BroadcastersListenerQuestionPageTests.swift */,
+				D3776A152F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift */,
+			);
+			path = BroadcastersListenerQuestionPage;
 			sourceTree = "<group>";
 		};
 		D378CCD12E58C37D00497A4A /* Core */ = {
@@ -1535,6 +1554,8 @@
 				D35EFC202F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */,
 				D3776A122F242E1500200ADF /* Color+Palette.swift in Sources */,
 				D35EFC1A2F17D33E000F64A4 /* LocalVoicetrack.swift in Sources */,
+				D3776A1A2F243F7A00200ADF /* BroadcastersListenerQuestionPageModel.swift in Sources */,
+				D3776A1C2F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift in Sources */,
 				D30F004D2E8592F0007BCC73 /* RadioStation.swift in Sources */,
 				D30F004E2E8592F0007BCC73 /* RewardsPageView.swift in Sources */,
 				D3F493B82EEDD2AC008ED463 /* RecordPageModel.swift in Sources */,
@@ -1671,6 +1692,8 @@
 				D35EFC212F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */,
 				D3776A112F242E1500200ADF /* Color+Palette.swift in Sources */,
 				D35EFC192F17D33E000F64A4 /* LocalVoicetrack.swift in Sources */,
+				D3776A172F243F7A00200ADF /* BroadcastersListenerQuestionPageModel.swift in Sources */,
+				D3776A192F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift in Sources */,
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
 				D3B744C22E31317B0042A427 /* RewardsPageView.swift in Sources */,
 				D3F493B92EEDD2AC008ED463 /* RecordPageModel.swift in Sources */,
@@ -1794,6 +1817,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D35EFC142F1595C5000F64A4 /* SeriesCardTests.swift in Sources */,
+				D3776A1D2F243F8600200ADF /* BroadcastersListenerQuestionPageTests.swift in Sources */,
 				D35EFC532F1A99E6000F64A4 /* ConversationListPageTests.swift in Sources */,
 				D302578C2E63B6D100F4228B /* LikedSongsPageTests.swift in Sources */,
 				D35EFC3F2F192C8F000F64A4 /* SupportPageTests.swift in Sources */,
