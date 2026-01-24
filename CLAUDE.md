@@ -51,6 +51,37 @@ class SomePageModel: ViewModel {
 }
 ```
 
+### Model/View Responsibilities
+
+**Models are the full representation of the view.** All text, titles, labels, and display values should come from the model as stored or computed properties. The view should only describe *how* things appear, never *what* they do.
+
+**Model responsibilities:**
+- All display text (titles, labels, button text, status messages)
+- All computed display values (formatted dates, durations, progress)
+- All business logic and state management
+- Action methods that describe user interactions
+
+**View responsibilities:**
+- Layout and styling only
+- Binds to model properties for all content
+- Calls model methods for all user actions
+- Contains zero business logic
+
+**Action method naming** - use names that describe user actions:
+```swift
+// Good - describes what the user did
+func recordButtonTapped() async { }
+func stopButtonTapped() async { }
+func showMoreButtonTapped() { }
+func listReordered(from: IndexSet, to: Int) { }
+
+// Bad - describes implementation
+func startRecording() async { }
+func toggleExpanded() { }
+```
+
+**Helper functions** should be private and placed at the bottom of the model.
+
 ## Dependencies
 
 Uses Point-Free's `swift-dependencies` library:
