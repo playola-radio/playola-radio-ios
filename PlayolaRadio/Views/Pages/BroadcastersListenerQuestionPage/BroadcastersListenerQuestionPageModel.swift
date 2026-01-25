@@ -13,6 +13,7 @@ import SwiftUI
 @Observable
 class BroadcastersListenerQuestionPageModel: ViewModel {
   let stationId: String
+  let navigationTitle = "Questions from Listeners"
 
   var questions: IdentifiedArrayOf<ListenerQuestion> = []
   var expandedQuestionIds: Set<String> = []
@@ -22,6 +23,8 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
 
   init(stationId: String) {
     self.stationId = stationId
@@ -80,6 +83,12 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
     await audioPlayer.stop()
     playingQuestionId = nil
   }
+
+  func questionRowTapped(_ question: ListenerQuestion) async {
+    await stopPlayback()
+    let detailModel = ListenerQuestionDetailPageModel(question: question)
+    mainContainerNavigationCoordinator.push(.listenerQuestionDetailPage(detailModel))
+  }
 }
 
 // MARK: - Mock Data
@@ -89,23 +98,16 @@ extension BroadcastersListenerQuestionPageModel {
     let now = Date()
 
     return [
-      ListenerQuestion(
+      .mockWith(
         id: "question-1",
         listenerId: "listener-1",
         stationId: "station-1",
         audioBlockId: "audio-1",
-        status: .pending,
-        answerAudioBlockId: nil,
-        answerSpinId: nil,
-        notificationSentAt: nil,
-        declinedAt: nil,
-        declinedReason: nil,
         createdAt: now.addingTimeInterval(-3600),
-        listener: ListenerQuestionListener(
+        listener: .mockWith(
           id: "listener-1",
           firstName: "Sarah",
-          lastName: "Johnson",
-          profileImageUrl: nil
+          lastName: "Johnson"
         ),
         audioBlock: AudioBlock.mockWith(
           id: "audio-1",
@@ -117,26 +119,18 @@ extension BroadcastersListenerQuestionPageModel {
             80s music? I grew up listening to that era and it always brings back such great \
             memories. Thanks for all you do!
             """
-        ),
-        answerAudioBlock: nil
+        )
       ),
-      ListenerQuestion(
+      .mockWith(
         id: "question-2",
         listenerId: "listener-2",
         stationId: "station-1",
         audioBlockId: "audio-2",
-        status: .pending,
-        answerAudioBlockId: nil,
-        answerSpinId: nil,
-        notificationSentAt: nil,
-        declinedAt: nil,
-        declinedReason: nil,
         createdAt: now.addingTimeInterval(-7200),
-        listener: ListenerQuestionListener(
+        listener: .mockWith(
           id: "listener-2",
           firstName: "Mike",
-          lastName: "Chen",
-          profileImageUrl: nil
+          lastName: "Chen"
         ),
         audioBlock: AudioBlock.mockWith(
           id: "audio-2",
@@ -144,26 +138,18 @@ extension BroadcastersListenerQuestionPageModel {
           artist: "Listener",
           durationMS: 30000,
           transcription: "What's the name of that song you played earlier today?"
-        ),
-        answerAudioBlock: nil
+        )
       ),
-      ListenerQuestion(
+      .mockWith(
         id: "question-3",
         listenerId: "listener-3",
         stationId: "station-1",
         audioBlockId: "audio-3",
-        status: .pending,
-        answerAudioBlockId: nil,
-        answerSpinId: nil,
-        notificationSentAt: nil,
-        declinedAt: nil,
-        declinedReason: nil,
         createdAt: now.addingTimeInterval(-14400),
-        listener: ListenerQuestionListener(
+        listener: .mockWith(
           id: "listener-3",
           firstName: "Emily",
-          lastName: nil,
-          profileImageUrl: nil
+          lastName: nil
         ),
         audioBlock: AudioBlock.mockWith(
           id: "audio-3",
@@ -177,26 +163,18 @@ extension BroadcastersListenerQuestionPageModel {
             where are you broadcasting from? Your station has such a unique vibe and I'm \
             curious about the person behind it. Keep up the amazing work!
             """
-        ),
-        answerAudioBlock: nil
+        )
       ),
-      ListenerQuestion(
+      .mockWith(
         id: "question-4",
         listenerId: "listener-4",
         stationId: "station-1",
         audioBlockId: "audio-4",
-        status: .pending,
-        answerAudioBlockId: nil,
-        answerSpinId: nil,
-        notificationSentAt: nil,
-        declinedAt: nil,
-        declinedReason: nil,
         createdAt: now.addingTimeInterval(-21600),
-        listener: ListenerQuestionListener(
+        listener: .mockWith(
           id: "listener-4",
           firstName: "Alex",
-          lastName: "Rivera",
-          profileImageUrl: nil
+          lastName: "Rivera"
         ),
         audioBlock: AudioBlock.mockWith(
           id: "audio-4",
@@ -204,8 +182,7 @@ extension BroadcastersListenerQuestionPageModel {
           artist: "Listener",
           durationMS: 25000,
           transcription: "Love the station! Can you give a shoutout to my friend Jordan?"
-        ),
-        answerAudioBlock: nil
+        )
       ),
     ]
   }

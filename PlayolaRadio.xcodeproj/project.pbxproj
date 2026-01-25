@@ -275,6 +275,11 @@
 		D3776A1A2F243F7A00200ADF /* BroadcastersListenerQuestionPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A132F243F7A00200ADF /* BroadcastersListenerQuestionPageModel.swift */; };
 		D3776A1C2F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A152F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift */; };
 		D3776A1D2F243F8600200ADF /* BroadcastersListenerQuestionPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A142F243F7A00200ADF /* BroadcastersListenerQuestionPageTests.swift */; };
+		D3776A2E2F2695B800200ADF /* ListenerQuestionDetailPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A2B2F2695B800200ADF /* ListenerQuestionDetailPageView.swift */; };
+		D3776A2F2F2695B800200ADF /* ListenerQuestionDetailPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A292F2695B800200ADF /* ListenerQuestionDetailPageModel.swift */; };
+		D3776A312F2695B800200ADF /* ListenerQuestionDetailPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A2B2F2695B800200ADF /* ListenerQuestionDetailPageView.swift */; };
+		D3776A322F2695B800200ADF /* ListenerQuestionDetailPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A292F2695B800200ADF /* ListenerQuestionDetailPageModel.swift */; };
+		D3776A332F2695BE00200ADF /* ListenerQuestionDetailPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A2A2F2695B800200ADF /* ListenerQuestionDetailPageTests.swift */; };
 		D378CCCE2E56011A00497A4A /* SignInPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCD2E56011500497A4A /* SignInPageModel.swift */; };
 		D378CCD02E57947800497A4A /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCF2E57947800497A4A /* ShareSheet.swift */; };
 		D37B74872EC94427009806C6 /* PushNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37B74862EC94426009806C6 /* PushNotifications.swift */; };
@@ -513,6 +518,9 @@
 		D3776A132F243F7A00200ADF /* BroadcastersListenerQuestionPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastersListenerQuestionPageModel.swift; sourceTree = "<group>"; };
 		D3776A142F243F7A00200ADF /* BroadcastersListenerQuestionPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastersListenerQuestionPageTests.swift; sourceTree = "<group>"; };
 		D3776A152F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastersListenerQuestionPageView.swift; sourceTree = "<group>"; };
+		D3776A292F2695B800200ADF /* ListenerQuestionDetailPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenerQuestionDetailPageModel.swift; sourceTree = "<group>"; };
+		D3776A2A2F2695B800200ADF /* ListenerQuestionDetailPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenerQuestionDetailPageTests.swift; sourceTree = "<group>"; };
+		D3776A2B2F2695B800200ADF /* ListenerQuestionDetailPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenerQuestionDetailPageView.swift; sourceTree = "<group>"; };
 		D378CCCD2E56011500497A4A /* SignInPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageModel.swift; sourceTree = "<group>"; };
 		D378CCCF2E57947800497A4A /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		D37B74862EC94426009806C6 /* PushNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotifications.swift; sourceTree = "<group>"; };
@@ -776,6 +784,7 @@
 				D37257AC2DF88B89001BC6F9 /* HomePage */,
 				D3A08A362E53A761002468E0 /* InvitationCodePage */,
 				D30257852E63B6AD00F4228B /* LikedSongsPage */,
+				D3776A2C2F2695B800200ADF /* ListenerQuestionDetailPage */,
 				D37257C72DFA2470001BC6F9 /* MainContainer */,
 				D3367BF82F08B7DC00AF87FA /* NotificationsSettingsPage */,
 				D37257CE2DFB4358001BC6F9 /* PlayerPage */,
@@ -1091,6 +1100,16 @@
 				D3776A152F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift */,
 			);
 			path = BroadcastersListenerQuestionPage;
+			sourceTree = "<group>";
+		};
+		D3776A2C2F2695B800200ADF /* ListenerQuestionDetailPage */ = {
+			isa = PBXGroup;
+			children = (
+				D3776A292F2695B800200ADF /* ListenerQuestionDetailPageModel.swift */,
+				D3776A2A2F2695B800200ADF /* ListenerQuestionDetailPageTests.swift */,
+				D3776A2B2F2695B800200ADF /* ListenerQuestionDetailPageView.swift */,
+			);
+			path = ListenerQuestionDetailPage;
 			sourceTree = "<group>";
 		};
 		D378CCD12E58C37D00497A4A /* Core */ = {
@@ -1632,6 +1651,8 @@
 				D3367BF92F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */,
 				D3367BFB2F08B7DC00AF87FA /* NotificationsSettingsPageView.swift in Sources */,
 				D30F007F2E8592F0007BCC73 /* LikedSongsPage.swift in Sources */,
+				D3776A2E2F2695B800200ADF /* ListenerQuestionDetailPageView.swift in Sources */,
+				D3776A2F2F2695B800200ADF /* ListenerQuestionDetailPageModel.swift in Sources */,
 				D30F00802E8592F0007BCC73 /* EnumTypeEquatableProtocol.swift in Sources */,
 				D3C7E5F82EF0D12A00EDD3ED /* SongSeed.swift in Sources */,
 				D30F00812E8592F0007BCC73 /* InvitationCodePageView.swift in Sources */,
@@ -1770,6 +1791,8 @@
 				D3367BFC2F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */,
 				D3367BFE2F08B7DC00AF87FA /* NotificationsSettingsPageView.swift in Sources */,
 				D30257872E63B6BB00F4228B /* LikedSongsPage.swift in Sources */,
+				D3776A312F2695B800200ADF /* ListenerQuestionDetailPageView.swift in Sources */,
+				D3776A322F2695B800200ADF /* ListenerQuestionDetailPageModel.swift in Sources */,
 				D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */,
 				D3C7E5F62EF0D12A00EDD3ED /* SongSeed.swift in Sources */,
 				D3A08A3A2E53A788002468E0 /* InvitationCodePageView.swift in Sources */,
@@ -1855,6 +1878,7 @@
 				D30257812E639FF200F4228B /* LikesManagerTests.swift in Sources */,
 				D35EFC592F1B0472000F64A4 /* AppRatingClientTests.swift in Sources */,
 				D35EFC092F159014000F64A4 /* EpisodeRowTests.swift in Sources */,
+				D3776A332F2695BE00200ADF /* ListenerQuestionDetailPageTests.swift in Sources */,
 				D30257842E63A37400F4228B /* LikeOperationTests.swift in Sources */,
 				D31CD5272DFBB4DF009B9780 /* MainContainerTests.swift in Sources */,
 				D3776A092F22BA2100200ADF /* AskQuestionPageTests.swift in Sources */,

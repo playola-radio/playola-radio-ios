@@ -244,7 +244,7 @@ struct LiveWaveformView: View {
     GeometryReader { geometry in
       let barWidth = (geometry.size.width - CGFloat(Self.barCount - 1) * 2) / CGFloat(Self.barCount)
       HStack(alignment: .center, spacing: 2) {
-        let displaySamples = resampledSamples()
+        let displaySamples = recentSamples()
         ForEach(0..<Self.barCount, id: \.self) { index in
           let height: CGFloat =
             index < displaySamples.count
@@ -259,20 +259,9 @@ struct LiveWaveformView: View {
     }
   }
 
-  private func resampledSamples() -> [Float] {
+  private func recentSamples() -> [Float] {
     guard !samples.isEmpty else { return [] }
-    if samples.count <= Self.barCount {
-      return samples
-    }
-    // Resample to barCount
-    let step = max(1, samples.count / Self.barCount)
-    var result: [Float] = []
-    for sampleIndex in stride(from: 0, to: samples.count, by: step) {
-      let end = min(sampleIndex + step, samples.count)
-      let avg = samples[sampleIndex..<end].reduce(0, +) / Float(end - sampleIndex)
-      result.append(avg)
-    }
-    return Array(result.prefix(Self.barCount))
+    return Array(samples.suffix(Self.barCount))
   }
 }
 

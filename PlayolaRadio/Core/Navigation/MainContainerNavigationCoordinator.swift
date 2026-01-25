@@ -37,6 +37,7 @@ final class MainContainerNavigationCoordinator: Sendable {
     case seriesListPage(SeriesListPageModel)
     case supportPage(SupportPageModel)
     case conversationListPage(ConversationListPageModel)
+    case listenerQuestionDetailPage(ListenerQuestionDetailPageModel)
   }
 
   func push(_ path: Path) {

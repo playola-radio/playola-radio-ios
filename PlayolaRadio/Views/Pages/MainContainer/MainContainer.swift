@@ -64,6 +64,8 @@ struct MainContainer: View {
           SupportPageView(model: model)
         case .conversationListPage(let model):
           ConversationListPageView(model: model)
+        case .listenerQuestionDetailPage(let model):
+          ListenerQuestionDetailPageView(model: model)
         }
       }
     }

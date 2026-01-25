@@ -65,7 +65,8 @@ struct BroadcastersListenerQuestionPageView: View {
             isExpanded: model.isExpanded(question.id),
             isPlaying: model.isPlaying(question.id),
             onExpandTapped: { model.toggleExpanded(question.id) },
-            onPlayTapped: { Task { await model.onPlayTapped(question) } }
+            onPlayTapped: { Task { await model.onPlayTapped(question) } },
+            onRowTapped: { Task { await model.questionRowTapped(question) } }
           )
         }
       }
@@ -83,6 +84,7 @@ struct ListenerQuestionRow: View {
   let isPlaying: Bool
   let onExpandTapped: () -> Void
   let onPlayTapped: () -> Void
+  let onRowTapped: () -> Void
 
   private let collapsedLineLimit = 2
 
@@ -137,6 +139,11 @@ struct ListenerQuestionRow: View {
 
         // Play button
         playButton
+
+        // Chevron indicator
+        Image(systemName: "chevron.right")
+          .font(.system(size: 14, weight: .semibold))
+          .foregroundColor(.textSecondary)
       }
       .padding(.horizontal, 16)
       .padding(.top, 16)
@@ -151,7 +158,11 @@ struct ListenerQuestionRow: View {
           .animation(.easeInOut(duration: 0.2), value: isExpanded)
 
         if needsExpansion {
-          Button(action: onExpandTapped) {
+          Button {
+            withAnimation(.easeInOut(duration: 0.25)) {
+              onExpandTapped()
+            }
+          } label: {
             HStack(spacing: 4) {
               Text(isExpanded ? "Show less" : "Show more")
                 .font(.custom(FontNames.Inter_500_Medium, size: 13))
@@ -169,6 +180,10 @@ struct ListenerQuestionRow: View {
     }
     .background(Color.cardSurface)
     .cornerRadius(12)
+    .contentShape(Rectangle())
+    .onTapGesture {
+      onRowTapped()
+    }
   }
 
   // MARK: - Subviews

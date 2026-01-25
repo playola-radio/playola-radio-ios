@@ -51,26 +51,56 @@ struct ListenerQuestionListener: Codable, Equatable {
 
 extension ListenerQuestion {
   static var mock: ListenerQuestion {
+    .mockWith()
+  }
+
+  static func mockWith(
+    id: String = "mock-question-id",
+    listenerId: String = "mock-listener-id",
+    stationId: String = "mock-station-id",
+    audioBlockId: String = "mock-audio-block-id",
+    status: ListenerQuestionStatus = .pending,
+    answerAudioBlockId: String? = nil,
+    answerSpinId: String? = nil,
+    notificationSentAt: Date? = nil,
+    declinedAt: Date? = nil,
+    declinedReason: String? = nil,
+    createdAt: Date = Date(),
+    listener: ListenerQuestionListener? = .mockWith(),
+    audioBlock: AudioBlock? = nil,
+    answerAudioBlock: AudioBlock? = nil
+  ) -> ListenerQuestion {
     ListenerQuestion(
-      id: "mock-question-id",
-      listenerId: "mock-listener-id",
-      stationId: "mock-station-id",
-      audioBlockId: "mock-audio-block-id",
-      status: .pending,
-      answerAudioBlockId: nil,
-      answerSpinId: nil,
-      notificationSentAt: nil,
-      declinedAt: nil,
-      declinedReason: nil,
-      createdAt: Date(),
-      listener: ListenerQuestionListener(
-        id: "mock-listener-id",
-        firstName: "Test",
-        lastName: "User",
-        profileImageUrl: nil
-      ),
-      audioBlock: nil,
-      answerAudioBlock: nil
+      id: id,
+      listenerId: listenerId,
+      stationId: stationId,
+      audioBlockId: audioBlockId,
+      status: status,
+      answerAudioBlockId: answerAudioBlockId,
+      answerSpinId: answerSpinId,
+      notificationSentAt: notificationSentAt,
+      declinedAt: declinedAt,
+      declinedReason: declinedReason,
+      createdAt: createdAt,
+      listener: listener,
+      audioBlock: audioBlock,
+      answerAudioBlock: answerAudioBlock
+    )
+  }
+}
+
+extension ListenerQuestionListener {
+  static func mockWith(
+    id: String = "mock-listener-id",
+    firstName: String = "Test",
+    lastName: String? = "User",
+    profileImageUrl: String? = nil
+  ) -> ListenerQuestionListener {
+    ListenerQuestionListener(
+      id: id,
+      firstName: firstName,
+      lastName: lastName,
+      profileImageUrl: profileImageUrl
     )
   }
 }
