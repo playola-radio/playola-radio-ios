@@ -568,6 +568,18 @@ extension APIClient: DependencyKey {
 
         return response
       },
+      getListenerQuestions: { jwtToken, stationId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/listener-questions"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([ListenerQuestion].self, decoder: isoDecoder)
+          .value
+
+        return response
+      },
       getListenerQuestionPresignedURL: { jwtToken, stationId in
         let url =
           "\(Config.shared.baseUrl.absoluteString)/v1/listener-questions/presigned-url"

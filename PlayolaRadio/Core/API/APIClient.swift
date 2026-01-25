@@ -247,6 +247,15 @@ struct APIClient: Sendable {
 
   // MARK: - Listener Questions
 
+  /// Fetches listener questions for a station
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to fetch questions for
+  /// - Returns: Array of ListenerQuestion objects
+  /// - Throws: APIError if the request fails
+  var getListenerQuestions:
+    (_ jwtToken: String, _ stationId: String) async throws -> [ListenerQuestion] = { _, _ in [] }
+
   /// Gets a presigned URL for uploading a listener question to S3
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication

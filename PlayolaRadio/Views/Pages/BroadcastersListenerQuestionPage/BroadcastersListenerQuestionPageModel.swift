@@ -22,23 +22,33 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
   var presentedAlert: PlayolaAlert?
 
   @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
+  @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
 
   init(stationId: String) {
     self.stationId = stationId
     super.init()
-    loadMockData()
   }
 
   func viewAppeared() async {
-    // For now, just use mock data
-    // Later this will fetch from API
+    await fetchQuestions()
   }
 
-  private func loadMockData() {
-    questions = IdentifiedArray(uniqueElements: Self.mockQuestions)
+  func fetchQuestions() async {
+    guard let jwt = auth.jwt else { return }
+
+    isLoading = true
+    defer { isLoading = false }
+
+    do {
+      let fetchedQuestions = try await api.getListenerQuestions(jwt, stationId)
+      questions = IdentifiedArray(uniqueElements: fetchedQuestions)
+    } catch {
+      presentedAlert = .fetchQuestionsError(error.localizedDescription)
+    }
   }
 
   func isExpanded(_ questionId: String) -> Bool {
@@ -194,6 +204,14 @@ extension PlayolaAlert {
   static func audioPlaybackError(_ message: String) -> PlayolaAlert {
     PlayolaAlert(
       title: "Playback Error",
+      message: message,
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static func fetchQuestionsError(_ message: String) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Error Loading Questions",
       message: message,
       dismissButton: .cancel(Text("OK"))
     )
