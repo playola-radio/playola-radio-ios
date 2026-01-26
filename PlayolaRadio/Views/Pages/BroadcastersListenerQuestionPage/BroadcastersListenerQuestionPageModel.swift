@@ -9,53 +9,104 @@ import PlayolaPlayer
 import Sharing
 import SwiftUI
 
+enum ListenerQuestionFilter: CaseIterable, Equatable {
+  case pending
+  case answered
+  case all
+
+  var displayText: String {
+    switch self {
+    case .pending: return "Pending"
+    case .answered: return "Answered"
+    case .all: return "All"
+    }
+  }
+}
+
 @MainActor
 @Observable
 class BroadcastersListenerQuestionPageModel: ViewModel {
-  let stationId: String
-  let navigationTitle = "Questions from Listeners"
 
-  var questions: IdentifiedArrayOf<ListenerQuestion> = []
-  var expandedQuestionIds: Set<String> = []
-  var playingQuestionId: String?
-  var isLoading = false
-  var presentedAlert: PlayolaAlert?
+  // MARK: - Dependencies
 
   @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
+
+  // MARK: - Shared State
+
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
+
+  // MARK: - Initialization
 
   init(stationId: String) {
     self.stationId = stationId
     super.init()
   }
 
+  // MARK: - Properties
+
+  let stationId: String
+  let navigationTitle = "Questions from Listeners"
+  let filterOptions: [ListenerQuestionFilter] = [.pending, .answered, .all]
+
+  var questions: IdentifiedArrayOf<ListenerQuestion> = []
+  var expandedQuestionIds: Set<String> = []
+  var playingQuestionId: String?
+  var isLoading = false
+  var presentedAlert: PlayolaAlert?
+  var selectedFilter: ListenerQuestionFilter = .pending
+
+  var filteredQuestions: IdentifiedArrayOf<ListenerQuestion> {
+    switch selectedFilter {
+    case .pending:
+      return questions.filter { $0.status == .pending }
+    case .answered:
+      return questions.filter { $0.status == .answered }
+    case .all:
+      return questions.filter { $0.status != .declined }
+    }
+  }
+
+  var filteredEmptyStateTitle: String {
+    switch selectedFilter {
+    case .pending:
+      return "All Caught Up!"
+    case .answered:
+      return "No Answered Questions"
+    case .all:
+      return "No Questions"
+    }
+  }
+
+  var filteredEmptyStateMessage: String {
+    switch selectedFilter {
+    case .pending:
+      return "You've responded to all your questions."
+    case .answered:
+      return "Questions you've answered will appear here."
+    case .all:
+      return "No questions to display."
+    }
+  }
+
+  // MARK: - User Actions
+
   func viewAppeared() async {
     await fetchQuestions()
   }
 
-  func fetchQuestions() async {
-    guard let jwt = auth.jwt else { return }
-
-    isLoading = true
-    defer { isLoading = false }
-
-    do {
-      let fetchedQuestions = try await api.getListenerQuestions(jwt, stationId)
-      questions = IdentifiedArray(uniqueElements: fetchedQuestions)
-    } catch {
-      presentedAlert = .fetchQuestionsError(error.localizedDescription)
-    }
+  func refreshPulledDown() async {
+    await fetchQuestions()
   }
 
-  func isExpanded(_ questionId: String) -> Bool {
-    expandedQuestionIds.contains(questionId)
+  func filterSelected(_ filter: ListenerQuestionFilter) {
+    selectedFilter = filter
   }
 
-  func toggleExpanded(_ questionId: String) {
+  func showMoreButtonTapped(_ questionId: String) {
     if expandedQuestionIds.contains(questionId) {
       expandedQuestionIds.remove(questionId)
     } else {
@@ -63,11 +114,7 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
     }
   }
 
-  func isPlaying(_ questionId: String) -> Bool {
-    playingQuestionId == questionId
-  }
-
-  func onPlayTapped(_ question: ListenerQuestion) async {
+  func playButtonTapped(_ question: ListenerQuestion) async {
     guard let audioBlock = question.audioBlock,
       let downloadUrl = audioBlock.downloadUrl
     else { return }
@@ -89,112 +136,56 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
     }
   }
 
-  func stopPlayback() async {
-    await audioPlayer.stop()
-    playingQuestionId = nil
-  }
-
   func questionRowTapped(_ question: ListenerQuestion) async {
     await stopPlayback()
     let detailModel = ListenerQuestionDetailPageModel(question: question)
     mainContainerNavigationCoordinator.push(.listenerQuestionDetailPage(detailModel))
   }
-}
 
-// MARK: - Mock Data
+  func declineQuestionSwiped(_ question: ListenerQuestion) async {
+    guard let jwt = auth.jwt else { return }
 
-extension BroadcastersListenerQuestionPageModel {
-  static var mockQuestions: [ListenerQuestion] {
-    let now = Date()
+    do {
+      let updatedQuestion = try await api.declineListenerQuestion(jwt, stationId, question.id)
+      questions[id: question.id] = updatedQuestion
+    } catch {
+      presentedAlert = .declineQuestionError(error.localizedDescription)
+    }
+  }
 
-    return [
-      .mockWith(
-        id: "question-1",
-        listenerId: "listener-1",
-        stationId: "station-1",
-        audioBlockId: "audio-1",
-        createdAt: now.addingTimeInterval(-3600),
-        listener: .mockWith(
-          id: "listener-1",
-          firstName: "Sarah",
-          lastName: "Johnson"
-        ),
-        audioBlock: AudioBlock.mockWith(
-          id: "audio-1",
-          title: "Question from Sarah",
-          artist: "Listener",
-          durationMS: 45000,
-          transcription: """
-            Hey! I love your station so much. I was wondering if you could play some more \
-            80s music? I grew up listening to that era and it always brings back such great \
-            memories. Thanks for all you do!
-            """
-        )
-      ),
-      .mockWith(
-        id: "question-2",
-        listenerId: "listener-2",
-        stationId: "station-1",
-        audioBlockId: "audio-2",
-        createdAt: now.addingTimeInterval(-7200),
-        listener: .mockWith(
-          id: "listener-2",
-          firstName: "Mike",
-          lastName: "Chen"
-        ),
-        audioBlock: AudioBlock.mockWith(
-          id: "audio-2",
-          title: "Question from Mike",
-          artist: "Listener",
-          durationMS: 30000,
-          transcription: "What's the name of that song you played earlier today?"
-        )
-      ),
-      .mockWith(
-        id: "question-3",
-        listenerId: "listener-3",
-        stationId: "station-1",
-        audioBlockId: "audio-3",
-        createdAt: now.addingTimeInterval(-14400),
-        listener: .mockWith(
-          id: "listener-3",
-          firstName: "Emily",
-          lastName: nil
-        ),
-        audioBlock: AudioBlock.mockWith(
-          id: "audio-3",
-          title: "Question from Emily",
-          artist: "Listener",
-          durationMS: 60000,
-          transcription: """
-            Hi there! I'm a huge fan of your station. I've been listening every day on my \
-            commute to work and it really makes the drive so much better. I wanted to ask - \
-            do you take song requests? I'd love to hear some indie rock if possible. Also, \
-            where are you broadcasting from? Your station has such a unique vibe and I'm \
-            curious about the person behind it. Keep up the amazing work!
-            """
-        )
-      ),
-      .mockWith(
-        id: "question-4",
-        listenerId: "listener-4",
-        stationId: "station-1",
-        audioBlockId: "audio-4",
-        createdAt: now.addingTimeInterval(-21600),
-        listener: .mockWith(
-          id: "listener-4",
-          firstName: "Alex",
-          lastName: "Rivera"
-        ),
-        audioBlock: AudioBlock.mockWith(
-          id: "audio-4",
-          title: "Question from Alex",
-          artist: "Listener",
-          durationMS: 25000,
-          transcription: "Love the station! Can you give a shoutout to my friend Jordan?"
-        )
-      ),
-    ]
+  // MARK: - View Helpers
+
+  func isExpanded(_ questionId: String) -> Bool {
+    expandedQuestionIds.contains(questionId)
+  }
+
+  func isPlaying(_ questionId: String) -> Bool {
+    playingQuestionId == questionId
+  }
+
+  func canDecline(_ question: ListenerQuestion) -> Bool {
+    question.status == .pending
+  }
+
+  // MARK: - Private Helpers
+
+  private func fetchQuestions() async {
+    guard let jwt = auth.jwt else { return }
+
+    isLoading = true
+    defer { isLoading = false }
+
+    do {
+      let fetchedQuestions = try await api.getListenerQuestions(jwt, stationId)
+      questions = IdentifiedArray(uniqueElements: fetchedQuestions)
+    } catch {
+      presentedAlert = .fetchQuestionsError(error.localizedDescription)
+    }
+  }
+
+  private func stopPlayback() async {
+    await audioPlayer.stop()
+    playingQuestionId = nil
   }
 }
 
@@ -212,6 +203,14 @@ extension PlayolaAlert {
   static func fetchQuestionsError(_ message: String) -> PlayolaAlert {
     PlayolaAlert(
       title: "Error Loading Questions",
+      message: message,
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static func declineQuestionError(_ message: String) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Error Declining Question",
       message: message,
       dismissButton: .cancel(Text("OK"))
     )

@@ -3,7 +3,6 @@
 //  PlayolaRadio
 //
 
-import SDWebImageSwiftUI
 import SwiftUI
 
 struct BroadcastersListenerQuestionPageView: View {
@@ -20,7 +19,14 @@ struct BroadcastersListenerQuestionPageView: View {
       } else if model.questions.isEmpty {
         emptyState
       } else {
-        questionsList
+        VStack(spacing: 0) {
+          filterPills
+          if model.filteredQuestions.isEmpty {
+            filteredEmptyState
+          } else {
+            questionsList
+          }
+        }
       }
     }
     .navigationTitle("Listener Questions")
@@ -28,10 +34,38 @@ struct BroadcastersListenerQuestionPageView: View {
     .toolbarBackground(.visible, for: .navigationBar)
     .toolbarBackground(Color.background, for: .navigationBar)
     .toolbarColorScheme(.dark, for: .navigationBar)
-    .task {
-      await model.viewAppeared()
+    .onAppear {
+      Task { await model.viewAppeared() }
     }
     .alert(item: $model.presentedAlert) { $0.alert }
+  }
+
+  // MARK: - Filter Pills
+
+  private var filterPills: some View {
+    ScrollView(.horizontal, showsIndicators: false) {
+      HStack(spacing: 8) {
+        ForEach(model.filterOptions, id: \.self) { filter in
+          Button {
+            model.filterSelected(filter)
+          } label: {
+            Text(filter.displayText)
+              .font(.custom(FontNames.Inter_500_Medium, size: 14))
+              .foregroundColor(.textPrimary)
+              .padding(.horizontal, 16)
+              .padding(.vertical, 8)
+              .background(
+                model.selectedFilter == filter
+                  ? Color.primary
+                  : Color.elevatedSurface
+              )
+              .cornerRadius(20)
+          }
+        }
+      }
+      .padding(.horizontal, 16)
+      .padding(.vertical, 12)
+    }
   }
 
   // MARK: - Empty State
@@ -54,24 +88,57 @@ struct BroadcastersListenerQuestionPageView: View {
     .padding()
   }
 
+  private var filteredEmptyState: some View {
+    VStack(spacing: 16) {
+      Image(systemName: "line.3.horizontal.decrease.circle")
+        .font(.system(size: 48))
+        .foregroundColor(.textSecondary)
+
+      Text(model.filteredEmptyStateTitle)
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 18))
+        .foregroundColor(.textPrimary)
+
+      Text(model.filteredEmptyStateMessage)
+        .font(.custom(FontNames.Inter_400_Regular, size: 14))
+        .foregroundColor(.textSecondary)
+        .multilineTextAlignment(.center)
+    }
+    .padding()
+    .frame(maxHeight: .infinity)
+  }
+
   // MARK: - Questions List
 
   private var questionsList: some View {
-    ScrollView {
-      LazyVStack(spacing: 12) {
-        ForEach(model.questions) { question in
-          ListenerQuestionRow(
-            question: question,
-            isExpanded: model.isExpanded(question.id),
-            isPlaying: model.isPlaying(question.id),
-            onExpandTapped: { model.toggleExpanded(question.id) },
-            onPlayTapped: { Task { await model.onPlayTapped(question) } },
-            onRowTapped: { Task { await model.questionRowTapped(question) } }
-          )
+    List {
+      ForEach(model.filteredQuestions) { question in
+        ListenerQuestionRow(
+          question: question,
+          isExpanded: model.isExpanded(question.id),
+          isPlaying: model.isPlaying(question.id),
+          onExpandTapped: { model.showMoreButtonTapped(question.id) },
+          onPlayTapped: { Task { await model.playButtonTapped(question) } },
+          onRowTapped: { Task { await model.questionRowTapped(question) } }
+        )
+        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
+        .swipeActions(edge: .trailing, allowsFullSwipe: model.canDecline(question)) {
+          if model.canDecline(question) {
+            Button(role: .destructive) {
+              Task { await model.declineQuestionSwiped(question) }
+            } label: {
+              Label("Decline", systemImage: "xmark.circle")
+            }
+            .tint(Color.error)
+          }
         }
       }
-      .padding(.horizontal, 16)
-      .padding(.vertical, 12)
+    }
+    .listStyle(.plain)
+    .scrollContentBackground(.hidden)
+    .refreshable {
+      await model.refreshPulledDown()
     }
   }
 }
@@ -121,9 +188,6 @@ struct ListenerQuestionRow: View {
     VStack(alignment: .leading, spacing: 0) {
       // Header with listener info
       HStack(spacing: 12) {
-        // Avatar
-        listenerAvatar
-
         // Name and time
         VStack(alignment: .leading, spacing: 2) {
           Text(listenerName)
@@ -157,21 +221,29 @@ struct ListenerQuestionRow: View {
           .lineLimit(isExpanded ? nil : collapsedLineLimit)
           .animation(.easeInOut(duration: 0.2), value: isExpanded)
 
-        if needsExpansion {
-          Button {
-            withAnimation(.easeInOut(duration: 0.25)) {
-              onExpandTapped()
-            }
-          } label: {
-            HStack(spacing: 4) {
-              Text(isExpanded ? "Show less" : "Show more")
-                .font(.custom(FontNames.Inter_500_Medium, size: 13))
-                .foregroundColor(.primary)
+        HStack {
+          if needsExpansion {
+            Button {
+              withAnimation(.easeInOut(duration: 0.25)) {
+                onExpandTapped()
+              }
+            } label: {
+              HStack(spacing: 4) {
+                Text(isExpanded ? "Show less" : "Show more")
+                  .font(.custom(FontNames.Inter_500_Medium, size: 13))
+                  .foregroundColor(.primary)
 
-              Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(.primary)
+                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                  .font(.system(size: 11, weight: .semibold))
+                  .foregroundColor(.primary)
+              }
             }
+          }
+
+          Spacer()
+
+          if question.status == .answered {
+            statusBadge
           }
         }
       }
@@ -187,36 +259,6 @@ struct ListenerQuestionRow: View {
   }
 
   // MARK: - Subviews
-
-  private var listenerAvatar: some View {
-    Group {
-      if let imageUrlString = question.listener?.profileImageUrl,
-        let imageUrl = URL(string: imageUrlString)
-      {
-        WebImage(url: imageUrl)
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-          .frame(width: 44, height: 44)
-          .clipShape(Circle())
-      } else {
-        Circle()
-          .fill(Color.elevatedSurface)
-          .frame(width: 44, height: 44)
-          .overlay(
-            Text(listenerInitials)
-              .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
-              .foregroundColor(.textSecondary)
-          )
-      }
-    }
-  }
-
-  private var listenerInitials: String {
-    guard let listener = question.listener else { return "?" }
-    let first = listener.firstName.prefix(1)
-    let last = listener.lastName?.prefix(1) ?? ""
-    return "\(first)\(last)".uppercased()
-  }
 
   private var playButton: some View {
     Button(action: onPlayTapped) {
@@ -235,6 +277,16 @@ struct ListenerQuestionRow: View {
       .background(Color.primary)
       .cornerRadius(20)
     }
+  }
+
+  private var statusBadge: some View {
+    Text("Answered")
+      .font(.custom(FontNames.Inter_500_Medium, size: 11))
+      .foregroundColor(.textPrimary)
+      .padding(.horizontal, 8)
+      .padding(.vertical, 3)
+      .background(Color.success)
+      .cornerRadius(10)
   }
 }
 

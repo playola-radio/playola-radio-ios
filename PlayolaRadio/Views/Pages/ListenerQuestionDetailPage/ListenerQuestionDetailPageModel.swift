@@ -20,6 +20,7 @@ enum AnswerUploadPhase: Equatable {
   case uploading(progress: Double)
   case normalizing
   case finalizing
+  case linkingAnswer
   case completed
   case failed(error: String)
 }
@@ -54,6 +55,7 @@ class ListenerQuestionDetailPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
   @ObservationIgnored @Dependency(\.audioRecorder) var audioRecorder
   @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
+  @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
@@ -168,7 +170,7 @@ class ListenerQuestionDetailPageModel: ViewModel {
   var isUploading: Bool {
     switch uploadPhase {
     case .notStarted, .completed, .failed: return false
-    case .converting, .uploading, .normalizing, .finalizing: return true
+    case .converting, .uploading, .normalizing, .finalizing, .linkingAnswer: return true
     }
   }
 
@@ -183,6 +185,7 @@ class ListenerQuestionDetailPageModel: ViewModel {
     case .uploading(let progress): return "Uploading \(Int(progress * 100))%"
     case .normalizing: return "Processing..."
     case .finalizing: return "Finalizing..."
+    case .linkingAnswer: return "Registering response..."
     case .completed: return "Complete!"
     case .failed(let error): return "Failed: \(error)"
     }
@@ -192,9 +195,10 @@ class ListenerQuestionDetailPageModel: ViewModel {
     switch uploadPhase {
     case .notStarted: return 0
     case .converting: return 0.1
-    case .uploading(let progress): return 0.1 + (progress * 0.6)
-    case .normalizing: return 0.75
-    case .finalizing: return 0.9
+    case .uploading(let progress): return 0.1 + (progress * 0.5)
+    case .normalizing: return 0.65
+    case .finalizing: return 0.75
+    case .linkingAnswer: return 0.85
     case .completed: return 1.0
     case .failed: return 0
     }
@@ -371,7 +375,7 @@ class ListenerQuestionDetailPageModel: ViewModel {
     let voicetrack = LocalVoicetrack(originalURL: url, title: "Response to \(listenerName)")
 
     do {
-      _ = try await voicetrackUploadService.processVoicetrack(
+      let audioBlock = try await voicetrackUploadService.processVoicetrack(
         voicetrack,
         question.stationId,
         jwt
@@ -379,8 +383,13 @@ class ListenerQuestionDetailPageModel: ViewModel {
         self?.handleUploadStatusChange(status)
       }
 
-      // TODO: Update the ListenerQuestion with the answer audioBlockId
-      // api.answerListenerQuestion(jwt, questionId, audioBlockId)
+      uploadPhase = .linkingAnswer
+      _ = try await api.registerListenerQuestionAnswer(
+        jwt,
+        question.stationId,
+        question.id,
+        audioBlock.id
+      )
 
       uploadPhase = .completed
       presentedAlert = .answerUploadedSuccess { [weak self] in

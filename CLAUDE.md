@@ -32,22 +32,74 @@ Do NOT use class-level `@Shared` properties or `$shared.withLock` in tests.
 
 **Pattern**: MV with `@Observable` models (not MVVM)
 
+### Model Structure
+
+Models should be organized with the following `// MARK:` sections in order:
+
 ```swift
 @MainActor
 @Observable
 class SomePageModel: ViewModel {
-  // Shared state
-  @ObservationIgnored @Shared(.auth) var auth
 
-  // Dependencies
+  // MARK: - Dependencies
+
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
 
-  // Local state
+  // MARK: - Shared State
+
+  @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
+
+  // MARK: - Initialization
+
+  init(stationId: String) {
+    self.stationId = stationId
+    super.init()
+  }
+
+  // MARK: - Properties
+
+  let stationId: String
+  let navigationTitle = "Page Title"
+
+  var items: IdentifiedArrayOf<Item> = []
   var isLoading = false
   var presentedAlert: PlayolaAlert?
+  var selectedFilter: FilterType = .default
 
-  // Actions
+  var filteredItems: IdentifiedArrayOf<Item> {
+    items.filter { ... }
+  }
+
+  var emptyStateMessage: String {
+    "No items to display"
+  }
+
+  // MARK: - User Actions
+
   func viewAppeared() async { }
+  func refreshPulledDown() async { }
+  func filterButtonTapped(_ filter: FilterType) { }
+  func itemRowTapped(_ item: Item) async { }
+  func deleteItemSwiped(_ item: Item) async { }
+
+  // MARK: - View Helpers
+
+  func isSelected(_ itemId: String) -> Bool { }
+  func canDelete(_ item: Item) -> Bool { }
+
+  // MARK: - Private Helpers
+
+  private func fetchItems() async { }
+  private func stopPlayback() async { }
+}
+
+// MARK: - Alerts
+
+extension PlayolaAlert {
+  static func someError(_ message: String) -> PlayolaAlert { ... }
 }
 ```
 

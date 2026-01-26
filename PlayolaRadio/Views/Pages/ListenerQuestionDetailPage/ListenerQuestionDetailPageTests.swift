@@ -5,6 +5,7 @@
 
 import Dependencies
 import PlayolaPlayer
+import Sharing
 import Testing
 import XCTest
 
@@ -344,19 +345,19 @@ final class ListenerQuestionDetailPageTests: XCTestCase {
   func testUploadProgressUploading() {
     let model = makeModel()
     model.uploadPhase = .uploading(progress: 0.5)
-    XCTAssertEqual(model.uploadProgress, 0.4, accuracy: 0.01)
+    XCTAssertEqual(model.uploadProgress, 0.35, accuracy: 0.01)
   }
 
   func testUploadProgressNormalizing() {
     let model = makeModel()
     model.uploadPhase = .normalizing
-    XCTAssertEqual(model.uploadProgress, 0.75)
+    XCTAssertEqual(model.uploadProgress, 0.65)
   }
 
   func testUploadProgressFinalizing() {
     let model = makeModel()
     model.uploadPhase = .finalizing
-    XCTAssertEqual(model.uploadProgress, 0.9)
+    XCTAssertEqual(model.uploadProgress, 0.75)
   }
 
   func testUploadProgressCompleted() {
@@ -399,6 +400,149 @@ final class ListenerQuestionDetailPageTests: XCTestCase {
     let model = makeModel()
     model.uploadPhase = .uploading(progress: 0.5)
     XCTAssertTrue(model.showUploadStatus)
+  }
+
+  func testShowUploadStatusTrueWhenLinkingAnswer() {
+    let model = makeModel()
+    model.uploadPhase = .linkingAnswer
+    XCTAssertTrue(model.showUploadStatus)
+  }
+
+  // MARK: - Linking Answer Phase Tests
+
+  func testIsUploadingTrueWhenLinkingAnswer() {
+    let model = makeModel()
+    model.uploadPhase = .linkingAnswer
+    XCTAssertTrue(model.isUploading)
+  }
+
+  func testUploadStatusTextLinkingAnswer() {
+    let model = makeModel()
+    model.uploadPhase = .linkingAnswer
+    XCTAssertEqual(model.uploadStatusText, "Registering response...")
+  }
+
+  func testUploadProgressLinkingAnswer() {
+    let model = makeModel()
+    model.uploadPhase = .linkingAnswer
+    XCTAssertEqual(model.uploadProgress, 0.85)
+  }
+
+  // MARK: - Upload Answer API Integration Tests
+
+  func testUploadButtonTappedCallsRegisterListenerQuestionAnswerAPI() async {
+    var registerAnswerCalled = false
+    var capturedStationId: String?
+    var capturedQuestionId: String?
+    var capturedAudioBlockId: String?
+
+    let testQuestion = ListenerQuestion.mockWith(
+      id: "test-question-123",
+      stationId: "test-station-789"
+    )
+    let testAudioBlock = AudioBlock.mockWith(id: "uploaded-audio-block-456")
+
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+
+    let model = withDependencies {
+      $0.audioPlayer = .testValue
+      $0.audioRecorder = .testValue
+      $0.voicetrackUploadService = VoicetrackUploadService(
+        processVoicetrack: { _, _, _, onStatusChange in
+          await onStatusChange(.completed)
+          return testAudioBlock
+        }
+      )
+      $0.api.registerListenerQuestionAnswer = { _, stationId, questionId, audioBlockId in
+        registerAnswerCalled = true
+        capturedStationId = stationId
+        capturedQuestionId = questionId
+        capturedAudioBlockId = audioBlockId
+        return testQuestion
+      }
+    } operation: {
+      ListenerQuestionDetailPageModel(question: testQuestion)
+    }
+
+    model.recordingPhase = AnswerRecordingPhase.review
+    model.recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
+
+    await model.uploadButtonTapped()
+
+    XCTAssertTrue(registerAnswerCalled)
+    XCTAssertEqual(capturedStationId, "test-station-789")
+    XCTAssertEqual(capturedQuestionId, "test-question-123")
+    XCTAssertEqual(capturedAudioBlockId, "uploaded-audio-block-456")
+  }
+
+  func testUploadButtonTappedSetsLinkingAnswerPhase() async {
+    let testQuestion = ListenerQuestion.mockWith(
+      id: "test-question-123",
+      stationId: "test-station-789"
+    )
+    let testAudioBlock = AudioBlock.mockWith(id: "uploaded-audio-block-456")
+
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+
+    let model = withDependencies {
+      $0.audioPlayer = .testValue
+      $0.audioRecorder = .testValue
+      $0.voicetrackUploadService = VoicetrackUploadService(
+        processVoicetrack: { _, _, _, onStatusChange in
+          await onStatusChange(.completed)
+          return testAudioBlock
+        }
+      )
+      $0.api.registerListenerQuestionAnswer = { _, _, _, _ in
+        return testQuestion
+      }
+    } operation: {
+      ListenerQuestionDetailPageModel(question: testQuestion)
+    }
+
+    model.recordingPhase = AnswerRecordingPhase.review
+    model.recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
+
+    await model.uploadButtonTapped()
+
+    XCTAssertEqual(model.uploadPhase, AnswerUploadPhase.completed)
+  }
+
+  func testUploadButtonTappedSetsFailedPhaseOnAPIError() async {
+    let testQuestion = ListenerQuestion.mockWith(
+      id: "test-question-123",
+      stationId: "test-station-789"
+    )
+    let testAudioBlock = AudioBlock.mockWith(id: "uploaded-audio-block-456")
+
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+
+    let model = withDependencies {
+      $0.audioPlayer = .testValue
+      $0.audioRecorder = .testValue
+      $0.voicetrackUploadService = VoicetrackUploadService(
+        processVoicetrack: { _, _, _, onStatusChange in
+          await onStatusChange(.completed)
+          return testAudioBlock
+        }
+      )
+      $0.api.registerListenerQuestionAnswer = { _, _, _, _ in
+        throw APIError.validationError("Failed to link answer")
+      }
+    } operation: {
+      ListenerQuestionDetailPageModel(question: testQuestion)
+    }
+
+    model.recordingPhase = AnswerRecordingPhase.review
+    model.recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
+
+    await model.uploadButtonTapped()
+
+    if case .failed(let error) = model.uploadPhase {
+      XCTAssertEqual(error, "Failed to link answer")
+    } else {
+      XCTFail("Expected failed phase, got: \(model.uploadPhase)")
+    }
   }
 
   // MARK: - Question Playback Display Tests

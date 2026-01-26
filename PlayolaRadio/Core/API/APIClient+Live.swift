@@ -618,6 +618,57 @@ extension APIClient: DependencyKey {
 
         return response
       },
+      registerListenerQuestionAnswer: { jwtToken, stationId, questionId, answerAudioBlockId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/listener-questions/\(questionId)/answer"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters: [String: String] = ["answerAudioBlockId": answerAudioBlockId]
+
+        let response = try await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(ListenerQuestion.self, decoder: isoDecoder)
+        .value
+
+        return response
+      },
+      declineListenerQuestion: { jwtToken, stationId, questionId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/listener-questions/\(questionId)/decline"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(
+          url,
+          method: .post,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(ListenerQuestion.self, decoder: isoDecoder)
+        .value
+
+        return response
+      },
+      getMyListenerQuestionAirings: { jwtToken in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/users/me/listener-question-airings"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let response = try await AF.request(
+          url,
+          method: .get,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable([ListenerQuestionAiring].self, decoder: isoDecoder)
+        .value
+
+        return response
+      },
       searchSongs: { jwtToken, keywords in
         let encodedKeywords =
           keywords.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? keywords
