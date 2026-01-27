@@ -577,13 +577,12 @@ final class ListenerQuestionDetailPageTests: XCTestCase {
   // MARK: - Recording Button Tapped Tests
 
   func testRecordButtonTappedRequestsPermissionWhenIdle() async {
-    let requestedPermission = LockIsolated(false)
+    let startRecordingCalled = LockIsolated(false)
     let model = withDependencies {
+      $0.audioPlayer = .testValue
+      $0.voicetrackUploadService = .testValue
       $0.audioRecorder = AudioRecorderClient(
-        requestPermission: {
-          requestedPermission.setValue(true)
-          return true
-        },
+        requestPermission: { true },
         prepareForRecording: {},
         startRecording: {},
         stopRecording: { URL(fileURLWithPath: "/tmp/test.wav") },
@@ -591,22 +590,25 @@ final class ListenerQuestionDetailPageTests: XCTestCase {
         deleteRecording: { _ in },
         getAudioLevel: { 0 },
         startRecordingWithUpdates: { _ in
-          RecordingSession(
+          startRecordingCalled.setValue(true)
+          return RecordingSession(
             stop: { URL(fileURLWithPath: "/tmp/test.wav") }, cancel: {}, delete: { _ in })
         }
       )
     } operation: {
-      makeModel()
+      ListenerQuestionDetailPageModel(question: .mock)
     }
 
     model.recordingPhase = .idle
     await model.recordButtonTapped()
 
-    XCTAssertTrue(requestedPermission.value)
+    XCTAssertTrue(startRecordingCalled.value)
   }
 
   func testRecordButtonTappedShowsPermissionAlertWhenDenied() async {
     let model = withDependencies {
+      $0.audioPlayer = .testValue
+      $0.voicetrackUploadService = .testValue
       $0.audioRecorder = AudioRecorderClient(
         requestPermission: { false },
         prepareForRecording: {},
@@ -620,7 +622,7 @@ final class ListenerQuestionDetailPageTests: XCTestCase {
         }
       )
     } operation: {
-      makeModel()
+      ListenerQuestionDetailPageModel(question: .mock)
     }
 
     model.recordingPhase = .idle
