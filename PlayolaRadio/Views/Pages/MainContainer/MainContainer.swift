@@ -21,6 +21,7 @@ struct MainContainer: View {
         TabView(selection: $model.activeTab) {
           if model.isInBroadcastMode {
             broadcastTab
+            listenersTab
             settingsTab
           } else {
             homeTab
@@ -63,6 +64,8 @@ struct MainContainer: View {
           SupportPageView(model: model)
         case .conversationListPage(let model):
           ConversationListPageView(model: model)
+        case .listenerQuestionDetailPage(let model):
+          ListenerQuestionDetailPageView(model: model)
         }
       }
     }
@@ -216,6 +219,20 @@ struct MainContainer: View {
       Text("Broadcast")
     }
     .tag(MainContainerModel.ActiveTab.broadcast)
+  }
+
+  @ViewBuilder
+  private var listenersTab: some View {
+    tabContentWithSmallPlayer {
+      if let listenerModel = model.listenerQuestionPageModel {
+        BroadcastersListenerQuestionPageView(model: listenerModel)
+      }
+    }
+    .tabItem {
+      Image(systemName: "bubble.left.and.bubble.right")
+      Text("Listeners")
+    }
+    .tag(MainContainerModel.ActiveTab.listeners)
   }
 
   @ViewBuilder

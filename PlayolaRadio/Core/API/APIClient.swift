@@ -247,6 +247,15 @@ struct APIClient: Sendable {
 
   // MARK: - Listener Questions
 
+  /// Fetches listener questions for a station
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to fetch questions for
+  /// - Returns: Array of ListenerQuestion objects
+  /// - Throws: APIError if the request fails
+  var getListenerQuestions:
+    (_ jwtToken: String, _ stationId: String) async throws -> [ListenerQuestion] = { _, _ in [] }
+
   /// Gets a presigned URL for uploading a listener question to S3
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
@@ -275,6 +284,40 @@ struct APIClient: Sendable {
       -> ListenerQuestion = { _, _, _ in
         ListenerQuestion.mock
       }
+
+  /// Registers an answer to a listener question with a recorded response
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - questionId: The ID of the question being answered
+  ///   - answerAudioBlockId: The AudioBlock ID of the recorded answer
+  /// - Returns: The updated ListenerQuestion
+  /// - Throws: APIError if the request fails
+  var registerListenerQuestionAnswer:
+    (_ jwtToken: String, _ stationId: String, _ questionId: String, _ answerAudioBlockId: String)
+      async throws -> ListenerQuestion = { _, _, _, _ in
+        ListenerQuestion.mock
+      }
+
+  /// Declines a listener question
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - questionId: The ID of the question to decline
+  /// - Returns: The updated ListenerQuestion with declined status
+  /// - Throws: APIError if the request fails
+  var declineListenerQuestion:
+    (_ jwtToken: String, _ stationId: String, _ questionId: String) async throws
+      -> ListenerQuestion = { _, _, _ in
+        ListenerQuestion.mock
+      }
+
+  /// Fetches upcoming listener question airings for the authenticated user
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: Array of ListenerQuestionAiring objects scheduled in the future
+  /// - Throws: APIError if the request fails
+  var getMyListenerQuestionAirings: (_ jwtToken: String) async throws -> [ListenerQuestionAiring] =
+    { _ in [] }
 
   /// Searches for songs by keywords
   /// - Parameters:

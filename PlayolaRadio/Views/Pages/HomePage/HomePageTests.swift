@@ -326,7 +326,7 @@ final class HomePageTests: XCTestCase {
   func testTappingTheP_TurnsOnTheSecretStations() {
     let homePage = HomePageModel()
     XCTAssertFalse(homePage.showSecretStations)
-    homePage.handlePlayolaIconTapped10Times()
+    homePage.playolaIconTapped10Times()
     XCTAssertTrue(homePage.showSecretStations)
     XCTAssertEqual(homePage.presentedAlert, .secretStationsTurnedOnAlert)
   }
@@ -335,7 +335,7 @@ final class HomePageTests: XCTestCase {
     @Shared(.showSecretStations) var showSecretStations = true
     let homePage = HomePageModel()
     XCTAssertTrue(homePage.showSecretStations)
-    homePage.handlePlayolaIconTapped10Times()
+    homePage.playolaIconTapped10Times()
     XCTAssertFalse(homePage.showSecretStations)
     XCTAssertEqual(homePage.presentedAlert, .secretStationsHiddenAlert)
   }
@@ -381,7 +381,7 @@ final class HomePageTests: XCTestCase {
       HomePageModel(stationPlayer: stationPlayerMock)
     }
 
-    await homePageModel.handleStationTapped(station)
+    await homePageModel.stationTapped(station)
 
     XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
     XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, station.id)
@@ -475,7 +475,7 @@ final class HomePageTests: XCTestCase {
 
     let model = HomePageModel()
 
-    model.navigateToSeriesListPage()
+    await model.scheduledShowsTileModel.buttonAction?()
 
     XCTAssertEqual(navigationCoordinator.path.count, 1)
     if case .seriesListPage = navigationCoordinator.path.first {
@@ -512,6 +512,102 @@ final class HomePageTests: XCTestCase {
       await model.viewAppeared()
 
       XCTAssertFalse(model.hasScheduledShows)
+    }
+  }
+
+  // MARK: - Listener Question Airing Tests
+
+  func testViewAppearedSetsUpcomingQuestionAiringWhenAiringsExist() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let futureDate = Date().addingTimeInterval(2 * 24 * 60 * 60)
+    let expectedAiring = ListenerQuestionAiring.mockWith(
+      id: "airing-1",
+      airtime: futureDate,
+      station: .mockWith(curatorName: "DJ Test")
+    )
+
+    await withDependencies {
+      $0.api.getMyListenerQuestionAirings = { _ in [expectedAiring] }
+    } operation: {
+      let model = HomePageModel()
+
+      await model.viewAppeared()
+
+      XCTAssertNotNil(model.upcomingQuestionAiring)
+      XCTAssertEqual(model.upcomingQuestionAiring?.id, expectedAiring.id)
+      XCTAssertTrue(model.hasUpcomingQuestionAiring)
+    }
+  }
+
+  func testViewAppearedSetsUpcomingQuestionAiringToNilWhenNoAirings() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.api.getMyListenerQuestionAirings = { _ in [] }
+    } operation: {
+      let model = HomePageModel()
+
+      await model.viewAppeared()
+
+      XCTAssertNil(model.upcomingQuestionAiring)
+      XCTAssertFalse(model.hasUpcomingQuestionAiring)
+    }
+  }
+
+  func testViewAppearedSetsUpcomingQuestionAiringToNilOnError() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.api.getMyListenerQuestionAirings = { _ in
+        throw APIError.dataNotValid
+      }
+    } operation: {
+      let model = HomePageModel()
+
+      await model.viewAppeared()
+
+      XCTAssertNil(model.upcomingQuestionAiring)
+      XCTAssertFalse(model.hasUpcomingQuestionAiring)
+    }
+  }
+
+  func testViewAppearedDoesNotCheckAiringsWhenNotLoggedIn() async {
+    @Shared(.auth) var auth = Auth()
+    var apiCalled = false
+
+    await withDependencies {
+      $0.api.getMyListenerQuestionAirings = { _ in
+        apiCalled = true
+        return []
+      }
+    } operation: {
+      let model = HomePageModel()
+
+      await model.viewAppeared()
+
+      XCTAssertFalse(apiCalled)
+      XCTAssertNil(model.upcomingQuestionAiring)
+    }
+  }
+
+  func testQuestionAiringTileShowsStationNameAndAirtime() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let futureDate = Date().addingTimeInterval(2 * 24 * 60 * 60)
+    let airing = ListenerQuestionAiring.mockWith(
+      airtime: futureDate,
+      station: .mockWith(curatorName: "DJ Awesome")
+    )
+
+    await withDependencies {
+      $0.api.getMyListenerQuestionAirings = { _ in [airing] }
+    } operation: {
+      let model = HomePageModel()
+
+      await model.viewAppeared()
+
+      XCTAssertEqual(model.questionAiringTileModel.content, "You're On Air Soon!")
+      XCTAssertTrue(
+        model.questionAiringTileModel.paragraph!.contains("DJ Awesome picked your question!"))
     }
   }
 
@@ -766,7 +862,7 @@ extension HomePageTests {
   fileprivate func assertEventually(
     _ condition: @autoclosure @escaping () -> Bool,
     timeout: TimeInterval = 1.0,
-    file: StaticString = #fileID,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) async {
     let deadline = Date().addingTimeInterval(timeout)

@@ -32,24 +32,107 @@ Do NOT use class-level `@Shared` properties or `$shared.withLock` in tests.
 
 **Pattern**: MV with `@Observable` models (not MVVM)
 
+### Model Structure
+
+Models should be organized with the following `// MARK:` sections in order:
+
 ```swift
 @MainActor
 @Observable
 class SomePageModel: ViewModel {
-  // Shared state
-  @ObservationIgnored @Shared(.auth) var auth
 
-  // Dependencies
+  // MARK: - Dependencies
+
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
 
-  // Local state
+  // MARK: - Shared State
+
+  @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
+
+  // MARK: - Initialization
+
+  init(stationId: String) {
+    self.stationId = stationId
+    super.init()
+  }
+
+  // MARK: - Properties
+
+  let stationId: String
+  let navigationTitle = "Page Title"
+
+  var items: IdentifiedArrayOf<Item> = []
   var isLoading = false
   var presentedAlert: PlayolaAlert?
+  var selectedFilter: FilterType = .default
 
-  // Actions
+  var filteredItems: IdentifiedArrayOf<Item> {
+    items.filter { ... }
+  }
+
+  var emptyStateMessage: String {
+    "No items to display"
+  }
+
+  // MARK: - User Actions
+
   func viewAppeared() async { }
+  func refreshPulledDown() async { }
+  func filterButtonTapped(_ filter: FilterType) { }
+  func itemRowTapped(_ item: Item) async { }
+  func deleteItemSwiped(_ item: Item) async { }
+
+  // MARK: - View Helpers
+
+  func isSelected(_ itemId: String) -> Bool { }
+  func canDelete(_ item: Item) -> Bool { }
+
+  // MARK: - Private Helpers
+
+  private func fetchItems() async { }
+  private func stopPlayback() async { }
+}
+
+// MARK: - Alerts
+
+extension PlayolaAlert {
+  static func someError(_ message: String) -> PlayolaAlert { ... }
 }
 ```
+
+### Model/View Responsibilities
+
+**Models are the full representation of the view.** All text, titles, labels, and display values should come from the model as stored or computed properties. The view should only describe *how* things appear, never *what* they do.
+
+**Model responsibilities:**
+- All display text (titles, labels, button text, status messages)
+- All computed display values (formatted dates, durations, progress)
+- All business logic and state management
+- Action methods that describe user interactions
+
+**View responsibilities:**
+- Layout and styling only
+- Binds to model properties for all content
+- Calls model methods for all user actions
+- Contains zero business logic
+
+**Action method naming** - use names that describe user actions:
+```swift
+// Good - describes what the user did
+func recordButtonTapped() async { }
+func stopButtonTapped() async { }
+func showMoreButtonTapped() { }
+func listReordered(from: IndexSet, to: Int) { }
+
+// Bad - describes implementation
+func startRecording() async { }
+func toggleExpanded() { }
+```
+
+**Helper functions** should be private and placed at the bottom of the model.
 
 ## Dependencies
 
