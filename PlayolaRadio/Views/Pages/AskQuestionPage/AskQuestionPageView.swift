@@ -17,6 +17,10 @@ struct AskQuestionPageView: View {
       VStack(spacing: 24) {
         instructionsHeader
 
+        waveformSection
+          .frame(height: 120)
+          .padding(.horizontal, 20)
+
         Spacer()
 
         recordingStatusSection
@@ -69,6 +73,26 @@ struct AskQuestionPageView: View {
     .padding(.horizontal, 12)
     .background(Color(hex: "#1A1A1A"))
     .cornerRadius(12)
+  }
+
+  // MARK: - Waveform Section
+
+  @ViewBuilder
+  private var waveformSection: some View {
+    switch model.recordingPhase {
+    case .idle:
+      RoundedRectangle(cornerRadius: 8)
+        .fill(Color(hex: "#1A1A1A"))
+        .overlay(
+          Text("Your recording will appear here")
+            .font(.custom(FontNames.Inter_400_Regular, size: 14))
+            .foregroundColor(Color(hex: "#4A4A4A"))
+        )
+    case .recording:
+      LiveWaveformView(samples: model.waveformSamples)
+    case .review:
+      WaveformView(samples: model.waveformSamples)
+    }
   }
 
   // MARK: - Recording Status

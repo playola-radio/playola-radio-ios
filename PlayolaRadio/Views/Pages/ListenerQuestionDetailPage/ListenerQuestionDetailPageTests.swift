@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import ConcurrencyExtras
 import Dependencies
 import PlayolaPlayer
 import Sharing
@@ -576,11 +577,11 @@ final class ListenerQuestionDetailPageTests: XCTestCase {
   // MARK: - Recording Button Tapped Tests
 
   func testRecordButtonTappedRequestsPermissionWhenIdle() async {
-    var requestedPermission = false
+    let requestedPermission = LockIsolated(false)
     let model = withDependencies {
       $0.audioRecorder = AudioRecorderClient(
         requestPermission: {
-          requestedPermission = true
+          requestedPermission.setValue(true)
           return true
         },
         prepareForRecording: {},
@@ -601,7 +602,7 @@ final class ListenerQuestionDetailPageTests: XCTestCase {
     model.recordingPhase = .idle
     await model.recordButtonTapped()
 
-    XCTAssertTrue(requestedPermission)
+    XCTAssertTrue(requestedPermission.value)
   }
 
   func testRecordButtonTappedShowsPermissionAlertWhenDenied() async {
