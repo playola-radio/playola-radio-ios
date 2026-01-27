@@ -111,7 +111,7 @@ class HomePageModel: ViewModel {
     NewFeatureTileModel(
       iconName: "mic.fill",
       isSystemImage: true,
-      label: "Your Q&A",
+      label: "Listener Questions",
       content: "",
       paragraph: ""
     )
@@ -198,16 +198,26 @@ class HomePageModel: ViewModel {
 
   private func updateQuestionAiringTile() {
     guard let airing = upcomingQuestionAiring else { return }
-    questionAiringTileModel.content = airing.station?.curatorName ?? "Station"
+    let curatorName = airing.station?.curatorName ?? "Station"
+    questionAiringTileModel.content = "You're On Air Soon!"
     questionAiringTileModel.paragraph =
-      "Your question will air on \(formattedAirtime(airing.airtime))!"
+      "\(curatorName) picked your question! It will air on \(formattedAirtime(airing.airtime))."
   }
 
   private func formattedAirtime(_ date: Date) -> String {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .medium
-    formatter.timeStyle = .short
-    return formatter.string(from: date)
+    let dayFormatter = DateFormatter()
+    dayFormatter.dateFormat = "EEEE"
+    let dayOfWeek = dayFormatter.string(from: date)
+
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "MMM d"
+    let dateStr = dateFormatter.string(from: date)
+
+    let hourFormatter = DateFormatter()
+    hourFormatter.dateFormat = "ha"
+    let hour = hourFormatter.string(from: date).lowercased()
+
+    return "\(dayOfWeek) (\(dateStr)) around \(hour)"
   }
 
   private func navigateToSupportPage() async {

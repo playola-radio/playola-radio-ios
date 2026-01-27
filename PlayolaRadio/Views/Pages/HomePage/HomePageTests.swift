@@ -605,8 +605,9 @@ final class HomePageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertEqual(model.questionAiringTileModel.content, "DJ Awesome")
-      XCTAssertTrue(model.questionAiringTileModel.paragraph!.contains("Your question will air on"))
+      XCTAssertEqual(model.questionAiringTileModel.content, "You're On Air Soon!")
+      XCTAssertTrue(
+        model.questionAiringTileModel.paragraph!.contains("DJ Awesome picked your question!"))
     }
   }
 
