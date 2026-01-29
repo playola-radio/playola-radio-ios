@@ -113,7 +113,12 @@ class HomePageModel: ViewModel {
       isSystemImage: true,
       label: "Listener Questions",
       content: "",
-      paragraph: ""
+      paragraph: "",
+      buttonText: "Invite Friends",
+      buttonAction: { [weak self] in
+        guard let self = self else { return }
+        await self.shareQuestionAiringButtonTapped()
+      }
     )
 
   // MARK: - User Actions
@@ -202,6 +207,36 @@ class HomePageModel: ViewModel {
     questionAiringTileModel.content = "You're On Air Soon!"
     questionAiringTileModel.paragraph =
       "\(curatorName) picked your question! It will air on \(formattedAirtime(airing.airtime))."
+  }
+
+  private func shareQuestionAiringButtonTapped() async {
+    guard let jwt = auth.jwt,
+      let airing = upcomingQuestionAiring
+    else { return }
+
+    // Expiration is the day after the airing
+    let calendar = Calendar.current
+    let dayAfterAiring =
+      calendar.date(byAdding: .day, value: 1, to: airing.airtime) ?? airing.airtime
+
+    do {
+      let referralCode = try await api.getOrCreateReferralCode(jwt, dayAfterAiring)
+      let shareUrl = "https://admin-api.playola.fm/ios?code=\(referralCode.code)"
+
+      let shareMessage: String
+      if let curatorName = airing.station?.curatorName {
+        shareMessage =
+          "I'm going to be on \(curatorName)'s radio station tomorrow at 6pm. Here's a link to download the app!"
+      } else {
+        shareMessage =
+          "I'm going to be on an internet radio station tomorrow at 6pm. Here's a link to download the app!"
+      }
+
+      let shareModel = ShareSheetModel(items: [shareMessage, shareUrl])
+      mainContainerNavigationCoordinator.presentedSheet = .share(shareModel)
+    } catch {
+      presentedAlert = .errorCreatingReferralCode
+    }
   }
 
   private func formattedAirtime(_ date: Date) -> String {

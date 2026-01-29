@@ -284,6 +284,8 @@
 		D3776A392F282D9400200ADF /* ListenerQuestionAiring.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A342F282D9400200ADF /* ListenerQuestionAiring.swift */; };
 		D3776A3B2F2918DE00200ADF /* WaveformViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A3A2F2918DE00200ADF /* WaveformViews.swift */; };
 		D3776A3C2F2918DE00200ADF /* WaveformViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A3A2F2918DE00200ADF /* WaveformViews.swift */; };
+		D3776A3E2F2A91D200200ADF /* ReferralCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A3D2F2A91D200200ADF /* ReferralCode.swift */; };
+		D3776A3F2F2A91D200200ADF /* ReferralCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A3D2F2A91D200200ADF /* ReferralCode.swift */; };
 		D378CCCE2E56011A00497A4A /* SignInPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCD2E56011500497A4A /* SignInPageModel.swift */; };
 		D378CCD02E57947800497A4A /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCF2E57947800497A4A /* ShareSheet.swift */; };
 		D37B74872EC94427009806C6 /* PushNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37B74862EC94426009806C6 /* PushNotifications.swift */; };
@@ -527,6 +529,7 @@
 		D3776A2B2F2695B800200ADF /* ListenerQuestionDetailPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenerQuestionDetailPageView.swift; sourceTree = "<group>"; };
 		D3776A342F282D9400200ADF /* ListenerQuestionAiring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenerQuestionAiring.swift; sourceTree = "<group>"; };
 		D3776A3A2F2918DE00200ADF /* WaveformViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformViews.swift; sourceTree = "<group>"; };
+		D3776A3D2F2A91D200200ADF /* ReferralCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralCode.swift; sourceTree = "<group>"; };
 		D378CCCD2E56011500497A4A /* SignInPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageModel.swift; sourceTree = "<group>"; };
 		D378CCCF2E57947800497A4A /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		D37B74862EC94426009806C6 /* PushNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotifications.swift; sourceTree = "<group>"; };
@@ -734,6 +737,7 @@
 				D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */,
 				D3367C002F097D0D00AF87FA /* PushNotificationSubscription.swift */,
 				D35673B12D3DC59100E4E926 /* RadioStation.swift */,
+				D3776A3D2F2A91D200200ADF /* ReferralCode.swift */,
 				D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */,
 				D3C7E5F52EF0D12A00EDD3ED /* SongSeed */,
 				D3C7E5E42EF0C51500EDD3ED /* StagingItem */,
@@ -1578,6 +1582,7 @@
 				D30F00BA2E87194D007BCC73 /* StationListStationRowModel.swift in Sources */,
 				D30F00B82E871945007BCC73 /* StationListStationRowView.swift in Sources */,
 				D30F004C2E8592F0007BCC73 /* MainSceneDelegate.swift in Sources */,
+				D3776A3F2F2A91D200200ADF /* ReferralCode.swift in Sources */,
 				D35EFC202F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */,
 				D3776A122F242E1500200ADF /* Color+Palette.swift in Sources */,
 				D3776A372F282D9400200ADF /* ListenerQuestionAiring.swift in Sources */,
@@ -1720,6 +1725,7 @@
 				D30F00BB2E87194D007BCC73 /* StationListStationRowModel.swift in Sources */,
 				D30F00B72E871945007BCC73 /* StationListStationRowView.swift in Sources */,
 				D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */,
+				D3776A3E2F2A91D200200ADF /* ReferralCode.swift in Sources */,
 				D35EFC212F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */,
 				D3776A112F242E1500200ADF /* Color+Palette.swift in Sources */,
 				D3776A392F282D9400200ADF /* ListenerQuestionAiring.swift in Sources */,
@@ -1936,7 +1942,7 @@
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 67;
+				CURRENT_PROJECT_VERSION = 68;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
@@ -1979,7 +1985,7 @@
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 67;
+				CURRENT_PROJECT_VERSION = 68;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
@@ -2022,7 +2028,7 @@
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 67;
+				CURRENT_PROJECT_VERSION = 68;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
@@ -2184,7 +2190,7 @@
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 67;
+				CURRENT_PROJECT_VERSION = 68;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
@@ -2227,7 +2233,7 @@
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 67;
+				CURRENT_PROJECT_VERSION = 68;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
@@ -2371,7 +2377,7 @@
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 67;
+				CURRENT_PROJECT_VERSION = 68;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;

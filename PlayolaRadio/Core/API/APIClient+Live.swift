@@ -890,6 +890,26 @@ extension APIClient: DependencyKey {
           .value
 
         return response
+      },
+      getOrCreateReferralCode: { jwtToken, expiresAt in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/referral-codes/get-or-create"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters: [String: String] = [
+          "expiresAt": ISO8601DateFormatter().string(from: expiresAt)
+        ]
+
+        let response = try await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(ReferralCode.self, decoder: isoDecoder)
+        .value
+
+        return response
       }
     )
   }()
