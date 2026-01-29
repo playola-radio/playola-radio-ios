@@ -175,3 +175,59 @@ PlayolaRadio/
 - Use `async/await`, no completion handlers
 - Alerts via `PlayolaAlert` enum
 - Navigation via `PlayolaSheet` enum and navigation coordinator
+
+## Sheet Presentation
+
+Sheets are presented via the `PlayolaSheet` enum and `MainContainerNavigationCoordinator`.
+
+### Adding a new sheet type
+
+1. Add a case to `PlayolaSheet` enum in `Views/Reusable Components/PlayolaSheet.swift`:
+```swift
+enum PlayolaSheet: Hashable, Identifiable, Equatable {
+  case player(PlayerPageModel)
+  case myNewSheet(MyNewSheetModel)  // Add your case
+}
+```
+
+2. Handle the case in `MainContainer.swift`'s `.sheet()` or `.fullScreenCover()` modifier:
+```swift
+.sheet(
+  item: Binding(
+    get: {
+      switch model.mainContainerNavigationCoordinator.presentedSheet {
+      case .player, .feedbackSheet, .myNewSheet:  // Add to the list
+        return model.mainContainerNavigationCoordinator.presentedSheet
+      // ...
+      }
+    },
+    // ...
+  ),
+  content: { item in
+    switch item {
+    case .myNewSheet(let myModel):  // Add case
+      MyNewSheetView(model: myModel)
+    // ...
+    }
+  }
+)
+```
+
+### Presenting a sheet from a model
+
+```swift
+// In your model, inject the navigation coordinator
+@ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+var mainContainerNavigationCoordinator
+
+// Present the sheet
+func shareButtonTapped() {
+  let model = MyNewSheetModel(items: [...])
+  mainContainerNavigationCoordinator.presentedSheet = .myNewSheet(model)
+}
+
+// Dismiss the sheet
+func dismissButtonTapped() {
+  mainContainerNavigationCoordinator.presentedSheet = nil
+}
+```

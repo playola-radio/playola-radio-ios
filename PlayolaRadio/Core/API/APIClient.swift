@@ -506,6 +506,30 @@ struct APIClient: Sendable {
     (_ jwtToken: String, _ status: String?) async throws -> [AdminConversationResponse] = { _, _ in
       []
     }
+
+  // MARK: - Referral Codes
+
+  /// Creates a referral code for the authenticated user
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - expiresAt: Expiration date for the referral code
+  /// - Returns: An existing ReferralCode matching the date, or a newly created one
+  /// - Throws: APIError if the request fails or user has no invitation code
+  var getOrCreateReferralCode:
+    (_ jwtToken: String, _ expiresAt: Date) async throws -> ReferralCode = { _, _ in
+      ReferralCode(
+        id: "",
+        code: "",
+        createdByUserId: "",
+        invitationCodeId: "",
+        maxUses: nil,
+        description: nil,
+        expiresAt: nil,
+        isActive: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      )
+    }
 }
 
 enum APIError: Error, LocalizedError {

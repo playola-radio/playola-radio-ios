@@ -276,29 +276,6 @@ final class MainContainerTests: XCTestCase {
     }
   }
 
-  func testSmallPlayerActions_SmallPlayerHidesWhenStopButtonPressed() async {
-    //    let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
-    //
-    //    let mainContainerModel = withDependencies {
-    //      $0.api.getStations = { [] }
-    //    } operation: {
-    //      MainContainerModel(stationPlayer: stationPlayerMock)
-    //    }
-    //
-    //    await mainContainerModel.viewAppeared()
-    //    // Verify small player should be showing initially
-    //    XCTAssertTrue(mainContainerModel.shouldShowSmallPlayer)
-    //
-    //    // Simulate the stop button being pressed
-    //    mainContainerModel.onSmallPlayerStopTapped()
-    //
-    //    // Update the mock to reflect the stopped state
-    //    stationPlayerMock.state = StationPlayer.State(playbackStatus: .stopped)
-    //
-    //    // Verify small player should now be hidden
-    //    XCTAssertFalse(mainContainerModel.shouldShowSmallPlayer)
-  }
-
   // MARK: - Process New Station State Tests
 
   func testProcessNewStationState_PresentsPlayerSheetWhenStartingNewStation() {
@@ -786,52 +763,111 @@ final class MainContainerTests: XCTestCase {
   }
 
   func testRatingPromptNotEnjoyingTracksAnalyticsAndShowsFeedback() async {
-    let testJWT = MainContainerTests.createTestJWT()
-    @Shared(.auth) var auth = Auth(jwtToken: testJWT)
-    @Shared(.appInstallDate) var appInstallDate = Calendar.current.date(
-      byAdding: .day, value: -10, to: Date()
-    )
-    @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String?
-    @Shared(.listeningTracker) var listeningTracker = ListeningTracker(
-      rewardsProfile: RewardsProfile(
-        totalTimeListenedMS: 2 * 60 * 60 * 1000,
-        totalMSAvailableForRewards: 0,
-        accurateAsOfTime: Date()
+    await withMainSerialExecutor {
+      let testJWT = MainContainerTests.createTestJWT()
+      @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+      @Shared(.appInstallDate) var appInstallDate = Calendar.current.date(
+        byAdding: .day, value: -10, to: Date()
       )
-    )
+      @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String?
+      @Shared(.listeningTracker) var listeningTracker = ListeningTracker(
+        rewardsProfile: RewardsProfile(
+          totalTimeListenedMS: 2 * 60 * 60 * 1000,
+          totalMSAvailableForRewards: 0,
+          accurateAsOfTime: Date()
+        )
+      )
 
-    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-    var markShownCalled = false
+      let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+      var markShownCalled = false
+      var markDismissedCalled = false
 
-    let mainContainerModel = withDependencies {
-      $0.api.getStations = { [] }
-      $0.api.getSupportConversation = { _ in .mockWith() }
-      $0.pushNotifications.registerForRemoteNotifications = {}
-      $0.appRating.shouldShowRatingPrompt = { _ in true }
-      $0.appRating.markRatingPromptShown = { markShownCalled = true }
-      $0.analytics.track = { @Sendable event in
-        capturedEvents.withValue { $0.append(event) }
+      let mainContainerModel = withDependencies {
+        $0.api.getStations = { [] }
+        $0.api.getSupportConversation = { _ in .mockWith() }
+        $0.pushNotifications.registerForRemoteNotifications = {}
+        $0.appRating.shouldShowRatingPrompt = { _ in true }
+        $0.appRating.markRatingPromptShown = { markShownCalled = true }
+        $0.appRating.markRatingPromptDismissed = { markDismissedCalled = true }
+        $0.analytics.track = { @Sendable event in
+          capturedEvents.withValue { $0.append(event) }
+        }
+      } operation: {
+        MainContainerModel()
       }
-    } operation: {
-      MainContainerModel()
+
+      mainContainerModel.checkAndShowRatingPromptIfNeeded()
+
+      // Simulate tapping "Not really"
+      await mainContainerModel.presentedAlert?.secondaryAction?()
+
+      // Let spawned Task run
+      await Task.yield()
+
+      XCTAssertTrue(markShownCalled)
+      XCTAssertTrue(
+        markDismissedCalled, "Not really should also set dismiss date for 7-day cooldown")
+      XCTAssertTrue(capturedEvents.value.contains { $0 == .ratingPromptNotEnjoying })
+      XCTAssertTrue(capturedEvents.value.contains { $0 == .feedbackSheetPresented })
+      XCTAssertNil(
+        mainContainerModel.presentedAlert, "Alert should be dismissed before showing feedback sheet"
+      )
+      if case .feedbackSheet = mainContainerModel.mainContainerNavigationCoordinator.presentedSheet
+      {
+        // Test passes - feedback sheet is presented
+      } else {
+        XCTFail("Expected feedback sheet to be presented")
+      }
     }
+  }
 
-    mainContainerModel.checkAndShowRatingPromptIfNeeded()
+  func testFeedbackSheetFailedTracksErrorEvent() async {
+    await withMainSerialExecutor {
+      let testJWT = MainContainerTests.createTestJWT()
+      @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+      @Shared(.appInstallDate) var appInstallDate = Calendar.current.date(
+        byAdding: .day, value: -10, to: Date()
+      )
+      @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String?
+      @Shared(.listeningTracker) var listeningTracker = ListeningTracker(
+        rewardsProfile: RewardsProfile(
+          totalTimeListenedMS: 2 * 60 * 60 * 1000,
+          totalMSAvailableForRewards: 0,
+          accurateAsOfTime: Date()
+        )
+      )
 
-    // Simulate tapping "Not really"
-    await mainContainerModel.presentedAlert?.secondaryAction?()
+      let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
-    // Give time for the async feedback sheet to load
-    try? await Task.sleep(for: .milliseconds(100))
+      let mainContainerModel = withDependencies {
+        $0.api.getStations = { [] }
+        $0.api.getSupportConversation = { _ in throw NSError(domain: "test", code: 500) }
+        $0.pushNotifications.registerForRemoteNotifications = {}
+        $0.appRating.shouldShowRatingPrompt = { _ in true }
+        $0.appRating.markRatingPromptShown = {}
+        $0.appRating.markRatingPromptDismissed = {}
+        $0.analytics.track = { @Sendable event in
+          capturedEvents.withValue { $0.append(event) }
+        }
+      } operation: {
+        MainContainerModel()
+      }
 
-    XCTAssertTrue(markShownCalled)
-    XCTAssertTrue(capturedEvents.value.contains { $0 == .ratingPromptNotEnjoying })
-    XCTAssertNil(
-      mainContainerModel.presentedAlert, "Alert should be dismissed before showing feedback sheet")
-    if case .feedbackSheet = mainContainerModel.mainContainerNavigationCoordinator.presentedSheet {
-      // Test passes - feedback sheet is presented
-    } else {
-      XCTFail("Expected feedback sheet to be presented")
+      mainContainerModel.checkAndShowRatingPromptIfNeeded()
+
+      // Simulate tapping "Not really"
+      await mainContainerModel.presentedAlert?.secondaryAction?()
+
+      // Let spawned Task run
+      await Task.yield()
+
+      XCTAssertTrue(
+        capturedEvents.value.contains {
+          if case .feedbackSheetFailed = $0 { return true }
+          return false
+        },
+        "Should track feedbackSheetFailed event when API fails"
+      )
     }
   }
 

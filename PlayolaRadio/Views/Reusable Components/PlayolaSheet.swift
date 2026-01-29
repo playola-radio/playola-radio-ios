@@ -5,6 +5,18 @@
 //  Created by Brian D Keane on 1/17/25.
 //
 
+struct ShareSheetModel: Hashable, Equatable {
+  let items: [String]
+
+  static func == (lhs: ShareSheetModel, rhs: ShareSheetModel) -> Bool {
+    lhs.items == rhs.items
+  }
+
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(items)
+  }
+}
+
 enum PlayolaSheet: Hashable, Identifiable, Equatable {
   var id: Self {
     self
@@ -15,4 +27,5 @@ enum PlayolaSheet: Hashable, Identifiable, Equatable {
   case recordPage(RecordPageModel)
   case songSearchPage(SongSearchPageModel)
   case feedbackSheet(FeedbackSheetModel)
+  case share(ShareSheetModel)
 }

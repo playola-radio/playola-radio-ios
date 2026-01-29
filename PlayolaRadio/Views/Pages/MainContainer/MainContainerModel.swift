@@ -234,6 +234,7 @@ class MainContainerModel: ViewModel {
         guard let self else { return }
         await self.analytics.track(.ratingPromptNotEnjoying)
         self.appRating.markRatingPromptShown()
+        self.appRating.markRatingPromptDismissed()
         self.presentedAlert = nil
         self.showFeedbackSheet()
       },
@@ -258,9 +259,10 @@ class MainContainerModel: ViewModel {
             self?.presentedAlert = .thankYouForFeedback
           }
         )
+        await analytics.track(.feedbackSheetPresented)
         mainContainerNavigationCoordinator.presentedSheet = .feedbackSheet(feedbackModel)
       } catch {
-        // Silently fail
+        await analytics.track(.feedbackSheetFailed(error: error.localizedDescription))
       }
     }
   }

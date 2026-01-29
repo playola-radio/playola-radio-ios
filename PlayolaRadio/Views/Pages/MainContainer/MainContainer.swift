@@ -77,7 +77,7 @@ struct MainContainer: View {
       item: Binding(
         get: {
           switch model.mainContainerNavigationCoordinator.presentedSheet {
-          case .player, .feedbackSheet:
+          case .player, .feedbackSheet, .share:
             return model.mainContainerNavigationCoordinator.presentedSheet
           default:
             return nil
@@ -92,6 +92,8 @@ struct MainContainer: View {
             PlayerPage(model: playerPageModel)
           case .feedbackSheet(let feedbackModel):
             FeedbackSheetView(model: feedbackModel)
+          case .share(let shareModel):
+            ShareSheet(items: shareModel.items)
           default:
             EmptyView()
           }

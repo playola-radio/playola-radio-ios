@@ -244,4 +244,11 @@ extension PlayolaAlert {
       tertiaryAction: onNotNow
     )
   }
+
+  static var errorCreatingReferralCode: PlayolaAlert {
+    PlayolaAlert(
+      title: "Error",
+      message: "There was an error creating your invite link. Please try again.",
+      dismissButton: .cancel(Text("OK")))
+  }
 }
