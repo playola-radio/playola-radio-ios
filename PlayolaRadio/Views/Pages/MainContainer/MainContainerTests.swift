@@ -276,29 +276,6 @@ final class MainContainerTests: XCTestCase {
     }
   }
 
-  func testSmallPlayerActions_SmallPlayerHidesWhenStopButtonPressed() async {
-    //    let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
-    //
-    //    let mainContainerModel = withDependencies {
-    //      $0.api.getStations = { [] }
-    //    } operation: {
-    //      MainContainerModel(stationPlayer: stationPlayerMock)
-    //    }
-    //
-    //    await mainContainerModel.viewAppeared()
-    //    // Verify small player should be showing initially
-    //    XCTAssertTrue(mainContainerModel.shouldShowSmallPlayer)
-    //
-    //    // Simulate the stop button being pressed
-    //    mainContainerModel.onSmallPlayerStopTapped()
-    //
-    //    // Update the mock to reflect the stopped state
-    //    stationPlayerMock.state = StationPlayer.State(playbackStatus: .stopped)
-    //
-    //    // Verify small player should now be hidden
-    //    XCTAssertFalse(mainContainerModel.shouldShowSmallPlayer)
-  }
-
   // MARK: - Process New Station State Tests
 
   func testProcessNewStationState_PresentsPlayerSheetWhenStartingNewStation() {
