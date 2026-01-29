@@ -808,4 +808,125 @@ final class LibraryPageTests: XCTestCase {
       XCTAssertEqual(model.presentedAlert?.title, "Error")
     }
   }
+
+  // MARK: - Add Song Button Tests
+
+  func testAddSongButtonTappedPresentsSongSearchPageSheet() {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator)
+    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = LibraryPageModel(stationId: "test-station")
+
+      XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
+      XCTAssertNil(model.songSearchPageModel)
+
+      model.addSongButtonTapped()
+
+      XCTAssertNotNil(model.songSearchPageModel)
+      if case .songSearchPage = mainContainerNavigationCoordinator.presentedSheet {
+        // Success - presented song search page sheet
+      } else {
+        XCTFail("Expected songSearchPage sheet presentation")
+      }
+    }
+  }
+
+  func testAddSongButtonTappedUsesSpotifyOnlySearchMode() {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator)
+    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = LibraryPageModel(stationId: "test-station")
+
+      model.addSongButtonTapped()
+
+      XCTAssertEqual(model.songSearchPageModel?.searchMode, .spotifyOnly)
+    }
+  }
+
+  func testAddSongButtonTappedPassesStationId() {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator)
+    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = LibraryPageModel(stationId: "my-station-456")
+
+      model.addSongButtonTapped()
+
+      XCTAssertEqual(model.songSearchPageModel?.stationId, "my-station-456")
+    }
+  }
+
+  func testAddSongButtonTappedOnAddedToLibraryCallbackAddsRequestToList() {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator)
+    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = LibraryPageModel(stationId: "test-station")
+
+      model.addSongButtonTapped()
+
+      XCTAssertTrue(model.libraryRequests.isEmpty)
+
+      let mockRequest = StationLibraryRequest.mockWith(id: "new-add-request", type: .add)
+      model.songSearchPageModel?.onAddedToLibrary?(mockRequest)
+
+      XCTAssertEqual(model.libraryRequests.count, 1)
+      XCTAssertEqual(model.libraryRequests[0].id, "new-add-request")
+    }
+  }
+
+  func testAddSongButtonTappedOnAddedToLibraryCallbackDismissesSheet() {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator)
+    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = LibraryPageModel(stationId: "test-station")
+
+      model.addSongButtonTapped()
+
+      XCTAssertNotNil(mainContainerNavigationCoordinator.presentedSheet)
+
+      let mockRequest = StationLibraryRequest.mockWith(id: "new-add-request", type: .add)
+      model.songSearchPageModel?.onAddedToLibrary?(mockRequest)
+
+      XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
+    }
+  }
+
+  func testAddSongButtonTappedOnDismissCallbackDismissesSheet() {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator)
+    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = LibraryPageModel(stationId: "test-station")
+
+      model.addSongButtonTapped()
+
+      XCTAssertNotNil(mainContainerNavigationCoordinator.presentedSheet)
+
+      model.songSearchPageModel?.onDismiss?()
+
+      XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
+    }
+  }
 }

@@ -19,6 +19,8 @@ class LibraryPageModel: ViewModel {
   // MARK: - Shared State
 
   @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
 
   // MARK: - Initialization
 
@@ -39,6 +41,7 @@ class LibraryPageModel: ViewModel {
   var searchText = ""
   var presentedAlert: PlayolaAlert?
   var processingRemovalSongIds: Set<String> = []
+  var songSearchPageModel: SongSearchPageModel?
 
   var filteredSongs: [LibrarySong] {
     guard !searchText.isEmpty else { return librarySongs }
@@ -94,7 +97,16 @@ class LibraryPageModel: ViewModel {
   }
 
   func addSongButtonTapped() {
-    // Opens SongSearchPage - handled by view via sheet presentation
+    let model = SongSearchPageModel(searchMode: .spotifyOnly, stationId: stationId)
+    model.onDismiss = { [weak self] in
+      self?.mainContainerNavigationCoordinator.presentedSheet = nil
+    }
+    model.onAddedToLibrary = { [weak self] request in
+      self?.libraryRequests.insert(request, at: 0)
+      self?.mainContainerNavigationCoordinator.presentedSheet = nil
+    }
+    songSearchPageModel = model
+    mainContainerNavigationCoordinator.presentedSheet = .songSearchPage(model)
   }
 
   func dismissRequestButtonTapped(_ request: StationLibraryRequest) async {

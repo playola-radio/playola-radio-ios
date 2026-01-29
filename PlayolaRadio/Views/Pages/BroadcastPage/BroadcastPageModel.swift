@@ -255,7 +255,7 @@ class BroadcastPageModel: ViewModel {
           userName: userName
         ))
     }
-    let model = SongSearchPageModel()
+    let model = SongSearchPageModel(searchMode: .libraryOnly)
     model.onDismiss = { [weak self] in
       self?.mainContainerNavigationCoordinator.presentedSheet = nil
     }

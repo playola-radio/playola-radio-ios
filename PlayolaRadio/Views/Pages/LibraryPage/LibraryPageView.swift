@@ -30,6 +30,16 @@ struct LibraryPageView: View {
     .toolbarBackground(Color.black, for: .navigationBar)
     .toolbarColorScheme(.dark, for: .navigationBar)
     .searchable(text: $model.searchText, prompt: model.searchPrompt)
+    .toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        Button {
+          model.addSongButtonTapped()
+        } label: {
+          Image(systemName: "plus")
+            .foregroundColor(.playolaRed)
+        }
+      }
+    }
     .refreshable {
       await model.refreshPulledDown()
     }
