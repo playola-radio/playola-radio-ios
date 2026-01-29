@@ -21,6 +21,7 @@ struct MainContainer: View {
         TabView(selection: $model.activeTab) {
           if model.isInBroadcastMode {
             broadcastTab
+            libraryTab
             listenersTab
             settingsTab
           } else {
@@ -221,6 +222,20 @@ struct MainContainer: View {
       Text("Broadcast")
     }
     .tag(MainContainerModel.ActiveTab.broadcast)
+  }
+
+  @ViewBuilder
+  private var libraryTab: some View {
+    tabContentWithSmallPlayer {
+      if let libraryModel = model.libraryPageModel {
+        LibraryPageView(model: libraryModel)
+      }
+    }
+    .tabItem {
+      Image(systemName: "music.note.list")
+      Text("Library")
+    }
+    .tag(MainContainerModel.ActiveTab.library)
   }
 
   @ViewBuilder

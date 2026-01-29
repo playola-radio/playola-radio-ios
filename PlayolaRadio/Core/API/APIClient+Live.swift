@@ -11,6 +11,92 @@ import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
 
+// MARK: - Request Helpers
+
+private let sharedIsoDecoder = JSONDecoderWithIsoFull()
+
+private func authenticatedGet<T: Decodable>(
+  path: String,
+  token: String,
+  queryParams: [String: String]? = nil
+) async throws -> T {
+  var url = "\(Config.shared.baseUrl.absoluteString)\(path)"
+  if let queryParams, !queryParams.isEmpty {
+    let queryString = queryParams.map { "\($0.key)=\($0.value)" }.joined(separator: "&")
+    url += "?\(queryString)"
+  }
+  let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
+  return try await AF.request(url, headers: headers)
+    .validate(statusCode: 200..<300)
+    .serializingDecodable(T.self, decoder: sharedIsoDecoder)
+    .value
+}
+
+private func authenticatedPost<T: Decodable>(
+  path: String,
+  token: String,
+  parameters: [String: String] = [:]
+) async throws -> T {
+  let url = "\(Config.shared.baseUrl.absoluteString)\(path)"
+  let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
+  return try await AF.request(
+    url,
+    method: .post,
+    parameters: parameters.isEmpty ? nil : parameters,
+    encoding: JSONEncoding.default,
+    headers: headers
+  )
+  .validate(statusCode: 200..<300)
+  .serializingDecodable(T.self, decoder: sharedIsoDecoder)
+  .value
+}
+
+private func authenticatedPostVoid(
+  path: String,
+  token: String,
+  parameters: [String: String] = [:]
+) async throws {
+  let url = "\(Config.shared.baseUrl.absoluteString)\(path)"
+  let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
+  _ = try await AF.request(
+    url,
+    method: .post,
+    parameters: parameters.isEmpty ? nil : parameters,
+    encoding: JSONEncoding.default,
+    headers: headers
+  )
+  .validate(statusCode: 200..<300)
+  .serializingData()
+  .value
+}
+
+private func authenticatedPut<T: Decodable>(path: String, token: String) async throws -> T {
+  let url = "\(Config.shared.baseUrl.absoluteString)\(path)"
+  let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
+  return try await AF.request(url, method: .put, headers: headers)
+    .validate(statusCode: 200..<300)
+    .serializingDecodable(T.self, decoder: sharedIsoDecoder)
+    .value
+}
+
+private func authenticatedPutVoid(path: String, token: String) async throws {
+  let url = "\(Config.shared.baseUrl.absoluteString)\(path)"
+  let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
+  _ = try await AF.request(url, method: .put, headers: headers)
+    .validate(statusCode: 200..<300)
+    .serializingData()
+    .value
+}
+
+private func authenticatedDelete(path: String, token: String) async throws {
+  let url = "\(Config.shared.baseUrl.absoluteString)\(path)"
+  let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
+  _ = try await AF.request(url, method: .delete, headers: headers)
+    .validate(statusCode: 200..<300)
+    .serializingData()
+    .value
+}
+
 extension APIClient: DependencyKey {
   static let liveValue: Self = {
     let isoDecoder = JSONDecoderWithIsoFull()
@@ -76,20 +162,7 @@ extension APIClient: DependencyKey {
         return response.playolaToken
       },
       getRewardsProfile: { jwtToken in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/users/me/profile"
-        let headers: HTTPHeaders = [
-          "Authorization": "Bearer \(jwtToken)"
-        ]
-
-        let response = try await AF.request(
-          url,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(RewardsProfile.self, decoder: JSONDecoderWithIsoFull())
-        .value
-
-        return response
+        try await authenticatedGet(path: "/v1/rewards/users/me/profile", token: jwtToken)
       },
       getPrizeTiers: {
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/tiers"
@@ -236,113 +309,36 @@ extension APIClient: DependencyKey {
         }
       },
       likeSong: { jwtToken, songId, spinId in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/likes"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
         var parameters: [String: String] = ["audioBlockId": songId]
-        if let spinId = spinId {
-          parameters["spinId"] = spinId
-        }
-
-        _ = try await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-        .serializingData()
-        .value
+        if let spinId { parameters["spinId"] = spinId }
+        try await authenticatedPostVoid(
+          path: "/v1/users/me/likes", token: jwtToken, parameters: parameters)
       },
       unlikeSong: { jwtToken, songId in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/likes/\(songId)"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        _ = try await AF.request(
-          url,
-          method: .delete,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-        .serializingData()
-        .value
+        try await authenticatedDelete(path: "/v1/users/me/likes/\(songId)", token: jwtToken)
       },
       getLikedSongs: { jwtToken in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/likes"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(
-          url,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable([UserSongLike].self, decoder: isoDecoder)
-        .value
-
-        return response
+        try await authenticatedGet(path: "/v1/users/me/likes", token: jwtToken)
       },
       getShows: { jwtToken, includeSegments, stationId in
-        var url = "\(Config.shared.baseUrl.absoluteString)/v1/shows"
-        var queryParams: [String] = []
-
-        if includeSegments {
-          queryParams.append("includeSegments=true")
-        }
-        if let stationId = stationId {
-          queryParams.append("stationId=\(stationId)")
-        }
-
-        if !queryParams.isEmpty {
-          url += "?" + queryParams.joined(separator: "&")
-        }
-
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(
-          url,
-          headers: headers
+        var queryParams: [String: String] = [:]
+        if includeSegments { queryParams["includeSegments"] = "true" }
+        if let stationId { queryParams["stationId"] = stationId }
+        return try await authenticatedGet(
+          path: "/v1/shows", token: jwtToken, queryParams: queryParams.isEmpty ? nil : queryParams
         )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable([Show].self, decoder: isoDecoder)
-        .value
-
-        return response
       },
       getShowById: { jwtToken, showId, includeSegments in
-        var url = "\(Config.shared.baseUrl.absoluteString)/v1/shows/\(showId)"
-        if !includeSegments {
-          url += "?includeSegments=false"
-        }
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(
-          url,
-          headers: headers
+        let queryParams = includeSegments ? nil : ["includeSegments": "false"]
+        return try await authenticatedGet(
+          path: "/v1/shows/\(showId)", token: jwtToken, queryParams: queryParams
         )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(Show?.self, decoder: isoDecoder)
-        .value
-
-        return response
       },
       getAirings: { jwtToken, stationId in
-        var url = "\(Config.shared.baseUrl.absoluteString)/v1/airings"
-
-        if let stationId = stationId {
-          url += "?stationId=\(stationId)"
-        }
-
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(
-          url,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable([Airing].self, decoder: isoDecoder)
-        .value
-
-        return response
+        var queryParams: [String: String]?
+        if let stationId { queryParams = ["stationId": stationId] }
+        return try await authenticatedGet(
+          path: "/v1/airings", token: jwtToken, queryParams: queryParams)
       },
       fetchSchedule: { stationId, extended in
         var url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/schedule"
@@ -359,26 +355,10 @@ extension APIClient: DependencyKey {
         return response
       },
       fetchStation: { jwtToken, stationId in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(url, headers: headers)
-          .validate(statusCode: 200..<300)
-          .serializingDecodable(Station.self, decoder: isoDecoder)
-          .value
-
-        return response
+        try await authenticatedGet(path: "/v1/stations/\(stationId)", token: jwtToken)
       },
       fetchUserStations: { jwtToken in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/stations"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(url, headers: headers)
-          .validate(statusCode: 200..<300)
-          .serializingDecodable([Station].self, decoder: isoDecoder)
-          .value
-
-        return response
+        try await authenticatedGet(path: "/v1/users/me/stations", token: jwtToken)
       },
       deleteSpin: { jwtToken, spinId in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/spins/\(spinId)"
@@ -479,20 +459,9 @@ extension APIClient: DependencyKey {
         }
       },
       getVoicetrackPresignedURL: { jwtToken, stationId in
-        let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/voicetrack-presigned-url"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(
-          url,
-          method: .post,
-          headers: headers
+        try await authenticatedPost(
+          path: "/v1/stations/\(stationId)/voicetrack-presigned-url", token: jwtToken
         )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(PresignedURLResponse.self)
-        .value
-
-        return response
       },
       uploadToS3: { presignedURL, fileURL, contentType, onProgress in
         let headers: HTTPHeaders = [
@@ -569,347 +538,166 @@ extension APIClient: DependencyKey {
         return response
       },
       getListenerQuestions: { jwtToken, stationId in
-        let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/listener-questions"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(url, headers: headers)
-          .validate(statusCode: 200..<300)
-          .serializingDecodable([ListenerQuestion].self, decoder: isoDecoder)
-          .value
-
-        return response
+        try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/listener-questions", token: jwtToken)
       },
       getListenerQuestionPresignedURL: { jwtToken, stationId in
-        let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/listener-questions/presigned-url"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        let parameters: [String: String] = ["stationId": stationId]
-
-        let response = try await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default,
-          headers: headers
+        try await authenticatedPost(
+          path: "/v1/listener-questions/presigned-url",
+          token: jwtToken,
+          parameters: ["stationId": stationId]
         )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(ListenerQuestionPresignedURLResponse.self, decoder: isoDecoder)
-        .value
-
-        return response
       },
       createListenerQuestion: { jwtToken, stationId, audioBlockId in
-        let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/listener-questions"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        let parameters: [String: String] = ["stationId": stationId, "audioBlockId": audioBlockId]
-
-        let response = try await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default,
-          headers: headers
+        try await authenticatedPost(
+          path: "/v1/listener-questions",
+          token: jwtToken,
+          parameters: ["stationId": stationId, "audioBlockId": audioBlockId]
         )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(ListenerQuestion.self, decoder: isoDecoder)
-        .value
-
-        return response
       },
       registerListenerQuestionAnswer: { jwtToken, stationId, questionId, answerAudioBlockId in
-        let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/listener-questions/\(questionId)/answer"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        let parameters: [String: String] = ["answerAudioBlockId": answerAudioBlockId]
-
-        let response = try await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default,
-          headers: headers
+        try await authenticatedPost(
+          path: "/v1/stations/\(stationId)/listener-questions/\(questionId)/answer",
+          token: jwtToken,
+          parameters: ["answerAudioBlockId": answerAudioBlockId]
         )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(ListenerQuestion.self, decoder: isoDecoder)
-        .value
-
-        return response
       },
       declineListenerQuestion: { jwtToken, stationId, questionId in
-        let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/listener-questions/\(questionId)/decline"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(
-          url,
-          method: .post,
-          headers: headers
+        try await authenticatedPost(
+          path: "/v1/stations/\(stationId)/listener-questions/\(questionId)/decline",
+          token: jwtToken
         )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(ListenerQuestion.self, decoder: isoDecoder)
-        .value
-
-        return response
       },
       getMyListenerQuestionAirings: { jwtToken in
-        let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/users/me/listener-question-airings"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(
-          url,
-          method: .get,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable([ListenerQuestionAiring].self, decoder: isoDecoder)
-        .value
-
-        return response
+        try await authenticatedGet(path: "/v1/users/me/listener-question-airings", token: jwtToken)
       },
       searchSongs: { jwtToken, keywords in
-        let encodedKeywords =
+        let encoded =
           keywords.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? keywords
-        let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/songs/search?keywords=\(encodedKeywords)"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(url, headers: headers)
-          .validate(statusCode: 200..<300)
-          .serializingDecodable([AudioBlock].self, decoder: isoDecoder)
-          .value
-
-        return response
+        return try await authenticatedGet(
+          path: "/v1/songs/search", token: jwtToken, queryParams: ["keywords": encoded]
+        )
       },
       searchSongRequests: { jwtToken, keywords in
-        let encodedKeywords =
+        let encoded =
           keywords.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? keywords
-        let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/songs/search-song-seeds?keywords=\(encodedKeywords)"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(url, headers: headers)
-          .validate(statusCode: 200..<300)
-          .serializingDecodable([SongRequest].self, decoder: isoDecoder)
-          .value
-
-        return response
+        return try await authenticatedGet(
+          path: "/v1/songs/search-song-seeds", token: jwtToken, queryParams: ["keywords": encoded]
+        )
       },
       requestSong: { jwtToken, spotifyId in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/songs/requests"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        let parameters = ["spotifyId": spotifyId]
-
-        _ = try await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default,
-          headers: headers
+        try await authenticatedPostVoid(
+          path: "/v1/songs/requests", token: jwtToken, parameters: ["spotifyId": spotifyId]
         )
-        .validate(statusCode: 200..<300)
-        .serializingData()
-        .value
       },
       registerDevice: { jwtToken, deviceToken, platform, appVersion in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/devices"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        let parameters: [String: String] = [
-          "deviceToken": deviceToken,
-          "platform": platform,
-          "appVersion": appVersion,
-        ]
-
-        let response = try await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default,
-          headers: headers
+        try await authenticatedPost(
+          path: "/v1/users/me/devices",
+          token: jwtToken,
+          parameters: ["deviceToken": deviceToken, "platform": platform, "appVersion": appVersion]
         )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(RegisteredDevice.self, decoder: JSONDecoderWithIsoFull())
-        .value
-
-        return response
       },
       unregisterDevice: { jwtToken, deviceId in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/devices/\(deviceId)"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        _ = try await AF.request(
-          url,
-          method: .delete,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-        .serializingData()
-        .value
+        try await authenticatedDelete(path: "/v1/users/me/devices/\(deviceId)", token: jwtToken)
       },
       sendStationNotification: { jwtToken, stationId, message in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/notifications"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        let parameters: [String: String] = ["message": message]
-
-        _ = try await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default,
-          headers: headers
+        try await authenticatedPostVoid(
+          path: "/v1/stations/\(stationId)/notifications", token: jwtToken,
+          parameters: ["message": message]
         )
-        .validate(statusCode: 200..<300)
-        .serializingData()
-        .value
       },
       getPushNotificationSubscriptions: { jwtToken in
-        let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/users/me/push-notification-subscriptions"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(url, headers: headers)
-          .validate(statusCode: 200..<300)
-          .serializingDecodable(
-            [PushNotificationSubscriptionWithStation].self, decoder: isoDecoder
-          )
-          .value
-
-        return response
+        try await authenticatedGet(
+          path: "/v1/users/me/push-notification-subscriptions", token: jwtToken)
       },
       subscribeToStationNotifications: { jwtToken, stationId in
-        let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/push-notification-subscription/subscribe"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(
-          url,
-          method: .post,
-          headers: headers
+        try await authenticatedPost(
+          path: "/v1/stations/\(stationId)/push-notification-subscription/subscribe",
+          token: jwtToken
         )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(PushNotificationSubscription.self, decoder: isoDecoder)
-        .value
-
-        return response
       },
       unsubscribeFromStationNotifications: { jwtToken, stationId in
-        let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/push-notification-subscription/unsubscribe"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(
-          url,
-          method: .post,
-          headers: headers
+        try await authenticatedPost(
+          path: "/v1/stations/\(stationId)/push-notification-subscription/unsubscribe",
+          token: jwtToken
         )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(PushNotificationSubscription.self, decoder: isoDecoder)
-        .value
-
-        return response
       },
       fetchLiveStations: { jwtToken in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/live"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(url, headers: headers)
-          .validate(statusCode: 200..<300)
-          .serializingDecodable([LiveStationInfo].self, decoder: isoDecoder)
-          .value
-
-        return response
+        try await authenticatedGet(path: "/v1/stations/live", token: jwtToken)
       },
       getSupportConversation: { jwtToken in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/conversations/support"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(url, headers: headers)
-          .validate(statusCode: 200..<300)
-          .serializingDecodable(SupportConversationResponse.self, decoder: isoDecoder)
-          .value
-
-        return response
+        try await authenticatedGet(path: "/v1/conversations/support", token: jwtToken)
       },
       getConversationMessages: { jwtToken, conversationId in
-        let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/conversations/\(conversationId)/messages"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(url, headers: headers)
-          .validate(statusCode: 200..<300)
-          .serializingDecodable([Message].self, decoder: isoDecoder)
-          .value
-
-        return response
+        try await authenticatedGet(
+          path: "/v1/conversations/\(conversationId)/messages", token: jwtToken)
       },
       sendConversationMessage: { jwtToken, conversationId, message in
-        let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/conversations/\(conversationId)/messages"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        let parameters = ["message": message]
-
-        let response = try await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default,
-          headers: headers
+        try await authenticatedPost(
+          path: "/v1/conversations/\(conversationId)/messages",
+          token: jwtToken,
+          parameters: ["message": message]
         )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(Message.self, decoder: isoDecoder)
-        .value
-
-        return response
       },
       markConversationRead: { jwtToken, conversationId in
-        let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/conversations/\(conversationId)/read"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        _ = try await AF.request(
-          url,
-          method: .put,
-          headers: headers
-        )
-        .validate(statusCode: 200..<300)
-        .serializingData()
-        .value
+        try await authenticatedPutVoid(
+          path: "/v1/conversations/\(conversationId)/read", token: jwtToken)
       },
       getConversations: { jwtToken, status in
-        var url = "\(Config.shared.baseUrl.absoluteString)/v1/conversations"
-        if let status = status {
-          url += "?status=\(status)"
-        }
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let response = try await AF.request(url, headers: headers)
-          .validate(statusCode: 200..<300)
-          .serializingDecodable([AdminConversationResponse].self, decoder: isoDecoder)
-          .value
-
-        return response
+        var queryParams: [String: String]?
+        if let status { queryParams = ["status": status] }
+        return try await authenticatedGet(
+          path: "/v1/conversations", token: jwtToken, queryParams: queryParams)
       },
       getOrCreateReferralCode: { jwtToken, expiresAt in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/referral-codes/get-or-create"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        let parameters: [String: String] = [
-          "expiresAt": ISO8601DateFormatter().string(from: expiresAt)
-        ]
-
-        let response = try await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default,
-          headers: headers
+        try await authenticatedPost(
+          path: "/v1/referral-codes/get-or-create",
+          token: jwtToken,
+          parameters: ["expiresAt": ISO8601DateFormatter().string(from: expiresAt)]
         )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(ReferralCode.self, decoder: isoDecoder)
-        .value
-
-        return response
+      },
+      getStationLibrary: { jwtToken, stationId in
+        try await authenticatedGet(path: "/v1/stations/\(stationId)/library", token: jwtToken)
+      },
+      getStationLibraryRequests: { jwtToken, stationId, status in
+        var queryParams: [String: String]?
+        if let status { queryParams = ["status": status] }
+        return try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/library-requests",
+          token: jwtToken,
+          queryParams: queryParams
+        )
+      },
+      createAddLibraryRequest: { jwtToken, stationId, body in
+        var parameters: [String: String] = [
+          "spotifyId": body.spotifyId, "title": body.title, "artist": body.artist,
+        ]
+        if let album = body.album { parameters["album"] = album }
+        if let imageUrl = body.imageUrl { parameters["imageUrl"] = imageUrl }
+        return try await authenticatedPost(
+          path: "/v1/stations/\(stationId)/library-requests/add",
+          token: jwtToken,
+          parameters: parameters
+        )
+      },
+      createRemoveLibraryRequest: { jwtToken, stationId, audioBlockId in
+        try await authenticatedPost(
+          path: "/v1/stations/\(stationId)/library-requests/remove",
+          token: jwtToken,
+          parameters: ["audioBlockId": audioBlockId]
+        )
+      },
+      dismissStationLibraryRequest: { jwtToken, stationId, requestId in
+        try await authenticatedPut(
+          path: "/v1/stations/\(stationId)/library-requests/\(requestId)/dismiss",
+          token: jwtToken
+        )
+      },
+      cancelStationLibraryRequest: { jwtToken, stationId, requestId in
+        try await authenticatedDelete(
+          path: "/v1/stations/\(stationId)/library-requests/\(requestId)",
+          token: jwtToken
+        )
       }
     )
   }()
