@@ -286,7 +286,6 @@
 		D3776A3C2F2918DE00200ADF /* WaveformViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A3A2F2918DE00200ADF /* WaveformViews.swift */; };
 		D3776A3E2F2A91D200200ADF /* ReferralCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A3D2F2A91D200200ADF /* ReferralCode.swift */; };
 		D3776A3F2F2A91D200200ADF /* ReferralCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A3D2F2A91D200200ADF /* ReferralCode.swift */; };
-		D3776A422F2BC0F700200ADF /* CustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = D3776A412F2BC0F700200ADF /* CustomDump */; };
 		D378CCCE2E56011A00497A4A /* SignInPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCD2E56011500497A4A /* SignInPageModel.swift */; };
 		D378CCD02E57947800497A4A /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCF2E57947800497A4A /* ShareSheet.swift */; };
 		D37B74872EC94427009806C6 /* PushNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37B74862EC94426009806C6 /* PushNotifications.swift */; };
@@ -624,7 +623,6 @@
 				D3CE19032D3C825C0091B888 /* PlayolaPlayer in Frameworks */,
 				D35673B72D3DC6EC00E4E926 /* Mixpanel in Frameworks */,
 				D3B744A32E2ED6AC0042A427 /* DependenciesMacros in Frameworks */,
-				D3776A422F2BC0F700200ADF /* CustomDump in Frameworks */,
 				D39591122E3808A900720CF8 /* SDWebImageSVGCoder in Frameworks */,
 				D31C43D42D3C783B0021AAE4 /* PlayolaPlayer in Frameworks */,
 				D3B744A12E2ED6AC0042A427 /* Dependencies in Frameworks */,
@@ -1442,7 +1440,6 @@
 				D39591112E3808A900720CF8 /* SDWebImageSVGCoder */,
 				D3916A662ECD229B00CAAD50 /* IdentifiedCollections */,
 				D3916A6B2ECD231200CAAD50 /* Sharing */,
-				D3776A412F2BC0F700200ADF /* CustomDump */,
 			);
 			productName = PlayolaRadio;
 			productReference = D3536A012BFA4F49006942D6 /* PlayolaRadio.app */;
@@ -1510,7 +1507,6 @@
 				D39591102E3808A900720CF8 /* XCRemoteSwiftPackageReference "SDWebImageSVGCoder" */,
 				D3916A652ECD229B00CAAD50 /* XCRemoteSwiftPackageReference "swift-identified-collections" */,
 				D3916A6A2ECD231200CAAD50 /* XCRemoteSwiftPackageReference "swift-sharing" */,
-				D3776A402F2BC0F700200ADF /* XCRemoteSwiftPackageReference "swift-custom-dump" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D3536A022BFA4F49006942D6 /* Products */;
@@ -2551,14 +2547,6 @@
 				kind = branch;
 			};
 		};
-		D3776A402F2BC0F700200ADF /* XCRemoteSwiftPackageReference "swift-custom-dump" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/briankeane/swift-custom-dump.git";
-			requirement = {
-				branch = "fix/inspector-availability";
-				kind = branch;
-			};
-		};
 		D38483792E242D61008676BB /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SimplyDanny/SwiftLintPlugins";
@@ -2717,11 +2705,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D35673B52D3DC6EC00E4E926 /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
 			productName = Mixpanel;
-		};
-		D3776A412F2BC0F700200ADF /* CustomDump */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D3776A402F2BC0F700200ADF /* XCRemoteSwiftPackageReference "swift-custom-dump" */;
-			productName = CustomDump;
 		};
 		D384837A2E242DB5008676BB /* SwiftLintBuildToolPlugin */ = {
 			isa = XCSwiftPackageProductDependency;
