@@ -16,59 +16,29 @@ struct MainContainer: View {
   @Environment(\.scenePhase) private var scenePhase
 
   var body: some View {
-    NavigationStack(path: $model.mainContainerNavigationCoordinator.path) {
-      VStack(spacing: 0) {
-        TabView(selection: $model.activeTab) {
-          if model.isInBroadcastMode {
-            broadcastTab
-            libraryTab
-            listenersTab
-            settingsTab
-          } else {
-            homeTab
-            stationsTab
-            rewardsTab
-            profileTab
-          }
-        }
-        //        .tabBarMinimizeBehavior(.onScrollDown)  // add in iOS 26
-        .accentColor(.white)  // Makes the selected tab icon white
-        .onAppear {
-          let tabBarAppearance = UITabBarAppearance()
-          tabBarAppearance.configureWithOpaqueBackground()
-          tabBarAppearance.backgroundColor = .black
+    TabView(selection: $model.activeTab) {
+      if model.isInBroadcastMode {
+        broadcastTab
+        libraryTab
+        listenersTab
+        settingsTab
+      } else {
+        homeTab
+        stationsTab
+        rewardsTab
+        profileTab
+      }
+    }
+    //        .tabBarMinimizeBehavior(.onScrollDown)  // add in iOS 26
+    .accentColor(.white)  // Makes the selected tab icon white
+    .onAppear {
+      let tabBarAppearance = UITabBarAppearance()
+      tabBarAppearance.configureWithOpaqueBackground()
+      tabBarAppearance.backgroundColor = .black
 
-          UITabBar.appearance().standardAppearance = tabBarAppearance
-          UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
-          UITabBar.appearance().unselectedItemTintColor = UIColor(white: 0.7, alpha: 1.0)
-        }
-      }
-      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
-        switch path {
-        case .editProfilePage(let model):
-          EditProfilePageView(model: model)
-        case .likedSongsPage(let model):
-          LikedSongsPage(model: model)
-        case .broadcastPage(let model):
-          BroadcastPageView(model: model)
-        case .chooseStationToBroadcastPage(let model):
-          ChooseStationToBroadcastPageView(model: model)
-        case .chooseStationPage(let model):
-          ChooseStationPageView(model: model)
-        case .askQuestionPage(let model):
-          AskQuestionPageView(model: model)
-        case .notificationsSettingsPage(let model):
-          NotificationsSettingsPageView(model: model)
-        case .seriesListPage(let model):
-          SeriesListPage(model: model)
-        case .supportPage(let model):
-          SupportPageView(model: model)
-        case .conversationListPage(let model):
-          ConversationListPageView(model: model)
-        case .listenerQuestionDetailPage(let model):
-          ListenerQuestionDetailPageView(model: model)
-        }
-      }
+      UITabBar.appearance().standardAppearance = tabBarAppearance
+      UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+      UITabBar.appearance().unselectedItemTintColor = UIColor(white: 0.7, alpha: 1.0)
     }
     .playolaAlert($model.presentedAlert)
     .onChange(of: model.activeTab) {
@@ -162,8 +132,13 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var homeTab: some View {
-    tabContentWithSmallPlayer {
-      HomePageView(model: model.homePageModel)
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.homePath) {
+      tabContentWithSmallPlayer {
+        HomePageView(model: model.homePageModel)
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        navigationDestinationView(for: path)
+      }
     }
     .tabItem {
       Image("HomeTabImage")
@@ -174,8 +149,13 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var stationsTab: some View {
-    tabContentWithSmallPlayer {
-      StationListPage(model: model.stationListModel)
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.stationsPath) {
+      tabContentWithSmallPlayer {
+        StationListPage(model: model.stationListModel)
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        navigationDestinationView(for: path)
+      }
     }
     .tabItem {
       Image("RadioStationsTabImage")
@@ -186,8 +166,13 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var rewardsTab: some View {
-    tabContentWithSmallPlayer {
-      RewardsPageView(model: model.rewardsPageModel)
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.rewardsPath) {
+      tabContentWithSmallPlayer {
+        RewardsPageView(model: model.rewardsPageModel)
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        navigationDestinationView(for: path)
+      }
     }
     .tabItem {
       Image("gift")
@@ -198,8 +183,13 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var profileTab: some View {
-    tabContentWithSmallPlayer {
-      ContactPageView(model: model.contactPageModel)
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.profilePath) {
+      tabContentWithSmallPlayer {
+        ContactPageView(model: model.contactPageModel)
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        navigationDestinationView(for: path)
+      }
     }
     .tabItem {
       Image("ProfileTabImage")
@@ -212,9 +202,14 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var broadcastTab: some View {
-    tabContentWithSmallPlayer {
-      if let broadcastModel = model.broadcastPageModel {
-        BroadcastPageView(model: broadcastModel)
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.broadcastPath) {
+      tabContentWithSmallPlayer {
+        if let broadcastModel = model.broadcastPageModel {
+          BroadcastPageView(model: broadcastModel)
+        }
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        navigationDestinationView(for: path)
       }
     }
     .tabItem {
@@ -226,9 +221,14 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var libraryTab: some View {
-    tabContentWithSmallPlayer {
-      if let libraryModel = model.libraryPageModel {
-        LibraryPageView(model: libraryModel)
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.libraryPath) {
+      tabContentWithSmallPlayer {
+        if let libraryModel = model.libraryPageModel {
+          LibraryPageView(model: libraryModel)
+        }
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        navigationDestinationView(for: path)
       }
     }
     .tabItem {
@@ -240,9 +240,14 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var listenersTab: some View {
-    tabContentWithSmallPlayer {
-      if let listenerModel = model.listenerQuestionPageModel {
-        BroadcastersListenerQuestionPageView(model: listenerModel)
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.listenersPath) {
+      tabContentWithSmallPlayer {
+        if let listenerModel = model.listenerQuestionPageModel {
+          BroadcastersListenerQuestionPageView(model: listenerModel)
+        }
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        navigationDestinationView(for: path)
       }
     }
     .tabItem {
@@ -254,8 +259,13 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var settingsTab: some View {
-    tabContentWithSmallPlayer {
-      ContactPageView(model: model.contactPageModel)
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.settingsPath) {
+      tabContentWithSmallPlayer {
+        ContactPageView(model: model.contactPageModel)
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        navigationDestinationView(for: path)
+      }
     }
     .tabItem {
       Image("ProfileTabImage")
@@ -281,6 +291,36 @@ struct MainContainer: View {
           .transition(.move(edge: .bottom))
           .zIndex(1)
       }
+    }
+  }
+
+  @ViewBuilder
+  private func navigationDestinationView(for path: MainContainerNavigationCoordinator.Path)
+    -> some View
+  {
+    switch path {
+    case .editProfilePage(let model):
+      EditProfilePageView(model: model)
+    case .likedSongsPage(let model):
+      LikedSongsPage(model: model)
+    case .broadcastPage(let model):
+      BroadcastPageView(model: model)
+    case .chooseStationToBroadcastPage(let model):
+      ChooseStationToBroadcastPageView(model: model)
+    case .chooseStationPage(let model):
+      ChooseStationPageView(model: model)
+    case .askQuestionPage(let model):
+      AskQuestionPageView(model: model)
+    case .notificationsSettingsPage(let model):
+      NotificationsSettingsPageView(model: model)
+    case .seriesListPage(let model):
+      SeriesListPage(model: model)
+    case .supportPage(let model):
+      SupportPageView(model: model)
+    case .conversationListPage(let model):
+      ConversationListPageView(model: model)
+    case .listenerQuestionDetailPage(let model):
+      ListenerQuestionDetailPageView(model: model)
     }
   }
 }

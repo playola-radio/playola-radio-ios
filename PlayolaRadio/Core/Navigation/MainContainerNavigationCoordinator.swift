@@ -19,12 +19,49 @@ enum AppMode: Equatable {
 /// tabs.
 @Observable
 final class MainContainerNavigationCoordinator: Sendable {
-  var path: [Path] = []
+  // Per-tab navigation paths
+  var homePath: [Path] = []
+  var stationsPath: [Path] = []
+  var rewardsPath: [Path] = []
+  var profilePath: [Path] = []
+  var broadcastPath: [Path] = []
+  var libraryPath: [Path] = []
+  var listenersPath: [Path] = []
+  var settingsPath: [Path] = []
+
   var presentedSheet: PlayolaSheet?
   var appMode: AppMode = .listening
 
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Dependency(\.continuousClock) var clock
+
+  /// Returns a binding-compatible path for the current active tab
+  var path: [Path] {
+    get {
+      switch activeTab {
+      case .home: return homePath
+      case .stationsList: return stationsPath
+      case .rewards: return rewardsPath
+      case .profile: return profilePath
+      case .broadcast: return broadcastPath
+      case .library: return libraryPath
+      case .listeners: return listenersPath
+      case .settings: return settingsPath
+      }
+    }
+    set {
+      switch activeTab {
+      case .home: homePath = newValue
+      case .stationsList: stationsPath = newValue
+      case .rewards: rewardsPath = newValue
+      case .profile: profilePath = newValue
+      case .broadcast: broadcastPath = newValue
+      case .library: libraryPath = newValue
+      case .listeners: listenersPath = newValue
+      case .settings: settingsPath = newValue
+      }
+    }
+  }
 
   enum Path: Hashable, Equatable {
     case editProfilePage(EditProfilePageModel)
@@ -53,13 +90,24 @@ final class MainContainerNavigationCoordinator: Sendable {
   }
 
   func switchToBroadcastMode(stationId: String) {
-    path = []
+    clearAllPaths()
     appMode = .broadcasting(stationId: stationId)
   }
 
   func switchToListeningMode() {
-    path = []
+    clearAllPaths()
     appMode = .listening
+  }
+
+  private func clearAllPaths() {
+    homePath = []
+    stationsPath = []
+    rewardsPath = []
+    profilePath = []
+    broadcastPath = []
+    libraryPath = []
+    listenersPath = []
+    settingsPath = []
   }
 
   func replace(with path: Path) {
