@@ -29,7 +29,9 @@ struct LibraryPageView: View {
     .toolbarBackground(.visible, for: .navigationBar)
     .toolbarBackground(Color.black, for: .navigationBar)
     .toolbarColorScheme(.dark, for: .navigationBar)
-    .searchable(text: $model.searchText, prompt: model.searchPrompt)
+    .safeAreaInset(edge: .bottom) {
+      searchBar
+    }
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Button {
@@ -63,17 +65,32 @@ struct LibraryPageView: View {
   }
 
   private var songListView: some View {
-    List {
-      if !model.activeRequests.isEmpty {
-        requestsSection
-      }
+    ScrollViewReader { proxy in
+      List {
+        if !model.activeRequests.isEmpty {
+          requestsSection
+        }
 
-      songsSection
+        songsSection
+      }
+      .listStyle(.plain)
+      .scrollContentBackground(.hidden)
+      .background(Color.black)
+      .scrollPosition(id: $scrollPosition)
+      .overlay(alignment: .trailing) {
+        SectionIndexView(
+          letters: model.availableSectionLetters,
+          onSelectLetter: { letter in
+            if let artist = model.firstArtist(forLetter: letter) {
+              withAnimation {
+                proxy.scrollTo("artist-\(artist)", anchor: .top)
+              }
+            }
+          }
+        )
+        .padding(.trailing, 2)
+      }
     }
-    .listStyle(.plain)
-    .scrollContentBackground(.hidden)
-    .background(Color.black)
-    .scrollPosition(id: $scrollPosition)
   }
 
   private var requestsSection: some View {
@@ -110,36 +127,69 @@ struct LibraryPageView: View {
   }
 
   private var songsSection: some View {
-    Section {
-      ForEach(model.filteredSongs) { song in
-        LibrarySongRow(
-          song: song,
-          isProcessing: model.isProcessingRemoval(for: song),
-          hasPendingRequest: model.hasPendingRequest(for: song),
-          pendingRemovalText: model.pendingRemovalText,
-          cancelButtonText: model.cancelButtonText,
-          removeButtonText: model.removeButtonText,
-          onCancel: {
-            if let request = model.pendingRequest(for: song) {
+    ForEach(model.songsByArtist, id: \.artist) { artistGroup in
+      Section {
+        ForEach(artistGroup.songs) { song in
+          LibrarySongRow(
+            song: song,
+            isProcessing: model.isProcessingRemoval(for: song),
+            hasPendingRequest: model.hasPendingRequest(for: song),
+            pendingRemovalText: model.pendingRemovalText,
+            cancelButtonText: model.cancelButtonText,
+            removeButtonText: model.removeButtonText,
+            onCancel: {
+              if let request = model.pendingRequest(for: song) {
+                Task {
+                  await model.cancelRequestButtonTapped(request)
+                }
+              }
+            },
+            onRemove: {
               Task {
-                await model.cancelRequestButtonTapped(request)
+                await model.removeSongButtonTapped(song)
               }
             }
-          },
-          onRemove: {
-            Task {
-              await model.removeSongButtonTapped(song)
-            }
-          }
-        )
-        .id("song-\(song.id)")
-        .listRowInsets(EdgeInsets())
-        .listRowSeparator(.hidden)
-        .listRowBackground(Color.clear)
+          )
+          .id("song-\(song.id)")
+          .listRowInsets(EdgeInsets())
+          .listRowSeparator(.hidden)
+          .listRowBackground(Color.clear)
+        }
+      } header: {
+        SectionHeader(title: artistGroup.artist)
+          .id("artist-\(artistGroup.artist)")
       }
-    } header: {
-      SectionHeader(title: model.songsSectionHeader)
     }
+  }
+
+  private var searchBar: some View {
+    HStack(spacing: 8) {
+      Image(systemName: "magnifyingglass")
+        .font(.system(size: 16))
+        .foregroundColor(.playolaGray)
+
+      TextField(model.searchPrompt, text: $model.searchText)
+        .font(.custom(FontNames.Inter_400_Regular, size: 16))
+        .foregroundColor(.white)
+        .autocorrectionDisabled()
+
+      if !model.searchText.isEmpty {
+        Button {
+          model.searchText = ""
+        } label: {
+          Image(systemName: "xmark.circle.fill")
+            .font(.system(size: 16))
+            .foregroundColor(.playolaGray)
+        }
+      }
+    }
+    .padding(.horizontal, 12)
+    .padding(.vertical, 10)
+    .background(Color(hex: "#333333"))
+    .cornerRadius(8)
+    .padding(.horizontal, 16)
+    .padding(.vertical, 12)
+    .background(Color.black)
   }
 }
 
@@ -330,6 +380,50 @@ struct LibraryRequestRow: View {
     .padding(.horizontal, 12)
     .padding(.vertical, 8)
     .background(Color(hex: "#333333"))
+  }
+}
+
+// MARK: - Section Index View
+
+struct SectionIndexView: View {
+  let letters: [String]
+  let onSelectLetter: (String) -> Void
+
+  @GestureState private var isDragging = false
+  @State private var selectedLetter: String?
+
+  var body: some View {
+    VStack(spacing: 2) {
+      ForEach(letters, id: \.self) { letter in
+        Text(letter)
+          .font(.system(size: 11, weight: .semibold))
+          .foregroundColor(selectedLetter == letter ? .playolaRed : .playolaGray)
+          .frame(width: 16, height: 14)
+      }
+    }
+    .padding(.vertical, 4)
+    .background(Color.black.opacity(0.3))
+    .cornerRadius(8)
+    .gesture(
+      DragGesture(minimumDistance: 0)
+        .updating($isDragging) { _, state, _ in
+          state = true
+        }
+        .onChanged { value in
+          let letterHeight: CGFloat = 16
+          let index = Int(value.location.y / letterHeight)
+          if index >= 0 && index < letters.count {
+            let letter = letters[index]
+            if selectedLetter != letter {
+              selectedLetter = letter
+              onSelectLetter(letter)
+            }
+          }
+        }
+        .onEnded { _ in
+          selectedLetter = nil
+        }
+    )
   }
 }
 

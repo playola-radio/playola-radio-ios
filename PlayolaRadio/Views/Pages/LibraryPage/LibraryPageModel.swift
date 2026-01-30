@@ -52,6 +52,19 @@ class LibraryPageModel: ViewModel {
     }
   }
 
+  var songsByArtist: [(artist: String, songs: [LibrarySong])] {
+    let grouped = Dictionary(grouping: filteredSongs) { $0.artist }
+    return
+      grouped
+      .sorted { $0.key.localizedCaseInsensitiveCompare($1.key) == .orderedAscending }
+      .map { (artist: $0.key, songs: $0.value.sorted { $0.title < $1.title }) }
+  }
+
+  var availableSectionLetters: [String] {
+    let letters = Set(songsByArtist.compactMap { $0.artist.first?.uppercased() })
+    return letters.sorted()
+  }
+
   var activeRequests: [StationLibraryRequest] {
     libraryRequests.filter { $0.status != .dismissed }
   }
@@ -165,6 +178,10 @@ class LibraryPageModel: ViewModel {
 
   func canCancelRequest(_ request: StationLibraryRequest) -> Bool {
     request.status == .pending
+  }
+
+  func firstArtist(forLetter letter: String) -> String? {
+    songsByArtist.first { $0.artist.uppercased().hasPrefix(letter.uppercased()) }?.artist
   }
 
   // MARK: - Private Helpers
