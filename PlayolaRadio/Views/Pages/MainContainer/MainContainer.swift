@@ -137,7 +137,7 @@ struct MainContainer: View {
         HomePageView(model: model.homePageModel)
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
-        navigationDestinationView(for: path)
+        path.destinationView
       }
     }
     .tabItem {
@@ -154,7 +154,7 @@ struct MainContainer: View {
         StationListPage(model: model.stationListModel)
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
-        navigationDestinationView(for: path)
+        path.destinationView
       }
     }
     .tabItem {
@@ -171,7 +171,7 @@ struct MainContainer: View {
         RewardsPageView(model: model.rewardsPageModel)
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
-        navigationDestinationView(for: path)
+        path.destinationView
       }
     }
     .tabItem {
@@ -188,7 +188,7 @@ struct MainContainer: View {
         ContactPageView(model: model.contactPageModel)
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
-        navigationDestinationView(for: path)
+        path.destinationView
       }
     }
     .tabItem {
@@ -209,7 +209,7 @@ struct MainContainer: View {
         }
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
-        navigationDestinationView(for: path)
+        path.destinationView
       }
     }
     .tabItem {
@@ -228,7 +228,7 @@ struct MainContainer: View {
         }
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
-        navigationDestinationView(for: path)
+        path.destinationView
       }
     }
     .tabItem {
@@ -247,7 +247,7 @@ struct MainContainer: View {
         }
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
-        navigationDestinationView(for: path)
+        path.destinationView
       }
     }
     .tabItem {
@@ -264,7 +264,7 @@ struct MainContainer: View {
         ContactPageView(model: model.contactPageModel)
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
-        navigationDestinationView(for: path)
+        path.destinationView
       }
     }
     .tabItem {
@@ -294,35 +294,6 @@ struct MainContainer: View {
     }
   }
 
-  @ViewBuilder
-  private func navigationDestinationView(for path: MainContainerNavigationCoordinator.Path)
-    -> some View
-  {
-    switch path {
-    case .editProfilePage(let model):
-      EditProfilePageView(model: model)
-    case .likedSongsPage(let model):
-      LikedSongsPage(model: model)
-    case .broadcastPage(let model):
-      BroadcastPageView(model: model)
-    case .chooseStationToBroadcastPage(let model):
-      ChooseStationToBroadcastPageView(model: model)
-    case .chooseStationPage(let model):
-      ChooseStationPageView(model: model)
-    case .askQuestionPage(let model):
-      AskQuestionPageView(model: model)
-    case .notificationsSettingsPage(let model):
-      NotificationsSettingsPageView(model: model)
-    case .seriesListPage(let model):
-      SeriesListPage(model: model)
-    case .supportPage(let model):
-      SupportPageView(model: model)
-    case .conversationListPage(let model):
-      ConversationListPageView(model: model)
-    case .listenerQuestionDetailPage(let model):
-      ListenerQuestionDetailPageView(model: model)
-    }
-  }
 }
 
 struct MainContainer_Previews: PreviewProvider {

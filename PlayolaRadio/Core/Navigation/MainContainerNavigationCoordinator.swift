@@ -75,6 +75,34 @@ final class MainContainerNavigationCoordinator: Sendable {
     case supportPage(SupportPageModel)
     case conversationListPage(ConversationListPageModel)
     case listenerQuestionDetailPage(ListenerQuestionDetailPageModel)
+
+    @MainActor @ViewBuilder
+    var destinationView: some View {
+      switch self {
+      case .editProfilePage(let model):
+        EditProfilePageView(model: model)
+      case .likedSongsPage(let model):
+        LikedSongsPage(model: model)
+      case .broadcastPage(let model):
+        BroadcastPageView(model: model)
+      case .chooseStationToBroadcastPage(let model):
+        ChooseStationToBroadcastPageView(model: model)
+      case .chooseStationPage(let model):
+        ChooseStationPageView(model: model)
+      case .askQuestionPage(let model):
+        AskQuestionPageView(model: model)
+      case .notificationsSettingsPage(let model):
+        NotificationsSettingsPageView(model: model)
+      case .seriesListPage(let model):
+        SeriesListPage(model: model)
+      case .supportPage(let model):
+        SupportPageView(model: model)
+      case .conversationListPage(let model):
+        ConversationListPageView(model: model)
+      case .listenerQuestionDetailPage(let model):
+        ListenerQuestionDetailPageView(model: model)
+      }
+    }
   }
 
   func push(_ path: Path) {
