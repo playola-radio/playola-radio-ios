@@ -154,7 +154,7 @@ struct PlayerPage: View {
               HStack(spacing: 8) {
                 Image(systemName: "mic.fill")
                   .font(.system(size: 14))
-                Text("Ask A Question")
+                Text("Ask the Artist")
                   .font(.custom(FontNames.Inter_500_Medium, size: 14))
               }
               .foregroundColor(.white)
