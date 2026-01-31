@@ -2,6 +2,8 @@
 
 Views that have hardcoded text, logic, or formatting that should be moved to Models.
 
+> **Opportunistic Refactoring**: Whenever you touch one of these files for any reason, refactor it to fix the violations at that time. Don't make a separate task - just fix it while you're there.
+
 ## High Priority (7-8 violations each)
 
 ### ContactPageView
