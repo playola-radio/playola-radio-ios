@@ -36,7 +36,7 @@ extension AudioConverterClient: DependencyKey {
         do {
           try await exportSession.export(to: outputURL, as: .m4a)
           return outputURL
-        } catch let error as AVError where error.code == .cancelled {
+        } catch let error as AVError where error.code == .operationCancelled {
           throw AudioConverterError.conversionCancelled
         } catch {
           throw AudioConverterError.conversionFailed
