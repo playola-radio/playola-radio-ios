@@ -11,11 +11,22 @@ import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
 
+// MARK: - Request Parameters
+
+private struct MoveSpinParameters: Encodable, Sendable {
+  let placeAfterSpinId: String?
+}
+
+private struct CreateVoicetrackParameters: Encodable, Sendable {
+  let s3Key: String
+  let durationMS: Int
+}
+
 // MARK: - Request Helpers
 
 private let sharedIsoDecoder = JSONDecoderWithIsoFull()
 
-private func authenticatedGet<T: Decodable>(
+private func authenticatedGet<T: Decodable & Sendable>(
   path: String,
   token: String,
   queryParams: [String: String]? = nil
@@ -32,7 +43,7 @@ private func authenticatedGet<T: Decodable>(
     .value
 }
 
-private func authenticatedPost<T: Decodable>(
+private func authenticatedPost<T: Decodable & Sendable>(
   path: String,
   token: String,
   parameters: [String: String] = [:]
@@ -70,7 +81,9 @@ private func authenticatedPostVoid(
   .value
 }
 
-private func authenticatedPut<T: Decodable>(path: String, token: String) async throws -> T {
+private func authenticatedPut<T: Decodable & Sendable>(path: String, token: String) async throws
+  -> T
+{
   let url = "\(Config.shared.baseUrl.absoluteString)\(path)"
   let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
   return try await AF.request(url, method: .put, headers: headers)
@@ -391,13 +404,13 @@ extension APIClient: DependencyKey {
       moveSpin: { jwtToken, spinId, placeAfterSpinId in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/spins/\(spinId)"
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        let parameters: [String: Any] = ["placeAfterSpinId": placeAfterSpinId as Any]
+        let parameters = MoveSpinParameters(placeAfterSpinId: placeAfterSpinId)
 
         let dataResponse = await AF.request(
           url,
           method: .put,
           parameters: parameters,
-          encoding: JSONEncoding.default,
+          encoder: JSONParameterEncoder.default,
           headers: headers
         )
         .serializingData()
@@ -490,16 +503,13 @@ extension APIClient: DependencyKey {
       createVoicetrack: { jwtToken, stationId, s3Key, durationMS in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/voicetracks"
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        let parameters: [String: Any] = [
-          "s3Key": s3Key,
-          "durationMS": durationMS,
-        ]
+        let parameters = CreateVoicetrackParameters(s3Key: s3Key, durationMS: durationMS)
 
         let dataResponse = await AF.request(
           url,
           method: .post,
           parameters: parameters,
-          encoding: JSONEncoding.default,
+          encoder: JSONParameterEncoder.default,
           headers: headers
         )
         .serializingData()

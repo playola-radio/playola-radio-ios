@@ -134,7 +134,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     isTransitioningToNowPlaying = true
 
     print("showNowPlayingTemplate called")
-    print("Current top template: \(interfaceController.topTemplate)")
+    print("Current top template: \(String(describing: interfaceController.topTemplate))")
     print("Templates in stack: \(interfaceController.templates.count)")
     print(
       "Now playing template in stack: \(interfaceController.templates.contains(CPNowPlayingTemplate.shared))"
@@ -188,8 +188,6 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
           break
         case .stopped:
           self.handleStationStopped()
-        default:
-          break
         }
       }
       .store(in: &observers)
