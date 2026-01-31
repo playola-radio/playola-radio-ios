@@ -84,9 +84,9 @@ extension AudioPlayerClient: DependencyKey {
       pause: { await player.pause() },
       stop: { await player.stop() },
       seek: { time in await player.seek(to: time) },
-      currentTime: { await player.currentTime() },
-      duration: { await player.duration() },
-      isPlaying: { await player.isPlaying() },
+      currentTime: { player.currentTime() },
+      duration: { player.duration() },
+      isPlaying: { player.isPlaying() },
       startPlayback: { url, onStateChange in
         try await player.loadFile(url)
         let duration = player.duration()

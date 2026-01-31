@@ -211,7 +211,7 @@ struct RecordPageView: View {
 
           Button {
             Task {
-              await model.onAcceptRecordingTapped()
+              model.onAcceptRecordingTapped()
             }
           } label: {
             HStack(spacing: 6) {
