@@ -58,7 +58,7 @@ struct FeedbackSheetTests {
   }
 
   @Test
-  func testSendClearsMessageAndDismissesSheet() async {
+  func testSendButtonTappedClearsMessageAndDismissesSheet() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
         id: "user-1",
@@ -104,14 +104,14 @@ struct FeedbackSheetTests {
     navCoordinator.presentedSheet = .feedbackSheet(model)
     model.message = "Test message"
 
-    await model.send()
+    await model.sendButtonTapped()
 
     #expect(model.message.isEmpty)
     #expect(model.isSending == false)
   }
 
   @Test
-  func testSendCallsOnSuccessCallback() async {
+  func testSendButtonTappedCallsOnSuccessCallback() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
         id: "user-1",
@@ -161,13 +161,13 @@ struct FeedbackSheetTests {
     navCoordinator.presentedSheet = .feedbackSheet(model)
     model.message = "Test message"
 
-    await model.send()
+    await model.sendButtonTapped()
 
     #expect(onSuccessCalled == true)
   }
 
   @Test
-  func testSendShowsErrorOnFailure() async {
+  func testSendButtonTappedShowsErrorOnFailure() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
         id: "user-1",
@@ -201,14 +201,14 @@ struct FeedbackSheetTests {
 
     model.message = "Test message"
 
-    await model.send()
+    await model.sendButtonTapped()
 
     #expect(model.presentedAlert == .errorSendingMessage)
     #expect(model.isSending == false)
   }
 
   @Test
-  func testCancelDismissesSheet() {
+  func testCancelButtonTappedDismissesSheet() {
     @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
       MainContainerNavigationCoordinator()
 
@@ -226,7 +226,7 @@ struct FeedbackSheetTests {
     let model = FeedbackSheetModel(conversation: conversation)
     navCoordinator.presentedSheet = .feedbackSheet(model)
 
-    model.cancel()
+    model.cancelButtonTapped()
 
     #expect(navCoordinator.presentedSheet == nil)
   }
