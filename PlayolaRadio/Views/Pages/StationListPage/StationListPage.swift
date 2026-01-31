@@ -21,7 +21,7 @@ struct StationListPage: View {
       VStack(spacing: 0) {
         // Page Title
         HStack {
-          Text("Radio Stations")
+          Text(model.navigationTitle)
             .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 32))
             .foregroundColor(.white)
           Spacer()

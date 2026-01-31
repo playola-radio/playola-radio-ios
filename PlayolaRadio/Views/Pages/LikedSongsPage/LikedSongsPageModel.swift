@@ -7,7 +7,15 @@ import SwiftUI
 @MainActor
 @Observable
 class LikedSongsPageModel: ViewModel {
+
+  // MARK: - Dependencies
+
   @ObservationIgnored @Dependency(\.likesManager) var likesManager: LikesManager
+
+  // MARK: - Properties
+
+  let navigationTitle = "Liked Songs"
+  let emptyStateMessage = "No liked songs yet"
 
   var presentedSongActionSheet: SongActionSheet?
 
@@ -36,6 +44,8 @@ class LikedSongsPageModel: ViewModel {
       }
   }
 
+  // MARK: - User Actions
+
   func menuButtonTapped(for audioBlock: AudioBlock, likedDate: Date) {
     presentedSongActionSheet = SongActionSheet(audioBlock: audioBlock, likedDate: likedDate)
   }
@@ -43,6 +53,16 @@ class LikedSongsPageModel: ViewModel {
   func removeSong(_ audioBlock: AudioBlock) {
     likesManager.unlike(audioBlock)
   }
+
+  // MARK: - View Helpers
+
+  func formatTimestamp(for date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMMM d, yyyy 'at' h:mm a"
+    return formatter.string(from: date)
+  }
+
+  // MARK: - Private Helpers
 
   private func formatSectionTitle(for date: Date) -> String {
     let calendar = Calendar.current
@@ -65,12 +85,6 @@ class LikedSongsPageModel: ViewModel {
       formatter.dateFormat = "MMMM yyyy"
       return formatter.date(from: title) ?? Date.distantPast
     }
-  }
-
-  func formatTimestamp(for date: Date) -> String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "MMMM d, yyyy 'at' h:mm a"
-    return formatter.string(from: date)
   }
 }
 

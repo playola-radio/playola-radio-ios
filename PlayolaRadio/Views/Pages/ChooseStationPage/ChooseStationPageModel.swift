@@ -9,16 +9,8 @@ import SwiftUI
 @MainActor
 @Observable
 class ChooseStationPageModel: ViewModel {
-  let stations: [Station]
-  let onStationSelected: (Station) -> Void
 
-  var sortedStations: [Station] {
-    stations
-      .filter { $0.active != false }
-      .sorted {
-        $0.curatorName.localizedCaseInsensitiveCompare($1.curatorName) == .orderedAscending
-      }
-  }
+  // MARK: - Initialization
 
   init(
     stations: [Station],
@@ -28,6 +20,22 @@ class ChooseStationPageModel: ViewModel {
     self.onStationSelected = onStationSelected
     super.init()
   }
+
+  // MARK: - Properties
+
+  let stations: [Station]
+  let onStationSelected: (Station) -> Void
+  let navigationTitle = "Choose Station"
+
+  var sortedStations: [Station] {
+    stations
+      .filter { $0.active != false }
+      .sorted {
+        $0.curatorName.localizedCaseInsensitiveCompare($1.curatorName) == .orderedAscending
+      }
+  }
+
+  // MARK: - User Actions
 
   func stationTapped(_ station: Station) {
     onStationSelected(station)

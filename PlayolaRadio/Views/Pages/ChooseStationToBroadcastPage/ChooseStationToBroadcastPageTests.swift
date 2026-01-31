@@ -55,7 +55,7 @@ final class ChooseStationToBroadcastPageTests: XCTestCase {
     XCTAssertEqual(model.displayName(for: station), "DJ Awesome - Cool Station")
   }
 
-  func testOnStationSelected_SwitchesToBroadcastMode() {
+  func testStationSelected_SwitchesToBroadcastMode() {
     let stations = [
       Station.mockWith(id: "station-1", name: "First Station"),
       Station.mockWith(id: "station-2", name: "Second Station"),
@@ -65,7 +65,7 @@ final class ChooseStationToBroadcastPageTests: XCTestCase {
 
     XCTAssertEqual(model.mainContainerNavigationCoordinator.appMode, .listening)
 
-    model.onStationSelected(stations[1])
+    model.stationSelected(stations[1])
 
     XCTAssertEqual(
       model.mainContainerNavigationCoordinator.appMode,

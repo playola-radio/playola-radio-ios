@@ -50,7 +50,7 @@ struct FeedbackSheetView: View {
 
           Button {
             Task {
-              await model.send()
+              await model.sendButtonTapped()
             }
           } label: {
             if model.isSending {
@@ -59,7 +59,7 @@ struct FeedbackSheetView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 50)
             } else {
-              Text("Send Message")
+              Text(model.sendButtonText)
                 .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
@@ -74,15 +74,15 @@ struct FeedbackSheetView: View {
         }
         .padding(.top, 20)
       }
-      .navigationTitle("Contact Us")
+      .navigationTitle(model.navigationTitle)
       .navigationBarTitleDisplayMode(.inline)
       .toolbarBackground(.visible, for: .navigationBar)
       .toolbarBackground(Color.black, for: .navigationBar)
       .toolbarColorScheme(.dark, for: .navigationBar)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
-          Button("Cancel") {
-            model.cancel()
+          Button(model.cancelButtonText) {
+            model.cancelButtonTapped()
           }
           .foregroundColor(.white)
         }

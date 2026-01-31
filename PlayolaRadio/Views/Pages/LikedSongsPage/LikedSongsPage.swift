@@ -20,7 +20,7 @@ struct LikedSongsPage: View {
 
         Spacer()
 
-        Text("Liked Songs")
+        Text(model.navigationTitle)
           .font(.custom(FontNames.Inter_500_Medium, size: 20))
           .foregroundColor(.white)
 
@@ -37,7 +37,7 @@ struct LikedSongsPage: View {
       // Songs List
       if model.groupedLikedSongs.isEmpty {
         Spacer()
-        Text("No liked songs yet")
+        Text(model.emptyStateMessage)
           .font(.custom(FontNames.Inter_400_Regular, size: 16))
           .foregroundColor(Color(hex: "#C7C7C7"))
         Spacer()

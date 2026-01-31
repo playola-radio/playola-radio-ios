@@ -10,31 +10,18 @@ import SwiftUI
 @MainActor
 @Observable
 class FeedbackSheetModel: ViewModel {
+
+  // MARK: - Dependencies
+
+  @ObservationIgnored @Dependency(\.api) var api
+
+  // MARK: - Shared State
+
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
-  @ObservationIgnored @Dependency(\.api) var api
 
-  let conversation: Conversation
-  let title: String
-  let placeholderText: String
-  var message: String
-  var isSending = false
-  var presentedAlert: PlayolaAlert?
-  var onSuccess: (() -> Void)?
-
-  static let defaultTitle = "Send us a message and we'll get back to you as soon as we can!"
-  static let defaultPlaceholderText = """
-    Found a bug?
-    Have an idea for a new feature?
-    Just want to say hi to the team?
-
-    We would LOVE to hear from you for any reason at all...
-    """
-
-  var canSend: Bool {
-    !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSending
-  }
+  // MARK: - Initialization
 
   init(
     conversation: Conversation,
@@ -50,7 +37,36 @@ class FeedbackSheetModel: ViewModel {
     self.onSuccess = onSuccess
   }
 
-  func send() async {
+  // MARK: - Properties
+
+  let conversation: Conversation
+  let title: String
+  let placeholderText: String
+  var message: String
+  var isSending = false
+  var presentedAlert: PlayolaAlert?
+  var onSuccess: (() -> Void)?
+
+  let navigationTitle = "Contact Us"
+  let sendButtonText = "Send Message"
+  let cancelButtonText = "Cancel"
+
+  static let defaultTitle = "Send us a message and we'll get back to you as soon as we can!"
+  static let defaultPlaceholderText = """
+    Found a bug?
+    Have an idea for a new feature?
+    Just want to say hi to the team?
+
+    We would LOVE to hear from you for any reason at all...
+    """
+
+  var canSend: Bool {
+    !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSending
+  }
+
+  // MARK: - User Actions
+
+  func sendButtonTapped() async {
     guard let jwt = auth.jwt, canSend else { return }
 
     let messageText = message.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -68,7 +84,7 @@ class FeedbackSheetModel: ViewModel {
     }
   }
 
-  func cancel() {
+  func cancelButtonTapped() {
     mainContainerNavigationCoordinator.presentedSheet = nil
   }
 }

@@ -13,18 +13,33 @@ import SwiftUI
 @MainActor
 @Observable
 class InvitationCodePageModel: ViewModel {
+
+  // MARK: - Dependencies
+
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.continuousClock) var clock
 
+  // MARK: - Shared State
+
   @ObservationIgnored @Shared(.invitationCode) var invitationCode
   @ObservationIgnored @AppStorage("waitingListEmail") var waitingListEmail: String?
 
+  // MARK: - Properties
+
+  enum Mode {
+    case invitationCodeInput
+    case waitingListInput
+  }
+
+  var mode: Mode = .invitationCodeInput
   var email: String! = ""
   var invitationCodeInputStr: String! = ""
   var errorMessage: String?
   var onDismiss: (() -> Void)?
   var showingShareSheet = false
+
+  let keyboardHideButtonText = "Hide"
 
   var inputText: String {
     get {
@@ -128,12 +143,7 @@ class InvitationCodePageModel: ViewModel {
     }
   }
 
-  enum Mode {
-    case invitationCodeInput
-    case waitingListInput
-  }
-
-  var mode: Mode = .invitationCodeInput
+  // MARK: - User Actions
 
   func changeModeButtonTapped() async {
     self.errorMessage = nil
