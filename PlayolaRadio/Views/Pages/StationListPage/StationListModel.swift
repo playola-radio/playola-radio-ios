@@ -15,9 +15,14 @@ import SwiftUI
 @MainActor
 @Observable
 class StationListModel: ViewModel {
-  var cancellables = Set<AnyCancellable>()
 
-  // MARK: State
+  // MARK: - Dependencies
+
+  @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
+  @ObservationIgnored var stationPlayer: StationPlayer
+
+  // MARK: - Shared State
 
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
@@ -25,21 +30,23 @@ class StationListModel: ViewModel {
   @ObservationIgnored @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
   @ObservationIgnored @Shared(.hasAskedForNotificationPermission)
   var hasAskedForNotificationPermission: Bool
-  @ObservationIgnored @Dependency(\.analytics) var analytics
-  @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
 
-  @ObservationIgnored var stationPlayer: StationPlayer
-
-  var stationListsForDisplay: IdentifiedArrayOf<StationList> = []
-  var segmentTitles: [String] = ["All"]
-  var selectedSegment = "All"
-  var presentedAlert: PlayolaAlert?
+  // MARK: - Initialization
 
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
   }
 
-  // MARK: Actions
+  // MARK: - Properties
+
+  var cancellables = Set<AnyCancellable>()
+  var stationListsForDisplay: IdentifiedArrayOf<StationList> = []
+  var segmentTitles: [String] = ["All"]
+  var selectedSegment = "All"
+  var presentedAlert: PlayolaAlert?
+  let navigationTitle = "Radio Stations"
+
+  // MARK: - User Actions
 
   func viewAppeared() async {
     $stationLists.publisher
@@ -86,26 +93,6 @@ class StationListModel: ViewModel {
     presentedAlert = nil
   }
 
-  private func loadStationListsForDisplay(_ rawList: IdentifiedArrayOf<StationList>) {
-    let includeHidden = showSecretStations
-    let visibleLists = includeHidden ? rawList : rawList.filter { !$0.hidden }
-
-    // Build segment titles: ["All", ...station list titles]
-    var titles = ["All"]
-    titles.append(contentsOf: visibleLists.map { $0.title })
-    segmentTitles = titles
-
-    if !segmentTitles.contains(selectedSegment) {
-      selectedSegment = "All"
-    }
-
-    if selectedSegment == "All" {
-      stationListsForDisplay = visibleLists
-    } else {
-      stationListsForDisplay = visibleLists.filter { $0.title == selectedSegment }
-    }
-  }
-
   func segmentSelected(_ segmentTitle: String) async {
     let previousSegment = selectedSegment
     selectedSegment = segmentTitle
@@ -119,17 +106,6 @@ class StationListModel: ViewModel {
         listName: segmentTitle,
         screen: "station_list_page"
       ))
-  }
-
-  func liveStatusForStation(_ stationId: String) -> LiveStatus? {
-    liveStations.first { $0.stationId == stationId }?.liveStatus
-  }
-
-  func sortedStationItems(for list: StationList) -> [APIStationItem] {
-    let items = list.stationItems(includeHidden: showSecretStations)
-    return items.sorted { item1, item2 in
-      item1.liveSortPriority(liveStations) < item2.liveSortPriority(liveStations)
-    }
   }
 
   func stationSelected(_ item: APIStationItem) async {
@@ -174,6 +150,41 @@ class StationListModel: ViewModel {
       ))
 
     stationPlayer.play(station: station)
+  }
+
+  // MARK: - View Helpers
+
+  func liveStatusForStation(_ stationId: String) -> LiveStatus? {
+    liveStations.first { $0.stationId == stationId }?.liveStatus
+  }
+
+  func sortedStationItems(for list: StationList) -> [APIStationItem] {
+    let items = list.stationItems(includeHidden: showSecretStations)
+    return items.sorted { item1, item2 in
+      item1.liveSortPriority(liveStations) < item2.liveSortPriority(liveStations)
+    }
+  }
+
+  // MARK: - Private Helpers
+
+  private func loadStationListsForDisplay(_ rawList: IdentifiedArrayOf<StationList>) {
+    let includeHidden = showSecretStations
+    let visibleLists = includeHidden ? rawList : rawList.filter { !$0.hidden }
+
+    // Build segment titles: ["All", ...station list titles]
+    var titles = ["All"]
+    titles.append(contentsOf: visibleLists.map { $0.title })
+    segmentTitles = titles
+
+    if !segmentTitles.contains(selectedSegment) {
+      selectedSegment = "All"
+    }
+
+    if selectedSegment == "All" {
+      stationListsForDisplay = visibleLists
+    } else {
+      stationListsForDisplay = visibleLists.filter { $0.title == selectedSegment }
+    }
   }
 }
 

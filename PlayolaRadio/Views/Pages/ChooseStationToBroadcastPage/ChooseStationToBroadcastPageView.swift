@@ -15,7 +15,7 @@ struct ChooseStationToBroadcastPageView: View {
     List {
       ForEach(model.sortedStations, id: \.id) { station in
         Button {
-          model.onStationSelected(station)
+          model.stationSelected(station)
         } label: {
           Text(model.displayName(for: station))
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
@@ -30,7 +30,7 @@ struct ChooseStationToBroadcastPageView: View {
     .listStyle(.plain)
     .scrollContentBackground(.hidden)
     .background(Color.black)
-    .navigationTitle("Choose Station")
+    .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .toolbarBackground(.visible, for: .navigationBar)
     .toolbarBackground(Color.black, for: .navigationBar)

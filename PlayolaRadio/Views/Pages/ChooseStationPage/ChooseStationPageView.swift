@@ -22,7 +22,7 @@ struct ChooseStationPageView: View {
       }
     }
     .background(Color.black)
-    .navigationTitle("Choose Station")
+    .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .toolbarBackground(.visible, for: .navigationBar)
     .toolbarBackground(Color.black, for: .navigationBar)

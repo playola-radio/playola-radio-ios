@@ -169,7 +169,7 @@ struct InvitationCodePageView: View {
           isInputFocused = false
         } label: {
           Image(systemName: "keyboard.chevron.compact.down")
-          Text("Hide")
+          Text(model.keyboardHideButtonText)
         }
       }
     }
