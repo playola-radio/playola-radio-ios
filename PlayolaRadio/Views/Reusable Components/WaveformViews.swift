@@ -52,12 +52,12 @@ struct WaveformView: View {
       HStack(alignment: .center, spacing: 2) {
         let normalizedSamples = resampledSamples()
         ForEach(0..<Self.barCount, id: \.self) { barIndex in
-          let height =
+          let height: CGFloat =
             barIndex < normalizedSamples.count
             ? CGFloat(normalizedSamples[barIndex]) * geometry.size.height
-            : geometry.size.height * 0.2
+            : 4
           RoundedRectangle(cornerRadius: 1.5)
-            .fill(Color.playolaRed)
+            .fill(barIndex < normalizedSamples.count ? Color.playolaRed : Color(hex: "#4A4A4A"))
             .frame(width: barWidth, height: max(4, height))
         }
       }
