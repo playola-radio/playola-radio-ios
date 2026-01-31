@@ -73,9 +73,9 @@ extension AudioRecorderClient: DependencyKey {
       prepareForRecording: { try await recorder.prepareForRecording() },
       startRecording: { try await recorder.startRecording() },
       stopRecording: { try await recorder.stopRecording() },
-      currentTime: { await recorder.currentTime() },
+      currentTime: { recorder.currentTime() },
       deleteRecording: { url in await recorder.deleteRecording(url) },
-      getAudioLevel: { await recorder.getAudioLevel() },
+      getAudioLevel: { recorder.getAudioLevel() },
       startRecordingWithUpdates: { onStateChange in
         let hasPermission = await recorder.requestPermission()
         guard hasPermission else {

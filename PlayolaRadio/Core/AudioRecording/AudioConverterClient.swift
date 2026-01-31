@@ -33,19 +33,12 @@ extension AudioConverterClient: DependencyKey {
         let outputURL = FileManager.default.temporaryDirectory
           .appendingPathComponent("voicetrack_\(UUID().uuidString).m4a")
 
-        exportSession.outputURL = outputURL
-        exportSession.outputFileType = .m4a
-
-        await exportSession.export()
-
-        switch exportSession.status {
-        case .completed:
+        do {
+          try await exportSession.export(to: outputURL, as: .m4a)
           return outputURL
-        case .failed:
-          throw exportSession.error ?? AudioConverterError.conversionFailed
-        case .cancelled:
+        } catch let error as AVError where error.code == .operationCancelled {
           throw AudioConverterError.conversionCancelled
-        default:
+        } catch {
           throw AudioConverterError.conversionFailed
         }
       },

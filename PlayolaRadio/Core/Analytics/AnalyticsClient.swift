@@ -8,7 +8,7 @@
 import Dependencies
 import DependenciesMacros
 import Foundation
-import Mixpanel
+@preconcurrency import Mixpanel
 import Sharing
 
 // MARK: - Analytics Client Dependency
