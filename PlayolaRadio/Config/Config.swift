@@ -8,7 +8,7 @@ import Combine
 import Foundation
 import UIKit
 
-class Config {
+final class Config: Sendable {
   public static let shared = Config()
 
   let environment: DevelopmentEnvironment

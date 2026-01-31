@@ -84,24 +84,24 @@ extension AudioPlayerClient: DependencyKey {
       pause: { await player.pause() },
       stop: { await player.stop() },
       seek: { time in await player.seek(to: time) },
-      currentTime: { player.currentTime() },
-      duration: { player.duration() },
-      isPlaying: { player.isPlaying() },
+      currentTime: { await player.currentTime() },
+      duration: { await player.duration() },
+      isPlaying: { await player.isPlaying() },
       startPlayback: { url, onStateChange in
         try await player.loadFile(url)
-        let duration = player.duration()
+        let duration = await player.duration()
         await player.play()
 
         let updateTask = Task {
           while !Task.isCancelled {
             let state = PlaybackState(
-              currentTime: player.currentTime(),
+              currentTime: await player.currentTime(),
               duration: duration,
-              isPlaying: player.isPlaying()
+              isPlaying: await player.isPlaying()
             )
             await onStateChange(state)
 
-            if !player.isPlaying() {
+            if await !player.isPlaying() {
               break
             }
             try? await Task.sleep(for: .milliseconds(100))
@@ -109,7 +109,7 @@ extension AudioPlayerClient: DependencyKey {
           // Send final state
           await onStateChange(
             PlaybackState(
-              currentTime: player.currentTime(),
+              currentTime: await player.currentTime(),
               duration: duration,
               isPlaying: false
             ))
@@ -168,68 +168,53 @@ extension DependencyValues {
 
 // MARK: - Live Player
 
-private final class LiveAudioPlayer: @unchecked Sendable {
+private actor LiveAudioPlayer {
   private var localPlayer: AVAudioPlayer?
   private var remotePlayer: AVPlayer?
   private var isRemote = false
   private var remoteDuration: TimeInterval = 0
-  private let lock = NSLock()
 
   func loadFile(_ url: URL) async throws {
-    lock.lock()
     localPlayer = nil
     remotePlayer = nil
-    lock.unlock()
 
     if url.isFileURL {
       let player = try AVAudioPlayer(contentsOf: url)
       player.prepareToPlay()
-
-      lock.lock()
       self.localPlayer = player
       self.isRemote = false
-      lock.unlock()
     } else {
       let asset = AVURLAsset(url: url)
       let duration = try await asset.load(.duration)
       let playerItem = AVPlayerItem(asset: asset)
       let player = AVPlayer(playerItem: playerItem)
-
-      lock.lock()
       self.remotePlayer = player
       self.remoteDuration = CMTimeGetSeconds(duration)
       self.isRemote = true
-      lock.unlock()
     }
   }
 
-  func play() async {
-    lock.lock()
+  func play() {
     if isRemote {
       remotePlayer?.play()
     } else {
       localPlayer?.play()
     }
-    lock.unlock()
   }
 
-  func pause() async {
-    lock.lock()
+  func pause() {
     if isRemote {
       remotePlayer?.pause()
     } else {
       localPlayer?.pause()
     }
-    lock.unlock()
   }
 
   func stop() async {
-    lock.lock()
     let player = remotePlayer
     let isRemotePlayer = isRemote
     localPlayer?.stop()
     localPlayer?.currentTime = 0
-    lock.unlock()
 
     if isRemotePlayer {
       player?.pause()
@@ -238,22 +223,14 @@ private final class LiveAudioPlayer: @unchecked Sendable {
   }
 
   func seek(to time: TimeInterval) async {
-    lock.lock()
-    let player = remotePlayer
-    let isRemotePlayer = isRemote
-    if !isRemotePlayer {
+    if isRemote {
+      await remotePlayer?.seek(to: CMTime(seconds: time, preferredTimescale: 600))
+    } else {
       localPlayer?.currentTime = time
-    }
-    lock.unlock()
-
-    if isRemotePlayer {
-      await player?.seek(to: CMTime(seconds: time, preferredTimescale: 600))
     }
   }
 
   func currentTime() -> TimeInterval {
-    lock.lock()
-    defer { lock.unlock() }
     if isRemote {
       return remotePlayer?.currentTime().seconds ?? 0
     }
@@ -261,8 +238,6 @@ private final class LiveAudioPlayer: @unchecked Sendable {
   }
 
   func duration() -> TimeInterval {
-    lock.lock()
-    defer { lock.unlock() }
     if isRemote {
       return remoteDuration
     }
@@ -270,8 +245,6 @@ private final class LiveAudioPlayer: @unchecked Sendable {
   }
 
   func isPlaying() -> Bool {
-    lock.lock()
-    defer { lock.unlock() }
     if isRemote {
       return remotePlayer?.rate ?? 0 > 0
     }

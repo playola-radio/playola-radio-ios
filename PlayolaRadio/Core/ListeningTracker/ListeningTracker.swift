@@ -9,7 +9,8 @@ import Foundation
 import Sharing
 import SwiftUI
 
-final class ListeningTracker: Sendable {
+@MainActor
+final class ListeningTracker {
   let rewardsProfile: RewardsProfile
   var localListeningSessions: [LocalListeningSession]
   private var cancellables = Set<AnyCancellable>()

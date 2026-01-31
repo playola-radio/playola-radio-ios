@@ -210,8 +210,6 @@
 		D35EFC122F1595BE000F64A4 /* SeriesCardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC0E2F1595BE000F64A4 /* SeriesCardModel.swift */; };
 		D35EFC142F1595C5000F64A4 /* SeriesCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC0F2F1595BE000F64A4 /* SeriesCardTests.swift */; };
 		D35EFC172F159728000F64A4 /* SeriesListPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC162F159728000F64A4 /* SeriesListPageTests.swift */; };
-		D35EFC192F17D33E000F64A4 /* LocalVoicetrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC182F17D33E000F64A4 /* LocalVoicetrack.swift */; };
-		D35EFC1A2F17D33E000F64A4 /* LocalVoicetrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC182F17D33E000F64A4 /* LocalVoicetrack.swift */; };
 		D35EFC1C2F17D361000F64A4 /* LiveStationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC1B2F17D361000F64A4 /* LiveStationInfo.swift */; };
 		D35EFC1D2F17D361000F64A4 /* LiveStationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC1B2F17D361000F64A4 /* LiveStationInfo.swift */; };
 		D35EFC202F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC1E2F17D47F000F64A4 /* LiveStationsPoller.swift */; };
@@ -489,7 +487,6 @@
 		D35EFC0E2F1595BE000F64A4 /* SeriesCardModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesCardModel.swift; sourceTree = "<group>"; };
 		D35EFC0F2F1595BE000F64A4 /* SeriesCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesCardTests.swift; sourceTree = "<group>"; };
 		D35EFC162F159728000F64A4 /* SeriesListPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesListPageTests.swift; sourceTree = "<group>"; };
-		D35EFC182F17D33E000F64A4 /* LocalVoicetrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalVoicetrack.swift; sourceTree = "<group>"; };
 		D35EFC1B2F17D361000F64A4 /* LiveStationInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveStationInfo.swift; sourceTree = "<group>"; };
 		D35EFC1E2F17D47F000F64A4 /* LiveStationsPoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveStationsPoller.swift; sourceTree = "<group>"; };
 		D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveBadge.swift; sourceTree = "<group>"; };
@@ -762,7 +759,6 @@
 				D30AE8A62E75C91E00D9FBCA /* UrlStation.swift */,
 				D30257A32E63E95200F4228B /* UserSongLike.swift */,
 				D317C0D02EF2027000DBC82E /* VoicetrackStatusResponse.swift */,
-				D35EFC182F17D33E000F64A4 /* LocalVoicetrack.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1614,7 +1610,6 @@
 				D35EFC202F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */,
 				D3776A122F242E1500200ADF /* Color+Palette.swift in Sources */,
 				D3776A372F282D9400200ADF /* ListenerQuestionAiring.swift in Sources */,
-				D35EFC1A2F17D33E000F64A4 /* LocalVoicetrack.swift in Sources */,
 				D3776A1A2F243F7A00200ADF /* BroadcastersListenerQuestionPageModel.swift in Sources */,
 				D3776A442F2BE64F00200ADF /* StationLibraryRequest.swift in Sources */,
 				D3776A1C2F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift in Sources */,
@@ -1761,7 +1756,6 @@
 				D35EFC212F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */,
 				D3776A112F242E1500200ADF /* Color+Palette.swift in Sources */,
 				D3776A392F282D9400200ADF /* ListenerQuestionAiring.swift in Sources */,
-				D35EFC192F17D33E000F64A4 /* LocalVoicetrack.swift in Sources */,
 				D3776A172F243F7A00200ADF /* BroadcastersListenerQuestionPageModel.swift in Sources */,
 				D3776A452F2BE64F00200ADF /* StationLibraryRequest.swift in Sources */,
 				D3776A192F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift in Sources */,
