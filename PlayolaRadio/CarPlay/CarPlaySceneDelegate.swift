@@ -341,13 +341,13 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   }
 }
 
-extension CarPlaySceneDelegate: @preconcurrency CPTabBarTemplateDelegate {
+extension CarPlaySceneDelegate: CPTabBarTemplateDelegate {
   func tabBarTemplate(_ tabBarTemplate: CPTabBarTemplate, didSelect selectedTemplate: CPTemplate) {
     // Handle tab selection
   }
 }
 
-extension CarPlaySceneDelegate: @preconcurrency CPInterfaceControllerDelegate {
+extension CarPlaySceneDelegate: CPInterfaceControllerDelegate {
   func templateWillAppear(_ aTemplate: CPTemplate, animated: Bool) {
     // Handle template will appear
   }

@@ -191,7 +191,7 @@ extension APIClient: DependencyKey {
         )
         .validate(statusCode: 200..<300)
 
-        let dataResponse = try await request.serializingDecodable(UpdateUserResponse.self).response
+        let dataResponse = await request.serializingDecodable(UpdateUserResponse.self).response
         guard
           let body = dataResponse.value
         else {
