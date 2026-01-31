@@ -165,9 +165,7 @@ class InvitationCodePageModel: ViewModel {
     }
   }
 
-  // MARK: - Private Helpers
-
-  private func joinWaitlistButtonTapped() async {
+  func joinWaitlistButtonTapped() async {
     guard !email.isEmpty else {
       errorMessage = "Please enter a valid email address"
       return
@@ -190,7 +188,7 @@ class InvitationCodePageModel: ViewModel {
     }
   }
 
-  private func signInButtonTapped() async {
+  func signInButtonTapped() async {
     guard !invitationCodeInputStr.isEmpty else {
       errorMessage = "Please enter an invitation code"
       return
@@ -216,7 +214,7 @@ class InvitationCodePageModel: ViewModel {
     }
   }
 
-  private func shareWithFriendsButtonTapped() async {
+  func shareWithFriendsButtonTapped() async {
     await analytics.track(.shareWithFriendsTapped)
     showingShareSheet = true
   }
