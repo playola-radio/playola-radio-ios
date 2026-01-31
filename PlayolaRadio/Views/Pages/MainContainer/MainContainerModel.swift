@@ -42,6 +42,7 @@ class MainContainerModel: ViewModel {
     case profile
     // Broadcast mode tabs
     case broadcast
+    case library
     case listeners
     case settings
   }
@@ -57,6 +58,7 @@ class MainContainerModel: ViewModel {
 
   // Broadcast mode models
   var broadcastPageModel: BroadcastPageModel?
+  var libraryPageModel: LibraryPageModel?
   var listenerQuestionPageModel: BroadcastersListenerQuestionPageModel?
 
   var shouldShowSmallPlayer: Bool = false
@@ -87,6 +89,9 @@ class MainContainerModel: ViewModel {
     guard let stationId = broadcastStationId else { return }
     if broadcastPageModel?.stationId != stationId {
       broadcastPageModel = BroadcastPageModel(stationId: stationId)
+    }
+    if libraryPageModel?.stationId != stationId {
+      libraryPageModel = LibraryPageModel(stationId: stationId)
     }
     if listenerQuestionPageModel?.stationId != stationId {
       listenerQuestionPageModel = BroadcastersListenerQuestionPageModel(stationId: stationId)

@@ -431,6 +431,17 @@ final class BroadcastPageTests: XCTestCase {
     }
   }
 
+  func testOnAddSongTappedUsesAllSearchMode() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+
+    let model = BroadcastPageModel(stationId: "test-station")
+
+    model.onAddSongTapped()
+
+    XCTAssertEqual(model.songSearchPageModel?.searchMode, .all)
+  }
+
   func testOnAddSongTapped_SongSelectedCallbackAddsSongToStaging() {
     @Shared(.mainContainerNavigationCoordinator)
     var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator

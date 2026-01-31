@@ -64,7 +64,9 @@ struct AskQuestionPageView: View {
   @ViewBuilder
   private var instructionsHeader: some View {
     Text(
-      "Start with your name and where you're from. Then ask \(model.curatorName) anything you want!"
+      "Start with your name and where you’re listening from, then ask "
+        + "\(model.curatorName) a question. If they choose yours, your "
+        + "question and their response will air on the station."
     )
     .font(.custom(FontNames.Inter_500_Medium, size: 16))
     .foregroundColor(.white)

@@ -19,12 +19,49 @@ enum AppMode: Equatable {
 /// tabs.
 @Observable
 final class MainContainerNavigationCoordinator: Sendable {
-  var path: [Path] = []
+  // Per-tab navigation paths
+  var homePath: [Path] = []
+  var stationsPath: [Path] = []
+  var rewardsPath: [Path] = []
+  var profilePath: [Path] = []
+  var broadcastPath: [Path] = []
+  var libraryPath: [Path] = []
+  var listenersPath: [Path] = []
+  var settingsPath: [Path] = []
+
   var presentedSheet: PlayolaSheet?
   var appMode: AppMode = .listening
 
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Dependency(\.continuousClock) var clock
+
+  /// Returns a binding-compatible path for the current active tab
+  var path: [Path] {
+    get {
+      switch activeTab {
+      case .home: return homePath
+      case .stationsList: return stationsPath
+      case .rewards: return rewardsPath
+      case .profile: return profilePath
+      case .broadcast: return broadcastPath
+      case .library: return libraryPath
+      case .listeners: return listenersPath
+      case .settings: return settingsPath
+      }
+    }
+    set {
+      switch activeTab {
+      case .home: homePath = newValue
+      case .stationsList: stationsPath = newValue
+      case .rewards: rewardsPath = newValue
+      case .profile: profilePath = newValue
+      case .broadcast: broadcastPath = newValue
+      case .library: libraryPath = newValue
+      case .listeners: listenersPath = newValue
+      case .settings: settingsPath = newValue
+      }
+    }
+  }
 
   enum Path: Hashable, Equatable {
     case editProfilePage(EditProfilePageModel)
@@ -38,6 +75,34 @@ final class MainContainerNavigationCoordinator: Sendable {
     case supportPage(SupportPageModel)
     case conversationListPage(ConversationListPageModel)
     case listenerQuestionDetailPage(ListenerQuestionDetailPageModel)
+
+    @MainActor @ViewBuilder
+    var destinationView: some View {
+      switch self {
+      case .editProfilePage(let model):
+        EditProfilePageView(model: model)
+      case .likedSongsPage(let model):
+        LikedSongsPage(model: model)
+      case .broadcastPage(let model):
+        BroadcastPageView(model: model)
+      case .chooseStationToBroadcastPage(let model):
+        ChooseStationToBroadcastPageView(model: model)
+      case .chooseStationPage(let model):
+        ChooseStationPageView(model: model)
+      case .askQuestionPage(let model):
+        AskQuestionPageView(model: model)
+      case .notificationsSettingsPage(let model):
+        NotificationsSettingsPageView(model: model)
+      case .seriesListPage(let model):
+        SeriesListPage(model: model)
+      case .supportPage(let model):
+        SupportPageView(model: model)
+      case .conversationListPage(let model):
+        ConversationListPageView(model: model)
+      case .listenerQuestionDetailPage(let model):
+        ListenerQuestionDetailPageView(model: model)
+      }
+    }
   }
 
   func push(_ path: Path) {
@@ -53,13 +118,24 @@ final class MainContainerNavigationCoordinator: Sendable {
   }
 
   func switchToBroadcastMode(stationId: String) {
-    path = []
+    clearAllPaths()
     appMode = .broadcasting(stationId: stationId)
   }
 
   func switchToListeningMode() {
-    path = []
+    clearAllPaths()
     appMode = .listening
+  }
+
+  private func clearAllPaths() {
+    homePath = []
+    stationsPath = []
+    rewardsPath = []
+    profilePath = []
+    broadcastPath = []
+    libraryPath = []
+    listenersPath = []
+    settingsPath = []
   }
 
   func replace(with path: Path) {

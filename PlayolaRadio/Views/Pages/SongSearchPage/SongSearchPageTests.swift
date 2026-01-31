@@ -510,4 +510,298 @@ final class SongSearchPageTests: XCTestCase {
       XCTAssertNotNil(model.presentedAlert)
     }
   }
+
+  // MARK: - Search Mode Tests
+
+  func testDefaultSearchModeIsAll() async {
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel()
+
+      XCTAssertEqual(model.searchMode, .all)
+    }
+  }
+
+  func testInitWithSearchModeLibraryOnly() async {
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel(searchMode: .libraryOnly)
+
+      XCTAssertEqual(model.searchMode, .libraryOnly)
+    }
+  }
+
+  func testInitWithSearchModeSpotifyOnly() async {
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel(searchMode: .spotifyOnly)
+
+      XCTAssertEqual(model.searchMode, .spotifyOnly)
+    }
+  }
+
+  func testLibraryOnlyModeOnlySearchesSongs() async {
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      var songsSearchCalled = false
+      var songRequestsSearchCalled = false
+
+      await withDependencies {
+        $0.continuousClock = clock
+        $0.date = .constant(Date())
+        $0.api.searchSongs = { _, _ in
+          songsSearchCalled = true
+          return []
+        }
+        $0.api.searchSongRequests = { _, _ in
+          songRequestsSearchCalled = true
+          return []
+        }
+      } operation: {
+        let model = SongSearchPageModel(searchMode: .libraryOnly)
+        model.searchText = "test"
+
+        await clock.advance(by: .milliseconds(300))
+
+        XCTAssertTrue(songsSearchCalled)
+        XCTAssertFalse(songRequestsSearchCalled)
+      }
+    }
+  }
+
+  func testSpotifyOnlyModeOnlySearchesSongRequests() async {
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      var songsSearchCalled = false
+      var songRequestsSearchCalled = false
+
+      await withDependencies {
+        $0.continuousClock = clock
+        $0.date = .constant(Date())
+        $0.api.searchSongs = { _, _ in
+          songsSearchCalled = true
+          return []
+        }
+        $0.api.searchSongRequests = { _, _ in
+          songRequestsSearchCalled = true
+          return []
+        }
+      } operation: {
+        let model = SongSearchPageModel(searchMode: .spotifyOnly)
+        model.searchText = "test"
+
+        await clock.advance(by: .milliseconds(300))
+
+        XCTAssertFalse(songsSearchCalled)
+        XCTAssertTrue(songRequestsSearchCalled)
+      }
+    }
+  }
+
+  // MARK: - Library Add Mode Tests
+
+  func testIsLibraryAddModeReturnsFalseByDefault() async {
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel()
+
+      XCTAssertFalse(model.isLibraryAddMode)
+    }
+  }
+
+  func testIsLibraryAddModeReturnsTrueWhenCallbackSet() async {
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel()
+      model.onAddedToLibrary = { _ in }
+
+      XCTAssertTrue(model.isLibraryAddMode)
+    }
+  }
+
+  func testSpotifySectionHeaderReturnsRequestHeaderByDefault() async {
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel()
+
+      XCTAssertEqual(model.spotifySectionHeader, "AVAILABLE SOON BY REQUEST")
+    }
+  }
+
+  func testSpotifySectionHeaderReturnsSpotifyHeaderWhenLibraryAddMode() async {
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel()
+      model.onAddedToLibrary = { _ in }
+
+      XCTAssertEqual(model.spotifySectionHeader, "SPOTIFY")
+    }
+  }
+
+  // MARK: - Add Song to Library Tests
+
+  func testOnAddSongToLibraryCallsAPIWithCorrectParameters() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let capturedStationId = LockIsolated<String?>(nil)
+    let capturedBody = LockIsolated<CreateAddLibraryRequestBody?>(nil)
+
+    await withDependencies {
+      $0.date = .constant(Date())
+      $0.api.createAddLibraryRequest = { @Sendable _, stationId, body in
+        capturedStationId.withValue { $0 = stationId }
+        capturedBody.withValue { $0 = body }
+        return .mockWith()
+      }
+    } operation: {
+      let model = SongSearchPageModel(searchMode: .spotifyOnly, stationId: "station-123")
+      let testSongRequest = SongRequest.mockWith(
+        title: "Test Song",
+        artist: "Test Artist",
+        album: "Test Album",
+        spotifyId: "spotify-456",
+        imageUrl: URL(string: "https://example.com/image.jpg")
+      )
+
+      await model.onAddSongToLibrary(testSongRequest)
+
+      XCTAssertEqual(capturedStationId.value, "station-123")
+      XCTAssertEqual(capturedBody.value?.spotifyId, "spotify-456")
+      XCTAssertEqual(capturedBody.value?.title, "Test Song")
+      XCTAssertEqual(capturedBody.value?.artist, "Test Artist")
+      XCTAssertEqual(capturedBody.value?.album, "Test Album")
+      XCTAssertEqual(capturedBody.value?.imageUrl, "https://example.com/image.jpg")
+    }
+  }
+
+  func testOnAddSongToLibraryCallsOnAddedToLibraryCallback() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    var addedRequest: StationLibraryRequest?
+    let mockRequest = StationLibraryRequest.mockWith(id: "new-request", type: .add)
+
+    await withDependencies {
+      $0.date = .constant(Date())
+      $0.api.createAddLibraryRequest = { _, _, _ in mockRequest }
+    } operation: {
+      let model = SongSearchPageModel(searchMode: .spotifyOnly, stationId: "station-123")
+      model.onAddedToLibrary = { addedRequest = $0 }
+      let testSongRequest = SongRequest.mockWith(spotifyId: "spotify-456")
+
+      await model.onAddSongToLibrary(testSongRequest)
+
+      XCTAssertEqual(addedRequest?.id, "new-request")
+    }
+  }
+
+  func testOnAddSongToLibraryShowsAlertWhenNotAuthenticated() async {
+    @Shared(.auth) var auth = Auth()
+
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel(searchMode: .spotifyOnly, stationId: "station-123")
+      let testSongRequest = SongRequest.mockWith(spotifyId: "spotify-456")
+
+      XCTAssertNil(model.presentedAlert)
+
+      await model.onAddSongToLibrary(testSongRequest)
+
+      XCTAssertNotNil(model.presentedAlert)
+      XCTAssertEqual(model.presentedAlert?.title, "Not Signed In")
+    }
+  }
+
+  func testOnAddSongToLibraryShowsAlertWhenStationIdMissing() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel(searchMode: .spotifyOnly, stationId: nil)
+      let testSongRequest = SongRequest.mockWith(spotifyId: "spotify-456")
+
+      XCTAssertNil(model.presentedAlert)
+
+      await model.onAddSongToLibrary(testSongRequest)
+
+      XCTAssertNotNil(model.presentedAlert)
+      XCTAssertEqual(model.presentedAlert?.title, "Add Failed")
+    }
+  }
+
+  func testOnAddSongToLibraryShowsAlertOnAPIError() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date = .constant(Date())
+      $0.api.createAddLibraryRequest = { _, _, _ in
+        throw APIError.validationError("Add failed")
+      }
+    } operation: {
+      let model = SongSearchPageModel(searchMode: .spotifyOnly, stationId: "station-123")
+      let testSongRequest = SongRequest.mockWith(spotifyId: "spotify-456")
+
+      XCTAssertNil(model.presentedAlert)
+
+      await model.onAddSongToLibrary(testSongRequest)
+
+      XCTAssertNotNil(model.presentedAlert)
+      XCTAssertEqual(model.presentedAlert?.title, "Add Failed")
+    }
+  }
+
+  // MARK: - Processing Add State Tests
+
+  func testIsProcessingAddReturnsFalseInitially() async {
+    await withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = SongSearchPageModel()
+      let testSongRequest = SongRequest.mockWith(spotifyId: "spotify-456")
+
+      XCTAssertFalse(model.isProcessingAdd(for: testSongRequest))
+    }
+  }
+
+  func testIsProcessingAddReturnsFalseAfterCompletion() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date = .constant(Date())
+      $0.api.createAddLibraryRequest = { _, _, _ in .mockWith() }
+    } operation: {
+      let model = SongSearchPageModel(searchMode: .spotifyOnly, stationId: "station-123")
+      let testSongRequest = SongRequest.mockWith(spotifyId: "spotify-456")
+
+      await model.onAddSongToLibrary(testSongRequest)
+
+      XCTAssertFalse(model.isProcessingAdd(for: testSongRequest))
+    }
+  }
+
+  func testIsProcessingAddReturnsFalseAfterError() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date = .constant(Date())
+      $0.api.createAddLibraryRequest = { _, _, _ in
+        throw APIError.validationError("Failed")
+      }
+    } operation: {
+      let model = SongSearchPageModel(searchMode: .spotifyOnly, stationId: "station-123")
+      let testSongRequest = SongRequest.mockWith(spotifyId: "spotify-456")
+
+      await model.onAddSongToLibrary(testSongRequest)
+
+      XCTAssertFalse(model.isProcessingAdd(for: testSongRequest))
+    }
+  }
 }

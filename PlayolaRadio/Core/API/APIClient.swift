@@ -530,6 +530,72 @@ struct APIClient: Sendable {
         updatedAt: Date()
       )
     }
+
+  // MARK: - Station Library
+
+  /// Fetches all songs in a station's library
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to fetch library for
+  /// - Returns: Array of LibrarySong objects sorted by artist/title
+  /// - Throws: APIError if the request fails
+  var getStationLibrary: (_ jwtToken: String, _ stationId: String) async throws -> [LibrarySong] = {
+    _, _ in []
+  }
+
+  /// Fetches library requests for a station
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to fetch requests for
+  ///   - status: Optional status filter (pending, completed, dismissed)
+  /// - Returns: Array of StationLibraryRequest objects
+  /// - Throws: APIError if the request fails
+  var getStationLibraryRequests:
+    (_ jwtToken: String, _ stationId: String, _ status: String?) async throws
+      -> [StationLibraryRequest] = { _, _, _ in [] }
+
+  /// Creates a request to add a song to the station's library
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - body: The request body containing song details
+  /// - Returns: The created StationLibraryRequest
+  /// - Throws: APIError if the request fails
+  var createAddLibraryRequest:
+    (_ jwtToken: String, _ stationId: String, _ body: CreateAddLibraryRequestBody) async throws
+      -> StationLibraryRequest = { _, _, _ in .mock }
+
+  /// Creates a request to remove a song from the station's library
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - audioBlockId: The audio block ID of the song to remove
+  /// - Returns: The created StationLibraryRequest
+  /// - Throws: APIError if the request fails
+  var createRemoveLibraryRequest:
+    (_ jwtToken: String, _ stationId: String, _ audioBlockId: String) async throws
+      -> StationLibraryRequest = { _, _, _ in .mock }
+
+  /// Dismisses a library request
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - requestId: The library request ID to dismiss
+  /// - Returns: The updated StationLibraryRequest
+  /// - Throws: APIError if the request fails
+  var dismissStationLibraryRequest:
+    (_ jwtToken: String, _ stationId: String, _ requestId: String) async throws
+      -> StationLibraryRequest = { _, _, _ in .mock }
+
+  /// Cancels a pending library request
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - requestId: The library request ID to cancel
+  /// - Throws: APIError if the request fails
+  var cancelStationLibraryRequest:
+    (_ jwtToken: String, _ stationId: String, _ requestId: String) async throws
+      -> Void = { _, _, _ in }
 }
 
 enum APIError: Error, LocalizedError {
