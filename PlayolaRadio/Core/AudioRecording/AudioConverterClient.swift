@@ -21,16 +21,20 @@ extension AudioConverterClient: DependencyKey {
       convertToM4A: { inputURL in
         let asset = AVURLAsset(url: inputURL)
 
+        guard
+          let exportSession = AVAssetExportSession(
+            asset: asset,
+            presetName: AVAssetExportPresetAppleM4A
+          )
+        else {
+          throw AudioConverterError.exportSessionCreationFailed
+        }
+
         let outputURL = FileManager.default.temporaryDirectory
           .appendingPathComponent("voicetrack_\(UUID().uuidString).m4a")
 
         do {
-          try await AVAssetExportSession.export(
-            asset: asset,
-            to: outputURL,
-            as: .m4a,
-            isolation: .none
-          )
+          try await exportSession.export(to: outputURL, as: .m4a)
           return outputURL
         } catch let error as AVError where error.code == .cancelled {
           throw AudioConverterError.conversionCancelled
