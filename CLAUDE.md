@@ -1,5 +1,26 @@
 # Playola Radio iOS
 
+## Task-Type Quick Reference
+
+| Task Type | Read This |
+|-----------|-----------|
+| Creating a new page | `.claude/PAGE_CREATION.md` |
+| Adding API calls (iOS) | `.claude/API_CLIENT.md` |
+| Looking up server endpoints | `../playola/.claude/API_ENDPOINTS.md` then `../playola/server/src/api/[module]/ENDPOINTS.md` (ask user for monorepo path if not found) |
+| Navigation (push/pop/sheets) | `.claude/NAVIGATION.md` |
+| Adding shared state | `.claude/API_CLIENT.md` "State Management" section |
+| Writing tests | "Testing" section below + `.claude/TESTING.md` |
+| View styling (colors, fonts) | `.claude/VIEWS.md` |
+| Analytics testing | `.claude/TESTING.md` |
+
+## Server / API Documentation
+
+The Playola server monorepo is expected at `../playola` (sibling directory). If not found, ask the user for the path.
+
+- **API overview**: `../playola/.claude/API_ENDPOINTS.md`
+- **Module endpoints**: `../playola/server/src/api/[module]/ENDPOINTS.md`
+- **OpenAPI docs**: `../playola/server/src/api/[module]/[module].api.docs.yaml`
+
 ## Testing
 
 - **Write tests first when possible** - prefer TDD, write regression tests for bug fixes
@@ -42,97 +63,73 @@ Models should be organized with the following `// MARK:` sections in order:
 class SomePageModel: ViewModel {
 
   // MARK: - Dependencies
-
   @ObservationIgnored @Dependency(\.api) var api
-  @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
 
   // MARK: - Shared State
-
   @ObservationIgnored @Shared(.auth) var auth
-  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
-  var mainContainerNavigationCoordinator
 
   // MARK: - Initialization
-
-  init(stationId: String) {
-    self.stationId = stationId
-    super.init()
-  }
+  init(stationId: String) { ... }
 
   // MARK: - Properties
-
-  let stationId: String
-  let navigationTitle = "Page Title"
-
   var items: IdentifiedArrayOf<Item> = []
   var isLoading = false
   var presentedAlert: PlayolaAlert?
-  var selectedFilter: FilterType = .default
-
-  var filteredItems: IdentifiedArrayOf<Item> {
-    items.filter { ... }
-  }
-
-  var emptyStateMessage: String {
-    "No items to display"
-  }
 
   // MARK: - User Actions
-
   func viewAppeared() async { }
-  func refreshPulledDown() async { }
-  func filterButtonTapped(_ filter: FilterType) { }
   func itemRowTapped(_ item: Item) async { }
-  func deleteItemSwiped(_ item: Item) async { }
 
   // MARK: - View Helpers
-
   func isSelected(_ itemId: String) -> Bool { }
-  func canDelete(_ item: Item) -> Bool { }
 
   // MARK: - Private Helpers
-
   private func fetchItems() async { }
-  private func stopPlayback() async { }
-}
-
-// MARK: - Alerts
-
-extension PlayolaAlert {
-  static func someError(_ message: String) -> PlayolaAlert { ... }
 }
 ```
 
 ### Model/View Responsibilities
 
-**Models are the full representation of the view.** All text, titles, labels, and display values should come from the model as stored or computed properties. The view should only describe *how* things appear, never *what* they do.
+**The Model is the complete, portable representation of the page.** If we port to another platform (Android, web, etc.), only the View should need to be rebuilt. The Model contains everything: all text, all behavior, all state.
 
-**Model responsibilities:**
-- All display text (titles, labels, button text, status messages)
-- All computed display values (formatted dates, durations, progress)
+**Model responsibilities (everything except visuals):**
+- All display text (navigation titles, labels, button text, empty states, error messages)
+- All computed display values (formatted dates, durations, progress percentages)
 - All business logic and state management
-- Action methods that describe user interactions
+- All action handlers (what happens when user taps something)
+- Validation logic and error states
 
-**View responsibilities:**
-- Layout and styling only
-- Binds to model properties for all content
-- Calls model methods for all user actions
-- Contains zero business logic
+**View responsibilities (visuals only):**
+- Layout, spacing, colors, fonts
+- Binds to model properties for ALL content (never hardcode strings)
+- Calls model methods for ALL user actions
+- Contains zero logic - not even simple conditionals about what text to show
+
+**Example - the Model provides everything:**
+```swift
+// Model
+var navigationTitle: String { "My Library" }
+var emptyStateMessage: String { "No songs yet. Like some songs to see them here!" }
+var songCountLabel: String { "\(songs.count) songs" }
+var isDeleteButtonEnabled: Bool { selectedSongs.count > 0 }
+```
+
+```swift
+// View - just renders what Model provides
+Text(model.emptyStateMessage)  // Good
+Text("No songs yet")           // Bad - hardcoded string
+```
 
 **Action method naming** - use names that describe user actions:
 ```swift
 // Good - describes what the user did
 func recordButtonTapped() async { }
 func stopButtonTapped() async { }
-func showMoreButtonTapped() { }
-func listReordered(from: IndexSet, to: Int) { }
 
 // Bad - describes implementation
 func startRecording() async { }
 func toggleExpanded() { }
 ```
-
-**Helper functions** should be private and placed at the bottom of the model.
 
 ## Dependencies
 
@@ -149,6 +146,8 @@ Uses Point-Free's `swift-sharing` library:
 - `@Shared(.auth)` - persisted auth state
 - `@Shared(.nowPlaying)` - in-memory playback state
 - `@Shared(.mainContainerNavigationCoordinator)` - navigation
+
+See `.claude/API_CLIENT.md` for detailed patterns.
 
 ## Project Structure
 
@@ -174,60 +173,4 @@ PlayolaRadio/
 - All view models and tests are `@MainActor`
 - Use `async/await`, no completion handlers
 - Alerts via `PlayolaAlert` enum
-- Navigation via `PlayolaSheet` enum and navigation coordinator
-
-## Sheet Presentation
-
-Sheets are presented via the `PlayolaSheet` enum and `MainContainerNavigationCoordinator`.
-
-### Adding a new sheet type
-
-1. Add a case to `PlayolaSheet` enum in `Views/Reusable Components/PlayolaSheet.swift`:
-```swift
-enum PlayolaSheet: Hashable, Identifiable, Equatable {
-  case player(PlayerPageModel)
-  case myNewSheet(MyNewSheetModel)  // Add your case
-}
-```
-
-2. Handle the case in `MainContainer.swift`'s `.sheet()` or `.fullScreenCover()` modifier:
-```swift
-.sheet(
-  item: Binding(
-    get: {
-      switch model.mainContainerNavigationCoordinator.presentedSheet {
-      case .player, .feedbackSheet, .myNewSheet:  // Add to the list
-        return model.mainContainerNavigationCoordinator.presentedSheet
-      // ...
-      }
-    },
-    // ...
-  ),
-  content: { item in
-    switch item {
-    case .myNewSheet(let myModel):  // Add case
-      MyNewSheetView(model: myModel)
-    // ...
-    }
-  }
-)
-```
-
-### Presenting a sheet from a model
-
-```swift
-// In your model, inject the navigation coordinator
-@ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
-var mainContainerNavigationCoordinator
-
-// Present the sheet
-func shareButtonTapped() {
-  let model = MyNewSheetModel(items: [...])
-  mainContainerNavigationCoordinator.presentedSheet = .myNewSheet(model)
-}
-
-// Dismiss the sheet
-func dismissButtonTapped() {
-  mainContainerNavigationCoordinator.presentedSheet = nil
-}
-```
+- Navigation via `PlayolaSheet` enum and navigation coordinator (see `.claude/NAVIGATION.md`)
