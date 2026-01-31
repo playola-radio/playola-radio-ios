@@ -16,10 +16,10 @@ import XCTest
 
 @MainActor
 final class SongSearchPageTests: XCTestCase {
-  func testOnCancelTappedCallsOnDismissCallback() async {
+  func testOnCancelTappedCallsOnDismissCallback() {
     var dismissCalled = false
 
-    await withDependencies {
+    withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let model = SongSearchPageModel()
@@ -31,8 +31,8 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testInitialStateSearchTextIsEmpty() async {
-    await withDependencies {
+  func testInitialStateSearchTextIsEmpty() {
+    withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let model = SongSearchPageModel()
@@ -41,8 +41,8 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testInitialStateIsNotSearching() async {
-    await withDependencies {
+  func testInitialStateIsNotSearching() {
+    withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let model = SongSearchPageModel()
@@ -51,8 +51,8 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testInitialStateSearchResultsAreEmpty() async {
-    await withDependencies {
+  func testInitialStateSearchResultsAreEmpty() {
+    withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let model = SongSearchPageModel()
@@ -61,10 +61,10 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testOnSelectSongCallsOnSongSelectedCallback() async {
+  func testOnSelectSongCallsOnSongSelectedCallback() {
     var selectedSong: AudioBlock?
 
-    await withDependencies {
+    withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let model = SongSearchPageModel()
@@ -278,8 +278,8 @@ final class SongSearchPageTests: XCTestCase {
 
   // MARK: - Song Request Tests
 
-  func testInitialStateSongRequestResultsAreEmpty() async {
-    await withDependencies {
+  func testInitialStateSongRequestResultsAreEmpty() {
+    withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let model = SongSearchPageModel()
@@ -513,8 +513,8 @@ final class SongSearchPageTests: XCTestCase {
 
   // MARK: - Search Mode Tests
 
-  func testDefaultSearchModeIsAll() async {
-    await withDependencies {
+  func testDefaultSearchModeIsAll() {
+    withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let model = SongSearchPageModel()
@@ -523,8 +523,8 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testInitWithSearchModeLibraryOnly() async {
-    await withDependencies {
+  func testInitWithSearchModeLibraryOnly() {
+    withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let model = SongSearchPageModel(searchMode: .libraryOnly)
@@ -533,8 +533,8 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testInitWithSearchModeSpotifyOnly() async {
-    await withDependencies {
+  func testInitWithSearchModeSpotifyOnly() {
+    withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let model = SongSearchPageModel(searchMode: .spotifyOnly)
@@ -605,8 +605,8 @@ final class SongSearchPageTests: XCTestCase {
 
   // MARK: - Library Add Mode Tests
 
-  func testIsLibraryAddModeReturnsFalseByDefault() async {
-    await withDependencies {
+  func testIsLibraryAddModeReturnsFalseByDefault() {
+    withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let model = SongSearchPageModel()
@@ -615,8 +615,8 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testIsLibraryAddModeReturnsTrueWhenCallbackSet() async {
-    await withDependencies {
+  func testIsLibraryAddModeReturnsTrueWhenCallbackSet() {
+    withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let model = SongSearchPageModel()
@@ -626,8 +626,8 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testSpotifySectionHeaderReturnsRequestHeaderByDefault() async {
-    await withDependencies {
+  func testSpotifySectionHeaderReturnsRequestHeaderByDefault() {
+    withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let model = SongSearchPageModel()
@@ -636,8 +636,8 @@ final class SongSearchPageTests: XCTestCase {
     }
   }
 
-  func testSpotifySectionHeaderReturnsSpotifyHeaderWhenLibraryAddMode() async {
-    await withDependencies {
+  func testSpotifySectionHeaderReturnsSpotifyHeaderWhenLibraryAddMode() {
+    withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let model = SongSearchPageModel()
@@ -760,8 +760,8 @@ final class SongSearchPageTests: XCTestCase {
 
   // MARK: - Processing Add State Tests
 
-  func testIsProcessingAddReturnsFalseInitially() async {
-    await withDependencies {
+  func testIsProcessingAddReturnsFalseInitially() {
+    withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let model = SongSearchPageModel()
