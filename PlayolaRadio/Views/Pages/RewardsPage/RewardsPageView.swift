@@ -55,13 +55,25 @@ struct RewardsPageView: View {
 
             // Reward Items
             LazyVStack(spacing: 1) {
+              // Referral Code Reward (always first)
+              ReferralCodeRewardRow(
+                label: model.referralCodeRewardLabel,
+                name: model.referralCodeRewardName,
+                requiredHoursLabel: model.referralCodeRequiredHoursLabel,
+                status: model.referralCodeRedemptionStatus,
+                onRedeem: {
+                  Task { await model.redeemReferralCodeTapped() }
+                }
+              )
+
+              // Prize Tiers
               ForEach(Array(model.prizeTiers.enumerated()), id: \.element.id) { index, prizeTier in
                 PrizeTierRow(
                   tier: index + 1,
                   prizeTier: prizeTier,
                   status: model.redemptionStatus(for: prizeTier),
                   onRedeem: {
-                    Task { await model.redeemPrize(for: prizeTier) }
+                    Task { await model.redeemPrizeTapped(for: prizeTier) }
                   }
                 )
               }
@@ -75,7 +87,7 @@ struct RewardsPageView: View {
     }
     .background(Color.black)
     .task {
-      await model.onViewAppeared()
+      await model.viewAppeared()
     }
   }
 }
