@@ -371,6 +371,41 @@ extension AnyStation {
   }
 }
 
+extension APIStationItem {
+  static func mockWith(
+    sortOrder: Int = 0,
+    visibility: StationListItemVisibility = .visible,
+    station: PlayolaPlayer.Station? = nil,
+    urlStation: UrlStation? = nil
+  ) -> APIStationItem {
+    APIStationItem(
+      sortOrder: sortOrder,
+      visibility: visibility,
+      station: station,
+      urlStation: urlStation
+    )
+  }
+}
+
+extension StationList {
+  static func mockArtistList(
+    items: [APIStationItem],
+    createdAt: Date = Date(timeIntervalSince1970: 1_758_915_200),
+    updatedAt: Date = Date(timeIntervalSince1970: 1_758_915_200)
+  ) -> StationList {
+    StationList(
+      id: KnownIDs.artistList.rawValue,
+      name: "Artists",
+      slug: artistListSlug,
+      hidden: false,
+      sortOrder: 0,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      items: items
+    )
+  }
+}
+
 // Mock data for testing
 private let mockPlayolaStation = PlayolaPlayer.Station(
   id: "mock-playola-id",

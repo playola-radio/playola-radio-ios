@@ -1,10 +1,51 @@
 # Testing Patterns
 
-## Analytics Event Testing
+## General Rules
 
-### Basic Pattern
+1. **Never use `Task.sleep` in tests** - makes tests slow and flaky
+2. **Prefer computed properties** for model state derived from `@Shared` - enables synchronous testing
+3. **Use `.mockWith()` factories** for test data (see `HomePageTests.swift` for examples)
+4. **Tests colocated with code** - `SomeModel.swift` → `SomeTests.swift` in same folder
+5. **Test naming**: camelCase without underscores (e.g., `testRecordButtonTappedRequestsPermission`)
+6. **All test classes use `@MainActor`**
 
-Use `LockIsolated` for thread-safe event capture:
+## @Shared State in Tests
+
+Declare `@Shared` inside each test with initial values. Use `$shared.withLock { }` to update:
+
+```swift
+func testToggleUpdatesStations() async {
+  @Shared(.showSecretStations) var showSecretStations = false
+  let model = HomePageModel()
+
+  XCTAssertEqual(model.forYouStations.count, 1)
+
+  $showSecretStations.withLock { $0 = true }
+  XCTAssertEqual(model.forYouStations.count, 2)  // No sleep needed!
+}
+```
+
+## Mocking Dependencies
+
+Use `withDependencies` to mock API calls:
+
+```swift
+func testViewAppearedLoadsAirings() async {
+  @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+  await withDependencies {
+    $0.api.getAirings = { _, _ in [Airing.mockWith(id: "airing-1")] }
+  } operation: {
+    let model = HomePageModel()
+    await model.viewAppeared()
+    XCTAssertTrue(model.hasScheduledShows)
+  }
+}
+```
+
+## Analytics Event Capture
+
+Use `LockIsolated` for thread-safe capture:
 
 ```swift
 let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
@@ -18,97 +59,20 @@ let model = withDependencies {
 }
 
 await model.someAction()
-
-let events = capturedEvents.value
-XCTAssertEqual(events.count, 1)
+XCTAssertEqual(capturedEvents.value.count, 1)
 ```
 
-### Testing Code That Spawns Internal Tasks
+## Code That Spawns Internal Tasks
 
-When the code under test spawns its own `Task { }` (like `showFeedbackSheet()`), use `withMainSerialExecutor` + `Task.yield()`:
+When code spawns its own `Task { }`, use `withMainSerialExecutor` + `Task.yield()`:
 
 ```swift
-func testSomethingThatSpawnsTask() async {
+func testActionThatSpawnsTask() async {
   await withMainSerialExecutor {
-    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-
-    let model = withDependencies {
-      $0.analytics.track = { @Sendable event in
-        capturedEvents.withValue { $0.append(event) }
-      }
-    } operation: {
-      SomeModel()
-    }
-
+    let model = SomeModel()
     model.actionThatSpawnsTask()
-
-    // Let spawned Task run
     await Task.yield()
-
-    // Assert immediately - no sleep needed
-    XCTAssertTrue(capturedEvents.value.contains { $0 == .expectedEvent })
+    XCTAssertTrue(model.didComplete)
   }
 }
 ```
-
-**Why this works:**
-- `withMainSerialExecutor` forces all async work onto a single executor
-- `Task.yield()` gives spawned Tasks a chance to run
-- No arbitrary sleep durations - deterministic execution
-
-### What NOT to Do
-
-**Never use `Task.sleep` in tests:**
-
-```swift
-// BAD - flaky and slow
-await model.someAction()
-try? await Task.sleep(for: .milliseconds(100))
-XCTAssertTrue(capturedEvents.value.contains { ... })
-```
-
-**Why it's bad:**
-- Arbitrary timing makes tests slow
-- Can still be flaky if sleep isn't long enough
-- No guarantee the work completed
-
-### Asserting Event Properties
-
-Use pattern matching for events with associated values:
-
-```swift
-let events = capturedEvents.value
-if case .startedStation(let stationInfo, let entryPoint) = events.first {
-  XCTAssertEqual(stationInfo.id, expectedId)
-  XCTAssertEqual(entryPoint, "home_recommendations")
-} else {
-  XCTFail("Expected startedStation event, got: \(String(describing: events.first))")
-}
-```
-
-For checking presence without caring about values:
-
-```swift
-XCTAssertTrue(
-  capturedEvents.value.contains {
-    if case .feedbackSheetFailed = $0 { return true }
-    return false
-  },
-  "Should track feedbackSheetFailed event"
-)
-```
-
-### Thread Safety
-
-Always use:
-- `LockIsolated<[AnalyticsEvent]>` for event capture
-- `@Sendable` closures in dependency injection
-- `.withValue { $0.append(event) }` for thread-safe append
-
-## General Testing Rules
-
-1. **Never use `Task.sleep` in tests** - it makes tests slow and flaky
-2. **Use synchronous assertions** or test doubles that execute synchronously
-3. **Tests are colocated with code** - `SomeModel.swift` → `SomeTests.swift` in same folder
-4. **Test naming**: camelCase without underscores (e.g., `testOnRecordTappedRequestsPermission`)
-5. **All test classes use `@MainActor`**

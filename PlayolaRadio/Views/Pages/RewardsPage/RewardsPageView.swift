@@ -61,17 +61,22 @@ struct RewardsPageView: View {
                 name: model.referralCodeRewardName,
                 requiredHoursLabel: model.referralCodeRequiredHoursLabel,
                 status: model.referralCodeRedemptionStatus,
-                onRedeem: {
-                  Task { await model.redeemReferralCodeTapped() }
+                buttonText: model.referralCodeButtonText,
+                sharedButtonText: model.referralCodeSharedText,
+                onButtonTapped: {
+                  Task { await model.inviteFriendsTapped() }
                 }
               )
 
               // Prize Tiers
               ForEach(Array(model.prizeTiers.enumerated()), id: \.element.id) { index, prizeTier in
                 PrizeTierRow(
-                  tier: index + 1,
+                  tierLabel: model.prizeTierLabel(for: index),
                   prizeTier: prizeTier,
+                  requiredHoursLabel: model.prizeTierRequiredHoursLabel(for: prizeTier),
                   status: model.redemptionStatus(for: prizeTier),
+                  buttonText: model.prizeTierButtonText,
+                  redeemedText: model.prizeTierRedeemedText,
                   onRedeem: {
                     Task { await model.redeemPrizeTapped(for: prizeTier) }
                   }

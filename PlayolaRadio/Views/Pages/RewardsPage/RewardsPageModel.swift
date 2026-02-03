@@ -6,6 +6,8 @@
 //
 
 import Dependencies
+import Foundation
+import Observation
 import Sharing
 
 @MainActor
@@ -21,6 +23,8 @@ class RewardsPageModel: ViewModel {
 
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
 
   // MARK: - Constants
 
@@ -76,10 +80,24 @@ class RewardsPageModel: ViewModel {
   }
 
   var referralCodeRewardLabel: String { "Early Bird" }
-  var referralCodeRewardName: String { "Referral Code" }
+  var referralCodeRewardName: String { "Invite Your Friends" }
   var referralCodeRequiredHoursLabel: String {
     "\(Self.referralCodeRequiredHours) hours"
   }
+  var referralCodeButtonText: String { "Invite" }
+  var referralCodeSharedText: String { "Invite" }
+
+  func prizeTierLabel(for index: Int) -> String {
+    "Tier \(index + 1)"
+  }
+
+  func prizeTierRequiredHoursLabel(for prizeTier: PrizeTier) -> String {
+    let hours = prizeTier.requiredListeningHours
+    return "\(hours) \(hours == 1 ? "hour" : "hours")"
+  }
+
+  var prizeTierButtonText: String { "Redeem" }
+  var prizeTierRedeemedText: String { "Redeemed" }
 
   // MARK: - User Actions
 
@@ -99,7 +117,7 @@ class RewardsPageModel: ViewModel {
     print("Redeeming \(prizeTier.name)")
   }
 
-  func redeemReferralCodeTapped() async {
+  func inviteFriendsTapped() async {
     let currentHours = getCurrentListeningHours()
     await analytics.track(.tappedRedeemRewards(currentHours: currentHours))
 
@@ -108,6 +126,13 @@ class RewardsPageModel: ViewModel {
     do {
       let expiresAt = Calendar.current.date(byAdding: .year, value: 1, to: Date()) ?? Date()
       referralCode = try await api.getOrCreateReferralCode(token, expiresAt)
+
+      guard let code = referralCode else { return }
+      let shareUrl = "https://admin-api.playola.fm/ios?code=\(code.code)"
+      let shareMessage = "Check out Playola Radio - a new app with music curated by real artists!"
+
+      let shareModel = ShareSheetModel(items: [shareMessage, shareUrl])
+      mainContainerNavigationCoordinator.presentedSheet = .share(shareModel)
     } catch {
       print("Failed to get or create referral code: \(error)")
     }

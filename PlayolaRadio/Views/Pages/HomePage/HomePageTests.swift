@@ -15,8 +15,6 @@ import XCTest
 
 @testable import PlayolaRadio
 
-private let homePageTestDate = Date(timeIntervalSince1970: 1_758_915_200)
-
 @MainActor
 final class HomePageTests: XCTestCase {
   // MARK: - ViewAppeared Tests
@@ -86,73 +84,31 @@ final class HomePageTests: XCTestCase {
   }
 
   func testViewAppeared_ExcludesComingSoonStationsFromForYouList() async {
-    let visibleStation = makePlayolaStation(
-      id: "visible-station",
-      name: "Visible Station",
-      curatorName: "DJ Visible"
-    )
-    let comingSoonItem = makeStationItem(
-      sortOrder: 1,
-      visibility: .comingSoon,
-      urlStation: makeUrlStation(
-        id: "coming-soon-station",
-        name: "Coming Soon Station",
-        streamUrl: "https://example.com/comingSoon",
-        imageUrl: "https://example.com/comingsoon.png",
-        description: "Coming soon station description",
-        location: "Austin, TX"
-      )
-    )
-
-    let artistList = makeArtistList(
-      items: [
-        makeStationItem(
-          sortOrder: 0,
-          visibility: .visible,
-          station: visibleStation
-        ),
-        comingSoonItem,
-      ]
-    )
+    let visibleStation = Station.mockWith(
+      id: "visible-station", name: "Visible Station", curatorName: "DJ Visible")
+    let artistList = StationList.mockArtistList(items: [
+      .mockWith(sortOrder: 0, visibility: .visible, station: visibleStation),
+      .mockWith(
+        sortOrder: 1, visibility: .comingSoon, urlStation: .mockWith(id: "coming-soon-station")),
+    ])
 
     @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [artistList])
 
     let model = HomePageModel()
     await model.viewAppeared()
 
-    await assertEventually(model.forYouStations.count == 1)
+    XCTAssertEqual(model.forYouStations.count, 1)
     XCTAssertEqual(model.forYouStations.first?.id, visibleStation.id)
     XCTAssertNil(model.forYouStations[id: "coming-soon-station"])
   }
 
   func testShowSecretStationsIncludesActiveComingSoonStations() async {
-    let visibleStation = makePlayolaStation(
-      id: "visible-station",
-      name: "Visible Station",
-      curatorName: "DJ Visible"
-    )
-    let comingSoonStation = makePlayolaStation(
-      id: "coming-soon-station",
-      name: "Coming Soon Station",
-      curatorName: "DJ Soon",
-      imageUrl: URL(string: "https://example.com/comingsoon.png"),
-      description: "Coming soon station description"
-    )
-
-    let artistList = makeArtistList(
-      items: [
-        makeStationItem(
-          sortOrder: 0,
-          visibility: .visible,
-          station: visibleStation
-        ),
-        makeStationItem(
-          sortOrder: 1,
-          visibility: .comingSoon,
-          station: comingSoonStation
-        ),
-      ]
-    )
+    let visibleStation = Station.mockWith(id: "visible-station", curatorName: "DJ Visible")
+    let comingSoonStation = Station.mockWith(id: "coming-soon-station", curatorName: "DJ Soon")
+    let artistList = StationList.mockArtistList(items: [
+      .mockWith(sortOrder: 0, visibility: .visible, station: visibleStation),
+      .mockWith(sortOrder: 1, visibility: .comingSoon, station: comingSoonStation),
+    ])
 
     @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [artistList])
     @Shared(.showSecretStations) var showSecretStations = false
@@ -160,44 +116,23 @@ final class HomePageTests: XCTestCase {
     let model = HomePageModel()
     await model.viewAppeared()
 
-    await assertEventually(model.forYouStations.count == 1)
+    XCTAssertEqual(model.forYouStations.count, 1)
     XCTAssertNil(model.forYouStations[id: comingSoonStation.id])
 
     $showSecretStations.withLock { $0 = true }
 
-    await assertEventually(model.forYouStations[id: comingSoonStation.id] != nil)
-    await assertEventually(model.forYouStations.count == 2)
+    XCTAssertNotNil(model.forYouStations[id: comingSoonStation.id])
+    XCTAssertEqual(model.forYouStations.count, 2)
   }
 
   func testShowSecretStationsStillHidesInactiveComingSoonStations() async {
-    let visibleStation = makePlayolaStation(
-      id: "visible-station",
-      name: "Visible Station",
-      curatorName: "DJ Visible"
-    )
-    let inactiveComingSoonStation = makePlayolaStation(
-      id: "inactive-coming-soon",
-      name: "Inactive Coming Soon",
-      curatorName: "DJ Snooze",
-      imageUrl: URL(string: "https://example.com/inactive.png"),
-      description: "Inactive coming soon description",
-      active: false
-    )
-
-    let artistList = makeArtistList(
-      items: [
-        makeStationItem(
-          sortOrder: 0,
-          visibility: .visible,
-          station: visibleStation
-        ),
-        makeStationItem(
-          sortOrder: 1,
-          visibility: .comingSoon,
-          station: inactiveComingSoonStation
-        ),
-      ]
-    )
+    let visibleStation = Station.mockWith(id: "visible-station", curatorName: "DJ Visible")
+    let inactiveStation = Station.mockWith(
+      id: "inactive-coming-soon", curatorName: "DJ Snooze", active: false)
+    let artistList = StationList.mockArtistList(items: [
+      .mockWith(sortOrder: 0, visibility: .visible, station: visibleStation),
+      .mockWith(sortOrder: 1, visibility: .comingSoon, station: inactiveStation),
+    ])
 
     @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [artistList])
     @Shared(.showSecretStations) var showSecretStations = true
@@ -205,8 +140,8 @@ final class HomePageTests: XCTestCase {
     let model = HomePageModel()
     await model.viewAppeared()
 
-    await assertEventually(model.forYouStations.count == 1)
-    XCTAssertNil(model.forYouStations[id: inactiveComingSoonStation.id])
+    XCTAssertEqual(model.forYouStations.count, 1)
+    XCTAssertNil(model.forYouStations[id: inactiveStation.id])
   }
 
   func testStationListItemVisibilityDecodesKnownValue() throws {
@@ -222,39 +157,53 @@ final class HomePageTests: XCTestCase {
   }
 
   func testStationListStationsFiltersByVisibility() {
-    let fixture = makeVisibilityFixture()
+    let visiblePlayola = Station.mockWith(id: "visible-playola")
+    let unknownPlayola = Station.mockWith(id: "unknown-playola")
+    let comingSoonUrl = UrlStation.mockWith(id: "coming-soon-url")
+    let hiddenUrl = UrlStation.mockWith(id: "hidden-url")
 
-    let visibleItems = fixture.list.stationItems(includeHidden: false)
+    let list = StationList(
+      id: "test-list", name: "Test List", slug: "test-list", hidden: false, sortOrder: 0,
+      createdAt: Date(), updatedAt: Date(),
+      items: [
+        .mockWith(sortOrder: 0, visibility: .visible, station: visiblePlayola),
+        .mockWith(sortOrder: 1, visibility: .comingSoon, urlStation: comingSoonUrl),
+        .mockWith(sortOrder: 2, visibility: .hidden, urlStation: hiddenUrl),
+        .mockWith(sortOrder: 3, visibility: .unknown, station: unknownPlayola),
+      ]
+    )
+
+    let visibleItems = list.stationItems(includeHidden: false)
     XCTAssertEqual(visibleItems.map(\.visibility), [.visible, .comingSoon, .unknown])
 
     let visibleStations = visibleItems.map { $0.anyStation }
     XCTAssertEqual(visibleStations.count, 3)
     if case .playola(let station) = visibleStations[0] {
-      XCTAssertEqual(station.id, fixture.visiblePlayola.id)
+      XCTAssertEqual(station.id, visiblePlayola.id)
     } else {
       XCTFail("Expected first visible station to be playola")
     }
 
     if case .url(let station) = visibleStations[1] {
-      XCTAssertEqual(station.id, fixture.comingSoonUrl.id)
+      XCTAssertEqual(station.id, comingSoonUrl.id)
     } else {
       XCTFail("Expected second visible station to be coming soon url station")
     }
 
     if case .playola(let station) = visibleStations[2] {
-      XCTAssertEqual(station.id, fixture.unknownPlayola.id)
+      XCTAssertEqual(station.id, unknownPlayola.id)
     } else {
       XCTFail("Expected second visible station to be playola")
     }
 
-    let allItemsIncludingHidden = fixture.list.stationItems(includeHidden: true)
+    let allItemsIncludingHidden = list.stationItems(includeHidden: true)
     let comingSoonItems = allItemsIncludingHidden.filter { $0.visibility == .comingSoon }
     XCTAssertEqual(comingSoonItems.count, 1)
-    XCTAssertEqual(comingSoonItems.first?.urlStation?.id, fixture.comingSoonUrl.id)
+    XCTAssertEqual(comingSoonItems.first?.urlStation?.id, comingSoonUrl.id)
 
     let hiddenItems = allItemsIncludingHidden.filter { $0.visibility == .hidden }
     XCTAssertEqual(hiddenItems.count, 1)
-    XCTAssertEqual(hiddenItems.first?.urlStation?.id, fixture.hiddenUrl.id)
+    XCTAssertEqual(hiddenItems.first?.urlStation?.id, hiddenUrl.id)
   }
 
   // MARK: - Welcome Message Tests
@@ -399,20 +348,23 @@ final class HomePageTests: XCTestCase {
   }
 
   func testShowSecretStationsToggleUpdatesForYouStations() async {
-    @Shared(.stationLists) var stationLists =
-      IdentifiedArray(uniqueElements: [makeArtistListWithHiddenStation()])
+    let artistList = StationList.mockArtistList(items: [
+      .mockWith(sortOrder: 0, visibility: .visible, station: .mockWith(id: "visible-playola")),
+      .mockWith(sortOrder: 1, visibility: .hidden, station: .mockWith(id: "hidden-playola")),
+    ])
+    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [artistList])
     @Shared(.showSecretStations) var showSecretStations = false
 
     let model = HomePageModel()
     await model.viewAppeared()
 
-    await assertEventually(model.forYouStations.count == 1)
+    XCTAssertEqual(model.forYouStations.count, 1)
 
     $showSecretStations.withLock { $0 = true }
-    await assertEventually(model.forYouStations.count == 2)
+    XCTAssertEqual(model.forYouStations.count, 2)
 
     $showSecretStations.withLock { $0 = false }
-    await assertEventually(model.forYouStations.count == 1)
+    XCTAssertEqual(model.forYouStations.count, 1)
   }
 
   // MARK: - Scheduled Shows Tests
@@ -721,265 +673,93 @@ final class HomePageTests: XCTestCase {
     }
   }
 
-}
+  // MARK: - Invite Friends Tile Tests
 
-extension HomePageTests {
-  fileprivate struct VisibilityFixture {
-    let list: StationList
-    let visiblePlayola: PlayolaPlayer.Station
-    let unknownPlayola: PlayolaPlayer.Station
-    let comingSoonUrl: UrlStation
-    let hiddenUrl: UrlStation
-    let items: [APIStationItem]
+  func testCanInviteFriendsIsTrueWhenUserHasTwoOrMoreHours() {
+    let rewardsProfile = RewardsProfile(
+      totalTimeListenedMS: 2 * 60 * 60 * 1000,  // 2 hours
+      totalMSAvailableForRewards: 0,
+      accurateAsOfTime: Date()
+    )
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = ListeningTracker(
+      rewardsProfile: rewardsProfile)
+
+    let model = HomePageModel()
+
+    XCTAssertTrue(model.canInviteFriends)
   }
 
-  private struct VisibilityStations {
-    let visiblePlayola: PlayolaPlayer.Station
-    let unknownPlayola: PlayolaPlayer.Station
-    let comingSoonUrl: UrlStation
-    let hiddenUrl: UrlStation
+  func testCanInviteFriendsIsFalseWhenUserHasLessThanTwoHours() {
+    let rewardsProfile = RewardsProfile(
+      totalTimeListenedMS: 1 * 60 * 60 * 1000,  // 1 hour
+      totalMSAvailableForRewards: 0,
+      accurateAsOfTime: Date()
+    )
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = ListeningTracker(
+      rewardsProfile: rewardsProfile)
+
+    let model = HomePageModel()
+
+    XCTAssertFalse(model.canInviteFriends)
   }
 
-  fileprivate func makeVisibilityFixture() -> VisibilityFixture {
-    let now = Date(timeIntervalSince1970: 1_758_915_200)
-    let stations = makeVisibilityStations(date: now)
-    let items = makeVisibilityItems(from: stations)
+  func testCanInviteFriendsIsFalseWhenListeningTrackerIsNil() {
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
 
-    let list = StationList(
-      id: "test-list",
-      name: "Test List",
-      slug: "test-list",
-      hidden: false,
-      sortOrder: 0,
-      createdAt: now,
-      updatedAt: now,
-      items: items
-    )
+    let model = HomePageModel()
 
-    return VisibilityFixture(
-      list: list,
-      visiblePlayola: stations.visiblePlayola,
-      unknownPlayola: stations.unknownPlayola,
-      comingSoonUrl: stations.comingSoonUrl,
-      hiddenUrl: stations.hiddenUrl,
-      items: items
-    )
+    XCTAssertFalse(model.canInviteFriends)
   }
 
-  fileprivate func makeArtistListWithHiddenStation() -> StationList {
-    let now = Date(timeIntervalSince1970: 1_758_915_200)
+  func testInviteFriendsTileHasCorrectContent() {
+    let model = HomePageModel()
 
-    let visiblePlayola = PlayolaPlayer.Station(
-      id: "visible-playola",
-      name: "Visible Playola",
-      curatorName: "DJ Visible",
-      imageUrl: URL(string: "https://example.com/visible.png"),
-      description: "Visible station",
-      active: true,
-      createdAt: now,
-      updatedAt: now
-    )
-
-    let hiddenPlayola = PlayolaPlayer.Station(
-      id: "hidden-playola",
-      name: "Hidden Playola",
-      curatorName: "DJ Hidden",
-      imageUrl: URL(string: "https://example.com/hidden.png"),
-      description: "Hidden station",
-      active: true,
-      createdAt: now,
-      updatedAt: now
-    )
-
-    let items: [APIStationItem] = [
-      APIStationItem(sortOrder: 0, visibility: .visible, station: visiblePlayola, urlStation: nil),
-      APIStationItem(sortOrder: 1, visibility: .hidden, station: hiddenPlayola, urlStation: nil),
-    ]
-
-    return StationList(
-      id: StationList.KnownIDs.artistList.rawValue,
-      name: "Artists",
-      slug: StationList.artistListSlug,
-      hidden: false,
-      sortOrder: 0,
-      createdAt: now,
-      updatedAt: now,
-      items: items
-    )
+    XCTAssertEqual(model.inviteFriendsTileModel.label, "Early Bird Reward")
+    XCTAssertEqual(model.inviteFriendsTileModel.content, "Invite Your Friends")
+    XCTAssertEqual(model.inviteFriendsTileModel.buttonText, "Invite")
+    XCTAssertNotNil(model.inviteFriendsTileModel.paragraph)
   }
 
-  private func makeVisibilityStations(date: Date) -> VisibilityStations {
-    let visiblePlayola = PlayolaPlayer.Station(
-      id: "visible-playola",
-      name: "Visible Playola",
-      curatorName: "DJ Visible",
-      imageUrl: URL(string: "https://example.com/visible.png"),
-      description: "Visible station",
-      active: true,
-      createdAt: date,
-      updatedAt: date
+  func testInviteFriendsTilePresentsShareSheet() async {
+    let rewardsProfile = RewardsProfile(
+      totalTimeListenedMS: 3 * 60 * 60 * 1000,  // 3 hours
+      totalMSAvailableForRewards: 0,
+      accurateAsOfTime: Date()
+    )
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = ListeningTracker(
+      rewardsProfile: rewardsProfile)
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator =
+      MainContainerNavigationCoordinator()
+
+    let mockReferralCode = ReferralCode(
+      id: "ref-123",
+      code: "INVITE-ABCD",
+      createdByUserId: "user-123",
+      invitationCodeId: "inv-123",
+      maxUses: nil,
+      description: nil,
+      expiresAt: nil,
+      isActive: true,
+      createdAt: Date(),
+      updatedAt: Date()
     )
 
-    let unknownPlayola = PlayolaPlayer.Station(
-      id: "unknown-playola",
-      name: "Unknown Playola",
-      curatorName: "DJ Mystery",
-      imageUrl: nil as URL?,
-      description: "Unknown visibility treated as visible",
-      active: true,
-      createdAt: date,
-      updatedAt: date
-    )
+    await withDependencies {
+      $0.api.getOrCreateReferralCode = { _, _ in mockReferralCode }
+    } operation: {
+      let model = HomePageModel()
 
-    let comingSoonUrl = UrlStation(
-      id: "coming-soon-url",
-      name: "Coming Soon FM",
-      streamUrl: "https://example.com/coming",
-      imageUrl: URL(string: "https://example.com/coming.png"),
-      description: "Coming soon station",
-      website: nil,
-      location: "Austin, TX",
-      active: true,
-      createdAt: date,
-      updatedAt: date
-    )
+      await model.inviteFriendsTileModel.buttonAction?()
 
-    let hiddenUrl = UrlStation(
-      id: "hidden-url",
-      name: "Hidden FM",
-      streamUrl: "https://example.com/hidden",
-      imageUrl: URL(string: "https://example.com/hidden.png"),
-      description: "Hidden station",
-      website: nil,
-      location: "Dallas, TX",
-      active: true,
-      createdAt: date,
-      updatedAt: date
-    )
-
-    return VisibilityStations(
-      visiblePlayola: visiblePlayola,
-      unknownPlayola: unknownPlayola,
-      comingSoonUrl: comingSoonUrl,
-      hiddenUrl: hiddenUrl
-    )
+      if case .share(let shareModel) = navigationCoordinator.presentedSheet {
+        XCTAssertTrue(shareModel.items[1].contains("INVITE-ABCD"))
+      } else {
+        XCTFail("Expected share sheet to be presented")
+      }
+    }
   }
 
-  private func makeVisibilityItems(from stations: VisibilityStations) -> [APIStationItem] {
-    [
-      APIStationItem(
-        sortOrder: 0,
-        visibility: .visible,
-        station: stations.visiblePlayola,
-        urlStation: nil
-      ),
-      APIStationItem(
-        sortOrder: 1,
-        visibility: .comingSoon,
-        station: nil,
-        urlStation: stations.comingSoonUrl
-      ),
-      APIStationItem(
-        sortOrder: 2,
-        visibility: .hidden,
-        station: nil,
-        urlStation: stations.hiddenUrl
-      ),
-      APIStationItem(
-        sortOrder: 3,
-        visibility: .unknown,
-        station: stations.unknownPlayola,
-        urlStation: nil
-      ),
-    ]
-  }
-
-  fileprivate func makeArtistList(items: [APIStationItem]) -> StationList {
-    StationList(
-      id: StationList.KnownIDs.artistList.rawValue,
-      name: "Artists",
-      slug: StationList.artistListSlug,
-      hidden: false,
-      sortOrder: 0,
-      createdAt: homePageTestDate,
-      updatedAt: homePageTestDate,
-      items: items
-    )
-  }
-
-  fileprivate func makeStationItem(
-    sortOrder: Int,
-    visibility: StationListItemVisibility,
-    station: PlayolaPlayer.Station? = nil,
-    urlStation: UrlStation? = nil
-  ) -> APIStationItem {
-    APIStationItem(
-      sortOrder: sortOrder,
-      visibility: visibility,
-      station: station,
-      urlStation: urlStation
-    )
-  }
-
-  fileprivate func makePlayolaStation(
-    id: String,
-    name: String,
-    curatorName: String,
-    imageUrl: URL? = URL(string: "https://example.com/visible.png"),
-    description: String = "Visible station description",
-    active: Bool = true
-  ) -> PlayolaPlayer.Station {
-    PlayolaPlayer.Station(
-      id: id,
-      name: name,
-      curatorName: curatorName,
-      imageUrl: imageUrl,
-      description: description,
-      active: active,
-      createdAt: homePageTestDate,
-      updatedAt: homePageTestDate
-    )
-  }
-
-  fileprivate func makeUrlStation(
-    id: String,
-    name: String,
-    streamUrl: String,
-    imageUrl: String,
-    description: String,
-    website: String? = nil,
-    location: String? = nil,
-    active: Bool = true
-  ) -> UrlStation {
-    UrlStation(
-      id: id,
-      name: name,
-      streamUrl: streamUrl,
-      imageUrl: imageUrl,
-      description: description,
-      website: website,
-      location: location,
-      active: active,
-      createdAt: homePageTestDate,
-      updatedAt: homePageTestDate
-    )
-  }
 }
 
 // swiftlint:enable force_try
-
-extension HomePageTests {
-  fileprivate func assertEventually(
-    _ condition: @autoclosure @escaping () -> Bool,
-    timeout: TimeInterval = 1.0,
-    file: StaticString = #filePath,
-    line: UInt = #line
-  ) async {
-    let deadline = Date().addingTimeInterval(timeout)
-    while Date() < deadline {
-      if condition() { return }
-      try? await Task.sleep(nanoseconds: 50_000_000)
-    }
-    XCTFail("Condition not satisfied within timeout", file: file, line: line)
-  }
-}

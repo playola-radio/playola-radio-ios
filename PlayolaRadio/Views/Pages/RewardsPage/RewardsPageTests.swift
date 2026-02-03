@@ -323,7 +323,7 @@ final class RewardsPageModelTests: XCTestCase {
     }
   }
 
-  func testRedeemReferralCode_CallsAPIAndSetsReferralCode() async {
+  func testInviteFriendsTapped_CallsAPIAndSetsReferralCode() async {
     @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(
       totalTimeMS: 3 * 60 * 60 * 1000)  // 3 hours
     @Shared(.auth) var auth = Auth(jwt: "test-token")
@@ -354,14 +354,14 @@ final class RewardsPageModelTests: XCTestCase {
 
     XCTAssertNil(model.referralCode)
 
-    await model.redeemReferralCodeTapped()
+    await model.inviteFriendsTapped()
 
     XCTAssertTrue(apiCalled.value, "Expected getOrCreateReferralCode API to be called")
     XCTAssertEqual(model.referralCode?.code, "TESTCODE")
     XCTAssertEqual(model.referralCode?.id, "ref-123")
   }
 
-  func testRedeemReferralCode_TracksAnalytics() async {
+  func testInviteFriendsTapped_TracksAnalytics() async {
     @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(
       totalTimeMS: 3 * 60 * 60 * 1000)  // 3 hours
     @Shared(.auth) var auth = Auth(jwt: "test-token")
@@ -390,7 +390,7 @@ final class RewardsPageModelTests: XCTestCase {
       RewardsPageModel()
     }
 
-    await model.redeemReferralCodeTapped()
+    await model.inviteFriendsTapped()
 
     let events = capturedEvents.value
     XCTAssertEqual(events.count, 1)

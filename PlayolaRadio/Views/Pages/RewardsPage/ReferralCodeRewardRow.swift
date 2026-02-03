@@ -10,7 +10,9 @@ struct ReferralCodeRewardRow: View {
   let name: String
   let requiredHoursLabel: String
   let status: RedemptionStatus
-  let onRedeem: () -> Void
+  let buttonText: String
+  let sharedButtonText: String
+  let onButtonTapped: () -> Void
 
   private var isRedeemed: Bool {
     if case .redeemed = status {
@@ -59,21 +61,22 @@ struct ReferralCodeRewardRow: View {
       // Status/Action
       switch status {
       case .redeemed:
-        HStack(spacing: 6) {
-          Image(systemName: "checkmark.circle.fill")
-            .foregroundColor(.green)
-            .frame(width: 20, height: 20)
-          Text("Redeemed")
+        Button(action: onButtonTapped) {
+          Text(sharedButtonText)
             .font(.custom(FontNames.Inter_500_Medium, size: 14))
             .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(Color(red: 0.8, green: 0.4, blue: 0.4))
+            .cornerRadius(6)
         }
 
       case .redeemable:
-        Button(action: onRedeem) {
-          Text("Redeem")
+        Button(action: onButtonTapped) {
+          Text(buttonText)
             .font(.custom(FontNames.Inter_500_Medium, size: 14))
             .foregroundColor(.white)
-            .padding(.horizontal, 20)
+            .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
             .background(Color(red: 0.8, green: 0.4, blue: 0.4))
             .cornerRadius(6)
@@ -107,24 +110,30 @@ struct ReferralCodeRewardRow_Previews: PreviewProvider {
     VStack(spacing: 1) {
       ReferralCodeRewardRow(
         label: "Early Bird",
-        name: "Referral Code",
+        name: "Invite Your Friends",
         requiredHoursLabel: "2 hours",
         status: .redeemable,
-        onRedeem: {})
+        buttonText: "Invite",
+        sharedButtonText: "Invite",
+        onButtonTapped: {})
 
       ReferralCodeRewardRow(
         label: "Early Bird",
-        name: "Referral Code",
+        name: "Invite Your Friends",
         requiredHoursLabel: "2 hours",
         status: .moreTimeRequired(1),
-        onRedeem: {})
+        buttonText: "Invite",
+        sharedButtonText: "Invite",
+        onButtonTapped: {})
 
       ReferralCodeRewardRow(
         label: "Early Bird",
-        name: "Referral Code",
+        name: "Invite Your Friends",
         requiredHoursLabel: "2 hours",
         status: .redeemed,
-        onRedeem: {})
+        buttonText: "Invite",
+        sharedButtonText: "Invite",
+        onButtonTapped: {})
     }
     .background(Color(white: 0.08))
   }
