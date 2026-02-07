@@ -704,7 +704,7 @@ final class HomePageTests: XCTestCase {
   }
 
   func testCanInviteFriendsIsFalseWhenListeningTrackerIsNil() {
-    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
 
     let model = HomePageModel()
 
