@@ -714,7 +714,7 @@ final class HomePageTests: XCTestCase {
   func testInviteFriendsTileHasCorrectContent() {
     let model = HomePageModel()
 
-    XCTAssertEqual(model.inviteFriendsTileModel.label, "Early Bird Reward")
+    XCTAssertEqual(model.inviteFriendsTileModel.label, "Power Listener Reward")
     XCTAssertEqual(model.inviteFriendsTileModel.content, "Invite Your Friends")
     XCTAssertEqual(model.inviteFriendsTileModel.buttonText, "Invite")
     XCTAssertNotNil(model.inviteFriendsTileModel.paragraph)

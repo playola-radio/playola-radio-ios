@@ -133,7 +133,7 @@ class HomePageModel: ViewModel {
     NewFeatureTileModel(
       iconName: "person.2.fill",
       isSystemImage: true,
-      label: "Early Bird Reward",
+      label: "Power Listener Reward",
       content: "Invite Your Friends",
       paragraph: "You've unlocked the ability to invite friends to Playola!",
       buttonText: "Invite",
