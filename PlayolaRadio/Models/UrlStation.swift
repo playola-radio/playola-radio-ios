@@ -133,4 +133,30 @@ extension UrlStation {
   static var mock: UrlStation {
     StationList.mocks.first(where: { !$0.urlStations.isEmpty })!.urlStations.first!
   }
+
+  static func mockWith(
+    id: String = "mock-url-station-id",
+    name: String = "Mock FM",
+    streamUrl: String = "https://example.com/stream",
+    imageUrl: URL? = URL(string: "https://example.com/image.png"),
+    description: String = "Mock station description",
+    website: String? = nil,
+    location: String? = "Austin, TX",
+    active: Bool = true,
+    createdAt: Date = Date(timeIntervalSince1970: 1_758_915_200),
+    updatedAt: Date = Date(timeIntervalSince1970: 1_758_915_200)
+  ) -> UrlStation {
+    UrlStation(
+      id: id,
+      name: name,
+      streamUrl: streamUrl,
+      imageUrl: imageUrl,
+      description: description,
+      website: website,
+      location: location,
+      active: active,
+      createdAt: createdAt,
+      updatedAt: updatedAt
+    )
+  }
 }
