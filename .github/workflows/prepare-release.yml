@@ -9,84 +9,32 @@ on:
         type: string
 
 jobs:
-  prepare-release:
-    runs-on: macos-latest
+  trigger-circleci:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Trigger CircleCI Pipeline
+        id: trigger
+        uses: CircleCI-Public/trigger-circleci-pipeline-action@v1.2.0
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          GHA_Meta: ${{ inputs.version }}
+        env:
+          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: true
-
-      - name: Install xcbeautify
-        run: brew install xcbeautify
-
-      - name: Copy secrets config (for build)
+      - name: Show CircleCI Link
         run: |
-          cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets.xcconfig
-          cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Development.xcconfig
-          cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Local.xcconfig
-          cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Staging.xcconfig
-
-      - name: Run tests
-        run: bundle exec fastlane test
-
-      - name: Get current version info
-        id: current
-        run: |
-          cd PlayolaRadio.xcodeproj
-          CURRENT_VERSION=$(agvtool what-marketing-version -terse1)
-          CURRENT_BUILD=$(agvtool what-version -terse)
-          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          echo "build=$CURRENT_BUILD" >> $GITHUB_OUTPUT
-          echo "Current version: $CURRENT_VERSION ($CURRENT_BUILD)"
-
-      - name: Increment build number
-        run: |
-          cd PlayolaRadio.xcodeproj
-          agvtool next-version -all
-          NEW_BUILD=$(agvtool what-version -terse)
-          echo "New build number: $NEW_BUILD"
-
-      - name: Update version (if provided)
-        if: ${{ inputs.version != '' }}
-        run: |
-          cd PlayolaRadio.xcodeproj
-          agvtool new-marketing-version ${{ inputs.version }}
-          echo "Updated version to: ${{ inputs.version }}"
-
-      - name: Get new version info
-        id: new
-        run: |
-          cd PlayolaRadio.xcodeproj
-          NEW_VERSION=$(agvtool what-marketing-version -terse1)
-          NEW_BUILD=$(agvtool what-version -terse)
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "build=$NEW_BUILD" >> $GITHUB_OUTPUT
-
-      - name: Commit version bump
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Bump build to ${{ steps.new.outputs.version }} (${{ steps.new.outputs.build }})"
-          git push
-
-      - name: Summary
-        run: |
-          echo "## Release Prepared" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Release Pipeline Triggered" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| | Before | After |" >> $GITHUB_STEP_SUMMARY
-          echo "|---|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| Version | ${{ steps.current.outputs.version }} | ${{ steps.new.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Build | ${{ steps.current.outputs.build }} | ${{ steps.new.outputs.build }} |" >> $GITHUB_STEP_SUMMARY
+          echo "**Pipeline #${{ steps.trigger.outputs.number }}** is now running on CircleCI" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Next steps:" >> $GITHUB_STEP_SUMMARY
+          echo "👉 [**View Pipeline Progress**](https://app.circleci.com/pipelines/github/${{ github.repository }}/${{ steps.trigger.outputs.number }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ inputs.version }}" ]; then
+            echo "**Version:** ${{ inputs.version }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Version:** (keeping current)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next steps (after CircleCI completes):" >> $GITHUB_STEP_SUMMARY
           echo "1. \`git pull\`" >> $GITHUB_STEP_SUMMARY
           echo "2. Archive **PlayolaRadio-Staging** → Upload to TestFlight" >> $GITHUB_STEP_SUMMARY
           echo "3. Archive **PlayolaRadio** → Upload to App Store Connect" >> $GITHUB_STEP_SUMMARY

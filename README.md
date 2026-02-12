@@ -173,8 +173,8 @@ bundle exec fastlane lint_code
 
 1. Go to **Actions** → **Prepare Release** → **Run workflow**
 2. Optionally enter a new version number (leave blank to keep current)
-3. Wait for workflow to complete (runs tests, bumps build number, commits)
-4. `git pull` locally
+3. Click the CircleCI link in the workflow summary to monitor progress
+4. When CircleCI completes: `git pull` locally
 5. Archive **PlayolaRadio-Staging** → Upload to TestFlight
 6. Archive **PlayolaRadio** → Upload to App Store Connect
 
@@ -183,6 +183,22 @@ If bugs are found during testing:
 1. Fix the bug on `develop` as usual
 2. Run the workflow again (build number auto-increments)
 3. Pull, archive, upload - no branch juggling needed
+
+#### Release CI Setup (One-Time)
+
+The release workflow uses GitHub Actions to trigger CircleCI. Setup required:
+
+**1. CircleCI API Token → GitHub**
+- Go to [CircleCI User Settings > Personal API Tokens](https://app.circleci.com/settings/user/tokens)
+- Create a new token (name it "GitHub Actions")
+- Copy the token
+- Go to your GitHub repo → Settings → Secrets → Actions
+- Add secret: `CCI_TOKEN` = (paste token)
+
+**2. Give CircleCI Write Access to Push Commits**
+- Go to [CircleCI Project Settings > SSH Keys](https://app.circleci.com/settings/project/github/playola-radio/playola-radio-ios/ssh)
+- Click **"Authorize with GitHub"** under "User Key"
+- This allows CircleCI to push the version bump commit
 
 ## Key Components
 
