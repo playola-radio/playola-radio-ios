@@ -42,6 +42,11 @@ struct HomePageView: View {
               .padding(.bottom, 20)
           }
 
+          if model.canInviteFriends {
+            NewFeatureTile(model: model.inviteFriendsTileModel)
+              .padding(.bottom, 20)
+          }
+
           ListeningTimeTile(model: model.listeningTimeTileModel)
 
           HomePageStationList(

@@ -293,6 +293,8 @@
 		D3776A502F2BE90800200ADF /* LibraryPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A4E2F2BE90800200ADF /* LibraryPageView.swift */; };
 		D3776A522F2BEB6500200ADF /* LibrarySong.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A512F2BEB6500200ADF /* LibrarySong.swift */; };
 		D3776A532F2BEB6500200ADF /* LibrarySong.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A512F2BEB6500200ADF /* LibrarySong.swift */; };
+		D3776A552F315E4B00200ADF /* ReferralCodeRewardRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A542F315E4B00200ADF /* ReferralCodeRewardRow.swift */; };
+		D3776A562F315E4B00200ADF /* ReferralCodeRewardRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3776A542F315E4B00200ADF /* ReferralCodeRewardRow.swift */; };
 		D378CCCE2E56011A00497A4A /* SignInPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCD2E56011500497A4A /* SignInPageModel.swift */; };
 		D378CCD02E57947800497A4A /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCF2E57947800497A4A /* ShareSheet.swift */; };
 		D37B74872EC94427009806C6 /* PushNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37B74862EC94426009806C6 /* PushNotifications.swift */; };
@@ -541,6 +543,7 @@
 		D3776A472F2BE7ED00200ADF /* LibraryPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryPageTests.swift; sourceTree = "<group>"; };
 		D3776A4E2F2BE90800200ADF /* LibraryPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryPageView.swift; sourceTree = "<group>"; };
 		D3776A512F2BEB6500200ADF /* LibrarySong.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySong.swift; sourceTree = "<group>"; };
+		D3776A542F315E4B00200ADF /* ReferralCodeRewardRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralCodeRewardRow.swift; sourceTree = "<group>"; };
 		D378CCCD2E56011500497A4A /* SignInPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPageModel.swift; sourceTree = "<group>"; };
 		D378CCCF2E57947800497A4A /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		D37B74862EC94426009806C6 /* PushNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotifications.swift; sourceTree = "<group>"; };
@@ -1313,6 +1316,7 @@
 			isa = PBXGroup;
 			children = (
 				D36FBCBF2E37FC7800D1241C /* PrizeTierRow.swift */,
+				D3776A542F315E4B00200ADF /* ReferralCodeRewardRow.swift */,
 				D3B744C32E31317F0042A427 /* RewardsPageTests.swift */,
 				D3B744C12E3131770042A427 /* RewardsPageView.swift */,
 				D3B744BF2E31316D0042A427 /* RewardsPageModel.swift */,
@@ -1647,6 +1651,7 @@
 				D317C0D22EF2027000DBC82E /* VoicetrackStatusResponse.swift in Sources */,
 				D30F005E2E8592F0007BCC73 /* CPListItem+InitWithRemoteUrl.swift in Sources */,
 				D30F005F2E8592F0007BCC73 /* MainContainerModel.swift in Sources */,
+				D3776A552F315E4B00200ADF /* ReferralCodeRewardRow.swift in Sources */,
 				D30F00602E8592F0007BCC73 /* ContactPageModel.swift in Sources */,
 				D3F493BB2EEDD2B3008ED463 /* RecordPageView.swift in Sources */,
 				D30F00612E8592F0007BCC73 /* Toast.swift in Sources */,
@@ -1793,6 +1798,7 @@
 				D317C0D12EF2027000DBC82E /* VoicetrackStatusResponse.swift in Sources */,
 				D35673C32D3E872600E4E926 /* CPListItem+InitWithRemoteUrl.swift in Sources */,
 				D3B744AD2E2FCD930042A427 /* MainContainerModel.swift in Sources */,
+				D3776A562F315E4B00200ADF /* ReferralCodeRewardRow.swift in Sources */,
 				D39591172E39932600720CF8 /* ContactPageModel.swift in Sources */,
 				D3F493BC2EEDD2B3008ED463 /* RecordPageView.swift in Sources */,
 				D302576B2E63423D00F4228B /* Toast.swift in Sources */,
@@ -1972,7 +1978,7 @@
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 70;
+				CURRENT_PROJECT_VERSION = 69;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
@@ -1992,7 +1998,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.2.0;
+				MARKETING_VERSION = 5.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio.staging;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2015,7 +2021,7 @@
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 70;
+				CURRENT_PROJECT_VERSION = 69;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
@@ -2035,7 +2041,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.2.0;
+				MARKETING_VERSION = 5.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio.staging;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2058,7 +2064,7 @@
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 70;
+				CURRENT_PROJECT_VERSION = 69;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
@@ -2078,7 +2084,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.2.0;
+				MARKETING_VERSION = 5.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio.staging;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2220,7 +2226,7 @@
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 70;
+				CURRENT_PROJECT_VERSION = 69;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
@@ -2240,7 +2246,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.2.0;
+				MARKETING_VERSION = 5.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2263,7 +2269,7 @@
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 70;
+				CURRENT_PROJECT_VERSION = 69;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
@@ -2283,7 +2289,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.2.0;
+				MARKETING_VERSION = 5.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2407,7 +2413,7 @@
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 70;
+				CURRENT_PROJECT_VERSION = 69;
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
@@ -2427,7 +2433,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.2.0;
+				MARKETING_VERSION = 5.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
