@@ -171,18 +171,22 @@ bundle exec fastlane lint_code
 
 ### Release Process
 
-1. Go to **Actions** → **Prepare Release** → **Run workflow**
-2. Optionally enter a new version number (leave blank to keep current)
-3. Click the CircleCI link in the workflow summary to monitor progress
-4. When CircleCI completes: `git pull` locally
-5. Archive **PlayolaRadio-Staging** → Upload to TestFlight
-6. Archive **PlayolaRadio** → Upload to App Store Connect
+#### Starting a Release
+1. **Trigger workflow** on `develop` with new version (e.g., `5.4.0`)
+   - Go to **Actions** → **Prepare Release** → **Run workflow**
+   - Enter the new version number
+   - Click the CircleCI link to monitor progress
+2. `git pull` → Archive both schemes → Upload to TestFlight
 
 #### Fixing Bugs During Release
-If bugs are found during testing:
-1. Fix the bug on `develop` as usual
-2. Run the workflow again (build number auto-increments)
-3. Pull, archive, upload - no branch juggling needed
+1. Create fix branch off `develop` → merge fix to `develop`
+2. **Trigger workflow** on `develop` (leave version blank - build auto-increments)
+3. `git pull` → Archive → Upload
+4. Repeat until satisfied
+
+#### Finalizing the Release
+1. Merge `develop` → `main` via PR
+2. Tag (e.g., `v5.4.0`) is created automatically
 
 #### Release CI Setup (One-Time)
 

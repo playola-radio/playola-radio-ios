@@ -114,13 +114,17 @@ jobs:
           name: Get Current Version
           command: |
             CURRENT_VERSION=$(agvtool what-marketing-version -terse1)
-            CURRENT_BUILD=$(agvtool what-version -terse)
-            echo "Current: $CURRENT_VERSION ($CURRENT_BUILD)"
+            # Get the max build number across all targets
+            CURRENT_BUILD=$(agvtool what-version -terse | sort -n | tail -1)
+            echo "Current: $CURRENT_VERSION (build $CURRENT_BUILD)"
       - run:
           name: Increment Build Number
           command: |
-            agvtool next-version -all
-            NEW_BUILD=$(agvtool what-version -terse)
+            # Get max build number and increment by 1
+            CURRENT_BUILD=$(agvtool what-version -terse | sort -n | tail -1)
+            NEW_BUILD=$((CURRENT_BUILD + 1))
+            # Set all targets to the new build number
+            agvtool new-version -all $NEW_BUILD
             echo "New build number: $NEW_BUILD"
       - run:
           name: Update Version (if provided)
@@ -134,8 +138,8 @@ jobs:
       - run:
           name: Commit and Push
           command: |
-            NEW_VERSION=$(agvtool what-marketing-version -terse1)
-            NEW_BUILD=$(agvtool what-version -terse)
+            NEW_VERSION=$(agvtool what-marketing-version -terse1 | head -1)
+            NEW_BUILD=$(agvtool what-version -terse | sort -n | tail -1)
             git config user.name "CircleCI"
             git config user.email "ci@circleci.com"
             git add -A
