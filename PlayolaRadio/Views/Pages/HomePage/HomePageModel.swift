@@ -32,6 +32,7 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
   @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
+  @ObservationIgnored @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
 
   // MARK: - Initialization
 
@@ -42,7 +43,6 @@ class HomePageModel: ViewModel {
   // MARK: - Properties
 
   var disposeBag = Set<AnyCancellable>()
-  var forYouStations: IdentifiedArrayOf<AnyStation> = []
   var presentedAlert: PlayolaAlert?
   var hasScheduledShows = false
   var upcomingQuestionAiring: ListenerQuestionAiring?
@@ -53,6 +53,14 @@ class HomePageModel: ViewModel {
 
   var hasUpcomingQuestionAiring: Bool {
     upcomingQuestionAiring != nil
+  }
+
+  var canInviteFriends: Bool {
+    guard let totalMSListened = listeningTracker?.totalListenTimeMS, totalMSListened > 0 else {
+      return false
+    }
+    let totalHours = Double(totalMSListened) / 1000.0 / 3600.0
+    return totalHours >= 2.0
   }
 
   var welcomeMessage: String {
@@ -121,24 +129,28 @@ class HomePageModel: ViewModel {
       }
     )
 
+  @ObservationIgnored lazy var inviteFriendsTileModel: NewFeatureTileModel =
+    NewFeatureTileModel(
+      iconName: "person.2.fill",
+      isSystemImage: true,
+      label: "Power Listener Reward",
+      content: "Invite Your Friends",
+      paragraph: "You've unlocked the ability to invite friends to Playola!",
+      buttonText: "Invite",
+      buttonAction: { [weak self] in
+        guard let self = self else { return }
+        await self.inviteFriendsButtonTapped()
+      }
+    )
+
   // MARK: - User Actions
 
   func viewAppeared() async {
-    loadForYouStations(lists: stationLists, showSecretStationsNewValue: showSecretStations)
     updateSupportMessageTile()
     await checkForScheduledShows()
     await checkForUpcomingQuestionAirings()
 
     guard disposeBag.isEmpty else { return }
-
-    Publishers.CombineLatest(
-      $stationLists.publisher,
-      $showSecretStations.publisher
-    )
-    .sink { [weak self] lists, showSecrets in
-      self?.loadForYouStations(lists: lists, showSecretStationsNewValue: showSecrets)
-    }
-    .store(in: &disposeBag)
 
     $unreadSupportCount.publisher
       .sink { [weak self] _ in
@@ -162,6 +174,21 @@ class HomePageModel: ViewModel {
   }
 
   // MARK: - View Helpers
+
+  var forYouStations: IdentifiedArrayOf<AnyStation> {
+    guard let artistList = stationLists.first(where: { $0.slug == StationList.artistListSlug })
+    else {
+      return []
+    }
+
+    let stations =
+      artistList
+      .stationItems(includeHidden: showSecretStations, includeComingSoon: true)
+      .filter { shouldShowStationItem($0, showSecretStations: showSecretStations) }
+      .compactMap { $0.anyStation }
+
+    return IdentifiedArray(uniqueElements: stations)
+  }
 
   func liveStatusForStation(_ stationId: String) -> LiveStatus? {
     liveStations.first { $0.stationId == stationId }?.liveStatus
@@ -207,6 +234,22 @@ class HomePageModel: ViewModel {
     questionAiringTileModel.content = "You're On Air Soon!"
     questionAiringTileModel.paragraph =
       "\(curatorName) picked your question! It will air on \(formattedAirtime(airing.airtime))."
+  }
+
+  private func inviteFriendsButtonTapped() async {
+    guard let jwt = auth.jwt else { return }
+
+    do {
+      let expiresAt = Calendar.current.date(byAdding: .year, value: 1, to: Date()) ?? Date()
+      let referralCode = try await api.getOrCreateReferralCode(jwt, expiresAt)
+      let shareUrl = "https://admin-api.playola.fm/ios?code=\(referralCode.code)"
+      let shareMessage = "Check out Playola Radio - a new app with music curated by real artists!"
+
+      let shareModel = ShareSheetModel(items: [shareMessage, shareUrl])
+      mainContainerNavigationCoordinator.presentedSheet = .share(shareModel)
+    } catch {
+      presentedAlert = .errorCreatingReferralCode
+    }
   }
 
   private func shareQuestionAiringButtonTapped() async {
@@ -279,23 +322,5 @@ class HomePageModel: ViewModel {
     guard item.visibility == .comingSoon else { return true }
     guard showSecretStations else { return false }
     return item.station?.active == true
-  }
-
-  private func loadForYouStations(
-    lists: IdentifiedArrayOf<StationList>,
-    showSecretStationsNewValue: Bool
-  ) {
-    guard let artistList = lists.first(where: { $0.slug == StationList.artistListSlug }) else {
-      forYouStations = []
-      return
-    }
-
-    let stations =
-      artistList
-      .stationItems(includeHidden: showSecretStationsNewValue, includeComingSoon: true)
-      .filter { shouldShowStationItem($0, showSecretStations: showSecretStationsNewValue) }
-      .compactMap { $0.anyStation }
-
-    forYouStations = IdentifiedArray(uniqueElements: stations)
   }
 }
