@@ -1,5 +1,19 @@
 version: 2.1
 
+parameters:
+  GHA_Action:
+    type: string
+    default: ""
+  GHA_Actor:
+    type: string
+    default: ""
+  GHA_Event:
+    type: string
+    default: ""
+  GHA_Meta:
+    type: string
+    default: ""
+
 jobs:
   swiftlint_check:
     macos:
@@ -73,12 +87,75 @@ jobs:
       - store_test_results:
           path: test-results
 
+  prepare-release:
+    macos:
+      xcode: 26.2
+    resource_class: m4pro.medium
+    environment:
+      FL_OUTPUT_DIR: output
+      FASTLANE_LANE: test
+    steps:
+      # NOTE: This requires a read-write deploy key or user key.
+      # See setup instructions in README.md
+      - checkout
+      - run: brew install xcbeautify
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets.xcconfig
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Development.xcconfig
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Local.xcconfig
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Staging.xcconfig
+      - run: bundle install
+      - run:
+          name: Resolve Swift Package Dependencies
+          command: xcodebuild -resolvePackageDependencies -project PlayolaRadio.xcodeproj
+      - run:
+          name: Run Tests
+          command: bundle exec fastlane $FASTLANE_LANE
+      - run:
+          name: Get Current Version
+          command: |
+            CURRENT_VERSION=$(agvtool what-marketing-version -terse1)
+            # Get the max build number across all targets
+            CURRENT_BUILD=$(agvtool what-version -terse | sort -n | tail -1)
+            echo "Current: $CURRENT_VERSION (build $CURRENT_BUILD)"
+      - run:
+          name: Increment Build Number
+          command: |
+            # Get max build number and increment by 1
+            CURRENT_BUILD=$(agvtool what-version -terse | sort -n | tail -1)
+            NEW_BUILD=$((CURRENT_BUILD + 1))
+            # Set all targets to the new build number
+            agvtool new-version -all $NEW_BUILD
+            echo "New build number: $NEW_BUILD"
+      - run:
+          name: Update Version (if provided)
+          command: |
+            if [ -n "<< pipeline.parameters.GHA_Meta >>" ]; then
+              agvtool new-marketing-version "<< pipeline.parameters.GHA_Meta >>"
+              echo "Updated version to: << pipeline.parameters.GHA_Meta >>"
+            else
+              echo "No version specified, keeping current"
+            fi
+      - run:
+          name: Commit and Push
+          command: |
+            NEW_VERSION=$(agvtool what-marketing-version -terse1 | head -1)
+            NEW_BUILD=$(agvtool what-version -terse | sort -n | tail -1)
+            git config user.name "CircleCI"
+            git config user.email "ci@circleci.com"
+            git add -A
+            git commit -m "Bump build to $NEW_VERSION ($NEW_BUILD) [skip ci]"
+            git push origin $CIRCLE_BRANCH
+
 workflows:
   lint-codebase:
+    when:
+      not: << pipeline.parameters.GHA_Action >>
     jobs:
       - swiftlint_check
 
   build-test-adhoc:
+    when:
+      not: << pipeline.parameters.GHA_Action >>
     jobs:
       - build-and-test
       - adhoc:
@@ -87,3 +164,8 @@ workflows:
               only: development
           requires:
             - build-and-test
+
+  prepare-release:
+    when: << pipeline.parameters.GHA_Action >>
+    jobs:
+      - prepare-release

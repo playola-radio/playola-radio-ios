@@ -1,0 +1,51 @@
+name: Auto-Tag Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from project
+        id: version
+        run: |
+          VERSION=$(grep -m1 'MARKETING_VERSION' PlayolaRadio.xcodeproj/project.pbxproj | sed 's/.*= //' | sed 's/;.*//' | tr -d ' ')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
+
+      - name: Check if tag exists
+        id: check
+        run: |
+          if git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag v${{ steps.version.outputs.version }} already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Tag v${{ steps.version.outputs.version }} does not exist"
+          fi
+
+      - name: Create tag
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ steps.version.outputs.version }}" -m "Release ${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}"
+
+      - name: Summary
+        run: |
+          echo "## Release Tag" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check.outputs.exists }}" == "true" ]; then
+            echo "Tag \`v${{ steps.version.outputs.version }}\` already exists - no action taken" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Created tag \`v${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          fi
