@@ -23,7 +23,7 @@ Playola Radio is a streaming radio app for iOS featuring curated artist stations
 - **State Management**: [Sharing](https://github.com/pointfreeco/swift-sharing)
 - **Streaming**: [FRadioPlayer](https://github.com/fethica/FRadioPlayer) + [PlayolaPlayer](https://github.com/playola-radio/playola-player-swift)
 - **Analytics**: Mixpanel
-- **CI/CD**: CircleCI + Fastlane
+- **CI/CD**: GitHub Actions + CircleCI + Fastlane
 
 ### Project Structure
 
@@ -169,10 +169,29 @@ bundle exec fastlane test
 bundle exec fastlane lint_code
 ```
 
-### Building for TestFlight
-```bash
-bundle exec fastlane beta
-```
+### Release Process
+
+#### Staging Release
+1. Go to **Actions** → **Prepare Staging Release** → **Run workflow**
+2. Optionally enter a new version number (leave blank to keep current)
+3. Wait for workflow to complete (bumps build number, commits)
+4. `git pull` locally
+5. Archive **PlayolaRadio-Staging** scheme in Xcode
+6. Upload to TestFlight
+
+#### Production Release
+1. Go to **Actions** → **Prepare Production Release** → **Run workflow**
+2. Optionally enter a new version number (leave blank to keep current)
+3. Wait for workflow to complete (runs tests, bumps build number, commits)
+4. `git pull` locally
+5. Archive **PlayolaRadio** scheme in Xcode
+6. Upload to App Store Connect
+
+#### Fixing Bugs During Release
+If bugs are found during testing:
+1. Fix the bug on `develop` as usual
+2. Run the workflow again (build number auto-increments)
+3. Pull, archive, upload - no branch juggling needed
 
 ## Key Components
 
