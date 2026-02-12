@@ -171,21 +171,12 @@ bundle exec fastlane lint_code
 
 ### Release Process
 
-#### Staging Release
-1. Go to **Actions** → **Prepare Staging Release** → **Run workflow**
-2. Optionally enter a new version number (leave blank to keep current)
-3. Wait for workflow to complete (bumps build number, commits)
-4. `git pull` locally
-5. Archive **PlayolaRadio-Staging** scheme in Xcode
-6. Upload to TestFlight
-
-#### Production Release
-1. Go to **Actions** → **Prepare Production Release** → **Run workflow**
+1. Go to **Actions** → **Prepare Release** → **Run workflow**
 2. Optionally enter a new version number (leave blank to keep current)
 3. Wait for workflow to complete (runs tests, bumps build number, commits)
 4. `git pull` locally
-5. Archive **PlayolaRadio** scheme in Xcode
-6. Upload to App Store Connect
+5. Archive **PlayolaRadio-Staging** → Upload to TestFlight
+6. Archive **PlayolaRadio** → Upload to App Store Connect
 
 #### Fixing Bugs During Release
 If bugs are found during testing:

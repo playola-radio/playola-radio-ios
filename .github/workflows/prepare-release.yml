@@ -1,4 +1,4 @@
-name: Prepare Production Release
+name: Prepare Release
 
 on:
   workflow_dispatch:
@@ -74,12 +74,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Bump production build to ${{ steps.new.outputs.version }} (${{ steps.new.outputs.build }})"
+          git commit -m "Bump build to ${{ steps.new.outputs.version }} (${{ steps.new.outputs.build }})"
           git push
 
       - name: Summary
         run: |
-          echo "## Production Release Prepared" >> $GITHUB_STEP_SUMMARY
+          echo "## Release Prepared" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| | Before | After |" >> $GITHUB_STEP_SUMMARY
           echo "|---|---|---|" >> $GITHUB_STEP_SUMMARY
@@ -88,5 +88,5 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Next steps:" >> $GITHUB_STEP_SUMMARY
           echo "1. \`git pull\`" >> $GITHUB_STEP_SUMMARY
-          echo "2. Archive **PlayolaRadio** scheme in Xcode" >> $GITHUB_STEP_SUMMARY
-          echo "3. Upload to App Store Connect (TestFlight or Release)" >> $GITHUB_STEP_SUMMARY
+          echo "2. Archive **PlayolaRadio-Staging** → Upload to TestFlight" >> $GITHUB_STEP_SUMMARY
+          echo "3. Archive **PlayolaRadio** → Upload to App Store Connect" >> $GITHUB_STEP_SUMMARY
