@@ -71,6 +71,22 @@ Run swift-format lint check
 
 Ad-hoc build
 
+### ios check_warnings
+
+```sh
+[bundle exec] fastlane ios check_warnings
+```
+
+Check that warning count hasn't increased
+
+### ios update_warning_threshold
+
+```sh
+[bundle exec] fastlane ios update_warning_threshold
+```
+
+Update warning threshold to current count
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
