@@ -113,14 +113,12 @@ jobs:
       - run:
           name: Get Current Version
           command: |
-            cd PlayolaRadio.xcodeproj
             CURRENT_VERSION=$(agvtool what-marketing-version -terse1)
             CURRENT_BUILD=$(agvtool what-version -terse)
             echo "Current: $CURRENT_VERSION ($CURRENT_BUILD)"
       - run:
           name: Increment Build Number
           command: |
-            cd PlayolaRadio.xcodeproj
             agvtool next-version -all
             NEW_BUILD=$(agvtool what-version -terse)
             echo "New build number: $NEW_BUILD"
@@ -128,7 +126,6 @@ jobs:
           name: Update Version (if provided)
           command: |
             if [ -n "<< pipeline.parameters.GHA_Meta >>" ]; then
-              cd PlayolaRadio.xcodeproj
               agvtool new-marketing-version "<< pipeline.parameters.GHA_Meta >>"
               echo "Updated version to: << pipeline.parameters.GHA_Meta >>"
             else
@@ -137,10 +134,8 @@ jobs:
       - run:
           name: Commit and Push
           command: |
-            cd PlayolaRadio.xcodeproj
             NEW_VERSION=$(agvtool what-marketing-version -terse1)
             NEW_BUILD=$(agvtool what-version -terse)
-            cd ..
             git config user.name "CircleCI"
             git config user.email "ci@circleci.com"
             git add -A
