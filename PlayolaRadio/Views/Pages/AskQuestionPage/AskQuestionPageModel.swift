@@ -376,7 +376,7 @@ extension PlayolaAlert {
     PlayolaAlert(
       title: "Question Sent!",
       message:
-        "If (curatorName) answers it, your question and their response will air on the station, "
+        "If \(curatorName) answers it, your question and their response will air on the station, "
         + "and we'll let you know when it plays.",
       dismissButton: .default(Text("OK"), action: onDismiss)
     )

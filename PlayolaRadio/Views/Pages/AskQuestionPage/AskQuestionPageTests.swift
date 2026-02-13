@@ -302,4 +302,15 @@ final class AskQuestionPageTests: XCTestCase {
       XCTAssertEqual(stationPlayerMock.callsToPlay.count, 0)
     }
   }
+
+  // MARK: - Alerts
+
+  func testQuestionSentSuccessAlertIncludesCuratorName() {
+    let alert = PlayolaAlert.questionSentSuccess(curatorName: "Bri Bagwell") {}
+
+    XCTAssertTrue(
+      alert.message?.contains("Bri Bagwell") ?? false,
+      "Alert message should contain the curator name"
+    )
+  }
 }
