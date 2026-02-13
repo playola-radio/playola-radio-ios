@@ -3,10 +3,16 @@ name: Prepare Release
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version number (leave blank to keep current)'
-        required: false
-        type: string
+      version_bump:
+        description: 'Version update type'
+        required: true
+        default: 'none'
+        type: choice
+        options:
+          - none
+          - patch
+          - minor
+          - major
 
 jobs:
   trigger-circleci:
@@ -16,7 +22,7 @@ jobs:
         id: trigger
         uses: CircleCI-Public/trigger-circleci-pipeline-action@v1.2.0
         with:
-          GHA_Meta: ${{ inputs.version }}
+          GHA_Meta: ${{ inputs.version_bump }}
         env:
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
 
@@ -28,8 +34,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "👉 [**View Pipeline Progress**](https://app.circleci.com/pipelines/github/${{ github.repository }}/${{ steps.trigger.outputs.number }})" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -n "${{ inputs.version }}" ]; then
-            echo "**Version:** ${{ inputs.version }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.version_bump }}" != "none" ]; then
+            echo "**Version bump:** ${{ inputs.version_bump }}" >> $GITHUB_STEP_SUMMARY
           else
             echo "**Version:** (keeping current)" >> $GITHUB_STEP_SUMMARY
           fi
