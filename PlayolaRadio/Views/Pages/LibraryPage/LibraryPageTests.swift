@@ -86,7 +86,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in mockSongs }
+      $0.api.getStationLibrary = { _, _ in .mockWith(songs: mockSongs) }
       $0.api.getStationLibraryRequests = { _, _, _ in [] }
     } operation: {
       let model = LibraryPageModel(stationId: "test-station")
@@ -108,7 +108,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in [] }
+      $0.api.getStationLibrary = { _, _ in .mockWith() }
       $0.api.getStationLibraryRequests = { _, _, _ in mockRequests }
     } operation: {
       let model = LibraryPageModel(stationId: "test-station")
@@ -129,7 +129,7 @@ final class LibraryPageTests: XCTestCase {
       $0.date = .constant(Date())
       $0.api.getStationLibrary = { @Sendable _, stationId in
         capturedStationId.withValue { $0 = stationId }
-        return []
+        return .mockWith()
       }
       $0.api.getStationLibraryRequests = { _, _, _ in [] }
     } operation: {
@@ -173,7 +173,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in mockSongs }
+      $0.api.getStationLibrary = { _, _ in .mockWith(songs: mockSongs) }
       $0.api.getStationLibraryRequests = { _, _, _ in [] }
     } operation: {
       let model = LibraryPageModel(stationId: "test-station")
@@ -194,7 +194,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in mockSongs }
+      $0.api.getStationLibrary = { _, _ in .mockWith(songs: mockSongs) }
       $0.api.getStationLibraryRequests = { _, _, _ in [] }
     } operation: {
       let model = LibraryPageModel(stationId: "test-station")
@@ -216,7 +216,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in mockSongs }
+      $0.api.getStationLibrary = { _, _ in .mockWith(songs: mockSongs) }
       $0.api.getStationLibraryRequests = { _, _, _ in [] }
     } operation: {
       let model = LibraryPageModel(stationId: "test-station")
@@ -237,7 +237,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in mockSongs }
+      $0.api.getStationLibrary = { _, _ in .mockWith(songs: mockSongs) }
       $0.api.getStationLibraryRequests = { _, _, _ in [] }
     } operation: {
       let model = LibraryPageModel(stationId: "test-station")
@@ -261,7 +261,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in [] }
+      $0.api.getStationLibrary = { _, _ in .mockWith() }
       $0.api.getStationLibraryRequests = { _, _, _ in mockRequests }
     } operation: {
       let model = LibraryPageModel(stationId: "test-station")
@@ -283,7 +283,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in [mockSong] }
+      $0.api.getStationLibrary = { _, _ in .mockWith(songs: [mockSong]) }
       $0.api.getStationLibraryRequests = { _, _, _ in [] }
       $0.api.createRemoveLibraryRequest = { @Sendable _, _, audioBlockId in
         capturedAudioBlockId.withValue { $0 = audioBlockId }
@@ -311,7 +311,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in [mockSong] }
+      $0.api.getStationLibrary = { _, _ in .mockWith(songs: [mockSong]) }
       $0.api.getStationLibraryRequests = { _, _, _ in [] }
       $0.api.createRemoveLibraryRequest = { _, _, _ in mockRequest }
     } operation: {
@@ -340,7 +340,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in [mockSong] }
+      $0.api.getStationLibrary = { _, _ in .mockWith(songs: [mockSong]) }
       $0.api.getStationLibraryRequests = { _, _, _ in [mockRequest] }
     } operation: {
       let model = LibraryPageModel(stationId: "test-station")
@@ -356,7 +356,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in [mockSong] }
+      $0.api.getStationLibrary = { _, _ in .mockWith(songs: [mockSong]) }
       $0.api.getStationLibraryRequests = { _, _, _ in [] }
     } operation: {
       let model = LibraryPageModel(stationId: "test-station")
@@ -388,7 +388,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in [mockSong] }
+      $0.api.getStationLibrary = { _, _ in .mockWith(songs: [mockSong]) }
       $0.api.getStationLibraryRequests = { _, _, _ in [] }
       $0.api.createRemoveLibraryRequest = { @Sendable [isProcessingDuringCall] _, _, _ in
         await MainActor.run {
@@ -418,7 +418,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in [] }
+      $0.api.getStationLibrary = { _, _ in .mockWith() }
       $0.api.getStationLibraryRequests = { _, _, _ in [mockRequest] }
       $0.api.dismissStationLibraryRequest = { @Sendable _, _, requestId in
         capturedRequestId.withValue { $0 = requestId }
@@ -440,7 +440,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in [] }
+      $0.api.getStationLibrary = { _, _ in .mockWith() }
       $0.api.getStationLibraryRequests = { _, _, _ in [mockRequest] }
       $0.api.dismissStationLibraryRequest = { _, _, _ in
         .mockWith(id: "request-1", status: .dismissed)
@@ -467,7 +467,7 @@ final class LibraryPageTests: XCTestCase {
       $0.date = .constant(Date())
       $0.api.getStationLibrary = { @Sendable _, _ in
         fetchCount.withValue { $0 += 1 }
-        return []
+        return .mockWith()
       }
       $0.api.getStationLibraryRequests = { _, _, _ in [] }
     } operation: {
@@ -494,7 +494,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in mockSongs }
+      $0.api.getStationLibrary = { _, _ in .mockWith(songs: mockSongs) }
       $0.api.getStationLibraryRequests = { _, _, _ in [] }
     } operation: {
       let model = LibraryPageModel(stationId: "test-station")
@@ -514,7 +514,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in mockSongs }
+      $0.api.getStationLibrary = { _, _ in .mockWith(songs: mockSongs) }
       $0.api.getStationLibraryRequests = { _, _, _ in [] }
     } operation: {
       let model = LibraryPageModel(stationId: "test-station")
@@ -689,7 +689,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in [mockSong] }
+      $0.api.getStationLibrary = { _, _ in .mockWith(songs: [mockSong]) }
       $0.api.getStationLibraryRequests = { _, _, _ in [mockRequest] }
     } operation: {
       let model = LibraryPageModel(stationId: "test-station")
@@ -707,7 +707,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in [mockSong] }
+      $0.api.getStationLibrary = { _, _ in .mockWith(songs: [mockSong]) }
       $0.api.getStationLibraryRequests = { _, _, _ in [] }
     } operation: {
       let model = LibraryPageModel(stationId: "test-station")
@@ -729,7 +729,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in [mockSong] }
+      $0.api.getStationLibrary = { _, _ in .mockWith(songs: [mockSong]) }
       $0.api.getStationLibraryRequests = { _, _, _ in [mockRequest] }
     } operation: {
       let model = LibraryPageModel(stationId: "test-station")
@@ -749,7 +749,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in [] }
+      $0.api.getStationLibrary = { _, _ in .mockWith() }
       $0.api.getStationLibraryRequests = { _, _, _ in [mockRequest] }
       $0.api.cancelStationLibraryRequest = { @Sendable _, _, requestId in
         capturedRequestId.withValue { $0 = requestId }
@@ -770,7 +770,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in [] }
+      $0.api.getStationLibrary = { _, _ in .mockWith() }
       $0.api.getStationLibraryRequests = { _, _, _ in [mockRequest] }
       $0.api.cancelStationLibraryRequest = { _, _, _ in }
     } operation: {
@@ -791,7 +791,7 @@ final class LibraryPageTests: XCTestCase {
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.getStationLibrary = { _, _ in [] }
+      $0.api.getStationLibrary = { _, _ in .mockWith() }
       $0.api.getStationLibraryRequests = { _, _, _ in [mockRequest] }
       $0.api.cancelStationLibraryRequest = { _, _, _ in
         throw APIError.validationError("Failed to cancel request")
@@ -929,4 +929,77 @@ final class LibraryPageTests: XCTestCase {
       XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
     }
   }
+
+  // MARK: - Song Intro Tests
+
+  func testInitialStateSongIdsWithSongIntrosIsEmpty() {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = LibraryPageModel(stationId: "test-station")
+
+      XCTAssertTrue(model.songIdsWithSongIntros.isEmpty)
+    }
+  }
+
+  func testViewAppearedPopulatesSongIdsWithSongIntros() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let mockSongs = [
+      LibrarySong.mockWith(id: "song-1"),
+      LibrarySong.mockWith(id: "song-2"),
+    ]
+
+    await withDependencies {
+      $0.date = .constant(Date())
+      $0.api.getStationLibrary = { _, _ in
+        .mockWith(songs: mockSongs, songIdsWithSongIntros: ["song-1"])
+      }
+      $0.api.getStationLibraryRequests = { _, _, _ in [] }
+    } operation: {
+      let model = LibraryPageModel(stationId: "test-station")
+
+      await model.viewAppeared()
+
+      XCTAssertEqual(model.songIdsWithSongIntros, Set(["song-1"]))
+    }
+  }
+
+  func testHasSongIntroReturnsTrueForSongWithIntro() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let mockSong = LibrarySong.mockWith(id: "song-1")
+
+    await withDependencies {
+      $0.date = .constant(Date())
+      $0.api.getStationLibrary = { _, _ in
+        .mockWith(songs: [mockSong], songIdsWithSongIntros: ["song-1"])
+      }
+      $0.api.getStationLibraryRequests = { _, _, _ in [] }
+    } operation: {
+      let model = LibraryPageModel(stationId: "test-station")
+      await model.viewAppeared()
+
+      XCTAssertTrue(model.hasSongIntro(for: mockSong))
+    }
+  }
+
+  func testHasSongIntroReturnsFalseForSongWithoutIntro() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let mockSong = LibrarySong.mockWith(id: "song-1")
+
+    await withDependencies {
+      $0.date = .constant(Date())
+      $0.api.getStationLibrary = { _, _ in
+        .mockWith(songs: [mockSong], songIdsWithSongIntros: [])
+      }
+      $0.api.getStationLibraryRequests = { _, _, _ in [] }
+    } operation: {
+      let model = LibraryPageModel(stationId: "test-station")
+      await model.viewAppeared()
+
+      XCTAssertFalse(model.hasSongIntro(for: mockSong))
+    }
+  }
+
 }

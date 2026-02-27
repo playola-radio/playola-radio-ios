@@ -15,6 +15,22 @@ struct LibrarySong: Codable, Identifiable, Equatable {
   let spotifyId: String?
 }
 
+// MARK: - Library Response
+
+struct LibraryResponse: Codable, Equatable {
+  let songs: [LibrarySong]
+  let songIdsWithSongIntros: [String]
+}
+
+extension LibraryResponse {
+  static func mockWith(
+    songs: [LibrarySong] = [],
+    songIdsWithSongIntros: [String] = []
+  ) -> LibraryResponse {
+    LibraryResponse(songs: songs, songIdsWithSongIntros: songIdsWithSongIntros)
+  }
+}
+
 // MARK: - Mock
 
 extension LibrarySong {

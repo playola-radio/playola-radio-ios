@@ -667,7 +667,11 @@ extension APIClient: DependencyKey {
         )
       },
       getStationLibrary: { jwtToken, stationId in
-        try await authenticatedGet(path: "/v1/stations/\(stationId)/library", token: jwtToken)
+        try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/library",
+          token: jwtToken,
+          queryParams: ["includeSongIntroIds": "true"]
+        )
       },
       getStationLibraryRequests: { jwtToken, stationId, status in
         var queryParams: [String: String]?

@@ -533,15 +533,16 @@ struct APIClient: Sendable {
 
   // MARK: - Station Library
 
-  /// Fetches all songs in a station's library
+  /// Fetches all songs in a station's library with song intro information
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
   ///   - stationId: The station ID to fetch library for
-  /// - Returns: Array of LibrarySong objects sorted by artist/title
+  /// - Returns: LibraryResponse containing songs and IDs of songs with intros
   /// - Throws: APIError if the request fails
-  var getStationLibrary: (_ jwtToken: String, _ stationId: String) async throws -> [LibrarySong] = {
-    _, _ in []
-  }
+  var getStationLibrary: (_ jwtToken: String, _ stationId: String) async throws -> LibraryResponse =
+    {
+      _, _ in .mockWith()
+    }
 
   /// Fetches library requests for a station
   /// - Parameters:

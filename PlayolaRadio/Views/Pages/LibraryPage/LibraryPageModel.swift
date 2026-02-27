@@ -36,6 +36,7 @@ class LibraryPageModel: ViewModel {
   let navigationTitle = "Library"
 
   var librarySongs: [LibrarySong] = []
+  var songIdsWithSongIntros: Set<String> = []
   var libraryRequests: [StationLibraryRequest] = []
   var isLoading = false
   var searchText = ""
@@ -78,7 +79,6 @@ class LibraryPageModel: ViewModel {
   }
 
   let requestsSectionHeader = "PENDING REQUESTS"
-  let removeButtonText = "REMOVE"
   let dismissButtonText = "DISMISS"
   let cancelButtonText = "CANCEL"
   let pendingRemovalText = "Pending Removal"
@@ -122,6 +122,10 @@ class LibraryPageModel: ViewModel {
     mainContainerNavigationCoordinator.presentedSheet = .songSearchPage(model)
   }
 
+  func recordIntroButtonTapped(_ song: LibrarySong) {
+    // No-op placeholder — will be implemented in a future stage
+  }
+
   func dismissRequestButtonTapped(_ request: StationLibraryRequest) async {
     guard let jwt = auth.jwt else { return }
 
@@ -147,6 +151,10 @@ class LibraryPageModel: ViewModel {
   }
 
   // MARK: - View Helpers
+
+  func hasSongIntro(for song: LibrarySong) -> Bool {
+    songIdsWithSongIntros.contains(song.id)
+  }
 
   func hasPendingRequest(for song: LibrarySong) -> Bool {
     libraryRequests.contains { $0.audioBlockId == song.id && $0.status == .pending }
@@ -192,11 +200,12 @@ class LibraryPageModel: ViewModel {
     isLoading = true
 
     do {
-      async let songsTask = api.getStationLibrary(jwt, stationId)
+      async let libraryTask = api.getStationLibrary(jwt, stationId)
       async let requestsTask = api.getStationLibraryRequests(jwt, stationId, nil)
 
-      let (songs, requests) = try await (songsTask, requestsTask)
-      librarySongs = songs
+      let (libraryResponse, requests) = try await (libraryTask, requestsTask)
+      librarySongs = libraryResponse.songs
+      songIdsWithSongIntros = Set(libraryResponse.songIdsWithSongIntros)
       libraryRequests = requests
     } catch {
       presentedAlert = .libraryError(error.localizedDescription)

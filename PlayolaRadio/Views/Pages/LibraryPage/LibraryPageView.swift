@@ -88,7 +88,7 @@ struct LibraryPageView: View {
             }
           }
         )
-        .padding(.trailing, 2)
+        .padding(.trailing, 8)
       }
     }
   }
@@ -134,9 +134,9 @@ struct LibraryPageView: View {
             song: song,
             isProcessing: model.isProcessingRemoval(for: song),
             hasPendingRequest: model.hasPendingRequest(for: song),
+            hasSongIntro: model.hasSongIntro(for: song),
             pendingRemovalText: model.pendingRemovalText,
             cancelButtonText: model.cancelButtonText,
-            removeButtonText: model.removeButtonText,
             onCancel: {
               if let request = model.pendingRequest(for: song) {
                 Task {
@@ -148,6 +148,9 @@ struct LibraryPageView: View {
               Task {
                 await model.removeSongButtonTapped(song)
               }
+            },
+            onRecordIntro: {
+              model.recordIntroButtonTapped(song)
             }
           )
           .id("song-\(song.id)")
@@ -216,11 +219,12 @@ struct LibrarySongRow: View {
   let song: LibrarySong
   let isProcessing: Bool
   let hasPendingRequest: Bool
+  let hasSongIntro: Bool
   let pendingRemovalText: String
   let cancelButtonText: String
-  let removeButtonText: String
   let onCancel: () -> Void
   let onRemove: () -> Void
+  let onRecordIntro: () -> Void
 
   var body: some View {
     HStack(spacing: 12) {
@@ -275,19 +279,33 @@ struct LibrarySongRow: View {
           .buttonStyle(BorderlessButtonStyle())
         }
       } else {
-        Button(action: onRemove) {
-          Text(removeButtonText)
-            .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
-            .foregroundColor(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(Color.playolaRed)
-            .cornerRadius(4)
+        HStack(spacing: 12) {
+          if !hasSongIntro {
+            Button(action: onRecordIntro) {
+              Image(systemName: "mic")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.playolaGray)
+                .frame(width: 32, height: 32)
+                .background(Color(hex: "#444444"))
+                .clipShape(Circle())
+            }
+            .buttonStyle(BorderlessButtonStyle())
+          }
+
+          Button(action: onRemove) {
+            Image(systemName: "trash")
+              .font(.system(size: 14, weight: .medium))
+              .foregroundColor(.playolaRed)
+              .frame(width: 32, height: 32)
+              .background(Color(hex: "#444444"))
+              .clipShape(Circle())
+          }
+          .buttonStyle(BorderlessButtonStyle())
         }
-        .buttonStyle(BorderlessButtonStyle())
       }
     }
-    .padding(.horizontal, 12)
+    .padding(.leading, 12)
+    .padding(.trailing, 28)
     .padding(.vertical, 8)
     .background(Color(hex: "#333333"))
   }
