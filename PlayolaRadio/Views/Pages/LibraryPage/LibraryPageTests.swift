@@ -12,7 +12,6 @@ import XCTest
 
 @MainActor
 final class LibraryPageTests: XCTestCase {
-
   // MARK: - Initial State Tests
 
   func testInitialStateLibrarySongsAreEmpty() {
@@ -76,7 +75,6 @@ final class LibraryPageTests: XCTestCase {
   }
 
   // MARK: - View Appeared Tests
-
   func testViewAppearedFetchesLibrarySongs() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockSongs = [
@@ -163,7 +161,6 @@ final class LibraryPageTests: XCTestCase {
   }
 
   // MARK: - Search/Filter Tests
-
   func testFilteredSongsReturnsAllWhenSearchTextIsEmpty() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockSongs = [
@@ -250,7 +247,6 @@ final class LibraryPageTests: XCTestCase {
   }
 
   // MARK: - Active Requests Tests
-
   func testActiveRequestsExcludesDismissed() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockRequests = [
@@ -275,7 +271,6 @@ final class LibraryPageTests: XCTestCase {
   }
 
   // MARK: - Remove Song Tests
-
   func testRemoveSongButtonTappedCreatesRemoveRequest() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let capturedAudioBlockId = LockIsolated<String?>(nil)
@@ -328,7 +323,6 @@ final class LibraryPageTests: XCTestCase {
   }
 
   // MARK: - Pending Request Check Tests
-
   func testHasPendingRequestReturnsTrueForSongWithPendingRequest() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockSong = LibrarySong.mockWith(id: "song-1")

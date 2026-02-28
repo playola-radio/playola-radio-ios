@@ -81,7 +81,7 @@ struct MainContainer: View {
       item: Binding(
         get: {
           switch model.mainContainerNavigationCoordinator.presentedSheet {
-          case .recordPage, .songSearchPage:
+          case .recordPage, .recordIntroPage, .songSearchPage:
             return model.mainContainerNavigationCoordinator.presentedSheet
           default:
             return nil
@@ -94,6 +94,10 @@ struct MainContainer: View {
         case .recordPage(let recordPageModel):
           NavigationStack {
             RecordPageView(model: recordPageModel)
+          }
+        case .recordIntroPage(let recordIntroPageModel):
+          NavigationStack {
+            RecordIntroPageView(model: recordIntroPageModel)
           }
         case .songSearchPage(let songSearchPageModel):
           SongSearchPageView(model: songSearchPageModel)

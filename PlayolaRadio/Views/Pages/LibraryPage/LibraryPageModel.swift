@@ -123,7 +123,16 @@ class LibraryPageModel: ViewModel {
   }
 
   func recordIntroButtonTapped(_ song: LibrarySong) {
-    // No-op placeholder — will be implemented in a future stage
+    let model = RecordIntroPageModel(
+      songTitle: song.title,
+      songArtist: song.artist,
+      songImageUrl: song.imageUrl
+    )
+    model.onRecordingAccepted = { url in
+      // Upload handling will be added in a future stage
+      _ = url
+    }
+    mainContainerNavigationCoordinator.presentedSheet = .recordIntroPage(model)
   }
 
   func dismissRequestButtonTapped(_ request: StationLibraryRequest) async {

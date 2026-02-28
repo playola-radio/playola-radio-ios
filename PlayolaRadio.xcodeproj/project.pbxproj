@@ -344,6 +344,11 @@
 		D3B744C82E31399E0042A427 /* ListeningTimeTileModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C72E3139960042A427 /* ListeningTimeTileModel.swift */; };
 		D3B744CB2E313B230042A427 /* ListeningTimeTileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C92E313B170042A427 /* ListeningTimeTileTests.swift */; };
 		D3B744CD2E368DB50042A427 /* Prize.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744CC2E368D790042A427 /* Prize.swift */; };
+		D3B9C79F2F52891F002D75C2 /* RecordIntroPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9C79A2F52891F002D75C2 /* RecordIntroPageModel.swift */; };
+		D3B9C7A02F52891F002D75C2 /* RecordIntroPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9C79C2F52891F002D75C2 /* RecordIntroPageView.swift */; };
+		D3B9C7A22F52891F002D75C2 /* RecordIntroPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9C79A2F52891F002D75C2 /* RecordIntroPageModel.swift */; };
+		D3B9C7A32F52891F002D75C2 /* RecordIntroPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9C79C2F52891F002D75C2 /* RecordIntroPageView.swift */; };
+		D3B9C7A42F528929002D75C2 /* RecordIntroPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9C79B2F52891F002D75C2 /* RecordIntroPageTests.swift */; };
 		D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */; };
 		D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */; };
 		D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */ = {isa = PBXBuildFile; productRef = D3BEE95C2D49A3BD00469CDC /* Testing */; };
@@ -580,6 +585,9 @@
 		D3B744C72E3139960042A427 /* ListeningTimeTileModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTimeTileModel.swift; sourceTree = "<group>"; };
 		D3B744C92E313B170042A427 /* ListeningTimeTileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTimeTileTests.swift; sourceTree = "<group>"; };
 		D3B744CC2E368D790042A427 /* Prize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Prize.swift; sourceTree = "<group>"; };
+		D3B9C79A2F52891F002D75C2 /* RecordIntroPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordIntroPageModel.swift; sourceTree = "<group>"; };
+		D3B9C79B2F52891F002D75C2 /* RecordIntroPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordIntroPageTests.swift; sourceTree = "<group>"; };
+		D3B9C79C2F52891F002D75C2 /* RecordIntroPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordIntroPageView.swift; sourceTree = "<group>"; };
 		D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProviderTests.swift; sourceTree = "<group>"; };
 		D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProvider.swift; sourceTree = "<group>"; };
 		D3C7E5D82EEF741600EDD3ED /* PlayolaRadio.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = PlayolaRadio.xctestplan; path = "PlayolaRadioTests/Test Plans/PlayolaRadio.xctestplan"; sourceTree = "<group>"; };
@@ -815,6 +823,7 @@
 				D37257C72DFA2470001BC6F9 /* MainContainer */,
 				D3367BF82F08B7DC00AF87FA /* NotificationsSettingsPage */,
 				D37257CE2DFB4358001BC6F9 /* PlayerPage */,
+				D3B9C79D2F52891F002D75C2 /* RecordIntroPage */,
 				D3F493B62EEDD29F008ED463 /* RecordPage */,
 				D3B744BE2E3131630042A427 /* RewardsPage */,
 				D35EFBFF2F157E59000F64A4 /* SeriesListPage */,
@@ -1334,6 +1343,16 @@
 			path = ListeningTimeTile;
 			sourceTree = "<group>";
 		};
+		D3B9C79D2F52891F002D75C2 /* RecordIntroPage */ = {
+			isa = PBXGroup;
+			children = (
+				D3B9C79A2F52891F002D75C2 /* RecordIntroPageModel.swift */,
+				D3B9C79B2F52891F002D75C2 /* RecordIntroPageTests.swift */,
+				D3B9C79C2F52891F002D75C2 /* RecordIntroPageView.swift */,
+			);
+			path = RecordIntroPage;
+			sourceTree = "<group>";
+		};
 		D3BECAC22E2017CB0009E618 /* PlayolaTokenProvider */ = {
 			isa = PBXGroup;
 			children = (
@@ -1702,6 +1721,8 @@
 				D3F493CA2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */,
 				D30F00822E8592F0007BCC73 /* LikedSongsPageModel.swift in Sources */,
 				D3776A4C2F2BE7ED00200ADF /* LibraryPageModel.swift in Sources */,
+				D3B9C7A22F52891F002D75C2 /* RecordIntroPageModel.swift in Sources */,
+				D3B9C7A32F52891F002D75C2 /* RecordIntroPageView.swift in Sources */,
 				D3776A532F2BEB6500200ADF /* LibrarySong.swift in Sources */,
 				D3F493C52EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */,
 				D3776A0B2F22BF6A00200ADF /* ListenerQuestion.swift in Sources */,
@@ -1849,6 +1870,8 @@
 				D3F493CB2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */,
 				D30257892E63B6C100F4228B /* LikedSongsPageModel.swift in Sources */,
 				D3776A4A2F2BE7ED00200ADF /* LibraryPageModel.swift in Sources */,
+				D3B9C79F2F52891F002D75C2 /* RecordIntroPageModel.swift in Sources */,
+				D3B9C7A02F52891F002D75C2 /* RecordIntroPageView.swift in Sources */,
 				D3776A522F2BEB6500200ADF /* LibrarySong.swift in Sources */,
 				D3F493C42EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */,
 				D3776A0C2F22BF6A00200ADF /* ListenerQuestion.swift in Sources */,
@@ -1897,6 +1920,7 @@
 				D35EFC532F1A99E6000F64A4 /* ConversationListPageTests.swift in Sources */,
 				D302578C2E63B6D100F4228B /* LikedSongsPageTests.swift in Sources */,
 				D35EFC3F2F192C8F000F64A4 /* SupportPageTests.swift in Sources */,
+				D3B9C7A42F528929002D75C2 /* RecordIntroPageTests.swift in Sources */,
 				D38031352E00AFD20011DD64 /* PlayerPageTests.swift in Sources */,
 				D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */,
 				D30257A92E651C9E00F4228B /* MainContainerNavigationCoordinatorTests.swift in Sources */,
