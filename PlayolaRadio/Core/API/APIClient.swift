@@ -556,8 +556,11 @@ struct APIClient: Sendable {
   ///   - durationMS: Duration in milliseconds
   /// - Throws: APIError if the request fails
   var createIntroSourceTape:
-    (_ stationId: String, _ s3Key: String, _ name: String, _ durationMS: Int)
-      async throws -> Void = { _, _, _, _ in }
+    (
+      _ stationId: String, _ s3Key: String, _ name: String, _ durationMS: Int,
+      _ audioBlockId: String?
+    )
+      async throws -> Void = { _, _, _, _, _ in }
 
   // MARK: - Station Library
 
@@ -625,6 +628,14 @@ struct APIClient: Sendable {
   var cancelStationLibraryRequest:
     (_ jwtToken: String, _ stationId: String, _ requestId: String) async throws
       -> Void = { _, _, _ in }
+
+  // MARK: - Production Artist Recordings
+
+  /// Fetches audioBlockIds that have artist-recording source tapes for a station
+  /// - Parameter stationId: The station ID
+  /// - Returns: Array of audioBlockId strings
+  /// - Throws: APIError if the request fails
+  var getArtistRecordingAudioBlockIds: (_ stationId: String) async throws -> [String] = { _ in [] }
 }
 
 enum APIError: Error, LocalizedError {

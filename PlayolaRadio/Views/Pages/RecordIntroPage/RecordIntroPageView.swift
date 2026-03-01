@@ -246,18 +246,93 @@ struct RecordIntroPageView: View {
   private var bottomSection: some View {
     if model.recordingPhase == .review {
       VStack(spacing: 16) {
-        PlaybackScrubberView(
-          currentTime: model.playbackPosition,
-          totalTime: model.recordingDuration,
-          isPlaying: model.isPlaying,
-          onPlayPause: { model.onPlayPauseTapped() },
-          onRewind: { model.onRewindTapped() },
-          onSeek: { model.seekTo($0) }
-        )
+        if model.shouldShowUploadStatus {
+          uploadSection
+        } else {
+          reviewControls
+        }
+      }
+      .padding(.horizontal, 20)
+      .padding(.bottom, 32)
+      .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+  }
 
+  private var reviewControls: some View {
+    VStack(spacing: 16) {
+      PlaybackScrubberView(
+        currentTime: model.playbackPosition,
+        totalTime: model.recordingDuration,
+        isPlaying: model.isPlaying,
+        onPlayPause: { model.onPlayPauseTapped() },
+        onRewind: { model.onRewindTapped() },
+        onSeek: { model.seekTo($0) }
+      )
+
+      HStack(spacing: 12) {
+        Button {
+          model.onDiscardTapped()
+        } label: {
+          HStack(spacing: 6) {
+            Image(systemName: "trash")
+            Text(model.discardButtonLabel)
+          }
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
+          .foregroundColor(.playolaRed)
+          .frame(maxWidth: .infinity)
+          .frame(height: 48)
+          .overlay(
+            RoundedRectangle(cornerRadius: 24)
+              .stroke(Color.playolaRed, lineWidth: 2)
+          )
+        }
+
+        Button {
+          model.onAcceptRecordingTapped()
+        } label: {
+          HStack(spacing: 6) {
+            Image(systemName: "checkmark")
+            Text(model.useRecordingButtonLabel)
+          }
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
+          .foregroundColor(.white)
+          .frame(maxWidth: .infinity)
+          .frame(height: 48)
+          .background(Color.playolaRed)
+          .cornerRadius(24)
+        }
+      }
+    }
+  }
+
+  private var uploadSection: some View {
+    VStack(spacing: 16) {
+      if let progress = model.uploadProgress {
+        ProgressView(value: progress)
+          .tint(.playolaRed)
+      } else if model.isUploading {
+        ProgressView()
+          .tint(.playolaRed)
+      }
+
+      if model.shouldShowRetryButton {
+        Image(systemName: "xmark.circle.fill")
+          .font(.system(size: 40))
+          .foregroundColor(.playolaRed)
+      } else if case .completed = model.uploadStatus {
+        Image(systemName: "checkmark.circle.fill")
+          .font(.system(size: 40))
+          .foregroundColor(.success)
+      }
+
+      Text(model.uploadStatusLabel)
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
+        .foregroundColor(.white)
+
+      if model.shouldShowRetryButton {
         HStack(spacing: 12) {
           Button {
-            model.onDiscardTapped()
+            model.confirmDiscard()
           } label: {
             HStack(spacing: 6) {
               Image(systemName: "trash")
@@ -274,11 +349,11 @@ struct RecordIntroPageView: View {
           }
 
           Button {
-            model.onAcceptRecordingTapped()
+            model.onRetryTapped()
           } label: {
             HStack(spacing: 6) {
-              Image(systemName: "checkmark")
-              Text(model.useRecordingButtonLabel)
+              Image(systemName: "arrow.clockwise")
+              Text(model.retryButtonLabel)
             }
             .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
             .foregroundColor(.white)
@@ -289,9 +364,6 @@ struct RecordIntroPageView: View {
           }
         }
       }
-      .padding(.horizontal, 20)
-      .padding(.bottom, 32)
-      .transition(.move(edge: .bottom).combined(with: .opacity))
     }
   }
 }
@@ -302,7 +374,9 @@ struct RecordIntroPageView: View {
       model: RecordIntroPageModel(
         songTitle: "Bohemian Rhapsody",
         songArtist: "Queen",
-        songImageUrl: nil
+        songImageUrl: nil,
+        stationId: "preview-station",
+        audioBlockId: nil
       )
     )
   }

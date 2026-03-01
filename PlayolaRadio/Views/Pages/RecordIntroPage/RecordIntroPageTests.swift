@@ -17,13 +17,21 @@ final class RecordIntroPageTests: XCTestCase {
     coordinator.presentedSheet = nil
   }
 
+  private func makeModel() -> RecordIntroPageModel {
+    RecordIntroPageModel(
+      songTitle: "Test", songArtist: "Artist", songImageUrl: nil,
+      stationId: "station-1", audioBlockId: "block-1")
+  }
+
   // MARK: - Initial Properties
 
   func testInitialProperties() {
     let model = RecordIntroPageModel(
       songTitle: "Bohemian Rhapsody",
       songArtist: "Queen",
-      songImageUrl: URL(string: "https://example.com/image.jpg")
+      songImageUrl: URL(string: "https://example.com/image.jpg"),
+      stationId: "station-1",
+      audioBlockId: "block-1"
     )
 
     XCTAssertEqual(model.songTitle, "Bohemian Rhapsody")
@@ -32,6 +40,7 @@ final class RecordIntroPageTests: XCTestCase {
     XCTAssertEqual(model.navigationTitle, "Record Intro")
     XCTAssertEqual(model.instructionItems.count, 2)
     XCTAssertEqual(model.recordingPhase, .idle)
+    XCTAssertNil(model.uploadStatus)
   }
 
   // MARK: - Lifecycle
@@ -44,8 +53,7 @@ final class RecordIntroPageTests: XCTestCase {
         prepareCalled = true
       }
     } operation: {
-      let model = RecordIntroPageModel(
-        songTitle: "Test", songArtist: "Artist", songImageUrl: nil)
+      let model = makeModel()
 
       await model.viewAppeared()
 
@@ -56,8 +64,7 @@ final class RecordIntroPageTests: XCTestCase {
   // MARK: - Done Button
 
   func testShouldShowDoneButtonTrueOnlyInIdlePhase() {
-    let model = RecordIntroPageModel(
-      songTitle: "Test", songArtist: "Artist", songImageUrl: nil)
+    let model = makeModel()
 
     model.recordingPhase = .idle
     XCTAssertTrue(model.shouldShowDoneButton)
@@ -69,11 +76,17 @@ final class RecordIntroPageTests: XCTestCase {
     XCTAssertFalse(model.shouldShowDoneButton)
   }
 
+  func testShouldShowDoneButtonFalseWhenUploading() {
+    let model = makeModel()
+    model.recordingPhase = .idle
+    model.uploadStatus = .converting
+    XCTAssertFalse(model.shouldShowDoneButton)
+  }
+
   func testOnDoneTappedDismissesSheet() {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
 
-    let model = RecordIntroPageModel(
-      songTitle: "Test", songArtist: "Artist", songImageUrl: nil)
+    let model = makeModel()
     coordinator.presentedSheet = .recordIntroPage(model)
 
     XCTAssertNotNil(coordinator.presentedSheet)
@@ -100,8 +113,7 @@ final class RecordIntroPageTests: XCTestCase {
         startRecordingCalled = true
       }
     } operation: {
-      let model = RecordIntroPageModel(
-        songTitle: "Test", songArtist: "Artist", songImageUrl: nil)
+      let model = makeModel()
       XCTAssertEqual(model.recordingPhase, .idle)
 
       await model.onRecordTapped()
@@ -121,8 +133,7 @@ final class RecordIntroPageTests: XCTestCase {
         startRecordingCalled = true
       }
     } operation: {
-      let model = RecordIntroPageModel(
-        songTitle: "Test", songArtist: "Artist", songImageUrl: nil)
+      let model = makeModel()
 
       await model.onRecordTapped()
 
@@ -144,8 +155,7 @@ final class RecordIntroPageTests: XCTestCase {
       $0.audioPlayer.loadFile = { _ in }
       $0.audioPlayer.duration = { 5.0 }
     } operation: {
-      let model = RecordIntroPageModel(
-        songTitle: "Test", songArtist: "Artist", songImageUrl: nil)
+      let model = makeModel()
       model.recordingPhase = .recording
 
       await model.onStopTapped()
@@ -159,8 +169,7 @@ final class RecordIntroPageTests: XCTestCase {
   // MARK: - Re-record
 
   func testOnReRecordTappedResetsToIdleState() {
-    let model = RecordIntroPageModel(
-      songTitle: "Test", songArtist: "Artist", songImageUrl: nil)
+    let model = makeModel()
     model.recordingPhase = .review
     model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
     model.recordingDuration = 10.0
@@ -179,8 +188,7 @@ final class RecordIntroPageTests: XCTestCase {
   // MARK: - Discard
 
   func testOnDiscardTappedShowsConfirmationAlert() {
-    let model = RecordIntroPageModel(
-      songTitle: "Test", songArtist: "Artist", songImageUrl: nil)
+    let model = makeModel()
     model.recordingPhase = .review
 
     XCTAssertNil(model.presentedAlert)
@@ -194,8 +202,7 @@ final class RecordIntroPageTests: XCTestCase {
   func testConfirmDiscardDismissesSheet() {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
 
-    let model = RecordIntroPageModel(
-      songTitle: "Test", songArtist: "Artist", songImageUrl: nil)
+    let model = makeModel()
     coordinator.presentedSheet = .recordIntroPage(model)
 
     model.confirmDiscard()
@@ -203,49 +210,126 @@ final class RecordIntroPageTests: XCTestCase {
     XCTAssertNil(coordinator.presentedSheet)
   }
 
-  // MARK: - Accept Recording
+  // MARK: - Accept Recording (Upload)
 
-  func testOnAcceptRecordingTappedCallsCallbackAndDismisses() async {
-    @Shared(.mainContainerNavigationCoordinator) var coordinator
+  func testOnAcceptRecordingTappedStartsUpload() async {
+    var uploadCalled = false
 
-    let expectedURL = URL(fileURLWithPath: "/tmp/test.wav")
-    var receivedURL: URL?
+    await withDependencies {
+      $0.audioPlayer.stop = {}
+      $0.introUploadService.uploadIntro = { _, _, _, _, onStatus in
+        uploadCalled = true
+        await onStatus(.completed)
+      }
+    } operation: {
+      let model = makeModel()
+      model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
+      model.recordingPhase = .review
 
-    let model = RecordIntroPageModel(
-      songTitle: "Test", songArtist: "Artist", songImageUrl: nil)
-    model.recordingURL = expectedURL
-    model.onRecordingAccepted = { url in
-      receivedURL = url
+      model.onAcceptRecordingTapped()
+
+      XCTAssertNotNil(model.uploadStatus)
+
+      await Task.yield()
+      await Task.yield()
+
+      XCTAssertTrue(uploadCalled)
     }
-    coordinator.presentedSheet = .recordIntroPage(model)
-
-    model.onAcceptRecordingTapped()
-
-    XCTAssertNil(coordinator.presentedSheet)
-
-    await Task.yield()
-
-    XCTAssertEqual(receivedURL, expectedURL)
   }
 
-  func testOnAcceptRecordingTappedDoesNothingWithoutURL() async {
-    @Shared(.mainContainerNavigationCoordinator) var coordinator
-
-    var callbackCalled = false
-
-    let model = RecordIntroPageModel(
-      songTitle: "Test", songArtist: "Artist", songImageUrl: nil)
+  func testOnAcceptRecordingTappedDoesNothingWithoutURL() {
+    let model = makeModel()
     model.recordingURL = nil
-    model.onRecordingAccepted = { _ in
-      callbackCalled = true
-    }
-    coordinator.presentedSheet = .recordIntroPage(model)
 
     model.onAcceptRecordingTapped()
 
-    await Task.yield()
+    XCTAssertNil(model.uploadStatus)
+  }
 
-    XCTAssertFalse(callbackCalled)
-    XCTAssertNotNil(coordinator.presentedSheet)
+  func testUploadStatusTransitionsReflectedInProperties() {
+    let model = makeModel()
+
+    XCTAssertFalse(model.isUploading)
+    XCTAssertFalse(model.shouldShowUploadStatus)
+    XCTAssertFalse(model.shouldShowRetryButton)
+    XCTAssertNil(model.uploadProgress)
+
+    model.uploadStatus = .converting
+    XCTAssertTrue(model.isUploading)
+    XCTAssertTrue(model.shouldShowUploadStatus)
+    XCTAssertEqual(model.uploadStatusLabel, "Converting...")
+    XCTAssertNil(model.uploadProgress)
+
+    model.uploadStatus = .uploading(progress: 0.5)
+    XCTAssertTrue(model.isUploading)
+    XCTAssertEqual(model.uploadStatusLabel, "Uploading...")
+    XCTAssertEqual(model.uploadProgress, 0.5)
+
+    model.uploadStatus = .registering
+    XCTAssertTrue(model.isUploading)
+    XCTAssertEqual(model.uploadStatusLabel, "Registering...")
+    XCTAssertNil(model.uploadProgress)
+
+    model.uploadStatus = .completed
+    XCTAssertFalse(model.isUploading)
+    XCTAssertTrue(model.shouldShowUploadStatus)
+    XCTAssertEqual(model.uploadStatusLabel, "Upload Complete!")
+
+    model.uploadStatus = .failed("Network error")
+    XCTAssertFalse(model.isUploading)
+    XCTAssertTrue(model.shouldShowRetryButton)
+    XCTAssertEqual(model.uploadStatusLabel, "Upload Failed")
+  }
+
+  func testOnRetryTappedRestartsUpload() async {
+    var uploadCallCount = 0
+
+    await withDependencies {
+      $0.audioPlayer.stop = {}
+      $0.introUploadService.uploadIntro = { _, _, _, _, onStatus in
+        uploadCallCount += 1
+        if uploadCallCount == 1 {
+          await onStatus(.failed("First attempt failed"))
+          throw NSError(domain: "test", code: 1)
+        }
+        await onStatus(.completed)
+      }
+    } operation: {
+      let model = makeModel()
+      model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
+      model.uploadStatus = .failed("First attempt failed")
+
+      model.onRetryTapped()
+
+      await Task.yield()
+      await Task.yield()
+
+      XCTAssertEqual(uploadCallCount, 1)
+    }
+  }
+
+  func testUploadSuccessCallsOnUploadCompleted() async {
+    var completedCalled = false
+
+    await withDependencies {
+      $0.audioPlayer.stop = {}
+      $0.introUploadService.uploadIntro = { _, _, _, _, onStatus in
+        await onStatus(.completed)
+      }
+    } operation: {
+      let model = makeModel()
+      model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
+      model.onUploadCompleted = {
+        completedCalled = true
+      }
+
+      model.onAcceptRecordingTapped()
+
+      await Task.yield()
+      await Task.yield()
+
+      XCTAssertTrue(completedCalled)
+      XCTAssertEqual(model.uploadStatus, .completed)
+    }
   }
 }

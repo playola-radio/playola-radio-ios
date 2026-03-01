@@ -15,7 +15,6 @@ class LibraryPageModel: ViewModel {
   // MARK: - Dependencies
 
   @ObservationIgnored @Dependency(\.api) var api
-  @ObservationIgnored @Dependency(\.introUploadService) var introUploadService
 
   // MARK: - Shared State
 
@@ -44,6 +43,7 @@ class LibraryPageModel: ViewModel {
   var presentedAlert: PlayolaAlert?
   var processingRemovalSongIds: Set<String> = []
   var uploadedIntroSongIds: Set<String> = []
+  var artistRecordingAudioBlockIds: Set<String> = []
   var songSearchPageModel: SongSearchPageModel?
 
   var filteredSongs: [LibrarySong] {
@@ -128,10 +128,13 @@ class LibraryPageModel: ViewModel {
     let model = RecordIntroPageModel(
       songTitle: song.title,
       songArtist: song.artist,
-      songImageUrl: song.imageUrl
+      songImageUrl: song.imageUrl,
+      stationId: stationId,
+      audioBlockId: song.id
     )
-    model.onRecordingAccepted = { [weak self] url in
-      await self?.uploadIntro(url: url, song: song)
+    model.onUploadCompleted = { [weak self] in
+      self?.uploadedIntroSongIds.insert(song.id)
+      self?.artistRecordingAudioBlockIds.insert(song.id)
     }
     mainContainerNavigationCoordinator.presentedSheet = .recordIntroPage(model)
   }
@@ -163,7 +166,9 @@ class LibraryPageModel: ViewModel {
   // MARK: - View Helpers
 
   func hasSongIntro(for song: LibrarySong) -> Bool {
-    songIdsWithSongIntros.contains(song.id) || uploadedIntroSongIds.contains(song.id)
+    songIdsWithSongIntros.contains(song.id)
+      || uploadedIntroSongIds.contains(song.id)
+      || artistRecordingAudioBlockIds.contains(song.id)
   }
 
   func hasPendingRequest(for song: LibrarySong) -> Bool {
@@ -204,24 +209,6 @@ class LibraryPageModel: ViewModel {
 
   // MARK: - Private Helpers
 
-  private func uploadIntro(url: URL, song: LibrarySong) async {
-    do {
-      try await introUploadService.uploadIntro(
-        url,
-        stationId,
-        song.title
-      ) { [weak self] status in
-        if case .failed(let message) = status {
-          self?.presentedAlert = .introUploadError(message)
-        }
-      }
-      uploadedIntroSongIds.insert(song.id)
-      presentedAlert = .introUploadSuccess(song.title)
-    } catch {
-      presentedAlert = .introUploadError(error.localizedDescription)
-    }
-  }
-
   private func loadData() async {
     guard let jwt = auth.jwt else { return }
 
@@ -230,11 +217,16 @@ class LibraryPageModel: ViewModel {
     do {
       async let libraryTask = api.getStationLibrary(jwt, stationId)
       async let requestsTask = api.getStationLibraryRequests(jwt, stationId, nil)
+      async let artistRecordingsTask = api.getArtistRecordingAudioBlockIds(stationId)
 
       let (libraryResponse, requests) = try await (libraryTask, requestsTask)
       librarySongs = libraryResponse.songs
       songIdsWithSongIntros = Set(libraryResponse.songIdsWithSongIntros)
       libraryRequests = requests
+
+      if let ids = try? await artistRecordingsTask {
+        artistRecordingAudioBlockIds = Set(ids)
+      }
     } catch {
       presentedAlert = .libraryError(error.localizedDescription)
     }
@@ -254,19 +246,4 @@ extension PlayolaAlert {
     )
   }
 
-  static func introUploadSuccess(_ songTitle: String) -> PlayolaAlert {
-    PlayolaAlert(
-      title: "Intro Uploaded",
-      message: "Your intro for \"\(songTitle)\" has been uploaded successfully.",
-      dismissButton: .cancel(Text("OK"))
-    )
-  }
-
-  static func introUploadError(_ message: String) -> PlayolaAlert {
-    PlayolaAlert(
-      title: "Upload Failed",
-      message: "Failed to upload intro: \(message)",
-      dismissButton: .cancel(Text("OK"))
-    )
-  }
 }

@@ -20,6 +20,7 @@ struct IntroUploadService: Sendable {
       _ recordingURL: URL,
       _ stationId: String,
       _ songTitle: String,
+      _ audioBlockId: String?,
       _ onStatusChange: @escaping @MainActor @Sendable (IntroUploadStatus) -> Void
     ) async throws -> Void
 }
@@ -32,7 +33,7 @@ extension IntroUploadService: DependencyKey {
     @Dependency(\.api) var api
 
     return IntroUploadService(
-      uploadIntro: { recordingURL, stationId, songTitle, onStatusChange in
+      uploadIntro: { recordingURL, stationId, songTitle, audioBlockId, onStatusChange in
         // Step 1: Convert .wav to .m4a
         await onStatusChange(.converting)
         let m4aURL = try await audioConverter.convertToM4A(recordingURL)
@@ -62,7 +63,8 @@ extension IntroUploadService: DependencyKey {
           stationId,
           presignedResponse.s3Key,
           songTitle,
-          durationMS
+          durationMS,
+          audioBlockId
         )
 
         // Step 5: Cleanup temp files
@@ -79,7 +81,7 @@ extension IntroUploadService: DependencyKey {
 extension IntroUploadService: TestDependencyKey {
   static var testValue: IntroUploadService {
     IntroUploadService(
-      uploadIntro: { _, _, _, onStatusChange in
+      uploadIntro: { _, _, _, _, onStatusChange in
         await onStatusChange(.completed)
       }
     )

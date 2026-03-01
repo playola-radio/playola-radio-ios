@@ -684,16 +684,19 @@ extension APIClient: DependencyKey {
         .serializingDecodable(IntroPresignedURLResponse.self, decoder: isoDecoder)
         .value
       },
-      createIntroSourceTape: { stationId, s3Key, name, durationMS in
+      createIntroSourceTape: { stationId, s3Key, name, durationMS, audioBlockId in
         let basicToken = "aW9zQXBwOnNwb3RpZnlTdWNrc0FCaWcx"
         let url =
           "\(Config.shared.productionBaseUrl.absoluteString)/v1/ios/stations/\(stationId)/source-tapes"
         let headers: HTTPHeaders = ["Authorization": "Basic \(basicToken)"]
-        let parameters: [String: Any] = [
+        var parameters: [String: Any] = [
           "s3Key": s3Key,
           "name": name,
           "durationMS": durationMS,
         ]
+        if let audioBlockId {
+          parameters["audioBlockId"] = audioBlockId
+        }
 
         _ = try await AF.request(
           url,
@@ -752,6 +755,17 @@ extension APIClient: DependencyKey {
           path: "/v1/stations/\(stationId)/library-requests/\(requestId)",
           token: jwtToken
         )
+      },
+      getArtistRecordingAudioBlockIds: { stationId in
+        let basicToken = "aW9zQXBwOnNwb3RpZnlTdWNrc0FCaWcx"
+        let url =
+          "\(Config.shared.productionBaseUrl.absoluteString)/v1/ios/stations/\(stationId)/source-tapes/audio-block-ids"
+        let headers: HTTPHeaders = ["Authorization": "Basic \(basicToken)"]
+
+        return try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([String].self)
+          .value
       }
     )
   }()

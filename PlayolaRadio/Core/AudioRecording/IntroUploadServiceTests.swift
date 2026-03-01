@@ -27,7 +27,7 @@ final class IntroUploadServiceTests: XCTestCase {
         )
       }
       $0.api.uploadToS3 = { _, _, _, _ in }
-      $0.api.createIntroSourceTape = { _, _, _, _ in }
+      $0.api.createIntroSourceTape = { _, _, _, _, _ in }
     } operation: {
       IntroUploadService.liveValue
     }
@@ -35,7 +35,8 @@ final class IntroUploadServiceTests: XCTestCase {
     try await service.uploadIntro(
       testURL,
       testStationId,
-      testSongTitle
+      testSongTitle,
+      "test-audio-block-id"
     ) { status in
       statusChanges.append(status)
     }
@@ -66,7 +67,7 @@ final class IntroUploadServiceTests: XCTestCase {
         )
       }
       $0.api.uploadToS3 = { _, _, _, _ in }
-      $0.api.createIntroSourceTape = { _, _, _, _ in }
+      $0.api.createIntroSourceTape = { _, _, _, _, _ in }
     } operation: {
       IntroUploadService.liveValue
     }
@@ -74,7 +75,8 @@ final class IntroUploadServiceTests: XCTestCase {
     try await service.uploadIntro(
       testURL,
       testStationId,
-      testSongTitle
+      testSongTitle,
+      "test-audio-block-id"
     ) { _ in }
 
     XCTAssertEqual(capturedStationId, testStationId)
@@ -85,6 +87,7 @@ final class IntroUploadServiceTests: XCTestCase {
     var capturedS3Key: String?
     var capturedName: String?
     var capturedDurationMS: Int?
+    var capturedAudioBlockId: String?
     let testURL = FileManager.default.temporaryDirectory.appendingPathComponent("test.wav")
 
     let service = withDependencies {
@@ -96,10 +99,11 @@ final class IntroUploadServiceTests: XCTestCase {
         )
       }
       $0.api.uploadToS3 = { _, _, _, _ in }
-      $0.api.createIntroSourceTape = { _, s3Key, name, durationMS in
+      $0.api.createIntroSourceTape = { _, s3Key, name, durationMS, audioBlockId in
         capturedS3Key = s3Key
         capturedName = name
         capturedDurationMS = durationMS
+        capturedAudioBlockId = audioBlockId
       }
     } operation: {
       IntroUploadService.liveValue
@@ -108,11 +112,13 @@ final class IntroUploadServiceTests: XCTestCase {
     try await service.uploadIntro(
       testURL,
       testStationId,
-      testSongTitle
+      testSongTitle,
+      "test-audio-block-id"
     ) { _ in }
 
     XCTAssertEqual(capturedS3Key, "station/uuid-intro.m4a")
     XCTAssertEqual(capturedName, "Bohemian Rhapsody")
     XCTAssertEqual(capturedDurationMS, 15000)
+    XCTAssertEqual(capturedAudioBlockId, "test-audio-block-id")
   }
 }

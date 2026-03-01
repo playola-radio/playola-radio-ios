@@ -15,6 +15,7 @@ class RecordIntroPageModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.audioRecorder) var audioRecorder
   @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
+  @ObservationIgnored @Dependency(\.introUploadService) var introUploadService
 
   // MARK: - Shared State
 
@@ -26,11 +27,21 @@ class RecordIntroPageModel: ViewModel {
   let songTitle: String
   let songArtist: String
   let songImageUrl: URL?
+  let stationId: String
+  let audioBlockId: String?
 
-  init(songTitle: String, songArtist: String, songImageUrl: URL?) {
+  init(
+    songTitle: String,
+    songArtist: String,
+    songImageUrl: URL?,
+    stationId: String,
+    audioBlockId: String?
+  ) {
     self.songTitle = songTitle
     self.songArtist = songArtist
     self.songImageUrl = songImageUrl
+    self.stationId = stationId
+    self.audioBlockId = audioBlockId
     super.init()
   }
 
@@ -50,12 +61,13 @@ class RecordIntroPageModel: ViewModel {
   var presentedAlert: PlayolaAlert?
   var recordingURL: URL?
   var waveformSamples: [Float] = []
+  var uploadStatus: IntroUploadStatus?
   private var recordingTask: Task<Void, Never>?
   private var playbackTask: Task<Void, Never>?
 
   // MARK: - Callbacks
 
-  var onRecordingAccepted: ((URL) async -> Void)?
+  var onUploadCompleted: (() -> Void)?
 
   // MARK: - View Helpers
 
@@ -69,8 +81,45 @@ class RecordIntroPageModel: ViewModel {
   }
 
   var shouldShowDoneButton: Bool {
-    recordingPhase == .idle
+    recordingPhase == .idle && !isUploading
   }
+
+  var isUploading: Bool {
+    guard let uploadStatus else { return false }
+    switch uploadStatus {
+    case .completed, .failed: return false
+    default: return true
+    }
+  }
+
+  var shouldShowUploadStatus: Bool {
+    uploadStatus != nil
+  }
+
+  var uploadStatusLabel: String {
+    switch uploadStatus {
+    case .converting: return "Converting..."
+    case .uploading: return "Uploading..."
+    case .registering: return "Registering..."
+    case .completed: return "Upload Complete!"
+    case .failed: return "Upload Failed"
+    case .none: return ""
+    }
+  }
+
+  var uploadProgress: Double? {
+    if case .uploading(let progress) = uploadStatus {
+      return progress
+    }
+    return nil
+  }
+
+  var shouldShowRetryButton: Bool {
+    if case .failed = uploadStatus { return true }
+    return false
+  }
+
+  let retryButtonLabel = "Retry"
 
   let idleWaveformPlaceholder = "Your recording will appear here"
   let tapToRecordLabel = "Tap to Record"
@@ -182,11 +231,16 @@ class RecordIntroPageModel: ViewModel {
   }
 
   func onAcceptRecordingTapped() {
-    guard let url = recordingURL else { return }
-    mainContainerNavigationCoordinator.presentedSheet = nil
-    Task {
-      await onRecordingAccepted?(url)
-    }
+    guard recordingURL != nil else { return }
+    stopPlaybackUpdates()
+    Task { await audioPlayer.stop() }
+    isPlaying = false
+    startUpload()
+  }
+
+  func onRetryTapped() {
+    uploadStatus = nil
+    startUpload()
   }
 
   func onDoneTapped() {
@@ -194,6 +248,33 @@ class RecordIntroPageModel: ViewModel {
   }
 
   // MARK: - Private Helpers
+
+  private func startUpload() {
+    guard let url = recordingURL else { return }
+    uploadStatus = .converting
+    Task {
+      do {
+        try await introUploadService.uploadIntro(
+          url,
+          stationId,
+          songTitle,
+          audioBlockId
+        ) { [weak self] status in
+          self?.uploadStatus = status
+        }
+        uploadStatus = .completed
+        onUploadCompleted?()
+        try? await Task.sleep(for: .seconds(1))
+        mainContainerNavigationCoordinator.presentedSheet = nil
+      } catch {
+        if case .failed = uploadStatus {
+          // Status already set by the callback
+        } else {
+          uploadStatus = .failed(error.localizedDescription)
+        }
+      }
+    }
+  }
 
   private func startRecordingUpdates() {
     recordingTask = Task {
