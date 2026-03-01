@@ -996,4 +996,49 @@ final class LibraryPageTests: XCTestCase {
     }
   }
 
+  // MARK: - Intro Upload Tests
+
+  func testRecordIntroButtonTappedPresentsRecordIntroSheet() {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator)
+    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = LibraryPageModel(stationId: "test-station")
+      let song = LibrarySong.mockWith(id: "song-1", title: "Test Song", artist: "Test Artist")
+
+      model.recordIntroButtonTapped(song)
+
+      if case .recordIntroPage = mainContainerNavigationCoordinator.presentedSheet {
+        // Success
+      } else {
+        XCTFail("Expected recordIntroPage sheet")
+      }
+    }
+  }
+
+  func testHasSongIntroReturnsTrueForLocallyUploadedIntro() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let mockSong = LibrarySong.mockWith(id: "song-1")
+
+    await withDependencies {
+      $0.date = .constant(Date())
+      $0.api.getStationLibrary = { _, _ in
+        .mockWith(songs: [mockSong], songIdsWithSongIntros: [])
+      }
+      $0.api.getStationLibraryRequests = { _, _, _ in [] }
+    } operation: {
+      let model = LibraryPageModel(stationId: "test-station")
+      await model.viewAppeared()
+
+      XCTAssertFalse(model.hasSongIntro(for: mockSong))
+
+      model.uploadedIntroSongIds.insert("song-1")
+
+      XCTAssertTrue(model.hasSongIntro(for: mockSong))
+    }
+  }
+
 }

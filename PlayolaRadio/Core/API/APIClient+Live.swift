@@ -666,6 +666,46 @@ extension APIClient: DependencyKey {
           parameters: ["expiresAt": ISO8601DateFormatter().string(from: expiresAt)]
         )
       },
+      getIntroPresignedURL: { stationId, filename in
+        let basicToken = "aW9zQXBwOnNwb3RpZnlTdWNrc0FCaWcx"
+        let url =
+          "\(Config.shared.productionBaseUrl.absoluteString)/v1/ios/stations/\(stationId)/source-tapes/presigned-url"
+        let headers: HTTPHeaders = ["Authorization": "Basic \(basicToken)"]
+        let parameters = ["filename": filename]
+
+        return try await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(IntroPresignedURLResponse.self, decoder: isoDecoder)
+        .value
+      },
+      createIntroSourceTape: { stationId, s3Key, name, durationMS in
+        let basicToken = "aW9zQXBwOnNwb3RpZnlTdWNrc0FCaWcx"
+        let url =
+          "\(Config.shared.productionBaseUrl.absoluteString)/v1/ios/stations/\(stationId)/source-tapes"
+        let headers: HTTPHeaders = ["Authorization": "Basic \(basicToken)"]
+        let parameters: [String: Any] = [
+          "s3Key": s3Key,
+          "name": name,
+          "durationMS": durationMS,
+        ]
+
+        _ = try await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingData()
+        .value
+      },
       getStationLibrary: { jwtToken, stationId in
         try await authenticatedGet(
           path: "/v1/stations/\(stationId)/library",

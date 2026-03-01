@@ -26,6 +26,17 @@ final class Config: Sendable {
     }
   }
 
+  var productionBaseUrl: URL {
+    switch environment {
+    case .local:
+      return URL(string: "http://localhost:11020")!
+    case .development, .staging:
+      return URL(string: "https://production-staging.playola.fm")!
+    case .production:
+      return URL(string: "https://production.playola.fm")!
+    }
+  }
+
   private init() {
     self.environment = .init(rawValue: Config.get("DEV_ENVIRONMENT", varType: String.self))!
     self.mixpanelToken = Config.get("MIXPANEL_TOKEN", varType: String.self)

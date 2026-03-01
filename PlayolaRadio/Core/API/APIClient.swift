@@ -531,6 +531,34 @@ struct APIClient: Sendable {
       )
     }
 
+  // MARK: - Production Intro Upload
+
+  /// Gets a presigned URL for uploading an intro to playola-production S3
+  /// - Parameters:
+  ///   - stationId: The station ID to upload the intro for
+  ///   - filename: The filename for the upload
+  /// - Returns: IntroPresignedURLResponse containing the upload URL and S3 key
+  /// - Throws: APIError if the request fails
+  var getIntroPresignedURL:
+    (_ stationId: String, _ filename: String) async throws
+      -> IntroPresignedURLResponse = { _, _ in
+        IntroPresignedURLResponse(
+          presignedUrl: URL(string: "https://example.com")!,
+          s3Key: "test.m4a"
+        )
+      }
+
+  /// Creates a source tape in playola-production after uploading to S3
+  /// - Parameters:
+  ///   - stationId: The station ID
+  ///   - s3Key: The S3 key where the file was uploaded
+  ///   - name: The name for the source tape
+  ///   - durationMS: Duration in milliseconds
+  /// - Throws: APIError if the request fails
+  var createIntroSourceTape:
+    (_ stationId: String, _ s3Key: String, _ name: String, _ durationMS: Int)
+      async throws -> Void = { _, _, _, _ in }
+
   // MARK: - Station Library
 
   /// Fetches all songs in a station's library with song intro information

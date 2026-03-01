@@ -349,6 +349,11 @@
 		D3B9C7A22F52891F002D75C2 /* RecordIntroPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9C79A2F52891F002D75C2 /* RecordIntroPageModel.swift */; };
 		D3B9C7A32F52891F002D75C2 /* RecordIntroPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9C79C2F52891F002D75C2 /* RecordIntroPageView.swift */; };
 		D3B9C7A42F528929002D75C2 /* RecordIntroPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9C79B2F52891F002D75C2 /* RecordIntroPageTests.swift */; };
+		D3B9C7A62F534CE0002D75C2 /* IntroPresignedURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9C7A52F534CE0002D75C2 /* IntroPresignedURLResponse.swift */; };
+		D3B9C7A72F534CE0002D75C2 /* IntroPresignedURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9C7A52F534CE0002D75C2 /* IntroPresignedURLResponse.swift */; };
+		D3B9C7AA2F534D50002D75C2 /* IntroUploadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9C7A82F534D50002D75C2 /* IntroUploadService.swift */; };
+		D3B9C7AC2F534D50002D75C2 /* IntroUploadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9C7A82F534D50002D75C2 /* IntroUploadService.swift */; };
+		D3B9C7AE2F534D57002D75C2 /* IntroUploadServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9C7A92F534D50002D75C2 /* IntroUploadServiceTests.swift */; };
 		D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */; };
 		D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */; };
 		D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */ = {isa = PBXBuildFile; productRef = D3BEE95C2D49A3BD00469CDC /* Testing */; };
@@ -588,6 +593,9 @@
 		D3B9C79A2F52891F002D75C2 /* RecordIntroPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordIntroPageModel.swift; sourceTree = "<group>"; };
 		D3B9C79B2F52891F002D75C2 /* RecordIntroPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordIntroPageTests.swift; sourceTree = "<group>"; };
 		D3B9C79C2F52891F002D75C2 /* RecordIntroPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordIntroPageView.swift; sourceTree = "<group>"; };
+		D3B9C7A52F534CE0002D75C2 /* IntroPresignedURLResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroPresignedURLResponse.swift; sourceTree = "<group>"; };
+		D3B9C7A82F534D50002D75C2 /* IntroUploadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroUploadService.swift; sourceTree = "<group>"; };
+		D3B9C7A92F534D50002D75C2 /* IntroUploadServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroUploadServiceTests.swift; sourceTree = "<group>"; };
 		D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProviderTests.swift; sourceTree = "<group>"; };
 		D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTokenProvider.swift; sourceTree = "<group>"; };
 		D3C7E5D82EEF741600EDD3ED /* PlayolaRadio.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = PlayolaRadio.xctestplan; path = "PlayolaRadioTests/Test Plans/PlayolaRadio.xctestplan"; sourceTree = "<group>"; };
@@ -746,6 +754,7 @@
 			children = (
 				D35EFC252F192AAF000F64A4 /* Conversation.swift */,
 				D3137DD12D3ABB4F0070033A /* GenericNowPlaying.swift */,
+				D3B9C7A52F534CE0002D75C2 /* IntroPresignedURLResponse.swift */,
 				D3776A512F2BEB6500200ADF /* LibrarySong.swift */,
 				D3776A0A2F22BF6A00200ADF /* ListenerQuestion.swift */,
 				D3776A342F282D9400200ADF /* ListenerQuestionAiring.swift */,
@@ -1407,6 +1416,8 @@
 				D317C0CE2EF200D100DBC82E /* VoicetrackUploadServiceTests.swift */,
 				D3F493CC2EEE50A4008ED463 /* AudioConverterClient.swift */,
 				D3F493C62EEE03F3008ED463 /* AudioPlayerClient.swift */,
+				D3B9C7A82F534D50002D75C2 /* IntroUploadService.swift */,
+				D3B9C7A92F534D50002D75C2 /* IntroUploadServiceTests.swift */,
 				D3F493C32EEDD9F1008ED463 /* AudioRecorderClient.swift */,
 			);
 			path = AudioRecording;
@@ -1619,6 +1630,7 @@
 			files = (
 				D35EFC4D2F1A9911000F64A4 /* ConversationListPageModel.swift in Sources */,
 				D35EFC4F2F1A9911000F64A4 /* ConversationListPageView.swift in Sources */,
+				D3B9C7AC2F534D50002D75C2 /* IntroUploadService.swift in Sources */,
 				D30F004A2E8592F0007BCC73 /* UrlStreamListeningSessionReporter.swift in Sources */,
 				D317C0D92EF3500B00DBC82E /* APIClient+Live.swift in Sources */,
 				D3776A062F22BA1A00200ADF /* AskQuestionPageModel.swift in Sources */,
@@ -1743,6 +1755,7 @@
 				D30F008D2E8592F0007BCC73 /* URLStreamPlayer.swift in Sources */,
 				D3F493D42EEE58CF008ED463 /* VoicetrackUploadService.swift in Sources */,
 				D35EFC122F1595BE000F64A4 /* SeriesCardModel.swift in Sources */,
+				D3B9C7A62F534CE0002D75C2 /* IntroPresignedURLResponse.swift in Sources */,
 				D30F008E2E8592F0007BCC73 /* StationListPage.swift in Sources */,
 				D30F008F2E8592F0007BCC73 /* MainContainer.swift in Sources */,
 				D3776A3B2F2918DE00200ADF /* WaveformViews.swift in Sources */,
@@ -1768,6 +1781,7 @@
 			files = (
 				D35EFC502F1A9911000F64A4 /* ConversationListPageModel.swift in Sources */,
 				D35EFC522F1A9911000F64A4 /* ConversationListPageView.swift in Sources */,
+				D3B9C7AA2F534D50002D75C2 /* IntroUploadService.swift in Sources */,
 				D3D6CE5F2D5ECED50059BDCA /* UrlStreamListeningSessionReporter.swift in Sources */,
 				D317C0D82EF3500B00DBC82E /* APIClient+Live.swift in Sources */,
 				D3776A032F22BA1A00200ADF /* AskQuestionPageModel.swift in Sources */,
@@ -1892,6 +1906,7 @@
 				D339E56D2BFD2FAB00B9E35B /* URLStreamPlayer.swift in Sources */,
 				D3F493D32EEE58CF008ED463 /* VoicetrackUploadService.swift in Sources */,
 				D35EFC102F1595BE000F64A4 /* SeriesCardModel.swift in Sources */,
+				D3B9C7A72F534CE0002D75C2 /* IntroPresignedURLResponse.swift in Sources */,
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */,
 				D3776A3C2F2918DE00200ADF /* WaveformViews.swift in Sources */,
@@ -1960,6 +1975,7 @@
 				D30257842E63A37400F4228B /* LikeOperationTests.swift in Sources */,
 				D31CD5272DFBB4DF009B9780 /* MainContainerTests.swift in Sources */,
 				D3776A092F22BA2100200ADF /* AskQuestionPageTests.swift in Sources */,
+				D3B9C7AE2F534D57002D75C2 /* IntroUploadServiceTests.swift in Sources */,
 				D37769FE2F22B70600200ADF /* ChooseStationPageTests.swift in Sources */,
 				D35EFBD92F101A76000F64A4 /* StationPlayerTests.swift in Sources */,
 				D395911A2E39933800720CF8 /* ContactPageTests.swift in Sources */,
