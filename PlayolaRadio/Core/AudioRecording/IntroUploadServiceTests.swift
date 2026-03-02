@@ -20,19 +20,20 @@ final class IntroUploadServiceTests: XCTestCase {
 
     let service = withDependencies {
       $0.audioConverter = .testValue
-      $0.api.getIntroPresignedURL = { _, _ in
+      $0.api.getIntroPresignedURL = { _, _, _ in
         IntroPresignedURLResponse(
           presignedUrl: URL(string: "https://intake.s3.amazonaws.com/test.m4a")!,
           s3Key: "station/uuid-intro.m4a"
         )
       }
       $0.api.uploadToS3 = { _, _, _, _ in }
-      $0.api.createIntroSourceTape = { _, _, _, _, _ in }
+      $0.api.createIntroSourceTape = { _, _, _, _, _, _ in }
     } operation: {
       IntroUploadService.liveValue
     }
 
     try await service.uploadIntro(
+      "test-jwt-token",
       testURL,
       testStationId,
       testSongTitle,
@@ -58,7 +59,7 @@ final class IntroUploadServiceTests: XCTestCase {
 
     let service = withDependencies {
       $0.audioConverter = .testValue
-      $0.api.getIntroPresignedURL = { stationId, filename in
+      $0.api.getIntroPresignedURL = { _, stationId, filename in
         capturedStationId = stationId
         capturedFilename = filename
         return IntroPresignedURLResponse(
@@ -67,12 +68,13 @@ final class IntroUploadServiceTests: XCTestCase {
         )
       }
       $0.api.uploadToS3 = { _, _, _, _ in }
-      $0.api.createIntroSourceTape = { _, _, _, _, _ in }
+      $0.api.createIntroSourceTape = { _, _, _, _, _, _ in }
     } operation: {
       IntroUploadService.liveValue
     }
 
     try await service.uploadIntro(
+      "test-jwt-token",
       testURL,
       testStationId,
       testSongTitle,
@@ -92,14 +94,14 @@ final class IntroUploadServiceTests: XCTestCase {
 
     let service = withDependencies {
       $0.audioConverter = .testValue
-      $0.api.getIntroPresignedURL = { _, _ in
+      $0.api.getIntroPresignedURL = { _, _, _ in
         IntroPresignedURLResponse(
           presignedUrl: URL(string: "https://intake.s3.amazonaws.com/test.m4a")!,
           s3Key: "station/uuid-intro.m4a"
         )
       }
       $0.api.uploadToS3 = { _, _, _, _ in }
-      $0.api.createIntroSourceTape = { _, s3Key, name, durationMS, audioBlockId in
+      $0.api.createIntroSourceTape = { _, _, s3Key, name, durationMS, audioBlockId in
         capturedS3Key = s3Key
         capturedName = name
         capturedDurationMS = durationMS
@@ -110,6 +112,7 @@ final class IntroUploadServiceTests: XCTestCase {
     }
 
     try await service.uploadIntro(
+      "test-jwt-token",
       testURL,
       testStationId,
       testSongTitle,

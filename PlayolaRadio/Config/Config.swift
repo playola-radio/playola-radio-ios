@@ -14,7 +14,6 @@ final class Config: Sendable {
   let environment: DevelopmentEnvironment
   let mixpanelToken: String
   let heapAppID: String
-
   var baseUrl: URL {
     switch environment {
     case .local:

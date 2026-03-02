@@ -19,6 +19,7 @@ class RecordIntroPageModel: ViewModel {
 
   // MARK: - Shared State
 
+  @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
 
@@ -250,11 +251,12 @@ class RecordIntroPageModel: ViewModel {
   // MARK: - Private Helpers
 
   private func startUpload() {
-    guard let url = recordingURL else { return }
+    guard let url = recordingURL, let jwt = auth.jwt else { return }
     uploadStatus = .converting
     Task {
       do {
         try await introUploadService.uploadIntro(
+          jwt,
           url,
           stationId,
           songTitle,

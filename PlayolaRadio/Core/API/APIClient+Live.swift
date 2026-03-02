@@ -666,11 +666,10 @@ extension APIClient: DependencyKey {
           parameters: ["expiresAt": ISO8601DateFormatter().string(from: expiresAt)]
         )
       },
-      getIntroPresignedURL: { stationId, filename in
-        let basicToken = "aW9zQXBwOnNwb3RpZnlTdWNrc0FCaWcx"
+      getIntroPresignedURL: { jwtToken, stationId, filename in
         let url =
           "\(Config.shared.productionBaseUrl.absoluteString)/v1/ios/stations/\(stationId)/source-tapes/presigned-url"
-        let headers: HTTPHeaders = ["Authorization": "Basic \(basicToken)"]
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
         let parameters = ["filename": filename]
 
         return try await AF.request(
@@ -684,11 +683,10 @@ extension APIClient: DependencyKey {
         .serializingDecodable(IntroPresignedURLResponse.self, decoder: isoDecoder)
         .value
       },
-      createIntroSourceTape: { stationId, s3Key, name, durationMS, audioBlockId in
-        let basicToken = "aW9zQXBwOnNwb3RpZnlTdWNrc0FCaWcx"
+      createIntroSourceTape: { jwtToken, stationId, s3Key, name, durationMS, audioBlockId in
         let url =
           "\(Config.shared.productionBaseUrl.absoluteString)/v1/ios/stations/\(stationId)/source-tapes"
-        let headers: HTTPHeaders = ["Authorization": "Basic \(basicToken)"]
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
         var parameters: [String: Any] = [
           "s3Key": s3Key,
           "name": name,
@@ -756,11 +754,10 @@ extension APIClient: DependencyKey {
           token: jwtToken
         )
       },
-      getArtistRecordingAudioBlockIds: { stationId in
-        let basicToken = "aW9zQXBwOnNwb3RpZnlTdWNrc0FCaWcx"
+      getArtistRecordingAudioBlockIds: { jwtToken, stationId in
         let url =
           "\(Config.shared.productionBaseUrl.absoluteString)/v1/ios/stations/\(stationId)/source-tapes/audio-block-ids"
-        let headers: HTTPHeaders = ["Authorization": "Basic \(basicToken)"]
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
 
         return try await AF.request(url, headers: headers)
           .validate(statusCode: 200..<300)

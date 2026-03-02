@@ -17,6 +17,7 @@ enum IntroUploadStatus: Equatable {
 struct IntroUploadService: Sendable {
   var uploadIntro:
     @Sendable (
+      _ jwtToken: String,
       _ recordingURL: URL,
       _ stationId: String,
       _ songTitle: String,
@@ -33,7 +34,7 @@ extension IntroUploadService: DependencyKey {
     @Dependency(\.api) var api
 
     return IntroUploadService(
-      uploadIntro: { recordingURL, stationId, songTitle, audioBlockId, onStatusChange in
+      uploadIntro: { jwtToken, recordingURL, stationId, songTitle, audioBlockId, onStatusChange in
         // Step 1: Convert .wav to .m4a
         await onStatusChange(.converting)
         let m4aURL = try await audioConverter.convertToM4A(recordingURL)
@@ -42,6 +43,7 @@ extension IntroUploadService: DependencyKey {
         // Step 2: Get presigned URL
         await onStatusChange(.uploading(progress: 0))
         let presignedResponse = try await api.getIntroPresignedURL(
+          jwtToken,
           stationId,
           "\(songTitle).m4a"
         )
@@ -60,6 +62,7 @@ extension IntroUploadService: DependencyKey {
         // Step 4: Register source tape
         await onStatusChange(.registering)
         try await api.createIntroSourceTape(
+          jwtToken,
           stationId,
           presignedResponse.s3Key,
           songTitle,
@@ -81,7 +84,7 @@ extension IntroUploadService: DependencyKey {
 extension IntroUploadService: TestDependencyKey {
   static var testValue: IntroUploadService {
     IntroUploadService(
-      uploadIntro: { _, _, _, _, onStatusChange in
+      uploadIntro: { _, _, _, _, _, onStatusChange in
         await onStatusChange(.completed)
       }
     )

@@ -217,7 +217,7 @@ final class RecordIntroPageTests: XCTestCase {
 
     await withDependencies {
       $0.audioPlayer.stop = {}
-      $0.introUploadService.uploadIntro = { _, _, _, _, onStatus in
+      $0.introUploadService.uploadIntro = { _, _, _, _, _, onStatus in
         uploadExpectation.fulfill()
         await onStatus(.completed)
       }
@@ -284,7 +284,7 @@ final class RecordIntroPageTests: XCTestCase {
 
     await withDependencies {
       $0.audioPlayer.stop = {}
-      $0.introUploadService.uploadIntro = { _, _, _, _, onStatus in
+      $0.introUploadService.uploadIntro = { _, _, _, _, _, onStatus in
         uploadCallCount += 1
         uploadExpectation.fulfill()
         if uploadCallCount == 1 {
@@ -310,7 +310,7 @@ final class RecordIntroPageTests: XCTestCase {
 
     await withDependencies {
       $0.audioPlayer.stop = {}
-      $0.introUploadService.uploadIntro = { _, _, _, _, onStatus in
+      $0.introUploadService.uploadIntro = { _, _, _, _, _, onStatus in
         await onStatus(.completed)
       }
     } operation: {

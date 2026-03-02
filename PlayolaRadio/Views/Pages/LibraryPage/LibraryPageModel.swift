@@ -217,7 +217,7 @@ class LibraryPageModel: ViewModel {
     do {
       async let libraryTask = api.getStationLibrary(jwt, stationId)
       async let requestsTask = api.getStationLibraryRequests(jwt, stationId, nil)
-      async let artistRecordingsTask = api.getArtistRecordingAudioBlockIds(stationId)
+      async let artistRecordingsTask = api.getArtistRecordingAudioBlockIds(jwt, stationId)
 
       let (libraryResponse, requests) = try await (libraryTask, requestsTask)
       librarySongs = libraryResponse.songs
