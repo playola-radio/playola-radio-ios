@@ -343,9 +343,10 @@ struct APIClient: Sendable {
   /// Requests a song to be added to the library
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
-  ///   - appleId: The Apple Music ID of the song to request
+  ///   - songRequest: The song request containing song details
   /// - Throws: APIError if the request fails
-  var requestSong: (_ jwtToken: String, _ appleId: String) async throws -> Void = { _, _ in }
+  var requestSong: (_ jwtToken: String, _ songRequest: SongRequest) async throws -> Void = { _, _ in
+  }
 
   /// Registers a device for push notifications
   /// - Parameters:

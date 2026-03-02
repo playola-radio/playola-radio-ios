@@ -445,12 +445,12 @@ final class SongSearchPageTests: XCTestCase {
 
   func testOnRequestSongCallsAPIWithAppleId() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    var capturedAppleId: String?
+    var capturedSongRequest: SongRequest?
 
     await withDependencies {
       $0.date = .constant(Date())
-      $0.api.requestSong = { _, appleId in
-        capturedAppleId = appleId
+      $0.api.requestSong = { _, songRequest in
+        capturedSongRequest = songRequest
       }
     } operation: {
       let model = SongSearchPageModel()
@@ -458,7 +458,7 @@ final class SongSearchPageTests: XCTestCase {
 
       await model.onRequestSong(testSongRequest)
 
-      XCTAssertEqual(capturedAppleId, "test-apple-123")
+      XCTAssertEqual(capturedSongRequest?.appleId, "test-apple-123")
     }
   }
 

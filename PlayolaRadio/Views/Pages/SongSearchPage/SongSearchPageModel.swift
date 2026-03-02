@@ -149,7 +149,7 @@ class SongSearchPageModel: ViewModel {
     }
 
     do {
-      try await api.requestSong(jwt, songRequest.appleId)
+      try await api.requestSong(jwt, songRequest)
       updateSongRequestToRequested(songRequest)
       onSongRequested?(songRequest)
     } catch {
