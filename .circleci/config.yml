@@ -141,7 +141,7 @@ jobs:
             echo "Current version: $CURRENT_VERSION"
 
             # Parse into components
-            IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+            IFS='.' read -r MAJOR MINOR PATCH \<<< "$CURRENT_VERSION"
 
             # Calculate new version based on bump type
             case "$BUMP_TYPE" in

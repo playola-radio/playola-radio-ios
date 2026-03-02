@@ -588,10 +588,10 @@ final class LibraryPageTests: XCTestCase {
     }
   }
 
-  func testAddSongButtonTappedUsesSpotifyOnlySearchMode() {
+  func testAddSongButtonTappedUsesSeedsOnlySearchMode() {
     withModel { model in
       model.addSongButtonTapped()
-      XCTAssertEqual(model.songSearchPageModel?.searchMode, .spotifyOnly)
+      XCTAssertEqual(model.songSearchPageModel?.searchMode, .seedsOnly)
     }
   }
 

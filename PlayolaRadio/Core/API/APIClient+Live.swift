@@ -595,9 +595,21 @@ extension APIClient: DependencyKey {
           path: "/v1/songs/search-song-seeds", token: jwtToken, queryParams: ["keywords": encoded]
         )
       },
-      requestSong: { jwtToken, spotifyId in
+      requestSong: { jwtToken, songRequest in
+        var parameters: [String: String] = [
+          "title": songRequest.title,
+          "artist": songRequest.artist,
+          "album": songRequest.album,
+          "appleId": songRequest.appleId,
+          "durationMS": String(songRequest.durationMS),
+          "releaseDate": songRequest.releaseDate,
+        ]
+        if let spotifyId = songRequest.spotifyId { parameters["spotifyId"] = spotifyId }
+        if let isrc = songRequest.isrc { parameters["isrc"] = isrc }
+        if let popularity = songRequest.popularity { parameters["popularity"] = String(popularity) }
+        if let imageUrl = songRequest.imageUrl { parameters["imageUrl"] = imageUrl.absoluteString }
         try await authenticatedPostVoid(
-          path: "/v1/songs/requests", token: jwtToken, parameters: ["spotifyId": spotifyId]
+          path: "/v1/songs/requests", token: jwtToken, parameters: parameters
         )
       },
       registerDevice: { jwtToken, deviceToken, platform, appVersion in
@@ -725,7 +737,7 @@ extension APIClient: DependencyKey {
       },
       createAddLibraryRequest: { jwtToken, stationId, body in
         var parameters: [String: String] = [
-          "spotifyId": body.spotifyId, "title": body.title, "artist": body.artist,
+          "appleId": body.appleId, "title": body.title, "artist": body.artist,
         ]
         if let album = body.album { parameters["album"] = album }
         if let imageUrl = body.imageUrl { parameters["imageUrl"] = imageUrl }
