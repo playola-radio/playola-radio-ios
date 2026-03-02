@@ -12,7 +12,7 @@ import SwiftUI
 
 enum SongSearchMode {
   case libraryOnly
-  case spotifyOnly
+  case seedsOnly
   case all
 }
 
@@ -28,7 +28,7 @@ class SongSearchPageModel: ViewModel {
   var songRequestResults: [SongRequest] = []
   var isSearching: Bool = false
   var presentedAlert: PlayolaAlert?
-  var processingAddSpotifyIds: Set<String> = []
+  var processingAddAppleIds: Set<String> = []
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.continuousClock) var clock
@@ -52,15 +52,15 @@ class SongSearchPageModel: ViewModel {
   }
 
   func isProcessingAdd(for songRequest: SongRequest) -> Bool {
-    processingAddSpotifyIds.contains(songRequest.spotifyId)
+    processingAddAppleIds.contains(songRequest.appleId)
   }
 
   var isLibraryAddMode: Bool {
     onAddedToLibrary != nil
   }
 
-  var spotifySectionHeader: String {
-    isLibraryAddMode ? "SPOTIFY" : "AVAILABLE SOON BY REQUEST"
+  var songSeedsSectionHeader: String {
+    isLibraryAddMode ? "APPLE MUSIC" : "AVAILABLE SOON BY REQUEST"
   }
 
   private func onSearchTextChanged() {
@@ -98,7 +98,7 @@ class SongSearchPageModel: ViewModel {
     switch searchMode {
     case .libraryOnly:
       await searchSongs(jwt: jwt, query: trimmedQuery)
-    case .spotifyOnly:
+    case .seedsOnly:
       await searchSongRequests(jwt: jwt, query: trimmedQuery)
     case .all:
       await withTaskGroup(of: Void.self) { group in
@@ -149,7 +149,7 @@ class SongSearchPageModel: ViewModel {
     }
 
     do {
-      try await api.requestSong(jwt, songRequest.spotifyId)
+      try await api.requestSong(jwt, songRequest.appleId)
       updateSongRequestToRequested(songRequest)
       onSongRequested?(songRequest)
     } catch {
@@ -168,12 +168,12 @@ class SongSearchPageModel: ViewModel {
       return
     }
 
-    processingAddSpotifyIds.insert(songRequest.spotifyId)
-    defer { processingAddSpotifyIds.remove(songRequest.spotifyId) }
+    processingAddAppleIds.insert(songRequest.appleId)
+    defer { processingAddAppleIds.remove(songRequest.appleId) }
 
     do {
       let body = CreateAddLibraryRequestBody(
-        spotifyId: songRequest.spotifyId,
+        appleId: songRequest.appleId,
         title: songRequest.title,
         artist: songRequest.artist,
         album: songRequest.album,
@@ -188,7 +188,7 @@ class SongSearchPageModel: ViewModel {
 
   private func updateSongRequestToRequested(_ songRequest: SongRequest) {
     guard
-      let index = songRequestResults.firstIndex(where: { $0.spotifyId == songRequest.spotifyId })
+      let index = songRequestResults.firstIndex(where: { $0.appleId == songRequest.appleId })
     else { return }
 
     let updatedSongRequest = SongRequest.mockWith(
@@ -200,6 +200,7 @@ class SongSearchPageModel: ViewModel {
       popularity: songRequest.popularity,
       releaseDate: songRequest.releaseDate,
       isrc: songRequest.isrc,
+      appleId: songRequest.appleId,
       spotifyId: songRequest.spotifyId,
       imageUrl: songRequest.imageUrl,
       createdAt: now

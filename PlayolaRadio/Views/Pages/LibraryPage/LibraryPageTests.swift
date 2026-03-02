@@ -835,7 +835,7 @@ final class LibraryPageTests: XCTestCase {
     }
   }
 
-  func testAddSongButtonTappedUsesSpotifyOnlySearchMode() {
+  func testAddSongButtonTappedUsesSeedsOnlySearchMode() {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator)
     var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
@@ -847,7 +847,7 @@ final class LibraryPageTests: XCTestCase {
 
       model.addSongButtonTapped()
 
-      XCTAssertEqual(model.songSearchPageModel?.searchMode, .spotifyOnly)
+      XCTAssertEqual(model.songSearchPageModel?.searchMode, .seedsOnly)
     }
   }
 

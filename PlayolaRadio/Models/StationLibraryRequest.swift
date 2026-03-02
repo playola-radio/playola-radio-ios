@@ -38,7 +38,7 @@ struct StationLibraryRequest: Codable, Identifiable, Equatable {
 // MARK: - Request Bodies
 
 struct CreateAddLibraryRequestBody: Encodable {
-  let spotifyId: String
+  let appleId: String
   let title: String
   let artist: String
   let album: String?

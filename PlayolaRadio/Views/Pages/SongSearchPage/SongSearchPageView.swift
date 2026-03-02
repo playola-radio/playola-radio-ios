@@ -54,7 +54,7 @@ struct SongSearchPageView: View {
         } else {
           List {
             // Playola library results (only for libraryOnly or all modes)
-            if model.searchMode != .spotifyOnly && !model.searchResults.isEmpty {
+            if model.searchMode != .seedsOnly && !model.searchResults.isEmpty {
               Section {
                 ForEach(model.searchResults, id: \.id) { audioBlock in
                   SongSearchResultRow(audioBlock: audioBlock) {
@@ -71,7 +71,7 @@ struct SongSearchPageView: View {
               }
             }
 
-            // Spotify results (only for spotifyOnly or all modes)
+            // Song seed results (only for seedsOnly or all modes)
             if model.searchMode != .libraryOnly && !model.songRequestResults.isEmpty {
               Section {
                 ForEach(model.songRequestResults, id: \.id) { songRequest in
@@ -93,7 +93,7 @@ struct SongSearchPageView: View {
                   .listRowBackground(Color.clear)
                 }
               } header: {
-                Text(model.spotifySectionHeader)
+                Text(model.songSeedsSectionHeader)
                   .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
                   .foregroundColor(.playolaGray)
               }
