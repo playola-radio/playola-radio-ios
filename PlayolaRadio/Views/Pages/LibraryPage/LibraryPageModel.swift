@@ -110,7 +110,7 @@ class LibraryPageModel: ViewModel {
   }
 
   func addSongButtonTapped() {
-    let model = SongSearchPageModel(searchMode: .spotifyOnly, stationId: stationId)
+    let model = SongSearchPageModel(searchMode: .seedsOnly, stationId: stationId)
     model.onDismiss = { [weak self] in
       self?.mainContainerNavigationCoordinator.presentedSheet = nil
     }

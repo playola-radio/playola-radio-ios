@@ -35,14 +35,15 @@ struct SongRequest: Codable, Identifiable, Equatable {
   let artist: String
   let album: String
   let durationMS: Int
-  let popularity: Int
+  let popularity: Int?
   let releaseDate: String
-  let isrc: String
-  let spotifyId: String
+  let isrc: String?
+  let appleId: String
+  let spotifyId: String?
   let imageUrl: URL?
   let createdAt: Date?
 
-  var id: String { spotifyId }
+  var id: String { appleId }
 
   var requestStatus: SongRequestStatus {
     if requestId != nil, let date = createdAt {
@@ -60,6 +61,7 @@ struct SongRequest: Codable, Identifiable, Equatable {
     case popularity
     case releaseDate
     case isrc
+    case appleId
     case spotifyId
     case imageUrl
     case createdAt
@@ -75,10 +77,11 @@ extension SongRequest {
     artist: String = "Bob Dylan",
     album: String = "Highway 61 Revisited",
     durationMS: Int = 369600,
-    popularity: Int = 78,
+    popularity: Int? = 78,
     releaseDate: String = "1965-08-30",
-    isrc: String = "USSM16500213",
-    spotifyId: String = "3AhXZa8sUQht0UEdBJgpGc",
+    isrc: String? = "USSM16500213",
+    appleId: String = "1440806768",
+    spotifyId: String? = "3AhXZa8sUQht0UEdBJgpGc",
     imageUrl: URL? = URL(string: "https://i.scdn.co/image/test"),
     createdAt: Date? = nil
   ) -> SongRequest {
@@ -91,6 +94,7 @@ extension SongRequest {
       popularity: popularity,
       releaseDate: releaseDate,
       isrc: isrc,
+      appleId: appleId,
       spotifyId: spotifyId,
       imageUrl: imageUrl,
       createdAt: createdAt
