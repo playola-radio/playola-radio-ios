@@ -781,6 +781,8 @@ final class MainContainerTests: XCTestCase {
       let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
       var markShownCalled = false
       var markDismissedCalled = false
+      let feedbackSheetExpectation = XCTestExpectation(
+        description: "feedbackSheetPresented tracked")
 
       let mainContainerModel = withDependencies {
         $0.api.getStations = { [] }
@@ -791,32 +793,28 @@ final class MainContainerTests: XCTestCase {
         $0.appRating.markRatingPromptDismissed = { markDismissedCalled = true }
         $0.analytics.track = { @Sendable event in
           capturedEvents.withValue { $0.append(event) }
+          if event == .feedbackSheetPresented { feedbackSheetExpectation.fulfill() }
         }
       } operation: {
         MainContainerModel()
       }
 
       mainContainerModel.checkAndShowRatingPromptIfNeeded()
-
-      // Simulate tapping "Not really"
       await mainContainerModel.presentedAlert?.secondaryAction?()
-
-      // Let spawned Task run
-      await Task.yield()
+      await fulfillment(of: [feedbackSheetExpectation], timeout: 1.0)
 
       XCTAssertTrue(markShownCalled)
       XCTAssertTrue(
         markDismissedCalled, "Not really should also set dismiss date for 7-day cooldown")
       XCTAssertTrue(capturedEvents.value.contains { $0 == .ratingPromptNotEnjoying })
-      XCTAssertTrue(capturedEvents.value.contains { $0 == .feedbackSheetPresented })
       XCTAssertNil(
         mainContainerModel.presentedAlert, "Alert should be dismissed before showing feedback sheet"
       )
-      if case .feedbackSheet = mainContainerModel.mainContainerNavigationCoordinator.presentedSheet
-      {
-        // Test passes - feedback sheet is presented
-      } else {
+      guard
+        case .feedbackSheet = mainContainerModel.mainContainerNavigationCoordinator.presentedSheet
+      else {
         XCTFail("Expected feedback sheet to be presented")
+        return
       }
     }
   }
@@ -838,6 +836,7 @@ final class MainContainerTests: XCTestCase {
       )
 
       let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+      let failedExpectation = XCTestExpectation(description: "feedbackSheetFailed tracked")
 
       let mainContainerModel = withDependencies {
         $0.api.getStations = { [] }
@@ -848,6 +847,9 @@ final class MainContainerTests: XCTestCase {
         $0.appRating.markRatingPromptDismissed = {}
         $0.analytics.track = { @Sendable event in
           capturedEvents.withValue { $0.append(event) }
+          if case .feedbackSheetFailed = event {
+            failedExpectation.fulfill()
+          }
         }
       } operation: {
         MainContainerModel()
@@ -858,8 +860,7 @@ final class MainContainerTests: XCTestCase {
       // Simulate tapping "Not really"
       await mainContainerModel.presentedAlert?.secondaryAction?()
 
-      // Let spawned Task run
-      await Task.yield()
+      await fulfillment(of: [failedExpectation], timeout: 1.0)
 
       XCTAssertTrue(
         capturedEvents.value.contains {

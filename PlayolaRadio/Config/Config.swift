@@ -31,7 +31,7 @@ final class Config: Sendable {
     case .local:
       return URL(string: "http://localhost:11020")!
     case .development, .staging:
-      return URL(string: "https://production-staging.playola.fm")!
+      return URL(string: "https://production.playola.fm")!
     case .production:
       return URL(string: "https://production.playola.fm")!
     }
