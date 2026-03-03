@@ -68,15 +68,14 @@ final class PlayolaTokenProviderTests: XCTestCase {
   }
 
   func testGetCurrentToken_ReturnsJWTWhenUserLoggedIn() async {
-    await withMainSerialExecutor {
-      let expectedJWT = createTestJWT()
-      @Shared(.auth) var auth = Auth(jwtToken: expectedJWT)
-      let tokenProvider = PlayolaTokenProvider()
+    let expectedJWT = createTestJWT()
+    @Shared(.auth) var auth
+    $auth.withLock { $0 = Auth(jwtToken: expectedJWT) }
+    let tokenProvider = PlayolaTokenProvider()
 
-      let token = await tokenProvider.getCurrentToken()
+    let token = await tokenProvider.getCurrentToken()
 
-      XCTAssertEqual(token, expectedJWT)
-    }
+    XCTAssertEqual(token, expectedJWT)
   }
 
   func testGetCurrentToken_ReturnsNilAfterUserSignsOut() async {

@@ -138,7 +138,8 @@ final class ContactPageTests: XCTestCase {
 
   func testOnMyStationTapped_SwitchesToBroadcastMode() async {
     await withMainSerialExecutor {
-      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      @Shared(.auth) var auth
+      $auth.withLock { $0 = Auth(jwt: "test-jwt") }
       let mockStations = [Station.mockWith(id: "test-station-id")]
 
       await withDependencies {

@@ -822,7 +822,8 @@ final class MainContainerTests: XCTestCase {
   func testFeedbackSheetFailedTracksErrorEvent() async {
     await withMainSerialExecutor {
       let testJWT = MainContainerTests.createTestJWT()
-      @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+      @Shared(.auth) var auth
+      $auth.withLock { $0 = Auth(jwtToken: testJWT) }
       @Shared(.appInstallDate) var appInstallDate = Calendar.current.date(
         byAdding: .day, value: -10, to: Date()
       )
