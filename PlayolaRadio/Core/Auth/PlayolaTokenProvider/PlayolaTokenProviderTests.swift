@@ -7,6 +7,7 @@
 
 // swiftlint:disable force_try
 
+import ConcurrencyExtras
 import Foundation
 import Sharing
 import XCTest
@@ -67,13 +68,15 @@ final class PlayolaTokenProviderTests: XCTestCase {
   }
 
   func testGetCurrentToken_ReturnsJWTWhenUserLoggedIn() async {
-    let expectedJWT = createTestJWT()
-    @Shared(.auth) var auth = Auth(jwtToken: expectedJWT)
-    let tokenProvider = PlayolaTokenProvider()
+    await withMainSerialExecutor {
+      let expectedJWT = createTestJWT()
+      @Shared(.auth) var auth = Auth(jwtToken: expectedJWT)
+      let tokenProvider = PlayolaTokenProvider()
 
-    let token = await tokenProvider.getCurrentToken()
+      let token = await tokenProvider.getCurrentToken()
 
-    XCTAssertEqual(token, expectedJWT)
+      XCTAssertEqual(token, expectedJWT)
+    }
   }
 
   func testGetCurrentToken_ReturnsNilAfterUserSignsOut() async {

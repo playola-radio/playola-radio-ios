@@ -853,8 +853,12 @@ final class MainContainerTests: XCTestCase {
 
       mainContainerModel.checkAndShowRatingPromptIfNeeded()
 
-      // Simulate tapping "Not really"
+      // Simulate tapping "Not really" — triggers showFeedbackSheet() which spawns a Task
+      // that calls api.getSupportConversation (throws) then analytics.track in the catch.
+      // Multiple yields needed for the spawned Task's suspension points.
       await mainContainerModel.presentedAlert?.secondaryAction?()
+      await Task.yield()
+      await Task.yield()
       await Task.yield()
 
       XCTAssertTrue(
