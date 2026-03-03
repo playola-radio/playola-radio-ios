@@ -217,12 +217,14 @@ final class RecordPageTests: XCTestCase {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
 
     let expectedURL = URL(fileURLWithPath: "/tmp/test.wav")
+    let callbackExpectation = XCTestExpectation(description: "onRecordingAccepted called")
     var receivedURL: URL?
 
     let model = RecordPageModel()
     model.recordingURL = expectedURL
     model.onRecordingAccepted = { url in
       receivedURL = url
+      callbackExpectation.fulfill()
     }
     coordinator.presentedSheet = .recordPage(model)
 
@@ -231,9 +233,7 @@ final class RecordPageTests: XCTestCase {
     // Sheet dismisses immediately
     XCTAssertNil(coordinator.presentedSheet)
 
-    // Allow spawned Task to complete
-    await Task.yield()
-
+    await fulfillment(of: [callbackExpectation], timeout: 1.0)
     XCTAssertEqual(receivedURL, expectedURL)
   }
 

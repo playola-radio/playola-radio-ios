@@ -781,6 +781,8 @@ final class MainContainerTests: XCTestCase {
       let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
       var markShownCalled = false
       var markDismissedCalled = false
+      let feedbackSheetExpectation = XCTestExpectation(
+        description: "feedbackSheetPresented tracked")
 
       let mainContainerModel = withDependencies {
         $0.api.getStations = { [] }
@@ -791,32 +793,28 @@ final class MainContainerTests: XCTestCase {
         $0.appRating.markRatingPromptDismissed = { markDismissedCalled = true }
         $0.analytics.track = { @Sendable event in
           capturedEvents.withValue { $0.append(event) }
+          if event == .feedbackSheetPresented { feedbackSheetExpectation.fulfill() }
         }
       } operation: {
         MainContainerModel()
       }
 
       mainContainerModel.checkAndShowRatingPromptIfNeeded()
-
-      // Simulate tapping "Not really"
       await mainContainerModel.presentedAlert?.secondaryAction?()
-
-      // Let spawned Task run
-      await Task.yield()
+      await fulfillment(of: [feedbackSheetExpectation], timeout: 1.0)
 
       XCTAssertTrue(markShownCalled)
       XCTAssertTrue(
         markDismissedCalled, "Not really should also set dismiss date for 7-day cooldown")
       XCTAssertTrue(capturedEvents.value.contains { $0 == .ratingPromptNotEnjoying })
-      XCTAssertTrue(capturedEvents.value.contains { $0 == .feedbackSheetPresented })
       XCTAssertNil(
         mainContainerModel.presentedAlert, "Alert should be dismissed before showing feedback sheet"
       )
-      if case .feedbackSheet = mainContainerModel.mainContainerNavigationCoordinator.presentedSheet
-      {
-        // Test passes - feedback sheet is presented
-      } else {
+      guard
+        case .feedbackSheet = mainContainerModel.mainContainerNavigationCoordinator.presentedSheet
+      else {
         XCTFail("Expected feedback sheet to be presented")
+        return
       }
     }
   }
@@ -824,7 +822,8 @@ final class MainContainerTests: XCTestCase {
   func testFeedbackSheetFailedTracksErrorEvent() async {
     await withMainSerialExecutor {
       let testJWT = MainContainerTests.createTestJWT()
-      @Shared(.auth) var auth = Auth(jwtToken: testJWT)
+      @Shared(.auth) var auth
+      $auth.withLock { $0 = Auth(jwtToken: testJWT) }
       @Shared(.appInstallDate) var appInstallDate = Calendar.current.date(
         byAdding: .day, value: -10, to: Date()
       )
@@ -855,10 +854,12 @@ final class MainContainerTests: XCTestCase {
 
       mainContainerModel.checkAndShowRatingPromptIfNeeded()
 
-      // Simulate tapping "Not really"
+      // Simulate tapping "Not really" — triggers showFeedbackSheet() which spawns a Task
+      // that calls api.getSupportConversation (throws) then analytics.track in the catch.
+      // Multiple yields needed for the spawned Task's suspension points.
       await mainContainerModel.presentedAlert?.secondaryAction?()
-
-      // Let spawned Task run
+      await Task.yield()
+      await Task.yield()
       await Task.yield()
 
       XCTAssertTrue(

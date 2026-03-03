@@ -678,8 +678,53 @@ extension APIClient: DependencyKey {
           parameters: ["expiresAt": ISO8601DateFormatter().string(from: expiresAt)]
         )
       },
+      getIntroPresignedURL: { jwtToken, stationId, filename in
+        let url =
+          "\(Config.shared.productionBaseUrl.absoluteString)/v1/ios/stations/\(stationId)/source-tapes/presigned-url"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters = ["filename": filename]
+
+        return try await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(IntroPresignedURLResponse.self, decoder: isoDecoder)
+        .value
+      },
+      createIntroSourceTape: { jwtToken, stationId, s3Key, name, durationMS, audioBlockId in
+        let url =
+          "\(Config.shared.productionBaseUrl.absoluteString)/v1/ios/stations/\(stationId)/source-tapes"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        var parameters: [String: Any] = [
+          "s3Key": s3Key,
+          "name": name,
+          "durationMS": durationMS,
+        ]
+        if let audioBlockId {
+          parameters["audioBlockId"] = audioBlockId
+        }
+
+        _ = try await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingData()
+        .value
+      },
       getStationLibrary: { jwtToken, stationId in
-        try await authenticatedGet(path: "/v1/stations/\(stationId)/library", token: jwtToken)
+        try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/library",
+          token: jwtToken,
+          queryParams: ["includeSongIntroIds": "true"]
+        )
       },
       getStationLibraryRequests: { jwtToken, stationId, status in
         var queryParams: [String: String]?
@@ -720,6 +765,16 @@ extension APIClient: DependencyKey {
           path: "/v1/stations/\(stationId)/library-requests/\(requestId)",
           token: jwtToken
         )
+      },
+      getArtistRecordingAudioBlockIds: { jwtToken, stationId in
+        let url =
+          "\(Config.shared.productionBaseUrl.absoluteString)/v1/ios/stations/\(stationId)/source-tapes/audio-block-ids"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        return try await AF.request(url, headers: headers)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable([String].self)
+          .value
       }
     )
   }()

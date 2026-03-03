@@ -532,17 +532,51 @@ struct APIClient: Sendable {
       )
     }
 
+  // MARK: - Production Intro Upload
+
+  /// Gets a presigned URL for uploading an intro to playola-production S3
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to upload the intro for
+  ///   - filename: The filename for the upload
+  /// - Returns: IntroPresignedURLResponse containing the upload URL and S3 key
+  /// - Throws: APIError if the request fails
+  var getIntroPresignedURL:
+    (_ jwtToken: String, _ stationId: String, _ filename: String) async throws
+      -> IntroPresignedURLResponse = { _, _, _ in
+        IntroPresignedURLResponse(
+          presignedUrl: URL(string: "https://example.com")!,
+          s3Key: "test.m4a"
+        )
+      }
+
+  /// Creates a source tape in playola-production after uploading to S3
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - s3Key: The S3 key where the file was uploaded
+  ///   - name: The name for the source tape
+  ///   - durationMS: Duration in milliseconds
+  /// - Throws: APIError if the request fails
+  var createIntroSourceTape:
+    (
+      _ jwtToken: String, _ stationId: String, _ s3Key: String, _ name: String, _ durationMS: Int,
+      _ audioBlockId: String?
+    )
+      async throws -> Void = { _, _, _, _, _, _ in }
+
   // MARK: - Station Library
 
-  /// Fetches all songs in a station's library
+  /// Fetches all songs in a station's library with song intro information
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
   ///   - stationId: The station ID to fetch library for
-  /// - Returns: Array of LibrarySong objects sorted by artist/title
+  /// - Returns: LibraryResponse containing songs and IDs of songs with intros
   /// - Throws: APIError if the request fails
-  var getStationLibrary: (_ jwtToken: String, _ stationId: String) async throws -> [LibrarySong] = {
-    _, _ in []
-  }
+  var getStationLibrary: (_ jwtToken: String, _ stationId: String) async throws -> LibraryResponse =
+    {
+      _, _ in .mockWith()
+    }
 
   /// Fetches library requests for a station
   /// - Parameters:
@@ -597,6 +631,17 @@ struct APIClient: Sendable {
   var cancelStationLibraryRequest:
     (_ jwtToken: String, _ stationId: String, _ requestId: String) async throws
       -> Void = { _, _, _ in }
+
+  // MARK: - Production Artist Recordings
+
+  /// Fetches audioBlockIds that have artist-recording source tapes for a station
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  /// - Returns: Array of audioBlockId strings
+  /// - Throws: APIError if the request fails
+  var getArtistRecordingAudioBlockIds:
+    (_ jwtToken: String, _ stationId: String) async throws -> [String] = { _, _ in [] }
 }
 
 enum APIError: Error, LocalizedError {

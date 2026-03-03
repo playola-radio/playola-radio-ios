@@ -14,7 +14,6 @@ final class Config: Sendable {
   let environment: DevelopmentEnvironment
   let mixpanelToken: String
   let heapAppID: String
-
   var baseUrl: URL {
     switch environment {
     case .local:
@@ -23,6 +22,17 @@ final class Config: Sendable {
       return URL(string: "https://admin-api.playola.fm")!
     case .staging:
       return URL(string: "https://admin-api-staging.playola.fm")!
+    }
+  }
+
+  var productionBaseUrl: URL {
+    switch environment {
+    case .local:
+      return URL(string: "http://localhost:11020")!
+    case .development, .staging:
+      return URL(string: "https://production.playola.fm")!
+    case .production:
+      return URL(string: "https://production.playola.fm")!
     }
   }
 

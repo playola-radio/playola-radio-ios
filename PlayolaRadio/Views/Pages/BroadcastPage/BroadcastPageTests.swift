@@ -1575,6 +1575,7 @@ extension BroadcastPageTests {
   func testOnAddSongTappedTracksSongSearchTapped() async {
     await withMainSerialExecutor {
       let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+      let searchTappedExpectation = XCTestExpectation(description: "songSearchTapped tracked")
       let loggedInUser = LoggedInUser(
         id: "user-123",
         firstName: "Test",
@@ -1587,11 +1588,15 @@ extension BroadcastPageTests {
         $0.date.now = fixedNow
         $0.analytics.track = { event in
           capturedEvents.withValue { $0.append(event) }
+          if case .broadcastSongSearchTapped = event {
+            searchTappedExpectation.fulfill()
+          }
         }
       } operation: {
         let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
         model.onAddSongTapped()
-        await Task.yield()
+
+        await fulfillment(of: [searchTappedExpectation], timeout: 1.0)
 
         let events = capturedEvents.value
         let hasSearchEvent = events.contains { event in
@@ -1612,6 +1617,7 @@ extension BroadcastPageTests {
   func testAddSongToStagingTracksSongAdded() async {
     await withMainSerialExecutor {
       let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+      let songAddedExpectation = XCTestExpectation(description: "songAdded tracked")
       let loggedInUser = LoggedInUser(
         id: "user-123",
         firstName: "Test",
@@ -1624,6 +1630,9 @@ extension BroadcastPageTests {
         $0.date.now = fixedNow
         $0.analytics.track = { event in
           capturedEvents.withValue { $0.append(event) }
+          if case .broadcastSongAdded = event {
+            songAddedExpectation.fulfill()
+          }
         }
       } operation: {
         let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
@@ -1633,7 +1642,8 @@ extension BroadcastPageTests {
           artist: "Test Artist"
         )
         model.addSongToStaging(audioBlock)
-        await Task.yield()
+
+        await fulfillment(of: [songAddedExpectation], timeout: 1.0)
 
         let events = capturedEvents.value
         let hasSongAddedEvent = events.contains { event in

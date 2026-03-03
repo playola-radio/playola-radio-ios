@@ -36,11 +36,14 @@ class LibraryPageModel: ViewModel {
   let navigationTitle = "Library"
 
   var librarySongs: [LibrarySong] = []
+  var songIdsWithSongIntros: Set<String> = []
   var libraryRequests: [StationLibraryRequest] = []
   var isLoading = false
   var searchText = ""
   var presentedAlert: PlayolaAlert?
   var processingRemovalSongIds: Set<String> = []
+  var uploadedIntroSongIds: Set<String> = []
+  var artistRecordingAudioBlockIds: Set<String> = []
   var songSearchPageModel: SongSearchPageModel?
 
   var filteredSongs: [LibrarySong] {
@@ -78,7 +81,6 @@ class LibraryPageModel: ViewModel {
   }
 
   let requestsSectionHeader = "PENDING REQUESTS"
-  let removeButtonText = "REMOVE"
   let dismissButtonText = "DISMISS"
   let cancelButtonText = "CANCEL"
   let pendingRemovalText = "Pending Removal"
@@ -122,6 +124,21 @@ class LibraryPageModel: ViewModel {
     mainContainerNavigationCoordinator.presentedSheet = .songSearchPage(model)
   }
 
+  func recordIntroButtonTapped(_ song: LibrarySong) {
+    let model = RecordIntroPageModel(
+      songTitle: song.title,
+      songArtist: song.artist,
+      songImageUrl: song.imageUrl,
+      stationId: stationId,
+      audioBlockId: song.id
+    )
+    model.onUploadCompleted = { [weak self] in
+      self?.uploadedIntroSongIds.insert(song.id)
+      self?.artistRecordingAudioBlockIds.insert(song.id)
+    }
+    mainContainerNavigationCoordinator.presentedSheet = .recordIntroPage(model)
+  }
+
   func dismissRequestButtonTapped(_ request: StationLibraryRequest) async {
     guard let jwt = auth.jwt else { return }
 
@@ -147,6 +164,12 @@ class LibraryPageModel: ViewModel {
   }
 
   // MARK: - View Helpers
+
+  func hasSongIntro(for song: LibrarySong) -> Bool {
+    songIdsWithSongIntros.contains(song.id)
+      || uploadedIntroSongIds.contains(song.id)
+      || artistRecordingAudioBlockIds.contains(song.id)
+  }
 
   func hasPendingRequest(for song: LibrarySong) -> Bool {
     libraryRequests.contains { $0.audioBlockId == song.id && $0.status == .pending }
@@ -192,12 +215,18 @@ class LibraryPageModel: ViewModel {
     isLoading = true
 
     do {
-      async let songsTask = api.getStationLibrary(jwt, stationId)
+      async let libraryTask = api.getStationLibrary(jwt, stationId)
       async let requestsTask = api.getStationLibraryRequests(jwt, stationId, nil)
+      async let artistRecordingsTask = api.getArtistRecordingAudioBlockIds(jwt, stationId)
 
-      let (songs, requests) = try await (songsTask, requestsTask)
-      librarySongs = songs
+      let (libraryResponse, requests) = try await (libraryTask, requestsTask)
+      librarySongs = libraryResponse.songs
+      songIdsWithSongIntros = Set(libraryResponse.songIdsWithSongIntros)
       libraryRequests = requests
+
+      if let ids = try? await artistRecordingsTask {
+        artistRecordingAudioBlockIds = Set(ids)
+      }
     } catch {
       presentedAlert = .libraryError(error.localizedDescription)
     }
@@ -216,4 +245,5 @@ extension PlayolaAlert {
       dismissButton: .cancel(Text("OK"))
     )
   }
+
 }
