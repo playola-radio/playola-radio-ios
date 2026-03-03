@@ -141,6 +141,7 @@ final class ContactPageTests: XCTestCase {
 
     await withDependencies {
       $0.api.fetchUserStations = { _ in mockStations }
+      $0.analytics.track = { @Sendable _ in }
     } operation: {
       let model = ContactPageModel()
 

@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import ConcurrencyExtras
 import Dependencies
 import Sharing
 import XCTest
@@ -213,24 +214,27 @@ final class RecordIntroPageTests: XCTestCase {
   // MARK: - Accept Recording (Upload)
 
   func testOnAcceptRecordingTappedStartsUpload() async {
-    let uploadExpectation = XCTestExpectation(description: "uploadIntro called")
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    var uploadCalled = false
 
-    await withDependencies {
-      $0.audioPlayer.stop = {}
-      $0.introUploadService.uploadIntro = { _, _, _, _, _, onStatus in
-        uploadExpectation.fulfill()
-        await onStatus(.completed)
+    await withMainSerialExecutor {
+      await withDependencies {
+        $0.audioPlayer.stop = {}
+        $0.introUploadService.uploadIntro = { _, _, _, _, _, onStatus in
+          uploadCalled = true
+          await onStatus(.completed)
+        }
+      } operation: {
+        let model = makeModel()
+        model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
+        model.recordingPhase = .review
+
+        model.onAcceptRecordingTapped()
+        await Task.yield()
+
+        XCTAssertNotNil(model.uploadStatus)
+        XCTAssertTrue(uploadCalled)
       }
-    } operation: {
-      let model = makeModel()
-      model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
-      model.recordingPhase = .review
-
-      model.onAcceptRecordingTapped()
-
-      XCTAssertNotNil(model.uploadStatus)
-
-      await fulfillment(of: [uploadExpectation], timeout: 1.0)
     }
   }
 
@@ -279,51 +283,52 @@ final class RecordIntroPageTests: XCTestCase {
   }
 
   func testOnRetryTappedRestartsUpload() async {
-    let uploadExpectation = XCTestExpectation(description: "uploadIntro called on retry")
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     var uploadCallCount = 0
 
-    await withDependencies {
-      $0.audioPlayer.stop = {}
-      $0.introUploadService.uploadIntro = { _, _, _, _, _, onStatus in
-        uploadCallCount += 1
-        uploadExpectation.fulfill()
-        if uploadCallCount == 1 {
-          await onStatus(.failed("First attempt failed"))
-          throw NSError(domain: "test", code: 1)
+    await withMainSerialExecutor {
+      await withDependencies {
+        $0.audioPlayer.stop = {}
+        $0.introUploadService.uploadIntro = { _, _, _, _, _, onStatus in
+          uploadCallCount += 1
+          await onStatus(.completed)
         }
-        await onStatus(.completed)
+      } operation: {
+        let model = makeModel()
+        model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
+        model.uploadStatus = .failed("First attempt failed")
+
+        model.onRetryTapped()
+        await Task.yield()
+
+        XCTAssertEqual(uploadCallCount, 1)
       }
-    } operation: {
-      let model = makeModel()
-      model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
-      model.uploadStatus = .failed("First attempt failed")
-
-      model.onRetryTapped()
-
-      await fulfillment(of: [uploadExpectation], timeout: 1.0)
-      XCTAssertEqual(uploadCallCount, 1)
     }
   }
 
   func testUploadSuccessCallsOnUploadCompleted() async {
-    let completedExpectation = XCTestExpectation(description: "onUploadCompleted called")
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    var completedCalled = false
 
-    await withDependencies {
-      $0.audioPlayer.stop = {}
-      $0.introUploadService.uploadIntro = { _, _, _, _, _, onStatus in
-        await onStatus(.completed)
+    await withMainSerialExecutor {
+      await withDependencies {
+        $0.audioPlayer.stop = {}
+        $0.introUploadService.uploadIntro = { _, _, _, _, _, onStatus in
+          await onStatus(.completed)
+        }
+      } operation: {
+        let model = makeModel()
+        model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
+        model.onUploadCompleted = {
+          completedCalled = true
+        }
+
+        model.onAcceptRecordingTapped()
+        await Task.yield()
+
+        XCTAssertTrue(completedCalled)
+        XCTAssertEqual(model.uploadStatus, .completed)
       }
-    } operation: {
-      let model = makeModel()
-      model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
-      model.onUploadCompleted = {
-        completedExpectation.fulfill()
-      }
-
-      model.onAcceptRecordingTapped()
-
-      await fulfillment(of: [completedExpectation], timeout: 1.0)
-      XCTAssertEqual(model.uploadStatus, .completed)
     }
   }
 }
