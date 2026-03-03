@@ -15,6 +15,9 @@ struct RecordIntroPageView: View {
         .edgesIgnoringSafeArea(.all)
 
       VStack(spacing: 0) {
+        customNavigationBar
+          .padding(.horizontal, 20)
+
         songInfoHeader
           .padding(.top, 16)
           .padding(.horizontal, 20)
@@ -44,25 +47,41 @@ struct RecordIntroPageView: View {
         bottomSection
       }
     }
-    .navigationTitle(model.navigationTitle)
-    .navigationBarTitleDisplayMode(.inline)
-    .toolbarBackground(.visible, for: .navigationBar)
-    .toolbarBackground(Color.black, for: .navigationBar)
-    .toolbarColorScheme(.dark, for: .navigationBar)
-    .toolbar {
-      if model.shouldShowDoneButton {
-        ToolbarItem(placement: .navigationBarTrailing) {
-          Button("Done") {
-            model.onDoneTapped()
-          }
-          .foregroundColor(.white)
-        }
-      }
-    }
+    .rotationEffect(.degrees(180))
+    .background(Color.black.ignoresSafeArea())
+    .navigationBarHidden(true)
     .playolaAlert($model.presentedAlert)
     .task {
       await model.viewAppeared()
     }
+  }
+
+  // MARK: - Custom Navigation Bar
+
+  private var customNavigationBar: some View {
+    ZStack {
+      Text(model.navigationTitle)
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 17))
+        .foregroundColor(.white)
+
+      HStack {
+        Spacer()
+        if model.shouldShowDoneButton {
+          Button {
+            model.onDoneTapped()
+          } label: {
+            Text(model.doneButtonLabel)
+              .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+              .foregroundColor(.white)
+              .padding(.horizontal, 16)
+              .padding(.vertical, 8)
+              .background(Color(hex: "#333333"))
+              .clipShape(Capsule())
+          }
+        }
+      }
+    }
+    .frame(height: 44)
   }
 
   // MARK: - Song Info Header
