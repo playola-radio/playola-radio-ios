@@ -49,6 +49,7 @@ class RecordIntroPageModel: ViewModel {
   // MARK: - Properties
 
   let navigationTitle = "Record Intro"
+  let doneButtonLabel = "Done"
 
   let instructionItems = [
     "Please use a good external microphone for this.",
