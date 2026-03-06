@@ -1748,56 +1748,56 @@ extension BroadcastPageTests {
 
   func testRefreshScheduleFromRemoteShowsToastWithEditorName() async {
     let spins = makeSpins(ids: ["spin-1", "spin-2"])
-    var shownToast: PlayolaToast?
+    let shownToast = LockIsolated<PlayolaToast?>(nil)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in spins }
-      $0.toast.show = { toast in shownToast = toast }
+      $0.toast.show = { toast in shownToast.setValue(toast) }
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       await model.refreshScheduleFromRemote(editorName: "Jane Smith")
 
-      XCTAssertNotNil(shownToast)
-      XCTAssertEqual(shownToast?.message, "Edited by Jane Smith")
+      XCTAssertNotNil(shownToast.value)
+      XCTAssertEqual(shownToast.value?.message, "Edited by Jane Smith")
     }
   }
 
   func testRefreshScheduleFromRemoteNoToastWithoutEditorName() async {
     let spins = makeSpins(ids: ["spin-1", "spin-2"])
-    var shownToast: PlayolaToast?
+    let shownToast = LockIsolated<PlayolaToast?>(nil)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in spins }
-      $0.toast.show = { toast in shownToast = toast }
+      $0.toast.show = { toast in shownToast.setValue(toast) }
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       await model.refreshScheduleFromRemote()
 
-      XCTAssertNil(shownToast)
+      XCTAssertNil(shownToast.value)
     }
   }
 
   func testScheduleUpdateNotificationIgnoredForDifferentStation() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
-    var fetchCount = 0
+    let fetchCount = LockIsolated(0)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in
-        fetchCount += 1
+        fetchCount.withValue { $0 += 1 }
         return initialSpins
       }
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      let initialFetchCount = fetchCount
+      let initialFetchCount = fetchCount.value
 
       NotificationCenter.default.post(
         name: .scheduleUpdated,
@@ -1805,10 +1805,9 @@ extension BroadcastPageTests {
         userInfo: ["stationId": "different-station-id"]
       )
 
-      // Give time for any async work to process
-      try? await Task.sleep(for: .milliseconds(100))
+      await Task.yield()
 
-      XCTAssertEqual(fetchCount, initialFetchCount)
+      XCTAssertEqual(fetchCount.value, initialFetchCount)
     }
   }
 }
