@@ -17,6 +17,7 @@ import UserNotifications
 
 extension Notification.Name {
   static let refreshSupportMessages = Notification.Name("refreshSupportMessages")
+  static let scheduleUpdated = Notification.Name("scheduleUpdated")
 }
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
@@ -46,6 +47,29 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     print("Failed to register for remote notifications: \(error)")
   }
 
+  func application(
+    _ application: UIApplication,
+    didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+    fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+  ) {
+    if userInfo["type"] as? String == "schedule_updated",
+      let stationId = userInfo["stationId"] as? String
+    {
+      var info: [String: Any] = ["stationId": stationId]
+      if let editorName = userInfo["editorName"] as? String {
+        info["editorName"] = editorName
+      }
+      NotificationCenter.default.post(
+        name: .scheduleUpdated,
+        object: nil,
+        userInfo: info
+      )
+      completionHandler(.newData)
+    } else {
+      completionHandler(.noData)
+    }
+  }
+
   // MARK: - UNUserNotificationCenterDelegate
 
   func userNotificationCenter(
@@ -55,6 +79,11 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
   ) {
     let userInfo = notification.request.content.userInfo
     print("📬 Notification received in foreground: \(notification.request.content.title)")
+
+    if userInfo["type"] as? String == "schedule_updated" {
+      completionHandler([])
+      return
+    }
 
     if userInfo["type"] as? String == "support_message" {
       let badgeFromPayload = userInfo["badge"] as? Int

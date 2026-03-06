@@ -1662,4 +1662,153 @@ extension BroadcastPageTests {
       }
     }
   }
+
+  // MARK: - Schedule Update Notification Tests
+
+  func testRefreshScheduleFromRemoteUpdatesSchedule() async {
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
+    let updatedSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in initialSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      XCTAssertEqual(model.schedule?.current().count, 2)
+
+      model.api.fetchSchedule = { _, _ in updatedSpins }
+      await model.refreshScheduleFromRemote()
+
+      XCTAssertEqual(model.schedule?.current().count, 3)
+    }
+  }
+
+  func testRefreshScheduleFromRemoteClearsReorderedSpinIds() async {
+    let spins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      await model.refreshScheduleFromRemote()
+
+      XCTAssertNotNil(model.schedule)
+    }
+  }
+
+  func testRefreshScheduleFromRemoteSilentlyFailsOnError() async {
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in initialSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      model.api.fetchSchedule = { _, _ in throw TestError.networkError }
+      await model.refreshScheduleFromRemote()
+
+      XCTAssertNotNil(model.schedule)
+      XCTAssertNil(model.presentedAlert)
+    }
+  }
+
+  func testScheduleUpdateNotificationTriggersRefresh() async {
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
+    let updatedSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
+    let fetchExpectation = XCTestExpectation(description: "Schedule fetched after notification")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in initialSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      model.api.fetchSchedule = { _, _ in
+        fetchExpectation.fulfill()
+        return updatedSpins
+      }
+
+      NotificationCenter.default.post(
+        name: .scheduleUpdated,
+        object: nil,
+        userInfo: ["stationId": testStationId, "editorName": "Jane Smith"]
+      )
+
+      await fulfillment(of: [fetchExpectation], timeout: 1.0)
+    }
+  }
+
+  func testRefreshScheduleFromRemoteShowsToastWithEditorName() async {
+    let spins = makeSpins(ids: ["spin-1", "spin-2"])
+    var shownToast: PlayolaToast?
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+      $0.toast.show = { toast in shownToast = toast }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      await model.refreshScheduleFromRemote(editorName: "Jane Smith")
+
+      XCTAssertNotNil(shownToast)
+      XCTAssertEqual(shownToast?.message, "Edited by Jane Smith")
+    }
+  }
+
+  func testRefreshScheduleFromRemoteNoToastWithoutEditorName() async {
+    let spins = makeSpins(ids: ["spin-1", "spin-2"])
+    var shownToast: PlayolaToast?
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+      $0.toast.show = { toast in shownToast = toast }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      await model.refreshScheduleFromRemote()
+
+      XCTAssertNil(shownToast)
+    }
+  }
+
+  func testScheduleUpdateNotificationIgnoredForDifferentStation() async {
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
+    var fetchCount = 0
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in
+        fetchCount += 1
+        return initialSpins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      let initialFetchCount = fetchCount
+
+      NotificationCenter.default.post(
+        name: .scheduleUpdated,
+        object: nil,
+        userInfo: ["stationId": "different-station-id"]
+      )
+
+      // Give time for any async work to process
+      try? await Task.sleep(for: .milliseconds(100))
+
+      XCTAssertEqual(fetchCount, initialFetchCount)
+    }
+  }
 }
