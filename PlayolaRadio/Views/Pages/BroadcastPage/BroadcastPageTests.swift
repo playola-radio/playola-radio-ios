@@ -1668,17 +1668,20 @@ extension BroadcastPageTests {
   func testRefreshScheduleFromRemoteUpdatesSchedule() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
     let updatedSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
+    let useUpdatedSpins = LockIsolated(false)
 
     await withDependencies {
       $0.date.now = fixedNow
-      $0.api.fetchSchedule = { _, _ in initialSpins }
+      $0.api.fetchSchedule = { _, _ in
+        useUpdatedSpins.value ? updatedSpins : initialSpins
+      }
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       XCTAssertEqual(model.schedule?.current().count, 2)
 
-      model.api.fetchSchedule = { _, _ in updatedSpins }
+      useUpdatedSpins.setValue(true)
       await model.refreshScheduleFromRemote()
 
       XCTAssertEqual(model.schedule?.current().count, 3)
@@ -1703,15 +1706,19 @@ extension BroadcastPageTests {
 
   func testRefreshScheduleFromRemoteSilentlyFailsOnError() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
+    let shouldThrow = LockIsolated(false)
 
     await withDependencies {
       $0.date.now = fixedNow
-      $0.api.fetchSchedule = { _, _ in initialSpins }
+      $0.api.fetchSchedule = { _, _ in
+        if shouldThrow.value { throw TestError.networkError }
+        return initialSpins
+      }
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      model.api.fetchSchedule = { _, _ in throw TestError.networkError }
+      shouldThrow.setValue(true)
       await model.refreshScheduleFromRemote()
 
       XCTAssertNotNil(model.schedule)
@@ -1720,29 +1727,43 @@ extension BroadcastPageTests {
   }
 
   func testScheduleUpdateNotificationTriggersRefresh() async {
+    let uniqueStationId = "notification-trigger-test-station"
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
     let updatedSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
-    let fetchExpectation = XCTestExpectation(description: "Schedule fetched after notification")
+    let fetchCount = LockIsolated(0)
 
-    await withDependencies {
-      $0.date.now = fixedNow
-      $0.api.fetchSchedule = { _, _ in initialSpins }
-    } operation: {
-      let model = BroadcastPageModel(stationId: testStationId)
-      await model.viewAppeared()
+    await withMainSerialExecutor {
+      await withDependencies {
+        $0.date.now = fixedNow
+        $0.toast = .noop
+        $0.api.fetchSchedule = { _, _ in
+          let count = fetchCount.withValue { val -> Int in
+            val += 1
+            return val
+          }
+          return count > 1 ? updatedSpins : initialSpins
+        }
+      } operation: {
+        let model = BroadcastPageModel(stationId: uniqueStationId)
+        await model.viewAppeared()
 
-      model.api.fetchSchedule = { _, _ in
-        fetchExpectation.fulfill()
-        return updatedSpins
+        XCTAssertEqual(fetchCount.value, 1)
+
+        NotificationCenter.default.post(
+          name: .scheduleUpdated,
+          object: nil,
+          userInfo: ["stationId": uniqueStationId, "editorName": "Jane Smith"]
+        )
+
+        // The notification handler spawns a Task that calls refreshScheduleFromRemote.
+        // Suspension points: Task start + fetchSchedule + toast.show
+        await Task.yield()
+        await Task.yield()
+        await Task.yield()
+        await Task.yield()
+
+        XCTAssertEqual(fetchCount.value, 2)
       }
-
-      NotificationCenter.default.post(
-        name: .scheduleUpdated,
-        object: nil,
-        userInfo: ["stationId": testStationId, "editorName": "Jane Smith"]
-      )
-
-      await fulfillment(of: [fetchExpectation], timeout: 1.0)
     }
   }
 
