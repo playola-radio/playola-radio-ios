@@ -10,6 +10,7 @@ import Dependencies
 import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
+import Sharing
 
 // MARK: - Request Parameters
 
@@ -375,7 +376,11 @@ extension APIClient: DependencyKey {
       },
       deleteSpin: { jwtToken, spinId in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/spins/\(spinId)"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        @Shared(.registeredDeviceId) var registeredDeviceId
+        var headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        if let deviceId = registeredDeviceId {
+          headers.add(name: "X-Device-Id", value: deviceId)
+        }
 
         let dataResponse = await AF.request(
           url,
@@ -403,7 +408,11 @@ extension APIClient: DependencyKey {
       },
       moveSpin: { jwtToken, spinId, placeAfterSpinId in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/spins/\(spinId)"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        @Shared(.registeredDeviceId) var registeredDeviceId
+        var headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        if let deviceId = registeredDeviceId {
+          headers.add(name: "X-Device-Id", value: deviceId)
+        }
         let parameters = MoveSpinParameters(placeAfterSpinId: placeAfterSpinId)
 
         let dataResponse = await AF.request(
@@ -439,7 +448,11 @@ extension APIClient: DependencyKey {
       },
       insertSpin: { jwtToken, audioBlockId, placeAfterSpinId in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/spins"
-        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        @Shared(.registeredDeviceId) var registeredDeviceId
+        var headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        if let deviceId = registeredDeviceId {
+          headers.add(name: "X-Device-Id", value: deviceId)
+        }
         let parameters: [String: String] = [
           "audioBlockId": audioBlockId,
           "placeAfterSpinId": placeAfterSpinId,
