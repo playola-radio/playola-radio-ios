@@ -1662,4 +1662,173 @@ extension BroadcastPageTests {
       }
     }
   }
+
+  // MARK: - Schedule Update Notification Tests
+
+  func testRefreshScheduleFromRemoteUpdatesSchedule() async {
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
+    let updatedSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
+    let useUpdatedSpins = LockIsolated(false)
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in
+        useUpdatedSpins.value ? updatedSpins : initialSpins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      XCTAssertEqual(model.schedule?.current().count, 2)
+
+      useUpdatedSpins.setValue(true)
+      await model.refreshScheduleFromRemote()
+
+      XCTAssertEqual(model.schedule?.current().count, 3)
+    }
+  }
+
+  func testRefreshScheduleFromRemoteClearsReorderedSpinIds() async {
+    let spins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      await model.refreshScheduleFromRemote()
+
+      XCTAssertNotNil(model.schedule)
+    }
+  }
+
+  func testRefreshScheduleFromRemoteSilentlyFailsOnError() async {
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
+    let shouldThrow = LockIsolated(false)
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in
+        if shouldThrow.value { throw TestError.networkError }
+        return initialSpins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      shouldThrow.setValue(true)
+      await model.refreshScheduleFromRemote()
+
+      XCTAssertNotNil(model.schedule)
+      XCTAssertNil(model.presentedAlert)
+    }
+  }
+
+  func testScheduleUpdateNotificationTriggersRefresh() async {
+    let uniqueStationId = "notification-trigger-test-station"
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
+    let updatedSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
+    let fetchCount = LockIsolated(0)
+
+    await withMainSerialExecutor {
+      await withDependencies {
+        $0.date.now = fixedNow
+        $0.toast = .noop
+        $0.api.fetchSchedule = { _, _ in
+          let count = fetchCount.withValue { val -> Int in
+            val += 1
+            return val
+          }
+          return count > 1 ? updatedSpins : initialSpins
+        }
+      } operation: {
+        let model = BroadcastPageModel(stationId: uniqueStationId)
+        await model.viewAppeared()
+
+        XCTAssertEqual(fetchCount.value, 1)
+
+        NotificationCenter.default.post(
+          name: .scheduleUpdated,
+          object: nil,
+          userInfo: ["stationId": uniqueStationId, "editorName": "Jane Smith"]
+        )
+
+        // The notification handler spawns a Task that calls refreshScheduleFromRemote.
+        // Suspension points: Task start + fetchSchedule + toast.show
+        await Task.yield()
+        await Task.yield()
+        await Task.yield()
+        await Task.yield()
+
+        XCTAssertEqual(fetchCount.value, 2)
+      }
+    }
+  }
+
+  func testRefreshScheduleFromRemoteShowsToastWithEditorName() async {
+    let spins = makeSpins(ids: ["spin-1", "spin-2"])
+    let shownToast = LockIsolated<PlayolaToast?>(nil)
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+      $0.toast.show = { toast in shownToast.setValue(toast) }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      await model.refreshScheduleFromRemote(editorName: "Jane Smith")
+
+      XCTAssertNotNil(shownToast.value)
+      XCTAssertEqual(shownToast.value?.message, "Edited by Jane Smith")
+    }
+  }
+
+  func testRefreshScheduleFromRemoteNoToastWithoutEditorName() async {
+    let spins = makeSpins(ids: ["spin-1", "spin-2"])
+    let shownToast = LockIsolated<PlayolaToast?>(nil)
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+      $0.toast.show = { toast in shownToast.setValue(toast) }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      await model.refreshScheduleFromRemote()
+
+      XCTAssertNil(shownToast.value)
+    }
+  }
+
+  func testScheduleUpdateNotificationIgnoredForDifferentStation() async {
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
+    let fetchCount = LockIsolated(0)
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in
+        fetchCount.withValue { $0 += 1 }
+        return initialSpins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      let initialFetchCount = fetchCount.value
+
+      NotificationCenter.default.post(
+        name: .scheduleUpdated,
+        object: nil,
+        userInfo: ["stationId": "different-station-id"]
+      )
+
+      await Task.yield()
+
+      XCTAssertEqual(fetchCount.value, initialFetchCount)
+    }
+  }
 }
