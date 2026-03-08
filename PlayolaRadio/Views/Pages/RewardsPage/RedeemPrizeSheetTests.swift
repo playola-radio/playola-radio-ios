@@ -10,8 +10,6 @@ import XCTest
 
 @testable import PlayolaRadio
 
-// swiftlint:disable redundant_optional_initialization
-
 @MainActor
 final class RedeemPrizeSheetModelTests: XCTestCase {
 

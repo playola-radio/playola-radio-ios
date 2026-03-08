@@ -91,11 +91,9 @@ class RedeemPrizeSheetModel: ViewModel {
     if prizeTier.perStation {
       let stations = stationLists.flatMap { $0.visibleStationItems.map { $0.anyStation } }
       let seen = NSMutableSet()
-      for station in stations {
-        if !seen.contains(station.id) {
-          seen.add(station.id)
-          options.append(RedeemOption(station: station, tierName: prizeTier.name))
-        }
+      for station in stations where !seen.contains(station.id) {
+        seen.add(station.id)
+        options.append(RedeemOption(station: station, tierName: prizeTier.name))
       }
     }
 
