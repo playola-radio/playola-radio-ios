@@ -237,8 +237,9 @@ extension PlayolaAlert {
     PlayolaAlert(
       title: "Discard Recording?",
       message: "This recording will be permanently deleted.",
-      dismissButton: .cancel(Text("Cancel")),
-      secondaryButton: .destructive(Text("Discard"), action: onConfirm))
+      primaryButtonText: "Discard",
+      primaryAction: { onConfirm() },
+      secondaryButtonText: "Cancel")
   }
 
   static var microphonePermissionDeniedAlert: PlayolaAlert {
