@@ -178,5 +178,3 @@ final class RedeemPrizeSheetModelTests: XCTestCase {
     XCTAssertFalse(model.isSubmitting)
   }
 }
-
-// swiftlint:enable redundant_optional_initialization
