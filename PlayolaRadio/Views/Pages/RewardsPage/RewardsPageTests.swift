@@ -81,6 +81,7 @@ final class RewardsPageModelTests: XCTestCase {
   func testRedeemPrize_TracksRedeemAnalytics() async {
     @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(
       totalTimeMS: 108_000_000)  // 30 hours
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator
     let mockPrizeTiers = PrizeTier.mocks
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
@@ -103,6 +104,50 @@ final class RewardsPageModelTests: XCTestCase {
     } else {
       XCTFail("Expected tappedRedeemRewards event, got: \(String(describing: events.first))")
     }
+  }
+
+  func testRedeemPrizeTapped_PresentsRedeemSheet() async {
+    @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(
+      totalTimeMS: 108_000_000)
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+    let mockPrizeTiers = PrizeTier.mocks
+
+    let model = withDependencies {
+      $0.api.getPrizeTiers = { mockPrizeTiers }
+    } operation: {
+      RewardsPageModel()
+    }
+
+    await model.redeemPrizeTapped(for: mockPrizeTiers[0])
+
+    if case .redeemPrize(let sheetModel) = navCoordinator.presentedSheet {
+      XCTAssertEqual(sheetModel.prizeTier.id, mockPrizeTiers[0].id)
+    } else {
+      XCTFail(
+        "Expected redeemPrize sheet, got \(String(describing: navCoordinator.presentedSheet))")
+    }
+  }
+
+  func testLoadUserPrizes_PopulatesRedeemedTierIds() async {
+    @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(totalTimeMS: 0)
+    @Shared(.auth) var auth = Auth(jwt: "test-token")
+    let mockPrizeTiers = PrizeTier.mocks
+    let mockPrize = mockPrizeTiers[0].prizes[0]
+    let mockUserPrizes = [
+      UserPrize(
+        id: "up-1", userId: "user-1", prizeId: mockPrize.id, prize: mockPrize)
+    ]
+
+    let model = withDependencies {
+      $0.api.getPrizeTiers = { mockPrizeTiers }
+      $0.api.getUserPrizes = { _ in mockUserPrizes }
+    } operation: {
+      RewardsPageModel()
+    }
+
+    await model.viewAppeared()
+
+    XCTAssertTrue(model.redeemedPrizeTierIds.contains(mockPrizeTiers[0].id))
   }
 
   // MARK: - Redemption Status Tests

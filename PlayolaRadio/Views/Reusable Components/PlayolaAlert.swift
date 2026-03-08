@@ -251,4 +251,18 @@ extension PlayolaAlert {
       message: "There was an error creating your invite link. Please try again.",
       dismissButton: .cancel(Text("OK")))
   }
+
+  static var errorRedeemingPrize: PlayolaAlert {
+    PlayolaAlert(
+      title: "Error",
+      message: "There was an error redeeming your prize. Please try again.",
+      dismissButton: .cancel(Text("OK")))
+  }
+
+  static var prizeRedeemed: PlayolaAlert {
+    PlayolaAlert(
+      title: "Prize Redeemed!",
+      message: "We'll follow up via email to coordinate your reward.",
+      dismissButton: .cancel(Text("OK")))
+  }
 }

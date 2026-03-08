@@ -37,6 +37,7 @@ struct LoggedInUser: Codable {
   let firstName: String
   let lastName: String?
   let email: String
+  let verifiedEmail: String?
   let profileImageUrl: String?
   let role: String
   let jwt: String
@@ -53,6 +54,7 @@ struct LoggedInUser: Codable {
       self.firstName = "Unknown"
       self.lastName = "User"
       self.email = ""
+      self.verifiedEmail = nil
       self.profileImageUrl = nil
       self.role = "user"
       self.jwt = jwt
@@ -63,6 +65,7 @@ struct LoggedInUser: Codable {
     self.firstName = firstName
     self.lastName = userDict["lastName"] as? String
     self.email = email
+    self.verifiedEmail = userDict["verifiedEmail"] as? String
     self.profileImageUrl = userDict["profileImageUrl"] as? String
     self.role = role
     self.jwt = jwt
@@ -70,6 +73,7 @@ struct LoggedInUser: Codable {
 
   init(
     id: String, firstName: String, lastName: String? = nil, email: String,
+    verifiedEmail: String? = nil,
     profileImageUrl: String? = nil,
     role: String = "user"
   ) {
@@ -77,11 +81,12 @@ struct LoggedInUser: Codable {
     self.firstName = firstName
     self.lastName = lastName
     self.email = email
+    self.verifiedEmail = verifiedEmail
     self.profileImageUrl = profileImageUrl
     self.role = role
     self.jwt = LoggedInUser.generateJWT(
       id: id, firstName: firstName, lastName: lastName, email: email,
-      profileImageUrl: profileImageUrl, role: role)
+      verifiedEmail: verifiedEmail, profileImageUrl: profileImageUrl, role: role)
   }
 
   var fullName: String {
@@ -93,7 +98,8 @@ struct LoggedInUser: Codable {
   }
 
   private static func generateJWT(
-    id: String, firstName: String, lastName: String? = nil, email: String, profileImageUrl: String?,
+    id: String, firstName: String, lastName: String? = nil, email: String,
+    verifiedEmail: String? = nil, profileImageUrl: String?,
     role: String
   ) -> String {
     let header = ["alg": "HS256", "typ": "JWT"]
@@ -104,6 +110,10 @@ struct LoggedInUser: Codable {
       "email": email,
       "role": role,
     ]
+
+    if let verifiedEmail = verifiedEmail {
+      payload["verifiedEmail"] = verifiedEmail
+    }
 
     if let profileImageUrl = profileImageUrl {
       payload["profileImageUrl"] = profileImageUrl
