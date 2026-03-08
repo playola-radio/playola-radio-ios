@@ -188,13 +188,26 @@ extension APIClient: DependencyKey {
 
         return response
       },
-      updateUser: { jwtToken, firstName, lastName in
+      getUserPrizes: { jwtToken in
+        try await authenticatedGet(path: "/v1/rewards/users/me/prizes", token: jwtToken)
+      },
+      redeemPrize: { jwtToken, prizeId, stationId in
+        var params: [String: String] = [:]
+        if let stationId { params["stationId"] = stationId }
+        return try await authenticatedPost(
+          path: "/v1/rewards/users/me/prizes/\(prizeId)/redeem",
+          token: jwtToken,
+          parameters: params
+        )
+      },
+      updateUser: { jwtToken, firstName, lastName, verifiedEmail in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me"
 
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
 
         var params: [String: String] = ["firstName": firstName]
         if let lastName { params["lastName"] = lastName }
+        if let verifiedEmail { params["verifiedEmail"] = verifiedEmail }
 
         let request = AF.request(
           url,
@@ -218,6 +231,7 @@ extension APIClient: DependencyKey {
           firstName: body.firstName,
           lastName: body.lastName,
           email: body.email,
+          verifiedEmail: body.verifiedEmail,
           profileImageUrl: body.profileImageUrl,
           role: body.role
         )

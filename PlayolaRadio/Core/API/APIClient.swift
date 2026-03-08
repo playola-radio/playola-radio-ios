@@ -56,14 +56,34 @@ struct APIClient: Sendable {
   /// - Returns: Array of PrizeTier objects containing tiers and their associated prizes
   var getPrizeTiers: () async throws -> [PrizeTier] = { [] }
 
+  /// Fetches the user's redeemed prizes
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: Array of UserPrize objects
+  var getUserPrizes: (_ jwtToken: String) async throws -> [UserPrize] = { _ in [] }
+
+  /// Redeems a prize for the user
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - prizeId: The ID of the prize to redeem
+  ///   - stationId: Optional station ID for per-station prizes
+  /// - Returns: The created UserPrize
+  var redeemPrize:
+    (_ jwtToken: String, _ prizeId: String, _ stationId: String?) async throws -> UserPrize = {
+      _, _, _ in
+      UserPrize(
+        id: "", userId: "", prizeId: "",
+        redeemedAt: Date(), createdAt: Date(), updatedAt: Date(), prize: nil)
+    }
+
   ///   - jwtToken: Current JWT
   ///   - firstName: New first name
   ///   - lastName: New last name (optional, "" treated as nil)
   /// - Returns: Updated `Auth` containing fresh token & user
   var updateUser:
-    (_ jwtToken: String, _ firstName: String, _ lastName: String?) async throws -> Auth = {
-      _, _, _ in Auth()
-    }
+    (_ jwtToken: String, _ firstName: String, _ lastName: String?, _ verifiedEmail: String?)
+      async throws -> Auth = {
+        _, _, _, _ in Auth()
+      }
 
   /// Verifies if an invitation code is valid
   /// - Parameter code: The invitation code to verify
@@ -697,6 +717,7 @@ struct UpdateUserResponse: Decodable {
   let firstName: String
   let lastName: String?
   let email: String
+  let verifiedEmail: String?
   let profileImageUrl: String?
   let role: String
 }

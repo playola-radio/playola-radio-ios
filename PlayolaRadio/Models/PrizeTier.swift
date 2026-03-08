@@ -12,6 +12,7 @@ struct PrizeTier: Decodable, Sendable, Identifiable, Equatable {
   let name: String
   let requiredListeningHours: Int
   let imageIconUrl: URL?
+  let perStation: Bool
   let prizes: [Prize]
   let createdAt: Date
   let updatedAt: Date
@@ -21,6 +22,7 @@ struct PrizeTier: Decodable, Sendable, Identifiable, Equatable {
     case name
     case requiredListeningHours
     case imageIconUrl
+    case perStation
     case prizes
     case createdAt
     case updatedAt
@@ -39,6 +41,7 @@ struct PrizeTier: Decodable, Sendable, Identifiable, Equatable {
       imageIconUrl = nil
     }
 
+    perStation = try container.decodeIfPresent(Bool.self, forKey: .perStation) ?? false
     prizes = try container.decode([Prize].self, forKey: .prizes)
     createdAt = try container.decode(Date.self, forKey: .createdAt)
     updatedAt = try container.decode(Date.self, forKey: .updatedAt)
@@ -49,6 +52,7 @@ struct PrizeTier: Decodable, Sendable, Identifiable, Equatable {
     name: String,
     requiredListeningHours: Int,
     imageIconUrl: URL?,
+    perStation: Bool = false,
     prizes: [Prize],
     createdAt: Date = Date(),
     updatedAt: Date = Date()
@@ -57,6 +61,7 @@ struct PrizeTier: Decodable, Sendable, Identifiable, Equatable {
     self.name = name
     self.requiredListeningHours = requiredListeningHours
     self.imageIconUrl = imageIconUrl
+    self.perStation = perStation
     self.prizes = prizes
     self.createdAt = createdAt
     self.updatedAt = updatedAt

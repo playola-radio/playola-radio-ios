@@ -91,6 +91,7 @@ struct RewardsPageView: View {
       }
     }
     .background(Color.black)
+    .playolaAlert($model.presentedAlert)
     .task {
       await model.viewAppeared()
     }

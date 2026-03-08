@@ -35,6 +35,7 @@ class RewardsPageModel: ViewModel {
   var prizeTiers: [PrizeTier] = []
   var redeemedPrizeTierIds: Set<String> = []
   var referralCode: ReferralCode?
+  var presentedAlert: PlayolaAlert?
 
   // MARK: - View Helpers
 
@@ -113,8 +114,19 @@ class RewardsPageModel: ViewModel {
     let currentHours = getCurrentListeningHours()
     await analytics.track(.tappedRedeemRewards(currentHours: currentHours))
 
-    // TODO: Implement actual redemption logic
-    print("Redeeming \(prizeTier.name)")
+    let sheetModel = RedeemPrizeSheetModel(
+      prizeTier: prizeTier,
+      onSuccess: { [weak self] userPrize in
+        guard let self else { return }
+        if let prize = userPrize.prize {
+          self.redeemedPrizeTierIds.insert(prize.prizeTierId)
+        } else {
+          self.redeemedPrizeTierIds.insert(prizeTier.id)
+        }
+        self.presentedAlert = .prizeRedeemed
+      }
+    )
+    mainContainerNavigationCoordinator.presentedSheet = .redeemPrize(sheetModel)
   }
 
   func inviteFriendsTapped() async {
@@ -150,8 +162,15 @@ class RewardsPageModel: ViewModel {
   }
 
   private func loadUserPrizes() async {
-    // TODO: Actually download this.
-    // This should populate redeemedPrizeTierIds with the IDs of prize tiers the user has already redeemed
+    guard let jwt = auth.jwt else { return }
+    do {
+      let userPrizes = try await api.getUserPrizes(jwt)
+      redeemedPrizeTierIds = Set(
+        userPrizes.compactMap { $0.prize?.prizeTierId }
+      )
+    } catch {
+      print("Failed to load user prizes: \(error)")
+    }
   }
 
   private func getUserListeningHours() -> Int {

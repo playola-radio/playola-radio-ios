@@ -49,7 +49,7 @@ class EditProfilePageModel: ViewModel {
     guard let jwt = auth.jwt else { return }
     do {
       let result = try await api.updateUser(
-        jwtToken: jwt, firstName: firstName, lastName: lastName ?? nil)
+        jwtToken: jwt, firstName: firstName, lastName: lastName ?? nil, verifiedEmail: nil)
       $auth.withLock { $0 = result }
       self.presentedAlert = .updateProfileSuccessfullAlert
 
