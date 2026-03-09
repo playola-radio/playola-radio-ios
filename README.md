@@ -23,7 +23,7 @@ Playola Radio is a streaming radio app for iOS featuring curated artist stations
 - **State Management**: [Sharing](https://github.com/pointfreeco/swift-sharing)
 - **Streaming**: [FRadioPlayer](https://github.com/fethica/FRadioPlayer) + [PlayolaPlayer](https://github.com/playola-radio/playola-player-swift)
 - **Analytics**: Mixpanel
-- **CI/CD**: CircleCI + Fastlane
+- **CI/CD**: GitHub Actions + CircleCI + Fastlane
 
 ### Project Structure
 
@@ -169,10 +169,40 @@ bundle exec fastlane test
 bundle exec fastlane lint_code
 ```
 
-### Building for TestFlight
-```bash
-bundle exec fastlane beta
-```
+### Release Process
+
+#### Starting a Release
+1. **Trigger workflow** on `develop` with new version (e.g., `5.4.0`)
+   - Go to **Actions** → **Prepare Release** → **Run workflow**
+   - Enter the new version number
+   - Click the CircleCI link to monitor progress
+2. `git pull` → Archive both schemes → Upload to TestFlight
+
+#### Fixing Bugs During Release
+1. Create fix branch off `develop` → merge fix to `develop`
+2. **Trigger workflow** on `develop` (leave version blank - build auto-increments)
+3. `git pull` → Archive → Upload
+4. Repeat until satisfied
+
+#### Finalizing the Release
+1. Merge `develop` → `main` via PR
+2. Tag (e.g., `v5.4.0`) is created automatically
+
+#### Release CI Setup (One-Time)
+
+The release workflow uses GitHub Actions to trigger CircleCI. Setup required:
+
+**1. CircleCI API Token → GitHub**
+- Go to [CircleCI User Settings > Personal API Tokens](https://app.circleci.com/settings/user/tokens)
+- Create a new token (name it "GitHub Actions")
+- Copy the token
+- Go to your GitHub repo → Settings → Secrets → Actions
+- Add secret: `CCI_TOKEN` = (paste token)
+
+**2. Give CircleCI Write Access to Push Commits**
+- Go to [CircleCI Project Settings > SSH Keys](https://app.circleci.com/settings/project/github/playola-radio/playola-radio-ios/ssh)
+- Click **"Authorize with GitHub"** under "User Key"
+- This allows CircleCI to push the version bump commit
 
 ## Key Components
 

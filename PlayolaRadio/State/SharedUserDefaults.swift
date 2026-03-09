@@ -146,6 +146,20 @@ extension SharedKey where Self == InMemoryKey<Int>.Default {
   }
 }
 
+// MARK: - Version Enforcement
+
+extension SharedKey where Self == AppStorageKey<Bool>.Default {
+  static var isBroadcaster: Self {
+    Self[.appStorage("isBroadcaster"), default: false]
+  }
+}
+
+extension SharedKey where Self == InMemoryKey<AppVersionRequirements?>.Default {
+  static var appVersionRequirements: Self {
+    Self[.inMemory("appVersionRequirements"), default: nil]
+  }
+}
+
 // MARK: - App Rating
 
 extension SharedKey where Self == AppStorageKey<Date?>.Default {

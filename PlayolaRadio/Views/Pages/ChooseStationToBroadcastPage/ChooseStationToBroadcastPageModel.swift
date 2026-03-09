@@ -13,10 +13,23 @@ import SwiftUI
 @MainActor
 @Observable
 class ChooseStationToBroadcastPageModel: ViewModel {
+
+  // MARK: - Shared State
+
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
 
+  // MARK: - Initialization
+
+  init(stations: [Station]) {
+    self.stations = stations
+    super.init()
+  }
+
+  // MARK: - Properties
+
   let stations: [Station]
+  let navigationTitle = "Choose Station"
 
   var sortedStations: [Station] {
     stations
@@ -26,17 +39,15 @@ class ChooseStationToBroadcastPageModel: ViewModel {
       }
   }
 
-  init(stations: [Station]) {
-    self.stations = stations
-    super.init()
+  // MARK: - User Actions
+
+  func stationSelected(_ station: Station) {
+    mainContainerNavigationCoordinator.switchToBroadcastMode(stationId: station.id)
   }
+
+  // MARK: - View Helpers
 
   func displayName(for station: Station) -> String {
     "\(station.curatorName) - \(station.name)"
-  }
-
-  func onStationSelected(_ station: Station) {
-    let model = BroadcastPageModel(stationId: station.id)
-    mainContainerNavigationCoordinator.path.append(.broadcastPage(model))
   }
 }

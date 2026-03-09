@@ -56,14 +56,34 @@ struct APIClient: Sendable {
   /// - Returns: Array of PrizeTier objects containing tiers and their associated prizes
   var getPrizeTiers: () async throws -> [PrizeTier] = { [] }
 
+  /// Fetches the user's redeemed prizes
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: Array of UserPrize objects
+  var getUserPrizes: (_ jwtToken: String) async throws -> [UserPrize] = { _ in [] }
+
+  /// Redeems a prize for the user
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - prizeId: The ID of the prize to redeem
+  ///   - stationId: Optional station ID for per-station prizes
+  /// - Returns: The created UserPrize
+  var redeemPrize:
+    (_ jwtToken: String, _ prizeId: String, _ stationId: String?) async throws -> UserPrize = {
+      _, _, _ in
+      UserPrize(
+        id: "", userId: "", prizeId: "",
+        redeemedAt: Date(), createdAt: Date(), updatedAt: Date(), prize: nil)
+    }
+
   ///   - jwtToken: Current JWT
   ///   - firstName: New first name
   ///   - lastName: New last name (optional, "" treated as nil)
   /// - Returns: Updated `Auth` containing fresh token & user
   var updateUser:
-    (_ jwtToken: String, _ firstName: String, _ lastName: String?) async throws -> Auth = {
-      _, _, _ in Auth()
-    }
+    (_ jwtToken: String, _ firstName: String, _ lastName: String?, _ verifiedEmail: String?)
+      async throws -> Auth = {
+        _, _, _, _ in Auth()
+      }
 
   /// Verifies if an invitation code is valid
   /// - Parameter code: The invitation code to verify
@@ -245,6 +265,80 @@ struct APIClient: Sendable {
         VoicetrackStatusResponse(ready: true, s3Key: "test.m4a")
       }
 
+  // MARK: - Listener Questions
+
+  /// Fetches listener questions for a station
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to fetch questions for
+  /// - Returns: Array of ListenerQuestion objects
+  /// - Throws: APIError if the request fails
+  var getListenerQuestions:
+    (_ jwtToken: String, _ stationId: String) async throws -> [ListenerQuestion] = { _, _ in [] }
+
+  /// Gets a presigned URL for uploading a listener question to S3
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to upload the question for
+  /// - Returns: ListenerQuestionPresignedURLResponse containing the upload URL and S3 key
+  /// - Throws: APIError if the request fails
+  var getListenerQuestionPresignedURL:
+    (_ jwtToken: String, _ stationId: String) async throws
+      -> ListenerQuestionPresignedURLResponse = { _, _ in
+        ListenerQuestionPresignedURLResponse(
+          presignedUrl: URL(string: "https://example.com")!,
+          s3Key: "test.m4a",
+          questionUrl: URL(string: "https://example.com/test.m4a")!
+        )
+      }
+
+  /// Creates a listener question linking to an existing AudioBlock
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - audioBlockId: The AudioBlock ID for the question audio
+  /// - Returns: The created ListenerQuestion
+  /// - Throws: APIError if the request fails
+  var createListenerQuestion:
+    (_ jwtToken: String, _ stationId: String, _ audioBlockId: String) async throws
+      -> ListenerQuestion = { _, _, _ in
+        ListenerQuestion.mock
+      }
+
+  /// Registers an answer to a listener question with a recorded response
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - questionId: The ID of the question being answered
+  ///   - answerAudioBlockId: The AudioBlock ID of the recorded answer
+  /// - Returns: The updated ListenerQuestion
+  /// - Throws: APIError if the request fails
+  var registerListenerQuestionAnswer:
+    (_ jwtToken: String, _ stationId: String, _ questionId: String, _ answerAudioBlockId: String)
+      async throws -> ListenerQuestion = { _, _, _, _ in
+        ListenerQuestion.mock
+      }
+
+  /// Declines a listener question
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - questionId: The ID of the question to decline
+  /// - Returns: The updated ListenerQuestion with declined status
+  /// - Throws: APIError if the request fails
+  var declineListenerQuestion:
+    (_ jwtToken: String, _ stationId: String, _ questionId: String) async throws
+      -> ListenerQuestion = { _, _, _ in
+        ListenerQuestion.mock
+      }
+
+  /// Fetches upcoming listener question airings for the authenticated user
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: Array of ListenerQuestionAiring objects scheduled in the future
+  /// - Throws: APIError if the request fails
+  var getMyListenerQuestionAirings: (_ jwtToken: String) async throws -> [ListenerQuestionAiring] =
+    { _ in [] }
+
   /// Searches for songs by keywords
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
@@ -269,9 +363,10 @@ struct APIClient: Sendable {
   /// Requests a song to be added to the library
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
-  ///   - spotifyId: The Spotify ID of the song to request
+  ///   - songRequest: The song request containing song details
   /// - Throws: APIError if the request fails
-  var requestSong: (_ jwtToken: String, _ spotifyId: String) async throws -> Void = { _, _ in }
+  var requestSong: (_ jwtToken: String, _ songRequest: SongRequest) async throws -> Void = { _, _ in
+  }
 
   /// Registers a device for push notifications
   /// - Parameters:
@@ -432,6 +527,150 @@ struct APIClient: Sendable {
     (_ jwtToken: String, _ status: String?) async throws -> [AdminConversationResponse] = { _, _ in
       []
     }
+
+  // MARK: - Referral Codes
+
+  /// Creates a referral code for the authenticated user
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - expiresAt: Expiration date for the referral code
+  /// - Returns: An existing ReferralCode matching the date, or a newly created one
+  /// - Throws: APIError if the request fails or user has no invitation code
+  var getOrCreateReferralCode:
+    (_ jwtToken: String, _ expiresAt: Date) async throws -> ReferralCode = { _, _ in
+      ReferralCode(
+        id: "",
+        code: "",
+        createdByUserId: "",
+        invitationCodeId: "",
+        maxUses: nil,
+        description: nil,
+        expiresAt: nil,
+        isActive: true,
+        createdAt: Date(),
+        updatedAt: Date()
+      )
+    }
+
+  // MARK: - Production Intro Upload
+
+  /// Gets a presigned URL for uploading an intro to playola-production S3
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to upload the intro for
+  ///   - filename: The filename for the upload
+  /// - Returns: IntroPresignedURLResponse containing the upload URL and S3 key
+  /// - Throws: APIError if the request fails
+  var getIntroPresignedURL:
+    (_ jwtToken: String, _ stationId: String, _ filename: String) async throws
+      -> IntroPresignedURLResponse = { _, _, _ in
+        IntroPresignedURLResponse(
+          presignedUrl: URL(string: "https://example.com")!,
+          s3Key: "test.m4a"
+        )
+      }
+
+  /// Creates a source tape in playola-production after uploading to S3
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - s3Key: The S3 key where the file was uploaded
+  ///   - name: The name for the source tape
+  ///   - durationMS: Duration in milliseconds
+  /// - Throws: APIError if the request fails
+  var createIntroSourceTape:
+    (
+      _ jwtToken: String, _ stationId: String, _ s3Key: String, _ name: String, _ durationMS: Int,
+      _ audioBlockId: String?
+    )
+      async throws -> Void = { _, _, _, _, _, _ in }
+
+  // MARK: - Station Library
+
+  /// Fetches all songs in a station's library with song intro information
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to fetch library for
+  /// - Returns: LibraryResponse containing songs and IDs of songs with intros
+  /// - Throws: APIError if the request fails
+  var getStationLibrary: (_ jwtToken: String, _ stationId: String) async throws -> LibraryResponse =
+    {
+      _, _ in .mockWith()
+    }
+
+  /// Fetches library requests for a station
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to fetch requests for
+  ///   - status: Optional status filter (pending, completed, dismissed)
+  /// - Returns: Array of StationLibraryRequest objects
+  /// - Throws: APIError if the request fails
+  var getStationLibraryRequests:
+    (_ jwtToken: String, _ stationId: String, _ status: String?) async throws
+      -> [StationLibraryRequest] = { _, _, _ in [] }
+
+  /// Creates a request to add a song to the station's library
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - body: The request body containing song details
+  /// - Returns: The created StationLibraryRequest
+  /// - Throws: APIError if the request fails
+  var createAddLibraryRequest:
+    (_ jwtToken: String, _ stationId: String, _ body: CreateAddLibraryRequestBody) async throws
+      -> StationLibraryRequest = { _, _, _ in .mock }
+
+  /// Creates a request to remove a song from the station's library
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - audioBlockId: The audio block ID of the song to remove
+  /// - Returns: The created StationLibraryRequest
+  /// - Throws: APIError if the request fails
+  var createRemoveLibraryRequest:
+    (_ jwtToken: String, _ stationId: String, _ audioBlockId: String) async throws
+      -> StationLibraryRequest = { _, _, _ in .mock }
+
+  /// Dismisses a library request
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - requestId: The library request ID to dismiss
+  /// - Returns: The updated StationLibraryRequest
+  /// - Throws: APIError if the request fails
+  var dismissStationLibraryRequest:
+    (_ jwtToken: String, _ stationId: String, _ requestId: String) async throws
+      -> StationLibraryRequest = { _, _, _ in .mock }
+
+  /// Cancels a pending library request
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - requestId: The library request ID to cancel
+  /// - Throws: APIError if the request fails
+  var cancelStationLibraryRequest:
+    (_ jwtToken: String, _ stationId: String, _ requestId: String) async throws
+      -> Void = { _, _, _ in }
+
+  // MARK: - Production Artist Recordings
+
+  /// Fetches audioBlockIds that have artist-recording source tapes for a station
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  /// - Returns: Array of audioBlockId strings
+  /// - Throws: APIError if the request fails
+  var getArtistRecordingAudioBlockIds:
+    (_ jwtToken: String, _ stationId: String) async throws -> [String] = { _, _ in [] }
+
+  // MARK: - App Version Requirements
+
+  /// Fetches minimum app version requirements (no auth required)
+  /// - Returns: AppVersionRequirements containing minimum versions
+  /// - Throws: APIError if the request fails
+  var getAppVersionRequirements: () async throws -> AppVersionRequirements = {
+    AppVersionRequirements(minimumVersion: "1.0.0", minimumBroadcasterVersion: "1.0.0")
+  }
 }
 
 enum APIError: Error, LocalizedError {
@@ -487,6 +726,7 @@ struct UpdateUserResponse: Decodable {
   let firstName: String
   let lastName: String?
   let email: String
+  let verifiedEmail: String?
   let profileImageUrl: String?
   let role: String
 }

@@ -17,6 +17,7 @@ fastlane/report.xml
 
 # Build artifacts
 build/
+output/
 
 # Claude generated files
 claude-files/

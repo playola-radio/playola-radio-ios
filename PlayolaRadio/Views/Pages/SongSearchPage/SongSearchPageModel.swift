@@ -10,6 +10,12 @@ import PlayolaPlayer
 import Sharing
 import SwiftUI
 
+enum SongSearchMode {
+  case libraryOnly
+  case seedsOnly
+  case all
+}
+
 @MainActor
 @Observable
 class SongSearchPageModel: ViewModel {
@@ -22,6 +28,7 @@ class SongSearchPageModel: ViewModel {
   var songRequestResults: [SongRequest] = []
   var isSearching: Bool = false
   var presentedAlert: PlayolaAlert?
+  var processingAddAppleIds: Set<String> = []
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.continuousClock) var clock
@@ -30,12 +37,30 @@ class SongSearchPageModel: ViewModel {
 
   @ObservationIgnored private var debounceTask: Task<Void, Never>?
 
+  let searchMode: SongSearchMode
+  let stationId: String?
+
   var onDismiss: (() -> Void)?
   var onSongSelected: ((AudioBlock) -> Void)?
   var onSongRequested: ((SongRequest) -> Void)?
+  var onAddedToLibrary: ((StationLibraryRequest) -> Void)?
 
-  override init() {
+  init(searchMode: SongSearchMode = .all, stationId: String? = nil) {
+    self.searchMode = searchMode
+    self.stationId = stationId
     super.init()
+  }
+
+  func isProcessingAdd(for songRequest: SongRequest) -> Bool {
+    processingAddAppleIds.contains(songRequest.appleId)
+  }
+
+  var isLibraryAddMode: Bool {
+    onAddedToLibrary != nil
+  }
+
+  var songSeedsSectionHeader: String {
+    isLibraryAddMode ? "APPLE MUSIC" : "AVAILABLE SOON BY REQUEST"
   }
 
   private func onSearchTextChanged() {
@@ -70,9 +95,16 @@ class SongSearchPageModel: ViewModel {
 
     isSearching = true
 
-    await withTaskGroup(of: Void.self) { group in
-      group.addTask { await self.searchSongs(jwt: jwt, query: trimmedQuery) }
-      group.addTask { await self.searchSongRequests(jwt: jwt, query: trimmedQuery) }
+    switch searchMode {
+    case .libraryOnly:
+      await searchSongs(jwt: jwt, query: trimmedQuery)
+    case .seedsOnly:
+      await searchSongRequests(jwt: jwt, query: trimmedQuery)
+    case .all:
+      await withTaskGroup(of: Void.self) { group in
+        group.addTask { await self.searchSongs(jwt: jwt, query: trimmedQuery) }
+        group.addTask { await self.searchSongRequests(jwt: jwt, query: trimmedQuery) }
+      }
     }
 
     isSearching = false
@@ -117,7 +149,7 @@ class SongSearchPageModel: ViewModel {
     }
 
     do {
-      try await api.requestSong(jwt, songRequest.spotifyId)
+      try await api.requestSong(jwt, songRequest)
       updateSongRequestToRequested(songRequest)
       onSongRequested?(songRequest)
     } catch {
@@ -125,9 +157,38 @@ class SongSearchPageModel: ViewModel {
     }
   }
 
+  func onAddSongToLibrary(_ songRequest: SongRequest) async {
+    guard let jwt = auth.jwt else {
+      presentedAlert = .notAuthenticated
+      return
+    }
+
+    guard let stationId else {
+      presentedAlert = .libraryAddError("Station ID is required")
+      return
+    }
+
+    processingAddAppleIds.insert(songRequest.appleId)
+    defer { processingAddAppleIds.remove(songRequest.appleId) }
+
+    do {
+      let body = CreateAddLibraryRequestBody(
+        appleId: songRequest.appleId,
+        title: songRequest.title,
+        artist: songRequest.artist,
+        album: songRequest.album,
+        imageUrl: songRequest.imageUrl?.absoluteString
+      )
+      let request = try await api.createAddLibraryRequest(jwt, stationId, body)
+      onAddedToLibrary?(request)
+    } catch {
+      presentedAlert = .libraryAddError(error.localizedDescription)
+    }
+  }
+
   private func updateSongRequestToRequested(_ songRequest: SongRequest) {
     guard
-      let index = songRequestResults.firstIndex(where: { $0.spotifyId == songRequest.spotifyId })
+      let index = songRequestResults.firstIndex(where: { $0.appleId == songRequest.appleId })
     else { return }
 
     let updatedSongRequest = SongRequest.mockWith(
@@ -139,6 +200,7 @@ class SongSearchPageModel: ViewModel {
       popularity: songRequest.popularity,
       releaseDate: songRequest.releaseDate,
       isrc: songRequest.isrc,
+      appleId: songRequest.appleId,
       spotifyId: songRequest.spotifyId,
       imageUrl: songRequest.imageUrl,
       createdAt: now
@@ -167,6 +229,14 @@ extension PlayolaAlert {
   static func songRequestError(_ message: String) -> PlayolaAlert {
     PlayolaAlert(
       title: "Request Failed",
+      message: message,
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static func libraryAddError(_ message: String) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Add Failed",
       message: message,
       dismissButton: .cancel(Text("OK"))
     )

@@ -39,5 +39,3 @@ extension UIImage {
     }
   }
 }
-
-extension UIImage: Sendable {}

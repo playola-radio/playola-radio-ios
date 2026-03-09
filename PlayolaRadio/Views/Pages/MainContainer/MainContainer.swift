@@ -16,77 +16,29 @@ struct MainContainer: View {
   @Environment(\.scenePhase) private var scenePhase
 
   var body: some View {
-    NavigationStack(path: $model.mainContainerNavigationCoordinator.path) {
-      VStack(spacing: 0) {
-        TabView(selection: $model.activeTab) {
-          tabContentWithSmallPlayer(content: {
-            HomePageView(model: model.homePageModel)
-          })
-          .tabItem {
-            Image("HomeTabImage")
-            Text("Home")
-          }
-          .tag(MainContainerModel.ActiveTab.home)
-
-          tabContentWithSmallPlayer(content: {
-            StationListPage(model: model.stationListModel)
-          })
-          .tabItem {
-            Image("RadioStationsTabImage")
-            Text("Radio Stations")
-          }
-          .tag(MainContainerModel.ActiveTab.stationsList)
-
-          tabContentWithSmallPlayer(content: {
-            RewardsPageView(model: model.rewardsPageModel)
-          })
-          .tabItem {
-            Image("gift")
-            Text("Rewards")
-          }
-          .tag(MainContainerModel.ActiveTab.rewards)
-
-          tabContentWithSmallPlayer(content: {
-            ContactPageView(model: model.contactPageModel)
-          })
-          .tabItem {
-            Image("ProfileTabImage")
-            Text("Your Profile")
-          }
-          .tag(MainContainerModel.ActiveTab.profile)
-        }
-        //        .tabBarMinimizeBehavior(.onScrollDown)  // add in iOS 26
-        .accentColor(.white)  // Makes the selected tab icon white
-        .onAppear {
-          let tabBarAppearance = UITabBarAppearance()
-          tabBarAppearance.configureWithOpaqueBackground()
-          tabBarAppearance.backgroundColor = .black
-
-          UITabBar.appearance().standardAppearance = tabBarAppearance
-          UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
-          UITabBar.appearance().unselectedItemTintColor = UIColor(white: 0.7, alpha: 1.0)
-        }
+    TabView(selection: $model.activeTab) {
+      if model.isInBroadcastMode {
+        broadcastTab
+        libraryTab
+        listenersTab
+        settingsTab
+      } else {
+        homeTab
+        stationsTab
+        rewardsTab
+        profileTab
       }
-      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
-        switch path {
-        case .editProfilePage(let model):
-          EditProfilePageView(model: model)
-        case .likedSongsPage(let model):
-          LikedSongsPage(model: model)
-        case .broadcastPage(let model):
-          BroadcastPageView(model: model)
-        case .chooseStationToBroadcastPage(let model):
-          ChooseStationToBroadcastPageView(model: model)
-        case .notificationsSettingsPage(let model):
-          NotificationsSettingsPageView(model: model)
-        case .seriesListPage(let model):
-          SeriesListPage(model: model)
-        case .supportPage(let model):
-          SupportPageView(model: model)
-        case .conversationListPage(let model):
-          ConversationListPageView(model: model)
-        }
-      }
+    }
+    //        .tabBarMinimizeBehavior(.onScrollDown)  // add in iOS 26
+    .accentColor(.white)  // Makes the selected tab icon white
+    .onAppear {
+      let tabBarAppearance = UITabBarAppearance()
+      tabBarAppearance.configureWithOpaqueBackground()
+      tabBarAppearance.backgroundColor = .black
+
+      UITabBar.appearance().standardAppearance = tabBarAppearance
+      UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+      UITabBar.appearance().unselectedItemTintColor = UIColor(white: 0.7, alpha: 1.0)
     }
     .playolaAlert($model.presentedAlert)
     .onChange(of: model.activeTab) {
@@ -96,7 +48,7 @@ struct MainContainer: View {
       item: Binding(
         get: {
           switch model.mainContainerNavigationCoordinator.presentedSheet {
-          case .player, .feedbackSheet:
+          case .player, .feedbackSheet, .share, .redeemPrize:
             return model.mainContainerNavigationCoordinator.presentedSheet
           default:
             return nil
@@ -111,6 +63,10 @@ struct MainContainer: View {
             PlayerPage(model: playerPageModel)
           case .feedbackSheet(let feedbackModel):
             FeedbackSheetView(model: feedbackModel)
+          case .share(let shareModel):
+            ShareSheet(items: shareModel.items)
+          case .redeemPrize(let redeemModel):
+            RedeemPrizeSheetView(model: redeemModel)
           default:
             EmptyView()
           }
@@ -127,7 +83,7 @@ struct MainContainer: View {
       item: Binding(
         get: {
           switch model.mainContainerNavigationCoordinator.presentedSheet {
-          case .recordPage, .songSearchPage:
+          case .recordPage, .recordIntroPage, .songSearchPage:
             return model.mainContainerNavigationCoordinator.presentedSheet
           default:
             return nil
@@ -140,6 +96,10 @@ struct MainContainer: View {
         case .recordPage(let recordPageModel):
           NavigationStack {
             RecordPageView(model: recordPageModel)
+          }
+        case .recordIntroPage(let recordIntroPageModel):
+          NavigationStack {
+            RecordIntroPageView(model: recordIntroPageModel)
           }
         case .songSearchPage(let songSearchPageModel):
           SongSearchPageView(model: songSearchPageModel)
@@ -164,7 +124,163 @@ struct MainContainer: View {
         Task { await model.refreshOnForeground() }
       }
     }
+    .onChange(of: model.mainContainerNavigationCoordinator.appMode) { _, newMode in
+      if case .broadcasting = newMode {
+        model.ensureBroadcastModels()
+        model.$activeTab.withLock { $0 = .broadcast }
+      } else {
+        model.$activeTab.withLock { $0 = .home }
+      }
+    }
   }
+
+  // MARK: - Listening Mode Tabs
+
+  @ViewBuilder
+  private var homeTab: some View {
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.homePath) {
+      tabContentWithSmallPlayer {
+        HomePageView(model: model.homePageModel)
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        path.destinationView
+      }
+    }
+    .tabItem {
+      Image("HomeTabImage")
+      Text("Home")
+    }
+    .tag(MainContainerModel.ActiveTab.home)
+  }
+
+  @ViewBuilder
+  private var stationsTab: some View {
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.stationsPath) {
+      tabContentWithSmallPlayer {
+        StationListPage(model: model.stationListModel)
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        path.destinationView
+      }
+    }
+    .tabItem {
+      Image("RadioStationsTabImage")
+      Text("Radio Stations")
+    }
+    .tag(MainContainerModel.ActiveTab.stationsList)
+  }
+
+  @ViewBuilder
+  private var rewardsTab: some View {
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.rewardsPath) {
+      tabContentWithSmallPlayer {
+        RewardsPageView(model: model.rewardsPageModel)
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        path.destinationView
+      }
+    }
+    .tabItem {
+      Image("gift")
+      Text("Rewards")
+    }
+    .tag(MainContainerModel.ActiveTab.rewards)
+  }
+
+  @ViewBuilder
+  private var profileTab: some View {
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.profilePath) {
+      tabContentWithSmallPlayer {
+        ContactPageView(model: model.contactPageModel)
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        path.destinationView
+      }
+    }
+    .tabItem {
+      Image("ProfileTabImage")
+      Text("Your Profile")
+    }
+    .tag(MainContainerModel.ActiveTab.profile)
+  }
+
+  // MARK: - Broadcast Mode Tabs
+
+  @ViewBuilder
+  private var broadcastTab: some View {
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.broadcastPath) {
+      tabContentWithSmallPlayer {
+        if let broadcastModel = model.broadcastPageModel {
+          BroadcastPageView(model: broadcastModel)
+        }
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        path.destinationView
+      }
+    }
+    .tabItem {
+      Image(systemName: "antenna.radiowaves.left.and.right")
+      Text("Broadcast")
+    }
+    .tag(MainContainerModel.ActiveTab.broadcast)
+  }
+
+  @ViewBuilder
+  private var libraryTab: some View {
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.libraryPath) {
+      tabContentWithSmallPlayer {
+        if let libraryModel = model.libraryPageModel {
+          LibraryPageView(model: libraryModel)
+        }
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        path.destinationView
+      }
+    }
+    .tabItem {
+      Image(systemName: "music.note.list")
+      Text("Library")
+    }
+    .tag(MainContainerModel.ActiveTab.library)
+  }
+
+  @ViewBuilder
+  private var listenersTab: some View {
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.listenersPath) {
+      tabContentWithSmallPlayer {
+        if let listenerModel = model.listenerQuestionPageModel {
+          BroadcastersListenerQuestionPageView(model: listenerModel)
+        }
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        path.destinationView
+      }
+    }
+    .tabItem {
+      Image(systemName: "bubble.left.and.bubble.right")
+      Text("Listeners")
+    }
+    .tag(MainContainerModel.ActiveTab.listeners)
+  }
+
+  @ViewBuilder
+  private var settingsTab: some View {
+    NavigationStack(path: $model.mainContainerNavigationCoordinator.settingsPath) {
+      tabContentWithSmallPlayer {
+        ContactPageView(model: model.contactPageModel)
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        path.destinationView
+      }
+    }
+    .tabItem {
+      Image("ProfileTabImage")
+      Text("Profile")
+    }
+    .tag(MainContainerModel.ActiveTab.settings)
+  }
+
+  // MARK: - Helper Views
 
   @ViewBuilder
   private func tabContentWithSmallPlayer<Content: View>(@ViewBuilder content: () -> Content)
@@ -183,6 +299,7 @@ struct MainContainer: View {
       }
     }
   }
+
 }
 
 struct MainContainer_Previews: PreviewProvider {

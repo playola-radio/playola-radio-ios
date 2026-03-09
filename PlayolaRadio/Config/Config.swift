@@ -8,13 +8,12 @@ import Combine
 import Foundation
 import UIKit
 
-class Config {
+final class Config: Sendable {
   public static let shared = Config()
 
   let environment: DevelopmentEnvironment
   let mixpanelToken: String
   let heapAppID: String
-
   var baseUrl: URL {
     switch environment {
     case .local:
@@ -23,6 +22,17 @@ class Config {
       return URL(string: "https://admin-api.playola.fm")!
     case .staging:
       return URL(string: "https://admin-api-staging.playola.fm")!
+    }
+  }
+
+  var productionBaseUrl: URL {
+    switch environment {
+    case .local:
+      return URL(string: "http://localhost:11020")!
+    case .development, .staging:
+      return URL(string: "https://production-api.playola.fm")!
+    case .production:
+      return URL(string: "https://production-api.playola.fm")!
     }
   }
 

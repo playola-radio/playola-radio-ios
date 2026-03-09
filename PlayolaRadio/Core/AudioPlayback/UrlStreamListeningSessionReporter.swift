@@ -6,6 +6,7 @@
 //
 import Combine
 import PlayolaPlayer
+import Sharing
 import UIKit
 
 @MainActor
@@ -14,7 +15,7 @@ public class UrlStreamListeningSessionReporter {
     return UIDevice.current.identifierForVendor?.uuidString
   }
   var timer: Timer?
-  let basicToken = "aW9zQXBwOnNwb3RpZnlTdWNrc0FCaWcx"  // TODO: De-hard-code this
+  @ObservationIgnored @Shared(.auth) var auth
   var disposeBag = Set<AnyCancellable>()
   weak var urlStreamPlayer: URLStreamPlayer?
   var currentListeningSessionID: String?
@@ -44,7 +45,7 @@ public class UrlStreamListeningSessionReporter {
       print("Cannot send listeningSession -- missing identifier")
       return
     }
-    let url = URL(string: "https://admin-api.playola.fm/v1/listening-sessions/end")!
+    let url = Config.shared.baseUrl.appendingPathComponent("/v1/listening-sessions/end")
     let requestBody = ["deviceId": deviceId]
 
     guard let jsonData = try? JSONEncoder().encode(requestBody) else {
@@ -52,8 +53,7 @@ public class UrlStreamListeningSessionReporter {
       return
     }
 
-    var request = createPostRequest(url: url, jsonData: jsonData)
-    // Create a URLSession task to send the request
+    guard let request = createPostRequest(url: url, jsonData: jsonData) else { return }
     let task = URLSession.shared.dataTask(with: request) { data, response, error in
       if let error = error {
         print("Error: \(error.localizedDescription)")
@@ -72,7 +72,7 @@ public class UrlStreamListeningSessionReporter {
   }
 
   public func reportOrExtendListeningSession(_ stationUrl: String) {
-    let url = URL(string: "https://admin-api.playola.fm/v1/listening-sessions")!
+    let url = Config.shared.baseUrl.appendingPathComponent("/v1/listening-sessions")
 
     // Create an instance of the Codable struct
     let requestBody = [
@@ -86,10 +86,7 @@ public class UrlStreamListeningSessionReporter {
       return
     }
 
-    // Create the request
-    var request = createPostRequest(url: url, jsonData: jsonData)
-
-    // Create a URLSession task to send the request
+    guard let request = createPostRequest(url: url, jsonData: jsonData) else { return }
     let task = URLSession.shared.dataTask(with: request) { data, response, error in
       if let error = error {
         print("Error: \(error.localizedDescription)")
@@ -124,11 +121,12 @@ public class UrlStreamListeningSessionReporter {
     self.timer?.invalidate()
   }
 
-  private func createPostRequest(url: URL, jsonData: Data) -> URLRequest {
+  private func createPostRequest(url: URL, jsonData: Data) -> URLRequest? {
+    guard let jwtToken = auth.jwt else { return nil }
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.httpBody = jsonData
-    request.addValue("Basic \(basicToken)", forHTTPHeaderField: "Authorization")
+    request.addValue("Bearer \(jwtToken)", forHTTPHeaderField: "Authorization")
     request.addValue("application/json", forHTTPHeaderField: "Content-Type")
     return request
   }

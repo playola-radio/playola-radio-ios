@@ -8,9 +8,12 @@ import SDWebImageSwiftUI
 import SwiftUI
 
 struct PrizeTierRow: View {
-  let tier: Int
+  let tierLabel: String
   let prizeTier: PrizeTier
+  let requiredHoursLabel: String
   let status: RedemptionStatus
+  let buttonText: String
+  let redeemedText: String
   let onRedeem: () -> Void
 
   private var isRedeemed: Bool {
@@ -40,7 +43,7 @@ struct PrizeTierRow: View {
       // Content
       VStack(alignment: .leading, spacing: 4) {
         HStack {
-          Text("Tier \(tier)")
+          Text(tierLabel)
             .font(.custom(FontNames.Inter_400_Regular, size: 12))
             .foregroundColor(isRedeemed ? Color(hex: "#999999") : .white.opacity(0.6))
           Spacer()
@@ -51,11 +54,9 @@ struct PrizeTierRow: View {
           .foregroundColor(isRedeemed ? Color(hex: "#999999") : .white)
           .fixedSize(horizontal: true, vertical: false)
 
-        Text(
-          "\(prizeTier.requiredListeningHours) \(prizeTier.requiredListeningHours == 1 ? "hour" : "hours")"
-        )
-        .font(.custom(FontNames.Inter_400_Regular, size: 12))
-        .foregroundColor(isRedeemed ? Color(hex: "#999999") : .white.opacity(0.6))
+        Text(requiredHoursLabel)
+          .font(.custom(FontNames.Inter_400_Regular, size: 12))
+          .foregroundColor(isRedeemed ? Color(hex: "#999999") : .white.opacity(0.6))
       }
 
       Spacer()
@@ -67,17 +68,18 @@ struct PrizeTierRow: View {
           Image(systemName: "checkmark.circle.fill")
             .foregroundColor(.green)
             .frame(width: 20, height: 20)
-          Text("Redeemed")
+          Text(redeemedText)
             .font(.custom(FontNames.Inter_500_Medium, size: 14))
             .foregroundColor(.white)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
 
       case .redeemable:
         Button(action: onRedeem) {
-          Text("Redeem")
+          Text(buttonText)
             .font(.custom(FontNames.Inter_500_Medium, size: 14))
             .foregroundColor(.white)
-            .padding(.horizontal, 20)
+            .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
             .background(Color(red: 0.8, green: 0.4, blue: 0.4))
             .cornerRadius(6)
@@ -109,9 +111,12 @@ struct PrizeTierRow: View {
 struct PrizeTierRow_Previews: PreviewProvider {
   static var previews: some View {
     PrizeTierRow(
-      tier: 1,
+      tierLabel: "Tier 1",
       prizeTier: .mock,
+      requiredHoursLabel: "10 hours",
       status: .redeemable,
+      buttonText: "Redeem",
+      redeemedText: "Redeemed",
       onRedeem: {})
   }
 }

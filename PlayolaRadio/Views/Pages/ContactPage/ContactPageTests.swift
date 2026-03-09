@@ -4,6 +4,7 @@
 //
 //  Created by Brian D Keane on 7/29/25.
 //
+import ConcurrencyExtras
 import Dependencies
 import PlayolaPlayer
 import Sharing
@@ -135,31 +136,29 @@ final class ContactPageTests: XCTestCase {
     }
   }
 
-  func testOnMyStationTapped_NavigatesToBroadcastPage() async {
-    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    let mockStations = [Station.mockWith(id: "test-station-id")]
+  func testOnMyStationTapped_SwitchesToBroadcastMode() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth
+      $auth.withLock { $0 = Auth(jwt: "test-jwt") }
+      let mockStations = [Station.mockWith(id: "test-station-id")]
 
-    await withDependencies {
-      $0.api.fetchUserStations = { _ in mockStations }
-    } operation: {
-      let model = ContactPageModel()
+      await withDependencies {
+        $0.api.fetchUserStations = { _ in mockStations }
+        $0.analytics.track = { @Sendable _ in }
+      } operation: {
+        let model = ContactPageModel()
 
-      // Load stations first
-      await model.onViewAppeared()
+        await model.onViewAppeared()
 
-      // Verify initial navigation state
-      XCTAssertTrue(model.mainContainerNavigationCoordinator.path.isEmpty)
+        XCTAssertEqual(model.mainContainerNavigationCoordinator.appMode, .listening)
 
-      // Tap my station button
-      await model.onMyStationTapped()
+        await model.onMyStationTapped()
 
-      // Verify navigation occurred
-      XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
-
-      if case .broadcastPage = model.mainContainerNavigationCoordinator.path.first {
-        // Successfully navigated to broadcast page
-      } else {
-        XCTFail("Expected navigation to broadcast page")
+        XCTAssertEqual(
+          model.mainContainerNavigationCoordinator.appMode,
+          .broadcasting(stationId: "test-station-id")
+        )
+        XCTAssertTrue(model.mainContainerNavigationCoordinator.path.isEmpty)
       }
     }
   }
@@ -228,7 +227,7 @@ final class ContactPageTests: XCTestCase {
     }
   }
 
-  func testOnMyStationTapped_WithSingleStation_NavigatesDirectlyToBroadcastPage() async {
+  func testOnMyStationTapped_WithSingleStation_SwitchesToBroadcastMode() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockStations = [
       Station.mockWith(id: "single-station-id", name: "My Only Station")
@@ -242,15 +241,11 @@ final class ContactPageTests: XCTestCase {
       await model.onViewAppeared()
       await model.onMyStationTapped()
 
-      XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
-
-      if case .broadcastPage(let broadcastModel) = model.mainContainerNavigationCoordinator.path
-        .first
-      {
-        XCTAssertEqual(broadcastModel.stationId, "single-station-id")
-      } else {
-        XCTFail("Expected navigation to broadcast page with correct station ID")
-      }
+      XCTAssertEqual(
+        model.mainContainerNavigationCoordinator.appMode,
+        .broadcasting(stationId: "single-station-id")
+      )
+      XCTAssertTrue(model.mainContainerNavigationCoordinator.path.isEmpty)
     }
   }
 
@@ -405,6 +400,80 @@ final class ContactPageTests: XCTestCase {
         return false
       }
       XCTAssertFalse(hasViewedBroadcastEvent)
+    }
+  }
+
+  // MARK: - Broadcast Mode Tests
+
+  func testIsInBroadcastModeReturnsFalseWhenListening() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    coordinator.appMode = .listening
+
+    let model = ContactPageModel()
+
+    XCTAssertFalse(model.isInBroadcastMode)
+  }
+
+  func testIsInBroadcastModeReturnsTrueWhenBroadcasting() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    coordinator.appMode = .broadcasting(stationId: "station-123")
+
+    let model = ContactPageModel()
+
+    XCTAssertTrue(model.isInBroadcastMode)
+  }
+
+  func testSwitchToListeningModeSwitchesMode() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    coordinator.appMode = .broadcasting(stationId: "station-123")
+
+    let model = ContactPageModel()
+    model.switchToListeningMode()
+
+    XCTAssertEqual(coordinator.appMode, .listening)
+  }
+
+  func testLogoutResetsAppModeToListening() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    coordinator.appMode = .broadcasting(stationId: "station-123")
+
+    let loggedInUser = LoggedInUser(
+      id: "123",
+      firstName: "John",
+      lastName: "Doe",
+      email: "john@example.com",
+      role: "user"
+    )
+    @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
+
+    let stationPlayerMock = StationPlayerMock()
+    let model = ContactPageModel(stationPlayer: stationPlayerMock)
+
+    model.onLogOutTapped()
+
+    XCTAssertEqual(coordinator.appMode, .listening)
+  }
+
+  func testMyStationButtonHiddenWhenInBroadcastMode() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    coordinator.appMode = .broadcasting(stationId: "station-123")
+
+    let mockStations = [Station.mockWith(id: "station-123", name: "My Station")]
+
+    await withDependencies {
+      $0.api.fetchUserStations = { _ in mockStations }
+    } operation: {
+      let model = ContactPageModel()
+
+      await model.onViewAppeared()
+
+      XCTAssertFalse(model.myStationButtonVisible)
     }
   }
 }

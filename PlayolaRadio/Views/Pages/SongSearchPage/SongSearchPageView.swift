@@ -53,8 +53,8 @@ struct SongSearchPageView: View {
           Spacer()
         } else {
           List {
-            // Playola library results
-            if !model.searchResults.isEmpty {
+            // Playola library results (only for libraryOnly or all modes)
+            if model.searchMode != .seedsOnly && !model.searchResults.isEmpty {
               Section {
                 ForEach(model.searchResults, id: \.id) { audioBlock in
                   SongSearchResultRow(audioBlock: audioBlock) {
@@ -71,13 +71,21 @@ struct SongSearchPageView: View {
               }
             }
 
-            // Song request results
-            if !model.songRequestResults.isEmpty {
+            // Song seed results (only for seedsOnly or all modes)
+            if model.searchMode != .libraryOnly && !model.songRequestResults.isEmpty {
               Section {
                 ForEach(model.songRequestResults, id: \.id) { songRequest in
-                  SongRequestResultRow(songRequest: songRequest) {
+                  SongRequestResultRow(
+                    songRequest: songRequest,
+                    buttonText: model.isLibraryAddMode ? "ADD" : "REQUEST",
+                    isProcessing: model.isProcessingAdd(for: songRequest)
+                  ) {
                     Task {
-                      await model.onRequestSong(songRequest)
+                      if model.isLibraryAddMode {
+                        await model.onAddSongToLibrary(songRequest)
+                      } else {
+                        await model.onRequestSong(songRequest)
+                      }
                     }
                   }
                   .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
@@ -85,7 +93,7 @@ struct SongSearchPageView: View {
                   .listRowBackground(Color.clear)
                 }
               } header: {
-                Text("AVAILABLE SOON BY REQUEST")
+                Text(model.songSeedsSectionHeader)
                   .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
                   .foregroundColor(.playolaGray)
               }
@@ -182,6 +190,8 @@ struct SongSearchResultRow: View {
 
 struct SongRequestResultRow: View {
   let songRequest: SongRequest
+  var buttonText: String = "REQUEST"
+  var isProcessing: Bool = false
   let onRequest: () -> Void
 
   var body: some View {
@@ -216,13 +226,16 @@ struct SongRequestResultRow: View {
 
       Spacer()
 
-      if let displayText = songRequest.requestStatus.displayText {
+      if isProcessing {
+        ProgressView()
+          .tint(.playolaGray)
+      } else if let displayText = songRequest.requestStatus.displayText {
         Text(displayText)
           .font(.custom(FontNames.Inter_400_Regular, size: 12))
           .foregroundColor(.playolaGray)
       } else {
         Button(action: onRequest) {
-          Text("REQUEST")
+          Text(buttonText)
             .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
             .foregroundColor(.white)
             .padding(.horizontal, 12)

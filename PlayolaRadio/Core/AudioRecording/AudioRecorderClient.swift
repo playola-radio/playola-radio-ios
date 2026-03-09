@@ -8,7 +8,16 @@
 import AVFoundation
 import Dependencies
 
+public struct RecordingState: Equatable, Sendable {
+  public let currentTime: TimeInterval
+  public let waveformSamples: [Float]
+  public let isRecording: Bool
+
+  public static let idle = RecordingState(currentTime: 0, waveformSamples: [], isRecording: false)
+}
+
 public struct AudioRecorderClient: Sendable {
+  // Low-level methods (existing)
   public var requestPermission: @Sendable () async -> Bool
   public var prepareForRecording: @Sendable () async throws -> Void
   public var startRecording: @Sendable () async throws -> Void
@@ -16,6 +25,41 @@ public struct AudioRecorderClient: Sendable {
   public var currentTime: @Sendable () async -> TimeInterval
   public var deleteRecording: @Sendable (URL) async -> Void
   public var getAudioLevel: @Sendable () async -> Float
+
+  /// Starts recording with automatic state updates including waveform samples.
+  /// The onStateChange callback is called every 100ms while recording.
+  /// Returns a RecordingSession that can be used to stop recording.
+  public var startRecordingWithUpdates:
+    @Sendable (
+      _ onStateChange: @escaping @MainActor @Sendable (RecordingState) -> Void
+    ) async throws -> RecordingSession
+}
+
+// MARK: - Recording Session
+
+public final class RecordingSession: Sendable {
+  private let _stop: @Sendable () async throws -> URL
+  private let _cancel: @Sendable () async -> Void
+  private let _delete: @Sendable (URL) async -> Void
+
+  init(
+    stop: @escaping @Sendable () async throws -> URL,
+    cancel: @escaping @Sendable () async -> Void,
+    delete: @escaping @Sendable (URL) async -> Void
+  ) {
+    self._stop = stop
+    self._cancel = cancel
+    self._delete = delete
+  }
+
+  /// Stops recording and returns the URL of the recorded file.
+  public func stop() async throws -> URL { try await _stop() }
+
+  /// Cancels the recording without saving.
+  public func cancel() async { await _cancel() }
+
+  /// Deletes a recording file.
+  public func delete(_ url: URL) async { await _delete(url) }
 }
 
 // MARK: - Live Implementation
@@ -31,7 +75,56 @@ extension AudioRecorderClient: DependencyKey {
       stopRecording: { try await recorder.stopRecording() },
       currentTime: { await recorder.currentTime() },
       deleteRecording: { url in await recorder.deleteRecording(url) },
-      getAudioLevel: { await recorder.getAudioLevel() }
+      getAudioLevel: { await recorder.getAudioLevel() },
+      startRecordingWithUpdates: { onStateChange in
+        let hasPermission = await recorder.requestPermission()
+        guard hasPermission else {
+          throw AudioRecorderError.permissionDenied
+        }
+
+        try await recorder.startRecording()
+
+        let updateTask = Task {
+          while !Task.isCancelled {
+            let currentTime = await recorder.currentTime()
+            let level = await recorder.getAudioLevel()
+            await recorder.appendWaveformSample(level)
+
+            let state = RecordingState(
+              currentTime: currentTime,
+              waveformSamples: await recorder.getWaveformSamples(),
+              isRecording: true
+            )
+            await onStateChange(state)
+
+            try? await Task.sleep(for: .milliseconds(100))
+          }
+        }
+
+        return RecordingSession(
+          stop: {
+            updateTask.cancel()
+            let url = try await recorder.stopRecording()
+            await onStateChange(
+              RecordingState(
+                currentTime: await recorder.currentTime(),
+                waveformSamples: await recorder.getWaveformSamples(),
+                isRecording: false
+              ))
+            return url
+          },
+          cancel: {
+            updateTask.cancel()
+            if let url = try? await recorder.stopRecording() {
+              await recorder.deleteRecording(url)
+            }
+            await onStateChange(.idle)
+          },
+          delete: { url in
+            await recorder.deleteRecording(url)
+          }
+        )
+      }
     )
   }
 }
@@ -47,7 +140,15 @@ extension AudioRecorderClient: TestDependencyKey {
       stopRecording: { URL(fileURLWithPath: "/tmp/test.wav") },
       currentTime: { 0 },
       deleteRecording: { _ in },
-      getAudioLevel: { 0 }
+      getAudioLevel: { 0 },
+      startRecordingWithUpdates: { onStateChange in
+        await onStateChange(.idle)
+        return RecordingSession(
+          stop: { URL(fileURLWithPath: "/tmp/test.wav") },
+          cancel: {},
+          delete: { _ in }
+        )
+      }
     )
   }
 }
@@ -63,11 +164,11 @@ extension DependencyValues {
 
 // MARK: - Live Recorder
 
-private final class LiveAudioRecorder: @unchecked Sendable {
+private actor LiveAudioRecorder {
   private var audioRecorder: AVAudioRecorder?
   private var recordingURL: URL?
   private var isPrepared = false
-  private let lock = NSLock()
+  private var waveformSamples: [Float] = []
 
   private let recordingSettings: [String: Any] = [
     AVFormatIDKey: Int(kAudioFormatLinearPCM),
@@ -86,24 +187,17 @@ private final class LiveAudioRecorder: @unchecked Sendable {
     }
   }
 
-  func prepareForRecording() async throws {
+  func prepareForRecording() throws {
     let session = AVAudioSession.sharedInstance()
     try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
     try session.setActive(true)
-
-    lock.lock()
     isPrepared = true
-    lock.unlock()
   }
 
-  func startRecording() async throws {
-    lock.lock()
-    let prepared = isPrepared
-    lock.unlock()
-
-    if !prepared {
-      try await prepareForRecording()
-    }
+  func startRecording() throws {
+    // Always prepare audio session before recording - the session may have been
+    // reconfigured by other audio components (e.g., StationPlayer) since last prepare
+    try prepareForRecording()
 
     let url = FileManager.default.temporaryDirectory
       .appendingPathComponent("voicetrack_\(UUID().uuidString).wav")
@@ -112,19 +206,24 @@ private final class LiveAudioRecorder: @unchecked Sendable {
     recorder.isMeteringEnabled = true
     recorder.record()
 
-    lock.lock()
     self.audioRecorder = recorder
     self.recordingURL = url
-    lock.unlock()
+    self.waveformSamples = []
   }
 
-  func stopRecording() async throws -> URL {
-    lock.lock()
+  func appendWaveformSample(_ sample: Float) {
+    waveformSamples.append(sample)
+  }
+
+  func getWaveformSamples() -> [Float] {
+    waveformSamples
+  }
+
+  func stopRecording() throws -> URL {
     let recorder = audioRecorder
     let url = recordingURL
     audioRecorder = nil
     recordingURL = nil
-    lock.unlock()
 
     guard let recorder, let url else {
       throw AudioRecorderError.noActiveRecording
@@ -135,18 +234,14 @@ private final class LiveAudioRecorder: @unchecked Sendable {
   }
 
   func currentTime() -> TimeInterval {
-    lock.lock()
-    defer { lock.unlock() }
     return audioRecorder?.currentTime ?? 0
   }
 
-  func deleteRecording(_ url: URL) async {
+  func deleteRecording(_ url: URL) {
     try? FileManager.default.removeItem(at: url)
   }
 
   func getAudioLevel() -> Float {
-    lock.lock()
-    defer { lock.unlock() }
     guard let recorder = audioRecorder else { return 0 }
     recorder.updateMeters()
     let level = recorder.averagePower(forChannel: 0)

@@ -33,12 +33,20 @@ class MainContainerModel: ViewModel {
   var mainContainerNavigationCoordinator
   @ObservationIgnored @Shared(.hasBeenUnlocked) var hasBeenUnlocked
   @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
+  @ObservationIgnored @Shared(.isBroadcaster) var isBroadcaster
+  @ObservationIgnored @Shared(.appVersionRequirements) var appVersionRequirements
 
   enum ActiveTab {
+    // Listening mode tabs
     case home
     case stationsList
     case rewards
     case profile
+    // Broadcast mode tabs
+    case broadcast
+    case library
+    case listeners
+    case settings
   }
 
   var presentedAlert: PlayolaAlert?
@@ -50,12 +58,46 @@ class MainContainerModel: ViewModel {
   var contactPageModel = ContactPageModel()
   var liveStationsPoller = LiveStationsPoller()
 
+  // Broadcast mode models
+  var broadcastPageModel: BroadcastPageModel?
+  var libraryPageModel: LibraryPageModel?
+  var listenerQuestionPageModel: BroadcastersListenerQuestionPageModel?
+
   var shouldShowSmallPlayer: Bool = false
   private var hasCheckedRatingPromptThisSession = false
 
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
     super.init()
+  }
+
+  // MARK: - Mode-Aware Properties
+
+  var isInBroadcastMode: Bool {
+    if case .broadcasting = mainContainerNavigationCoordinator.appMode {
+      return true
+    }
+    return false
+  }
+
+  var broadcastStationId: String? {
+    if case .broadcasting(let stationId) = mainContainerNavigationCoordinator.appMode {
+      return stationId
+    }
+    return nil
+  }
+
+  func ensureBroadcastModels() {
+    guard let stationId = broadcastStationId else { return }
+    if broadcastPageModel?.stationId != stationId {
+      broadcastPageModel = BroadcastPageModel(stationId: stationId)
+    }
+    if libraryPageModel?.stationId != stationId {
+      libraryPageModel = LibraryPageModel(stationId: stationId)
+    }
+    if listenerQuestionPageModel?.stationId != stationId {
+      listenerQuestionPageModel = BroadcastersListenerQuestionPageModel(stationId: stationId)
+    }
   }
 
   func viewAppeared() async {
@@ -95,6 +137,8 @@ class MainContainerModel: ViewModel {
     await loadAirings()
 
     liveStationsPoller.startPolling()
+
+    await fetchBroadcasterStatus()
   }
 
   func refreshOnForeground() async {
@@ -199,6 +243,7 @@ class MainContainerModel: ViewModel {
         guard let self else { return }
         await self.analytics.track(.ratingPromptNotEnjoying)
         self.appRating.markRatingPromptShown()
+        self.appRating.markRatingPromptDismissed()
         self.presentedAlert = nil
         self.showFeedbackSheet()
       },
@@ -223,9 +268,10 @@ class MainContainerModel: ViewModel {
             self?.presentedAlert = .thankYouForFeedback
           }
         )
+        await analytics.track(.feedbackSheetPresented)
         mainContainerNavigationCoordinator.presentedSheet = .feedbackSheet(feedbackModel)
       } catch {
-        // Silently fail
+        await analytics.track(.feedbackSheetFailed(error: error.localizedDescription))
       }
     }
   }
@@ -258,6 +304,24 @@ class MainContainerModel: ViewModel {
           }
         )
       )
+    }
+  }
+
+  func fetchBroadcasterStatus() async {
+    guard let jwt = auth.jwt else { return }
+    do {
+      let stations = try await api.fetchUserStations(jwt)
+      let wasBroadcaster = isBroadcaster
+      $isBroadcaster.withLock { $0 = !stations.isEmpty }
+
+      if !wasBroadcaster, !stations.isEmpty, let requirements = appVersionRequirements,
+        let currentVersion = Bundle.main.releaseVersionNumber,
+        isVersion(currentVersion, lessThan: requirements.minimumBroadcasterVersion)
+      {
+        NotificationCenter.default.post(name: .requiresAppUpdate, object: nil)
+      }
+    } catch {
+      // Fail silently — keep existing isBroadcaster value
     }
   }
 

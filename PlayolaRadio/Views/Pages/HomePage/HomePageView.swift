@@ -25,7 +25,7 @@ struct HomePageView: View {
 
         ScrollView {
           HomeIntroSection(
-            onIconTapped10Times: model.handlePlayolaIconTapped10Times)
+            onIconTapped10Times: model.playolaIconTapped10Times)
 
           if model.hasUnreadSupportMessages {
             NewFeatureTile(model: model.supportMessageTileModel)
@@ -37,13 +37,23 @@ struct HomePageView: View {
               .padding(.bottom, 20)
           }
 
+          if model.hasUpcomingQuestionAiring {
+            NewFeatureTile(model: model.questionAiringTileModel)
+              .padding(.bottom, 20)
+          }
+
+          if model.canInviteFriends {
+            NewFeatureTile(model: model.inviteFriendsTileModel)
+              .padding(.bottom, 20)
+          }
+
           ListeningTimeTile(model: model.listeningTimeTileModel)
 
           HomePageStationList(
             stations: model.forYouStations,
             liveStatusForStation: model.liveStatusForStation
           ) { station in
-            Task { await model.handleStationTapped(station) }
+            Task { await model.stationTapped(station) }
           }
         }
         .padding(.horizontal, 24)

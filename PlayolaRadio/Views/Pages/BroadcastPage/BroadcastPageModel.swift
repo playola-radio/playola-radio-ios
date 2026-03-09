@@ -7,6 +7,7 @@
 
 import Combine
 import Dependencies
+import Foundation
 import PlayolaPlayer
 import Sharing
 import SwiftUI
@@ -42,6 +43,7 @@ class BroadcastPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.toast) var toast
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
@@ -49,6 +51,8 @@ class BroadcastPageModel: ViewModel {
 
   var recordPageModel: RecordPageModel?
   var songSearchPageModel: SongSearchPageModel?
+
+  @ObservationIgnored private var scheduleUpdateCancellable: AnyCancellable?
 
   private let notificationCooldownSeconds: TimeInterval = 12 * 60 * 60
 
@@ -86,6 +90,21 @@ class BroadcastPageModel: ViewModel {
     self.stationId = stationId
     self.providedStationName = stationName
     super.init()
+
+    scheduleUpdateCancellable = NotificationCenter.default.publisher(
+      for: .scheduleUpdated
+    )
+    .compactMap { notification -> String? in
+      guard let id = notification.userInfo?["stationId"] as? String,
+        id == stationId
+      else { return nil }
+      return notification.userInfo?["editorName"] as? String
+    }
+    .sink { [weak self] editorName in
+      Task { [weak self] in
+        await self?.refreshScheduleFromRemote(editorName: editorName)
+      }
+    }
   }
 
   func viewAppeared() async {
@@ -125,6 +144,29 @@ class BroadcastPageModel: ViewModel {
       currentNowPlayingId = nowPlaying?.id
     } catch {
       presentedAlert = .errorLoadingSchedule
+    }
+  }
+
+  func refreshScheduleFromRemote(editorName: String? = nil) async {
+    do {
+      let spins = try await api.fetchSchedule(stationId, true)
+      withAnimation(.easeInOut(duration: 0.3)) {
+        schedule = Schedule(
+          stationId: stationId, spins: spins, dateProvider: DependencyDateProvider()
+        )
+        reorderedSpinIds = nil
+        currentNowPlayingId = nowPlaying?.id
+      }
+      if let editorName {
+        await toast.show(
+          PlayolaToast(
+            message: "Edited by \(editorName)",
+            buttonTitle: "OK"
+          )
+        )
+      }
+    } catch {
+      // Silently fail - user's current view is still valid
     }
   }
 
@@ -255,7 +297,7 @@ class BroadcastPageModel: ViewModel {
           userName: userName
         ))
     }
-    let model = SongSearchPageModel()
+    let model = SongSearchPageModel(searchMode: .all)
     model.onDismiss = { [weak self] in
       self?.mainContainerNavigationCoordinator.presentedSheet = nil
     }

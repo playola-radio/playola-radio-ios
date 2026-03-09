@@ -36,14 +36,14 @@ struct ContactPageView: View {
                 // Profile Image
                 ZStack {
                   Circle()
-                    .fill(Color(hex: "#565656"))
+                    .fill(Color.gray700)
                     .frame(width: 112, height: 112)
 
                   // Inner circle with person icon
 
                   Image("empty-profile-avatar")
                     .frame(width: 72, height: 72)
-                    .foregroundColor(Color(white: 0.7))
+                    .foregroundColor(Color.gray400)
                 }
 
                 // Name and Email
@@ -54,7 +54,7 @@ struct ContactPageView: View {
 
                   Text(verbatim: model.email)
                     .font(.custom(FontNames.Inter_400_Regular, size: 14))
-                    .foregroundColor(Color(hex: "#BABABA"))
+                    .foregroundColor(Color.textSecondary)
 
                 }
               }
@@ -62,7 +62,7 @@ struct ContactPageView: View {
               .padding(.bottom, 20)
             }
             .frame(maxWidth: .infinity)
-            .background(Color(hex: "#333333"))
+            .background(Color.gray900)
             .cornerRadius(6)
 
             // Edit icon in top right corner of the card
@@ -88,6 +88,68 @@ struct ContactPageView: View {
           }
           .padding(.horizontal, 20)
 
+          // Switch to Listening Mode Button (only in broadcast mode)
+          if model.isInBroadcastMode {
+            Button(
+              action: {
+                model.switchToListeningMode()
+              },
+              label: {
+                HStack(spacing: 12) {
+                  Image(systemName: "headphones")
+                    .foregroundColor(.white)
+                    .font(.system(size: 16))
+
+                  Text("Switch to Listening Mode")
+                    .font(.custom(FontNames.Inter_500_Medium, size: 16))
+                    .foregroundColor(.white)
+
+                  Image(systemName: "chevron.right")
+                    .foregroundColor(.white)
+                    .font(.system(size: 14))
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .padding(.horizontal, 16)
+                .background(Color.info)
+                .cornerRadius(6)
+              }
+            )
+            .padding(.horizontal, 20)
+          }
+
+          // Switch to Broadcasting Mode Button (only in listening mode when user has stations)
+          if model.myStationButtonVisible {
+            Button(
+              action: {
+                Task {
+                  await model.onMyStationTapped()
+                }
+              },
+              label: {
+                HStack(spacing: 12) {
+                  Image(systemName: "antenna.radiowaves.left.and.right")
+                    .foregroundColor(.white)
+                    .font(.system(size: 16))
+
+                  Text("Switch to Broadcasting Mode")
+                    .font(.custom(FontNames.Inter_500_Medium, size: 16))
+                    .foregroundColor(.white)
+
+                  Image(systemName: "chevron.right")
+                    .foregroundColor(.white)
+                    .font(.system(size: 14))
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .padding(.horizontal, 16)
+                .background(Color.info)
+                .cornerRadius(6)
+              }
+            )
+            .padding(.horizontal, 20)
+          }
+
           // Liked Songs Button
           Button(
             action: {
@@ -110,7 +172,7 @@ struct ContactPageView: View {
               .frame(maxWidth: .infinity)
               .frame(height: 50)
               .padding(.horizontal, 16)
-              .background(Color(hex: "#EF6962"))
+              .background(Color.primary)
               .cornerRadius(6)
             }
           )
@@ -138,7 +200,7 @@ struct ContactPageView: View {
               .frame(maxWidth: .infinity)
               .frame(height: 50)
               .padding(.horizontal, 16)
-              .background(Color(hex: "#EF6962"))
+              .background(Color.primary)
               .cornerRadius(6)
             }
           )
@@ -166,7 +228,7 @@ struct ContactPageView: View {
                     if unreadSupportCount > 0 {
                       Text("\(unreadSupportCount)")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(Color(hex: "#EF6962"))
+                        .foregroundColor(Color.primary)
                         .frame(minWidth: 16, minHeight: 16)
                         .background(Circle().fill(Color.white))
                         .offset(x: 8, y: -8)
@@ -185,44 +247,40 @@ struct ContactPageView: View {
               .frame(maxWidth: .infinity)
               .frame(height: 50)
               .padding(.horizontal, 16)
-              .background(Color(hex: "#EF6962"))
+              .background(Color.primary)
               .cornerRadius(6)
             }
           )
           .disabled(model.isCheckingSupport)
           .padding(.horizontal, 20)
 
-          // My Station Button
-          if model.myStationButtonVisible {
-            Button(
-              action: {
-                Task {
-                  await model.onMyStationTapped()
-                }
-              },
-              label: {
-                HStack(spacing: 12) {
-                  Image(systemName: "radio")
-                    .foregroundColor(.white)
-                    .font(.system(size: 16))
+          // Call In To Station Button
+          Button(
+            action: {
+              model.callIntoStationButtonTapped()
+            },
+            label: {
+              HStack(spacing: 12) {
+                Image(systemName: "mic.fill")
+                  .foregroundColor(.white)
+                  .font(.system(size: 16))
 
-                  Text(model.myStationButtonLabel)
-                    .font(.custom(FontNames.Inter_500_Medium, size: 16))
-                    .foregroundColor(.white)
+                Text("Ask An Artist A Question")
+                  .font(.custom(FontNames.Inter_500_Medium, size: 16))
+                  .foregroundColor(.white)
 
-                  Image(systemName: "chevron.right")
-                    .foregroundColor(.white)
-                    .font(.system(size: 14))
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: 50)
-                .padding(.horizontal, 16)
-                .background(Color(hex: "#EF6962"))
-                .cornerRadius(6)
+                Image(systemName: "chevron.right")
+                  .foregroundColor(.white)
+                  .font(.system(size: 14))
               }
-            )
-            .padding(.horizontal, 20)
-          }
+              .frame(maxWidth: .infinity)
+              .frame(height: 50)
+              .padding(.horizontal, 16)
+              .background(Color.primary)
+              .cornerRadius(6)
+            }
+          )
+          .padding(.horizontal, 20)
 
           // Log Out Button
           Button(
@@ -244,7 +302,7 @@ struct ContactPageView: View {
               .background(Color.clear)
               .overlay(
                 RoundedRectangle(cornerRadius: 6)
-                  .stroke(Color(hex: "#827876"), lineWidth: 1)
+                  .stroke(Color.gray600, lineWidth: 1)
               )
             }
           )

@@ -1,5 +1,26 @@
 # Playola Radio iOS
 
+## Task-Type Quick Reference
+
+| Task Type | Read This |
+|-----------|-----------|
+| Creating a new page | `.claude/PAGE_CREATION.md` |
+| Adding API calls (iOS) | `.claude/API_CLIENT.md` |
+| Looking up server endpoints | `../playola/.claude/API_ENDPOINTS.md` then `../playola/server/src/api/[module]/ENDPOINTS.md` (ask user for monorepo path if not found) |
+| Navigation (push/pop/sheets) | `.claude/NAVIGATION.md` |
+| Adding shared state | `.claude/API_CLIENT.md` "State Management" section |
+| Writing tests | "Testing" section below + `.claude/TESTING.md` |
+| View styling (colors, fonts) | `.claude/VIEWS.md` |
+| Analytics testing | `.claude/TESTING.md` |
+
+## Server / API Documentation
+
+The Playola server monorepo is expected at `../playola` (sibling directory). If not found, ask the user for the path.
+
+- **API overview**: `../playola/.claude/API_ENDPOINTS.md`
+- **Module endpoints**: `../playola/server/src/api/[module]/ENDPOINTS.md`
+- **OpenAPI docs**: `../playola/server/src/api/[module]/[module].api.docs.yaml`
+
 ## Testing
 
 - **Write tests first when possible** - prefer TDD, write regression tests for bug fixes
@@ -32,23 +53,82 @@ Do NOT use class-level `@Shared` properties or `$shared.withLock` in tests.
 
 **Pattern**: MV with `@Observable` models (not MVVM)
 
+### Model Structure
+
+Models should be organized with the following `// MARK:` sections in order:
+
 ```swift
 @MainActor
 @Observable
 class SomePageModel: ViewModel {
-  // Shared state
-  @ObservationIgnored @Shared(.auth) var auth
 
-  // Dependencies
+  // MARK: - Dependencies
   @ObservationIgnored @Dependency(\.api) var api
 
-  // Local state
+  // MARK: - Shared State
+  @ObservationIgnored @Shared(.auth) var auth
+
+  // MARK: - Initialization
+  init(stationId: String) { ... }
+
+  // MARK: - Properties
+  var items: IdentifiedArrayOf<Item> = []
   var isLoading = false
   var presentedAlert: PlayolaAlert?
 
-  // Actions
+  // MARK: - User Actions
   func viewAppeared() async { }
+  func itemRowTapped(_ item: Item) async { }
+
+  // MARK: - View Helpers
+  func isSelected(_ itemId: String) -> Bool { }
+
+  // MARK: - Private Helpers
+  private func fetchItems() async { }
 }
+```
+
+### Model/View Responsibilities
+
+**The Model is the complete, portable representation of the page.** If we port to another platform (Android, web, etc.), only the View should need to be rebuilt. The Model contains everything: all text, all behavior, all state.
+
+**Model responsibilities (everything except visuals):**
+- All display text (navigation titles, labels, button text, empty states, error messages)
+- All computed display values (formatted dates, durations, progress percentages)
+- All business logic and state management
+- All action handlers (what happens when user taps something)
+- Validation logic and error states
+
+**View responsibilities (visuals only):**
+- Layout, spacing, colors, fonts
+- Binds to model properties for ALL content (never hardcode strings)
+- Calls model methods for ALL user actions
+- Contains zero logic - not even simple conditionals about what text to show
+
+**Example - the Model provides everything:**
+```swift
+// Model
+var navigationTitle: String { "My Library" }
+var emptyStateMessage: String { "No songs yet. Like some songs to see them here!" }
+var songCountLabel: String { "\(songs.count) songs" }
+var isDeleteButtonEnabled: Bool { selectedSongs.count > 0 }
+```
+
+```swift
+// View - just renders what Model provides
+Text(model.emptyStateMessage)  // Good
+Text("No songs yet")           // Bad - hardcoded string
+```
+
+**Action method naming** - use names that describe user actions:
+```swift
+// Good - describes what the user did
+func recordButtonTapped() async { }
+func stopButtonTapped() async { }
+
+// Bad - describes implementation
+func startRecording() async { }
+func toggleExpanded() { }
 ```
 
 ## Dependencies
@@ -66,6 +146,8 @@ Uses Point-Free's `swift-sharing` library:
 - `@Shared(.auth)` - persisted auth state
 - `@Shared(.nowPlaying)` - in-memory playback state
 - `@Shared(.mainContainerNavigationCoordinator)` - navigation
+
+See `.claude/API_CLIENT.md` for detailed patterns.
 
 ## Project Structure
 
@@ -91,4 +173,4 @@ PlayolaRadio/
 - All view models and tests are `@MainActor`
 - Use `async/await`, no completion handlers
 - Alerts via `PlayolaAlert` enum
-- Navigation via `PlayolaSheet` enum and navigation coordinator
+- Navigation via `PlayolaSheet` enum and navigation coordinator (see `.claude/NAVIGATION.md`)
