@@ -321,6 +321,11 @@
 		D39591282E3BB70B00720CF8 /* EditProfilePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39591272E3BB70500720CF8 /* EditProfilePageModel.swift */; };
 		D395912A2E3BD02B00720CF8 /* MainContainerNavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39591292E3BD02300720CF8 /* MainContainerNavigationCoordinator.swift */; };
 		D395912D2E3D1E1E00720CF8 /* EditProfilePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D395912B2E3D1E0F00720CF8 /* EditProfilePageTests.swift */; };
+		D39728532F5F03F9008591E3 /* Version+Comparison.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39728502F5F03F9008591E3 /* Version+Comparison.swift */; };
+		D39728552F5F03F9008591E3 /* Version+Comparison.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39728502F5F03F9008591E3 /* Version+Comparison.swift */; };
+		D39728562F5F03FF008591E3 /* VersionComparisonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39728512F5F03F9008591E3 /* VersionComparisonTests.swift */; };
+		D39728592F5F0427008591E3 /* AppVersionRequirements.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39728582F5F0427008591E3 /* AppVersionRequirements.swift */; };
+		D397285A2F5F0427008591E3 /* AppVersionRequirements.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39728582F5F0427008591E3 /* AppVersionRequirements.swift */; };
 		D3A08A2F2E4E2A35002468E0 /* AnalyticsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A08A2E2E4E2A31002468E0 /* AnalyticsClient.swift */; };
 		D3A08A312E4E2E2A002468E0 /* AnalyticsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A08A302E4E2E0F002468E0 /* AnalyticsEvent.swift */; };
 		D3A08A352E4E6F66002468E0 /* NowPlayingUpdaterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A08A332E4E6F5D002468E0 /* NowPlayingUpdaterTests.swift */; };
@@ -577,6 +582,9 @@
 		D39591272E3BB70500720CF8 /* EditProfilePageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfilePageModel.swift; sourceTree = "<group>"; };
 		D39591292E3BD02300720CF8 /* MainContainerNavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainerNavigationCoordinator.swift; sourceTree = "<group>"; };
 		D395912B2E3D1E0F00720CF8 /* EditProfilePageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfilePageTests.swift; sourceTree = "<group>"; };
+		D39728502F5F03F9008591E3 /* Version+Comparison.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Version+Comparison.swift"; sourceTree = "<group>"; };
+		D39728512F5F03F9008591E3 /* VersionComparisonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionComparisonTests.swift; sourceTree = "<group>"; };
+		D39728582F5F0427008591E3 /* AppVersionRequirements.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersionRequirements.swift; sourceTree = "<group>"; };
 		D3A08A2E2E4E2A31002468E0 /* AnalyticsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsClient.swift; sourceTree = "<group>"; };
 		D3A08A302E4E2E0F002468E0 /* AnalyticsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEvent.swift; sourceTree = "<group>"; };
 		D3A08A332E4E6F5D002468E0 /* NowPlayingUpdaterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingUpdaterTests.swift; sourceTree = "<group>"; };
@@ -763,6 +771,7 @@
 		D3137DD02D3ABB490070033A /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				D39728582F5F0427008591E3 /* AppVersionRequirements.swift */,
 				D35EFC252F192AAF000F64A4 /* Conversation.swift */,
 				D3137DD12D3ABB4F0070033A /* GenericNowPlaying.swift */,
 				D3B9C7A52F534CE0002D75C2 /* IntroPresignedURLResponse.swift */,
@@ -946,6 +955,7 @@
 				D3536A372BFA6520006942D6 /* Color+Hex.swift */,
 				D3536A382BFA6520006942D6 /* UIImage+Cache.swift */,
 				D339E56E2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift */,
+				D39728572F5F040F008591E3 /* Version+Comparison */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -1293,6 +1303,15 @@
 				D39591252E3BB6FC00720CF8 /* EditProfilePageView.swift */,
 			);
 			path = EditProfilePage;
+			sourceTree = "<group>";
+		};
+		D39728572F5F040F008591E3 /* Version+Comparison */ = {
+			isa = PBXGroup;
+			children = (
+				D39728502F5F03F9008591E3 /* Version+Comparison.swift */,
+				D39728512F5F03F9008591E3 /* VersionComparisonTests.swift */,
+			);
+			path = "Version+Comparison";
 			sourceTree = "<group>";
 		};
 		D3A08A322E4E6F57002468E0 /* NowPlayingUpdater */ = {
@@ -1657,6 +1676,7 @@
 				D30F004C2E8592F0007BCC73 /* MainSceneDelegate.swift in Sources */,
 				D3776A4F2F2BE90800200ADF /* LibraryPageView.swift in Sources */,
 				D3776A3F2F2A91D200200ADF /* ReferralCode.swift in Sources */,
+				D39728532F5F03F9008591E3 /* Version+Comparison.swift in Sources */,
 				D35EFC202F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */,
 				D3776A122F242E1500200ADF /* Color+Palette.swift in Sources */,
 				D3776A372F282D9400200ADF /* ListenerQuestionAiring.swift in Sources */,
@@ -1715,6 +1735,7 @@
 				D3F493D12EEE52F9008ED463 /* PresignedURLResponse.swift in Sources */,
 				D30F00692E8592F0007BCC73 /* StationPlayer.swift in Sources */,
 				D30F006A2E8592F0007BCC73 /* PrizeTierRow.swift in Sources */,
+				D39728592F5F0427008591E3 /* AppVersionRequirements.swift in Sources */,
 				D30F006B2E8592F0007BCC73 /* LocalListeningSession.swift in Sources */,
 				D30F006C2E8592F0007BCC73 /* PlayerPage.swift in Sources */,
 				D30F006D2E8592F0007BCC73 /* ListeningTimeTileModel.swift in Sources */,
@@ -1811,6 +1832,7 @@
 				D35673C62D3E91BD00E4E926 /* MainSceneDelegate.swift in Sources */,
 				D3776A502F2BE90800200ADF /* LibraryPageView.swift in Sources */,
 				D3776A3E2F2A91D200200ADF /* ReferralCode.swift in Sources */,
+				D39728552F5F03F9008591E3 /* Version+Comparison.swift in Sources */,
 				D35EFC212F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */,
 				D3776A112F242E1500200ADF /* Color+Palette.swift in Sources */,
 				D3776A392F282D9400200ADF /* ListenerQuestionAiring.swift in Sources */,
@@ -1869,6 +1891,7 @@
 				D3F493D02EEE52F9008ED463 /* PresignedURLResponse.swift in Sources */,
 				D31C43A82D3C19640021AAE4 /* StationPlayer.swift in Sources */,
 				D36FBCC02E37FC8100D1241C /* PrizeTierRow.swift in Sources */,
+				D397285A2F5F0427008591E3 /* AppVersionRequirements.swift in Sources */,
 				D3B744B42E2FECE10042A427 /* LocalListeningSession.swift in Sources */,
 				D37257D02DFB4368001BC6F9 /* PlayerPage.swift in Sources */,
 				D3B744C82E31399E0042A427 /* ListeningTimeTileModel.swift in Sources */,
@@ -1978,6 +2001,7 @@
 				D3776A4D2F2BE8F900200ADF /* LibraryPageTests.swift in Sources */,
 				D35EFBD72F0EC6F7000F64A4 /* APIClientTests.swift in Sources */,
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,
+				D39728562F5F03FF008591E3 /* VersionComparisonTests.swift in Sources */,
 				D3C7E5EF2EF0C58900EDD3ED /* StagingItemTests.swift in Sources */,
 				D35EFC482F19314E000F64A4 /* FeedbackSheetTests.swift in Sources */,
 				D3367BFF2F08B7E900AF87FA /* NotificationsSettingsPageTests.swift in Sources */,
