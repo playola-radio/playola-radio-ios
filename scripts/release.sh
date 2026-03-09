@@ -96,6 +96,12 @@ if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
   exit 1
 fi
 
+release_branch="release/${new_version}"
+
+echo ""
+echo "Creating release branch..."
+git checkout -b "$release_branch"
+
 echo ""
 echo "Bumping version..."
 sed -i '' "s/MARKETING_VERSION = ${current_version};/MARKETING_VERSION = ${new_version};/g" "$PBXPROJ"
@@ -107,8 +113,8 @@ git add -A
 git commit -m "Bump version to $new_version ($new_build)"
 
 echo ""
-echo "Pushing develop..."
-git push origin develop
+echo "Pushing release branch..."
+git push -u origin "$release_branch"
 
 echo ""
 echo "Creating PR..."
@@ -128,9 +134,13 @@ done)
 
 gh pr create \
   --base main \
-  --head develop \
+  --head "$release_branch" \
   --title "Release $new_version: $release_title" \
   --body "$pr_body"
 
 echo ""
-echo "Done! Review and merge the PR on GitHub."
+echo "Switching back to develop..."
+git checkout develop
+
+echo ""
+echo "Done! Merge the PR on GitHub — main will auto-merge back to develop."
