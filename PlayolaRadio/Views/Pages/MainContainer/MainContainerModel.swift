@@ -33,6 +33,8 @@ class MainContainerModel: ViewModel {
   var mainContainerNavigationCoordinator
   @ObservationIgnored @Shared(.hasBeenUnlocked) var hasBeenUnlocked
   @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
+  @ObservationIgnored @Shared(.isBroadcaster) var isBroadcaster
+  @ObservationIgnored @Shared(.appVersionRequirements) var appVersionRequirements
 
   enum ActiveTab {
     // Listening mode tabs
@@ -135,6 +137,8 @@ class MainContainerModel: ViewModel {
     await loadAirings()
 
     liveStationsPoller.startPolling()
+
+    await fetchBroadcasterStatus()
   }
 
   func refreshOnForeground() async {
@@ -300,6 +304,24 @@ class MainContainerModel: ViewModel {
           }
         )
       )
+    }
+  }
+
+  func fetchBroadcasterStatus() async {
+    guard let jwt = auth.jwt else { return }
+    do {
+      let stations = try await api.fetchUserStations(jwt)
+      let wasBroadcaster = isBroadcaster
+      $isBroadcaster.withLock { $0 = !stations.isEmpty }
+
+      if !wasBroadcaster, !stations.isEmpty, let requirements = appVersionRequirements,
+        let currentVersion = Bundle.main.releaseVersionNumber,
+        isVersion(currentVersion, lessThan: requirements.minimumBroadcasterVersion)
+      {
+        NotificationCenter.default.post(name: .requiresAppUpdate, object: nil)
+      }
+    } catch {
+      // Fail silently — keep existing isBroadcaster value
     }
   }
 

@@ -802,6 +802,13 @@ extension APIClient: DependencyKey {
           .validate(statusCode: 200..<300)
           .serializingDecodable([String].self)
           .value
+      },
+      getAppVersionRequirements: {
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/app-version-requirements"
+        return try await AF.request(url)
+          .validate(statusCode: 200..<300)
+          .serializingDecodable(AppVersionRequirements.self)
+          .value
       }
     )
   }()

@@ -662,6 +662,15 @@ struct APIClient: Sendable {
   /// - Throws: APIError if the request fails
   var getArtistRecordingAudioBlockIds:
     (_ jwtToken: String, _ stationId: String) async throws -> [String] = { _, _ in [] }
+
+  // MARK: - App Version Requirements
+
+  /// Fetches minimum app version requirements (no auth required)
+  /// - Returns: AppVersionRequirements containing minimum versions
+  /// - Throws: APIError if the request fails
+  var getAppVersionRequirements: () async throws -> AppVersionRequirements = {
+    AppVersionRequirements(minimumVersion: "1.0.0", minimumBroadcasterVersion: "1.0.0")
+  }
 }
 
 enum APIError: Error, LocalizedError {
