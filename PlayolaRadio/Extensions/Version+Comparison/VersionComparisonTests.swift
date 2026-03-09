@@ -5,6 +5,8 @@
 
 import XCTest
 
+@testable import PlayolaRadio
+
 @MainActor
 class VersionComparisonTests: XCTestCase {
   func testEqualVersionsReturnsFalse() {
