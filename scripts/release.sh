@@ -56,8 +56,10 @@ case $choice in
     ;;
 esac
 
+PBXPROJ="PlayolaRadio.xcodeproj/project.pbxproj"
+
 # Get current version info
-current_version=$(agvtool what-marketing-version -terse1 | head -1)
+current_version=$(grep -m1 'MARKETING_VERSION' "$PBXPROJ" | sed 's/.*= //' | sed 's/;.*//' | tr -d ' ')
 current_build=$(agvtool what-version -terse | sort -n | tail -1)
 
 # Calculate new version
@@ -96,7 +98,7 @@ fi
 
 echo ""
 echo "Bumping version..."
-agvtool new-marketing-version "$new_version"
+sed -i '' "s/MARKETING_VERSION = ${current_version};/MARKETING_VERSION = ${new_version};/g" "$PBXPROJ"
 agvtool new-version -all "$new_build"
 
 echo ""
