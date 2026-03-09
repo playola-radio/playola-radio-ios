@@ -1,4 +1,4 @@
-.PHONY: lint format format-check
+.PHONY: lint format format-check release bump-build release-production release-staging
 
 # Run SwiftLint (strict mode to match CI)
 lint:
@@ -11,3 +11,21 @@ format:
 # Check formatting (fails on issues)
 format-check:
 	xcrun swift-format lint --strict --recursive .
+
+# Create a release PR (develop -> main)
+release:
+	./scripts/release.sh
+
+# Increment build number only (for hotfixes)
+bump-build:
+	./scripts/bump-build.sh
+
+# Build and upload production to TestFlight
+release-production:
+	git checkout main
+	git pull origin main
+	bundle exec fastlane release_production
+
+# Build and upload staging to TestFlight
+release-staging:
+	bundle exec fastlane release_staging
