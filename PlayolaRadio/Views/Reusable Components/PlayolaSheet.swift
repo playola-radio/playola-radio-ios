@@ -30,4 +30,5 @@ enum PlayolaSheet: Hashable, Identifiable, Equatable {
   case feedbackSheet(FeedbackSheetModel)
   case share(ShareSheetModel)
   case redeemPrize(RedeemPrizeSheetModel)
+  case artistSuggestion(ArtistSuggestionPageModel)
 }
