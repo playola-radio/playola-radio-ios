@@ -302,10 +302,12 @@ class HomePageModel: ViewModel {
     guard let jwt = auth.jwt else { return }
     do {
       let response = try await api.getSupportConversation(jwt)
-      let messages = try await api.getConversationMessages(jwt, response.conversation.id)
       let model = SupportPageModel()
-      model.conversation = response.conversation
-      model.messages = messages
+      if let conversation = response.conversation {
+        let messages = try await api.getConversationMessages(jwt, conversation.id)
+        model.conversation = conversation
+        model.messages = messages
+      }
       model.isLoading = false
       await mainContainerNavigationCoordinator.navigateToSupport(model)
     } catch {

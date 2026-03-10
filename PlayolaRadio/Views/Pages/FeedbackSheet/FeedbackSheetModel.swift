@@ -24,7 +24,7 @@ class FeedbackSheetModel: ViewModel {
   // MARK: - Initialization
 
   init(
-    conversation: Conversation,
+    conversation: Conversation? = nil,
     title: String = defaultTitle,
     message: String = "",
     placeholderText: String = defaultPlaceholderText,
@@ -39,7 +39,7 @@ class FeedbackSheetModel: ViewModel {
 
   // MARK: - Properties
 
-  let conversation: Conversation
+  var conversation: Conversation?
   let title: String
   let placeholderText: String
   var message: String
@@ -73,7 +73,13 @@ class FeedbackSheetModel: ViewModel {
     isSending = true
 
     do {
-      _ = try await api.sendConversationMessage(jwt, conversation.id, messageText)
+      if conversation == nil {
+        let response = try await api.createSupportConversation(jwt)
+        conversation = response.conversation
+      }
+
+      guard let conversationId = conversation?.id else { return }
+      _ = try await api.sendConversationMessage(jwt, conversationId, messageText)
       isSending = false
       message = ""
       mainContainerNavigationCoordinator.presentedSheet = nil

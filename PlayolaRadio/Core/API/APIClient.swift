@@ -457,26 +457,24 @@ struct APIClient: Sendable {
   /// - Throws: APIError if the request fails
   var fetchLiveStations: (_ jwtToken: String) async throws -> [LiveStationInfo] = { _ in [] }
 
-  /// Gets or creates the user's support conversation
+  /// Gets the user's support conversation if one exists
   /// - Parameter jwtToken: The JWT token for authentication
-  /// - Returns: SupportConversationResponse containing the conversation and unread count
+  /// - Returns: SupportConversationResponse containing the conversation (or null) and unread count
   /// - Throws: APIError if the request fails
   var getSupportConversation: (_ jwtToken: String) async throws -> SupportConversationResponse = {
     _ in
-    SupportConversationResponse(
-      conversation: Conversation(
-        id: "",
-        type: "support",
-        contextType: nil,
-        contextId: nil,
-        status: "open",
-        createdAt: Date(),
-        updatedAt: Date(),
-        participants: nil
-      ),
-      unreadCount: 0
-    )
+    SupportConversationResponse(conversation: nil, unreadCount: 0)
   }
+
+  /// Creates the user's support conversation
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: SupportConversationResponse containing the created conversation and unread count
+  /// - Throws: APIError if the request fails
+  var createSupportConversation: (_ jwtToken: String) async throws -> SupportConversationResponse =
+    {
+      _ in
+      SupportConversationResponse(conversation: .mockWith(), unreadCount: 0)
+    }
 
   /// Fetches messages for a conversation
   /// - Parameters:

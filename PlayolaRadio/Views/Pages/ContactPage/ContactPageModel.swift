@@ -187,24 +187,33 @@ class ContactPageModel: ViewModel {
   private func handleRegularUserFlow(jwt: String) async {
     do {
       let response = try await api.getSupportConversation(jwt)
-      let messages = try await api.getConversationMessages(jwt, response.conversation.id)
 
       isCheckingSupport = false
 
-      if messages.isEmpty {
-        // No messages yet - show feedback sheet
-        let feedbackModel = FeedbackSheetModel(conversation: response.conversation) { [weak self] in
-          self?.presentedAlert = .messageSentSuccess
+      if let conversation = response.conversation {
+        let messages = try await api.getConversationMessages(jwt, conversation.id)
+
+        if messages.isEmpty {
+          // Has conversation but no messages - show feedback sheet
+          let feedbackModel = FeedbackSheetModel(conversation: conversation) { [weak self] in
+            self?.presentedAlert = .messageSentSuccess
+          }
+          mainContainerNavigationCoordinator.presentedSheet = .feedbackSheet(feedbackModel)
+        } else {
+          // Has messages - navigate to chat page
+          let model = SupportPageModel()
+          model.conversation = conversation
+          model.messages = messages
+          model.isLoading = false
+          supportPageModel = model
+          mainContainerNavigationCoordinator.path.append(.supportPage(model))
         }
-        mainContainerNavigationCoordinator.presentedSheet = .feedbackSheet(feedbackModel)
       } else {
-        // Has messages - navigate to chat page
-        let model = SupportPageModel()
-        model.conversation = response.conversation
-        model.messages = messages
-        model.isLoading = false
-        supportPageModel = model
-        mainContainerNavigationCoordinator.path.append(.supportPage(model))
+        // No conversation yet - show feedback sheet (will create on send)
+        let feedbackModel = FeedbackSheetModel(onSuccess: { [weak self] in
+          self?.presentedAlert = .messageSentSuccess
+        })
+        mainContainerNavigationCoordinator.presentedSheet = .feedbackSheet(feedbackModel)
       }
     } catch {
       isCheckingSupport = false
