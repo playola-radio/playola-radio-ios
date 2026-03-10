@@ -68,7 +68,7 @@ struct MainContainer: View {
           case .redeemPrize(let redeemModel):
             RedeemPrizeSheetView(model: redeemModel)
           case .artistSuggestion(let artistSuggestionModel):
-            ArtistSuggestionPageView(model: artistSuggestionModel)
+            StationSuggestionPageView(model: artistSuggestionModel)
           default:
             EmptyView()
           }

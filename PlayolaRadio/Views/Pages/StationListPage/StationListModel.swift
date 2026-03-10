@@ -97,7 +97,7 @@ class StationListModel: ViewModel {
   }
 
   func suggestArtistTapped() {
-    let model = ArtistSuggestionPageModel()
+    let model = StationSuggestionPageModel()
     model.onDismiss = { [weak self] in
       self?.mainContainerNavigationCoordinator.presentedSheet = nil
     }

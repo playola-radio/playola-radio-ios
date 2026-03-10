@@ -1,5 +1,5 @@
 //
-//  ArtistSuggestionPageModel.swift
+//  StationSuggestionPageModel.swift
 //  PlayolaRadio
 //
 
@@ -10,7 +10,7 @@ import SwiftUI
 
 @MainActor
 @Observable
-class ArtistSuggestionPageModel: ViewModel {
+class StationSuggestionPageModel: ViewModel {
 
   // MARK: - Dependencies
 

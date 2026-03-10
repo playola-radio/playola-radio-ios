@@ -1,12 +1,12 @@
 //
-//  ArtistSuggestionPageView.swift
+//  StationSuggestionPageView.swift
 //  PlayolaRadio
 //
 
 import SwiftUI
 
-struct ArtistSuggestionPageView: View {
-  @Bindable var model: ArtistSuggestionPageModel
+struct StationSuggestionPageView: View {
+  @Bindable var model: StationSuggestionPageModel
   @FocusState private var isSearchFocused: Bool
 
   var body: some View {
@@ -178,6 +178,6 @@ struct ArtistSuggestionPageView: View {
 }
 
 #Preview {
-  ArtistSuggestionPageView(model: ArtistSuggestionPageModel())
+  StationSuggestionPageView(model: StationSuggestionPageModel())
     .preferredColorScheme(.dark)
 }
