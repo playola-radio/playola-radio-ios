@@ -96,6 +96,16 @@ platform :ios do
     )
   end
 
+  desc "Upload debug symbols to Sentry"
+  lane :upload_symbols do
+    sentry_debug_files_upload(
+      org_slug: 'playola-radio',
+      project_slug: 'apple-ios',
+      include_sources: true,
+      path: File.expand_path('~/Library/Developer/Xcode/Archives')
+    )
+  end
+
   desc "Push a new beta build to TestFlight (Legacy - use release_production instead)"
   lane :beta do
     build_app(project: "PlayolaRadio.xcodeproj", scheme: "PlayolaRadio")

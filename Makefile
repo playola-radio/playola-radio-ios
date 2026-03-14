@@ -26,6 +26,10 @@ release-production:
 	git pull origin main
 	bundle exec fastlane release_production
 
+# Upload debug symbols to Sentry
+upload-symbols:
+	bundle exec fastlane upload_symbols
+
 # Build and upload staging to TestFlight
 release-staging:
 	bundle exec fastlane release_staging
