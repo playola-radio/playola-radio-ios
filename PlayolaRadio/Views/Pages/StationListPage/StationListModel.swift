@@ -30,6 +30,8 @@ class StationListModel: ViewModel {
   @ObservationIgnored @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
   @ObservationIgnored @Shared(.hasAskedForNotificationPermission)
   var hasAskedForNotificationPermission: Bool
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
 
   // MARK: - Initialization
 
@@ -45,6 +47,7 @@ class StationListModel: ViewModel {
   var selectedSegment = "All"
   var presentedAlert: PlayolaAlert?
   let navigationTitle = "Radio Stations"
+  let suggestArtistButtonText = "Suggest Station"
 
   // MARK: - User Actions
 
@@ -91,6 +94,14 @@ class StationListModel: ViewModel {
   func notificationAlertNoTapped() async {
     $hasAskedForNotificationPermission.withLock { $0 = true }
     presentedAlert = nil
+  }
+
+  func suggestArtistTapped() {
+    let model = StationSuggestionPageModel()
+    model.onDismiss = { [weak self] in
+      self?.mainContainerNavigationCoordinator.presentedSheet = nil
+    }
+    mainContainerNavigationCoordinator.presentedSheet = .artistSuggestion(model)
   }
 
   func segmentSelected(_ segmentTitle: String) async {

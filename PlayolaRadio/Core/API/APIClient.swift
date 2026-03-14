@@ -663,6 +663,42 @@ struct APIClient: Sendable {
   var getArtistRecordingAudioBlockIds:
     (_ jwtToken: String, _ stationId: String) async throws -> [String] = { _, _ in [] }
 
+  // MARK: - Artist Suggestions
+
+  /// Fetches all artist suggestions, ordered by vote count descending
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - search: Optional search query to filter suggestions
+  /// - Returns: Array of ArtistSuggestion objects with hasVoted status
+  var getArtistSuggestions:
+    (_ jwtToken: String, _ search: String?) async throws -> [ArtistSuggestion] = { _, _ in [] }
+
+  /// Creates a new artist suggestion (auto-votes for it)
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - artistName: The name of the artist to suggest
+  /// - Returns: The created ArtistSuggestion
+  var createArtistSuggestion:
+    (_ jwtToken: String, _ artistName: String) async throws -> ArtistSuggestion = { _, _ in
+      ArtistSuggestion(
+        id: "", artistName: "", createdByUserId: "", voteCount: 0, hasVoted: false,
+        createdAt: Date(), updatedAt: Date())
+    }
+
+  /// Votes for an artist suggestion
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - artistSuggestionId: The ID of the suggestion to vote for
+  var voteForArtistSuggestion:
+    (_ jwtToken: String, _ artistSuggestionId: String) async throws -> Void = { _, _ in }
+
+  /// Removes a vote from an artist suggestion
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - artistSuggestionId: The ID of the suggestion to unvote
+  var removeArtistSuggestionVote:
+    (_ jwtToken: String, _ artistSuggestionId: String) async throws -> Void = { _, _ in }
+
   // MARK: - App Version Requirements
 
   /// Fetches minimum app version requirements (no auth required)

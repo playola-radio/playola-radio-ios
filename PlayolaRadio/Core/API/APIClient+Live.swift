@@ -803,6 +803,25 @@ extension APIClient: DependencyKey {
           .serializingDecodable([String].self)
           .value
       },
+      getArtistSuggestions: { jwtToken, search in
+        var queryParams: [String: String]?
+        if let search, !search.isEmpty { queryParams = ["search": search] }
+        return try await authenticatedGet(
+          path: "/v1/artist-suggestions", token: jwtToken, queryParams: queryParams)
+      },
+      createArtistSuggestion: { jwtToken, artistName in
+        try await authenticatedPost(
+          path: "/v1/artist-suggestions", token: jwtToken,
+          parameters: ["artistName": artistName])
+      },
+      voteForArtistSuggestion: { jwtToken, artistSuggestionId in
+        try await authenticatedPostVoid(
+          path: "/v1/artist-suggestions/\(artistSuggestionId)/vote", token: jwtToken)
+      },
+      removeArtistSuggestionVote: { jwtToken, artistSuggestionId in
+        try await authenticatedDelete(
+          path: "/v1/artist-suggestions/\(artistSuggestionId)/vote", token: jwtToken)
+      },
       getAppVersionRequirements: {
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/app-version-requirements"
         return try await AF.request(url)

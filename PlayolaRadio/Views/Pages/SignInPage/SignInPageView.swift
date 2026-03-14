@@ -112,7 +112,7 @@ struct SignInPage: View {
       case .invitationCode(let invitationModel):
         InvitationCodePageView(model: invitationModel)
       case .player, .recordPage, .recordIntroPage, .songSearchPage, .feedbackSheet, .share,
-        .redeemPrize:
+        .redeemPrize, .artistSuggestion:
         EmptyView()  // These cases shouldn't occur in SignInPage
       }
     }
