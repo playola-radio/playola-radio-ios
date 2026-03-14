@@ -415,6 +415,7 @@
 		D3FEC80B2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */; };
 		D3FEC80C2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */; };
 		D3FEC80D2EDF689F00A33AE8 /* ChooseStationToBroadcastPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */; };
+		F35D444BFD44486391C161D6 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 0B6E1320AC744E9FAEC2F50F /* Sentry */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -673,6 +674,7 @@
 				D30F00A12E8592F0007BCC73 /* FRadioPlayer in Frameworks */,
 				D3916A692ECD22E600CAAD50 /* IdentifiedCollections in Frameworks */,
 				D30F00A22E8592F0007BCC73 /* GoogleSignIn in Frameworks */,
+				F35D444BFD44486391C161D6 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -693,6 +695,7 @@
 				D3916A672ECD229B00CAAD50 /* IdentifiedCollections in Frameworks */,
 				D3B662682D3F58E700975D2F /* FRadioPlayer in Frameworks */,
 				D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */,
+				F35D444BFD44486391C161D6 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -701,6 +704,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */,
+				F35D444BFD44486391C161D6 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1533,6 +1537,7 @@
 				D35369FD2BFA4F49006942D6 /* Sources */,
 				D35369FE2BFA4F49006942D6 /* Frameworks */,
 				D35369FF2BFA4F49006942D6 /* Resources */,
+				A749B0FA144D4CBFB5A75066 /* Upload Debug Symbols to Sentry */,
 			);
 			buildRules = (
 			);
@@ -1554,6 +1559,7 @@
 				D39591112E3808A900720CF8 /* SDWebImageSVGCoder */,
 				D3916A662ECD229B00CAAD50 /* IdentifiedCollections */,
 				D3916A6B2ECD231200CAAD50 /* Sharing */,
+				0B6E1320AC744E9FAEC2F50F /* Sentry */,
 			);
 			productName = PlayolaRadio;
 			productReference = D3536A012BFA4F49006942D6 /* PlayolaRadio.app */;
@@ -1621,6 +1627,7 @@
 				D39591102E3808A900720CF8 /* XCRemoteSwiftPackageReference "SDWebImageSVGCoder" */,
 				D3916A652ECD229B00CAAD50 /* XCRemoteSwiftPackageReference "swift-identified-collections" */,
 				D3916A6A2ECD231200CAAD50 /* XCRemoteSwiftPackageReference "swift-sharing" */,
+				9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D3536A022BFA4F49006942D6 /* Products */;
@@ -2372,6 +2379,8 @@
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
 			};
 			name = Debug;
 		};
@@ -2415,6 +2424,8 @@
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
 			};
 			name = Release;
 		};
@@ -2559,6 +2570,8 @@
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
 			};
 			name = "Local-Debug";
 		};
@@ -2787,6 +2800,14 @@
 				minimumVersion = 0.14.0;
 			};
 		};
+		9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa/";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -2933,7 +2954,41 @@
 			package = D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */;
 			productName = PlayolaPlayer;
 		};
+		0B6E1320AC744E9FAEC2F50F /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
+		};
 /* End XCSwiftPackageProductDependency section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A749B0FA144D4CBFB5A75066 /* Upload Debug Symbols to Sentry */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script is responsible for uploading debug symbols and source context for Sentry.
+if which sentry-cli >/dev/null; then
+  export SENTRY_ORG=playola-radio
+  export SENTRY_PROJECT=apple-ios
+  ERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)
+  if [ ! $? -eq 0 ]; then
+    echo \"warning: sentry-cli - $ERROR\"
+  fi
+else
+  echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"
+fi
+";
+			name = "Upload Debug Symbols to Sentry";
+		};
+/* End PBXShellScriptBuildPhase section */
 	};
 	rootObject = D35369F92BFA4F49006942D6 /* Project object */;
 }

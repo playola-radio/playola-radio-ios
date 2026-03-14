@@ -31,6 +31,14 @@ Release STAGING build to TestFlight (Internal Only)
 
 Release PRODUCTION build to TestFlight
 
+### ios upload_symbols
+
+```sh
+[bundle exec] fastlane ios upload_symbols
+```
+
+Upload debug symbols to Sentry
+
 ### ios beta
 
 ```sh
