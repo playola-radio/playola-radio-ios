@@ -88,6 +88,12 @@ platform :ios do
 
     puts "✅ Production build uploaded to TestFlight!"
     puts "📱 App: fm.playola.playolaradio"
+
+    sentry_debug_files_upload(
+      org_slug: 'playola-radio',
+      project_slug: 'apple-ios',
+      include_sources: true
+    )
   end
 
   desc "Push a new beta build to TestFlight (Legacy - use release_production instead)"
