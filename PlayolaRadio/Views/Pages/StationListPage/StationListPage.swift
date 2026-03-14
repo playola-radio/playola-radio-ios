@@ -25,6 +25,21 @@ struct StationListPage: View {
             .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 32))
             .foregroundColor(.white)
           Spacer()
+          Button {
+            model.suggestArtistTapped()
+          } label: {
+            HStack(spacing: 4) {
+              Image(systemName: "plus")
+                .font(.system(size: 11, weight: .bold))
+              Text(model.suggestArtistButtonText)
+                .font(.custom(FontNames.Inter_500_Medium, size: 12))
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color.primary)
+            .cornerRadius(16)
+          }
         }
         .padding(.horizontal, 20)
         .padding(.top, 20)
@@ -98,6 +113,7 @@ struct StationListPage: View {
                 Task { await model.stationSelected(item) }
               })
           }
+
         }
       }
       .animation(
