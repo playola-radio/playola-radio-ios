@@ -7,7 +7,8 @@ set -euo pipefail
 
 SOURCE_REPO="${1:-$HOME/playola/playola-radio-ios}"
 SOURCE_DIR="$SOURCE_REPO/PlayolaRadio/Config"
-DEST_DIR="$(cd "$(dirname "$0")/../PlayolaRadio/Config" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEST_DIR="$SCRIPT_DIR/../PlayolaRadio/Config"
 
 FILES=(
   "Secrets.xcconfig"
