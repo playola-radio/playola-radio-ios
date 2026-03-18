@@ -112,6 +112,7 @@ struct StationListPage: View {
         .font(.custom(FontNames.Inter_400_Regular, size: 16))
         .foregroundColor(.white)
         .autocorrectionDisabled()
+        .textInputAutocapitalization(.never)
 
       if !model.searchText.isEmpty {
         Button {
@@ -126,7 +127,7 @@ struct StationListPage: View {
     .padding(.horizontal, 12)
     .padding(.vertical, 10)
     .background(Color(hex: "#333333"))
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
     .padding(.horizontal, 16)
     .padding(.vertical, 12)
     .background(Color.black)

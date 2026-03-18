@@ -108,6 +108,7 @@ class StationListModel: ViewModel {
   }
 
   func segmentSelected(_ segmentTitle: String) async {
+    searchText = ""
     let previousSegment = selectedSegment
     selectedSegment = segmentTitle
     loadStationListsForDisplay(stationLists)

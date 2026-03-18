@@ -699,6 +699,37 @@ final class StationListPageTests: XCTestCase {
     XCTAssertEqual(items.first?.anyStation.id, "s1")
   }
 
+  func testSearchTextClearedOnSegmentSwitch() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+    let now = Date()
+
+    let station1 = Station.mockWith(id: "s1", name: "Show One", curatorName: "Alice")
+
+    let list1 = StationList(
+      id: "list-1", name: "Hip Hop", slug: "hip-hop",
+      hidden: false, sortOrder: 0, createdAt: now, updatedAt: now,
+      items: [
+        APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil)
+      ]
+    )
+    let list2 = StationList(
+      id: "list-2", name: "Jazz", slug: "jazz",
+      hidden: false, sortOrder: 1, createdAt: now, updatedAt: now,
+      items: []
+    )
+
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [list1, list2]
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    model.searchText = "Alice"
+    XCTAssertEqual(model.searchText, "Alice")
+
+    await model.segmentSelected("Jazz")
+    XCTAssertEqual(model.searchText, "")
+  }
+
   func testSearchMatchesEitherCuratorNameOrStationName() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
