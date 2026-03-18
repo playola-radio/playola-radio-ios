@@ -533,6 +533,198 @@ final class StationListPageTests: XCTestCase {
     XCTAssertEqual(sortedItems[1].anyStation.id, "station-2")
   }
 
+  // MARK: - Search Tests
+
+  func testSearchByCuratorNameFiltersStations() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+    let now = Date()
+
+    let station1 = Station.mockWith(id: "s1", name: "Show One", curatorName: "Alice")
+    let station2 = Station.mockWith(id: "s2", name: "Show Two", curatorName: "Bob")
+
+    let list = makeList(with: [
+      APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil),
+      APIStationItem(sortOrder: 1, visibility: .visible, station: station2, urlStation: nil),
+    ])
+
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [list]
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    model.searchText = "Alice"
+
+    let items = model.sortedStationItems(for: model.stationListsForDisplay.first!)
+    XCTAssertEqual(items.count, 1)
+    XCTAssertEqual(items.first?.anyStation.id, "s1")
+  }
+
+  func testSearchByStationNameFiltersStations() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+
+    let station1 = Station.mockWith(id: "s1", name: "Moondog Radio", curatorName: "Alice")
+    let station2 = Station.mockWith(id: "s2", name: "Jazz Hour", curatorName: "Bob")
+
+    let list = makeList(with: [
+      APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil),
+      APIStationItem(sortOrder: 1, visibility: .visible, station: station2, urlStation: nil),
+    ])
+
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [list]
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    model.searchText = "Moondog"
+
+    let items = model.sortedStationItems(for: model.stationListsForDisplay.first!)
+    XCTAssertEqual(items.count, 1)
+    XCTAssertEqual(items.first?.anyStation.id, "s1")
+  }
+
+  func testSearchIsCaseInsensitive() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+
+    let station1 = Station.mockWith(id: "s1", name: "Moondog Radio", curatorName: "Alice")
+
+    let list = makeList(with: [
+      APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil)
+    ])
+
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [list]
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    model.searchText = "alice"
+
+    let items = model.sortedStationItems(for: model.stationListsForDisplay.first!)
+    XCTAssertEqual(items.count, 1)
+    XCTAssertEqual(items.first?.anyStation.id, "s1")
+  }
+
+  func testEmptySearchTextShowsAllStations() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+
+    let station1 = Station.mockWith(id: "s1", name: "Show One", curatorName: "Alice")
+    let station2 = Station.mockWith(id: "s2", name: "Show Two", curatorName: "Bob")
+
+    let list = makeList(with: [
+      APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil),
+      APIStationItem(sortOrder: 1, visibility: .visible, station: station2, urlStation: nil),
+    ])
+
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [list]
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    model.searchText = ""
+
+    let items = model.sortedStationItems(for: model.stationListsForDisplay.first!)
+    XCTAssertEqual(items.count, 2)
+  }
+
+  func testIsShowingNoResultsTrueWhenSearchHasNoMatches() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+
+    let station1 = Station.mockWith(id: "s1", name: "Show One", curatorName: "Alice")
+
+    let list = makeList(with: [
+      APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil)
+    ])
+
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [list]
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    model.searchText = "xyznonexistent"
+
+    XCTAssertTrue(model.isShowingNoResults)
+  }
+
+  func testIsShowingNoResultsFalseWhenSearchTextEmpty() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+
+    let station1 = Station.mockWith(id: "s1", name: "Show One", curatorName: "Alice")
+
+    let list = makeList(with: [
+      APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil)
+    ])
+
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [list]
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    model.searchText = ""
+
+    XCTAssertFalse(model.isShowingNoResults)
+  }
+
+  func testSearchWorksWithinSelectedSegment() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+    let now = Date()
+
+    let station1 = Station.mockWith(id: "s1", name: "Show One", curatorName: "Alice")
+    let station2 = Station.mockWith(id: "s2", name: "Show Two", curatorName: "Alice Too")
+
+    let list1 = StationList(
+      id: "list-1", name: "Hip Hop", slug: "hip-hop",
+      hidden: false, sortOrder: 0, createdAt: now, updatedAt: now,
+      items: [
+        APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil)
+      ]
+    )
+    let list2 = StationList(
+      id: "list-2", name: "Jazz", slug: "jazz",
+      hidden: false, sortOrder: 1, createdAt: now, updatedAt: now,
+      items: [
+        APIStationItem(sortOrder: 0, visibility: .visible, station: station2, urlStation: nil)
+      ]
+    )
+
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [list1, list2]
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    await model.segmentSelected("Hip Hop")
+    model.searchText = "Alice"
+
+    XCTAssertEqual(model.stationListsForDisplay.count, 1)
+    let items = model.sortedStationItems(for: model.stationListsForDisplay.first!)
+    XCTAssertEqual(items.count, 1)
+    XCTAssertEqual(items.first?.anyStation.id, "s1")
+  }
+
+  func testSearchMatchesEitherCuratorNameOrStationName() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+
+    let station1 = Station.mockWith(id: "s1", name: "Moondog Radio", curatorName: "Alice")
+    let station2 = Station.mockWith(id: "s2", name: "Jazz Hour", curatorName: "Bob Moondog")
+    let station3 = Station.mockWith(id: "s3", name: "Rock Show", curatorName: "Charlie")
+
+    let list = makeList(with: [
+      APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil),
+      APIStationItem(sortOrder: 1, visibility: .visible, station: station2, urlStation: nil),
+      APIStationItem(sortOrder: 2, visibility: .visible, station: station3, urlStation: nil),
+    ])
+
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [list]
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    model.searchText = "Moondog"
+
+    let items = model.sortedStationItems(for: model.stationListsForDisplay.first!)
+    XCTAssertEqual(items.count, 2)
+    let ids = items.map { $0.anyStation.id }
+    XCTAssertTrue(ids.contains("s1"))
+    XCTAssertTrue(ids.contains("s2"))
+  }
 }
 
 private func assertPlayedEvents(
