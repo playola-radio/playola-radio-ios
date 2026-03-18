@@ -22,25 +22,30 @@ if [ ! -d "$SOURCE_DIR" ]; then
   exit 1
 fi
 
+if [ ! -d "$DEST_DIR" ]; then
+  echo "Error: Destination directory not found at $DEST_DIR"
+  exit 1
+fi
+
 copied=0
 skipped=0
 
 for file in "${FILES[@]}"; do
   if [ ! -f "$SOURCE_DIR/$file" ]; then
     echo "  SKIP  $file (not found in source)"
-    ((skipped++))
+    skipped=$((skipped + 1))
     continue
   fi
 
   if [ -f "$DEST_DIR/$file" ]; then
     echo "  EXISTS $file (already present, skipping)"
-    ((skipped++))
+    skipped=$((skipped + 1))
     continue
   fi
 
   cp "$SOURCE_DIR/$file" "$DEST_DIR/$file"
   echo "  COPIED $file"
-  ((copied++))
+  copied=$((copied + 1))
 done
 
 echo ""
