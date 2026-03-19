@@ -31,7 +31,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     SentrySDK.start { options in
       options.dsn =
         "https://c024cbc3afc46a4539e4cd73ea4f32c0@o4511043985801216.ingest.us.sentry.io/4511043987898368"
-      options.sendDefaultPii = true
+      options.sendDefaultPii = false
       options.tracesSampleRate = 0.1
       options.configureProfiling = {
         $0.sessionSampleRate = 0.1

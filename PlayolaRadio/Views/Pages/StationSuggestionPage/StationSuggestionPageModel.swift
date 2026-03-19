@@ -31,7 +31,7 @@ class StationSuggestionPageModel: ViewModel {
   var onDismiss: (() -> Void)?
 
   let navigationTitle = "Suggest a Station"
-  let subtitle = "Who's station should we build next?"
+  let subtitle = "Whose station should we build next?"
   let searchPlaceholder = "Search suggestions..."
   let emptyStateMessage = "No suggestions yet. Be the first!"
   let emptySearchMessage = "No results found"
