@@ -34,9 +34,11 @@ private func authenticatedGet<T: Decodable & Sendable>(
 ) async throws -> T {
   var url = "\(Config.shared.baseUrl.absoluteString)\(path)"
   if let queryParams, !queryParams.isEmpty {
-    var components = URLComponents(string: url)!
-    components.queryItems = queryParams.map { URLQueryItem(name: $0.key, value: $0.value) }
-    url = components.url!.absoluteString
+    var components = URLComponents(string: url)
+    components?.queryItems = queryParams.map { URLQueryItem(name: $0.key, value: $0.value) }
+    if let resolvedURL = components?.url {
+      url = resolvedURL.absoluteString
+    }
   }
   let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
   return try await AF.request(url, headers: headers)
@@ -610,17 +612,13 @@ extension APIClient: DependencyKey {
         try await authenticatedGet(path: "/v1/users/me/listener-question-airings", token: jwtToken)
       },
       searchSongs: { jwtToken, keywords in
-        let encoded =
-          keywords.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? keywords
-        return try await authenticatedGet(
-          path: "/v1/songs/search", token: jwtToken, queryParams: ["keywords": encoded]
+        try await authenticatedGet(
+          path: "/v1/songs/search", token: jwtToken, queryParams: ["keywords": keywords]
         )
       },
       searchSongRequests: { jwtToken, keywords in
-        let encoded =
-          keywords.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? keywords
-        return try await authenticatedGet(
-          path: "/v1/songs/search-song-seeds", token: jwtToken, queryParams: ["keywords": encoded]
+        try await authenticatedGet(
+          path: "/v1/songs/search-song-seeds", token: jwtToken, queryParams: ["keywords": keywords]
         )
       },
       requestSong: { jwtToken, songRequest in

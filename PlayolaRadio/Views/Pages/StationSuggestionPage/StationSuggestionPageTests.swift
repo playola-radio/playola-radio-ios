@@ -464,6 +464,16 @@ final class StationSuggestionPageTests: XCTestCase {
     XCTAssertFalse(model.isVoting)
   }
 
+  func testSuggestTappedResetsIsSubmittingAfterCompletion() async {
+    @Shared(.auth) var auth = Auth(jwt: testJwt)
+    let model = makeModel()
+    model.searchText = "Tyler Childers"
+
+    await model.suggestTapped()
+
+    XCTAssertFalse(model.isSubmitting)
+  }
+
   func testSuggestTappedResetsIsSubmittingAfterError() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let model = makeModel(onCreate: { _, _ in
