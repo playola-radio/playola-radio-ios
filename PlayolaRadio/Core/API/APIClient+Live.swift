@@ -34,8 +34,9 @@ private func authenticatedGet<T: Decodable & Sendable>(
 ) async throws -> T {
   var url = "\(Config.shared.baseUrl.absoluteString)\(path)"
   if let queryParams, !queryParams.isEmpty {
-    let queryString = queryParams.map { "\($0.key)=\($0.value)" }.joined(separator: "&")
-    url += "?\(queryString)"
+    var components = URLComponents(string: url)!
+    components.queryItems = queryParams.map { URLQueryItem(name: $0.key, value: $0.value) }
+    url = components.url!.absoluteString
   }
   let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
   return try await AF.request(url, headers: headers)

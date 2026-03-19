@@ -402,6 +402,80 @@ final class StationSuggestionPageTests: XCTestCase {
     XCTAssertEqual(model.voteCountText(suggestion), "42")
   }
 
+  // MARK: - Double-Tap Guard Tests
+
+  func testVoteTappedIgnoredWhileVoteInProgress() async {
+    @Shared(.auth) var auth = Auth(jwt: testJwt)
+    let voteCount = LockIsolated(0)
+    let unvotedSuggestion = ArtistSuggestion(
+      id: "s2", artistName: "Charley Crockett", createdByUserId: "u2",
+      voteCount: 7, hasVoted: false, createdAt: Date(), updatedAt: Date())
+
+    let model = makeModel(onVote: { _, _ in
+      voteCount.withValue { $0 += 1 }
+    })
+    model.isVoting = true
+
+    await model.voteTapped(unvotedSuggestion)
+
+    XCTAssertEqual(voteCount.value, 0)
+  }
+
+  func testSuggestTappedIgnoredWhileSubmitInProgress() async {
+    @Shared(.auth) var auth = Auth(jwt: testJwt)
+    let createCount = LockIsolated(0)
+    let model = makeModel(onCreate: { _, name in
+      createCount.withValue { $0 += 1 }
+      return ArtistSuggestion(
+        id: "new", artistName: name, createdByUserId: "u1",
+        voteCount: 1, hasVoted: true, createdAt: Date(), updatedAt: Date())
+    })
+    model.isSubmitting = true
+    model.searchText = "Tyler Childers"
+
+    await model.suggestTapped()
+
+    XCTAssertEqual(createCount.value, 0)
+  }
+
+  func testVoteTappedResetsIsVotingAfterCompletion() async {
+    @Shared(.auth) var auth = Auth(jwt: testJwt)
+    let unvotedSuggestion = ArtistSuggestion(
+      id: "s2", artistName: "Charley Crockett", createdByUserId: "u2",
+      voteCount: 7, hasVoted: false, createdAt: Date(), updatedAt: Date())
+    let model = makeModel()
+
+    await model.voteTapped(unvotedSuggestion)
+
+    XCTAssertFalse(model.isVoting)
+  }
+
+  func testVoteTappedResetsIsVotingAfterError() async {
+    @Shared(.auth) var auth = Auth(jwt: testJwt)
+    let unvotedSuggestion = ArtistSuggestion(
+      id: "s2", artistName: "Charley Crockett", createdByUserId: "u2",
+      voteCount: 7, hasVoted: false, createdAt: Date(), updatedAt: Date())
+    let model = makeModel(onVote: { _, _ in
+      throw APIError.validationError("fail")
+    })
+
+    await model.voteTapped(unvotedSuggestion)
+
+    XCTAssertFalse(model.isVoting)
+  }
+
+  func testSuggestTappedResetsIsSubmittingAfterError() async {
+    @Shared(.auth) var auth = Auth(jwt: testJwt)
+    let model = makeModel(onCreate: { _, _ in
+      throw APIError.validationError("fail")
+    })
+    model.searchText = "Tyler Childers"
+
+    await model.suggestTapped()
+
+    XCTAssertFalse(model.isSubmitting)
+  }
+
   // MARK: - Dismiss Tests
 
   func testDismissTappedCallsOnDismiss() {
