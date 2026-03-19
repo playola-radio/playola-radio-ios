@@ -2978,10 +2978,7 @@
 if which sentry-cli >/dev/null; then
   export SENTRY_ORG=playola-radio
   export SENTRY_PROJECT=apple-ios
-  ERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)
-  if [ ! $? -eq 0 ]; then
-    echo \"warning: sentry-cli - $ERROR\"
-  fi
+  sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 || echo \"warning: sentry-cli upload failed\"
 else
   echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"
 fi
