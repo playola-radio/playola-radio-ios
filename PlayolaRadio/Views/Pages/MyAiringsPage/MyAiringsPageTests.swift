@@ -423,7 +423,8 @@ final class MyAiringsPageModelTests: XCTestCase {
     model.downloadTapped(airing)
 
     if case .share(let shareModel) = navCoordinator.presentedSheet {
-      XCTAssertTrue(shareModel.items.contains("https://example.com/clip.m4a"))
+      let url = shareModel.items.first as? URL
+      XCTAssertEqual(url?.absoluteString, "https://example.com/clip.m4a")
     } else {
       XCTFail("Expected share sheet to be presented")
     }

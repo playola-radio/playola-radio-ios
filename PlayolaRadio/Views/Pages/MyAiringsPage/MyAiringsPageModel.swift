@@ -38,7 +38,7 @@ class MyAiringsPageModel: ViewModel {
   var isLoading = false
   var presentedAlert: PlayolaAlert?
   var pollingAiringIds: Set<String> = []
-  private var pollingTask: Task<Void, Never>?
+  private var pollingTasks: [String: Task<Void, Never>] = [:]
 
   // MARK: - User Actions
 
@@ -48,7 +48,10 @@ class MyAiringsPageModel: ViewModel {
   }
 
   func viewDisappeared() {
-    pollingTask?.cancel()
+    for task in pollingTasks.values {
+      task.cancel()
+    }
+    pollingTasks.removeAll()
   }
 
   func createClipTapped(_ airing: ListenerQuestionAiring) async {
@@ -86,11 +89,11 @@ class MyAiringsPageModel: ViewModel {
 
   func downloadTapped(_ airing: ListenerQuestionAiring) {
     guard let clip = clips[airing.id] else { return }
-    guard let urlString = clip.url else {
+    guard let urlString = clip.url, let url = URL(string: urlString) else {
       presentedAlert = .errorDownloadingClip
       return
     }
-    let shareModel = ShareSheetModel(items: [urlString])
+    let shareModel = ShareSheetModel(items: [url])
     mainContainerNavigationCoordinator.presentedSheet = .share(shareModel)
   }
 
@@ -136,19 +139,26 @@ class MyAiringsPageModel: ViewModel {
     airing.station?.imageUrl
   }
 
+  private static let dayFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "EEEE"
+    return f
+  }()
+  private static let monthDayFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "MMM d"
+    return f
+  }()
+  private static let hourFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "h:mma"
+    return f
+  }()
+
   func formattedAirtime(_ date: Date) -> String {
-    let dayFormatter = DateFormatter()
-    dayFormatter.dateFormat = "EEEE"
-    let dayOfWeek = dayFormatter.string(from: date)
-
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "MMM d"
-    let dateStr = dateFormatter.string(from: date)
-
-    let hourFormatter = DateFormatter()
-    hourFormatter.dateFormat = "h:mma"
-    let hour = hourFormatter.string(from: date).lowercased()
-
+    let dayOfWeek = Self.dayFormatter.string(from: date)
+    let dateStr = Self.monthDayFormatter.string(from: date)
+    let hour = Self.hourFormatter.string(from: date).lowercased()
     return "\(dayOfWeek), \(dateStr) at \(hour)"
   }
 
@@ -205,7 +215,7 @@ class MyAiringsPageModel: ViewModel {
   private func pollForClipCompletion(clipId: String, airingId: String) async {
     guard let jwt = auth.jwt else { return }
 
-    pollingTask = Task {
+    let task = Task {
       for _ in 0..<60 {
         guard !Task.isCancelled else {
           pollingAiringIds.remove(airingId)
@@ -225,22 +235,28 @@ class MyAiringsPageModel: ViewModel {
 
           if clip.status == .completed {
             pollingAiringIds.remove(airingId)
+            pollingTasks.removeValue(forKey: airingId)
             return
           } else if clip.status == .failed {
             pollingAiringIds.remove(airingId)
+            pollingTasks.removeValue(forKey: airingId)
             presentedAlert = .clipFailed
             return
           }
         } catch {
           pollingAiringIds.remove(airingId)
+          pollingTasks.removeValue(forKey: airingId)
           return
         }
       }
 
       pollingAiringIds.remove(airingId)
+      pollingTasks.removeValue(forKey: airingId)
+      presentedAlert = .clipTimeout
     }
+    pollingTasks[airingId] = task
 
-    await pollingTask?.value
+    await task.value
   }
 }
 
@@ -265,6 +281,14 @@ extension PlayolaAlert {
     PlayolaAlert(
       title: "Clip Failed",
       message: "There was an error processing your clip. You can try again.",
+      dismissButton: .cancel(Text("OK")))
+  }
+
+  static var clipTimeout: PlayolaAlert {
+    PlayolaAlert(
+      title: "Still Processing",
+      message:
+        "Your clip is taking longer than expected. Check back in a few minutes.",
       dismissButton: .cancel(Text("OK")))
   }
 
