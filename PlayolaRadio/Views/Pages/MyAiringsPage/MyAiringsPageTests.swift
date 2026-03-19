@@ -40,6 +40,7 @@ final class MyAiringsPageModelTests: XCTestCase {
       $0.date.now = now
       $0.api.getMyListenerQuestionAirings = { _ in [pastAiring, futureAiring] }
       $0.api.getUserClips = { _ in [clip] }
+      $0.pushNotifications.scheduleNotification = { _, _, _, _ in }
     } operation: {
       let model = MyAiringsPageModel()
 
@@ -57,6 +58,7 @@ final class MyAiringsPageModelTests: XCTestCase {
     var apiCalled = false
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.getMyListenerQuestionAirings = { _ in
         apiCalled = true
         return []
@@ -74,6 +76,7 @@ final class MyAiringsPageModelTests: XCTestCase {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.getMyListenerQuestionAirings = { _ in throw APIError.dataNotValid }
       $0.api.getUserClips = { _ in [] }
     } operation: {
@@ -120,8 +123,10 @@ final class MyAiringsPageModelTests: XCTestCase {
     let clipWithoutTracks = Clip.mockWith(id: "clip-no-tracks", tracks: nil)
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.getMyListenerQuestionAirings = { _ in [pastAiring] }
       $0.api.getUserClips = { _ in [clipWithoutTracks] }
+      $0.pushNotifications.scheduleNotification = { _, _, _, _ in }
     } operation: {
       let model = MyAiringsPageModel()
 
@@ -137,6 +142,7 @@ final class MyAiringsPageModelTests: XCTestCase {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.getMyListenerQuestionAirings = { _ in [] }
       $0.api.getUserClips = { _ in [] }
     } operation: {
