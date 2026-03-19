@@ -172,6 +172,15 @@
 		D339E57C2BFD698600B9E35B /* Mail.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E57B2BFD698600B9E35B /* Mail.swift */; };
 		D339E57E2BFD750700B9E35B /* MailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E57D2BFD750700B9E35B /* MailService.swift */; };
 		D342A0C72DFCB368002BAC30 /* HomePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B32DF88BD9001BC6F9 /* HomePageTests.swift */; };
+		D34826A62F6CA6FE00D48EB9 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		D34826A72F6CA6FE00D48EB9 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		D34826A92F6CA71100D48EB9 /* Clip.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34826A82F6CA71100D48EB9 /* Clip.swift */; };
+		D34826AA2F6CA71100D48EB9 /* Clip.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34826A82F6CA71100D48EB9 /* Clip.swift */; };
+		D34826AF2F6CA72F00D48EB9 /* MyAiringsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34826AB2F6CA72F00D48EB9 /* MyAiringsPage.swift */; };
+		D34826B12F6CA72F00D48EB9 /* MyAiringsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34826AC2F6CA72F00D48EB9 /* MyAiringsPageModel.swift */; };
+		D34826B22F6CA72F00D48EB9 /* MyAiringsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34826AB2F6CA72F00D48EB9 /* MyAiringsPage.swift */; };
+		D34826B42F6CA72F00D48EB9 /* MyAiringsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34826AC2F6CA72F00D48EB9 /* MyAiringsPageModel.swift */; };
+		D34826B52F6CA73D00D48EB9 /* MyAiringsPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34826AD2F6CA72F00D48EB9 /* MyAiringsPageTests.swift */; };
 		D34D5C392D7106CD00148048 /* AuthServiceMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34D5C382D7106CA00148048 /* AuthServiceMock.swift */; };
 		D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */; };
 		D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A062BFA4F49006942D6 /* ContentView.swift */; };
@@ -484,6 +493,10 @@
 		D339E56E2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FRadioPlayerMetadata+Equatable.swift"; sourceTree = "<group>"; };
 		D339E57B2BFD698600B9E35B /* Mail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mail.swift; sourceTree = "<group>"; };
 		D339E57D2BFD750700B9E35B /* MailService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailService.swift; sourceTree = "<group>"; };
+		D34826A82F6CA71100D48EB9 /* Clip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clip.swift; sourceTree = "<group>"; };
+		D34826AB2F6CA72F00D48EB9 /* MyAiringsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyAiringsPage.swift; sourceTree = "<group>"; };
+		D34826AC2F6CA72F00D48EB9 /* MyAiringsPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyAiringsPageModel.swift; sourceTree = "<group>"; };
+		D34826AD2F6CA72F00D48EB9 /* MyAiringsPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyAiringsPageTests.swift; sourceTree = "<group>"; };
 		D34D5C382D7106CA00148048 /* AuthServiceMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthServiceMock.swift; sourceTree = "<group>"; };
 		D3536A012BFA4F49006942D6 /* PlayolaRadio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PlayolaRadio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaRadioApp.swift; sourceTree = "<group>"; };
@@ -674,7 +687,7 @@
 				D30F00A12E8592F0007BCC73 /* FRadioPlayer in Frameworks */,
 				D3916A692ECD22E600CAAD50 /* IdentifiedCollections in Frameworks */,
 				D30F00A22E8592F0007BCC73 /* GoogleSignIn in Frameworks */,
-				F35D444BFD44486391C161D6 /* Sentry in Frameworks */,
+				D34826A62F6CA6FE00D48EB9 /* (null) in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -704,7 +717,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */,
-				F35D444BFD44486391C161D6 /* Sentry in Frameworks */,
+				D34826A72F6CA6FE00D48EB9 /* (null) in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -788,6 +801,7 @@
 			children = (
 				D39728582F5F0427008591E3 /* AppVersionRequirements.swift */,
 				D39728702F60DCCC008591E3 /* ArtistSuggestion.swift */,
+				D34826A82F6CA71100D48EB9 /* Clip.swift */,
 				D35EFC252F192AAF000F64A4 /* Conversation.swift */,
 				D3137DD12D3ABB4F0070033A /* GenericNowPlaying.swift */,
 				D3B9C7A52F534CE0002D75C2 /* IntroPresignedURLResponse.swift */,
@@ -867,6 +881,7 @@
 				D30257852E63B6AD00F4228B /* LikedSongsPage */,
 				D3776A2C2F2695B800200ADF /* ListenerQuestionDetailPage */,
 				D37257C72DFA2470001BC6F9 /* MainContainer */,
+				D34826AE2F6CA72F00D48EB9 /* MyAiringsPage */,
 				D3367BF82F08B7DC00AF87FA /* NotificationsSettingsPage */,
 				D37257CE2DFB4358001BC6F9 /* PlayerPage */,
 				D3B9C79D2F52891F002D75C2 /* RecordIntroPage */,
@@ -901,6 +916,16 @@
 				D3776A3A2F2918DE00200ADF /* WaveformViews.swift */,
 			);
 			path = "Reusable Components";
+			sourceTree = "<group>";
+		};
+		D34826AE2F6CA72F00D48EB9 /* MyAiringsPage */ = {
+			isa = PBXGroup;
+			children = (
+				D34826AB2F6CA72F00D48EB9 /* MyAiringsPage.swift */,
+				D34826AC2F6CA72F00D48EB9 /* MyAiringsPageModel.swift */,
+				D34826AD2F6CA72F00D48EB9 /* MyAiringsPageTests.swift */,
+			);
+			path = MyAiringsPage;
 			sourceTree = "<group>";
 		};
 		D35369F82BFA4F49006942D6 = {
@@ -1687,6 +1712,24 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		A749B0FA144D4CBFB5A75066 /* Upload Debug Symbols to Sentry */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
+			);
+			name = "Upload Debug Symbols to Sentry";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script is responsible for uploading debug symbols and source context for Sentry.\nif which sentry-cli >/dev/null; then\n  export SENTRY_ORG=playola-radio\n  export SENTRY_PROJECT=apple-ios\n  ERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)\n  if [ ! $? -eq 0 ]; then\n    echo \"warning: sentry-cli - $ERROR\"\n  fi\nelse\n  echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		D30F00492E8592F0007BCC73 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -1782,7 +1825,10 @@
 				D30F00752E8592F0007BCC73 /* ListeningTimeTile.swift in Sources */,
 				D30F00762E8592F0007BCC73 /* GenericNowPlaying.swift in Sources */,
 				D30C01CA2F5C9F9D00889E6D /* RedeemPrizeSheetView.swift in Sources */,
+				D34826B22F6CA72F00D48EB9 /* MyAiringsPage.swift in Sources */,
+				D34826B42F6CA72F00D48EB9 /* MyAiringsPageModel.swift in Sources */,
 				D30C01CC2F5C9F9D00889E6D /* RedeemPrizeSheetModel.swift in Sources */,
+				D34826A92F6CA71100D48EB9 /* Clip.swift in Sources */,
 				D3C7E5E12EF0A44400EDD3ED /* SongSearchPageView.swift in Sources */,
 				D30F00772E8592F0007BCC73 /* UIImage+Cache.swift in Sources */,
 				D30F00782E8592F0007BCC73 /* ContactPageView.swift in Sources */,
@@ -1941,7 +1987,10 @@
 				D3B744B92E2FF16F0042A427 /* ListeningTimeTile.swift in Sources */,
 				D3137DD22D3ABB520070033A /* GenericNowPlaying.swift in Sources */,
 				D30C01CD2F5C9F9D00889E6D /* RedeemPrizeSheetView.swift in Sources */,
+				D34826AF2F6CA72F00D48EB9 /* MyAiringsPage.swift in Sources */,
+				D34826B12F6CA72F00D48EB9 /* MyAiringsPageModel.swift in Sources */,
 				D30C01CF2F5C9F9D00889E6D /* RedeemPrizeSheetModel.swift in Sources */,
+				D34826AA2F6CA71100D48EB9 /* Clip.swift in Sources */,
 				D3C7E5E22EF0A44400EDD3ED /* SongSearchPageView.swift in Sources */,
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
 				D39591152E39932000720CF8 /* ContactPageView.swift in Sources */,
@@ -2016,6 +2065,7 @@
 				D302578C2E63B6D100F4228B /* LikedSongsPageTests.swift in Sources */,
 				D35EFC3F2F192C8F000F64A4 /* SupportPageTests.swift in Sources */,
 				D3B9C7A42F528929002D75C2 /* RecordIntroPageTests.swift in Sources */,
+				D34826B52F6CA73D00D48EB9 /* MyAiringsPageTests.swift in Sources */,
 				D38031352E00AFD20011DD64 /* PlayerPageTests.swift in Sources */,
 				D30C01D02F5CA12300889E6D /* RedeemPrizeSheetTests.swift in Sources */,
 				D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */,
@@ -2350,9 +2400,11 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 79;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
@@ -2379,8 +2431,6 @@
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
 			};
 			name = Debug;
 		};
@@ -2395,9 +2445,11 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 79;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
@@ -2424,8 +2476,6 @@
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
 			};
 			name = Release;
 		};
@@ -2541,9 +2591,11 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 79;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
@@ -2570,8 +2622,6 @@
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
 			};
 			name = "Local-Debug";
 		};
@@ -2640,6 +2690,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa/";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 		D30F00382E8592F0007BCC73 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
@@ -2800,17 +2858,14 @@
 				minimumVersion = 0.14.0;
 			};
 		};
-		9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/getsentry/sentry-cocoa/";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 8.0.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		0B6E1320AC744E9FAEC2F50F /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
+		};
 		D30F00362E8592F0007BCC73 /* PlayolaPlayer */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PlayolaPlayer;
@@ -2954,41 +3009,7 @@
 			package = D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */;
 			productName = PlayolaPlayer;
 		};
-		0B6E1320AC744E9FAEC2F50F /* Sentry */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
-			productName = Sentry;
-		};
 /* End XCSwiftPackageProductDependency section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		A749B0FA144D4CBFB5A75066 /* Upload Debug Symbols to Sentry */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script is responsible for uploading debug symbols and source context for Sentry.
-if which sentry-cli >/dev/null; then
-  export SENTRY_ORG=playola-radio
-  export SENTRY_PROJECT=apple-ios
-  ERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)
-  if [ ! $? -eq 0 ]; then
-    echo \"warning: sentry-cli - $ERROR\"
-  fi
-else
-  echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"
-fi
-";
-			name = "Upload Debug Symbols to Sentry";
-		};
-/* End PBXShellScriptBuildPhase section */
 	};
 	rootObject = D35369F92BFA4F49006942D6 /* Project object */;
 }
