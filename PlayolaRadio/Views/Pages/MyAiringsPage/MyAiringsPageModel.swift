@@ -89,11 +89,11 @@ class MyAiringsPageModel: ViewModel {
 
   func downloadTapped(_ airing: ListenerQuestionAiring) {
     guard let clip = clips[airing.id] else { return }
-    guard let urlString = clip.url, let url = URL(string: urlString) else {
+    guard let urlString = clip.url else {
       presentedAlert = .errorDownloadingClip
       return
     }
-    let shareModel = ShareSheetModel(items: [url])
+    let shareModel = ShareSheetModel(items: [urlString])
     mainContainerNavigationCoordinator.presentedSheet = .share(shareModel)
   }
 
