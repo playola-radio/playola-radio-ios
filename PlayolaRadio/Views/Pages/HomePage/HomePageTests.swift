@@ -806,6 +806,7 @@ final class HomePageTests: XCTestCase {
     await withDependencies {
       $0.date.now = now
       $0.api.getMyListenerQuestionAirings = { _ in [futureAiring] }
+      $0.pushNotifications.scheduleNotification = { _, _, _, _ in }
     } operation: {
       let model = HomePageModel()
 
