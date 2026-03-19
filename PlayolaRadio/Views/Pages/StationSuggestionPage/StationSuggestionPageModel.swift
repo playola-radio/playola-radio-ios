@@ -25,6 +25,8 @@ class StationSuggestionPageModel: ViewModel {
   var suggestions: [ArtistSuggestion] = []
   var searchText = ""
   var isLoading = false
+  var isVoting = false
+  var isSubmitting = false
   var presentedAlert: PlayolaAlert?
   var onDismiss: (() -> Void)?
 
@@ -55,8 +57,9 @@ class StationSuggestionPageModel: ViewModel {
   }
 
   func voteTapped(_ suggestion: ArtistSuggestion) async {
-    guard let jwt = auth.jwt else { return }
+    guard !isVoting, let jwt = auth.jwt else { return }
 
+    isVoting = true
     do {
       if suggestion.hasVoted {
         try await api.removeArtistSuggestionVote(jwt, suggestion.id)
@@ -71,12 +74,14 @@ class StationSuggestionPageModel: ViewModel {
         dismissButton: .cancel(Text("OK"))
       )
     }
+    isVoting = false
   }
 
   func suggestTapped() async {
     let name = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !name.isEmpty, let jwt = auth.jwt else { return }
+    guard !name.isEmpty, !isSubmitting, let jwt = auth.jwt else { return }
 
+    isSubmitting = true
     do {
       _ = try await api.createArtistSuggestion(jwt, name)
       searchText = ""
@@ -88,6 +93,7 @@ class StationSuggestionPageModel: ViewModel {
         dismissButton: .cancel(Text("OK"))
       )
     }
+    isSubmitting = false
   }
 
   // MARK: - View Helpers
@@ -123,7 +129,7 @@ class StationSuggestionPageModel: ViewModel {
   private func fetchSuggestions() async {
     guard let jwt = auth.jwt else { return }
 
-    isLoading = suggestions.isEmpty
+    isLoading = true
     do {
       let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
       suggestions = try await api.getArtistSuggestions(jwt, query.isEmpty ? nil : query)
