@@ -140,19 +140,19 @@ class MyAiringsPageModel: ViewModel {
   }
 
   private static let dayFormatter: DateFormatter = {
-    let f = DateFormatter()
-    f.dateFormat = "EEEE"
-    return f
+    let formatter = DateFormatter()
+    formatter.dateFormat = "EEEE"
+    return formatter
   }()
   private static let monthDayFormatter: DateFormatter = {
-    let f = DateFormatter()
-    f.dateFormat = "MMM d"
-    return f
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMM d"
+    return formatter
   }()
   private static let hourFormatter: DateFormatter = {
-    let f = DateFormatter()
-    f.dateFormat = "h:mma"
-    return f
+    let formatter = DateFormatter()
+    formatter.dateFormat = "h:mma"
+    return formatter
   }()
 
   func formattedAirtime(_ date: Date) -> String {
