@@ -479,7 +479,9 @@ final class HomePageTests: XCTestCase {
     )
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.getMyListenerQuestionAirings = { _ in [expectedAiring] }
+      $0.pushNotifications.scheduleNotification = { _, _, _, _ in }
     } operation: {
       let model = HomePageModel()
 
@@ -495,7 +497,9 @@ final class HomePageTests: XCTestCase {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.getMyListenerQuestionAirings = { _ in [] }
+      $0.pushNotifications.scheduleNotification = { _, _, _, _ in }
     } operation: {
       let model = HomePageModel()
 
@@ -551,7 +555,9 @@ final class HomePageTests: XCTestCase {
     )
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.getMyListenerQuestionAirings = { _ in [airing] }
+      $0.pushNotifications.scheduleNotification = { _, _, _, _ in }
     } operation: {
       let model = HomePageModel()
 
@@ -589,8 +595,10 @@ final class HomePageTests: XCTestCase {
     )
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.getMyListenerQuestionAirings = { _ in [airing] }
       $0.api.getOrCreateReferralCode = { _, _ in mockReferralCode }
+      $0.pushNotifications.scheduleNotification = { _, _, _, _ in }
     } operation: {
       let model = HomePageModel()
       await model.viewAppeared()
@@ -630,8 +638,10 @@ final class HomePageTests: XCTestCase {
     )
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.getMyListenerQuestionAirings = { _ in [airing] }
       $0.api.getOrCreateReferralCode = { _, _ in mockReferralCode }
+      $0.pushNotifications.scheduleNotification = { _, _, _, _ in }
     } operation: {
       let model = HomePageModel()
       await model.viewAppeared()
@@ -658,10 +668,12 @@ final class HomePageTests: XCTestCase {
     )
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.getMyListenerQuestionAirings = { _ in [airing] }
       $0.api.getOrCreateReferralCode = { _, _ in
         throw APIError.dataNotValid
       }
+      $0.pushNotifications.scheduleNotification = { _, _, _, _ in }
     } operation: {
       let model = HomePageModel()
       await model.viewAppeared()
