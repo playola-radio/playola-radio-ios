@@ -163,6 +163,19 @@ extension PushNotificationsClient: DependencyKey {
         return
       }
 
+      if NotificationPayload.notificationType(from: userInfo) == "listener_question_scheduled" {
+        return
+      }
+
+      if NotificationPayload.notificationType(from: userInfo) == "clip_ready" {
+        guard hasBeenUnlocked else { return }
+        await MainActor.run {
+          let model = MyAiringsPageModel()
+          navCoordinator.push(.myAiringsPage(model))
+        }
+        return
+      }
+
       guard let stationId = NotificationPayload.stationId(from: userInfo) else {
         return
       }
@@ -213,5 +226,21 @@ extension DependencyValues {
   var pushNotifications: PushNotificationsClient {
     get { self[PushNotificationsClient.self] }
     set { self[PushNotificationsClient.self] = newValue }
+  }
+}
+
+// MARK: - Airing Reminders
+
+extension PushNotificationsClient {
+  func scheduleAiringReminders(_ airings: [ListenerQuestionAiring]) async {
+    @Dependency(\.date.now) var now
+    for airing in airings {
+      let reminderDate = airing.airtime.addingTimeInterval(-10 * 60)
+      guard reminderDate > now else { continue }
+      let title = airing.station?.curatorName ?? "Playola Radio"
+      let body = "Your question is about to air! Tune in now."
+      let identifier = "airing-reminder-\(airing.id)"
+      try? await scheduleNotification(identifier, title, body, reminderDate)
+    }
   }
 }

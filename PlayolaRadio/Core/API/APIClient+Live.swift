@@ -608,6 +608,39 @@ extension APIClient: DependencyKey {
       getMyListenerQuestionAirings: { jwtToken in
         try await authenticatedGet(path: "/v1/users/me/listener-question-airings", token: jwtToken)
       },
+      getAiringSpins: { jwtToken, airingId in
+        try await authenticatedGet(
+          path: "/v1/listener-question-airings/\(airingId)/spins",
+          token: jwtToken
+        )
+      },
+      createClipForAiring: { jwtToken, firstSpinId, lastSpinId, prerollMS, postrollMS in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/clips"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        var parameters: [String: Any] = [
+          "firstSpinId": firstSpinId,
+          "lastSpinId": lastSpinId,
+        ]
+        if prerollMS > 0 { parameters["prerollMS"] = prerollMS }
+        if postrollMS > 0 { parameters["postrollMS"] = postrollMS }
+
+        return try await AF.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(Clip.self, decoder: sharedIsoDecoder)
+        .value
+      },
+      getClip: { jwtToken, clipId in
+        try await authenticatedGet(path: "/v1/clips/\(clipId)", token: jwtToken)
+      },
+      getUserClips: { jwtToken in
+        try await authenticatedGet(path: "/v1/clips", token: jwtToken)
+      },
       searchSongs: { jwtToken, keywords in
         let encoded =
           keywords.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? keywords

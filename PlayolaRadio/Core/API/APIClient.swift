@@ -332,12 +332,58 @@ struct APIClient: Sendable {
         ListenerQuestion.mock
       }
 
-  /// Fetches upcoming listener question airings for the authenticated user
+  /// Fetches listener question airings for the authenticated user (past and upcoming)
   /// - Parameter jwtToken: The JWT token for authentication
-  /// - Returns: Array of ListenerQuestionAiring objects scheduled in the future
+  /// - Returns: Array of ListenerQuestionAiring objects
   /// - Throws: APIError if the request fails
   var getMyListenerQuestionAirings: (_ jwtToken: String) async throws -> [ListenerQuestionAiring] =
     { _ in [] }
+
+  // MARK: - Clips
+
+  /// Fetches spins for a listener question airing (for clip creation)
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - airingId: The listener question airing ID
+  /// - Returns: AiringSpinsResponse containing airing spins and context spins
+  /// - Throws: APIError if the request fails
+  var getAiringSpins: (_ jwtToken: String, _ airingId: String) async throws -> AiringSpinsResponse =
+    { _, _ in
+      AiringSpinsResponse(airingSpins: [], contextSpins: [])
+    }
+
+  /// Creates a clip from first/last spin IDs
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - firstSpinId: The ID of the first spin in the clip
+  ///   - lastSpinId: The ID of the last spin in the clip
+  ///   - prerollMS: Milliseconds of audio before the first spin (optional)
+  ///   - postrollMS: Milliseconds of audio after the last spin (optional)
+  /// - Returns: The created Clip with pending/processing status
+  /// - Throws: APIError if the request fails
+  var createClipForAiring:
+    (
+      _ jwtToken: String, _ firstSpinId: String, _ lastSpinId: String, _ prerollMS: Int,
+      _ postrollMS: Int
+    ) async throws -> Clip = { _, _, _, _, _ in
+      Clip.mock
+    }
+
+  /// Fetches a single clip by ID
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - clipId: The clip ID
+  /// - Returns: The Clip object
+  /// - Throws: APIError if the request fails
+  var getClip: (_ jwtToken: String, _ clipId: String) async throws -> Clip = { _, _ in
+    Clip.mock
+  }
+
+  /// Fetches all clips for the authenticated user
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: Array of Clip objects
+  /// - Throws: APIError if the request fails
+  var getUserClips: (_ jwtToken: String) async throws -> [Clip] = { _ in [] }
 
   /// Searches for songs by keywords
   /// - Parameters:

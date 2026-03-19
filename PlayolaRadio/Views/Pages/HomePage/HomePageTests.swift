@@ -760,6 +760,109 @@ final class HomePageTests: XCTestCase {
     }
   }
 
+  // MARK: - Past Airing Tests
+
+  func testViewAppearedSetsPastQuestionAiringsWhenPastAiringsExist() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date()
+    let pastAiring = ListenerQuestionAiring.mockWith(
+      id: "past-airing",
+      airtime: now.addingTimeInterval(-86400),
+      station: .mockWith(curatorName: "DJ Past")
+    )
+
+    await withDependencies {
+      $0.date.now = now
+      $0.api.getMyListenerQuestionAirings = { _ in [pastAiring] }
+    } operation: {
+      let model = HomePageModel()
+
+      await model.viewAppeared()
+
+      XCTAssertTrue(model.hasPastAirings)
+      XCTAssertEqual(model.pastQuestionAirings.count, 1)
+    }
+  }
+
+  func testHasPastAiringsIsFalseWhenNoPastAirings() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date()
+    let futureAiring = ListenerQuestionAiring.mockWith(
+      airtime: now.addingTimeInterval(86400)
+    )
+
+    await withDependencies {
+      $0.date.now = now
+      $0.api.getMyListenerQuestionAirings = { _ in [futureAiring] }
+    } operation: {
+      let model = HomePageModel()
+
+      await model.viewAppeared()
+
+      XCTAssertFalse(model.hasPastAirings)
+      XCTAssertTrue(model.pastQuestionAirings.isEmpty)
+    }
+  }
+
+  func testPastAiringTileIsPersonalizedWithCuratorName() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date()
+    let pastAiring = ListenerQuestionAiring.mockWith(
+      airtime: now.addingTimeInterval(-86400),
+      station: .mockWith(curatorName: "DJ Awesome")
+    )
+
+    await withDependencies {
+      $0.date.now = now
+      $0.api.getMyListenerQuestionAirings = { _ in [pastAiring] }
+    } operation: {
+      let model = HomePageModel()
+
+      await model.viewAppeared()
+
+      XCTAssertTrue(model.pastAiringTileModel.paragraph?.contains("DJ Awesome") ?? false)
+    }
+  }
+
+  func testMyAiringsButtonTappedPushesMyAiringsPage() async {
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
+
+    let model = HomePageModel()
+
+    model.myAiringsButtonTapped()
+
+    XCTAssertEqual(navCoordinator.path.count, 1)
+    if case .myAiringsPage = navCoordinator.path.first {
+      // Expected
+    } else {
+      XCTFail("Expected myAiringsPage to be pushed")
+    }
+  }
+
+  func testViewAppearedSchedulesLocalNotificationsViaSharedMethod() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date()
+    let futureAiring = ListenerQuestionAiring.mockWith(
+      airtime: now.addingTimeInterval(86400),
+      station: .mockWith(curatorName: "DJ Notify")
+    )
+    var scheduledCount = 0
+
+    await withDependencies {
+      $0.date.now = now
+      $0.api.getMyListenerQuestionAirings = { _ in [futureAiring] }
+      $0.pushNotifications.scheduleNotification = { _, _, _, _ in
+        scheduledCount += 1
+      }
+    } operation: {
+      let model = HomePageModel()
+
+      await model.viewAppeared()
+
+      XCTAssertEqual(scheduledCount, 1)
+    }
+  }
 }
 
 // swiftlint:enable force_try

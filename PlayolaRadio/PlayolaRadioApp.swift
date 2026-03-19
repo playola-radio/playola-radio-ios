@@ -114,6 +114,16 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
       return
     }
 
+    let listenerQuestionTypes = [
+      "listener_question_scheduled",
+      "listener_question_airing_soon",
+      "clip_ready",
+    ]
+    if let type = userInfo["type"] as? String, listenerQuestionTypes.contains(type) {
+      completionHandler([.banner, .sound])
+      return
+    }
+
     if userInfo["type"] as? String == "support_message" {
       let badgeFromPayload = userInfo["badge"] as? Int
       Task {
