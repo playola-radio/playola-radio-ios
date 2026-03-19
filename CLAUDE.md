@@ -161,6 +161,41 @@ PlayolaRadio/
     └── Reusable Components/
 ```
 
+## Pre-PR Checklist
+
+Before creating a PR, run through these checks in order:
+
+### 1. Formatting & Linting
+- Run `make format` to auto-fix formatting
+- Run `make lint` to check SwiftLint — fix all violations before proceeding
+
+### 2. Tests
+- Ask the user to run tests in Xcode (tests cannot be run from the CLI)
+- Ensure all new code has corresponding tests
+- Verify tests follow `.claude/TESTING.md` patterns:
+  - `@MainActor` on all test classes
+  - camelCase test names (no underscores)
+  - `@Shared` declared locally inside each test method
+  - No `Task.sleep` in tests
+  - All dependencies provided (especially `date.now` and notification clients for tests calling `viewAppeared`)
+
+### 3. Architecture Conformance
+- **Models** follow the MARK section order from `.claude/PAGE_CREATION.md`: Dependencies → Shared State → Initialization → Properties → User Actions → View Helpers → Private Helpers
+- **Models** own all display text — no hardcoded strings in Views
+- **Views** contain zero logic — only layout, styling, and bindings
+- **Action methods** named after user actions (e.g., `recordButtonTapped`), not implementation (e.g., `startRecording`)
+- All view models inherit from `ViewModel` base class
+
+### 4. View Style Conformance
+- Colors, fonts, buttons, row layout, and images follow `.claude/VIEWS.md`
+- Navigation bar uses dark theme setup from `.claude/VIEWS.md`
+- Remote images use `SDWebImageSwiftUI` with placeholder fallback
+
+### 5. New files added to Xcode project
+- Any new `.swift` files must be added to `PlayolaRadio.xcodeproj` (use `xcodeproj` gem via Ruby script)
+- Source files added to both `PlayolaRadio` and `PlayolaRadio Staging` targets
+- Test files added to `PlayolaRadioTests` target
+
 ## Code Style
 
 - **Linting**: SwiftLint (auto-runs on commit via git hooks)

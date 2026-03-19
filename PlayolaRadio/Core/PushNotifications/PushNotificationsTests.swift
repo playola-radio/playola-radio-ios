@@ -224,4 +224,101 @@ final class PushNotificationsTests: XCTestCase {
 
     XCTAssertTrue(refreshNotificationPosted)
   }
+
+  // MARK: - Clip Share Notification Tests
+
+  func testClipReadyNotificationNavigatesToMyAiringsPage() async {
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
+    @Shared(.hasBeenUnlocked) var hasBeenUnlocked = true
+
+    let userInfo: [AnyHashable: Any] = [
+      "type": "clip_ready",
+      "clipId": "clip-123",
+      "stationId": "station-456",
+    ]
+
+    await PushNotificationsClient.liveValue.handleNotificationTap(userInfo)
+
+    XCTAssertEqual(navCoordinator.path.count, 1)
+    if case .myAiringsPage = navCoordinator.path.first {
+      // Expected
+    } else {
+      XCTFail("Expected myAiringsPage navigation")
+    }
+  }
+
+  func testClipReadyNotificationDoesNotNavigateWhenLocked() async {
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
+    @Shared(.hasBeenUnlocked) var hasBeenUnlocked = false
+
+    let userInfo: [AnyHashable: Any] = [
+      "type": "clip_ready",
+      "clipId": "clip-123",
+    ]
+
+    await PushNotificationsClient.liveValue.handleNotificationTap(userInfo)
+
+    XCTAssertTrue(navCoordinator.path.isEmpty)
+  }
+
+  func testListenerQuestionScheduledNotificationIsNoOp() async {
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
+
+    let userInfo: [AnyHashable: Any] = [
+      "type": "listener_question_scheduled",
+      "stationId": "station-123",
+    ]
+
+    await PushNotificationsClient.liveValue.handleNotificationTap(userInfo)
+
+    XCTAssertTrue(navCoordinator.path.isEmpty)
+  }
+
+  // MARK: - scheduleAiringReminders
+
+  func testScheduleAiringRemindersSchedulesForFutureAirings() async {
+    let now = Date()
+    let futureAiring = ListenerQuestionAiring.mockWith(
+      id: "future-1",
+      airtime: now.addingTimeInterval(86400),
+      station: .mockWith(curatorName: "DJ Test")
+    )
+    var scheduledIds: [String] = []
+
+    await withDependencies {
+      $0.date.now = now
+      $0.pushNotifications.scheduleNotification = { identifier, _, _, _ in
+        scheduledIds.append(identifier)
+      }
+    } operation: {
+      @Dependency(\.pushNotifications) var pushNotifications
+      await pushNotifications.scheduleAiringReminders([futureAiring])
+    }
+
+    XCTAssertEqual(scheduledIds, ["airing-reminder-future-1"])
+  }
+
+  func testScheduleAiringRemindersSkipsAiringsWithPastReminders() async {
+    let now = Date()
+    let soonAiring = ListenerQuestionAiring.mockWith(
+      id: "soon",
+      airtime: now.addingTimeInterval(5 * 60)  // 5 min from now, reminder would be in the past
+    )
+    var scheduledCount = 0
+
+    await withDependencies {
+      $0.date.now = now
+      $0.pushNotifications.scheduleNotification = { _, _, _, _ in
+        scheduledCount += 1
+      }
+    } operation: {
+      @Dependency(\.pushNotifications) var pushNotifications
+      await pushNotifications.scheduleAiringReminders([soonAiring])
+    }
+
+    XCTAssertEqual(scheduledCount, 0)
+  }
 }

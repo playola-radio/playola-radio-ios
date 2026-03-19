@@ -42,6 +42,28 @@ func testSomethingWithSharedAuth() async {
 
 This is especially important for `@Shared` keys backed by `.fileStorage` (like `.auth`), which go through more async machinery than `.inMemory` keys.
 
+## Provide ALL Dependencies Reached by the Code Path
+
+`swift-dependencies` will crash the test if any `@Dependency` is accessed from a test context without being provided. This means you must trace every code path your test exercises and provide every dependency it touches — not just the one you're testing.
+
+Common pitfall: `viewAppeared()` often calls multiple private methods. If you mock one API call but the method also accesses `date.now` or calls `pushNotifications.scheduleNotification`, those must be provided too:
+
+```swift
+// BAD — crashes because viewAppeared also uses date.now and scheduleNotification
+await withDependencies {
+  $0.api.getMyListenerQuestionAirings = { _ in [airing] }
+} operation: { ... }
+
+// GOOD — provide every dependency the code path touches
+await withDependencies {
+  $0.date.now = Date()
+  $0.api.getMyListenerQuestionAirings = { _ in [airing] }
+  $0.pushNotifications.scheduleNotification = { _, _, _, _ in }
+} operation: { ... }
+```
+
+When adding new dependency usage to an existing method (e.g., adding `scheduleAiringReminders` to `viewAppeared`), you must update ALL existing tests that call that method.
+
 ## Mocking Dependencies
 
 Use `withDependencies` to mock API calls:

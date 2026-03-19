@@ -75,6 +75,7 @@ final class MainContainerNavigationCoordinator: Sendable {
     case supportPage(SupportPageModel)
     case conversationListPage(ConversationListPageModel)
     case listenerQuestionDetailPage(ListenerQuestionDetailPageModel)
+    case myAiringsPage(MyAiringsPageModel)
 
     @MainActor @ViewBuilder
     var destinationView: some View {
@@ -101,6 +102,8 @@ final class MainContainerNavigationCoordinator: Sendable {
         ConversationListPageView(model: model)
       case .listenerQuestionDetailPage(let model):
         ListenerQuestionDetailPageView(model: model)
+      case .myAiringsPage(let model):
+        MyAiringsPage(model: model)
       }
     }
   }

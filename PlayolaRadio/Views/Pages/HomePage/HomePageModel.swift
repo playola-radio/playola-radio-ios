@@ -19,6 +19,7 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
   @ObservationIgnored var stationPlayer: StationPlayer
 
   // MARK: - Shared State
@@ -46,6 +47,7 @@ class HomePageModel: ViewModel {
   var presentedAlert: PlayolaAlert?
   var hasScheduledShows = false
   var upcomingQuestionAiring: ListenerQuestionAiring?
+  var pastQuestionAirings: [ListenerQuestionAiring] = []
 
   var hasUnreadSupportMessages: Bool {
     unreadSupportCount > 0
@@ -53,6 +55,10 @@ class HomePageModel: ViewModel {
 
   var hasUpcomingQuestionAiring: Bool {
     upcomingQuestionAiring != nil
+  }
+
+  var hasPastAirings: Bool {
+    !pastQuestionAirings.isEmpty
   }
 
   var canInviteFriends: Bool {
@@ -129,6 +135,20 @@ class HomePageModel: ViewModel {
       }
     )
 
+  @ObservationIgnored lazy var pastAiringTileModel: NewFeatureTileModel =
+    NewFeatureTileModel(
+      iconName: "waveform",
+      isSystemImage: true,
+      label: "Your Clip",
+      content: "You Were On Air!",
+      paragraph: "Your Q&A has aired! Listen and share your clip.",
+      buttonText: "View My Airings",
+      buttonAction: { [weak self] in
+        guard let self = self else { return }
+        self.myAiringsButtonTapped()
+      }
+    )
+
   @ObservationIgnored lazy var inviteFriendsTileModel: NewFeatureTileModel =
     NewFeatureTileModel(
       iconName: "person.2.fill",
@@ -171,6 +191,11 @@ class HomePageModel: ViewModel {
         entryPoint: "home_recommendations"
       ))
     stationPlayer.play(station: station)
+  }
+
+  func myAiringsButtonTapped() {
+    let model = MyAiringsPageModel()
+    mainContainerNavigationCoordinator.push(.myAiringsPage(model))
   }
 
   // MARK: - View Helpers
@@ -217,8 +242,15 @@ class HomePageModel: ViewModel {
 
     do {
       let airings = try await api.getMyListenerQuestionAirings(jwt)
-      upcomingQuestionAiring = airings.first
+      let upcoming = airings.filter { $0.airtime > now }
+      let past = airings.filter { $0.airtime <= now }
+
+      upcomingQuestionAiring = upcoming.first
+      pastQuestionAirings = past
       updateQuestionAiringTile()
+      updatePastAiringTile()
+
+      await pushNotifications.scheduleAiringReminders(upcoming)
     } catch {
       upcomingQuestionAiring = nil
     }
@@ -234,6 +266,13 @@ class HomePageModel: ViewModel {
     questionAiringTileModel.content = "You're On Air Soon!"
     questionAiringTileModel.paragraph =
       "\(curatorName) picked your question! It will air on \(formattedAirtime(airing.airtime))."
+  }
+
+  private func updatePastAiringTile() {
+    guard let airing = pastQuestionAirings.first else { return }
+    let curatorName = airing.station?.curatorName ?? "a station"
+    pastAiringTileModel.content = "You Were On Air!"
+    pastAiringTileModel.paragraph = "\(curatorName) aired your Q&A! Listen and share your clip."
   }
 
   private func inviteFriendsButtonTapped() async {

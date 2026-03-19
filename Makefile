@@ -1,4 +1,4 @@
-.PHONY: lint format format-check release bump-build release-production release-staging
+.PHONY: lint format format-check release bump-build release-production release-staging setup-conductor
 
 # Run SwiftLint (strict mode to match CI)
 lint:
@@ -33,3 +33,21 @@ upload-symbols:
 # Build and upload staging to TestFlight
 release-staging:
 	bundle exec fastlane release_staging
+
+# Set up workspace for Conductor agents
+setup-conductor:
+	@for f in Secrets Secrets-Development Secrets-Local Secrets-Staging; do \
+		test -f PlayolaRadio/Config/$$f.xcconfig \
+			|| cp PlayolaRadio/Config/Secrets-Example.xcconfig PlayolaRadio/Config/$$f.xcconfig; \
+	done
+	@if ! command -v rbenv >/dev/null 2>&1; then \
+		echo "Installing rbenv..."; \
+		brew install rbenv; \
+		eval "$$(rbenv init -)"; \
+	fi
+	@if ! rbenv versions --bare | grep -q '^3\.2\.2$$'; then \
+		echo "Installing Ruby 3.2.2 via rbenv..."; \
+		rbenv install 3.2.2; \
+	fi
+	@RBENV_VERSION=3.2.2 gem list -i xcodeproj >/dev/null 2>&1 \
+		|| (echo "Installing xcodeproj gem..." && RBENV_VERSION=3.2.2 gem install xcodeproj)
