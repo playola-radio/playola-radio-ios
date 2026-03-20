@@ -1,4 +1,4 @@
-.PHONY: lint format format-check release bump-build release-production release-staging
+.PHONY: lint format format-check release bump-build release-production release-staging setup-conductor
 
 # Run SwiftLint (strict mode to match CI)
 lint:
@@ -26,6 +26,17 @@ release-production:
 	git pull origin main
 	bundle exec fastlane release_production
 
+# Upload debug symbols to Sentry
+upload-symbols:
+	bundle exec fastlane upload_symbols
+
 # Build and upload staging to TestFlight
 release-staging:
 	bundle exec fastlane release_staging
+
+# Set up workspace for Conductor agents
+setup-conductor:
+	@for f in Secrets Secrets-Development Secrets-Local Secrets-Staging; do \
+		test -f PlayolaRadio/Config/$$f.xcconfig \
+			|| cp PlayolaRadio/Config/Secrets-Example.xcconfig PlayolaRadio/Config/$$f.xcconfig; \
+	done

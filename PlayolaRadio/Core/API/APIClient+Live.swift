@@ -34,8 +34,11 @@ private func authenticatedGet<T: Decodable & Sendable>(
 ) async throws -> T {
   var url = "\(Config.shared.baseUrl.absoluteString)\(path)"
   if let queryParams, !queryParams.isEmpty {
-    let queryString = queryParams.map { "\($0.key)=\($0.value)" }.joined(separator: "&")
-    url += "?\(queryString)"
+    var components = URLComponents(string: url)
+    components?.queryItems = queryParams.map { URLQueryItem(name: $0.key, value: $0.value) }
+    if let resolvedURL = components?.url {
+      url = resolvedURL.absoluteString
+    }
   }
   let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
   return try await AF.request(url, headers: headers)
@@ -609,17 +612,13 @@ extension APIClient: DependencyKey {
         try await authenticatedGet(path: "/v1/users/me/listener-question-airings", token: jwtToken)
       },
       searchSongs: { jwtToken, keywords in
-        let encoded =
-          keywords.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? keywords
-        return try await authenticatedGet(
-          path: "/v1/songs/search", token: jwtToken, queryParams: ["keywords": encoded]
+        try await authenticatedGet(
+          path: "/v1/songs/search", token: jwtToken, queryParams: ["keywords": keywords]
         )
       },
       searchSongRequests: { jwtToken, keywords in
-        let encoded =
-          keywords.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? keywords
-        return try await authenticatedGet(
-          path: "/v1/songs/search-song-seeds", token: jwtToken, queryParams: ["keywords": encoded]
+        try await authenticatedGet(
+          path: "/v1/songs/search-song-seeds", token: jwtToken, queryParams: ["keywords": keywords]
         )
       },
       requestSong: { jwtToken, songRequest in
@@ -802,6 +801,25 @@ extension APIClient: DependencyKey {
           .validate(statusCode: 200..<300)
           .serializingDecodable([String].self)
           .value
+      },
+      getArtistSuggestions: { jwtToken, search in
+        var queryParams: [String: String]?
+        if let search, !search.isEmpty { queryParams = ["search": search] }
+        return try await authenticatedGet(
+          path: "/v1/artist-suggestions", token: jwtToken, queryParams: queryParams)
+      },
+      createArtistSuggestion: { jwtToken, artistName in
+        try await authenticatedPost(
+          path: "/v1/artist-suggestions", token: jwtToken,
+          parameters: ["artistName": artistName])
+      },
+      voteForArtistSuggestion: { jwtToken, artistSuggestionId in
+        try await authenticatedPostVoid(
+          path: "/v1/artist-suggestions/\(artistSuggestionId)/vote", token: jwtToken)
+      },
+      removeArtistSuggestionVote: { jwtToken, artistSuggestionId in
+        try await authenticatedDelete(
+          path: "/v1/artist-suggestions/\(artistSuggestionId)/vote", token: jwtToken)
       },
       getAppVersionRequirements: {
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/app-version-requirements"

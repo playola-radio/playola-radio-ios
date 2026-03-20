@@ -25,6 +25,21 @@ struct StationListPage: View {
             .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 32))
             .foregroundColor(.white)
           Spacer()
+          Button {
+            model.suggestArtistTapped()
+          } label: {
+            HStack(spacing: 4) {
+              Image(systemName: "plus")
+                .font(.system(size: 11, weight: .bold))
+              Text(model.suggestArtistButtonText)
+                .font(.custom(FontNames.Inter_500_Medium, size: 12))
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color.primary)
+            .cornerRadius(16)
+          }
         }
         .padding(.horizontal, 20)
         .padding(.top, 20)
@@ -61,19 +76,61 @@ struct StationListPage: View {
       // Station Lists
       // ---------------------------------------------------------
       ScrollView {
-        VStack(alignment: .leading, spacing: 20) {
-          ForEach(model.stationListsForDisplay) { list in
-            stationSection(list: list)
+        if model.isShowingNoResults {
+          Text(model.noResultsMessage)
+            .font(.custom(FontNames.Inter_500_Medium, size: 16))
+            .foregroundColor(.playolaGray)
+            .frame(maxWidth: .infinity)
+            .padding(.top, 40)
+        } else {
+          VStack(alignment: .leading, spacing: 20) {
+            ForEach(model.stationListsForDisplay) { list in
+              stationSection(list: list)
+            }
           }
+          .padding(.top, 8)
         }
-        .padding(.top, 8)
       }
+    }
+    .safeAreaInset(edge: .bottom) {
+      searchBar
     }
     .toolbarBackground(.hidden, for: .navigationBar)
     .navigationBarTitleDisplayMode(.inline)
     .background(Color.black)
     .onAppear { Task { await model.viewAppeared() } }
     .alert(item: $model.presentedAlert) { $0.alert }
+  }
+
+  private var searchBar: some View {
+    HStack(spacing: 8) {
+      Image(systemName: "magnifyingglass")
+        .font(.system(size: 16))
+        .foregroundColor(.playolaGray)
+
+      TextField(model.searchBarPlaceholder, text: $model.searchText)
+        .font(.custom(FontNames.Inter_400_Regular, size: 16))
+        .foregroundColor(.white)
+        .autocorrectionDisabled()
+        .textInputAutocapitalization(.never)
+
+      if !model.searchText.isEmpty {
+        Button {
+          model.searchText = ""
+        } label: {
+          Image(systemName: "xmark.circle.fill")
+            .font(.system(size: 16))
+            .foregroundColor(.playolaGray)
+        }
+      }
+    }
+    .padding(.horizontal, 12)
+    .padding(.vertical, 10)
+    .background(Color(hex: "#333333"))
+    .clipShape(.rect(cornerRadius: 8))
+    .padding(.horizontal, 16)
+    .padding(.vertical, 12)
+    .background(Color.black)
   }
 
   // MARK: - Helpers
@@ -98,6 +155,7 @@ struct StationListPage: View {
                 Task { await model.stationSelected(item) }
               })
           }
+
         }
       }
       .animation(

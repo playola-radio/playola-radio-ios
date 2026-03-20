@@ -30,6 +30,8 @@ class StationListModel: ViewModel {
   @ObservationIgnored @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
   @ObservationIgnored @Shared(.hasAskedForNotificationPermission)
   var hasAskedForNotificationPermission: Bool
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
 
   // MARK: - Initialization
 
@@ -43,8 +45,12 @@ class StationListModel: ViewModel {
   var stationListsForDisplay: IdentifiedArrayOf<StationList> = []
   var segmentTitles: [String] = ["All"]
   var selectedSegment = "All"
+  var searchText = ""
   var presentedAlert: PlayolaAlert?
   let navigationTitle = "Radio Stations"
+  let suggestArtistButtonText = "Suggest Station"
+  let searchBarPlaceholder = "Search stations"
+  let noResultsMessage = "No stations found"
 
   // MARK: - User Actions
 
@@ -93,7 +99,16 @@ class StationListModel: ViewModel {
     presentedAlert = nil
   }
 
+  func suggestArtistTapped() {
+    let model = StationSuggestionPageModel()
+    model.onDismiss = { [weak self] in
+      self?.mainContainerNavigationCoordinator.presentedSheet = nil
+    }
+    mainContainerNavigationCoordinator.presentedSheet = .artistSuggestion(model)
+  }
+
   func segmentSelected(_ segmentTitle: String) async {
+    searchText = ""
     let previousSegment = selectedSegment
     selectedSegment = segmentTitle
     loadStationListsForDisplay(stationLists)
@@ -158,9 +173,24 @@ class StationListModel: ViewModel {
     liveStations.first { $0.stationId == stationId }?.liveStatus
   }
 
+  var isShowingNoResults: Bool {
+    guard !searchText.isEmpty else { return false }
+    return stationListsForDisplay.allSatisfy { list in
+      sortedStationItems(for: list).isEmpty
+    }
+  }
+
   func sortedStationItems(for list: StationList) -> [APIStationItem] {
     let items = list.stationItems(includeHidden: showSecretStations)
-    return items.sorted { item1, item2 in
+    let filtered =
+      searchText.isEmpty
+      ? items
+      : items.filter { item in
+        let station = item.anyStation
+        return station.name.localizedCaseInsensitiveContains(searchText)
+          || station.stationName.localizedCaseInsensitiveContains(searchText)
+      }
+    return filtered.sorted { item1, item2 in
       item1.liveSortPriority(liveStations) < item2.liveSortPriority(liveStations)
     }
   }
