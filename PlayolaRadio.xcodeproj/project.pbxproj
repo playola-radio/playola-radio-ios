@@ -1615,7 +1615,7 @@
 			);
 			mainGroup = D35369F82BFA4F49006942D6;
 			packageReferences = (
-				D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */,
+				D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "playola-player-swift" */,
 				D35673B52D3DC6EC00E4E926 /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
 				D3B662662D3F58E700975D2F /* XCRemoteSwiftPackageReference "FRadioPlayer" */,
 				D3B6626E2D40352500975D2F /* XCRemoteSwiftPackageReference "Alamofire" */,
@@ -2640,12 +2640,12 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		D30F00382E8592F0007BCC73 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */ = {
+		D30F00382E8592F0007BCC73 /* XCRemoteSwiftPackageReference "playola-player-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
+			repositoryURL = "https://github.com/playola-radio/playola-player-swift";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 0.10.0;
+				minimumVersion = 0.15.0;
 			};
 		};
 		D30F003A2E8592F0007BCC73 /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
@@ -2792,12 +2792,12 @@
 				version = 0.10.0;
 			};
 		};
-		D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */ = {
+		D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "playola-player-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
+			repositoryURL = "https://github.com/playola-radio/playola-player-swift";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 0.14.0;
+				minimumVersion = 0.15.0;
 			};
 		};
 		9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
@@ -2817,7 +2817,7 @@
 		};
 		D30F00372E8592F0007BCC73 /* PlayolaPlayer */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D30F00382E8592F0007BCC73 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */;
+			package = D30F00382E8592F0007BCC73 /* XCRemoteSwiftPackageReference "playola-player-swift" */;
 			productName = PlayolaPlayer;
 		};
 		D30F00392E8592F0007BCC73 /* Mixpanel */ = {
@@ -2951,7 +2951,7 @@
 		};
 		D3CE19022D3C825C0091B888 /* PlayolaPlayer */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */;
+			package = D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "playola-player-swift" */;
 			productName = PlayolaPlayer;
 		};
 		0B6E1320AC744E9FAEC2F50F /* Sentry */ = {

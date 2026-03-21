@@ -315,8 +315,8 @@ class NowPlayingUpdater {
   // MARK: - Shared State Management
 
   private func setupSharedStateObservation() {
-    // Observe PlayolaStationPlayer state changes
-    PlayolaStationPlayer.shared.$state
+    // Observe StreamingStationPlayer state changes
+    stationPlayer.playolaStationPlayer.$state
       .sink { [weak self] playolaState in
         self?.processPlayolaStationPlayerState(playolaState)
       }
@@ -333,7 +333,7 @@ class NowPlayingUpdater {
   // MARK: - State Processing Methods (duplicated from StationPlayer)
 
   func processPlayolaStationPlayerState(
-    _ playolaState: PlayolaStationPlayer.State?
+    _ playolaState: StreamingStationPlayer.State?
   ) {
     switch playolaState {
     case .idle:
@@ -347,7 +347,7 @@ class NowPlayingUpdater {
           playbackStatus: .stopped
         )
       }
-    case .loading(let progress):
+    case .loading:
       guard let currentStation = stationPlayer.currentStation else { return }
       $nowPlaying.withLock {
         $0 = NowPlaying(
@@ -356,7 +356,7 @@ class NowPlayingUpdater {
           albumArtworkUrl: nil,
           playolaSpinPlaying: nil,
           currentStation: currentStation,
-          playbackStatus: .loading(currentStation, progress)
+          playbackStatus: .loading(currentStation)
         )
       }
     case .playing(let nowPlayingData):

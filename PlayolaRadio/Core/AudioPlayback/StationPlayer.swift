@@ -59,14 +59,14 @@ class StationPlayer: ObservableObject {
   // MARK: Dependencies
 
   var urlStreamPlayer: URLStreamPlayer
-  var playolaStationPlayer: PlayolaStationPlayer
+  var playolaStationPlayer: StreamingStationPlayer
 
   init(
     urlStreamPlayer: URLStreamPlayer? = nil,
-    playolaStationPlayer: PlayolaStationPlayer? = nil
+    playolaStationPlayer: StreamingStationPlayer? = nil
   ) {
     self.urlStreamPlayer = urlStreamPlayer ?? .shared
-    self.playolaStationPlayer = playolaStationPlayer ?? .shared
+    self.playolaStationPlayer = playolaStationPlayer ?? StreamingStationPlayer()
 
     self.urlStreamPlayer.$state.sink(receiveValue: { state in
       self.processUrlStreamStateChanged(state)
@@ -166,7 +166,7 @@ class StationPlayer: ObservableObject {
   }
 
   func processPlayolaStationPlayerState(
-    _ playolaState: PlayolaStationPlayer.State?
+    _ playolaState: StreamingStationPlayer.State?
   ) {
     switch playolaState {
     case .idle:
@@ -177,10 +177,10 @@ class StationPlayer: ObservableObject {
         albumArtworkUrl: nil,
         playolaSpinPlaying: nil
       )
-    case .loading(let progress):
+    case .loading:
       guard let currentStation else { return }
       state = .init(
-        playbackStatus: .loading(currentStation, progress),
+        playbackStatus: .loading(currentStation),
         artistPlaying: nil,
         titlePlaying: nil,
         albumArtworkUrl: nil,
