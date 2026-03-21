@@ -35,8 +35,9 @@ release-staging:
 	bundle exec fastlane release_staging
 
 # Set up workspace for Conductor agents
+ORIGINAL_REPO := $(HOME)/playola/playola-radio-ios
 setup-conductor:
 	@for f in Secrets Secrets-Development Secrets-Local Secrets-Staging; do \
 		test -f PlayolaRadio/Config/$$f.xcconfig \
-			|| cp PlayolaRadio/Config/Secrets-Example.xcconfig PlayolaRadio/Config/$$f.xcconfig; \
+			|| cp $(ORIGINAL_REPO)/PlayolaRadio/Config/$$f.xcconfig PlayolaRadio/Config/$$f.xcconfig; \
 	done
