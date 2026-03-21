@@ -34,10 +34,10 @@ final class PlayerPageTests: XCTestCase {
     XCTAssertNil(model.playolaAudioBlockPlaying)
   }
 
-  func testViewAppeared_PopulatesCorrectlyWhenLoadingWithProgress() {
+  func testViewAppeared_PopulatesCorrectlyWhenLoadingShowsZeroProgress() {
     let station = AnyStation.mock
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
-      station: station, status: .loading(station, 0.42))
+      station: station, status: .loading(station))
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
     XCTAssertEqual(model.primaryNavBarTitle, station.name)
@@ -47,7 +47,7 @@ final class PlayerPageTests: XCTestCase {
       XCTAssertEqual(model.secondaryNavBarTitle, station.location ?? "")
     }
     XCTAssertEqual(model.nowPlayingText, "Station Loading...")
-    XCTAssertEqual(model.loadingPercentage, 0.42)
+    XCTAssertEqual(model.loadingPercentage, 0.0)
     XCTAssertNil(model.playolaAudioBlockPlaying)
   }
 

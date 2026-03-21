@@ -24,7 +24,7 @@ class StationPlayer: ObservableObject {
     case startingNewStation(AnyStation)
     case playing(AnyStation)
     case stopped
-    case loading(AnyStation, Float? = nil)
+    case loading(AnyStation)
     case error
   }
 
@@ -47,7 +47,7 @@ class StationPlayer: ObservableObject {
       return station
     case .playing(let station):
       return station
-    case .loading(let station, _):
+    case .loading(let station):
       return station
     case .error, .stopped:
       return nil
