@@ -10,11 +10,14 @@ import GoogleSignIn
 import GoogleSignInSwift
 import SDWebImage
 import SDWebImageSVGCoder
-import Sentry
 import Sharing
 import SwiftUI
 import UIKit
 import UserNotifications
+
+#if canImport(Sentry)
+  import Sentry
+#endif
 
 extension Notification.Name {
   static let refreshSupportMessages = Notification.Name("refreshSupportMessages")
@@ -28,17 +31,19 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    SentrySDK.start { options in
-      options.dsn =
-        "https://c024cbc3afc46a4539e4cd73ea4f32c0@o4511043985801216.ingest.us.sentry.io/4511043987898368"
-      options.sendDefaultPii = false
-      options.tracesSampleRate = 0.1
-      options.configureProfiling = {
-        $0.sessionSampleRate = 0.1
-        $0.lifecycle = .trace
+    #if canImport(Sentry)
+      SentrySDK.start { options in
+        options.dsn =
+          "https://c024cbc3afc46a4539e4cd73ea4f32c0@o4511043985801216.ingest.us.sentry.io/4511043987898368"
+        options.sendDefaultPii = false
+        options.tracesSampleRate = 0.1
+        options.configureProfiling = {
+          $0.sessionSampleRate = 0.1
+          $0.lifecycle = .trace
+        }
+        options.experimental.enableLogs = true
       }
-      options.experimental.enableLogs = true
-    }
+    #endif
 
     UNUserNotificationCenter.current().delegate = self
     return true
