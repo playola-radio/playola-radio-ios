@@ -68,8 +68,16 @@ class LibraryPageModel: ViewModel {
     return letters.sorted()
   }
 
-  var activeRequests: [StationLibraryRequest] {
-    libraryRequests.filter { $0.status != .dismissed }
+  var pendingRequests: [StationLibraryRequest] {
+    libraryRequests.filter { $0.status == .pending }
+  }
+
+  var fulfilledRequests: [StationLibraryRequest] {
+    libraryRequests.filter { $0.status == .completed }
+  }
+
+  var hasActiveRequests: Bool {
+    !pendingRequests.isEmpty || !fulfilledRequests.isEmpty
   }
 
   var emptyStateMessage: String {
@@ -80,11 +88,12 @@ class LibraryPageModel: ViewModel {
     "SONGS (\(filteredSongs.count))"
   }
 
-  let requestsSectionHeader = "PENDING REQUESTS"
+  let requestsSectionHeader = "REQUESTS"
+  let pendingSubsectionHeader = "Pending"
+  let fulfilledSubsectionHeader = "Added to Library"
   let dismissButtonText = "DISMISS"
   let cancelButtonText = "CANCEL"
   let pendingRemovalText = "Pending Removal"
-  let waitingStatusText = "Waiting"
   let searchPrompt = "Search songs"
 
   // MARK: - User Actions
