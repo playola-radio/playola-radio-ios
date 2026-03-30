@@ -107,50 +107,31 @@ struct LibraryPageView: View {
   }
 
   private var pendingRequestsSubsection: some View {
-    Group {
-      Text(model.pendingSubsectionHeader)
-        .font(.custom(FontNames.Inter_500_Medium, size: 11))
-        .foregroundColor(.playolaGray)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 4)
-        .listRowInsets(EdgeInsets())
-        .listRowSeparator(.hidden)
-        .listRowBackground(Color.clear)
-
-      ForEach(model.pendingRequests) { request in
-        LibraryRequestRow(
-          request: request,
-          typeLabel: model.requestTypeLabel(for: request),
-          typeColor: model.requestTypeColor(for: request),
-          statusLabel: model.requestStatusLabel(for: request),
-          canDismiss: model.canDismissRequest(request),
-          canCancel: model.canCancelRequest(request),
-          showCheckmark: false,
-          dismissButtonText: model.dismissButtonText,
-          cancelButtonText: model.cancelButtonText,
-          onDismiss: {
-            Task {
-              await model.dismissRequestButtonTapped(request)
-            }
-          },
-          onCancel: {
-            Task {
-              await model.cancelRequestButtonTapped(request)
-            }
-          }
-        )
-        .id("request-\(request.id)")
-        .listRowInsets(EdgeInsets())
-        .listRowSeparator(.hidden)
-        .listRowBackground(Color.clear)
-      }
-    }
+    requestsSubsection(
+      header: model.pendingSubsectionHeader,
+      requests: model.pendingRequests,
+      showCheckmark: false,
+      rowOpacity: 1.0
+    )
   }
 
   private var fulfilledRequestsSubsection: some View {
+    requestsSubsection(
+      header: model.fulfilledSubsectionHeader,
+      requests: model.fulfilledRequests,
+      showCheckmark: true,
+      rowOpacity: 0.7
+    )
+  }
+
+  private func requestsSubsection(
+    header: String,
+    requests: [StationLibraryRequest],
+    showCheckmark: Bool,
+    rowOpacity: Double
+  ) -> some View {
     Group {
-      Text(model.fulfilledSubsectionHeader)
+      Text(header)
         .font(.custom(FontNames.Inter_500_Medium, size: 11))
         .foregroundColor(.playolaGray)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -160,7 +141,7 @@ struct LibraryPageView: View {
         .listRowSeparator(.hidden)
         .listRowBackground(Color.clear)
 
-      ForEach(model.fulfilledRequests) { request in
+      ForEach(requests) { request in
         LibraryRequestRow(
           request: request,
           typeLabel: model.requestTypeLabel(for: request),
@@ -168,7 +149,7 @@ struct LibraryPageView: View {
           statusLabel: model.requestStatusLabel(for: request),
           canDismiss: model.canDismissRequest(request),
           canCancel: model.canCancelRequest(request),
-          showCheckmark: true,
+          showCheckmark: showCheckmark,
           dismissButtonText: model.dismissButtonText,
           cancelButtonText: model.cancelButtonText,
           onDismiss: {
@@ -186,7 +167,7 @@ struct LibraryPageView: View {
         .listRowInsets(EdgeInsets())
         .listRowSeparator(.hidden)
         .listRowBackground(Color.clear)
-        .opacity(0.7)
+        .opacity(rowOpacity)
       }
     }
   }
@@ -414,7 +395,7 @@ struct LibraryRequestRow: View {
           Image(systemName: "checkmark.circle.fill")
             .font(.system(size: 14))
             .foregroundColor(.green)
-            .background(Circle().fill(Color.black).frame(width: 12, height: 12))
+            .background(Circle().fill(Color.black).frame(width: 16, height: 16))
             .offset(x: 2, y: 2)
         }
       }
