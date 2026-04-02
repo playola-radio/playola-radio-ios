@@ -38,7 +38,7 @@
     },
     {
       "id": "shared-state-in-tests",
-      "rule": "In tests, declare `@Shared` locally inside each test method with an initial value: `@Shared(.key) var key = initialValue`. Do NOT use class-level `@Shared` properties or `$shared.withLock` patterns in test setup.",
+      "rule": "In tests, declare `@Shared` locally inside each test method with an initial value: `@Shared(.key) var key = initialValue`. Do NOT use class-level `@Shared` properties or `$shared.withLock` patterns anywhere in tests.",
       "scope": ["PlayolaRadio/**/*Tests.swift"],
       "severity": "high"
     },
@@ -75,7 +75,7 @@
     {
       "id": "tests-colocated",
       "rule": "Test files must be colocated with the code they test. `SomePageModel.swift` should have `SomePageTests.swift` in the same folder. New Models should have corresponding test files.",
-      "scope": ["PlayolaRadio/Views/**/*.swift"],
+      "scope": ["PlayolaRadio/**/*.swift"],
       "severity": "medium"
     },
     {
