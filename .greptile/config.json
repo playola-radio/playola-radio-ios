@@ -1,0 +1,106 @@
+{
+  "rules": [
+    {
+      "id": "no-hardcoded-strings-in-views",
+      "rule": "Views must not contain hardcoded user-facing strings. All display text (labels, titles, messages, button text) must come from the Model. Use `Text(model.someProperty)` instead of `Text(\"Some string\")`.",
+      "scope": ["PlayolaRadio/Views/**/*View.swift"],
+      "severity": "high"
+    },
+    {
+      "id": "no-logic-in-views",
+      "rule": "Views must contain zero logic — no conditionals about what text to show, no computed properties, no business logic. Views only bind to Model properties and call Model methods. Move any conditional display logic to a computed property on the Model.",
+      "scope": ["PlayolaRadio/Views/**/*View.swift"],
+      "severity": "high"
+    },
+    {
+      "id": "action-naming-convention",
+      "rule": "User action methods on Models must describe what the user did, not the implementation. Use names like `recordButtonTapped()`, `itemRowTapped(_:)`, `viewAppeared()`. Do NOT use names like `startRecording()`, `toggleExpanded()`, `fetchData()`.",
+      "scope": ["PlayolaRadio/Views/**/*Model.swift"],
+      "severity": "medium"
+    },
+    {
+      "id": "model-must-inherit-viewmodel",
+      "rule": "All page models must be `@MainActor @Observable class SomePageModel: ViewModel`. They must inherit from the `ViewModel` base class and be annotated with both `@MainActor` and `@Observable`.",
+      "scope": ["PlayolaRadio/Views/**/*Model.swift"],
+      "severity": "high"
+    },
+    {
+      "id": "dependency-observation-ignored",
+      "rule": "All `@Dependency` and `@Shared` properties in Models must be marked `@ObservationIgnored` to prevent unnecessary SwiftUI re-renders. Example: `@ObservationIgnored @Dependency(\\.api) var api`.",
+      "scope": ["PlayolaRadio/Views/**/*Model.swift"],
+      "severity": "high"
+    },
+    {
+      "id": "no-task-sleep-in-tests",
+      "rule": "NEVER use `Task.sleep` or `try await Task.sleep` in tests. It makes tests slow and flaky. Use synchronous assertions, test doubles that execute synchronously, or `Task.yield()` with `withMainSerialExecutor`.",
+      "scope": ["PlayolaRadio/**/*Tests.swift"],
+      "severity": "high"
+    },
+    {
+      "id": "shared-state-in-tests",
+      "rule": "In tests, declare `@Shared` locally inside each test method with an initial value: `@Shared(.key) var key = initialValue`. Do NOT use class-level `@Shared` properties or `$shared.withLock` patterns in test setup.",
+      "scope": ["PlayolaRadio/**/*Tests.swift"],
+      "severity": "high"
+    },
+    {
+      "id": "test-class-main-actor",
+      "rule": "All test classes must be annotated with `@MainActor`: `@MainActor final class SomeTests: XCTestCase`.",
+      "scope": ["PlayolaRadio/**/*Tests.swift"],
+      "severity": "medium"
+    },
+    {
+      "id": "use-playola-alert",
+      "rule": "Use `.playolaAlert($model.presentedAlert)` for alerts. Do NOT use SwiftUI's `.alert(item:)` or `.alert(isPresented:)` modifiers directly. All alert definitions should be cases in the `PlayolaAlert` enum.",
+      "scope": ["PlayolaRadio/Views/**/*.swift"],
+      "severity": "high"
+    },
+    {
+      "id": "use-async-await",
+      "rule": "Use async/await for all asynchronous work. Do NOT use completion handlers, callbacks, or Combine publishers for new code.",
+      "scope": ["PlayolaRadio/**/*.swift"],
+      "severity": "medium"
+    },
+    {
+      "id": "navigation-via-coordinator",
+      "rule": "All navigation (push, pop, sheet presentation) must go through the `MainContainerNavigationCoordinator` via `@Shared(.mainContainerNavigationCoordinator)`. Sheets use `PlayolaSheet` enum cases. Do not use SwiftUI's `.sheet` or `NavigationLink` directly.",
+      "scope": ["PlayolaRadio/Views/**/*.swift"],
+      "severity": "medium"
+    },
+    {
+      "id": "identified-array-for-collections",
+      "rule": "Use `IdentifiedArrayOf<T>` from IdentifiedCollections for arrays of identifiable items displayed in lists. This provides O(1) lookup by ID and safer list diffing.",
+      "scope": ["PlayolaRadio/Views/**/*Model.swift"],
+      "severity": "low"
+    },
+    {
+      "id": "tests-colocated",
+      "rule": "Test files must be colocated with the code they test. `SomePageModel.swift` should have `SomePageTests.swift` in the same folder. New Models should have corresponding test files.",
+      "scope": ["PlayolaRadio/Views/**/*.swift"],
+      "severity": "medium"
+    },
+    {
+      "id": "test-naming-camelcase",
+      "rule": "Test method names must use camelCase without underscores. Example: `testOnRecordTappedRequestsPermission`, NOT `test_on_record_tapped_requests_permission`.",
+      "scope": ["PlayolaRadio/**/*Tests.swift"],
+      "severity": "low"
+    },
+    {
+      "id": "shared-state-withlocked-update",
+      "rule": "Update `@Shared` state thread-safely using `$sharedVar.withLock { $0 = newValue }`. Do not assign directly to shared state outside of initialization.",
+      "scope": ["PlayolaRadio/**/*.swift"],
+      "severity": "medium"
+    },
+    {
+      "id": "api-error-handling",
+      "rule": "All API calls must be wrapped in do/catch blocks. Errors should set `presentedAlert` to an appropriate `PlayolaAlert` case with the error's `localizedDescription`. Never silently swallow API errors.",
+      "scope": ["PlayolaRadio/Views/**/*Model.swift"],
+      "severity": "high"
+    },
+    {
+      "id": "loading-state-pattern",
+      "rule": "Use `isLoading = true` with `defer { isLoading = false }` around async operations to ensure loading state is always cleaned up, even on error paths.",
+      "scope": ["PlayolaRadio/Views/**/*Model.swift"],
+      "severity": "low"
+    }
+  ]
+}
