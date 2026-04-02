@@ -337,6 +337,80 @@ struct SupportPageTests {
   }
 
   @Test
+  func testOnViewAppearedCreatesConversationWhenGetReturnsNil() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "user-1",
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com",
+        profileImageUrl: nil,
+        role: "user"
+      ),
+      jwt: "test-jwt"
+    )
+
+    let createdConversation = makeConversation(id: "created-conv")
+    var createCalled = false
+
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in
+        SupportConversationResponse(conversation: nil, unreadCount: 0)
+      }
+      $0.api.createSupportConversation = { _ in
+        createCalled = true
+        return CreateSupportConversationResponse(
+          conversation: createdConversation, unreadCount: 0)
+      }
+      $0.api.getConversationMessages = { _, _ in [] }
+    } operation: {
+      SupportPageModel()
+    }
+
+    await model.onViewAppeared()
+
+    #expect(createCalled == true)
+    #expect(model.conversation?.id == "created-conv")
+    #expect(model.isLoading == false)
+  }
+
+  @Test
+  func testOnViewAppearedUsesExistingConversationFromGet() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "user-1",
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com",
+        profileImageUrl: nil,
+        role: "user"
+      ),
+      jwt: "test-jwt"
+    )
+
+    let existingConversation = makeConversation(id: "existing-conv")
+    var createCalled = false
+
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in
+        SupportConversationResponse(conversation: existingConversation, unreadCount: 0)
+      }
+      $0.api.createSupportConversation = { _ in
+        createCalled = true
+        return .mockWith()
+      }
+      $0.api.getConversationMessages = { _, _ in [] }
+    } operation: {
+      SupportPageModel()
+    }
+
+    await model.onViewAppeared()
+
+    #expect(createCalled == false)
+    #expect(model.conversation?.id == "existing-conv")
+  }
+
+  @Test
   func testHandleScenePhaseChangeDoesNothingWhenNotActive() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(

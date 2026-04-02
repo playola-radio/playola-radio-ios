@@ -187,20 +187,25 @@ class ContactPageModel: ViewModel {
   private func handleRegularUserFlow(jwt: String) async {
     do {
       let response = try await api.getSupportConversation(jwt)
-      let messages = try await api.getConversationMessages(jwt, response.conversation.id)
+      let conversation: Conversation
+      if let existing = response.conversation {
+        conversation = existing
+      } else {
+        let createResponse = try await api.createSupportConversation(jwt)
+        conversation = createResponse.conversation
+      }
+      let messages = try await api.getConversationMessages(jwt, conversation.id)
 
       isCheckingSupport = false
 
       if messages.isEmpty {
-        // No messages yet - show feedback sheet
-        let feedbackModel = FeedbackSheetModel(conversation: response.conversation) { [weak self] in
+        let feedbackModel = FeedbackSheetModel(conversation: conversation) { [weak self] in
           self?.presentedAlert = .messageSentSuccess
         }
         mainContainerNavigationCoordinator.presentedSheet = .feedbackSheet(feedbackModel)
       } else {
-        // Has messages - navigate to chat page
         let model = SupportPageModel()
-        model.conversation = response.conversation
+        model.conversation = conversation
         model.messages = messages
         model.isLoading = false
         supportPageModel = model

@@ -302,9 +302,16 @@ class HomePageModel: ViewModel {
     guard let jwt = auth.jwt else { return }
     do {
       let response = try await api.getSupportConversation(jwt)
-      let messages = try await api.getConversationMessages(jwt, response.conversation.id)
+      let conversation: Conversation
+      if let existing = response.conversation {
+        conversation = existing
+      } else {
+        let createResponse = try await api.createSupportConversation(jwt)
+        conversation = createResponse.conversation
+      }
+      let messages = try await api.getConversationMessages(jwt, conversation.id)
       let model = SupportPageModel()
-      model.conversation = response.conversation
+      model.conversation = conversation
       model.messages = messages
       model.isLoading = false
       await mainContainerNavigationCoordinator.navigateToSupport(model)
