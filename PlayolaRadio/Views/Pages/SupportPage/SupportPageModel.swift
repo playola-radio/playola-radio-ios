@@ -46,13 +46,7 @@ class SupportPageModel: ViewModel {
     isLoading = true
 
     do {
-      let response = try await api.getSupportConversation(jwt)
-      if let conv = response.conversation {
-        conversation = conv
-      } else {
-        let createResponse = try await api.createSupportConversation(jwt)
-        conversation = createResponse.conversation
-      }
+      conversation = try await api.getOrCreateSupportConversation(jwt)
       if let conversationId = conversation?.id {
         messages = try await api.getConversationMessages(jwt, conversationId)
         await markAsRead()

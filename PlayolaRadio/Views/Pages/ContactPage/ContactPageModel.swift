@@ -186,14 +186,7 @@ class ContactPageModel: ViewModel {
 
   private func handleRegularUserFlow(jwt: String) async {
     do {
-      let response = try await api.getSupportConversation(jwt)
-      let conversation: Conversation
-      if let existing = response.conversation {
-        conversation = existing
-      } else {
-        let createResponse = try await api.createSupportConversation(jwt)
-        conversation = createResponse.conversation
-      }
+      let conversation = try await api.getOrCreateSupportConversation(jwt)
       let messages = try await api.getConversationMessages(jwt, conversation.id)
 
       isCheckingSupport = false

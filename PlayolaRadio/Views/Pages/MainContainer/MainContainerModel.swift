@@ -259,14 +259,7 @@ class MainContainerModel: ViewModel {
     guard let jwt = auth.jwt else { return }
     Task {
       do {
-        let response = try await api.getSupportConversation(jwt)
-        let conversation: Conversation
-        if let existing = response.conversation {
-          conversation = existing
-        } else {
-          let createResponse = try await api.createSupportConversation(jwt)
-          conversation = createResponse.conversation
-        }
+        let conversation = try await api.getOrCreateSupportConversation(jwt)
         let feedbackModel = FeedbackSheetModel(
           conversation: conversation,
           title: "Would you be up for letting us know what we can do better?",
