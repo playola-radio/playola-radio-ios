@@ -1,0 +1,53 @@
+{
+  "files": [
+    {
+      "path": "CLAUDE.md",
+      "description": "Project-level conventions, architecture overview, and task-type quick reference"
+    },
+    {
+      "path": ".claude/API_CLIENT.md",
+      "description": "API client patterns, endpoint definitions, and state management guidelines"
+    },
+    {
+      "path": ".claude/NAVIGATION.md",
+      "description": "Navigation patterns — sheets, stack navigation, and tab switching"
+    },
+    {
+      "path": ".claude/TESTING.md",
+      "description": "Testing conventions, @Shared state in tests, analytics mocking patterns"
+    },
+    {
+      "path": ".claude/VIEWS.md",
+      "description": "View styling guide — colors, fonts, list setup, navigation bar styling"
+    },
+    {
+      "path": ".claude/PAGE_CREATION.md",
+      "description": "Step-by-step guide for creating new pages (Model + View + Tests)"
+    },
+    {
+      "path": "PlayolaRadio/Views/Reusable Components/ViewModel.swift",
+      "description": "Base ViewModel class that all page models must inherit from",
+      "scope": ["PlayolaRadio/Views/**/*Model.swift"]
+    },
+    {
+      "path": "PlayolaRadio/Views/Reusable Components/PlayolaAlert.swift",
+      "description": "PlayolaAlert enum — all alert definitions and the .playolaAlert modifier",
+      "scope": ["PlayolaRadio/Views/**/*.swift"]
+    },
+    {
+      "path": "PlayolaRadio/Views/Reusable Components/PlayolaSheet.swift",
+      "description": "PlayolaSheet enum — all sheet presentation cases",
+      "scope": ["PlayolaRadio/Views/**/*.swift"]
+    },
+    {
+      "path": "PlayolaRadio/Core/API/APIClient.swift",
+      "description": "API endpoint signatures and the APIClient dependency",
+      "scope": ["PlayolaRadio/Core/API/**"]
+    },
+    {
+      "path": "PlayolaRadio/State/SharedUserDefaults.swift",
+      "description": "All @Shared key definitions (auth, nowPlaying, stationLists, etc.)",
+      "scope": ["PlayolaRadio/State/**", "PlayolaRadio/Views/**/*Model.swift"]
+    }
+  ]
+}
