@@ -457,25 +457,48 @@ struct APIClient: Sendable {
   /// - Throws: APIError if the request fails
   var fetchLiveStations: (_ jwtToken: String) async throws -> [LiveStationInfo] = { _ in [] }
 
-  /// Gets or creates the user's support conversation
+  /// Gets the user's support conversation (may be nil if none exists)
   /// - Parameter jwtToken: The JWT token for authentication
-  /// - Returns: SupportConversationResponse containing the conversation and unread count
+  /// - Returns: SupportConversationResponse containing the conversation (nullable) and unread count
   /// - Throws: APIError if the request fails
   var getSupportConversation: (_ jwtToken: String) async throws -> SupportConversationResponse = {
     _ in
     SupportConversationResponse(
-      conversation: Conversation(
-        id: "",
-        type: "support",
-        contextType: nil,
-        contextId: nil,
-        status: "open",
-        createdAt: Date(),
-        updatedAt: Date(),
-        participants: nil
-      ),
+      conversation: nil,
       unreadCount: 0
     )
+  }
+
+  /// Creates a support conversation for the user
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: CreateSupportConversationResponse containing the conversation and unread count
+  /// - Throws: APIError if the request fails
+  var createSupportConversation:
+    (_ jwtToken: String) async throws -> CreateSupportConversationResponse = {
+      _ in
+      CreateSupportConversationResponse(
+        conversation: Conversation(
+          id: "",
+          type: "support",
+          contextType: nil,
+          contextId: nil,
+          status: "open",
+          createdAt: Date(),
+          updatedAt: Date(),
+          participants: nil
+        ),
+        unreadCount: 0
+      )
+    }
+
+  /// Gets the existing support conversation or creates one if none exists
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: The support Conversation
+  /// - Throws: APIError if the request fails
+  func getOrCreateSupportConversation(_ jwtToken: String) async throws -> Conversation {
+    let response = try await getSupportConversation(jwtToken)
+    if let existing = response.conversation { return existing }
+    return try await createSupportConversation(jwtToken).conversation
   }
 
   /// Fetches messages for a conversation

@@ -70,6 +70,11 @@ struct ParticipantUser: Codable, Equatable {
 }
 
 struct SupportConversationResponse: Codable, Equatable {
+  let conversation: Conversation?
+  let unreadCount: Int
+}
+
+struct CreateSupportConversationResponse: Codable, Equatable {
   let conversation: Conversation
   let unreadCount: Int
 }
@@ -109,10 +114,22 @@ extension Conversation {
 
 extension SupportConversationResponse {
   static func mockWith(
-    conversation: Conversation = .mockWith(),
+    conversation: Conversation? = .mockWith(),
     unreadCount: Int = 0
   ) -> SupportConversationResponse {
     SupportConversationResponse(
+      conversation: conversation,
+      unreadCount: unreadCount
+    )
+  }
+}
+
+extension CreateSupportConversationResponse {
+  static func mockWith(
+    conversation: Conversation = .mockWith(),
+    unreadCount: Int = 0
+  ) -> CreateSupportConversationResponse {
+    CreateSupportConversationResponse(
       conversation: conversation,
       unreadCount: unreadCount
     )

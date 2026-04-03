@@ -676,6 +676,9 @@ extension APIClient: DependencyKey {
       getSupportConversation: { jwtToken in
         try await authenticatedGet(path: "/v1/conversations/support", token: jwtToken)
       },
+      createSupportConversation: { jwtToken in
+        try await authenticatedPost(path: "/v1/conversations/support", token: jwtToken)
+      },
       getConversationMessages: { jwtToken, conversationId in
         try await authenticatedGet(
           path: "/v1/conversations/\(conversationId)/messages", token: jwtToken)
