@@ -60,15 +60,11 @@ struct StationListStationRowModel {
   }
 
   var subtitleText: String {
-    if item.visibility == .comingSoon {
-      if !showSecretStations {
-        return comingSoonText
-      }
-      if let isActiveStation = item.station?.active,
-        !isActiveStation
-      {
-        return comingSoonText
-      }
+    let isInactive = !item.anyStation.active
+    let isComingSoonAndHidden = item.visibility == .comingSoon && !showSecretStations
+
+    if isInactive || isComingSoonAndHidden {
+      return comingSoonText
     }
     return item.anyStation.stationName
   }
