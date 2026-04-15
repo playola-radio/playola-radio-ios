@@ -237,8 +237,8 @@ final class StationListStationRowTests: XCTestCase {
     XCTAssertEqual(model.subtitleColor, Color.playolaRed)
   }
 
-  func testInactiveUrlStationShowsComingSoon() {
-    @Shared(.showSecretStations) var showSecretStations: Bool = false
+  func testInactiveUrlStationShowsComingSoonWhenSecretsShowing() {
+    @Shared(.showSecretStations) var showSecretStations: Bool = true
     let inactiveUrlStation = UrlStation(
       id: "inactive-url",
       name: "Inactive FM",
