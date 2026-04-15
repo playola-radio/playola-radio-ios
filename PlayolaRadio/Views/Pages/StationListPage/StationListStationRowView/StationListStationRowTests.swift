@@ -183,6 +183,88 @@ final class StationListStationRowTests: XCTestCase {
     XCTAssertEqual(model.subtitleText, "Coming Dec 25th")
   }
 
+  func testInactiveVisibleStationShowsComingSoonWhenSecretsHidden() {
+    @Shared(.showSecretStations) var showSecretStations: Bool = false
+    let now = Date(timeIntervalSince1970: 1_758_915_200)
+    let inactiveStation = PlayolaPlayer.Station(
+      id: "inactive-visible",
+      name: "Moondog Radio",
+      curatorName: "Jacob Stelly",
+      imageUrl: URL(string: "https://example.com/moondog.png"),
+      description: "An inactive station",
+      active: false,
+      createdAt: now,
+      updatedAt: now
+    )
+
+    let item = APIStationItem(
+      sortOrder: 0,
+      visibility: .visible,
+      station: inactiveStation,
+      urlStation: nil
+    )
+
+    let model = StationListStationRowModel(item: item)
+
+    XCTAssertEqual(model.subtitleText, "Coming Soon")
+    XCTAssertEqual(model.subtitleColor, Color.playolaRed)
+  }
+
+  func testInactiveVisibleStationShowsComingSoonWhenSecretsShowing() {
+    @Shared(.showSecretStations) var showSecretStations: Bool = true
+    let now = Date(timeIntervalSince1970: 1_758_915_200)
+    let inactiveStation = PlayolaPlayer.Station(
+      id: "inactive-visible",
+      name: "Moondog Radio",
+      curatorName: "Jacob Stelly",
+      imageUrl: URL(string: "https://example.com/moondog.png"),
+      description: "An inactive station",
+      active: false,
+      createdAt: now,
+      updatedAt: now
+    )
+
+    let item = APIStationItem(
+      sortOrder: 0,
+      visibility: .visible,
+      station: inactiveStation,
+      urlStation: nil
+    )
+
+    let model = StationListStationRowModel(item: item)
+
+    XCTAssertEqual(model.subtitleText, "Coming Soon")
+    XCTAssertEqual(model.subtitleColor, Color.playolaRed)
+  }
+
+  func testInactiveUrlStationShowsComingSoonWhenSecretsShowing() {
+    @Shared(.showSecretStations) var showSecretStations: Bool = true
+    let inactiveUrlStation = UrlStation(
+      id: "inactive-url",
+      name: "Inactive FM",
+      streamUrl: "https://mock.stream.url",
+      imageUrl: "https://mock.image.url",
+      description: "An inactive URL station",
+      website: nil,
+      location: "Austin, TX",
+      active: false,
+      createdAt: Date(),
+      updatedAt: Date()
+    )
+
+    let item = APIStationItem(
+      sortOrder: 0,
+      visibility: .comingSoon,
+      station: nil,
+      urlStation: inactiveUrlStation
+    )
+
+    let model = StationListStationRowModel(item: item)
+
+    XCTAssertEqual(model.subtitleText, "Coming Soon")
+    XCTAssertEqual(model.subtitleColor, Color.playolaRed)
+  }
+
   // MARK: - Live Sort Priority Tests
 
   func testLiveSortPriorityReturnsZeroForVoicetracking() {
