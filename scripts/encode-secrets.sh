@@ -38,6 +38,6 @@ fi
 for pair in "${FILES[@]}"; do
   file="${pair%%:*}"
   var="${pair##*:}"
-  encoded="$(base64 -i "$CONFIG_DIR/$file")"
+  encoded="$(base64 -i "$CONFIG_DIR/$file" | tr -d '\n')"
   echo "${var}=${encoded}"
 done
