@@ -14,9 +14,11 @@ gh repo view --json owner,name --jq '{owner: .owner.login, repo: .name}'
 
 Capture `{number}`, `{owner}`, and `{repo}` from these commands — all subsequent steps substitute those values into API calls. If no PR exists, tell the user and stop.
 
-## Step 2: Check for unresolved review comments
+## Step 2: Check for unresolved review comments (with polling)
 
-First check if there are any unresolved review threads:
+Check if there are any unresolved review threads. If the skill was invoked right after PR creation, the review bot may not have posted yet — so poll for up to ~3 minutes before giving up.
+
+Run this query:
 
 ```bash
 gh api graphql -f query='
@@ -37,7 +39,10 @@ gh api graphql -f query='
 ' --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false)'
 ```
 
-**If there are no unresolved review threads, stop here.** Say "No unresolved review comments" and exit. Do not proceed to the next steps.
+**Polling behavior:**
+- If the query returns unresolved threads, proceed to Step 3.
+- If it returns nothing, wait 20 seconds and retry. Repeat up to 9 times (~3 minutes total).
+- If still no unresolved threads after that, say "No unresolved review comments after polling for 3 minutes" and exit. The user can re-invoke the skill later if a review lands.
 
 ## Step 3: Fetch review comments
 
