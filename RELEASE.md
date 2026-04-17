@@ -115,3 +115,9 @@ For the ASC API key and Match passphrase, update the CircleCI context
 variable directly; there is no file to regenerate. After any rotation,
 re-run the release workflow on a test tag to confirm CI can still sign and
 upload.
+
+Other developers can refresh their local xcconfig files from the release
+machine's `~/playola/playola-radio-ios/PlayolaRadio/Config/` by running
+`./scripts/setup-secrets.sh`. That script skips files that already exist,
+so delete the stale xcconfig under `PlayolaRadio/Config/` first when
+pulling a rotated value.
