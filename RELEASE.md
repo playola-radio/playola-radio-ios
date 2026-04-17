@@ -106,11 +106,14 @@ release workflow. Names only; values live in CircleCI.
 
 ## Rotating or adding a secret
 
-PR 3 will add `scripts/encode-secrets.sh` and `scripts/ci-write-secrets.sh`
-to automate the encode/decode of the xcconfig secrets. Until those land,
-rotate by running `base64 -i <file>` locally, pasting the output into the
-matching CircleCI context variable, and updating the source of truth under
-`~/playola/playola-radio-ios/PlayolaRadio/Config/` on the release machine.
+To rotate the xcconfig secrets, update the source of truth under
+`~/playola/playola-radio-ios/PlayolaRadio/Config/` on the release machine,
+then run `./scripts/encode-secrets.sh` to print `VAR=<base64>` lines for
+each xcconfig. Paste each line's value into the matching CircleCI context
+variable. CircleCI decodes them at the start of the release job by running
+`./scripts/ci-write-secrets.sh`, which reads the four `SECRETS_*_B64` env
+vars and writes the xcconfig files back into `PlayolaRadio/Config/`.
+
 For the ASC API key and Match passphrase, update the CircleCI context
 variable directly; there is no file to regenerate. After any rotation,
 re-run the release workflow on a test tag to confirm CI can still sign and
