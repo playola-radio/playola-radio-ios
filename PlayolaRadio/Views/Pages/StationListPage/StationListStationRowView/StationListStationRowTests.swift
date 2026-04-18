@@ -12,6 +12,7 @@ import XCTest
 
 @testable import PlayolaRadio
 
+@MainActor
 final class StationListStationRowTests: XCTestCase {
   func testModelInitializationFromStation() {
     @Shared(.showSecretStations) var showSecretStations: Bool = true
