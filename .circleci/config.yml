@@ -85,6 +85,8 @@ jobs:
           command: bundle exec fastlane release_build_only
       - store_artifacts:
           path: build
+      - store_test_results:
+          path: fastlane/test_output
 
   adhoc:
     macos:

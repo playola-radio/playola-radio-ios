@@ -106,7 +106,7 @@ platform :ios do
     )
   end
 
-  desc "Build PRODUCTION (no upload) — PR 4 dry run for CircleCI tag job"
+  desc "Build PRODUCTION (no upload) — CI signing dry run"
   lane :release_build_only do
     ensure_git_status_clean
     ensure_git_branch(branch: 'main') unless ENV['CI']
