@@ -234,6 +234,7 @@ final class SupportPageTests: XCTestCase {
       }
       $0.api.getConversationMessages = { _, _ in [] }
       $0.api.markConversationRead = { _, _ in }
+      $0.pushNotifications.clearSupportBadge = {}
     } operation: {
       SupportPageModel()
     }
@@ -279,6 +280,7 @@ final class SupportPageTests: XCTestCase {
         return newMessages
       }
       $0.api.markConversationRead = { _, _ in }
+      $0.pushNotifications.clearSupportBadge = {}
     } operation: {
       SupportPageModel()
     }
@@ -316,6 +318,7 @@ final class SupportPageTests: XCTestCase {
         return updatedMessages
       }
       $0.api.markConversationRead = { _, _ in }
+      $0.pushNotifications.clearSupportBadge = {}
     } operation: {
       SupportPageModel()
     }
