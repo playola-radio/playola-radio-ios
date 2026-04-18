@@ -40,6 +40,7 @@ class SupportPageModel: ViewModel {
     // If conversation is already set (e.g., from ConversationListPage), refresh messages
     if conversation != nil {
       await refreshMessages()
+      isLoading = false
       return
     }
 

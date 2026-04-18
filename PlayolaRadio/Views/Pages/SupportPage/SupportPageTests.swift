@@ -241,12 +241,12 @@ final class SupportPageTests: XCTestCase {
 
     model.conversation = presetConversation
     model.messages = presetMessages
-    model.isLoading = false
 
     await model.onViewAppeared()
 
     XCTAssertEqual(model.conversation?.id, "preset-conv-id")
     XCTAssertFalse(getSupportConversationCalled.value)
+    XCTAssertFalse(model.isLoading)
   }
 
   func testOnViewAppearedRefreshesMessagesWhenConversationAlreadySet() async {
@@ -287,13 +287,13 @@ final class SupportPageTests: XCTestCase {
 
     model.conversation = presetConversation
     model.messages = oldMessages
-    model.isLoading = false
 
     await model.onViewAppeared()
 
     XCTAssertTrue(getConversationMessagesCalled.value)
     XCTAssertEqual(model.messages.count, 2)
     XCTAssertEqual(model.messages.last?.message, "New message")
+    XCTAssertFalse(model.isLoading)
   }
 
   func testHandleScenePhaseChangeRefreshesMessagesWhenActive() async {
