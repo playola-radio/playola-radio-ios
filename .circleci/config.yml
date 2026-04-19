@@ -62,7 +62,7 @@ jobs:
           command: |
             mkdir -p ~/.ssh
             chmod 700 ~/.ssh
-            printf '%s\n' "$MATCH_GIT_PRIVATE_KEY" > ~/.ssh/id_rsa
+            printf '%s' "$MATCH_GIT_PRIVATE_KEY_B64" | base64 --decode > ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
             ssh-keyscan github.com >> ~/.ssh/known_hosts
       - run:
