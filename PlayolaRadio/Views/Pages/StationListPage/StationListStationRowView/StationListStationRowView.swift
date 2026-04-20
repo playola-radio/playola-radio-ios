@@ -47,6 +47,7 @@ struct StationListStationRowView: View {
       }
       .padding(.horizontal)
       .padding(.vertical, 12)
+      .animation(.easeInOut(duration: 0.5), value: model.liveStatus)
     }
   }
 }
