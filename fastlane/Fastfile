@@ -86,7 +86,19 @@ platform :ios do
       scheme: "PlayolaRadio",
       export_method: "app-store",
       output_directory: "./build",
-      xcargs: "-skipPackagePluginValidation -skipMacroValidation"
+      xcargs: "-skipPackagePluginValidation -skipMacroValidation",
+      export_options: {
+        method: "app-store",
+        provisioningProfiles: {
+          "fm.playola.playolaradio" => "match AppStore fm.playola.playolaradio"
+        }
+      }
+    )
+
+    sentry_debug_files_upload(
+      org_slug: 'playola-radio',
+      project_slug: 'apple-ios',
+      include_sources: true
     )
 
     key_content = ENV["APP_STORE_CONNECT_API_KEY_CONTENT"] ||
@@ -106,12 +118,6 @@ platform :ios do
 
     puts "✅ Production build uploaded to TestFlight!"
     puts "📱 App: fm.playola.playolaradio"
-
-    sentry_debug_files_upload(
-      org_slug: 'playola-radio',
-      project_slug: 'apple-ios',
-      include_sources: true
-    )
   end
 
   desc "Upload debug symbols to Sentry"
