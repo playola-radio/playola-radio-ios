@@ -67,51 +67,6 @@ platform :ios do
     ensure_git_status_clean
     ensure_git_branch(branch: 'main') unless ENV['CI']
 
-    scan(
-      include_simulator_logs: false,
-      parallel_testing: false,
-      scheme: "PlayolaRadio",
-      xcargs: "-skipMacroValidation -skipPackagePluginValidation",
-      xcodebuild_formatter: "xcbeautify"
-    )
-
-    build_app(
-      project: "PlayolaRadio.xcodeproj",
-      scheme: "PlayolaRadio",
-      export_method: "app-store",
-      xcargs: "-skipPackagePluginValidation -skipMacroValidation"
-    )
-
-    key_content = ENV["APP_STORE_CONNECT_API_KEY_CONTENT"] ||
-                  (ENV["APP_STORE_CONNECT_API_KEY_PATH"] && File.read(ENV["APP_STORE_CONNECT_API_KEY_PATH"])) ||
-                  UI.user_error!("Set APP_STORE_CONNECT_API_KEY_CONTENT (CI) or APP_STORE_CONNECT_API_KEY_PATH (local)")
-    api_key = app_store_connect_api_key(
-      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
-      issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
-      key_content: key_content
-    )
-
-    upload_to_testflight(
-      api_key: api_key,
-      app_identifier: "fm.playola.playolaradio",
-      skip_waiting_for_build_processing: true
-    )
-
-    puts "✅ Production build uploaded to TestFlight!"
-    puts "📱 App: fm.playola.playolaradio"
-
-    sentry_debug_files_upload(
-      org_slug: 'playola-radio',
-      project_slug: 'apple-ios',
-      include_sources: true
-    )
-  end
-
-  desc "Build PRODUCTION (no upload) — CI signing dry run"
-  lane :release_build_only do
-    ensure_git_status_clean
-    ensure_git_branch(branch: 'main') unless ENV['CI']
-
     match(
       type: "appstore",
       app_identifier: "fm.playola.playolaradio",
@@ -131,10 +86,38 @@ platform :ios do
       scheme: "PlayolaRadio",
       export_method: "app-store",
       output_directory: "./build",
-      xcargs: "-skipPackagePluginValidation -skipMacroValidation"
+      xcargs: "-skipPackagePluginValidation -skipMacroValidation",
+      export_options: {
+        method: "app-store",
+        provisioningProfiles: {
+          "fm.playola.playolaradio" => "match AppStore fm.playola.playolaradio"
+        }
+      }
     )
 
-    puts "✅ Build complete. Upload skipped (PR 4 dry run)."
+    sentry_debug_files_upload(
+      org_slug: 'playola-radio',
+      project_slug: 'apple-ios',
+      include_sources: true
+    )
+
+    key_content = ENV["APP_STORE_CONNECT_API_KEY_CONTENT"] ||
+                  (ENV["APP_STORE_CONNECT_API_KEY_PATH"] && File.read(ENV["APP_STORE_CONNECT_API_KEY_PATH"])) ||
+                  UI.user_error!("Set APP_STORE_CONNECT_API_KEY_CONTENT (CI) or APP_STORE_CONNECT_API_KEY_PATH (local)")
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
+      key_content: key_content
+    )
+
+    upload_to_testflight(
+      api_key: api_key,
+      app_identifier: "fm.playola.playolaradio",
+      skip_waiting_for_build_processing: true
+    )
+
+    puts "✅ Production build uploaded to TestFlight!"
+    puts "📱 App: fm.playola.playolaradio"
   end
 
   desc "Upload debug symbols to Sentry"

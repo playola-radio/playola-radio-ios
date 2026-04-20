@@ -40,23 +40,41 @@ gh api graphql -f query='
 ```
 
 **Polling behavior:**
-- If the query returns unresolved threads, proceed to Step 3.
-- If it returns nothing, wait 20 seconds and retry. Repeat up to 9 times (~3 minutes total).
-- If still no unresolved threads after that, say "No unresolved review comments after polling for 3 minutes" and exit. The user can re-invoke the skill later if a review lands.
+- If the query returns unresolved threads OR the summary body has findings (see below), proceed to Step 3.
+- If both are empty, wait 20 seconds and retry. Repeat up to 9 times (~3 minutes total).
+- If still nothing after that, say "No unresolved review comments after polling for 3 minutes" and exit. The user can re-invoke the skill later if a review lands.
+
+**Also check the PR summary body.** Some reviewers (e.g. Greptile) post findings as an issue comment on the PR rather than as inline review threads. These appear under a "Comments Outside Diff" / "greptile_failed_comments" section and are NOT returned by the `reviewThreads` query. Always fetch them too:
+
+```bash
+gh api repos/{owner}/{repo}/issues/{number}/comments \
+  --jq '.[] | select(.user.login | test("greptile|claude"; "i")) | {id, body}'
+```
+
+If any of those comment bodies contain a "Comments Outside Diff" block or P0/P1/P2 badges, treat each bulleted finding as a review comment and feed it into Step 4 alongside any inline threads.
 
 ## Step 3: Fetch review comments
 
-Fetch the inline review comments from the PR:
+Fetch both the inline review comments AND the summary-body findings from the PR:
 
 ```bash
-# Get all reviews
+# Inline reviews (threads on specific lines)
 gh api repos/{owner}/{repo}/pulls/{number}/reviews --jq '.[] | {id, state, user: .user.login}'
-
-# For each review by claude[bot], get the comments
 gh api repos/{owner}/{repo}/pulls/{number}/reviews/{review_id}/comments --jq '.[] | {id, path, line, body}'
+
+# Summary-body findings (Greptile "Comments Outside Diff", etc.)
+gh api repos/{owner}/{repo}/issues/{number}/comments \
+  --jq '.[] | select(.user.login | test("greptile|claude"; "i")) | .body' > /tmp/pr_summary_{number}.html
 ```
 
-Extract all FAIL and WARN items — each will reference:
+For the summary body, extract each bulleted finding — it'll reference:
+- The file and line range (e.g., `fastlane/Fastfile`, line 84-91)
+- A P0/P1/P2 badge
+- A title and description
+
+Summary-body findings don't have a thread to resolve or reply to individually. Track them separately — for these, add a thumbs-up reaction to the parent issue comment and mention the fix in the commit message (no per-thread reply).
+
+Extract all FAIL and WARN items from inline reviews — each will reference:
 - The comment ID (needed for acknowledging fixes)
 - The check that failed
 - Specific files and line numbers
@@ -72,14 +90,16 @@ Work through each issue, starting with FAILs:
 4. The user will run tests in Xcode. If a test file changed, ask the user to run the relevant tests and report the result before proceeding.
 5. After fixing, acknowledge the review comment (but do NOT resolve the thread yet — resolution happens in Step 6 once all checks pass):
    ```bash
-   # Add a 👍 reaction
+   # For INLINE review comments:
    gh api repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions -f content="+1"
-
-   # Reply to the comment thread — see reply guidelines below
    gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies -f body="Fixed"
+
+   # For SUMMARY-BODY findings (no inline thread exists):
+   gh api repos/{owner}/{repo}/issues/comments/{issue_comment_id}/reactions -f content="+1"
+   # No per-finding reply — mention what was fixed in the commit message instead.
    ```
 
-   Track each `{comment_id}` you replied to with "Fixed" — you'll need the matching thread IDs in Step 6.
+   Track each inline `{comment_id}` you replied to with "Fixed" — you'll need the matching thread IDs in Step 6. Summary-body findings don't have threads to resolve, so they're done after the thumbs-up + commit.
 
    **Reply guidelines:**
    - If the fix was straightforward, reply "Fixed".
