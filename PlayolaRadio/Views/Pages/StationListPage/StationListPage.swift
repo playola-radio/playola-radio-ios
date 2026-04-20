@@ -77,11 +77,21 @@ struct StationListPage: View {
       // ---------------------------------------------------------
       ScrollView {
         if model.isShowingNoResults {
-          Text(model.noResultsMessage)
-            .font(.custom(FontNames.Inter_500_Medium, size: 16))
-            .foregroundColor(.playolaGray)
-            .frame(maxWidth: .infinity)
-            .padding(.top, 40)
+          VStack(spacing: 12) {
+            Image(systemName: model.noResultsIconName)
+              .font(.system(size: 40, weight: .light))
+              .foregroundColor(.playolaGray)
+            Text(model.noResultsMessage)
+              .font(.custom(FontNames.Inter_600_SemiBold, size: 18))
+              .foregroundColor(.white)
+            Text(model.noResultsHint)
+              .font(.custom(FontNames.Inter_400_Regular, size: 14))
+              .foregroundColor(.playolaGray)
+              .multilineTextAlignment(.center)
+              .padding(.horizontal, 32)
+          }
+          .frame(maxWidth: .infinity)
+          .padding(.top, 64)
         } else {
           VStack(alignment: .leading, spacing: 20) {
             ForEach(model.stationListsForDisplay) { list in
