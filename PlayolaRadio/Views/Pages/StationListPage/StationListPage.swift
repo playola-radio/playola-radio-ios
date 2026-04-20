@@ -69,6 +69,15 @@ struct StationListPage: View {
           .padding(.top, 24)
         }
         .padding(.vertical, 8)
+        .overlay(alignment: .trailing) {
+          LinearGradient(
+            colors: [Color.black.opacity(0), Color.black],
+            startPoint: .leading,
+            endPoint: .trailing
+          )
+          .frame(width: 24)
+          .allowsHitTesting(false)
+        }
       }
       .background(Color.black)
 
