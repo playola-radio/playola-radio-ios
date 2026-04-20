@@ -140,7 +140,7 @@ struct StationListPage: View {
     if !items.isEmpty {
       VStack(alignment: .leading, spacing: 1) {
         Text(list.title)
-          .font(.custom("Inter-Regular", size: 16))
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
           .foregroundColor(.white)
           .padding(.horizontal)
           .padding(.bottom, 8)
