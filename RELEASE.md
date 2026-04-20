@@ -30,8 +30,10 @@ in both flows.
    accurate.
 
 3. **Auto-tag fires.** `.github/workflows/auto-tag-release.yml` runs on push
-   to `main`, reads `MARKETING_VERSION` from the pbxproj, and pushes tag
-   `vX.Y.Z` if it does not already exist.
+   to `main`, reads `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` from
+   the pbxproj, and pushes tag `vX.Y.Z-bN` if it does not already exist.
+   Each TestFlight build gets a unique `v<version>-b<build>` tag so hotfix
+   build bumps trigger a fresh CircleCI upload under the same version.
 
 4. **Sync-back PR opens.** `.github/workflows/sync-main-to-develop.yml` fires
    on the same push and opens a PR merging `main` back into `develop`. Merge
@@ -73,17 +75,29 @@ The incremental rollout is:
 
 ## Hotfix path
 
-For a build-number-only bump on an existing version (for example, to
-re-upload after a TestFlight processing failure), run:
+For a build-number-only bump on an existing version (for example, to fix a
+bug found by TestFlight testers on a shipped version, or to re-upload after
+a TestFlight processing failure), on a clean `develop` run:
 
 ```sh
-./scripts/bump-build.sh          # local commit only
-./scripts/bump-build.sh --push   # commit and push
+./scripts/bump-build.sh
 ```
 
-This bumps the build number via `agvtool`, commits the change, and
-optionally pushes. Use this on a branch that will still go through the
-normal release-PR flow. It does not create a PR or tag by itself.
+The script:
+
+1. Verifies you are on `develop` with a clean working tree.
+2. Fetches `origin/main` and `origin/develop`.
+3. Bumps the build number via `agvtool` (version stays the same).
+4. Creates `hotfix/<version>-b<new_build>`, commits, and pushes.
+5. Opens a PR targeting `main` with the PRs merged to `develop` since the
+   last release tag.
+
+Merge the hotfix PR using **"Create a merge commit"** (same rule as the
+release PR — do not squash). Auto-tag then fires with `vX.Y.Z-bN` and
+CircleCI uploads a new TestFlight build under the unchanged version.
+
+If the fix warrants a version bump (not just a build rebuild), use
+`./scripts/release.sh` with the `patch` option instead.
 
 ## Secrets
 
