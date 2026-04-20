@@ -99,7 +99,7 @@ struct StationListPage: View {
     .navigationBarTitleDisplayMode(.inline)
     .background(Color.black)
     .onAppear { Task { await model.viewAppeared() } }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
   }
 
   private var searchBar: some View {
