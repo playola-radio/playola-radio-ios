@@ -8,12 +8,6 @@
 import SwiftUI
 
 extension Color {
-  // MARK: - Primary Colors
-
-  static var primary: Color { Color(hex: "#EF6962") }
-  static var primaryHover: Color { Color(hex: "#FF7E78") }
-  static var primaryDeep: Color { Color(hex: "#C4514A") }
-
   // MARK: - Surfaces
 
   static var background: Color { Color(hex: "#130000") }
