@@ -59,7 +59,7 @@ struct StationListPage: View {
                   .background(
                     model.selectedSegment == segment
                       ? Color.playolaRed
-                      : Color(white: 0.2)
+                      : Color(hex: "#333333")
                   )
                   .cornerRadius(20)
               }
