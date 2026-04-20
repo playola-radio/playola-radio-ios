@@ -41,7 +41,7 @@ struct StationListPage: View {
             .cornerRadius(16)
           }
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 16)
         .padding(.top, 20)
 
         // Segment Control
