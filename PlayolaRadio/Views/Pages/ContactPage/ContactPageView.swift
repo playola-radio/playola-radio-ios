@@ -14,7 +14,7 @@ struct ContactPageView: View {
 
   var body: some View {
     VStack(spacing: 0) {
-      // Sticky Title
+      // Title
       HStack {
         Text("Your Profile")
           .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 32))
