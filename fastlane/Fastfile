@@ -67,6 +67,12 @@ platform :ios do
     ensure_git_status_clean
     ensure_git_branch(branch: 'main') unless ENV['CI']
 
+    match(
+      type: "appstore",
+      app_identifier: "fm.playola.playolaradio",
+      readonly: true
+    )
+
     scan(
       include_simulator_logs: false,
       parallel_testing: false,
@@ -79,6 +85,7 @@ platform :ios do
       project: "PlayolaRadio.xcodeproj",
       scheme: "PlayolaRadio",
       export_method: "app-store",
+      output_directory: "./build",
       xcargs: "-skipPackagePluginValidation -skipMacroValidation"
     )
 
@@ -105,36 +112,6 @@ platform :ios do
       project_slug: 'apple-ios',
       include_sources: true
     )
-  end
-
-  desc "Build PRODUCTION (no upload) — CI signing dry run"
-  lane :release_build_only do
-    ensure_git_status_clean
-    ensure_git_branch(branch: 'main') unless ENV['CI']
-
-    match(
-      type: "appstore",
-      app_identifier: "fm.playola.playolaradio",
-      readonly: true
-    )
-
-    scan(
-      include_simulator_logs: false,
-      parallel_testing: false,
-      scheme: "PlayolaRadio",
-      xcargs: "-skipMacroValidation -skipPackagePluginValidation",
-      xcodebuild_formatter: "xcbeautify"
-    )
-
-    build_app(
-      project: "PlayolaRadio.xcodeproj",
-      scheme: "PlayolaRadio",
-      export_method: "app-store",
-      output_directory: "./build",
-      xcargs: "-skipPackagePluginValidation -skipMacroValidation"
-    )
-
-    puts "✅ Build complete. Upload skipped (PR 4 dry run)."
   end
 
   desc "Upload debug symbols to Sentry"
