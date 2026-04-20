@@ -78,9 +78,3 @@ struct StationListStationRowModel {
     self.liveStatus = liveStatus
   }
 }
-
-extension StationListStationRowModel: Equatable {
-  static func == (lhs: StationListStationRowModel, rhs: StationListStationRowModel) -> Bool {
-    return lhs.item.anyStation.id == rhs.item.anyStation.id
-  }
-}

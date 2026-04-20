@@ -19,7 +19,7 @@ struct StationListStationRowView: View {
             .resizable()
             .aspectRatio(contentMode: .fill)
         } placeholder: {
-          Color(white: 0.2)
+          Color(hex: "#333333")
         }
         .frame(width: 64, height: 64)
         .clipped()
@@ -47,6 +47,7 @@ struct StationListStationRowView: View {
       }
       .padding(.horizontal)
       .padding(.vertical, 12)
+      .animation(.easeInOut(duration: 0.5), value: model.liveStatus)
     }
   }
 }

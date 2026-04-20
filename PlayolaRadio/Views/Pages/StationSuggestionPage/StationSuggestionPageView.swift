@@ -94,7 +94,7 @@ struct StationSuggestionPageView: View {
             .foregroundColor(.white)
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background(Color.primary)
+            .background(Color.playolaRed)
             .cornerRadius(10)
         }
       }
@@ -161,13 +161,13 @@ struct StationSuggestionPageView: View {
           Text(model.voteButtonText(suggestion))
             .font(.custom(FontNames.Inter_500_Medium, size: 13))
         }
-        .foregroundColor(suggestion.hasVoted ? .white : .primary)
+        .foregroundColor(suggestion.hasVoted ? .white : .playolaRed)
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
-        .background(suggestion.hasVoted ? Color.primary : Color.clear)
+        .background(suggestion.hasVoted ? Color.playolaRed : Color.clear)
         .overlay(
           RoundedRectangle(cornerRadius: 18)
-            .strokeBorder(Color.primary, lineWidth: suggestion.hasVoted ? 0 : 1)
+            .strokeBorder(Color.playolaRed, lineWidth: suggestion.hasVoted ? 0 : 1)
         )
         .cornerRadius(18)
       }

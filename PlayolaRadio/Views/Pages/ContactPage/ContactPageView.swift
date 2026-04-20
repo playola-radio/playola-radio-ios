@@ -14,7 +14,7 @@ struct ContactPageView: View {
 
   var body: some View {
     VStack(spacing: 0) {
-      // Sticky Title
+      // Title
       HStack {
         Text("Your Profile")
           .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 32))
@@ -172,7 +172,7 @@ struct ContactPageView: View {
               .frame(maxWidth: .infinity)
               .frame(height: 50)
               .padding(.horizontal, 16)
-              .background(Color.primary)
+              .background(Color.playolaRed)
               .cornerRadius(6)
             }
           )
@@ -200,7 +200,7 @@ struct ContactPageView: View {
               .frame(maxWidth: .infinity)
               .frame(height: 50)
               .padding(.horizontal, 16)
-              .background(Color.primary)
+              .background(Color.playolaRed)
               .cornerRadius(6)
             }
           )
@@ -228,7 +228,7 @@ struct ContactPageView: View {
                     if unreadSupportCount > 0 {
                       Text("\(unreadSupportCount)")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(Color.primary)
+                        .foregroundColor(Color.playolaRed)
                         .frame(minWidth: 16, minHeight: 16)
                         .background(Circle().fill(Color.white))
                         .offset(x: 8, y: -8)
@@ -247,7 +247,7 @@ struct ContactPageView: View {
               .frame(maxWidth: .infinity)
               .frame(height: 50)
               .padding(.horizontal, 16)
-              .background(Color.primary)
+              .background(Color.playolaRed)
               .cornerRadius(6)
             }
           )
@@ -276,7 +276,7 @@ struct ContactPageView: View {
               .frame(maxWidth: .infinity)
               .frame(height: 50)
               .padding(.horizontal, 16)
-              .background(Color.primary)
+              .background(Color.playolaRed)
               .cornerRadius(6)
             }
           )

@@ -15,9 +15,7 @@ struct StationListPage: View {
   // MARK: - View
   var body: some View {
     VStack(spacing: 0) {
-      // ---------------------------------------------------------
-      // Sticky Header
-      // ---------------------------------------------------------
+      // Header
       VStack(spacing: 0) {
         // Page Title
         HStack {
@@ -36,12 +34,12 @@ struct StationListPage: View {
             }
             .foregroundColor(.white)
             .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(Color.primary)
+            .padding(.vertical, 10)
+            .background(Color.playolaRed)
             .cornerRadius(16)
           }
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 16)
         .padding(.top, 20)
 
         // Segment Control
@@ -59,7 +57,7 @@ struct StationListPage: View {
                   .background(
                     model.selectedSegment == segment
                       ? Color.playolaRed
-                      : Color(white: 0.2)
+                      : Color(hex: "#333333")
                   )
                   .cornerRadius(20)
               }
@@ -69,19 +67,36 @@ struct StationListPage: View {
           .padding(.top, 24)
         }
         .padding(.vertical, 8)
+        .overlay(alignment: .trailing) {
+          LinearGradient(
+            colors: [Color.black.opacity(0), Color.black],
+            startPoint: .leading,
+            endPoint: .trailing
+          )
+          .frame(width: 24)
+          .allowsHitTesting(false)
+        }
       }
       .background(Color.black)
 
-      // ---------------------------------------------------------
       // Station Lists
-      // ---------------------------------------------------------
       ScrollView {
         if model.isShowingNoResults {
-          Text(model.noResultsMessage)
-            .font(.custom(FontNames.Inter_500_Medium, size: 16))
-            .foregroundColor(.playolaGray)
-            .frame(maxWidth: .infinity)
-            .padding(.top, 40)
+          VStack(spacing: 12) {
+            Image(systemName: model.noResultsIconName)
+              .font(.system(size: 40, weight: .light))
+              .foregroundColor(.playolaGray)
+            Text(model.noResultsMessage)
+              .font(.custom(FontNames.Inter_600_SemiBold, size: 18))
+              .foregroundColor(.white)
+            Text(model.noResultsHint)
+              .font(.custom(FontNames.Inter_400_Regular, size: 14))
+              .foregroundColor(.playolaGray)
+              .multilineTextAlignment(.center)
+              .padding(.horizontal, 32)
+          }
+          .frame(maxWidth: .infinity)
+          .padding(.top, 64)
         } else {
           VStack(alignment: .leading, spacing: 20) {
             ForEach(model.stationListsForDisplay) { list in
@@ -99,7 +114,7 @@ struct StationListPage: View {
     .navigationBarTitleDisplayMode(.inline)
     .background(Color.black)
     .onAppear { Task { await model.viewAppeared() } }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
   }
 
   private var searchBar: some View {
@@ -140,7 +155,7 @@ struct StationListPage: View {
     if !items.isEmpty {
       VStack(alignment: .leading, spacing: 1) {
         Text(list.title)
-          .font(.custom("Inter-Regular", size: 16))
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
           .foregroundColor(.white)
           .padding(.horizontal)
           .padding(.bottom, 8)
@@ -155,22 +170,14 @@ struct StationListPage: View {
                 Task { await model.stationSelected(item) }
               })
           }
-
         }
       }
-      .animation(
-        .easeInOut(duration: 0.5),
-        value: items.map { item in
-          let liveStatus = model.liveStatusForStation(item.anyStation.id)
-          return "\(item.anyStation.id)-\(liveStatus?.rawValue ?? "none")"
-        }
-      )
     }
   }
 }
-// ------------------------------------------------------------------
+
 // MARK: - Preview
-// ------------------------------------------------------------------
+
 #Preview {
   NavigationStack {
     StationListPage(model: StationListModel())
