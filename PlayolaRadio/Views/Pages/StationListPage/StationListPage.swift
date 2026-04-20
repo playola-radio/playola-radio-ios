@@ -37,7 +37,7 @@ struct StationListPage: View {
             .foregroundColor(.white)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .background(Color.primary)
+            .background(Color.playolaRed)
             .cornerRadius(16)
           }
         }
