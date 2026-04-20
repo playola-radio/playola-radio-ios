@@ -15,9 +15,7 @@ struct StationListPage: View {
   // MARK: - View
   var body: some View {
     VStack(spacing: 0) {
-      // ---------------------------------------------------------
-      // Sticky Header
-      // ---------------------------------------------------------
+      // Header
       VStack(spacing: 0) {
         // Page Title
         HStack {
@@ -81,9 +79,7 @@ struct StationListPage: View {
       }
       .background(Color.black)
 
-      // ---------------------------------------------------------
       // Station Lists
-      // ---------------------------------------------------------
       ScrollView {
         if model.isShowingNoResults {
           VStack(spacing: 12) {
@@ -179,9 +175,9 @@ struct StationListPage: View {
     }
   }
 }
-// ------------------------------------------------------------------
+
 // MARK: - Preview
-// ------------------------------------------------------------------
+
 #Preview {
   NavigationStack {
     StationListPage(model: StationListModel())
