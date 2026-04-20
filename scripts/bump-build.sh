@@ -17,6 +17,11 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
   exit 1
 fi
 
+if ! gh auth status --hostname github.com >/dev/null 2>&1; then
+  echo "Error: 'gh' is not authenticated. Run 'gh auth login' first."
+  exit 1
+fi
+
 git fetch origin main develop --quiet
 git fetch origin --tags --quiet
 
@@ -36,7 +41,7 @@ echo ""
 if [ -n "$last_tag" ]; then
   echo "PRs since $last_tag:"
   echo "----------------------"
-  git log "$last_tag..origin/develop" --first-parent --pretty=format:"%s" 2>/dev/null | grep -oE '#[0-9]+' | sort -t'#' -k1 -rn | uniq | while read pr; do
+  git log "$last_tag..origin/develop" --first-parent --pretty=format:"%s" 2>/dev/null | grep -oE '#[0-9]+' | sort -t'#' -k2 -rn | uniq | while read pr; do
     num=${pr#\#}
     title=$(gh pr view "$num" --json title --jq '.title' 2>/dev/null)
     echo "  $pr: $title"
@@ -51,6 +56,11 @@ if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
 fi
 
 hotfix_branch="hotfix/${current_version}-b${new_build}"
+
+if git show-ref --quiet "refs/heads/$hotfix_branch"; then
+  echo "Error: branch '$hotfix_branch' already exists locally. Delete it first or push manually."
+  exit 1
+fi
 
 echo ""
 echo "Creating hotfix branch..."
@@ -74,7 +84,7 @@ echo "Creating PR..."
 
 changes_section=""
 if [ -n "$last_tag" ]; then
-  changes_section=$(git log "$last_tag..origin/develop" --first-parent --pretty=format:"%s" 2>/dev/null | grep -oE '#[0-9]+' | sort -t'#' -k1 -rn | uniq | while read pr; do
+  changes_section=$(git log "$last_tag..origin/develop" --first-parent --pretty=format:"%s" 2>/dev/null | grep -oE '#[0-9]+' | sort -t'#' -k2 -rn | uniq | while read pr; do
     num=${pr#\#}
     title=$(gh pr view "$num" --json title --jq '.title' 2>/dev/null)
     echo "- $pr: $title"
