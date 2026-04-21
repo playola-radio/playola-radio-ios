@@ -5,16 +5,17 @@
 //  Created by Claude on 1/15/26.
 //
 
+import ConcurrencyExtras
 import Dependencies
 import Foundation
 import Sharing
 import SwiftUI
-import Testing
+import XCTest
 
 @testable import PlayolaRadio
 
 @MainActor
-struct SupportPageTests {
+final class SupportPageTests: XCTestCase {
   private func makeConversation(id: String) -> Conversation {
     Conversation(
       id: id,
@@ -42,7 +43,6 @@ struct SupportPageTests {
     )
   }
 
-  @Test
   func testOnViewAppearedLoadsConversationAndMessages() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
@@ -88,18 +88,17 @@ struct SupportPageTests {
       SupportPageModel()
     }
 
-    #expect(model.isLoading == true)
-    #expect(model.messages.isEmpty)
+    XCTAssertTrue(model.isLoading)
+    XCTAssertTrue(model.messages.isEmpty)
 
     await model.onViewAppeared()
 
-    #expect(model.isLoading == false)
-    #expect(model.conversation?.id == "conv-1")
-    #expect(model.messages.count == 1)
-    #expect(model.hasExistingMessages == true)
+    XCTAssertFalse(model.isLoading)
+    XCTAssertEqual(model.conversation?.id, "conv-1")
+    XCTAssertEqual(model.messages.count, 1)
+    XCTAssertTrue(model.hasExistingMessages)
   }
 
-  @Test
   func testHasExistingMessagesReturnsFalseWhenEmpty() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
@@ -135,10 +134,9 @@ struct SupportPageTests {
 
     await model.onViewAppeared()
 
-    #expect(model.hasExistingMessages == false)
+    XCTAssertFalse(model.hasExistingMessages)
   }
 
-  @Test
   func testSendMessageAppendsToMessages() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
@@ -186,30 +184,28 @@ struct SupportPageTests {
     await model.onViewAppeared()
     model.newMessage = "Test message"
 
-    #expect(model.canSend == true)
+    XCTAssertTrue(model.canSend)
 
     await model.sendMessage()
 
-    #expect(model.messages.count == 1)
-    #expect(model.messages.first?.message == "Test message")
-    #expect(model.newMessage.isEmpty)
+    XCTAssertEqual(model.messages.count, 1)
+    XCTAssertEqual(model.messages.first?.message, "Test message")
+    XCTAssertTrue(model.newMessage.isEmpty)
   }
 
-  @Test
   func testCanSendReturnsFalseWhenMessageEmpty() {
     let model = SupportPageModel()
 
     model.newMessage = ""
-    #expect(model.canSend == false)
+    XCTAssertFalse(model.canSend)
 
     model.newMessage = "   "
-    #expect(model.canSend == false)
+    XCTAssertFalse(model.canSend)
 
     model.newMessage = "Hello"
-    #expect(model.canSend == true)
+    XCTAssertTrue(model.canSend)
   }
 
-  @Test
   func testOnViewAppearedDoesNotOverwritePresetConversation() async {
     // Regression test: When navigating from ConversationListPage, the model
     // already has a conversation set. onViewAppeared should NOT overwrite it.
@@ -229,30 +225,30 @@ struct SupportPageTests {
       )
     ]
 
-    var getSupportConversationCalled = false
+    let getSupportConversationCalled = LockIsolated(false)
 
     let model = withDependencies {
       $0.api.getSupportConversation = { _ in
-        getSupportConversationCalled = true
+        getSupportConversationCalled.setValue(true)
         return SupportConversationResponse(conversation: wrongConversation, unreadCount: 0)
       }
       $0.api.getConversationMessages = { _, _ in [] }
       $0.api.markConversationRead = { _, _ in }
+      $0.pushNotifications.clearSupportBadge = {}
     } operation: {
       SupportPageModel()
     }
 
     model.conversation = presetConversation
     model.messages = presetMessages
-    model.isLoading = false
 
     await model.onViewAppeared()
 
-    #expect(model.conversation?.id == "preset-conv-id")
-    #expect(getSupportConversationCalled == false)
+    XCTAssertEqual(model.conversation?.id, "preset-conv-id")
+    XCTAssertFalse(getSupportConversationCalled.value)
+    XCTAssertFalse(model.isLoading)
   }
 
-  @Test
   func testOnViewAppearedRefreshesMessagesWhenConversationAlreadySet() async {
     // Regression test: When navigating to support page with conversation already set,
     // onViewAppeared should still refresh the messages to get any new ones.
@@ -276,30 +272,30 @@ struct SupportPageTests {
         id: "new-msg", conversationId: "conv-1", senderId: "support-1", text: "New message"),
     ]
 
-    var getConversationMessagesCalled = false
+    let getConversationMessagesCalled = LockIsolated(false)
 
     let model = withDependencies {
       $0.api.getConversationMessages = { _, _ in
-        getConversationMessagesCalled = true
+        getConversationMessagesCalled.setValue(true)
         return newMessages
       }
       $0.api.markConversationRead = { _, _ in }
+      $0.pushNotifications.clearSupportBadge = {}
     } operation: {
       SupportPageModel()
     }
 
     model.conversation = presetConversation
     model.messages = oldMessages
-    model.isLoading = false
 
     await model.onViewAppeared()
 
-    #expect(getConversationMessagesCalled == true)
-    #expect(model.messages.count == 2)
-    #expect(model.messages.last?.message == "New message")
+    XCTAssertTrue(getConversationMessagesCalled.value)
+    XCTAssertEqual(model.messages.count, 2)
+    XCTAssertEqual(model.messages.last?.message, "New message")
+    XCTAssertFalse(model.isLoading)
   }
 
-  @Test
   func testHandleScenePhaseChangeRefreshesMessagesWhenActive() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
@@ -314,14 +310,15 @@ struct SupportPageTests {
       makeMessage(id: "msg-1", conversationId: "conv-1", senderId: "support", text: "New reply")
     ]
 
-    var getConversationMessagesCalled = false
+    let getConversationMessagesCalled = LockIsolated(false)
 
     let model = withDependencies {
       $0.api.getConversationMessages = { _, _ in
-        getConversationMessagesCalled = true
+        getConversationMessagesCalled.setValue(true)
         return updatedMessages
       }
       $0.api.markConversationRead = { _, _ in }
+      $0.pushNotifications.clearSupportBadge = {}
     } operation: {
       SupportPageModel()
     }
@@ -331,12 +328,83 @@ struct SupportPageTests {
 
     await model.handleScenePhaseChange(.active)
 
-    #expect(getConversationMessagesCalled == true)
-    #expect(model.messages.count == 1)
-    #expect(model.messages.first?.message == "New reply")
+    XCTAssertTrue(getConversationMessagesCalled.value)
+    XCTAssertEqual(model.messages.count, 1)
+    XCTAssertEqual(model.messages.first?.message, "New reply")
   }
 
-  @Test
+  func testOnViewAppearedCreatesConversationWhenGetReturnsNil() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "user-1",
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com",
+        profileImageUrl: nil,
+        role: "user"
+      ),
+      jwt: "test-jwt"
+    )
+
+    let createdConversation = makeConversation(id: "created-conv")
+    let createCalled = LockIsolated(false)
+
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in
+        SupportConversationResponse(conversation: nil, unreadCount: 0)
+      }
+      $0.api.createSupportConversation = { _ in
+        createCalled.setValue(true)
+        return CreateSupportConversationResponse(
+          conversation: createdConversation, unreadCount: 0)
+      }
+      $0.api.getConversationMessages = { _, _ in [] }
+    } operation: {
+      SupportPageModel()
+    }
+
+    await model.onViewAppeared()
+
+    XCTAssertTrue(createCalled.value)
+    XCTAssertEqual(model.conversation?.id, "created-conv")
+    XCTAssertFalse(model.isLoading)
+  }
+
+  func testOnViewAppearedUsesExistingConversationFromGet() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "user-1",
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com",
+        profileImageUrl: nil,
+        role: "user"
+      ),
+      jwt: "test-jwt"
+    )
+
+    let existingConversation = makeConversation(id: "existing-conv")
+    let createCalled = LockIsolated(false)
+
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in
+        SupportConversationResponse(conversation: existingConversation, unreadCount: 0)
+      }
+      $0.api.createSupportConversation = { _ in
+        createCalled.setValue(true)
+        return .mockWith()
+      }
+      $0.api.getConversationMessages = { _, _ in [] }
+    } operation: {
+      SupportPageModel()
+    }
+
+    await model.onViewAppeared()
+
+    XCTAssertFalse(createCalled.value)
+    XCTAssertEqual(model.conversation?.id, "existing-conv")
+  }
+
   func testHandleScenePhaseChangeDoesNothingWhenNotActive() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
@@ -348,11 +416,11 @@ struct SupportPageTests {
 
     let conversation = makeConversation(id: "conv-1")
 
-    var getConversationMessagesCalled = false
+    let getConversationMessagesCalled = LockIsolated(false)
 
     let model = withDependencies {
       $0.api.getConversationMessages = { _, _ in
-        getConversationMessagesCalled = true
+        getConversationMessagesCalled.setValue(true)
         return []
       }
     } operation: {
@@ -362,9 +430,9 @@ struct SupportPageTests {
     model.conversation = conversation
 
     await model.handleScenePhaseChange(.background)
-    #expect(getConversationMessagesCalled == false)
+    XCTAssertFalse(getConversationMessagesCalled.value)
 
     await model.handleScenePhaseChange(.inactive)
-    #expect(getConversationMessagesCalled == false)
+    XCTAssertFalse(getConversationMessagesCalled.value)
   }
 }

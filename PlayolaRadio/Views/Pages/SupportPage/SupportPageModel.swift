@@ -37,17 +37,17 @@ class SupportPageModel: ViewModel {
     guard let jwt = auth.jwt else { return }
     startListeningForRefresh()
 
-    // If conversation is already set (e.g., from ConversationListPage), don't fetch
+    // If conversation is already set (e.g., from ConversationListPage), refresh messages
     if conversation != nil {
-      await markAsRead()
+      await refreshMessages()
+      isLoading = false
       return
     }
 
     isLoading = true
 
     do {
-      let response = try await api.getSupportConversation(jwt)
-      conversation = response.conversation
+      conversation = try await api.getOrCreateSupportConversation(jwt)
       if let conversationId = conversation?.id {
         messages = try await api.getConversationMessages(jwt, conversationId)
         await markAsRead()

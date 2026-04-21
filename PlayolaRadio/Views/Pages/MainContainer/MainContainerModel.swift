@@ -259,9 +259,9 @@ class MainContainerModel: ViewModel {
     guard let jwt = auth.jwt else { return }
     Task {
       do {
-        let response = try await api.getSupportConversation(jwt)
+        let conversation = try await api.getOrCreateSupportConversation(jwt)
         let feedbackModel = FeedbackSheetModel(
-          conversation: response.conversation,
+          conversation: conversation,
           title: "Would you be up for letting us know what we can do better?",
           placeholderText: "",
           onSuccess: { [weak self] in

@@ -67,7 +67,7 @@ struct LibraryPageView: View {
   private var songListView: some View {
     ScrollViewReader { proxy in
       List {
-        if !model.activeRequests.isEmpty {
+        if model.hasActiveRequests {
           requestsSection
         }
 
@@ -95,7 +95,53 @@ struct LibraryPageView: View {
 
   private var requestsSection: some View {
     Section {
-      ForEach(model.activeRequests) { request in
+      if !model.pendingRequests.isEmpty {
+        pendingRequestsSubsection
+      }
+      if !model.fulfilledRequests.isEmpty {
+        fulfilledRequestsSubsection
+      }
+    } header: {
+      SectionHeader(title: model.requestsSectionHeader)
+    }
+  }
+
+  private var pendingRequestsSubsection: some View {
+    requestsSubsection(
+      header: model.pendingSubsectionHeader,
+      requests: model.pendingRequests,
+      showCheckmark: false,
+      rowOpacity: 1.0
+    )
+  }
+
+  private var fulfilledRequestsSubsection: some View {
+    requestsSubsection(
+      header: model.fulfilledSubsectionHeader,
+      requests: model.fulfilledRequests,
+      showCheckmark: true,
+      rowOpacity: 0.7
+    )
+  }
+
+  private func requestsSubsection(
+    header: String,
+    requests: [StationLibraryRequest],
+    showCheckmark: Bool,
+    rowOpacity: Double
+  ) -> some View {
+    Group {
+      Text(header)
+        .font(.custom(FontNames.Inter_500_Medium, size: 11))
+        .foregroundColor(.playolaGray)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
+        .listRowInsets(EdgeInsets())
+        .listRowSeparator(.hidden)
+        .listRowBackground(Color.clear)
+
+      ForEach(requests) { request in
         LibraryRequestRow(
           request: request,
           typeLabel: model.requestTypeLabel(for: request),
@@ -103,6 +149,7 @@ struct LibraryPageView: View {
           statusLabel: model.requestStatusLabel(for: request),
           canDismiss: model.canDismissRequest(request),
           canCancel: model.canCancelRequest(request),
+          showCheckmark: showCheckmark,
           dismissButtonText: model.dismissButtonText,
           cancelButtonText: model.cancelButtonText,
           onDismiss: {
@@ -120,9 +167,8 @@ struct LibraryPageView: View {
         .listRowInsets(EdgeInsets())
         .listRowSeparator(.hidden)
         .listRowBackground(Color.clear)
+        .opacity(rowOpacity)
       }
-    } header: {
-      SectionHeader(title: model.requestsSectionHeader)
     }
   }
 
@@ -320,6 +366,7 @@ struct LibraryRequestRow: View {
   let statusLabel: String
   let canDismiss: Bool
   let canCancel: Bool
+  var showCheckmark: Bool = false
   let dismissButtonText: String
   let cancelButtonText: String
   let onDismiss: () -> Void
@@ -327,20 +374,30 @@ struct LibraryRequestRow: View {
 
   var body: some View {
     HStack(spacing: 12) {
-      if let imageUrl = request.imageUrl {
-        WebImage(url: imageUrl)
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-          .frame(width: 45, height: 45)
-          .clipped()
-      } else {
-        RoundedRectangle(cornerRadius: 4)
-          .fill(Color(hex: "#666666"))
-          .frame(width: 45, height: 45)
-          .overlay(
-            Image(systemName: "music.note")
-              .foregroundColor(Color(hex: "#999999"))
-          )
+      ZStack(alignment: .bottomTrailing) {
+        if let imageUrl = request.imageUrl {
+          WebImage(url: imageUrl)
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+            .frame(width: 45, height: 45)
+            .clipped()
+        } else {
+          RoundedRectangle(cornerRadius: 4)
+            .fill(Color(hex: "#666666"))
+            .frame(width: 45, height: 45)
+            .overlay(
+              Image(systemName: "music.note")
+                .foregroundColor(Color(hex: "#999999"))
+            )
+        }
+
+        if showCheckmark {
+          Image(systemName: "checkmark.circle.fill")
+            .font(.system(size: 14))
+            .foregroundColor(.green)
+            .background(Circle().fill(Color.black).frame(width: 16, height: 16))
+            .offset(x: 2, y: 2)
+        }
       }
 
       VStack(alignment: .leading, spacing: 2) {

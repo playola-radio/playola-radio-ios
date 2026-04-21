@@ -1,3 +1,5 @@
+ORIGINAL_REPO := $(HOME)/playola/playola-radio-ios
+
 .PHONY: lint format format-check release bump-build release-production release-staging setup-conductor
 
 # Run SwiftLint (strict mode to match CI)
@@ -36,7 +38,8 @@ release-staging:
 
 # Set up workspace for Conductor agents
 setup-conductor:
+	@test -d $(ORIGINAL_REPO) || (echo "ERROR: Original repo not found at $(ORIGINAL_REPO). Set ORIGINAL_REPO to the correct path." && exit 1)
 	@for f in Secrets Secrets-Development Secrets-Local Secrets-Staging; do \
 		test -f PlayolaRadio/Config/$$f.xcconfig \
-			|| cp PlayolaRadio/Config/Secrets-Example.xcconfig PlayolaRadio/Config/$$f.xcconfig; \
+			|| cp $(ORIGINAL_REPO)/PlayolaRadio/Config/$$f.xcconfig PlayolaRadio/Config/$$f.xcconfig; \
 	done

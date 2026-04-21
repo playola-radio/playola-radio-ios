@@ -190,9 +190,9 @@ final class LibraryPageTests: XCTestCase {
     }
   }
 
-  // MARK: - Active Requests Tests
+  // MARK: - Request Filtering Tests
 
-  func testActiveRequestsExcludesDismissed() async {
+  func testPendingRequestsReturnsOnlyPendingRequests() async {
     let mockRequests = [
       StationLibraryRequest.mockWith(id: "request-1", status: .pending),
       StationLibraryRequest.mockWith(id: "request-2", status: .completed),
@@ -200,10 +200,52 @@ final class LibraryPageTests: XCTestCase {
     ]
 
     await withLoadedModel(requests: mockRequests) { model in
-      XCTAssertEqual(model.activeRequests.count, 2)
-      XCTAssertTrue(model.activeRequests.contains { $0.id == "request-1" })
-      XCTAssertTrue(model.activeRequests.contains { $0.id == "request-2" })
-      XCTAssertFalse(model.activeRequests.contains { $0.id == "request-3" })
+      XCTAssertEqual(model.pendingRequests.count, 1)
+      XCTAssertEqual(model.pendingRequests[0].id, "request-1")
+    }
+  }
+
+  func testFulfilledRequestsReturnsOnlyCompletedRequests() async {
+    let mockRequests = [
+      StationLibraryRequest.mockWith(id: "request-1", status: .pending),
+      StationLibraryRequest.mockWith(id: "request-2", status: .completed),
+      StationLibraryRequest.mockWith(id: "request-3", status: .dismissed),
+    ]
+
+    await withLoadedModel(requests: mockRequests) { model in
+      XCTAssertEqual(model.fulfilledRequests.count, 1)
+      XCTAssertEqual(model.fulfilledRequests[0].id, "request-2")
+    }
+  }
+
+  func testHasActiveRequestsReturnsTrueWhenPendingExists() async {
+    let mockRequests = [
+      StationLibraryRequest.mockWith(id: "request-1", status: .pending)
+    ]
+
+    await withLoadedModel(requests: mockRequests) { model in
+      XCTAssertTrue(model.hasActiveRequests)
+    }
+  }
+
+  func testHasActiveRequestsReturnsTrueWhenFulfilledExists() async {
+    let mockRequests = [
+      StationLibraryRequest.mockWith(id: "request-1", status: .completed)
+    ]
+
+    await withLoadedModel(requests: mockRequests) { model in
+      XCTAssertTrue(model.hasActiveRequests)
+    }
+  }
+
+  func testHasActiveRequestsReturnsFalseWhenAllDismissed() async {
+    let mockRequests = [
+      StationLibraryRequest.mockWith(id: "request-1", status: .dismissed),
+      StationLibraryRequest.mockWith(id: "request-2", status: .dismissed),
+    ]
+
+    await withLoadedModel(requests: mockRequests) { model in
+      XCTAssertFalse(model.hasActiveRequests)
     }
   }
 
@@ -334,9 +376,9 @@ final class LibraryPageTests: XCTestCase {
         }
       },
       perform: { model in
-        XCTAssertEqual(model.activeRequests.count, 1)
+        XCTAssertEqual(model.fulfilledRequests.count, 1)
         await model.dismissRequestButtonTapped(mockRequest)
-        XCTAssertEqual(model.activeRequests.count, 0)
+        XCTAssertEqual(model.fulfilledRequests.count, 0)
       }
     )
   }
