@@ -18,46 +18,13 @@ class SignInPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.appRating) var appRating
   @ObservationIgnored @Shared(.auth) var auth: Auth
-  @ObservationIgnored @Shared(.hasBeenUnlocked) var hasBeenUnlocked: Bool
-  @ObservationIgnored @Shared(.invitationCode) var invitationCode: String?
-  var presentedSheet: PlayolaSheet?
-
-  private var _invitationCodesPageModel = InvitationCodePageModel()
 
   @MainActor
   override init() {
     super.init()
-    updateSheetPresentation()
-
-    // Set up the invitation code page success callback
-    _invitationCodesPageModel.onDismiss = { [weak self] in
-      self?.updateSheetPresentation()
-    }
-  }
-
-  private func updateSheetPresentation() {
-    if !hasBeenUnlocked && invitationCode == nil {
-      presentedSheet = .invitationCode(_invitationCodesPageModel)
-    } else {
-      presentedSheet = nil
-    }
   }
 
   // MARK: Actions
-
-  private func registerInvitationCodeIfPresent() {
-    guard let invitationCode = invitationCode,
-      let userId = auth.currentUser?.id
-    else { return }
-
-    Task {
-      do {
-        try await api.registerInvitationCode(userId, invitationCode)
-      } catch {
-        print("Failed to register invitation code: \(error)")
-      }
-    }
-  }
 
   func signInWithAppleButtonTapped(request: ASAuthorizationAppleIDRequest) {
     request.requestedScopes = [.email, .fullName]
@@ -92,7 +59,6 @@ class SignInPageModel: ViewModel {
             lastName)
           $auth.withLock { $0 = Auth(jwtToken: token) }
           appRating.recordInstallDateIfNeeded()
-          registerInvitationCodeIfPresent()
           await analytics.track(.signInCompleted(method: .apple, userId: appleIDCredential.user))
         } catch {
           print("Sign in failed: \(error)")
@@ -127,7 +93,6 @@ class SignInPageModel: ViewModel {
             let token = try await self.api.signInViaGoogle(serverAuthCode)
             self.$auth.withLock { $0 = Auth(jwtToken: token) }
             self.appRating.recordInstallDateIfNeeded()
-            self.registerInvitationCodeIfPresent()
             await self.analytics.track(
               .signInCompleted(method: .google, userId: signInResult.user.userID ?? "unknown"))
           } catch {

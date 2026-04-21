@@ -31,7 +31,6 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
-  @ObservationIgnored @Shared(.hasBeenUnlocked) var hasBeenUnlocked
   @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
   @ObservationIgnored @Shared(.isBroadcaster) var isBroadcaster
   @ObservationIgnored @Shared(.appVersionRequirements) var appVersionRequirements
@@ -101,9 +100,6 @@ class MainContainerModel: ViewModel {
   }
 
   func viewAppeared() async {
-    // Mark that the main container has been unlocked/shown
-    $hasBeenUnlocked.withLock { $0 = true }
-
     // Register for remote notifications (user is now logged in)
     await pushNotifications.registerForRemoteNotifications()
 

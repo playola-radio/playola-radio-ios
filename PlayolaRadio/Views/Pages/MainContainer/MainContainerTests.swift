@@ -79,7 +79,6 @@ final class MainContainerTests: XCTestCase {
   func testViewAppeared_CorrectlyRetrievesStationListsWhenApiIsSuccessful() async {
     @Shared(.stationListsLoaded) var stationListsLoaded = false
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
-    @Shared(.hasBeenUnlocked) var hasBeenUnlocked = false
     var getStationsCallCount = 0
 
     let mainContainerModel = withDependencies {
@@ -96,7 +95,6 @@ final class MainContainerTests: XCTestCase {
     XCTAssertEqual(getStationsCallCount, 1)
     XCTAssertEqual(stationLists, StationList.mocks)
     XCTAssertTrue(stationListsLoaded)
-    XCTAssertTrue(hasBeenUnlocked)
   }
 
   func testViewAppeared_DisplaysAnErrorAlertOnApiError() async {
@@ -138,7 +136,6 @@ final class MainContainerTests: XCTestCase {
 
   func testViewAppeared_ExitsEarlyWhenStationListsAlreadyLoaded() async {
     @Shared(.stationListsLoaded) var stationListsLoaded = true
-    @Shared(.hasBeenUnlocked) var hasBeenUnlocked = false
     var getStationsCallCount = 0
 
     let mainContainerModel = withDependencies {
@@ -153,7 +150,6 @@ final class MainContainerTests: XCTestCase {
 
     await mainContainerModel.viewAppeared()
     XCTAssertEqual(getStationsCallCount, 0)
-    XCTAssertTrue(hasBeenUnlocked)  // Should still be set even when exiting early
   }
 
   func testViewAppearedLoadsAiringsWhenLoggedIn() async {

@@ -67,6 +67,12 @@ platform :ios do
     ensure_git_status_clean
     ensure_git_branch(branch: 'main') unless ENV['CI']
 
+    match(
+      type: "appstore",
+      app_identifier: "fm.playola.playolaradio",
+      readonly: true
+    )
+
     scan(
       include_simulator_logs: false,
       parallel_testing: false,
@@ -78,7 +84,21 @@ platform :ios do
     build_app(
       project: "PlayolaRadio.xcodeproj",
       scheme: "PlayolaRadio",
-      export_method: "app-store"
+      export_method: "app-store",
+      output_directory: "./build",
+      xcargs: "-skipPackagePluginValidation -skipMacroValidation",
+      export_options: {
+        method: "app-store",
+        provisioningProfiles: {
+          "fm.playola.playolaradio" => "match AppStore fm.playola.playolaradio"
+        }
+      }
+    )
+
+    sentry_debug_files_upload(
+      org_slug: 'playola-radio',
+      project_slug: 'apple-ios',
+      include_sources: true
     )
 
     key_content = ENV["APP_STORE_CONNECT_API_KEY_CONTENT"] ||
@@ -98,12 +118,6 @@ platform :ios do
 
     puts "✅ Production build uploaded to TestFlight!"
     puts "📱 App: fm.playola.playolaradio"
-
-    sentry_debug_files_upload(
-      org_slug: 'playola-radio',
-      project_slug: 'apple-ios',
-      include_sources: true
-    )
   end
 
   desc "Upload debug symbols to Sentry"

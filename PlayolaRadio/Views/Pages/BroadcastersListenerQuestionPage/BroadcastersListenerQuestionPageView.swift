@@ -56,7 +56,7 @@ struct BroadcastersListenerQuestionPageView: View {
               .padding(.vertical, 8)
               .background(
                 model.selectedFilter == filter
-                  ? Color.primary
+                  ? Color.playolaRed
                   : Color.elevatedSurface
               )
               .cornerRadius(20)
@@ -231,11 +231,11 @@ struct ListenerQuestionRow: View {
               HStack(spacing: 4) {
                 Text(isExpanded ? "Show less" : "Show more")
                   .font(.custom(FontNames.Inter_500_Medium, size: 13))
-                  .foregroundColor(.primary)
+                  .foregroundColor(.playolaRed)
 
                 Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                   .font(.system(size: 11, weight: .semibold))
-                  .foregroundColor(.primary)
+                  .foregroundColor(.playolaRed)
               }
             }
           }
@@ -274,7 +274,7 @@ struct ListenerQuestionRow: View {
       .foregroundColor(.textPrimary)
       .padding(.horizontal, 12)
       .padding(.vertical, 8)
-      .background(Color.primary)
+      .background(Color.playolaRed)
       .cornerRadius(20)
     }
   }

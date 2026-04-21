@@ -114,13 +114,13 @@ struct ListenerQuestionDetailPageView: View {
         .foregroundColor(.textPrimary)
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .background(Color.primary)
+        .background(Color.playolaRed)
         .cornerRadius(20)
       }
 
       if model.questionPlaybackState.isPlaying {
         ProgressView(value: model.questionPlaybackState.progress)
-          .progressViewStyle(LinearProgressViewStyle(tint: .primary))
+          .progressViewStyle(LinearProgressViewStyle(tint: .playolaRed))
           .background(Color.elevatedSurface)
       }
     }
@@ -190,12 +190,12 @@ struct ListenerQuestionDetailPageView: View {
   private var recordingIndicator: some View {
     HStack(spacing: 8) {
       Circle()
-        .fill(Color.primary)
+        .fill(Color.playolaRed)
         .frame(width: 10, height: 10)
 
       Text("Recording")
         .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
-        .foregroundColor(.primary)
+        .foregroundColor(.playolaRed)
 
       Spacer()
 
@@ -213,7 +213,7 @@ struct ListenerQuestionDetailPageView: View {
       } label: {
         ZStack {
           Circle()
-            .fill(Color.primary)
+            .fill(Color.playolaRed)
             .frame(width: 80, height: 80)
 
           if model.recordingPhase == .recording {
@@ -237,7 +237,7 @@ struct ListenerQuestionDetailPageView: View {
   private var uploadStatusView: some View {
     VStack(spacing: 8) {
       ProgressView(value: model.uploadProgress)
-        .progressViewStyle(LinearProgressViewStyle(tint: .primary))
+        .progressViewStyle(LinearProgressViewStyle(tint: .playolaRed))
 
       Text(model.uploadStatusText)
         .font(.custom(FontNames.Inter_500_Medium, size: 14))
@@ -266,12 +266,12 @@ struct ListenerQuestionDetailPageView: View {
           Text(model.discardButtonTitle)
         }
         .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
-        .foregroundColor(.primary)
+        .foregroundColor(.playolaRed)
         .frame(maxWidth: .infinity)
         .frame(height: 48)
         .overlay(
           RoundedRectangle(cornerRadius: 24)
-            .stroke(Color.primary, lineWidth: 2)
+            .stroke(Color.playolaRed, lineWidth: 2)
         )
       }
 
@@ -286,7 +286,7 @@ struct ListenerQuestionDetailPageView: View {
         .foregroundColor(.textPrimary)
         .frame(maxWidth: .infinity)
         .frame(height: 48)
-        .background(Color.primary)
+        .background(Color.playolaRed)
         .cornerRadius(24)
       }
     }

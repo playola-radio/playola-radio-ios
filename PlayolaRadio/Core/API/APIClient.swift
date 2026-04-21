@@ -85,23 +85,6 @@ struct APIClient: Sendable {
         _, _, _, _ in Auth()
       }
 
-  /// Verifies if an invitation code is valid
-  /// - Parameter code: The invitation code to verify
-  /// - Throws: InvitationCodeError if the code is invalid, expired, or at max uses
-  var verifyInvitationCode: (_ code: String) async throws -> Void = { _ in }
-
-  /// Registers a user with an invitation code
-  /// - Parameters:
-  ///   - userId: The user ID to register
-  ///   - code: The invitation code to use for registration
-  /// - Throws: InvitationCodeError if the registration fails
-  var registerInvitationCode: (_ userId: String, _ code: String) async throws -> Void = { _, _ in }
-
-  /// Adds an email address to the waiting list
-  /// - Parameter email: The email address to add to the waiting list
-  /// - Throws: Error if the email is invalid or already exists
-  var addToWaitingList: (_ email: String) async throws -> Void = { _ in }
-
   /// Likes a song for the authenticated user
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
@@ -551,30 +534,6 @@ struct APIClient: Sendable {
       []
     }
 
-  // MARK: - Referral Codes
-
-  /// Creates a referral code for the authenticated user
-  /// - Parameters:
-  ///   - jwtToken: The JWT token for authentication
-  ///   - expiresAt: Expiration date for the referral code
-  /// - Returns: An existing ReferralCode matching the date, or a newly created one
-  /// - Throws: APIError if the request fails or user has no invitation code
-  var getOrCreateReferralCode:
-    (_ jwtToken: String, _ expiresAt: Date) async throws -> ReferralCode = { _, _ in
-      ReferralCode(
-        id: "",
-        code: "",
-        createdByUserId: "",
-        invitationCodeId: "",
-        maxUses: nil,
-        description: nil,
-        expiresAt: nil,
-        isActive: true,
-        createdAt: Date(),
-        updatedAt: Date()
-      )
-    }
-
   // MARK: - Production Intro Upload
 
   /// Gets a presigned URL for uploading an intro to playola-production S3
@@ -754,19 +713,6 @@ func parsePlayolaErrorMessage(from data: Data) -> String? {
     return nil
   }
   return message
-}
-
-enum InvitationCodeError: Error {
-  case invalidCode(String)
-  case registrationFailed(String)
-
-  var localizedDescription: String {
-    switch self {
-    case .invalidCode(let message),
-      .registrationFailed(let message):
-      return message
-    }
-  }
 }
 
 extension DependencyValues {

@@ -236,50 +236,27 @@ class HomePageModel: ViewModel {
       "\(curatorName) picked your question! It will air on \(formattedAirtime(airing.airtime))."
   }
 
+  private static let appStoreUrl = "https://apps.apple.com/us/app/playola-radio/id6480465361"
+
   private func inviteFriendsButtonTapped() async {
-    guard let jwt = auth.jwt else { return }
-
-    do {
-      let expiresAt = Calendar.current.date(byAdding: .year, value: 1, to: Date()) ?? Date()
-      let referralCode = try await api.getOrCreateReferralCode(jwt, expiresAt)
-      let shareUrl = "https://admin-api.playola.fm/ios?code=\(referralCode.code)"
-      let shareMessage = "Check out Playola Radio - a new app with music curated by real artists!"
-
-      let shareModel = ShareSheetModel(items: [shareMessage, shareUrl])
-      mainContainerNavigationCoordinator.presentedSheet = .share(shareModel)
-    } catch {
-      presentedAlert = .errorCreatingReferralCode
-    }
+    let shareModel = ShareSheetModel(items: [Self.appStoreUrl])
+    mainContainerNavigationCoordinator.presentedSheet = .share(shareModel)
   }
 
   private func shareQuestionAiringButtonTapped() async {
-    guard let jwt = auth.jwt,
-      let airing = upcomingQuestionAiring
-    else { return }
+    guard let airing = upcomingQuestionAiring else { return }
 
-    // Expiration is the day after the airing
-    let calendar = Calendar.current
-    let dayAfterAiring =
-      calendar.date(byAdding: .day, value: 1, to: airing.airtime) ?? airing.airtime
-
-    do {
-      let referralCode = try await api.getOrCreateReferralCode(jwt, dayAfterAiring)
-      let shareUrl = "https://admin-api.playola.fm/ios?code=\(referralCode.code)"
-
-      let shareMessage: String
-      if let curatorName = airing.station?.curatorName {
-        shareMessage =
-          "I'm going to be on \(curatorName)'s radio station tomorrow at 6pm. Here's a link to download the app!"
-      } else {
-        shareMessage =
-          "I'm going to be on an internet radio station tomorrow at 6pm. Here's a link to download the app!"
-      }
-
-      let shareModel = ShareSheetModel(items: [shareMessage, shareUrl])
-      mainContainerNavigationCoordinator.presentedSheet = .share(shareModel)
-    } catch {
-      presentedAlert = .errorCreatingReferralCode
+    let shareMessage: String
+    if let curatorName = airing.station?.curatorName {
+      shareMessage =
+        "I'm going to be on \(curatorName)'s radio station tomorrow at 6pm. Here's a link to download the app!"
+    } else {
+      shareMessage =
+        "I'm going to be on an internet radio station tomorrow at 6pm. Here's a link to download the app!"
     }
+
+    let shareModel = ShareSheetModel(items: [shareMessage, Self.appStoreUrl])
+    mainContainerNavigationCoordinator.presentedSheet = .share(shareModel)
   }
 
   private func formattedAirtime(_ date: Date) -> String {
