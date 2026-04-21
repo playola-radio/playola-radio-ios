@@ -568,6 +568,7 @@ final class HomePageTests: XCTestCase {
   private static let appStoreUrl = "https://apps.apple.com/us/app/playola-radio/id6480465361"
 
   func testQuestionAiringShareButtonPresentsShareSheetWithAppStoreUrl() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator =
       MainContainerNavigationCoordinator()
 
@@ -595,6 +596,7 @@ final class HomePageTests: XCTestCase {
   }
 
   func testQuestionAiringShareButtonUsesGenericMessageWhenNoCuratorName() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator =
       MainContainerNavigationCoordinator()
 
