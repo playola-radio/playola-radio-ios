@@ -245,13 +245,6 @@ extension PlayolaAlert {
     )
   }
 
-  static var errorCreatingReferralCode: PlayolaAlert {
-    PlayolaAlert(
-      title: "Error",
-      message: "There was an error creating your invite link. Please try again.",
-      dismissButton: .cancel(Text("OK")))
-  }
-
   static var errorRedeemingPrize: PlayolaAlert {
     PlayolaAlert(
       title: "Error",
