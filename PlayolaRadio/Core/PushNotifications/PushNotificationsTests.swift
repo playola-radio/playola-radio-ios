@@ -197,7 +197,6 @@ final class PushNotificationsTests: XCTestCase {
   // MARK: - Support Message Notification Tap
 
   func testHandleNotificationTapPostsRefreshWhenSupportMessageAndOnSupportPage() async {
-    @Shared(.hasBeenUnlocked) var hasBeenUnlocked = true
     @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
       MainContainerNavigationCoordinator()
 

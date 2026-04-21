@@ -55,19 +55,6 @@ struct RewardsPageView: View {
 
             // Reward Items
             LazyVStack(spacing: 1) {
-              // Referral Code Reward (always first)
-              ReferralCodeRewardRow(
-                label: model.referralCodeRewardLabel,
-                name: model.referralCodeRewardName,
-                requiredHoursLabel: model.referralCodeRequiredHoursLabel,
-                status: model.referralCodeRedemptionStatus,
-                buttonText: model.referralCodeButtonText,
-                sharedButtonText: model.referralCodeSharedText,
-                onButtonTapped: {
-                  Task { await model.inviteFriendsTapped() }
-                }
-              )
-
               // Prize Tiers
               ForEach(Array(model.prizeTiers.enumerated()), id: \.element.id) { index, prizeTier in
                 PrizeTierRow(

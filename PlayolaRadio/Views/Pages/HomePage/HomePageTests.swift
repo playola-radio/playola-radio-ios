@@ -565,8 +565,9 @@ final class HomePageTests: XCTestCase {
 
   // MARK: - Question Airing Share Tests
 
-  func testQuestionAiringShareButtonPresentsShareSheetWithReferralCode() async {
-    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+  private static let appStoreUrl = "https://apps.apple.com/us/app/playola-radio/id6480465361"
+
+  func testQuestionAiringShareButtonPresentsShareSheetWithAppStoreUrl() async {
     @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator =
       MainContainerNavigationCoordinator()
 
@@ -575,22 +576,9 @@ final class HomePageTests: XCTestCase {
       airtime: futureDate,
       station: .mockWith(curatorName: "Jason Eady")
     )
-    let mockReferralCode = ReferralCode(
-      id: "ref-123",
-      code: "JASON-ABCD",
-      createdByUserId: "user-123",
-      invitationCodeId: "inv-123",
-      maxUses: nil,
-      description: nil,
-      expiresAt: futureDate.addingTimeInterval(24 * 60 * 60),
-      isActive: true,
-      createdAt: Date(),
-      updatedAt: Date()
-    )
 
     await withDependencies {
       $0.api.getMyListenerQuestionAirings = { _ in [airing] }
-      $0.api.getOrCreateReferralCode = { _, _ in mockReferralCode }
     } operation: {
       let model = HomePageModel()
       await model.viewAppeared()
@@ -599,7 +587,7 @@ final class HomePageTests: XCTestCase {
 
       if case .share(let shareModel) = navigationCoordinator.presentedSheet {
         XCTAssertTrue(shareModel.items[0].contains("Jason Eady's radio station"))
-        XCTAssertTrue(shareModel.items[1].contains("JASON-ABCD"))
+        XCTAssertEqual(shareModel.items[1], Self.appStoreUrl)
       } else {
         XCTFail("Expected share sheet to be presented")
       }
@@ -607,7 +595,6 @@ final class HomePageTests: XCTestCase {
   }
 
   func testQuestionAiringShareButtonUsesGenericMessageWhenNoCuratorName() async {
-    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator =
       MainContainerNavigationCoordinator()
 
@@ -616,22 +603,9 @@ final class HomePageTests: XCTestCase {
       airtime: futureDate,
       station: nil
     )
-    let mockReferralCode = ReferralCode(
-      id: "ref-123",
-      code: "USER-ABCD",
-      createdByUserId: "user-123",
-      invitationCodeId: "inv-123",
-      maxUses: nil,
-      description: nil,
-      expiresAt: futureDate.addingTimeInterval(24 * 60 * 60),
-      isActive: true,
-      createdAt: Date(),
-      updatedAt: Date()
-    )
 
     await withDependencies {
       $0.api.getMyListenerQuestionAirings = { _ in [airing] }
-      $0.api.getOrCreateReferralCode = { _, _ in mockReferralCode }
     } operation: {
       let model = HomePageModel()
       await model.viewAppeared()
@@ -640,36 +614,10 @@ final class HomePageTests: XCTestCase {
 
       if case .share(let shareModel) = navigationCoordinator.presentedSheet {
         XCTAssertTrue(shareModel.items[0].contains("an internet radio station"))
+        XCTAssertEqual(shareModel.items[1], Self.appStoreUrl)
       } else {
         XCTFail("Expected share sheet to be presented")
       }
-    }
-  }
-
-  func testQuestionAiringShareButtonShowsErrorAlertOnFailure() async {
-    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator =
-      MainContainerNavigationCoordinator()
-
-    let futureDate = Date().addingTimeInterval(2 * 24 * 60 * 60)
-    let airing = ListenerQuestionAiring.mockWith(
-      airtime: futureDate,
-      station: .mockWith(curatorName: "DJ Test")
-    )
-
-    await withDependencies {
-      $0.api.getMyListenerQuestionAirings = { _ in [airing] }
-      $0.api.getOrCreateReferralCode = { _, _ in
-        throw APIError.dataNotValid
-      }
-    } operation: {
-      let model = HomePageModel()
-      await model.viewAppeared()
-
-      await model.questionAiringTileModel.buttonAction?()
-
-      XCTAssertNil(navigationCoordinator.presentedSheet)
-      XCTAssertEqual(model.presentedAlert, .errorCreatingReferralCode)
     }
   }
 
@@ -720,43 +668,21 @@ final class HomePageTests: XCTestCase {
     XCTAssertNotNil(model.inviteFriendsTileModel.paragraph)
   }
 
-  func testInviteFriendsTilePresentsShareSheet() async {
-    let rewardsProfile = RewardsProfile(
-      totalTimeListenedMS: 3 * 60 * 60 * 1000,  // 3 hours
-      totalMSAvailableForRewards: 0,
-      accurateAsOfTime: Date()
-    )
-    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = ListeningTracker(
-      rewardsProfile: rewardsProfile)
-    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+  func testInviteFriendsTilePresentsShareSheetWithAppStoreUrl() async {
     @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator =
       MainContainerNavigationCoordinator()
 
-    let mockReferralCode = ReferralCode(
-      id: "ref-123",
-      code: "INVITE-ABCD",
-      createdByUserId: "user-123",
-      invitationCodeId: "inv-123",
-      maxUses: nil,
-      description: nil,
-      expiresAt: nil,
-      isActive: true,
-      createdAt: Date(),
-      updatedAt: Date()
-    )
+    let model = HomePageModel()
 
-    await withDependencies {
-      $0.api.getOrCreateReferralCode = { _, _ in mockReferralCode }
-    } operation: {
-      let model = HomePageModel()
+    await model.inviteFriendsTileModel.buttonAction?()
 
-      await model.inviteFriendsTileModel.buttonAction?()
-
-      if case .share(let shareModel) = navigationCoordinator.presentedSheet {
-        XCTAssertTrue(shareModel.items[1].contains("INVITE-ABCD"))
-      } else {
-        XCTFail("Expected share sheet to be presented")
-      }
+    if case .share(let shareModel) = navigationCoordinator.presentedSheet {
+      XCTAssertEqual(
+        shareModel.items[0],
+        "Check out Playola Radio - a new app with music curated by real artists!")
+      XCTAssertEqual(shareModel.items[1], Self.appStoreUrl)
+    } else {
+      XCTFail("Expected share sheet to be presented")
     }
   }
 
