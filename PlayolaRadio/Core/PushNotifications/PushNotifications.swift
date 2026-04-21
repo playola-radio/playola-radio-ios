@@ -140,11 +140,8 @@ extension PushNotificationsClient: DependencyKey {
     handleNotificationTap: { userInfo in
       @Shared(.stationLists) var stationLists
       @Shared(.mainContainerNavigationCoordinator) var navCoordinator
-      @Shared(.hasBeenUnlocked) var hasBeenUnlocked
 
       if NotificationPayload.notificationType(from: userInfo) == "support_message" {
-        guard hasBeenUnlocked else { return }
-
         let isSupportPageVisible = navCoordinator.path.contains { pathItem in
           if case .supportPage = pathItem { return true }
           return false

@@ -50,7 +50,9 @@ class StationListModel: ViewModel {
   let navigationTitle = "Radio Stations"
   let suggestArtistButtonText = "Suggest Station"
   let searchBarPlaceholder = "Search stations"
+  let noResultsIconName = "music.note.list"
   let noResultsMessage = "No stations found"
+  let noResultsHint = "Try a different search, or tap Suggest Station to request one."
 
   // MARK: - User Actions
 

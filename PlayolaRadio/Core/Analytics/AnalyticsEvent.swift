@@ -22,10 +22,6 @@ enum AnalyticsEvent: Equatable {
   case signInFailed(method: AuthMethod, error: String)
   case signedOut
 
-  // MARK: Invitation Codes
-  case invitationCodeVerified(code: String)
-  case shareWithFriendsTapped
-
   // MARK: Station Discovery
   case viewedStationList(listName: String, screen: String)
   case tappedStationCard(station: StationInfo, position: Int, totalStations: Int)
@@ -89,8 +85,6 @@ extension AnalyticsEvent {
     case .signInCompleted: return "Sign In Completed"
     case .signInFailed: return "Sign In Failed"
     case .signedOut: return "Signed Out"
-    case .invitationCodeVerified: return "Invitation Code Verified"
-    case .shareWithFriendsTapped: return "Share With Friends Tapped"
     case .viewedStationList: return "Viewed Station List"
     case .tappedStationCard: return "Tapped Station Card"
     case .viewedStationDetail: return "Viewed Station Detail"
@@ -152,12 +146,6 @@ extension AnalyticsEvent {
       ]
 
     case .signedOut:
-      return [:]
-
-    case .invitationCodeVerified(let code):
-      return ["invitation_code": code]
-
-    case .shareWithFriendsTapped:
       return [:]
 
     case .viewedStationList(let listName, let screen):

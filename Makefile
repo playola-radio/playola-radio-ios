@@ -1,6 +1,6 @@
 ORIGINAL_REPO := $(HOME)/playola/playola-radio-ios
 
-.PHONY: lint format format-check release bump-build release-production release-staging setup-conductor
+.PHONY: lint format format-check create-release create-new-build release-production release-staging setup-conductor
 
 # Run SwiftLint (strict mode to match CI)
 lint:
@@ -14,12 +14,12 @@ format:
 format-check:
 	xcrun swift-format lint --strict --recursive .
 
-# Create a release PR (develop -> main)
-release:
+# Create a release PR (develop -> main) with a version bump
+create-release:
 	./scripts/release.sh
 
-# Increment build number only (for hotfixes)
-bump-build:
+# Create a hotfix PR that bumps only the build number (version unchanged)
+create-new-build:
 	./scripts/bump-build.sh
 
 # Build and upload production to TestFlight

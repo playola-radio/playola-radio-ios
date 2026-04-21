@@ -17,22 +17,28 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Extract version from project
+      - name: Extract version and build from project
         id: version
         run: |
           VERSION=$(grep -m1 'MARKETING_VERSION' PlayolaRadio.xcodeproj/project.pbxproj | sed 's/.*= //' | sed 's/;.*//' | tr -d ' ')
+          BUILD=$(grep 'CURRENT_PROJECT_VERSION' PlayolaRadio.xcodeproj/project.pbxproj | sed 's/.*= //' | sed 's/;.*//' | tr -d ' ' | sort -n | tail -1)
+          TAG="v${VERSION}-b${BUILD}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "build=$BUILD" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "Detected version: $VERSION"
+          echo "Detected build: $BUILD"
+          echo "Tag: $TAG"
 
       - name: Check if tag exists
         id: check
         run: |
-          if git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+          if git rev-parse "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
-            echo "Tag v${{ steps.version.outputs.version }} already exists"
+            echo "Tag ${{ steps.version.outputs.tag }} already exists"
           else
             echo "exists=false" >> $GITHUB_OUTPUT
-            echo "Tag v${{ steps.version.outputs.version }} does not exist"
+            echo "Tag ${{ steps.version.outputs.tag }} does not exist"
           fi
 
       - name: Create tag
@@ -40,15 +46,15 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "v${{ steps.version.outputs.version }}" -m "Release ${{ steps.version.outputs.version }}"
-          git push origin "v${{ steps.version.outputs.version }}"
+          git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.version }} build ${{ steps.version.outputs.build }}"
+          git push origin "${{ steps.version.outputs.tag }}"
 
       - name: Summary
         run: |
           echo "## Release Tag" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "${{ steps.check.outputs.exists }}" == "true" ]; then
-            echo "Tag \`v${{ steps.version.outputs.version }}\` already exists - no action taken" >> $GITHUB_STEP_SUMMARY
+            echo "Tag \`${{ steps.version.outputs.tag }}\` already exists - no action taken" >> $GITHUB_STEP_SUMMARY
           else
-            echo "Created tag \`v${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "Created tag \`${{ steps.version.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
           fi

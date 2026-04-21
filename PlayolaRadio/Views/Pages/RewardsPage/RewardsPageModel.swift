@@ -26,15 +26,10 @@ class RewardsPageModel: ViewModel {
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
 
-  // MARK: - Constants
-
-  static let referralCodeRequiredHours = 2
-
   // MARK: - Properties
 
   var prizeTiers: [PrizeTier] = []
   var redeemedPrizeTierIds: Set<String> = []
-  var referralCode: ReferralCode?
   var presentedAlert: PlayolaAlert?
 
   // MARK: - View Helpers
@@ -64,29 +59,6 @@ class RewardsPageModel: ViewModel {
     let hoursToGo = prizeTier.requiredListeningHours - userListeningHours
     return .moreTimeRequired(hoursToGo)
   }
-
-  var referralCodeRedemptionStatus: RedemptionStatus {
-    if referralCode != nil {
-      return .redeemed
-    }
-
-    let userListeningHours = getUserListeningHours()
-
-    if userListeningHours >= Self.referralCodeRequiredHours {
-      return .redeemable
-    }
-
-    let hoursToGo = Self.referralCodeRequiredHours - userListeningHours
-    return .moreTimeRequired(hoursToGo)
-  }
-
-  var referralCodeRewardLabel: String { "Early Bird" }
-  var referralCodeRewardName: String { "Invite Your Friends" }
-  var referralCodeRequiredHoursLabel: String {
-    "\(Self.referralCodeRequiredHours) hours"
-  }
-  var referralCodeButtonText: String { "Invite" }
-  var referralCodeSharedText: String { "Invite" }
 
   func prizeTierLabel(for index: Int) -> String {
     "Tier \(index + 1)"
@@ -127,27 +99,6 @@ class RewardsPageModel: ViewModel {
       }
     )
     mainContainerNavigationCoordinator.presentedSheet = .redeemPrize(sheetModel)
-  }
-
-  func inviteFriendsTapped() async {
-    let currentHours = getCurrentListeningHours()
-    await analytics.track(.tappedRedeemRewards(currentHours: currentHours))
-
-    guard let token = auth.jwt else { return }
-
-    do {
-      let expiresAt = Calendar.current.date(byAdding: .year, value: 1, to: Date()) ?? Date()
-      referralCode = try await api.getOrCreateReferralCode(token, expiresAt)
-
-      guard let code = referralCode else { return }
-      let shareUrl = "https://admin-api.playola.fm/ios?code=\(code.code)"
-      let shareMessage = "Check out Playola Radio - a new app with music curated by real artists!"
-
-      let shareModel = ShareSheetModel(items: [shareMessage, shareUrl])
-      mainContainerNavigationCoordinator.presentedSheet = .share(shareModel)
-    } catch {
-      print("Failed to get or create referral code: \(error)")
-    }
   }
 
   // MARK: - Private Helpers

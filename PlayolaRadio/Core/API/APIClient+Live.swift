@@ -241,104 +241,6 @@ extension APIClient: DependencyKey {
 
         return Auth(currentUser: updatedUser, jwt: newToken)
       },
-      verifyInvitationCode: { code in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/invitation-codes/verify"
-        let parameters = ["code": code]
-
-        let dataResponse = await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default
-        )
-        .serializingData()
-        .response
-
-        guard let statusCode = dataResponse.response?.statusCode else {
-          throw APIError.dataNotValid
-        }
-
-        if statusCode == 200 {
-          if let data = dataResponse.value,
-            let jsonResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let valid = jsonResponse["valid"] as? Bool,
-            valid
-          {
-            return
-          }
-          throw InvitationCodeError.invalidCode("Invalid invitation code")
-        } else {
-          if let data = dataResponse.value,
-            let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let errorObj = errorResponse["error"] as? [String: Any],
-            let message = errorObj["message"] as? String
-          {
-            throw InvitationCodeError.invalidCode(message)
-          }
-
-          let request = AF.request(
-            url,
-            method: .post,
-            parameters: parameters,
-            encoding: JSONEncoding.default
-          )
-          _ = try await request.validate(statusCode: 200..<300).serializingData().value
-        }
-      },
-      registerInvitationCode: { userId, code in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/invitation-codes/register"
-        let parameters = ["userId": userId, "code": code]
-
-        let response = try await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default
-        )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable([String: Bool].self)
-        .value
-
-        guard response["success"] == true else {
-          throw InvitationCodeError.registrationFailed("Failed to register with invitation code")
-        }
-      },
-      addToWaitingList: { email in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/waiting-list-entries"
-        let parameters = ["email": email]
-
-        let dataResponse = await AF.request(
-          url,
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default
-        )
-        .serializingData()
-        .response
-
-        guard let statusCode = dataResponse.response?.statusCode else {
-          throw APIError.dataNotValid
-        }
-
-        if statusCode >= 200, statusCode < 300 {
-          return
-        } else {
-          if let data = dataResponse.value,
-            let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let message = errorResponse["message"] as? String
-          {
-            throw APIError.validationError(message)
-          }
-
-          let request = AF.request(
-            url,
-            method: .post,
-            parameters: parameters,
-            encoding: JSONEncoding.default
-          )
-          _ = try await request.validate(statusCode: 200..<300).serializingData().value
-        }
-      },
       likeSong: { jwtToken, songId, spinId in
         var parameters: [String: String] = ["audioBlockId": songId]
         if let spinId { parameters["spinId"] = spinId }
@@ -699,13 +601,6 @@ extension APIClient: DependencyKey {
         if let status { queryParams = ["status": status] }
         return try await authenticatedGet(
           path: "/v1/conversations", token: jwtToken, queryParams: queryParams)
-      },
-      getOrCreateReferralCode: { jwtToken, expiresAt in
-        try await authenticatedPost(
-          path: "/v1/referral-codes/get-or-create",
-          token: jwtToken,
-          parameters: ["expiresAt": ISO8601DateFormatter().string(from: expiresAt)]
-        )
       },
       getIntroPresignedURL: { jwtToken, stationId, filename in
         let url =
