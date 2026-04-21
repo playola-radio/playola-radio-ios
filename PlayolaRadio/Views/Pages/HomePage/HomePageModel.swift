@@ -239,8 +239,7 @@ class HomePageModel: ViewModel {
   private static let appStoreUrl = "https://apps.apple.com/us/app/playola-radio/id6480465361"
 
   private func inviteFriendsButtonTapped() async {
-    let shareMessage = "Check out Playola Radio - a new app with music curated by real artists!"
-    let shareModel = ShareSheetModel(items: [shareMessage, Self.appStoreUrl])
+    let shareModel = ShareSheetModel(items: [Self.appStoreUrl])
     mainContainerNavigationCoordinator.presentedSheet = .share(shareModel)
   }
 

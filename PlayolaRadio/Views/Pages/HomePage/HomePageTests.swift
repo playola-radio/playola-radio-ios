@@ -679,10 +679,8 @@ final class HomePageTests: XCTestCase {
     await model.inviteFriendsTileModel.buttonAction?()
 
     if case .share(let shareModel) = navigationCoordinator.presentedSheet {
-      XCTAssertEqual(
-        shareModel.items[0],
-        "Check out Playola Radio - a new app with music curated by real artists!")
-      XCTAssertEqual(shareModel.items[1], Self.appStoreUrl)
+      XCTAssertEqual(shareModel.items.count, 1)
+      XCTAssertEqual(shareModel.items[0], Self.appStoreUrl)
     } else {
       XCTFail("Expected share sheet to be presented")
     }
