@@ -350,7 +350,7 @@ final class NotificationsSettingsPageTests: XCTestCase {
     ])
   }
 
-  private func mockSubscription(stationId: String, isSubscribed: Bool)
+  nonisolated private func mockSubscription(stationId: String, isSubscribed: Bool)
     -> PushNotificationSubscription
   {
     PushNotificationSubscription(

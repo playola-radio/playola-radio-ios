@@ -18,7 +18,7 @@ final class StationSuggestionPageTests: XCTestCase {
 
   private let testJwt = "test-jwt-token"
 
-  private func mockSuggestions() -> [ArtistSuggestion] {
+  nonisolated private func mockSuggestions() -> [ArtistSuggestion] {
     [
       ArtistSuggestion(
         id: "s1", artistName: "Bri Bagwell", createdByUserId: "u1",
