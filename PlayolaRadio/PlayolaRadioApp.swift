@@ -41,7 +41,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
           $0.sessionSampleRate = 0.1
           $0.lifecycle = .trace
         }
-        options.experimental.enableLogs = true
+        options.enableLogs = true
       }
     #endif
 
