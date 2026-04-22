@@ -150,7 +150,7 @@ final class SeriesCardModelTests: XCTestCase {
     )
   }
 
-  private func mockSubscription(stationId: String) -> PushNotificationSubscription {
+  nonisolated private func mockSubscription(stationId: String) -> PushNotificationSubscription {
     PushNotificationSubscription(
       id: "sub-\(stationId)",
       userId: "user-1",
