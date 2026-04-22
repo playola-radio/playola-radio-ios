@@ -366,7 +366,6 @@
 		D3B9C7AE2F534D57002D75C2 /* IntroUploadServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9C7A92F534D50002D75C2 /* IntroUploadServiceTests.swift */; };
 		D3BECAC42E2017DE0009E618 /* PlayolaTokenProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC32E2017DE0009E618 /* PlayolaTokenProviderTests.swift */; };
 		D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BECAC52E201A380009E618 /* PlayolaTokenProvider.swift */; };
-		D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */ = {isa = PBXBuildFile; productRef = D3BEE95C2D49A3BD00469CDC /* Testing */; };
 		D3C7E5DB2EF0A43000EDD3ED /* SongSearchPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5DA2EF0A42B00EDD3ED /* SongSearchPageModel.swift */; };
 		D3C7E5DC2EF0A43000EDD3ED /* SongSearchPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5DA2EF0A42B00EDD3ED /* SongSearchPageModel.swift */; };
 		D3C7E5E12EF0A44400EDD3ED /* SongSearchPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7E5E02EF0A43E00EDD3ED /* SongSearchPageView.swift */; };
@@ -689,7 +688,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D3BEE95D2D49A3BD00469CDC /* Testing in Frameworks */,
 				F35D444BFD44486391C161D6 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1553,9 +1551,6 @@
 				D3536A132BFA4F4A006942D6 /* PBXTargetDependency */,
 			);
 			name = PlayolaRadioTests;
-			packageProductDependencies = (
-				D3BEE95C2D49A3BD00469CDC /* Testing */,
-			);
 			productName = PlayolaRadioTests;
 			productReference = D3536A112BFA4F4A006942D6 /* PlayolaRadioTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -1593,7 +1588,6 @@
 				D3B662662D3F58E700975D2F /* XCRemoteSwiftPackageReference "FRadioPlayer" */,
 				D3B6626E2D40352500975D2F /* XCRemoteSwiftPackageReference "Alamofire" */,
 				D3A2761C2D43C747006055AF /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
-				D3BEE95B2D49A3BD00469CDC /* XCRemoteSwiftPackageReference "swift-testing" */,
 				D38483792E242D61008676BB /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
 				D3B7449F2E2ED6AC0042A427 /* XCRemoteSwiftPackageReference "swift-dependencies" */,
 				D395910D2E38069200720CF8 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
@@ -2748,14 +2742,6 @@
 				minimumVersion = 1.12.0;
 			};
 		};
-		D3BEE95B2D49A3BD00469CDC /* XCRemoteSwiftPackageReference "swift-testing" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/swiftlang/swift-testing";
-			requirement = {
-				kind = exactVersion;
-				version = 0.10.0;
-			};
-		};
 		D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
@@ -2907,11 +2893,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D3B7449F2E2ED6AC0042A427 /* XCRemoteSwiftPackageReference "swift-dependencies" */;
 			productName = DependenciesMacros;
-		};
-		D3BEE95C2D49A3BD00469CDC /* Testing */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D3BEE95B2D49A3BD00469CDC /* XCRemoteSwiftPackageReference "swift-testing" */;
-			productName = Testing;
 		};
 		D3CE19022D3C825C0091B888 /* PlayolaPlayer */ = {
 			isa = XCSwiftPackageProductDependency;
