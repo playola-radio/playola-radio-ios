@@ -284,9 +284,7 @@ class NowPlayingUpdater {
     Task {
       let image = await station.getImage()
       self.updateNowPlayingImage(image)
-      await MainActor.run {
-        self.currentArtworkURL = station.imageUrl?.absoluteString
-      }
+      self.currentArtworkURL = station.imageUrl?.absoluteString
     }
   }
 

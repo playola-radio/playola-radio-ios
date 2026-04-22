@@ -88,7 +88,7 @@ extension URLStreamPlayer {
 
     Task { [weak self] in
       let image = await station.getImage()
-      self?.updateLockScreen(with: image)
+      await MainActor.run { self?.updateLockScreen(with: image) }
     }
   }
 
@@ -140,11 +140,13 @@ extension URLStreamPlayer: FRadioPlayerObserver {
 
     Task { [weak self] in
       let image = await UIImage.image(from: artworkURL)
-      guard let image else {
-        self?.resetArtwork(with: self?.currentStation)
-        return
+      await MainActor.run {
+        guard let image else {
+          self?.resetArtwork(with: self?.currentStation)
+          return
+        }
+        self?.updateLockScreen(with: image)
       }
-      self?.updateLockScreen(with: image)
     }
   }
 
