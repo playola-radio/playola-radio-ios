@@ -42,19 +42,14 @@ struct RadioStation: Codable, Identifiable, Equatable, Sendable {
 }
 
 extension RadioStation {
-  func getImage(completion: @escaping (_ image: UIImage) -> Void) {
+  func getImage() async -> UIImage {
     if imageURL.range(of: "http") != nil, let url = URL(string: imageURL) {
-      // load current station image from network
-      UIImage.image(from: url) { image in
-        // swiftlint:disable:next force_unwrapping
-        completion(image ?? UIImage(named: "stationImage")!)
-      }
-    } else {
-      // load local station image
+      let image = await UIImage.image(from: url)
       // swiftlint:disable:next force_unwrapping
-      let image = UIImage(named: imageURL) ?? UIImage(named: "stationImage")!
-      completion(image)
+      return image ?? UIImage(named: "stationImage")!
     }
+    // swiftlint:disable:next force_unwrapping
+    return UIImage(named: imageURL) ?? UIImage(named: "stationImage")!
   }
 }
 

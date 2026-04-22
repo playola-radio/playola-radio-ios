@@ -107,19 +107,14 @@ struct UrlStation: Codable, Identifiable, Equatable, Sendable {
 }
 
 extension UrlStation {
-  func getImage(completion: @escaping (_ image: UIImage) -> Void) {
+  func getImage() async -> UIImage {
     if let imageUrl = imageUrl {
-      // load current station image from network
-      UIImage.image(from: imageUrl) { image in
-        // swiftlint:disable:next force_unwrapping
-        completion(image ?? UIImage(named: "stationImage")!)
-      }
-    } else {
-      // load default station image
+      let image = await UIImage.image(from: imageUrl)
       // swiftlint:disable:next force_unwrapping
-      let image = UIImage(named: "stationImage")!
-      completion(image)
+      return image ?? UIImage(named: "stationImage")!
     }
+    // swiftlint:disable:next force_unwrapping
+    return UIImage(named: "stationImage")!
   }
 
   var trackName: String {

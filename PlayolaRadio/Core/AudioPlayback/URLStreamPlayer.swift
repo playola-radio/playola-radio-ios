@@ -86,7 +86,8 @@ extension URLStreamPlayer {
       return
     }
 
-    station.getImage { [weak self] image in
+    Task { [weak self] in
+      let image = await station.getImage()
       self?.updateLockScreen(with: image)
     }
   }
@@ -137,12 +138,12 @@ extension URLStreamPlayer: FRadioPlayerObserver {
       return
     }
 
-    UIImage.image(from: artworkURL) { [weak self] image in
+    Task { [weak self] in
+      let image = await UIImage.image(from: artworkURL)
       guard let image else {
         self?.resetArtwork(with: self?.currentStation)
         return
       }
-
       self?.updateLockScreen(with: image)
     }
   }
