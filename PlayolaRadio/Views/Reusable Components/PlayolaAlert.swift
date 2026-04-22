@@ -8,13 +8,15 @@
 import SwiftUI
 
 @MainActor
-class PlayolaAlert: Equatable, Identifiable, Hashable {
-  static func == (lhs: PlayolaAlert, rhs: PlayolaAlert) -> Bool {
+struct PlayolaAlert: Equatable, Identifiable, Hashable {
+  nonisolated let id = UUID()
+
+  nonisolated static func == (lhs: PlayolaAlert, rhs: PlayolaAlert) -> Bool {
     lhs.title == rhs.title && lhs.message == rhs.message
   }
 
-  let title: String
-  let message: String?
+  nonisolated let title: String
+  nonisolated let message: String?
   let dismissButton: Alert.Button?
   let secondaryButton: Alert.Button?
   let primaryButtonText: String?
@@ -148,7 +150,7 @@ class PlayolaAlert: Equatable, Identifiable, Hashable {
     }
   }
 
-  func hash(into hasher: inout Hasher) {
+  nonisolated func hash(into hasher: inout Hasher) {
     hasher.combine(title)
     hasher.combine(message)
   }
