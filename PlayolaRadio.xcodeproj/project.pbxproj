@@ -2616,8 +2616,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mixpanel/mixpanel-swift";
 			requirement = {
-				branch = master;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.3.0;
 			};
 		};
 		D30F003C2E8592F0007BCC73 /* XCRemoteSwiftPackageReference "FRadioPlayer" */ = {
@@ -2672,8 +2672,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mixpanel/mixpanel-swift";
 			requirement = {
-				branch = master;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.3.0;
 			};
 		};
 		D38483792E242D61008676BB /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */ = {
