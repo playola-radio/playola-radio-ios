@@ -2633,7 +2633,7 @@
 			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 5.10.2;
+				minimumVersion = 5.11.2;
 			};
 		};
 		D30F00402E8592F0007BCC73 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
@@ -2641,7 +2641,7 @@
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 8.0.0;
+				minimumVersion = 9.1.0;
 			};
 		};
 		D30F00432E8592F0007BCC73 /* XCRemoteSwiftPackageReference "swift-dependencies" */ = {
@@ -2721,7 +2721,7 @@
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 8.0.0;
+				minimumVersion = 9.1.0;
 			};
 		};
 		D3B662662D3F58E700975D2F /* XCRemoteSwiftPackageReference "FRadioPlayer" */ = {
@@ -2737,7 +2737,7 @@
 			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 5.10.2;
+				minimumVersion = 5.11.2;
 			};
 		};
 		D3B7449F2E2ED6AC0042A427 /* XCRemoteSwiftPackageReference "swift-dependencies" */ = {
