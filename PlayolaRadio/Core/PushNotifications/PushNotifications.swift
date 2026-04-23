@@ -23,8 +23,12 @@ enum NotificationPayload {
 }
 
 extension [AnyHashable: Any] {
-  /// Extracts the string fields we care about from an APNs userInfo dict
-  /// into a Sendable payload that can cross actor boundaries.
+  /// Extracts an APNs userInfo dict into a Sendable payload that can cross actor boundaries.
+  ///
+  /// Intentionally narrowed to primitive leaf values (String/Int/Double/Bool) keyed by String.
+  /// Non-string keys, nested dictionaries, arrays, and any other types are silently dropped.
+  /// If a future APNs payload adds nested structure we need to read, extend this helper to
+  /// handle the new shape explicitly rather than loosening the type guards.
   func sendablePayload() -> [String: any Sendable] {
     var result: [String: any Sendable] = [:]
     for (key, value) in self {
@@ -166,21 +170,17 @@ extension PushNotificationsClient: DependencyKey {
       let navCoordinatorShared = $navCoordinator
 
       if NotificationPayload.notificationType(from: userInfo) == "support_message" {
-        let isSupportPageVisible = await MainActor.run {
-          navCoordinatorShared.wrappedValue.path.contains { pathItem in
+        await MainActor.run {
+          let coordinator = navCoordinatorShared.wrappedValue
+          let isSupportPageVisible = coordinator.path.contains { pathItem in
             if case .supportPage = pathItem { return true }
             return false
           }
-        }
 
-        if isSupportPageVisible {
-          await MainActor.run {
+          if isSupportPageVisible {
             NotificationCenter.default.post(name: .refreshSupportMessages, object: nil)
-          }
-        } else {
-          await MainActor.run {
+          } else {
             let supportModel = SupportPageModel()
-            let coordinator = navCoordinatorShared.wrappedValue
             Task { await coordinator.navigateToSupport(supportModel) }
           }
         }
