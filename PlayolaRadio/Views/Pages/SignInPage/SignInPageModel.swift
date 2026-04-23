@@ -1,6 +1,6 @@
 import AuthenticationServices
 import Dependencies
-import GoogleSignIn
+@preconcurrency import GoogleSignIn
 import GoogleSignInSwift
 import Sharing
 //
@@ -76,33 +76,23 @@ class SignInPageModel: ViewModel {
       print("Error presenting VC -- no key window")
       return
     }
-    GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { signInResult, error in
-      guard let signInResult else {
-        return
-      }
+    do {
+      let signInResult = try await GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC)
       print(signInResult)
 
-      signInResult.user.refreshTokensIfNeeded { _, error in
-        guard error == nil else { return }
-        guard let serverAuthCode = signInResult.serverAuthCode else {
-          print("Error signing into Google -- no serverAuthCode on signInResult.")
-          return
-        }
-        let userId = signInResult.user.userID ?? "unknown"
-        Task { @MainActor in
-          do {
-            let token = try await self.api.signInViaGoogle(serverAuthCode)
-            self.$auth.withLock { $0 = Auth(jwtToken: token) }
-            self.appRating.recordInstallDateIfNeeded()
-            await self.analytics.track(
-              .signInCompleted(method: .google, userId: userId))
-          } catch {
-            print("Google sign in failed: \(error)")
-            await self.analytics.track(
-              .signInFailed(method: .google, error: error.localizedDescription))
-          }
-        }
+      _ = try await signInResult.user.refreshTokensIfNeeded()
+      guard let serverAuthCode = signInResult.serverAuthCode else {
+        print("Error signing into Google -- no serverAuthCode on signInResult.")
+        return
       }
+      let userId = signInResult.user.userID ?? "unknown"
+      let token = try await api.signInViaGoogle(serverAuthCode)
+      $auth.withLock { $0 = Auth(jwtToken: token) }
+      appRating.recordInstallDateIfNeeded()
+      await analytics.track(.signInCompleted(method: .google, userId: userId))
+    } catch {
+      print("Google sign in failed: \(error)")
+      await analytics.track(.signInFailed(method: .google, error: error.localizedDescription))
     }
   }
 }
