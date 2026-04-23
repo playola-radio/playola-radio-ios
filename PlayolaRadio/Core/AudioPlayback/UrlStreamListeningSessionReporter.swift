@@ -108,12 +108,14 @@ public class UrlStreamListeningSessionReporter {
     self.timer = Timer.scheduledTimer(
       withTimeInterval: 10.0, repeats: true,
       block: { [weak self] _ in
-        guard let self else { return }
-        guard let stationUrl = self.urlStreamPlayer?.currentStation?.streamUrl else {
-          print("Error -- stationId should exist")
-          return
+        Task { @MainActor in
+          guard let self else { return }
+          guard let stationUrl = self.urlStreamPlayer?.currentStation?.streamUrl else {
+            print("Error -- stationId should exist")
+            return
+          }
+          self.reportOrExtendListeningSession(stationUrl)
         }
-        self.reportOrExtendListeningSession(stationUrl)
       })
   }
 
