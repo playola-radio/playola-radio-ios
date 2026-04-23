@@ -133,7 +133,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
     didReceive response: UNNotificationResponse,
     withCompletionHandler completionHandler: @escaping () -> Void
   ) {
-    let userInfo = response.notification.request.content.userInfo
+    let userInfo = response.notification.request.content.userInfo.sendablePayload()
     Task {
       await pushNotifications.handleNotificationTap(userInfo)
     }

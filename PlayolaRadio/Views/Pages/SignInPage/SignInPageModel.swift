@@ -88,13 +88,14 @@ class SignInPageModel: ViewModel {
           print("Error signing into Google -- no serverAuthCode on signInResult.")
           return
         }
-        Task {
+        let userId = signInResult.user.userID ?? "unknown"
+        Task { @MainActor in
           do {
             let token = try await self.api.signInViaGoogle(serverAuthCode)
             self.$auth.withLock { $0 = Auth(jwtToken: token) }
             self.appRating.recordInstallDateIfNeeded()
             await self.analytics.track(
-              .signInCompleted(method: .google, userId: signInResult.user.userID ?? "unknown"))
+              .signInCompleted(method: .google, userId: userId))
           } catch {
             print("Google sign in failed: \(error)")
             await self.analytics.track(

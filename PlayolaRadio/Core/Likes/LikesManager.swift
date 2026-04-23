@@ -239,7 +239,7 @@ final class LikesManager: ObservableObject {
 
 // MARK: - Dependency
 
-extension LikesManager: DependencyKey {
+extension LikesManager: @preconcurrency DependencyKey {
   static let liveValue = LikesManager()
 }
 
