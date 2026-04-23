@@ -11,6 +11,7 @@ import Foundation
 import MediaPlayer
 import UIKit
 
+@MainActor
 public class URLStreamPlayer: ObservableObject {
   var urlStreamReporter: UrlStreamListeningSessionReporter?
   struct State: Sendable, Equatable {
@@ -47,10 +48,7 @@ public class URLStreamPlayer: ObservableObject {
 
   init() {
     addObserverToPlayer()
-    Task {
-      self.urlStreamReporter = await UrlStreamListeningSessionReporter(
-        urlStreamPlayer: self)
-    }
+    self.urlStreamReporter = UrlStreamListeningSessionReporter(urlStreamPlayer: self)
   }
 
   func addObserverToPlayer() {
@@ -88,7 +86,7 @@ extension URLStreamPlayer {
 
     Task { [weak self] in
       let image = await station.getImage()
-      await MainActor.run { self?.updateLockScreen(with: image) }
+      self?.updateLockScreen(with: image)
     }
   }
 
@@ -119,7 +117,7 @@ extension URLStreamPlayer {
 
 // MARK: - FRadioPlayerObserver
 
-extension URLStreamPlayer: FRadioPlayerObserver {
+extension URLStreamPlayer: @preconcurrency FRadioPlayerObserver {
   public func radioPlayer(
     _: FRadioPlayer, metadataDidChange _: FRadioPlayer.Metadata?
   ) {
@@ -140,13 +138,11 @@ extension URLStreamPlayer: FRadioPlayerObserver {
 
     Task { [weak self] in
       let image = await UIImage.image(from: artworkURL)
-      await MainActor.run {
-        guard let image else {
-          self?.resetArtwork(with: self?.currentStation)
-          return
-        }
-        self?.updateLockScreen(with: image)
+      guard let image else {
+        self?.resetArtwork(with: self?.currentStation)
+        return
       }
+      self?.updateLockScreen(with: image)
     }
   }
 
