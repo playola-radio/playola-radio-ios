@@ -10,7 +10,7 @@ import DependenciesMacros
 import Foundation
 
 @DependencyClient
-public struct ToastClient {
+public struct ToastClient: Sendable {
   public var show: @Sendable (PlayolaToast) async -> Void
   public var currentToast: @Sendable () async -> PlayolaToast?
   public var dismiss: @Sendable () async -> Void

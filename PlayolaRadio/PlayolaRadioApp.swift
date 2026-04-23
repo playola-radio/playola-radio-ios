@@ -24,7 +24,9 @@ extension Notification.Name {
   static let scheduleUpdated = Notification.Name("scheduleUpdated")
 }
 
-class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+@MainActor
+class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotificationCenterDelegate
+{
   @Dependency(\.pushNotifications) var pushNotifications
 
   func application(
@@ -131,7 +133,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     didReceive response: UNNotificationResponse,
     withCompletionHandler completionHandler: @escaping () -> Void
   ) {
-    let userInfo = response.notification.request.content.userInfo
+    let userInfo = response.notification.request.content.userInfo.sendablePayload()
     Task {
       await pushNotifications.handleNotificationTap(userInfo)
     }
