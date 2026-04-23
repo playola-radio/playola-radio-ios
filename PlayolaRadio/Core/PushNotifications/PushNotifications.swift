@@ -142,9 +142,11 @@ extension PushNotificationsClient: DependencyKey {
       @Shared(.mainContainerNavigationCoordinator) var navCoordinator
 
       if NotificationPayload.notificationType(from: userInfo) == "support_message" {
-        let isSupportPageVisible = navCoordinator.path.contains { pathItem in
-          if case .supportPage = pathItem { return true }
-          return false
+        let isSupportPageVisible = await MainActor.run {
+          navCoordinator.path.contains { pathItem in
+            if case .supportPage = pathItem { return true }
+            return false
+          }
         }
 
         if isSupportPageVisible {

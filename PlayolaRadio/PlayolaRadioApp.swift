@@ -24,7 +24,9 @@ extension Notification.Name {
   static let scheduleUpdated = Notification.Name("scheduleUpdated")
 }
 
-class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+@MainActor
+class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotificationCenterDelegate
+{
   @Dependency(\.pushNotifications) var pushNotifications
 
   func application(

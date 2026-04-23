@@ -17,8 +17,9 @@ enum AppMode: Equatable {
 /// This class coordinates any ViewControllers that need to be pushed onto the
 /// top stack, meaning they will be presented over the MainContainer, covering the
 /// tabs.
+@MainActor
 @Observable
-final class MainContainerNavigationCoordinator: Sendable {
+final class MainContainerNavigationCoordinator {
   // Per-tab navigation paths
   var homePath: [Path] = []
   var stationsPath: [Path] = []
@@ -34,6 +35,8 @@ final class MainContainerNavigationCoordinator: Sendable {
 
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Dependency(\.continuousClock) var clock
+
+  nonisolated init() {}
 
   /// Returns a binding-compatible path for the current active tab
   var path: [Path] {
