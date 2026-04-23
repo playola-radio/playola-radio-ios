@@ -171,7 +171,7 @@ struct LoggedInUser: Codable {
   }
 }
 
-final class AuthService: @unchecked Sendable {
+class AuthService: @unchecked Sendable {
   static let shared = AuthService()
   @Shared(.auth) var auth: Auth
 

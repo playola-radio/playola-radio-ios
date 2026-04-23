@@ -85,15 +85,8 @@ final class PushNotificationsTests: XCTestCase {
   // MARK: - Notification Payload Parsing
 
   func testParseNotificationPayloadExtractsStationId() {
-    let userInfo: [AnyHashable: Any] = [
-      "aps": [
-        "alert": [
-          "title": "Brian's Station",
-          "body": "I'm going live!",
-        ],
-        "sound": "default",
-      ],
-      "stationId": "test-station-123",
+    let userInfo: [String: any Sendable] = [
+      "stationId": "test-station-123"
     ]
 
     let stationId = NotificationPayload.stationId(from: userInfo)
@@ -102,14 +95,7 @@ final class PushNotificationsTests: XCTestCase {
   }
 
   func testParseNotificationPayloadReturnsNilWhenNoStationId() {
-    let userInfo: [AnyHashable: Any] = [
-      "aps": [
-        "alert": [
-          "title": "Test",
-          "body": "Test message",
-        ]
-      ]
-    ]
+    let userInfo: [String: any Sendable] = [:]
 
     let stationId = NotificationPayload.stationId(from: userInfo)
 
@@ -129,7 +115,7 @@ final class PushNotificationsTests: XCTestCase {
       }
     } operation: {
       @Dependency(\.pushNotifications) var pushNotifications
-      let userInfo: [AnyHashable: Any] = ["stationId": "station-abc"]
+      let userInfo: [String: any Sendable] = ["stationId": "station-abc"]
       await pushNotifications.handleNotificationTap(userInfo)
     }
 
@@ -215,7 +201,7 @@ final class PushNotificationsTests: XCTestCase {
 
     defer { NotificationCenter.default.removeObserver(observer) }
 
-    let userInfo: [AnyHashable: Any] = [
+    let userInfo: [String: any Sendable] = [
       "type": "support_message",
       "conversationId": "conv-123",
     ]
