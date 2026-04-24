@@ -26,7 +26,11 @@ def print_failed_tests_summary(output_dir)
   end
 
   UI.header("Failed tests")
-  sh("xcresultparser -o cli --failed-tests-only #{xcresult.shellescape}")
+  begin
+    sh("xcresultparser -o cli --failed-tests-only #{xcresult.shellescape}")
+  rescue => e
+    UI.important("xcresultparser failed to produce a summary: #{e.message}")
+  end
 end
 
 platform :ios do
@@ -101,7 +105,7 @@ platform :ios do
     rescue => e
       test_error = e
     end
-    print_failed_tests_summary('./fastlane/test_output/xctest')
+    print_failed_tests_summary('./fastlane/test_output/xctest') if test_error
     raise test_error if test_error
 
     build_app(
@@ -175,7 +179,7 @@ platform :ios do
     rescue => e
       test_error = e
     end
-    print_failed_tests_summary('./fastlane/test_output/xctest')
+    print_failed_tests_summary('./fastlane/test_output/xctest') if test_error
     raise test_error if test_error
   end
 
