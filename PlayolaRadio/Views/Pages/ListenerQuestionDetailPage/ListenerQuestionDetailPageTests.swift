@@ -432,10 +432,10 @@ final class ListenerQuestionDetailPageTests: XCTestCase {
   // MARK: - Upload Answer API Integration Tests
 
   func testUploadButtonTappedCallsRegisterListenerQuestionAnswerAPI() async {
-    var registerAnswerCalled = false
-    var capturedStationId: String?
-    var capturedQuestionId: String?
-    var capturedAudioBlockId: String?
+    let registerAnswerCalled = LockIsolated(false)
+    let capturedStationId = LockIsolated<String?>(nil)
+    let capturedQuestionId = LockIsolated<String?>(nil)
+    let capturedAudioBlockId = LockIsolated<String?>(nil)
 
     let testQuestion = ListenerQuestion.mockWith(
       id: "test-question-123",
@@ -455,10 +455,10 @@ final class ListenerQuestionDetailPageTests: XCTestCase {
         }
       )
       $0.api.registerListenerQuestionAnswer = { _, stationId, questionId, audioBlockId in
-        registerAnswerCalled = true
-        capturedStationId = stationId
-        capturedQuestionId = questionId
-        capturedAudioBlockId = audioBlockId
+        registerAnswerCalled.setValue(true)
+        capturedStationId.setValue(stationId)
+        capturedQuestionId.setValue(questionId)
+        capturedAudioBlockId.setValue(audioBlockId)
         return testQuestion
       }
     } operation: {
@@ -470,10 +470,10 @@ final class ListenerQuestionDetailPageTests: XCTestCase {
 
     await model.uploadButtonTapped()
 
-    XCTAssertTrue(registerAnswerCalled)
-    XCTAssertEqual(capturedStationId, "test-station-789")
-    XCTAssertEqual(capturedQuestionId, "test-question-123")
-    XCTAssertEqual(capturedAudioBlockId, "uploaded-audio-block-456")
+    XCTAssertTrue(registerAnswerCalled.value)
+    XCTAssertEqual(capturedStationId.value, "test-station-789")
+    XCTAssertEqual(capturedQuestionId.value, "test-question-123")
+    XCTAssertEqual(capturedAudioBlockId.value, "uploaded-audio-block-456")
   }
 
   func testUploadButtonTappedSetsLinkingAnswerPhase() async {

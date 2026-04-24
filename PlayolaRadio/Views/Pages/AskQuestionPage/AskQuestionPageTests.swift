@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import ConcurrencyExtras
 import Dependencies
 import PlayolaPlayer
 import Sharing
@@ -40,18 +41,18 @@ final class AskQuestionPageTests: XCTestCase {
   // MARK: - Recording
 
   func testRecordTappedRequestsPermissionBeforeRecording() async {
-    var requestPermissionCalled = false
-    var startRecordingCalled = false
+    let requestPermissionCalled = LockIsolated(false)
+    let startRecordingCalled = LockIsolated(false)
 
     await withDependencies {
       $0.audioRecorder.requestPermission = {
-        requestPermissionCalled = true
+        requestPermissionCalled.setValue(true)
         return true
       }
       $0.audioRecorder.startRecording = {
         XCTAssertTrue(
-          requestPermissionCalled, "Permission should be requested before recording starts")
-        startRecordingCalled = true
+          requestPermissionCalled.value, "Permission should be requested before recording starts")
+        startRecordingCalled.setValue(true)
       }
     } operation: {
       let model = AskQuestionPageModel(station: .mock)
@@ -59,26 +60,26 @@ final class AskQuestionPageTests: XCTestCase {
 
       await model.recordTapped()
 
-      XCTAssertTrue(requestPermissionCalled)
-      XCTAssertTrue(startRecordingCalled)
+      XCTAssertTrue(requestPermissionCalled.value)
+      XCTAssertTrue(startRecordingCalled.value)
       XCTAssertEqual(model.recordingPhase, .recording)
     }
   }
 
   func testRecordTappedShowsAlertWhenPermissionDenied() async {
-    var startRecordingCalled = false
+    let startRecordingCalled = LockIsolated(false)
 
     await withDependencies {
       $0.audioRecorder.requestPermission = { false }
       $0.audioRecorder.startRecording = {
-        startRecordingCalled = true
+        startRecordingCalled.setValue(true)
       }
     } operation: {
       let model = AskQuestionPageModel(station: .mock)
 
       await model.recordTapped()
 
-      XCTAssertFalse(startRecordingCalled)
+      XCTAssertFalse(startRecordingCalled.value)
       XCTAssertEqual(model.recordingPhase, .idle)
       XCTAssertNotNil(model.presentedAlert)
       XCTAssertEqual(model.presentedAlert?.title, "Microphone Access Required")
@@ -162,10 +163,10 @@ final class AskQuestionPageTests: XCTestCase {
   // MARK: - Playback
 
   func testPlayPauseTappedPlaysWhenNotPlaying() async {
-    var playCalled = false
+    let playCalled = LockIsolated(false)
 
     await withDependencies {
-      $0.audioPlayer.play = { playCalled = true }
+      $0.audioPlayer.play = { playCalled.setValue(true) }
       $0.audioPlayer.currentTime = { 0 }
       $0.audioPlayer.isPlaying = { true }
     } operation: {
@@ -175,16 +176,16 @@ final class AskQuestionPageTests: XCTestCase {
       model.playPauseTapped()
       try? await Task.sleep(for: .milliseconds(10))
 
-      XCTAssertTrue(playCalled)
+      XCTAssertTrue(playCalled.value)
       XCTAssertTrue(model.isPlaying)
     }
   }
 
   func testPlayPauseTappedPausesWhenPlaying() async {
-    var pauseCalled = false
+    let pauseCalled = LockIsolated(false)
 
     await withDependencies {
-      $0.audioPlayer.pause = { pauseCalled = true }
+      $0.audioPlayer.pause = { pauseCalled.setValue(true) }
     } operation: {
       let model = AskQuestionPageModel(station: .mock)
       model.isPlaying = true
@@ -192,16 +193,16 @@ final class AskQuestionPageTests: XCTestCase {
       model.playPauseTapped()
       try? await Task.sleep(for: .milliseconds(10))
 
-      XCTAssertTrue(pauseCalled)
+      XCTAssertTrue(pauseCalled.value)
       XCTAssertFalse(model.isPlaying)
     }
   }
 
   func testRewindTappedSeeksToZero() async {
-    var seekTime: TimeInterval?
+    let seekTime = LockIsolated<TimeInterval?>(nil)
 
     await withDependencies {
-      $0.audioPlayer.seek = { time in seekTime = time }
+      $0.audioPlayer.seek = { time in seekTime.setValue(time) }
     } operation: {
       let model = AskQuestionPageModel(station: .mock)
       model.playbackPosition = 30.0
@@ -209,7 +210,7 @@ final class AskQuestionPageTests: XCTestCase {
       model.rewindTapped()
       try? await Task.sleep(for: .milliseconds(10))
 
-      XCTAssertEqual(seekTime, 0)
+      XCTAssertEqual(seekTime.value, 0)
       XCTAssertEqual(model.playbackPosition, 0)
     }
   }

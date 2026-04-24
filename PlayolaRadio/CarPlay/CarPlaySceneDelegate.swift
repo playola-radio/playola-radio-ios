@@ -4,7 +4,7 @@
 //
 //  Created by Brian D Keane on 1/19/25.
 //
-import CarPlay
+@preconcurrency import CarPlay
 import Combine
 import Dependencies
 import FRadioPlayer

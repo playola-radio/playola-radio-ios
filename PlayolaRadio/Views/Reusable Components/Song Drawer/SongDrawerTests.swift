@@ -149,7 +149,7 @@ final class SongDrawerTests: XCTestCase {
     let audioBlock = AudioBlock.mock
     var dismissCalled = false
 
-    await withDependencies {
+    withDependencies {
       let likesManager = LikesManager()
       // Pre-like the song
       likesManager.like(audioBlock)
@@ -178,7 +178,7 @@ final class SongDrawerTests: XCTestCase {
     var onRemoveCalled = false
     var removedAudioBlock: AudioBlock?
 
-    await withDependencies {
+    withDependencies {
       let likesManager = LikesManager()
       likesManager.like(audioBlock)
       $0.likesManager = likesManager

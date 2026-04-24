@@ -47,18 +47,18 @@ final class RecordIntroPageTests: XCTestCase {
   // MARK: - Lifecycle
 
   func testViewAppearedPreparesForRecording() async {
-    var prepareCalled = false
+    let prepareCalled = LockIsolated(false)
 
     await withDependencies {
       $0.audioRecorder.prepareForRecording = {
-        prepareCalled = true
+        prepareCalled.setValue(true)
       }
     } operation: {
       let model = makeModel()
 
       await model.viewAppeared()
 
-      XCTAssertTrue(prepareCalled)
+      XCTAssertTrue(prepareCalled.value)
     }
   }
 
@@ -100,18 +100,18 @@ final class RecordIntroPageTests: XCTestCase {
   // MARK: - Recording
 
   func testOnRecordTappedRequestsPermissionBeforeRecording() async {
-    var requestPermissionCalled = false
-    var startRecordingCalled = false
+    let requestPermissionCalled = LockIsolated(false)
+    let startRecordingCalled = LockIsolated(false)
 
     await withDependencies {
       $0.audioRecorder.requestPermission = {
-        requestPermissionCalled = true
+        requestPermissionCalled.setValue(true)
         return true
       }
       $0.audioRecorder.startRecording = {
         XCTAssertTrue(
-          requestPermissionCalled, "Permission should be requested before recording starts")
-        startRecordingCalled = true
+          requestPermissionCalled.value, "Permission should be requested before recording starts")
+        startRecordingCalled.setValue(true)
       }
     } operation: {
       let model = makeModel()
@@ -119,26 +119,27 @@ final class RecordIntroPageTests: XCTestCase {
 
       await model.onRecordTapped()
 
-      XCTAssertTrue(requestPermissionCalled)
-      XCTAssertTrue(startRecordingCalled)
+      XCTAssertTrue(requestPermissionCalled.value)
+      XCTAssertTrue(startRecordingCalled.value)
       XCTAssertEqual(model.recordingPhase, .recording)
     }
   }
 
   func testOnRecordTappedDoesNotRecordWhenPermissionDenied() async {
-    var startRecordingCalled = false
+    let startRecordingCalled = LockIsolated(false)
 
     await withDependencies {
       $0.audioRecorder.requestPermission = { false }
       $0.audioRecorder.startRecording = {
-        startRecordingCalled = true
+        startRecordingCalled.setValue(true)
       }
     } operation: {
       let model = makeModel()
 
       await model.onRecordTapped()
 
-      XCTAssertFalse(startRecordingCalled, "Recording should not start when permission is denied")
+      XCTAssertFalse(
+        startRecordingCalled.value, "Recording should not start when permission is denied")
       XCTAssertEqual(model.recordingPhase, .idle)
       XCTAssertNotNil(model.presentedAlert)
       XCTAssertEqual(model.presentedAlert?.title, "Microphone Access Required")
@@ -215,13 +216,13 @@ final class RecordIntroPageTests: XCTestCase {
 
   func testOnAcceptRecordingTappedStartsUpload() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    var uploadCalled = false
+    let uploadCalled = LockIsolated(false)
 
     await withMainSerialExecutor {
       await withDependencies {
         $0.audioPlayer.stop = {}
         $0.introUploadService.uploadIntro = { _, _, _, _, _, onStatus in
-          uploadCalled = true
+          uploadCalled.setValue(true)
           await onStatus(.completed)
         }
       } operation: {
@@ -233,7 +234,7 @@ final class RecordIntroPageTests: XCTestCase {
         await Task.yield()
 
         XCTAssertNotNil(model.uploadStatus)
-        XCTAssertTrue(uploadCalled)
+        XCTAssertTrue(uploadCalled.value)
       }
     }
   }
@@ -284,13 +285,13 @@ final class RecordIntroPageTests: XCTestCase {
 
   func testOnRetryTappedRestartsUpload() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    var uploadCallCount = 0
+    let uploadCallCount = LockIsolated(0)
 
     await withMainSerialExecutor {
       await withDependencies {
         $0.audioPlayer.stop = {}
         $0.introUploadService.uploadIntro = { _, _, _, _, _, onStatus in
-          uploadCallCount += 1
+          uploadCallCount.withValue { $0 += 1 }
           await onStatus(.completed)
         }
       } operation: {
@@ -301,14 +302,14 @@ final class RecordIntroPageTests: XCTestCase {
         model.onRetryTapped()
         await Task.yield()
 
-        XCTAssertEqual(uploadCallCount, 1)
+        XCTAssertEqual(uploadCallCount.value, 1)
       }
     }
   }
 
   func testUploadSuccessCallsOnUploadCompleted() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    var completedCalled = false
+    let completedCalled = LockIsolated(false)
 
     await withMainSerialExecutor {
       await withDependencies {
@@ -320,13 +321,13 @@ final class RecordIntroPageTests: XCTestCase {
         let model = makeModel()
         model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
         model.onUploadCompleted = {
-          completedCalled = true
+          completedCalled.setValue(true)
         }
 
         model.onAcceptRecordingTapped()
         await Task.yield()
 
-        XCTAssertTrue(completedCalled)
+        XCTAssertTrue(completedCalled.value)
         XCTAssertEqual(model.uploadStatus, .completed)
       }
     }

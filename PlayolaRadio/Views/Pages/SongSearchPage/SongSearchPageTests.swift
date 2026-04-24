@@ -176,13 +176,13 @@ final class SongSearchPageTests: XCTestCase {
     await withMainSerialExecutor {
       let clock = TestClock()
       @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-      var capturedKeywords: String?
+      let capturedKeywords = LockIsolated<String?>(nil)
 
       await withDependencies {
         $0.continuousClock = clock
         $0.date = .constant(Date())
         $0.api.searchSongs = { _, keywords in
-          capturedKeywords = keywords
+          capturedKeywords.setValue(keywords)
           return []
         }
       } operation: {
@@ -191,7 +191,7 @@ final class SongSearchPageTests: XCTestCase {
 
         await clock.advance(by: .milliseconds(300))
 
-        XCTAssertEqual(capturedKeywords, "Bob Dylan")
+        XCTAssertEqual(capturedKeywords.value, "Bob Dylan")
       }
     }
   }
@@ -200,13 +200,13 @@ final class SongSearchPageTests: XCTestCase {
     await withMainSerialExecutor {
       let clock = TestClock()
       @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-      var capturedKeywords: String?
+      let capturedKeywords = LockIsolated<String?>(nil)
 
       await withDependencies {
         $0.continuousClock = clock
         $0.date = .constant(Date())
         $0.api.searchSongs = { _, keywords in
-          capturedKeywords = keywords
+          capturedKeywords.setValue(keywords)
           return []
         }
       } operation: {
@@ -215,7 +215,7 @@ final class SongSearchPageTests: XCTestCase {
 
         await clock.advance(by: .milliseconds(300))
 
-        XCTAssertEqual(capturedKeywords, "Bob Dylan")
+        XCTAssertEqual(capturedKeywords.value, "Bob Dylan")
       }
     }
   }
@@ -224,13 +224,13 @@ final class SongSearchPageTests: XCTestCase {
     await withMainSerialExecutor {
       let clock = TestClock()
       @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-      var searchCount = 0
+      let searchCount = LockIsolated(0)
 
       await withDependencies {
         $0.continuousClock = clock
         $0.date = .constant(Date())
         $0.api.searchSongs = { _, _ in
-          searchCount += 1
+          searchCount.withValue { $0 += 1 }
           return []
         }
       } operation: {
@@ -243,7 +243,7 @@ final class SongSearchPageTests: XCTestCase {
         model.searchText = "Bob"
         await clock.advance(by: .milliseconds(300))
 
-        XCTAssertEqual(searchCount, 1)
+        XCTAssertEqual(searchCount.value, 1)
       }
     }
   }
@@ -252,13 +252,13 @@ final class SongSearchPageTests: XCTestCase {
     await withMainSerialExecutor {
       let clock = TestClock()
       @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-      var searchCount = 0
+      let searchCount = LockIsolated(0)
 
       await withDependencies {
         $0.continuousClock = clock
         $0.date = .constant(Date())
         $0.api.searchSongs = { _, _ in
-          searchCount += 1
+          searchCount.withValue { $0 += 1 }
           return []
         }
       } operation: {
@@ -267,11 +267,11 @@ final class SongSearchPageTests: XCTestCase {
         model.searchText = "test"
         await clock.advance(by: .milliseconds(200))
 
-        XCTAssertEqual(searchCount, 0)
+        XCTAssertEqual(searchCount.value, 0)
 
         await clock.advance(by: .milliseconds(100))
 
-        XCTAssertEqual(searchCount, 1)
+        XCTAssertEqual(searchCount.value, 1)
       }
     }
   }
@@ -319,18 +319,18 @@ final class SongSearchPageTests: XCTestCase {
     await withMainSerialExecutor {
       let clock = TestClock()
       @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-      var songsSearchCalled = false
-      var songRequestsSearchCalled = false
+      let songsSearchCalled = LockIsolated(false)
+      let songRequestsSearchCalled = LockIsolated(false)
 
       await withDependencies {
         $0.continuousClock = clock
         $0.date = .constant(Date())
         $0.api.searchSongs = { _, _ in
-          songsSearchCalled = true
+          songsSearchCalled.setValue(true)
           return []
         }
         $0.api.searchSongRequests = { _, _ in
-          songRequestsSearchCalled = true
+          songRequestsSearchCalled.setValue(true)
           return []
         }
       } operation: {
@@ -339,8 +339,8 @@ final class SongSearchPageTests: XCTestCase {
 
         await clock.advance(by: .milliseconds(300))
 
-        XCTAssertTrue(songsSearchCalled)
-        XCTAssertTrue(songRequestsSearchCalled)
+        XCTAssertTrue(songsSearchCalled.value)
+        XCTAssertTrue(songRequestsSearchCalled.value)
       }
     }
   }
@@ -445,12 +445,12 @@ final class SongSearchPageTests: XCTestCase {
 
   func testOnRequestSongCallsAPIWithAppleId() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    var capturedSongRequest: SongRequest?
+    let capturedSongRequest = LockIsolated<SongRequest?>(nil)
 
     await withDependencies {
       $0.date = .constant(Date())
       $0.api.requestSong = { _, songRequest in
-        capturedSongRequest = songRequest
+        capturedSongRequest.setValue(songRequest)
       }
     } operation: {
       let model = SongSearchPageModel()
@@ -458,7 +458,7 @@ final class SongSearchPageTests: XCTestCase {
 
       await model.onRequestSong(testSongRequest)
 
-      XCTAssertEqual(capturedSongRequest?.appleId, "test-apple-123")
+      XCTAssertEqual(capturedSongRequest.value?.appleId, "test-apple-123")
     }
   }
 
@@ -547,18 +547,18 @@ final class SongSearchPageTests: XCTestCase {
     await withMainSerialExecutor {
       let clock = TestClock()
       @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-      var songsSearchCalled = false
-      var songRequestsSearchCalled = false
+      let songsSearchCalled = LockIsolated(false)
+      let songRequestsSearchCalled = LockIsolated(false)
 
       await withDependencies {
         $0.continuousClock = clock
         $0.date = .constant(Date())
         $0.api.searchSongs = { _, _ in
-          songsSearchCalled = true
+          songsSearchCalled.setValue(true)
           return []
         }
         $0.api.searchSongRequests = { _, _ in
-          songRequestsSearchCalled = true
+          songRequestsSearchCalled.setValue(true)
           return []
         }
       } operation: {
@@ -567,8 +567,8 @@ final class SongSearchPageTests: XCTestCase {
 
         await clock.advance(by: .milliseconds(300))
 
-        XCTAssertTrue(songsSearchCalled)
-        XCTAssertFalse(songRequestsSearchCalled)
+        XCTAssertTrue(songsSearchCalled.value)
+        XCTAssertFalse(songRequestsSearchCalled.value)
       }
     }
   }
@@ -577,18 +577,18 @@ final class SongSearchPageTests: XCTestCase {
     await withMainSerialExecutor {
       let clock = TestClock()
       @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-      var songsSearchCalled = false
-      var songRequestsSearchCalled = false
+      let songsSearchCalled = LockIsolated(false)
+      let songRequestsSearchCalled = LockIsolated(false)
 
       await withDependencies {
         $0.continuousClock = clock
         $0.date = .constant(Date())
         $0.api.searchSongs = { _, _ in
-          songsSearchCalled = true
+          songsSearchCalled.setValue(true)
           return []
         }
         $0.api.searchSongRequests = { _, _ in
-          songRequestsSearchCalled = true
+          songRequestsSearchCalled.setValue(true)
           return []
         }
       } operation: {
@@ -597,8 +597,8 @@ final class SongSearchPageTests: XCTestCase {
 
         await clock.advance(by: .milliseconds(300))
 
-        XCTAssertFalse(songsSearchCalled)
-        XCTAssertTrue(songRequestsSearchCalled)
+        XCTAssertFalse(songsSearchCalled.value)
+        XCTAssertTrue(songRequestsSearchCalled.value)
       }
     }
   }

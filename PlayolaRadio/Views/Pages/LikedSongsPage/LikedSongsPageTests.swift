@@ -16,8 +16,8 @@ final class LikedSongsPageTests: XCTestCase {
     $pendingOperations.withLock { $0 = [] }
   }
 
-  func testGroupedLikedSongs_EmptyWhenNoLikes() async {
-    await withDependencies {
+  func testGroupedLikedSongs_EmptyWhenNoLikes() {
+    withDependencies {
       $0.likesManager = LikesManager()
     } operation: {
       let model = LikedSongsPageModel()
@@ -30,7 +30,7 @@ final class LikedSongsPageTests: XCTestCase {
     let audioBlock1 = AudioBlock.mock
     let audioBlock2 = AudioBlock.mockWith(id: "different-id")
 
-    await withDependencies {
+    withDependencies {
       let likesManager = LikesManager()
       likesManager.like(audioBlock1)
       likesManager.like(audioBlock2)
@@ -43,8 +43,8 @@ final class LikedSongsPageTests: XCTestCase {
     }
   }
 
-  func testFormatTimestamp() async {
-    await withDependencies {
+  func testFormatTimestamp() {
+    withDependencies {
       $0.likesManager = LikesManager()
     } operation: {
       let model = LikedSongsPageModel()
@@ -60,7 +60,7 @@ final class LikedSongsPageTests: XCTestCase {
   func testRemoveSong() async {
     let audioBlock = AudioBlock.mock
 
-    await withDependencies {
+    withDependencies {
       let likesManager = LikesManager()
       likesManager.like(audioBlock)
       $0.likesManager = likesManager
