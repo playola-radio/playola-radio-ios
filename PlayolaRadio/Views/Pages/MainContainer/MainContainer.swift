@@ -16,7 +16,7 @@ struct MainContainer: View {
   @Environment(\.scenePhase) private var scenePhase
 
   var body: some View {
-    TabView(selection: $model.activeTab) {
+    TabView(selection: activeTabBinding) {
       if model.isInBroadcastMode {
         broadcastTab
         libraryTab
@@ -54,7 +54,11 @@ struct MainContainer: View {
             return nil
           }
         },
-        set: { model.mainContainerNavigationCoordinator.presentedSheet = $0 }
+        set: { newValue in
+          model.$mainContainerNavigationCoordinator.withLock {
+            $0.presentedSheet = newValue
+          }
+        }
       ),
       content: { item in
         ZStack {
@@ -91,7 +95,11 @@ struct MainContainer: View {
             return nil
           }
         },
-        set: { model.mainContainerNavigationCoordinator.presentedSheet = $0 }
+        set: { newValue in
+          model.$mainContainerNavigationCoordinator.withLock {
+            $0.presentedSheet = newValue
+          }
+        }
       ),
       content: { item in
         switch item {
@@ -140,7 +148,7 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var homeTab: some View {
-    NavigationStack(path: $model.mainContainerNavigationCoordinator.homePath) {
+    NavigationStack(path: navigationPathBinding(\.homePath)) {
       tabContentWithSmallPlayer {
         HomePageView(model: model.homePageModel)
       }
@@ -157,7 +165,7 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var stationsTab: some View {
-    NavigationStack(path: $model.mainContainerNavigationCoordinator.stationsPath) {
+    NavigationStack(path: navigationPathBinding(\.stationsPath)) {
       tabContentWithSmallPlayer {
         StationListPage(model: model.stationListModel)
       }
@@ -174,7 +182,7 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var rewardsTab: some View {
-    NavigationStack(path: $model.mainContainerNavigationCoordinator.rewardsPath) {
+    NavigationStack(path: navigationPathBinding(\.rewardsPath)) {
       tabContentWithSmallPlayer {
         RewardsPageView(model: model.rewardsPageModel)
       }
@@ -191,7 +199,7 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var profileTab: some View {
-    NavigationStack(path: $model.mainContainerNavigationCoordinator.profilePath) {
+    NavigationStack(path: navigationPathBinding(\.profilePath)) {
       tabContentWithSmallPlayer {
         ContactPageView(model: model.contactPageModel)
       }
@@ -210,7 +218,7 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var broadcastTab: some View {
-    NavigationStack(path: $model.mainContainerNavigationCoordinator.broadcastPath) {
+    NavigationStack(path: navigationPathBinding(\.broadcastPath)) {
       tabContentWithSmallPlayer {
         if let broadcastModel = model.broadcastPageModel {
           BroadcastPageView(model: broadcastModel)
@@ -229,7 +237,7 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var libraryTab: some View {
-    NavigationStack(path: $model.mainContainerNavigationCoordinator.libraryPath) {
+    NavigationStack(path: navigationPathBinding(\.libraryPath)) {
       tabContentWithSmallPlayer {
         if let libraryModel = model.libraryPageModel {
           LibraryPageView(model: libraryModel)
@@ -248,7 +256,7 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var listenersTab: some View {
-    NavigationStack(path: $model.mainContainerNavigationCoordinator.listenersPath) {
+    NavigationStack(path: navigationPathBinding(\.listenersPath)) {
       tabContentWithSmallPlayer {
         if let listenerModel = model.listenerQuestionPageModel {
           BroadcastersListenerQuestionPageView(model: listenerModel)
@@ -267,7 +275,7 @@ struct MainContainer: View {
 
   @ViewBuilder
   private var settingsTab: some View {
-    NavigationStack(path: $model.mainContainerNavigationCoordinator.settingsPath) {
+    NavigationStack(path: navigationPathBinding(\.settingsPath)) {
       tabContentWithSmallPlayer {
         ContactPageView(model: model.contactPageModel)
       }
@@ -300,6 +308,32 @@ struct MainContainer: View {
           .zIndex(1)
       }
     }
+  }
+
+  private var activeTabBinding: Binding<MainContainerModel.ActiveTab> {
+    Binding(
+      get: { model.activeTab },
+      set: { newValue in
+        model.$activeTab.withLock { $0 = newValue }
+      }
+    )
+  }
+
+  private func navigationPathBinding(
+    _ keyPath: WritableKeyPath<
+      MainContainerNavigationCoordinator, [MainContainerNavigationCoordinator.Path]
+    >
+  ) -> Binding<[MainContainerNavigationCoordinator.Path]> {
+    Binding(
+      get: {
+        model.mainContainerNavigationCoordinator[keyPath: keyPath]
+      },
+      set: { newValue in
+        model.$mainContainerNavigationCoordinator.withLock {
+          $0[keyPath: keyPath] = newValue
+        }
+      }
+    )
   }
 
 }
