@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 12/13/25.
 //
 
+import ConcurrencyExtras
 import Dependencies
 import Sharing
 import XCTest
@@ -22,18 +23,18 @@ final class RecordPageTests: XCTestCase {
   // MARK: - Lifecycle
 
   func testViewAppeared_PreparesForRecording() async {
-    var prepareCalled = false
+    let prepareCalled = LockIsolated(false)
 
     await withDependencies {
       $0.audioRecorder.prepareForRecording = {
-        prepareCalled = true
+        prepareCalled.setValue(true)
       }
     } operation: {
       let model = RecordPageModel()
 
       await model.viewAppeared()
 
-      XCTAssertTrue(prepareCalled)
+      XCTAssertTrue(prepareCalled.value)
     }
   }
 
@@ -68,18 +69,18 @@ final class RecordPageTests: XCTestCase {
   // MARK: - Recording
 
   func testOnRecordTappedRequestsPermissionBeforeRecording() async {
-    var requestPermissionCalled = false
-    var startRecordingCalled = false
+    let requestPermissionCalled = LockIsolated(false)
+    let startRecordingCalled = LockIsolated(false)
 
     await withDependencies {
       $0.audioRecorder.requestPermission = {
-        requestPermissionCalled = true
+        requestPermissionCalled.setValue(true)
         return true
       }
       $0.audioRecorder.startRecording = {
         XCTAssertTrue(
-          requestPermissionCalled, "Permission should be requested before recording starts")
-        startRecordingCalled = true
+          requestPermissionCalled.value, "Permission should be requested before recording starts")
+        startRecordingCalled.setValue(true)
       }
     } operation: {
       let model = RecordPageModel()
@@ -87,26 +88,27 @@ final class RecordPageTests: XCTestCase {
 
       await model.onRecordTapped()
 
-      XCTAssertTrue(requestPermissionCalled)
-      XCTAssertTrue(startRecordingCalled)
+      XCTAssertTrue(requestPermissionCalled.value)
+      XCTAssertTrue(startRecordingCalled.value)
       XCTAssertEqual(model.recordingPhase, .recording)
     }
   }
 
   func testOnRecordTappedDoesNotRecordWhenPermissionDenied() async {
-    var startRecordingCalled = false
+    let startRecordingCalled = LockIsolated(false)
 
     await withDependencies {
       $0.audioRecorder.requestPermission = { false }
       $0.audioRecorder.startRecording = {
-        startRecordingCalled = true
+        startRecordingCalled.setValue(true)
       }
     } operation: {
       let model = RecordPageModel()
 
       await model.onRecordTapped()
 
-      XCTAssertFalse(startRecordingCalled, "Recording should not start when permission is denied")
+      XCTAssertFalse(
+        startRecordingCalled.value, "Recording should not start when permission is denied")
       XCTAssertEqual(model.recordingPhase, .idle)
       XCTAssertNotNil(model.presentedAlert)
       XCTAssertEqual(model.presentedAlert?.title, "Microphone Access Required")
@@ -218,12 +220,12 @@ final class RecordPageTests: XCTestCase {
 
     let expectedURL = URL(fileURLWithPath: "/tmp/test.wav")
     let callbackExpectation = XCTestExpectation(description: "onRecordingAccepted called")
-    var receivedURL: URL?
+    let receivedURL = LockIsolated<URL?>(nil)
 
     let model = RecordPageModel()
     model.recordingURL = expectedURL
     model.onRecordingAccepted = { url in
-      receivedURL = url
+      receivedURL.setValue(url)
       callbackExpectation.fulfill()
     }
     coordinator.presentedSheet = .recordPage(model)
@@ -234,18 +236,18 @@ final class RecordPageTests: XCTestCase {
     XCTAssertNil(coordinator.presentedSheet)
 
     await fulfillment(of: [callbackExpectation], timeout: 1.0)
-    XCTAssertEqual(receivedURL, expectedURL)
+    XCTAssertEqual(receivedURL.value, expectedURL)
   }
 
   func testOnAcceptRecordingTapped_DoesNothingWithoutURL() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
 
-    var callbackCalled = false
+    let callbackCalled = LockIsolated(false)
 
     let model = RecordPageModel()
     model.recordingURL = nil
     model.onRecordingAccepted = { _ in
-      callbackCalled = true
+      callbackCalled.setValue(true)
     }
     coordinator.presentedSheet = .recordPage(model)
 
@@ -254,17 +256,17 @@ final class RecordPageTests: XCTestCase {
     // Allow any spawned Task to complete
     await Task.yield()
 
-    XCTAssertFalse(callbackCalled)
+    XCTAssertFalse(callbackCalled.value)
     XCTAssertNotNil(coordinator.presentedSheet)
   }
 
   // MARK: - Playback
 
   func testOnPlayPauseTapped_PlaysWhenNotPlaying() async {
-    var playCalled = false
+    let playCalled = LockIsolated(false)
 
     await withDependencies {
-      $0.audioPlayer.play = { playCalled = true }
+      $0.audioPlayer.play = { playCalled.setValue(true) }
       $0.audioPlayer.currentTime = { 0 }
       $0.audioPlayer.isPlaying = { true }
     } operation: {
@@ -275,16 +277,16 @@ final class RecordPageTests: XCTestCase {
       // Allow Task to execute
       try? await Task.sleep(for: .milliseconds(10))
 
-      XCTAssertTrue(playCalled)
+      XCTAssertTrue(playCalled.value)
       XCTAssertTrue(model.isPlaying)
     }
   }
 
   func testOnPlayPauseTapped_PausesWhenPlaying() async {
-    var pauseCalled = false
+    let pauseCalled = LockIsolated(false)
 
     await withDependencies {
-      $0.audioPlayer.pause = { pauseCalled = true }
+      $0.audioPlayer.pause = { pauseCalled.setValue(true) }
     } operation: {
       let model = RecordPageModel()
       model.isPlaying = true
@@ -293,16 +295,16 @@ final class RecordPageTests: XCTestCase {
       // Allow Task to execute
       try? await Task.sleep(for: .milliseconds(10))
 
-      XCTAssertTrue(pauseCalled)
+      XCTAssertTrue(pauseCalled.value)
       XCTAssertFalse(model.isPlaying)
     }
   }
 
   func testOnRewindTapped_SeeksToZero() async {
-    var seekTime: TimeInterval?
+    let seekTime = LockIsolated<TimeInterval?>(nil)
 
     await withDependencies {
-      $0.audioPlayer.seek = { time in seekTime = time }
+      $0.audioPlayer.seek = { time in seekTime.setValue(time) }
     } operation: {
       let model = RecordPageModel()
       model.playbackPosition = 30.0
@@ -311,16 +313,16 @@ final class RecordPageTests: XCTestCase {
       // Allow Task to execute
       try? await Task.sleep(for: .milliseconds(10))
 
-      XCTAssertEqual(seekTime, 0)
+      XCTAssertEqual(seekTime.value, 0)
       XCTAssertEqual(model.playbackPosition, 0)
     }
   }
 
   func testSeekTo_UpdatesPlaybackPosition() async {
-    var seekTime: TimeInterval?
+    let seekTime = LockIsolated<TimeInterval?>(nil)
 
     await withDependencies {
-      $0.audioPlayer.seek = { time in seekTime = time }
+      $0.audioPlayer.seek = { time in seekTime.setValue(time) }
     } operation: {
       let model = RecordPageModel()
       model.recordingDuration = 60.0
@@ -329,7 +331,7 @@ final class RecordPageTests: XCTestCase {
       // Allow Task to execute
       try? await Task.sleep(for: .milliseconds(10))
 
-      XCTAssertEqual(seekTime, 30.0)
+      XCTAssertEqual(seekTime.value, 30.0)
       XCTAssertEqual(model.playbackPosition, 30.0)
     }
   }

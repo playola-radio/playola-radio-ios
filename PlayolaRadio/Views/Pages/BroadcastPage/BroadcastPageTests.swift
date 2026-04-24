@@ -688,29 +688,43 @@ extension BroadcastPageTests {
   func testMoveSpinMarksAllSpinsAsReschedulingDuringCall() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-
-    nonisolated(unsafe) var model: BroadcastPageModel!
-    nonisolated(unsafe) var capturedReschedulingIds: Set<String> = []
+    let moveStarted = LockIsolated(false)
+    let moveContinuation = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.moveSpin = { _, _, _ in
-        await MainActor.run {
-          capturedReschedulingIds = model.spinIdsBeingRescheduled
+        moveStarted.setValue(true)
+        await withCheckedContinuation { continuation in
+          moveContinuation.setValue(continuation)
         }
         return initialSpins
       }
     } operation: {
-      model = BroadcastPageModel(stationId: testStationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
 
-      await model.moveSpins(from: IndexSet(integer: 0), to: 2)
+      let moveTask = Task {
+        await model.moveSpins(from: IndexSet(integer: 0), to: 2)
+      }
+
+      while !moveStarted.value {
+        await Task.yield()
+      }
 
       // During the call, all spins should be marked as rescheduling
-      XCTAssertEqual(capturedReschedulingIds, ["spin-1", "spin-2", "spin-3"])
+      XCTAssertEqual(model.spinIdsBeingRescheduled, ["spin-1", "spin-2", "spin-3"])
+
+      moveContinuation.withValue { continuation in
+        continuation?.resume()
+        continuation = nil
+      }
+
+      await moveTask.value
+
       // After the call completes, the set should be cleared
       XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
     }
@@ -798,29 +812,43 @@ extension BroadcastPageTests {
   func testDeleteSpinMarksSpinsAfterDeletedAsReschedulingDuringCall() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-
-    nonisolated(unsafe) var model: BroadcastPageModel!
-    nonisolated(unsafe) var capturedReschedulingIds: Set<String> = []
+    let deleteStarted = LockIsolated(false)
+    let deleteContinuation = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.deleteSpin = { _, _ in
-        await MainActor.run {
-          capturedReschedulingIds = model.spinIdsBeingRescheduled
+        deleteStarted.setValue(true)
+        await withCheckedContinuation { continuation in
+          deleteContinuation.setValue(continuation)
         }
         return [initialSpins[0], initialSpins[2]]
       }
     } operation: {
-      model = BroadcastPageModel(stationId: testStationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
 
-      await model.deleteSpin(initialSpins[1])
+      let deleteTask = Task {
+        await model.deleteSpin(initialSpins[1])
+      }
+
+      while !deleteStarted.value {
+        await Task.yield()
+      }
 
       // During the call, spin-3 should have been marked as rescheduling (it comes after spin-2)
-      XCTAssertEqual(capturedReschedulingIds, ["spin-3"])
+      XCTAssertEqual(model.spinIdsBeingRescheduled, ["spin-3"])
+
+      deleteContinuation.withValue { continuation in
+        continuation?.resume()
+        continuation = nil
+      }
+
+      await deleteTask.value
+
       // After the call completes, the set should be cleared
       XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
     }
@@ -883,15 +911,15 @@ extension BroadcastPageTests {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
-    var capturedAudioBlockId: String?
-    var capturedPlaceAfterSpinId: String?
+    let capturedAudioBlockId = LockIsolated<String?>(nil)
+    let capturedPlaceAfterSpinId = LockIsolated<String?>(nil)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.insertSpin = { _, audioBlockId, placeAfterSpinId in
-        capturedAudioBlockId = audioBlockId
-        capturedPlaceAfterSpinId = placeAfterSpinId
+        capturedAudioBlockId.setValue(audioBlockId)
+        capturedPlaceAfterSpinId.setValue(placeAfterSpinId)
         return initialSpins
       }
     } operation: {
@@ -906,8 +934,8 @@ extension BroadcastPageTests {
       // Drop voicetrack before spin-2 (should insert after spin-1)
       await model.insertStagingItem(stagingId: voicetrackId.uuidString, beforeSpinId: "spin-2")
 
-      XCTAssertEqual(capturedAudioBlockId, voicetrackAudioBlockId)
-      XCTAssertEqual(capturedPlaceAfterSpinId, "spin-1")
+      XCTAssertEqual(capturedAudioBlockId.value, voicetrackAudioBlockId)
+      XCTAssertEqual(capturedPlaceAfterSpinId.value, "spin-1")
     }
   }
 
@@ -968,13 +996,13 @@ extension BroadcastPageTests {
     let allSpins = [nowPlayingSpin] + upcomingSpins
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
-    var capturedPlaceAfterSpinId: String?
+    let capturedPlaceAfterSpinId = LockIsolated<String?>(nil)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in allSpins }
       $0.api.insertSpin = { _, _, placeAfterSpinId in
-        capturedPlaceAfterSpinId = placeAfterSpinId
+        capturedPlaceAfterSpinId.setValue(placeAfterSpinId)
         return allSpins
       }
     } operation: {
@@ -989,7 +1017,7 @@ extension BroadcastPageTests {
 
       await model.insertStagingItem(stagingId: voicetrackId.uuidString, beforeSpinId: "spin-1")
 
-      XCTAssertEqual(capturedPlaceAfterSpinId, "now-playing")
+      XCTAssertEqual(capturedPlaceAfterSpinId.value, "now-playing")
       XCTAssertNil(model.presentedAlert)
     }
   }
@@ -998,13 +1026,13 @@ extension BroadcastPageTests {
     let upcomingSpins = makeSpins(ids: ["spin-1", "spin-2"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
-    var apiWasCalled = false
+    let apiWasCalled = LockIsolated(false)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in upcomingSpins }
       $0.api.insertSpin = { _, _, _ in
-        apiWasCalled = true
+        apiWasCalled.setValue(true)
         return upcomingSpins
       }
     } operation: {
@@ -1018,7 +1046,7 @@ extension BroadcastPageTests {
 
       await model.insertStagingItem(stagingId: voicetrackId.uuidString, beforeSpinId: "spin-1")
 
-      XCTAssertFalse(apiWasCalled)
+      XCTAssertFalse(apiWasCalled.value)
       XCTAssertNotNil(model.presentedAlert)
       XCTAssertEqual(model.presentedAlert?.title, "Cannot Place Here")
     }
@@ -1051,14 +1079,14 @@ extension BroadcastPageTests {
 
   func testSendNotificationCallsAPIWithMessage() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    var capturedStationId: String?
-    var capturedMessage: String?
+    let capturedStationId = LockIsolated<String?>(nil)
+    let capturedMessage = LockIsolated<String?>(nil)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.sendStationNotification = { _, stationId, message in
-        capturedStationId = stationId
-        capturedMessage = message
+        capturedStationId.setValue(stationId)
+        capturedMessage.setValue(message)
       }
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
@@ -1066,8 +1094,8 @@ extension BroadcastPageTests {
 
       await model.sendNotification()
 
-      XCTAssertEqual(capturedStationId, testStationId)
-      XCTAssertEqual(capturedMessage, "I'm going live from the van!")
+      XCTAssertEqual(capturedStationId.value, testStationId)
+      XCTAssertEqual(capturedMessage.value, "I'm going live from the van!")
     }
   }
 
@@ -1215,12 +1243,12 @@ extension BroadcastPageTests {
 
   func testSendNotificationDoesNothingWhenMessageIsEmpty() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    var apiWasCalled = false
+    let apiWasCalled = LockIsolated(false)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.sendStationNotification = { _, _, _ in
-        apiWasCalled = true
+        apiWasCalled.setValue(true)
       }
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
@@ -1229,19 +1257,19 @@ extension BroadcastPageTests {
 
       await model.sendNotification()
 
-      XCTAssertFalse(apiWasCalled)
+      XCTAssertFalse(apiWasCalled.value)
       XCTAssertTrue(model.showNotifyListenersSheet)
     }
   }
 
   func testSendNotificationDoesNothingWhenMessageIsWhitespaceOnly() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    var apiWasCalled = false
+    let apiWasCalled = LockIsolated(false)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.sendStationNotification = { _, _, _ in
-        apiWasCalled = true
+        apiWasCalled.setValue(true)
       }
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
@@ -1250,7 +1278,7 @@ extension BroadcastPageTests {
 
       await model.sendNotification()
 
-      XCTAssertFalse(apiWasCalled)
+      XCTAssertFalse(apiWasCalled.value)
       XCTAssertTrue(model.showNotifyListenersSheet)
     }
   }
@@ -1297,25 +1325,40 @@ extension BroadcastPageTests {
 
   func testIsSendingNotificationTracksLoadingState() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    nonisolated(unsafe) var model: BroadcastPageModel!
-    nonisolated(unsafe) var capturedIsSending = false
+    let requestStarted = LockIsolated(false)
+    let requestContinuation = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.sendStationNotification = { _, _, _ in
-        await MainActor.run {
-          capturedIsSending = model.isSendingNotification
+        requestStarted.setValue(true)
+        await withCheckedContinuation { continuation in
+          requestContinuation.setValue(continuation)
         }
       }
     } operation: {
-      model = BroadcastPageModel(stationId: testStationId)
+      let model = BroadcastPageModel(stationId: testStationId)
       model.notifyMessage = "Test"
 
       XCTAssertFalse(model.isSendingNotification)
 
-      await model.sendNotification()
+      let sendTask = Task {
+        await model.sendNotification()
+      }
 
-      XCTAssertTrue(capturedIsSending)
+      while !requestStarted.value {
+        await Task.yield()
+      }
+
+      XCTAssertTrue(model.isSendingNotification)
+
+      requestContinuation.withValue { continuation in
+        continuation?.resume()
+        continuation = nil
+      }
+
+      await sendTask.value
+
       XCTAssertFalse(model.isSendingNotification)
     }
   }
@@ -1329,7 +1372,7 @@ extension BroadcastPageTests {
     let fixedDate = Date(timeIntervalSince1970: 1_702_486_800)
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
-    var capturedStatuses: [LocalVoicetrackStatus] = []
+    let capturedStatuses = LockIsolated<[LocalVoicetrackStatus]>([])
 
     await withDependencies {
       $0.date.now = fixedDate
@@ -1344,7 +1387,7 @@ extension BroadcastPageTests {
         ]
         for status in statuses {
           await onStatusChange(status)
-          capturedStatuses.append(status)
+          capturedStatuses.withValue { $0.append(status) }
         }
         return AudioBlock.mockWith()
       }
@@ -1355,13 +1398,14 @@ extension BroadcastPageTests {
       let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
       await model.recordPageModel?.onRecordingAccepted?(recordingURL)
 
-      XCTAssertEqual(capturedStatuses.count, 6)
-      XCTAssertEqual(capturedStatuses[0], .converting)
-      XCTAssertEqual(capturedStatuses[1], .uploading(progress: 0.0))
-      XCTAssertEqual(capturedStatuses[2], .uploading(progress: 0.5))
-      XCTAssertEqual(capturedStatuses[3], .uploading(progress: 1.0))
-      XCTAssertEqual(capturedStatuses[4], .finalizing)
-      XCTAssertEqual(capturedStatuses[5], .completed)
+      let statuses = capturedStatuses.value
+      XCTAssertEqual(statuses.count, 6)
+      XCTAssertEqual(statuses[0], .converting)
+      XCTAssertEqual(statuses[1], .uploading(progress: 0.0))
+      XCTAssertEqual(statuses[2], .uploading(progress: 0.5))
+      XCTAssertEqual(statuses[3], .uploading(progress: 1.0))
+      XCTAssertEqual(statuses[4], .finalizing)
+      XCTAssertEqual(statuses[5], .completed)
       let voicetrack = model.stagingItems.first as? LocalVoicetrack
       XCTAssertEqual(voicetrack?.status, .completed)
     }

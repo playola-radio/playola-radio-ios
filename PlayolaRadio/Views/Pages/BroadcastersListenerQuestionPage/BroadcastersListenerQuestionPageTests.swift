@@ -51,13 +51,13 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
   // MARK: - Fetch Tests
 
   func testViewAppearedCallsAPIWithStationId() async {
-    var calledStationId: String?
+    let calledStationId = LockIsolated<String?>(nil)
 
     @Shared(.auth) var auth = Auth(currentUser: nil, jwt: testJwt)
 
     let model = withDependencies {
       $0.api.getListenerQuestions = { _, stationId in
-        calledStationId = stationId
+        calledStationId.setValue(stationId)
         return []
       }
     } operation: {
@@ -66,7 +66,7 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.viewAppeared()
 
-    XCTAssertEqual(calledStationId, testStationId)
+    XCTAssertEqual(calledStationId.value, testStationId)
   }
 
   func testViewAppearedPopulatesQuestionsArray() async {
@@ -126,13 +126,13 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
   }
 
   func testViewAppearedDoesNothingWithoutJwt() async {
-    var apiCalled = false
+    let apiCalled = LockIsolated(false)
 
     @Shared(.auth) var auth = Auth()
 
     let model = withDependencies {
       $0.api.getListenerQuestions = { _, _ in
-        apiCalled = true
+        apiCalled.setValue(true)
         return []
       }
     } operation: {
@@ -141,17 +141,17 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.viewAppeared()
 
-    XCTAssertFalse(apiCalled)
+    XCTAssertFalse(apiCalled.value)
   }
 
   func testViewAppearedCallsFetchQuestions() async {
-    var fetchCalled = false
+    let fetchCalled = LockIsolated(false)
 
     @Shared(.auth) var auth = Auth(currentUser: nil, jwt: testJwt)
 
     let model = withDependencies {
       $0.api.getListenerQuestions = { _, _ in
-        fetchCalled = true
+        fetchCalled.setValue(true)
         return []
       }
     } operation: {
@@ -160,17 +160,17 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.viewAppeared()
 
-    XCTAssertTrue(fetchCalled)
+    XCTAssertTrue(fetchCalled.value)
   }
 
   func testRefreshPulledDownCallsFetchQuestions() async {
-    var fetchCalled = false
+    let fetchCalled = LockIsolated(false)
 
     @Shared(.auth) var auth = Auth(currentUser: nil, jwt: testJwt)
 
     let model = withDependencies {
       $0.api.getListenerQuestions = { _, _ in
-        fetchCalled = true
+        fetchCalled.setValue(true)
         return []
       }
     } operation: {
@@ -179,7 +179,7 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.refreshPulledDown()
 
-    XCTAssertTrue(fetchCalled)
+    XCTAssertTrue(fetchCalled.value)
   }
 
   // MARK: - Expand/Collapse Tests
@@ -458,18 +458,18 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
   // MARK: - Decline Question Tests
 
   func testDeclineQuestionCallsAPI() async {
-    var declineCalled = false
-    var capturedStationId: String?
-    var capturedQuestionId: String?
+    let declineCalled = LockIsolated(false)
+    let capturedStationId = LockIsolated<String?>(nil)
+    let capturedQuestionId = LockIsolated<String?>(nil)
 
     @Shared(.auth) var auth = Auth(currentUser: nil, jwt: testJwt)
 
     let model = withDependencies {
       $0.api.getListenerQuestions = { _, _ in [] }
       $0.api.declineListenerQuestion = { _, stationId, questionId in
-        declineCalled = true
-        capturedStationId = stationId
-        capturedQuestionId = questionId
+        declineCalled.setValue(true)
+        capturedStationId.setValue(stationId)
+        capturedQuestionId.setValue(questionId)
         return .mockWith(id: questionId, stationId: stationId, status: .declined)
       }
     } operation: {
@@ -482,9 +482,9 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.declineQuestionSwiped(model.questions[0])
 
-    XCTAssertTrue(declineCalled)
-    XCTAssertEqual(capturedStationId, testStationId)
-    XCTAssertEqual(capturedQuestionId, "q1")
+    XCTAssertTrue(declineCalled.value)
+    XCTAssertEqual(capturedStationId.value, testStationId)
+    XCTAssertEqual(capturedQuestionId.value, "q1")
   }
 
   func testDeclineQuestionUpdatesLocalState() async {

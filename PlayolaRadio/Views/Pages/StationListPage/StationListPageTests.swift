@@ -538,7 +538,6 @@ final class StationListPageTests: XCTestCase {
   func testSearchByCuratorNameFiltersStations() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
-    let now = Date()
 
     let station1 = Station.mockWith(id: "s1", name: "Show One", curatorName: "Alice")
     let station2 = Station.mockWith(id: "s2", name: "Show Two", curatorName: "Bob")
@@ -894,16 +893,16 @@ final class StationListNotificationPromptTests: XCTestCase {
 
   func testNotificationAlertYesTappedRequestsPermission() async {
     @Shared(.hasAskedForNotificationPermission) var hasAsked = false
-    var authorizationRequested = false
-    var registrationCalled = false
+    let authorizationRequested = LockIsolated(false)
+    let registrationCalled = LockIsolated(false)
 
     let model = withDependencies {
       $0.pushNotifications.requestAuthorization = {
-        authorizationRequested = true
+        authorizationRequested.setValue(true)
         return true
       }
       $0.pushNotifications.registerForRemoteNotifications = {
-        registrationCalled = true
+        registrationCalled.setValue(true)
       }
     } operation: {
       StationListModel()
@@ -911,19 +910,19 @@ final class StationListNotificationPromptTests: XCTestCase {
 
     await model.notificationAlertYesTapped()
 
-    XCTAssertTrue(authorizationRequested)
-    XCTAssertTrue(registrationCalled)
+    XCTAssertTrue(authorizationRequested.value)
+    XCTAssertTrue(registrationCalled.value)
     XCTAssertTrue(hasAsked)
     XCTAssertNil(model.presentedAlert)
   }
 
   func testNotificationAlertNoTappedSetsHasAskedWithoutRequesting() async {
     @Shared(.hasAskedForNotificationPermission) var hasAsked = false
-    var authorizationRequested = false
+    let authorizationRequested = LockIsolated(false)
 
     let model = withDependencies {
       $0.pushNotifications.requestAuthorization = {
-        authorizationRequested = true
+        authorizationRequested.setValue(true)
         return true
       }
       $0.pushNotifications.registerForRemoteNotifications = {}
@@ -933,21 +932,21 @@ final class StationListNotificationPromptTests: XCTestCase {
 
     await model.notificationAlertNoTapped()
 
-    XCTAssertFalse(authorizationRequested)
+    XCTAssertFalse(authorizationRequested.value)
     XCTAssertTrue(hasAsked)
     XCTAssertNil(model.presentedAlert)
   }
 
   func testNotificationAlertDoesNotRegisterIfPermissionDenied() async {
     @Shared(.hasAskedForNotificationPermission) var hasAsked = false
-    var registrationCalled = false
+    let registrationCalled = LockIsolated(false)
 
     let model = withDependencies {
       $0.pushNotifications.requestAuthorization = {
         return false
       }
       $0.pushNotifications.registerForRemoteNotifications = {
-        registrationCalled = true
+        registrationCalled.setValue(true)
       }
     } operation: {
       StationListModel()
@@ -955,7 +954,7 @@ final class StationListNotificationPromptTests: XCTestCase {
 
     await model.notificationAlertYesTapped()
 
-    XCTAssertFalse(registrationCalled)
+    XCTAssertFalse(registrationCalled.value)
     XCTAssertTrue(hasAsked)
   }
 }

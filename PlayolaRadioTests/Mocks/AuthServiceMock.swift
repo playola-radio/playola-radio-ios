@@ -6,7 +6,7 @@
 //
 @testable import PlayolaRadio
 
-class AuthServiceMock: AuthService {
+class AuthServiceMock: AuthService, @unchecked Sendable {
   var signOutCallCount = 0
 
   override func signOut() {
