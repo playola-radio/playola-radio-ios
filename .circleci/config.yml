@@ -32,7 +32,7 @@ jobs:
       FASTLANE_LANE: test
     steps:
       - checkout
-      - run: brew install xcbeautify
+      - run: brew install xcbeautify xcresultparser
       - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets.xcconfig
       - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Development.xcconfig
       - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Local.xcconfig
@@ -72,8 +72,8 @@ jobs:
           name: Install Fastlane
           command: bundle install
       - run:
-          name: Install xcbeautify
-          command: brew install xcbeautify
+          name: Install xcbeautify and xcresultparser
+          command: brew install xcbeautify xcresultparser
       - run:
           name: Decode xcconfig secrets
           command: bash scripts/ci-write-secrets.sh
