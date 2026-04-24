@@ -92,7 +92,13 @@ class SignInPageModel: ViewModel {
       await analytics.track(.signInCompleted(method: .google, userId: userId))
     } catch {
       print("Google sign in failed: \(error)")
-      await analytics.track(.signInFailed(method: .google, error: error.localizedDescription))
+      let nsError = error as NSError
+      // Match the prior callback behavior: silently drop user-cancelled sign-ins
+      // (GIDSignInError.canceled = -5) instead of tracking them as failures.
+      if nsError.domain != kGIDSignInErrorDomain || nsError.code != GIDSignInError.canceled.rawValue
+      {
+        await analytics.track(.signInFailed(method: .google, error: error.localizedDescription))
+      }
     }
   }
 }
