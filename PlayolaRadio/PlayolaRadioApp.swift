@@ -41,6 +41,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
             "https://c024cbc3afc46a4539e4cd73ea4f32c0@o4511043985801216.ingest.us.sentry.io/4511043987898368"
           options.sendDefaultPii = false
           options.tracesSampleRate = 0.1
+          options.enableAppHangTrackingV2 = true
           options.configureProfiling = {
             $0.sessionSampleRate = 0.1
             $0.lifecycle = .trace
