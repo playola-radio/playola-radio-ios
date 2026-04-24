@@ -156,6 +156,11 @@
 		D3219C1A2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */; };
 		D3219C1B2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */; };
 		D3219C1F2EDD22360008AFDA /* BroadcastPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C1C2EDD22230008AFDA /* BroadcastPageTests.swift */; };
+		D334827A2F9B1A83002CAC52 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		D334827B2F9B1A83002CAC52 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		D334827E2F9B1AB5002CAC52 /* ErrorReportingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D334827C2F9B1AB5002CAC52 /* ErrorReportingClient.swift */; };
+		D334827F2F9B1AB5002CAC52 /* ErrorReportingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D334827C2F9B1AB5002CAC52 /* ErrorReportingClient.swift */; };
+		D33482812F9B1B03002CAC52 /* ErrorReportingClientMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33482802F9B1B03002CAC52 /* ErrorReportingClientMock.swift */; };
 		D3367BF92F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3367BF52F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift */; };
 		D3367BFB2F08B7DC00AF87FA /* NotificationsSettingsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3367BF72F08B7DC00AF87FA /* NotificationsSettingsPageView.swift */; };
 		D3367BFC2F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3367BF52F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift */; };
@@ -464,6 +469,8 @@
 		D3219C162EDD22100008AFDA /* BroadcastPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageView.swift; sourceTree = "<group>"; };
 		D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageModel.swift; sourceTree = "<group>"; };
 		D3219C1C2EDD22230008AFDA /* BroadcastPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageTests.swift; sourceTree = "<group>"; };
+		D334827C2F9B1AB5002CAC52 /* ErrorReportingClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorReportingClient.swift; sourceTree = "<group>"; };
+		D33482802F9B1B03002CAC52 /* ErrorReportingClientMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorReportingClientMock.swift; sourceTree = "<group>"; };
 		D3367BF52F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsSettingsPageModel.swift; sourceTree = "<group>"; };
 		D3367BF62F08B7DC00AF87FA /* NotificationsSettingsPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsSettingsPageTests.swift; sourceTree = "<group>"; };
 		D3367BF72F08B7DC00AF87FA /* NotificationsSettingsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsSettingsPageView.swift; sourceTree = "<group>"; };
@@ -659,7 +666,7 @@
 				D30F00A12E8592F0007BCC73 /* FRadioPlayer in Frameworks */,
 				D3916A692ECD22E600CAAD50 /* IdentifiedCollections in Frameworks */,
 				D30F00A22E8592F0007BCC73 /* GoogleSignIn in Frameworks */,
-				F35D444BFD44486391C161D6 /* Sentry in Frameworks */,
+				D334827A2F9B1A83002CAC52 /* (null) in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -688,7 +695,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F35D444BFD44486391C161D6 /* Sentry in Frameworks */,
+				D334827B2F9B1A83002CAC52 /* (null) in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -752,6 +759,7 @@
 				D31C43A92D3C390C0021AAE4 /* StationPlayerMock.swift */,
 				D3137DC52D39BEDD0070033A /* URLStreamPlayerMock.swift */,
 				D3137DBF2D3981880070033A /* MailServiceMock.swift */,
+				D33482802F9B1B03002CAC52 /* ErrorReportingClientMock.swift */,
 			);
 			path = Mocks;
 			sourceTree = "<group>";
@@ -811,6 +819,14 @@
 				D3219C1C2EDD22230008AFDA /* BroadcastPageTests.swift */,
 			);
 			path = BroadcastPage;
+			sourceTree = "<group>";
+		};
+		D334827D2F9B1AB5002CAC52 /* ErrorReporting */ = {
+			isa = PBXGroup;
+			children = (
+				D334827C2F9B1AB5002CAC52 /* ErrorReportingClient.swift */,
+			);
+			path = ErrorReporting;
 			sourceTree = "<group>";
 		};
 		D3367BF82F08B7DC00AF87FA /* NotificationsSettingsPage */ = {
@@ -1198,6 +1214,8 @@
 				D378CCD42E58C3DC00497A4A /* AudioPlayback */,
 				D3F493C22EEDD987008ED463 /* AudioRecording */,
 				D378CCD62E58C49F00497A4A /* Auth */,
+				D334827D2F9B1AB5002CAC52 /* ErrorReporting */,
+				D35EFBED2F1092A7000F64A4 /* Formatters */,
 				D302577A2E639FAB00F4228B /* Likes */,
 				D3B744B52E2FED6E0042A427 /* ListeningTracker */,
 				D35EFC1F2F17D47F000F64A4 /* LiveStations */,
@@ -1205,7 +1223,6 @@
 				D378CCD52E58C42D00497A4A /* Navigation */,
 				D37B74852EC9441C009806C6 /* PushNotifications */,
 				D302576E2E63429000F4228B /* Toast */,
-				D35EFBED2F1092A7000F64A4 /* Formatters */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -1654,6 +1671,25 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		A749B0FA144D4CBFB5A75066 /* Upload Debug Symbols to Sentry */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
+			);
+			name = "Upload Debug Symbols to Sentry";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script is responsible for uploading debug symbols and source context for Sentry.\nif which sentry-cli >/dev/null; then\n  export SENTRY_ORG=playola-radio\n  export SENTRY_PROJECT=apple-ios\n  sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 || echo \"warning: sentry-cli upload failed\"\nelse\n  echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		D30F00492E8592F0007BCC73 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -1734,6 +1770,7 @@
 				D30F006A2E8592F0007BCC73 /* PrizeTierRow.swift in Sources */,
 				D39728592F5F0427008591E3 /* AppVersionRequirements.swift in Sources */,
 				D30F006B2E8592F0007BCC73 /* LocalListeningSession.swift in Sources */,
+				D334827F2F9B1AB5002CAC52 /* ErrorReportingClient.swift in Sources */,
 				D30F006C2E8592F0007BCC73 /* PlayerPage.swift in Sources */,
 				D30F006D2E8592F0007BCC73 /* ListeningTimeTileModel.swift in Sources */,
 				D30F006F2E8592F0007BCC73 /* EditProfilePageModel.swift in Sources */,
@@ -1889,6 +1926,7 @@
 				D36FBCC02E37FC8100D1241C /* PrizeTierRow.swift in Sources */,
 				D397285A2F5F0427008591E3 /* AppVersionRequirements.swift in Sources */,
 				D3B744B42E2FECE10042A427 /* LocalListeningSession.swift in Sources */,
+				D334827E2F9B1AB5002CAC52 /* ErrorReportingClient.swift in Sources */,
 				D37257D02DFB4368001BC6F9 /* PlayerPage.swift in Sources */,
 				D3B744C82E31399E0042A427 /* ListeningTimeTileModel.swift in Sources */,
 				D39591282E3BB70B00720CF8 /* EditProfilePageModel.swift in Sources */,
@@ -1978,6 +2016,7 @@
 				D38031352E00AFD20011DD64 /* PlayerPageTests.swift in Sources */,
 				D30C01D02F5CA12300889E6D /* RedeemPrizeSheetTests.swift in Sources */,
 				D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */,
+				D33482812F9B1B03002CAC52 /* ErrorReportingClientMock.swift in Sources */,
 				D30257A92E651C9E00F4228B /* MainContainerNavigationCoordinatorTests.swift in Sources */,
 				D30257792E634A2600F4228B /* ToastClientTests.swift in Sources */,
 				D3C7E5FA2EF0D13800EDD3ED /* SongSeedTests.swift in Sources */,
@@ -2080,12 +2119,12 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 6.0.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio.staging;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
-				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
@@ -2124,12 +2163,12 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 6.0.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio.staging;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
-				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
@@ -2168,12 +2207,12 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 6.0.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio.staging;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
-				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
@@ -2311,9 +2350,11 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 82;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
@@ -2331,18 +2372,16 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 6.0.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
-				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
 			};
 			name = Debug;
 		};
@@ -2357,9 +2396,11 @@
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 82;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
@@ -2377,18 +2418,16 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 6.0.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "match AppStore fm.playola.playolaradio";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
-				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
 			};
 			name = Release;
 		};
@@ -2504,9 +2543,11 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 82;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"PlayolaRadio/Preview Content\"";
 				DEVELOPMENT_TEAM = FSRSPV9N9Q;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
@@ -2524,18 +2565,16 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 6.0.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
-				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
 			};
 			name = "Local-Debug";
 		};
@@ -2604,6 +2643,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa/";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.10.0;
+			};
+		};
 		D30F00382E8592F0007BCC73 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
@@ -2756,17 +2803,14 @@
 				minimumVersion = 0.14.0;
 			};
 		};
-		9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/getsentry/sentry-cocoa/";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 9.10.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		0B6E1320AC744E9FAEC2F50F /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
+		};
 		D30F00362E8592F0007BCC73 /* PlayolaPlayer */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PlayolaPlayer;
@@ -2905,39 +2949,7 @@
 			package = D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */;
 			productName = PlayolaPlayer;
 		};
-		0B6E1320AC744E9FAEC2F50F /* Sentry */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
-			productName = Sentry;
-		};
 /* End XCSwiftPackageProductDependency section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		A749B0FA144D4CBFB5A75066 /* Upload Debug Symbols to Sentry */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script is responsible for uploading debug symbols and source context for Sentry.
-if which sentry-cli >/dev/null; then
-  export SENTRY_ORG=playola-radio
-  export SENTRY_PROJECT=apple-ios
-  sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 || echo \"warning: sentry-cli upload failed\"
-else
-  echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"
-fi
-";
-			name = "Upload Debug Symbols to Sentry";
-		};
-/* End PBXShellScriptBuildPhase section */
 	};
 	rootObject = D35369F92BFA4F49006942D6 /* Project object */;
 }
