@@ -34,20 +34,24 @@ final class StationSuggestionPageTests: XCTestCase {
 
   private func makeModel(
     suggestions: [ArtistSuggestion]? = nil,
-    onGetSuggestions: ((_ jwt: String, _ search: String?) throws -> [ArtistSuggestion])? = nil,
-    onCreate: ((_ jwt: String, _ name: String) throws -> ArtistSuggestion)? = nil,
-    onVote: ((_ jwt: String, _ id: String) throws -> Void)? = nil,
-    onRemoveVote: ((_ jwt: String, _ id: String) throws -> Void)? = nil
+    onGetSuggestions: (
+      @Sendable (_ jwt: String, _ search: String?) async throws -> [ArtistSuggestion]
+    )? = nil,
+    onCreate: (@Sendable (_ jwt: String, _ name: String) async throws -> ArtistSuggestion)? = nil,
+    onVote: (@Sendable (_ jwt: String, _ id: String) async throws -> Void)? = nil,
+    onRemoveVote: (@Sendable (_ jwt: String, _ id: String) async throws -> Void)? = nil
   ) -> StationSuggestionPageModel {
     let defaultSuggestions = suggestions ?? mockSuggestions()
-    let defaultGet: (String, String?) throws -> [ArtistSuggestion] = { _, _ in defaultSuggestions }
-    let defaultCreate: (String, String) throws -> ArtistSuggestion = { _, name in
+    let defaultGet: @Sendable (String, String?) async throws -> [ArtistSuggestion] = { _, _ in
+      defaultSuggestions
+    }
+    let defaultCreate: @Sendable (String, String) async throws -> ArtistSuggestion = { _, name in
       ArtistSuggestion(
         id: "new", artistName: name, createdByUserId: "u1",
         voteCount: 1, hasVoted: true, createdAt: Date(), updatedAt: Date())
     }
-    let defaultVote: (String, String) throws -> Void = { _, _ in }
-    let defaultRemoveVote: (String, String) throws -> Void = { _, _ in }
+    let defaultVote: @Sendable (String, String) async throws -> Void = { _, _ in }
+    let defaultRemoveVote: @Sendable (String, String) async throws -> Void = { _, _ in }
     return withDependencies {
       $0.api.getArtistSuggestions = onGetSuggestions ?? defaultGet
       $0.api.createArtistSuggestion = onCreate ?? defaultCreate

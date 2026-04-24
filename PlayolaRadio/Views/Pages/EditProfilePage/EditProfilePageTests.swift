@@ -175,6 +175,7 @@ final class EditProfilePageTests: XCTestCase {
       email: "john@example.com"
     )
     @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
+    let expectedJwt = auth.jwt
 
     let updatedUser = LoggedInUser(
       id: "123",
@@ -186,7 +187,7 @@ final class EditProfilePageTests: XCTestCase {
 
     let model = withDependencies {
       $0.api.updateUser = { jwtToken, firstName, lastName, _ in
-        XCTAssertEqual(jwtToken, auth.jwt)
+        XCTAssertEqual(jwtToken, expectedJwt)
         XCTAssertEqual(firstName, "Joe")
         XCTAssertEqual(lastName, "Jones")
         return expectedAuth

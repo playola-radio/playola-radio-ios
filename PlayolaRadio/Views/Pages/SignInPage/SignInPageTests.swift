@@ -17,7 +17,7 @@ final class SignInPageTests: XCTestCase {
   func testSignInWithApple_CorrectlyAddsScopeToTheAppleSignInRequest() async {
     let request = ASAuthorizationAppleIDRequest(coder: NSCoder())!
     let model = SignInPageModel()
-    await model.signInWithAppleButtonTapped(request: request)
+    model.signInWithAppleButtonTapped(request: request)
     XCTAssertEqual(request.requestedScopes, [.email, .fullName])
   }
 

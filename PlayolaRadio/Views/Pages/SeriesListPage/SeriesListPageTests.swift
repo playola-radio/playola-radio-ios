@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import ConcurrencyExtras
 import Dependencies
 import PlayolaPlayer
 import Sharing
@@ -14,13 +15,13 @@ import XCTest
 final class SeriesListPageModelTests: XCTestCase {
   func testViewAppearedCallsGetAiringsAPI() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    var apiCalled = false
-    var passedJwt: String?
+    let apiCalled = LockIsolated(false)
+    let passedJwt = LockIsolated<String?>(nil)
 
     await withDependencies {
       $0.api.getAirings = { jwt, _ in
-        apiCalled = true
-        passedJwt = jwt
+        apiCalled.setValue(true)
+        passedJwt.setValue(jwt)
         return []
       }
     } operation: {
@@ -28,8 +29,8 @@ final class SeriesListPageModelTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertTrue(apiCalled)
-      XCTAssertEqual(passedJwt, "test-jwt")
+      XCTAssertTrue(apiCalled.value)
+      XCTAssertEqual(passedJwt.value, "test-jwt")
     }
   }
 
@@ -91,11 +92,11 @@ final class SeriesListPageModelTests: XCTestCase {
 
   func testViewAppearedDoesNotCallAPIWithoutJWT() async {
     @Shared(.auth) var auth = Auth(jwt: nil)
-    var apiCalled = false
+    let apiCalled = LockIsolated(false)
 
     await withDependencies {
       $0.api.getAirings = { _, _ in
-        apiCalled = true
+        apiCalled.setValue(true)
         return []
       }
     } operation: {
@@ -103,7 +104,7 @@ final class SeriesListPageModelTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertFalse(apiCalled)
+      XCTAssertFalse(apiCalled.value)
     }
   }
 
