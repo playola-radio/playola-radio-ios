@@ -156,8 +156,8 @@
 		D3219C1A2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */; };
 		D3219C1B2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */; };
 		D3219C1F2EDD22360008AFDA /* BroadcastPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C1C2EDD22230008AFDA /* BroadcastPageTests.swift */; };
-		D334827A2F9B1A83002CAC52 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-		D334827B2F9B1A83002CAC52 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		D334827A2F9B1A83002CAC52 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 0B6E1320AC744E9FAEC2F50F /* Sentry */; };
+		D334827B2F9B1A83002CAC52 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 0B6E1320AC744E9FAEC2F50F /* Sentry */; };
 		D334827E2F9B1AB5002CAC52 /* ErrorReportingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D334827C2F9B1AB5002CAC52 /* ErrorReportingClient.swift */; };
 		D334827F2F9B1AB5002CAC52 /* ErrorReportingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D334827C2F9B1AB5002CAC52 /* ErrorReportingClient.swift */; };
 		D33482812F9B1B03002CAC52 /* ErrorReportingClientMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33482802F9B1B03002CAC52 /* ErrorReportingClientMock.swift */; };
@@ -666,7 +666,7 @@
 				D30F00A12E8592F0007BCC73 /* FRadioPlayer in Frameworks */,
 				D3916A692ECD22E600CAAD50 /* IdentifiedCollections in Frameworks */,
 				D30F00A22E8592F0007BCC73 /* GoogleSignIn in Frameworks */,
-				D334827A2F9B1A83002CAC52 /* (null) in Frameworks */,
+				D334827A2F9B1A83002CAC52 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -695,7 +695,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D334827B2F9B1A83002CAC52 /* (null) in Frameworks */,
+				D334827B2F9B1A83002CAC52 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
