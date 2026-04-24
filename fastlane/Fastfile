@@ -15,6 +15,20 @@
 
 default_platform(:ios)
 
+def print_failed_tests_summary(output_dir)
+  abs_dir = File.expand_path(output_dir)
+  xcresult = Dir[File.join(abs_dir, '*.xcresult')].max_by { |f| File.mtime(f) }
+  return unless xcresult
+
+  unless system("command -v xcresultparser > /dev/null 2>&1")
+    UI.important("xcresultparser not installed — skipping failure summary. Run: brew install xcresultparser")
+    return
+  end
+
+  UI.header("Failed tests")
+  sh("xcresultparser -o cli --failed-tests-only #{xcresult.shellescape}")
+end
+
 platform :ios do
   before_all do
     setup_circle_ci if ENV['CI']
@@ -73,13 +87,22 @@ platform :ios do
       readonly: true
     )
 
-    scan(
-      include_simulator_logs: false,
-      parallel_testing: false,
-      scheme: "PlayolaRadio",
-      xcargs: "-skipMacroValidation -skipPackagePluginValidation",
-      xcodebuild_formatter: "xcbeautify"
-    )
+    test_error = nil
+    begin
+      scan(
+        include_simulator_logs: false,
+        parallel_testing: false,
+        scheme: "PlayolaRadio",
+        xcargs: "-skipMacroValidation -skipPackagePluginValidation",
+        xcodebuild_formatter: "xcbeautify",
+        output_directory: './fastlane/test_output/xctest',
+        result_bundle: true
+      )
+    rescue => e
+      test_error = e
+    end
+    print_failed_tests_summary('./fastlane/test_output/xctest')
+    raise test_error if test_error
 
     build_app(
       project: "PlayolaRadio.xcodeproj",
@@ -138,13 +161,22 @@ platform :ios do
 
   desc "Runs all the tests"
   lane :test do
-    scan(
-      include_simulator_logs: false,
-      parallel_testing: false,
-      scheme: "PlayolaRadio",
-      xcargs: "-skipMacroValidation -skipPackagePluginValidation",
-      xcodebuild_formatter: "xcbeautify",
-      output_directory: './fastlane/test_output/xctest')
+    test_error = nil
+    begin
+      scan(
+        include_simulator_logs: false,
+        parallel_testing: false,
+        scheme: "PlayolaRadio",
+        xcargs: "-skipMacroValidation -skipPackagePluginValidation",
+        xcodebuild_formatter: "xcbeautify",
+        output_directory: './fastlane/test_output/xctest',
+        result_bundle: true
+      )
+    rescue => e
+      test_error = e
+    end
+    print_failed_tests_summary('./fastlane/test_output/xctest')
+    raise test_error if test_error
   end
 
   lane :lint_code do
