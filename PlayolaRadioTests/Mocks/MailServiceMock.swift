@@ -8,6 +8,7 @@ import Foundation
 
 @testable import PlayolaRadio
 
+@MainActor
 class MailServiceMock: MailService {
   var shouldBeAbleToSendEmail: Bool = true
   var canCreateUrl: Bool = true
@@ -22,7 +23,7 @@ class MailServiceMock: MailService {
     self.canCreateUrl = canCreateUrl
   }
 
-  override func canSendEmail() async -> Bool {
+  override func canSendEmail() -> Bool {
     shouldBeAbleToSendEmail
   }
 

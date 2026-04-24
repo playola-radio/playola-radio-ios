@@ -12,7 +12,7 @@ import IdentifiedCollections
 import Sharing
 
 @MainActor
-class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
+class CarPlaySceneDelegate: UIResponder, @preconcurrency CPTemplateApplicationSceneDelegate {
   private func tabImage(_ identifier: String) -> UIImage? {
     switch identifier {
     case StationList.KnownIDs.artistList.rawValue:
