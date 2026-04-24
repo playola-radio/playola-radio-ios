@@ -34,16 +34,20 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
     #if canImport(Sentry)
-      SentrySDK.start { options in
-        options.dsn =
-          "https://c024cbc3afc46a4539e4cd73ea4f32c0@o4511043985801216.ingest.us.sentry.io/4511043987898368"
-        options.sendDefaultPii = false
-        options.tracesSampleRate = 0.1
-        options.configureProfiling = {
-          $0.sessionSampleRate = 0.1
-          $0.lifecycle = .trace
+      let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+      if !isRunningTests {
+        SentrySDK.start { options in
+          options.dsn =
+            "https://c024cbc3afc46a4539e4cd73ea4f32c0@o4511043985801216.ingest.us.sentry.io/4511043987898368"
+          options.sendDefaultPii = false
+          options.tracesSampleRate = 0.1
+          options.configureProfiling = {
+            $0.sessionSampleRate = 0.1
+            $0.lifecycle = .trace
+          }
+          options.enableLogs = true
+          options.enableAppHangTrackingV2 = true
         }
-        options.enableLogs = true
       }
     #endif
 
