@@ -17,6 +17,7 @@ class SignInPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.appRating) var appRating
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
   @ObservationIgnored @Shared(.auth) var auth: Auth
 
   @MainActor
@@ -42,6 +43,11 @@ class SignInPageModel: ViewModel {
         let authCode = String(data: authCodeData, encoding: .utf8)
       else {
         print("Error decoding signin info from apple")
+        Task {
+          await errorReporting.reportMessage(
+            "Error decoding sign-in info from Apple",
+            ["auth_method": "apple", "sign_in_step": "credential_decode"])
+        }
         return
       }
 
@@ -63,10 +69,21 @@ class SignInPageModel: ViewModel {
         } catch {
           print("Sign in failed: \(error)")
           await analytics.track(.signInFailed(method: .apple, error: error.localizedDescription))
+          await errorReporting.reportError(
+            error,
+            ["auth_method": "apple", "sign_in_step": "api_call"])
         }
       }
     case .failure(let error):
       print(error)
+      if let authError = error as? ASAuthorizationError, authError.code == .canceled {
+        return
+      }
+      Task {
+        await errorReporting.reportError(
+          error,
+          ["auth_method": "apple", "sign_in_step": "authorization_failure"])
+      }
     }
   }
 
@@ -74,6 +91,9 @@ class SignInPageModel: ViewModel {
     await analytics.track(.signInStarted(method: .google))
     guard let presentingVC = UIApplication.shared.keyWindowPresentedController else {
       print("Error presenting VC -- no key window")
+      await errorReporting.reportMessage(
+        "Unable to present Google sign-in: no key window",
+        ["auth_method": "google", "sign_in_step": "present_view_controller"])
       return
     }
     // Run the sign-in flow in a detached Task so the caller returns immediately
@@ -86,6 +106,9 @@ class SignInPageModel: ViewModel {
         _ = try await signInResult.user.refreshTokensIfNeeded()
         guard let serverAuthCode = signInResult.serverAuthCode else {
           print("Error signing into Google -- no serverAuthCode on signInResult.")
+          await errorReporting.reportMessage(
+            "Google sign-in missing serverAuthCode",
+            ["auth_method": "google", "sign_in_step": "server_auth_code"])
           return
         }
         let userId = signInResult.user.userID ?? "unknown"
@@ -102,6 +125,9 @@ class SignInPageModel: ViewModel {
           || nsError.code != GIDSignInError.canceled.rawValue
         {
           await analytics.track(.signInFailed(method: .google, error: error.localizedDescription))
+          await errorReporting.reportError(
+            error,
+            ["auth_method": "google", "sign_in_step": "google_sign_in_flow"])
         }
       }
     }
