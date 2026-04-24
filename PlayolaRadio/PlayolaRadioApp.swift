@@ -46,7 +46,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
             $0.lifecycle = .trace
           }
           options.enableLogs = true
-          options.enableAppHangTrackingV2 = true
         }
       }
     #endif
