@@ -76,28 +76,33 @@ class SignInPageModel: ViewModel {
       print("Error presenting VC -- no key window")
       return
     }
-    do {
-      let signInResult = try await GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC)
-      print(signInResult)
+    // Run the sign-in flow in a detached Task so the caller returns immediately
+    // after firing .signInStarted, matching the prior callback-style contract.
+    Task {
+      do {
+        let signInResult = try await GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC)
+        print(signInResult)
 
-      _ = try await signInResult.user.refreshTokensIfNeeded()
-      guard let serverAuthCode = signInResult.serverAuthCode else {
-        print("Error signing into Google -- no serverAuthCode on signInResult.")
-        return
-      }
-      let userId = signInResult.user.userID ?? "unknown"
-      let token = try await api.signInViaGoogle(serverAuthCode)
-      $auth.withLock { $0 = Auth(jwtToken: token) }
-      appRating.recordInstallDateIfNeeded()
-      await analytics.track(.signInCompleted(method: .google, userId: userId))
-    } catch {
-      print("Google sign in failed: \(error)")
-      let nsError = error as NSError
-      // Match the prior callback behavior: silently drop user-cancelled sign-ins
-      // (GIDSignInError.canceled = -5) instead of tracking them as failures.
-      if nsError.domain != kGIDSignInErrorDomain || nsError.code != GIDSignInError.canceled.rawValue
-      {
-        await analytics.track(.signInFailed(method: .google, error: error.localizedDescription))
+        _ = try await signInResult.user.refreshTokensIfNeeded()
+        guard let serverAuthCode = signInResult.serverAuthCode else {
+          print("Error signing into Google -- no serverAuthCode on signInResult.")
+          return
+        }
+        let userId = signInResult.user.userID ?? "unknown"
+        let token = try await api.signInViaGoogle(serverAuthCode)
+        $auth.withLock { $0 = Auth(jwtToken: token) }
+        appRating.recordInstallDateIfNeeded()
+        await analytics.track(.signInCompleted(method: .google, userId: userId))
+      } catch {
+        print("Google sign in failed: \(error)")
+        let nsError = error as NSError
+        // Match the prior callback behavior: silently drop user-cancelled sign-ins
+        // (GIDSignInError.canceled = -5) instead of tracking them as failures.
+        if nsError.domain != kGIDSignInErrorDomain
+          || nsError.code != GIDSignInError.canceled.rawValue
+        {
+          await analytics.track(.signInFailed(method: .google, error: error.localizedDescription))
+        }
       }
     }
   }
