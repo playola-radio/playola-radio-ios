@@ -20,6 +20,8 @@ class SignInPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
   @ObservationIgnored @Shared(.auth) var auth: Auth
 
+  var presentedAlert: PlayolaAlert?
+
   @MainActor
   override init() {
     super.init()
@@ -43,6 +45,7 @@ class SignInPageModel: ViewModel {
         let authCode = String(data: authCodeData, encoding: .utf8)
       else {
         print("Error decoding signin info from apple")
+        presentedAlert = .signInError
         Task {
           await errorReporting.reportMessage(
             "Error decoding sign-in info from Apple",
@@ -68,6 +71,7 @@ class SignInPageModel: ViewModel {
           await analytics.track(.signInCompleted(method: .apple, userId: appleIDCredential.user))
         } catch {
           print("Sign in failed: \(error)")
+          presentedAlert = .signInError
           await analytics.track(.signInFailed(method: .apple, error: error.localizedDescription))
           await errorReporting.reportError(
             error,
@@ -75,15 +79,20 @@ class SignInPageModel: ViewModel {
         }
       }
     case .failure(let error):
-      print(error)
-      if let authError = error as? ASAuthorizationError, authError.code == .canceled {
-        return
-      }
-      Task {
-        await errorReporting.reportError(
-          error,
-          ["auth_method": "apple", "sign_in_step": "authorization_failure"])
-      }
+      handleAppleAuthorizationFailure(error)
+    }
+  }
+
+  private func handleAppleAuthorizationFailure(_ error: any Error) {
+    print(error)
+    if let authError = error as? ASAuthorizationError, authError.code == .canceled {
+      return
+    }
+    presentedAlert = .signInError
+    Task {
+      await errorReporting.reportError(
+        error,
+        ["auth_method": "apple", "sign_in_step": "authorization_failure"])
     }
   }
 
@@ -91,6 +100,7 @@ class SignInPageModel: ViewModel {
     await analytics.track(.signInStarted(method: .google))
     guard let presentingVC = UIApplication.shared.keyWindowPresentedController else {
       print("Error presenting VC -- no key window")
+      presentedAlert = .signInError
       await errorReporting.reportMessage(
         "Unable to present Google sign-in: no key window",
         ["auth_method": "google", "sign_in_step": "present_view_controller"])
@@ -106,6 +116,7 @@ class SignInPageModel: ViewModel {
         _ = try await signInResult.user.refreshTokensIfNeeded()
         guard let serverAuthCode = signInResult.serverAuthCode else {
           print("Error signing into Google -- no serverAuthCode on signInResult.")
+          presentedAlert = .signInError
           await errorReporting.reportMessage(
             "Google sign-in missing serverAuthCode",
             ["auth_method": "google", "sign_in_step": "server_auth_code"])
@@ -124,6 +135,7 @@ class SignInPageModel: ViewModel {
         if nsError.domain != kGIDSignInErrorDomain
           || nsError.code != GIDSignInError.canceled.rawValue
         {
+          presentedAlert = .signInError
           await analytics.track(.signInFailed(method: .google, error: error.localizedDescription))
           await errorReporting.reportError(
             error,

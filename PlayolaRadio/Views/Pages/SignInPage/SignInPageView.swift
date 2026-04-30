@@ -13,7 +13,7 @@ import SwiftUI
 
 @MainActor
 struct SignInPage: View {
-  var model: SignInPageModel
+  @Bindable var model: SignInPageModel
 
   var body: some View {
     NavigationView {
@@ -107,6 +107,7 @@ struct SignInPage: View {
       .navigationBarHidden(true)
     }
     .navigationViewStyle(StackNavigationViewStyle())
+    .playolaAlert($model.presentedAlert)
   }
 }
 
