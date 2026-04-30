@@ -58,9 +58,12 @@ final class SignInPageTests: XCTestCase {
       $0.analytics.track = { event in
         capturedEvents.withValue { $0.append(event) }
       }
+      $0.errorReporting.reportMessage = { _, _ in }
     } operation: {
       SignInPageModel()
     }
+    // Avoid invoking the real Google SDK in tests by short-circuiting on no key window.
+    model.keyWindowProvider = { nil }
 
     await model.signInWithGoogleButtonTapped()
 
