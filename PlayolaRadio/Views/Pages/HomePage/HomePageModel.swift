@@ -283,8 +283,8 @@ class HomePageModel: ViewModel {
       if let conversation = response.conversation {
         model.conversation = conversation
         model.messages = try await api.getConversationMessages(jwt, conversation.id)
+        model.isLoading = false
       }
-      model.isLoading = false
       await mainContainerNavigationCoordinator.navigateToSupport(model)
     } catch {
       presentedAlert = .errorLoadingConversation
