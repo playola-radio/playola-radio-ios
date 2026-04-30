@@ -23,9 +23,9 @@ struct PlayolaAlert: Equatable, Identifiable, Hashable {
   let primaryButtonText: String?
   let secondaryButtonText: String?
   let tertiaryButtonText: String?
-  let primaryAction: (() async -> Void)?
-  let secondaryAction: (() async -> Void)?
-  let tertiaryAction: (() async -> Void)?
+  let primaryAction: (@MainActor () async -> Void)?
+  let secondaryAction: (@MainActor () async -> Void)?
+  let tertiaryAction: (@MainActor () async -> Void)?
 
   init(
     title: String,
@@ -49,9 +49,9 @@ struct PlayolaAlert: Equatable, Identifiable, Hashable {
     title: String,
     message: String?,
     primaryButtonText: String,
-    primaryAction: @escaping () async -> Void,
+    primaryAction: @escaping @MainActor () async -> Void,
     secondaryButtonText: String,
-    secondaryAction: (() async -> Void)? = nil
+    secondaryAction: (@MainActor () async -> Void)? = nil
   ) {
     self.title = title
     self.message = message
@@ -69,11 +69,11 @@ struct PlayolaAlert: Equatable, Identifiable, Hashable {
     title: String,
     message: String?,
     primaryButtonText: String,
-    primaryAction: @escaping () async -> Void,
+    primaryAction: @escaping @MainActor () async -> Void,
     secondaryButtonText: String,
-    secondaryAction: @escaping () async -> Void,
+    secondaryAction: @escaping @MainActor () async -> Void,
     tertiaryButtonText: String,
-    tertiaryAction: @escaping () async -> Void
+    tertiaryAction: @escaping @MainActor () async -> Void
   ) {
     self.title = title
     self.message = message
@@ -232,9 +232,9 @@ extension PlayolaAlert {
   }
 
   static func ratingPrompt(
-    onEnjoying: @escaping () async -> Void,
-    onNotEnjoying: @escaping () async -> Void,
-    onNotNow: @escaping () async -> Void
+    onEnjoying: @escaping @MainActor () async -> Void,
+    onNotEnjoying: @escaping @MainActor () async -> Void,
+    onNotNow: @escaping @MainActor () async -> Void
   ) -> PlayolaAlert {
     PlayolaAlert(
       title: "Are you enjoying Playola Radio?",
