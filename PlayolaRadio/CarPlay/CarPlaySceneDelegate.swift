@@ -81,41 +81,45 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
       .map { templateFromStationList($0) }
   }
 
-  func templateApplicationScene(
+  nonisolated func templateApplicationScene(
     _ scene: CPTemplateApplicationScene,
     didConnect interfaceController: CPInterfaceController
   ) {
-    Task {
-      await analytics.track(.carPlayInitialized)
-    }
-    $stationLists.publisher
-      .sink { stationLists in
-        let newTemplates = self.generateTemplates(stationLists)
-        self.tabBarTemplate?.updateTemplates(newTemplates)
+    MainActor.assumeIsolated {
+      Task {
+        await analytics.track(.carPlayInitialized)
       }
-      .store(in: &observers)
+      $stationLists.publisher
+        .sink { stationLists in
+          let newTemplates = self.generateTemplates(stationLists)
+          self.tabBarTemplate?.updateTemplates(newTemplates)
+        }
+        .store(in: &observers)
 
-    self.interfaceController = interfaceController
-    self.interfaceController?.delegate = self
+      self.interfaceController = interfaceController
+      self.interfaceController?.delegate = self
 
-    tabBarTemplate = CPTabBarTemplate(templates: generateTemplates(stationLists))
-    tabBarTemplate?.delegate = self
+      tabBarTemplate = CPTabBarTemplate(templates: generateTemplates(stationLists))
+      tabBarTemplate?.delegate = self
 
-    guard let tabBarTemplate = tabBarTemplate else { return }
-    self.interfaceController?.setRootTemplate(tabBarTemplate, animated: true, completion: nil)
+      guard let tabBarTemplate = tabBarTemplate else { return }
+      self.interfaceController?.setRootTemplate(tabBarTemplate, animated: true, completion: nil)
+    }
   }
 
-  func templateApplicationScene(
+  nonisolated func templateApplicationScene(
     _ scene: CPTemplateApplicationScene,
     didDisconnectInterfaceController interfaceController: CPInterfaceController
   ) {
-    self.interfaceController = nil
+    MainActor.assumeIsolated {
+      self.interfaceController = nil
 
-    for observer in observers {
-      observer.cancel()
+      for observer in observers {
+        observer.cancel()
+      }
+      observers.removeAll()
+      CPListItem.clearImageCache()
     }
-    observers.removeAll()
-    CPListItem.clearImageCache()
   }
 
   private func showNowPlayingTemplate(animated: Bool = true) {
@@ -340,25 +344,27 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 }
 
 extension CarPlaySceneDelegate: CPTabBarTemplateDelegate {
-  func tabBarTemplate(_ tabBarTemplate: CPTabBarTemplate, didSelect selectedTemplate: CPTemplate) {
+  nonisolated func tabBarTemplate(
+    _ tabBarTemplate: CPTabBarTemplate, didSelect selectedTemplate: CPTemplate
+  ) {
     // Handle tab selection
   }
 }
 
 extension CarPlaySceneDelegate: CPInterfaceControllerDelegate {
-  func templateWillAppear(_ aTemplate: CPTemplate, animated: Bool) {
+  nonisolated func templateWillAppear(_ aTemplate: CPTemplate, animated: Bool) {
     // Handle template will appear
   }
 
-  func templateDidAppear(_ aTemplate: CPTemplate, animated: Bool) {
+  nonisolated func templateDidAppear(_ aTemplate: CPTemplate, animated: Bool) {
     // Handle template did appear
   }
 
-  func templateWillDisappear(_ aTemplate: CPTemplate, animated: Bool) {
+  nonisolated func templateWillDisappear(_ aTemplate: CPTemplate, animated: Bool) {
     // Handle template will disappear
   }
 
-  func templateDidDisappear(_ aTemplate: CPTemplate, animated: Bool) {
+  nonisolated func templateDidDisappear(_ aTemplate: CPTemplate, animated: Bool) {
     // Handle template did disappear
   }
 }
