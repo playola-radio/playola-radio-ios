@@ -14,20 +14,31 @@ import SwiftUI
 @MainActor
 @Observable
 class SignInPageModel: ViewModel {
+
+  // MARK: - Dependencies
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.appRating) var appRating
   @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+
+  // MARK: - Shared State
   @ObservationIgnored @Shared(.auth) var auth: Auth
 
-  var presentedAlert: PlayolaAlert?
-
+  // MARK: - Initialization
   @MainActor
   override init() {
     super.init()
   }
 
-  // MARK: Actions
+  // MARK: - Properties
+  var presentedAlert: PlayolaAlert?
+
+  @ObservationIgnored
+  var keyWindowProvider: @MainActor () -> UIViewController? = {
+    UIApplication.shared.keyWindowPresentedController
+  }
+
+  // MARK: - User Actions
 
   func signInWithAppleButtonTapped(request: ASAuthorizationAppleIDRequest) {
     request.requestedScopes = [.email, .fullName]
@@ -83,22 +94,9 @@ class SignInPageModel: ViewModel {
     }
   }
 
-  private func handleAppleAuthorizationFailure(_ error: any Error) {
-    print(error)
-    if let authError = error as? ASAuthorizationError, authError.code == .canceled {
-      return
-    }
-    presentedAlert = .signInError
-    Task {
-      await errorReporting.reportError(
-        error,
-        ["auth_method": "apple", "sign_in_step": "authorization_failure"])
-    }
-  }
-
   func signInWithGoogleButtonTapped() async {
     await analytics.track(.signInStarted(method: .google))
-    guard let presentingVC = UIApplication.shared.keyWindowPresentedController else {
+    guard let presentingVC = keyWindowProvider() else {
       print("Error presenting VC -- no key window")
       presentedAlert = .signInError
       await errorReporting.reportMessage(
@@ -142,6 +140,21 @@ class SignInPageModel: ViewModel {
             ["auth_method": "google", "sign_in_step": "google_sign_in_flow"])
         }
       }
+    }
+  }
+
+  // MARK: - Private Helpers
+
+  private func handleAppleAuthorizationFailure(_ error: any Error) {
+    print(error)
+    if let authError = error as? ASAuthorizationError, authError.code == .canceled {
+      return
+    }
+    presentedAlert = .signInError
+    Task {
+      await errorReporting.reportError(
+        error,
+        ["auth_method": "apple", "sign_in_step": "authorization_failure"])
     }
   }
 }
