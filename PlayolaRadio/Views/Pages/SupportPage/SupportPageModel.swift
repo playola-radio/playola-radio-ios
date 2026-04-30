@@ -47,9 +47,10 @@ class SupportPageModel: ViewModel {
     isLoading = true
 
     do {
-      conversation = try await api.getOrCreateSupportConversation(jwt)
-      if let conversationId = conversation?.id {
-        messages = try await api.getConversationMessages(jwt, conversationId)
+      let response = try await api.getSupportConversation(jwt)
+      if let existing = response.conversation {
+        conversation = existing
+        messages = try await api.getConversationMessages(jwt, existing.id)
         await markAsRead()
       }
     } catch {
@@ -71,16 +72,20 @@ class SupportPageModel: ViewModel {
   }
 
   func sendMessage() async {
-    guard let jwt = auth.jwt,
-      let conversationId = conversation?.id,
-      canSend
-    else { return }
+    guard let jwt = auth.jwt, canSend else { return }
 
     let messageText = newMessage.trimmingCharacters(in: .whitespacesAndNewlines)
     isSending = true
     newMessage = ""
 
     do {
+      if conversation == nil {
+        let response = try await api.createSupportConversation(jwt)
+        conversation = response.conversation
+      }
+      guard let conversationId = conversation?.id else {
+        throw APIError.dataNotValid
+      }
       let message = try await api.sendConversationMessage(jwt, conversationId, messageText)
       messages.append(message)
     } catch {

@@ -186,7 +186,17 @@ class ContactPageModel: ViewModel {
 
   private func handleRegularUserFlow(jwt: String) async {
     do {
-      let conversation = try await api.getOrCreateSupportConversation(jwt)
+      let response = try await api.getSupportConversation(jwt)
+
+      guard let conversation = response.conversation else {
+        isCheckingSupport = false
+        let feedbackModel = FeedbackSheetModel { [weak self] in
+          self?.presentedAlert = .messageSentSuccess
+        }
+        mainContainerNavigationCoordinator.presentedSheet = .feedbackSheet(feedbackModel)
+        return
+      }
+
       let messages = try await api.getConversationMessages(jwt, conversation.id)
 
       isCheckingSupport = false

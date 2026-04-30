@@ -252,23 +252,16 @@ class MainContainerModel: ViewModel {
   }
 
   private func showFeedbackSheet() {
-    guard let jwt = auth.jwt else { return }
     Task {
-      do {
-        let conversation = try await api.getOrCreateSupportConversation(jwt)
-        let feedbackModel = FeedbackSheetModel(
-          conversation: conversation,
-          title: "Would you be up for letting us know what we can do better?",
-          placeholderText: "",
-          onSuccess: { [weak self] in
-            self?.presentedAlert = .thankYouForFeedback
-          }
-        )
-        await analytics.track(.feedbackSheetPresented)
-        mainContainerNavigationCoordinator.presentedSheet = .feedbackSheet(feedbackModel)
-      } catch {
-        await analytics.track(.feedbackSheetFailed(error: error.localizedDescription))
-      }
+      let feedbackModel = FeedbackSheetModel(
+        title: "Would you be up for letting us know what we can do better?",
+        placeholderText: "",
+        onSuccess: { [weak self] in
+          self?.presentedAlert = .thankYouForFeedback
+        }
+      )
+      await analytics.track(.feedbackSheetPresented)
+      mainContainerNavigationCoordinator.presentedSheet = .feedbackSheet(feedbackModel)
     }
   }
 

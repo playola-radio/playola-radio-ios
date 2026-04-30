@@ -506,16 +506,6 @@ struct APIClient: Sendable {
       )
     }
 
-  /// Gets the existing support conversation or creates one if none exists
-  /// - Parameter jwtToken: The JWT token for authentication
-  /// - Returns: The support Conversation
-  /// - Throws: APIError if the request fails
-  func getOrCreateSupportConversation(_ jwtToken: String) async throws -> Conversation {
-    let response = try await getSupportConversation(jwtToken)
-    if let existing = response.conversation { return existing }
-    return try await createSupportConversation(jwtToken).conversation
-  }
-
   /// Fetches messages for a conversation
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
