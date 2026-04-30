@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import ConcurrencyExtras
 import Dependencies
 import Foundation
 import Sharing
@@ -188,8 +189,8 @@ struct ConversationListPageTests {
     @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
       MainContainerNavigationCoordinator()
 
-    var markAsReadCalled = false
-    var markedConversationId: String?
+    let markAsReadCalled = LockIsolated(false)
+    let markedConversationId = LockIsolated<String?>(nil)
 
     let testConversation = AdminConversationResponse(
       conversation: makeConversation(id: "conv-1", ownerFirstName: "John"),
@@ -200,8 +201,8 @@ struct ConversationListPageTests {
       $0.api.getConversations = { _, _ in [testConversation] }
       $0.api.getConversationMessages = { _, _ in [] }
       $0.api.markConversationRead = { _, conversationId in
-        markAsReadCalled = true
-        markedConversationId = conversationId
+        markAsReadCalled.setValue(true)
+        markedConversationId.setValue(conversationId)
       }
     } operation: {
       ConversationListPageModel()
@@ -213,8 +214,8 @@ struct ConversationListPageTests {
 
     await model.onConversationTapped(testConversation)
 
-    #expect(markAsReadCalled == true)
-    #expect(markedConversationId == "conv-1")
+    #expect(markAsReadCalled.value == true)
+    #expect(markedConversationId.value == "conv-1")
     #expect(model.conversations.first?.unreadCountFromOwner == 0)
   }
 }

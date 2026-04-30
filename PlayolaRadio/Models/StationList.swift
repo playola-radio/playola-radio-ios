@@ -91,21 +91,18 @@ enum AnyStation: Identifiable, Codable, Equatable {
   }
 
   // Image loading method for UI components
-  func getImage(completion: @escaping (_ image: UIImage) -> Void) {
+  func getImage() async -> UIImage {
     switch self {
     case .playola(let station):
       if let imageUrl = station.imageUrl {
-        UIImage.image(from: imageUrl) { image in
-          // swiftlint:disable:next force_unwrapping
-          completion(image ?? UIImage(named: "stationImage")!)
-        }
-      } else {
+        let image = await UIImage.image(from: imageUrl)
         // swiftlint:disable:next force_unwrapping
-        let image = UIImage(named: "stationImage")!
-        completion(image)
+        return image ?? UIImage(named: "stationImage")!
       }
+      // swiftlint:disable:next force_unwrapping
+      return UIImage(named: "stationImage")!
     case .url(let station):
-      station.getImage(completion: completion)
+      return await station.getImage()
     }
   }
 }

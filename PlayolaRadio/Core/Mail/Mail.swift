@@ -10,7 +10,8 @@ import MessageUI
 import SwiftUI
 import UIKit
 
-class EmailService: NSObject, MFMailComposeViewControllerDelegate {
+@MainActor
+class EmailService: NSObject, @preconcurrency MFMailComposeViewControllerDelegate {
   public static func createEmailUrl(
     to: String, subject: String, body: String? = nil
   ) -> URL? {
@@ -91,7 +92,8 @@ struct MailComposeView: UIViewControllerRepresentable {
     return mail
   }
 
-  final class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
+  @MainActor
+  final class Coordinator: NSObject, @preconcurrency MFMailComposeViewControllerDelegate {
     var parent: MailComposeView
 
     init(_ mailController: MailComposeView) {

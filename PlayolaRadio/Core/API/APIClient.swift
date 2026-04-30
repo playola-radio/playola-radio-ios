@@ -18,7 +18,7 @@ import Sharing
 @DependencyClient
 struct APIClient: Sendable {
   /// Fetches all available radio station lists
-  var getStations: () async throws -> IdentifiedArrayOf<StationList> = { [] }
+  var getStations: @Sendable () async throws -> IdentifiedArrayOf<StationList> = { [] }
 
   /// Signs in user via Apple authentication
   /// - Parameters:
@@ -29,7 +29,7 @@ struct APIClient: Sendable {
   ///   - lastName: Optional last name for the user
   /// - Returns: JWT token string
   var signInViaApple:
-    (
+    @Sendable (
       _ identityToken: String, _ email: String?, _ authCode: String, _ firstName: String,
       _ lastName: String?
     )
@@ -38,28 +38,28 @@ struct APIClient: Sendable {
 
   /// Revokes Apple credentials for the user
   /// - Parameter appleUserId: The Apple user ID to revoke
-  var revokeAppleCredentials: (_ appleUserId: String) async throws -> Void = { _ in }
+  var revokeAppleCredentials: @Sendable (_ appleUserId: String) async throws -> Void = { _ in }
 
   /// Signs in user via Google authentication
   /// - Parameter code: Google authentication code
   /// - Returns: JWT token string
-  var signInViaGoogle: (_ code: String) async throws -> String = { _ in "" }
+  var signInViaGoogle: @Sendable (_ code: String) async throws -> String = { _ in "" }
 
   /// Fetches the rewards profile for the authenticated user
   /// - Parameter jwtToken: The JWT token for authentication
   /// - Returns: RewardsProfile containing listening time and rewards data
-  var getRewardsProfile: (_ jwtToken: String) async throws -> RewardsProfile = { _ in
+  var getRewardsProfile: @Sendable (_ jwtToken: String) async throws -> RewardsProfile = { _ in
     RewardsProfile(totalTimeListenedMS: 0, totalMSAvailableForRewards: 0, accurateAsOfTime: Date())
   }
 
   /// Fetches all available prize tiers from the rewards system
   /// - Returns: Array of PrizeTier objects containing tiers and their associated prizes
-  var getPrizeTiers: () async throws -> [PrizeTier] = { [] }
+  var getPrizeTiers: @Sendable () async throws -> [PrizeTier] = { [] }
 
   /// Fetches the user's redeemed prizes
   /// - Parameter jwtToken: The JWT token for authentication
   /// - Returns: Array of UserPrize objects
-  var getUserPrizes: (_ jwtToken: String) async throws -> [UserPrize] = { _ in [] }
+  var getUserPrizes: @Sendable (_ jwtToken: String) async throws -> [UserPrize] = { _ in [] }
 
   /// Redeems a prize for the user
   /// - Parameters:
@@ -68,19 +68,22 @@ struct APIClient: Sendable {
   ///   - stationId: Optional station ID for per-station prizes
   /// - Returns: The created UserPrize
   var redeemPrize:
-    (_ jwtToken: String, _ prizeId: String, _ stationId: String?) async throws -> UserPrize = {
-      _, _, _ in
-      UserPrize(
-        id: "", userId: "", prizeId: "",
-        redeemedAt: Date(), createdAt: Date(), updatedAt: Date(), prize: nil)
-    }
+    @Sendable (_ jwtToken: String, _ prizeId: String, _ stationId: String?) async throws ->
+      UserPrize = {
+        _, _, _ in
+        UserPrize(
+          id: "", userId: "", prizeId: "",
+          redeemedAt: Date(), createdAt: Date(), updatedAt: Date(), prize: nil)
+      }
 
   ///   - jwtToken: Current JWT
   ///   - firstName: New first name
   ///   - lastName: New last name (optional, "" treated as nil)
   /// - Returns: Updated `Auth` containing fresh token & user
   var updateUser:
-    (_ jwtToken: String, _ firstName: String, _ lastName: String?, _ verifiedEmail: String?)
+    @Sendable (
+      _ jwtToken: String, _ firstName: String, _ lastName: String?, _ verifiedEmail: String?
+    )
       async throws -> Auth = {
         _, _, _, _ in Auth()
       }
@@ -91,22 +94,24 @@ struct APIClient: Sendable {
   ///   - songId: The ID of the song to like
   ///   - spinId: Optional ID of the spin context where the like occurred
   /// - Throws: APIError if the request fails
-  var likeSong: (_ jwtToken: String, _ songId: String, _ spinId: String?) async throws -> Void = {
-    _, _, _ in
-  }
+  var likeSong:
+    @Sendable (_ jwtToken: String, _ songId: String, _ spinId: String?) async throws -> Void = {
+      _, _, _ in
+    }
 
   /// Unlikes a song for the authenticated user
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
   ///   - songId: The ID of the song to unlike
   /// - Throws: APIError if the request fails
-  var unlikeSong: (_ jwtToken: String, _ songId: String) async throws -> Void = { _, _ in }
+  var unlikeSong: @Sendable (_ jwtToken: String, _ songId: String) async throws -> Void = { _, _ in
+  }
 
   /// Fetches all liked songs for the authenticated user
   /// - Parameter jwtToken: The JWT token for authentication
   /// - Returns: Array of UserSongLike objects containing AudioBlocks and timestamps
   /// - Throws: APIError if the request fails
-  var getLikedSongs: (_ jwtToken: String) async throws -> [UserSongLike] = { _ in [] }
+  var getLikedSongs: @Sendable (_ jwtToken: String) async throws -> [UserSongLike] = { _ in [] }
 
   /// Fetches all shows for the authenticated user
   /// - Parameters:
@@ -116,9 +121,10 @@ struct APIClient: Sendable {
   /// - Returns: Array of Show objects
   /// - Throws: APIError if the request fails
   var getShows:
-    (_ jwtToken: String, _ includeSegments: Bool, _ stationId: String?) async throws -> [Show] = {
-      _, _, _ in []
-    }
+    @Sendable (_ jwtToken: String, _ includeSegments: Bool, _ stationId: String?) async throws ->
+      [Show] = {
+        _, _, _ in []
+      }
 
   /// Fetches a single show by ID
   /// - Parameters:
@@ -128,9 +134,10 @@ struct APIClient: Sendable {
   /// - Returns: Show object or nil if not found
   /// - Throws: APIError if the request fails
   var getShowById:
-    (_ jwtToken: String, _ showId: String, _ includeSegments: Bool) async throws -> Show? = {
-      _, _, _ in nil
-    }
+    @Sendable (_ jwtToken: String, _ showId: String, _ includeSegments: Bool) async throws -> Show? =
+      {
+        _, _, _ in nil
+      }
 
   /// Fetches airings (scheduled broadcasts of episodes)
   /// - Parameters:
@@ -138,7 +145,7 @@ struct APIClient: Sendable {
   ///   - stationId: Optional station ID to filter by specific station
   /// - Returns: Array of Airing objects with nested episode, show, and station data
   /// - Throws: APIError if the request fails
-  var getAirings: (_ jwtToken: String, _ stationId: String?) async throws -> [Airing] =
+  var getAirings: @Sendable (_ jwtToken: String, _ stationId: String?) async throws -> [Airing] =
     { _, _ in [] }
 
   /// Fetches the schedule for a station
@@ -147,21 +154,24 @@ struct APIClient: Sendable {
   ///   - extended: Whether to fetch extended schedule (more spins)
   /// - Returns: Array of Spin objects representing the schedule
   /// - Throws: Error if the request fails
-  var fetchSchedule: (_ stationId: String, _ extended: Bool) async throws -> [Spin] = { _, _ in [] }
+  var fetchSchedule: @Sendable (_ stationId: String, _ extended: Bool) async throws -> [Spin] = {
+    _, _ in []
+  }
 
   /// Fetches a station by ID
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
   ///   - stationId: The station ID to fetch
   /// - Returns: Station object or nil if not found
-  var fetchStation: (_ jwtToken: String, _ stationId: String) async throws -> Station? = { _, _ in
+  var fetchStation: @Sendable (_ jwtToken: String, _ stationId: String) async throws -> Station? = {
+    _, _ in
     nil
   }
 
   /// Fetches all stations for a user
   /// - Parameter jwtToken: The JWT token for authentication
   /// - Returns: Array of Station objects the user has access to
-  var fetchUserStations: (_ jwtToken: String) async throws -> [Station] = { _ in [] }
+  var fetchUserStations: @Sendable (_ jwtToken: String) async throws -> [Station] = { _ in [] }
 
   /// Deletes a spin from the station's schedule
   /// - Parameters:
@@ -169,7 +179,9 @@ struct APIClient: Sendable {
   ///   - spinId: The ID of the spin to delete
   /// - Returns: Updated array of Spin objects representing the new schedule
   /// - Throws: APIError if the request fails
-  var deleteSpin: (_ jwtToken: String, _ spinId: String) async throws -> [Spin] = { _, _ in [] }
+  var deleteSpin: @Sendable (_ jwtToken: String, _ spinId: String) async throws -> [Spin] = {
+    _, _ in []
+  }
 
   /// Moves a spin to a new position in the playlist
   /// - Parameters:
@@ -179,7 +191,7 @@ struct APIClient: Sendable {
   /// - Returns: Updated array of Spin objects representing the new schedule
   /// - Throws: APIError if the request fails
   var moveSpin:
-    (_ jwtToken: String, _ spinId: String, _ placeAfterSpinId: String?) async throws
+    @Sendable (_ jwtToken: String, _ spinId: String, _ placeAfterSpinId: String?) async throws
       -> [Spin] = { _, _, _ in [] }
   /// Inserts a spin into the station's schedule
   /// - Parameters:
@@ -189,7 +201,8 @@ struct APIClient: Sendable {
   /// - Returns: Updated array of Spin objects representing the new schedule
   /// - Throws: APIError if the request fails
   var insertSpin:
-    (_ jwtToken: String, _ audioBlockId: String, _ placeAfterSpinId: String) async throws -> [Spin] =
+    @Sendable (_ jwtToken: String, _ audioBlockId: String, _ placeAfterSpinId: String) async throws
+      -> [Spin] =
       { _, _, _ in [] }
 
   /// Gets a presigned URL for uploading a voicetrack to S3
@@ -199,7 +212,7 @@ struct APIClient: Sendable {
   /// - Returns: PresignedURLResponse containing the upload URL and S3 key
   /// - Throws: APIError if the request fails
   var getVoicetrackPresignedURL:
-    (_ jwtToken: String, _ stationId: String) async throws
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws
       -> PresignedURLResponse = { _, _ in
         PresignedURLResponse(
           presignedUrl: URL(string: "https://example.com")!,
@@ -216,7 +229,7 @@ struct APIClient: Sendable {
   ///   - onProgress: Callback for upload progress (0.0 to 1.0)
   /// - Throws: APIError if the upload fails
   var uploadToS3:
-    (
+    @Sendable (
       _ presignedURL: URL, _ fileURL: URL, _ contentType: String,
       _ onProgress: @escaping @Sendable (Double) -> Void
     ) async throws -> Void = { _, _, _, _ in }
@@ -230,7 +243,8 @@ struct APIClient: Sendable {
   /// - Returns: The created AudioBlock
   /// - Throws: APIError if the request fails
   var createVoicetrack:
-    (_ jwtToken: String, _ stationId: String, _ s3Key: String, _ durationMS: Int) async throws
+    @Sendable (_ jwtToken: String, _ stationId: String, _ s3Key: String, _ durationMS: Int)
+      async throws
       -> AudioBlock = { _, _, _, _ in
         AudioBlock.mockWith()
       }
@@ -243,7 +257,7 @@ struct APIClient: Sendable {
   /// - Returns: VoicetrackStatusResponse indicating if the file is ready
   /// - Throws: APIError if the request fails
   var getVoicetrackStatus:
-    (_ jwtToken: String, _ stationId: String, _ s3Key: String) async throws
+    @Sendable (_ jwtToken: String, _ stationId: String, _ s3Key: String) async throws
       -> VoicetrackStatusResponse = { _, _, _ in
         VoicetrackStatusResponse(ready: true, s3Key: "test.m4a")
       }
@@ -257,7 +271,9 @@ struct APIClient: Sendable {
   /// - Returns: Array of ListenerQuestion objects
   /// - Throws: APIError if the request fails
   var getListenerQuestions:
-    (_ jwtToken: String, _ stationId: String) async throws -> [ListenerQuestion] = { _, _ in [] }
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> [ListenerQuestion] = {
+      _, _ in []
+    }
 
   /// Gets a presigned URL for uploading a listener question to S3
   /// - Parameters:
@@ -266,7 +282,7 @@ struct APIClient: Sendable {
   /// - Returns: ListenerQuestionPresignedURLResponse containing the upload URL and S3 key
   /// - Throws: APIError if the request fails
   var getListenerQuestionPresignedURL:
-    (_ jwtToken: String, _ stationId: String) async throws
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws
       -> ListenerQuestionPresignedURLResponse = { _, _ in
         ListenerQuestionPresignedURLResponse(
           presignedUrl: URL(string: "https://example.com")!,
@@ -283,7 +299,7 @@ struct APIClient: Sendable {
   /// - Returns: The created ListenerQuestion
   /// - Throws: APIError if the request fails
   var createListenerQuestion:
-    (_ jwtToken: String, _ stationId: String, _ audioBlockId: String) async throws
+    @Sendable (_ jwtToken: String, _ stationId: String, _ audioBlockId: String) async throws
       -> ListenerQuestion = { _, _, _ in
         ListenerQuestion.mock
       }
@@ -297,7 +313,9 @@ struct APIClient: Sendable {
   /// - Returns: The updated ListenerQuestion
   /// - Throws: APIError if the request fails
   var registerListenerQuestionAnswer:
-    (_ jwtToken: String, _ stationId: String, _ questionId: String, _ answerAudioBlockId: String)
+    @Sendable (
+      _ jwtToken: String, _ stationId: String, _ questionId: String, _ answerAudioBlockId: String
+    )
       async throws -> ListenerQuestion = { _, _, _, _ in
         ListenerQuestion.mock
       }
@@ -310,7 +328,7 @@ struct APIClient: Sendable {
   /// - Returns: The updated ListenerQuestion with declined status
   /// - Throws: APIError if the request fails
   var declineListenerQuestion:
-    (_ jwtToken: String, _ stationId: String, _ questionId: String) async throws
+    @Sendable (_ jwtToken: String, _ stationId: String, _ questionId: String) async throws
       -> ListenerQuestion = { _, _, _ in
         ListenerQuestion.mock
       }
@@ -319,8 +337,9 @@ struct APIClient: Sendable {
   /// - Parameter jwtToken: The JWT token for authentication
   /// - Returns: Array of ListenerQuestionAiring objects scheduled in the future
   /// - Throws: APIError if the request fails
-  var getMyListenerQuestionAirings: (_ jwtToken: String) async throws -> [ListenerQuestionAiring] =
-    { _ in [] }
+  var getMyListenerQuestionAirings:
+    @Sendable (_ jwtToken: String) async throws -> [ListenerQuestionAiring] =
+      { _ in [] }
 
   /// Searches for songs by keywords
   /// - Parameters:
@@ -328,9 +347,10 @@ struct APIClient: Sendable {
   ///   - keywords: The search keywords
   /// - Returns: Array of AudioBlocks matching the search
   /// - Throws: APIError if the request fails
-  var searchSongs: (_ jwtToken: String, _ keywords: String) async throws -> [AudioBlock] = { _, _ in
-    []
-  }
+  var searchSongs: @Sendable (_ jwtToken: String, _ keywords: String) async throws -> [AudioBlock] =
+    { _, _ in
+      []
+    }
 
   /// Searches for song requests by keywords
   /// - Parameters:
@@ -338,18 +358,20 @@ struct APIClient: Sendable {
   ///   - keywords: The search keywords
   /// - Returns: Array of SongRequests matching the search
   /// - Throws: APIError if the request fails
-  var searchSongRequests: (_ jwtToken: String, _ keywords: String) async throws -> [SongRequest] = {
-    _, _ in
-    []
-  }
+  var searchSongRequests:
+    @Sendable (_ jwtToken: String, _ keywords: String) async throws -> [SongRequest] = {
+      _, _ in
+      []
+    }
 
   /// Requests a song to be added to the library
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
   ///   - songRequest: The song request containing song details
   /// - Throws: APIError if the request fails
-  var requestSong: (_ jwtToken: String, _ songRequest: SongRequest) async throws -> Void = { _, _ in
-  }
+  var requestSong: @Sendable (_ jwtToken: String, _ songRequest: SongRequest) async throws -> Void =
+    { _, _ in
+    }
 
   /// Registers a device for push notifications
   /// - Parameters:
@@ -360,7 +382,7 @@ struct APIClient: Sendable {
   /// - Returns: RegisteredDevice containing the device ID
   /// - Throws: APIError if the request fails
   var registerDevice:
-    (_ jwtToken: String, _ deviceToken: String, _ platform: String, _ appVersion: String)
+    @Sendable (_ jwtToken: String, _ deviceToken: String, _ platform: String, _ appVersion: String)
       async throws
       -> RegisteredDevice = { _, _, _, _ in
         RegisteredDevice(id: "", deviceToken: "", platform: "ios", isActive: true)
@@ -371,7 +393,9 @@ struct APIClient: Sendable {
   ///   - jwtToken: The JWT token for authentication
   ///   - deviceId: The device ID to unregister
   /// - Throws: APIError if the request fails
-  var unregisterDevice: (_ jwtToken: String, _ deviceId: String) async throws -> Void = { _, _ in }
+  var unregisterDevice: @Sendable (_ jwtToken: String, _ deviceId: String) async throws -> Void = {
+    _, _ in
+  }
 
   /// Sends a push notification to all listeners of a station
   /// - Parameters:
@@ -380,7 +404,8 @@ struct APIClient: Sendable {
   ///   - message: The notification message
   /// - Throws: APIError if the request fails
   var sendStationNotification:
-    (_ jwtToken: String, _ stationId: String, _ message: String) async throws -> Void = { _, _, _ in
+    @Sendable (_ jwtToken: String, _ stationId: String, _ message: String) async throws -> Void = {
+      _, _, _ in
     }
 
   /// Fetches all push notification subscriptions for the current user
@@ -388,7 +413,9 @@ struct APIClient: Sendable {
   /// - Returns: Array of PushNotificationSubscriptionWithStation objects
   /// - Throws: APIError if the request fails
   var getPushNotificationSubscriptions:
-    (_ jwtToken: String) async throws -> [PushNotificationSubscriptionWithStation] = { _ in [] }
+    @Sendable (_ jwtToken: String) async throws -> [PushNotificationSubscriptionWithStation] = {
+      _ in []
+    }
 
   /// Subscribes to push notifications for a station
   /// - Parameters:
@@ -397,20 +424,21 @@ struct APIClient: Sendable {
   /// - Returns: The updated PushNotificationSubscription
   /// - Throws: APIError if the request fails
   var subscribeToStationNotifications:
-    (_ jwtToken: String, _ stationId: String) async throws -> PushNotificationSubscription = {
-      _, _ in
-      PushNotificationSubscription(
-        id: "",
-        userId: "",
-        stationId: "",
-        isSubscribed: true,
-        optedOutAt: nil,
-        autoSubscribedAt: nil,
-        manualSubscribedAt: nil,
-        createdAt: Date(),
-        updatedAt: Date()
-      )
-    }
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> PushNotificationSubscription =
+      {
+        _, _ in
+        PushNotificationSubscription(
+          id: "",
+          userId: "",
+          stationId: "",
+          isSubscribed: true,
+          optedOutAt: nil,
+          autoSubscribedAt: nil,
+          manualSubscribedAt: nil,
+          createdAt: Date(),
+          updatedAt: Date()
+        )
+      }
 
   /// Unsubscribes from push notifications for a station
   /// - Parameters:
@@ -419,45 +447,49 @@ struct APIClient: Sendable {
   /// - Returns: The updated PushNotificationSubscription
   /// - Throws: APIError if the request fails
   var unsubscribeFromStationNotifications:
-    (_ jwtToken: String, _ stationId: String) async throws -> PushNotificationSubscription = {
-      _, _ in
-      PushNotificationSubscription(
-        id: "",
-        userId: "",
-        stationId: "",
-        isSubscribed: false,
-        optedOutAt: nil,
-        autoSubscribedAt: nil,
-        manualSubscribedAt: nil,
-        createdAt: Date(),
-        updatedAt: Date()
-      )
-    }
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> PushNotificationSubscription =
+      {
+        _, _ in
+        PushNotificationSubscription(
+          id: "",
+          userId: "",
+          stationId: "",
+          isSubscribed: false,
+          optedOutAt: nil,
+          autoSubscribedAt: nil,
+          manualSubscribedAt: nil,
+          createdAt: Date(),
+          updatedAt: Date()
+        )
+      }
 
   /// Fetches currently live stations
   /// - Parameter jwtToken: The JWT token for authentication
   /// - Returns: Array of LiveStationInfo containing stations that are currently live
   /// - Throws: APIError if the request fails
-  var fetchLiveStations: (_ jwtToken: String) async throws -> [LiveStationInfo] = { _ in [] }
+  var fetchLiveStations: @Sendable (_ jwtToken: String) async throws -> [LiveStationInfo] = { _ in
+    []
+  }
 
   /// Gets the user's support conversation (may be nil if none exists)
   /// - Parameter jwtToken: The JWT token for authentication
   /// - Returns: SupportConversationResponse containing the conversation (nullable) and unread count
   /// - Throws: APIError if the request fails
-  var getSupportConversation: (_ jwtToken: String) async throws -> SupportConversationResponse = {
-    _ in
-    SupportConversationResponse(
-      conversation: nil,
-      unreadCount: 0
-    )
-  }
+  var getSupportConversation:
+    @Sendable (_ jwtToken: String) async throws -> SupportConversationResponse = {
+      _ in
+      SupportConversationResponse(
+        conversation: nil,
+        unreadCount: 0
+      )
+    }
 
   /// Creates a support conversation for the user
   /// - Parameter jwtToken: The JWT token for authentication
   /// - Returns: CreateSupportConversationResponse containing the conversation and unread count
   /// - Throws: APIError if the request fails
   var createSupportConversation:
-    (_ jwtToken: String) async throws -> CreateSupportConversationResponse = {
+    @Sendable (_ jwtToken: String) async throws -> CreateSupportConversationResponse = {
       _ in
       CreateSupportConversationResponse(
         conversation: Conversation(
@@ -474,16 +506,6 @@ struct APIClient: Sendable {
       )
     }
 
-  /// Gets the existing support conversation or creates one if none exists
-  /// - Parameter jwtToken: The JWT token for authentication
-  /// - Returns: The support Conversation
-  /// - Throws: APIError if the request fails
-  func getOrCreateSupportConversation(_ jwtToken: String) async throws -> Conversation {
-    let response = try await getSupportConversation(jwtToken)
-    if let existing = response.conversation { return existing }
-    return try await createSupportConversation(jwtToken).conversation
-  }
-
   /// Fetches messages for a conversation
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
@@ -491,7 +513,9 @@ struct APIClient: Sendable {
   /// - Returns: Array of Message objects
   /// - Throws: APIError if the request fails
   var getConversationMessages:
-    (_ jwtToken: String, _ conversationId: String) async throws -> [Message] = { _, _ in [] }
+    @Sendable (_ jwtToken: String, _ conversationId: String) async throws -> [Message] = { _, _ in
+      []
+    }
 
   /// Sends a message to a conversation
   /// - Parameters:
@@ -501,27 +525,29 @@ struct APIClient: Sendable {
   /// - Returns: The created Message
   /// - Throws: APIError if the request fails
   var sendConversationMessage:
-    (_ jwtToken: String, _ conversationId: String, _ message: String) async throws -> Message = {
-      _, _, _ in
-      Message(
-        id: "",
-        conversationId: "",
-        senderId: "",
-        message: "",
-        createdAt: Date(),
-        updatedAt: Date(),
-        sender: nil
-      )
-    }
+    @Sendable (_ jwtToken: String, _ conversationId: String, _ message: String) async throws ->
+      Message = {
+        _, _, _ in
+        Message(
+          id: "",
+          conversationId: "",
+          senderId: "",
+          message: "",
+          createdAt: Date(),
+          updatedAt: Date(),
+          sender: nil
+        )
+      }
 
   /// Marks a conversation as read
   /// - Parameters:
   ///   - jwtToken: The user's JWT token
   ///   - conversationId: The conversation ID
   /// - Throws: APIError if the request fails
-  var markConversationRead: (_ jwtToken: String, _ conversationId: String) async throws -> Void = {
-    _, _ in
-  }
+  var markConversationRead:
+    @Sendable (_ jwtToken: String, _ conversationId: String) async throws -> Void = {
+      _, _ in
+    }
 
   /// Gets all conversations for admin users
   /// - Parameters:
@@ -530,9 +556,10 @@ struct APIClient: Sendable {
   /// - Returns: Array of AdminConversationResponse with unread counts
   /// - Throws: APIError if the request fails
   var getConversations:
-    (_ jwtToken: String, _ status: String?) async throws -> [AdminConversationResponse] = { _, _ in
-      []
-    }
+    @Sendable (_ jwtToken: String, _ status: String?) async throws -> [AdminConversationResponse] =
+      { _, _ in
+        []
+      }
 
   // MARK: - Production Intro Upload
 
@@ -544,7 +571,7 @@ struct APIClient: Sendable {
   /// - Returns: IntroPresignedURLResponse containing the upload URL and S3 key
   /// - Throws: APIError if the request fails
   var getIntroPresignedURL:
-    (_ jwtToken: String, _ stationId: String, _ filename: String) async throws
+    @Sendable (_ jwtToken: String, _ stationId: String, _ filename: String) async throws
       -> IntroPresignedURLResponse = { _, _, _ in
         IntroPresignedURLResponse(
           presignedUrl: URL(string: "https://example.com")!,
@@ -561,7 +588,7 @@ struct APIClient: Sendable {
   ///   - durationMS: Duration in milliseconds
   /// - Throws: APIError if the request fails
   var createIntroSourceTape:
-    (
+    @Sendable (
       _ jwtToken: String, _ stationId: String, _ s3Key: String, _ name: String, _ durationMS: Int,
       _ audioBlockId: String?
     )
@@ -575,10 +602,11 @@ struct APIClient: Sendable {
   ///   - stationId: The station ID to fetch library for
   /// - Returns: LibraryResponse containing songs and IDs of songs with intros
   /// - Throws: APIError if the request fails
-  var getStationLibrary: (_ jwtToken: String, _ stationId: String) async throws -> LibraryResponse =
-    {
-      _, _ in .mockWith()
-    }
+  var getStationLibrary:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> LibraryResponse =
+      {
+        _, _ in .mockWith()
+      }
 
   /// Fetches library requests for a station
   /// - Parameters:
@@ -588,7 +616,7 @@ struct APIClient: Sendable {
   /// - Returns: Array of StationLibraryRequest objects
   /// - Throws: APIError if the request fails
   var getStationLibraryRequests:
-    (_ jwtToken: String, _ stationId: String, _ status: String?) async throws
+    @Sendable (_ jwtToken: String, _ stationId: String, _ status: String?) async throws
       -> [StationLibraryRequest] = { _, _, _ in [] }
 
   /// Creates a request to add a song to the station's library
@@ -599,7 +627,8 @@ struct APIClient: Sendable {
   /// - Returns: The created StationLibraryRequest
   /// - Throws: APIError if the request fails
   var createAddLibraryRequest:
-    (_ jwtToken: String, _ stationId: String, _ body: CreateAddLibraryRequestBody) async throws
+    @Sendable (_ jwtToken: String, _ stationId: String, _ body: CreateAddLibraryRequestBody)
+      async throws
       -> StationLibraryRequest = { _, _, _ in .mock }
 
   /// Creates a request to remove a song from the station's library
@@ -610,7 +639,7 @@ struct APIClient: Sendable {
   /// - Returns: The created StationLibraryRequest
   /// - Throws: APIError if the request fails
   var createRemoveLibraryRequest:
-    (_ jwtToken: String, _ stationId: String, _ audioBlockId: String) async throws
+    @Sendable (_ jwtToken: String, _ stationId: String, _ audioBlockId: String) async throws
       -> StationLibraryRequest = { _, _, _ in .mock }
 
   /// Dismisses a library request
@@ -621,7 +650,7 @@ struct APIClient: Sendable {
   /// - Returns: The updated StationLibraryRequest
   /// - Throws: APIError if the request fails
   var dismissStationLibraryRequest:
-    (_ jwtToken: String, _ stationId: String, _ requestId: String) async throws
+    @Sendable (_ jwtToken: String, _ stationId: String, _ requestId: String) async throws
       -> StationLibraryRequest = { _, _, _ in .mock }
 
   /// Cancels a pending library request
@@ -631,7 +660,7 @@ struct APIClient: Sendable {
   ///   - requestId: The library request ID to cancel
   /// - Throws: APIError if the request fails
   var cancelStationLibraryRequest:
-    (_ jwtToken: String, _ stationId: String, _ requestId: String) async throws
+    @Sendable (_ jwtToken: String, _ stationId: String, _ requestId: String) async throws
       -> Void = { _, _, _ in }
 
   // MARK: - Production Artist Recordings
@@ -643,7 +672,7 @@ struct APIClient: Sendable {
   /// - Returns: Array of audioBlockId strings
   /// - Throws: APIError if the request fails
   var getArtistRecordingAudioBlockIds:
-    (_ jwtToken: String, _ stationId: String) async throws -> [String] = { _, _ in [] }
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> [String] = { _, _ in [] }
 
   // MARK: - Artist Suggestions
 
@@ -653,7 +682,9 @@ struct APIClient: Sendable {
   ///   - search: Optional search query to filter suggestions
   /// - Returns: Array of ArtistSuggestion objects with hasVoted status
   var getArtistSuggestions:
-    (_ jwtToken: String, _ search: String?) async throws -> [ArtistSuggestion] = { _, _ in [] }
+    @Sendable (_ jwtToken: String, _ search: String?) async throws -> [ArtistSuggestion] = { _, _ in
+      []
+    }
 
   /// Creates a new artist suggestion (auto-votes for it)
   /// - Parameters:
@@ -661,7 +692,8 @@ struct APIClient: Sendable {
   ///   - artistName: The name of the artist to suggest
   /// - Returns: The created ArtistSuggestion
   var createArtistSuggestion:
-    (_ jwtToken: String, _ artistName: String) async throws -> ArtistSuggestion = { _, _ in
+    @Sendable (_ jwtToken: String, _ artistName: String) async throws -> ArtistSuggestion = {
+      _, _ in
       ArtistSuggestion(
         id: "", artistName: "", createdByUserId: "", voteCount: 0, hasVoted: false,
         createdAt: Date(), updatedAt: Date())
@@ -672,21 +704,21 @@ struct APIClient: Sendable {
   ///   - jwtToken: The JWT token for authentication
   ///   - artistSuggestionId: The ID of the suggestion to vote for
   var voteForArtistSuggestion:
-    (_ jwtToken: String, _ artistSuggestionId: String) async throws -> Void = { _, _ in }
+    @Sendable (_ jwtToken: String, _ artistSuggestionId: String) async throws -> Void = { _, _ in }
 
   /// Removes a vote from an artist suggestion
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
   ///   - artistSuggestionId: The ID of the suggestion to unvote
   var removeArtistSuggestionVote:
-    (_ jwtToken: String, _ artistSuggestionId: String) async throws -> Void = { _, _ in }
+    @Sendable (_ jwtToken: String, _ artistSuggestionId: String) async throws -> Void = { _, _ in }
 
   // MARK: - App Version Requirements
 
   /// Fetches minimum app version requirements (no auth required)
   /// - Returns: AppVersionRequirements containing minimum versions
   /// - Throws: APIError if the request fails
-  var getAppVersionRequirements: () async throws -> AppVersionRequirements = {
+  var getAppVersionRequirements: @Sendable () async throws -> AppVersionRequirements = {
     AppVersionRequirements(minimumVersion: "1.0.0", minimumBroadcasterVersion: "1.0.0")
   }
 }

@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 12/16/25.
 //
 
+import ConcurrencyExtras
 import Dependencies
 import PlayolaPlayer
 import XCTest
@@ -30,7 +31,7 @@ final class VoicetrackUploadServiceTests: XCTestCase {
   // MARK: - Normalization Polling Tests
 
   func testProcessVoicetrack_handlesS3KeyWithSlash() async throws {
-    var capturedS3Key: String?
+    let capturedS3Key = LockIsolated<String?>(nil)
     let voicetrack = createTestVoicetrack()
     let s3KeyWithSlash = "station123/mock-uuid.m4a"
 
@@ -45,7 +46,7 @@ final class VoicetrackUploadServiceTests: XCTestCase {
       }
       $0.api.uploadToS3 = { _, _, _, _ in }
       $0.api.getVoicetrackStatus = { _, _, s3Key in
-        capturedS3Key = s3Key
+        capturedS3Key.setValue(s3Key)
         return VoicetrackStatusResponse(ready: true, s3Key: s3Key)
       }
       $0.api.createVoicetrack = { _, _, _, _ in AudioBlock.mockWith() }
@@ -60,11 +61,11 @@ final class VoicetrackUploadServiceTests: XCTestCase {
     ) { _ in }
 
     XCTAssertEqual(
-      capturedS3Key, s3KeyWithSlash, "s3Key with slash should be passed through correctly")
+      capturedS3Key.value, s3KeyWithSlash, "s3Key with slash should be passed through correctly")
   }
 
   func testProcessVoicetrack_transitionsThroughNormalizingStatus() async throws {
-    var statusChanges: [LocalVoicetrackStatus] = []
+    let statusChanges = LockIsolated<[LocalVoicetrackStatus]>([])
     let voicetrack = createTestVoicetrack()
 
     let service = withDependencies {
@@ -90,28 +91,29 @@ final class VoicetrackUploadServiceTests: XCTestCase {
       testStationId,
       testJwtToken
     ) { status in
-      statusChanges.append(status)
+      statusChanges.withValue { $0.append(status) }
     }
 
+    let recordedStatuses = statusChanges.value
     // Verify that .normalizing status was reached
     XCTAssertTrue(
-      statusChanges.contains(.normalizing),
-      "Expected .normalizing status, got: \(statusChanges)"
+      recordedStatuses.contains(.normalizing),
+      "Expected .normalizing status, got: \(recordedStatuses)"
     )
 
     // Verify correct order: uploading comes before normalizing
-    if let uploadingIndex = statusChanges.firstIndex(where: {
+    if let uploadingIndex = recordedStatuses.firstIndex(where: {
       if case .uploading = $0 { return true }
       return false
     }),
-      let normalizingIndex = statusChanges.firstIndex(of: .normalizing)
+      let normalizingIndex = recordedStatuses.firstIndex(of: .normalizing)
     {
       XCTAssertLessThan(uploadingIndex, normalizingIndex)
     }
 
     // Verify normalizing comes before finalizing
-    if let normalizingIndex = statusChanges.firstIndex(of: .normalizing),
-      let finalizingIndex = statusChanges.firstIndex(of: .finalizing)
+    if let normalizingIndex = recordedStatuses.firstIndex(of: .normalizing),
+      let finalizingIndex = recordedStatuses.firstIndex(of: .finalizing)
     {
       XCTAssertLessThan(normalizingIndex, finalizingIndex)
     }
@@ -120,7 +122,7 @@ final class VoicetrackUploadServiceTests: XCTestCase {
   func testProcessVoicetrackPassesS3KeyWithSlashesToStatusCheck() async throws {
     let voicetrack = createTestVoicetrack()
     let s3KeyWithSlashes = "voicetracks/station123/abc-def-123.m4a"
-    var capturedS3Key: String?
+    let capturedS3Key = LockIsolated<String?>(nil)
 
     let service = withDependencies {
       $0.audioConverter = .testValue
@@ -133,7 +135,7 @@ final class VoicetrackUploadServiceTests: XCTestCase {
       }
       $0.api.uploadToS3 = { _, _, _, _ in }
       $0.api.getVoicetrackStatus = { _, _, s3Key in
-        capturedS3Key = s3Key
+        capturedS3Key.setValue(s3Key)
         return VoicetrackStatusResponse(ready: true, s3Key: s3Key)
       }
       $0.api.createVoicetrack = { _, _, _, _ in AudioBlock.mockWith() }
@@ -147,6 +149,6 @@ final class VoicetrackUploadServiceTests: XCTestCase {
       testJwtToken
     ) { _ in }
 
-    XCTAssertEqual(capturedS3Key, s3KeyWithSlashes)
+    XCTAssertEqual(capturedS3Key.value, s3KeyWithSlashes)
   }
 }

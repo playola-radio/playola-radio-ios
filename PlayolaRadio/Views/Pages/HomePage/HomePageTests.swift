@@ -7,6 +7,7 @@
 
 // swiftlint:disable force_try
 
+import ConcurrencyExtras
 import Dependencies
 import IdentifiedCollections
 import PlayolaPlayer
@@ -525,11 +526,11 @@ final class HomePageTests: XCTestCase {
 
   func testViewAppearedDoesNotCheckAiringsWhenNotLoggedIn() async {
     @Shared(.auth) var auth = Auth()
-    var apiCalled = false
+    let apiCalled = LockIsolated(false)
 
     await withDependencies {
       $0.api.getMyListenerQuestionAirings = { _ in
-        apiCalled = true
+        apiCalled.setValue(true)
         return []
       }
     } operation: {
@@ -537,7 +538,7 @@ final class HomePageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertFalse(apiCalled)
+      XCTAssertFalse(apiCalled.value)
       XCTAssertNil(model.upcomingQuestionAiring)
     }
   }

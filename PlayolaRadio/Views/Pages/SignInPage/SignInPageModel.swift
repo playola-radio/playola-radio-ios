@@ -1,6 +1,6 @@
 import AuthenticationServices
 import Dependencies
-import GoogleSignIn
+@preconcurrency import GoogleSignIn
 import GoogleSignInSwift
 import Sharing
 //
@@ -14,17 +14,31 @@ import SwiftUI
 @MainActor
 @Observable
 class SignInPageModel: ViewModel {
+
+  // MARK: - Dependencies
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.appRating) var appRating
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+
+  // MARK: - Shared State
   @ObservationIgnored @Shared(.auth) var auth: Auth
 
+  // MARK: - Initialization
   @MainActor
   override init() {
     super.init()
   }
 
-  // MARK: Actions
+  // MARK: - Properties
+  var presentedAlert: PlayolaAlert?
+
+  @ObservationIgnored
+  var keyWindowProvider: @MainActor () -> UIViewController? = {
+    UIApplication.shared.keyWindowPresentedController
+  }
+
+  // MARK: - User Actions
 
   func signInWithAppleButtonTapped(request: ASAuthorizationAppleIDRequest) {
     request.requestedScopes = [.email, .fullName]
@@ -42,6 +56,12 @@ class SignInPageModel: ViewModel {
         let authCode = String(data: authCodeData, encoding: .utf8)
       else {
         print("Error decoding signin info from apple")
+        presentedAlert = .signInError
+        Task {
+          await errorReporting.reportMessage(
+            "Error decoding sign-in info from Apple",
+            ["auth_method": "apple", "sign_in_step": "credential_decode"])
+        }
         return
       }
 
@@ -62,46 +82,75 @@ class SignInPageModel: ViewModel {
           await analytics.track(.signInCompleted(method: .apple, userId: appleIDCredential.user))
         } catch {
           print("Sign in failed: \(error)")
+          presentedAlert = .signInError
           await analytics.track(.signInFailed(method: .apple, error: error.localizedDescription))
+          await errorReporting.reportError(
+            error,
+            ["auth_method": "apple", "sign_in_step": "api_call"])
         }
       }
     case .failure(let error):
-      print(error)
+      handleAppleAuthorizationFailure(error)
     }
   }
 
   func signInWithGoogleButtonTapped() async {
     await analytics.track(.signInStarted(method: .google))
-    guard let presentingVC = UIApplication.shared.keyWindowPresentedController else {
+    guard let presentingVC = keyWindowProvider() else {
       print("Error presenting VC -- no key window")
+      presentedAlert = .signInError
+      await errorReporting.reportMessage(
+        "Unable to present Google sign-in: no key window",
+        ["auth_method": "google", "sign_in_step": "present_view_controller"])
       return
     }
-    GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { signInResult, error in
-      guard let signInResult else {
-        return
-      }
+    do {
+      let signInResult = try await GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC)
       print(signInResult)
 
-      signInResult.user.refreshTokensIfNeeded { _, error in
-        guard error == nil else { return }
-        guard let serverAuthCode = signInResult.serverAuthCode else {
-          print("Error signing into Google -- no serverAuthCode on signInResult.")
-          return
-        }
-        Task {
-          do {
-            let token = try await self.api.signInViaGoogle(serverAuthCode)
-            self.$auth.withLock { $0 = Auth(jwtToken: token) }
-            self.appRating.recordInstallDateIfNeeded()
-            await self.analytics.track(
-              .signInCompleted(method: .google, userId: signInResult.user.userID ?? "unknown"))
-          } catch {
-            print("Google sign in failed: \(error)")
-            await self.analytics.track(
-              .signInFailed(method: .google, error: error.localizedDescription))
-          }
-        }
+      _ = try await signInResult.user.refreshTokensIfNeeded()
+      guard let serverAuthCode = signInResult.serverAuthCode else {
+        print("Error signing into Google -- no serverAuthCode on signInResult.")
+        presentedAlert = .signInError
+        await errorReporting.reportMessage(
+          "Google sign-in missing serverAuthCode",
+          ["auth_method": "google", "sign_in_step": "server_auth_code"])
+        return
       }
+      let userId = signInResult.user.userID ?? "unknown"
+      let token = try await api.signInViaGoogle(serverAuthCode)
+      $auth.withLock { $0 = Auth(jwtToken: token) }
+      appRating.recordInstallDateIfNeeded()
+      await analytics.track(.signInCompleted(method: .google, userId: userId))
+    } catch {
+      print("Google sign in failed: \(error)")
+      let nsError = error as NSError
+      // Match the prior callback behavior: silently drop user-cancelled sign-ins
+      // (GIDSignInError.canceled = -5) instead of tracking them as failures.
+      if nsError.domain != kGIDSignInErrorDomain
+        || nsError.code != GIDSignInError.canceled.rawValue
+      {
+        presentedAlert = .signInError
+        await analytics.track(.signInFailed(method: .google, error: error.localizedDescription))
+        await errorReporting.reportError(
+          error,
+          ["auth_method": "google", "sign_in_step": "google_sign_in_flow"])
+      }
+    }
+  }
+
+  // MARK: - Private Helpers
+
+  private func handleAppleAuthorizationFailure(_ error: any Error) {
+    print(error)
+    if let authError = error as? ASAuthorizationError, authError.code == .canceled {
+      return
+    }
+    presentedAlert = .signInError
+    Task {
+      await errorReporting.reportError(
+        error,
+        ["auth_method": "apple", "sign_in_step": "authorization_failure"])
     }
   }
 }

@@ -281,13 +281,10 @@ class NowPlayingUpdater {
     }
 
     // For CarPlay/Lock Screen: always use station image, ignore album artwork
-    station.getImage { image in
-      Task {
-        self.updateNowPlayingImage(image)
-        await MainActor.run {
-          self.currentArtworkURL = station.imageUrl?.absoluteString
-        }
-      }
+    Task {
+      let image = await station.getImage()
+      self.updateNowPlayingImage(image)
+      self.currentArtworkURL = station.imageUrl?.absoluteString
     }
   }
 

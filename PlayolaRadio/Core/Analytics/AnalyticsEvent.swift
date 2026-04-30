@@ -70,7 +70,6 @@ enum AnalyticsEvent: Equatable {
   case ratingPromptNotEnjoying
   case ratingPromptDismissed
   case feedbackSheetPresented
-  case feedbackSheetFailed(error: String)
 }
 
 // MARK: - Event Properties
@@ -115,7 +114,6 @@ extension AnalyticsEvent {
     case .ratingPromptNotEnjoying: return "Rating Prompt Not Enjoying"
     case .ratingPromptDismissed: return "Rating Prompt Dismissed"
     case .feedbackSheetPresented: return "Feedback Sheet Presented"
-    case .feedbackSheetFailed: return "Feedback Sheet Failed"
     }
   }
 
@@ -292,9 +290,6 @@ extension AnalyticsEvent {
     case .ratingPromptEnjoying, .ratingPromptNotEnjoying, .ratingPromptDismissed,
       .feedbackSheetPresented:
       return [:]
-
-    case .feedbackSheetFailed(let error):
-      return ["error": error]
     }
   }
 }

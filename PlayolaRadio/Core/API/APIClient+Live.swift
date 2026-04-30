@@ -623,7 +623,7 @@ extension APIClient: DependencyKey {
         let url =
           "\(Config.shared.productionBaseUrl.absoluteString)/v1/ios/stations/\(stationId)/source-tapes"
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        var parameters: [String: Any] = [
+        var parameters: [String: any Sendable] = [
           "s3Key": s3Key,
           "name": name,
           "durationMS": durationMS,

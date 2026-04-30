@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 8/30/25.
 //
 
+import ConcurrencyExtras
 import Dependencies
 import XCTest
 
@@ -254,9 +255,9 @@ final class ToastClientTests: XCTestCase {
 
       let client = ToastClient.liveValue
 
-      async let show1 = client.show(toast1)
-      async let show2 = client.show(toast2)
-      async let show3 = client.show(toast3)
+      async let show1: Void = client.show(toast1)
+      async let show2: Void = client.show(toast2)
+      async let show3: Void = client.show(toast3)
 
       await show1
       await show2
@@ -284,23 +285,23 @@ final class ToastClientTests: XCTestCase {
 
   // MARK: - Toast Actions
 
-  func testToastAction_ExecutesWhenInvoked() async {
-    await withDependencies {
+  func testToastAction_ExecutesWhenInvoked() {
+    withDependencies {
       $0.continuousClock = TestClock()
     } operation: {
-      var actionExecuted = false
+      let actionExecuted = LockIsolated(false)
 
       let toast = PlayolaToast(
         message: "Test",
         buttonTitle: "OK",
         action: {
-          actionExecuted = true
+          actionExecuted.setValue(true)
         }
       )
 
       toast.action?()
 
-      XCTAssertTrue(actionExecuted)
+      XCTAssertTrue(actionExecuted.value)
     }
   }
 

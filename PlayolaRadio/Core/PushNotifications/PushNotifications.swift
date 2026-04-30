@@ -13,12 +13,37 @@ import UIKit
 import UserNotifications
 
 enum NotificationPayload {
-  static func stationId(from userInfo: [AnyHashable: Any]) -> String? {
+  static func stationId(from userInfo: [String: any Sendable]) -> String? {
     userInfo["stationId"] as? String
   }
 
-  static func notificationType(from userInfo: [AnyHashable: Any]) -> String? {
+  static func notificationType(from userInfo: [String: any Sendable]) -> String? {
     userInfo["type"] as? String
+  }
+}
+
+extension [AnyHashable: Any] {
+  /// Extracts an APNs userInfo dict into a Sendable payload that can cross actor boundaries.
+  ///
+  /// Intentionally narrowed to primitive leaf values (String/Int/Double/Bool) keyed by String.
+  /// Non-string keys, nested dictionaries, arrays, and any other types are silently dropped.
+  /// If a future APNs payload adds nested structure we need to read, extend this helper to
+  /// handle the new shape explicitly rather than loosening the type guards.
+  func sendablePayload() -> [String: any Sendable] {
+    var result: [String: any Sendable] = [:]
+    for (key, value) in self {
+      guard let keyString = key as? String else { continue }
+      if let value = value as? String {
+        result[keyString] = value
+      } else if let value = value as? Int {
+        result[keyString] = value
+      } else if let value = value as? Double {
+        result[keyString] = value
+      } else if let value = value as? Bool {
+        result[keyString] = value
+      }
+    }
+    return result
   }
 }
 
@@ -56,7 +81,7 @@ struct PushNotificationsClient: Sendable {
 
   /// Handle notification tap - extracts station ID and plays it
   /// - Parameter userInfo: The notification payload
-  var handleNotificationTap: @Sendable (_ userInfo: [AnyHashable: Any]) async -> Void
+  var handleNotificationTap: @Sendable (_ userInfo: [String: any Sendable]) async -> Void
 
   /// Set the app icon badge count
   /// - Parameter count: The badge count to display
@@ -130,8 +155,10 @@ extension PushNotificationsClient: DependencyKey {
       do {
         let device = try await api.registerDevice(jwt, hexToken, "ios", appVersion)
         print("📱 Device registered successfully: \(device.id)")
+        let deviceId = device.id
+        let registeredDeviceIdShared = $registeredDeviceId
         await MainActor.run {
-          $registeredDeviceId.withLock { $0 = device.id }
+          registeredDeviceIdShared.withLock { $0 = deviceId }
         }
       } catch {
         print("📱 Failed to register device: \(error)")
@@ -140,21 +167,21 @@ extension PushNotificationsClient: DependencyKey {
     handleNotificationTap: { userInfo in
       @Shared(.stationLists) var stationLists
       @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      let navCoordinatorShared = $navCoordinator
 
       if NotificationPayload.notificationType(from: userInfo) == "support_message" {
-        let isSupportPageVisible = navCoordinator.path.contains { pathItem in
-          if case .supportPage = pathItem { return true }
-          return false
-        }
-
-        if isSupportPageVisible {
-          await MainActor.run {
-            NotificationCenter.default.post(name: .refreshSupportMessages, object: nil)
+        await MainActor.run {
+          let coordinator = navCoordinatorShared.wrappedValue
+          let isSupportPageVisible = coordinator.path.contains { pathItem in
+            if case .supportPage = pathItem { return true }
+            return false
           }
-        } else {
-          await MainActor.run {
+
+          if isSupportPageVisible {
+            NotificationCenter.default.post(name: .refreshSupportMessages, object: nil)
+          } else {
             let supportModel = SupportPageModel()
-            Task { await navCoordinator.navigateToSupport(supportModel) }
+            Task { await coordinator.navigateToSupport(supportModel) }
           }
         }
         return

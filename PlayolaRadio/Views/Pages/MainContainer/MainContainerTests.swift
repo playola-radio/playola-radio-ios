@@ -61,29 +61,29 @@ final class MainContainerTests: XCTestCase {
 
   func testViewAppearedRegistersForRemoteNotifications() async {
     @Shared(.stationListsLoaded) var stationListsLoaded = false
-    var registerForRemoteNotificationsCalled = false
+    let registerForRemoteNotificationsCalled = LockIsolated(false)
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
       $0.pushNotifications.registerForRemoteNotifications = {
-        registerForRemoteNotificationsCalled = true
+        registerForRemoteNotificationsCalled.setValue(true)
       }
     } operation: {
       MainContainerModel()
     }
 
     await mainContainerModel.viewAppeared()
-    XCTAssertTrue(registerForRemoteNotificationsCalled)
+    XCTAssertTrue(registerForRemoteNotificationsCalled.value)
   }
 
   func testViewAppeared_CorrectlyRetrievesStationListsWhenApiIsSuccessful() async {
     @Shared(.stationListsLoaded) var stationListsLoaded = false
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
-    var getStationsCallCount = 0
+    let getStationsCallCount = LockIsolated(0)
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = {
-        getStationsCallCount += 1
+        getStationsCallCount.withValue { $0 += 1 }
         return StationList.mocks
       }
       $0.pushNotifications.registerForRemoteNotifications = {}
@@ -92,7 +92,7 @@ final class MainContainerTests: XCTestCase {
     }
 
     await mainContainerModel.viewAppeared()
-    XCTAssertEqual(getStationsCallCount, 1)
+    XCTAssertEqual(getStationsCallCount.value, 1)
     XCTAssertEqual(stationLists, StationList.mocks)
     XCTAssertTrue(stationListsLoaded)
   }
@@ -136,11 +136,11 @@ final class MainContainerTests: XCTestCase {
 
   func testViewAppeared_ExitsEarlyWhenStationListsAlreadyLoaded() async {
     @Shared(.stationListsLoaded) var stationListsLoaded = true
-    var getStationsCallCount = 0
+    let getStationsCallCount = LockIsolated(0)
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = {
-        getStationsCallCount += 1
+        getStationsCallCount.withValue { $0 += 1 }
         return StationList.mocks
       }
       $0.pushNotifications.registerForRemoteNotifications = {}
@@ -149,7 +149,7 @@ final class MainContainerTests: XCTestCase {
     }
 
     await mainContainerModel.viewAppeared()
-    XCTAssertEqual(getStationsCallCount, 0)
+    XCTAssertEqual(getStationsCallCount.value, 0)
   }
 
   func testViewAppearedLoadsAiringsWhenLoggedIn() async {
@@ -158,7 +158,7 @@ final class MainContainerTests: XCTestCase {
     @Shared(.stationListsLoaded) var stationListsLoaded = false
     @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
 
-    var getAiringsCallCount = 0
+    let getAiringsCallCount = LockIsolated(0)
     let mockAirings = [
       Airing.mockWith(id: "airing1"),
       Airing.mockWith(id: "airing2"),
@@ -167,7 +167,7 @@ final class MainContainerTests: XCTestCase {
     let mainContainerModel = withDependencies {
       $0.api.getStations = { StationList.mocks }
       $0.api.getAirings = { _, _ in
-        getAiringsCallCount += 1
+        getAiringsCallCount.withValue { $0 += 1 }
         return mockAirings
       }
       $0.pushNotifications.registerForRemoteNotifications = {}
@@ -177,7 +177,7 @@ final class MainContainerTests: XCTestCase {
 
     await mainContainerModel.viewAppeared()
 
-    XCTAssertEqual(getAiringsCallCount, 1)
+    XCTAssertEqual(getAiringsCallCount.value, 1)
     XCTAssertEqual(airings.count, 2)
   }
 
@@ -410,8 +410,8 @@ final class MainContainerTests: XCTestCase {
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
     @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
 
-    var getStationsCallCount = 0
-    var getAiringsCallCount = 0
+    let getStationsCallCount = LockIsolated(0)
+    let getAiringsCallCount = LockIsolated(0)
     let mockAirings = [
       Airing.mockWith(id: "airing1"),
       Airing.mockWith(id: "airing2"),
@@ -419,11 +419,11 @@ final class MainContainerTests: XCTestCase {
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = {
-        getStationsCallCount += 1
+        getStationsCallCount.withValue { $0 += 1 }
         return StationList.mocks
       }
       $0.api.getAirings = { _, _ in
-        getAiringsCallCount += 1
+        getAiringsCallCount.withValue { $0 += 1 }
         return mockAirings
       }
     } operation: {
@@ -432,8 +432,8 @@ final class MainContainerTests: XCTestCase {
 
     await mainContainerModel.refreshOnForeground()
 
-    XCTAssertEqual(getStationsCallCount, 1)
-    XCTAssertEqual(getAiringsCallCount, 1)
+    XCTAssertEqual(getStationsCallCount.value, 1)
+    XCTAssertEqual(getAiringsCallCount.value, 1)
     XCTAssertEqual(stationLists, StationList.mocks)
     XCTAssertEqual(airings.count, 2)
     XCTAssertEqual(airings[id: "airing1"]?.id, "airing1")
@@ -445,16 +445,16 @@ final class MainContainerTests: XCTestCase {
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
     @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
 
-    var getStationsCallCount = 0
-    var getAiringsCallCount = 0
+    let getStationsCallCount = LockIsolated(0)
+    let getAiringsCallCount = LockIsolated(0)
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = {
-        getStationsCallCount += 1
+        getStationsCallCount.withValue { $0 += 1 }
         return StationList.mocks
       }
       $0.api.getAirings = { _, _ in
-        getAiringsCallCount += 1
+        getAiringsCallCount.withValue { $0 += 1 }
         return []
       }
     } operation: {
@@ -463,8 +463,8 @@ final class MainContainerTests: XCTestCase {
 
     await mainContainerModel.refreshOnForeground()
 
-    XCTAssertEqual(getStationsCallCount, 1)
-    XCTAssertEqual(getAiringsCallCount, 0)
+    XCTAssertEqual(getStationsCallCount.value, 1)
+    XCTAssertEqual(getAiringsCallCount.value, 0)
     XCTAssertEqual(stationLists, StationList.mocks)
     XCTAssertTrue(airings.isEmpty)
   }
@@ -508,13 +508,13 @@ final class MainContainerTests: XCTestCase {
     @Shared(.auth) var auth = Auth(jwtToken: testJWT)
     @Shared(.unreadSupportCount) var unreadSupportCount = 0
 
-    var getSupportConversationCallCount = 0
+    let getSupportConversationCallCount = LockIsolated(0)
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
       $0.api.getAirings = { _, _ in [] }
       $0.api.getSupportConversation = { _ in
-        getSupportConversationCallCount += 1
+        getSupportConversationCallCount.withValue { $0 += 1 }
         return SupportConversationResponse(
           conversation: Conversation(
             id: "conv-1",
@@ -535,7 +535,7 @@ final class MainContainerTests: XCTestCase {
 
     await mainContainerModel.refreshOnForeground()
 
-    XCTAssertEqual(getSupportConversationCallCount, 1)
+    XCTAssertEqual(getSupportConversationCallCount.value, 1)
     XCTAssertEqual(unreadSupportCount, 3)
   }
 
@@ -639,13 +639,13 @@ final class MainContainerTests: XCTestCase {
       )
     )
 
-    var shouldShowCallCount = 0
+    let shouldShowCallCount = LockIsolated(0)
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
       $0.pushNotifications.registerForRemoteNotifications = {}
       $0.appRating.shouldShowRatingPrompt = { _ in
-        shouldShowCallCount += 1
+        shouldShowCallCount.withValue { $0 += 1 }
         return true
       }
     } operation: {
@@ -656,7 +656,7 @@ final class MainContainerTests: XCTestCase {
     mainContainerModel.checkAndShowRatingPromptIfNeeded()
     mainContainerModel.checkAndShowRatingPromptIfNeeded()
 
-    XCTAssertEqual(shouldShowCallCount, 1)
+    XCTAssertEqual(shouldShowCallCount.value, 1)
   }
 
   func testCheckRatingPromptDoesNotShowWhenNoListeningTracker() {
@@ -665,13 +665,13 @@ final class MainContainerTests: XCTestCase {
     )
     @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
 
-    var shouldShowCalled = false
+    let shouldShowCalled = LockIsolated(false)
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
       $0.pushNotifications.registerForRemoteNotifications = {}
       $0.appRating.shouldShowRatingPrompt = { _ in
-        shouldShowCalled = true
+        shouldShowCalled.setValue(true)
         return true
       }
     } operation: {
@@ -680,7 +680,7 @@ final class MainContainerTests: XCTestCase {
 
     mainContainerModel.checkAndShowRatingPromptIfNeeded()
 
-    XCTAssertFalse(shouldShowCalled)
+    XCTAssertFalse(shouldShowCalled.value)
     XCTAssertNil(mainContainerModel.presentedAlert)
   }
 
@@ -697,14 +697,14 @@ final class MainContainerTests: XCTestCase {
       )
     )
 
-    var shouldShowCalled = false
+    let shouldShowCalled = LockIsolated(false)
 
     let stationPlayerMock = StationPlayerMock()
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
       $0.pushNotifications.registerForRemoteNotifications = {}
       $0.appRating.shouldShowRatingPrompt = { _ in
-        shouldShowCalled = true
+        shouldShowCalled.setValue(true)
         return false
       }
     } operation: {
@@ -715,7 +715,7 @@ final class MainContainerTests: XCTestCase {
     $activeTab.withLock { $0 = .stationsList }
     mainContainerModel.checkAndShowRatingPromptIfNeeded()
 
-    XCTAssertTrue(shouldShowCalled)
+    XCTAssertTrue(shouldShowCalled.value)
   }
 
   func testRatingPromptEnjoyingTracksAnalyticsAndRequestsReview() async {
@@ -732,15 +732,15 @@ final class MainContainerTests: XCTestCase {
     )
 
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-    var markShownCalled = false
-    var requestReviewCalled = false
+    let markShownCalled = LockIsolated(false)
+    let requestReviewCalled = LockIsolated(false)
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
       $0.pushNotifications.registerForRemoteNotifications = {}
       $0.appRating.shouldShowRatingPrompt = { _ in true }
-      $0.appRating.markRatingPromptShown = { markShownCalled = true }
-      $0.appRating.requestAppStoreReview = { requestReviewCalled = true }
+      $0.appRating.markRatingPromptShown = { markShownCalled.setValue(true) }
+      $0.appRating.requestAppStoreReview = { requestReviewCalled.setValue(true) }
       $0.analytics.track = { @Sendable event in
         capturedEvents.withValue { $0.append(event) }
       }
@@ -753,8 +753,8 @@ final class MainContainerTests: XCTestCase {
     // Simulate tapping "Yes!"
     await mainContainerModel.presentedAlert?.primaryAction?()
 
-    XCTAssertTrue(markShownCalled)
-    XCTAssertTrue(requestReviewCalled)
+    XCTAssertTrue(markShownCalled.value)
+    XCTAssertTrue(requestReviewCalled.value)
     XCTAssertTrue(capturedEvents.value.contains { $0 == .ratingPromptEnjoying })
   }
 
@@ -775,18 +775,17 @@ final class MainContainerTests: XCTestCase {
       )
 
       let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-      var markShownCalled = false
-      var markDismissedCalled = false
+      let markShownCalled = LockIsolated(false)
+      let markDismissedCalled = LockIsolated(false)
       let feedbackSheetExpectation = XCTestExpectation(
         description: "feedbackSheetPresented tracked")
 
       let mainContainerModel = withDependencies {
         $0.api.getStations = { [] }
-        $0.api.getSupportConversation = { _ in .mockWith() }
         $0.pushNotifications.registerForRemoteNotifications = {}
         $0.appRating.shouldShowRatingPrompt = { _ in true }
-        $0.appRating.markRatingPromptShown = { markShownCalled = true }
-        $0.appRating.markRatingPromptDismissed = { markDismissedCalled = true }
+        $0.appRating.markRatingPromptShown = { markShownCalled.setValue(true) }
+        $0.appRating.markRatingPromptDismissed = { markDismissedCalled.setValue(true) }
         $0.analytics.track = { @Sendable event in
           capturedEvents.withValue { $0.append(event) }
           if event == .feedbackSheetPresented { feedbackSheetExpectation.fulfill() }
@@ -799,9 +798,9 @@ final class MainContainerTests: XCTestCase {
       await mainContainerModel.presentedAlert?.secondaryAction?()
       await fulfillment(of: [feedbackSheetExpectation], timeout: 1.0)
 
-      XCTAssertTrue(markShownCalled)
+      XCTAssertTrue(markShownCalled.value)
       XCTAssertTrue(
-        markDismissedCalled, "Not really should also set dismiss date for 7-day cooldown")
+        markDismissedCalled.value, "Not really should also set dismiss date for 7-day cooldown")
       XCTAssertTrue(capturedEvents.value.contains { $0 == .ratingPromptNotEnjoying })
       XCTAssertNil(
         mainContainerModel.presentedAlert, "Alert should be dismissed before showing feedback sheet"
@@ -812,59 +811,6 @@ final class MainContainerTests: XCTestCase {
         XCTFail("Expected feedback sheet to be presented")
         return
       }
-    }
-  }
-
-  func testFeedbackSheetFailedTracksErrorEvent() async {
-    await withMainSerialExecutor {
-      let testJWT = MainContainerTests.createTestJWT()
-      @Shared(.auth) var auth
-      $auth.withLock { $0 = Auth(jwtToken: testJWT) }
-      @Shared(.appInstallDate) var appInstallDate = Calendar.current.date(
-        byAdding: .day, value: -10, to: Date()
-      )
-      @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String?
-      @Shared(.listeningTracker) var listeningTracker = ListeningTracker(
-        rewardsProfile: RewardsProfile(
-          totalTimeListenedMS: 2 * 60 * 60 * 1000,
-          totalMSAvailableForRewards: 0,
-          accurateAsOfTime: Date()
-        )
-      )
-
-      let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-
-      let mainContainerModel = withDependencies {
-        $0.api.getStations = { [] }
-        $0.api.getSupportConversation = { _ in throw NSError(domain: "test", code: 500) }
-        $0.pushNotifications.registerForRemoteNotifications = {}
-        $0.appRating.shouldShowRatingPrompt = { _ in true }
-        $0.appRating.markRatingPromptShown = {}
-        $0.appRating.markRatingPromptDismissed = {}
-        $0.analytics.track = { @Sendable event in
-          capturedEvents.withValue { $0.append(event) }
-        }
-      } operation: {
-        MainContainerModel()
-      }
-
-      mainContainerModel.checkAndShowRatingPromptIfNeeded()
-
-      // Simulate tapping "Not really" — triggers showFeedbackSheet() which spawns a Task
-      // that calls api.getSupportConversation (throws) then analytics.track in the catch.
-      // Multiple yields needed for the spawned Task's suspension points.
-      await mainContainerModel.presentedAlert?.secondaryAction?()
-      await Task.yield()
-      await Task.yield()
-      await Task.yield()
-
-      XCTAssertTrue(
-        capturedEvents.value.contains {
-          if case .feedbackSheetFailed = $0 { return true }
-          return false
-        },
-        "Should track feedbackSheetFailed event when API fails"
-      )
     }
   }
 
@@ -882,13 +828,13 @@ final class MainContainerTests: XCTestCase {
     )
 
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-    var markDismissedCalled = false
+    let markDismissedCalled = LockIsolated(false)
 
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
       $0.pushNotifications.registerForRemoteNotifications = {}
       $0.appRating.shouldShowRatingPrompt = { _ in true }
-      $0.appRating.markRatingPromptDismissed = { markDismissedCalled = true }
+      $0.appRating.markRatingPromptDismissed = { markDismissedCalled.setValue(true) }
       $0.analytics.track = { @Sendable event in
         capturedEvents.withValue { $0.append(event) }
       }
@@ -901,7 +847,7 @@ final class MainContainerTests: XCTestCase {
     // Simulate tapping "Not now"
     await mainContainerModel.presentedAlert?.tertiaryAction?()
 
-    XCTAssertTrue(markDismissedCalled)
+    XCTAssertTrue(markDismissedCalled.value)
     XCTAssertTrue(capturedEvents.value.contains { $0 == .ratingPromptDismissed })
   }
 

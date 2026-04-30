@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 12/17/25.
 //
 
+import ConcurrencyExtras
 import Dependencies
 import Sharing
 import XCTest
@@ -17,11 +18,11 @@ final class PushNotificationsTests: XCTestCase {
   // MARK: - registerForRemoteNotifications
 
   func testRegisterForRemoteNotificationsRequestsAuthorization() async throws {
-    var authorizationRequested = false
+    let authorizationRequested = LockIsolated(false)
 
     try await withDependencies {
       $0.pushNotifications.requestAuthorization = {
-        authorizationRequested = true
+        authorizationRequested.setValue(true)
         return true
       }
       $0.pushNotifications.registerForRemoteNotifications = {}
@@ -30,22 +31,22 @@ final class PushNotificationsTests: XCTestCase {
       _ = try await pushNotifications.requestAuthorization()
     }
 
-    XCTAssertTrue(authorizationRequested)
+    XCTAssertTrue(authorizationRequested.value)
   }
 
   func testRegisterForRemoteNotificationsCallsUIApplicationRegister() async throws {
-    var registerCalled = false
+    let registerCalled = LockIsolated(false)
 
     await withDependencies {
       $0.pushNotifications.registerForRemoteNotifications = {
-        registerCalled = true
+        registerCalled.setValue(true)
       }
     } operation: {
       @Dependency(\.pushNotifications) var pushNotifications
       await pushNotifications.registerForRemoteNotifications()
     }
 
-    XCTAssertTrue(registerCalled)
+    XCTAssertTrue(registerCalled.value)
   }
 
   // MARK: - Device Token Handling
@@ -60,15 +61,15 @@ final class PushNotificationsTests: XCTestCase {
   }
 
   func testHandleDeviceTokenCallsAPIWhenLoggedIn() async throws {
-    var capturedToken: String?
-    var capturedPlatform: String?
-    var capturedAppVersion: String?
+    let capturedToken = LockIsolated<String?>(nil)
+    let capturedPlatform = LockIsolated<String?>(nil)
+    let capturedAppVersion = LockIsolated<String?>(nil)
 
     await withDependencies {
       $0.pushNotifications.handleDeviceToken = { deviceToken in
-        capturedToken = deviceToken.map { String(format: "%02x", $0) }.joined()
-        capturedPlatform = "ios"
-        capturedAppVersion = "1.0.0"
+        capturedToken.setValue(deviceToken.map { String(format: "%02x", $0) }.joined())
+        capturedPlatform.setValue("ios")
+        capturedAppVersion.setValue("1.0.0")
       }
     } operation: {
       @Dependency(\.pushNotifications) var pushNotifications
@@ -77,23 +78,16 @@ final class PushNotificationsTests: XCTestCase {
       await pushNotifications.handleDeviceToken(tokenData)
     }
 
-    XCTAssertEqual(capturedToken, "abcdef12")
-    XCTAssertEqual(capturedPlatform, "ios")
-    XCTAssertEqual(capturedAppVersion, "1.0.0")
+    XCTAssertEqual(capturedToken.value, "abcdef12")
+    XCTAssertEqual(capturedPlatform.value, "ios")
+    XCTAssertEqual(capturedAppVersion.value, "1.0.0")
   }
 
   // MARK: - Notification Payload Parsing
 
   func testParseNotificationPayloadExtractsStationId() {
-    let userInfo: [AnyHashable: Any] = [
-      "aps": [
-        "alert": [
-          "title": "Brian's Station",
-          "body": "I'm going live!",
-        ],
-        "sound": "default",
-      ],
-      "stationId": "test-station-123",
+    let userInfo: [String: any Sendable] = [
+      "stationId": "test-station-123"
     ]
 
     let stationId = NotificationPayload.stationId(from: userInfo)
@@ -102,14 +96,7 @@ final class PushNotificationsTests: XCTestCase {
   }
 
   func testParseNotificationPayloadReturnsNilWhenNoStationId() {
-    let userInfo: [AnyHashable: Any] = [
-      "aps": [
-        "alert": [
-          "title": "Test",
-          "body": "Test message",
-        ]
-      ]
-    ]
+    let userInfo: [String: any Sendable] = [:]
 
     let stationId = NotificationPayload.stationId(from: userInfo)
 
@@ -119,79 +106,83 @@ final class PushNotificationsTests: XCTestCase {
   // MARK: - Notification Response Handling
 
   func testHandleNotificationResponsePlaysStation() async {
-    var playedStationId: String?
+    let playedStationId = LockIsolated<String?>(nil)
 
     await withDependencies {
       $0.pushNotifications.handleNotificationTap = { userInfo in
         if let stationId = userInfo["stationId"] as? String {
-          playedStationId = stationId
+          playedStationId.setValue(stationId)
         }
       }
     } operation: {
       @Dependency(\.pushNotifications) var pushNotifications
-      let userInfo: [AnyHashable: Any] = ["stationId": "station-abc"]
+      let userInfo: [String: any Sendable] = ["stationId": "station-abc"]
       await pushNotifications.handleNotificationTap(userInfo)
     }
 
-    XCTAssertEqual(playedStationId, "station-abc")
+    XCTAssertEqual(playedStationId.value, "station-abc")
   }
 
   // MARK: - Support Notification Badge Handling
 
   func testHandleSupportNotificationBadgeSetsCountFromPayload() async {
     @Shared(.unreadSupportCount) var unreadSupportCount = 0
-    var capturedBadgeCount: Int?
+    let capturedBadgeCount = LockIsolated<Int?>(nil)
 
     await withDependencies {
       $0.pushNotifications.setBadgeCount = { count in
-        capturedBadgeCount = count
+        capturedBadgeCount.setValue(count)
       }
-      $0.pushNotifications.handleSupportNotificationBadge =
-        PushNotificationsClient.liveValue.handleSupportNotificationBadge
+      $0.pushNotifications.handleSupportNotificationBadge = { badgeFromPayload in
+        await PushNotificationsClient.liveValue.handleSupportNotificationBadge(badgeFromPayload)
+      }
     } operation: {
       @Dependency(\.pushNotifications) var pushNotifications
       await pushNotifications.handleSupportNotificationBadge(badgeFromPayload: 5)
     }
 
     XCTAssertEqual(unreadSupportCount, 5)
-    XCTAssertEqual(capturedBadgeCount, 5)
+    XCTAssertEqual(capturedBadgeCount.value, 5)
   }
 
   func testHandleSupportNotificationBadgeIncrementsWhenNoPayload() async {
     @Shared(.unreadSupportCount) var unreadSupportCount = 2
-    var capturedBadgeCount: Int?
+    let capturedBadgeCount = LockIsolated<Int?>(nil)
 
     await withDependencies {
       $0.pushNotifications.setBadgeCount = { count in
-        capturedBadgeCount = count
+        capturedBadgeCount.setValue(count)
       }
-      $0.pushNotifications.handleSupportNotificationBadge =
-        PushNotificationsClient.liveValue.handleSupportNotificationBadge
+      $0.pushNotifications.handleSupportNotificationBadge = { badgeFromPayload in
+        await PushNotificationsClient.liveValue.handleSupportNotificationBadge(badgeFromPayload)
+      }
     } operation: {
       @Dependency(\.pushNotifications) var pushNotifications
       await pushNotifications.handleSupportNotificationBadge(badgeFromPayload: nil)
     }
 
     XCTAssertEqual(unreadSupportCount, 3)
-    XCTAssertEqual(capturedBadgeCount, 3)
+    XCTAssertEqual(capturedBadgeCount.value, 3)
   }
 
   func testClearSupportBadgeSetsCountToZero() async {
     @Shared(.unreadSupportCount) var unreadSupportCount = 5
-    var capturedBadgeCount: Int?
+    let capturedBadgeCount = LockIsolated<Int?>(nil)
 
     await withDependencies {
       $0.pushNotifications.setBadgeCount = { count in
-        capturedBadgeCount = count
+        capturedBadgeCount.setValue(count)
       }
-      $0.pushNotifications.clearSupportBadge = PushNotificationsClient.liveValue.clearSupportBadge
+      $0.pushNotifications.clearSupportBadge = {
+        await PushNotificationsClient.liveValue.clearSupportBadge()
+      }
     } operation: {
       @Dependency(\.pushNotifications) var pushNotifications
       await pushNotifications.clearSupportBadge()
     }
 
     XCTAssertEqual(unreadSupportCount, 0)
-    XCTAssertEqual(capturedBadgeCount, 0)
+    XCTAssertEqual(capturedBadgeCount.value, 0)
   }
 
   // MARK: - Support Message Notification Tap
@@ -204,23 +195,23 @@ final class PushNotificationsTests: XCTestCase {
     let supportModel = SupportPageModel()
     navCoordinator.path.append(.supportPage(supportModel))
 
-    var refreshNotificationPosted = false
+    let refreshNotificationPosted = LockIsolated(false)
     let observer = NotificationCenter.default.addObserver(
       forName: .refreshSupportMessages,
       object: nil,
       queue: .main
     ) { _ in
-      refreshNotificationPosted = true
+      refreshNotificationPosted.setValue(true)
     }
 
     defer { NotificationCenter.default.removeObserver(observer) }
 
-    let userInfo: [AnyHashable: Any] = [
+    let userInfo: [String: any Sendable] = [
       "type": "support_message",
       "conversationId": "conv-123",
     ]
     await PushNotificationsClient.liveValue.handleNotificationTap(userInfo)
 
-    XCTAssertTrue(refreshNotificationPosted)
+    XCTAssertTrue(refreshNotificationPosted.value)
   }
 }

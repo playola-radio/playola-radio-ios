@@ -6,23 +6,26 @@
 //
 
 import SwiftUI
+import UIKit
 
 @MainActor
-class PlayolaAlert: Equatable, Identifiable, Hashable {
-  static func == (lhs: PlayolaAlert, rhs: PlayolaAlert) -> Bool {
+struct PlayolaAlert: Equatable, Identifiable, Hashable {
+  nonisolated let id = UUID()
+
+  nonisolated static func == (lhs: PlayolaAlert, rhs: PlayolaAlert) -> Bool {
     lhs.title == rhs.title && lhs.message == rhs.message
   }
 
-  let title: String
-  let message: String?
+  nonisolated let title: String
+  nonisolated let message: String?
   let dismissButton: Alert.Button?
   let secondaryButton: Alert.Button?
   let primaryButtonText: String?
   let secondaryButtonText: String?
   let tertiaryButtonText: String?
-  let primaryAction: (() async -> Void)?
-  let secondaryAction: (() async -> Void)?
-  let tertiaryAction: (() async -> Void)?
+  let primaryAction: (@MainActor () async -> Void)?
+  let secondaryAction: (@MainActor () async -> Void)?
+  let tertiaryAction: (@MainActor () async -> Void)?
 
   init(
     title: String,
@@ -46,9 +49,9 @@ class PlayolaAlert: Equatable, Identifiable, Hashable {
     title: String,
     message: String?,
     primaryButtonText: String,
-    primaryAction: @escaping () async -> Void,
+    primaryAction: @escaping @MainActor () async -> Void,
     secondaryButtonText: String,
-    secondaryAction: (() async -> Void)? = nil
+    secondaryAction: (@MainActor () async -> Void)? = nil
   ) {
     self.title = title
     self.message = message
@@ -66,11 +69,11 @@ class PlayolaAlert: Equatable, Identifiable, Hashable {
     title: String,
     message: String?,
     primaryButtonText: String,
-    primaryAction: @escaping () async -> Void,
+    primaryAction: @escaping @MainActor () async -> Void,
     secondaryButtonText: String,
-    secondaryAction: @escaping () async -> Void,
+    secondaryAction: @escaping @MainActor () async -> Void,
     tertiaryButtonText: String,
-    tertiaryAction: @escaping () async -> Void
+    tertiaryAction: @escaping @MainActor () async -> Void
   ) {
     self.title = title
     self.message = message
@@ -148,7 +151,7 @@ class PlayolaAlert: Equatable, Identifiable, Hashable {
     }
   }
 
-  func hash(into hasher: inout Hasher) {
+  nonisolated func hash(into hasher: inout Hasher) {
     hasher.combine(title)
     hasher.combine(message)
   }
@@ -229,9 +232,9 @@ extension PlayolaAlert {
   }
 
   static func ratingPrompt(
-    onEnjoying: @escaping () async -> Void,
-    onNotEnjoying: @escaping () async -> Void,
-    onNotNow: @escaping () async -> Void
+    onEnjoying: @escaping @MainActor () async -> Void,
+    onNotEnjoying: @escaping @MainActor () async -> Void,
+    onNotNow: @escaping @MainActor () async -> Void
   ) -> PlayolaAlert {
     PlayolaAlert(
       title: "Are you enjoying Playola Radio?",
@@ -257,5 +260,24 @@ extension PlayolaAlert {
       title: "Prize Redeemed!",
       message: "We'll follow up via email to coordinate your reward.",
       dismissButton: .cancel(Text("OK")))
+  }
+
+  static var signInError: PlayolaAlert {
+    let message =
+      "We have a rare bug on sign-in that only affects 1 out of every 1000 people. "
+      + "So sorry about this -- if you're up for it, please contact me at "
+      + "brian@playola.fm and we'll get you signed in and we'll send you a koozie "
+      + "or something. Sorry again!"
+    return PlayolaAlert(
+      title: "You win the lottery!",
+      message: message,
+      primaryButtonText: "Email Brian",
+      primaryAction: {
+        guard let url = URL(string: "mailto:brian@playola.fm?subject=Sign-in%20issue") else {
+          return
+        }
+        _ = await UIApplication.shared.open(url)
+      },
+      secondaryButtonText: "OK")
   }
 }

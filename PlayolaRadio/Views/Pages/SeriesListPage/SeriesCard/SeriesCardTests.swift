@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import ConcurrencyExtras
 import Dependencies
 import PlayolaPlayer
 import Sharing
@@ -14,13 +15,13 @@ import XCTest
 final class SeriesCardModelTests: XCTestCase {
   func testRemindMeTappedCallsSubscribeAPI() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    var subscribeCalled = false
-    var subscribedStationId: String?
+    let subscribeCalled = LockIsolated(false)
+    let subscribedStationId = LockIsolated<String?>(nil)
 
     await withDependencies {
       $0.api.subscribeToStationNotifications = { _, stationId in
-        subscribeCalled = true
-        subscribedStationId = stationId
+        subscribeCalled.setValue(true)
+        subscribedStationId.setValue(stationId)
         return self.mockSubscription(stationId: stationId)
       }
     } operation: {
@@ -31,8 +32,8 @@ final class SeriesCardModelTests: XCTestCase {
 
       await model.remindMeTapped()
 
-      XCTAssertTrue(subscribeCalled)
-      XCTAssertEqual(subscribedStationId, "station-123")
+      XCTAssertTrue(subscribeCalled.value)
+      XCTAssertEqual(subscribedStationId.value, "station-123")
     }
   }
 
@@ -76,11 +77,11 @@ final class SeriesCardModelTests: XCTestCase {
 
   func testRemindMeTappedDoesNotCallAPIWithoutJWT() async {
     @Shared(.auth) var auth = Auth(jwt: nil)
-    var subscribeCalled = false
+    let subscribeCalled = LockIsolated(false)
 
     await withDependencies {
       $0.api.subscribeToStationNotifications = { _, _ in
-        subscribeCalled = true
+        subscribeCalled.setValue(true)
         throw APIError.dataNotValid
       }
     } operation: {
@@ -91,17 +92,17 @@ final class SeriesCardModelTests: XCTestCase {
 
       await model.remindMeTapped()
 
-      XCTAssertFalse(subscribeCalled)
+      XCTAssertFalse(subscribeCalled.value)
     }
   }
 
   func testRemindMeTappedDoesNotCallAPIWithoutStation() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    var subscribeCalled = false
+    let subscribeCalled = LockIsolated(false)
 
     await withDependencies {
       $0.api.subscribeToStationNotifications = { _, _ in
-        subscribeCalled = true
+        subscribeCalled.setValue(true)
         throw APIError.dataNotValid
       }
     } operation: {
@@ -112,19 +113,17 @@ final class SeriesCardModelTests: XCTestCase {
 
       await model.remindMeTapped()
 
-      XCTAssertFalse(subscribeCalled)
+      XCTAssertFalse(subscribeCalled.value)
     }
   }
 
   func testRemindMeTappedSetsIsSubscribingDuringRequest() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    var wasSubscribingDuringCall = false
+    let wasSubscribingDuringCall = LockIsolated(false)
 
     await withDependencies {
       $0.api.subscribeToStationNotifications = { _, stationId in
-        await MainActor.run {
-          wasSubscribingDuringCall = true
-        }
+        wasSubscribingDuringCall.setValue(true)
         return self.mockSubscription(stationId: stationId)
       }
     } operation: {
@@ -135,7 +134,7 @@ final class SeriesCardModelTests: XCTestCase {
 
       await model.remindMeTapped()
 
-      XCTAssertTrue(wasSubscribingDuringCall)
+      XCTAssertTrue(wasSubscribingDuringCall.value)
       XCTAssertFalse(model.isSubscribing)
     }
   }
@@ -150,7 +149,7 @@ final class SeriesCardModelTests: XCTestCase {
     )
   }
 
-  private func mockSubscription(stationId: String) -> PushNotificationSubscription {
+  nonisolated private func mockSubscription(stationId: String) -> PushNotificationSubscription {
     PushNotificationSubscription(
       id: "sub-\(stationId)",
       userId: "user-1",

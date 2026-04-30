@@ -5,6 +5,7 @@
 //  Created by Claude on 1/2/26.
 //
 
+import ConcurrencyExtras
 import Dependencies
 import IdentifiedCollections
 import PlayolaPlayer
@@ -136,14 +137,14 @@ final class NotificationsSettingsPageTests: XCTestCase {
     let mockSubs = [
       mockSubscriptionWithStation(stationId: "station-1", isSubscribed: true)
     ]
-    var unsubscribeCalled = false
-    var unsubscribedStationId: String?
+    let unsubscribeCalled = LockIsolated(false)
+    let unsubscribedStationId = LockIsolated<String?>(nil)
 
     await withDependencies {
       $0.api.getPushNotificationSubscriptions = { _ in mockSubs }
       $0.api.unsubscribeFromStationNotifications = { _, stationId in
-        unsubscribeCalled = true
-        unsubscribedStationId = stationId
+        unsubscribeCalled.setValue(true)
+        unsubscribedStationId.setValue(stationId)
         return self.mockSubscription(stationId: stationId, isSubscribed: false)
       }
     } operation: {
@@ -152,22 +153,22 @@ final class NotificationsSettingsPageTests: XCTestCase {
 
       await model.toggleSubscription(for: "station-1")
 
-      XCTAssertTrue(unsubscribeCalled)
-      XCTAssertEqual(unsubscribedStationId, "station-1")
+      XCTAssertTrue(unsubscribeCalled.value)
+      XCTAssertEqual(unsubscribedStationId.value, "station-1")
     }
   }
 
   func testToggleSubscriptionCallsSubscribeWhenNotSubscribed() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.stationLists) var stationLists = mockStationLists()
-    var subscribeCalled = false
-    var subscribedStationId: String?
+    let subscribeCalled = LockIsolated(false)
+    let subscribedStationId = LockIsolated<String?>(nil)
 
     await withDependencies {
       $0.api.getPushNotificationSubscriptions = { _ in [] }
       $0.api.subscribeToStationNotifications = { _, stationId in
-        subscribeCalled = true
-        subscribedStationId = stationId
+        subscribeCalled.setValue(true)
+        subscribedStationId.setValue(stationId)
         return self.mockSubscription(stationId: stationId, isSubscribed: true)
       }
     } operation: {
@@ -176,8 +177,8 @@ final class NotificationsSettingsPageTests: XCTestCase {
 
       await model.toggleSubscription(for: "station-1")
 
-      XCTAssertTrue(subscribeCalled)
-      XCTAssertEqual(subscribedStationId, "station-1")
+      XCTAssertTrue(subscribeCalled.value)
+      XCTAssertEqual(subscribedStationId.value, "station-1")
     }
   }
 
@@ -350,7 +351,7 @@ final class NotificationsSettingsPageTests: XCTestCase {
     ])
   }
 
-  private func mockSubscription(stationId: String, isSubscribed: Bool)
+  nonisolated private func mockSubscription(stationId: String, isSubscribed: Bool)
     -> PushNotificationSubscription
   {
     PushNotificationSubscription(

@@ -24,7 +24,9 @@ extension Notification.Name {
   static let scheduleUpdated = Notification.Name("scheduleUpdated")
 }
 
-class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+@MainActor
+class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotificationCenterDelegate
+{
   @Dependency(\.pushNotifications) var pushNotifications
 
   func application(
@@ -32,16 +34,19 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
     #if canImport(Sentry)
-      SentrySDK.start { options in
-        options.dsn =
-          "https://c024cbc3afc46a4539e4cd73ea4f32c0@o4511043985801216.ingest.us.sentry.io/4511043987898368"
-        options.sendDefaultPii = false
-        options.tracesSampleRate = 0.1
-        options.configureProfiling = {
-          $0.sessionSampleRate = 0.1
-          $0.lifecycle = .trace
+      let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+      if !isRunningTests {
+        SentrySDK.start { options in
+          options.dsn =
+            "https://c024cbc3afc46a4539e4cd73ea4f32c0@o4511043985801216.ingest.us.sentry.io/4511043987898368"
+          options.sendDefaultPii = false
+          options.tracesSampleRate = 0.1
+          options.configureProfiling = {
+            $0.sessionSampleRate = 0.1
+            $0.lifecycle = .trace
+          }
+          options.enableLogs = true
         }
-        options.experimental.enableLogs = true
       }
     #endif
 
@@ -131,7 +136,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     didReceive response: UNNotificationResponse,
     withCompletionHandler completionHandler: @escaping () -> Void
   ) {
-    let userInfo = response.notification.request.content.userInfo
+    let userInfo = response.notification.request.content.userInfo.sendablePayload()
     Task {
       await pushNotifications.handleNotificationTap(userInfo)
     }

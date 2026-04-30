@@ -7,18 +7,18 @@
 
 import Foundation
 
-public struct PlayolaToast: Identifiable {
+public struct PlayolaToast: Identifiable, Sendable {
   public let id = UUID()
   public let message: String
   public let buttonTitle: String
   public let duration: TimeInterval
-  public let action: (() -> Void)?
+  public let action: (@Sendable () -> Void)?
 
   public init(
     message: String,
     buttonTitle: String,
     duration: TimeInterval = 3.0,
-    action: (() -> Void)? = nil
+    action: (@Sendable () -> Void)? = nil
   ) {
     self.message = message
     self.buttonTitle = buttonTitle
