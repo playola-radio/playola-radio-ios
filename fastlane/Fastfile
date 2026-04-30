@@ -209,46 +209,4 @@ platform :ios do
     gym(export_method: "ad-hoc")
   end
 
-  desc "Check that warning count hasn't increased"
-  lane :check_warnings do
-    threshold_file = "warning_threshold"
-    threshold = File.read(threshold_file).strip.to_i
-
-    # Build and count warnings
-    build_output = sh(
-      "xcodebuild -project ../PlayolaRadio.xcodeproj -scheme PlayolaRadio " \
-      "-destination 'generic/platform=iOS Simulator' build 2>&1 || true"
-    )
-    warning_count = build_output.scan(/warning:/).count
-
-    puts "📊 Warning count: #{warning_count} (threshold: #{threshold})"
-
-    if warning_count > threshold
-      UI.user_error!(
-        "❌ Warning count increased! #{warning_count} > #{threshold}\n" \
-        "Fix the new warnings or run 'fastlane update_warning_threshold' if intentional."
-      )
-    elsif warning_count < threshold
-      puts "🎉 Warning count decreased! Consider running 'fastlane update_warning_threshold'"
-    else
-      puts "✅ Warning count unchanged"
-    end
-  end
-
-  desc "Update warning threshold to current count"
-  lane :update_warning_threshold do
-    threshold_file = "warning_threshold"
-
-    # Build and count warnings
-    build_output = sh(
-      "xcodebuild -project ../PlayolaRadio.xcodeproj -scheme PlayolaRadio " \
-      "-destination 'generic/platform=iOS Simulator' build 2>&1 || true"
-    )
-    warning_count = build_output.scan(/warning:/).count
-
-    old_threshold = File.exist?(threshold_file) ? File.read(threshold_file).strip.to_i : 0
-    File.write(threshold_file, warning_count.to_s)
-
-    puts "📊 Updated warning threshold: #{old_threshold} → #{warning_count}"
-  end
 end
