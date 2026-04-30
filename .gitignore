@@ -21,6 +21,7 @@ output/
 
 # Claude generated files
 claude-files/
+.claude/scheduled_tasks.lock
 
 DerivedData/
 
