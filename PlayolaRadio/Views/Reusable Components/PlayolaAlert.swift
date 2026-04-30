@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 @MainActor
 struct PlayolaAlert: Equatable, Identifiable, Hashable {
@@ -259,5 +260,24 @@ extension PlayolaAlert {
       title: "Prize Redeemed!",
       message: "We'll follow up via email to coordinate your reward.",
       dismissButton: .cancel(Text("OK")))
+  }
+
+  static var signInError: PlayolaAlert {
+    let message =
+      "We have a rare bug on sign-in that only affects 1 out of every 1000 people. "
+      + "So sorry about this -- if you're up for it, please contact me at "
+      + "brian@playola.fm and we'll get you signed in and we'll send you a koozie "
+      + "or something. Sorry again!"
+    return PlayolaAlert(
+      title: "You win the lottery!",
+      message: message,
+      primaryButtonText: "Email Brian",
+      primaryAction: {
+        guard let url = URL(string: "mailto:brian@playola.fm?subject=Sign-in%20issue") else {
+          return
+        }
+        _ = await UIApplication.shared.open(url)
+      },
+      secondaryButtonText: "OK")
   }
 }

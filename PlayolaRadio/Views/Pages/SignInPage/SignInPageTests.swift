@@ -122,4 +122,46 @@ final class SignInPageTests: XCTestCase {
       reportedErrors.value.isEmpty,
       "Should not report ASAuthorizationError.canceled (user cancellations are not bugs)")
   }
+
+  // MARK: - presentedAlert Tests
+
+  func testSignInWithAppleCompletedPresentsAlertOnAuthorizationFailure() async {
+    let model = withDependencies {
+      $0.errorReporting.reportError = { _, _ in }
+    } operation: {
+      SignInPageModel()
+    }
+
+    let genericError = NSError(domain: "test.domain", code: 42, userInfo: nil)
+    model.signInWithAppleCompleted(result: .failure(genericError))
+
+    XCTAssertEqual(model.presentedAlert, .signInError)
+  }
+
+  func testSignInWithAppleCompletedDoesNotPresentAlertOnUserCancel() async {
+    let model = withDependencies {
+      $0.errorReporting.reportError = { _, _ in }
+    } operation: {
+      SignInPageModel()
+    }
+
+    let cancelError = ASAuthorizationError(.canceled)
+    model.signInWithAppleCompleted(result: .failure(cancelError))
+
+    XCTAssertNil(model.presentedAlert)
+  }
+
+  func testSignInWithGooglePresentsAlertWhenNoKeyWindow() async {
+    let model = withDependencies {
+      $0.errorReporting.reportMessage = { _, _ in }
+      $0.analytics.track = { _ in }
+    } operation: {
+      SignInPageModel()
+    }
+    model.keyWindowProvider = { nil }
+
+    await model.signInWithGoogleButtonTapped()
+
+    XCTAssertEqual(model.presentedAlert, .signInError)
+  }
 }
