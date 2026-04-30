@@ -333,7 +333,7 @@ final class SupportPageTests: XCTestCase {
     XCTAssertEqual(model.messages.first?.message, "New reply")
   }
 
-  func testOnViewAppearedCreatesConversationWhenGetReturnsNil() async {
+  func testOnViewAppearedDoesNotCreateConversationWhenGetReturnsNil() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
         id: "user-1",
@@ -346,8 +346,54 @@ final class SupportPageTests: XCTestCase {
       jwt: "test-jwt"
     )
 
-    let createdConversation = makeConversation(id: "created-conv")
     let createCalled = LockIsolated(false)
+    let getMessagesCalled = LockIsolated(false)
+
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in
+        SupportConversationResponse(conversation: nil, unreadCount: 0)
+      }
+      $0.api.createSupportConversation = { _ in
+        createCalled.setValue(true)
+        return .mockWith()
+      }
+      $0.api.getConversationMessages = { _, _ in
+        getMessagesCalled.setValue(true)
+        return []
+      }
+    } operation: {
+      SupportPageModel()
+    }
+
+    await model.onViewAppeared()
+
+    XCTAssertFalse(
+      createCalled.value, "Should not create a conversation just from viewing the page")
+    XCTAssertFalse(getMessagesCalled.value, "No conversation = no messages to fetch")
+    XCTAssertNil(model.conversation)
+    XCTAssertTrue(model.messages.isEmpty)
+    XCTAssertFalse(model.isLoading)
+    XCTAssertNil(model.presentedAlert)
+  }
+
+  func testSendMessageCreatesConversationWhenNoneExists() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "user-1",
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com",
+        profileImageUrl: nil,
+        role: "user"
+      ),
+      jwt: "test-jwt"
+    )
+
+    let createdConversation = makeConversation(id: "lazy-conv")
+    let createCalled = LockIsolated(false)
+    let sentMessage = makeMessage(
+      id: "msg-1", conversationId: "lazy-conv", senderId: "user-1", text: "Hi there"
+    )
 
     let model = withDependencies {
       $0.api.getSupportConversation = { _ in
@@ -358,6 +404,58 @@ final class SupportPageTests: XCTestCase {
         return CreateSupportConversationResponse(
           conversation: createdConversation, unreadCount: 0)
       }
+      $0.api.sendConversationMessage = { _, conversationId, text in
+        XCTAssertEqual(conversationId, "lazy-conv")
+        XCTAssertEqual(text, "Hi there")
+        return sentMessage
+      }
+      $0.api.getConversationMessages = { _, _ in [] }
+    } operation: {
+      SupportPageModel()
+    }
+
+    await model.onViewAppeared()
+    XCTAssertNil(model.conversation)
+
+    model.newMessage = "Hi there"
+    await model.sendMessage()
+
+    XCTAssertTrue(createCalled.value)
+    XCTAssertEqual(model.conversation?.id, "lazy-conv")
+    XCTAssertEqual(model.messages.count, 1)
+    XCTAssertEqual(model.messages.first?.message, "Hi there")
+    XCTAssertTrue(model.newMessage.isEmpty)
+  }
+
+  func testSendMessageRestoresMessageAndShowsAlertWhenCreateFails() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "user-1",
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com",
+        profileImageUrl: nil,
+        role: "user"
+      ),
+      jwt: "test-jwt"
+    )
+
+    let sendCalled = LockIsolated(false)
+
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in
+        SupportConversationResponse(conversation: nil, unreadCount: 0)
+      }
+      $0.api.createSupportConversation = { _ in
+        throw APIError.validationError("create failed")
+      }
+      $0.api.sendConversationMessage = { _, _, _ in
+        sendCalled.setValue(true)
+        return Message(
+          id: "x", conversationId: "x", senderId: "x",
+          message: "x", createdAt: Date(), updatedAt: Date(), sender: nil
+        )
+      }
       $0.api.getConversationMessages = { _, _ in [] }
     } operation: {
       SupportPageModel()
@@ -365,9 +463,14 @@ final class SupportPageTests: XCTestCase {
 
     await model.onViewAppeared()
 
-    XCTAssertTrue(createCalled.value)
-    XCTAssertEqual(model.conversation?.id, "created-conv")
-    XCTAssertFalse(model.isLoading)
+    model.newMessage = "Hello"
+    await model.sendMessage()
+
+    XCTAssertFalse(sendCalled.value, "Should not call send when create fails")
+    XCTAssertNil(model.conversation)
+    XCTAssertEqual(model.newMessage, "Hello", "newMessage should be restored")
+    XCTAssertEqual(model.presentedAlert, .errorSendingMessage)
+    XCTAssertFalse(model.isSending)
   }
 
   func testOnViewAppearedUsesExistingConversationFromGet() async {

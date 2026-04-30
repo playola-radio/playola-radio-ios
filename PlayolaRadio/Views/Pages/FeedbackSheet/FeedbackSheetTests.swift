@@ -208,6 +208,97 @@ struct FeedbackSheetTests {
   }
 
   @Test
+  func testSendButtonTappedCreatesConversationLazilyWhenNil() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "user-1",
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com",
+        profileImageUrl: nil,
+        role: "user"
+      ),
+      jwt: "test-jwt"
+    )
+
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
+
+    let createdConversation = Conversation(
+      id: "lazy-conv",
+      type: "support",
+      contextType: nil,
+      contextId: nil,
+      status: "open",
+      createdAt: Date(),
+      updatedAt: Date(),
+      participants: nil
+    )
+
+    let sentMessage = Message(
+      id: "msg-1",
+      conversationId: "lazy-conv",
+      senderId: "user-1",
+      message: "Hi",
+      createdAt: Date(),
+      updatedAt: Date(),
+      sender: nil
+    )
+
+    let model = withDependencies {
+      $0.api.createSupportConversation = { _ in
+        CreateSupportConversationResponse(conversation: createdConversation, unreadCount: 0)
+      }
+      $0.api.sendConversationMessage = { _, conversationId, _ in
+        #expect(conversationId == "lazy-conv")
+        return sentMessage
+      }
+    } operation: {
+      FeedbackSheetModel()
+    }
+
+    navCoordinator.presentedSheet = .feedbackSheet(model)
+    model.message = "Hi"
+
+    await model.sendButtonTapped()
+
+    #expect(model.conversation?.id == "lazy-conv")
+    #expect(model.message.isEmpty)
+    #expect(navCoordinator.presentedSheet == nil)
+  }
+
+  @Test
+  func testSendButtonTappedShowsErrorWhenLazyCreateFails() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "user-1",
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com",
+        profileImageUrl: nil,
+        role: "user"
+      ),
+      jwt: "test-jwt"
+    )
+
+    let model = withDependencies {
+      $0.api.createSupportConversation = { _ in
+        throw APIError.validationError("create failed")
+      }
+    } operation: {
+      FeedbackSheetModel()
+    }
+
+    model.message = "Hi"
+
+    await model.sendButtonTapped()
+
+    #expect(model.conversation == nil)
+    #expect(model.presentedAlert == .errorSendingMessage)
+    #expect(model.isSending == false)
+  }
+
+  @Test
   func testCancelButtonTappedDismissesSheet() {
     @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
       MainContainerNavigationCoordinator()

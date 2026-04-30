@@ -782,7 +782,6 @@ final class MainContainerTests: XCTestCase {
 
       let mainContainerModel = withDependencies {
         $0.api.getStations = { [] }
-        $0.api.getSupportConversation = { _ in .mockWith() }
         $0.pushNotifications.registerForRemoteNotifications = {}
         $0.appRating.shouldShowRatingPrompt = { _ in true }
         $0.appRating.markRatingPromptShown = { markShownCalled.setValue(true) }
@@ -812,59 +811,6 @@ final class MainContainerTests: XCTestCase {
         XCTFail("Expected feedback sheet to be presented")
         return
       }
-    }
-  }
-
-  func testFeedbackSheetFailedTracksErrorEvent() async {
-    await withMainSerialExecutor {
-      let testJWT = MainContainerTests.createTestJWT()
-      @Shared(.auth) var auth
-      $auth.withLock { $0 = Auth(jwtToken: testJWT) }
-      @Shared(.appInstallDate) var appInstallDate = Calendar.current.date(
-        byAdding: .day, value: -10, to: Date()
-      )
-      @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String?
-      @Shared(.listeningTracker) var listeningTracker = ListeningTracker(
-        rewardsProfile: RewardsProfile(
-          totalTimeListenedMS: 2 * 60 * 60 * 1000,
-          totalMSAvailableForRewards: 0,
-          accurateAsOfTime: Date()
-        )
-      )
-
-      let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-
-      let mainContainerModel = withDependencies {
-        $0.api.getStations = { [] }
-        $0.api.getSupportConversation = { _ in throw NSError(domain: "test", code: 500) }
-        $0.pushNotifications.registerForRemoteNotifications = {}
-        $0.appRating.shouldShowRatingPrompt = { _ in true }
-        $0.appRating.markRatingPromptShown = {}
-        $0.appRating.markRatingPromptDismissed = {}
-        $0.analytics.track = { @Sendable event in
-          capturedEvents.withValue { $0.append(event) }
-        }
-      } operation: {
-        MainContainerModel()
-      }
-
-      mainContainerModel.checkAndShowRatingPromptIfNeeded()
-
-      // Simulate tapping "Not really" — triggers showFeedbackSheet() which spawns a Task
-      // that calls api.getSupportConversation (throws) then analytics.track in the catch.
-      // Multiple yields needed for the spawned Task's suspension points.
-      await mainContainerModel.presentedAlert?.secondaryAction?()
-      await Task.yield()
-      await Task.yield()
-      await Task.yield()
-
-      XCTAssertTrue(
-        capturedEvents.value.contains {
-          if case .feedbackSheetFailed = $0 { return true }
-          return false
-        },
-        "Should track feedbackSheetFailed event when API fails"
-      )
     }
   }
 
