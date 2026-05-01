@@ -189,6 +189,7 @@ class AuthService: @unchecked Sendable {
   func signOut() async {
     @Dependency(\.api) var api
     @Dependency(\.analytics) var analytics
+    @Shared(.auth) var auth
     @Shared(.registeredDeviceId) var registeredDeviceId
     @Shared(.userLikes) var userLikes
     @Shared(.pendingLikeOperations) var pendingLikeOperations
