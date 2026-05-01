@@ -183,6 +183,7 @@ class AuthService: @unchecked Sendable {
       object: nil,
       queue: nil
     ) { _ in
+      Task { await AuthService.shared.signOut() }
     }
   }
 

@@ -463,12 +463,12 @@ final class ContactPageTests: XCTestCase {
     @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
 
     let stationPlayerMock = StationPlayerMock()
-    let model = ContactPageModel(stationPlayer: stationPlayerMock)
 
     await withDependencies {
       $0.api.unregisterDevice = { _, _ in }
       $0.analytics = .noop
     } operation: {
+      let model = ContactPageModel(stationPlayer: stationPlayerMock)
       await model.onLogOutTapped()
     }
 
