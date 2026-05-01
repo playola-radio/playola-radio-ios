@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 1/22/25.
 //
 import AuthenticationServices
+import Dependencies
 import Foundation
 import Sharing
 
@@ -182,11 +183,39 @@ class AuthService: @unchecked Sendable {
       object: nil,
       queue: nil
     ) { _ in
+      Task { await AuthService.shared.signOut() }
     }
   }
 
-  func signOut() {
+  func signOut() async {
+    @Dependency(\.api) var api
+    @Dependency(\.analytics) var analytics
+    @Shared(.auth) var auth
+    @Shared(.registeredDeviceId) var registeredDeviceId
+    @Shared(.userLikes) var userLikes
+    @Shared(.pendingLikeOperations) var pendingLikeOperations
+    @Shared(.airings) var airings
+    @Shared(.lastNotificationSentAt) var lastNotificationSentAt
+    @Shared(.isBroadcaster) var isBroadcaster
+
+    let jwt = auth.jwt
+    let deviceId = registeredDeviceId
+
+    if let jwt, let deviceId {
+      try? await api.unregisterDevice(jwt, deviceId)
+    }
+
+    await analytics.reset()
+
     $auth.withLock { $0 = Auth() }
+    $registeredDeviceId.withLock { $0 = nil }
+    $userLikes.withLock { $0 = [:] }
+    $pendingLikeOperations.withLock { $0 = [] }
+    $airings.withLock { $0 = [] }
+    $lastNotificationSentAt.withLock { $0 = [:] }
+    $isBroadcaster.withLock { $0 = false }
+
+    UserDefaults.standard.removeObject(forKey: "analytics_session_paused_at")
   }
 
 }
