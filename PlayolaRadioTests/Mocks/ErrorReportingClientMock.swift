@@ -16,16 +16,16 @@ extension ErrorReportingClient {
     errorHandler: @escaping @Sendable (Error, [String: String]) -> Void = { _, _ in },
     errorWithContextHandler:
       @escaping @Sendable (
-        Error, [String: String], [String: String]
-      ) -> Void = { _, _, _ in },
+        Error, [String: String], String, [String: String]
+      ) -> Void = { _, _, _, _ in },
     messageHandler: @escaping @Sendable (String, [String: String]) -> Void = { _, _ in }
   ) -> Self {
     Self(
       reportError: { error, tags in
         errorHandler(error, tags)
       },
-      reportErrorWithContext: { error, tags, context in
-        errorWithContextHandler(error, tags, context)
+      reportErrorWithContext: { error, tags, contextKey, context in
+        errorWithContextHandler(error, tags, contextKey, context)
       },
       reportMessage: { message, tags in
         messageHandler(message, tags)

@@ -23,7 +23,9 @@ struct ErrorReportingClient: Sendable {
 
   /// Report an Error with tags and contextual data to the crash/error reporting backend (Sentry).
   var reportErrorWithContext:
-    @Sendable (_ error: Error, _ tags: [String: String], _ context: [String: String]) async -> Void
+    @Sendable (
+      _ error: Error, _ tags: [String: String], _ contextKey: String, _ context: [String: String]
+    ) async -> Void
 
   /// Report a message (non-Error situation) to the crash/error reporting backend.
   /// Tags are attached to the event for filtering in the Sentry UI.
@@ -56,14 +58,14 @@ extension ErrorReportingClient: DependencyKey {
         }
       #endif
     },
-    reportErrorWithContext: { error, tags, context in
+    reportErrorWithContext: { error, tags, contextKey, context in
       #if canImport(Sentry)
         SentrySDK.capture(error: error) { scope in
           for (key, value) in tags {
             scope.setTag(value: value, key: key)
           }
           if !context.isEmpty {
-            scope.setContext(value: context, key: "sign_in")
+            scope.setContext(value: context, key: contextKey)
           }
         }
       #endif
@@ -85,7 +87,7 @@ extension ErrorReportingClient: DependencyKey {
 extension ErrorReportingClient {
   static let noop = Self(
     reportError: { _, _ in },
-    reportErrorWithContext: { _, _, _ in },
+    reportErrorWithContext: { _, _, _, _ in },
     reportMessage: { _, _ in }
   )
 }
@@ -108,6 +110,7 @@ struct SignInAPIError: Error, LocalizedError {
 }
 
 struct SignInErrorReport {
+  let contextKey = "sign_in"
   let tags: [String: String]
   let context: [String: String]
 
@@ -183,8 +186,6 @@ struct SignInErrorReport {
     return normalizedKey.contains("token")
       || normalizedKey == "authcode"
       || normalizedKey == "authorizationcode"
-      || normalizedKey == "identitytoken"
-      || normalizedKey == "idtoken"
   }
 
   private static func topLevelJSONKeys(_ responseBody: String) -> [String]? {

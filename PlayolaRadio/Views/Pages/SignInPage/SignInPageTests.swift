@@ -84,7 +84,7 @@ final class SignInPageTests: XCTestCase {
     let expectation = XCTestExpectation(description: "reportError called")
 
     let model = withDependencies {
-      $0.errorReporting.reportErrorWithContext = { error, tags, _ in
+      $0.errorReporting.reportErrorWithContext = { error, tags, _, _ in
         reportedErrors.withValue { $0.append((error, tags)) }
         expectation.fulfill()
       }
@@ -108,7 +108,7 @@ final class SignInPageTests: XCTestCase {
     invertedExpectation.isInverted = true
 
     let model = withDependencies {
-      $0.errorReporting.reportErrorWithContext = { error, tags, _ in
+      $0.errorReporting.reportErrorWithContext = { error, tags, _, _ in
         reportedErrors.withValue { $0.append((error, tags)) }
         invertedExpectation.fulfill()
       }
@@ -130,7 +130,7 @@ final class SignInPageTests: XCTestCase {
 
   func testSignInWithAppleCompletedPresentsAlertOnAuthorizationFailure() async {
     let model = withDependencies {
-      $0.errorReporting.reportErrorWithContext = { _, _, _ in }
+      $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
     } operation: {
       SignInPageModel()
     }
@@ -143,7 +143,7 @@ final class SignInPageTests: XCTestCase {
 
   func testSignInWithAppleCompletedDoesNotPresentAlertOnUserCancel() async {
     let model = withDependencies {
-      $0.errorReporting.reportErrorWithContext = { _, _, _ in }
+      $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
     } operation: {
       SignInPageModel()
     }
@@ -182,6 +182,7 @@ final class SignInPageTests: XCTestCase {
     XCTAssertEqual(report.tags["sign_in_step"], "google_sign_in_flow")
     XCTAssertEqual(report.tags["error_domain"], "com.google.GIDSignIn")
     XCTAssertEqual(report.tags["error_code"], "-4")
+    XCTAssertEqual(report.contextKey, "sign_in")
   }
 
   func testSignInErrorReportIncludesHTTPContextAndRedactsTokens() {

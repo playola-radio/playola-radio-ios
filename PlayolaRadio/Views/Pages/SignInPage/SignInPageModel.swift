@@ -150,6 +150,7 @@ class SignInPageModel: ViewModel {
 
   private func reportSignInError(_ error: Error, authMethod: AuthMethod, step: String) async {
     let report = SignInErrorReport(error: error, authMethod: authMethod, step: step)
-    await errorReporting.reportErrorWithContext(error, report.tags, report.context)
+    await errorReporting.reportErrorWithContext(
+      error, report.tags, report.contextKey, report.context)
   }
 }
