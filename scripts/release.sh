@@ -59,8 +59,18 @@ esac
 PBXPROJ="PlayolaRadio.xcodeproj/project.pbxproj"
 
 # Get current version info
-current_version=$(grep -m1 'MARKETING_VERSION' "$PBXPROJ" | sed 's/.*= //' | sed 's/;.*//' | tr -d ' ')
-current_build=$(agvtool what-version -terse | sort -n | tail -1)
+current_version=$(grep -m1 'MARKETING_VERSION' "$PBXPROJ" | sed -E 's/.*MARKETING_VERSION = ([^;]+);.*/\1/' | tr -d ' ')
+current_build=$(grep -m1 'CURRENT_PROJECT_VERSION' "$PBXPROJ" | sed -E 's/.*CURRENT_PROJECT_VERSION = ([^;]+);.*/\1/' | tr -d ' ')
+
+if [ -z "$current_version" ]; then
+  echo "Error: could not detect MARKETING_VERSION from $PBXPROJ" >&2
+  exit 1
+fi
+
+if ! [[ "$current_build" =~ ^[0-9]+$ ]]; then
+  echo "Error: could not detect a numeric CURRENT_PROJECT_VERSION from $PBXPROJ (got '$current_build')" >&2
+  exit 1
+fi
 
 # Calculate new version
 IFS='.' read -r major minor patch <<< "$current_version"
