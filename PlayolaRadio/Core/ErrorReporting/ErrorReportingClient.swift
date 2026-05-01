@@ -140,13 +140,16 @@ enum SignInNetworkErrorClassifier {
       iterations += 1
       let ns = next as NSError
       collected.append(ns)
-      if let afError = next as? AFError, let underlying = afError.underlyingError {
-        queue.append(underlying)
-      }
-      if let signInError = next as? SignInAPIError {
+      // Branches are mutually exclusive so each error contributes its underlying exactly once:
+      // bridged AFError also exposes its underlying via NSUnderlyingErrorKey, and we don't
+      // want to spend two iteration-budget slots on the same hop.
+      if let afError = next as? AFError {
+        if let underlying = afError.underlyingError {
+          queue.append(underlying)
+        }
+      } else if let signInError = next as? SignInAPIError {
         queue.append(signInError.underlyingError)
-      }
-      if let underlying = ns.userInfo[NSUnderlyingErrorKey] as? Error {
+      } else if let underlying = ns.userInfo[NSUnderlyingErrorKey] as? Error {
         queue.append(underlying)
       }
       queue.append(contentsOf: ns.underlyingErrors)

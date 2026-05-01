@@ -131,14 +131,18 @@ class SignInPageModel: ViewModel {
     }
   }
 
-  // MARK: - Private Helpers
+  // MARK: - Internal Helpers
 
+  // Internal (not private) so SignInPageTests can drive the alert/analytics/reporting routing
+  // directly without needing to fabricate an ASAuthorization for the Apple .success branch.
   func handleSignInAPIFailure(_ error: Error, authMethod: AuthMethod, step: String) async {
     presentedAlert =
       SignInNetworkErrorClassifier.isNetworkError(error) ? .signInNetworkError : .signInError
     await analytics.track(.signInFailed(method: authMethod, error: error.localizedDescription))
     await reportSignInError(error, authMethod: authMethod, step: step)
   }
+
+  // MARK: - Private Helpers
 
   private func handleAppleAuthorizationFailure(_ error: any Error) {
     print(error)
