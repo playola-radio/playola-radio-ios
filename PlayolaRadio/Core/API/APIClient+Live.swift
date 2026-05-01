@@ -27,12 +27,19 @@ private struct CreateVoicetrackParameters: Encodable, Sendable {
 
 private let sharedIsoDecoder = JSONDecoderWithIsoFull()
 
+private let tls12SignInSession: Alamofire.Session = {
+  let configuration = URLSessionConfiguration.af.default
+  configuration.tlsMaximumSupportedProtocolVersion = .TLSv12
+  return Alamofire.Session(configuration: configuration)
+}()
+
 private func signInPost(
   authMethod: AuthMethod,
   endpointPath: String,
-  parameters: Parameters
+  parameters: Parameters,
+  session: Alamofire.Session = AF
 ) async throws -> String {
-  let dataResponse = await AF.request(
+  let dataResponse = await session.request(
     "\(Config.shared.baseUrl.absoluteString)\(endpointPath)",
     method: .post,
     parameters: parameters,
@@ -52,6 +59,44 @@ private func signInPost(
       statusCode: dataResponse.response?.statusCode,
       responseBody: dataResponse.data.flatMap { String(data: $0, encoding: .utf8) },
       underlyingError: error)
+  }
+}
+
+// Some users sit behind middleboxes (antivirus SSL inspection, parental-control routers, etc.)
+// that drop iOS 26's larger TLS 1.3 ClientHello with post-quantum hybrid key shares. Capping
+// to TLS 1.2 produces a smaller ClientHello that those middleboxes pass through. We retry
+// only the auth endpoints; everything else stays on modern TLS 1.3.
+private func signInPostWithTLS12Fallback(
+  authMethod: AuthMethod,
+  endpointPath: String,
+  parameters: Parameters
+) async throws -> String {
+  do {
+    return try await signInPost(
+      authMethod: authMethod,
+      endpointPath: endpointPath,
+      parameters: parameters)
+  } catch let originalError {
+    guard SignInNetworkErrorClassifier.isSecureConnectionFailed(originalError) else {
+      throw originalError
+    }
+    @Dependency(\.errorReporting) var errorReporting
+    do {
+      let token = try await signInPost(
+        authMethod: authMethod,
+        endpointPath: endpointPath,
+        parameters: parameters,
+        session: tls12SignInSession)
+      await errorReporting.reportMessage(
+        "tls12_fallback_used",
+        ["auth_method": authMethod.rawValue, "tls12_fallback_outcome": "success"])
+      return token
+    } catch {
+      await errorReporting.reportMessage(
+        "tls12_fallback_used",
+        ["auth_method": authMethod.rawValue, "tls12_fallback_outcome": "failure"])
+      throw originalError
+    }
   }
 }
 
@@ -166,7 +211,7 @@ extension APIClient: DependencyKey {
         if let lastName {
           parameters["lastName"] = lastName
         }
-        return try await signInPost(
+        return try await signInPostWithTLS12Fallback(
           authMethod: .apple,
           endpointPath: "/v1/auth/apple/mobile/signup",
           parameters: parameters)
@@ -191,7 +236,7 @@ extension APIClient: DependencyKey {
           "originatesFromIOS": true,
         ]
 
-        return try await signInPost(
+        return try await signInPostWithTLS12Fallback(
           authMethod: .google,
           endpointPath: "/v1/auth/google/signin",
           parameters: parameters)

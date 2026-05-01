@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 1/22/25.
 //
 
+import Alamofire
 import AuthenticationServices
 import Dependencies
 import Sharing
@@ -168,6 +169,74 @@ final class SignInPageTests: XCTestCase {
     XCTAssertEqual(model.presentedAlert, .signInError)
   }
 
+  // MARK: - handleSignInAPIFailure Routing Tests
+
+  func testHandleSignInAPIFailureShowsNetworkAlertOnAppleSSLError() async {
+    let model = withDependencies {
+      $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
+      $0.analytics.track = { _ in }
+    } operation: {
+      SignInPageModel()
+    }
+
+    let underlying = NSError(domain: NSURLErrorDomain, code: NSURLErrorSecureConnectionFailed)
+    let afError = AFError.sessionTaskFailed(error: underlying)
+
+    await model.handleSignInAPIFailure(afError, authMethod: .apple, step: "api_call")
+
+    XCTAssertEqual(model.presentedAlert, .signInNetworkError)
+    XCTAssertNotEqual(model.presentedAlert, .signInError)
+  }
+
+  func testHandleSignInAPIFailureShowsGenericAlertOnAppleUnknownError() async {
+    let model = withDependencies {
+      $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
+      $0.analytics.track = { _ in }
+    } operation: {
+      SignInPageModel()
+    }
+
+    let genericError = NSError(domain: "com.example.unknown", code: 42)
+
+    await model.handleSignInAPIFailure(genericError, authMethod: .apple, step: "api_call")
+
+    XCTAssertEqual(model.presentedAlert, .signInError)
+    XCTAssertEqual(model.presentedAlert?.title, "Sign-In Failed")
+  }
+
+  func testHandleSignInAPIFailureShowsNetworkAlertOnGoogleSSLError() async {
+    let model = withDependencies {
+      $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
+      $0.analytics.track = { _ in }
+    } operation: {
+      SignInPageModel()
+    }
+
+    let underlying = NSError(domain: NSURLErrorDomain, code: NSURLErrorSecureConnectionFailed)
+    let afError = AFError.sessionTaskFailed(error: underlying)
+
+    await model.handleSignInAPIFailure(afError, authMethod: .google, step: "google_sign_in_flow")
+
+    XCTAssertEqual(model.presentedAlert, .signInNetworkError)
+  }
+
+  func testHandleSignInAPIFailureShowsGenericAlertOnGoogleUnknownError() async {
+    let model = withDependencies {
+      $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
+      $0.analytics.track = { _ in }
+    } operation: {
+      SignInPageModel()
+    }
+
+    let genericError = NSError(domain: "com.google.GIDSignIn", code: -4)
+
+    await model.handleSignInAPIFailure(
+      genericError, authMethod: .google, step: "google_sign_in_flow")
+
+    XCTAssertEqual(model.presentedAlert, .signInError)
+    XCTAssertEqual(model.presentedAlert?.title, "Sign-In Failed")
+  }
+
   // MARK: - Sign-in Error Reporting Context Tests
 
   func testSignInErrorReportIncludesNSErrorDomainAndCode() {
@@ -183,6 +252,73 @@ final class SignInPageTests: XCTestCase {
     XCTAssertEqual(report.tags["error_domain"], "com.google.GIDSignIn")
     XCTAssertEqual(report.tags["error_code"], "-4")
     XCTAssertEqual(report.contextKey, "sign_in")
+  }
+
+  // MARK: - SignInNetworkErrorClassifier Tests
+
+  func testClassifierMatchesSecureConnectionFailed() {
+    let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorSecureConnectionFailed)
+    XCTAssertTrue(SignInNetworkErrorClassifier.isNetworkError(error))
+    XCTAssertTrue(SignInNetworkErrorClassifier.isSecureConnectionFailed(error))
+  }
+
+  func testClassifierMatchesNotConnectedToInternet() {
+    let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorNotConnectedToInternet)
+    XCTAssertTrue(SignInNetworkErrorClassifier.isNetworkError(error))
+    XCTAssertFalse(SignInNetworkErrorClassifier.isSecureConnectionFailed(error))
+  }
+
+  func testClassifierMatchesTimedOutCannotConnectAndConnectionLost() {
+    for code in [
+      NSURLErrorTimedOut, NSURLErrorCannotConnectToHost, NSURLErrorNetworkConnectionLost,
+    ] {
+      let error = NSError(domain: NSURLErrorDomain, code: code)
+      XCTAssertTrue(
+        SignInNetworkErrorClassifier.isNetworkError(error),
+        "Expected code \(code) to classify as network error")
+    }
+  }
+
+  func testClassifierRejectsUnrelatedDomain() {
+    let error = NSError(domain: "com.example.other", code: NSURLErrorSecureConnectionFailed)
+    XCTAssertFalse(SignInNetworkErrorClassifier.isNetworkError(error))
+    XCTAssertFalse(SignInNetworkErrorClassifier.isSecureConnectionFailed(error))
+  }
+
+  func testClassifierRejectsNSURLDomainWithUnrelatedCode() {
+    let error = NSError(domain: NSURLErrorDomain, code: -9999)
+    XCTAssertFalse(SignInNetworkErrorClassifier.isNetworkError(error))
+  }
+
+  func testClassifierUnwrapsAFErrorSessionTaskFailed() {
+    let underlying = NSError(domain: NSURLErrorDomain, code: NSURLErrorSecureConnectionFailed)
+    let afError = AFError.sessionTaskFailed(error: underlying)
+    XCTAssertTrue(SignInNetworkErrorClassifier.isNetworkError(afError))
+    XCTAssertTrue(SignInNetworkErrorClassifier.isSecureConnectionFailed(afError))
+  }
+
+  func testClassifierUnwrapsSignInAPIErrorWrappingAFError() {
+    let underlying = NSError(domain: NSURLErrorDomain, code: NSURLErrorSecureConnectionFailed)
+    let afError = AFError.sessionTaskFailed(error: underlying)
+    let signInError = SignInAPIError(
+      authMethod: .apple,
+      endpointPath: "/v1/auth/apple/mobile/signup",
+      statusCode: nil,
+      responseBody: nil,
+      underlyingError: afError)
+    XCTAssertTrue(SignInNetworkErrorClassifier.isNetworkError(signInError))
+    XCTAssertTrue(SignInNetworkErrorClassifier.isSecureConnectionFailed(signInError))
+  }
+
+  func testClassifierRejectsSignInAPIErrorWrappingNonNetworkError() {
+    let signInError = SignInAPIError(
+      authMethod: .google,
+      endpointPath: "/v1/auth/google/signin",
+      statusCode: 500,
+      responseBody: nil,
+      underlyingError: NSError(domain: "decode", code: 7))
+    XCTAssertFalse(SignInNetworkErrorClassifier.isNetworkError(signInError))
+    XCTAssertFalse(SignInNetworkErrorClassifier.isSecureConnectionFailed(signInError))
   }
 
   func testSignInErrorReportIncludesHTTPContextAndRedactsTokens() {
