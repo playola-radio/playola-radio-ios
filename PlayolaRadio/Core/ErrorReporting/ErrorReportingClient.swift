@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 4/23/26.
 //
 
+import Alamofire
 import Dependencies
 import DependenciesMacros
 import Foundation
@@ -106,6 +107,51 @@ struct SignInAPIError: Error, LocalizedError {
     }
     description += ": \(underlyingError.localizedDescription)"
     return description
+  }
+}
+
+enum SignInNetworkErrorClassifier {
+  static let networkErrorCodes: Set<Int> = [
+    NSURLErrorSecureConnectionFailed,
+    NSURLErrorNotConnectedToInternet,
+    NSURLErrorTimedOut,
+    NSURLErrorCannotConnectToHost,
+    NSURLErrorNetworkConnectionLost,
+  ]
+
+  static func isNetworkError(_ error: Error) -> Bool {
+    nsURLErrorCodes(in: error).contains { networkErrorCodes.contains($0) }
+  }
+
+  static func isSecureConnectionFailed(_ error: Error) -> Bool {
+    nsURLErrorCodes(in: error).contains(NSURLErrorSecureConnectionFailed)
+  }
+
+  private static func nsURLErrorCodes(in error: Error) -> [Int] {
+    walkErrors(error).compactMap { $0.domain == NSURLErrorDomain ? $0.code : nil }
+  }
+
+  private static func walkErrors(_ error: Error) -> [NSError] {
+    var collected: [NSError] = []
+    var queue: [Error] = [error]
+    var iterations = 0
+    while !queue.isEmpty, iterations < 16 {
+      let next = queue.removeFirst()
+      iterations += 1
+      let ns = next as NSError
+      collected.append(ns)
+      if let afError = next as? AFError, let underlying = afError.underlyingError {
+        queue.append(underlying)
+      }
+      if let signInError = next as? SignInAPIError {
+        queue.append(signInError.underlyingError)
+      }
+      if let underlying = ns.userInfo[NSUnderlyingErrorKey] as? Error {
+        queue.append(underlying)
+      }
+      queue.append(contentsOf: ns.underlyingErrors)
+    }
+    return collected
   }
 }
 

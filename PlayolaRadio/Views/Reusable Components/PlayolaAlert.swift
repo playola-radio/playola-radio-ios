@@ -262,16 +262,26 @@ extension PlayolaAlert {
       dismissButton: .cancel(Text("OK")))
   }
 
+  static var signInNetworkError: PlayolaAlert {
+    let message =
+      "Your network is blocking the secure connection to Playola. Try turning "
+      + "off wifi and using cellular data, or switch to a different wifi "
+      + "network. (More info: https://support.apple.com/en-us/122756)"
+    return PlayolaAlert(
+      title: "Connection Issue",
+      message: message,
+      dismissButton: .cancel(Text("OK")))
+  }
+
   static var signInError: PlayolaAlert {
     let message =
-      "We have a rare bug on sign-in that only affects 1 out of every 1000 people. "
-      + "So sorry about this -- if you're up for it, please contact me at "
-      + "brian@playola.fm and we'll get you signed in and we'll send you a koozie "
-      + "or something. Sorry again!"
+      "Something went wrong on our end while signing you in. Please try again. "
+      + "If it keeps happening, contact us at brian@playola.fm and we'll help "
+      + "get you sorted."
     return PlayolaAlert(
-      title: "You win the lottery!",
+      title: "Sign-In Failed",
       message: message,
-      primaryButtonText: "Email Brian",
+      primaryButtonText: "Email Us",
       primaryAction: {
         guard let url = URL(string: "mailto:brian@playola.fm?subject=Sign-in%20issue") else {
           return

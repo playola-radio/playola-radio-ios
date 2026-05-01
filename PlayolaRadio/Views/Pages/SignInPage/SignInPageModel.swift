@@ -82,9 +82,7 @@ class SignInPageModel: ViewModel {
           await analytics.track(.signInCompleted(method: .apple, userId: appleIDCredential.user))
         } catch {
           print("Sign in failed: \(error)")
-          presentedAlert = .signInError
-          await analytics.track(.signInFailed(method: .apple, error: error.localizedDescription))
-          await reportSignInError(error, authMethod: .apple, step: "api_call")
+          await handleSignInAPIFailure(error, authMethod: .apple, step: "api_call")
         }
       }
     case .failure(let error):
@@ -128,14 +126,19 @@ class SignInPageModel: ViewModel {
       if nsError.domain != kGIDSignInErrorDomain
         || nsError.code != GIDSignInError.canceled.rawValue
       {
-        presentedAlert = .signInError
-        await analytics.track(.signInFailed(method: .google, error: error.localizedDescription))
-        await reportSignInError(error, authMethod: .google, step: "google_sign_in_flow")
+        await handleSignInAPIFailure(error, authMethod: .google, step: "google_sign_in_flow")
       }
     }
   }
 
   // MARK: - Private Helpers
+
+  func handleSignInAPIFailure(_ error: Error, authMethod: AuthMethod, step: String) async {
+    presentedAlert =
+      SignInNetworkErrorClassifier.isNetworkError(error) ? .signInNetworkError : .signInError
+    await analytics.track(.signInFailed(method: authMethod, error: error.localizedDescription))
+    await reportSignInError(error, authMethod: authMethod, step: step)
+  }
 
   private func handleAppleAuthorizationFailure(_ error: any Error) {
     print(error)
