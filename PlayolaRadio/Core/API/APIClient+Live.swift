@@ -159,7 +159,7 @@ extension APIClient: DependencyKey {
         .serializingData()
         .value
 
-        AuthService.shared.signOut()
+        await AuthService.shared.signOut()
       },
       signInViaGoogle: { code in
         let parameters: [String: Sendable] = [

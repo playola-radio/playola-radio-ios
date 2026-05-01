@@ -12,7 +12,7 @@ class AuthServiceMock: AuthService, @unchecked Sendable {
   private let signOutCallCountStorage = LockIsolated(0)
   var signOutCallCount: Int { signOutCallCountStorage.value }
 
-  override func signOut() {
+  override func signOut() async {
     signOutCallCountStorage.withValue { $0 += 1 }
   }
 }

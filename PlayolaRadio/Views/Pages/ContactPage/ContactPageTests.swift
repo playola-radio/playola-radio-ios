@@ -6,6 +6,7 @@
 //
 import ConcurrencyExtras
 import Dependencies
+import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
 import XCTest
@@ -19,8 +20,7 @@ final class ContactPageTests: XCTestCase {
     @Shared(.auth) var auth
   }
 
-  func testOnLogOutTapped_StopsPlayerAndClearsAuth() {
-    // Set up initial logged-in state using the new LoggedInUser initializer
+  func testOnLogOutTappedStopsPlayerAndClearsAllUserState() async {
     let loggedInUser = LoggedInUser(
       id: "123",
       firstName: "John",
@@ -28,28 +28,60 @@ final class ContactPageTests: XCTestCase {
       email: "john@example.com",
       role: "user"
     )
+    let audioBlock = AudioBlock.mock
     @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
+    @Shared(.registeredDeviceId) var registeredDeviceId = "device-xyz"
+    @Shared(.userLikes) var userLikes = [
+      audioBlock.id: UserSongLike(
+        userId: "user-1",
+        audioBlockId: audioBlock.id,
+        audioBlock: audioBlock
+      )
+    ]
+    @Shared(.pendingLikeOperations) var pendingLikeOperations = [
+      LikeOperation(audioBlock: audioBlock, type: .like)
+    ]
+    @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = [Airing.mockWith(id: "airing-1")]
+    @Shared(.lastNotificationSentAt) var lastNotificationSentAt = ["station-1": Date()]
+    @Shared(.isBroadcaster) var isBroadcaster = true
+    UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "analytics_session_paused_at")
 
+    let unregisterCalls = LockIsolated<[(jwt: String, deviceId: String)]>([])
+    let resetCallCount = LockIsolated(0)
     let stationPlayerMock = StationPlayerMock()
-    let model = ContactPageModel(stationPlayer: stationPlayerMock)
 
-    // Verify initial state
-    XCTAssertTrue(auth.isLoggedIn)
-    XCTAssertEqual(auth.currentUser?.firstName, "John")
-    XCTAssertEqual(auth.currentUser?.lastName, "Doe")
-    XCTAssertEqual(auth.currentUser?.email, "john@example.com")
-    XCTAssertEqual(stationPlayerMock.stopCalledCount, 0)
+    await withDependencies {
+      $0.api.unregisterDevice = { jwt, deviceId in
+        unregisterCalls.withValue { $0.append((jwt: jwt, deviceId: deviceId)) }
+      }
+      $0.analytics = .noop
+      $0.analytics.reset = {
+        resetCallCount.withValue { $0 += 1 }
+      }
+    } operation: {
+      let model = ContactPageModel(stationPlayer: stationPlayerMock)
+      await model.onLogOutTapped()
+    }
 
-    // Call sign out
-    model.onLogOutTapped()
-
-    // Verify station player was stopped
     XCTAssertEqual(stationPlayerMock.stopCalledCount, 1)
 
-    // Verify auth was cleared
+    let calls = unregisterCalls.value
+    XCTAssertEqual(calls.count, 1)
+    XCTAssertEqual(calls.first?.jwt, loggedInUser.jwt)
+    XCTAssertEqual(calls.first?.deviceId, "device-xyz")
+
+    XCTAssertEqual(resetCallCount.value, 1)
+
     XCTAssertFalse(auth.isLoggedIn)
     XCTAssertNil(auth.currentUser)
     XCTAssertNil(auth.jwt)
+    XCTAssertNil(registeredDeviceId)
+    XCTAssertTrue(userLikes.isEmpty)
+    XCTAssertTrue(pendingLikeOperations.isEmpty)
+    XCTAssertTrue(airings.isEmpty)
+    XCTAssertTrue(lastNotificationSentAt.isEmpty)
+    XCTAssertFalse(isBroadcaster)
+    XCTAssertNil(UserDefaults.standard.object(forKey: "analytics_session_paused_at"))
   }
 
   func testNameDisplay_ReturnsFullNameWhenLoggedIn() {
@@ -436,7 +468,7 @@ final class ContactPageTests: XCTestCase {
     XCTAssertEqual(coordinator.appMode, .listening)
   }
 
-  func testLogoutResetsAppModeToListening() {
+  func testLogoutResetsAppModeToListening() async {
     @Shared(.mainContainerNavigationCoordinator)
     var coordinator = MainContainerNavigationCoordinator()
     coordinator.appMode = .broadcasting(stationId: "station-123")
@@ -453,9 +485,54 @@ final class ContactPageTests: XCTestCase {
     let stationPlayerMock = StationPlayerMock()
     let model = ContactPageModel(stationPlayer: stationPlayerMock)
 
-    model.onLogOutTapped()
+    await withDependencies {
+      $0.api.unregisterDevice = { _, _ in }
+      $0.analytics = .noop
+    } operation: {
+      await model.onLogOutTapped()
+    }
 
     XCTAssertEqual(coordinator.appMode, .listening)
+  }
+
+  // MARK: - Sign Out Edge Cases
+
+  func testOnLogOutTappedSkipsServerCallWhenDeviceNotRegistered() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt-abc")
+    @Shared(.registeredDeviceId) var registeredDeviceId = String?.none
+
+    let unregisterCallCount = LockIsolated(0)
+
+    await withDependencies {
+      $0.api.unregisterDevice = { _, _ in
+        unregisterCallCount.withValue { $0 += 1 }
+      }
+      $0.analytics = .noop
+    } operation: {
+      let model = ContactPageModel(stationPlayer: StationPlayerMock())
+      await model.onLogOutTapped()
+    }
+
+    XCTAssertEqual(unregisterCallCount.value, 0)
+    XCTAssertFalse(auth.isLoggedIn)
+  }
+
+  func testOnLogOutTappedStillClearsLocalStateWhenServerCallFails() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt-abc")
+    @Shared(.registeredDeviceId) var registeredDeviceId = "device-xyz"
+
+    struct UnregisterError: Error {}
+
+    await withDependencies {
+      $0.api.unregisterDevice = { _, _ in throw UnregisterError() }
+      $0.analytics = .noop
+    } operation: {
+      let model = ContactPageModel(stationPlayer: StationPlayerMock())
+      await model.onLogOutTapped()
+    }
+
+    XCTAssertFalse(auth.isLoggedIn)
+    XCTAssertNil(registeredDeviceId)
   }
 
   func testMyStationButtonHiddenWhenInBroadcastMode() async {

@@ -285,7 +285,7 @@ struct ContactPageView: View {
           // Log Out Button
           Button(
             action: {
-              model.onLogOutTapped()
+              Task { await model.onLogOutTapped() }
             },
             label: {
               HStack(spacing: 8) {
