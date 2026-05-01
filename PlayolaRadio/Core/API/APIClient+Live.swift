@@ -27,6 +27,34 @@ private struct CreateVoicetrackParameters: Encodable, Sendable {
 
 private let sharedIsoDecoder = JSONDecoderWithIsoFull()
 
+private func signInPost(
+  authMethod: AuthMethod,
+  endpointPath: String,
+  parameters: Parameters
+) async throws -> String {
+  let dataResponse = await AF.request(
+    "\(Config.shared.baseUrl.absoluteString)\(endpointPath)",
+    method: .post,
+    parameters: parameters,
+    encoding: JSONEncoding.default
+  )
+  .validate(statusCode: 200..<300)
+  .serializingDecodable(LoginResponse.self)
+  .response
+
+  switch dataResponse.result {
+  case .success(let response):
+    return response.playolaToken
+  case .failure(let error):
+    throw SignInAPIError(
+      authMethod: authMethod,
+      endpointPath: endpointPath,
+      statusCode: dataResponse.response?.statusCode,
+      responseBody: dataResponse.data.flatMap { String(data: $0, encoding: .utf8) },
+      underlyingError: error)
+  }
+}
+
 private func authenticatedGet<T: Decodable & Sendable>(
   path: String,
   token: String,
@@ -127,7 +155,7 @@ extension APIClient: DependencyKey {
         return IdentifiedArray(uniqueElements: response)
       },
       signInViaApple: { identityToken, email, authCode, firstName, lastName in
-        var parameters: [String: String] = [
+        var parameters: Parameters = [
           "identityToken": identityToken,
           "authCode": authCode,
           "firstName": firstName,
@@ -138,14 +166,10 @@ extension APIClient: DependencyKey {
         if let lastName {
           parameters["lastName"] = lastName
         }
-        let response = try await AF.request(
-          "\(Config.shared.baseUrl.absoluteString)/v1/auth/apple/mobile/signup",
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default
-        ).serializingDecodable(LoginResponse.self).value
-
-        return response.playolaToken
+        return try await signInPost(
+          authMethod: .apple,
+          endpointPath: "/v1/auth/apple/mobile/signup",
+          parameters: parameters)
       },
       revokeAppleCredentials: { appleUserId in
         let parameters: [String: String] = ["appleUserId": appleUserId]
@@ -162,21 +186,15 @@ extension APIClient: DependencyKey {
         AuthService.shared.signOut()
       },
       signInViaGoogle: { code in
-        let parameters: [String: Sendable] = [
+        let parameters: Parameters = [
           "code": code,
           "originatesFromIOS": true,
         ]
 
-        let response = try await AF.request(
-          "\(Config.shared.baseUrl.absoluteString)/v1/auth/google/signin",
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default
-        )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(LoginResponse.self).value
-
-        return response.playolaToken
+        return try await signInPost(
+          authMethod: .google,
+          endpointPath: "/v1/auth/google/signin",
+          parameters: parameters)
       },
       getRewardsProfile: { jwtToken in
         try await authenticatedGet(path: "/v1/rewards/users/me/profile", token: jwtToken)

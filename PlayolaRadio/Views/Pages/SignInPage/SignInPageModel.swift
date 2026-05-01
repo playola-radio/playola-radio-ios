@@ -84,9 +84,7 @@ class SignInPageModel: ViewModel {
           print("Sign in failed: \(error)")
           presentedAlert = .signInError
           await analytics.track(.signInFailed(method: .apple, error: error.localizedDescription))
-          await errorReporting.reportError(
-            error,
-            ["auth_method": "apple", "sign_in_step": "api_call"])
+          await reportSignInError(error, authMethod: .apple, step: "api_call")
         }
       }
     case .failure(let error):
@@ -132,9 +130,7 @@ class SignInPageModel: ViewModel {
       {
         presentedAlert = .signInError
         await analytics.track(.signInFailed(method: .google, error: error.localizedDescription))
-        await errorReporting.reportError(
-          error,
-          ["auth_method": "google", "sign_in_step": "google_sign_in_flow"])
+        await reportSignInError(error, authMethod: .google, step: "google_sign_in_flow")
       }
     }
   }
@@ -148,9 +144,13 @@ class SignInPageModel: ViewModel {
     }
     presentedAlert = .signInError
     Task {
-      await errorReporting.reportError(
-        error,
-        ["auth_method": "apple", "sign_in_step": "authorization_failure"])
+      await reportSignInError(error, authMethod: .apple, step: "authorization_failure")
     }
+  }
+
+  private func reportSignInError(_ error: Error, authMethod: AuthMethod, step: String) async {
+    let report = SignInErrorReport(error: error, authMethod: authMethod, step: step)
+    await errorReporting.reportErrorWithContext(
+      error, report.tags, report.contextKey, report.context)
   }
 }

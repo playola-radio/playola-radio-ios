@@ -84,7 +84,7 @@ final class SignInPageTests: XCTestCase {
     let expectation = XCTestExpectation(description: "reportError called")
 
     let model = withDependencies {
-      $0.errorReporting.reportError = { error, tags in
+      $0.errorReporting.reportErrorWithContext = { error, tags, _, _ in
         reportedErrors.withValue { $0.append((error, tags)) }
         expectation.fulfill()
       }
@@ -108,7 +108,7 @@ final class SignInPageTests: XCTestCase {
     invertedExpectation.isInverted = true
 
     let model = withDependencies {
-      $0.errorReporting.reportError = { error, tags in
+      $0.errorReporting.reportErrorWithContext = { error, tags, _, _ in
         reportedErrors.withValue { $0.append((error, tags)) }
         invertedExpectation.fulfill()
       }
@@ -130,7 +130,7 @@ final class SignInPageTests: XCTestCase {
 
   func testSignInWithAppleCompletedPresentsAlertOnAuthorizationFailure() async {
     let model = withDependencies {
-      $0.errorReporting.reportError = { _, _ in }
+      $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
     } operation: {
       SignInPageModel()
     }
@@ -143,7 +143,7 @@ final class SignInPageTests: XCTestCase {
 
   func testSignInWithAppleCompletedDoesNotPresentAlertOnUserCancel() async {
     let model = withDependencies {
-      $0.errorReporting.reportError = { _, _ in }
+      $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
     } operation: {
       SignInPageModel()
     }
@@ -166,5 +166,47 @@ final class SignInPageTests: XCTestCase {
     await model.signInWithGoogleButtonTapped()
 
     XCTAssertEqual(model.presentedAlert, .signInError)
+  }
+
+  // MARK: - Sign-in Error Reporting Context Tests
+
+  func testSignInErrorReportIncludesNSErrorDomainAndCode() {
+    let error = NSError(domain: "com.google.GIDSignIn", code: -4)
+
+    let report = SignInErrorReport(
+      error: error,
+      authMethod: .google,
+      step: "google_sign_in_flow")
+
+    XCTAssertEqual(report.tags["auth_method"], "google")
+    XCTAssertEqual(report.tags["sign_in_step"], "google_sign_in_flow")
+    XCTAssertEqual(report.tags["error_domain"], "com.google.GIDSignIn")
+    XCTAssertEqual(report.tags["error_code"], "-4")
+    XCTAssertEqual(report.contextKey, "sign_in")
+  }
+
+  func testSignInErrorReportIncludesHTTPContextAndRedactsTokens() {
+    let responseBody = #"{"playolaToken":"secret-jwt","message":"unexpected shape"}"#
+    let error = SignInAPIError(
+      authMethod: .apple,
+      endpointPath: "/v1/auth/apple/mobile/signup",
+      statusCode: 200,
+      responseBody: responseBody,
+      underlyingError: NSError(domain: "decode", code: 7))
+
+    let report = SignInErrorReport(error: error, authMethod: .apple, step: "api_call")
+
+    XCTAssertEqual(report.tags["auth_method"], "apple")
+    XCTAssertEqual(report.tags["sign_in_step"], "api_call")
+    XCTAssertEqual(report.tags["http_status_code"], "200")
+    XCTAssertEqual(report.context["endpoint_path"], "/v1/auth/apple/mobile/signup")
+    XCTAssertEqual(
+      report.context["response_body_bytes"], "\(responseBody.lengthOfBytes(using: .utf8))")
+    XCTAssertEqual(report.context["response_body_top_level_keys"], "message,playolaToken")
+    XCTAssertTrue(
+      report.context["response_body"]?.contains(#""playolaToken":"[REDACTED]""#) ?? false)
+    XCTAssertTrue(
+      report.context["response_body"]?.contains(#""message":"unexpected shape""#) ?? false)
+    XCTAssertFalse(report.context["response_body"]?.contains("secret-jwt") ?? true)
   }
 }
