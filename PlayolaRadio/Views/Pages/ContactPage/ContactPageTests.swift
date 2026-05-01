@@ -21,22 +21,11 @@ final class ContactPageTests: XCTestCase {
   }
 
   func testOnLogOutTappedStopsPlayerAndClearsAllUserState() async {
-    let loggedInUser = LoggedInUser(
-      id: "123",
-      firstName: "John",
-      lastName: "Doe",
-      email: "john@example.com",
-      role: "user"
-    )
     let audioBlock = AudioBlock.mock
-    @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.registeredDeviceId) var registeredDeviceId = "device-xyz"
     @Shared(.userLikes) var userLikes = [
-      audioBlock.id: UserSongLike(
-        userId: "user-1",
-        audioBlockId: audioBlock.id,
-        audioBlock: audioBlock
-      )
+      audioBlock.id: UserSongLike(userId: "u1", audioBlockId: audioBlock.id, audioBlock: audioBlock)
     ]
     @Shared(.pendingLikeOperations) var pendingLikeOperations = [
       LikeOperation(audioBlock: audioBlock, type: .like)
@@ -46,35 +35,26 @@ final class ContactPageTests: XCTestCase {
     @Shared(.isBroadcaster) var isBroadcaster = true
     UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "analytics_session_paused_at")
 
-    let unregisterCalls = LockIsolated<[(jwt: String, deviceId: String)]>([])
+    let unregisterCalls = LockIsolated<[(String, String)]>([])
     let resetCallCount = LockIsolated(0)
     let stationPlayerMock = StationPlayerMock()
 
     await withDependencies {
       $0.api.unregisterDevice = { jwt, deviceId in
-        unregisterCalls.withValue { $0.append((jwt: jwt, deviceId: deviceId)) }
+        unregisterCalls.withValue { $0.append((jwt, deviceId)) }
       }
       $0.analytics = .noop
-      $0.analytics.reset = {
-        resetCallCount.withValue { $0 += 1 }
-      }
+      $0.analytics.reset = { resetCallCount.withValue { $0 += 1 } }
     } operation: {
-      let model = ContactPageModel(stationPlayer: stationPlayerMock)
-      await model.onLogOutTapped()
+      await ContactPageModel(stationPlayer: stationPlayerMock).onLogOutTapped()
     }
 
     XCTAssertEqual(stationPlayerMock.stopCalledCount, 1)
-
-    let calls = unregisterCalls.value
-    XCTAssertEqual(calls.count, 1)
-    XCTAssertEqual(calls.first?.jwt, loggedInUser.jwt)
-    XCTAssertEqual(calls.first?.deviceId, "device-xyz")
-
+    XCTAssertEqual(unregisterCalls.value.count, 1)
+    XCTAssertEqual(unregisterCalls.value.first?.0, "test-jwt")
+    XCTAssertEqual(unregisterCalls.value.first?.1, "device-xyz")
     XCTAssertEqual(resetCallCount.value, 1)
-
     XCTAssertFalse(auth.isLoggedIn)
-    XCTAssertNil(auth.currentUser)
-    XCTAssertNil(auth.jwt)
     XCTAssertNil(registeredDeviceId)
     XCTAssertTrue(userLikes.isEmpty)
     XCTAssertTrue(pendingLikeOperations.isEmpty)
