@@ -125,10 +125,10 @@ class ContactPageModel: ViewModel {
     }
   }
 
-  func onLogOutTapped() {
+  func onLogOutTapped() async {
     stationPlayer.stop()
     mainContainerNavigationCoordinator.switchToListeningMode()
-    $auth.withLock { $0 = Auth() }
+    await AuthService.shared.signOut()
   }
 
   func callIntoStationButtonTapped() {

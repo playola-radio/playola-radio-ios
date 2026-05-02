@@ -82,11 +82,7 @@ class SignInPageModel: ViewModel {
           await analytics.track(.signInCompleted(method: .apple, userId: appleIDCredential.user))
         } catch {
           print("Sign in failed: \(error)")
-          presentedAlert = .signInError
-          await analytics.track(.signInFailed(method: .apple, error: error.localizedDescription))
-          await errorReporting.reportError(
-            error,
-            ["auth_method": "apple", "sign_in_step": "api_call"])
+          await handleSignInAPIFailure(error, authMethod: .apple, step: "api_call")
         }
       }
     case .failure(let error):
@@ -130,13 +126,20 @@ class SignInPageModel: ViewModel {
       if nsError.domain != kGIDSignInErrorDomain
         || nsError.code != GIDSignInError.canceled.rawValue
       {
-        presentedAlert = .signInError
-        await analytics.track(.signInFailed(method: .google, error: error.localizedDescription))
-        await errorReporting.reportError(
-          error,
-          ["auth_method": "google", "sign_in_step": "google_sign_in_flow"])
+        await handleSignInAPIFailure(error, authMethod: .google, step: "google_sign_in_flow")
       }
     }
+  }
+
+  // MARK: - Internal Helpers
+
+  // Internal (not private) so SignInPageTests can drive the alert/analytics/reporting routing
+  // directly without needing to fabricate an ASAuthorization for the Apple .success branch.
+  func handleSignInAPIFailure(_ error: Error, authMethod: AuthMethod, step: String) async {
+    presentedAlert =
+      SignInNetworkErrorClassifier.isNetworkError(error) ? .signInNetworkError : .signInError
+    await analytics.track(.signInFailed(method: authMethod, error: error.localizedDescription))
+    await reportSignInError(error, authMethod: authMethod, step: step)
   }
 
   // MARK: - Private Helpers
@@ -148,9 +151,13 @@ class SignInPageModel: ViewModel {
     }
     presentedAlert = .signInError
     Task {
-      await errorReporting.reportError(
-        error,
-        ["auth_method": "apple", "sign_in_step": "authorization_failure"])
+      await reportSignInError(error, authMethod: .apple, step: "authorization_failure")
     }
+  }
+
+  private func reportSignInError(_ error: Error, authMethod: AuthMethod, step: String) async {
+    let report = SignInErrorReport(error: error, authMethod: authMethod, step: step)
+    await errorReporting.reportErrorWithContext(
+      error, report.tags, report.contextKey, report.context)
   }
 }

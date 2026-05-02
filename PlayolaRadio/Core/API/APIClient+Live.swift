@@ -27,6 +27,79 @@ private struct CreateVoicetrackParameters: Encodable, Sendable {
 
 private let sharedIsoDecoder = JSONDecoderWithIsoFull()
 
+private let tls12SignInSession: Alamofire.Session = {
+  let configuration = URLSessionConfiguration.af.default
+  configuration.tlsMaximumSupportedProtocolVersion = .TLSv12
+  return Alamofire.Session(configuration: configuration)
+}()
+
+private func signInPost(
+  authMethod: AuthMethod,
+  endpointPath: String,
+  parameters: Parameters,
+  session: Alamofire.Session = AF
+) async throws -> String {
+  let dataResponse = await session.request(
+    "\(Config.shared.baseUrl.absoluteString)\(endpointPath)",
+    method: .post,
+    parameters: parameters,
+    encoding: JSONEncoding.default
+  )
+  .validate(statusCode: 200..<300)
+  .serializingDecodable(LoginResponse.self)
+  .response
+
+  switch dataResponse.result {
+  case .success(let response):
+    return response.playolaToken
+  case .failure(let error):
+    throw SignInAPIError(
+      authMethod: authMethod,
+      endpointPath: endpointPath,
+      statusCode: dataResponse.response?.statusCode,
+      responseBody: dataResponse.data.flatMap { String(data: $0, encoding: .utf8) },
+      underlyingError: error)
+  }
+}
+
+// Some users sit behind middleboxes (antivirus SSL inspection, parental-control routers, etc.)
+// that drop iOS 26's larger TLS 1.3 ClientHello with post-quantum hybrid key shares. Capping
+// to TLS 1.2 produces a smaller ClientHello that those middleboxes pass through. We retry
+// only the auth endpoints; everything else stays on modern TLS 1.3.
+private func signInPostWithTLS12Fallback(
+  authMethod: AuthMethod,
+  endpointPath: String,
+  parameters: Parameters
+) async throws -> String {
+  do {
+    return try await signInPost(
+      authMethod: authMethod,
+      endpointPath: endpointPath,
+      parameters: parameters)
+  } catch let originalError {
+    guard SignInNetworkErrorClassifier.isSecureConnectionFailed(originalError) else {
+      throw originalError
+    }
+    @Dependency(\.errorReporting) var errorReporting
+    do {
+      let token = try await signInPost(
+        authMethod: authMethod,
+        endpointPath: endpointPath,
+        parameters: parameters,
+        session: tls12SignInSession)
+      await errorReporting.reportMessage(
+        "tls12_fallback_used",
+        ["auth_method": authMethod.rawValue, "tls12_fallback_outcome": "success"])
+      return token
+    } catch {
+      await errorReporting.reportMessage(
+        "tls12_fallback_used",
+        ["auth_method": authMethod.rawValue, "tls12_fallback_outcome": "failure"])
+      throw originalError
+    }
+  }
+}
+
 private func authenticatedGet<T: Decodable & Sendable>(
   path: String,
   token: String,
@@ -127,7 +200,7 @@ extension APIClient: DependencyKey {
         return IdentifiedArray(uniqueElements: response)
       },
       signInViaApple: { identityToken, email, authCode, firstName, lastName in
-        var parameters: [String: String] = [
+        var parameters: Parameters = [
           "identityToken": identityToken,
           "authCode": authCode,
           "firstName": firstName,
@@ -138,14 +211,10 @@ extension APIClient: DependencyKey {
         if let lastName {
           parameters["lastName"] = lastName
         }
-        let response = try await AF.request(
-          "\(Config.shared.baseUrl.absoluteString)/v1/auth/apple/mobile/signup",
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default
-        ).serializingDecodable(LoginResponse.self).value
-
-        return response.playolaToken
+        return try await signInPostWithTLS12Fallback(
+          authMethod: .apple,
+          endpointPath: "/v1/auth/apple/mobile/signup",
+          parameters: parameters)
       },
       revokeAppleCredentials: { appleUserId in
         let parameters: [String: String] = ["appleUserId": appleUserId]
@@ -159,24 +228,18 @@ extension APIClient: DependencyKey {
         .serializingData()
         .value
 
-        AuthService.shared.signOut()
+        await AuthService.shared.signOut()
       },
       signInViaGoogle: { code in
-        let parameters: [String: Sendable] = [
+        let parameters: Parameters = [
           "code": code,
           "originatesFromIOS": true,
         ]
 
-        let response = try await AF.request(
-          "\(Config.shared.baseUrl.absoluteString)/v1/auth/google/signin",
-          method: .post,
-          parameters: parameters,
-          encoding: JSONEncoding.default
-        )
-        .validate(statusCode: 200..<300)
-        .serializingDecodable(LoginResponse.self).value
-
-        return response.playolaToken
+        return try await signInPostWithTLS12Fallback(
+          authMethod: .google,
+          endpointPath: "/v1/auth/google/signin",
+          parameters: parameters)
       },
       getRewardsProfile: { jwtToken in
         try await authenticatedGet(path: "/v1/rewards/users/me/profile", token: jwtToken)

@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 1/22/25.
 //
 
+import Alamofire
 import AuthenticationServices
 import Dependencies
 import Sharing
@@ -84,7 +85,7 @@ final class SignInPageTests: XCTestCase {
     let expectation = XCTestExpectation(description: "reportError called")
 
     let model = withDependencies {
-      $0.errorReporting.reportError = { error, tags in
+      $0.errorReporting.reportErrorWithContext = { error, tags, _, _ in
         reportedErrors.withValue { $0.append((error, tags)) }
         expectation.fulfill()
       }
@@ -108,7 +109,7 @@ final class SignInPageTests: XCTestCase {
     invertedExpectation.isInverted = true
 
     let model = withDependencies {
-      $0.errorReporting.reportError = { error, tags in
+      $0.errorReporting.reportErrorWithContext = { error, tags, _, _ in
         reportedErrors.withValue { $0.append((error, tags)) }
         invertedExpectation.fulfill()
       }
@@ -130,7 +131,7 @@ final class SignInPageTests: XCTestCase {
 
   func testSignInWithAppleCompletedPresentsAlertOnAuthorizationFailure() async {
     let model = withDependencies {
-      $0.errorReporting.reportError = { _, _ in }
+      $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
     } operation: {
       SignInPageModel()
     }
@@ -143,7 +144,7 @@ final class SignInPageTests: XCTestCase {
 
   func testSignInWithAppleCompletedDoesNotPresentAlertOnUserCancel() async {
     let model = withDependencies {
-      $0.errorReporting.reportError = { _, _ in }
+      $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
     } operation: {
       SignInPageModel()
     }
@@ -166,5 +167,182 @@ final class SignInPageTests: XCTestCase {
     await model.signInWithGoogleButtonTapped()
 
     XCTAssertEqual(model.presentedAlert, .signInError)
+  }
+
+  // MARK: - handleSignInAPIFailure Routing Tests
+
+  func testHandleSignInAPIFailureShowsNetworkAlertOnAppleSSLError() async {
+    let model = withDependencies {
+      $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
+      $0.analytics.track = { _ in }
+    } operation: {
+      SignInPageModel()
+    }
+
+    let underlying = NSError(domain: NSURLErrorDomain, code: NSURLErrorSecureConnectionFailed)
+    let afError = AFError.sessionTaskFailed(error: underlying)
+
+    await model.handleSignInAPIFailure(afError, authMethod: .apple, step: "api_call")
+
+    XCTAssertEqual(model.presentedAlert, .signInNetworkError)
+    XCTAssertNotEqual(model.presentedAlert, .signInError)
+  }
+
+  func testHandleSignInAPIFailureShowsGenericAlertOnAppleUnknownError() async {
+    let model = withDependencies {
+      $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
+      $0.analytics.track = { _ in }
+    } operation: {
+      SignInPageModel()
+    }
+
+    let genericError = NSError(domain: "com.example.unknown", code: 42)
+
+    await model.handleSignInAPIFailure(genericError, authMethod: .apple, step: "api_call")
+
+    XCTAssertEqual(model.presentedAlert, .signInError)
+    XCTAssertEqual(model.presentedAlert?.title, "Sign-In Failed")
+  }
+
+  func testHandleSignInAPIFailureShowsNetworkAlertOnGoogleSSLError() async {
+    let model = withDependencies {
+      $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
+      $0.analytics.track = { _ in }
+    } operation: {
+      SignInPageModel()
+    }
+
+    let underlying = NSError(domain: NSURLErrorDomain, code: NSURLErrorSecureConnectionFailed)
+    let afError = AFError.sessionTaskFailed(error: underlying)
+
+    await model.handleSignInAPIFailure(afError, authMethod: .google, step: "google_sign_in_flow")
+
+    XCTAssertEqual(model.presentedAlert, .signInNetworkError)
+  }
+
+  func testHandleSignInAPIFailureShowsGenericAlertOnGoogleUnknownError() async {
+    let model = withDependencies {
+      $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
+      $0.analytics.track = { _ in }
+    } operation: {
+      SignInPageModel()
+    }
+
+    let genericError = NSError(domain: "com.google.GIDSignIn", code: -4)
+
+    await model.handleSignInAPIFailure(
+      genericError, authMethod: .google, step: "google_sign_in_flow")
+
+    XCTAssertEqual(model.presentedAlert, .signInError)
+    XCTAssertEqual(model.presentedAlert?.title, "Sign-In Failed")
+  }
+
+  // MARK: - Sign-in Error Reporting Context Tests
+
+  func testSignInErrorReportIncludesNSErrorDomainAndCode() {
+    let error = NSError(domain: "com.google.GIDSignIn", code: -4)
+
+    let report = SignInErrorReport(
+      error: error,
+      authMethod: .google,
+      step: "google_sign_in_flow")
+
+    XCTAssertEqual(report.tags["auth_method"], "google")
+    XCTAssertEqual(report.tags["sign_in_step"], "google_sign_in_flow")
+    XCTAssertEqual(report.tags["error_domain"], "com.google.GIDSignIn")
+    XCTAssertEqual(report.tags["error_code"], "-4")
+    XCTAssertEqual(report.contextKey, "sign_in")
+  }
+
+  // MARK: - SignInNetworkErrorClassifier Tests
+
+  func testClassifierMatchesSecureConnectionFailed() {
+    let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorSecureConnectionFailed)
+    XCTAssertTrue(SignInNetworkErrorClassifier.isNetworkError(error))
+    XCTAssertTrue(SignInNetworkErrorClassifier.isSecureConnectionFailed(error))
+  }
+
+  func testClassifierMatchesNotConnectedToInternet() {
+    let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorNotConnectedToInternet)
+    XCTAssertTrue(SignInNetworkErrorClassifier.isNetworkError(error))
+    XCTAssertFalse(SignInNetworkErrorClassifier.isSecureConnectionFailed(error))
+  }
+
+  func testClassifierMatchesTimedOutCannotConnectAndConnectionLost() {
+    for code in [
+      NSURLErrorTimedOut, NSURLErrorCannotConnectToHost, NSURLErrorNetworkConnectionLost,
+    ] {
+      let error = NSError(domain: NSURLErrorDomain, code: code)
+      XCTAssertTrue(
+        SignInNetworkErrorClassifier.isNetworkError(error),
+        "Expected code \(code) to classify as network error")
+    }
+  }
+
+  func testClassifierRejectsUnrelatedDomain() {
+    let error = NSError(domain: "com.example.other", code: NSURLErrorSecureConnectionFailed)
+    XCTAssertFalse(SignInNetworkErrorClassifier.isNetworkError(error))
+    XCTAssertFalse(SignInNetworkErrorClassifier.isSecureConnectionFailed(error))
+  }
+
+  func testClassifierRejectsNSURLDomainWithUnrelatedCode() {
+    let error = NSError(domain: NSURLErrorDomain, code: -9999)
+    XCTAssertFalse(SignInNetworkErrorClassifier.isNetworkError(error))
+  }
+
+  func testClassifierUnwrapsAFErrorSessionTaskFailed() {
+    let underlying = NSError(domain: NSURLErrorDomain, code: NSURLErrorSecureConnectionFailed)
+    let afError = AFError.sessionTaskFailed(error: underlying)
+    XCTAssertTrue(SignInNetworkErrorClassifier.isNetworkError(afError))
+    XCTAssertTrue(SignInNetworkErrorClassifier.isSecureConnectionFailed(afError))
+  }
+
+  func testClassifierUnwrapsSignInAPIErrorWrappingAFError() {
+    let underlying = NSError(domain: NSURLErrorDomain, code: NSURLErrorSecureConnectionFailed)
+    let afError = AFError.sessionTaskFailed(error: underlying)
+    let signInError = SignInAPIError(
+      authMethod: .apple,
+      endpointPath: "/v1/auth/apple/mobile/signup",
+      statusCode: nil,
+      responseBody: nil,
+      underlyingError: afError)
+    XCTAssertTrue(SignInNetworkErrorClassifier.isNetworkError(signInError))
+    XCTAssertTrue(SignInNetworkErrorClassifier.isSecureConnectionFailed(signInError))
+  }
+
+  func testClassifierRejectsSignInAPIErrorWrappingNonNetworkError() {
+    let signInError = SignInAPIError(
+      authMethod: .google,
+      endpointPath: "/v1/auth/google/signin",
+      statusCode: 500,
+      responseBody: nil,
+      underlyingError: NSError(domain: "decode", code: 7))
+    XCTAssertFalse(SignInNetworkErrorClassifier.isNetworkError(signInError))
+    XCTAssertFalse(SignInNetworkErrorClassifier.isSecureConnectionFailed(signInError))
+  }
+
+  func testSignInErrorReportIncludesHTTPContextAndRedactsTokens() {
+    let responseBody = #"{"playolaToken":"secret-jwt","message":"unexpected shape"}"#
+    let error = SignInAPIError(
+      authMethod: .apple,
+      endpointPath: "/v1/auth/apple/mobile/signup",
+      statusCode: 200,
+      responseBody: responseBody,
+      underlyingError: NSError(domain: "decode", code: 7))
+
+    let report = SignInErrorReport(error: error, authMethod: .apple, step: "api_call")
+
+    XCTAssertEqual(report.tags["auth_method"], "apple")
+    XCTAssertEqual(report.tags["sign_in_step"], "api_call")
+    XCTAssertEqual(report.tags["http_status_code"], "200")
+    XCTAssertEqual(report.context["endpoint_path"], "/v1/auth/apple/mobile/signup")
+    XCTAssertEqual(
+      report.context["response_body_bytes"], "\(responseBody.lengthOfBytes(using: .utf8))")
+    XCTAssertEqual(report.context["response_body_top_level_keys"], "message,playolaToken")
+    XCTAssertTrue(
+      report.context["response_body"]?.contains(#""playolaToken":"[REDACTED]""#) ?? false)
+    XCTAssertTrue(
+      report.context["response_body"]?.contains(#""message":"unexpected shape""#) ?? false)
+    XCTAssertFalse(report.context["response_body"]?.contains("secret-jwt") ?? true)
   }
 }
