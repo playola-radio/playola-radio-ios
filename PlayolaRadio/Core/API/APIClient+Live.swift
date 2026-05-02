@@ -53,6 +53,42 @@ private let apiSession: Alamofire.Session = {
   return Alamofire.Session(configuration: configuration)
 }()
 
+// Companion to `apiSession`: a separate session with no TLS cap, used by
+// `probeTLS13()` to test whether TLS 1.3 works on the user's network. When
+// success rates climb across the user base, the cap above is safe to revert.
+private let tls13ProbeSession: Alamofire.Session = {
+  Alamofire.Session(configuration: URLSessionConfiguration.af.default)
+}()
+
+// Fires once per build per device. Hits a small unauthenticated endpoint over
+// TLS 1.3 (no cap) and reports outcome to Sentry as `tls13_probe`. Aggregating
+// the outcome across users tells us when the iOS 26 middlebox issue has cleared
+// up enough to revert the global TLS 1.2 cap.
+func probeTLS13() async {
+  @Shared(.tls13ProbeLastSentBuild) var lastSentBuild: String?
+  guard let currentBuild = Bundle.main.infoDictionary?["CFBundleVersion"] as? String,
+    lastSentBuild != currentBuild
+  else { return }
+
+  let url = "\(Config.shared.baseUrl.absoluteString)/v1/app-version-requirements"
+  let outcome: String
+  do {
+    _ = try await tls13ProbeSession.request(url)
+      .validate(statusCode: 200..<300)
+      .serializingData()
+      .value
+    outcome = "success"
+  } catch {
+    outcome = "failure"
+  }
+
+  @Dependency(\.errorReporting) var errorReporting
+  await errorReporting.reportMessage(
+    "tls13_probe",
+    ["tls13_probe_outcome": outcome])
+  $lastSentBuild.withLock { $0 = currentBuild }
+}
+
 private func signInPost(
   authMethod: AuthMethod,
   endpointPath: String,

@@ -187,6 +187,10 @@ class MainContainerModel: ViewModel {
       let rewards = try await api.getRewardsProfile(authJWT)
       self.$listeningTracker.withLock { $0 = ListeningTracker(rewardsProfile: rewards) }
     } catch let err {
+      // TODO: Show inline error state on the listening hours tile (instead of
+      // a modal alert) — see PR #272 review. Background tile loads shouldn't
+      // interrupt the user with a popup. The same pattern is needed for
+      // loadAirings and fetchUnreadSupportCount.
       await analytics.track(
         .apiError(
           endpoint: "getRewardsProfile",
