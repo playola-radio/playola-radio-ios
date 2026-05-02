@@ -187,7 +187,11 @@ class MainContainerModel: ViewModel {
       let rewards = try await api.getRewardsProfile(authJWT)
       self.$listeningTracker.withLock { $0 = ListeningTracker(rewardsProfile: rewards) }
     } catch let err {
-      print(err)
+      await analytics.track(
+        .apiError(
+          endpoint: "getRewardsProfile",
+          error: err.localizedDescription
+        ))
     }
   }
 
