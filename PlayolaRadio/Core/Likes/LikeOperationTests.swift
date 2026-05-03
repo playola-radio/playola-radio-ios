@@ -89,20 +89,21 @@ struct LikeOperationTests {
 
   @Test
   func testIsExpired() {
+    let now = Date()
     let recentOperation = LikeOperation(
       audioBlock: testAudioBlock,
       type: .like,
-      timestamp: Date()
+      timestamp: now
     )
 
     let oldOperation = LikeOperation(
       audioBlock: testAudioBlock,
       type: .like,
-      timestamp: Date(timeIntervalSinceNow: -8 * 24 * 60 * 60)
+      timestamp: now.addingTimeInterval(-8 * 24 * 60 * 60)
     )
 
-    #expect(!recentOperation.isExpired)
-    #expect(oldOperation.isExpired)
+    #expect(!recentOperation.isExpired(now: now))
+    #expect(oldOperation.isExpired(now: now))
   }
 
   // MARK: - Equatable Tests

@@ -23,10 +23,16 @@ struct LikesManagerTests {
     @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
     @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
 
-    let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
-    manager.like(audioBlock)
+    let manager = withDependencies {
+      $0.date = .constant(Date())
+      $0.uuid = .incrementing
+    } operation: {
+      let manager = LikesManager()
+      manager.like(audioBlock)
+      return manager
+    }
 
     #expect(manager.isLiked(audioBlock.id))
     #expect(manager.getLikedAudioBlock(audioBlock.id) == audioBlock)
@@ -39,10 +45,16 @@ struct LikesManagerTests {
     @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
     @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
 
-    let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
-    manager.like(audioBlock)
+    let manager = withDependencies {
+      $0.date = .constant(Date())
+      $0.uuid = .incrementing
+    } operation: {
+      let manager = LikesManager()
+      manager.like(audioBlock)
+      return manager
+    }
 
     #expect(manager.pendingOperations.count == 1)
     #expect(manager.pendingOperations.first?.audioBlock == audioBlock)
@@ -54,11 +66,17 @@ struct LikesManagerTests {
     @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
     @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
 
-    let manager = LikesManager()
     let audioBlock = AudioBlock.mock
     let beforeLike = Date()
 
-    manager.like(audioBlock)
+    let manager = withDependencies {
+      $0.date = .constant(Date())
+      $0.uuid = .incrementing
+    } operation: {
+      let manager = LikesManager()
+      manager.like(audioBlock)
+      return manager
+    }
 
     let timestamp = manager.getLikedTimestamp(audioBlock.id)
     #expect(timestamp != nil)
@@ -71,11 +89,17 @@ struct LikesManagerTests {
     @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
     @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
 
-    let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
-    manager.like(audioBlock)
-    manager.like(audioBlock)  // Try to like again
+    let manager = withDependencies {
+      $0.date = .constant(Date())
+      $0.uuid = .incrementing
+    } operation: {
+      let manager = LikesManager()
+      manager.like(audioBlock)
+      manager.like(audioBlock)  // Try to like again
+      return manager
+    }
 
     #expect(manager.allLikedAudioBlocks.count == 1)
     #expect(manager.pendingOperations.count == 1)
@@ -88,13 +112,19 @@ struct LikesManagerTests {
     @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
     @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
 
-    let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
-    manager.like(audioBlock)
-    #expect(manager.isLiked(audioBlock.id))
+    let manager = withDependencies {
+      $0.date = .constant(Date())
+      $0.uuid = .incrementing
+    } operation: {
+      let manager = LikesManager()
+      manager.like(audioBlock)
+      #expect(manager.isLiked(audioBlock.id))
 
-    manager.unlike(audioBlock)
+      manager.unlike(audioBlock)
+      return manager
+    }
 
     #expect(!manager.isLiked(audioBlock.id))
     #expect(manager.getLikedAudioBlock(audioBlock.id) == nil)
@@ -106,12 +136,17 @@ struct LikesManagerTests {
     @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
     @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
 
-    let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
-    manager.like(audioBlock)
-
-    manager.unlike(audioBlock)
+    let manager = withDependencies {
+      $0.date = .constant(Date())
+      $0.uuid = .incrementing
+    } operation: {
+      let manager = LikesManager()
+      manager.like(audioBlock)
+      manager.unlike(audioBlock)
+      return manager
+    }
 
     #expect(manager.pendingOperations.count == 2)
     #expect(manager.pendingOperations.last?.audioBlock == audioBlock)
@@ -123,10 +158,16 @@ struct LikesManagerTests {
     @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
     @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
 
-    let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
-    manager.unlike(audioBlock)
+    let manager = withDependencies {
+      $0.date = .constant(Date())
+      $0.uuid = .incrementing
+    } operation: {
+      let manager = LikesManager()
+      manager.unlike(audioBlock)
+      return manager
+    }
 
     #expect(manager.pendingOperations.count == 0)
   }
@@ -138,10 +179,16 @@ struct LikesManagerTests {
     @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
     @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
 
-    let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
-    manager.toggleLike(audioBlock)
+    let manager = withDependencies {
+      $0.date = .constant(Date())
+      $0.uuid = .incrementing
+    } operation: {
+      let manager = LikesManager()
+      manager.toggleLike(audioBlock)
+      return manager
+    }
 
     #expect(manager.isLiked(audioBlock.id))
   }
@@ -151,13 +198,19 @@ struct LikesManagerTests {
     @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
     @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
 
-    let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
-    manager.like(audioBlock)
-    #expect(manager.isLiked(audioBlock.id))
+    let manager = withDependencies {
+      $0.date = .constant(Date())
+      $0.uuid = .incrementing
+    } operation: {
+      let manager = LikesManager()
+      manager.like(audioBlock)
+      #expect(manager.isLiked(audioBlock.id))
 
-    manager.toggleLike(audioBlock)
+      manager.toggleLike(audioBlock)
+      return manager
+    }
 
     #expect(!manager.isLiked(audioBlock.id))
   }
@@ -169,14 +222,20 @@ struct LikesManagerTests {
     @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
     @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
 
-    let manager = LikesManager()
     let audioBlock1 = AudioBlock.mock
     let audioBlock2 = AudioBlock.mockWith(id: "different-id")
     let audioBlock3 = AudioBlock.mockWith(id: "another-id")
 
-    manager.like(audioBlock1)
-    manager.like(audioBlock2)
-    manager.like(audioBlock3)
+    let manager = withDependencies {
+      $0.date = .constant(Date())
+      $0.uuid = .incrementing
+    } operation: {
+      let manager = LikesManager()
+      manager.like(audioBlock1)
+      manager.like(audioBlock2)
+      manager.like(audioBlock3)
+      return manager
+    }
 
     #expect(manager.allLikedAudioBlocks.count == 3)
     #expect(manager.isLiked(audioBlock1.id))
@@ -191,10 +250,13 @@ struct LikesManagerTests {
     @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
     @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
 
-    let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
-    let recentOp = LikeOperation(audioBlock: audioBlock, type: .like)
+    let recentOp = LikeOperation(
+      audioBlock: audioBlock,
+      type: .like,
+      timestamp: Date()
+    )
 
     let expiredOp = LikeOperation(
       audioBlock: audioBlock,
@@ -202,11 +264,17 @@ struct LikesManagerTests {
       timestamp: Date(timeIntervalSinceNow: -8 * 24 * 60 * 60)
     )
 
-    manager.$pendingOperations.withLock {
-      $0 = [recentOp, expiredOp]
+    let manager = withDependencies {
+      $0.date = .constant(Date())
+      $0.uuid = .incrementing
+    } operation: {
+      let manager = LikesManager()
+      manager.$pendingOperations.withLock {
+        $0 = [recentOp, expiredOp]
+      }
+      manager.cleanupExpiredOperations()
+      return manager
     }
-
-    manager.cleanupExpiredOperations()
 
     #expect(manager.pendingOperations.count == 1)
     #expect(manager.pendingOperations.first == recentOp)
@@ -221,10 +289,15 @@ struct LikesManagerTests {
 
     let audioBlock = AudioBlock.mock
 
-    let manager1 = LikesManager()
-    manager1.like(audioBlock)
+    let manager2 = withDependencies {
+      $0.date = .constant(Date())
+      $0.uuid = .incrementing
+    } operation: {
+      let manager1 = LikesManager()
+      manager1.like(audioBlock)
 
-    let manager2 = LikesManager()
+      return LikesManager()
+    }
 
     #expect(manager2.isLiked(audioBlock.id))
     #expect(manager2.allLikedAudioBlocks.count == 1)

@@ -382,6 +382,8 @@ struct PlayerPageTests {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
 
     withDependencies {
+      $0.date = .constant(Date())
+      $0.uuid = .incrementing
       $0.likesManager = LikesManager()
     } operation: {
       let model = PlayerPageModel(stationPlayer: StationPlayerMock())
@@ -424,6 +426,8 @@ struct PlayerPageTests {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
 
     withDependencies {
+      $0.date = .constant(Date())
+      $0.uuid = .incrementing
       $0.likesManager = LikesManager()
     } operation: {
       let model = PlayerPageModel(stationPlayer: StationPlayerMock())

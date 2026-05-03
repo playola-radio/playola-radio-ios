@@ -596,18 +596,18 @@ struct MainContainerTests {
       )
     )
 
-    let mainContainerModel = withDependencies {
+    withDependencies {
+      $0.date = .constant(Date())
       $0.api.getStations = { [] }
       $0.pushNotifications.registerForRemoteNotifications = {}
       $0.appRating = .liveValue
     } operation: {
-      MainContainerModel()
+      let mainContainerModel = MainContainerModel()
+      mainContainerModel.checkAndShowRatingPromptIfNeeded()
+
+      #expect(mainContainerModel.presentedAlert != nil)
+      #expect(mainContainerModel.presentedAlert?.title == "Are you enjoying Playola Radio?")
     }
-
-    mainContainerModel.checkAndShowRatingPromptIfNeeded()
-
-    #expect(mainContainerModel.presentedAlert != nil)
-    #expect(mainContainerModel.presentedAlert?.title == "Are you enjoying Playola Radio?")
   }
 
   @Test
@@ -623,17 +623,17 @@ struct MainContainerTests {
       )
     )
 
-    let mainContainerModel = withDependencies {
+    withDependencies {
+      $0.date = .constant(Date())
       $0.api.getStations = { [] }
       $0.pushNotifications.registerForRemoteNotifications = {}
       $0.appRating = .liveValue
     } operation: {
-      MainContainerModel()
+      let mainContainerModel = MainContainerModel()
+      mainContainerModel.checkAndShowRatingPromptIfNeeded()
+
+      #expect(mainContainerModel.presentedAlert == nil)
     }
-
-    mainContainerModel.checkAndShowRatingPromptIfNeeded()
-
-    #expect(mainContainerModel.presentedAlert == nil)
   }
 
   @Test
