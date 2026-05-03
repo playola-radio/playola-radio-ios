@@ -7,16 +7,18 @@
 
 import ConcurrencyExtras
 import Dependencies
+import Foundation
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class PushNotificationsTests: XCTestCase {
+struct PushNotificationsTests {
 
   // MARK: - registerForRemoteNotifications
 
+  @Test
   func testRegisterForRemoteNotificationsRequestsAuthorization() async throws {
     let authorizationRequested = LockIsolated(false)
 
@@ -31,9 +33,10 @@ final class PushNotificationsTests: XCTestCase {
       _ = try await pushNotifications.requestAuthorization()
     }
 
-    XCTAssertTrue(authorizationRequested.value)
+    #expect(authorizationRequested.value)
   }
 
+  @Test
   func testRegisterForRemoteNotificationsCallsUIApplicationRegister() async throws {
     let registerCalled = LockIsolated(false)
 
@@ -46,20 +49,22 @@ final class PushNotificationsTests: XCTestCase {
       await pushNotifications.registerForRemoteNotifications()
     }
 
-    XCTAssertTrue(registerCalled.value)
+    #expect(registerCalled.value)
   }
 
   // MARK: - Device Token Handling
 
+  @Test
   func testDeviceTokenConvertedToHexString() {
     let tokenBytes: [UInt8] = [0xAB, 0xCD, 0xEF, 0x12, 0x34, 0x56, 0x78, 0x90]
     let tokenData = Data(tokenBytes)
 
     let hexString = tokenData.map { String(format: "%02x", $0) }.joined()
 
-    XCTAssertEqual(hexString, "abcdef1234567890")
+    #expect(hexString == "abcdef1234567890")
   }
 
+  @Test
   func testHandleDeviceTokenCallsAPIWhenLoggedIn() async throws {
     let capturedToken = LockIsolated<String?>(nil)
     let capturedPlatform = LockIsolated<String?>(nil)
@@ -78,13 +83,14 @@ final class PushNotificationsTests: XCTestCase {
       await pushNotifications.handleDeviceToken(tokenData)
     }
 
-    XCTAssertEqual(capturedToken.value, "abcdef12")
-    XCTAssertEqual(capturedPlatform.value, "ios")
-    XCTAssertEqual(capturedAppVersion.value, "1.0.0")
+    #expect(capturedToken.value == "abcdef12")
+    #expect(capturedPlatform.value == "ios")
+    #expect(capturedAppVersion.value == "1.0.0")
   }
 
   // MARK: - Notification Payload Parsing
 
+  @Test
   func testParseNotificationPayloadExtractsStationId() {
     let userInfo: [String: any Sendable] = [
       "stationId": "test-station-123"
@@ -92,19 +98,21 @@ final class PushNotificationsTests: XCTestCase {
 
     let stationId = NotificationPayload.stationId(from: userInfo)
 
-    XCTAssertEqual(stationId, "test-station-123")
+    #expect(stationId == "test-station-123")
   }
 
+  @Test
   func testParseNotificationPayloadReturnsNilWhenNoStationId() {
     let userInfo: [String: any Sendable] = [:]
 
     let stationId = NotificationPayload.stationId(from: userInfo)
 
-    XCTAssertNil(stationId)
+    #expect(stationId == nil)
   }
 
   // MARK: - Notification Response Handling
 
+  @Test
   func testHandleNotificationResponsePlaysStation() async {
     let playedStationId = LockIsolated<String?>(nil)
 
@@ -120,11 +128,12 @@ final class PushNotificationsTests: XCTestCase {
       await pushNotifications.handleNotificationTap(userInfo)
     }
 
-    XCTAssertEqual(playedStationId.value, "station-abc")
+    #expect(playedStationId.value == "station-abc")
   }
 
   // MARK: - Support Notification Badge Handling
 
+  @Test
   func testHandleSupportNotificationBadgeSetsCountFromPayload() async {
     @Shared(.unreadSupportCount) var unreadSupportCount = 0
     let capturedBadgeCount = LockIsolated<Int?>(nil)
@@ -141,10 +150,11 @@ final class PushNotificationsTests: XCTestCase {
       await pushNotifications.handleSupportNotificationBadge(badgeFromPayload: 5)
     }
 
-    XCTAssertEqual(unreadSupportCount, 5)
-    XCTAssertEqual(capturedBadgeCount.value, 5)
+    #expect(unreadSupportCount == 5)
+    #expect(capturedBadgeCount.value == 5)
   }
 
+  @Test
   func testHandleSupportNotificationBadgeIncrementsWhenNoPayload() async {
     @Shared(.unreadSupportCount) var unreadSupportCount = 2
     let capturedBadgeCount = LockIsolated<Int?>(nil)
@@ -161,10 +171,11 @@ final class PushNotificationsTests: XCTestCase {
       await pushNotifications.handleSupportNotificationBadge(badgeFromPayload: nil)
     }
 
-    XCTAssertEqual(unreadSupportCount, 3)
-    XCTAssertEqual(capturedBadgeCount.value, 3)
+    #expect(unreadSupportCount == 3)
+    #expect(capturedBadgeCount.value == 3)
   }
 
+  @Test
   func testClearSupportBadgeSetsCountToZero() async {
     @Shared(.unreadSupportCount) var unreadSupportCount = 5
     let capturedBadgeCount = LockIsolated<Int?>(nil)
@@ -181,12 +192,13 @@ final class PushNotificationsTests: XCTestCase {
       await pushNotifications.clearSupportBadge()
     }
 
-    XCTAssertEqual(unreadSupportCount, 0)
-    XCTAssertEqual(capturedBadgeCount.value, 0)
+    #expect(unreadSupportCount == 0)
+    #expect(capturedBadgeCount.value == 0)
   }
 
   // MARK: - Support Message Notification Tap
 
+  @Test
   func testHandleNotificationTapPostsRefreshWhenSupportMessageAndOnSupportPage() async {
     @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
       MainContainerNavigationCoordinator()
@@ -212,6 +224,6 @@ final class PushNotificationsTests: XCTestCase {
     ]
     await PushNotificationsClient.liveValue.handleNotificationTap(userInfo)
 
-    XCTAssertTrue(refreshNotificationPosted.value)
+    #expect(refreshNotificationPosted.value)
   }
 }

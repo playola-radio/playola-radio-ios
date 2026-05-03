@@ -6,51 +6,54 @@
 //
 
 import Dependencies
+import Foundation
 import PlayolaPlayer
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class LikesManagerTests: XCTestCase {
-
-  // MARK: - Setup
-
-  override func setUp() async throws {
-    try await super.setUp()
-    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
-    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
-    $userLikes.withLock { $0 = [:] }
-    $pendingOperations.withLock { $0 = [] }
-  }
+struct LikesManagerTests {
 
   // MARK: - Like Tests
 
-  func testLike_AddsToUserLikes() async {
+  @Test
+  func testLikeAddsToUserLikes() async {
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
     let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
     manager.like(audioBlock)
 
-    XCTAssertTrue(manager.isLiked(audioBlock.id))
-    XCTAssertEqual(manager.getLikedAudioBlock(audioBlock.id), audioBlock)
-    XCTAssertEqual(manager.allLikedAudioBlocks.count, 1)
-    XCTAssertEqual(manager.allLikedAudioBlocks.first, audioBlock)
+    #expect(manager.isLiked(audioBlock.id))
+    #expect(manager.getLikedAudioBlock(audioBlock.id) == audioBlock)
+    #expect(manager.allLikedAudioBlocks.count == 1)
+    #expect(manager.allLikedAudioBlocks.first == audioBlock)
   }
 
-  func testLike_CreatesPendingOperation() async {
+  @Test
+  func testLikeCreatesPendingOperation() async {
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
     let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
     manager.like(audioBlock)
 
-    XCTAssertEqual(manager.pendingOperations.count, 1)
-    XCTAssertEqual(manager.pendingOperations.first?.audioBlock, audioBlock)
-    XCTAssertEqual(manager.pendingOperations.first?.type, .like)
+    #expect(manager.pendingOperations.count == 1)
+    #expect(manager.pendingOperations.first?.audioBlock == audioBlock)
+    #expect(manager.pendingOperations.first?.type == .like)
   }
 
-  func testLike_CreatesUserSongLikeWithTimestamp() async {
+  @Test
+  func testLikeCreatesUserSongLikeWithTimestamp() async {
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
     let manager = LikesManager()
     let audioBlock = AudioBlock.mock
     let beforeLike = Date()
@@ -58,39 +61,51 @@ final class LikesManagerTests: XCTestCase {
     manager.like(audioBlock)
 
     let timestamp = manager.getLikedTimestamp(audioBlock.id)
-    XCTAssertNotNil(timestamp)
-    XCTAssertTrue(timestamp! >= beforeLike)
-    XCTAssertTrue(timestamp! <= Date())
+    #expect(timestamp != nil)
+    #expect(timestamp! >= beforeLike)
+    #expect(timestamp! <= Date())
   }
 
-  func testLike_DoesNotDuplicateIfAlreadyLiked() async {
+  @Test
+  func testLikeDoesNotDuplicateIfAlreadyLiked() async {
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
     let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
     manager.like(audioBlock)
     manager.like(audioBlock)  // Try to like again
 
-    XCTAssertEqual(manager.allLikedAudioBlocks.count, 1)
-    XCTAssertEqual(manager.pendingOperations.count, 1)
+    #expect(manager.allLikedAudioBlocks.count == 1)
+    #expect(manager.pendingOperations.count == 1)
   }
 
   // MARK: - Unlike Tests
 
-  func testUnlike_RemovesFromUserLikes() async {
+  @Test
+  func testUnlikeRemovesFromUserLikes() async {
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
     let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
     manager.like(audioBlock)
-    XCTAssertTrue(manager.isLiked(audioBlock.id))
+    #expect(manager.isLiked(audioBlock.id))
 
     manager.unlike(audioBlock)
 
-    XCTAssertFalse(manager.isLiked(audioBlock.id))
-    XCTAssertNil(manager.getLikedAudioBlock(audioBlock.id))
-    XCTAssertEqual(manager.allLikedAudioBlocks.count, 0)
+    #expect(!manager.isLiked(audioBlock.id))
+    #expect(manager.getLikedAudioBlock(audioBlock.id) == nil)
+    #expect(manager.allLikedAudioBlocks.count == 0)
   }
 
-  func testUnlike_CreatesPendingOperation() async {
+  @Test
+  func testUnlikeCreatesPendingOperation() async {
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
     let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
@@ -98,46 +113,62 @@ final class LikesManagerTests: XCTestCase {
 
     manager.unlike(audioBlock)
 
-    XCTAssertEqual(manager.pendingOperations.count, 2)
-    XCTAssertEqual(manager.pendingOperations.last?.audioBlock, audioBlock)
-    XCTAssertEqual(manager.pendingOperations.last?.type, .unlike)
+    #expect(manager.pendingOperations.count == 2)
+    #expect(manager.pendingOperations.last?.audioBlock == audioBlock)
+    #expect(manager.pendingOperations.last?.type == .unlike)
   }
 
-  func testUnlike_DoesNothingIfNotLiked() async {
+  @Test
+  func testUnlikeDoesNothingIfNotLiked() async {
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
     let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
     manager.unlike(audioBlock)
 
-    XCTAssertEqual(manager.pendingOperations.count, 0)
+    #expect(manager.pendingOperations.count == 0)
   }
 
   // MARK: - Toggle Tests
 
-  func testToggleLike_LikesIfNotLiked() async {
+  @Test
+  func testToggleLikeLikesIfNotLiked() async {
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
     let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
     manager.toggleLike(audioBlock)
 
-    XCTAssertTrue(manager.isLiked(audioBlock.id))
+    #expect(manager.isLiked(audioBlock.id))
   }
 
-  func testToggleLike_UnlikesIfLiked() async {
+  @Test
+  func testToggleLikeUnlikesIfLiked() async {
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
     let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
     manager.like(audioBlock)
-    XCTAssertTrue(manager.isLiked(audioBlock.id))
+    #expect(manager.isLiked(audioBlock.id))
 
     manager.toggleLike(audioBlock)
 
-    XCTAssertFalse(manager.isLiked(audioBlock.id))
+    #expect(!manager.isLiked(audioBlock.id))
   }
 
   // MARK: - Multiple Songs Tests
 
+  @Test
   func testMultipleLikes() async {
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
     let manager = LikesManager()
     let audioBlock1 = AudioBlock.mock
     let audioBlock2 = AudioBlock.mockWith(id: "different-id")
@@ -147,15 +178,19 @@ final class LikesManagerTests: XCTestCase {
     manager.like(audioBlock2)
     manager.like(audioBlock3)
 
-    XCTAssertEqual(manager.allLikedAudioBlocks.count, 3)
-    XCTAssertTrue(manager.isLiked(audioBlock1.id))
-    XCTAssertTrue(manager.isLiked(audioBlock2.id))
-    XCTAssertTrue(manager.isLiked(audioBlock3.id))
+    #expect(manager.allLikedAudioBlocks.count == 3)
+    #expect(manager.isLiked(audioBlock1.id))
+    #expect(manager.isLiked(audioBlock2.id))
+    #expect(manager.isLiked(audioBlock3.id))
   }
 
   // MARK: - Cleanup Tests
 
+  @Test
   func testCleanupExpiredOperations() async {
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
     let manager = LikesManager()
     let audioBlock = AudioBlock.mock
 
@@ -173,13 +208,17 @@ final class LikesManagerTests: XCTestCase {
 
     manager.cleanupExpiredOperations()
 
-    XCTAssertEqual(manager.pendingOperations.count, 1)
-    XCTAssertEqual(manager.pendingOperations.first, recentOp)
+    #expect(manager.pendingOperations.count == 1)
+    #expect(manager.pendingOperations.first == recentOp)
   }
 
   // MARK: - Persistence Tests
 
+  @Test
   func testPersistenceBetweenInstances() async {
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
     let audioBlock = AudioBlock.mock
 
     let manager1 = LikesManager()
@@ -187,8 +226,8 @@ final class LikesManagerTests: XCTestCase {
 
     let manager2 = LikesManager()
 
-    XCTAssertTrue(manager2.isLiked(audioBlock.id))
-    XCTAssertEqual(manager2.allLikedAudioBlocks.count, 1)
-    XCTAssertEqual(manager2.pendingOperations.count, 1)
+    #expect(manager2.isLiked(audioBlock.id))
+    #expect(manager2.allLikedAudioBlocks.count == 1)
+    #expect(manager2.pendingOperations.count == 1)
   }
 }

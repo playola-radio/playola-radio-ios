@@ -6,18 +6,20 @@
 //
 
 import Dependencies
+import Foundation
 import MediaPlayer
 import PlayolaPlayer
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class NowPlayingUpdaterTests: XCTestCase {
+struct NowPlayingUpdaterTests {
 
   // MARK: - Analytics Tests
 
-  func testTrackListeningSession_StartsSessionWhenTransitioningToPlaying() async {
+  @Test
+  func testTrackListeningSessionStartsSessionWhenTransitioningToPlaying() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
     let station = AnyStation.mock
 
@@ -37,16 +39,18 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
     // Verify session started event was tracked
     let events = capturedEvents.value
-    XCTAssertEqual(events.count, 1)
+    #expect(events.count == 1)
     if case .listeningSessionStarted(let stationInfo) = events.first {
-      XCTAssertEqual(stationInfo.id, station.id)
-      XCTAssertEqual(stationInfo.name, station.name)
+      #expect(stationInfo.id == station.id)
+      #expect(stationInfo.name == station.name)
     } else {
-      XCTFail("Expected listeningSessionStarted event, got: \(String(describing: events.first))")
+      Issue.record(
+        "Expected listeningSessionStarted event, got: \(String(describing: events.first))")
     }
   }
 
-  func testTrackListeningSession_EndsSessionWhenStoppingFromPlaying() async {
+  @Test
+  func testTrackListeningSessionEndsSessionWhenStoppingFromPlaying() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
     let station = AnyStation.mock
 
@@ -75,17 +79,18 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
     // Verify session ended event was tracked
     let events = capturedEvents.value
-    XCTAssertEqual(events.count, 1)
+    #expect(events.count == 1)
     if case .listeningSessionEnded(let stationInfo, let sessionLengthSec) = events.first {
-      XCTAssertEqual(stationInfo.id, station.id)
-      XCTAssertEqual(stationInfo.name, station.name)
-      XCTAssertGreaterThanOrEqual(sessionLengthSec, 0)
+      #expect(stationInfo.id == station.id)
+      #expect(stationInfo.name == station.name)
+      #expect(sessionLengthSec >= 0)
     } else {
-      XCTFail("Expected listeningSessionEnded event, got: \(String(describing: events.first))")
+      Issue.record("Expected listeningSessionEnded event, got: \(String(describing: events.first))")
     }
   }
 
-  func testTrackListeningSession_InitiatesSessionBeforeSwitch() async {
+  @Test
+  func testTrackListeningSessionInitiatesSessionBeforeSwitch() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
     let station1 = AnyStation.mock
     let station2 = AnyStation.url(
@@ -118,9 +123,9 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
     // Verify session was started
     let initialEvents = capturedEvents.value
-    XCTAssertEqual(initialEvents.count, 1, "Expected 1 event after starting session")
+    #expect(initialEvents.count == 1, "Expected 1 event after starting session")
     guard case .listeningSessionStarted = initialEvents.first else {
-      XCTFail("Expected listeningSessionStarted event after starting session")
+      Issue.record("Expected listeningSessionStarted event after starting session")
       return
     }
 
@@ -133,10 +138,11 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
     // Verify switch generated events
     let events = capturedEvents.value
-    XCTAssertEqual(events.count, 3, "Station switch must generate exactly 3 events")
+    #expect(events.count == 3, "Station switch must generate exactly 3 events")
   }
 
-  func testTrackListeningSession_TracksStationSwitchEvents() async {
+  @Test
+  func testTrackListeningSessionTracksStationSwitchEvents() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
     let station1 = AnyStation.mock
     let station2 = makeTestStation2()
@@ -164,7 +170,7 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
     // Verify the three expected events
     let events = capturedEvents.value
-    XCTAssertEqual(events.count, 3, "Expected exactly 3 events when switching stations")
+    #expect(events.count == 3, "Expected exactly 3 events when switching stations")
     guard events.count == 3 else { return }
 
     verifySessionEndedEvent(events[0], expectedStationId: station1.id, eventIndex: 0)
@@ -173,7 +179,8 @@ final class NowPlayingUpdaterTests: XCTestCase {
     verifySessionStartedEvent(events[2], expectedStationId: station2.id, eventIndex: 2)
   }
 
-  func testTrackListeningSession_TracksPlaybackError() async {
+  @Test
+  func testTrackListeningSessionTracksPlaybackError() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     let updater = withDependencies {
@@ -205,23 +212,24 @@ final class NowPlayingUpdaterTests: XCTestCase {
     // Verify events were tracked
     let events = capturedEvents.value
     guard events.count > 0 else {
-      XCTFail("Expected at least 1 event, got 0")
+      Issue.record("Expected at least 1 event, got 0")
       return
     }
 
     // When transitioning from playing to error, only session ended is tracked
     // The error case in the switch statement is only for non-playing to error transitions
-    XCTAssertEqual(events.count, 1)
+    #expect(events.count == 1)
 
     // Should be session ended
     if case .listeningSessionEnded = events[0] {
       // Expected
     } else {
-      XCTFail("Expected listeningSessionEnded event, got: \(events[0])")
+      Issue.record("Expected listeningSessionEnded event, got: \(events[0])")
     }
   }
 
-  func testTrackListeningSession_DoesNotStartMultipleSessions() async {
+  @Test
+  func testTrackListeningSessionDoesNotStartMultipleSessions() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
     let station = AnyStation.mock
 
@@ -250,10 +258,11 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
     // Verify no new session was started
     let events = capturedEvents.value
-    XCTAssertEqual(events.count, 0)
+    #expect(events.count == 0)
   }
 
-  func testTrackListeningSession_HandlesLoadingToPlayingTransition() async {
+  @Test
+  func testTrackListeningSessionHandlesLoadingToPlayingTransition() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
     let station = AnyStation.mock
 
@@ -273,15 +282,17 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
     // Verify session started
     let events = capturedEvents.value
-    XCTAssertEqual(events.count, 1)
+    #expect(events.count == 1)
     if case .listeningSessionStarted(let stationInfo) = events.first {
-      XCTAssertEqual(stationInfo.id, station.id)
+      #expect(stationInfo.id == station.id)
     } else {
-      XCTFail("Expected listeningSessionStarted event, got: \(String(describing: events.first))")
+      Issue.record(
+        "Expected listeningSessionStarted event, got: \(String(describing: events.first))")
     }
   }
 
-  func testTrackListeningSession_DoesNotTrackSameStationSwitch() async {
+  @Test
+  func testTrackListeningSessionDoesNotTrackSameStationSwitch() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
     let station = AnyStation.mock
 
@@ -310,12 +321,13 @@ final class NowPlayingUpdaterTests: XCTestCase {
 
     // Verify no events were tracked
     let events = capturedEvents.value
-    XCTAssertEqual(events.count, 0)
+    #expect(events.count == 0)
   }
 
   // MARK: - Now Playing Title/Artist Tests
 
-  func testPopulatePlayingInfo_CommercialShowsPlayolaPaysAndStationName() {
+  @Test
+  func testPopulatePlayingInfoCommercialShowsPlayolaPaysAndStationName() {
     let station = AnyStation.playola(
       Station.mockWith(
         name: "Test Station Name"
@@ -335,11 +347,12 @@ final class NowPlayingUpdaterTests: XCTestCase {
       station: station
     )
 
-    XCTAssertEqual(title, "Playola Pays")
-    XCTAssertEqual(artist, "Test Station Name")
+    #expect(title == "Playola Pays")
+    #expect(artist == "Test Station Name")
   }
 
-  func testPopulatePlayingInfo_SongShowsTitleAndArtist() {
+  @Test
+  func testPopulatePlayingInfoSongShowsTitleAndArtist() {
     let station = AnyStation.playola(
       Station.mockWith(
         name: "Test Station Name"
@@ -359,11 +372,12 @@ final class NowPlayingUpdaterTests: XCTestCase {
       station: station
     )
 
-    XCTAssertEqual(title, "My Song Title")
-    XCTAssertEqual(artist, "My Song Artist")
+    #expect(title == "My Song Title")
+    #expect(artist == "My Song Artist")
   }
 
-  func testPopulatePlayingInfo_SongWithAiringShowsTitleAndArtist() {
+  @Test
+  func testPopulatePlayingInfoSongWithAiringShowsTitleAndArtist() {
     let station = AnyStation.playola(
       Station.mockWith(
         name: "Test Station Name"
@@ -386,11 +400,12 @@ final class NowPlayingUpdaterTests: XCTestCase {
       station: station
     )
 
-    XCTAssertEqual(title, "My Song Title")
-    XCTAssertEqual(artist, "My Song Artist")
+    #expect(title == "My Song Title")
+    #expect(artist == "My Song Artist")
   }
 
-  func testPopulatePlayingInfo_NonSongWithAiringShowsEpisodeTitleAndStationName() {
+  @Test
+  func testPopulatePlayingInfoNonSongWithAiringShowsEpisodeTitleAndStationName() {
     let station = AnyStation.playola(
       Station.mockWith(
         name: "Test Station Name"
@@ -413,11 +428,12 @@ final class NowPlayingUpdaterTests: XCTestCase {
       station: station
     )
 
-    XCTAssertEqual(title, "Episode Title")
-    XCTAssertEqual(artist, "Test Station Name")
+    #expect(title == "Episode Title")
+    #expect(artist == "Test Station Name")
   }
 
-  func testPopulatePlayingInfo_NonSongWithoutAiringShowsStationNameAndEmptyArtist() {
+  @Test
+  func testPopulatePlayingInfoNonSongWithoutAiringShowsStationNameAndEmptyArtist() {
     let station = AnyStation.playola(
       Station.mockWith(
         name: "Test Station Name"
@@ -437,8 +453,8 @@ final class NowPlayingUpdaterTests: XCTestCase {
       station: station
     )
 
-    XCTAssertEqual(title, "Test Station Name")
-    XCTAssertEqual(artist, "")
+    #expect(title == "Test Station Name")
+    #expect(artist == "")
   }
 
   // MARK: - Helper Methods
@@ -463,10 +479,10 @@ final class NowPlayingUpdaterTests: XCTestCase {
     _ event: AnalyticsEvent, expectedStationId: String, eventIndex: Int
   ) {
     guard case .listeningSessionEnded(let stationInfo, _) = event else {
-      XCTFail("Expected listeningSessionEnded event at index \(eventIndex), got: \(event)")
+      Issue.record("Expected listeningSessionEnded event at index \(eventIndex), got: \(event)")
       return
     }
-    XCTAssertEqual(stationInfo.id, expectedStationId)
+    #expect(stationInfo.id == expectedStationId)
   }
 
   private func verifySwitchedStationEvent(
@@ -477,22 +493,22 @@ final class NowPlayingUpdaterTests: XCTestCase {
   ) {
     guard case .switchedStation(let from, let to, let timeBeforeSwitchSec, let reason) = event
     else {
-      XCTFail("Expected switchedStation event at index \(eventIndex), got: \(event)")
+      Issue.record("Expected switchedStation event at index \(eventIndex), got: \(event)")
       return
     }
-    XCTAssertEqual(from.id, fromStationId)
-    XCTAssertEqual(to.id, toStationId)
-    XCTAssertGreaterThanOrEqual(timeBeforeSwitchSec, 0)
-    XCTAssertEqual(reason, .userInitiated)
+    #expect(from.id == fromStationId)
+    #expect(to.id == toStationId)
+    #expect(timeBeforeSwitchSec >= 0)
+    #expect(reason == .userInitiated)
   }
 
   private func verifySessionStartedEvent(
     _ event: AnalyticsEvent, expectedStationId: String, eventIndex: Int
   ) {
     guard case .listeningSessionStarted(let stationInfo) = event else {
-      XCTFail("Expected listeningSessionStarted event at index \(eventIndex), got: \(event)")
+      Issue.record("Expected listeningSessionStarted event at index \(eventIndex), got: \(event)")
       return
     }
-    XCTAssertEqual(stationInfo.id, expectedStationId)
+    #expect(stationInfo.id == expectedStationId)
   }
 }
