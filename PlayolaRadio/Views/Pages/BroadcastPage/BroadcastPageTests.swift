@@ -8,14 +8,15 @@
 
 import ConcurrencyExtras
 import Dependencies
+import Foundation
 import PlayolaPlayer
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class BroadcastPageTests: XCTestCase {
+struct BroadcastPageTests {
   // MARK: - Test Helpers
 
   private let testStationId = "test-station-id"
@@ -54,27 +55,29 @@ final class BroadcastPageTests: XCTestCase {
 
   // MARK: - Schedule Loading Tests
 
-  func testViewAppeared_LoadsScheduleSuccessfully() async {
+  @Test
+  func testViewAppearedLoadsScheduleSuccessfully() async {
     let mockSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { requestedStationId, extended in
-        XCTAssertEqual(requestedStationId, self.testStationId)
-        XCTAssertTrue(extended)
+        #expect(requestedStationId == self.testStationId)
+        #expect(extended)
         return mockSpins
       }
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      XCTAssertNotNil(model.schedule)
-      XCTAssertNil(model.presentedAlert)
-      XCTAssertFalse(model.isLoading)
+      #expect(model.schedule != nil)
+      #expect(model.presentedAlert == nil)
+      #expect(!model.isLoading)
     }
   }
 
-  func testViewAppeared_ShowsErrorAlertOnFailure() async {
+  @Test
+  func testViewAppearedShowsErrorAlertOnFailure() async {
     await withDependencies {
       $0.api.fetchSchedule = { _, _ in
         throw TestError.networkError
@@ -83,17 +86,17 @@ final class BroadcastPageTests: XCTestCase {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      XCTAssertNil(model.schedule)
-      XCTAssertNotNil(model.presentedAlert)
-      XCTAssertEqual(model.presentedAlert?.title, "Error")
-      XCTAssertFalse(model.isLoading)
+      #expect(model.schedule == nil)
+      #expect(model.presentedAlert != nil)
+      #expect(model.presentedAlert?.title == "Error")
+      #expect(!model.isLoading)
     }
   }
 
-  func testNowPlaying_ReturnsCurrentSpin() async {
+  @Test
+  func testNowPlayingReturnsCurrentSpin() async {
     let stationId = "test-station-id"
     let fixedNow = Date(timeIntervalSince1970: 1_000_000)
-    // Create audioBlock with 180 second (3 min) duration so spin is still playing
     let longAudioBlock = AudioBlock.mockWith(endOfMessageMS: 180_000)
     let mockSpins = [
       Spin.mockWith(
@@ -115,11 +118,12 @@ final class BroadcastPageTests: XCTestCase {
     } operation: {
       let model = BroadcastPageModel(stationId: stationId)
       await model.viewAppeared()
-      XCTAssertEqual(model.nowPlaying?.id, "spin-1")
+      #expect(model.nowPlaying?.id == "spin-1")
     }
   }
 
-  func testUpcomingSpins_ExcludesNowPlaying() async {
+  @Test
+  func testUpcomingSpinsExcludesNowPlaying() async {
     let stationId = "test-station-id"
     let fixedNow = Date(timeIntervalSince1970: 1_000_000)
     let mockSpins = [
@@ -148,18 +152,17 @@ final class BroadcastPageTests: XCTestCase {
       await model.viewAppeared()
 
       let upcomingIds = model.upcomingSpins.map { $0.id }
-      XCTAssertFalse(upcomingIds.contains("spin-1"))
-      XCTAssertTrue(upcomingIds.contains("spin-2"))
-      XCTAssertTrue(upcomingIds.contains("spin-3"))
+      #expect(!upcomingIds.contains("spin-1"))
+      #expect(upcomingIds.contains("spin-2"))
+      #expect(upcomingIds.contains("spin-3"))
     }
   }
 
-  func testTick_UpdatesCurrentNowPlayingIdWhenSpinChanges() async {
+  @Test
+  func testTickUpdatesCurrentNowPlayingIdWhenSpinChanges() async {
     let stationId = "test-station-id"
     let initialTime = Date(timeIntervalSince1970: 1_000_000)
 
-    // spin-1: started 60s ago, 90s duration (ends in 30s)
-    // spin-2: starts in 30s
     let spin1AudioBlock = AudioBlock.mockWith(endOfMessageMS: 90000)
     let spin2AudioBlock = AudioBlock.mockWith(endOfMessageMS: 180_000)
     let mockSpins = [
@@ -184,12 +187,10 @@ final class BroadcastPageTests: XCTestCase {
       let model = BroadcastPageModel(stationId: stationId)
       await model.viewAppeared()
 
-      // Initially spin-1 is playing
-      XCTAssertEqual(model.currentNowPlayingId, "spin-1")
-      XCTAssertEqual(model.upcomingSpins.first?.id, "spin-2")
+      #expect(model.currentNowPlayingId == "spin-1")
+      #expect(model.upcomingSpins.first?.id == "spin-2")
     }
 
-    // Advance time past spin-1's end
     let laterTime = initialTime.addingTimeInterval(35)
 
     await withDependencies {
@@ -199,18 +200,17 @@ final class BroadcastPageTests: XCTestCase {
       let model = BroadcastPageModel(stationId: stationId)
       await model.viewAppeared()
 
-      // Call tick - should detect spin change and update currentNowPlayingId
       model.tick()
 
-      XCTAssertEqual(model.currentNowPlayingId, "spin-2")
+      #expect(model.currentNowPlayingId == "spin-2")
     }
   }
 
-  func testTick_DoesNotChangeIdWhenNowPlayingUnchanged() async {
+  @Test
+  func testTickDoesNotChangeIdWhenNowPlayingUnchanged() async {
     let stationId = "test-station-id"
     let initialTime = Date(timeIntervalSince1970: 1_000_000)
 
-    // spin-1: started 10s ago, 180s duration (plenty of time left)
     let spin1AudioBlock = AudioBlock.mockWith(endOfMessageMS: 180_000)
     let mockSpins = [
       Spin.mockWith(
@@ -228,18 +228,18 @@ final class BroadcastPageTests: XCTestCase {
       let model = BroadcastPageModel(stationId: stationId)
       await model.viewAppeared()
 
-      XCTAssertEqual(model.currentNowPlayingId, "spin-1")
+      #expect(model.currentNowPlayingId == "spin-1")
 
-      // Tick should not change the ID since spin hasn't changed
       model.tick()
 
-      XCTAssertEqual(model.currentNowPlayingId, "spin-1")
+      #expect(model.currentNowPlayingId == "spin-1")
     }
   }
 
   // MARK: - Station Name Tests
 
-  func testNavigationTitle_UsesStationNameWhenProvided() async {
+  @Test
+  func testNavigationTitleUsesStationNameWhenProvided() async {
     let stationId = "test-station-id"
     let stationName = "My Awesome Station"
 
@@ -250,11 +250,12 @@ final class BroadcastPageTests: XCTestCase {
     } operation: {
       let model = BroadcastPageModel(stationId: stationId, stationName: stationName)
 
-      XCTAssertEqual(model.navigationTitle, stationName)
+      #expect(model.navigationTitle == stationName)
     }
   }
 
-  func testNavigationTitle_FetchesStationNameOnLoad() async {
+  @Test
+  func testNavigationTitleFetchesStationNameOnLoad() async {
     let stationId = "test-station-id"
     let fetchedStationName = "Fetched Station Name"
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -263,20 +264,21 @@ final class BroadcastPageTests: XCTestCase {
       $0.date.now = Date()
       $0.api.fetchSchedule = { _, _ in [] }
       $0.api.fetchStation = { _, requestedId in
-        XCTAssertEqual(requestedId, stationId)
+        #expect(requestedId == stationId)
         return Station.mockWith(name: fetchedStationName)
       }
     } operation: {
       let model = BroadcastPageModel(stationId: stationId)
-      XCTAssertEqual(model.navigationTitle, "My Station")  // Default before load
+      #expect(model.navigationTitle == "My Station")
 
       await model.viewAppeared()
 
-      XCTAssertEqual(model.navigationTitle, fetchedStationName)
+      #expect(model.navigationTitle == fetchedStationName)
     }
   }
 
-  func testNavigationTitle_FallsBackToDefaultWhenFetchFails() async {
+  @Test
+  func testNavigationTitleFallsBackToDefaultWhenFetchFails() async {
     let stationId = "test-station-id"
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
@@ -288,13 +290,14 @@ final class BroadcastPageTests: XCTestCase {
       let model = BroadcastPageModel(stationId: stationId)
       await model.viewAppeared()
 
-      XCTAssertEqual(model.navigationTitle, "My Station")
+      #expect(model.navigationTitle == "My Station")
     }
   }
 
   // MARK: - Grouped Spin Tests
 
-  func testMoveSpins_MovesUngroupedSpinNormally() async {
+  @Test
+  func testMoveSpinsMovesUngroupedSpinNormally() async {
     let mockSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     let reorderedSpins = makeSpins(ids: ["spin-2", "spin-1", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -307,15 +310,15 @@ final class BroadcastPageTests: XCTestCase {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      // Move spin-1 to position 2 (after spin-2)
       await model.moveSpins(from: IndexSet(integer: 0), to: 2)
 
       let ids = model.upcomingSpins.map { $0.id }
-      XCTAssertEqual(ids, ["spin-2", "spin-1", "spin-3"])
+      #expect(ids == ["spin-2", "spin-1", "spin-3"])
     }
   }
 
-  func testMoveSpins_MovesEntireGroupTogether() async {
+  @Test
+  func testMoveSpinsMovesEntireGroupTogether() async {
     let groupId = "group-1"
     let mockSpins =
       makeSpins(ids: ["spin-1", "spin-2"], groupId: groupId)
@@ -334,16 +337,15 @@ final class BroadcastPageTests: XCTestCase {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      // Move spin-1 (part of group) to position 3 (after spin-3)
-      // Should move both spin-1 and spin-2 together
       await model.moveSpins(from: IndexSet(integer: 0), to: 3)
 
       let ids = model.upcomingSpins.map { $0.id }
-      XCTAssertEqual(ids, ["spin-3", "spin-1", "spin-2", "spin-4"])
+      #expect(ids == ["spin-3", "spin-1", "spin-2", "spin-4"])
     }
   }
 
-  func testMoveSpins_PreservesRelativeOrderWithinGroup() async {
+  @Test
+  func testMoveSpinsPreservesRelativeOrderWithinGroup() async {
     let stationId = "test-station-id"
     let fixedNow = Date(timeIntervalSince1970: 1_000_000)
     let groupId = "group-1"
@@ -383,71 +385,73 @@ final class BroadcastPageTests: XCTestCase {
       let model = BroadcastPageModel(stationId: stationId)
       await model.viewAppeared()
 
-      // Move spin-2 (middle of group) to the end
-      // Should move entire group (spin-1, spin-2, spin-3) and preserve their order
       await model.moveSpins(from: IndexSet(integer: 2), to: 5)
 
       let ids = model.upcomingSpins.map { $0.id }
-      XCTAssertEqual(ids, ["spin-A", "spin-B", "spin-1", "spin-2", "spin-3"])
+      #expect(ids == ["spin-A", "spin-B", "spin-1", "spin-2", "spin-3"])
     }
   }
 
   // MARK: - Coming Soon Alert Tests
 
-  func testOnAddVoiceTrackTapped_PresentsRecordPageSheet() {
+  @Test
+  func testOnAddVoiceTrackTappedPresentsRecordPageSheet() {
     @Shared(.mainContainerNavigationCoordinator)
-    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+    var mainContainerNavigationCoordinator = MainContainerNavigationCoordinator()
 
     let model = BroadcastPageModel(stationId: "test-station")
 
-    XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
+    #expect(mainContainerNavigationCoordinator.presentedSheet == nil)
 
     model.onAddVoiceTrackTapped()
 
-    XCTAssertNotNil(model.recordPageModel)
+    #expect(model.recordPageModel != nil)
     if case .recordPage = mainContainerNavigationCoordinator.presentedSheet {
       // Success - presented record page sheet
     } else {
-      XCTFail("Expected recordPage sheet presentation")
+      Issue.record("Expected recordPage sheet presentation")
     }
   }
 
+  @Test
   func testOnAddSongTappedPresentsSongSearchPageSheet() async {
     @Shared(.mainContainerNavigationCoordinator)
-    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+    var mainContainerNavigationCoordinator = MainContainerNavigationCoordinator()
 
     let model = BroadcastPageModel(stationId: "test-station")
 
-    XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
-    XCTAssertNil(model.songSearchPageModel)
+    #expect(mainContainerNavigationCoordinator.presentedSheet == nil)
+    #expect(model.songSearchPageModel == nil)
 
     await model.onAddSongTapped()
 
-    XCTAssertNotNil(model.songSearchPageModel)
+    #expect(model.songSearchPageModel != nil)
     if case .songSearchPage = mainContainerNavigationCoordinator.presentedSheet {
     } else {
-      XCTFail("Expected songSearchPage sheet presentation")
+      Issue.record("Expected songSearchPage sheet presentation")
     }
   }
 
+  @Test
   func testOnAddSongTappedUsesAllSearchMode() async {
     @Shared(.mainContainerNavigationCoordinator)
-    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+    var mainContainerNavigationCoordinator = MainContainerNavigationCoordinator()
 
     let model = BroadcastPageModel(stationId: "test-station")
 
     await model.onAddSongTapped()
 
-    XCTAssertEqual(model.songSearchPageModel?.searchMode, .all)
+    #expect(model.songSearchPageModel?.searchMode == .all)
   }
 
+  @Test
   func testOnAddSongTappedSongSelectedCallbackAddsSongToStaging() async {
     await withMainSerialExecutor {
       @Shared(.mainContainerNavigationCoordinator)
-      var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+      var mainContainerNavigationCoordinator = MainContainerNavigationCoordinator()
 
       let model = BroadcastPageModel(stationId: "test-station")
-      XCTAssertTrue(model.stagingItems.isEmpty)
+      #expect(model.stagingItems.isEmpty)
 
       await model.onAddSongTapped()
 
@@ -456,27 +460,29 @@ final class BroadcastPageTests: XCTestCase {
       model.songSearchPageModel?.onSongSelected?(testSong)
       await Task.yield()
 
-      XCTAssertEqual(model.stagingItems.count, 1)
-      XCTAssertEqual(model.stagingItems.first?.stagingId, "test-song-123")
-      XCTAssertEqual(model.stagingItems.first?.titleText, "Test Song")
+      #expect(model.stagingItems.count == 1)
+      #expect(model.stagingItems.first?.stagingId == "test-song-123")
+      #expect(model.stagingItems.first?.titleText == "Test Song")
     }
   }
 
+  @Test
   func testOnAddSongTappedSongSelectedCallbackDismissesSheet() async {
     @Shared(.mainContainerNavigationCoordinator)
-    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+    var mainContainerNavigationCoordinator = MainContainerNavigationCoordinator()
 
     let model = BroadcastPageModel(stationId: "test-station")
     await model.onAddSongTapped()
 
-    XCTAssertNotNil(mainContainerNavigationCoordinator.presentedSheet)
+    #expect(mainContainerNavigationCoordinator.presentedSheet != nil)
 
     let testSong = AudioBlock.mockWith(id: "test-song-123")
     model.songSearchPageModel?.onSongSelected?(testSong)
 
-    XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
+    #expect(mainContainerNavigationCoordinator.presentedSheet == nil)
   }
 
+  @Test
   func testAddSongToStagingDoesNotAddDuplicates() async {
     let model = BroadcastPageModel(stationId: "test-station")
     let testSong = AudioBlock.mockWith(id: "test-song-123")
@@ -484,9 +490,10 @@ final class BroadcastPageTests: XCTestCase {
     await model.addSongToStaging(testSong)
     await model.addSongToStaging(testSong)
 
-    XCTAssertEqual(model.stagingItems.count, 1)
+    #expect(model.stagingItems.count == 1)
   }
 
+  @Test
   func testAddSongToStagingAddsMultipleDifferentSongs() async {
     let model = BroadcastPageModel(stationId: "test-station")
     let song1 = AudioBlock.mockWith(id: "song-1", title: "First Song")
@@ -495,11 +502,12 @@ final class BroadcastPageTests: XCTestCase {
     await model.addSongToStaging(song1)
     await model.addSongToStaging(song2)
 
-    XCTAssertEqual(model.stagingItems.count, 2)
-    XCTAssertEqual(model.stagingItems[0].stagingId, "song-1")
-    XCTAssertEqual(model.stagingItems[1].stagingId, "song-2")
+    #expect(model.stagingItems.count == 2)
+    #expect(model.stagingItems[0].stagingId == "song-1")
+    #expect(model.stagingItems[1].stagingId == "song-2")
   }
 
+  @Test
   func testRecordingAcceptedAddsToStagingArea() async {
     let calendar = Calendar.current
     let components = DateComponents(year: 2023, month: 12, day: 13, hour: 11, minute: 0)
@@ -515,23 +523,24 @@ final class BroadcastPageTests: XCTestCase {
       }
     } operation: {
       let model = BroadcastPageModel(stationId: "test-station")
-      XCTAssertTrue(model.stagingItems.isEmpty)
+      #expect(model.stagingItems.isEmpty)
 
       model.onAddVoiceTrackTapped()
       let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
       await model.recordPageModel?.onRecordingAccepted?(recordingURL)
 
-      XCTAssertEqual(model.stagingItems.count, 1)
+      #expect(model.stagingItems.count == 1)
       let voicetrack = model.stagingItems.first as? LocalVoicetrack
-      XCTAssertEqual(voicetrack?.originalURL, recordingURL)
-      XCTAssertEqual(voicetrack?.title, "Voice Track 11:00am")
-      XCTAssertEqual(voicetrack?.status, .completed)
+      #expect(voicetrack?.originalURL == recordingURL)
+      #expect(voicetrack?.title == "Voice Track 11:00am")
+      #expect(voicetrack?.status == .completed)
     }
   }
 
   // MARK: - Grouped Spin Tests
 
-  func testMoveSpins_MovesGroupToBeginning() async {
+  @Test
+  func testMoveSpinsMovesGroupToBeginning() async {
     let stationId = "test-station-id"
     let fixedNow = Date(timeIntervalSince1970: 1_000_000)
     let groupId = "group-1"
@@ -565,11 +574,10 @@ final class BroadcastPageTests: XCTestCase {
       let model = BroadcastPageModel(stationId: stationId)
       await model.viewAppeared()
 
-      // Move spin-1 (part of group) to position 0
       await model.moveSpins(from: IndexSet(integer: 2), to: 0)
 
       let ids = model.upcomingSpins.map { $0.id }
-      XCTAssertEqual(ids, ["spin-1", "spin-2", "spin-A", "spin-B"])
+      #expect(ids == ["spin-1", "spin-2", "spin-A", "spin-B"])
     }
   }
 
@@ -589,6 +597,7 @@ private enum TestError: Error, LocalizedError {
 // MARK: - canDeleteSpin Tests
 
 extension BroadcastPageTests {
+  @Test
   func testCanDeleteSpinReturnsTrueForSpinMoreThanTwoMinutesAway() async {
     let spinMoreThanTwoMinutesAway = makeSpins(ids: ["spin-1"], startOffset: 121).first!
 
@@ -599,10 +608,11 @@ extension BroadcastPageTests {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      XCTAssertTrue(model.canDeleteSpin(spinMoreThanTwoMinutesAway))
+      #expect(model.canDeleteSpin(spinMoreThanTwoMinutesAway))
     }
   }
 
+  @Test
   func testCanDeleteSpinReturnsFalseForSpinExactlyTwoMinutesAway() async {
     let spinExactlyTwoMinutesAway = makeSpins(ids: ["spin-1"], startOffset: 120).first!
 
@@ -613,10 +623,11 @@ extension BroadcastPageTests {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      XCTAssertFalse(model.canDeleteSpin(spinExactlyTwoMinutesAway))
+      #expect(!model.canDeleteSpin(spinExactlyTwoMinutesAway))
     }
   }
 
+  @Test
   func testCanDeleteSpinReturnsFalseForSpinLessThanTwoMinutesAway() async {
     let spinLessThanTwoMinutesAway = makeSpins(ids: ["spin-1"]).first!
 
@@ -627,7 +638,7 @@ extension BroadcastPageTests {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      XCTAssertFalse(model.canDeleteSpin(spinLessThanTwoMinutesAway))
+      #expect(!model.canDeleteSpin(spinLessThanTwoMinutesAway))
     }
   }
 }
@@ -635,6 +646,7 @@ extension BroadcastPageTests {
 // MARK: - Move Spin Tests
 
 extension BroadcastPageTests {
+  @Test
   func testMoveSpinSuccessUpdatesScheduleWithReturnedSpins() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     let updatedSpins = makeSpins(ids: ["spin-2", "spin-1", "spin-3"])
@@ -644,25 +656,25 @@ extension BroadcastPageTests {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.moveSpin = { _, spinId, placeAfterSpinId in
-        XCTAssertEqual(spinId, "spin-1")
-        XCTAssertEqual(placeAfterSpinId, "spin-2")
+        #expect(spinId == "spin-1")
+        #expect(placeAfterSpinId == "spin-2")
         return updatedSpins
       }
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      XCTAssertEqual(model.upcomingSpins.map { $0.id }, ["spin-1", "spin-2", "spin-3"])
+      #expect(model.upcomingSpins.map { $0.id } == ["spin-1", "spin-2", "spin-3"])
 
-      // Move spin-1 to after spin-2
       await model.moveSpins(from: IndexSet(integer: 0), to: 2)
 
-      XCTAssertEqual(model.upcomingSpins.map { $0.id }, ["spin-2", "spin-1", "spin-3"])
-      XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
-      XCTAssertNil(model.presentedAlert)
+      #expect(model.upcomingSpins.map { $0.id } == ["spin-2", "spin-1", "spin-3"])
+      #expect(model.spinIdsBeingRescheduled.isEmpty)
+      #expect(model.presentedAlert == nil)
     }
   }
 
+  @Test
   func testMoveSpinToBeginningCallsAPIWithNilPlaceAfterSpinId() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     let updatedSpins = makeSpins(ids: ["spin-3", "spin-1", "spin-2"])
@@ -672,21 +684,21 @@ extension BroadcastPageTests {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.moveSpin = { _, spinId, placeAfterSpinId in
-        XCTAssertEqual(spinId, "spin-3")
-        XCTAssertNil(placeAfterSpinId)
+        #expect(spinId == "spin-3")
+        #expect(placeAfterSpinId == nil)
         return updatedSpins
       }
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      // Move spin-3 to beginning
       await model.moveSpins(from: IndexSet(integer: 2), to: 0)
 
-      XCTAssertEqual(model.upcomingSpins.map { $0.id }, ["spin-3", "spin-1", "spin-2"])
+      #expect(model.upcomingSpins.map { $0.id } == ["spin-3", "spin-1", "spin-2"])
     }
   }
 
+  @Test
   func testMoveSpinMarksAllSpinsAsReschedulingDuringCall() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -707,7 +719,7 @@ extension BroadcastPageTests {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
+      #expect(model.spinIdsBeingRescheduled.isEmpty)
 
       let moveTask = Task {
         await model.moveSpins(from: IndexSet(integer: 0), to: 2)
@@ -717,8 +729,7 @@ extension BroadcastPageTests {
         await Task.yield()
       }
 
-      // During the call, all spins should be marked as rescheduling
-      XCTAssertEqual(model.spinIdsBeingRescheduled, ["spin-1", "spin-2", "spin-3"])
+      #expect(model.spinIdsBeingRescheduled == ["spin-1", "spin-2", "spin-3"])
 
       moveContinuation.withValue { continuation in
         continuation?.resume()
@@ -727,11 +738,11 @@ extension BroadcastPageTests {
 
       await moveTask.value
 
-      // After the call completes, the set should be cleared
-      XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
+      #expect(model.spinIdsBeingRescheduled.isEmpty)
     }
   }
 
+  @Test
   func testMoveSpinErrorRestoresOriginalSchedule() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -747,16 +758,17 @@ extension BroadcastPageTests {
       await model.viewAppeared()
 
       let originalIds = model.upcomingSpins.map { $0.id }
-      XCTAssertEqual(originalIds, ["spin-1", "spin-2", "spin-3"])
+      #expect(originalIds == ["spin-1", "spin-2", "spin-3"])
 
       await model.moveSpins(from: IndexSet(integer: 0), to: 2)
 
       let restoredIds = model.upcomingSpins.map { $0.id }
-      XCTAssertEqual(restoredIds, ["spin-1", "spin-2", "spin-3"])
-      XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
+      #expect(restoredIds == ["spin-1", "spin-2", "spin-3"])
+      #expect(model.spinIdsBeingRescheduled.isEmpty)
     }
   }
 
+  @Test
   func testMoveSpinErrorShowsErrorAlert() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -771,12 +783,12 @@ extension BroadcastPageTests {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      XCTAssertNil(model.presentedAlert)
+      #expect(model.presentedAlert == nil)
 
       await model.moveSpins(from: IndexSet(integer: 0), to: 2)
 
-      XCTAssertNotNil(model.presentedAlert)
-      XCTAssertEqual(model.presentedAlert?.title, "Error")
+      #expect(model.presentedAlert != nil)
+      #expect(model.presentedAlert?.title == "Error")
     }
   }
 }
@@ -784,6 +796,7 @@ extension BroadcastPageTests {
 // MARK: - Delete Spin Tests
 
 extension BroadcastPageTests {
+  @Test
   func testDeleteSpinSuccessUpdatesScheduleWithReturnedSpins() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     let updatedSpins = makeSpins(ids: ["spin-1", "spin-3"])
@@ -793,24 +806,25 @@ extension BroadcastPageTests {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.deleteSpin = { _, spinId in
-        XCTAssertEqual(spinId, "spin-2")
+        #expect(spinId == "spin-2")
         return updatedSpins
       }
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      XCTAssertEqual(model.upcomingSpins.map { $0.id }, ["spin-1", "spin-2", "spin-3"])
+      #expect(model.upcomingSpins.map { $0.id } == ["spin-1", "spin-2", "spin-3"])
 
       let spinToDelete = initialSpins[1]
       await model.deleteSpin(spinToDelete)
 
-      XCTAssertEqual(model.upcomingSpins.map { $0.id }, ["spin-1", "spin-3"])
-      XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
-      XCTAssertNil(model.presentedAlert)
+      #expect(model.upcomingSpins.map { $0.id } == ["spin-1", "spin-3"])
+      #expect(model.spinIdsBeingRescheduled.isEmpty)
+      #expect(model.presentedAlert == nil)
     }
   }
 
+  @Test
   func testDeleteSpinMarksSpinsAfterDeletedAsReschedulingDuringCall() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -831,7 +845,7 @@ extension BroadcastPageTests {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
+      #expect(model.spinIdsBeingRescheduled.isEmpty)
 
       let deleteTask = Task {
         await model.deleteSpin(initialSpins[1])
@@ -841,8 +855,7 @@ extension BroadcastPageTests {
         await Task.yield()
       }
 
-      // During the call, spin-3 should have been marked as rescheduling (it comes after spin-2)
-      XCTAssertEqual(model.spinIdsBeingRescheduled, ["spin-3"])
+      #expect(model.spinIdsBeingRescheduled == ["spin-3"])
 
       deleteContinuation.withValue { continuation in
         continuation?.resume()
@@ -851,11 +864,11 @@ extension BroadcastPageTests {
 
       await deleteTask.value
 
-      // After the call completes, the set should be cleared
-      XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
+      #expect(model.spinIdsBeingRescheduled.isEmpty)
     }
   }
 
+  @Test
   func testDeleteSpinErrorRestoresOriginalSchedule() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -871,16 +884,17 @@ extension BroadcastPageTests {
       await model.viewAppeared()
 
       let originalIds = model.upcomingSpins.map { $0.id }
-      XCTAssertEqual(originalIds, ["spin-1", "spin-2", "spin-3"])
+      #expect(originalIds == ["spin-1", "spin-2", "spin-3"])
 
       await model.deleteSpin(initialSpins[1])
 
       let restoredIds = model.upcomingSpins.map { $0.id }
-      XCTAssertEqual(restoredIds, ["spin-1", "spin-2", "spin-3"])
-      XCTAssertTrue(model.spinIdsBeingRescheduled.isEmpty)
+      #expect(restoredIds == ["spin-1", "spin-2", "spin-3"])
+      #expect(model.spinIdsBeingRescheduled.isEmpty)
     }
   }
 
+  @Test
   func testDeleteSpinErrorShowsErrorAlert() async {
     let initialSpins = makeSpins(ids: ["spin-1"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -895,12 +909,12 @@ extension BroadcastPageTests {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      XCTAssertNil(model.presentedAlert)
+      #expect(model.presentedAlert == nil)
 
       await model.deleteSpin(initialSpins[0])
 
-      XCTAssertNotNil(model.presentedAlert)
-      XCTAssertEqual(model.presentedAlert?.title, "Error")
+      #expect(model.presentedAlert != nil)
+      #expect(model.presentedAlert?.title == "Error")
     }
   }
 }
@@ -908,6 +922,7 @@ extension BroadcastPageTests {
 // MARK: - Insert Voicetrack Tests
 
 extension BroadcastPageTests {
+  @Test
   func testInsertVoicetrackCallsAPIWithCorrectParameters() async {
     let voicetrackAudioBlockId = "voicetrack-audio-block-id"
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
@@ -933,14 +948,14 @@ extension BroadcastPageTests {
         makeStagingVoicetrack(id: voicetrackId, audioBlockId: voicetrackAudioBlockId)
       ]
 
-      // Drop voicetrack before spin-2 (should insert after spin-1)
       await model.insertStagingItem(stagingId: voicetrackId.uuidString, beforeSpinId: "spin-2")
 
-      XCTAssertEqual(capturedAudioBlockId.value, voicetrackAudioBlockId)
-      XCTAssertEqual(capturedPlaceAfterSpinId.value, "spin-1")
+      #expect(capturedAudioBlockId.value == voicetrackAudioBlockId)
+      #expect(capturedPlaceAfterSpinId.value == "spin-1")
     }
   }
 
+  @Test
   func testInsertStagingItemRemovesFromStagingOnSuccess() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -956,14 +971,15 @@ extension BroadcastPageTests {
       let voicetrackId = UUID()
       model.stagingItems = [makeStagingVoicetrack(id: voicetrackId)]
 
-      XCTAssertEqual(model.stagingItems.count, 1)
+      #expect(model.stagingItems.count == 1)
 
       await model.insertStagingItem(stagingId: voicetrackId.uuidString, beforeSpinId: "spin-2")
 
-      XCTAssertEqual(model.stagingItems.count, 0)
+      #expect(model.stagingItems.count == 0)
     }
   }
 
+  @Test
   func testInsertStagingItemUpdatesScheduleWithResponse() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2"], interval: 120)
     let updatedSpins = makeSpins(ids: ["spin-1", "new-spin", "spin-2"])
@@ -982,10 +998,11 @@ extension BroadcastPageTests {
 
       await model.insertStagingItem(stagingId: voicetrackId.uuidString, beforeSpinId: "spin-2")
 
-      XCTAssertEqual(model.upcomingSpins.map { $0.id }, ["spin-1", "new-spin", "spin-2"])
+      #expect(model.upcomingSpins.map { $0.id } == ["spin-1", "new-spin", "spin-2"])
     }
   }
 
+  @Test
   func testInsertStagingItemAtTopUsesNowPlayingAsPlaceAfter() async {
     let nowPlayingAudioBlock = AudioBlock.mockWith(endOfMessageMS: 180_000)
     let nowPlayingSpin = Spin.mockWith(
@@ -1011,19 +1028,20 @@ extension BroadcastPageTests {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      XCTAssertEqual(model.nowPlaying?.id, "now-playing")
-      XCTAssertEqual(model.upcomingSpins.first?.id, "spin-1")
+      #expect(model.nowPlaying?.id == "now-playing")
+      #expect(model.upcomingSpins.first?.id == "spin-1")
 
       let voicetrackId = UUID()
       model.stagingItems = [makeStagingVoicetrack(id: voicetrackId)]
 
       await model.insertStagingItem(stagingId: voicetrackId.uuidString, beforeSpinId: "spin-1")
 
-      XCTAssertEqual(capturedPlaceAfterSpinId.value, "now-playing")
-      XCTAssertNil(model.presentedAlert)
+      #expect(capturedPlaceAfterSpinId.value == "now-playing")
+      #expect(model.presentedAlert == nil)
     }
   }
 
+  @Test
   func testInsertStagingItemAtTopWithNoNowPlayingShowsError() async {
     let upcomingSpins = makeSpins(ids: ["spin-1", "spin-2"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -1041,16 +1059,16 @@ extension BroadcastPageTests {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      XCTAssertNil(model.nowPlaying)
+      #expect(model.nowPlaying == nil)
 
       let voicetrackId = UUID()
       model.stagingItems = [makeStagingVoicetrack(id: voicetrackId)]
 
       await model.insertStagingItem(stagingId: voicetrackId.uuidString, beforeSpinId: "spin-1")
 
-      XCTAssertFalse(apiWasCalled.value)
-      XCTAssertNotNil(model.presentedAlert)
-      XCTAssertEqual(model.presentedAlert?.title, "Cannot Place Here")
+      #expect(!apiWasCalled.value)
+      #expect(model.presentedAlert != nil)
+      #expect(model.presentedAlert?.title == "Cannot Place Here")
     }
   }
 }
@@ -1058,16 +1076,18 @@ extension BroadcastPageTests {
 // MARK: - Notify Listeners Tests
 
 extension BroadcastPageTests {
+  @Test
   func testOnNotifyListenersTappedShowsSheet() {
     let model = BroadcastPageModel(stationId: testStationId)
 
-    XCTAssertFalse(model.showNotifyListenersSheet)
+    #expect(!model.showNotifyListenersSheet)
 
     model.onNotifyListenersTapped()
 
-    XCTAssertTrue(model.showNotifyListenersSheet)
+    #expect(model.showNotifyListenersSheet)
   }
 
+  @Test
   func testCancelNotifyListenersDismissesSheet() {
     let model = BroadcastPageModel(stationId: testStationId)
     model.showNotifyListenersSheet = true
@@ -1075,10 +1095,11 @@ extension BroadcastPageTests {
 
     model.cancelNotifyListeners()
 
-    XCTAssertFalse(model.showNotifyListenersSheet)
-    XCTAssertEqual(model.notifyMessage, "")
+    #expect(!model.showNotifyListenersSheet)
+    #expect(model.notifyMessage == "")
   }
 
+  @Test
   func testSendNotificationCallsAPIWithMessage() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let capturedStationId = LockIsolated<String?>(nil)
@@ -1096,11 +1117,12 @@ extension BroadcastPageTests {
 
       await model.sendNotification()
 
-      XCTAssertEqual(capturedStationId.value, testStationId)
-      XCTAssertEqual(capturedMessage.value, "I'm going live from the van!")
+      #expect(capturedStationId.value == testStationId)
+      #expect(capturedMessage.value == "I'm going live from the van!")
     }
   }
 
+  @Test
   func testSendNotificationDismissesSheetAndClearsMessage() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
@@ -1114,11 +1136,12 @@ extension BroadcastPageTests {
 
       await model.sendNotification()
 
-      XCTAssertFalse(model.showNotifyListenersSheet)
-      XCTAssertEqual(model.notifyMessage, "")
+      #expect(!model.showNotifyListenersSheet)
+      #expect(model.notifyMessage == "")
     }
   }
 
+  @Test
   func testSendNotificationUpdatesLastSentTime() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [:]
@@ -1132,10 +1155,11 @@ extension BroadcastPageTests {
 
       await model.sendNotification()
 
-      XCTAssertEqual(lastSent[testStationId], fixedNow)
+      #expect(lastSent[testStationId] == fixedNow)
     }
   }
 
+  @Test
   func testCanSendNotificationReturnsTrueWhenNeverSent() {
     @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [:]
 
@@ -1144,10 +1168,11 @@ extension BroadcastPageTests {
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
 
-      XCTAssertTrue(model.canSendNotification)
+      #expect(model.canSendNotification)
     }
   }
 
+  @Test
   func testCanSendNotificationReturnsFalseWithin12Hours() {
     let elevenHoursAgo = fixedNow.addingTimeInterval(-11 * 60 * 60)
     @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [testStationId: elevenHoursAgo]
@@ -1157,10 +1182,11 @@ extension BroadcastPageTests {
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
 
-      XCTAssertFalse(model.canSendNotification)
+      #expect(!model.canSendNotification)
     }
   }
 
+  @Test
   func testCanSendNotificationReturnsTrueAfter12Hours() {
     let thirteenHoursAgo = fixedNow.addingTimeInterval(-13 * 60 * 60)
     @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [
@@ -1172,10 +1198,11 @@ extension BroadcastPageTests {
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
 
-      XCTAssertTrue(model.canSendNotification)
+      #expect(model.canSendNotification)
     }
   }
 
+  @Test
   func testTimeUntilNextNotificationReturnsNilWhenCanSend() {
     @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [:]
 
@@ -1184,10 +1211,11 @@ extension BroadcastPageTests {
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
 
-      XCTAssertNil(model.timeUntilNextNotification)
+      #expect(model.timeUntilNextNotification == nil)
     }
   }
 
+  @Test
   func testTimeUntilNextNotificationReturnsRemainingTime() {
     let elevenHoursAgo = fixedNow.addingTimeInterval(-11 * 60 * 60)
     @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [testStationId: elevenHoursAgo]
@@ -1197,12 +1225,12 @@ extension BroadcastPageTests {
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
 
-      // Should be approximately 1 hour (3600 seconds) remaining
-      XCTAssertNotNil(model.timeUntilNextNotification)
-      XCTAssertEqual(model.timeUntilNextNotification!, 3600, accuracy: 1)
+      #expect(model.timeUntilNextNotification != nil)
+      #expect(abs(model.timeUntilNextNotification! - 3600) < 1)
     }
   }
 
+  @Test
   func testSendNotificationShowsErrorAlertOnFailure() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
@@ -1215,15 +1243,16 @@ extension BroadcastPageTests {
       let model = BroadcastPageModel(stationId: testStationId)
       model.notifyMessage = "Test"
 
-      XCTAssertNil(model.presentedAlert)
+      #expect(model.presentedAlert == nil)
 
       await model.sendNotification()
 
-      XCTAssertNotNil(model.presentedAlert)
-      XCTAssertEqual(model.presentedAlert?.title, "Error")
+      #expect(model.presentedAlert != nil)
+      #expect(model.presentedAlert?.title == "Error")
     }
   }
 
+  @Test
   func testSendNotificationDoesNotUpdateLastSentOnFailure() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [:]
@@ -1239,10 +1268,11 @@ extension BroadcastPageTests {
 
       await model.sendNotification()
 
-      XCTAssertNil(lastSent[testStationId])
+      #expect(lastSent[testStationId] == nil)
     }
   }
 
+  @Test
   func testSendNotificationDoesNothingWhenMessageIsEmpty() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let apiWasCalled = LockIsolated(false)
@@ -1259,11 +1289,12 @@ extension BroadcastPageTests {
 
       await model.sendNotification()
 
-      XCTAssertFalse(apiWasCalled.value)
-      XCTAssertTrue(model.showNotifyListenersSheet)
+      #expect(!apiWasCalled.value)
+      #expect(model.showNotifyListenersSheet)
     }
   }
 
+  @Test
   func testSendNotificationDoesNothingWhenMessageIsWhitespaceOnly() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let apiWasCalled = LockIsolated(false)
@@ -1280,11 +1311,12 @@ extension BroadcastPageTests {
 
       await model.sendNotification()
 
-      XCTAssertFalse(apiWasCalled.value)
-      XCTAssertTrue(model.showNotifyListenersSheet)
+      #expect(!apiWasCalled.value)
+      #expect(model.showNotifyListenersSheet)
     }
   }
 
+  @Test
   func testNotificationRestTimeRemainingStringReturnsNilWhenCanSend() {
     @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [:]
 
@@ -1293,10 +1325,11 @@ extension BroadcastPageTests {
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
 
-      XCTAssertNil(model.notificationRestTimeRemainingString)
+      #expect(model.notificationRestTimeRemainingString == nil)
     }
   }
 
+  @Test
   func testNotificationRestTimeRemainingStringShowsHoursAndMinutes() {
     let elevenHoursAgo = fixedNow.addingTimeInterval(-11 * 60 * 60)
     @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [testStationId: elevenHoursAgo]
@@ -1306,10 +1339,11 @@ extension BroadcastPageTests {
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
 
-      XCTAssertEqual(model.notificationRestTimeRemainingString, "1h 0m")
+      #expect(model.notificationRestTimeRemainingString == "1h 0m")
     }
   }
 
+  @Test
   func testNotificationRestTimeRemainingStringShowsOnlyMinutesWhenUnderOneHour() {
     let elevenAndAHalfHoursAgo = fixedNow.addingTimeInterval(-11.5 * 60 * 60)
     @Shared(.lastNotificationSentAt) var lastSent: [String: Date] = [
@@ -1321,10 +1355,11 @@ extension BroadcastPageTests {
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
 
-      XCTAssertEqual(model.notificationRestTimeRemainingString, "30m")
+      #expect(model.notificationRestTimeRemainingString == "30m")
     }
   }
 
+  @Test
   func testIsSendingNotificationTracksLoadingState() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let requestStarted = LockIsolated(false)
@@ -1342,7 +1377,7 @@ extension BroadcastPageTests {
       let model = BroadcastPageModel(stationId: testStationId)
       model.notifyMessage = "Test"
 
-      XCTAssertFalse(model.isSendingNotification)
+      #expect(!model.isSendingNotification)
 
       let sendTask = Task {
         await model.sendNotification()
@@ -1352,7 +1387,7 @@ extension BroadcastPageTests {
         await Task.yield()
       }
 
-      XCTAssertTrue(model.isSendingNotification)
+      #expect(model.isSendingNotification)
 
       requestContinuation.withValue { continuation in
         continuation?.resume()
@@ -1361,7 +1396,7 @@ extension BroadcastPageTests {
 
       await sendTask.value
 
-      XCTAssertFalse(model.isSendingNotification)
+      #expect(!model.isSendingNotification)
     }
   }
 }
@@ -1369,6 +1404,7 @@ extension BroadcastPageTests {
 // MARK: - Voicetrack Upload Tests
 
 extension BroadcastPageTests {
+  @Test
   func testVoicetrackStatusUpdatesAsUploadProgresses() async {
     let stationId = "test-station-id"
     let fixedDate = Date(timeIntervalSince1970: 1_702_486_800)
@@ -1401,18 +1437,19 @@ extension BroadcastPageTests {
       await model.recordPageModel?.onRecordingAccepted?(recordingURL)
 
       let statuses = capturedStatuses.value
-      XCTAssertEqual(statuses.count, 6)
-      XCTAssertEqual(statuses[0], .converting)
-      XCTAssertEqual(statuses[1], .uploading(progress: 0.0))
-      XCTAssertEqual(statuses[2], .uploading(progress: 0.5))
-      XCTAssertEqual(statuses[3], .uploading(progress: 1.0))
-      XCTAssertEqual(statuses[4], .finalizing)
-      XCTAssertEqual(statuses[5], .completed)
+      #expect(statuses.count == 6)
+      #expect(statuses[0] == .converting)
+      #expect(statuses[1] == .uploading(progress: 0.0))
+      #expect(statuses[2] == .uploading(progress: 0.5))
+      #expect(statuses[3] == .uploading(progress: 1.0))
+      #expect(statuses[4] == .finalizing)
+      #expect(statuses[5] == .completed)
       let voicetrack = model.stagingItems.first as? LocalVoicetrack
-      XCTAssertEqual(voicetrack?.status, .completed)
+      #expect(voicetrack?.status == .completed)
     }
   }
 
+  @Test
   func testVoicetrackUploadSuccessStoresAudioBlockId() async {
     let stationId = "test-station-id"
     let fixedDate = Date(timeIntervalSince1970: 1_702_486_800)
@@ -1435,13 +1472,14 @@ extension BroadcastPageTests {
       let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
       await model.recordPageModel?.onRecordingAccepted?(recordingURL)
 
-      XCTAssertEqual(model.stagingItems.count, 1)
+      #expect(model.stagingItems.count == 1)
       let voicetrack = model.stagingItems.first as? LocalVoicetrack
-      XCTAssertEqual(voicetrack?.audioBlockId, expectedAudioBlockId)
-      XCTAssertEqual(voicetrack?.status, .completed)
+      #expect(voicetrack?.audioBlockId == expectedAudioBlockId)
+      #expect(voicetrack?.status == .completed)
     }
   }
 
+  @Test
   func testVoicetrackUploadErrorShowsAlertWithServerErrorMessage() async {
     let stationId = "test-station-id"
     let fixedDate = Date(timeIntervalSince1970: 1_702_486_800)
@@ -1457,20 +1495,21 @@ extension BroadcastPageTests {
     } operation: {
       let model = BroadcastPageModel(stationId: stationId)
 
-      XCTAssertNil(model.presentedAlert)
+      #expect(model.presentedAlert == nil)
 
       model.onAddVoiceTrackTapped()
       let recordingURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
       await model.recordPageModel?.onRecordingAccepted?(recordingURL)
 
-      XCTAssertNotNil(model.presentedAlert)
-      XCTAssertEqual(model.presentedAlert?.title, "Upload Failed")
-      XCTAssertEqual(model.presentedAlert?.message, serverErrorMessage)
+      #expect(model.presentedAlert != nil)
+      #expect(model.presentedAlert?.title == "Upload Failed")
+      #expect(model.presentedAlert?.message == serverErrorMessage)
     }
   }
 
   // MARK: - Analytics Tests
 
+  @Test
   func testViewAppearedTracksViewedBroadcastScreen() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
     let loggedInUser = LoggedInUser(
@@ -1500,10 +1539,11 @@ extension BroadcastPageTests {
         }
         return false
       }
-      XCTAssertTrue(hasViewedEvent)
+      #expect(hasViewedEvent)
     }
   }
 
+  @Test
   func testSendNotificationTracksNotificationSent() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
     let loggedInUser = LoggedInUser(
@@ -1537,10 +1577,11 @@ extension BroadcastPageTests {
         }
         return false
       }
-      XCTAssertTrue(hasNotificationEvent)
+      #expect(hasNotificationEvent)
     }
   }
 
+  @Test
   func testHandleAcceptedRecordingTracksVoicetrackRecorded() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
     let loggedInUser = LoggedInUser(
@@ -1575,10 +1616,11 @@ extension BroadcastPageTests {
         }
         return false
       }
-      XCTAssertTrue(hasRecordedEvent)
+      #expect(hasRecordedEvent)
     }
   }
 
+  @Test
   func testVoicetrackUploadCompletedTracksVoicetrackUploaded() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
     let loggedInUser = LoggedInUser(
@@ -1614,14 +1656,14 @@ extension BroadcastPageTests {
         }
         return false
       }
-      XCTAssertTrue(hasUploadedEvent)
+      #expect(hasUploadedEvent)
     }
   }
 
+  @Test
   func testOnAddSongTappedTracksSongSearchTapped() async {
     await withMainSerialExecutor {
       let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-      let searchTappedExpectation = XCTestExpectation(description: "songSearchTapped tracked")
       let loggedInUser = LoggedInUser(
         id: "user-123",
         firstName: "Test",
@@ -1630,40 +1672,47 @@ extension BroadcastPageTests {
       )
       @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
 
-      await withDependencies {
-        $0.date.now = fixedNow
-        $0.analytics.track = { event in
-          capturedEvents.withValue { $0.append(event) }
-          if case .broadcastSongSearchTapped = event {
-            searchTappedExpectation.fulfill()
+      await confirmation("songSearchTapped tracked") { confirm in
+        await withDependencies {
+          $0.date.now = fixedNow
+          $0.analytics.track = { event in
+            capturedEvents.withValue { $0.append(event) }
+            if case .broadcastSongSearchTapped = event {
+              confirm()
+            }
+          }
+        } operation: {
+          let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
+          await model.onAddSongTapped()
+
+          while !capturedEvents.value.contains(where: {
+            if case .broadcastSongSearchTapped = $0 { return true }
+            return false
+          }) {
+            await Task.yield()
           }
         }
-      } operation: {
-        let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
-        await model.onAddSongTapped()
-
-        await fulfillment(of: [searchTappedExpectation], timeout: 1.0)
-
-        let events = capturedEvents.value
-        let hasSearchEvent = events.contains { event in
-          if case .broadcastSongSearchTapped(
-            let stationId, let stationName, let userName
-          ) = event {
-            return stationId == testStationId
-              && stationName == "Test Station"
-              && userName == "Test User"
-          }
-          return false
-        }
-        XCTAssertTrue(hasSearchEvent)
       }
+
+      let events = capturedEvents.value
+      let hasSearchEvent = events.contains { event in
+        if case .broadcastSongSearchTapped(
+          let stationId, let stationName, let userName
+        ) = event {
+          return stationId == testStationId
+            && stationName == "Test Station"
+            && userName == "Test User"
+        }
+        return false
+      }
+      #expect(hasSearchEvent)
     }
   }
 
+  @Test
   func testAddSongToStagingTracksSongAdded() async {
     await withMainSerialExecutor {
       let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-      let songAddedExpectation = XCTestExpectation(description: "songAdded tracked")
       let loggedInUser = LoggedInUser(
         id: "user-123",
         firstName: "Test",
@@ -1672,45 +1721,53 @@ extension BroadcastPageTests {
       )
       @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
 
-      await withDependencies {
-        $0.date.now = fixedNow
-        $0.analytics.track = { event in
-          capturedEvents.withValue { $0.append(event) }
-          if case .broadcastSongAdded = event {
-            songAddedExpectation.fulfill()
+      await confirmation("songAdded tracked") { confirm in
+        await withDependencies {
+          $0.date.now = fixedNow
+          $0.analytics.track = { event in
+            capturedEvents.withValue { $0.append(event) }
+            if case .broadcastSongAdded = event {
+              confirm()
+            }
+          }
+        } operation: {
+          let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
+          let audioBlock = AudioBlock.mockWith(
+            id: "song-123",
+            title: "Test Song",
+            artist: "Test Artist"
+          )
+          await model.addSongToStaging(audioBlock)
+
+          while !capturedEvents.value.contains(where: {
+            if case .broadcastSongAdded = $0 { return true }
+            return false
+          }) {
+            await Task.yield()
           }
         }
-      } operation: {
-        let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
-        let audioBlock = AudioBlock.mockWith(
-          id: "song-123",
-          title: "Test Song",
-          artist: "Test Artist"
-        )
-        await model.addSongToStaging(audioBlock)
-
-        await fulfillment(of: [songAddedExpectation], timeout: 1.0)
-
-        let events = capturedEvents.value
-        let hasSongAddedEvent = events.contains { event in
-          if case .broadcastSongAdded(
-            let stationId, let stationName, let userName, let songTitle, let artistName
-          ) = event {
-            return stationId == testStationId
-              && stationName == "Test Station"
-              && userName == "Test User"
-              && songTitle == "Test Song"
-              && artistName == "Test Artist"
-          }
-          return false
-        }
-        XCTAssertTrue(hasSongAddedEvent)
       }
+
+      let events = capturedEvents.value
+      let hasSongAddedEvent = events.contains { event in
+        if case .broadcastSongAdded(
+          let stationId, let stationName, let userName, let songTitle, let artistName
+        ) = event {
+          return stationId == testStationId
+            && stationName == "Test Station"
+            && userName == "Test User"
+            && songTitle == "Test Song"
+            && artistName == "Test Artist"
+        }
+        return false
+      }
+      #expect(hasSongAddedEvent)
     }
   }
 
   // MARK: - Schedule Update Notification Tests
 
+  @Test
   func testRefreshScheduleFromRemoteUpdatesSchedule() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
     let updatedSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
@@ -1725,15 +1782,16 @@ extension BroadcastPageTests {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
-      XCTAssertEqual(model.schedule?.current().count, 2)
+      #expect(model.schedule?.current().count == 2)
 
       useUpdatedSpins.setValue(true)
       await model.refreshScheduleFromRemote()
 
-      XCTAssertEqual(model.schedule?.current().count, 3)
+      #expect(model.schedule?.current().count == 3)
     }
   }
 
+  @Test
   func testRefreshScheduleFromRemoteClearsReorderedSpinIds() async {
     let spins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
 
@@ -1746,10 +1804,11 @@ extension BroadcastPageTests {
 
       await model.refreshScheduleFromRemote()
 
-      XCTAssertNotNil(model.schedule)
+      #expect(model.schedule != nil)
     }
   }
 
+  @Test
   func testRefreshScheduleFromRemoteSilentlyFailsOnError() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
     let shouldThrow = LockIsolated(false)
@@ -1767,11 +1826,12 @@ extension BroadcastPageTests {
       shouldThrow.setValue(true)
       await model.refreshScheduleFromRemote()
 
-      XCTAssertNotNil(model.schedule)
-      XCTAssertNil(model.presentedAlert)
+      #expect(model.schedule != nil)
+      #expect(model.presentedAlert == nil)
     }
   }
 
+  @Test
   func testScheduleUpdateNotificationTriggersRefresh() async {
     let uniqueStationId = "notification-trigger-test-station"
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
@@ -1793,7 +1853,7 @@ extension BroadcastPageTests {
         let model = BroadcastPageModel(stationId: uniqueStationId)
         await model.viewAppeared()
 
-        XCTAssertEqual(fetchCount.value, 1)
+        #expect(fetchCount.value == 1)
 
         NotificationCenter.default.post(
           name: .scheduleUpdated,
@@ -1801,18 +1861,17 @@ extension BroadcastPageTests {
           userInfo: ["stationId": uniqueStationId, "editorName": "Jane Smith"]
         )
 
-        // The notification handler spawns a Task that calls refreshScheduleFromRemote.
-        // Suspension points: Task start + fetchSchedule + toast.show
         await Task.yield()
         await Task.yield()
         await Task.yield()
         await Task.yield()
 
-        XCTAssertEqual(fetchCount.value, 2)
+        #expect(fetchCount.value == 2)
       }
     }
   }
 
+  @Test
   func testRefreshScheduleFromRemoteShowsToastWithEditorName() async {
     let spins = makeSpins(ids: ["spin-1", "spin-2"])
     let shownToast = LockIsolated<PlayolaToast?>(nil)
@@ -1827,11 +1886,12 @@ extension BroadcastPageTests {
 
       await model.refreshScheduleFromRemote(editorName: "Jane Smith")
 
-      XCTAssertNotNil(shownToast.value)
-      XCTAssertEqual(shownToast.value?.message, "Edited by Jane Smith")
+      #expect(shownToast.value != nil)
+      #expect(shownToast.value?.message == "Edited by Jane Smith")
     }
   }
 
+  @Test
   func testRefreshScheduleFromRemoteNoToastWithoutEditorName() async {
     let spins = makeSpins(ids: ["spin-1", "spin-2"])
     let shownToast = LockIsolated<PlayolaToast?>(nil)
@@ -1846,10 +1906,11 @@ extension BroadcastPageTests {
 
       await model.refreshScheduleFromRemote()
 
-      XCTAssertNil(shownToast.value)
+      #expect(shownToast.value == nil)
     }
   }
 
+  @Test
   func testScheduleUpdateNotificationIgnoredForDifferentStation() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
     let fetchCount = LockIsolated(0)
@@ -1874,7 +1935,7 @@ extension BroadcastPageTests {
 
       await Task.yield()
 
-      XCTAssertEqual(fetchCount.value, initialFetchCount)
+      #expect(fetchCount.value == initialFetchCount)
     }
   }
 }

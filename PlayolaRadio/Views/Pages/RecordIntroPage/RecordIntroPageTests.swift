@@ -5,19 +5,14 @@
 
 import ConcurrencyExtras
 import Dependencies
+import Foundation
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class RecordIntroPageTests: XCTestCase {
-  override func setUp() {
-    super.setUp()
-    @Shared(.mainContainerNavigationCoordinator) var coordinator
-    coordinator.presentedSheet = nil
-  }
-
+struct RecordIntroPageTests {
   private func makeModel() -> RecordIntroPageModel {
     RecordIntroPageModel(
       songTitle: "Test", songArtist: "Artist", songImageUrl: nil,
@@ -26,6 +21,7 @@ final class RecordIntroPageTests: XCTestCase {
 
   // MARK: - Initial Properties
 
+  @Test
   func testInitialProperties() {
     let model = RecordIntroPageModel(
       songTitle: "Bohemian Rhapsody",
@@ -35,17 +31,18 @@ final class RecordIntroPageTests: XCTestCase {
       audioBlockId: "block-1"
     )
 
-    XCTAssertEqual(model.songTitle, "Bohemian Rhapsody")
-    XCTAssertEqual(model.songArtist, "Queen")
-    XCTAssertEqual(model.songImageUrl, URL(string: "https://example.com/image.jpg"))
-    XCTAssertEqual(model.navigationTitle, "Record Intro")
-    XCTAssertEqual(model.instructionItems.count, 2)
-    XCTAssertEqual(model.recordingPhase, .idle)
-    XCTAssertNil(model.uploadStatus)
+    #expect(model.songTitle == "Bohemian Rhapsody")
+    #expect(model.songArtist == "Queen")
+    #expect(model.songImageUrl == URL(string: "https://example.com/image.jpg"))
+    #expect(model.navigationTitle == "Record Intro")
+    #expect(model.instructionItems.count == 2)
+    #expect(model.recordingPhase == .idle)
+    #expect(model.uploadStatus == nil)
   }
 
   // MARK: - Lifecycle
 
+  @Test
   func testViewAppearedPreparesForRecording() async {
     let prepareCalled = LockIsolated(false)
 
@@ -58,47 +55,52 @@ final class RecordIntroPageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertTrue(prepareCalled.value)
+      #expect(prepareCalled.value)
     }
   }
 
   // MARK: - Done Button
 
+  @Test
   func testShouldShowDoneButtonTrueOnlyInIdlePhase() {
     let model = makeModel()
 
     model.recordingPhase = .idle
-    XCTAssertTrue(model.shouldShowDoneButton)
+    #expect(model.shouldShowDoneButton)
 
     model.recordingPhase = .recording
-    XCTAssertFalse(model.shouldShowDoneButton)
+    #expect(!model.shouldShowDoneButton)
 
     model.recordingPhase = .review
-    XCTAssertFalse(model.shouldShowDoneButton)
+    #expect(!model.shouldShowDoneButton)
   }
 
+  @Test
   func testShouldShowDoneButtonFalseWhenUploading() {
     let model = makeModel()
     model.recordingPhase = .idle
     model.uploadStatus = .converting
-    XCTAssertFalse(model.shouldShowDoneButton)
+    #expect(!model.shouldShowDoneButton)
   }
 
+  @Test
   func testOnDoneTappedDismissesSheet() {
-    @Shared(.mainContainerNavigationCoordinator) var coordinator
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
 
     let model = makeModel()
     coordinator.presentedSheet = .recordIntroPage(model)
 
-    XCTAssertNotNil(coordinator.presentedSheet)
+    #expect(coordinator.presentedSheet != nil)
 
     model.onDoneTapped()
 
-    XCTAssertNil(coordinator.presentedSheet)
+    #expect(coordinator.presentedSheet == nil)
   }
 
   // MARK: - Recording
 
+  @Test
   func testOnRecordTappedRequestsPermissionBeforeRecording() async {
     let requestPermissionCalled = LockIsolated(false)
     let startRecordingCalled = LockIsolated(false)
@@ -109,22 +111,23 @@ final class RecordIntroPageTests: XCTestCase {
         return true
       }
       $0.audioRecorder.startRecording = {
-        XCTAssertTrue(
+        #expect(
           requestPermissionCalled.value, "Permission should be requested before recording starts")
         startRecordingCalled.setValue(true)
       }
     } operation: {
       let model = makeModel()
-      XCTAssertEqual(model.recordingPhase, .idle)
+      #expect(model.recordingPhase == .idle)
 
       await model.onRecordTapped()
 
-      XCTAssertTrue(requestPermissionCalled.value)
-      XCTAssertTrue(startRecordingCalled.value)
-      XCTAssertEqual(model.recordingPhase, .recording)
+      #expect(requestPermissionCalled.value)
+      #expect(startRecordingCalled.value)
+      #expect(model.recordingPhase == .recording)
     }
   }
 
+  @Test
   func testOnRecordTappedDoesNotRecordWhenPermissionDenied() async {
     let startRecordingCalled = LockIsolated(false)
 
@@ -138,16 +141,17 @@ final class RecordIntroPageTests: XCTestCase {
 
       await model.onRecordTapped()
 
-      XCTAssertFalse(
-        startRecordingCalled.value, "Recording should not start when permission is denied")
-      XCTAssertEqual(model.recordingPhase, .idle)
-      XCTAssertNotNil(model.presentedAlert)
-      XCTAssertEqual(model.presentedAlert?.title, "Microphone Access Required")
+      #expect(
+        !startRecordingCalled.value, "Recording should not start when permission is denied")
+      #expect(model.recordingPhase == .idle)
+      #expect(model.presentedAlert != nil)
+      #expect(model.presentedAlert?.title == "Microphone Access Required")
     }
   }
 
   // MARK: - Stop Recording
 
+  @Test
   func testOnStopTappedStopsRecordingAndChangesPhase() async {
     let expectedURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
 
@@ -162,14 +166,15 @@ final class RecordIntroPageTests: XCTestCase {
 
       await model.onStopTapped()
 
-      XCTAssertEqual(model.recordingPhase, .review)
-      XCTAssertEqual(model.recordingURL, expectedURL)
-      XCTAssertEqual(model.recordingDuration, 5.0)
+      #expect(model.recordingPhase == .review)
+      #expect(model.recordingURL == expectedURL)
+      #expect(model.recordingDuration == 5.0)
     }
   }
 
   // MARK: - Re-record
 
+  @Test
   func testOnReRecordTappedResetsToIdleState() async {
     let model = makeModel()
     model.recordingPhase = .review
@@ -180,40 +185,44 @@ final class RecordIntroPageTests: XCTestCase {
 
     await model.onReRecordTapped()
 
-    XCTAssertEqual(model.recordingPhase, .idle)
-    XCTAssertNil(model.recordingURL)
-    XCTAssertEqual(model.recordingDuration, 0)
-    XCTAssertEqual(model.playbackPosition, 0)
-    XCTAssertFalse(model.isPlaying)
+    #expect(model.recordingPhase == .idle)
+    #expect(model.recordingURL == nil)
+    #expect(model.recordingDuration == 0)
+    #expect(model.playbackPosition == 0)
+    #expect(!model.isPlaying)
   }
 
   // MARK: - Discard
 
+  @Test
   func testOnDiscardTappedShowsConfirmationAlert() {
     let model = makeModel()
     model.recordingPhase = .review
 
-    XCTAssertNil(model.presentedAlert)
+    #expect(model.presentedAlert == nil)
 
     model.onDiscardTapped()
 
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert?.title, "Discard Recording?")
+    #expect(model.presentedAlert != nil)
+    #expect(model.presentedAlert?.title == "Discard Recording?")
   }
 
+  @Test
   func testConfirmDiscardDismissesSheet() async {
-    @Shared(.mainContainerNavigationCoordinator) var coordinator
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
 
     let model = makeModel()
     coordinator.presentedSheet = .recordIntroPage(model)
 
     await model.confirmDiscard()
 
-    XCTAssertNil(coordinator.presentedSheet)
+    #expect(coordinator.presentedSheet == nil)
   }
 
   // MARK: - Accept Recording (Upload)
 
+  @Test
   func testOnAcceptRecordingTappedStartsUpload() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let uploadCalled = LockIsolated(false)
@@ -233,56 +242,59 @@ final class RecordIntroPageTests: XCTestCase {
 
         await model.onAcceptRecordingTapped()
 
-        XCTAssertNotNil(model.uploadStatus)
-        XCTAssertTrue(uploadCalled.value)
+        #expect(model.uploadStatus != nil)
+        #expect(uploadCalled.value)
       }
     }
   }
 
+  @Test
   func testOnAcceptRecordingTappedDoesNothingWithoutURL() async {
     let model = makeModel()
     model.recordingURL = nil
 
     await model.onAcceptRecordingTapped()
 
-    XCTAssertNil(model.uploadStatus)
+    #expect(model.uploadStatus == nil)
   }
 
+  @Test
   func testUploadStatusTransitionsReflectedInProperties() {
     let model = makeModel()
 
-    XCTAssertFalse(model.isUploading)
-    XCTAssertFalse(model.shouldShowUploadStatus)
-    XCTAssertFalse(model.shouldShowRetryButton)
-    XCTAssertNil(model.uploadProgress)
+    #expect(!model.isUploading)
+    #expect(!model.shouldShowUploadStatus)
+    #expect(!model.shouldShowRetryButton)
+    #expect(model.uploadProgress == nil)
 
     model.uploadStatus = .converting
-    XCTAssertTrue(model.isUploading)
-    XCTAssertTrue(model.shouldShowUploadStatus)
-    XCTAssertEqual(model.uploadStatusLabel, "Converting...")
-    XCTAssertNil(model.uploadProgress)
+    #expect(model.isUploading)
+    #expect(model.shouldShowUploadStatus)
+    #expect(model.uploadStatusLabel == "Converting...")
+    #expect(model.uploadProgress == nil)
 
     model.uploadStatus = .uploading(progress: 0.5)
-    XCTAssertTrue(model.isUploading)
-    XCTAssertEqual(model.uploadStatusLabel, "Uploading...")
-    XCTAssertEqual(model.uploadProgress, 0.5)
+    #expect(model.isUploading)
+    #expect(model.uploadStatusLabel == "Uploading...")
+    #expect(model.uploadProgress == 0.5)
 
     model.uploadStatus = .registering
-    XCTAssertTrue(model.isUploading)
-    XCTAssertEqual(model.uploadStatusLabel, "Registering...")
-    XCTAssertNil(model.uploadProgress)
+    #expect(model.isUploading)
+    #expect(model.uploadStatusLabel == "Registering...")
+    #expect(model.uploadProgress == nil)
 
     model.uploadStatus = .completed
-    XCTAssertFalse(model.isUploading)
-    XCTAssertTrue(model.shouldShowUploadStatus)
-    XCTAssertEqual(model.uploadStatusLabel, "Upload Complete!")
+    #expect(!model.isUploading)
+    #expect(model.shouldShowUploadStatus)
+    #expect(model.uploadStatusLabel == "Upload Complete!")
 
     model.uploadStatus = .failed("Network error")
-    XCTAssertFalse(model.isUploading)
-    XCTAssertTrue(model.shouldShowRetryButton)
-    XCTAssertEqual(model.uploadStatusLabel, "Upload Failed")
+    #expect(!model.isUploading)
+    #expect(model.shouldShowRetryButton)
+    #expect(model.uploadStatusLabel == "Upload Failed")
   }
 
+  @Test
   func testOnRetryTappedRestartsUpload() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let uploadCallCount = LockIsolated(0)
@@ -302,11 +314,12 @@ final class RecordIntroPageTests: XCTestCase {
 
         await model.onRetryTapped()
 
-        XCTAssertEqual(uploadCallCount.value, 1)
+        #expect(uploadCallCount.value == 1)
       }
     }
   }
 
+  @Test
   func testUploadSuccessCallsOnUploadCompleted() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let completedCalled = LockIsolated(false)
@@ -327,8 +340,8 @@ final class RecordIntroPageTests: XCTestCase {
 
         await model.onAcceptRecordingTapped()
 
-        XCTAssertTrue(completedCalled.value)
-        XCTAssertEqual(model.uploadStatus, .completed)
+        #expect(completedCalled.value)
+        #expect(model.uploadStatus == .completed)
       }
     }
   }

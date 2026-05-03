@@ -6,14 +6,16 @@
 //
 
 import Dependencies
+import Foundation
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class EditProfilePageTests: XCTestCase {
-  func testInit_WithLoggedInUser_SetsInitialValues() async {
+struct EditProfilePageTests {
+  @Test
+  func testInitWithLoggedInUserSetsInitialValues() async {
     let loggedInUser = LoggedInUser(
       id: "123",
       firstName: "John",
@@ -26,46 +28,43 @@ final class EditProfilePageTests: XCTestCase {
     let model = EditProfilePageModel()
     model.viewAppeared()
 
-    XCTAssertEqual(model.firstName, "John")
-    XCTAssertEqual(model.lastName, "Doe")
-    XCTAssertEqual(model.email, "john@example.com")
+    #expect(model.firstName == "John")
+    #expect(model.lastName == "Doe")
+    #expect(model.email == "john@example.com")
   }
 
-  func testInit_WithNoLoggedInUser_SetsEmptyValues() {
+  @Test
+  func testInitWithNoLoggedInUserSetsEmptyValues() {
     @Shared(.auth) var auth = Auth()
 
-    // When: Creating the model
     let model = EditProfilePageModel()
     model.viewAppeared()
 
-    // Then: Model should be initialized with empty values
-    XCTAssertEqual(model.firstName, "")
-    XCTAssertEqual(model.lastName, "")
-    XCTAssertEqual(model.email, "")
+    #expect(model.firstName == "")
+    #expect(model.lastName == "")
+    #expect(model.email == "")
   }
 
-  func testInit_WithPartialUserData_SetsAvailableValues() {
-    // Given: A logged in user with only some profile data
+  @Test
+  func testInitWithPartialUserDataSetsAvailableValues() {
     let loggedInUser = LoggedInUser(
       id: "123",
       firstName: "Jane",
-      lastName: nil,  // No last name
+      lastName: nil,
       email: "jane@example.com"
     )
     @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
 
-    // When: Creating the model
     let model = EditProfilePageModel()
     model.viewAppeared()
 
-    // Then: Model should be initialized with available data
-    XCTAssertEqual(model.firstName, "Jane")
-    XCTAssertEqual(model.lastName, "")
-    XCTAssertEqual(model.email, "jane@example.com")
+    #expect(model.firstName == "Jane")
+    #expect(model.lastName == "")
+    #expect(model.email == "jane@example.com")
   }
 
-  func testSaveButtonEnabled_NoChanges_ReturnsFalse() {
-    // Given: A logged in user
+  @Test
+  func testSaveButtonEnabledNoChangesReturnsFalse() {
     let loggedInUser = LoggedInUser(
       id: "123",
       firstName: "John",
@@ -74,16 +73,14 @@ final class EditProfilePageTests: XCTestCase {
     )
     @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
 
-    // When: Creating the model with no changes
     let model = EditProfilePageModel()
     model.viewAppeared()
 
-    // Then: Save button should be disabled
-    XCTAssertFalse(model.isSaveButtonEnabled)
+    #expect(!model.isSaveButtonEnabled)
   }
 
-  func testSaveButtonEnabled_FirstNameChanged_ReturnsTrue() {
-    // Given: A logged in user
+  @Test
+  func testSaveButtonEnabledFirstNameChangedReturnsTrue() {
     let loggedInUser = LoggedInUser(
       id: "123",
       firstName: "John",
@@ -92,16 +89,15 @@ final class EditProfilePageTests: XCTestCase {
     )
     @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
 
-    // When: Creating the model and changing firstName
     let model = EditProfilePageModel()
     model.viewAppeared()
     model.firstName = "Jane"
 
-    // Then: Save button should be enabled
-    XCTAssertTrue(model.isSaveButtonEnabled)
+    #expect(model.isSaveButtonEnabled)
   }
 
-  func testSaveButtonEnabled_LastNameChanged_ReturnsTrue() {
+  @Test
+  func testSaveButtonEnabledLastNameChangedReturnsTrue() {
     let loggedInUser = LoggedInUser(
       id: "123",
       firstName: "John",
@@ -114,10 +110,11 @@ final class EditProfilePageTests: XCTestCase {
     model.viewAppeared()
     model.lastName = "Smith"
 
-    XCTAssertTrue(model.isSaveButtonEnabled)
+    #expect(model.isSaveButtonEnabled)
   }
 
-  func testSaveButtonEnabled_LastNameNilToEmpty_ReturnsFalse() {
+  @Test
+  func testSaveButtonEnabledLastNameNilToEmptyReturnsFalse() {
     let loggedInUser = LoggedInUser(
       id: "123",
       firstName: "John",
@@ -129,10 +126,11 @@ final class EditProfilePageTests: XCTestCase {
     let model = EditProfilePageModel()
     model.viewAppeared()
 
-    XCTAssertFalse(model.isSaveButtonEnabled)
+    #expect(!model.isSaveButtonEnabled)
   }
 
-  func testSaveButtonEnabled_LastNameEmptyToValue_ReturnsTrue() {
+  @Test
+  func testSaveButtonEnabledLastNameEmptyToValueReturnsTrue() {
     let loggedInUser = LoggedInUser(
       id: "123",
       firstName: "John",
@@ -145,10 +143,11 @@ final class EditProfilePageTests: XCTestCase {
     model.viewAppeared()
     model.lastName = "Doe"
 
-    XCTAssertTrue(model.isSaveButtonEnabled)
+    #expect(model.isSaveButtonEnabled)
   }
 
-  func testSaveButtonEnabled_RevertChanges_ReturnsFalse() {
+  @Test
+  func testSaveButtonEnabledRevertChangesReturnsFalse() {
     let loggedInUser = LoggedInUser(
       id: "123",
       firstName: "John",
@@ -160,14 +159,15 @@ final class EditProfilePageTests: XCTestCase {
     let model = EditProfilePageModel()
     model.viewAppeared()
     model.firstName = "Jane"
-    XCTAssertTrue(model.isSaveButtonEnabled)  // Should be enabled after change
+    #expect(model.isSaveButtonEnabled)
 
-    model.firstName = "John"  // Revert back
+    model.firstName = "John"
 
-    XCTAssertFalse(model.isSaveButtonEnabled)
+    #expect(!model.isSaveButtonEnabled)
   }
 
-  func testSaveButtonTapped_UpdateUserIsSuccessful() async {
+  @Test
+  func testSaveButtonTappedUpdateUserIsSuccessful() async {
     let loggedInUser = LoggedInUser(
       id: "123",
       firstName: "John",
@@ -187,9 +187,9 @@ final class EditProfilePageTests: XCTestCase {
 
     let model = withDependencies {
       $0.api.updateUser = { jwtToken, firstName, lastName, _ in
-        XCTAssertEqual(jwtToken, expectedJwt)
-        XCTAssertEqual(firstName, "Joe")
-        XCTAssertEqual(lastName, "Jones")
+        #expect(jwtToken == expectedJwt)
+        #expect(firstName == "Joe")
+        #expect(lastName == "Jones")
         return expectedAuth
       }
       $0.continuousClock = ImmediateClock()
@@ -203,14 +203,15 @@ final class EditProfilePageTests: XCTestCase {
 
     await model.saveButtonTapped()
 
-    XCTAssertEqual(auth.currentUser?.firstName, "Jane")
-    XCTAssertEqual(auth.currentUser?.lastName, "Smith")
-    XCTAssertEqual(auth.jwt, "new-jwt-token")
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert, PlayolaAlert.updateProfileSuccessfullAlert)
+    #expect(auth.currentUser?.firstName == "Jane")
+    #expect(auth.currentUser?.lastName == "Smith")
+    #expect(auth.jwt == "new-jwt-token")
+    #expect(model.presentedAlert != nil)
+    #expect(model.presentedAlert == PlayolaAlert.updateProfileSuccessfullAlert)
   }
 
-  func testSaveButtonTapped_UpdateUserFails() async {
+  @Test
+  func testSaveButtonTappedUpdateUserFails() async {
     let loggedInUser = LoggedInUser(
       id: "123",
       firstName: "John",
@@ -234,17 +235,16 @@ final class EditProfilePageTests: XCTestCase {
 
     await model.saveButtonTapped()
 
-    // Auth should remain unchanged on error
-    XCTAssertEqual(auth.currentUser?.firstName, "John")
-    XCTAssertEqual(auth.currentUser?.lastName, "Doe")
-    XCTAssertEqual(auth.jwt, loggedInUser.jwt)
+    #expect(auth.currentUser?.firstName == "John")
+    #expect(auth.currentUser?.lastName == "Doe")
+    #expect(auth.jwt == loggedInUser.jwt)
 
-    // Error alert should be presented
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert, PlayolaAlert.updateProfileErrorAlert)
+    #expect(model.presentedAlert != nil)
+    #expect(model.presentedAlert == PlayolaAlert.updateProfileErrorAlert)
   }
 
-  func testSaveButtonTapped_NavigationPopsAfterSuccess() async {
+  @Test
+  func testSaveButtonTappedNavigationPopsAfterSuccess() async {
     let loggedInUser = LoggedInUser(
       id: "123",
       firstName: "John",
@@ -252,9 +252,9 @@ final class EditProfilePageTests: XCTestCase {
       email: "john@example.com"
     )
     @Shared(.auth) var auth = Auth(loggedInUser: loggedInUser)
-    @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator
+    @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator =
+      MainContainerNavigationCoordinator()
 
-    // Clear navigation and add a test path
     navigationCoordinator.popToRoot()
 
     let updatedUser = LoggedInUser(
@@ -274,9 +274,8 @@ final class EditProfilePageTests: XCTestCase {
       EditProfilePageModel()
     }
 
-    // Add the model to the navigation stack
     navigationCoordinator.push(.editProfilePage(model))
-    XCTAssertEqual(navigationCoordinator.path.count, 1)
+    #expect(navigationCoordinator.path.count == 1)
 
     model.viewAppeared()
     model.firstName = "Jane"
@@ -284,10 +283,8 @@ final class EditProfilePageTests: XCTestCase {
 
     await model.saveButtonTapped()
 
-    // Verify navigation was popped
-    XCTAssertEqual(navigationCoordinator.path.count, 0)
+    #expect(navigationCoordinator.path.count == 0)
 
-    // Clean up
     navigationCoordinator.popToRoot()
   }
 }
