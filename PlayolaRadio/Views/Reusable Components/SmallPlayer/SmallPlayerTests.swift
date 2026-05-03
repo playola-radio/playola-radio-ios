@@ -6,52 +6,51 @@
 //
 
 import Dependencies
+import Foundation
 import PlayolaPlayer
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class SmallPlayerTests: XCTestCase {
-
-  override func setUp() {
-    super.setUp()
-    // Clear shared state before each test
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
-    $nowPlaying.withLock { $0 = nil }
-  }
+struct SmallPlayerTests {
 
   // MARK: - Main Title Tests
 
-  func testMainTitle_ReturnsStationNameWhenAvailable() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testMainTitleReturnsStationNameWhenAvailable() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let mockStation = AnyStation.mock
 
     $nowPlaying.withLock { $0 = NowPlaying(currentStation: mockStation) }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.mainTitle, mockStation.name)
+    #expect(smallPlayer.mainTitle == mockStation.name)
   }
 
-  func testMainTitle_ReturnsEmptyStringWhenNoStation() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testMainTitleReturnsEmptyStringWhenNoStation() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
 
     $nowPlaying.withLock { $0 = NowPlaying() }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.mainTitle, "")
+    #expect(smallPlayer.mainTitle == "")
   }
 
-  func testMainTitle_ReturnsEmptyStringWhenNowPlayingIsNil() {
+  @Test
+  func testMainTitleReturnsEmptyStringWhenNowPlayingIsNil() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.mainTitle, "")
+    #expect(smallPlayer.mainTitle == "")
   }
 
   // MARK: - Secondary Title Tests
 
-  func testSecondaryTitle_ReturnsArtistAndTitleWhenAvailable() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testSecondaryTitleReturnsArtistAndTitleWhenAvailable() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let mockStation = AnyStation.mock
 
     $nowPlaying.withLock {
@@ -63,21 +62,23 @@ final class SmallPlayerTests: XCTestCase {
     }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.secondaryTitle, "Test Artist - Test Song")
+    #expect(smallPlayer.secondaryTitle == "Test Artist - Test Song")
   }
 
-  func testSecondaryTitle_ReturnsStationDescWhenNoArtistTitle() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testSecondaryTitleReturnsStationDescWhenNoArtistTitle() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let mockStation = AnyStation.mock
 
     $nowPlaying.withLock { $0 = NowPlaying(currentStation: mockStation) }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.secondaryTitle, mockStation.description)
+    #expect(smallPlayer.secondaryTitle == mockStation.description)
   }
 
-  func testSecondaryTitle_ReturnsLoadingWhenPlaybackStatusIsLoading() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testSecondaryTitleReturnsLoadingWhenPlaybackStatusIsLoading() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let mockStation = AnyStation.mock
 
     $nowPlaying.withLock {
@@ -88,11 +89,12 @@ final class SmallPlayerTests: XCTestCase {
     }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.secondaryTitle, "Loading...")
+    #expect(smallPlayer.secondaryTitle == "Loading...")
   }
 
-  func testSecondaryTitle_ReturnsLoadingWhenLoadingEvenWithTrackInfo() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testSecondaryTitleReturnsLoadingWhenLoadingEvenWithTrackInfo() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let mockStation = AnyStation.mock
 
     $nowPlaying.withLock {
@@ -105,11 +107,12 @@ final class SmallPlayerTests: XCTestCase {
     }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.secondaryTitle, "Loading...")
+    #expect(smallPlayer.secondaryTitle == "Loading...")
   }
 
-  func testSecondaryTitle_ReturnsStationDescWhenOnlyArtistAvailable() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testSecondaryTitleReturnsStationDescWhenOnlyArtistAvailable() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let mockStation = AnyStation.mock
 
     $nowPlaying.withLock {
@@ -120,11 +123,12 @@ final class SmallPlayerTests: XCTestCase {
     }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.secondaryTitle, mockStation.description)
+    #expect(smallPlayer.secondaryTitle == mockStation.description)
   }
 
-  func testSecondaryTitle_ReturnsStationDescWhenOnlyTitleAvailable() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testSecondaryTitleReturnsStationDescWhenOnlyTitleAvailable() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let mockStation = AnyStation.mock
 
     $nowPlaying.withLock {
@@ -135,22 +139,24 @@ final class SmallPlayerTests: XCTestCase {
     }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.secondaryTitle, mockStation.description)
+    #expect(smallPlayer.secondaryTitle == mockStation.description)
   }
 
-  func testSecondaryTitle_ReturnsEmptyStringWhenNothingAvailable() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testSecondaryTitleReturnsEmptyStringWhenNothingAvailable() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
 
     $nowPlaying.withLock { $0 = NowPlaying() }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.secondaryTitle, "")
+    #expect(smallPlayer.secondaryTitle == "")
   }
 
   // MARK: - Artwork URL Tests
 
-  func testArtworkURL_ReturnsAlbumArtworkWhenAvailable() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testArtworkURLReturnsAlbumArtworkWhenAvailable() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let testURL = URL(string: "https://example.com/album.jpg")!
     let mockStation = AnyStation.mock
 
@@ -162,45 +168,50 @@ final class SmallPlayerTests: XCTestCase {
     }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.artworkURL, testURL)
+    #expect(smallPlayer.artworkURL == testURL)
   }
 
-  func testArtworkURL_ReturnsStationImageWhenNoAlbumArtwork() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testArtworkURLReturnsStationImageWhenNoAlbumArtwork() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let mockStation = AnyStation.mock
 
     $nowPlaying.withLock { $0 = NowPlaying(currentStation: mockStation) }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.artworkURL, mockStation.processedImageURL())
+    #expect(smallPlayer.artworkURL == mockStation.processedImageURL())
   }
 
-  func testArtworkURL_ReturnsFallbackWhenNothingAvailable() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testArtworkURLReturnsFallbackWhenNothingAvailable() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
 
     $nowPlaying.withLock { $0 = NowPlaying() }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.artworkURL, URL(string: "https://example.com")!)
+    #expect(smallPlayer.artworkURL == URL(string: "https://example.com")!)
   }
 
-  func testArtworkURL_ReturnsFallbackWhenNowPlayingIsNil() {
+  @Test
+  func testArtworkURLReturnsFallbackWhenNowPlayingIsNil() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.artworkURL, URL(string: "https://example.com")!)
+    #expect(smallPlayer.artworkURL == URL(string: "https://example.com")!)
   }
 
   // MARK: - State Change Tests
 
-  func testSmallPlayer_UpdatesWhenNowPlayingChanges() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testSmallPlayerUpdatesWhenNowPlayingChanges() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let mockStation = AnyStation.mock
 
     // Initial state - no track info
     $nowPlaying.withLock { $0 = NowPlaying(currentStation: mockStation) }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.mainTitle, mockStation.name)
-    XCTAssertEqual(smallPlayer.secondaryTitle, mockStation.description)
+    #expect(smallPlayer.mainTitle == mockStation.name)
+    #expect(smallPlayer.secondaryTitle == mockStation.description)
 
     // Update with artist/title - should now show track info
     $nowPlaying.withLock {
@@ -211,19 +222,20 @@ final class SmallPlayerTests: XCTestCase {
       )
     }
 
-    XCTAssertEqual(smallPlayer.mainTitle, mockStation.name)
-    XCTAssertEqual(smallPlayer.secondaryTitle, "New Artist - New Song")
+    #expect(smallPlayer.mainTitle == mockStation.name)
+    #expect(smallPlayer.secondaryTitle == "New Artist - New Song")
   }
 
-  func testSmallPlayer_HandlesNilToDataTransition() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testSmallPlayerHandlesNilToDataTransition() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let mockStation = AnyStation.mock
 
     let smallPlayer = SmallPlayer()
 
     // Initially nil
-    XCTAssertEqual(smallPlayer.mainTitle, "")
-    XCTAssertEqual(smallPlayer.secondaryTitle, "")
+    #expect(smallPlayer.mainTitle == "")
+    #expect(smallPlayer.secondaryTitle == "")
 
     // Set data
     $nowPlaying.withLock {
@@ -234,12 +246,13 @@ final class SmallPlayerTests: XCTestCase {
       )
     }
 
-    XCTAssertEqual(smallPlayer.mainTitle, mockStation.name)
-    XCTAssertEqual(smallPlayer.secondaryTitle, "Test Artist - Test Song")
+    #expect(smallPlayer.mainTitle == mockStation.name)
+    #expect(smallPlayer.secondaryTitle == "Test Artist - Test Song")
   }
 
-  func testSmallPlayer_HandlesDataToNilTransition() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testSmallPlayerHandlesDataToNilTransition() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let mockStation = AnyStation.mock
 
     // Start with data
@@ -252,20 +265,21 @@ final class SmallPlayerTests: XCTestCase {
     }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.mainTitle, mockStation.name)
-    XCTAssertEqual(smallPlayer.secondaryTitle, "Test Artist - Test Song")
+    #expect(smallPlayer.mainTitle == mockStation.name)
+    #expect(smallPlayer.secondaryTitle == "Test Artist - Test Song")
 
     // Clear data
     $nowPlaying.withLock { $0 = nil }
 
-    XCTAssertEqual(smallPlayer.mainTitle, "")
-    XCTAssertEqual(smallPlayer.secondaryTitle, "")
+    #expect(smallPlayer.mainTitle == "")
+    #expect(smallPlayer.secondaryTitle == "")
   }
 
   // MARK: - Integration Tests with Spin Data
 
-  func testSmallPlayer_DisplaysSpinDataCorrectly() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying?
+  @Test
+  func testSmallPlayerDisplaysSpinDataCorrectly() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let mockStation = AnyStation.mock
     let mockSpin = Spin.mock
     let testArtist = "Test Artist"
@@ -283,8 +297,8 @@ final class SmallPlayerTests: XCTestCase {
     }
 
     let smallPlayer = SmallPlayer()
-    XCTAssertEqual(smallPlayer.mainTitle, mockStation.name)
-    XCTAssertEqual(smallPlayer.secondaryTitle, "\(testArtist) - \(testTitle)")
-    XCTAssertEqual(smallPlayer.artworkURL, testImageUrl)
+    #expect(smallPlayer.mainTitle == mockStation.name)
+    #expect(smallPlayer.secondaryTitle == "\(testArtist) - \(testTitle)")
+    #expect(smallPlayer.artworkURL == testImageUrl)
   }
 }
