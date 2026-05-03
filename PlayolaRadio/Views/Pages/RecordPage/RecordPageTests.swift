@@ -171,7 +171,7 @@ final class RecordPageTests: XCTestCase {
 
   // MARK: - Re-record
 
-  func testOnReRecordTapped_ResetsToIdleState() async {
+  func testOnReRecordTappedResetsToIdleState() async {
     let model = RecordPageModel()
     model.recordingPhase = .review
     model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
@@ -202,7 +202,7 @@ final class RecordPageTests: XCTestCase {
     XCTAssertEqual(model.presentedAlert?.title, "Discard Recording?")
   }
 
-  func testConfirmDiscard_DismissesSheet() async {
+  func testConfirmDiscardDismissesSheet() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
 
     let model = RecordPageModel()
@@ -215,7 +215,7 @@ final class RecordPageTests: XCTestCase {
 
   // MARK: - Accept Recording
 
-  func testOnAcceptRecordingTapped_CallsCallbackAndDismisses() async {
+  func testOnAcceptRecordingTappedCallsCallbackAndDismisses() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
 
     let expectedURL = URL(fileURLWithPath: "/tmp/test.wav")
@@ -234,7 +234,7 @@ final class RecordPageTests: XCTestCase {
     XCTAssertEqual(receivedURL.value, expectedURL)
   }
 
-  func testOnAcceptRecordingTapped_DoesNothingWithoutURL() async {
+  func testOnAcceptRecordingTappedDoesNothingWithoutURL() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
 
     let callbackCalled = LockIsolated(false)
@@ -254,7 +254,7 @@ final class RecordPageTests: XCTestCase {
 
   // MARK: - Playback
 
-  func testOnPlayPauseTapped_PlaysWhenNotPlaying() async {
+  func testOnPlayPauseTappedPlaysWhenNotPlaying() async {
     let playCalled = LockIsolated(false)
 
     await withDependencies {
@@ -272,7 +272,7 @@ final class RecordPageTests: XCTestCase {
     }
   }
 
-  func testOnPlayPauseTapped_PausesWhenPlaying() async {
+  func testOnPlayPauseTappedPausesWhenPlaying() async {
     let pauseCalled = LockIsolated(false)
 
     await withDependencies {
@@ -288,7 +288,7 @@ final class RecordPageTests: XCTestCase {
     }
   }
 
-  func testOnRewindTapped_SeeksToZero() async {
+  func testOnRewindTappedSeeksToZero() async {
     let seekTime = LockIsolated<TimeInterval?>(nil)
 
     await withDependencies {
@@ -304,7 +304,7 @@ final class RecordPageTests: XCTestCase {
     }
   }
 
-  func testSeekTo_UpdatesPlaybackPosition() async {
+  func testSeekToUpdatesPlaybackPosition() async {
     let seekTime = LockIsolated<TimeInterval?>(nil)
 
     await withDependencies {

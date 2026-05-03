@@ -82,12 +82,10 @@ final class SignInPageTests: XCTestCase {
 
   func testSignInWithAppleCompletedReportsErrorOnAuthorizationFailure() async {
     let reportedErrors = LockIsolated<[(Error, [String: String])]>([])
-    let expectation = XCTestExpectation(description: "reportError called")
 
     let model = withDependencies {
       $0.errorReporting.reportErrorWithContext = { error, tags, _, _ in
         reportedErrors.withValue { $0.append((error, tags)) }
-        expectation.fulfill()
       }
     } operation: {
       SignInPageModel()
@@ -99,7 +97,6 @@ final class SignInPageTests: XCTestCase {
     XCTAssertEqual(reportedErrors.value.count, 1, "Should call reportError exactly once")
     let tags = reportedErrors.value.first?.1 ?? [:]
     XCTAssertEqual(tags["auth_method"], "apple")
-    _ = expectation
   }
 
   func testSignInWithAppleCompletedDoesNotReportErrorOnUserCancel() async {

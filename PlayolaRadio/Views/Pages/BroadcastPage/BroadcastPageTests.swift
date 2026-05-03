@@ -412,7 +412,7 @@ final class BroadcastPageTests: XCTestCase {
     }
   }
 
-  func testOnAddSongTapped_PresentsSongSearchPageSheet() async {
+  func testOnAddSongTappedPresentsSongSearchPageSheet() async {
     @Shared(.mainContainerNavigationCoordinator)
     var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
 
@@ -441,7 +441,7 @@ final class BroadcastPageTests: XCTestCase {
     XCTAssertEqual(model.songSearchPageModel?.searchMode, .all)
   }
 
-  func testOnAddSongTapped_SongSelectedCallbackAddsSongToStaging() async {
+  func testOnAddSongTappedSongSelectedCallbackAddsSongToStaging() async {
     @Shared(.mainContainerNavigationCoordinator)
     var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
 
@@ -460,7 +460,7 @@ final class BroadcastPageTests: XCTestCase {
     XCTAssertEqual(model.stagingItems.first?.titleText, "Test Song")
   }
 
-  func testOnAddSongTapped_SongSelectedCallbackDismissesSheet() async {
+  func testOnAddSongTappedSongSelectedCallbackDismissesSheet() async {
     @Shared(.mainContainerNavigationCoordinator)
     var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
 
@@ -475,7 +475,7 @@ final class BroadcastPageTests: XCTestCase {
     XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
   }
 
-  func testAddSongToStaging_DoesNotAddDuplicates() async {
+  func testAddSongToStagingDoesNotAddDuplicates() async {
     let model = BroadcastPageModel(stationId: "test-station")
     let testSong = AudioBlock.mockWith(id: "test-song-123")
 
@@ -485,7 +485,7 @@ final class BroadcastPageTests: XCTestCase {
     XCTAssertEqual(model.stagingItems.count, 1)
   }
 
-  func testAddSongToStaging_AddsMultipleDifferentSongs() async {
+  func testAddSongToStagingAddsMultipleDifferentSongs() async {
     let model = BroadcastPageModel(stationId: "test-station")
     let song1 = AudioBlock.mockWith(id: "song-1", title: "First Song")
     let song2 = AudioBlock.mockWith(id: "song-2", title: "Second Song")
