@@ -70,9 +70,7 @@ extension DependencyValues {
 
 extension AnalyticsClient: DependencyKey {
   static var liveValue: Self {
-    @Dependency(\.date.now) var now
-
-    return Self(
+    Self(
       track: { event in
         await MainActor.run {
           @Shared(.auth) var auth: Auth
@@ -134,19 +132,21 @@ extension AnalyticsClient: DependencyKey {
         }
       },
       pauseListeningSession: {
+        @Dependency(\.date) var date
         await MainActor.run {
           // Store current timestamp for calculating pause duration
           UserDefaults.standard.set(
-            now.timeIntervalSince1970, forKey: "analytics_session_paused_at")
+            date.now.timeIntervalSince1970, forKey: "analytics_session_paused_at")
         }
       },
       resumeListeningSession: {
+        @Dependency(\.date) var date
         await MainActor.run {
           // Calculate pause duration and track if needed
           if let pausedAt = UserDefaults.standard.object(forKey: "analytics_session_paused_at")
             as? TimeInterval
           {
-            let pauseDuration = now.timeIntervalSince1970 - pausedAt
+            let pauseDuration = date.now.timeIntervalSince1970 - pausedAt
             let properties: [String: any MixpanelType] = [
               "pause_duration_sec": Int(pauseDuration)
             ]

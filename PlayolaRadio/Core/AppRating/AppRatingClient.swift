@@ -34,10 +34,9 @@ extension AppRatingClient: DependencyKey {
   private static let sevenDaysInterval: TimeInterval = 7 * 24 * 60 * 60
 
   static var liveValue: Self {
-    @Dependency(\.date.now) var now
-
-    return Self(
+    Self(
       shouldShowRatingPrompt: { totalListenTimeMS in
+        @Dependency(\.date) var date
         @Shared(.appInstallDate) var appInstallDate
         @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion
         @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate
@@ -58,14 +57,14 @@ extension AppRatingClient: DependencyKey {
         guard let installDate = appInstallDate else {
           return false
         }
-        let daysSinceInstall = now.timeIntervalSince(installDate)
+        let daysSinceInstall = date.now.timeIntervalSince(installDate)
         guard daysSinceInstall >= sevenDaysInterval else {
           return false
         }
 
         // If previously dismissed, check if 7 days have passed
         if let dismissDate = lastRatingPromptDismissDate {
-          let daysSinceDismiss = now.timeIntervalSince(dismissDate)
+          let daysSinceDismiss = date.now.timeIntervalSince(dismissDate)
           guard daysSinceDismiss >= sevenDaysInterval else {
             return false
           }
@@ -74,9 +73,10 @@ extension AppRatingClient: DependencyKey {
         return true
       },
       recordInstallDateIfNeeded: {
+        @Dependency(\.date) var date
         @Shared(.appInstallDate) var appInstallDate
         if appInstallDate == nil {
-          $appInstallDate.withLock { $0 = now }
+          $appInstallDate.withLock { $0 = date.now }
         }
       },
       markRatingPromptShown: {
@@ -87,8 +87,9 @@ extension AppRatingClient: DependencyKey {
         $lastRatingPromptDismissDate.withLock { $0 = nil }
       },
       markRatingPromptDismissed: {
+        @Dependency(\.date) var date
         @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate
-        $lastRatingPromptDismissDate.withLock { $0 = now }
+        $lastRatingPromptDismissDate.withLock { $0 = date.now }
       },
       requestAppStoreReview: {
         await MainActor.run {
