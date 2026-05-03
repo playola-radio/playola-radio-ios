@@ -803,19 +803,7 @@ struct MainContainerTests {
 
       mainContainerModel.checkAndShowRatingPromptIfNeeded()
       await mainContainerModel.presentedAlert?.secondaryAction?()
-
-      // Drain the spawned Task in showFeedbackSheet() — it awaits
-      // analytics.track and then assigns presentedSheet. Polling on the
-      // observable end-state (presentedSheet being .feedbackSheet) is
-      // resilient to changes in the number of internal async hops.
-      for _ in 0..<50 {
-        if case .feedbackSheet = mainContainerModel.mainContainerNavigationCoordinator
-          .presentedSheet
-        {
-          break
-        }
-        await Task.yield()
-      }
+      await waitForFeedbackSheet(on: mainContainerModel.mainContainerNavigationCoordinator)
 
       #expect(markShownCalled.value)
       #expect(
@@ -962,6 +950,18 @@ struct MainContainerTests {
 
     #expect(mainContainerModel.broadcastPageModel?.stationId == "station-456")
     #expect(!(mainContainerModel.broadcastPageModel === originalModel))
+  }
+}
+
+// Drain the fire-and-forget Task in MainContainerModel.showFeedbackSheet()
+// (it awaits analytics.track then assigns presentedSheet). Polling on the
+// observable end-state is resilient to changes in the number of internal
+// async hops.
+@MainActor
+private func waitForFeedbackSheet(on coordinator: MainContainerNavigationCoordinator) async {
+  for _ in 0..<50 {
+    if case .feedbackSheet = coordinator.presentedSheet { return }
+    await Task.yield()
   }
 }
 // swiftlint:enable force_try

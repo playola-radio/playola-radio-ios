@@ -5,8 +5,6 @@
 //  Created by Brian D Keane on 6/10/25.
 //
 
-// swiftlint:disable force_try
-
 import ConcurrencyExtras
 import Dependencies
 import Foundation
@@ -682,5 +680,3 @@ struct HomePageTests {
   }
 
 }
-
-// swiftlint:enable force_try
