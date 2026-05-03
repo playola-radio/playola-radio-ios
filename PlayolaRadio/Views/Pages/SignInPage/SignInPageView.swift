@@ -61,7 +61,7 @@ struct SignInPage: View {
             SignInWithAppleButton(.signIn) { request in
               model.signInWithAppleButtonTapped(request: request)
             } onCompletion: { result in
-              model.signInWithAppleCompleted(result: result)
+              Task { await model.signInWithAppleCompleted(result: result) }
             }
             .signInWithAppleButtonStyle(.white)
             .frame(height: 56)

@@ -35,9 +35,7 @@ class SupportPageModel: ViewModel {
 
   func onViewAppeared() async {
     guard let jwt = auth.jwt else { return }
-    startListeningForRefresh()
 
-    // If conversation is already set (e.g., from ConversationListPage), refresh messages
     if conversation != nil {
       await refreshMessages()
       isLoading = false
@@ -58,6 +56,12 @@ class SupportPageModel: ViewModel {
     }
 
     isLoading = false
+  }
+
+  func observeRefreshNotifications() async {
+    for await _ in NotificationCenter.default.notifications(named: .refreshSupportMessages) {
+      await refreshMessages()
+    }
   }
 
   private func markAsRead() async {
@@ -112,18 +116,6 @@ class SupportPageModel: ViewModel {
   func handleScenePhaseChange(_ phase: ScenePhase) async {
     guard phase == .active else { return }
     await refreshMessages()
-  }
-
-  func startListeningForRefresh() {
-    NotificationCenter.default.addObserver(
-      forName: .refreshSupportMessages,
-      object: nil,
-      queue: .main
-    ) { [weak self] _ in
-      Task { @MainActor in
-        await self?.refreshMessages()
-      }
-    }
   }
 }
 

@@ -145,7 +145,8 @@ final class SeriesCardModelTests: XCTestCase {
     ShowWithAirings(
       show: .mockWith(title: "Test Show"),
       station: stationId != nil ? .mockWith(id: stationId!) : nil,
-      airings: [.mockWith()]
+      airings: [.mockWith()],
+      now: Date()
     )
   }
 

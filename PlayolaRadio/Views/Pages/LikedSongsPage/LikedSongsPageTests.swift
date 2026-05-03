@@ -31,6 +31,7 @@ final class LikedSongsPageTests: XCTestCase {
     let audioBlock2 = AudioBlock.mockWith(id: "different-id")
 
     withDependencies {
+      $0.date.now = Date()
       let likesManager = LikesManager()
       likesManager.like(audioBlock1)
       likesManager.like(audioBlock2)
@@ -61,6 +62,7 @@ final class LikedSongsPageTests: XCTestCase {
     let audioBlock = AudioBlock.mock
 
     withDependencies {
+      $0.date.now = Date()
       let likesManager = LikesManager()
       likesManager.like(audioBlock)
       $0.likesManager = likesManager
@@ -71,7 +73,7 @@ final class LikedSongsPageTests: XCTestCase {
       XCTAssertFalse(model.groupedLikedSongs.isEmpty)
 
       // Remove the song
-      model.removeSong(audioBlock)
+      model.removeSongTapped(audioBlock)
 
       // Verify song is no longer liked
       XCTAssertTrue(model.groupedLikedSongs.isEmpty)

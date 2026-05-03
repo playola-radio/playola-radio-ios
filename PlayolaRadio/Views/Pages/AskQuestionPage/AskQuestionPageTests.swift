@@ -108,7 +108,7 @@ final class AskQuestionPageTests: XCTestCase {
 
   // MARK: - Re-record
 
-  func testReRecordTappedResetsToIdleState() {
+  func testReRecordTappedResetsToIdleState() async {
     let model = AskQuestionPageModel(station: .mock)
     model.recordingPhase = .review
     model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
@@ -116,7 +116,7 @@ final class AskQuestionPageTests: XCTestCase {
     model.playbackPosition = 5.0
     model.isPlaying = true
 
-    model.reRecordTapped()
+    await model.reRecordTapped()
 
     XCTAssertEqual(model.recordingPhase, .idle)
     XCTAssertNil(model.recordingURL)
@@ -127,35 +127,35 @@ final class AskQuestionPageTests: XCTestCase {
 
   // MARK: - Cancel
 
-  func testCancelTappedShowsConfirmationWhenInReview() {
+  func testCancelTappedShowsConfirmationWhenInReview() async {
     let model = AskQuestionPageModel(station: .mock)
     model.recordingPhase = .review
 
     XCTAssertNil(model.presentedAlert)
 
-    model.cancelTapped()
+    await model.cancelTapped()
 
     XCTAssertNotNil(model.presentedAlert)
     XCTAssertEqual(model.presentedAlert?.title, "Discard Recording?")
   }
 
-  func testCancelTappedPopsNavigationWhenIdle() {
+  func testCancelTappedPopsNavigationWhenIdle() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
     let model = AskQuestionPageModel(station: .mock)
     coordinator.path = [.askQuestionPage(model)]
     model.recordingPhase = .idle
 
-    model.cancelTapped()
+    await model.cancelTapped()
 
     XCTAssertTrue(coordinator.path.isEmpty)
   }
 
-  func testConfirmCancelPopsNavigation() {
+  func testConfirmCancelPopsNavigation() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
     let model = AskQuestionPageModel(station: .mock)
     coordinator.path = [.askQuestionPage(model)]
 
-    model.confirmCancel()
+    await model.confirmCancel()
 
     XCTAssertTrue(coordinator.path.isEmpty)
   }
@@ -173,8 +173,7 @@ final class AskQuestionPageTests: XCTestCase {
       let model = AskQuestionPageModel(station: .mock)
       model.isPlaying = false
 
-      model.playPauseTapped()
-      try? await Task.sleep(for: .milliseconds(10))
+      await model.playPauseTapped()
 
       XCTAssertTrue(playCalled.value)
       XCTAssertTrue(model.isPlaying)
@@ -190,8 +189,7 @@ final class AskQuestionPageTests: XCTestCase {
       let model = AskQuestionPageModel(station: .mock)
       model.isPlaying = true
 
-      model.playPauseTapped()
-      try? await Task.sleep(for: .milliseconds(10))
+      await model.playPauseTapped()
 
       XCTAssertTrue(pauseCalled.value)
       XCTAssertFalse(model.isPlaying)
@@ -207,8 +205,7 @@ final class AskQuestionPageTests: XCTestCase {
       let model = AskQuestionPageModel(station: .mock)
       model.playbackPosition = 30.0
 
-      model.rewindTapped()
-      try? await Task.sleep(for: .milliseconds(10))
+      await model.rewindTapped()
 
       XCTAssertEqual(seekTime.value, 0)
       XCTAssertEqual(model.playbackPosition, 0)
@@ -278,7 +275,7 @@ final class AskQuestionPageTests: XCTestCase {
       await model.viewAppeared()
       stationPlayerMock.callsToPlay = []
 
-      model.confirmCancel()
+      await model.confirmCancel()
 
       XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
       XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, playingStation.id)
@@ -298,7 +295,7 @@ final class AskQuestionPageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      model.confirmCancel()
+      await model.confirmCancel()
 
       XCTAssertEqual(stationPlayerMock.callsToPlay.count, 0)
     }

@@ -100,7 +100,7 @@ struct LikedSongsPage: View {
     // Remove from data after animation completes
     Task { @MainActor in
       try? await Task.sleep(nanoseconds: 300_000_000)  // 0.3 seconds
-      model.removeSong(audioBlock)
+      model.removeSongTapped(audioBlock)
       removingAudioBlockIds.remove(audioBlock.id)
     }
   }

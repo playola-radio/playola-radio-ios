@@ -412,7 +412,7 @@ final class BroadcastPageTests: XCTestCase {
     }
   }
 
-  func testOnAddSongTapped_PresentsSongSearchPageSheet() {
+  func testOnAddSongTappedPresentsSongSearchPageSheet() async {
     @Shared(.mainContainerNavigationCoordinator)
     var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
 
@@ -421,51 +421,53 @@ final class BroadcastPageTests: XCTestCase {
     XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
     XCTAssertNil(model.songSearchPageModel)
 
-    model.onAddSongTapped()
+    await model.onAddSongTapped()
 
     XCTAssertNotNil(model.songSearchPageModel)
     if case .songSearchPage = mainContainerNavigationCoordinator.presentedSheet {
-      // Success - presented song search page sheet
     } else {
       XCTFail("Expected songSearchPage sheet presentation")
     }
   }
 
-  func testOnAddSongTappedUsesAllSearchMode() {
+  func testOnAddSongTappedUsesAllSearchMode() async {
     @Shared(.mainContainerNavigationCoordinator)
     var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
 
     let model = BroadcastPageModel(stationId: "test-station")
 
-    model.onAddSongTapped()
+    await model.onAddSongTapped()
 
     XCTAssertEqual(model.songSearchPageModel?.searchMode, .all)
   }
 
-  func testOnAddSongTapped_SongSelectedCallbackAddsSongToStaging() {
-    @Shared(.mainContainerNavigationCoordinator)
-    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+  func testOnAddSongTappedSongSelectedCallbackAddsSongToStaging() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator)
+      var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
 
-    let model = BroadcastPageModel(stationId: "test-station")
-    XCTAssertTrue(model.stagingItems.isEmpty)
+      let model = BroadcastPageModel(stationId: "test-station")
+      XCTAssertTrue(model.stagingItems.isEmpty)
 
-    model.onAddSongTapped()
+      await model.onAddSongTapped()
 
-    let testSong = AudioBlock.mockWith(
-      id: "test-song-123", title: "Test Song", artist: "Test Artist")
-    model.songSearchPageModel?.onSongSelected?(testSong)
+      let testSong = AudioBlock.mockWith(
+        id: "test-song-123", title: "Test Song", artist: "Test Artist")
+      model.songSearchPageModel?.onSongSelected?(testSong)
+      await Task.yield()
 
-    XCTAssertEqual(model.stagingItems.count, 1)
-    XCTAssertEqual(model.stagingItems.first?.stagingId, "test-song-123")
-    XCTAssertEqual(model.stagingItems.first?.titleText, "Test Song")
+      XCTAssertEqual(model.stagingItems.count, 1)
+      XCTAssertEqual(model.stagingItems.first?.stagingId, "test-song-123")
+      XCTAssertEqual(model.stagingItems.first?.titleText, "Test Song")
+    }
   }
 
-  func testOnAddSongTapped_SongSelectedCallbackDismissesSheet() {
+  func testOnAddSongTappedSongSelectedCallbackDismissesSheet() async {
     @Shared(.mainContainerNavigationCoordinator)
     var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
 
     let model = BroadcastPageModel(stationId: "test-station")
-    model.onAddSongTapped()
+    await model.onAddSongTapped()
 
     XCTAssertNotNil(mainContainerNavigationCoordinator.presentedSheet)
 
@@ -475,23 +477,23 @@ final class BroadcastPageTests: XCTestCase {
     XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
   }
 
-  func testAddSongToStaging_DoesNotAddDuplicates() {
+  func testAddSongToStagingDoesNotAddDuplicates() async {
     let model = BroadcastPageModel(stationId: "test-station")
     let testSong = AudioBlock.mockWith(id: "test-song-123")
 
-    model.addSongToStaging(testSong)
-    model.addSongToStaging(testSong)
+    await model.addSongToStaging(testSong)
+    await model.addSongToStaging(testSong)
 
     XCTAssertEqual(model.stagingItems.count, 1)
   }
 
-  func testAddSongToStaging_AddsMultipleDifferentSongs() {
+  func testAddSongToStagingAddsMultipleDifferentSongs() async {
     let model = BroadcastPageModel(stationId: "test-station")
     let song1 = AudioBlock.mockWith(id: "song-1", title: "First Song")
     let song2 = AudioBlock.mockWith(id: "song-2", title: "Second Song")
 
-    model.addSongToStaging(song1)
-    model.addSongToStaging(song2)
+    await model.addSongToStaging(song1)
+    await model.addSongToStaging(song2)
 
     XCTAssertEqual(model.stagingItems.count, 2)
     XCTAssertEqual(model.stagingItems[0].stagingId, "song-1")
@@ -1638,7 +1640,7 @@ extension BroadcastPageTests {
         }
       } operation: {
         let model = BroadcastPageModel(stationId: testStationId, stationName: "Test Station")
-        model.onAddSongTapped()
+        await model.onAddSongTapped()
 
         await fulfillment(of: [searchTappedExpectation], timeout: 1.0)
 
@@ -1685,7 +1687,7 @@ extension BroadcastPageTests {
           title: "Test Song",
           artist: "Test Artist"
         )
-        model.addSongToStaging(audioBlock)
+        await model.addSongToStaging(audioBlock)
 
         await fulfillment(of: [songAddedExpectation], timeout: 1.0)
 

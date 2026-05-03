@@ -170,7 +170,7 @@ final class RecordIntroPageTests: XCTestCase {
 
   // MARK: - Re-record
 
-  func testOnReRecordTappedResetsToIdleState() {
+  func testOnReRecordTappedResetsToIdleState() async {
     let model = makeModel()
     model.recordingPhase = .review
     model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
@@ -178,7 +178,7 @@ final class RecordIntroPageTests: XCTestCase {
     model.playbackPosition = 5.0
     model.isPlaying = true
 
-    model.onReRecordTapped()
+    await model.onReRecordTapped()
 
     XCTAssertEqual(model.recordingPhase, .idle)
     XCTAssertNil(model.recordingURL)
@@ -201,13 +201,13 @@ final class RecordIntroPageTests: XCTestCase {
     XCTAssertEqual(model.presentedAlert?.title, "Discard Recording?")
   }
 
-  func testConfirmDiscardDismissesSheet() {
+  func testConfirmDiscardDismissesSheet() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
 
     let model = makeModel()
     coordinator.presentedSheet = .recordIntroPage(model)
 
-    model.confirmDiscard()
+    await model.confirmDiscard()
 
     XCTAssertNil(coordinator.presentedSheet)
   }
@@ -221,6 +221,7 @@ final class RecordIntroPageTests: XCTestCase {
     await withMainSerialExecutor {
       await withDependencies {
         $0.audioPlayer.stop = {}
+        $0.continuousClock = ImmediateClock()
         $0.introUploadService.uploadIntro = { _, _, _, _, _, onStatus in
           uploadCalled.setValue(true)
           await onStatus(.completed)
@@ -230,8 +231,7 @@ final class RecordIntroPageTests: XCTestCase {
         model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
         model.recordingPhase = .review
 
-        model.onAcceptRecordingTapped()
-        await Task.yield()
+        await model.onAcceptRecordingTapped()
 
         XCTAssertNotNil(model.uploadStatus)
         XCTAssertTrue(uploadCalled.value)
@@ -239,11 +239,11 @@ final class RecordIntroPageTests: XCTestCase {
     }
   }
 
-  func testOnAcceptRecordingTappedDoesNothingWithoutURL() {
+  func testOnAcceptRecordingTappedDoesNothingWithoutURL() async {
     let model = makeModel()
     model.recordingURL = nil
 
-    model.onAcceptRecordingTapped()
+    await model.onAcceptRecordingTapped()
 
     XCTAssertNil(model.uploadStatus)
   }
@@ -290,6 +290,7 @@ final class RecordIntroPageTests: XCTestCase {
     await withMainSerialExecutor {
       await withDependencies {
         $0.audioPlayer.stop = {}
+        $0.continuousClock = ImmediateClock()
         $0.introUploadService.uploadIntro = { _, _, _, _, _, onStatus in
           uploadCallCount.withValue { $0 += 1 }
           await onStatus(.completed)
@@ -299,8 +300,7 @@ final class RecordIntroPageTests: XCTestCase {
         model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
         model.uploadStatus = .failed("First attempt failed")
 
-        model.onRetryTapped()
-        await Task.yield()
+        await model.onRetryTapped()
 
         XCTAssertEqual(uploadCallCount.value, 1)
       }
@@ -314,6 +314,7 @@ final class RecordIntroPageTests: XCTestCase {
     await withMainSerialExecutor {
       await withDependencies {
         $0.audioPlayer.stop = {}
+        $0.continuousClock = ImmediateClock()
         $0.introUploadService.uploadIntro = { _, _, _, _, _, onStatus in
           await onStatus(.completed)
         }
@@ -324,8 +325,7 @@ final class RecordIntroPageTests: XCTestCase {
           completedCalled.setValue(true)
         }
 
-        model.onAcceptRecordingTapped()
-        await Task.yield()
+        await model.onAcceptRecordingTapped()
 
         XCTAssertTrue(completedCalled.value)
         XCTAssertEqual(model.uploadStatus, .completed)
