@@ -5,54 +5,59 @@
 //  Created by Brian D Keane on 6/13/25.
 //
 
+import ConcurrencyExtras
 import Dependencies
+import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class StationListPageTests: XCTestCase {
+struct StationListPageTests {
   // MARK: - View Appeared Tests
 
-  func testViewAppeared_PopulatesFromInitialSharedStationLists() async {
+  @Test
+  func testViewAppearedPopulatesFromInitialSharedStationLists() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
     let expectedVisibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
     let model = StationListModel()
     await model.viewAppeared()
-    XCTAssertEqual(model.stationListsForDisplay, expectedVisibleLists)
-    XCTAssertEqual(model.segmentTitles, ["All"] + expectedVisibleLists.map { $0.title })
-    XCTAssertEqual(model.selectedSegment, "All")
+    #expect(model.stationListsForDisplay == expectedVisibleLists)
+    #expect(model.segmentTitles == ["All"] + expectedVisibleLists.map { $0.title })
+    #expect(model.selectedSegment == "All")
   }
 
   // MARK: - Segment Selection Tests
 
-  func testSegmentSelection_FiltersWhenSegmentSelected() async {
+  @Test
+  func testSegmentSelectionFiltersWhenSegmentSelected() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
     let visibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
     guard let firstList = visibleLists.first else {
-      XCTFail("StationList.mocks should have at least one non-development list")
+      Issue.record("StationList.mocks should have at least one non-development list")
       return
     }
     let model = StationListModel()
     await model.viewAppeared()
     await model.segmentSelected(firstList.title)
-    XCTAssertEqual(model.selectedSegment, firstList.title)
-    XCTAssertEqual(model.stationListsForDisplay, [firstList])
+    #expect(model.selectedSegment == firstList.title)
+    #expect(model.stationListsForDisplay == [firstList])
   }
 
   // MARK: - Shared stationLists Updates Tests
 
-  func testSharedStationListsUpdates_KeepsSelectedSegmentWhenStillPresent() async {
+  @Test
+  func testSharedStationListsUpdatesKeepsSelectedSegmentWhenStillPresent() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
     let visibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
     guard let targetList = visibleLists.first else {
-      XCTFail("StationList.mocks should have at least one non-development list")
+      Issue.record("StationList.mocks should have at least one non-development list")
       return
     }
 
@@ -78,17 +83,18 @@ final class StationListPageTests: XCTestCase {
       )
     }
 
-    XCTAssertEqual(model.selectedSegment, targetList.title)
-    XCTAssertEqual(model.stationListsForDisplay.count, 1)
-    XCTAssertEqual(model.stationListsForDisplay.first?.title, targetList.title)
+    #expect(model.selectedSegment == targetList.title)
+    #expect(model.stationListsForDisplay.count == 1)
+    #expect(model.stationListsForDisplay.first?.title == targetList.title)
   }
 
-  func testSharedStationListsUpdates_ResetsSelectedSegmentWhenSegmentMissing() async {
+  @Test
+  func testSharedStationListsUpdatesResetsSelectedSegmentWhenSegmentMissing() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
     let visibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
     guard let targetList = visibleLists.first else {
-      XCTFail("StationList.mocks should have at least one non-development list")
+      Issue.record("StationList.mocks should have at least one non-development list")
       return
     }
 
@@ -120,23 +126,25 @@ final class StationListPageTests: XCTestCase {
     let expectedVisibleAfterUpdate = stationLists.filter {
       $0.id != StationList.inDevelopmentListId
     }
-    XCTAssertEqual(model.selectedSegment, "All")
-    XCTAssertEqual(model.stationListsForDisplay, expectedVisibleAfterUpdate)
+    #expect(model.selectedSegment == "All")
+    #expect(model.stationListsForDisplay == expectedVisibleAfterUpdate)
   }
 
-  func testViewAppeared_IncludesHiddenListsWhenSecretsEnabled() async {
+  @Test
+  func testViewAppearedIncludesHiddenListsWhenSecretsEnabled() async {
     @Shared(.showSecretStations) var showSecretStations = true
     @Shared(.stationLists) var stationLists = StationList.mocks
     let model = StationListModel()
     await model.viewAppeared()
 
-    XCTAssertEqual(model.stationListsForDisplay, stationLists)
-    XCTAssertEqual(model.segmentTitles, ["All"] + stationLists.map { $0.title })
+    #expect(model.stationListsForDisplay == stationLists)
+    #expect(model.segmentTitles == ["All"] + stationLists.map { $0.title })
   }
 
   // MARK: - Player Interaction Tests
 
-  func testPlayerInteraction_PlaysAStationWhenItIsTapped() async {
+  @Test
+  func testPlayerInteractionPlaysAStationWhenItIsTapped() async {
     let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
@@ -150,11 +158,12 @@ final class StationListPageTests: XCTestCase {
 
     await stationListModel.stationSelected(item)
 
-    XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
-    XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, item.anyStation.id)
+    #expect(stationPlayerMock.callsToPlay.count == 1)
+    #expect(stationPlayerMock.callsToPlay.first?.id == item.anyStation.id)
     assertPlayedEvents(capturedEvents.value, stationId: item.anyStation.id)
   }
 
+  @Test
   func testComingSoonStationDoesNotPlayWhenSecretsHidden() async {
     @Shared(.showSecretStations) var showSecretStations = false
 
@@ -188,10 +197,11 @@ final class StationListPageTests: XCTestCase {
 
     await stationListModel.stationSelected(comingSoonItem)
 
-    XCTAssertTrue(stationPlayerMock.callsToPlay.isEmpty)
-    XCTAssertTrue(capturedEvents.value.isEmpty)
+    #expect(stationPlayerMock.callsToPlay.isEmpty)
+    #expect(capturedEvents.value.isEmpty)
   }
 
+  @Test
   func testComingSoonStationPlaysWhenSecretsShown() async {
     @Shared(.showSecretStations) var showSecretStations = true
 
@@ -225,23 +235,24 @@ final class StationListPageTests: XCTestCase {
 
     await stationListModel.stationSelected(comingSoonItem)
 
-    XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
-    XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, comingSoonItem.anyStation.id)
+    #expect(stationPlayerMock.callsToPlay.count == 1)
+    #expect(stationPlayerMock.callsToPlay.first?.id == comingSoonItem.anyStation.id)
 
     let events = capturedEvents.value
-    XCTAssertEqual(events.count, 2)
+    #expect(events.count == 2)
     if case .tappedStationCard(let stationInfo, _, _) = events[0] {
-      XCTAssertEqual(stationInfo.id, comingSoonItem.anyStation.id)
+      #expect(stationInfo.id == comingSoonItem.anyStation.id)
     } else {
-      XCTFail("Expected tappedStationCard event")
+      Issue.record("Expected tappedStationCard event")
     }
     if case .startedStation(let stationInfo, _) = events[1] {
-      XCTAssertEqual(stationInfo.id, comingSoonItem.anyStation.id)
+      #expect(stationInfo.id == comingSoonItem.anyStation.id)
     } else {
-      XCTFail("Expected startedStation event")
+      Issue.record("Expected startedStation event")
     }
   }
 
+  @Test
   func testInactiveStationDoesNotPlay() async {
     @Shared(.showSecretStations) var showSecretStations = true
 
@@ -275,12 +286,13 @@ final class StationListPageTests: XCTestCase {
 
     await stationListModel.stationSelected(inactiveItem)
 
-    XCTAssertTrue(stationPlayerMock.callsToPlay.isEmpty)
-    XCTAssertTrue(capturedEvents.value.isEmpty)
+    #expect(stationPlayerMock.callsToPlay.isEmpty)
+    #expect(capturedEvents.value.isEmpty)
   }
 
   // MARK: - Hidden Station Filtering
 
+  @Test
   func testHiddenStationsFilteredWhenSecretsOff() async {
     @Shared(.showSecretStations) var showSecretStations = false
     let now = Date()
@@ -329,10 +341,11 @@ final class StationListPageTests: XCTestCase {
     let includeHidden = model.showSecretStations || !secretList.hidden
     let filteredItems = secretList.stationItems(includeHidden: includeHidden)
 
-    XCTAssertEqual(filteredItems.count, 1)
-    XCTAssertEqual(filteredItems.first?.visibility, .visible)
+    #expect(filteredItems.count == 1)
+    #expect(filteredItems.first?.visibility == .visible)
   }
 
+  @Test
   func testHiddenStationsIncludedWhenSecretsOn() async {
     @Shared(.showSecretStations) var showSecretStations = true
     let now = Date()
@@ -381,12 +394,13 @@ final class StationListPageTests: XCTestCase {
     let includeHidden = model.showSecretStations || !secretList.hidden
     let filteredItems = secretList.stationItems(includeHidden: includeHidden)
 
-    XCTAssertEqual(filteredItems.count, 2)
-    XCTAssertEqual(filteredItems.last?.visibility, .hidden)
+    #expect(filteredItems.count == 2)
+    #expect(filteredItems.last?.visibility == .hidden)
   }
 
   // MARK: - Live Station Tests
 
+  @Test
   func testLiveStatusForStationReturnsNilWhenNotLive() async {
     @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
 
@@ -395,9 +409,10 @@ final class StationListPageTests: XCTestCase {
 
     let status = model.liveStatusForStation("some-station-id")
 
-    XCTAssertNil(status)
+    #expect(status == nil)
   }
 
+  @Test
   func testLiveStatusForStationReturnsVoicetrackingStatus() async {
     let station = Station.mockWith(id: "live-station")
     @Shared(.liveStations) var liveStations: [LiveStationInfo] = [
@@ -409,9 +424,10 @@ final class StationListPageTests: XCTestCase {
 
     let status = model.liveStatusForStation("live-station")
 
-    XCTAssertEqual(status, .voicetracking)
+    #expect(status == .voicetracking)
   }
 
+  @Test
   func testLiveStatusForStationReturnsShowAiringStatus() async {
     let station = Station.mockWith(id: "show-station")
     @Shared(.liveStations) var liveStations: [LiveStationInfo] = [
@@ -423,9 +439,10 @@ final class StationListPageTests: XCTestCase {
 
     let status = model.liveStatusForStation("show-station")
 
-    XCTAssertEqual(status, .showAiring)
+    #expect(status == .showAiring)
   }
 
+  @Test
   func testSortedStationItemsPutsLiveStationsFirst() async {
     @Shared(.showSecretStations) var showSecretStations = false
     let now = Date()
@@ -458,10 +475,11 @@ final class StationListPageTests: XCTestCase {
 
     let sortedItems = model.sortedStationItems(for: list)
 
-    XCTAssertEqual(sortedItems.count, 3)
-    XCTAssertEqual(sortedItems[0].anyStation.id, "station-2")
+    #expect(sortedItems.count == 3)
+    #expect(sortedItems[0].anyStation.id == "station-2")
   }
 
+  @Test
   func testSortedStationItemsPutsVoicetrackingBeforeShowAiring() async {
     @Shared(.showSecretStations) var showSecretStations = false
     let now = Date()
@@ -495,12 +513,13 @@ final class StationListPageTests: XCTestCase {
 
     let sortedItems = model.sortedStationItems(for: list)
 
-    XCTAssertEqual(sortedItems.count, 3)
-    XCTAssertEqual(sortedItems[0].anyStation.id, "station-3")  // voicetracking first
-    XCTAssertEqual(sortedItems[1].anyStation.id, "station-1")  // showAiring second
-    XCTAssertEqual(sortedItems[2].anyStation.id, "station-2")  // not live last
+    #expect(sortedItems.count == 3)
+    #expect(sortedItems[0].anyStation.id == "station-3")  // voicetracking first
+    #expect(sortedItems[1].anyStation.id == "station-1")  // showAiring second
+    #expect(sortedItems[2].anyStation.id == "station-2")  // not live last
   }
 
+  @Test
   func testSortedStationItemsPreservesOrderWhenNoLiveStations() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
@@ -528,13 +547,14 @@ final class StationListPageTests: XCTestCase {
 
     let sortedItems = model.sortedStationItems(for: list)
 
-    XCTAssertEqual(sortedItems.count, 2)
-    XCTAssertEqual(sortedItems[0].anyStation.id, "station-1")
-    XCTAssertEqual(sortedItems[1].anyStation.id, "station-2")
+    #expect(sortedItems.count == 2)
+    #expect(sortedItems[0].anyStation.id == "station-1")
+    #expect(sortedItems[1].anyStation.id == "station-2")
   }
 
   // MARK: - Search Tests
 
+  @Test
   func testSearchByCuratorNameFiltersStations() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
@@ -554,10 +574,11 @@ final class StationListPageTests: XCTestCase {
     model.searchText = "Alice"
 
     let items = model.sortedStationItems(for: model.stationListsForDisplay.first!)
-    XCTAssertEqual(items.count, 1)
-    XCTAssertEqual(items.first?.anyStation.id, "s1")
+    #expect(items.count == 1)
+    #expect(items.first?.anyStation.id == "s1")
   }
 
+  @Test
   func testSearchByStationNameFiltersStations() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
@@ -577,10 +598,11 @@ final class StationListPageTests: XCTestCase {
     model.searchText = "Moondog"
 
     let items = model.sortedStationItems(for: model.stationListsForDisplay.first!)
-    XCTAssertEqual(items.count, 1)
-    XCTAssertEqual(items.first?.anyStation.id, "s1")
+    #expect(items.count == 1)
+    #expect(items.first?.anyStation.id == "s1")
   }
 
+  @Test
   func testSearchIsCaseInsensitive() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
@@ -598,10 +620,11 @@ final class StationListPageTests: XCTestCase {
     model.searchText = "alice"
 
     let items = model.sortedStationItems(for: model.stationListsForDisplay.first!)
-    XCTAssertEqual(items.count, 1)
-    XCTAssertEqual(items.first?.anyStation.id, "s1")
+    #expect(items.count == 1)
+    #expect(items.first?.anyStation.id == "s1")
   }
 
+  @Test
   func testEmptySearchTextShowsAllStations() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
@@ -621,9 +644,10 @@ final class StationListPageTests: XCTestCase {
     model.searchText = ""
 
     let items = model.sortedStationItems(for: model.stationListsForDisplay.first!)
-    XCTAssertEqual(items.count, 2)
+    #expect(items.count == 2)
   }
 
+  @Test
   func testIsShowingNoResultsTrueWhenSearchHasNoMatches() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
@@ -640,9 +664,10 @@ final class StationListPageTests: XCTestCase {
 
     model.searchText = "xyznonexistent"
 
-    XCTAssertTrue(model.isShowingNoResults)
+    #expect(model.isShowingNoResults)
   }
 
+  @Test
   func testIsShowingNoResultsFalseWhenSearchTextEmpty() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
@@ -659,9 +684,10 @@ final class StationListPageTests: XCTestCase {
 
     model.searchText = ""
 
-    XCTAssertFalse(model.isShowingNoResults)
+    #expect(!model.isShowingNoResults)
   }
 
+  @Test
   func testSearchWorksWithinSelectedSegment() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
@@ -692,12 +718,13 @@ final class StationListPageTests: XCTestCase {
     await model.segmentSelected("Hip Hop")
     model.searchText = "Alice"
 
-    XCTAssertEqual(model.stationListsForDisplay.count, 1)
+    #expect(model.stationListsForDisplay.count == 1)
     let items = model.sortedStationItems(for: model.stationListsForDisplay.first!)
-    XCTAssertEqual(items.count, 1)
-    XCTAssertEqual(items.first?.anyStation.id, "s1")
+    #expect(items.count == 1)
+    #expect(items.first?.anyStation.id == "s1")
   }
 
+  @Test
   func testSearchTextClearedOnSegmentSwitch() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
@@ -723,12 +750,13 @@ final class StationListPageTests: XCTestCase {
     await model.viewAppeared()
 
     model.searchText = "Alice"
-    XCTAssertEqual(model.searchText, "Alice")
+    #expect(model.searchText == "Alice")
 
     await model.segmentSelected("Jazz")
-    XCTAssertEqual(model.searchText, "")
+    #expect(model.searchText == "")
   }
 
+  @Test
   func testSearchMatchesEitherCuratorNameOrStationName() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
@@ -750,10 +778,10 @@ final class StationListPageTests: XCTestCase {
     model.searchText = "Moondog"
 
     let items = model.sortedStationItems(for: model.stationListsForDisplay.first!)
-    XCTAssertEqual(items.count, 2)
+    #expect(items.count == 2)
     let ids = items.map { $0.anyStation.id }
-    XCTAssertTrue(ids.contains("s1"))
-    XCTAssertTrue(ids.contains("s2"))
+    #expect(ids.contains("s1"))
+    #expect(ids.contains("s2"))
   }
 }
 
@@ -761,30 +789,34 @@ private func assertPlayedEvents(
   _ events: [AnalyticsEvent],
   stationId: String
 ) {
-  XCTAssertEqual(events.count, 2)
+  #expect(events.count == 2)
 
   guard let firstEvent = events.first else {
-    return XCTFail("Expected tappedStationCard event, but events were empty")
+    Issue.record("Expected tappedStationCard event, but events were empty")
+    return
   }
   guard
     case .tappedStationCard(let stationInfo, let position, let totalStations) = firstEvent
   else {
-    return XCTFail("Expected tappedStationCard event, got: \(String(describing: firstEvent))")
+    Issue.record("Expected tappedStationCard event, got: \(String(describing: firstEvent))")
+    return
   }
-  XCTAssertEqual(stationInfo.id, stationId)
-  XCTAssertEqual(position, 0)
-  XCTAssertEqual(totalStations, 1)
+  #expect(stationInfo.id == stationId)
+  #expect(position == 0)
+  #expect(totalStations == 1)
 
   guard let secondEvent = events.dropFirst().first else {
-    return XCTFail("Expected startedStation event, but only found one event")
+    Issue.record("Expected startedStation event, but only found one event")
+    return
   }
   guard
     case .startedStation(let startedInfo, let entryPoint) = secondEvent
   else {
-    return XCTFail("Expected startedStation event, got: \(String(describing: secondEvent))")
+    Issue.record("Expected startedStation event, got: \(String(describing: secondEvent))")
+    return
   }
-  XCTAssertEqual(startedInfo.id, stationId)
-  XCTAssertEqual(entryPoint, "station_list")
+  #expect(startedInfo.id == stationId)
+  #expect(entryPoint == "station_list")
 }
 
 private func makeComingSoonItem(active: Bool, date: Date) -> APIStationItem {
@@ -858,8 +890,9 @@ private func makeStationListModel(
 // MARK: - Notification Permission Prompt Tests
 
 @MainActor
-final class StationListNotificationPromptTests: XCTestCase {
+struct StationListNotificationPromptTests {
 
+  @Test
   func testViewAppearedShowsNotificationAlertOnFirstVisit() async {
     @Shared(.hasAskedForNotificationPermission) var hasAsked = false
 
@@ -872,10 +905,11 @@ final class StationListNotificationPromptTests: XCTestCase {
 
     await model.viewAppeared()
 
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert?.title, "Stay in the Loop?")
+    #expect(model.presentedAlert != nil)
+    #expect(model.presentedAlert?.title == "Stay in the Loop?")
   }
 
+  @Test
   func testViewAppearedDoesNotShowAlertIfAlreadyAsked() async {
     @Shared(.hasAskedForNotificationPermission) var hasAsked = true
 
@@ -888,9 +922,10 @@ final class StationListNotificationPromptTests: XCTestCase {
 
     await model.viewAppeared()
 
-    XCTAssertNil(model.presentedAlert)
+    #expect(model.presentedAlert == nil)
   }
 
+  @Test
   func testNotificationAlertYesTappedRequestsPermission() async {
     @Shared(.hasAskedForNotificationPermission) var hasAsked = false
     let authorizationRequested = LockIsolated(false)
@@ -910,12 +945,13 @@ final class StationListNotificationPromptTests: XCTestCase {
 
     await model.notificationAlertYesTapped()
 
-    XCTAssertTrue(authorizationRequested.value)
-    XCTAssertTrue(registrationCalled.value)
-    XCTAssertTrue(hasAsked)
-    XCTAssertNil(model.presentedAlert)
+    #expect(authorizationRequested.value)
+    #expect(registrationCalled.value)
+    #expect(hasAsked)
+    #expect(model.presentedAlert == nil)
   }
 
+  @Test
   func testNotificationAlertNoTappedSetsHasAskedWithoutRequesting() async {
     @Shared(.hasAskedForNotificationPermission) var hasAsked = false
     let authorizationRequested = LockIsolated(false)
@@ -932,11 +968,12 @@ final class StationListNotificationPromptTests: XCTestCase {
 
     await model.notificationAlertNoTapped()
 
-    XCTAssertFalse(authorizationRequested.value)
-    XCTAssertTrue(hasAsked)
-    XCTAssertNil(model.presentedAlert)
+    #expect(!authorizationRequested.value)
+    #expect(hasAsked)
+    #expect(model.presentedAlert == nil)
   }
 
+  @Test
   func testNotificationAlertDoesNotRegisterIfPermissionDenied() async {
     @Shared(.hasAskedForNotificationPermission) var hasAsked = false
     let registrationCalled = LockIsolated(false)
@@ -954,7 +991,7 @@ final class StationListNotificationPromptTests: XCTestCase {
 
     await model.notificationAlertYesTapped()
 
-    XCTAssertFalse(registrationCalled.value)
-    XCTAssertTrue(hasAsked)
+    #expect(!registrationCalled.value)
+    #expect(hasAsked)
   }
 }

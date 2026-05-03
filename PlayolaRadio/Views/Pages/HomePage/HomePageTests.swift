@@ -5,33 +5,37 @@
 //  Created by Brian D Keane on 6/10/25.
 //
 
-// swiftlint:disable force_try
-
 import ConcurrencyExtras
 import Dependencies
+import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
+// `createTestJWT` is defined in MainContainerTests.swift and shared
+// across the test target.
+
 @MainActor
-final class HomePageTests: XCTestCase {
+struct HomePageTests {
   // MARK: - ViewAppeared Tests
 
-  func testViewAppeared_PopulatesForYouStationsBasedOnInitialValueOfSharedStationLists() async {
+  @Test
+  func testViewAppearedPopulatesForYouStationsBasedOnInitialValueOfSharedStationLists() async {
     @Shared(.stationLists) var stationLists = StationList.mocks
     let artistStations = stationLists.first {
       $0.slug == StationList.artistListSlug
     }
-    XCTAssertNotNil(artistStations)
+    #expect(artistStations != nil)
     let model = HomePageModel()
     await model.viewAppeared()
-    XCTAssertEqual(model.forYouStations.elements, artistStations!.stations)
+    #expect(model.forYouStations.elements == artistStations!.stations)
   }
 
-  func testViewAppeared_RepopulatesForYouStationsWhenSharedStationListsChanges() async {
+  @Test
+  func testViewAppearedRepopulatesForYouStationsWhenSharedStationListsChanges() async {
     @Shared(.stationLists) var stationLists = StationList.mocks
     let artistStations = stationLists.first {
       $0.slug == StationList.artistListSlug
@@ -39,14 +43,14 @@ final class HomePageTests: XCTestCase {
     let inDevelopmentStations = stationLists.first {
       $0.id == StationList.inDevelopmentListId
     }
-    XCTAssertNotNil(artistStations)
-    XCTAssertNotNil(inDevelopmentStations)
-    XCTAssertNotEqual(artistStations!.stations, inDevelopmentStations!.stations)
+    #expect(artistStations != nil)
+    #expect(inDevelopmentStations != nil)
+    #expect(artistStations!.stations != inDevelopmentStations!.stations)
 
     let model = HomePageModel()
     await model.viewAppeared()
 
-    XCTAssertEqual(model.forYouStations.elements, artistStations!.stations)
+    #expect(model.forYouStations.elements == artistStations!.stations)
 
     $stationLists.withLock {
       $0 = IdentifiedArray(
@@ -80,11 +84,12 @@ final class HomePageTests: XCTestCase {
         ])
     }
 
-    XCTAssertEqual(model.forYouStations.elements.count, 1)
-    XCTAssertEqual(model.forYouStations.elements.first?.id, "different-station")
+    #expect(model.forYouStations.elements.count == 1)
+    #expect(model.forYouStations.elements.first?.id == "different-station")
   }
 
-  func testViewAppeared_ExcludesComingSoonStationsFromForYouList() async {
+  @Test
+  func testViewAppearedExcludesComingSoonStationsFromForYouList() async {
     let visibleStation = Station.mockWith(
       id: "visible-station", name: "Visible Station", curatorName: "DJ Visible")
     let artistList = StationList.mockArtistList(items: [
@@ -98,11 +103,12 @@ final class HomePageTests: XCTestCase {
     let model = HomePageModel()
     await model.viewAppeared()
 
-    XCTAssertEqual(model.forYouStations.count, 1)
-    XCTAssertEqual(model.forYouStations.first?.id, visibleStation.id)
-    XCTAssertNil(model.forYouStations[id: "coming-soon-station"])
+    #expect(model.forYouStations.count == 1)
+    #expect(model.forYouStations.first?.id == visibleStation.id)
+    #expect(model.forYouStations[id: "coming-soon-station"] == nil)
   }
 
+  @Test
   func testShowSecretStationsIncludesActiveComingSoonStations() async {
     let visibleStation = Station.mockWith(id: "visible-station", curatorName: "DJ Visible")
     let comingSoonStation = Station.mockWith(id: "coming-soon-station", curatorName: "DJ Soon")
@@ -117,15 +123,16 @@ final class HomePageTests: XCTestCase {
     let model = HomePageModel()
     await model.viewAppeared()
 
-    XCTAssertEqual(model.forYouStations.count, 1)
-    XCTAssertNil(model.forYouStations[id: comingSoonStation.id])
+    #expect(model.forYouStations.count == 1)
+    #expect(model.forYouStations[id: comingSoonStation.id] == nil)
 
     $showSecretStations.withLock { $0 = true }
 
-    XCTAssertNotNil(model.forYouStations[id: comingSoonStation.id])
-    XCTAssertEqual(model.forYouStations.count, 2)
+    #expect(model.forYouStations[id: comingSoonStation.id] != nil)
+    #expect(model.forYouStations.count == 2)
   }
 
+  @Test
   func testShowSecretStationsStillHidesInactiveComingSoonStations() async {
     let visibleStation = Station.mockWith(id: "visible-station", curatorName: "DJ Visible")
     let inactiveStation = Station.mockWith(
@@ -141,22 +148,25 @@ final class HomePageTests: XCTestCase {
     let model = HomePageModel()
     await model.viewAppeared()
 
-    XCTAssertEqual(model.forYouStations.count, 1)
-    XCTAssertNil(model.forYouStations[id: inactiveStation.id])
+    #expect(model.forYouStations.count == 1)
+    #expect(model.forYouStations[id: inactiveStation.id] == nil)
   }
 
+  @Test
   func testStationListItemVisibilityDecodesKnownValue() throws {
     let jsonData = Data("\"coming-soon\"".utf8)
     let visibility = try JSONDecoder().decode(StationListItemVisibility.self, from: jsonData)
-    XCTAssertEqual(visibility, .comingSoon)
+    #expect(visibility == .comingSoon)
   }
 
+  @Test
   func testStationListItemVisibilityDecodesUnknownValueAsUnknown() throws {
     let jsonData = Data("\"future-release\"".utf8)
     let visibility = try JSONDecoder().decode(StationListItemVisibility.self, from: jsonData)
-    XCTAssertEqual(visibility, .unknown)
+    #expect(visibility == .unknown)
   }
 
+  @Test
   func testStationListStationsFiltersByVisibility() {
     let visiblePlayola = Station.mockWith(id: "visible-playola")
     let unknownPlayola = Station.mockWith(id: "unknown-playola")
@@ -175,124 +185,91 @@ final class HomePageTests: XCTestCase {
     )
 
     let visibleItems = list.stationItems(includeHidden: false)
-    XCTAssertEqual(visibleItems.map(\.visibility), [.visible, .comingSoon, .unknown])
+    #expect(visibleItems.map(\.visibility) == [.visible, .comingSoon, .unknown])
 
     let visibleStations = visibleItems.map { $0.anyStation }
-    XCTAssertEqual(visibleStations.count, 3)
+    #expect(visibleStations.count == 3)
     if case .playola(let station) = visibleStations[0] {
-      XCTAssertEqual(station.id, visiblePlayola.id)
+      #expect(station.id == visiblePlayola.id)
     } else {
-      XCTFail("Expected first visible station to be playola")
+      Issue.record("Expected first visible station to be playola")
     }
 
     if case .url(let station) = visibleStations[1] {
-      XCTAssertEqual(station.id, comingSoonUrl.id)
+      #expect(station.id == comingSoonUrl.id)
     } else {
-      XCTFail("Expected second visible station to be coming soon url station")
+      Issue.record("Expected second visible station to be coming soon url station")
     }
 
     if case .playola(let station) = visibleStations[2] {
-      XCTAssertEqual(station.id, unknownPlayola.id)
+      #expect(station.id == unknownPlayola.id)
     } else {
-      XCTFail("Expected second visible station to be playola")
+      Issue.record("Expected second visible station to be playola")
     }
 
     let allItemsIncludingHidden = list.stationItems(includeHidden: true)
     let comingSoonItems = allItemsIncludingHidden.filter { $0.visibility == .comingSoon }
-    XCTAssertEqual(comingSoonItems.count, 1)
-    XCTAssertEqual(comingSoonItems.first?.urlStation?.id, comingSoonUrl.id)
+    #expect(comingSoonItems.count == 1)
+    #expect(comingSoonItems.first?.urlStation?.id == comingSoonUrl.id)
 
     let hiddenItems = allItemsIncludingHidden.filter { $0.visibility == .hidden }
-    XCTAssertEqual(hiddenItems.count, 1)
-    XCTAssertEqual(hiddenItems.first?.urlStation?.id, hiddenUrl.id)
+    #expect(hiddenItems.count == 1)
+    #expect(hiddenItems.first?.urlStation?.id == hiddenUrl.id)
   }
 
   // MARK: - Welcome Message Tests
 
-  func testWelcomeMessage_ShowsGenericWelcomeMessageWhenNoUserIsLoggedIn() {
+  @Test
+  func testWelcomeMessageShowsGenericWelcomeMessageWhenNoUserIsLoggedIn() {
     @Shared(.auth) var auth = Auth()
     let model = HomePageModel()
-    XCTAssertEqual(model.welcomeMessage, "Welcome to Playola")
+    #expect(model.welcomeMessage == "Welcome to Playola")
   }
 
-  // Helper function to create valid JWT tokens for testing
-  static func createTestJWT(
-    id: String = "test-user-123",
-    firstName: String = "John",
-    lastName: String? = "Doe",
-    email: String = "john@example.com",
-    profileImageUrl: String? = nil,
-    role: String = "user"
-  ) -> String {
-    let header = ["alg": "HS256", "typ": "JWT"]
-    var payload: [String: Any] = [
-      "id": id,
-      "firstName": firstName,
-      "email": email,
-      "role": role,
-    ]
-    if let lastName = lastName {
-      payload["lastName"] = lastName
-    }
-    if let profileImageUrl = profileImageUrl {
-      payload["profileImageUrl"] = profileImageUrl
-    }
-
-    let headerData = try! JSONSerialization.data(withJSONObject: header)
-    let payloadData = try! JSONSerialization.data(withJSONObject: payload)
-
-    let headerString = headerData.base64EncodedString()
-      .replacingOccurrences(of: "+", with: "-")
-      .replacingOccurrences(of: "/", with: "_")
-      .replacingOccurrences(of: "=", with: "")
-
-    let payloadString = payloadData.base64EncodedString()
-      .replacingOccurrences(of: "+", with: "-")
-      .replacingOccurrences(of: "/", with: "_")
-      .replacingOccurrences(of: "=", with: "")
-
-    return "\(headerString).\(payloadString).fake_signature"
-  }
-
-  func testWelcomeMessage_ShowsPersonalizedWelcomeMessageWhenUserIsLoggedIn() {
-    let mockJWT = HomePageTests.createTestJWT(firstName: "John")
+  @Test
+  func testWelcomeMessageShowsPersonalizedWelcomeMessageWhenUserIsLoggedIn() {
+    let mockJWT = createTestJWT(firstName: "John")
     @Shared(.auth) var auth = Auth(jwtToken: mockJWT)
     let model = HomePageModel()
-    XCTAssertEqual(model.welcomeMessage, "Welcome, John")
+    #expect(model.welcomeMessage == "Welcome, John")
   }
 
-  func testWelcomeMessage_UpdatesWelcomeMessageWhenAuthChanges() {
+  @Test
+  func testWelcomeMessageUpdatesWelcomeMessageWhenAuthChanges() {
     @Shared(.auth) var auth = Auth()
     let model = HomePageModel()
-    XCTAssertEqual(model.welcomeMessage, "Welcome to Playola")
+    #expect(model.welcomeMessage == "Welcome to Playola")
 
-    let mockJWT = HomePageTests.createTestJWT(firstName: "John")
+    let mockJWT = createTestJWT(firstName: "John")
     $auth.withLock { $0 = Auth(jwtToken: mockJWT) }
-    XCTAssertEqual(model.welcomeMessage, "Welcome, John")
+    #expect(model.welcomeMessage == "Welcome, John")
   }
 
   // MARK: - Tapping The P Tests
 
-  func testTappingTheP_TurnsOnTheSecretStations() {
+  @Test
+  func testTappingThePTurnsOnTheSecretStations() {
     let homePage = HomePageModel()
-    XCTAssertFalse(homePage.showSecretStations)
+    #expect(!homePage.showSecretStations)
     homePage.playolaIconTapped10Times()
-    XCTAssertTrue(homePage.showSecretStations)
-    XCTAssertEqual(homePage.presentedAlert, .secretStationsTurnedOnAlert)
+    #expect(homePage.showSecretStations)
+    #expect(homePage.presentedAlert == .secretStationsTurnedOnAlert)
   }
 
-  func testTappingTheP_HidesTheSecretStations() {
+  @Test
+  func testTappingThePHidesTheSecretStations() {
     @Shared(.showSecretStations) var showSecretStations = true
     let homePage = HomePageModel()
-    XCTAssertTrue(homePage.showSecretStations)
+    #expect(homePage.showSecretStations)
     homePage.playolaIconTapped10Times()
-    XCTAssertFalse(homePage.showSecretStations)
-    XCTAssertEqual(homePage.presentedAlert, .secretStationsHiddenAlert)
+    #expect(!homePage.showSecretStations)
+    #expect(homePage.presentedAlert == .secretStationsHiddenAlert)
   }
 
   // MARK: - Listening Tile Navigation Tests
 
-  func testListeningTile_NavigationToRewardsTracksAnalytics() async {
+  @Test
+  func testListeningTileNavigationToRewardsTracksAnalytics() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
     @Shared(.activeTab) var activeTab = MainContainerModel.ActiveTab.home
 
@@ -304,21 +281,19 @@ final class HomePageTests: XCTestCase {
       HomePageModel()
     }
 
-    // Call the button action on the listening tile model
     await homePageModel.listeningTimeTileModel.buttonAction?()
 
-    // Verify navigation happened
-    XCTAssertEqual(activeTab, .rewards)
+    #expect(activeTab == .rewards)
 
-    // Verify analytics event was tracked
     let events = capturedEvents.value
-    XCTAssertEqual(events.count, 1)
-    XCTAssertEqual(events.first, .navigatedToRewardsFromListeningTile)
+    #expect(events.count == 1)
+    #expect(events.first == .navigatedToRewardsFromListeningTile)
   }
 
   // MARK: - Player Interaction Tests
 
-  func testPlayerInteraction_PlaysAStationWhenItIsTapped() async {
+  @Test
+  func testPlayerInteractionPlaysAStationWhenItIsTapped() async {
     let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
     let station: AnyStation = .mock
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
@@ -333,21 +308,21 @@ final class HomePageTests: XCTestCase {
 
     await homePageModel.stationTapped(station)
 
-    XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
-    XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, station.id)
+    #expect(stationPlayerMock.callsToPlay.count == 1)
+    #expect(stationPlayerMock.callsToPlay.first?.id == station.id)
 
-    // Verify analytics event was tracked
     let events = capturedEvents.value
-    XCTAssertEqual(events.count, 1)
+    #expect(events.count == 1)
     if case .startedStation(let stationInfo, let entryPoint) = events.first {
-      XCTAssertEqual(stationInfo.id, station.id)
-      XCTAssertEqual(stationInfo.name, station.name)
-      XCTAssertEqual(entryPoint, "home_recommendations")
+      #expect(stationInfo.id == station.id)
+      #expect(stationInfo.name == station.name)
+      #expect(entryPoint == "home_recommendations")
     } else {
-      XCTFail("Expected startedStation event, got: \(String(describing: events.first))")
+      Issue.record("Expected startedStation event, got: \(String(describing: events.first))")
     }
   }
 
+  @Test
   func testShowSecretStationsToggleUpdatesForYouStations() async {
     let artistList = StationList.mockArtistList(items: [
       .mockWith(sortOrder: 0, visibility: .visible, station: .mockWith(id: "visible-playola")),
@@ -359,17 +334,18 @@ final class HomePageTests: XCTestCase {
     let model = HomePageModel()
     await model.viewAppeared()
 
-    XCTAssertEqual(model.forYouStations.count, 1)
+    #expect(model.forYouStations.count == 1)
 
     $showSecretStations.withLock { $0 = true }
-    XCTAssertEqual(model.forYouStations.count, 2)
+    #expect(model.forYouStations.count == 2)
 
     $showSecretStations.withLock { $0 = false }
-    XCTAssertEqual(model.forYouStations.count, 1)
+    #expect(model.forYouStations.count == 1)
   }
 
   // MARK: - Scheduled Shows Tests
 
+  @Test
   func testViewAppearedSetsHasScheduledShowsToTrueWhenAiringsExist() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let now = Date()
@@ -388,10 +364,11 @@ final class HomePageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertTrue(model.hasScheduledShows)
+      #expect(model.hasScheduledShows)
     }
   }
 
+  @Test
   func testViewAppearedSetsHasScheduledShowsToFalseWhenNoAirings() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
@@ -402,10 +379,11 @@ final class HomePageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertFalse(model.hasScheduledShows)
+      #expect(!model.hasScheduledShows)
     }
   }
 
+  @Test
   func testViewAppearedSetsHasScheduledShowsToFalseOnError() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
@@ -418,10 +396,11 @@ final class HomePageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertFalse(model.hasScheduledShows)
+      #expect(!model.hasScheduledShows)
     }
   }
 
+  @Test
   func testScheduledShowsTileNavigatesToSeriesListPage() async {
     @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator =
       MainContainerNavigationCoordinator()
@@ -430,15 +409,16 @@ final class HomePageTests: XCTestCase {
 
     await model.scheduledShowsTileModel.buttonAction?()
 
-    XCTAssertEqual(navigationCoordinator.path.count, 1)
+    #expect(navigationCoordinator.path.count == 1)
     if case .seriesListPage = navigationCoordinator.path.first {
       // Success
     } else {
-      XCTFail(
+      Issue.record(
         "Expected seriesListPage, got: \(String(describing: navigationCoordinator.path.first))")
     }
   }
 
+  @Test
   func testViewAppearedSetsHasScheduledShowsToFalseWhenAllAiringsEnded() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let now = Date()
@@ -464,12 +444,13 @@ final class HomePageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertFalse(model.hasScheduledShows)
+      #expect(!model.hasScheduledShows)
     }
   }
 
   // MARK: - Listener Question Airing Tests
 
+  @Test
   func testViewAppearedSetsUpcomingQuestionAiringWhenAiringsExist() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let futureDate = Date().addingTimeInterval(2 * 24 * 60 * 60)
@@ -486,12 +467,13 @@ final class HomePageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertNotNil(model.upcomingQuestionAiring)
-      XCTAssertEqual(model.upcomingQuestionAiring?.id, expectedAiring.id)
-      XCTAssertTrue(model.hasUpcomingQuestionAiring)
+      #expect(model.upcomingQuestionAiring != nil)
+      #expect(model.upcomingQuestionAiring?.id == expectedAiring.id)
+      #expect(model.hasUpcomingQuestionAiring)
     }
   }
 
+  @Test
   func testViewAppearedSetsUpcomingQuestionAiringToNilWhenNoAirings() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
@@ -502,11 +484,12 @@ final class HomePageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertNil(model.upcomingQuestionAiring)
-      XCTAssertFalse(model.hasUpcomingQuestionAiring)
+      #expect(model.upcomingQuestionAiring == nil)
+      #expect(!model.hasUpcomingQuestionAiring)
     }
   }
 
+  @Test
   func testViewAppearedSetsUpcomingQuestionAiringToNilOnError() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
@@ -519,11 +502,12 @@ final class HomePageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertNil(model.upcomingQuestionAiring)
-      XCTAssertFalse(model.hasUpcomingQuestionAiring)
+      #expect(model.upcomingQuestionAiring == nil)
+      #expect(!model.hasUpcomingQuestionAiring)
     }
   }
 
+  @Test
   func testViewAppearedDoesNotCheckAiringsWhenNotLoggedIn() async {
     @Shared(.auth) var auth = Auth()
     let apiCalled = LockIsolated(false)
@@ -538,11 +522,12 @@ final class HomePageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertFalse(apiCalled.value)
-      XCTAssertNil(model.upcomingQuestionAiring)
+      #expect(!apiCalled.value)
+      #expect(model.upcomingQuestionAiring == nil)
     }
   }
 
+  @Test
   func testQuestionAiringTileShowsStationNameAndAirtime() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let futureDate = Date().addingTimeInterval(2 * 24 * 60 * 60)
@@ -558,8 +543,8 @@ final class HomePageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertEqual(model.questionAiringTileModel.content, "You're On Air Soon!")
-      XCTAssertTrue(
+      #expect(model.questionAiringTileModel.content == "You're On Air Soon!")
+      #expect(
         model.questionAiringTileModel.paragraph!.contains("DJ Awesome picked your question!"))
     }
   }
@@ -568,6 +553,7 @@ final class HomePageTests: XCTestCase {
 
   private static let appStoreUrl = "https://apps.apple.com/us/app/playola-radio/id6480465361"
 
+  @Test
   func testQuestionAiringShareButtonPresentsShareSheetWithAppStoreUrl() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator =
@@ -588,14 +574,15 @@ final class HomePageTests: XCTestCase {
       await model.questionAiringTileModel.buttonAction?()
 
       if case .share(let shareModel) = navigationCoordinator.presentedSheet {
-        XCTAssertTrue(shareModel.items[0].contains("Jason Eady's radio station"))
-        XCTAssertEqual(shareModel.items[1], Self.appStoreUrl)
+        #expect(shareModel.items[0].contains("Jason Eady's radio station"))
+        #expect(shareModel.items[1] == Self.appStoreUrl)
       } else {
-        XCTFail("Expected share sheet to be presented")
+        Issue.record("Expected share sheet to be presented")
       }
     }
   }
 
+  @Test
   func testQuestionAiringShareButtonUsesGenericMessageWhenNoCuratorName() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator =
@@ -616,16 +603,17 @@ final class HomePageTests: XCTestCase {
       await model.questionAiringTileModel.buttonAction?()
 
       if case .share(let shareModel) = navigationCoordinator.presentedSheet {
-        XCTAssertTrue(shareModel.items[0].contains("an internet radio station"))
-        XCTAssertEqual(shareModel.items[1], Self.appStoreUrl)
+        #expect(shareModel.items[0].contains("an internet radio station"))
+        #expect(shareModel.items[1] == Self.appStoreUrl)
       } else {
-        XCTFail("Expected share sheet to be presented")
+        Issue.record("Expected share sheet to be presented")
       }
     }
   }
 
   // MARK: - Invite Friends Tile Tests
 
+  @Test
   func testCanInviteFriendsIsTrueWhenUserHasTwoOrMoreHours() {
     let rewardsProfile = RewardsProfile(
       totalTimeListenedMS: 2 * 60 * 60 * 1000,  // 2 hours
@@ -637,9 +625,10 @@ final class HomePageTests: XCTestCase {
 
     let model = HomePageModel()
 
-    XCTAssertTrue(model.canInviteFriends)
+    #expect(model.canInviteFriends)
   }
 
+  @Test
   func testCanInviteFriendsIsFalseWhenUserHasLessThanTwoHours() {
     let rewardsProfile = RewardsProfile(
       totalTimeListenedMS: 1 * 60 * 60 * 1000,  // 1 hour
@@ -651,26 +640,29 @@ final class HomePageTests: XCTestCase {
 
     let model = HomePageModel()
 
-    XCTAssertFalse(model.canInviteFriends)
+    #expect(!model.canInviteFriends)
   }
 
+  @Test
   func testCanInviteFriendsIsFalseWhenListeningTrackerIsNil() {
     @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
 
     let model = HomePageModel()
 
-    XCTAssertFalse(model.canInviteFriends)
+    #expect(!model.canInviteFriends)
   }
 
+  @Test
   func testInviteFriendsTileHasCorrectContent() {
     let model = HomePageModel()
 
-    XCTAssertEqual(model.inviteFriendsTileModel.label, "Power Listener Reward")
-    XCTAssertEqual(model.inviteFriendsTileModel.content, "Invite Your Friends")
-    XCTAssertEqual(model.inviteFriendsTileModel.buttonText, "Invite")
-    XCTAssertNotNil(model.inviteFriendsTileModel.paragraph)
+    #expect(model.inviteFriendsTileModel.label == "Power Listener Reward")
+    #expect(model.inviteFriendsTileModel.content == "Invite Your Friends")
+    #expect(model.inviteFriendsTileModel.buttonText == "Invite")
+    #expect(model.inviteFriendsTileModel.paragraph != nil)
   }
 
+  @Test
   func testInviteFriendsTilePresentsShareSheetWithAppStoreUrl() async {
     @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator =
       MainContainerNavigationCoordinator()
@@ -680,13 +672,11 @@ final class HomePageTests: XCTestCase {
     await model.inviteFriendsTileModel.buttonAction?()
 
     if case .share(let shareModel) = navigationCoordinator.presentedSheet {
-      XCTAssertEqual(shareModel.items.count, 1)
-      XCTAssertEqual(shareModel.items[0], Self.appStoreUrl)
+      #expect(shareModel.items.count == 1)
+      #expect(shareModel.items[0] == Self.appStoreUrl)
     } else {
-      XCTFail("Expected share sheet to be presented")
+      Issue.record("Expected share sheet to be presented")
     }
   }
 
 }
-
-// swiftlint:enable force_try
