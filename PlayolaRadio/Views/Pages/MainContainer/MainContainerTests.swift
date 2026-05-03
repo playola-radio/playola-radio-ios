@@ -17,8 +17,9 @@ import Testing
 
 @testable import PlayolaRadio
 
-// Helper function to create valid JWT tokens for testing
-private func createTestJWT(
+// Helper function to create valid JWT tokens for testing.
+// Module-internal (not file-private) so HomePageTests can reuse it.
+func createTestJWT(
   id: String = "test-user-123",
   firstName: String = "Test",
   lastName: String? = "User",
@@ -787,42 +788,49 @@ struct MainContainerTests {
       let markShownCalled = LockIsolated(false)
       let markDismissedCalled = LockIsolated(false)
 
-      await confirmation("feedbackSheetPresented tracked") { feedbackSheetConfirmation in
-        let mainContainerModel = withDependencies {
-          $0.api.getStations = { [] }
-          $0.pushNotifications.registerForRemoteNotifications = {}
-          $0.appRating.shouldShowRatingPrompt = { _ in true }
-          $0.appRating.markRatingPromptShown = { markShownCalled.setValue(true) }
-          $0.appRating.markRatingPromptDismissed = { markDismissedCalled.setValue(true) }
-          $0.analytics.track = { @Sendable event in
-            capturedEvents.withValue { $0.append(event) }
-            if event == .feedbackSheetPresented { feedbackSheetConfirmation() }
-          }
-        } operation: {
-          MainContainerModel()
+      let mainContainerModel = withDependencies {
+        $0.api.getStations = { [] }
+        $0.pushNotifications.registerForRemoteNotifications = {}
+        $0.appRating.shouldShowRatingPrompt = { _ in true }
+        $0.appRating.markRatingPromptShown = { markShownCalled.setValue(true) }
+        $0.appRating.markRatingPromptDismissed = { markDismissedCalled.setValue(true) }
+        $0.analytics.track = { @Sendable event in
+          capturedEvents.withValue { $0.append(event) }
         }
+      } operation: {
+        MainContainerModel()
+      }
 
-        mainContainerModel.checkAndShowRatingPromptIfNeeded()
-        await mainContainerModel.presentedAlert?.secondaryAction?()
+      mainContainerModel.checkAndShowRatingPromptIfNeeded()
+      await mainContainerModel.presentedAlert?.secondaryAction?()
 
-        // showFeedbackSheet() spawns a Task that awaits analytics.track
-        // before presenting the sheet — yield enough times for it to drain.
-        for _ in 0..<10 { await Task.yield() }
-
-        #expect(markShownCalled.value)
-        #expect(
-          markDismissedCalled.value,
-          "Not really should also set dismiss date for 7-day cooldown")
-        #expect(capturedEvents.value.contains { $0 == .ratingPromptNotEnjoying })
-        #expect(
-          mainContainerModel.presentedAlert == nil,
-          "Alert should be dismissed before showing feedback sheet")
-        guard
-          case .feedbackSheet = mainContainerModel.mainContainerNavigationCoordinator.presentedSheet
-        else {
-          Issue.record("Expected feedback sheet to be presented")
-          return
+      // Drain the spawned Task in showFeedbackSheet() — it awaits
+      // analytics.track and then assigns presentedSheet. Polling on the
+      // observable end-state (presentedSheet being .feedbackSheet) is
+      // resilient to changes in the number of internal async hops.
+      for _ in 0..<50 {
+        if case .feedbackSheet = mainContainerModel.mainContainerNavigationCoordinator
+          .presentedSheet
+        {
+          break
         }
+        await Task.yield()
+      }
+
+      #expect(markShownCalled.value)
+      #expect(
+        markDismissedCalled.value,
+        "Not really should also set dismiss date for 7-day cooldown")
+      #expect(capturedEvents.value.contains { $0 == .ratingPromptNotEnjoying })
+      #expect(capturedEvents.value.contains { $0 == .feedbackSheetPresented })
+      #expect(
+        mainContainerModel.presentedAlert == nil,
+        "Alert should be dismissed before showing feedback sheet")
+      guard
+        case .feedbackSheet = mainContainerModel.mainContainerNavigationCoordinator.presentedSheet
+      else {
+        Issue.record("Expected feedback sheet to be presented")
+        return
       }
     }
   }

@@ -17,44 +17,8 @@ import Testing
 
 @testable import PlayolaRadio
 
-// Helper function to create valid JWT tokens for testing
-private func createTestJWT(
-  id: String = "test-user-123",
-  firstName: String = "John",
-  lastName: String? = "Doe",
-  email: String = "john@example.com",
-  profileImageUrl: String? = nil,
-  role: String = "user"
-) -> String {
-  let header = ["alg": "HS256", "typ": "JWT"]
-  var payload: [String: Any] = [
-    "id": id,
-    "firstName": firstName,
-    "email": email,
-    "role": role,
-  ]
-  if let lastName = lastName {
-    payload["lastName"] = lastName
-  }
-  if let profileImageUrl = profileImageUrl {
-    payload["profileImageUrl"] = profileImageUrl
-  }
-
-  let headerData = try! JSONSerialization.data(withJSONObject: header)
-  let payloadData = try! JSONSerialization.data(withJSONObject: payload)
-
-  let headerString = headerData.base64EncodedString()
-    .replacingOccurrences(of: "+", with: "-")
-    .replacingOccurrences(of: "/", with: "_")
-    .replacingOccurrences(of: "=", with: "")
-
-  let payloadString = payloadData.base64EncodedString()
-    .replacingOccurrences(of: "+", with: "-")
-    .replacingOccurrences(of: "/", with: "_")
-    .replacingOccurrences(of: "=", with: "")
-
-  return "\(headerString).\(payloadString).fake_signature"
-}
+// `createTestJWT` is defined in MainContainerTests.swift and shared
+// across the test target.
 
 @MainActor
 struct HomePageTests {
