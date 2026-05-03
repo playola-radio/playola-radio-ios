@@ -474,6 +474,7 @@ final class SongSearchPageTests: XCTestCase {
       await withDependencies {
         $0.continuousClock = clock
         $0.date = .constant(Date())
+        $0.uuid = .incrementing
         $0.api.searchSongs = { _, _ in [] }
         $0.api.searchSongRequests = { _, _ in mockSongRequests }
         $0.api.requestSong = { _, _ in }

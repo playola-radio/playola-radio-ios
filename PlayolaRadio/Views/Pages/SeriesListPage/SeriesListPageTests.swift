@@ -19,6 +19,7 @@ final class SeriesListPageModelTests: XCTestCase {
     let passedJwt = LockIsolated<String?>(nil)
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.getAirings = { jwt, _ in
         apiCalled.setValue(true)
         passedJwt.setValue(jwt)
