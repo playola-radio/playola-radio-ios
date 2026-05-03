@@ -7,16 +7,18 @@
 
 import ConcurrencyExtras
 import Dependencies
-import XCTest
+import Foundation
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class ToastClientTests: XCTestCase {
+struct ToastClientTests {
 
   // MARK: - Basic Show/Dismiss
 
-  func testShow_SetsCurrentToast() async {
+  @Test
+  func testShowSetsCurrentToast() async {
     await withDependencies {
       $0.continuousClock = TestClock()
     } operation: {
@@ -30,12 +32,13 @@ final class ToastClientTests: XCTestCase {
       await client.show(toast)
 
       let currentToast = await client.currentToast()
-      XCTAssertEqual(currentToast?.message, "Test message")
-      XCTAssertEqual(currentToast?.buttonTitle, "OK")
+      #expect(currentToast?.message == "Test message")
+      #expect(currentToast?.buttonTitle == "OK")
     }
   }
 
-  func testDismiss_ClearsCurrentToast() async {
+  @Test
+  func testDismissClearsCurrentToast() async {
     await withDependencies {
       $0.continuousClock = TestClock()
     } operation: {
@@ -48,18 +51,19 @@ final class ToastClientTests: XCTestCase {
 
       await client.show(toast)
       let currentToast = await client.currentToast()
-      XCTAssertNotNil(currentToast)
+      #expect(currentToast != nil)
 
       await client.dismiss()
 
       let dismissedToast = await client.currentToast()
-      XCTAssertNil(dismissedToast)
+      #expect(dismissedToast == nil)
     }
   }
 
   // MARK: - Queue Management
 
-  func testShow_QueuesMultipleToasts() async {
+  @Test
+  func testShowQueuesMultipleToasts() async {
     await withDependencies {
       $0.continuousClock = TestClock()
     } operation: {
@@ -78,16 +82,17 @@ final class ToastClientTests: XCTestCase {
       await client.show(toast2)
 
       let currentToast = await client.currentToast()
-      XCTAssertEqual(currentToast?.message, "First toast")
+      #expect(currentToast?.message == "First toast")
 
       await client.dismiss()
 
       let nextToast = await client.currentToast()
-      XCTAssertEqual(nextToast?.message, "Second toast")
+      #expect(nextToast?.message == "Second toast")
     }
   }
 
-  func testQueue_ShowsToastsInOrder() async {
+  @Test
+  func testQueueShowsToastsInOrder() async {
     await withDependencies {
       $0.continuousClock = TestClock()
     } operation: {
@@ -102,25 +107,26 @@ final class ToastClientTests: XCTestCase {
       await client.show(toast3)
 
       var currentToast = await client.currentToast()
-      XCTAssertEqual(currentToast?.message, "First")
+      #expect(currentToast?.message == "First")
 
       await client.dismiss()
       currentToast = await client.currentToast()
-      XCTAssertEqual(currentToast?.message, "Second")
+      #expect(currentToast?.message == "Second")
 
       await client.dismiss()
       currentToast = await client.currentToast()
-      XCTAssertEqual(currentToast?.message, "Third")
+      #expect(currentToast?.message == "Third")
 
       await client.dismiss()
       currentToast = await client.currentToast()
-      XCTAssertNil(currentToast)
+      #expect(currentToast == nil)
     }
   }
 
   // MARK: - Auto-dismiss
 
-  func testAutoDismiss_AfterSpecifiedDuration() async {
+  @Test
+  func testAutoDismissAfterSpecifiedDuration() async {
     let clock = TestClock()
 
     await withDependencies {
@@ -137,19 +143,20 @@ final class ToastClientTests: XCTestCase {
       await client.show(toast)
 
       var currentToast = await client.currentToast()
-      XCTAssertEqual(currentToast?.message, "Test message")
+      #expect(currentToast?.message == "Test message")
 
       await clock.advance(by: .seconds(1.0))
       currentToast = await client.currentToast()
-      XCTAssertNotNil(currentToast)
+      #expect(currentToast != nil)
 
       await clock.advance(by: .seconds(1.5))
       currentToast = await client.currentToast()
-      XCTAssertNil(currentToast)
+      #expect(currentToast == nil)
     }
   }
 
-  func testAutoDismiss_ShowsNextToastInQueue() async {
+  @Test
+  func testAutoDismissShowsNextToastInQueue() async {
     let clock = TestClock()
 
     await withDependencies {
@@ -172,18 +179,19 @@ final class ToastClientTests: XCTestCase {
       await client.show(toast2)
 
       var currentToast = await client.currentToast()
-      XCTAssertEqual(currentToast?.message, "First toast")
+      #expect(currentToast?.message == "First toast")
 
       await clock.advance(by: .seconds(1.5))
 
       currentToast = await client.currentToast()
-      XCTAssertEqual(currentToast?.message, "Second toast")
+      #expect(currentToast?.message == "Second toast")
     }
   }
 
   // MARK: - Manual Dismiss
 
-  func testManualDismiss_CancelsAutoDismissTimer() async {
+  @Test
+  func testManualDismissCancelsAutoDismissTimer() async {
     let clock = TestClock()
 
     await withDependencies {
@@ -200,21 +208,22 @@ final class ToastClientTests: XCTestCase {
       await client.show(toast)
 
       var currentToast = await client.currentToast()
-      XCTAssertNotNil(currentToast)
+      #expect(currentToast != nil)
 
       await client.dismiss()
 
       currentToast = await client.currentToast()
-      XCTAssertNil(currentToast)
+      #expect(currentToast == nil)
 
       // Ensure timer was cancelled - toast shouldn't resurrect
       await clock.advance(by: .seconds(5.0))
       currentToast = await client.currentToast()
-      XCTAssertNil(currentToast)
+      #expect(currentToast == nil)
     }
   }
 
-  func testManualDismiss_ShowsNextToastInQueue() async {
+  @Test
+  func testManualDismissShowsNextToastInQueue() async {
     await withDependencies {
       $0.continuousClock = TestClock()
     } operation: {
@@ -234,18 +243,19 @@ final class ToastClientTests: XCTestCase {
       await client.show(toast2)
 
       var currentToast = await client.currentToast()
-      XCTAssertEqual(currentToast?.message, "First toast")
+      #expect(currentToast?.message == "First toast")
 
       await client.dismiss()
 
       currentToast = await client.currentToast()
-      XCTAssertEqual(currentToast?.message, "Second toast")
+      #expect(currentToast?.message == "Second toast")
     }
   }
 
   // MARK: - Concurrent Access
 
-  func testConcurrentShow_SafelyQueuesAllToasts() async {
+  @Test
+  func testConcurrentShowSafelyQueuesAllToasts() async {
     await withDependencies {
       $0.continuousClock = TestClock()
     } operation: {
@@ -264,28 +274,27 @@ final class ToastClientTests: XCTestCase {
       await show3
 
       let currentToast = await client.currentToast()
-      XCTAssertNotNil(currentToast)
-      XCTAssertTrue(
-        ["Toast 1", "Toast 2", "Toast 3"].contains(currentToast?.message)
-      )
+      #expect(currentToast != nil)
+      #expect(["Toast 1", "Toast 2", "Toast 3"].contains(currentToast?.message))
 
       await client.dismiss()
       let secondToast = await client.currentToast()
-      XCTAssertNotNil(secondToast)
+      #expect(secondToast != nil)
 
       await client.dismiss()
       let thirdToast = await client.currentToast()
-      XCTAssertNotNil(thirdToast)
+      #expect(thirdToast != nil)
 
       await client.dismiss()
       let finalToast = await client.currentToast()
-      XCTAssertNil(finalToast)
+      #expect(finalToast == nil)
     }
   }
 
   // MARK: - Toast Actions
 
-  func testToastAction_ExecutesWhenInvoked() {
+  @Test
+  func testToastActionExecutesWhenInvoked() {
     withDependencies {
       $0.continuousClock = TestClock()
     } operation: {
@@ -301,13 +310,14 @@ final class ToastClientTests: XCTestCase {
 
       toast.action?()
 
-      XCTAssertTrue(actionExecuted.value)
+      #expect(actionExecuted.value)
     }
   }
 
   // MARK: - Edge Cases
 
-  func testDismiss_WhenNoCurrentToast_DoesNothing() async {
+  @Test
+  func testDismissWhenNoCurrentToastDoesNothing() async {
     await withDependencies {
       $0.continuousClock = TestClock()
     } operation: {
@@ -316,11 +326,12 @@ final class ToastClientTests: XCTestCase {
       await client.dismiss()
 
       let currentToast = await client.currentToast()
-      XCTAssertNil(currentToast)
+      #expect(currentToast == nil)
     }
   }
 
-  func testShow_WithZeroDuration_StillShowsToast() async {
+  @Test
+  func testShowWithZeroDurationStillShowsToast() async {
     await withDependencies {
       $0.continuousClock = TestClock()
     } operation: {
@@ -335,7 +346,7 @@ final class ToastClientTests: XCTestCase {
       await client.show(toast)
 
       let currentToast = await client.currentToast()
-      XCTAssertEqual(currentToast?.message, "Zero duration")
+      #expect(currentToast?.message == "Zero duration")
     }
   }
 }
