@@ -33,68 +33,72 @@ extension AppRatingClient: DependencyKey {
   private static let oneHourMS = 60 * 60 * 1000
   private static let sevenDaysInterval: TimeInterval = 7 * 24 * 60 * 60
 
-  static let liveValue = Self(
-    shouldShowRatingPrompt: { totalListenTimeMS in
-      @Shared(.appInstallDate) var appInstallDate
-      @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion
-      @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate
+  static var liveValue: Self {
+    @Dependency(\.date.now) var now
 
-      let currentVersion = Bundle.main.releaseVersionNumber ?? "unknown"
+    return Self(
+      shouldShowRatingPrompt: { totalListenTimeMS in
+        @Shared(.appInstallDate) var appInstallDate
+        @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion
+        @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate
 
-      // Already shown for this version
-      if lastRatingPromptVersion == currentVersion {
-        return false
-      }
+        let currentVersion = Bundle.main.releaseVersionNumber ?? "unknown"
 
-      // Not enough listening time (need 1 hour)
-      guard totalListenTimeMS >= oneHourMS else {
-        return false
-      }
-
-      // App not installed long enough (need 7 days)
-      guard let installDate = appInstallDate else {
-        return false
-      }
-      let daysSinceInstall = Date().timeIntervalSince(installDate)
-      guard daysSinceInstall >= sevenDaysInterval else {
-        return false
-      }
-
-      // If previously dismissed, check if 7 days have passed
-      if let dismissDate = lastRatingPromptDismissDate {
-        let daysSinceDismiss = Date().timeIntervalSince(dismissDate)
-        guard daysSinceDismiss >= sevenDaysInterval else {
+        // Already shown for this version
+        if lastRatingPromptVersion == currentVersion {
           return false
         }
-      }
 
-      return true
-    },
-    recordInstallDateIfNeeded: {
-      @Shared(.appInstallDate) var appInstallDate
-      if appInstallDate == nil {
-        $appInstallDate.withLock { $0 = Date() }
-      }
-    },
-    markRatingPromptShown: {
-      @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion
-      @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate
-      let currentVersion = Bundle.main.releaseVersionNumber ?? "unknown"
-      $lastRatingPromptVersion.withLock { $0 = currentVersion }
-      $lastRatingPromptDismissDate.withLock { $0 = nil }
-    },
-    markRatingPromptDismissed: {
-      @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate
-      $lastRatingPromptDismissDate.withLock { $0 = Date() }
-    },
-    requestAppStoreReview: {
-      await MainActor.run {
-        if let scene = UIApplication.shared.connectedScenes
-          .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
-        {
-          AppStore.requestReview(in: scene)
+        // Not enough listening time (need 1 hour)
+        guard totalListenTimeMS >= oneHourMS else {
+          return false
+        }
+
+        // App not installed long enough (need 7 days)
+        guard let installDate = appInstallDate else {
+          return false
+        }
+        let daysSinceInstall = now.timeIntervalSince(installDate)
+        guard daysSinceInstall >= sevenDaysInterval else {
+          return false
+        }
+
+        // If previously dismissed, check if 7 days have passed
+        if let dismissDate = lastRatingPromptDismissDate {
+          let daysSinceDismiss = now.timeIntervalSince(dismissDate)
+          guard daysSinceDismiss >= sevenDaysInterval else {
+            return false
+          }
+        }
+
+        return true
+      },
+      recordInstallDateIfNeeded: {
+        @Shared(.appInstallDate) var appInstallDate
+        if appInstallDate == nil {
+          $appInstallDate.withLock { $0 = now }
+        }
+      },
+      markRatingPromptShown: {
+        @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion
+        @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate
+        let currentVersion = Bundle.main.releaseVersionNumber ?? "unknown"
+        $lastRatingPromptVersion.withLock { $0 = currentVersion }
+        $lastRatingPromptDismissDate.withLock { $0 = nil }
+      },
+      markRatingPromptDismissed: {
+        @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate
+        $lastRatingPromptDismissDate.withLock { $0 = now }
+      },
+      requestAppStoreReview: {
+        await MainActor.run {
+          if let scene = UIApplication.shared.connectedScenes
+            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+          {
+            AppStore.requestReview(in: scene)
+          }
         }
       }
-    }
-  )
+    )
+  }
 }

@@ -66,12 +66,18 @@ public final class RecordingSession: Sendable {
 
 extension AudioRecorderClient: DependencyKey {
   public static var liveValue: AudioRecorderClient {
+    @Dependency(\.uuid) var uuid
     let recorder = LiveAudioRecorder()
+
+    @Sendable func makeRecordingURL() -> URL {
+      FileManager.default.temporaryDirectory
+        .appendingPathComponent("voicetrack_\(uuid().uuidString).wav")
+    }
 
     return AudioRecorderClient(
       requestPermission: { await recorder.requestPermission() },
       prepareForRecording: { try await recorder.prepareForRecording() },
-      startRecording: { try await recorder.startRecording() },
+      startRecording: { try await recorder.startRecording(at: makeRecordingURL()) },
       stopRecording: { try await recorder.stopRecording() },
       currentTime: { await recorder.currentTime() },
       deleteRecording: { url in await recorder.deleteRecording(url) },
@@ -82,7 +88,7 @@ extension AudioRecorderClient: DependencyKey {
           throw AudioRecorderError.permissionDenied
         }
 
-        try await recorder.startRecording()
+        try await recorder.startRecording(at: makeRecordingURL())
 
         let updateTask = Task {
           while !Task.isCancelled {
@@ -194,13 +200,10 @@ private actor LiveAudioRecorder {
     isPrepared = true
   }
 
-  func startRecording() throws {
+  func startRecording(at url: URL) throws {
     // Always prepare audio session before recording - the session may have been
     // reconfigured by other audio components (e.g., StationPlayer) since last prepare
     try prepareForRecording()
-
-    let url = FileManager.default.temporaryDirectory
-      .appendingPathComponent("voicetrack_\(UUID().uuidString).wav")
 
     let recorder = try AVAudioRecorder(url: url, settings: recordingSettings)
     recorder.isMeteringEnabled = true

@@ -25,10 +25,14 @@ struct AppRatingClientTests {
     @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String? = nil
     @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate: Date? = nil
 
-    let client = AppRatingClient.liveValue
     let thirtyMinutesMS = 30 * 60 * 1000
 
-    #expect(!client.shouldShowRatingPrompt(thirtyMinutesMS))
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let client = AppRatingClient.liveValue
+      #expect(!client.shouldShowRatingPrompt(thirtyMinutesMS))
+    }
   }
 
   @Test
@@ -39,10 +43,14 @@ struct AppRatingClientTests {
     @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String? = nil
     @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate: Date? = nil
 
-    let client = AppRatingClient.liveValue
     let twoHoursMS = 2 * 60 * 60 * 1000
 
-    #expect(!client.shouldShowRatingPrompt(twoHoursMS))
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let client = AppRatingClient.liveValue
+      #expect(!client.shouldShowRatingPrompt(twoHoursMS))
+    }
   }
 
   @Test
@@ -51,10 +59,14 @@ struct AppRatingClientTests {
     @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String? = nil
     @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate: Date? = nil
 
-    let client = AppRatingClient.liveValue
     let twoHoursMS = 2 * 60 * 60 * 1000
 
-    #expect(!client.shouldShowRatingPrompt(twoHoursMS))
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let client = AppRatingClient.liveValue
+      #expect(!client.shouldShowRatingPrompt(twoHoursMS))
+    }
   }
 
   @Test
@@ -66,10 +78,14 @@ struct AppRatingClientTests {
       Bundle.main.releaseVersionNumber
     @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate: Date? = nil
 
-    let client = AppRatingClient.liveValue
     let twoHoursMS = 2 * 60 * 60 * 1000
 
-    #expect(!client.shouldShowRatingPrompt(twoHoursMS))
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let client = AppRatingClient.liveValue
+      #expect(!client.shouldShowRatingPrompt(twoHoursMS))
+    }
   }
 
   @Test
@@ -81,10 +97,14 @@ struct AppRatingClientTests {
     @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate: Date? =
       Calendar.current.date(byAdding: .day, value: -3, to: Date())
 
-    let client = AppRatingClient.liveValue
     let twoHoursMS = 2 * 60 * 60 * 1000
 
-    #expect(!client.shouldShowRatingPrompt(twoHoursMS))
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let client = AppRatingClient.liveValue
+      #expect(!client.shouldShowRatingPrompt(twoHoursMS))
+    }
   }
 
   @Test
@@ -95,10 +115,14 @@ struct AppRatingClientTests {
     @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String? = nil
     @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate: Date? = nil
 
-    let client = AppRatingClient.liveValue
     let twoHoursMS = 2 * 60 * 60 * 1000
 
-    #expect(client.shouldShowRatingPrompt(twoHoursMS))
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let client = AppRatingClient.liveValue
+      #expect(client.shouldShowRatingPrompt(twoHoursMS))
+    }
   }
 
   @Test
@@ -110,10 +134,14 @@ struct AppRatingClientTests {
     @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate: Date? =
       Calendar.current.date(byAdding: .day, value: -10, to: Date())
 
-    let client = AppRatingClient.liveValue
     let twoHoursMS = 2 * 60 * 60 * 1000
 
-    #expect(client.shouldShowRatingPrompt(twoHoursMS))
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let client = AppRatingClient.liveValue
+      #expect(client.shouldShowRatingPrompt(twoHoursMS))
+    }
   }
 
   // MARK: - recordInstallDateIfNeeded Tests
@@ -124,17 +152,21 @@ struct AppRatingClientTests {
     @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String? = nil
     @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate: Date? = nil
 
-    let client = AppRatingClient.liveValue
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let client = AppRatingClient.liveValue
 
-    #expect(appInstallDate == nil)
+      #expect(appInstallDate == nil)
 
-    client.recordInstallDateIfNeeded()
-    let firstDate = appInstallDate
-    #expect(firstDate != nil)
+      client.recordInstallDateIfNeeded()
+      let firstDate = appInstallDate
+      #expect(firstDate != nil)
 
-    // Wait a tiny bit and try again
-    client.recordInstallDateIfNeeded()
-    #expect(appInstallDate == firstDate)
+      // Wait a tiny bit and try again
+      client.recordInstallDateIfNeeded()
+      #expect(appInstallDate == firstDate)
+    }
   }
 
   // MARK: - markRatingPromptShown Tests
@@ -160,13 +192,17 @@ struct AppRatingClientTests {
     @Shared(.lastRatingPromptVersion) var lastRatingPromptVersion: String? = nil
     @Shared(.lastRatingPromptDismissDate) var lastRatingPromptDismissDate: Date? = nil
 
-    let client = AppRatingClient.liveValue
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let client = AppRatingClient.liveValue
 
-    #expect(lastRatingPromptDismissDate == nil)
+      #expect(lastRatingPromptDismissDate == nil)
 
-    client.markRatingPromptDismissed()
+      client.markRatingPromptDismissed()
 
-    #expect(lastRatingPromptDismissDate != nil)
+      #expect(lastRatingPromptDismissDate != nil)
+    }
   }
 }
 

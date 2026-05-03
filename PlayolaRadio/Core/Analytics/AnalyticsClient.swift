@@ -69,106 +69,110 @@ extension DependencyValues {
 // MARK: - Live Implementation
 
 extension AnalyticsClient: DependencyKey {
-  static let liveValue = Self(
-    track: { event in
-      await MainActor.run {
-        @Shared(.auth) var auth: Auth
-        var properties = event.properties
+  static var liveValue: Self {
+    @Dependency(\.date.now) var now
 
-        // Automatically add userId to all events when available
-        if let userId = auth.currentUser?.id {
-          properties["user_id"] = userId
-        }
+    return Self(
+      track: { event in
+        await MainActor.run {
+          @Shared(.auth) var auth: Auth
+          var properties = event.properties
 
-        Mixpanel.mainInstance().track(
-          event: event.name,
-          properties: properties
-        )
-      }
-    },
-    identify: { userId in
-      await MainActor.run {
-        Mixpanel.mainInstance().identify(distinctId: userId)
-      }
-    },
-    reset: {
-      await MainActor.run {
-        Mixpanel.mainInstance().reset()
-      }
-    },
-    setUserProperties: { properties in
-      await MainActor.run {
-        let mixpanelProps: [String: any MixpanelType] = properties
-        Mixpanel.mainInstance().people.set(properties: mixpanelProps)
-      }
-    },
-    startListeningSession: { station in
-      await MainActor.run {
-        let properties: [String: any MixpanelType] = [
-          "station_id": station.id,
-          "station_name": station.name,
-          "station_type": station.type.rawValue,
-        ]
-        Mixpanel.mainInstance().track(
-          event: "Listening Session Started",
-          properties: properties
-        )
-        Mixpanel.mainInstance().time(event: "Listening Session Ended")
-      }
-    },
-    endListeningSession: { station, duration in
-      await MainActor.run {
-        let properties: [String: any MixpanelType] = [
-          "station_id": station.id,
-          "station_name": station.name,
-          "station_type": station.type.rawValue,
-          "session_length_sec": Int(duration),
-        ]
-        Mixpanel.mainInstance().track(
-          event: "Listening Session Ended",
-          properties: properties
-        )
-      }
-    },
-    pauseListeningSession: {
-      await MainActor.run {
-        // Store current timestamp for calculating pause duration
-        UserDefaults.standard.set(
-          Date().timeIntervalSince1970, forKey: "analytics_session_paused_at")
-      }
-    },
-    resumeListeningSession: {
-      await MainActor.run {
-        // Calculate pause duration and track if needed
-        if let pausedAt = UserDefaults.standard.object(forKey: "analytics_session_paused_at")
-          as? TimeInterval
-        {
-          let pauseDuration = Date().timeIntervalSince1970 - pausedAt
-          let properties: [String: any MixpanelType] = [
-            "pause_duration_sec": Int(pauseDuration)
-          ]
+          // Automatically add userId to all events when available
+          if let userId = auth.currentUser?.id {
+            properties["user_id"] = userId
+          }
+
           Mixpanel.mainInstance().track(
-            event: "Listening Session Resumed",
+            event: event.name,
             properties: properties
           )
-          UserDefaults.standard.removeObject(forKey: "analytics_session_paused_at")
+        }
+      },
+      identify: { userId in
+        await MainActor.run {
+          Mixpanel.mainInstance().identify(distinctId: userId)
+        }
+      },
+      reset: {
+        await MainActor.run {
+          Mixpanel.mainInstance().reset()
+        }
+      },
+      setUserProperties: { properties in
+        await MainActor.run {
+          let mixpanelProps: [String: any MixpanelType] = properties
+          Mixpanel.mainInstance().people.set(properties: mixpanelProps)
+        }
+      },
+      startListeningSession: { station in
+        await MainActor.run {
+          let properties: [String: any MixpanelType] = [
+            "station_id": station.id,
+            "station_name": station.name,
+            "station_type": station.type.rawValue,
+          ]
+          Mixpanel.mainInstance().track(
+            event: "Listening Session Started",
+            properties: properties
+          )
+          Mixpanel.mainInstance().time(event: "Listening Session Ended")
+        }
+      },
+      endListeningSession: { station, duration in
+        await MainActor.run {
+          let properties: [String: any MixpanelType] = [
+            "station_id": station.id,
+            "station_name": station.name,
+            "station_type": station.type.rawValue,
+            "session_length_sec": Int(duration),
+          ]
+          Mixpanel.mainInstance().track(
+            event: "Listening Session Ended",
+            properties: properties
+          )
+        }
+      },
+      pauseListeningSession: {
+        await MainActor.run {
+          // Store current timestamp for calculating pause duration
+          UserDefaults.standard.set(
+            now.timeIntervalSince1970, forKey: "analytics_session_paused_at")
+        }
+      },
+      resumeListeningSession: {
+        await MainActor.run {
+          // Calculate pause duration and track if needed
+          if let pausedAt = UserDefaults.standard.object(forKey: "analytics_session_paused_at")
+            as? TimeInterval
+          {
+            let pauseDuration = now.timeIntervalSince1970 - pausedAt
+            let properties: [String: any MixpanelType] = [
+              "pause_duration_sec": Int(pauseDuration)
+            ]
+            Mixpanel.mainInstance().track(
+              event: "Listening Session Resumed",
+              properties: properties
+            )
+            UserDefaults.standard.removeObject(forKey: "analytics_session_paused_at")
+          }
+        }
+      },
+      initialize: {
+        await MainActor.run {
+          Mixpanel.initialize(
+            token: Config.shared.mixpanelToken,
+            trackAutomaticEvents: false
+          )
+        }
+      },
+      flush: {
+        await MainActor.run {
+          Mixpanel.mainInstance().flush()
         }
       }
-    },
-    initialize: {
-      await MainActor.run {
-        Mixpanel.initialize(
-          token: Config.shared.mixpanelToken,
-          trackAutomaticEvents: false
-        )
-      }
-    },
-    flush: {
-      await MainActor.run {
-        Mixpanel.mainInstance().flush()
-      }
-    }
-  )
+    )
+  }
 }
 
 // MARK: - Test Implementation
