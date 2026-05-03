@@ -57,6 +57,8 @@ class MainContainerModel: ViewModel {
   var contactPageModel = ContactPageModel()
   var liveStationsPoller = LiveStationsPoller()
 
+  @ObservationIgnored private var toastObservationTask: Task<Void, Never>?
+
   // Broadcast mode models
   var broadcastPageModel: BroadcastPageModel?
   var libraryPageModel: LibraryPageModel?
@@ -323,14 +325,12 @@ class MainContainerModel: ViewModel {
   }
 
   func observeToasts() {
-    Task { @MainActor in
-      while true {
-        if let currentToast = await toast.currentToast() {
-          self.presentedToast = currentToast
-        } else {
-          self.presentedToast = nil
-        }
-        try? await Task.sleep(for: .milliseconds(100))
+    toastObservationTask?.cancel()
+    toastObservationTask = Task { [weak self] in
+      guard let stream = self?.toast.stream() else { return }
+      for await toast in stream {
+        guard !Task.isCancelled else { return }
+        self?.presentedToast = toast
       }
     }
   }

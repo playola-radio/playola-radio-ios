@@ -116,32 +116,26 @@ class RecordPageModel: ViewModel {
 
   // MARK: - Playback Actions
 
-  func onPlayPauseTapped() {
-    Task {
-      if isPlaying {
-        await audioPlayer.pause()
-        stopPlaybackUpdates()
-        isPlaying = false
-      } else {
-        await audioPlayer.play()
-        startPlaybackUpdates()
-        isPlaying = true
-      }
+  func onPlayPauseTapped() async {
+    if isPlaying {
+      await audioPlayer.pause()
+      stopPlaybackUpdates()
+      isPlaying = false
+    } else {
+      await audioPlayer.play()
+      startPlaybackUpdates()
+      isPlaying = true
     }
   }
 
-  func onRewindTapped() {
-    Task {
-      await audioPlayer.seek(0)
-      playbackPosition = 0
-    }
+  func onRewindTapped() async {
+    await audioPlayer.seek(0)
+    playbackPosition = 0
   }
 
-  func seekTo(_ time: TimeInterval) {
-    Task {
-      await audioPlayer.seek(time)
-      playbackPosition = time
-    }
+  func seekTo(_ time: TimeInterval) async {
+    await audioPlayer.seek(time)
+    playbackPosition = time
   }
 
   private func startPlaybackUpdates() {
@@ -166,13 +160,11 @@ class RecordPageModel: ViewModel {
 
   // MARK: - Review Actions
 
-  func onReRecordTapped() {
+  func onReRecordTapped() async {
     stopPlaybackUpdates()
-    Task {
-      await audioPlayer.stop()
-      if let url = recordingURL {
-        await audioRecorder.deleteRecording(url)
-      }
+    await audioPlayer.stop()
+    if let url = recordingURL {
+      await audioRecorder.deleteRecording(url)
     }
     recordingURL = nil
     recordingDuration = 0
@@ -185,26 +177,22 @@ class RecordPageModel: ViewModel {
   func onDiscardTapped() {
     stopPlaybackUpdates()
     presentedAlert = .discardRecordingConfirmation { [weak self] in
-      self?.confirmDiscard()
+      Task { await self?.confirmDiscard() }
     }
   }
 
-  func confirmDiscard() {
-    Task {
-      await audioPlayer.stop()
-      if let url = recordingURL {
-        await audioRecorder.deleteRecording(url)
-      }
+  func confirmDiscard() async {
+    await audioPlayer.stop()
+    if let url = recordingURL {
+      await audioRecorder.deleteRecording(url)
     }
     mainContainerNavigationCoordinator.presentedSheet = nil
   }
 
-  func onAcceptRecordingTapped() {
+  func onAcceptRecordingTapped() async {
     guard let url = recordingURL else { return }
     mainContainerNavigationCoordinator.presentedSheet = nil
-    Task {
-      await onRecordingAccepted?(url)
-    }
+    await onRecordingAccepted?(url)
   }
 
   func onDoneTapped() {

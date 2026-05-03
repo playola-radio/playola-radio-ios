@@ -9,13 +9,14 @@ import PlayolaPlayer
 
 @MainActor
 @Observable
-class EpisodeRowModel {
+class EpisodeRowModel: ViewModel {
   @ObservationIgnored @Dependency(\.date.now) var now
 
   let airing: Airing
 
   init(airing: Airing) {
     self.airing = airing
+    super.init()
   }
 
   var isUpcoming: Bool {

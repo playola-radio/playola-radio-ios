@@ -33,6 +33,7 @@ class SongSearchPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.uuid) var uuid
   @ObservationIgnored @Shared(.auth) var auth
 
   @ObservationIgnored private var debounceTask: Task<Void, Never>?
@@ -192,7 +193,7 @@ class SongSearchPageModel: ViewModel {
     else { return }
 
     let updatedSongRequest = SongRequest.mockWith(
-      requestId: UUID().uuidString,
+      requestId: uuid().uuidString,
       title: songRequest.title,
       artist: songRequest.artist,
       album: songRequest.album,

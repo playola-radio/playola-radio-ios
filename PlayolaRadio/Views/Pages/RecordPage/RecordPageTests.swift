@@ -171,7 +171,7 @@ final class RecordPageTests: XCTestCase {
 
   // MARK: - Re-record
 
-  func testOnReRecordTapped_ResetsToIdleState() {
+  func testOnReRecordTapped_ResetsToIdleState() async {
     let model = RecordPageModel()
     model.recordingPhase = .review
     model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
@@ -179,7 +179,7 @@ final class RecordPageTests: XCTestCase {
     model.playbackPosition = 5.0
     model.isPlaying = true
 
-    model.onReRecordTapped()
+    await model.onReRecordTapped()
 
     XCTAssertEqual(model.recordingPhase, .idle)
     XCTAssertNil(model.recordingURL)
@@ -202,13 +202,13 @@ final class RecordPageTests: XCTestCase {
     XCTAssertEqual(model.presentedAlert?.title, "Discard Recording?")
   }
 
-  func testConfirmDiscard_DismissesSheet() {
+  func testConfirmDiscard_DismissesSheet() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
 
     let model = RecordPageModel()
     coordinator.presentedSheet = .recordPage(model)
 
-    model.confirmDiscard()
+    await model.confirmDiscard()
 
     XCTAssertNil(coordinator.presentedSheet)
   }
@@ -219,23 +219,18 @@ final class RecordPageTests: XCTestCase {
     @Shared(.mainContainerNavigationCoordinator) var coordinator
 
     let expectedURL = URL(fileURLWithPath: "/tmp/test.wav")
-    let callbackExpectation = XCTestExpectation(description: "onRecordingAccepted called")
     let receivedURL = LockIsolated<URL?>(nil)
 
     let model = RecordPageModel()
     model.recordingURL = expectedURL
     model.onRecordingAccepted = { url in
       receivedURL.setValue(url)
-      callbackExpectation.fulfill()
     }
     coordinator.presentedSheet = .recordPage(model)
 
-    model.onAcceptRecordingTapped()
+    await model.onAcceptRecordingTapped()
 
-    // Sheet dismisses immediately
     XCTAssertNil(coordinator.presentedSheet)
-
-    await fulfillment(of: [callbackExpectation], timeout: 1.0)
     XCTAssertEqual(receivedURL.value, expectedURL)
   }
 
@@ -251,10 +246,7 @@ final class RecordPageTests: XCTestCase {
     }
     coordinator.presentedSheet = .recordPage(model)
 
-    model.onAcceptRecordingTapped()
-
-    // Allow any spawned Task to complete
-    await Task.yield()
+    await model.onAcceptRecordingTapped()
 
     XCTAssertFalse(callbackCalled.value)
     XCTAssertNotNil(coordinator.presentedSheet)
@@ -273,9 +265,7 @@ final class RecordPageTests: XCTestCase {
       let model = RecordPageModel()
       model.isPlaying = false
 
-      model.onPlayPauseTapped()
-      // Allow Task to execute
-      try? await Task.sleep(for: .milliseconds(10))
+      await model.onPlayPauseTapped()
 
       XCTAssertTrue(playCalled.value)
       XCTAssertTrue(model.isPlaying)
@@ -291,9 +281,7 @@ final class RecordPageTests: XCTestCase {
       let model = RecordPageModel()
       model.isPlaying = true
 
-      model.onPlayPauseTapped()
-      // Allow Task to execute
-      try? await Task.sleep(for: .milliseconds(10))
+      await model.onPlayPauseTapped()
 
       XCTAssertTrue(pauseCalled.value)
       XCTAssertFalse(model.isPlaying)
@@ -309,9 +297,7 @@ final class RecordPageTests: XCTestCase {
       let model = RecordPageModel()
       model.playbackPosition = 30.0
 
-      model.onRewindTapped()
-      // Allow Task to execute
-      try? await Task.sleep(for: .milliseconds(10))
+      await model.onRewindTapped()
 
       XCTAssertEqual(seekTime.value, 0)
       XCTAssertEqual(model.playbackPosition, 0)
@@ -327,9 +313,7 @@ final class RecordPageTests: XCTestCase {
       let model = RecordPageModel()
       model.recordingDuration = 60.0
 
-      model.seekTo(30.0)
-      // Allow Task to execute
-      try? await Task.sleep(for: .milliseconds(10))
+      await model.seekTo(30.0)
 
       XCTAssertEqual(seekTime.value, 30.0)
       XCTAssertEqual(model.playbackPosition, 30.0)

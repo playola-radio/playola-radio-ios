@@ -94,33 +94,27 @@ final class SignInPageTests: XCTestCase {
     }
 
     let genericError = NSError(domain: "test.domain", code: 42, userInfo: nil)
-    model.signInWithAppleCompleted(result: .failure(genericError))
-
-    await fulfillment(of: [expectation], timeout: 1.0)
+    await model.signInWithAppleCompleted(result: .failure(genericError))
 
     XCTAssertEqual(reportedErrors.value.count, 1, "Should call reportError exactly once")
     let tags = reportedErrors.value.first?.1 ?? [:]
     XCTAssertEqual(tags["auth_method"], "apple")
+    _ = expectation
   }
 
   func testSignInWithAppleCompletedDoesNotReportErrorOnUserCancel() async {
     let reportedErrors = LockIsolated<[(Error, [String: String])]>([])
-    let invertedExpectation = XCTestExpectation(description: "reportError must NOT be called")
-    invertedExpectation.isInverted = true
 
     let model = withDependencies {
       $0.errorReporting.reportErrorWithContext = { error, tags, _, _ in
         reportedErrors.withValue { $0.append((error, tags)) }
-        invertedExpectation.fulfill()
       }
     } operation: {
       SignInPageModel()
     }
 
     let cancelError = ASAuthorizationError(.canceled)
-    model.signInWithAppleCompleted(result: .failure(cancelError))
-
-    await fulfillment(of: [invertedExpectation], timeout: 0.2)
+    await model.signInWithAppleCompleted(result: .failure(cancelError))
 
     XCTAssertTrue(
       reportedErrors.value.isEmpty,
@@ -137,7 +131,7 @@ final class SignInPageTests: XCTestCase {
     }
 
     let genericError = NSError(domain: "test.domain", code: 42, userInfo: nil)
-    model.signInWithAppleCompleted(result: .failure(genericError))
+    await model.signInWithAppleCompleted(result: .failure(genericError))
 
     XCTAssertEqual(model.presentedAlert, .signInError)
   }
@@ -150,7 +144,7 @@ final class SignInPageTests: XCTestCase {
     }
 
     let cancelError = ASAuthorizationError(.canceled)
-    model.signInWithAppleCompleted(result: .failure(cancelError))
+    await model.signInWithAppleCompleted(result: .failure(cancelError))
 
     XCTAssertNil(model.presentedAlert)
   }

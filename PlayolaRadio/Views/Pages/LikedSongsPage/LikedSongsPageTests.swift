@@ -71,7 +71,7 @@ final class LikedSongsPageTests: XCTestCase {
       XCTAssertFalse(model.groupedLikedSongs.isEmpty)
 
       // Remove the song
-      model.removeSong(audioBlock)
+      model.removeSongTapped(audioBlock)
 
       // Verify song is no longer liked
       XCTAssertTrue(model.groupedLikedSongs.isEmpty)
