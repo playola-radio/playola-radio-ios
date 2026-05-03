@@ -7,40 +7,52 @@
 
 import Alamofire
 import AuthenticationServices
+import ConcurrencyExtras
 import Dependencies
+import Foundation
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class SignInPageTests: XCTestCase {
-  func testSignInWithApple_CorrectlyAddsScopeToTheAppleSignInRequest() async {
+struct SignInPageTests {
+  @Test
+  func testSignInWithAppleCorrectlyAddsScopeToTheAppleSignInRequest() async {
     let request = ASAuthorizationAppleIDRequest(coder: NSCoder())!
     let model = SignInPageModel()
     model.signInWithAppleButtonTapped(request: request)
-    XCTAssertEqual(request.requestedScopes, [.email, .fullName])
+    #expect(request.requestedScopes == [.email, .fullName])
   }
 
-  func testSignInWithApple_TracksSignInStartedEvent() async {
+  @Test
+  func testSignInWithAppleTracksSignInStartedEvent() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
-    let expectation = XCTestExpectation(description: "Analytics event tracked")
 
-    let model = withDependencies {
-      $0.analytics.track = { event in
-        capturedEvents.withValue { $0.append(event) }
-        if case .signInStarted(let method) = event, method == .apple {
-          expectation.fulfill()
+    await withMainSerialExecutor {
+      await confirmation("Apple sign-in started event tracked") { confirm in
+        let model = withDependencies {
+          $0.analytics.track = { event in
+            capturedEvents.withValue { $0.append(event) }
+            if case .signInStarted(let method) = event, method == .apple {
+              confirm()
+            }
+          }
+        } operation: {
+          SignInPageModel()
+        }
+
+        let request = ASAuthorizationAppleIDRequest(coder: NSCoder())!
+        model.signInWithAppleButtonTapped(request: request)
+
+        while !capturedEvents.value.contains(where: {
+          if case .signInStarted(let method) = $0 { return method == .apple }
+          return false
+        }) {
+          await Task.yield()
         }
       }
-    } operation: {
-      SignInPageModel()
     }
-
-    let request = ASAuthorizationAppleIDRequest(coder: NSCoder())!
-    model.signInWithAppleButtonTapped(request: request)
-
-    await fulfillment(of: [expectation], timeout: 1.0)
 
     let hasSignInStartedEvent = capturedEvents.value.contains { event in
       if case .signInStarted(let method) = event {
@@ -49,10 +61,11 @@ final class SignInPageTests: XCTestCase {
       return false
     }
 
-    XCTAssertTrue(hasSignInStartedEvent, "Should track signInStarted event for Apple")
+    #expect(hasSignInStartedEvent, "Should track signInStarted event for Apple")
   }
 
-  func testSignInWithGoogle_TracksSignInStartedEvent() async {
+  @Test
+  func testSignInWithGoogleTracksSignInStartedEvent() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     let model = withDependencies {
@@ -75,11 +88,12 @@ final class SignInPageTests: XCTestCase {
       return false
     }
 
-    XCTAssertTrue(hasSignInStartedEvent, "Should track signInStarted event for Google")
+    #expect(hasSignInStartedEvent, "Should track signInStarted event for Google")
   }
 
   // MARK: - signInWithAppleCompleted() Error Reporting Tests
 
+  @Test
   func testSignInWithAppleCompletedReportsErrorOnAuthorizationFailure() async {
     let reportedErrors = LockIsolated<[(Error, [String: String])]>([])
 
@@ -94,11 +108,12 @@ final class SignInPageTests: XCTestCase {
     let genericError = NSError(domain: "test.domain", code: 42, userInfo: nil)
     await model.signInWithAppleCompleted(result: .failure(genericError))
 
-    XCTAssertEqual(reportedErrors.value.count, 1, "Should call reportError exactly once")
+    #expect(reportedErrors.value.count == 1, "Should call reportError exactly once")
     let tags = reportedErrors.value.first?.1 ?? [:]
-    XCTAssertEqual(tags["auth_method"], "apple")
+    #expect(tags["auth_method"] == "apple")
   }
 
+  @Test
   func testSignInWithAppleCompletedDoesNotReportErrorOnUserCancel() async {
     let reportedErrors = LockIsolated<[(Error, [String: String])]>([])
 
@@ -113,13 +128,14 @@ final class SignInPageTests: XCTestCase {
     let cancelError = ASAuthorizationError(.canceled)
     await model.signInWithAppleCompleted(result: .failure(cancelError))
 
-    XCTAssertTrue(
+    #expect(
       reportedErrors.value.isEmpty,
       "Should not report ASAuthorizationError.canceled (user cancellations are not bugs)")
   }
 
   // MARK: - presentedAlert Tests
 
+  @Test
   func testSignInWithAppleCompletedPresentsAlertOnAuthorizationFailure() async {
     let model = withDependencies {
       $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
@@ -130,9 +146,10 @@ final class SignInPageTests: XCTestCase {
     let genericError = NSError(domain: "test.domain", code: 42, userInfo: nil)
     await model.signInWithAppleCompleted(result: .failure(genericError))
 
-    XCTAssertEqual(model.presentedAlert, .signInError)
+    #expect(model.presentedAlert == .signInError)
   }
 
+  @Test
   func testSignInWithAppleCompletedDoesNotPresentAlertOnUserCancel() async {
     let model = withDependencies {
       $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
@@ -143,9 +160,10 @@ final class SignInPageTests: XCTestCase {
     let cancelError = ASAuthorizationError(.canceled)
     await model.signInWithAppleCompleted(result: .failure(cancelError))
 
-    XCTAssertNil(model.presentedAlert)
+    #expect(model.presentedAlert == nil)
   }
 
+  @Test
   func testSignInWithGooglePresentsAlertWhenNoKeyWindow() async {
     let model = withDependencies {
       $0.errorReporting.reportMessage = { _, _ in }
@@ -157,11 +175,12 @@ final class SignInPageTests: XCTestCase {
 
     await model.signInWithGoogleButtonTapped()
 
-    XCTAssertEqual(model.presentedAlert, .signInError)
+    #expect(model.presentedAlert == .signInError)
   }
 
   // MARK: - handleSignInAPIFailure Routing Tests
 
+  @Test
   func testHandleSignInAPIFailureShowsNetworkAlertOnAppleSSLError() async {
     let model = withDependencies {
       $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
@@ -175,10 +194,11 @@ final class SignInPageTests: XCTestCase {
 
     await model.handleSignInAPIFailure(afError, authMethod: .apple, step: "api_call")
 
-    XCTAssertEqual(model.presentedAlert, .signInNetworkError)
-    XCTAssertNotEqual(model.presentedAlert, .signInError)
+    #expect(model.presentedAlert == .signInNetworkError)
+    #expect(model.presentedAlert != .signInError)
   }
 
+  @Test
   func testHandleSignInAPIFailureShowsGenericAlertOnAppleUnknownError() async {
     let model = withDependencies {
       $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
@@ -191,10 +211,11 @@ final class SignInPageTests: XCTestCase {
 
     await model.handleSignInAPIFailure(genericError, authMethod: .apple, step: "api_call")
 
-    XCTAssertEqual(model.presentedAlert, .signInError)
-    XCTAssertEqual(model.presentedAlert?.title, "Sign-In Failed")
+    #expect(model.presentedAlert == .signInError)
+    #expect(model.presentedAlert?.title == "Sign-In Failed")
   }
 
+  @Test
   func testHandleSignInAPIFailureShowsNetworkAlertOnGoogleSSLError() async {
     let model = withDependencies {
       $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
@@ -208,9 +229,10 @@ final class SignInPageTests: XCTestCase {
 
     await model.handleSignInAPIFailure(afError, authMethod: .google, step: "google_sign_in_flow")
 
-    XCTAssertEqual(model.presentedAlert, .signInNetworkError)
+    #expect(model.presentedAlert == .signInNetworkError)
   }
 
+  @Test
   func testHandleSignInAPIFailureShowsGenericAlertOnGoogleUnknownError() async {
     let model = withDependencies {
       $0.errorReporting.reportErrorWithContext = { _, _, _, _ in }
@@ -224,12 +246,13 @@ final class SignInPageTests: XCTestCase {
     await model.handleSignInAPIFailure(
       genericError, authMethod: .google, step: "google_sign_in_flow")
 
-    XCTAssertEqual(model.presentedAlert, .signInError)
-    XCTAssertEqual(model.presentedAlert?.title, "Sign-In Failed")
+    #expect(model.presentedAlert == .signInError)
+    #expect(model.presentedAlert?.title == "Sign-In Failed")
   }
 
   // MARK: - Sign-in Error Reporting Context Tests
 
+  @Test
   func testSignInErrorReportIncludesNSErrorDomainAndCode() {
     let error = NSError(domain: "com.google.GIDSignIn", code: -4)
 
@@ -238,56 +261,63 @@ final class SignInPageTests: XCTestCase {
       authMethod: .google,
       step: "google_sign_in_flow")
 
-    XCTAssertEqual(report.tags["auth_method"], "google")
-    XCTAssertEqual(report.tags["sign_in_step"], "google_sign_in_flow")
-    XCTAssertEqual(report.tags["error_domain"], "com.google.GIDSignIn")
-    XCTAssertEqual(report.tags["error_code"], "-4")
-    XCTAssertEqual(report.contextKey, "sign_in")
+    #expect(report.tags["auth_method"] == "google")
+    #expect(report.tags["sign_in_step"] == "google_sign_in_flow")
+    #expect(report.tags["error_domain"] == "com.google.GIDSignIn")
+    #expect(report.tags["error_code"] == "-4")
+    #expect(report.contextKey == "sign_in")
   }
 
   // MARK: - SignInNetworkErrorClassifier Tests
 
+  @Test
   func testClassifierMatchesSecureConnectionFailed() {
     let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorSecureConnectionFailed)
-    XCTAssertTrue(SignInNetworkErrorClassifier.isNetworkError(error))
-    XCTAssertTrue(SignInNetworkErrorClassifier.isSecureConnectionFailed(error))
+    #expect(SignInNetworkErrorClassifier.isNetworkError(error))
+    #expect(SignInNetworkErrorClassifier.isSecureConnectionFailed(error))
   }
 
+  @Test
   func testClassifierMatchesNotConnectedToInternet() {
     let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorNotConnectedToInternet)
-    XCTAssertTrue(SignInNetworkErrorClassifier.isNetworkError(error))
-    XCTAssertFalse(SignInNetworkErrorClassifier.isSecureConnectionFailed(error))
+    #expect(SignInNetworkErrorClassifier.isNetworkError(error))
+    #expect(!SignInNetworkErrorClassifier.isSecureConnectionFailed(error))
   }
 
+  @Test
   func testClassifierMatchesTimedOutCannotConnectAndConnectionLost() {
     for code in [
       NSURLErrorTimedOut, NSURLErrorCannotConnectToHost, NSURLErrorNetworkConnectionLost,
     ] {
       let error = NSError(domain: NSURLErrorDomain, code: code)
-      XCTAssertTrue(
+      #expect(
         SignInNetworkErrorClassifier.isNetworkError(error),
         "Expected code \(code) to classify as network error")
     }
   }
 
+  @Test
   func testClassifierRejectsUnrelatedDomain() {
     let error = NSError(domain: "com.example.other", code: NSURLErrorSecureConnectionFailed)
-    XCTAssertFalse(SignInNetworkErrorClassifier.isNetworkError(error))
-    XCTAssertFalse(SignInNetworkErrorClassifier.isSecureConnectionFailed(error))
+    #expect(!SignInNetworkErrorClassifier.isNetworkError(error))
+    #expect(!SignInNetworkErrorClassifier.isSecureConnectionFailed(error))
   }
 
+  @Test
   func testClassifierRejectsNSURLDomainWithUnrelatedCode() {
     let error = NSError(domain: NSURLErrorDomain, code: -9999)
-    XCTAssertFalse(SignInNetworkErrorClassifier.isNetworkError(error))
+    #expect(!SignInNetworkErrorClassifier.isNetworkError(error))
   }
 
+  @Test
   func testClassifierUnwrapsAFErrorSessionTaskFailed() {
     let underlying = NSError(domain: NSURLErrorDomain, code: NSURLErrorSecureConnectionFailed)
     let afError = AFError.sessionTaskFailed(error: underlying)
-    XCTAssertTrue(SignInNetworkErrorClassifier.isNetworkError(afError))
-    XCTAssertTrue(SignInNetworkErrorClassifier.isSecureConnectionFailed(afError))
+    #expect(SignInNetworkErrorClassifier.isNetworkError(afError))
+    #expect(SignInNetworkErrorClassifier.isSecureConnectionFailed(afError))
   }
 
+  @Test
   func testClassifierUnwrapsSignInAPIErrorWrappingAFError() {
     let underlying = NSError(domain: NSURLErrorDomain, code: NSURLErrorSecureConnectionFailed)
     let afError = AFError.sessionTaskFailed(error: underlying)
@@ -297,10 +327,11 @@ final class SignInPageTests: XCTestCase {
       statusCode: nil,
       responseBody: nil,
       underlyingError: afError)
-    XCTAssertTrue(SignInNetworkErrorClassifier.isNetworkError(signInError))
-    XCTAssertTrue(SignInNetworkErrorClassifier.isSecureConnectionFailed(signInError))
+    #expect(SignInNetworkErrorClassifier.isNetworkError(signInError))
+    #expect(SignInNetworkErrorClassifier.isSecureConnectionFailed(signInError))
   }
 
+  @Test
   func testClassifierRejectsSignInAPIErrorWrappingNonNetworkError() {
     let signInError = SignInAPIError(
       authMethod: .google,
@@ -308,10 +339,11 @@ final class SignInPageTests: XCTestCase {
       statusCode: 500,
       responseBody: nil,
       underlyingError: NSError(domain: "decode", code: 7))
-    XCTAssertFalse(SignInNetworkErrorClassifier.isNetworkError(signInError))
-    XCTAssertFalse(SignInNetworkErrorClassifier.isSecureConnectionFailed(signInError))
+    #expect(!SignInNetworkErrorClassifier.isNetworkError(signInError))
+    #expect(!SignInNetworkErrorClassifier.isSecureConnectionFailed(signInError))
   }
 
+  @Test
   func testSignInErrorReportIncludesHTTPContextAndRedactsTokens() {
     let responseBody = #"{"playolaToken":"secret-jwt","message":"unexpected shape"}"#
     let error = SignInAPIError(
@@ -323,17 +355,17 @@ final class SignInPageTests: XCTestCase {
 
     let report = SignInErrorReport(error: error, authMethod: .apple, step: "api_call")
 
-    XCTAssertEqual(report.tags["auth_method"], "apple")
-    XCTAssertEqual(report.tags["sign_in_step"], "api_call")
-    XCTAssertEqual(report.tags["http_status_code"], "200")
-    XCTAssertEqual(report.context["endpoint_path"], "/v1/auth/apple/mobile/signup")
-    XCTAssertEqual(
-      report.context["response_body_bytes"], "\(responseBody.lengthOfBytes(using: .utf8))")
-    XCTAssertEqual(report.context["response_body_top_level_keys"], "message,playolaToken")
-    XCTAssertTrue(
+    #expect(report.tags["auth_method"] == "apple")
+    #expect(report.tags["sign_in_step"] == "api_call")
+    #expect(report.tags["http_status_code"] == "200")
+    #expect(report.context["endpoint_path"] == "/v1/auth/apple/mobile/signup")
+    #expect(
+      report.context["response_body_bytes"] == "\(responseBody.lengthOfBytes(using: .utf8))")
+    #expect(report.context["response_body_top_level_keys"] == "message,playolaToken")
+    #expect(
       report.context["response_body"]?.contains(#""playolaToken":"[REDACTED]""#) ?? false)
-    XCTAssertTrue(
+    #expect(
       report.context["response_body"]?.contains(#""message":"unexpected shape""#) ?? false)
-    XCTAssertFalse(report.context["response_body"]?.contains("secret-jwt") ?? true)
+    #expect(!(report.context["response_body"]?.contains("secret-jwt") ?? true))
   }
 }
