@@ -29,27 +29,28 @@ struct SignInPageTests {
   func testSignInWithAppleTracksSignInStartedEvent() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
-    await confirmation("Apple sign-in started event tracked") { confirm in
-      let model = withDependencies {
-        $0.analytics.track = { event in
-          capturedEvents.withValue { $0.append(event) }
-          if case .signInStarted(let method) = event, method == .apple {
-            confirm()
+    await withMainSerialExecutor {
+      await confirmation("Apple sign-in started event tracked") { confirm in
+        let model = withDependencies {
+          $0.analytics.track = { event in
+            capturedEvents.withValue { $0.append(event) }
+            if case .signInStarted(let method) = event, method == .apple {
+              confirm()
+            }
           }
+        } operation: {
+          SignInPageModel()
         }
-      } operation: {
-        SignInPageModel()
-      }
 
-      let request = ASAuthorizationAppleIDRequest(coder: NSCoder())!
-      model.signInWithAppleButtonTapped(request: request)
+        let request = ASAuthorizationAppleIDRequest(coder: NSCoder())!
+        model.signInWithAppleButtonTapped(request: request)
 
-      // Yield to let the spawned Task run the analytics callback.
-      while !capturedEvents.value.contains(where: {
-        if case .signInStarted(let method) = $0 { return method == .apple }
-        return false
-      }) {
-        await Task.yield()
+        while !capturedEvents.value.contains(where: {
+          if case .signInStarted(let method) = $0 { return method == .apple }
+          return false
+        }) {
+          await Task.yield()
+        }
       }
     }
 
