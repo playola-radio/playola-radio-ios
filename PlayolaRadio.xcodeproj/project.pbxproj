@@ -400,6 +400,7 @@
 		D3FEC80B2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */; };
 		D3FEC80C2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */; };
 		D3FEC80D2EDF689F00A33AE8 /* ChooseStationToBroadcastPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */; };
+		D3FF74D52FA7CA760052D500 /* CustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = D3FF74D42FA7CA760052D500 /* CustomDump */; };
 		F35D444BFD44486391C161D6 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 0B6E1320AC744E9FAEC2F50F /* Sentry */; };
 /* End PBXBuildFile section */
 
@@ -686,6 +687,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D334827B2F9B1A83002CAC52 /* Sentry in Frameworks */,
+				D3FF74D52FA7CA760052D500 /* CustomDump in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1602,6 +1604,7 @@
 				D3916A652ECD229B00CAAD50 /* XCRemoteSwiftPackageReference "swift-identified-collections" */,
 				D3916A6A2ECD231200CAAD50 /* XCRemoteSwiftPackageReference "swift-sharing" */,
 				9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
+				D3FF74D32FA7CA760052D500 /* XCRemoteSwiftPackageReference "swift-custom-dump" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D3536A022BFA4F49006942D6 /* Products */;
@@ -2786,6 +2789,14 @@
 				minimumVersion = 0.14.0;
 			};
 		};
+		D3FF74D32FA7CA760052D500 /* XCRemoteSwiftPackageReference "swift-custom-dump" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-custom-dump";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.5.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -2931,6 +2942,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */;
 			productName = PlayolaPlayer;
+		};
+		D3FF74D42FA7CA760052D500 /* CustomDump */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3FF74D32FA7CA760052D500 /* XCRemoteSwiftPackageReference "swift-custom-dump" */;
+			productName = CustomDump;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
