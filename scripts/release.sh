@@ -60,7 +60,7 @@ PBXPROJ="PlayolaRadio.xcodeproj/project.pbxproj"
 
 # Get current version info
 current_version=$(grep -m1 'MARKETING_VERSION' "$PBXPROJ" | sed -E 's/.*MARKETING_VERSION = ([^;]+);.*/\1/' | tr -d ' ')
-current_build=$(grep -m1 'CURRENT_PROJECT_VERSION' "$PBXPROJ" | sed -E 's/.*CURRENT_PROJECT_VERSION = ([^;]+);.*/\1/' | tr -d ' ')
+current_build=$(grep 'CURRENT_PROJECT_VERSION' "$PBXPROJ" | sed -E 's/.*CURRENT_PROJECT_VERSION = ([^;]+);.*/\1/' | tr -d ' ' | sort -n | tail -1)
 
 if [ -z "$current_version" ]; then
   echo "Error: could not detect MARKETING_VERSION from $PBXPROJ" >&2
