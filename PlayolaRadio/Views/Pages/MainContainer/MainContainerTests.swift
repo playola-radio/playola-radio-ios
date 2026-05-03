@@ -304,6 +304,9 @@ struct MainContainerTests {
 
   @Test
   func testProcessNewStationStateDoesNotPresentSheetForOtherStates() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+
     let stationPlayerMock = StationPlayerMock()
     let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
 

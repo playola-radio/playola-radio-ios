@@ -62,6 +62,9 @@ struct ChooseStationToBroadcastPageTests {
 
   @Test
   func testStationSelectedSwitchesToBroadcastMode() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+
     let stations = [
       Station.mockWith(id: "station-1", name: "First Station"),
       Station.mockWith(id: "station-2", name: "Second Station"),
