@@ -5,14 +5,16 @@
 
 import ConcurrencyExtras
 import Dependencies
+import Foundation
 import PlayolaPlayer
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class SeriesCardModelTests: XCTestCase {
+struct SeriesCardModelTests {
+  @Test
   func testRemindMeTappedCallsSubscribeAPI() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let subscribeCalled = LockIsolated(false)
@@ -32,11 +34,12 @@ final class SeriesCardModelTests: XCTestCase {
 
       await model.remindMeTapped()
 
-      XCTAssertTrue(subscribeCalled.value)
-      XCTAssertEqual(subscribedStationId.value, "station-123")
+      #expect(subscribeCalled.value)
+      #expect(subscribedStationId.value == "station-123")
     }
   }
 
+  @Test
   func testRemindMeTappedUpdatesStatusToSubscribed() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
@@ -52,10 +55,11 @@ final class SeriesCardModelTests: XCTestCase {
 
       await model.remindMeTapped()
 
-      XCTAssertEqual(model.subscriptionStatus, .subscribed)
+      #expect(model.subscriptionStatus == .subscribed)
     }
   }
 
+  @Test
   func testRemindMeTappedShowsAlertOnError() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
@@ -71,10 +75,11 @@ final class SeriesCardModelTests: XCTestCase {
 
       await model.remindMeTapped()
 
-      XCTAssertNotNil(model.presentedAlert)
+      #expect(model.presentedAlert != nil)
     }
   }
 
+  @Test
   func testRemindMeTappedDoesNotCallAPIWithoutJWT() async {
     @Shared(.auth) var auth = Auth(jwt: nil)
     let subscribeCalled = LockIsolated(false)
@@ -92,10 +97,11 @@ final class SeriesCardModelTests: XCTestCase {
 
       await model.remindMeTapped()
 
-      XCTAssertFalse(subscribeCalled.value)
+      #expect(!subscribeCalled.value)
     }
   }
 
+  @Test
   func testRemindMeTappedDoesNotCallAPIWithoutStation() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let subscribeCalled = LockIsolated(false)
@@ -113,10 +119,11 @@ final class SeriesCardModelTests: XCTestCase {
 
       await model.remindMeTapped()
 
-      XCTAssertFalse(subscribeCalled.value)
+      #expect(!subscribeCalled.value)
     }
   }
 
+  @Test
   func testRemindMeTappedSetsIsSubscribingDuringRequest() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let wasSubscribingDuringCall = LockIsolated(false)
@@ -134,8 +141,8 @@ final class SeriesCardModelTests: XCTestCase {
 
       await model.remindMeTapped()
 
-      XCTAssertTrue(wasSubscribingDuringCall.value)
-      XCTAssertFalse(model.isSubscribing)
+      #expect(wasSubscribingDuringCall.value)
+      #expect(!model.isSubscribing)
     }
   }
 

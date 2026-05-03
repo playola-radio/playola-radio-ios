@@ -6,15 +6,17 @@
 //
 
 import Dependencies
+import Foundation
 import PlayolaPlayer
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class SongDrawerTests: XCTestCase {
+struct SongDrawerTests {
 
-  func testOpenSpotify_WithSpotifyId_OpensCorrectURL() {
+  @Test
+  func testOpenSpotifyWithSpotifyIdOpensCorrectURL() {
     let audioBlock = AudioBlock.mockWith(spotifyId: "4iV5W9uYEdYUVa79Axb7Rh")
     var dismissCalled = false
 
@@ -28,10 +30,11 @@ final class SongDrawerTests: XCTestCase {
     // This test verifies the logic flow and that dismiss is called
     model.openSpotify()
 
-    XCTAssertTrue(dismissCalled, "Should call onDismiss after attempting to open Spotify")
+    #expect(dismissCalled, "Should call onDismiss after attempting to open Spotify")
   }
 
-  func testOpenSpotify_WithoutSpotifyId_JustDismisses() {
+  @Test
+  func testOpenSpotifyWithoutSpotifyIdJustDismisses() {
     let audioBlock = AudioBlock.mockWith(spotifyId: nil)
     var dismissCalled = false
 
@@ -43,10 +46,11 @@ final class SongDrawerTests: XCTestCase {
 
     model.openSpotify()
 
-    XCTAssertTrue(dismissCalled, "Should call onDismiss when no Spotify ID is available")
+    #expect(dismissCalled, "Should call onDismiss when no Spotify ID is available")
   }
 
-  func testOpenAppleMusic_OpensSearchURL() {
+  @Test
+  func testOpenAppleMusicOpensSearchURL() {
     let audioBlock = AudioBlock.mockWith(
       title: "Test Song",
       artist: "Test Artist"
@@ -61,10 +65,11 @@ final class SongDrawerTests: XCTestCase {
 
     model.openAppleMusic()
 
-    XCTAssertTrue(dismissCalled, "Should call onDismiss after attempting to open Apple Music")
+    #expect(dismissCalled, "Should call onDismiss after attempting to open Apple Music")
   }
 
-  func testOpenAppleMusic_HandlesSpecialCharacters() {
+  @Test
+  func testOpenAppleMusicHandlesSpecialCharacters() {
     let audioBlock = AudioBlock.mockWith(
       title: "Song & Title",
       artist: "Artist @ Name"
@@ -80,10 +85,11 @@ final class SongDrawerTests: XCTestCase {
     // Should not crash with special characters and should call dismiss
     model.openAppleMusic()
 
-    XCTAssertTrue(dismissCalled, "Should handle URL encoding and call onDismiss")
+    #expect(dismissCalled, "Should handle URL encoding and call onDismiss")
   }
 
-  func testShouldShowSpotify_TrueWhenSpotifyIdExists() {
+  @Test
+  func testShouldShowSpotifyTrueWhenSpotifyIdExists() {
     let audioBlock = AudioBlock.mockWith(spotifyId: "4iV5W9uYEdYUVa79Axb7Rh")
     let model = SongDrawerModel(
       audioBlock: audioBlock,
@@ -91,10 +97,11 @@ final class SongDrawerTests: XCTestCase {
       onDismiss: {}
     )
 
-    XCTAssertTrue(model.shouldShowSpotify)
+    #expect(model.shouldShowSpotify)
   }
 
-  func testShouldShowSpotify_FalseWhenSpotifyIdIsNil() {
+  @Test
+  func testShouldShowSpotifyFalseWhenSpotifyIdIsNil() {
     let audioBlock = AudioBlock.mockWith(spotifyId: nil)
     let model = SongDrawerModel(
       audioBlock: audioBlock,
@@ -102,10 +109,11 @@ final class SongDrawerTests: XCTestCase {
       onDismiss: {}
     )
 
-    XCTAssertFalse(model.shouldShowSpotify)
+    #expect(!model.shouldShowSpotify)
   }
 
-  func testShouldShowAppleMusic_TrueWhenTitleAndArtistExist() {
+  @Test
+  func testShouldShowAppleMusicTrueWhenTitleAndArtistExist() {
     let audioBlock = AudioBlock.mockWith(
       title: "Test Song",
       artist: "Test Artist"
@@ -116,10 +124,11 @@ final class SongDrawerTests: XCTestCase {
       onDismiss: {}
     )
 
-    XCTAssertTrue(model.shouldShowAppleMusic)
+    #expect(model.shouldShowAppleMusic)
   }
 
-  func testShouldShowAppleMusic_FalseWhenTitleOrArtistEmpty() {
+  @Test
+  func testShouldShowAppleMusicFalseWhenTitleOrArtistEmpty() {
     let audioBlockEmptyTitle = AudioBlock.mockWith(
       title: "",
       artist: "Test Artist"
@@ -130,7 +139,7 @@ final class SongDrawerTests: XCTestCase {
       onDismiss: {}
     )
 
-    XCTAssertFalse(modelEmptyTitle.shouldShowAppleMusic)
+    #expect(!modelEmptyTitle.shouldShowAppleMusic)
 
     let audioBlockEmptyArtist = AudioBlock.mockWith(
       title: "Test Song",
@@ -142,10 +151,11 @@ final class SongDrawerTests: XCTestCase {
       onDismiss: {}
     )
 
-    XCTAssertFalse(modelEmptyArtist.shouldShowAppleMusic)
+    #expect(!modelEmptyArtist.shouldShowAppleMusic)
   }
 
-  func testRemoveFromLikedSongs_UnlikesAndDismisses() async {
+  @Test
+  func testRemoveFromLikedSongsUnlikesAndDismisses() async {
     let audioBlock = AudioBlock.mock
     var dismissCalled = false
 
@@ -162,17 +172,18 @@ final class SongDrawerTests: XCTestCase {
       )
 
       // Verify it's liked initially
-      XCTAssertTrue(model.likesManager.isLiked(audioBlock.id))
+      #expect(model.likesManager.isLiked(audioBlock.id))
 
       model.removeFromLikedSongs()
 
       // Verify it's been unliked and dismiss was called
-      XCTAssertFalse(model.likesManager.isLiked(audioBlock.id))
-      XCTAssertTrue(dismissCalled)
+      #expect(!model.likesManager.isLiked(audioBlock.id))
+      #expect(dismissCalled)
     }
   }
 
-  func testRemoveFromLikedSongs_WithOnRemoveCallback() async {
+  @Test
+  func testRemoveFromLikedSongsWithOnRemoveCallback() async {
     let audioBlock = AudioBlock.mock
     var dismissCalled = false
     var onRemoveCalled = false
@@ -196,13 +207,13 @@ final class SongDrawerTests: XCTestCase {
       model.removeFromLikedSongs()
 
       // Verify the onRemove callback was called with correct audio block
-      XCTAssertTrue(onRemoveCalled, "Should call onRemove callback")
-      XCTAssertEqual(
-        removedAudioBlock?.id, audioBlock.id, "Should pass correct audioBlock to onRemove")
-      XCTAssertTrue(dismissCalled, "Should call onDismiss")
+      #expect(onRemoveCalled, "Should call onRemove callback")
+      #expect(
+        removedAudioBlock?.id == audioBlock.id, "Should pass correct audioBlock to onRemove")
+      #expect(dismissCalled, "Should call onDismiss")
 
       // Verify song is still liked (since onRemove callback handles the removal)
-      XCTAssertTrue(
+      #expect(
         model.likesManager.isLiked(audioBlock.id),
         "Song should still be liked when using onRemove callback"
       )
