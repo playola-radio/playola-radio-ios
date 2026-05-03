@@ -10,6 +10,8 @@ import Testing
 
 @testable import PlayolaRadio
 
+// swiftlint:disable redundant_optional_initialization
+
 @MainActor
 struct AppRatingClientTests {
 
@@ -167,3 +169,5 @@ struct AppRatingClientTests {
     #expect(lastRatingPromptDismissDate != nil)
   }
 }
+
+// swiftlint:enable redundant_optional_initialization
