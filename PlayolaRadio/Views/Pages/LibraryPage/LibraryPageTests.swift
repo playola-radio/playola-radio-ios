@@ -661,7 +661,7 @@ struct LibraryPageTests {
   @Test
   func testAddSongButtonTappedPresentsSongSearchPageSheet() {
     @Shared(.mainContainerNavigationCoordinator)
-    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+    var mainContainerNavigationCoordinator = MainContainerNavigationCoordinator()
 
     withModel { model in
       #expect(mainContainerNavigationCoordinator.presentedSheet == nil)
@@ -711,7 +711,7 @@ struct LibraryPageTests {
   @Test
   func testAddSongButtonTappedOnAddedToLibraryCallbackDismissesSheet() {
     @Shared(.mainContainerNavigationCoordinator)
-    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+    var mainContainerNavigationCoordinator = MainContainerNavigationCoordinator()
 
     withModel { model in
       model.addSongButtonTapped()
@@ -727,7 +727,7 @@ struct LibraryPageTests {
   @Test
   func testAddSongButtonTappedOnDismissCallbackDismissesSheet() {
     @Shared(.mainContainerNavigationCoordinator)
-    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+    var mainContainerNavigationCoordinator = MainContainerNavigationCoordinator()
 
     withModel { model in
       model.addSongButtonTapped()
@@ -797,7 +797,7 @@ struct LibraryPageTests {
   @Test
   func testRecordIntroButtonTappedPresentsRecordIntroSheet() {
     @Shared(.mainContainerNavigationCoordinator)
-    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+    var mainContainerNavigationCoordinator = MainContainerNavigationCoordinator()
 
     withModel { model in
       let song = LibrarySong.mockWith(id: "song-1", title: "Test Song", artist: "Test Artist")
