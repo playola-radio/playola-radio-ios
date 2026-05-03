@@ -27,19 +27,74 @@ private struct CreateVoicetrackParameters: Encodable, Sendable {
 
 private let sharedIsoDecoder = JSONDecoderWithIsoFull()
 
-private let tls12SignInSession: Alamofire.Session = {
+// TEMPORARY: Global TLS 1.2 cap.
+//
+// On iOS 26, URLSession sends a TLS 1.3 ClientHello that includes the X25519MLKEM768
+// post-quantum hybrid key share (~1.6 KB). Some users sit behind middleboxes
+// (antivirus SSL inspection, parental-control routers, captive portals, etc.) that
+// drop the larger ClientHello and surface as NSURLErrorSecureConnectionFailed (-1200),
+// which makes every API request fail silently on those networks. PR #269 added a
+// per-call TLS 1.2 fallback for sign-in, but follow-up testing showed the issue
+// affects every endpoint — sign-in succeeds, then profile / listening-tracker /
+// station fetches silently fail and the UI renders blank or stale data.
+//
+// As a stopgap, every Alamofire request in this file is routed through `apiSession`,
+// which caps the URLSession to TLS 1.2 so the ClientHello stays small enough for
+// these middleboxes to pass through.
+//
+// REVERT WHEN: Apple ships an iOS 26 fix (watch 26.5+ release notes) OR exposes a
+// supported opt-out for the post-quantum hybrid key share so we can keep TLS 1.3.
+// At that point, replace `apiSession` usages with bare `AF` again and consider
+// restoring a per-call retry (the prior signInPostWithTLS12Fallback pattern) for
+// defense in depth on networks that still misbehave.
+private let apiSession: Alamofire.Session = {
   let configuration = URLSessionConfiguration.af.default
   configuration.tlsMaximumSupportedProtocolVersion = .TLSv12
   return Alamofire.Session(configuration: configuration)
 }()
 
+// Companion to `apiSession`: a separate session with no TLS cap, used by
+// `probeTLS13()` to test whether TLS 1.3 works on the user's network. When
+// success rates climb across the user base, the cap above is safe to revert.
+private let tls13ProbeSession: Alamofire.Session = {
+  Alamofire.Session(configuration: URLSessionConfiguration.af.default)
+}()
+
+// Fires once per build per device. Hits a small unauthenticated endpoint over
+// TLS 1.3 (no cap) and reports outcome to Sentry as `tls13_probe`. Aggregating
+// the outcome across users tells us when the iOS 26 middlebox issue has cleared
+// up enough to revert the global TLS 1.2 cap.
+func probeTLS13() async {
+  @Shared(.tls13ProbeLastSentBuild) var lastSentBuild: String?
+  guard let currentBuild = Bundle.main.infoDictionary?["CFBundleVersion"] as? String,
+    lastSentBuild != currentBuild
+  else { return }
+
+  let url = "\(Config.shared.baseUrl.absoluteString)/v1/app-version-requirements"
+  let outcome: String
+  do {
+    _ = try await tls13ProbeSession.request(url)
+      .validate(statusCode: 200..<300)
+      .serializingData()
+      .value
+    outcome = "success"
+  } catch {
+    outcome = "failure"
+  }
+
+  @Dependency(\.errorReporting) var errorReporting
+  await errorReporting.reportMessage(
+    "tls13_probe",
+    ["tls13_probe_outcome": outcome])
+  $lastSentBuild.withLock { $0 = currentBuild }
+}
+
 private func signInPost(
   authMethod: AuthMethod,
   endpointPath: String,
-  parameters: Parameters,
-  session: Alamofire.Session = AF
+  parameters: Parameters
 ) async throws -> String {
-  let dataResponse = await session.request(
+  let dataResponse = await apiSession.request(
     "\(Config.shared.baseUrl.absoluteString)\(endpointPath)",
     method: .post,
     parameters: parameters,
@@ -62,44 +117,6 @@ private func signInPost(
   }
 }
 
-// Some users sit behind middleboxes (antivirus SSL inspection, parental-control routers, etc.)
-// that drop iOS 26's larger TLS 1.3 ClientHello with post-quantum hybrid key shares. Capping
-// to TLS 1.2 produces a smaller ClientHello that those middleboxes pass through. We retry
-// only the auth endpoints; everything else stays on modern TLS 1.3.
-private func signInPostWithTLS12Fallback(
-  authMethod: AuthMethod,
-  endpointPath: String,
-  parameters: Parameters
-) async throws -> String {
-  do {
-    return try await signInPost(
-      authMethod: authMethod,
-      endpointPath: endpointPath,
-      parameters: parameters)
-  } catch let originalError {
-    guard SignInNetworkErrorClassifier.isSecureConnectionFailed(originalError) else {
-      throw originalError
-    }
-    @Dependency(\.errorReporting) var errorReporting
-    do {
-      let token = try await signInPost(
-        authMethod: authMethod,
-        endpointPath: endpointPath,
-        parameters: parameters,
-        session: tls12SignInSession)
-      await errorReporting.reportMessage(
-        "tls12_fallback_used",
-        ["auth_method": authMethod.rawValue, "tls12_fallback_outcome": "success"])
-      return token
-    } catch {
-      await errorReporting.reportMessage(
-        "tls12_fallback_used",
-        ["auth_method": authMethod.rawValue, "tls12_fallback_outcome": "failure"])
-      throw originalError
-    }
-  }
-}
-
 private func authenticatedGet<T: Decodable & Sendable>(
   path: String,
   token: String,
@@ -114,7 +131,7 @@ private func authenticatedGet<T: Decodable & Sendable>(
     }
   }
   let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
-  return try await AF.request(url, headers: headers)
+  return try await apiSession.request(url, headers: headers)
     .validate(statusCode: 200..<300)
     .serializingDecodable(T.self, decoder: sharedIsoDecoder)
     .value
@@ -127,7 +144,7 @@ private func authenticatedPost<T: Decodable & Sendable>(
 ) async throws -> T {
   let url = "\(Config.shared.baseUrl.absoluteString)\(path)"
   let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
-  return try await AF.request(
+  return try await apiSession.request(
     url,
     method: .post,
     parameters: parameters.isEmpty ? nil : parameters,
@@ -146,7 +163,7 @@ private func authenticatedPostVoid(
 ) async throws {
   let url = "\(Config.shared.baseUrl.absoluteString)\(path)"
   let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
-  _ = try await AF.request(
+  _ = try await apiSession.request(
     url,
     method: .post,
     parameters: parameters.isEmpty ? nil : parameters,
@@ -163,7 +180,7 @@ private func authenticatedPut<T: Decodable & Sendable>(path: String, token: Stri
 {
   let url = "\(Config.shared.baseUrl.absoluteString)\(path)"
   let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
-  return try await AF.request(url, method: .put, headers: headers)
+  return try await apiSession.request(url, method: .put, headers: headers)
     .validate(statusCode: 200..<300)
     .serializingDecodable(T.self, decoder: sharedIsoDecoder)
     .value
@@ -172,7 +189,7 @@ private func authenticatedPut<T: Decodable & Sendable>(path: String, token: Stri
 private func authenticatedPutVoid(path: String, token: String) async throws {
   let url = "\(Config.shared.baseUrl.absoluteString)\(path)"
   let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
-  _ = try await AF.request(url, method: .put, headers: headers)
+  _ = try await apiSession.request(url, method: .put, headers: headers)
     .validate(statusCode: 200..<300)
     .serializingData()
     .value
@@ -181,7 +198,7 @@ private func authenticatedPutVoid(path: String, token: String) async throws {
 private func authenticatedDelete(path: String, token: String) async throws {
   let url = "\(Config.shared.baseUrl.absoluteString)\(path)"
   let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
-  _ = try await AF.request(url, method: .delete, headers: headers)
+  _ = try await apiSession.request(url, method: .delete, headers: headers)
     .validate(statusCode: 200..<300)
     .serializingData()
     .value
@@ -194,7 +211,7 @@ extension APIClient: DependencyKey {
     return Self(
       getStations: {
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/station-lists"
-        let response = try await AF.request(url)
+        let response = try await apiSession.request(url)
           .serializingDecodable([StationList].self, decoder: JSONDecoderWithIsoFull())
           .value
         return IdentifiedArray(uniqueElements: response)
@@ -211,14 +228,14 @@ extension APIClient: DependencyKey {
         if let lastName {
           parameters["lastName"] = lastName
         }
-        return try await signInPostWithTLS12Fallback(
+        return try await signInPost(
           authMethod: .apple,
           endpointPath: "/v1/auth/apple/mobile/signup",
           parameters: parameters)
       },
       revokeAppleCredentials: { appleUserId in
         let parameters: [String: String] = ["appleUserId": appleUserId]
-        _ = try await AF.request(
+        _ = try await apiSession.request(
           "\(Config.shared.baseUrl.absoluteString)/v1/auth/apple/revoke",
           method: .put,
           parameters: parameters,
@@ -236,7 +253,7 @@ extension APIClient: DependencyKey {
           "originatesFromIOS": true,
         ]
 
-        return try await signInPostWithTLS12Fallback(
+        return try await signInPost(
           authMethod: .google,
           endpointPath: "/v1/auth/google/signin",
           parameters: parameters)
@@ -247,7 +264,7 @@ extension APIClient: DependencyKey {
       getPrizeTiers: {
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/tiers"
 
-        let response = try await AF.request(url)
+        let response = try await apiSession.request(url)
           .validate(statusCode: 200..<300)
           .serializingDecodable([PrizeTier].self, decoder: isoDecoder)
           .value
@@ -275,7 +292,7 @@ extension APIClient: DependencyKey {
         if let lastName { params["lastName"] = lastName }
         if let verifiedEmail { params["verifiedEmail"] = verifiedEmail }
 
-        let request = AF.request(
+        let request = apiSession.request(
           url,
           method: .put,
           parameters: params,
@@ -343,7 +360,7 @@ extension APIClient: DependencyKey {
           url += "?extended=true"
         }
 
-        let response = try await AF.request(url)
+        let response = try await apiSession.request(url)
           .validate(statusCode: 200..<300)
           .serializingDecodable([Spin].self, decoder: isoDecoder)
           .value
@@ -364,7 +381,7 @@ extension APIClient: DependencyKey {
           headers.add(name: "X-Device-Id", value: deviceId)
         }
 
-        let dataResponse = await AF.request(
+        let dataResponse = await apiSession.request(
           url,
           method: .delete,
           headers: headers
@@ -397,7 +414,7 @@ extension APIClient: DependencyKey {
         }
         let parameters = MoveSpinParameters(placeAfterSpinId: placeAfterSpinId)
 
-        let dataResponse = await AF.request(
+        let dataResponse = await apiSession.request(
           url,
           method: .put,
           parameters: parameters,
@@ -440,7 +457,7 @@ extension APIClient: DependencyKey {
           "placeAfterSpinId": placeAfterSpinId,
         ]
 
-        let dataResponse = await AF.request(
+        let dataResponse = await apiSession.request(
           url,
           method: .post,
           parameters: parameters,
@@ -478,7 +495,7 @@ extension APIClient: DependencyKey {
 
         try await withCheckedThrowingContinuation {
           (continuation: CheckedContinuation<Void, Error>) in
-          AF.upload(fileURL, to: presignedURL, method: .put, headers: headers)
+          apiSession.upload(fileURL, to: presignedURL, method: .put, headers: headers)
             .uploadProgress { progress in
               onProgress(progress.fractionCompleted)
             }
@@ -500,7 +517,7 @@ extension APIClient: DependencyKey {
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
         let parameters = CreateVoicetrackParameters(s3Key: s3Key, durationMS: durationMS)
 
-        let dataResponse = await AF.request(
+        let dataResponse = await apiSession.request(
           url,
           method: .post,
           parameters: parameters,
@@ -535,7 +552,7 @@ extension APIClient: DependencyKey {
           "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/voicetrack-status/\(encodedS3Key)"
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
 
-        let response = try await AF.request(url, headers: headers)
+        let response = try await apiSession.request(url, headers: headers)
           .validate(statusCode: 200..<300)
           .serializingDecodable(VoicetrackStatusResponse.self)
           .value
@@ -671,7 +688,7 @@ extension APIClient: DependencyKey {
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
         let parameters = ["filename": filename]
 
-        return try await AF.request(
+        return try await apiSession.request(
           url,
           method: .post,
           parameters: parameters,
@@ -695,7 +712,7 @@ extension APIClient: DependencyKey {
           parameters["audioBlockId"] = audioBlockId
         }
 
-        _ = try await AF.request(
+        _ = try await apiSession.request(
           url,
           method: .post,
           parameters: parameters,
@@ -758,7 +775,7 @@ extension APIClient: DependencyKey {
           "\(Config.shared.productionBaseUrl.absoluteString)/v1/ios/stations/\(stationId)/source-tapes/audio-block-ids"
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
 
-        return try await AF.request(url, headers: headers)
+        return try await apiSession.request(url, headers: headers)
           .validate(statusCode: 200..<300)
           .serializingDecodable([String].self)
           .value
@@ -784,7 +801,7 @@ extension APIClient: DependencyKey {
       },
       getAppVersionRequirements: {
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/app-version-requirements"
-        return try await AF.request(url)
+        return try await apiSession.request(url)
           .validate(statusCode: 200..<300)
           .serializingDecodable(AppVersionRequirements.self)
           .value

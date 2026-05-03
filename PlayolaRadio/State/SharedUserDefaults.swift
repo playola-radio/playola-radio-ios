@@ -167,3 +167,11 @@ extension SharedKey where Self == AppStorageKey<Date?>.Default {
     Self[.appStorage("lastRatingPromptDismissDate"), default: nil]
   }
 }
+
+// MARK: - TLS Probe
+
+extension SharedKey where Self == AppStorageKey<String?>.Default {
+  static var tls13ProbeLastSentBuild: Self {
+    Self[.appStorage("tls13ProbeLastSentBuild"), default: nil]
+  }
+}
