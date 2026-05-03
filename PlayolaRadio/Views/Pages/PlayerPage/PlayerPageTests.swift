@@ -10,59 +10,63 @@ import FRadioPlayer
 import Foundation
 import PlayolaPlayer
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class PlayerPageTests: XCTestCase {
+struct PlayerPageTests {
   // MARK: - viewAppeared Tests
 
-  func testViewAppeared_PopulatesCorrectlyWhenLoadingNoProgress() {
+  @Test
+  func testViewAppearedPopulatesCorrectlyWhenLoadingNoProgress() {
     let station = AnyStation.mock
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .loading(station))
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.primaryNavBarTitle, station.name)
+    #expect(model.primaryNavBarTitle == station.name)
     if station.isPlayolaStation {
-      XCTAssertEqual(model.secondaryNavBarTitle, station.stationName)
+      #expect(model.secondaryNavBarTitle == station.stationName)
     } else {
-      XCTAssertEqual(model.secondaryNavBarTitle, station.location ?? "")
+      #expect(model.secondaryNavBarTitle == station.location ?? "")
     }
-    XCTAssertEqual(model.nowPlayingText, "Station Loading...")
-    XCTAssertNil(model.playolaAudioBlockPlaying)
+    #expect(model.nowPlayingText == "Station Loading...")
+    #expect(model.playolaAudioBlockPlaying == nil)
   }
 
-  func testViewAppeared_PopulatesCorrectlyWhenLoadingWithProgress() {
+  @Test
+  func testViewAppearedPopulatesCorrectlyWhenLoadingWithProgress() {
     let station = AnyStation.mock
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .loading(station, 0.42))
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.primaryNavBarTitle, station.name)
+    #expect(model.primaryNavBarTitle == station.name)
     if station.isPlayolaStation {
-      XCTAssertEqual(model.secondaryNavBarTitle, station.stationName)
+      #expect(model.secondaryNavBarTitle == station.stationName)
     } else {
-      XCTAssertEqual(model.secondaryNavBarTitle, station.location ?? "")
+      #expect(model.secondaryNavBarTitle == station.location ?? "")
     }
-    XCTAssertEqual(model.nowPlayingText, "Station Loading...")
-    XCTAssertEqual(model.loadingPercentage, 0.42)
-    XCTAssertNil(model.playolaAudioBlockPlaying)
+    #expect(model.nowPlayingText == "Station Loading...")
+    #expect(model.loadingPercentage == 0.42)
+    #expect(model.playolaAudioBlockPlaying == nil)
   }
 
-  func testViewAppeared_PopulatesCorrectlyWhenSomethingIsPlaying() {
+  @Test
+  func testViewAppearedPopulatesCorrectlyWhenSomethingIsPlaying() {
     let station = AnyStation.mock
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       artistPlaying: "Rachel Loy", titlePlaying: "Selfie", station: station)
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.nowPlayingText, "Selfie - Rachel Loy")
-    XCTAssertEqual(model.stationArtUrl, station.imageUrl)
-    XCTAssertNil(model.playolaAudioBlockPlaying)
+    #expect(model.nowPlayingText == "Selfie - Rachel Loy")
+    #expect(model.stationArtUrl == station.imageUrl)
+    #expect(model.playolaAudioBlockPlaying == nil)
   }
 
-  func testViewAppeared_PopulatesCorrectlyWhenSomethingIsPlayingWithAudioBlock() {
+  @Test
+  func testViewAppearedPopulatesCorrectlyWhenSomethingIsPlayingWithAudioBlock() {
     let station = AnyStation.mock
     let audioBlock = AudioBlock.mockWith(title: "Selfie", artist: "Rachel Loy", type: "song")
     let spin = Spin.mockWith(audioBlock: audioBlock)
@@ -70,12 +74,13 @@ final class PlayerPageTests: XCTestCase {
       artistPlaying: "Rachel Loy", titlePlaying: "Selfie", spin: spin, station: station)
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.nowPlayingText, "Selfie - Rachel Loy")
-    XCTAssertEqual(model.stationArtUrl, station.imageUrl)
-    XCTAssertEqual(model.playolaAudioBlockPlaying, audioBlock)
+    #expect(model.nowPlayingText == "Selfie - Rachel Loy")
+    #expect(model.stationArtUrl == station.imageUrl)
+    #expect(model.playolaAudioBlockPlaying == audioBlock)
   }
 
-  func testViewAppeared_PopulatesRelatedTextPrioritizingTheAudioBlockTranscription() {
+  @Test
+  func testViewAppearedPopulatesRelatedTextPrioritizingTheAudioBlockTranscription() {
     let transcription = "This is the transcription"
     let audioBlock = AudioBlock.mockWith(type: "song", transcription: transcription)
     let relatedTexts = [
@@ -86,12 +91,13 @@ final class PlayerPageTests: XCTestCase {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.relatedText?.title, "Why I chose this song")
-    XCTAssertEqual(model.relatedText?.body, transcription)
-    XCTAssertEqual(model.playolaAudioBlockPlaying, audioBlock)
+    #expect(model.relatedText?.title == "Why I chose this song")
+    #expect(model.relatedText?.body == transcription)
+    #expect(model.playolaAudioBlockPlaying == audioBlock)
   }
 
-  func testViewAppeared_PopulatesRelatedTextWhenRelatedTextButNoTranscription() {
+  @Test
+  func testViewAppearedPopulatesRelatedTextWhenRelatedTextButNoTranscription() {
     let audioBlock = AudioBlock.mockWith(type: "song", transcription: nil)
     let relatedTexts = [
       RelatedText(title: "title1", body: "body1"),
@@ -101,49 +107,53 @@ final class PlayerPageTests: XCTestCase {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertNotNil(model.relatedText)
-    XCTAssertTrue(model.relatedText == relatedTexts[0] || model.relatedText == relatedTexts[1])
-    XCTAssertEqual(model.playolaAudioBlockPlaying, audioBlock)
+    #expect(model.relatedText != nil)
+    #expect(model.relatedText == relatedTexts[0] || model.relatedText == relatedTexts[1])
+    #expect(model.playolaAudioBlockPlaying == audioBlock)
   }
 
-  func testViewAppeared_PopulatesCorrectlyWhenStopped() {
+  @Test
+  func testViewAppearedPopulatesCorrectlyWhenStopped() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: nil, status: .stopped)
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.nowPlayingText, "")
-    XCTAssertNil(model.albumArtUrl)
-    XCTAssertNil(model.playolaAudioBlockPlaying)
+    #expect(model.nowPlayingText == "")
+    #expect(model.albumArtUrl == nil)
+    #expect(model.playolaAudioBlockPlaying == nil)
   }
 
-  func testViewAppeared_PopulatesCorrectlyWhenError() {
+  @Test
+  func testViewAppearedPopulatesCorrectlyWhenError() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: nil, status: .error)
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.nowPlayingText, "Error Playing Station")
-    XCTAssertEqual(model.primaryNavBarTitle, "")
-    XCTAssertEqual(model.secondaryNavBarTitle, "")
-    XCTAssertNil(model.albumArtUrl)
-    XCTAssertNil(model.playolaAudioBlockPlaying)
+    #expect(model.nowPlayingText == "Error Playing Station")
+    #expect(model.primaryNavBarTitle == "")
+    #expect(model.secondaryNavBarTitle == "")
+    #expect(model.albumArtUrl == nil)
+    #expect(model.playolaAudioBlockPlaying == nil)
   }
 
-  func testViewAppeared_PopulatesCorrectlyWhenStartingNewStation() {
+  @Test
+  func testViewAppearedPopulatesCorrectlyWhenStartingNewStation() {
     let station = AnyStation.mock
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .startingNewStation(station))
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.primaryNavBarTitle, station.name)
+    #expect(model.primaryNavBarTitle == station.name)
     if station.isPlayolaStation {
-      XCTAssertEqual(model.secondaryNavBarTitle, station.stationName)
+      #expect(model.secondaryNavBarTitle == station.stationName)
     } else {
-      XCTAssertEqual(model.secondaryNavBarTitle, station.location ?? "")
+      #expect(model.secondaryNavBarTitle == station.location ?? "")
     }
-    XCTAssertEqual(model.nowPlayingText, "Station Loading...")
-    XCTAssertEqual(model.loadingPercentage, 0.0)
-    XCTAssertNil(model.playolaAudioBlockPlaying)
+    #expect(model.nowPlayingText == "Station Loading...")
+    #expect(model.loadingPercentage == 0.0)
+    #expect(model.playolaAudioBlockPlaying == nil)
   }
 
-  func testViewAppeared_PopulatesCorrectlyWhenStartingNewStationWithAudioBlock() {
+  @Test
+  func testViewAppearedPopulatesCorrectlyWhenStartingNewStationWithAudioBlock() {
     let station = AnyStation.mock
     let audioBlock = AudioBlock.mockWith(type: "song")
     let spin = Spin.mockWith(audioBlock: audioBlock)
@@ -151,18 +161,19 @@ final class PlayerPageTests: XCTestCase {
       spin: spin, station: station, status: .startingNewStation(station))
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.primaryNavBarTitle, station.name)
+    #expect(model.primaryNavBarTitle == station.name)
     if station.isPlayolaStation {
-      XCTAssertEqual(model.secondaryNavBarTitle, station.stationName)
+      #expect(model.secondaryNavBarTitle == station.stationName)
     } else {
-      XCTAssertEqual(model.secondaryNavBarTitle, station.location ?? "")
+      #expect(model.secondaryNavBarTitle == station.location ?? "")
     }
-    XCTAssertEqual(model.nowPlayingText, "Station Loading...")
-    XCTAssertEqual(model.loadingPercentage, 0.0)
-    XCTAssertEqual(model.playolaAudioBlockPlaying, audioBlock)
+    #expect(model.nowPlayingText == "Station Loading...")
+    #expect(model.loadingPercentage == 0.0)
+    #expect(model.playolaAudioBlockPlaying == audioBlock)
   }
 
-  func testRelatedText_ReturnsConsistentValueForSameSpin() {
+  @Test
+  func testRelatedTextReturnsConsistentValueForSameSpin() {
     let audioBlock = AudioBlock.mockWith(type: "song", transcription: nil)
     let relatedTexts = [
       RelatedText(title: "title1", body: "body1"),
@@ -173,25 +184,27 @@ final class PlayerPageTests: XCTestCase {
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
     let firstResult = model.relatedText
-    XCTAssertNotNil(firstResult)
-    XCTAssertEqual(firstResult, model.relatedText)
-    XCTAssertEqual(firstResult, model.relatedText)
+    #expect(firstResult != nil)
+    #expect(firstResult == model.relatedText)
+    #expect(firstResult == model.relatedText)
   }
 
   // MARK: - playPauseButtonTapped Tests
 
-  func testPlayPauseButtonTapped_StopsWhenPlaying() {
+  @Test
+  func testPlayPauseButtonTappedStopsWhenPlaying() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith()
     let spy = StationPlayerMock()
     let model = PlayerPageModel(stationPlayer: spy)
 
     model.playPauseButtonTapped()
 
-    XCTAssertEqual(spy.stopCalledCount, 1)
-    XCTAssertEqual(spy.callsToPlay.count, 0)
+    #expect(spy.stopCalledCount == 1)
+    #expect(spy.callsToPlay.count == 0)
   }
 
-  func testPlayPauseButtonTapped_DismissesWhenStopButtonPressed() {
+  @Test
+  func testPlayPauseButtonTappedDismissesWhenStopButtonPressed() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith()
     let spy = StationPlayerMock()
     var dismissCalled = false
@@ -199,13 +212,14 @@ final class PlayerPageTests: XCTestCase {
 
     model.playPauseButtonTapped()
 
-    XCTAssertEqual(spy.stopCalledCount, 1)
-    XCTAssertTrue(dismissCalled)
+    #expect(spy.stopCalledCount == 1)
+    #expect(dismissCalled)
   }
 
   // MARK: - scenePhaseChanged Tests
 
-  func testScenePhaseChanged_DismissesWhenActiveAndPlayerStopped() {
+  @Test
+  func testScenePhaseChangedDismissesWhenActiveAndPlayerStopped() {
     let spy = StationPlayerMock()
     spy.state = StationPlayer.State(playbackStatus: .stopped)
 
@@ -214,10 +228,11 @@ final class PlayerPageTests: XCTestCase {
 
     model.scenePhaseChanged(newPhase: .active)
 
-    XCTAssertTrue(dismissCalled)
+    #expect(dismissCalled)
   }
 
-  func testScenePhaseChanged_DismissesWhenActiveAndPlayerError() {
+  @Test
+  func testScenePhaseChangedDismissesWhenActiveAndPlayerError() {
     let spy = StationPlayerMock()
     spy.state = StationPlayer.State(playbackStatus: .error)
 
@@ -226,10 +241,11 @@ final class PlayerPageTests: XCTestCase {
 
     model.scenePhaseChanged(newPhase: .active)
 
-    XCTAssertTrue(dismissCalled)
+    #expect(dismissCalled)
   }
 
-  func testScenePhaseChanged_DoesNotDismissWhenActiveAndPlayerPlaying() {
+  @Test
+  func testScenePhaseChangedDoesNotDismissWhenActiveAndPlayerPlaying() {
     let station = AnyStation.mock
     let spy = StationPlayerMock()
     spy.state = StationPlayer.State(playbackStatus: .playing(station))
@@ -239,10 +255,11 @@ final class PlayerPageTests: XCTestCase {
 
     model.scenePhaseChanged(newPhase: .active)
 
-    XCTAssertFalse(dismissCalled)
+    #expect(!dismissCalled)
   }
 
-  func testScenePhaseChanged_DoesNotDismissWhenActiveAndPlayerLoading() {
+  @Test
+  func testScenePhaseChangedDoesNotDismissWhenActiveAndPlayerLoading() {
     let station = AnyStation.mock
     let spy = StationPlayerMock()
     spy.state = StationPlayer.State(playbackStatus: .loading(station))
@@ -252,10 +269,11 @@ final class PlayerPageTests: XCTestCase {
 
     model.scenePhaseChanged(newPhase: .active)
 
-    XCTAssertFalse(dismissCalled)
+    #expect(!dismissCalled)
   }
 
-  func testScenePhaseChanged_DoesNotDismissWhenActiveAndPlayerStartingNewStation() {
+  @Test
+  func testScenePhaseChangedDoesNotDismissWhenActiveAndPlayerStartingNewStation() {
     let station = AnyStation.mock
     let spy = StationPlayerMock()
     spy.state = StationPlayer.State(playbackStatus: .startingNewStation(station))
@@ -265,10 +283,11 @@ final class PlayerPageTests: XCTestCase {
 
     model.scenePhaseChanged(newPhase: .active)
 
-    XCTAssertFalse(dismissCalled)
+    #expect(!dismissCalled)
   }
 
-  func testScenePhaseChanged_DoesNotDismissWhenBackgroundPhase() {
+  @Test
+  func testScenePhaseChangedDoesNotDismissWhenBackgroundPhase() {
     let spy = StationPlayerMock()
     spy.state = StationPlayer.State(playbackStatus: .stopped)
 
@@ -277,10 +296,11 @@ final class PlayerPageTests: XCTestCase {
 
     model.scenePhaseChanged(newPhase: .background)
 
-    XCTAssertFalse(dismissCalled)
+    #expect(!dismissCalled)
   }
 
-  func testScenePhaseChanged_DoesNotDismissWhenInactivePhase() {
+  @Test
+  func testScenePhaseChangedDoesNotDismissWhenInactivePhase() {
     let spy = StationPlayerMock()
     spy.state = StationPlayer.State(playbackStatus: .stopped)
 
@@ -289,21 +309,23 @@ final class PlayerPageTests: XCTestCase {
 
     model.scenePhaseChanged(newPhase: .inactive)
 
-    XCTAssertFalse(dismissCalled)
+    #expect(!dismissCalled)
   }
 
   // MARK: - Heart State Tests
 
-  func testHeartState_HiddenWhenNotPlayingPlayolaSong() {
+  @Test
+  func testHeartStateHiddenWhenNotPlayingPlayolaSong() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith()  // No spin
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.heartState, .hidden)
-    XCTAssertEqual(model.heartState.imageName, "")
-    XCTAssertEqual(model.heartState.imageColorHex, "")
+    #expect(model.heartState == .hidden)
+    #expect(model.heartState.imageName == "")
+    #expect(model.heartState.imageColorHex == "")
   }
 
-  func testHeartState_EmptyWhenPlayingUnlikedSong() async {
+  @Test
+  func testHeartStateEmptyWhenPlayingUnlikedSong() async {
     let audioBlock = AudioBlock.mockWith(type: "song")
     let spin = Spin.mockWith(audioBlock: audioBlock)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
@@ -313,13 +335,14 @@ final class PlayerPageTests: XCTestCase {
     } operation: {
       let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-      XCTAssertEqual(model.heartState, .empty)
-      XCTAssertEqual(model.heartState.imageName, "heart")
-      XCTAssertEqual(model.heartState.imageColorHex, "#BABABA")
+      #expect(model.heartState == .empty)
+      #expect(model.heartState.imageName == "heart")
+      #expect(model.heartState.imageColorHex == "#BABABA")
     }
   }
 
-  func testHeartState_FilledWhenPlayingLikedSong() async {
+  @Test
+  func testHeartStateFilledWhenPlayingLikedSong() async {
     let audioBlock = AudioBlock.mockWith(type: "song")
     let spin = Spin.mockWith(audioBlock: audioBlock)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
@@ -331,15 +354,16 @@ final class PlayerPageTests: XCTestCase {
     } operation: {
       let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-      XCTAssertEqual(model.heartState, .filled)
-      XCTAssertEqual(model.heartState.imageName, "heart.fill")
-      XCTAssertEqual(model.heartState.imageColorHex, "#EF6962")
+      #expect(model.heartState == .filled)
+      #expect(model.heartState.imageName == "heart.fill")
+      #expect(model.heartState.imageColorHex == "#EF6962")
     }
   }
 
   // MARK: - Heart Button Tap Tests
 
-  func testHeartButtonTapped_DoesNothingWhenNoAudioBlock() async {
+  @Test
+  func testHeartButtonTappedDoesNothingWhenNoAudioBlock() async {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith()  // No spin
 
     withDependencies {
@@ -347,11 +371,12 @@ final class PlayerPageTests: XCTestCase {
     } operation: {
       let model = PlayerPageModel(stationPlayer: StationPlayerMock())
       model.heartButtonTapped()
-      XCTAssertEqual(model.likesManager.allLikedAudioBlocks.count, 0)
+      #expect(model.likesManager.allLikedAudioBlocks.count == 0)
     }
   }
 
-  func testHeartButtonTapped_LikesUnlikedSong() async {
+  @Test
+  func testHeartButtonTappedLikesUnlikedSong() async {
     let audioBlock = AudioBlock.mockWith(type: "song")
     let spin = Spin.mockWith(audioBlock: audioBlock)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
@@ -361,16 +386,17 @@ final class PlayerPageTests: XCTestCase {
     } operation: {
       let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-      XCTAssertEqual(model.heartState, .empty)
+      #expect(model.heartState == .empty)
       model.heartButtonTapped()
 
-      XCTAssertEqual(model.heartState, .filled)
-      XCTAssertTrue(model.likesManager.isLiked(audioBlock.id))
-      XCTAssertEqual(model.likesManager.allLikedAudioBlocks.count, 1)
+      #expect(model.heartState == .filled)
+      #expect(model.likesManager.isLiked(audioBlock.id))
+      #expect(model.likesManager.allLikedAudioBlocks.count == 1)
     }
   }
 
-  func testHeartButtonTapped_UnlikesLikedSong() async {
+  @Test
+  func testHeartButtonTappedUnlikesLikedSong() async {
     let audioBlock = AudioBlock.mockWith(type: "song")
     let spin = Spin.mockWith(audioBlock: audioBlock)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
@@ -382,16 +408,17 @@ final class PlayerPageTests: XCTestCase {
     } operation: {
       let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-      XCTAssertEqual(model.heartState, .filled)
+      #expect(model.heartState == .filled)
       model.heartButtonTapped()
 
-      XCTAssertEqual(model.heartState, .empty)
-      XCTAssertFalse(model.likesManager.isLiked(audioBlock.id))
-      XCTAssertEqual(model.likesManager.allLikedAudioBlocks.count, 0)
+      #expect(model.heartState == .empty)
+      #expect(!model.likesManager.isLiked(audioBlock.id))
+      #expect(model.likesManager.allLikedAudioBlocks.count == 0)
     }
   }
 
-  func testHeartButtonTapped_CreatesPendingOperation() async {
+  @Test
+  func testHeartButtonTappedCreatesPendingOperation() async {
     let audioBlock = AudioBlock.mockWith(type: "song")
     let spin = Spin.mockWith(audioBlock: audioBlock)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
@@ -402,15 +429,16 @@ final class PlayerPageTests: XCTestCase {
       let model = PlayerPageModel(stationPlayer: StationPlayerMock())
       model.heartButtonTapped()
 
-      XCTAssertEqual(model.likesManager.pendingOperations.count, 1)
-      XCTAssertEqual(model.likesManager.pendingOperations.first?.type, .like)
-      XCTAssertEqual(model.likesManager.pendingOperations.first?.audioBlock.id, audioBlock.id)
+      #expect(model.likesManager.pendingOperations.count == 1)
+      #expect(model.likesManager.pendingOperations.first?.type == .like)
+      #expect(model.likesManager.pendingOperations.first?.audioBlock.id == audioBlock.id)
     }
   }
 
   // MARK: - Button Visibility Tests (Type-based)
 
-  func testHeartState_HiddenWhenPlayingNonSongAudioBlock() async {
+  @Test
+  func testHeartStateHiddenWhenPlayingNonSongAudioBlock() async {
     let commercialBlock = AudioBlock.mockWith(type: "commercial")
     let spin = Spin.mockWith(audioBlock: commercialBlock)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
@@ -420,13 +448,14 @@ final class PlayerPageTests: XCTestCase {
     } operation: {
       let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-      XCTAssertEqual(model.heartState, .hidden)
-      XCTAssertEqual(model.heartState.imageName, "")
-      XCTAssertEqual(model.heartState.imageColorHex, "")
+      #expect(model.heartState == .hidden)
+      #expect(model.heartState.imageName == "")
+      #expect(model.heartState.imageColorHex == "")
     }
   }
 
-  func testHeartState_VisibleWhenPlayingSongAudioBlock() async {
+  @Test
+  func testHeartStateVisibleWhenPlayingSongAudioBlock() async {
     let songBlock = AudioBlock.mockWith(type: "song")
     let spin = Spin.mockWith(audioBlock: songBlock)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
@@ -436,13 +465,14 @@ final class PlayerPageTests: XCTestCase {
     } operation: {
       let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-      XCTAssertEqual(model.heartState, .empty)
-      XCTAssertEqual(model.heartState.imageName, "heart")
-      XCTAssertEqual(model.heartState.imageColorHex, "#BABABA")
+      #expect(model.heartState == .empty)
+      #expect(model.heartState.imageName == "heart")
+      #expect(model.heartState.imageColorHex == "#BABABA")
     }
   }
 
-  func testHeartButtonTapped_DoesNothingWhenPlayingNonSongAudioBlock() async {
+  @Test
+  func testHeartButtonTappedDoesNothingWhenPlayingNonSongAudioBlock() async {
     let commercialBlock = AudioBlock.mockWith(type: "commercial")
     let spin = Spin.mockWith(audioBlock: commercialBlock)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
@@ -453,104 +483,114 @@ final class PlayerPageTests: XCTestCase {
       let model = PlayerPageModel(stationPlayer: StationPlayerMock())
       model.heartButtonTapped()
 
-      XCTAssertEqual(model.likesManager.allLikedAudioBlocks.count, 0)
-      XCTAssertEqual(model.likesManager.pendingOperations.count, 0)
+      #expect(model.likesManager.allLikedAudioBlocks.count == 0)
+      #expect(model.likesManager.pendingOperations.count == 0)
     }
   }
 
   // MARK: - Navigation Bar Title Tests
 
-  func testNavBarTitles_PlayolaStationLoading() {
+  @Test
+  func testNavBarTitlesPlayolaStationLoading() {
     let station = AnyStation.mockPlayola(name: "Test Radio Show", curatorName: "Test Curator")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .loading(station))
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.primaryNavBarTitle, "Test Curator")
-    XCTAssertEqual(model.secondaryNavBarTitle, "Test Radio Show")
+    #expect(model.primaryNavBarTitle == "Test Curator")
+    #expect(model.secondaryNavBarTitle == "Test Radio Show")
   }
 
-  func testNavBarTitles_PlayolaStationStartingNewStation() {
+  @Test
+  func testNavBarTitlesPlayolaStationStartingNewStation() {
     let station = AnyStation.mockPlayola(name: "Another Radio Show", curatorName: "Another Curator")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .startingNewStation(station))
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.primaryNavBarTitle, "Another Curator")
-    XCTAssertEqual(model.secondaryNavBarTitle, "Another Radio Show")
+    #expect(model.primaryNavBarTitle == "Another Curator")
+    #expect(model.secondaryNavBarTitle == "Another Radio Show")
   }
 
-  func testNavBarTitles_UrlStationLoading() {
+  @Test
+  func testNavBarTitlesUrlStationLoading() {
     let station = AnyStation.mockUrl(name: "Test FM", location: "Test City, TX")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .loading(station))
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.primaryNavBarTitle, "Test FM")
-    XCTAssertEqual(model.secondaryNavBarTitle, "Test City, TX")
+    #expect(model.primaryNavBarTitle == "Test FM")
+    #expect(model.secondaryNavBarTitle == "Test City, TX")
   }
 
-  func testNavBarTitles_UrlStationStartingNewStation() {
+  @Test
+  func testNavBarTitlesUrlStationStartingNewStation() {
     let station = AnyStation.mockUrl(name: "Another FM", location: "Another City, CA")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .startingNewStation(station))
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.primaryNavBarTitle, "Another FM")
-    XCTAssertEqual(model.secondaryNavBarTitle, "Another City, CA")
+    #expect(model.primaryNavBarTitle == "Another FM")
+    #expect(model.secondaryNavBarTitle == "Another City, CA")
   }
 
-  func testNavBarTitles_UrlStationWithoutLocation() {
+  @Test
+  func testNavBarTitlesUrlStationWithoutLocation() {
     let station = AnyStation.mockUrl(name: "No Location FM", location: "")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .loading(station))
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.primaryNavBarTitle, "No Location FM")
-    XCTAssertEqual(model.secondaryNavBarTitle, "")
+    #expect(model.primaryNavBarTitle == "No Location FM")
+    #expect(model.secondaryNavBarTitle == "")
   }
 
-  func testNavBarTitles_WhenPlaying() {
+  @Test
+  func testNavBarTitlesWhenPlaying() {
     let station = AnyStation.mock
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: station)
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.primaryNavBarTitle, station.name)
+    #expect(model.primaryNavBarTitle == station.name)
     if station.isPlayolaStation {
-      XCTAssertEqual(model.secondaryNavBarTitle, station.stationName)
+      #expect(model.secondaryNavBarTitle == station.stationName)
     } else {
-      XCTAssertEqual(model.secondaryNavBarTitle, station.location ?? "")
+      #expect(model.secondaryNavBarTitle == station.location ?? "")
     }
   }
 
-  func testNavBarTitles_EmptyWhenStopped() {
+  @Test
+  func testNavBarTitlesEmptyWhenStopped() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: nil, status: .stopped)
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.primaryNavBarTitle, "")
-    XCTAssertEqual(model.secondaryNavBarTitle, "")
+    #expect(model.primaryNavBarTitle == "")
+    #expect(model.secondaryNavBarTitle == "")
   }
 
   // MARK: - Now Playing Text Tests
 
+  @Test
   func testNowPlayingTextShowsPlayolaPaysForCommercial() {
     let commercialBlock = AudioBlock.mockWith(type: "commercial")
     let spin = Spin.mockWith(audioBlock: commercialBlock)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.nowPlayingText, "Playola Pays")
+    #expect(model.nowPlayingText == "Playola Pays")
   }
 
+  @Test
   func testNowPlayingTextShowsTitleArtistForSong() {
     let songBlock = AudioBlock.mockWith(title: "Test Song", artist: "Test Artist", type: "song")
     let spin = Spin.mockWith(audioBlock: songBlock)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.nowPlayingText, "Test Song - Test Artist")
+    #expect(model.nowPlayingText == "Test Song - Test Artist")
   }
 
+  @Test
   func testNowPlayingTextShowsTitleArtistForSongEvenWithAiring() {
     let songBlock = AudioBlock.mockWith(
       title: "Airing Song",
@@ -566,9 +606,10 @@ final class PlayerPageTests: XCTestCase {
 
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.nowPlayingText, "Airing Song - Airing Artist")
+    #expect(model.nowPlayingText == "Airing Song - Airing Artist")
   }
 
+  @Test
   func testNowPlayingTextShowsEpisodeTitleForNonSongWithAiring() {
     let voiceTrackBlock = AudioBlock.mockWith(type: "voicetrack")
     let airing = Airing.mockWith(
@@ -580,9 +621,10 @@ final class PlayerPageTests: XCTestCase {
 
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.nowPlayingText, "My Cool Episode")
+    #expect(model.nowPlayingText == "My Cool Episode")
   }
 
+  @Test
   func testNowPlayingTextShowsStationNameForNonSongWithoutAiring() {
     let station = AnyStation.mockPlayola(name: "Test Station Name")
     let voiceTrackBlock = AudioBlock.mockWith(type: "voicetrack")
@@ -592,43 +634,49 @@ final class PlayerPageTests: XCTestCase {
 
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
 
-    XCTAssertEqual(model.nowPlayingText, "Test Station Name")
+    #expect(model.nowPlayingText == "Test Station Name")
   }
 
   // MARK: - Ask Question Tests
 
+  @Test
   func testCanAskQuestionTrueForPlayolaStation() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: .mockPlayola())
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
-    XCTAssertTrue(model.canAskQuestion)
+    #expect(model.canAskQuestion)
   }
 
+  @Test
   func testCanAskQuestionFalseForUrlStation() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: .mockUrl())
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
-    XCTAssertFalse(model.canAskQuestion)
+    #expect(!model.canAskQuestion)
   }
 
+  @Test
   func testCanAskQuestionFalseWhenNoStation() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: nil, status: .stopped)
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
-    XCTAssertFalse(model.canAskQuestion)
+    #expect(!model.canAskQuestion)
   }
 
+  @Test
   func testCurrentPlayolaStationReturnsStationForPlayolaStation() {
     let station = AnyStation.mockPlayola(id: "test-id", curatorName: "Test Curator")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: station)
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
-    XCTAssertEqual(model.currentPlayolaStation?.id, "test-id")
-    XCTAssertEqual(model.currentPlayolaStation?.curatorName, "Test Curator")
+    #expect(model.currentPlayolaStation?.id == "test-id")
+    #expect(model.currentPlayolaStation?.curatorName == "Test Curator")
   }
 
+  @Test
   func testCurrentPlayolaStationReturnsNilForUrlStation() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: .mockUrl())
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
-    XCTAssertNil(model.currentPlayolaStation)
+    #expect(model.currentPlayolaStation == nil)
   }
 
+  @Test
   func testAskQuestionButtonTappedNavigatesToAskQuestionPageAndDismisses() {
     let station = AnyStation.mockPlayola(id: "test-id", curatorName: "Test Curator")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: station)
@@ -641,16 +689,17 @@ final class PlayerPageTests: XCTestCase {
 
     model.askQuestionButtonTapped()
 
-    XCTAssertEqual(navCoordinator.path.count, 1)
+    #expect(navCoordinator.path.count == 1)
     if case .askQuestionPage(let askModel) = navCoordinator.path.first {
-      XCTAssertEqual(askModel.station.id, "test-id")
-      XCTAssertEqual(askModel.curatorName, "Test Curator")
+      #expect(askModel.station.id == "test-id")
+      #expect(askModel.curatorName == "Test Curator")
     } else {
-      XCTFail("Expected askQuestionPage in navigation path")
+      Issue.record("Expected askQuestionPage in navigation path")
     }
-    XCTAssertTrue(dismissCalled)
+    #expect(dismissCalled)
   }
 
+  @Test
   func testAskQuestionButtonTappedDoesNothingForUrlStation() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: .mockUrl())
     @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
@@ -659,6 +708,6 @@ final class PlayerPageTests: XCTestCase {
     let model = PlayerPageModel(stationPlayer: StationPlayerMock())
     model.askQuestionButtonTapped()
 
-    XCTAssertTrue(navCoordinator.path.isEmpty)
+    #expect(navCoordinator.path.isEmpty)
   }
 }

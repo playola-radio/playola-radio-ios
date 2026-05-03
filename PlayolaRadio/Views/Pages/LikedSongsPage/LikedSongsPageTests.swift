@@ -1,32 +1,32 @@
 import Dependencies
+import Foundation
 import PlayolaPlayer
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class LikedSongsPageTests: XCTestCase {
-
-  override func setUp() async throws {
-    try await super.setUp()
+struct LikedSongsPageTests {
+  @Test
+  func testGroupedLikedSongsEmptyWhenNoLikes() {
     @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
     @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
-    $userLikes.withLock { $0 = [:] }
-    $pendingOperations.withLock { $0 = [] }
-  }
 
-  func testGroupedLikedSongs_EmptyWhenNoLikes() {
     withDependencies {
       $0.likesManager = LikesManager()
     } operation: {
       let model = LikedSongsPageModel()
 
-      XCTAssertTrue(model.groupedLikedSongs.isEmpty)
+      #expect(model.groupedLikedSongs.isEmpty)
     }
   }
 
-  func testGroupedLikedSongs_GroupsBySectionTitle() async {
+  @Test
+  func testGroupedLikedSongsGroupsBySectionTitle() async {
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
     let audioBlock1 = AudioBlock.mock
     let audioBlock2 = AudioBlock.mockWith(id: "different-id")
 
@@ -39,12 +39,16 @@ final class LikedSongsPageTests: XCTestCase {
     } operation: {
       let model = LikedSongsPageModel()
 
-      XCTAssertFalse(model.groupedLikedSongs.isEmpty)
-      XCTAssertEqual(model.groupedLikedSongs.first?.1.count, 2)
+      #expect(!model.groupedLikedSongs.isEmpty)
+      #expect(model.groupedLikedSongs.first?.1.count == 2)
     }
   }
 
+  @Test
   func testFormatTimestamp() {
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
     withDependencies {
       $0.likesManager = LikesManager()
     } operation: {
@@ -53,12 +57,16 @@ final class LikedSongsPageTests: XCTestCase {
 
       let result = model.formatTimestamp(for: testDate)
 
-      XCTAssertFalse(result.isEmpty)
-      XCTAssertTrue(result.contains("at"))
+      #expect(!result.isEmpty)
+      #expect(result.contains("at"))
     }
   }
 
+  @Test
   func testRemoveSong() async {
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
     let audioBlock = AudioBlock.mock
 
     withDependencies {
@@ -69,14 +77,11 @@ final class LikedSongsPageTests: XCTestCase {
     } operation: {
       let model = LikedSongsPageModel()
 
-      // Verify song is initially liked
-      XCTAssertFalse(model.groupedLikedSongs.isEmpty)
+      #expect(!model.groupedLikedSongs.isEmpty)
 
-      // Remove the song
       model.removeSongTapped(audioBlock)
 
-      // Verify song is no longer liked
-      XCTAssertTrue(model.groupedLikedSongs.isEmpty)
+      #expect(model.groupedLikedSongs.isEmpty)
     }
   }
 }
