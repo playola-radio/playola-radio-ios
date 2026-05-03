@@ -13,6 +13,8 @@ import Testing
 
 @testable import PlayolaRadio
 
+// swiftlint:disable redundant_optional_initialization
+
 @MainActor
 struct SmallPlayerTests {
 
@@ -302,3 +304,5 @@ struct SmallPlayerTests {
     #expect(smallPlayer.artworkURL == testImageUrl)
   }
 }
+
+// swiftlint:enable redundant_optional_initialization
