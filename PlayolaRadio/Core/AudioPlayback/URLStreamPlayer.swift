@@ -186,6 +186,7 @@ extension URLStreamPlayer {
 
 extension URLStreamPlayer: @preconcurrency DependencyKey {
   public static let liveValue = URLStreamPlayer()
+  public static var testValue: URLStreamPlayer { URLStreamPlayer() }
 }
 
 extension DependencyValues {

@@ -267,6 +267,7 @@ protocol AudioBlockProvider {
 
 extension StationPlayer: @preconcurrency DependencyKey {
   static let liveValue = StationPlayer()
+  static var testValue: StationPlayer { StationPlayer() }
 }
 
 extension DependencyValues {

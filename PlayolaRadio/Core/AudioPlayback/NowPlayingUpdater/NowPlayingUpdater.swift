@@ -642,6 +642,7 @@ extension NowPlayingUpdater {
 
 extension NowPlayingUpdater: @preconcurrency DependencyKey {
   static let liveValue = NowPlayingUpdater()
+  static var testValue: NowPlayingUpdater { NowPlayingUpdater() }
 }
 
 extension DependencyValues {
