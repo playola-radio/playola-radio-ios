@@ -60,7 +60,7 @@ struct SongDrawerView: View {
         // Apple Music
         if model.shouldShowAppleMusic {
           Button(
-            action: { model.openAppleMusic() },
+            action: { model.appleMusicTapped() },
             label: {
               HStack(spacing: 16) {
                 // Replace with your branded asset if you have it
@@ -85,7 +85,7 @@ struct SongDrawerView: View {
         // Spotify
         if model.shouldShowSpotify {
           Button(
-            action: { model.openSpotify() },
+            action: { model.spotifyTapped() },
             label: {
               HStack(spacing: 16) {
                 // Replace with a Spotify glyph asset for perfect branding
@@ -109,7 +109,7 @@ struct SongDrawerView: View {
 
         // Remove from liked songs
         Button(
-          action: { model.removeFromLikedSongs() },
+          action: { model.removeFromLikedSongsTapped() },
           label: {
             HStack(spacing: 16) {
               Image(systemName: "xmark")

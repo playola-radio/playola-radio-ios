@@ -31,6 +31,7 @@ class SongDrawerModel: ViewModel {
     self.likedDate = likedDate
     self.onDismiss = onDismiss
     self.onRemove = onRemove
+    super.init()
   }
 
   var shouldShowSpotify: Bool {
@@ -41,7 +42,7 @@ class SongDrawerModel: ViewModel {
     return !audioBlock.title.isEmpty && !audioBlock.artist.isEmpty
   }
 
-  func removeFromLikedSongs() {
+  func removeFromLikedSongsTapped() {
     if let onRemove = onRemove {
       // Use animated removal if callback is provided
       onRemove(audioBlock)
@@ -52,7 +53,7 @@ class SongDrawerModel: ViewModel {
     onDismiss()
   }
 
-  func openAppleMusic() {
+  func appleMusicTapped() {
     // Apple Music deep linking can use search if no direct ID is available
     let artist =
       audioBlock.artist.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
@@ -74,7 +75,7 @@ class SongDrawerModel: ViewModel {
     onDismiss()
   }
 
-  func openSpotify() {
+  func spotifyTapped() {
     guard let spotifyId = audioBlock.spotifyId else {
       // No Spotify ID available, just dismiss
       onDismiss()

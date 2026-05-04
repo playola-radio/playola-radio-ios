@@ -16,7 +16,7 @@ import Testing
 struct SongDrawerTests {
 
   @Test
-  func testOpenSpotifyWithSpotifyIdOpensCorrectURL() {
+  func testSpotifyTappedWithSpotifyIdOpensCorrectURL() {
     let audioBlock = AudioBlock.mockWith(spotifyId: "4iV5W9uYEdYUVa79Axb7Rh")
     var dismissCalled = false
 
@@ -28,13 +28,13 @@ struct SongDrawerTests {
 
     // Note: In a real test environment, UIApplication.shared.open won't actually open URLs
     // This test verifies the logic flow and that dismiss is called
-    model.openSpotify()
+    model.spotifyTapped()
 
     #expect(dismissCalled, "Should call onDismiss after attempting to open Spotify")
   }
 
   @Test
-  func testOpenSpotifyWithoutSpotifyIdJustDismisses() {
+  func testSpotifyTappedWithoutSpotifyIdJustDismisses() {
     let audioBlock = AudioBlock.mockWith(spotifyId: nil)
     var dismissCalled = false
 
@@ -44,13 +44,13 @@ struct SongDrawerTests {
       onDismiss: { dismissCalled = true }
     )
 
-    model.openSpotify()
+    model.spotifyTapped()
 
     #expect(dismissCalled, "Should call onDismiss when no Spotify ID is available")
   }
 
   @Test
-  func testOpenAppleMusicOpensSearchURL() {
+  func testAppleMusicTappedOpensSearchURL() {
     let audioBlock = AudioBlock.mockWith(
       title: "Test Song",
       artist: "Test Artist"
@@ -63,13 +63,13 @@ struct SongDrawerTests {
       onDismiss: { dismissCalled = true }
     )
 
-    model.openAppleMusic()
+    model.appleMusicTapped()
 
     #expect(dismissCalled, "Should call onDismiss after attempting to open Apple Music")
   }
 
   @Test
-  func testOpenAppleMusicHandlesSpecialCharacters() {
+  func testAppleMusicTappedHandlesSpecialCharacters() {
     let audioBlock = AudioBlock.mockWith(
       title: "Song & Title",
       artist: "Artist @ Name"
@@ -83,7 +83,7 @@ struct SongDrawerTests {
     )
 
     // Should not crash with special characters and should call dismiss
-    model.openAppleMusic()
+    model.appleMusicTapped()
 
     #expect(dismissCalled, "Should handle URL encoding and call onDismiss")
   }
@@ -155,7 +155,7 @@ struct SongDrawerTests {
   }
 
   @Test
-  func testRemoveFromLikedSongsUnlikesAndDismisses() async {
+  func testRemoveFromLikedSongsTappedUnlikesAndDismisses() async {
     let audioBlock = AudioBlock.mock
     var dismissCalled = false
 
@@ -174,7 +174,7 @@ struct SongDrawerTests {
       // Verify it's liked initially
       #expect(model.likesManager.isLiked(audioBlock.id))
 
-      model.removeFromLikedSongs()
+      model.removeFromLikedSongsTapped()
 
       // Verify it's been unliked and dismiss was called
       #expect(!model.likesManager.isLiked(audioBlock.id))
@@ -183,7 +183,7 @@ struct SongDrawerTests {
   }
 
   @Test
-  func testRemoveFromLikedSongsWithOnRemoveCallback() async {
+  func testRemoveFromLikedSongsTappedWithOnRemoveCallback() async {
     let audioBlock = AudioBlock.mock
     var dismissCalled = false
     var onRemoveCalled = false
@@ -204,7 +204,7 @@ struct SongDrawerTests {
         }
       )
 
-      model.removeFromLikedSongs()
+      model.removeFromLikedSongsTapped()
 
       // Verify the onRemove callback was called with correct audio block
       #expect(onRemoveCalled, "Should call onRemove callback")
