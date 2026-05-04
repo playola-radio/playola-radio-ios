@@ -51,10 +51,13 @@ class AskQuestionPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
+
+  // MARK: - Shared State
+
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
-  @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
 
   // MARK: - Computed Properties
 
