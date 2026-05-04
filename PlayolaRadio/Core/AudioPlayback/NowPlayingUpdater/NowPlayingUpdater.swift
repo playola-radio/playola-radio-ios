@@ -66,6 +66,7 @@ class NowPlayingUpdater {
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.date.now) var now
 
   private var disposeBag = Set<AnyCancellable>()
   private var inactivityTask: Task<Void, Never>?
@@ -300,11 +301,18 @@ class NowPlayingUpdater {
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
   }
 
+  // The Combine subscriptions below capture `self` weakly so the cancellable
+  // owned by this updater is the only thing keeping each subscription alive.
+  // When the updater is deallocated, `disposeBag` releases the cancellables
+  // and the subscriptions are torn down — without `[weak self]` the strong
+  // self/closure/disposeBag cycle would keep replaced updaters alive forever.
   init(stationPlayer: StationPlayer? = nil) {
     self.stationPlayer = stationPlayer ?? .shared
-    self.stationPlayer.$state.sink { state in
-      self.updateNowPlaying(with: state)
-    }.store(in: &disposeBag)
+    self.stationPlayer.$state
+      .sink { [weak self] state in
+        self?.updateNowPlaying(with: state)
+      }
+      .store(in: &disposeBag)
     setupRemoteControlCenter()
     setupSharedStateObservation()
   }
@@ -559,7 +567,7 @@ extension NowPlayingUpdater {
     // Start session when transitioning to playing
     case (_, .playing(let station)):
       if sessionStartTime == nil {
-        sessionStartTime = Date()
+        sessionStartTime = now
         await analytics.track(
           .listeningSessionStarted(
             station: StationInfo(from: station)
@@ -571,7 +579,7 @@ extension NowPlayingUpdater {
     case (.playing(let station), .stopped),
       (.playing(let station), .error):
       if let startTime = sessionStartTime {
-        let duration = Date().timeIntervalSince(startTime)
+        let duration = now.timeIntervalSince(startTime)
         await analytics.track(
           .listeningSessionEnded(
             station: StationInfo(from: station),
@@ -599,7 +607,7 @@ extension NowPlayingUpdater {
 
   private func trackStationSwitch(from fromStation: AnyStation, to toStation: AnyStation) async {
     guard let startTime = sessionStartTime else { return }
-    let duration = Date().timeIntervalSince(startTime)
+    let duration = now.timeIntervalSince(startTime)
 
     // End current session
     await analytics.track(
@@ -626,6 +634,6 @@ extension NowPlayingUpdater {
       )
     )
 
-    sessionStartTime = Date()
+    sessionStartTime = now
   }
 }
