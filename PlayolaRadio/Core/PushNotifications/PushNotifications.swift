@@ -198,9 +198,8 @@ extension PushNotificationsClient: DependencyKey {
         return
       }
 
-      await MainActor.run {
-        Task { await StationPlayer.shared.play(station: station) }
-      }
+      @Dependency(\.stationPlayer) var stationPlayer
+      await stationPlayer.play(station: station)
     },
     setBadgeCount: { count in
       try? await UNUserNotificationCenter.current().setBadgeCount(count)

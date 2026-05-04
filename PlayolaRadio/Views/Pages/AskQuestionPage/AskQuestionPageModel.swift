@@ -54,7 +54,7 @@ class AskQuestionPageModel: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
-  @ObservationIgnored var stationPlayer: StationPlayer
+  @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
 
   // MARK: - Computed Properties
 
@@ -101,9 +101,8 @@ class AskQuestionPageModel: ViewModel {
 
   // MARK: - Init
 
-  init(station: Station, stationPlayer: StationPlayer? = nil) {
+  init(station: Station) {
     self.station = station
-    self.stationPlayer = stationPlayer ?? .shared
     super.init()
   }
 

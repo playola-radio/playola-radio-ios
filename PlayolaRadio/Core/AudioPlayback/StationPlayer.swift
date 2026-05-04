@@ -55,8 +55,6 @@ class StationPlayer: ObservableObject {
     }
   }
 
-  static let shared = StationPlayer()
-
   // MARK: Dependencies
 
   var urlStreamPlayer: URLStreamPlayer
@@ -268,7 +266,7 @@ protocol AudioBlockProvider {
 // MARK: - Dependency
 
 extension StationPlayer: @preconcurrency DependencyKey {
-  static var liveValue: StationPlayer { .shared }
+  static let liveValue = StationPlayer()
 }
 
 extension DependencyValues {

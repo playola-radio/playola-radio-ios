@@ -39,8 +39,6 @@ public class URLStreamPlayer: ObservableObject {
 
   @Published var albumArtworkURL: URL?
 
-  static let shared = URLStreamPlayer()
-
   @Published private(set) var currentStation: UrlStation?
 
   var searchedStations: [UrlStation] = []
@@ -187,7 +185,7 @@ extension URLStreamPlayer {
 // MARK: - Dependency
 
 extension URLStreamPlayer: @preconcurrency DependencyKey {
-  public static var liveValue: URLStreamPlayer { .shared }
+  public static let liveValue = URLStreamPlayer()
 }
 
 extension DependencyValues {

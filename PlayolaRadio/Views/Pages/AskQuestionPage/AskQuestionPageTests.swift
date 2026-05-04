@@ -247,8 +247,9 @@ struct AskQuestionPageTests {
 
     await withDependencies {
       $0.audioRecorder.prepareForRecording = {}
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      let model = AskQuestionPageModel(station: .mock, stationPlayer: stationPlayerMock)
+      let model = AskQuestionPageModel(station: .mock)
 
       await model.viewAppeared()
 
@@ -263,8 +264,9 @@ struct AskQuestionPageTests {
 
     await withDependencies {
       $0.audioRecorder.prepareForRecording = {}
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      let model = AskQuestionPageModel(station: .mock, stationPlayer: stationPlayerMock)
+      let model = AskQuestionPageModel(station: .mock)
 
       await model.viewAppeared()
 
@@ -282,8 +284,9 @@ struct AskQuestionPageTests {
 
     await withDependencies {
       $0.audioRecorder.prepareForRecording = {}
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      let model = AskQuestionPageModel(station: .mock, stationPlayer: stationPlayerMock)
+      let model = AskQuestionPageModel(station: .mock)
       coordinator.path = [.askQuestionPage(model)]
 
       await model.viewAppeared()
@@ -305,8 +308,9 @@ struct AskQuestionPageTests {
 
     await withDependencies {
       $0.audioRecorder.prepareForRecording = {}
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      let model = AskQuestionPageModel(station: .mock, stationPlayer: stationPlayerMock)
+      let model = AskQuestionPageModel(station: .mock)
       coordinator.path = [.askQuestionPage(model)]
 
       await model.viewAppeared()

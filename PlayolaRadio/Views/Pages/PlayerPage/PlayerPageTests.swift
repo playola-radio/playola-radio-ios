@@ -23,7 +23,11 @@ struct PlayerPageTests {
     let station = AnyStation.mock
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .loading(station))
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.primaryNavBarTitle == station.name)
     if station.isPlayolaStation {
@@ -40,7 +44,11 @@ struct PlayerPageTests {
     let station = AnyStation.mock
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .loading(station, 0.42))
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.primaryNavBarTitle == station.name)
     if station.isPlayolaStation {
@@ -58,7 +66,11 @@ struct PlayerPageTests {
     let station = AnyStation.mock
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       artistPlaying: "Rachel Loy", titlePlaying: "Selfie", station: station)
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.nowPlayingText == "Selfie - Rachel Loy")
     #expect(model.stationArtUrl == station.imageUrl)
@@ -72,7 +84,11 @@ struct PlayerPageTests {
     let spin = Spin.mockWith(audioBlock: audioBlock)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       artistPlaying: "Rachel Loy", titlePlaying: "Selfie", spin: spin, station: station)
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.nowPlayingText == "Selfie - Rachel Loy")
     #expect(model.stationArtUrl == station.imageUrl)
@@ -89,7 +105,11 @@ struct PlayerPageTests {
     ]
     let spin = Spin.mockWith(audioBlock: audioBlock, relatedTexts: relatedTexts)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.relatedText?.title == "Why I chose this song")
     #expect(model.relatedText?.body == transcription)
@@ -105,7 +125,11 @@ struct PlayerPageTests {
     ]
     let spin = Spin.mockWith(audioBlock: audioBlock, relatedTexts: relatedTexts)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.relatedText != nil)
     #expect(model.relatedText == relatedTexts[0] || model.relatedText == relatedTexts[1])
@@ -115,7 +139,11 @@ struct PlayerPageTests {
   @Test
   func testViewAppearedPopulatesCorrectlyWhenStopped() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: nil, status: .stopped)
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.nowPlayingText == "")
     #expect(model.albumArtUrl == nil)
@@ -125,7 +153,11 @@ struct PlayerPageTests {
   @Test
   func testViewAppearedPopulatesCorrectlyWhenError() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: nil, status: .error)
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.nowPlayingText == "Error Playing Station")
     #expect(model.primaryNavBarTitle == "")
@@ -139,7 +171,11 @@ struct PlayerPageTests {
     let station = AnyStation.mock
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .startingNewStation(station))
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.primaryNavBarTitle == station.name)
     if station.isPlayolaStation {
@@ -159,7 +195,11 @@ struct PlayerPageTests {
     let spin = Spin.mockWith(audioBlock: audioBlock)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       spin: spin, station: station, status: .startingNewStation(station))
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.primaryNavBarTitle == station.name)
     if station.isPlayolaStation {
@@ -181,7 +221,11 @@ struct PlayerPageTests {
     ]
     let spin = Spin.mockWith(audioBlock: audioBlock, relatedTexts: relatedTexts)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     let firstResult = model.relatedText
     #expect(firstResult != nil)
@@ -195,7 +239,11 @@ struct PlayerPageTests {
   func testPlayPauseButtonTappedStopsWhenPlaying() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith()
     let spy = StationPlayerMock()
-    let model = PlayerPageModel(stationPlayer: spy)
+    let model = withDependencies {
+      $0.stationPlayer = spy
+    } operation: {
+      PlayerPageModel()
+    }
 
     model.playPauseButtonTapped()
 
@@ -208,7 +256,11 @@ struct PlayerPageTests {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith()
     let spy = StationPlayerMock()
     var dismissCalled = false
-    let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+    let model = withDependencies {
+      $0.stationPlayer = spy
+    } operation: {
+      PlayerPageModel(onDismiss: { dismissCalled = true })
+    }
 
     model.playPauseButtonTapped()
 
@@ -224,7 +276,11 @@ struct PlayerPageTests {
     spy.state = StationPlayer.State(playbackStatus: .stopped)
 
     var dismissCalled = false
-    let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+    let model = withDependencies {
+      $0.stationPlayer = spy
+    } operation: {
+      PlayerPageModel(onDismiss: { dismissCalled = true })
+    }
 
     model.scenePhaseChanged(newPhase: .active)
 
@@ -237,7 +293,11 @@ struct PlayerPageTests {
     spy.state = StationPlayer.State(playbackStatus: .error)
 
     var dismissCalled = false
-    let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+    let model = withDependencies {
+      $0.stationPlayer = spy
+    } operation: {
+      PlayerPageModel(onDismiss: { dismissCalled = true })
+    }
 
     model.scenePhaseChanged(newPhase: .active)
 
@@ -251,7 +311,11 @@ struct PlayerPageTests {
     spy.state = StationPlayer.State(playbackStatus: .playing(station))
 
     var dismissCalled = false
-    let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+    let model = withDependencies {
+      $0.stationPlayer = spy
+    } operation: {
+      PlayerPageModel(onDismiss: { dismissCalled = true })
+    }
 
     model.scenePhaseChanged(newPhase: .active)
 
@@ -265,7 +329,11 @@ struct PlayerPageTests {
     spy.state = StationPlayer.State(playbackStatus: .loading(station))
 
     var dismissCalled = false
-    let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+    let model = withDependencies {
+      $0.stationPlayer = spy
+    } operation: {
+      PlayerPageModel(onDismiss: { dismissCalled = true })
+    }
 
     model.scenePhaseChanged(newPhase: .active)
 
@@ -279,7 +347,11 @@ struct PlayerPageTests {
     spy.state = StationPlayer.State(playbackStatus: .startingNewStation(station))
 
     var dismissCalled = false
-    let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+    let model = withDependencies {
+      $0.stationPlayer = spy
+    } operation: {
+      PlayerPageModel(onDismiss: { dismissCalled = true })
+    }
 
     model.scenePhaseChanged(newPhase: .active)
 
@@ -292,7 +364,11 @@ struct PlayerPageTests {
     spy.state = StationPlayer.State(playbackStatus: .stopped)
 
     var dismissCalled = false
-    let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+    let model = withDependencies {
+      $0.stationPlayer = spy
+    } operation: {
+      PlayerPageModel(onDismiss: { dismissCalled = true })
+    }
 
     model.scenePhaseChanged(newPhase: .background)
 
@@ -305,7 +381,11 @@ struct PlayerPageTests {
     spy.state = StationPlayer.State(playbackStatus: .stopped)
 
     var dismissCalled = false
-    let model = PlayerPageModel(stationPlayer: spy, onDismiss: { dismissCalled = true })
+    let model = withDependencies {
+      $0.stationPlayer = spy
+    } operation: {
+      PlayerPageModel(onDismiss: { dismissCalled = true })
+    }
 
     model.scenePhaseChanged(newPhase: .inactive)
 
@@ -317,7 +397,11 @@ struct PlayerPageTests {
   @Test
   func testHeartStateHiddenWhenNotPlayingPlayolaSong() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith()  // No spin
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.heartState == .hidden)
     #expect(model.heartState.imageName == "")
@@ -333,7 +417,11 @@ struct PlayerPageTests {
     withDependencies {
       $0.likesManager = LikesManager()
     } operation: {
-      let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+      let model = withDependencies {
+        $0.stationPlayer = StationPlayerMock()
+      } operation: {
+        PlayerPageModel()
+      }
 
       #expect(model.heartState == .empty)
       #expect(model.heartState.imageName == "heart")
@@ -352,7 +440,11 @@ struct PlayerPageTests {
       likesManager.like(audioBlock)
       $0.likesManager = likesManager
     } operation: {
-      let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+      let model = withDependencies {
+        $0.stationPlayer = StationPlayerMock()
+      } operation: {
+        PlayerPageModel()
+      }
 
       #expect(model.heartState == .filled)
       #expect(model.heartState.imageName == "heart.fill")
@@ -369,7 +461,11 @@ struct PlayerPageTests {
     withDependencies {
       $0.likesManager = LikesManager()
     } operation: {
-      let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+      let model = withDependencies {
+        $0.stationPlayer = StationPlayerMock()
+      } operation: {
+        PlayerPageModel()
+      }
       model.heartButtonTapped()
       #expect(model.likesManager.allLikedAudioBlocks.count == 0)
     }
@@ -386,7 +482,11 @@ struct PlayerPageTests {
       $0.uuid = .incrementing
       $0.likesManager = LikesManager()
     } operation: {
-      let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+      let model = withDependencies {
+        $0.stationPlayer = StationPlayerMock()
+      } operation: {
+        PlayerPageModel()
+      }
 
       #expect(model.heartState == .empty)
       model.heartButtonTapped()
@@ -408,7 +508,11 @@ struct PlayerPageTests {
       likesManager.like(audioBlock)
       $0.likesManager = likesManager
     } operation: {
-      let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+      let model = withDependencies {
+        $0.stationPlayer = StationPlayerMock()
+      } operation: {
+        PlayerPageModel()
+      }
 
       #expect(model.heartState == .filled)
       model.heartButtonTapped()
@@ -430,7 +534,11 @@ struct PlayerPageTests {
       $0.uuid = .incrementing
       $0.likesManager = LikesManager()
     } operation: {
-      let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+      let model = withDependencies {
+        $0.stationPlayer = StationPlayerMock()
+      } operation: {
+        PlayerPageModel()
+      }
       model.heartButtonTapped()
 
       #expect(model.likesManager.pendingOperations.count == 1)
@@ -450,7 +558,11 @@ struct PlayerPageTests {
     withDependencies {
       $0.likesManager = LikesManager()
     } operation: {
-      let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+      let model = withDependencies {
+        $0.stationPlayer = StationPlayerMock()
+      } operation: {
+        PlayerPageModel()
+      }
 
       #expect(model.heartState == .hidden)
       #expect(model.heartState.imageName == "")
@@ -467,7 +579,11 @@ struct PlayerPageTests {
     withDependencies {
       $0.likesManager = LikesManager()
     } operation: {
-      let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+      let model = withDependencies {
+        $0.stationPlayer = StationPlayerMock()
+      } operation: {
+        PlayerPageModel()
+      }
 
       #expect(model.heartState == .empty)
       #expect(model.heartState.imageName == "heart")
@@ -484,7 +600,11 @@ struct PlayerPageTests {
     withDependencies {
       $0.likesManager = LikesManager()
     } operation: {
-      let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+      let model = withDependencies {
+        $0.stationPlayer = StationPlayerMock()
+      } operation: {
+        PlayerPageModel()
+      }
       model.heartButtonTapped()
 
       #expect(model.likesManager.allLikedAudioBlocks.count == 0)
@@ -499,7 +619,11 @@ struct PlayerPageTests {
     let station = AnyStation.mockPlayola(name: "Test Radio Show", curatorName: "Test Curator")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .loading(station))
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.primaryNavBarTitle == "Test Curator")
     #expect(model.secondaryNavBarTitle == "Test Radio Show")
@@ -510,7 +634,11 @@ struct PlayerPageTests {
     let station = AnyStation.mockPlayola(name: "Another Radio Show", curatorName: "Another Curator")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .startingNewStation(station))
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.primaryNavBarTitle == "Another Curator")
     #expect(model.secondaryNavBarTitle == "Another Radio Show")
@@ -521,7 +649,11 @@ struct PlayerPageTests {
     let station = AnyStation.mockUrl(name: "Test FM", location: "Test City, TX")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .loading(station))
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.primaryNavBarTitle == "Test FM")
     #expect(model.secondaryNavBarTitle == "Test City, TX")
@@ -532,7 +664,11 @@ struct PlayerPageTests {
     let station = AnyStation.mockUrl(name: "Another FM", location: "Another City, CA")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .startingNewStation(station))
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.primaryNavBarTitle == "Another FM")
     #expect(model.secondaryNavBarTitle == "Another City, CA")
@@ -543,7 +679,11 @@ struct PlayerPageTests {
     let station = AnyStation.mockUrl(name: "No Location FM", location: "")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(
       station: station, status: .loading(station))
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.primaryNavBarTitle == "No Location FM")
     #expect(model.secondaryNavBarTitle == "")
@@ -553,7 +693,11 @@ struct PlayerPageTests {
   func testNavBarTitlesWhenPlaying() {
     let station = AnyStation.mock
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: station)
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.primaryNavBarTitle == station.name)
     if station.isPlayolaStation {
@@ -566,7 +710,11 @@ struct PlayerPageTests {
   @Test
   func testNavBarTitlesEmptyWhenStopped() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: nil, status: .stopped)
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.primaryNavBarTitle == "")
     #expect(model.secondaryNavBarTitle == "")
@@ -579,7 +727,11 @@ struct PlayerPageTests {
     let commercialBlock = AudioBlock.mockWith(type: "commercial")
     let spin = Spin.mockWith(audioBlock: commercialBlock)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.nowPlayingText == "Playola Pays")
   }
@@ -589,7 +741,11 @@ struct PlayerPageTests {
     let songBlock = AudioBlock.mockWith(title: "Test Song", artist: "Test Artist", type: "song")
     let spin = Spin.mockWith(audioBlock: songBlock)
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.nowPlayingText == "Test Song - Test Artist")
   }
@@ -608,7 +764,11 @@ struct PlayerPageTests {
 
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
 
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.nowPlayingText == "Airing Song - Airing Artist")
   }
@@ -623,7 +783,11 @@ struct PlayerPageTests {
 
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin)
 
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.nowPlayingText == "My Cool Episode")
   }
@@ -636,7 +800,11 @@ struct PlayerPageTests {
 
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(spin: spin, station: station)
 
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
 
     #expect(model.nowPlayingText == "Test Station Name")
   }
@@ -646,21 +814,33 @@ struct PlayerPageTests {
   @Test
   func testCanAskQuestionTrueForPlayolaStation() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: .mockPlayola())
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
     #expect(model.canAskQuestion)
   }
 
   @Test
   func testCanAskQuestionFalseForUrlStation() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: .mockUrl())
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
     #expect(!model.canAskQuestion)
   }
 
   @Test
   func testCanAskQuestionFalseWhenNoStation() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: nil, status: .stopped)
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
     #expect(!model.canAskQuestion)
   }
 
@@ -668,7 +848,11 @@ struct PlayerPageTests {
   func testCurrentPlayolaStationReturnsStationForPlayolaStation() {
     let station = AnyStation.mockPlayola(id: "test-id", curatorName: "Test Curator")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: station)
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
     #expect(model.currentPlayolaStation?.id == "test-id")
     #expect(model.currentPlayolaStation?.curatorName == "Test Curator")
   }
@@ -676,7 +860,11 @@ struct PlayerPageTests {
   @Test
   func testCurrentPlayolaStationReturnsNilForUrlStation() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: .mockUrl())
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
     #expect(model.currentPlayolaStation == nil)
   }
 
@@ -688,8 +876,11 @@ struct PlayerPageTests {
       MainContainerNavigationCoordinator()
 
     var dismissCalled = false
-    let model = PlayerPageModel(
-      stationPlayer: StationPlayerMock(), onDismiss: { dismissCalled = true })
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel(onDismiss: { dismissCalled = true })
+    }
 
     model.askQuestionButtonTapped()
 
@@ -709,7 +900,11 @@ struct PlayerPageTests {
     @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
       MainContainerNavigationCoordinator()
 
-    let model = PlayerPageModel(stationPlayer: StationPlayerMock())
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
     model.askQuestionButtonTapped()
 
     #expect(navCoordinator.path.isEmpty)

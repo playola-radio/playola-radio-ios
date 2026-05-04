@@ -20,7 +20,7 @@ class StationListModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
-  @ObservationIgnored var stationPlayer: StationPlayer
+  @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
 
   // MARK: - Shared State
 
@@ -32,12 +32,6 @@ class StationListModel: ViewModel {
   var hasAskedForNotificationPermission: Bool
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
-
-  // MARK: - Initialization
-
-  init(stationPlayer: StationPlayer? = nil) {
-    self.stationPlayer = stationPlayer ?? .shared
-  }
 
   // MARK: - Properties
 

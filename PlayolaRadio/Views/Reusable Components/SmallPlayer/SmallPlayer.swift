@@ -14,6 +14,7 @@ import SwiftUI
 struct SmallPlayer: View {
   @Shared(.nowPlaying) var nowPlaying: NowPlaying?
   @Dependency(\.likesManager) var likesManager
+  @Dependency(\.stationPlayer) var stationPlayer
 
   // Computed properties from nowPlaying data
   var mainTitle: String {
@@ -98,7 +99,7 @@ struct SmallPlayer: View {
         }
 
         Button(
-          action: { StationPlayer.shared.stop() },
+          action: { stationPlayer.stop() },
           label: {
             Image(systemName: "stop.fill")
               .foregroundColor(.black)

@@ -174,8 +174,9 @@ struct StationListPageTests {
       $0.analytics.track = { event in
         capturedEvents.withValue { $0.append(event) }
       }
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      StationListModel(stationPlayer: stationPlayerMock)
+      StationListModel()
     }
 
     let now = Date()
@@ -212,8 +213,9 @@ struct StationListPageTests {
       $0.analytics.track = { event in
         capturedEvents.withValue { $0.append(event) }
       }
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      StationListModel(stationPlayer: stationPlayerMock)
+      StationListModel()
     }
 
     let now = Date()
@@ -263,8 +265,9 @@ struct StationListPageTests {
       $0.analytics.track = { event in
         capturedEvents.withValue { $0.append(event) }
       }
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      StationListModel(stationPlayer: stationPlayerMock)
+      StationListModel()
     }
 
     let now = Date()
@@ -879,11 +882,10 @@ private func makeStationListModel(
   stationPlayer: StationPlayerMock
 ) -> StationListModel {
   withDependencies {
-    $0.analytics.track = { event in
-      analyticsSink.withValue { $0.append(event) }
-    }
+    $0.analytics.track = { event in analyticsSink.withValue { $0.append(event) } }
+    $0.stationPlayer = stationPlayer
   } operation: {
-    StationListModel(stationPlayer: stationPlayer)
+    StationListModel()
   }
 }
 

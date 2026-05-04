@@ -14,7 +14,7 @@ import SwiftUI
 @MainActor
 @Observable
 class ContactPageModel: ViewModel {
-  @ObservationIgnored var stationPlayer: StationPlayer
+  @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
@@ -66,12 +66,6 @@ class ContactPageModel: ViewModel {
 
   func switchToListeningMode() {
     mainContainerNavigationCoordinator.switchToListeningMode()
-  }
-
-  init(
-    stationPlayer: StationPlayer? = nil
-  ) {
-    self.stationPlayer = stationPlayer ?? .shared
   }
 
   func onViewAppeared() async {

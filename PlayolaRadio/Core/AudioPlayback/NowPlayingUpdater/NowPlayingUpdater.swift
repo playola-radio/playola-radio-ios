@@ -61,8 +61,6 @@ struct NowPlaying: Equatable, Codable {
 class NowPlayingUpdater {
   var stationPlayer: StationPlayer
 
-  static var shared = NowPlayingUpdater()
-
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.analytics) var analytics
@@ -643,7 +641,7 @@ extension NowPlayingUpdater {
 // MARK: - Dependency
 
 extension NowPlayingUpdater: @preconcurrency DependencyKey {
-  static var liveValue: NowPlayingUpdater { .shared }
+  static let liveValue = NowPlayingUpdater()
 }
 
 extension DependencyValues {

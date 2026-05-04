@@ -19,7 +19,7 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
-  @ObservationIgnored var stationPlayer: StationPlayer
+  @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
 
   // MARK: - Shared State
 
@@ -33,12 +33,6 @@ class HomePageModel: ViewModel {
   var mainContainerNavigationCoordinator
   @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
-
-  // MARK: - Initialization
-
-  init(stationPlayer: StationPlayer? = nil) {
-    self.stationPlayer = stationPlayer ?? .shared
-  }
 
   // MARK: - Properties
 

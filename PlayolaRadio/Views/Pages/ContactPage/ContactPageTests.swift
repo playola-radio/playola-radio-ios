@@ -42,8 +42,9 @@ struct ContactPageTests {
       }
       $0.analytics = .noop
       $0.analytics.reset = { resetCallCount.withValue { $0 += 1 } }
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      await ContactPageModel(stationPlayer: stationPlayerMock).onLogOutTapped()
+      await ContactPageModel().onLogOutTapped()
     }
 
     #expect(stationPlayerMock.stopCalledCount == 1)
@@ -485,8 +486,9 @@ struct ContactPageTests {
     await withDependencies {
       $0.api.unregisterDevice = { _, _ in }
       $0.analytics = .noop
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      let model = ContactPageModel(stationPlayer: stationPlayerMock)
+      let model = ContactPageModel()
       await model.onLogOutTapped()
     }
 
@@ -508,7 +510,7 @@ struct ContactPageTests {
       }
       $0.analytics = .noop
     } operation: {
-      let model = ContactPageModel(stationPlayer: StationPlayerMock())
+      let model = ContactPageModel()
       await model.onLogOutTapped()
     }
 
@@ -527,7 +529,7 @@ struct ContactPageTests {
       $0.api.unregisterDevice = { _, _ in throw UnregisterError() }
       $0.analytics = .noop
     } operation: {
-      let model = ContactPageModel(stationPlayer: StationPlayerMock())
+      let model = ContactPageModel()
       await model.onLogOutTapped()
     }
 

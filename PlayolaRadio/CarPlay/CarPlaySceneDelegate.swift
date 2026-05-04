@@ -36,10 +36,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   var observers = Set<AnyCancellable>()
 
   @Dependency(\.analytics) var analytics
+  @Dependency(\.stationPlayer) var stationPlayer
 
   private var isTransitioningToNowPlaying = false
-
-  var stationPlayer: StationPlayer { StationPlayer.shared }
 
   override init() {
     super.init()
@@ -177,7 +176,8 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   }
 
   private func setupNowPlayingTemplate() {
-    _ = NowPlayingUpdater.shared
+    @Dependency(\.nowPlayingUpdater) var nowPlayingUpdater
+    _ = nowPlayingUpdater
   }
 
   private func observePlaybackErrors() {

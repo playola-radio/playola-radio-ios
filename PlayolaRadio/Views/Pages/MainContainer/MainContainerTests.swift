@@ -196,8 +196,9 @@ struct MainContainerTests {
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
       $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      MainContainerModel(stationPlayer: stationPlayerMock)
+      MainContainerModel()
     }
 
     await mainContainerModel.viewAppeared()
@@ -212,8 +213,9 @@ struct MainContainerTests {
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
       $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      MainContainerModel(stationPlayer: stationPlayerMock)
+      MainContainerModel()
     }
 
     await mainContainerModel.viewAppeared()
@@ -227,8 +229,9 @@ struct MainContainerTests {
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
       $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      MainContainerModel(stationPlayer: stationPlayerMock)
+      MainContainerModel()
     }
 
     await mainContainerModel.viewAppeared()
@@ -243,8 +246,9 @@ struct MainContainerTests {
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
       $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      MainContainerModel(stationPlayer: stationPlayerMock)
+      MainContainerModel()
     }
 
     await mainContainerModel.viewAppeared()
@@ -259,8 +263,9 @@ struct MainContainerTests {
     let mainContainerModel = withDependencies {
       $0.api.getStations = { [] }
       $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      MainContainerModel(stationPlayer: stationPlayerMock)
+      MainContainerModel()
     }
 
     await mainContainerModel.viewAppeared()
@@ -272,7 +277,11 @@ struct MainContainerTests {
   @Test
   func testSmallPlayerActionsOnSmallPlayerTapped() {
     let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
-    let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+    let mainContainerModel = withDependencies {
+      $0.stationPlayer = stationPlayerMock
+    } operation: {
+      MainContainerModel()
+    }
 
     mainContainerModel.onSmallPlayerTapped()
 
@@ -289,7 +298,11 @@ struct MainContainerTests {
   @Test
   func testProcessNewStationStatePresentsPlayerSheetWhenStartingNewStation() {
     let stationPlayerMock = StationPlayerMock()
-    let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+    let mainContainerModel = withDependencies {
+      $0.stationPlayer = stationPlayerMock
+    } operation: {
+      MainContainerModel()
+    }
 
     let newState = StationPlayer.State(playbackStatus: .startingNewStation(.mock))
     mainContainerModel.processNewStationState(newState)
@@ -308,7 +321,11 @@ struct MainContainerTests {
     var coordinator = MainContainerNavigationCoordinator()
 
     let stationPlayerMock = StationPlayerMock()
-    let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+    let mainContainerModel = withDependencies {
+      $0.stationPlayer = stationPlayerMock
+    } operation: {
+      MainContainerModel()
+    }
 
     let playingState = StationPlayer.State(playbackStatus: .playing(.mock))
     mainContainerModel.processNewStationState(playingState)
@@ -332,7 +349,11 @@ struct MainContainerTests {
   @Test
   func testDismissButtonPlayerPageOnDismissClearsPresentedSheet() {
     let stationPlayerMock = StationPlayerMock.mockPlayingPlayer()
-    let mainContainerModel = MainContainerModel(stationPlayer: stationPlayerMock)
+    let mainContainerModel = withDependencies {
+      $0.stationPlayer = stationPlayerMock
+    } operation: {
+      MainContainerModel()
+    }
 
     mainContainerModel.onSmallPlayerTapped()
 
@@ -720,8 +741,9 @@ struct MainContainerTests {
         shouldShowCalled.setValue(true)
         return false
       }
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      MainContainerModel(stationPlayer: stationPlayerMock)
+      MainContainerModel()
     }
 
     $activeTab.withLock { $0 = .stationsList }
