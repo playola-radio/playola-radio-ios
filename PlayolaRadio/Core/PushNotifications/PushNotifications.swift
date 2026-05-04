@@ -170,19 +170,24 @@ extension PushNotificationsClient: DependencyKey {
       let navCoordinatorShared = $navCoordinator
 
       if NotificationPayload.notificationType(from: userInfo) == "support_message" {
-        await MainActor.run {
+        // Decide on the main actor whether the support tap should refresh the
+        // already-visible support page or push a new one, then await the push
+        // outside the sync MainActor.run closure so we don't have to spawn an
+        // unstructured Task to bridge the async navigateToSupport call.
+        let needsNavigation = await MainActor.run { () -> Bool in
           let coordinator = navCoordinatorShared.wrappedValue
           let isSupportPageVisible = coordinator.path.contains { pathItem in
             if case .supportPage = pathItem { return true }
             return false
           }
-
           if isSupportPageVisible {
             NotificationCenter.default.post(name: .refreshSupportMessages, object: nil)
-          } else {
-            let supportModel = SupportPageModel()
-            Task { await coordinator.navigateToSupport(supportModel) }
+            return false
           }
+          return true
+        }
+        if needsNavigation {
+          await navCoordinatorShared.wrappedValue.navigateToSupport(SupportPageModel())
         }
         return
       }
@@ -198,9 +203,8 @@ extension PushNotificationsClient: DependencyKey {
         return
       }
 
-      await MainActor.run {
-        StationPlayer.shared.play(station: station)
-      }
+      @Dependency(\.stationPlayer) var stationPlayer
+      await stationPlayer.play(station: station)
     },
     setBadgeCount: { count in
       try? await UNUserNotificationCenter.current().setBadgeCount(count)

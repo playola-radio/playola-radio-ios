@@ -6,6 +6,7 @@
 //
 
 import Combine
+import Dependencies
 import FRadioPlayer
 import Foundation
 import MediaPlayer
@@ -37,8 +38,6 @@ public class URLStreamPlayer: ObservableObject {
     nowPlaying: nil)
 
   @Published var albumArtworkURL: URL?
-
-  static let shared = URLStreamPlayer()
 
   @Published private(set) var currentStation: UrlStation?
 
@@ -180,5 +179,19 @@ extension URLStreamPlayer {
         groups: []
       ))
     return stationPlayer
+  }
+}
+
+// MARK: - Dependency
+
+extension URLStreamPlayer: @preconcurrency DependencyKey {
+  public static let liveValue = URLStreamPlayer()
+  public static var testValue: URLStreamPlayer { URLStreamPlayer() }
+}
+
+extension DependencyValues {
+  var urlStreamPlayer: URLStreamPlayer {
+    get { self[URLStreamPlayer.self] }
+    set { self[URLStreamPlayer.self] = newValue }
   }
 }

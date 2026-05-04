@@ -302,8 +302,9 @@ struct HomePageTests {
       $0.analytics.track = { event in
         capturedEvents.withValue { $0.append(event) }
       }
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      HomePageModel(stationPlayer: stationPlayerMock)
+      HomePageModel()
     }
 
     await homePageModel.stationTapped(station)

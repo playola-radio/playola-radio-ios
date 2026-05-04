@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 1/18/25.
 //
 import Combine
+import Dependencies
 import FRadioPlayer
 import Foundation
 import IdentifiedCollections
@@ -54,31 +55,41 @@ class StationPlayer: ObservableObject {
     }
   }
 
-  static let shared = StationPlayer()
-
   // MARK: Dependencies
 
   var urlStreamPlayer: URLStreamPlayer
   var playolaStationPlayer: PlayolaStationPlayer
 
+  // The Combine subscriptions below capture `self` weakly so the cancellable
+  // owned by this StationPlayer is the only thing keeping each subscription
+  // alive. Without `[weak self]` the disposeBag/closure/self cycle would keep
+  // replaced players alive past instance lifetime — which matters once
+  // StationPlayer is a dependency-injected service.
   init(
     urlStreamPlayer: URLStreamPlayer? = nil,
     playolaStationPlayer: PlayolaStationPlayer? = nil
   ) {
-    self.urlStreamPlayer = urlStreamPlayer ?? .shared
+    @Dependency(\.urlStreamPlayer) var injectedUrlStreamPlayer
+    self.urlStreamPlayer = urlStreamPlayer ?? injectedUrlStreamPlayer
     self.playolaStationPlayer = playolaStationPlayer ?? .shared
 
-    self.urlStreamPlayer.$state.sink(receiveValue: { state in
-      self.processUrlStreamStateChanged(state)
-    }).store(in: &disposeBag)
+    self.urlStreamPlayer.$state
+      .sink { [weak self] state in
+        self?.processUrlStreamStateChanged(state)
+      }
+      .store(in: &disposeBag)
 
-    self.urlStreamPlayer.$albumArtworkURL.sink(receiveValue: { url in
-      self.processAlbumArtworkURLChanged(url)
-    }).store(in: &disposeBag)
+    self.urlStreamPlayer.$albumArtworkURL
+      .sink { [weak self] url in
+        self?.processAlbumArtworkURLChanged(url)
+      }
+      .store(in: &disposeBag)
 
-    self.playolaStationPlayer.$state.sink(receiveValue: { state in
-      self.processPlayolaStationPlayerState(state)
-    }).store(in: &disposeBag)
+    self.playolaStationPlayer.$state
+      .sink { [weak self] state in
+        self?.processPlayolaStationPlayerState(state)
+      }
+      .store(in: &disposeBag)
 
     self.playolaStationPlayer.configure(
       authProvider: self.authProvider, baseURL: Config.shared.baseUrl)
@@ -88,7 +99,7 @@ class StationPlayer: ObservableObject {
 
   /// Starts playing the specified station
   /// - Parameter station: The station to play
-  public func play(station: AnyStation) {
+  public func play(station: AnyStation) async {
     guard currentStation != station else { return }
     stop()
     state = State(playbackStatus: .startingNewStation(station))
@@ -99,7 +110,7 @@ class StationPlayer: ObservableObject {
       urlStreamPlayer.set(station: urlStation)
     case .playola(let playolaStation):
       urlStreamPlayer.reset()
-      Task { try? await playolaStationPlayer.play(stationId: playolaStation.id) }
+      try? await playolaStationPlayer.play(stationId: playolaStation.id)
     }
   }
 
@@ -111,7 +122,7 @@ class StationPlayer: ObservableObject {
   }
 
   /// Seeks to the next station in the artist list, wrapping around if at the end
-  public func seekNext() {
+  public func seekNext() async {
     let stations = seekableStations()
     guard !stations.isEmpty else { return }
 
@@ -121,16 +132,16 @@ class StationPlayer: ObservableObject {
     guard let current = currentStation,
       let currentIndex = stations.firstIndex(where: { $0.id == current.id })
     else {
-      play(station: stations[0])
+      await play(station: stations[0])
       return
     }
 
     let nextIndex = (currentIndex + 1) % stations.count
-    play(station: stations[nextIndex])
+    await play(station: stations[nextIndex])
   }
 
   /// Seeks to the previous station in the artist list, wrapping around if at the beginning
-  public func seekPrevious() {
+  public func seekPrevious() async {
     let stations = seekableStations()
     guard !stations.isEmpty else { return }
 
@@ -140,12 +151,12 @@ class StationPlayer: ObservableObject {
     guard let current = currentStation,
       let currentIndex = stations.firstIndex(where: { $0.id == current.id })
     else {
-      play(station: stations[0])
+      await play(station: stations[0])
       return
     }
 
     let previousIndex = (currentIndex - 1 + stations.count) % stations.count
-    play(station: stations[previousIndex])
+    await play(station: stations[previousIndex])
   }
 
   func seekableStations() -> [AnyStation] {
@@ -250,4 +261,18 @@ class StationPlayer: ObservableObject {
 // MARK: - AudioBlockProvider Protocol
 protocol AudioBlockProvider {
   var audioBlock: AudioBlock? { get }
+}
+
+// MARK: - Dependency
+
+extension StationPlayer: @preconcurrency DependencyKey {
+  static let liveValue = StationPlayer()
+  static var testValue: StationPlayer { StationPlayer() }
+}
+
+extension DependencyValues {
+  var stationPlayer: StationPlayer {
+    get { self[StationPlayer.self] }
+    set { self[StationPlayer.self] = newValue }
+  }
 }

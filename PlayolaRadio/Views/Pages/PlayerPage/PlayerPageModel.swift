@@ -183,10 +183,9 @@ class PlayerPageModel: ViewModel {
     return likesManager.isLiked(audioBlock.id) ? .filled : .empty
   }
 
-  @ObservationIgnored var stationPlayer: StationPlayer
+  @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
 
-  init(stationPlayer: StationPlayer? = nil, onDismiss: (() -> Void)? = nil) {
-    self.stationPlayer = stationPlayer ?? .shared
+  init(onDismiss: (() -> Void)? = nil) {
     self.onDismiss = onDismiss
   }
 

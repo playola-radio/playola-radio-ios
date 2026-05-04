@@ -51,10 +51,13 @@ class AskQuestionPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
+
+  // MARK: - Shared State
+
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
-  @ObservationIgnored var stationPlayer: StationPlayer
 
   // MARK: - Computed Properties
 
@@ -101,9 +104,8 @@ class AskQuestionPageModel: ViewModel {
 
   // MARK: - Init
 
-  init(station: Station, stationPlayer: StationPlayer? = nil) {
+  init(station: Station) {
     self.station = station
-    self.stationPlayer = stationPlayer ?? .shared
     super.init()
   }
 
@@ -242,7 +244,7 @@ class AskQuestionPageModel: ViewModel {
     if let url = recordingURL {
       await audioRecorder.deleteRecording(url)
     }
-    resumeStationIfNeeded()
+    await resumeStationIfNeeded()
     mainContainerNavigationCoordinator.pop()
   }
 
@@ -291,8 +293,10 @@ class AskQuestionPageModel: ViewModel {
       // Step 8: Show success and dismiss
       uploadPhase = .completed
       presentedAlert = .questionSentSuccess(curatorName: station.curatorName) { [weak self] in
-        self?.resumeStationIfNeeded()
-        self?.mainContainerNavigationCoordinator.popToRoot()
+        Task { @MainActor in
+          await self?.resumeStationIfNeeded()
+          self?.mainContainerNavigationCoordinator.popToRoot()
+        }
       }
 
     } catch {
@@ -326,9 +330,9 @@ class AskQuestionPageModel: ViewModel {
     }
   }
 
-  private func resumeStationIfNeeded() {
+  private func resumeStationIfNeeded() async {
     if let station = stationToResume {
-      stationPlayer.play(station: station)
+      await stationPlayer.play(station: station)
       stationToResume = nil
     }
   }

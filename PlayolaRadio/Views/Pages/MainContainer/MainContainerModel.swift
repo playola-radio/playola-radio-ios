@@ -22,7 +22,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Dependency(\.toast) var toast
   @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
   @ObservationIgnored @Dependency(\.appRating) var appRating
-  @ObservationIgnored var stationPlayer: StationPlayer!
+  @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
   @ObservationIgnored @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
@@ -66,11 +66,6 @@ class MainContainerModel: ViewModel {
 
   var shouldShowSmallPlayer: Bool = false
   private var hasCheckedRatingPromptThisSession = false
-
-  init(stationPlayer: StationPlayer? = nil) {
-    self.stationPlayer = stationPlayer ?? .shared
-    super.init()
-  }
 
   // MARK: - Mode-Aware Properties
 

@@ -27,6 +27,7 @@ struct NowPlayingUpdaterTests {
       $0.analytics.track = { event in
         capturedEvents.withValue { $0.append(event) }
       }
+      $0.date = .constant(Date())
     } operation: {
       NowPlayingUpdater()
     }
@@ -58,6 +59,7 @@ struct NowPlayingUpdaterTests {
       $0.analytics.track = { event in
         capturedEvents.withValue { $0.append(event) }
       }
+      $0.date = .constant(Date())
     } operation: {
       NowPlayingUpdater()
     }
@@ -111,6 +113,7 @@ struct NowPlayingUpdaterTests {
       $0.analytics.track = { event in
         capturedEvents.withValue { $0.append(event) }
       }
+      $0.date = .constant(Date())
     } operation: {
       NowPlayingUpdater()
     }
@@ -151,6 +154,7 @@ struct NowPlayingUpdaterTests {
       $0.analytics.track = { event in
         capturedEvents.withValue { $0.append(event) }
       }
+      $0.date = .constant(Date())
     } operation: {
       NowPlayingUpdater()
     }
@@ -187,6 +191,7 @@ struct NowPlayingUpdaterTests {
       $0.analytics.track = { event in
         capturedEvents.withValue { $0.append(event) }
       }
+      $0.date = .constant(Date())
     } operation: {
       NowPlayingUpdater()
     }
@@ -237,6 +242,7 @@ struct NowPlayingUpdaterTests {
       $0.analytics.track = { event in
         capturedEvents.withValue { $0.append(event) }
       }
+      $0.date = .constant(Date())
     } operation: {
       NowPlayingUpdater()
     }
@@ -270,6 +276,7 @@ struct NowPlayingUpdaterTests {
       $0.analytics.track = { event in
         capturedEvents.withValue { $0.append(event) }
       }
+      $0.date = .constant(Date())
     } operation: {
       NowPlayingUpdater()
     }
@@ -300,6 +307,7 @@ struct NowPlayingUpdaterTests {
       $0.analytics.track = { event in
         capturedEvents.withValue { $0.append(event) }
       }
+      $0.date = .constant(Date())
     } operation: {
       NowPlayingUpdater()
     }

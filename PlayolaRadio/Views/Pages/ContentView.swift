@@ -24,12 +24,17 @@ struct ContentView: View {
   @State private var hasTrackedAppOpen = false
   @State private var requiresUpdate = false
 
+  @Dependency(\.stationPlayer) private var stationPlayer
+  @Dependency(\.nowPlayingUpdater) private var nowPlayingUpdater
+
   var mainContainerModel = MainContainerModel()
 
   init() {
-    // Ensure StationPlayer and NowPlayingUpdater are initialized early
-    _ = StationPlayer.shared
-    _ = NowPlayingUpdater.shared
+    // Resolve audio playback dependencies eagerly so the live singletons are
+    // wired (state sinks, FRadioPlayer observers, remote-control center) by
+    // the time the first view appears.
+    _ = stationPlayer
+    _ = nowPlayingUpdater
   }
 
   private let appStoreURL = URL(

@@ -152,7 +152,8 @@ struct PlayolaRadioApp: App {
     // Register SVG coder for SDWebImage
     SDImageCodersManager.shared.addCoder(SDImageSVGCoder.shared)
 
-    NowPlayingUpdater.shared.setupRemoteControlCenter()
+    @Dependency(\.nowPlayingUpdater) var nowPlayingUpdater
+    nowPlayingUpdater.setupRemoteControlCenter()
 
     // Initialize analytics
     Task {
