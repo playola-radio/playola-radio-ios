@@ -21,23 +21,36 @@ public class UrlStreamListeningSessionReporter {
   var currentListeningSessionID: String?
   var lastSendStreamUrl: String?
 
+  // The $state sink captures `self` weakly so the cancellable owned by this
+  // reporter is the only thing keeping the subscription alive. Without
+  // `[weak self]` the disposeBag/closure/self cycle plus the strong capture
+  // of urlStreamPlayer would keep the URLStreamPlayer alive past instance
+  // lifetime — which matters once URLStreamPlayer is a dependency-injected
+  // service rather than a process-scoped singleton.
   init(urlStreamPlayer: URLStreamPlayer) {
     self.urlStreamPlayer = urlStreamPlayer
 
-    urlStreamPlayer.$state.sink { _ in
-      if let stationUrl = urlStreamPlayer.currentStation?.streamUrl {
-        if stationUrl != self.lastSendStreamUrl {
-          self.lastSendStreamUrl = stationUrl
-          self.reportOrExtendListeningSession(stationUrl)
-          self.startPeriodicNotifications()
+    urlStreamPlayer.$state
+      .sink { [weak self] _ in
+        guard let self else { return }
+        if let stationUrl = self.urlStreamPlayer?.currentStation?.streamUrl {
+          if stationUrl != self.lastSendStreamUrl {
+            self.lastSendStreamUrl = stationUrl
+            self.reportOrExtendListeningSession(stationUrl)
+            self.startPeriodicNotifications()
+          }
+        } else {
+          guard self.lastSendStreamUrl != nil else { return }
+          self.lastSendStreamUrl = nil
+          self.endListeningSession()
+          self.stopPeriodicNotifications()
         }
-      } else {
-        guard self.lastSendStreamUrl != nil else { return }
-        self.lastSendStreamUrl = nil
-        self.endListeningSession()
-        self.stopPeriodicNotifications()
       }
-    }.store(in: &disposeBag)
+      .store(in: &disposeBag)
+  }
+
+  deinit {
+    timer?.invalidate()
   }
 
   public func endListeningSession() {
