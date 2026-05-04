@@ -53,8 +53,9 @@ class ListeningTimeTileModel: ViewModel {
 
   func viewAppeared() {
     refreshTask?.cancel()
-    refreshTask = Task {
+    refreshTask = Task { [weak self] in
       while !Task.isCancelled {
+        guard let self else { return }
         if let ms = listeningTracker?.totalListenTimeMS {
           totalListeningTime = ms
         } else {

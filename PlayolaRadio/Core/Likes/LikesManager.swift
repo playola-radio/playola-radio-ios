@@ -39,6 +39,11 @@ final class LikesManager: ObservableObject {
     setupAuthObserver()
   }
 
+  // The auth subscription is intentionally tied to this instance's lifetime.
+  // LikesManager is registered as a DependencyKey with a `liveValue` singleton,
+  // so in production the subscription lives for the duration of the process.
+  // The `[weak self]` capture prevents retain cycles in tests where fresh
+  // instances are constructed and discarded between cases.
   private func setupAuthObserver() {
     authCancellable = $auth.publisher
       .sink { [weak self] newAuth in
