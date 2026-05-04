@@ -307,7 +307,8 @@ class NowPlayingUpdater {
   // and the subscriptions are torn down — without `[weak self]` the strong
   // self/closure/disposeBag cycle would keep replaced updaters alive forever.
   init(stationPlayer: StationPlayer? = nil) {
-    self.stationPlayer = stationPlayer ?? .shared
+    @Dependency(\.stationPlayer) var injectedStationPlayer
+    self.stationPlayer = stationPlayer ?? injectedStationPlayer
     self.stationPlayer.$state
       .sink { [weak self] state in
         self?.updateNowPlaying(with: state)
@@ -320,15 +321,15 @@ class NowPlayingUpdater {
   // MARK: - Shared State Management
 
   private func setupSharedStateObservation() {
-    // Observe PlayolaStationPlayer state changes
+    @Dependency(\.urlStreamPlayer) var urlStreamPlayer
+
     PlayolaStationPlayer.shared.$state
       .sink { [weak self] playolaState in
         self?.processPlayolaStationPlayerState(playolaState)
       }
       .store(in: &disposeBag)
 
-    // Observe URLStreamPlayer state changes
-    URLStreamPlayer.shared.$state
+    urlStreamPlayer.$state
       .sink { [weak self] urlStreamState in
         self?.processUrlStreamStateChanged(urlStreamState)
       }
@@ -465,7 +466,7 @@ class NowPlayingUpdater {
     commandCenter.nextTrackCommand.isEnabled = true
     commandCenter.nextTrackCommand.addTarget { [weak self] _ in
       Task { @MainActor in
-        self?.stationPlayer.seekNext()
+        await self?.stationPlayer.seekNext()
       }
       return .success
     }
@@ -473,7 +474,7 @@ class NowPlayingUpdater {
     commandCenter.previousTrackCommand.isEnabled = true
     commandCenter.previousTrackCommand.addTarget { [weak self] _ in
       Task { @MainActor in
-        self?.stationPlayer.seekPrevious()
+        await self?.stationPlayer.seekPrevious()
       }
       return .success
     }
@@ -487,14 +488,15 @@ class NowPlayingUpdater {
 
     // Play command - restart last played station when stopped
     commandCenter.playCommand.isEnabled = true
-    commandCenter.playCommand.addTarget { _ in
-      if let lastStation = self.lastPlayedStation,
+    commandCenter.playCommand.addTarget { [weak self] _ in
+      guard let self,
+        let lastStation = self.lastPlayedStation,
         self.stationPlayer.currentStation == nil
-      {
-        self.stationPlayer.play(station: lastStation)
-        return .success
+      else { return .commandFailed }
+      Task { @MainActor in
+        await self.stationPlayer.play(station: lastStation)
       }
-      return .commandFailed
+      return .success
     }
   }
 
@@ -635,5 +637,18 @@ extension NowPlayingUpdater {
     )
 
     sessionStartTime = now
+  }
+}
+
+// MARK: - Dependency
+
+extension NowPlayingUpdater: @preconcurrency DependencyKey {
+  static var liveValue: NowPlayingUpdater { .shared }
+}
+
+extension DependencyValues {
+  var nowPlayingUpdater: NowPlayingUpdater {
+    get { self[NowPlayingUpdater.self] }
+    set { self[NowPlayingUpdater.self] = newValue }
   }
 }

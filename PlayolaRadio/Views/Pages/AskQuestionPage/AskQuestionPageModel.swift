@@ -242,7 +242,7 @@ class AskQuestionPageModel: ViewModel {
     if let url = recordingURL {
       await audioRecorder.deleteRecording(url)
     }
-    resumeStationIfNeeded()
+    await resumeStationIfNeeded()
     mainContainerNavigationCoordinator.pop()
   }
 
@@ -291,8 +291,10 @@ class AskQuestionPageModel: ViewModel {
       // Step 8: Show success and dismiss
       uploadPhase = .completed
       presentedAlert = .questionSentSuccess(curatorName: station.curatorName) { [weak self] in
-        self?.resumeStationIfNeeded()
-        self?.mainContainerNavigationCoordinator.popToRoot()
+        Task { @MainActor in
+          await self?.resumeStationIfNeeded()
+          self?.mainContainerNavigationCoordinator.popToRoot()
+        }
       }
 
     } catch {
@@ -326,9 +328,9 @@ class AskQuestionPageModel: ViewModel {
     }
   }
 
-  private func resumeStationIfNeeded() {
+  private func resumeStationIfNeeded() async {
     if let station = stationToResume {
-      stationPlayer.play(station: station)
+      await stationPlayer.play(station: station)
       stationToResume = nil
     }
   }

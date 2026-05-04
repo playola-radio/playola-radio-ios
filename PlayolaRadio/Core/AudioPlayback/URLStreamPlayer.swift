@@ -6,6 +6,7 @@
 //
 
 import Combine
+import Dependencies
 import FRadioPlayer
 import Foundation
 import MediaPlayer
@@ -180,5 +181,18 @@ extension URLStreamPlayer {
         groups: []
       ))
     return stationPlayer
+  }
+}
+
+// MARK: - Dependency
+
+extension URLStreamPlayer: @preconcurrency DependencyKey {
+  public static var liveValue: URLStreamPlayer { .shared }
+}
+
+extension DependencyValues {
+  var urlStreamPlayer: URLStreamPlayer {
+    get { self[URLStreamPlayer.self] }
+    set { self[URLStreamPlayer.self] = newValue }
   }
 }

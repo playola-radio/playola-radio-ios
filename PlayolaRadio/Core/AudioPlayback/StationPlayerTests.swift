@@ -19,54 +19,54 @@ struct StationPlayerTests {
   // MARK: - seekNext Tests
 
   @Test
-  func testSeekNextPlaysNextStation() {
+  func testSeekNextPlaysNextStation() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    stationPlayer.play(station: stations[0])
+    await stationPlayer.play(station: stations[0])
 
-    stationPlayer.seekNext()
+    await stationPlayer.seekNext()
 
     #expect(stationPlayer.currentStation?.id == stations[1].id)
   }
 
   @Test
-  func testSeekNextWrapsAroundFromLastToFirst() {
+  func testSeekNextWrapsAroundFromLastToFirst() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    stationPlayer.play(station: stations[2])
+    await stationPlayer.play(station: stations[2])
 
-    stationPlayer.seekNext()
+    await stationPlayer.seekNext()
 
     #expect(stationPlayer.currentStation?.id == stations[0].id)
   }
 
   @Test
-  func testSeekNextWithNoCurrentStationPlaysFirst() {
+  func testSeekNextWithNoCurrentStationPlaysFirst() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
 
-    stationPlayer.seekNext()
+    await stationPlayer.seekNext()
 
     #expect(stationPlayer.currentStation?.id == stations[0].id)
   }
 
   @Test
-  func testSeekNextWithEmptyStationListDoesNothing() {
+  func testSeekNextWithEmptyStationListDoesNothing() async {
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
 
-    stationPlayer.seekNext()
+    await stationPlayer.seekNext()
 
     #expect(stationPlayer.currentStation == nil)
   }
@@ -74,42 +74,42 @@ struct StationPlayerTests {
   // MARK: - seekPrevious Tests
 
   @Test
-  func testSeekPreviousPlaysPreviousStation() {
+  func testSeekPreviousPlaysPreviousStation() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    stationPlayer.play(station: stations[1])
+    await stationPlayer.play(station: stations[1])
 
-    stationPlayer.seekPrevious()
+    await stationPlayer.seekPrevious()
 
     #expect(stationPlayer.currentStation?.id == stations[0].id)
   }
 
   @Test
-  func testSeekPreviousWrapsAroundFromFirstToLast() {
+  func testSeekPreviousWrapsAroundFromFirstToLast() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    stationPlayer.play(station: stations[0])
+    await stationPlayer.play(station: stations[0])
 
-    stationPlayer.seekPrevious()
+    await stationPlayer.seekPrevious()
 
     #expect(stationPlayer.currentStation?.id == stations[2].id)
   }
 
   @Test
-  func testSeekPreviousWithNoCurrentStationPlaysFirst() {
+  func testSeekPreviousWithNoCurrentStationPlaysFirst() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
 
-    stationPlayer.seekPrevious()
+    await stationPlayer.seekPrevious()
 
     #expect(stationPlayer.currentStation?.id == stations[0].id)
   }
@@ -117,7 +117,7 @@ struct StationPlayerTests {
   // MARK: - Station Filtering Tests
 
   @Test
-  func testSeekOnlyUsesArtistListStations() {
+  func testSeekOnlyUsesArtistListStations() async {
     @Shared(.stationLists) var stationLists = makeArtistAndFmLists()
     @Shared(.showSecretStations) var showSecretStations = false
 
@@ -125,50 +125,50 @@ struct StationPlayerTests {
     let artistList = stationLists.first { $0.id == StationList.KnownIDs.artistList.rawValue }!
     let artistStations = artistList.stations
 
-    stationPlayer.play(station: artistStations[0])
-    stationPlayer.seekNext()
+    await stationPlayer.play(station: artistStations[0])
+    await stationPlayer.seekNext()
 
     #expect(stationPlayer.currentStation?.id == artistStations[1].id)
   }
 
   @Test
-  func testSeekSkipsInactiveStations() {
+  func testSeekSkipsInactiveStations() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithInactiveStation()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let allStations = stationLists.first!.stations
 
-    stationPlayer.play(station: allStations[0])
-    stationPlayer.seekNext()
+    await stationPlayer.play(station: allStations[0])
+    await stationPlayer.seekNext()
 
     #expect(stationPlayer.currentStation?.id == allStations[2].id)
   }
 
   @Test
-  func testSeekSkipsComingSoonStationsWhenSecretsDisabled() {
+  func testSeekSkipsComingSoonStationsWhenSecretsDisabled() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithComingSoonStation()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let allStations = stationLists.first!.stations
 
-    stationPlayer.play(station: allStations[0])
-    stationPlayer.seekNext()
+    await stationPlayer.play(station: allStations[0])
+    await stationPlayer.seekNext()
 
     #expect(stationPlayer.currentStation?.id == allStations[2].id)
   }
 
   @Test
-  func testSeekIncludesComingSoonStationsWhenSecretsEnabled() {
+  func testSeekIncludesComingSoonStationsWhenSecretsEnabled() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithComingSoonStation()
     @Shared(.showSecretStations) var showSecretStations = true
 
     let stationPlayer = StationPlayer()
     let allStations = stationLists.first!.stations
 
-    stationPlayer.play(station: allStations[0])
-    stationPlayer.seekNext()
+    await stationPlayer.play(station: allStations[0])
+    await stationPlayer.seekNext()
 
     #expect(stationPlayer.currentStation?.id == allStations[1].id)
   }
@@ -236,41 +236,41 @@ struct StationPlayerTests {
   }
 
   @Test
-  func testIsSeekingIsFalseAfterSeekNextCompletes() {
+  func testIsSeekingIsFalseAfterSeekNextCompletes() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    stationPlayer.play(station: stations[0])
+    await stationPlayer.play(station: stations[0])
 
-    stationPlayer.seekNext()
+    await stationPlayer.seekNext()
 
     #expect(!stationPlayer.isSeeking, "isSeeking should be false after seek completes")
   }
 
   @Test
-  func testIsSeekingIsFalseAfterSeekPreviousCompletes() {
+  func testIsSeekingIsFalseAfterSeekPreviousCompletes() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    stationPlayer.play(station: stations[1])
+    await stationPlayer.play(station: stations[1])
 
-    stationPlayer.seekPrevious()
+    await stationPlayer.seekPrevious()
 
     #expect(!stationPlayer.isSeeking, "isSeeking should be false after seek completes")
   }
 
   @Test
-  func testIsSeekingIsFalseWhenSeekHasNoStations() {
+  func testIsSeekingIsFalseWhenSeekHasNoStations() async {
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
 
-    stationPlayer.seekNext()
+    await stationPlayer.seekNext()
 
     #expect(!stationPlayer.isSeeking, "isSeeking should remain false when no stations")
   }

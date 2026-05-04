@@ -50,7 +50,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   private func playStation(_ station: AnyStation?) {
     guard let station else { return }
 
-    stationPlayer.play(station: station)
+    Task { @MainActor in
+      await stationPlayer.play(station: station)
+    }
     showNowPlayingTemplate()
   }
 
@@ -335,7 +337,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     )
     listItem.handler = { _, completion in
       if station.active {
-        self.stationPlayer.play(station: station)
+        Task { @MainActor in
+          await self.stationPlayer.play(station: station)
+        }
       }
       completion()
     }

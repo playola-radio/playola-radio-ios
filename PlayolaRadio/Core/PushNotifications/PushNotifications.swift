@@ -199,7 +199,7 @@ extension PushNotificationsClient: DependencyKey {
       }
 
       await MainActor.run {
-        StationPlayer.shared.play(station: station)
+        Task { await StationPlayer.shared.play(station: station) }
       }
     },
     setBadgeCount: { count in

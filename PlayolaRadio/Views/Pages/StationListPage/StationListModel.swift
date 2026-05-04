@@ -166,7 +166,7 @@ class StationListModel: ViewModel {
         entryPoint: "station_list"
       ))
 
-    stationPlayer.play(station: station)
+    await stationPlayer.play(station: station)
   }
 
   // MARK: - View Helpers

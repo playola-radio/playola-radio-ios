@@ -170,7 +170,7 @@ class HomePageModel: ViewModel {
         station: StationInfo(from: station),
         entryPoint: "home_recommendations"
       ))
-    stationPlayer.play(station: station)
+    await stationPlayer.play(station: station)
   }
 
   // MARK: - View Helpers
