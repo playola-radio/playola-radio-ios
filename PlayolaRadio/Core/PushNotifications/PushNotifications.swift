@@ -210,24 +210,25 @@ extension PushNotificationsClient: DependencyKey {
       try? await UNUserNotificationCenter.current().setBadgeCount(count)
     },
     handleSupportNotificationBadge: { badgeFromPayload in
-      @Shared(.unreadSupportCount) var unreadSupportCount
-      @Dependency(\.pushNotifications) var pushNotifications
-
-      let newCount: Int
-      if let badge = badgeFromPayload {
-        newCount = badge
-        $unreadSupportCount.withLock { $0 = badge }
-      } else {
-        $unreadSupportCount.withLock { $0 += 1 }
-        newCount = unreadSupportCount
+      let newCount = await MainActor.run { () -> Int in
+        @Shared(.unreadSupportCount) var unreadSupportCount
+        if let badge = badgeFromPayload {
+          $unreadSupportCount.withLock { $0 = badge }
+          return badge
+        } else {
+          $unreadSupportCount.withLock { $0 += 1 }
+          return unreadSupportCount
+        }
       }
+      @Dependency(\.pushNotifications) var pushNotifications
       await pushNotifications.setBadgeCount(newCount)
     },
     clearSupportBadge: {
-      @Shared(.unreadSupportCount) var unreadSupportCount
+      await MainActor.run {
+        @Shared(.unreadSupportCount) var unreadSupportCount
+        $unreadSupportCount.withLock { $0 = 0 }
+      }
       @Dependency(\.pushNotifications) var pushNotifications
-
-      $unreadSupportCount.withLock { $0 = 0 }
       await pushNotifications.setBadgeCount(0)
     }
   )
