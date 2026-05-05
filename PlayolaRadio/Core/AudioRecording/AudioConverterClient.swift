@@ -17,7 +17,9 @@ public struct AudioConverterClient: Sendable {
 
 extension AudioConverterClient: DependencyKey {
   public static var liveValue: AudioConverterClient {
-    AudioConverterClient(
+    @Dependency(\.uuid) var uuid
+
+    return AudioConverterClient(
       convertToM4A: { inputURL in
         let asset = AVURLAsset(url: inputURL)
 
@@ -31,7 +33,7 @@ extension AudioConverterClient: DependencyKey {
         }
 
         let outputURL = FileManager.default.temporaryDirectory
-          .appendingPathComponent("voicetrack_\(UUID().uuidString).m4a")
+          .appendingPathComponent("voicetrack_\(uuid().uuidString).m4a")
 
         do {
           try await exportSession.export(to: outputURL, as: .m4a)

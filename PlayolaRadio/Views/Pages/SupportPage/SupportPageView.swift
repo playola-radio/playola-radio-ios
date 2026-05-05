@@ -30,6 +30,9 @@ struct SupportPageView: View {
     .task {
       await model.onViewAppeared()
     }
+    .task {
+      await model.observeRefreshNotifications()
+    }
     .alert(item: $model.presentedAlert) { $0.alert }
     .onChange(of: scenePhase) { _, newPhase in
       Task { await model.handleScenePhaseChange(newPhase) }

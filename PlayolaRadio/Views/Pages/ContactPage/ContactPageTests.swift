@@ -6,20 +6,17 @@
 //
 import ConcurrencyExtras
 import Dependencies
+import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class ContactPageTests: XCTestCase {
-  override static func setUp() {
-    super.setUp()
-    @Shared(.auth) var auth
-  }
-
+struct ContactPageTests {
+  @Test
   func testOnLogOutTappedStopsPlayerAndClearsAllUserState() async {
     let audioBlock = AudioBlock.mock
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -45,26 +42,28 @@ final class ContactPageTests: XCTestCase {
       }
       $0.analytics = .noop
       $0.analytics.reset = { resetCallCount.withValue { $0 += 1 } }
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      await ContactPageModel(stationPlayer: stationPlayerMock).onLogOutTapped()
+      await ContactPageModel().onLogOutTapped()
     }
 
-    XCTAssertEqual(stationPlayerMock.stopCalledCount, 1)
-    XCTAssertEqual(unregisterCalls.value.count, 1)
-    XCTAssertEqual(unregisterCalls.value.first?.0, "test-jwt")
-    XCTAssertEqual(unregisterCalls.value.first?.1, "device-xyz")
-    XCTAssertEqual(resetCallCount.value, 1)
-    XCTAssertFalse(auth.isLoggedIn)
-    XCTAssertNil(registeredDeviceId)
-    XCTAssertTrue(userLikes.isEmpty)
-    XCTAssertTrue(pendingLikeOperations.isEmpty)
-    XCTAssertTrue(airings.isEmpty)
-    XCTAssertTrue(lastNotificationSentAt.isEmpty)
-    XCTAssertFalse(isBroadcaster)
-    XCTAssertNil(UserDefaults.standard.object(forKey: "analytics_session_paused_at"))
+    #expect(stationPlayerMock.stopCalledCount == 1)
+    #expect(unregisterCalls.value.count == 1)
+    #expect(unregisterCalls.value.first?.0 == "test-jwt")
+    #expect(unregisterCalls.value.first?.1 == "device-xyz")
+    #expect(resetCallCount.value == 1)
+    #expect(!auth.isLoggedIn)
+    #expect(registeredDeviceId == nil)
+    #expect(userLikes.isEmpty)
+    #expect(pendingLikeOperations.isEmpty)
+    #expect(airings.isEmpty)
+    #expect(lastNotificationSentAt.isEmpty)
+    #expect(!isBroadcaster)
+    #expect(UserDefaults.standard.object(forKey: "analytics_session_paused_at") == nil)
   }
 
-  func testNameDisplay_ReturnsFullNameWhenLoggedIn() {
+  @Test
+  func testNameDisplayReturnsFullNameWhenLoggedIn() {
     let loggedInUser = LoggedInUser(
       id: "123",
       firstName: "Jane",
@@ -76,18 +75,20 @@ final class ContactPageTests: XCTestCase {
 
     let model = ContactPageModel()
 
-    XCTAssertEqual(model.name, "Jane Smith")
+    #expect(model.name == "Jane Smith")
   }
 
-  func testNameDisplay_ReturnsAnonymousWhenNotLoggedIn() {
+  @Test
+  func testNameDisplayReturnsAnonymousWhenNotLoggedIn() {
     @Shared(.auth) var auth = Auth()
 
     let model = ContactPageModel()
 
-    XCTAssertEqual(model.name, "Anonymous")
+    #expect(model.name == "Anonymous")
   }
 
-  func testEmailDisplay_ReturnsEmailWhenLoggedIn() {
+  @Test
+  func testEmailDisplayReturnsEmailWhenLoggedIn() {
     let loggedInUser = LoggedInUser(
       id: "456",
       firstName: "Bob",
@@ -99,59 +100,62 @@ final class ContactPageTests: XCTestCase {
 
     let model = ContactPageModel()
 
-    XCTAssertEqual(model.email, "bob@test.com")
+    #expect(model.email == "bob@test.com")
   }
 
-  func testEmailDisplay_ReturnsUnknownWhenNotLoggedIn() {
+  @Test
+  func testEmailDisplayReturnsUnknownWhenNotLoggedIn() {
     @Shared(.auth) var auth = Auth()
 
     let model = ContactPageModel()
 
-    XCTAssertEqual(model.email, "Unknown")
+    #expect(model.email == "Unknown")
   }
 
-  func testOnLikedSongsTapped_NavigatesToLikedSongsPage() {
+  @Test
+  func testOnLikedSongsTappedNavigatesToLikedSongsPage() {
     let model = ContactPageModel()
 
     // Verify initial navigation state
-    XCTAssertTrue(model.mainContainerNavigationCoordinator.path.isEmpty)
+    #expect(model.mainContainerNavigationCoordinator.path.isEmpty)
 
     // Tap liked songs button
     model.onLikedSongsTapped()
 
     // Verify navigation occurred
-    XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
+    #expect(model.mainContainerNavigationCoordinator.path.count == 1)
 
     if case .likedSongsPage = model.mainContainerNavigationCoordinator.path.first {
       // Successfully navigated to liked songs page
     } else {
-      XCTFail("Expected navigation to liked songs page")
+      Issue.record("Expected navigation to liked songs page")
     }
   }
 
-  func testOnNotificationsTapped_NavigatesToNotificationsSettingsPage() {
+  @Test
+  func testOnNotificationsTappedNavigatesToNotificationsSettingsPage() {
     let model = ContactPageModel()
 
     // Verify initial navigation state
-    XCTAssertTrue(model.mainContainerNavigationCoordinator.path.isEmpty)
+    #expect(model.mainContainerNavigationCoordinator.path.isEmpty)
 
     // Tap notifications button
     model.onNotificationsTapped()
 
     // Verify navigation occurred
-    XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
+    #expect(model.mainContainerNavigationCoordinator.path.count == 1)
 
     if case .notificationsSettingsPage = model.mainContainerNavigationCoordinator.path.first {
       // Successfully navigated to notifications settings page
     } else {
-      XCTFail("Expected navigation to notifications settings page")
+      Issue.record("Expected navigation to notifications settings page")
     }
   }
 
-  func testOnMyStationTapped_SwitchesToBroadcastMode() async {
+  @Test
+  func testOnMyStationTappedSwitchesToBroadcastMode() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     await withMainSerialExecutor {
-      @Shared(.auth) var auth
-      $auth.withLock { $0 = Auth(jwt: "test-jwt") }
       let mockStations = [Station.mockWith(id: "test-station-id")]
 
       await withDependencies {
@@ -162,31 +166,33 @@ final class ContactPageTests: XCTestCase {
 
         await model.onViewAppeared()
 
-        XCTAssertEqual(model.mainContainerNavigationCoordinator.appMode, .listening)
+        #expect(model.mainContainerNavigationCoordinator.appMode == .listening)
 
         await model.onMyStationTapped()
 
-        XCTAssertEqual(
-          model.mainContainerNavigationCoordinator.appMode,
-          .broadcasting(stationId: "test-station-id")
+        #expect(
+          model.mainContainerNavigationCoordinator.appMode
+            == .broadcasting(stationId: "test-station-id")
         )
-        XCTAssertTrue(model.mainContainerNavigationCoordinator.path.isEmpty)
+        #expect(model.mainContainerNavigationCoordinator.path.isEmpty)
       }
     }
   }
 
   // MARK: - My Station Button Visibility Tests
 
-  func testMyStationButtonVisible_IsFalseInitially() {
+  @Test
+  func testMyStationButtonVisibleIsFalseInitially() {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     let model = ContactPageModel()
 
-    XCTAssertFalse(model.myStationButtonVisible)
-    XCTAssertNil(model.stationIdToTransitionTo)
+    #expect(!model.myStationButtonVisible)
+    #expect(model.stationIdToTransitionTo == nil)
   }
 
-  func testMyStationButtonVisible_IsFalseWhenUserHasNoStations() async {
+  @Test
+  func testMyStationButtonVisibleIsFalseWhenUserHasNoStations() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
@@ -196,12 +202,13 @@ final class ContactPageTests: XCTestCase {
 
       await model.onViewAppeared()
 
-      XCTAssertFalse(model.myStationButtonVisible)
-      XCTAssertNil(model.stationIdToTransitionTo)
+      #expect(!model.myStationButtonVisible)
+      #expect(model.stationIdToTransitionTo == nil)
     }
   }
 
-  func testMyStationButtonVisible_IsTrueWhenUserHasStations() async {
+  @Test
+  func testMyStationButtonVisibleIsTrueWhenUserHasStations() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockStations = [
       Station.mockWith(id: "station-1", name: "First Station"),
@@ -215,12 +222,13 @@ final class ContactPageTests: XCTestCase {
 
       await model.onViewAppeared()
 
-      XCTAssertTrue(model.myStationButtonVisible)
-      XCTAssertEqual(model.stationIdToTransitionTo, "station-1")
+      #expect(model.myStationButtonVisible)
+      #expect(model.stationIdToTransitionTo == "station-1")
     }
   }
 
-  func testStationIdToTransitionTo_IsFirstStationId() async {
+  @Test
+  func testStationIdToTransitionToIsFirstStationId() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockStations = [
       Station.mockWith(id: "first-station-id", name: "First Station"),
@@ -235,11 +243,12 @@ final class ContactPageTests: XCTestCase {
 
       await model.onViewAppeared()
 
-      XCTAssertEqual(model.stationIdToTransitionTo, "first-station-id")
+      #expect(model.stationIdToTransitionTo == "first-station-id")
     }
   }
 
-  func testOnMyStationTapped_WithSingleStation_SwitchesToBroadcastMode() async {
+  @Test
+  func testOnMyStationTappedWithSingleStationSwitchesToBroadcastMode() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockStations = [
       Station.mockWith(id: "single-station-id", name: "My Only Station")
@@ -253,15 +262,16 @@ final class ContactPageTests: XCTestCase {
       await model.onViewAppeared()
       await model.onMyStationTapped()
 
-      XCTAssertEqual(
-        model.mainContainerNavigationCoordinator.appMode,
-        .broadcasting(stationId: "single-station-id")
+      #expect(
+        model.mainContainerNavigationCoordinator.appMode
+          == .broadcasting(stationId: "single-station-id")
       )
-      XCTAssertTrue(model.mainContainerNavigationCoordinator.path.isEmpty)
+      #expect(model.mainContainerNavigationCoordinator.path.isEmpty)
     }
   }
 
-  func testOnMyStationTapped_WithMultipleStations_NavigatesToChooseStationPage() async {
+  @Test
+  func testOnMyStationTappedWithMultipleStationsNavigatesToChooseStationPage() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockStations = [
       Station.mockWith(id: "station-1", name: "First Station"),
@@ -277,23 +287,24 @@ final class ContactPageTests: XCTestCase {
       await model.onViewAppeared()
       await model.onMyStationTapped()
 
-      XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
+      #expect(model.mainContainerNavigationCoordinator.path.count == 1)
 
       if case .chooseStationToBroadcastPage(let chooseModel) = model
         .mainContainerNavigationCoordinator
         .path.first
       {
-        XCTAssertEqual(chooseModel.stations.count, 3)
-        XCTAssertEqual(chooseModel.stations[0].id, "station-1")
-        XCTAssertEqual(chooseModel.stations[1].id, "station-2")
-        XCTAssertEqual(chooseModel.stations[2].id, "station-3")
+        #expect(chooseModel.stations.count == 3)
+        #expect(chooseModel.stations[0].id == "station-1")
+        #expect(chooseModel.stations[1].id == "station-2")
+        #expect(chooseModel.stations[2].id == "station-3")
       } else {
-        XCTFail("Expected navigation to choose station page")
+        Issue.record("Expected navigation to choose station page")
       }
     }
   }
 
-  func testOnMyStationTapped_WithTwoStations_NavigatesToChooseStationPage() async {
+  @Test
+  func testOnMyStationTappedWithTwoStationsNavigatesToChooseStationPage() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockStations = [
       Station.mockWith(id: "station-a", name: "Station A"),
@@ -308,22 +319,23 @@ final class ContactPageTests: XCTestCase {
       await model.onViewAppeared()
       await model.onMyStationTapped()
 
-      XCTAssertEqual(model.mainContainerNavigationCoordinator.path.count, 1)
+      #expect(model.mainContainerNavigationCoordinator.path.count == 1)
 
       if case .chooseStationToBroadcastPage(let chooseModel) = model
         .mainContainerNavigationCoordinator
         .path.first
       {
-        XCTAssertEqual(chooseModel.stations.count, 2)
+        #expect(chooseModel.stations.count == 2)
       } else {
-        XCTFail("Expected navigation to choose station page")
+        Issue.record("Expected navigation to choose station page")
       }
     }
   }
 
   // MARK: - My Station Button Label Tests
 
-  func testMyStationButtonLabel_ReturnsSingularWhenOneStation() async {
+  @Test
+  func testMyStationButtonLabelReturnsSingularWhenOneStation() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockStations = [Station.mockWith(id: "station-1", name: "My Only Station")]
 
@@ -334,11 +346,12 @@ final class ContactPageTests: XCTestCase {
 
       await model.onViewAppeared()
 
-      XCTAssertEqual(model.myStationButtonLabel, "My Station")
+      #expect(model.myStationButtonLabel == "My Station")
     }
   }
 
-  func testMyStationButtonLabel_ReturnsPluralWhenMultipleStations() async {
+  @Test
+  func testMyStationButtonLabelReturnsPluralWhenMultipleStations() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockStations = [
       Station.mockWith(id: "station-1", name: "First Station"),
@@ -352,13 +365,14 @@ final class ContactPageTests: XCTestCase {
 
       await model.onViewAppeared()
 
-      XCTAssertEqual(model.myStationButtonLabel, "My Stations")
+      #expect(model.myStationButtonLabel == "My Stations")
     }
   }
 
   // MARK: - Analytics Tests
 
-  func testOnMyStationTapped_WithSingleStation_TracksAnalyticsEvent() async {
+  @Test
+  func testOnMyStationTappedWithSingleStationTracksAnalyticsEvent() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockStation = Station.mockWith(id: "my-station-id", name: "My Station")
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
@@ -381,11 +395,12 @@ final class ContactPageTests: XCTestCase {
         }
         return false
       }
-      XCTAssertTrue(hasViewedBroadcastEvent)
+      #expect(hasViewedBroadcastEvent)
     }
   }
 
-  func testOnMyStationTapped_WithMultipleStations_DoesNotTrackAnalyticsEvent() async {
+  @Test
+  func testOnMyStationTappedWithMultipleStationsDoesNotTrackAnalyticsEvent() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let mockStations = [
       Station.mockWith(id: "station-1", name: "Station 1"),
@@ -411,12 +426,13 @@ final class ContactPageTests: XCTestCase {
         }
         return false
       }
-      XCTAssertFalse(hasViewedBroadcastEvent)
+      #expect(!hasViewedBroadcastEvent)
     }
   }
 
   // MARK: - Broadcast Mode Tests
 
+  @Test
   func testIsInBroadcastModeReturnsFalseWhenListening() {
     @Shared(.mainContainerNavigationCoordinator)
     var coordinator = MainContainerNavigationCoordinator()
@@ -424,9 +440,10 @@ final class ContactPageTests: XCTestCase {
 
     let model = ContactPageModel()
 
-    XCTAssertFalse(model.isInBroadcastMode)
+    #expect(!model.isInBroadcastMode)
   }
 
+  @Test
   func testIsInBroadcastModeReturnsTrueWhenBroadcasting() {
     @Shared(.mainContainerNavigationCoordinator)
     var coordinator = MainContainerNavigationCoordinator()
@@ -434,9 +451,10 @@ final class ContactPageTests: XCTestCase {
 
     let model = ContactPageModel()
 
-    XCTAssertTrue(model.isInBroadcastMode)
+    #expect(model.isInBroadcastMode)
   }
 
+  @Test
   func testSwitchToListeningModeSwitchesMode() {
     @Shared(.mainContainerNavigationCoordinator)
     var coordinator = MainContainerNavigationCoordinator()
@@ -445,9 +463,10 @@ final class ContactPageTests: XCTestCase {
     let model = ContactPageModel()
     model.switchToListeningMode()
 
-    XCTAssertEqual(coordinator.appMode, .listening)
+    #expect(coordinator.appMode == .listening)
   }
 
+  @Test
   func testLogoutResetsAppModeToListening() async {
     @Shared(.mainContainerNavigationCoordinator)
     var coordinator = MainContainerNavigationCoordinator()
@@ -467,16 +486,18 @@ final class ContactPageTests: XCTestCase {
     await withDependencies {
       $0.api.unregisterDevice = { _, _ in }
       $0.analytics = .noop
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      let model = ContactPageModel(stationPlayer: stationPlayerMock)
+      let model = ContactPageModel()
       await model.onLogOutTapped()
     }
 
-    XCTAssertEqual(coordinator.appMode, .listening)
+    #expect(coordinator.appMode == .listening)
   }
 
   // MARK: - Sign Out Edge Cases
 
+  @Test
   func testOnLogOutTappedSkipsServerCallWhenDeviceNotRegistered() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt-abc")
     @Shared(.registeredDeviceId) var registeredDeviceId = String?.none
@@ -489,14 +510,15 @@ final class ContactPageTests: XCTestCase {
       }
       $0.analytics = .noop
     } operation: {
-      let model = ContactPageModel(stationPlayer: StationPlayerMock())
+      let model = ContactPageModel()
       await model.onLogOutTapped()
     }
 
-    XCTAssertEqual(unregisterCallCount.value, 0)
-    XCTAssertFalse(auth.isLoggedIn)
+    #expect(unregisterCallCount.value == 0)
+    #expect(!auth.isLoggedIn)
   }
 
+  @Test
   func testOnLogOutTappedStillClearsLocalStateWhenServerCallFails() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt-abc")
     @Shared(.registeredDeviceId) var registeredDeviceId = "device-xyz"
@@ -507,14 +529,15 @@ final class ContactPageTests: XCTestCase {
       $0.api.unregisterDevice = { _, _ in throw UnregisterError() }
       $0.analytics = .noop
     } operation: {
-      let model = ContactPageModel(stationPlayer: StationPlayerMock())
+      let model = ContactPageModel()
       await model.onLogOutTapped()
     }
 
-    XCTAssertFalse(auth.isLoggedIn)
-    XCTAssertNil(registeredDeviceId)
+    #expect(!auth.isLoggedIn)
+    #expect(registeredDeviceId == nil)
   }
 
+  @Test
   func testMyStationButtonHiddenWhenInBroadcastMode() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator)
@@ -530,7 +553,7 @@ final class ContactPageTests: XCTestCase {
 
       await model.onViewAppeared()
 
-      XCTAssertFalse(model.myStationButtonVisible)
+      #expect(!model.myStationButtonVisible)
     }
   }
 }

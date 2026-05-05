@@ -52,42 +52,43 @@ class SeriesListPageModel: ViewModel {
   }
 
   private func groupAiringsByShow(_ airings: [Airing]) -> [ShowWithAirings] {
-    var showDict: [String: ShowWithAirings] = [:]
+    let currentTime = now
 
-    // Filter to only include airings that haven't ended yet
     let upcomingAirings = airings.filter { airing in
       let durationMS = airing.episode?.durationMS ?? 0
       let endTime = airing.airtime.addingTimeInterval(TimeInterval(durationMS) / 1000.0)
-      return endTime > now
+      return endTime > currentTime
     }
+
+    var airingsByShowId: [String: [Airing]] = [:]
+    var showsById: [String: Show] = [:]
+    var stationsByShowId: [String: Station?] = [:]
 
     for airing in upcomingAirings {
       guard let episode = airing.episode,
         let show = episode.show
       else { continue }
 
-      if var existing = showDict[show.id] {
-        existing.airings.append(airing)
-        showDict[show.id] = existing
-      } else {
-        showDict[show.id] = ShowWithAirings(
-          show: show,
-          station: airing.station,
-          airings: [airing]
-        )
+      airingsByShowId[show.id, default: []].append(airing)
+      showsById[show.id] = show
+      if stationsByShowId[show.id] == nil {
+        stationsByShowId[show.id] = airing.station
       }
     }
 
-    // Sort airings within each show by airtime
-    for (id, var showWithAirings) in showDict {
-      showWithAirings.airings.sort { $0.airtime < $1.airtime }
-      showDict[id] = showWithAirings
+    let shows = airingsByShowId.compactMap { showId, airings -> ShowWithAirings? in
+      guard let show = showsById[showId] else { return nil }
+      return ShowWithAirings(
+        show: show,
+        station: stationsByShowId[showId] ?? nil,
+        airings: airings.sorted { $0.airtime < $1.airtime },
+        now: currentTime
+      )
     }
 
-    return showDict.values
-      .sorted {
-        $0.nextAiring?.airtime ?? .distantFuture < $1.nextAiring?.airtime ?? .distantFuture
-      }
+    return shows.sorted {
+      $0.nextAiring?.airtime ?? .distantFuture < $1.nextAiring?.airtime ?? .distantFuture
+    }
   }
 }
 
@@ -96,19 +97,19 @@ class SeriesListPageModel: ViewModel {
 struct ShowWithAirings: Identifiable {
   let show: Show
   let station: Station?
-  var airings: [Airing]
+  let airings: [Airing]
+  let nextAiring: Airing?
+  let upcomingAiringsCount: Int
 
   var id: String { show.id }
 
-  var nextAiring: Airing? {
-    airings
-      .filter { $0.airtime > Date() }
-      .sorted { $0.airtime < $1.airtime }
-      .first
-  }
-
-  var upcomingAiringsCount: Int {
-    airings.filter { $0.airtime > Date() }.count
+  init(show: Show, station: Station?, airings: [Airing], now: Date) {
+    self.show = show
+    self.station = station
+    self.airings = airings
+    let upcoming = airings.filter { $0.airtime > now }
+    self.nextAiring = upcoming.sorted { $0.airtime < $1.airtime }.first
+    self.upcomingAiringsCount = upcoming.count
   }
 }
 

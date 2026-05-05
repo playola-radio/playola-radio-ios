@@ -3,13 +3,15 @@
 //  PlayolaRadio
 //
 
+import Foundation
 import PlayolaPlayer
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class ChooseStationPageTests: XCTestCase {
+struct ChooseStationPageTests {
+  @Test
   func testInitStoresStations() {
     let stations = [
       Station.mockWith(id: "station-1", name: "First Station"),
@@ -22,12 +24,13 @@ final class ChooseStationPageTests: XCTestCase {
       onStationSelected: { selectedStation = $0 }
     )
 
-    XCTAssertEqual(model.stations.count, 2)
-    XCTAssertEqual(model.stations[0].id, "station-1")
-    XCTAssertEqual(model.stations[1].id, "station-2")
-    XCTAssertNil(selectedStation)
+    #expect(model.stations.count == 2)
+    #expect(model.stations[0].id == "station-1")
+    #expect(model.stations[1].id == "station-2")
+    #expect(selectedStation == nil)
   }
 
+  @Test
   func testSortedStationsSortsByCuratorName() {
     let stations = [
       Station.mockWith(id: "station-z", curatorName: "Zack"),
@@ -40,11 +43,12 @@ final class ChooseStationPageTests: XCTestCase {
       onStationSelected: { _ in }
     )
 
-    XCTAssertEqual(model.sortedStations[0].curatorName, "Alice")
-    XCTAssertEqual(model.sortedStations[1].curatorName, "Mike")
-    XCTAssertEqual(model.sortedStations[2].curatorName, "Zack")
+    #expect(model.sortedStations[0].curatorName == "Alice")
+    #expect(model.sortedStations[1].curatorName == "Mike")
+    #expect(model.sortedStations[2].curatorName == "Zack")
   }
 
+  @Test
   func testSortedStationsFiltersOutInactiveStations() {
     let stations = [
       Station.mockWith(id: "active-1", curatorName: "Alice", active: true),
@@ -58,13 +62,14 @@ final class ChooseStationPageTests: XCTestCase {
       onStationSelected: { _ in }
     )
 
-    XCTAssertEqual(model.sortedStations.count, 3)
-    XCTAssertFalse(model.sortedStations.contains { $0.id == "inactive-1" })
-    XCTAssertTrue(model.sortedStations.contains { $0.id == "active-1" })
-    XCTAssertTrue(model.sortedStations.contains { $0.id == "active-2" })
-    XCTAssertTrue(model.sortedStations.contains { $0.id == "nil-active" })
+    #expect(model.sortedStations.count == 3)
+    #expect(!model.sortedStations.contains { $0.id == "inactive-1" })
+    #expect(model.sortedStations.contains { $0.id == "active-1" })
+    #expect(model.sortedStations.contains { $0.id == "active-2" })
+    #expect(model.sortedStations.contains { $0.id == "nil-active" })
   }
 
+  @Test
   func testStationTappedCallsCallback() {
     let station = Station.mockWith(id: "station-123", curatorName: "Test Curator")
     var selectedStation: Station?
@@ -76,16 +81,17 @@ final class ChooseStationPageTests: XCTestCase {
 
     model.stationTapped(station)
 
-    XCTAssertEqual(selectedStation?.id, "station-123")
+    #expect(selectedStation?.id == "station-123")
   }
 
+  @Test
   func testEmptyStationsList() {
     let model = ChooseStationPageModel(
       stations: [],
       onStationSelected: { _ in }
     )
 
-    XCTAssertTrue(model.stations.isEmpty)
-    XCTAssertTrue(model.sortedStations.isEmpty)
+    #expect(model.stations.isEmpty)
+    #expect(model.sortedStations.isEmpty)
   }
 }

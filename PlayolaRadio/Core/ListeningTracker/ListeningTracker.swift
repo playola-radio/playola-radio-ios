@@ -13,6 +13,12 @@ import SwiftUI
 final class ListeningTracker {
   let rewardsProfile: RewardsProfile
   var localListeningSessions: [LocalListeningSession]
+
+  // The sink closure captures `self` weakly so the cancellable owned by this
+  // tracker is the only thing keeping the subscription alive. When the tracker
+  // is deallocated, `cancellables` releases the cancellable and the subscription
+  // is torn down — without this, the strong self/closure/cancellables cycle
+  // would keep replaced trackers alive forever.
   private var cancellables = Set<AnyCancellable>()
 
   var isListening: Bool {
@@ -28,19 +34,22 @@ final class ListeningTracker {
     self.rewardsProfile = rewardsProfile
     self.localListeningSessions = localListeningSessions
 
-    $nowPlaying.publisher.sink { nowPlaying in
+    $nowPlaying.publisher
+      .sink { [weak self] in self?.handleNowPlayingChange($0) }
+      .store(in: &cancellables)
+  }
 
-      if self.isCurrentlyPlaying(nowPlaying?.playbackStatus) && !self.isListening {
-        print("Starting a new session!")
-        self.localListeningSessions.append(LocalListeningSession(startTime: .now))
-      } else if !self.isCurrentlyPlaying(nowPlaying?.playbackStatus) && self.isListening {
-        if !self.localListeningSessions.isEmpty {
-          print("Ending the current session")
-          let lastIndex = self.localListeningSessions.count - 1
-          self.localListeningSessions[lastIndex].endTime = .now
-        }
+  private func handleNowPlayingChange(_ nowPlaying: NowPlaying?) {
+    if isCurrentlyPlaying(nowPlaying?.playbackStatus) && !isListening {
+      print("Starting a new session!")
+      localListeningSessions.append(LocalListeningSession(startTime: .now))
+    } else if !isCurrentlyPlaying(nowPlaying?.playbackStatus) && isListening {
+      if !localListeningSessions.isEmpty {
+        print("Ending the current session")
+        let lastIndex = localListeningSessions.count - 1
+        localListeningSessions[lastIndex].endTime = .now
       }
-    }.store(in: &cancellables)
+    }
   }
 
   private func isCurrentlyPlaying(_ status: StationPlayer.PlaybackStatus?) -> Bool {

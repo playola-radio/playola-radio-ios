@@ -3,13 +3,14 @@
 //  PlayolaRadio
 //
 
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class NewFeatureTileModelTests: XCTestCase {
+struct NewFeatureTileModelTests {
 
+  @Test
   func testOnButtonTappedCallsButtonAction() async {
     var actionCalled = false
 
@@ -20,6 +21,6 @@ final class NewFeatureTileModelTests: XCTestCase {
 
     await model.onButtonTapped()
 
-    XCTAssertTrue(actionCalled)
+    #expect(actionCalled)
   }
 }

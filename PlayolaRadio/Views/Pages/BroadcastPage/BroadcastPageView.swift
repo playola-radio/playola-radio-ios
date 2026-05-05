@@ -33,7 +33,7 @@ struct BroadcastPageView: View {
           BroadcastActionButton(
             icon: .asset("BroadcastAddSongIcon", width: 40, height: 40),
             label: "Add Song",
-            action: model.onAddSongTapped
+            action: { Task { await model.onAddSongTapped() } }
           )
 
           BroadcastActionButton(

@@ -5,110 +5,119 @@
 //  Created by Claude on 1/8/26.
 //
 
+import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class StationPlayerTests: XCTestCase {
+struct StationPlayerTests {
 
   // MARK: - seekNext Tests
 
-  func testSeekNextPlaysNextStation() {
+  @Test
+  func testSeekNextPlaysNextStation() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    stationPlayer.play(station: stations[0])
+    await stationPlayer.play(station: stations[0])
 
-    stationPlayer.seekNext()
+    await stationPlayer.seekNext()
 
-    XCTAssertEqual(stationPlayer.currentStation?.id, stations[1].id)
+    #expect(stationPlayer.currentStation?.id == stations[1].id)
   }
 
-  func testSeekNextWrapsAroundFromLastToFirst() {
+  @Test
+  func testSeekNextWrapsAroundFromLastToFirst() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    stationPlayer.play(station: stations[2])
+    await stationPlayer.play(station: stations[2])
 
-    stationPlayer.seekNext()
+    await stationPlayer.seekNext()
 
-    XCTAssertEqual(stationPlayer.currentStation?.id, stations[0].id)
+    #expect(stationPlayer.currentStation?.id == stations[0].id)
   }
 
-  func testSeekNextWithNoCurrentStationPlaysFirst() {
+  @Test
+  func testSeekNextWithNoCurrentStationPlaysFirst() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
 
-    stationPlayer.seekNext()
+    await stationPlayer.seekNext()
 
-    XCTAssertEqual(stationPlayer.currentStation?.id, stations[0].id)
+    #expect(stationPlayer.currentStation?.id == stations[0].id)
   }
 
-  func testSeekNextWithEmptyStationListDoesNothing() {
+  @Test
+  func testSeekNextWithEmptyStationListDoesNothing() async {
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
 
-    stationPlayer.seekNext()
+    await stationPlayer.seekNext()
 
-    XCTAssertNil(stationPlayer.currentStation)
+    #expect(stationPlayer.currentStation == nil)
   }
 
   // MARK: - seekPrevious Tests
 
-  func testSeekPreviousPlaysPreviousStation() {
+  @Test
+  func testSeekPreviousPlaysPreviousStation() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    stationPlayer.play(station: stations[1])
+    await stationPlayer.play(station: stations[1])
 
-    stationPlayer.seekPrevious()
+    await stationPlayer.seekPrevious()
 
-    XCTAssertEqual(stationPlayer.currentStation?.id, stations[0].id)
+    #expect(stationPlayer.currentStation?.id == stations[0].id)
   }
 
-  func testSeekPreviousWrapsAroundFromFirstToLast() {
+  @Test
+  func testSeekPreviousWrapsAroundFromFirstToLast() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    stationPlayer.play(station: stations[0])
+    await stationPlayer.play(station: stations[0])
 
-    stationPlayer.seekPrevious()
+    await stationPlayer.seekPrevious()
 
-    XCTAssertEqual(stationPlayer.currentStation?.id, stations[2].id)
+    #expect(stationPlayer.currentStation?.id == stations[2].id)
   }
 
-  func testSeekPreviousWithNoCurrentStationPlaysFirst() {
+  @Test
+  func testSeekPreviousWithNoCurrentStationPlaysFirst() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
 
-    stationPlayer.seekPrevious()
+    await stationPlayer.seekPrevious()
 
-    XCTAssertEqual(stationPlayer.currentStation?.id, stations[0].id)
+    #expect(stationPlayer.currentStation?.id == stations[0].id)
   }
 
   // MARK: - Station Filtering Tests
 
-  func testSeekOnlyUsesArtistListStations() {
+  @Test
+  func testSeekOnlyUsesArtistListStations() async {
     @Shared(.stationLists) var stationLists = makeArtistAndFmLists()
     @Shared(.showSecretStations) var showSecretStations = false
 
@@ -116,53 +125,57 @@ final class StationPlayerTests: XCTestCase {
     let artistList = stationLists.first { $0.id == StationList.KnownIDs.artistList.rawValue }!
     let artistStations = artistList.stations
 
-    stationPlayer.play(station: artistStations[0])
-    stationPlayer.seekNext()
+    await stationPlayer.play(station: artistStations[0])
+    await stationPlayer.seekNext()
 
-    XCTAssertEqual(stationPlayer.currentStation?.id, artistStations[1].id)
+    #expect(stationPlayer.currentStation?.id == artistStations[1].id)
   }
 
-  func testSeekSkipsInactiveStations() {
+  @Test
+  func testSeekSkipsInactiveStations() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithInactiveStation()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let allStations = stationLists.first!.stations
 
-    stationPlayer.play(station: allStations[0])
-    stationPlayer.seekNext()
+    await stationPlayer.play(station: allStations[0])
+    await stationPlayer.seekNext()
 
-    XCTAssertEqual(stationPlayer.currentStation?.id, allStations[2].id)
+    #expect(stationPlayer.currentStation?.id == allStations[2].id)
   }
 
-  func testSeekSkipsComingSoonStationsWhenSecretsDisabled() {
+  @Test
+  func testSeekSkipsComingSoonStationsWhenSecretsDisabled() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithComingSoonStation()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let allStations = stationLists.first!.stations
 
-    stationPlayer.play(station: allStations[0])
-    stationPlayer.seekNext()
+    await stationPlayer.play(station: allStations[0])
+    await stationPlayer.seekNext()
 
-    XCTAssertEqual(stationPlayer.currentStation?.id, allStations[2].id)
+    #expect(stationPlayer.currentStation?.id == allStations[2].id)
   }
 
-  func testSeekIncludesComingSoonStationsWhenSecretsEnabled() {
+  @Test
+  func testSeekIncludesComingSoonStationsWhenSecretsEnabled() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithComingSoonStation()
     @Shared(.showSecretStations) var showSecretStations = true
 
     let stationPlayer = StationPlayer()
     let allStations = stationLists.first!.stations
 
-    stationPlayer.play(station: allStations[0])
-    stationPlayer.seekNext()
+    await stationPlayer.play(station: allStations[0])
+    await stationPlayer.seekNext()
 
-    XCTAssertEqual(stationPlayer.currentStation?.id, allStations[1].id)
+    #expect(stationPlayer.currentStation?.id == allStations[1].id)
   }
 
   // MARK: - seekableStations Tests
 
+  @Test
   func testSeekableStationsReturnsStationsFromArtistList() {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
@@ -170,12 +183,13 @@ final class StationPlayerTests: XCTestCase {
     let stationPlayer = StationPlayer()
     let seekable = stationPlayer.seekableStations()
 
-    XCTAssertEqual(seekable.count, 3)
-    XCTAssertEqual(seekable[0].id, "station1")
-    XCTAssertEqual(seekable[1].id, "station2")
-    XCTAssertEqual(seekable[2].id, "station3")
+    #expect(seekable.count == 3)
+    #expect(seekable[0].id == "station1")
+    #expect(seekable[1].id == "station2")
+    #expect(seekable[2].id == "station3")
   }
 
+  @Test
   func testSeekableStationsReturnsEmptyWhenNoArtistList() {
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
     @Shared(.showSecretStations) var showSecretStations = false
@@ -183,9 +197,10 @@ final class StationPlayerTests: XCTestCase {
     let stationPlayer = StationPlayer()
     let seekable = stationPlayer.seekableStations()
 
-    XCTAssertTrue(seekable.isEmpty)
+    #expect(seekable.isEmpty)
   }
 
+  @Test
   func testSeekableStationsFiltersInactiveStations() {
     @Shared(.stationLists) var stationLists = makeArtistListWithInactiveStation()
     @Shared(.showSecretStations) var showSecretStations = false
@@ -193,11 +208,12 @@ final class StationPlayerTests: XCTestCase {
     let stationPlayer = StationPlayer()
     let seekable = stationPlayer.seekableStations()
 
-    XCTAssertEqual(seekable.count, 2)
-    XCTAssertEqual(seekable[0].id, "station1")
-    XCTAssertEqual(seekable[1].id, "station3")
+    #expect(seekable.count == 2)
+    #expect(seekable[0].id == "station1")
+    #expect(seekable[1].id == "station3")
   }
 
+  @Test
   func testSeekableStationsAccessesSharedState() {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
@@ -205,54 +221,58 @@ final class StationPlayerTests: XCTestCase {
     let stationPlayer = StationPlayer()
 
     // Verify stationPlayer can see the shared state
-    XCTAssertEqual(stationPlayer.stationLists.count, 1, "StationPlayer should see 1 station list")
-    XCTAssertEqual(
-      stationPlayer.stationLists.first?.slug, "artist-list",
+    #expect(stationPlayer.stationLists.count == 1, "StationPlayer should see 1 station list")
+    #expect(
+      stationPlayer.stationLists.first?.slug == "artist-list",
       "StationPlayer should see artist-list slug")
   }
 
   // MARK: - isSeeking Flag Tests
 
+  @Test
   func testIsSeekingIsFalseByDefault() {
     let stationPlayer = StationPlayer()
-    XCTAssertFalse(stationPlayer.isSeeking)
+    #expect(!stationPlayer.isSeeking)
   }
 
-  func testIsSeekingIsFalseAfterSeekNextCompletes() {
+  @Test
+  func testIsSeekingIsFalseAfterSeekNextCompletes() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    stationPlayer.play(station: stations[0])
+    await stationPlayer.play(station: stations[0])
 
-    stationPlayer.seekNext()
+    await stationPlayer.seekNext()
 
-    XCTAssertFalse(stationPlayer.isSeeking, "isSeeking should be false after seek completes")
+    #expect(!stationPlayer.isSeeking, "isSeeking should be false after seek completes")
   }
 
-  func testIsSeekingIsFalseAfterSeekPreviousCompletes() {
+  @Test
+  func testIsSeekingIsFalseAfterSeekPreviousCompletes() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithThreeStations()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    stationPlayer.play(station: stations[1])
+    await stationPlayer.play(station: stations[1])
 
-    stationPlayer.seekPrevious()
+    await stationPlayer.seekPrevious()
 
-    XCTAssertFalse(stationPlayer.isSeeking, "isSeeking should be false after seek completes")
+    #expect(!stationPlayer.isSeeking, "isSeeking should be false after seek completes")
   }
 
-  func testIsSeekingIsFalseWhenSeekHasNoStations() {
+  @Test
+  func testIsSeekingIsFalseWhenSeekHasNoStations() async {
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
 
-    stationPlayer.seekNext()
+    await stationPlayer.seekNext()
 
-    XCTAssertFalse(stationPlayer.isSeeking, "isSeeking should remain false when no stations")
+    #expect(!stationPlayer.isSeeking, "isSeeking should remain false when no stations")
   }
 
   // MARK: - Helper Methods

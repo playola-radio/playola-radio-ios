@@ -7,15 +7,17 @@
 
 import ConcurrencyExtras
 import Dependencies
+import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class NotificationsSettingsPageTests: XCTestCase {
+struct NotificationsSettingsPageTests {
+  @Test
   func testViewAppearedLoadsSubscriptions() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.stationLists) var stationLists = mockStationLists()
@@ -30,12 +32,13 @@ final class NotificationsSettingsPageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertEqual(model.stationItems.count, 2)
-      XCTAssertTrue(model.isSubscribed(stationId: "station-1"))
-      XCTAssertFalse(model.isSubscribed(stationId: "station-2"))
+      #expect(model.stationItems.count == 2)
+      #expect(model.isSubscribed(stationId: "station-1"))
+      #expect(!model.isSubscribed(stationId: "station-2"))
     }
   }
 
+  @Test
   func testViewAppearedShowsAlertOnError() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.stationLists) var stationLists = mockStationLists()
@@ -49,10 +52,11 @@ final class NotificationsSettingsPageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertNotNil(model.presentedAlert)
+      #expect(model.presentedAlert != nil)
     }
   }
 
+  @Test
   func testStationItemsShowsAllStations() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.stationLists) var stationLists = mockStationLists()
@@ -66,18 +70,19 @@ final class NotificationsSettingsPageTests: XCTestCase {
       let model = NotificationsSettingsPageModel()
       await model.viewAppeared()
 
-      XCTAssertEqual(model.stationItems.count, 2)
+      #expect(model.stationItems.count == 2)
 
       let station1Item = model.stationItems.first { $0.station.id == "station-1" }
       let station2Item = model.stationItems.first { $0.station.id == "station-2" }
 
-      XCTAssertNotNil(station1Item)
-      XCTAssertNotNil(station2Item)
-      XCTAssertTrue(station1Item?.isSubscribed ?? false)
-      XCTAssertFalse(station2Item?.isSubscribed ?? true)
+      #expect(station1Item != nil)
+      #expect(station2Item != nil)
+      #expect(station1Item?.isSubscribed ?? false)
+      #expect(!(station2Item?.isSubscribed ?? true))
     }
   }
 
+  @Test
   func testStationItemStatusTextForNotSubscribed() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.stationLists) var stationLists = mockStationLists()
@@ -89,11 +94,12 @@ final class NotificationsSettingsPageTests: XCTestCase {
       await model.viewAppeared()
 
       let item = model.stationItems.first
-      XCTAssertEqual(item?.statusText, "Not subscribed")
-      XCTAssertFalse(item?.isSubscribed ?? true)
+      #expect(item?.statusText == "Not subscribed")
+      #expect(!(item?.isSubscribed ?? true))
     }
   }
 
+  @Test
   func testAllNotificationsEnabledWhenAllSubscribed() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.stationLists) var stationLists = mockStationLists()
@@ -108,10 +114,11 @@ final class NotificationsSettingsPageTests: XCTestCase {
       let model = NotificationsSettingsPageModel()
       await model.viewAppeared()
 
-      XCTAssertTrue(model.allNotificationsEnabled)
+      #expect(model.allNotificationsEnabled)
     }
   }
 
+  @Test
   func testAllNotificationsDisabledWhenSomeUnsubscribed() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.stationLists) var stationLists = mockStationLists()
@@ -126,11 +133,12 @@ final class NotificationsSettingsPageTests: XCTestCase {
       let model = NotificationsSettingsPageModel()
       await model.viewAppeared()
 
-      XCTAssertFalse(model.allNotificationsEnabled)
-      XCTAssertTrue(model.someNotificationsEnabled)
+      #expect(!model.allNotificationsEnabled)
+      #expect(model.someNotificationsEnabled)
     }
   }
 
+  @Test
   func testToggleSubscriptionCallsUnsubscribeWhenSubscribed() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.stationLists) var stationLists = mockStationLists()
@@ -145,7 +153,7 @@ final class NotificationsSettingsPageTests: XCTestCase {
       $0.api.unsubscribeFromStationNotifications = { _, stationId in
         unsubscribeCalled.setValue(true)
         unsubscribedStationId.setValue(stationId)
-        return self.mockSubscription(stationId: stationId, isSubscribed: false)
+        return Self.mockSubscription(stationId: stationId, isSubscribed: false)
       }
     } operation: {
       let model = NotificationsSettingsPageModel()
@@ -153,11 +161,12 @@ final class NotificationsSettingsPageTests: XCTestCase {
 
       await model.toggleSubscription(for: "station-1")
 
-      XCTAssertTrue(unsubscribeCalled.value)
-      XCTAssertEqual(unsubscribedStationId.value, "station-1")
+      #expect(unsubscribeCalled.value)
+      #expect(unsubscribedStationId.value == "station-1")
     }
   }
 
+  @Test
   func testToggleSubscriptionCallsSubscribeWhenNotSubscribed() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.stationLists) var stationLists = mockStationLists()
@@ -169,7 +178,7 @@ final class NotificationsSettingsPageTests: XCTestCase {
       $0.api.subscribeToStationNotifications = { _, stationId in
         subscribeCalled.setValue(true)
         subscribedStationId.setValue(stationId)
-        return self.mockSubscription(stationId: stationId, isSubscribed: true)
+        return Self.mockSubscription(stationId: stationId, isSubscribed: true)
       }
     } operation: {
       let model = NotificationsSettingsPageModel()
@@ -177,11 +186,12 @@ final class NotificationsSettingsPageTests: XCTestCase {
 
       await model.toggleSubscription(for: "station-1")
 
-      XCTAssertTrue(subscribeCalled.value)
-      XCTAssertEqual(subscribedStationId.value, "station-1")
+      #expect(subscribeCalled.value)
+      #expect(subscribedStationId.value == "station-1")
     }
   }
 
+  @Test
   func testToggleSubscriptionShowsAlertOnError() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.stationLists) var stationLists = mockStationLists()
@@ -201,10 +211,11 @@ final class NotificationsSettingsPageTests: XCTestCase {
 
       await model.toggleSubscription(for: "station-1")
 
-      XCTAssertNotNil(model.presentedAlert)
+      #expect(model.presentedAlert != nil)
     }
   }
 
+  @Test
   func testInactiveStationsAreFilteredOut() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.stationLists) var stationLists = mockStationListsWithInactiveStation()
@@ -215,13 +226,14 @@ final class NotificationsSettingsPageTests: XCTestCase {
       let model = NotificationsSettingsPageModel()
       await model.viewAppeared()
 
-      XCTAssertEqual(model.stationItems.count, 2)
-      XCTAssertNotNil(model.stationItems.first { $0.station.id == "station-1" })
-      XCTAssertNotNil(model.stationItems.first { $0.station.id == "station-2" })
-      XCTAssertNil(model.stationItems.first { $0.station.id == "inactive-station" })
+      #expect(model.stationItems.count == 2)
+      #expect(model.stationItems.first { $0.station.id == "station-1" } != nil)
+      #expect(model.stationItems.first { $0.station.id == "station-2" } != nil)
+      #expect(model.stationItems.first { $0.station.id == "inactive-station" } == nil)
     }
   }
 
+  @Test
   func testStationsAreSortedByCuratorName() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.stationLists) var stationLists = mockStationListsUnsorted()
@@ -232,10 +244,10 @@ final class NotificationsSettingsPageTests: XCTestCase {
       let model = NotificationsSettingsPageModel()
       await model.viewAppeared()
 
-      XCTAssertEqual(model.stationItems.count, 3)
-      XCTAssertEqual(model.stationItems[0].station.curatorName, "Alice")
-      XCTAssertEqual(model.stationItems[1].station.curatorName, "Bob")
-      XCTAssertEqual(model.stationItems[2].station.curatorName, "Charlie")
+      #expect(model.stationItems.count == 3)
+      #expect(model.stationItems[0].station.curatorName == "Alice")
+      #expect(model.stationItems[1].station.curatorName == "Bob")
+      #expect(model.stationItems[2].station.curatorName == "Charlie")
     }
   }
 
@@ -351,7 +363,7 @@ final class NotificationsSettingsPageTests: XCTestCase {
     ])
   }
 
-  nonisolated private func mockSubscription(stationId: String, isSubscribed: Bool)
+  nonisolated static func mockSubscription(stationId: String, isSubscribed: Bool)
     -> PushNotificationSubscription
   {
     PushNotificationSubscription(

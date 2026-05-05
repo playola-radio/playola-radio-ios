@@ -228,7 +228,8 @@ struct SubscriptionBadge: View {
                   createdAt: Date().addingTimeInterval(-86400 * 7)
                 )
               ),
-            ]
+            ],
+            now: Date()
           ),
           subscriptionStatus: .autoSubscribed
         )
@@ -253,7 +254,8 @@ struct SubscriptionBadge: View {
                   createdAt: Date()
                 )
               )
-            ]
+            ],
+            now: Date()
           ),
           subscriptionStatus: .subscribed
         )
@@ -285,7 +287,8 @@ struct SubscriptionBadge: View {
                   createdAt: Date().addingTimeInterval(-86400 * 30)
                 )
               ),
-            ]
+            ],
+            now: Date()
           ),
           subscriptionStatus: .notSubscribed
         )

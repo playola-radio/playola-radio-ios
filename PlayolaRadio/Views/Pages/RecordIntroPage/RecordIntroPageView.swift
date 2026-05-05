@@ -225,7 +225,7 @@ struct RecordIntroPageView: View {
       }
     case .review:
       Button {
-        model.onReRecordTapped()
+        Task { await model.onReRecordTapped() }
       } label: {
         ZStack {
           Circle()
@@ -283,9 +283,9 @@ struct RecordIntroPageView: View {
         currentTime: model.playbackPosition,
         totalTime: model.recordingDuration,
         isPlaying: model.isPlaying,
-        onPlayPause: { model.onPlayPauseTapped() },
-        onRewind: { model.onRewindTapped() },
-        onSeek: { model.seekTo($0) }
+        onPlayPause: { Task { await model.onPlayPauseTapped() } },
+        onRewind: { Task { await model.onRewindTapped() } },
+        onSeek: { time in Task { await model.seekTo(time) } }
       )
 
       HStack(spacing: 12) {
@@ -307,7 +307,7 @@ struct RecordIntroPageView: View {
         }
 
         Button {
-          model.onAcceptRecordingTapped()
+          Task { await model.onAcceptRecordingTapped() }
         } label: {
           HStack(spacing: 6) {
             Image(systemName: "checkmark")
@@ -351,7 +351,7 @@ struct RecordIntroPageView: View {
       if model.shouldShowRetryButton {
         HStack(spacing: 12) {
           Button {
-            model.confirmDiscard()
+            Task { await model.confirmDiscard() }
           } label: {
             HStack(spacing: 6) {
               Image(systemName: "trash")
@@ -368,7 +368,7 @@ struct RecordIntroPageView: View {
           }
 
           Button {
-            model.onRetryTapped()
+            Task { await model.onRetryTapped() }
           } label: {
             HStack(spacing: 6) {
               Image(systemName: "arrow.clockwise")

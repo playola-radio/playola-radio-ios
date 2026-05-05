@@ -5,17 +5,19 @@
 //  Created by Brian D Keane on 12/15/25.
 //
 
+import Foundation
 import PlayolaPlayer
 import SwiftUI
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
-final class StagingItemTests: XCTestCase {
+struct StagingItemTests {
 
   // MARK: - LocalVoicetrack Conformance Tests
 
-  func testLocalVoicetrack_StagingId_ReturnsUUIDString() {
+  @Test
+  func testLocalVoicetrackStagingIdReturnsUUIDString() {
     let id = UUID()
     let voicetrack = LocalVoicetrack(
       id: id,
@@ -23,117 +25,129 @@ final class StagingItemTests: XCTestCase {
       title: "Test"
     )
 
-    XCTAssertEqual(voicetrack.stagingId, id.uuidString)
+    #expect(voicetrack.stagingId == id.uuidString)
   }
 
-  func testLocalVoicetrack_TitleText_ReturnsTitle() {
+  @Test
+  func testLocalVoicetrackTitleTextReturnsTitle() {
     let voicetrack = LocalVoicetrack(
       originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
       title: "Voice Track 10:00am"
     )
 
-    XCTAssertEqual(voicetrack.titleText, "Voice Track 10:00am")
+    #expect(voicetrack.titleText == "Voice Track 10:00am")
   }
 
-  func testLocalVoicetrack_SubtitleText_WhenConverting_ReturnsConverting() {
+  @Test
+  func testLocalVoicetrackSubtitleTextWhenConvertingReturnsConverting() {
     let voicetrack = LocalVoicetrack(
       originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
       status: .converting,
       title: "Test"
     )
 
-    XCTAssertEqual(voicetrack.subtitleText, "Converting...")
+    #expect(voicetrack.subtitleText == "Converting...")
   }
 
-  func testLocalVoicetrack_SubtitleText_WhenUploading_ReturnsProgress() {
+  @Test
+  func testLocalVoicetrackSubtitleTextWhenUploadingReturnsProgress() {
     let voicetrack = LocalVoicetrack(
       originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
       status: .uploading(progress: 0.5),
       title: "Test"
     )
 
-    XCTAssertEqual(voicetrack.subtitleText, "Uploading 50%")
+    #expect(voicetrack.subtitleText == "Uploading 50%")
   }
 
-  func testLocalVoicetrack_SubtitleText_WhenFinalizing_ReturnsFinalizing() {
+  @Test
+  func testLocalVoicetrackSubtitleTextWhenFinalizingReturnsFinalizing() {
     let voicetrack = LocalVoicetrack(
       originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
       status: .finalizing,
       title: "Test"
     )
 
-    XCTAssertEqual(voicetrack.subtitleText, "Finalizing...")
+    #expect(voicetrack.subtitleText == "Finalizing...")
   }
 
-  func testLocalVoicetrack_SubtitleText_WhenCompleted_ReturnsReady() {
+  @Test
+  func testLocalVoicetrackSubtitleTextWhenCompletedReturnsReady() {
     let voicetrack = LocalVoicetrack(
       originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
       status: .completed,
       title: "Test"
     )
 
-    XCTAssertEqual(voicetrack.subtitleText, "Ready")
+    #expect(voicetrack.subtitleText == "Ready")
   }
 
-  func testLocalVoicetrack_SubtitleText_WhenFailed_ReturnsErrorMessage() {
+  @Test
+  func testLocalVoicetrackSubtitleTextWhenFailedReturnsErrorMessage() {
     let voicetrack = LocalVoicetrack(
       originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
       status: .failed(error: "Upload failed"),
       title: "Test"
     )
 
-    XCTAssertEqual(voicetrack.subtitleText, "Upload failed")
+    #expect(voicetrack.subtitleText == "Upload failed")
   }
 
-  func testLocalVoicetrack_SubtitleColor_WhenCompleted_ReturnsGreen() {
+  @Test
+  func testLocalVoicetrackSubtitleColorWhenCompletedReturnsGreen() {
     let voicetrack = LocalVoicetrack(
       originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
       status: .completed,
       title: "Test"
     )
 
-    XCTAssertEqual(voicetrack.subtitleColor, .green)
+    #expect(voicetrack.subtitleColor == .green)
   }
 
-  func testLocalVoicetrack_SubtitleColor_WhenFailed_ReturnsRed() {
+  @Test
+  func testLocalVoicetrackSubtitleColorWhenFailedReturnsRed() {
     let voicetrack = LocalVoicetrack(
       originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
       status: .failed(error: "Error"),
       title: "Test"
     )
 
-    XCTAssertEqual(voicetrack.subtitleColor, .playolaRed)
+    #expect(voicetrack.subtitleColor == .playolaRed)
   }
 
-  func testLocalVoicetrack_SubtitleColor_WhenProcessing_ReturnsGray() {
+  @Test
+  func testLocalVoicetrackSubtitleColorWhenProcessingReturnsGray() {
     let voicetrack = LocalVoicetrack(
       originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
       status: .uploading(progress: 0.5),
       title: "Test"
     )
 
-    XCTAssertEqual(voicetrack.subtitleColor, .playolaGray)
+    #expect(voicetrack.subtitleColor == .playolaGray)
   }
 
-  func testLocalVoicetrack_AlbumImageUrl_ReturnsNil() {
+  @Test
+  func testLocalVoicetrackAlbumImageUrlReturnsNil() {
     let voicetrack = LocalVoicetrack(
       originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
       title: "Test"
     )
 
-    XCTAssertNil(voicetrack.albumImageUrl)
+    #expect(voicetrack.albumImageUrl == nil)
   }
 
-  func testLocalVoicetrack_Icon_ReturnsMicFill() {
+  @Test
+  func testLocalVoicetrackIconReturnsMicFill() {
     let voicetrack = LocalVoicetrack(
       originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
       title: "Test"
     )
 
-    XCTAssertEqual(voicetrack.icon, "mic.fill")
+    #expect(voicetrack.icon == "mic.fill")
   }
 
-  func testLocalVoicetrack_IsReady_WhenCompleted_ReturnsTrue() {
+  @Test
+  func testLocalVoicetrackIsReadyWhenCompletedReturnsTrue() {
     let voicetrack = LocalVoicetrack(
       originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
       status: .completed,
@@ -141,20 +155,22 @@ final class StagingItemTests: XCTestCase {
       audioBlockId: "audio-block-123"
     )
 
-    XCTAssertTrue(voicetrack.isReady)
+    #expect(voicetrack.isReady)
   }
 
-  func testLocalVoicetrack_IsReady_WhenProcessing_ReturnsFalse() {
+  @Test
+  func testLocalVoicetrackIsReadyWhenProcessingReturnsFalse() {
     let voicetrack = LocalVoicetrack(
       originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
       status: .uploading(progress: 0.5),
       title: "Test"
     )
 
-    XCTAssertFalse(voicetrack.isReady)
+    #expect(!voicetrack.isReady)
   }
 
-  func testLocalVoicetrack_IsReady_WhenCompletedButNoAudioBlockId_ReturnsFalse() {
+  @Test
+  func testLocalVoicetrackIsReadyWhenCompletedButNoAudioBlockIdReturnsFalse() {
     let voicetrack = LocalVoicetrack(
       originalURL: URL(fileURLWithPath: "/tmp/test.wav"),
       status: .completed,
@@ -162,63 +178,72 @@ final class StagingItemTests: XCTestCase {
       audioBlockId: nil
     )
 
-    XCTAssertFalse(voicetrack.isReady)
+    #expect(!voicetrack.isReady)
   }
 
   // MARK: - AudioBlock Conformance Tests
 
-  func testAudioBlock_StagingId_ReturnsId() {
+  @Test
+  func testAudioBlockStagingIdReturnsId() {
     let audioBlock = AudioBlock.mockWith(id: "song-123")
 
-    XCTAssertEqual(audioBlock.stagingId, "song-123")
+    #expect(audioBlock.stagingId == "song-123")
   }
 
-  func testAudioBlock_TitleText_ReturnsTitle() {
+  @Test
+  func testAudioBlockTitleTextReturnsTitle() {
     let audioBlock = AudioBlock.mockWith(title: "Blowin' in the Wind")
 
-    XCTAssertEqual(audioBlock.titleText, "Blowin' in the Wind")
+    #expect(audioBlock.titleText == "Blowin' in the Wind")
   }
 
-  func testAudioBlock_SubtitleText_ReturnsArtist() {
+  @Test
+  func testAudioBlockSubtitleTextReturnsArtist() {
     let audioBlock = AudioBlock.mockWith(artist: "Bob Dylan")
 
-    XCTAssertEqual(audioBlock.subtitleText, "Bob Dylan")
+    #expect(audioBlock.subtitleText == "Bob Dylan")
   }
 
-  func testAudioBlock_SubtitleColor_ReturnsGray() {
+  @Test
+  func testAudioBlockSubtitleColorReturnsGray() {
     let audioBlock = AudioBlock.mockWith()
 
-    XCTAssertEqual(audioBlock.subtitleColor, .playolaGray)
+    #expect(audioBlock.subtitleColor == .playolaGray)
   }
 
-  func testAudioBlock_AlbumImageUrl_ReturnsImageUrl() {
+  @Test
+  func testAudioBlockAlbumImageUrlReturnsImageUrl() {
     let imageUrl = URL(string: "https://example.com/album.jpg")!
     let audioBlock = AudioBlock.mockWith(imageUrl: imageUrl)
 
-    XCTAssertEqual(audioBlock.albumImageUrl, imageUrl)
+    #expect(audioBlock.albumImageUrl == imageUrl)
   }
 
-  func testAudioBlock_Icon_ReturnsNil() {
+  @Test
+  func testAudioBlockIconReturnsNil() {
     let audioBlock = AudioBlock.mockWith()
 
-    XCTAssertNil(audioBlock.icon)
+    #expect(audioBlock.icon == nil)
   }
 
-  func testAudioBlock_AudioBlockId_ReturnsId() {
+  @Test
+  func testAudioBlockAudioBlockIdReturnsId() {
     let audioBlock = AudioBlock.mockWith(id: "song-456")
 
-    XCTAssertEqual(audioBlock.audioBlockId, "song-456")
+    #expect(audioBlock.audioBlockId == "song-456")
   }
 
-  func testAudioBlock_IsReady_ReturnsTrue() {
+  @Test
+  func testAudioBlockIsReadyReturnsTrue() {
     let audioBlock = AudioBlock.mockWith()
 
-    XCTAssertTrue(audioBlock.isReady)
+    #expect(audioBlock.isReady)
   }
 
-  func testAudioBlock_IsProcessing_ReturnsFalse() {
+  @Test
+  func testAudioBlockIsProcessingReturnsFalse() {
     let audioBlock = AudioBlock.mockWith()
 
-    XCTAssertFalse(audioBlock.isProcessing)
+    #expect(!audioBlock.isProcessing)
   }
 }
