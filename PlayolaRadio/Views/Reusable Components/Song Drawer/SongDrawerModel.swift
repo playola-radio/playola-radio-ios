@@ -42,6 +42,10 @@ class SongDrawerModel: ViewModel {
     return !audioBlock.title.isEmpty && !audioBlock.artist.isEmpty
   }
 
+  var appleMusicButtonLabel: String { "Listen on Apple Music" }
+  var spotifyButtonLabel: String { "Listen on Spotify" }
+  var removeFromLikedSongsButtonLabel: String { "Remove from Liked Songs" }
+
   func removeFromLikedSongsTapped() {
     if let onRemove = onRemove {
       // Use animated removal if callback is provided
