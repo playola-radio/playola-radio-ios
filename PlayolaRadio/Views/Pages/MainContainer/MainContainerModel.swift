@@ -329,6 +329,10 @@ class MainContainerModel: ViewModel {
       }
     }
   }
+
+  deinit {
+    toastObservationTask?.cancel()
+  }
 }
 
 extension PlayolaAlert {
