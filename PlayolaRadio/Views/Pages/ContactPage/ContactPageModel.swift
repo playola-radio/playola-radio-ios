@@ -14,13 +14,21 @@ import SwiftUI
 @MainActor
 @Observable
 class ContactPageModel: ViewModel {
-  @ObservationIgnored var stationPlayer: StationPlayer
+  // MARK: - Dependencies
+
+  @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
+
+  // MARK: - Shared State
+
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
-  @ObservationIgnored @Dependency(\.api) var api
-  @ObservationIgnored @Dependency(\.analytics) var analytics
+
+  // MARK: - Properties
+
   var editProfilePageModel: EditProfilePageModel = EditProfilePageModel()
   var likedSongsPageModel: LikedSongsPageModel = LikedSongsPageModel()
   var notificationsSettingsPageModel: NotificationsSettingsPageModel =
@@ -66,12 +74,6 @@ class ContactPageModel: ViewModel {
 
   func switchToListeningMode() {
     mainContainerNavigationCoordinator.switchToListeningMode()
-  }
-
-  init(
-    stationPlayer: StationPlayer? = nil
-  ) {
-    self.stationPlayer = stationPlayer ?? .shared
   }
 
   func onViewAppeared() async {

@@ -26,6 +26,8 @@ final class LikesManager: ObservableObject {
 
   @Dependency(\.api) private var api
   @Dependency(\.toast) private var toast
+  @Dependency(\.date.now) private var now
+  @Dependency(\.uuid) private var uuid
   @Shared(.auth) private var auth
   @Shared(.mainContainerNavigationCoordinator) private var navigationCoordinator
   @Shared(.activeTab) private var activeTab
@@ -37,6 +39,11 @@ final class LikesManager: ObservableObject {
     setupAuthObserver()
   }
 
+  // The auth subscription is intentionally tied to this instance's lifetime.
+  // LikesManager is registered as a DependencyKey with a `liveValue` singleton,
+  // so in production the subscription lives for the duration of the process.
+  // The `[weak self]` capture prevents retain cycles in tests where fresh
+  // instances are constructed and discarded between cases.
   private func setupAuthObserver() {
     authCancellable = $auth.publisher
       .sink { [weak self] newAuth in
@@ -126,8 +133,10 @@ final class LikesManager: ObservableObject {
     }
 
     let operation = LikeOperation(
+      id: uuid(),
       audioBlock: audioBlock,
       type: .like,
+      timestamp: now,
       spinId: spinId
     )
     $pendingOperations.withLock {
@@ -164,8 +173,10 @@ final class LikesManager: ObservableObject {
     }
 
     let operation = LikeOperation(
+      id: uuid(),
       audioBlock: audioBlock,
-      type: .unlike
+      type: .unlike,
+      timestamp: now
     )
     $pendingOperations.withLock {
       $0.append(operation)
@@ -178,8 +189,9 @@ final class LikesManager: ObservableObject {
 
   /// Clears expired operations from the pending queue
   func cleanupExpiredOperations() {
+    let currentDate = now
     $pendingOperations.withLock {
-      $0.removeAll { $0.isExpired }
+      $0.removeAll { $0.isExpired(now: currentDate) }
     }
   }
 

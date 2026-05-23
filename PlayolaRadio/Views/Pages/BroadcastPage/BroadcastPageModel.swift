@@ -90,24 +90,10 @@ class BroadcastPageModel: ViewModel {
     self.stationId = stationId
     self.providedStationName = stationName
     super.init()
-
-    scheduleUpdateCancellable = NotificationCenter.default.publisher(
-      for: .scheduleUpdated
-    )
-    .compactMap { notification -> String? in
-      guard let id = notification.userInfo?["stationId"] as? String,
-        id == stationId
-      else { return nil }
-      return notification.userInfo?["editorName"] as? String
-    }
-    .sink { [weak self] editorName in
-      Task { [weak self] in
-        await self?.refreshScheduleFromRemote(editorName: editorName)
-      }
-    }
   }
 
   func viewAppeared() async {
+    startObservingScheduleUpdates()
     await analytics.track(
       .viewedBroadcastScreen(
         stationId: stationId,
@@ -117,6 +103,25 @@ class BroadcastPageModel: ViewModel {
     await withTaskGroup(of: Void.self) { group in
       group.addTask { await self.loadSchedule() }
       group.addTask { await self.loadStation() }
+    }
+  }
+
+  private func startObservingScheduleUpdates() {
+    guard scheduleUpdateCancellable == nil else { return }
+    let observedStationId = stationId
+    scheduleUpdateCancellable = NotificationCenter.default.publisher(
+      for: .scheduleUpdated
+    )
+    .compactMap { notification -> String? in
+      guard let id = notification.userInfo?["stationId"] as? String,
+        id == observedStationId
+      else { return nil }
+      return notification.userInfo?["editorName"] as? String
+    }
+    .sink { [weak self] editorName in
+      Task { [weak self] in
+        await self?.refreshScheduleFromRemote(editorName: editorName)
+      }
     }
   }
 
@@ -288,40 +293,36 @@ class BroadcastPageModel: ViewModel {
     stagingItems[index] = voicetrack
   }
 
-  func onAddSongTapped() {
-    Task {
-      await analytics.track(
-        .broadcastSongSearchTapped(
-          stationId: stationId,
-          stationName: navigationTitle,
-          userName: userName
-        ))
-    }
+  func onAddSongTapped() async {
+    await analytics.track(
+      .broadcastSongSearchTapped(
+        stationId: stationId,
+        stationName: navigationTitle,
+        userName: userName
+      ))
     let model = SongSearchPageModel(searchMode: .all)
     model.onDismiss = { [weak self] in
       self?.mainContainerNavigationCoordinator.presentedSheet = nil
     }
     model.onSongSelected = { [weak self] audioBlock in
-      self?.addSongToStaging(audioBlock)
+      Task { await self?.addSongToStaging(audioBlock) }
       self?.mainContainerNavigationCoordinator.presentedSheet = nil
     }
     songSearchPageModel = model
     mainContainerNavigationCoordinator.presentedSheet = .songSearchPage(model)
   }
 
-  func addSongToStaging(_ audioBlock: AudioBlock) {
+  func addSongToStaging(_ audioBlock: AudioBlock) async {
     guard !stagingItems.contains(where: { $0.stagingId == audioBlock.id }) else { return }
     stagingItems.append(audioBlock)
-    Task {
-      await analytics.track(
-        .broadcastSongAdded(
-          stationId: stationId,
-          stationName: navigationTitle,
-          userName: userName,
-          songTitle: audioBlock.title,
-          artistName: audioBlock.artist
-        ))
-    }
+    await analytics.track(
+      .broadcastSongAdded(
+        stationId: stationId,
+        stationName: navigationTitle,
+        userName: userName,
+        songTitle: audioBlock.title,
+        artistName: audioBlock.artist
+      ))
   }
 
   func onNotifyListenersTapped() {

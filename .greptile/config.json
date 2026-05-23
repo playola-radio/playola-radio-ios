@@ -38,13 +38,13 @@
     },
     {
       "id": "shared-state-in-tests",
-      "rule": "In tests, declare `@Shared` locally inside each test method with an initial value: `@Shared(.key) var key = initialValue`. Do NOT use class-level `@Shared` properties or `$shared.withLock` patterns anywhere in tests.",
+      "rule": "In tests, declare `@Shared` locally inside each test method with an initial value: `@Shared(.key) var key = initialValue`. Do NOT use class-level `@Shared` properties. `$shared.withLock` is permitted only when verifying production code that subscribes to `@Shared` and reacts to changes (use it to drive the change mid-test). For state setup or resets, use the per-test `= initialValue` pattern.",
       "scope": ["PlayolaRadio/**/*Tests.swift"],
       "severity": "high"
     },
     {
       "id": "test-class-main-actor",
-      "rule": "All test classes must be annotated with `@MainActor`: `@MainActor final class SomeTests: XCTestCase`.",
+      "rule": "Test types that touch MainActor-isolated code must be annotated with `@MainActor`. For XCTest: `@MainActor final class SomeTests: XCTestCase`. For swift-testing: `@MainActor struct SomeTests` (or `@MainActor @Suite struct ...`).",
       "scope": ["PlayolaRadio/**/*Tests.swift"],
       "severity": "medium"
     },

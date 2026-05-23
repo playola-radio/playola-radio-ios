@@ -6,17 +6,18 @@
 //
 
 import Combine
+import ConcurrencyExtras
 import Dependencies
 import Foundation
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 // swiftlint:disable redundant_optional_initialization
 
 @MainActor
-final class RewardsPageModelTests: XCTestCase {
+struct RewardsPageModelTests {
   func createMockListeningTracker(totalTimeMS: Int) -> ListeningTracker {
     let rewardsProfile = RewardsProfile(
       totalTimeListenedMS: totalTimeMS,
@@ -28,7 +29,8 @@ final class RewardsPageModelTests: XCTestCase {
 
   // MARK: - Prize Tiers Loading Tests
 
-  func testOnViewAppeared_LoadsPrizeTiers() async {
+  @Test
+  func testOnViewAppearedLoadsPrizeTiers() async {
     @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(totalTimeMS: 0)
     let mockPrizeTiers = PrizeTier.mocks
 
@@ -40,20 +42,20 @@ final class RewardsPageModelTests: XCTestCase {
 
     await model.viewAppeared()
 
-    XCTAssertEqual(model.prizeTiers.count, 3)  // Based on our mock data
+    #expect(model.prizeTiers.count == 3)
 
-    // Verify we have the expected tiers
     let tierNames = model.prizeTiers.map { $0.name }
-    XCTAssertTrue(tierNames.contains("Koozie"))
-    XCTAssertTrue(tierNames.contains("T-Shirt"))
-    XCTAssertTrue(tierNames.contains("Show Tix"))
+    #expect(tierNames.contains("Koozie"))
+    #expect(tierNames.contains("T-Shirt"))
+    #expect(tierNames.contains("Show Tix"))
   }
 
   // MARK: - Analytics Tests
 
-  func testOnViewAppeared_TracksRewardsScreenAnalytics() async {
+  @Test
+  func testOnViewAppearedTracksRewardsScreenAnalytics() async {
     @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(
-      totalTimeMS: 54_000_000)  // 15 hours
+      totalTimeMS: 54_000_000)
     let mockPrizeTiers = PrizeTier.mocks
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
@@ -68,20 +70,21 @@ final class RewardsPageModelTests: XCTestCase {
 
     await model.viewAppeared()
 
-    // Verify analytics event was tracked
     let events = capturedEvents.value
-    XCTAssertEqual(events.count, 1)
+    #expect(events.count == 1)
     if case .viewedRewardsScreen(let currentHours) = events.first {
-      XCTAssertEqual(currentHours, 15.0, accuracy: 0.1)
+      #expect(abs(currentHours - 15.0) < 0.1)
     } else {
-      XCTFail("Expected viewedRewardsScreen event, got: \(String(describing: events.first))")
+      Issue.record("Expected viewedRewardsScreen event, got: \(String(describing: events.first))")
     }
   }
 
-  func testRedeemPrize_TracksRedeemAnalytics() async {
+  @Test
+  func testRedeemPrizeTracksRedeemAnalytics() async {
     @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(
-      totalTimeMS: 108_000_000)  // 30 hours
-    @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      totalTimeMS: 108_000_000)
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
     let mockPrizeTiers = PrizeTier.mocks
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
@@ -94,22 +97,23 @@ final class RewardsPageModelTests: XCTestCase {
       RewardsPageModel()
     }
 
-    await model.redeemPrizeTapped(for: mockPrizeTiers[0])  // Redeem Koozie
+    await model.redeemPrizeTapped(for: mockPrizeTiers[0])
 
-    // Verify analytics event was tracked
     let events = capturedEvents.value
-    XCTAssertEqual(events.count, 1)
+    #expect(events.count == 1)
     if case .tappedRedeemRewards(let currentHours) = events.first {
-      XCTAssertEqual(currentHours, 30.0, accuracy: 0.1)
+      #expect(abs(currentHours - 30.0) < 0.1)
     } else {
-      XCTFail("Expected tappedRedeemRewards event, got: \(String(describing: events.first))")
+      Issue.record("Expected tappedRedeemRewards event, got: \(String(describing: events.first))")
     }
   }
 
-  func testRedeemPrizeTapped_PresentsRedeemSheet() async {
+  @Test
+  func testRedeemPrizeTappedPresentsRedeemSheet() async {
     @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(
       totalTimeMS: 108_000_000)
-    @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
     let mockPrizeTiers = PrizeTier.mocks
 
     let model = withDependencies {
@@ -121,14 +125,15 @@ final class RewardsPageModelTests: XCTestCase {
     await model.redeemPrizeTapped(for: mockPrizeTiers[0])
 
     if case .redeemPrize(let sheetModel) = navCoordinator.presentedSheet {
-      XCTAssertEqual(sheetModel.prizeTier.id, mockPrizeTiers[0].id)
+      #expect(sheetModel.prizeTier.id == mockPrizeTiers[0].id)
     } else {
-      XCTFail(
+      Issue.record(
         "Expected redeemPrize sheet, got \(String(describing: navCoordinator.presentedSheet))")
     }
   }
 
-  func testLoadUserPrizes_PopulatesRedeemedTierIds() async {
+  @Test
+  func testLoadUserPrizesPopulatesRedeemedTierIds() async {
     @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(totalTimeMS: 0)
     @Shared(.auth) var auth = Auth(jwt: "test-token")
     let mockPrizeTiers = PrizeTier.mocks
@@ -147,14 +152,15 @@ final class RewardsPageModelTests: XCTestCase {
 
     await model.viewAppeared()
 
-    XCTAssertTrue(model.redeemedPrizeTierIds.contains(mockPrizeTiers[0].id))
+    #expect(model.redeemedPrizeTierIds.contains(mockPrizeTiers[0].id))
   }
 
   // MARK: - Redemption Status Tests
 
-  func testRedemptionStatus_Redeemed() async {
+  @Test
+  func testRedemptionStatusRedeemed() async {
     @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(
-      totalTimeMS: 50 * 60 * 60 * 1000)  // 50 hours
+      totalTimeMS: 50 * 60 * 60 * 1000)
     let mockPrizeTiers = PrizeTier.mocks
 
     let model = withDependencies {
@@ -165,7 +171,6 @@ final class RewardsPageModelTests: XCTestCase {
 
     await model.viewAppeared()
 
-    // Simulate the user has redeemed the first tier (Koozie - 10 hours)
     let koozieId = mockPrizeTiers[0].id
     model.redeemedPrizeTierIds.insert(koozieId)
 
@@ -174,13 +179,14 @@ final class RewardsPageModelTests: XCTestCase {
     if case .redeemed = status {
       // Test passes
     } else {
-      XCTFail("Expected redeemed status, got \(status)")
+      Issue.record("Expected redeemed status, got \(status)")
     }
   }
 
-  func testRedemptionStatus_Redeemable() async {
+  @Test
+  func testRedemptionStatusRedeemable() async {
     @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(
-      totalTimeMS: 35 * 60 * 60 * 1000)  // 35 hours
+      totalTimeMS: 35 * 60 * 60 * 1000)
     let mockPrizeTiers = PrizeTier.mocks
 
     let model = withDependencies {
@@ -191,20 +197,20 @@ final class RewardsPageModelTests: XCTestCase {
 
     await model.viewAppeared()
 
-    // User has 35 hours, T-Shirt requires 30 hours - should be redeemable
-    let tshirtTier = mockPrizeTiers[1]  // T-Shirt tier
+    let tshirtTier = mockPrizeTiers[1]
     let status = model.redemptionStatus(for: tshirtTier)
 
     if case .redeemable = status {
       // Test passes
     } else {
-      XCTFail("Expected redeemable status, got \(status)")
+      Issue.record("Expected redeemable status, got \(status)")
     }
   }
 
-  func testRedemptionStatus_MoreTimeRequired() async {
+  @Test
+  func testRedemptionStatusMoreTimeRequired() async {
     @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(
-      totalTimeMS: 25 * 60 * 60 * 1000)  // 25 hours
+      totalTimeMS: 25 * 60 * 60 * 1000)
     let mockPrizeTiers = PrizeTier.mocks
 
     let model = withDependencies {
@@ -215,18 +221,18 @@ final class RewardsPageModelTests: XCTestCase {
 
     await model.viewAppeared()
 
-    // User has 25 hours, Show Tix requires 70 hours - should need 45 more hours
-    let showTixTier = mockPrizeTiers[2]  // Show Tix tier (70 hours required)
+    let showTixTier = mockPrizeTiers[2]
     let status = model.redemptionStatus(for: showTixTier)
 
     if case .moreTimeRequired(let hoursToGo) = status {
-      XCTAssertEqual(hoursToGo, 45, "Expected 45 hours to go, got \(hoursToGo)")
+      #expect(hoursToGo == 45, "Expected 45 hours to go, got \(hoursToGo)")
     } else {
-      XCTFail("Expected moreTimeRequired status, got \(status)")
+      Issue.record("Expected moreTimeRequired status, got \(status)")
     }
   }
 
-  func testRedemptionStatus_ZeroListeningTime() async {
+  @Test
+  func testRedemptionStatusZeroListeningTime() async {
     @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(totalTimeMS: 0)
     let mockPrizeTiers = PrizeTier.mocks
 
@@ -238,18 +244,18 @@ final class RewardsPageModelTests: XCTestCase {
 
     await model.viewAppeared()
 
-    // User has 0 hours, Koozie requires 10 hours - should need 10 more hours
-    let koozieIdTier = mockPrizeTiers[0]  // Koozie tier (10 hours required)
+    let koozieIdTier = mockPrizeTiers[0]
     let status = model.redemptionStatus(for: koozieIdTier)
 
     if case .moreTimeRequired(let hoursToGo) = status {
-      XCTAssertEqual(hoursToGo, 10, "Expected 10 hours to go, got \(hoursToGo)")
+      #expect(hoursToGo == 10, "Expected 10 hours to go, got \(hoursToGo)")
     } else {
-      XCTFail("Expected moreTimeRequired status, got \(status)")
+      Issue.record("Expected moreTimeRequired status, got \(status)")
     }
   }
 
-  func testRedemptionStatus_NilListeningTracker() async {
+  @Test
+  func testRedemptionStatusNilListeningTracker() async {
     @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
     let mockPrizeTiers = PrizeTier.mocks
 
@@ -261,17 +267,15 @@ final class RewardsPageModelTests: XCTestCase {
 
     await model.viewAppeared()
 
-    // With nil listening tracker, should default to 0 hours and need full requirement
-    let koozieIdTier = mockPrizeTiers[0]  // Koozie tier (10 hours required)
+    let koozieIdTier = mockPrizeTiers[0]
     let status = model.redemptionStatus(for: koozieIdTier)
 
     if case .moreTimeRequired(let hoursToGo) = status {
-      XCTAssertEqual(hoursToGo, 10, "Expected 10 hours to go with nil tracker, got \(hoursToGo)")
+      #expect(hoursToGo == 10, "Expected 10 hours to go with nil tracker, got \(hoursToGo)")
     } else {
-      XCTFail("Expected moreTimeRequired status with nil tracker, got \(status)")
+      Issue.record("Expected moreTimeRequired status with nil tracker, got \(status)")
     }
   }
-
 }
 
 // swiftlint:enable redundant_optional_initialization

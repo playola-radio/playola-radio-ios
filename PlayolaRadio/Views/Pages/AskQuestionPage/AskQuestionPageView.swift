@@ -47,7 +47,7 @@ struct AskQuestionPageView: View {
       if !model.isUploading {
         ToolbarItem(placement: .navigationBarLeading) {
           Button("Cancel") {
-            model.cancelTapped()
+            Task { await model.cancelTapped() }
           }
           .foregroundColor(.white)
         }
@@ -162,7 +162,7 @@ struct AskQuestionPageView: View {
       }
     case .review:
       Button {
-        model.reRecordTapped()
+        Task { await model.reRecordTapped() }
       } label: {
         ZStack {
           Circle()
@@ -205,9 +205,9 @@ struct AskQuestionPageView: View {
         currentTime: model.playbackPosition,
         totalTime: model.recordingDuration,
         isPlaying: model.isPlaying,
-        onPlayPause: { model.playPauseTapped() },
-        onRewind: { model.rewindTapped() },
-        onSeek: { model.seekTo($0) }
+        onPlayPause: { Task { await model.playPauseTapped() } },
+        onRewind: { Task { await model.rewindTapped() } },
+        onSeek: { time in Task { await model.seekTo(time) } }
       )
       .disabled(model.isUploading)
       .opacity(model.isUploading ? 0.5 : 1)

@@ -5,20 +5,23 @@
 
 import ConcurrencyExtras
 import Dependencies
+import Foundation
 import PlayolaPlayer
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class SeriesListPageModelTests: XCTestCase {
+struct SeriesListPageModelTests {
+  @Test
   func testViewAppearedCallsGetAiringsAPI() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let apiCalled = LockIsolated(false)
     let passedJwt = LockIsolated<String?>(nil)
 
     await withDependencies {
+      $0.date.now = Date()
       $0.api.getAirings = { jwt, _ in
         apiCalled.setValue(true)
         passedJwt.setValue(jwt)
@@ -29,11 +32,12 @@ final class SeriesListPageModelTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertTrue(apiCalled.value)
-      XCTAssertEqual(passedJwt.value, "test-jwt")
+      #expect(apiCalled.value)
+      #expect(passedJwt.value == "test-jwt")
     }
   }
 
+  @Test
   func testViewAppearedPopulatesShowsGroupedByShow() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let now = Date()
@@ -66,14 +70,15 @@ final class SeriesListPageModelTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertEqual(model.shows.count, 2)
+      #expect(model.shows.count == 2)
       let show1Group = model.shows.first { $0.show.id == "show-1" }
       let show2Group = model.shows.first { $0.show.id == "show-2" }
-      XCTAssertEqual(show1Group?.airings.count, 2)
-      XCTAssertEqual(show2Group?.airings.count, 1)
+      #expect(show1Group?.airings.count == 2)
+      #expect(show2Group?.airings.count == 1)
     }
   }
 
+  @Test
   func testViewAppearedShowsAlertOnError() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
@@ -86,10 +91,11 @@ final class SeriesListPageModelTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertNotNil(model.presentedAlert)
+      #expect(model.presentedAlert != nil)
     }
   }
 
+  @Test
   func testViewAppearedDoesNotCallAPIWithoutJWT() async {
     @Shared(.auth) var auth = Auth(jwt: nil)
     let apiCalled = LockIsolated(false)
@@ -104,10 +110,11 @@ final class SeriesListPageModelTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertFalse(apiCalled.value)
+      #expect(!apiCalled.value)
     }
   }
 
+  @Test
   func testViewAppearedFiltersOutEndedAirings() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let now = Date()
@@ -142,12 +149,12 @@ final class SeriesListPageModelTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertEqual(model.shows.count, 1)
+      #expect(model.shows.count == 1)
       let showGroup = model.shows.first
-      XCTAssertEqual(showGroup?.airings.count, 2)
-      XCTAssertTrue(showGroup?.airings.contains { $0.id == "live-airing" } ?? false)
-      XCTAssertTrue(showGroup?.airings.contains { $0.id == "upcoming-airing" } ?? false)
-      XCTAssertFalse(showGroup?.airings.contains { $0.id == "ended-airing" } ?? true)
+      #expect(showGroup?.airings.count == 2)
+      #expect(showGroup?.airings.contains { $0.id == "live-airing" } ?? false)
+      #expect(showGroup?.airings.contains { $0.id == "upcoming-airing" } ?? false)
+      #expect(!(showGroup?.airings.contains { $0.id == "ended-airing" } ?? true))
     }
   }
 }

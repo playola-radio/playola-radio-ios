@@ -56,6 +56,7 @@ class ListenerQuestionDetailPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.audioRecorder) var audioRecorder
   @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
@@ -101,7 +102,7 @@ class ListenerQuestionDetailPageModel: ViewModel {
   var timeAgoText: String {
     let formatter = RelativeDateTimeFormatter()
     formatter.unitsStyle = .full
-    return formatter.localizedString(for: question.createdAt, relativeTo: Date())
+    return formatter.localizedString(for: question.createdAt, relativeTo: now)
   }
 
   // MARK: - Question Playback Display

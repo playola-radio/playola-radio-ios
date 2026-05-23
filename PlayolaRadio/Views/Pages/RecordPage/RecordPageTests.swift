@@ -7,22 +7,18 @@
 
 import ConcurrencyExtras
 import Dependencies
+import Foundation
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class RecordPageTests: XCTestCase {
-  override func setUp() {
-    super.setUp()
-    @Shared(.mainContainerNavigationCoordinator) var coordinator
-    coordinator.presentedSheet = nil
-  }
-
+struct RecordPageTests {
   // MARK: - Lifecycle
 
-  func testViewAppeared_PreparesForRecording() async {
+  @Test
+  func testViewAppearedPreparesForRecording() async {
     let prepareCalled = LockIsolated(false)
 
     await withDependencies {
@@ -34,40 +30,44 @@ final class RecordPageTests: XCTestCase {
 
       await model.viewAppeared()
 
-      XCTAssertTrue(prepareCalled.value)
+      #expect(prepareCalled.value)
     }
   }
 
   // MARK: - Done Button
 
-  func testShouldShowDoneButton_TrueOnlyInIdlePhase() {
+  @Test
+  func testShouldShowDoneButtonTrueOnlyInIdlePhase() {
     let model = RecordPageModel()
 
     model.recordingPhase = .idle
-    XCTAssertTrue(model.shouldShowDoneButton)
+    #expect(model.shouldShowDoneButton)
 
     model.recordingPhase = .recording
-    XCTAssertFalse(model.shouldShowDoneButton)
+    #expect(!model.shouldShowDoneButton)
 
     model.recordingPhase = .review
-    XCTAssertFalse(model.shouldShowDoneButton)
+    #expect(!model.shouldShowDoneButton)
   }
 
-  func testOnDoneTapped_DismissesSheet() {
-    @Shared(.mainContainerNavigationCoordinator) var coordinator
+  @Test
+  func testOnDoneTappedDismissesSheet() {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
 
     let model = RecordPageModel()
     coordinator.presentedSheet = .recordPage(model)
 
-    XCTAssertNotNil(coordinator.presentedSheet)
+    #expect(coordinator.presentedSheet != nil)
 
     model.onDoneTapped()
 
-    XCTAssertNil(coordinator.presentedSheet)
+    #expect(coordinator.presentedSheet == nil)
   }
 
   // MARK: - Recording
 
+  @Test
   func testOnRecordTappedRequestsPermissionBeforeRecording() async {
     let requestPermissionCalled = LockIsolated(false)
     let startRecordingCalled = LockIsolated(false)
@@ -78,22 +78,23 @@ final class RecordPageTests: XCTestCase {
         return true
       }
       $0.audioRecorder.startRecording = {
-        XCTAssertTrue(
+        #expect(
           requestPermissionCalled.value, "Permission should be requested before recording starts")
         startRecordingCalled.setValue(true)
       }
     } operation: {
       let model = RecordPageModel()
-      XCTAssertEqual(model.recordingPhase, .idle)
+      #expect(model.recordingPhase == .idle)
 
       await model.onRecordTapped()
 
-      XCTAssertTrue(requestPermissionCalled.value)
-      XCTAssertTrue(startRecordingCalled.value)
-      XCTAssertEqual(model.recordingPhase, .recording)
+      #expect(requestPermissionCalled.value)
+      #expect(startRecordingCalled.value)
+      #expect(model.recordingPhase == .recording)
     }
   }
 
+  @Test
   func testOnRecordTappedDoesNotRecordWhenPermissionDenied() async {
     let startRecordingCalled = LockIsolated(false)
 
@@ -107,15 +108,16 @@ final class RecordPageTests: XCTestCase {
 
       await model.onRecordTapped()
 
-      XCTAssertFalse(
-        startRecordingCalled.value, "Recording should not start when permission is denied")
-      XCTAssertEqual(model.recordingPhase, .idle)
-      XCTAssertNotNil(model.presentedAlert)
-      XCTAssertEqual(model.presentedAlert?.title, "Microphone Access Required")
+      #expect(
+        !startRecordingCalled.value, "Recording should not start when permission is denied")
+      #expect(model.recordingPhase == .idle)
+      #expect(model.presentedAlert != nil)
+      #expect(model.presentedAlert?.title == "Microphone Access Required")
     }
   }
 
-  func testOnRecordTapped_ShowsAlertOnError() async {
+  @Test
+  func testOnRecordTappedShowsAlertOnError() async {
     await withDependencies {
       $0.audioRecorder.requestPermission = { true }
       $0.audioRecorder.startRecording = {
@@ -126,13 +128,14 @@ final class RecordPageTests: XCTestCase {
 
       await model.onRecordTapped()
 
-      XCTAssertEqual(model.recordingPhase, .idle)
-      XCTAssertNotNil(model.presentedAlert)
-      XCTAssertEqual(model.presentedAlert?.title, "Recording Error")
+      #expect(model.recordingPhase == .idle)
+      #expect(model.presentedAlert != nil)
+      #expect(model.presentedAlert?.title == "Recording Error")
     }
   }
 
-  func testOnStopTapped_StopsRecordingAndChangesPhase() async {
+  @Test
+  func testOnStopTappedStopsRecordingAndChangesPhase() async {
     let expectedURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
 
     await withDependencies {
@@ -146,13 +149,14 @@ final class RecordPageTests: XCTestCase {
 
       await model.onStopTapped()
 
-      XCTAssertEqual(model.recordingPhase, .review)
-      XCTAssertEqual(model.recordingURL, expectedURL)
-      XCTAssertEqual(model.recordingDuration, 5.0)
+      #expect(model.recordingPhase == .review)
+      #expect(model.recordingURL == expectedURL)
+      #expect(model.recordingDuration == 5.0)
     }
   }
 
-  func testOnStopTapped_ShowsAlertOnError() async {
+  @Test
+  func testOnStopTappedShowsAlertOnError() async {
     await withDependencies {
       $0.audioRecorder.currentTime = { 0 }
       $0.audioRecorder.stopRecording = {
@@ -164,14 +168,15 @@ final class RecordPageTests: XCTestCase {
 
       await model.onStopTapped()
 
-      XCTAssertNotNil(model.presentedAlert)
-      XCTAssertEqual(model.presentedAlert?.title, "Recording Error")
+      #expect(model.presentedAlert != nil)
+      #expect(model.presentedAlert?.title == "Recording Error")
     }
   }
 
   // MARK: - Re-record
 
-  func testOnReRecordTapped_ResetsToIdleState() {
+  @Test
+  func testOnReRecordTappedResetsToIdleState() async {
     let model = RecordPageModel()
     model.recordingPhase = .review
     model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
@@ -179,68 +184,70 @@ final class RecordPageTests: XCTestCase {
     model.playbackPosition = 5.0
     model.isPlaying = true
 
-    model.onReRecordTapped()
+    await model.onReRecordTapped()
 
-    XCTAssertEqual(model.recordingPhase, .idle)
-    XCTAssertNil(model.recordingURL)
-    XCTAssertEqual(model.recordingDuration, 0)
-    XCTAssertEqual(model.playbackPosition, 0)
-    XCTAssertFalse(model.isPlaying)
+    #expect(model.recordingPhase == .idle)
+    #expect(model.recordingURL == nil)
+    #expect(model.recordingDuration == 0)
+    #expect(model.playbackPosition == 0)
+    #expect(!model.isPlaying)
   }
 
   // MARK: - Discard
 
-  func testOnDiscardTapped_ShowsConfirmationAlert() {
+  @Test
+  func testOnDiscardTappedShowsConfirmationAlert() {
     let model = RecordPageModel()
     model.recordingPhase = .review
 
-    XCTAssertNil(model.presentedAlert)
+    #expect(model.presentedAlert == nil)
 
     model.onDiscardTapped()
 
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert?.title, "Discard Recording?")
+    #expect(model.presentedAlert != nil)
+    #expect(model.presentedAlert?.title == "Discard Recording?")
   }
 
-  func testConfirmDiscard_DismissesSheet() {
-    @Shared(.mainContainerNavigationCoordinator) var coordinator
+  @Test
+  func testConfirmDiscardDismissesSheet() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
 
     let model = RecordPageModel()
     coordinator.presentedSheet = .recordPage(model)
 
-    model.confirmDiscard()
+    await model.confirmDiscard()
 
-    XCTAssertNil(coordinator.presentedSheet)
+    #expect(coordinator.presentedSheet == nil)
   }
 
   // MARK: - Accept Recording
 
-  func testOnAcceptRecordingTapped_CallsCallbackAndDismisses() async {
-    @Shared(.mainContainerNavigationCoordinator) var coordinator
+  @Test
+  func testOnAcceptRecordingTappedCallsCallbackAndDismisses() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
 
     let expectedURL = URL(fileURLWithPath: "/tmp/test.wav")
-    let callbackExpectation = XCTestExpectation(description: "onRecordingAccepted called")
     let receivedURL = LockIsolated<URL?>(nil)
 
     let model = RecordPageModel()
     model.recordingURL = expectedURL
     model.onRecordingAccepted = { url in
       receivedURL.setValue(url)
-      callbackExpectation.fulfill()
     }
     coordinator.presentedSheet = .recordPage(model)
 
-    model.onAcceptRecordingTapped()
+    await model.onAcceptRecordingTapped()
 
-    // Sheet dismisses immediately
-    XCTAssertNil(coordinator.presentedSheet)
-
-    await fulfillment(of: [callbackExpectation], timeout: 1.0)
-    XCTAssertEqual(receivedURL.value, expectedURL)
+    #expect(coordinator.presentedSheet == nil)
+    #expect(receivedURL.value == expectedURL)
   }
 
-  func testOnAcceptRecordingTapped_DoesNothingWithoutURL() async {
-    @Shared(.mainContainerNavigationCoordinator) var coordinator
+  @Test
+  func testOnAcceptRecordingTappedDoesNothingWithoutURL() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
 
     let callbackCalled = LockIsolated(false)
 
@@ -251,18 +258,16 @@ final class RecordPageTests: XCTestCase {
     }
     coordinator.presentedSheet = .recordPage(model)
 
-    model.onAcceptRecordingTapped()
+    await model.onAcceptRecordingTapped()
 
-    // Allow any spawned Task to complete
-    await Task.yield()
-
-    XCTAssertFalse(callbackCalled.value)
-    XCTAssertNotNil(coordinator.presentedSheet)
+    #expect(!callbackCalled.value)
+    #expect(coordinator.presentedSheet != nil)
   }
 
   // MARK: - Playback
 
-  func testOnPlayPauseTapped_PlaysWhenNotPlaying() async {
+  @Test
+  func testOnPlayPauseTappedPlaysWhenNotPlaying() async {
     let playCalled = LockIsolated(false)
 
     await withDependencies {
@@ -273,16 +278,15 @@ final class RecordPageTests: XCTestCase {
       let model = RecordPageModel()
       model.isPlaying = false
 
-      model.onPlayPauseTapped()
-      // Allow Task to execute
-      try? await Task.sleep(for: .milliseconds(10))
+      await model.onPlayPauseTapped()
 
-      XCTAssertTrue(playCalled.value)
-      XCTAssertTrue(model.isPlaying)
+      #expect(playCalled.value)
+      #expect(model.isPlaying)
     }
   }
 
-  func testOnPlayPauseTapped_PausesWhenPlaying() async {
+  @Test
+  func testOnPlayPauseTappedPausesWhenPlaying() async {
     let pauseCalled = LockIsolated(false)
 
     await withDependencies {
@@ -291,16 +295,15 @@ final class RecordPageTests: XCTestCase {
       let model = RecordPageModel()
       model.isPlaying = true
 
-      model.onPlayPauseTapped()
-      // Allow Task to execute
-      try? await Task.sleep(for: .milliseconds(10))
+      await model.onPlayPauseTapped()
 
-      XCTAssertTrue(pauseCalled.value)
-      XCTAssertFalse(model.isPlaying)
+      #expect(pauseCalled.value)
+      #expect(!model.isPlaying)
     }
   }
 
-  func testOnRewindTapped_SeeksToZero() async {
+  @Test
+  func testOnRewindTappedSeeksToZero() async {
     let seekTime = LockIsolated<TimeInterval?>(nil)
 
     await withDependencies {
@@ -309,16 +312,15 @@ final class RecordPageTests: XCTestCase {
       let model = RecordPageModel()
       model.playbackPosition = 30.0
 
-      model.onRewindTapped()
-      // Allow Task to execute
-      try? await Task.sleep(for: .milliseconds(10))
+      await model.onRewindTapped()
 
-      XCTAssertEqual(seekTime.value, 0)
-      XCTAssertEqual(model.playbackPosition, 0)
+      #expect(seekTime.value == 0)
+      #expect(model.playbackPosition == 0)
     }
   }
 
-  func testSeekTo_UpdatesPlaybackPosition() async {
+  @Test
+  func testSeekToUpdatesPlaybackPosition() async {
     let seekTime = LockIsolated<TimeInterval?>(nil)
 
     await withDependencies {
@@ -327,12 +329,10 @@ final class RecordPageTests: XCTestCase {
       let model = RecordPageModel()
       model.recordingDuration = 60.0
 
-      model.seekTo(30.0)
-      // Allow Task to execute
-      try? await Task.sleep(for: .milliseconds(10))
+      await model.seekTo(30.0)
 
-      XCTAssertEqual(seekTime.value, 30.0)
-      XCTAssertEqual(model.playbackPosition, 30.0)
+      #expect(seekTime.value == 30.0)
+      #expect(model.playbackPosition == 30.0)
     }
   }
 }

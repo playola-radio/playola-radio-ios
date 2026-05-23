@@ -49,10 +49,15 @@ class AskQuestionPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
   @ObservationIgnored @Dependency(\.audioConverter) var audioConverter
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.continuousClock) var clock
+  @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
+
+  // MARK: - Shared State
+
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
-  @ObservationIgnored var stationPlayer: StationPlayer
 
   // MARK: - Computed Properties
 
@@ -99,9 +104,8 @@ class AskQuestionPageModel: ViewModel {
 
   // MARK: - Init
 
-  init(station: Station, stationPlayer: StationPlayer? = nil) {
+  init(station: Station) {
     self.station = station
-    self.stationPlayer = stationPlayer ?? .shared
     super.init()
   }
 
@@ -166,32 +170,26 @@ class AskQuestionPageModel: ViewModel {
 
   // MARK: - Playback Actions
 
-  func playPauseTapped() {
-    Task {
-      if isPlaying {
-        await audioPlayer.pause()
-        stopPlaybackUpdates()
-        isPlaying = false
-      } else {
-        await audioPlayer.play()
-        startPlaybackUpdates()
-        isPlaying = true
-      }
+  func playPauseTapped() async {
+    if isPlaying {
+      await audioPlayer.pause()
+      stopPlaybackUpdates()
+      isPlaying = false
+    } else {
+      await audioPlayer.play()
+      startPlaybackUpdates()
+      isPlaying = true
     }
   }
 
-  func rewindTapped() {
-    Task {
-      await audioPlayer.seek(0)
-      playbackPosition = 0
-    }
+  func rewindTapped() async {
+    await audioPlayer.seek(0)
+    playbackPosition = 0
   }
 
-  func seekTo(_ time: TimeInterval) {
-    Task {
-      await audioPlayer.seek(time)
-      playbackPosition = time
-    }
+  func seekTo(_ time: TimeInterval) async {
+    await audioPlayer.seek(time)
+    playbackPosition = time
   }
 
   private func startPlaybackUpdates() {
@@ -216,13 +214,11 @@ class AskQuestionPageModel: ViewModel {
 
   // MARK: - Review Actions
 
-  func reRecordTapped() {
+  func reRecordTapped() async {
     stopPlaybackUpdates()
-    Task {
-      await audioPlayer.stop()
-      if let url = recordingURL {
-        await audioRecorder.deleteRecording(url)
-      }
+    await audioPlayer.stop()
+    if let url = recordingURL {
+      await audioRecorder.deleteRecording(url)
     }
     recordingURL = nil
     recordingDuration = 0
@@ -232,25 +228,23 @@ class AskQuestionPageModel: ViewModel {
     recordingPhase = .idle
   }
 
-  func cancelTapped() {
+  func cancelTapped() async {
     if recordingPhase == .review {
       presentedAlert = .discardRecordingConfirmation { [weak self] in
-        self?.confirmCancel()
+        Task { await self?.confirmCancel() }
       }
     } else {
-      confirmCancel()
+      await confirmCancel()
     }
   }
 
-  func confirmCancel() {
+  func confirmCancel() async {
     stopPlaybackUpdates()
-    Task {
-      await audioPlayer.stop()
-      if let url = recordingURL {
-        await audioRecorder.deleteRecording(url)
-      }
+    await audioPlayer.stop()
+    if let url = recordingURL {
+      await audioRecorder.deleteRecording(url)
     }
-    resumeStationIfNeeded()
+    await resumeStationIfNeeded()
     mainContainerNavigationCoordinator.pop()
   }
 
@@ -299,8 +293,10 @@ class AskQuestionPageModel: ViewModel {
       // Step 8: Show success and dismiss
       uploadPhase = .completed
       presentedAlert = .questionSentSuccess(curatorName: station.curatorName) { [weak self] in
-        self?.resumeStationIfNeeded()
-        self?.mainContainerNavigationCoordinator.popToRoot()
+        Task { @MainActor in
+          await self?.resumeStationIfNeeded()
+          self?.mainContainerNavigationCoordinator.popToRoot()
+        }
       }
 
     } catch {
@@ -310,16 +306,16 @@ class AskQuestionPageModel: ViewModel {
   }
 
   private func waitForNormalization(jwt: String, s3Key: String) async throws {
-    let maxWaitTimeSeconds = 120
-    let pollIntervalSeconds: UInt64 = 2
-    let startTime = Date()
+    let maxWaitTime: TimeInterval = 120
+    let pollInterval: Duration = .seconds(2)
+    let startTime = now
 
-    while Date().timeIntervalSince(startTime) < Double(maxWaitTimeSeconds) {
+    while now.timeIntervalSince(startTime) < maxWaitTime {
       let status = try await api.getVoicetrackStatus(jwt, station.id, s3Key)
       if status.ready {
         return
       }
-      try await Task.sleep(nanoseconds: pollIntervalSeconds * 1_000_000_000)
+      try await clock.sleep(for: pollInterval)
     }
 
     throw AskQuestionError.normalizationTimeout
@@ -334,9 +330,9 @@ class AskQuestionPageModel: ViewModel {
     }
   }
 
-  private func resumeStationIfNeeded() {
+  private func resumeStationIfNeeded() async {
     if let station = stationToResume {
-      stationPlayer.play(station: station)
+      await stationPlayer.play(station: station)
       stationToResume = nil
     }
   }

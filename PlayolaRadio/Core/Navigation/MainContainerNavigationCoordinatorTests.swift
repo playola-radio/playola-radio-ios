@@ -6,26 +6,19 @@
 //
 
 import Dependencies
+import Foundation
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class MainContainerNavigationCoordinatorTests: XCTestCase {
-
-  // MARK: - Setup
-
-  override func setUp() async throws {
-    try await super.setUp()
-    // Clear any shared state
-    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .home
-    $activeTab.withLock { $0 = .home }
-  }
+struct MainContainerNavigationCoordinatorTests {
 
   // MARK: - navigateToLikedSongs Tests
 
-  func testNavigateToLikedSongs_WithSheetAndDifferentTab() async {
+  @Test
+  func testNavigateToLikedSongsWithSheetAndDifferentTab() async {
     await withDependencies {
       $0.continuousClock = ImmediateClock()
     } operation: {
@@ -38,18 +31,19 @@ final class MainContainerNavigationCoordinatorTests: XCTestCase {
       await coordinator.navigateToLikedSongs()
 
       // Should have completed both transitions and pushed liked songs page
-      XCTAssertNil(coordinator.presentedSheet)
-      XCTAssertEqual(activeTab, .profile)
-      XCTAssertEqual(coordinator.path.count, 1)
+      #expect(coordinator.presentedSheet == nil)
+      #expect(activeTab == .profile)
+      #expect(coordinator.path.count == 1)
       if case .likedSongsPage = coordinator.path.first {
         // Success
       } else {
-        XCTFail("Expected likedSongsPage to be pushed")
+        Issue.record("Expected likedSongsPage to be pushed")
       }
     }
   }
 
-  func testNavigateToLikedSongs_WithSheetButCorrectTab() async {
+  @Test
+  func testNavigateToLikedSongsWithSheetButCorrectTab() async {
     await withDependencies {
       $0.continuousClock = ImmediateClock()
     } operation: {
@@ -62,18 +56,19 @@ final class MainContainerNavigationCoordinatorTests: XCTestCase {
       await coordinator.navigateToLikedSongs()
 
       // Should have dismissed sheet, kept same tab, and pushed liked songs page
-      XCTAssertNil(coordinator.presentedSheet)
-      XCTAssertEqual(activeTab, .profile)
-      XCTAssertEqual(coordinator.path.count, 1)
+      #expect(coordinator.presentedSheet == nil)
+      #expect(activeTab == .profile)
+      #expect(coordinator.path.count == 1)
       if case .likedSongsPage = coordinator.path.first {
         // Success
       } else {
-        XCTFail("Expected likedSongsPage to be pushed")
+        Issue.record("Expected likedSongsPage to be pushed")
       }
     }
   }
 
-  func testNavigateToLikedSongs_WithDifferentTabButNoSheet() async {
+  @Test
+  func testNavigateToLikedSongsWithDifferentTabButNoSheet() async {
     await withDependencies {
       $0.continuousClock = ImmediateClock()
     } operation: {
@@ -86,17 +81,18 @@ final class MainContainerNavigationCoordinatorTests: XCTestCase {
       await coordinator.navigateToLikedSongs()
 
       // Should have changed tab and pushed liked songs page
-      XCTAssertEqual(activeTab, .profile)
-      XCTAssertEqual(coordinator.path.count, 1)
+      #expect(activeTab == .profile)
+      #expect(coordinator.path.count == 1)
       if case .likedSongsPage = coordinator.path.first {
         // Success
       } else {
-        XCTFail("Expected likedSongsPage to be pushed")
+        Issue.record("Expected likedSongsPage to be pushed")
       }
     }
   }
 
-  func testNavigateToLikedSongs_NoSheetAndCorrectTab() async {
+  @Test
+  func testNavigateToLikedSongsNoSheetAndCorrectTab() async {
     await withDependencies {
       $0.continuousClock = ImmediateClock()
     } operation: {
@@ -109,19 +105,20 @@ final class MainContainerNavigationCoordinatorTests: XCTestCase {
       await coordinator.navigateToLikedSongs()
 
       // Should have pushed liked songs page
-      XCTAssertEqual(coordinator.path.count, 1)
-      XCTAssertEqual(activeTab, .profile)
-      XCTAssertNil(coordinator.presentedSheet)
+      #expect(coordinator.path.count == 1)
+      #expect(activeTab == .profile)
+      #expect(coordinator.presentedSheet == nil)
 
       if case .likedSongsPage = coordinator.path.first {
         // Success
       } else {
-        XCTFail("Expected likedSongsPage to be pushed")
+        Issue.record("Expected likedSongsPage to be pushed")
       }
     }
   }
 
-  func testNavigateToLikedSongs_CreatesLikedSongsPageModel() async {
+  @Test
+  func testNavigateToLikedSongsCreatesLikedSongsPageModel() async {
     await withDependencies {
       $0.continuousClock = ImmediateClock()
     } operation: {
@@ -136,18 +133,19 @@ final class MainContainerNavigationCoordinatorTests: XCTestCase {
       await coordinator.navigateToLikedSongs()
 
       // Verify that a LikedSongsPageModel was created
-      XCTAssertEqual(coordinator.path.count, 1)
-      if case .likedSongsPage(let model) = coordinator.path.first {
-        XCTAssertNotNil(model)
+      #expect(coordinator.path.count == 1)
+      if case .likedSongsPage = coordinator.path.first {
+        // Success
       } else {
-        XCTFail("Expected likedSongsPage with model to be pushed")
+        Issue.record("Expected likedSongsPage with model to be pushed")
       }
     }
   }
 
   // MARK: - navigateToSupport Tests
 
-  func testNavigateToSupport_WithSheetAndDifferentTab() async {
+  @Test
+  func testNavigateToSupportWithSheetAndDifferentTab() async {
     await withDependencies {
       $0.continuousClock = ImmediateClock()
     } operation: {
@@ -160,18 +158,19 @@ final class MainContainerNavigationCoordinatorTests: XCTestCase {
       let supportModel = SupportPageModel()
       await coordinator.navigateToSupport(supportModel)
 
-      XCTAssertNil(coordinator.presentedSheet)
-      XCTAssertEqual(activeTab, .profile)
-      XCTAssertEqual(coordinator.path.count, 1)
+      #expect(coordinator.presentedSheet == nil)
+      #expect(activeTab == .profile)
+      #expect(coordinator.path.count == 1)
       if case .supportPage = coordinator.path.first {
         // Success
       } else {
-        XCTFail("Expected supportPage to be pushed")
+        Issue.record("Expected supportPage to be pushed")
       }
     }
   }
 
-  func testNavigateToSupport_WithSheetButCorrectTab() async {
+  @Test
+  func testNavigateToSupportWithSheetButCorrectTab() async {
     await withDependencies {
       $0.continuousClock = ImmediateClock()
     } operation: {
@@ -184,18 +183,19 @@ final class MainContainerNavigationCoordinatorTests: XCTestCase {
       let supportModel = SupportPageModel()
       await coordinator.navigateToSupport(supportModel)
 
-      XCTAssertNil(coordinator.presentedSheet)
-      XCTAssertEqual(activeTab, .profile)
-      XCTAssertEqual(coordinator.path.count, 1)
+      #expect(coordinator.presentedSheet == nil)
+      #expect(activeTab == .profile)
+      #expect(coordinator.path.count == 1)
       if case .supportPage = coordinator.path.first {
         // Success
       } else {
-        XCTFail("Expected supportPage to be pushed")
+        Issue.record("Expected supportPage to be pushed")
       }
     }
   }
 
-  func testNavigateToSupport_WithDifferentTabButNoSheet() async {
+  @Test
+  func testNavigateToSupportWithDifferentTabButNoSheet() async {
     await withDependencies {
       $0.continuousClock = ImmediateClock()
     } operation: {
@@ -208,17 +208,18 @@ final class MainContainerNavigationCoordinatorTests: XCTestCase {
       let supportModel = SupportPageModel()
       await coordinator.navigateToSupport(supportModel)
 
-      XCTAssertEqual(activeTab, .profile)
-      XCTAssertEqual(coordinator.path.count, 1)
+      #expect(activeTab == .profile)
+      #expect(coordinator.path.count == 1)
       if case .supportPage = coordinator.path.first {
         // Success
       } else {
-        XCTFail("Expected supportPage to be pushed")
+        Issue.record("Expected supportPage to be pushed")
       }
     }
   }
 
-  func testNavigateToSupport_NoSheetAndCorrectTab() async {
+  @Test
+  func testNavigateToSupportNoSheetAndCorrectTab() async {
     await withDependencies {
       $0.continuousClock = ImmediateClock()
     } operation: {
@@ -231,19 +232,20 @@ final class MainContainerNavigationCoordinatorTests: XCTestCase {
       let supportModel = SupportPageModel()
       await coordinator.navigateToSupport(supportModel)
 
-      XCTAssertEqual(coordinator.path.count, 1)
-      XCTAssertEqual(activeTab, .profile)
-      XCTAssertNil(coordinator.presentedSheet)
+      #expect(coordinator.path.count == 1)
+      #expect(activeTab == .profile)
+      #expect(coordinator.presentedSheet == nil)
 
       if case .supportPage = coordinator.path.first {
         // Success
       } else {
-        XCTFail("Expected supportPage to be pushed")
+        Issue.record("Expected supportPage to be pushed")
       }
     }
   }
 
-  func testNavigateToSupport_UsesProvidedModel() async {
+  @Test
+  func testNavigateToSupportUsesProvidedModel() async {
     await withDependencies {
       $0.continuousClock = ImmediateClock()
     } operation: {
@@ -256,38 +258,41 @@ final class MainContainerNavigationCoordinatorTests: XCTestCase {
       let supportModel = SupportPageModel()
       await coordinator.navigateToSupport(supportModel)
 
-      XCTAssertEqual(coordinator.path.count, 1)
+      #expect(coordinator.path.count == 1)
       if case .supportPage(let model) = coordinator.path.first {
-        XCTAssertTrue(model === supportModel)
+        #expect(model === supportModel)
       } else {
-        XCTFail("Expected supportPage with the provided model to be pushed")
+        Issue.record("Expected supportPage with the provided model to be pushed")
       }
     }
   }
 
   // MARK: - switchToBroadcastMode Tests
 
+  @Test
   func testSwitchToBroadcastModeSetsAppModeAndClearsPath() {
     let coordinator = MainContainerNavigationCoordinator()
     coordinator.path = [.editProfilePage(EditProfilePageModel())]
 
     coordinator.switchToBroadcastMode(stationId: "station-123")
 
-    XCTAssertEqual(coordinator.appMode, .broadcasting(stationId: "station-123"))
-    XCTAssertTrue(coordinator.path.isEmpty)
+    #expect(coordinator.appMode == .broadcasting(stationId: "station-123"))
+    #expect(coordinator.path.isEmpty)
   }
 
+  @Test
   func testSwitchToBroadcastModeFromListeningMode() {
     let coordinator = MainContainerNavigationCoordinator()
-    XCTAssertEqual(coordinator.appMode, .listening)
+    #expect(coordinator.appMode == .listening)
 
     coordinator.switchToBroadcastMode(stationId: "my-station")
 
-    XCTAssertEqual(coordinator.appMode, .broadcasting(stationId: "my-station"))
+    #expect(coordinator.appMode == .broadcasting(stationId: "my-station"))
   }
 
   // MARK: - switchToListeningMode Tests
 
+  @Test
   func testSwitchToListeningModeSetsAppModeAndClearsPath() {
     let coordinator = MainContainerNavigationCoordinator()
     coordinator.appMode = .broadcasting(stationId: "station-123")
@@ -295,21 +300,23 @@ final class MainContainerNavigationCoordinatorTests: XCTestCase {
 
     coordinator.switchToListeningMode()
 
-    XCTAssertEqual(coordinator.appMode, .listening)
-    XCTAssertTrue(coordinator.path.isEmpty)
+    #expect(coordinator.appMode == .listening)
+    #expect(coordinator.path.isEmpty)
   }
 
+  @Test
   func testSwitchToListeningModeFromBroadcastMode() {
     let coordinator = MainContainerNavigationCoordinator()
     coordinator.appMode = .broadcasting(stationId: "station-123")
 
     coordinator.switchToListeningMode()
 
-    XCTAssertEqual(coordinator.appMode, .listening)
+    #expect(coordinator.appMode == .listening)
   }
 
   // MARK: - navigateToLikedSongs from Broadcast Mode Tests
 
+  @Test
   func testNavigateToLikedSongsSwitchesToListeningModeFirst() async {
     await withDependencies {
       $0.continuousClock = ImmediateClock()
@@ -322,18 +329,19 @@ final class MainContainerNavigationCoordinatorTests: XCTestCase {
 
       await coordinator.navigateToLikedSongs()
 
-      XCTAssertEqual(coordinator.appMode, .listening)
-      XCTAssertEqual(coordinator.path.count, 1)
+      #expect(coordinator.appMode == .listening)
+      #expect(coordinator.path.count == 1)
       if case .likedSongsPage = coordinator.path.first {
         // Success
       } else {
-        XCTFail("Expected likedSongsPage to be pushed")
+        Issue.record("Expected likedSongsPage to be pushed")
       }
     }
   }
 
   // MARK: - navigateToSupport from Broadcast Mode Tests
 
+  @Test
   func testNavigateToSupportSwitchesToListeningModeFirst() async {
     await withDependencies {
       $0.continuousClock = ImmediateClock()
@@ -347,12 +355,12 @@ final class MainContainerNavigationCoordinatorTests: XCTestCase {
       let supportModel = SupportPageModel()
       await coordinator.navigateToSupport(supportModel)
 
-      XCTAssertEqual(coordinator.appMode, .listening)
-      XCTAssertEqual(coordinator.path.count, 1)
+      #expect(coordinator.appMode == .listening)
+      #expect(coordinator.path.count == 1)
       if case .supportPage = coordinator.path.first {
         // Success
       } else {
-        XCTFail("Expected supportPage to be pushed")
+        Issue.record("Expected supportPage to be pushed")
       }
     }
   }

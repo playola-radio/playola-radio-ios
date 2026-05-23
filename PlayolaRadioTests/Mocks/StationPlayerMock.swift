@@ -18,7 +18,7 @@ class StationPlayerMock: StationPlayer {
     super.init(urlStreamPlayer: URLStreamPlayerMock())
   }
 
-  override public func play(station: AnyStation) {
+  override public func play(station: AnyStation) async {
     callsToPlay.append(station)
   }
 

@@ -25,8 +25,21 @@ fi
 git fetch origin main develop --quiet
 git fetch origin --tags --quiet
 
-current_version=$(agvtool what-marketing-version -terse1 | head -1)
-current_build=$(agvtool what-version -terse | sort -n | tail -1)
+PBXPROJ="PlayolaRadio.xcodeproj/project.pbxproj"
+
+current_version=$(grep -m1 'MARKETING_VERSION' "$PBXPROJ" | sed -E 's/.*MARKETING_VERSION = ([^;]+);.*/\1/' | tr -d ' ')
+current_build=$(grep 'CURRENT_PROJECT_VERSION' "$PBXPROJ" | sed -E 's/.*CURRENT_PROJECT_VERSION = ([^;]+);.*/\1/' | tr -d ' ' | sort -n | tail -1)
+
+if [ -z "$current_version" ]; then
+  echo "Error: could not detect MARKETING_VERSION from $PBXPROJ" >&2
+  exit 1
+fi
+
+if ! [[ "$current_build" =~ ^[0-9]+$ ]]; then
+  echo "Error: could not detect a numeric CURRENT_PROJECT_VERSION from $PBXPROJ (got '$current_build')" >&2
+  exit 1
+fi
+
 new_build=$((current_build + 1))
 
 last_tag=$(git describe --tags --abbrev=0 origin/main 2>/dev/null || echo "")

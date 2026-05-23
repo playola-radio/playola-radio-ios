@@ -45,10 +45,9 @@ class SignInPageModel: ViewModel {
     Task { await analytics.track(.signInStarted(method: .apple)) }
   }
 
-  func signInWithAppleCompleted(result: Result<ASAuthorization, any Error>) {
+  func signInWithAppleCompleted(result: Result<ASAuthorization, any Error>) async {
     switch result {
     case .success(let authorization):
-
       guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential,
         let identityTokenData = appleIDCredential.identityToken,
         let identityToken = String(data: identityTokenData, encoding: .utf8),
@@ -57,36 +56,32 @@ class SignInPageModel: ViewModel {
       else {
         print("Error decoding signin info from apple")
         presentedAlert = .signInError
-        Task {
-          await errorReporting.reportMessage(
-            "Error decoding sign-in info from Apple",
-            ["auth_method": "apple", "sign_in_step": "credential_decode"])
-        }
+        await errorReporting.reportMessage(
+          "Error decoding sign-in info from Apple",
+          ["auth_method": "apple", "sign_in_step": "credential_decode"])
         return
       }
 
       let email = appleIDCredential.email
 
-      Task {
-        do {
-          let firstName = appleIDCredential.fullName?.givenName ?? ""
-          let lastName = appleIDCredential.fullName?.familyName
-          let token = try await api.signInViaApple(
-            identityToken,
-            email,  // Now optional - can be nil
-            authCode,
-            firstName,
-            lastName)
-          $auth.withLock { $0 = Auth(jwtToken: token) }
-          appRating.recordInstallDateIfNeeded()
-          await analytics.track(.signInCompleted(method: .apple, userId: appleIDCredential.user))
-        } catch {
-          print("Sign in failed: \(error)")
-          await handleSignInAPIFailure(error, authMethod: .apple, step: "api_call")
-        }
+      do {
+        let firstName = appleIDCredential.fullName?.givenName ?? ""
+        let lastName = appleIDCredential.fullName?.familyName
+        let token = try await api.signInViaApple(
+          identityToken,
+          email,
+          authCode,
+          firstName,
+          lastName)
+        $auth.withLock { $0 = Auth(jwtToken: token) }
+        appRating.recordInstallDateIfNeeded()
+        await analytics.track(.signInCompleted(method: .apple, userId: appleIDCredential.user))
+      } catch {
+        print("Sign in failed: \(error)")
+        await handleSignInAPIFailure(error, authMethod: .apple, step: "api_call")
       }
     case .failure(let error):
-      handleAppleAuthorizationFailure(error)
+      await handleAppleAuthorizationFailure(error)
     }
   }
 
@@ -144,15 +139,13 @@ class SignInPageModel: ViewModel {
 
   // MARK: - Private Helpers
 
-  private func handleAppleAuthorizationFailure(_ error: any Error) {
+  private func handleAppleAuthorizationFailure(_ error: any Error) async {
     print(error)
     if let authError = error as? ASAuthorizationError, authError.code == .canceled {
       return
     }
     presentedAlert = .signInError
-    Task {
-      await reportSignInError(error, authMethod: .apple, step: "authorization_failure")
-    }
+    await reportSignInError(error, authMethod: .apple, step: "authorization_failure")
   }
 
   private func reportSignInError(_ error: Error, authMethod: AuthMethod, step: String) async {

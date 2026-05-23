@@ -16,6 +16,7 @@ class RecordIntroPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.audioRecorder) var audioRecorder
   @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
   @ObservationIgnored @Dependency(\.introUploadService) var introUploadService
+  @ObservationIgnored @Dependency(\.continuousClock) var clock
 
   // MARK: - Shared State
 
@@ -171,41 +172,33 @@ class RecordIntroPageModel: ViewModel {
     }
   }
 
-  func onPlayPauseTapped() {
-    Task {
-      if isPlaying {
-        await audioPlayer.pause()
-        stopPlaybackUpdates()
-        isPlaying = false
-      } else {
-        await audioPlayer.play()
-        startPlaybackUpdates()
-        isPlaying = true
-      }
+  func onPlayPauseTapped() async {
+    if isPlaying {
+      await audioPlayer.pause()
+      stopPlaybackUpdates()
+      isPlaying = false
+    } else {
+      await audioPlayer.play()
+      startPlaybackUpdates()
+      isPlaying = true
     }
   }
 
-  func onRewindTapped() {
-    Task {
-      await audioPlayer.seek(0)
-      playbackPosition = 0
-    }
+  func onRewindTapped() async {
+    await audioPlayer.seek(0)
+    playbackPosition = 0
   }
 
-  func seekTo(_ time: TimeInterval) {
-    Task {
-      await audioPlayer.seek(time)
-      playbackPosition = time
-    }
+  func seekTo(_ time: TimeInterval) async {
+    await audioPlayer.seek(time)
+    playbackPosition = time
   }
 
-  func onReRecordTapped() {
+  func onReRecordTapped() async {
     stopPlaybackUpdates()
-    Task {
-      await audioPlayer.stop()
-      if let url = recordingURL {
-        await audioRecorder.deleteRecording(url)
-      }
+    await audioPlayer.stop()
+    if let url = recordingURL {
+      await audioRecorder.deleteRecording(url)
     }
     recordingURL = nil
     recordingDuration = 0
@@ -218,31 +211,29 @@ class RecordIntroPageModel: ViewModel {
   func onDiscardTapped() {
     stopPlaybackUpdates()
     presentedAlert = .discardRecordingConfirmation { [weak self] in
-      self?.confirmDiscard()
+      Task { await self?.confirmDiscard() }
     }
   }
 
-  func confirmDiscard() {
-    Task {
-      await audioPlayer.stop()
-      if let url = recordingURL {
-        await audioRecorder.deleteRecording(url)
-      }
+  func confirmDiscard() async {
+    await audioPlayer.stop()
+    if let url = recordingURL {
+      await audioRecorder.deleteRecording(url)
     }
     mainContainerNavigationCoordinator.presentedSheet = nil
   }
 
-  func onAcceptRecordingTapped() {
+  func onAcceptRecordingTapped() async {
     guard recordingURL != nil else { return }
     stopPlaybackUpdates()
-    Task { await audioPlayer.stop() }
+    await audioPlayer.stop()
     isPlaying = false
-    startUpload()
+    await startUpload()
   }
 
-  func onRetryTapped() {
+  func onRetryTapped() async {
     uploadStatus = nil
-    startUpload()
+    await startUpload()
   }
 
   func onDoneTapped() {
@@ -251,30 +242,27 @@ class RecordIntroPageModel: ViewModel {
 
   // MARK: - Private Helpers
 
-  private func startUpload() {
+  private func startUpload() async {
     guard let url = recordingURL, let jwt = auth.jwt else { return }
     uploadStatus = .converting
-    Task {
-      do {
-        try await introUploadService.uploadIntro(
-          jwt,
-          url,
-          stationId,
-          songTitle,
-          audioBlockId
-        ) { [weak self] status in
-          self?.uploadStatus = status
-        }
-        uploadStatus = .completed
-        onUploadCompleted?()
-        try? await Task.sleep(for: .seconds(1))
-        mainContainerNavigationCoordinator.presentedSheet = nil
-      } catch {
-        if case .failed = uploadStatus {
-          // Status already set by the callback
-        } else {
-          uploadStatus = .failed(error.localizedDescription)
-        }
+    do {
+      try await introUploadService.uploadIntro(
+        jwt,
+        url,
+        stationId,
+        songTitle,
+        audioBlockId
+      ) { [weak self] status in
+        self?.uploadStatus = status
+      }
+      uploadStatus = .completed
+      onUploadCompleted?()
+      try? await clock.sleep(for: .seconds(1))
+      mainContainerNavigationCoordinator.presentedSheet = nil
+    } catch {
+      if case .failed = uploadStatus {
+      } else {
+        uploadStatus = .failed(error.localizedDescription)
       }
     }
   }

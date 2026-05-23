@@ -9,24 +9,14 @@ import Combine
 import Dependencies
 import Foundation
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 // swiftlint:disable redundant_optional_initialization
 
 @MainActor
-final class ListeningTimeTileModelTests: XCTestCase {
-
-  override func setUp() {
-    super.setUp()
-    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
-  }
-
-  override func tearDown() {
-    super.tearDown()
-    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
-  }
+struct ListeningTimeTileModelTests {
 
   func createMockListeningTracker(totalTimeMS: Int) -> ListeningTracker {
     let rewardsProfile = RewardsProfile(
@@ -39,65 +29,76 @@ final class ListeningTimeTileModelTests: XCTestCase {
 
   // MARK: - Display String Formatting Tests
 
-  func testListeningTimeDisplayString_FormatsZeroTime() async {
+  @Test
+  func testListeningTimeDisplayStringFormatsZeroTime() async {
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
     withDependencies {
       $0.continuousClock = TestClock()
     } operation: {
       let model = ListeningTimeTileModel()
       model.totalListeningTime = 0
 
-      XCTAssertEqual(model.listeningTimeDisplayString, "00h 00m 00s")
+      #expect(model.listeningTimeDisplayString == "00h 00m 00s")
     }
   }
 
-  func testListeningTimeDisplayString_FormatsSeconds() async {
+  @Test
+  func testListeningTimeDisplayStringFormatsSeconds() async {
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
     withDependencies {
       $0.continuousClock = TestClock()
     } operation: {
       let model = ListeningTimeTileModel()
       model.totalListeningTime = 45000  // 45 seconds
 
-      XCTAssertEqual(model.listeningTimeDisplayString, "00h 00m 45s")
+      #expect(model.listeningTimeDisplayString == "00h 00m 45s")
     }
   }
 
-  func testListeningTimeDisplayString_FormatsMinutes() async {
+  @Test
+  func testListeningTimeDisplayStringFormatsMinutes() async {
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
     withDependencies {
       $0.continuousClock = TestClock()
     } operation: {
       let model = ListeningTimeTileModel()
       model.totalListeningTime = 150000  // 2 minutes 30 seconds
 
-      XCTAssertEqual(model.listeningTimeDisplayString, "00h 02m 30s")
+      #expect(model.listeningTimeDisplayString == "00h 02m 30s")
     }
   }
 
-  func testListeningTimeDisplayString_FormatsHours() async {
+  @Test
+  func testListeningTimeDisplayStringFormatsHours() async {
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
     withDependencies {
       $0.continuousClock = TestClock()
     } operation: {
       let model = ListeningTimeTileModel()
       model.totalListeningTime = 7_382_000  // 2 hours 3 minutes 2 seconds
 
-      XCTAssertEqual(model.listeningTimeDisplayString, "02h 03m 02s")
+      #expect(model.listeningTimeDisplayString == "02h 03m 02s")
     }
   }
 
-  func testListeningTimeDisplayString_FormatsLargeHours() async {
+  @Test
+  func testListeningTimeDisplayStringFormatsLargeHours() async {
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
     withDependencies {
       $0.continuousClock = TestClock()
     } operation: {
       let model = ListeningTimeTileModel()
       model.totalListeningTime = 360_000_000  // 100 hours
 
-      XCTAssertEqual(model.listeningTimeDisplayString, "100h 00m 00s")
+      #expect(model.listeningTimeDisplayString == "100h 00m 00s")
     }
   }
 
   // MARK: - View Lifecycle Tests
 
-  func testViewAppeared_UpdatesFromListeningTracker() async {
-    @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
+  @Test
+  func testViewAppearedUpdatesFromListeningTracker() async {
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
     let clock = TestClock()
     let model = withDependencies {
       $0.continuousClock = clock
@@ -105,7 +106,7 @@ final class ListeningTimeTileModelTests: XCTestCase {
       ListeningTimeTileModel()
     }
 
-    XCTAssertEqual(model.totalListeningTime, 0)
+    #expect(model.totalListeningTime == 0)
 
     let tracker = createMockListeningTracker(totalTimeMS: 5000)
     $listeningTracker.withLock { $0 = tracker }
@@ -114,13 +115,14 @@ final class ListeningTimeTileModelTests: XCTestCase {
 
     // The initial update should happen immediately
     await clock.advance(by: .seconds(1))
-    XCTAssertEqual(model.totalListeningTime, 5000)
+    #expect(model.totalListeningTime == 5000)
 
     model.viewDisappeared()
   }
 
-  func testViewAppeared_HandlesNilTracker() async {
-    @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
+  @Test
+  func testViewAppearedHandlesNilTracker() async {
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
     let clock = TestClock()
     let model = withDependencies {
       $0.continuousClock = clock
@@ -131,13 +133,14 @@ final class ListeningTimeTileModelTests: XCTestCase {
     model.viewAppeared()
 
     await Task.yield()
-    XCTAssertEqual(model.totalListeningTime, 0)
+    #expect(model.totalListeningTime == 0)
 
     model.viewDisappeared()
   }
 
-  func testViewDisappeared_CancelsRefreshTask() async {
-    @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
+  @Test
+  func testViewDisappearedCancelsRefreshTask() async {
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
     let clock = TestClock()
     let model = withDependencies {
       $0.continuousClock = clock
@@ -151,7 +154,7 @@ final class ListeningTimeTileModelTests: XCTestCase {
     model.viewAppeared()
 
     await Task.yield()
-    XCTAssertEqual(model.totalListeningTime, 1000)
+    #expect(model.totalListeningTime == 1000)
 
     model.viewDisappeared()
 
@@ -166,11 +169,12 @@ final class ListeningTimeTileModelTests: XCTestCase {
     await clock.advance(by: .seconds(1))
 
     // Should still be 1000 since task was cancelled
-    XCTAssertEqual(model.totalListeningTime, 1000)
+    #expect(model.totalListeningTime == 1000)
   }
 
-  func testMultipleViewAppeared_CancelsPreviousTask() async {
-    @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
+  @Test
+  func testMultipleViewAppearedCancelsPreviousTask() async {
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
     let clock = TestClock()
     let model = withDependencies {
       $0.continuousClock = clock
@@ -184,7 +188,7 @@ final class ListeningTimeTileModelTests: XCTestCase {
     // First viewAppeared
     model.viewAppeared()
     await Task.yield()
-    XCTAssertEqual(model.totalListeningTime, 1000)
+    #expect(model.totalListeningTime == 1000)
 
     // Second viewAppeared (should cancel first task)
     let session1 = LocalListeningSession(
@@ -204,7 +208,7 @@ final class ListeningTimeTileModelTests: XCTestCase {
 
     model.viewAppeared()
     await Task.yield()
-    XCTAssertEqual(model.totalListeningTime, 11000)  // 1000 + 10000
+    #expect(model.totalListeningTime == 11000)  // 1000 + 10000
 
     // Advance clock to verify only one task is running
     let session2 = LocalListeningSession(
@@ -225,13 +229,14 @@ final class ListeningTimeTileModelTests: XCTestCase {
     // Allow shared state to propagate before advancing clock
     await Task.yield()
     await clock.advance(by: .seconds(1))
-    XCTAssertEqual(model.totalListeningTime, 16000)  // 1000 + 10000 + 5000
+    #expect(model.totalListeningTime == 16000)  // 1000 + 10000 + 5000
 
     model.viewDisappeared()
   }
 
+  @Test
   func testConcurrentUpdates() async {
-    @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
     let clock = TestClock()
     let model = withDependencies {
       $0.continuousClock = clock
@@ -245,7 +250,7 @@ final class ListeningTimeTileModelTests: XCTestCase {
     model.viewAppeared()
 
     await Task.yield()
-    XCTAssertEqual(model.totalListeningTime, 0)
+    #expect(model.totalListeningTime == 0)
 
     // Simulate rapid updates by adding sessions
     var sessions: [LocalListeningSession] = []
@@ -269,14 +274,15 @@ final class ListeningTimeTileModelTests: XCTestCase {
       // Allow shared state to propagate before advancing clock
       await Task.yield()
       await clock.advance(by: .seconds(1))
-      XCTAssertEqual(model.totalListeningTime, index * 1000)
+      #expect(model.totalListeningTime == index * 1000)
     }
 
     model.viewDisappeared()
   }
 
+  @Test
   func testIntegrationWithRealTimeTracking() async {
-    @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
+    @Shared(.listeningTracker) var listeningTracker: ListeningTracker? = nil
     let clock = TestClock()
     let model = withDependencies {
       $0.continuousClock = clock
@@ -298,8 +304,8 @@ final class ListeningTimeTileModelTests: XCTestCase {
 
     // Initial state: 10 seconds from server
     await Task.yield()
-    XCTAssertEqual(model.totalListeningTime, 10000)
-    XCTAssertEqual(model.listeningTimeDisplayString, "00h 00m 10s")
+    #expect(model.totalListeningTime == 10000)
+    #expect(model.listeningTimeDisplayString == "00h 00m 10s")
 
     // Advance 5 seconds - the listening session should add time
     await clock.advance(by: .seconds(5))
@@ -308,7 +314,7 @@ final class ListeningTimeTileModelTests: XCTestCase {
     // Note: Due to the way ListeningTracker calculates time,
     // we might need to be flexible with exact timing
     let expectedTime = model.totalListeningTime
-    XCTAssertGreaterThanOrEqual(expectedTime, 10000)
+    #expect(expectedTime >= 10000)
 
     model.viewDisappeared()
   }

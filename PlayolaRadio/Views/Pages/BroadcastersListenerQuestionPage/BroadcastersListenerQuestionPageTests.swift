@@ -3,53 +3,61 @@
 //  PlayolaRadio
 //
 
+import ConcurrencyExtras
 import Dependencies
+import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class BroadcastersListenerQuestionPageTests: XCTestCase {
+struct BroadcastersListenerQuestionPageTests {
   private let testStationId = "test-station-id"
   private let testJwt = "test-jwt-token"
 
   // MARK: - Initialization Tests
 
+  @Test
   func testInitSetsStationId() {
     let model = makeModel()
 
-    XCTAssertEqual(model.stationId, testStationId)
+    #expect(model.stationId == testStationId)
   }
 
+  @Test
   func testInitialStateIsNotLoading() {
     let model = makeModel()
 
-    XCTAssertFalse(model.isLoading)
+    #expect(!model.isLoading)
   }
 
+  @Test
   func testInitialStateHasNoExpandedQuestions() {
     let model = makeModel()
 
-    XCTAssertTrue(model.expandedQuestionIds.isEmpty)
+    #expect(model.expandedQuestionIds.isEmpty)
   }
 
+  @Test
   func testInitialStateHasNoPlayingQuestion() {
     let model = makeModel()
 
-    XCTAssertNil(model.playingQuestionId)
+    #expect(model.playingQuestionId == nil)
   }
 
+  @Test
   func testInitialStateHasEmptyQuestions() {
     let model = makeModel()
 
-    XCTAssertTrue(model.questions.isEmpty)
+    #expect(model.questions.isEmpty)
   }
 
   // MARK: - Fetch Tests
 
+  @Test
   func testViewAppearedCallsAPIWithStationId() async {
     let calledStationId = LockIsolated<String?>(nil)
 
@@ -66,9 +74,10 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.viewAppeared()
 
-    XCTAssertEqual(calledStationId.value, testStationId)
+    #expect(calledStationId.value == testStationId)
   }
 
+  @Test
   func testViewAppearedPopulatesQuestionsArray() async {
     let mockQuestions: [ListenerQuestion] = [
       .mockWith(id: "q1"),
@@ -85,11 +94,12 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.viewAppeared()
 
-    XCTAssertEqual(model.questions.count, 2)
-    XCTAssertEqual(model.questions[0].id, "q1")
-    XCTAssertEqual(model.questions[1].id, "q2")
+    #expect(model.questions.count == 2)
+    #expect(model.questions[0].id == "q1")
+    #expect(model.questions[1].id == "q2")
   }
 
+  @Test
   func testViewAppearedSetsIsLoadingDuringFetch() async {
     @Shared(.auth) var auth = Auth(currentUser: nil, jwt: testJwt)
 
@@ -101,13 +111,14 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
       BroadcastersListenerQuestionPageModel(stationId: testStationId)
     }
 
-    XCTAssertFalse(model.isLoading)
+    #expect(!model.isLoading)
 
     await model.viewAppeared()
 
-    XCTAssertFalse(model.isLoading)
+    #expect(!model.isLoading)
   }
 
+  @Test
   func testViewAppearedShowsAlertOnError() async {
     @Shared(.auth) var auth = Auth(currentUser: nil, jwt: testJwt)
 
@@ -121,10 +132,11 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.viewAppeared()
 
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert?.title, "Error Loading Questions")
+    #expect(model.presentedAlert != nil)
+    #expect(model.presentedAlert?.title == "Error Loading Questions")
   }
 
+  @Test
   func testViewAppearedDoesNothingWithoutJwt() async {
     let apiCalled = LockIsolated(false)
 
@@ -141,9 +153,10 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.viewAppeared()
 
-    XCTAssertFalse(apiCalled.value)
+    #expect(!apiCalled.value)
   }
 
+  @Test
   func testViewAppearedCallsFetchQuestions() async {
     let fetchCalled = LockIsolated(false)
 
@@ -160,9 +173,10 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.viewAppeared()
 
-    XCTAssertTrue(fetchCalled.value)
+    #expect(fetchCalled.value)
   }
 
+  @Test
   func testRefreshPulledDownCallsFetchQuestions() async {
     let fetchCalled = LockIsolated(false)
 
@@ -179,38 +193,42 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.refreshPulledDown()
 
-    XCTAssertTrue(fetchCalled.value)
+    #expect(fetchCalled.value)
   }
 
   // MARK: - Expand/Collapse Tests
 
+  @Test
   func testIsExpandedReturnsFalseForCollapsedQuestion() {
     let model = makeModelWithQuestions()
     let questionId = model.questions.first!.id
 
-    XCTAssertFalse(model.isExpanded(questionId))
+    #expect(!model.isExpanded(questionId))
   }
 
+  @Test
   func testToggleExpandedExpandsCollapsedQuestion() {
     let model = makeModelWithQuestions()
     let questionId = model.questions.first!.id
 
     model.showMoreButtonTapped(questionId)
 
-    XCTAssertTrue(model.isExpanded(questionId))
+    #expect(model.isExpanded(questionId))
   }
 
+  @Test
   func testToggleExpandedCollapsesExpandedQuestion() {
     let model = makeModelWithQuestions()
     let questionId = model.questions.first!.id
 
     model.showMoreButtonTapped(questionId)
-    XCTAssertTrue(model.isExpanded(questionId))
+    #expect(model.isExpanded(questionId))
 
     model.showMoreButtonTapped(questionId)
-    XCTAssertFalse(model.isExpanded(questionId))
+    #expect(!model.isExpanded(questionId))
   }
 
+  @Test
   func testMultipleQuestionsCanBeExpandedSimultaneously() {
     let model = makeModelWithQuestions()
     let firstQuestionId = model.questions[0].id
@@ -219,28 +237,31 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
     model.showMoreButtonTapped(firstQuestionId)
     model.showMoreButtonTapped(secondQuestionId)
 
-    XCTAssertTrue(model.isExpanded(firstQuestionId))
-    XCTAssertTrue(model.isExpanded(secondQuestionId))
+    #expect(model.isExpanded(firstQuestionId))
+    #expect(model.isExpanded(secondQuestionId))
   }
 
   // MARK: - Playback Tests
 
+  @Test
   func testIsPlayingReturnsFalseWhenNotPlaying() {
     let model = makeModelWithQuestions()
     let questionId = model.questions.first!.id
 
-    XCTAssertFalse(model.isPlaying(questionId))
+    #expect(!model.isPlaying(questionId))
   }
 
+  @Test
   func testIsPlayingReturnsTrueForPlayingQuestion() {
     let model = makeModelWithQuestions()
     let questionId = model.questions.first!.id
 
     model.playingQuestionId = questionId
 
-    XCTAssertTrue(model.isPlaying(questionId))
+    #expect(model.isPlaying(questionId))
   }
 
+  @Test
   func testIsPlayingReturnsFalseForDifferentQuestion() {
     let model = makeModelWithQuestions()
     let firstQuestionId = model.questions[0].id
@@ -248,9 +269,10 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     model.playingQuestionId = firstQuestionId
 
-    XCTAssertFalse(model.isPlaying(secondQuestionId))
+    #expect(!model.isPlaying(secondQuestionId))
   }
 
+  @Test
   func testOnPlayTappedStartsPlaybackWhenNotPlaying() async {
     let loadFileCalled = LockIsolated(false)
     let playCalled = LockIsolated(false)
@@ -271,11 +293,12 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.playButtonTapped(question)
 
-    XCTAssertTrue(loadFileCalled.value)
-    XCTAssertTrue(playCalled.value)
-    XCTAssertEqual(model.playingQuestionId, question.id)
+    #expect(loadFileCalled.value)
+    #expect(playCalled.value)
+    #expect(model.playingQuestionId == question.id)
   }
 
+  @Test
   func testOnPlayTappedStopsPlaybackWhenAlreadyPlaying() async {
     let stopCalled = LockIsolated(false)
 
@@ -292,10 +315,11 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.playButtonTapped(question)
 
-    XCTAssertTrue(stopCalled.value)
-    XCTAssertNil(model.playingQuestionId)
+    #expect(stopCalled.value)
+    #expect(model.playingQuestionId == nil)
   }
 
+  @Test
   func testOnPlayTappedStopsPreviousBeforeStartingNew() async {
     let stopCallCount = LockIsolated(0)
     let loadFileCalled = LockIsolated(false)
@@ -318,11 +342,12 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.playButtonTapped(secondQuestion)
 
-    XCTAssertEqual(stopCallCount.value, 1)
-    XCTAssertTrue(loadFileCalled.value)
-    XCTAssertEqual(model.playingQuestionId, secondQuestion.id)
+    #expect(stopCallCount.value == 1)
+    #expect(loadFileCalled.value)
+    #expect(model.playingQuestionId == secondQuestion.id)
   }
 
+  @Test
   func testPlayButtonTappedOnSameQuestionStopsPlayback() async {
     let stopCalled = LockIsolated(false)
 
@@ -341,12 +366,13 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.playButtonTapped(question)
 
-    XCTAssertTrue(stopCalled.value)
-    XCTAssertNil(model.playingQuestionId)
+    #expect(stopCalled.value)
+    #expect(model.playingQuestionId == nil)
   }
 
   // MARK: - Error Handling Tests
 
+  @Test
   func testOnPlayTappedShowsAlertOnError() async {
     let model = withDependencies {
       $0.audioPlayer.loadFile = { _ in
@@ -359,14 +385,15 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     let question = model.questions.first!
 
-    XCTAssertNil(model.presentedAlert)
+    #expect(model.presentedAlert == nil)
 
     await model.playButtonTapped(question)
 
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert?.title, "Playback Error")
+    #expect(model.presentedAlert != nil)
+    #expect(model.presentedAlert?.title == "Playback Error")
   }
 
+  @Test
   func testOnPlayTappedDoesNothingWhenNoAudioBlock() async {
     let audioPlayerCalled = LockIsolated(false)
 
@@ -389,74 +416,84 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.playButtonTapped(questionWithoutAudio)
 
-    XCTAssertFalse(audioPlayerCalled.value)
+    #expect(!audioPlayerCalled.value)
   }
 
   // MARK: - Filter Tests
 
+  @Test
   func testDefaultFilterIsPending() {
     let model = makeModel()
 
-    XCTAssertEqual(model.selectedFilter, .pending)
+    #expect(model.selectedFilter == .pending)
   }
 
+  @Test
   func testFilterOptionsContainsAllExpectedValues() {
     let model = makeModel()
 
-    XCTAssertEqual(model.filterOptions, [.pending, .answered, .all])
+    #expect(model.filterOptions == [.pending, .answered, .all])
   }
 
+  @Test
   func testFilteredQuestionsReturnsOnlyPendingByDefault() {
     let model = makeModelWithMixedStatusQuestions()
 
     let filtered = model.filteredQuestions
 
-    XCTAssertEqual(filtered.count, 2)
-    XCTAssertTrue(filtered.allSatisfy { $0.status == .pending })
+    #expect(filtered.count == 2)
+    #expect(filtered.allSatisfy { $0.status == .pending })
   }
 
+  @Test
   func testFilteredQuestionsReturnsOnlyAnsweredWhenFilterIsAnswered() {
     let model = makeModelWithMixedStatusQuestions()
 
     model.selectedFilter = .answered
 
     let filtered = model.filteredQuestions
-    XCTAssertEqual(filtered.count, 1)
-    XCTAssertTrue(filtered.allSatisfy { $0.status == .answered })
+    #expect(filtered.count == 1)
+    #expect(filtered.allSatisfy { $0.status == .answered })
   }
 
+  @Test
   func testFilteredQuestionsReturnsAllExceptDeclinedWhenFilterIsAll() {
     let model = makeModelWithMixedStatusQuestions()
 
     model.selectedFilter = .all
 
     let filtered = model.filteredQuestions
-    XCTAssertEqual(filtered.count, 3)
-    XCTAssertTrue(filtered.allSatisfy { $0.status != .declined })
+    #expect(filtered.count == 3)
+    #expect(filtered.allSatisfy { $0.status != .declined })
   }
 
+  @Test
   func testFilterSelectedUpdatesSelectedFilter() {
     let model = makeModel()
 
     model.filterSelected(.answered)
 
-    XCTAssertEqual(model.selectedFilter, .answered)
+    #expect(model.selectedFilter == .answered)
   }
 
+  @Test
   func testFilterDisplayTextForPending() {
-    XCTAssertEqual(ListenerQuestionFilter.pending.displayText, "Pending")
+    #expect(ListenerQuestionFilter.pending.displayText == "Pending")
   }
 
+  @Test
   func testFilterDisplayTextForAnswered() {
-    XCTAssertEqual(ListenerQuestionFilter.answered.displayText, "Answered")
+    #expect(ListenerQuestionFilter.answered.displayText == "Answered")
   }
 
+  @Test
   func testFilterDisplayTextForAll() {
-    XCTAssertEqual(ListenerQuestionFilter.all.displayText, "All")
+    #expect(ListenerQuestionFilter.all.displayText == "All")
   }
 
   // MARK: - Decline Question Tests
 
+  @Test
   func testDeclineQuestionCallsAPI() async {
     let declineCalled = LockIsolated(false)
     let capturedStationId = LockIsolated<String?>(nil)
@@ -482,11 +519,12 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.declineQuestionSwiped(model.questions[0])
 
-    XCTAssertTrue(declineCalled.value)
-    XCTAssertEqual(capturedStationId.value, testStationId)
-    XCTAssertEqual(capturedQuestionId.value, "q1")
+    #expect(declineCalled.value)
+    #expect(capturedStationId.value == testStationId)
+    #expect(capturedQuestionId.value == "q1")
   }
 
+  @Test
   func testDeclineQuestionUpdatesLocalState() async {
     let declinedQuestion = ListenerQuestion.mockWith(
       id: "q1",
@@ -509,30 +547,34 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.declineQuestionSwiped(model.questions[0])
 
-    XCTAssertEqual(model.questions[id: "q1"]?.status, .declined)
+    #expect(model.questions[id: "q1"]?.status == .declined)
   }
 
+  @Test
   func testCanDeclineReturnsTrueForPendingQuestion() {
     let model = makeModel()
     let pendingQuestion = ListenerQuestion.mockWith(status: .pending)
 
-    XCTAssertTrue(model.canDecline(pendingQuestion))
+    #expect(model.canDecline(pendingQuestion))
   }
 
+  @Test
   func testCanDeclineReturnsFalseForAnsweredQuestion() {
     let model = makeModel()
     let answeredQuestion = ListenerQuestion.mockWith(status: .answered)
 
-    XCTAssertFalse(model.canDecline(answeredQuestion))
+    #expect(!model.canDecline(answeredQuestion))
   }
 
+  @Test
   func testCanDeclineReturnsFalseForDeclinedQuestion() {
     let model = makeModel()
     let declinedQuestion = ListenerQuestion.mockWith(status: .declined)
 
-    XCTAssertFalse(model.canDecline(declinedQuestion))
+    #expect(!model.canDecline(declinedQuestion))
   }
 
+  @Test
   func testDeclineQuestionShowsAlertOnError() async {
     @Shared(.auth) var auth = Auth(currentUser: nil, jwt: testJwt)
 
@@ -551,7 +593,7 @@ final class BroadcastersListenerQuestionPageTests: XCTestCase {
 
     await model.declineQuestionSwiped(model.questions[0])
 
-    XCTAssertNotNil(model.presentedAlert)
+    #expect(model.presentedAlert != nil)
   }
 
   // MARK: - Test Helpers

@@ -5,41 +5,39 @@
 
 import ConcurrencyExtras
 import Dependencies
+import Foundation
 import PlayolaPlayer
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class AskQuestionPageTests: XCTestCase {
-  override func setUp() {
-    super.setUp()
-    @Shared(.mainContainerNavigationCoordinator) var coordinator
-    coordinator.path = []
-  }
-
+struct AskQuestionPageTests {
   // MARK: - Init
 
+  @Test
   func testInitStoresStation() {
     let station = Station.mockWith(id: "station-123", curatorName: "Test Curator")
 
     let model = AskQuestionPageModel(station: station)
 
-    XCTAssertEqual(model.station.id, "station-123")
-    XCTAssertEqual(model.station.curatorName, "Test Curator")
+    #expect(model.station.id == "station-123")
+    #expect(model.station.curatorName == "Test Curator")
   }
 
+  @Test
   func testCuratorNameReturnsCuratorName() {
     let station = Station.mockWith(curatorName: "Bri Bagwell")
 
     let model = AskQuestionPageModel(station: station)
 
-    XCTAssertEqual(model.curatorName, "Bri Bagwell")
+    #expect(model.curatorName == "Bri Bagwell")
   }
 
   // MARK: - Recording
 
+  @Test
   func testRecordTappedRequestsPermissionBeforeRecording() async {
     let requestPermissionCalled = LockIsolated(false)
     let startRecordingCalled = LockIsolated(false)
@@ -50,22 +48,23 @@ final class AskQuestionPageTests: XCTestCase {
         return true
       }
       $0.audioRecorder.startRecording = {
-        XCTAssertTrue(
+        #expect(
           requestPermissionCalled.value, "Permission should be requested before recording starts")
         startRecordingCalled.setValue(true)
       }
     } operation: {
       let model = AskQuestionPageModel(station: .mock)
-      XCTAssertEqual(model.recordingPhase, .idle)
+      #expect(model.recordingPhase == .idle)
 
       await model.recordTapped()
 
-      XCTAssertTrue(requestPermissionCalled.value)
-      XCTAssertTrue(startRecordingCalled.value)
-      XCTAssertEqual(model.recordingPhase, .recording)
+      #expect(requestPermissionCalled.value)
+      #expect(startRecordingCalled.value)
+      #expect(model.recordingPhase == .recording)
     }
   }
 
+  @Test
   func testRecordTappedShowsAlertWhenPermissionDenied() async {
     let startRecordingCalled = LockIsolated(false)
 
@@ -79,13 +78,14 @@ final class AskQuestionPageTests: XCTestCase {
 
       await model.recordTapped()
 
-      XCTAssertFalse(startRecordingCalled.value)
-      XCTAssertEqual(model.recordingPhase, .idle)
-      XCTAssertNotNil(model.presentedAlert)
-      XCTAssertEqual(model.presentedAlert?.title, "Microphone Access Required")
+      #expect(!startRecordingCalled.value)
+      #expect(model.recordingPhase == .idle)
+      #expect(model.presentedAlert != nil)
+      #expect(model.presentedAlert?.title == "Microphone Access Required")
     }
   }
 
+  @Test
   func testStopTappedTransitionsToReview() async {
     let expectedURL = URL(fileURLWithPath: "/tmp/test-recording.wav")
 
@@ -100,15 +100,16 @@ final class AskQuestionPageTests: XCTestCase {
 
       await model.stopTapped()
 
-      XCTAssertEqual(model.recordingPhase, .review)
-      XCTAssertEqual(model.recordingURL, expectedURL)
-      XCTAssertEqual(model.recordingDuration, 5.0)
+      #expect(model.recordingPhase == .review)
+      #expect(model.recordingURL == expectedURL)
+      #expect(model.recordingDuration == 5.0)
     }
   }
 
   // MARK: - Re-record
 
-  func testReRecordTappedResetsToIdleState() {
+  @Test
+  func testReRecordTappedResetsToIdleState() async {
     let model = AskQuestionPageModel(station: .mock)
     model.recordingPhase = .review
     model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
@@ -116,52 +117,58 @@ final class AskQuestionPageTests: XCTestCase {
     model.playbackPosition = 5.0
     model.isPlaying = true
 
-    model.reRecordTapped()
+    await model.reRecordTapped()
 
-    XCTAssertEqual(model.recordingPhase, .idle)
-    XCTAssertNil(model.recordingURL)
-    XCTAssertEqual(model.recordingDuration, 0)
-    XCTAssertEqual(model.playbackPosition, 0)
-    XCTAssertFalse(model.isPlaying)
+    #expect(model.recordingPhase == .idle)
+    #expect(model.recordingURL == nil)
+    #expect(model.recordingDuration == 0)
+    #expect(model.playbackPosition == 0)
+    #expect(!model.isPlaying)
   }
 
   // MARK: - Cancel
 
-  func testCancelTappedShowsConfirmationWhenInReview() {
+  @Test
+  func testCancelTappedShowsConfirmationWhenInReview() async {
     let model = AskQuestionPageModel(station: .mock)
     model.recordingPhase = .review
 
-    XCTAssertNil(model.presentedAlert)
+    #expect(model.presentedAlert == nil)
 
-    model.cancelTapped()
+    await model.cancelTapped()
 
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert?.title, "Discard Recording?")
+    #expect(model.presentedAlert != nil)
+    #expect(model.presentedAlert?.title == "Discard Recording?")
   }
 
-  func testCancelTappedPopsNavigationWhenIdle() {
-    @Shared(.mainContainerNavigationCoordinator) var coordinator
+  @Test
+  func testCancelTappedPopsNavigationWhenIdle() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
     let model = AskQuestionPageModel(station: .mock)
     coordinator.path = [.askQuestionPage(model)]
     model.recordingPhase = .idle
 
-    model.cancelTapped()
+    await model.cancelTapped()
 
-    XCTAssertTrue(coordinator.path.isEmpty)
+    #expect(coordinator.path.isEmpty)
   }
 
-  func testConfirmCancelPopsNavigation() {
-    @Shared(.mainContainerNavigationCoordinator) var coordinator
+  @Test
+  func testConfirmCancelPopsNavigation() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
     let model = AskQuestionPageModel(station: .mock)
     coordinator.path = [.askQuestionPage(model)]
 
-    model.confirmCancel()
+    await model.confirmCancel()
 
-    XCTAssertTrue(coordinator.path.isEmpty)
+    #expect(coordinator.path.isEmpty)
   }
 
   // MARK: - Playback
 
+  @Test
   func testPlayPauseTappedPlaysWhenNotPlaying() async {
     let playCalled = LockIsolated(false)
 
@@ -173,14 +180,14 @@ final class AskQuestionPageTests: XCTestCase {
       let model = AskQuestionPageModel(station: .mock)
       model.isPlaying = false
 
-      model.playPauseTapped()
-      try? await Task.sleep(for: .milliseconds(10))
+      await model.playPauseTapped()
 
-      XCTAssertTrue(playCalled.value)
-      XCTAssertTrue(model.isPlaying)
+      #expect(playCalled.value)
+      #expect(model.isPlaying)
     }
   }
 
+  @Test
   func testPlayPauseTappedPausesWhenPlaying() async {
     let pauseCalled = LockIsolated(false)
 
@@ -190,14 +197,14 @@ final class AskQuestionPageTests: XCTestCase {
       let model = AskQuestionPageModel(station: .mock)
       model.isPlaying = true
 
-      model.playPauseTapped()
-      try? await Task.sleep(for: .milliseconds(10))
+      await model.playPauseTapped()
 
-      XCTAssertTrue(pauseCalled.value)
-      XCTAssertFalse(model.isPlaying)
+      #expect(pauseCalled.value)
+      #expect(!model.isPlaying)
     }
   }
 
+  @Test
   func testRewindTappedSeeksToZero() async {
     let seekTime = LockIsolated<TimeInterval?>(nil)
 
@@ -207,31 +214,32 @@ final class AskQuestionPageTests: XCTestCase {
       let model = AskQuestionPageModel(station: .mock)
       model.playbackPosition = 30.0
 
-      model.rewindTapped()
-      try? await Task.sleep(for: .milliseconds(10))
+      await model.rewindTapped()
 
-      XCTAssertEqual(seekTime.value, 0)
-      XCTAssertEqual(model.playbackPosition, 0)
+      #expect(seekTime.value == 0)
+      #expect(model.playbackPosition == 0)
     }
   }
 
   // MARK: - Display Time
 
+  @Test
   func testDisplayTimeFormatsCorrectly() {
     let model = AskQuestionPageModel(station: .mock)
 
     model.recordingDuration = 0
-    XCTAssertEqual(model.displayTime, "0:00")
+    #expect(model.displayTime == "0:00")
 
     model.recordingDuration = 65
-    XCTAssertEqual(model.displayTime, "1:05")
+    #expect(model.displayTime == "1:05")
 
     model.recordingDuration = 3661
-    XCTAssertEqual(model.displayTime, "1:01:01")
+    #expect(model.displayTime == "1:01:01")
   }
 
   // MARK: - Station Pause/Resume on Page Lifecycle
 
+  @Test
   func testViewAppearedPausesStationWhenPlaying() async {
     let playingStation = AnyStation.mock
     let stationPlayerMock = StationPlayerMock()
@@ -239,77 +247,87 @@ final class AskQuestionPageTests: XCTestCase {
 
     await withDependencies {
       $0.audioRecorder.prepareForRecording = {}
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      let model = AskQuestionPageModel(station: .mock, stationPlayer: stationPlayerMock)
+      let model = AskQuestionPageModel(station: .mock)
 
       await model.viewAppeared()
 
-      XCTAssertEqual(stationPlayerMock.stopCalledCount, 1)
+      #expect(stationPlayerMock.stopCalledCount == 1)
     }
   }
 
+  @Test
   func testViewAppearedDoesNotPauseStationWhenNotPlaying() async {
     let stationPlayerMock = StationPlayerMock()
     stationPlayerMock.state = StationPlayer.State(playbackStatus: .stopped)
 
     await withDependencies {
       $0.audioRecorder.prepareForRecording = {}
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      let model = AskQuestionPageModel(station: .mock, stationPlayer: stationPlayerMock)
+      let model = AskQuestionPageModel(station: .mock)
 
       await model.viewAppeared()
 
-      XCTAssertEqual(stationPlayerMock.stopCalledCount, 0)
+      #expect(stationPlayerMock.stopCalledCount == 0)
     }
   }
 
+  @Test
   func testConfirmCancelResumesStationIfWasPaused() async {
     let playingStation = AnyStation.mock
     let stationPlayerMock = StationPlayerMock()
     stationPlayerMock.state = StationPlayer.State(playbackStatus: .playing(playingStation))
-    @Shared(.mainContainerNavigationCoordinator) var coordinator
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
 
     await withDependencies {
       $0.audioRecorder.prepareForRecording = {}
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      let model = AskQuestionPageModel(station: .mock, stationPlayer: stationPlayerMock)
+      let model = AskQuestionPageModel(station: .mock)
       coordinator.path = [.askQuestionPage(model)]
 
       await model.viewAppeared()
       stationPlayerMock.callsToPlay = []
 
-      model.confirmCancel()
+      await model.confirmCancel()
 
-      XCTAssertEqual(stationPlayerMock.callsToPlay.count, 1)
-      XCTAssertEqual(stationPlayerMock.callsToPlay.first?.id, playingStation.id)
+      #expect(stationPlayerMock.callsToPlay.count == 1)
+      #expect(stationPlayerMock.callsToPlay.first?.id == playingStation.id)
     }
   }
 
+  @Test
   func testConfirmCancelDoesNotResumeStationIfWasNotPaused() async {
     let stationPlayerMock = StationPlayerMock()
     stationPlayerMock.state = StationPlayer.State(playbackStatus: .stopped)
-    @Shared(.mainContainerNavigationCoordinator) var coordinator
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
 
     await withDependencies {
       $0.audioRecorder.prepareForRecording = {}
+      $0.stationPlayer = stationPlayerMock
     } operation: {
-      let model = AskQuestionPageModel(station: .mock, stationPlayer: stationPlayerMock)
+      let model = AskQuestionPageModel(station: .mock)
       coordinator.path = [.askQuestionPage(model)]
 
       await model.viewAppeared()
 
-      model.confirmCancel()
+      await model.confirmCancel()
 
-      XCTAssertEqual(stationPlayerMock.callsToPlay.count, 0)
+      #expect(stationPlayerMock.callsToPlay.count == 0)
     }
   }
 
   // MARK: - Alerts
 
+  @Test
   func testQuestionSentSuccessAlertIncludesCuratorName() {
     let alert = PlayolaAlert.questionSentSuccess(curatorName: "Bri Bagwell") {}
 
-    XCTAssertTrue(
+    #expect(
       alert.message?.contains("Bri Bagwell") ?? false,
       "Alert message should contain the curator name"
     )

@@ -5,12 +5,15 @@
 //  Created by Brian D Keane on 12/15/25.
 //
 
-import XCTest
+import CustomDump
+import Foundation
+import Testing
 
 @testable import PlayolaRadio
 
-final class SongRequestTests: XCTestCase {
+struct SongRequestTests {
 
+  @Test
   func testSongRequestDecodesFromJSON() throws {
     let jsonString = """
       {
@@ -30,19 +33,10 @@ final class SongRequestTests: XCTestCase {
 
     let songRequest = try JSONDecoder().decode(SongRequest.self, from: json)
 
-    XCTAssertEqual(songRequest.title, "Like a Rolling Stone")
-    XCTAssertEqual(songRequest.artist, "Bob Dylan")
-    XCTAssertEqual(songRequest.album, "Highway 61 Revisited")
-    XCTAssertEqual(songRequest.durationMS, 369600)
-    XCTAssertEqual(songRequest.popularity, 78)
-    XCTAssertEqual(songRequest.releaseDate, "1965-08-30")
-    XCTAssertEqual(songRequest.isrc, "USSM16500213")
-    XCTAssertEqual(songRequest.appleId, "1440806768")
-    XCTAssertEqual(songRequest.spotifyId, "3AhXZa8sUQht0UEdBJgpGc")
-    XCTAssertEqual(songRequest.imageUrl, URL(string: "https://i.scdn.co/image/test"))
-    XCTAssertNil(songRequest.requestId)
+    expectNoDifference(songRequest, SongRequest.mockWith())
   }
 
+  @Test
   func testSongRequestDecodesWithRequestId() throws {
     let jsonString = """
       {
@@ -63,9 +57,10 @@ final class SongRequestTests: XCTestCase {
 
     let songRequest = try JSONDecoder().decode(SongRequest.self, from: json)
 
-    XCTAssertEqual(songRequest.requestId, "request-abc-123")
+    #expect(songRequest.requestId == "request-abc-123")
   }
 
+  @Test
   func testSongRequestDecodesWithNullImageUrl() throws {
     let jsonString = """
       {
@@ -84,9 +79,10 @@ final class SongRequestTests: XCTestCase {
 
     let songRequest = try JSONDecoder().decode(SongRequest.self, from: json)
 
-    XCTAssertNil(songRequest.imageUrl)
+    #expect(songRequest.imageUrl == nil)
   }
 
+  @Test
   func testSongRequestDecodesWithMissingImageUrl() throws {
     let jsonString = """
       {
@@ -104,9 +100,10 @@ final class SongRequestTests: XCTestCase {
 
     let songRequest = try JSONDecoder().decode(SongRequest.self, from: json)
 
-    XCTAssertNil(songRequest.imageUrl)
+    #expect(songRequest.imageUrl == nil)
   }
 
+  @Test
   func testSongRequestDecodesWithNullOptionalFields() throws {
     let jsonString = """
       {
@@ -122,12 +119,13 @@ final class SongRequestTests: XCTestCase {
 
     let songRequest = try JSONDecoder().decode(SongRequest.self, from: json)
 
-    XCTAssertNil(songRequest.popularity)
-    XCTAssertNil(songRequest.isrc)
-    XCTAssertNil(songRequest.spotifyId)
-    XCTAssertNil(songRequest.imageUrl)
+    #expect(songRequest.popularity == nil)
+    #expect(songRequest.isrc == nil)
+    #expect(songRequest.spotifyId == nil)
+    #expect(songRequest.imageUrl == nil)
   }
 
+  @Test
   func testSongRequestMockWithReturnsValidInstance() {
     let songRequest = SongRequest.mockWith(
       title: "Custom Title",
@@ -135,14 +133,15 @@ final class SongRequestTests: XCTestCase {
       appleId: "custom-apple-id"
     )
 
-    XCTAssertEqual(songRequest.title, "Custom Title")
-    XCTAssertEqual(songRequest.artist, "Custom Artist")
-    XCTAssertEqual(songRequest.appleId, "custom-apple-id")
+    #expect(songRequest.title == "Custom Title")
+    #expect(songRequest.artist == "Custom Artist")
+    #expect(songRequest.appleId == "custom-apple-id")
   }
 
+  @Test
   func testSongRequestIdentifiableUsesAppleIdAsId() {
     let songRequest = SongRequest.mockWith(appleId: "unique-apple-id")
 
-    XCTAssertEqual(songRequest.id, "unique-apple-id")
+    #expect(songRequest.id == "unique-apple-id")
   }
 }

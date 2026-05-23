@@ -5,13 +5,14 @@
 
 import ConcurrencyExtras
 import Dependencies
+import Foundation
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class LibraryPageTests: XCTestCase {
+struct LibraryPageTests {
   // MARK: - Helpers
 
   private func withModel(
@@ -50,38 +51,44 @@ final class LibraryPageTests: XCTestCase {
 
   // MARK: - Initial State Tests
 
+  @Test
   func testInitialStateLibrarySongsAreEmpty() {
     withModel { model in
-      XCTAssertTrue(model.librarySongs.isEmpty)
+      #expect(model.librarySongs.isEmpty)
     }
   }
 
+  @Test
   func testInitialStateLibraryRequestsAreEmpty() {
     withModel { model in
-      XCTAssertTrue(model.libraryRequests.isEmpty)
+      #expect(model.libraryRequests.isEmpty)
     }
   }
 
+  @Test
   func testInitialStateIsNotLoading() {
     withModel { model in
-      XCTAssertFalse(model.isLoading)
+      #expect(!model.isLoading)
     }
   }
 
+  @Test
   func testInitialStateSearchTextIsEmpty() {
     withModel { model in
-      XCTAssertEqual(model.searchText, "")
+      #expect(model.searchText == "")
     }
   }
 
+  @Test
   func testNavigationTitle() {
     withModel { model in
-      XCTAssertEqual(model.navigationTitle, "Library")
+      #expect(model.navigationTitle == "Library")
     }
   }
 
   // MARK: - View Appeared Tests
 
+  @Test
   func testViewAppearedFetchesLibrarySongs() async {
     let mockSongs = [
       LibrarySong.mockWith(id: "song-1", title: "Song One"),
@@ -89,12 +96,13 @@ final class LibraryPageTests: XCTestCase {
     ]
 
     await withLoadedModel(songs: mockSongs) { model in
-      XCTAssertEqual(model.librarySongs.count, 2)
-      XCTAssertEqual(model.librarySongs[0].id, "song-1")
-      XCTAssertEqual(model.librarySongs[1].id, "song-2")
+      #expect(model.librarySongs.count == 2)
+      #expect(model.librarySongs[0].id == "song-1")
+      #expect(model.librarySongs[1].id == "song-2")
     }
   }
 
+  @Test
   func testViewAppearedFetchesLibraryRequests() async {
     let mockRequests = [
       StationLibraryRequest.mockWith(id: "request-1", title: "Request One"),
@@ -102,12 +110,13 @@ final class LibraryPageTests: XCTestCase {
     ]
 
     await withLoadedModel(requests: mockRequests) { model in
-      XCTAssertEqual(model.libraryRequests.count, 2)
-      XCTAssertEqual(model.libraryRequests[0].id, "request-1")
-      XCTAssertEqual(model.libraryRequests[1].id, "request-2")
+      #expect(model.libraryRequests.count == 2)
+      #expect(model.libraryRequests[0].id == "request-1")
+      #expect(model.libraryRequests[1].id == "request-2")
     }
   }
 
+  @Test
   func testViewAppearedPassesCorrectStationId() async {
     let capturedStationId = LockIsolated<String?>(nil)
 
@@ -120,11 +129,12 @@ final class LibraryPageTests: XCTestCase {
         }
       },
       perform: { _ in
-        XCTAssertEqual(capturedStationId.value, "my-station-123")
+        #expect(capturedStationId.value == "my-station-123")
       }
     )
   }
 
+  @Test
   func testViewAppearedShowsAlertOnError() async {
     await withLoadedModel(
       configure: {
@@ -133,14 +143,15 @@ final class LibraryPageTests: XCTestCase {
         }
       },
       perform: { model in
-        XCTAssertNotNil(model.presentedAlert)
-        XCTAssertEqual(model.presentedAlert?.title, "Error")
+        #expect(model.presentedAlert != nil)
+        #expect(model.presentedAlert?.title == "Error")
       }
     )
   }
 
   // MARK: - Search/Filter Tests
 
+  @Test
   func testFilteredSongsReturnsAllWhenSearchTextIsEmpty() async {
     let mockSongs = [
       LibrarySong.mockWith(id: "song-1", title: "Alpha", artist: "Artist A"),
@@ -149,10 +160,11 @@ final class LibraryPageTests: XCTestCase {
 
     await withLoadedModel(songs: mockSongs) { model in
       model.searchText = ""
-      XCTAssertEqual(model.filteredSongs.count, 2)
+      #expect(model.filteredSongs.count == 2)
     }
   }
 
+  @Test
   func testFilteredSongsFiltersByTitle() async {
     let mockSongs = [
       LibrarySong.mockWith(id: "song-1", title: "Bohemian Rhapsody", artist: "Queen"),
@@ -161,11 +173,12 @@ final class LibraryPageTests: XCTestCase {
 
     await withLoadedModel(songs: mockSongs) { model in
       model.searchText = "Bohemian"
-      XCTAssertEqual(model.filteredSongs.count, 1)
-      XCTAssertEqual(model.filteredSongs[0].title, "Bohemian Rhapsody")
+      #expect(model.filteredSongs.count == 1)
+      #expect(model.filteredSongs[0].title == "Bohemian Rhapsody")
     }
   }
 
+  @Test
   func testFilteredSongsFiltersByArtist() async {
     let mockSongs = [
       LibrarySong.mockWith(id: "song-1", title: "Bohemian Rhapsody", artist: "Queen"),
@@ -174,11 +187,12 @@ final class LibraryPageTests: XCTestCase {
 
     await withLoadedModel(songs: mockSongs) { model in
       model.searchText = "Eagles"
-      XCTAssertEqual(model.filteredSongs.count, 1)
-      XCTAssertEqual(model.filteredSongs[0].artist, "Eagles")
+      #expect(model.filteredSongs.count == 1)
+      #expect(model.filteredSongs[0].artist == "Eagles")
     }
   }
 
+  @Test
   func testFilteredSongsIsCaseInsensitive() async {
     let mockSongs = [
       LibrarySong.mockWith(id: "song-1", title: "Bohemian Rhapsody", artist: "Queen")
@@ -186,12 +200,13 @@ final class LibraryPageTests: XCTestCase {
 
     await withLoadedModel(songs: mockSongs) { model in
       model.searchText = "QUEEN"
-      XCTAssertEqual(model.filteredSongs.count, 1)
+      #expect(model.filteredSongs.count == 1)
     }
   }
 
   // MARK: - Request Filtering Tests
 
+  @Test
   func testPendingRequestsReturnsOnlyPendingRequests() async {
     let mockRequests = [
       StationLibraryRequest.mockWith(id: "request-1", status: .pending),
@@ -200,11 +215,12 @@ final class LibraryPageTests: XCTestCase {
     ]
 
     await withLoadedModel(requests: mockRequests) { model in
-      XCTAssertEqual(model.pendingRequests.count, 1)
-      XCTAssertEqual(model.pendingRequests[0].id, "request-1")
+      #expect(model.pendingRequests.count == 1)
+      #expect(model.pendingRequests[0].id == "request-1")
     }
   }
 
+  @Test
   func testFulfilledRequestsReturnsOnlyCompletedRequests() async {
     let mockRequests = [
       StationLibraryRequest.mockWith(id: "request-1", status: .pending),
@@ -213,31 +229,34 @@ final class LibraryPageTests: XCTestCase {
     ]
 
     await withLoadedModel(requests: mockRequests) { model in
-      XCTAssertEqual(model.fulfilledRequests.count, 1)
-      XCTAssertEqual(model.fulfilledRequests[0].id, "request-2")
+      #expect(model.fulfilledRequests.count == 1)
+      #expect(model.fulfilledRequests[0].id == "request-2")
     }
   }
 
+  @Test
   func testHasActiveRequestsReturnsTrueWhenPendingExists() async {
     let mockRequests = [
       StationLibraryRequest.mockWith(id: "request-1", status: .pending)
     ]
 
     await withLoadedModel(requests: mockRequests) { model in
-      XCTAssertTrue(model.hasActiveRequests)
+      #expect(model.hasActiveRequests)
     }
   }
 
+  @Test
   func testHasActiveRequestsReturnsTrueWhenFulfilledExists() async {
     let mockRequests = [
       StationLibraryRequest.mockWith(id: "request-1", status: .completed)
     ]
 
     await withLoadedModel(requests: mockRequests) { model in
-      XCTAssertTrue(model.hasActiveRequests)
+      #expect(model.hasActiveRequests)
     }
   }
 
+  @Test
   func testHasActiveRequestsReturnsFalseWhenAllDismissed() async {
     let mockRequests = [
       StationLibraryRequest.mockWith(id: "request-1", status: .dismissed),
@@ -245,12 +264,13 @@ final class LibraryPageTests: XCTestCase {
     ]
 
     await withLoadedModel(requests: mockRequests) { model in
-      XCTAssertFalse(model.hasActiveRequests)
+      #expect(!model.hasActiveRequests)
     }
   }
 
   // MARK: - Remove Song Tests
 
+  @Test
   func testRemoveSongButtonTappedCreatesRemoveRequest() async {
     let capturedAudioBlockId = LockIsolated<String?>(nil)
     let mockSong = LibrarySong.mockWith(id: "song-to-remove")
@@ -265,11 +285,12 @@ final class LibraryPageTests: XCTestCase {
       },
       perform: { model in
         await model.removeSongButtonTapped(mockSong)
-        XCTAssertEqual(capturedAudioBlockId.value, "song-to-remove")
+        #expect(capturedAudioBlockId.value == "song-to-remove")
       }
     )
   }
 
+  @Test
   func testRemoveSongButtonTappedAddsRequestToList() async {
     let mockSong = LibrarySong.mockWith(id: "song-to-remove", title: "Song to Remove")
     let mockRequest = StationLibraryRequest.mockWith(
@@ -285,16 +306,17 @@ final class LibraryPageTests: XCTestCase {
         $0.api.createRemoveLibraryRequest = { _, _, _ in mockRequest }
       },
       perform: { model in
-        XCTAssertEqual(model.libraryRequests.count, 0)
+        #expect(model.libraryRequests.count == 0)
         await model.removeSongButtonTapped(mockSong)
-        XCTAssertEqual(model.libraryRequests.count, 1)
-        XCTAssertEqual(model.libraryRequests[0].id, "new-request")
+        #expect(model.libraryRequests.count == 1)
+        #expect(model.libraryRequests[0].id == "new-request")
       }
     )
   }
 
   // MARK: - Pending Request Check Tests
 
+  @Test
   func testHasPendingRequestReturnsTrueForSongWithPendingRequest() async {
     let mockSong = LibrarySong.mockWith(id: "song-1")
     let mockRequest = StationLibraryRequest.mockWith(
@@ -304,28 +326,31 @@ final class LibraryPageTests: XCTestCase {
     )
 
     await withLoadedModel(songs: [mockSong], requests: [mockRequest]) { model in
-      XCTAssertTrue(model.hasPendingRequest(for: mockSong))
+      #expect(model.hasPendingRequest(for: mockSong))
     }
   }
 
+  @Test
   func testHasPendingRequestReturnsFalseForSongWithoutRequest() async {
     let mockSong = LibrarySong.mockWith(id: "song-1")
 
     await withLoadedModel(songs: [mockSong]) { model in
-      XCTAssertFalse(model.hasPendingRequest(for: mockSong))
+      #expect(!model.hasPendingRequest(for: mockSong))
     }
   }
 
   // MARK: - Processing Removal Tests
 
+  @Test
   func testIsProcessingRemovalReturnsFalseInitially() {
     let mockSong = LibrarySong.mockWith(id: "song-1")
 
     withModel { model in
-      XCTAssertFalse(model.isProcessingRemoval(for: mockSong))
+      #expect(!model.isProcessingRemoval(for: mockSong))
     }
   }
 
+  @Test
   func testIsProcessingRemovalReturnsFalseAfterCompletion() async {
     let mockSong = LibrarySong.mockWith(id: "song-1")
 
@@ -337,15 +362,16 @@ final class LibraryPageTests: XCTestCase {
         }
       },
       perform: { model in
-        XCTAssertFalse(model.isProcessingRemoval(for: mockSong))
+        #expect(!model.isProcessingRemoval(for: mockSong))
         await model.removeSongButtonTapped(mockSong)
-        XCTAssertFalse(model.isProcessingRemoval(for: mockSong))
+        #expect(!model.isProcessingRemoval(for: mockSong))
       }
     )
   }
 
   // MARK: - Dismiss Request Tests
 
+  @Test
   func testDismissRequestButtonTappedCallsAPI() async {
     let capturedRequestId = LockIsolated<String?>(nil)
     let mockRequest = StationLibraryRequest.mockWith(id: "request-to-dismiss", status: .completed)
@@ -360,11 +386,12 @@ final class LibraryPageTests: XCTestCase {
       },
       perform: { model in
         await model.dismissRequestButtonTapped(mockRequest)
-        XCTAssertEqual(capturedRequestId.value, "request-to-dismiss")
+        #expect(capturedRequestId.value == "request-to-dismiss")
       }
     )
   }
 
+  @Test
   func testDismissRequestButtonTappedUpdatesRequestInList() async {
     let mockRequest = StationLibraryRequest.mockWith(id: "request-1", status: .completed)
 
@@ -376,15 +403,16 @@ final class LibraryPageTests: XCTestCase {
         }
       },
       perform: { model in
-        XCTAssertEqual(model.fulfilledRequests.count, 1)
+        #expect(model.fulfilledRequests.count == 1)
         await model.dismissRequestButtonTapped(mockRequest)
-        XCTAssertEqual(model.fulfilledRequests.count, 0)
+        #expect(model.fulfilledRequests.count == 0)
       }
     )
   }
 
   // MARK: - Refresh Tests
 
+  @Test
   func testRefreshPulledDownReloadsData() async {
     let fetchCount = LockIsolated(0)
 
@@ -396,15 +424,16 @@ final class LibraryPageTests: XCTestCase {
         }
       },
       perform: { model in
-        XCTAssertEqual(fetchCount.value, 1)
+        #expect(fetchCount.value == 1)
         await model.refreshPulledDown()
-        XCTAssertEqual(fetchCount.value, 2)
+        #expect(fetchCount.value == 2)
       }
     )
   }
 
   // MARK: - View Helper Tests
 
+  @Test
   func testSongsSectionHeaderIncludesCount() async {
     let mockSongs = [
       LibrarySong.mockWith(id: "song-1"),
@@ -413,10 +442,11 @@ final class LibraryPageTests: XCTestCase {
     ]
 
     await withLoadedModel(songs: mockSongs) { model in
-      XCTAssertEqual(model.songsSectionHeader, "SONGS (3)")
+      #expect(model.songsSectionHeader == "SONGS (3)")
     }
   }
 
+  @Test
   func testSongsSectionHeaderReflectsFilteredCount() async {
     let mockSongs = [
       LibrarySong.mockWith(id: "song-1", title: "Alpha", artist: "Artist A"),
@@ -426,95 +456,107 @@ final class LibraryPageTests: XCTestCase {
 
     await withLoadedModel(songs: mockSongs) { model in
       model.searchText = "Artist A"
-      XCTAssertEqual(model.songsSectionHeader, "SONGS (2)")
+      #expect(model.songsSectionHeader == "SONGS (2)")
     }
   }
 
+  @Test
   func testRequestTypeLabelReturnsAddForAddRequest() {
     withModel { model in
       let request = StationLibraryRequest.mockWith(type: .add)
-      XCTAssertEqual(model.requestTypeLabel(for: request), "Add")
+      #expect(model.requestTypeLabel(for: request) == "Add")
     }
   }
 
+  @Test
   func testRequestTypeLabelReturnsRemoveForRemoveRequest() {
     withModel { model in
       let request = StationLibraryRequest.mockWith(type: .remove)
-      XCTAssertEqual(model.requestTypeLabel(for: request), "Remove")
+      #expect(model.requestTypeLabel(for: request) == "Remove")
     }
   }
 
+  @Test
   func testRequestTypeColorReturnsSuccessForAddRequest() {
     withModel { model in
       let request = StationLibraryRequest.mockWith(type: .add)
-      XCTAssertEqual(model.requestTypeColor(for: request), .success)
+      #expect(model.requestTypeColor(for: request) == .success)
     }
   }
 
+  @Test
   func testRequestTypeColorReturnsWarningForRemoveRequest() {
     withModel { model in
       let request = StationLibraryRequest.mockWith(type: .remove)
-      XCTAssertEqual(model.requestTypeColor(for: request), .warning)
+      #expect(model.requestTypeColor(for: request) == .warning)
     }
   }
 
+  @Test
   func testRequestStatusLabelReturnsCapitalizedStatus() {
     withModel { model in
       let pendingRequest = StationLibraryRequest.mockWith(status: .pending)
-      XCTAssertEqual(model.requestStatusLabel(for: pendingRequest), "Pending")
+      #expect(model.requestStatusLabel(for: pendingRequest) == "Pending")
 
       let completedRequest = StationLibraryRequest.mockWith(status: .completed)
-      XCTAssertEqual(model.requestStatusLabel(for: completedRequest), "Completed")
+      #expect(model.requestStatusLabel(for: completedRequest) == "Completed")
 
       let dismissedRequest = StationLibraryRequest.mockWith(status: .dismissed)
-      XCTAssertEqual(model.requestStatusLabel(for: dismissedRequest), "Dismissed")
+      #expect(model.requestStatusLabel(for: dismissedRequest) == "Dismissed")
     }
   }
 
+  @Test
   func testCanDismissRequestReturnsTrueForCompletedRequest() {
     withModel { model in
       let request = StationLibraryRequest.mockWith(status: .completed)
-      XCTAssertTrue(model.canDismissRequest(request))
+      #expect(model.canDismissRequest(request))
     }
   }
 
+  @Test
   func testCanDismissRequestReturnsFalseForPendingRequest() {
     withModel { model in
       let request = StationLibraryRequest.mockWith(status: .pending)
-      XCTAssertFalse(model.canDismissRequest(request))
+      #expect(!model.canDismissRequest(request))
     }
   }
 
+  @Test
   func testCanDismissRequestReturnsFalseForDismissedRequest() {
     withModel { model in
       let request = StationLibraryRequest.mockWith(status: .dismissed)
-      XCTAssertFalse(model.canDismissRequest(request))
+      #expect(!model.canDismissRequest(request))
     }
   }
 
+  @Test
   func testCanCancelRequestReturnsTrueForPendingRequest() {
     withModel { model in
       let request = StationLibraryRequest.mockWith(status: .pending)
-      XCTAssertTrue(model.canCancelRequest(request))
+      #expect(model.canCancelRequest(request))
     }
   }
 
+  @Test
   func testCanCancelRequestReturnsFalseForCompletedRequest() {
     withModel { model in
       let request = StationLibraryRequest.mockWith(status: .completed)
-      XCTAssertFalse(model.canCancelRequest(request))
+      #expect(!model.canCancelRequest(request))
     }
   }
 
+  @Test
   func testCanCancelRequestReturnsFalseForDismissedRequest() {
     withModel { model in
       let request = StationLibraryRequest.mockWith(status: .dismissed)
-      XCTAssertFalse(model.canCancelRequest(request))
+      #expect(!model.canCancelRequest(request))
     }
   }
 
   // MARK: - Pending Request Helper Tests
 
+  @Test
   func testPendingRequestReturnsRequestForSongWithPendingRequest() async {
     let mockSong = LibrarySong.mockWith(id: "song-1")
     let mockRequest = StationLibraryRequest.mockWith(
@@ -526,20 +568,22 @@ final class LibraryPageTests: XCTestCase {
 
     await withLoadedModel(songs: [mockSong], requests: [mockRequest]) { model in
       let result = model.pendingRequest(for: mockSong)
-      XCTAssertNotNil(result)
-      XCTAssertEqual(result?.id, "pending-request-1")
+      #expect(result != nil)
+      #expect(result?.id == "pending-request-1")
     }
   }
 
+  @Test
   func testPendingRequestReturnsNilForSongWithoutPendingRequest() async {
     let mockSong = LibrarySong.mockWith(id: "song-1")
 
     await withLoadedModel(songs: [mockSong]) { model in
       let result = model.pendingRequest(for: mockSong)
-      XCTAssertNil(result)
+      #expect(result == nil)
     }
   }
 
+  @Test
   func testPendingRequestReturnsNilForSongWithCompletedRequest() async {
     let mockSong = LibrarySong.mockWith(id: "song-1")
     let mockRequest = StationLibraryRequest.mockWith(
@@ -550,12 +594,13 @@ final class LibraryPageTests: XCTestCase {
 
     await withLoadedModel(songs: [mockSong], requests: [mockRequest]) { model in
       let result = model.pendingRequest(for: mockSong)
-      XCTAssertNil(result)
+      #expect(result == nil)
     }
   }
 
   // MARK: - Cancel Request Tests
 
+  @Test
   func testCancelRequestButtonTappedCallsAPI() async {
     let capturedRequestId = LockIsolated<String?>(nil)
     let mockRequest = StationLibraryRequest.mockWith(id: "request-to-cancel", status: .pending)
@@ -569,11 +614,12 @@ final class LibraryPageTests: XCTestCase {
       },
       perform: { model in
         await model.cancelRequestButtonTapped(mockRequest)
-        XCTAssertEqual(capturedRequestId.value, "request-to-cancel")
+        #expect(capturedRequestId.value == "request-to-cancel")
       }
     )
   }
 
+  @Test
   func testCancelRequestButtonTappedRemovesRequestFromList() async {
     let mockRequest = StationLibraryRequest.mockWith(id: "request-1", status: .pending)
 
@@ -583,13 +629,14 @@ final class LibraryPageTests: XCTestCase {
         $0.api.cancelStationLibraryRequest = { _, _, _ in }
       },
       perform: { model in
-        XCTAssertEqual(model.libraryRequests.count, 1)
+        #expect(model.libraryRequests.count == 1)
         await model.cancelRequestButtonTapped(mockRequest)
-        XCTAssertEqual(model.libraryRequests.count, 0)
+        #expect(model.libraryRequests.count == 0)
       }
     )
   }
 
+  @Test
   func testCancelRequestButtonTappedShowsAlertOnError() async {
     let mockRequest = StationLibraryRequest.mockWith(id: "request-1", status: .pending)
 
@@ -601,99 +648,107 @@ final class LibraryPageTests: XCTestCase {
         }
       },
       perform: { model in
-        XCTAssertNil(model.presentedAlert)
+        #expect(model.presentedAlert == nil)
         await model.cancelRequestButtonTapped(mockRequest)
-        XCTAssertNotNil(model.presentedAlert)
-        XCTAssertEqual(model.presentedAlert?.title, "Error")
+        #expect(model.presentedAlert != nil)
+        #expect(model.presentedAlert?.title == "Error")
       }
     )
   }
 
   // MARK: - Add Song Button Tests
 
+  @Test
   func testAddSongButtonTappedPresentsSongSearchPageSheet() {
     @Shared(.mainContainerNavigationCoordinator)
-    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+    var mainContainerNavigationCoordinator = MainContainerNavigationCoordinator()
 
     withModel { model in
-      XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
-      XCTAssertNil(model.songSearchPageModel)
+      #expect(mainContainerNavigationCoordinator.presentedSheet == nil)
+      #expect(model.songSearchPageModel == nil)
 
       model.addSongButtonTapped()
 
-      XCTAssertNotNil(model.songSearchPageModel)
+      #expect(model.songSearchPageModel != nil)
       if case .songSearchPage = mainContainerNavigationCoordinator.presentedSheet {
         // Success
       } else {
-        XCTFail("Expected songSearchPage sheet presentation")
+        Issue.record("Expected songSearchPage sheet presentation")
       }
     }
   }
 
+  @Test
   func testAddSongButtonTappedUsesSeedsOnlySearchMode() {
     withModel { model in
       model.addSongButtonTapped()
-      XCTAssertEqual(model.songSearchPageModel?.searchMode, .seedsOnly)
+      #expect(model.songSearchPageModel?.searchMode == .seedsOnly)
     }
   }
 
+  @Test
   func testAddSongButtonTappedPassesStationId() {
     withModel(stationId: "my-station-456") { model in
       model.addSongButtonTapped()
-      XCTAssertEqual(model.songSearchPageModel?.stationId, "my-station-456")
+      #expect(model.songSearchPageModel?.stationId == "my-station-456")
     }
   }
 
+  @Test
   func testAddSongButtonTappedOnAddedToLibraryCallbackAddsRequestToList() {
     withModel { model in
       model.addSongButtonTapped()
-      XCTAssertTrue(model.libraryRequests.isEmpty)
+      #expect(model.libraryRequests.isEmpty)
 
       let mockRequest = StationLibraryRequest.mockWith(id: "new-add-request", type: .add)
       model.songSearchPageModel?.onAddedToLibrary?(mockRequest)
 
-      XCTAssertEqual(model.libraryRequests.count, 1)
-      XCTAssertEqual(model.libraryRequests[0].id, "new-add-request")
+      #expect(model.libraryRequests.count == 1)
+      #expect(model.libraryRequests[0].id == "new-add-request")
     }
   }
 
+  @Test
   func testAddSongButtonTappedOnAddedToLibraryCallbackDismissesSheet() {
     @Shared(.mainContainerNavigationCoordinator)
-    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+    var mainContainerNavigationCoordinator = MainContainerNavigationCoordinator()
 
     withModel { model in
       model.addSongButtonTapped()
-      XCTAssertNotNil(mainContainerNavigationCoordinator.presentedSheet)
+      #expect(mainContainerNavigationCoordinator.presentedSheet != nil)
 
       let mockRequest = StationLibraryRequest.mockWith(id: "new-add-request", type: .add)
       model.songSearchPageModel?.onAddedToLibrary?(mockRequest)
 
-      XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
+      #expect(mainContainerNavigationCoordinator.presentedSheet == nil)
     }
   }
 
+  @Test
   func testAddSongButtonTappedOnDismissCallbackDismissesSheet() {
     @Shared(.mainContainerNavigationCoordinator)
-    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+    var mainContainerNavigationCoordinator = MainContainerNavigationCoordinator()
 
     withModel { model in
       model.addSongButtonTapped()
-      XCTAssertNotNil(mainContainerNavigationCoordinator.presentedSheet)
+      #expect(mainContainerNavigationCoordinator.presentedSheet != nil)
 
       model.songSearchPageModel?.onDismiss?()
 
-      XCTAssertNil(mainContainerNavigationCoordinator.presentedSheet)
+      #expect(mainContainerNavigationCoordinator.presentedSheet == nil)
     }
   }
 
   // MARK: - Song Intro Tests
 
+  @Test
   func testInitialStateSongIdsWithSongIntrosIsEmpty() {
     withModel { model in
-      XCTAssertTrue(model.songIdsWithSongIntros.isEmpty)
+      #expect(model.songIdsWithSongIntros.isEmpty)
     }
   }
 
+  @Test
   func testViewAppearedPopulatesSongIdsWithSongIntros() async {
     let mockSongs = [
       LibrarySong.mockWith(id: "song-1"),
@@ -707,11 +762,12 @@ final class LibraryPageTests: XCTestCase {
         }
       },
       perform: { model in
-        XCTAssertEqual(model.songIdsWithSongIntros, Set(["song-1"]))
+        #expect(model.songIdsWithSongIntros == Set(["song-1"]))
       }
     )
   }
 
+  @Test
   func testHasSongIntroReturnsTrueForSongWithIntro() async {
     let mockSong = LibrarySong.mockWith(id: "song-1")
 
@@ -722,24 +778,26 @@ final class LibraryPageTests: XCTestCase {
         }
       },
       perform: { model in
-        XCTAssertTrue(model.hasSongIntro(for: mockSong))
+        #expect(model.hasSongIntro(for: mockSong))
       }
     )
   }
 
+  @Test
   func testHasSongIntroReturnsFalseForSongWithoutIntro() async {
     let mockSong = LibrarySong.mockWith(id: "song-1")
 
     await withLoadedModel(songs: [mockSong]) { model in
-      XCTAssertFalse(model.hasSongIntro(for: mockSong))
+      #expect(!model.hasSongIntro(for: mockSong))
     }
   }
 
   // MARK: - Intro Upload Tests
 
+  @Test
   func testRecordIntroButtonTappedPresentsRecordIntroSheet() {
     @Shared(.mainContainerNavigationCoordinator)
-    var mainContainerNavigationCoordinator: MainContainerNavigationCoordinator
+    var mainContainerNavigationCoordinator = MainContainerNavigationCoordinator()
 
     withModel { model in
       let song = LibrarySong.mockWith(id: "song-1", title: "Test Song", artist: "Test Artist")
@@ -749,18 +807,19 @@ final class LibraryPageTests: XCTestCase {
       if case .recordIntroPage = mainContainerNavigationCoordinator.presentedSheet {
         // Success
       } else {
-        XCTFail("Expected recordIntroPage sheet")
+        Issue.record("Expected recordIntroPage sheet")
       }
     }
   }
 
+  @Test
   func testHasSongIntroReturnsTrueForLocallyUploadedIntro() async {
     let mockSong = LibrarySong.mockWith(id: "song-1")
 
     await withLoadedModel(songs: [mockSong]) { model in
-      XCTAssertFalse(model.hasSongIntro(for: mockSong))
+      #expect(!model.hasSongIntro(for: mockSong))
       model.uploadedIntroSongIds.insert("song-1")
-      XCTAssertTrue(model.hasSongIntro(for: mockSong))
+      #expect(model.hasSongIntro(for: mockSong))
     }
   }
 }

@@ -3,16 +3,18 @@
 //  PlayolaRadio
 //
 
+import ConcurrencyExtras
 import Dependencies
 import Foundation
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class RedeemPrizeSheetModelTests: XCTestCase {
+struct RedeemPrizeSheetModelTests {
 
+  @Test
   func testInitPreFillsVerifiedEmail() {
     @Shared(.auth) var auth = Auth(
       loggedInUser: LoggedInUser(
@@ -21,10 +23,11 @@ final class RedeemPrizeSheetModelTests: XCTestCase {
 
     let model = RedeemPrizeSheetModel(prizeTier: .mock)
 
-    XCTAssertEqual(model.emailAddress, "test@example.com")
-    XCTAssertTrue(model.hasVerifiedEmail)
+    #expect(model.emailAddress == "test@example.com")
+    #expect(model.hasVerifiedEmail)
   }
 
+  @Test
   func testInitUsesUnverifiedEmailWhenNoVerifiedEmail() {
     @Shared(.auth) var auth = Auth(
       loggedInUser: LoggedInUser(
@@ -32,33 +35,36 @@ final class RedeemPrizeSheetModelTests: XCTestCase {
 
     let model = RedeemPrizeSheetModel(prizeTier: .mock)
 
-    XCTAssertEqual(model.emailAddress, "apple@privaterelay.com")
-    XCTAssertFalse(model.hasVerifiedEmail)
+    #expect(model.emailAddress == "apple@privaterelay.com")
+    #expect(!model.hasVerifiedEmail)
   }
 
+  @Test
   func testInitLeavesEmailEmptyWhenNoAuth() {
     @Shared(.auth) var auth = Auth()
 
     let model = RedeemPrizeSheetModel(prizeTier: .mock)
 
-    XCTAssertEqual(model.emailAddress, "")
+    #expect(model.emailAddress == "")
   }
 
+  @Test
   func testCanSubmitRequiresOptionAndEmail() {
     @Shared(.auth) var auth = Auth()
 
     let model = RedeemPrizeSheetModel(prizeTier: .mock)
 
-    XCTAssertFalse(model.canSubmit)
+    #expect(!model.canSubmit)
 
     let option = model.redeemOptions[0]
     model.optionTapped(option)
-    XCTAssertFalse(model.canSubmit)
+    #expect(!model.canSubmit)
 
     model.emailAddress = "test@example.com"
-    XCTAssertTrue(model.canSubmit)
+    #expect(model.canSubmit)
   }
 
+  @Test
   func testOptionTappedSelectsOption() {
     @Shared(.auth) var auth = Auth()
 
@@ -67,26 +73,29 @@ final class RedeemPrizeSheetModelTests: XCTestCase {
 
     model.optionTapped(option)
 
-    XCTAssertEqual(model.selectedOption, option)
-    XCTAssertTrue(model.isSelected(option))
+    #expect(model.selectedOption == option)
+    #expect(model.isSelected(option))
   }
 
+  @Test
   func testRedeemOptionsIncludesRegularPrizes() {
     @Shared(.auth) var auth = Auth()
 
     let model = RedeemPrizeSheetModel(prizeTier: .mock)
 
     let options = model.redeemOptions
-    XCTAssertFalse(options.isEmpty)
-    XCTAssertTrue(options.allSatisfy { $0.stationId == nil })
+    #expect(!options.isEmpty)
+    #expect(options.allSatisfy { $0.stationId == nil })
   }
 
+  @Test
   func testSubmitWithVerifiedEmailSkipsUpdateUser() async {
     @Shared(.auth) var auth = Auth(
       loggedInUser: LoggedInUser(
         id: "user-1", firstName: "Test", email: "test@example.com",
         verifiedEmail: "test@example.com"))
-    @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
 
     let mockUserPrize = UserPrize(id: "up-1", userId: "user-1", prizeId: "p-1")
     let updateUserCalled = LockIsolated(false)
@@ -112,16 +121,18 @@ final class RedeemPrizeSheetModelTests: XCTestCase {
 
     await model.submitButtonTapped()
 
-    XCTAssertFalse(updateUserCalled.value)
-    XCTAssertTrue(successCalled.value)
-    XCTAssertFalse(model.isSubmitting)
+    #expect(!updateUserCalled.value)
+    #expect(successCalled.value)
+    #expect(!model.isSubmitting)
   }
 
+  @Test
   func testSubmitWithoutVerifiedEmailCallsUpdateUser() async {
     @Shared(.auth) var auth = Auth(
       loggedInUser: LoggedInUser(
         id: "user-1", firstName: "Test", email: "apple@privaterelay.com"))
-    @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
 
     let mockUserPrize = UserPrize(id: "up-1", userId: "user-1", prizeId: "p-1")
     let capturedVerifiedEmail = LockIsolated<String?>(nil)
@@ -151,11 +162,12 @@ final class RedeemPrizeSheetModelTests: XCTestCase {
 
     await model.submitButtonTapped()
 
-    XCTAssertEqual(capturedVerifiedEmail.value, "real@email.com")
-    XCTAssertTrue(successCalled.value)
-    XCTAssertFalse(model.isSubmitting)
+    #expect(capturedVerifiedEmail.value == "real@email.com")
+    #expect(successCalled.value)
+    #expect(!model.isSubmitting)
   }
 
+  @Test
   func testSubmitShowsAlertOnError() async {
     @Shared(.auth) var auth = Auth(
       loggedInUser: LoggedInUser(
@@ -174,7 +186,7 @@ final class RedeemPrizeSheetModelTests: XCTestCase {
 
     await model.submitButtonTapped()
 
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertFalse(model.isSubmitting)
+    #expect(model.presentedAlert != nil)
+    #expect(!model.isSubmitting)
   }
 }

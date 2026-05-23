@@ -11,6 +11,7 @@ class LikedSongsPageModel: ViewModel {
   // MARK: - Dependencies
 
   @ObservationIgnored @Dependency(\.likesManager) var likesManager: LikesManager
+  @ObservationIgnored @Dependency(\.date.now) var now
 
   // MARK: - Properties
 
@@ -50,7 +51,7 @@ class LikedSongsPageModel: ViewModel {
     presentedSongActionSheet = SongActionSheet(audioBlock: audioBlock, likedDate: likedDate)
   }
 
-  func removeSong(_ audioBlock: AudioBlock) {
+  func removeSongTapped(_ audioBlock: AudioBlock) {
     likesManager.unlike(audioBlock)
   }
 
@@ -66,7 +67,6 @@ class LikedSongsPageModel: ViewModel {
 
   private func formatSectionTitle(for date: Date) -> String {
     let calendar = Calendar.current
-    let now = Date()
 
     if calendar.isDate(date, equalTo: now, toGranularity: .weekOfYear) {
       return "Last Week"
@@ -79,7 +79,7 @@ class LikedSongsPageModel: ViewModel {
 
   private func parseSectionTitle(_ title: String) -> Date {
     if title == "Last Week" {
-      return Date()
+      return now
     } else {
       let formatter = DateFormatter()
       formatter.dateFormat = "MMMM yyyy"

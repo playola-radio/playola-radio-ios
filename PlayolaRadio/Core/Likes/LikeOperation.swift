@@ -71,8 +71,8 @@ struct LikeOperation: Codable, Equatable, Identifiable {
   }
 
   /// Whether this operation has expired (older than 7 days)
-  var isExpired: Bool {
-    Date().timeIntervalSince(timestamp) > 7 * 24 * 60 * 60
+  func isExpired(now: Date) -> Bool {
+    now.timeIntervalSince(timestamp) > 7 * 24 * 60 * 60
   }
 }
 

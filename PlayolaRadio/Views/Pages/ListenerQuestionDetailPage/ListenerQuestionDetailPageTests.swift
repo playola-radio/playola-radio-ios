@@ -5,432 +5,498 @@
 
 import ConcurrencyExtras
 import Dependencies
+import Foundation
 import PlayolaPlayer
 import Sharing
 import Testing
-import XCTest
 
 @testable import PlayolaRadio
 
 @MainActor
-final class ListenerQuestionDetailPageTests: XCTestCase {
+struct ListenerQuestionDetailPageTests {
 
   // MARK: - Display Text Tests
 
+  @Test
   func testNavigationTitleIsListenerQuestion() {
     let model = makeModel()
-    XCTAssertEqual(model.navigationTitle, "Listener Question")
+    #expect(model.navigationTitle == "Listener Question")
   }
 
+  @Test
   func testQuestionSectionTitleIsQUESTION() {
     let model = makeModel()
-    XCTAssertEqual(model.questionSectionTitle, "QUESTION")
+    #expect(model.questionSectionTitle == "QUESTION")
   }
 
+  @Test
   func testResponseSectionTitleIsYOURRESPONSE() {
     let model = makeModel()
-    XCTAssertEqual(model.responseSectionTitle, "YOUR RESPONSE")
+    #expect(model.responseSectionTitle == "YOUR RESPONSE")
   }
 
+  @Test
   func testDiscardButtonTitleIsDiscard() {
     let model = makeModel()
-    XCTAssertEqual(model.discardButtonTitle, "Discard")
+    #expect(model.discardButtonTitle == "Discard")
   }
 
+  @Test
   func testUploadButtonTitleIsUploadResponse() {
     let model = makeModel()
-    XCTAssertEqual(model.uploadButtonTitle, "Upload Response")
+    #expect(model.uploadButtonTitle == "Upload Response")
   }
 
   // MARK: - Listener Info Display Tests
 
+  @Test
   func testListenerNameShowsFullName() {
     let model = makeModel(
       question: .mockWith(
         listener: .mockWith(firstName: "John", lastName: "Doe")
       ))
-    XCTAssertEqual(model.listenerName, "John Doe")
+    #expect(model.listenerName == "John Doe")
   }
 
+  @Test
   func testListenerNameShowsFirstNameOnlyWhenNoLastName() {
     let model = makeModel(
       question: .mockWith(
         listener: .mockWith(firstName: "John", lastName: nil)
       ))
-    XCTAssertEqual(model.listenerName, "John")
+    #expect(model.listenerName == "John")
   }
 
+  @Test
   func testListenerNameShowsUnknownWhenNoListener() {
     let model = makeModel(question: .mockWith(listener: nil))
-    XCTAssertEqual(model.listenerName, "Unknown Listener")
+    #expect(model.listenerName == "Unknown Listener")
   }
 
+  @Test
   func testListenerInitialsShowsBothInitials() {
     let model = makeModel(
       question: .mockWith(
         listener: .mockWith(firstName: "John", lastName: "Doe")
       ))
-    XCTAssertEqual(model.listenerInitials, "JD")
+    #expect(model.listenerInitials == "JD")
   }
 
+  @Test
   func testListenerInitialsShowsFirstInitialOnlyWhenNoLastName() {
     let model = makeModel(
       question: .mockWith(
         listener: .mockWith(firstName: "John", lastName: nil)
       ))
-    XCTAssertEqual(model.listenerInitials, "J")
+    #expect(model.listenerInitials == "J")
   }
 
+  @Test
   func testListenerInitialsShowsQuestionMarkWhenNoListener() {
     let model = makeModel(question: .mockWith(listener: nil))
-    XCTAssertEqual(model.listenerInitials, "?")
+    #expect(model.listenerInitials == "?")
   }
 
+  @Test
   func testListenerProfileImageUrlReturnsUrlWhenPresent() {
     let model = makeModel(
       question: .mockWith(
         listener: .mockWith(profileImageUrl: "https://example.com/image.jpg")
       ))
-    XCTAssertEqual(model.listenerProfileImageUrl?.absoluteString, "https://example.com/image.jpg")
+    #expect(model.listenerProfileImageUrl?.absoluteString == "https://example.com/image.jpg")
   }
 
+  @Test
   func testListenerProfileImageUrlReturnsNilWhenNoUrl() {
     let model = makeModel(
       question: .mockWith(
         listener: .mockWith(profileImageUrl: nil)
       ))
-    XCTAssertNil(model.listenerProfileImageUrl)
+    #expect(model.listenerProfileImageUrl == nil)
   }
 
+  @Test
   func testListenerProfileImageUrlReturnsNilWhenNoListener() {
     let model = makeModel(question: .mockWith(listener: nil))
-    XCTAssertNil(model.listenerProfileImageUrl)
+    #expect(model.listenerProfileImageUrl == nil)
   }
 
   // MARK: - Transcription Tests
 
+  @Test
   func testTranscriptionShowsAudioBlockTranscription() {
     let audioBlock = AudioBlock.mockWith(transcription: "What's your favorite song?")
     let model = makeModel(question: .mockWith(audioBlock: audioBlock))
-    XCTAssertEqual(model.transcription, "What's your favorite song?")
+    #expect(model.transcription == "What's your favorite song?")
   }
 
+  @Test
   func testTranscriptionShowsFallbackWhenNoAudioBlock() {
     let model = makeModel(question: .mockWith(audioBlock: nil))
-    XCTAssertEqual(model.transcription, "No transcription available")
+    #expect(model.transcription == "No transcription available")
   }
 
   // MARK: - Recording Phase Tests
 
+  @Test
   func testRecordButtonLabelInIdlePhase() {
     let model = makeModel()
     model.recordingPhase = .idle
-    XCTAssertEqual(model.recordButtonLabel, "Tap to Record")
+    #expect(model.recordButtonLabel == "Tap to Record")
   }
 
+  @Test
   func testRecordButtonLabelInRecordingPhase() {
     let model = makeModel()
     model.recordingPhase = .recording
-    XCTAssertEqual(model.recordButtonLabel, "Tap to Stop")
+    #expect(model.recordButtonLabel == "Tap to Stop")
   }
 
+  @Test
   func testRecordButtonLabelInReviewPhase() {
     let model = makeModel()
     model.recordingPhase = .review
-    XCTAssertEqual(model.recordButtonLabel, "Try Again")
+    #expect(model.recordButtonLabel == "Try Again")
   }
 
+  @Test
   func testRecordButtonIconInIdlePhase() {
     let model = makeModel()
     model.recordingPhase = .idle
-    XCTAssertEqual(model.recordButtonIcon, "mic.fill")
+    #expect(model.recordButtonIcon == "mic.fill")
   }
 
+  @Test
   func testRecordButtonIconInRecordingPhase() {
     let model = makeModel()
     model.recordingPhase = .recording
-    XCTAssertEqual(model.recordButtonIcon, "stop.fill")
+    #expect(model.recordButtonIcon == "stop.fill")
   }
 
+  @Test
   func testRecordButtonIconInReviewPhase() {
     let model = makeModel()
     model.recordingPhase = .review
-    XCTAssertEqual(model.recordButtonIcon, "mic.fill")
+    #expect(model.recordButtonIcon == "mic.fill")
   }
 
+  @Test
   func testShowRecordingIndicatorTrueWhenRecording() {
     let model = makeModel()
     model.recordingPhase = .recording
-    XCTAssertTrue(model.showRecordingIndicator)
+    #expect(model.showRecordingIndicator)
   }
 
+  @Test
   func testShowRecordingIndicatorFalseWhenIdle() {
     let model = makeModel()
     model.recordingPhase = .idle
-    XCTAssertFalse(model.showRecordingIndicator)
+    #expect(!model.showRecordingIndicator)
   }
 
+  @Test
   func testShowRecordingIndicatorFalseWhenReview() {
     let model = makeModel()
     model.recordingPhase = .review
-    XCTAssertFalse(model.showRecordingIndicator)
+    #expect(!model.showRecordingIndicator)
   }
 
   // MARK: - Waveform Display Tests
 
+  @Test
   func testShowWaveformPlaceholderTrueWhenIdleAndNoSamples() {
     let model = makeModel()
     model.recordingPhase = .idle
     model.recordingState = .idle
-    XCTAssertTrue(model.showWaveformPlaceholder)
+    #expect(model.showWaveformPlaceholder)
   }
 
+  @Test
   func testShowWaveformPlaceholderFalseWhenRecording() {
     let model = makeModel()
     model.recordingPhase = .recording
-    XCTAssertFalse(model.showWaveformPlaceholder)
+    #expect(!model.showWaveformPlaceholder)
   }
 
+  @Test
   func testShowWaveformPlaceholderFalseWhenHasSamples() {
     let model = makeModel()
     model.recordingPhase = .idle
     model.recordingState = RecordingState(
       currentTime: 1.0, waveformSamples: [0.5], isRecording: false)
-    XCTAssertFalse(model.showWaveformPlaceholder)
+    #expect(!model.showWaveformPlaceholder)
   }
 
+  @Test
   func testWaveformPlaceholderText() {
     let model = makeModel()
-    XCTAssertEqual(model.waveformPlaceholderText, "Your recording will appear here")
+    #expect(model.waveformPlaceholderText == "Your recording will appear here")
   }
 
   // MARK: - Answer Playback Display Tests
 
+  @Test
   func testShowAnswerPlaybackControlsTrueWhenReview() {
     let model = makeModel()
     model.recordingPhase = .review
-    XCTAssertTrue(model.showAnswerPlaybackControls)
+    #expect(model.showAnswerPlaybackControls)
   }
 
+  @Test
   func testShowAnswerPlaybackControlsFalseWhenIdle() {
     let model = makeModel()
     model.recordingPhase = .idle
-    XCTAssertFalse(model.showAnswerPlaybackControls)
+    #expect(!model.showAnswerPlaybackControls)
   }
 
+  @Test
   func testShowAnswerPlaybackControlsFalseWhenRecording() {
     let model = makeModel()
     model.recordingPhase = .recording
-    XCTAssertFalse(model.showAnswerPlaybackControls)
+    #expect(!model.showAnswerPlaybackControls)
   }
 
+  @Test
   func testShowAnswerActionButtonsTrueWhenReviewAndNotUploading() {
     let model = makeModel()
     model.recordingPhase = .review
     model.uploadPhase = .notStarted
-    XCTAssertTrue(model.showAnswerActionButtons)
+    #expect(model.showAnswerActionButtons)
   }
 
+  @Test
   func testShowAnswerActionButtonsFalseWhenUploading() {
     let model = makeModel()
     model.recordingPhase = .review
     model.uploadPhase = .uploading(progress: 0.5)
-    XCTAssertFalse(model.showAnswerActionButtons)
+    #expect(!model.showAnswerActionButtons)
   }
 
+  @Test
   func testShowAnswerActionButtonsFalseWhenCompleted() {
     let model = makeModel()
     model.recordingPhase = .review
     model.uploadPhase = .completed
-    XCTAssertFalse(model.showAnswerActionButtons)
+    #expect(!model.showAnswerActionButtons)
   }
 
   // MARK: - Upload Phase Tests
 
+  @Test
   func testIsUploadingFalseWhenNotStarted() {
     let model = makeModel()
     model.uploadPhase = .notStarted
-    XCTAssertFalse(model.isUploading)
+    #expect(!model.isUploading)
   }
 
+  @Test
   func testIsUploadingTrueWhenConverting() {
     let model = makeModel()
     model.uploadPhase = .converting
-    XCTAssertTrue(model.isUploading)
+    #expect(model.isUploading)
   }
 
+  @Test
   func testIsUploadingTrueWhenUploading() {
     let model = makeModel()
     model.uploadPhase = .uploading(progress: 0.5)
-    XCTAssertTrue(model.isUploading)
+    #expect(model.isUploading)
   }
 
+  @Test
   func testIsUploadingTrueWhenNormalizing() {
     let model = makeModel()
     model.uploadPhase = .normalizing
-    XCTAssertTrue(model.isUploading)
+    #expect(model.isUploading)
   }
 
+  @Test
   func testIsUploadingTrueWhenFinalizing() {
     let model = makeModel()
     model.uploadPhase = .finalizing
-    XCTAssertTrue(model.isUploading)
+    #expect(model.isUploading)
   }
 
+  @Test
   func testIsUploadingFalseWhenCompleted() {
     let model = makeModel()
     model.uploadPhase = .completed
-    XCTAssertFalse(model.isUploading)
+    #expect(!model.isUploading)
   }
 
+  @Test
   func testIsUploadingFalseWhenFailed() {
     let model = makeModel()
     model.uploadPhase = .failed(error: "Some error")
-    XCTAssertFalse(model.isUploading)
+    #expect(!model.isUploading)
   }
 
+  @Test
   func testUploadStatusTextNotStarted() {
     let model = makeModel()
     model.uploadPhase = .notStarted
-    XCTAssertEqual(model.uploadStatusText, "")
+    #expect(model.uploadStatusText == "")
   }
 
+  @Test
   func testUploadStatusTextConverting() {
     let model = makeModel()
     model.uploadPhase = .converting
-    XCTAssertEqual(model.uploadStatusText, "Converting audio...")
+    #expect(model.uploadStatusText == "Converting audio...")
   }
 
+  @Test
   func testUploadStatusTextUploading() {
     let model = makeModel()
     model.uploadPhase = .uploading(progress: 0.5)
-    XCTAssertEqual(model.uploadStatusText, "Uploading 50%")
+    #expect(model.uploadStatusText == "Uploading 50%")
   }
 
+  @Test
   func testUploadStatusTextNormalizing() {
     let model = makeModel()
     model.uploadPhase = .normalizing
-    XCTAssertEqual(model.uploadStatusText, "Processing...")
+    #expect(model.uploadStatusText == "Processing...")
   }
 
+  @Test
   func testUploadStatusTextFinalizing() {
     let model = makeModel()
     model.uploadPhase = .finalizing
-    XCTAssertEqual(model.uploadStatusText, "Finalizing...")
+    #expect(model.uploadStatusText == "Finalizing...")
   }
 
+  @Test
   func testUploadStatusTextCompleted() {
     let model = makeModel()
     model.uploadPhase = .completed
-    XCTAssertEqual(model.uploadStatusText, "Complete!")
+    #expect(model.uploadStatusText == "Complete!")
   }
 
+  @Test
   func testUploadStatusTextFailed() {
     let model = makeModel()
     model.uploadPhase = .failed(error: "Network error")
-    XCTAssertEqual(model.uploadStatusText, "Failed: Network error")
+    #expect(model.uploadStatusText == "Failed: Network error")
   }
 
+  @Test
   func testUploadProgressNotStarted() {
     let model = makeModel()
     model.uploadPhase = .notStarted
-    XCTAssertEqual(model.uploadProgress, 0)
+    #expect(model.uploadProgress == 0)
   }
 
+  @Test
   func testUploadProgressConverting() {
     let model = makeModel()
     model.uploadPhase = .converting
-    XCTAssertEqual(model.uploadProgress, 0.1)
+    #expect(model.uploadProgress == 0.1)
   }
 
+  @Test
   func testUploadProgressUploading() {
     let model = makeModel()
     model.uploadPhase = .uploading(progress: 0.5)
-    XCTAssertEqual(model.uploadProgress, 0.35, accuracy: 0.01)
+    #expect(abs(model.uploadProgress - 0.35) < 0.01)
   }
 
+  @Test
   func testUploadProgressNormalizing() {
     let model = makeModel()
     model.uploadPhase = .normalizing
-    XCTAssertEqual(model.uploadProgress, 0.65)
+    #expect(model.uploadProgress == 0.65)
   }
 
+  @Test
   func testUploadProgressFinalizing() {
     let model = makeModel()
     model.uploadPhase = .finalizing
-    XCTAssertEqual(model.uploadProgress, 0.75)
+    #expect(model.uploadProgress == 0.75)
   }
 
+  @Test
   func testUploadProgressCompleted() {
     let model = makeModel()
     model.uploadPhase = .completed
-    XCTAssertEqual(model.uploadProgress, 1.0)
+    #expect(model.uploadProgress == 1.0)
   }
 
+  @Test
   func testUploadProgressFailed() {
     let model = makeModel()
     model.uploadPhase = .failed(error: "Error")
-    XCTAssertEqual(model.uploadProgress, 0)
+    #expect(model.uploadProgress == 0)
   }
 
+  @Test
   func testCanRecordTrueWhenNotUploadingAndNotCompleted() {
     let model = makeModel()
     model.uploadPhase = .notStarted
-    XCTAssertTrue(model.canRecord)
+    #expect(model.canRecord)
   }
 
+  @Test
   func testCanRecordFalseWhenUploading() {
     let model = makeModel()
     model.uploadPhase = .uploading(progress: 0.5)
-    XCTAssertFalse(model.canRecord)
+    #expect(!model.canRecord)
   }
 
+  @Test
   func testCanRecordFalseWhenCompleted() {
     let model = makeModel()
     model.uploadPhase = .completed
-    XCTAssertFalse(model.canRecord)
+    #expect(!model.canRecord)
   }
 
+  @Test
   func testShowUploadStatusFalseWhenNotStarted() {
     let model = makeModel()
     model.uploadPhase = .notStarted
-    XCTAssertFalse(model.showUploadStatus)
+    #expect(!model.showUploadStatus)
   }
 
+  @Test
   func testShowUploadStatusTrueWhenUploading() {
     let model = makeModel()
     model.uploadPhase = .uploading(progress: 0.5)
-    XCTAssertTrue(model.showUploadStatus)
+    #expect(model.showUploadStatus)
   }
 
+  @Test
   func testShowUploadStatusTrueWhenLinkingAnswer() {
     let model = makeModel()
     model.uploadPhase = .linkingAnswer
-    XCTAssertTrue(model.showUploadStatus)
+    #expect(model.showUploadStatus)
   }
 
   // MARK: - Linking Answer Phase Tests
 
+  @Test
   func testIsUploadingTrueWhenLinkingAnswer() {
     let model = makeModel()
     model.uploadPhase = .linkingAnswer
-    XCTAssertTrue(model.isUploading)
+    #expect(model.isUploading)
   }
 
+  @Test
   func testUploadStatusTextLinkingAnswer() {
     let model = makeModel()
     model.uploadPhase = .linkingAnswer
-    XCTAssertEqual(model.uploadStatusText, "Registering response...")
+    #expect(model.uploadStatusText == "Registering response...")
   }
 
+  @Test
   func testUploadProgressLinkingAnswer() {
     let model = makeModel()
     model.uploadPhase = .linkingAnswer
-    XCTAssertEqual(model.uploadProgress, 0.85)
+    #expect(model.uploadProgress == 0.85)
   }
 
   // MARK: - Upload Answer API Integration Tests
 
+  @Test
   func testUploadButtonTappedCallsRegisterListenerQuestionAnswerAPI() async {
     let registerAnswerCalled = LockIsolated(false)
     let capturedStationId = LockIsolated<String?>(nil)
@@ -470,12 +536,13 @@ final class ListenerQuestionDetailPageTests: XCTestCase {
 
     await model.uploadButtonTapped()
 
-    XCTAssertTrue(registerAnswerCalled.value)
-    XCTAssertEqual(capturedStationId.value, "test-station-789")
-    XCTAssertEqual(capturedQuestionId.value, "test-question-123")
-    XCTAssertEqual(capturedAudioBlockId.value, "uploaded-audio-block-456")
+    #expect(registerAnswerCalled.value)
+    #expect(capturedStationId.value == "test-station-789")
+    #expect(capturedQuestionId.value == "test-question-123")
+    #expect(capturedAudioBlockId.value == "uploaded-audio-block-456")
   }
 
+  @Test
   func testUploadButtonTappedSetsLinkingAnswerPhase() async {
     let testQuestion = ListenerQuestion.mockWith(
       id: "test-question-123",
@@ -506,9 +573,10 @@ final class ListenerQuestionDetailPageTests: XCTestCase {
 
     await model.uploadButtonTapped()
 
-    XCTAssertEqual(model.uploadPhase, AnswerUploadPhase.completed)
+    #expect(model.uploadPhase == AnswerUploadPhase.completed)
   }
 
+  @Test
   func testUploadButtonTappedSetsFailedPhaseOnAPIError() async {
     let testQuestion = ListenerQuestion.mockWith(
       id: "test-question-123",
@@ -540,42 +608,47 @@ final class ListenerQuestionDetailPageTests: XCTestCase {
     await model.uploadButtonTapped()
 
     if case .failed(let error) = model.uploadPhase {
-      XCTAssertEqual(error, "Failed to link answer")
+      #expect(error == "Failed to link answer")
     } else {
-      XCTFail("Expected failed phase, got: \(model.uploadPhase)")
+      Issue.record("Expected failed phase, got: \(model.uploadPhase)")
     }
   }
 
   // MARK: - Question Playback Display Tests
 
+  @Test
   func testQuestionPlayButtonIconShowsPlayWhenNotPlaying() {
     let model = makeModel()
     model.questionPlaybackState = .idle
-    XCTAssertEqual(model.questionPlayButtonIcon, "play.fill")
+    #expect(model.questionPlayButtonIcon == "play.fill")
   }
 
+  @Test
   func testQuestionPlayButtonIconShowsStopWhenPlaying() {
     let model = makeModel()
     model.questionPlaybackState = PlaybackState(currentTime: 0, duration: 10, isPlaying: true)
-    XCTAssertEqual(model.questionPlayButtonIcon, "stop.fill")
+    #expect(model.questionPlayButtonIcon == "stop.fill")
   }
 
   // MARK: - Answer Playback Display Tests
 
+  @Test
   func testAnswerPlayButtonIconShowsPlayWhenNotPlaying() {
     let model = makeModel()
     model.answerPlaybackState = .idle
-    XCTAssertEqual(model.answerPlayButtonIcon, "play.fill")
+    #expect(model.answerPlayButtonIcon == "play.fill")
   }
 
+  @Test
   func testAnswerPlayButtonIconShowsPauseWhenPlaying() {
     let model = makeModel()
     model.answerPlaybackState = PlaybackState(currentTime: 0, duration: 10, isPlaying: true)
-    XCTAssertEqual(model.answerPlayButtonIcon, "pause.fill")
+    #expect(model.answerPlayButtonIcon == "pause.fill")
   }
 
   // MARK: - Recording Button Tapped Tests
 
+  @Test
   func testRecordButtonTappedRequestsPermissionWhenIdle() async {
     let startRecordingCalled = LockIsolated(false)
     let model = withDependencies {
@@ -602,9 +675,10 @@ final class ListenerQuestionDetailPageTests: XCTestCase {
     model.recordingPhase = .idle
     await model.recordButtonTapped()
 
-    XCTAssertTrue(startRecordingCalled.value)
+    #expect(startRecordingCalled.value)
   }
 
+  @Test
   func testRecordButtonTappedShowsPermissionAlertWhenDenied() async {
     let model = withDependencies {
       $0.audioPlayer = .testValue
@@ -628,7 +702,7 @@ final class ListenerQuestionDetailPageTests: XCTestCase {
     model.recordingPhase = .idle
     await model.recordButtonTapped()
 
-    XCTAssertNotNil(model.presentedAlert)
+    #expect(model.presentedAlert != nil)
   }
 
   // MARK: - Helper

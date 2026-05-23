@@ -10,12 +10,12 @@ import Dependencies
 import Foundation
 import Sharing
 import SwiftUI
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class SupportPageTests: XCTestCase {
+struct SupportPageTests {
   private func makeConversation(id: String) -> Conversation {
     Conversation(
       id: id,
@@ -43,6 +43,7 @@ final class SupportPageTests: XCTestCase {
     )
   }
 
+  @Test
   func testOnViewAppearedLoadsConversationAndMessages() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
@@ -88,17 +89,18 @@ final class SupportPageTests: XCTestCase {
       SupportPageModel()
     }
 
-    XCTAssertTrue(model.isLoading)
-    XCTAssertTrue(model.messages.isEmpty)
+    #expect(model.isLoading)
+    #expect(model.messages.isEmpty)
 
     await model.onViewAppeared()
 
-    XCTAssertFalse(model.isLoading)
-    XCTAssertEqual(model.conversation?.id, "conv-1")
-    XCTAssertEqual(model.messages.count, 1)
-    XCTAssertTrue(model.hasExistingMessages)
+    #expect(!model.isLoading)
+    #expect(model.conversation?.id == "conv-1")
+    #expect(model.messages.count == 1)
+    #expect(model.hasExistingMessages)
   }
 
+  @Test
   func testHasExistingMessagesReturnsFalseWhenEmpty() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
@@ -134,9 +136,10 @@ final class SupportPageTests: XCTestCase {
 
     await model.onViewAppeared()
 
-    XCTAssertFalse(model.hasExistingMessages)
+    #expect(!model.hasExistingMessages)
   }
 
+  @Test
   func testSendMessageAppendsToMessages() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
@@ -184,28 +187,30 @@ final class SupportPageTests: XCTestCase {
     await model.onViewAppeared()
     model.newMessage = "Test message"
 
-    XCTAssertTrue(model.canSend)
+    #expect(model.canSend)
 
     await model.sendMessage()
 
-    XCTAssertEqual(model.messages.count, 1)
-    XCTAssertEqual(model.messages.first?.message, "Test message")
-    XCTAssertTrue(model.newMessage.isEmpty)
+    #expect(model.messages.count == 1)
+    #expect(model.messages.first?.message == "Test message")
+    #expect(model.newMessage.isEmpty)
   }
 
+  @Test
   func testCanSendReturnsFalseWhenMessageEmpty() {
     let model = SupportPageModel()
 
     model.newMessage = ""
-    XCTAssertFalse(model.canSend)
+    #expect(!model.canSend)
 
     model.newMessage = "   "
-    XCTAssertFalse(model.canSend)
+    #expect(!model.canSend)
 
     model.newMessage = "Hello"
-    XCTAssertTrue(model.canSend)
+    #expect(model.canSend)
   }
 
+  @Test
   func testOnViewAppearedDoesNotOverwritePresetConversation() async {
     // Regression test: When navigating from ConversationListPage, the model
     // already has a conversation set. onViewAppeared should NOT overwrite it.
@@ -244,11 +249,12 @@ final class SupportPageTests: XCTestCase {
 
     await model.onViewAppeared()
 
-    XCTAssertEqual(model.conversation?.id, "preset-conv-id")
-    XCTAssertFalse(getSupportConversationCalled.value)
-    XCTAssertFalse(model.isLoading)
+    #expect(model.conversation?.id == "preset-conv-id")
+    #expect(!getSupportConversationCalled.value)
+    #expect(!model.isLoading)
   }
 
+  @Test
   func testOnViewAppearedRefreshesMessagesWhenConversationAlreadySet() async {
     // Regression test: When navigating to support page with conversation already set,
     // onViewAppeared should still refresh the messages to get any new ones.
@@ -290,12 +296,13 @@ final class SupportPageTests: XCTestCase {
 
     await model.onViewAppeared()
 
-    XCTAssertTrue(getConversationMessagesCalled.value)
-    XCTAssertEqual(model.messages.count, 2)
-    XCTAssertEqual(model.messages.last?.message, "New message")
-    XCTAssertFalse(model.isLoading)
+    #expect(getConversationMessagesCalled.value)
+    #expect(model.messages.count == 2)
+    #expect(model.messages.last?.message == "New message")
+    #expect(!model.isLoading)
   }
 
+  @Test
   func testHandleScenePhaseChangeRefreshesMessagesWhenActive() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
@@ -328,11 +335,12 @@ final class SupportPageTests: XCTestCase {
 
     await model.handleScenePhaseChange(.active)
 
-    XCTAssertTrue(getConversationMessagesCalled.value)
-    XCTAssertEqual(model.messages.count, 1)
-    XCTAssertEqual(model.messages.first?.message, "New reply")
+    #expect(getConversationMessagesCalled.value)
+    #expect(model.messages.count == 1)
+    #expect(model.messages.first?.message == "New reply")
   }
 
+  @Test
   func testOnViewAppearedDoesNotCreateConversationWhenGetReturnsNil() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
@@ -367,15 +375,16 @@ final class SupportPageTests: XCTestCase {
 
     await model.onViewAppeared()
 
-    XCTAssertFalse(
-      createCalled.value, "Should not create a conversation just from viewing the page")
-    XCTAssertFalse(getMessagesCalled.value, "No conversation = no messages to fetch")
-    XCTAssertNil(model.conversation)
-    XCTAssertTrue(model.messages.isEmpty)
-    XCTAssertFalse(model.isLoading)
-    XCTAssertNil(model.presentedAlert)
+    #expect(
+      !createCalled.value, "Should not create a conversation just from viewing the page")
+    #expect(!getMessagesCalled.value, "No conversation = no messages to fetch")
+    #expect(model.conversation == nil)
+    #expect(model.messages.isEmpty)
+    #expect(!model.isLoading)
+    #expect(model.presentedAlert == nil)
   }
 
+  @Test
   func testSendMessageCreatesConversationWhenNoneExists() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
@@ -405,8 +414,8 @@ final class SupportPageTests: XCTestCase {
           conversation: createdConversation, unreadCount: 0)
       }
       $0.api.sendConversationMessage = { _, conversationId, text in
-        XCTAssertEqual(conversationId, "lazy-conv")
-        XCTAssertEqual(text, "Hi there")
+        #expect(conversationId == "lazy-conv")
+        #expect(text == "Hi there")
         return sentMessage
       }
       $0.api.getConversationMessages = { _, _ in [] }
@@ -415,18 +424,19 @@ final class SupportPageTests: XCTestCase {
     }
 
     await model.onViewAppeared()
-    XCTAssertNil(model.conversation)
+    #expect(model.conversation == nil)
 
     model.newMessage = "Hi there"
     await model.sendMessage()
 
-    XCTAssertTrue(createCalled.value)
-    XCTAssertEqual(model.conversation?.id, "lazy-conv")
-    XCTAssertEqual(model.messages.count, 1)
-    XCTAssertEqual(model.messages.first?.message, "Hi there")
-    XCTAssertTrue(model.newMessage.isEmpty)
+    #expect(createCalled.value)
+    #expect(model.conversation?.id == "lazy-conv")
+    #expect(model.messages.count == 1)
+    #expect(model.messages.first?.message == "Hi there")
+    #expect(model.newMessage.isEmpty)
   }
 
+  @Test
   func testSendMessageRestoresMessageAndShowsAlertWhenCreateFails() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
@@ -466,13 +476,14 @@ final class SupportPageTests: XCTestCase {
     model.newMessage = "Hello"
     await model.sendMessage()
 
-    XCTAssertFalse(sendCalled.value, "Should not call send when create fails")
-    XCTAssertNil(model.conversation)
-    XCTAssertEqual(model.newMessage, "Hello", "newMessage should be restored")
-    XCTAssertEqual(model.presentedAlert, .errorSendingMessage)
-    XCTAssertFalse(model.isSending)
+    #expect(!sendCalled.value, "Should not call send when create fails")
+    #expect(model.conversation == nil)
+    #expect(model.newMessage == "Hello", "newMessage should be restored")
+    #expect(model.presentedAlert == .errorSendingMessage)
+    #expect(!model.isSending)
   }
 
+  @Test
   func testOnViewAppearedUsesExistingConversationFromGet() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
@@ -504,10 +515,11 @@ final class SupportPageTests: XCTestCase {
 
     await model.onViewAppeared()
 
-    XCTAssertFalse(createCalled.value)
-    XCTAssertEqual(model.conversation?.id, "existing-conv")
+    #expect(!createCalled.value)
+    #expect(model.conversation?.id == "existing-conv")
   }
 
+  @Test
   func testHandleScenePhaseChangeDoesNothingWhenNotActive() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
@@ -533,9 +545,9 @@ final class SupportPageTests: XCTestCase {
     model.conversation = conversation
 
     await model.handleScenePhaseChange(.background)
-    XCTAssertFalse(getConversationMessagesCalled.value)
+    #expect(!getConversationMessagesCalled.value)
 
     await model.handleScenePhaseChange(.inactive)
-    XCTAssertFalse(getConversationMessagesCalled.value)
+    #expect(!getConversationMessagesCalled.value)
   }
 }

@@ -60,7 +60,7 @@ struct SongDrawerView: View {
         // Apple Music
         if model.shouldShowAppleMusic {
           Button(
-            action: { model.openAppleMusic() },
+            action: { model.appleMusicTapped() },
             label: {
               HStack(spacing: 16) {
                 // Replace with your branded asset if you have it
@@ -68,7 +68,7 @@ struct SongDrawerView: View {
                   .resizable()
                   .frame(width: 32, height: 32)
 
-                Text("Listen on Apple Music")
+                Text(model.appleMusicButtonLabel)
                   .font(.custom(FontNames.Inter_400_Regular, size: 16))
                   .foregroundColor(.white)
 
@@ -85,7 +85,7 @@ struct SongDrawerView: View {
         // Spotify
         if model.shouldShowSpotify {
           Button(
-            action: { model.openSpotify() },
+            action: { model.spotifyTapped() },
             label: {
               HStack(spacing: 16) {
                 // Replace with a Spotify glyph asset for perfect branding
@@ -93,7 +93,7 @@ struct SongDrawerView: View {
                   .resizable()
                   .frame(width: 32, height: 32)
 
-                Text("Listen on Spotify")
+                Text(model.spotifyButtonLabel)
                   .font(.custom(FontNames.Inter_400_Regular, size: 16))
                   .foregroundColor(.white)
 
@@ -109,7 +109,7 @@ struct SongDrawerView: View {
 
         // Remove from liked songs
         Button(
-          action: { model.removeFromLikedSongs() },
+          action: { model.removeFromLikedSongsTapped() },
           label: {
             HStack(spacing: 16) {
               Image(systemName: "xmark")
@@ -117,7 +117,7 @@ struct SongDrawerView: View {
                 .frame(width: 24, height: 24)
                 .foregroundColor(.white)
 
-              Text("Remove from Liked Songs")
+              Text(model.removeFromLikedSongsButtonLabel)
                 .font(.custom(FontNames.Inter_400_Regular, size: 16))
                 .foregroundColor(.white)
 

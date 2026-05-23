@@ -61,11 +61,10 @@ struct NowPlaying: Equatable, Codable {
 class NowPlayingUpdater {
   var stationPlayer: StationPlayer
 
-  static var shared = NowPlayingUpdater()
-
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.date.now) var now
 
   private var disposeBag = Set<AnyCancellable>()
   private var inactivityTask: Task<Void, Never>?
@@ -300,11 +299,19 @@ class NowPlayingUpdater {
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
   }
 
+  // The Combine subscriptions below capture `self` weakly so the cancellable
+  // owned by this updater is the only thing keeping each subscription alive.
+  // When the updater is deallocated, `disposeBag` releases the cancellables
+  // and the subscriptions are torn down — without `[weak self]` the strong
+  // self/closure/disposeBag cycle would keep replaced updaters alive forever.
   init(stationPlayer: StationPlayer? = nil) {
-    self.stationPlayer = stationPlayer ?? .shared
-    self.stationPlayer.$state.sink { state in
-      self.updateNowPlaying(with: state)
-    }.store(in: &disposeBag)
+    @Dependency(\.stationPlayer) var injectedStationPlayer
+    self.stationPlayer = stationPlayer ?? injectedStationPlayer
+    self.stationPlayer.$state
+      .sink { [weak self] state in
+        self?.updateNowPlaying(with: state)
+      }
+      .store(in: &disposeBag)
     setupRemoteControlCenter()
     setupSharedStateObservation()
   }
@@ -312,15 +319,15 @@ class NowPlayingUpdater {
   // MARK: - Shared State Management
 
   private func setupSharedStateObservation() {
-    // Observe PlayolaStationPlayer state changes
-    PlayolaStationPlayer.shared.$state
+    @Dependency(\.urlStreamPlayer) var urlStreamPlayer
+
+    stationPlayer.playolaStationPlayer.$state
       .sink { [weak self] playolaState in
         self?.processPlayolaStationPlayerState(playolaState)
       }
       .store(in: &disposeBag)
 
-    // Observe URLStreamPlayer state changes
-    URLStreamPlayer.shared.$state
+    urlStreamPlayer.$state
       .sink { [weak self] urlStreamState in
         self?.processUrlStreamStateChanged(urlStreamState)
       }
@@ -457,7 +464,7 @@ class NowPlayingUpdater {
     commandCenter.nextTrackCommand.isEnabled = true
     commandCenter.nextTrackCommand.addTarget { [weak self] _ in
       Task { @MainActor in
-        self?.stationPlayer.seekNext()
+        await self?.stationPlayer.seekNext()
       }
       return .success
     }
@@ -465,7 +472,7 @@ class NowPlayingUpdater {
     commandCenter.previousTrackCommand.isEnabled = true
     commandCenter.previousTrackCommand.addTarget { [weak self] _ in
       Task { @MainActor in
-        self?.stationPlayer.seekPrevious()
+        await self?.stationPlayer.seekPrevious()
       }
       return .success
     }
@@ -479,14 +486,15 @@ class NowPlayingUpdater {
 
     // Play command - restart last played station when stopped
     commandCenter.playCommand.isEnabled = true
-    commandCenter.playCommand.addTarget { _ in
-      if let lastStation = self.lastPlayedStation,
+    commandCenter.playCommand.addTarget { [weak self] _ in
+      guard let self,
+        let lastStation = self.lastPlayedStation,
         self.stationPlayer.currentStation == nil
-      {
-        self.stationPlayer.play(station: lastStation)
-        return .success
+      else { return .commandFailed }
+      Task { @MainActor in
+        await self.stationPlayer.play(station: lastStation)
       }
-      return .commandFailed
+      return .success
     }
   }
 
@@ -559,7 +567,7 @@ extension NowPlayingUpdater {
     // Start session when transitioning to playing
     case (_, .playing(let station)):
       if sessionStartTime == nil {
-        sessionStartTime = Date()
+        sessionStartTime = now
         await analytics.track(
           .listeningSessionStarted(
             station: StationInfo(from: station)
@@ -571,7 +579,7 @@ extension NowPlayingUpdater {
     case (.playing(let station), .stopped),
       (.playing(let station), .error):
       if let startTime = sessionStartTime {
-        let duration = Date().timeIntervalSince(startTime)
+        let duration = now.timeIntervalSince(startTime)
         await analytics.track(
           .listeningSessionEnded(
             station: StationInfo(from: station),
@@ -599,7 +607,7 @@ extension NowPlayingUpdater {
 
   private func trackStationSwitch(from fromStation: AnyStation, to toStation: AnyStation) async {
     guard let startTime = sessionStartTime else { return }
-    let duration = Date().timeIntervalSince(startTime)
+    let duration = now.timeIntervalSince(startTime)
 
     // End current session
     await analytics.track(
@@ -626,6 +634,20 @@ extension NowPlayingUpdater {
       )
     )
 
-    sessionStartTime = Date()
+    sessionStartTime = now
+  }
+}
+
+// MARK: - Dependency
+
+extension NowPlayingUpdater: @preconcurrency DependencyKey {
+  static let liveValue = NowPlayingUpdater()
+  static var testValue: NowPlayingUpdater { NowPlayingUpdater() }
+}
+
+extension DependencyValues {
+  var nowPlayingUpdater: NowPlayingUpdater {
+    get { self[NowPlayingUpdater.self] }
+    set { self[NowPlayingUpdater.self] = newValue }
   }
 }

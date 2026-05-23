@@ -142,7 +142,7 @@ struct RecordPageView: View {
       }
     case .review:
       Button {
-        model.onReRecordTapped()
+        Task { await model.onReRecordTapped() }
       } label: {
         ZStack {
           Circle()
@@ -186,9 +186,9 @@ struct RecordPageView: View {
           currentTime: model.playbackPosition,
           totalTime: model.recordingDuration,
           isPlaying: model.isPlaying,
-          onPlayPause: { model.onPlayPauseTapped() },
-          onRewind: { model.onRewindTapped() },
-          onSeek: { model.seekTo($0) }
+          onPlayPause: { Task { await model.onPlayPauseTapped() } },
+          onRewind: { Task { await model.onRewindTapped() } },
+          onSeek: { time in Task { await model.seekTo(time) } }
         )
 
         HStack(spacing: 12) {
@@ -210,9 +210,7 @@ struct RecordPageView: View {
           }
 
           Button {
-            Task {
-              model.onAcceptRecordingTapped()
-            }
+            Task { await model.onAcceptRecordingTapped() }
           } label: {
             HStack(spacing: 6) {
               Image(systemName: "checkmark")

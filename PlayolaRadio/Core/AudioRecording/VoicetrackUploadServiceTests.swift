@@ -7,12 +7,13 @@
 
 import ConcurrencyExtras
 import Dependencies
+import Foundation
 import PlayolaPlayer
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
-final class VoicetrackUploadServiceTests: XCTestCase {
+struct VoicetrackUploadServiceTests {
 
   // MARK: - Test Data
 
@@ -30,7 +31,8 @@ final class VoicetrackUploadServiceTests: XCTestCase {
 
   // MARK: - Normalization Polling Tests
 
-  func testProcessVoicetrack_handlesS3KeyWithSlash() async throws {
+  @Test
+  func testProcessVoicetrackHandlesS3KeyWithSlash() async throws {
     let capturedS3Key = LockIsolated<String?>(nil)
     let voicetrack = createTestVoicetrack()
     let s3KeyWithSlash = "station123/mock-uuid.m4a"
@@ -60,11 +62,12 @@ final class VoicetrackUploadServiceTests: XCTestCase {
       testJwtToken
     ) { _ in }
 
-    XCTAssertEqual(
-      capturedS3Key.value, s3KeyWithSlash, "s3Key with slash should be passed through correctly")
+    #expect(
+      capturedS3Key.value == s3KeyWithSlash, "s3Key with slash should be passed through correctly")
   }
 
-  func testProcessVoicetrack_transitionsThroughNormalizingStatus() async throws {
+  @Test
+  func testProcessVoicetrackTransitionsThroughNormalizingStatus() async throws {
     let statusChanges = LockIsolated<[LocalVoicetrackStatus]>([])
     let voicetrack = createTestVoicetrack()
 
@@ -96,7 +99,7 @@ final class VoicetrackUploadServiceTests: XCTestCase {
 
     let recordedStatuses = statusChanges.value
     // Verify that .normalizing status was reached
-    XCTAssertTrue(
+    #expect(
       recordedStatuses.contains(.normalizing),
       "Expected .normalizing status, got: \(recordedStatuses)"
     )
@@ -108,17 +111,18 @@ final class VoicetrackUploadServiceTests: XCTestCase {
     }),
       let normalizingIndex = recordedStatuses.firstIndex(of: .normalizing)
     {
-      XCTAssertLessThan(uploadingIndex, normalizingIndex)
+      #expect(uploadingIndex < normalizingIndex)
     }
 
     // Verify normalizing comes before finalizing
     if let normalizingIndex = recordedStatuses.firstIndex(of: .normalizing),
       let finalizingIndex = recordedStatuses.firstIndex(of: .finalizing)
     {
-      XCTAssertLessThan(normalizingIndex, finalizingIndex)
+      #expect(normalizingIndex < finalizingIndex)
     }
   }
 
+  @Test
   func testProcessVoicetrackPassesS3KeyWithSlashesToStatusCheck() async throws {
     let voicetrack = createTestVoicetrack()
     let s3KeyWithSlashes = "voicetracks/station123/abc-def-123.m4a"
@@ -149,6 +153,6 @@ final class VoicetrackUploadServiceTests: XCTestCase {
       testJwtToken
     ) { _ in }
 
-    XCTAssertEqual(capturedS3Key.value, s3KeyWithSlashes)
+    #expect(capturedS3Key.value == s3KeyWithSlashes)
   }
 }

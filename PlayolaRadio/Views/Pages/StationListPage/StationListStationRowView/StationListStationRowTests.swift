@@ -5,15 +5,17 @@
 //  Created by Brian D Keane on 9/26/25.
 //
 
+import Foundation
 import PlayolaPlayer
 import Sharing
 import SwiftUI
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class StationListStationRowTests: XCTestCase {
+struct StationListStationRowTests {
+  @Test
   func testModelInitializationFromStation() {
     @Shared(.showSecretStations) var showSecretStations: Bool = true
     let stationList = StationList.mocks.first { !$0.visibleStationItems.isEmpty }!
@@ -22,12 +24,13 @@ final class StationListStationRowTests: XCTestCase {
 
     let model = StationListStationRowModel(item: item)
 
-    XCTAssertEqual(model.titleText, station.name)
-    XCTAssertEqual(model.subtitleText, station.stationName)
-    XCTAssertEqual(model.subtitleColor, Color.white)
-    XCTAssertEqual(model.imageUrl, station.imageUrl ?? station.processedImageURL())
+    #expect(model.titleText == station.name)
+    #expect(model.subtitleText == station.stationName)
+    #expect(model.subtitleColor == Color.white)
+    #expect(model.imageUrl == station.imageUrl ?? station.processedImageURL())
   }
 
+  @Test
   func testComingSoonItemShowsComingSoonWhenSecretsHidden() {
     @Shared(.showSecretStations) var showSecretStations: Bool = false
     let now = Date(timeIntervalSince1970: 1_758_915_200)
@@ -51,13 +54,13 @@ final class StationListStationRowTests: XCTestCase {
 
     let model = StationListStationRowModel(item: item)
 
-    XCTAssertEqual(model.titleText, comingSoonStation.curatorName)
-    XCTAssertEqual(model.subtitleText, "Coming Soon")
-    XCTAssertEqual(model.subtitleColor, Color.playolaRed)
-    XCTAssertEqual(
-      model.imageUrl, comingSoonStation.imageUrl)
+    #expect(model.titleText == comingSoonStation.curatorName)
+    #expect(model.subtitleText == "Coming Soon")
+    #expect(model.subtitleColor == Color.playolaRed)
+    #expect(model.imageUrl == comingSoonStation.imageUrl)
   }
 
+  @Test
   func testComingSoonItemShowsComingSoonWhenSecretsShowingAndInactive() {
     @Shared(.showSecretStations) var showSecretStations: Bool = true
     let now = Date(timeIntervalSince1970: 1_758_915_200)
@@ -81,13 +84,13 @@ final class StationListStationRowTests: XCTestCase {
 
     let model = StationListStationRowModel(item: item)
 
-    XCTAssertEqual(model.titleText, comingSoonStation.curatorName)
-    XCTAssertEqual(model.subtitleText, "Coming Soon")
-    XCTAssertEqual(model.subtitleColor, Color.playolaRed)
-    XCTAssertEqual(
-      model.imageUrl, comingSoonStation.imageUrl)
+    #expect(model.titleText == comingSoonStation.curatorName)
+    #expect(model.subtitleText == "Coming Soon")
+    #expect(model.subtitleColor == Color.playolaRed)
+    #expect(model.imageUrl == comingSoonStation.imageUrl)
   }
 
+  @Test
   func testComingSoonItemShowsNormallyWhenSecretsShowingAndActive() {
     @Shared(.showSecretStations) var showSecretStations: Bool = true
     let now = Date(timeIntervalSince1970: 1_758_915_200)
@@ -111,13 +114,13 @@ final class StationListStationRowTests: XCTestCase {
 
     let model = StationListStationRowModel(item: item)
 
-    XCTAssertEqual(model.titleText, comingSoonStation.curatorName)
-    XCTAssertEqual(model.subtitleText, comingSoonStation.name)
-    XCTAssertEqual(model.subtitleColor, Color.white)
-    XCTAssertEqual(
-      model.imageUrl, comingSoonStation.imageUrl)
+    #expect(model.titleText == comingSoonStation.curatorName)
+    #expect(model.subtitleText == comingSoonStation.name)
+    #expect(model.subtitleColor == Color.white)
+    #expect(model.imageUrl == comingSoonStation.imageUrl)
   }
 
+  @Test
   func testComingSoonItemShowsDateWhenItExists() {
     @Shared(.showSecretStations) var showSecretStations: Bool = false
     let now = Date(timeIntervalSince1970: 1_758_915_200)
@@ -142,13 +145,13 @@ final class StationListStationRowTests: XCTestCase {
 
     let model = StationListStationRowModel(item: item)
 
-    XCTAssertEqual(model.titleText, comingSoonStation.curatorName)
-    XCTAssertEqual(model.subtitleText, "Coming Dec 25th")
-    XCTAssertEqual(model.subtitleColor, Color.playolaRed)
-    XCTAssertEqual(
-      model.imageUrl, comingSoonStation.imageUrl)
+    #expect(model.titleText == comingSoonStation.curatorName)
+    #expect(model.subtitleText == "Coming Dec 25th")
+    #expect(model.subtitleColor == Color.playolaRed)
+    #expect(model.imageUrl == comingSoonStation.imageUrl)
   }
 
+  @Test
   func testComingSoonDateFormattingUsesUTCTimezone() {
     @Shared(.showSecretStations) var showSecretStations: Bool = false
     let now = Date(timeIntervalSince1970: 1_758_915_200)
@@ -181,9 +184,10 @@ final class StationListStationRowTests: XCTestCase {
     let model = StationListStationRowModel(item: item)
 
     // Should show Dec 25th (the UTC date), not Dec 24th (what it would be in US timezones)
-    XCTAssertEqual(model.subtitleText, "Coming Dec 25th")
+    #expect(model.subtitleText == "Coming Dec 25th")
   }
 
+  @Test
   func testInactiveVisibleStationShowsComingSoonWhenSecretsHidden() {
     @Shared(.showSecretStations) var showSecretStations: Bool = false
     let now = Date(timeIntervalSince1970: 1_758_915_200)
@@ -207,10 +211,11 @@ final class StationListStationRowTests: XCTestCase {
 
     let model = StationListStationRowModel(item: item)
 
-    XCTAssertEqual(model.subtitleText, "Coming Soon")
-    XCTAssertEqual(model.subtitleColor, Color.playolaRed)
+    #expect(model.subtitleText == "Coming Soon")
+    #expect(model.subtitleColor == Color.playolaRed)
   }
 
+  @Test
   func testInactiveVisibleStationShowsComingSoonWhenSecretsShowing() {
     @Shared(.showSecretStations) var showSecretStations: Bool = true
     let now = Date(timeIntervalSince1970: 1_758_915_200)
@@ -234,10 +239,11 @@ final class StationListStationRowTests: XCTestCase {
 
     let model = StationListStationRowModel(item: item)
 
-    XCTAssertEqual(model.subtitleText, "Coming Soon")
-    XCTAssertEqual(model.subtitleColor, Color.playolaRed)
+    #expect(model.subtitleText == "Coming Soon")
+    #expect(model.subtitleColor == Color.playolaRed)
   }
 
+  @Test
   func testInactiveUrlStationShowsComingSoonWhenSecretsShowing() {
     @Shared(.showSecretStations) var showSecretStations: Bool = true
     let inactiveUrlStation = UrlStation(
@@ -262,12 +268,13 @@ final class StationListStationRowTests: XCTestCase {
 
     let model = StationListStationRowModel(item: item)
 
-    XCTAssertEqual(model.subtitleText, "Coming Soon")
-    XCTAssertEqual(model.subtitleColor, Color.playolaRed)
+    #expect(model.subtitleText == "Coming Soon")
+    #expect(model.subtitleColor == Color.playolaRed)
   }
 
   // MARK: - Live Sort Priority Tests
 
+  @Test
   func testLiveSortPriorityReturnsZeroForVoicetracking() {
     let station = Station.mockWith(id: "live-station")
     let item = APIStationItem(
@@ -282,9 +289,10 @@ final class StationListStationRowTests: XCTestCase {
 
     let priority = item.liveSortPriority(liveStations)
 
-    XCTAssertEqual(priority, 0)
+    #expect(priority == 0)
   }
 
+  @Test
   func testLiveSortPriorityReturnsOneForShowAiring() {
     let station = Station.mockWith(id: "show-station")
     let item = APIStationItem(
@@ -299,9 +307,10 @@ final class StationListStationRowTests: XCTestCase {
 
     let priority = item.liveSortPriority(liveStations)
 
-    XCTAssertEqual(priority, 1)
+    #expect(priority == 1)
   }
 
+  @Test
   func testLiveSortPriorityReturnsTwoForNotLive() {
     let station = Station.mockWith(id: "not-live-station")
     let item = APIStationItem(
@@ -314,11 +323,12 @@ final class StationListStationRowTests: XCTestCase {
 
     let priority = item.liveSortPriority(liveStations)
 
-    XCTAssertEqual(priority, 2)
+    #expect(priority == 2)
   }
 
   // MARK: - Live Status in Row Model Tests
 
+  @Test
   func testRowModelStoresLiveStatus() {
     let station = Station.mockWith(id: "live-station")
     let item = APIStationItem(
@@ -330,9 +340,10 @@ final class StationListStationRowTests: XCTestCase {
 
     let model = StationListStationRowModel(item: item, liveStatus: .voicetracking)
 
-    XCTAssertEqual(model.liveStatus, .voicetracking)
+    #expect(model.liveStatus == .voicetracking)
   }
 
+  @Test
   func testRowModelLiveStatusDefaultsToNil() {
     let station = Station.mockWith(id: "station")
     let item = APIStationItem(
@@ -344,6 +355,6 @@ final class StationListStationRowTests: XCTestCase {
 
     let model = StationListStationRowModel(item: item)
 
-    XCTAssertNil(model.liveStatus)
+    #expect(model.liveStatus == nil)
   }
 }

@@ -5,31 +5,16 @@
 //  Created by Brian D Keane on 7/23/25.
 //
 
-import Combine
 import Foundation
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 // swiftlint:disable redundant_optional_initialization
 
 @MainActor
-final class ListeningTrackerTests: XCTestCase {
-
-  private var cancellables = Set<AnyCancellable>()
-
-  override func setUp() {
-    super.setUp()
-    cancellables.removeAll()
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
-  }
-
-  override func tearDown() {
-    super.tearDown()
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
-    cancellables.removeAll()
-  }
+struct ListeningTrackerTests {
 
   func createMockRewardsProfile(totalTimeListenedMS: Int = 0) -> RewardsProfile {
     return RewardsProfile(
@@ -52,16 +37,22 @@ final class ListeningTrackerTests: XCTestCase {
 
   // MARK: - Initialization Tests
 
-  func testInit_WithEmptyLocalSessions() {
+  @Test
+  func testInitWithEmptyLocalSessions() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
+
     let rewardsProfile = createMockRewardsProfile()
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
-    XCTAssertEqual(tracker.localListeningSessions.count, 0)
-    XCTAssertFalse(tracker.isListening)
-    XCTAssertEqual(tracker.rewardsProfile.totalTimeListenedMS, 0)
+    #expect(tracker.localListeningSessions.count == 0)
+    #expect(!tracker.isListening)
+    #expect(tracker.rewardsProfile.totalTimeListenedMS == 0)
   }
 
-  func testInit_WithExistingLocalSessions() {
+  @Test
+  func testInitWithExistingLocalSessions() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
+
     let rewardsProfile = createMockRewardsProfile()
     let existingSessions = [
       LocalListeningSession(
@@ -70,20 +61,26 @@ final class ListeningTrackerTests: XCTestCase {
     let tracker = ListeningTracker(
       rewardsProfile: rewardsProfile, localListeningSessions: existingSessions)
 
-    XCTAssertEqual(tracker.localListeningSessions.count, 1)
-    XCTAssertFalse(tracker.isListening)
+    #expect(tracker.localListeningSessions.count == 1)
+    #expect(!tracker.isListening)
   }
 
   // MARK: - isListening Tests
 
-  func testIsListening_ReturnsFalseWhenNoSessions() {
+  @Test
+  func testIsListeningReturnsFalseWhenNoSessions() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
+
     let rewardsProfile = createMockRewardsProfile()
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
-    XCTAssertFalse(tracker.isListening)
+    #expect(!tracker.isListening)
   }
 
-  func testIsListening_ReturnsFalseWhenLastSessionEnded() {
+  @Test
+  func testIsListeningReturnsFalseWhenLastSessionEnded() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
+
     let rewardsProfile = createMockRewardsProfile()
     let existingSessions = [
       LocalListeningSession(
@@ -92,10 +89,11 @@ final class ListeningTrackerTests: XCTestCase {
     let tracker = ListeningTracker(
       rewardsProfile: rewardsProfile, localListeningSessions: existingSessions)
 
-    XCTAssertFalse(tracker.isListening)
+    #expect(!tracker.isListening)
   }
 
-  func testIsListening_ReturnsTrueWhenLastSessionNotEnded() {
+  @Test
+  func testIsListeningReturnsTrueWhenLastSessionNotEnded() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let rewardsProfile = createMockRewardsProfile()
 
@@ -108,19 +106,25 @@ final class ListeningTrackerTests: XCTestCase {
     let tracker = ListeningTracker(
       rewardsProfile: rewardsProfile, localListeningSessions: existingSessions)
 
-    XCTAssertTrue(tracker.isListening)
+    #expect(tracker.isListening)
   }
 
   // MARK: - totalListenTimeMS Tests
 
-  func testTotalListenTimeMS_WithOnlyServerTime() {
+  @Test
+  func testTotalListenTimeMSWithOnlyServerTime() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
+
     let rewardsProfile = createMockRewardsProfile(totalTimeListenedMS: 5000)
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
-    XCTAssertEqual(tracker.totalListenTimeMS, 5000)
+    #expect(tracker.totalListenTimeMS == 5000)
   }
 
-  func testTotalListenTimeMS_WithOnlyLocalSessions() {
+  @Test
+  func testTotalListenTimeMSWithOnlyLocalSessions() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
+
     let rewardsProfile = createMockRewardsProfile(totalTimeListenedMS: 0)
     let startTime = Date()
     let endTime = startTime.addingTimeInterval(10)  // 10 seconds = 10000ms
@@ -130,10 +134,13 @@ final class ListeningTrackerTests: XCTestCase {
     let tracker = ListeningTracker(
       rewardsProfile: rewardsProfile, localListeningSessions: existingSessions)
 
-    XCTAssertEqual(tracker.totalListenTimeMS, 10000)
+    #expect(tracker.totalListenTimeMS == 10000)
   }
 
-  func testTotalListenTimeMS_WithBothServerAndLocalTime() {
+  @Test
+  func testTotalListenTimeMSWithBothServerAndLocalTime() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
+
     let rewardsProfile = createMockRewardsProfile(totalTimeListenedMS: 5000)
     let startTime = Date()
     let endTime = startTime.addingTimeInterval(10)  // 10 seconds = 10000ms
@@ -143,10 +150,13 @@ final class ListeningTrackerTests: XCTestCase {
     let tracker = ListeningTracker(
       rewardsProfile: rewardsProfile, localListeningSessions: existingSessions)
 
-    XCTAssertEqual(tracker.totalListenTimeMS, 15000)
+    #expect(tracker.totalListenTimeMS == 15000)
   }
 
-  func testTotalListenTimeMS_WithMultipleLocalSessions() {
+  @Test
+  func testTotalListenTimeMSWithMultipleLocalSessions() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
+
     let rewardsProfile = createMockRewardsProfile(totalTimeListenedMS: 1000)
     let baseTime = Date()
     let existingSessions = [
@@ -159,32 +169,34 @@ final class ListeningTrackerTests: XCTestCase {
     let tracker = ListeningTracker(
       rewardsProfile: rewardsProfile, localListeningSessions: existingSessions)
 
-    XCTAssertEqual(tracker.totalListenTimeMS, 9000)  // 1000 + 5000 + 3000
+    #expect(tracker.totalListenTimeMS == 9000)  // 1000 + 5000 + 3000
   }
 
   // MARK: - Playback State Change Tests
 
-  func testPlaybackStateChange_StartsNewSessionWhenPlayingStarted() {
+  @Test
+  func testPlaybackStateChangeStartsNewSessionWhenPlayingStarted() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let rewardsProfile = createMockRewardsProfile()
 
     // Create tracker with initial stopped state
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
-    XCTAssertEqual(tracker.localListeningSessions.count, 0)
-    XCTAssertFalse(tracker.isListening)
+    #expect(tracker.localListeningSessions.count == 0)
+    #expect(!tracker.isListening)
 
     // Update the shared state synchronously
     $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(AnyStation.mock)) }
 
     // The publisher should have already fired synchronously
-    XCTAssertEqual(tracker.localListeningSessions.count, 1)
-    XCTAssertTrue(tracker.isListening)
-    XCTAssertNotNil(tracker.localListeningSessions.last?.startTime)
-    XCTAssertNil(tracker.localListeningSessions.last?.endTime)
+    #expect(tracker.localListeningSessions.count == 1)
+    #expect(tracker.isListening)
+    #expect(tracker.localListeningSessions.last?.startTime != nil)
+    #expect(tracker.localListeningSessions.last?.endTime == nil)
   }
 
-  func testPlaybackStateChange_EndsSessionWhenPlaybackStopped() {
+  @Test
+  func testPlaybackStateChangeEndsSessionWhenPlaybackStopped() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let rewardsProfile = createMockRewardsProfile()
 
@@ -194,19 +206,20 @@ final class ListeningTrackerTests: XCTestCase {
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
     // Verify initial state
-    XCTAssertEqual(tracker.localListeningSessions.count, 1)
-    XCTAssertTrue(tracker.isListening)
+    #expect(tracker.localListeningSessions.count == 1)
+    #expect(tracker.isListening)
 
     // Simulate playback stopping
     $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .stopped) }
 
     // The publisher should have already fired synchronously
-    XCTAssertEqual(tracker.localListeningSessions.count, 1)
-    XCTAssertFalse(tracker.isListening)
-    XCTAssertNotNil(tracker.localListeningSessions.last?.endTime)
+    #expect(tracker.localListeningSessions.count == 1)
+    #expect(!tracker.isListening)
+    #expect(tracker.localListeningSessions.last?.endTime != nil)
   }
 
-  func testPlaybackStateChange_DoesNotStartDuplicateSessionWhenAlreadyPlaying() {
+  @Test
+  func testPlaybackStateChangeDoesNotStartDuplicateSessionWhenAlreadyPlaying() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let rewardsProfile = createMockRewardsProfile()
 
@@ -215,18 +228,19 @@ final class ListeningTrackerTests: XCTestCase {
 
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
-    XCTAssertEqual(tracker.localListeningSessions.count, 1)
-    XCTAssertTrue(tracker.isListening)
+    #expect(tracker.localListeningSessions.count == 1)
+    #expect(tracker.isListening)
 
     // Simulate another playing state (should not create new session)
     $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(AnyStation.mock)) }
 
     // Should still have only one session
-    XCTAssertEqual(tracker.localListeningSessions.count, 1)
-    XCTAssertTrue(tracker.isListening)
+    #expect(tracker.localListeningSessions.count == 1)
+    #expect(tracker.isListening)
   }
 
-  func testPlaybackStateChange_HandlesLoadingStateAsNonPlaying() {
+  @Test
+  func testPlaybackStateChangeHandlesLoadingStateAsNonPlaying() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let rewardsProfile = createMockRewardsProfile()
 
@@ -235,18 +249,19 @@ final class ListeningTrackerTests: XCTestCase {
 
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
-    XCTAssertEqual(tracker.localListeningSessions.count, 1)
-    XCTAssertTrue(tracker.isListening)
+    #expect(tracker.localListeningSessions.count == 1)
+    #expect(tracker.isListening)
 
     // Simulate loading state (should end session)
     $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .loading(AnyStation.mock)) }
 
-    XCTAssertEqual(tracker.localListeningSessions.count, 1)
-    XCTAssertFalse(tracker.isListening)
-    XCTAssertNotNil(tracker.localListeningSessions.last?.endTime)
+    #expect(tracker.localListeningSessions.count == 1)
+    #expect(!tracker.isListening)
+    #expect(tracker.localListeningSessions.last?.endTime != nil)
   }
 
-  func testPlaybackStateChange_HandlesErrorStateAsNonPlaying() {
+  @Test
+  func testPlaybackStateChangeHandlesErrorStateAsNonPlaying() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let rewardsProfile = createMockRewardsProfile()
 
@@ -255,18 +270,19 @@ final class ListeningTrackerTests: XCTestCase {
 
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
-    XCTAssertEqual(tracker.localListeningSessions.count, 1)
-    XCTAssertTrue(tracker.isListening)
+    #expect(tracker.localListeningSessions.count == 1)
+    #expect(tracker.isListening)
 
     // Simulate error state (should end session)
     $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .error) }
 
-    XCTAssertEqual(tracker.localListeningSessions.count, 1)
-    XCTAssertFalse(tracker.isListening)
-    XCTAssertNotNil(tracker.localListeningSessions.last?.endTime)
+    #expect(tracker.localListeningSessions.count == 1)
+    #expect(!tracker.isListening)
+    #expect(tracker.localListeningSessions.last?.endTime != nil)
   }
 
-  func testPlaybackStateChange_HandlesNilNowPlayingAsNonPlaying() {
+  @Test
+  func testPlaybackStateChangeHandlesNilNowPlayingAsNonPlaying() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let rewardsProfile = createMockRewardsProfile()
 
@@ -275,20 +291,21 @@ final class ListeningTrackerTests: XCTestCase {
 
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
-    XCTAssertEqual(tracker.localListeningSessions.count, 1)
-    XCTAssertTrue(tracker.isListening)
+    #expect(tracker.localListeningSessions.count == 1)
+    #expect(tracker.isListening)
 
     // Simulate nil nowPlaying (should end session)
     $nowPlaying.withLock { $0 = nil }
 
-    XCTAssertEqual(tracker.localListeningSessions.count, 1)
-    XCTAssertFalse(tracker.isListening)
-    XCTAssertNotNil(tracker.localListeningSessions.last?.endTime)
+    #expect(tracker.localListeningSessions.count == 1)
+    #expect(!tracker.isListening)
+    #expect(tracker.localListeningSessions.last?.endTime != nil)
   }
 
   // MARK: - Edge Cases
 
-  func testPlaybackStateChange_DoesNotEndSessionWhenNoSessionsExist() {
+  @Test
+  func testPlaybackStateChangeDoesNotEndSessionWhenNoSessionsExist() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let rewardsProfile = createMockRewardsProfile()
 
@@ -297,10 +314,11 @@ final class ListeningTrackerTests: XCTestCase {
 
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
-    XCTAssertEqual(tracker.localListeningSessions.count, 0)
-    XCTAssertFalse(tracker.isListening)
+    #expect(tracker.localListeningSessions.count == 0)
+    #expect(!tracker.isListening)
   }
 
+  @Test
   func testMultiplePlaybackStateChanges() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let rewardsProfile = createMockRewardsProfile()
@@ -309,31 +327,32 @@ final class ListeningTrackerTests: XCTestCase {
     // Start playing
     $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(AnyStation.mock)) }
 
-    XCTAssertEqual(tracker.localListeningSessions.count, 1)
-    XCTAssertTrue(tracker.isListening)
+    #expect(tracker.localListeningSessions.count == 1)
+    #expect(tracker.isListening)
 
     // Stop playing
     $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .stopped) }
 
-    XCTAssertEqual(tracker.localListeningSessions.count, 1)
-    XCTAssertFalse(tracker.isListening)
+    #expect(tracker.localListeningSessions.count == 1)
+    #expect(!tracker.isListening)
 
     // Start playing again
     $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .playing(AnyStation.mock)) }
 
-    XCTAssertEqual(tracker.localListeningSessions.count, 2)
-    XCTAssertTrue(tracker.isListening)
+    #expect(tracker.localListeningSessions.count == 2)
+    #expect(tracker.isListening)
 
     // Stop playing again
     $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .stopped) }
 
-    XCTAssertEqual(tracker.localListeningSessions.count, 2)
-    XCTAssertFalse(tracker.isListening)
+    #expect(tracker.localListeningSessions.count == 2)
+    #expect(!tracker.isListening)
   }
 
   // MARK: - Real-time Session Duration Test
 
-  func testSessionDuration_CalculatesCorrectly() {
+  @Test
+  func testSessionDurationCalculatesCorrectly() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let rewardsProfile = createMockRewardsProfile()
 
@@ -343,26 +362,26 @@ final class ListeningTrackerTests: XCTestCase {
     let tracker = ListeningTracker(rewardsProfile: rewardsProfile)
 
     // Verify session started
-    XCTAssertEqual(tracker.localListeningSessions.count, 1)
-    XCTAssertTrue(tracker.isListening)
+    #expect(tracker.localListeningSessions.count == 1)
+    #expect(tracker.isListening)
 
     // Get the start time
     let startTime = tracker.localListeningSessions.first?.startTime
-    XCTAssertNotNil(startTime)
+    #expect(startTime != nil)
 
     // Stop playing
     $nowPlaying.withLock { $0 = createNowPlaying(playbackStatus: .stopped) }
 
     // Verify session ended
-    XCTAssertFalse(tracker.isListening)
+    #expect(!tracker.isListening)
     let endTime = tracker.localListeningSessions.first?.endTime
-    XCTAssertNotNil(endTime)
+    #expect(endTime != nil)
 
     // The duration should be very small since we're testing synchronously
     if let start = startTime, let end = endTime {
       let duration = end.timeIntervalSince(start)
-      XCTAssertLessThan(duration, 1.0)  // Should be less than 1 second
-      XCTAssertGreaterThanOrEqual(duration, 0)  // Should be non-negative
+      #expect(duration < 1.0)  // Should be less than 1 second
+      #expect(duration >= 0)  // Should be non-negative
     }
   }
 }

@@ -3,52 +3,62 @@
 //  PlayolaRadio
 //
 
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-class VersionComparisonTests: XCTestCase {
+struct VersionComparisonTests {
+  @Test
   func testEqualVersionsReturnsFalse() {
-    XCTAssertFalse(isVersion("1.0.0", lessThan: "1.0.0"))
+    #expect(!isVersion("1.0.0", lessThan: "1.0.0"))
   }
 
+  @Test
   func testLessThanMajorReturnsTrue() {
-    XCTAssertTrue(isVersion("1.0.0", lessThan: "2.0.0"))
+    #expect(isVersion("1.0.0", lessThan: "2.0.0"))
   }
 
+  @Test
   func testGreaterThanMajorReturnsFalse() {
-    XCTAssertFalse(isVersion("2.0.0", lessThan: "1.0.0"))
+    #expect(!isVersion("2.0.0", lessThan: "1.0.0"))
   }
 
+  @Test
   func testLessThanMinorReturnsTrue() {
-    XCTAssertTrue(isVersion("1.1.0", lessThan: "1.2.0"))
+    #expect(isVersion("1.1.0", lessThan: "1.2.0"))
   }
 
+  @Test
   func testGreaterThanMinorReturnsFalse() {
-    XCTAssertFalse(isVersion("1.2.0", lessThan: "1.1.0"))
+    #expect(!isVersion("1.2.0", lessThan: "1.1.0"))
   }
 
+  @Test
   func testLessThanPatchReturnsTrue() {
-    XCTAssertTrue(isVersion("1.0.1", lessThan: "1.0.2"))
+    #expect(isVersion("1.0.1", lessThan: "1.0.2"))
   }
 
+  @Test
   func testGreaterThanPatchReturnsFalse() {
-    XCTAssertFalse(isVersion("1.0.2", lessThan: "1.0.1"))
+    #expect(!isVersion("1.0.2", lessThan: "1.0.1"))
   }
 
+  @Test
   func testMissingPatchTreatedAsZero() {
-    XCTAssertFalse(isVersion("1.0", lessThan: "1.0.0"))
-    XCTAssertTrue(isVersion("1.0", lessThan: "1.0.1"))
+    #expect(!isVersion("1.0", lessThan: "1.0.0"))
+    #expect(isVersion("1.0", lessThan: "1.0.1"))
   }
 
+  @Test
   func testMissingPatchOnRequiredTreatedAsZero() {
-    XCTAssertFalse(isVersion("1.0.0", lessThan: "1.0"))
-    XCTAssertFalse(isVersion("1.0.1", lessThan: "1.0"))
+    #expect(!isVersion("1.0.0", lessThan: "1.0"))
+    #expect(!isVersion("1.0.1", lessThan: "1.0"))
   }
 
+  @Test
   func testTwoComponentVersions() {
-    XCTAssertTrue(isVersion("1.0", lessThan: "1.1"))
-    XCTAssertFalse(isVersion("1.1", lessThan: "1.0"))
+    #expect(isVersion("1.0", lessThan: "1.1"))
+    #expect(!isVersion("1.1", lessThan: "1.0"))
   }
 }

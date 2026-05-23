@@ -5,14 +5,16 @@
 //  Created by Brian D Keane on 3/10/26.
 //
 
+import ConcurrencyExtras
 import Dependencies
+import Foundation
 import Sharing
-import XCTest
+import Testing
 
 @testable import PlayolaRadio
 
 @MainActor
-final class StationSuggestionPageTests: XCTestCase {
+struct StationSuggestionPageTests {
 
   // MARK: - Test Data
 
@@ -64,25 +66,28 @@ final class StationSuggestionPageTests: XCTestCase {
 
   // MARK: - View Appeared Tests
 
+  @Test
   func testViewAppearedFetchesSuggestions() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let model = makeModel()
 
     await model.viewAppeared()
 
-    XCTAssertEqual(model.suggestions.count, 3)
-    XCTAssertEqual(model.suggestions.first?.artistName, "Bri Bagwell")
+    #expect(model.suggestions.count == 3)
+    #expect(model.suggestions.first?.artistName == "Bri Bagwell")
   }
 
+  @Test
   func testViewAppearedDoesNothingWithoutAuth() async {
     @Shared(.auth) var auth = Auth()
     let model = makeModel()
 
     await model.viewAppeared()
 
-    XCTAssertTrue(model.suggestions.isEmpty)
+    #expect(model.suggestions.isEmpty)
   }
 
+  @Test
   func testViewAppearedShowsAlertOnError() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let model = makeModel(onGetSuggestions: { _, _ in
@@ -91,12 +96,13 @@ final class StationSuggestionPageTests: XCTestCase {
 
     await model.viewAppeared()
 
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert?.title, "Error")
+    #expect(model.presentedAlert != nil)
+    #expect(model.presentedAlert?.title == "Error")
   }
 
   // MARK: - Search Tests
 
+  @Test
   func testSearchTextChangedFetchesWithQuery() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let capturedSearches = LockIsolated<[String?]>([])
@@ -109,9 +115,10 @@ final class StationSuggestionPageTests: XCTestCase {
     await model.searchTextChanged()
 
     let searches = capturedSearches.value
-    XCTAssertEqual(searches.last, "Charley")
+    #expect(searches.last == "Charley")
   }
 
+  @Test
   func testSearchTextChangedSendsNilForEmptyQuery() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let capturedSearches = LockIsolated<[String?]>([])
@@ -124,9 +131,10 @@ final class StationSuggestionPageTests: XCTestCase {
     await model.searchTextChanged()
 
     let searches = capturedSearches.value
-    XCTAssertNil(searches.last ?? nil)
+    #expect((searches.last ?? nil) == nil)
   }
 
+  @Test
   func testClearSearchTappedResetsTextAndFetches() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let capturedSearches = LockIsolated<[String?]>([])
@@ -138,13 +146,14 @@ final class StationSuggestionPageTests: XCTestCase {
     model.searchText = "Charley"
     await model.clearSearchTapped()
 
-    XCTAssertEqual(model.searchText, "")
-    XCTAssertNil(capturedSearches.value.last ?? nil)
-    XCTAssertEqual(model.suggestions.count, 3)
+    #expect(model.searchText == "")
+    #expect((capturedSearches.value.last ?? nil) == nil)
+    #expect(model.suggestions.count == 3)
   }
 
   // MARK: - Vote Tests
 
+  @Test
   func testVoteTappedCallsVoteForUnvotedSuggestion() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let capturedVoteIds = LockIsolated<[String]>([])
@@ -158,9 +167,10 @@ final class StationSuggestionPageTests: XCTestCase {
 
     await model.voteTapped(unvotedSuggestion)
 
-    XCTAssertEqual(capturedVoteIds.value, ["s2"])
+    #expect(capturedVoteIds.value == ["s2"])
   }
 
+  @Test
   func testVoteTappedCallsRemoveVoteForVotedSuggestion() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let capturedRemoveIds = LockIsolated<[String]>([])
@@ -174,9 +184,10 @@ final class StationSuggestionPageTests: XCTestCase {
 
     await model.voteTapped(votedSuggestion)
 
-    XCTAssertEqual(capturedRemoveIds.value, ["s1"])
+    #expect(capturedRemoveIds.value == ["s1"])
   }
 
+  @Test
   func testVoteTappedRefetchesSuggestionsAfterSuccess() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let fetchCount = LockIsolated(0)
@@ -191,9 +202,10 @@ final class StationSuggestionPageTests: XCTestCase {
 
     await model.voteTapped(unvotedSuggestion)
 
-    XCTAssertGreaterThanOrEqual(fetchCount.value, 1)
+    #expect(fetchCount.value >= 1)
   }
 
+  @Test
   func testVoteTappedShowsAlertOnError() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let unvotedSuggestion = ArtistSuggestion(
@@ -206,10 +218,11 @@ final class StationSuggestionPageTests: XCTestCase {
 
     await model.voteTapped(unvotedSuggestion)
 
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert?.title, "Error")
+    #expect(model.presentedAlert != nil)
+    #expect(model.presentedAlert?.title == "Error")
   }
 
+  @Test
   func testVoteTappedDoesNothingWithoutAuth() async {
     @Shared(.auth) var auth = Auth()
     let capturedVoteIds = LockIsolated<[String]>([])
@@ -223,11 +236,12 @@ final class StationSuggestionPageTests: XCTestCase {
 
     await model.voteTapped(suggestion)
 
-    XCTAssertTrue(capturedVoteIds.value.isEmpty)
+    #expect(capturedVoteIds.value.isEmpty)
   }
 
   // MARK: - Suggest Tests
 
+  @Test
   func testSuggestTappedCreatesAndClearsSearch() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let capturedNames = LockIsolated<[String]>([])
@@ -241,10 +255,11 @@ final class StationSuggestionPageTests: XCTestCase {
     model.searchText = "Tyler Childers"
     await model.suggestTapped()
 
-    XCTAssertEqual(capturedNames.value, ["Tyler Childers"])
-    XCTAssertEqual(model.searchText, "")
+    #expect(capturedNames.value == ["Tyler Childers"])
+    #expect(model.searchText == "")
   }
 
+  @Test
   func testSuggestTappedTrimsWhitespace() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let capturedNames = LockIsolated<[String]>([])
@@ -258,9 +273,10 @@ final class StationSuggestionPageTests: XCTestCase {
     model.searchText = "  Tyler Childers  "
     await model.suggestTapped()
 
-    XCTAssertEqual(capturedNames.value, ["Tyler Childers"])
+    #expect(capturedNames.value == ["Tyler Childers"])
   }
 
+  @Test
   func testSuggestTappedDoesNothingForEmptySearch() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let capturedNames = LockIsolated<[String]>([])
@@ -274,9 +290,10 @@ final class StationSuggestionPageTests: XCTestCase {
     model.searchText = "   "
     await model.suggestTapped()
 
-    XCTAssertTrue(capturedNames.value.isEmpty)
+    #expect(capturedNames.value.isEmpty)
   }
 
+  @Test
   func testSuggestTappedDoesNothingWithoutAuth() async {
     @Shared(.auth) var auth = Auth()
     let capturedNames = LockIsolated<[String]>([])
@@ -290,9 +307,10 @@ final class StationSuggestionPageTests: XCTestCase {
     model.searchText = "Tyler Childers"
     await model.suggestTapped()
 
-    XCTAssertTrue(capturedNames.value.isEmpty)
+    #expect(capturedNames.value.isEmpty)
   }
 
+  @Test
   func testSuggestTappedShowsAlertOnError() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let model = makeModel(onCreate: { _, _ in
@@ -302,112 +320,125 @@ final class StationSuggestionPageTests: XCTestCase {
     model.searchText = "Tyler Childers"
     await model.suggestTapped()
 
-    XCTAssertNotNil(model.presentedAlert)
-    XCTAssertEqual(model.presentedAlert?.title, "Error")
-    XCTAssertEqual(model.searchText, "Tyler Childers")
+    #expect(model.presentedAlert != nil)
+    #expect(model.presentedAlert?.title == "Error")
+    #expect(model.searchText == "Tyler Childers")
   }
 
   // MARK: - View Helper Tests
 
+  @Test
   func testShowSuggestButtonTrueWhenSearchDoesNotMatchExisting() {
     let model = makeModel()
     model.suggestions = mockSuggestions()
     model.searchText = "Tyler Childers"
 
-    XCTAssertTrue(model.showSuggestButton)
+    #expect(model.showSuggestButton)
   }
 
+  @Test
   func testShowSuggestButtonFalseWhenSearchMatchesExistingCaseInsensitive() {
     let model = makeModel()
     model.suggestions = mockSuggestions()
     model.searchText = "bri bagwell"
 
-    XCTAssertFalse(model.showSuggestButton)
+    #expect(!model.showSuggestButton)
   }
 
+  @Test
   func testShowSuggestButtonFalseWhenSearchIsEmpty() {
     let model = makeModel()
     model.suggestions = mockSuggestions()
     model.searchText = ""
 
-    XCTAssertFalse(model.showSuggestButton)
+    #expect(!model.showSuggestButton)
   }
 
+  @Test
   func testShowSuggestButtonFalseWhenSearchIsWhitespace() {
     let model = makeModel()
     model.suggestions = mockSuggestions()
     model.searchText = "   "
 
-    XCTAssertFalse(model.showSuggestButton)
+    #expect(!model.showSuggestButton)
   }
 
+  @Test
   func testShowEmptyStateTrueWhenNotLoadingAndEmpty() {
     let model = makeModel()
     model.suggestions = []
     model.isLoading = false
 
-    XCTAssertTrue(model.showEmptyState)
+    #expect(model.showEmptyState)
   }
 
+  @Test
   func testShowEmptyStateFalseWhenLoading() {
     let model = makeModel()
     model.suggestions = []
     model.isLoading = true
 
-    XCTAssertFalse(model.showEmptyState)
+    #expect(!model.showEmptyState)
   }
 
+  @Test
   func testShowEmptyStateFalseWhenSuggestionsExist() {
     let model = makeModel()
     model.suggestions = mockSuggestions()
     model.isLoading = false
 
-    XCTAssertFalse(model.showEmptyState)
+    #expect(!model.showEmptyState)
   }
 
+  @Test
   func testEmptyMessageShowsDefaultWhenSearchEmpty() {
     let model = makeModel()
     model.searchText = ""
 
-    XCTAssertEqual(model.emptyMessage, model.emptyStateMessage)
+    #expect(model.emptyMessage == model.emptyStateMessage)
   }
 
+  @Test
   func testEmptyMessageShowsSearchMessageWhenSearchActive() {
     let model = makeModel()
     model.searchText = "Nobody"
 
-    XCTAssertEqual(model.emptyMessage, model.emptySearchMessage)
+    #expect(model.emptyMessage == model.emptySearchMessage)
   }
 
+  @Test
   func testVoteButtonTextShowsVotedWhenHasVoted() {
     let model = makeModel()
     let suggestion = ArtistSuggestion(
       id: "s1", artistName: "Test", createdByUserId: "u1",
       voteCount: 5, hasVoted: true, createdAt: Date(), updatedAt: Date())
 
-    XCTAssertEqual(model.voteButtonText(suggestion), "Voted")
+    #expect(model.voteButtonText(suggestion) == "Voted")
   }
 
+  @Test
   func testVoteButtonTextShowsVoteWhenNotVoted() {
     let model = makeModel()
     let suggestion = ArtistSuggestion(
       id: "s1", artistName: "Test", createdByUserId: "u1",
       voteCount: 5, hasVoted: false, createdAt: Date(), updatedAt: Date())
 
-    XCTAssertEqual(model.voteButtonText(suggestion), "Vote")
+    #expect(model.voteButtonText(suggestion) == "Vote")
   }
 
+  @Test
   func testVoteCountText() {
     let model = makeModel()
     let suggestion = ArtistSuggestion(
       id: "s1", artistName: "Test", createdByUserId: "u1",
       voteCount: 42, hasVoted: false, createdAt: Date(), updatedAt: Date())
 
-    XCTAssertEqual(model.voteCountText(suggestion), "42")
+    #expect(model.voteCountText(suggestion) == "42")
   }
 
   // MARK: - Double-Tap Guard Tests
 
+  @Test
   func testVoteTappedIgnoredWhileVoteInProgress() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let voteCount = LockIsolated(0)
@@ -422,9 +453,10 @@ final class StationSuggestionPageTests: XCTestCase {
 
     await model.voteTapped(unvotedSuggestion)
 
-    XCTAssertEqual(voteCount.value, 0)
+    #expect(voteCount.value == 0)
   }
 
+  @Test
   func testSuggestTappedIgnoredWhileSubmitInProgress() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let createCount = LockIsolated(0)
@@ -439,9 +471,10 @@ final class StationSuggestionPageTests: XCTestCase {
 
     await model.suggestTapped()
 
-    XCTAssertEqual(createCount.value, 0)
+    #expect(createCount.value == 0)
   }
 
+  @Test
   func testVoteTappedResetsIsVotingAfterCompletion() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let unvotedSuggestion = ArtistSuggestion(
@@ -451,9 +484,10 @@ final class StationSuggestionPageTests: XCTestCase {
 
     await model.voteTapped(unvotedSuggestion)
 
-    XCTAssertFalse(model.isVoting)
+    #expect(!model.isVoting)
   }
 
+  @Test
   func testVoteTappedResetsIsVotingAfterError() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let unvotedSuggestion = ArtistSuggestion(
@@ -465,9 +499,10 @@ final class StationSuggestionPageTests: XCTestCase {
 
     await model.voteTapped(unvotedSuggestion)
 
-    XCTAssertFalse(model.isVoting)
+    #expect(!model.isVoting)
   }
 
+  @Test
   func testSuggestTappedResetsIsSubmittingAfterCompletion() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let model = makeModel()
@@ -475,9 +510,10 @@ final class StationSuggestionPageTests: XCTestCase {
 
     await model.suggestTapped()
 
-    XCTAssertFalse(model.isSubmitting)
+    #expect(!model.isSubmitting)
   }
 
+  @Test
   func testSuggestTappedResetsIsSubmittingAfterError() async {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let model = makeModel(onCreate: { _, _ in
@@ -487,11 +523,12 @@ final class StationSuggestionPageTests: XCTestCase {
 
     await model.suggestTapped()
 
-    XCTAssertFalse(model.isSubmitting)
+    #expect(!model.isSubmitting)
   }
 
   // MARK: - Dismiss Tests
 
+  @Test
   func testDismissTappedCallsOnDismiss() {
     let model = makeModel()
     var dismissed = false
@@ -499,9 +536,10 @@ final class StationSuggestionPageTests: XCTestCase {
 
     model.dismissTapped()
 
-    XCTAssertTrue(dismissed)
+    #expect(dismissed)
   }
 
+  @Test
   func testDismissTappedDoesNothingWithoutCallback() {
     let model = makeModel()
     model.onDismiss = nil
