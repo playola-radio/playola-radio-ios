@@ -137,6 +137,25 @@ class StationListModel: ViewModel {
       ))
   }
 
+  func starTapped(for item: APIStationItem) async {
+    let stationId = item.anyStation.id
+
+    if let existing = presets.first(where: { $0.embeddedStationId == stationId }) {
+      await removePreset(presetId: existing.id, stationInfo: StationInfo(from: item.anyStation))
+      return
+    }
+
+    if pendingPresetStationIds.contains(stationId)
+      || pendingPresetRemovalIds.contains(where: { id in
+        presets[id: id]?.embeddedStationId == stationId
+      })
+    {
+      return
+    }
+
+    await addPreset(for: item)
+  }
+
   func stationSelected(_ item: APIStationItem) async {
     if item.visibility == .comingSoon && showSecretStations == false {
       return
@@ -253,6 +272,33 @@ class StationListModel: ViewModel {
   }
 
   // MARK: - Private Helpers
+
+  private func addPreset(for item: APIStationItem) async {
+    guard let token = auth.jwt else { return }
+    let stationId = item.anyStation.id
+    let stationInfo = StationInfo(from: item.anyStation)
+    let isPlayola = item.station != nil
+
+    $pendingPresetStationIds.withLock { $0.insert(stationId) }
+
+    do {
+      let created = try await api.createPreset(
+        token,
+        isPlayola ? stationId : nil,
+        isPlayola ? nil : stationId
+      )
+      $pendingPresetStationIds.withLock { $0.remove(stationId) }
+      $presets.withLock { $0.append(created) }
+      await analytics.track(.presetAdded(station: stationInfo))
+    } catch {
+      $pendingPresetStationIds.withLock { $0.remove(stationId) }
+      presentedAlert = .errorSavingPreset
+    }
+  }
+
+  // TEMPORARY STUB — replaced in Task 12.
+  private func removePreset(presetId: String, stationInfo: StationInfo) async {
+  }
 
   private func loadPresets() async {
     guard let token = auth.jwt else { return }

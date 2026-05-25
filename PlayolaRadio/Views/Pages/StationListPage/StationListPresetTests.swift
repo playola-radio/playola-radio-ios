@@ -171,6 +171,128 @@ struct StationListPresetTests {
     #expect(!model.showsPresetsSection)
   }
 
+  // MARK: - Star Tap — Add
+
+  @Test
+  func testStarTappedOnNonPresetAddsOptimisticallyThenPersists() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
+        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
+      jwt: "t")
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+    @Shared(.pendingPresetStationIds) var pending: Set<String> = []
+
+    let item = makePresetVisibleItem()
+    let stationId = item.anyStation.id
+
+    let capturedCallArgs = LockIsolated<(String, String?, String?)?>(nil)
+    let returnedPreset = Preset.mockPlayola(id: "new-preset", stationId: stationId, position: 0)
+
+    let model = withDependencies {
+      $0.api.createPreset = { token, sid, urlSid in
+        capturedCallArgs.setValue((token, sid, urlSid))
+        return returnedPreset
+      }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.starTapped(for: item)
+
+    #expect(capturedCallArgs.value?.0 == "t")
+    #expect(capturedCallArgs.value?.1 == stationId)
+    #expect(capturedCallArgs.value?.2 == nil)
+    #expect(pending.isEmpty)
+    expectNoDifference(Array(presets), [returnedPreset])
+  }
+
+  @Test
+  func testStarTappedAddFailureRollsBackAndShowsAlert() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
+        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
+      jwt: "t")
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+    @Shared(.pendingPresetStationIds) var pending: Set<String> = []
+
+    let item = makePresetVisibleItem()
+
+    let model = withDependencies {
+      $0.api.createPreset = { _, _, _ in
+        throw APIError.validationError("server says no")
+      }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.starTapped(for: item)
+
+    #expect(pending.isEmpty)
+    #expect(presets.isEmpty)
+    #expect(model.presentedAlert == .errorSavingPreset)
+  }
+
+  @Test
+  func testStarTappedIgnoredWhilePendingAdd() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
+        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
+      jwt: "t")
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+    let item = makePresetVisibleItem()
+    @Shared(.pendingPresetStationIds) var pending: Set<String> = [item.anyStation.id]
+
+    let callCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.createPreset = { _, _, _ in
+        callCount.setValue(callCount.value + 1)
+        return Preset.mockPlayola()
+      }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.starTapped(for: item)
+
+    #expect(callCount.value == 0)
+  }
+
+  @Test
+  func testStarTappedTracksPresetAddedAnalyticsOnSuccess() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
+        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
+      jwt: "t")
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+
+    let item = makePresetVisibleItem()
+    let stationId = item.anyStation.id
+    let captured = LockIsolated<[AnalyticsEvent]>([])
+
+    let model = withDependencies {
+      $0.api.createPreset = { _, _, _ in
+        Preset.mockPlayola(stationId: stationId)
+      }
+      $0.analytics.track = { event in
+        captured.withValue { $0.append(event) }
+      }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.starTapped(for: item)
+
+    let added = captured.value.contains {
+      if case .presetAdded(let info) = $0, info.id == stationId { return true }
+      return false
+    }
+    #expect(added)
+  }
+
   @Test
   func testDisplayPresetsAppendsPendingAddAsGhostTile() async {
     @Shared(.showSecretStations) var showSecretStations = false
@@ -207,4 +329,18 @@ private func makePresetTestList(with items: [APIStationItem], date: Date = Date(
     updatedAt: date,
     items: items
   )
+}
+
+private func makePresetVisibleItem(date: Date = Date()) -> APIStationItem {
+  let station = PlayolaPlayer.Station(
+    id: "playable-station",
+    name: "Moondog Radio",
+    curatorName: "Jacob Stelly",
+    imageUrl: URL(string: "https://example.com/moondog.png"),
+    description: "A playable station",
+    active: true,
+    createdAt: date,
+    updatedAt: date
+  )
+  return APIStationItem(sortOrder: 0, visibility: .visible, station: station, urlStation: nil)
 }
