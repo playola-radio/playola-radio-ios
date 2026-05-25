@@ -45,4 +45,39 @@ struct StationListPresetTests {
     #expect(capturedToken.value == "fake-token")
     expectNoDifference(Array(presets), returnedPresets)
   }
+
+  // MARK: - isPreset
+
+  @Test
+  func testIsPresetReturnsTrueForExistingPreset() async {
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [
+      Preset.mockPlayola(stationId: "playola-1")
+    ]
+    let model = StationListModel()
+    #expect(model.isPreset(stationId: "playola-1"))
+  }
+
+  @Test
+  func testIsPresetReturnsTrueForUrlStationPreset() async {
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [
+      Preset.mockUrl(urlStationId: "url-1")
+    ]
+    let model = StationListModel()
+    #expect(model.isPreset(stationId: "url-1"))
+  }
+
+  @Test
+  func testIsPresetReturnsFalseForUnknownStation() async {
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+    let model = StationListModel()
+    #expect(!model.isPreset(stationId: "nope"))
+  }
+
+  @Test
+  func testIsPresetReturnsTrueWhilePendingAdd() async {
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+    @Shared(.pendingPresetStationIds) var pending: Set<String> = ["playola-2"]
+    let model = StationListModel()
+    #expect(model.isPreset(stationId: "playola-2"))
+  }
 }

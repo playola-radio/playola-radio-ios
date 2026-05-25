@@ -174,6 +174,11 @@ class StationListModel: ViewModel {
 
   // MARK: - View Helpers
 
+  func isPreset(stationId: String) -> Bool {
+    pendingPresetStationIds.contains(stationId)
+      || presets.contains { $0.embeddedStationId == stationId }
+  }
+
   func liveStatusForStation(_ stationId: String) -> LiveStatus? {
     liveStations.first { $0.stationId == stationId }?.liveStatus
   }
