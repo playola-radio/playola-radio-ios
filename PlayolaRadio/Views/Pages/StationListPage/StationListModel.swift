@@ -19,15 +19,22 @@ class StationListModel: ViewModel {
   // MARK: - Dependencies
 
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
 
   // MARK: - Shared State
 
+  @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
   @ObservationIgnored @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+  @ObservationIgnored @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+  @ObservationIgnored @Shared(.pendingPresetStationIds) var pendingPresetStationIds: Set<String> =
+    []
+  @ObservationIgnored @Shared(.pendingPresetRemovalIds) var pendingPresetRemovalIds: Set<String> =
+    []
   @ObservationIgnored @Shared(.hasAskedForNotificationPermission)
   var hasAskedForNotificationPermission: Bool
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
@@ -51,6 +58,8 @@ class StationListModel: ViewModel {
   // MARK: - User Actions
 
   func viewAppeared() async {
+    await loadPresets()
+
     $stationLists.publisher
       .sink { [weak self] lists in
         self?.loadStationListsForDisplay(lists)
@@ -192,6 +201,15 @@ class StationListModel: ViewModel {
   }
 
   // MARK: - Private Helpers
+
+  private func loadPresets() async {
+    guard let token = auth.jwt else { return }
+    do {
+      let fetched = try await api.getPresets(token)
+      $presets.withLock { $0 = IdentifiedArray(uniqueElements: fetched) }
+    } catch {
+    }
+  }
 
   private func loadStationListsForDisplay(_ rawList: IdentifiedArrayOf<StationList>) {
     let includeHidden = showSecretStations
