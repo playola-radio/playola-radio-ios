@@ -5,6 +5,7 @@
 
 import PlayolaPlayer
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct PresetsCarousel: View {
   let displays: [PresetDisplayItem]
@@ -13,6 +14,8 @@ struct PresetsCarousel: View {
   let onTilePlay: (PresetDisplayItem) async -> Void
   let onTileLongPress: (PresetDisplayItem) -> Void
   let onMove: (Int, Int) async -> Void
+
+  @State private var draggingId: String?
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -60,6 +63,20 @@ struct PresetsCarousel: View {
             onTap: { await onTilePlay(display) },
             onLongPress: { onTileLongPress(display) }
           )
+          .opacity(draggingId == display.id ? 0.4 : 1.0)
+          .onDrag {
+            guard !display.isPending else { return NSItemProvider() }
+            draggingId = display.id
+            return NSItemProvider(object: display.id as NSString)
+          }
+          .onDrop(
+            of: [.text],
+            delegate: PresetDropDelegate(
+              item: display,
+              displays: displays,
+              draggingId: $draggingId,
+              onMove: onMove
+            ))
         }
       }
       .padding(.horizontal, 16)
@@ -73,6 +90,32 @@ struct PresetsCarousel: View {
       .frame(width: 24)
       .allowsHitTesting(false)
     }
+  }
+}
+
+private struct PresetDropDelegate: DropDelegate {
+  let item: PresetDisplayItem
+  let displays: [PresetDisplayItem]
+  @Binding var draggingId: String?
+  let onMove: (Int, Int) async -> Void
+
+  func dropEntered(info: DropInfo) {
+    guard let draggingId,
+      draggingId != item.id,
+      let fromIndex = displays.firstIndex(where: { $0.id == draggingId }),
+      let toIndex = displays.firstIndex(where: { $0.id == item.id })
+    else { return }
+
+    Task { await onMove(fromIndex, toIndex) }
+  }
+
+  func dropUpdated(info: DropInfo) -> DropProposal? {
+    DropProposal(operation: .move)
+  }
+
+  func performDrop(info: DropInfo) -> Bool {
+    draggingId = nil
+    return true
   }
 }
 
