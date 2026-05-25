@@ -296,8 +296,40 @@ class StationListModel: ViewModel {
     }
   }
 
-  // TEMPORARY STUB — replaced in Task 12.
   private func removePreset(presetId: String, stationInfo: StationInfo) async {
+    guard let token = auth.jwt else { return }
+    if pendingPresetRemovalIds.contains(presetId) { return }
+
+    guard let presetSnapshot = presets[id: presetId] else { return }
+    let positionsSnapshot: [String: Int] = Dictionary(
+      uniqueKeysWithValues: presets.map { ($0.id, $0.position) })
+
+    $pendingPresetRemovalIds.withLock { $0.insert(presetId) }
+    $presets.withLock { collection in
+      collection.remove(id: presetId)
+      for var existing in collection where existing.position > presetSnapshot.position {
+        existing.position -= 1
+        collection[id: existing.id] = existing
+      }
+    }
+
+    do {
+      try await api.deletePreset(token, presetId)
+      $pendingPresetRemovalIds.withLock { $0.remove(presetId) }
+      await analytics.track(.presetRemoved(station: stationInfo))
+    } catch {
+      $pendingPresetRemovalIds.withLock { $0.remove(presetId) }
+      $presets.withLock { collection in
+        collection.append(presetSnapshot)
+        for var existing in collection {
+          if let original = positionsSnapshot[existing.id] {
+            existing.position = original
+            collection[id: existing.id] = existing
+          }
+        }
+      }
+      presentedAlert = .errorRemovingPreset
+    }
   }
 
   private func loadPresets() async {
