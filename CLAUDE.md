@@ -1,5 +1,22 @@
 # Playola Radio iOS
 
+## ALWAYS use the Point-Free Workflow (pfw-*) skills
+
+This project is built on Point-Free libraries (`swift-dependencies`, `swift-sharing`, `swift-identified-collections`, `swift-custom-dump`, etc.). Before writing or planning Swift code in this repo, invoke every `pfw-*` skill that applies to the task. This is **mandatory**, not optional.
+
+Rough mapping:
+- Writing or editing `APIClient` / any `@DependencyClient` / anything using `@Dependency` → `pfw-dependencies`
+- Writing or editing an `@Observable` model (any `*Model.swift` in `Views/Pages/`) → `pfw-observable-models`
+- Writing tests (especially mutation/action tests) → `pfw-testing` AND `pfw-custom-dump` (use `expectDifference` / `expectNoDifference`, not raw `#expect(a == b)` for value comparisons)
+- Adding or editing `@Shared` keys / state → `pfw-sharing`
+- Working with `IdentifiedArrayOf<…>` → `pfw-identified-collections`
+- Asserting on enum cases with associated values → `pfw-case-paths`
+- SwiftUI views (bindings, `@State` init, modern patterns) → `pfw-modern-swiftui`
+- Error reporting (`reportIssue`, `withErrorReporting`) → `pfw-issue-reporting`
+- Snapshot testing → `pfw-snapshot-testing`
+
+If you are dispatching subagents (via `superpowers:subagent-driven-development` or similar), instruct each subagent to invoke the relevant pfw skills before writing code, and reference them in their checklist.
+
 ## Task-Type Quick Reference
 
 | Task Type | Read This |
