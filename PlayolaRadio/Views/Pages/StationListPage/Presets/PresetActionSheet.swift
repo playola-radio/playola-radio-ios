@@ -5,10 +5,10 @@
 
 import SwiftUI
 
-public struct PresetActionSheet: View {
-  public let preset: Preset
-  public let onRemove: () -> Void
-  public let onClose: () -> Void
+struct PresetActionSheet: View {
+  let preset: Preset
+  let onRemove: () -> Void
+  let onClose: () -> Void
 
   private var stationName: String {
     preset.station?.name ?? preset.urlStation?.name ?? "Station"
@@ -21,7 +21,7 @@ public struct PresetActionSheet: View {
     return nil
   }
 
-  public var body: some View {
+  var body: some View {
     VStack(spacing: 0) {
       Capsule()
         .fill(Color(hex: "#5A5A5A"))

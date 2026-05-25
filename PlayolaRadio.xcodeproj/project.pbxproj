@@ -144,6 +144,8 @@
 		AA01000000000006AAAAAAAA /* PresetsCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0EA0DF7714364A04B11B7 /* PresetsCarousel.swift */; };
 		AA01000000000007AAAAAAAA /* PresetTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0E49DF7714364A04B11B3 /* PresetTile.swift */; };
 		AA01000000000008AAAAAAAA /* PresetsCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0EA0DF7714364A04B11B7 /* PresetsCarousel.swift */; };
+		AA01000000000009AAAAAAAA /* PresetActionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD893BA95B5E43598D23A1FC /* PresetActionSheet.swift */; };
+		AA0100000000000AAAAAAAAA /* PresetActionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD893BA95B5E43598D23A1FC /* PresetActionSheet.swift */; };
 		D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DC52D39BEDD0070033A /* URLStreamPlayerMock.swift */; };
 		BFF0E49FF7714364A04B11B5 /* PresetTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0E49DF7714364A04B11B3 /* PresetTile.swift */; };
 		BFF0EA1FF7714364A04B11B8 /* PresetsCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0EA0DF7714364A04B11B7 /* PresetsCarousel.swift */; };
@@ -468,6 +470,7 @@
 		BFF0E48AF7714364A04B11B2 /* PresetStarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetStarButton.swift; sourceTree = "<group>"; };
 		BFF0E49DF7714364A04B11B3 /* PresetTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetTile.swift; sourceTree = "<group>"; };
 		BFF0EA0DF7714364A04B11B7 /* PresetsCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetsCarousel.swift; sourceTree = "<group>"; };
+		BD893BA95B5E43598D23A1FC /* PresetActionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetActionSheet.swift; sourceTree = "<group>"; };
 		D3137DC52D39BEDD0070033A /* URLStreamPlayerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLStreamPlayerMock.swift; sourceTree = "<group>"; };
 		D3137DCE2D3AA1E10070033A /* PlayolaSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaSheet.swift; sourceTree = "<group>"; };
 		D3137DD12D3ABB4F0070033A /* GenericNowPlaying.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericNowPlaying.swift; sourceTree = "<group>"; };
@@ -1881,6 +1884,7 @@
 				AA01000000000001AAAAAAAA /* PresetStarButton.swift in Sources */,
 				AA01000000000002AAAAAAAA /* PresetTile.swift in Sources */,
 				AA01000000000003AAAAAAAA /* PresetsCarousel.swift in Sources */,
+				AA01000000000009AAAAAAAA /* PresetActionSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2041,6 +2045,7 @@
 				AA01000000000004AAAAAAAA /* PresetStarButton.swift in Sources */,
 				AA01000000000005AAAAAAAA /* PresetTile.swift in Sources */,
 				AA01000000000006AAAAAAAA /* PresetsCarousel.swift in Sources */,
+				AA0100000000000AAAAAAAAA /* PresetActionSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
