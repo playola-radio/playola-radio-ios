@@ -156,6 +156,58 @@ class StationListModel: ViewModel {
     await addPreset(for: item)
   }
 
+  func presetMoved(from: Int, to: Int) async {
+    guard from != to else { return }
+    guard let token = auth.jwt else { return }
+
+    let snapshot: [String: Int] = Dictionary(
+      uniqueKeysWithValues: presets.map { ($0.id, $0.position) })
+
+    let displayIds = displayPresets.map(\.id)
+    guard from >= 0, from < displayIds.count, to >= 0, to < displayIds.count
+    else { return }
+    let movedId = displayIds[from]
+    guard presets[id: movedId] != nil else { return }
+
+    var orderedIds = displayIds.filter { presets[id: $0] != nil }
+    guard let oldIndex = orderedIds.firstIndex(of: movedId) else { return }
+    orderedIds.remove(at: oldIndex)
+    let clampedTo = min(max(0, to), orderedIds.count)
+    orderedIds.insert(movedId, at: clampedTo)
+
+    $presets.withLock { collection in
+      for (index, id) in orderedIds.enumerated() {
+        if var preset = collection[id: id] {
+          preset.position = index
+          collection[id: id] = preset
+        }
+      }
+    }
+
+    let movedStationInfo: StationInfo? = {
+      guard let item = displayPresets.first(where: { $0.id == movedId })?.stationItem
+      else { return nil }
+      return StationInfo(from: item.anyStation)
+    }()
+
+    do {
+      _ = try await api.movePreset(token, movedId, clampedTo)
+      if let info = movedStationInfo {
+        await analytics.track(.presetMoved(station: info, fromIndex: from, toIndex: clampedTo))
+      }
+    } catch {
+      $presets.withLock { collection in
+        for var preset in collection {
+          if let original = snapshot[preset.id] {
+            preset.position = original
+            collection[id: preset.id] = preset
+          }
+        }
+      }
+      presentedAlert = .errorMovingPreset
+    }
+  }
+
   func stationSelected(_ item: APIStationItem) async {
     if item.visibility == .comingSoon && showSecretStations == false {
       return

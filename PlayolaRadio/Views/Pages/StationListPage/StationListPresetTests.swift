@@ -436,6 +436,112 @@ struct StationListPresetTests {
     }
     #expect(removed)
   }
+
+  // MARK: - presetMoved
+
+  @Test
+  func testPresetMovedReassignsLocalPositionsAndCallsServer() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
+        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
+      jwt: "t")
+    let p1 = Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
+    let p2 = Preset.mockPlayola(id: "p2", stationId: "s2", position: 1)
+    let p3 = Preset.mockPlayola(id: "p3", stationId: "s3", position: 2)
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [p1, p2, p3]
+
+    let stationLists = IdentifiedArrayOf<StationList>(uniqueElements: [
+      makePresetTestList(with: [
+        APIStationItem(
+          sortOrder: 0, visibility: .visible, station: Station.mockWith(id: "s1"), urlStation: nil),
+        APIStationItem(
+          sortOrder: 1, visibility: .visible, station: Station.mockWith(id: "s2"), urlStation: nil),
+        APIStationItem(
+          sortOrder: 2, visibility: .visible, station: Station.mockWith(id: "s3"), urlStation: nil),
+      ])
+    ])
+    @Shared(.stationLists) var sharedLists = stationLists
+
+    let capturedArgs = LockIsolated<(String, String, Int)?>(nil)
+    let model = withDependencies {
+      $0.api.movePreset = { token, presetId, position in
+        capturedArgs.setValue((token, presetId, position))
+        return Preset.mockPlayola(id: presetId, stationId: "s1", position: position)
+      }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.presetMoved(from: 0, to: 2)
+
+    let ordered = presets.sorted { $0.position < $1.position }
+    expectNoDifference(ordered.map(\.id), ["p2", "p3", "p1"])
+    expectNoDifference(ordered.map(\.position), [0, 1, 2])
+    #expect(capturedArgs.value?.0 == "t")
+    #expect(capturedArgs.value?.1 == "p1")
+    #expect(capturedArgs.value?.2 == 2)
+  }
+
+  @Test
+  func testPresetMovedNoOpWhenFromEqualsTo() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
+        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
+      jwt: "t")
+    let p1 = Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [p1]
+
+    let callCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.movePreset = { _, _, _ in
+        callCount.setValue(callCount.value + 1)
+        return p1
+      }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.presetMoved(from: 0, to: 0)
+
+    #expect(callCount.value == 0)
+  }
+
+  @Test
+  func testPresetMoveFailureRevertsToSnapshot() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
+        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
+      jwt: "t")
+    let p1 = Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
+    let p2 = Preset.mockPlayola(id: "p2", stationId: "s2", position: 1)
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [p1, p2]
+
+    let stationLists = IdentifiedArrayOf<StationList>(uniqueElements: [
+      makePresetTestList(with: [
+        APIStationItem(
+          sortOrder: 0, visibility: .visible, station: Station.mockWith(id: "s1"), urlStation: nil),
+        APIStationItem(
+          sortOrder: 1, visibility: .visible, station: Station.mockWith(id: "s2"), urlStation: nil),
+      ])
+    ])
+    @Shared(.stationLists) var sharedLists = stationLists
+
+    let model = withDependencies {
+      $0.api.movePreset = { _, _, _ in throw APIError.validationError("nope") }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.presetMoved(from: 0, to: 1)
+
+    let ordered = presets.sorted { $0.position < $1.position }
+    expectNoDifference(ordered.map(\.id), ["p1", "p2"])
+    expectNoDifference(ordered.map(\.position), [0, 1])
+    #expect(model.presentedAlert == .errorMovingPreset)
+  }
 }
 
 private func makePresetTestList(with items: [APIStationItem], date: Date = Date()) -> StationList {
