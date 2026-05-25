@@ -175,3 +175,23 @@ extension SharedKey where Self == AppStorageKey<String?>.Default {
     Self[.appStorage("tls13ProbeLastSentBuild"), default: nil]
   }
 }
+
+// MARK: - Presets
+
+extension SharedKey where Self == InMemoryKey<IdentifiedArrayOf<Preset>>.Default {
+  static var presets: Self {
+    Self[.inMemory("presets"), default: []]
+  }
+}
+
+extension SharedKey where Self == InMemoryKey<Set<String>>.Default {
+  /// Station ids (playola or url) for which a preset create is currently in flight.
+  static var pendingPresetStationIds: Self {
+    Self[.inMemory("pendingPresetStationIds"), default: []]
+  }
+
+  /// Preset ids for which a delete is currently in flight.
+  static var pendingPresetRemovalIds: Self {
+    Self[.inMemory("pendingPresetRemovalIds"), default: []]
+  }
+}
