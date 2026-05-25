@@ -60,6 +60,9 @@ class StationListModel: ViewModel {
   let noResultsIconName = "music.note.list"
   let noResultsMessage = "No stations found"
   let noResultsHint = "Try a different search, or tap Suggest Station to request one."
+  let presetsSegmentTitle = "Presets"
+  let presetsSectionTitle = "Presets"
+  let presetsEmptyStateText = "Tap the ★ on any station to save it here."
 
   // MARK: - User Actions
 
@@ -215,6 +218,14 @@ class StationListModel: ViewModel {
       || presets.contains { $0.embeddedStationId == stationId }
   }
 
+  var showsPresetsSection: Bool {
+    selectedSegment == "All" || selectedSegment == presetsSegmentTitle
+  }
+
+  var showsPresetsOnly: Bool {
+    selectedSegment == presetsSegmentTitle
+  }
+
   func liveStatusForStation(_ stationId: String) -> LiveStatus? {
     liveStations.first { $0.stationId == stationId }?.liveStatus
   }
@@ -256,8 +267,7 @@ class StationListModel: ViewModel {
     let includeHidden = showSecretStations
     let visibleLists = includeHidden ? rawList : rawList.filter { !$0.hidden }
 
-    // Build segment titles: ["All", ...station list titles]
-    var titles = ["All"]
+    var titles = ["All", presetsSegmentTitle]
     titles.append(contentsOf: visibleLists.map { $0.title })
     segmentTitles = titles
 
@@ -267,6 +277,8 @@ class StationListModel: ViewModel {
 
     if selectedSegment == "All" {
       stationListsForDisplay = visibleLists
+    } else if selectedSegment == presetsSegmentTitle {
+      stationListsForDisplay = []
     } else {
       stationListsForDisplay = visibleLists.filter { $0.title == selectedSegment }
     }

@@ -126,6 +126,51 @@ struct StationListPresetTests {
     expectNoDifference(model.displayPresets.map(\.id), ["p1"])
   }
 
+  // MARK: - Presets Segment
+
+  @Test
+  func testPresetsSegmentSelectedShowsOnlyCarousel() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    await model.segmentSelected("Presets")
+
+    #expect(model.selectedSegment == "Presets")
+    #expect(model.stationListsForDisplay.isEmpty)
+    #expect(model.showsPresetsSection)
+    #expect(model.showsPresetsOnly)
+  }
+
+  @Test
+  func testShowsPresetsSectionTrueOnAllSegment() async {
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    #expect(model.selectedSegment == "All")
+    #expect(model.showsPresetsSection)
+    #expect(!model.showsPresetsOnly)
+  }
+
+  @Test
+  func testShowsPresetsSectionFalseOnOtherSegments() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    let visibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
+    guard let first = visibleLists.first else {
+      Issue.record("No visible lists")
+      return
+    }
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    await model.segmentSelected(first.title)
+
+    #expect(!model.showsPresetsSection)
+  }
+
   @Test
   func testDisplayPresetsAppendsPendingAddAsGhostTile() async {
     @Shared(.showSecretStations) var showSecretStations = false
