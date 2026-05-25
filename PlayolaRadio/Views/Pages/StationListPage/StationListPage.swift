@@ -99,6 +99,16 @@ struct StationListPage: View {
           .padding(.top, 64)
         } else {
           VStack(alignment: .leading, spacing: 20) {
+            if model.showsPresetsSection {
+              PresetsCarousel(
+                displays: model.displayPresets,
+                sectionTitle: model.presetsSectionTitle,
+                emptyStateText: model.presetsEmptyStateText,
+                onTilePlay: { display in await model.presetTileTapped(display) },
+                onTileLongPress: { display in model.presetTileLongPressed(display) },
+                onMove: { from, to in await model.presetMoved(from: from, to: to) }
+              )
+            }
             ForEach(model.stationListsForDisplay) { list in
               stationSection(list: list)
             }
@@ -168,7 +178,10 @@ struct StationListPage: View {
               model: rowModel,
               action: {
                 Task { await model.stationSelected(item) }
-              })
+              },
+              isPreset: model.isPreset(stationId: item.anyStation.id),
+              onTogglePreset: { await model.starTapped(for: item) }
+            )
           }
         }
       }
