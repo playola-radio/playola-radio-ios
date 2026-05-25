@@ -790,7 +790,8 @@
 		BFF0E48DF7714364A04B11B2 /* Presets */ = {
 			isa = PBXGroup;
 			children = (
-				BFF0E48AF7714364A04B11B2 /* PresetStarButton.swift */,
+				BFF0E48AF7714364A04B11B2 /* PresetStarButton.swift */,			BD893BA95B5E43598D23A1FC /* PresetActionSheet.swift */,
+			
 				BFF0E49DF7714364A04B11B3 /* PresetTile.swift */,
 				BFF0EA0DF7714364A04B11B7 /* PresetsCarousel.swift */,
 			);
