@@ -542,6 +542,66 @@ struct StationListPresetTests {
     expectNoDifference(ordered.map(\.position), [0, 1])
     #expect(model.presentedAlert == .errorMovingPreset)
   }
+
+  // MARK: - Tile Tap / Long Press
+
+  @Test
+  func testPresetTileTappedPlaysStation() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let station = Station.mockWith(id: "s1", name: "S1")
+    let item = APIStationItem(
+      sortOrder: 0, visibility: .visible, station: station, urlStation: nil)
+    let stationLists = IdentifiedArrayOf<StationList>(uniqueElements: [
+      makePresetTestList(with: [item])
+    ])
+    @Shared(.stationLists) var sharedLists = stationLists
+
+    let display = PresetDisplayItem(id: "p1", stationItem: item, isPending: false)
+
+    let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+    let captured = LockIsolated<[AnalyticsEvent]>([])
+
+    let model = withDependencies {
+      $0.stationPlayer = stationPlayerMock
+      $0.analytics.track = { event in captured.withValue { $0.append(event) } }
+    } operation: {
+      StationListModel()
+    }
+    model.stationListsForDisplay = stationLists
+
+    await model.presetTileTapped(display)
+
+    #expect(stationPlayerMock.callsToPlay.first?.id == "s1")
+    let tracked = captured.value.contains {
+      if case .presetTileTapped = $0 { return true }
+      return false
+    }
+    #expect(tracked)
+  }
+
+  @Test
+  func testPresetTileLongPressedSetsActionSheetPreset() async {
+    let preset = Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [preset]
+    let item = makePresetVisibleItem()
+    let display = PresetDisplayItem(id: "p1", stationItem: item, isPending: false)
+
+    let model = StationListModel()
+    model.presetTileLongPressed(display)
+
+    #expect(model.presentedPresetActionSheetPreset?.id == "p1")
+  }
+
+  @Test
+  func testPresetTileLongPressIgnoredWhenPending() async {
+    let item = makePresetVisibleItem()
+    let display = PresetDisplayItem(id: "pending-x", stationItem: item, isPending: true)
+
+    let model = StationListModel()
+    model.presetTileLongPressed(display)
+
+    #expect(model.presentedPresetActionSheetPreset == nil)
+  }
 }
 
 private func makePresetTestList(with items: [APIStationItem], date: Date = Date()) -> StationList {

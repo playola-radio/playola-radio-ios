@@ -54,6 +54,7 @@ class StationListModel: ViewModel {
   var selectedSegment = "All"
   var searchText = ""
   var presentedAlert: PlayolaAlert?
+  var presentedPresetActionSheetPreset: Preset?
   let navigationTitle = "Radio Stations"
   let suggestArtistButtonText = "Suggest Station"
   let searchBarPlaceholder = "Search stations"
@@ -206,6 +207,39 @@ class StationListModel: ViewModel {
       }
       presentedAlert = .errorMovingPreset
     }
+  }
+
+  func presetTileTapped(_ display: PresetDisplayItem) async {
+    let position = displayPresets.firstIndex(where: { $0.id == display.id }) ?? 0
+    await analytics.track(
+      .presetTileTapped(
+        station: StationInfo(from: display.stationItem.anyStation),
+        position: position
+      ))
+    await stationSelected(display.stationItem)
+  }
+
+  func presetTileLongPressed(_ display: PresetDisplayItem) {
+    guard !display.isPending,
+      let preset = presets[id: display.id]
+    else { return }
+    presentedPresetActionSheetPreset = preset
+  }
+
+  func removePresetTapped(_ preset: Preset) async {
+    let stationInfo: StationInfo? = {
+      let allItems = stationLists.flatMap { $0.stationItems(includeHidden: showSecretStations) }
+      guard let item = allItems.first(where: { $0.anyStation.id == preset.embeddedStationId })
+      else { return nil }
+      return StationInfo(from: item.anyStation)
+    }()
+
+    presentedPresetActionSheetPreset = nil
+    await removePreset(
+      presetId: preset.id,
+      stationInfo: stationInfo
+        ?? StationInfo(
+          from: .playola(Station.mockWith(id: preset.embeddedStationId))))
   }
 
   func stationSelected(_ item: APIStationItem) async {
