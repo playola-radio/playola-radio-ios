@@ -12,6 +12,12 @@ import PlayolaPlayer
 import Sharing
 import SwiftUI
 
+struct PresetDisplayItem: Identifiable {
+  let id: String
+  let stationItem: APIStationItem
+  let isPending: Bool
+}
+
 @MainActor
 @Observable
 class StationListModel: ViewModel {
@@ -173,6 +179,36 @@ class StationListModel: ViewModel {
   }
 
   // MARK: - View Helpers
+
+  var displayPresets: [PresetDisplayItem] {
+    let allItems = stationLists.flatMap { $0.stationItems(includeHidden: showSecretStations) }
+
+    let real: [PresetDisplayItem] =
+      presets
+      .sorted { $0.position < $1.position }
+      .compactMap { preset in
+        guard let item = allItems.first(where: { $0.anyStation.id == preset.embeddedStationId })
+        else { return nil }
+        return PresetDisplayItem(id: preset.id, stationItem: item, isPending: false)
+      }
+
+    let realStationIds = Set(presets.map { $0.embeddedStationId })
+    let pending: [PresetDisplayItem] =
+      pendingPresetStationIds
+      .subtracting(realStationIds)
+      .compactMap { stationId -> PresetDisplayItem? in
+        guard let item = allItems.first(where: { $0.anyStation.id == stationId })
+        else { return nil }
+        return PresetDisplayItem(
+          id: "pending-\(stationId)",
+          stationItem: item,
+          isPending: true
+        )
+      }
+      .sorted { $0.id < $1.id }
+
+    return real + pending
+  }
 
   func isPreset(stationId: String) -> Bool {
     pendingPresetStationIds.contains(stationId)
