@@ -255,6 +255,27 @@ extension PlayolaAlert {
       dismissButton: .cancel(Text("OK")))
   }
 
+  static var errorSavingPreset: PlayolaAlert {
+    PlayolaAlert(
+      title: "Couldn't Save Preset",
+      message: "Please try again.",
+      dismissButton: .cancel(Text("OK")))
+  }
+
+  static var errorRemovingPreset: PlayolaAlert {
+    PlayolaAlert(
+      title: "Couldn't Remove Preset",
+      message: "Please try again.",
+      dismissButton: .cancel(Text("OK")))
+  }
+
+  static var errorMovingPreset: PlayolaAlert {
+    PlayolaAlert(
+      title: "Couldn't Reorder Presets",
+      message: "Please try again.",
+      dismissButton: .cancel(Text("OK")))
+  }
+
   static var prizeRedeemed: PlayolaAlert {
     PlayolaAlert(
       title: "Prize Redeemed!",
