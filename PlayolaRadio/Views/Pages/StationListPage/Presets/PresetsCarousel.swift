@@ -94,9 +94,9 @@ struct PresetsCarousel: View {
             .background(tileFrameReader(for: display.id))
 
             if isEditing && !display.isPending {
-              tile.gesture(
+              tile.highPriorityGesture(
                 DragGesture(
-                  minimumDistance: 8,
+                  minimumDistance: 4,
                   coordinateSpace: .named(Self.carouselCoordinateSpace)
                 )
                 .onChanged { value in
