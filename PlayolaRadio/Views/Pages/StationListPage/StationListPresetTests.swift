@@ -476,6 +476,7 @@ struct StationListPresetTests {
     } operation: {
       StationListModel()
     }
+    model.presetListState = .editing
 
     await model.presetMoved(from: 0, to: 2)
 
@@ -540,6 +541,7 @@ struct StationListPresetTests {
     } operation: {
       StationListModel()
     }
+    model.presetListState = .editing
 
     await model.presetMoved(from: 0, to: 1)
 
@@ -586,16 +588,19 @@ struct StationListPresetTests {
   }
 
   @Test
-  func testPresetTileLongPressedSetsActionSheetPreset() async {
+  func testPresetTileLongPressedEntersEditMode() async {
     let preset = Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [preset]
     let item = makePresetVisibleItem()
     let display = PresetDisplayItem(id: "p1", stationItem: item, isPending: false)
 
     let model = StationListModel()
+    #expect(model.presetListState == .normal)
+
     model.presetTileLongPressed(display)
 
-    #expect(model.presentedPresetActionSheetPreset?.id == "p1")
+    #expect(model.presetListState == .editing)
+    #expect(model.isEditingPresets)
   }
 
   @Test
@@ -606,7 +611,147 @@ struct StationListPresetTests {
     let model = StationListModel()
     model.presetTileLongPressed(display)
 
-    #expect(model.presentedPresetActionSheetPreset == nil)
+    #expect(model.presetListState == .normal)
+  }
+
+  // MARK: - Edit Mode
+
+  @Test
+  func testPresetListStateDefaultsToNormal() async {
+    let model = StationListModel()
+    #expect(model.presetListState == .normal)
+    #expect(!model.isEditingPresets)
+  }
+
+  @Test
+  func testPresetsEditDoneTappedExitsEditMode() async {
+    let model = StationListModel()
+    model.presetListState = .editing
+    model.presetsEditDoneTapped()
+    #expect(model.presetListState == .normal)
+  }
+
+  @Test
+  func testBackgroundTappedExitsEditMode() async {
+    let model = StationListModel()
+    model.presetListState = .editing
+    model.backgroundTappedOutsidePresets()
+    #expect(model.presetListState == .normal)
+  }
+
+  @Test
+  func testBackgroundTappedDoesNothingInNormalMode() async {
+    let model = StationListModel()
+    #expect(model.presetListState == .normal)
+    model.backgroundTappedOutsidePresets()
+    #expect(model.presetListState == .normal)
+  }
+
+  @Test
+  func testPresetTileTappedNoOpInEditMode() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let station = Station.mockWith(id: "s1", name: "S1")
+    let item = APIStationItem(
+      sortOrder: 0, visibility: .visible, station: station, urlStation: nil)
+    let stationLists = IdentifiedArrayOf<StationList>(uniqueElements: [
+      makePresetTestList(with: [item])
+    ])
+    @Shared(.stationLists) var sharedLists = stationLists
+
+    let display = PresetDisplayItem(id: "p1", stationItem: item, isPending: false)
+
+    let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+
+    let model = withDependencies {
+      $0.stationPlayer = stationPlayerMock
+      $0.analytics.track = { _ in }
+    } operation: {
+      StationListModel()
+    }
+    model.presetListState = .editing
+
+    await model.presetTileTapped(display)
+
+    #expect(stationPlayerMock.callsToPlay.isEmpty)
+  }
+
+  @Test
+  func testPresetRemoveTappedRemovesPreset() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
+        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
+      jwt: "t")
+    let item = makePresetVisibleItem()
+    let stationId = item.anyStation.id
+    let preset = Preset.mockPlayola(id: "p1", stationId: stationId, position: 0)
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [preset]
+    let display = PresetDisplayItem(id: "p1", stationItem: item, isPending: false)
+
+    let capturedPresetId = LockIsolated<String?>(nil)
+    let model = withDependencies {
+      $0.api.deletePreset = { _, presetId in
+        capturedPresetId.setValue(presetId)
+      }
+      $0.analytics.track = { _ in }
+      $0.errorReporting.reportError = { _, _ in }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.presetRemoveTapped(display)
+
+    #expect(capturedPresetId.value == "p1")
+    #expect(presets.isEmpty)
+  }
+
+  @Test
+  func testPresetRemoveTappedIgnoredOnPendingTile() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
+        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
+      jwt: "t")
+    let item = makePresetVisibleItem()
+    let display = PresetDisplayItem(id: "pending-x", stationItem: item, isPending: true)
+
+    let callCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.deletePreset = { _, _ in callCount.setValue(callCount.value + 1) }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.presetRemoveTapped(display)
+
+    #expect(callCount.value == 0)
+  }
+
+  @Test
+  func testPresetMovedIgnoredInNormalMode() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
+        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
+      jwt: "t")
+    let p1 = Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
+    let p2 = Preset.mockPlayola(id: "p2", stationId: "s2", position: 1)
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [p1, p2]
+
+    let callCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.movePreset = { _, _, _ in
+        callCount.setValue(callCount.value + 1)
+        return p1
+      }
+    } operation: {
+      StationListModel()
+    }
+
+    #expect(model.presetListState == .normal)
+    await model.presetMoved(from: 0, to: 1)
+
+    #expect(callCount.value == 0)
   }
 
   // MARK: - Error Instrumentation

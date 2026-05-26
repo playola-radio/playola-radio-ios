@@ -11,18 +11,32 @@ struct PresetsCarousel: View {
   let displays: [PresetDisplayItem]
   let sectionTitle: String
   let emptyStateText: String
+  let isEditing: Bool
   let onTilePlay: (PresetDisplayItem) async -> Void
   let onTileLongPress: (PresetDisplayItem) -> Void
+  let onTileRemove: (PresetDisplayItem) async -> Void
   let onMove: (Int, Int) async -> Void
-
-  @State private var draggingId: String?
+  let onEditDoneTapped: () -> Void
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
-      Text(sectionTitle)
-        .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
-        .foregroundColor(.white)
-        .padding(.horizontal, 16)
+      HStack {
+        Text(sectionTitle)
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+          .foregroundColor(.white)
+        Spacer()
+        if isEditing {
+          Button {
+            onEditDoneTapped()
+          } label: {
+            Text("Done")
+              .font(.custom(FontNames.Inter_500_Medium, size: 14))
+              .foregroundColor(.playolaRed)
+          }
+          .buttonStyle(.plain)
+        }
+      }
+      .padding(.horizontal, 16)
 
       if displays.isEmpty {
         emptyState
@@ -60,13 +74,13 @@ struct PresetsCarousel: View {
         ForEach(displays) { display in
           PresetTile(
             display: display,
+            isEditing: isEditing,
             onTap: { await onTilePlay(display) },
-            onLongPress: { onTileLongPress(display) }
+            onLongPress: { onTileLongPress(display) },
+            onRemoveTapped: { await onTileRemove(display) }
           )
-          .opacity(draggingId == display.id ? 0.4 : 1.0)
           .onDrag {
-            guard !display.isPending else { return NSItemProvider() }
-            draggingId = display.id
+            guard isEditing, !display.isPending else { return NSItemProvider() }
             return NSItemProvider(object: display.id as NSString)
           }
           .onDrop(
@@ -74,7 +88,7 @@ struct PresetsCarousel: View {
             delegate: PresetDropDelegate(
               item: display,
               displays: displays,
-              draggingId: $draggingId,
+              isEditing: isEditing,
               onMove: onMove
             ))
         }
@@ -96,16 +110,16 @@ struct PresetsCarousel: View {
 private struct PresetDropDelegate: DropDelegate {
   let item: PresetDisplayItem
   let displays: [PresetDisplayItem]
-  @Binding var draggingId: String?
+  let isEditing: Bool
   let onMove: (Int, Int) async -> Void
 
   func dropEntered(info: DropInfo) {
-    guard let draggingId,
-      draggingId != item.id,
-      let fromIndex = displays.firstIndex(where: { $0.id == draggingId }),
+    guard isEditing else { return }
+    guard let draggingId = info.itemProviders(for: [.text]).first,
+      let fromIndex = displays.firstIndex(where: { $0.id != item.id }),
       let toIndex = displays.firstIndex(where: { $0.id == item.id })
     else { return }
-
+    _ = draggingId
     Task { await onMove(fromIndex, toIndex) }
   }
 
@@ -114,8 +128,7 @@ private struct PresetDropDelegate: DropDelegate {
   }
 
   func performDrop(info: DropInfo) -> Bool {
-    draggingId = nil
-    return true
+    true
   }
 }
 
@@ -133,9 +146,12 @@ private struct PresetDropDelegate: DropDelegate {
     displays: displays,
     sectionTitle: "Presets",
     emptyStateText: "Tap the ★ on any station to save it here.",
+    isEditing: false,
     onTilePlay: { _ in },
     onTileLongPress: { _ in },
-    onMove: { _, _ in }
+    onTileRemove: { _ in },
+    onMove: { _, _ in },
+    onEditDoneTapped: {}
   )
   .padding(.vertical)
   .background(Color.black)
@@ -147,9 +163,12 @@ private struct PresetDropDelegate: DropDelegate {
     displays: [],
     sectionTitle: "Presets",
     emptyStateText: "Tap the ★ on any station to save it here.",
+    isEditing: false,
     onTilePlay: { _ in },
     onTileLongPress: { _ in },
-    onMove: { _, _ in }
+    onTileRemove: { _ in },
+    onMove: { _, _ in },
+    onEditDoneTapped: {}
   )
   .padding(.vertical)
   .background(Color.black)

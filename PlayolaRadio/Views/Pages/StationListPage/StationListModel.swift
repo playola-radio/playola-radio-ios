@@ -18,6 +18,11 @@ struct PresetDisplayItem: Identifiable {
   let isPending: Bool
 }
 
+enum PresetListState: Equatable {
+  case normal
+  case editing
+}
+
 @MainActor
 @Observable
 class StationListModel: ViewModel {
@@ -55,7 +60,7 @@ class StationListModel: ViewModel {
   var selectedSegment = "All"
   var searchText = ""
   var presentedAlert: PlayolaAlert?
-  var presentedPresetActionSheetPreset: Preset?
+  var presetListState: PresetListState = .normal
   let navigationTitle = "Radio Stations"
   let suggestArtistButtonText = "Suggest Station"
   let searchBarPlaceholder = "Search stations"
@@ -65,6 +70,7 @@ class StationListModel: ViewModel {
   let presetsSegmentTitle = "Presets"
   let presetsSectionTitle = "Presets"
   let presetsEmptyStateText = "Tap the ★ on any station to save it here."
+  let presetsEditDoneButtonText = "Done"
 
   // MARK: - User Actions
 
@@ -159,6 +165,7 @@ class StationListModel: ViewModel {
   }
 
   func presetMoved(from: Int, to: Int) async {
+    guard presetListState == .editing else { return }
     guard from != to else { return }
     guard let token = auth.jwt else { return }
 
@@ -215,6 +222,7 @@ class StationListModel: ViewModel {
   }
 
   func presetTileTapped(_ display: PresetDisplayItem) async {
+    guard presetListState == .normal else { return }
     let position = displayPresets.firstIndex(where: { $0.id == display.id }) ?? 0
     await analytics.track(
       .presetTileTapped(
@@ -225,26 +233,32 @@ class StationListModel: ViewModel {
   }
 
   func presetTileLongPressed(_ display: PresetDisplayItem) {
+    guard !display.isPending else { return }
+    presetListState = .editing
+  }
+
+  func presetRemoveTapped(_ display: PresetDisplayItem) async {
     guard !display.isPending,
       let preset = presets[id: display.id]
     else { return }
-    presentedPresetActionSheetPreset = preset
+
+    let allItems = stationLists.flatMap { $0.stationItems(includeHidden: showSecretStations) }
+    let stationInfo: StationInfo
+    if let item = allItems.first(where: { $0.anyStation.id == preset.embeddedStationId }) {
+      stationInfo = StationInfo(from: item.anyStation)
+    } else {
+      stationInfo = StationInfo(from: .playola(Station.mockWith(id: preset.embeddedStationId)))
+    }
+
+    await removePreset(presetId: preset.id, stationInfo: stationInfo)
   }
 
-  func removePresetTapped(_ preset: Preset) async {
-    let stationInfo: StationInfo? = {
-      let allItems = stationLists.flatMap { $0.stationItems(includeHidden: showSecretStations) }
-      guard let item = allItems.first(where: { $0.anyStation.id == preset.embeddedStationId })
-      else { return nil }
-      return StationInfo(from: item.anyStation)
-    }()
+  func presetsEditDoneTapped() {
+    presetListState = .normal
+  }
 
-    presentedPresetActionSheetPreset = nil
-    await removePreset(
-      presetId: preset.id,
-      stationInfo: stationInfo
-        ?? StationInfo(
-          from: .playola(Station.mockWith(id: preset.embeddedStationId))))
+  func backgroundTappedOutsidePresets() {
+    if presetListState == .editing { presetListState = .normal }
   }
 
   func stationSelected(_ item: APIStationItem) async {
@@ -292,6 +306,8 @@ class StationListModel: ViewModel {
   }
 
   // MARK: - View Helpers
+
+  var isEditingPresets: Bool { presetListState == .editing }
 
   var displayPresets: [PresetDisplayItem] {
     let allItems = stationLists.flatMap { $0.stationItems(includeHidden: showSecretStations) }

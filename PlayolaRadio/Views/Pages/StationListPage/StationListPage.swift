@@ -104,9 +104,12 @@ struct StationListPage: View {
                 displays: model.displayPresets,
                 sectionTitle: model.presetsSectionTitle,
                 emptyStateText: model.presetsEmptyStateText,
+                isEditing: model.isEditingPresets,
                 onTilePlay: { display in await model.presetTileTapped(display) },
                 onTileLongPress: { display in model.presetTileLongPressed(display) },
-                onMove: { from, to in await model.presetMoved(from: from, to: to) }
+                onTileRemove: { display in await model.presetRemoveTapped(display) },
+                onMove: { from, to in await model.presetMoved(from: from, to: to) },
+                onEditDoneTapped: { model.presetsEditDoneTapped() }
               )
             }
             ForEach(model.stationListsForDisplay) { list in
@@ -125,15 +128,6 @@ struct StationListPage: View {
     .background(Color.black)
     .onAppear { Task { await model.viewAppeared() } }
     .playolaAlert($model.presentedAlert)
-    .sheet(item: $model.presentedPresetActionSheetPreset) { (preset: Preset) in
-      PresetActionSheet(
-        preset: preset,
-        onRemove: { Task { await model.removePresetTapped(preset) } },
-        onClose: { model.presentedPresetActionSheetPreset = nil }
-      )
-      .presentationDetents([.medium])
-      .presentationDragIndicator(.visible)
-    }
   }
 
   private var searchBar: some View {
