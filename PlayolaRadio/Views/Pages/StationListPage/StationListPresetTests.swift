@@ -88,14 +88,7 @@ struct StationListPresetTests {
   @Test
   func testDisplayPresetsOrdersByPosition() async {
     @Shared(.showSecretStations) var showSecretStations = false
-    let station1 = Station.mockWith(id: "s1", name: "S1")
-    let station2 = Station.mockWith(id: "s2", name: "S2")
-    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [
-      makePresetTestList(with: [
-        APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil),
-        APIStationItem(sortOrder: 1, visibility: .visible, station: station2, urlStation: nil),
-      ])
-    ]
+    @Shared(.stationLists) var stationLists = presetStationLists("s1", "s2")
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [
       Preset.mockPlayola(id: "p2", stationId: "s2", position: 1),
       Preset.mockPlayola(id: "p1", stationId: "s1", position: 0),
@@ -111,12 +104,7 @@ struct StationListPresetTests {
   @Test
   func testDisplayPresetsFiltersOrphans() async {
     @Shared(.showSecretStations) var showSecretStations = false
-    let station1 = Station.mockWith(id: "s1", name: "S1")
-    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [
-      makePresetTestList(with: [
-        APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil)
-      ])
-    ]
+    @Shared(.stationLists) var stationLists = presetStationLists("s1")
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [
       Preset.mockPlayola(id: "p1", stationId: "s1", position: 0),
       Preset.mockPlayola(id: "p-orphan", stationId: "gone", position: 1),
@@ -286,14 +274,7 @@ struct StationListPresetTests {
   @Test
   func testDisplayPresetsAppendsPendingAddAsGhostTile() async {
     @Shared(.showSecretStations) var showSecretStations = false
-    let station1 = Station.mockWith(id: "s1", name: "S1")
-    let station2 = Station.mockWith(id: "s2", name: "S2")
-    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [
-      makePresetTestList(with: [
-        APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil),
-        APIStationItem(sortOrder: 1, visibility: .visible, station: station2, urlStation: nil),
-      ])
-    ]
+    @Shared(.stationLists) var stationLists = presetStationLists("s1", "s2")
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [
       Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
     ]
@@ -433,17 +414,7 @@ struct StationListPresetTests {
     let p3 = Preset.mockPlayola(id: "p3", stationId: "s3", position: 2)
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [p1, p2, p3]
 
-    let stationLists = IdentifiedArrayOf<StationList>(uniqueElements: [
-      makePresetTestList(with: [
-        APIStationItem(
-          sortOrder: 0, visibility: .visible, station: Station.mockWith(id: "s1"), urlStation: nil),
-        APIStationItem(
-          sortOrder: 1, visibility: .visible, station: Station.mockWith(id: "s2"), urlStation: nil),
-        APIStationItem(
-          sortOrder: 2, visibility: .visible, station: Station.mockWith(id: "s3"), urlStation: nil),
-      ])
-    ])
-    @Shared(.stationLists) var sharedLists = stationLists
+    @Shared(.stationLists) var sharedLists = presetStationLists("s1", "s2", "s3")
 
     let capturedToken = LockIsolated<String?>(nil)
     let capturedPresetId = LockIsolated<String?>(nil)
@@ -460,7 +431,7 @@ struct StationListPresetTests {
     }
     model.presetListState = .editing
 
-    await model.presetMoved(from: 0, to: 2)
+    await model.presetMoved(presetId: "p1", to: 2)
 
     let ordered = presets.sorted { $0.position < $1.position }
     expectNoDifference(
@@ -490,8 +461,9 @@ struct StationListPresetTests {
     } operation: {
       StationListModel()
     }
+    model.presetListState = .editing
 
-    await model.presetMoved(from: 0, to: 0)
+    await model.presetMoved(presetId: "p1", to: 0)
 
     #expect(callCount.value == 0)
   }
@@ -503,15 +475,7 @@ struct StationListPresetTests {
     let p2 = Preset.mockPlayola(id: "p2", stationId: "s2", position: 1)
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [p1, p2]
 
-    let stationLists = IdentifiedArrayOf<StationList>(uniqueElements: [
-      makePresetTestList(with: [
-        APIStationItem(
-          sortOrder: 0, visibility: .visible, station: Station.mockWith(id: "s1"), urlStation: nil),
-        APIStationItem(
-          sortOrder: 1, visibility: .visible, station: Station.mockWith(id: "s2"), urlStation: nil),
-      ])
-    ])
-    @Shared(.stationLists) var sharedLists = stationLists
+    @Shared(.stationLists) var sharedLists = presetStationLists("s1", "s2")
 
     let model = withDependencies {
       $0.api.movePreset = { _, _, _ in throw APIError.validationError("nope") }
@@ -522,7 +486,7 @@ struct StationListPresetTests {
     }
     model.presetListState = .editing
 
-    await model.presetMoved(from: 0, to: 1)
+    await model.presetMoved(presetId: "p1", to: 1)
 
     let ordered = presets.sorted { $0.position < $1.position }
     expectNoDifference(ordered, [p1, p2])
@@ -534,13 +498,8 @@ struct StationListPresetTests {
   @Test
   func testPresetTileTappedPlaysStation() async {
     @Shared(.showSecretStations) var showSecretStations = false
-    let station = Station.mockWith(id: "s1", name: "S1")
-    let item = APIStationItem(
-      sortOrder: 0, visibility: .visible, station: station, urlStation: nil)
-    let stationLists = IdentifiedArrayOf<StationList>(uniqueElements: [
-      makePresetTestList(with: [item])
-    ])
-    @Shared(.stationLists) var sharedLists = stationLists
+    let item = presetItem("s1")
+    @Shared(.stationLists) var sharedLists = presetStationLists("s1")
 
     let display = PresetDisplayItem(id: "p1", stationItem: item, isPending: false)
 
@@ -553,7 +512,7 @@ struct StationListPresetTests {
     } operation: {
       StationListModel()
     }
-    model.stationListsForDisplay = stationLists
+    model.stationListsForDisplay = sharedLists
 
     await model.presetTileTapped(display)
 
@@ -628,13 +587,8 @@ struct StationListPresetTests {
   @Test
   func testPresetTileTappedNoOpInEditMode() async {
     @Shared(.showSecretStations) var showSecretStations = false
-    let station = Station.mockWith(id: "s1", name: "S1")
-    let item = APIStationItem(
-      sortOrder: 0, visibility: .visible, station: station, urlStation: nil)
-    let stationLists = IdentifiedArrayOf<StationList>(uniqueElements: [
-      makePresetTestList(with: [item])
-    ])
-    @Shared(.stationLists) var sharedLists = stationLists
+    let item = presetItem("s1")
+    @Shared(.stationLists) var sharedLists = presetStationLists("s1")
 
     let display = PresetDisplayItem(id: "p1", stationItem: item, isPending: false)
 
@@ -715,7 +669,7 @@ struct StationListPresetTests {
     }
 
     #expect(model.presetListState == .normal)
-    await model.presetMoved(from: 0, to: 1)
+    await model.presetMoved(presetId: "p1", to: 1)
 
     #expect(callCount.value == 0)
   }
@@ -831,7 +785,7 @@ struct StationListPresetTests {
   }
 
   @Test
-  func testLoadPresetsFailureReportsErrorWithoutMutatingPresets() async {
+  func testLoadPresetsFailureReportsErrorAndSetsLoadFailedWithoutAlert() async {
     @Shared(.auth) var auth = signedInAuth()
     let existing = Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [existing]
@@ -849,6 +803,77 @@ struct StationListPresetTests {
 
     expectNoDifference(Array(presets), [existing])
     #expect(reportedTags.value["endpoint"] == "GET /v1/presets")
+    #expect(model.presetsLoadFailed)
+    #expect(!model.isLoadingPresets)
+    #expect(model.presentedAlert?.title != "Couldn't Load Presets")
+  }
+
+  @Test
+  func testLoadPresetsSuccessClearsLoadFailedFlag() async {
+    @Shared(.auth) var auth = signedInAuth()
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+
+    let model = withDependencies {
+      $0.api.getPresets = { _ in [Preset.mockPlayola(id: "p1")] }
+    } operation: {
+      StationListModel()
+    }
+    model.presetsLoadFailed = true
+
+    await model.retryLoadPresetsTapped()
+
+    #expect(!model.presetsLoadFailed)
+    #expect(!model.isLoadingPresets)
+    expectNoDifference(Array(presets), [Preset.mockPlayola(id: "p1")])
+  }
+
+  @Test
+  func testRetryLoadPresetsTappedCallsApi() async {
+    @Shared(.auth) var auth = signedInAuth()
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+
+    let callCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.getPresets = { _ in
+        callCount.setValue(callCount.value + 1)
+        return []
+      }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.retryLoadPresetsTapped()
+
+    #expect(callCount.value == 1)
+  }
+
+  @Test
+  func testIsLoadingPresetsTrueWhileFetchInFlight() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = signedInAuth()
+      @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+
+      let releaser = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
+
+      let model = withDependencies {
+        $0.api.getPresets = { _ in
+          await withCheckedContinuation { releaser.setValue($0) }
+          return []
+        }
+      } operation: {
+        StationListModel()
+      }
+
+      let task = Task { await model.retryLoadPresetsTapped() }
+      await Task.yield()
+
+      #expect(model.isLoadingPresets)
+
+      releaser.value?.resume()
+      await task.value
+
+      #expect(!model.isLoadingPresets)
+    }
   }
 
   // MARK: - presetMoved Analytics
@@ -860,14 +885,7 @@ struct StationListPresetTests {
     let p2 = Preset.mockPlayola(id: "p2", stationId: "s2", position: 1)
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [p1, p2]
 
-    @Shared(.stationLists) var sharedLists: IdentifiedArrayOf<StationList> = [
-      makePresetTestList(with: [
-        APIStationItem(
-          sortOrder: 0, visibility: .visible, station: Station.mockWith(id: "s1"), urlStation: nil),
-        APIStationItem(
-          sortOrder: 1, visibility: .visible, station: Station.mockWith(id: "s2"), urlStation: nil),
-      ])
-    ]
+    @Shared(.stationLists) var sharedLists = presetStationLists("s1", "s2")
 
     let captured = LockIsolated<[AnalyticsEvent]>([])
     let model = withDependencies {
@@ -880,7 +898,7 @@ struct StationListPresetTests {
     }
     model.presetListState = .editing
 
-    await model.presetMoved(from: 0, to: 1)
+    await model.presetMoved(presetId: "p1", to: 1)
 
     let moved = captured.value.contains {
       if case .presetMoved(_, let fromIndex, let toIndex) = $0, fromIndex == 0, toIndex == 1 {
@@ -896,12 +914,7 @@ struct StationListPresetTests {
   @Test
   func testDisplayPresetsFiltersPendingThatAlreadyExistsAsRealPreset() async {
     @Shared(.showSecretStations) var showSecretStations = false
-    let station1 = Station.mockWith(id: "s1", name: "S1")
-    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [
-      makePresetTestList(with: [
-        APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil)
-      ])
-    ]
+    @Shared(.stationLists) var stationLists = presetStationLists("s1")
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [
       Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
     ]
@@ -912,26 +925,23 @@ struct StationListPresetTests {
     expectNoDifference(model.displayPresets.map(\.id), ["p1"])
   }
 
-  // MARK: - presetRemoveTapped Orphan Fallback
+  // MARK: - presetRemoveTapped Orphan Handling
 
   @Test
-  func testPresetRemoveTappedFallsBackForOrphanStation() async {
+  func testPresetRemoveTappedDeletesOrphanPresetWithoutFiringRemovedAnalytics() async {
     @Shared(.auth) var auth = signedInAuth()
     let orphanPreset = Preset.mockPlayola(id: "p1", stationId: "missing-s", position: 0)
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [orphanPreset]
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
 
-    let orphanItem = APIStationItem(
-      sortOrder: 0,
-      visibility: .visible,
-      station: Station.mockWith(id: "missing-s"),
-      urlStation: nil)
-    let display = PresetDisplayItem(id: "p1", stationItem: orphanItem, isPending: false)
+    let display = PresetDisplayItem(
+      id: "p1", stationItem: presetItem("missing-s"), isPending: false)
 
     let capturedPresetId = LockIsolated<String?>(nil)
+    let trackedEvents = LockIsolated<[AnalyticsEvent]>([])
     let model = withDependencies {
       $0.api.deletePreset = { _, presetId in capturedPresetId.setValue(presetId) }
-      $0.analytics.track = { _ in }
+      $0.analytics.track = { event in trackedEvents.withValue { $0.append(event) } }
     } operation: {
       StationListModel()
     }
@@ -940,6 +950,11 @@ struct StationListPresetTests {
 
     #expect(capturedPresetId.value == "p1")
     #expect(presets.isEmpty)
+    let firedRemoved = trackedEvents.value.contains {
+      if case .presetRemoved = $0 { return true }
+      return false
+    }
+    #expect(!firedRemoved)
   }
 }
 
@@ -951,29 +966,31 @@ private func signedInAuth() -> Auth {
     jwt: "t")
 }
 
+private func presetItem(_ stationId: String, sortOrder: Int = 0) -> APIStationItem {
+  APIStationItem(
+    sortOrder: sortOrder, visibility: .visible,
+    station: Station.mockWith(id: stationId), urlStation: nil)
+}
+
+private func presetStationLists(_ stationIds: String...) -> IdentifiedArrayOf<StationList> {
+  IdentifiedArrayOf(uniqueElements: [
+    makePresetTestList(with: stationIds.enumerated().map { presetItem($1, sortOrder: $0) })
+  ])
+}
+
 private func makePresetTestList(with items: [APIStationItem], date: Date = Date()) -> StationList {
   StationList(
-    id: "preset-test-list",
-    name: "Test List",
-    slug: "preset-test-list",
-    hidden: false,
-    sortOrder: 0,
-    createdAt: date,
-    updatedAt: date,
-    items: items
-  )
+    id: "preset-test-list", name: "Test List", slug: "preset-test-list",
+    hidden: false, sortOrder: 0, createdAt: date, updatedAt: date, items: items)
 }
 
 private func makePresetVisibleItem(date: Date = Date()) -> APIStationItem {
-  let station = PlayolaPlayer.Station(
-    id: "playable-station",
-    name: "Moondog Radio",
-    curatorName: "Jacob Stelly",
-    imageUrl: URL(string: "https://example.com/moondog.png"),
-    description: "A playable station",
-    active: true,
-    createdAt: date,
-    updatedAt: date
-  )
-  return APIStationItem(sortOrder: 0, visibility: .visible, station: station, urlStation: nil)
+  APIStationItem(
+    sortOrder: 0,
+    visibility: .visible,
+    station: PlayolaPlayer.Station(
+      id: "playable-station", name: "Moondog Radio", curatorName: "Jacob Stelly",
+      imageUrl: URL(string: "https://example.com/moondog.png"),
+      description: "A playable station", active: true, createdAt: date, updatedAt: date),
+    urlStation: nil)
 }

@@ -12,11 +12,16 @@ struct PresetsCarousel: View {
   let emptyStateText: String
   let doneButtonText: String
   let isEditing: Bool
+  let isLoading: Bool
+  let hasLoadError: Bool
+  let loadErrorText: String
+  let retryButtonText: String
   let onTilePlay: (PresetDisplayItem) async -> Void
   let onTileLongPress: (PresetDisplayItem) -> Void
   let onTileRemove: (PresetDisplayItem) async -> Void
-  let onMove: (Int, Int) async -> Void
+  let onMove: (String, Int) async -> Void
   let onEditDoneTapped: () -> Void
+  let onRetryTapped: () async -> Void
 
   @State private var dragState: PresetDragState?
   @State private var tileFrames: [String: CGRect] = [:]
@@ -52,12 +57,62 @@ struct PresetsCarousel: View {
       }
       .padding(.horizontal, 16)
 
-      if displays.isEmpty {
+      if isLoading {
+        loadingState
+      } else if hasLoadError {
+        errorState
+      } else if displays.isEmpty {
         emptyState
       } else {
         tiles
       }
     }
+  }
+
+  private var loadingState: some View {
+    HStack {
+      Spacer()
+      ProgressView()
+        .progressViewStyle(.circular)
+        .tint(.white)
+      Spacer()
+    }
+    .frame(height: 92)
+    .padding(.horizontal, 16)
+  }
+
+  private var errorState: some View {
+    HStack(spacing: 16) {
+      Image(systemName: "exclamationmark.triangle.fill")
+        .font(.system(size: 24))
+        .foregroundColor(Color(hex: "#EF6962"))
+      Text(loadErrorText)
+        .font(.custom(FontNames.Inter_400_Regular, size: 13))
+        .foregroundColor(Color(hex: "#AAAAAA"))
+        .lineLimit(2)
+      Spacer(minLength: 0)
+      Button {
+        Task { await onRetryTapped() }
+      } label: {
+        Text(retryButtonText)
+          .font(.custom(FontNames.Inter_500_Medium, size: 14))
+          .foregroundColor(.white)
+          .padding(.horizontal, 14)
+          .padding(.vertical, 8)
+          .background(Color.playolaRed)
+          .cornerRadius(16)
+      }
+      .buttonStyle(.plain)
+    }
+    .padding(16)
+    .overlay(
+      RoundedRectangle(cornerRadius: 10)
+        .strokeBorder(
+          Color(hex: "#333333"),
+          style: StrokeStyle(lineWidth: 1, dash: [4])
+        )
+    )
+    .padding(.horizontal, 16)
   }
 
   private var emptyState: some View {
@@ -336,7 +391,7 @@ struct PresetsCarousel: View {
     guard state.sourceIndex != state.destinationIndex else { return }
 
     Task {
-      await onMove(state.sourceIndex, state.destinationIndex)
+      await onMove(state.sourceId, state.destinationIndex)
     }
   }
 
@@ -542,11 +597,16 @@ private struct PresetTileFramePreferenceKey: PreferenceKey {
     emptyStateText: "Tap the ★ on any station to save it here.",
     doneButtonText: "Done",
     isEditing: false,
+    isLoading: false,
+    hasLoadError: false,
+    loadErrorText: "Couldn't load presets.",
+    retryButtonText: "Retry",
     onTilePlay: { _ in },
     onTileLongPress: { _ in },
     onTileRemove: { _ in },
     onMove: { _, _ in },
-    onEditDoneTapped: {}
+    onEditDoneTapped: {},
+    onRetryTapped: {}
   )
   .padding(.vertical)
   .background(Color.black)
@@ -560,11 +620,62 @@ private struct PresetTileFramePreferenceKey: PreferenceKey {
     emptyStateText: "Tap the ★ on any station to save it here.",
     doneButtonText: "Done",
     isEditing: false,
+    isLoading: false,
+    hasLoadError: false,
+    loadErrorText: "Couldn't load presets.",
+    retryButtonText: "Retry",
     onTilePlay: { _ in },
     onTileLongPress: { _ in },
     onTileRemove: { _ in },
     onMove: { _, _ in },
-    onEditDoneTapped: {}
+    onEditDoneTapped: {},
+    onRetryTapped: {}
+  )
+  .padding(.vertical)
+  .background(Color.black)
+  .preferredColorScheme(.dark)
+}
+
+#Preview("Loading") {
+  PresetsCarousel(
+    displays: [],
+    sectionTitle: "Presets",
+    emptyStateText: "Tap the ★ on any station to save it here.",
+    doneButtonText: "Done",
+    isEditing: false,
+    isLoading: true,
+    hasLoadError: false,
+    loadErrorText: "Couldn't load presets.",
+    retryButtonText: "Retry",
+    onTilePlay: { _ in },
+    onTileLongPress: { _ in },
+    onTileRemove: { _ in },
+    onMove: { _, _ in },
+    onEditDoneTapped: {},
+    onRetryTapped: {}
+  )
+  .padding(.vertical)
+  .background(Color.black)
+  .preferredColorScheme(.dark)
+}
+
+#Preview("Load Error") {
+  PresetsCarousel(
+    displays: [],
+    sectionTitle: "Presets",
+    emptyStateText: "Tap the ★ on any station to save it here.",
+    doneButtonText: "Done",
+    isEditing: false,
+    isLoading: false,
+    hasLoadError: true,
+    loadErrorText: "Couldn't load presets.",
+    retryButtonText: "Retry",
+    onTilePlay: { _ in },
+    onTileLongPress: { _ in },
+    onTileRemove: { _ in },
+    onMove: { _, _ in },
+    onEditDoneTapped: {},
+    onRetryTapped: {}
   )
   .padding(.vertical)
   .background(Color.black)

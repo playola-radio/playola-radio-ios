@@ -69,7 +69,6 @@ struct PresetTile: View {
       startOrStopWiggle(active: isEditing)
     }
     .onLongPressGesture(minimumDuration: 0.5) {
-      guard !display.isPending else { return }
       onLongPress()
     }
     .onTapGesture {
