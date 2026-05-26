@@ -94,22 +94,21 @@ struct PresetsCarousel: View {
             .background(tileFrameReader(for: display.id))
 
             if isEditing && !display.isPending {
-              tile.simultaneousGesture(
-                LongPressGesture(minimumDuration: 0.4)
-                  .sequenced(
-                    before: DragGesture(
-                      minimumDistance: 0,
-                      coordinateSpace: .named(Self.carouselCoordinateSpace)
-                    )
-                  )
-                  .onChanged { value in
-                    if case .second(true, let drag?) = value {
-                      updateDrag(display, value: drag)
-                    }
-                  }
-                  .onEnded { _ in
+              tile.background(
+                LongPressReorderRecognizer(
+                  minimumDuration: 0.4,
+                  maximumDistance: 10,
+                  onBegan: {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    updateDrag(display, translation: .zero)
+                  },
+                  onChanged: { translation in
+                    updateDrag(display, translation: translation)
+                  },
+                  onEnded: {
                     endDrag(display)
                   }
+                )
               )
             } else {
               tile
@@ -172,7 +171,7 @@ struct PresetsCarousel: View {
 
   private func updateDrag(
     _ display: PresetDisplayItem,
-    value: DragGesture.Value
+    translation: CGSize
   ) {
     guard isEditing, !display.isPending else { return }
 
@@ -194,10 +193,10 @@ struct PresetsCarousel: View {
 
     guard var state = dragState, state.sourceId == display.id else { return }
 
-    state.translation = value.translation
+    state.translation = translation
 
     let currentDelta = state.destinationIndex - state.sourceIndex
-    let progress = value.translation.width / Self.presetTileStride
+    let progress = translation.width / Self.presetTileStride
     let bias: Double = 0.15
     let proposedDelta: Int
     if progress > Double(currentDelta) + 0.5 + bias {
@@ -266,6 +265,110 @@ private struct PresetDragState {
       x: sourceCenter.x + translation.width,
       y: sourceCenter.y + translation.height
     )
+  }
+}
+
+private struct LongPressReorderRecognizer: UIViewRepresentable {
+  let minimumDuration: TimeInterval
+  let maximumDistance: CGFloat
+  let onBegan: () -> Void
+  let onChanged: (CGSize) -> Void
+  let onEnded: () -> Void
+
+  func makeUIView(context: Context) -> UIView {
+    let view = PassthroughView()
+    view.backgroundColor = .clear
+
+    let recognizer = UILongPressGestureRecognizer(
+      target: context.coordinator,
+      action: #selector(Coordinator.handle(_:))
+    )
+    recognizer.minimumPressDuration = minimumDuration
+    recognizer.allowableMovement = maximumDistance
+    recognizer.cancelsTouchesInView = false
+    recognizer.delegate = context.coordinator
+
+    view.addGestureRecognizer(recognizer)
+    context.coordinator.view = view
+    return view
+  }
+
+  func updateUIView(_ uiView: UIView, context: Context) {
+    context.coordinator.onBegan = onBegan
+    context.coordinator.onChanged = onChanged
+    context.coordinator.onEnded = onEnded
+  }
+
+  func makeCoordinator() -> Coordinator {
+    Coordinator(onBegan: onBegan, onChanged: onChanged, onEnded: onEnded)
+  }
+
+  final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+    weak var view: UIView?
+    var startPoint: CGPoint?
+    var onBegan: () -> Void
+    var onChanged: (CGSize) -> Void
+    var onEnded: () -> Void
+
+    init(
+      onBegan: @escaping () -> Void,
+      onChanged: @escaping (CGSize) -> Void,
+      onEnded: @escaping () -> Void
+    ) {
+      self.onBegan = onBegan
+      self.onChanged = onChanged
+      self.onEnded = onEnded
+    }
+
+    @objc func handle(_ recognizer: UILongPressGestureRecognizer) {
+      guard let view else { return }
+      let point = recognizer.location(in: view)
+
+      switch recognizer.state {
+      case .began:
+        startPoint = point
+        onBegan()
+      case .changed:
+        guard let startPoint else { return }
+        onChanged(
+          CGSize(
+            width: point.x - startPoint.x,
+            height: point.y - startPoint.y
+          )
+        )
+      case .ended, .cancelled, .failed:
+        startPoint = nil
+        onEnded()
+      default:
+        break
+      }
+    }
+
+    func gestureRecognizer(
+      _ gestureRecognizer: UIGestureRecognizer,
+      shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+      // Allow simultaneous so the ScrollView's pan can also track the touch.
+      // Once our long-press succeeds (.began), we cancel the pan manually.
+      true
+    }
+
+    func gestureRecognizer(
+      _ gestureRecognizer: UIGestureRecognizer,
+      shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+      // The ScrollView's pan should NOT require us to fail — both track in parallel.
+      false
+    }
+  }
+
+  private final class PassthroughView: UIView {
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+      // Returning self claims the touch for our recognizer while
+      // cancelsTouchesInView=false lets the touch propagate to ancestor gestures
+      // (ScrollView's pan) so quick swipes still scroll.
+      bounds.contains(point) ? self : nil
+    }
   }
 }
 
