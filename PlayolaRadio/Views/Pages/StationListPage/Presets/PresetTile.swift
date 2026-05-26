@@ -13,7 +13,7 @@ struct PresetTile: View {
   let onLongPress: () -> Void
   let onRemoveTapped: () async -> Void
 
-  @State private var wigglePhase = false
+  @State private var wiggleAngle: Double = 0
 
   private var station: AnyStation { display.stationItem.anyStation }
   private var title: String { station.name }
@@ -74,24 +74,31 @@ struct PresetTile: View {
     }
     .buttonStyle(.plain)
     .opacity(display.isPending ? 0.6 : 1.0)
-    .rotationEffect(.degrees(isEditing ? (wigglePhase ? -1.5 : 1.5) : 0))
-    .animation(
-      isEditing
-        ? .linear(duration: 0.14).repeatForever(autoreverses: true)
-        : .default,
-      value: wigglePhase
-    )
+    .rotationEffect(.degrees(wiggleAngle))
     .onChange(of: isEditing) { _, newValue in
-      wigglePhase = newValue
+      startOrStopWiggle(active: newValue)
     }
     .onAppear {
-      if isEditing { wigglePhase = true }
+      startOrStopWiggle(active: isEditing)
     }
     .onLongPressGesture(minimumDuration: 0.5) {
       guard !display.isPending else { return }
       onLongPress()
     }
     .accessibilityLabel("Preset: \(title)")
+  }
+
+  private func startOrStopWiggle(active: Bool) {
+    if active {
+      wiggleAngle = -2.5
+      withAnimation(.linear(duration: 0.13).repeatForever(autoreverses: true)) {
+        wiggleAngle = 2.5
+      }
+    } else {
+      withAnimation(.linear(duration: 0.1)) {
+        wiggleAngle = 0
+      }
+    }
   }
 }
 
