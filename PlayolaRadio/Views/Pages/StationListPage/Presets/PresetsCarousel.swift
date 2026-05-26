@@ -94,7 +94,7 @@ struct PresetsCarousel: View {
             .background(tileFrameReader(for: display.id))
 
             if isEditing && !display.isPending {
-              tile.gesture(
+              tile.simultaneousGesture(
                 LongPressGesture(minimumDuration: 0.4)
                   .sequenced(
                     before: DragGesture(
