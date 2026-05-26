@@ -26,7 +26,6 @@ struct Preset: Codable, Identifiable, Equatable, Sendable {
 struct PresetStation: Codable, Equatable, Sendable {
   let id: String
   let name: String
-  let slug: String
   let imageUrl: String?
 }
 
@@ -59,7 +58,6 @@ extension Preset {
       station: PresetStation(
         id: stationId,
         name: stationName,
-        slug: "mock-slug",
         imageUrl: stationImageUrl
       ),
       urlStation: nil

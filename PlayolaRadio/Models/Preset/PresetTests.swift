@@ -28,7 +28,6 @@ struct PresetTests {
         "station": {
           "id": "f4a1b2c3-d4e5-6789-abcd-ef0123456789",
           "name": "Spark Radio",
-          "slug": "spark-radio",
           "imageUrl": "https://playola.fm/stations/spark-radio.jpg"
         },
         "urlStation": null
@@ -43,7 +42,6 @@ struct PresetTests {
     #expect(preset.urlStationId == nil)
     #expect(preset.position == 0)
     #expect(preset.station?.name == "Spark Radio")
-    #expect(preset.station?.slug == "spark-radio")
     #expect(preset.urlStation == nil)
   }
 
