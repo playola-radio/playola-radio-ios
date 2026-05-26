@@ -26,6 +26,7 @@ class StationListModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
   @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
 
@@ -205,6 +206,10 @@ class StationListModel: ViewModel {
           }
         }
       }
+      await reportPresetError(
+        error,
+        endpoint: "PUT /v1/presets/\(movedId)",
+        extraTags: ["preset_id": movedId])
       presentedAlert = .errorMovingPreset
     }
   }
@@ -359,6 +364,26 @@ class StationListModel: ViewModel {
 
   // MARK: - Private Helpers
 
+  private func reportPresetError(
+    _ error: Error,
+    endpoint: String,
+    extraTags: [String: String] = [:]
+  ) async {
+    print("\(endpoint) failed: \(error)")
+    await analytics.track(
+      .apiError(endpoint: endpoint, error: error.localizedDescription))
+    if !NetworkErrorClassifier.isNetworkError(error) {
+      var tags = extraTags
+      tags["endpoint"] = endpoint
+      await errorReporting.reportError(error, tags)
+    }
+  }
+
+  private func serverMessage(from error: Error) -> String? {
+    if case APIError.validationError(let message) = error { return message }
+    return nil
+  }
+
   private func addPreset(for item: APIStationItem) async {
     guard let token = auth.jwt else { return }
     let stationId = item.anyStation.id
@@ -378,7 +403,14 @@ class StationListModel: ViewModel {
       await analytics.track(.presetAdded(station: stationInfo))
     } catch {
       $pendingPresetStationIds.withLock { $0.remove(stationId) }
-      presentedAlert = .errorSavingPreset
+      await reportPresetError(
+        error,
+        endpoint: "POST /v1/presets",
+        extraTags: [
+          "station_id": stationId,
+          "station_type": isPlayola ? "playola" : "url",
+        ])
+      presentedAlert = .errorSavingPreset(serverMessage(from: error))
     }
   }
 
@@ -414,6 +446,10 @@ class StationListModel: ViewModel {
           }
         }
       }
+      await reportPresetError(
+        error,
+        endpoint: "DELETE /v1/presets/\(presetId)",
+        extraTags: ["preset_id": presetId])
       presentedAlert = .errorRemovingPreset
     }
   }
@@ -424,6 +460,7 @@ class StationListModel: ViewModel {
       let fetched = try await api.getPresets(token)
       $presets.withLock { $0 = IdentifiedArray(uniqueElements: fetched) }
     } catch {
+      await reportPresetError(error, endpoint: "GET /v1/presets")
     }
   }
 

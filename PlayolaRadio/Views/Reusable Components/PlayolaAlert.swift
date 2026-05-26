@@ -255,10 +255,16 @@ extension PlayolaAlert {
       dismissButton: .cancel(Text("OK")))
   }
 
-  static var errorSavingPreset: PlayolaAlert {
-    PlayolaAlert(
+  static func errorSavingPreset(_ serverMessage: String? = nil) -> PlayolaAlert {
+    let message: String
+    if let serverMessage, !serverMessage.isEmpty {
+      message = serverMessage
+    } else {
+      message = "Please try again."
+    }
+    return PlayolaAlert(
       title: "Couldn't Save Preset",
-      message: "Please try again.",
+      message: message,
       dismissButton: .cancel(Text("OK")))
   }
 

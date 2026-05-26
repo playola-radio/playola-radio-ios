@@ -223,6 +223,8 @@ struct StationListPresetTests {
       $0.api.createPreset = { _, _, _ in
         throw APIError.validationError("server says no")
       }
+      $0.analytics.track = { _ in }
+      $0.errorReporting.reportError = { _, _ in }
     } operation: {
       StationListModel()
     }
@@ -231,7 +233,7 @@ struct StationListPresetTests {
 
     #expect(pending.isEmpty)
     #expect(presets.isEmpty)
-    #expect(model.presentedAlert == .errorSavingPreset)
+    #expect(model.presentedAlert == .errorSavingPreset("server says no"))
   }
 
   @Test
@@ -369,6 +371,8 @@ struct StationListPresetTests {
       $0.api.deletePreset = { _, _ in
         throw APIError.validationError("nope")
       }
+      $0.analytics.track = { _ in }
+      $0.errorReporting.reportError = { _, _ in }
     } operation: {
       StationListModel()
     }
@@ -531,6 +535,8 @@ struct StationListPresetTests {
 
     let model = withDependencies {
       $0.api.movePreset = { _, _, _ in throw APIError.validationError("nope") }
+      $0.analytics.track = { _ in }
+      $0.errorReporting.reportError = { _, _ in }
     } operation: {
       StationListModel()
     }
@@ -601,6 +607,105 @@ struct StationListPresetTests {
     model.presetTileLongPressed(display)
 
     #expect(model.presentedPresetActionSheetPreset == nil)
+  }
+
+  // MARK: - Error Instrumentation
+
+  @Test
+  func testAddPresetServerErrorReportsToSentry() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
+        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
+      jwt: "t")
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+
+    let item = makePresetVisibleItem()
+    let reportedError = LockIsolated<(any Error)?>(nil)
+    let reportedTags = LockIsolated<[String: String]>([:])
+
+    let model = withDependencies {
+      $0.api.createPreset = { _, _, _ in
+        throw APIError.validationError("conflict")
+      }
+      $0.analytics.track = { _ in }
+      $0.errorReporting.reportError = { error, tags in
+        reportedError.setValue(error)
+        reportedTags.setValue(tags)
+      }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.starTapped(for: item)
+
+    #expect(reportedError.value != nil)
+    #expect(reportedTags.value["endpoint"] == "POST /v1/presets")
+  }
+
+  @Test
+  func testAddPresetNetworkErrorDoesNotReportToSentry() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
+        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
+      jwt: "t")
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+
+    let item = makePresetVisibleItem()
+    let reportCalled = LockIsolated(false)
+
+    let networkError = NSError(
+      domain: NSURLErrorDomain,
+      code: NSURLErrorNotConnectedToInternet,
+      userInfo: nil)
+
+    let model = withDependencies {
+      $0.api.createPreset = { _, _, _ in throw networkError }
+      $0.analytics.track = { _ in }
+      $0.errorReporting.reportError = { _, _ in
+        reportCalled.setValue(true)
+      }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.starTapped(for: item)
+
+    #expect(!reportCalled.value)
+  }
+
+  @Test
+  func testAddPresetFailureTracksApiErrorAnalytics() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(
+        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
+        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
+      jwt: "t")
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+
+    let item = makePresetVisibleItem()
+    let captured = LockIsolated<[AnalyticsEvent]>([])
+
+    let model = withDependencies {
+      $0.api.createPreset = { _, _, _ in
+        throw APIError.validationError("boom")
+      }
+      $0.analytics.track = { event in captured.withValue { $0.append(event) } }
+      $0.errorReporting.reportError = { _, _ in }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.starTapped(for: item)
+
+    let tracked = captured.value.contains {
+      if case .apiError(let endpoint, _) = $0, endpoint == "POST /v1/presets" {
+        return true
+      }
+      return false
+    }
+    #expect(tracked)
   }
 }
 
