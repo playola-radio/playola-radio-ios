@@ -289,6 +289,10 @@ class StationListModel: ViewModel {
     if presetListState == .editing { presetListState = .normal }
   }
 
+  func retryLoadPresetsTapped() async {
+    await loadPresets()
+  }
+
   func stationSelected(_ item: APIStationItem) async {
     if item.visibility == .comingSoon && showSecretStations == false {
       return
@@ -503,10 +507,6 @@ class StationListModel: ViewModel {
         extraTags: ["preset_id": presetId])
       presentedAlert = .errorRemovingPreset
     }
-  }
-
-  func retryLoadPresetsTapped() async {
-    await loadPresets()
   }
 
   private func loadPresets() async {

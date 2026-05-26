@@ -849,33 +849,31 @@ struct StationListPresetTests {
 
   @Test
   func testIsLoadingPresetsTrueWhileFetchInFlight() async {
-    @Shared(.auth) var auth = signedInAuth()
-    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = signedInAuth()
+      @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
 
-    let releaser = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
-    let started = LockIsolated(false)
+      let releaser = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
 
-    let model = withDependencies {
-      $0.api.getPresets = { _ in
-        await withCheckedContinuation { cont in
-          releaser.setValue(cont)
-          started.setValue(true)
+      let model = withDependencies {
+        $0.api.getPresets = { _ in
+          await withCheckedContinuation { releaser.setValue($0) }
+          return []
         }
-        return []
+      } operation: {
+        StationListModel()
       }
-    } operation: {
-      StationListModel()
+
+      let task = Task { await model.retryLoadPresetsTapped() }
+      await Task.yield()
+
+      #expect(model.isLoadingPresets)
+
+      releaser.value?.resume()
+      await task.value
+
+      #expect(!model.isLoadingPresets)
     }
-
-    let task = Task { await model.retryLoadPresetsTapped() }
-
-    while !started.value { await Task.yield() }
-    #expect(model.isLoadingPresets)
-
-    releaser.value?.resume()
-    await task.value
-
-    #expect(!model.isLoadingPresets)
   }
 
   // MARK: - presetMoved Analytics
