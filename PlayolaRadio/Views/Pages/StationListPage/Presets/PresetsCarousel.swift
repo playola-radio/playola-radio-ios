@@ -5,7 +5,6 @@
 
 import PlayolaPlayer
 import SwiftUI
-import UniformTypeIdentifiers
 
 struct PresetsCarousel: View {
   let displays: [PresetDisplayItem]
@@ -17,6 +16,12 @@ struct PresetsCarousel: View {
   let onTileRemove: (PresetDisplayItem) async -> Void
   let onMove: (Int, Int) async -> Void
   let onEditDoneTapped: () -> Void
+
+  @State private var dragState: PresetDragState?
+
+  private static let presetTileWidth: CGFloat = 92
+  private static let presetTileSpacing: CGFloat = 12
+  private static let presetTileStride = presetTileWidth + presetTileSpacing
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -69,9 +74,11 @@ struct PresetsCarousel: View {
   }
 
   private var tiles: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 12) {
-        ForEach(displays) { display in
+    let displayedDisplays = dragState?.displays ?? displays
+
+    return ScrollView(.horizontal, showsIndicators: false) {
+      HStack(spacing: Self.presetTileSpacing) {
+        ForEach(displayedDisplays) { display in
           let tile = PresetTile(
             display: display,
             isEditing: isEditing,
@@ -82,21 +89,35 @@ struct PresetsCarousel: View {
 
           if isEditing && !display.isPending {
             tile
-              .onDrag { NSItemProvider(object: display.id as NSString) }
-              .onDrop(
-                of: [.text],
-                delegate: PresetDropDelegate(
-                  item: display,
-                  displays: displays,
-                  isEditing: isEditing,
-                  onMove: onMove
-                ))
+              .offset(dragOffset(for: display, in: displayedDisplays))
+              .zIndex(dragState?.sourceId == display.id ? 1 : 0)
+              .gesture(
+                DragGesture(minimumDistance: 8)
+                  .onChanged { value in
+                    updateDrag(display, translation: value.translation)
+                  }
+                  .onEnded { _ in
+                    endDrag(display)
+                  }
+              )
           } else {
             tile
           }
         }
       }
       .padding(.horizontal, 16)
+      .animation(.snappy(duration: 0.18), value: displayedDisplays.map(\.id))
+    }
+    .onChange(of: displays.map(\.id)) { _, newIds in
+      guard let dragState else { return }
+      if newIds == dragState.displays.map(\.id) {
+        self.dragState = nil
+      }
+    }
+    .onChange(of: isEditing) { _, newValue in
+      if !newValue {
+        dragState = nil
+      }
     }
     .overlay(alignment: .trailing) {
       LinearGradient(
@@ -108,31 +129,106 @@ struct PresetsCarousel: View {
       .allowsHitTesting(false)
     }
   }
+
+  private func updateDrag(_ display: PresetDisplayItem, translation: CGSize) {
+    guard isEditing, !display.isPending else { return }
+
+    if dragState == nil {
+      guard let sourceIndex = displays.firstIndex(where: { $0.id == display.id }) else { return }
+      dragState = PresetDragState(
+        sourceId: display.id,
+        sourceIndex: sourceIndex,
+        destinationIndex: sourceIndex,
+        displays: displays,
+        translation: .zero,
+        isActive: true
+      )
+    }
+
+    guard var state = dragState, state.sourceId == display.id else { return }
+
+    state.translation = translation
+
+    let proposedIndex =
+      state.sourceIndex + Int((translation.width / Self.presetTileStride).rounded())
+    guard
+      let destinationIndex = destinationIndex(for: proposedIndex),
+      destinationIndex != state.destinationIndex,
+      let currentIndex = state.displays.firstIndex(where: { $0.id == state.sourceId })
+    else {
+      dragState = state
+      return
+    }
+
+    var reorderedDisplays = state.displays
+    let movedDisplay = reorderedDisplays.remove(at: currentIndex)
+    reorderedDisplays.insert(movedDisplay, at: destinationIndex)
+
+    state.displays = reorderedDisplays
+    state.destinationIndex = destinationIndex
+
+    withAnimation(.snappy(duration: 0.18)) {
+      dragState = state
+    }
+  }
+
+  private func endDrag(_ display: PresetDisplayItem) {
+    guard var state = dragState, state.sourceId == display.id else { return }
+
+    state.translation = .zero
+    state.isActive = false
+
+    withAnimation(.snappy(duration: 0.18)) {
+      dragState = state
+    }
+
+    guard state.sourceIndex != state.destinationIndex else {
+      dragState = nil
+      return
+    }
+
+    Task {
+      await onMove(state.sourceIndex, state.destinationIndex)
+    }
+  }
+
+  private func destinationIndex(for proposedIndex: Int) -> Int? {
+    guard !displays.isEmpty else { return nil }
+
+    let clampedIndex = min(max(proposedIndex, 0), displays.count - 1)
+    guard !displays[clampedIndex].isPending else { return nil }
+
+    return clampedIndex
+  }
+
+  private func dragOffset(
+    for display: PresetDisplayItem,
+    in displayedDisplays: [PresetDisplayItem]
+  ) -> CGSize {
+    guard
+      let dragState,
+      dragState.isActive,
+      dragState.sourceId == display.id,
+      let currentIndex = displayedDisplays.firstIndex(where: { $0.id == display.id })
+    else {
+      return .zero
+    }
+
+    let layoutOffset = CGFloat(currentIndex - dragState.sourceIndex) * Self.presetTileStride
+    return CGSize(
+      width: dragState.translation.width - layoutOffset,
+      height: dragState.translation.height
+    )
+  }
 }
 
-private struct PresetDropDelegate: DropDelegate {
-  let item: PresetDisplayItem
-  let displays: [PresetDisplayItem]
-  let isEditing: Bool
-  let onMove: (Int, Int) async -> Void
-
-  func dropEntered(info: DropInfo) {
-    guard isEditing else { return }
-    guard let draggingId = info.itemProviders(for: [.text]).first,
-      let fromIndex = displays.firstIndex(where: { $0.id != item.id }),
-      let toIndex = displays.firstIndex(where: { $0.id == item.id })
-    else { return }
-    _ = draggingId
-    Task { await onMove(fromIndex, toIndex) }
-  }
-
-  func dropUpdated(info: DropInfo) -> DropProposal? {
-    DropProposal(operation: .move)
-  }
-
-  func performDrop(info: DropInfo) -> Bool {
-    true
-  }
+private struct PresetDragState {
+  let sourceId: String
+  let sourceIndex: Int
+  var destinationIndex: Int
+  var displays: [PresetDisplayItem]
+  var translation: CGSize
+  var isActive: Bool
 }
 
 #Preview("With Presets") {
