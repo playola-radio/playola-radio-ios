@@ -255,6 +255,13 @@ extension PlayolaAlert {
       dismissButton: .cancel(Text("OK")))
   }
 
+  static var errorLoadingPresets: PlayolaAlert {
+    PlayolaAlert(
+      title: "Couldn't Load Presets",
+      message: "Pull to refresh or try again later.",
+      dismissButton: .cancel(Text("OK")))
+  }
+
   static func errorSavingPreset(_ serverMessage: String? = nil) -> PlayolaAlert {
     let message: String
     if let serverMessage, !serverMessage.isEmpty {

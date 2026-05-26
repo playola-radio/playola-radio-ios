@@ -317,7 +317,7 @@ struct StationListPresetTests {
     let presetToRemove = Preset.mockPlayola(id: "p-remove", stationId: stationId, position: 0)
     let otherPreset = Preset.mockPlayola(id: "p-keep", stationId: "other-s", position: 1)
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [presetToRemove, otherPreset]
-    @Shared(.pendingPresetRemovalIds) var pendingRemovals: Set<String> = []
+    @Shared(.pendingPresetRemovalStationIds) var pendingRemovals: Set<String> = []
 
     let capturedArgs = LockIsolated<(String, String)?>(nil)
     let model = withDependencies {
@@ -366,18 +366,27 @@ struct StationListPresetTests {
   }
 
   @Test
-  func testStarTappedIgnoredWhilePendingRemoval() async {
+  func testStarTappedIgnoredWhileStationIsPendingRemoval() async {
+    // Simulates the race: `removePreset` has optimistically removed the preset
+    // from `$presets` but the DELETE is still in flight, so `presets` no longer
+    // contains the entry. A concurrent `starTapped` would otherwise route to
+    // `addPreset` and issue POST while DELETE is in flight. The station-id
+    // guard must catch this even though no preset is in `presets`.
     @Shared(.auth) var auth = signedInAuth()
     let item = makePresetVisibleItem()
     let stationId = item.anyStation.id
-    let preset = Preset.mockPlayola(id: "p1", stationId: stationId, position: 0)
-    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [preset]
-    @Shared(.pendingPresetRemovalIds) var pendingRemovals: Set<String> = ["p1"]
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+    @Shared(.pendingPresetRemovalStationIds) var pendingRemovals: Set<String> = [stationId]
 
-    let callCount = LockIsolated(0)
+    let createCallCount = LockIsolated(0)
+    let deleteCallCount = LockIsolated(0)
     let model = withDependencies {
+      $0.api.createPreset = { _, _, _ in
+        createCallCount.setValue(createCallCount.value + 1)
+        return Preset.mockPlayola()
+      }
       $0.api.deletePreset = { _, _ in
-        callCount.setValue(callCount.value + 1)
+        deleteCallCount.setValue(deleteCallCount.value + 1)
       }
     } operation: {
       StationListModel()
@@ -385,7 +394,8 @@ struct StationListPresetTests {
 
     await model.starTapped(for: item)
 
-    #expect(callCount.value == 0)
+    #expect(createCallCount.value == 0)
+    #expect(deleteCallCount.value == 0)
   }
 
   @Test

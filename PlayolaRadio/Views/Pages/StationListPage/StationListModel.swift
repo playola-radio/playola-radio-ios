@@ -73,8 +73,8 @@ class StationListModel: ViewModel {
   @ObservationIgnored @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
   @ObservationIgnored @Shared(.pendingPresetStationIds) var pendingPresetStationIds: Set<String> =
     []
-  @ObservationIgnored @Shared(.pendingPresetRemovalIds) var pendingPresetRemovalIds: Set<String> =
-    []
+  @ObservationIgnored @Shared(.pendingPresetRemovalStationIds)
+  var pendingPresetRemovalStationIds: Set<String> = []
   @ObservationIgnored @Shared(.hasAskedForNotificationPermission)
   var hasAskedForNotificationPermission: Bool
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
@@ -182,9 +182,7 @@ class StationListModel: ViewModel {
     }
 
     if pendingPresetStationIds.contains(stationId)
-      || pendingPresetRemovalIds.contains(where: { id in
-        presets[id: id]?.embeddedStationId == stationId
-      })
+      || pendingPresetRemovalStationIds.contains(stationId)
     {
       return
     }
@@ -465,13 +463,14 @@ class StationListModel: ViewModel {
 
   private func removePreset(presetId: String, stationInfo: StationInfo) async {
     guard let token = auth.jwt else { return }
-    if pendingPresetRemovalIds.contains(presetId) { return }
+    let stationId = stationInfo.id
+    if pendingPresetRemovalStationIds.contains(stationId) { return }
 
     guard let presetSnapshot = presets[id: presetId] else { return }
     let positionsSnapshot: [String: Int] = Dictionary(
       uniqueKeysWithValues: presets.map { ($0.id, $0.position) })
 
-    $pendingPresetRemovalIds.withLock { $0.insert(presetId) }
+    $pendingPresetRemovalStationIds.withLock { $0.insert(stationId) }
     $presets.withLock { collection in
       collection.remove(id: presetId)
       for var existing in collection where existing.position > presetSnapshot.position {
@@ -482,10 +481,10 @@ class StationListModel: ViewModel {
 
     do {
       try await api.deletePreset(token, presetId)
-      $pendingPresetRemovalIds.withLock { $0.remove(presetId) }
+      $pendingPresetRemovalStationIds.withLock { $0.remove(stationId) }
       await analytics.track(.presetRemoved(station: stationInfo))
     } catch {
-      $pendingPresetRemovalIds.withLock { $0.remove(presetId) }
+      $pendingPresetRemovalStationIds.withLock { $0.remove(stationId) }
       $presets.withLock { collection in
         collection.append(presetSnapshot)
         for var existing in collection {
@@ -510,6 +509,7 @@ class StationListModel: ViewModel {
       $presets.withLock { $0 = IdentifiedArray(uniqueElements: fetched) }
     } catch {
       await reportPresetError(error, endpoint: "GET /v1/presets")
+      presentedAlert = .errorLoadingPresets
     }
   }
 

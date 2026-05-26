@@ -172,6 +172,9 @@ struct PresetsCarousel: View {
         dragState = nil
       }
     }
+    .onDisappear {
+      stopAutoScroll()
+    }
     .overlay(alignment: .trailing) {
       LinearGradient(
         colors: [Color.black.opacity(0), Color.black],

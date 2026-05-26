@@ -190,8 +190,11 @@ extension SharedKey where Self == InMemoryKey<Set<String>>.Default {
     Self[.inMemory("pendingPresetStationIds"), default: []]
   }
 
-  /// Preset ids for which a delete is currently in flight.
-  static var pendingPresetRemovalIds: Self {
-    Self[.inMemory("pendingPresetRemovalIds"), default: []]
+  /// Station ids (playola or url) for which a preset delete is currently in
+  /// flight. Indexed by station id rather than preset id so the guard in
+  /// `starTapped` survives the optimistic removal of the preset from
+  /// `presets` before the network call completes.
+  static var pendingPresetRemovalStationIds: Self {
+    Self[.inMemory("pendingPresetRemovalStationIds"), default: []]
   }
 }
