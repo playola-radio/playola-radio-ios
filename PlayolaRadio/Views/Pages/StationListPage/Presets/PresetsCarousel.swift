@@ -331,6 +331,7 @@ private struct LongPressReorderRecognizer: UIViewRepresentable {
       switch recognizer.state {
       case .began:
         startPoint = point
+        cancelEnclosingScrollPan(from: view)
         onBegan()
       case .changed:
         guard let startPoint else { return }
@@ -345,6 +346,20 @@ private struct LongPressReorderRecognizer: UIViewRepresentable {
         onEnded()
       default:
         break
+      }
+    }
+
+    private func cancelEnclosingScrollPan(from view: UIView) {
+      var current: UIView? = view.superview
+      while let next = current {
+        if let scroll = next as? UIScrollView {
+          // Toggling isEnabled cancels the in-flight pan so the carousel
+          // doesn't scroll while we drag a tile.
+          scroll.panGestureRecognizer.isEnabled = false
+          scroll.panGestureRecognizer.isEnabled = true
+          return
+        }
+        current = next.superview
       }
     }
 
