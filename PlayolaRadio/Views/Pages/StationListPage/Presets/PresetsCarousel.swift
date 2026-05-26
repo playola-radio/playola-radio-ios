@@ -94,10 +94,11 @@ struct PresetsCarousel: View {
             .background(tileFrameReader(for: display.id))
 
             if isEditing && !display.isPending {
-              tile.background(
+              tile.overlay {
                 LongPressReorderRecognizer(
                   minimumDuration: 0.4,
                   maximumDistance: 10,
+                  passthroughRect: CGRect(x: 0, y: 0, width: 50, height: 50),
                   onBegan: {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     updateDrag(display, translation: .zero)
@@ -109,7 +110,7 @@ struct PresetsCarousel: View {
                     endDrag(display)
                   }
                 )
-              )
+              }
             } else {
               tile
             }
@@ -271,6 +272,7 @@ private struct PresetDragState {
 private struct LongPressReorderRecognizer: UIViewRepresentable {
   let minimumDuration: TimeInterval
   let maximumDistance: CGFloat
+  let passthroughRect: CGRect
   let onBegan: () -> Void
   let onChanged: (CGSize) -> Void
   let onEnded: () -> Void
@@ -278,6 +280,7 @@ private struct LongPressReorderRecognizer: UIViewRepresentable {
   func makeUIView(context: Context) -> UIView {
     let view = PassthroughView()
     view.backgroundColor = .clear
+    view.passthroughRect = passthroughRect
 
     let recognizer = UILongPressGestureRecognizer(
       target: context.coordinator,
@@ -297,6 +300,7 @@ private struct LongPressReorderRecognizer: UIViewRepresentable {
     context.coordinator.onBegan = onBegan
     context.coordinator.onChanged = onChanged
     context.coordinator.onEnded = onEnded
+    (uiView as? PassthroughView)?.passthroughRect = passthroughRect
   }
 
   func makeCoordinator() -> Coordinator {
@@ -363,11 +367,17 @@ private struct LongPressReorderRecognizer: UIViewRepresentable {
   }
 
   private final class PassthroughView: UIView {
+    var passthroughRect: CGRect = .zero
+
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-      // Returning self claims the touch for our recognizer while
-      // cancelsTouchesInView=false lets the touch propagate to ancestor gestures
-      // (ScrollView's pan) so quick swipes still scroll.
-      bounds.contains(point) ? self : nil
+      guard bounds.contains(point) else { return nil }
+      // Let touches in the passthroughRect (the X-badge area) fall through to
+      // the SwiftUI Button underneath.
+      if passthroughRect.contains(point) { return nil }
+      // Otherwise claim the touch so the long-press recognizer can track it.
+      // cancelsTouchesInView=false lets the ScrollView's pan also track,
+      // so quick swipes still scroll.
+      return self
     }
   }
 }
