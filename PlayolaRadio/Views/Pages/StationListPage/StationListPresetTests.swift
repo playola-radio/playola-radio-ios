@@ -175,11 +175,7 @@ struct StationListPresetTests {
 
   @Test
   func testStarTappedOnNonPresetAddsOptimisticallyThenPersists() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
     @Shared(.pendingPresetStationIds) var pending: Set<String> = []
 
@@ -213,11 +209,7 @@ struct StationListPresetTests {
 
   @Test
   func testStarTappedAddFailureRollsBackAndShowsAlert() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
     @Shared(.pendingPresetStationIds) var pending: Set<String> = []
 
@@ -242,11 +234,7 @@ struct StationListPresetTests {
 
   @Test
   func testStarTappedIgnoredWhilePendingAdd() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
     let item = makePresetVisibleItem()
     @Shared(.pendingPresetStationIds) var pending: Set<String> = [item.anyStation.id]
@@ -268,11 +256,7 @@ struct StationListPresetTests {
 
   @Test
   func testStarTappedTracksPresetAddedAnalyticsOnSuccess() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
 
     let item = makePresetVisibleItem()
@@ -327,11 +311,7 @@ struct StationListPresetTests {
 
   @Test
   func testStarTappedOnExistingPresetRemovesOptimistically() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     let item = makePresetVisibleItem()
     let stationId = item.anyStation.id
     let presetToRemove = Preset.mockPlayola(id: "p-remove", stationId: stationId, position: 0)
@@ -353,18 +333,14 @@ struct StationListPresetTests {
     #expect(capturedArgs.value?.0 == "t")
     #expect(capturedArgs.value?.1 == "p-remove")
     #expect(pendingRemovals.isEmpty)
-    #expect(presets.count == 1)
-    #expect(presets.first?.id == "p-keep")
-    #expect(presets.first?.position == 0)  // gap closed
+    expectNoDifference(
+      Array(presets),
+      [Preset.mockPlayola(id: "p-keep", stationId: "other-s", position: 0)])
   }
 
   @Test
   func testRemovePresetFailureRestoresPresetAndPositions() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     let item = makePresetVisibleItem()
     let stationId = item.anyStation.id
     let presetToRemove = Preset.mockPlayola(id: "p-remove", stationId: stationId, position: 0)
@@ -383,19 +359,15 @@ struct StationListPresetTests {
 
     await model.starTapped(for: item)
 
-    #expect(presets.count == 2)
-    #expect(presets[id: "p-remove"]?.position == 0)
-    #expect(presets[id: "p-keep"]?.position == 1)
+    expectNoDifference(
+      presets.sorted { $0.position < $1.position },
+      [presetToRemove, otherPreset])
     #expect(model.presentedAlert == .errorRemovingPreset)
   }
 
   @Test
   func testStarTappedIgnoredWhilePendingRemoval() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     let item = makePresetVisibleItem()
     let stationId = item.anyStation.id
     let preset = Preset.mockPlayola(id: "p1", stationId: stationId, position: 0)
@@ -418,11 +390,7 @@ struct StationListPresetTests {
 
   @Test
   func testRemovePresetTracksPresetRemovedAnalytics() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     let item = makePresetVisibleItem()
     let stationId = item.anyStation.id
     let preset = Preset.mockPlayola(id: "p1", stationId: stationId, position: 0)
@@ -449,11 +417,7 @@ struct StationListPresetTests {
 
   @Test
   func testPresetMovedReassignsLocalPositionsAndCallsServer() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     let p1 = Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
     let p2 = Preset.mockPlayola(id: "p2", stationId: "s2", position: 1)
     let p3 = Preset.mockPlayola(id: "p3", stationId: "s3", position: 2)
@@ -489,8 +453,13 @@ struct StationListPresetTests {
     await model.presetMoved(from: 0, to: 2)
 
     let ordered = presets.sorted { $0.position < $1.position }
-    expectNoDifference(ordered.map(\.id), ["p2", "p3", "p1"])
-    expectNoDifference(ordered.map(\.position), [0, 1, 2])
+    expectNoDifference(
+      ordered,
+      [
+        Preset.mockPlayola(id: "p2", stationId: "s2", position: 0),
+        Preset.mockPlayola(id: "p3", stationId: "s3", position: 1),
+        Preset.mockPlayola(id: "p1", stationId: "s1", position: 2),
+      ])
     #expect(capturedToken.value == "t")
     #expect(capturedPresetId.value == "p1")
     #expect(capturedPosition.value == 2)
@@ -498,11 +467,7 @@ struct StationListPresetTests {
 
   @Test
   func testPresetMovedNoOpWhenFromEqualsTo() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     let p1 = Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [p1]
 
@@ -523,11 +488,7 @@ struct StationListPresetTests {
 
   @Test
   func testPresetMoveFailureRevertsToSnapshot() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     let p1 = Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
     let p2 = Preset.mockPlayola(id: "p2", stationId: "s2", position: 1)
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [p1, p2]
@@ -554,8 +515,7 @@ struct StationListPresetTests {
     await model.presetMoved(from: 0, to: 1)
 
     let ordered = presets.sorted { $0.position < $1.position }
-    expectNoDifference(ordered.map(\.id), ["p1", "p2"])
-    expectNoDifference(ordered.map(\.position), [0, 1])
+    expectNoDifference(ordered, [p1, p2])
     #expect(model.presentedAlert == .errorMovingPreset)
   }
 
@@ -685,11 +645,7 @@ struct StationListPresetTests {
 
   @Test
   func testPresetRemoveTappedRemovesPreset() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     let item = makePresetVisibleItem()
     let stationId = item.anyStation.id
     let preset = Preset.mockPlayola(id: "p1", stationId: stationId, position: 0)
@@ -715,11 +671,7 @@ struct StationListPresetTests {
 
   @Test
   func testPresetRemoveTappedIgnoredOnPendingTile() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     let item = makePresetVisibleItem()
     let display = PresetDisplayItem(id: "pending-x", stationItem: item, isPending: true)
 
@@ -737,11 +689,7 @@ struct StationListPresetTests {
 
   @Test
   func testPresetMovedIgnoredInNormalMode() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     let p1 = Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
     let p2 = Preset.mockPlayola(id: "p2", stationId: "s2", position: 1)
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [p1, p2]
@@ -766,11 +714,7 @@ struct StationListPresetTests {
 
   @Test
   func testAddPresetServerErrorReportsToSentry() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
 
     let item = makePresetVisibleItem()
@@ -798,11 +742,7 @@ struct StationListPresetTests {
 
   @Test
   func testAddPresetNetworkErrorDoesNotReportToSentry() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
 
     let item = makePresetVisibleItem()
@@ -830,11 +770,7 @@ struct StationListPresetTests {
 
   @Test
   func testAddPresetFailureTracksApiErrorAnalytics() async {
-    @Shared(.auth) var auth = Auth(
-      currentUser: LoggedInUser(
-        id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
-        verifiedEmail: nil, profileImageUrl: nil, role: "user"),
-      jwt: "t")
+    @Shared(.auth) var auth = signedInAuth()
     @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
 
     let item = makePresetVisibleItem()
@@ -860,6 +796,149 @@ struct StationListPresetTests {
     }
     #expect(tracked)
   }
+
+  // MARK: - loadPresets Edge Cases
+
+  @Test
+  func testLoadPresetsNoOpWhenNoAuth() async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: nil)
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
+
+    let callCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.getPresets = { _ in
+        callCount.setValue(callCount.value + 1)
+        return []
+      }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.viewAppeared()
+
+    #expect(callCount.value == 0)
+    #expect(presets.isEmpty)
+  }
+
+  @Test
+  func testLoadPresetsFailureReportsErrorWithoutMutatingPresets() async {
+    @Shared(.auth) var auth = signedInAuth()
+    let existing = Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [existing]
+
+    let reportedTags = LockIsolated<[String: String]>([:])
+    let model = withDependencies {
+      $0.api.getPresets = { _ in throw APIError.validationError("nope") }
+      $0.analytics.track = { _ in }
+      $0.errorReporting.reportError = { _, tags in reportedTags.setValue(tags) }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.viewAppeared()
+
+    expectNoDifference(Array(presets), [existing])
+    #expect(reportedTags.value["endpoint"] == "GET /v1/presets")
+  }
+
+  // MARK: - presetMoved Analytics
+
+  @Test
+  func testPresetMovedTracksAnalyticsOnSuccess() async {
+    @Shared(.auth) var auth = signedInAuth()
+    let p1 = Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
+    let p2 = Preset.mockPlayola(id: "p2", stationId: "s2", position: 1)
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [p1, p2]
+
+    @Shared(.stationLists) var sharedLists: IdentifiedArrayOf<StationList> = [
+      makePresetTestList(with: [
+        APIStationItem(
+          sortOrder: 0, visibility: .visible, station: Station.mockWith(id: "s1"), urlStation: nil),
+        APIStationItem(
+          sortOrder: 1, visibility: .visible, station: Station.mockWith(id: "s2"), urlStation: nil),
+      ])
+    ]
+
+    let captured = LockIsolated<[AnalyticsEvent]>([])
+    let model = withDependencies {
+      $0.api.movePreset = { _, presetId, position in
+        Preset.mockPlayola(id: presetId, stationId: "s1", position: position)
+      }
+      $0.analytics.track = { event in captured.withValue { $0.append(event) } }
+    } operation: {
+      StationListModel()
+    }
+    model.presetListState = .editing
+
+    await model.presetMoved(from: 0, to: 1)
+
+    let moved = captured.value.contains {
+      if case .presetMoved(_, let fromIndex, let toIndex) = $0, fromIndex == 0, toIndex == 1 {
+        return true
+      }
+      return false
+    }
+    #expect(moved)
+  }
+
+  // MARK: - displayPresets Dedupe
+
+  @Test
+  func testDisplayPresetsFiltersPendingThatAlreadyExistsAsRealPreset() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let station1 = Station.mockWith(id: "s1", name: "S1")
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [
+      makePresetTestList(with: [
+        APIStationItem(sortOrder: 0, visibility: .visible, station: station1, urlStation: nil)
+      ])
+    ]
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [
+      Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
+    ]
+    @Shared(.pendingPresetStationIds) var pending: Set<String> = ["s1"]
+
+    let model = StationListModel()
+
+    expectNoDifference(model.displayPresets.map(\.id), ["p1"])
+  }
+
+  // MARK: - presetRemoveTapped Orphan Fallback
+
+  @Test
+  func testPresetRemoveTappedFallsBackForOrphanStation() async {
+    @Shared(.auth) var auth = signedInAuth()
+    let orphanPreset = Preset.mockPlayola(id: "p1", stationId: "missing-s", position: 0)
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [orphanPreset]
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
+
+    let orphanItem = APIStationItem(
+      sortOrder: 0,
+      visibility: .visible,
+      station: Station.mockWith(id: "missing-s"),
+      urlStation: nil)
+    let display = PresetDisplayItem(id: "p1", stationItem: orphanItem, isPending: false)
+
+    let capturedPresetId = LockIsolated<String?>(nil)
+    let model = withDependencies {
+      $0.api.deletePreset = { _, presetId in capturedPresetId.setValue(presetId) }
+      $0.analytics.track = { _ in }
+    } operation: {
+      StationListModel()
+    }
+
+    await model.presetRemoveTapped(display)
+
+    #expect(capturedPresetId.value == "p1")
+    #expect(presets.isEmpty)
+  }
+}
+
+private func signedInAuth() -> Auth {
+  Auth(
+    currentUser: LoggedInUser(
+      id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
+      verifiedEmail: nil, profileImageUrl: nil, role: "user"),
+    jwt: "t")
 }
 
 private func makePresetTestList(with items: [APIStationItem], date: Date = Date()) -> StationList {

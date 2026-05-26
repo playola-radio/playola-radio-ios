@@ -93,4 +93,20 @@ struct PresetTests {
     let preset = Preset.mockUrl(urlStationId: "url-id")
     #expect(preset.embeddedStationId == "url-id")
   }
+
+  @Test
+  func testEmbeddedStationIdReturnsEmptyStringWhenBothNil() {
+    let preset = Preset(
+      id: "p1",
+      userId: "u1",
+      stationId: nil,
+      urlStationId: nil,
+      position: 0,
+      createdAt: Date(timeIntervalSince1970: 0),
+      updatedAt: Date(timeIntervalSince1970: 0),
+      station: nil,
+      urlStation: nil
+    )
+    #expect(preset.embeddedStationId == "")
+  }
 }

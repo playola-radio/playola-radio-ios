@@ -786,7 +786,6 @@ struct StationListPageTests {
     #expect(ids.contains("s1"))
     #expect(ids.contains("s2"))
   }
-
 }
 
 private func assertPlayedEvents(
