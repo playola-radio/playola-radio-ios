@@ -117,7 +117,7 @@ struct PresetsCarousel: View {
           }
         }
         .padding(.horizontal, 16)
-        .animation(.smooth(duration: 0.25), value: idOrder)
+        .animation(.smooth(duration: 0.22), value: idOrder)
 
         if let dragState,
           let display = displays.first(where: { $0.id == dragState.sourceId })
@@ -194,7 +194,9 @@ struct PresetsCarousel: View {
 
     guard var state = dragState, state.sourceId == display.id else { return }
 
+    // Immediate translation update — no animation, overlay locks to finger.
     state.translation = translation
+    dragState = state
 
     let currentDelta = state.destinationIndex - state.sourceIndex
     let progress = translation.width / Self.presetTileStride
@@ -215,10 +217,10 @@ struct PresetsCarousel: View {
       destinationIndex != state.destinationIndex,
       let currentIndex = state.displays.firstIndex(where: { $0.id == state.sourceId })
     else {
-      dragState = state
       return
     }
 
+    // Swap detected — reorder + animate the HStack reflow.
     var reorderedDisplays = state.displays
     let movedDisplay = reorderedDisplays.remove(at: currentIndex)
     reorderedDisplays.insert(movedDisplay, at: destinationIndex)
@@ -226,7 +228,7 @@ struct PresetsCarousel: View {
     state.displays = reorderedDisplays
     state.destinationIndex = destinationIndex
 
-    withAnimation(.smooth(duration: 0.25)) {
+    withAnimation(.smooth(duration: 0.22)) {
       dragState = state
     }
   }
