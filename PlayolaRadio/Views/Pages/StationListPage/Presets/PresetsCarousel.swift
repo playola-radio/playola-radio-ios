@@ -72,25 +72,28 @@ struct PresetsCarousel: View {
     ScrollView(.horizontal, showsIndicators: false) {
       HStack(spacing: 12) {
         ForEach(displays) { display in
-          PresetTile(
+          let tile = PresetTile(
             display: display,
             isEditing: isEditing,
             onTap: { await onTilePlay(display) },
             onLongPress: { onTileLongPress(display) },
             onRemoveTapped: { await onTileRemove(display) }
           )
-          .onDrag {
-            guard isEditing, !display.isPending else { return NSItemProvider() }
-            return NSItemProvider(object: display.id as NSString)
+
+          if isEditing && !display.isPending {
+            tile
+              .onDrag { NSItemProvider(object: display.id as NSString) }
+              .onDrop(
+                of: [.text],
+                delegate: PresetDropDelegate(
+                  item: display,
+                  displays: displays,
+                  isEditing: isEditing,
+                  onMove: onMove
+                ))
+          } else {
+            tile
           }
-          .onDrop(
-            of: [.text],
-            delegate: PresetDropDelegate(
-              item: display,
-              displays: displays,
-              isEditing: isEditing,
-              onMove: onMove
-            ))
         }
       }
       .padding(.horizontal, 16)
