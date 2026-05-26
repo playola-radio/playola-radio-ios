@@ -32,7 +32,7 @@ struct PresetStation: Codable, Equatable, Sendable {
 struct PresetUrlStation: Codable, Equatable, Sendable {
   let id: String
   let name: String
-  let url: String
+  let url: String?
   let imageUrl: String?
 }
 
