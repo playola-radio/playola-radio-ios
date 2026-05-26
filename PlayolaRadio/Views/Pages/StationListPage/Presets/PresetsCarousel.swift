@@ -94,17 +94,22 @@ struct PresetsCarousel: View {
             .background(tileFrameReader(for: display.id))
 
             if isEditing && !display.isPending {
-              tile.highPriorityGesture(
-                DragGesture(
-                  minimumDistance: 4,
-                  coordinateSpace: .named(Self.carouselCoordinateSpace)
-                )
-                .onChanged { value in
-                  updateDrag(display, value: value)
-                }
-                .onEnded { _ in
-                  endDrag(display)
-                }
+              tile.gesture(
+                LongPressGesture(minimumDuration: 0.4)
+                  .sequenced(
+                    before: DragGesture(
+                      minimumDistance: 0,
+                      coordinateSpace: .named(Self.carouselCoordinateSpace)
+                    )
+                  )
+                  .onChanged { value in
+                    if case .second(true, let drag?) = value {
+                      updateDrag(display, value: drag)
+                    }
+                  }
+                  .onEnded { _ in
+                    endDrag(display)
+                  }
               )
             } else {
               tile
