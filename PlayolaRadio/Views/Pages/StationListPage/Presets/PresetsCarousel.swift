@@ -106,7 +106,7 @@ struct PresetsCarousel: View {
         }
       }
       .padding(.horizontal, 16)
-      .animation(.snappy(duration: 0.18), value: displayedDisplays.map(\.id))
+      .animation(.smooth(duration: 0.25), value: displayedDisplays.map(\.id))
     }
     .onChange(of: displays.map(\.id)) { _, newIds in
       guard let dragState else { return }
@@ -149,8 +149,19 @@ struct PresetsCarousel: View {
 
     state.translation = translation
 
-    let proposedIndex =
-      state.sourceIndex + Int((translation.width / Self.presetTileStride).rounded())
+    let currentDelta = state.destinationIndex - state.sourceIndex
+    let progress = translation.width / Self.presetTileStride
+    let bias: Double = 0.15
+    let proposedDelta: Int
+    if progress > Double(currentDelta) + 0.5 + bias {
+      proposedDelta = currentDelta + 1
+    } else if progress < Double(currentDelta) - 0.5 - bias {
+      proposedDelta = currentDelta - 1
+    } else {
+      proposedDelta = currentDelta
+    }
+    let proposedIndex = state.sourceIndex + proposedDelta
+
     guard
       let destinationIndex = destinationIndex(for: proposedIndex),
       destinationIndex != state.destinationIndex,
@@ -167,7 +178,7 @@ struct PresetsCarousel: View {
     state.displays = reorderedDisplays
     state.destinationIndex = destinationIndex
 
-    withAnimation(.snappy(duration: 0.18)) {
+    withAnimation(.smooth(duration: 0.25)) {
       dragState = state
     }
   }
@@ -178,7 +189,7 @@ struct PresetsCarousel: View {
     state.translation = .zero
     state.isActive = false
 
-    withAnimation(.snappy(duration: 0.18)) {
+    withAnimation(.smooth(duration: 0.25)) {
       dragState = state
     }
 
