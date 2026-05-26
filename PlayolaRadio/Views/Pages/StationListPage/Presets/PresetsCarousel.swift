@@ -19,11 +19,17 @@ struct PresetsCarousel: View {
 
   @State private var dragState: PresetDragState?
   @State private var tileFrames: [String: CGRect] = [:]
+  @State private var carouselWindowFrame: CGRect = .zero
+  @State private var scrollViewRef: WeakScrollViewBox = WeakScrollViewBox()
+  @State private var autoScrollTimer: Timer?
+  @State private var autoScrollDirection: CGFloat = 0  // -1, 0, +1
 
   private static let presetTileWidth: CGFloat = 92
   private static let presetTileSpacing: CGFloat = 12
   private static let presetTileStride = presetTileWidth + presetTileSpacing
   private static let carouselCoordinateSpace = "presets-carousel"
+  private static let autoScrollEdgeThreshold: CGFloat = 50
+  private static let autoScrollPixelsPerTick: CGFloat = 6
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -81,6 +87,7 @@ struct PresetsCarousel: View {
 
     return ScrollView(.horizontal, showsIndicators: false) {
       ZStack(alignment: .topLeading) {
+
         HStack(spacing: Self.presetTileSpacing) {
           ForEach(displayedDisplays) { display in
             let tile = PresetTile(
@@ -99,12 +106,15 @@ struct PresetsCarousel: View {
                   minimumDuration: 0.4,
                   maximumDistance: 10,
                   passthroughRect: CGRect(x: 0, y: 0, width: 50, height: 50),
-                  onBegan: {
+                  onBegan: { capturedScrollView in
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                    updateDrag(display, translation: .zero)
+                    if scrollViewRef.value !== capturedScrollView {
+                      scrollViewRef.value = capturedScrollView
+                    }
+                    updateDrag(display, translation: .zero, windowPoint: nil)
                   },
-                  onChanged: { translation in
-                    updateDrag(display, translation: translation)
+                  onChanged: { translation, windowPoint in
+                    updateDrag(display, translation: translation, windowPoint: windowPoint)
                   },
                   onEnded: {
                     endDrag(display)
@@ -136,8 +146,19 @@ struct PresetsCarousel: View {
       }
       .coordinateSpace(name: Self.carouselCoordinateSpace)
     }
+    .background(
+      GeometryReader { proxy in
+        Color.clear.preference(
+          key: CarouselWindowFramePreferenceKey.self,
+          value: proxy.frame(in: .global)
+        )
+      }
+    )
     .onPreferenceChange(PresetTileFramePreferenceKey.self) { frames in
       tileFrames = frames
+    }
+    .onPreferenceChange(CarouselWindowFramePreferenceKey.self) { frame in
+      carouselWindowFrame = frame
     }
     .onChange(of: displays.map(\.id)) { _, newIds in
       guard let dragState else { return }
@@ -172,7 +193,8 @@ struct PresetsCarousel: View {
 
   private func updateDrag(
     _ display: PresetDisplayItem,
-    translation: CGSize
+    translation: CGSize,
+    windowPoint: CGPoint?
   ) {
     guard isEditing, !display.isPending else { return }
 
@@ -188,7 +210,8 @@ struct PresetsCarousel: View {
         destinationIndex: sourceIndex,
         displays: displays,
         sourceCenter: CGPoint(x: sourceFrame.midX, y: sourceFrame.midY),
-        translation: .zero
+        translation: .zero,
+        autoScrollOffset: 0
       )
     }
 
@@ -198,8 +221,29 @@ struct PresetsCarousel: View {
     state.translation = translation
     dragState = state
 
+    // Update auto-scroll direction based on finger window position.
+    if let windowPoint, !carouselWindowFrame.isEmpty {
+      let distFromLeft = windowPoint.x - carouselWindowFrame.minX
+      let distFromRight = carouselWindowFrame.maxX - windowPoint.x
+      let threshold = Self.autoScrollEdgeThreshold
+      if distFromLeft < threshold {
+        setAutoScrollDirection(-1, for: display)
+      } else if distFromRight < threshold {
+        setAutoScrollDirection(1, for: display)
+      } else {
+        setAutoScrollDirection(0, for: display)
+      }
+    }
+
+    checkForSwap(display: display)
+  }
+
+  private func checkForSwap(display: PresetDisplayItem) {
+    guard var state = dragState, state.sourceId == display.id else { return }
+
     let currentDelta = state.destinationIndex - state.sourceIndex
-    let progress = translation.width / Self.presetTileStride
+    let effectiveX = state.translation.width + state.autoScrollOffset
+    let progress = effectiveX / Self.presetTileStride
     let bias: Double = 0.15
     let proposedDelta: Int
     if progress > Double(currentDelta) + 0.5 + bias {
@@ -220,7 +264,6 @@ struct PresetsCarousel: View {
       return
     }
 
-    // Swap detected — reorder + animate the HStack reflow.
     var reorderedDisplays = state.displays
     let movedDisplay = reorderedDisplays.remove(at: currentIndex)
     reorderedDisplays.insert(movedDisplay, at: destinationIndex)
@@ -233,7 +276,55 @@ struct PresetsCarousel: View {
     }
   }
 
+  private func setAutoScrollDirection(_ direction: CGFloat, for display: PresetDisplayItem) {
+    guard autoScrollDirection != direction else { return }
+    autoScrollDirection = direction
+    autoScrollTimer?.invalidate()
+    autoScrollTimer = nil
+
+    guard direction != 0 else { return }
+
+    autoScrollTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { _ in
+      Task { @MainActor in
+        performAutoScrollTick(direction: direction, for: display)
+      }
+    }
+  }
+
+  private func performAutoScrollTick(direction: CGFloat, for display: PresetDisplayItem) {
+    guard let scrollView = scrollViewRef.value, var state = dragState,
+      state.sourceId == display.id
+    else {
+      stopAutoScroll()
+      return
+    }
+
+    let maxOffset = max(0, scrollView.contentSize.width - scrollView.bounds.width)
+    let proposed = scrollView.contentOffset.x + direction * Self.autoScrollPixelsPerTick
+    let clamped = min(max(0, proposed), maxOffset)
+    let appliedDelta = clamped - scrollView.contentOffset.x
+
+    if abs(appliedDelta) < 0.5 {
+      // Reached edge of content; nothing more to scroll.
+      return
+    }
+
+    scrollView.contentOffset.x = clamped
+    state.autoScrollOffset += appliedDelta
+    dragState = state
+
+    checkForSwap(display: display)
+  }
+
+  private func stopAutoScroll() {
+    autoScrollDirection = 0
+    autoScrollTimer?.invalidate()
+    autoScrollTimer = nil
+  }
+
   private func endDrag(_ display: PresetDisplayItem) {
+    stopAutoScroll()
+
     guard let state = dragState, state.sourceId == display.id else { return }
 
     dragState = nil
@@ -262,12 +353,28 @@ private struct PresetDragState {
   var displays: [PresetDisplayItem]
   let sourceCenter: CGPoint
   var translation: CGSize
+  var autoScrollOffset: CGFloat
 
   var overlayCenter: CGPoint {
+    // sourceCenter is in the carousel's (scrolling) coordinate space. When the
+    // ScrollView has auto-scrolled by autoScrollOffset, the scrolling space
+    // shifts left by that amount in window coordinates. Adding autoScrollOffset
+    // here keeps the overlay locked to the finger's window position.
     CGPoint(
-      x: sourceCenter.x + translation.width,
+      x: sourceCenter.x + translation.width + autoScrollOffset,
       y: sourceCenter.y + translation.height
     )
+  }
+}
+
+private final class WeakScrollViewBox {
+  weak var value: UIScrollView?
+}
+
+private struct CarouselWindowFramePreferenceKey: PreferenceKey {
+  static let defaultValue: CGRect = .zero
+  static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
+    value = nextValue()
   }
 }
 
@@ -275,8 +382,8 @@ private struct LongPressReorderRecognizer: UIViewRepresentable {
   let minimumDuration: TimeInterval
   let maximumDistance: CGFloat
   let passthroughRect: CGRect
-  let onBegan: () -> Void
-  let onChanged: (CGSize) -> Void
+  let onBegan: (UIScrollView?) -> Void
+  let onChanged: (CGSize, CGPoint) -> Void
   let onEnded: () -> Void
 
   func makeUIView(context: Context) -> UIView {
@@ -312,13 +419,13 @@ private struct LongPressReorderRecognizer: UIViewRepresentable {
   final class Coordinator: NSObject, UIGestureRecognizerDelegate {
     weak var view: UIView?
     var startPoint: CGPoint?
-    var onBegan: () -> Void
-    var onChanged: (CGSize) -> Void
+    var onBegan: (UIScrollView?) -> Void
+    var onChanged: (CGSize, CGPoint) -> Void
     var onEnded: () -> Void
 
     init(
-      onBegan: @escaping () -> Void,
-      onChanged: @escaping (CGSize) -> Void,
+      onBegan: @escaping (UIScrollView?) -> Void,
+      onChanged: @escaping (CGSize, CGPoint) -> Void,
       onEnded: @escaping () -> Void
     ) {
       self.onBegan = onBegan
@@ -335,15 +442,17 @@ private struct LongPressReorderRecognizer: UIViewRepresentable {
       switch recognizer.state {
       case .began:
         startPoint = point
-        cancelEnclosingScrollPan(from: view)
-        onBegan()
+        let scrollView = enclosingScrollView(from: view)
+        cancelScrollPan(on: scrollView)
+        onBegan(scrollView)
       case .changed:
         guard let startPoint else { return }
         onChanged(
           CGSize(
             width: point.x - startPoint.x,
             height: point.y - startPoint.y
-          )
+          ),
+          point
         )
       case .ended, .cancelled, .failed:
         startPoint = nil
@@ -353,18 +462,19 @@ private struct LongPressReorderRecognizer: UIViewRepresentable {
       }
     }
 
-    private func cancelEnclosingScrollPan(from view: UIView) {
+    private func enclosingScrollView(from view: UIView) -> UIScrollView? {
       var current: UIView? = view.superview
       while let next = current {
-        if let scroll = next as? UIScrollView {
-          // Toggling isEnabled cancels the in-flight pan so the carousel
-          // doesn't scroll while we drag a tile.
-          scroll.panGestureRecognizer.isEnabled = false
-          scroll.panGestureRecognizer.isEnabled = true
-          return
-        }
+        if let scroll = next as? UIScrollView { return scroll }
         current = next.superview
       }
+      return nil
+    }
+
+    private func cancelScrollPan(on scroll: UIScrollView?) {
+      guard let scroll else { return }
+      scroll.panGestureRecognizer.isEnabled = false
+      scroll.panGestureRecognizer.isEnabled = true
     }
 
     func gestureRecognizer(
