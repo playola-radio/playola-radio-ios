@@ -328,7 +328,9 @@ private struct LongPressReorderRecognizer: UIViewRepresentable {
 
     @objc func handle(_ recognizer: UILongPressGestureRecognizer) {
       guard let view else { return }
-      let point = recognizer.location(in: view)
+      // Use the window coordinate space so translation isn't affected when the
+      // PassthroughView shifts position during HStack reorders.
+      let point = recognizer.location(in: nil)
 
       switch recognizer.state {
       case .began:
