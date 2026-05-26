@@ -195,6 +195,25 @@ private func authenticatedPutVoid(path: String, token: String) async throws {
     .value
 }
 
+private func authenticatedPut<T: Decodable & Sendable>(
+  path: String,
+  token: String,
+  parameters: [String: any Sendable]
+) async throws -> T {
+  let url = "\(Config.shared.baseUrl.absoluteString)\(path)"
+  let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
+  return try await apiSession.request(
+    url,
+    method: .put,
+    parameters: parameters,
+    encoding: JSONEncoding.default,
+    headers: headers
+  )
+  .validate(statusCode: 200..<300)
+  .serializingDecodable(T.self, decoder: sharedIsoDecoder)
+  .value
+}
+
 private func authenticatedDelete(path: String, token: String) async throws {
   let url = "\(Config.shared.baseUrl.absoluteString)\(path)"
   let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
@@ -558,6 +577,48 @@ extension APIClient: DependencyKey {
           .value
 
         return response
+      },
+      getPresets: { jwtToken in
+        try await authenticatedGet(path: "/v1/presets", token: jwtToken)
+      },
+      createPreset: { jwtToken, stationId, urlStationId in
+        var parameters: [String: any Sendable] = [:]
+        if let stationId { parameters["stationId"] = stationId }
+        if let urlStationId { parameters["urlStationId"] = urlStationId }
+
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/presets"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let dataResponse = await apiSession.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .serializingData()
+        .response
+
+        guard let statusCode = dataResponse.response?.statusCode,
+          let data = dataResponse.value
+        else { throw APIError.dataNotValid }
+
+        if (200..<300).contains(statusCode) {
+          return try sharedIsoDecoder.decode(Preset.self, from: data)
+        } else {
+          let message = parsePlayolaErrorMessage(from: data) ?? "Failed to create preset"
+          throw APIError.validationError(message)
+        }
+      },
+      movePreset: { jwtToken, presetId, position in
+        try await authenticatedPut(
+          path: "/v1/presets/\(presetId)",
+          token: jwtToken,
+          parameters: ["position": position]
+        )
+      },
+      deletePreset: { jwtToken, presetId in
+        try await authenticatedDelete(path: "/v1/presets/\(presetId)", token: jwtToken)
       },
       getListenerQuestions: { jwtToken, stationId in
         try await authenticatedGet(

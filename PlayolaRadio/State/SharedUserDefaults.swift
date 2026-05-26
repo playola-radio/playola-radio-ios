@@ -175,3 +175,26 @@ extension SharedKey where Self == AppStorageKey<String?>.Default {
     Self[.appStorage("tls13ProbeLastSentBuild"), default: nil]
   }
 }
+
+// MARK: - Presets
+
+extension SharedKey where Self == InMemoryKey<IdentifiedArrayOf<Preset>>.Default {
+  static var presets: Self {
+    Self[.inMemory("presets"), default: []]
+  }
+}
+
+extension SharedKey where Self == InMemoryKey<Set<String>>.Default {
+  /// Station ids (playola or url) for which a preset create is currently in flight.
+  static var pendingPresetStationIds: Self {
+    Self[.inMemory("pendingPresetStationIds"), default: []]
+  }
+
+  /// Station ids (playola or url) for which a preset delete is currently in
+  /// flight. Indexed by station id rather than preset id so the guard in
+  /// `starTapped` survives the optimistic removal of the preset from
+  /// `presets` before the network call completes.
+  static var pendingPresetRemovalStationIds: Self {
+    Self[.inMemory("pendingPresetRemovalStationIds"), default: []]
+  }
+}

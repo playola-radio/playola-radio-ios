@@ -99,6 +99,20 @@ struct StationListPage: View {
           .padding(.top, 64)
         } else {
           VStack(alignment: .leading, spacing: 20) {
+            if model.showsPresetsSection {
+              PresetsCarousel(
+                displays: model.displayPresets,
+                sectionTitle: model.presetsSectionTitle,
+                emptyStateText: model.presetsEmptyStateText,
+                doneButtonText: model.presetsEditDoneButtonText,
+                isEditing: model.isEditingPresets,
+                onTilePlay: { display in await model.presetTileTapped(display) },
+                onTileLongPress: { display in model.presetTileLongPressed(display) },
+                onTileRemove: { display in await model.presetRemoveTapped(display) },
+                onMove: { from, to in await model.presetMoved(from: from, to: to) },
+                onEditDoneTapped: { model.presetsEditDoneTapped() }
+              )
+            }
             ForEach(model.stationListsForDisplay) { list in
               stationSection(list: list)
             }
@@ -164,11 +178,17 @@ struct StationListPage: View {
           ForEach(items, id: \.anyStation.id) { item in
             let liveStatus = model.liveStatusForStation(item.anyStation.id)
             let rowModel = StationListStationRowModel(item: item, liveStatus: liveStatus)
+            let isPreset = model.isPreset(stationId: item.anyStation.id)
             StationListStationRowView(
               model: rowModel,
               action: {
                 Task { await model.stationSelected(item) }
-              })
+              },
+              isPreset: isPreset,
+              presetAccessibilityLabel: model.presetStarAccessibilityLabel(
+                isPreset: isPreset, stationName: rowModel.titleText),
+              onTogglePreset: { await model.starTapped(for: item) }
+            )
           }
         }
       }

@@ -262,6 +262,48 @@ struct APIClient: Sendable {
         VoicetrackStatusResponse(ready: true, s3Key: "test.m4a")
       }
 
+  // MARK: - Presets
+
+  /// Fetches the user's presets, sorted by position ascending.
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: Array of Preset objects with embedded station data
+  /// - Throws: APIError if the request fails
+  var getPresets: @Sendable (_ jwtToken: String) async throws -> [Preset] = { _ in [] }
+
+  /// Creates a new preset. Exactly one of stationId / urlStationId must be non-nil.
+  /// Server appends at the end (position = max + 1).
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The playola station id, or nil
+  ///   - urlStationId: The url station id, or nil
+  /// - Returns: The created Preset with station data populated
+  /// - Throws: APIError.validationError on 409 duplicate or other failure
+  var createPreset:
+    @Sendable (_ jwtToken: String, _ stationId: String?, _ urlStationId: String?)
+      async throws -> Preset = { _, _, _ in
+        Preset.mockPlayola()
+      }
+
+  /// Moves a preset to a new position. Server shifts the affected range.
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - presetId: The id of the preset to move
+  ///   - position: The new zero-based position
+  /// - Returns: The updated Preset
+  /// - Throws: APIError.validationError on 400 out-of-range / not-owner
+  var movePreset:
+    @Sendable (_ jwtToken: String, _ presetId: String, _ position: Int)
+      async throws -> Preset = { _, _, _ in Preset.mockPlayola() }
+
+  /// Deletes a preset. Server closes the gap by decrementing every position > deleted.position.
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - presetId: The id of the preset to delete
+  /// - Throws: APIError if the request fails
+  var deletePreset: @Sendable (_ jwtToken: String, _ presetId: String) async throws -> Void = {
+    _, _ in
+  }
+
   // MARK: - Listener Questions
 
   /// Fetches listener questions for a station
