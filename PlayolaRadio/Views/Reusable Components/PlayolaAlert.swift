@@ -282,6 +282,20 @@ extension PlayolaAlert {
       dismissButton: .cancel(Text("OK")))
   }
 
+  static func notificationPermissionPrompt(
+    onYes: @escaping () async -> Void,
+    onNo: @escaping () async -> Void
+  ) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Stay in the Loop?",
+      message: "Allow the artists to notify you when they go live?",
+      primaryButtonText: "Yes",
+      primaryAction: onYes,
+      secondaryButtonText: "No Thanks",
+      secondaryAction: onNo
+    )
+  }
+
   static var prizeRedeemed: PlayolaAlert {
     PlayolaAlert(
       title: "Prize Redeemed!",
