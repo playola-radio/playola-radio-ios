@@ -16,6 +16,34 @@ struct PresetDisplayItem: Identifiable {
   let id: String
   let stationItem: APIStationItem
   let isPending: Bool
+  let title: String
+  let imageUrl: URL?
+  let subtitleText: String?
+  let subtitleColor: Color?
+  let accessibilityLabel: String
+  let removeAccessibilityLabel: String
+
+  init(id: String, stationItem: APIStationItem, isPending: Bool) {
+    self.id = id
+    self.stationItem = stationItem
+    self.isPending = isPending
+
+    let station = stationItem.anyStation
+    let title = station.name
+    self.title = title
+    self.imageUrl = station.imageUrl
+    self.accessibilityLabel = "Preset: \(title)"
+    self.removeAccessibilityLabel = "Remove \(title) from presets"
+
+    let isComingSoon = stationItem.visibility == .comingSoon || !station.active
+    if isComingSoon {
+      self.subtitleText = "Coming Soon"
+      self.subtitleColor = Color.playolaRed
+    } else {
+      self.subtitleText = nil
+      self.subtitleColor = nil
+    }
+  }
 }
 
 enum PresetListState: Equatable {
@@ -345,6 +373,10 @@ class StationListModel: ViewModel {
       || presets.contains { $0.embeddedStationId == stationId }
   }
 
+  func presetStarAccessibilityLabel(isPreset: Bool, stationName: String) -> String {
+    isPreset ? "Remove \(stationName) from presets" : "Add \(stationName) to presets"
+  }
+
   var showsPresetsSection: Bool {
     selectedSegment == "All" || selectedSegment == presetsSegmentTitle
   }
@@ -500,21 +532,5 @@ class StationListModel: ViewModel {
     } else {
       stationListsForDisplay = visibleLists.filter { $0.title == selectedSegment }
     }
-  }
-}
-
-extension PlayolaAlert {
-  static func notificationPermissionPrompt(
-    onYes: @escaping () async -> Void,
-    onNo: @escaping () async -> Void
-  ) -> PlayolaAlert {
-    PlayolaAlert(
-      title: "Stay in the Loop?",
-      message: "Allow the artists to notify you when they go live?",
-      primaryButtonText: "Yes",
-      primaryAction: onYes,
-      secondaryButtonText: "No Thanks",
-      secondaryAction: onNo
-    )
   }
 }

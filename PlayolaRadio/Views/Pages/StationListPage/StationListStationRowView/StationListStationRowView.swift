@@ -11,6 +11,7 @@ struct StationListStationRowView: View {
   let model: StationListStationRowModel
   let action: () -> Void
   let isPreset: Bool
+  let presetAccessibilityLabel: String
   let onTogglePreset: () async -> Void
 
   var body: some View {
@@ -56,7 +57,7 @@ struct StationListStationRowView: View {
 
       PresetStarButton(
         isPreset: isPreset,
-        label: model.titleText,
+        accessibilityLabel: presetAccessibilityLabel,
         onToggle: onTogglePreset
       )
       .padding(.trailing, 4)
@@ -71,6 +72,7 @@ struct StationListStationRowView: View {
     model: StationListStationRowModel(item: sampleItem),
     action: {},
     isPreset: false,
+    presetAccessibilityLabel: "Add station to presets",
     onTogglePreset: {}
   )
   .preferredColorScheme(.dark)

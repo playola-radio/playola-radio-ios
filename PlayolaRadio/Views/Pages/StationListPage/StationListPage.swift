@@ -104,6 +104,7 @@ struct StationListPage: View {
                 displays: model.displayPresets,
                 sectionTitle: model.presetsSectionTitle,
                 emptyStateText: model.presetsEmptyStateText,
+                doneButtonText: model.presetsEditDoneButtonText,
                 isEditing: model.isEditingPresets,
                 onTilePlay: { display in await model.presetTileTapped(display) },
                 onTileLongPress: { display in model.presetTileLongPressed(display) },
@@ -177,12 +178,15 @@ struct StationListPage: View {
           ForEach(items, id: \.anyStation.id) { item in
             let liveStatus = model.liveStatusForStation(item.anyStation.id)
             let rowModel = StationListStationRowModel(item: item, liveStatus: liveStatus)
+            let isPreset = model.isPreset(stationId: item.anyStation.id)
             StationListStationRowView(
               model: rowModel,
               action: {
                 Task { await model.stationSelected(item) }
               },
-              isPreset: model.isPreset(stationId: item.anyStation.id),
+              isPreset: isPreset,
+              presetAccessibilityLabel: model.presetStarAccessibilityLabel(
+                isPreset: isPreset, stationName: rowModel.titleText),
               onTogglePreset: { await model.starTapped(for: item) }
             )
           }

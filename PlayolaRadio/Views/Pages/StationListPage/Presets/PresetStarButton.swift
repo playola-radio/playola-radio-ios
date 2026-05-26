@@ -7,7 +7,7 @@ import SwiftUI
 
 struct PresetStarButton: View {
   let isPreset: Bool
-  let label: String
+  let accessibilityLabel: String
   let onToggle: () async -> Void
 
   var body: some View {
@@ -21,17 +21,15 @@ struct PresetStarButton: View {
         .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .accessibilityLabel(
-      isPreset ? "Remove \(label) from presets" : "Add \(label) to presets"
-    )
+    .accessibilityLabel(accessibilityLabel)
     .accessibilityAddTraits(isPreset ? [.isSelected] : [])
   }
 }
 
 #Preview {
   HStack(spacing: 20) {
-    PresetStarButton(isPreset: false, label: "Test") {}
-    PresetStarButton(isPreset: true, label: "Test") {}
+    PresetStarButton(isPreset: false, accessibilityLabel: "Add Test to presets") {}
+    PresetStarButton(isPreset: true, accessibilityLabel: "Remove Test from presets") {}
   }
   .padding()
   .background(Color.black)

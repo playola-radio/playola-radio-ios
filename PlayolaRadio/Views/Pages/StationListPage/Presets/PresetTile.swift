@@ -16,19 +16,9 @@ struct PresetTile: View {
 
   @State private var wiggleAngle: Double = 0
 
-  private var station: AnyStation { display.stationItem.anyStation }
-  private var title: String { station.name }
-
-  private var subtitle: (text: String, color: Color)? {
-    let item = display.stationItem
-    let isComingSoon = item.visibility == .comingSoon || !station.active
-    guard isComingSoon else { return nil }
-    return ("Coming Soon", Color.playolaRed)
-  }
-
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      WebImage(url: station.imageUrl) { image in
+      WebImage(url: display.imageUrl) { image in
         image.resizable().aspectRatio(contentMode: .fill)
       } placeholder: {
         Color(hex: "#333333")
@@ -51,20 +41,20 @@ struct PresetTile: View {
           }
           .buttonStyle(.plain)
           .offset(x: -10, y: -10)
-          .accessibilityLabel("Remove \(title) from presets")
+          .accessibilityLabel(display.removeAccessibilityLabel)
         }
       }
 
-      Text(title)
+      Text(display.title)
         .font(.custom(FontNames.Inter_500_Medium, size: 13))
         .foregroundColor(.white)
         .lineLimit(2)
         .multilineTextAlignment(.leading)
 
-      if let sub = subtitle {
-        Text(sub.text)
+      if let subtitleText = display.subtitleText {
+        Text(subtitleText)
           .font(.custom(FontNames.Inter_500_Medium, size: 11))
-          .foregroundColor(sub.color)
+          .foregroundColor(display.subtitleColor ?? .white)
           .lineLimit(1)
       }
     }
@@ -86,7 +76,7 @@ struct PresetTile: View {
       Task { await onTap() }
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Preset: \(title)")
+    .accessibilityLabel(display.accessibilityLabel)
     .accessibilityAddTraits(.isButton)
   }
 

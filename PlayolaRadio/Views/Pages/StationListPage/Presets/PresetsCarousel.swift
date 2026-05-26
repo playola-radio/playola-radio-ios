@@ -10,6 +10,7 @@ struct PresetsCarousel: View {
   let displays: [PresetDisplayItem]
   let sectionTitle: String
   let emptyStateText: String
+  let doneButtonText: String
   let isEditing: Bool
   let onTilePlay: (PresetDisplayItem) async -> Void
   let onTileLongPress: (PresetDisplayItem) -> Void
@@ -42,7 +43,7 @@ struct PresetsCarousel: View {
           Button {
             onEditDoneTapped()
           } label: {
-            Text("Done")
+            Text(doneButtonText)
               .font(.custom(FontNames.Inter_500_Medium, size: 14))
               .foregroundColor(.playolaRed)
           }
@@ -536,6 +537,7 @@ private struct PresetTileFramePreferenceKey: PreferenceKey {
     displays: displays,
     sectionTitle: "Presets",
     emptyStateText: "Tap the ★ on any station to save it here.",
+    doneButtonText: "Done",
     isEditing: false,
     onTilePlay: { _ in },
     onTileLongPress: { _ in },
@@ -553,6 +555,7 @@ private struct PresetTileFramePreferenceKey: PreferenceKey {
     displays: [],
     sectionTitle: "Presets",
     emptyStateText: "Tap the ★ on any station to save it here.",
+    doneButtonText: "Done",
     isEditing: false,
     onTilePlay: { _ in },
     onTileLongPress: { _ in },
