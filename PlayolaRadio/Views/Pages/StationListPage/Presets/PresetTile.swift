@@ -4,6 +4,7 @@
 //
 
 import PlayolaPlayer
+import SDWebImageSwiftUI
 import SwiftUI
 
 struct PresetTile: View {
@@ -27,7 +28,7 @@ struct PresetTile: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      AsyncImage(url: station.imageUrl) { image in
+      WebImage(url: station.imageUrl) { image in
         image.resizable().aspectRatio(contentMode: .fill)
       } placeholder: {
         Color(hex: "#333333")
