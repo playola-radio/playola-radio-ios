@@ -16,7 +16,7 @@ struct PresetTests {
 
   @Test
   func testPresetDecodesPlayolaStationPayload() throws {
-    let json = """
+    let jsonString = """
       {
         "id": "8e2c4f1a-9b3d-4e6c-9f1a-2b8e4c6d8f10",
         "userId": "6d00ed09-b85d-425b-a68a-a3f82891dcc5",
@@ -32,7 +32,8 @@ struct PresetTests {
         },
         "urlStation": null
       }
-      """.data(using: .utf8)!
+      """
+    let json = Data(jsonString.utf8)
 
     let decoder = JSONDecoderWithIsoFull()
     let preset = try decoder.decode(Preset.self, from: json)
@@ -47,7 +48,7 @@ struct PresetTests {
 
   @Test
   func testPresetDecodesUrlStationPayload() throws {
-    let json = """
+    let jsonString = """
       {
         "id": "1c5d8e9a-2b3c-4d5e-9f0a-1b2c3d4e5f60",
         "userId": "6d00ed09-b85d-425b-a68a-a3f82891dcc5",
@@ -64,7 +65,8 @@ struct PresetTests {
           "imageUrl": "https://playola.fm/url-stations/kutx.jpg"
         }
       }
-      """.data(using: .utf8)!
+      """
+    let json = Data(jsonString.utf8)
 
     let decoder = JSONDecoderWithIsoFull()
     let preset = try decoder.decode(Preset.self, from: json)

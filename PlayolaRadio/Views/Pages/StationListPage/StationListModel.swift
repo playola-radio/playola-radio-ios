@@ -164,6 +164,7 @@ class StationListModel: ViewModel {
     await addPreset(for: item)
   }
 
+  // swiftlint:disable:next cyclomatic_complexity
   func presetMoved(from: Int, to: Int) async {
     guard presetListState == .editing else { return }
     guard from != to else { return }

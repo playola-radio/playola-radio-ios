@@ -186,12 +186,16 @@ struct StationListPresetTests {
     let item = makePresetVisibleItem()
     let stationId = item.anyStation.id
 
-    let capturedCallArgs = LockIsolated<(String, String?, String?)?>(nil)
+    let capturedToken = LockIsolated<String?>(nil)
+    let capturedStationId = LockIsolated<String?>(nil)
+    let capturedUrlStationId = LockIsolated<String?>(nil)
     let returnedPreset = Preset.mockPlayola(id: "new-preset", stationId: stationId, position: 0)
 
     let model = withDependencies {
       $0.api.createPreset = { token, sid, urlSid in
-        capturedCallArgs.setValue((token, sid, urlSid))
+        capturedToken.setValue(token)
+        capturedStationId.setValue(sid)
+        capturedUrlStationId.setValue(urlSid)
         return returnedPreset
       }
     } operation: {
@@ -200,9 +204,9 @@ struct StationListPresetTests {
 
     await model.starTapped(for: item)
 
-    #expect(capturedCallArgs.value?.0 == "t")
-    #expect(capturedCallArgs.value?.1 == stationId)
-    #expect(capturedCallArgs.value?.2 == nil)
+    #expect(capturedToken.value == "t")
+    #expect(capturedStationId.value == stationId)
+    #expect(capturedUrlStationId.value == nil)
     #expect(pending.isEmpty)
     expectNoDifference(Array(presets), [returnedPreset])
   }
@@ -467,10 +471,14 @@ struct StationListPresetTests {
     ])
     @Shared(.stationLists) var sharedLists = stationLists
 
-    let capturedArgs = LockIsolated<(String, String, Int)?>(nil)
+    let capturedToken = LockIsolated<String?>(nil)
+    let capturedPresetId = LockIsolated<String?>(nil)
+    let capturedPosition = LockIsolated<Int?>(nil)
     let model = withDependencies {
       $0.api.movePreset = { token, presetId, position in
-        capturedArgs.setValue((token, presetId, position))
+        capturedToken.setValue(token)
+        capturedPresetId.setValue(presetId)
+        capturedPosition.setValue(position)
         return Preset.mockPlayola(id: presetId, stationId: "s1", position: position)
       }
     } operation: {
@@ -483,9 +491,9 @@ struct StationListPresetTests {
     let ordered = presets.sorted { $0.position < $1.position }
     expectNoDifference(ordered.map(\.id), ["p2", "p3", "p1"])
     expectNoDifference(ordered.map(\.position), [0, 1, 2])
-    #expect(capturedArgs.value?.0 == "t")
-    #expect(capturedArgs.value?.1 == "p1")
-    #expect(capturedArgs.value?.2 == 2)
+    #expect(capturedToken.value == "t")
+    #expect(capturedPresetId.value == "p1")
+    #expect(capturedPosition.value == 2)
   }
 
   @Test

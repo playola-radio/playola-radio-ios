@@ -523,8 +523,8 @@ private struct PresetTileFramePreferenceKey: PreferenceKey {
 }
 
 #Preview("With Presets") {
-  let stations = (0..<5).map { i in
-    Station.mockWith(id: "s\(i)", name: "Station \(i)", curatorName: "Curator \(i)")
+  let stations = (0..<5).map { idx in
+    Station.mockWith(id: "s\(idx)", name: "Station \(idx)", curatorName: "Curator \(idx)")
   }
   let items = stations.enumerated().map { idx, station in
     APIStationItem(sortOrder: idx, visibility: .visible, station: station, urlStation: nil)
