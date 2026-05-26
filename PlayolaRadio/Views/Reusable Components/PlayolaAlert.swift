@@ -255,6 +255,54 @@ extension PlayolaAlert {
       dismissButton: .cancel(Text("OK")))
   }
 
+  static var errorLoadingPresets: PlayolaAlert {
+    PlayolaAlert(
+      title: "Couldn't Load Presets",
+      message: "Pull to refresh or try again later.",
+      dismissButton: .cancel(Text("OK")))
+  }
+
+  static func errorSavingPreset(_ serverMessage: String? = nil) -> PlayolaAlert {
+    let message: String
+    if let serverMessage, !serverMessage.isEmpty {
+      message = serverMessage
+    } else {
+      message = "Please try again."
+    }
+    return PlayolaAlert(
+      title: "Couldn't Save Preset",
+      message: message,
+      dismissButton: .cancel(Text("OK")))
+  }
+
+  static var errorRemovingPreset: PlayolaAlert {
+    PlayolaAlert(
+      title: "Couldn't Remove Preset",
+      message: "Please try again.",
+      dismissButton: .cancel(Text("OK")))
+  }
+
+  static var errorMovingPreset: PlayolaAlert {
+    PlayolaAlert(
+      title: "Couldn't Reorder Presets",
+      message: "Please try again.",
+      dismissButton: .cancel(Text("OK")))
+  }
+
+  static func notificationPermissionPrompt(
+    onYes: @escaping () async -> Void,
+    onNo: @escaping () async -> Void
+  ) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Stay in the Loop?",
+      message: "Allow the artists to notify you when they go live?",
+      primaryButtonText: "Yes",
+      primaryAction: onYes,
+      secondaryButtonText: "No Thanks",
+      secondaryAction: onNo
+    )
+  }
+
   static var prizeRedeemed: PlayolaAlert {
     PlayolaAlert(
       title: "Prize Redeemed!",

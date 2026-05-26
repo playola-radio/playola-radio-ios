@@ -132,7 +132,7 @@ class SignInPageModel: ViewModel {
   // directly without needing to fabricate an ASAuthorization for the Apple .success branch.
   func handleSignInAPIFailure(_ error: Error, authMethod: AuthMethod, step: String) async {
     presentedAlert =
-      SignInNetworkErrorClassifier.isNetworkError(error) ? .signInNetworkError : .signInError
+      NetworkErrorClassifier.isNetworkError(error) ? .signInNetworkError : .signInError
     await analytics.track(.signInFailed(method: authMethod, error: error.localizedDescription))
     await reportSignInError(error, authMethod: authMethod, step: step)
   }

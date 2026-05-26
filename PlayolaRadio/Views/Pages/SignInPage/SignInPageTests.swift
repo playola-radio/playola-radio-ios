@@ -268,20 +268,20 @@ struct SignInPageTests {
     #expect(report.contextKey == "sign_in")
   }
 
-  // MARK: - SignInNetworkErrorClassifier Tests
+  // MARK: - NetworkErrorClassifier Tests
 
   @Test
   func testClassifierMatchesSecureConnectionFailed() {
     let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorSecureConnectionFailed)
-    #expect(SignInNetworkErrorClassifier.isNetworkError(error))
-    #expect(SignInNetworkErrorClassifier.isSecureConnectionFailed(error))
+    #expect(NetworkErrorClassifier.isNetworkError(error))
+    #expect(NetworkErrorClassifier.isSecureConnectionFailed(error))
   }
 
   @Test
   func testClassifierMatchesNotConnectedToInternet() {
     let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorNotConnectedToInternet)
-    #expect(SignInNetworkErrorClassifier.isNetworkError(error))
-    #expect(!SignInNetworkErrorClassifier.isSecureConnectionFailed(error))
+    #expect(NetworkErrorClassifier.isNetworkError(error))
+    #expect(!NetworkErrorClassifier.isSecureConnectionFailed(error))
   }
 
   @Test
@@ -291,7 +291,7 @@ struct SignInPageTests {
     ] {
       let error = NSError(domain: NSURLErrorDomain, code: code)
       #expect(
-        SignInNetworkErrorClassifier.isNetworkError(error),
+        NetworkErrorClassifier.isNetworkError(error),
         "Expected code \(code) to classify as network error")
     }
   }
@@ -299,22 +299,22 @@ struct SignInPageTests {
   @Test
   func testClassifierRejectsUnrelatedDomain() {
     let error = NSError(domain: "com.example.other", code: NSURLErrorSecureConnectionFailed)
-    #expect(!SignInNetworkErrorClassifier.isNetworkError(error))
-    #expect(!SignInNetworkErrorClassifier.isSecureConnectionFailed(error))
+    #expect(!NetworkErrorClassifier.isNetworkError(error))
+    #expect(!NetworkErrorClassifier.isSecureConnectionFailed(error))
   }
 
   @Test
   func testClassifierRejectsNSURLDomainWithUnrelatedCode() {
     let error = NSError(domain: NSURLErrorDomain, code: -9999)
-    #expect(!SignInNetworkErrorClassifier.isNetworkError(error))
+    #expect(!NetworkErrorClassifier.isNetworkError(error))
   }
 
   @Test
   func testClassifierUnwrapsAFErrorSessionTaskFailed() {
     let underlying = NSError(domain: NSURLErrorDomain, code: NSURLErrorSecureConnectionFailed)
     let afError = AFError.sessionTaskFailed(error: underlying)
-    #expect(SignInNetworkErrorClassifier.isNetworkError(afError))
-    #expect(SignInNetworkErrorClassifier.isSecureConnectionFailed(afError))
+    #expect(NetworkErrorClassifier.isNetworkError(afError))
+    #expect(NetworkErrorClassifier.isSecureConnectionFailed(afError))
   }
 
   @Test
@@ -327,8 +327,8 @@ struct SignInPageTests {
       statusCode: nil,
       responseBody: nil,
       underlyingError: afError)
-    #expect(SignInNetworkErrorClassifier.isNetworkError(signInError))
-    #expect(SignInNetworkErrorClassifier.isSecureConnectionFailed(signInError))
+    #expect(NetworkErrorClassifier.isNetworkError(signInError))
+    #expect(NetworkErrorClassifier.isSecureConnectionFailed(signInError))
   }
 
   @Test
@@ -339,8 +339,8 @@ struct SignInPageTests {
       statusCode: 500,
       responseBody: nil,
       underlyingError: NSError(domain: "decode", code: 7))
-    #expect(!SignInNetworkErrorClassifier.isNetworkError(signInError))
-    #expect(!SignInNetworkErrorClassifier.isSecureConnectionFailed(signInError))
+    #expect(!NetworkErrorClassifier.isNetworkError(signInError))
+    #expect(!NetworkErrorClassifier.isSecureConnectionFailed(signInError))
   }
 
   @Test

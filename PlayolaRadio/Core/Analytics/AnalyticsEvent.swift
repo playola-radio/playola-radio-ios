@@ -62,6 +62,12 @@ enum AnalyticsEvent: Equatable {
   case stationChanged(from: String?, to: String)
   case notifyMeRequested(showId: String, showName: String, stationName: String)
 
+  // MARK: Presets
+  case presetAdded(station: StationInfo)
+  case presetRemoved(station: StationInfo)
+  case presetMoved(station: StationInfo, fromIndex: Int, toIndex: Int)
+  case presetTileTapped(station: StationInfo, position: Int)
+
   // MARK: Errors
   case apiError(endpoint: String, error: String)
 
@@ -114,6 +120,10 @@ extension AnalyticsEvent {
     case .ratingPromptNotEnjoying: return "Rating Prompt Not Enjoying"
     case .ratingPromptDismissed: return "Rating Prompt Dismissed"
     case .feedbackSheetPresented: return "Feedback Sheet Presented"
+    case .presetAdded: return "Preset Added"
+    case .presetRemoved: return "Preset Removed"
+    case .presetMoved: return "Preset Moved"
+    case .presetTileTapped: return "Preset Tile Tapped"
     }
   }
 
@@ -286,6 +296,20 @@ extension AnalyticsEvent {
         "endpoint": endpoint,
         "error": error,
       ]
+
+    case .presetAdded(let station), .presetRemoved(let station):
+      return station.properties
+
+    case .presetMoved(let station, let fromIndex, let toIndex):
+      var props = station.properties
+      props["from_index"] = fromIndex
+      props["to_index"] = toIndex
+      return props
+
+    case .presetTileTapped(let station, let position):
+      var props = station.properties
+      props["preset_position"] = position
+      return props
 
     case .ratingPromptEnjoying, .ratingPromptNotEnjoying, .ratingPromptDismissed,
       .feedbackSheetPresented:

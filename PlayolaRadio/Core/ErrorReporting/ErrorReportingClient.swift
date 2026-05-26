@@ -110,7 +110,7 @@ struct SignInAPIError: Error, LocalizedError {
   }
 }
 
-enum SignInNetworkErrorClassifier {
+enum NetworkErrorClassifier {
   static let networkErrorCodes: Set<Int> = [
     NSURLErrorSecureConnectionFailed,
     NSURLErrorNotConnectedToInternet,
