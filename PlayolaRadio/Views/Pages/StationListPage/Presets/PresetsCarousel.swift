@@ -18,10 +18,12 @@ struct PresetsCarousel: View {
   let onEditDoneTapped: () -> Void
 
   @State private var dragState: PresetDragState?
+  @State private var tileFrames: [String: CGRect] = [:]
 
   private static let presetTileWidth: CGFloat = 92
   private static let presetTileSpacing: CGFloat = 12
   private static let presetTileStride = presetTileWidth + presetTileSpacing
+  private static let carouselCoordinateSpace = "presets-carousel"
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -75,38 +77,62 @@ struct PresetsCarousel: View {
 
   private var tiles: some View {
     let displayedDisplays = dragState?.displays ?? displays
+    let idOrder = displayedDisplays.map(\.id)
 
     return ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: Self.presetTileSpacing) {
-        ForEach(displayedDisplays) { display in
-          let tile = PresetTile(
+      ZStack(alignment: .topLeading) {
+        HStack(spacing: Self.presetTileSpacing) {
+          ForEach(displayedDisplays) { display in
+            let tile = PresetTile(
+              display: display,
+              isEditing: isEditing,
+              onTap: { await onTilePlay(display) },
+              onLongPress: { onTileLongPress(display) },
+              onRemoveTapped: { await onTileRemove(display) }
+            )
+            .opacity(dragState?.sourceId == display.id ? 0 : 1)
+            .background(tileFrameReader(for: display.id))
+
+            if isEditing && !display.isPending {
+              tile.gesture(
+                DragGesture(
+                  minimumDistance: 8,
+                  coordinateSpace: .named(Self.carouselCoordinateSpace)
+                )
+                .onChanged { value in
+                  updateDrag(display, value: value)
+                }
+                .onEnded { _ in
+                  endDrag(display)
+                }
+              )
+            } else {
+              tile
+            }
+          }
+        }
+        .padding(.horizontal, 16)
+        .animation(.smooth(duration: 0.25), value: idOrder)
+
+        if let dragState,
+          let display = displays.first(where: { $0.id == dragState.sourceId })
+        {
+          PresetTile(
             display: display,
             isEditing: isEditing,
             onTap: { await onTilePlay(display) },
             onLongPress: { onTileLongPress(display) },
             onRemoveTapped: { await onTileRemove(display) }
           )
-
-          if isEditing && !display.isPending {
-            tile
-              .offset(dragOffset(for: display, in: displayedDisplays))
-              .zIndex(dragState?.sourceId == display.id ? 1 : 0)
-              .gesture(
-                DragGesture(minimumDistance: 8)
-                  .onChanged { value in
-                    updateDrag(display, translation: value.translation)
-                  }
-                  .onEnded { _ in
-                    endDrag(display)
-                  }
-              )
-          } else {
-            tile
-          }
+          .position(dragState.overlayCenter)
+          .zIndex(1)
+          .allowsHitTesting(false)
         }
       }
-      .padding(.horizontal, 16)
-      .animation(.smooth(duration: 0.25), value: displayedDisplays.map(\.id))
+      .coordinateSpace(name: Self.carouselCoordinateSpace)
+    }
+    .onPreferenceChange(PresetTileFramePreferenceKey.self) { frames in
+      tileFrames = frames
     }
     .onChange(of: displays.map(\.id)) { _, newIds in
       guard let dragState else { return }
@@ -130,27 +156,43 @@ struct PresetsCarousel: View {
     }
   }
 
-  private func updateDrag(_ display: PresetDisplayItem, translation: CGSize) {
+  private func tileFrameReader(for id: String) -> some View {
+    GeometryReader { proxy in
+      Color.clear.preference(
+        key: PresetTileFramePreferenceKey.self,
+        value: [id: proxy.frame(in: .named(Self.carouselCoordinateSpace))]
+      )
+    }
+  }
+
+  private func updateDrag(
+    _ display: PresetDisplayItem,
+    value: DragGesture.Value
+  ) {
     guard isEditing, !display.isPending else { return }
 
     if dragState == nil {
-      guard let sourceIndex = displays.firstIndex(where: { $0.id == display.id }) else { return }
+      guard
+        let sourceIndex = displays.firstIndex(where: { $0.id == display.id }),
+        let sourceFrame = tileFrames[display.id]
+      else { return }
+
       dragState = PresetDragState(
         sourceId: display.id,
         sourceIndex: sourceIndex,
         destinationIndex: sourceIndex,
         displays: displays,
-        translation: .zero,
-        isActive: true
+        sourceCenter: CGPoint(x: sourceFrame.midX, y: sourceFrame.midY),
+        translation: .zero
       )
     }
 
     guard var state = dragState, state.sourceId == display.id else { return }
 
-    state.translation = translation
+    state.translation = value.translation
 
     let currentDelta = state.destinationIndex - state.sourceIndex
-    let progress = translation.width / Self.presetTileStride
+    let progress = value.translation.width / Self.presetTileStride
     let bias: Double = 0.15
     let proposedDelta: Int
     if progress > Double(currentDelta) + 0.5 + bias {
@@ -160,6 +202,7 @@ struct PresetsCarousel: View {
     } else {
       proposedDelta = currentDelta
     }
+
     let proposedIndex = state.sourceIndex + proposedDelta
 
     guard
@@ -184,19 +227,11 @@ struct PresetsCarousel: View {
   }
 
   private func endDrag(_ display: PresetDisplayItem) {
-    guard var state = dragState, state.sourceId == display.id else { return }
+    guard let state = dragState, state.sourceId == display.id else { return }
 
-    state.translation = .zero
-    state.isActive = false
+    dragState = nil
 
-    withAnimation(.smooth(duration: 0.25)) {
-      dragState = state
-    }
-
-    guard state.sourceIndex != state.destinationIndex else {
-      dragState = nil
-      return
-    }
+    guard state.sourceIndex != state.destinationIndex else { return }
 
     Task {
       await onMove(state.sourceIndex, state.destinationIndex)
@@ -211,26 +246,6 @@ struct PresetsCarousel: View {
 
     return clampedIndex
   }
-
-  private func dragOffset(
-    for display: PresetDisplayItem,
-    in displayedDisplays: [PresetDisplayItem]
-  ) -> CGSize {
-    guard
-      let dragState,
-      dragState.isActive,
-      dragState.sourceId == display.id,
-      let currentIndex = displayedDisplays.firstIndex(where: { $0.id == display.id })
-    else {
-      return .zero
-    }
-
-    let layoutOffset = CGFloat(currentIndex - dragState.sourceIndex) * Self.presetTileStride
-    return CGSize(
-      width: dragState.translation.width - layoutOffset,
-      height: dragState.translation.height
-    )
-  }
 }
 
 private struct PresetDragState {
@@ -238,8 +253,26 @@ private struct PresetDragState {
   let sourceIndex: Int
   var destinationIndex: Int
   var displays: [PresetDisplayItem]
+  let sourceCenter: CGPoint
   var translation: CGSize
-  var isActive: Bool
+
+  var overlayCenter: CGPoint {
+    CGPoint(
+      x: sourceCenter.x + translation.width,
+      y: sourceCenter.y + translation.height
+    )
+  }
+}
+
+private struct PresetTileFramePreferenceKey: PreferenceKey {
+  static let defaultValue: [String: CGRect] = [:]
+
+  static func reduce(
+    value: inout [String: CGRect],
+    nextValue: () -> [String: CGRect]
+  ) {
+    value.merge(nextValue(), uniquingKeysWith: { _, new in new })
+  }
 }
 
 #Preview("With Presets") {
