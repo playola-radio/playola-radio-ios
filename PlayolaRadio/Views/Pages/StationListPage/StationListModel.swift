@@ -23,7 +23,9 @@ struct PresetDisplayItem: Identifiable {
   let accessibilityLabel: String
   let removeAccessibilityLabel: String
 
-  init(id: String, stationItem: APIStationItem, isPending: Bool) {
+  init(
+    id: String, stationItem: APIStationItem, isPending: Bool, showSecretStations: Bool = false
+  ) {
     self.id = id
     self.stationItem = stationItem
     self.isPending = isPending
@@ -35,8 +37,9 @@ struct PresetDisplayItem: Identifiable {
     self.accessibilityLabel = "Preset: \(title)"
     self.removeAccessibilityLabel = "Remove \(title) from presets"
 
-    let isComingSoon = stationItem.visibility == .comingSoon || !station.active
-    if isComingSoon {
+    let isInactive = !station.active
+    let isComingSoonAndHidden = stationItem.visibility == .comingSoon && !showSecretStations
+    if isInactive || isComingSoonAndHidden {
       self.subtitleText = "Coming Soon"
       self.subtitleColor = Color.playolaRed
     } else {
@@ -350,7 +353,9 @@ class StationListModel: ViewModel {
       .compactMap { preset in
         guard let item = allItems.first(where: { $0.anyStation.id == preset.embeddedStationId })
         else { return nil }
-        return PresetDisplayItem(id: preset.id, stationItem: item, isPending: false)
+        return PresetDisplayItem(
+          id: preset.id, stationItem: item, isPending: false,
+          showSecretStations: showSecretStations)
       }
 
     let realStationIds = Set(presets.map { $0.embeddedStationId })
@@ -363,7 +368,8 @@ class StationListModel: ViewModel {
         return PresetDisplayItem(
           id: "pending-\(stationId)",
           stationItem: item,
-          isPending: true
+          isPending: true,
+          showSecretStations: showSecretStations
         )
       }
       .sorted { $0.id < $1.id }
