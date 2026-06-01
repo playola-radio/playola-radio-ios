@@ -433,6 +433,7 @@ class StationListModel: ViewModel {
     if !NetworkErrorClassifier.isNetworkError(error) {
       var tags = extraTags
       tags["endpoint"] = endpoint
+      tags.merge(NetworkErrorClassifier.errorTags(for: error)) { current, _ in current }
       await errorReporting.reportError(error, tags)
     }
   }

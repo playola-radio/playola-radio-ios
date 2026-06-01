@@ -127,6 +127,17 @@ enum NetworkErrorClassifier {
     nsURLErrorCodes(in: error).contains(NSURLErrorSecureConnectionFailed)
   }
 
+  /// Domain/code tags for the most relevant error in the chain, preferring an
+  /// `NSURLError` so transport failures surface their real code (e.g. -1200) in Sentry
+  /// rather than an opaque wrapper like `APIError.dataNotValid`.
+  static func errorTags(for error: Error) -> [String: String] {
+    let nsError = walkErrors(error).first { $0.domain == NSURLErrorDomain } ?? error as NSError
+    return [
+      "error_domain": nsError.domain,
+      "error_code": "\(nsError.code)",
+    ]
+  }
+
   private static func nsURLErrorCodes(in error: Error) -> [Int] {
     walkErrors(error).compactMap { $0.domain == NSURLErrorDomain ? $0.code : nil }
   }
