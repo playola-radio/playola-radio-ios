@@ -958,7 +958,7 @@ struct StationListPresetTests {
   }
 }
 
-private func signedInAuth() -> Auth {
+func signedInAuth() -> Auth {
   Auth(
     currentUser: LoggedInUser(
       id: "u1", firstName: "B", lastName: nil, email: "b@x.com",
@@ -984,7 +984,7 @@ private func makePresetTestList(with items: [APIStationItem], date: Date = Date(
     hidden: false, sortOrder: 0, createdAt: date, updatedAt: date, items: items)
 }
 
-private func makePresetVisibleItem(date: Date = Date()) -> APIStationItem {
+func makePresetVisibleItem(date: Date = Date()) -> APIStationItem {
   APIStationItem(
     sortOrder: 0,
     visibility: .visible,

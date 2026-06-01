@@ -117,6 +117,16 @@ private func signInPost(
   }
 }
 
+// When a manual `serializingData`/`serializingDecodable` request completes without a usable
+// HTTP response, prefer the underlying transport error (e.g. NSURLErrorSecureConnectionFailed
+// -1200 from the iOS 26 TLS middlebox issue) over a generic `dataNotValid`. The real
+// `NSURLError` code is what `NetworkErrorClassifier` needs to recognize the network failure and
+// keep it out of Sentry — and to surface the real code when it is reported.
+private func transportFailure(_ underlying: AFError?) -> Error {
+  if let underlying { return underlying }
+  return APIError.dataNotValid
+}
+
 private func authenticatedGet<T: Decodable & Sendable>(
   path: String,
   token: String,
@@ -324,7 +334,7 @@ extension APIClient: DependencyKey {
         guard
           let body = dataResponse.value
         else {
-          throw APIError.dataNotValid
+          throw transportFailure(dataResponse.error)
         }
 
         let newToken = dataResponse.response?.headers["X-New-Access-Token"] ?? jwtToken
@@ -409,7 +419,7 @@ extension APIClient: DependencyKey {
         .response
 
         guard let statusCode = dataResponse.response?.statusCode else {
-          throw APIError.dataNotValid
+          throw transportFailure(dataResponse.error)
         }
 
         guard let data = dataResponse.value else {
@@ -444,7 +454,7 @@ extension APIClient: DependencyKey {
         .response
 
         guard let statusCode = dataResponse.response?.statusCode else {
-          throw APIError.dataNotValid
+          throw transportFailure(dataResponse.error)
         }
 
         guard let data = dataResponse.value else {
@@ -487,7 +497,7 @@ extension APIClient: DependencyKey {
         .response
 
         guard let statusCode = dataResponse.response?.statusCode else {
-          throw APIError.dataNotValid
+          throw transportFailure(dataResponse.error)
         }
 
         guard let data = dataResponse.value else {
@@ -547,7 +557,7 @@ extension APIClient: DependencyKey {
         .response
 
         guard let statusCode = dataResponse.response?.statusCode else {
-          throw APIError.dataNotValid
+          throw transportFailure(dataResponse.error)
         }
 
         guard let data = dataResponse.value else {
@@ -601,7 +611,7 @@ extension APIClient: DependencyKey {
 
         guard let statusCode = dataResponse.response?.statusCode,
           let data = dataResponse.value
-        else { throw APIError.dataNotValid }
+        else { throw transportFailure(dataResponse.error) }
 
         if (200..<300).contains(statusCode) {
           return try sharedIsoDecoder.decode(Preset.self, from: data)
