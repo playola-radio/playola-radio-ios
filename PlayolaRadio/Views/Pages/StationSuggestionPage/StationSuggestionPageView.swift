@@ -147,6 +147,7 @@ struct StationSuggestionPageView: View {
             .foregroundColor(.textPrimary)
 
           if let badgeText = model.inDevelopmentBadgeText(suggestion) {
+            Spacer(minLength: 8)
             InDevelopmentBadge(text: badgeText)
           }
         }
