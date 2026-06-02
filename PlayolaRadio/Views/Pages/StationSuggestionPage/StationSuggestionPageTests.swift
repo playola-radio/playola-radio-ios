@@ -436,6 +436,25 @@ struct StationSuggestionPageTests {
     #expect(model.voteCountText(suggestion) == "42")
   }
 
+  @Test
+  func inDevelopmentBadgeTextShownOnlyForInDevelopment() {
+    let model = makeModel()
+
+    let inDevelopment = ArtistSuggestion(
+      id: "a", artistName: "A", createdByUserId: "u", voteCount: 0, hasVoted: false,
+      status: .inDevelopment, createdAt: Date(), updatedAt: Date())
+    let suggested = ArtistSuggestion(
+      id: "b", artistName: "B", createdByUserId: "u", voteCount: 0, hasVoted: false,
+      status: .suggested, createdAt: Date(), updatedAt: Date())
+    let streaming = ArtistSuggestion(
+      id: "c", artistName: "C", createdByUserId: "u", voteCount: 0, hasVoted: false,
+      status: .streaming, createdAt: Date(), updatedAt: Date())
+
+    #expect(model.inDevelopmentBadgeText(inDevelopment) == "IN DEVELOPMENT")
+    #expect(model.inDevelopmentBadgeText(suggested) == nil)
+    #expect(model.inDevelopmentBadgeText(streaming) == nil)
+  }
+
   // MARK: - Double-Tap Guard Tests
 
   @Test

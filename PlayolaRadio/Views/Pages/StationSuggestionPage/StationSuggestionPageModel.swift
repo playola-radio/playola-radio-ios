@@ -124,6 +124,10 @@ class StationSuggestionPageModel: ViewModel {
     "\(suggestion.voteCount)"
   }
 
+  func inDevelopmentBadgeText(_ suggestion: ArtistSuggestion) -> String? {
+    suggestion.status == .inDevelopment ? "IN DEVELOPMENT" : nil
+  }
+
   // MARK: - Private Helpers
 
   private func fetchSuggestions() async {
