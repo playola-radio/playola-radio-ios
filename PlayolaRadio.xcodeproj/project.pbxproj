@@ -235,7 +235,9 @@
 		D35EFC202F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC1E2F17D47F000F64A4 /* LiveStationsPoller.swift */; };
 		D35EFC212F17D47F000F64A4 /* LiveStationsPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC1E2F17D47F000F64A4 /* LiveStationsPoller.swift */; };
 		D35EFC232F17D4CC000F64A4 /* LiveBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */; };
+		D3FACE010000000000000002 /* InDevelopmentBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE010000000000000001 /* InDevelopmentBadge.swift */; };
 		D35EFC242F17D4CC000F64A4 /* LiveBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */; };
+		D3FACE010000000000000003 /* InDevelopmentBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE010000000000000001 /* InDevelopmentBadge.swift */; };
 		D35EFC262F192AAF000F64A4 /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC252F192AAF000F64A4 /* Conversation.swift */; };
 		D35EFC272F192AAF000F64A4 /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC252F192AAF000F64A4 /* Conversation.swift */; };
 		D35EFC292F192AB9000F64A4 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC282F192AB9000F64A4 /* Message.swift */; };
@@ -342,6 +344,7 @@
 		D39728712F60DCCC008591E3 /* ArtistSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39728702F60DCCC008591E3 /* ArtistSuggestion.swift */; };
 		D39728722F60DCCC008591E3 /* ArtistSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39728702F60DCCC008591E3 /* ArtistSuggestion.swift */; };
 		D39728762F60E2A7008591E3 /* StationSuggestionPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39728732F60E29B008591E3 /* StationSuggestionPageTests.swift */; };
+		D3FACE010000000000000005 /* ArtistSuggestionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE010000000000000004 /* ArtistSuggestionTests.swift */; };
 		D3A08A2F2E4E2A35002468E0 /* AnalyticsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A08A2E2E4E2A31002468E0 /* AnalyticsClient.swift */; };
 		D3A08A312E4E2E2A002468E0 /* AnalyticsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A08A302E4E2E0F002468E0 /* AnalyticsEvent.swift */; };
 		D3A08A352E4E6F66002468E0 /* NowPlayingUpdaterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A08A332E4E6F5D002468E0 /* NowPlayingUpdaterTests.swift */; };
@@ -543,6 +546,7 @@
 		D35EFC1B2F17D361000F64A4 /* LiveStationInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveStationInfo.swift; sourceTree = "<group>"; };
 		D35EFC1E2F17D47F000F64A4 /* LiveStationsPoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveStationsPoller.swift; sourceTree = "<group>"; };
 		D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveBadge.swift; sourceTree = "<group>"; };
+		D3FACE010000000000000001 /* InDevelopmentBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InDevelopmentBadge.swift; sourceTree = "<group>"; };
 		D35EFC252F192AAF000F64A4 /* Conversation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Conversation.swift; sourceTree = "<group>"; };
 		D35EFC282F192AB9000F64A4 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
 		D35EFC352F192C76000F64A4 /* SupportPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportPageModel.swift; sourceTree = "<group>"; };
@@ -612,6 +616,7 @@
 		D39728672F60CF59008591E3 /* StationSuggestionPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationSuggestionPageView.swift; sourceTree = "<group>"; };
 		D39728702F60DCCC008591E3 /* ArtistSuggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistSuggestion.swift; sourceTree = "<group>"; };
 		D39728732F60E29B008591E3 /* StationSuggestionPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationSuggestionPageTests.swift; sourceTree = "<group>"; };
+		D3FACE010000000000000004 /* ArtistSuggestionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistSuggestionTests.swift; sourceTree = "<group>"; };
 		D3A08A2E2E4E2A31002468E0 /* AnalyticsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsClient.swift; sourceTree = "<group>"; };
 		D3A08A302E4E2E0F002468E0 /* AnalyticsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEvent.swift; sourceTree = "<group>"; };
 		D3A08A332E4E6F5D002468E0 /* NowPlayingUpdaterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingUpdaterTests.swift; sourceTree = "<group>"; };
@@ -819,6 +824,7 @@
 			children = (
 				D39728582F5F0427008591E3 /* AppVersionRequirements.swift */,
 				D39728702F60DCCC008591E3 /* ArtistSuggestion.swift */,
+				D3FACE010000000000000004 /* ArtistSuggestionTests.swift */,
 				D35EFC252F192AAF000F64A4 /* Conversation.swift */,
 				D3137DD12D3ABB4F0070033A /* GenericNowPlaying.swift */,
 				D3B9C7A52F534CE0002D75C2 /* IntroPresignedURLResponse.swift */,
@@ -926,6 +932,7 @@
 			children = (
 				D3B744C62E3139860042A427 /* ListeningTimeTile */,
 				D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */,
+				D3FACE010000000000000001 /* InDevelopmentBadge.swift */,
 				D35EFBF42F1576EF000F64A4 /* NewFeatureTile */,
 				D3137DBA2D3976550070033A /* PlayolaAlert.swift */,
 				D3137DCE2D3AA1E10070033A /* PlayolaSheet.swift */,
@@ -1772,6 +1779,7 @@
 				D37769FA2F22B38700200ADF /* ChooseStationPageView.swift in Sources */,
 				D30F00532E8592F0007BCC73 /* ListeningTracker.swift in Sources */,
 				D35EFC242F17D4CC000F64A4 /* LiveBadge.swift in Sources */,
+				D3FACE010000000000000003 /* InDevelopmentBadge.swift in Sources */,
 				D30F00542E8592F0007BCC73 /* ViewModel.swift in Sources */,
 				D30F00552E8592F0007BCC73 /* SignInPageView.swift in Sources */,
 				D30F00562E8592F0007BCC73 /* UrlStation.swift in Sources */,
@@ -1932,6 +1940,7 @@
 				D37769FC2F22B38700200ADF /* ChooseStationPageView.swift in Sources */,
 				D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */,
 				D35EFC232F17D4CC000F64A4 /* LiveBadge.swift in Sources */,
+				D3FACE010000000000000002 /* InDevelopmentBadge.swift in Sources */,
 				D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */,
 				D3B6626A2D40103C00975D2F /* SignInPageView.swift in Sources */,
 				D30AE8A72E75C92700D9FBCA /* UrlStation.swift in Sources */,
@@ -2102,6 +2111,7 @@
 				D342A0C72DFCB368002BAC30 /* HomePageTests.swift in Sources */,
 				D35EFBEE2F1092A7000F64A4 /* RRuleFormatterTests.swift in Sources */,
 				D39728762F60E2A7008591E3 /* StationSuggestionPageTests.swift in Sources */,
+				D3FACE010000000000000005 /* ArtistSuggestionTests.swift in Sources */,
 				D30257812E639FF200F4228B /* LikesManagerTests.swift in Sources */,
 				D35EFC592F1B0472000F64A4 /* AppRatingClientTests.swift in Sources */,
 				D3ABC1252F2F2F2F0A2F2F2F /* AnalyticsClientTests.swift in Sources */,
