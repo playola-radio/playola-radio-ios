@@ -58,6 +58,13 @@ struct SignInPage: View {
 
           // Auth buttons
           VStack(spacing: 16) {
+            CustomGoogleSignInButton(title: model.googleSignInButtonTitle) {
+              Task {
+                await model.signInWithGoogleButtonTapped()
+              }
+            }
+            .padding(.horizontal, 30)
+
             SignInWithAppleButton(.signIn) { request in
               model.signInWithAppleButtonTapped(request: request)
             } onCompletion: { result in
@@ -66,13 +73,6 @@ struct SignInPage: View {
             .signInWithAppleButtonStyle(.white)
             .frame(height: 56)
             .cornerRadius(12)
-            .padding(.horizontal, 30)
-
-            CustomGoogleSignInButton {
-              Task {
-                await model.signInWithGoogleButtonTapped()
-              }
-            }
             .padding(.horizontal, 30)
           }
 
@@ -112,6 +112,7 @@ struct SignInPage: View {
 }
 
 struct CustomGoogleSignInButton: View {
+  let title: String
   let action: () -> Void
 
   var body: some View {
@@ -122,8 +123,8 @@ struct CustomGoogleSignInButton: View {
           .scaledToFit()
           .frame(width: 24, height: 24)
 
-        Text("Sign in with Google")
-          .fontWeight(.semibold)
+        Text(title)
+          .font(.system(size: 21, weight: .medium))
           .foregroundColor(.black)
       }
       .frame(maxWidth: .infinity)
