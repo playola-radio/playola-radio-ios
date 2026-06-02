@@ -27,3 +27,18 @@ struct ArtistSuggestion: Codable, Identifiable, Equatable, Sendable {
   let createdAt: Date
   let updatedAt: Date
 }
+
+extension ArtistSuggestion {
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    id = try container.decode(String.self, forKey: .id)
+    artistName = try container.decode(String.self, forKey: .artistName)
+    createdByUserId = try container.decode(String.self, forKey: .createdByUserId)
+    voteCount = try container.decode(Int.self, forKey: .voteCount)
+    hasVoted = try container.decode(Bool.self, forKey: .hasVoted)
+    status =
+      try container.decodeIfPresent(ArtistSuggestionStatus.self, forKey: .status) ?? .suggested
+    createdAt = try container.decode(Date.self, forKey: .createdAt)
+    updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+  }
+}

@@ -146,9 +146,7 @@ struct StationSuggestionPageView: View {
             .font(.custom(FontNames.Inter_500_Medium, size: 18))
             .foregroundColor(.textPrimary)
 
-          if let badgeText = model.inDevelopmentBadgeText(suggestion) {
-            InDevelopmentBadge(text: badgeText)
-          }
+          InDevelopmentBadge(text: model.inDevelopmentBadgeText(suggestion))
         }
 
         Text("\(model.voteCountText(suggestion)) votes")

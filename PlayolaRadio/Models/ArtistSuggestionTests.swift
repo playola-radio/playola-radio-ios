@@ -28,4 +28,24 @@ struct ArtistSuggestionStatusTests {
 
     expectNoDifference(statuses, [.unknown])
   }
+
+  @Test
+  func decodesMissingStatusAsSuggested() throws {
+    let json = Data(
+      #"""
+      {
+        "id": "s1",
+        "artistName": "Bri Bagwell",
+        "createdByUserId": "u1",
+        "voteCount": 3,
+        "hasVoted": false,
+        "createdAt": 0,
+        "updatedAt": 0
+      }
+      """#.utf8)
+
+    let suggestion = try JSONDecoder().decode(ArtistSuggestion.self, from: json)
+
+    expectNoDifference(suggestion.status, .suggested)
+  }
 }
