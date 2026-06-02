@@ -58,7 +58,7 @@ struct SignInPage: View {
 
           // Auth buttons
           VStack(spacing: 16) {
-            CustomGoogleSignInButton {
+            CustomGoogleSignInButton(title: model.googleSignInButtonTitle) {
               Task {
                 await model.signInWithGoogleButtonTapped()
               }
@@ -112,6 +112,7 @@ struct SignInPage: View {
 }
 
 struct CustomGoogleSignInButton: View {
+  let title: String
   let action: () -> Void
 
   var body: some View {
@@ -122,7 +123,7 @@ struct CustomGoogleSignInButton: View {
           .scaledToFit()
           .frame(width: 24, height: 24)
 
-        Text("Sign in with Google")
+        Text(title)
           .font(.system(size: 21, weight: .medium))
           .foregroundColor(.black)
       }
