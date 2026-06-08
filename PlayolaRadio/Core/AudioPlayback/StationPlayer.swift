@@ -119,6 +119,7 @@ class StationPlayer: ObservableObject {
     }
   }
 
+  // internal for testability
   /// Surfaces a failed station start as a recoverable error state. Without this,
   /// a swallowed failure (e.g. the schedule endpoint returning 500 during an
   /// outage) leaves the player stuck on `.loading` forever, with no error shown
@@ -132,7 +133,6 @@ class StationPlayer: ObservableObject {
   ///
   /// `CancellationError` is ignored: it means a newer `play()`/`stop()` already
   /// superseded this attempt and owns the current state.
-  // internal for testability
   func handlePlayFailure(_ error: Error) {
     if error is CancellationError { return }
     state = State(playbackStatus: .error)

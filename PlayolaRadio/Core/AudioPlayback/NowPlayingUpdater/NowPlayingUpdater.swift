@@ -130,17 +130,17 @@ class NowPlayingUpdater {
     currentArtworkURL = nil
   }
 
+  // internal for testability
   /// Assigns the now-playing dictionary, keeping our local copy in sync with the
   /// system center. This is the only place that writes `nowPlayingInfo`.
-  // internal for testability
   func setNowPlayingInfo(_ info: [String: Any]) {
     currentNowPlayingInfo = info
     MPNowPlayingInfoCenter.default().nowPlayingInfo = info
   }
 
+  // internal for testability
   /// Carries the artwork from our local copy into `info`, if present. Reads from
   /// `currentNowPlayingInfo`, never from `MPNowPlayingInfoCenter`'s getter.
-  // internal for testability
   func preservingExistingArtwork(in info: [String: Any]) -> [String: Any] {
     guard let existingArtwork = currentNowPlayingInfo[MPMediaItemPropertyArtwork] else {
       return info
@@ -310,9 +310,9 @@ class NowPlayingUpdater {
     }
   }
 
+  // internal for testability
   /// Whether `station` is still the one being played. Used to drop artwork that
   /// finished loading after a fast station switch superseded the request.
-  // internal for testability
   func isStillCurrent(_ station: AnyStation) -> Bool {
     stationPlayer.currentStation?.id == station.id
   }
