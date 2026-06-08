@@ -59,6 +59,10 @@ struct StationPlayerTests {
     stationPlayer.processPlayolaStationPlayerState(.error(.networkError("boom")))
 
     expectNoDifference(stationPlayer.state.playbackStatus, .error)
+    // StationPlayer.processPlayolaStationPlayerState drives only `state`; the
+    // shared `nowPlaying` is NowPlayingUpdater's responsibility and must be
+    // left untouched here.
+    expectNoDifference(nowPlaying?.playbackStatus, .loading(.mock))
   }
 
   // MARK: - seekNext Tests
