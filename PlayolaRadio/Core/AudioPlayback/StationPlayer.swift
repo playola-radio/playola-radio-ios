@@ -20,6 +20,7 @@ class StationPlayer: ObservableObject {
 
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
+  @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
 
   enum PlaybackStatus: Codable, Equatable {
     case startingNewStation(AnyStation)
@@ -122,11 +123,20 @@ class StationPlayer: ObservableObject {
   /// a swallowed failure (e.g. the schedule endpoint returning 500 during an
   /// outage) leaves the player stuck on `.loading` forever, with no error shown
   /// and no recovery — which pushes users into a manual retry storm.
+  ///
+  /// Both representations of playback state are updated: `state` (which drives
+  /// the lock screen via `NowPlayingUpdater`) and `@Shared(.nowPlaying)` (the
+  /// app-wide source of truth the in-app UI reads). The shared state would
+  /// otherwise stay `.loading`, because it is only driven by
+  /// `playolaStationPlayer.$state`, which does not emit when `play()` throws.
+  ///
   /// `CancellationError` is ignored: it means a newer `play()`/`stop()` already
   /// superseded this attempt and owns the current state.
+  // internal for testability
   func handlePlayFailure(_ error: Error) {
     if error is CancellationError { return }
     state = State(playbackStatus: .error)
+    $nowPlaying.withLock { $0 = NowPlaying(playbackStatus: .error) }
   }
 
   /// Stops the currently playing station

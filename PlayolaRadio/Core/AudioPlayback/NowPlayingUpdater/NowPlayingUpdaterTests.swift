@@ -55,6 +55,23 @@ struct NowPlayingUpdaterTests {
     #expect(merged[MPMediaItemPropertyArtwork] == nil)
   }
 
+  @Test
+  func testIsStillCurrentTrueForPlayingStationFalseAfterSwitch() {
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      let stationPlayer = StationPlayer()
+      stationPlayer.state = StationPlayer.State(playbackStatus: .playing(.mock))
+      return NowPlayingUpdater(stationPlayer: stationPlayer)
+    }
+
+    // Artwork that resolves for the current station applies; artwork for a
+    // station we've since switched away from is dropped (stale-artwork guard).
+    #expect(updater.isStillCurrent(.mock))
+    #expect(!updater.isStillCurrent(makeTestStation2()))
+  }
+
   // MARK: - Analytics Tests
 
   @Test

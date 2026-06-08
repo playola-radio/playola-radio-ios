@@ -132,6 +132,7 @@ class NowPlayingUpdater {
 
   /// Assigns the now-playing dictionary, keeping our local copy in sync with the
   /// system center. This is the only place that writes `nowPlayingInfo`.
+  // internal for testability
   func setNowPlayingInfo(_ info: [String: Any]) {
     currentNowPlayingInfo = info
     MPNowPlayingInfoCenter.default().nowPlayingInfo = info
@@ -139,6 +140,7 @@ class NowPlayingUpdater {
 
   /// Carries the artwork from our local copy into `info`, if present. Reads from
   /// `currentNowPlayingInfo`, never from `MPNowPlayingInfoCenter`'s getter.
+  // internal for testability
   func preservingExistingArtwork(in info: [String: Any]) -> [String: Any] {
     guard let existingArtwork = currentNowPlayingInfo[MPMediaItemPropertyArtwork] else {
       return info
@@ -302,10 +304,17 @@ class NowPlayingUpdater {
       let image = await station.getImage()
       // Artwork loads asynchronously; a fast station switch can resolve a stale
       // image. Only apply it if this station is still the current one.
-      guard stationPlayer.currentStation?.id == station.id else { return }
+      guard self.isStillCurrent(station) else { return }
       self.updateNowPlayingImage(image)
       self.currentArtworkURL = station.imageUrl?.absoluteString
     }
+  }
+
+  /// Whether `station` is still the one being played. Used to drop artwork that
+  /// finished loading after a fast station switch superseded the request.
+  // internal for testability
+  func isStillCurrent(_ station: AnyStation) -> Bool {
+    stationPlayer.currentStation?.id == station.id
   }
 
   private func updateNowPlayingImage(_ image: UIImage) {
