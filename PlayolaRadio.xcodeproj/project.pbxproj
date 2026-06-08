@@ -2725,7 +2725,7 @@
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 0.10.0;
+				minimumVersion = 0.19.0;
 			};
 		};
 		D30F003A2E8592F0007BCC73 /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
@@ -2869,7 +2869,7 @@
 			repositoryURL = "https://github.com/briankeane/PlayolaPlayer";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 0.17.0;
+				minimumVersion = 0.19.0;
 			};
 		};
 		D3FF74D32FA7CA760052D500 /* XCRemoteSwiftPackageReference "swift-custom-dump" */ = {

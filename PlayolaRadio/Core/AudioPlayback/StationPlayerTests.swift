@@ -46,6 +46,25 @@ struct StationPlayerTests {
     expectNoDifference(nowPlaying?.playbackStatus, .loading(.mock))
   }
 
+  // MARK: - Playola State Processing Tests
+
+  @Test
+  func testProcessPlayolaErrorStateSetsRecoverableErrorState() {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .loading(.mock))
+    let stationPlayer = StationPlayer()
+    stationPlayer.state = StationPlayer.State(playbackStatus: .loading(.mock))
+
+    // PlayolaPlayer 0.19.0's terminal `.error` must surface as the app's
+    // recoverable `.error` state, not leave the player stuck on .loading.
+    stationPlayer.processPlayolaStationPlayerState(.error(.networkError("boom")))
+
+    expectNoDifference(stationPlayer.state.playbackStatus, .error)
+    // StationPlayer.processPlayolaStationPlayerState drives only `state`; the
+    // shared `nowPlaying` is NowPlayingUpdater's responsibility and must be
+    // left untouched here.
+    expectNoDifference(nowPlaying?.playbackStatus, .loading(.mock))
+  }
+
   // MARK: - seekNext Tests
 
   @Test

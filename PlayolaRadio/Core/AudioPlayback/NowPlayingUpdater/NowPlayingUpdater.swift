@@ -405,7 +405,11 @@ class NowPlayingUpdater {
           )
         }
       }
-    case .none:
+    // `.error` is PlayolaPlayer 0.19.0's terminal failure (e.g. the schedule
+    // fetch exhausted its retries); `.none` is an unexpected empty state. Both
+    // publish the recoverable `.error` status so the lock screen shows the
+    // error and the user can tap play again to retry.
+    case .error, .none:
       $nowPlaying.withLock {
         $0 = NowPlaying(
           artistPlaying: nil,

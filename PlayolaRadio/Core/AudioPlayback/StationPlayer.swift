@@ -233,7 +233,11 @@ class StationPlayer: ObservableObject {
         )
       }
 
-    case .none:
+    // `.error` is PlayolaPlayer 0.19.0's terminal failure (e.g. the schedule
+    // fetch exhausted its retries); `.none` is an unexpected empty state. Both
+    // surface the recoverable `.error` state so the user sees the error and can
+    // tap play again to retry.
+    case .error, .none:
       state = .init(
         playbackStatus: .error,
         artistPlaying: nil,

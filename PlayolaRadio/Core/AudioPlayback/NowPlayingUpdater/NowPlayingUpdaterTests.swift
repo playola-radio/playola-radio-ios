@@ -9,6 +9,7 @@ import Dependencies
 import Foundation
 import MediaPlayer
 import PlayolaPlayer
+import Sharing
 import Testing
 
 @testable import PlayolaRadio
@@ -53,6 +54,25 @@ struct NowPlayingUpdaterTests {
     let merged = updater.preservingExistingArtwork(in: [MPMediaItemPropertyTitle: "new title"])
 
     #expect(merged[MPMediaItemPropertyArtwork] == nil)
+  }
+
+  // MARK: - Playola State Processing Tests
+
+  @Test
+  func testProcessPlayolaErrorStatePublishesRecoverableErrorStatus() {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .loading(.mock))
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      NowPlayingUpdater()
+    }
+
+    // PlayolaPlayer 0.19.0's terminal `.error` must publish the recoverable
+    // `.error` status into shared state, not leave the UI stuck on .loading.
+    updater.processPlayolaStationPlayerState(.error(.networkError("boom")))
+
+    #expect(nowPlaying?.playbackStatus == .error)
   }
 
   @Test
