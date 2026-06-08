@@ -16,6 +16,62 @@ import Testing
 @MainActor
 struct NowPlayingUpdaterTests {
 
+  // MARK: - Now Playing Info Cache Tests
+
+  // Regression: the now-playing artwork merge must read from our local copy,
+  // never MPNowPlayingInfoCenter.default().nowPlayingInfo (Sentry APPLE-IOS-1C).
+
+  @Test
+  func testSetNowPlayingInfoUpdatesLocalCache() {
+    let updater = NowPlayingUpdater()
+
+    updater.setNowPlayingInfo([MPMediaItemPropertyTitle: "cached title"])
+
+    #expect(updater.currentNowPlayingInfo[MPMediaItemPropertyTitle] as? String == "cached title")
+  }
+
+  @Test
+  func testPreservingExistingArtworkCarriesArtworkFromLocalCache() {
+    let updater = NowPlayingUpdater()
+    let artwork = MPMediaItemArtwork(boundsSize: CGSize(width: 10, height: 10)) { _ in UIImage() }
+    updater.setNowPlayingInfo([
+      MPMediaItemPropertyArtwork: artwork,
+      MPMediaItemPropertyTitle: "old title",
+    ])
+
+    let merged = updater.preservingExistingArtwork(in: [MPMediaItemPropertyTitle: "new title"])
+
+    #expect(merged[MPMediaItemPropertyTitle] as? String == "new title")
+    #expect(merged[MPMediaItemPropertyArtwork] != nil)
+  }
+
+  @Test
+  func testPreservingExistingArtworkNoOpWhenNoArtworkCached() {
+    let updater = NowPlayingUpdater()
+    updater.setNowPlayingInfo([MPMediaItemPropertyTitle: "title"])
+
+    let merged = updater.preservingExistingArtwork(in: [MPMediaItemPropertyTitle: "new title"])
+
+    #expect(merged[MPMediaItemPropertyArtwork] == nil)
+  }
+
+  @Test
+  func testIsStillCurrentTrueForPlayingStationFalseAfterSwitch() {
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      let stationPlayer = StationPlayer()
+      stationPlayer.state = StationPlayer.State(playbackStatus: .playing(.mock))
+      return NowPlayingUpdater(stationPlayer: stationPlayer)
+    }
+
+    // Artwork that resolves for the current station applies; artwork for a
+    // station we've since switched away from is dropped (stale-artwork guard).
+    #expect(updater.isStillCurrent(.mock))
+    #expect(!updater.isStillCurrent(makeTestStation2()))
+  }
+
   // MARK: - Analytics Tests
 
   @Test

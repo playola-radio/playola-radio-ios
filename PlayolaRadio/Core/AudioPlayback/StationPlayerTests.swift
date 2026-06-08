@@ -5,6 +5,7 @@
 //  Created by Claude on 1/8/26.
 //
 
+import CustomDump
 import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
@@ -13,8 +14,37 @@ import Testing
 
 @testable import PlayolaRadio
 
+private struct PlayFailureTestError: Error {}
+
 @MainActor
 struct StationPlayerTests {
+
+  // MARK: - Play Failure Tests
+
+  @Test
+  func testHandlePlayFailureSetsErrorState() {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .loading(.mock))
+    let stationPlayer = StationPlayer()
+
+    stationPlayer.handlePlayFailure(PlayFailureTestError())
+
+    // Both the lock-screen-facing state and the app-wide shared state must move
+    // to .error, otherwise in-app UI stays stuck on .loading.
+    expectNoDifference(stationPlayer.state.playbackStatus, .error)
+    expectNoDifference(nowPlaying?.playbackStatus, .error)
+  }
+
+  @Test
+  func testHandlePlayFailureIgnoresCancellation() {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .loading(.mock))
+    let stationPlayer = StationPlayer()
+    stationPlayer.state = StationPlayer.State(playbackStatus: .loading(.mock))
+
+    stationPlayer.handlePlayFailure(CancellationError())
+
+    expectNoDifference(stationPlayer.state.playbackStatus, .loading(.mock))
+    expectNoDifference(nowPlaying?.playbackStatus, .loading(.mock))
+  }
 
   // MARK: - seekNext Tests
 
