@@ -5,6 +5,7 @@
 //  Created by Claude on 1/8/26.
 //
 
+import CustomDump
 import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
@@ -13,8 +14,31 @@ import Testing
 
 @testable import PlayolaRadio
 
+private struct PlayFailureTestError: Error {}
+
 @MainActor
 struct StationPlayerTests {
+
+  // MARK: - Play Failure Tests
+
+  @Test
+  func testHandlePlayFailureSetsErrorState() {
+    let stationPlayer = StationPlayer()
+
+    stationPlayer.handlePlayFailure(PlayFailureTestError())
+
+    expectNoDifference(stationPlayer.state.playbackStatus, .error)
+  }
+
+  @Test
+  func testHandlePlayFailureIgnoresCancellation() {
+    let stationPlayer = StationPlayer()
+    stationPlayer.state = StationPlayer.State(playbackStatus: .loading(.mock))
+
+    stationPlayer.handlePlayFailure(CancellationError())
+
+    expectNoDifference(stationPlayer.state.playbackStatus, .loading(.mock))
+  }
 
   // MARK: - seekNext Tests
 

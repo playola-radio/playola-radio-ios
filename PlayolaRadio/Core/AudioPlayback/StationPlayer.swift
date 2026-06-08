@@ -110,8 +110,23 @@ class StationPlayer: ObservableObject {
       urlStreamPlayer.set(station: urlStation)
     case .playola(let playolaStation):
       urlStreamPlayer.reset()
-      try? await playolaStationPlayer.play(stationId: playolaStation.id)
+      do {
+        try await playolaStationPlayer.play(stationId: playolaStation.id)
+      } catch {
+        handlePlayFailure(error)
+      }
     }
+  }
+
+  /// Surfaces a failed station start as a recoverable error state. Without this,
+  /// a swallowed failure (e.g. the schedule endpoint returning 500 during an
+  /// outage) leaves the player stuck on `.loading` forever, with no error shown
+  /// and no recovery — which pushes users into a manual retry storm.
+  /// `CancellationError` is ignored: it means a newer `play()`/`stop()` already
+  /// superseded this attempt and owns the current state.
+  func handlePlayFailure(_ error: Error) {
+    if error is CancellationError { return }
+    state = State(playbackStatus: .error)
   }
 
   /// Stops the currently playing station

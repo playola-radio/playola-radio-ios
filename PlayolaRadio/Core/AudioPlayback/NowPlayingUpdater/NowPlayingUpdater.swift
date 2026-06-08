@@ -72,6 +72,13 @@ class NowPlayingUpdater {
   var lastPlayedStation: AnyStation?
   private var currentArtworkURL: String?
 
+  // Local source of truth for the now-playing dictionary. We never read
+  // MPNowPlayingInfoCenter.default().nowPlayingInfo: that getter performs a
+  // synchronous cross-process wait that can block the main thread for seconds
+  // (Sentry APPLE-IOS-1C). We are the only writer, so we keep our own copy and
+  // read from it instead.
+  private(set) var currentNowPlayingInfo: [String: Any] = [:]
+
   // Analytics tracking
   private var sessionStartTime: Date?
   private var lastPlaybackStatus: StationPlayer.PlaybackStatus = .stopped
@@ -99,35 +106,46 @@ class NowPlayingUpdater {
     switch stationPlayerState.playbackStatus {
     case .loading, .stopped:
       // For loading/stopped states, preserve existing artwork if available, otherwise load new
-      if let existingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo,
-        let existingArtwork = existingInfo[MPMediaItemPropertyArtwork]
-      {
-        nowPlayingInfo[MPMediaItemPropertyArtwork] = existingArtwork
-      } else {
+      if currentNowPlayingInfo[MPMediaItemPropertyArtwork] != nil {
+        nowPlayingInfo = preservingExistingArtwork(in: nowPlayingInfo)
+      } else if currentArtworkURL != currentStation.imageUrl?.absoluteString {
         // Only load if we don't already have this station's artwork
-        if currentArtworkURL != currentStation.imageUrl?.absoluteString {
-          loadStationArtwork(from: stationPlayerState, station: currentStation)
-        }
+        loadStationArtwork(from: stationPlayerState, station: currentStation)
       }
     case .playing:
       // Preserve existing artwork
-      if let existingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo,
-        let existingArtwork = existingInfo[MPMediaItemPropertyArtwork]
-      {
-        nowPlayingInfo[MPMediaItemPropertyArtwork] = existingArtwork
-      }
+      nowPlayingInfo = preservingExistingArtwork(in: nowPlayingInfo)
     default:
       break
     }
 
-    MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    setNowPlayingInfo(nowPlayingInfo)
   }
 
   private func clearNowPlayingInfo() {
     print("🧹 Clearing now playing info")
     MPNowPlayingInfoCenter.default().playbackState = .stopped
+    currentNowPlayingInfo = [:]
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     currentArtworkURL = nil
+  }
+
+  /// Assigns the now-playing dictionary, keeping our local copy in sync with the
+  /// system center. This is the only place that writes `nowPlayingInfo`.
+  func setNowPlayingInfo(_ info: [String: Any]) {
+    currentNowPlayingInfo = info
+    MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+  }
+
+  /// Carries the artwork from our local copy into `info`, if present. Reads from
+  /// `currentNowPlayingInfo`, never from `MPNowPlayingInfoCenter`'s getter.
+  func preservingExistingArtwork(in info: [String: Any]) -> [String: Any] {
+    guard let existingArtwork = currentNowPlayingInfo[MPMediaItemPropertyArtwork] else {
+      return info
+    }
+    var info = info
+    info[MPMediaItemPropertyArtwork] = existingArtwork
+    return info
   }
 
   private func buildNowPlayingInfo(
@@ -282,21 +300,23 @@ class NowPlayingUpdater {
     // For CarPlay/Lock Screen: always use station image, ignore album artwork
     Task {
       let image = await station.getImage()
+      // Artwork loads asynchronously; a fast station switch can resolve a stale
+      // image. Only apply it if this station is still the current one.
+      guard stationPlayer.currentStation?.id == station.id else { return }
       self.updateNowPlayingImage(image)
       self.currentArtworkURL = station.imageUrl?.absoluteString
     }
   }
 
   private func updateNowPlayingImage(_ image: UIImage) {
-    var nowPlayingInfo: [String: Any] =
-      MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [String: Any]()
+    var nowPlayingInfo = currentNowPlayingInfo
     nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(
       boundsSize: image.size,
       requestHandler: { _ in
         return image
       }
     )
-    MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    setNowPlayingInfo(nowPlayingInfo)
   }
 
   // The Combine subscriptions below capture `self` weakly so the cancellable
@@ -508,6 +528,7 @@ class NowPlayingUpdater {
     commandCenter.previousTrackCommand.removeTarget(nil)
 
     // Clear now playing info
+    currentNowPlayingInfo = [:]
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     MPNowPlayingInfoCenter.default().playbackState = .stopped
 

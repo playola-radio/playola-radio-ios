@@ -16,6 +16,45 @@ import Testing
 @MainActor
 struct NowPlayingUpdaterTests {
 
+  // MARK: - Now Playing Info Cache Tests
+
+  // Regression: the now-playing artwork merge must read from our local copy,
+  // never MPNowPlayingInfoCenter.default().nowPlayingInfo (Sentry APPLE-IOS-1C).
+
+  @Test
+  func testSetNowPlayingInfoUpdatesLocalCache() {
+    let updater = NowPlayingUpdater()
+
+    updater.setNowPlayingInfo([MPMediaItemPropertyTitle: "cached title"])
+
+    #expect(updater.currentNowPlayingInfo[MPMediaItemPropertyTitle] as? String == "cached title")
+  }
+
+  @Test
+  func testPreservingExistingArtworkCarriesArtworkFromLocalCache() {
+    let updater = NowPlayingUpdater()
+    let artwork = MPMediaItemArtwork(boundsSize: CGSize(width: 10, height: 10)) { _ in UIImage() }
+    updater.setNowPlayingInfo([
+      MPMediaItemPropertyArtwork: artwork,
+      MPMediaItemPropertyTitle: "old title",
+    ])
+
+    let merged = updater.preservingExistingArtwork(in: [MPMediaItemPropertyTitle: "new title"])
+
+    #expect(merged[MPMediaItemPropertyTitle] as? String == "new title")
+    #expect(merged[MPMediaItemPropertyArtwork] != nil)
+  }
+
+  @Test
+  func testPreservingExistingArtworkNoOpWhenNoArtworkCached() {
+    let updater = NowPlayingUpdater()
+    updater.setNowPlayingInfo([MPMediaItemPropertyTitle: "title"])
+
+    let merged = updater.preservingExistingArtwork(in: [MPMediaItemPropertyTitle: "new title"])
+
+    #expect(merged[MPMediaItemPropertyArtwork] == nil)
+  }
+
   // MARK: - Analytics Tests
 
   @Test
