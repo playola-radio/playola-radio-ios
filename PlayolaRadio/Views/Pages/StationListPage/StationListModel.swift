@@ -449,7 +449,7 @@ class StationListModel: ViewModel {
     let stationInfo = StationInfo(from: item.anyStation)
     let isPlayola = item.station != nil
 
-    $pendingPresetStationIds.withLock { $0.insert(stationId) }
+    $pendingPresetStationIds.withLock { _ = $0.insert(stationId) }
 
     do {
       let created = try await api.createPreset(
@@ -482,7 +482,7 @@ class StationListModel: ViewModel {
     let positionsSnapshot: [String: Int] = Dictionary(
       uniqueKeysWithValues: presets.map { ($0.id, $0.position) })
 
-    $pendingPresetRemovalStationIds.withLock { $0.insert(stationId) }
+    $pendingPresetRemovalStationIds.withLock { _ = $0.insert(stationId) }
     $presets.withLock { collection in
       collection.remove(id: presetId)
       for var existing in collection where existing.position > presetSnapshot.position {
