@@ -449,7 +449,7 @@ class StationListModel: ViewModel {
     let stationInfo = StationInfo(from: item.anyStation)
     let isPlayola = item.station != nil
 
-    $pendingPresetStationIds.withLock { $0.insert(stationId) }
+    $pendingPresetStationIds.withLock { _ = $0.insert(stationId) }
 
     do {
       let created = try await api.createPreset(
