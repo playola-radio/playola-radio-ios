@@ -482,7 +482,7 @@ class StationListModel: ViewModel {
     let positionsSnapshot: [String: Int] = Dictionary(
       uniqueKeysWithValues: presets.map { ($0.id, $0.position) })
 
-    $pendingPresetRemovalStationIds.withLock { $0.insert(stationId) }
+    $pendingPresetRemovalStationIds.withLock { _ = $0.insert(stationId) }
     $presets.withLock { collection in
       collection.remove(id: presetId)
       for var existing in collection where existing.position > presetSnapshot.position {
