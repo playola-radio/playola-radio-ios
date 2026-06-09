@@ -4,6 +4,7 @@
 //
 
 import PlayolaPlayer
+import SDWebImageSwiftUI
 import SwiftUI
 
 struct ChooseStationPageView: View {
@@ -35,7 +36,7 @@ private struct StationRow: View {
 
   var body: some View {
     HStack(spacing: 16) {
-      AsyncImage(url: station.imageUrl) { image in
+      WebImage(url: station.imageUrl) { image in
         image
           .resizable()
           .aspectRatio(contentMode: .fill)
