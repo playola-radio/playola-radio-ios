@@ -738,7 +738,7 @@ struct APIClient: Sendable {
       _, _ in
       ArtistSuggestion(
         id: "", artistName: "", createdByUserId: "", voteCount: 0, hasVoted: false,
-        createdAt: Date(), updatedAt: Date())
+        status: .suggested, createdAt: Date(), updatedAt: Date())
     }
 
   /// Votes for an artist suggestion

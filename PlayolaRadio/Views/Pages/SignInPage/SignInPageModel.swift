@@ -33,6 +33,8 @@ class SignInPageModel: ViewModel {
   // MARK: - Properties
   var presentedAlert: PlayolaAlert?
 
+  var googleSignInButtonTitle: String { "Sign in with Google" }
+
   @ObservationIgnored
   var keyWindowProvider: @MainActor () -> UIViewController? = {
     UIApplication.shared.keyWindowPresentedController

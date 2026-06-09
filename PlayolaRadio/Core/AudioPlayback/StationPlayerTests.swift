@@ -5,6 +5,7 @@
 //  Created by Claude on 1/8/26.
 //
 
+import CustomDump
 import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
@@ -13,8 +14,56 @@ import Testing
 
 @testable import PlayolaRadio
 
+private struct PlayFailureTestError: Error {}
+
 @MainActor
 struct StationPlayerTests {
+
+  // MARK: - Play Failure Tests
+
+  @Test
+  func testHandlePlayFailureSetsErrorState() {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .loading(.mock))
+    let stationPlayer = StationPlayer()
+
+    stationPlayer.handlePlayFailure(PlayFailureTestError())
+
+    // Both the lock-screen-facing state and the app-wide shared state must move
+    // to .error, otherwise in-app UI stays stuck on .loading.
+    expectNoDifference(stationPlayer.state.playbackStatus, .error)
+    expectNoDifference(nowPlaying?.playbackStatus, .error)
+  }
+
+  @Test
+  func testHandlePlayFailureIgnoresCancellation() {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .loading(.mock))
+    let stationPlayer = StationPlayer()
+    stationPlayer.state = StationPlayer.State(playbackStatus: .loading(.mock))
+
+    stationPlayer.handlePlayFailure(CancellationError())
+
+    expectNoDifference(stationPlayer.state.playbackStatus, .loading(.mock))
+    expectNoDifference(nowPlaying?.playbackStatus, .loading(.mock))
+  }
+
+  // MARK: - Playola State Processing Tests
+
+  @Test
+  func testProcessPlayolaErrorStateSetsRecoverableErrorState() {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .loading(.mock))
+    let stationPlayer = StationPlayer()
+    stationPlayer.state = StationPlayer.State(playbackStatus: .loading(.mock))
+
+    // PlayolaPlayer 0.19.0's terminal `.error` must surface as the app's
+    // recoverable `.error` state, not leave the player stuck on .loading.
+    stationPlayer.processPlayolaStationPlayerState(.error(.networkError("boom")))
+
+    expectNoDifference(stationPlayer.state.playbackStatus, .error)
+    // StationPlayer.processPlayolaStationPlayerState drives only `state`; the
+    // shared `nowPlaying` is NowPlayingUpdater's responsibility and must be
+    // left untouched here.
+    expectNoDifference(nowPlaying?.playbackStatus, .loading(.mock))
+  }
 
   // MARK: - seekNext Tests
 

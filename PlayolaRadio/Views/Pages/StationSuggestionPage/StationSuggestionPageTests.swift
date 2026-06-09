@@ -24,13 +24,13 @@ struct StationSuggestionPageTests {
     [
       ArtistSuggestion(
         id: "s1", artistName: "Bri Bagwell", createdByUserId: "u1",
-        voteCount: 10, hasVoted: true, createdAt: Date(), updatedAt: Date()),
+        voteCount: 10, hasVoted: true, status: .inDevelopment, createdAt: Date(), updatedAt: Date()),
       ArtistSuggestion(
         id: "s2", artistName: "Charley Crockett", createdByUserId: "u2",
-        voteCount: 7, hasVoted: false, createdAt: Date(), updatedAt: Date()),
+        voteCount: 7, hasVoted: false, status: .suggested, createdAt: Date(), updatedAt: Date()),
       ArtistSuggestion(
         id: "s3", artistName: "Colter Wall", createdByUserId: "u3",
-        voteCount: 3, hasVoted: false, createdAt: Date(), updatedAt: Date()),
+        voteCount: 3, hasVoted: false, status: .streaming, createdAt: Date(), updatedAt: Date()),
     ]
   }
 
@@ -50,7 +50,7 @@ struct StationSuggestionPageTests {
     let defaultCreate: @Sendable (String, String) async throws -> ArtistSuggestion = { _, name in
       ArtistSuggestion(
         id: "new", artistName: name, createdByUserId: "u1",
-        voteCount: 1, hasVoted: true, createdAt: Date(), updatedAt: Date())
+        voteCount: 1, hasVoted: true, status: .suggested, createdAt: Date(), updatedAt: Date())
     }
     let defaultVote: @Sendable (String, String) async throws -> Void = { _, _ in }
     let defaultRemoveVote: @Sendable (String, String) async throws -> Void = { _, _ in }
@@ -159,7 +159,7 @@ struct StationSuggestionPageTests {
     let capturedVoteIds = LockIsolated<[String]>([])
     let unvotedSuggestion = ArtistSuggestion(
       id: "s2", artistName: "Charley Crockett", createdByUserId: "u2",
-      voteCount: 7, hasVoted: false, createdAt: Date(), updatedAt: Date())
+      voteCount: 7, hasVoted: false, status: .suggested, createdAt: Date(), updatedAt: Date())
 
     let model = makeModel(onVote: { _, id in
       capturedVoteIds.withValue { $0.append(id) }
@@ -176,7 +176,7 @@ struct StationSuggestionPageTests {
     let capturedRemoveIds = LockIsolated<[String]>([])
     let votedSuggestion = ArtistSuggestion(
       id: "s1", artistName: "Bri Bagwell", createdByUserId: "u1",
-      voteCount: 10, hasVoted: true, createdAt: Date(), updatedAt: Date())
+      voteCount: 10, hasVoted: true, status: .suggested, createdAt: Date(), updatedAt: Date())
 
     let model = makeModel(onRemoveVote: { _, id in
       capturedRemoveIds.withValue { $0.append(id) }
@@ -193,7 +193,7 @@ struct StationSuggestionPageTests {
     let fetchCount = LockIsolated(0)
     let unvotedSuggestion = ArtistSuggestion(
       id: "s2", artistName: "Charley Crockett", createdByUserId: "u2",
-      voteCount: 7, hasVoted: false, createdAt: Date(), updatedAt: Date())
+      voteCount: 7, hasVoted: false, status: .suggested, createdAt: Date(), updatedAt: Date())
 
     let model = makeModel(onGetSuggestions: { _, _ in
       fetchCount.withValue { $0 += 1 }
@@ -210,7 +210,7 @@ struct StationSuggestionPageTests {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let unvotedSuggestion = ArtistSuggestion(
       id: "s2", artistName: "Charley Crockett", createdByUserId: "u2",
-      voteCount: 7, hasVoted: false, createdAt: Date(), updatedAt: Date())
+      voteCount: 7, hasVoted: false, status: .suggested, createdAt: Date(), updatedAt: Date())
 
     let model = makeModel(onVote: { _, _ in
       throw APIError.validationError("Already voted")
@@ -228,7 +228,7 @@ struct StationSuggestionPageTests {
     let capturedVoteIds = LockIsolated<[String]>([])
     let suggestion = ArtistSuggestion(
       id: "s1", artistName: "Bri Bagwell", createdByUserId: "u1",
-      voteCount: 10, hasVoted: false, createdAt: Date(), updatedAt: Date())
+      voteCount: 10, hasVoted: false, status: .suggested, createdAt: Date(), updatedAt: Date())
 
     let model = makeModel(onVote: { _, id in
       capturedVoteIds.withValue { $0.append(id) }
@@ -249,7 +249,7 @@ struct StationSuggestionPageTests {
       capturedNames.withValue { $0.append(name) }
       return ArtistSuggestion(
         id: "new", artistName: name, createdByUserId: "u1",
-        voteCount: 1, hasVoted: true, createdAt: Date(), updatedAt: Date())
+        voteCount: 1, hasVoted: true, status: .suggested, createdAt: Date(), updatedAt: Date())
     })
 
     model.searchText = "Tyler Childers"
@@ -267,7 +267,7 @@ struct StationSuggestionPageTests {
       capturedNames.withValue { $0.append(name) }
       return ArtistSuggestion(
         id: "new", artistName: name, createdByUserId: "u1",
-        voteCount: 1, hasVoted: true, createdAt: Date(), updatedAt: Date())
+        voteCount: 1, hasVoted: true, status: .suggested, createdAt: Date(), updatedAt: Date())
     })
 
     model.searchText = "  Tyler Childers  "
@@ -284,7 +284,7 @@ struct StationSuggestionPageTests {
       capturedNames.withValue { $0.append(name) }
       return ArtistSuggestion(
         id: "new", artistName: name, createdByUserId: "u1",
-        voteCount: 1, hasVoted: true, createdAt: Date(), updatedAt: Date())
+        voteCount: 1, hasVoted: true, status: .suggested, createdAt: Date(), updatedAt: Date())
     })
 
     model.searchText = "   "
@@ -301,7 +301,7 @@ struct StationSuggestionPageTests {
       capturedNames.withValue { $0.append(name) }
       return ArtistSuggestion(
         id: "new", artistName: name, createdByUserId: "u1",
-        voteCount: 1, hasVoted: true, createdAt: Date(), updatedAt: Date())
+        voteCount: 1, hasVoted: true, status: .suggested, createdAt: Date(), updatedAt: Date())
     })
 
     model.searchText = "Tyler Childers"
@@ -411,7 +411,7 @@ struct StationSuggestionPageTests {
     let model = makeModel()
     let suggestion = ArtistSuggestion(
       id: "s1", artistName: "Test", createdByUserId: "u1",
-      voteCount: 5, hasVoted: true, createdAt: Date(), updatedAt: Date())
+      voteCount: 5, hasVoted: true, status: .suggested, createdAt: Date(), updatedAt: Date())
 
     #expect(model.voteButtonText(suggestion) == "Voted")
   }
@@ -421,7 +421,7 @@ struct StationSuggestionPageTests {
     let model = makeModel()
     let suggestion = ArtistSuggestion(
       id: "s1", artistName: "Test", createdByUserId: "u1",
-      voteCount: 5, hasVoted: false, createdAt: Date(), updatedAt: Date())
+      voteCount: 5, hasVoted: false, status: .suggested, createdAt: Date(), updatedAt: Date())
 
     #expect(model.voteButtonText(suggestion) == "Vote")
   }
@@ -431,9 +431,28 @@ struct StationSuggestionPageTests {
     let model = makeModel()
     let suggestion = ArtistSuggestion(
       id: "s1", artistName: "Test", createdByUserId: "u1",
-      voteCount: 42, hasVoted: false, createdAt: Date(), updatedAt: Date())
+      voteCount: 42, hasVoted: false, status: .suggested, createdAt: Date(), updatedAt: Date())
 
     #expect(model.voteCountText(suggestion) == "42")
+  }
+
+  @Test
+  func inDevelopmentBadgeTextShownOnlyForInDevelopment() {
+    let model = makeModel()
+
+    let inDevelopment = ArtistSuggestion(
+      id: "a", artistName: "A", createdByUserId: "u", voteCount: 0, hasVoted: false,
+      status: .inDevelopment, createdAt: Date(), updatedAt: Date())
+    let suggested = ArtistSuggestion(
+      id: "b", artistName: "B", createdByUserId: "u", voteCount: 0, hasVoted: false,
+      status: .suggested, createdAt: Date(), updatedAt: Date())
+    let streaming = ArtistSuggestion(
+      id: "c", artistName: "C", createdByUserId: "u", voteCount: 0, hasVoted: false,
+      status: .streaming, createdAt: Date(), updatedAt: Date())
+
+    #expect(model.inDevelopmentBadgeText(inDevelopment) == "IN DEVELOPMENT")
+    #expect(model.inDevelopmentBadgeText(suggested) == nil)
+    #expect(model.inDevelopmentBadgeText(streaming) == nil)
   }
 
   // MARK: - Double-Tap Guard Tests
@@ -444,7 +463,7 @@ struct StationSuggestionPageTests {
     let voteCount = LockIsolated(0)
     let unvotedSuggestion = ArtistSuggestion(
       id: "s2", artistName: "Charley Crockett", createdByUserId: "u2",
-      voteCount: 7, hasVoted: false, createdAt: Date(), updatedAt: Date())
+      voteCount: 7, hasVoted: false, status: .suggested, createdAt: Date(), updatedAt: Date())
 
     let model = makeModel(onVote: { _, _ in
       voteCount.withValue { $0 += 1 }
@@ -464,7 +483,7 @@ struct StationSuggestionPageTests {
       createCount.withValue { $0 += 1 }
       return ArtistSuggestion(
         id: "new", artistName: name, createdByUserId: "u1",
-        voteCount: 1, hasVoted: true, createdAt: Date(), updatedAt: Date())
+        voteCount: 1, hasVoted: true, status: .suggested, createdAt: Date(), updatedAt: Date())
     })
     model.isSubmitting = true
     model.searchText = "Tyler Childers"
@@ -479,7 +498,7 @@ struct StationSuggestionPageTests {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let unvotedSuggestion = ArtistSuggestion(
       id: "s2", artistName: "Charley Crockett", createdByUserId: "u2",
-      voteCount: 7, hasVoted: false, createdAt: Date(), updatedAt: Date())
+      voteCount: 7, hasVoted: false, status: .suggested, createdAt: Date(), updatedAt: Date())
     let model = makeModel()
 
     await model.voteTapped(unvotedSuggestion)
@@ -492,7 +511,7 @@ struct StationSuggestionPageTests {
     @Shared(.auth) var auth = Auth(jwt: testJwt)
     let unvotedSuggestion = ArtistSuggestion(
       id: "s2", artistName: "Charley Crockett", createdByUserId: "u2",
-      voteCount: 7, hasVoted: false, createdAt: Date(), updatedAt: Date())
+      voteCount: 7, hasVoted: false, status: .suggested, createdAt: Date(), updatedAt: Date())
     let model = makeModel(onVote: { _, _ in
       throw APIError.validationError("fail")
     })

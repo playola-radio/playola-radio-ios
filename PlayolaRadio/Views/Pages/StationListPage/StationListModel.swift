@@ -23,7 +23,9 @@ struct PresetDisplayItem: Identifiable {
   let accessibilityLabel: String
   let removeAccessibilityLabel: String
 
-  init(id: String, stationItem: APIStationItem, isPending: Bool) {
+  init(
+    id: String, stationItem: APIStationItem, isPending: Bool, showSecretStations: Bool = false
+  ) {
     self.id = id
     self.stationItem = stationItem
     self.isPending = isPending
@@ -35,8 +37,9 @@ struct PresetDisplayItem: Identifiable {
     self.accessibilityLabel = "Preset: \(title)"
     self.removeAccessibilityLabel = "Remove \(title) from presets"
 
-    let isComingSoon = stationItem.visibility == .comingSoon || !station.active
-    if isComingSoon {
+    let isInactive = !station.active
+    let isComingSoonAndHidden = stationItem.visibility == .comingSoon && !showSecretStations
+    if isInactive || isComingSoonAndHidden {
       self.subtitleText = "Coming Soon"
       self.subtitleColor = Color.playolaRed
     } else {
@@ -89,6 +92,8 @@ class StationListModel: ViewModel {
   var searchText = ""
   var presentedAlert: PlayolaAlert?
   var presetListState: PresetListState = .normal
+  var isLoadingPresets: Bool = false
+  var presetsLoadFailed: Bool = false
   let navigationTitle = "Radio Stations"
   let suggestArtistButtonText = "Suggest Station"
   let searchBarPlaceholder = "Search stations"
@@ -99,6 +104,8 @@ class StationListModel: ViewModel {
   let presetsSectionTitle = "Presets"
   let presetsEmptyStateText = "Tap the ★ on any station to save it here."
   let presetsEditDoneButtonText = "Done"
+  let presetsLoadErrorText = "Couldn't load presets."
+  let presetsRetryButtonText = "Retry"
 
   // MARK: - User Actions
 
@@ -191,25 +198,23 @@ class StationListModel: ViewModel {
   }
 
   // swiftlint:disable:next cyclomatic_complexity
-  func presetMoved(from: Int, to: Int) async {
+  func presetMoved(presetId: String, to: Int) async {
     guard presetListState == .editing else { return }
-    guard from != to else { return }
     guard let token = auth.jwt else { return }
+    guard presets[id: presetId] != nil else { return }
+
+    let displayIds = displayPresets.map(\.id)
+    guard let fromIndex = displayIds.firstIndex(of: presetId) else { return }
+    guard fromIndex != to else { return }
 
     let snapshot: [String: Int] = Dictionary(
       uniqueKeysWithValues: presets.map { ($0.id, $0.position) })
 
-    let displayIds = displayPresets.map(\.id)
-    guard from >= 0, from < displayIds.count, to >= 0, to < displayIds.count
-    else { return }
-    let movedId = displayIds[from]
-    guard presets[id: movedId] != nil else { return }
-
     var orderedIds = displayIds.filter { presets[id: $0] != nil }
-    guard let oldIndex = orderedIds.firstIndex(of: movedId) else { return }
+    guard let oldIndex = orderedIds.firstIndex(of: presetId) else { return }
     orderedIds.remove(at: oldIndex)
     let clampedTo = min(max(0, to), orderedIds.count)
-    orderedIds.insert(movedId, at: clampedTo)
+    orderedIds.insert(presetId, at: clampedTo)
 
     $presets.withLock { collection in
       for (index, id) in orderedIds.enumerated() {
@@ -221,15 +226,16 @@ class StationListModel: ViewModel {
     }
 
     let movedStationInfo: StationInfo? = {
-      guard let item = displayPresets.first(where: { $0.id == movedId })?.stationItem
+      guard let item = displayPresets.first(where: { $0.id == presetId })?.stationItem
       else { return nil }
       return StationInfo(from: item.anyStation)
     }()
 
     do {
-      _ = try await api.movePreset(token, movedId, clampedTo)
+      _ = try await api.movePreset(token, presetId, clampedTo)
       if let info = movedStationInfo {
-        await analytics.track(.presetMoved(station: info, fromIndex: from, toIndex: clampedTo))
+        await analytics.track(
+          .presetMoved(station: info, fromIndex: fromIndex, toIndex: clampedTo))
       }
     } catch {
       $presets.withLock { collection in
@@ -242,8 +248,8 @@ class StationListModel: ViewModel {
       }
       await reportPresetError(
         error,
-        endpoint: "PUT /v1/presets/\(movedId)",
-        extraTags: ["preset_id": movedId])
+        endpoint: "PUT /v1/presets/\(presetId)",
+        extraTags: ["preset_id": presetId])
       presentedAlert = .errorMovingPreset
     }
   }
@@ -270,12 +276,10 @@ class StationListModel: ViewModel {
     else { return }
 
     let allItems = stationLists.flatMap { $0.stationItems(includeHidden: showSecretStations) }
-    let stationInfo: StationInfo
-    if let item = allItems.first(where: { $0.anyStation.id == preset.embeddedStationId }) {
-      stationInfo = StationInfo(from: item.anyStation)
-    } else {
-      stationInfo = StationInfo(from: .playola(Station.mockWith(id: preset.embeddedStationId)))
-    }
+    let stationInfo: StationInfo? =
+      allItems
+      .first(where: { $0.anyStation.id == preset.embeddedStationId })
+      .map { StationInfo(from: $0.anyStation) }
 
     await removePreset(presetId: preset.id, stationInfo: stationInfo)
   }
@@ -286,6 +290,10 @@ class StationListModel: ViewModel {
 
   func backgroundTappedOutsidePresets() {
     if presetListState == .editing { presetListState = .normal }
+  }
+
+  func retryLoadPresetsTapped() async {
+    await loadPresets()
   }
 
   func stationSelected(_ item: APIStationItem) async {
@@ -345,7 +353,9 @@ class StationListModel: ViewModel {
       .compactMap { preset in
         guard let item = allItems.first(where: { $0.anyStation.id == preset.embeddedStationId })
         else { return nil }
-        return PresetDisplayItem(id: preset.id, stationItem: item, isPending: false)
+        return PresetDisplayItem(
+          id: preset.id, stationItem: item, isPending: false,
+          showSecretStations: showSecretStations)
       }
 
     let realStationIds = Set(presets.map { $0.embeddedStationId })
@@ -358,7 +368,8 @@ class StationListModel: ViewModel {
         return PresetDisplayItem(
           id: "pending-\(stationId)",
           stationItem: item,
-          isPending: true
+          isPending: true,
+          showSecretStations: showSecretStations
         )
       }
       .sorted { $0.id < $1.id }
@@ -422,6 +433,7 @@ class StationListModel: ViewModel {
     if !NetworkErrorClassifier.isNetworkError(error) {
       var tags = extraTags
       tags["endpoint"] = endpoint
+      tags.merge(NetworkErrorClassifier.errorTags(for: error)) { _, new in new }
       await errorReporting.reportError(error, tags)
     }
   }
@@ -461,12 +473,12 @@ class StationListModel: ViewModel {
     }
   }
 
-  private func removePreset(presetId: String, stationInfo: StationInfo) async {
+  private func removePreset(presetId: String, stationInfo: StationInfo?) async {
     guard let token = auth.jwt else { return }
-    let stationId = stationInfo.id
+    guard let presetSnapshot = presets[id: presetId] else { return }
+    let stationId = presetSnapshot.embeddedStationId
     if pendingPresetRemovalStationIds.contains(stationId) { return }
 
-    guard let presetSnapshot = presets[id: presetId] else { return }
     let positionsSnapshot: [String: Int] = Dictionary(
       uniqueKeysWithValues: presets.map { ($0.id, $0.position) })
 
@@ -482,7 +494,9 @@ class StationListModel: ViewModel {
     do {
       try await api.deletePreset(token, presetId)
       $pendingPresetRemovalStationIds.withLock { $0.remove(stationId) }
-      await analytics.track(.presetRemoved(station: stationInfo))
+      if let stationInfo {
+        await analytics.track(.presetRemoved(station: stationInfo))
+      }
     } catch {
       $pendingPresetRemovalStationIds.withLock { $0.remove(stationId) }
       $presets.withLock { collection in
@@ -504,12 +518,15 @@ class StationListModel: ViewModel {
 
   private func loadPresets() async {
     guard let token = auth.jwt else { return }
+    isLoadingPresets = true
+    defer { isLoadingPresets = false }
     do {
       let fetched = try await api.getPresets(token)
       $presets.withLock { $0 = IdentifiedArray(uniqueElements: fetched) }
+      presetsLoadFailed = false
     } catch {
+      presetsLoadFailed = true
       await reportPresetError(error, endpoint: "GET /v1/presets")
-      presentedAlert = .errorLoadingPresets
     }
   }
 

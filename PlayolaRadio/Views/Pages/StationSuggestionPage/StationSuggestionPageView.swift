@@ -141,9 +141,13 @@ struct StationSuggestionPageView: View {
   private func suggestionRow(_ suggestion: ArtistSuggestion) -> some View {
     HStack(spacing: 16) {
       VStack(alignment: .leading, spacing: 2) {
-        Text(suggestion.artistName)
-          .font(.custom(FontNames.Inter_500_Medium, size: 18))
-          .foregroundColor(.textPrimary)
+        HStack(spacing: 12) {
+          Text(suggestion.artistName)
+            .font(.custom(FontNames.Inter_500_Medium, size: 18))
+            .foregroundColor(.textPrimary)
+
+          InDevelopmentBadge(text: model.inDevelopmentBadgeText(suggestion))
+        }
 
         Text("\(model.voteCountText(suggestion)) votes")
           .font(.custom(FontNames.Inter_400_Regular, size: 13))

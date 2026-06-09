@@ -20,6 +20,7 @@ class StationPlayer: ObservableObject {
 
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
+  @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
 
   enum PlaybackStatus: Codable, Equatable {
     case startingNewStation(AnyStation)
@@ -110,8 +111,32 @@ class StationPlayer: ObservableObject {
       urlStreamPlayer.set(station: urlStation)
     case .playola(let playolaStation):
       urlStreamPlayer.reset()
-      try? await playolaStationPlayer.play(stationId: playolaStation.id)
+      do {
+        try await playolaStationPlayer.play(stationId: playolaStation.id)
+      } catch {
+        handlePlayFailure(error)
+      }
     }
+  }
+
+  // internal for testability
+  /// Surfaces a failed station start as a recoverable error state. Without this,
+  /// a swallowed failure (e.g. the schedule endpoint returning 500 during an
+  /// outage) leaves the player stuck on `.loading` forever, with no error shown
+  /// and no recovery — which pushes users into a manual retry storm.
+  ///
+  /// Both representations of playback state are updated: `state` (which drives
+  /// the lock screen via `NowPlayingUpdater`) and `@Shared(.nowPlaying)` (the
+  /// app-wide source of truth the in-app UI reads). The shared state would
+  /// otherwise stay `.loading`, because it is only driven by
+  /// `playolaStationPlayer.$state`, which does not emit when `play()` throws.
+  ///
+  /// `CancellationError` is ignored: it means a newer `play()`/`stop()` already
+  /// superseded this attempt and owns the current state.
+  func handlePlayFailure(_ error: Error) {
+    if error is CancellationError { return }
+    state = State(playbackStatus: .error)
+    $nowPlaying.withLock { $0 = NowPlaying(playbackStatus: .error) }
   }
 
   /// Stops the currently playing station
@@ -208,7 +233,11 @@ class StationPlayer: ObservableObject {
         )
       }
 
-    case .none:
+    // `.error` is PlayolaPlayer 0.19.0's terminal failure (e.g. the schedule
+    // fetch exhausted its retries); `.none` is an unexpected empty state. Both
+    // surface the recoverable `.error` state so the user sees the error and can
+    // tap play again to retry.
+    case .error, .none:
       state = .init(
         playbackStatus: .error,
         artistPlaying: nil,

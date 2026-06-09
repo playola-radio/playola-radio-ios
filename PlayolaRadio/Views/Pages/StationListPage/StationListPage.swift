@@ -106,11 +106,16 @@ struct StationListPage: View {
                 emptyStateText: model.presetsEmptyStateText,
                 doneButtonText: model.presetsEditDoneButtonText,
                 isEditing: model.isEditingPresets,
+                isLoading: model.isLoadingPresets,
+                hasLoadError: model.presetsLoadFailed,
+                loadErrorText: model.presetsLoadErrorText,
+                retryButtonText: model.presetsRetryButtonText,
                 onTilePlay: { display in await model.presetTileTapped(display) },
                 onTileLongPress: { display in model.presetTileLongPressed(display) },
                 onTileRemove: { display in await model.presetRemoveTapped(display) },
-                onMove: { from, to in await model.presetMoved(from: from, to: to) },
-                onEditDoneTapped: { model.presetsEditDoneTapped() }
+                onMove: { presetId, to in await model.presetMoved(presetId: presetId, to: to) },
+                onEditDoneTapped: { model.presetsEditDoneTapped() },
+                onRetryTapped: { await model.retryLoadPresetsTapped() }
               )
             }
             ForEach(model.stationListsForDisplay) { list in
