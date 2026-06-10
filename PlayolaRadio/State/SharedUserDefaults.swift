@@ -29,6 +29,19 @@ extension SharedKey where Self == InMemoryKey<Bool>.Default {
   static var stationListsLoaded: Self {
     Self[.inMemory("stationListsLoaded"), default: false]
   }
+
+  /// Server-computed welcome-message eligibility, refreshed from the rewards profile on launch.
+  /// In-memory only — the durable "seen" state lives on the server.
+  static var welcomeMessageEligible: Self {
+    Self[.inMemory("welcomeMessageEligible"), default: false]
+  }
+
+  /// Local, refresh-proof suppression: set once the welcome has been presented this launch.
+  /// Kept separate from `welcomeMessageEligible` so a rewards-profile refresh (which may still
+  /// report eligible until the server records "seen") cannot re-arm a second presentation.
+  static var welcomeMessageShownThisSession: Self {
+    Self[.inMemory("welcomeMessageShownThisSession"), default: false]
+  }
 }
 
 extension SharedKey

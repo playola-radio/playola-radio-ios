@@ -197,6 +197,8 @@ class AuthService: @unchecked Sendable {
     @Shared(.airings) var airings
     @Shared(.lastNotificationSentAt) var lastNotificationSentAt
     @Shared(.isBroadcaster) var isBroadcaster
+    @Shared(.welcomeMessageEligible) var welcomeMessageEligible
+    @Shared(.welcomeMessageShownThisSession) var welcomeMessageShownThisSession
 
     let jwt = auth.jwt
     let deviceId = registeredDeviceId
@@ -214,6 +216,8 @@ class AuthService: @unchecked Sendable {
     $airings.withLock { $0 = [] }
     $lastNotificationSentAt.withLock { $0 = [:] }
     $isBroadcaster.withLock { $0 = false }
+    $welcomeMessageEligible.withLock { $0 = false }
+    $welcomeMessageShownThisSession.withLock { $0 = false }
 
     UserDefaults.standard.removeObject(forKey: "analytics_session_paused_at")
   }

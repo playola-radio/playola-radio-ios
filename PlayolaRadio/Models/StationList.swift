@@ -259,21 +259,30 @@ struct APIStationItem: Codable {
   var visibility: StationListItemVisibility
   var station: PlayolaPlayer.Station?
   var urlStation: UrlStation?
+  // Decoded from the nested station JSON (PlayolaPlayer.Station drops unknown keys).
+  // Non-nil means the station has a welcome-message recording attached.
+  var welcomeMessageAudioBlockId: String?
 
   init(
     sortOrder: Int,
     visibility: StationListItemVisibility = .visible,
     station: PlayolaPlayer.Station?,
-    urlStation: UrlStation?
+    urlStation: UrlStation?,
+    welcomeMessageAudioBlockId: String? = nil
   ) {
     self.sortOrder = sortOrder
     self.visibility = visibility
     self.station = station
     self.urlStation = urlStation
+    self.welcomeMessageAudioBlockId = welcomeMessageAudioBlockId
   }
 
   private enum CodingKeys: String, CodingKey {
-    case sortOrder, visibility, station, urlStation
+    case sortOrder, visibility, station, urlStation, welcomeMessageAudioBlockId
+  }
+
+  private struct StationWelcomeMessageProbe: Decodable {
+    let welcomeMessageAudioBlockId: String?
   }
 
   init(from decoder: Decoder) throws {
@@ -284,6 +293,12 @@ struct APIStationItem: Codable {
       ?? .visible
     station = try container.decodeIfPresent(PlayolaPlayer.Station.self, forKey: .station)
     urlStation = try container.decodeIfPresent(UrlStation.self, forKey: .urlStation)
+    // Server payload nests the id inside station; our own cached encoding stores it top-level.
+    welcomeMessageAudioBlockId =
+      (try? container.decodeIfPresent(StationWelcomeMessageProbe.self, forKey: .station))?
+      .welcomeMessageAudioBlockId
+      ?? (try? container.decodeIfPresent(String.self, forKey: .welcomeMessageAudioBlockId))
+      ?? nil
   }
 }
 

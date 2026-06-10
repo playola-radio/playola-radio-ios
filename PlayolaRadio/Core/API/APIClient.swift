@@ -52,6 +52,26 @@ struct APIClient: Sendable {
     RewardsProfile(totalTimeListenedMS: 0, totalMSAvailableForRewards: 0, accurateAsOfTime: Date())
   }
 
+  /// Marks the welcome message as seen for the authenticated user (write-once, idempotent).
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station that triggered the welcome (stored for attribution)
+  /// - Throws: APIError if the request fails
+  var markWelcomeMessageSeen:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws ->
+      Void = { _, _ in }
+
+  /// Fetches a station's welcome-message recording (AudioBlock with downloadUrl + durationMS).
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station to fetch the welcome message for
+  /// - Returns: The welcome-message AudioBlock, or nil when the station has none
+  /// - Throws: APIError if the request fails
+  var getStationWelcomeMessage:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> AudioBlock? = { _, _ in
+      nil
+    }
+
   /// Fetches all available prize tiers from the rewards system
   /// - Returns: Array of PrizeTier objects containing tiers and their associated prizes
   var getPrizeTiers: @Sendable () async throws -> [PrizeTier] = { [] }
@@ -815,4 +835,8 @@ struct RegisteredDevice: Decodable, Equatable {
   let deviceToken: String
   let platform: String
   let isActive: Bool
+}
+
+struct StationWelcomeMessageResponse: Decodable {
+  let welcomeMessage: AudioBlock?
 }
