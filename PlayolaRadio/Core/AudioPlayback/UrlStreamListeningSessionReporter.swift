@@ -125,7 +125,7 @@ public class UrlStreamListeningSessionReporter {
         guard !Task.isCancelled, let self else { return }
         guard let stationUrl = self.urlStreamPlayer?.currentStation?.streamUrl else {
           print("Error -- stationId should exist")
-          return
+          continue
         }
         self.reportOrExtendListeningSession(stationUrl)
       }

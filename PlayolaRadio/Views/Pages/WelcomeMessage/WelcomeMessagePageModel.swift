@@ -71,7 +71,7 @@ class WelcomeMessagePageModel: ViewModel {
       text: "Sometimes Broadcasts Live", revealAtFraction: 0.75),
   ]
 
-  // MARK: - State
+  // MARK: - Properties
 
   var playbackState: PlaybackState = .idle
   var isComplete = false
@@ -79,61 +79,6 @@ class WelcomeMessagePageModel: ViewModel {
   @ObservationIgnored private var playbackSession: PlaybackSession?
   @ObservationIgnored private var hasStartedPlaying = false
   @ObservationIgnored private var isStartingStation = false
-
-  // MARK: - View Helpers
-
-  var curatorName: String { station.name }
-  var personalDJLabel: String { "Is Your Personal DJ" }
-  var imageURL: URL? { station.imageUrl }
-
-  var progress: Double { isComplete ? 1 : playbackState.progress }
-
-  func isChipRevealed(_ chip: WelcomeMessageChip) -> Bool {
-    progress >= chip.revealAtFraction
-  }
-
-  func chipOpacity(_ chip: WelcomeMessageChip) -> Double {
-    isChipRevealed(chip) ? 1 : 0
-  }
-
-  func chipOffset(_ chip: WelcomeMessageChip) -> CGFloat {
-    isChipRevealed(chip) ? 0 : 10
-  }
-
-  // Chips hand off to the "Now playing" card once the message wraps.
-  var chipStackOpacity: Double { isComplete ? 0 : 1 }
-  var nowPlayingCardOpacity: Double { isComplete ? 1 : 0 }
-  var nowPlayingCardLabel: String { "Now Playing" }
-
-  // Best-effort preview of what's airing on the station now, derived live from the
-  // fetched schedule + the current clock (the station itself isn't playing yet). Falls
-  // back to the station/curator when there's no schedule or nothing is airing.
-  var nowPlayingSpin: Spin? { schedule?.nowPlaying() }
-
-  var nowPlayingCardTitle: String {
-    guard let audioBlock = nowPlayingSpin?.audioBlock else { return station.stationName }
-    if audioBlock.type == "commercial" { return "Playola Pays" }
-    if audioBlock.type == "song" { return audioBlock.title }
-    return nowPlayingSpin?.airing?.episode?.title ?? station.stationName
-  }
-
-  var nowPlayingCardSubtitle: String {
-    guard let audioBlock = nowPlayingSpin?.audioBlock, audioBlock.type == "song" else {
-      return "with \(station.name)"
-    }
-    return audioBlock.artist
-  }
-
-  var equalizerOpacity: Double { isComplete ? 0 : 1 }
-
-  var skipButtonTitle: String { "Skip" }
-  var skipButtonOpacity: Double { isComplete ? 0 : 1 }
-
-  var primaryButtonTitle: String { "Start Listening" }
-  var isPrimaryButtonEnabled: Bool { isComplete }
-  var primaryButtonBackground: Color { isComplete ? .playolaRed : Color(hex: "#2A1313") }
-  var primaryButtonForeground: Color { isComplete ? .white : .white.opacity(0.35) }
-  var primaryButtonGlowOpacity: Double { isComplete ? 0.5 : 0 }
 
   // MARK: - User Actions
 
@@ -198,6 +143,61 @@ class WelcomeMessagePageModel: ViewModel {
     }
   }
 
+  // MARK: - View Helpers
+
+  var curatorName: String { station.name }
+  var personalDJLabel: String { "IS YOUR PERSONAL DJ" }
+  var imageURL: URL? { station.imageUrl }
+
+  var progress: Double { isComplete ? 1 : playbackState.progress }
+
+  func isChipRevealed(_ chip: WelcomeMessageChip) -> Bool {
+    progress >= chip.revealAtFraction
+  }
+
+  func chipOpacity(_ chip: WelcomeMessageChip) -> Double {
+    isChipRevealed(chip) ? 1 : 0
+  }
+
+  func chipOffset(_ chip: WelcomeMessageChip) -> CGFloat {
+    isChipRevealed(chip) ? 0 : 10
+  }
+
+  // Chips hand off to the "Now playing" card once the message wraps.
+  var chipStackOpacity: Double { isComplete ? 0 : 1 }
+  var nowPlayingCardOpacity: Double { isComplete ? 1 : 0 }
+  var nowPlayingCardLabel: String { "NOW PLAYING" }
+
+  // Best-effort preview of what's airing on the station now, derived live from the
+  // fetched schedule + the current clock (the station itself isn't playing yet). Falls
+  // back to the station/curator when there's no schedule or nothing is airing.
+  var nowPlayingSpin: Spin? { schedule?.nowPlaying() }
+
+  var nowPlayingCardTitle: String {
+    guard let audioBlock = nowPlayingSpin?.audioBlock else { return station.stationName }
+    if audioBlock.type == "commercial" { return "Playola Pays" }
+    if audioBlock.type == "song" { return audioBlock.title }
+    return nowPlayingSpin?.airing?.episode?.title ?? station.stationName
+  }
+
+  var nowPlayingCardSubtitle: String {
+    guard let audioBlock = nowPlayingSpin?.audioBlock, audioBlock.type == "song" else {
+      return "with \(station.name)"
+    }
+    return audioBlock.artist
+  }
+
+  var equalizerOpacity: Double { isComplete ? 0 : 1 }
+
+  var skipButtonTitle: String { "Skip" }
+  var skipButtonOpacity: Double { isComplete ? 0 : 1 }
+
+  var primaryButtonTitle: String { "Start Listening" }
+  var isPrimaryButtonEnabled: Bool { isComplete }
+  var primaryButtonBackground: Color { isComplete ? .playolaRed : Color(hex: "#2A1313") }
+  var primaryButtonForeground: Color { isComplete ? .white : .white.opacity(0.35) }
+  var primaryButtonGlowOpacity: Double { isComplete ? 0.5 : 0 }
+
   // MARK: - Private Helpers
 
   private func loadSchedule() async {
@@ -206,7 +206,11 @@ class WelcomeMessagePageModel: ViewModel {
       guard !isStartingStation else { return }
       schedule = Schedule(
         stationId: station.id, spins: spins, dateProvider: DependencyDateProvider())
-    } catch {}
+    } catch {
+      // Best-effort: the schedule only feeds the optional Now Playing card. Log so an API
+      // regression stays visible rather than silently dropping the error.
+      print("WelcomeMessagePageModel: loadSchedule failed — \(error)")
+    }
   }
 
   private func playbackStateChanged(_ state: PlaybackState) {

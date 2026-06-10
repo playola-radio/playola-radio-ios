@@ -47,7 +47,7 @@ struct WelcomeMessagePageView: View {
             .font(.custom(FontNames.Inter_700_Bold, size: 30))
             .foregroundColor(.white)
             .multilineTextAlignment(.center)
-          Text(model.personalDJLabel.uppercased())
+          Text(model.personalDJLabel)
             .font(.custom(FontNames.Inter_500_Medium, size: 14))
             .kerning(1.7)
             .foregroundColor(.playolaRed)
@@ -176,7 +176,7 @@ struct WelcomeNowPlayingCardView: View {
 
   var body: some View {
     VStack(spacing: 8) {
-      Text(label.uppercased())
+      Text(label)
         .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
         .kerning(1.7)
         .foregroundColor(WelcomePalette.textSecondary)

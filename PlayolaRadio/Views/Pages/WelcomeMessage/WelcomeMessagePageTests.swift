@@ -16,35 +16,15 @@ import Testing
 struct WelcomeMessagePageModelTests {
 
   @Test
-  func testTaskPlaysRecordingAndDrivesChipsFromRealDuration() async throws {
+  func testTaskPlaysRecordingAndMarksSeen() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let player = StationPlayerMock()
     let capturedURL = LockIsolated<URL?>(nil)
     let stateSink = LockIsolated<(@MainActor @Sendable (PlaybackState) -> Void)?>(nil)
     let seenCalls = LockIsolated<[String]>([])
 
-    let model = withDependencies {
-      $0.analytics.track = { _ in }
-      $0.stationPlayer = player
-      $0.api.fetchSchedule = { _, _ in [] }
-      $0.api.getStationWelcomeMessage = { _, _ in
-        AudioBlock.mockWith(
-          durationMS: 8_000,
-          downloadUrl: URL(string: "https://example.com/welcome.m4a")
-        )
-      }
-      $0.api.markWelcomeMessageSeen = { _, stationId in
-        seenCalls.withValue { $0.append(stationId) }
-      }
-      $0.audioPlayer.startPlayback = { url, onStateChange in
-        capturedURL.setValue(url)
-        stateSink.setValue(onStateChange)
-        return PlaybackSession(play: {}, pause: {}, stop: {}, seek: { _ in }, cancel: {})
-      }
-    } operation: {
-      WelcomeMessagePageModel(station: .mockPlayola(id: "station-123"))
-    }
-
+    let model = makeRecordingModel(
+      player: player, capturedURL: capturedURL, stateSink: stateSink, seenCalls: seenCalls)
     await model.task()
 
     #expect(capturedURL.value == URL(string: "https://example.com/welcome.m4a"))
@@ -54,6 +34,19 @@ struct WelcomeMessagePageModelTests {
       if !seenCalls.value.isEmpty { break }
     }
     #expect(seenCalls.value == ["station-123"])
+  }
+
+  @Test
+  func testChipRevealsAndCompletionFollowRealDuration() async throws {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let player = StationPlayerMock()
+    let capturedURL = LockIsolated<URL?>(nil)
+    let stateSink = LockIsolated<(@MainActor @Sendable (PlaybackState) -> Void)?>(nil)
+    let seenCalls = LockIsolated<[String]>([])
+
+    let model = makeRecordingModel(
+      player: player, capturedURL: capturedURL, stateSink: stateSink, seenCalls: seenCalls)
+    await model.task()
     let send = try #require(stateSink.value)
 
     send(PlaybackState(currentTime: 1, duration: 8, isPlaying: true))
@@ -82,6 +75,35 @@ struct WelcomeMessagePageModelTests {
     #expect(model.isPrimaryButtonEnabled == true)
     #expect(model.nowPlayingCardOpacity == 1)
     #expect(model.skipButtonOpacity == 0)
+  }
+
+  private func makeRecordingModel(
+    player: StationPlayerMock,
+    capturedURL: LockIsolated<URL?>,
+    stateSink: LockIsolated<(@MainActor @Sendable (PlaybackState) -> Void)?>,
+    seenCalls: LockIsolated<[String]>
+  ) -> WelcomeMessagePageModel {
+    withDependencies {
+      $0.analytics.track = { _ in }
+      $0.stationPlayer = player
+      $0.api.fetchSchedule = { _, _ in [] }
+      $0.api.getStationWelcomeMessage = { _, _ in
+        AudioBlock.mockWith(
+          durationMS: 8_000,
+          downloadUrl: URL(string: "https://example.com/welcome.m4a")
+        )
+      }
+      $0.api.markWelcomeMessageSeen = { _, stationId in
+        seenCalls.withValue { $0.append(stationId) }
+      }
+      $0.audioPlayer.startPlayback = { url, onStateChange in
+        capturedURL.setValue(url)
+        stateSink.setValue(onStateChange)
+        return PlaybackSession(play: {}, pause: {}, stop: {}, seek: { _ in }, cancel: {})
+      }
+    } operation: {
+      WelcomeMessagePageModel(station: .mockPlayola(id: "station-123"))
+    }
   }
 
   // Tapping Skip while the recording is still being fetched must not start welcome audio

@@ -71,17 +71,19 @@ struct WelcomeMessageEligibilityTests {
     let decoder = JSONDecoder()
     decoder.dateDecodingStrategy = .iso8601
 
-    let withFlag = """
+    let withFlag = Data(
+      """
       {"totalTimeListenedMS":0,"totalMSAvailableForRewards":0,\
       "accurateAsOfTime":"2026-01-01T00:00:00Z","shouldShowWelcomeMessage":true}
-      """.data(using: .utf8)!
+      """.utf8)
     #expect(
       try decoder.decode(RewardsProfile.self, from: withFlag).shouldShowWelcomeMessage == true)
 
-    let withoutFlag = """
+    let withoutFlag = Data(
+      """
       {"totalTimeListenedMS":0,"totalMSAvailableForRewards":0,\
       "accurateAsOfTime":"2026-01-01T00:00:00Z"}
-      """.data(using: .utf8)!
+      """.utf8)
     #expect(
       try decoder.decode(RewardsProfile.self, from: withoutFlag).shouldShowWelcomeMessage == nil)
   }
@@ -167,22 +169,24 @@ struct WelcomeMessageEligibilityTests {
 
   @Test
   func testAPIStationItemDecodesWelcomeMessageAudioBlockIdFromNestedStation() throws {
-    let json = """
+    let json = Data(
+      """
       {"sortOrder":0,"visibility":"visible","station":{"id":"s1","name":"Radney Radio",\
       "curatorName":"Radney Foster","description":"d","createdAt":"2026-01-01T00:00:00Z",\
       "updatedAt":"2026-01-01T00:00:00Z","welcomeMessageAudioBlockId":"ab-123"}}
-      """.data(using: .utf8)!
+      """.utf8)
     let decoder = JSONDecoder()
     decoder.dateDecodingStrategy = .iso8601
     let item = try decoder.decode(APIStationItem.self, from: json)
     #expect(item.welcomeMessageAudioBlockId == "ab-123")
     #expect(item.station?.id == "s1")
 
-    let withoutId = """
+    let withoutId = Data(
+      """
       {"sortOrder":0,"visibility":"visible","station":{"id":"s1","name":"Radney Radio",\
       "curatorName":"Radney Foster","description":"d","createdAt":"2026-01-01T00:00:00Z",\
       "updatedAt":"2026-01-01T00:00:00Z"}}
-      """.data(using: .utf8)!
+      """.utf8)
     #expect(
       try decoder.decode(APIStationItem.self, from: withoutId).welcomeMessageAudioBlockId == nil)
   }
