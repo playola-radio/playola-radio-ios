@@ -14,7 +14,7 @@ public class UrlStreamListeningSessionReporter {
   var deviceId: String? {
     return UIDevice.current.identifierForVendor?.uuidString
   }
-  var timer: Timer?
+  private var notificationTask: Task<Void, Never>?
   @ObservationIgnored @Shared(.auth) var auth
   var disposeBag = Set<AnyCancellable>()
   weak var urlStreamPlayer: URLStreamPlayer?
@@ -50,7 +50,7 @@ public class UrlStreamListeningSessionReporter {
   }
 
   deinit {
-    timer?.invalidate()
+    notificationTask?.cancel()
   }
 
   public func endListeningSession() {
@@ -118,22 +118,23 @@ public class UrlStreamListeningSessionReporter {
   }
 
   private func startPeriodicNotifications() {
-    self.timer = Timer.scheduledTimer(
-      withTimeInterval: 10.0, repeats: true,
-      block: { [weak self] _ in
-        Task { @MainActor in
-          guard let self else { return }
-          guard let stationUrl = self.urlStreamPlayer?.currentStation?.streamUrl else {
-            print("Error -- stationId should exist")
-            return
-          }
-          self.reportOrExtendListeningSession(stationUrl)
+    notificationTask?.cancel()
+    notificationTask = Task { [weak self] in
+      while !Task.isCancelled {
+        try? await Task.sleep(for: .seconds(10))
+        guard !Task.isCancelled, let self else { return }
+        guard let stationUrl = self.urlStreamPlayer?.currentStation?.streamUrl else {
+          print("Error -- stationId should exist")
+          return
         }
-      })
+        self.reportOrExtendListeningSession(stationUrl)
+      }
+    }
   }
 
   private func stopPeriodicNotifications() {
-    self.timer?.invalidate()
+    notificationTask?.cancel()
+    notificationTask = nil
   }
 
   private func createPostRequest(url: URL, jsonData: Data) -> URLRequest? {

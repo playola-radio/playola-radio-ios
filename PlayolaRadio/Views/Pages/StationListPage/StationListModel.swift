@@ -80,6 +80,9 @@ class StationListModel: ViewModel {
   var pendingPresetRemovalStationIds: Set<String> = []
   @ObservationIgnored @Shared(.hasAskedForNotificationPermission)
   var hasAskedForNotificationPermission: Bool
+  @ObservationIgnored @Shared(.welcomeMessageEligible) var welcomeMessageEligible: Bool = false
+  @ObservationIgnored @Shared(.welcomeMessageShownThisSession)
+  var welcomeMessageShownThisSession: Bool = false
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
 
@@ -331,6 +334,11 @@ class StationListModel: ViewModel {
         totalStations: allStations.count
       ))
 
+    if shouldShowWelcomeMessage(for: item) {
+      presentWelcomeMessage(for: station)
+      return
+    }
+
     await analytics.track(
       .startedStation(
         station: StationInfo(from: station),
@@ -338,6 +346,22 @@ class StationListModel: ViewModel {
       ))
 
     await stationPlayer.play(station: station)
+  }
+
+  private func shouldShowWelcomeMessage(for item: APIStationItem) -> Bool {
+    WelcomeMessagePageModel.shouldPresent(
+      for: item,
+      eligible: welcomeMessageEligible,
+      alreadyShownThisSession: welcomeMessageShownThisSession)
+  }
+
+  // The server "seen" stamp happens in WelcomeMessagePageModel once the recording actually
+  // plays — a fetch/playback failure must not burn the user's one welcome. The session flag
+  // here still prevents repeat presentations this launch.
+  private func presentWelcomeMessage(for station: AnyStation) {
+    $welcomeMessageShownThisSession.withLock { $0 = true }
+    mainContainerNavigationCoordinator.presentedSheet = .welcomeMessage(
+      WelcomeMessagePageModel(station: station))
   }
 
   // MARK: - View Helpers

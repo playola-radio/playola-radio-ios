@@ -290,6 +290,18 @@ extension APIClient: DependencyKey {
       getRewardsProfile: { jwtToken in
         try await authenticatedGet(path: "/v1/rewards/users/me/profile", token: jwtToken)
       },
+      markWelcomeMessageSeen: { jwtToken, stationId in
+        try await authenticatedPostVoid(
+          path: "/v1/users/me/welcome-message-seen",
+          token: jwtToken,
+          parameters: ["stationId": stationId]
+        )
+      },
+      getStationWelcomeMessage: { jwtToken, stationId in
+        let response: StationWelcomeMessageResponse = try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/welcome-message", token: jwtToken)
+        return response.welcomeMessage
+      },
       getPrizeTiers: {
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/tiers"
 
