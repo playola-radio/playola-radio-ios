@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 9/26/25.
 //
 
+import SDWebImageSwiftUI
 import SwiftUI
 
 struct StationListStationRowView: View {
@@ -18,7 +19,7 @@ struct StationListStationRowView: View {
     HStack(spacing: 0) {
       Button(action: action) {
         HStack(spacing: 16) {
-          AsyncImage(url: model.imageUrl) { image in
+          WebImage(url: model.imageUrl) { image in
             image
               .resizable()
               .aspectRatio(contentMode: .fill)

@@ -8,6 +8,7 @@
 import Dependencies
 import Foundation
 import PlayolaPlayer
+import SDWebImageSwiftUI
 import Sharing
 import SwiftUI
 
@@ -55,15 +56,12 @@ struct SmallPlayer: View {
       // Player bar
       HStack(spacing: 16) {
         // Artwork
-        AsyncImage(url: artworkURL) { phase in
-          switch phase {
-          case .success(let image):
-            image
-              .resizable()
-              .scaledToFill()
-          default:
-            Color.gray.opacity(0.3)
-          }
+        WebImage(url: artworkURL) { image in
+          image
+            .resizable()
+            .scaledToFill()
+        } placeholder: {
+          Color.gray.opacity(0.3)
         }
         .frame(width: 64, height: 64)
         .clipped()

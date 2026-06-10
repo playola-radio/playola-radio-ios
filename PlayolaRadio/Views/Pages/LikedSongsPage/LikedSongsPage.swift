@@ -1,4 +1,5 @@
 import PlayolaPlayer
+import SDWebImageSwiftUI
 import SwiftUI
 
 struct LikedSongsPage: View {
@@ -114,7 +115,7 @@ struct SongRow: View {
   var body: some View {
     HStack(spacing: 12) {
       // Album Art Placeholder
-      AsyncImage(url: audioBlock.imageUrl) { image in
+      WebImage(url: audioBlock.imageUrl) { image in
         image
           .resizable()
           .aspectRatio(contentMode: .fill)
