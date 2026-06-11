@@ -71,37 +71,45 @@ jobs:
             echo "::error::CCI_TOKEN secret is not set — cannot trigger the release build."
             exit 1
           fi
-          # Idempotency: only trigger if CircleCI has no pipeline for this tag yet.
-          # Combined with the HEAD check above, a re-run RECOVERS a failed trigger
-          # but never duplicates a successful one. FAIL CLOSED — if the pipeline
-          # state can't be determined, do NOT POST (re-running retries the check),
-          # so a flaky API never causes a duplicate release build/upload.
-          # Note: the pipeline list is most-recent-first; a tag's pipeline is
-          # created within the same release cycle, so it is always on the first
-          # page relative to a re-run of this workflow.
-          LIST=$(mktemp)
-          GET_HTTP=$(curl -sS -o "$LIST" -w '%{http_code}' \
-            -H "Circle-Token: $CIRCLECI_TOKEN" \
-            "https://circleci.com/api/v2/project/gh/playola-radio/playola-radio-ios/pipeline")
-          if [ "$GET_HTTP" != "200" ]; then
-            echo "::error::Could not query existing CircleCI pipelines (HTTP $GET_HTTP); refusing to trigger to avoid a duplicate. Re-run this job to retry."
-            cat "$LIST"; exit 1
-          fi
-          EXISTING=$(jq -r --arg t "$TAG" 'if (.items | type) == "array" then ([.items[] | select(((.vcs // {}).tag // "") == $t)] | length) else "INVALID" end' "$LIST")
-          if ! printf '%s' "$EXISTING" | grep -qE '^[0-9]+$'; then
-            echo "::error::Unexpected response while checking existing pipelines; refusing to trigger. Re-run this job to retry."
-            cat "$LIST"; exit 1
-          fi
-          if [ "$EXISTING" != "0" ]; then
-            echo "CircleCI already has a pipeline for tag $TAG ($EXISTING found); skipping (idempotent)."
+          # Idempotency: page through the CircleCI pipeline list (most-recent-first)
+          # looking for an existing pipeline for this tag. Combined with the HEAD
+          # check above, a re-run RECOVERS a failed trigger but never duplicates a
+          # successful one. FAIL CLOSED — if the pipeline state can't be
+          # determined, do NOT POST (re-running retries the check), so a flaky API
+          # never causes a duplicate release build/upload. Paginating (not just the
+          # first page) keeps this correct even if other pipelines ran in between.
+          PAGE_TOKEN=""
+          FOUND=0
+          for _ in $(seq 1 10); do
+            URL="https://circleci.com/api/v2/project/gh/playola-radio/playola-radio-ios/pipeline"
+            [ -n "$PAGE_TOKEN" ] && URL="${URL}?page-token=${PAGE_TOKEN}"
+            LIST=$(mktemp)
+            GET_HTTP=$(curl -sS -o "$LIST" -w '%{http_code}' \
+              -H "Circle-Token: $CIRCLECI_TOKEN" "$URL")
+            if [ "$GET_HTTP" != "200" ]; then
+              echo "::error::Could not query existing CircleCI pipelines (HTTP $GET_HTTP); refusing to trigger to avoid a duplicate. Re-run this job to retry."
+              cat "$LIST"; exit 1
+            fi
+            if ! jq -e '(.items | type) == "array"' "$LIST" >/dev/null 2>&1; then
+              echo "::error::Unexpected response while checking existing pipelines; refusing to trigger. Re-run this job to retry."
+              cat "$LIST"; exit 1
+            fi
+            MATCH=$(jq -r --arg t "$TAG" '[.items[] | select(((.vcs // {}).tag // "") == $t)] | length' "$LIST")
+            if [ "$MATCH" != "0" ]; then FOUND=1; break; fi
+            PAGE_TOKEN=$(jq -r '.next_page_token // ""' "$LIST")
+            [ -z "$PAGE_TOKEN" ] && break
+          done
+          if [ "$FOUND" != "0" ]; then
+            echo "CircleCI already has a pipeline for tag $TAG; skipping (idempotent)."
             exit 0
           fi
           echo "Triggering CircleCI release pipeline for tag $TAG"
+          PAYLOAD=$(jq -nc --arg t "$TAG" '{tag: $t}')
           HTTP=$(curl -sS -o /tmp/cci-response.json -w '%{http_code}' \
             -X POST "https://circleci.com/api/v2/project/gh/playola-radio/playola-radio-ios/pipeline" \
             -H "Circle-Token: $CIRCLECI_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{\"tag\":\"$TAG\"}")
+            -d "$PAYLOAD")
           echo "CircleCI responded HTTP $HTTP:"
           cat /tmp/cci-response.json
           echo
