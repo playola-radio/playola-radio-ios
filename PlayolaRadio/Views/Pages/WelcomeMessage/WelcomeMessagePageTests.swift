@@ -135,32 +135,37 @@ struct WelcomeMessagePageModelTests {
     let startPlaybackCalled = LockIsolated(false)
     let (gateStream, gateContinuation) = AsyncStream<Void>.makeStream()
 
-    let model = withDependencies {
-      $0.analytics.track = { _ in }
-      $0.stationPlayer = player
-      $0.api.fetchSchedule = { _, _ in [] }
-      $0.api.getStationWelcomeMessage = { _, _ in
-        var iterator = gateStream.makeAsyncIterator()
-        _ = await iterator.next()
-        return AudioBlock.mockWith(downloadUrl: URL(string: "https://example.com/welcome.m4a"))
+    await withMainSerialExecutor {
+      let model = withDependencies {
+        $0.analytics.track = { _ in }
+        $0.stationPlayer = player
+        $0.api.fetchSchedule = { _, _ in [] }
+        $0.api.getStationWelcomeMessage = { _, _ in
+          var iterator = gateStream.makeAsyncIterator()
+          _ = await iterator.next()
+          return AudioBlock.mockWith(downloadUrl: URL(string: "https://example.com/welcome.m4a"))
+        }
+        $0.audioPlayer.startPlayback = { _, _ in
+          startPlaybackCalled.setValue(true)
+          return PlaybackSession(play: {}, pause: {}, stop: {}, seek: { _ in }, cancel: {})
+        }
+      } operation: {
+        WelcomeMessagePageModel(station: .mockPlayola(id: "station-123"))
       }
-      $0.audioPlayer.startPlayback = { _, _ in
-        startPlaybackCalled.setValue(true)
-        return PlaybackSession(play: {}, pause: {}, stop: {}, seek: { _ in }, cancel: {})
-      }
-    } operation: {
-      WelcomeMessagePageModel(station: .mockPlayola(id: "station-123"))
+
+      // The serial executor makes the interleaving deterministic: taskHandle is enqueued
+      // before the yield's continuation, so it runs to the fetch's gate suspension before
+      // skipButtonTapped() fires — exercising the isStartingStation guard, not racing it.
+      let taskHandle = Task { await model.task() }
+      await Task.yield()
+      await model.skipButtonTapped()
+      gateContinuation.yield()
+      gateContinuation.finish()
+      await taskHandle.value
+
+      #expect(startPlaybackCalled.value == false)
+      #expect(player.callsToPlay.map(\.id) == ["station-123"])
     }
-
-    let taskHandle = Task { await model.task() }
-    await Task.yield()
-    await model.skipButtonTapped()
-    gateContinuation.yield()
-    gateContinuation.finish()
-    await taskHandle.value
-
-    #expect(startPlaybackCalled.value == false)
-    #expect(player.callsToPlay.map(\.id) == ["station-123"])
   }
 
   @Test
