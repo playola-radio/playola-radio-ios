@@ -33,6 +33,9 @@ class HomePageModel: ViewModel {
   var mainContainerNavigationCoordinator
   @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
+  @ObservationIgnored @Shared(.welcomeMessageEligible) var welcomeMessageEligible: Bool = false
+  @ObservationIgnored @Shared(.welcomeMessageShownThisSession)
+  var welcomeMessageShownThisSession: Bool = false
 
   // MARK: - Properties
 
@@ -159,6 +162,16 @@ class HomePageModel: ViewModel {
   }
 
   func stationTapped(_ station: AnyStation) async {
+    if let item = stationItem(for: station),
+      WelcomeMessagePageModel.shouldPresent(
+        for: item,
+        eligible: welcomeMessageEligible,
+        alreadyShownThisSession: welcomeMessageShownThisSession)
+    {
+      presentWelcomeMessage(for: station)
+      return
+    }
+
     await analytics.track(
       .startedStation(
         station: StationInfo(from: station),
@@ -189,6 +202,20 @@ class HomePageModel: ViewModel {
   }
 
   // MARK: - Private Helpers
+
+  private func stationItem(for station: AnyStation) -> APIStationItem? {
+    stationLists
+      .flatMap { $0.stationItems(includeHidden: true) }
+      .first { $0.anyStation.id == station.id }
+  }
+
+  // Mirrors StationListModel.presentWelcomeMessage — the server "seen" stamp happens in
+  // WelcomeMessagePageModel once the recording actually plays.
+  private func presentWelcomeMessage(for station: AnyStation) {
+    $welcomeMessageShownThisSession.withLock { $0 = true }
+    mainContainerNavigationCoordinator.presentedSheet = .welcomeMessage(
+      WelcomeMessagePageModel(station: station))
+  }
 
   private func checkForScheduledShows() async {
     guard let jwt = auth.jwt else { return }

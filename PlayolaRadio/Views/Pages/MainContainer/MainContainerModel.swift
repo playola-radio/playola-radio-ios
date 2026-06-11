@@ -27,6 +27,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
   @ObservationIgnored @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker
+  @ObservationIgnored @Shared(.welcomeMessageEligible) var welcomeMessageEligible: Bool = false
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
@@ -183,6 +184,7 @@ class MainContainerModel: ViewModel {
     do {
       let rewards = try await api.getRewardsProfile(authJWT)
       self.$listeningTracker.withLock { $0 = ListeningTracker(rewardsProfile: rewards) }
+      self.$welcomeMessageEligible.withLock { $0 = rewards.shouldShowWelcomeMessage ?? false }
     } catch let err {
       // TODO: Show inline error state on the listening hours tile (instead of
       // a modal alert) — see PR #272 review. Background tile loads shouldn't

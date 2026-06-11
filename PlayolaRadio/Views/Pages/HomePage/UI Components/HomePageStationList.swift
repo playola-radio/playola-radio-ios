@@ -6,6 +6,7 @@
 //
 
 import IdentifiedCollections
+import SDWebImageSwiftUI
 import SwiftUI
 
 struct StationCardView: View {
@@ -21,7 +22,7 @@ struct StationCardView: View {
       label: {
         HStack(spacing: 2) {
           ZStack(alignment: .topLeading) {
-            AsyncImage(url: imageURL) { image in
+            WebImage(url: imageURL) { image in
               image
                 .resizable()
                 .aspectRatio(contentMode: .fill)
