@@ -81,6 +81,11 @@ class WelcomeMessagePageModel: ViewModel {
   // MARK: - User Actions
 
   func task() async {
+    // Take over playback the moment the welcome appears. Stopping any station that's
+    // already playing prevents its audio from overlapping the welcome recording, and
+    // clears currentStation so the later startStation() play() isn't a no-op (which would
+    // skip the .startingNewStation that dismisses this sheet).
+    stationPlayer.stop()
     async let scheduleLoad: Void = loadSchedule()
     await playWelcomeRecording()
     await scheduleLoad

@@ -107,6 +107,25 @@ struct WelcomeMessagePageModelTests {
     }
   }
 
+  // The welcome takes over playback: any station already playing is stopped so its audio
+  // doesn't overlap the welcome recording (and so the later play() isn't a no-op that would
+  // leave the interactive-dismiss-disabled sheet stuck).
+  @Test
+  func testTaskStopsCurrentStationSoWelcomeDoesNotOverlap() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let player = StationPlayerMock()
+    let capturedURL = LockIsolated<URL?>(nil)
+    let stateSink = LockIsolated<(@MainActor @Sendable (PlaybackState) -> Void)?>(nil)
+    let seenCalls = LockIsolated<[String]>([])
+
+    let model = makeRecordingModel(
+      player: player, capturedURL: capturedURL, stateSink: stateSink, seenCalls: seenCalls)
+    await model.task()
+
+    #expect(player.stopCalledCount >= 1)
+    #expect(player.callsToPlay.isEmpty)
+  }
+
   // Tapping Skip while the recording is still being fetched must not start welcome audio
   // over the already-starting station.
   @Test
