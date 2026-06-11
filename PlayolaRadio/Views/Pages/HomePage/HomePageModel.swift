@@ -68,6 +68,10 @@ class HomePageModel: ViewModel {
     }
   }
 
+  var introMessage: String { "Discover music through independent artist made radio stations." }
+
+  var stationListTitle: String { "Artist stations for you" }
+
   var supportMessageTileContent: String {
     let count = unreadSupportCount
     return count == 1 ? "1 New Message" : "\(count) New Messages"

@@ -56,6 +56,24 @@ class RecordPageModel: ViewModel {
     recordingPhase == .idle
   }
 
+  var navigationTitle: String { "Audio Recording" }
+
+  var doneButtonTitle: String { "Done" }
+
+  var waveformPlaceholderText: String { "Your recording will appear here" }
+
+  var recordingStatusText: String { "Recording" }
+
+  var recordButtonLabel: String { "Tap to Record" }
+
+  var stopButtonLabel: String { "Tap to Stop" }
+
+  var reRecordButtonLabel: String { "Try Again" }
+
+  var discardButtonTitle: String { "Discard" }
+
+  var useRecordingButtonTitle: String { "Use Recording" }
+
   // MARK: - Lifecycle
 
   func viewAppeared() async {

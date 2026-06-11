@@ -17,7 +17,7 @@ struct SeriesCard: View {
         .padding(.bottom, 16)
 
       // Show Title
-      Text(model.showWithAirings.show.title)
+      Text(model.showTitle)
         .font(.custom(FontNames.Inter_700_Bold, size: 21))
         .foregroundColor(.white)
         .padding(.bottom, 12)
@@ -35,14 +35,14 @@ struct SeriesCard: View {
 
       // Upcoming Episodes Header
       HStack {
-        Text("UPCOMING EPISODES")
+        Text(model.upcomingEpisodesHeader)
           .font(.custom(FontNames.Inter_500_Medium, size: 12))
           .tracking(0.06)
           .foregroundColor(Color(hex: "#c7c7c7"))
 
         Spacer()
 
-        Text("\(model.showWithAirings.upcomingAiringsCount) total")
+        Text(model.upcomingEpisodesCountText)
           .font(.custom(FontNames.Inter_400_Regular, size: 12))
           .foregroundColor(Color(hex: "#c7c7c7"))
       }
@@ -60,7 +60,7 @@ struct SeriesCard: View {
         Button {
           Task { await model.remindMeTapped() }
         } label: {
-          Text("Remind Me")
+          Text(model.remindMeButtonTitle)
             .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
@@ -104,12 +104,12 @@ struct SeriesCard: View {
 
       // Station Info
       VStack(alignment: .leading, spacing: 2) {
-        Text(model.showWithAirings.station?.name ?? "Unknown Station")
+        Text(model.stationName)
           .font(.custom(FontNames.Inter_500_Medium, size: 12))
           .tracking(0.06)
           .foregroundColor(Color(hex: "#c7c7c7"))
 
-        Text(model.showWithAirings.station?.curatorName ?? "")
+        Text(model.curatorName)
           .font(.custom(FontNames.Inter_500_Medium, size: 14))
           .foregroundColor(.white)
       }

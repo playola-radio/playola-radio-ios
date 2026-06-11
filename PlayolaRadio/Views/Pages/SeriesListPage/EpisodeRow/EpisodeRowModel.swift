@@ -42,6 +42,10 @@ class EpisodeRowModel: ViewModel {
     }
   }
 
+  var episodeTitle: String { airing.episode?.title ?? "Unknown Episode" }
+
+  var originallyAiredText: String { "First Aired \(originallyAiredDateText)" }
+
   var originallyAiredDateText: String {
     guard let createdAt = airing.episode?.createdAt else { return "" }
     let formatter = DateFormatter()

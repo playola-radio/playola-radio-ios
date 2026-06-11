@@ -52,6 +52,15 @@ class MainContainerModel: ViewModel {
   var presentedAlert: PlayolaAlert?
   var presentedToast: PlayolaToast?
 
+  var homeTabTitle: String { "Home" }
+  var stationsTabTitle: String { "Radio Stations" }
+  var rewardsTabTitle: String { "Rewards" }
+  var profileTabTitle: String { "Your Profile" }
+  var broadcastTabTitle: String { "Broadcast" }
+  var libraryTabTitle: String { "Library" }
+  var listenersTabTitle: String { "Listeners" }
+  var settingsTabTitle: String { "Profile" }
+
   var homePageModel = HomePageModel()
   var stationListModel = StationListModel()
   var rewardsPageModel = RewardsPageModel()

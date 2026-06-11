@@ -34,6 +34,12 @@ class SignInPageModel: ViewModel {
   var presentedAlert: PlayolaAlert?
 
   var googleSignInButtonTitle: String { "Sign in with Google" }
+  var welcomeTitle: String { "Welcome to Playola" }
+  var welcomeSubtitle: String { "Sign in to access your personalized radio stations" }
+  var termsAgreementText: String { "By signing in, you agree to our" }
+  var termsOfServiceText: String { "Terms of Service" }
+  var termsConjunctionText: String { "and" }
+  var privacyPolicyText: String { "Privacy Policy" }
 
   @ObservationIgnored
   var keyWindowProvider: @MainActor () -> UIViewController? = {

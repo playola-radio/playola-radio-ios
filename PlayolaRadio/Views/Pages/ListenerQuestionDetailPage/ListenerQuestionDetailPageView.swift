@@ -28,7 +28,7 @@ struct ListenerQuestionDetailPageView: View {
     .toolbarBackground(.visible, for: .navigationBar)
     .toolbarBackground(Color.background, for: .navigationBar)
     .toolbarColorScheme(.dark, for: .navigationBar)
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
     .task { await model.viewAppeared() }
     .onDisappear { Task { await model.viewDisappeared() } }
   }
@@ -193,7 +193,7 @@ struct ListenerQuestionDetailPageView: View {
         .fill(Color.playolaRed)
         .frame(width: 10, height: 10)
 
-      Text("Recording")
+      Text(model.recordingIndicatorText)
         .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
         .foregroundColor(.playolaRed)
 

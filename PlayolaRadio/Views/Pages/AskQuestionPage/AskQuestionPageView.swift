@@ -37,7 +37,7 @@ struct AskQuestionPageView: View {
       }
       .padding()
     }
-    .navigationTitle("Ask \(model.curatorName)")
+    .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .navigationBarBackButtonHidden(true)
     .toolbarBackground(.visible, for: .navigationBar)
@@ -46,14 +46,14 @@ struct AskQuestionPageView: View {
     .toolbar {
       if !model.isUploading {
         ToolbarItem(placement: .navigationBarLeading) {
-          Button("Cancel") {
+          Button(model.cancelButtonTitle) {
             Task { await model.cancelTapped() }
           }
           .foregroundColor(.white)
         }
       }
     }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
     .task {
       await model.viewAppeared()
     }
@@ -63,18 +63,14 @@ struct AskQuestionPageView: View {
 
   @ViewBuilder
   private var instructionsHeader: some View {
-    Text(
-      "Start with your name and where you’re listening from, then ask "
-        + "\(model.curatorName) a question. If they choose yours, your "
-        + "question and their response will air on the station."
-    )
-    .font(.custom(FontNames.Inter_500_Medium, size: 16))
-    .foregroundColor(.white)
-    .multilineTextAlignment(.center)
-    .padding(.vertical, 16)
-    .padding(.horizontal, 12)
-    .background(Color(hex: "#1A1A1A"))
-    .cornerRadius(12)
+    Text(model.instructionsText)
+      .font(.custom(FontNames.Inter_500_Medium, size: 16))
+      .foregroundColor(.white)
+      .multilineTextAlignment(.center)
+      .padding(.vertical, 16)
+      .padding(.horizontal, 12)
+      .background(Color(hex: "#1A1A1A"))
+      .cornerRadius(12)
   }
 
   // MARK: - Waveform Section
@@ -86,7 +82,7 @@ struct AskQuestionPageView: View {
       RoundedRectangle(cornerRadius: 8)
         .fill(Color(hex: "#1A1A1A"))
         .overlay(
-          Text("Your recording will appear here")
+          Text(model.waveformPlaceholderText)
             .font(.custom(FontNames.Inter_400_Regular, size: 14))
             .foregroundColor(Color(hex: "#4A4A4A"))
         )
@@ -110,7 +106,7 @@ struct AskQuestionPageView: View {
           Circle()
             .fill(Color.playolaRed)
             .frame(width: 10, height: 10)
-          Text("Recording")
+          Text(model.recordingIndicatorText)
             .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
             .foregroundColor(.playolaRed)
         }
@@ -178,22 +174,10 @@ struct AskQuestionPageView: View {
 
   // MARK: - Button Label
 
-  @ViewBuilder
   private var buttonLabel: some View {
-    switch model.recordingPhase {
-    case .idle:
-      Text("Tap to Record")
-        .font(.custom(FontNames.Inter_400_Regular, size: 16))
-        .foregroundColor(.playolaGray)
-    case .recording:
-      Text("Tap to Stop")
-        .font(.custom(FontNames.Inter_400_Regular, size: 16))
-        .foregroundColor(.playolaGray)
-    case .review:
-      Text("Try Again")
-        .font(.custom(FontNames.Inter_400_Regular, size: 16))
-        .foregroundColor(.playolaGray)
-    }
+    Text(model.recordButtonLabel)
+      .font(.custom(FontNames.Inter_400_Regular, size: 16))
+      .foregroundColor(.playolaGray)
   }
 
   // MARK: - Review Controls
@@ -218,7 +202,7 @@ struct AskQuestionPageView: View {
       } label: {
         HStack(spacing: 6) {
           Image(systemName: "paperplane.fill")
-          Text("Send Question")
+          Text(model.sendButtonTitle)
         }
         .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
         .foregroundColor(.white)

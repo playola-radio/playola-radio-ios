@@ -13,14 +13,14 @@ struct EpisodeRow: View {
     VStack(alignment: .leading, spacing: 8) {
       // Episode Title row with optional Originally Aired badge
       HStack {
-        Text(model.airing.episode?.title ?? "Unknown Episode")
+        Text(model.episodeTitle)
           .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
           .foregroundColor(.white)
 
         Spacer()
 
         if model.hasAiredBefore {
-          OriginallyAiredBadge(dateText: model.originallyAiredDateText)
+          OriginallyAiredBadge(text: model.originallyAiredText)
         }
       }
 
@@ -98,10 +98,10 @@ struct CalendarDateBadge: View {
 // MARK: - Originally Aired Badge
 
 struct OriginallyAiredBadge: View {
-  let dateText: String
+  let text: String
 
   var body: some View {
-    Text("First Aired \(dateText)")
+    Text(text)
       .font(.custom(FontNames.Inter_500_Medium, size: 11))
       .foregroundColor(Color(hex: "#bababa"))
       .padding(.horizontal, 8)

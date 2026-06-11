@@ -26,19 +26,19 @@ struct BroadcastPageView: View {
 
           BroadcastActionButton(
             icon: .asset("BroadcastMicIcon", width: 32, height: 40),
-            label: "VoiceTrack",
+            label: model.voiceTrackButtonLabel,
             action: model.onAddVoiceTrackTapped
           )
 
           BroadcastActionButton(
             icon: .asset("BroadcastAddSongIcon", width: 40, height: 40),
-            label: "Add Song",
+            label: model.addSongButtonLabel,
             action: { Task { await model.onAddSongTapped() } }
           )
 
           BroadcastActionButton(
             icon: .system("bell.fill"),
-            label: "Notify",
+            label: model.notifyButtonLabel,
             isEnabled: model.canSendNotification,
             sublabel: model.notificationRestTimeRemainingString,
             action: model.onNotifyListenersTapped
@@ -68,7 +68,7 @@ struct BroadcastPageView: View {
             // Now Playing (fixed, doesn't scroll)
             if let nowPlaying = model.nowPlaying {
               VStack(spacing: 0) {
-                NowPlayingContentView(spin: nowPlaying)
+                NowPlayingContentView(spin: nowPlaying, liveNowLabel: model.liveNowLabel)
                   .id(nowPlaying.id)
                   .transition(.opacity)
 
@@ -94,6 +94,7 @@ struct BroadcastPageView: View {
 
                   ScheduleRowView(
                     spin: spin,
+                    airtimeLabel: model.airtimeLabel(for: spin),
                     isBeingRescheduled: model.spinIdsBeingRescheduled.contains(spin.id),
                     isDeletable: isDeletable
                   )
@@ -145,7 +146,7 @@ struct BroadcastPageView: View {
     .task {
       await model.viewAppeared()
     }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
     .sheet(isPresented: $model.showNotifyListenersSheet) {
       NotifyListenersSheet(model: model)
     }
@@ -155,7 +156,7 @@ struct BroadcastPageView: View {
 
   private var stagingSection: some View {
     VStack(alignment: .leading, spacing: 0) {
-      Text("READY TO PLACE")
+      Text(model.stagingSectionTitle)
         .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
         .foregroundColor(.playolaGray)
         .padding(.horizontal, 16)
@@ -243,6 +244,7 @@ struct StagingRowView: View {
 
 struct NowPlayingContentView: View {
   let spin: Spin
+  let liveNowLabel: String
 
   var body: some View {
     HStack(spacing: 12) {
@@ -266,7 +268,7 @@ struct NowPlayingContentView: View {
       Spacer()
 
       // Live Now badge
-      Text("LIVE NOW")
+      Text(liveNowLabel)
         .font(.custom(FontNames.Inter_600_SemiBold, size: 10))
         .foregroundColor(.playolaRed)
         .padding(.horizontal, 8)
@@ -286,22 +288,23 @@ struct NowPlayingContentView: View {
 
 struct ScheduleRowView: View {
   let spin: Spin
+  let airtimeLabel: String
   let isBeingRescheduled: Bool
   let isDeletable: Bool
 
-  init(spin: Spin, isBeingRescheduled: Bool = false, isDeletable: Bool = true) {
+  init(
+    spin: Spin,
+    airtimeLabel: String,
+    isBeingRescheduled: Bool = false,
+    isDeletable: Bool = true
+  ) {
     self.spin = spin
+    self.airtimeLabel = airtimeLabel
     self.isBeingRescheduled = isBeingRescheduled
     self.isDeletable = isDeletable
   }
 
   var isGrouped: Bool { spin.spinGroupId != nil }
-
-  private var timeString: String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "h:mm:ssa"
-    return formatter.string(from: spin.airtime).lowercased()
-  }
 
   private var rowBackgroundColor: Color {
     if spin.audioBlock.type == "commercial" {
@@ -357,7 +360,7 @@ struct ScheduleRowView: View {
             .tint(.playolaGray)
             .scaleEffect(0.8)
         } else {
-          Text("at \(timeString)")
+          Text(airtimeLabel)
             .font(.custom(FontNames.Inter_400_Regular, size: 11))
             .foregroundColor(.playolaGray)
         }
@@ -381,20 +384,13 @@ struct NotifyListenersSheet: View {
   @Bindable var model: BroadcastPageModel
   @FocusState private var isTextFieldFocused: Bool
 
-  private let placeholderText = """
-    Tell your listeners what you're up to...
-
-    "I'm going live from the van!"
-    "Playing my favorite road songs today"
-    """
-
   var body: some View {
     NavigationStack {
       ZStack {
         Color.black.ignoresSafeArea()
 
         VStack(spacing: 20) {
-          Text("Tell your listeners you're about to go live.")
+          Text(model.notifyListenersPrompt)
             .font(.custom(FontNames.Inter_400_Regular, size: 14))
             .foregroundColor(.playolaGray)
             .multilineTextAlignment(.center)
@@ -402,7 +398,7 @@ struct NotifyListenersSheet: View {
 
           ZStack(alignment: .topLeading) {
             if model.notifyMessage.isEmpty {
-              Text(placeholderText)
+              Text(model.notifyMessagePlaceholder)
                 .font(.custom(FontNames.Inter_400_Regular, size: 16))
                 .foregroundColor(Color(hex: "#666666"))
                 .padding(.horizontal, 12)
@@ -438,7 +434,7 @@ struct NotifyListenersSheet: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 50)
             } else {
-              Text("Send Notification")
+              Text(model.sendNotificationButtonTitle)
                 .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
@@ -460,14 +456,14 @@ struct NotifyListenersSheet: View {
         }
         .padding(.top, 20)
       }
-      .navigationTitle("Notify Listeners")
+      .navigationTitle(model.notifyListenersTitle)
       .navigationBarTitleDisplayMode(.inline)
       .toolbarBackground(.visible, for: .navigationBar)
       .toolbarBackground(Color.black, for: .navigationBar)
       .toolbarColorScheme(.dark, for: .navigationBar)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
-          Button("Cancel") {
+          Button(model.cancelButtonTitle) {
             model.cancelNotifyListeners()
           }
           .foregroundColor(.white)
@@ -478,7 +474,7 @@ struct NotifyListenersSheet: View {
     .onAppear {
       isTextFieldFocused = true
     }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
   }
 }
 

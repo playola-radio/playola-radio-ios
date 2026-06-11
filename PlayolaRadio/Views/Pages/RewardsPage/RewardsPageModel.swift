@@ -72,6 +72,19 @@ class RewardsPageModel: ViewModel {
   var prizeTierButtonText: String { "Redeem" }
   var prizeTierRedeemedText: String { "Redeemed" }
 
+  var navigationTitle: String { "Listener Rewards" }
+  var yourRewardsTitle: String { "Your rewards" }
+  var yourRewardsSubtitle: String {
+    "Earn rewards from your fav artists for being an early Playola listener!"
+  }
+
+  func prizeTierHoursToGoText(for prizeTier: PrizeTier) -> String {
+    if case .moreTimeRequired(let hoursToGo) = redemptionStatus(for: prizeTier) {
+      return "\(hoursToGo) hours to go"
+    }
+    return ""
+  }
+
   // MARK: - User Actions
 
   func viewAppeared() async {

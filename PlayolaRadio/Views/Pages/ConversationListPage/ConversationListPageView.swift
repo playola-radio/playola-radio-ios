@@ -21,7 +21,7 @@ struct ConversationListPageView: View {
         conversationList
       }
     }
-    .navigationTitle("Support Conversations")
+    .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .toolbarBackground(.visible, for: .navigationBar)
     .toolbarBackground(Color.black, for: .navigationBar)
@@ -32,7 +32,7 @@ struct ConversationListPageView: View {
     .refreshable {
       await model.refresh()
     }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
   }
 
   private var emptyState: some View {
@@ -41,7 +41,7 @@ struct ConversationListPageView: View {
         .font(.system(size: 48))
         .foregroundColor(Color(hex: "#666666"))
 
-      Text("No conversations")
+      Text(model.emptyStateMessage)
         .font(.custom(FontNames.Inter_500_Medium, size: 16))
         .foregroundColor(Color(hex: "#888888"))
     }
