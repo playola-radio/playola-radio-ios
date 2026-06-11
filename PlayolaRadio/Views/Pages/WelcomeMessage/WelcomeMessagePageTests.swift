@@ -211,6 +211,7 @@ struct WelcomeMessagePageModelTests {
   // either (or both) must only start the station a single time.
   @Test
   func testSkipAndPrimaryButtonsStartStationOnlyOnce() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let player = StationPlayerMock()
     let events = LockIsolated<[AnalyticsEvent]>([])
 
