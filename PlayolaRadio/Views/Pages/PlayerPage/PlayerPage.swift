@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 6/12/25.
 //
 
+import SDWebImageSwiftUI
 import SwiftUI
 
 struct PlayerPage: View {
@@ -53,7 +54,7 @@ struct PlayerPage: View {
       ScrollView {
 
         // Main Image
-        AsyncImage(url: model.stationArtUrl) { image in
+        WebImage(url: model.stationArtUrl) { image in
           image
             .resizable()
             .aspectRatio(contentMode: .fill)

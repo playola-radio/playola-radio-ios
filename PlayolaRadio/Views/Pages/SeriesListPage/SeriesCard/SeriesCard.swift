@@ -4,6 +4,7 @@
 //
 
 import PlayolaPlayer
+import SDWebImageSwiftUI
 import SwiftUI
 
 struct SeriesCard: View {
@@ -85,7 +86,7 @@ struct SeriesCard: View {
     HStack(alignment: .top, spacing: 12) {
       // Station Image
       if let imageUrl = model.showWithAirings.station?.imageUrl {
-        AsyncImage(url: imageUrl) { image in
+        WebImage(url: imageUrl) { image in
           image
             .resizable()
             .aspectRatio(contentMode: .fill)
