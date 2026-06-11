@@ -6,6 +6,7 @@
 //
 
 import PlayolaPlayer
+import SDWebImageSwiftUI
 import SwiftUI
 
 struct SongDrawerView: View {
@@ -16,7 +17,7 @@ struct SongDrawerView: View {
 
       // HEADER
       HStack(spacing: 16) {
-        AsyncImage(url: model.audioBlock.imageUrl) { image in
+        WebImage(url: model.audioBlock.imageUrl) { image in
           image
             .resizable()
             .aspectRatio(contentMode: .fill)

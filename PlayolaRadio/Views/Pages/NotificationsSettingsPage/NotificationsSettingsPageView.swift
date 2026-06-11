@@ -5,6 +5,7 @@
 //  Created by Claude on 1/2/26.
 //
 
+import SDWebImageSwiftUI
 import SwiftUI
 
 struct NotificationsSettingsPageView: View {
@@ -140,7 +141,7 @@ struct NotificationsSettingsPageView: View {
 
   private func stationRow(item: StationNotificationItem) -> some View {
     HStack(spacing: 16) {
-      AsyncImage(url: item.station.imageUrl) { image in
+      WebImage(url: item.station.imageUrl) { image in
         image
           .resizable()
           .aspectRatio(contentMode: .fill)
