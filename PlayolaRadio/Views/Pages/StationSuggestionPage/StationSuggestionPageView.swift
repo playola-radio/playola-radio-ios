@@ -34,7 +34,7 @@ struct StationSuggestionPageView: View {
       }
       .toolbarBackground(.visible, for: .navigationBar)
       .toolbarBackground(Color.background, for: .navigationBar)
-      .alert(item: $model.presentedAlert) { $0.alert }
+      .playolaAlert($model.presentedAlert)
     }
     .onAppear { Task { await model.viewAppeared() } }
   }
@@ -149,7 +149,7 @@ struct StationSuggestionPageView: View {
           InDevelopmentBadge(text: model.inDevelopmentBadgeText(suggestion))
         }
 
-        Text("\(model.voteCountText(suggestion)) votes")
+        Text(model.voteCountLabel(suggestion))
           .font(.custom(FontNames.Inter_400_Regular, size: 13))
           .foregroundColor(.textSecondary)
       }

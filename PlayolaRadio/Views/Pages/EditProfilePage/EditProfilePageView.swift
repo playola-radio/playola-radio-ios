@@ -17,7 +17,7 @@ struct EditProfilePageView: View {
       VStack(spacing: 16) {
         // First Name Section
         VStack(alignment: .leading) {
-          Text("First Name")
+          Text(model.firstNameLabel)
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .foregroundColor(.white)
 
@@ -33,7 +33,7 @@ struct EditProfilePageView: View {
 
         // Last Name Section
         VStack(alignment: .leading) {
-          Text("Last Name")
+          Text(model.lastNameLabel)
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .foregroundColor(.white)
 
@@ -49,7 +49,7 @@ struct EditProfilePageView: View {
 
         // Email Section
         VStack(alignment: .leading) {
-          Text("Email")
+          Text(model.emailLabel)
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .foregroundColor(.white)
 
@@ -63,7 +63,7 @@ struct EditProfilePageView: View {
             .font(.custom(FontNames.Inter_500_Medium, size: 16))
             .disabled(true)
 
-          Text("This email is linked to your Apple ID and can't be changed here.")
+          Text(model.emailHelpText)
             .font(.custom(FontNames.Inter_400_Regular, size: 12))
             .foregroundColor(Color(hex: "#BABABA"))
             .padding(.top, 4)
@@ -75,7 +75,7 @@ struct EditProfilePageView: View {
             Task { await model.saveButtonTapped() }
           },
           label: {
-            Text("Save Profile")
+            Text(model.saveButtonTitle)
               .font(.custom(FontNames.Inter_500_Medium, size: 16))
               .foregroundColor(.white)
               .frame(maxWidth: .infinity)
@@ -95,7 +95,7 @@ struct EditProfilePageView: View {
       .padding(.top, 24)
     }
     .background(Color.black)
-    .navigationTitle("Edit Profile")
+    .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .navigationBarBackButtonHidden(true)
     .toolbar {
@@ -127,7 +127,7 @@ struct EditProfilePageView: View {
 
       model.viewAppeared()
     }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
   }
 }
 

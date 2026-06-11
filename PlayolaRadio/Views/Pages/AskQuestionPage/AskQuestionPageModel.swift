@@ -65,6 +65,32 @@ class AskQuestionPageModel: ViewModel {
     station.curatorName
   }
 
+  var navigationTitle: String {
+    "Ask \(curatorName)"
+  }
+
+  var instructionsText: String {
+    "Start with your name and where you’re listening from, then ask "
+      + "\(curatorName) a question. If they choose yours, your "
+      + "question and their response will air on the station."
+  }
+
+  let cancelButtonTitle = "Cancel"
+  let waveformPlaceholderText = "Your recording will appear here"
+  let recordingIndicatorText = "Recording"
+  let recordButtonLabelIdle = "Tap to Record"
+  let recordButtonLabelRecording = "Tap to Stop"
+  let recordButtonLabelReview = "Try Again"
+  let sendButtonTitle = "Send Question"
+
+  var recordButtonLabel: String {
+    switch recordingPhase {
+    case .idle: return recordButtonLabelIdle
+    case .recording: return recordButtonLabelRecording
+    case .review: return recordButtonLabelReview
+    }
+  }
+
   var displayTime: String {
     formatTime(recordingDuration)
   }

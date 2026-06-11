@@ -37,6 +37,8 @@ class EpisodeRowModel: ViewModel {
     }
   }
 
+  var episodeTitle: String { airing.episode?.title ?? "Unknown Episode" }
+
   // MARK: - Private Helpers
 
   private var formattedTime: String {

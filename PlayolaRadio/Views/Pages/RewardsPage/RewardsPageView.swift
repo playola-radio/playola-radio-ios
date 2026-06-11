@@ -21,7 +21,7 @@ struct RewardsPageView: View {
     VStack(spacing: 0) {
       // Sticky Title
       HStack {
-        Text("Listener Rewards")
+        Text(model.navigationTitle)
           .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 32))
           .foregroundColor(.white)
         Spacer()
@@ -42,11 +42,11 @@ struct RewardsPageView: View {
           // Your Rewards Section
           VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 8) {
-              Text("Your rewards")
+              Text(model.yourRewardsTitle)
                 .font(.custom("Inter_700_Bold", size: 24))
                 .foregroundColor(.white)
 
-              Text("Earn rewards from your fav artists for being an early Playola listener!")
+              Text(model.yourRewardsSubtitle)
                 .font(.custom(FontNames.Inter_500_Medium, size: 16))
                 .foregroundColor(.white)
                 .lineLimit(nil)
@@ -64,6 +64,7 @@ struct RewardsPageView: View {
                   status: model.redemptionStatus(for: prizeTier),
                   buttonText: model.prizeTierButtonText,
                   redeemedText: model.prizeTierRedeemedText,
+                  hoursToGoText: model.prizeTierHoursToGoText(for: prizeTier),
                   onRedeem: {
                     Task { await model.redeemPrizeTapped(for: prizeTier) }
                   }

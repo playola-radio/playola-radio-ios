@@ -165,7 +165,7 @@ struct MainContainer: View {
     }
     .tabItem {
       Image("HomeTabImage")
-      Text("Home")
+      Text(model.homeTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.home)
   }
@@ -182,7 +182,7 @@ struct MainContainer: View {
     }
     .tabItem {
       Image("RadioStationsTabImage")
-      Text("Radio Stations")
+      Text(model.stationsTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.stationsList)
   }
@@ -199,7 +199,7 @@ struct MainContainer: View {
     }
     .tabItem {
       Image("gift")
-      Text("Rewards")
+      Text(model.rewardsTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.rewards)
   }
@@ -216,7 +216,7 @@ struct MainContainer: View {
     }
     .tabItem {
       Image("ProfileTabImage")
-      Text("Your Profile")
+      Text(model.profileTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.profile)
   }
@@ -237,7 +237,7 @@ struct MainContainer: View {
     }
     .tabItem {
       Image(systemName: "antenna.radiowaves.left.and.right")
-      Text("Broadcast")
+      Text(model.broadcastTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.broadcast)
   }
@@ -256,7 +256,7 @@ struct MainContainer: View {
     }
     .tabItem {
       Image(systemName: "music.note.list")
-      Text("Library")
+      Text(model.libraryTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.library)
   }
@@ -275,7 +275,7 @@ struct MainContainer: View {
     }
     .tabItem {
       Image(systemName: "bubble.left.and.bubble.right")
-      Text("Listeners")
+      Text(model.listenersTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.listeners)
   }
@@ -292,7 +292,7 @@ struct MainContainer: View {
     }
     .tabItem {
       Image("ProfileTabImage")
-      Text("Profile")
+      Text(model.settingsTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.settings)
   }

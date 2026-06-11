@@ -33,6 +33,9 @@ class SupportPageModel: ViewModel {
     !newMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSending
   }
 
+  var navigationTitle: String { "Contact Us" }
+  var messageFieldPlaceholder: String { "Message" }
+
   func onViewAppeared() async {
     guard let jwt = auth.jwt else { return }
 

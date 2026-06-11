@@ -82,6 +82,7 @@ struct StationCardView: View {
 }
 
 struct HomePageStationList: View {
+  var title: String = "Artist stations for you"
   var stations: IdentifiedArrayOf<AnyStation>
   var liveStatusForStation: (String) -> LiveStatus?
   var hasUpcomingGiveawayForStation: (String) -> Bool
@@ -89,7 +90,7 @@ struct HomePageStationList: View {
 
   var body: some View {
     VStack(alignment: .leading) {
-      Text("Artist stations for you")
+      Text(title)
         .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 24))
         .fontWeight(.bold)
         .foregroundColor(.white)

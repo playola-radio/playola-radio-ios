@@ -13,7 +13,7 @@ struct EpisodeRow: View {
     VStack(alignment: .leading, spacing: 8) {
       // Episode Title row
       HStack {
-        Text(model.airing.episode?.title ?? "Unknown Episode")
+        Text(model.episodeTitle)
           .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
           .foregroundColor(.white)
 

@@ -19,6 +19,9 @@ class ConversationListPageModel: ViewModel {
   var isLoading = true
   var presentedAlert: PlayolaAlert?
 
+  var navigationTitle: String { "Support Conversations" }
+  var emptyStateMessage: String { "No conversations" }
+
   /// Conversations sorted with unread first, then by most recent
   var sortedConversations: [AdminConversationResponse] {
     conversations.sorted { first, second in
