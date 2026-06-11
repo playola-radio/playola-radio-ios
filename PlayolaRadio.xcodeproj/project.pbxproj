@@ -424,6 +424,11 @@
 		D3A1B2C001000000000000A4 /* StationVoiceCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000A2 /* StationVoiceCatalog.swift */; };
 		D3A1B2C001000000000000A5 /* StationVoiceCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000A2 /* StationVoiceCatalog.swift */; };
 		D3A1B2C001000000000000A6 /* StationVoiceCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000A3 /* StationVoiceCatalogTests.swift */; };
+		D3A1B2C001000000000000B4 /* PlaybackBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000B2 /* PlaybackBootstrap.swift */; };
+		D3A1B2C001000000000000B5 /* PlaybackBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000B2 /* PlaybackBootstrap.swift */; };
+		D3A1B2C001000000000000C4 /* PlayStationAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000C2 /* PlayStationAction.swift */; };
+		D3A1B2C001000000000000C5 /* PlayStationAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000C2 /* PlayStationAction.swift */; };
+		D3A1B2C001000000000000C6 /* PlayStationActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000C3 /* PlayStationActionTests.swift */; };
 		D3FF74D52FA7CA760052D500 /* CustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = D3FF74D42FA7CA760052D500 /* CustomDump */; };
 		F35D444BFD44486391C161D6 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 0B6E1320AC744E9FAEC2F50F /* Sentry */; };
 		FE02FE02FE02FE02FE02FE02 /* StationListPresetErrorReportingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE01FE01FE01FE01FE01FE01 /* StationListPresetErrorReportingTests.swift */; };
@@ -676,6 +681,9 @@
 		D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageTests.swift; sourceTree = "<group>"; };
 		D3A1B2C001000000000000A2 /* StationVoiceCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationVoiceCatalog.swift; sourceTree = "<group>"; };
 		D3A1B2C001000000000000A3 /* StationVoiceCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationVoiceCatalogTests.swift; sourceTree = "<group>"; };
+		D3A1B2C001000000000000B2 /* PlaybackBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackBootstrap.swift; sourceTree = "<group>"; };
+		D3A1B2C001000000000000C2 /* PlayStationAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayStationAction.swift; sourceTree = "<group>"; };
+		D3A1B2C001000000000000C3 /* PlayStationActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayStationActionTests.swift; sourceTree = "<group>"; };
 		D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageView.swift; sourceTree = "<group>"; };
 		D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageModel.swift; sourceTree = "<group>"; };
 		FE01FE01FE01FE01FE01FE01 /* StationListPresetErrorReportingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPresetErrorReportingTests.swift; sourceTree = "<group>"; };
@@ -1305,6 +1313,9 @@
 			children = (
 				D3A1B2C001000000000000A2 /* StationVoiceCatalog.swift */,
 				D3A1B2C001000000000000A3 /* StationVoiceCatalogTests.swift */,
+				D3A1B2C001000000000000B2 /* PlaybackBootstrap.swift */,
+				D3A1B2C001000000000000C2 /* PlayStationAction.swift */,
+				D3A1B2C001000000000000C3 /* PlayStationActionTests.swift */,
 			);
 			path = SiriIntents;
 			sourceTree = "<group>";
@@ -1912,6 +1923,8 @@
 				D30F00902E8592F0007BCC73 /* ToastView.swift in Sources */,
 				D3FEC80C2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */,
 				D3A1B2C001000000000000A5 /* StationVoiceCatalog.swift in Sources */,
+				D3A1B2C001000000000000B5 /* PlaybackBootstrap.swift in Sources */,
+				D3A1B2C001000000000000C5 /* PlayStationAction.swift in Sources */,
 				D30F00912E8592F0007BCC73 /* APIClient.swift in Sources */,
 				D35EFC3C2F192C76000F64A4 /* SupportPageModel.swift in Sources */,
 				D35EFC3D2F192C76000F64A4 /* SupportPageView.swift in Sources */,
@@ -2076,6 +2089,8 @@
 				D30257762E6342C900F4228B /* ToastView.swift in Sources */,
 				D3FEC80B2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */,
 				D3A1B2C001000000000000A4 /* StationVoiceCatalog.swift in Sources */,
+				D3A1B2C001000000000000B4 /* PlaybackBootstrap.swift in Sources */,
+				D3A1B2C001000000000000C4 /* PlayStationAction.swift in Sources */,
 				D339E5692BFD1C0800B9E35B /* APIClient.swift in Sources */,
 				D35EFC392F192C76000F64A4 /* SupportPageModel.swift in Sources */,
 				D35EFC3A2F192C76000F64A4 /* SupportPageView.swift in Sources */,
@@ -2114,6 +2129,7 @@
 				D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */,
 				D3FEC80D2EDF689F00A33AE8 /* ChooseStationToBroadcastPageTests.swift in Sources */,
 				D3A1B2C001000000000000A6 /* StationVoiceCatalogTests.swift in Sources */,
+				D3A1B2C001000000000000C6 /* PlayStationActionTests.swift in Sources */,
 				D3B744CB2E313B230042A427 /* ListeningTimeTileTests.swift in Sources */,
 				D3B744C52E31318A0042A427 /* RewardsPageTests.swift in Sources */,
 				D35EFC172F159728000F64A4 /* SeriesListPageTests.swift in Sources */,
