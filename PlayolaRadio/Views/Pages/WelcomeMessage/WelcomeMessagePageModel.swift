@@ -56,7 +56,7 @@ class WelcomeMessagePageModel: ViewModel {
     super.init()
   }
 
-  // MARK: - Constants
+  // MARK: - Properties
 
   // Three chips spaced equidistant along the recording.
   let chips: [WelcomeMessageChip] = [
@@ -71,8 +71,6 @@ class WelcomeMessagePageModel: ViewModel {
       text: "Sometimes Broadcasts Live", revealAtFraction: 0.75),
   ]
 
-  // MARK: - Properties
-
   var playbackState: PlaybackState = .idle
   var isComplete = false
   var schedule: Schedule?
@@ -83,6 +81,11 @@ class WelcomeMessagePageModel: ViewModel {
   // MARK: - User Actions
 
   func task() async {
+    // Take over playback the moment the welcome appears. Stopping any station that's
+    // already playing prevents its audio from overlapping the welcome recording, and
+    // clears currentStation so the later startStation() play() isn't a no-op (which would
+    // skip the .startingNewStation that dismisses this sheet).
+    stationPlayer.stop()
     async let scheduleLoad: Void = loadSchedule()
     await playWelcomeRecording()
     await scheduleLoad
@@ -98,6 +101,9 @@ class WelcomeMessagePageModel: ViewModel {
     do {
       downloadUrl = try await api.getStationWelcomeMessage(jwt, station.id)?.downloadUrl
     } catch {
+      // Best-effort: a failed fetch falls back to starting the station directly. Log so an API
+      // regression stays visible rather than silently dropping the error.
+      print("WelcomeMessagePageModel: getStationWelcomeMessage failed — \(error)")
       downloadUrl = nil
     }
 
@@ -220,6 +226,8 @@ class WelcomeMessagePageModel: ViewModel {
     }
     // Completion needs near-the-end progress, not just isPlaying == false — a buffering
     // stall mid-recording also reports not-playing and must not end the welcome early.
+    // While playing, only true end-of-file (>= 0.995) completes. Once playback stops, the
+    // engine often halts a hair early, so a lower threshold (>= 0.97) still counts as done.
     guard hasStartedPlaying, !isComplete else { return }
     if state.progress >= 0.995 || (!state.isPlaying && state.progress >= 0.97) {
       isComplete = true
@@ -233,7 +241,13 @@ class WelcomeMessagePageModel: ViewModel {
     let api = api
     let stationId = station.id
     Task.detached {
-      try? await api.markWelcomeMessageSeen(jwt, stationId)
+      do {
+        try await api.markWelcomeMessageSeen(jwt, stationId)
+      } catch {
+        // A failed write means the user may see the welcome again next session. Log so the
+        // regression stays visible rather than silently dropping the error.
+        print("WelcomeMessagePageModel: markWelcomeMessageSeen failed — \(error)")
+      }
     }
   }
 

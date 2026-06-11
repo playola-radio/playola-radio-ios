@@ -298,7 +298,6 @@ struct APIStationItem: Codable {
       (try? container.decodeIfPresent(StationWelcomeMessageProbe.self, forKey: .station))?
       .welcomeMessageAudioBlockId
       ?? (try? container.decodeIfPresent(String.self, forKey: .welcomeMessageAudioBlockId))
-      ?? nil
   }
 }
 
