@@ -14,9 +14,11 @@ struct PlayStationAction {
 
   func run(stationID: String) async -> PlayStationOutcome {
     guard auth.isLoggedIn else { return .requiresSignIn }
-    guard let station = StationVoiceCatalog().station(id: stationID) else { return .notFound }
+    let catalog = StationVoiceCatalog()
+    guard let station = catalog.station(id: stationID) else { return .notFound }
+    let label = catalog.match(id: stationID)?.label ?? station.stationName
     PlaybackBootstrap().prepareForPlayback()
     await stationPlayer.play(station: station)
-    return .playing(stationName: station.stationName)
+    return .playing(stationName: label)
   }
 }

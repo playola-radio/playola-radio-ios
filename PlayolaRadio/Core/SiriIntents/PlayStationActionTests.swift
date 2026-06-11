@@ -62,4 +62,35 @@ struct PlayStationActionTests {
     #expect(outcome == .playing(stationName: "KOKE FM"))
     #expect(player.currentStation?.id == "koke-fm-id")
   }
+
+  // A Playola (artist) station's `stationName` is the internal show name
+  // ("Bordertown Radio"), but Siri must confirm the curator-possessive label
+  // ("Radney Foster's Station") that the entity/suggestions surfaced. This drives
+  // `PlayStationAction().run` end to end so it genuinely guards the action's
+  // return value (a regression to `station.stationName` would fail here).
+  //
+  // Network is avoided by injecting `StationPlayerMock`, which overrides
+  // `play(station:)` to record the call instead of reaching the Playola schedule
+  // API (`StationPlayer`'s real Playola path calls
+  // `PlayolaStationPlayer.shared.play(stationId:)`, whose non-networking init is
+  // internal to the PlayolaPlayer package and unreachable from this test target).
+  @Test
+  func testPlayolaStationUsesCuratorPossessiveLabelInDialog() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let artistList = StationList.mockArtistList(items: [
+      APIStationItem(
+        sortOrder: 0,
+        station: Station.mockWith(
+          id: "rf-id", name: "Bordertown Radio", curatorName: "Radney Foster"), urlStation: nil)
+    ])
+    @Shared(.stationLists) var stationLists = IdentifiedArrayOf(uniqueElements: [artistList])
+    let player = StationPlayerMock()
+    let outcome = await withDependencies {
+      $0.stationPlayer = player
+    } operation: {
+      await PlayStationAction().run(stationID: "rf-id")
+    }
+    #expect(outcome == .playing(stationName: "Radney Foster's Station"))
+    #expect(player.callsToPlay.map(\.id) == ["rf-id"])
+  }
 }

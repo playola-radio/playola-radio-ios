@@ -106,4 +106,16 @@ struct StationVoiceCatalogTests {
   func testNormalizeFoldsDiacritics() {
     #expect(StationVoiceCatalog.normalize("Beyoncé") == "beyonce")
   }
+
+  @Test
+  func testLongerQueryDoesNotPrefixMatchShortStation() {
+    let list = StationList.mockArtistList(items: [
+      APIStationItem(
+        sortOrder: 0,
+        station: Station.mockWith(
+          id: "rock-id", name: "Rock", curatorName: "Rock"), urlStation: nil)
+    ])
+    @Shared(.stationLists) var stationLists = IdentifiedArrayOf(uniqueElements: [list])
+    #expect(StationVoiceCatalog().matches(query: "rockabilly").isEmpty)
+  }
 }

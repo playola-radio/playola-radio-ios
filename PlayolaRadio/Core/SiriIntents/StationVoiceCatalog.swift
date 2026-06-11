@@ -109,7 +109,7 @@ struct StationVoiceCatalog {
       let score: Int?
       if hay == needle {
         score = 100
-      } else if hay.hasPrefix(needle) || needle.hasPrefix(hay) {
+      } else if hay.hasPrefix(needle) {
         score = 60
       } else if needleWords.isSubset(of: hayWords) || hayWords.isSubset(of: needleWords) {
         score = 40  // every word of one side appears as a whole word in the other
