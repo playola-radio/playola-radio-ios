@@ -19,6 +19,7 @@ struct StationVoiceCatalog {
   /// the incoming query so matching is symmetric.
   static func normalize(_ raw: String) -> String {
     var text = raw.lowercased()
+    text = text.folding(options: .diacriticInsensitive, locale: nil)
     text = text.replacingOccurrences(of: "'s", with: "")
     text = text.replacingOccurrences(of: "\u{2019}s", with: "")  // curly apostrophe
     let allowed = CharacterSet.alphanumerics.union(.whitespaces)
@@ -94,20 +95,24 @@ struct StationVoiceCatalog {
     StationMatch(id: station.id, label: label(for: station))
   }
 
-  /// Exact normalized alias match beats prefix beats contains; nil = no relation
-  /// (fail closed).
+  /// Exact normalized alias match beats prefix beats whole-word containment.
+  /// Fails closed: fragments shorter than 3 chars, and loose mid-word substrings,
+  /// score nil so a misheard syllable never confidently plays the wrong station.
   private func bestScore(for station: AnyStation, needle: String) -> Int? {
+    guard needle.count >= 3 else { return nil }
+    let needleWords = Set(needle.split(separator: " ").map(String.init))
     var best: Int?
     for alias in aliases(for: station) {
       let hay = Self.normalize(alias)
       guard !hay.isEmpty else { continue }
+      let hayWords = Set(hay.split(separator: " ").map(String.init))
       let score: Int?
       if hay == needle {
         score = 100
       } else if hay.hasPrefix(needle) || needle.hasPrefix(hay) {
         score = 60
-      } else if hay.contains(needle) || needle.contains(hay) {
-        score = 30
+      } else if needleWords.isSubset(of: hayWords) || hayWords.isSubset(of: needleWords) {
+        score = 40  // every word of one side appears as a whole word in the other
       } else {
         score = nil
       }

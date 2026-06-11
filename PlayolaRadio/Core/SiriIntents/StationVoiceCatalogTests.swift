@@ -85,4 +85,25 @@ struct StationVoiceCatalogTests {
     #expect(StationVoiceCatalog.normalize("KOKE-FM") == "koke fm")
     #expect(StationVoiceCatalog.normalize("Q102/Z") == "q102 z")
   }
+
+  @Test
+  func testShortFragmentsFailClosed() {
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    let catalog = StationVoiceCatalog()
+    #expect(catalog.matches(query: "k").isEmpty)
+    #expect(catalog.matches(query: "fm").isEmpty)
+    #expect(catalog.matches(query: "q").isEmpty)
+  }
+
+  @Test
+  func testLegitimatePartialStillMatches() {
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    // "koke" is a real prefix of "KOKE FM" and should still resolve.
+    #expect(StationVoiceCatalog().matches(query: "koke").first?.id == "koke-fm-id")
+  }
+
+  @Test
+  func testNormalizeFoldsDiacritics() {
+    #expect(StationVoiceCatalog.normalize("Beyoncé") == "beyonce")
+  }
 }
