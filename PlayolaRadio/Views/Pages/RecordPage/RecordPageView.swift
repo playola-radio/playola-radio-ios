@@ -158,22 +158,10 @@ struct RecordPageView: View {
 
   // MARK: - Button Label Section
 
-  @ViewBuilder
   private var buttonLabelSection: some View {
-    switch model.recordingPhase {
-    case .idle:
-      Text(model.recordButtonLabel)
-        .font(.custom(FontNames.Inter_400_Regular, size: 16))
-        .foregroundColor(.playolaGray)
-    case .recording:
-      Text(model.stopButtonLabel)
-        .font(.custom(FontNames.Inter_400_Regular, size: 16))
-        .foregroundColor(.playolaGray)
-    case .review:
-      Text(model.reRecordButtonLabel)
-        .font(.custom(FontNames.Inter_400_Regular, size: 16))
-        .foregroundColor(.playolaGray)
-    }
+    Text(model.currentButtonLabel)
+      .font(.custom(FontNames.Inter_400_Regular, size: 16))
+      .foregroundColor(.playolaGray)
   }
 
   // MARK: - Bottom Section

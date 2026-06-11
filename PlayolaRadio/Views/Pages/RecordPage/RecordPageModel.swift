@@ -70,6 +70,14 @@ class RecordPageModel: ViewModel {
 
   var reRecordButtonLabel: String { "Try Again" }
 
+  var currentButtonLabel: String {
+    switch recordingPhase {
+    case .idle: return recordButtonLabel
+    case .recording: return stopButtonLabel
+    case .review: return reRecordButtonLabel
+    }
+  }
+
   var discardButtonTitle: String { "Discard" }
 
   var useRecordingButtonTitle: String { "Use Recording" }

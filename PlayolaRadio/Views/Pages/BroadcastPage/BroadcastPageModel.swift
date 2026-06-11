@@ -101,10 +101,14 @@ class BroadcastPageModel: ViewModel {
     """
   }
 
-  func airtimeLabel(for spin: Spin) -> String {
+  private static let airtimeFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateFormat = "h:mm:ssa"
-    let timeString = formatter.string(from: spin.airtime).lowercased()
+    return formatter
+  }()
+
+  func airtimeLabel(for spin: Spin) -> String {
+    let timeString = Self.airtimeFormatter.string(from: spin.airtime).lowercased()
     return "at \(timeString)"
   }
 
