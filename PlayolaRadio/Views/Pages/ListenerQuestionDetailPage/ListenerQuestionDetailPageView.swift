@@ -28,7 +28,7 @@ struct ListenerQuestionDetailPageView: View {
     .toolbarBackground(.visible, for: .navigationBar)
     .toolbarBackground(Color.background, for: .navigationBar)
     .toolbarColorScheme(.dark, for: .navigationBar)
-    .playolaAlert($model.presentedAlert)
+    .alert(item: $model.presentedAlert) { $0.alert }
     .task { await model.viewAppeared() }
     .onDisappear { Task { await model.viewDisappeared() } }
   }
