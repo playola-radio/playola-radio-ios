@@ -429,6 +429,12 @@
 		D3A1B2C001000000000000C4 /* PlayStationAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000C2 /* PlayStationAction.swift */; };
 		D3A1B2C001000000000000C5 /* PlayStationAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000C2 /* PlayStationAction.swift */; };
 		D3A1B2C001000000000000C6 /* PlayStationActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000C3 /* PlayStationActionTests.swift */; };
+		D3A1B2C001000000000000D4 /* RadioStationEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000D2 /* RadioStationEntity.swift */; };
+		D3A1B2C001000000000000D5 /* RadioStationEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000D2 /* RadioStationEntity.swift */; };
+		D3A1B2C001000000000000E4 /* PlayStationIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000E2 /* PlayStationIntent.swift */; };
+		D3A1B2C001000000000000E5 /* PlayStationIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000E2 /* PlayStationIntent.swift */; };
+		D3A1B2C001000000000000F4 /* PlayolaShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000F2 /* PlayolaShortcuts.swift */; };
+		D3A1B2C001000000000000F5 /* PlayolaShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000F2 /* PlayolaShortcuts.swift */; };
 		D3FF74D52FA7CA760052D500 /* CustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = D3FF74D42FA7CA760052D500 /* CustomDump */; };
 		F35D444BFD44486391C161D6 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 0B6E1320AC744E9FAEC2F50F /* Sentry */; };
 		FE02FE02FE02FE02FE02FE02 /* StationListPresetErrorReportingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE01FE01FE01FE01FE01FE01 /* StationListPresetErrorReportingTests.swift */; };
@@ -684,6 +690,9 @@
 		D3A1B2C001000000000000B2 /* PlaybackBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackBootstrap.swift; sourceTree = "<group>"; };
 		D3A1B2C001000000000000C2 /* PlayStationAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayStationAction.swift; sourceTree = "<group>"; };
 		D3A1B2C001000000000000C3 /* PlayStationActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayStationActionTests.swift; sourceTree = "<group>"; };
+		D3A1B2C001000000000000D2 /* RadioStationEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioStationEntity.swift; sourceTree = "<group>"; };
+		D3A1B2C001000000000000E2 /* PlayStationIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayStationIntent.swift; sourceTree = "<group>"; };
+		D3A1B2C001000000000000F2 /* PlayolaShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaShortcuts.swift; sourceTree = "<group>"; };
 		D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageView.swift; sourceTree = "<group>"; };
 		D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageModel.swift; sourceTree = "<group>"; };
 		FE01FE01FE01FE01FE01FE01 /* StationListPresetErrorReportingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPresetErrorReportingTests.swift; sourceTree = "<group>"; };
@@ -1316,6 +1325,9 @@
 				D3A1B2C001000000000000B2 /* PlaybackBootstrap.swift */,
 				D3A1B2C001000000000000C2 /* PlayStationAction.swift */,
 				D3A1B2C001000000000000C3 /* PlayStationActionTests.swift */,
+				D3A1B2C001000000000000D2 /* RadioStationEntity.swift */,
+				D3A1B2C001000000000000E2 /* PlayStationIntent.swift */,
+				D3A1B2C001000000000000F2 /* PlayolaShortcuts.swift */,
 			);
 			path = SiriIntents;
 			sourceTree = "<group>";
@@ -1925,6 +1937,9 @@
 				D3A1B2C001000000000000A5 /* StationVoiceCatalog.swift in Sources */,
 				D3A1B2C001000000000000B5 /* PlaybackBootstrap.swift in Sources */,
 				D3A1B2C001000000000000C5 /* PlayStationAction.swift in Sources */,
+				D3A1B2C001000000000000D5 /* RadioStationEntity.swift in Sources */,
+				D3A1B2C001000000000000E5 /* PlayStationIntent.swift in Sources */,
+				D3A1B2C001000000000000F5 /* PlayolaShortcuts.swift in Sources */,
 				D30F00912E8592F0007BCC73 /* APIClient.swift in Sources */,
 				D35EFC3C2F192C76000F64A4 /* SupportPageModel.swift in Sources */,
 				D35EFC3D2F192C76000F64A4 /* SupportPageView.swift in Sources */,
@@ -2091,6 +2106,9 @@
 				D3A1B2C001000000000000A4 /* StationVoiceCatalog.swift in Sources */,
 				D3A1B2C001000000000000B4 /* PlaybackBootstrap.swift in Sources */,
 				D3A1B2C001000000000000C4 /* PlayStationAction.swift in Sources */,
+				D3A1B2C001000000000000D4 /* RadioStationEntity.swift in Sources */,
+				D3A1B2C001000000000000E4 /* PlayStationIntent.swift in Sources */,
+				D3A1B2C001000000000000F4 /* PlayolaShortcuts.swift in Sources */,
 				D339E5692BFD1C0800B9E35B /* APIClient.swift in Sources */,
 				D35EFC392F192C76000F64A4 /* SupportPageModel.swift in Sources */,
 				D35EFC3A2F192C76000F64A4 /* SupportPageView.swift in Sources */,
