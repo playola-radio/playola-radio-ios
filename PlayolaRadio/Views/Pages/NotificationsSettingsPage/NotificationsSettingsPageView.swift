@@ -36,7 +36,7 @@ struct NotificationsSettingsPageView: View {
       }
     }
     .background(Color.black)
-    .navigationTitle("Notifications")
+    .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .navigationBarBackButtonHidden(true)
     .toolbar {
@@ -68,7 +68,7 @@ struct NotificationsSettingsPageView: View {
     .task {
       await model.viewAppeared()
     }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
   }
 
   private var emptyStateView: some View {
@@ -77,10 +77,10 @@ struct NotificationsSettingsPageView: View {
       Image(systemName: "bell.slash")
         .font(.system(size: 48))
         .foregroundColor(Color(hex: "#666666"))
-      Text("No stations available")
+      Text(model.emptyStateTitle)
         .font(.custom(FontNames.Inter_500_Medium, size: 18))
         .foregroundColor(Color(hex: "#BABABA"))
-      Text("No stations are currently available for notifications.")
+      Text(model.emptyStateMessage)
         .font(.custom(FontNames.Inter_400_Regular, size: 14))
         .foregroundColor(Color(hex: "#666666"))
         .multilineTextAlignment(.center)
@@ -93,10 +93,10 @@ struct NotificationsSettingsPageView: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
         VStack(alignment: .leading, spacing: 4) {
-          Text("All Notifications")
+          Text(model.allNotificationsTitle)
             .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
             .foregroundColor(.white)
-          Text("Enable or disable all station notifications")
+          Text(model.allNotificationsSubtitle)
             .font(.custom(FontNames.Inter_400_Regular, size: 12))
             .foregroundColor(Color(hex: "#BABABA"))
         }
@@ -121,7 +121,7 @@ struct NotificationsSettingsPageView: View {
 
   private var stationListSection: some View {
     VStack(alignment: .leading, spacing: 0) {
-      Text("Stations")
+      Text(model.stationsSectionTitle)
         .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
         .foregroundColor(Color(hex: "#BABABA"))
         .padding(.horizontal, 20)
