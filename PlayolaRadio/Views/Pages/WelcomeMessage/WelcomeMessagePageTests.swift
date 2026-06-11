@@ -23,17 +23,18 @@ struct WelcomeMessagePageModelTests {
     let stateSink = LockIsolated<(@MainActor @Sendable (PlaybackState) -> Void)?>(nil)
     let seenCalls = LockIsolated<[String]>([])
 
-    let model = makeRecordingModel(
-      player: player, capturedURL: capturedURL, stateSink: stateSink, seenCalls: seenCalls)
-    await model.task()
+    await withMainSerialExecutor {
+      let model = makeRecordingModel(
+        player: player, capturedURL: capturedURL, stateSink: stateSink, seenCalls: seenCalls)
+      await model.task()
 
-    #expect(capturedURL.value == URL(string: "https://example.com/welcome.m4a"))
-    #expect(player.callsToPlay.isEmpty)
-    for _ in 0..<100 {
+      #expect(capturedURL.value == URL(string: "https://example.com/welcome.m4a"))
+      #expect(player.callsToPlay.isEmpty)
+      // The "seen" write runs in a detached task; the main serial executor lets it complete
+      // deterministically after a single yield rather than polling.
       await Task.yield()
-      if !seenCalls.value.isEmpty { break }
+      #expect(seenCalls.value == ["station-123"])
     }
-    #expect(seenCalls.value == ["station-123"])
   }
 
   @Test
