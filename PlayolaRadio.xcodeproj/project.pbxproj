@@ -1635,7 +1635,6 @@
 				D35369FD2BFA4F49006942D6 /* Sources */,
 				D35369FE2BFA4F49006942D6 /* Frameworks */,
 				D35369FF2BFA4F49006942D6 /* Resources */,
-				A749B0FA144D4CBFB5A75066 /* Upload Debug Symbols to Sentry */,
 			);
 			buildRules = (
 			);
@@ -1771,25 +1770,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		A749B0FA144D4CBFB5A75066 /* Upload Debug Symbols to Sentry */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
-			);
-			name = "Upload Debug Symbols to Sentry";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script is responsible for uploading debug symbols and source context for Sentry.\nif which sentry-cli >/dev/null; then\n  export SENTRY_ORG=playola-radio\n  export SENTRY_PROJECT=apple-ios\n  sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 || echo \"warning: sentry-cli upload failed\"\nelse\n  echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		D30F00492E8592F0007BCC73 /* Sources */ = {
