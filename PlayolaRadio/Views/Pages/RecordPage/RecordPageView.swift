@@ -55,7 +55,7 @@ struct RecordPageView: View {
         }
       }
     }
-    .playolaAlert($model.presentedAlert)
+    .alert(item: $model.presentedAlert) { $0.alert }
     .task {
       await model.viewAppeared()
     }
