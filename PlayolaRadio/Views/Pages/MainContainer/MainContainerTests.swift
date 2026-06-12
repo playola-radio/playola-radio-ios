@@ -481,6 +481,21 @@ struct MainContainerTests {
   }
 
   @Test
+  func testRefreshOnForegroundRefreshesSiriShortcutSuggestions() async {
+    @Shared(.stationListsLoaded) var stationListsLoaded = false
+    let didRefresh = LockIsolated(false)
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { StationList.mocks }
+      $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.siriShortcuts.refreshSuggestions = { didRefresh.setValue(true) }
+    } operation: {
+      MainContainerModel()
+    }
+    await mainContainerModel.refreshOnForeground()
+    #expect(didRefresh.value == true)
+  }
+
+  @Test
   func testRefreshOnForegroundSkipsAiringsWhenNotLoggedIn() async {
     @Shared(.auth) var auth = Auth()
     @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []

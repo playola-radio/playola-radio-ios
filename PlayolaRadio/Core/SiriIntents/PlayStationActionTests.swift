@@ -53,14 +53,14 @@ struct PlayStationActionTests {
   func testLoggedInValidStationPlaysAndReturnsPlaying() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.stationLists) var stationLists = makeStationLists()
-    let player = StationPlayer()
+    let player = StationPlayerMock()
     let outcome = await withDependencies {
       $0.stationPlayer = player
     } operation: {
       await PlayStationAction().run(stationID: "koke-fm-id")
     }
     #expect(outcome == .playing(stationName: "KOKE FM"))
-    #expect(player.currentStation?.id == "koke-fm-id")
+    #expect(player.callsToPlay.map(\.id) == ["koke-fm-id"])
   }
 
   // A Playola (artist) station's `stationName` is the internal show name
