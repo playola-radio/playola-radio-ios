@@ -486,7 +486,6 @@ struct MainContainerTests {
     let didRefresh = LockIsolated(false)
     let mainContainerModel = withDependencies {
       $0.api.getStations = { StationList.mocks }
-      $0.pushNotifications.registerForRemoteNotifications = {}
       $0.siriShortcuts.refreshSuggestions = { didRefresh.setValue(true) }
     } operation: {
       MainContainerModel()

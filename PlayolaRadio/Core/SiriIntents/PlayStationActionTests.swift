@@ -30,7 +30,7 @@ struct PlayStationActionTests {
     @Shared(.auth) var auth = Auth()
     @Shared(.stationLists) var stationLists = makeStationLists()
     let outcome = await withDependencies {
-      $0.stationPlayer = StationPlayer()
+      $0.stationPlayer = StationPlayerMock()
     } operation: {
       await PlayStationAction().run(stationID: "koke-fm-id")
     }
@@ -42,7 +42,7 @@ struct PlayStationActionTests {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.stationLists) var stationLists = makeStationLists()
     let outcome = await withDependencies {
-      $0.stationPlayer = StationPlayer()
+      $0.stationPlayer = StationPlayerMock()
     } operation: {
       await PlayStationAction().run(stationID: "does-not-exist")
     }
