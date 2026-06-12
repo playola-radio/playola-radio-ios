@@ -56,6 +56,14 @@ platform :ios do
       output_directory: "./build",
       export_options: {
         method: "app-store",
+        # sentry-cocoa's SwiftPM `Sentry` product links statically (its symbols
+        # ship inside PlayolaRadio.app.dSYM), but Xcode still embeds an empty
+        # dynamic Sentry.framework stub with a fresh UUID every build and no
+        # matching dSYM. Handing that to Apple triggers the "missing dSYM for
+        # Sentry.framework" warning. We symbolicate via Sentry (the
+        # sentry_debug_files_upload below uploads the real app dSYM), not Apple's
+        # Organizer, so skip Apple's symbol upload to silence the warning.
+        uploadSymbols: false,
         provisioningProfiles: {
           "fm.playola.playolaradio.staging" => "match AppStore fm.playola.playolaradio.staging"
         }
@@ -122,6 +130,12 @@ platform :ios do
       xcargs: "-skipPackagePluginValidation -skipMacroValidation",
       export_options: {
         method: "app-store",
+        # See release_staging for rationale: Sentry links statically but Xcode
+        # embeds an empty dynamic Sentry.framework stub (fresh UUID, no dSYM).
+        # We symbolicate via Sentry (sentry_debug_files_upload uploads the real
+        # app dSYM), so skip Apple's symbol upload to silence the missing-dSYM
+        # warning.
+        uploadSymbols: false,
         provisioningProfiles: {
           "fm.playola.playolaradio" => "match AppStore fm.playola.playolaradio"
         }

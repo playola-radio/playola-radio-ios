@@ -21,6 +21,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.toast) var toast
   @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
+  @ObservationIgnored @Dependency(\.siriShortcuts) var siriShortcuts
   @ObservationIgnored @Dependency(\.appRating) var appRating
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
   @ObservationIgnored @Shared(.stationLists) var stationLists
@@ -105,7 +106,7 @@ class MainContainerModel: ViewModel {
     if !stationListsLoaded {
       do {
         let retrievedStationsLists = try await api.getStations()
-        self.$stationLists.withLock { $0 = retrievedStationsLists }
+        applyStationLists(retrievedStationsLists)
         self.$stationListsLoaded.withLock { $0 = true }
       } catch {
         presentedAlert = .errorLoadingStations
@@ -138,7 +139,7 @@ class MainContainerModel: ViewModel {
   func refreshOnForeground() async {
     do {
       let retrievedStationsLists = try await api.getStations()
-      self.$stationLists.withLock { $0 = retrievedStationsLists }
+      applyStationLists(retrievedStationsLists)
     } catch {
       await analytics.track(
         .apiError(
@@ -149,6 +150,11 @@ class MainContainerModel: ViewModel {
 
     await loadAirings()
     await fetchUnreadSupportCount()
+  }
+
+  private func applyStationLists(_ lists: IdentifiedArrayOf<StationList>) {
+    $stationLists.withLock { $0 = lists }
+    siriShortcuts.refreshSuggestions()
   }
 
   func handleScenePhaseChange(_ phase: ScenePhase) {

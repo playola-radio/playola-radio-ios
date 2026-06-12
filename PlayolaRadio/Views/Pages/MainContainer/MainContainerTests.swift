@@ -6,6 +6,7 @@
 //
 
 // swiftlint:disable force_try
+// swiftlint:disable file_length
 
 import ConcurrencyExtras
 import Dependencies
@@ -99,6 +100,21 @@ struct MainContainerTests {
     #expect(getStationsCallCount.value == 1)
     #expect(stationLists == StationList.mocks)
     #expect(stationListsLoaded)
+  }
+
+  @Test
+  func testViewAppearedRefreshesSiriShortcutSuggestions() async {
+    @Shared(.stationListsLoaded) var stationListsLoaded = false
+    let didRefresh = LockIsolated(false)
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { StationList.mocks }
+      $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.siriShortcuts.refreshSuggestions = { didRefresh.setValue(true) }
+    } operation: {
+      MainContainerModel()
+    }
+    await mainContainerModel.viewAppeared()
+    #expect(didRefresh.value == true)
   }
 
   @Test
