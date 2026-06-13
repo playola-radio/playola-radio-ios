@@ -1,3 +1,4 @@
+import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
@@ -70,14 +71,92 @@ struct StationVoiceCatalogTests {
   }
 
   @Test
-  func testHiddenListStationsAreExcluded() {
-    // StationList.mocks includes a hidden "in_development_list" containing a
-    // visible playola station (id "mock-playola-id"). It must never surface to Siri.
+  func testHiddenAndComingSoonStationsAreIncluded() {
+    // Siri fails toward inclusion: a station gated behind the secret-stations
+    // unlock everywhere else is still voice-playable. StationList.mocks covers
+    // all three gated shapes — a hidden list ("mock-playola-id"), a hidden item
+    // ("kftx-id"), and a coming-soon item ("lakes-country-id").
     @Shared(.stationLists) var stationLists = StationList.mocks
     let catalog = StationVoiceCatalog()
-    #expect(catalog.suggestedStations().contains { $0.id == "mock-playola-id" } == false)
-    #expect(catalog.station(id: "mock-playola-id") == nil)
-    #expect(catalog.match(id: "mock-playola-id") == nil)
+    let suggestedIDs = Set(catalog.suggestedStations().map(\.id))
+    #expect(suggestedIDs.contains("mock-playola-id"))
+    #expect(suggestedIDs.contains("kftx-id"))
+    #expect(suggestedIDs.contains("lakes-country-id"))
+    #expect(catalog.station(id: "mock-playola-id")?.id == "mock-playola-id")
+    #expect(catalog.match(id: "kftx-id")?.label == "97.5 KFTX")
+    #expect(catalog.matches(query: "Banned Radio").first?.id == "mock-playola-id")
+  }
+
+  @Test
+  func testInactiveStationsAreExcluded() {
+    // active == false means the app itself refuses to play it (see
+    // StationListModel.stationSelected); Siri must not offer a dead station.
+    // Covers both station kinds plus the nil-default (nil active == playable).
+    let list = StationList.mockArtistList(items: [
+      APIStationItem(
+        sortOrder: 0, station: nil,
+        urlStation: UrlStation.mockWith(id: "dead-url-id", name: "Dead Air FM", active: false)),
+      APIStationItem(
+        sortOrder: 1,
+        station: Station.mockWith(id: "dead-playola-id", name: "Off Air", active: false),
+        urlStation: nil),
+      APIStationItem(
+        sortOrder: 2,
+        station: Station.mockWith(id: "nil-active-id", name: "Defaulted", active: nil),
+        urlStation: nil),
+    ])
+    @Shared(.stationLists) var stationLists = IdentifiedArrayOf(uniqueElements: [list])
+    let catalog = StationVoiceCatalog()
+    let ids = Set(catalog.suggestedStations().map(\.id))
+    #expect(ids.contains("dead-url-id") == false)
+    #expect(ids.contains("dead-playola-id") == false)
+    #expect(ids.contains("nil-active-id"))  // nil active defaults to playable
+    #expect(catalog.station(id: "dead-playola-id") == nil)
+    #expect(catalog.matches(query: "Dead Air FM").isEmpty)
+  }
+
+  @Test
+  func testStationInMultipleListsIsDedupedKeepingFirstOccurrence() {
+    // The same id can live in more than one visible list with a different label
+    // per list. It must surface once, and the first list's label wins so
+    // catalog-order tie-breaking in matches() stays deterministic.
+    let now = Date()
+    func list(id: String, sortOrder: Int, label: String) -> StationList {
+      StationList(
+        id: id, name: id, slug: id, hidden: false, sortOrder: sortOrder,
+        createdAt: now, updatedAt: now,
+        items: [
+          APIStationItem(
+            sortOrder: 0, station: nil,
+            urlStation: UrlStation.mockWith(id: "dup-id", name: label))
+        ])
+    }
+    @Shared(.stationLists) var stationLists = IdentifiedArrayOf(uniqueElements: [
+      list(id: "list-a", sortOrder: 0, label: "First Label FM"),
+      list(id: "list-b", sortOrder: 1, label: "Second Label FM"),
+    ])
+    let catalog = StationVoiceCatalog()
+    let dupes = catalog.suggestedStations().filter { $0.id == "dup-id" }
+    #expect(dupes.count == 1)
+    #expect(dupes.first?.label == "First Label FM")
+    #expect(catalog.matches(query: "First Label FM").filter { $0.id == "dup-id" }.count == 1)
+  }
+
+  @Test
+  func testPlaceholderRowWithNoStationIsSkippedNotCrashed() {
+    // The decoder permits a row with neither a playola nor a URL station (e.g. a
+    // coming-soon placeholder). Including hidden/coming-soon items must skip such
+    // rows, not trap, while still surfacing the real station beside them.
+    let list = StationList.mockArtistList(items: [
+      APIStationItem(sortOrder: 0, station: nil, urlStation: nil),
+      APIStationItem(
+        sortOrder: 1, station: nil,
+        urlStation: UrlStation.mockWith(id: "real-id", name: "Real FM")),
+    ])
+    @Shared(.stationLists) var stationLists = IdentifiedArrayOf(uniqueElements: [list])
+    let catalog = StationVoiceCatalog()
+    #expect(catalog.suggestedStations().map(\.id) == ["real-id"])
+    #expect(catalog.matches(query: "Real FM").first?.id == "real-id")
   }
 
   @Test
