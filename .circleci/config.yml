@@ -88,6 +88,41 @@ jobs:
       - store_test_results:
           path: fastlane/test_output
 
+  release_staging_build:
+    macos:
+      xcode: 26.2
+    resource_class: m4pro.medium
+    steps:
+      - checkout
+      - run:
+          name: Set up SSH for match (fastlane-match-certs-and-profiles)
+          command: |
+            mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+            printf '%s' "$MATCH_GIT_PRIVATE_KEY_B64" | base64 --decode > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - run:
+          name: Install Bundler
+          command: gem install bundler
+      - run:
+          name: Install Fastlane
+          command: bundle install
+      - run:
+          name: Install xcbeautify and xcresultparser
+          command: brew install xcbeautify xcresultparser
+      - run:
+          name: Decode xcconfig secrets
+          command: bash scripts/ci-write-secrets.sh
+      - run:
+          name: Resolve Swift Package Dependencies
+          command: xcodebuild -resolvePackageDependencies -project PlayolaRadio.xcodeproj
+      - run:
+          name: Fastlane release_staging (build + upload to staging TestFlight + Sentry dSYMs)
+          command: bundle exec fastlane release_staging
+      - store_artifacts:
+          path: build
+
   adhoc:
     macos:
       xcode: 26.2
@@ -129,6 +164,15 @@ workflows:
     jobs:
       - release_build:
           context: ios-release
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - release_staging_build:
+          context: ios-release
+          requires:
+            - release_build
           filters:
             tags:
               only: /^v.*/

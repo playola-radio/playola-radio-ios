@@ -29,7 +29,8 @@ struct StationVoiceCatalog {
     return words.joined(separator: " ")
   }
 
-  /// All playable (visible, non-coming-soon) stations as matches.
+  /// Every playable station as a match (see `allStations` for what "playable"
+  /// includes). Feeds the system's Siri/Spotlight suggestion index.
   func suggestedStations() -> [StationMatch] {
     allStations().map(makeMatch(for:))
   }
@@ -68,12 +69,26 @@ struct StationVoiceCatalog {
     let catalogIndex: Int
   }
 
+  /// Every station the app considers playable, deduped by id.
+  ///
+  /// Siri fails toward inclusion: hidden lists, hidden items, and coming-soon
+  /// items are all voice-playable regardless of the `showSecretStations` unlock,
+  /// so a user can always say "Play <station>" for anything in their catalog.
+  /// The only exclusion is `active == false` — stations the app itself refuses
+  /// to play (see `StationListModel.stationSelected`); offering those would let
+  /// Siri claim "Playing <name>" and then dead-air. A station can appear in more
+  /// than one list, so we keep the first occurrence to stay dedup-correct and
+  /// preserve catalog order for deterministic match tie-breaking.
   private func allStations() -> [AnyStation] {
-    stationLists
-      .filter { !$0.hidden }
+    var seen = Set<String>()
+    return
+      stationLists
       .flatMap { list in
-        list.stationItems(includeHidden: false, includeComingSoon: false).map(\.anyStation)
+        list.stationItems(includeHidden: true, includeComingSoon: true)
+          .compactMap(\.anyStationIfPresent)
       }
+      .filter(\.active)
+      .filter { seen.insert($0.id).inserted }
   }
 
   private func aliases(for station: AnyStation) -> [String] {
