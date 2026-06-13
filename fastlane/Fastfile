@@ -45,9 +45,9 @@ platform :ios do
   # name" at auth time. Falls back to the .p8 file at
   # APP_STORE_CONNECT_API_KEY_PATH for local runs.
   private_lane :asc_api_key do
-    key = ENV["APP_STORE_CONNECT_API_KEY_CONTENT"] ||
-          (ENV["APP_STORE_CONNECT_API_KEY_PATH"] && File.read(ENV["APP_STORE_CONNECT_API_KEY_PATH"])) ||
-          UI.user_error!("Set APP_STORE_CONNECT_API_KEY_CONTENT (CI; raw .p8 or base64 of it) or APP_STORE_CONNECT_API_KEY_PATH (local)")
+    key = (ENV["APP_STORE_CONNECT_API_KEY_CONTENT"] || "").strip
+    key = File.read(ENV["APP_STORE_CONNECT_API_KEY_PATH"]).strip if key.empty? && ENV["APP_STORE_CONNECT_API_KEY_PATH"]
+    UI.user_error!("Set APP_STORE_CONNECT_API_KEY_CONTENT (CI; raw .p8 or base64 of it) or APP_STORE_CONNECT_API_KEY_PATH (local)") if key.empty?
     app_store_connect_api_key(
       key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
       issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
