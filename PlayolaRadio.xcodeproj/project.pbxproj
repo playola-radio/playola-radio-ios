@@ -2478,7 +2478,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "";
+				INFOPLIST_KEY_CFBundleDisplayName = "Playola";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Playola uses the microphone to let you record voicetracks or audio messages.";
@@ -2524,7 +2524,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "";
+				INFOPLIST_KEY_CFBundleDisplayName = "Playola";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Playola uses the microphone to let you record voicetracks or audio messages.";
@@ -2672,7 +2672,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlayolaRadio/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "";
+				INFOPLIST_KEY_CFBundleDisplayName = "Playola";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Playola uses the microphone to let you record voicetracks or audio messages.";
