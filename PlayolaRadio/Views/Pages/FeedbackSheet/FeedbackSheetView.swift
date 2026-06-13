@@ -92,6 +92,6 @@ struct FeedbackSheetView: View {
     .onAppear {
       isTextFieldFocused = true
     }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
   }
 }

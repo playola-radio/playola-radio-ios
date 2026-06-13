@@ -25,6 +25,8 @@ class SeriesListPageModel: ViewModel {
   var isLoading = false
   var presentedAlert: PlayolaAlert?
 
+  var navigationTitle: String { "Radio Shows" }
+
   // MARK: - Init
 
   override init() {

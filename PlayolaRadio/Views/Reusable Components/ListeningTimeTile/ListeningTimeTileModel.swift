@@ -49,6 +49,8 @@ class ListeningTimeTileModel: ViewModel {
     return "\(hourString)h \(minString)m \(secString)s"
   }
 
+  var titleText: String { "Listening Time" }
+
   private var refreshTask: Task<Void, Never>?
 
   func viewAppeared() {

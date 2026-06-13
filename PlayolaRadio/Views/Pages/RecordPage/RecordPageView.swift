@@ -40,7 +40,7 @@ struct RecordPageView: View {
         bottomSection
       }
     }
-    .navigationTitle("Audio Recording")
+    .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .toolbarBackground(.visible, for: .navigationBar)
     .toolbarBackground(Color.black, for: .navigationBar)
@@ -48,7 +48,7 @@ struct RecordPageView: View {
     .toolbar {
       if model.shouldShowDoneButton {
         ToolbarItem(placement: .navigationBarTrailing) {
-          Button("Done") {
+          Button(model.doneButtonTitle) {
             model.onDoneTapped()
           }
           .foregroundColor(.white)
@@ -70,7 +70,7 @@ struct RecordPageView: View {
       RoundedRectangle(cornerRadius: 8)
         .fill(Color(hex: "#1A1A1A"))
         .overlay(
-          Text("Your recording will appear here")
+          Text(model.waveformPlaceholderText)
             .font(.custom(FontNames.Inter_400_Regular, size: 14))
             .foregroundColor(Color(hex: "#4A4A4A"))
         )
@@ -94,7 +94,7 @@ struct RecordPageView: View {
           Circle()
             .fill(Color.playolaRed)
             .frame(width: 10, height: 10)
-          Text("Recording")
+          Text(model.recordingStatusText)
             .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
             .foregroundColor(.playolaRed)
         }
@@ -158,22 +158,10 @@ struct RecordPageView: View {
 
   // MARK: - Button Label Section
 
-  @ViewBuilder
   private var buttonLabelSection: some View {
-    switch model.recordingPhase {
-    case .idle:
-      Text("Tap to Record")
-        .font(.custom(FontNames.Inter_400_Regular, size: 16))
-        .foregroundColor(.playolaGray)
-    case .recording:
-      Text("Tap to Stop")
-        .font(.custom(FontNames.Inter_400_Regular, size: 16))
-        .foregroundColor(.playolaGray)
-    case .review:
-      Text("Try Again")
-        .font(.custom(FontNames.Inter_400_Regular, size: 16))
-        .foregroundColor(.playolaGray)
-    }
+    Text(model.currentButtonLabel)
+      .font(.custom(FontNames.Inter_400_Regular, size: 16))
+      .foregroundColor(.playolaGray)
   }
 
   // MARK: - Bottom Section
@@ -197,7 +185,7 @@ struct RecordPageView: View {
           } label: {
             HStack(spacing: 6) {
               Image(systemName: "trash")
-              Text("Discard")
+              Text(model.discardButtonTitle)
             }
             .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
             .foregroundColor(.playolaRed)
@@ -214,7 +202,7 @@ struct RecordPageView: View {
           } label: {
             HStack(spacing: 6) {
               Image(systemName: "checkmark")
-              Text("Use Recording")
+              Text(model.useRecordingButtonTitle)
             }
             .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
             .foregroundColor(.white)

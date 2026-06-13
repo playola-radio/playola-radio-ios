@@ -193,7 +193,7 @@ struct ListenerQuestionDetailPageView: View {
         .fill(Color.playolaRed)
         .frame(width: 10, height: 10)
 
-      Text("Recording")
+      Text(model.recordingIndicatorText)
         .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
         .foregroundColor(.playolaRed)
 
