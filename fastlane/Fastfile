@@ -61,7 +61,7 @@ platform :ios do
   desc "Release STAGING build to TestFlight (Internal Only)"
   lane :release_staging do
     ensure_git_status_clean
-    ensure_git_branch(branch: 'develop')
+    ensure_git_branch(branch: 'develop') unless ENV['CI']
 
     match(
       type: "appstore",
