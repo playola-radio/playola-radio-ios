@@ -74,6 +74,7 @@ platform :ios do
       scheme: "PlayolaRadio-Staging",
       export_method: "app-store",
       output_directory: "./build",
+      xcargs: "-skipPackagePluginValidation -skipMacroValidation",
       export_options: {
         method: "app-store",
         # sentry-cocoa's SwiftPM `Sentry` product links statically (its symbols
