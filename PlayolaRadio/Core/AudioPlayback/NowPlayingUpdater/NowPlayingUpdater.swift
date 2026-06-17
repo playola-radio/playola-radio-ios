@@ -368,6 +368,10 @@ class NowPlayingUpdater {
   func processPlayolaStationPlayerState(
     _ playolaState: PlayolaStationPlayer.State?
   ) {
+    // Backend ownership: while a URL station is active, ignore all Playola events
+    // (stale `.idle`/`.error`/`.loading`/`.playing`) so they cannot clobber the
+    // shared now-playing state. Mirrors StationPlayer.processPlayolaStationPlayerState.
+    if case .url = stationPlayer.currentStation { return }
     switch playolaState {
     case .idle:
       $nowPlaying.withLock {
@@ -423,9 +427,14 @@ class NowPlayingUpdater {
     }
   }
 
-  private func processUrlStreamStateChanged(
+  func processUrlStreamStateChanged(
     _ urlStreamPlayerState: URLStreamPlayer.State
   ) {
+    // Backend ownership: while a Playola station is active, ignore all URL events
+    // (a late `.urlNotSet` from the `reset()` every Playola play performs, or a
+    // stale `.readyToPlay`/`.error`) so they cannot clobber the shared now-playing
+    // state. Mirrors StationPlayer.processUrlStreamStateChanged.
+    if case .playola = stationPlayer.currentStation { return }
     switch urlStreamPlayerState.playerStatus {
     case .loading:
       guard let currentStation = stationPlayer.currentStation else { return }
