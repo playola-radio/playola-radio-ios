@@ -104,7 +104,20 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
       tabBarTemplate?.delegate = self
 
       guard let tabBarTemplate = tabBarTemplate else { return }
-      self.interfaceController?.setRootTemplate(tabBarTemplate, animated: true, completion: nil)
+      self.interfaceController?.setRootTemplate(tabBarTemplate, animated: true) {
+        [weak self] _, _ in
+        guard let self else { return }
+        // If CarPlay connects while audio is already playing/loading, show Now
+        // Playing immediately. The $state observer's first emission arrives during
+        // init (before this controller exists) and is then deduplicated, so
+        // without this replay the user would be stuck on the station list until
+        // the next real status transition.
+        if CarPlayPlaybackTransition.action(for: self.stationPlayer.state.playbackStatus)
+          == .showNowPlaying
+        {
+          self.handleStationLoading()
+        }
+      }
     }
   }
 
@@ -181,19 +194,29 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   }
 
   private func observePlaybackErrors() {
+    // Only react to actual playback-status transitions. `state` republishes on
+    // artwork/metadata updates without a status change; without `removeDuplicates`
+    // every such update would re-run the template logic and (because `.playing`
+    // shows Now Playing) yank the user back to Now Playing while they are browsing
+    // the station list mid-playback.
     stationPlayer.$state
-      .sink { [weak self] state in
+      .map(\.playbackStatus)
+      .removeDuplicates()
+      .sink { [weak self] playbackStatus in
         guard let self = self else { return }
 
-        switch state.playbackStatus {
-        case .error:
-          self.handlePlaybackError()
-        case .loading, .startingNewStation:
+        // `.playing` shows Now Playing too (not a no-op): if a stray `.stopped`
+        // ever dismissed it, the next transition into `.playing` restores it
+        // instead of leaving the user stuck on the station list.
+        switch CarPlayPlaybackTransition.action(for: playbackStatus) {
+        case .showNowPlaying:
           self.handleStationLoading()
-        case .playing:
-          break
-        case .stopped:
+        case .removeNowPlaying:
           self.handleStationStopped()
+        case .showError:
+          self.handlePlaybackError()
+        case .none:
+          break
         }
       }
       .store(in: &observers)

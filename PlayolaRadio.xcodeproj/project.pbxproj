@@ -63,6 +63,7 @@
 		D30F005B2E8592F0007BCC73 /* View+ListInstalledFonts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257BC2DF893BB001BC6F9 /* View+ListInstalledFonts.swift */; };
 		D30F005C2E8592F0007BCC73 /* FontNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257CB2DFA3F7F001BC6F9 /* FontNames.swift */; };
 		D30F005D2E8592F0007BCC73 /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673AF2D3DC54F00E4E926 /* CarPlaySceneDelegate.swift */; };
+		E1CA0000000000000000A002 /* CarPlayPlaybackTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CA0000000000000000A001 /* CarPlayPlaybackTransition.swift */; };
 		D30F005E2E8592F0007BCC73 /* CPListItem+InitWithRemoteUrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C22D3E871800E4E926 /* CPListItem+InitWithRemoteUrl.swift */; };
 		D30F005F2E8592F0007BCC73 /* MainContainerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744AC2E2FCD8E0042A427 /* MainContainerModel.swift */; };
 		FE110A0000000000000000B2 /* WelcomeMessagePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F2 /* WelcomeMessagePageModel.swift */; };
@@ -197,6 +198,7 @@
 		D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A372BFA6520006942D6 /* Color+Hex.swift */; };
 		D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A382BFA6520006942D6 /* UIImage+Cache.swift */; };
 		D35673B02D3DC55900E4E926 /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673AF2D3DC54F00E4E926 /* CarPlaySceneDelegate.swift */; };
+		E1CA0000000000000000A003 /* CarPlayPlaybackTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CA0000000000000000A001 /* CarPlayPlaybackTransition.swift */; };
 		D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673B12D3DC59100E4E926 /* RadioStation.swift */; };
 		D35673B72D3DC6EC00E4E926 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D35673B62D3DC6EC00E4E926 /* Mixpanel */; };
 		D35673BA2D3DC9EE00E4E926 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673B92D3DC9ED00E4E926 /* Config.swift */; };
@@ -206,6 +208,7 @@
 		D35905EC2DFCDA140064A9C1 /* StationListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35905EB2DFCDA110064A9C1 /* StationListModel.swift */; };
 		D35EFBD72F0EC6F7000F64A4 /* APIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBD62F0EC6F7000F64A4 /* APIClientTests.swift */; };
 		D35EFBD92F101A76000F64A4 /* StationPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */; };
+		E1CA0000000000000000A005 /* CarPlayPlaybackTransitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CA0000000000000000A004 /* CarPlayPlaybackTransitionTests.swift */; };
 		D35EFBEE2F1092A7000F64A4 /* RRuleFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBEC2F1092A7000F64A4 /* RRuleFormatterTests.swift */; };
 		D35EFBF02F1092D7000F64A4 /* RRuleFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBEF2F1092D7000F64A4 /* RRuleFormatter.swift */; };
 		D35EFBF12F1092D7000F64A4 /* RRuleFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBEF2F1092D7000F64A4 /* RRuleFormatter.swift */; };
@@ -533,6 +536,8 @@
 		D3536A372BFA6520006942D6 /* Color+Hex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
 		D3536A382BFA6520006942D6 /* UIImage+Cache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImage+Cache.swift"; sourceTree = "<group>"; };
 		D35673AF2D3DC54F00E4E926 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
+		E1CA0000000000000000A001 /* CarPlayPlaybackTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayPlaybackTransition.swift; sourceTree = "<group>"; };
+		E1CA0000000000000000A004 /* CarPlayPlaybackTransitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayPlaybackTransitionTests.swift; sourceTree = "<group>"; };
 		D35673B12D3DC59100E4E926 /* RadioStation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioStation.swift; sourceTree = "<group>"; };
 		D35673B92D3DC9ED00E4E926 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		D35673BD2D3DCA1E00E4E926 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
@@ -1061,6 +1066,8 @@
 			children = (
 				D35673C52D3E91B900E4E926 /* MainSceneDelegate.swift */,
 				D35673AF2D3DC54F00E4E926 /* CarPlaySceneDelegate.swift */,
+				E1CA0000000000000000A001 /* CarPlayPlaybackTransition.swift */,
+				E1CA0000000000000000A004 /* CarPlayPlaybackTransitionTests.swift */,
 			);
 			path = CarPlay;
 			sourceTree = "<group>";
@@ -1830,6 +1837,7 @@
 				D35EFBF12F1092D7000F64A4 /* RRuleFormatter.swift in Sources */,
 				D30F005C2E8592F0007BCC73 /* FontNames.swift in Sources */,
 				D30F005D2E8592F0007BCC73 /* CarPlaySceneDelegate.swift in Sources */,
+				E1CA0000000000000000A002 /* CarPlayPlaybackTransition.swift in Sources */,
 				D317C0D22EF2027000DBC82E /* VoicetrackStatusResponse.swift in Sources */,
 				D30F005E2E8592F0007BCC73 /* CPListItem+InitWithRemoteUrl.swift in Sources */,
 				D30F005F2E8592F0007BCC73 /* MainContainerModel.swift in Sources */,
@@ -2000,6 +2008,7 @@
 				D35EFBF02F1092D7000F64A4 /* RRuleFormatter.swift in Sources */,
 				D37257CC2DFA3F83001BC6F9 /* FontNames.swift in Sources */,
 				D35673B02D3DC55900E4E926 /* CarPlaySceneDelegate.swift in Sources */,
+				E1CA0000000000000000A003 /* CarPlayPlaybackTransition.swift in Sources */,
 				D317C0D12EF2027000DBC82E /* VoicetrackStatusResponse.swift in Sources */,
 				D35673C32D3E872600E4E926 /* CPListItem+InitWithRemoteUrl.swift in Sources */,
 				D3B744AD2E2FCD930042A427 /* MainContainerModel.swift in Sources */,
@@ -2178,6 +2187,7 @@
 				D3B9C7AE2F534D57002D75C2 /* IntroUploadServiceTests.swift in Sources */,
 				D37769FE2F22B70600200ADF /* ChooseStationPageTests.swift in Sources */,
 				D35EFBD92F101A76000F64A4 /* StationPlayerTests.swift in Sources */,
+				E1CA0000000000000000A005 /* CarPlayPlaybackTransitionTests.swift in Sources */,
 				D395911A2E39933800720CF8 /* ContactPageTests.swift in Sources */,
 				D3B744BC2E312FB60042A427 /* ListeningTrackerTests.swift in Sources */,
 				D3B744A82E2F185F0042A427 /* SmallPlayerTests.swift in Sources */,

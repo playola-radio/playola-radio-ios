@@ -65,6 +65,94 @@ struct StationPlayerTests {
     expectNoDifference(nowPlaying?.playbackStatus, .loading(.mock))
   }
 
+  // MARK: - Backend Ownership Regression Tests
+
+  // Regression for the CarPlay "Now Playing is instantly dismissed" bug.
+  //
+  // Playing a Playola station calls `urlStreamPlayer.reset()`, which makes
+  // FRadioPlayer report `.urlNotSet` asynchronously. That URL-backend event used
+  // to clobber the active Playola station's state back to `.stopped`, which
+  // CarPlay observed and reacted to by popping Now Playing back to the list.
+  // The URL backend must not drive global state while a Playola station is active.
+
+  @Test
+  func testUrlStreamUrlNotSetDoesNotClobberLoadingPlayolaStation() {
+    let urlStreamPlayer = URLStreamPlayerMock()
+    let stationPlayer = StationPlayer(urlStreamPlayer: urlStreamPlayer)
+    let playolaStation = AnyStation.mockPlayola()
+    stationPlayer.state = StationPlayer.State(playbackStatus: .loading(playolaStation))
+
+    urlStreamPlayer.state = URLStreamPlayer.State(
+      playbackState: .stopped,
+      playerStatus: .urlNotSet,
+      currentStation: nil,
+      nowPlaying: nil
+    )
+
+    expectNoDifference(stationPlayer.state.playbackStatus, .loading(playolaStation))
+  }
+
+  @Test
+  func testUrlStreamUrlNotSetDoesNotClobberPlayingPlayolaStation() {
+    let urlStreamPlayer = URLStreamPlayerMock()
+    let stationPlayer = StationPlayer(urlStreamPlayer: urlStreamPlayer)
+    let playolaStation = AnyStation.mockPlayola()
+    stationPlayer.state = StationPlayer.State(playbackStatus: .playing(playolaStation))
+
+    urlStreamPlayer.state = URLStreamPlayer.State(
+      playbackState: .stopped,
+      playerStatus: .urlNotSet,
+      currentStation: nil,
+      nowPlaying: nil
+    )
+
+    expectNoDifference(stationPlayer.state.playbackStatus, .playing(playolaStation))
+  }
+
+  // Mirror of the above: the Playola backend must not clobber an active URL
+  // station. `stop()` emits Playola `.idle` while switching stations, so a URL
+  // station's playback could be wiped the same way.
+  @Test
+  func testPlayolaIdleDoesNotClobberActiveUrlStation() {
+    let stationPlayer = StationPlayer()
+    let urlStation = AnyStation.mockUrl()
+    stationPlayer.state = StationPlayer.State(playbackStatus: .playing(urlStation))
+
+    stationPlayer.processPlayolaStationPlayerState(.idle)
+
+    expectNoDifference(stationPlayer.state.playbackStatus, .playing(urlStation))
+  }
+
+  // Ownership also covers non-`.stopped` terminal events: an inactive backend's
+  // late `.error` must not error out the active station.
+  @Test
+  func testUrlStreamErrorDoesNotClobberActivePlayolaStation() {
+    let urlStreamPlayer = URLStreamPlayerMock()
+    let stationPlayer = StationPlayer(urlStreamPlayer: urlStreamPlayer)
+    let playolaStation = AnyStation.mockPlayola()
+    stationPlayer.state = StationPlayer.State(playbackStatus: .playing(playolaStation))
+
+    urlStreamPlayer.state = URLStreamPlayer.State(
+      playbackState: .stopped,
+      playerStatus: .error,
+      currentStation: nil,
+      nowPlaying: nil
+    )
+
+    expectNoDifference(stationPlayer.state.playbackStatus, .playing(playolaStation))
+  }
+
+  @Test
+  func testPlayolaErrorDoesNotClobberActiveUrlStation() {
+    let stationPlayer = StationPlayer()
+    let urlStation = AnyStation.mockUrl()
+    stationPlayer.state = StationPlayer.State(playbackStatus: .playing(urlStation))
+
+    stationPlayer.processPlayolaStationPlayerState(.error(.networkError("boom")))
+
+    expectNoDifference(stationPlayer.state.playbackStatus, .playing(urlStation))
+  }
+
   // MARK: - seekNext Tests
 
   @Test

@@ -204,6 +204,13 @@ class StationPlayer: ObservableObject {
   func processPlayolaStationPlayerState(
     _ playolaState: PlayolaStationPlayer.State?
   ) {
+    // Backend ownership: the Playola backend only owns global playback state
+    // while a Playola station is active (or nothing is). While a URL station is
+    // active, ignore all Playola events — a late/stale `.idle` (emitted by
+    // `stop()` while switching), `.error`, `.loading`, or `.playing` would
+    // otherwise clobber the active URL station. Real stops are driven by
+    // `stop()`, which sets `.stopped` explicitly.
+    if case .url = currentStation { return }
     switch playolaState {
     case .idle:
       state = .init(
@@ -251,6 +258,14 @@ class StationPlayer: ObservableObject {
   private func processUrlStreamStateChanged(
     _ urlStreamPlayerState: URLStreamPlayer.State
   ) {
+    // Backend ownership: the URL backend only owns global playback state while a
+    // URL station is active (or nothing is). While a Playola station is active,
+    // ignore all URL events — a late `.urlNotSet` (FRadioPlayer's response to the
+    // `urlStreamPlayer.reset()` that every Playola play performs), or a stale
+    // `.readyToPlay`/`.error`, would otherwise clobber the active Playola station
+    // (e.g. dismissing CarPlay's Now Playing, or mislabeling it with URL
+    // metadata). Real stops are driven by `stop()`, which sets `.stopped`.
+    if case .playola = currentStation { return }
     switch urlStreamPlayerState.playerStatus {
     case .loading:
       guard let currentStation else {
