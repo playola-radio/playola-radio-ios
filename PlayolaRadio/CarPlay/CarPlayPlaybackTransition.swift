@@ -17,7 +17,9 @@ enum CarPlayPlaybackTransition {
     case removeNowPlaying
     /// Present the "unable to connect" error alert.
     case showError
-    /// No template change.
+    /// No template change. `action(for:)` does not emit this today (every
+    /// `PlaybackStatus` maps to a concrete action); it exists so callers have an
+    /// explicit no-op branch and so new statuses can opt out of a template change.
     case none
   }
 

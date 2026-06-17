@@ -109,6 +109,26 @@ struct StationPlayerTests {
     expectNoDifference(stationPlayer.state.playbackStatus, .playing(playolaStation))
   }
 
+  // Covers the brief `.startingNewStation` window between `stop()` and
+  // `.loading` during a Playola play — the guard must hold here too, so a future
+  // refactor of `currentStation` can't silently reintroduce the clobber.
+  @Test
+  func testUrlStreamUrlNotSetDoesNotClobberStartingNewPlayolaStation() {
+    let urlStreamPlayer = URLStreamPlayerMock()
+    let stationPlayer = StationPlayer(urlStreamPlayer: urlStreamPlayer)
+    let playolaStation = AnyStation.mockPlayola()
+    stationPlayer.state = StationPlayer.State(playbackStatus: .startingNewStation(playolaStation))
+
+    urlStreamPlayer.state = URLStreamPlayer.State(
+      playbackState: .stopped,
+      playerStatus: .urlNotSet,
+      currentStation: nil,
+      nowPlaying: nil
+    )
+
+    expectNoDifference(stationPlayer.state.playbackStatus, .startingNewStation(playolaStation))
+  }
+
   // Mirror of the above: the Playola backend must not clobber an active URL
   // station. `stop()` emits Playola `.idle` while switching stations, so a URL
   // station's playback could be wiped the same way.
