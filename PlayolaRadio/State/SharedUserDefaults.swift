@@ -116,6 +116,53 @@ extension SharedKey where Self == InMemoryKey<[LiveStationInfo]>.Default {
   }
 }
 
+// MARK: - Giveaways
+
+extension SharedKey where Self == InMemoryKey<Giveaway?>.Default {
+  /// The open giveaway for the currently-playing station. Drives the player overlay.
+  static var activeGiveaway: Self {
+    Self[.inMemory("activeGiveaway"), default: nil]
+  }
+}
+
+extension SharedKey where Self == InMemoryKey<GiveawayBannerState?>.Default {
+  /// The app-wide "Tap In" invite banner.
+  static var giveawayBanner: Self {
+    Self[.inMemory("giveawayBanner"), default: nil]
+  }
+}
+
+extension SharedKey where Self == FileStorageKey<[String: GiveawayParticipation]>.Default {
+  /// Durable per-giveaway participation (keyed by giveawayId) so the reveal survives an app kill.
+  /// Cleared on sign-out so one account never sees another's state.
+  static var giveawayParticipations: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "giveaway-participations.json")),
+      default: [:]
+    ]
+  }
+}
+
+extension SharedKey where Self == FileStorageKey<Set<String>>.Default {
+  /// Giveaway ids whose banner the user dismissed (per giveaway, not per station).
+  static var dismissedGiveawayBannerIds: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "dismissed-giveaway-banners.json")),
+      default: []
+    ]
+  }
+}
+
+extension SharedKey where Self == FileStorageKey<CongratsAction?>.Default {
+  /// Durable artist congrats progress; survives a kill and holds the uploaded audioBlockId for retry.
+  static var pendingCongratsAction: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "pending-congrats-action.json")),
+      default: nil
+    ]
+  }
+}
+
 // MARK: - Push Notifications
 
 extension SharedKey where Self == AppStorageKey<String?>.Default {
