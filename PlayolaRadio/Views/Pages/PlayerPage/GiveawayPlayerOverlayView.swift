@@ -37,7 +37,8 @@ private struct GiveawayOverlayPromptView: View {
         + Text(model.promptSuffix).foregroundColor(.white))
         .font(.custom(FontNames.Inter_400_Regular, size: 15))
         .multilineTextAlignment(.center)
-        .lineSpacing(3)
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
         .padding(.top, 8)
 
       Text(model.prizeText)
@@ -55,9 +56,9 @@ private struct GiveawayOverlayPromptView: View {
             .tracking(2)
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
-            .frame(height: 64)
-            .background(RoundedRectangle(cornerRadius: 32).fill(Color.playolaRed))
-            .overlay(RoundedRectangle(cornerRadius: 32).stroke(Color.white, lineWidth: 3))
+            .frame(height: 54)
+            .background(RoundedRectangle(cornerRadius: 27).fill(Color.playolaRed))
+            .overlay(RoundedRectangle(cornerRadius: 27).stroke(Color.white, lineWidth: 3))
         }
       )
       .padding(.top, 20)
