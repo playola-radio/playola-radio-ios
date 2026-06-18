@@ -9,12 +9,14 @@
 /* Begin PBXBuildFile section */
 		03D9929612C3E595D9BD88D5 /* GiveawayParticipationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5283C7C8C9FAF45659BA98E /* GiveawayParticipationTests.swift */; };
 		1DBE6EEE6CD7879ED93BB12C /* GiveawayTapResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D67B3CE3BA4BEB883A33FB94 /* GiveawayTapResponse.swift */; };
+		1E09F417B01F258C6D38D660 /* GiveawayPlayerOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D3D10F16230F15FFF80C665 /* GiveawayPlayerOverlayView.swift */; };
 		1F6F57E01E254F5483BD939B /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E8719F70AFA4992B9037775 /* Preset.swift */; };
 		354451A630DF81468815108F /* GiveawayParticipation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CB3EF3C094D149DDC849813 /* GiveawayParticipation.swift */; };
 		5F67160E76C1454189765E5D /* GiveawayWinnerSubmission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36AE0F6CC37C4970321497CF /* GiveawayWinnerSubmission.swift */; };
 		5F721A0797795B3B529757CD /* GiveawayTapResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D67B3CE3BA4BEB883A33FB94 /* GiveawayTapResponse.swift */; };
 		659E9B124BCB08D5F3D216D7 /* Giveaway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02EDCED098E801AAB2E9DC82 /* Giveaway.swift */; };
 		65D0683FA2A905693317C5AB /* CongratsActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0488057E2A6456204E582B15 /* CongratsActionTests.swift */; };
+		6D6D8F5B3570802E2D336F7C /* GiveawayOverlayModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E16A5F5E27CF6BD0259ED1E5 /* GiveawayOverlayModelTests.swift */; };
 		725E8382CB9672F532FC2CDD /* GiveawayMyResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B82DD37711E160592E3842D /* GiveawayMyResult.swift */; };
 		76C4967DBFE548C0884C2931 /* StationListPresetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0E489F7714364A04B11B1 /* StationListPresetTests.swift */; };
 		81599AD0B41E4A2496EEF25A /* PresetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6613FD7A13B448187CB8595 /* PresetTests.swift */; };
@@ -27,7 +29,10 @@
 		AA01000000000005AAAAAAAA /* PresetTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0E49DF7714364A04B11B3 /* PresetTile.swift */; };
 		AA01000000000006AAAAAAAA /* PresetsCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0EA0DF7714364A04B11B7 /* PresetsCarousel.swift */; };
 		B12730D5ECA7018F074B54E6 /* GiveawayBannerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 917BAF1376F852871F0F3159 /* GiveawayBannerState.swift */; };
+		B9D97B72F461E83FF652BDBD /* GiveawayPlayerOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D3D10F16230F15FFF80C665 /* GiveawayPlayerOverlayView.swift */; };
+		C2FCC44BB8C98C486BC343E6 /* GiveawayOverlayModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A4D634B4C9B84C1C25F6458 /* GiveawayOverlayModel.swift */; };
 		C8BA849E20B449EC91DBF5F2 /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E8719F70AFA4992B9037775 /* Preset.swift */; };
+		D0CD5FE434D4950E16A7B1F9 /* GiveawayOverlayModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A4D634B4C9B84C1C25F6458 /* GiveawayOverlayModel.swift */; };
 		D302576B2E63423D00F4228B /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302576A2E63423B00F4228B /* Toast.swift */; };
 		D302576D2E63428800F4228B /* ToastClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302576C2E63428700F4228B /* ToastClient.swift */; };
 		D30257762E6342C900F4228B /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257752E6342C600F4228B /* ToastView.swift */; };
@@ -477,6 +482,8 @@
 		0488057E2A6456204E582B15 /* CongratsActionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CongratsActionTests.swift; sourceTree = "<group>"; };
 		2B82DD37711E160592E3842D /* GiveawayMyResult.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayMyResult.swift; sourceTree = "<group>"; };
 		36AE0F6CC37C4970321497CF /* GiveawayWinnerSubmission.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerSubmission.swift; sourceTree = "<group>"; };
+		3A4D634B4C9B84C1C25F6458 /* GiveawayOverlayModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayOverlayModel.swift; sourceTree = "<group>"; };
+		4D3D10F16230F15FFF80C665 /* GiveawayPlayerOverlayView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayPlayerOverlayView.swift; sourceTree = "<group>"; };
 		6CB3EF3C094D149DDC849813 /* GiveawayParticipation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayParticipation.swift; sourceTree = "<group>"; };
 		917BAF1376F852871F0F3159 /* GiveawayBannerState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayBannerState.swift; sourceTree = "<group>"; };
 		9553B35A6FBA27239EF49033 /* GiveawayModelsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayModelsTests.swift; sourceTree = "<group>"; };
@@ -723,6 +730,7 @@
 		D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageModel.swift; sourceTree = "<group>"; };
 		D67B3CE3BA4BEB883A33FB94 /* GiveawayTapResponse.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayTapResponse.swift; sourceTree = "<group>"; };
 		DACFAE7FE27DBB3341C0CE77 /* CongratsAction.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CongratsAction.swift; sourceTree = "<group>"; };
+		E16A5F5E27CF6BD0259ED1E5 /* GiveawayOverlayModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayOverlayModelTests.swift; sourceTree = "<group>"; };
 		E1CA0000000000000000A001 /* CarPlayPlaybackTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayPlaybackTransition.swift; sourceTree = "<group>"; };
 		E1CA0000000000000000A004 /* CarPlayPlaybackTransitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayPlaybackTransitionTests.swift; sourceTree = "<group>"; };
 		F5283C7C8C9FAF45659BA98E /* GiveawayParticipationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayParticipationTests.swift; sourceTree = "<group>"; };
@@ -1277,6 +1285,9 @@
 				D38031332E00AD9F0011DD64 /* PlayerPageTests.swift */,
 				D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */,
 				D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */,
+				3A4D634B4C9B84C1C25F6458 /* GiveawayOverlayModel.swift */,
+				4D3D10F16230F15FFF80C665 /* GiveawayPlayerOverlayView.swift */,
+				E16A5F5E27CF6BD0259ED1E5 /* GiveawayOverlayModelTests.swift */,
 			);
 			path = PlayerPage;
 			sourceTree = "<group>";
@@ -1991,6 +2002,8 @@
 				5F67160E76C1454189765E5D /* GiveawayWinnerSubmission.swift in Sources */,
 				E6FA723C089B9E0115951DD1 /* GiveawayBannerState.swift in Sources */,
 				DBD70D257638FF5934CA78DA /* CongratsAction.swift in Sources */,
+				D0CD5FE434D4950E16A7B1F9 /* GiveawayOverlayModel.swift in Sources */,
+				1E09F417B01F258C6D38D660 /* GiveawayPlayerOverlayView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2169,6 +2182,8 @@
 				DA5BD241BADE11FCACB9AEA0 /* GiveawayWinnerSubmission.swift in Sources */,
 				B12730D5ECA7018F074B54E6 /* GiveawayBannerState.swift in Sources */,
 				EDE2B63A1AB34C74CC65C898 /* CongratsAction.swift in Sources */,
+				C2FCC44BB8C98C486BC343E6 /* GiveawayOverlayModel.swift in Sources */,
+				B9D97B72F461E83FF652BDBD /* GiveawayPlayerOverlayView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2245,6 +2260,7 @@
 				F94F092AC0FB044790B38A0E /* GiveawayModelsTests.swift in Sources */,
 				03D9929612C3E595D9BD88D5 /* GiveawayParticipationTests.swift in Sources */,
 				65D0683FA2A905693317C5AB /* CongratsActionTests.swift in Sources */,
+				6D6D8F5B3570802E2D336F7C /* GiveawayOverlayModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
