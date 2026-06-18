@@ -1,9 +1,9 @@
 import Foundation
 
 enum GiveawayParticipationStatus: Codable, Equatable, Sendable {
-  case tappedStandby(tapNumber: Int)
-  case resolvedWon(tapNumber: Int, submissionCompleted: Bool)
-  case resolvedLost(tapNumber: Int, toastShown: Bool)
+  case tappedStandby
+  case resolvedWon(submissionCompleted: Bool)
+  case resolvedLost(toastShown: Bool)
   case canceled
 }
 
@@ -27,9 +27,17 @@ struct GiveawayParticipation: Codable, Equatable, Sendable, Identifiable {
   var isFullyHandled: Bool {
     switch status {
     case .tappedStandby: return false
-    case .resolvedWon(_, let submissionCompleted): return submissionCompleted
-    case .resolvedLost(_, let toastShown): return toastShown
+    case .resolvedWon(let submissionCompleted): return submissionCompleted
+    case .resolvedLost(let toastShown): return toastShown
     case .canceled: return true
     }
+  }
+
+  static var mock: GiveawayParticipation {
+    GiveawayParticipation(
+      id: "giveaway-1", stationId: "station-1",
+      prizeName: "Two tickets to Reckless Kelly at the Heights",
+      winningNumber: 9, tapNumber: 7, status: .tappedStandby,
+      tappedAt: Date(timeIntervalSince1970: 1_781_722_800))
   }
 }

@@ -199,6 +199,11 @@ class AuthService: @unchecked Sendable {
     @Shared(.isBroadcaster) var isBroadcaster
     @Shared(.welcomeMessageEligible) var welcomeMessageEligible
     @Shared(.welcomeMessageShownThisSession) var welcomeMessageShownThisSession
+    @Shared(.activeGiveaway) var activeGiveaway
+    @Shared(.giveawayBanner) var giveawayBanner
+    @Shared(.giveawayParticipations) var giveawayParticipations
+    @Shared(.dismissedGiveawayBannerIds) var dismissedGiveawayBannerIds
+    @Shared(.pendingCongratsAction) var pendingCongratsAction
 
     let jwt = auth.jwt
     let deviceId = registeredDeviceId
@@ -218,6 +223,11 @@ class AuthService: @unchecked Sendable {
     $isBroadcaster.withLock { $0 = false }
     $welcomeMessageEligible.withLock { $0 = false }
     $welcomeMessageShownThisSession.withLock { $0 = false }
+    $activeGiveaway.withLock { $0 = nil }
+    $giveawayBanner.withLock { $0 = nil }
+    $giveawayParticipations.withLock { $0 = [:] }
+    $dismissedGiveawayBannerIds.withLock { $0 = [] }
+    $pendingCongratsAction.withLock { $0 = nil }
 
     UserDefaults.standard.removeObject(forKey: "analytics_session_paused_at")
   }

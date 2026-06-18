@@ -9,7 +9,7 @@ struct GiveawayParticipationTests {
   @Test func codableRoundTrips() throws {
     let participation = GiveawayParticipation(
       id: "g1", stationId: "s1", prizeName: "Tickets", winningNumber: 9,
-      tapNumber: 5, status: .tappedStandby(tapNumber: 5),
+      tapNumber: 5, status: .tappedStandby,
       tappedAt: Date(timeIntervalSince1970: 1_000_000))
     let data = try JSONEncoder().encode(participation)
     let back = try JSONDecoder().decode(GiveawayParticipation.self, from: data)
@@ -19,17 +19,17 @@ struct GiveawayParticipationTests {
   @Test func terminalStatesAreHandledFlags() {
     var participation = GiveawayParticipation(
       id: "g1", stationId: "s1", prizeName: "Tickets", winningNumber: 9,
-      tapNumber: 5, status: .tappedStandby(tapNumber: 5), tappedAt: Date())
+      tapNumber: 5, status: .tappedStandby, tappedAt: Date())
     #expect(!participation.isFullyHandled)
 
-    participation.status = .resolvedLost(tapNumber: 5, toastShown: false)
+    participation.status = .resolvedLost(toastShown: false)
     #expect(!participation.isFullyHandled)
-    participation.status = .resolvedLost(tapNumber: 5, toastShown: true)
+    participation.status = .resolvedLost(toastShown: true)
     #expect(participation.isFullyHandled)
 
-    participation.status = .resolvedWon(tapNumber: 5, submissionCompleted: false)
+    participation.status = .resolvedWon(submissionCompleted: false)
     #expect(!participation.isFullyHandled)
-    participation.status = .resolvedWon(tapNumber: 5, submissionCompleted: true)
+    participation.status = .resolvedWon(submissionCompleted: true)
     #expect(participation.isFullyHandled)
 
     participation.status = .canceled

@@ -56,6 +56,18 @@ struct GiveawayModelsTests {
     let submission = try decoder().decode(GiveawayWinnerSubmission.self, from: json)
     #expect(submission.id == "sub1")
     #expect(submission.willingToRecord == true)
-    #expect(submission.fulfillmentStatus == "pending")
+    #expect(submission.fulfillmentStatus == .pending)
+  }
+
+  @Test func decodesUnknownFulfillmentStatusAsUnknown() throws {
+    let json = Data(
+      """
+      { "id": "sub1", "giveawayId": "g1", "userId": "u1", "fullName": "X",
+        "addressLine1": "1", "city": "Austin", "postalCode": "78701",
+        "country": "US", "willingToRecord": false, "fulfillmentStatus": "shipped",
+        "submittedAt": "2026-06-13T19:00:00.000Z" }
+      """.utf8)
+    let submission = try decoder().decode(GiveawayWinnerSubmission.self, from: json)
+    #expect(submission.fulfillmentStatus == .unknown)
   }
 }

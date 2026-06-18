@@ -1,5 +1,16 @@
 import Foundation
 
+enum FulfillmentStatus: String, Codable, Sendable, Equatable {
+  case pending
+  case fulfilled
+  case unknown
+
+  init(from decoder: Decoder) throws {
+    let raw = try decoder.singleValueContainer().decode(String.self)
+    self = FulfillmentStatus(rawValue: raw) ?? .unknown
+  }
+}
+
 struct GiveawayWinnerSubmission: Decodable, Sendable, Identifiable, Equatable {
   let id: String
   let giveawayId: String
@@ -13,7 +24,7 @@ struct GiveawayWinnerSubmission: Decodable, Sendable, Identifiable, Equatable {
   let country: String
   let comment: String?
   let willingToRecord: Bool
-  let fulfillmentStatus: String
+  let fulfillmentStatus: FulfillmentStatus
   let submittedAt: Date
 
   enum CodingKeys: String, CodingKey {
@@ -35,7 +46,7 @@ struct GiveawayWinnerSubmission: Decodable, Sendable, Identifiable, Equatable {
     country = try container.decode(String.self, forKey: .country)
     comment = try container.decodeIfPresent(String.self, forKey: .comment)
     willingToRecord = try container.decodeIfPresent(Bool.self, forKey: .willingToRecord) ?? false
-    fulfillmentStatus = try container.decode(String.self, forKey: .fulfillmentStatus)
+    fulfillmentStatus = try container.decode(FulfillmentStatus.self, forKey: .fulfillmentStatus)
     submittedAt = try container.decode(Date.self, forKey: .submittedAt)
   }
 
@@ -52,7 +63,7 @@ struct GiveawayWinnerSubmission: Decodable, Sendable, Identifiable, Equatable {
     country: String,
     comment: String? = nil,
     willingToRecord: Bool,
-    fulfillmentStatus: String,
+    fulfillmentStatus: FulfillmentStatus,
     submittedAt: Date
   ) {
     self.id = id
@@ -82,7 +93,7 @@ struct GiveawayWinnerSubmission: Decodable, Sendable, Identifiable, Equatable {
       postalCode: "78701",
       country: "US",
       willingToRecord: false,
-      fulfillmentStatus: "pending",
+      fulfillmentStatus: .pending,
       submittedAt: Date(timeIntervalSince1970: 1_781_722_800))
   }
 }
