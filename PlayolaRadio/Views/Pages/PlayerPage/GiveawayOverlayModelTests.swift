@@ -4,6 +4,8 @@ import Testing
 
 @testable import PlayolaRadio
 
+// swiftlint:disable redundant_optional_initialization
+
 @MainActor
 struct GiveawayOverlayModelTests {
   private func openGiveaway(station: String = "s1") -> Giveaway {
@@ -71,3 +73,5 @@ struct GiveawayOverlayModelTests {
     #expect(21.ordinalString == "21st")
   }
 }
+
+// swiftlint:enable redundant_optional_initialization

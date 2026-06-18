@@ -218,14 +218,17 @@ struct PlayerPage: View {
 
     var body: some View {
       VStack(spacing: 8) {
-        Button(action: { model.debugToggleGiveawayTapped() }) {
-          Text(model.debugGiveawayButtonTitle)
-            .font(.custom(FontNames.Inter_500_Medium, size: 14))
-            .foregroundColor(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(Capsule().stroke(Color.playolaRed, lineWidth: 1))
-        }
+        Button(
+          action: { model.debugToggleGiveawayTapped() },
+          label: {
+            Text(model.debugGiveawayButtonTitle)
+              .font(.custom(FontNames.Inter_500_Medium, size: 14))
+              .foregroundColor(.white)
+              .padding(.horizontal, 16)
+              .padding(.vertical, 8)
+              .background(Capsule().stroke(Color.playolaRed, lineWidth: 1))
+          }
+        )
         Text(model.debugGiveawayDiagnostics)
           .font(.custom(FontNames.Inter_400_Regular, size: 11))
           .foregroundColor(.gray)
