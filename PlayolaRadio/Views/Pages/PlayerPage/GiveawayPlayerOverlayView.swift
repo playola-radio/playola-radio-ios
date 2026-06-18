@@ -15,7 +15,6 @@ struct GiveawayPlayerOverlayView: View {
         .allowsHitTesting(model.standbyInteractive)
     }
     .padding(.horizontal, 24)
-    .padding(.top, 24)
     .frame(height: model.isVisible ? nil : 0)
     .opacity(model.overlayOpacity)
     .allowsHitTesting(model.isVisible)
@@ -27,37 +26,43 @@ private struct GiveawayOverlayPromptView: View {
   let model: GiveawayOverlayModel
 
   var body: some View {
-    VStack(spacing: 12) {
+    VStack(spacing: 0) {
       Text(model.headline)
-        .font(.custom(FontNames.Inter_700_Bold, size: 20))
-        .foregroundColor(.white)
+        .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 22))
+        .tracking(0.4)
+        .foregroundColor(.playolaRed)
 
-      Text(model.promptText)
-        .font(.custom(FontNames.Inter_400_Regular, size: 14))
-        .foregroundColor(Color(hex: "#C7C7C7"))
+      (Text(model.promptPrefix).foregroundColor(.white)
+        + Text(model.promptOrdinal).foregroundColor(.playolaRed).fontWeight(.bold)
+        + Text(model.promptSuffix).foregroundColor(.white))
+        .font(.custom(FontNames.Inter_400_Regular, size: 15))
         .multilineTextAlignment(.center)
+        .lineSpacing(3)
+        .padding(.top, 8)
 
-      Text(model.prizeName)
-        .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
+      Text(model.prizeText)
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
         .foregroundColor(.white)
         .multilineTextAlignment(.center)
+        .lineSpacing(3)
+        .padding(.top, 4)
 
       Button(
         action: { Task { await model.tapButtonTapped() } },
         label: {
           Text(model.buttonTitle)
-            .font(.custom(FontNames.Inter_700_Bold, size: 18))
+            .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 20))
+            .tracking(2)
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 18)
-            .background(RoundedRectangle(cornerRadius: 14).fill(Color.playolaRed))
+            .frame(height: 64)
+            .background(RoundedRectangle(cornerRadius: 32).fill(Color.playolaRed))
+            .overlay(RoundedRectangle(cornerRadius: 32).stroke(Color.white, lineWidth: 3))
         }
       )
-      .padding(.top, 8)
+      .padding(.top, 20)
     }
     .frame(maxWidth: .infinity)
-    .padding(20)
-    .background(RoundedRectangle(cornerRadius: 16).fill(Color(hex: "#1A1A1A")))
   }
 }
 
@@ -65,19 +70,24 @@ private struct GiveawayOverlayStandbyView: View {
   let model: GiveawayOverlayModel
 
   var body: some View {
-    VStack(spacing: 12) {
+    VStack(spacing: 0) {
       Text(model.standbyText)
-        .font(.custom(FontNames.Inter_700_Bold, size: 20))
+        .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 18))
+        .tracking(2)
         .foregroundColor(.white)
+        .frame(maxWidth: .infinity)
+        .frame(height: 60)
+        .background(RoundedRectangle(cornerRadius: 32).fill(Color(hex: "#1A1A1A")))
+        .overlay(RoundedRectangle(cornerRadius: 32).stroke(Color(hex: "#3A3A3A"), lineWidth: 3))
 
       Text(model.standbySubtitle)
         .font(.custom(FontNames.Inter_400_Regular, size: 14))
         .foregroundColor(Color(hex: "#C7C7C7"))
         .multilineTextAlignment(.center)
+        .lineSpacing(2)
+        .padding(.top, 12)
     }
     .frame(maxWidth: .infinity)
-    .padding(20)
-    .background(RoundedRectangle(cornerRadius: 16).fill(Color(hex: "#1A1A1A")))
   }
 }
 

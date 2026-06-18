@@ -43,12 +43,19 @@ class GiveawayOverlayModel: ViewModel {
 
   var headline: String { "WIN A PRIZE!" }
 
-  var promptText: String {
+  var promptPrefix: String { "Be the " }
+
+  var promptOrdinal: String {
     guard let giveaway = visibleGiveaway else { return "" }
-    return "Be the \(giveaway.winningNumber.ordinalString) listener to tap the button below to win:"
+    return giveaway.winningNumber.ordinalString
   }
 
-  var prizeName: String { visibleGiveaway?.prizeName ?? "" }
+  var promptSuffix: String { " Listener to Tap the Button Below to win:" }
+
+  var prizeText: String {
+    guard let giveaway = visibleGiveaway else { return "" }
+    return "\(giveaway.prizeName)."
+  }
 
   var buttonTitle: String { "TAP HERE" }
 

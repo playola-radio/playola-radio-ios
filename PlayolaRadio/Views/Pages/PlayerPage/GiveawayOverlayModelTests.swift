@@ -44,8 +44,9 @@ struct GiveawayOverlayModelTests {
     model.debugForceVisible = true
     #expect(model.isVisible == true)
     #expect(model.overlayOpacity == 1)
-    #expect(model.prizeName == "Two tickets")
-    #expect(model.promptText == "Be the 9th listener to tap the button below to win:")
+    #expect(model.prizeText == "Two tickets.")
+    #expect(model.promptOrdinal == "9th")
+    #expect(model.promptSuffix == " Listener to Tap the Button Below to win:")
   }
 
   @Test func tappedFlipsPromptToStandby() {
