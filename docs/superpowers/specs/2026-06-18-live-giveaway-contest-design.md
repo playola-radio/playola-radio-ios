@@ -37,6 +37,14 @@ not save the prior attempt; runtime verification per PR is mandatory.
 `@ObservationIgnored @Shared(.key)` in an `@Observable` model is the correct, sanctioned pattern —
 `@Shared` manages its own observation and drives SwiftUI updates. (This was *not* the bug.)
 
+**Server-decoded status enums tolerate unknown values.** `GiveawayStatus` and `FulfillmentStatus`
+are decoded straight from server JSON and use an `unknown` fallback (`init(from:)` → `rawValue ?? .unknown`)
+so one unrecognized value can't make a whole `Giveaway`/`GiveawayMyResult`/`GiveawayTapResponse` decode
+throw — which the poll loop would swallow, silently hiding the UI (the exact failure mode above).
+Consumers (PR2+) must handle `.unknown` explicitly; treat it as non-open and non-terminal (the
+`opensAt+10min` fallback timer backstops a giveaway stuck in `.unknown`). The *local* state enums
+`GiveawayParticipationStatus` / `CongratsActionState` are ours to control and stay strict.
+
 ## Server contract
 
 ### Listener (all Bearer JWT; IDs are UUID strings; timestamps ISO-8601 UTC)

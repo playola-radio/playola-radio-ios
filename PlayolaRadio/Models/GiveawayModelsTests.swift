@@ -28,6 +28,27 @@ struct GiveawayModelsTests {
     #expect(giveaway.prizeImageUrl == URL(string: "https://x.test/p.png"))
   }
 
+  @Test func decodesUnknownGiveawayStatusAsUnknownRatherThanThrowing() throws {
+    let json = Data(
+      """
+      {
+        "id": "g1", "stationId": "s1", "prizeName": "Two tickets",
+        "winningNumber": 9, "status": "paused", "winnerUserId": null,
+        "createdAt": "2026-06-13T17:00:00.000Z", "updatedAt": "2026-06-13T18:00:00.000Z"
+      }
+      """.utf8)
+    let giveaway = try decoder().decode(Giveaway.self, from: json)
+    #expect(giveaway.status == .unknown)
+  }
+
+  @Test func decodesUnknownMyResultStatusAsUnknown() throws {
+    let json = Data(
+      #"{ "tapNumber": null, "isWinner": false, "status": "expired", "winningNumber": 9 }"#.utf8)
+    let result = try decoder().decode(GiveawayMyResult.self, from: json)
+    #expect(result.status == .unknown)
+    #expect(result.isResolved == false)
+  }
+
   @Test func decodesTapResponse() throws {
     let json = Data(#"{ "tapNumber": 14, "isWinner": false, "status": "open" }"#.utf8)
     let response = try decoder().decode(GiveawayTapResponse.self, from: json)

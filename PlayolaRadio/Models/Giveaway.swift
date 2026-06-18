@@ -5,6 +5,12 @@ enum GiveawayStatus: String, Codable, Sendable, Equatable {
   case open
   case closed
   case canceled
+  case unknown
+
+  init(from decoder: Decoder) throws {
+    let raw = try decoder.singleValueContainer().decode(String.self)
+    self = GiveawayStatus(rawValue: raw) ?? .unknown
+  }
 }
 
 struct Giveaway: Decodable, Sendable, Identifiable, Equatable {
