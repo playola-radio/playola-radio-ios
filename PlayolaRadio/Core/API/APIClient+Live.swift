@@ -739,9 +739,10 @@ extension APIClient: DependencyKey {
         try await authenticatedGet(path: "/v1/stations/live", token: jwtToken)
       },
       giveawayEventsFeed: { jwtToken in
+        // Status goes in the path so the comma stays literal — URLQueryItem would
+        // percent-encode it to "%2C", which the feed's status filter may not split on.
         try await authenticatedGet(
-          path: "/v1/giveaway-events", token: jwtToken,
-          queryParams: ["status": "open,scheduled"])
+          path: "/v1/giveaway-events?status=open,scheduled", token: jwtToken)
       },
       giveawayEvent: { jwtToken, eventId in
         try await authenticatedGet(path: "/v1/giveaway-events/\(eventId)", token: jwtToken)

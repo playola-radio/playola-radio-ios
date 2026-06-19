@@ -144,7 +144,8 @@ extension SharedKey where Self == FileStorageKey<[String: GiveawayParticipation]
 }
 
 extension SharedKey where Self == FileStorageKey<Set<String>>.Default {
-  /// GiveawayEvent ids whose banner the user dismissed (per giveaway, not per station).
+  /// Stable `giveawayId` values (NOT the ephemeral per-airing event id) whose banner the user
+  /// dismissed — so a dismissal sticks across reruns/airings of the same giveaway.
   static var dismissedGiveawayBannerIds: Self {
     Self[
       .fileStorage(.documentsDirectory.appending(component: "dismissed-giveaway-banners.json")),
