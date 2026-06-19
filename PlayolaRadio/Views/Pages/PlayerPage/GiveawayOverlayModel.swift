@@ -26,6 +26,12 @@ class GiveawayOverlayModel: ViewModel {
     super.init()
   }
 
+  // MARK: - User Actions
+  func tapButtonTapped() async {
+    guard let giveaway = visibleGiveaway else { return }
+    await onTap?(giveaway)
+  }
+
   // MARK: - View Helpers
   var isVisible: Bool { visibleGiveaway != nil }
 
@@ -63,20 +69,18 @@ class GiveawayOverlayModel: ViewModel {
 
   var standbySubtitle: String { "Hang tight — we'll reveal the winner when the song ends." }
 
-  /// Human-readable reason the overlay is hidden, for the debug diagnostics readout.
+  /// Human-readable explanation of the visibility gate, for the debug diagnostics readout.
+  /// Mirrors `visibleGiveaway` so the HUD never contradicts what's on screen.
   var gateDiagnostics: String {
     guard let giveaway = activeGiveaway else { return "hidden: no activeGiveaway" }
     if giveaway.status != .open { return "hidden: status is \(giveaway.status.rawValue), not open" }
+    #if DEBUG
+      if debugForceVisible { return "visible: debug force-visible (station check bypassed)" }
+    #endif
     if giveaway.stationId != currentStationId {
       return "hidden: giveaway station \(giveaway.stationId) ≠ playing \(currentStationId ?? "nil")"
     }
     return "visible: open giveaway on the current station"
-  }
-
-  // MARK: - User Actions
-  func tapButtonTapped() async {
-    guard let giveaway = visibleGiveaway else { return }
-    await onTap?(giveaway)
   }
 
   // MARK: - Private Helpers
@@ -98,7 +102,7 @@ class GiveawayOverlayModel: ViewModel {
 }
 
 extension Int {
-  var ordinalString: String {
+  fileprivate var ordinalString: String {
     let ones = self % 10
     let tens = self % 100
     if tens >= 11 && tens <= 13 { return "\(self)th" }
