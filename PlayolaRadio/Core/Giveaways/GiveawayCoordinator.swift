@@ -1,3 +1,4 @@
+import Combine
 import Dependencies
 import Foundation
 import Sharing
@@ -15,7 +16,10 @@ final class GiveawayCoordinator {
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
   @ObservationIgnored @Shared(.activeGiveaway) var activeGiveaway
 
-  private var pollingTask: Task<Void, Never>?
+  @ObservationIgnored private var pollingTask: Task<Void, Never>?
+  @ObservationIgnored private var cancellables: Set<AnyCancellable> = []
+  @ObservationIgnored private var hasObservedStation = false
+  @ObservationIgnored private var lastObservedStationId: String?
 
   static let pollingInterval: Duration = .seconds(15)
 
@@ -23,21 +27,17 @@ final class GiveawayCoordinator {
 
   func start() {
     guard GiveawayFeature.isLiveDataEnabled else { return }
-    guard pollingTask == nil else { return }
-    pollingTask = Task { [weak self] in
-      while !Task.isCancelled {
-        await self?.pollActiveGiveaway()
-        try? await Task.sleep(for: Self.pollingInterval)
-      }
-    }
+    observeStationChanges()
+    startPolling()
   }
 
   func stop() {
     pollingTask?.cancel()
     pollingTask = nil
+    cancellables.removeAll()
   }
 
-  /// Fire an immediate poll (on foreground / now-playing change) without waiting for the interval.
+  /// Fire an immediate poll (e.g. on foreground) without waiting for the interval.
   func pollNow() async {
     guard GiveawayFeature.isLiveDataEnabled else { return }
     await pollActiveGiveaway()
@@ -64,6 +64,34 @@ final class GiveawayCoordinator {
   }
 
   // MARK: - Private Helpers
+
+  private func startPolling() {
+    guard pollingTask == nil else { return }
+    pollingTask = Task { [weak self] in
+      while !Task.isCancelled {
+        await self?.pollActiveGiveaway()
+        try? await Task.sleep(for: Self.pollingInterval)
+      }
+    }
+  }
+
+  /// Re-poll the instant the now-playing station settles on a new value, so the overlay appears
+  /// promptly after a station switch instead of waiting up to one poll interval. `nowPlaying`
+  /// also changes per song, so we de-dupe on the station id.
+  private func observeStationChanges() {
+    guard cancellables.isEmpty else { return }
+    $nowPlaying.publisher
+      .sink { [weak self] _ in self?.nowPlayingChanged() }
+      .store(in: &cancellables)
+  }
+
+  private func nowPlayingChanged() {
+    let stationId = currentPlayolaStationId
+    guard !hasObservedStation || stationId != lastObservedStationId else { return }
+    hasObservedStation = true
+    lastObservedStationId = stationId
+    Task { await pollActiveGiveaway() }
+  }
 
   private var currentPlayolaStationId: String? {
     guard let anyStation = nowPlaying?.currentStation,

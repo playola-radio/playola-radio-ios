@@ -230,8 +230,6 @@ class MainContainerModel: ViewModel {
         PlayerPageModel(onDismiss: {
           self.mainContainerNavigationCoordinator.presentedSheet = nil
         }))
-      // New station → re-check for a live giveaway immediately instead of waiting for the interval.
-      Task { await self.giveawayCoordinator.pollNow() }
     default: break
     }
     self.setShouldShowSmallPlayer(newState)
