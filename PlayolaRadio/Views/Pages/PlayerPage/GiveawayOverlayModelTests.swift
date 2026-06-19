@@ -8,10 +8,12 @@ import Testing
 
 @MainActor
 struct GiveawayOverlayModelTests {
+  // giveawayId is deliberately distinct from the event id so tests pin participation keying to the
+  // per-airing event id (`id`), not the stable `giveawayId`.
   private func openGiveaway(station: String = "s1", winningNumber: Int = 9) -> GiveawayEvent {
     GiveawayEvent(
       id: "g1", stationId: station, prizeName: "Two tickets", winningNumber: winningNumber,
-      status: .open)
+      status: .open, giveawayId: "gv1")
   }
 
   @Test func hiddenWhenNoActiveGiveaway() {
@@ -53,6 +55,8 @@ struct GiveawayOverlayModelTests {
 
   @Test func tappedFlipsPromptToStandby() {
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
+    // Keyed by the event id ("g1"), which differs from the event's giveawayId ("gv1") — so this
+    // fails if hasTapped ever re-keys by giveawayId.
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
       "g1": GiveawayParticipation(
         id: "g1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,

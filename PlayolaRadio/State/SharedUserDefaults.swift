@@ -133,8 +133,9 @@ extension SharedKey where Self == InMemoryKey<GiveawayBannerState?>.Default {
 }
 
 extension SharedKey where Self == FileStorageKey<[String: GiveawayParticipation]>.Default {
-  /// Durable per-giveaway participation (keyed by giveawayId) so the reveal survives an app kill.
-  /// Cleared on sign-out so one account never sees another's state.
+  /// Durable participation keyed by the **per-airing event id** (each airing is a separate
+  /// contest, so a tap on one airing must not mark you "tapped" on a rerun). Survives an app kill;
+  /// cleared on sign-out so one account never sees another's state.
   static var giveawayParticipations: Self {
     Self[
       .fileStorage(.documentsDirectory.appending(component: "giveaway-participations.json")),
