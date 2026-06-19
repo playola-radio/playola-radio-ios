@@ -94,7 +94,7 @@ private struct GiveawayOverlayStandbyView: View {
 
 #if DEBUG
   @MainActor private func previewModel(tapped: Bool) -> GiveawayOverlayModel {
-    @Shared(.activeGiveaway) var activeGiveaway = Giveaway(
+    @Shared(.activeGiveaway) var activeGiveaway = GiveawayEvent(
       id: "preview-giveaway", stationId: "preview-station",
       prizeName: "Two tickets to Reckless Kelly at the Heights", winningNumber: 9, status: .open)
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] =

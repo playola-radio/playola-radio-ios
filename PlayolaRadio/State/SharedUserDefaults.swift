@@ -118,7 +118,7 @@ extension SharedKey where Self == InMemoryKey<[LiveStationInfo]>.Default {
 
 // MARK: - Giveaways
 
-extension SharedKey where Self == InMemoryKey<Giveaway?>.Default {
+extension SharedKey where Self == InMemoryKey<GiveawayEvent?>.Default {
   /// The open giveaway for the currently-playing station. Drives the player overlay.
   static var activeGiveaway: Self {
     Self[.inMemory("activeGiveaway"), default: nil]
@@ -144,7 +144,7 @@ extension SharedKey where Self == FileStorageKey<[String: GiveawayParticipation]
 }
 
 extension SharedKey where Self == FileStorageKey<Set<String>>.Default {
-  /// Giveaway ids whose banner the user dismissed (per giveaway, not per station).
+  /// GiveawayEvent ids whose banner the user dismissed (per giveaway, not per station).
   static var dismissedGiveawayBannerIds: Self {
     Self[
       .fileStorage(.documentsDirectory.appending(component: "dismissed-giveaway-banners.json")),

@@ -738,6 +738,21 @@ extension APIClient: DependencyKey {
       fetchLiveStations: { jwtToken in
         try await authenticatedGet(path: "/v1/stations/live", token: jwtToken)
       },
+      giveawayEventsFeed: { jwtToken in
+        try await authenticatedGet(
+          path: "/v1/giveaway-events", token: jwtToken,
+          queryParams: ["status": "open,scheduled"])
+      },
+      giveawayEvent: { jwtToken, eventId in
+        try await authenticatedGet(path: "/v1/giveaway-events/\(eventId)", token: jwtToken)
+      },
+      activeGiveawayEvent: { jwtToken, stationId in
+        try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/giveaway-events/active", token: jwtToken)
+      },
+      tapGiveawayEvent: { jwtToken, eventId in
+        try await authenticatedPost(path: "/v1/giveaway-events/\(eventId)/tap", token: jwtToken)
+      },
       getSupportConversation: { jwtToken in
         try await authenticatedGet(path: "/v1/conversations/support", token: jwtToken)
       },

@@ -12,7 +12,7 @@ class GiveawayOverlayModel: ViewModel {
   @ObservationIgnored @Shared(.giveawayParticipations) var participations
 
   // MARK: - Callbacks
-  var onTap: (@MainActor (Giveaway) async -> Void)?
+  var onTap: (@MainActor (GiveawayEvent) async -> Void)?
 
   // MARK: - Debug
   #if DEBUG
@@ -91,7 +91,7 @@ class GiveawayOverlayModel: ViewModel {
     return station.id
   }
 
-  private var visibleGiveaway: Giveaway? {
+  private var visibleGiveaway: GiveawayEvent? {
     guard let giveaway = activeGiveaway, giveaway.status == .open else { return nil }
     #if DEBUG
       if debugForceVisible { return giveaway }
