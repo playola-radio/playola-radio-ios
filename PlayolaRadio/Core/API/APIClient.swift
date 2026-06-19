@@ -533,6 +533,19 @@ struct APIClient: Sendable {
     []
   }
 
+  // MARK: - Giveaways
+
+  /// Fetches the open giveaway for a station, or nil if none is currently open.
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station to check
+  /// - Returns: The open `Giveaway`, or nil
+  /// - Throws: APIError if the request fails
+  var activeGiveaway:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> Giveaway? = { _, _ in
+      nil
+    }
+
   /// Gets the user's support conversation (may be nil if none exists)
   /// - Parameter jwtToken: The JWT token for authentication
   /// - Returns: SupportConversationResponse containing the conversation (nullable) and unread count

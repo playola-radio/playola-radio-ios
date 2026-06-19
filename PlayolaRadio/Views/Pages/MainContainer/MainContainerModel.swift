@@ -58,6 +58,7 @@ class MainContainerModel: ViewModel {
   var rewardsPageModel = RewardsPageModel()
   var contactPageModel = ContactPageModel()
   var liveStationsPoller = LiveStationsPoller()
+  var giveawayCoordinator = GiveawayCoordinator()
 
   @ObservationIgnored private var toastObservationTask: Task<Void, Never>?
 
@@ -132,6 +133,7 @@ class MainContainerModel: ViewModel {
     await loadAirings()
 
     liveStationsPoller.startPolling()
+    giveawayCoordinator.start()
 
     await fetchBroadcasterStatus()
   }
@@ -150,6 +152,7 @@ class MainContainerModel: ViewModel {
 
     await loadAirings()
     await fetchUnreadSupportCount()
+    await giveawayCoordinator.pollNow()
   }
 
   private func applyStationLists(_ lists: IdentifiedArrayOf<StationList>) {
@@ -161,8 +164,10 @@ class MainContainerModel: ViewModel {
     switch phase {
     case .active:
       liveStationsPoller.startPolling()
+      giveawayCoordinator.start()
     case .background, .inactive:
       liveStationsPoller.stopPolling()
+      giveawayCoordinator.stop()
     @unknown default:
       break
     }
@@ -225,6 +230,8 @@ class MainContainerModel: ViewModel {
         PlayerPageModel(onDismiss: {
           self.mainContainerNavigationCoordinator.presentedSheet = nil
         }))
+      // New station → re-check for a live giveaway immediately instead of waiting for the interval.
+      Task { await self.giveawayCoordinator.pollNow() }
     default: break
     }
     self.setShouldShowSmallPlayer(newState)
