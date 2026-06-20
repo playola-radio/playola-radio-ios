@@ -147,6 +147,25 @@ private func authenticatedGet<T: Decodable & Sendable>(
     .value
 }
 
+/// Like `authenticatedGet`, but maps a 404 to `nil` — for "fetch X or none" endpoints whose
+/// contract is `404 = not found` (e.g. the active-giveaway-event late-joiner check).
+private func authenticatedGetOrNil<T: Decodable & Sendable>(
+  path: String,
+  token: String
+) async throws -> T? {
+  do {
+    let value: T = try await authenticatedGet(path: path, token: token)
+    return value
+  } catch let error as AFError {
+    if case .responseValidationFailed(reason: .unacceptableStatusCode(let code)) = error,
+      code == 404
+    {
+      return nil
+    }
+    throw error
+  }
+}
+
 private func authenticatedPost<T: Decodable & Sendable>(
   path: String,
   token: String,
@@ -748,7 +767,8 @@ extension APIClient: DependencyKey {
         try await authenticatedGet(path: "/v1/giveaway-events/\(eventId)", token: jwtToken)
       },
       activeGiveawayEvent: { jwtToken, stationId in
-        try await authenticatedGet(
+        // 404 = no open event for this station → nil (not an error).
+        try await authenticatedGetOrNil(
           path: "/v1/stations/\(stationId)/giveaway-events/active", token: jwtToken)
       },
       tapGiveawayEvent: { jwtToken, eventId in
