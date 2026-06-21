@@ -533,6 +533,32 @@ struct APIClient: Sendable {
     []
   }
 
+  // MARK: - Giveaway Events
+
+  /// Cross-station feed of live + upcoming giveaway events (status open or scheduled).
+  /// Drives the in-app banner and pre-arm discovery.
+  var giveawayEventsFeed: @Sendable (_ jwtToken: String) async throws -> [GiveawayEventFeedItem] = {
+    _ in []
+  }
+
+  /// Authoritative per-viewer giveaway event by id. Includes `serverTime` for clock-skew
+  /// correction and reconciles open/close on demand.
+  var giveawayEvent:
+    @Sendable (_ jwtToken: String, _ eventId: String) async throws -> GiveawayEvent =
+      { _, _ in .mock }
+
+  /// The currently-open giveaway event for a station, or nil. Late-joiner check on tune-in.
+  var activeGiveawayEvent:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> GiveawayEvent? = { _, _ in
+      nil
+    }
+
+  /// Taps into a giveaway event. Accepted at server `opensAt` (open-on-demand); 400 if not open.
+  var tapGiveawayEvent:
+    @Sendable (_ jwtToken: String, _ eventId: String) async throws -> GiveawayTapResponse = {
+      _, _ in .mock
+    }
+
   /// Gets the user's support conversation (may be nil if none exists)
   /// - Parameter jwtToken: The JWT token for authentication
   /// - Returns: SupportConversationResponse containing the conversation (nullable) and unread count

@@ -185,7 +185,7 @@ class PlayerPageModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
 
-  // MARK: - Giveaway
+  // MARK: - GiveawayEvent
   let giveawayOverlayModel = GiveawayOverlayModel()
   @ObservationIgnored @Shared(.activeGiveaway) var activeGiveaway
   @ObservationIgnored @Shared(.giveawayParticipations) var giveawayParticipations
@@ -215,7 +215,7 @@ class PlayerPageModel: ViewModel {
         giveawayOverlayModel.debugForceVisible = false
       } else {
         $activeGiveaway.withLock {
-          $0 = Giveaway(
+          $0 = GiveawayEvent(
             id: "debug-giveaway", stationId: "debug-station",
             prizeName: "Two tickets to Reckless Kelly at the Heights",
             prizeDescription: "Friday night, doors at 8.", winningNumber: 9, status: .open)
@@ -224,7 +224,7 @@ class PlayerPageModel: ViewModel {
       }
     }
 
-    private func debugMarkStandby(_ giveaway: Giveaway) {
+    private func debugMarkStandby(_ giveaway: GiveawayEvent) {
       $giveawayParticipations.withLock {
         $0[giveaway.id] = GiveawayParticipation(
           id: giveaway.id, stationId: giveaway.stationId, prizeName: giveaway.prizeName,

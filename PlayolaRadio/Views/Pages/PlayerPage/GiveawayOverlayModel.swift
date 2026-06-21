@@ -12,7 +12,7 @@ class GiveawayOverlayModel: ViewModel {
   @ObservationIgnored @Shared(.giveawayParticipations) var participations
 
   // MARK: - Callbacks
-  var onTap: (@MainActor (Giveaway) async -> Void)?
+  var onTap: (@MainActor (GiveawayEvent) async -> Void)?
 
   // MARK: - Debug
   #if DEBUG
@@ -39,6 +39,8 @@ class GiveawayOverlayModel: ViewModel {
 
   var hasTapped: Bool {
     guard let giveaway = visibleGiveaway else { return false }
+    // Keyed by the per-airing event id (giveaway.id), NOT giveawayId: each airing is its own
+    // contest, so a tap on a prior airing must not pre-mark this one. The tap flow keys the same.
     return participations[giveaway.id]?.isStandby ?? false
   }
 
@@ -91,7 +93,7 @@ class GiveawayOverlayModel: ViewModel {
     return station.id
   }
 
-  private var visibleGiveaway: Giveaway? {
+  private var visibleGiveaway: GiveawayEvent? {
     guard let giveaway = activeGiveaway, giveaway.status == .open else { return nil }
     #if DEBUG
       if debugForceVisible { return giveaway }

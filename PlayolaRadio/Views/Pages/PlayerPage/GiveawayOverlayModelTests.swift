@@ -8,14 +8,16 @@ import Testing
 
 @MainActor
 struct GiveawayOverlayModelTests {
-  private func openGiveaway(station: String = "s1", winningNumber: Int = 9) -> Giveaway {
-    Giveaway(
+  // giveawayId is deliberately distinct from the event id so tests pin participation keying to the
+  // per-airing event id (`id`), not the stable `giveawayId`.
+  private func openGiveaway(station: String = "s1", winningNumber: Int = 9) -> GiveawayEvent {
+    GiveawayEvent(
       id: "g1", stationId: station, prizeName: "Two tickets", winningNumber: winningNumber,
-      status: .open)
+      status: .open, giveawayId: "gv1")
   }
 
   @Test func hiddenWhenNoActiveGiveaway() {
-    @Shared(.activeGiveaway) var activeGiveaway: Giveaway? = nil
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
     let model = GiveawayOverlayModel()
     #expect(model.isVisible == false)
     #expect(model.overlayOpacity == 0)
@@ -23,7 +25,7 @@ struct GiveawayOverlayModelTests {
   }
 
   @Test func hiddenWhenStatusNotOpen() {
-    @Shared(.activeGiveaway) var activeGiveaway: Giveaway? = Giveaway(
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = GiveawayEvent(
       id: "g1", stationId: "s1", prizeName: "x", winningNumber: 9, status: .closed)
     let model = GiveawayOverlayModel()
     model.debugForceVisible = true
@@ -33,14 +35,14 @@ struct GiveawayOverlayModelTests {
 
   @Test func hiddenWhenStationMismatchWithoutDebugForce() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
-    @Shared(.activeGiveaway) var activeGiveaway: Giveaway? = openGiveaway(station: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway(station: "s1")
     let model = GiveawayOverlayModel()
     #expect(model.isVisible == false)
     #expect(model.gateDiagnostics == "hidden: giveaway station s1 ≠ playing nil")
   }
 
   @Test func visibleWhenDebugForceVisibleAndOpen() {
-    @Shared(.activeGiveaway) var activeGiveaway: Giveaway? = openGiveaway()
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
     let model = GiveawayOverlayModel()
     model.debugForceVisible = true
     #expect(model.isVisible == true)
@@ -52,7 +54,9 @@ struct GiveawayOverlayModelTests {
   }
 
   @Test func tappedFlipsPromptToStandby() {
-    @Shared(.activeGiveaway) var activeGiveaway: Giveaway? = openGiveaway()
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
+    // Keyed by the event id ("g1"), which differs from the event's giveawayId ("gv1") — so this
+    // fails if hasTapped ever re-keys by giveawayId.
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
       "g1": GiveawayParticipation(
         id: "g1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
@@ -67,17 +71,17 @@ struct GiveawayOverlayModelTests {
   }
 
   @Test func tapButtonInvokesOnTapWithTheVisibleGiveaway() async {
-    @Shared(.activeGiveaway) var activeGiveaway: Giveaway? = openGiveaway()
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
     let model = GiveawayOverlayModel()
     model.debugForceVisible = true
-    var tapped: Giveaway?
+    var tapped: GiveawayEvent?
     model.onTap = { tapped = $0 }
     await model.tapButtonTapped()
     #expect(tapped?.id == "g1")
   }
 
   @Test func tapButtonNoOpsWhenNotVisible() async {
-    @Shared(.activeGiveaway) var activeGiveaway: Giveaway? = nil
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
     let model = GiveawayOverlayModel()
     var called = false
     model.onTap = { _ in called = true }
@@ -86,7 +90,7 @@ struct GiveawayOverlayModelTests {
   }
 
   @Test func promptOrdinalHandlesTeensAndOnes() {
-    @Shared(.activeGiveaway) var activeGiveaway: Giveaway? = openGiveaway()
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
     let model = GiveawayOverlayModel()
     model.debugForceVisible = true
     let cases: [(Int, String)] = [

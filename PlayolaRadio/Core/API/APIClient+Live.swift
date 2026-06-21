@@ -147,6 +147,25 @@ private func authenticatedGet<T: Decodable & Sendable>(
     .value
 }
 
+/// Like `authenticatedGet`, but maps a 404 to `nil` — for "fetch X or none" endpoints whose
+/// contract is `404 = not found` (e.g. the active-giveaway-event late-joiner check).
+private func authenticatedGetOrNil<T: Decodable & Sendable>(
+  path: String,
+  token: String
+) async throws -> T? {
+  do {
+    let value: T = try await authenticatedGet(path: path, token: token)
+    return value
+  } catch let error as AFError {
+    if case .responseValidationFailed(reason: .unacceptableStatusCode(let code)) = error,
+      code == 404
+    {
+      return nil
+    }
+    throw error
+  }
+}
+
 private func authenticatedPost<T: Decodable & Sendable>(
   path: String,
   token: String,
@@ -737,6 +756,23 @@ extension APIClient: DependencyKey {
       },
       fetchLiveStations: { jwtToken in
         try await authenticatedGet(path: "/v1/stations/live", token: jwtToken)
+      },
+      giveawayEventsFeed: { jwtToken in
+        // Status goes in the path so the comma stays literal — URLQueryItem would
+        // percent-encode it to "%2C", which the feed's status filter may not split on.
+        try await authenticatedGet(
+          path: "/v1/giveaway-events?status=open,scheduled", token: jwtToken)
+      },
+      giveawayEvent: { jwtToken, eventId in
+        try await authenticatedGet(path: "/v1/giveaway-events/\(eventId)", token: jwtToken)
+      },
+      activeGiveawayEvent: { jwtToken, stationId in
+        // 404 = no open event for this station → nil (not an error).
+        try await authenticatedGetOrNil(
+          path: "/v1/stations/\(stationId)/giveaway-events/active", token: jwtToken)
+      },
+      tapGiveawayEvent: { jwtToken, eventId in
+        try await authenticatedPost(path: "/v1/giveaway-events/\(eventId)/tap", token: jwtToken)
       },
       getSupportConversation: { jwtToken in
         try await authenticatedGet(path: "/v1/conversations/support", token: jwtToken)
