@@ -84,7 +84,7 @@ final class GiveawayCoordinator {
       clearActiveAndArm()
       return
     }
-    let feed: [GiveawayEventFeedItem]
+    let feed: [GiveawayEvent]
     do {
       feed = try await api.giveawayEventsFeed(jwt)
     } catch {
@@ -101,14 +101,14 @@ final class GiveawayCoordinator {
       return
     }
     log(
-      "reconcile: matched \(item.eventId) status=\(item.status.rawValue) opensAt=\(item.opensAt?.description ?? "nil")"
+      "reconcile: matched \(item.id) status=\(item.status.rawValue) opensAt=\(item.opensAt?.description ?? "nil")"
     )
     switch item.status {
     case .open:
       cancelArmedReveal()
-      await revealEvent(jwt: jwt, eventId: item.eventId, expectedStationId: stationId)
+      await revealEvent(jwt: jwt, eventId: item.id, expectedStationId: stationId)
     case .scheduled:
-      if activeGiveaway?.id != item.eventId { $activeGiveaway.withLock { $0 = nil } }
+      if activeGiveaway?.id != item.id { $activeGiveaway.withLock { $0 = nil } }
       armRevealIfNeeded(jwt: jwt, item: item, stationId: stationId)
     case .closed, .canceled, .unknown:
       clearActiveAndArm()
@@ -191,15 +191,15 @@ final class GiveawayCoordinator {
     Task { await reconcile() }
   }
 
-  private func armRevealIfNeeded(jwt: String, item: GiveawayEventFeedItem, stationId: String) {
-    guard armedEventId != item.eventId else { return }
+  private func armRevealIfNeeded(jwt: String, item: GiveawayEvent, stationId: String) {
+    guard armedEventId != item.id else { return }
     cancelArmedReveal()
-    armedEventId = item.eventId
+    armedEventId = item.id
     generation += 1
     let gen = generation
     revealTask = Task { [weak self] in
       await self?.armAndReveal(
-        jwt: jwt, eventId: item.eventId, stationId: stationId, generation: gen)
+        jwt: jwt, eventId: item.id, stationId: stationId, generation: gen)
     }
   }
 

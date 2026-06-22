@@ -45,9 +45,9 @@ struct GiveawayCoordinatorTests {
     await withDependencies {
       $0.api.giveawayEventsFeed = { _ in
         [
-          GiveawayEventFeedItem(
-            eventId: "e1", stationId: "s1", stationName: "Reckless Radio", prizeName: "Two tickets",
-            winningNumber: 9, opensAt: Date(timeIntervalSince1970: 1000), status: .open)
+          GiveawayEvent(
+            id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .open,
+            opensAt: Date(timeIntervalSince1970: 1000))
         ]
       }
       $0.api.giveawayEvent = { _, id in
@@ -100,10 +100,9 @@ struct GiveawayCoordinatorTests {
       $0.continuousClock = TestClock()
       $0.api.giveawayEventsFeed = { _ in
         [
-          GiveawayEventFeedItem(
-            eventId: "e1", stationId: "s1", stationName: "Reckless Radio", prizeName: "Two tickets",
-            winningNumber: 9, opensAt: Date(timeIntervalSince1970: 9_999_999_999),
-            status: .scheduled)
+          GiveawayEvent(
+            id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+            status: .scheduled, opensAt: Date(timeIntervalSince1970: 9_999_999_999))
         ]
       }
       $0.api.giveawayEvent = { _, id in
