@@ -86,24 +86,17 @@ final class GiveawayCoordinator {
       log("reconcile: feed FETCH FAILED (\(error)) — keeping last state")
       return  // transient failure: keep last known state, retry next poll
     }
-    log(
-      "reconcile: feed=\(feed.map { "\($0.stationId.prefix(8)):\($0.status.rawValue)" }) "
-        + "playing=\(stationId.prefix(8))")
     guard currentPlayolaStationId == stationId else { return }
-    guard let item = feed.first(where: { $0.stationId == stationId }) else {
-      // No feed event for the current station right now — this happens transiently right at the
-      // open transition (the event briefly drops from the feed). Do NOT cancel an in-flight arm:
-      // it self-validates by GETting the event at opensAt (the GET reconciles open on demand, or
-      // 404s if truly gone). Only drop a stale published event from a DIFFERENT station; the
-      // overlay's own station gate already prevents displaying it.
-      if let active = activeGiveaway, active.stationId != stationId {
-        $activeGiveaway.withLock { $0 = nil }
-      }
-      log("reconcile: no feed event for current station — keeping any armed reveal")
+    let stationEvents = feed.filter { $0.stationId == stationId }
+    log(
+      "reconcile: playing=\(stationId.prefix(8)) events="
+        + "\(stationEvents.map { "\($0.status.rawValue)@\($0.opensAt?.description ?? "nil")" })")
+    guard let item = Self.selectEvent(from: stationEvents) else {
+      await handleNoFeedEvent(jwt: jwt, stationId: stationId)
       return
     }
     log(
-      "reconcile: matched \(item.id) status=\(item.status.rawValue) opensAt=\(item.opensAt?.description ?? "nil")"
+      "reconcile: selected \(item.id) status=\(item.status.rawValue) opensAt=\(item.opensAt?.description ?? "nil")"
     )
     switch item.status {
     case .open:
@@ -161,6 +154,43 @@ final class GiveawayCoordinator {
     }
   }
 
+  /// Handle the feed having no event for the current station — happens transiently at the open
+  /// transition AND permanently when a contest closes (closed events leave the feed). Never cancels
+  /// an in-flight arm (it self-validates via GET at opensAt). Drops a stale cross-station event;
+  /// confirms a same-station published event via GET and clears it only once it's no longer open.
+  private func handleNoFeedEvent(jwt: String, stationId: String) async {
+    log("reconcile: no feed event for current station — keeping any armed reveal")
+    guard let active = activeGiveaway else { return }
+    if active.stationId != stationId {
+      $activeGiveaway.withLock { $0 = nil }
+    } else {
+      await clearActiveIfNoLongerOpen(jwt: jwt, event: active, stationId: stationId)
+    }
+  }
+
+  /// A published event has dropped out of the feed. Confirm via the authoritative GET: keep it if
+  /// it's still open (a transient feed gap at the open transition), clear it once it has closed.
+  /// A transient GET failure keeps it (the next poll retries). (A canceled event that 404s is
+  /// cleared by the result-poll reveal step — a later PR.)
+  func clearActiveIfNoLongerOpen(jwt: String, event: GiveawayEvent, stationId: String) async {
+    guard let fresh = try? await api.giveawayEvent(jwt, event.id) else { return }
+    guard currentPlayolaStationId == stationId else { return }
+    if fresh.status != .open {
+      $activeGiveaway.withLock { $0 = nil }
+      log("active event \(event.id) is now \(fresh.status.rawValue) → cleared")
+    }
+  }
+
+  /// Among a station's events, pick the relevant one: an open one (reveal now), otherwise the
+  /// soonest-opening scheduled one. A station can have several scheduled events at once (one per
+  /// upcoming airing of the episode), so the order the feed returns them in is not meaningful.
+  static func selectEvent(from stationEvents: [GiveawayEvent]) -> GiveawayEvent? {
+    stationEvents.first(where: { $0.status == .open })
+      ?? stationEvents
+      .filter { $0.status == .scheduled }
+      .min(by: { ($0.opensAt ?? .distantFuture) < ($1.opensAt ?? .distantFuture) })
+  }
+
   /// Delay from response time until the skew-corrected open moment. Uses the server's own
   /// `(opensAt - serverTime)` delta, so device-clock skew is irrelevant; RTT-corrected by half.
   static func revealDelay(opensAt: Date, serverTime: Date, rtt: Duration) -> Duration {
@@ -208,9 +238,16 @@ final class GiveawayCoordinator {
     do {
       event = try await api.giveawayEvent(jwt, eventId)
     } catch {
+      // Transient detail-fetch failure: release the arm so the next feed poll can retry.
+      if gen == generation { armedEventId = nil }
+      log("arm: \(eventId) GET failed (\(error)) — released for retry")
       return
     }
-    guard gen == generation, currentPlayolaStationId == stationId else { return }
+    guard gen == generation else { return }  // superseded by a newer arm
+    guard currentPlayolaStationId == stationId else {
+      armedEventId = nil
+      return
+    }
     // The GET may have already reconciled to open (e.g. opensAt just passed) → reveal now.
     if event.status == .open {
       $activeGiveaway.withLock { $0 = event }
@@ -219,6 +256,7 @@ final class GiveawayCoordinator {
       return
     }
     guard let opensAt = event.opensAt, let serverTime = event.serverTime else {
+      armedEventId = nil
       log("arm: \(eventId) missing opensAt/serverTime — cannot arm")
       return
     }

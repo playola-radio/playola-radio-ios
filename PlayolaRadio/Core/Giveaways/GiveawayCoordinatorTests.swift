@@ -36,6 +36,30 @@ struct GiveawayCoordinatorTests {
         == .zero)
   }
 
+  // MARK: - selectEvent
+
+  @Test func selectEventPrefersOpenThenSoonestScheduled() {
+    let base = Date(timeIntervalSince1970: 1000)
+    func event(_ id: String, _ status: GiveawayStatus, opensIn seconds: TimeInterval)
+      -> GiveawayEvent
+    {
+      GiveawayEvent(
+        id: id, stationId: "s1", prizeName: "P", winningNumber: 9, status: status,
+        opensAt: base.addingTimeInterval(seconds))
+    }
+    // An open event wins even if a scheduled one opens sooner numerically.
+    #expect(
+      GiveawayCoordinator.selectEvent(from: [
+        event("sched", .scheduled, opensIn: 10), event("open", .open, opensIn: 999),
+      ])?.id == "open")
+    // Among scheduled, the soonest opensAt wins (feed order is not meaningful).
+    #expect(
+      GiveawayCoordinator.selectEvent(from: [
+        event("late", .scheduled, opensIn: 500), event("soon", .scheduled, opensIn: 10),
+      ])?.id == "soon")
+    #expect(GiveawayCoordinator.selectEvent(from: []) == nil)
+  }
+
   // MARK: - reconcile
 
   @Test func reconcilePublishesOpenEventForCurrentStation() async {
@@ -75,17 +99,41 @@ struct GiveawayCoordinatorTests {
 
   @Test func reconcileKeepsSameStationEventWhenFeedTransientlyEmpty() async {
     // A transient empty feed (e.g. right at the open transition) must NOT tear down a same-station
-    // event that's already published — otherwise the reveal vanishes the instant it opens.
+    // event that's still open — otherwise the reveal vanishes the instant it opens. The
+    // authoritative GET confirms it's open, so it stays.
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = GiveawayEvent(
       id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .open)
     await withDependencies {
       $0.api.giveawayEventsFeed = { _ in [] }
+      $0.api.giveawayEvent = { _, id in
+        GiveawayEvent(
+          id: id, stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .open)
+      }
     } operation: {
       await GiveawayCoordinator().reconcile()
     }
     #expect(activeGiveaway?.id == "e1")
+  }
+
+  @Test func reconcileClearsSameStationEventOnceClosed() async {
+    // A closed contest also leaves the feed; the authoritative GET says closed, so the overlay
+    // must stop showing it (no lingering TAP button on a closed contest).
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = GiveawayEvent(
+      id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .open)
+    await withDependencies {
+      $0.api.giveawayEventsFeed = { _ in [] }
+      $0.api.giveawayEvent = { _, id in
+        GiveawayEvent(
+          id: id, stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .closed)
+      }
+    } operation: {
+      await GiveawayCoordinator().reconcile()
+    }
+    #expect(activeGiveaway == nil)
   }
 
   @Test func reconcileClearsWhenNotOnPlayolaStation() async {
