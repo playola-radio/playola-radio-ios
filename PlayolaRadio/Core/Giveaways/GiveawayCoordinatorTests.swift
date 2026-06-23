@@ -60,9 +60,10 @@ struct GiveawayCoordinatorTests {
     #expect(activeGiveaway?.id == "e1")
   }
 
-  @Test func reconcileClearsWhenNoEventForCurrentStation() async {
+  @Test func reconcileClearsStaleCrossStationEventWhenFeedEmpty() async {
+    // .mock is on "station-1"; we're playing "s1" → the stale cross-station event is dropped.
     @Shared(.auth) var auth = Auth(jwt: "jwt")
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying()
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = .mock
     await withDependencies {
       $0.api.giveawayEventsFeed = { _ in [] }
@@ -70,6 +71,21 @@ struct GiveawayCoordinatorTests {
       await GiveawayCoordinator().reconcile()
     }
     #expect(activeGiveaway == nil)
+  }
+
+  @Test func reconcileKeepsSameStationEventWhenFeedTransientlyEmpty() async {
+    // A transient empty feed (e.g. right at the open transition) must NOT tear down a same-station
+    // event that's already published — otherwise the reveal vanishes the instant it opens.
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = GiveawayEvent(
+      id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .open)
+    await withDependencies {
+      $0.api.giveawayEventsFeed = { _ in [] }
+    } operation: {
+      await GiveawayCoordinator().reconcile()
+    }
+    #expect(activeGiveaway?.id == "e1")
   }
 
   @Test func reconcileClearsWhenNotOnPlayolaStation() async {

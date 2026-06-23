@@ -96,8 +96,15 @@ final class GiveawayCoordinator {
         + "playing=\(stationId.prefix(8))")
     guard currentPlayolaStationId == stationId else { return }
     guard let item = feed.first(where: { $0.stationId == stationId }) else {
-      log("reconcile: no feed event for current station — clearing")
-      clearActiveAndArm()
+      // No feed event for the current station right now — this happens transiently right at the
+      // open transition (the event briefly drops from the feed). Do NOT cancel an in-flight arm:
+      // it self-validates by GETting the event at opensAt (the GET reconciles open on demand, or
+      // 404s if truly gone). Only drop a stale published event from a DIFFERENT station; the
+      // overlay's own station gate already prevents displaying it.
+      if let active = activeGiveaway, active.stationId != stationId {
+        $activeGiveaway.withLock { $0 = nil }
+      }
+      log("reconcile: no feed event for current station — keeping any armed reveal")
       return
     }
     log(
