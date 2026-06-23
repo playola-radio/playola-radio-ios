@@ -226,10 +226,7 @@ class MainContainerModel: ViewModel {
   func processNewStationState(_ newState: StationPlayer.State) {
     switch newState.playbackStatus {
     case .startingNewStation:
-      self.mainContainerNavigationCoordinator.presentedSheet = .player(
-        PlayerPageModel(onDismiss: {
-          self.mainContainerNavigationCoordinator.presentedSheet = nil
-        }))
+      self.mainContainerNavigationCoordinator.presentedSheet = .player(makePlayerModel())
     default: break
     }
     self.setShouldShowSmallPlayer(newState)
@@ -295,8 +292,18 @@ class MainContainerModel: ViewModel {
   }
 
   func onSmallPlayerTapped() {
-    self.mainContainerNavigationCoordinator.presentedSheet = .player(
-      PlayerPageModel(onDismiss: { self.mainContainerNavigationCoordinator.presentedSheet = nil }))
+    self.mainContainerNavigationCoordinator.presentedSheet = .player(makePlayerModel())
+  }
+
+  /// Builds the player model and wires the giveaway overlay's tap to the coordinator's real tap.
+  private func makePlayerModel() -> PlayerPageModel {
+    let model = PlayerPageModel(onDismiss: { [weak self] in
+      self?.mainContainerNavigationCoordinator.presentedSheet = nil
+    })
+    model.giveawayOverlayModel.onTap = { [weak self] event in
+      await self?.giveawayCoordinator.tap(event: event)
+    }
+    return model
   }
 
   // Test method for showing toasts

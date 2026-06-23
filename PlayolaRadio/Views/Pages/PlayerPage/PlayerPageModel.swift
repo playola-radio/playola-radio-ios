@@ -185,41 +185,13 @@ class PlayerPageModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
 
-  // MARK: - GiveawayEvent
+  // MARK: - Giveaway
   let giveawayOverlayModel = GiveawayOverlayModel()
-  @ObservationIgnored @Shared(.activeGiveaway) var activeGiveaway
-  @ObservationIgnored @Shared(.giveawayParticipations) var giveawayParticipations
 
   init(onDismiss: (() -> Void)? = nil) {
     self.onDismiss = onDismiss
     super.init()
   }
-
-  #if DEBUG
-    var debugGiveawayButtonTitle: String {
-      activeGiveaway != nil ? "🐞 Clear giveaway" : "🐞 Inject giveaway"
-    }
-
-    var debugGiveawayDiagnostics: String { giveawayOverlayModel.gateDiagnostics }
-
-    /// Inject / clear a fake open giveaway so the overlay can be QA'd without a live contest.
-    func debugToggleGiveawayTapped() {
-      let debugId = GiveawayCoordinator.debugInjectedEventId
-      if activeGiveaway != nil {
-        $activeGiveaway.withLock { $0 = nil }
-        $giveawayParticipations.withLock { $0[debugId] = nil }
-        giveawayOverlayModel.debugForceVisible = false
-      } else {
-        $activeGiveaway.withLock {
-          $0 = GiveawayEvent(
-            id: debugId, stationId: "debug-station",
-            prizeName: "Two tickets to Reckless Kelly at the Heights",
-            prizeDescription: "Friday night, doors at 8.", winningNumber: 9, status: .open)
-        }
-        giveawayOverlayModel.debugForceVisible = true
-      }
-    }
-  #endif
 
   func playPauseButtonTapped() {
     stationPlayer.stop()

@@ -33,11 +33,6 @@ final class GiveawayCoordinator {
 
   static let feedPollInterval: Duration = .seconds(30)
 
-  #if DEBUG
-    /// Event id the player's debug injector uses; tapping it flips to standby locally (no POST).
-    static let debugInjectedEventId = "debug-event"
-  #endif
-
   // MARK: - Lifecycle
 
   func start() {
@@ -131,12 +126,6 @@ final class GiveawayCoordinator {
     guard participations[event.id] == nil, !inFlightTapIds.contains(event.id) else { return }
     inFlightTapIds.insert(event.id)
     defer { inFlightTapIds.remove(event.id) }
-    #if DEBUG
-      if event.id == Self.debugInjectedEventId {
-        persistStandby(event: event, tapNumber: 7)
-        return
-      }
-    #endif
     do {
       let response = try await api.tapGiveawayEvent(jwt, event.id)
       persistStandby(event: event, tapNumber: response.tapNumber)
