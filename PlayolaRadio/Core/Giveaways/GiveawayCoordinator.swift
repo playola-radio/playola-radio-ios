@@ -48,7 +48,9 @@ final class GiveawayCoordinator {
       while !Task.isCancelled {
         guard let self else { return }
         await self.reconcile()
-        try? await self.clock.sleep(for: Self.feedPollInterval)
+        // Raw `Task.sleep` (like `LiveStationsPoller`) for the background poll cadence — the
+        // testable `clock` dependency is reserved for the reveal arm, where exact timing matters.
+        try? await Task.sleep(for: Self.feedPollInterval)
       }
     }
   }

@@ -1,3 +1,4 @@
+import CustomDump
 import Dependencies
 import Foundation
 import Sharing
@@ -179,6 +180,69 @@ struct GiveawayCoordinatorTests {
       await GiveawayCoordinator().reconcile()
     }
     #expect(activeGiveaway == nil)
+  }
+
+  // MARK: - tap
+
+  private func openEvent(id: String = "e1") -> GiveawayEvent {
+    GiveawayEvent(
+      id: id, stationId: "s1", prizeName: "Two tickets", prizeDescription: "Front row",
+      winningNumber: 9, status: .open, giveawayId: "gv1")
+  }
+
+  @Test func tapPersistsStandbyParticipationOnSuccess() async {
+    let tappedAt = Date(timeIntervalSince1970: 1000)
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+    await withDependencies {
+      $0.date = .constant(tappedAt)
+      $0.api.tapGiveawayEvent = { _, _ in
+        GiveawayTapResponse(tapNumber: 7, isWinner: false, status: .open)
+      }
+    } operation: {
+      await GiveawayCoordinator().tap(event: openEvent())
+    }
+    // Keyed by the per-airing event id, carrying the prize details and the server tap number.
+    expectNoDifference(
+      participations["e1"],
+      GiveawayParticipation(
+        id: "e1", stationId: "s1", prizeName: "Two tickets", prizeDescription: "Front row",
+        winningNumber: 9, tapNumber: 7, status: .tappedStandby, tappedAt: tappedAt))
+  }
+
+  @Test func tapWithoutJWTIsNoOp() async {
+    @Shared(.auth) var auth = Auth()
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+    // The default tap stub would persist a participation if the JWT guard failed to short-circuit.
+    await GiveawayCoordinator().tap(event: openEvent())
+    #expect(participations["e1"] == nil)
+  }
+
+  @Test func tapIgnoredWhenAlreadyParticipating() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    // A sentinel tapNumber that the success stub (5) would overwrite if the dedup guard failed.
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e1": GiveawayParticipation(
+        id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, tapNumber: 99,
+        status: .tappedStandby, tappedAt: Date(timeIntervalSince1970: 500))
+    ]
+    await withDependencies {
+      $0.api.tapGiveawayEvent = { _, _ in .mock }
+    } operation: {
+      await GiveawayCoordinator().tap(event: openEvent())
+    }
+    #expect(participations["e1"]?.tapNumber == 99)
+  }
+
+  @Test func tapDoesNotPersistOnError() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+    await withDependencies {
+      $0.api.tapGiveawayEvent = { _, _ in throw BoomError() }
+    } operation: {
+      await GiveawayCoordinator().tap(event: openEvent())
+    }
+    #expect(participations["e1"] == nil)
   }
 }
 
