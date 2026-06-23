@@ -30,22 +30,6 @@ struct GiveawayModelsTests {
     #expect(event.viewer?.hasTapped == false)
   }
 
-  @Test func decodesGiveawayEventFeedItem() throws {
-    let json = Data(
-      """
-      { "eventId": "evt1", "stationId": "s1", "stationName": "Reckless Radio",
-        "stationImageUrl": "https://x.test/s.png", "prizeName": "Two tickets",
-        "prizeImageUrl": null, "winningNumber": 9,
-        "opensAt": "2026-07-01T12:05:00.073Z", "status": "open" }
-      """.utf8)
-    let item = try decoder().decode(GiveawayEventFeedItem.self, from: json)
-    #expect(item.id == "evt1")
-    #expect(item.stationName == "Reckless Radio")
-    #expect(item.status == .open)
-    #expect(item.prizeImageUrl == nil)
-    #expect(item.opensAt != nil)
-  }
-
   @Test func decodesActiveGiveawayWithWinningNumberAndNoTapCount() throws {
     let json = Data(
       """

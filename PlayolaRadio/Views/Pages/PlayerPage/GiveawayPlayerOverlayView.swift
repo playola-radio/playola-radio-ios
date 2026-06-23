@@ -94,6 +94,8 @@ private struct GiveawayOverlayStandbyView: View {
 
 #if DEBUG
   @MainActor private func previewModel(tapped: Bool) -> GiveawayOverlayModel {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying.mockWith(
+      station: AnyStation.mockPlayola(id: "preview-station"))
     @Shared(.activeGiveaway) var activeGiveaway = GiveawayEvent(
       id: "preview-giveaway", stationId: "preview-station",
       prizeName: "Two tickets to Reckless Kelly at the Heights", winningNumber: 9, status: .open)
@@ -105,9 +107,7 @@ private struct GiveawayOverlayStandbyView: View {
           prizeName: "Two tickets", winningNumber: 9, tapNumber: 7,
           status: .tappedStandby, tappedAt: Date())
       ] : [:]
-    let model = GiveawayOverlayModel()
-    model.debugForceVisible = true
-    return model
+    return GiveawayOverlayModel()
   }
 
   #Preview("Overlay — Prompt") {

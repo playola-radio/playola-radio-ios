@@ -14,13 +14,6 @@ class GiveawayOverlayModel: ViewModel {
   // MARK: - Callbacks
   var onTap: (@MainActor (GiveawayEvent) async -> Void)?
 
-  // MARK: - Debug
-  #if DEBUG
-    /// When true, the station-match / status gate is bypassed so the overlay renders for the
-    /// injected `activeGiveaway` even without live playback. Debug builds only.
-    var debugForceVisible = false
-  #endif
-
   // MARK: - Initialization
   override init() {
     super.init()
@@ -76,9 +69,6 @@ class GiveawayOverlayModel: ViewModel {
   var gateDiagnostics: String {
     guard let giveaway = activeGiveaway else { return "hidden: no activeGiveaway" }
     if giveaway.status != .open { return "hidden: status is \(giveaway.status.rawValue), not open" }
-    #if DEBUG
-      if debugForceVisible { return "visible: debug force-visible (station check bypassed)" }
-    #endif
     if giveaway.stationId != currentStationId {
       return "hidden: giveaway station \(giveaway.stationId) ≠ playing \(currentStationId ?? "nil")"
     }
@@ -94,11 +84,9 @@ class GiveawayOverlayModel: ViewModel {
   }
 
   private var visibleGiveaway: GiveawayEvent? {
-    guard let giveaway = activeGiveaway, giveaway.status == .open else { return nil }
-    #if DEBUG
-      if debugForceVisible { return giveaway }
-    #endif
-    guard giveaway.stationId == currentStationId else { return nil }
+    guard let giveaway = activeGiveaway, giveaway.status == .open,
+      giveaway.stationId == currentStationId
+    else { return nil }
     return giveaway
   }
 }

@@ -537,7 +537,7 @@ struct APIClient: Sendable {
 
   /// Cross-station feed of live + upcoming giveaway events (status open or scheduled).
   /// Drives the in-app banner and pre-arm discovery.
-  var giveawayEventsFeed: @Sendable (_ jwtToken: String) async throws -> [GiveawayEventFeedItem] = {
+  var giveawayEventsFeed: @Sendable (_ jwtToken: String) async throws -> [GiveawayEvent] = {
     _ in []
   }
 

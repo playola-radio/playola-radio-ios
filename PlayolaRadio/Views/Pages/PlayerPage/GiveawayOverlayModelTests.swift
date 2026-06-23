@@ -16,6 +16,10 @@ struct GiveawayOverlayModelTests {
       status: .open, giveawayId: "gv1")
   }
 
+  private func playolaNowPlaying(id: String = "s1") -> NowPlaying {
+    NowPlaying.mockWith(station: AnyStation.mockPlayola(id: id))
+  }
+
   @Test func hiddenWhenNoActiveGiveaway() {
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
     let model = GiveawayOverlayModel()
@@ -25,15 +29,15 @@ struct GiveawayOverlayModelTests {
   }
 
   @Test func hiddenWhenStatusNotOpen() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = GiveawayEvent(
       id: "g1", stationId: "s1", prizeName: "x", winningNumber: 9, status: .closed)
     let model = GiveawayOverlayModel()
-    model.debugForceVisible = true
     #expect(model.isVisible == false)
     #expect(model.gateDiagnostics == "hidden: status is closed, not open")
   }
 
-  @Test func hiddenWhenStationMismatchWithoutDebugForce() {
+  @Test func hiddenWhenStationMismatch() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway(station: "s1")
     let model = GiveawayOverlayModel()
@@ -41,19 +45,20 @@ struct GiveawayOverlayModelTests {
     #expect(model.gateDiagnostics == "hidden: giveaway station s1 ≠ playing nil")
   }
 
-  @Test func visibleWhenDebugForceVisibleAndOpen() {
+  @Test func visibleWhenOpenOnCurrentStation() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
     let model = GiveawayOverlayModel()
-    model.debugForceVisible = true
     #expect(model.isVisible == true)
     #expect(model.overlayOpacity == 1)
     #expect(model.prizeText == "Two tickets.")
     #expect(model.promptOrdinal == "9th")
     #expect(model.promptSuffix == " Listener to Tap the Button Below to win:")
-    #expect(model.gateDiagnostics == "visible: debug force-visible (station check bypassed)")
+    #expect(model.gateDiagnostics == "visible: open giveaway on the current station")
   }
 
   @Test func tappedFlipsPromptToStandby() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
     // Keyed by the event id ("g1"), which differs from the event's giveawayId ("gv1") — so this
     // fails if hasTapped ever re-keys by giveawayId.
@@ -63,7 +68,6 @@ struct GiveawayOverlayModelTests {
         tapNumber: 7, status: .tappedStandby, tappedAt: Date())
     ]
     let model = GiveawayOverlayModel()
-    model.debugForceVisible = true
     #expect(model.hasTapped == true)
     #expect(model.promptOpacity == 0)
     #expect(model.standbyOpacity == 1)
@@ -71,9 +75,9 @@ struct GiveawayOverlayModelTests {
   }
 
   @Test func tapButtonInvokesOnTapWithTheVisibleGiveaway() async {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
     let model = GiveawayOverlayModel()
-    model.debugForceVisible = true
     var tapped: GiveawayEvent?
     model.onTap = { tapped = $0 }
     await model.tapButtonTapped()
@@ -90,9 +94,9 @@ struct GiveawayOverlayModelTests {
   }
 
   @Test func promptOrdinalHandlesTeensAndOnes() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
     let model = GiveawayOverlayModel()
-    model.debugForceVisible = true
     let cases: [(Int, String)] = [
       (1, "1st"), (2, "2nd"), (3, "3rd"), (9, "9th"), (11, "11th"), (12, "12th"), (21, "21st"),
     ]

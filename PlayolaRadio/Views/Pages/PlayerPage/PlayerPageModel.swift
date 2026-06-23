@@ -185,55 +185,13 @@ class PlayerPageModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
 
-  // MARK: - GiveawayEvent
+  // MARK: - Giveaway
   let giveawayOverlayModel = GiveawayOverlayModel()
-  @ObservationIgnored @Shared(.activeGiveaway) var activeGiveaway
-  @ObservationIgnored @Shared(.giveawayParticipations) var giveawayParticipations
 
   init(onDismiss: (() -> Void)? = nil) {
     self.onDismiss = onDismiss
     super.init()
-    #if DEBUG
-      giveawayOverlayModel.onTap = { [weak self] giveaway in
-        self?.debugMarkStandby(giveaway)
-      }
-    #endif
   }
-
-  #if DEBUG
-    var debugGiveawayButtonTitle: String {
-      activeGiveaway != nil ? "🐞 Clear giveaway" : "🐞 Inject giveaway"
-    }
-
-    var debugGiveawayDiagnostics: String { giveawayOverlayModel.gateDiagnostics }
-
-    /// Inject / clear a fake open giveaway so the overlay can be QA'd without a live contest.
-    func debugToggleGiveawayTapped() {
-      if activeGiveaway != nil {
-        $activeGiveaway.withLock { $0 = nil }
-        $giveawayParticipations.withLock { $0["debug-giveaway"] = nil }
-        giveawayOverlayModel.debugForceVisible = false
-      } else {
-        $activeGiveaway.withLock {
-          $0 = GiveawayEvent(
-            id: "debug-giveaway", stationId: "debug-station",
-            prizeName: "Two tickets to Reckless Kelly at the Heights",
-            prizeDescription: "Friday night, doors at 8.", winningNumber: 9, status: .open)
-        }
-        giveawayOverlayModel.debugForceVisible = true
-      }
-    }
-
-    private func debugMarkStandby(_ giveaway: GiveawayEvent) {
-      $giveawayParticipations.withLock {
-        $0[giveaway.id] = GiveawayParticipation(
-          id: giveaway.id, stationId: giveaway.stationId, prizeName: giveaway.prizeName,
-          prizeDescription: giveaway.prizeDescription, prizeImageUrl: giveaway.prizeImageUrl,
-          winningNumber: giveaway.winningNumber, tapNumber: 7, status: .tappedStandby,
-          tappedAt: Date())
-      }
-    }
-  #endif
 
   func playPauseButtonTapped() {
     stationPlayer.stop()
