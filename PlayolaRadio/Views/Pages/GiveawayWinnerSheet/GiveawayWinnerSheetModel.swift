@@ -49,11 +49,36 @@ class GiveawayWinnerSheetModel: ViewModel {
 
   var prizeName: String { participation.prizeName }
   var prizeDescription: String? { participation.prizeDescription }
+  var prizeDescriptionText: String { participation.prizeDescription ?? "" }
   var prizeImageUrl: URL? { participation.prizeImageUrl }
+
+  var formInteractive: Bool { !showsClaimedConfirmation }
+  var claimedInteractive: Bool { showsClaimedConfirmation }
 
   var claimButtonTitle: String { isSubmitting ? "Submitting…" : "Claim Prize" }
   var claimedTitle: String { "You're all set" }
   var claimedSubtitle: String { "We'll be in touch." }
+  var closeButtonTitle: String { "Done" }
+
+  // Opacity-driven view swaps (the view stays control-flow-free).
+  var formOpacity: Double { showsClaimedConfirmation ? 0 : 1 }
+  var claimedOpacity: Double { showsClaimedConfirmation ? 1 : 0 }
+  var submitErrorText: String { submitErrorMessage ?? "" }
+  var submitErrorOpacity: Double { submitErrorMessage == nil ? 0 : 1 }
+  var claimButtonDisabled: Bool { !canSubmit }
+  var claimButtonOpacity: Double { canSubmit ? 1 : 0.5 }
+
+  // Field labels / placeholders (all copy lives on the model).
+  var fullNameLabel: String { "Full name" }
+  var addressLine1Label: String { "Street address" }
+  var addressLine1Placeholder: String { "123 Main St" }
+  var addressLine2Label: String { "Apt / suite (optional)" }
+  var cityLabel: String { "City" }
+  var cityPlaceholder: String { "Austin" }
+  var stateLabel: String { "State" }
+  var statePlaceholder: String { "TX" }
+  var postalCodeLabel: String { "ZIP" }
+  var postalCodePlaceholder: String { "78701" }
 
   var canSubmit: Bool {
     !isSubmitting

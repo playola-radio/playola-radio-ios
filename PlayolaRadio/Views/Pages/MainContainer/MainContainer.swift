@@ -75,6 +75,8 @@ struct MainContainer: View {
             StationSuggestionPageView(model: artistSuggestionModel)
           case .welcomeMessage(let welcomeModel):
             WelcomeMessagePageView(model: welcomeModel)
+          case .giveawayWinner(let winnerModel):
+            GiveawayWinnerSheetView(model: winnerModel)
           default:
             EmptyView()
           }
