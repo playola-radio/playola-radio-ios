@@ -184,15 +184,30 @@ final class GiveawayCoordinator {
 
   /// A published event has dropped out of the feed. Confirm via the authoritative GET: keep it if
   /// it's still open (a transient feed gap at the open transition), clear it once it has closed.
-  /// A transient GET failure keeps it (the next poll retries). (A canceled event that 404s is
-  /// cleared by the result-poll reveal step — a later PR.)
+  /// A transient GET failure keeps it (the next poll retries). On close, run the loss backstop so a
+  /// last-tapper promotion is caught for the in-app user without waiting on the push.
   func clearActiveIfNoLongerOpen(jwt: String, event: GiveawayEvent, stationId: String) async {
     guard let fresh = try? await api.giveawayEvent(jwt, event.id) else { return }
     guard currentPlayolaStationId == stationId else { return }
     if fresh.status != .open {
       $activeGiveaway.withLock { $0 = nil }
       log("active event \(event.id) is now \(fresh.status.rawValue) → cleared")
+      await reconcileResolvedLoss(jwt: jwt, eventId: event.id)
     }
+  }
+
+  /// Backstop for the last-tapper promotion: when a contest the user provisionally lost has closed,
+  /// re-check `my-result` once and flip `.resolvedLost → .resolvedWon` if the server promoted them.
+  /// No-op on a still-open contest, a confirmed loss, or a transient failure.
+  func reconcileResolvedLoss(jwt: String, eventId: String) async {
+    guard case .resolvedLost = participations[eventId]?.status else { return }
+    guard let result = try? await api.giveawayEventMyResult(jwt, eventId) else { return }
+    guard result.isResolved, result.isWinner else { return }
+    $participations.withLock {
+      $0[eventId]?.status = .resolvedWon(submissionCompleted: false)
+      if let tapNumber = result.tapNumber { $0[eventId]?.tapNumber = tapNumber }
+    }
+    log("backstop: \(eventId) promoted loss→win")
   }
 
   /// Among a station's events, pick the relevant one: an open one (reveal now), otherwise the

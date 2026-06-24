@@ -279,6 +279,65 @@ struct GiveawayCoordinatorTests {
     }
     #expect(participations["e1"] == nil)
   }
+
+  // MARK: - Loss Backstop
+
+  private func lostParticipation() -> GiveawayParticipation {
+    GiveawayParticipation(
+      id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, tapNumber: 5,
+      status: .resolvedLost(toastShown: true), tappedAt: Date(timeIntervalSince1970: 100))
+  }
+
+  @Test func backstopFlipsLossToWinWhenPromoted() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e1": lostParticipation()
+    ]
+    await withDependencies {
+      $0.api.giveawayEventMyResult = { _, _ in
+        GiveawayMyResult(tapNumber: 5, isWinner: true, status: .closed, winningNumber: 9)
+      }
+    } operation: {
+      await GiveawayCoordinator().reconcileResolvedLoss(jwt: "jwt", eventId: "e1")
+    }
+    #expect(
+      participations["e1"]?.status
+        == GiveawayParticipationStatus.resolvedWon(submissionCompleted: false))
+  }
+
+  @Test func backstopLeavesLossWhenStillLost() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e1": lostParticipation()
+    ]
+    await withDependencies {
+      $0.api.giveawayEventMyResult = { _, _ in
+        GiveawayMyResult(tapNumber: 5, isWinner: false, status: .closed, winningNumber: 9)
+      }
+    } operation: {
+      await GiveawayCoordinator().reconcileResolvedLoss(jwt: "jwt", eventId: "e1")
+    }
+    #expect(
+      participations["e1"]?.status
+        == GiveawayParticipationStatus.resolvedLost(toastShown: true))
+  }
+
+  @Test func backstopIgnoresStillOpenResult() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e1": lostParticipation()
+    ]
+    await withDependencies {
+      $0.api.giveawayEventMyResult = { _, _ in
+        GiveawayMyResult(tapNumber: 5, isWinner: false, status: .open, winningNumber: 9)
+      }
+    } operation: {
+      await GiveawayCoordinator().reconcileResolvedLoss(jwt: "jwt", eventId: "e1")
+    }
+    #expect(
+      participations["e1"]?.status
+        == GiveawayParticipationStatus.resolvedLost(toastShown: true))
+  }
 }
 
 // swiftlint:enable redundant_optional_initialization
