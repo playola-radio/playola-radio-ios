@@ -301,7 +301,10 @@ class MainContainerModel: ViewModel {
       self?.mainContainerNavigationCoordinator.presentedSheet = nil
     })
     model.giveawayOverlayModel.onTap = { [weak self] event in
-      await self?.giveawayCoordinator.tap(event: event)
+      try await self?.giveawayCoordinator.tap(event: event)
+    }
+    model.giveawayOverlayModel.onError = { [weak self] _ in
+      self?.presentedAlert = .giveawayTapFailed
     }
     return model
   }
@@ -370,6 +373,14 @@ extension PlayolaAlert {
       title: "Thank You for the Feedback!",
       message:
         "Thank you so much. Someone will get back to you soon.",
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static var giveawayTapFailed: PlayolaAlert {
+    PlayolaAlert(
+      title: "Tap Didn't Go Through",
+      message: "Something went wrong tapping in. Please check your connection and try again.",
       dismissButton: .cancel(Text("OK"))
     )
   }

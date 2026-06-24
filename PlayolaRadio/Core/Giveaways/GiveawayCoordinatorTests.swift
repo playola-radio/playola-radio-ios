@@ -200,7 +200,7 @@ struct GiveawayCoordinatorTests {
         GiveawayTapResponse(tapNumber: 7, isWinner: false, status: .open)
       }
     } operation: {
-      await GiveawayCoordinator().tap(event: openEvent())
+      try? await GiveawayCoordinator().tap(event: openEvent())
     }
     // Keyed by the per-airing event id, carrying the prize details and the server tap number.
     expectNoDifference(
@@ -214,7 +214,7 @@ struct GiveawayCoordinatorTests {
     @Shared(.auth) var auth = Auth()
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
     // The default tap stub would persist a participation if the JWT guard failed to short-circuit.
-    await GiveawayCoordinator().tap(event: openEvent())
+    try? await GiveawayCoordinator().tap(event: openEvent())
     #expect(participations["e1"] == nil)
   }
 
@@ -229,18 +229,32 @@ struct GiveawayCoordinatorTests {
     await withDependencies {
       $0.api.tapGiveawayEvent = { _, _ in .mock }
     } operation: {
-      await GiveawayCoordinator().tap(event: openEvent())
+      try? await GiveawayCoordinator().tap(event: openEvent())
     }
     #expect(participations["e1"]?.tapNumber == 99)
   }
 
-  @Test func tapDoesNotPersistOnError() async {
+  @Test func tapStaysSilentAndDoesNotPersistOnNotOpenYet() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+    // A 400 race is surfaced by the API as `.notOpenYet`; tap swallows it silently (no rethrow).
     await withDependencies {
-      $0.api.tapGiveawayEvent = { _, _ in throw BoomError() }
+      $0.api.tapGiveawayEvent = { _, _ in throw GiveawayTapError.notOpenYet }
     } operation: {
-      await GiveawayCoordinator().tap(event: openEvent())
+      try? await GiveawayCoordinator().tap(event: openEvent())
+    }
+    #expect(participations["e1"] == nil)
+  }
+
+  @Test func tapRethrowsUnexpectedErrorAndDoesNotPersist() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+    await #expect(throws: BoomError.self) {
+      try await withDependencies {
+        $0.api.tapGiveawayEvent = { _, _ in throw BoomError() }
+      } operation: {
+        try await GiveawayCoordinator().tap(event: openEvent())
+      }
     }
     #expect(participations["e1"] == nil)
   }

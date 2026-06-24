@@ -12,7 +12,8 @@ class GiveawayOverlayModel: ViewModel {
   @ObservationIgnored @Shared(.giveawayParticipations) var participations
 
   // MARK: - Callbacks
-  var onTap: (@MainActor (GiveawayEvent) async -> Void)?
+  var onTap: (@MainActor (GiveawayEvent) async throws -> Void)?
+  var onError: (@MainActor (any Error) async -> Void)?
 
   // MARK: - Initialization
   override init() {
@@ -22,7 +23,11 @@ class GiveawayOverlayModel: ViewModel {
   // MARK: - User Actions
   func tapButtonTapped() async {
     guard let giveaway = visibleGiveaway else { return }
-    await onTap?(giveaway)
+    do {
+      try await onTap?(giveaway)
+    } catch {
+      await onError?(error)
+    }
   }
 
   // MARK: - View Helpers

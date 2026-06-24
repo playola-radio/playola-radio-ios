@@ -115,8 +115,9 @@ final class GiveawayCoordinator {
   // MARK: - Tap
 
   /// Tap into a giveaway. Persists a standby participation (keyed by the per-airing event id) the
-  /// instant the POST returns, so the reveal survives an app kill. One tap per event.
-  func tap(event: GiveawayEvent) async {
+  /// instant the POST returns, so the reveal survives an app kill. One tap per event. Stays silent
+  /// on the expected `.notOpenYet` race; rethrows any genuine failure for the caller to surface.
+  func tap(event: GiveawayEvent) async throws {
     guard let jwt = auth.jwt else { return }
     guard participations[event.id] == nil, !inFlightTapIds.contains(event.id) else { return }
     inFlightTapIds.insert(event.id)
@@ -124,8 +125,11 @@ final class GiveawayCoordinator {
     do {
       let response = try await api.tapGiveawayEvent(jwt, event.id)
       persistStandby(event: event, tapNumber: response.tapNumber)
+    } catch GiveawayTapError.notOpenYet {
+      log("tap: not-open-yet for \(event.id) — silent (expected race)")
     } catch {
-      // 400 (not open yet) / network: no participation written; the user can tap again.
+      log("tap: unexpected failure for \(event.id) — \(error)")
+      throw error
     }
   }
 

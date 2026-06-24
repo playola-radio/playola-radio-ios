@@ -93,6 +93,18 @@ struct GiveawayOverlayModelTests {
     #expect(called == false)
   }
 
+  @Test func tapButtonRoutesThrownErrorToOnError() async {
+    struct Boom: Error {}
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
+    let model = GiveawayOverlayModel()
+    var capturedError: (any Error)?
+    model.onTap = { _ in throw Boom() }
+    model.onError = { capturedError = $0 }
+    await model.tapButtonTapped()
+    #expect(capturedError is Boom)
+  }
+
   @Test func promptOrdinalHandlesTeensAndOnes() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
