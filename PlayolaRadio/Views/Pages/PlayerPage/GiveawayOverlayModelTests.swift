@@ -57,21 +57,51 @@ struct GiveawayOverlayModelTests {
     #expect(model.gateDiagnostics == "visible: open giveaway on the current station")
   }
 
-  @Test func tappedFlipsPromptToStandby() {
+  @Test func resolvedLossShowsLoserRevealAndHidesPrompt() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
     // Keyed by the event id ("g1"), which differs from the event's giveawayId ("gv1") — so this
-    // fails if hasTapped ever re-keys by giveawayId.
+    // fails if the overlay ever re-keys by giveawayId.
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
       "g1": GiveawayParticipation(
         id: "g1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
-        tapNumber: 7, status: .tappedStandby, tappedAt: Date())
+        tapNumber: 7, status: .resolvedLost(toastShown: false), tappedAt: Date())
     ]
     let model = GiveawayOverlayModel()
-    #expect(model.hasTapped == true)
+    #expect(model.showsLoserReveal == true)
+    #expect(model.showsPrompt == false)
     #expect(model.promptOpacity == 0)
-    #expect(model.standbyOpacity == 1)
-    #expect(model.standbyInteractive == true)
+    #expect(model.loserRevealOpacity == 1)
+    #expect(model.loserRevealInteractive == true)
+    #expect(model.loserRevealHeadline == "You were listener #7 — good luck next time!")
+  }
+
+  @Test func resolvedWinCollapsesTheOverlay() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "g1": GiveawayParticipation(
+        id: "g1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+        tapNumber: 9, status: .resolvedWon(submissionCompleted: false), tappedAt: Date())
+    ]
+    let model = GiveawayOverlayModel()
+    #expect(model.showsLoserReveal == false)
+    #expect(model.showsPrompt == false)
+    #expect(model.isVisible == false)
+  }
+
+  @Test func loserRevealAppearedMarksToastShown() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "g1": GiveawayParticipation(
+        id: "g1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+        tapNumber: 7, status: .resolvedLost(toastShown: false), tappedAt: Date())
+    ]
+    let model = GiveawayOverlayModel()
+    model.loserRevealAppeared()
+    #expect(
+      participations["g1"]?.status == GiveawayParticipationStatus.resolvedLost(toastShown: true))
   }
 
   @Test func tapButtonInvokesOnTapWithTheVisibleGiveaway() async {

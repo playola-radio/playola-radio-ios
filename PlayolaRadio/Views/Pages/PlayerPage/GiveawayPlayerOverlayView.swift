@@ -10,9 +10,9 @@ struct GiveawayPlayerOverlayView: View {
         .opacity(model.promptOpacity)
         .allowsHitTesting(model.promptInteractive)
 
-      GiveawayOverlayStandbyView(model: model)
-        .opacity(model.standbyOpacity)
-        .allowsHitTesting(model.standbyInteractive)
+      GiveawayOverlayLoserRevealView(model: model)
+        .opacity(model.loserRevealOpacity)
+        .allowsHitTesting(model.loserRevealInteractive)
     }
     .padding(.horizontal, 24)
     .frame(height: model.isVisible ? nil : 0)
@@ -67,45 +67,42 @@ private struct GiveawayOverlayPromptView: View {
   }
 }
 
-private struct GiveawayOverlayStandbyView: View {
+private struct GiveawayOverlayLoserRevealView: View {
   let model: GiveawayOverlayModel
 
   var body: some View {
     VStack(spacing: 0) {
-      Text(model.standbyText)
-        .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 18))
-        .tracking(2)
+      Image(systemName: "gift")
+        .font(.system(size: 56, weight: .regular))
         .foregroundColor(.white)
-        .frame(maxWidth: .infinity)
-        .frame(height: 60)
-        .background(RoundedRectangle(cornerRadius: 32).fill(Color(hex: "#1A1A1A")))
-        .overlay(RoundedRectangle(cornerRadius: 32).stroke(Color(hex: "#3A3A3A"), lineWidth: 3))
+        .opacity(0.4)
 
-      Text(model.standbySubtitle)
-        .font(.custom(FontNames.Inter_400_Regular, size: 14))
-        .foregroundColor(Color(hex: "#C7C7C7"))
+      Text(model.loserRevealHeadline)
+        .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 20))
+        .foregroundColor(.white)
         .multilineTextAlignment(.center)
-        .lineSpacing(2)
-        .padding(.top, 12)
+        .lineSpacing(3)
+        .padding(.top, 16)
     }
     .frame(maxWidth: .infinity)
+    .onAppear { model.loserRevealAppeared() }
   }
 }
 
 #if DEBUG
-  @MainActor private func previewModel(tapped: Bool) -> GiveawayOverlayModel {
+  @MainActor private func previewModel(lost: Bool) -> GiveawayOverlayModel {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = NowPlaying.mockWith(
       station: AnyStation.mockPlayola(id: "preview-station"))
     @Shared(.activeGiveaway) var activeGiveaway = GiveawayEvent(
       id: "preview-giveaway", stationId: "preview-station",
       prizeName: "Two tickets to Reckless Kelly at the Heights", winningNumber: 9, status: .open)
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] =
-      tapped
+      lost
       ? [
         "preview-giveaway": GiveawayParticipation(
           id: "preview-giveaway", stationId: "preview-station",
           prizeName: "Two tickets", winningNumber: 9, tapNumber: 7,
-          status: .tappedStandby, tappedAt: Date())
+          status: .resolvedLost(toastShown: false), tappedAt: Date())
       ] : [:]
     return GiveawayOverlayModel()
   }
@@ -113,14 +110,14 @@ private struct GiveawayOverlayStandbyView: View {
   #Preview("Overlay — Prompt") {
     ZStack {
       Color.black.ignoresSafeArea()
-      GiveawayPlayerOverlayView(model: previewModel(tapped: false))
+      GiveawayPlayerOverlayView(model: previewModel(lost: false))
     }
   }
 
-  #Preview("Overlay — Standby") {
+  #Preview("Overlay — Loser reveal") {
     ZStack {
       Color.black.ignoresSafeArea()
-      GiveawayPlayerOverlayView(model: previewModel(tapped: true))
+      GiveawayPlayerOverlayView(model: previewModel(lost: true))
     }
   }
 #endif
