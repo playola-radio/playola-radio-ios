@@ -190,7 +190,7 @@ struct GiveawayCoordinatorTests {
       winningNumber: 9, status: .open, giveawayId: "gv1")
   }
 
-  @Test func tapPersistsStandbyParticipationOnSuccess() async {
+  @Test func tapPersistsResolvedLossOnNonWinningTap() async {
     let tappedAt = Date(timeIntervalSince1970: 1000)
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
@@ -202,12 +202,33 @@ struct GiveawayCoordinatorTests {
     } operation: {
       try? await GiveawayCoordinator().tap(event: openEvent())
     }
-    // Keyed by the per-airing event id, carrying the prize details and the server tap number.
+    // Resolved immediately from the tap response, keyed by the per-airing event id.
     expectNoDifference(
       participations["e1"],
       GiveawayParticipation(
         id: "e1", stationId: "s1", prizeName: "Two tickets", prizeDescription: "Front row",
-        winningNumber: 9, tapNumber: 7, status: .tappedStandby, tappedAt: tappedAt))
+        winningNumber: 9, tapNumber: 7, status: .resolvedLost(toastShown: false),
+        tappedAt: tappedAt))
+  }
+
+  @Test func tapPersistsResolvedWonOnWinningTap() async {
+    let tappedAt = Date(timeIntervalSince1970: 1000)
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+    await withDependencies {
+      $0.date = .constant(tappedAt)
+      $0.api.tapGiveawayEvent = { _, _ in
+        GiveawayTapResponse(tapNumber: 9, isWinner: true, status: .open)
+      }
+    } operation: {
+      try? await GiveawayCoordinator().tap(event: openEvent())
+    }
+    expectNoDifference(
+      participations["e1"],
+      GiveawayParticipation(
+        id: "e1", stationId: "s1", prizeName: "Two tickets", prizeDescription: "Front row",
+        winningNumber: 9, tapNumber: 9, status: .resolvedWon(submissionCompleted: false),
+        tappedAt: tappedAt))
   }
 
   @Test func tapWithoutJWTIsNoOp() async {

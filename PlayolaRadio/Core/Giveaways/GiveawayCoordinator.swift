@@ -114,9 +114,10 @@ final class GiveawayCoordinator {
 
   // MARK: - Tap
 
-  /// Tap into a giveaway. Persists a standby participation (keyed by the per-airing event id) the
-  /// instant the POST returns, so the reveal survives an app kill. One tap per event. Stays silent
-  /// on the expected `.notOpenYet` race; rethrows any genuine failure for the caller to surface.
+  /// Tap into a giveaway. The tap response carries the authoritative `isWinner`, so the outcome is
+  /// resolved and persisted (keyed by the per-airing event id) the instant the POST returns — no
+  /// wait for the contest to close. The durable write survives an app kill. One tap per event.
+  /// Stays silent on the expected `.notOpenYet` race; rethrows any genuine failure for the caller.
   func tap(event: GiveawayEvent) async throws {
     guard let jwt = auth.jwt else { return }
     guard participations[event.id] == nil, !inFlightTapIds.contains(event.id) else { return }
@@ -124,7 +125,7 @@ final class GiveawayCoordinator {
     defer { inFlightTapIds.remove(event.id) }
     do {
       let response = try await api.tapGiveawayEvent(jwt, event.id)
-      persistStandby(event: event, tapNumber: response.tapNumber)
+      persistOutcome(event: event, response: response)
     } catch GiveawayTapError.notOpenYet {
       log("tap: not-open-yet for \(event.id) — silent (expected race)")
     } catch {
@@ -133,12 +134,19 @@ final class GiveawayCoordinator {
     }
   }
 
-  private func persistStandby(event: GiveawayEvent, tapNumber: Int) {
+  /// Resolve the tap immediately from the server's authoritative response. A non-winning tap is only
+  /// *provisionally* lost — the last-tapper promotion at close can still flip it to a win (recovered
+  /// by the poll-while-open backstop and the winner push).
+  private func persistOutcome(event: GiveawayEvent, response: GiveawayTapResponse) {
+    let status: GiveawayParticipationStatus =
+      response.isWinner
+      ? .resolvedWon(submissionCompleted: false)
+      : .resolvedLost(toastShown: false)
     $participations.withLock {
       $0[event.id] = GiveawayParticipation(
         id: event.id, stationId: event.stationId, prizeName: event.prizeName,
         prizeDescription: event.prizeDescription, prizeImageUrl: event.prizeImageUrl,
-        winningNumber: event.winningNumber, tapNumber: tapNumber, status: .tappedStandby,
+        winningNumber: event.winningNumber, tapNumber: response.tapNumber, status: status,
         tappedAt: now)
     }
   }
