@@ -26,15 +26,8 @@ struct GiveawayWinnerPushTests {
     #expect(GiveawayWinnerPush(userInfo: ["type": "giveaway_winner", "eventId": "evt-1"]) == nil)
   }
 
-  @Test func submissionRequestParametersDropEmptyOptionals() {
-    let request = GiveawayWinnerSubmissionRequest(
-      fullName: "Jo", addressLine1: "1 Main", city: "Austin", state: "TX",
-      postalCode: "78701", addressLine2: nil, country: "US", comment: nil)
-    expectNoDifference(
-      request.asParameters,
-      [
-        "fullName": "Jo", "addressLine1": "1 Main", "city": "Austin",
-        "state": "TX", "postalCode": "78701", "country": "US",
-      ])
+  @Test func submissionRequestParametersAreEmailOnly() {
+    let request = GiveawayWinnerSubmissionRequest(preferredEmail: "winner@example.com")
+    expectNoDifference(request.asParameters, ["preferredEmail": "winner@example.com"])
   }
 }

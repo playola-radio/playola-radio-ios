@@ -28,16 +28,11 @@ class GiveawayWinnerSheetModel: ViewModel {
     self.verifyEligibility = verifyEligibility
     self.onClose = onClose
     super.init()
+    self.email = auth.currentUser?.verifiedEmail ?? auth.currentUser?.email ?? ""
   }
 
   // MARK: - Properties
-  var fullName = ""
-  var addressLine1 = ""
-  var addressLine2 = ""
-  var city = ""
-  var state = ""
-  var postalCode = ""
-  var comment = ""
+  var email = ""
   var isSubmitting = false
   var showsClaimedConfirmation = false
   var presentedAlert: PlayolaAlert?
@@ -66,17 +61,13 @@ class GiveawayWinnerSheetModel: ViewModel {
     isSubmitting = true
     presentedAlert = nil
     defer { isSubmitting = false }
-    let request = GiveawayWinnerSubmissionRequest(
-      fullName: fullName.trimmed, addressLine1: addressLine1.trimmed, city: city.trimmed,
-      state: state.trimmed, postalCode: postalCode.trimmed,
-      addressLine2: addressLine2.trimmed.isEmpty ? nil : addressLine2.trimmed,
-      comment: comment.trimmed.isEmpty ? nil : comment.trimmed)
+    let request = GiveawayWinnerSubmissionRequest(preferredEmail: email.trimmed)
     do {
       try await api.submitGiveawayWinnerDetails(jwt, participation.id, request)
       markSubmissionCompleted()
       onClose()
     } catch {
-      // Keep the sheet open with the form intact so the user can retry (the server upserts).
+      // Keep the sheet open with the field intact so the user can retry (the server upserts).
       presentedAlert = .giveawaySubmissionFailed
     }
   }
@@ -97,13 +88,20 @@ class GiveawayWinnerSheetModel: ViewModel {
   var prizeDescriptionText: String { participation.prizeDescription ?? "" }
   var prizeImageUrl: URL? { participation.prizeImageUrl }
 
+  var deliveryExplanation: String {
+    "Confirm your email and we'll be in touch to arrange your prize."
+  }
+
+  var emailLabel: String { "Email" }
+  var emailPlaceholder: String { "you@example.com" }
+
   var formInteractive: Bool { !showsClaimedConfirmation }
   var claimedInteractive: Bool { showsClaimedConfirmation }
 
   var claimButtonTitle: String { isSubmitting ? "Submitting…" : "Claim Prize" }
   var claimedEmoji: String { "🎉" }
   var claimedTitle: String { "You're all set" }
-  var claimedSubtitle: String { "We'll be in touch." }
+  var claimedSubtitle: String { "Check your email — we'll be in touch about your prize." }
   var closeButtonTitle: String { "Done" }
 
   // Opacity-driven view swaps (the view stays control-flow-free).
@@ -112,25 +110,10 @@ class GiveawayWinnerSheetModel: ViewModel {
   var claimButtonDisabled: Bool { !canSubmit }
   var claimButtonOpacity: Double { canSubmit ? 1 : 0.5 }
 
-  // Field labels / placeholders (all copy lives on the model).
-  var fullNameLabel: String { "Full name" }
-  var addressLine1Label: String { "Street address" }
-  var addressLine1Placeholder: String { "123 Main St" }
-  var addressLine2Label: String { "Apt / suite (optional)" }
-  var cityLabel: String { "City" }
-  var cityPlaceholder: String { "Austin" }
-  var stateLabel: String { "State" }
-  var statePlaceholder: String { "TX" }
-  var postalCodeLabel: String { "ZIP" }
-  var postalCodePlaceholder: String { "78701" }
-
   var canSubmit: Bool {
-    !isSubmitting
-      && !fullName.trimmed.isEmpty
-      && !addressLine1.trimmed.isEmpty
-      && !city.trimmed.isEmpty
-      && !state.trimmed.isEmpty
-      && !postalCode.trimmed.isEmpty
+    guard !isSubmitting else { return false }
+    let trimmed = email.trimmed
+    return trimmed.contains("@") && !trimmed.hasPrefix("@") && !trimmed.hasSuffix("@")
   }
 
   // MARK: - Private Helpers
@@ -148,7 +131,7 @@ extension PlayolaAlert {
     PlayolaAlert(
       title: "Submission Failed",
       message:
-        "Something went wrong submitting your info. Please check your connection and try again.",
+        "Something went wrong confirming your email. Please check your connection and try again.",
       dismissButton: .cancel(Text("OK")))
   }
 }

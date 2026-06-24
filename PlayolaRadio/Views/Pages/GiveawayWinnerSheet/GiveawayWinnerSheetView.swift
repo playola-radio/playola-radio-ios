@@ -49,24 +49,16 @@ private struct GiveawayWinnerFormView: View {
           .foregroundColor(Color(hex: "#C7C7C7"))
           .multilineTextAlignment(.center)
 
-        VStack(spacing: 12) {
-          GiveawayWinnerField(
-            label: model.fullNameLabel, placeholder: "", text: $model.fullName)
-          GiveawayWinnerField(
-            label: model.addressLine1Label, placeholder: model.addressLine1Placeholder,
-            text: $model.addressLine1)
-          GiveawayWinnerField(
-            label: model.addressLine2Label, placeholder: "", text: $model.addressLine2)
-          GiveawayWinnerField(
-            label: model.cityLabel, placeholder: model.cityPlaceholder, text: $model.city)
-          HStack(spacing: 12) {
-            GiveawayWinnerField(
-              label: model.stateLabel, placeholder: model.statePlaceholder, text: $model.state)
-            GiveawayWinnerField(
-              label: model.postalCodeLabel, placeholder: model.postalCodePlaceholder,
-              text: $model.postalCode)
-          }
-        }
+        Text(model.deliveryExplanation)
+          .font(.custom(FontNames.Inter_400_Regular, size: 14))
+          .foregroundColor(Color(hex: "#C7C7C7"))
+          .multilineTextAlignment(.center)
+          .padding(.top, 4)
+
+        GiveawayWinnerField(
+          label: model.emailLabel, placeholder: model.emailPlaceholder, text: $model.email,
+          keyboardType: .emailAddress, autocapitalization: .never
+        )
         .padding(.top, 8)
 
         Button(
@@ -93,6 +85,8 @@ private struct GiveawayWinnerField: View {
   let label: String
   let placeholder: String
   @Binding var text: String
+  var keyboardType: UIKeyboardType = .default
+  var autocapitalization: TextInputAutocapitalization = .sentences
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
@@ -102,6 +96,9 @@ private struct GiveawayWinnerField: View {
       TextField(placeholder, text: $text)
         .font(.custom(FontNames.Inter_400_Regular, size: 16))
         .foregroundColor(.white)
+        .keyboardType(keyboardType)
+        .textInputAutocapitalization(autocapitalization)
+        .autocorrectionDisabled(keyboardType == .emailAddress)
         .padding(.horizontal, 16)
         .frame(height: 48)
         .background(RoundedRectangle(cornerRadius: 8).fill(Color(hex: "#1A1A1A")))

@@ -16,11 +16,7 @@ struct GiveawayWinnerSheetModelTests {
   }
 
   private func fill(_ model: GiveawayWinnerSheetModel) {
-    model.fullName = "Jo"
-    model.addressLine1 = "1 Main"
-    model.city = "Austin"
-    model.state = "TX"
-    model.postalCode = "78701"
+    model.email = "winner@example.com"
   }
 
   @Test func headlineForNthTapperWin() {
@@ -34,11 +30,21 @@ struct GiveawayWinnerSheetModelTests {
     #expect(model.headline == "Good news — you got bumped up to the winner!")
   }
 
-  @Test func canSubmitRequiresRequiredFields() {
+  @Test func canSubmitRequiresValidEmail() {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: nil)
     let model = GiveawayWinnerSheetModel(participation: wonParticipation(), onClose: {})
-    #expect(model.canSubmit == false)
-    fill(model)
+    #expect(model.canSubmit == false)  // empty email
+    model.email = "not-an-email"
+    #expect(model.canSubmit == false)  // no @
+    model.email = "winner@example.com"
     #expect(model.canSubmit == true)
+  }
+
+  @Test func prefillsEmailFromAccount() {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(id: "u1", firstName: "Me", email: "me@playola.fm"), jwt: nil)
+    let model = GiveawayWinnerSheetModel(participation: wonParticipation(), onClose: {})
+    #expect(model.email == "me@playola.fm")
   }
 
   @Test func claimSuccessMarksSubmissionCompletedAndCloses() async {
