@@ -40,9 +40,14 @@ Do not guess field names (we got burned in M1 by id-vs-eventId). These are read 
 - `GET /v1/giveaway-events/:eventId/my-result` → `{ tapNumber: Int?, isWinner: Bool, status, winningNumber: Int }`
   — exactly the existing `GiveawayMyResult`. Reconciles a due close on demand. 404 if event missing.
   **Not yet in `APIClient` — we add it.**
-- `POST /v1/giveaway-events/:eventId/winner-submission` — body required `fullName, addressLine1, city,
-  postalCode`; optional `addressLine2, state, country (default "US"), comment`. 201. Winner-only (403
-  otherwise). Upserts on `(eventId)`. **Not yet in `APIClient` — we add it.**
+- `POST /v1/giveaway-events/:eventId/winner-submission` — **email-only (revised 2026-06-24):** iOS
+  sends `{ "preferredEmail": "<confirmed>" }`. 201. Winner-only (403 otherwise). Upserts on `(eventId)`.
+  **Server dependency:** the endpoint currently *requires* `fullName/addressLine1/city/postalCode` —
+  it must be relaxed to accept email-only + store `preferredEmail` (it may still accept the legacy
+  address fields from other clients). Delivery is arranged manually over email for v1. The original
+  address-form contract is retained below for history.
+  - *(legacy)* required `fullName, addressLine1, city, postalCode`; optional `addressLine2, state,
+    country (default "US"), comment`.
 - `GET /v1/giveaway-events/:eventId` → full event + `viewer { hasTapped, isWinner, canSubmitMailingInfo,
   tapNumber }` (`viewer.tapNumber` only set once closed). Reconciles on demand. Already wired as
   `api.giveawayEvent`. Used by the winner sheet to check claim eligibility for push/reinstall cases.
@@ -125,16 +130,19 @@ GiveawayParticipation]`, keyed by per-airing event id). Coordinator/push **mutat
   data/silent push so a common winner who already saw the sheet does not get a redundant banner.
 
 ### 4.5 Winner sheet (`GiveawayWinnerSheetModel` + view; new `PlayolaSheet` case)
-- Form: `fullName, addressLine1, city, state, postalCode` required; `addressLine2, country, comment`
-  optional. No "willing to record a video" toggle (deferred to the congrats milestone; server has no
-  field for it).
+- **Email-only (revised 2026-06-24).** A full mailing-address form is too much friction at the "you
+  won" moment, and the server already knows the winner (`winnerUserId` → `User`). So the sheet collects
+  just a **confirmed email**: prize image + headline + a single email field (pre-filled from
+  `auth.currentUser.verifiedEmail ?? .email`, editable) + Claim. The team arranges delivery over email.
+  No address fields, no "record a video" toggle.
+- Submit → `POST winner-submission` with `{ "preferredEmail": "<confirmed>" }`. Success →
+  `submissionCompleted = true`, dismiss. Failure → keep the sheet open, show a `PlayolaAlert` (matches
+  `RedeemPrizeSheet`), let the user retry (server upserts). Do not loop-re-present.
 - **Provenance check**: if the participation was created from a push or has unknown provenance, GET the
   event detail first; if `viewer.canSubmitMailingInfo == false` (already claimed on another device),
   mark `.resolvedWon(submissionCompleted: true)` and show a "claimed" confirmation instead of the form.
-- Submit → POST winner-submission. Success → `submissionCompleted = true`, dismiss. Failure → keep the
-  sheet open with a retry error (server upserts, so retry is safe). Do not loop-re-present.
 - Visuals from `TapperWinnerScreen` (confetti, prize image, "You won! You're Listener #N", prize
-  name/desc, form, "Claim Prize", then "You're all set / We'll be in touch").
+  name/desc, email field, "Claim Prize", then "You're all set — check your email").
 - **Surprise-upgrade copy**: when the sheet is reached by flipping a `.resolvedLost` participation to
   won (the promoted last-tapper — local provenance was a loss, or push `reason == "last_tapper_fallback"`),
   the headline acknowledges the upgrade (e.g. "Good news — you got bumped up to the winner!") instead of
