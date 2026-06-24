@@ -182,6 +182,31 @@ struct GiveawayCoordinatorTests {
     #expect(activeGiveaway == nil)
   }
 
+  @Test func revealFromHeldEventPublishesOpenWithoutAGet() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    let scheduled = GiveawayEvent(
+      id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .scheduled)
+
+    GiveawayCoordinator().revealFromHeldEvent(scheduled, expectedStationId: "s1")
+
+    // Published straight from the held event, flipped to .open. The id is "e1" (not the detail GET's
+    // ".mock"/"event-1"), proving the reveal did NOT make a network round-trip.
+    #expect(activeGiveaway?.id == "e1")
+    #expect(activeGiveaway?.status == .open)
+  }
+
+  @Test func revealFromHeldEventSkipsWhenStationChanged() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "other")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    let scheduled = GiveawayEvent(
+      id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .scheduled)
+
+    GiveawayCoordinator().revealFromHeldEvent(scheduled, expectedStationId: "s1")
+
+    #expect(activeGiveaway == nil)
+  }
+
   // MARK: - tap
 
   private func openEvent(id: String = "e1") -> GiveawayEvent {

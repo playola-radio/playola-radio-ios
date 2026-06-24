@@ -94,6 +94,16 @@ struct GiveawayEvent: Decodable, Sendable, Identifiable, Equatable {
     self.viewer = viewer
   }
 
+  /// A copy flipped to `.open`, used to reveal the tap button instantly from data already in hand
+  /// (the armed event) without waiting on a confirming network round-trip.
+  func openedCopy() -> GiveawayEvent {
+    GiveawayEvent(
+      id: id, stationId: stationId, prizeName: prizeName, prizeDescription: prizeDescription,
+      prizeImageUrl: prizeImageUrl, winningNumber: winningNumber, status: .open,
+      airingId: airingId, giveawayId: giveawayId, opensAt: opensAt, serverTime: serverTime,
+      viewer: viewer)
+  }
+
   static var mock: GiveawayEvent {
     GiveawayEvent(
       id: "event-1", stationId: "station-1",

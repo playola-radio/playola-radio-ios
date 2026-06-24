@@ -325,8 +325,22 @@ final class GiveawayCoordinator {
       log("arm: \(eventId) stale after sleep (gen/station changed) — skipping")
       return
     }
-    await revealEvent(jwt: jwt, eventId: eventId, expectedStationId: stationId)
+    // Reveal the button the instant we reach opensAt, straight from the event we already hold — no
+    // confirming GET, whose round-trip would push the button several seconds past opensAt. The tap
+    // opens the contest on-demand server-side, and the next feed poll converges authoritative state.
+    revealFromHeldEvent(event, expectedStationId: stationId)
     armedEventId = nil
+  }
+
+  /// Publish a giveaway we already hold (flipped to `.open`) so the overlay shows the tap button with
+  /// no network round-trip.
+  func revealFromHeldEvent(_ event: GiveawayEvent, expectedStationId: String) {
+    guard currentPlayolaStationId == expectedStationId else {
+      log("reveal: station changed before publish — skipping \(event.id)")
+      return
+    }
+    $activeGiveaway.withLock { $0 = event.openedCopy() }
+    log("REVEALED \(event.id) from held event (no refresh)")
   }
 
   private func cancelArmedReveal() {
