@@ -20,6 +20,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.toast) var toast
+  @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
   @ObservationIgnored @Dependency(\.siriShortcuts) var siriShortcuts
   @ObservationIgnored @Dependency(\.appRating) var appRating
@@ -36,6 +37,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
   @ObservationIgnored @Shared(.isBroadcaster) var isBroadcaster
   @ObservationIgnored @Shared(.appVersionRequirements) var appVersionRequirements
+  @ObservationIgnored @Shared(.giveawayParticipations) var giveawayParticipations
 
   enum ActiveTab {
     // Listening mode tabs
@@ -134,8 +136,20 @@ class MainContainerModel: ViewModel {
 
     liveStationsPoller.startPolling()
     giveawayCoordinator.start()
+    observeGiveawayResolutions()
 
     await fetchBroadcasterStatus()
+  }
+
+  /// Re-run the resolution arbiter whenever a participation resolves (tap, backstop, or push). The
+  /// `.publisher` fires in `willSet`, so defer to a `Task` — by the time it runs the durable write
+  /// has completed and `giveawayParticipations` reflects the new value (not the stale one).
+  private func observeGiveawayResolutions() {
+    $giveawayParticipations.publisher
+      .sink { [weak self] _ in
+        Task { await self?.processGiveawayResolutions() }
+      }
+      .store(in: &cancellables)
   }
 
   func refreshOnForeground() async {
@@ -153,6 +167,7 @@ class MainContainerModel: ViewModel {
     await loadAirings()
     await fetchUnreadSupportCount()
     await giveawayCoordinator.pollNow()
+    await processGiveawayResolutions()
   }
 
   private func applyStationLists(_ lists: IdentifiedArrayOf<StationList>) {
@@ -307,6 +322,53 @@ class MainContainerModel: ViewModel {
       self?.presentedAlert = .giveawayTapFailed
     }
     return model
+  }
+
+  // MARK: - Giveaway Resolution Presentation
+
+  /// The single app-wide consumer of resolved giveaway participations. The coordinator and push
+  /// handler only mutate `@Shared(.giveawayParticipations)`; this turns those durable facts into a
+  /// winner sheet (once per win) or a one-time consolation toast. Idempotent — safe to call on every
+  /// dict change and on foreground.
+  func processGiveawayResolutions() async {
+    presentPendingGiveawayWinnerIfNeeded()
+    await fireGiveawayLossToastIfNeeded()
+  }
+
+  private func presentPendingGiveawayWinnerIfNeeded() {
+    if case .giveawayWinner = mainContainerNavigationCoordinator.presentedSheet { return }
+    let pending = giveawayParticipations.values
+      .filter {
+        guard case .resolvedWon(let submissionCompleted) = $0.status else { return false }
+        return !submissionCompleted && $0.winnerSheetPresentedAt == nil
+      }
+      .sorted { $0.tappedAt < $1.tappedAt }
+    guard let winner = pending.first else { return }
+    let model = GiveawayWinnerSheetModel(
+      participation: winner,
+      onClose: { [weak self] in self?.dismissGiveawayWinnerSheet() })
+    $giveawayParticipations.withLock { $0[winner.id]?.winnerSheetPresentedAt = now }
+    mainContainerNavigationCoordinator.presentedSheet = .giveawayWinner(model)
+  }
+
+  private func fireGiveawayLossToastIfNeeded() async {
+    let pending = giveawayParticipations.values
+      .filter {
+        guard case .resolvedLost(let toastShown) = $0.status else { return false }
+        return !toastShown
+      }
+      .sorted { $0.tappedAt < $1.tappedAt }
+    guard let loss = pending.first else { return }
+    $giveawayParticipations.withLock { $0[loss.id]?.status = .resolvedLost(toastShown: true) }
+    await toast.show(
+      PlayolaToast(
+        message: "You were listener #\(loss.tapNumber) — good luck next time!", buttonTitle: ""))
+  }
+
+  private func dismissGiveawayWinnerSheet() {
+    if case .giveawayWinner = mainContainerNavigationCoordinator.presentedSheet {
+      mainContainerNavigationCoordinator.presentedSheet = nil
+    }
   }
 
   // Test method for showing toasts

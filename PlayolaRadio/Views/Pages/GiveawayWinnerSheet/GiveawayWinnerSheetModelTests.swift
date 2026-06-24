@@ -97,7 +97,7 @@ struct GiveawayWinnerSheetModelTests {
       }
     } operation: {
       let model = GiveawayWinnerSheetModel(
-        participation: participations["e"]!, fromPush: true, onClose: {})
+        participation: participations["e"]!, onClose: {})
       await model.task()
       return model.showsClaimedConfirmation
     }

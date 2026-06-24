@@ -1006,6 +1006,63 @@ struct MainContainerTests {
     #expect(mainContainerModel.broadcastPageModel?.stationId == "station-456")
     #expect(!(mainContainerModel.broadcastPageModel === originalModel))
   }
+
+  // MARK: - Giveaway Resolution Arbiter Tests
+
+  @Test func processGiveawayResolutionsPresentsWinnerSheetOnce() async {
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+    navCoordinator.presentedSheet = nil
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e": GiveawayParticipation(
+        id: "e", stationId: "s", prizeName: "P", winningNumber: 9, tapNumber: 9,
+        status: .resolvedWon(submissionCompleted: false),
+        tappedAt: Date(timeIntervalSince1970: 100))
+    ]
+    let model = withDependencies {
+      $0.date = .constant(Date(timeIntervalSince1970: 555))
+    } operation: {
+      MainContainerModel()
+    }
+
+    await model.processGiveawayResolutions()
+
+    #expect(participations["e"]?.winnerSheetPresentedAt == Date(timeIntervalSince1970: 555))
+    if case .giveawayWinner = navCoordinator.presentedSheet {
+      // Test passes
+    } else {
+      Issue.record("Expected giveaway winner sheet to be presented")
+    }
+
+    // Idempotent: a second pass must not re-present or re-stamp.
+    await model.processGiveawayResolutions()
+    #expect(participations["e"]?.winnerSheetPresentedAt == Date(timeIntervalSince1970: 555))
+  }
+
+  @Test func processGiveawayResolutionsFiresLoserToastOnce() async {
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+    navCoordinator.presentedSheet = nil
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e": GiveawayParticipation(
+        id: "e", stationId: "s", prizeName: "P", winningNumber: 9, tapNumber: 5,
+        status: .resolvedLost(toastShown: false), tappedAt: Date(timeIntervalSince1970: 100))
+    ]
+    let shown = LockIsolated<[PlayolaToast]>([])
+    let model = withDependencies {
+      $0.toast.show = { toast in shown.withValue { $0.append(toast) } }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await model.processGiveawayResolutions()
+
+    #expect(
+      participations["e"]?.status == GiveawayParticipationStatus.resolvedLost(toastShown: true))
+    #expect(shown.value.count == 1)
+
+    // Idempotent: already-shown loss does not re-toast.
+    await model.processGiveawayResolutions()
+    #expect(shown.value.count == 1)
+  }
 }
 
 // Drain the fire-and-forget Task in MainContainerModel.showFeedbackSheet()

@@ -16,14 +16,15 @@ class GiveawayWinnerSheetModel: ViewModel {
 
   // MARK: - Initialization
   private let participation: GiveawayParticipation
-  private let fromPush: Bool
+  private let verifyEligibility: Bool
   private let onClose: () -> Void
 
   init(
-    participation: GiveawayParticipation, fromPush: Bool = false, onClose: @escaping () -> Void
+    participation: GiveawayParticipation, verifyEligibility: Bool = true,
+    onClose: @escaping () -> Void
   ) {
     self.participation = participation
-    self.fromPush = fromPush
+    self.verifyEligibility = verifyEligibility
     self.onClose = onClose
     super.init()
   }
@@ -91,10 +92,11 @@ class GiveawayWinnerSheetModel: ViewModel {
 
   // MARK: - User Actions
 
-  /// For a sheet opened from a push / unknown provenance, confirm the prize is still claimable before
-  /// showing the form — otherwise we'd prompt to claim a prize already claimed on another device.
+  /// Confirm the prize is still claimable before showing the form — otherwise we'd prompt to claim a
+  /// prize already claimed on another device (push / reinstall). Disabled only where the caller has
+  /// already proven local provenance.
   func task() async {
-    guard fromPush, let jwt = auth.jwt else { return }
+    guard verifyEligibility, let jwt = auth.jwt else { return }
     guard let event = try? await api.giveawayEvent(jwt, participation.id) else { return }
     if event.viewer?.canSubmitMailingInfo == false {
       markSubmissionCompleted()
