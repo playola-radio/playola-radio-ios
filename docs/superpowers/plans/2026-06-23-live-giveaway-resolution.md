@@ -21,6 +21,12 @@
 
 **Spec:** `docs/superpowers/specs/2026-06-23-live-giveaway-resolution-design.md`
 
+### Execution corrections (apply to every task)
+
+- **Tests use Swift Testing**, not XCTest: `import Testing`, `@MainActor struct XTests { @Test func … }`, `#expect(...)`, and `expectNoDifference` from CustomDump. Add cases to the existing test structs where present.
+- **No CasePaths dependency** (not linked in the project). Use plain `if case` pattern matching instead of `@CasePathable`/`.is(\.case)`/`.modify`. `wasPromotedWin` and the backstop's loss-check are written with `if case`.
+- Auth mock is `@Shared(.auth) var auth = Auth(jwt: "jwt")`. Build the coordinator/model **inside** the `withDependencies { … } operation:` block so `@Dependency(\.api)` resolves the override.
+
 ---
 
 ## Stage 1 — Foundations (models + API), no behavior change
