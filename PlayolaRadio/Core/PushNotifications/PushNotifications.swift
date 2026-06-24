@@ -83,6 +83,11 @@ struct PushNotificationsClient: Sendable {
   /// - Parameter userInfo: The notification payload
   var handleNotificationTap: @Sendable (_ userInfo: [String: any Sendable]) async -> Void
 
+  /// Handle the targeted "you won" giveaway push. Flips (or creates) the winning participation in
+  /// durable shared state; the MainContainer arbiter presents the winner sheet. Idempotent.
+  /// - Parameter userInfo: The notification payload
+  var handleGiveawayWinnerPush: @Sendable (_ userInfo: [String: any Sendable]) async -> Void
+
   /// Set the app icon badge count
   /// - Parameter count: The badge count to display
   var setBadgeCount: @Sendable (_ count: Int) async -> Void
@@ -205,6 +210,27 @@ extension PushNotificationsClient: DependencyKey {
 
       @Dependency(\.stationPlayer) var stationPlayer
       await stationPlayer.play(station: station)
+    },
+    handleGiveawayWinnerPush: { userInfo in
+      guard let push = GiveawayWinnerPush(userInfo: userInfo) else { return }
+      @Shared(.giveawayParticipations) var participations
+      let participationsShared = $participations
+      await MainActor.run {
+        participationsShared.withLock { dict in
+          // Already fully claimed, or already a (possibly pending) win → leave untouched so we never
+          // clobber a `winnerSheetPresentedAt` stamp or re-open a completed claim.
+          if case .resolvedWon = dict[push.eventId]?.status { return }
+          if dict[push.eventId] != nil {
+            dict[push.eventId]?.status = .resolvedWon(submissionCompleted: false)
+          } else {
+            dict[push.eventId] = GiveawayParticipation(
+              id: push.eventId, stationId: push.stationId ?? "", prizeName: push.prizeName,
+              prizeDescription: push.prizeDescription, prizeImageUrl: push.prizeImageUrl,
+              winningNumber: push.winningNumber, tapNumber: push.tapNumber,
+              status: .resolvedWon(submissionCompleted: false), tappedAt: Date())
+          }
+        }
+      }
     },
     setBadgeCount: { count in
       try? await UNUserNotificationCenter.current().setBadgeCount(count)
