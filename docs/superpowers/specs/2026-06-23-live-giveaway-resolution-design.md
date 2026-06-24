@@ -135,6 +135,10 @@ GiveawayParticipation]`, keyed by per-airing event id). Coordinator/push **mutat
   sheet open with a retry error (server upserts, so retry is safe). Do not loop-re-present.
 - Visuals from `TapperWinnerScreen` (confetti, prize image, "You won! You're Listener #N", prize
   name/desc, form, "Claim Prize", then "You're all set / We'll be in touch").
+- **Surprise-upgrade copy**: when the sheet is reached by flipping a `.resolvedLost` participation to
+  won (the promoted last-tapper — local provenance was a loss, or push `reason == "last_tapper_fallback"`),
+  the headline acknowledges the upgrade (e.g. "Good news — you got bumped up to the winner!") instead of
+  the plain "You won!". The model exposes the right headline; the view just renders it.
 
 ### 4.6 `APIClient` additions
 - `giveawayEventMyResult: (jwt, eventId) async throws -> GiveawayMyResult`
