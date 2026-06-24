@@ -2,6 +2,7 @@ import Dependencies
 import Foundation
 import Observation
 import Sharing
+import SwiftUI
 
 @MainActor
 @Observable
@@ -38,8 +39,51 @@ class GiveawayWinnerSheetModel: ViewModel {
   var postalCode = ""
   var comment = ""
   var isSubmitting = false
-  var submitErrorMessage: String?
   var showsClaimedConfirmation = false
+  var presentedAlert: PlayolaAlert?
+
+  // MARK: - User Actions
+
+  /// Confirm the prize is still claimable before showing the form — otherwise we'd prompt to claim a
+  /// prize already claimed on another device (push / reinstall). Disabled only where the caller has
+  /// already proven local provenance. Fails open: if the check can't complete, show the form (a
+  /// re-submit upserts server-side, so it's harmless).
+  func task() async {
+    guard verifyEligibility, let jwt = auth.jwt else { return }
+    do {
+      let event = try await api.giveawayEvent(jwt, participation.id)
+      if event.viewer?.canSubmitMailingInfo == false {
+        markSubmissionCompleted()
+        showsClaimedConfirmation = true
+      }
+    } catch {
+      // Fail open — leave the form available.
+    }
+  }
+
+  func claimButtonTapped() async {
+    guard canSubmit, let jwt = auth.jwt else { return }
+    isSubmitting = true
+    presentedAlert = nil
+    defer { isSubmitting = false }
+    let request = GiveawayWinnerSubmissionRequest(
+      fullName: fullName.trimmed, addressLine1: addressLine1.trimmed, city: city.trimmed,
+      state: state.trimmed, postalCode: postalCode.trimmed,
+      addressLine2: addressLine2.trimmed.isEmpty ? nil : addressLine2.trimmed,
+      comment: comment.trimmed.isEmpty ? nil : comment.trimmed)
+    do {
+      try await api.submitGiveawayWinnerDetails(jwt, participation.id, request)
+      markSubmissionCompleted()
+      onClose()
+    } catch {
+      // Keep the sheet open with the form intact so the user can retry (the server upserts).
+      presentedAlert = .giveawaySubmissionFailed
+    }
+  }
+
+  func closeButtonTapped() {
+    onClose()
+  }
 
   // MARK: - View Helpers
   var headline: String {
@@ -57,6 +101,7 @@ class GiveawayWinnerSheetModel: ViewModel {
   var claimedInteractive: Bool { showsClaimedConfirmation }
 
   var claimButtonTitle: String { isSubmitting ? "Submitting…" : "Claim Prize" }
+  var claimedEmoji: String { "🎉" }
   var claimedTitle: String { "You're all set" }
   var claimedSubtitle: String { "We'll be in touch." }
   var closeButtonTitle: String { "Done" }
@@ -64,8 +109,6 @@ class GiveawayWinnerSheetModel: ViewModel {
   // Opacity-driven view swaps (the view stays control-flow-free).
   var formOpacity: Double { showsClaimedConfirmation ? 0 : 1 }
   var claimedOpacity: Double { showsClaimedConfirmation ? 1 : 0 }
-  var submitErrorText: String { submitErrorMessage ?? "" }
-  var submitErrorOpacity: Double { submitErrorMessage == nil ? 0 : 1 }
   var claimButtonDisabled: Bool { !canSubmit }
   var claimButtonOpacity: Double { canSubmit ? 1 : 0.5 }
 
@@ -90,43 +133,6 @@ class GiveawayWinnerSheetModel: ViewModel {
       && !postalCode.trimmed.isEmpty
   }
 
-  // MARK: - User Actions
-
-  /// Confirm the prize is still claimable before showing the form — otherwise we'd prompt to claim a
-  /// prize already claimed on another device (push / reinstall). Disabled only where the caller has
-  /// already proven local provenance.
-  func task() async {
-    guard verifyEligibility, let jwt = auth.jwt else { return }
-    guard let event = try? await api.giveawayEvent(jwt, participation.id) else { return }
-    if event.viewer?.canSubmitMailingInfo == false {
-      markSubmissionCompleted()
-      showsClaimedConfirmation = true
-    }
-  }
-
-  func claimButtonTapped() async {
-    guard canSubmit, let jwt = auth.jwt else { return }
-    isSubmitting = true
-    submitErrorMessage = nil
-    defer { isSubmitting = false }
-    let request = GiveawayWinnerSubmissionRequest(
-      fullName: fullName.trimmed, addressLine1: addressLine1.trimmed, city: city.trimmed,
-      state: state.trimmed, postalCode: postalCode.trimmed,
-      addressLine2: addressLine2.trimmed.isEmpty ? nil : addressLine2.trimmed,
-      comment: comment.trimmed.isEmpty ? nil : comment.trimmed)
-    do {
-      try await api.submitGiveawayWinnerDetails(jwt, participation.id, request)
-      markSubmissionCompleted()
-      onClose()
-    } catch {
-      submitErrorMessage = "Something went wrong submitting your info. Please try again."
-    }
-  }
-
-  func closeButtonTapped() {
-    onClose()
-  }
-
   // MARK: - Private Helpers
   private func markSubmissionCompleted() {
     $participations.withLock {
@@ -134,6 +140,16 @@ class GiveawayWinnerSheetModel: ViewModel {
         $0[participation.id]?.status = .resolvedWon(submissionCompleted: true)
       }
     }
+  }
+}
+
+extension PlayolaAlert {
+  static var giveawaySubmissionFailed: PlayolaAlert {
+    PlayolaAlert(
+      title: "Submission Failed",
+      message:
+        "Something went wrong submitting your info. Please check your connection and try again.",
+      dismissButton: .cancel(Text("OK")))
   }
 }
 

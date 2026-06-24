@@ -68,17 +68,17 @@ struct GiveawayWinnerSheetModelTests {
       "e": wonParticipation()
     ]
     var closed = false
-    let errorMessage: String? = await withDependencies {
+    let presentedAlert: PlayolaAlert? = await withDependencies {
       $0.api.submitGiveawayWinnerDetails = { _, _, _ in throw Boom() }
     } operation: {
       let model = GiveawayWinnerSheetModel(
         participation: participations["e"]!, onClose: { closed = true })
       fill(model)
       await model.claimButtonTapped()
-      return model.submitErrorMessage
+      return model.presentedAlert
     }
     #expect(closed == false)
-    #expect(errorMessage != nil)
+    #expect(presentedAlert != nil)
     #expect(
       participations["e"]?.status
         == GiveawayParticipationStatus.resolvedWon(submissionCompleted: false))

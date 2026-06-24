@@ -16,6 +16,7 @@ struct GiveawayWinnerSheetView: View {
         .opacity(model.claimedOpacity)
         .allowsHitTesting(model.claimedInteractive)
     }
+    .playolaAlert($model.presentedAlert)
     .task { await model.task() }
   }
 }
@@ -68,12 +69,6 @@ private struct GiveawayWinnerFormView: View {
         }
         .padding(.top, 8)
 
-        Text(model.submitErrorText)
-          .font(.custom(FontNames.Inter_400_Regular, size: 13))
-          .foregroundColor(.playolaRed)
-          .multilineTextAlignment(.center)
-          .opacity(model.submitErrorOpacity)
-
         Button(action: { Task { await model.claimButtonTapped() } }) {
           Text(model.claimButtonTitle)
             .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
@@ -116,7 +111,7 @@ private struct GiveawayWinnerClaimedView: View {
 
   var body: some View {
     VStack(spacing: 12) {
-      Text("🎉")
+      Text(model.claimedEmoji)
         .font(.system(size: 48))
       Text(model.claimedTitle)
         .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 24))
