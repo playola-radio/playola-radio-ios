@@ -69,14 +69,17 @@ private struct GiveawayWinnerFormView: View {
         }
         .padding(.top, 8)
 
-        Button(action: { Task { await model.claimButtonTapped() } }) {
-          Text(model.claimButtonTitle)
-            .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 54)
-            .background(RoundedRectangle(cornerRadius: 14).fill(Color.playolaRed))
-        }
+        Button(
+          action: { Task { await model.claimButtonTapped() } },
+          label: {
+            Text(model.claimButtonTitle)
+              .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
+              .foregroundColor(.white)
+              .frame(maxWidth: .infinity)
+              .frame(height: 54)
+              .background(RoundedRectangle(cornerRadius: 14).fill(Color.playolaRed))
+          }
+        )
         .disabled(model.claimButtonDisabled)
         .opacity(model.claimButtonOpacity)
       }
@@ -120,14 +123,17 @@ private struct GiveawayWinnerClaimedView: View {
         .font(.custom(FontNames.Inter_400_Regular, size: 14))
         .foregroundColor(Color(hex: "#C7C7C7"))
 
-      Button(action: { model.closeButtonTapped() }) {
-        Text(model.closeButtonTitle)
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
-          .foregroundColor(.white)
-          .frame(maxWidth: .infinity)
-          .frame(height: 54)
-          .background(RoundedRectangle(cornerRadius: 14).fill(Color.playolaRed))
-      }
+      Button(
+        action: { model.closeButtonTapped() },
+        label: {
+          Text(model.closeButtonTitle)
+            .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 54)
+            .background(RoundedRectangle(cornerRadius: 14).fill(Color.playolaRed))
+        }
+      )
       .padding(.top, 24)
       .padding(.horizontal, 24)
     }
