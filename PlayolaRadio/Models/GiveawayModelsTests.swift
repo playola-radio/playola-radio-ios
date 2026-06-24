@@ -89,26 +89,46 @@ struct GiveawayModelsTests {
   }
 
   @Test func decodesWinnerSubmission() throws {
+    // The server keys submissions by eventId (NOT giveawayId).
     let json = Data(
       """
-      { "id": "sub1", "giveawayId": "g1", "userId": "u1", "fullName": "Brian Keane",
+      { "id": "sub1", "eventId": "e1", "userId": "u1", "fullName": "Brian Keane",
         "addressLine1": "123 Main", "city": "Austin", "postalCode": "78701",
         "country": "US", "willingToRecord": true, "fulfillmentStatus": "pending",
         "submittedAt": "2026-06-13T19:00:00.000Z" }
       """.utf8)
     let submission = try decoder().decode(GiveawayWinnerSubmission.self, from: json)
     #expect(submission.id == "sub1")
+    #expect(submission.eventId == "e1")
+    #expect(submission.fullName == "Brian Keane")
     #expect(submission.willingToRecord == true)
+    #expect(submission.fulfillmentStatus == .pending)
+  }
+
+  @Test func decodesEmailOnlyWinnerSubmission() throws {
+    // The email-only flow: the 201 carries eventId + preferredEmail and NO mailing-address fields.
+    // The optional address fields must decode to nil rather than throwing keyNotFound.
+    let json = Data(
+      """
+      { "id": "sub1", "eventId": "e1", "userId": "u1", "preferredEmail": "winner@example.com",
+        "fulfillmentStatus": "pending", "submittedAt": "2026-06-13T19:00:00.000Z" }
+      """.utf8)
+    let submission = try decoder().decode(GiveawayWinnerSubmission.self, from: json)
+    #expect(submission.eventId == "e1")
+    #expect(submission.preferredEmail == "winner@example.com")
+    #expect(submission.fullName == nil)
+    #expect(submission.addressLine1 == nil)
+    #expect(submission.city == nil)
+    #expect(submission.postalCode == nil)
+    #expect(submission.willingToRecord == false)
     #expect(submission.fulfillmentStatus == .pending)
   }
 
   @Test func decodesUnknownFulfillmentStatusAsUnknown() throws {
     let json = Data(
       """
-      { "id": "sub1", "giveawayId": "g1", "userId": "u1", "fullName": "X",
-        "addressLine1": "1", "city": "Austin", "postalCode": "78701",
-        "country": "US", "willingToRecord": false, "fulfillmentStatus": "shipped",
-        "submittedAt": "2026-06-13T19:00:00.000Z" }
+      { "id": "sub1", "eventId": "e1", "userId": "u1", "preferredEmail": "x@example.com",
+        "fulfillmentStatus": "shipped", "submittedAt": "2026-06-13T19:00:00.000Z" }
       """.utf8)
     let submission = try decoder().decode(GiveawayWinnerSubmission.self, from: json)
     #expect(submission.fulfillmentStatus == .unknown)
