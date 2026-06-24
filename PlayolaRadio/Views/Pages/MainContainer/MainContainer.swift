@@ -48,7 +48,8 @@ struct MainContainer: View {
       item: Binding(
         get: {
           switch model.mainContainerNavigationCoordinator.presentedSheet {
-          case .player, .feedbackSheet, .share, .redeemPrize, .artistSuggestion, .welcomeMessage:
+          case .player, .feedbackSheet, .share, .redeemPrize, .artistSuggestion, .welcomeMessage,
+            .giveawayWinner:
             return model.mainContainerNavigationCoordinator.presentedSheet
           default:
             return nil

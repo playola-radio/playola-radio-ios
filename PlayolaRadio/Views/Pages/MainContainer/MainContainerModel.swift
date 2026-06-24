@@ -337,17 +337,24 @@ class MainContainerModel: ViewModel {
 
   private func presentPendingGiveawayWinnerIfNeeded() {
     if case .giveawayWinner = mainContainerNavigationCoordinator.presentedSheet { return }
+    // Gate on the unclaimed prize, NOT on whether we've presented before: a winner who dismisses the
+    // sheet without submitting (or backgrounds before claiming) must get it back on the next
+    // foreground. The early-return above prevents a re-present loop while the sheet is up.
     let pending = giveawayParticipations.values
       .filter {
         guard case .resolvedWon(let submissionCompleted) = $0.status else { return false }
-        return !submissionCompleted && $0.winnerSheetPresentedAt == nil
+        return !submissionCompleted
       }
       .sorted { $0.tappedAt < $1.tappedAt }
     guard let winner = pending.first else { return }
     let model = GiveawayWinnerSheetModel(
       participation: winner,
       onClose: { [weak self] in self?.dismissGiveawayWinnerSheet() })
-    $giveawayParticipations.withLock { $0[winner.id]?.winnerSheetPresentedAt = now }
+    $giveawayParticipations.withLock {
+      if $0[winner.id]?.winnerSheetPresentedAt == nil {
+        $0[winner.id]?.winnerSheetPresentedAt = now
+      }
+    }
     mainContainerNavigationCoordinator.presentedSheet = .giveawayWinner(model)
   }
 

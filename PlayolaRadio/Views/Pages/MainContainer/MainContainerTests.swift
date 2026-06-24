@@ -1063,6 +1063,31 @@ struct MainContainerTests {
     await model.processGiveawayResolutions()
     #expect(shown.value.count == 1)
   }
+
+  @Test func processGiveawayResolutionsRepresentsUnclaimedWinnerAfterDismissal() async {
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+    navCoordinator.presentedSheet = nil
+    // Winner was already presented once (stamp set) but dismissed without submitting — must NOT be
+    // stranded. With no sheet currently up, the next pass re-presents it.
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e": GiveawayParticipation(
+        id: "e", stationId: "s", prizeName: "P", winningNumber: 9, tapNumber: 9,
+        status: .resolvedWon(submissionCompleted: false),
+        tappedAt: Date(timeIntervalSince1970: 100),
+        winnerSheetPresentedAt: Date(timeIntervalSince1970: 50))
+    ]
+    let model = MainContainerModel()
+
+    await model.processGiveawayResolutions()
+
+    if case .giveawayWinner = navCoordinator.presentedSheet {
+      // Test passes
+    } else {
+      Issue.record("Expected an unclaimed winner to be re-presented")
+    }
+    // The original stamp is preserved (we record first-presentation, not every present).
+    #expect(participations["e"]?.winnerSheetPresentedAt == Date(timeIntervalSince1970: 50))
+  }
 }
 
 // Drain the fire-and-forget Task in MainContainerModel.showFeedbackSheet()
