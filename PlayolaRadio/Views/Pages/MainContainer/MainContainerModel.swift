@@ -336,7 +336,12 @@ class MainContainerModel: ViewModel {
   }
 
   private func presentPendingGiveawayWinnerIfNeeded() {
-    if case .giveawayWinner = mainContainerNavigationCoordinator.presentedSheet { return }
+    // Only take over an empty stage or the player (the immediate-win context). Never clobber another
+    // modal flow (feedback, redeem, welcome, …); those defer the win to the next foreground.
+    switch mainContainerNavigationCoordinator.presentedSheet {
+    case .none, .player: break
+    default: return
+    }
     // Gate on the unclaimed prize, NOT on whether we've presented before: a winner who dismisses the
     // sheet without submitting (or backgrounds before claiming) must get it back on the next
     // foreground. The early-return above prevents a re-present loop while the sheet is up.
@@ -359,6 +364,11 @@ class MainContainerModel: ViewModel {
   }
 
   private func fireGiveawayLossToastIfNeeded() async {
+    // The toast is the FALLBACK for a loss the user didn't see in the player. While the player is up,
+    // the in-player reveal is the surface and marks the loss shown, so skip the toast (and don't mark
+    // it) — if the reveal never actually appears, `toastShown` stays false and a later foreground
+    // (player closed) fires the toast.
+    if case .player = mainContainerNavigationCoordinator.presentedSheet { return }
     let pending = giveawayParticipations.values
       .filter {
         guard case .resolvedLost(let toastShown) = $0.status else { return false }

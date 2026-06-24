@@ -338,6 +338,34 @@ struct GiveawayCoordinatorTests {
       participations["e1"]?.status
         == GiveawayParticipationStatus.resolvedLost(toastShown: true))
   }
+
+  @Test func foregroundReconcileFlipsRecentLossButSkipsStale() async {
+    let nowDate = Date(timeIntervalSince1970: 1_000_000)
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "recent": GiveawayParticipation(
+        id: "recent", stationId: "s1", prizeName: "P", winningNumber: 9, tapNumber: 5,
+        status: .resolvedLost(toastShown: true), tappedAt: nowDate.addingTimeInterval(-60)),
+      "stale": GiveawayParticipation(
+        id: "stale", stationId: "s1", prizeName: "P", winningNumber: 9, tapNumber: 5,
+        status: .resolvedLost(toastShown: true),
+        tappedAt: nowDate.addingTimeInterval(-7 * 60 * 60)),
+    ]
+    await withDependencies {
+      $0.date = .constant(nowDate)
+      $0.api.giveawayEventMyResult = { _, _ in
+        GiveawayMyResult(tapNumber: 5, isWinner: true, status: .closed, winningNumber: 9)
+      }
+    } operation: {
+      await GiveawayCoordinator().reconcileRecentResolvedLosses()
+    }
+    #expect(
+      participations["recent"]?.status
+        == GiveawayParticipationStatus.resolvedWon(submissionCompleted: false))
+    #expect(
+      participations["stale"]?.status
+        == GiveawayParticipationStatus.resolvedLost(toastShown: true))
+  }
 }
 
 // swiftlint:enable redundant_optional_initialization

@@ -170,14 +170,19 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
     withCompletionHandler completionHandler: @escaping () -> Void
   ) {
     let userInfo = response.notification.request.content.userInfo.sendablePayload()
-    Task {
-      if userInfo["type"] as? String == "giveaway_winner" {
+    if userInfo["type"] as? String == "giveaway_winner" {
+      // Defer completion until the participation mutation persists, so the system doesn't suspend
+      // mid-write and drop the win.
+      Task {
         await pushNotifications.handleGiveawayWinnerPush(userInfo)
-      } else {
+        completionHandler()
+      }
+    } else {
+      Task {
         await pushNotifications.handleNotificationTap(userInfo)
       }
+      completionHandler()
     }
-    completionHandler()
   }
 }
 

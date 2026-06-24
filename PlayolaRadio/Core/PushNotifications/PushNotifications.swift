@@ -8,6 +8,7 @@
 import Dependencies
 import DependenciesMacros
 import Foundation
+import IssueReporting
 import Sharing
 import UIKit
 import UserNotifications
@@ -212,22 +213,32 @@ extension PushNotificationsClient: DependencyKey {
       await stationPlayer.play(station: station)
     },
     handleGiveawayWinnerPush: { userInfo in
-      guard let push = GiveawayWinnerPush(userInfo: userInfo) else { return }
+      guard let push = GiveawayWinnerPush(userInfo: userInfo) else {
+        // A malformed winner push is the one rescue path for a missed promotion — never drop it
+        // silently. (A non-giveaway payload routed here by mistake is not worth reporting.)
+        if userInfo["type"] as? String == "giveaway_winner" {
+          reportIssue("Dropped malformed giveaway_winner push: \(userInfo)")
+        }
+        return
+      }
+      // Honor the server's claim flag: an already-claimed prize (other device) resolves straight to a
+      // completed win, so the arbiter never prompts the form for it.
+      let submissionCompleted = push.submissionCompleted ?? false
       @Shared(.giveawayParticipations) var participations
       let participationsShared = $participations
       await MainActor.run {
         participationsShared.withLock { dict in
-          // Already fully claimed, or already a (possibly pending) win → leave untouched so we never
-          // clobber a `winnerSheetPresentedAt` stamp or re-open a completed claim.
+          // Already a (possibly pending or claimed) win → leave untouched so we never clobber a
+          // `winnerSheetPresentedAt` stamp or re-open a completed claim.
           if case .resolvedWon = dict[push.eventId]?.status { return }
           if dict[push.eventId] != nil {
-            dict[push.eventId]?.status = .resolvedWon(submissionCompleted: false)
+            dict[push.eventId]?.status = .resolvedWon(submissionCompleted: submissionCompleted)
           } else {
             dict[push.eventId] = GiveawayParticipation(
               id: push.eventId, stationId: push.stationId ?? "", prizeName: push.prizeName,
               prizeDescription: push.prizeDescription, prizeImageUrl: push.prizeImageUrl,
               winningNumber: push.winningNumber, tapNumber: push.tapNumber,
-              status: .resolvedWon(submissionCompleted: false), tappedAt: Date())
+              status: .resolvedWon(submissionCompleted: submissionCompleted), tappedAt: Date())
           }
         }
       }

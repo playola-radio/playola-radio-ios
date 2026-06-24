@@ -32,6 +32,10 @@ final class GiveawayCoordinator {
   @ObservationIgnored private var generation = 0
 
   static let feedPollInterval: Duration = .seconds(30)
+  /// How far back a `.resolvedLost` participation is still re-checked for a last-tapper promotion on
+  /// foreground. A contest closes minutes after a tap, so a few hours is generous without unbounded
+  /// polling of stale losses.
+  static let lossReconcileWindow: TimeInterval = 6 * 60 * 60
 
   // MARK: - Lifecycle
 
@@ -66,6 +70,7 @@ final class GiveawayCoordinator {
   func pollNow() async {
     guard GiveawayFeature.isLiveDataEnabled else { return }
     await reconcile()
+    await reconcileRecentResolvedLosses()
   }
 
   // MARK: - Reconcile
@@ -143,6 +148,9 @@ final class GiveawayCoordinator {
       ? .resolvedWon(submissionCompleted: false)
       : .resolvedLost(toastShown: false)
     $participations.withLock {
+      // A push or backstop may have crowned this event while the POST was in flight; never let a
+      // (losing) tap response downgrade an already-recorded win.
+      if case .resolvedWon = $0[event.id]?.status { return }
       $0[event.id] = GiveawayParticipation(
         id: event.id, stationId: event.stationId, prizeName: event.prizeName,
         prizeDescription: event.prizeDescription, prizeImageUrl: event.prizeImageUrl,
@@ -204,10 +212,30 @@ final class GiveawayCoordinator {
     guard let result = try? await api.giveawayEventMyResult(jwt, eventId) else { return }
     guard result.isResolved, result.isWinner else { return }
     $participations.withLock {
+      // Re-check inside the lock: a push or a claim may have changed the state during the GET, and we
+      // must not reset a now-won/claimed participation back to an unsubmitted win.
+      guard case .resolvedLost = $0[eventId]?.status else { return }
       $0[eventId]?.status = .resolvedWon(submissionCompleted: false)
       if let tapNumber = result.tapNumber { $0[eventId]?.tapNumber = tapNumber }
     }
     log("backstop: \(eventId) promoted loss→win")
+  }
+
+  /// Foreground safety net for the promoted last-tapper when the live close-detection path didn't run
+  /// (app was killed, the station changed, or `activeGiveaway` was already cleared). Re-checks each
+  /// recent `.resolvedLost` once. Bounded by `lossReconcileWindow` so old losses aren't polled forever.
+  func reconcileRecentResolvedLosses() async {
+    guard let jwt = auth.jwt else { return }
+    let losses = participations.values.filter {
+      if case .resolvedLost = $0.status { return true }
+      return false
+    }
+    guard !losses.isEmpty else { return }
+    let cutoff = now.addingTimeInterval(-Self.lossReconcileWindow)
+    let recentLossIds = losses.compactMap { $0.tappedAt >= cutoff ? $0.id : nil }
+    for eventId in recentLossIds {
+      await reconcileResolvedLoss(jwt: jwt, eventId: eventId)
+    }
   }
 
   /// Among a station's events, pick the relevant one: an open one (reveal now), otherwise the
