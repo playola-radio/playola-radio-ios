@@ -90,20 +90,6 @@ struct GiveawayOverlayModelTests {
     #expect(model.isVisible == false)
   }
 
-  @Test func loserRevealAppearedMarksToastShown() {
-    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
-    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
-    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
-      "g1": GiveawayParticipation(
-        id: "g1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
-        tapNumber: 7, status: .resolvedLost(toastShown: false), tappedAt: Date())
-    ]
-    let model = GiveawayOverlayModel()
-    model.loserRevealAppeared()
-    #expect(
-      participations["g1"]?.status == GiveawayParticipationStatus.resolvedLost(toastShown: true))
-  }
-
   @Test func tapButtonInvokesOnTapWithTheVisibleGiveaway() async {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()

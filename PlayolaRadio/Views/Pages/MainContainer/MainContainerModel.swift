@@ -137,6 +137,10 @@ class MainContainerModel: ViewModel {
     liveStationsPoller.startPolling()
     giveawayCoordinator.start()
     observeGiveawayResolutions()
+    // The publisher only emits on future changes, and the initial `.active` scene phase may not fire
+    // `refreshOnForeground()`, so drain any participation resolved before this point (a prior launch,
+    // or a winner push handled before the observer installed).
+    await processGiveawayResolutions()
 
     await fetchBroadcasterStatus()
   }
@@ -364,11 +368,9 @@ class MainContainerModel: ViewModel {
   }
 
   private func fireGiveawayLossToastIfNeeded() async {
-    // The toast is the FALLBACK for a loss the user didn't see in the player. While the player is up,
-    // the in-player reveal is the surface and marks the loss shown, so skip the toast (and don't mark
-    // it) — if the reveal never actually appears, `toastShown` stays false and a later foreground
-    // (player closed) fires the toast.
-    if case .player = mainContainerNavigationCoordinator.presentedSheet { return }
+    // The one-time toast is the GUARANTEED loss feedback ("toast everywhere"); the in-player reveal
+    // is a bonus while the player is open. Firing it unconditionally means a loser never misses
+    // feedback even if the reveal collapses at song-end.
     let pending = giveawayParticipations.values
       .filter {
         guard case .resolvedLost(let toastShown) = $0.status else { return false }

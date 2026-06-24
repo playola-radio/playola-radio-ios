@@ -1134,7 +1134,7 @@ struct MainContainerTests {
     }
   }
 
-  @Test func processGiveawayResolutionsSkipsLossToastWhilePlayerIsOpen() async {
+  @Test func processGiveawayResolutionsFiresLossToastEvenWhilePlayerIsOpen() async {
     await withMainSerialExecutor {
       @Shared(.mainContainerNavigationCoordinator) var navCoordinator
       navCoordinator.presentedSheet = .player(PlayerPageModel(onDismiss: {}))
@@ -1155,10 +1155,10 @@ struct MainContainerTests {
 
       await model.processGiveawayResolutions()
 
-      // The in-player reveal owns the loss while the player is up — no toast, and not marked shown.
-      #expect(shown.value.isEmpty)
+      // The one-time toast is guaranteed feedback even with the player up (the reveal is a bonus).
+      #expect(shown.value.count == 1)
       #expect(
-        participations["e"]?.status == GiveawayParticipationStatus.resolvedLost(toastShown: false))
+        participations["e"]?.status == GiveawayParticipationStatus.resolvedLost(toastShown: true))
     }
   }
 }

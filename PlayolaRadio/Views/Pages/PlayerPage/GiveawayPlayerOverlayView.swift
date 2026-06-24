@@ -85,7 +85,6 @@ private struct GiveawayOverlayLoserRevealView: View {
         .padding(.top, 16)
     }
     .frame(maxWidth: .infinity)
-    .onAppear { model.loserRevealAppeared() }
   }
 }
 

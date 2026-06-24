@@ -83,18 +83,6 @@ class GiveawayOverlayModel: ViewModel {
     return "You were listener #\(participation.tapNumber) — good luck next time!"
   }
 
-  /// The loser reveal counts as the loss having been surfaced: mark the toast as shown so the
-  /// app-wide fallback toast does not also fire. If the app dies before the reveal appears,
-  /// `toastShown` stays false and the arbiter fires the toast on the next launch.
-  func loserRevealAppeared() {
-    guard let giveaway = visibleGiveaway else { return }
-    $participations.withLock {
-      if case .resolvedLost = $0[giveaway.id]?.status {
-        $0[giveaway.id]?.status = .resolvedLost(toastShown: true)
-      }
-    }
-  }
-
   /// Human-readable explanation of the visibility gate, for the debug diagnostics readout.
   /// Mirrors `visibleGiveaway` so the HUD never contradicts what's on screen.
   var gateDiagnostics: String {
