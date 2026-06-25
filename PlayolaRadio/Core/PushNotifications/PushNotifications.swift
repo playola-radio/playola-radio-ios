@@ -219,6 +219,7 @@ extension PushNotificationsClient: DependencyKey {
       await stationPlayer.play(station: station)
     },
     handleGiveawayWinnerPush: { userInfo in
+      guard GiveawayFeature.isLiveDataEnabled else { return }
       guard let push = GiveawayWinnerPush(userInfo: userInfo) else {
         // A malformed winner push is the one rescue path for a missed promotion — never drop it
         // silently. (A non-giveaway payload routed here by mistake is not worth reporting.)

@@ -93,6 +93,30 @@ struct GiveawayCongratsSheetModelTests {
     #expect(closed.value)
   }
 
+  @Test func windowClosedMarksActionTerminalAndCloses() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock {
+      $0 = [
+        "e1": CongratsAction(
+          eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
+          state: .uploaded(audioBlockId: "ab1", localRecordingPath: "/tmp/r.m4a"), startedAt: Date()
+        )
+      ]
+    }
+    let closed = LockIsolated(false)
+    let model = withDependencies {
+      $0.api.recordGiveawayEventCongrats = { _, _, _ in throw GiveawayCongratsError.windowClosed }
+    } operation: {
+      GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: { closed.setValue(true) })
+    }
+    await model.sendButtonTapped()
+    // A closed window is terminal — no retry loop; the action is marked closed and the sheet dismisses.
+    expectNoDifference(actions["e1"]?.state, CongratsActionState.alreadyClosed)
+    #expect(closed.value)
+    #expect(model.presentedAlert == nil)
+  }
+
   @Test func skipIsIgnoredWhileSubmitting() async {
     @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
     $actions.withLock { $0 = ["e1": recordedAction()] }

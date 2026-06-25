@@ -239,6 +239,13 @@ class GiveawayCongratsSheetModel: ViewModel {
       setState(.submitted)
       cleanUpRecording()
       onClose()
+    } catch is GiveawayCongratsError {
+      // The server window closed — retrying can never succeed. Mark terminal, clean up, and dismiss
+      // (the terminal state keeps the arbiter from ever re-prompting) instead of looping the owner
+      // on a retry alert.
+      setState(.alreadyClosed)
+      cleanUpRecording()
+      onClose()
     } catch {
       // Stays `.uploaded` so the user can retry the POST without re-uploading.
       presentedAlert = .congratsSubmitFailed(error.localizedDescription)

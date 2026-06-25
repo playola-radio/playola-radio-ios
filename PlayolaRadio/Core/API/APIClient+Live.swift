@@ -796,9 +796,20 @@ extension APIClient: DependencyKey {
           token: jwtToken, parameters: body.asParameters)
       },
       recordGiveawayEventCongrats: { jwtToken, eventId, audioBlockId in
-        try await authenticatedPostVoid(
-          path: "/v1/giveaway-events/\(eventId)/congrats",
-          token: jwtToken, parameters: ["audioBlockId": audioBlockId])
+        do {
+          try await authenticatedPostVoid(
+            path: "/v1/giveaway-events/\(eventId)/congrats",
+            token: jwtToken, parameters: ["audioBlockId": audioBlockId])
+        } catch let error as AFError {
+          // 409 = the congrats window has closed server-side. Translate to a domain error so the
+          // caller can mark the action terminal instead of offering a futile retry.
+          if case .responseValidationFailed(reason: .unacceptableStatusCode(let code)) = error,
+            code == 409
+          {
+            throw GiveawayCongratsError.windowClosed
+          }
+          throw error
+        }
       },
       getSupportConversation: { jwtToken in
         try await authenticatedGet(path: "/v1/conversations/support", token: jwtToken)
