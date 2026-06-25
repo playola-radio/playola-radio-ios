@@ -117,6 +117,29 @@ struct GiveawayCongratsSheetModelTests {
     #expect(model.presentedAlert == nil)
   }
 
+  @Test func reRecordReArmsTheRecorder() async {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock { $0 = ["e1": recordedAction()] }
+    let prepared = LockIsolated(0)
+    let model = withDependencies {
+      $0.audioPlayer.stop = {}
+      $0.audioRecorder.prepareForRecording = { prepared.withValue { $0 += 1 } }
+    } operation: {
+      GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
+    }
+    await model.onReRecordTapped()
+    // The next take must run on a freshly prepared session, not the one stopRecording() left behind.
+    #expect(prepared.value == 1)
+    #expect(model.recordingPhase == .idle)
+  }
+
+  @Test func playButtonTitleReflectsPlaybackState() {
+    let model = GiveawayCongratsSheetModel(action: recordedAction(), onClose: {})
+    #expect(model.playButtonTitle == "Play")
+    model.isPlaying = true
+    #expect(model.playButtonTitle == "Pause")
+  }
+
   @Test func skipIsIgnoredWhileSubmitting() async {
     @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
     $actions.withLock { $0 = ["e1": recordedAction()] }

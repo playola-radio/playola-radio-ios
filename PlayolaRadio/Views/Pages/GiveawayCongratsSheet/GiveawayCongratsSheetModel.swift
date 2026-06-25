@@ -142,6 +142,9 @@ class GiveawayCongratsSheetModel: ViewModel {
     isPlaying = false
     waveformSamples = []
     recordingPhase = .idle
+    // `viewAppeared` only primes the recorder once (and only when there was no resume file), so
+    // re-arm the audio session here or the next `startRecording()` runs on an unprepared session.
+    try? await audioRecorder.prepareForRecording()
   }
 
   func sendButtonTapped() async {
@@ -186,6 +189,7 @@ class GiveawayCongratsSheetModel: ViewModel {
   var recordButtonTitle: String { "Record" }
   var stopButtonTitle: String { "Stop" }
   var sendButtonTitle: String { isSubmitting ? "Sending…" : "Send" }
+  var playButtonTitle: String { isPlaying ? "Pause" : "Play" }
   var canSend: Bool { !isSubmitting && (readyToSubmit || recordingPhase == .review) }
   var canSkip: Bool { !isSubmitting }
   var canPlay: Bool { recordingURL != nil }

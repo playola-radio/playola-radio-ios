@@ -83,7 +83,7 @@ private struct GiveawayCongratsReviewControls: View {
       Button(
         action: { Task { await model.onPlayPauseTapped() } },
         label: {
-          Text("Play")
+          Text(model.playButtonTitle)
             .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
