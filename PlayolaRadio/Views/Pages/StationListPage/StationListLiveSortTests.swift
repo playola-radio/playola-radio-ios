@@ -17,48 +17,6 @@ import Testing
 @MainActor
 struct StationListLiveSortTests {
   @Test
-  func testLiveStatusForStationReturnsNilWhenNotLive() async {
-    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
-
-    let model = StationListModel()
-    await model.viewAppeared()
-
-    let status = model.liveStatusForStation("some-station-id")
-
-    #expect(status == nil)
-  }
-
-  @Test
-  func testLiveStatusForStationReturnsVoicetrackingStatus() async {
-    let station = Station.mockWith(id: "live-station")
-    @Shared(.liveStations) var liveStations: [LiveStationInfo] = [
-      LiveStationInfo(stationId: "live-station", liveStatus: .voicetracking, station: station)
-    ]
-
-    let model = StationListModel()
-    await model.viewAppeared()
-
-    let status = model.liveStatusForStation("live-station")
-
-    #expect(status == .voicetracking)
-  }
-
-  @Test
-  func testLiveStatusForStationReturnsShowAiringStatus() async {
-    let station = Station.mockWith(id: "show-station")
-    @Shared(.liveStations) var liveStations: [LiveStationInfo] = [
-      LiveStationInfo(stationId: "show-station", liveStatus: .showAiring, station: station)
-    ]
-
-    let model = StationListModel()
-    await model.viewAppeared()
-
-    let status = model.liveStatusForStation("show-station")
-
-    #expect(status == .showAiring)
-  }
-
-  @Test
   func testSortedStationItemsPutsLiveStationsFirst() async {
     @Shared(.showSecretStations) var showSecretStations = false
     let now = Date()

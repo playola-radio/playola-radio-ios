@@ -100,7 +100,7 @@ class StationListModel: ViewModel {
 
   // MARK: - Properties
 
-  var cancellables = Set<AnyCancellable>()
+  @ObservationIgnored var cancellables = Set<AnyCancellable>()
   var stationListsForDisplay: IdentifiedArrayOf<StationList> = []
   var displayedSections: [DisplayedStationSection] = []
   var segmentTitles: [String] = ["All"]
@@ -432,10 +432,6 @@ class StationListModel: ViewModel {
 
   var showsPresetsOnly: Bool {
     selectedSegment == presetsSegmentTitle
-  }
-
-  func liveStatusForStation(_ stationId: String) -> LiveStatus? {
-    liveStations.first { $0.stationId == stationId }?.liveStatus
   }
 
   var isShowingNoResults: Bool {
