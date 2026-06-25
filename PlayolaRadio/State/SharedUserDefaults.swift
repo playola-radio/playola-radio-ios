@@ -116,6 +116,56 @@ extension SharedKey where Self == InMemoryKey<[LiveStationInfo]>.Default {
   }
 }
 
+// MARK: - Giveaways
+
+extension SharedKey where Self == InMemoryKey<GiveawayEvent?>.Default {
+  /// The open giveaway for the currently-playing station. Drives the player overlay.
+  static var activeGiveaway: Self {
+    Self[.inMemory("activeGiveaway"), default: nil]
+  }
+}
+
+extension SharedKey where Self == InMemoryKey<GiveawayBannerState?>.Default {
+  /// The app-wide "Tap In" invite banner.
+  static var giveawayBanner: Self {
+    Self[.inMemory("giveawayBanner"), default: nil]
+  }
+}
+
+extension SharedKey where Self == FileStorageKey<[String: GiveawayParticipation]>.Default {
+  /// Durable participation keyed by the **per-airing event id** (each airing is a separate
+  /// contest, so a tap on one airing must not mark you "tapped" on a rerun). Survives an app kill;
+  /// cleared on sign-out so one account never sees another's state.
+  static var giveawayParticipations: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "giveaway-participations.json")),
+      default: [:]
+    ]
+  }
+}
+
+extension SharedKey where Self == FileStorageKey<Set<String>>.Default {
+  /// Stable `giveawayId` values (NOT the ephemeral per-airing event id) whose banner the user
+  /// dismissed — so a dismissal sticks across reruns/airings of the same giveaway.
+  static var dismissedGiveawayBannerIds: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "dismissed-giveaway-banners.json")),
+      default: []
+    ]
+  }
+}
+
+extension SharedKey where Self == FileStorageKey<[String: CongratsAction]>.Default {
+  /// Durable artist congrats progress, keyed by per-airing event id. Survives a kill and holds the
+  /// recorded file path (`.recorded`) and uploaded audioBlockId (`.uploaded`) for resume/retry.
+  static var pendingCongratsActions: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "pending-congrats-actions.json")),
+      default: [:]
+    ]
+  }
+}
+
 // MARK: - Push Notifications
 
 extension SharedKey where Self == AppStorageKey<String?>.Default {

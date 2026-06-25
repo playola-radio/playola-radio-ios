@@ -1006,6 +1006,322 @@ struct MainContainerTests {
     #expect(mainContainerModel.broadcastPageModel?.stationId == "station-456")
     #expect(!(mainContainerModel.broadcastPageModel === originalModel))
   }
+
+  // MARK: - Giveaway Resolution Arbiter Tests
+
+  // These exercise the app-wide arbiter, which awaits while mutating the file-backed
+  // `@Shared(.giveawayParticipations)`. `withMainSerialExecutor` serializes async execution so a
+  // parallel test's write to the same shared key can't clobber the participation mid-`await` (see
+  // .claude/TESTING.md).
+  @Test func processGiveawayResolutionsPresentsWinnerSheetOnce() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = nil
+      @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+      $participations.withLock {
+        $0 = [
+          "e": GiveawayParticipation(
+            id: "e", stationId: "s", prizeName: "P", winningNumber: 9, tapNumber: 9,
+            status: .resolvedWon(submissionCompleted: false),
+            tappedAt: Date(timeIntervalSince1970: 100))
+        ]
+      }
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 555))
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      #expect(participations["e"]?.winnerSheetPresentedAt == Date(timeIntervalSince1970: 555))
+      if case .giveawayWinner = navCoordinator.presentedSheet {
+        // Test passes
+      } else {
+        Issue.record("Expected giveaway winner sheet to be presented")
+      }
+
+      // Idempotent: a second pass must not re-present or re-stamp.
+      await model.processGiveawayResolutions()
+      #expect(participations["e"]?.winnerSheetPresentedAt == Date(timeIntervalSince1970: 555))
+    }
+  }
+
+  @Test func processGiveawayResolutionsFiresLoserToastOnce() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = nil
+      @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+      $participations.withLock {
+        $0 = [
+          "e": GiveawayParticipation(
+            id: "e", stationId: "s", prizeName: "P", winningNumber: 9, tapNumber: 5,
+            status: .resolvedLost(toastShown: false), tappedAt: Date(timeIntervalSince1970: 100))
+        ]
+      }
+      let shown = LockIsolated<[PlayolaToast]>([])
+      let model = withDependencies {
+        $0.toast.show = { toast in shown.withValue { $0.append(toast) } }
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      #expect(
+        participations["e"]?.status == GiveawayParticipationStatus.resolvedLost(toastShown: true))
+      #expect(shown.value.count == 1)
+
+      // Idempotent: already-shown loss does not re-toast.
+      await model.processGiveawayResolutions()
+      #expect(shown.value.count == 1)
+    }
+  }
+
+  @Test func processGiveawayResolutionsRepresentsUnclaimedWinnerAfterDismissal() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = nil
+      // Winner was already presented once (stamp set) but dismissed without submitting — must NOT be
+      // stranded. With no sheet currently up, the next pass re-presents it.
+      @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+      $participations.withLock {
+        $0 = [
+          "e": GiveawayParticipation(
+            id: "e", stationId: "s", prizeName: "P", winningNumber: 9, tapNumber: 9,
+            status: .resolvedWon(submissionCompleted: false),
+            tappedAt: Date(timeIntervalSince1970: 100),
+            winnerSheetPresentedAt: Date(timeIntervalSince1970: 50))
+        ]
+      }
+      let model = MainContainerModel()
+
+      await model.processGiveawayResolutions()
+
+      if case .giveawayWinner = navCoordinator.presentedSheet {
+        // Test passes
+      } else {
+        Issue.record("Expected an unclaimed winner to be re-presented")
+      }
+      // The original stamp is preserved (we record first-presentation, not every present).
+      #expect(participations["e"]?.winnerSheetPresentedAt == Date(timeIntervalSince1970: 50))
+    }
+  }
+
+  @Test func processGiveawayResolutionsDoesNotClobberAnotherSheet() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = .share(ShareSheetModel(items: ["x"]))
+      @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+      $participations.withLock {
+        $0 = [
+          "e": GiveawayParticipation(
+            id: "e", stationId: "s", prizeName: "P", winningNumber: 9, tapNumber: 9,
+            status: .resolvedWon(submissionCompleted: false), tappedAt: Date())
+        ]
+      }
+      let model = MainContainerModel()
+
+      await model.processGiveawayResolutions()
+
+      // The unrelated share sheet must be left intact; the win waits for the next foreground.
+      if case .share = navCoordinator.presentedSheet {
+        // Test passes
+      } else {
+        Issue.record("Expected the share sheet to be left untouched")
+      }
+      #expect(participations["e"]?.winnerSheetPresentedAt == nil)
+    }
+  }
+
+  @Test func processGiveawayResolutionsFiresLossToastEvenWhilePlayerIsOpen() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = .player(PlayerPageModel(onDismiss: {}))
+      @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+      $participations.withLock {
+        $0 = [
+          "e": GiveawayParticipation(
+            id: "e", stationId: "s", prizeName: "P", winningNumber: 9, tapNumber: 5,
+            status: .resolvedLost(toastShown: false), tappedAt: Date())
+        ]
+      }
+      let shown = LockIsolated<[PlayolaToast]>([])
+      let model = withDependencies {
+        $0.toast.show = { toast in shown.withValue { $0.append(toast) } }
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      // The one-time toast is guaranteed feedback even with the player up (the reveal is a bonus).
+      #expect(shown.value.count == 1)
+      #expect(
+        participations["e"]?.status == GiveawayParticipationStatus.resolvedLost(toastShown: true))
+    }
+  }
+}
+
+// MARK: - Artist Congrats Arbiter Tests
+
+@MainActor
+extension MainContainerTests {
+
+  private func pendingCongrats(
+    eventId: String = "e1", state: CongratsActionState = .pending,
+    congratsExpiresAt: Date? = nil, startedAt: Date = Date(timeIntervalSince1970: 100)
+  ) -> CongratsAction {
+    CongratsAction(
+      eventId: eventId, stationId: "s1", winnerName: "Jo", prizeName: "P",
+      congratsExpiresAt: congratsExpiresAt, state: state, startedAt: startedAt)
+  }
+
+  @Test func processGiveawayResolutionsPresentsCongratsWhenStageClear() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = nil
+      @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+      $actions.withLock { $0 = ["e1": pendingCongrats()] }
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 200))
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      if case .giveawayCongrats = navCoordinator.presentedSheet {
+        // Test passes
+      } else {
+        Issue.record("Expected the congrats sheet to be presented")
+      }
+      $actions.withLock { $0 = [:] }
+    }
+  }
+
+  @Test func processGiveawayResolutionsPrefersWinnerSheetOverCongrats() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = nil
+      @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+      $participations.withLock {
+        $0 = [
+          "w": GiveawayParticipation(
+            id: "w", stationId: "s", prizeName: "P", winningNumber: 9, tapNumber: 9,
+            status: .resolvedWon(submissionCompleted: false), tappedAt: Date())
+        ]
+      }
+      @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+      $actions.withLock { $0 = ["e1": pendingCongrats()] }
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 200))
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      // The owner-side congrats must yield to the listener-side winner sheet.
+      if case .giveawayWinner = navCoordinator.presentedSheet {
+        // Test passes
+      } else {
+        Issue.record("Expected the winner sheet to win the stage over congrats")
+      }
+      $participations.withLock { $0 = [:] }
+      $actions.withLock { $0 = [:] }
+    }
+  }
+
+  @Test func processGiveawayResolutionsSkipsExpiredCongrats() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = nil
+      @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+      $actions.withLock {
+        $0 = ["e1": pendingCongrats(congratsExpiresAt: Date(timeIntervalSince1970: 50))]
+      }
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 200))
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      #expect(navCoordinator.presentedSheet == nil)
+      $actions.withLock { $0 = [:] }
+    }
+  }
+
+  @Test func processGiveawayResolutionsSkipsTerminalCongrats() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = nil
+      @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+      $actions.withLock { $0 = ["e1": pendingCongrats(state: .submitted)] }
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 200))
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      #expect(navCoordinator.presentedSheet == nil)
+      $actions.withLock { $0 = [:] }
+    }
+  }
+
+  @Test func processGiveawayResolutionsDoesNotClobberAnotherSheetWithCongrats() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = .share(ShareSheetModel(items: ["x"]))
+      @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+      $actions.withLock { $0 = ["e1": pendingCongrats()] }
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 200))
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      if case .share = navCoordinator.presentedSheet {
+        // Test passes
+      } else {
+        Issue.record("Expected the share sheet to be left untouched")
+      }
+      $actions.withLock { $0 = [:] }
+    }
+  }
+
+  @Test func processGiveawayResolutionsDoesNotRepromptDismissedCongrats() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = nil
+      @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+      $actions.withLock { $0 = ["e1": pendingCongrats()] }
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 200))
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+      guard case .giveawayCongrats(let congratsModel) = navCoordinator.presentedSheet else {
+        Issue.record("Expected the congrats sheet to be presented")
+        return
+      }
+      // Owner closes without sending — action stays pending but must not pop back up this foreground.
+      await congratsModel.closeButtonTapped()
+
+      await model.processGiveawayResolutions()
+
+      #expect(navCoordinator.presentedSheet == nil)
+      $actions.withLock { $0 = [:] }
+    }
+  }
 }
 
 // Drain the fire-and-forget Task in MainContainerModel.showFeedbackSheet()

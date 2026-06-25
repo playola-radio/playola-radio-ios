@@ -185,8 +185,12 @@ class PlayerPageModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
 
+  // MARK: - Giveaway
+  let giveawayOverlayModel = GiveawayOverlayModel()
+
   init(onDismiss: (() -> Void)? = nil) {
     self.onDismiss = onDismiss
+    super.init()
   }
 
   func playPauseButtonTapped() {

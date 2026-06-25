@@ -1,5 +1,9 @@
 # Playola Radio iOS
 
+## Branch Policy
+
+**`develop` must always be in a deployable state.** Both as a matter of policy and so we can ship from it at any time in an emergency. Never merge work into `develop` that doesn't compile, has failing tests, or leaves the app in a broken/half-finished runtime state. If a change can't be made deployable in one PR, gate it behind a feature flag or keep it on a feature branch until it is.
+
 ## ALWAYS use the Point-Free Workflow (pfw-*) skills
 
 This project is built on Point-Free libraries (`swift-dependencies`, `swift-sharing`, `swift-identified-collections`, `swift-custom-dump`, etc.). Before writing or planning Swift code in this repo, invoke every `pfw-*` skill that applies to the task. This is **mandatory**, not optional.

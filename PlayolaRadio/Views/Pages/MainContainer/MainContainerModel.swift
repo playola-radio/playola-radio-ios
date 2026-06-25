@@ -20,6 +20,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.toast) var toast
+  @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
   @ObservationIgnored @Dependency(\.siriShortcuts) var siriShortcuts
   @ObservationIgnored @Dependency(\.appRating) var appRating
@@ -36,6 +37,16 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
   @ObservationIgnored @Shared(.isBroadcaster) var isBroadcaster
   @ObservationIgnored @Shared(.appVersionRequirements) var appVersionRequirements
+  @ObservationIgnored @Shared(.giveawayParticipations) var giveawayParticipations
+  @ObservationIgnored @Shared(.pendingCongratsActions) var pendingCongratsActions
+
+  /// Client-side ceiling for presenting a congrats whose push carried no `congratsExpiresAt`. After
+  /// this long past `startedAt` we stop prompting the owner (the schedule slot is almost certainly gone).
+  private static let congratsClientCutoff: TimeInterval = 60 * 60
+
+  /// Congrats sheets the owner closed (or finished) this foreground. Prevents the publisher-driven
+  /// re-run from immediately re-presenting a just-dismissed sheet. Cleared on each foreground.
+  @ObservationIgnored private var dismissedCongratsThisForeground: Set<String> = []
 
   enum ActiveTab {
     // Listening mode tabs
@@ -58,6 +69,7 @@ class MainContainerModel: ViewModel {
   var rewardsPageModel = RewardsPageModel()
   var contactPageModel = ContactPageModel()
   var liveStationsPoller = LiveStationsPoller()
+  var giveawayCoordinator = GiveawayCoordinator()
 
   @ObservationIgnored private var toastObservationTask: Task<Void, Never>?
 
@@ -132,11 +144,38 @@ class MainContainerModel: ViewModel {
     await loadAirings()
 
     liveStationsPoller.startPolling()
+    giveawayCoordinator.start()
+    observeGiveawayResolutions()
+    // The publisher only emits on future changes, and the initial `.active` scene phase may not fire
+    // `refreshOnForeground()`, so drain any participation resolved before this point (a prior launch,
+    // or a winner push handled before the observer installed).
+    await processGiveawayResolutions()
 
     await fetchBroadcasterStatus()
   }
 
+  /// Re-run the resolution arbiter whenever a participation resolves (tap, backstop, or push). The
+  /// `.publisher` fires in `willSet`, so defer to a `Task` — by the time it runs the durable write
+  /// has completed and `giveawayParticipations` reflects the new value (not the stale one).
+  private func observeGiveawayResolutions() {
+    $giveawayParticipations.publisher
+      .sink { [weak self] _ in
+        Task { await self?.processGiveawayResolutions() }
+      }
+      .store(in: &cancellables)
+    // A `giveaway_winner_pending` push writes a new congrats action; surface its sheet immediately
+    // (same willSet → Task deferral rationale as the participations observer above).
+    $pendingCongratsActions.publisher
+      .sink { [weak self] _ in
+        Task { await self?.processGiveawayResolutions() }
+      }
+      .store(in: &cancellables)
+  }
+
   func refreshOnForeground() async {
+    // A new foreground is a fresh chance to prompt: a congrats the owner closed last session
+    // re-presents now (if still pending and unexpired).
+    dismissedCongratsThisForeground.removeAll()
     do {
       let retrievedStationsLists = try await api.getStations()
       applyStationLists(retrievedStationsLists)
@@ -150,6 +189,8 @@ class MainContainerModel: ViewModel {
 
     await loadAirings()
     await fetchUnreadSupportCount()
+    await giveawayCoordinator.pollNow()
+    await processGiveawayResolutions()
   }
 
   private func applyStationLists(_ lists: IdentifiedArrayOf<StationList>) {
@@ -161,8 +202,10 @@ class MainContainerModel: ViewModel {
     switch phase {
     case .active:
       liveStationsPoller.startPolling()
+      giveawayCoordinator.start()
     case .background, .inactive:
       liveStationsPoller.stopPolling()
+      giveawayCoordinator.stop()
     @unknown default:
       break
     }
@@ -221,10 +264,7 @@ class MainContainerModel: ViewModel {
   func processNewStationState(_ newState: StationPlayer.State) {
     switch newState.playbackStatus {
     case .startingNewStation:
-      self.mainContainerNavigationCoordinator.presentedSheet = .player(
-        PlayerPageModel(onDismiss: {
-          self.mainContainerNavigationCoordinator.presentedSheet = nil
-        }))
+      self.mainContainerNavigationCoordinator.presentedSheet = .player(makePlayerModel())
     default: break
     }
     self.setShouldShowSmallPlayer(newState)
@@ -290,8 +330,135 @@ class MainContainerModel: ViewModel {
   }
 
   func onSmallPlayerTapped() {
-    self.mainContainerNavigationCoordinator.presentedSheet = .player(
-      PlayerPageModel(onDismiss: { self.mainContainerNavigationCoordinator.presentedSheet = nil }))
+    self.mainContainerNavigationCoordinator.presentedSheet = .player(makePlayerModel())
+  }
+
+  /// Builds the player model and wires the giveaway overlay's tap to the coordinator's real tap.
+  private func makePlayerModel() -> PlayerPageModel {
+    let model = PlayerPageModel(onDismiss: { [weak self] in
+      self?.mainContainerNavigationCoordinator.presentedSheet = nil
+    })
+    model.giveawayOverlayModel.onTap = { [weak self] event in
+      try await self?.giveawayCoordinator.tap(event: event)
+    }
+    model.giveawayOverlayModel.onError = { [weak self] _ in
+      self?.presentedAlert = .giveawayTapFailed
+    }
+    return model
+  }
+
+  // MARK: - Giveaway Resolution Presentation
+
+  /// The single app-wide consumer of resolved giveaway participations. The coordinator and push
+  /// handler only mutate `@Shared(.giveawayParticipations)`; this turns those durable facts into a
+  /// winner sheet (once per win) or a one-time consolation toast. Idempotent — safe to call on every
+  /// dict change and on foreground.
+  func processGiveawayResolutions() async {
+    presentPendingGiveawayWinnerIfNeeded()
+    await fireGiveawayLossToastIfNeeded()
+    // Winner sheet wins the stage: if the call above presented one, this sees a non-empty/-player
+    // sheet and defers the congrats to the next foreground.
+    presentPendingCongratsIfNeeded()
+  }
+
+  private func presentPendingGiveawayWinnerIfNeeded() {
+    // Only take over an empty stage or the player (the immediate-win context). Never clobber another
+    // modal flow (feedback, redeem, welcome, …); those defer the win to the next foreground.
+    switch mainContainerNavigationCoordinator.presentedSheet {
+    case .none, .player: break
+    default: return
+    }
+    // Gate on the unclaimed prize, NOT on whether we've presented before: a winner who dismisses the
+    // sheet without submitting (or backgrounds before claiming) must get it back on the next
+    // foreground. The early-return above prevents a re-present loop while the sheet is up.
+    let pending = giveawayParticipations.values
+      .filter {
+        guard case .resolvedWon(let submissionCompleted) = $0.status else { return false }
+        return !submissionCompleted
+      }
+      .sorted { $0.tappedAt < $1.tappedAt }
+    guard let winner = pending.first else { return }
+    let model = GiveawayWinnerSheetModel(
+      participation: winner,
+      onClose: { [weak self] in self?.dismissGiveawayWinnerSheet() })
+    $giveawayParticipations.withLock {
+      if $0[winner.id]?.winnerSheetPresentedAt == nil {
+        $0[winner.id]?.winnerSheetPresentedAt = now
+      }
+    }
+    mainContainerNavigationCoordinator.presentedSheet = .giveawayWinner(model)
+  }
+
+  private func fireGiveawayLossToastIfNeeded() async {
+    // The one-time toast is the GUARANTEED loss feedback ("toast everywhere"); the in-player reveal
+    // is a bonus while the player is open. Firing it unconditionally means a loser never misses
+    // feedback even if the reveal collapses at song-end.
+    let pending = giveawayParticipations.values
+      .filter {
+        guard case .resolvedLost(let toastShown) = $0.status else { return false }
+        return !toastShown
+      }
+      .sorted { $0.tappedAt < $1.tappedAt }
+    guard let loss = pending.first else { return }
+    $giveawayParticipations.withLock { $0[loss.id]?.status = .resolvedLost(toastShown: true) }
+    await toast.show(
+      PlayolaToast(
+        message: "You were listener #\(loss.tapNumber) — good luck next time!", buttonTitle: ""))
+  }
+
+  private func dismissGiveawayWinnerSheet() {
+    if case .giveawayWinner = mainContainerNavigationCoordinator.presentedSheet {
+      mainContainerNavigationCoordinator.presentedSheet = nil
+    }
+  }
+
+  // MARK: - Artist Congrats Presentation
+
+  /// Presents the most-urgent pending congrats (owner side) when the stage is clear. Lower priority
+  /// than the winner sheet and unrelated modals, and never re-prompts a sheet dismissed this
+  /// foreground.
+  private func presentPendingCongratsIfNeeded() {
+    switch mainContainerNavigationCoordinator.presentedSheet {
+    case .none, .player: break
+    default: return
+    }
+    let candidate = pendingCongratsActions.values
+      .filter { !$0.isTerminal }
+      .filter { !dismissedCongratsThisForeground.contains($0.eventId) }
+      .filter { !isCongratsExpired($0) }
+      .sorted(by: Self.congratsIsMoreUrgent)
+      .first
+    guard let action = candidate else { return }
+    let model = GiveawayCongratsSheetModel(
+      action: action,
+      onClose: { [weak self] in self?.dismissGiveawayCongratsSheet(eventId: action.eventId) })
+    mainContainerNavigationCoordinator.presentedSheet = .giveawayCongrats(model)
+  }
+
+  private func dismissGiveawayCongratsSheet(eventId: String) {
+    // Suppress re-presentation for the rest of this foreground (the action may still be non-terminal
+    // if the owner closed without sending). A future foreground clears this and re-prompts.
+    dismissedCongratsThisForeground.insert(eventId)
+    if case .giveawayCongrats = mainContainerNavigationCoordinator.presentedSheet {
+      mainContainerNavigationCoordinator.presentedSheet = nil
+    }
+  }
+
+  private func isCongratsExpired(_ action: CongratsAction) -> Bool {
+    let cutoff =
+      action.congratsExpiresAt ?? action.startedAt.addingTimeInterval(Self.congratsClientCutoff)
+    return now >= cutoff
+  }
+
+  /// Soonest expiry first; nil-expiry actions sort last; `startedAt` breaks ties.
+  private static func congratsIsMoreUrgent(_ lhs: CongratsAction, _ rhs: CongratsAction) -> Bool {
+    switch (lhs.congratsExpiresAt, rhs.congratsExpiresAt) {
+    case (let left?, let right?):
+      return left == right ? lhs.startedAt < rhs.startedAt : left < right
+    case (nil, _?): return false
+    case (_?, nil): return true
+    case (nil, nil): return lhs.startedAt < rhs.startedAt
+    }
   }
 
   // Test method for showing toasts
@@ -358,6 +525,14 @@ extension PlayolaAlert {
       title: "Thank You for the Feedback!",
       message:
         "Thank you so much. Someone will get back to you soon.",
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static var giveawayTapFailed: PlayolaAlert {
+    PlayolaAlert(
+      title: "Tap Didn't Go Through",
+      message: "Something went wrong tapping in. Please check your connection and try again.",
       dismissButton: .cancel(Text("OK"))
     )
   }

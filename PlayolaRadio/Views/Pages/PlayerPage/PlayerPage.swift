@@ -131,6 +131,10 @@ struct PlayerPage: View {
         .padding(.horizontal, 24)
         .padding(.top, 32)
 
+        // Giveaway overlay (hidden until an open giveaway is live for this station)
+        GiveawayPlayerOverlayView(model: model.giveawayOverlayModel)
+          .padding(.top, 8)
+
         // Play Button
         Button(
           action: { model.playPauseButtonTapped() },

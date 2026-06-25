@@ -42,6 +42,17 @@ func testSomethingWithSharedAuth() async {
 
 This is especially important for `@Shared` keys backed by `.fileStorage` (like `.auth`), which go through more async machinery than `.inMemory` keys.
 
+### File-backed keys: reset with `withLock` after the declaration
+
+Because the `= initialValue` declaration is only a fallback (it does NOT write), a `.fileStorage`-backed key can still hold a stale value from a previous test run, which silently invalidates assertions like `#expect(participations["e1"] == nil)`. For file-backed keys, follow the declaration with an explicit `withLock` reset so the store holds a known value — this is the one case where `withLock` is used for initial-state setup rather than only to drive a mid-test change:
+
+```swift
+@Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+$participations.withLock { $0 = ["e1": .mock] }  // real write, not a fallback
+```
+
+Combine with `withMainSerialExecutor` for any test that reads the store back after an `await`.
+
 ## Mocking Dependencies
 
 Use `withDependencies` to mock API calls:
