@@ -142,6 +142,10 @@ class GiveawayCongratsSheetModel: ViewModel {
     isPlaying = false
     waveformSamples = []
     recordingPhase = .idle
+    // Clear the resume flag too — otherwise re-recording from an `.uploaded`-resumed model (which
+    // sets `readyToSubmit = true` in init) would leave `showsRecordButton` false and strand the
+    // owner in review with no recording.
+    readyToSubmit = false
     // `viewAppeared` only primes the recorder once (and only when there was no resume file), so
     // re-arm the audio session here or the next `startRecording()` runs on an unprepared session.
     try? await audioRecorder.prepareForRecording()

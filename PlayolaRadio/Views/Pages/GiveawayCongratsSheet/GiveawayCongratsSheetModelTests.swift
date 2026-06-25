@@ -8,7 +8,11 @@ import Testing
 
 @testable import PlayolaRadio
 
+// Serialized: these tests mutate the file-backed `@Shared(.pendingCongratsActions)` store under a
+// shared key, so parallel Swift Testing could interleave across `await` points and cross-contaminate
+// the on-disk state.
 @MainActor
+@Suite(.serialized)
 struct GiveawayCongratsSheetModelTests {
   private func recordedAction() -> CongratsAction {
     CongratsAction(
@@ -131,6 +135,23 @@ struct GiveawayCongratsSheetModelTests {
     // The next take must run on a freshly prepared session, not the one stopRecording() left behind.
     #expect(prepared.value == 1)
     #expect(model.recordingPhase == .idle)
+  }
+
+  @Test func reRecordFromUploadedResumeReturnsToRecordButton() async {
+    let action = CongratsAction(
+      eventId: "e1", stationId: "s1", winnerName: "Jo", prizeName: "P", congratsExpiresAt: nil,
+      state: .uploaded(audioBlockId: "ab1", localRecordingPath: "/tmp/r.m4a"), startedAt: Date())
+    let model = withDependencies {
+      $0.audioPlayer.stop = {}
+      $0.audioRecorder.prepareForRecording = {}
+    } operation: {
+      GiveawayCongratsSheetModel(action: action, onClose: {})
+    }
+    #expect(model.readyToSubmit)  // resumed uploaded → review state
+    await model.onReRecordTapped()
+    // Re-record must drop the resume flag so the Record button comes back (not stranded in review).
+    #expect(!model.readyToSubmit)
+    #expect(model.showsRecordButton)
   }
 
   @Test func playButtonTitleReflectsPlaybackState() {

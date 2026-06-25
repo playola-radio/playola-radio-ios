@@ -13,7 +13,11 @@ import Testing
 
 @testable import PlayolaRadio
 
+// Serialized: these tests mutate the file-backed `@Shared(.pendingCongratsActions)` /
+// `.giveawayParticipations` stores under shared keys, so parallel Swift Testing could interleave
+// across `await` points and cross-contaminate the on-disk state.
 @MainActor
+@Suite(.serialized)
 struct PushNotificationsTests {
 
   // MARK: - registerForRemoteNotifications
