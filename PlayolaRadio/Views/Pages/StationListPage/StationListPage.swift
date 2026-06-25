@@ -118,8 +118,8 @@ struct StationListPage: View {
                 onRetryTapped: { await model.retryLoadPresetsTapped() }
               )
             }
-            ForEach(model.stationListsForDisplay) { list in
-              stationSection(list: list)
+            ForEach(model.displayedSections) { section in
+              stationSection(section: section)
             }
           }
           .padding(.top, 8)
@@ -169,20 +169,20 @@ struct StationListPage: View {
 
   // MARK: - Helpers
   @ViewBuilder
-  private func stationSection(list: StationList) -> some View {
-    let items = model.sortedStationItems(for: list)
-    if !items.isEmpty {
+  private func stationSection(section: DisplayedStationSection) -> some View {
+    let rows = model.displayedRows(for: section)
+    if !rows.isEmpty {
       VStack(alignment: .leading, spacing: 1) {
-        Text(list.title)
+        Text(section.title)
           .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
           .foregroundColor(.white)
           .padding(.horizontal)
           .padding(.bottom, 8)
 
         VStack(spacing: 1) {
-          ForEach(items, id: \.anyStation.id) { item in
-            let liveStatus = model.liveStatusForStation(item.anyStation.id)
-            let rowModel = StationListStationRowModel(item: item, liveStatus: liveStatus)
+          ForEach(rows) { row in
+            let item = row.item
+            let rowModel = StationListStationRowModel(item: item, liveStatus: row.liveStatus)
             let isPreset = model.isPreset(stationId: item.anyStation.id)
             StationListStationRowView(
               model: rowModel,
