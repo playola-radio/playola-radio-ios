@@ -83,6 +83,37 @@ struct GiveawayCongratsSheetModelTests {
     #expect(model.presentedAlert != nil)
   }
 
+  @Test func dismissDuringUploadDoesNotPostCongrats() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock { $0 = ["e1": recordedAction()] }
+    let block = AudioBlock.mockWith(id: "ab1")
+    let postedCongrats = LockIsolated(false)
+    let (uploadStartedStream, uploadStartedContinuation) = AsyncStream<Void>.makeStream()
+    let (releaseUploadStream, releaseUploadContinuation) = AsyncStream<Void>.makeStream()
+    var uploadStarted = uploadStartedStream.makeAsyncIterator()
+    let model = withDependencies {
+      $0.voicetrackUploadService.processVoicetrack = { _, _, _, _ in
+        uploadStartedContinuation.yield()
+        var releaseUpload = releaseUploadStream.makeAsyncIterator()
+        _ = await releaseUpload.next()
+        return block
+      }
+      $0.api.recordGiveawayEventCongrats = { _, _, _ in postedCongrats.setValue(true) }
+      $0.audioPlayer.stop = {}
+    } operation: {
+      GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
+    }
+    let sendTask = Task { await model.sendButtonTapped() }
+    _ = await uploadStarted.next()
+    await model.viewDisappeared()
+    releaseUploadContinuation.yield()
+    await sendTask.value
+    #expect(!postedCongrats.value)
+    expectNoDifference(
+      actions["e1"]?.state, CongratsActionState.recorded(localRecordingPath: "/tmp/r.m4a"))
+  }
+
   @Test func skipMarksSkippedAndCloses() async {
     @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
     $actions.withLock { $0 = ["e1": recordedAction()] }

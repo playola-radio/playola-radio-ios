@@ -63,6 +63,7 @@ class GiveawayCongratsSheetModel: ViewModel {
 
   @ObservationIgnored var recordingURL: URL?
   @ObservationIgnored private var isStartingRecording = false
+  @ObservationIgnored private var isDismissed = false
   @ObservationIgnored private var recordingTask: Task<Void, Never>?
   @ObservationIgnored private var playbackTask: Task<Void, Never>?
 
@@ -82,6 +83,7 @@ class GiveawayCongratsSheetModel: ViewModel {
   func viewDisappeared() async {
     // SwiftUI swipe-to-dismiss nils the sheet without routing through skip/send, so this is the only
     // teardown hook for an interactive dismissal — stop the mic/player and suppress re-prompt.
+    isDismissed = true
     await stopActiveCapture()
     onClose()
   }
@@ -152,7 +154,7 @@ class GiveawayCongratsSheetModel: ViewModel {
   }
 
   func sendButtonTapped() async {
-    guard !isSubmitting else { return }
+    guard !isDismissed, !isSubmitting else { return }
     isSubmitting = true
     presentedAlert = nil
     uploadStatusText = ""
@@ -178,6 +180,7 @@ class GiveawayCongratsSheetModel: ViewModel {
   }
 
   func closeButtonTapped() async {
+    isDismissed = true
     await stopActiveCapture()
     onClose()
   }
@@ -231,13 +234,14 @@ class GiveawayCongratsSheetModel: ViewModel {
       presentedAlert = .congratsUploadFailed(error.localizedDescription)
       return
     }
+    guard !isDismissed else { return }
     setState(.uploaded(audioBlockId: audioBlock.id, localRecordingPath: url.path))
     await submitCongrats(audioBlockId: audioBlock.id)
   }
 
   private func submitCongrats(audioBlockId: String) async {
     // The owner skipped or dismissed while the upload was running — honor that and don't POST.
-    guard !isActionTerminal else { return }
+    guard !isDismissed, !isActionTerminal else { return }
     guard let jwt = auth.jwt else {
       presentedAlert = .congratsRecordingFailed("Not signed in.")
       return
