@@ -6,7 +6,11 @@ import Testing
 
 // swiftlint:disable redundant_optional_initialization
 
+// Serialized: these tests mutate the file-backed `@Shared(.giveawayParticipations)` store under a
+// shared key, so parallel Swift Testing could interleave across `await` points and cross-contaminate
+// the on-disk state.
 @MainActor
+@Suite(.serialized)
 struct GiveawayOverlayModelTests {
   // giveawayId is deliberately distinct from the event id so tests pin participation keying to the
   // per-airing event id (`id`), not the stable `giveawayId`.
@@ -62,11 +66,14 @@ struct GiveawayOverlayModelTests {
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
     // Keyed by the event id ("g1"), which differs from the event's giveawayId ("gv1") — so this
     // fails if the overlay ever re-keys by giveawayId.
-    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
-      "g1": GiveawayParticipation(
-        id: "g1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
-        tapNumber: 7, status: .resolvedLost(toastShown: false), tappedAt: Date())
-    ]
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+    $participations.withLock {
+      $0 = [
+        "g1": GiveawayParticipation(
+          id: "g1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+          tapNumber: 7, status: .resolvedLost(toastShown: false), tappedAt: Date())
+      ]
+    }
     let model = GiveawayOverlayModel()
     #expect(model.showsLoserReveal == true)
     #expect(model.showsPrompt == false)
@@ -79,11 +86,14 @@ struct GiveawayOverlayModelTests {
   @Test func resolvedWinCollapsesTheOverlay() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
-    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
-      "g1": GiveawayParticipation(
-        id: "g1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
-        tapNumber: 9, status: .resolvedWon(submissionCompleted: false), tappedAt: Date())
-    ]
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+    $participations.withLock {
+      $0 = [
+        "g1": GiveawayParticipation(
+          id: "g1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+          tapNumber: 9, status: .resolvedWon(submissionCompleted: false), tappedAt: Date())
+      ]
+    }
     let model = GiveawayOverlayModel()
     #expect(model.showsLoserReveal == false)
     #expect(model.showsPrompt == false)

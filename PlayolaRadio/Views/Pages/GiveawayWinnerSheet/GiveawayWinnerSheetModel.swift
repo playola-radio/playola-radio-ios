@@ -1,5 +1,6 @@
 import Dependencies
 import Foundation
+import IssueReporting
 import Observation
 import Sharing
 import SwiftUI
@@ -52,7 +53,9 @@ class GiveawayWinnerSheetModel: ViewModel {
         showsClaimedConfirmation = true
       }
     } catch {
-      // Fail open — leave the form available.
+      // Fail open — leave the form available — but record the error so a failing eligibility check
+      // isn't indistinguishable from one that passed (a re-submit upserts server-side, so it's safe).
+      reportIssue(error)
     }
   }
 
