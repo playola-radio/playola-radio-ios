@@ -32,6 +32,10 @@ final class GiveawayCoordinator {
   @ObservationIgnored private var generation = 0
 
   static let feedPollInterval: Duration = .seconds(30)
+  /// How far back a `.resolvedLost` participation is still re-checked for a last-tapper promotion on
+  /// foreground. A contest closes minutes after a tap, so a few hours is generous without unbounded
+  /// polling of stale losses.
+  static let lossReconcileWindow: TimeInterval = 6 * 60 * 60
 
   // MARK: - Lifecycle
 
@@ -66,6 +70,7 @@ final class GiveawayCoordinator {
   func pollNow() async {
     guard GiveawayFeature.isLiveDataEnabled else { return }
     await reconcile()
+    await reconcileRecentResolvedLosses()
   }
 
   // MARK: - Reconcile
@@ -114,27 +119,42 @@ final class GiveawayCoordinator {
 
   // MARK: - Tap
 
-  /// Tap into a giveaway. Persists a standby participation (keyed by the per-airing event id) the
-  /// instant the POST returns, so the reveal survives an app kill. One tap per event.
-  func tap(event: GiveawayEvent) async {
+  /// Tap into a giveaway. The tap response carries the authoritative `isWinner`, so the outcome is
+  /// resolved and persisted (keyed by the per-airing event id) the instant the POST returns — no
+  /// wait for the contest to close. The durable write survives an app kill. One tap per event.
+  /// Stays silent on the expected `.notOpenYet` race; rethrows any genuine failure for the caller.
+  func tap(event: GiveawayEvent) async throws {
     guard let jwt = auth.jwt else { return }
     guard participations[event.id] == nil, !inFlightTapIds.contains(event.id) else { return }
     inFlightTapIds.insert(event.id)
     defer { inFlightTapIds.remove(event.id) }
     do {
       let response = try await api.tapGiveawayEvent(jwt, event.id)
-      persistStandby(event: event, tapNumber: response.tapNumber)
+      persistOutcome(event: event, response: response)
+    } catch GiveawayTapError.notOpenYet {
+      log("tap: not-open-yet for \(event.id) — silent (expected race)")
     } catch {
-      // 400 (not open yet) / network: no participation written; the user can tap again.
+      log("tap: unexpected failure for \(event.id) — \(error)")
+      throw error
     }
   }
 
-  private func persistStandby(event: GiveawayEvent, tapNumber: Int) {
+  /// Resolve the tap immediately from the server's authoritative response. A non-winning tap is only
+  /// *provisionally* lost — the last-tapper promotion at close can still flip it to a win (recovered
+  /// by the poll-while-open backstop and the winner push).
+  private func persistOutcome(event: GiveawayEvent, response: GiveawayTapResponse) {
+    let status: GiveawayParticipationStatus =
+      response.isWinner
+      ? .resolvedWon(submissionCompleted: false)
+      : .resolvedLost(toastShown: false)
     $participations.withLock {
+      // A push or backstop may have crowned this event while the POST was in flight; never let a
+      // (losing) tap response downgrade an already-recorded win.
+      if case .resolvedWon = $0[event.id]?.status { return }
       $0[event.id] = GiveawayParticipation(
         id: event.id, stationId: event.stationId, prizeName: event.prizeName,
         prizeDescription: event.prizeDescription, prizeImageUrl: event.prizeImageUrl,
-        winningNumber: event.winningNumber, tapNumber: tapNumber, status: .tappedStandby,
+        winningNumber: event.winningNumber, tapNumber: response.tapNumber, status: status,
         tappedAt: now)
     }
   }
@@ -172,14 +192,49 @@ final class GiveawayCoordinator {
 
   /// A published event has dropped out of the feed. Confirm via the authoritative GET: keep it if
   /// it's still open (a transient feed gap at the open transition), clear it once it has closed.
-  /// A transient GET failure keeps it (the next poll retries). (A canceled event that 404s is
-  /// cleared by the result-poll reveal step — a later PR.)
+  /// A transient GET failure keeps it (the next poll retries). On close, run the loss backstop so a
+  /// last-tapper promotion is caught for the in-app user without waiting on the push.
   func clearActiveIfNoLongerOpen(jwt: String, event: GiveawayEvent, stationId: String) async {
     guard let fresh = try? await api.giveawayEvent(jwt, event.id) else { return }
     guard currentPlayolaStationId == stationId else { return }
     if fresh.status != .open {
       $activeGiveaway.withLock { $0 = nil }
       log("active event \(event.id) is now \(fresh.status.rawValue) → cleared")
+      await reconcileResolvedLoss(jwt: jwt, eventId: event.id)
+    }
+  }
+
+  /// Backstop for the last-tapper promotion: when a contest the user provisionally lost has closed,
+  /// re-check `my-result` once and flip `.resolvedLost → .resolvedWon` if the server promoted them.
+  /// No-op on a still-open contest, a confirmed loss, or a transient failure.
+  func reconcileResolvedLoss(jwt: String, eventId: String) async {
+    guard case .resolvedLost = participations[eventId]?.status else { return }
+    guard let result = try? await api.giveawayEventMyResult(jwt, eventId) else { return }
+    guard result.isResolved, result.isWinner else { return }
+    $participations.withLock {
+      // Re-check inside the lock: a push or a claim may have changed the state during the GET, and we
+      // must not reset a now-won/claimed participation back to an unsubmitted win.
+      guard case .resolvedLost = $0[eventId]?.status else { return }
+      $0[eventId]?.status = .resolvedWon(submissionCompleted: false)
+      if let tapNumber = result.tapNumber { $0[eventId]?.tapNumber = tapNumber }
+    }
+    log("backstop: \(eventId) promoted loss→win")
+  }
+
+  /// Foreground safety net for the promoted last-tapper when the live close-detection path didn't run
+  /// (app was killed, the station changed, or `activeGiveaway` was already cleared). Re-checks each
+  /// recent `.resolvedLost` once. Bounded by `lossReconcileWindow` so old losses aren't polled forever.
+  func reconcileRecentResolvedLosses() async {
+    guard let jwt = auth.jwt else { return }
+    let losses = participations.values.filter {
+      if case .resolvedLost = $0.status { return true }
+      return false
+    }
+    guard !losses.isEmpty else { return }
+    let cutoff = now.addingTimeInterval(-Self.lossReconcileWindow)
+    let recentLossIds = losses.compactMap { $0.tappedAt >= cutoff ? $0.id : nil }
+    for eventId in recentLossIds {
+      await reconcileResolvedLoss(jwt: jwt, eventId: eventId)
     }
   }
 
@@ -270,8 +325,22 @@ final class GiveawayCoordinator {
       log("arm: \(eventId) stale after sleep (gen/station changed) — skipping")
       return
     }
-    await revealEvent(jwt: jwt, eventId: eventId, expectedStationId: stationId)
+    // Reveal the button the instant we reach opensAt, straight from the event we already hold — no
+    // confirming GET, whose round-trip would push the button several seconds past opensAt. The tap
+    // opens the contest on-demand server-side, and the next feed poll converges authoritative state.
+    revealFromHeldEvent(event, expectedStationId: stationId)
     armedEventId = nil
+  }
+
+  /// Publish a giveaway we already hold (flipped to `.open`) so the overlay shows the tap button with
+  /// no network round-trip.
+  func revealFromHeldEvent(_ event: GiveawayEvent, expectedStationId: String) {
+    guard currentPlayolaStationId == expectedStationId else {
+      log("reveal: station changed before publish — skipping \(event.id)")
+      return
+    }
+    $activeGiveaway.withLock { $0 = event.openedCopy() }
+    log("REVEALED \(event.id) from held event (no refresh)")
   }
 
   private func cancelArmedReveal() {

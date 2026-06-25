@@ -559,6 +559,18 @@ struct APIClient: Sendable {
       _, _ in .mock
     }
 
+  /// The viewer's authoritative final outcome for an event. Reconciles a due close on demand, so
+  /// the last-tapper promotion is reflected without waiting for the worker. 404 if the event is gone.
+  var giveawayEventMyResult:
+    @Sendable (_ jwtToken: String, _ eventId: String) async throws -> GiveawayMyResult = { _, _ in
+      .mock
+    }
+
+  /// Submits (upserts) the winner's mailing details for an event. Winner-only on the server.
+  var submitGiveawayWinnerDetails:
+    @Sendable (_ jwtToken: String, _ eventId: String, _ body: GiveawayWinnerSubmissionRequest)
+      async throws -> Void = { _, _, _ in }
+
   /// Gets the user's support conversation (may be nil if none exists)
   /// - Parameter jwtToken: The JWT token for authentication
   /// - Returns: SupportConversationResponse containing the conversation (nullable) and unread count

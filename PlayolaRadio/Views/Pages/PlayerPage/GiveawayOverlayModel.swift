@@ -12,7 +12,8 @@ class GiveawayOverlayModel: ViewModel {
   @ObservationIgnored @Shared(.giveawayParticipations) var participations
 
   // MARK: - Callbacks
-  var onTap: (@MainActor (GiveawayEvent) async -> Void)?
+  var onTap: (@MainActor (GiveawayEvent) async throws -> Void)?
+  var onError: (@MainActor (any Error) async -> Void)?
 
   // MARK: - Initialization
   override init() {
@@ -22,25 +23,42 @@ class GiveawayOverlayModel: ViewModel {
   // MARK: - User Actions
   func tapButtonTapped() async {
     guard let giveaway = visibleGiveaway else { return }
-    await onTap?(giveaway)
+    do {
+      try await onTap?(giveaway)
+    } catch {
+      await onError?(error)
+    }
   }
 
   // MARK: - View Helpers
-  var isVisible: Bool { visibleGiveaway != nil }
+
+  /// The open giveaway is on screen at all only while there is prompt or loser-reveal content to
+  /// show. A winner's overlay collapses (the app-wide winner sheet takes over).
+  var isVisible: Bool { showsPrompt || showsLoserReveal }
 
   var overlayOpacity: Double { isVisible ? 1 : 0 }
 
-  var hasTapped: Bool {
-    guard let giveaway = visibleGiveaway else { return false }
-    // Keyed by the per-airing event id (giveaway.id), NOT giveawayId: each airing is its own
-    // contest, so a tap on a prior airing must not pre-mark this one. The tap flow keys the same.
-    return participations[giveaway.id]?.isStandby ?? false
+  /// The user's participation for the on-screen event (keyed by the per-airing event id, NOT
+  /// giveawayId — each airing is its own contest).
+  private var participation: GiveawayParticipation? {
+    guard let giveaway = visibleGiveaway else { return nil }
+    return participations[giveaway.id]
   }
 
-  var promptOpacity: Double { hasTapped ? 0 : 1 }
-  var standbyOpacity: Double { hasTapped ? 1 : 0 }
-  var promptInteractive: Bool { isVisible && !hasTapped }
-  var standbyInteractive: Bool { isVisible && hasTapped }
+  /// Show the tap prompt until the user has tapped this event.
+  var showsPrompt: Bool { visibleGiveaway != nil && participation == nil }
+
+  /// Show the consolation reveal once the tap resolved as a (provisional) loss. The win path is an
+  /// app-wide sheet, so the overlay shows nothing for a winner.
+  var showsLoserReveal: Bool {
+    guard visibleGiveaway != nil, case .resolvedLost = participation?.status else { return false }
+    return true
+  }
+
+  var promptOpacity: Double { showsPrompt ? 1 : 0 }
+  var loserRevealOpacity: Double { showsLoserReveal ? 1 : 0 }
+  var promptInteractive: Bool { showsPrompt }
+  var loserRevealInteractive: Bool { showsLoserReveal }
 
   var headline: String { "WIN A PRIZE!" }
 
@@ -60,9 +78,10 @@ class GiveawayOverlayModel: ViewModel {
 
   var buttonTitle: String { "TAP HERE" }
 
-  var standbyText: String { "STAND BY…" }
-
-  var standbySubtitle: String { "Hang tight — we'll reveal the winner when the song ends." }
+  var loserRevealHeadline: String {
+    guard let participation else { return "" }
+    return "You were listener #\(participation.tapNumber) — good luck next time!"
+  }
 
   /// Human-readable explanation of the visibility gate, for the debug diagnostics readout.
   /// Mirrors `visibleGiveaway` so the HUD never contradicts what's on screen.

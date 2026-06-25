@@ -182,6 +182,31 @@ struct GiveawayCoordinatorTests {
     #expect(activeGiveaway == nil)
   }
 
+  @Test func revealFromHeldEventPublishesOpenWithoutAGet() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    let scheduled = GiveawayEvent(
+      id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .scheduled)
+
+    GiveawayCoordinator().revealFromHeldEvent(scheduled, expectedStationId: "s1")
+
+    // Published straight from the held event, flipped to .open. The id is "e1" (not the detail GET's
+    // ".mock"/"event-1"), proving the reveal did NOT make a network round-trip.
+    #expect(activeGiveaway?.id == "e1")
+    #expect(activeGiveaway?.status == .open)
+  }
+
+  @Test func revealFromHeldEventSkipsWhenStationChanged() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "other")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    let scheduled = GiveawayEvent(
+      id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .scheduled)
+
+    GiveawayCoordinator().revealFromHeldEvent(scheduled, expectedStationId: "s1")
+
+    #expect(activeGiveaway == nil)
+  }
+
   // MARK: - tap
 
   private func openEvent(id: String = "e1") -> GiveawayEvent {
@@ -190,7 +215,7 @@ struct GiveawayCoordinatorTests {
       winningNumber: 9, status: .open, giveawayId: "gv1")
   }
 
-  @Test func tapPersistsStandbyParticipationOnSuccess() async {
+  @Test func tapPersistsResolvedLossOnNonWinningTap() async {
     let tappedAt = Date(timeIntervalSince1970: 1000)
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
@@ -200,21 +225,42 @@ struct GiveawayCoordinatorTests {
         GiveawayTapResponse(tapNumber: 7, isWinner: false, status: .open)
       }
     } operation: {
-      await GiveawayCoordinator().tap(event: openEvent())
+      try? await GiveawayCoordinator().tap(event: openEvent())
     }
-    // Keyed by the per-airing event id, carrying the prize details and the server tap number.
+    // Resolved immediately from the tap response, keyed by the per-airing event id.
     expectNoDifference(
       participations["e1"],
       GiveawayParticipation(
         id: "e1", stationId: "s1", prizeName: "Two tickets", prizeDescription: "Front row",
-        winningNumber: 9, tapNumber: 7, status: .tappedStandby, tappedAt: tappedAt))
+        winningNumber: 9, tapNumber: 7, status: .resolvedLost(toastShown: false),
+        tappedAt: tappedAt))
+  }
+
+  @Test func tapPersistsResolvedWonOnWinningTap() async {
+    let tappedAt = Date(timeIntervalSince1970: 1000)
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+    await withDependencies {
+      $0.date = .constant(tappedAt)
+      $0.api.tapGiveawayEvent = { _, _ in
+        GiveawayTapResponse(tapNumber: 9, isWinner: true, status: .open)
+      }
+    } operation: {
+      try? await GiveawayCoordinator().tap(event: openEvent())
+    }
+    expectNoDifference(
+      participations["e1"],
+      GiveawayParticipation(
+        id: "e1", stationId: "s1", prizeName: "Two tickets", prizeDescription: "Front row",
+        winningNumber: 9, tapNumber: 9, status: .resolvedWon(submissionCompleted: false),
+        tappedAt: tappedAt))
   }
 
   @Test func tapWithoutJWTIsNoOp() async {
     @Shared(.auth) var auth = Auth()
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
     // The default tap stub would persist a participation if the JWT guard failed to short-circuit.
-    await GiveawayCoordinator().tap(event: openEvent())
+    try? await GiveawayCoordinator().tap(event: openEvent())
     #expect(participations["e1"] == nil)
   }
 
@@ -229,20 +275,121 @@ struct GiveawayCoordinatorTests {
     await withDependencies {
       $0.api.tapGiveawayEvent = { _, _ in .mock }
     } operation: {
-      await GiveawayCoordinator().tap(event: openEvent())
+      try? await GiveawayCoordinator().tap(event: openEvent())
     }
     #expect(participations["e1"]?.tapNumber == 99)
   }
 
-  @Test func tapDoesNotPersistOnError() async {
+  @Test func tapStaysSilentAndDoesNotPersistOnNotOpenYet() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+    // A 400 race is surfaced by the API as `.notOpenYet`; tap swallows it silently (no rethrow).
     await withDependencies {
-      $0.api.tapGiveawayEvent = { _, _ in throw BoomError() }
+      $0.api.tapGiveawayEvent = { _, _ in throw GiveawayTapError.notOpenYet }
     } operation: {
-      await GiveawayCoordinator().tap(event: openEvent())
+      try? await GiveawayCoordinator().tap(event: openEvent())
     }
     #expect(participations["e1"] == nil)
+  }
+
+  @Test func tapRethrowsUnexpectedErrorAndDoesNotPersist() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+    await #expect(throws: BoomError.self) {
+      try await withDependencies {
+        $0.api.tapGiveawayEvent = { _, _ in throw BoomError() }
+      } operation: {
+        try await GiveawayCoordinator().tap(event: openEvent())
+      }
+    }
+    #expect(participations["e1"] == nil)
+  }
+
+  // MARK: - Loss Backstop
+
+  private func lostParticipation() -> GiveawayParticipation {
+    GiveawayParticipation(
+      id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, tapNumber: 5,
+      status: .resolvedLost(toastShown: true), tappedAt: Date(timeIntervalSince1970: 100))
+  }
+
+  @Test func backstopFlipsLossToWinWhenPromoted() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e1": lostParticipation()
+    ]
+    await withDependencies {
+      $0.api.giveawayEventMyResult = { _, _ in
+        GiveawayMyResult(tapNumber: 5, isWinner: true, status: .closed, winningNumber: 9)
+      }
+    } operation: {
+      await GiveawayCoordinator().reconcileResolvedLoss(jwt: "jwt", eventId: "e1")
+    }
+    #expect(
+      participations["e1"]?.status
+        == GiveawayParticipationStatus.resolvedWon(submissionCompleted: false))
+  }
+
+  @Test func backstopLeavesLossWhenStillLost() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e1": lostParticipation()
+    ]
+    await withDependencies {
+      $0.api.giveawayEventMyResult = { _, _ in
+        GiveawayMyResult(tapNumber: 5, isWinner: false, status: .closed, winningNumber: 9)
+      }
+    } operation: {
+      await GiveawayCoordinator().reconcileResolvedLoss(jwt: "jwt", eventId: "e1")
+    }
+    #expect(
+      participations["e1"]?.status
+        == GiveawayParticipationStatus.resolvedLost(toastShown: true))
+  }
+
+  @Test func backstopIgnoresStillOpenResult() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e1": lostParticipation()
+    ]
+    await withDependencies {
+      $0.api.giveawayEventMyResult = { _, _ in
+        GiveawayMyResult(tapNumber: 5, isWinner: false, status: .open, winningNumber: 9)
+      }
+    } operation: {
+      await GiveawayCoordinator().reconcileResolvedLoss(jwt: "jwt", eventId: "e1")
+    }
+    #expect(
+      participations["e1"]?.status
+        == GiveawayParticipationStatus.resolvedLost(toastShown: true))
+  }
+
+  @Test func foregroundReconcileFlipsRecentLossButSkipsStale() async {
+    let nowDate = Date(timeIntervalSince1970: 1_000_000)
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "recent": GiveawayParticipation(
+        id: "recent", stationId: "s1", prizeName: "P", winningNumber: 9, tapNumber: 5,
+        status: .resolvedLost(toastShown: true), tappedAt: nowDate.addingTimeInterval(-60)),
+      "stale": GiveawayParticipation(
+        id: "stale", stationId: "s1", prizeName: "P", winningNumber: 9, tapNumber: 5,
+        status: .resolvedLost(toastShown: true),
+        tappedAt: nowDate.addingTimeInterval(-7 * 60 * 60)),
+    ]
+    await withDependencies {
+      $0.date = .constant(nowDate)
+      $0.api.giveawayEventMyResult = { _, _ in
+        GiveawayMyResult(tapNumber: 5, isWinner: true, status: .closed, winningNumber: 9)
+      }
+    } operation: {
+      await GiveawayCoordinator().reconcileRecentResolvedLosses()
+    }
+    #expect(
+      participations["recent"]?.status
+        == GiveawayParticipationStatus.resolvedWon(submissionCompleted: false))
+    #expect(
+      participations["stale"]?.status
+        == GiveawayParticipationStatus.resolvedLost(toastShown: true))
   }
 }
 

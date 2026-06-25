@@ -105,6 +105,12 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
         userInfo: info
       )
       completionHandler(.newData)
+    } else if userInfo["type"] as? String == "giveaway_winner" {
+      let payload = userInfo.sendablePayload()
+      Task {
+        await pushNotifications.handleGiveawayWinnerPush(payload)
+        completionHandler(.newData)
+      }
     } else {
       completionHandler(.noData)
     }
@@ -121,6 +127,16 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
     print("📬 Notification received in foreground: \(notification.request.content.title)")
 
     if userInfo["type"] as? String == "schedule_updated" {
+      completionHandler([])
+      return
+    }
+
+    if userInfo["type"] as? String == "giveaway_winner" {
+      let payload = userInfo.sendablePayload()
+      Task {
+        await pushNotifications.handleGiveawayWinnerPush(payload)
+      }
+      // The arbiter presents the winner sheet in-app; no redundant OS banner.
       completionHandler([])
       return
     }
@@ -154,10 +170,19 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
     withCompletionHandler completionHandler: @escaping () -> Void
   ) {
     let userInfo = response.notification.request.content.userInfo.sendablePayload()
-    Task {
-      await pushNotifications.handleNotificationTap(userInfo)
+    if userInfo["type"] as? String == "giveaway_winner" {
+      // Defer completion until the participation mutation persists, so the system doesn't suspend
+      // mid-write and drop the win.
+      Task {
+        await pushNotifications.handleGiveawayWinnerPush(userInfo)
+        completionHandler()
+      }
+    } else {
+      Task {
+        await pushNotifications.handleNotificationTap(userInfo)
+      }
+      completionHandler()
     }
-    completionHandler()
   }
 }
 

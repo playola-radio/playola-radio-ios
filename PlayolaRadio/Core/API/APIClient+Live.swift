@@ -772,7 +772,28 @@ extension APIClient: DependencyKey {
           path: "/v1/stations/\(stationId)/giveaway-events/active", token: jwtToken)
       },
       tapGiveawayEvent: { jwtToken, eventId in
-        try await authenticatedPost(path: "/v1/giveaway-events/\(eventId)/tap", token: jwtToken)
+        do {
+          return try await authenticatedPost(
+            path: "/v1/giveaway-events/\(eventId)/tap", token: jwtToken)
+        } catch let error as AFError {
+          // 400 = the contest isn't open yet (an expected race when a device's clock is slightly
+          // fast). Translate to a domain error so callers never inspect HTTP status codes.
+          if case .responseValidationFailed(reason: .unacceptableStatusCode(let code)) = error,
+            code == 400
+          {
+            throw GiveawayTapError.notOpenYet
+          }
+          throw error
+        }
+      },
+      giveawayEventMyResult: { jwtToken, eventId in
+        try await authenticatedGet(
+          path: "/v1/giveaway-events/\(eventId)/my-result", token: jwtToken)
+      },
+      submitGiveawayWinnerDetails: { jwtToken, eventId, body in
+        try await authenticatedPostVoid(
+          path: "/v1/giveaway-events/\(eventId)/winner-submission",
+          token: jwtToken, parameters: body.asParameters)
       },
       getSupportConversation: { jwtToken in
         try await authenticatedGet(path: "/v1/conversations/support", token: jwtToken)
