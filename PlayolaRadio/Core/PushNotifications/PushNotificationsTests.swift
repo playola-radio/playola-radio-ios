@@ -330,6 +330,23 @@ struct PushNotificationsTests {
     #expect(actions["e1"]?.state == .recorded(localRecordingPath: "/tmp/r.m4a"))
   }
 
+  @Test func pendingPushDoesNotResurrectTerminalAction() async {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock {
+      $0 = [
+        "e1": CongratsAction(
+          eventId: "e1", stationId: "s1", winnerName: "Jo", prizeName: "P", congratsExpiresAt: nil,
+          state: .submitted, startedAt: Date())
+      ]
+    }
+    // A delayed duplicate push after the owner already submitted must not re-prompt or allow a
+    // second congrats — the terminal state stands.
+    await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
+      "type": "giveaway_winner_pending", "eventId": "e1", "stationId": "s1", "winnerName": "Jo",
+    ])
+    #expect(actions["e1"]?.state == .submitted)
+  }
+
   @Test func pendingPushIgnoresNonPendingType() async {
     @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
     $actions.withLock { $0 = [:] }

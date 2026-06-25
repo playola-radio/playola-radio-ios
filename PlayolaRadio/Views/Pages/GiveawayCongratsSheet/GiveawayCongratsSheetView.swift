@@ -63,12 +63,15 @@ struct GiveawayCongratsSheetView: View {
               .foregroundColor(Color(hex: "#868686"))
           }
         )
+        .disabled(!model.canSkip)
+        .opacity(model.skipButtonOpacity)
       }
       .padding(.horizontal, 24)
       .padding(.vertical, 32)
     }
     .playolaAlert($model.presentedAlert)
     .task { await model.viewAppeared() }
+    .onDisappear { Task { await model.viewDisappeared() } }
   }
 }
 
@@ -89,6 +92,8 @@ private struct GiveawayCongratsReviewControls: View {
               RoundedRectangle(cornerRadius: 14).stroke(Color(hex: "#3A3A3A"), lineWidth: 2))
         }
       )
+      .disabled(!model.canPlay)
+      .opacity(model.playButtonOpacity)
       Button(
         action: { Task { await model.sendButtonTapped() } },
         label: {

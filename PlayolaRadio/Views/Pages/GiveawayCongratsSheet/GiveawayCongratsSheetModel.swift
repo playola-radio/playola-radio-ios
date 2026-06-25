@@ -39,7 +39,11 @@ class GiveawayCongratsSheetModel: ViewModel {
     case .recorded(let path):
       recordingURL = URL(fileURLWithPath: path)
       recordingPhase = .review
-    case .uploaded:
+    case .uploaded(_, let path):
+      // The local file survives until submit succeeds, so a resumed upload can still play back
+      // and review before re-sending.
+      recordingURL = URL(fileURLWithPath: path)
+      recordingPhase = .review
       readyToSubmit = true
     default:
       break
@@ -58,16 +62,36 @@ class GiveawayCongratsSheetModel: ViewModel {
   var presentedAlert: PlayolaAlert?
 
   @ObservationIgnored var recordingURL: URL?
+  @ObservationIgnored private var isStartingRecording = false
   @ObservationIgnored private var recordingTask: Task<Void, Never>?
   @ObservationIgnored private var playbackTask: Task<Void, Never>?
 
   // MARK: - User Actions
 
   func viewAppeared() async {
-    try? await audioRecorder.prepareForRecording()
+    // Resuming from a persisted recording (.recorded / .uploaded after a kill): load it so review
+    // shows a real duration and Play works. Otherwise prime the recorder for a fresh take.
+    if let url = recordingURL {
+      try? await audioPlayer.loadFile(url)
+      recordingDuration = await audioPlayer.duration()
+    } else {
+      try? await audioRecorder.prepareForRecording()
+    }
+  }
+
+  func viewDisappeared() async {
+    // SwiftUI swipe-to-dismiss nils the sheet without routing through skip/send, so this is the only
+    // teardown hook for an interactive dismissal — stop the mic/player and suppress re-prompt.
+    await stopActiveCapture()
+    onClose()
   }
 
   func onRecordTapped() async {
+    // Guard synchronously (before the first await) so a rapid double-tap can't start two recorder
+    // sessions while permission/start are in flight.
+    guard recordingPhase == .idle, !isStartingRecording else { return }
+    isStartingRecording = true
+    defer { isStartingRecording = false }
     guard await audioRecorder.requestPermission() else {
       presentedAlert = .congratsMicPermissionDenied
       return
@@ -128,7 +152,7 @@ class GiveawayCongratsSheetModel: ViewModel {
     defer { isSubmitting = false }
 
     // If we already have an uploaded audioBlock (resume after a failed/killed submit), only re-POST.
-    if case .uploaded(let audioBlockId) = pendingCongratsActions[eventId]?.state {
+    if case .uploaded(let audioBlockId, _) = pendingCongratsActions[eventId]?.state {
       await submitCongrats(audioBlockId: audioBlockId)
       return
     }
@@ -137,6 +161,9 @@ class GiveawayCongratsSheetModel: ViewModel {
   }
 
   func skipButtonTapped() async {
+    // Skip is disabled in the UI while a submit is in flight; guard here too so a stray call can't
+    // race the upload/submit and flip an already-sending action to skipped.
+    guard !isSubmitting else { return }
     await stopActiveCapture()
     setState(.skipped)
     cleanUpRecording()
@@ -160,6 +187,8 @@ class GiveawayCongratsSheetModel: ViewModel {
   var stopButtonTitle: String { "Stop" }
   var sendButtonTitle: String { isSubmitting ? "Sending…" : "Send" }
   var canSend: Bool { !isSubmitting && (readyToSubmit || recordingPhase == .review) }
+  var canSkip: Bool { !isSubmitting }
+  var canPlay: Bool { recordingURL != nil }
   var showsRecordButton: Bool { !readyToSubmit && recordingPhase == .idle }
   var showsRecordingControls: Bool { recordingPhase == .recording }
   var showsReview: Bool { readyToSubmit || recordingPhase == .review }
@@ -171,6 +200,8 @@ class GiveawayCongratsSheetModel: ViewModel {
   var reviewControlsOpacity: Double { showsReview ? 1 : 0 }
   var sendButtonDisabled: Bool { !canSend }
   var sendButtonOpacity: Double { canSend ? 1 : 0.5 }
+  var skipButtonOpacity: Double { canSkip ? 1 : 0.5 }
+  var playButtonOpacity: Double { canPlay ? 1 : 0.5 }
   var uploadStatusOpacity: Double { uploadStatusText.isEmpty ? 0 : 1 }
 
   // MARK: - Private Helpers
@@ -192,11 +223,13 @@ class GiveawayCongratsSheetModel: ViewModel {
       presentedAlert = .congratsUploadFailed(error.localizedDescription)
       return
     }
-    setState(.uploaded(audioBlockId: audioBlock.id))
+    setState(.uploaded(audioBlockId: audioBlock.id, localRecordingPath: url.path))
     await submitCongrats(audioBlockId: audioBlock.id)
   }
 
   private func submitCongrats(audioBlockId: String) async {
+    // The owner skipped or dismissed while the upload was running — honor that and don't POST.
+    guard !isActionTerminal else { return }
     guard let jwt = auth.jwt else {
       presentedAlert = .congratsRecordingFailed("Not signed in.")
       return
@@ -212,8 +245,15 @@ class GiveawayCongratsSheetModel: ViewModel {
     }
   }
 
+  private var isActionTerminal: Bool {
+    pendingCongratsActions[eventId]?.isTerminal ?? false
+  }
+
   private func setState(_ state: CongratsActionState) {
     $pendingCongratsActions.withLock {
+      // Never overwrite a terminal decision (skipped/submitted/alreadyClosed). A stale in-flight task
+      // or another model instance must not resurrect or change a finished action.
+      guard let existing = $0[eventId], !existing.isTerminal else { return }
       $0[eventId]?.state = state
     }
   }
@@ -246,6 +286,7 @@ class GiveawayCongratsSheetModel: ViewModel {
   }
 
   private func startRecordingUpdates() {
+    recordingTask?.cancel()
     recordingTask = Task {
       while !Task.isCancelled {
         recordingDuration = await audioRecorder.currentTime()
@@ -261,6 +302,7 @@ class GiveawayCongratsSheetModel: ViewModel {
   }
 
   private func startPlaybackUpdates() {
+    playbackTask?.cancel()
     playbackTask = Task {
       while !Task.isCancelled {
         playbackPosition = await audioPlayer.currentTime()

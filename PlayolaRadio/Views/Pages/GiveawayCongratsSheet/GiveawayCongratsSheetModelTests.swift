@@ -65,7 +65,8 @@ struct GiveawayCongratsSheetModelTests {
       $0 = [
         "e1": CongratsAction(
           eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
-          state: .uploaded(audioBlockId: "ab1"), startedAt: Date())
+          state: .uploaded(audioBlockId: "ab1", localRecordingPath: "/tmp/r.m4a"),
+          startedAt: Date())
       ]
     }
     let model = withDependencies {
@@ -90,6 +91,49 @@ struct GiveawayCongratsSheetModelTests {
     await model.skipButtonTapped()
     expectNoDifference(actions["e1"]?.state, CongratsActionState.skipped)
     #expect(closed.value)
+  }
+
+  @Test func skipIsIgnoredWhileSubmitting() async {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock { $0 = ["e1": recordedAction()] }
+    let closed = LockIsolated(false)
+    let model = withDependencies {
+      $0.audioPlayer.stop = {}
+    } operation: {
+      GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: { closed.setValue(true) })
+    }
+    model.isSubmitting = true
+    await model.skipButtonTapped()
+    // A skip mid-submit must not flip the action or close the sheet out from under the upload.
+    #expect(actions["e1"]?.state == .recorded(localRecordingPath: "/tmp/r.m4a"))
+    #expect(!closed.value)
+  }
+
+  @Test func uploadedResumeIsReplayableAndSendable() {
+    let action = CongratsAction(
+      eventId: "e1", stationId: "s1", winnerName: "Jo", prizeName: "P", congratsExpiresAt: nil,
+      state: .uploaded(audioBlockId: "ab1", localRecordingPath: "/tmp/r.m4a"), startedAt: Date())
+    let model = GiveawayCongratsSheetModel(action: action, onClose: {})
+    // Resuming an uploaded action after a kill still offers playback (local file survives) and Send.
+    #expect(model.recordingURL?.path == "/tmp/r.m4a")
+    #expect(model.canPlay)
+    #expect(model.canSend)
+    #expect(model.showsReview)
+  }
+
+  @Test func recordedResumeLoadsDurationForReview() async {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock { $0 = ["e1": recordedAction()] }
+    let loaded = LockIsolated<URL?>(nil)
+    let model = withDependencies {
+      $0.audioPlayer.loadFile = { url in loaded.setValue(url) }
+      $0.audioPlayer.duration = { 7 }
+    } operation: {
+      GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
+    }
+    await model.viewAppeared()
+    #expect(loaded.value?.path == "/tmp/r.m4a")
+    #expect(model.recordingDuration == 7)
   }
 
   @Test func skipWhileRecordingStopsTheRecorder() async {

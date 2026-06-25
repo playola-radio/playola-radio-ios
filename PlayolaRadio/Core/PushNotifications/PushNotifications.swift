@@ -267,9 +267,12 @@ extension PushNotificationsClient: DependencyKey {
       let actionsShared = $actions
       await MainActor.run {
         actionsShared.withLock { dict in
-          if let existing = dict[push.eventId], !existing.isTerminal {
-            // Never reset a non-terminal in-progress action (it may hold a recording / audioBlockId);
-            // only refresh metadata.
+          if let existing = dict[push.eventId] {
+            // A terminal action (submitted / skipped / alreadyClosed) must NOT be resurrected by a
+            // delayed duplicate push — that would re-prompt the owner and allow a second congrats.
+            // A non-terminal in-progress action keeps its recording / audioBlockId; only refresh
+            // metadata.
+            guard !existing.isTerminal else { return }
             var updated = existing
             updated.winnerName = push.winnerName ?? existing.winnerName
             updated.prizeName = push.prizeName ?? existing.prizeName

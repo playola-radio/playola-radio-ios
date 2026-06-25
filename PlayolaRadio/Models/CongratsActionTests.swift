@@ -8,7 +8,7 @@ import Testing
 struct CongratsActionTests {
   @Test func codableRoundTripsWithAssociatedValues() throws {
     var action = CongratsAction.mock
-    action.state = .uploaded(audioBlockId: "ab1")
+    action.state = .uploaded(audioBlockId: "ab1", localRecordingPath: "/tmp/rec.m4a")
     let data = try JSONEncoder().encode(action)
     let back = try JSONDecoder().decode(CongratsAction.self, from: data)
     expectNoDifference(back, action)
@@ -19,9 +19,10 @@ struct CongratsActionTests {
     action.state = .recorded(localRecordingPath: "/tmp/rec.m4a")
     #expect(action.localRecordingPath == "/tmp/rec.m4a")
     #expect(action.audioBlockId == nil)
-    action.state = .uploaded(audioBlockId: "ab1")
+    action.state = .uploaded(audioBlockId: "ab1", localRecordingPath: "/tmp/rec.m4a")
     #expect(action.audioBlockId == "ab1")
-    #expect(action.localRecordingPath == nil)
+    // The local file survives the upload transition so a resumed upload can still play back / clean up.
+    #expect(action.localRecordingPath == "/tmp/rec.m4a")
   }
 
   @Test func terminalStates() {
@@ -30,7 +31,7 @@ struct CongratsActionTests {
     #expect(!action.isTerminal)
     action.state = .recorded(localRecordingPath: "/x.m4a")
     #expect(!action.isTerminal)
-    action.state = .uploaded(audioBlockId: "ab1")
+    action.state = .uploaded(audioBlockId: "ab1", localRecordingPath: "/tmp/rec.m4a")
     #expect(!action.isTerminal)
     action.state = .submitted
     #expect(action.isTerminal)

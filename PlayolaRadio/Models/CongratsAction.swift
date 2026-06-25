@@ -3,7 +3,7 @@ import Foundation
 enum CongratsActionState: Codable, Equatable, Sendable {
   case pending
   case recorded(localRecordingPath: String)
-  case uploaded(audioBlockId: String)
+  case uploaded(audioBlockId: String, localRecordingPath: String)
   case submitted
   case alreadyClosed
   case skipped
@@ -21,13 +21,16 @@ struct CongratsAction: Codable, Equatable, Sendable, Identifiable {
   var id: String { eventId }
 
   var audioBlockId: String? {
-    if case .uploaded(let audioBlockId) = state { return audioBlockId }
+    if case .uploaded(let audioBlockId, _) = state { return audioBlockId }
     return nil
   }
 
   var localRecordingPath: String? {
-    if case .recorded(let path) = state { return path }
-    return nil
+    switch state {
+    case .recorded(let path): return path
+    case .uploaded(_, let path): return path
+    default: return nil
+    }
   }
 
   var isTerminal: Bool {
