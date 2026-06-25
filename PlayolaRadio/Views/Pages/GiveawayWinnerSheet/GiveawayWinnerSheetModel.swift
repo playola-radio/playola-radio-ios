@@ -65,7 +65,9 @@ class GiveawayWinnerSheetModel: ViewModel {
     do {
       try await api.submitGiveawayWinnerDetails(jwt, participation.id, request)
       markSubmissionCompleted()
-      onClose()
+      // Show the confirmation screen (with a Done button) rather than dismissing instantly, so the
+      // winner gets a clear "we'll email you" acknowledgement.
+      showsClaimedConfirmation = true
     } catch {
       // Keep the sheet open with the field intact so the user can retry (the server upserts).
       presentedAlert = .giveawaySubmissionFailed
@@ -100,8 +102,10 @@ class GiveawayWinnerSheetModel: ViewModel {
 
   var claimButtonTitle: String { isSubmitting ? "Submitting…" : "Claim Prize" }
   var claimedEmoji: String { "🎉" }
-  var claimedTitle: String { "You're all set" }
-  var claimedSubtitle: String { "Check your email — we'll be in touch about your prize." }
+  var claimedTitle: String { "Congrats!" }
+  var claimedSubtitle: String {
+    "We'll send you an email in the next few minutes to arrange your prize. Thanks!"
+  }
   var closeButtonTitle: String { "Done" }
 
   // Opacity-driven view swaps (the view stays control-flow-free).

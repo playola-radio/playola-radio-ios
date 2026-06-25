@@ -16,3 +16,11 @@ struct GiveawayTapResponse: Decodable, Sendable, Equatable {
 enum GiveawayTapError: Error, Equatable {
   case notOpenYet
 }
+
+/// Domain errors for submitting an artist congrats, translated from the transport layer inside
+/// `APIClient`. `.windowClosed` is the server signaling the congrats window has already closed
+/// (HTTP 409); the caller maps it to a terminal `.alreadyClosed` action instead of looping on a
+/// pointless retry. Any other failure propagates as-is (genuinely retryable).
+enum GiveawayCongratsError: Error, Equatable {
+  case windowClosed
+}

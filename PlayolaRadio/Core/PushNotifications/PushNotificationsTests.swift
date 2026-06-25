@@ -13,7 +13,11 @@ import Testing
 
 @testable import PlayolaRadio
 
+// Serialized: these tests mutate the file-backed `@Shared(.pendingCongratsActions)` /
+// `.giveawayParticipations` stores under shared keys, so parallel Swift Testing could interleave
+// across `await` points and cross-contaminate the on-disk state.
 @MainActor
+@Suite(.serialized)
 struct PushNotificationsTests {
 
   // MARK: - registerForRemoteNotifications
@@ -264,6 +268,25 @@ struct PushNotificationsTests {
     #expect(participations["e"]?.winnerSheetPresentedAt == presentedAt)
   }
 
+  @Test func winnerPushUpgradesPendingWinWhenServerReportsClaimed() async {
+    let presentedAt = Date(timeIntervalSince1970: 42)
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e": GiveawayParticipation(
+        id: "e", stationId: "s", prizeName: "Two tickets", winningNumber: 9, tapNumber: 5,
+        status: .resolvedWon(submissionCompleted: false), tappedAt: Date(),
+        winnerSheetPresentedAt: presentedAt)
+    ]
+    var payload = winnerPayload()
+    payload["submissionCompleted"] = true
+    await PushNotificationsClient.liveValue.handleGiveawayWinnerPush(payload)
+    // A pending win must flip to completed (claimed on another device) so the arbiter stops
+    // re-presenting the form — while the original presentation stamp survives.
+    #expect(
+      participations["e"]?.status
+        == GiveawayParticipationStatus.resolvedWon(submissionCompleted: true))
+    #expect(participations["e"]?.winnerSheetPresentedAt == presentedAt)
+  }
+
   @Test func winnerPushCreatesParticipationOnReinstall() async {
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
     await PushNotificationsClient.liveValue.handleGiveawayWinnerPush(winnerPayload())
@@ -279,5 +302,61 @@ struct PushNotificationsTests {
       "type": "giveaway_closed", "eventId": "e",
     ])
     #expect(participations.isEmpty)
+  }
+
+  // MARK: - handleGiveawayWinnerPendingPush (artist congrats)
+
+  @Test func pendingPushCreatesPendingCongrats() async {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock { $0 = [:] }
+    await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
+      "type": "giveaway_winner_pending", "eventId": "e1", "stationId": "s1",
+      "winnerName": "Jo", "prizeName": "Two tickets",
+    ])
+    #expect(actions["e1"]?.state == .pending)
+    #expect(actions["e1"]?.winnerName == "Jo")
+    #expect(actions["e1"]?.prizeName == "Two tickets")
+  }
+
+  @Test func pendingPushDoesNotClobberInProgressRecording() async {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock {
+      $0 = [
+        "e1": CongratsAction(
+          eventId: "e1", stationId: "s1", winnerName: "Jo", prizeName: "P", congratsExpiresAt: nil,
+          state: .recorded(localRecordingPath: "/tmp/r.m4a"), startedAt: Date())
+      ]
+    }
+    await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
+      "type": "giveaway_winner_pending", "eventId": "e1", "stationId": "s1", "winnerName": "Jo",
+    ])
+    // The in-progress recording must survive a duplicate push.
+    #expect(actions["e1"]?.state == .recorded(localRecordingPath: "/tmp/r.m4a"))
+  }
+
+  @Test func pendingPushDoesNotResurrectTerminalAction() async {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock {
+      $0 = [
+        "e1": CongratsAction(
+          eventId: "e1", stationId: "s1", winnerName: "Jo", prizeName: "P", congratsExpiresAt: nil,
+          state: .submitted, startedAt: Date())
+      ]
+    }
+    // A delayed duplicate push after the owner already submitted must not re-prompt or allow a
+    // second congrats — the terminal state stands.
+    await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
+      "type": "giveaway_winner_pending", "eventId": "e1", "stationId": "s1", "winnerName": "Jo",
+    ])
+    #expect(actions["e1"]?.state == .submitted)
+  }
+
+  @Test func pendingPushIgnoresNonPendingType() async {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock { $0 = [:] }
+    await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
+      "type": "giveaway_closed", "eventId": "e1", "stationId": "s1",
+    ])
+    #expect(actions.isEmpty)
   }
 }

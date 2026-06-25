@@ -571,6 +571,12 @@ struct APIClient: Sendable {
     @Sendable (_ jwtToken: String, _ eventId: String, _ body: GiveawayWinnerSubmissionRequest)
       async throws -> Void = { _, _, _ in }
 
+  /// Owner submits a recorded congrats (an uploaded voicetrack `audioBlockId`) for an event; the
+  /// server inserts it as a spin. Idempotent per (eventId, audioBlockId) on the server.
+  var recordGiveawayEventCongrats:
+    @Sendable (_ jwtToken: String, _ eventId: String, _ audioBlockId: String) async throws -> Void =
+      { _, _, _ in }
+
   /// Gets the user's support conversation (may be nil if none exists)
   /// - Parameter jwtToken: The JWT token for authentication
   /// - Returns: SupportConversationResponse containing the conversation (nullable) and unread count

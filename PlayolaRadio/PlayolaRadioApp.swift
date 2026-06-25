@@ -111,6 +111,12 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
         await pushNotifications.handleGiveawayWinnerPush(payload)
         completionHandler(.newData)
       }
+    } else if userInfo["type"] as? String == "giveaway_winner_pending" {
+      let payload = userInfo.sendablePayload()
+      Task {
+        await pushNotifications.handleGiveawayWinnerPendingPush(payload)
+        completionHandler(.newData)
+      }
     } else {
       completionHandler(.noData)
     }
@@ -137,6 +143,16 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
         await pushNotifications.handleGiveawayWinnerPush(payload)
       }
       // The arbiter presents the winner sheet in-app; no redundant OS banner.
+      completionHandler([])
+      return
+    }
+
+    if userInfo["type"] as? String == "giveaway_winner_pending" {
+      let payload = userInfo.sendablePayload()
+      Task {
+        await pushNotifications.handleGiveawayWinnerPendingPush(payload)
+      }
+      // The arbiter presents the congrats sheet in-app; no redundant OS banner.
       completionHandler([])
       return
     }
@@ -175,6 +191,11 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
       // mid-write and drop the win.
       Task {
         await pushNotifications.handleGiveawayWinnerPush(userInfo)
+        completionHandler()
+      }
+    } else if userInfo["type"] as? String == "giveaway_winner_pending" {
+      Task {
+        await pushNotifications.handleGiveawayWinnerPendingPush(userInfo)
         completionHandler()
       }
     } else {

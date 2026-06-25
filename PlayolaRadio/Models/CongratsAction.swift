@@ -2,34 +2,48 @@ import Foundation
 
 enum CongratsActionState: Codable, Equatable, Sendable {
   case pending
-  case uploaded(audioBlockId: String)
+  case recorded(localRecordingPath: String)
+  case uploaded(audioBlockId: String, localRecordingPath: String)
   case submitted
   case alreadyClosed
+  case skipped
 }
 
 struct CongratsAction: Codable, Equatable, Sendable, Identifiable {
-  let giveawayId: String
+  let eventId: String
   let stationId: String
+  var winnerName: String?
+  var prizeName: String?
+  var congratsExpiresAt: Date?
   var state: CongratsActionState
   var startedAt: Date
 
-  var id: String { giveawayId }
+  var id: String { eventId }
 
   var audioBlockId: String? {
-    if case .uploaded(let audioBlockId) = state { return audioBlockId }
+    if case .uploaded(let audioBlockId, _) = state { return audioBlockId }
     return nil
+  }
+
+  var localRecordingPath: String? {
+    switch state {
+    case .recorded(let path): return path
+    case .uploaded(_, let path): return path
+    default: return nil
+    }
   }
 
   var isTerminal: Bool {
     switch state {
-    case .submitted, .alreadyClosed: return true
-    case .pending, .uploaded: return false
+    case .submitted, .alreadyClosed, .skipped: return true
+    case .pending, .recorded, .uploaded: return false
     }
   }
 
   static var mock: CongratsAction {
     CongratsAction(
-      giveawayId: "giveaway-1", stationId: "station-1", state: .pending,
+      eventId: "event-1", stationId: "station-1", winnerName: "Jo", prizeName: "Two tickets",
+      congratsExpiresAt: nil, state: .pending,
       startedAt: Date(timeIntervalSince1970: 1_781_722_800))
   }
 }

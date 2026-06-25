@@ -47,23 +47,29 @@ struct GiveawayWinnerSheetModelTests {
     #expect(model.email == "me@playola.fm")
   }
 
-  @Test func claimSuccessMarksSubmissionCompletedAndCloses() async {
+  @Test func claimSuccessMarksSubmittedAndShowsConfirmation() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
       "e": wonParticipation()
     ]
     var closed = false
-    await withDependencies {
+    let model = await withDependencies {
       $0.api.submitGiveawayWinnerDetails = { _, _, _ in }
     } operation: {
       let model = GiveawayWinnerSheetModel(
         participation: participations["e"]!, onClose: { closed = true })
       fill(model)
       await model.claimButtonTapped()
+      return model
     }
     #expect(
       participations["e"]?.status
         == GiveawayParticipationStatus.resolvedWon(submissionCompleted: true))
+    // The confirmation screen is shown (with a Done button); the sheet is NOT dismissed yet.
+    #expect(model.showsClaimedConfirmation == true)
+    #expect(closed == false)
+    // Tapping Done dismisses.
+    model.closeButtonTapped()
     #expect(closed == true)
   }
 

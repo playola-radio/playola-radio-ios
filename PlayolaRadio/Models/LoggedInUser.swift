@@ -203,7 +203,7 @@ class AuthService: @unchecked Sendable {
     @Shared(.giveawayBanner) var giveawayBanner
     @Shared(.giveawayParticipations) var giveawayParticipations
     @Shared(.dismissedGiveawayBannerIds) var dismissedGiveawayBannerIds
-    @Shared(.pendingCongratsAction) var pendingCongratsAction
+    @Shared(.pendingCongratsActions) var pendingCongratsActions
 
     let jwt = auth.jwt
     let deviceId = registeredDeviceId
@@ -227,7 +227,7 @@ class AuthService: @unchecked Sendable {
     $giveawayBanner.withLock { $0 = nil }
     $giveawayParticipations.withLock { $0 = [:] }
     $dismissedGiveawayBannerIds.withLock { $0 = [] }
-    $pendingCongratsAction.withLock { $0 = nil }
+    $pendingCongratsActions.withLock { $0 = [:] }
 
     UserDefaults.standard.removeObject(forKey: "analytics_session_paused_at")
   }
