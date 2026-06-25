@@ -234,9 +234,15 @@ extension PushNotificationsClient: DependencyKey {
       let participationsShared = $participations
       await MainActor.run {
         participationsShared.withLock { dict in
-          // Already a (possibly pending or claimed) win → leave untouched so we never clobber a
-          // `winnerSheetPresentedAt` stamp or re-open a completed claim.
-          if case .resolvedWon = dict[push.eventId]?.status { return }
+          // Already a win. Honor a server "claimed elsewhere" upgrade by flipping a locally-pending
+          // win to completed (so the arbiter stops re-presenting the claim form), but never clobber
+          // the `winnerSheetPresentedAt` stamp or re-open an already-completed claim.
+          if case .resolvedWon(let alreadyCompleted) = dict[push.eventId]?.status {
+            if submissionCompleted, !alreadyCompleted {
+              dict[push.eventId]?.status = .resolvedWon(submissionCompleted: true)
+            }
+            return
+          }
           if dict[push.eventId] != nil {
             dict[push.eventId]?.status = .resolvedWon(submissionCompleted: submissionCompleted)
           } else {

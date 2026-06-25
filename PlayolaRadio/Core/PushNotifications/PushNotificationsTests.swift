@@ -264,6 +264,25 @@ struct PushNotificationsTests {
     #expect(participations["e"]?.winnerSheetPresentedAt == presentedAt)
   }
 
+  @Test func winnerPushUpgradesPendingWinWhenServerReportsClaimed() async {
+    let presentedAt = Date(timeIntervalSince1970: 42)
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e": GiveawayParticipation(
+        id: "e", stationId: "s", prizeName: "Two tickets", winningNumber: 9, tapNumber: 5,
+        status: .resolvedWon(submissionCompleted: false), tappedAt: Date(),
+        winnerSheetPresentedAt: presentedAt)
+    ]
+    var payload = winnerPayload()
+    payload["submissionCompleted"] = true
+    await PushNotificationsClient.liveValue.handleGiveawayWinnerPush(payload)
+    // A pending win must flip to completed (claimed on another device) so the arbiter stops
+    // re-presenting the form — while the original presentation stamp survives.
+    #expect(
+      participations["e"]?.status
+        == GiveawayParticipationStatus.resolvedWon(submissionCompleted: true))
+    #expect(participations["e"]?.winnerSheetPresentedAt == presentedAt)
+  }
+
   @Test func winnerPushCreatesParticipationOnReinstall() async {
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
     await PushNotificationsClient.liveValue.handleGiveawayWinnerPush(winnerPayload())

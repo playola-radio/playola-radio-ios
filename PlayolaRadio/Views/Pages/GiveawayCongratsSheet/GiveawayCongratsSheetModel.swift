@@ -136,13 +136,15 @@ class GiveawayCongratsSheetModel: ViewModel {
     await uploadThenSubmit(url: url)
   }
 
-  func skipButtonTapped() {
+  func skipButtonTapped() async {
+    await stopActiveCapture()
     setState(.skipped)
     cleanUpRecording()
     onClose()
   }
 
-  func closeButtonTapped() {
+  func closeButtonTapped() async {
+    await stopActiveCapture()
     onClose()
   }
 
@@ -214,6 +216,18 @@ class GiveawayCongratsSheetModel: ViewModel {
     $pendingCongratsActions.withLock {
       $0[eventId]?.state = state
     }
+  }
+
+  /// Tear down any in-flight recording or playback before the sheet closes, so the mic and the
+  /// update loops don't keep running (and keeping `self` alive) after the owner dismisses the flow.
+  private func stopActiveCapture() async {
+    stopRecordingUpdates()
+    stopPlaybackUpdates()
+    if recordingPhase == .recording {
+      _ = try? await audioRecorder.stopRecording()
+    }
+    await audioPlayer.stop()
+    isPlaying = false
   }
 
   private func cleanUpRecording() {

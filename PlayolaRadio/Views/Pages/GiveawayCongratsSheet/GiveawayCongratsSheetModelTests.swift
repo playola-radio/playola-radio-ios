@@ -1,3 +1,4 @@
+import ConcurrencyExtras
 import CustomDump
 import Dependencies
 import Foundation
@@ -77,13 +78,48 @@ struct GiveawayCongratsSheetModelTests {
     #expect(model.presentedAlert != nil)
   }
 
-  @Test func skipMarksSkippedAndCloses() {
+  @Test func skipMarksSkippedAndCloses() async {
     @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
     $actions.withLock { $0 = ["e1": recordedAction()] }
-    var closed = false
-    let model = GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: { closed = true })
-    model.skipButtonTapped()
+    let closed = LockIsolated(false)
+    let model = withDependencies {
+      $0.audioPlayer.stop = {}
+    } operation: {
+      GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: { closed.setValue(true) })
+    }
+    await model.skipButtonTapped()
     expectNoDifference(actions["e1"]?.state, CongratsActionState.skipped)
-    #expect(closed)
+    #expect(closed.value)
+  }
+
+  @Test func skipWhileRecordingStopsTheRecorder() async {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock {
+      $0 = [
+        "e1": CongratsAction(
+          eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
+          state: .pending, startedAt: Date())
+      ]
+    }
+    let stopped = LockIsolated(false)
+    let model = withDependencies {
+      $0.audioRecorder.requestPermission = { true }
+      $0.audioRecorder.startRecording = {}
+      $0.audioRecorder.currentTime = { 0 }
+      $0.audioRecorder.getAudioLevel = { 0 }
+      $0.audioRecorder.stopRecording = {
+        stopped.setValue(true)
+        return URL(fileURLWithPath: "/tmp/x.m4a")
+      }
+      $0.audioPlayer.stop = {}
+    } operation: {
+      GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
+    }
+    await model.onRecordTapped()
+    #expect(model.recordingPhase == .recording)
+    // Skipping mid-recording must stop the mic, not leave the update loop running.
+    await model.skipButtonTapped()
+    #expect(stopped.value)
+    expectNoDifference(actions["e1"]?.state, CongratsActionState.skipped)
   }
 }

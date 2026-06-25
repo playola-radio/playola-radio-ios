@@ -1314,7 +1314,7 @@ extension MainContainerTests {
         return
       }
       // Owner closes without sending — action stays pending but must not pop back up this foreground.
-      congratsModel.closeButtonTapped()
+      await congratsModel.closeButtonTapped()
 
       await model.processGiveawayResolutions()
 

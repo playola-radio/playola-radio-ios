@@ -56,7 +56,7 @@ struct GiveawayCongratsSheetView: View {
         .frame(height: 120)
 
         Button(
-          action: { model.skipButtonTapped() },
+          action: { Task { await model.skipButtonTapped() } },
           label: {
             Text(model.skipButtonTitle)
               .font(.custom(FontNames.Inter_400_Regular, size: 14))
