@@ -111,7 +111,8 @@ struct GiveawayCongratsSheetModelTests {
     await sendTask.value
     #expect(!postedCongrats.value)
     expectNoDifference(
-      actions["e1"]?.state, CongratsActionState.recorded(localRecordingPath: "/tmp/r.m4a"))
+      actions["e1"]?.state,
+      CongratsActionState.uploaded(audioBlockId: "ab1", localRecordingPath: "/tmp/r.m4a"))
   }
 
   @Test func skipMarksSkippedAndCloses() async {
@@ -169,9 +170,11 @@ struct GiveawayCongratsSheetModelTests {
   }
 
   @Test func reRecordFromUploadedResumeReturnsToRecordButton() async {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
     let action = CongratsAction(
       eventId: "e1", stationId: "s1", winnerName: "Jo", prizeName: "P", congratsExpiresAt: nil,
       state: .uploaded(audioBlockId: "ab1", localRecordingPath: "/tmp/r.m4a"), startedAt: Date())
+    $actions.withLock { $0 = ["e1": action] }
     let model = withDependencies {
       $0.audioPlayer.stop = {}
       $0.audioRecorder.prepareForRecording = {}
@@ -183,6 +186,9 @@ struct GiveawayCongratsSheetModelTests {
     // Re-record must drop the resume flag so the Record button comes back (not stranded in review).
     #expect(!model.readyToSubmit)
     #expect(model.showsRecordButton)
+    // The discarded uploaded take must not be restored or re-sent if this model is killed before
+    // the next stop-recording pass persists a replacement.
+    expectNoDifference(actions["e1"]?.state, CongratsActionState.pending)
   }
 
   @Test func playButtonTitleReflectsPlaybackState() {

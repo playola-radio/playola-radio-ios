@@ -138,6 +138,7 @@ class GiveawayCongratsSheetModel: ViewModel {
   func onReRecordTapped() async {
     stopPlaybackUpdates()
     await audioPlayer.stop()
+    let supersededURL = recordingURL
     recordingURL = nil
     recordingDuration = 0
     playbackPosition = 0
@@ -148,6 +149,10 @@ class GiveawayCongratsSheetModel: ViewModel {
     // sets `readyToSubmit = true` in init) would leave `showsRecordButton` false and strand the
     // owner in review with no recording.
     readyToSubmit = false
+    setState(.pending)
+    if let supersededURL {
+      try? FileManager.default.removeItem(at: supersededURL)
+    }
     // `viewAppeared` only primes the recorder once (and only when there was no resume file), so
     // re-arm the audio session here or the next `startRecording()` runs on an unprepared session.
     try? await audioRecorder.prepareForRecording()
@@ -234,8 +239,8 @@ class GiveawayCongratsSheetModel: ViewModel {
       presentedAlert = .congratsUploadFailed(error.localizedDescription)
       return
     }
-    guard !isDismissed else { return }
     setState(.uploaded(audioBlockId: audioBlock.id, localRecordingPath: url.path))
+    guard !isDismissed else { return }
     await submitCongrats(audioBlockId: audioBlock.id)
   }
 
