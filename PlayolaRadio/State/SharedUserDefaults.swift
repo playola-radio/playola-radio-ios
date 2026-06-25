@@ -155,12 +155,13 @@ extension SharedKey where Self == FileStorageKey<Set<String>>.Default {
   }
 }
 
-extension SharedKey where Self == FileStorageKey<CongratsAction?>.Default {
-  /// Durable artist congrats progress; survives a kill and holds the uploaded audioBlockId for retry.
-  static var pendingCongratsAction: Self {
+extension SharedKey where Self == FileStorageKey<[String: CongratsAction]>.Default {
+  /// Durable artist congrats progress, keyed by per-airing event id. Survives a kill and holds the
+  /// recorded file path (`.recorded`) and uploaded audioBlockId (`.uploaded`) for resume/retry.
+  static var pendingCongratsActions: Self {
     Self[
-      .fileStorage(.documentsDirectory.appending(component: "pending-congrats-action.json")),
-      default: nil
+      .fileStorage(.documentsDirectory.appending(component: "pending-congrats-actions.json")),
+      default: [:]
     ]
   }
 }
