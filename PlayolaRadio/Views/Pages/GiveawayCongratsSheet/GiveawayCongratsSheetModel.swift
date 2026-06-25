@@ -163,6 +163,14 @@ class GiveawayCongratsSheetModel: ViewModel {
   var showsReview: Bool { readyToSubmit || recordingPhase == .review }
   var durationText: String { Self.formatTime(recordingDuration) }
 
+  // Opacity-driven view swaps (the view stays control-flow-free).
+  var recordButtonOpacity: Double { showsRecordButton ? 1 : 0 }
+  var recordingControlsOpacity: Double { showsRecordingControls ? 1 : 0 }
+  var reviewControlsOpacity: Double { showsReview ? 1 : 0 }
+  var sendButtonDisabled: Bool { !canSend }
+  var sendButtonOpacity: Double { canSend ? 1 : 0.5 }
+  var uploadStatusOpacity: Double { uploadStatusText.isEmpty ? 0 : 1 }
+
   // MARK: - Private Helpers
 
   private func uploadThenSubmit(url: URL) async {
