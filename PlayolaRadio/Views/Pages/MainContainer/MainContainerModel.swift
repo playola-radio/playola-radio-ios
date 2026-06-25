@@ -38,6 +38,15 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.isBroadcaster) var isBroadcaster
   @ObservationIgnored @Shared(.appVersionRequirements) var appVersionRequirements
   @ObservationIgnored @Shared(.giveawayParticipations) var giveawayParticipations
+  @ObservationIgnored @Shared(.pendingCongratsActions) var pendingCongratsActions
+
+  /// Client-side ceiling for presenting a congrats whose push carried no `congratsExpiresAt`. After
+  /// this long past `startedAt` we stop prompting the owner (the schedule slot is almost certainly gone).
+  private static let congratsClientCutoff: TimeInterval = 60 * 60
+
+  /// Congrats sheets the owner closed (or finished) this foreground. Prevents the publisher-driven
+  /// re-run from immediately re-presenting a just-dismissed sheet. Cleared on each foreground.
+  @ObservationIgnored private var dismissedCongratsThisForeground: Set<String> = []
 
   enum ActiveTab {
     // Listening mode tabs
@@ -154,9 +163,19 @@ class MainContainerModel: ViewModel {
         Task { await self?.processGiveawayResolutions() }
       }
       .store(in: &cancellables)
+    // A `giveaway_winner_pending` push writes a new congrats action; surface its sheet immediately
+    // (same willSet → Task deferral rationale as the participations observer above).
+    $pendingCongratsActions.publisher
+      .sink { [weak self] _ in
+        Task { await self?.processGiveawayResolutions() }
+      }
+      .store(in: &cancellables)
   }
 
   func refreshOnForeground() async {
+    // A new foreground is a fresh chance to prompt: a congrats the owner closed last session
+    // re-presents now (if still pending and unexpired).
+    dismissedCongratsThisForeground.removeAll()
     do {
       let retrievedStationsLists = try await api.getStations()
       applyStationLists(retrievedStationsLists)
@@ -337,6 +356,9 @@ class MainContainerModel: ViewModel {
   func processGiveawayResolutions() async {
     presentPendingGiveawayWinnerIfNeeded()
     await fireGiveawayLossToastIfNeeded()
+    // Winner sheet wins the stage: if the call above presented one, this sees a non-empty/-player
+    // sheet and defers the congrats to the next foreground.
+    presentPendingCongratsIfNeeded()
   }
 
   private func presentPendingGiveawayWinnerIfNeeded() {
@@ -387,6 +409,55 @@ class MainContainerModel: ViewModel {
   private func dismissGiveawayWinnerSheet() {
     if case .giveawayWinner = mainContainerNavigationCoordinator.presentedSheet {
       mainContainerNavigationCoordinator.presentedSheet = nil
+    }
+  }
+
+  // MARK: - Artist Congrats Presentation
+
+  /// Presents the most-urgent pending congrats (owner side) when the stage is clear. Lower priority
+  /// than the winner sheet and unrelated modals, and never re-prompts a sheet dismissed this
+  /// foreground.
+  private func presentPendingCongratsIfNeeded() {
+    switch mainContainerNavigationCoordinator.presentedSheet {
+    case .none, .player: break
+    default: return
+    }
+    let candidate = pendingCongratsActions.values
+      .filter { !$0.isTerminal }
+      .filter { !dismissedCongratsThisForeground.contains($0.eventId) }
+      .filter { !isCongratsExpired($0) }
+      .sorted(by: Self.congratsIsMoreUrgent)
+      .first
+    guard let action = candidate else { return }
+    let model = GiveawayCongratsSheetModel(
+      action: action,
+      onClose: { [weak self] in self?.dismissGiveawayCongratsSheet(eventId: action.eventId) })
+    mainContainerNavigationCoordinator.presentedSheet = .giveawayCongrats(model)
+  }
+
+  private func dismissGiveawayCongratsSheet(eventId: String) {
+    // Suppress re-presentation for the rest of this foreground (the action may still be non-terminal
+    // if the owner closed without sending). A future foreground clears this and re-prompts.
+    dismissedCongratsThisForeground.insert(eventId)
+    if case .giveawayCongrats = mainContainerNavigationCoordinator.presentedSheet {
+      mainContainerNavigationCoordinator.presentedSheet = nil
+    }
+  }
+
+  private func isCongratsExpired(_ action: CongratsAction) -> Bool {
+    let cutoff =
+      action.congratsExpiresAt ?? action.startedAt.addingTimeInterval(Self.congratsClientCutoff)
+    return now >= cutoff
+  }
+
+  /// Soonest expiry first; nil-expiry actions sort last; `startedAt` breaks ties.
+  private static func congratsIsMoreUrgent(_ lhs: CongratsAction, _ rhs: CongratsAction) -> Bool {
+    switch (lhs.congratsExpiresAt, rhs.congratsExpiresAt) {
+    case (let left?, let right?):
+      return left == right ? lhs.startedAt < rhs.startedAt : left < right
+    case (nil, _?): return false
+    case (_?, nil): return true
+    case (nil, nil): return lhs.startedAt < rhs.startedAt
     }
   }
 

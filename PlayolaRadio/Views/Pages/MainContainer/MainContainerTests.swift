@@ -1163,6 +1163,167 @@ struct MainContainerTests {
   }
 }
 
+// MARK: - Artist Congrats Arbiter Tests
+
+@MainActor
+extension MainContainerTests {
+
+  private func pendingCongrats(
+    eventId: String = "e1", state: CongratsActionState = .pending,
+    congratsExpiresAt: Date? = nil, startedAt: Date = Date(timeIntervalSince1970: 100)
+  ) -> CongratsAction {
+    CongratsAction(
+      eventId: eventId, stationId: "s1", winnerName: "Jo", prizeName: "P",
+      congratsExpiresAt: congratsExpiresAt, state: state, startedAt: startedAt)
+  }
+
+  @Test func processGiveawayResolutionsPresentsCongratsWhenStageClear() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = nil
+      @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+      $actions.withLock { $0 = ["e1": pendingCongrats()] }
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 200))
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      if case .giveawayCongrats = navCoordinator.presentedSheet {
+        // Test passes
+      } else {
+        Issue.record("Expected the congrats sheet to be presented")
+      }
+      $actions.withLock { $0 = [:] }
+    }
+  }
+
+  @Test func processGiveawayResolutionsPrefersWinnerSheetOverCongrats() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = nil
+      @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+      $participations.withLock {
+        $0 = [
+          "w": GiveawayParticipation(
+            id: "w", stationId: "s", prizeName: "P", winningNumber: 9, tapNumber: 9,
+            status: .resolvedWon(submissionCompleted: false), tappedAt: Date())
+        ]
+      }
+      @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+      $actions.withLock { $0 = ["e1": pendingCongrats()] }
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 200))
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      // The owner-side congrats must yield to the listener-side winner sheet.
+      if case .giveawayWinner = navCoordinator.presentedSheet {
+        // Test passes
+      } else {
+        Issue.record("Expected the winner sheet to win the stage over congrats")
+      }
+      $participations.withLock { $0 = [:] }
+      $actions.withLock { $0 = [:] }
+    }
+  }
+
+  @Test func processGiveawayResolutionsSkipsExpiredCongrats() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = nil
+      @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+      $actions.withLock {
+        $0 = ["e1": pendingCongrats(congratsExpiresAt: Date(timeIntervalSince1970: 50))]
+      }
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 200))
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      #expect(navCoordinator.presentedSheet == nil)
+      $actions.withLock { $0 = [:] }
+    }
+  }
+
+  @Test func processGiveawayResolutionsSkipsTerminalCongrats() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = nil
+      @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+      $actions.withLock { $0 = ["e1": pendingCongrats(state: .submitted)] }
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 200))
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      #expect(navCoordinator.presentedSheet == nil)
+      $actions.withLock { $0 = [:] }
+    }
+  }
+
+  @Test func processGiveawayResolutionsDoesNotClobberAnotherSheetWithCongrats() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = .share(ShareSheetModel(items: ["x"]))
+      @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+      $actions.withLock { $0 = ["e1": pendingCongrats()] }
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 200))
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      if case .share = navCoordinator.presentedSheet {
+        // Test passes
+      } else {
+        Issue.record("Expected the share sheet to be left untouched")
+      }
+      $actions.withLock { $0 = [:] }
+    }
+  }
+
+  @Test func processGiveawayResolutionsDoesNotRepromptDismissedCongrats() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = nil
+      @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+      $actions.withLock { $0 = ["e1": pendingCongrats()] }
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 200))
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+      guard case .giveawayCongrats(let congratsModel) = navCoordinator.presentedSheet else {
+        Issue.record("Expected the congrats sheet to be presented")
+        return
+      }
+      // Owner closes without sending — action stays pending but must not pop back up this foreground.
+      congratsModel.closeButtonTapped()
+
+      await model.processGiveawayResolutions()
+
+      #expect(navCoordinator.presentedSheet == nil)
+      $actions.withLock { $0 = [:] }
+    }
+  }
+}
+
 // Drain the fire-and-forget Task in MainContainerModel.showFeedbackSheet()
 // (it awaits analytics.track then assigns presentedSheet). Polling on the
 // observable end-state is resilient to changes in the number of internal
