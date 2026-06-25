@@ -159,7 +159,9 @@ class GiveawayCongratsSheetModel: ViewModel {
     }
     // `viewAppeared` only primes the recorder once (and only when there was no resume file), so
     // re-arm the audio session here or the next `startRecording()` runs on an unprepared session.
-    try? await audioRecorder.prepareForRecording()
+    // Non-fatal like the prime in `viewAppeared` (surfaces at record time), but report it so an
+    // audio-session setup failure isn't swallowed without a trace.
+    await withErrorReporting { try await audioRecorder.prepareForRecording() }
   }
 
   func sendButtonTapped() async {
