@@ -18,6 +18,7 @@
 		36BE0070A8ED1A8626D2D52D /* GiveawayWinnerSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8084127A5D5C1680EE2ECA /* GiveawayWinnerSheetModel.swift */; };
 		37BCC67C3543B124A9EDB4C8 /* GiveawayWinnerPendingPushTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3809555E7296131D612667B9 /* GiveawayWinnerPendingPushTests.swift */; };
 		3E9CF257B133D2AD4734F378 /* GiveawayWinnerSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8084127A5D5C1680EE2ECA /* GiveawayWinnerSheetModel.swift */; };
+		45C15A64DBFAC157AF8EBA65 /* GiveawayCongratsSheetModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2261DEC52F41A8CC973B73FF /* GiveawayCongratsSheetModelTests.swift */; };
 		51CBBA46B5E06C646C37BD3A /* GiveawayWinnerPendingPush.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C547ECE1FDB131CE832D3D /* GiveawayWinnerPendingPush.swift */; };
 		54419FC022E2F30E137BEDD6 /* GiveawayWinnerSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC860B8DF872B25EFF727088 /* GiveawayWinnerSheetView.swift */; };
 		5F67160E76C1454189765E5D /* GiveawayWinnerSubmission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36AE0F6CC37C4970321497CF /* GiveawayWinnerSubmission.swift */; };
@@ -41,6 +42,7 @@
 		AA01000000000005AAAAAAAA /* PresetTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0E49DF7714364A04B11B3 /* PresetTile.swift */; };
 		AA01000000000006AAAAAAAA /* PresetsCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0EA0DF7714364A04B11B7 /* PresetsCarousel.swift */; };
 		B12730D5ECA7018F074B54E6 /* GiveawayBannerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 917BAF1376F852871F0F3159 /* GiveawayBannerState.swift */; };
+		B196C20AFDE46B1A6FBA8194 /* GiveawayCongratsSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51C95B740988B02A7A472F8C /* GiveawayCongratsSheetModel.swift */; };
 		B9D97B72F461E83FF652BDBD /* GiveawayPlayerOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D3D10F16230F15FFF80C665 /* GiveawayPlayerOverlayView.swift */; };
 		BEF7B80875987966A5439482 /* GiveawayFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61840B16734426EAC4079351 /* GiveawayFeature.swift */; };
 		C2FCC44BB8C98C486BC343E6 /* GiveawayOverlayModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A4D634B4C9B84C1C25F6458 /* GiveawayOverlayModel.swift */; };
@@ -470,6 +472,7 @@
 		E6A2E13F3905B715C7E6FA15 /* GiveawayEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02EDCED098E801AAB2E9DC82 /* GiveawayEvent.swift */; };
 		E6FA723C089B9E0115951DD1 /* GiveawayBannerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 917BAF1376F852871F0F3159 /* GiveawayBannerState.swift */; };
 		E96C77B08E039DD3EC6916BF /* GiveawayParticipation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CB3EF3C094D149DDC849813 /* GiveawayParticipation.swift */; };
+		EDC6A1FF8A6499631C7E1C1A /* GiveawayCongratsSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51C95B740988B02A7A472F8C /* GiveawayCongratsSheetModel.swift */; };
 		EDE2B63A1AB34C74CC65C898 /* CongratsAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = DACFAE7FE27DBB3341C0CE77 /* CongratsAction.swift */; };
 		F35D444BFD44486391C161D6 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 0B6E1320AC744E9FAEC2F50F /* Sentry */; };
 		F425EEF25FDF6BFE036A49E2 /* GiveawayWinnerPush.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0463608FA7279EBB205BF80E /* GiveawayWinnerPush.swift */; };
@@ -502,12 +505,14 @@
 		0488057E2A6456204E582B15 /* CongratsActionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CongratsActionTests.swift; sourceTree = "<group>"; };
 		0C8084127A5D5C1680EE2ECA /* GiveawayWinnerSheetModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerSheetModel.swift; sourceTree = "<group>"; };
 		1DBB4FE7E4F57517A32804E0 /* GiveawayCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayCoordinator.swift; sourceTree = "<group>"; };
+		2261DEC52F41A8CC973B73FF /* GiveawayCongratsSheetModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayCongratsSheetModelTests.swift; sourceTree = "<group>"; };
 		2B82DD37711E160592E3842D /* GiveawayMyResult.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayMyResult.swift; sourceTree = "<group>"; };
 		36AE0F6CC37C4970321497CF /* GiveawayWinnerSubmission.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerSubmission.swift; sourceTree = "<group>"; };
 		3809555E7296131D612667B9 /* GiveawayWinnerPendingPushTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerPendingPushTests.swift; sourceTree = "<group>"; };
 		3A4D634B4C9B84C1C25F6458 /* GiveawayOverlayModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayOverlayModel.swift; sourceTree = "<group>"; };
 		3B83C3893A771EB211B3AF8F /* StationListLiveSortTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StationListLiveSortTests.swift; sourceTree = "<group>"; };
 		4D3D10F16230F15FFF80C665 /* GiveawayPlayerOverlayView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayPlayerOverlayView.swift; sourceTree = "<group>"; };
+		51C95B740988B02A7A472F8C /* GiveawayCongratsSheetModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayCongratsSheetModel.swift; sourceTree = "<group>"; };
 		61840B16734426EAC4079351 /* GiveawayFeature.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayFeature.swift; sourceTree = "<group>"; };
 		6CB3EF3C094D149DDC849813 /* GiveawayParticipation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayParticipation.swift; sourceTree = "<group>"; };
 		70C547ECE1FDB131CE832D3D /* GiveawayWinnerPendingPush.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerPendingPush.swift; sourceTree = "<group>"; };
@@ -827,6 +832,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		358480181ADB29C686D6482F /* GiveawayCongratsSheet */ = {
+			isa = PBXGroup;
+			children = (
+				51C95B740988B02A7A472F8C /* GiveawayCongratsSheetModel.swift */,
+				2261DEC52F41A8CC973B73FF /* GiveawayCongratsSheetModelTests.swift */,
+			);
+			name = GiveawayCongratsSheet;
+			path = GiveawayCongratsSheet;
+			sourceTree = "<group>";
+		};
 		5BCFD236E4802E5BC59860C6 /* GiveawayWinnerSheet */ = {
 			isa = PBXGroup;
 			children = (
@@ -1056,6 +1071,7 @@
 				FE110A0000000000000000A0 /* WelcomeMessage */,
 				D3536A062BFA4F49006942D6 /* ContentView.swift */,
 				5BCFD236E4802E5BC59860C6 /* GiveawayWinnerSheet */,
+				358480181ADB29C686D6482F /* GiveawayCongratsSheet */,
 			);
 			path = Pages;
 			sourceTree = "<group>";
@@ -2072,6 +2088,7 @@
 				36BE0070A8ED1A8626D2D52D /* GiveawayWinnerSheetModel.swift in Sources */,
 				5FBBC84B39A22DF69240A54E /* GiveawayWinnerSheetView.swift in Sources */,
 				51CBBA46B5E06C646C37BD3A /* GiveawayWinnerPendingPush.swift in Sources */,
+				EDC6A1FF8A6499631C7E1C1A /* GiveawayCongratsSheetModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2259,6 +2276,7 @@
 				3E9CF257B133D2AD4734F378 /* GiveawayWinnerSheetModel.swift in Sources */,
 				54419FC022E2F30E137BEDD6 /* GiveawayWinnerSheetView.swift in Sources */,
 				2ADE71F9A72B59B6B6C727B5 /* GiveawayWinnerPendingPush.swift in Sources */,
+				B196C20AFDE46B1A6FBA8194 /* GiveawayCongratsSheetModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2341,6 +2359,7 @@
 				FE654232793406CA6A2FA1FE /* GiveawayWinnerSheetModelTests.swift in Sources */,
 				F9A35F1CB53E4F9D4E750430 /* StationListLiveSortTests.swift in Sources */,
 				37BCC67C3543B124A9EDB4C8 /* GiveawayWinnerPendingPushTests.swift in Sources */,
+				45C15A64DBFAC157AF8EBA65 /* GiveawayCongratsSheetModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
