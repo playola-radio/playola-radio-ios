@@ -135,10 +135,6 @@ struct PlayerPage: View {
         GiveawayPlayerOverlayView(model: model.giveawayOverlayModel)
           .padding(.top, 8)
 
-        #if DEBUG
-          GiveawayDebugControls(model: model)
-        #endif
-
         // Play Button
         Button(
           action: { model.playPauseButtonTapped() },
@@ -211,31 +207,3 @@ struct PlayerPage: View {
   PlayerPage(model: PlayerPageModel())
     .preferredColorScheme(.dark)
 }
-
-#if DEBUG
-  private struct GiveawayDebugControls: View {
-    let model: PlayerPageModel
-
-    var body: some View {
-      VStack(spacing: 8) {
-        Button(
-          action: { model.debugToggleGiveawayTapped() },
-          label: {
-            Text(model.debugGiveawayButtonTitle)
-              .font(.custom(FontNames.Inter_500_Medium, size: 14))
-              .foregroundColor(.white)
-              .padding(.horizontal, 16)
-              .padding(.vertical, 8)
-              .background(Capsule().stroke(Color.playolaRed, lineWidth: 1))
-          }
-        )
-        Text(model.debugGiveawayDiagnostics)
-          .font(.custom(FontNames.Inter_400_Regular, size: 11))
-          .foregroundColor(.gray)
-          .multilineTextAlignment(.center)
-          .padding(.horizontal, 24)
-      }
-      .padding(.top, 16)
-    }
-  }
-#endif

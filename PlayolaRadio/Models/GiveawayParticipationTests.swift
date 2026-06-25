@@ -35,4 +35,24 @@ struct GiveawayParticipationTests {
     participation.status = .canceled
     #expect(participation.isFullyHandled)
   }
+
+  @Test func wasPromotedWinTrueWhenWonBelowWinningNumber() {
+    var participation = GiveawayParticipation(
+      id: "g1", stationId: "s1", prizeName: "Tickets", winningNumber: 9,
+      tapNumber: 5, status: .resolvedWon(submissionCompleted: false), tappedAt: Date())
+    #expect(participation.wasPromotedWin)
+
+    participation.tapNumber = 9
+    #expect(!participation.wasPromotedWin)
+  }
+
+  @Test func wasPromotedWinFalseWhenNotWon() {
+    var participation = GiveawayParticipation(
+      id: "g1", stationId: "s1", prizeName: "Tickets", winningNumber: 9,
+      tapNumber: 5, status: .resolvedLost(toastShown: false), tappedAt: Date())
+    #expect(!participation.wasPromotedWin)
+
+    participation.status = .tappedStandby
+    #expect(!participation.wasPromotedWin)
+  }
 }

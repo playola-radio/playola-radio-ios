@@ -118,7 +118,7 @@ extension SharedKey where Self == InMemoryKey<[LiveStationInfo]>.Default {
 
 // MARK: - Giveaways
 
-extension SharedKey where Self == InMemoryKey<Giveaway?>.Default {
+extension SharedKey where Self == InMemoryKey<GiveawayEvent?>.Default {
   /// The open giveaway for the currently-playing station. Drives the player overlay.
   static var activeGiveaway: Self {
     Self[.inMemory("activeGiveaway"), default: nil]
@@ -133,8 +133,9 @@ extension SharedKey where Self == InMemoryKey<GiveawayBannerState?>.Default {
 }
 
 extension SharedKey where Self == FileStorageKey<[String: GiveawayParticipation]>.Default {
-  /// Durable per-giveaway participation (keyed by giveawayId) so the reveal survives an app kill.
-  /// Cleared on sign-out so one account never sees another's state.
+  /// Durable participation keyed by the **per-airing event id** (each airing is a separate
+  /// contest, so a tap on one airing must not mark you "tapped" on a rerun). Survives an app kill;
+  /// cleared on sign-out so one account never sees another's state.
   static var giveawayParticipations: Self {
     Self[
       .fileStorage(.documentsDirectory.appending(component: "giveaway-participations.json")),
@@ -144,7 +145,8 @@ extension SharedKey where Self == FileStorageKey<[String: GiveawayParticipation]
 }
 
 extension SharedKey where Self == FileStorageKey<Set<String>>.Default {
-  /// Giveaway ids whose banner the user dismissed (per giveaway, not per station).
+  /// Stable `giveawayId` values (NOT the ephemeral per-airing event id) whose banner the user
+  /// dismissed — so a dismissal sticks across reruns/airings of the same giveaway.
   static var dismissedGiveawayBannerIds: Self {
     Self[
       .fileStorage(.documentsDirectory.appending(component: "dismissed-giveaway-banners.json")),

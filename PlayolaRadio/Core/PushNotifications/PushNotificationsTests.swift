@@ -226,4 +226,58 @@ struct PushNotificationsTests {
 
     #expect(refreshNotificationPosted.value)
   }
+
+  // MARK: - handleGiveawayWinnerPush
+
+  private func winnerPayload() -> [String: any Sendable] {
+    [
+      "type": "giveaway_winner", "eventId": "e", "stationId": "s", "prizeName": "Two tickets",
+      "winningNumber": 9, "tapNumber": 5, "reason": "last_tapper_fallback",
+    ]
+  }
+
+  @Test func winnerPushFlipsLossToWon() async {
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e": GiveawayParticipation(
+        id: "e", stationId: "s", prizeName: "Two tickets", winningNumber: 9, tapNumber: 5,
+        status: .resolvedLost(toastShown: true), tappedAt: Date())
+    ]
+    await PushNotificationsClient.liveValue.handleGiveawayWinnerPush(winnerPayload())
+    #expect(
+      participations["e"]?.status
+        == GiveawayParticipationStatus.resolvedWon(submissionCompleted: false))
+  }
+
+  @Test func winnerPushIsIdempotentWhenAlreadyWon() async {
+    let presentedAt = Date(timeIntervalSince1970: 42)
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e": GiveawayParticipation(
+        id: "e", stationId: "s", prizeName: "Two tickets", winningNumber: 9, tapNumber: 5,
+        status: .resolvedWon(submissionCompleted: true), tappedAt: Date(),
+        winnerSheetPresentedAt: presentedAt)
+    ]
+    await PushNotificationsClient.liveValue.handleGiveawayWinnerPush(winnerPayload())
+    // Untouched: a completed claim must not be reset, and the presentation stamp must survive.
+    #expect(
+      participations["e"]?.status
+        == GiveawayParticipationStatus.resolvedWon(submissionCompleted: true))
+    #expect(participations["e"]?.winnerSheetPresentedAt == presentedAt)
+  }
+
+  @Test func winnerPushCreatesParticipationOnReinstall() async {
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+    await PushNotificationsClient.liveValue.handleGiveawayWinnerPush(winnerPayload())
+    #expect(
+      participations["e"]?.status
+        == GiveawayParticipationStatus.resolvedWon(submissionCompleted: false))
+    #expect(participations["e"]?.tapNumber == 5)
+  }
+
+  @Test func nonGiveawayPushIsIgnored() async {
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+    await PushNotificationsClient.liveValue.handleGiveawayWinnerPush([
+      "type": "giveaway_closed", "eventId": "e",
+    ])
+    #expect(participations.isEmpty)
+  }
 }
