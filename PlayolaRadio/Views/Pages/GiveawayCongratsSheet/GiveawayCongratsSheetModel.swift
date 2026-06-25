@@ -1,5 +1,6 @@
 import Dependencies
 import Foundation
+import IssueReporting
 import Observation
 import PlayolaPlayer
 import Sharing
@@ -73,10 +74,13 @@ class GiveawayCongratsSheetModel: ViewModel {
     // Resuming from a persisted recording (.recorded / .uploaded after a kill): load it so review
     // shows a real duration and Play works. Otherwise prime the recorder for a fresh take.
     if let url = recordingURL {
-      try? await audioPlayer.loadFile(url)
+      await withErrorReporting { try await audioPlayer.loadFile(url) }
       recordingDuration = await audioPlayer.duration()
     } else {
-      try? await audioRecorder.prepareForRecording()
+      // Priming the recorder stays non-fatal — a failure here surfaces to the user when they tap
+      // Record (startRecording throws → congratsRecordingFailed) — but report it so the audio-session
+      // setup failure isn't swallowed without a trace.
+      await withErrorReporting { try await audioRecorder.prepareForRecording() }
     }
   }
 
@@ -155,7 +159,9 @@ class GiveawayCongratsSheetModel: ViewModel {
     }
     // `viewAppeared` only primes the recorder once (and only when there was no resume file), so
     // re-arm the audio session here or the next `startRecording()` runs on an unprepared session.
-    try? await audioRecorder.prepareForRecording()
+    // Non-fatal like the prime in `viewAppeared` (surfaces at record time), but report it so an
+    // audio-session setup failure isn't swallowed without a trace.
+    await withErrorReporting { try await audioRecorder.prepareForRecording() }
   }
 
   func sendButtonTapped() async {
