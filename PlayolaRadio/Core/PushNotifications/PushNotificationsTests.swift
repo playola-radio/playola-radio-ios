@@ -280,4 +280,43 @@ struct PushNotificationsTests {
     ])
     #expect(participations.isEmpty)
   }
+
+  // MARK: - handleGiveawayWinnerPendingPush (artist congrats)
+
+  @Test func pendingPushCreatesPendingCongrats() async {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock { $0 = [:] }
+    await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
+      "type": "giveaway_winner_pending", "eventId": "e1", "stationId": "s1",
+      "winnerName": "Jo", "prizeName": "Two tickets",
+    ])
+    #expect(actions["e1"]?.state == .pending)
+    #expect(actions["e1"]?.winnerName == "Jo")
+    #expect(actions["e1"]?.prizeName == "Two tickets")
+  }
+
+  @Test func pendingPushDoesNotClobberInProgressRecording() async {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock {
+      $0 = [
+        "e1": CongratsAction(
+          eventId: "e1", stationId: "s1", winnerName: "Jo", prizeName: "P", congratsExpiresAt: nil,
+          state: .recorded(localRecordingPath: "/tmp/r.m4a"), startedAt: Date())
+      ]
+    }
+    await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
+      "type": "giveaway_winner_pending", "eventId": "e1", "stationId": "s1", "winnerName": "Jo",
+    ])
+    // The in-progress recording must survive a duplicate push.
+    #expect(actions["e1"]?.state == .recorded(localRecordingPath: "/tmp/r.m4a"))
+  }
+
+  @Test func pendingPushIgnoresNonPendingType() async {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock { $0 = [:] }
+    await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
+      "type": "giveaway_closed", "eventId": "e1", "stationId": "s1",
+    ])
+    #expect(actions.isEmpty)
+  }
 }
