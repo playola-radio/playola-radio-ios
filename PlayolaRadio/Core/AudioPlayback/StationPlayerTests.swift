@@ -49,7 +49,9 @@ struct StationPlayerTests {
   func playConfiguresSessionBeforeBackendAndSurfacesFailure() async {
     @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
     let coordinator = AudioSessionCoordinator(session: FailingAudioSession())
-    let player = StationPlayer(audioSessionCoordinator: coordinator)
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
 
     await player.play(station: .mockPlayola())
 
@@ -61,6 +63,8 @@ struct StationPlayerTests {
         "session-config failure must surface as .error, got \(player.state.playbackStatus)")
       return
     }
+    // ...and the backend must never be reached when activation failed.
+    #expect(playola.playCount == 0)
   }
 
   @Test
@@ -93,7 +97,7 @@ struct StationPlayerTests {
     await player.play(station: .mockPlayola())
 
     // The coordinator delegate path pauses the active backend.
-    player.audioSessionShouldPause()
+    player.audioSessionShouldPause(shouldAutoResume: true)
     #expect(playola.pauseForInterruptionCount == 1)
   }
 

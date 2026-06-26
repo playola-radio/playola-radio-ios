@@ -57,7 +57,11 @@ final class SpyInterruptionDelegate: AudioInterruptionDelegate {
   /// escalate to a stop. Exposed as a constant so the test can assert that
   /// structural guarantee.
   let stopCount = 0
-  func audioSessionShouldPause() { pauseCount += 1 }
+  var lastShouldAutoResume: Bool?
+  func audioSessionShouldPause(shouldAutoResume: Bool) {
+    pauseCount += 1
+    lastShouldAutoResume = shouldAutoResume
+  }
   func audioSessionShouldResume() { resumeCount += 1 }
 }
 
@@ -123,6 +127,7 @@ struct AudioSessionCoordinatorTests {
 
     coordinator.handleInterruption(type: .began, options: [])
     #expect(spyDelegate.pauseCount == 1)
+    #expect(spyDelegate.lastShouldAutoResume == true)  // interruptions may auto-resume
 
     coordinator.handleInterruption(type: .ended, options: [.shouldResume])
     #expect(spyDelegate.resumeCount == 1)
@@ -140,6 +145,7 @@ struct AudioSessionCoordinatorTests {
     coordinator.handleRouteChange(reason: .oldDeviceUnavailable, previousHadHeadphones: true)
     #expect(spyDelegate.pauseCount == 1)
     #expect(spyDelegate.stopCount == 0)  // delegate has no stop — structural guarantee
+    #expect(spyDelegate.lastShouldAutoResume == false)  // route loss: manual resume only
   }
 
   @Test

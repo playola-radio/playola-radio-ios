@@ -293,8 +293,13 @@ open class FRadioPlayer: NSObject {
         guard lastPlayerItem != playerItem else { return }
         
         if let item = lastPlayerItem {
-            pause()
-            
+            // NOTE (Playola fork): pause the underlying AVPlayer directly instead
+            // of the public pause(), which would publish playbackState = .paused.
+            // The host now surfaces .paused as an active state, so emitting it
+            // during stop()/reset teardown would leave stale Now Playing/CarPlay
+            // state alive after a real stop.
+            player?.pause()
+
             NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: item)
             item.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
             item.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.isPlaybackBufferEmpty))
