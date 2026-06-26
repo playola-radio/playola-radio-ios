@@ -17,6 +17,7 @@ class GiveawayCongratsSheetModel: ViewModel {
   @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
   @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
 
   // MARK: - Shared State
   @ObservationIgnored @Shared(.auth) var auth
@@ -71,6 +72,11 @@ class GiveawayCongratsSheetModel: ViewModel {
   // MARK: - User Actions
 
   func viewAppeared() async {
+    // The owner records and plays back over a live station; mute it so the station audio doesn't
+    // bleed into the recording or talk over the playback. Matches every other capture/playback flow
+    // (ContactPage, AskQuestion, WelcomeMessage, PlayerPage) that stops the station before taking
+    // over the audio session.
+    stationPlayer.stop()
     // Resuming from a persisted recording (.recorded / .uploaded after a kill): load it so review
     // shows a real duration and Play works. Otherwise prime the recorder for a fresh take.
     if let url = recordingURL {
@@ -233,7 +239,16 @@ class GiveawayCongratsSheetModel: ViewModel {
       presentedAlert = .congratsRecordingFailed("Not signed in.")
       return
     }
-    let voicetrack = LocalVoicetrack(originalURL: url, title: "Giveaway Congrats")
+    // A recording persisted by an earlier build (before the extension fix) can be WAV bytes inside a
+    // `.m4a` file, which makes the converter fail. Normalize to the real container before handing it
+    // off, and migrate the persisted state so resume/retry point at the corrected file.
+    let uploadURL = Self.audioURLMatchingContent(url)
+    if uploadURL != url {
+      recordingURL = uploadURL
+      setState(.recorded(localRecordingPath: uploadURL.path))
+      try? FileManager.default.removeItem(at: url)
+    }
+    let voicetrack = LocalVoicetrack(originalURL: uploadURL, title: "Giveaway Congrats")
     let audioBlock: AudioBlock
     do {
       audioBlock = try await voicetrackUploadService.processVoicetrack(voicetrack, stationId, jwt) {
@@ -245,7 +260,7 @@ class GiveawayCongratsSheetModel: ViewModel {
       presentedAlert = .congratsUploadFailed(error.localizedDescription)
       return
     }
-    setState(.uploaded(audioBlockId: audioBlock.id, localRecordingPath: url.path))
+    setState(.uploaded(audioBlockId: audioBlock.id, localRecordingPath: uploadURL.path))
     guard !isDismissed else { return }
     await submitCongrats(audioBlockId: audioBlock.id)
   }
@@ -306,13 +321,52 @@ class GiveawayCongratsSheetModel: ViewModel {
 
   /// Copy the recorder's output into Application Support so it survives a kill / app suspension during
   /// the upload (the recorder writes to a transient location).
+  ///
+  /// Name the copy by its real container (the recorder produces Linear PCM `.wav`). Renaming WAV bytes
+  /// to `.m4a` makes `AVURLAsset` infer an MPEG-4 container from the extension, fail to parse the WAV
+  /// bytes, and the converter throws "Audio conversion failed" on every Send.
   private static func persistRecording(_ source: URL) throws -> URL {
     let dir = try FileManager.default.url(
       for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-    let destination = dir.appendingPathComponent("congrats-\(UUID().uuidString).m4a")
+    let ext =
+      audioContainerExtension(of: source)
+      ?? (source.pathExtension.isEmpty ? "wav" : source.pathExtension)
+    let destination = dir.appendingPathComponent("congrats-\(UUID().uuidString).\(ext)")
     try? FileManager.default.removeItem(at: destination)
     try FileManager.default.copyItem(at: source, to: destination)
     return destination
+  }
+
+  /// Magic-byte container detection (`wav`/`m4a`), or nil if unrecognized. AVFoundation infers a file's
+  /// container from its path extension, so this lets callers name files by their actual content instead
+  /// of trusting a (possibly stale) extension.
+  private static func audioContainerExtension(of url: URL) -> String? {
+    guard let handle = try? FileHandle(forReadingFrom: url) else { return nil }
+    defer { try? handle.close() }
+    guard let header = try? handle.read(upToCount: 12), header.count >= 8 else { return nil }
+    let bytes = [UInt8](header)
+    if bytes.count >= 12, Array(bytes[0..<4]) == Array("RIFF".utf8),
+      Array(bytes[8..<12]) == Array("WAVE".utf8)
+    {
+      return "wav"
+    }
+    if Array(bytes[4..<8]) == Array("ftyp".utf8) {
+      return "m4a"
+    }
+    return nil
+  }
+
+  /// If `url`'s extension doesn't match its actual container, copy the bytes into a correctly-named
+  /// sibling so AVFoundation reads the real format. Returns the original URL when it already matches
+  /// (or the content can't be identified).
+  private static func audioURLMatchingContent(_ url: URL) -> URL {
+    guard let contentExt = audioContainerExtension(of: url),
+      url.pathExtension.lowercased() != contentExt
+    else { return url }
+    let corrected = url.deletingPathExtension().appendingPathExtension(contentExt)
+    try? FileManager.default.removeItem(at: corrected)
+    guard (try? FileManager.default.copyItem(at: url, to: corrected)) != nil else { return url }
+    return corrected
   }
 
   private func startRecordingUpdates() {

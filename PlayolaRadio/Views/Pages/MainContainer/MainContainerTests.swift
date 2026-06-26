@@ -1296,6 +1296,42 @@ extension MainContainerTests {
     }
   }
 
+  @Test func processGiveawayResolutionsDoesNotRepromptSkippedCongrats() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+      navCoordinator.presentedSheet = nil
+      // The winner sheet outranks congrats, so any won participation left on disk by a sibling test
+      // would present it instead — reset so the congrats path is the one under test.
+      @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+      $participations.withLock { $0 = [:] }
+      @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+      $actions.withLock { $0 = ["e1": pendingCongrats()] }
+      // Reset on every exit (even an early guard failure) so this file-backed store never leaks into
+      // a sibling test.
+      defer { $actions.withLock { $0 = [:] } }
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 200))
+        $0.stationPlayer = StationPlayerMock()
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+      guard case .giveawayCongrats(let congratsModel) = navCoordinator.presentedSheet else {
+        Issue.record("Expected the congrats sheet to be presented")
+        return
+      }
+      // Owner taps Skip — the action becomes terminal (.skipped) and the arbiter must never re-present
+      // it, this foreground or any future one.
+      await congratsModel.skipButtonTapped()
+      #expect(actions["e1"]?.state == .skipped)
+
+      await model.processGiveawayResolutions()
+
+      #expect(navCoordinator.presentedSheet == nil)
+    }
+  }
+
   @Test func processGiveawayResolutionsDoesNotRepromptDismissedCongrats() async {
     await withMainSerialExecutor {
       @Shared(.mainContainerNavigationCoordinator) var navCoordinator

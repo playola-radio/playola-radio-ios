@@ -233,12 +233,95 @@ struct GiveawayCongratsSheetModelTests {
     let model = withDependencies {
       $0.audioPlayer.loadFile = { url in loaded.setValue(url) }
       $0.audioPlayer.duration = { 7 }
+      $0.stationPlayer = StationPlayerMock()
     } operation: {
       GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
     }
     await model.viewAppeared()
     #expect(loaded.value?.path == "/tmp/r.m4a")
     #expect(model.recordingDuration == 7)
+  }
+
+  @Test func stopRecordingPreservesSourceExtensionForConverter() async throws {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock {
+      $0 = [
+        "e1": CongratsAction(
+          eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
+          state: .pending, startedAt: Date())
+      ]
+    }
+    // The live recorder writes Linear PCM into a `.wav` container. A real RIFF/WAVE header mirrors that
+    // so the persisted copy is named by its sniffed content, not a trusted extension.
+    let source = FileManager.default.temporaryDirectory
+      .appendingPathComponent("voicetrack_\(UUID().uuidString).wav")
+    // RIFF / WAVE magic bytes.
+    try Data([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x41, 0x56, 0x45]).write(to: source)
+    let model = withDependencies {
+      $0.audioRecorder.stopRecording = { source }
+      $0.audioPlayer.loadFile = { _ in }
+      $0.audioPlayer.duration = { 5 }
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
+    }
+    await model.onStopTapped()
+    // Renaming WAV bytes to `.m4a` makes AVAssetExportSession fail ("Audio conversion failed") on
+    // every Send — the persisted file must keep the recorder's container extension.
+    #expect(model.recordingURL?.pathExtension == "wav")
+    let persisted = try #require(model.recordingURL)
+    #expect(FileManager.default.fileExists(atPath: persisted.path))
+    try? FileManager.default.removeItem(at: persisted)
+    try? FileManager.default.removeItem(at: source)
+  }
+
+  @Test func sendNormalizesStaleMislabeledRecordingBeforeConversion() async throws {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    // A recording persisted by the pre-fix build: WAV bytes inside a `.m4a` file.
+    let stale = FileManager.default.temporaryDirectory
+      .appendingPathComponent("congrats-\(UUID().uuidString).m4a")
+    // RIFF / WAVE magic bytes in a file the pre-fix build mislabeled `.m4a`.
+    try Data([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x41, 0x56, 0x45]).write(to: stale)
+    $actions.withLock {
+      $0 = [
+        "e1": CongratsAction(
+          eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
+          state: .recorded(localRecordingPath: stale.path), startedAt: Date())
+      ]
+    }
+    let uploadedExt = LockIsolated<String?>(nil)
+    let model = withDependencies {
+      $0.voicetrackUploadService.processVoicetrack = { voicetrack, _, _, _ in
+        uploadedExt.setValue(voicetrack.originalURL.pathExtension)
+        return AudioBlock.mockWith()
+      }
+      $0.api.recordGiveawayEventCongrats = { _, _, _ in }
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
+    }
+    await model.sendButtonTapped()
+    // The converter must receive a file whose extension matches its WAV bytes, not the stale `.m4a`.
+    expectNoDifference(uploadedExt.value, "wav")
+    if let url = model.recordingURL { try? FileManager.default.removeItem(at: url) }
+    try? FileManager.default.removeItem(at: stale)
+  }
+
+  @Test func viewAppearedStopsStationPlayback() async {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock { $0 = ["e1": recordedAction()] }
+    let stationPlayer = StationPlayerMock.mockPlayingPlayer()
+    let model = withDependencies {
+      $0.stationPlayer = stationPlayer
+      $0.audioPlayer.loadFile = { _ in }
+      $0.audioPlayer.duration = { 5 }
+    } operation: {
+      GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
+    }
+    await model.viewAppeared()
+    // The station must be muted as soon as the congrats sheet appears, for both recording and review.
+    expectNoDifference(stationPlayer.stopCalledCount, 1)
   }
 
   @Test func skipWhileRecordingStopsTheRecorder() async {
