@@ -404,7 +404,13 @@ extension StationPlayer: AudioInterruptionDelegate {
   func audioSessionShouldResume() {
     guard pausedBySystem else { return }
     pausedBySystem = false
-    Task { await resume() }
+    Task { @MainActor in
+      // Re-check on the next turn: if the user switched stations or stopped
+      // between the interruption ending and this Task running, we are no longer
+      // paused and must not resume a superseded station/backend.
+      guard case .paused = self.state.playbackStatus else { return }
+      await self.resume()
+    }
   }
 }
 

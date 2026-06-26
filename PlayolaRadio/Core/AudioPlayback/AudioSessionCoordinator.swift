@@ -135,12 +135,15 @@ final class AudioSessionCoordinator {
 
     switch type {
     case .began:
+      // AVAudioSession interruption notifications are delivered on the main
+      // thread in practice, so the common path pauses synchronously (no engine
+      // left running as the app suspends). If a future OS ever posts off-main we
+      // hop asynchronously rather than blocking with DispatchQueue.main.sync,
+      // which could deadlock if main is waiting on the posting thread.
       if Thread.isMainThread {
         MainActor.assumeIsolated { self.handleInterruption(type: type, options: options) }
       } else {
-        DispatchQueue.main.sync {
-          MainActor.assumeIsolated { self.handleInterruption(type: type, options: options) }
-        }
+        Task { @MainActor in self.handleInterruption(type: type, options: options) }
       }
     default:
       Task { @MainActor in self.handleInterruption(type: type, options: options) }
