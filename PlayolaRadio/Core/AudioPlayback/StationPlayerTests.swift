@@ -5,6 +5,7 @@
 //  Created by Claude on 1/8/26.
 //
 
+import Combine
 import CustomDump
 import Foundation
 import IdentifiedCollections
@@ -15,6 +16,28 @@ import Testing
 @testable import PlayolaRadio
 
 private struct PlayFailureTestError: Error {}
+
+/// Records transport calls so StationPlayer's backend routing can be asserted
+/// without constructing a real (CoreAudio-backed) PlayolaStationPlayer.
+@MainActor
+final class SpyPlayolaStationPlayer: PlayolaTransport {
+  private let stateSubject = CurrentValueSubject<PlayolaStationPlayer.State, Never>(.idle)
+  var statePublisher: AnyPublisher<PlayolaStationPlayer.State, Never> {
+    stateSubject.eraseToAnyPublisher()
+  }
+
+  var configureCount = 0
+  var playCount = 0
+  var stopCount = 0
+  var pauseForInterruptionCount = 0
+  var resumeAfterInterruptionCount = 0
+
+  func configure(authProvider: PlayolaAuthenticationProvider, baseURL: URL) { configureCount += 1 }
+  func play(stationId: String) async throws { playCount += 1 }
+  func stop() { stopCount += 1 }
+  func pauseForInterruption() { pauseForInterruptionCount += 1 }
+  func resumeAfterInterruption() async throws { resumeAfterInterruptionCount += 1 }
+}
 
 @MainActor
 struct StationPlayerTests {
@@ -37,6 +60,26 @@ struct StationPlayerTests {
         "session-config failure must surface as .error, got \(player.state.playbackStatus)")
       return
     }
+  }
+
+  @Test
+  func pauseRoutesToActiveBackendAndResumeReactivatesSession() async throws {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let spySession = SpyAudioSession()
+    let coordinator = AudioSessionCoordinator(session: spySession)
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+
+    await player.play(station: .mockPlayola())
+
+    player.pause()
+    #expect(playola.pauseForInterruptionCount == 1)
+
+    spySession.activations = []
+    await player.resume()
+    #expect(spySession.activations.contains(true))  // session reactivated first
+    #expect(playola.resumeAfterInterruptionCount == 1)
   }
 
   // MARK: - Play Failure Tests

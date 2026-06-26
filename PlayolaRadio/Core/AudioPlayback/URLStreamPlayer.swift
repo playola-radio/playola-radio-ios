@@ -71,6 +71,19 @@ public class URLStreamPlayer: ObservableObject {
     currentStation = nil
     player.radioURL = nil
   }
+
+  /// Pauses the URL stream for an interruption/route loss. The app's
+  /// AudioSessionCoordinator owns the session and decides when this happens;
+  /// the vendored FRadioPlayer no longer self-handles interruptions.
+  func pause() {
+    player.pause()
+  }
+
+  /// Resumes the URL stream after an interruption. The caller reactivates the
+  /// session first.
+  func resume() {
+    player.play()
+  }
 }
 
 // MARK: - MPNowPlayingInfoCenter (Lock screen)
