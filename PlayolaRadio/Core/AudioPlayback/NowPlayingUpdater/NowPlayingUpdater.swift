@@ -672,9 +672,14 @@ extension NowPlayingUpdater {
         )
       }
 
-    // End session when stopping from playing state
+    // End session when stopping from playing or paused state. A `.paused`
+    // interruption keeps the session open (resume continues it), so the session
+    // must also be closed when a paused station is then stopped/errored —
+    // otherwise sessionStartTime leaks and the next session length is wrong.
     case (.playing(let station), .stopped),
-      (.playing(let station), .error):
+      (.playing(let station), .error),
+      (.paused(let station), .stopped),
+      (.paused(let station), .error):
       if let startTime = sessionStartTime {
         let duration = now.timeIntervalSince(startTime)
         await analytics.track(

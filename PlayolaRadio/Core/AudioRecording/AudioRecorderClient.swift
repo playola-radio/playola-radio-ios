@@ -7,6 +7,7 @@
 
 import AVFoundation
 import Dependencies
+import IssueReporting
 
 public struct RecordingState: Equatable, Sendable {
   public let currentTime: TimeInterval
@@ -249,8 +250,14 @@ private actor LiveAudioRecorder {
     // Restore the playback category (category only — do NOT reactivate; resuming
     // playback is the caller's explicit decision). Without this the session is
     // left on .playAndRecord/.defaultToSpeaker, which strands audio on the
-    // phone speaker and breaks AirPlay after a voicetrack.
-    try? await coordinator.restorePlaybackCategory()
+    // phone speaker and breaks AirPlay after a voicetrack. Report a failure
+    // rather than swallowing it — a silent failure leaves the session in the
+    // exact route-stranded state this is meant to prevent.
+    do {
+      try await coordinator.restorePlaybackCategory()
+    } catch {
+      reportIssue("Failed to restore playback category after recording: \(error)")
+    }
     return url
   }
 
