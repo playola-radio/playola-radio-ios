@@ -185,6 +185,6 @@ struct StationListLiveSortTests {
     await model.viewAppeared()
     await model.viewAppeared()
 
-    expectNoDifference(model.cancellables.count, 2)
+    expectNoDifference(model.cancellables.count, 3)
   }
 }

@@ -51,7 +51,8 @@ struct HomePageView: View {
 
           HomePageStationList(
             stations: model.forYouStations,
-            liveStatusForStation: model.liveStatusForStation
+            liveStatusForStation: model.liveStatusForStation,
+            hasUpcomingGiveawayForStation: model.hasUpcomingGiveawayForStation
           ) { station in
             Task { await model.stationTapped(station) }
           }

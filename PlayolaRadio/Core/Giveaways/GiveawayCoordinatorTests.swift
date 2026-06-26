@@ -2,6 +2,7 @@ import ConcurrencyExtras
 import CustomDump
 import Dependencies
 import Foundation
+import IdentifiedCollections
 import Sharing
 import Testing
 
@@ -142,12 +143,26 @@ struct GiveawayCoordinatorTests {
     #expect(activeGiveaway == nil)
   }
 
-  @Test func reconcileClearsWhenNotOnPlayolaStation() async {
+  @Test func reconcileClearsActiveButKeepsUpcomingWhenNotOnPlayolaStation() async {
+    // Not on a Playola station: the open event is torn down, but the all-stations "coming up"
+    // projection must still populate so badges show while browsing the list without playback.
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = .mock
-    await GiveawayCoordinator().reconcile()
+    @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = []
+    await withDependencies {
+      $0.api.giveawayEventsFeed = { _ in
+        [
+          GiveawayEvent(
+            id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+            status: .scheduled, opensAt: Date(timeIntervalSince1970: 1000))
+        ]
+      }
+    } operation: {
+      await GiveawayCoordinator().reconcile()
+    }
     #expect(activeGiveaway == nil)
+    #expect(upcomingGiveaways[id: "s1"]?.event.id == "e1")
   }
 
   @Test func reconcileKeepsLastValueWhenFeedErrors() async {
@@ -210,6 +225,142 @@ struct GiveawayCoordinatorTests {
     GiveawayCoordinator().revealFromHeldEvent(scheduled, expectedStationId: "s1")
 
     #expect(activeGiveaway == nil)
+  }
+
+  // MARK: - upcoming projection
+
+  @Test func reconcileProjectsSoonestScheduledPerStationExcludingNonScheduled() async {
+    // The feed mixes statuses across stations. The projection keeps exactly one entry per station —
+    // the soonest-opening scheduled event — and excludes open/closed/canceled/unknown entirely.
+    let base = Date(timeIntervalSince1970: 1000)
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = []
+    await withDependencies {
+      $0.api.giveawayEventsFeed = { _ in
+        [
+          GiveawayEvent(
+            id: "s1-late", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled,
+            opensAt: base.addingTimeInterval(500)),
+          GiveawayEvent(
+            id: "s1-soon", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled,
+            opensAt: base.addingTimeInterval(10)),
+          GiveawayEvent(
+            id: "s1-open", stationId: "s1", prizeName: "P", winningNumber: 9, status: .open,
+            opensAt: base),
+          GiveawayEvent(
+            id: "s2-sched", stationId: "s2", prizeName: "P", winningNumber: 9, status: .scheduled,
+            opensAt: base.addingTimeInterval(60)),
+          GiveawayEvent(
+            id: "s3-closed", stationId: "s3", prizeName: "P", winningNumber: 9, status: .closed,
+            opensAt: base),
+        ]
+      }
+      $0.api.giveawayEvent = { _, id in
+        GiveawayEvent(id: id, stationId: "s1", prizeName: "P", winningNumber: 9, status: .open)
+      }
+    } operation: {
+      await GiveawayCoordinator().reconcile()
+    }
+    #expect(upcomingGiveaways.count == 2)
+    #expect(upcomingGiveaways[id: "s1"]?.event.id == "s1-soon")
+    #expect(upcomingGiveaways[id: "s2"]?.event.id == "s2-sched")
+    #expect(upcomingGiveaways[id: "s3"] == nil)
+  }
+
+  @Test func reconcileClearsUpcomingOnAuthLoss() async {
+    @Shared(.auth) var auth = Auth()
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = .mock
+    @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
+      UpcomingGiveawayInfo(
+        event: GiveawayEvent(
+          id: "e1", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled))
+    ]
+    await GiveawayCoordinator().reconcile()
+    #expect(activeGiveaway == nil)
+    #expect(upcomingGiveaways.isEmpty)
+  }
+
+  @Test func revealReDerivesNextScheduledWhenStationHasTwoUpcoming() async {
+    // A station with two scheduled airings: when the soonest opens, the badge must immediately show
+    // the next-soonest (re-derived from the last feed) instead of vanishing until the next poll.
+    await withMainSerialExecutor {
+      let base = Date(timeIntervalSince1970: 1000)
+      @Shared(.auth) var auth = Auth(jwt: "jwt")
+      @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+      @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+      @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> =
+        []
+      let coordinator = GiveawayCoordinator()
+      await withDependencies {
+        $0.continuousClock = TestClock()
+        $0.api.giveawayEventsFeed = { _ in
+          [
+            GiveawayEvent(
+              id: "e1", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled,
+              opensAt: base.addingTimeInterval(10)),
+            GiveawayEvent(
+              id: "e2", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled,
+              opensAt: base.addingTimeInterval(500)),
+          ]
+        }
+        $0.api.giveawayEvent = { _, id in
+          GiveawayEvent(
+            id: id, stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled,
+            opensAt: base.addingTimeInterval(10), serverTime: base)
+        }
+      } operation: {
+        await coordinator.reconcile()
+        // e1 is the soonest, so it's the published "coming up" entry; lastFeed holds both.
+        #expect(upcomingGiveaways[id: "s1"]?.event.id == "e1")
+        coordinator.revealFromHeldEvent(
+          GiveawayEvent(
+            id: "e1", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled),
+          expectedStationId: "s1")
+      }
+      #expect(activeGiveaway?.id == "e1")
+      #expect(upcomingGiveaways[id: "s1"]?.event.id == "e2")
+    }
+  }
+
+  @Test func revealFromHeldEventRemovesUpcomingEntryForThatStation() async {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
+      UpcomingGiveawayInfo(
+        event: GiveawayEvent(
+          id: "e1", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled)),
+      UpcomingGiveawayInfo(
+        event: GiveawayEvent(
+          id: "e2", stationId: "s2", prizeName: "P", winningNumber: 9, status: .scheduled)),
+    ]
+    let held = GiveawayEvent(
+      id: "e1", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled)
+
+    GiveawayCoordinator().revealFromHeldEvent(held, expectedStationId: "s1")
+
+    #expect(activeGiveaway?.id == "e1")
+    #expect(upcomingGiveaways[id: "s1"] == nil)
+    #expect(upcomingGiveaways[id: "s2"]?.event.id == "e2")
+  }
+
+  @Test func stopKeepsUpcomingWhileFeatureEnabledClearsWhenDisabled() {
+    // Backgrounding (stop) must NOT clear the badges while the feature is on — they survive to the
+    // next foreground so the list/Home don't flicker. When the feature is disabled, stop() tears the
+    // projection down so nothing stale lingers.
+    @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
+      UpcomingGiveawayInfo(
+        event: GiveawayEvent(
+          id: "e1", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled))
+    ]
+    GiveawayCoordinator().stop()
+    if GiveawayFeature.isLiveDataEnabled {
+      #expect(upcomingGiveaways[id: "s1"]?.event.id == "e1")
+    } else {
+      #expect(upcomingGiveaways.isEmpty)
+    }
   }
 
   // MARK: - tap

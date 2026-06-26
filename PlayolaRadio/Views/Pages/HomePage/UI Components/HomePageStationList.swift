@@ -12,6 +12,7 @@ import SwiftUI
 struct StationCardView: View {
   let station: AnyStation
   let liveStatus: LiveStatus?
+  let hasUpcomingGiveaway: Bool
   let onRadioStationSelected: (AnyStation) -> Void
 
   var body: some View {
@@ -32,10 +33,15 @@ struct StationCardView: View {
             .frame(width: 160, height: 160)
             .clipped()
 
-            if let liveStatus = liveStatus {
-              LiveBadge(status: liveStatus)
-                .offset(x: 8, y: 8)
+            VStack(alignment: .leading, spacing: 4) {
+              if hasUpcomingGiveaway {
+                UpcomingGiveawayBadge()
+              }
+              if let liveStatus = liveStatus {
+                LiveBadge(status: liveStatus)
+              }
             }
+            .offset(x: 8, y: 8)
           }
 
           // Right side - Text content
@@ -73,6 +79,7 @@ struct StationCardView: View {
 struct HomePageStationList: View {
   var stations: IdentifiedArrayOf<AnyStation>
   var liveStatusForStation: (String) -> LiveStatus?
+  var hasUpcomingGiveawayForStation: (String) -> Bool
   var onRadioStationSelected: (AnyStation) -> Void
 
   var body: some View {
@@ -87,7 +94,8 @@ struct HomePageStationList: View {
         ForEach(stations) { station in
           StationCardView(
             station: station,
-            liveStatus: liveStatusForStation(station.id)
+            liveStatus: liveStatusForStation(station.id),
+            hasUpcomingGiveaway: hasUpcomingGiveawayForStation(station.id)
           ) {
             onRadioStationSelected($0)
           }
@@ -103,6 +111,7 @@ struct HomePageStationList_Previews: PreviewProvider {
     HomePageStationList(
       stations: IdentifiedArray(uniqueElements: [AnyStation.mock]),
       liveStatusForStation: { _ in nil },
+      hasUpcomingGiveawayForStation: { _ in false },
       onRadioStationSelected: { _ in }
     )
     .preferredColorScheme(.dark)
