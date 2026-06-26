@@ -98,18 +98,27 @@ let upcoming = Dictionary(grouping: feed.filter { $0.status == .scheduled }, by:
 $upcomingGiveaways.withLock { $0 = IdentifiedArray(uniqueElements: upcoming) }
 ```
 
-Three correctness fixes:
+Four correctness fixes:
 
-1. **Decouple the all-stations projection from now-playing.** Today the coordinator
-   exits early when there is no current Playola station — which would leave
-   station-list/Home badges stale or empty. The upcoming-giveaways projection must
-   be published from the full feed regardless of what (if anything) is playing.
-   Only the reveal-timer path needs `currentPlayolaStationId`.
-2. **Immediate removal on reveal.** When the reveal timer fires and publishes the
+1. **Decouple the all-stations projection from now-playing.** Today `reconcile()`
+   exits early when there is no current Playola station (`currentPlayolaStationId
+   == nil`, GiveawayCoordinator.swift:84) — which would leave station-list/Home
+   badges stale or empty. The upcoming-giveaways projection must be published from
+   the full feed regardless of what (if anything) is playing. Restructure so the
+   feed fetch + all-stations projection run first; only the reveal-timer /
+   single-event selection path below it consumes `currentPlayolaStationId`.
+2. **Clear both on auth loss.** `reconcile()` also exits early when `auth.jwt ==
+   nil` (GiveawayCoordinator.swift:79) and today clears only `activeGiveaway`. The
+   feed fetch requires the jwt, so on auth loss we cannot refresh — we must instead
+   **clear `upcomingGiveaways` as well as `activeGiveaway`** before returning.
+   Otherwise stale "coming up" badges/banners persist after sign-out or token
+   expiry. (Same applies to the transient feed-fetch failure path: keep last-known
+   state and retry, do not strand state — unchanged from today.)
+3. **Immediate removal on reveal.** When the reveal timer fires and publishes the
    `.open` event to `activeGiveaway`, also remove that station's entry from
    `upcomingGiveaways` in the same step, so the banner/badge disappears instantly
    instead of waiting up to 30s for the next feed poll.
-3. **Feature gate clears both.** When `GiveawayFeature.isLiveDataEnabled` is false,
+4. **Feature gate clears both.** When `GiveawayFeature.isLiveDataEnabled` is false,
    clear both `activeGiveaway` and `upcomingGiveaways`.
 
 The existing single-event selection + reveal-timer logic is otherwise untouched.
@@ -166,8 +175,10 @@ pulse animation). Label `🎁 GIVEAWAY`, color purple.
    immediate-removal-on-reveal step (fix #2); other stations tolerate ≤30s lag.
 4. `opensAt` leaking into the UI → no display model formats dates or computes "soon".
 5. Station both LIVE and upcoming → show both badges side by side; never overload LIVE.
-6. Feature gate must clear both shared keys when disabled (fix #3).
+6. Feature gate must clear both shared keys when disabled (fix #4).
 7. Do not reuse `@Shared(.giveawayBanner)` — different ("Tap In" invite) semantics.
+8. Auth loss (sign-out / token expiry) must clear `upcomingGiveaways`, not just
+   `activeGiveaway` — otherwise stale "coming up" badges linger (fix #2).
 
 ## Testing
 
@@ -175,8 +186,9 @@ pulse animation). Label `🎁 GIVEAWAY`, color purple.
   `upcomingGiveaways` contains exactly one `.scheduled` entry per station (soonest),
   excludes open/closed/canceled/unknown; projection populates with no now-playing
   station; reveal removes the current station's entry immediately; feature-gate-off
-  clears both keys. (Use `@Shared` declared locally per test, swift-dependencies
-  mocked via `withDependencies`.)
+  clears both keys; **auth loss (`auth.jwt == nil`) clears both `activeGiveaway`
+  and `upcomingGiveaways`**. (Use `@Shared` declared locally per test,
+  swift-dependencies mocked via `withDependencies`.)
 - `UpcomingGiveawayBannerModel`: `isVisible` true only for matching now-playing
   station with no open contest; `bannerText` correct; hidden once that station's
   contest is open.
