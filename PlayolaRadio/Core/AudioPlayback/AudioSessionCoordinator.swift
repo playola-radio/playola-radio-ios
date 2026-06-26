@@ -65,6 +65,11 @@ final class AudioSessionCoordinator {
 
   init(session: AudioSessionProtocol = LiveAudioSession()) {
     self.session = session
+    registerObservers()
+  }
+
+  deinit {
+    NotificationCenter.default.removeObserver(self)
   }
 
   // MARK: - Session configuration
@@ -98,6 +103,103 @@ final class AudioSessionCoordinator {
 
   func deactivate() throws {
     try session.setActive(false, options: [.notifyOthersOnDeactivation])
+  }
+
+  // MARK: - Interruption / route policy
+
+  private func registerObservers() {
+    NotificationCenter.default.addObserver(
+      self, selector: #selector(interruptionNotification(_:)),
+      name: AVAudioSession.interruptionNotification, object: nil)
+    NotificationCenter.default.addObserver(
+      self, selector: #selector(routeChangeNotification(_:)),
+      name: AVAudioSession.routeChangeNotification, object: nil)
+  }
+
+  /// `@objc` entry point. Notifications are delivered on an arbitrary thread, so
+  /// this is `nonisolated`. For `.began` we hop to the main actor SYNCHRONOUSLY
+  /// so playback is silenced before the app is suspended; `.ended` can hop
+  /// asynchronously. (Per Codex review: `assumeIsolated` alone is unsafe here
+  /// because the posting thread is not guaranteed to be main.)
+  @objc nonisolated private func interruptionNotification(_ note: Notification) {
+    guard let info = note.userInfo,
+      let rawType = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+      let type = AVAudioSession.InterruptionType(rawValue: rawType)
+    else { return }
+    let options: AVAudioSession.InterruptionOptions
+    if let rawOptions = info[AVAudioSessionInterruptionOptionKey] as? UInt {
+      options = AVAudioSession.InterruptionOptions(rawValue: rawOptions)
+    } else {
+      options = []
+    }
+
+    switch type {
+    case .began:
+      if Thread.isMainThread {
+        MainActor.assumeIsolated { self.handleInterruption(type: type, options: options) }
+      } else {
+        DispatchQueue.main.sync {
+          MainActor.assumeIsolated { self.handleInterruption(type: type, options: options) }
+        }
+      }
+    default:
+      Task { @MainActor in self.handleInterruption(type: type, options: options) }
+    }
+  }
+
+  @objc nonisolated private func routeChangeNotification(_ note: Notification) {
+    guard let info = note.userInfo,
+      let rawReason = info[AVAudioSessionRouteChangeReasonKey] as? UInt,
+      let reason = AVAudioSession.RouteChangeReason(rawValue: rawReason)
+    else { return }
+    let previousHadHeadphones: Bool
+    if let previousRoute = info[AVAudioSessionRouteChangePreviousRouteKey]
+      as? AVAudioSessionRouteDescription
+    {
+      previousHadHeadphones = previousRoute.outputs.contains {
+        Self.isPersonalListeningOutput($0.portType)
+      }
+    } else {
+      previousHadHeadphones = false
+    }
+    Task { @MainActor in
+      self.handleRouteChange(reason: reason, previousHadHeadphones: previousHadHeadphones)
+    }
+  }
+
+  /// Personal listening devices whose disappearance should pause playback.
+  /// Excludes CarPlay / AirPlay / built-in speaker — those are not an
+  /// "unplugged headphones" event.
+  nonisolated private static func isPersonalListeningOutput(_ port: AVAudioSession.Port) -> Bool {
+    port == .headphones || port == .bluetoothA2DP || port == .bluetoothHFP
+      || port == .bluetoothLE || port == .usbAudio
+  }
+
+  /// Testable core for interruptions. The `@objc` wrapper parses the Notification
+  /// and calls this on the main actor.
+  func handleInterruption(
+    type: AVAudioSession.InterruptionType, options: AVAudioSession.InterruptionOptions
+  ) {
+    switch type {
+    case .began:
+      delegate?.audioSessionShouldPause()
+    case .ended where options.contains(.shouldResume):
+      delegate?.audioSessionShouldResume()
+    case .ended:
+      break  // user resumes manually via the lock screen / app
+    @unknown default:
+      break
+    }
+  }
+
+  /// Pause-not-stop on output device loss; the lock-screen play button (remote
+  /// command) is the recovery path. Only fires for an unplugged personal
+  /// listening device, never for CarPlay/AirPlay/speaker route changes.
+  func handleRouteChange(
+    reason: AVAudioSession.RouteChangeReason, previousHadHeadphones: Bool
+  ) {
+    guard reason == .oldDeviceUnavailable, previousHadHeadphones else { return }
+    delegate?.audioSessionShouldPause()
   }
 }
 

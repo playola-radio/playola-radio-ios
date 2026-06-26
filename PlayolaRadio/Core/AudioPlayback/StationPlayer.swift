@@ -42,6 +42,11 @@ class StationPlayer: ObservableObject {
   @Published var isSeeking = false
   let authProvider: PlayolaTokenProvider = .init()
 
+  /// True only while playback is paused because the coordinator told us to
+  /// (interruption / route loss). Gates auto-resume so we never resume after the
+  /// user explicitly stopped, and never double-resume on repeated events.
+  private var pausedBySystem = false
+
   /// The currently playing radio station, if any
   public var currentStation: AnyStation? {
     switch state.playbackStatus {
@@ -100,6 +105,11 @@ class StationPlayer: ObservableObject {
 
     self.playolaStationPlayer.configure(
       authProvider: self.authProvider, baseURL: Config.shared.baseUrl)
+
+    // Become the interruption/route delegate LAST — after the subscriptions and
+    // SDK configure are in place — so an interruption arriving mid-init can't
+    // drive pause/resume before global state is coherent.
+    self.audioSessionCoordinator.delegate = self
   }
 
   // MARK: Public Interface
@@ -158,6 +168,7 @@ class StationPlayer: ObservableObject {
 
   /// Stops the currently playing station
   public func stop() {
+    pausedBySystem = false
     urlStreamPlayer.reset()
     playolaStationPlayer.stop()
     state = State(playbackStatus: .stopped)
@@ -357,6 +368,26 @@ class StationPlayer: ObservableObject {
       albumArtworkUrl: albumArtworkURL,
       playolaSpinPlaying: state.playolaSpinPlaying
     )
+  }
+}
+
+// MARK: - AudioInterruptionDelegate
+
+extension StationPlayer: AudioInterruptionDelegate {
+  /// The coordinator detected an interruption begin or a personal-listening
+  /// route loss. Remember that WE were paused by the system, then pause.
+  func audioSessionShouldPause() {
+    pausedBySystem = true
+    pause()
+  }
+
+  /// The coordinator says the interruption ended with `.shouldResume`. Only
+  /// resume if the system paused us (not if the user stopped meanwhile) — which
+  /// also guards against double-resume on repeated events.
+  func audioSessionShouldResume() {
+    guard pausedBySystem else { return }
+    pausedBySystem = false
+    Task { await resume() }
   }
 }
 
