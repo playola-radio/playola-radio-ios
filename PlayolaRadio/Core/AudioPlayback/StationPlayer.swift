@@ -188,6 +188,10 @@ class StationPlayer: ObservableObject {
   /// Resumes the active backend after an interruption. We own the session now,
   /// so reactivate it first; a failure surfaces as .error via handlePlayFailure.
   func resume() async {
+    // Clearing here also covers the manual lock-screen resume path, so a stale
+    // interruption-ended event can't trigger a second resume.
+    pausedBySystem = false
+    guard currentStation != nil else { return }
     do {
       try audioSessionCoordinator.configureForPlayback()
       switch currentStation {
@@ -335,6 +339,19 @@ class StationPlayer: ObservableObject {
     // (e.g. dismissing CarPlay's Now Playing, or mislabeling it with URL
     // metadata). Real stops are driven by `stop()`, which sets `.stopped`.
     if case .playola = currentStation { return }
+    // A URL stream paused for an interruption: FRadioPlayer reports
+    // playbackState == .paused while playerStatus stays .loadingFinished, so map
+    // it to .paused here instead of letting the playerStatus switch below report
+    // .playing with a rate of 1.0.
+    if urlStreamPlayerState.playbackState == .paused, let currentStation {
+      state = State(
+        playbackStatus: .paused(currentStation),
+        artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
+        titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
+        albumArtworkUrl: nil
+      )
+      return
+    }
     switch urlStreamPlayerState.playerStatus {
     case .loading:
       guard let currentStation else {

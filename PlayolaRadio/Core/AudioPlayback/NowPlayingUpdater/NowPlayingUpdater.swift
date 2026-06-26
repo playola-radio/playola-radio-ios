@@ -462,6 +462,24 @@ class NowPlayingUpdater {
     // stale `.readyToPlay`/`.error`) so they cannot clobber the shared now-playing
     // state. Mirrors StationPlayer.processUrlStreamStateChanged.
     if case .playola = stationPlayer.currentStation { return }
+    // A URL stream paused for an interruption reports playbackState == .paused
+    // while playerStatus stays .loadingFinished; map it to .paused so the lock
+    // screen reflects paused (rate 0) instead of playing. Mirrors StationPlayer.
+    if urlStreamPlayerState.playbackState == .paused,
+      let currentStation = stationPlayer.currentStation
+    {
+      $nowPlaying.withLock {
+        $0 = NowPlaying(
+          artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
+          titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
+          albumArtworkUrl: nil,
+          playolaSpinPlaying: nil,
+          currentStation: currentStation,
+          playbackStatus: .paused(currentStation)
+        )
+      }
+      return
+    }
     switch urlStreamPlayerState.playerStatus {
     case .loading:
       guard let currentStation = stationPlayer.currentStation else { return }
@@ -553,11 +571,20 @@ class NowPlayingUpdater {
       return .success
     }
 
-    // Play command - restart last played station when stopped
+    // Play command - resume a station paused by an interruption, or restart the
+    // last played station when stopped.
     commandCenter.playCommand.isEnabled = true
     commandCenter.playCommand.addTarget { [weak self] _ in
-      guard let self,
-        let lastStation = self.lastPlayedStation,
+      guard let self else { return .commandFailed }
+      // Paused by an interruption/route loss: resume the active backend. This is
+      // the recovery path for an interruption that ended without `.shouldResume`
+      // (e.g. the user started another audio app).
+      if case .paused = self.stationPlayer.state.playbackStatus {
+        Task { @MainActor in await self.stationPlayer.resume() }
+        return .success
+      }
+      // Stopped: restart the last played station.
+      guard let lastStation = self.lastPlayedStation,
         self.stationPlayer.currentStation == nil
       else { return .commandFailed }
       Task { @MainActor in
