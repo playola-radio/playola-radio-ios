@@ -83,6 +83,20 @@ struct StationPlayerTests {
   }
 
   @Test
+  func systemPauseRoutesToActiveBackend() async {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let coordinator = AudioSessionCoordinator(session: SpyAudioSession())
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+    await player.play(station: .mockPlayola())
+
+    // The coordinator delegate path pauses the active backend.
+    player.audioSessionShouldPause()
+    #expect(playola.pauseForInterruptionCount == 1)
+  }
+
+  @Test
   func systemResumeWithoutSystemPauseIsIgnored() async {
     @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
     let coordinator = AudioSessionCoordinator(session: SpyAudioSession())
