@@ -200,6 +200,7 @@ class AuthService: @unchecked Sendable {
     @Shared(.welcomeMessageEligible) var welcomeMessageEligible
     @Shared(.welcomeMessageShownThisSession) var welcomeMessageShownThisSession
     @Shared(.activeGiveaway) var activeGiveaway
+    @Shared(.upcomingGiveaways) var upcomingGiveaways
     @Shared(.giveawayBanner) var giveawayBanner
     @Shared(.giveawayParticipations) var giveawayParticipations
     @Shared(.dismissedGiveawayBannerIds) var dismissedGiveawayBannerIds
@@ -224,6 +225,7 @@ class AuthService: @unchecked Sendable {
     $welcomeMessageEligible.withLock { $0 = false }
     $welcomeMessageShownThisSession.withLock { $0 = false }
     $activeGiveaway.withLock { $0 = nil }
+    $upcomingGiveaways.withLock { $0 = [] }
     $giveawayBanner.withLock { $0 = nil }
     $giveawayParticipations.withLock { $0 = [:] }
     $dismissedGiveawayBannerIds.withLock { $0 = [] }

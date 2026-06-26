@@ -179,7 +179,9 @@ final class GiveawayCoordinator {
         return
       }
       $activeGiveaway.withLock { $0 = event }
-      removeUpcomingEntry(stationId: event.stationId, revealedEventId: event.id)
+      if event.status == .open {
+        removeUpcomingEntry(stationId: event.stationId, revealedEventId: event.id)
+      }
       log("REVEALED \(eventId) status=\(event.status.rawValue)")
     } catch {
       log("reveal: GET \(eventId) failed — \(error)")
