@@ -25,6 +25,9 @@ final class GiveawayCoordinator {
 
   @ObservationIgnored private var feedPollTask: Task<Void, Never>?
   @ObservationIgnored private var revealTask: Task<Void, Never>?
+  /// The most recent successful feed, kept so a reveal can re-derive a station's next scheduled
+  /// giveaway immediately instead of dropping the badge until the next poll.
+  @ObservationIgnored private var lastFeed: [GiveawayEvent] = []
   @ObservationIgnored private var cancellables: Set<AnyCancellable> = []
   @ObservationIgnored private var armedEventId: String?
   @ObservationIgnored private var hasObservedStation = false
@@ -93,6 +96,7 @@ final class GiveawayCoordinator {
       log("reconcile: feed FETCH FAILED (\(error)) — keeping last state")
       return  // transient failure: keep last known state, retry next poll
     }
+    lastFeed = feed
     // Publish the all-stations "coming up" projection unconditionally — the badges must show in the
     // station list / Home even when nothing is playing, so this runs ahead of the now-playing guard.
     publishUpcoming(from: feed)
@@ -386,12 +390,21 @@ final class GiveawayCoordinator {
     $upcomingGiveaways.withLock { $0 = IdentifiedArray(uniqueElements: soonestPerStation) }
   }
 
-  /// Drop a station's "coming up" entry the instant its event is revealed (open), so the badge/banner
-  /// disappears without waiting up to 30s for the next poll. Only removes the entry if it still names
-  /// the revealed event — a later scheduled event for the same station is re-derived by the next poll.
+  /// Update a station's "coming up" entry the instant one of its events is revealed (open), so the
+  /// badge/banner reflects the reveal without waiting up to 30s for the next poll. Only acts if the
+  /// entry still names the revealed event; re-derives that station's next-soonest `.scheduled` event
+  /// from the last feed (a station can have several scheduled airings at once), and drops the station
+  /// only when none remains.
   private func removeUpcomingEntry(stationId: String, revealedEventId: String) {
+    let replacement =
+      lastFeed
+      .filter { $0.stationId == stationId && $0.status == .scheduled && $0.id != revealedEventId }
+      .min(by: { ($0.opensAt ?? .distantFuture) < ($1.opensAt ?? .distantFuture) })
     $upcomingGiveaways.withLock { upcoming in
-      if upcoming[id: stationId]?.event.id == revealedEventId {
+      guard upcoming[id: stationId]?.event.id == revealedEventId else { return }
+      if let replacement {
+        upcoming[id: stationId] = UpcomingGiveawayInfo(event: replacement)
+      } else {
         upcoming[id: stationId] = nil
       }
     }

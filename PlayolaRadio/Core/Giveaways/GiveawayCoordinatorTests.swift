@@ -283,6 +283,48 @@ struct GiveawayCoordinatorTests {
     #expect(upcomingGiveaways.isEmpty)
   }
 
+  @Test func revealReDerivesNextScheduledWhenStationHasTwoUpcoming() async {
+    // A station with two scheduled airings: when the soonest opens, the badge must immediately show
+    // the next-soonest (re-derived from the last feed) instead of vanishing until the next poll.
+    await withMainSerialExecutor {
+      let base = Date(timeIntervalSince1970: 1000)
+      @Shared(.auth) var auth = Auth(jwt: "jwt")
+      @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+      @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+      @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> =
+        []
+      let coordinator = GiveawayCoordinator()
+      await withDependencies {
+        $0.continuousClock = TestClock()
+        $0.api.giveawayEventsFeed = { _ in
+          [
+            GiveawayEvent(
+              id: "e1", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled,
+              opensAt: base.addingTimeInterval(10)),
+            GiveawayEvent(
+              id: "e2", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled,
+              opensAt: base.addingTimeInterval(500)),
+          ]
+        }
+        $0.api.giveawayEvent = { _, id in
+          GiveawayEvent(
+            id: id, stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled,
+            opensAt: base.addingTimeInterval(10), serverTime: base)
+        }
+      } operation: {
+        await coordinator.reconcile()
+        // e1 is the soonest, so it's the published "coming up" entry; lastFeed holds both.
+        #expect(upcomingGiveaways[id: "s1"]?.event.id == "e1")
+        coordinator.revealFromHeldEvent(
+          GiveawayEvent(
+            id: "e1", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled),
+          expectedStationId: "s1")
+      }
+      #expect(activeGiveaway?.id == "e1")
+      #expect(upcomingGiveaways[id: "s1"]?.event.id == "e2")
+    }
+  }
+
   @Test func revealFromHeldEventRemovesUpcomingEntryForThatStation() async {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
