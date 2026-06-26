@@ -87,37 +87,65 @@ contest is owned by the existing tap overlay).
 
 ### 2. Coordinator changes (`GiveawayCoordinator.reconcile()`)
 
-After the existing feed fetch, publish the all-stations scheduled projection:
+**This requires a structural restructure of `reconcile()`, not an insertion.**
+Today the function's control flow is, in order:
+
+1. `guard let jwt = auth.jwt` (GiveawayCoordinator.swift:79) — clears
+   `activeGiveaway` and returns on auth loss.
+2. `guard let stationId = currentPlayolaStationId` (line 84) — returns **before any
+   network call** when nothing Playola is playing.
+3. `feed = try await api.giveawayEventsFeed(jwt)` (line 91) — only reached when a
+   station is playing.
+
+Because the feed fetch sits behind the now-playing guard, simply "inserting after
+the fetch" would never populate `upcomingGiveaways` for a user browsing the station
+list without anything playing — exactly the case placement B must serve. The
+restructure:
+
+- After the **auth** guard (jwt available), fetch the feed and publish the
+  all-stations scheduled projection **unconditionally** — do not gate it on
+  `currentPlayolaStationId`.
+- Only **after** publishing the projection, branch on `currentPlayolaStationId` for
+  the existing single-event selection + reveal-timer path (unchanged).
 
 ```swift
+// runs for any authenticated user, regardless of now-playing
 let upcoming = Dictionary(grouping: feed.filter { $0.status == .scheduled }, by: \.stationId)
   .compactMap { stationId, events in
     events.min(by: { ($0.opensAt ?? .distantFuture) < ($1.opensAt ?? .distantFuture) })
       .map { UpcomingGiveawayInfo(stationId: stationId, event: $0) }
   }
 $upcomingGiveaways.withLock { $0 = IdentifiedArray(uniqueElements: upcoming) }
+
+// only now branch on the current station for reveal-timer / single-event work
+guard let stationId = currentPlayolaStationId else { return }
+// …existing selection + armRevealIfNeeded logic…
 ```
 
 Four correctness fixes:
 
-1. **Decouple the all-stations projection from now-playing.** Today `reconcile()`
-   exits early when there is no current Playola station (`currentPlayolaStationId
-   == nil`, GiveawayCoordinator.swift:84) — which would leave station-list/Home
-   badges stale or empty. The upcoming-giveaways projection must be published from
-   the full feed regardless of what (if anything) is playing. Restructure so the
-   feed fetch + all-stations projection run first; only the reveal-timer /
-   single-event selection path below it consumes `currentPlayolaStationId`.
-2. **Clear both on auth loss.** `reconcile()` also exits early when `auth.jwt ==
-   nil` (GiveawayCoordinator.swift:79) and today clears only `activeGiveaway`. The
-   feed fetch requires the jwt, so on auth loss we cannot refresh — we must instead
-   **clear `upcomingGiveaways` as well as `activeGiveaway`** before returning.
-   Otherwise stale "coming up" badges/banners persist after sign-out or token
-   expiry. (Same applies to the transient feed-fetch failure path: keep last-known
-   state and retry, do not strand state — unchanged from today.)
-3. **Immediate removal on reveal.** When the reveal timer fires and publishes the
-   `.open` event to `activeGiveaway`, also remove that station's entry from
-   `upcomingGiveaways` in the same step, so the banner/badge disappears instantly
-   instead of waiting up to 30s for the next feed poll.
+1. **Decouple the all-stations projection from now-playing.** Move the feed fetch +
+   projection ahead of the `currentPlayolaStationId` guard (line 84) so badges
+   populate even when nothing is playing. Only the reveal-timer / single-event path
+   keeps consuming `currentPlayolaStationId`.
+2. **Clear both on auth loss.** The `auth.jwt == nil` guard (line 79) today clears
+   only `activeGiveaway`. The feed fetch requires the jwt, so on auth loss we cannot
+   refresh — we must instead **clear `upcomingGiveaways` as well as
+   `activeGiveaway`** before returning. Otherwise stale "coming up" badges/banners
+   persist after sign-out or token expiry. (The transient feed-fetch failure path
+   keeps last-known state and retries — unchanged from today.)
+3. **Recompute (not blank) the station's entry whenever `activeGiveaway` is set.**
+   When a contest opens, the now-open event must leave `upcomingGiveaways`
+   immediately (don't wait up to 30s for the next poll). But because the projection
+   is one-soonest-scheduled-per-station, do **not** blindly clear the whole station
+   entry — that would hide a *later* scheduled giveaway for the same station until
+   the next poll. Instead remove the specific opened event and re-derive that
+   station's soonest remaining `.scheduled` entry from the feed snapshot in hand
+   (drop the station only if none remains). This fix must apply at **every** site
+   that writes a non-nil `activeGiveaway`, not just the timer path:
+   `revealEvent` (line 165), the early-open branch in `armAndReveal`
+   (`if event.status == .open`, line 309), and `revealFromHeldEvent` (line 337).
+   Factor a single helper so all three paths stay consistent.
 4. **Feature gate clears both.** When `GiveawayFeature.isLiveDataEnabled` is false,
    clear both `activeGiveaway` and `upcomingGiveaways`.
 
@@ -125,13 +153,22 @@ The existing single-event selection + reveal-timer logic is otherwise untouched.
 
 ### 3. Player page banner (placement A)
 
-New small model `UpcomingGiveawayBannerModel` (`@MainActor @Observable`, mirrors
-`GiveawayOverlayModel`):
+New small model `UpcomingGiveawayBannerModel` (`@MainActor @Observable`, subclass of
+`ViewModel` — the project's canonical base for all page/sub-page models, mirroring
+`GiveawayOverlayModel: ViewModel`):
 
-- Reads `@Shared(.upcomingGiveaways)` and `@Shared(.nowPlaying)`.
+- Reads `@Shared(.upcomingGiveaways)`, `@Shared(.nowPlaying)`, and
+  `@Shared(.activeGiveaway)`. The `activeGiveaway` dependency is required: without
+  observing it, `isVisible` cannot react to the scheduled→open transition and the
+  banner would stay frozen on screen after the tap overlay appears.
 - `isVisible`: true when there is an upcoming entry whose `stationId` matches the
   now-playing station AND there is no `.open` `activeGiveaway` for that station.
-- `bannerText`: `Win a \(prizeName) — coming up on \(stationName)`.
+- `bannerText`: `Win a \(prizeName) — coming up on \(stationName)`. `prizeName`
+  comes from the upcoming entry's `event`; `stationName` is derived from
+  `nowPlaying?.currentStation`, unwrapping the `.playola(station)` case for
+  `station.name` (same pattern `GiveawayOverlayModel.currentStationId` uses for
+  `station.id`). The banner only shows for the now-playing station, so this source
+  is always available when visible.
 - Owns ALL copy (per MV rules). No date formatting, no "soon" computation, never
   references `opensAt`.
 
@@ -160,38 +197,46 @@ pulse animation). Label `🎁 GIVEAWAY`, color purple.
   for `liveStations` today — no row-level Combine subscriptions, no polling.
 - Sinks that rebuild from a publisher use the emitted value, not `self.<shared>`
   (swift-sharing emits in `willSet`, so `self` is stale inside the sink).
-- Scheduled → open: badge/banner removed immediately by the reveal step (fix #2),
-  overlay takes over.
+- Scheduled → open: that event removed immediately at every `activeGiveaway` write
+  site (fix #3), station's next scheduled event re-derived; overlay takes over.
 - Open → closed/canceled, or event drops from feed: next 30s poll re-publishes the
   projection without it.
 
-## Risks (from Codex review)
+## Risks (from Codex + PR review)
 
 1. Keying by event id instead of station id breaks lookup → mitigated by the
    `UpcomingGiveawayInfo` wrapper.
-2. Coordinator fetch gated on now-playing → must be split so the projection runs
-   regardless (fix #1).
-3. Feed latency (up to 30s) on open/close → mitigated for the current station by the
-   immediate-removal-on-reveal step (fix #2); other stations tolerate ≤30s lag.
-4. `opensAt` leaking into the UI → no display model formats dates or computes "soon".
-5. Station both LIVE and upcoming → show both badges side by side; never overload LIVE.
-6. Feature gate must clear both shared keys when disabled (fix #4).
-7. Do not reuse `@Shared(.giveawayBanner)` — different ("Tap In" invite) semantics.
-8. Auth loss (sign-out / token expiry) must clear `upcomingGiveaways`, not just
-   `activeGiveaway` — otherwise stale "coming up" badges linger (fix #2).
+2. Coordinator feed fetch is gated behind the now-playing guard → must be
+   restructured so the fetch + projection run ahead of that guard, else badges
+   never populate while nothing is playing (fix #1).
+3. Feed latency (up to 30s) on open/close → mitigated for the opening event by
+   removing it from the projection at every `activeGiveaway` write site (fix #3);
+   other stations tolerate ≤30s lag.
+4. Blanking a whole station entry on open would hide a *later* scheduled giveaway
+   for that station → re-derive the soonest remaining `.scheduled` instead of
+   clearing the station (fix #3).
+5. `opensAt` leaking into the UI → no display model formats dates or computes "soon".
+6. Station both LIVE and upcoming → show both badges side by side; never overload LIVE.
+7. Banner frozen-visible after reveal → `UpcomingGiveawayBannerModel` must observe
+   `@Shared(.activeGiveaway)`, not just `upcomingGiveaways` + `nowPlaying`.
+8. Feature gate must clear both shared keys when disabled (fix #4).
+9. Do not reuse `@Shared(.giveawayBanner)` — different ("Tap In" invite) semantics.
+10. Auth loss (sign-out / token expiry) must clear `upcomingGiveaways`, not just
+    `activeGiveaway` — otherwise stale "coming up" badges linger (fix #2).
 
 ## Testing
 
 - `GiveawayCoordinator`: feed with mixed statuses across multiple stations →
   `upcomingGiveaways` contains exactly one `.scheduled` entry per station (soonest),
   excludes open/closed/canceled/unknown; projection populates with no now-playing
-  station; reveal removes the current station's entry immediately; feature-gate-off
-  clears both keys; **auth loss (`auth.jwt == nil`) clears both `activeGiveaway`
-  and `upcomingGiveaways`**. (Use `@Shared` declared locally per test,
-  swift-dependencies mocked via `withDependencies`.)
+  station; on reveal the opening event leaves the projection and the station's next
+  scheduled event (if any) is re-derived rather than the station being blanked;
+  feature-gate-off clears both keys; **auth loss (`auth.jwt == nil`) clears both
+  `activeGiveaway` and `upcomingGiveaways`**. (Use `@Shared` declared locally per
+  test, swift-dependencies mocked via `withDependencies`.)
 - `UpcomingGiveawayBannerModel`: `isVisible` true only for matching now-playing
-  station with no open contest; `bannerText` correct; hidden once that station's
-  contest is open.
+  station with no open contest; `bannerText` correct (prize + station name); hidden
+  once that station's contest is open (verifies the `activeGiveaway` observation).
 - `StationListModel` / `HomePageModel`: per-station lookup returns the right
   upcoming event; rows/cards reflect add/remove reactively.
 - Assert with `expectNoDifference` / `expectDifference` (CustomDump), not raw `==`.
