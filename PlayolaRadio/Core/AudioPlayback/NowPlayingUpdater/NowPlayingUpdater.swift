@@ -669,10 +669,15 @@ extension NowPlayingUpdater {
     // interruption keeps the session open (resume continues it), so the session
     // must also be closed when a paused station is then stopped/errored —
     // otherwise sessionStartTime leaks and the next session length is wrong.
+    // Also end it when the user starts a new station directly from paused (e.g.
+    // CarPlay station selection, which can go .paused(A) → .startingNewStation(B)
+    // without an intervening .stopped); otherwise A's session never ends and the
+    // lingering sessionStartTime blocks B's session from starting.
     case (.playing(let station), .stopped),
       (.playing(let station), .error),
       (.paused(let station), .stopped),
-      (.paused(let station), .error):
+      (.paused(let station), .error),
+      (.paused(let station), .startingNewStation):
       if let startTime = sessionStartTime {
         let duration = now.timeIntervalSince(startTime)
         await analytics.track(

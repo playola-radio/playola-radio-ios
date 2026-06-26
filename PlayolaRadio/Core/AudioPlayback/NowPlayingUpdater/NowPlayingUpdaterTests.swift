@@ -234,6 +234,50 @@ struct NowPlayingUpdaterTests {
   }
 
   @Test
+  func testStartingNewStationWhilePausedEndsPriorSessionAndStartsNext() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    let stationA = AnyStation.mock
+    let stationB = makeTestStation2()
+
+    let updater = withDependencies {
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+      $0.date = .constant(Date())
+    } operation: {
+      NowPlayingUpdater()
+    }
+
+    // A is playing, then gets interruption-paused (session stays open).
+    await updater.trackListeningSession(currentStatus: .playing(stationA), previousStatus: .stopped)
+    await updater.trackListeningSession(
+      currentStatus: .paused(stationA), previousStatus: .playing(stationA))
+    capturedEvents.withValue { $0.removeAll() }
+
+    // User picks station B from CarPlay while paused: .paused(A) -> .startingNewStation(B)
+    // with no intervening .stopped. A's session must end here.
+    await updater.trackListeningSession(
+      currentStatus: .startingNewStation(stationB), previousStatus: .paused(stationA))
+    guard case .listeningSessionEnded(let endedInfo, _)? = capturedEvents.value.first else {
+      Issue.record(
+        "Expected A's session to end, got \(String(describing: capturedEvents.value.first))")
+      return
+    }
+    #expect(endedInfo.id == stationA.id)
+
+    // sessionStartTime was cleared, so B's session can now start (no leak).
+    capturedEvents.withValue { $0.removeAll() }
+    await updater.trackListeningSession(
+      currentStatus: .playing(stationB), previousStatus: .startingNewStation(stationB))
+    guard case .listeningSessionStarted(let startedInfo)? = capturedEvents.value.first else {
+      Issue.record(
+        "Expected B's session to start, got \(String(describing: capturedEvents.value.first))")
+      return
+    }
+    #expect(startedInfo.id == stationB.id)
+  }
+
+  @Test
   func testTrackListeningSessionInitiatesSessionBeforeSwitch() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
     let station1 = AnyStation.mock
