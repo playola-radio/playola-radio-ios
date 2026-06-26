@@ -125,6 +125,16 @@ extension SharedKey where Self == InMemoryKey<GiveawayEvent?>.Default {
   }
 }
 
+extension SharedKey
+where Self == InMemoryKey<IdentifiedArrayOf<UpcomingGiveawayInfo>>.Default {
+  /// The soonest upcoming (`.scheduled`) giveaway per station, projected from the full feed. Drives
+  /// the "coming up" badge (station list / Home) and the player banner. In-memory, keyed by
+  /// stationId (mirrors `liveStations`). Never carries an open/closed/canceled event.
+  static var upcomingGiveaways: Self {
+    Self[.inMemory("upcomingGiveaways"), default: []]
+  }
+}
+
 extension SharedKey where Self == InMemoryKey<GiveawayBannerState?>.Default {
   /// The app-wide "Tap In" invite banner.
   static var giveawayBanner: Self {

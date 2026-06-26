@@ -44,15 +44,22 @@ struct StationListStationRowView: View {
 
           Spacer()
 
-          if let liveStatus = model.liveStatus {
-            LiveBadge(status: liveStatus)
-              .padding(.trailing, 8)
-              .transition(.opacity.combined(with: .scale))
+          VStack(alignment: .trailing, spacing: 4) {
+            if model.hasUpcomingGiveaway {
+              UpcomingGiveawayBadge()
+                .transition(.opacity.combined(with: .scale))
+            }
+            if let liveStatus = model.liveStatus {
+              LiveBadge(status: liveStatus)
+                .transition(.opacity.combined(with: .scale))
+            }
           }
+          .padding(.trailing, 8)
         }
         .padding(.leading)
         .padding(.vertical, 12)
         .animation(.easeInOut(duration: 0.5), value: model.liveStatus)
+        .animation(.easeInOut(duration: 0.5), value: model.hasUpcomingGiveaway)
       }
       .buttonStyle(.plain)
 

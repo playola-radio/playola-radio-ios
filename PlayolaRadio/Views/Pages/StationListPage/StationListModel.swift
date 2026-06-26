@@ -62,6 +62,7 @@ struct DisplayedStationSection: Identifiable {
   struct Row: Identifiable {
     let item: APIStationItem
     let liveStatus: LiveStatus?
+    let hasUpcomingGiveaway: Bool
     var id: String { item.anyStation.id }
   }
 }
@@ -85,6 +86,8 @@ class StationListModel: ViewModel {
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
   @ObservationIgnored @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+  @ObservationIgnored @Shared(.upcomingGiveaways)
+  var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = []
   @ObservationIgnored @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
   @ObservationIgnored @Shared(.pendingPresetStationIds) var pendingPresetStationIds: Set<String> =
     []
@@ -140,6 +143,14 @@ class StationListModel: ViewModel {
         .sink { [weak self] liveStations in
           guard let self else { return }
           self.loadStationListsForDisplay(self.stationLists, liveStations: liveStations)
+        }
+        .store(in: &cancellables)
+
+      $upcomingGiveaways.publisher
+        .sink { [weak self] upcomingGiveaways in
+          guard let self else { return }
+          self.loadStationListsForDisplay(
+            self.stationLists, upcomingGiveaways: upcomingGiveaways)
         }
         .store(in: &cancellables)
     }
@@ -577,9 +588,11 @@ class StationListModel: ViewModel {
 
   private func loadStationListsForDisplay(
     _ rawList: IdentifiedArrayOf<StationList>,
-    liveStations: [LiveStationInfo]? = nil
+    liveStations: [LiveStationInfo]? = nil,
+    upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo>? = nil
   ) {
     let liveStations = liveStations ?? self.liveStations
+    let upcomingGiveaways = upcomingGiveaways ?? self.upcomingGiveaways
     let includeHidden = showSecretStations
     let visibleLists = includeHidden ? rawList : rawList.filter { !$0.hidden }
 
@@ -606,7 +619,8 @@ class StationListModel: ViewModel {
         rows: liveSortedStationItems(for: list, liveStations: liveStations).map { item in
           DisplayedStationSection.Row(
             item: item,
-            liveStatus: liveStations.first { $0.stationId == item.anyStation.id }?.liveStatus
+            liveStatus: liveStations.first { $0.stationId == item.anyStation.id }?.liveStatus,
+            hasUpcomingGiveaway: upcomingGiveaways[id: item.anyStation.id] != nil
           )
         }
       )

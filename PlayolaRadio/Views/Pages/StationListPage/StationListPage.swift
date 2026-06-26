@@ -182,7 +182,9 @@ struct StationListPage: View {
         VStack(spacing: 1) {
           ForEach(rows) { row in
             let item = row.item
-            let rowModel = StationListStationRowModel(item: item, liveStatus: row.liveStatus)
+            let rowModel = StationListStationRowModel(
+              item: item, liveStatus: row.liveStatus,
+              hasUpcomingGiveaway: row.hasUpcomingGiveaway)
             let isPreset = model.isPreset(stationId: item.anyStation.id)
             StationListStationRowView(
               model: rowModel,

@@ -14,6 +14,7 @@ struct StationListStationRowModel {
   @Shared(.showSecretStations) var showSecretStations: Bool
   let item: APIStationItem
   let liveStatus: LiveStatus?
+  let hasUpcomingGiveaway: Bool
 
   var imageUrl: URL {
     return item.anyStation.processedImageURL()
@@ -73,8 +74,9 @@ struct StationListStationRowModel {
     return subtitleText == comingSoonText ? Color.playolaRed : Color.white
   }
 
-  init(item: APIStationItem, liveStatus: LiveStatus? = nil) {
+  init(item: APIStationItem, liveStatus: LiveStatus? = nil, hasUpcomingGiveaway: Bool = false) {
     self.item = item
     self.liveStatus = liveStatus
+    self.hasUpcomingGiveaway = hasUpcomingGiveaway
   }
 }
