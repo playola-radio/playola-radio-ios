@@ -25,6 +25,7 @@ class StationPlayer: ObservableObject {
   enum PlaybackStatus: Codable, Equatable {
     case startingNewStation(AnyStation)
     case playing(AnyStation)
+    case paused(AnyStation)
     case stopped
     case loading(AnyStation, Float? = nil)
     case error
@@ -48,6 +49,8 @@ class StationPlayer: ObservableObject {
     case .startingNewStation(let station):
       return station
     case .playing(let station):
+      return station
+    case .paused(let station):
       return station
     case .loading(let station, _):
       return station
@@ -237,6 +240,21 @@ class StationPlayer: ObservableObject {
           titlePlaying: nowPlaying.audioBlock.title,
           albumArtworkUrl: nowPlaying.audioBlock.imageUrl,
           playolaSpinPlaying: nowPlaying
+        )
+      }
+
+    // `.paused` is published by the SDK when the host pauses playback for an
+    // interruption (phone call, Siri, route loss). Keep the interrupted spin's
+    // metadata so the lock screen keeps showing what was playing and offers a
+    // play button to resume.
+    case .paused(let spin):
+      if let currentStation {
+        state = .init(
+          playbackStatus: .paused(currentStation),
+          artistPlaying: spin.audioBlock.artist,
+          titlePlaying: spin.audioBlock.title,
+          albumArtworkUrl: spin.audioBlock.imageUrl,
+          playolaSpinPlaying: spin
         )
       }
 
