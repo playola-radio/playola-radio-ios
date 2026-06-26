@@ -108,6 +108,7 @@ struct LikedSongsPage: View {
 }
 
 struct SongRow: View {
+  @Environment(\.displayScale) private var displayScale
   let audioBlock: AudioBlock
   let likedDate: Date
   let model: LikedSongsPageModel
@@ -117,7 +118,7 @@ struct SongRow: View {
       // Album Art Placeholder
       WebImage(
         url: audioBlock.imageUrl,
-        context: RemoteArtwork.downsampleContext(CGSize(width: 56, height: 56))
+        context: RemoteArtwork.downsampleContext(CGSize(width: 56, height: 56), scale: displayScale)
       ) { image in
         image
           .resizable()

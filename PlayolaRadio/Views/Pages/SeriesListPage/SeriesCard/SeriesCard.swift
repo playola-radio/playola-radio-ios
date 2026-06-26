@@ -8,6 +8,7 @@ import SDWebImageSwiftUI
 import SwiftUI
 
 struct SeriesCard: View {
+  @Environment(\.displayScale) private var displayScale
   @Bindable var model: SeriesCardModel
 
   var body: some View {
@@ -87,7 +88,9 @@ struct SeriesCard: View {
       // Station Image
       if let imageUrl = model.showWithAirings.station?.imageUrl {
         WebImage(
-          url: imageUrl, context: RemoteArtwork.downsampleContext(CGSize(width: 48, height: 48))
+          url: imageUrl,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 48, height: 48), scale: displayScale)
         ) { image in
           image
             .resizable()

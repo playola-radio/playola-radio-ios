@@ -9,6 +9,7 @@ import SDWebImageSwiftUI
 import SwiftUI
 
 struct NotificationsSettingsPageView: View {
+  @Environment(\.displayScale) private var displayScale
   @Bindable var model: NotificationsSettingsPageModel
   @Environment(\.dismiss) private var dismiss
 
@@ -143,7 +144,7 @@ struct NotificationsSettingsPageView: View {
     HStack(spacing: 16) {
       WebImage(
         url: item.station.imageUrl,
-        context: RemoteArtwork.downsampleContext(CGSize(width: 56, height: 56))
+        context: RemoteArtwork.downsampleContext(CGSize(width: 56, height: 56), scale: displayScale)
       ) { image in
         image
           .resizable()

@@ -7,6 +7,7 @@ import SDWebImageSwiftUI
 import SwiftUI
 
 struct ListenerQuestionDetailPageView: View {
+  @Environment(\.displayScale) private var displayScale
   @Bindable var model: ListenerQuestionDetailPageModel
 
   var body: some View {
@@ -78,7 +79,9 @@ struct ListenerQuestionDetailPageView: View {
     Group {
       if let imageUrl = model.listenerProfileImageUrl {
         WebImage(
-          url: imageUrl, context: RemoteArtwork.downsampleContext(CGSize(width: 48, height: 48))
+          url: imageUrl,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 48, height: 48), scale: displayScale)
         )
         .resizable()
         .aspectRatio(contentMode: .fill)

@@ -32,13 +32,14 @@ struct ChooseStationPageView: View {
 }
 
 private struct StationRow: View {
+  @Environment(\.displayScale) private var displayScale
   let station: Station
 
   var body: some View {
     HStack(spacing: 16) {
       WebImage(
         url: station.imageUrl,
-        context: RemoteArtwork.downsampleContext(CGSize(width: 64, height: 64))
+        context: RemoteArtwork.downsampleContext(CGSize(width: 64, height: 64), scale: displayScale)
       ) { image in
         image
           .resizable()

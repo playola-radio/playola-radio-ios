@@ -22,6 +22,7 @@ struct GiveawayWinnerSheetView: View {
 }
 
 private struct GiveawayWinnerFormView: View {
+  @Environment(\.displayScale) private var displayScale
   @Bindable var model: GiveawayWinnerSheetModel
 
   var body: some View {
@@ -29,7 +30,8 @@ private struct GiveawayWinnerFormView: View {
       VStack(spacing: 16) {
         WebImage(
           url: model.prizeImageUrl,
-          context: RemoteArtwork.downsampleContext(CGSize(width: 160, height: 160))
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 160, height: 160), scale: displayScale)
         )
         .resizable()
         .scaledToFill()

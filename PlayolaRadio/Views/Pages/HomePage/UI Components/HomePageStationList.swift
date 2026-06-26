@@ -10,6 +10,7 @@ import SDWebImageSwiftUI
 import SwiftUI
 
 struct StationCardView: View {
+  @Environment(\.displayScale) private var displayScale
   let station: AnyStation
   let liveStatus: LiveStatus?
   let onRadioStationSelected: (AnyStation) -> Void
@@ -24,7 +25,8 @@ struct StationCardView: View {
           ZStack(alignment: .topLeading) {
             WebImage(
               url: imageURL,
-              context: RemoteArtwork.downsampleContext(CGSize(width: 160, height: 160))
+              context: RemoteArtwork.downsampleContext(
+                CGSize(width: 160, height: 160), scale: displayScale)
             ) { image in
               image
                 .resizable()

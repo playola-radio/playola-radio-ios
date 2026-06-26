@@ -8,6 +8,7 @@ import SDWebImageSwiftUI
 import SwiftUI
 
 struct PrizeTierRow: View {
+  @Environment(\.displayScale) private var displayScale
   let tierLabel: String
   let prizeTier: PrizeTier
   let requiredHoursLabel: String
@@ -33,7 +34,8 @@ struct PrizeTierRow: View {
 
         WebImage(
           url: prizeTier.imageIconUrl,
-          context: RemoteArtwork.downsampleContext(CGSize(width: 28, height: 28))
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 28, height: 28), scale: displayScale)
         )
         .renderingMode(.template)
         .resizable()

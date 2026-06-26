@@ -13,6 +13,7 @@ import Sharing
 import SwiftUI
 
 struct SmallPlayer: View {
+  @Environment(\.displayScale) private var displayScale
   @Shared(.nowPlaying) var nowPlaying: NowPlaying?
   @Dependency(\.likesManager) var likesManager
   @Dependency(\.stationPlayer) var stationPlayer
@@ -57,7 +58,9 @@ struct SmallPlayer: View {
       HStack(spacing: 16) {
         // Artwork
         WebImage(
-          url: artworkURL, context: RemoteArtwork.downsampleContext(CGSize(width: 64, height: 64))
+          url: artworkURL,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 64, height: 64), scale: displayScale)
         ) { image in
           image
             .resizable()

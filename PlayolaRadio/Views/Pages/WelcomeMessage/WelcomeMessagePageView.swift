@@ -13,6 +13,7 @@ private enum WelcomePalette {
 }
 
 struct WelcomeMessagePageView: View {
+  @Environment(\.displayScale) private var displayScale
   let model: WelcomeMessagePageModel
 
   var body: some View {
@@ -22,7 +23,8 @@ struct WelcomeMessagePageView: View {
           WebImage(
             url: model.imageURL,
             context: RemoteArtwork.downsampleContext(
-              CGSize(width: geo.size.width, height: geo.size.height * 0.44))
+              CGSize(width: geo.size.width, height: geo.size.height * 0.44),
+              scale: displayScale)
           ) { image in
             image.resizable()
           } placeholder: {

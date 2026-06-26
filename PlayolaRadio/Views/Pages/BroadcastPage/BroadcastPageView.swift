@@ -181,6 +181,7 @@ struct BroadcastPageView: View {
 // MARK: - Staging Row View
 
 struct StagingRowView: View {
+  @Environment(\.displayScale) private var displayScale
   let item: any StagingItem
 
   var body: some View {
@@ -188,7 +189,9 @@ struct StagingRowView: View {
       // Icon or album image
       if let imageUrl = item.albumImageUrl {
         WebImage(
-          url: imageUrl, context: RemoteArtwork.downsampleContext(CGSize(width: 40, height: 40))
+          url: imageUrl,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 40, height: 40), scale: displayScale)
         )
         .resizable()
         .aspectRatio(contentMode: .fill)
@@ -549,6 +552,7 @@ struct BroadcastActionButton: View {
 // MARK: - Schedule Item Image
 
 struct ScheduleItemImage: View {
+  @Environment(\.displayScale) private var displayScale
   let spin: Spin
 
   var body: some View {
@@ -556,7 +560,9 @@ struct ScheduleItemImage: View {
     case "song":
       if let imageUrl = spin.audioBlock.imageUrl {
         WebImage(
-          url: imageUrl, context: RemoteArtwork.downsampleContext(CGSize(width: 45, height: 45))
+          url: imageUrl,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 45, height: 45), scale: displayScale)
         )
         .resizable()
         .aspectRatio(contentMode: .fill)

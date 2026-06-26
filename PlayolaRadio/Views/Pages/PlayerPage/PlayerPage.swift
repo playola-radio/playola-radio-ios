@@ -11,6 +11,7 @@ import SwiftUI
 struct PlayerPage: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.scenePhase) var scenePhase
+  @Environment(\.displayScale) private var displayScale
   @Bindable var model: PlayerPageModel
 
   var body: some View {
@@ -59,7 +60,8 @@ struct PlayerPage: View {
           context: RemoteArtwork.downsampleContext(
             CGSize(
               width: UIScreen.main.bounds.width - 148,
-              height: UIScreen.main.bounds.width - 148))
+              height: UIScreen.main.bounds.width - 148),
+            scale: displayScale)
         ) { image in
           image
             .resizable()

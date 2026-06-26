@@ -262,6 +262,7 @@ struct SectionHeader: View {
 // MARK: - Library Song Row
 
 struct LibrarySongRow: View {
+  @Environment(\.displayScale) private var displayScale
   let song: LibrarySong
   let isProcessing: Bool
   let hasPendingRequest: Bool
@@ -276,7 +277,9 @@ struct LibrarySongRow: View {
     HStack(spacing: 12) {
       if let imageUrl = song.imageUrl {
         WebImage(
-          url: imageUrl, context: RemoteArtwork.downsampleContext(CGSize(width: 45, height: 45))
+          url: imageUrl,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 45, height: 45), scale: displayScale)
         )
         .resizable()
         .aspectRatio(contentMode: .fill)
@@ -362,6 +365,7 @@ struct LibrarySongRow: View {
 // MARK: - Library Request Row
 
 struct LibraryRequestRow: View {
+  @Environment(\.displayScale) private var displayScale
   let request: StationLibraryRequest
   let typeLabel: String
   let typeColor: Color
@@ -379,7 +383,9 @@ struct LibraryRequestRow: View {
       ZStack(alignment: .bottomTrailing) {
         if let imageUrl = request.imageUrl {
           WebImage(
-            url: imageUrl, context: RemoteArtwork.downsampleContext(CGSize(width: 45, height: 45))
+            url: imageUrl,
+            context: RemoteArtwork.downsampleContext(
+              CGSize(width: 45, height: 45), scale: displayScale)
           )
           .resizable()
           .aspectRatio(contentMode: .fill)

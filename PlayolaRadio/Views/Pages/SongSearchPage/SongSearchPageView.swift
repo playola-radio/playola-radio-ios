@@ -137,6 +137,7 @@ struct SongSearchPageView: View {
 }
 
 struct SongSearchResultRow: View {
+  @Environment(\.displayScale) private var displayScale
   let audioBlock: AudioBlock
   let onSelect: () -> Void
 
@@ -144,7 +145,9 @@ struct SongSearchResultRow: View {
     HStack(spacing: 12) {
       if let imageUrl = audioBlock.imageUrl {
         WebImage(
-          url: imageUrl, context: RemoteArtwork.downsampleContext(CGSize(width: 45, height: 45))
+          url: imageUrl,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 45, height: 45), scale: displayScale)
         )
         .resizable()
         .aspectRatio(contentMode: .fill)
@@ -191,6 +194,7 @@ struct SongSearchResultRow: View {
 }
 
 struct SongRequestResultRow: View {
+  @Environment(\.displayScale) private var displayScale
   let songRequest: SongRequest
   var buttonText: String = "REQUEST"
   var isProcessing: Bool = false
@@ -200,7 +204,9 @@ struct SongRequestResultRow: View {
     HStack(spacing: 12) {
       if let imageUrl = songRequest.imageUrl {
         WebImage(
-          url: imageUrl, context: RemoteArtwork.downsampleContext(CGSize(width: 45, height: 45))
+          url: imageUrl,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 45, height: 45), scale: displayScale)
         )
         .resizable()
         .aspectRatio(contentMode: .fill)
