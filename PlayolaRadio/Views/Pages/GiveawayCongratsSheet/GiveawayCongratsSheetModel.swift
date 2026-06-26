@@ -350,8 +350,13 @@ class GiveawayCongratsSheetModel: ViewModel {
     {
       return "wav"
     }
-    if Array(bytes[4..<8]) == Array("ftyp".utf8) {
-      return "m4a"
+    // An `ftyp` box marks an ISO Base Media file; confirm the major brand is MPEG-4 audio/video before
+    // claiming `m4a`, so a MOV/HEIF/other ISO container isn't silently renamed.
+    if Array(bytes[4..<8]) == Array("ftyp".utf8), bytes.count >= 12 {
+      let knownM4ABrands = ["M4A ", "isom", "mp42", "mp41"].map { Array($0.utf8) }
+      if knownM4ABrands.contains(Array(bytes[8..<12])) {
+        return "m4a"
+      }
     }
     return nil
   }

@@ -275,6 +275,61 @@ struct GiveawayCongratsSheetModelTests {
     try? FileManager.default.removeItem(at: source)
   }
 
+  @Test func stopRecordingDetectsRealM4AByMajorBrand() async throws {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock {
+      $0 = [
+        "e1": CongratsAction(
+          eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
+          state: .pending, startedAt: Date())
+      ]
+    }
+    // A genuine MPEG-4 audio file: `ftyp` box (4-byte size) + the `M4A ` major brand.
+    let source = FileManager.default.temporaryDirectory
+      .appendingPathComponent("voicetrack_\(UUID().uuidString)")
+    try Data([0, 0, 0, 0x18, 0x66, 0x74, 0x79, 0x70, 0x4D, 0x34, 0x41, 0x20]).write(to: source)
+    let model = withDependencies {
+      $0.audioRecorder.stopRecording = { source }
+      $0.audioPlayer.loadFile = { _ in }
+      $0.audioPlayer.duration = { 5 }
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
+    }
+    await model.onStopTapped()
+    #expect(model.recordingURL?.pathExtension == "m4a")
+    if let url = model.recordingURL { try? FileManager.default.removeItem(at: url) }
+    try? FileManager.default.removeItem(at: source)
+  }
+
+  @Test func stopRecordingDoesNotMisclassifyQuickTimeAsM4A() async throws {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock {
+      $0 = [
+        "e1": CongratsAction(
+          eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
+          state: .pending, startedAt: Date())
+      ]
+    }
+    // A QuickTime MOV also starts with an `ftyp` box, but its `qt  ` brand must not be read as M4A.
+    let source = FileManager.default.temporaryDirectory
+      .appendingPathComponent("voicetrack_\(UUID().uuidString).mov")
+    try Data([0, 0, 0, 0x14, 0x66, 0x74, 0x79, 0x70, 0x71, 0x74, 0x20, 0x20]).write(to: source)
+    let model = withDependencies {
+      $0.audioRecorder.stopRecording = { source }
+      $0.audioPlayer.loadFile = { _ in }
+      $0.audioPlayer.duration = { 5 }
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
+    }
+    await model.onStopTapped()
+    // Unrecognized container falls back to the source extension — never silently renamed `.m4a`.
+    #expect(model.recordingURL?.pathExtension == "mov")
+    if let url = model.recordingURL { try? FileManager.default.removeItem(at: url) }
+    try? FileManager.default.removeItem(at: source)
+  }
+
   @Test func sendNormalizesStaleMislabeledRecordingBeforeConversion() async throws {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
