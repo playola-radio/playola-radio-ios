@@ -50,7 +50,11 @@ struct NoOpAudioSession: AudioSessionProtocol {
 /// are isolation-correct by construction.
 @MainActor
 protocol AudioInterruptionDelegate: AnyObject {
-  func audioSessionShouldPause()
+  /// `shouldAutoResume` is true for an interruption begin (the system may later
+  /// tell us to resume via `.shouldResume`) and false for a route loss
+  /// (headphone/Bluetooth unplug), where recovery is manual only — we must not
+  /// blast audio out of the speaker on the next unrelated `.shouldResume`.
+  func audioSessionShouldPause(shouldAutoResume: Bool)
   func audioSessionShouldResume()
 }
 
@@ -185,7 +189,7 @@ final class AudioSessionCoordinator {
   ) {
     switch type {
     case .began:
-      delegate?.audioSessionShouldPause()
+      delegate?.audioSessionShouldPause(shouldAutoResume: true)
     case .ended where options.contains(.shouldResume):
       delegate?.audioSessionShouldResume()
     case .ended:
@@ -202,7 +206,8 @@ final class AudioSessionCoordinator {
     reason: AVAudioSession.RouteChangeReason, previousHadHeadphones: Bool
   ) {
     guard reason == .oldDeviceUnavailable, previousHadHeadphones else { return }
-    delegate?.audioSessionShouldPause()
+    // Route loss: pause but do NOT arm auto-resume (manual recovery only).
+    delegate?.audioSessionShouldPause(shouldAutoResume: false)
   }
 }
 

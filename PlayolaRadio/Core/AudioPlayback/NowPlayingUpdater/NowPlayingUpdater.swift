@@ -472,7 +472,7 @@ class NowPlayingUpdater {
         $0 = NowPlaying(
           artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
           titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
-          albumArtworkUrl: nil,
+          albumArtworkUrl: $0?.albumArtworkUrl,  // keep artwork across the pause
           playolaSpinPlaying: nil,
           currentStation: currentStation,
           playbackStatus: .paused(currentStation)

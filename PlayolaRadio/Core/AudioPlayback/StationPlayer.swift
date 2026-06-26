@@ -348,7 +348,7 @@ class StationPlayer: ObservableObject {
         playbackStatus: .paused(currentStation),
         artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
         titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
-        albumArtworkUrl: nil
+        albumArtworkUrl: state.albumArtworkUrl  // keep artwork across the pause
       )
       return
     }
@@ -392,9 +392,11 @@ class StationPlayer: ObservableObject {
 
 extension StationPlayer: AudioInterruptionDelegate {
   /// The coordinator detected an interruption begin or a personal-listening
-  /// route loss. Remember that WE were paused by the system, then pause.
-  func audioSessionShouldPause() {
-    pausedBySystem = true
+  /// route loss. Arm auto-resume only for interruptions (`shouldAutoResume`);
+  /// a route loss requires manual resume (lock-screen play), so we do not arm
+  /// the flag and a later unrelated `.shouldResume` cannot restart it.
+  func audioSessionShouldPause(shouldAutoResume: Bool) {
+    pausedBySystem = shouldAutoResume
     pause()
   }
 
