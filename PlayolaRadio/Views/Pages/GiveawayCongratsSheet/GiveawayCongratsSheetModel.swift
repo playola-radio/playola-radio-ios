@@ -350,7 +350,13 @@ class GiveawayCongratsSheetModel: ViewModel {
     {
       return "wav"
     }
-    if Array(bytes[4..<8]) == Array("ftyp".utf8) {
+    // An `ftyp` box marks an ISO Base Media file, but that family also covers MP4 video, MOV, and HEIF.
+    // Only the `M4A ` major brand (trailing space) is audio-exclusive — generic brands like `isom`/`mp42`
+    // are shared with video, so matching them would misname a `.mp4` video as `m4a` (the very failure this
+    // is meant to prevent). Require `M4A ` at bytes 8–12; anything else falls back to the source extension.
+    if Array(bytes[4..<8]) == Array("ftyp".utf8), bytes.count >= 12,
+      Array(bytes[8..<12]) == Array("M4A ".utf8)
+    {
       return "m4a"
     }
     return nil
