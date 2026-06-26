@@ -276,11 +276,14 @@ struct GiveawayCongratsSheetModelTests {
   }
 
   @Test func stopRecordingDetectsRealM4AByMajorBrand() async throws {
-    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [
-      "e1": CongratsAction(
-        eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
-        state: .pending, startedAt: Date())
-    ]
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock {
+      $0 = [
+        "e1": CongratsAction(
+          eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
+          state: .pending, startedAt: Date())
+      ]
+    }
     // A genuine MPEG-4 audio file: `ftyp` box (4-byte size) + the `M4A ` major brand.
     let source = FileManager.default.temporaryDirectory
       .appendingPathComponent("voicetrack_\(UUID().uuidString)")
@@ -300,11 +303,14 @@ struct GiveawayCongratsSheetModelTests {
   }
 
   @Test func stopRecordingDoesNotMisclassifyQuickTimeAsM4A() async throws {
-    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [
-      "e1": CongratsAction(
-        eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
-        state: .pending, startedAt: Date())
-    ]
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock {
+      $0 = [
+        "e1": CongratsAction(
+          eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
+          state: .pending, startedAt: Date())
+      ]
+    }
     // A QuickTime MOV also starts with an `ftyp` box, but its `qt  ` brand must not be read as M4A.
     let source = FileManager.default.temporaryDirectory
       .appendingPathComponent("voicetrack_\(UUID().uuidString).mov")
