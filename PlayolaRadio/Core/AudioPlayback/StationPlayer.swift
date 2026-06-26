@@ -163,6 +163,32 @@ class StationPlayer: ObservableObject {
     state = State(playbackStatus: .stopped)
   }
 
+  /// Pauses whichever backend is active (driven by interruptions / route loss).
+  /// Routes Playola through the SDK's pauseForInterruption(); URL stations
+  /// through the vendored player. No-op when nothing is playing.
+  func pause() {
+    switch currentStation {
+    case .some(.playola): playolaStationPlayer.pauseForInterruption()
+    case .some(.url): urlStreamPlayer.pause()
+    case .none: break
+    }
+  }
+
+  /// Resumes the active backend after an interruption. We own the session now,
+  /// so reactivate it first; a failure surfaces as .error via handlePlayFailure.
+  func resume() async {
+    do {
+      try audioSessionCoordinator.configureForPlayback()
+      switch currentStation {
+      case .some(.playola): try await playolaStationPlayer.resumeAfterInterruption()
+      case .some(.url): urlStreamPlayer.resume()
+      case .none: break
+      }
+    } catch {
+      handlePlayFailure(error)
+    }
+  }
+
   /// Seeks to the next station in the artist list, wrapping around if at the end
   public func seekNext() async {
     let stations = seekableStations()
