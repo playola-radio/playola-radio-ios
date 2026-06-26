@@ -17,7 +17,10 @@ struct SongDrawerView: View {
 
       // HEADER
       HStack(spacing: 16) {
-        WebImage(url: model.audioBlock.imageUrl) { image in
+        WebImage(
+          url: model.audioBlock.imageUrl,
+          context: RemoteArtwork.downsampleContext(CGSize(width: 48, height: 48))
+        ) { image in
           image
             .resizable()
             .aspectRatio(contentMode: .fill)

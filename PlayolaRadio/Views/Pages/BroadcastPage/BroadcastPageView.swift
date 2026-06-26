@@ -187,11 +187,13 @@ struct StagingRowView: View {
     HStack(spacing: 12) {
       // Icon or album image
       if let imageUrl = item.albumImageUrl {
-        WebImage(url: imageUrl)
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-          .frame(width: 40, height: 40)
-          .clipShape(Circle())
+        WebImage(
+          url: imageUrl, context: RemoteArtwork.downsampleContext(CGSize(width: 40, height: 40))
+        )
+        .resizable()
+        .aspectRatio(contentMode: .fill)
+        .frame(width: 40, height: 40)
+        .clipShape(Circle())
       } else if let icon = item.icon {
         ZStack {
           Circle()
@@ -553,11 +555,13 @@ struct ScheduleItemImage: View {
     switch spin.audioBlock.type {
     case "song":
       if let imageUrl = spin.audioBlock.imageUrl {
-        WebImage(url: imageUrl)
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-          .frame(width: 45, height: 45)
-          .clipped()
+        WebImage(
+          url: imageUrl, context: RemoteArtwork.downsampleContext(CGSize(width: 45, height: 45))
+        )
+        .resizable()
+        .aspectRatio(contentMode: .fill)
+        .frame(width: 45, height: 45)
+        .clipped()
       } else {
         RoundedRectangle(cornerRadius: 4)
           .fill(Color(hex: "#666666"))

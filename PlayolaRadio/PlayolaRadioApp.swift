@@ -215,6 +215,13 @@ struct PlayolaRadioApp: App {
     // Register SVG coder for SDWebImage
     SDImageCodersManager.shared.addCoder(SDImageSVGCoder.shared)
 
+    // Cap SDWebImage's in-memory decoded-image cache so cached artwork can't
+    // dominate graphics memory and trigger jetsam during long sessions.
+    // maxMemoryCost is decoded pixel bytes (~width*height*4); 64 MB holds a
+    // few hundred downsampled thumbnails, well under the device pressure point.
+    SDImageCache.shared.config.maxMemoryCost = 64 * 1024 * 1024
+    SDImageCache.shared.config.maxMemoryCount = 100
+
     @Dependency(\.nowPlayingUpdater) var nowPlayingUpdater
     nowPlayingUpdater.setupRemoteControlCenter()
 

@@ -22,7 +22,10 @@ struct StationCardView: View {
       label: {
         HStack(spacing: 2) {
           ZStack(alignment: .topLeading) {
-            WebImage(url: imageURL) { image in
+            WebImage(
+              url: imageURL,
+              context: RemoteArtwork.downsampleContext(CGSize(width: 160, height: 160))
+            ) { image in
               image
                 .resizable()
                 .aspectRatio(contentMode: .fill)
@@ -83,7 +86,7 @@ struct HomePageStationList: View {
         .foregroundColor(.white)
         .padding(.bottom, 8)
 
-      VStack(spacing: 12) {
+      LazyVStack(spacing: 12) {
         ForEach(stations) { station in
           StationCardView(
             station: station,

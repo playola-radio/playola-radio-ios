@@ -56,7 +56,9 @@ struct SmallPlayer: View {
       // Player bar
       HStack(spacing: 16) {
         // Artwork
-        WebImage(url: artworkURL) { image in
+        WebImage(
+          url: artworkURL, context: RemoteArtwork.downsampleContext(CGSize(width: 64, height: 64))
+        ) { image in
           image
             .resizable()
             .scaledToFill()

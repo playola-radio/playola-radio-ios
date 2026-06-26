@@ -77,11 +77,13 @@ struct ListenerQuestionDetailPageView: View {
   private var listenerAvatar: some View {
     Group {
       if let imageUrl = model.listenerProfileImageUrl {
-        WebImage(url: imageUrl)
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-          .frame(width: 48, height: 48)
-          .clipShape(Circle())
+        WebImage(
+          url: imageUrl, context: RemoteArtwork.downsampleContext(CGSize(width: 48, height: 48))
+        )
+        .resizable()
+        .aspectRatio(contentMode: .fill)
+        .frame(width: 48, height: 48)
+        .clipShape(Circle())
       } else {
         Circle()
           .fill(Color.elevatedSurface)

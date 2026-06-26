@@ -86,7 +86,9 @@ struct SeriesCard: View {
     HStack(alignment: .top, spacing: 12) {
       // Station Image
       if let imageUrl = model.showWithAirings.station?.imageUrl {
-        WebImage(url: imageUrl) { image in
+        WebImage(
+          url: imageUrl, context: RemoteArtwork.downsampleContext(CGSize(width: 48, height: 48))
+        ) { image in
           image
             .resizable()
             .aspectRatio(contentMode: .fill)

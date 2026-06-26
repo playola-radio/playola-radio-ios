@@ -19,7 +19,11 @@ struct WelcomeMessagePageView: View {
     GeometryReader { geo in
       VStack(spacing: 0) {
         ZStack(alignment: .bottom) {
-          WebImage(url: model.imageURL) { image in
+          WebImage(
+            url: model.imageURL,
+            context: RemoteArtwork.downsampleContext(
+              CGSize(width: geo.size.width, height: geo.size.height * 0.44))
+          ) { image in
             image.resizable()
           } placeholder: {
             WelcomePalette.cardSurface

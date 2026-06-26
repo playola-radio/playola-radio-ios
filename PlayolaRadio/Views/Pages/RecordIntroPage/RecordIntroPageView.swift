@@ -89,12 +89,14 @@ struct RecordIntroPageView: View {
   private var songInfoHeader: some View {
     HStack(spacing: 12) {
       if let imageUrl = model.songImageUrl {
-        WebImage(url: imageUrl)
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-          .frame(width: 56, height: 56)
-          .cornerRadius(6)
-          .clipped()
+        WebImage(
+          url: imageUrl, context: RemoteArtwork.downsampleContext(CGSize(width: 56, height: 56))
+        )
+        .resizable()
+        .aspectRatio(contentMode: .fill)
+        .frame(width: 56, height: 56)
+        .cornerRadius(6)
+        .clipped()
       } else {
         RoundedRectangle(cornerRadius: 6)
           .fill(Color(hex: "#666666"))

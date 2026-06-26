@@ -31,13 +31,16 @@ struct PrizeTierRow: View {
           .fill(Color(white: 0.15))
           .frame(width: 56, height: 56)
 
-        WebImage(url: prizeTier.imageIconUrl)
-          .renderingMode(.template)
-          .resizable()
-          .aspectRatio(contentMode: .fit)
-          .frame(width: 28, height: 28)
-          .foregroundColor(
-            isRedeemed ? Color(red: 153 / 255, green: 153 / 255, blue: 153 / 255) : .white)
+        WebImage(
+          url: prizeTier.imageIconUrl,
+          context: RemoteArtwork.downsampleContext(CGSize(width: 28, height: 28))
+        )
+        .renderingMode(.template)
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+        .frame(width: 28, height: 28)
+        .foregroundColor(
+          isRedeemed ? Color(red: 153 / 255, green: 153 / 255, blue: 153 / 255) : .white)
       }
 
       // Content

@@ -141,7 +141,10 @@ struct NotificationsSettingsPageView: View {
 
   private func stationRow(item: StationNotificationItem) -> some View {
     HStack(spacing: 16) {
-      WebImage(url: item.station.imageUrl) { image in
+      WebImage(
+        url: item.station.imageUrl,
+        context: RemoteArtwork.downsampleContext(CGSize(width: 56, height: 56))
+      ) { image in
         image
           .resizable()
           .aspectRatio(contentMode: .fill)

@@ -275,11 +275,13 @@ struct LibrarySongRow: View {
   var body: some View {
     HStack(spacing: 12) {
       if let imageUrl = song.imageUrl {
-        WebImage(url: imageUrl)
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-          .frame(width: 45, height: 45)
-          .clipped()
+        WebImage(
+          url: imageUrl, context: RemoteArtwork.downsampleContext(CGSize(width: 45, height: 45))
+        )
+        .resizable()
+        .aspectRatio(contentMode: .fill)
+        .frame(width: 45, height: 45)
+        .clipped()
       } else {
         RoundedRectangle(cornerRadius: 4)
           .fill(Color(hex: "#666666"))
@@ -376,11 +378,13 @@ struct LibraryRequestRow: View {
     HStack(spacing: 12) {
       ZStack(alignment: .bottomTrailing) {
         if let imageUrl = request.imageUrl {
-          WebImage(url: imageUrl)
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-            .frame(width: 45, height: 45)
-            .clipped()
+          WebImage(
+            url: imageUrl, context: RemoteArtwork.downsampleContext(CGSize(width: 45, height: 45))
+          )
+          .resizable()
+          .aspectRatio(contentMode: .fill)
+          .frame(width: 45, height: 45)
+          .clipped()
         } else {
           RoundedRectangle(cornerRadius: 4)
             .fill(Color(hex: "#666666"))

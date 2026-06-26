@@ -36,7 +36,10 @@ private struct StationRow: View {
 
   var body: some View {
     HStack(spacing: 16) {
-      WebImage(url: station.imageUrl) { image in
+      WebImage(
+        url: station.imageUrl,
+        context: RemoteArtwork.downsampleContext(CGSize(width: 64, height: 64))
+      ) { image in
         image
           .resizable()
           .aspectRatio(contentMode: .fill)

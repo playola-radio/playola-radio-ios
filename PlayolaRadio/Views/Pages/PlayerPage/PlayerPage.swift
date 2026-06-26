@@ -54,7 +54,13 @@ struct PlayerPage: View {
       ScrollView {
 
         // Main Image
-        WebImage(url: model.stationArtUrl) { image in
+        WebImage(
+          url: model.stationArtUrl,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(
+              width: UIScreen.main.bounds.width - 148,
+              height: UIScreen.main.bounds.width - 148))
+        ) { image in
           image
             .resizable()
             .aspectRatio(contentMode: .fill)

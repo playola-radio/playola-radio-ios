@@ -115,7 +115,10 @@ struct SongRow: View {
   var body: some View {
     HStack(spacing: 12) {
       // Album Art Placeholder
-      WebImage(url: audioBlock.imageUrl) { image in
+      WebImage(
+        url: audioBlock.imageUrl,
+        context: RemoteArtwork.downsampleContext(CGSize(width: 56, height: 56))
+      ) { image in
         image
           .resizable()
           .aspectRatio(contentMode: .fill)
