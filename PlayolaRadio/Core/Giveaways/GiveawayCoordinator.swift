@@ -68,7 +68,16 @@ final class GiveawayCoordinator {
     feedPollTask?.cancel()
     feedPollTask = nil
     cancellables.removeAll()
-    cancelArmedReveal()
+    if GiveawayFeature.isLiveDataEnabled {
+      // Ordinary stop (app backgrounded): cancel the timer but KEEP the published state
+      // (activeGiveaway + upcomingGiveaways) so the overlay/badges don't flicker on the next
+      // foreground — `reconcile()` refreshes them then.
+      cancelArmedReveal()
+    } else {
+      // Feature disabled: tear everything down so no stale giveaway state lingers on screen.
+      clearActiveAndArm()
+      $upcomingGiveaways.withLock { $0 = [] }
+    }
   }
 
   /// Immediate reconcile (on foreground / now-playing change).

@@ -346,6 +346,23 @@ struct GiveawayCoordinatorTests {
     #expect(upcomingGiveaways[id: "s2"]?.event.id == "e2")
   }
 
+  @Test func stopKeepsUpcomingWhileFeatureEnabledClearsWhenDisabled() {
+    // Backgrounding (stop) must NOT clear the badges while the feature is on — they survive to the
+    // next foreground so the list/Home don't flicker. When the feature is disabled, stop() tears the
+    // projection down so nothing stale lingers.
+    @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
+      UpcomingGiveawayInfo(
+        event: GiveawayEvent(
+          id: "e1", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled))
+    ]
+    GiveawayCoordinator().stop()
+    if GiveawayFeature.isLiveDataEnabled {
+      #expect(upcomingGiveaways[id: "s1"]?.event.id == "e1")
+    } else {
+      #expect(upcomingGiveaways.isEmpty)
+    }
+  }
+
   // MARK: - tap
 
   private func openEvent(id: String = "e1") -> GiveawayEvent {
