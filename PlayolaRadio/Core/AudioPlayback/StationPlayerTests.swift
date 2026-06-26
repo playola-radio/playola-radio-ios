@@ -114,6 +114,33 @@ struct StationPlayerTests {
     #expect(playola.resumeAfterInterruptionCount == 0)
   }
 
+  @Test
+  func interruptionWhileRoutePausedDoesNotArmAutoResume() async {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let coordinator = AudioSessionCoordinator(session: SpyAudioSession())
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+    await player.play(station: .mockPlayola())
+
+    // Route loss (headphones unplugged): pause WITHOUT arming auto-resume.
+    player.audioSessionShouldPause(shouldAutoResume: false)
+    // The backend reports the resulting paused state (as the real SDK would).
+    player.processPlayolaStationPlayerState(.paused(.mock))
+    guard case .paused = player.state.playbackStatus else {
+      Issue.record("expected .paused after route loss, got \(player.state.playbackStatus)")
+      return
+    }
+
+    // A phone-call interruption then begins while already route-paused. Even
+    // though interruptions normally auto-resume, we must NOT re-arm here — route
+    // recovery stays manual — so the interruption's .shouldResume is a no-op.
+    player.audioSessionShouldPause(shouldAutoResume: true)
+    player.audioSessionShouldResume()
+
+    #expect(playola.resumeAfterInterruptionCount == 0)
+  }
+
   // MARK: - Play Failure Tests
 
   @Test

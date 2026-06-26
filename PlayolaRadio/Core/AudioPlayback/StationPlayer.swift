@@ -396,7 +396,18 @@ extension StationPlayer: AudioInterruptionDelegate {
   /// a route loss requires manual resume (lock-screen play), so we do not arm
   /// the flag and a later unrelated `.shouldResume` cannot restart it.
   func audioSessionShouldPause(shouldAutoResume: Bool) {
-    pausedBySystem = shouldAutoResume
+    // Only arm auto-resume when we were actively playing. If we are already
+    // paused (e.g. a prior route loss that requires manual resume), a later
+    // interruption must not flip the flag back on — otherwise its `.shouldResume`
+    // would restart audio that route-loss recovery deliberately left paused.
+    let wasActivelyPlaying: Bool
+    switch state.playbackStatus {
+    case .playing, .loading, .startingNewStation:
+      wasActivelyPlaying = true
+    case .paused, .stopped, .error:
+      wasActivelyPlaying = false
+    }
+    pausedBySystem = shouldAutoResume && wasActivelyPlaying
     pause()
   }
 
