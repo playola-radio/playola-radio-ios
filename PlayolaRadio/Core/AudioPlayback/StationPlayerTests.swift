@@ -19,6 +19,26 @@ private struct PlayFailureTestError: Error {}
 @MainActor
 struct StationPlayerTests {
 
+  // MARK: - Session Ownership Tests
+
+  @Test
+  func playConfiguresSessionBeforeBackendAndSurfacesFailure() async {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let coordinator = AudioSessionCoordinator(session: FailingAudioSession())
+    let player = StationPlayer(audioSessionCoordinator: coordinator)
+
+    await player.play(station: .mockPlayola())
+
+    // The app owns the session now: if activating it fails, play() must surface
+    // .error instead of proceeding into a backend that would throw deep inside
+    // engine.start().
+    guard case .error = player.state.playbackStatus else {
+      Issue.record(
+        "session-config failure must surface as .error, got \(player.state.playbackStatus)")
+      return
+    }
+  }
+
   // MARK: - Play Failure Tests
 
   @Test
