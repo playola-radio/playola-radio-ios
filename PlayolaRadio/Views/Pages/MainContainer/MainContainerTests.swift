@@ -1311,7 +1311,7 @@ extension MainContainerTests {
       defer { $actions.withLock { $0 = [:] } }
       let model = withDependencies {
         $0.date = .constant(Date(timeIntervalSince1970: 200))
-        $0.stationPlayer = StationPlayer()
+        $0.stationPlayer = StationPlayerMock()
       } operation: {
         MainContainerModel()
       }

@@ -233,6 +233,7 @@ struct GiveawayCongratsSheetModelTests {
     let model = withDependencies {
       $0.audioPlayer.loadFile = { url in loaded.setValue(url) }
       $0.audioPlayer.duration = { 7 }
+      $0.stationPlayer = StationPlayerMock()
     } operation: {
       GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
     }
@@ -260,7 +261,7 @@ struct GiveawayCongratsSheetModelTests {
       $0.audioRecorder.stopRecording = { source }
       $0.audioPlayer.loadFile = { _ in }
       $0.audioPlayer.duration = { 5 }
-      $0.stationPlayer = StationPlayer()
+      $0.stationPlayer = StationPlayerMock()
     } operation: {
       GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
     }
@@ -296,7 +297,7 @@ struct GiveawayCongratsSheetModelTests {
         return AudioBlock.mockWith()
       }
       $0.api.recordGiveawayEventCongrats = { _, _, _ in }
-      $0.stationPlayer = StationPlayer()
+      $0.stationPlayer = StationPlayerMock()
     } operation: {
       GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
     }
@@ -310,8 +311,7 @@ struct GiveawayCongratsSheetModelTests {
   @Test func viewAppearedStopsStationPlayback() async {
     @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
     $actions.withLock { $0 = ["e1": recordedAction()] }
-    let stationPlayer = StationPlayer()
-    stationPlayer.state = StationPlayer.State(playbackStatus: .playing(AnyStation.mock))
+    let stationPlayer = StationPlayerMock.mockPlayingPlayer()
     let model = withDependencies {
       $0.stationPlayer = stationPlayer
       $0.audioPlayer.loadFile = { _ in }
@@ -321,7 +321,7 @@ struct GiveawayCongratsSheetModelTests {
     }
     await model.viewAppeared()
     // The station must be muted as soon as the congrats sheet appears, for both recording and review.
-    expectNoDifference(stationPlayer.state.playbackStatus, .stopped)
+    expectNoDifference(stationPlayer.stopCalledCount, 1)
   }
 
   @Test func skipWhileRecordingStopsTheRecorder() async {
