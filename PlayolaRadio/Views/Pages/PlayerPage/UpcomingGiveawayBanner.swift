@@ -36,6 +36,7 @@ struct UpcomingGiveawayBanner: View {
     )
     .padding(.horizontal, 24)
     .frame(height: model.isVisible ? nil : 0)
+    .padding(.top, model.isVisible ? 8 : 0)
     .opacity(model.bannerOpacity)
     .allowsHitTesting(false)
     .clipped()
@@ -48,7 +49,6 @@ struct UpcomingGiveawayBanner: View {
       station: AnyStation.mockPlayola(id: "preview-station"))
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       UpcomingGiveawayInfo(
-        stationId: "preview-station",
         event: GiveawayEvent(
           id: "preview-giveaway", stationId: "preview-station",
           prizeName: "Two tickets to Reckless Kelly", winningNumber: 9, status: .scheduled))

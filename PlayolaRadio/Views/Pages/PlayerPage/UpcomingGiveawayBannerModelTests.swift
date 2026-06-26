@@ -17,7 +17,6 @@ struct UpcomingGiveawayBannerModelTests {
     -> UpcomingGiveawayInfo
   {
     UpcomingGiveawayInfo(
-      stationId: station,
       event: GiveawayEvent(
         id: id, stationId: station, prizeName: prize, winningNumber: 9, status: .scheduled))
   }

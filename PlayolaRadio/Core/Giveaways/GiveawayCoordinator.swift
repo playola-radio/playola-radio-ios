@@ -373,11 +373,15 @@ final class GiveawayCoordinator {
   /// per station (the soonest by `opensAt`). An open event is excluded here — it's owned by the tap
   /// overlay — so publishing from a fresh feed also drops a station whose event just opened or closed.
   private func publishUpcoming(from feed: [GiveawayEvent]) {
-    let scheduled = feed.filter { $0.status == .scheduled }
+    // Exclude the station whose contest we've already revealed: after a local optimistic reveal the
+    // feed can still report it `.scheduled` for a poll or two, which would otherwise re-show a
+    // "coming up" badge for a station that's actually open (the tap overlay is up).
+    let openStationId = activeGiveaway?.status == .open ? activeGiveaway?.stationId : nil
+    let scheduled = feed.filter { $0.status == .scheduled && $0.stationId != openStationId }
     let soonestPerStation = Dictionary(grouping: scheduled, by: \.stationId)
-      .compactMap { stationId, events -> UpcomingGiveawayInfo? in
+      .compactMap { _, events -> UpcomingGiveawayInfo? in
         events.min(by: { ($0.opensAt ?? .distantFuture) < ($1.opensAt ?? .distantFuture) })
-          .map { UpcomingGiveawayInfo(stationId: stationId, event: $0) }
+          .map { UpcomingGiveawayInfo(event: $0) }
       }
     $upcomingGiveaways.withLock { $0 = IdentifiedArray(uniqueElements: soonestPerStation) }
   }

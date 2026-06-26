@@ -235,6 +235,7 @@ struct GiveawayCoordinatorTests {
     let base = Date(timeIntervalSince1970: 1000)
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = []
     await withDependencies {
       $0.api.giveawayEventsFeed = { _ in
@@ -274,7 +275,6 @@ struct GiveawayCoordinatorTests {
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = .mock
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       UpcomingGiveawayInfo(
-        stationId: "s1",
         event: GiveawayEvent(
           id: "e1", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled))
     ]
@@ -288,11 +288,9 @@ struct GiveawayCoordinatorTests {
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       UpcomingGiveawayInfo(
-        stationId: "s1",
         event: GiveawayEvent(
           id: "e1", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled)),
       UpcomingGiveawayInfo(
-        stationId: "s2",
         event: GiveawayEvent(
           id: "e2", stationId: "s2", prizeName: "P", winningNumber: 9, status: .scheduled)),
     ]

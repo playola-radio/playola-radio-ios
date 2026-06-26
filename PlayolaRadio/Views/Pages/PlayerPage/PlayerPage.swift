@@ -133,7 +133,6 @@ struct PlayerPage: View {
 
         // Upcoming-giveaway banner (hidden until a giveaway is coming up for this station)
         UpcomingGiveawayBanner(model: model.upcomingGiveawayBannerModel)
-          .padding(.top, 8)
 
         // Giveaway overlay (hidden until an open giveaway is live for this station)
         GiveawayPlayerOverlayView(model: model.giveawayOverlayModel)
