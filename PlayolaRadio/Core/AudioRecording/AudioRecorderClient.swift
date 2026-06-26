@@ -67,7 +67,8 @@ public final class RecordingSession: Sendable {
 extension AudioRecorderClient: DependencyKey {
   public static var liveValue: AudioRecorderClient {
     @Dependency(\.uuid) var uuid
-    let recorder = LiveAudioRecorder()
+    @Dependency(\.audioSessionCoordinator) var audioSessionCoordinator
+    let recorder = LiveAudioRecorder(coordinator: audioSessionCoordinator)
 
     @Sendable func makeRecordingURL() -> URL {
       FileManager.default.temporaryDirectory
@@ -176,6 +177,15 @@ private actor LiveAudioRecorder {
   private var isPrepared = false
   private var waveformSamples: [Float] = []
 
+  /// The app's single AVAudioSession owner. The recorder no longer touches the
+  /// session directly — it asks the coordinator to switch to `.playAndRecord`
+  /// and to restore `.playback` afterwards.
+  private let coordinator: AudioSessionCoordinator
+
+  init(coordinator: AudioSessionCoordinator) {
+    self.coordinator = coordinator
+  }
+
   private let recordingSettings: [String: Any] = [
     AVFormatIDKey: Int(kAudioFormatLinearPCM),
     AVSampleRateKey: 44100.0,
@@ -193,17 +203,18 @@ private actor LiveAudioRecorder {
     }
   }
 
-  func prepareForRecording() throws {
-    let session = AVAudioSession.sharedInstance()
-    try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
-    try session.setActive(true)
+  func prepareForRecording() async throws {
+    // Defer to the single session owner instead of configuring AVAudioSession
+    // here; this switches the process-global session to .playAndRecord and
+    // activates it.
+    try await coordinator.configureForRecording()
     isPrepared = true
   }
 
-  func startRecording(at url: URL) throws {
+  func startRecording(at url: URL) async throws {
     // Always prepare audio session before recording - the session may have been
     // reconfigured by other audio components (e.g., StationPlayer) since last prepare
-    try prepareForRecording()
+    try await prepareForRecording()
 
     let recorder = try AVAudioRecorder(url: url, settings: recordingSettings)
     recorder.isMeteringEnabled = true
@@ -222,7 +233,7 @@ private actor LiveAudioRecorder {
     waveformSamples
   }
 
-  func stopRecording() throws -> URL {
+  func stopRecording() async throws -> URL {
     let recorder = audioRecorder
     let url = recordingURL
     audioRecorder = nil
@@ -233,6 +244,13 @@ private actor LiveAudioRecorder {
     }
 
     recorder.stop()
+    isPrepared = false
+
+    // Restore the playback category (category only — do NOT reactivate; resuming
+    // playback is the caller's explicit decision). Without this the session is
+    // left on .playAndRecord/.defaultToSpeaker, which strands audio on the
+    // phone speaker and breaks AirPlay after a voicetrack.
+    try? await coordinator.restorePlaybackCategory()
     return url
   }
 
