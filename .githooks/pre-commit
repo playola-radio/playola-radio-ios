@@ -16,8 +16,11 @@ fi
 
 echo "Formatting staged Swift files..."
 
-# Format each staged Swift file
+# Format each staged Swift file (vendored third-party code is left as-is)
 for FILE in $STAGED_SWIFT_FILES; do
+    case "$FILE" in
+        */Vendor/*) continue ;;
+    esac
     if [ -f "$FILE" ]; then
         xcrun swift-format format -i "$FILE"
         git add "$FILE"

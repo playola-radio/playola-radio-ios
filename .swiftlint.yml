@@ -1,4 +1,9 @@
 # SwiftLint Configuration
+
+# Vendored third-party code (kept close to upstream) is not linted.
+excluded:
+  - PlayolaRadio/Vendor
+
 disabled_rules:
   - trailing_whitespace
   - trailing_comma
