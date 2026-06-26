@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FAE000000000000000000002 /* AudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000001 /* AudioSessionCoordinator.swift */; };
+		FAE000000000000000000003 /* AudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000001 /* AudioSessionCoordinator.swift */; };
+		FAE000000000000000000005 /* AudioSessionCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */; };
 		FAD00000000000000000000C /* FRadioArtworkAPI+iTunes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000001 /* FRadioArtworkAPI+iTunes.swift */; };
 		FAD000000000000000000016 /* FRadioArtworkAPI+iTunes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000001 /* FRadioArtworkAPI+iTunes.swift */; };
 		FAD00000000000000000000D /* FRadioArtworkAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000002 /* FRadioArtworkAPI.swift */; };
@@ -520,6 +523,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		FAE000000000000000000001 /* AudioSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinator.swift; sourceTree = "<group>"; };
+		FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinatorTests.swift; sourceTree = "<group>"; };
 		FAD000000000000000000001 /* FRadioArtworkAPI+iTunes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FRadioArtworkAPI+iTunes.swift"; sourceTree = "<group>"; };
 		FAD000000000000000000002 /* FRadioArtworkAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FRadioArtworkAPI.swift; sourceTree = "<group>"; };
 		FAD000000000000000000003 /* FRadioMetadataExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FRadioMetadataExtractor.swift; sourceTree = "<group>"; };
@@ -1513,6 +1518,8 @@
 			isa = PBXGroup;
 			children = (
 				D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */,
+				FAE000000000000000000001 /* AudioSessionCoordinator.swift */,
+				FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */,
 				D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */,
 				D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */,
 				D339E56C2BFD2FAB00B9E35B /* URLStreamPlayer.swift */,
@@ -1963,6 +1970,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FAE000000000000000000002 /* AudioSessionCoordinator.swift in Sources */,
 				FAD00000000000000000000C /* FRadioArtworkAPI+iTunes.swift in Sources */,
 				FAD00000000000000000000D /* FRadioArtworkAPI.swift in Sources */,
 				FAD00000000000000000000E /* FRadioMetadataExtractor.swift in Sources */,
@@ -2162,6 +2170,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FAE000000000000000000003 /* AudioSessionCoordinator.swift in Sources */,
 				FAD000000000000000000016 /* FRadioArtworkAPI+iTunes.swift in Sources */,
 				FAD000000000000000000017 /* FRadioArtworkAPI.swift in Sources */,
 				FAD000000000000000000018 /* FRadioMetadataExtractor.swift in Sources */,
@@ -2361,6 +2370,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FAE000000000000000000005 /* AudioSessionCoordinatorTests.swift in Sources */,
 				D35EFC142F1595C5000F64A4 /* SeriesCardTests.swift in Sources */,
 				D3776A1D2F243F8600200ADF /* BroadcastersListenerQuestionPageTests.swift in Sources */,
 				D35EFC532F1A99E6000F64A4 /* ConversationListPageTests.swift in Sources */,
