@@ -112,7 +112,7 @@ class NowPlayingUpdater {
         // Only load if we don't already have this station's artwork
         loadStationArtwork(from: stationPlayerState, station: currentStation)
       }
-    case .playing:
+    case .playing, .paused:
       // Preserve existing artwork
       nowPlayingInfo = preservingExistingArtwork(in: nowPlayingInfo)
     default:
@@ -160,7 +160,7 @@ class NowPlayingUpdater {
     nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = true
 
     switch state.playbackStatus {
-    case .playing:
+    case .playing, .paused:
       populatePlayingInfo(&nowPlayingInfo, state: state, station: station)
     case .loading(_, let progress):
       populateLoadingInfo(&nowPlayingInfo, station: station, progress: progress)
@@ -190,6 +190,13 @@ class NowPlayingUpdater {
       cancelInactivityTimer()
       setupRemoteControlCenter()
       MPNowPlayingInfoCenter.default().playbackState = .playing
+    case .paused:
+      // Interruption pause: keep the Now Playing entry and remote controls alive
+      // so the lock-screen play button can resume. NOT `.stopped` (which tears
+      // the entry down) and no inactivity timer (which would eventually clear it).
+      cancelInactivityTimer()
+      setupRemoteControlCenter()
+      MPNowPlayingInfoCenter.default().playbackState = .paused
     case .stopped, .error:
       if case .stopped = status { startInactivityTimer() }
       MPNowPlayingInfoCenter.default().playbackState = .stopped
@@ -287,7 +294,11 @@ class NowPlayingUpdater {
     in info: inout [String: Any]
   ) {
     guard !status.isLoading else { return }
-    info[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
+    if case .paused = status {
+      info[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
+    } else {
+      info[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
+    }
   }
 
   private func loadStationArtwork(
@@ -406,6 +417,22 @@ class NowPlayingUpdater {
             playolaSpinPlaying: nowPlayingData,
             currentStation: currentStation,
             playbackStatus: .playing(currentStation)
+          )
+        }
+      }
+    // `.paused` is published by the SDK when the host pauses for an interruption.
+    // Keep the interrupted spin's metadata so the lock screen keeps showing what
+    // was playing with a play button to resume. Mirrors StationPlayer.
+    case .paused(let spin):
+      if let currentStation = stationPlayer.currentStation {
+        $nowPlaying.withLock {
+          $0 = NowPlaying(
+            artistPlaying: spin.audioBlock.artist,
+            titlePlaying: spin.audioBlock.title,
+            albumArtworkUrl: spin.audioBlock.imageUrl,
+            playolaSpinPlaying: spin,
+            currentStation: currentStation,
+            playbackStatus: .paused(currentStation)
           )
         }
       }

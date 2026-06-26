@@ -34,7 +34,7 @@ enum CarPlayPlaybackTransition {
     switch playbackStatus {
     case .error:
       return .showError
-    case .loading, .startingNewStation, .playing:
+    case .loading, .startingNewStation, .playing, .paused:
       return .showNowPlaying
     case .stopped:
       return .removeNowPlaying
