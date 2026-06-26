@@ -108,7 +108,22 @@ restructure:
 - Only **after** publishing the projection, branch on `currentPlayolaStationId` for
   the existing single-event selection + reveal-timer path (unchanged).
 
+Today both early-return guards call `clearActiveAndArm()` (line 353), which
+cancels the armed reveal timer (`revealTask?.cancel()`) and bumps `generation`.
+The restructure must preserve that cancellation on every cleanup path — clearing
+the shared keys alone would leave a stale timer that can fire after sign-out or
+after the feature gate flips off.
+
 ```swift
+// auth loss: cancel timer + clear BOTH shared keys (no jwt → can't show badges)
+guard let jwt = auth.jwt else {
+  clearActiveAndArm()                          // cancels revealTask, clears activeGiveaway
+  $upcomingGiveaways.withLock { $0 = [] }
+  return
+}
+
+let feed = /* try await api.giveawayEventsFeed(jwt); transient failure → keep state, return */
+
 // runs for any authenticated user, regardless of now-playing
 let upcoming = Dictionary(grouping: feed.filter { $0.status == .scheduled }, by: \.stationId)
   .compactMap { stationId, events in
@@ -117,8 +132,12 @@ let upcoming = Dictionary(grouping: feed.filter { $0.status == .scheduled }, by:
   }
 $upcomingGiveaways.withLock { $0 = IdentifiedArray(uniqueElements: upcoming) }
 
-// only now branch on the current station for reveal-timer / single-event work
-guard let stationId = currentPlayolaStationId else { return }
+// no station playing: cancel timer + clear activeGiveaway, but KEEP upcomingGiveaways
+// (badges must show while browsing the list without playback)
+guard let stationId = currentPlayolaStationId else {
+  clearActiveAndArm()
+  return
+}
 // …existing selection + armRevealIfNeeded logic…
 ```
 
@@ -126,14 +145,18 @@ Four correctness fixes:
 
 1. **Decouple the all-stations projection from now-playing.** Move the feed fetch +
    projection ahead of the `currentPlayolaStationId` guard (line 84) so badges
-   populate even when nothing is playing. Only the reveal-timer / single-event path
-   keeps consuming `currentPlayolaStationId`.
-2. **Clear both on auth loss.** The `auth.jwt == nil` guard (line 79) today clears
-   only `activeGiveaway`. The feed fetch requires the jwt, so on auth loss we cannot
-   refresh — we must instead **clear `upcomingGiveaways` as well as
-   `activeGiveaway`** before returning. Otherwise stale "coming up" badges/banners
-   persist after sign-out or token expiry. (The transient feed-fetch failure path
-   keeps last-known state and retries — unchanged from today.)
+   populate even when nothing is playing. The no-station branch still calls
+   `clearActiveAndArm()` (cancel timer + clear `activeGiveaway`) but **keeps
+   `upcomingGiveaways`** — that's what powers list/Home badges without playback.
+   Only the reveal-timer / single-event path keeps consuming `currentPlayolaStationId`.
+2. **Auth loss cancels the timer and clears both keys.** The `auth.jwt == nil`
+   guard (line 79) today calls `clearActiveAndArm()` (cancels the reveal timer +
+   clears `activeGiveaway`). The feed fetch requires the jwt, so on auth loss we
+   cannot refresh — keep the `clearActiveAndArm()` call **and** add
+   `$upcomingGiveaways.withLock { $0 = [] }`. Clearing the shared keys without the
+   `clearActiveAndArm()` cancellation would leave a stale timer that can fire after
+   sign-out or token expiry. (The transient feed-fetch failure path keeps
+   last-known state and retries — unchanged from today.)
 3. **Recompute (not blank) the station's entry whenever `activeGiveaway` is set.**
    When a contest opens, the now-open event must leave `upcomingGiveaways`
    immediately (don't wait up to 30s for the next poll). But because the projection
@@ -146,8 +169,10 @@ Four correctness fixes:
    `revealEvent` (line 165), the early-open branch in `armAndReveal`
    (`if event.status == .open`, line 309), and `revealFromHeldEvent` (line 337).
    Factor a single helper so all three paths stay consistent.
-4. **Feature gate clears both.** When `GiveawayFeature.isLiveDataEnabled` is false,
-   clear both `activeGiveaway` and `upcomingGiveaways`.
+4. **Feature gate cancels the timer and clears both keys.** When
+   `GiveawayFeature.isLiveDataEnabled` is false, route through `clearActiveAndArm()`
+   (cancel timer + clear `activeGiveaway`) **and** clear `upcomingGiveaways` — same
+   reasoning as fix #2: a bare key-clear would strand the armed reveal timer.
 
 The existing single-event selection + reveal-timer logic is otherwise untouched.
 
@@ -219,10 +244,16 @@ pulse animation). Label `🎁 GIVEAWAY`, color purple.
 6. Station both LIVE and upcoming → show both badges side by side; never overload LIVE.
 7. Banner frozen-visible after reveal → `UpcomingGiveawayBannerModel` must observe
    `@Shared(.activeGiveaway)`, not just `upcomingGiveaways` + `nowPlaying`.
-8. Feature gate must clear both shared keys when disabled (fix #4).
+8. Feature gate must cancel the reveal timer + clear both shared keys when disabled
+   (fix #4) — a bare key-clear strands the armed timer.
 9. Do not reuse `@Shared(.giveawayBanner)` — different ("Tap In" invite) semantics.
 10. Auth loss (sign-out / token expiry) must clear `upcomingGiveaways`, not just
     `activeGiveaway` — otherwise stale "coming up" badges linger (fix #2).
+11. The restructure must keep `clearActiveAndArm()` (timer cancellation) on the
+    auth-loss, no-station, and feature-gate cleanup paths — replacing it with a bare
+    key-clear leaves a stale `revealTask` that can fire after sign-out / gate-off
+    (fixes #1, #2, #4). The no-station path keeps `upcomingGiveaways`; auth-loss and
+    gate-off clear it.
 
 ## Testing
 
@@ -232,8 +263,11 @@ pulse animation). Label `🎁 GIVEAWAY`, color purple.
   station; on reveal the opening event leaves the projection and the station's next
   scheduled event (if any) is re-derived rather than the station being blanked;
   feature-gate-off clears both keys; **auth loss (`auth.jwt == nil`) clears both
-  `activeGiveaway` and `upcomingGiveaways`**. (Use `@Shared` declared locally per
-  test, swift-dependencies mocked via `withDependencies`.)
+  `activeGiveaway` and `upcomingGiveaways`**; the no-station path clears
+  `activeGiveaway` but keeps `upcomingGiveaways`; auth-loss and feature-gate-off
+  paths cancel the armed reveal timer (assert `revealTask`/generation, no stale
+  fire). (Use `@Shared` declared locally per test, swift-dependencies mocked via
+  `withDependencies`.)
 - `UpcomingGiveawayBannerModel`: `isVisible` true only for matching now-playing
   station with no open contest; `bannerText` correct (prize + station name); hidden
   once that station's contest is open (verifies the `activeGiveaway` observation).
