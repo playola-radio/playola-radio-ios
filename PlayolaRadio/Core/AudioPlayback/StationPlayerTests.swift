@@ -82,6 +82,20 @@ struct StationPlayerTests {
     #expect(playola.resumeAfterInterruptionCount == 1)
   }
 
+  @Test
+  func systemResumeWithoutSystemPauseIsIgnored() async {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let coordinator = AudioSessionCoordinator(session: SpyAudioSession())
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+
+    // A stray interruption-ended (no prior system pause) must not resume.
+    player.audioSessionShouldResume()
+
+    #expect(playola.resumeAfterInterruptionCount == 0)
+  }
+
   // MARK: - Play Failure Tests
 
   @Test
