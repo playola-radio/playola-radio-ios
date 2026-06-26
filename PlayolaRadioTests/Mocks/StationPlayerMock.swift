@@ -13,7 +13,8 @@ class StationPlayerMock: StationPlayer {
   var stopCalledCount = 0
   override init(
     urlStreamPlayer _: URLStreamPlayer? = nil,
-    playolaStationPlayer _: PlayolaStationPlayer? = nil
+    playolaStationPlayer _: (any PlayolaTransport)? = nil,
+    audioSessionCoordinator _: AudioSessionCoordinator? = nil
   ) {
     super.init(urlStreamPlayer: URLStreamPlayerMock())
   }

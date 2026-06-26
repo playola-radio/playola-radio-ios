@@ -361,7 +361,7 @@ class NowPlayingUpdater {
   private func setupSharedStateObservation() {
     @Dependency(\.urlStreamPlayer) var urlStreamPlayer
 
-    stationPlayer.playolaStationPlayer.$state
+    stationPlayer.playolaStationPlayer.statePublisher
       .sink { [weak self] playolaState in
         self?.processPlayolaStationPlayerState(playolaState)
       }

@@ -61,7 +61,8 @@ class StationPlayer: ObservableObject {
   // MARK: Dependencies
 
   var urlStreamPlayer: URLStreamPlayer
-  var playolaStationPlayer: PlayolaStationPlayer
+  var playolaStationPlayer: any PlayolaTransport
+  let audioSessionCoordinator: AudioSessionCoordinator
 
   // The Combine subscriptions below capture `self` weakly so the cancellable
   // owned by this StationPlayer is the only thing keeping each subscription
@@ -70,11 +71,14 @@ class StationPlayer: ObservableObject {
   // StationPlayer is a dependency-injected service.
   init(
     urlStreamPlayer: URLStreamPlayer? = nil,
-    playolaStationPlayer: PlayolaStationPlayer? = nil
+    playolaStationPlayer: (any PlayolaTransport)? = nil,
+    audioSessionCoordinator: AudioSessionCoordinator? = nil
   ) {
     @Dependency(\.urlStreamPlayer) var injectedUrlStreamPlayer
+    @Dependency(\.audioSessionCoordinator) var injectedCoordinator
     self.urlStreamPlayer = urlStreamPlayer ?? injectedUrlStreamPlayer
-    self.playolaStationPlayer = playolaStationPlayer ?? .shared
+    self.playolaStationPlayer = playolaStationPlayer ?? PlayolaStationPlayer.shared
+    self.audioSessionCoordinator = audioSessionCoordinator ?? injectedCoordinator
 
     self.urlStreamPlayer.$state
       .sink { [weak self] state in
@@ -88,7 +92,7 @@ class StationPlayer: ObservableObject {
       }
       .store(in: &disposeBag)
 
-    self.playolaStationPlayer.$state
+    self.playolaStationPlayer.statePublisher
       .sink { [weak self] state in
         self?.processPlayolaStationPlayerState(state)
       }
@@ -107,6 +111,17 @@ class StationPlayer: ObservableObject {
     stop()
     state = State(playbackStatus: .startingNewStation(station))
     state = State(playbackStatus: .loading(station))
+
+    // The app now owns the AVAudioSession: activate it BEFORE either backend.
+    // The SDK no longer activates the session, so without this the SDK's
+    // engine.start() would throw deep in playback. A config failure must surface
+    // as .error, not be swallowed.
+    do {
+      try audioSessionCoordinator.configureForPlayback()
+    } catch {
+      handlePlayFailure(error)
+      return
+    }
 
     switch station {
     case .url(let urlStation):
@@ -316,6 +331,30 @@ class StationPlayer: ObservableObject {
       albumArtworkUrl: albumArtworkURL,
       playolaSpinPlaying: state.playolaSpinPlaying
     )
+  }
+}
+
+// MARK: - PlayolaTransport
+
+/// Minimal transport seam over the PlayolaPlayer SDK so `StationPlayer` can be
+/// driven by a spy in tests (the SDK type is a concrete `@MainActor` class that
+/// is awkward to fake directly). Conformed by `PlayolaStationPlayer` below.
+@MainActor
+protocol PlayolaTransport: AnyObject {
+  var statePublisher: AnyPublisher<PlayolaStationPlayer.State, Never> { get }
+  func configure(authProvider: PlayolaAuthenticationProvider, baseURL: URL)
+  func play(stationId: String) async throws
+  func stop()
+  func pauseForInterruption()
+  func resumeAfterInterruption() async throws
+}
+
+extension PlayolaStationPlayer: PlayolaTransport {
+  var statePublisher: AnyPublisher<PlayolaStationPlayer.State, Never> {
+    $state.eraseToAnyPublisher()
+  }
+  func play(stationId: String) async throws {
+    try await play(stationId: stationId, atDate: nil)
   }
 }
 

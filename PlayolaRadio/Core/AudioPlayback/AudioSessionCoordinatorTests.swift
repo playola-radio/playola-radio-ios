@@ -33,6 +33,22 @@ final class SpyAudioSession: AudioSessionProtocol {
   }
 }
 
+struct AudioSessionConfigError: Error {}
+
+/// Session double whose category/activation calls always throw — used to prove
+/// callers surface session-config failures instead of swallowing them.
+final class FailingAudioSession: AudioSessionProtocol {
+  func setCategory(
+    _ category: AVAudioSession.Category, mode: AVAudioSession.Mode,
+    policy: AVAudioSession.RouteSharingPolicy, options: AVAudioSession.CategoryOptions
+  ) throws {
+    throw AudioSessionConfigError()
+  }
+  func setActive(_ active: Bool, options: AVAudioSession.SetActiveOptions) throws {
+    throw AudioSessionConfigError()
+  }
+}
+
 @MainActor
 struct AudioSessionCoordinatorTests {
   @Test
