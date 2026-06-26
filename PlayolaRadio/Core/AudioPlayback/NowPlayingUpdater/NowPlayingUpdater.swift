@@ -408,34 +408,12 @@ class NowPlayingUpdater {
         )
       }
     case .playing(let nowPlayingData):
-      if let currentStation = stationPlayer.currentStation {
-        $nowPlaying.withLock {
-          $0 = NowPlaying(
-            artistPlaying: nowPlayingData.audioBlock.artist,
-            titlePlaying: nowPlayingData.audioBlock.title,
-            albumArtworkUrl: nowPlayingData.audioBlock.imageUrl,
-            playolaSpinPlaying: nowPlayingData,
-            currentStation: currentStation,
-            playbackStatus: .playing(currentStation)
-          )
-        }
-      }
+      publishPlayolaSpin(nowPlayingData, paused: false)
     // `.paused` is published by the SDK when the host pauses for an interruption.
     // Keep the interrupted spin's metadata so the lock screen keeps showing what
     // was playing with a play button to resume. Mirrors StationPlayer.
     case .paused(let spin):
-      if let currentStation = stationPlayer.currentStation {
-        $nowPlaying.withLock {
-          $0 = NowPlaying(
-            artistPlaying: spin.audioBlock.artist,
-            titlePlaying: spin.audioBlock.title,
-            albumArtworkUrl: spin.audioBlock.imageUrl,
-            playolaSpinPlaying: spin,
-            currentStation: currentStation,
-            playbackStatus: .paused(currentStation)
-          )
-        }
-      }
+      publishPlayolaSpin(spin, paused: true)
     // `.error` is PlayolaPlayer 0.19.0's terminal failure (e.g. the schedule
     // fetch exhausted its retries); `.none` is an unexpected empty state. Both
     // publish the recoverable `.error` status so the lock screen shows the
@@ -468,16 +446,7 @@ class NowPlayingUpdater {
     if urlStreamPlayerState.playbackState == .paused,
       let currentStation = stationPlayer.currentStation
     {
-      $nowPlaying.withLock {
-        $0 = NowPlaying(
-          artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
-          titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
-          albumArtworkUrl: $0?.albumArtworkUrl,  // keep artwork across the pause
-          playolaSpinPlaying: nil,
-          currentStation: currentStation,
-          playbackStatus: .paused(currentStation)
-        )
-      }
+      publishUrlNowPlaying(urlStreamPlayerState, currentStation: currentStation, paused: true)
       return
     }
     switch urlStreamPlayerState.playerStatus {
@@ -495,16 +464,7 @@ class NowPlayingUpdater {
       }
     case .loadingFinished, .readyToPlay:
       guard let currentStation = stationPlayer.currentStation else { return }
-      $nowPlaying.withLock {
-        $0 = NowPlaying(
-          artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
-          titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
-          albumArtworkUrl: nil,
-          playolaSpinPlaying: nil,
-          currentStation: currentStation,
-          playbackStatus: .playing(currentStation)
-        )
-      }
+      publishUrlNowPlaying(urlStreamPlayerState, currentStation: currentStation, paused: false)
     case .error:
       $nowPlaying.withLock {
         $0 = NowPlaying(
@@ -527,6 +487,39 @@ class NowPlayingUpdater {
           playbackStatus: .stopped
         )
       }
+    }
+  }
+
+  /// Publishes shared now-playing for a Playola spin in either the playing or
+  /// paused status, keeping the spin metadata identical across the two.
+  private func publishPlayolaSpin(_ spin: Spin, paused: Bool) {
+    guard let currentStation = stationPlayer.currentStation else { return }
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        artistPlaying: spin.audioBlock.artist,
+        titlePlaying: spin.audioBlock.title,
+        albumArtworkUrl: spin.audioBlock.imageUrl,
+        playolaSpinPlaying: spin,
+        currentStation: currentStation,
+        playbackStatus: paused ? .paused(currentStation) : .playing(currentStation)
+      )
+    }
+  }
+
+  /// Publishes shared now-playing for a URL stream in either the playing or
+  /// paused status. A pause preserves existing artwork across the transition.
+  private func publishUrlNowPlaying(
+    _ state: URLStreamPlayer.State, currentStation: AnyStation, paused: Bool
+  ) {
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        artistPlaying: state.nowPlaying?.artistName,
+        titlePlaying: state.nowPlaying?.trackName,
+        albumArtworkUrl: paused ? $0?.albumArtworkUrl : nil,
+        playolaSpinPlaying: nil,
+        currentStation: currentStation,
+        playbackStatus: paused ? .paused(currentStation) : .playing(currentStation)
+      )
     }
   }
 
