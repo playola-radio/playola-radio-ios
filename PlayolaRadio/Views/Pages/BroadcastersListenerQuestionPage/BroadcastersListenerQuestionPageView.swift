@@ -117,8 +117,7 @@ struct BroadcastersListenerQuestionPageView: View {
           answeredBadgeText: model.answeredBadgeText,
           missingTranscriptionText: model.missingTranscriptionText,
           unknownListenerText: model.unknownListenerText,
-          showMoreText: model.showMoreText,
-          showLessText: model.showLessText,
+          expandToggleText: model.expandToggleText(for: question.id),
           isExpanded: model.isExpanded(question.id),
           isPlaying: model.isPlaying(question.id),
           onExpandTapped: { model.showMoreButtonTapped(question.id) },
@@ -155,8 +154,7 @@ struct ListenerQuestionRow: View {
   var answeredBadgeText: String
   var missingTranscriptionText: String
   var unknownListenerText: String
-  var showMoreText: String
-  var showLessText: String
+  let expandToggleText: String
   let isExpanded: Bool
   let isPlaying: Bool
   let onExpandTapped: () -> Void
@@ -239,7 +237,7 @@ struct ListenerQuestionRow: View {
               }
             } label: {
               HStack(spacing: 4) {
-                Text(isExpanded ? showLessText : showMoreText)
+                Text(expandToggleText)
                   .font(.custom(FontNames.Inter_500_Medium, size: 13))
                   .foregroundColor(.playolaRed)
 
