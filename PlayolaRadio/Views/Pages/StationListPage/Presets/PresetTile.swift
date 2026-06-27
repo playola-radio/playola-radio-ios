@@ -8,6 +8,7 @@ import SDWebImageSwiftUI
 import SwiftUI
 
 struct PresetTile: View {
+  @Environment(\.displayScale) private var displayScale
   let display: PresetDisplayItem
   let isEditing: Bool
   let onTap: () async -> Void
@@ -18,7 +19,10 @@ struct PresetTile: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      WebImage(url: display.imageUrl) { image in
+      WebImage(
+        url: display.imageUrl,
+        context: RemoteArtwork.downsampleContext(CGSize(width: 92, height: 92), scale: displayScale)
+      ) { image in
         image.resizable().aspectRatio(contentMode: .fill)
       } placeholder: {
         Color(hex: "#333333")

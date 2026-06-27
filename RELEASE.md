@@ -109,7 +109,7 @@ release workflow. Names only; values live in CircleCI.
 |---|---|
 | `APP_STORE_CONNECT_API_KEY_ID` | ASC API key identifier. |
 | `APP_STORE_CONNECT_API_ISSUER_ID` | ASC issuer UUID. |
-| `APP_STORE_CONNECT_API_KEY_CONTENT` | Contents of the `.p8` private key used by fastlane to authenticate to App Store Connect. |
+| `APP_STORE_CONNECT_API_KEY_CONTENT` | The `.p8` private key for App Store Connect auth. **Prefer base64** — set it to `base64 -i AuthKey_XXXX.p8 \| tr -d '\n'`. (The raw `.p8` also works, but CircleCI env vars often strip the multi-line PEM's newlines, which corrupts the key and fails the release with OpenSSL `invalid curve name`. The Fastfile auto-detects base64 vs raw via the `-----BEGIN` header.) |
 | `MATCH_PASSWORD` | Passphrase that decrypts the fastlane-match certificate repo. |
 | `MATCH_GIT_PRIVATE_KEY` | SSH key with read access to the `fastlane-match-certs-and-profiles` repo. |
 | `SECRETS_XCCONFIG_B64` | Base64 of `PlayolaRadio/Config/Secrets.xcconfig`. |

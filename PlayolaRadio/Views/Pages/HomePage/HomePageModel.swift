@@ -27,6 +27,8 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
   @ObservationIgnored @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+  @ObservationIgnored @Shared(.upcomingGiveaways)
+  var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = []
   @ObservationIgnored @Shared(.auth) var auth: Auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
@@ -203,6 +205,10 @@ class HomePageModel: ViewModel {
 
   func liveStatusForStation(_ stationId: String) -> LiveStatus? {
     liveStations.first { $0.stationId == stationId }?.liveStatus
+  }
+
+  func hasUpcomingGiveawayForStation(_ stationId: String) -> Bool {
+    upcomingGiveaways[id: stationId] != nil
   }
 
   // MARK: - Private Helpers

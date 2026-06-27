@@ -9,6 +9,7 @@ import SDWebImageSwiftUI
 import SwiftUI
 
 struct StationListStationRowView: View {
+  @Environment(\.displayScale) private var displayScale
   let model: StationListStationRowModel
   let action: () -> Void
   let isPreset: Bool
@@ -19,7 +20,11 @@ struct StationListStationRowView: View {
     HStack(spacing: 0) {
       Button(action: action) {
         HStack(spacing: 16) {
-          WebImage(url: model.imageUrl) { image in
+          WebImage(
+            url: model.imageUrl,
+            context: RemoteArtwork.downsampleContext(
+              CGSize(width: 64, height: 64), scale: displayScale)
+          ) { image in
             image
               .resizable()
               .aspectRatio(contentMode: .fill)
@@ -44,15 +49,22 @@ struct StationListStationRowView: View {
 
           Spacer()
 
-          if let liveStatus = model.liveStatus {
-            LiveBadge(status: liveStatus)
-              .padding(.trailing, 8)
-              .transition(.opacity.combined(with: .scale))
+          VStack(alignment: .trailing, spacing: 4) {
+            if model.hasUpcomingGiveaway {
+              UpcomingGiveawayBadge()
+                .transition(.opacity.combined(with: .scale))
+            }
+            if let liveStatus = model.liveStatus {
+              LiveBadge(status: liveStatus)
+                .transition(.opacity.combined(with: .scale))
+            }
           }
+          .padding(.trailing, 8)
         }
         .padding(.leading)
         .padding(.vertical, 12)
         .animation(.easeInOut(duration: 0.5), value: model.liveStatus)
+        .animation(.easeInOut(duration: 0.5), value: model.hasUpcomingGiveaway)
       }
       .buttonStyle(.plain)
 

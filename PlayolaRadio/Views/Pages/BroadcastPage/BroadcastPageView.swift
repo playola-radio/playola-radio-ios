@@ -182,17 +182,22 @@ struct BroadcastPageView: View {
 // MARK: - Staging Row View
 
 struct StagingRowView: View {
+  @Environment(\.displayScale) private var displayScale
   let item: any StagingItem
 
   var body: some View {
     HStack(spacing: 12) {
       // Icon or album image
       if let imageUrl = item.albumImageUrl {
-        WebImage(url: imageUrl)
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-          .frame(width: 40, height: 40)
-          .clipShape(Circle())
+        WebImage(
+          url: imageUrl,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 40, height: 40), scale: displayScale)
+        )
+        .resizable()
+        .aspectRatio(contentMode: .fill)
+        .frame(width: 40, height: 40)
+        .clipShape(Circle())
       } else if let icon = item.icon {
         ZStack {
           Circle()
@@ -543,17 +548,22 @@ struct BroadcastActionButton: View {
 // MARK: - Schedule Item Image
 
 struct ScheduleItemImage: View {
+  @Environment(\.displayScale) private var displayScale
   let spin: Spin
 
   var body: some View {
     switch spin.audioBlock.type {
     case "song":
       if let imageUrl = spin.audioBlock.imageUrl {
-        WebImage(url: imageUrl)
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-          .frame(width: 45, height: 45)
-          .clipped()
+        WebImage(
+          url: imageUrl,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 45, height: 45), scale: displayScale)
+        )
+        .resizable()
+        .aspectRatio(contentMode: .fill)
+        .frame(width: 45, height: 45)
+        .clipped()
       } else {
         RoundedRectangle(cornerRadius: 4)
           .fill(Color(hex: "#666666"))

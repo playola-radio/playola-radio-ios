@@ -54,6 +54,19 @@ enum PresetListState: Equatable {
   case editing
 }
 
+struct DisplayedStationSection: Identifiable {
+  let id: String
+  let title: String
+  let rows: [Row]
+
+  struct Row: Identifiable {
+    let item: APIStationItem
+    let liveStatus: LiveStatus?
+    let hasUpcomingGiveaway: Bool
+    var id: String { item.anyStation.id }
+  }
+}
+
 @MainActor
 @Observable
 class StationListModel: ViewModel {
@@ -73,6 +86,8 @@ class StationListModel: ViewModel {
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
   @ObservationIgnored @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+  @ObservationIgnored @Shared(.upcomingGiveaways)
+  var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = []
   @ObservationIgnored @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = []
   @ObservationIgnored @Shared(.pendingPresetStationIds) var pendingPresetStationIds: Set<String> =
     []
@@ -88,8 +103,9 @@ class StationListModel: ViewModel {
 
   // MARK: - Properties
 
-  var cancellables = Set<AnyCancellable>()
+  @ObservationIgnored var cancellables = Set<AnyCancellable>()
   var stationListsForDisplay: IdentifiedArrayOf<StationList> = []
+  var displayedSections: [DisplayedStationSection] = []
   var segmentTitles: [String] = ["All"]
   var selectedSegment = "All"
   var searchText = ""
@@ -114,19 +130,30 @@ class StationListModel: ViewModel {
 
   func viewAppeared() async {
     await loadPresets()
+    loadStationListsForDisplay(stationLists)
 
-    $stationLists.publisher
-      .sink { [weak self] lists in
-        self?.loadStationListsForDisplay(lists)
-      }
-      .store(in: &cancellables)
+    if cancellables.isEmpty {
+      $stationLists.publisher
+        .sink { [weak self] lists in
+          self?.loadStationListsForDisplay(lists)
+        }
+        .store(in: &cancellables)
 
-    $liveStations.publisher
-      .sink { [weak self] _ in
-        guard let self else { return }
-        self.loadStationListsForDisplay(self.stationLists)
-      }
-      .store(in: &cancellables)
+      $liveStations.publisher
+        .sink { [weak self] liveStations in
+          guard let self else { return }
+          self.loadStationListsForDisplay(self.stationLists, liveStations: liveStations)
+        }
+        .store(in: &cancellables)
+
+      $upcomingGiveaways.publisher
+        .sink { [weak self] upcomingGiveaways in
+          guard let self else { return }
+          self.loadStationListsForDisplay(
+            self.stationLists, upcomingGiveaways: upcomingGiveaways)
+        }
+        .store(in: &cancellables)
+    }
 
     if !hasAskedForNotificationPermission {
       presentedAlert = .notificationPermissionPrompt(
@@ -418,10 +445,6 @@ class StationListModel: ViewModel {
     selectedSegment == presetsSegmentTitle
   }
 
-  func liveStatusForStation(_ stationId: String) -> LiveStatus? {
-    liveStations.first { $0.stationId == stationId }?.liveStatus
-  }
-
   var isShowingNoResults: Bool {
     guard !searchText.isEmpty else { return false }
     return stationListsForDisplay.allSatisfy { list in
@@ -430,18 +453,27 @@ class StationListModel: ViewModel {
   }
 
   func sortedStationItems(for list: StationList) -> [APIStationItem] {
-    let items = list.stationItems(includeHidden: showSecretStations)
-    let filtered =
-      searchText.isEmpty
-      ? items
-      : items.filter { item in
-        let station = item.anyStation
-        return station.name.localizedCaseInsensitiveContains(searchText)
-          || station.stationName.localizedCaseInsensitiveContains(searchText)
-      }
-    return filtered.sorted { item1, item2 in
+    liveSortedStationItems(for: list, liveStations: liveStations).filter(matchesSearch)
+  }
+
+  func displayedRows(for section: DisplayedStationSection) -> [DisplayedStationSection.Row] {
+    section.rows.filter { matchesSearch($0.item) }
+  }
+
+  private func liveSortedStationItems(
+    for list: StationList,
+    liveStations: [LiveStationInfo]
+  ) -> [APIStationItem] {
+    list.stationItems(includeHidden: showSecretStations).sorted { item1, item2 in
       item1.liveSortPriority(liveStations) < item2.liveSortPriority(liveStations)
     }
+  }
+
+  private func matchesSearch(_ item: APIStationItem) -> Bool {
+    guard !searchText.isEmpty else { return true }
+    let station = item.anyStation
+    return station.name.localizedCaseInsensitiveContains(searchText)
+      || station.stationName.localizedCaseInsensitiveContains(searchText)
   }
 
   // MARK: - Private Helpers
@@ -554,7 +586,13 @@ class StationListModel: ViewModel {
     }
   }
 
-  private func loadStationListsForDisplay(_ rawList: IdentifiedArrayOf<StationList>) {
+  private func loadStationListsForDisplay(
+    _ rawList: IdentifiedArrayOf<StationList>,
+    liveStations: [LiveStationInfo]? = nil,
+    upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo>? = nil
+  ) {
+    let liveStations = liveStations ?? self.liveStations
+    let upcomingGiveaways = upcomingGiveaways ?? self.upcomingGiveaways
     let includeHidden = showSecretStations
     let visibleLists = includeHidden ? rawList : rawList.filter { !$0.hidden }
 
@@ -572,6 +610,20 @@ class StationListModel: ViewModel {
       stationListsForDisplay = []
     } else {
       stationListsForDisplay = visibleLists.filter { $0.title == selectedSegment }
+    }
+
+    displayedSections = stationListsForDisplay.map { list in
+      DisplayedStationSection(
+        id: list.id,
+        title: list.title,
+        rows: liveSortedStationItems(for: list, liveStations: liveStations).map { item in
+          DisplayedStationSection.Row(
+            item: item,
+            liveStatus: liveStations.first { $0.stationId == item.anyStation.id }?.liveStatus,
+            hasUpcomingGiveaway: upcomingGiveaways[id: item.anyStation.id] != nil
+          )
+        }
+      )
     }
   }
 }

@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 8/14/25.
 //
 
+import CustomDump
 import Dependencies
 import Foundation
 import MediaPlayer
@@ -73,6 +74,71 @@ struct NowPlayingUpdaterTests {
     updater.processPlayolaStationPlayerState(.error(.networkError("boom")))
 
     #expect(nowPlaying?.playbackStatus == .error)
+  }
+
+  // MARK: - Backend Ownership Regression Tests
+
+  // Same CarPlay/lock-screen "instantly dismissed" regression as in
+  // StationPlayer, but for the shared `nowPlaying` state NowPlayingUpdater
+  // publishes. NowPlayingUpdater independently observes both audio backends, so
+  // the spurious cross-backend `.stopped` must be guarded here too.
+
+  @Test
+  func testUrlStreamUrlNotSetDoesNotClobberActivePlayolaNowPlaying() {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let playolaStation = AnyStation.mockPlayola()
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      let stationPlayer = StationPlayer()
+      stationPlayer.state = StationPlayer.State(playbackStatus: .loading(playolaStation))
+      return NowPlayingUpdater(stationPlayer: stationPlayer)
+    }
+
+    // Establish a real Playola baseline (last writer wins over init echoes).
+    updater.processPlayolaStationPlayerState(.loading(0.5))
+    // A late URL-backend `.urlNotSet` (FRadioPlayer's response to reset() during
+    // the Playola play) must not clobber shared state back to .stopped.
+    updater.processUrlStreamStateChanged(
+      URLStreamPlayer.State(
+        playbackState: .stopped,
+        playerStatus: .urlNotSet,
+        currentStation: nil,
+        nowPlaying: nil
+      )
+    )
+
+    expectNoDifference(nowPlaying?.playbackStatus, .loading(playolaStation, 0.5))
+  }
+
+  @Test
+  func testPlayolaIdleDoesNotClobberActiveUrlNowPlaying() {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let urlStation = AnyStation.mockUrl()
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      let stationPlayer = StationPlayer()
+      stationPlayer.state = StationPlayer.State(playbackStatus: .playing(urlStation))
+      return NowPlayingUpdater(stationPlayer: stationPlayer)
+    }
+
+    // Establish a real URL baseline.
+    updater.processUrlStreamStateChanged(
+      URLStreamPlayer.State(
+        playbackState: .playing,
+        playerStatus: .readyToPlay,
+        currentStation: nil,
+        nowPlaying: nil
+      )
+    )
+    // A stray Playola `.idle` (emitted by stop() while switching) must not
+    // clobber the active URL station back to .stopped.
+    updater.processPlayolaStationPlayerState(.idle)
+
+    expectNoDifference(nowPlaying?.playbackStatus, .playing(urlStation))
   }
 
   @Test

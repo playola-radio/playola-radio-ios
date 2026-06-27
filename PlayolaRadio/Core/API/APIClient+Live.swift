@@ -147,6 +147,25 @@ private func authenticatedGet<T: Decodable & Sendable>(
     .value
 }
 
+/// Like `authenticatedGet`, but maps a 404 to `nil` — for "fetch X or none" endpoints whose
+/// contract is `404 = not found` (e.g. the active-giveaway-event late-joiner check).
+private func authenticatedGetOrNil<T: Decodable & Sendable>(
+  path: String,
+  token: String
+) async throws -> T? {
+  do {
+    let value: T = try await authenticatedGet(path: path, token: token)
+    return value
+  } catch let error as AFError {
+    if case .responseValidationFailed(reason: .unacceptableStatusCode(let code)) = error,
+      code == 404
+    {
+      return nil
+    }
+    throw error
+  }
+}
+
 private func authenticatedPost<T: Decodable & Sendable>(
   path: String,
   token: String,
@@ -737,6 +756,60 @@ extension APIClient: DependencyKey {
       },
       fetchLiveStations: { jwtToken in
         try await authenticatedGet(path: "/v1/stations/live", token: jwtToken)
+      },
+      giveawayEventsFeed: { jwtToken in
+        // Status goes in the path so the comma stays literal — URLQueryItem would
+        // percent-encode it to "%2C", which the feed's status filter may not split on.
+        try await authenticatedGet(
+          path: "/v1/giveaway-events?status=open,scheduled", token: jwtToken)
+      },
+      giveawayEvent: { jwtToken, eventId in
+        try await authenticatedGet(path: "/v1/giveaway-events/\(eventId)", token: jwtToken)
+      },
+      activeGiveawayEvent: { jwtToken, stationId in
+        // 404 = no open event for this station → nil (not an error).
+        try await authenticatedGetOrNil(
+          path: "/v1/stations/\(stationId)/giveaway-events/active", token: jwtToken)
+      },
+      tapGiveawayEvent: { jwtToken, eventId in
+        do {
+          return try await authenticatedPost(
+            path: "/v1/giveaway-events/\(eventId)/tap", token: jwtToken)
+        } catch let error as AFError {
+          // 400 = the contest isn't open yet (an expected race when a device's clock is slightly
+          // fast). Translate to a domain error so callers never inspect HTTP status codes.
+          if case .responseValidationFailed(reason: .unacceptableStatusCode(let code)) = error,
+            code == 400
+          {
+            throw GiveawayTapError.notOpenYet
+          }
+          throw error
+        }
+      },
+      giveawayEventMyResult: { jwtToken, eventId in
+        try await authenticatedGet(
+          path: "/v1/giveaway-events/\(eventId)/my-result", token: jwtToken)
+      },
+      submitGiveawayWinnerDetails: { jwtToken, eventId, body in
+        try await authenticatedPostVoid(
+          path: "/v1/giveaway-events/\(eventId)/winner-submission",
+          token: jwtToken, parameters: body.asParameters)
+      },
+      recordGiveawayEventCongrats: { jwtToken, eventId, audioBlockId in
+        do {
+          try await authenticatedPostVoid(
+            path: "/v1/giveaway-events/\(eventId)/congrats",
+            token: jwtToken, parameters: ["audioBlockId": audioBlockId])
+        } catch let error as AFError {
+          // 409 = the congrats window has closed server-side. Translate to a domain error so the
+          // caller can mark the action terminal instead of offering a futile retry.
+          if case .responseValidationFailed(reason: .unacceptableStatusCode(let code)) = error,
+            code == 409
+          {
+            throw GiveawayCongratsError.windowClosed
+          }
+          throw error
+        }
       },
       getSupportConversation: { jwtToken in
         try await authenticatedGet(path: "/v1/conversations/support", token: jwtToken)

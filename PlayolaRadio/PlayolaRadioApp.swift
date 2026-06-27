@@ -105,6 +105,18 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
         userInfo: info
       )
       completionHandler(.newData)
+    } else if userInfo["type"] as? String == "giveaway_winner" {
+      let payload = userInfo.sendablePayload()
+      Task {
+        await pushNotifications.handleGiveawayWinnerPush(payload)
+        completionHandler(.newData)
+      }
+    } else if userInfo["type"] as? String == "giveaway_winner_pending" {
+      let payload = userInfo.sendablePayload()
+      Task {
+        await pushNotifications.handleGiveawayWinnerPendingPush(payload)
+        completionHandler(.newData)
+      }
     } else {
       completionHandler(.noData)
     }
@@ -121,6 +133,26 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
     print("📬 Notification received in foreground: \(notification.request.content.title)")
 
     if userInfo["type"] as? String == "schedule_updated" {
+      completionHandler([])
+      return
+    }
+
+    if userInfo["type"] as? String == "giveaway_winner" {
+      let payload = userInfo.sendablePayload()
+      Task {
+        await pushNotifications.handleGiveawayWinnerPush(payload)
+      }
+      // The arbiter presents the winner sheet in-app; no redundant OS banner.
+      completionHandler([])
+      return
+    }
+
+    if userInfo["type"] as? String == "giveaway_winner_pending" {
+      let payload = userInfo.sendablePayload()
+      Task {
+        await pushNotifications.handleGiveawayWinnerPendingPush(payload)
+      }
+      // The arbiter presents the congrats sheet in-app; no redundant OS banner.
       completionHandler([])
       return
     }
@@ -154,10 +186,24 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
     withCompletionHandler completionHandler: @escaping () -> Void
   ) {
     let userInfo = response.notification.request.content.userInfo.sendablePayload()
-    Task {
-      await pushNotifications.handleNotificationTap(userInfo)
+    if userInfo["type"] as? String == "giveaway_winner" {
+      // Defer completion until the participation mutation persists, so the system doesn't suspend
+      // mid-write and drop the win.
+      Task {
+        await pushNotifications.handleGiveawayWinnerPush(userInfo)
+        completionHandler()
+      }
+    } else if userInfo["type"] as? String == "giveaway_winner_pending" {
+      Task {
+        await pushNotifications.handleGiveawayWinnerPendingPush(userInfo)
+        completionHandler()
+      }
+    } else {
+      Task {
+        await pushNotifications.handleNotificationTap(userInfo)
+      }
+      completionHandler()
     }
-    completionHandler()
   }
 }
 
@@ -168,6 +214,13 @@ struct PlayolaRadioApp: App {
   init() {
     // Register SVG coder for SDWebImage
     SDImageCodersManager.shared.addCoder(SDImageSVGCoder.shared)
+
+    // Cap SDWebImage's in-memory decoded-image cache so cached artwork can't
+    // dominate graphics memory and trigger jetsam during long sessions.
+    // maxMemoryCost is decoded pixel bytes (~width*height*4); 64 MB holds a
+    // few hundred downsampled thumbnails, well under the device pressure point.
+    SDImageCache.shared.config.maxMemoryCost = 64 * 1024 * 1024
+    SDImageCache.shared.config.maxMemoryCount = 100
 
     @Dependency(\.nowPlayingUpdater) var nowPlayingUpdater
     nowPlayingUpdater.setupRemoteControlCenter()

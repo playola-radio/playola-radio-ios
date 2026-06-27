@@ -298,7 +298,6 @@ struct APIStationItem: Codable {
       (try? container.decodeIfPresent(StationWelcomeMessageProbe.self, forKey: .station))?
       .welcomeMessageAudioBlockId
       ?? (try? container.decodeIfPresent(String.self, forKey: .welcomeMessageAudioBlockId))
-      ?? nil
   }
 }
 
@@ -307,6 +306,16 @@ extension APIStationItem {
     if let station { return .playola(station) }
     if let urlStation { return .url(urlStation) }
     fatalError("Station is neither a playola station or a urlStation")
+  }
+
+  /// Non-crashing variant of `anyStation`. The decoder permits a row with
+  /// neither a playola nor a URL station (e.g. a coming-soon placeholder), so
+  /// callers that walk over hidden/coming-soon items must skip those rather
+  /// than trap.
+  var anyStationIfPresent: AnyStation? {
+    if let station { return .playola(station) }
+    if let urlStation { return .url(urlStation) }
+    return nil
   }
 
   func liveSortPriority(_ liveStations: [LiveStationInfo]) -> Int {

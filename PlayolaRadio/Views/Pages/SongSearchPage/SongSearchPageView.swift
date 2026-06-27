@@ -140,6 +140,7 @@ struct SongSearchPageView: View {
 }
 
 struct SongSearchResultRow: View {
+  @Environment(\.displayScale) private var displayScale
   let audioBlock: AudioBlock
   var buttonText: String = "SELECT"
   let onSelect: () -> Void
@@ -147,11 +148,15 @@ struct SongSearchResultRow: View {
   var body: some View {
     HStack(spacing: 12) {
       if let imageUrl = audioBlock.imageUrl {
-        WebImage(url: imageUrl)
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-          .frame(width: 45, height: 45)
-          .clipped()
+        WebImage(
+          url: imageUrl,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 45, height: 45), scale: displayScale)
+        )
+        .resizable()
+        .aspectRatio(contentMode: .fill)
+        .frame(width: 45, height: 45)
+        .clipped()
       } else {
         RoundedRectangle(cornerRadius: 4)
           .fill(Color(hex: "#666666"))
@@ -193,6 +198,7 @@ struct SongSearchResultRow: View {
 }
 
 struct SongRequestResultRow: View {
+  @Environment(\.displayScale) private var displayScale
   let songRequest: SongRequest
   var buttonText: String = "REQUEST"
   var isProcessing: Bool = false
@@ -201,11 +207,15 @@ struct SongRequestResultRow: View {
   var body: some View {
     HStack(spacing: 12) {
       if let imageUrl = songRequest.imageUrl {
-        WebImage(url: imageUrl)
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-          .frame(width: 45, height: 45)
-          .clipped()
+        WebImage(
+          url: imageUrl,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 45, height: 45), scale: displayScale)
+        )
+        .resizable()
+        .aspectRatio(contentMode: .fill)
+        .frame(width: 45, height: 45)
+        .clipped()
       } else {
         RoundedRectangle(cornerRadius: 4)
           .fill(Color(hex: "#666666"))

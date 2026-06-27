@@ -533,6 +533,50 @@ struct APIClient: Sendable {
     []
   }
 
+  // MARK: - Giveaway Events
+
+  /// Cross-station feed of live + upcoming giveaway events (status open or scheduled).
+  /// Drives the in-app banner and pre-arm discovery.
+  var giveawayEventsFeed: @Sendable (_ jwtToken: String) async throws -> [GiveawayEvent] = {
+    _ in []
+  }
+
+  /// Authoritative per-viewer giveaway event by id. Includes `serverTime` for clock-skew
+  /// correction and reconciles open/close on demand.
+  var giveawayEvent:
+    @Sendable (_ jwtToken: String, _ eventId: String) async throws -> GiveawayEvent =
+      { _, _ in .mock }
+
+  /// The currently-open giveaway event for a station, or nil. Late-joiner check on tune-in.
+  var activeGiveawayEvent:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> GiveawayEvent? = { _, _ in
+      nil
+    }
+
+  /// Taps into a giveaway event. Accepted at server `opensAt` (open-on-demand); 400 if not open.
+  var tapGiveawayEvent:
+    @Sendable (_ jwtToken: String, _ eventId: String) async throws -> GiveawayTapResponse = {
+      _, _ in .mock
+    }
+
+  /// The viewer's authoritative final outcome for an event. Reconciles a due close on demand, so
+  /// the last-tapper promotion is reflected without waiting for the worker. 404 if the event is gone.
+  var giveawayEventMyResult:
+    @Sendable (_ jwtToken: String, _ eventId: String) async throws -> GiveawayMyResult = { _, _ in
+      .mock
+    }
+
+  /// Submits (upserts) the winner's mailing details for an event. Winner-only on the server.
+  var submitGiveawayWinnerDetails:
+    @Sendable (_ jwtToken: String, _ eventId: String, _ body: GiveawayWinnerSubmissionRequest)
+      async throws -> Void = { _, _, _ in }
+
+  /// Owner submits a recorded congrats (an uploaded voicetrack `audioBlockId`) for an event; the
+  /// server inserts it as a spin. Idempotent per (eventId, audioBlockId) on the server.
+  var recordGiveawayEventCongrats:
+    @Sendable (_ jwtToken: String, _ eventId: String, _ audioBlockId: String) async throws -> Void =
+      { _, _, _ in }
+
   /// Gets the user's support conversation (may be nil if none exists)
   /// - Parameter jwtToken: The JWT token for authentication
   /// - Returns: SupportConversationResponse containing the conversation (nullable) and unread count

@@ -8,6 +8,7 @@
 import Dependencies
 import DependenciesMacros
 import Foundation
+import IssueReporting
 import Sharing
 import UIKit
 import UserNotifications
@@ -82,6 +83,17 @@ struct PushNotificationsClient: Sendable {
   /// Handle notification tap - extracts station ID and plays it
   /// - Parameter userInfo: The notification payload
   var handleNotificationTap: @Sendable (_ userInfo: [String: any Sendable]) async -> Void
+
+  /// Handle the targeted "you won" giveaway push. Flips (or creates) the winning participation in
+  /// durable shared state; the MainContainer arbiter presents the winner sheet. Idempotent.
+  /// - Parameter userInfo: The notification payload
+  var handleGiveawayWinnerPush: @Sendable (_ userInfo: [String: any Sendable]) async -> Void
+
+  /// Handle the owner-only "winner pending" giveaway push: the owner can record a congrats. Writes a
+  /// pending `CongratsAction` into durable shared state; the MainContainer arbiter presents the
+  /// congrats sheet. Never clobbers an in-progress (non-terminal) action.
+  /// - Parameter userInfo: The notification payload
+  var handleGiveawayWinnerPendingPush: @Sendable (_ userInfo: [String: any Sendable]) async -> Void
 
   /// Set the app icon badge count
   /// - Parameter count: The badge count to display
@@ -205,6 +217,76 @@ extension PushNotificationsClient: DependencyKey {
 
       @Dependency(\.stationPlayer) var stationPlayer
       await stationPlayer.play(station: station)
+    },
+    handleGiveawayWinnerPush: { userInfo in
+      guard GiveawayFeature.isLiveDataEnabled else { return }
+      guard let push = GiveawayWinnerPush(userInfo: userInfo) else {
+        // A malformed winner push is the one rescue path for a missed promotion — never drop it
+        // silently. (A non-giveaway payload routed here by mistake is not worth reporting.)
+        if userInfo["type"] as? String == "giveaway_winner" {
+          reportIssue("Dropped malformed giveaway_winner push: \(userInfo)")
+        }
+        return
+      }
+      // Honor the server's claim flag: an already-claimed prize (other device) resolves straight to a
+      // completed win, so the arbiter never prompts the form for it.
+      let submissionCompleted = push.submissionCompleted ?? false
+      @Shared(.giveawayParticipations) var participations
+      let participationsShared = $participations
+      await MainActor.run {
+        participationsShared.withLock { dict in
+          // Already a win. Honor a server "claimed elsewhere" upgrade by flipping a locally-pending
+          // win to completed (so the arbiter stops re-presenting the claim form), but never clobber
+          // the `winnerSheetPresentedAt` stamp or re-open an already-completed claim.
+          if case .resolvedWon(let alreadyCompleted) = dict[push.eventId]?.status {
+            if submissionCompleted, !alreadyCompleted {
+              dict[push.eventId]?.status = .resolvedWon(submissionCompleted: true)
+            }
+            return
+          }
+          if dict[push.eventId] != nil {
+            dict[push.eventId]?.status = .resolvedWon(submissionCompleted: submissionCompleted)
+          } else {
+            dict[push.eventId] = GiveawayParticipation(
+              id: push.eventId, stationId: push.stationId ?? "", prizeName: push.prizeName,
+              prizeDescription: push.prizeDescription, prizeImageUrl: push.prizeImageUrl,
+              winningNumber: push.winningNumber, tapNumber: push.tapNumber,
+              status: .resolvedWon(submissionCompleted: submissionCompleted), tappedAt: Date())
+          }
+        }
+      }
+    },
+    handleGiveawayWinnerPendingPush: { userInfo in
+      guard GiveawayFeature.isLiveDataEnabled else { return }
+      guard let push = GiveawayWinnerPendingPush(userInfo: userInfo) else {
+        if userInfo["type"] as? String == "giveaway_winner_pending" {
+          reportIssue("Dropped malformed giveaway_winner_pending push: \(userInfo)")
+        }
+        return
+      }
+      @Shared(.pendingCongratsActions) var actions
+      let actionsShared = $actions
+      await MainActor.run {
+        actionsShared.withLock { dict in
+          if let existing = dict[push.eventId] {
+            // A terminal action (submitted / skipped / alreadyClosed) must NOT be resurrected by a
+            // delayed duplicate push — that would re-prompt the owner and allow a second congrats.
+            // A non-terminal in-progress action keeps its recording / audioBlockId; only refresh
+            // metadata.
+            guard !existing.isTerminal else { return }
+            var updated = existing
+            updated.winnerName = push.winnerName ?? existing.winnerName
+            updated.prizeName = push.prizeName ?? existing.prizeName
+            updated.congratsExpiresAt = push.congratsExpiresAt ?? existing.congratsExpiresAt
+            dict[push.eventId] = updated
+            return
+          }
+          dict[push.eventId] = CongratsAction(
+            eventId: push.eventId, stationId: push.stationId, winnerName: push.winnerName,
+            prizeName: push.prizeName, congratsExpiresAt: push.congratsExpiresAt,
+            state: .pending, startedAt: Date())
+        }
+      }
     },
     setBadgeCount: { count in
       try? await UNUserNotificationCenter.current().setBadgeCount(count)
