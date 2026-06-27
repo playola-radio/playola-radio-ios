@@ -465,6 +465,8 @@
 		D3FACE010000000000000002 /* InDevelopmentBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE010000000000000001 /* InDevelopmentBadge.swift */; };
 		D3FACE010000000000000003 /* InDevelopmentBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE010000000000000001 /* InDevelopmentBadge.swift */; };
 		D3FACE010000000000000005 /* ArtistSuggestionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE010000000000000004 /* ArtistSuggestionTests.swift */; };
+		D3FACE020000000000000002 /* RemoteArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE020000000000000001 /* RemoteArtwork.swift */; };
+		D3FACE020000000000000003 /* RemoteArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE020000000000000001 /* RemoteArtwork.swift */; };
 		D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */; };
 		D3FEC8082EDF646A00A33AE8 /* ChooseStationToBroadcastPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */; };
 		D3FEC8092EDF646A00A33AE8 /* ChooseStationToBroadcastPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */; };
@@ -774,6 +776,7 @@
 		D3F493D22EEE58CF008ED463 /* VoicetrackUploadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicetrackUploadService.swift; sourceTree = "<group>"; };
 		D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPageModel.swift; sourceTree = "<group>"; };
 		D3FACE010000000000000001 /* InDevelopmentBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InDevelopmentBadge.swift; sourceTree = "<group>"; };
+		D3FACE020000000000000001 /* RemoteArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteArtwork.swift; sourceTree = "<group>"; };
 		D3FACE010000000000000004 /* ArtistSuggestionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistSuggestionTests.swift; sourceTree = "<group>"; };
 		D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTier.swift; sourceTree = "<group>"; };
 		D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageTests.swift; sourceTree = "<group>"; };
@@ -1101,6 +1104,7 @@
 				D3B744C62E3139860042A427 /* ListeningTimeTile */,
 				D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */,
 				D3FACE010000000000000001 /* InDevelopmentBadge.swift */,
+				D3FACE020000000000000001 /* RemoteArtwork.swift */,
 				D35EFBF42F1576EF000F64A4 /* NewFeatureTile */,
 				D3137DBA2D3976550070033A /* PlayolaAlert.swift */,
 				D3137DCE2D3AA1E10070033A /* PlayolaSheet.swift */,
@@ -1968,6 +1972,7 @@
 				D30F00532E8592F0007BCC73 /* ListeningTracker.swift in Sources */,
 				D35EFC242F17D4CC000F64A4 /* LiveBadge.swift in Sources */,
 				D3FACE010000000000000003 /* InDevelopmentBadge.swift in Sources */,
+				D3FACE020000000000000003 /* RemoteArtwork.swift in Sources */,
 				D30F00542E8592F0007BCC73 /* ViewModel.swift in Sources */,
 				D30F00552E8592F0007BCC73 /* SignInPageView.swift in Sources */,
 				D30F00562E8592F0007BCC73 /* UrlStation.swift in Sources */,
@@ -2161,6 +2166,7 @@
 				D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */,
 				D35EFC232F17D4CC000F64A4 /* LiveBadge.swift in Sources */,
 				D3FACE010000000000000002 /* InDevelopmentBadge.swift in Sources */,
+				D3FACE020000000000000002 /* RemoteArtwork.swift in Sources */,
 				D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */,
 				D3B6626A2D40103C00975D2F /* SignInPageView.swift in Sources */,
 				D30AE8A72E75C92700D9FBCA /* UrlStation.swift in Sources */,

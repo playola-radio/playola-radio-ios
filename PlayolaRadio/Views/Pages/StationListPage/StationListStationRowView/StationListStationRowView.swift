@@ -9,6 +9,7 @@ import SDWebImageSwiftUI
 import SwiftUI
 
 struct StationListStationRowView: View {
+  @Environment(\.displayScale) private var displayScale
   let model: StationListStationRowModel
   let action: () -> Void
   let isPreset: Bool
@@ -19,7 +20,11 @@ struct StationListStationRowView: View {
     HStack(spacing: 0) {
       Button(action: action) {
         HStack(spacing: 16) {
-          WebImage(url: model.imageUrl) { image in
+          WebImage(
+            url: model.imageUrl,
+            context: RemoteArtwork.downsampleContext(
+              CGSize(width: 64, height: 64), scale: displayScale)
+          ) { image in
             image
               .resizable()
               .aspectRatio(contentMode: .fill)
