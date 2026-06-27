@@ -10,8 +10,10 @@ import SDWebImageSwiftUI
 import SwiftUI
 
 struct StationCardView: View {
+  @Environment(\.displayScale) private var displayScale
   let station: AnyStation
   let liveStatus: LiveStatus?
+  let hasUpcomingGiveaway: Bool
   let onRadioStationSelected: (AnyStation) -> Void
 
   var body: some View {
@@ -22,7 +24,11 @@ struct StationCardView: View {
       label: {
         HStack(spacing: 2) {
           ZStack(alignment: .topLeading) {
-            WebImage(url: imageURL) { image in
+            WebImage(
+              url: imageURL,
+              context: RemoteArtwork.downsampleContext(
+                CGSize(width: 160, height: 160), scale: displayScale)
+            ) { image in
               image
                 .resizable()
                 .aspectRatio(contentMode: .fill)
@@ -32,10 +38,15 @@ struct StationCardView: View {
             .frame(width: 160, height: 160)
             .clipped()
 
-            if let liveStatus = liveStatus {
-              LiveBadge(status: liveStatus)
-                .offset(x: 8, y: 8)
+            VStack(alignment: .leading, spacing: 4) {
+              if hasUpcomingGiveaway {
+                UpcomingGiveawayBadge()
+              }
+              if let liveStatus = liveStatus {
+                LiveBadge(status: liveStatus)
+              }
             }
+            .offset(x: 8, y: 8)
           }
 
           // Right side - Text content
@@ -73,6 +84,7 @@ struct StationCardView: View {
 struct HomePageStationList: View {
   var stations: IdentifiedArrayOf<AnyStation>
   var liveStatusForStation: (String) -> LiveStatus?
+  var hasUpcomingGiveawayForStation: (String) -> Bool
   var onRadioStationSelected: (AnyStation) -> Void
 
   var body: some View {
@@ -83,11 +95,12 @@ struct HomePageStationList: View {
         .foregroundColor(.white)
         .padding(.bottom, 8)
 
-      VStack(spacing: 12) {
+      LazyVStack(spacing: 12) {
         ForEach(stations) { station in
           StationCardView(
             station: station,
-            liveStatus: liveStatusForStation(station.id)
+            liveStatus: liveStatusForStation(station.id),
+            hasUpcomingGiveaway: hasUpcomingGiveawayForStation(station.id)
           ) {
             onRadioStationSelected($0)
           }
@@ -103,6 +116,7 @@ struct HomePageStationList_Previews: PreviewProvider {
     HomePageStationList(
       stations: IdentifiedArray(uniqueElements: [AnyStation.mock]),
       liveStatusForStation: { _ in nil },
+      hasUpcomingGiveawayForStation: { _ in false },
       onRadioStationSelected: { _ in }
     )
     .preferredColorScheme(.dark)

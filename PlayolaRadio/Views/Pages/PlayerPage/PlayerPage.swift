@@ -11,6 +11,7 @@ import SwiftUI
 struct PlayerPage: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.scenePhase) var scenePhase
+  @Environment(\.displayScale) private var displayScale
   @Bindable var model: PlayerPageModel
 
   var body: some View {
@@ -54,7 +55,14 @@ struct PlayerPage: View {
       ScrollView {
 
         // Main Image
-        WebImage(url: model.stationArtUrl) { image in
+        WebImage(
+          url: model.stationArtUrl,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(
+              width: UIScreen.main.bounds.width - 148,
+              height: UIScreen.main.bounds.width - 148),
+            scale: displayScale)
+        ) { image in
           image
             .resizable()
             .aspectRatio(contentMode: .fill)
@@ -130,6 +138,9 @@ struct PlayerPage: View {
         .frame(maxWidth: .infinity, alignment: .center)
         .padding(.horizontal, 24)
         .padding(.top, 32)
+
+        // Upcoming-giveaway banner (hidden until a giveaway is coming up for this station)
+        UpcomingGiveawayBanner(model: model.upcomingGiveawayBannerModel)
 
         // Giveaway overlay (hidden until an open giveaway is live for this station)
         GiveawayPlayerOverlayView(model: model.giveawayOverlayModel)

@@ -187,6 +187,7 @@ class PlayerPageModel: ViewModel {
 
   // MARK: - Giveaway
   let giveawayOverlayModel = GiveawayOverlayModel()
+  let upcomingGiveawayBannerModel = UpcomingGiveawayBannerModel()
 
   init(onDismiss: (() -> Void)? = nil) {
     self.onDismiss = onDismiss

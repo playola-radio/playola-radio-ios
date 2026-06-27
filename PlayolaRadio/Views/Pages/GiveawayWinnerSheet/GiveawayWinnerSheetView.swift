@@ -22,17 +22,22 @@ struct GiveawayWinnerSheetView: View {
 }
 
 private struct GiveawayWinnerFormView: View {
+  @Environment(\.displayScale) private var displayScale
   @Bindable var model: GiveawayWinnerSheetModel
 
   var body: some View {
     ScrollView {
       VStack(spacing: 16) {
-        WebImage(url: model.prizeImageUrl)
-          .resizable()
-          .scaledToFill()
-          .frame(width: 160, height: 160)
-          .clipShape(RoundedRectangle(cornerRadius: 14))
-          .padding(.top, 24)
+        WebImage(
+          url: model.prizeImageUrl,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 160, height: 160), scale: displayScale)
+        )
+        .resizable()
+        .scaledToFill()
+        .frame(width: 160, height: 160)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .padding(.top, 24)
 
         Text(model.headline)
           .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 26))

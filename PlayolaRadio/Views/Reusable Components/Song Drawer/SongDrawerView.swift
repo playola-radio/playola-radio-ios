@@ -10,6 +10,7 @@ import SDWebImageSwiftUI
 import SwiftUI
 
 struct SongDrawerView: View {
+  @Environment(\.displayScale) private var displayScale
   @Bindable var model: SongDrawerModel
 
   var body: some View {
@@ -17,7 +18,11 @@ struct SongDrawerView: View {
 
       // HEADER
       HStack(spacing: 16) {
-        WebImage(url: model.audioBlock.imageUrl) { image in
+        WebImage(
+          url: model.audioBlock.imageUrl,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: 48, height: 48), scale: displayScale)
+        ) { image in
           image
             .resizable()
             .aspectRatio(contentMode: .fill)

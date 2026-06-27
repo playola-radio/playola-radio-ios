@@ -1,6 +1,7 @@
 import Combine
 import Dependencies
 import Foundation
+import IdentifiedCollections
 import Sharing
 
 /// Drives the live giveaway data path. Polls the cross-station feed, finds the now-playing
@@ -19,10 +20,14 @@ final class GiveawayCoordinator {
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
   @ObservationIgnored @Shared(.activeGiveaway) var activeGiveaway
+  @ObservationIgnored @Shared(.upcomingGiveaways) var upcomingGiveaways
   @ObservationIgnored @Shared(.giveawayParticipations) var participations
 
   @ObservationIgnored private var feedPollTask: Task<Void, Never>?
   @ObservationIgnored private var revealTask: Task<Void, Never>?
+  /// The most recent successful feed, kept so a reveal can re-derive a station's next scheduled
+  /// giveaway immediately instead of dropping the badge until the next poll.
+  @ObservationIgnored private var lastFeed: [GiveawayEvent] = []
   @ObservationIgnored private var cancellables: Set<AnyCancellable> = []
   @ObservationIgnored private var armedEventId: String?
   @ObservationIgnored private var hasObservedStation = false
@@ -63,7 +68,16 @@ final class GiveawayCoordinator {
     feedPollTask?.cancel()
     feedPollTask = nil
     cancellables.removeAll()
-    cancelArmedReveal()
+    if GiveawayFeature.isLiveDataEnabled {
+      // Ordinary stop (app backgrounded): cancel the timer but KEEP the published state
+      // (activeGiveaway + upcomingGiveaways) so the overlay/badges don't flicker on the next
+      // foreground — `reconcile()` refreshes them then.
+      cancelArmedReveal()
+    } else {
+      // Feature disabled: tear everything down so no stale giveaway state lingers on screen.
+      clearActiveAndArm()
+      $upcomingGiveaways.withLock { $0 = [] }
+    }
   }
 
   /// Immediate reconcile (on foreground / now-playing change).
@@ -77,13 +91,11 @@ final class GiveawayCoordinator {
 
   func reconcile() async {
     guard let jwt = auth.jwt else {
+      // Auth loss: cancel the armed timer + clear the open event, AND clear the badges/banner —
+      // without a jwt we can't refresh, so leaving them up would strand stale "coming up" state.
       log("reconcile: no auth jwt — clearing")
       clearActiveAndArm()
-      return
-    }
-    guard let stationId = currentPlayolaStationId else {
-      log("reconcile: not on a Playola station — clearing")
-      clearActiveAndArm()
+      $upcomingGiveaways.withLock { $0 = [] }
       return
     }
     let feed: [GiveawayEvent]
@@ -93,7 +105,17 @@ final class GiveawayCoordinator {
       log("reconcile: feed FETCH FAILED (\(error)) — keeping last state")
       return  // transient failure: keep last known state, retry next poll
     }
-    guard currentPlayolaStationId == stationId else { return }
+    lastFeed = feed
+    // Publish the all-stations "coming up" projection unconditionally — the badges must show in the
+    // station list / Home even when nothing is playing, so this runs ahead of the now-playing guard.
+    publishUpcoming(from: feed)
+    guard let stationId = currentPlayolaStationId else {
+      // Not on a Playola station: tear down the open event + armed timer, but KEEP upcomingGiveaways
+      // (that's what powers the list/Home badges while browsing without playback).
+      log("reconcile: not on a Playola station — clearing active only")
+      clearActiveAndArm()
+      return
+    }
     let stationEvents = feed.filter { $0.stationId == stationId }
     log(
       "reconcile: playing=\(stationId.prefix(8)) events="
@@ -170,6 +192,9 @@ final class GiveawayCoordinator {
         return
       }
       $activeGiveaway.withLock { $0 = event }
+      if event.status == .open {
+        removeUpcomingEntry(stationId: event.stationId, revealedEventId: event.id)
+      }
       log("REVEALED \(eventId) status=\(event.status.rawValue)")
     } catch {
       log("reveal: GET \(eventId) failed — \(error)")
@@ -308,6 +333,7 @@ final class GiveawayCoordinator {
     // The GET may have already reconciled to open (e.g. opensAt just passed) → reveal now.
     if event.status == .open {
       $activeGiveaway.withLock { $0 = event }
+      removeUpcomingEntry(stationId: event.stationId, revealedEventId: event.id)
       armedEventId = nil
       log("arm: \(eventId) already open on GET → revealed now")
       return
@@ -340,6 +366,7 @@ final class GiveawayCoordinator {
       return
     }
     $activeGiveaway.withLock { $0 = event.openedCopy() }
+    removeUpcomingEntry(stationId: event.stationId, revealedEventId: event.id)
     log("REVEALED \(event.id) from held event (no refresh)")
   }
 
@@ -353,6 +380,43 @@ final class GiveawayCoordinator {
   private func clearActiveAndArm() {
     cancelArmedReveal()
     $activeGiveaway.withLock { $0 = nil }
+  }
+
+  /// Project the full feed into the per-station "coming up" set: only `.scheduled` events, one entry
+  /// per station (the soonest by `opensAt`). An open event is excluded here — it's owned by the tap
+  /// overlay — so publishing from a fresh feed also drops a station whose event just opened or closed.
+  private func publishUpcoming(from feed: [GiveawayEvent]) {
+    // Exclude the station whose contest we've already revealed: after a local optimistic reveal the
+    // feed can still report it `.scheduled` for a poll or two, which would otherwise re-show a
+    // "coming up" badge for a station that's actually open (the tap overlay is up).
+    let openStationId = activeGiveaway?.status == .open ? activeGiveaway?.stationId : nil
+    let scheduled = feed.filter { $0.status == .scheduled && $0.stationId != openStationId }
+    let soonestPerStation = Dictionary(grouping: scheduled, by: \.stationId)
+      .compactMap { _, events -> UpcomingGiveawayInfo? in
+        events.min(by: { ($0.opensAt ?? .distantFuture) < ($1.opensAt ?? .distantFuture) })
+          .map { UpcomingGiveawayInfo(event: $0) }
+      }
+    $upcomingGiveaways.withLock { $0 = IdentifiedArray(uniqueElements: soonestPerStation) }
+  }
+
+  /// Update a station's "coming up" entry the instant one of its events is revealed (open), so the
+  /// badge/banner reflects the reveal without waiting up to 30s for the next poll. Only acts if the
+  /// entry still names the revealed event; re-derives that station's next-soonest `.scheduled` event
+  /// from the last feed (a station can have several scheduled airings at once), and drops the station
+  /// only when none remains.
+  private func removeUpcomingEntry(stationId: String, revealedEventId: String) {
+    let replacement =
+      lastFeed
+      .filter { $0.stationId == stationId && $0.status == .scheduled && $0.id != revealedEventId }
+      .min(by: { ($0.opensAt ?? .distantFuture) < ($1.opensAt ?? .distantFuture) })
+    $upcomingGiveaways.withLock { upcoming in
+      guard upcoming[id: stationId]?.event.id == revealedEventId else { return }
+      if let replacement {
+        upcoming[id: stationId] = UpcomingGiveawayInfo(event: replacement)
+      } else {
+        upcoming[id: stationId] = nil
+      }
+    }
   }
 
   private var currentPlayolaStationId: String? {
