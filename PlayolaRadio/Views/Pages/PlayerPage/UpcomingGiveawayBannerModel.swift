@@ -7,6 +7,10 @@ import Sharing
 @Observable
 class UpcomingGiveawayBannerModel: ViewModel {
 
+  // MARK: - Dependencies
+  @ObservationIgnored @Dependency(\.continuousClock) var clock
+  @ObservationIgnored @Dependency(\.date.now) var currentDate
+
   // MARK: - Shared State
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
   @ObservationIgnored @Shared(.activeGiveaway) var activeGiveaway
@@ -15,6 +19,24 @@ class UpcomingGiveawayBannerModel: ViewModel {
   // MARK: - Initialization
   override init() {
     super.init()
+  }
+
+  // MARK: - Properties
+
+  /// Current time, refreshed once a minute by `task()`. `nil` until the view starts the refresh, at
+  /// which point the window phrase falls back to `currentDate` so the countdown shows on first paint.
+  var now: Date?
+
+  // MARK: - User Actions
+
+  /// Ticks `now` once a minute so the window phrase steps down (~40 → ~35 …) without a
+  /// per-second countdown.
+  func task() async {
+    now = currentDate
+    while !Task.isCancelled {
+      do { try await clock.sleep(for: .seconds(60)) } catch { break }
+      now = currentDate
+    }
   }
 
   // MARK: - View Helpers
@@ -26,12 +48,15 @@ class UpcomingGiveawayBannerModel: ViewModel {
 
   var bannerOpacity: Double { isVisible ? 1 : 0 }
 
-  /// Deliberately omits any open time — the indicator builds anticipation without revealing when the
-  /// contest opens.
+  /// Leads with the prize-show window ("… giveaway in the next ~40 min") whenever the show holding
+  /// the prize is the one currently on air. Otherwise falls back to the timeless invite, which never
+  /// reveals when the contest itself opens.
   var bannerText: String {
-    guard let event = upcomingGiveaway?.event, let stationName = currentStationName else {
-      return ""
+    guard let event = upcomingGiveaway?.event else { return "" }
+    if let windowPhrase {
+      return "\(event.prizeName) giveaway in the next \(windowPhrase)"
     }
+    guard let stationName = currentStationName else { return "" }
     return "Win a \(event.prizeName) — coming up on \(stationName)"
   }
 
@@ -53,5 +78,25 @@ class UpcomingGiveawayBannerModel: ViewModel {
       return nil
     }
     return info
+  }
+
+  /// End of the show (airing) that holds the prize — but only when that show is the one currently on
+  /// air, since that's the only case where the now-playing spin carries its `endTime`.
+  private var prizeShowEndTime: Date? {
+    guard let airingId = upcomingGiveaway?.event.airingId,
+      let airing = nowPlaying?.playolaSpinPlaying?.airing,
+      airing.id == airingId
+    else { return nil }
+    return airing.endTime
+  }
+
+  /// The window remaining until the prize show ends, rounded to the nearest 5 minutes. `nil` when the
+  /// show end is unknown or already past.
+  private var windowPhrase: String? {
+    guard let endTime = prizeShowEndTime else { return nil }
+    let remaining = endTime.timeIntervalSince(now ?? currentDate)
+    guard remaining > 0 else { return nil }
+    let roundedMinutes = Int((remaining / 60 / 5).rounded()) * 5
+    return roundedMinutes <= 0 ? "few minutes" : "~\(roundedMinutes) min"
   }
 }

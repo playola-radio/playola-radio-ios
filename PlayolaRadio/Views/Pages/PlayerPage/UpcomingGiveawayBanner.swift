@@ -40,6 +40,7 @@ struct UpcomingGiveawayBanner: View {
     .opacity(model.bannerOpacity)
     .allowsHitTesting(false)
     .clipped()
+    .task(id: ObjectIdentifier(model)) { await model.task() }
   }
 }
 
