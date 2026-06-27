@@ -168,6 +168,10 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
     expandedQuestionIds.contains(questionId)
   }
 
+  func expandToggleText(for questionId: String) -> String {
+    isExpanded(questionId) ? showLessText : showMoreText
+  }
+
   func isPlaying(_ questionId: String) -> Bool {
     playingQuestionId == questionId
   }
