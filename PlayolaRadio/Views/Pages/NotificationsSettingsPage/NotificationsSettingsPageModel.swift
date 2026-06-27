@@ -61,13 +61,6 @@ class NotificationsSettingsPageModel: ViewModel {
   private var subscriptions: [PushNotificationSubscription] = []
   var togglingStationIds: Set<String> = []
 
-  var navigationTitle: String { "Notifications" }
-  var emptyStateTitle: String { "No stations available" }
-  var emptyStateMessage: String { "No stations are currently available for notifications." }
-  var allNotificationsTitle: String { "All Notifications" }
-  var allNotificationsSubtitle: String { "Enable or disable all station notifications" }
-  var stationsSectionTitle: String { "Stations" }
-
   var stationItems: [StationNotificationItem] {
     let allStations = stationLists.flatMap { $0.playolaStations }
       .filter { $0.active ?? true }
@@ -203,6 +196,15 @@ class NotificationsSettingsPageModel: ViewModel {
 
     togglingStationIds.removeAll()
   }
+
+  // MARK: - View Helpers
+
+  var navigationTitle: String { "Notifications" }
+  var emptyStateTitle: String { "No stations available" }
+  var emptyStateMessage: String { "No stations are currently available for notifications." }
+  var allNotificationsTitle: String { "All Notifications" }
+  var allNotificationsSubtitle: String { "Enable or disable all station notifications" }
+  var stationsSectionTitle: String { "Stations" }
 }
 
 extension PlayolaAlert {

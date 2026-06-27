@@ -32,6 +32,35 @@ class RewardsPageModel: ViewModel {
   var redeemedPrizeTierIds: Set<String> = []
   var presentedAlert: PlayolaAlert?
 
+  // MARK: - User Actions
+
+  func viewAppeared() async {
+    let currentHours = getCurrentListeningHours()
+    await analytics.track(.viewedRewardsScreen(currentHours: currentHours))
+
+    await loadPrizeTiers()
+    await loadUserPrizes()
+  }
+
+  func redeemPrizeTapped(for prizeTier: PrizeTier) async {
+    let currentHours = getCurrentListeningHours()
+    await analytics.track(.tappedRedeemRewards(currentHours: currentHours))
+
+    let sheetModel = RedeemPrizeSheetModel(
+      prizeTier: prizeTier,
+      onSuccess: { [weak self] userPrize in
+        guard let self else { return }
+        if let prize = userPrize.prize {
+          self.redeemedPrizeTierIds.insert(prize.prizeTierId)
+        } else {
+          self.redeemedPrizeTierIds.insert(prizeTier.id)
+        }
+        self.presentedAlert = .prizeRedeemed
+      }
+    )
+    mainContainerNavigationCoordinator.presentedSheet = .redeemPrize(sheetModel)
+  }
+
   // MARK: - View Helpers
 
   struct PrizeTierInfo {
@@ -83,35 +112,6 @@ class RewardsPageModel: ViewModel {
       return "\(hoursToGo) \(hoursToGo == 1 ? "hour" : "hours") to go"
     }
     return ""
-  }
-
-  // MARK: - User Actions
-
-  func viewAppeared() async {
-    let currentHours = getCurrentListeningHours()
-    await analytics.track(.viewedRewardsScreen(currentHours: currentHours))
-
-    await loadPrizeTiers()
-    await loadUserPrizes()
-  }
-
-  func redeemPrizeTapped(for prizeTier: PrizeTier) async {
-    let currentHours = getCurrentListeningHours()
-    await analytics.track(.tappedRedeemRewards(currentHours: currentHours))
-
-    let sheetModel = RedeemPrizeSheetModel(
-      prizeTier: prizeTier,
-      onSuccess: { [weak self] userPrize in
-        guard let self else { return }
-        if let prize = userPrize.prize {
-          self.redeemedPrizeTierIds.insert(prize.prizeTierId)
-        } else {
-          self.redeemedPrizeTierIds.insert(prizeTier.id)
-        }
-        self.presentedAlert = .prizeRedeemed
-      }
-    )
-    mainContainerNavigationCoordinator.presentedSheet = .redeemPrize(sheetModel)
   }
 
   // MARK: - Private Helpers

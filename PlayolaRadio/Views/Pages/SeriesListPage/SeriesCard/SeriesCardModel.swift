@@ -25,18 +25,6 @@ class SeriesCardModel: ViewModel {
     super.init()
   }
 
-  var showTitle: String { showWithAirings.show.title }
-
-  var stationName: String { showWithAirings.station?.name ?? "Unknown Station" }
-
-  var curatorName: String { showWithAirings.station?.curatorName ?? "" }
-
-  var upcomingEpisodesHeader: String { "UPCOMING EPISODES" }
-
-  var upcomingEpisodesCountText: String { "\(showWithAirings.upcomingAiringsCount) total" }
-
-  var remindMeButtonTitle: String { "Remind Me" }
-
   func remindMeTapped() async {
     guard let jwt = auth.jwt else { return }
     guard let stationId = showWithAirings.station?.id else { return }
@@ -52,6 +40,20 @@ class SeriesCardModel: ViewModel {
       presentedAlert = .subscribeErrorAlert
     }
   }
+
+  // MARK: - View Helpers
+
+  var showTitle: String { showWithAirings.show.title }
+
+  var stationName: String { showWithAirings.station?.name ?? "Unknown Station" }
+
+  var curatorName: String { showWithAirings.station?.curatorName ?? "" }
+
+  var upcomingEpisodesHeader: String { "UPCOMING EPISODES" }
+
+  var upcomingEpisodesCountText: String { "\(showWithAirings.upcomingAiringsCount) total" }
+
+  var remindMeButtonTitle: String { "Remind Me" }
 }
 
 extension PlayolaAlert {

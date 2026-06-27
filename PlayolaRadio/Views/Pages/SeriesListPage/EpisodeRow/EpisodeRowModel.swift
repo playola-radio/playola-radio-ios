@@ -28,6 +28,8 @@ class EpisodeRowModel: ViewModel {
     return episode.createdAt < airing.airtime.addingTimeInterval(-86400)
   }
 
+  // MARK: - View Helpers
+
   var tuneInText: String {
     let time = formattedTime
     let dayOfWeek = dayOfWeekString
