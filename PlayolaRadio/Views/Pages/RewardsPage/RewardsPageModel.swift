@@ -80,7 +80,7 @@ class RewardsPageModel: ViewModel {
 
   func prizeTierHoursToGoText(for prizeTier: PrizeTier) -> String {
     if case .moreTimeRequired(let hoursToGo) = redemptionStatus(for: prizeTier) {
-      return "\(hoursToGo) hours to go"
+      return "\(hoursToGo) \(hoursToGo == 1 ? "hour" : "hours") to go"
     }
     return ""
   }

@@ -142,7 +142,7 @@ struct SongSearchPageView: View {
 struct SongSearchResultRow: View {
   @Environment(\.displayScale) private var displayScale
   let audioBlock: AudioBlock
-  var buttonText: String = "SELECT"
+  var buttonText: String
   let onSelect: () -> Void
 
   var body: some View {
@@ -200,7 +200,7 @@ struct SongSearchResultRow: View {
 struct SongRequestResultRow: View {
   @Environment(\.displayScale) private var displayScale
   let songRequest: SongRequest
-  var buttonText: String = "REQUEST"
+  var buttonText: String
   var isProcessing: Bool = false
   let onRequest: () -> Void
 

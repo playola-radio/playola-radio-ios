@@ -125,7 +125,7 @@ class StationSuggestionPageModel: ViewModel {
   }
 
   func voteCountLabel(_ suggestion: ArtistSuggestion) -> String {
-    "\(voteCountText(suggestion)) votes"
+    "\(suggestion.voteCount) \(suggestion.voteCount == 1 ? "vote" : "votes")"
   }
 
   func inDevelopmentBadgeText(_ suggestion: ArtistSuggestion) -> String? {
