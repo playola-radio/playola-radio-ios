@@ -33,9 +33,6 @@ class SupportPageModel: ViewModel {
     !newMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSending
   }
 
-  var navigationTitle: String { "Contact Us" }
-  var messageFieldPlaceholder: String { "Message" }
-
   func onViewAppeared() async {
     guard let jwt = auth.jwt else { return }
 
@@ -120,6 +117,11 @@ class SupportPageModel: ViewModel {
     guard phase == .active else { return }
     await refreshMessages()
   }
+
+  // MARK: - View Helpers
+
+  var navigationTitle: String { "Contact Us" }
+  var messageFieldPlaceholder: String { "Message" }
 }
 
 extension PlayolaAlert {

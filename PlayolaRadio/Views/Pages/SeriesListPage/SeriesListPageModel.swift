@@ -25,8 +25,6 @@ class SeriesListPageModel: ViewModel {
   var isLoading = false
   var presentedAlert: PlayolaAlert?
 
-  var navigationTitle: String { "Radio Shows" }
-
   // MARK: - Init
 
   override init() {
@@ -38,6 +36,10 @@ class SeriesListPageModel: ViewModel {
   func viewAppeared() async {
     await loadShows()
   }
+
+  // MARK: - View Helpers
+
+  var navigationTitle: String { "Radio Shows" }
 
   private func loadShows() async {
     guard let jwtToken = auth.jwt else { return }

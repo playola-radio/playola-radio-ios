@@ -23,6 +23,8 @@ class EpisodeRowModel: ViewModel {
     airing.airtime > now
   }
 
+  // MARK: - View Helpers
+
   var tuneInText: String {
     let time = formattedTime
     let dayOfWeek = dayOfWeekString

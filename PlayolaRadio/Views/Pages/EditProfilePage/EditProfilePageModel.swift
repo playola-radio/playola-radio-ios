@@ -25,15 +25,6 @@ class EditProfilePageModel: ViewModel {
 
   var presentedAlert: PlayolaAlert?
 
-  var navigationTitle: String { "Edit Profile" }
-  var firstNameLabel: String { "First Name" }
-  var lastNameLabel: String { "Last Name" }
-  var emailLabel: String { "Email" }
-  var emailHelpText: String {
-    "This email is linked to your Apple ID and can't be changed here."
-  }
-  var saveButtonTitle: String { "Save Profile" }
-
   var isSaveButtonEnabled: Bool {
     let originalFirstName = auth.currentUser?.firstName ?? ""
     let originalLastName = auth.currentUser?.lastName ?? ""
@@ -77,6 +68,17 @@ class EditProfilePageModel: ViewModel {
     self.lastName = auth.currentUser?.lastName ?? ""
     self.email = auth.currentUser?.email ?? ""
   }
+
+  // MARK: - View Helpers
+
+  var navigationTitle: String { "Edit Profile" }
+  var firstNameLabel: String { "First Name" }
+  var lastNameLabel: String { "Last Name" }
+  var emailLabel: String { "Email" }
+  var emailHelpText: String {
+    "This email is linked to your Apple ID and can't be changed here."
+  }
+  var saveButtonTitle: String { "Save Profile" }
 }
 
 extension PlayolaAlert {
