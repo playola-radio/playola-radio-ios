@@ -16,16 +16,16 @@ class UpcomingGiveawayBannerModel: ViewModel {
   @ObservationIgnored @Shared(.activeGiveaway) var activeGiveaway
   @ObservationIgnored @Shared(.upcomingGiveaways) var upcomingGiveaways
 
-  // MARK: - Properties
-
-  /// Current time, refreshed once a minute by `task()`. `nil` until the view starts the refresh; the
-  /// window phrase stays hidden (timeless fallback) until then.
-  var now: Date?
-
   // MARK: - Initialization
   override init() {
     super.init()
   }
+
+  // MARK: - Properties
+
+  /// Current time, refreshed once a minute by `task()`. `nil` until the view starts the refresh, at
+  /// which point the window phrase falls back to `currentDate` so the countdown shows on first paint.
+  var now: Date?
 
   // MARK: - User Actions
 
@@ -93,8 +93,8 @@ class UpcomingGiveawayBannerModel: ViewModel {
   /// The window remaining until the prize show ends, rounded to the nearest 5 minutes. `nil` when the
   /// show end is unknown or already past.
   private var windowPhrase: String? {
-    guard let endTime = prizeShowEndTime, let now else { return nil }
-    let remaining = endTime.timeIntervalSince(now)
+    guard let endTime = prizeShowEndTime else { return nil }
+    let remaining = endTime.timeIntervalSince(now ?? currentDate)
     guard remaining > 0 else { return nil }
     let roundedMinutes = Int((remaining / 60 / 5).rounded()) * 5
     return roundedMinutes <= 0 ? "few minutes" : "~\(roundedMinutes) min"

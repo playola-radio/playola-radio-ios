@@ -1,3 +1,4 @@
+import Dependencies
 import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
@@ -99,6 +100,22 @@ struct UpcomingGiveawayBannerModelTests {
     ]
     let model = makeModel()
     #expect(model.isVisible == true)
+  }
+
+  @Test func usesCurrentDateForWindowBeforeFirstTick() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(
+      airingId: "a1", endTime: Self.referenceNow.addingTimeInterval(38 * 60))
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
+      scheduled(id: "e1", station: "s1", airingId: "a1")
+    ]
+    let model = withDependencies {
+      $0.date = .constant(Self.referenceNow)
+    } operation: {
+      UpcomingGiveawayBannerModel()
+    }
+    #expect(model.now == nil)
+    #expect(model.bannerText == "Two tickets giveaway in the next ~40 min")
   }
 
   @Test func showsWindowPhraseWhenPrizeShowIsCurrentlyAiring() {
