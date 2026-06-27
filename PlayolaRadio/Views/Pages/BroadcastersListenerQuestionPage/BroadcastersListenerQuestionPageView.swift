@@ -152,11 +152,11 @@ struct BroadcastersListenerQuestionPageView: View {
 
 struct ListenerQuestionRow: View {
   let question: ListenerQuestion
-  var answeredBadgeText: String = "Answered"
-  var missingTranscriptionText: String = "No transcription available"
-  var unknownListenerText: String = "Unknown Listener"
-  var showMoreText: String = "Show more"
-  var showLessText: String = "Show less"
+  var answeredBadgeText: String
+  var missingTranscriptionText: String
+  var unknownListenerText: String
+  var showMoreText: String
+  var showLessText: String
   let isExpanded: Bool
   let isPlaying: Bool
   let onExpandTapped: () -> Void

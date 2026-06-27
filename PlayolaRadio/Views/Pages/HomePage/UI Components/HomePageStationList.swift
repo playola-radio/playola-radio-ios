@@ -82,7 +82,7 @@ struct StationCardView: View {
 }
 
 struct HomePageStationList: View {
-  var title: String = "Artist stations for you"
+  var title: String
   var stations: IdentifiedArrayOf<AnyStation>
   var liveStatusForStation: (String) -> LiveStatus?
   var hasUpcomingGiveawayForStation: (String) -> Bool
@@ -115,6 +115,7 @@ struct HomePageStationList: View {
 struct HomePageStationList_Previews: PreviewProvider {
   static var previews: some View {
     HomePageStationList(
+      title: "Artist stations for you",
       stations: IdentifiedArray(uniqueElements: [AnyStation.mock]),
       liveStatusForStation: { _ in nil },
       hasUpcomingGiveawayForStation: { _ in false },
