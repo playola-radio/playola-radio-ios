@@ -48,7 +48,7 @@ class UpcomingGiveawayBannerModel: ViewModel {
 
   var bannerOpacity: Double { isVisible ? 1 : 0 }
 
-  /// Leads with the prize-show window ("Stay tuned… in the next ~40 minutes") whenever the show
+  /// Leads with the prize-show window ("Stay tuned... in the next ~40 minutes") whenever the show
   /// holding the prize is the one currently on air. Otherwise falls back to the timeless invite, which
   /// never reveals when the contest itself opens.
   var bannerText: String {
