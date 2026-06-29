@@ -33,7 +33,7 @@ struct PushNotificationsTests {
       }
       $0.pushNotifications.registerForRemoteNotifications = {}
     } operation: {
-      @Dependency(\.pushNotifications) var pushNotifications
+      @Dependency(PushNotificationsClient.self) var pushNotifications
       _ = try await pushNotifications.requestAuthorization()
     }
 
@@ -49,7 +49,7 @@ struct PushNotificationsTests {
         registerCalled.setValue(true)
       }
     } operation: {
-      @Dependency(\.pushNotifications) var pushNotifications
+      @Dependency(PushNotificationsClient.self) var pushNotifications
       await pushNotifications.registerForRemoteNotifications()
     }
 
@@ -81,7 +81,7 @@ struct PushNotificationsTests {
         capturedAppVersion.setValue("1.0.0")
       }
     } operation: {
-      @Dependency(\.pushNotifications) var pushNotifications
+      @Dependency(PushNotificationsClient.self) var pushNotifications
       let tokenBytes: [UInt8] = [0xAB, 0xCD, 0xEF, 0x12]
       let tokenData = Data(tokenBytes)
       await pushNotifications.handleDeviceToken(tokenData)
@@ -127,7 +127,7 @@ struct PushNotificationsTests {
         }
       }
     } operation: {
-      @Dependency(\.pushNotifications) var pushNotifications
+      @Dependency(PushNotificationsClient.self) var pushNotifications
       let userInfo: [String: any Sendable] = ["stationId": "station-abc"]
       await pushNotifications.handleNotificationTap(userInfo)
     }
@@ -150,7 +150,7 @@ struct PushNotificationsTests {
         await PushNotificationsClient.liveValue.handleSupportNotificationBadge(badgeFromPayload)
       }
     } operation: {
-      @Dependency(\.pushNotifications) var pushNotifications
+      @Dependency(PushNotificationsClient.self) var pushNotifications
       await pushNotifications.handleSupportNotificationBadge(badgeFromPayload: 5)
     }
 
@@ -171,7 +171,7 @@ struct PushNotificationsTests {
         await PushNotificationsClient.liveValue.handleSupportNotificationBadge(badgeFromPayload)
       }
     } operation: {
-      @Dependency(\.pushNotifications) var pushNotifications
+      @Dependency(PushNotificationsClient.self) var pushNotifications
       await pushNotifications.handleSupportNotificationBadge(badgeFromPayload: nil)
     }
 
@@ -192,7 +192,7 @@ struct PushNotificationsTests {
         await PushNotificationsClient.liveValue.clearSupportBadge()
       }
     } operation: {
-      @Dependency(\.pushNotifications) var pushNotifications
+      @Dependency(PushNotificationsClient.self) var pushNotifications
       await pushNotifications.clearSupportBadge()
     }
 

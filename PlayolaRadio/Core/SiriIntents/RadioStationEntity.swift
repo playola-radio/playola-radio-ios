@@ -4,7 +4,7 @@ struct RadioStationEntity: AppEntity {
   static var typeDisplayRepresentation: TypeDisplayRepresentation {
     TypeDisplayRepresentation(name: "Station")
   }
-  static var defaultQuery = RadioStationEntityQuery()
+  static var defaultQuery: RadioStationEntityQuery { RadioStationEntityQuery() }
 
   let id: String
   let name: String
