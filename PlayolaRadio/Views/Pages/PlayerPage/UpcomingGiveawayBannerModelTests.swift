@@ -77,7 +77,7 @@ struct UpcomingGiveawayBannerModelTests {
     let model = makeModel()
     #expect(model.isVisible == true)
     #expect(model.bannerOpacity == 1)
-    #expect(model.bannerText == "Win a Two tickets — coming up on Mock Radio Show")
+    #expect(model.bannerText == "Two tickets — coming up on Mock Radio Show")
   }
 
   @Test func hiddenOnceContestOpensForCurrentStation() {
@@ -115,7 +115,8 @@ struct UpcomingGiveawayBannerModelTests {
       UpcomingGiveawayBannerModel()
     }
     #expect(model.now == nil)
-    #expect(model.bannerText == "Two tickets giveaway in the next ~40 min")
+    #expect(
+      model.bannerText == "Stay tuned... we're giving away Two tickets in the next ~40 minutes")
   }
 
   @Test func showsWindowPhraseWhenPrizeShowIsCurrentlyAiring() {
@@ -126,7 +127,8 @@ struct UpcomingGiveawayBannerModelTests {
       scheduled(id: "e1", station: "s1", airingId: "a1")
     ]
     let model = makeModel()
-    #expect(model.bannerText == "Two tickets giveaway in the next ~40 min")
+    #expect(
+      model.bannerText == "Stay tuned... we're giving away Two tickets in the next ~40 minutes")
   }
 
   @Test func roundsWindowToNearestFiveMinutes() {
@@ -137,7 +139,8 @@ struct UpcomingGiveawayBannerModelTests {
       scheduled(id: "e1", station: "s1", airingId: "a1")
     ]
     let model = makeModel()
-    #expect(model.bannerText == "Two tickets giveaway in the next ~45 min")
+    #expect(
+      model.bannerText == "Stay tuned... we're giving away Two tickets in the next ~45 minutes")
   }
 
   @Test func showsFewMinutesPhraseNearShowEnd() {
@@ -148,7 +151,8 @@ struct UpcomingGiveawayBannerModelTests {
       scheduled(id: "e1", station: "s1", airingId: "a1")
     ]
     let model = makeModel()
-    #expect(model.bannerText == "Two tickets giveaway in the next few minutes")
+    #expect(
+      model.bannerText == "Stay tuned... we're giving away Two tickets in the next few minutes")
   }
 
   @Test func fallsBackToTimelessCopyWhenAiringDoesNotMatch() {
@@ -159,7 +163,7 @@ struct UpcomingGiveawayBannerModelTests {
       scheduled(id: "e1", station: "s1", airingId: "a1")
     ]
     let model = makeModel()
-    #expect(model.bannerText == "Win a Two tickets — coming up on Mock Radio Show")
+    #expect(model.bannerText == "Two tickets — coming up on Mock Radio Show")
   }
 
   @Test func fallsBackToTimelessCopyWhenEndTimeMissing() {
@@ -170,7 +174,7 @@ struct UpcomingGiveawayBannerModelTests {
       scheduled(id: "e1", station: "s1", airingId: "a1")
     ]
     let model = makeModel()
-    #expect(model.bannerText == "Win a Two tickets — coming up on Mock Radio Show")
+    #expect(model.bannerText == "Two tickets — coming up on Mock Radio Show")
   }
 
   @Test func fallsBackToTimelessCopyWhenWindowAlreadyPassed() {
@@ -181,7 +185,7 @@ struct UpcomingGiveawayBannerModelTests {
       scheduled(id: "e1", station: "s1", airingId: "a1")
     ]
     let model = makeModel()
-    #expect(model.bannerText == "Win a Two tickets — coming up on Mock Radio Show")
+    #expect(model.bannerText == "Two tickets — coming up on Mock Radio Show")
   }
 }
 
