@@ -513,11 +513,11 @@ class StationListModel: ViewModel {
         isPlayola ? stationId : nil,
         isPlayola ? nil : stationId
       )
-      $pendingPresetStationIds.withLock { $0.remove(stationId) }
-      $presets.withLock { $0.append(created) }
+      $pendingPresetStationIds.withLock { _ = $0.remove(stationId) }
+      $presets.withLock { _ = $0.append(created) }
       await analytics.track(.presetAdded(station: stationInfo))
     } catch {
-      $pendingPresetStationIds.withLock { $0.remove(stationId) }
+      $pendingPresetStationIds.withLock { _ = $0.remove(stationId) }
       await reportPresetError(
         error,
         endpoint: "POST /v1/presets",
@@ -549,12 +549,12 @@ class StationListModel: ViewModel {
 
     do {
       try await api.deletePreset(token, presetId)
-      $pendingPresetRemovalStationIds.withLock { $0.remove(stationId) }
+      $pendingPresetRemovalStationIds.withLock { _ = $0.remove(stationId) }
       if let stationInfo {
         await analytics.track(.presetRemoved(station: stationInfo))
       }
     } catch {
-      $pendingPresetRemovalStationIds.withLock { $0.remove(stationId) }
+      $pendingPresetRemovalStationIds.withLock { _ = $0.remove(stationId) }
       $presets.withLock { collection in
         collection.append(presetSnapshot)
         for var existing in collection {
