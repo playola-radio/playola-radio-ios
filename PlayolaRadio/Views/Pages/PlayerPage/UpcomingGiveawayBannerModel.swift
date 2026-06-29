@@ -48,16 +48,16 @@ class UpcomingGiveawayBannerModel: ViewModel {
 
   var bannerOpacity: Double { isVisible ? 1 : 0 }
 
-  /// Leads with the prize-show window ("… giveaway in the next ~40 min") whenever the show holding
-  /// the prize is the one currently on air. Otherwise falls back to the timeless invite, which never
-  /// reveals when the contest itself opens.
+  /// Leads with the prize-show window ("Stay tuned... in the next ~40 minutes") whenever the show
+  /// holding the prize is the one currently on air. Otherwise falls back to the timeless invite, which
+  /// never reveals when the contest itself opens.
   var bannerText: String {
     guard let event = upcomingGiveaway?.event else { return "" }
     if let windowPhrase {
-      return "\(event.prizeName) giveaway in the next \(windowPhrase)"
+      return "Stay tuned... we're giving away \(event.prizeName) in the next \(windowPhrase)"
     }
     guard let stationName = currentStationName else { return "" }
-    return "Win a \(event.prizeName) — coming up on \(stationName)"
+    return "\(event.prizeName) — coming up on \(stationName)"
   }
 
   // MARK: - Private Helpers
@@ -97,6 +97,6 @@ class UpcomingGiveawayBannerModel: ViewModel {
     let remaining = endTime.timeIntervalSince(now ?? currentDate)
     guard remaining > 0 else { return nil }
     let roundedMinutes = Int((remaining / 60 / 5).rounded()) * 5
-    return roundedMinutes <= 0 ? "few minutes" : "~\(roundedMinutes) min"
+    return roundedMinutes <= 0 ? "few minutes" : "~\(roundedMinutes) minutes"
   }
 }

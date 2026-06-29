@@ -1,8 +1,8 @@
 import AppIntents
 
 struct PlayStationIntent: AppIntent {
-  static var title: LocalizedStringResource = "Play Station"
-  static var openAppWhenRun = true
+  static var title: LocalizedStringResource { "Play Station" }
+  static var openAppWhenRun: Bool { true }
 
   @Parameter(title: "Station")
   var station: RadioStationEntity

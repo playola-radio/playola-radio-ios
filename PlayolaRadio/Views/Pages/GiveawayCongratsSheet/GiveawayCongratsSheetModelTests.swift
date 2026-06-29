@@ -30,19 +30,19 @@ struct GiveawayCongratsSheetModelTests {
     @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
     $actions.withLock { $0 = ["e1": recordedAction()] }
     let block = AudioBlock.mockWith()
-    var congratsPosted: (String, String)?
+    let congratsPosted = LockIsolated<(String, String)?>(nil)
     let model = withDependencies {
       $0.voicetrackUploadService.processVoicetrack = { _, _, _, _ in block }
       $0.api.recordGiveawayEventCongrats = { _, eventId, audioBlockId in
-        congratsPosted = (eventId, audioBlockId)
+        congratsPosted.setValue((eventId, audioBlockId))
       }
     } operation: {
       GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
     }
     await model.sendButtonTapped()
     expectNoDifference(actions["e1"]?.state, CongratsActionState.submitted)
-    expectNoDifference(congratsPosted?.0, "e1")
-    expectNoDifference(congratsPosted?.1, block.id)
+    expectNoDifference(congratsPosted.value?.0, "e1")
+    expectNoDifference(congratsPosted.value?.1, block.id)
   }
 
   @Test func uploadFailureStaysRecordedForRetry() async {
