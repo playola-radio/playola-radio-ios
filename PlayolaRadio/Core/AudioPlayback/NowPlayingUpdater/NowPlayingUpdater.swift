@@ -112,7 +112,7 @@ class NowPlayingUpdater {
         // Only load if we don't already have this station's artwork
         loadStationArtwork(from: stationPlayerState, station: currentStation)
       }
-    case .playing:
+    case .playing, .paused:
       // Preserve existing artwork
       nowPlayingInfo = preservingExistingArtwork(in: nowPlayingInfo)
     default:
@@ -160,7 +160,7 @@ class NowPlayingUpdater {
     nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = true
 
     switch state.playbackStatus {
-    case .playing:
+    case .playing, .paused:
       populatePlayingInfo(&nowPlayingInfo, state: state, station: station)
     case .loading(_, let progress):
       populateLoadingInfo(&nowPlayingInfo, station: station, progress: progress)
@@ -190,6 +190,13 @@ class NowPlayingUpdater {
       cancelInactivityTimer()
       setupRemoteControlCenter()
       MPNowPlayingInfoCenter.default().playbackState = .playing
+    case .paused:
+      // Interruption pause: keep the Now Playing entry and remote controls alive
+      // so the lock-screen play button can resume. NOT `.stopped` (which tears
+      // the entry down) and no inactivity timer (which would eventually clear it).
+      cancelInactivityTimer()
+      setupRemoteControlCenter()
+      MPNowPlayingInfoCenter.default().playbackState = .paused
     case .stopped, .error:
       if case .stopped = status { startInactivityTimer() }
       MPNowPlayingInfoCenter.default().playbackState = .stopped
@@ -287,7 +294,11 @@ class NowPlayingUpdater {
     in info: inout [String: Any]
   ) {
     guard !status.isLoading else { return }
-    info[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
+    if case .paused = status {
+      info[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
+    } else {
+      info[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
+    }
   }
 
   private func loadStationArtwork(
@@ -350,7 +361,7 @@ class NowPlayingUpdater {
   private func setupSharedStateObservation() {
     @Dependency(\.urlStreamPlayer) var urlStreamPlayer
 
-    stationPlayer.playolaStationPlayer.$state
+    stationPlayer.playolaStationPlayer.statePublisher
       .sink { [weak self] playolaState in
         self?.processPlayolaStationPlayerState(playolaState)
       }
@@ -397,18 +408,12 @@ class NowPlayingUpdater {
         )
       }
     case .playing(let nowPlayingData):
-      if let currentStation = stationPlayer.currentStation {
-        $nowPlaying.withLock {
-          $0 = NowPlaying(
-            artistPlaying: nowPlayingData.audioBlock.artist,
-            titlePlaying: nowPlayingData.audioBlock.title,
-            albumArtworkUrl: nowPlayingData.audioBlock.imageUrl,
-            playolaSpinPlaying: nowPlayingData,
-            currentStation: currentStation,
-            playbackStatus: .playing(currentStation)
-          )
-        }
-      }
+      publishPlayolaSpin(nowPlayingData, paused: false)
+    // `.paused` is published by the SDK when the host pauses for an interruption.
+    // Keep the interrupted spin's metadata so the lock screen keeps showing what
+    // was playing with a play button to resume. Mirrors StationPlayer.
+    case .paused(let spin):
+      publishPlayolaSpin(spin, paused: true)
     // `.error` is PlayolaPlayer 0.19.0's terminal failure (e.g. the schedule
     // fetch exhausted its retries); `.none` is an unexpected empty state. Both
     // publish the recoverable `.error` status so the lock screen shows the
@@ -435,6 +440,15 @@ class NowPlayingUpdater {
     // stale `.readyToPlay`/`.error`) so they cannot clobber the shared now-playing
     // state. Mirrors StationPlayer.processUrlStreamStateChanged.
     if case .playola = stationPlayer.currentStation { return }
+    // A URL stream paused for an interruption reports playbackState == .paused
+    // while playerStatus stays .loadingFinished; map it to .paused so the lock
+    // screen reflects paused (rate 0) instead of playing. Mirrors StationPlayer.
+    if urlStreamPlayerState.playbackState == .paused,
+      let currentStation = stationPlayer.currentStation
+    {
+      publishUrlNowPlaying(urlStreamPlayerState, currentStation: currentStation, paused: true)
+      return
+    }
     switch urlStreamPlayerState.playerStatus {
     case .loading:
       guard let currentStation = stationPlayer.currentStation else { return }
@@ -450,16 +464,7 @@ class NowPlayingUpdater {
       }
     case .loadingFinished, .readyToPlay:
       guard let currentStation = stationPlayer.currentStation else { return }
-      $nowPlaying.withLock {
-        $0 = NowPlaying(
-          artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
-          titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
-          albumArtworkUrl: nil,
-          playolaSpinPlaying: nil,
-          currentStation: currentStation,
-          playbackStatus: .playing(currentStation)
-        )
-      }
+      publishUrlNowPlaying(urlStreamPlayerState, currentStation: currentStation, paused: false)
     case .error:
       $nowPlaying.withLock {
         $0 = NowPlaying(
@@ -482,6 +487,39 @@ class NowPlayingUpdater {
           playbackStatus: .stopped
         )
       }
+    }
+  }
+
+  /// Publishes shared now-playing for a Playola spin in either the playing or
+  /// paused status, keeping the spin metadata identical across the two.
+  private func publishPlayolaSpin(_ spin: Spin, paused: Bool) {
+    guard let currentStation = stationPlayer.currentStation else { return }
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        artistPlaying: spin.audioBlock.artist,
+        titlePlaying: spin.audioBlock.title,
+        albumArtworkUrl: spin.audioBlock.imageUrl,
+        playolaSpinPlaying: spin,
+        currentStation: currentStation,
+        playbackStatus: paused ? .paused(currentStation) : .playing(currentStation)
+      )
+    }
+  }
+
+  /// Publishes shared now-playing for a URL stream in either the playing or
+  /// paused status. A pause preserves existing artwork across the transition.
+  private func publishUrlNowPlaying(
+    _ state: URLStreamPlayer.State, currentStation: AnyStation, paused: Bool
+  ) {
+    $nowPlaying.withLock {
+      $0 = NowPlaying(
+        artistPlaying: state.nowPlaying?.artistName,
+        titlePlaying: state.nowPlaying?.trackName,
+        albumArtworkUrl: paused ? $0?.albumArtworkUrl : nil,
+        playolaSpinPlaying: nil,
+        currentStation: currentStation,
+        playbackStatus: paused ? .paused(currentStation) : .playing(currentStation)
+      )
     }
   }
 
@@ -526,11 +564,20 @@ class NowPlayingUpdater {
       return .success
     }
 
-    // Play command - restart last played station when stopped
+    // Play command - resume a station paused by an interruption, or restart the
+    // last played station when stopped.
     commandCenter.playCommand.isEnabled = true
     commandCenter.playCommand.addTarget { [weak self] _ in
-      guard let self,
-        let lastStation = self.lastPlayedStation,
+      guard let self else { return .commandFailed }
+      // Paused by an interruption/route loss: resume the active backend. This is
+      // the recovery path for an interruption that ended without `.shouldResume`
+      // (e.g. the user started another audio app).
+      if case .paused = self.stationPlayer.state.playbackStatus {
+        Task { @MainActor in await self.stationPlayer.resume() }
+        return .success
+      }
+      // Stopped: restart the last played station.
+      guard let lastStation = self.lastPlayedStation,
         self.stationPlayer.currentStation == nil
       else { return .commandFailed }
       Task { @MainActor in
@@ -618,9 +665,19 @@ extension NowPlayingUpdater {
         )
       }
 
-    // End session when stopping from playing state
+    // End session when stopping from playing or paused state. A `.paused`
+    // interruption keeps the session open (resume continues it), so the session
+    // must also be closed when a paused station is then stopped/errored —
+    // otherwise sessionStartTime leaks and the next session length is wrong.
+    // Also end it when the user starts a new station directly from paused (e.g.
+    // CarPlay station selection, which can go .paused(A) → .startingNewStation(B)
+    // without an intervening .stopped); otherwise A's session never ends and the
+    // lingering sessionStartTime blocks B's session from starting.
     case (.playing(let station), .stopped),
-      (.playing(let station), .error):
+      (.playing(let station), .error),
+      (.paused(let station), .stopped),
+      (.paused(let station), .error),
+      (.paused(let station), .startingNewStation):
       if let startTime = sessionStartTime {
         let duration = now.timeIntervalSince(startTime)
         await analytics.track(

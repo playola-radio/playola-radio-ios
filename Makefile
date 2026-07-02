@@ -6,13 +6,13 @@ ORIGINAL_REPO := $(HOME)/playola/playola-radio-ios
 lint:
 	swiftlint --strict
 
-# Auto-fix formatting issues
+# Auto-fix formatting issues (vendored third-party code under */Vendor/* excluded)
 format:
-	xcrun swift-format format -i --recursive .
+	find PlayolaRadio PlayolaRadioTests -name '*.swift' -not -path '*/Vendor/*' -print0 | xargs -0 xcrun swift-format format -i
 
-# Check formatting (fails on issues)
+# Check formatting (fails on issues; vendored third-party code under */Vendor/* excluded)
 format-check:
-	xcrun swift-format lint --strict --recursive .
+	find PlayolaRadio PlayolaRadioTests -name '*.swift' -not -path '*/Vendor/*' -print0 | xargs -0 xcrun swift-format lint --strict
 
 # Create a release PR (develop -> main) with a version bump
 create-release:

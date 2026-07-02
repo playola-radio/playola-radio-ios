@@ -1,24 +1,19 @@
-import AVFoundation
+import Dependencies
 import IssueReporting
 
 /// Ensures the audio session is active before playback begins from a Siri
-/// cold-launch, where the normal app-launch path may not have run yet.
+/// cold-launch, where the normal app-launch path may not have run yet. Defers to
+/// the single session owner so the policy (`.longFormAudio`) matches the rest of
+/// the app and the single-owner invariant holds.
 @MainActor
 struct PlaybackBootstrap {
+  @Dependency(\.audioSessionCoordinator) var audioSessionCoordinator
+
   func prepareForPlayback() {
-    let session = AVAudioSession.sharedInstance()
-    // Best-effort, independent steps: a failed category set must not skip
-    // activation, and each failure is reported on its own so a cold-launch
-    // silence has a signal instead of being swallowed.
     do {
-      try session.setCategory(.playback, mode: .default)
+      try audioSessionCoordinator.configureForPlayback()
     } catch {
-      reportIssue("PlaybackBootstrap failed to set the audio session category: \(error)")
-    }
-    do {
-      try session.setActive(true)
-    } catch {
-      reportIssue("PlaybackBootstrap failed to activate the audio session: \(error)")
+      reportIssue("PlaybackBootstrap failed to configure the audio session: \(error)")
     }
   }
 }

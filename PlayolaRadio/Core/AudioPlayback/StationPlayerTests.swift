@@ -5,6 +5,7 @@
 //  Created by Claude on 1/8/26.
 //
 
+import Combine
 import CustomDump
 import Foundation
 import IdentifiedCollections
@@ -16,8 +17,129 @@ import Testing
 
 private struct PlayFailureTestError: Error {}
 
+/// Records transport calls so StationPlayer's backend routing can be asserted
+/// without constructing a real (CoreAudio-backed) PlayolaStationPlayer.
+@MainActor
+final class SpyPlayolaStationPlayer: PlayolaTransport {
+  private let stateSubject = CurrentValueSubject<PlayolaStationPlayer.State, Never>(.idle)
+  var statePublisher: AnyPublisher<PlayolaStationPlayer.State, Never> {
+    stateSubject.eraseToAnyPublisher()
+  }
+
+  var configureCount = 0
+  var playCount = 0
+  var stopCount = 0
+  var pauseForInterruptionCount = 0
+  var resumeAfterInterruptionCount = 0
+
+  func configure(authProvider: PlayolaAuthenticationProvider, baseURL: URL) { configureCount += 1 }
+  func play(stationId: String) async throws { playCount += 1 }
+  func stop() { stopCount += 1 }
+  func pauseForInterruption() { pauseForInterruptionCount += 1 }
+  func resumeAfterInterruption() async throws { resumeAfterInterruptionCount += 1 }
+}
+
 @MainActor
 struct StationPlayerTests {
+
+  // MARK: - Session Ownership Tests
+
+  @Test
+  func playConfiguresSessionBeforeBackendAndSurfacesFailure() async {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let coordinator = AudioSessionCoordinator(session: FailingAudioSession())
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+
+    await player.play(station: .mockPlayola())
+
+    // The app owns the session now: if activating it fails, play() must surface
+    // .error instead of proceeding into a backend that would throw deep inside
+    // engine.start().
+    guard case .error = player.state.playbackStatus else {
+      Issue.record(
+        "session-config failure must surface as .error, got \(player.state.playbackStatus)")
+      return
+    }
+    // ...and the backend must never be reached when activation failed.
+    #expect(playola.playCount == 0)
+  }
+
+  @Test
+  func pauseRoutesToActiveBackendAndResumeReactivatesSession() async throws {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let spySession = SpyAudioSession()
+    let coordinator = AudioSessionCoordinator(session: spySession)
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+
+    await player.play(station: .mockPlayola())
+
+    player.pause()
+    #expect(playola.pauseForInterruptionCount == 1)
+
+    spySession.activations = []
+    await player.resume()
+    #expect(spySession.activations.contains(true))  // session reactivated first
+    #expect(playola.resumeAfterInterruptionCount == 1)
+  }
+
+  @Test
+  func systemPauseRoutesToActiveBackend() async {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let coordinator = AudioSessionCoordinator(session: SpyAudioSession())
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+    await player.play(station: .mockPlayola())
+
+    // The coordinator delegate path pauses the active backend.
+    player.audioSessionShouldPause(shouldAutoResume: true)
+    #expect(playola.pauseForInterruptionCount == 1)
+  }
+
+  @Test
+  func systemResumeWithoutSystemPauseIsIgnored() async {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let coordinator = AudioSessionCoordinator(session: SpyAudioSession())
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+
+    // A stray interruption-ended (no prior system pause) must not resume.
+    player.audioSessionShouldResume()
+
+    #expect(playola.resumeAfterInterruptionCount == 0)
+  }
+
+  @Test
+  func interruptionWhileRoutePausedDoesNotArmAutoResume() async {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let coordinator = AudioSessionCoordinator(session: SpyAudioSession())
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+    await player.play(station: .mockPlayola())
+
+    // Route loss (headphones unplugged): pause WITHOUT arming auto-resume.
+    player.audioSessionShouldPause(shouldAutoResume: false)
+    // The backend reports the resulting paused state (as the real SDK would).
+    player.processPlayolaStationPlayerState(.paused(.mock))
+    guard case .paused = player.state.playbackStatus else {
+      Issue.record("expected .paused after route loss, got \(player.state.playbackStatus)")
+      return
+    }
+
+    // A phone-call interruption then begins while already route-paused. Even
+    // though interruptions normally auto-resume, we must NOT re-arm here — route
+    // recovery stays manual — so the interruption's .shouldResume is a no-op.
+    player.audioSessionShouldPause(shouldAutoResume: true)
+    player.audioSessionShouldResume()
+
+    #expect(playola.resumeAfterInterruptionCount == 0)
+  }
 
   // MARK: - Play Failure Tests
 

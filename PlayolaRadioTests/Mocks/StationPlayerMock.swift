@@ -12,10 +12,14 @@ class StationPlayerMock: StationPlayer {
   var callsToPlay: [AnyStation] = []
   var stopCalledCount = 0
   override init(
-    urlStreamPlayer _: URLStreamPlayer? = nil,
-    playolaStationPlayer _: PlayolaStationPlayer? = nil
+    urlStreamPlayer: URLStreamPlayer? = nil,
+    playolaStationPlayer: (any PlayolaTransport)? = nil,
+    audioSessionCoordinator: AudioSessionCoordinator? = nil
   ) {
-    super.init(urlStreamPlayer: URLStreamPlayerMock())
+    super.init(
+      urlStreamPlayer: urlStreamPlayer ?? URLStreamPlayerMock(),
+      playolaStationPlayer: playolaStationPlayer,
+      audioSessionCoordinator: audioSessionCoordinator)
   }
 
   override public func play(station: AnyStation) async {

@@ -321,7 +321,7 @@ class MainContainerModel: ViewModel {
   func setShouldShowSmallPlayer(_ stationPlayerState: StationPlayer.State) {
     withAnimation {
       switch stationPlayerState.playbackStatus {
-      case .playing, .startingNewStation, .loading:
+      case .playing, .startingNewStation, .loading, .paused:
         self.shouldShowSmallPlayer = true
       default:
         self.shouldShowSmallPlayer = false

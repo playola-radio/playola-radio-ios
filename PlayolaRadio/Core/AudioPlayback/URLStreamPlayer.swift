@@ -7,7 +7,6 @@
 
 import Combine
 import Dependencies
-import FRadioPlayer
 import Foundation
 import MediaPlayer
 import UIKit
@@ -71,6 +70,19 @@ public class URLStreamPlayer: ObservableObject {
   public func reset() {
     currentStation = nil
     player.radioURL = nil
+  }
+
+  /// Pauses the URL stream for an interruption/route loss. The app's
+  /// AudioSessionCoordinator owns the session and decides when this happens;
+  /// the vendored FRadioPlayer no longer self-handles interruptions.
+  func pause() {
+    player.pause()
+  }
+
+  /// Resumes the URL stream after an interruption. The caller reactivates the
+  /// session first.
+  func resume() {
+    player.play()
   }
 }
 

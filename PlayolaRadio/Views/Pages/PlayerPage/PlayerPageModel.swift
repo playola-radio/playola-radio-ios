@@ -23,7 +23,7 @@ class PlayerPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.likesManager) var likesManager
   var nowPlayingText: String {
     switch nowPlaying?.playbackStatus {
-    case .playing:
+    case .playing, .paused:
       guard let audioBlock = playolaAudioBlockPlaying else {
         // Non-Playola station - use title/artist if available
         if let title = nowPlaying?.titlePlaying, let artist = nowPlaying?.artistPlaying {
