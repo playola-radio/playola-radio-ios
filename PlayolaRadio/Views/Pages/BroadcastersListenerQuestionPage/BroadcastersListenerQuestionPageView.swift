@@ -29,7 +29,7 @@ struct BroadcastersListenerQuestionPageView: View {
         }
       }
     }
-    .navigationTitle("Listener Questions")
+    .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .toolbarBackground(.visible, for: .navigationBar)
     .toolbarBackground(Color.background, for: .navigationBar)
@@ -37,7 +37,7 @@ struct BroadcastersListenerQuestionPageView: View {
     .onAppear {
       Task { await model.viewAppeared() }
     }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
   }
 
   // MARK: - Filter Pills
@@ -76,11 +76,11 @@ struct BroadcastersListenerQuestionPageView: View {
         .font(.system(size: 48))
         .foregroundColor(.textSecondary)
 
-      Text("No Questions Yet")
+      Text(model.emptyStateTitle)
         .font(.custom(FontNames.Inter_600_SemiBold, size: 18))
         .foregroundColor(.textPrimary)
 
-      Text("When listeners send you questions,\nthey'll appear here.")
+      Text(model.emptyStateMessage)
         .font(.custom(FontNames.Inter_400_Regular, size: 14))
         .foregroundColor(.textSecondary)
         .multilineTextAlignment(.center)
@@ -114,6 +114,10 @@ struct BroadcastersListenerQuestionPageView: View {
       ForEach(model.filteredQuestions) { question in
         ListenerQuestionRow(
           question: question,
+          answeredBadgeText: model.answeredBadgeText,
+          missingTranscriptionText: model.missingTranscriptionText,
+          unknownListenerText: model.unknownListenerText,
+          expandToggleText: model.expandToggleText(for: question.id),
           isExpanded: model.isExpanded(question.id),
           isPlaying: model.isPlaying(question.id),
           onExpandTapped: { model.showMoreButtonTapped(question.id) },
@@ -128,7 +132,7 @@ struct BroadcastersListenerQuestionPageView: View {
             Button(role: .destructive) {
               Task { await model.declineQuestionSwiped(question) }
             } label: {
-              Label("Decline", systemImage: "xmark.circle")
+              Label(model.declineButtonText, systemImage: "xmark.circle")
             }
             .tint(Color.error)
           }
@@ -147,6 +151,10 @@ struct BroadcastersListenerQuestionPageView: View {
 
 struct ListenerQuestionRow: View {
   let question: ListenerQuestion
+  var answeredBadgeText: String
+  var missingTranscriptionText: String
+  var unknownListenerText: String
+  let expandToggleText: String
   let isExpanded: Bool
   let isPlaying: Bool
   let onExpandTapped: () -> Void
@@ -156,11 +164,11 @@ struct ListenerQuestionRow: View {
   private let collapsedLineLimit = 2
 
   private var transcription: String {
-    question.transcription ?? "No transcription available"
+    question.transcription ?? missingTranscriptionText
   }
 
   private var listenerName: String {
-    question.listener?.fullName ?? "Unknown Listener"
+    question.listener?.fullName ?? unknownListenerText
   }
 
   private var timeAgo: String {
@@ -229,7 +237,7 @@ struct ListenerQuestionRow: View {
               }
             } label: {
               HStack(spacing: 4) {
-                Text(isExpanded ? "Show less" : "Show more")
+                Text(expandToggleText)
                   .font(.custom(FontNames.Inter_500_Medium, size: 13))
                   .foregroundColor(.playolaRed)
 
@@ -280,7 +288,7 @@ struct ListenerQuestionRow: View {
   }
 
   private var statusBadge: some View {
-    Text("Answered")
+    Text(answeredBadgeText)
       .font(.custom(FontNames.Inter_500_Medium, size: 11))
       .foregroundColor(.textPrimary)
       .padding(.horizontal, 8)

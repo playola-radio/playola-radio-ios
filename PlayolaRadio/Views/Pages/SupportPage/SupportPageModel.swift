@@ -117,6 +117,11 @@ class SupportPageModel: ViewModel {
     guard phase == .active else { return }
     await refreshMessages()
   }
+
+  // MARK: - View Helpers
+
+  var navigationTitle: String { "Contact Us" }
+  var messageFieldPlaceholder: String { "Message" }
 }
 
 extension PlayolaAlert {

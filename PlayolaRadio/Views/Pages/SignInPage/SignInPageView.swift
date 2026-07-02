@@ -44,12 +44,12 @@ struct SignInPage: View {
           .padding(.bottom, 40)
 
           // Welcome text
-          Text("Welcome to Playola")
+          Text(model.welcomeTitle)
             .font(.title)
             .fontWeight(.bold)
             .foregroundColor(.white)
 
-          Text("Sign in to access your personalized radio stations")
+          Text(model.welcomeSubtitle)
             .font(.subheadline)
             .foregroundColor(Color.white.opacity(0.7))
             .multilineTextAlignment(.center)
@@ -80,21 +80,21 @@ struct SignInPage: View {
 
           // Footer
           VStack(spacing: 8) {
-            Text("By signing in, you agree to our")
+            Text(model.termsAgreementText)
               .font(.footnote)
               .foregroundColor(Color.white.opacity(0.6))
 
             HStack(spacing: 4) {
-              Text("Terms of Service")
+              Text(model.termsOfServiceText)
                 .font(.footnote)
                 .foregroundColor(.playolaRed)
                 .underline()
 
-              Text("and")
+              Text(model.termsConjunctionText)
                 .font(.footnote)
                 .foregroundColor(Color.white.opacity(0.6))
 
-              Text("Privacy Policy")
+              Text(model.privacyPolicyText)
                 .font(.footnote)
                 .foregroundColor(.playolaRed)
                 .underline()

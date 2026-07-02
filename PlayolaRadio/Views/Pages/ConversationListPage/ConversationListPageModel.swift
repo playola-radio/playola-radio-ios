@@ -85,6 +85,11 @@ class ConversationListPageModel: ViewModel {
   func refresh() async {
     await loadConversations()
   }
+
+  // MARK: - View Helpers
+
+  var navigationTitle: String { "Support Conversations" }
+  var emptyStateMessage: String { "No conversations" }
 }
 
 extension PlayolaAlert {

@@ -25,6 +25,7 @@ struct HomePageView: View {
 
         ScrollView {
           HomeIntroSection(
+            introMessage: model.introMessage,
             onIconTapped10Times: model.playolaIconTapped10Times)
 
           if model.hasUnreadSupportMessages {
@@ -50,6 +51,7 @@ struct HomePageView: View {
           ListeningTimeTile(model: model.listeningTimeTileModel)
 
           HomePageStationList(
+            title: model.stationListTitle,
             stations: model.forYouStations,
             liveStatusForStation: model.liveStatusForStation,
             hasUpcomingGiveawayForStation: model.hasUpcomingGiveawayForStation
@@ -63,7 +65,7 @@ struct HomePageView: View {
       .circleBackground(offsetY: -180)
     }
     .background(Color.black.ignoresSafeArea())
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
     .onAppear { Task { await model.viewAppeared() } }
   }
 }

@@ -124,6 +124,10 @@ class StationSuggestionPageModel: ViewModel {
     "\(suggestion.voteCount)"
   }
 
+  func voteCountLabel(_ suggestion: ArtistSuggestion) -> String {
+    "\(suggestion.voteCount) \(suggestion.voteCount == 1 ? "vote" : "votes")"
+  }
+
   func inDevelopmentBadgeText(_ suggestion: ArtistSuggestion) -> String? {
     suggestion.status == .inDevelopment ? "IN DEVELOPMENT" : nil
   }

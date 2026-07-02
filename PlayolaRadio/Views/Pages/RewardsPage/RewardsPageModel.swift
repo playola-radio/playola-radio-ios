@@ -32,6 +32,35 @@ class RewardsPageModel: ViewModel {
   var redeemedPrizeTierIds: Set<String> = []
   var presentedAlert: PlayolaAlert?
 
+  // MARK: - User Actions
+
+  func viewAppeared() async {
+    let currentHours = getCurrentListeningHours()
+    await analytics.track(.viewedRewardsScreen(currentHours: currentHours))
+
+    await loadPrizeTiers()
+    await loadUserPrizes()
+  }
+
+  func redeemPrizeTapped(for prizeTier: PrizeTier) async {
+    let currentHours = getCurrentListeningHours()
+    await analytics.track(.tappedRedeemRewards(currentHours: currentHours))
+
+    let sheetModel = RedeemPrizeSheetModel(
+      prizeTier: prizeTier,
+      onSuccess: { [weak self] userPrize in
+        guard let self else { return }
+        if let prize = userPrize.prize {
+          self.redeemedPrizeTierIds.insert(prize.prizeTierId)
+        } else {
+          self.redeemedPrizeTierIds.insert(prizeTier.id)
+        }
+        self.presentedAlert = .prizeRedeemed
+      }
+    )
+    mainContainerNavigationCoordinator.presentedSheet = .redeemPrize(sheetModel)
+  }
+
   // MARK: - View Helpers
 
   struct PrizeTierInfo {
@@ -72,33 +101,17 @@ class RewardsPageModel: ViewModel {
   var prizeTierButtonText: String { "Redeem" }
   var prizeTierRedeemedText: String { "Redeemed" }
 
-  // MARK: - User Actions
-
-  func viewAppeared() async {
-    let currentHours = getCurrentListeningHours()
-    await analytics.track(.viewedRewardsScreen(currentHours: currentHours))
-
-    await loadPrizeTiers()
-    await loadUserPrizes()
+  var navigationTitle: String { "Listener Rewards" }
+  var yourRewardsTitle: String { "Your rewards" }
+  var yourRewardsSubtitle: String {
+    "Earn rewards from your fav artists for being an early Playola listener!"
   }
 
-  func redeemPrizeTapped(for prizeTier: PrizeTier) async {
-    let currentHours = getCurrentListeningHours()
-    await analytics.track(.tappedRedeemRewards(currentHours: currentHours))
-
-    let sheetModel = RedeemPrizeSheetModel(
-      prizeTier: prizeTier,
-      onSuccess: { [weak self] userPrize in
-        guard let self else { return }
-        if let prize = userPrize.prize {
-          self.redeemedPrizeTierIds.insert(prize.prizeTierId)
-        } else {
-          self.redeemedPrizeTierIds.insert(prizeTier.id)
-        }
-        self.presentedAlert = .prizeRedeemed
-      }
-    )
-    mainContainerNavigationCoordinator.presentedSheet = .redeemPrize(sheetModel)
+  func prizeTierHoursToGoText(for prizeTier: PrizeTier) -> String {
+    if case .moreTimeRequired(let hoursToGo) = redemptionStatus(for: prizeTier) {
+      return "\(hoursToGo) \(hoursToGo == 1 ? "hour" : "hours") to go"
+    }
+    return ""
   }
 
   // MARK: - Private Helpers

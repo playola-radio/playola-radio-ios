@@ -28,6 +28,8 @@ class EpisodeRowModel: ViewModel {
     return episode.createdAt < airing.airtime.addingTimeInterval(-86400)
   }
 
+  // MARK: - View Helpers
+
   var tuneInText: String {
     let time = formattedTime
     let dayOfWeek = dayOfWeekString
@@ -41,6 +43,10 @@ class EpisodeRowModel: ViewModel {
       return "Tune in \(dayOfWeek) the \(dayWithOrdinal) at \(time)"
     }
   }
+
+  var episodeTitle: String { airing.episode?.title ?? "Unknown Episode" }
+
+  var originallyAiredText: String { "First Aired \(originallyAiredDateText)" }
 
   var originallyAiredDateText: String {
     guard let createdAt = airing.episode?.createdAt else { return "" }

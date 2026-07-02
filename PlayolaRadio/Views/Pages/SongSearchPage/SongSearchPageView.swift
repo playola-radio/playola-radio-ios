@@ -33,7 +33,7 @@ struct SongSearchPageView: View {
             Image(systemName: "music.note.list")
               .font(.system(size: 48))
               .foregroundColor(.playolaGray)
-            Text("Search for songs to add to your schedule")
+            Text(model.emptyPromptMessage)
               .font(.custom(FontNames.Inter_400_Regular, size: 16))
               .foregroundColor(.playolaGray)
               .multilineTextAlignment(.center)
@@ -46,7 +46,7 @@ struct SongSearchPageView: View {
             Image(systemName: "magnifyingglass")
               .font(.system(size: 48))
               .foregroundColor(.playolaGray)
-            Text("No songs found")
+            Text(model.noResultsMessage)
               .font(.custom(FontNames.Inter_400_Regular, size: 16))
               .foregroundColor(.playolaGray)
           }
@@ -57,7 +57,10 @@ struct SongSearchPageView: View {
             if model.searchMode != .seedsOnly && !model.searchResults.isEmpty {
               Section {
                 ForEach(model.searchResults, id: \.id) { audioBlock in
-                  SongSearchResultRow(audioBlock: audioBlock) {
+                  SongSearchResultRow(
+                    audioBlock: audioBlock,
+                    buttonText: model.selectButtonText
+                  ) {
                     model.onSelectSong(audioBlock)
                   }
                   .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
@@ -65,7 +68,7 @@ struct SongSearchPageView: View {
                   .listRowBackground(Color.clear)
                 }
               } header: {
-                Text("LIBRARY")
+                Text(model.librarySectionHeader)
                   .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
                   .foregroundColor(.playolaGray)
               }
@@ -77,7 +80,7 @@ struct SongSearchPageView: View {
                 ForEach(model.songRequestResults, id: \.id) { songRequest in
                   SongRequestResultRow(
                     songRequest: songRequest,
-                    buttonText: model.isLibraryAddMode ? "ADD" : "REQUEST",
+                    buttonText: model.songSeedActionButtonText,
                     isProcessing: model.isProcessingAdd(for: songRequest)
                   ) {
                     Task {
@@ -112,7 +115,7 @@ struct SongSearchPageView: View {
             .font(.system(size: 16))
             .foregroundColor(.playolaGray)
 
-          TextField("Search for songs", text: $model.searchText)
+          TextField(model.searchFieldPlaceholder, text: $model.searchText)
             .font(.custom(FontNames.Inter_400_Regular, size: 16))
             .foregroundColor(.white)
             .autocorrectionDisabled()
@@ -122,7 +125,7 @@ struct SongSearchPageView: View {
         .background(Color(hex: "#333333"))
         .cornerRadius(8)
 
-        Button("Cancel") {
+        Button(model.cancelButtonText) {
           model.onCancelTapped()
         }
         .font(.custom(FontNames.Inter_500_Medium, size: 16))
@@ -132,13 +135,14 @@ struct SongSearchPageView: View {
       .padding(.vertical, 12)
       .background(Color.black)
     }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
   }
 }
 
 struct SongSearchResultRow: View {
   @Environment(\.displayScale) private var displayScale
   let audioBlock: AudioBlock
+  var buttonText: String
   let onSelect: () -> Void
 
   var body: some View {
@@ -178,7 +182,7 @@ struct SongSearchResultRow: View {
       Spacer()
 
       Button(action: onSelect) {
-        Text("SELECT")
+        Text(buttonText)
           .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
           .foregroundColor(.white)
           .padding(.horizontal, 12)
@@ -196,7 +200,7 @@ struct SongSearchResultRow: View {
 struct SongRequestResultRow: View {
   @Environment(\.displayScale) private var displayScale
   let songRequest: SongRequest
-  var buttonText: String = "REQUEST"
+  var buttonText: String
   var isProcessing: Bool = false
   let onRequest: () -> Void
 
