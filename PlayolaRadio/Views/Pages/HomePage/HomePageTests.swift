@@ -415,6 +415,21 @@ struct HomePageTests {
       ["voicetracking", "show-airing", "offline"])
   }
 
+  @Test
+  func testForYouStationsOmitsRowsWithNeitherPlayolaNorUrlStation() async {
+    let realStation = Station.mockWith(id: "real-station", curatorName: "DJ Real")
+    let artistList = StationList.mockArtistList(items: [
+      .mockWith(sortOrder: 0, visibility: .visible, station: nil, urlStation: nil),
+      .mockWith(sortOrder: 1, visibility: .visible, station: realStation),
+    ])
+
+    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [artistList])
+
+    let model = HomePageModel()
+
+    expectNoDifference(model.forYouStations.map(\.id), ["real-station"])
+  }
+
   // MARK: - Scheduled Shows Tests
 
   @Test
