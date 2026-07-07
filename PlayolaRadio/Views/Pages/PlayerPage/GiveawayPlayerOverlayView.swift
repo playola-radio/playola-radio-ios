@@ -57,12 +57,15 @@ private struct GiveawayOverlayPromptView: View {
               .tracking(2)
               .foregroundColor(.white)
               .opacity(model.buttonTitleOpacity)
+              .accessibilityHidden(model.isTapping)
 
             ProgressView()
               .progressViewStyle(.circular)
               .tint(.white)
               .opacity(model.tapSpinnerOpacity)
+              .accessibilityHidden(!model.isTapping)
           }
+          .animation(.easeInOut(duration: 0.2), value: model.isTapping)
           .frame(maxWidth: .infinity)
           .frame(height: 54)
           .background(RoundedRectangle(cornerRadius: 27).fill(Color.playolaRed))
