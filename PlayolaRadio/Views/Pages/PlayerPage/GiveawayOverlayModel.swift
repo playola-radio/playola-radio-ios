@@ -20,9 +20,14 @@ class GiveawayOverlayModel: ViewModel {
     super.init()
   }
 
+  // MARK: - Properties
+  var isTapping = false
+
   // MARK: - User Actions
   func tapButtonTapped() async {
-    guard let giveaway = visibleGiveaway else { return }
+    guard let giveaway = visibleGiveaway, !isTapping else { return }
+    isTapping = true
+    defer { isTapping = false }
     do {
       try await onTap?(giveaway)
     } catch {
@@ -77,6 +82,11 @@ class GiveawayOverlayModel: ViewModel {
   }
 
   var buttonTitle: String { "TAP HERE" }
+
+  /// While a tap is in flight the title fades out and the spinner fades in, so the button reads as
+  /// "working" without changing size.
+  var buttonTitleOpacity: Double { isTapping ? 0 : 1 }
+  var tapSpinnerOpacity: Double { isTapping ? 1 : 0 }
 
   var loserRevealHeadline: String {
     guard let participation else { return "" }

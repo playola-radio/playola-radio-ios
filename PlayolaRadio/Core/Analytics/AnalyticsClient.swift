@@ -160,7 +160,7 @@ extension AnalyticsClient: DependencyKey {
       },
       initialize: {
         await MainActor.run {
-          Mixpanel.initialize(
+          _ = Mixpanel.initialize(
             token: Config.shared.mixpanelToken,
             trackAutomaticEvents: false
           )

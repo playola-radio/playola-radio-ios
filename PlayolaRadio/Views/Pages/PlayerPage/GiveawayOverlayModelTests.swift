@@ -119,6 +119,60 @@ struct GiveawayOverlayModelTests {
     #expect(called == false)
   }
 
+  @Test func tapButtonShowsSpinnerWhileInFlight() async {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
+    let model = GiveawayOverlayModel()
+    #expect(model.isTapping == false)
+    #expect(model.tapSpinnerOpacity == 0)
+    #expect(model.buttonTitleOpacity == 1)
+
+    var tappingDuringTap: Bool?
+    var spinnerOpacityDuringTap: Double?
+    var titleOpacityDuringTap: Double?
+    model.onTap = { _ in
+      tappingDuringTap = model.isTapping
+      spinnerOpacityDuringTap = model.tapSpinnerOpacity
+      titleOpacityDuringTap = model.buttonTitleOpacity
+    }
+    await model.tapButtonTapped()
+
+    #expect(tappingDuringTap == true)
+    #expect(spinnerOpacityDuringTap == 1)
+    #expect(titleOpacityDuringTap == 0)
+    #expect(model.isTapping == false)
+    #expect(model.tapSpinnerOpacity == 0)
+    #expect(model.buttonTitleOpacity == 1)
+  }
+
+  @Test func tapButtonClearsSpinnerAfterError() async {
+    struct Boom: Error {}
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
+    let model = GiveawayOverlayModel()
+    model.onTap = { _ in throw Boom() }
+    model.onError = { _ in }
+    await model.tapButtonTapped()
+    #expect(model.isTapping == false)
+    #expect(model.tapSpinnerOpacity == 0)
+    #expect(model.buttonTitleOpacity == 1)
+  }
+
+  @Test func tapButtonIgnoresReentrantTapWhileInFlight() async {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
+    let model = GiveawayOverlayModel()
+    var callCount = 0
+    model.onTap = { _ in
+      callCount += 1
+      if callCount == 1 {
+        await model.tapButtonTapped()
+      }
+    }
+    await model.tapButtonTapped()
+    #expect(callCount == 1)
+  }
+
   @Test func tapButtonRoutesThrownErrorToOnError() async {
     struct Boom: Error {}
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
