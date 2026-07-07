@@ -51,16 +51,25 @@ private struct GiveawayOverlayPromptView: View {
       Button(
         action: { Task { await model.tapButtonTapped() } },
         label: {
-          Text(model.buttonTitle)
-            .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 20))
-            .tracking(2)
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 54)
-            .background(RoundedRectangle(cornerRadius: 27).fill(Color.playolaRed))
-            .overlay(RoundedRectangle(cornerRadius: 27).stroke(Color.white, lineWidth: 3))
+          ZStack {
+            Text(model.buttonTitle)
+              .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 20))
+              .tracking(2)
+              .foregroundColor(.white)
+              .opacity(model.buttonTitleOpacity)
+
+            ProgressView()
+              .progressViewStyle(.circular)
+              .tint(.white)
+              .opacity(model.tapSpinnerOpacity)
+          }
+          .frame(maxWidth: .infinity)
+          .frame(height: 54)
+          .background(RoundedRectangle(cornerRadius: 27).fill(Color.playolaRed))
+          .overlay(RoundedRectangle(cornerRadius: 27).stroke(Color.white, lineWidth: 3))
         }
       )
+      .disabled(model.isTapping)
       .padding(.top, 20)
     }
     .frame(maxWidth: .infinity)
@@ -110,6 +119,15 @@ private struct GiveawayOverlayLoserRevealView: View {
     ZStack {
       Color.black.ignoresSafeArea()
       GiveawayPlayerOverlayView(model: previewModel(lost: false))
+    }
+  }
+
+  #Preview("Overlay — Tapping") {
+    let model = previewModel(lost: false)
+    model.isTapping = true
+    return ZStack {
+      Color.black.ignoresSafeArea()
+      GiveawayPlayerOverlayView(model: model)
     }
   }
 
