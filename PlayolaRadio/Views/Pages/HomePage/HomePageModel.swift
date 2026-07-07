@@ -194,6 +194,7 @@ class HomePageModel: ViewModel {
       artistList
       .stationItems(includeHidden: showSecretStations, includeComingSoon: true)
       .filter { shouldShowStationItem($0, showSecretStations: showSecretStations) }
+      .sorted { $0.liveSortPriority(liveStations) < $1.liveSortPriority(liveStations) }
       .compactMap { $0.anyStation }
 
     return IdentifiedArray(uniqueElements: stations)
