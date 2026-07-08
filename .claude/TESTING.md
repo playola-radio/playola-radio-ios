@@ -11,47 +11,63 @@
 
 ## @Shared State in Tests
 
-Declare `@Shared` inside each test with initial values. Use `$shared.withLock { }` to update:
+### The harness: `.freshSharedState` on every suite
+
+Every test suite MUST carry the `.freshSharedState` trait (defined in
+`PlayolaRadioTests/SharedStateTestTrait.swift`). It runs each test in a fresh, empty dependency
+scope, so persisted (`.fileStorage` / `.appStorage`) and in-memory `@Shared` keys start empty and
+are isolated from every other test — including tests running in parallel.
 
 ```swift
-func testToggleUpdatesStations() async {
-  @Shared(.showSecretStations) var showSecretStations = false
-  let model = HomePageModel()
+@Suite(.freshSharedState)
+@MainActor
+struct HomePageTests {
+  @Test func toggleUpdatesStations() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let model = HomePageModel()
 
-  XCTAssertEqual(model.forYouStations.count, 1)
+    #expect(model.forYouStations.count == 1)
 
-  $showSecretStations.withLock { $0 = true }
-  XCTAssertEqual(model.forYouStations.count, 2)  // No sleep needed!
-}
-```
-
-### Important: @Shared initialization is a DEFAULT, not a write
-
-`@Shared(.auth) var auth = Auth(jwt: "test-jwt")` sets a **default fallback** — it does NOT write to the store. If a leaked async task from a prior test already wrote to that key, the existing value persists. The swift-sharing library resets its `PersistentReferences` cache between tests via a `testCaseWillStart:` observer, but leaked escaping `Task { }` blocks from prior tests can interfere with this reset timing (see [swift-dependencies#127](https://github.com/pointfreeco/swift-dependencies/issues/127)).
-
-**When tests are flaky on CI but pass locally**, wrap in `withMainSerialExecutor` to serialize async execution and prevent leaked tasks from other tests from running during your test's `@Shared` initialization:
-
-```swift
-func testSomethingWithSharedAuth() async {
-  await withMainSerialExecutor {
-    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    // ... rest of test
+    $showSecretStations.withLock { $0 = true }   // drive a mid-test change
+    #expect(model.forYouStations.count == 2)     // No sleep needed!
   }
 }
 ```
 
-This is especially important for `@Shared` keys backed by `.fileStorage` (like `.auth`), which go through more async machinery than `.inMemory` keys.
+With the trait, the `= value` seed is authoritative — you do **not** need `withLock` just to
+establish initial state, and you do **not** need `withMainSerialExecutor` for isolation.
 
-### File-backed keys: reset with `withLock` after the declaration
+### Why the trait is required: @Shared initialization is a DEFAULT, not a write
 
-Because the `= initialValue` declaration is only a fallback (it does NOT write), a `.fileStorage`-backed key can still hold a stale value from a previous test run, which silently invalidates assertions like `#expect(participations["e1"] == nil)`. For file-backed keys, follow the declaration with an explicit `withLock` reset so the store holds a known value — this is the one case where `withLock` is used for initial-state setup rather than only to drive a mid-test change:
+`@Shared(.auth) var auth = Auth(jwt: "test-jwt")` sets a **default** used only when the key has no
+already-loaded value — it does NOT write to the store. Persisted keys resolve their backing store
+from the `defaultFileStorage` / `defaultAppStorage` / `defaultInMemoryStorage` dependencies, which
+swift-dependencies caches in a **process-global** `DependencyValues`. That cache is partitioned by
+the current Swift Testing test id, so a test's *own* task normally gets its own store — but the
+isolation is fragile: async work running outside the test's task context (overlapping/leaked `Task`s
+from another test under parallel execution, or `Task.detached`, which drops the test context)
+resolves against the shared partition. So without the trait, an earlier test's write to a persisted
+key can survive into a later test, whose `= value` seed is then silently ignored — stale reads,
+order-dependent, flaky under parallel execution (e.g. `participations["e1"]` reads `nil` only when
+run alongside other suites).
 
-```swift
-@Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
-$participations.withLock { $0 = ["e1": .mock] }  // real write, not a fallback
-```
+`.freshSharedState` fixes this at the harness level by binding each test its own empty stores and a
+fresh `@Shared` reference cache as a task-local for the whole test (inherited by child `Task {}`
+work; it does not cover `Task.detached` or state built outside the test body). It reproduces
+DependenciesTestSupport's `.dependencies` trait (which this test target does not link) in ~20 lines.
 
-Combine with `withMainSerialExecutor` for any test that reads the store back after an `await`.
+### When you still reach for `withLock` / `withMainSerialExecutor`
+
+The trait makes these unnecessary for *isolation*, but they remain valid tools:
+
+- `$shared.withLock { $0 = ... }` — to drive a **mid-test change** after the model is observing, or
+  to force a real write for a value you then read back across an `await`.
+- `withMainSerialExecutor { ... }` — to deterministically order a model's **internal** fire-and-forget
+  `Task { }` work (see "Code That Spawns Internal Tasks" below). This is about task scheduling, not
+  `@Shared` isolation, so those uses are NOT redundant with the trait.
+
+Do **not** use class-level `@Shared` stored properties in tests: a property initialized outside the
+test method body runs outside the trait's per-test scope and will not be isolated.
 
 ## Mocking Dependencies
 

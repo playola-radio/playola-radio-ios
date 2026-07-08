@@ -12,7 +12,7 @@ import Testing
 // shared key, so parallel Swift Testing could interleave across `await` points and cross-contaminate
 // the on-disk state.
 @MainActor
-@Suite(.serialized)
+@Suite(.serialized, .freshSharedState)
 struct GiveawayCongratsSheetModelTests {
   private func recordedAction() -> CongratsAction {
     CongratsAction(

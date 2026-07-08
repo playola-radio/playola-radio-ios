@@ -48,23 +48,51 @@ The Playola server monorepo is expected at `../playola` (sibling directory). If 
 - **Tests run in Xcode** - the user will run all tests for you in Xcode
 - **Test naming**: camelCase without underscores (e.g., `testOnRecordTappedRequestsPermission`)
 - **Tests colocated with code**: `HomePageModel.swift` → `HomePageTests.swift` in same folder
-- **Framework**: XCTest with `@MainActor` on all test classes
+- **Framework**: swift-testing (`@Test` / `@Suite` / `#expect`) with `@MainActor` on model/view-model suites
 
 ### Testing with @Shared state
 
-Declare `@Shared` locally inside each test method with an initial value:
+Every test suite MUST carry the `.freshSharedState` trait so each test runs in a fresh, empty
+dependency scope (see `PlayolaRadioTests/SharedStateTestTrait.swift`). Declare `@Shared` locally
+inside each test method with an initial value:
 
 ```swift
-func testSomething() {
-  @Shared(.stationLists) var stationLists = makeTestStationLists()
-  @Shared(.showSecretStations) var showSecretStations = false
+@Suite(.freshSharedState)
+@MainActor
+struct SomeTests {
+  @Test func something() {
+    @Shared(.stationLists) var stationLists = makeTestStationLists()
+    @Shared(.showSecretStations) var showSecretStations = false
 
-  let model = SomeModel()
-  // test...
+    let model = SomeModel()
+    // test...
+  }
 }
 ```
 
-Do NOT use class-level `@Shared` properties or `$shared.withLock` in tests.
+**New test files:** add `@Suite(.freshSharedState)` above the suite struct (merge with other
+traits, e.g. `@Suite(.serialized, .freshSharedState)`). A suite without it can read `@Shared`
+state leaked from another test.
+
+**Why the trait is required.** `@Shared(.key) var x = value` sets a *default* that is used only
+when the key has no already-loaded value — it is NOT a write. Persisted keys (`.fileStorage`,
+`.appStorage`) resolve their backing store from a process-global dependency cache. That cache is
+partitioned by the current Swift Testing test id, so a test's *own* task normally gets its own
+store — but that isolation is fragile: async work that runs outside the test's task context
+(overlapping/leaked `Task`s from another test under parallel execution, or `Task.detached`, which
+drops the test context) resolves against the shared partition. An earlier test's write can then
+survive into a later test, whose `= value` seed is silently ignored — the order-dependent,
+parallel-only stale reads we used to see (e.g. `participations["e1"]` reading `nil` only when run
+alongside other suites). `.freshSharedState` binds a fresh empty store as a task-local for the whole
+test (inherited by child `Task {}` work), so the `= value` seed is authoritative. In-memory-only
+keys are isolated too. (It does not cover `Task.detached` or state initialized outside the test
+body.)
+
+Because the store starts empty, you normally don't need `$shared.withLock` just to set up initial
+state — the `= value` default is enough. Reach for `$shared.withLock { $0 = ... }` when you need to
+drive a *change* mid-test (after the model is observing), or to force a real write for a value type
+you then read back across an `await`. Do NOT use class-level `@Shared` properties in tests
+(a stored property initialized outside the test body is not covered by the trait's scope).
 
 ### Test anti-patterns
 

@@ -13,6 +13,7 @@ import Testing
 
 @testable import PlayolaRadio
 
+@Suite(.freshSharedState)
 @MainActor
 struct BroadcastersListenerQuestionPageTests {
   private let testStationId = "test-station-id"

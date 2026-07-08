@@ -13,6 +13,7 @@ import Testing
 
 @testable import PlayolaRadio
 
+@Suite(.freshSharedState)
 struct VoicetrackUploadServiceTests {
 
   // MARK: - Test Data

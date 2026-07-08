@@ -15,6 +15,7 @@ import Testing
 
 // swiftlint:disable redundant_optional_initialization
 
+@Suite(.freshSharedState)
 @MainActor
 struct ListeningTimeTileModelTests {
 

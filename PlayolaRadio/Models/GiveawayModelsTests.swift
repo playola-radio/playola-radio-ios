@@ -4,6 +4,7 @@ import Testing
 
 @testable import PlayolaRadio
 
+@Suite(.freshSharedState)
 @MainActor
 struct GiveawayModelsTests {
   private func decoder() -> JSONDecoder { JSONDecoderWithIsoFull() }

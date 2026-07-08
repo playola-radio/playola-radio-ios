@@ -17,7 +17,7 @@ import Testing
 // `.giveawayParticipations` stores under shared keys, so parallel Swift Testing could interleave
 // across `await` points and cross-contaminate the on-disk state.
 @MainActor
-@Suite(.serialized)
+@Suite(.serialized, .freshSharedState)
 struct PushNotificationsTests {
 
   // MARK: - registerForRemoteNotifications

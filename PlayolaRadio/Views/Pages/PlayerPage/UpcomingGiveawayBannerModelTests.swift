@@ -9,6 +9,7 @@ import Testing
 
 // swiftlint:disable redundant_optional_initialization
 
+@Suite(.freshSharedState)
 @MainActor
 struct UpcomingGiveawayBannerModelTests {
   private static let referenceNow = Date(timeIntervalSince1970: 1_800_000_000)

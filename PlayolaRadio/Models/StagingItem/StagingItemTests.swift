@@ -12,6 +12,7 @@ import Testing
 
 @testable import PlayolaRadio
 
+@Suite(.freshSharedState)
 struct StagingItemTests {
 
   // MARK: - LocalVoicetrack Conformance Tests
