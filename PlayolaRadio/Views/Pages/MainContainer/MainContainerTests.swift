@@ -58,6 +58,7 @@ func createTestJWT(
   return "\(headerString).\(payloadString).fake_signature"
 }
 
+@Suite(.freshSharedState)
 @MainActor
 struct MainContainerTests {
   // MARK: - ViewAppeared Tests

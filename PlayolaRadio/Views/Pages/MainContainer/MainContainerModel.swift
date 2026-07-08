@@ -305,7 +305,8 @@ class MainContainerModel: ViewModel {
   }
 
   private func showFeedbackSheet() {
-    Task {
+    Task { [weak self] in
+      guard let self else { return }
       let feedbackModel = FeedbackSheetModel(
         title: "Would you be up for letting us know what we can do better?",
         placeholderText: "",

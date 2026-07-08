@@ -2,7 +2,19 @@
 
 ## Branch Policy
 
-**`develop` must always be in a deployable state.** Both as a matter of policy and so we can ship from it at any time in an emergency. Never merge work into `develop` that doesn't compile, has failing tests, or leaves the app in a broken/half-finished runtime state. If a change can't be made deployable in one PR, gate it behind a feature flag or keep it on a feature branch until it is.
+**`develop` must always be in a deployable state.** Both as a matter of policy and so we can ship from it at any time in an emergency. Never merge work into `develop` that doesn't compile, has failing tests, or leaves the app in a broken/half-finished runtime state. If a change can't be made deployable in one PR, keep it on a feature branch until it is (see the gating rule below — do NOT reach for an environment gate).
+
+## NEVER NEVER NEVER gate a feature to an environment
+
+**Do not gate any user-facing feature so that it behaves differently in production than in staging/development.** Absolutely never write code of the form `Config.shared.environment != .production` (or any equivalent) to turn a feature on in staging while leaving it dark in production.
+
+**Why this rule exists.** We shipped a live prize contest to production while the giveaway data path was gated OFF in production (`isLiveDataEnabled = environment != .production`). Staging looked perfect; production was silently dark. Real listeners ran a real contest and the app did nothing. That is a production disaster with no runtime error to catch it — the gate made "broken in production" the *intended* behavior.
+
+**What to do instead:**
+- If a feature is ready, it ships on. No environment check.
+- If a feature is NOT ready, keep it on a feature branch, or behind a build-time `#if DEBUG` guard for dev-only tooling — never behind a runtime environment check that a production build evaluates to "off".
+- If you truly need staged rollout, use a *server-driven* flag that is explicitly turned on for production when the feature launches — and make turning it on part of the launch checklist. The default must never be "production is the disabled environment."
+- Production must never be the environment where a feature is the most disabled.
 
 ## ALWAYS use the Point-Free Workflow (pfw-*) skills
 
@@ -48,23 +60,51 @@ The Playola server monorepo is expected at `../playola` (sibling directory). If 
 - **Tests run in Xcode** - the user will run all tests for you in Xcode
 - **Test naming**: camelCase without underscores (e.g., `testOnRecordTappedRequestsPermission`)
 - **Tests colocated with code**: `HomePageModel.swift` → `HomePageTests.swift` in same folder
-- **Framework**: XCTest with `@MainActor` on all test classes
+- **Framework**: swift-testing (`@Test` / `@Suite` / `#expect`) with `@MainActor` on model/view-model suites
 
 ### Testing with @Shared state
 
-Declare `@Shared` locally inside each test method with an initial value:
+Every test suite MUST carry the `.freshSharedState` trait so each test runs in a fresh, empty
+dependency scope (see `PlayolaRadioTests/SharedStateTestTrait.swift`). Declare `@Shared` locally
+inside each test method with an initial value:
 
 ```swift
-func testSomething() {
-  @Shared(.stationLists) var stationLists = makeTestStationLists()
-  @Shared(.showSecretStations) var showSecretStations = false
+@Suite(.freshSharedState)
+@MainActor
+struct SomeTests {
+  @Test func something() {
+    @Shared(.stationLists) var stationLists = makeTestStationLists()
+    @Shared(.showSecretStations) var showSecretStations = false
 
-  let model = SomeModel()
-  // test...
+    let model = SomeModel()
+    // test...
+  }
 }
 ```
 
-Do NOT use class-level `@Shared` properties or `$shared.withLock` in tests.
+**New test files:** add `@Suite(.freshSharedState)` above the suite struct (merge with other
+traits, e.g. `@Suite(.serialized, .freshSharedState)`). A suite without it can read `@Shared`
+state leaked from another test.
+
+**Why the trait is required.** `@Shared(.key) var x = value` sets a *default* that is used only
+when the key has no already-loaded value — it is NOT a write. Persisted keys (`.fileStorage`,
+`.appStorage`) resolve their backing store from a process-global dependency cache. That cache is
+partitioned by the current Swift Testing test id, so a test's *own* task normally gets its own
+store — but that isolation is fragile: async work that runs outside the test's task context
+(overlapping/leaked `Task`s from another test under parallel execution, or `Task.detached`, which
+drops the test context) resolves against the shared partition. An earlier test's write can then
+survive into a later test, whose `= value` seed is silently ignored — the order-dependent,
+parallel-only stale reads we used to see (e.g. `participations["e1"]` reading `nil` only when run
+alongside other suites). `.freshSharedState` binds a fresh empty store as a task-local for the whole
+test (inherited by child `Task {}` work), so the `= value` seed is authoritative. In-memory-only
+keys are isolated too. (It does not cover `Task.detached` or state initialized outside the test
+body.)
+
+Because the store starts empty, you normally don't need `$shared.withLock` just to set up initial
+state — the `= value` default is enough. Reach for `$shared.withLock { $0 = ... }` when you need to
+drive a *change* mid-test (after the model is observing), or to force a real write for a value type
+you then read back across an `await`. Do NOT use class-level `@Shared` properties in tests
+(a stored property initialized outside the test body is not covered by the trait's scope).
 
 ### Test anti-patterns
 

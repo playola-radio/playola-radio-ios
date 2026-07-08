@@ -9,6 +9,7 @@ import Testing
 
 @testable import PlayolaRadio
 
+@Suite(.freshSharedState)
 @MainActor
 struct AnalyticsClientTests {
   private static let pauseKey = "analytics_session_paused_at"

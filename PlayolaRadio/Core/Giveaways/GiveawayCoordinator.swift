@@ -45,10 +45,8 @@ final class GiveawayCoordinator {
   // MARK: - Lifecycle
 
   func start() {
-    guard GiveawayFeature.isLiveDataEnabled, feedPollTask == nil else {
-      log(
-        "start skipped (enabled=\(GiveawayFeature.isLiveDataEnabled), running=\(feedPollTask != nil))"
-      )
+    guard feedPollTask == nil else {
+      log("start skipped (already running)")
       return
     }
     log("starting · env=\(Config.shared.environment.rawValue) · api=\(Config.shared.baseUrl)")
@@ -68,21 +66,14 @@ final class GiveawayCoordinator {
     feedPollTask?.cancel()
     feedPollTask = nil
     cancellables.removeAll()
-    if GiveawayFeature.isLiveDataEnabled {
-      // Ordinary stop (app backgrounded): cancel the timer but KEEP the published state
-      // (activeGiveaway + upcomingGiveaways) so the overlay/badges don't flicker on the next
-      // foreground — `reconcile()` refreshes them then.
-      cancelArmedReveal()
-    } else {
-      // Feature disabled: tear everything down so no stale giveaway state lingers on screen.
-      clearActiveAndArm()
-      $upcomingGiveaways.withLock { $0 = [] }
-    }
+    // Ordinary stop (app backgrounded): cancel the timer but KEEP the published state
+    // (activeGiveaway + upcomingGiveaways) so the overlay/badges don't flicker on the next
+    // foreground — `reconcile()` refreshes them then.
+    cancelArmedReveal()
   }
 
   /// Immediate reconcile (on foreground / now-playing change).
   func pollNow() async {
-    guard GiveawayFeature.isLiveDataEnabled else { return }
     await reconcile()
     await reconcileRecentResolvedLosses()
   }

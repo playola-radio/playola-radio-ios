@@ -11,6 +11,7 @@ import Testing
 
 @testable import PlayolaRadio
 
+@Suite(.freshSharedState)
 struct LikeOperationTests {
 
   // MARK: - Test Data

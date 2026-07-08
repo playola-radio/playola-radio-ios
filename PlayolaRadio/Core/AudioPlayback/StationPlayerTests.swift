@@ -16,6 +16,7 @@ import Testing
 
 private struct PlayFailureTestError: Error {}
 
+@Suite(.freshSharedState)
 @MainActor
 struct StationPlayerTests {
 

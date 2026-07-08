@@ -52,7 +52,6 @@
 		B12730D5ECA7018F074B54E6 /* GiveawayBannerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 917BAF1376F852871F0F3159 /* GiveawayBannerState.swift */; };
 		B196C20AFDE46B1A6FBA8194 /* GiveawayCongratsSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51C95B740988B02A7A472F8C /* GiveawayCongratsSheetModel.swift */; };
 		B9D97B72F461E83FF652BDBD /* GiveawayPlayerOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D3D10F16230F15FFF80C665 /* GiveawayPlayerOverlayView.swift */; };
-		BEF7B80875987966A5439482 /* GiveawayFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61840B16734426EAC4079351 /* GiveawayFeature.swift */; };
 		C2FCC44BB8C98C486BC343E6 /* GiveawayOverlayModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A4D634B4C9B84C1C25F6458 /* GiveawayOverlayModel.swift */; };
 		C344F2AC7008BF0C48803B71 /* GiveawayWinnerSubmissionRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7886543EC93B0BA403388A8 /* GiveawayWinnerSubmissionRequest.swift */; };
 		C8BA849E20B449EC91DBF5F2 /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E8719F70AFA4992B9037775 /* Preset.swift */; };
@@ -194,6 +193,7 @@
 		D317C0D92EF3500B00DBC82E /* APIClient+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = D317C0D72EF3500500DBC82E /* APIClient+Live.swift */; };
 		D31C43A82D3C19640021AAE4 /* StationPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */; };
 		D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31C43A92D3C390C0021AAE4 /* StationPlayerMock.swift */; };
+		FE01A0C72DFCB368002BAC30 /* SharedStateTestTrait.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */; };
 		D31C43D42D3C783B0021AAE4 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D31C43D32D3C783B0021AAE4 /* PlayolaPlayer */; };
 		D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31CD5222DFBA1EC009B9780 /* ViewModel.swift */; };
 		D31CD5272DFBB4DF009B9780 /* MainContainerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31CD5252DFBB47D009B9780 /* MainContainerTests.swift */; };
@@ -489,7 +489,6 @@
 		EFAE322408433F245D07A620 /* UpcomingGiveawayBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43C99E3FBFDF4522AA71C3C /* UpcomingGiveawayBanner.swift */; };
 		F35D444BFD44486391C161D6 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 0B6E1320AC744E9FAEC2F50F /* Sentry */; };
 		F425EEF25FDF6BFE036A49E2 /* GiveawayWinnerPush.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0463608FA7279EBB205BF80E /* GiveawayWinnerPush.swift */; };
-		F8685D688FF3683E3E6F9F55 /* GiveawayFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61840B16734426EAC4079351 /* GiveawayFeature.swift */; };
 		F94F092AC0FB044790B38A0E /* GiveawayModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9553B35A6FBA27239EF49033 /* GiveawayModelsTests.swift */; };
 		F9A35F1CB53E4F9D4E750430 /* StationListLiveSortTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B83C3893A771EB211B3AF8F /* StationListLiveSortTests.swift */; };
 		FE02FE02FE02FE02FE02FE02 /* StationListPresetErrorReportingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE01FE01FE01FE01FE01FE01 /* StationListPresetErrorReportingTests.swift */; };
@@ -530,7 +529,6 @@
 		4D3D10F16230F15FFF80C665 /* GiveawayPlayerOverlayView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayPlayerOverlayView.swift; sourceTree = "<group>"; };
 		51C95B740988B02A7A472F8C /* GiveawayCongratsSheetModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayCongratsSheetModel.swift; sourceTree = "<group>"; };
 		5B3C275E61DA6CA4C482EC79 /* UpcomingGiveawayBannerModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UpcomingGiveawayBannerModelTests.swift; sourceTree = "<group>"; };
-		61840B16734426EAC4079351 /* GiveawayFeature.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayFeature.swift; sourceTree = "<group>"; };
 		6CB3EF3C094D149DDC849813 /* GiveawayParticipation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayParticipation.swift; sourceTree = "<group>"; };
 		70C547ECE1FDB131CE832D3D /* GiveawayWinnerPendingPush.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerPendingPush.swift; sourceTree = "<group>"; };
 		73585D96F0A0EB79FFD39F8E /* UpcomingGiveawayBadge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UpcomingGiveawayBadge.swift; sourceTree = "<group>"; };
@@ -587,6 +585,7 @@
 		D317C0D72EF3500500DBC82E /* APIClient+Live.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "APIClient+Live.swift"; sourceTree = "<group>"; };
 		D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayer.swift; sourceTree = "<group>"; };
 		D31C43A92D3C390C0021AAE4 /* StationPlayerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerMock.swift; sourceTree = "<group>"; };
+		FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStateTestTrait.swift; sourceTree = "<group>"; };
 		D31CD5222DFBA1EC009B9780 /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
 		D31CD5252DFBB47D009B9780 /* MainContainerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainerTests.swift; sourceTree = "<group>"; };
 		D3219C162EDD22100008AFDA /* BroadcastPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageView.swift; sourceTree = "<group>"; };
@@ -1173,6 +1172,7 @@
 			isa = PBXGroup;
 			children = (
 				D3137DBE2D3981750070033A /* Mocks */,
+				FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */,
 			);
 			path = PlayolaRadioTests;
 			sourceTree = "<group>";
@@ -1733,7 +1733,6 @@
 		F1F99B497491A284FFAF08B6 /* Giveaways */ = {
 			isa = PBXGroup;
 			children = (
-				61840B16734426EAC4079351 /* GiveawayFeature.swift */,
 				1DBB4FE7E4F57517A32804E0 /* GiveawayCoordinator.swift */,
 				CCD2F408E712B42EAED9BE68 /* GiveawayCoordinatorTests.swift */,
 			);
@@ -2109,7 +2108,6 @@
 				DBD70D257638FF5934CA78DA /* CongratsAction.swift in Sources */,
 				D0CD5FE434D4950E16A7B1F9 /* GiveawayOverlayModel.swift in Sources */,
 				1E09F417B01F258C6D38D660 /* GiveawayPlayerOverlayView.swift in Sources */,
-				BEF7B80875987966A5439482 /* GiveawayFeature.swift in Sources */,
 				A8034ECCAE01C4925AEA0BA4 /* GiveawayCoordinator.swift in Sources */,
 				99112E8696C5C7952F8EBE10 /* GiveawayWinnerSubmissionRequest.swift in Sources */,
 				DDB617A9AA22B4D37A3E3808 /* GiveawayWinnerPush.swift in Sources */,
@@ -2303,7 +2301,6 @@
 				EDE2B63A1AB34C74CC65C898 /* CongratsAction.swift in Sources */,
 				C2FCC44BB8C98C486BC343E6 /* GiveawayOverlayModel.swift in Sources */,
 				B9D97B72F461E83FF652BDBD /* GiveawayPlayerOverlayView.swift in Sources */,
-				F8685D688FF3683E3E6F9F55 /* GiveawayFeature.swift in Sources */,
 				0F528AC0AC6E8A8043556CEC /* GiveawayCoordinator.swift in Sources */,
 				C344F2AC7008BF0C48803B71 /* GiveawayWinnerSubmissionRequest.swift in Sources */,
 				F425EEF25FDF6BFE036A49E2 /* GiveawayWinnerPush.swift in Sources */,
@@ -2350,6 +2347,7 @@
 				D317C0CF2EF200D100DBC82E /* VoicetrackUploadServiceTests.swift in Sources */,
 				D35EFBFA2F1579E5000F64A4 /* NewFeatureTileTests.swift in Sources */,
 				D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */,
+				FE01A0C72DFCB368002BAC30 /* SharedStateTestTrait.swift in Sources */,
 				D3776A4D2F2BE8F900200ADF /* LibraryPageTests.swift in Sources */,
 				D35EFBD72F0EC6F7000F64A4 /* APIClientTests.swift in Sources */,
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,
@@ -2430,7 +2428,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D3EAC9222E81731A001194CF /* Secrets-Staging.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Staging";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
@@ -2442,7 +2440,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "PlayolaRadio/Info-Staging.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Playola Radio Staging";
+				INFOPLIST_KEY_CFBundleDisplayName = "⚠️ Playola Staging";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Playola uses the microphone to let you record voicetracks or audio messages.";
@@ -2456,7 +2454,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 7.3.0;
+				MARKETING_VERSION = 7.3.1;
 				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio.staging;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2475,7 +2473,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D3B662C22D4272ED00975D2F /* Secrets-Local.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Staging";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
@@ -2487,7 +2485,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "PlayolaRadio/Info-Staging.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Playola Radio Staging";
+				INFOPLIST_KEY_CFBundleDisplayName = "⚠️ Playola Staging";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Playola uses the microphone to let you record voicetracks or audio messages.";
@@ -2501,7 +2499,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 7.3.0;
+				MARKETING_VERSION = 7.3.1;
 				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio.staging;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2520,7 +2518,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D3EAC9222E81731A001194CF /* Secrets-Staging.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Staging";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = PlayolaRadio/PlayolaRadio.entitlements;
@@ -2532,7 +2530,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "PlayolaRadio/Info-Staging.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Playola Radio Staging";
+				INFOPLIST_KEY_CFBundleDisplayName = "⚠️ Playola Staging";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Playola uses the microphone to let you record voicetracks or audio messages.";
@@ -2546,7 +2544,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 7.3.0;
+				MARKETING_VERSION = 7.3.1;
 				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio.staging;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2714,7 +2712,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 7.3.0;
+				MARKETING_VERSION = 7.3.1;
 				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2761,7 +2759,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 7.3.0;
+				MARKETING_VERSION = 7.3.1;
 				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2914,7 +2912,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 7.3.0;
+				MARKETING_VERSION = 7.3.1;
 				OTHER_SWIFT_FLAGS = "$(inherited) -enable-upcoming-feature InferSendableFromCaptures";
 				PRODUCT_BUNDLE_IDENTIFIER = fm.playola.playolaradio;
 				PRODUCT_NAME = "$(TARGET_NAME)";

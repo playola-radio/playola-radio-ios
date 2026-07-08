@@ -16,6 +16,7 @@ import Testing
 
 @testable import PlayolaRadio
 
+@Suite(.freshSharedState)
 @MainActor
 struct StationListPageTests {
   // MARK: - View Appeared Tests
@@ -738,6 +739,7 @@ private func makeStationListModel(
 
 // MARK: - Notification Permission Prompt Tests
 
+@Suite(.freshSharedState)
 @MainActor
 struct StationListNotificationPromptTests {
 

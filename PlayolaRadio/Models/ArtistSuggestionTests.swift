@@ -9,6 +9,7 @@ import Testing
 
 @testable import PlayolaRadio
 
+@Suite(.freshSharedState)
 struct ArtistSuggestionStatusTests {
 
   @Test

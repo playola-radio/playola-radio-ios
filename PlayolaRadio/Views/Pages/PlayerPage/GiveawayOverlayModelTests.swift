@@ -10,7 +10,7 @@ import Testing
 // shared key, so parallel Swift Testing could interleave across `await` points and cross-contaminate
 // the on-disk state.
 @MainActor
-@Suite(.serialized)
+@Suite(.serialized, .freshSharedState)
 struct GiveawayOverlayModelTests {
   // giveawayId is deliberately distinct from the event id so tests pin participation keying to the
   // per-airing event id (`id`), not the stable `giveawayId`.
@@ -117,6 +117,60 @@ struct GiveawayOverlayModelTests {
     model.onTap = { _ in called = true }
     await model.tapButtonTapped()
     #expect(called == false)
+  }
+
+  @Test func tapButtonShowsSpinnerWhileInFlight() async {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
+    let model = GiveawayOverlayModel()
+    #expect(model.isTapping == false)
+    #expect(model.tapSpinnerOpacity == 0)
+    #expect(model.buttonTitleOpacity == 1)
+
+    var tappingDuringTap: Bool?
+    var spinnerOpacityDuringTap: Double?
+    var titleOpacityDuringTap: Double?
+    model.onTap = { _ in
+      tappingDuringTap = model.isTapping
+      spinnerOpacityDuringTap = model.tapSpinnerOpacity
+      titleOpacityDuringTap = model.buttonTitleOpacity
+    }
+    await model.tapButtonTapped()
+
+    #expect(tappingDuringTap == true)
+    #expect(spinnerOpacityDuringTap == 1)
+    #expect(titleOpacityDuringTap == 0)
+    #expect(model.isTapping == false)
+    #expect(model.tapSpinnerOpacity == 0)
+    #expect(model.buttonTitleOpacity == 1)
+  }
+
+  @Test func tapButtonClearsSpinnerAfterError() async {
+    struct Boom: Error {}
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
+    let model = GiveawayOverlayModel()
+    model.onTap = { _ in throw Boom() }
+    model.onError = { _ in }
+    await model.tapButtonTapped()
+    #expect(model.isTapping == false)
+    #expect(model.tapSpinnerOpacity == 0)
+    #expect(model.buttonTitleOpacity == 1)
+  }
+
+  @Test func tapButtonIgnoresReentrantTapWhileInFlight() async {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
+    let model = GiveawayOverlayModel()
+    var callCount = 0
+    model.onTap = { _ in
+      callCount += 1
+      if callCount == 1 {
+        await model.tapButtonTapped()
+      }
+    }
+    await model.tapButtonTapped()
+    #expect(callCount == 1)
   }
 
   @Test func tapButtonRoutesThrownErrorToOnError() async {

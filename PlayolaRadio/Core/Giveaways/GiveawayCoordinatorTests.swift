@@ -14,7 +14,7 @@ import Testing
 // shared key, so parallel Swift Testing could interleave across `await` points and cross-contaminate
 // the on-disk state.
 @MainActor
-@Suite(.serialized)
+@Suite(.serialized, .freshSharedState)
 struct GiveawayCoordinatorTests {
   private struct BoomError: Error {}
 
@@ -346,21 +346,16 @@ struct GiveawayCoordinatorTests {
     #expect(upcomingGiveaways[id: "s2"]?.event.id == "e2")
   }
 
-  @Test func stopKeepsUpcomingWhileFeatureEnabledClearsWhenDisabled() {
-    // Backgrounding (stop) must NOT clear the badges while the feature is on — they survive to the
-    // next foreground so the list/Home don't flicker. When the feature is disabled, stop() tears the
-    // projection down so nothing stale lingers.
+  @Test func stopKeepsUpcoming() {
+    // Backgrounding (stop) must NOT clear the badges — they survive to the next foreground so the
+    // list/Home don't flicker; `reconcile()` refreshes them then.
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       UpcomingGiveawayInfo(
         event: GiveawayEvent(
           id: "e1", stationId: "s1", prizeName: "P", winningNumber: 9, status: .scheduled))
     ]
     GiveawayCoordinator().stop()
-    if GiveawayFeature.isLiveDataEnabled {
-      #expect(upcomingGiveaways[id: "s1"]?.event.id == "e1")
-    } else {
-      #expect(upcomingGiveaways.isEmpty)
-    }
+    #expect(upcomingGiveaways[id: "s1"]?.event.id == "e1")
   }
 
   // MARK: - tap

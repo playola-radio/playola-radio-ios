@@ -11,6 +11,7 @@ import Testing
 
 @testable import PlayolaRadio
 
+@Suite(.freshSharedState)
 @MainActor
 struct ConversationListPageTests {
   private func makeConversation(
