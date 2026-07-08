@@ -2,7 +2,19 @@
 
 ## Branch Policy
 
-**`develop` must always be in a deployable state.** Both as a matter of policy and so we can ship from it at any time in an emergency. Never merge work into `develop` that doesn't compile, has failing tests, or leaves the app in a broken/half-finished runtime state. If a change can't be made deployable in one PR, gate it behind a feature flag or keep it on a feature branch until it is.
+**`develop` must always be in a deployable state.** Both as a matter of policy and so we can ship from it at any time in an emergency. Never merge work into `develop` that doesn't compile, has failing tests, or leaves the app in a broken/half-finished runtime state. If a change can't be made deployable in one PR, keep it on a feature branch until it is (see the gating rule below — do NOT reach for an environment gate).
+
+## NEVER NEVER NEVER gate a feature to an environment
+
+**Do not gate any user-facing feature so that it behaves differently in production than in staging/development.** Absolutely never write code of the form `Config.shared.environment != .production` (or any equivalent) to turn a feature on in staging while leaving it dark in production.
+
+**Why this rule exists.** We shipped a live prize contest to production while the giveaway data path was gated OFF in production (`isLiveDataEnabled = environment != .production`). Staging looked perfect; production was silently dark. Real listeners ran a real contest and the app did nothing. That is a production disaster with no runtime error to catch it — the gate made "broken in production" the *intended* behavior.
+
+**What to do instead:**
+- If a feature is ready, it ships on. No environment check.
+- If a feature is NOT ready, keep it on a feature branch, or behind a build-time `#if DEBUG` guard for dev-only tooling — never behind a runtime environment check that a production build evaluates to "off".
+- If you truly need staged rollout, use a *server-driven* flag that is explicitly turned on for production when the feature launches — and make turning it on part of the launch checklist. The default must never be "production is the disabled environment."
+- Production must never be the environment where a feature is the most disabled.
 
 ## ALWAYS use the Point-Free Workflow (pfw-*) skills
 
