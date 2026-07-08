@@ -6,6 +6,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import IdentifiedCollections
@@ -342,6 +343,91 @@ struct HomePageTests {
 
     $showSecretStations.withLock { $0 = false }
     #expect(model.forYouStations.count == 1)
+  }
+
+  // MARK: - Live Station Sorting Tests
+
+  @Test
+  func testForYouStationsSortsVoicetrackingStationsToTheTop() async {
+    let offlineTop = Station.mockWith(id: "offline-top", curatorName: "DJ Offline Top")
+    let offlineMiddle = Station.mockWith(id: "offline-middle", curatorName: "DJ Offline Middle")
+    let liveStation = Station.mockWith(id: "live-station", curatorName: "DJ Live")
+
+    let artistList = StationList.mockArtistList(items: [
+      .mockWith(sortOrder: 0, visibility: .visible, station: offlineTop),
+      .mockWith(sortOrder: 1, visibility: .visible, station: offlineMiddle),
+      .mockWith(sortOrder: 2, visibility: .visible, station: liveStation),
+    ])
+
+    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [artistList])
+    @Shared(.liveStations) var liveStations = [
+      LiveStationInfo(stationId: "live-station", liveStatus: .voicetracking, station: liveStation)
+    ]
+
+    let model = HomePageModel()
+
+    expectNoDifference(
+      model.forYouStations.map(\.id),
+      ["live-station", "offline-top", "offline-middle"])
+  }
+
+  @Test
+  func testForYouStationsKeepsSortOrderWhenNoStationIsLive() async {
+    let first = Station.mockWith(id: "first", curatorName: "DJ First")
+    let second = Station.mockWith(id: "second", curatorName: "DJ Second")
+
+    let artistList = StationList.mockArtistList(items: [
+      .mockWith(sortOrder: 0, visibility: .visible, station: first),
+      .mockWith(sortOrder: 1, visibility: .visible, station: second),
+    ])
+
+    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [artistList])
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+
+    let model = HomePageModel()
+
+    expectNoDifference(model.forYouStations.map(\.id), ["first", "second"])
+  }
+
+  @Test
+  func testForYouStationsOrdersVoicetrackingAboveShowAiringAboveOffline() async {
+    let offline = Station.mockWith(id: "offline", curatorName: "DJ Offline")
+    let showAiring = Station.mockWith(id: "show-airing", curatorName: "DJ Show")
+    let voicetracking = Station.mockWith(id: "voicetracking", curatorName: "DJ Voice")
+
+    let artistList = StationList.mockArtistList(items: [
+      .mockWith(sortOrder: 0, visibility: .visible, station: offline),
+      .mockWith(sortOrder: 1, visibility: .visible, station: showAiring),
+      .mockWith(sortOrder: 2, visibility: .visible, station: voicetracking),
+    ])
+
+    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [artistList])
+    @Shared(.liveStations) var liveStations = [
+      LiveStationInfo(stationId: "show-airing", liveStatus: .showAiring, station: showAiring),
+      LiveStationInfo(
+        stationId: "voicetracking", liveStatus: .voicetracking, station: voicetracking),
+    ]
+
+    let model = HomePageModel()
+
+    expectNoDifference(
+      model.forYouStations.map(\.id),
+      ["voicetracking", "show-airing", "offline"])
+  }
+
+  @Test
+  func testForYouStationsOmitsRowsWithNeitherPlayolaNorUrlStation() async {
+    let realStation = Station.mockWith(id: "real-station", curatorName: "DJ Real")
+    let artistList = StationList.mockArtistList(items: [
+      .mockWith(sortOrder: 0, visibility: .visible, station: nil, urlStation: nil),
+      .mockWith(sortOrder: 1, visibility: .visible, station: realStation),
+    ])
+
+    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [artistList])
+
+    let model = HomePageModel()
+
+    expectNoDifference(model.forYouStations.map(\.id), ["real-station"])
   }
 
   // MARK: - Scheduled Shows Tests
