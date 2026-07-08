@@ -14,7 +14,7 @@ import Testing
 // shared key, so parallel Swift Testing could interleave across `await` points and cross-contaminate
 // the on-disk state.
 @MainActor
-@Suite(.serialized)
+@Suite(.serialized, .freshSharedState)
 struct GiveawayCoordinatorTests {
   private struct BoomError: Error {}
 

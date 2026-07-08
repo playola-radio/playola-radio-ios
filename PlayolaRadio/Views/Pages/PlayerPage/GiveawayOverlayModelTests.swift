@@ -10,7 +10,7 @@ import Testing
 // shared key, so parallel Swift Testing could interleave across `await` points and cross-contaminate
 // the on-disk state.
 @MainActor
-@Suite(.serialized)
+@Suite(.serialized, .freshSharedState)
 struct GiveawayOverlayModelTests {
   // giveawayId is deliberately distinct from the event id so tests pin participation keying to the
   // per-airing event id (`id`), not the stable `giveawayId`.

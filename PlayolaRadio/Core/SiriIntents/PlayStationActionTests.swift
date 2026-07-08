@@ -7,6 +7,7 @@ import Testing
 
 @testable import PlayolaRadio
 
+@Suite(.freshSharedState)
 @MainActor
 struct PlayStationActionTests {
   private func makeStationLists() -> IdentifiedArrayOf<StationList> {

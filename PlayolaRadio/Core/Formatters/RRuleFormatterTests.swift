@@ -10,6 +10,7 @@ import Testing
 
 @testable import PlayolaRadio
 
+@Suite(.freshSharedState)
 @MainActor
 struct RRuleFormatterTests {
   // MARK: - Single Day Tests

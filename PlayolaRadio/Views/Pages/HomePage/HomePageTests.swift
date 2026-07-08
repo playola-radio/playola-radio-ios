@@ -19,6 +19,7 @@ import Testing
 // `createTestJWT` is defined in MainContainerTests.swift and shared
 // across the test target.
 
+@Suite(.freshSharedState)
 @MainActor
 struct HomePageTests {
   // MARK: - ViewAppeared Tests
