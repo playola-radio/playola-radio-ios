@@ -27,67 +27,12 @@ private struct CreateVoicetrackParameters: Encodable, Sendable {
 
 private let sharedIsoDecoder = JSONDecoderWithIsoFull()
 
-// TEMPORARY: Global TLS 1.2 cap.
-//
-// On iOS 26, URLSession sends a TLS 1.3 ClientHello that includes the X25519MLKEM768
-// post-quantum hybrid key share (~1.6 KB). Some users sit behind middleboxes
-// (antivirus SSL inspection, parental-control routers, captive portals, etc.) that
-// drop the larger ClientHello and surface as NSURLErrorSecureConnectionFailed (-1200),
-// which makes every API request fail silently on those networks. PR #269 added a
-// per-call TLS 1.2 fallback for sign-in, but follow-up testing showed the issue
-// affects every endpoint — sign-in succeeds, then profile / listening-tracker /
-// station fetches silently fail and the UI renders blank or stale data.
-//
-// As a stopgap, every Alamofire request in this file is routed through `apiSession`,
-// which caps the URLSession to TLS 1.2 so the ClientHello stays small enough for
-// these middleboxes to pass through.
-//
-// REVERT WHEN: Apple ships an iOS 26 fix (watch 26.5+ release notes) OR exposes a
-// supported opt-out for the post-quantum hybrid key share so we can keep TLS 1.3.
-// At that point, replace `apiSession` usages with bare `AF` again and consider
-// restoring a per-call retry (the prior signInPostWithTLS12Fallback pattern) for
-// defense in depth on networks that still misbehave.
-private let apiSession: Alamofire.Session = {
-  let configuration = URLSessionConfiguration.af.default
-  configuration.tlsMaximumSupportedProtocolVersion = .TLSv12
-  return Alamofire.Session(configuration: configuration)
-}()
-
-// Companion to `apiSession`: a separate session with no TLS cap, used by
-// `probeTLS13()` to test whether TLS 1.3 works on the user's network. When
-// success rates climb across the user base, the cap above is safe to revert.
-private let tls13ProbeSession: Alamofire.Session = {
-  Alamofire.Session(configuration: URLSessionConfiguration.af.default)
-}()
-
-// Fires once per build per device. Hits a small unauthenticated endpoint over
-// TLS 1.3 (no cap) and reports outcome to Sentry as `tls13_probe`. Aggregating
-// the outcome across users tells us when the iOS 26 middlebox issue has cleared
-// up enough to revert the global TLS 1.2 cap.
-func probeTLS13() async {
-  @Shared(.tls13ProbeLastSentBuild) var lastSentBuild: String?
-  guard let currentBuild = Bundle.main.infoDictionary?["CFBundleVersion"] as? String,
-    lastSentBuild != currentBuild
-  else { return }
-
-  let url = "\(Config.shared.baseUrl.absoluteString)/v1/app-version-requirements"
-  let outcome: String
-  do {
-    _ = try await tls13ProbeSession.request(url)
-      .validate(statusCode: 200..<300)
-      .serializingData()
-      .value
-    outcome = "success"
-  } catch {
-    outcome = "failure"
-  }
-
-  @Dependency(\.errorReporting) var errorReporting
-  await errorReporting.reportMessage(
-    "tls13_probe",
-    ["tls13_probe_outcome": outcome])
-  $lastSentBuild.withLock { $0 = currentBuild }
-}
+// TEMPORARY: Global TLS 1.2 cap. Every Alamofire request in this file is routed through
+// `apiSession`, which caps the URLSession to TLS 1.2 so the iOS 26 post-quantum ClientHello
+// stays small enough for broken middleboxes to pass through. The policy itself lives in
+// `PlayolaTLS` (single source of truth); the aggregated `tls13_probe` Sentry trend
+// (see `ConnectivityProbe`) tells us when it is safe to revert. Full background there.
+private let apiSession = Alamofire.Session(configuration: PlayolaTLS.mitigated(.af.default))
 
 private func signInPost(
   authMethod: AuthMethod,
