@@ -67,7 +67,7 @@ public class UrlStreamListeningSessionReporter {
     }
 
     guard let request = createPostRequest(url: url, jsonData: jsonData) else { return }
-    let task = URLSession.shared.dataTask(with: request) { data, response, error in
+    let task = PlayolaTLS.sharedSession.dataTask(with: request) { data, response, error in
       if let error = error {
         print("Error: \(error.localizedDescription)")
         return
@@ -100,7 +100,7 @@ public class UrlStreamListeningSessionReporter {
     }
 
     guard let request = createPostRequest(url: url, jsonData: jsonData) else { return }
-    let task = URLSession.shared.dataTask(with: request) { data, response, error in
+    let task = PlayolaTLS.sharedSession.dataTask(with: request) { data, response, error in
       if let error = error {
         print("Error: \(error.localizedDescription)")
         return
