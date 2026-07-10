@@ -235,8 +235,9 @@ struct PlayolaRadioApp: App {
     // (1.3 / 1.2 / HTTP/3) plus a control host. The aggregated `tls13_probe` Sentry events
     // (see `ConnectivityProbe`) tell us which remediation helps and when the iOS 26 middlebox
     // issue has cleared enough to revert the global TLS 1.2 cap.
+    @Dependency(\.connectivityProbe) var connectivityProbe
     Task {
-      await runConnectivityProbe()
+      await connectivityProbe.run()
     }
   }
 

@@ -12,6 +12,7 @@ import Testing
 @testable import PlayolaRadio
 
 @Suite(.freshSharedState)
+@MainActor
 struct ConnectivityProbeTests {
 
   // MARK: - diagnose
@@ -73,6 +74,14 @@ struct ConnectivityProbeTests {
   func skippedControlWithFailingApiIsIndeterminate() {
     let result = ConnectivityProbeResult(
       apiTLS13: .failure, apiTLS12: .failure, apiHTTP3: .failure, controlHost: .skipped)
+    #expect(ConnectivityProbe.diagnose(result) == .indeterminate)
+  }
+
+  @Test
+  func fellBackControlWithFailingApiIsIndeterminate() {
+    // Covers the `.fellBack` half of the `case .fellBack, .skipped` control arm.
+    let result = ConnectivityProbeResult(
+      apiTLS13: .failure, apiTLS12: .failure, apiHTTP3: .failure, controlHost: .fellBack)
     #expect(ConnectivityProbe.diagnose(result) == .indeterminate)
   }
 

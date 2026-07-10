@@ -6,6 +6,7 @@
 //
 
 import Dependencies
+import DependenciesMacros
 import Foundation
 import Sharing
 
@@ -71,8 +72,10 @@ enum ConnectivityProbe {
   /// fails do we consult the control host to separate "it's just us" from "network is down".
   static func diagnose(_ result: ConnectivityProbeResult) -> ProbeDiagnosis {
     if result.apiTLS13 == .success {
-      // Real requests ride the capped TLS 1.2 path; if 1.3 works but 1.2 doesn't, the cap
-      // itself is the problem here — surface it instead of hiding it under `.healthy`.
+      // Real requests ride the capped TLS 1.2 path; if 1.3 works but 1.2 explicitly fails, the
+      // cap itself is the problem here — surface it instead of hiding it under `.healthy`. The
+      // runner only ever produces `.success`/`.failure` for TLS 1.2, so any non-`.failure` value
+      // (including an unreachable `.skipped`) means "1.3 works, no capped-path evidence" → healthy.
       return result.apiTLS12 == .failure ? .cappedPathBroken : .healthy
     }
     if result.apiTLS12 == .success { return .clientHelloDrop }
@@ -118,6 +121,30 @@ func runConnectivityProbe() async {
   $lastSentBuild.withLock { $0 = currentBuild }
 }
 
+// MARK: - Dependency
+
+/// Wraps the launch-time probe so it can be overridden. The live value performs real network I/O;
+/// the test value is a no-op so test suites don't fire probes on every app-host launch.
+@DependencyClient
+struct ConnectivityProbeClient: Sendable {
+  var run: @Sendable () async -> Void
+}
+
+extension ConnectivityProbeClient: TestDependencyKey {
+  static let testValue = Self(run: {})
+}
+
+extension ConnectivityProbeClient: DependencyKey {
+  static let liveValue = Self(run: { await runConnectivityProbe() })
+}
+
+extension DependencyValues {
+  var connectivityProbe: ConnectivityProbeClient {
+    get { self[ConnectivityProbeClient.self] }
+    set { self[ConnectivityProbeClient.self] = newValue }
+  }
+}
+
 extension ConnectivityProbe {
   /// A small unauthenticated endpoint, cheap to hit repeatedly.
   private static let apiProbePath = "/v1/app-version-requirements"
@@ -153,7 +180,10 @@ extension ConnectivityProbe {
   private static let tls12Session = URLSession(
     configuration: PlayolaTLS.mitigated(probeBaseConfiguration()))
 
-  /// Forced TLS 1.3, used with `assumesHTTP3Capable` requests to probe QUIC/UDP.
+  /// Forced TLS 1.3, used with `assumesHTTP3Capable` requests to probe QUIC/UDP. Deliberately a
+  /// SEPARATE session from `tls13Session` (despite the identical configuration): a shared session
+  /// would let this sequential request reuse the TLS 1.3 probe's already-open HTTP/2 TCP
+  /// connection and never attempt QUIC, silently defeating the h3 measurement.
   private static let http3Session = URLSession(configuration: forcedTLS13Configuration())
 
   static func run(baseURL: URL) async -> ConnectivityProbeResult {
