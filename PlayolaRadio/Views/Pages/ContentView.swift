@@ -17,12 +17,9 @@ extension Notification.Name {
 @MainActor
 struct ContentView: View {
   @Shared(.auth) var auth
-  @Shared(.appVersionRequirements) var appVersionRequirements
-  @Shared(.isBroadcaster) var isBroadcaster
-  @Dependency(\.api) var api
   @Dependency(\.analytics) var analytics
   @State private var hasTrackedAppOpen = false
-  @State private var requiresUpdate = false
+  @State private var versionGate = AppVersionGateModel()
 
   @Dependency(\.stationPlayer) private var stationPlayer
   @Dependency(\.nowPlayingUpdater) private var nowPlayingUpdater
@@ -37,10 +34,6 @@ struct ContentView: View {
     _ = nowPlayingUpdater
   }
 
-  private let appStoreURL = URL(
-    string: "itms-apps://itunes.apple.com/app/id6480465361"
-  )!
-
   var body: some View {
     Group {
       if auth.isLoggedIn {
@@ -50,18 +43,21 @@ struct ContentView: View {
       }
     }
     .alert(
-      "Update Required",
-      isPresented: $requiresUpdate
+      versionGate.alertTitle,
+      isPresented: $versionGate.requiresUpdate
     ) {
-      Button("Update") {
-        UIApplication.shared.open(appStoreURL)
-        requiresUpdate = true
+      Button(versionGate.updateButtonTitle) {
+        versionGate.requiresUpdate = true
+        Task {
+          await versionGate.updateButtonTapped()
+          _ = await UIApplication.shared.open(versionGate.appStoreURL)
+        }
       }
     } message: {
-      Text("A new version of Playola Radio is available. Please update to continue.")
+      Text(versionGate.alertMessage)
     }
     .task {
-      await checkVersionRequirements()
+      await versionGate.checkVersionRequirements()
 
       guard !hasTrackedAppOpen else { return }
       hasTrackedAppOpen = true
@@ -73,30 +69,7 @@ struct ContentView: View {
         ))
     }
     .onReceive(NotificationCenter.default.publisher(for: .requiresAppUpdate)) { _ in
-      requiresUpdate = true
-    }
-  }
-
-  private func checkVersionRequirements() async {
-    do {
-      let requirements = try await api.getAppVersionRequirements()
-      $appVersionRequirements.withLock { $0 = requirements }
-
-      guard let currentVersion = Bundle.main.releaseVersionNumber else { return }
-
-      if isVersion(currentVersion, lessThan: requirements.minimumVersion) {
-        requiresUpdate = true
-        return
-      }
-
-      if isBroadcaster,
-        isVersion(currentVersion, lessThan: requirements.minimumBroadcasterVersion)
-      {
-        requiresUpdate = true
-        return
-      }
-    } catch {
-      // Network failure → fail open (allow app)
+      Task { await versionGate.broadcasterUpdateDiscovered() }
     }
   }
 

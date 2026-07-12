@@ -105,6 +105,9 @@
 		D30F005E2E8592F0007BCC73 /* CPListItem+InitWithRemoteUrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C22D3E871800E4E926 /* CPListItem+InitWithRemoteUrl.swift */; };
 		D30F005F2E8592F0007BCC73 /* MainContainerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744AC2E2FCD8E0042A427 /* MainContainerModel.swift */; };
 		D30F00602E8592F0007BCC73 /* ContactPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39591162E39932300720CF8 /* ContactPageModel.swift */; };
+		E1AB0000000000000000AB01 /* AppVersionGateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1AB0000000000000000AA01 /* AppVersionGateModel.swift */; };
+		E1AB0000000000000000AB02 /* AppVersionGateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1AB0000000000000000AA01 /* AppVersionGateModel.swift */; };
+		E1AB0000000000000000AB03 /* AppVersionGateModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1AB0000000000000000AA02 /* AppVersionGateModelTests.swift */; };
 		D30F00612E8592F0007BCC73 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302576A2E63423B00F4228B /* Toast.swift */; };
 		D30F00622E8592F0007BCC73 /* MailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E57D2BFD750700B9E35B /* MailService.swift */; };
 		D30F00632E8592F0007BCC73 /* FRadioPlayerMetadata+Equatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E56E2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift */; };
@@ -710,6 +713,8 @@
 		D382671B2E00C13E0006BAC2 /* SmallPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmallPlayer.swift; sourceTree = "<group>"; };
 		D39591142E39931D00720CF8 /* ContactPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactPageView.swift; sourceTree = "<group>"; };
 		D39591162E39932300720CF8 /* ContactPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactPageModel.swift; sourceTree = "<group>"; };
+		E1AB0000000000000000AA01 /* AppVersionGateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersionGateModel.swift; sourceTree = "<group>"; };
+		E1AB0000000000000000AA02 /* AppVersionGateModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersionGateModelTests.swift; sourceTree = "<group>"; };
 		D39591182E39932800720CF8 /* ContactPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactPageTests.swift; sourceTree = "<group>"; };
 		D39591252E3BB6FC00720CF8 /* EditProfilePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfilePageView.swift; sourceTree = "<group>"; };
 		D39591272E3BB70500720CF8 /* EditProfilePageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfilePageModel.swift; sourceTree = "<group>"; };
@@ -1072,6 +1077,7 @@
 		D339E55C2BFD0FB000B9E35B /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				E1AB0000000000000000AC01 /* AppVersionGate */,
 				D3776A022F22BA1A00200ADF /* AskQuestionPage */,
 				D3776A162F243F7A00200ADF /* BroadcastersListenerQuestionPage */,
 				D3219C152EDD22060008AFDA /* BroadcastPage */,
@@ -1544,6 +1550,15 @@
 			path = PushNotifications;
 			sourceTree = "<group>";
 		};
+		E1AB0000000000000000AC01 /* AppVersionGate */ = {
+			isa = PBXGroup;
+			children = (
+				E1AB0000000000000000AA02 /* AppVersionGateModelTests.swift */,
+				E1AB0000000000000000AA01 /* AppVersionGateModel.swift */,
+			);
+			path = AppVersionGate;
+			sourceTree = "<group>";
+		};
 		D39591132E39930500720CF8 /* ContactPage */ = {
 			isa = PBXGroup;
 			children = (
@@ -2010,6 +2025,7 @@
 				FE110A0000000000000000B3 /* WelcomeMessagePageView.swift in Sources */,
 				D30C01C52F5C9C8400889E6D /* UserPrize.swift in Sources */,
 				D30F00602E8592F0007BCC73 /* ContactPageModel.swift in Sources */,
+				E1AB0000000000000000AB01 /* AppVersionGateModel.swift in Sources */,
 				D3F493BB2EEDD2B3008ED463 /* RecordPageView.swift in Sources */,
 				D30F00612E8592F0007BCC73 /* Toast.swift in Sources */,
 				D30F00622E8592F0007BCC73 /* MailService.swift in Sources */,
@@ -2205,6 +2221,7 @@
 				FE110A0000000000000000B6 /* WelcomeMessagePageView.swift in Sources */,
 				D30C01C62F5C9C8500889E6D /* UserPrize.swift in Sources */,
 				D39591172E39932600720CF8 /* ContactPageModel.swift in Sources */,
+				E1AB0000000000000000AB02 /* AppVersionGateModel.swift in Sources */,
 				D3F493BC2EEDD2B3008ED463 /* RecordPageView.swift in Sources */,
 				D302576B2E63423D00F4228B /* Toast.swift in Sources */,
 				D339E57E2BFD750700B9E35B /* MailService.swift in Sources */,
@@ -2401,6 +2418,7 @@
 				D35EFBD92F101A76000F64A4 /* StationPlayerTests.swift in Sources */,
 				E1CA0000000000000000A005 /* CarPlayPlaybackTransitionTests.swift in Sources */,
 				D395911A2E39933800720CF8 /* ContactPageTests.swift in Sources */,
+				E1AB0000000000000000AB03 /* AppVersionGateModelTests.swift in Sources */,
 				D3B744BC2E312FB60042A427 /* ListeningTrackerTests.swift in Sources */,
 				D3B744A82E2F185F0042A427 /* SmallPlayerTests.swift in Sources */,
 				F94F092AC0FB044790B38A0E /* GiveawayModelsTests.swift in Sources */,
