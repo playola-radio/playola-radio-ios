@@ -7,6 +7,7 @@
 
 import Combine
 import Dependencies
+import FRadioPlayer
 import Foundation
 import MediaPlayer
 import UIKit

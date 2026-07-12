@@ -93,7 +93,7 @@ final class AudioSessionCoordinator {
   func configureForRecording() throws {
     try session.setCategory(
       .playAndRecord, mode: .default, policy: .default,
-      options: [.defaultToSpeaker, .allowBluetooth])
+      options: [.defaultToSpeaker, .allowBluetoothHFP])
     try session.setActive(true, options: [])
   }
 

@@ -9,5 +9,6 @@
 import Foundation
 
 public protocol FRadioArtworkAPI {
-    func getArtwork(for metadata: FRadioPlayer.Metadata, _ completion: @escaping (_ artworkURL: URL?) -> Void)
+  func getArtwork(
+    for metadata: FRadioPlayer.Metadata, _ completion: @escaping (_ artworkURL: URL?) -> Void)
 }

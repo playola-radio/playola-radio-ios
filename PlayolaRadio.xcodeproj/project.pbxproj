@@ -7,30 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		FAF000000000000000000002 /* AudioRecorderClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF000000000000000000001 /* AudioRecorderClientTests.swift */; };
-		FAE000000000000000000002 /* AudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000001 /* AudioSessionCoordinator.swift */; };
-		FAE000000000000000000003 /* AudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000001 /* AudioSessionCoordinator.swift */; };
-		FAE000000000000000000005 /* AudioSessionCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */; };
-		FAD00000000000000000000C /* FRadioArtworkAPI+iTunes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000001 /* FRadioArtworkAPI+iTunes.swift */; };
-		FAD000000000000000000016 /* FRadioArtworkAPI+iTunes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000001 /* FRadioArtworkAPI+iTunes.swift */; };
-		FAD00000000000000000000D /* FRadioArtworkAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000002 /* FRadioArtworkAPI.swift */; };
-		FAD000000000000000000017 /* FRadioArtworkAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000002 /* FRadioArtworkAPI.swift */; };
-		FAD00000000000000000000E /* FRadioMetadataExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000003 /* FRadioMetadataExtractor.swift */; };
-		FAD000000000000000000018 /* FRadioMetadataExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000003 /* FRadioMetadataExtractor.swift */; };
-		FAD00000000000000000000F /* FRadioPlayer+Metadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000004 /* FRadioPlayer+Metadata.swift */; };
-		FAD000000000000000000019 /* FRadioPlayer+Metadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000004 /* FRadioPlayer+Metadata.swift */; };
-		FAD000000000000000000010 /* FRadioPlayer+Observation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000005 /* FRadioPlayer+Observation.swift */; };
-		FAD00000000000000000001A /* FRadioPlayer+Observation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000005 /* FRadioPlayer+Observation.swift */; };
-		FAD000000000000000000011 /* FRadioPlayer+PlaybackState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000006 /* FRadioPlayer+PlaybackState.swift */; };
-		FAD00000000000000000001B /* FRadioPlayer+PlaybackState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000006 /* FRadioPlayer+PlaybackState.swift */; };
-		FAD000000000000000000012 /* FRadioPlayer+State.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000007 /* FRadioPlayer+State.swift */; };
-		FAD00000000000000000001C /* FRadioPlayer+State.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000007 /* FRadioPlayer+State.swift */; };
-		FAD000000000000000000013 /* FRadioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000008 /* FRadioPlayer.swift */; };
-		FAD00000000000000000001D /* FRadioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000008 /* FRadioPlayer.swift */; };
-		FAD000000000000000000014 /* FRadioPlayerObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000009 /* FRadioPlayerObserver.swift */; };
-		FAD00000000000000000001E /* FRadioPlayerObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD000000000000000000009 /* FRadioPlayerObserver.swift */; };
-		FAD000000000000000000015 /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD00000000000000000000A /* Reachability.swift */; };
-		FAD00000000000000000001F /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD00000000000000000000A /* Reachability.swift */; };
 		03D9929612C3E595D9BD88D5 /* GiveawayParticipationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5283C7C8C9FAF45659BA98E /* GiveawayParticipationTests.swift */; };
 		0574C4A160288D8AE401D4C9 /* UpcomingGiveawayInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36EB0D70D43F1CF6504F637E /* UpcomingGiveawayInfo.swift */; };
 		086EF07946AAF32C92DE834A /* UpcomingGiveawayBannerModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3C275E61DA6CA4C482EC79 /* UpcomingGiveawayBannerModelTests.swift */; };
@@ -48,6 +24,7 @@
 		37BCC67C3543B124A9EDB4C8 /* GiveawayWinnerPendingPushTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3809555E7296131D612667B9 /* GiveawayWinnerPendingPushTests.swift */; };
 		3E9CF257B133D2AD4734F378 /* GiveawayWinnerSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8084127A5D5C1680EE2ECA /* GiveawayWinnerSheetModel.swift */; };
 		45C15A64DBFAC157AF8EBA65 /* GiveawayCongratsSheetModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2261DEC52F41A8CC973B73FF /* GiveawayCongratsSheetModelTests.swift */; };
+		4F0799748F9B6F6C03B34E06 /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = 8A2626DA6E1408E57A38509F /* FRadioPlayer */; };
 		51CBBA46B5E06C646C37BD3A /* GiveawayWinnerPendingPush.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C547ECE1FDB131CE832D3D /* GiveawayWinnerPendingPush.swift */; };
 		54419FC022E2F30E137BEDD6 /* GiveawayWinnerSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC860B8DF872B25EFF727088 /* GiveawayWinnerSheetView.swift */; };
 		5F67160E76C1454189765E5D /* GiveawayWinnerSubmission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36AE0F6CC37C4970321497CF /* GiveawayWinnerSubmission.swift */; };
@@ -65,6 +42,11 @@
 		922EDF2DC64B95D9A7E981EC /* UpcomingGiveawayInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36EB0D70D43F1CF6504F637E /* UpcomingGiveawayInfo.swift */; };
 		99112E8696C5C7952F8EBE10 /* GiveawayWinnerSubmissionRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7886543EC93B0BA403388A8 /* GiveawayWinnerSubmissionRequest.swift */; };
 		9B6663109A6517E11DB2D64E /* GiveawayWinnerPushTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA44EE33EB697E44CEC84351 /* GiveawayWinnerPushTests.swift */; };
+		A1750A0000000000000000F2 /* PlayolaTLS.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F1 /* PlayolaTLS.swift */; };
+		A1750A0000000000000000F3 /* PlayolaTLS.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F1 /* PlayolaTLS.swift */; };
+		A1750A0000000000000000F5 /* ConnectivityProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F4 /* ConnectivityProbe.swift */; };
+		A1750A0000000000000000F6 /* ConnectivityProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F4 /* ConnectivityProbe.swift */; };
+		A1750A0000000000000000F8 /* ConnectivityProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F7 /* ConnectivityProbeTests.swift */; };
 		A1B2C3D4E5F6A7B8C9D0E1F2 /* StationListPresetComingSoonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B3C4D5E6F7A8B9C0D1E2F3 /* StationListPresetComingSoonTests.swift */; };
 		A8034ECCAE01C4925AEA0BA4 /* GiveawayCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DBB4FE7E4F57517A32804E0 /* GiveawayCoordinator.swift */; };
 		AA01000000000001AAAAAAAA /* PresetStarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0E48AF7714364A04B11B2 /* PresetStarButton.swift */; };
@@ -217,13 +199,8 @@
 		D317C0D62EF33DB000DBC82E /* PushNotificationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D317C0D32EF33DA600DBC82E /* PushNotificationsTests.swift */; };
 		D317C0D82EF3500B00DBC82E /* APIClient+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = D317C0D72EF3500500DBC82E /* APIClient+Live.swift */; };
 		D317C0D92EF3500B00DBC82E /* APIClient+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = D317C0D72EF3500500DBC82E /* APIClient+Live.swift */; };
-		A1750A0000000000000000F2 /* PlayolaTLS.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F1 /* PlayolaTLS.swift */; };
-		A1750A0000000000000000F3 /* PlayolaTLS.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F1 /* PlayolaTLS.swift */; };
-		A1750A0000000000000000F5 /* ConnectivityProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F4 /* ConnectivityProbe.swift */; };
-		A1750A0000000000000000F6 /* ConnectivityProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F4 /* ConnectivityProbe.swift */; };
 		D31C43A82D3C19640021AAE4 /* StationPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */; };
 		D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31C43A92D3C390C0021AAE4 /* StationPlayerMock.swift */; };
-		FE01A0C72DFCB368002BAC30 /* SharedStateTestTrait.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */; };
 		D31C43D42D3C783B0021AAE4 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D31C43D32D3C783B0021AAE4 /* PlayolaPlayer */; };
 		D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31CD5222DFBA1EC009B9780 /* ViewModel.swift */; };
 		D31CD5272DFBB4DF009B9780 /* MainContainerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31CD5252DFBB47D009B9780 /* MainContainerTests.swift */; };
@@ -269,7 +246,6 @@
 		D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */; };
 		D35905EC2DFCDA140064A9C1 /* StationListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35905EB2DFCDA110064A9C1 /* StationListModel.swift */; };
 		D35EFBD72F0EC6F7000F64A4 /* APIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBD62F0EC6F7000F64A4 /* APIClientTests.swift */; };
-		A1750A0000000000000000F8 /* ConnectivityProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F7 /* ConnectivityProbeTests.swift */; };
 		D35EFBD92F101A76000F64A4 /* StationPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */; };
 		D35EFBEE2F1092A7000F64A4 /* RRuleFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBEC2F1092A7000F64A4 /* RRuleFormatterTests.swift */; };
 		D35EFBF02F1092D7000F64A4 /* RRuleFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBEF2F1092D7000F64A4 /* RRuleFormatter.swift */; };
@@ -521,6 +497,11 @@
 		F425EEF25FDF6BFE036A49E2 /* GiveawayWinnerPush.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0463608FA7279EBB205BF80E /* GiveawayWinnerPush.swift */; };
 		F94F092AC0FB044790B38A0E /* GiveawayModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9553B35A6FBA27239EF49033 /* GiveawayModelsTests.swift */; };
 		F9A35F1CB53E4F9D4E750430 /* StationListLiveSortTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B83C3893A771EB211B3AF8F /* StationListLiveSortTests.swift */; };
+		FAE000000000000000000002 /* AudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000001 /* AudioSessionCoordinator.swift */; };
+		FAE000000000000000000003 /* AudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000001 /* AudioSessionCoordinator.swift */; };
+		FAE000000000000000000005 /* AudioSessionCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */; };
+		FAF000000000000000000002 /* AudioRecorderClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF000000000000000000001 /* AudioRecorderClientTests.swift */; };
+		FE01A0C72DFCB368002BAC30 /* SharedStateTestTrait.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */; };
 		FE02FE02FE02FE02FE02FE02 /* StationListPresetErrorReportingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE01FE01FE01FE01FE01FE01 /* StationListPresetErrorReportingTests.swift */; };
 		FE110A0000000000000000B2 /* WelcomeMessagePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F2 /* WelcomeMessagePageModel.swift */; };
 		FE110A0000000000000000B3 /* WelcomeMessagePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F3 /* WelcomeMessagePageView.swift */; };
@@ -529,6 +510,7 @@
 		FE110A0000000000000000B6 /* WelcomeMessagePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F3 /* WelcomeMessagePageView.swift */; };
 		FE110AC0DE0000000000B1B1 /* WelcomeMessageEligibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110AC0DE0000000000F1F1 /* WelcomeMessageEligibilityTests.swift */; };
 		FE654232793406CA6A2FA1FE /* GiveawayWinnerSheetModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC138D8C4809A3F89A5B4985 /* GiveawayWinnerSheetModelTests.swift */; };
+		FFC4AC782A480E2C45DFBA9C /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = 33C7DB3D3801D1C1C337B26D /* FRadioPlayer */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -542,20 +524,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		FAF000000000000000000001 /* AudioRecorderClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderClientTests.swift; sourceTree = "<group>"; };
-		FAE000000000000000000001 /* AudioSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinator.swift; sourceTree = "<group>"; };
-		FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinatorTests.swift; sourceTree = "<group>"; };
-		FAD000000000000000000001 /* FRadioArtworkAPI+iTunes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FRadioArtworkAPI+iTunes.swift"; sourceTree = "<group>"; };
-		FAD000000000000000000002 /* FRadioArtworkAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FRadioArtworkAPI.swift; sourceTree = "<group>"; };
-		FAD000000000000000000003 /* FRadioMetadataExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FRadioMetadataExtractor.swift; sourceTree = "<group>"; };
-		FAD000000000000000000004 /* FRadioPlayer+Metadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FRadioPlayer+Metadata.swift"; sourceTree = "<group>"; };
-		FAD000000000000000000005 /* FRadioPlayer+Observation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FRadioPlayer+Observation.swift"; sourceTree = "<group>"; };
-		FAD000000000000000000006 /* FRadioPlayer+PlaybackState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FRadioPlayer+PlaybackState.swift"; sourceTree = "<group>"; };
-		FAD000000000000000000007 /* FRadioPlayer+State.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FRadioPlayer+State.swift"; sourceTree = "<group>"; };
-		FAD000000000000000000008 /* FRadioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FRadioPlayer.swift; sourceTree = "<group>"; };
-		FAD000000000000000000009 /* FRadioPlayerObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FRadioPlayerObserver.swift; sourceTree = "<group>"; };
-		FAD00000000000000000000A /* Reachability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reachability.swift; sourceTree = "<group>"; };
-		FAD00000000000000000000B /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		02EDCED098E801AAB2E9DC82 /* GiveawayEvent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayEvent.swift; sourceTree = "<group>"; };
 		0463608FA7279EBB205BF80E /* GiveawayWinnerPush.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerPush.swift; sourceTree = "<group>"; };
 		0488057E2A6456204E582B15 /* CongratsActionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CongratsActionTests.swift; sourceTree = "<group>"; };
@@ -579,6 +547,9 @@
 		917BAF1376F852871F0F3159 /* GiveawayBannerState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayBannerState.swift; sourceTree = "<group>"; };
 		9553B35A6FBA27239EF49033 /* GiveawayModelsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayModelsTests.swift; sourceTree = "<group>"; };
 		9E8719F70AFA4992B9037775 /* Preset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preset.swift; sourceTree = "<group>"; };
+		A1750A0000000000000000F1 /* PlayolaTLS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTLS.swift; sourceTree = "<group>"; };
+		A1750A0000000000000000F4 /* ConnectivityProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectivityProbe.swift; sourceTree = "<group>"; };
+		A1750A0000000000000000F7 /* ConnectivityProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectivityProbeTests.swift; sourceTree = "<group>"; };
 		A2B3C4D5E6F7A8B9C0D1E2F3 /* StationListPresetComingSoonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPresetComingSoonTests.swift; sourceTree = "<group>"; };
 		A6613FD7A13B448187CB8595 /* PresetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetTests.swift; sourceTree = "<group>"; };
 		AC860B8DF872B25EFF727088 /* GiveawayWinnerSheetView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerSheetView.swift; sourceTree = "<group>"; };
@@ -627,11 +598,8 @@
 		D317C0D02EF2027000DBC82E /* VoicetrackStatusResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicetrackStatusResponse.swift; sourceTree = "<group>"; };
 		D317C0D32EF33DA600DBC82E /* PushNotificationsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationsTests.swift; sourceTree = "<group>"; };
 		D317C0D72EF3500500DBC82E /* APIClient+Live.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "APIClient+Live.swift"; sourceTree = "<group>"; };
-		A1750A0000000000000000F1 /* PlayolaTLS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTLS.swift; sourceTree = "<group>"; };
-		A1750A0000000000000000F4 /* ConnectivityProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectivityProbe.swift; sourceTree = "<group>"; };
 		D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayer.swift; sourceTree = "<group>"; };
 		D31C43A92D3C390C0021AAE4 /* StationPlayerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerMock.swift; sourceTree = "<group>"; };
-		FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStateTestTrait.swift; sourceTree = "<group>"; };
 		D31CD5222DFBA1EC009B9780 /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
 		D31CD5252DFBB47D009B9780 /* MainContainerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainerTests.swift; sourceTree = "<group>"; };
 		D3219C162EDD22100008AFDA /* BroadcastPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageView.swift; sourceTree = "<group>"; };
@@ -673,7 +641,6 @@
 		D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Development.xcconfig"; sourceTree = "<group>"; };
 		D35905EB2DFCDA110064A9C1 /* StationListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListModel.swift; sourceTree = "<group>"; };
 		D35EFBD62F0EC6F7000F64A4 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
-		A1750A0000000000000000F7 /* ConnectivityProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectivityProbeTests.swift; sourceTree = "<group>"; };
 		D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerTests.swift; sourceTree = "<group>"; };
 		D35EFBEC2F1092A7000F64A4 /* RRuleFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RRuleFormatterTests.swift; sourceTree = "<group>"; };
 		D35EFBEF2F1092D7000F64A4 /* RRuleFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RRuleFormatter.swift; sourceTree = "<group>"; };
@@ -824,8 +791,8 @@
 		D3F493D22EEE58CF008ED463 /* VoicetrackUploadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicetrackUploadService.swift; sourceTree = "<group>"; };
 		D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPageModel.swift; sourceTree = "<group>"; };
 		D3FACE010000000000000001 /* InDevelopmentBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InDevelopmentBadge.swift; sourceTree = "<group>"; };
-		D3FACE020000000000000001 /* RemoteArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteArtwork.swift; sourceTree = "<group>"; };
 		D3FACE010000000000000004 /* ArtistSuggestionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistSuggestionTests.swift; sourceTree = "<group>"; };
+		D3FACE020000000000000001 /* RemoteArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteArtwork.swift; sourceTree = "<group>"; };
 		D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTier.swift; sourceTree = "<group>"; };
 		D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageTests.swift; sourceTree = "<group>"; };
 		D3FEC8072EDF646300A33AE8 /* ChooseStationToBroadcastPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationToBroadcastPageView.swift; sourceTree = "<group>"; };
@@ -838,7 +805,12 @@
 		E1CA0000000000000000A004 /* CarPlayPlaybackTransitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayPlaybackTransitionTests.swift; sourceTree = "<group>"; };
 		F43C99E3FBFDF4522AA71C3C /* UpcomingGiveawayBanner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UpcomingGiveawayBanner.swift; sourceTree = "<group>"; };
 		F5283C7C8C9FAF45659BA98E /* GiveawayParticipationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayParticipationTests.swift; sourceTree = "<group>"; };
+		FAD00000000000000000000B /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		FAE000000000000000000001 /* AudioSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinator.swift; sourceTree = "<group>"; };
+		FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinatorTests.swift; sourceTree = "<group>"; };
+		FAF000000000000000000001 /* AudioRecorderClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderClientTests.swift; sourceTree = "<group>"; };
 		FE01FE01FE01FE01FE01FE01 /* StationListPresetErrorReportingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPresetErrorReportingTests.swift; sourceTree = "<group>"; };
+		FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStateTestTrait.swift; sourceTree = "<group>"; };
 		FE110A0000000000000000F2 /* WelcomeMessagePageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessagePageModel.swift; sourceTree = "<group>"; };
 		FE110A0000000000000000F3 /* WelcomeMessagePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessagePageView.swift; sourceTree = "<group>"; };
 		FE110A0000000000000000F4 /* WelcomeMessagePageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessagePageTests.swift; sourceTree = "<group>"; };
@@ -863,6 +835,7 @@
 				D3916A692ECD22E600CAAD50 /* IdentifiedCollections in Frameworks */,
 				D30F00A22E8592F0007BCC73 /* GoogleSignIn in Frameworks */,
 				D334827A2F9B1A83002CAC52 /* Sentry in Frameworks */,
+				FFC4AC782A480E2C45DFBA9C /* FRadioPlayer in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -883,6 +856,7 @@
 				D3916A672ECD229B00CAAD50 /* IdentifiedCollections in Frameworks */,
 				D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */,
 				F35D444BFD44486391C161D6 /* Sentry in Frameworks */,
+				4F0799748F9B6F6C03B34E06 /* FRadioPlayer in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -898,32 +872,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		FAD000000000000000000020 /* Vendor */ = {
-			isa = PBXGroup;
-			children = (
-				FAD000000000000000000021 /* FRadioPlayer */,
-			);
-			path = Vendor;
-			sourceTree = "<group>";
-		};
-		FAD000000000000000000021 /* FRadioPlayer */ = {
-			isa = PBXGroup;
-			children = (
-				FAD000000000000000000001 /* FRadioArtworkAPI+iTunes.swift */,
-				FAD000000000000000000002 /* FRadioArtworkAPI.swift */,
-				FAD000000000000000000003 /* FRadioMetadataExtractor.swift */,
-				FAD000000000000000000004 /* FRadioPlayer+Metadata.swift */,
-				FAD000000000000000000005 /* FRadioPlayer+Observation.swift */,
-				FAD000000000000000000006 /* FRadioPlayer+PlaybackState.swift */,
-				FAD000000000000000000007 /* FRadioPlayer+State.swift */,
-				FAD000000000000000000008 /* FRadioPlayer.swift */,
-				FAD000000000000000000009 /* FRadioPlayerObserver.swift */,
-				FAD00000000000000000000A /* Reachability.swift */,
-				FAD00000000000000000000B /* LICENSE */,
-			);
-			path = FRadioPlayer;
-			sourceTree = "<group>";
-		};
 		358480181ADB29C686D6482F /* GiveawayCongratsSheet */ = {
 			isa = PBXGroup;
 			children = (
@@ -1830,6 +1778,22 @@
 			path = Giveaways;
 			sourceTree = "<group>";
 		};
+		FAD000000000000000000020 /* Vendor */ = {
+			isa = PBXGroup;
+			children = (
+				FAD000000000000000000021 /* FRadioPlayer */,
+			);
+			path = Vendor;
+			sourceTree = "<group>";
+		};
+		FAD000000000000000000021 /* FRadioPlayer */ = {
+			isa = PBXGroup;
+			children = (
+				FAD00000000000000000000B /* LICENSE */,
+			);
+			path = FRadioPlayer;
+			sourceTree = "<group>";
+		};
 		FE110A0000000000000000A0 /* WelcomeMessage */ = {
 			isa = PBXGroup;
 			children = (
@@ -1870,6 +1834,7 @@
 				D30F00472E8592F0007BCC73 /* SDWebImageSVGCoder */,
 				D3916A682ECD22E600CAAD50 /* IdentifiedCollections */,
 				D3916A6D2ECD231E00CAAD50 /* Sharing */,
+				33C7DB3D3801D1C1C337B26D /* FRadioPlayer */,
 			);
 			productName = PlayolaRadio;
 			productReference = D30F00B32E8592F0007BCC73 /* PlayolaRadio Staging.app */;
@@ -1903,6 +1868,7 @@
 				D3916A662ECD229B00CAAD50 /* IdentifiedCollections */,
 				D3916A6B2ECD231200CAAD50 /* Sharing */,
 				0B6E1320AC744E9FAEC2F50F /* Sentry */,
+				8A2626DA6E1408E57A38509F /* FRadioPlayer */,
 			);
 			productName = PlayolaRadio;
 			productReference = D3536A012BFA4F49006942D6 /* PlayolaRadio.app */;
@@ -1955,7 +1921,7 @@
 			);
 			mainGroup = D35369F82BFA4F49006942D6;
 			packageReferences = (
-				D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */,
+				D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "playola-player-swift" */,
 				D35673B52D3DC6EC00E4E926 /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
 				D3B6626E2D40352500975D2F /* XCRemoteSwiftPackageReference "Alamofire" */,
 				D3A2761C2D43C747006055AF /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
@@ -1967,6 +1933,7 @@
 				D3916A6A2ECD231200CAAD50 /* XCRemoteSwiftPackageReference "swift-sharing" */,
 				9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				D3FF74D32FA7CA760052D500 /* XCRemoteSwiftPackageReference "swift-custom-dump" */,
+				7B24CB53D9EC3E684596F625 /* XCLocalSwiftPackageReference "FRadioPlayer" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D3536A022BFA4F49006942D6 /* Products */;
@@ -2022,16 +1989,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				FAE000000000000000000002 /* AudioSessionCoordinator.swift in Sources */,
-				FAD00000000000000000000C /* FRadioArtworkAPI+iTunes.swift in Sources */,
-				FAD00000000000000000000D /* FRadioArtworkAPI.swift in Sources */,
-				FAD00000000000000000000E /* FRadioMetadataExtractor.swift in Sources */,
-				FAD00000000000000000000F /* FRadioPlayer+Metadata.swift in Sources */,
-				FAD000000000000000000010 /* FRadioPlayer+Observation.swift in Sources */,
-				FAD000000000000000000011 /* FRadioPlayer+PlaybackState.swift in Sources */,
-				FAD000000000000000000012 /* FRadioPlayer+State.swift in Sources */,
-				FAD000000000000000000013 /* FRadioPlayer.swift in Sources */,
-				FAD000000000000000000014 /* FRadioPlayerObserver.swift in Sources */,
-				FAD000000000000000000015 /* Reachability.swift in Sources */,
 				D35EFC4D2F1A9911000F64A4 /* ConversationListPageModel.swift in Sources */,
 				D39728692F60CF59008591E3 /* StationSuggestionPageModel.swift in Sources */,
 				D397286A2F60CF59008591E3 /* StationSuggestionPageView.swift in Sources */,
@@ -2229,16 +2186,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				FAE000000000000000000003 /* AudioSessionCoordinator.swift in Sources */,
-				FAD000000000000000000016 /* FRadioArtworkAPI+iTunes.swift in Sources */,
-				FAD000000000000000000017 /* FRadioArtworkAPI.swift in Sources */,
-				FAD000000000000000000018 /* FRadioMetadataExtractor.swift in Sources */,
-				FAD000000000000000000019 /* FRadioPlayer+Metadata.swift in Sources */,
-				FAD00000000000000000001A /* FRadioPlayer+Observation.swift in Sources */,
-				FAD00000000000000000001B /* FRadioPlayer+PlaybackState.swift in Sources */,
-				FAD00000000000000000001C /* FRadioPlayer+State.swift in Sources */,
-				FAD00000000000000000001D /* FRadioPlayer.swift in Sources */,
-				FAD00000000000000000001E /* FRadioPlayerObserver.swift in Sources */,
-				FAD00000000000000000001F /* Reachability.swift in Sources */,
 				D35EFC502F1A9911000F64A4 /* ConversationListPageModel.swift in Sources */,
 				D397286B2F60CF59008591E3 /* StationSuggestionPageModel.swift in Sources */,
 				D397286C2F60CF59008591E3 /* StationSuggestionPageView.swift in Sources */,
@@ -3112,6 +3059,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		7B24CB53D9EC3E684596F625 /* XCLocalSwiftPackageReference "FRadioPlayer" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = LocalPackages/FRadioPlayer;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -3121,7 +3075,7 @@
 				minimumVersion = 9.10.0;
 			};
 		};
-		D30F00382E8592F0007BCC73 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */ = {
+		D30F00382E8592F0007BCC73 /* XCRemoteSwiftPackageReference "playola-player-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/playola-radio/playola-player-swift";
 			requirement = {
@@ -3249,7 +3203,7 @@
 				minimumVersion = 1.12.0;
 			};
 		};
-		D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */ = {
+		D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "playola-player-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/playola-radio/playola-player-swift";
 			requirement = {
@@ -3273,13 +3227,23 @@
 			package = 9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
 			productName = Sentry;
 		};
+		33C7DB3D3801D1C1C337B26D /* FRadioPlayer */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7B24CB53D9EC3E684596F625 /* XCLocalSwiftPackageReference "FRadioPlayer" */;
+			productName = FRadioPlayer;
+		};
+		8A2626DA6E1408E57A38509F /* FRadioPlayer */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7B24CB53D9EC3E684596F625 /* XCLocalSwiftPackageReference "FRadioPlayer" */;
+			productName = FRadioPlayer;
+		};
 		D30F00362E8592F0007BCC73 /* PlayolaPlayer */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PlayolaPlayer;
 		};
 		D30F00372E8592F0007BCC73 /* PlayolaPlayer */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D30F00382E8592F0007BCC73 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */;
+			package = D30F00382E8592F0007BCC73 /* XCRemoteSwiftPackageReference "playola-player-swift" */;
 			productName = PlayolaPlayer;
 		};
 		D30F00392E8592F0007BCC73 /* Mixpanel */ = {
@@ -3398,7 +3362,7 @@
 		};
 		D3CE19022D3C825C0091B888 /* PlayolaPlayer */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "PlayolaPlayer" */;
+			package = D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "playola-player-swift" */;
 			productName = PlayolaPlayer;
 		};
 		D3FF74D42FA7CA760052D500 /* CustomDump */ = {

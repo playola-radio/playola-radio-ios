@@ -3,6 +3,7 @@
 # Vendored third-party code (kept close to upstream) is not linted.
 excluded:
   - PlayolaRadio/Vendor
+  - LocalPackages
 
 disabled_rules:
   - trailing_whitespace
