@@ -8,7 +8,6 @@
 import Dependencies
 import Sharing
 import SwiftUI
-import UIKit
 
 extension Notification.Name {
   static let requiresAppUpdate = Notification.Name("requiresAppUpdate")
@@ -42,20 +41,7 @@ struct ContentView: View {
         SignInPage(model: SignInPageModel())
       }
     }
-    .alert(
-      versionGate.alertTitle,
-      isPresented: $versionGate.requiresUpdate
-    ) {
-      Button(versionGate.updateButtonTitle) {
-        versionGate.requiresUpdate = true
-        Task {
-          await versionGate.updateButtonTapped()
-          _ = await UIApplication.shared.open(versionGate.appStoreURL)
-        }
-      }
-    } message: {
-      Text(versionGate.alertMessage)
-    }
+    .playolaAlert($versionGate.presentedAlert)
     .task {
       await versionGate.checkVersionRequirements()
 

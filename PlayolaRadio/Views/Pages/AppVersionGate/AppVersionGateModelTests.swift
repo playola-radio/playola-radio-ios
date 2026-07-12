@@ -39,7 +39,7 @@ struct AppVersionGateModelTests {
       let model = AppVersionGateModel()
       await model.checkVersionRequirements()
 
-      #expect(model.requiresUpdate == true)
+      #expect(model.presentedAlert != nil)
       let shown = gateShownEvents(captured.value)
       #expect(shown.count == 1)
       #expect(
@@ -66,7 +66,7 @@ struct AppVersionGateModelTests {
       let model = AppVersionGateModel()
       await model.checkVersionRequirements()
 
-      #expect(model.requiresUpdate == false)
+      #expect(model.presentedAlert == nil)
       #expect(gateShownEvents(captured.value).isEmpty)
     }
   }
@@ -86,7 +86,7 @@ struct AppVersionGateModelTests {
       let model = AppVersionGateModel()
       await model.checkVersionRequirements()
 
-      #expect(model.requiresUpdate == true)
+      #expect(model.presentedAlert != nil)
       let shown = gateShownEvents(captured.value)
       #expect(shown.count == 1)
       #expect(
@@ -113,7 +113,7 @@ struct AppVersionGateModelTests {
       let model = AppVersionGateModel()
       await model.checkVersionRequirements()
 
-      #expect(model.requiresUpdate == false)
+      #expect(model.presentedAlert == nil)
       #expect(gateShownEvents(captured.value).isEmpty)
     }
   }
@@ -132,7 +132,7 @@ struct AppVersionGateModelTests {
       let model = AppVersionGateModel()
       await model.checkVersionRequirements()
 
-      #expect(model.requiresUpdate == false)
+      #expect(model.presentedAlert == nil)
       #expect(captured.value.isEmpty)
     }
   }
@@ -149,7 +149,7 @@ struct AppVersionGateModelTests {
       let model = AppVersionGateModel()
       await model.broadcasterUpdateDiscovered()
 
-      #expect(model.requiresUpdate == true)
+      #expect(model.presentedAlert != nil)
       let shown = gateShownEvents(captured.value)
       #expect(shown.count == 1)
       #expect(
@@ -157,6 +157,28 @@ struct AppVersionGateModelTests {
           == .updateGateShown(
             currentVersion: Bundle.main.releaseVersionNumber ?? "",
             requiredVersion: "9.9.9",
+            trigger: .broadcasterDiscovered))
+    }
+  }
+
+  @Test
+  func testBroadcasterDiscoveredWithoutRequirementsReportsEmptyRequiredVersion() async {
+    // Requirements not loaded (fresh empty store): the gate still blocks, but must
+    // not masquerade the current build as the required version.
+    let captured = LockIsolated<[AnalyticsEvent]>([])
+
+    await withDependencies {
+      $0.analytics.track = { event in captured.withValue { $0.append(event) } }
+    } operation: {
+      let model = AppVersionGateModel()
+      await model.broadcasterUpdateDiscovered()
+
+      #expect(model.presentedAlert != nil)
+      #expect(
+        gateShownEvents(captured.value).first
+          == .updateGateShown(
+            currentVersion: Bundle.main.releaseVersionNumber ?? "",
+            requiredVersion: "",
             trigger: .broadcasterDiscovered))
     }
   }
@@ -200,7 +222,7 @@ struct AppVersionGateModelTests {
       await model.broadcasterUpdateDiscovered()
       await model.broadcasterUpdateDiscovered()
 
-      #expect(model.requiresUpdate == true)
+      #expect(model.presentedAlert != nil)
       #expect(gateShownEvents(captured.value).count == 1)
     }
   }

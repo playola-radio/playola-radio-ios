@@ -45,6 +45,26 @@ struct PlayolaAlert: Equatable, Identifiable, Hashable {
     self.tertiaryAction = nil
   }
 
+  /// A single-button alert whose only action is `primaryAction` and which has no
+  /// dismiss/cancel button. Use for blocking prompts like a forced-update gate.
+  init(
+    title: String,
+    message: String?,
+    primaryButtonText: String,
+    primaryAction: @escaping @MainActor () async -> Void
+  ) {
+    self.title = title
+    self.message = message
+    self.dismissButton = nil
+    self.secondaryButton = nil
+    self.primaryButtonText = primaryButtonText
+    self.secondaryButtonText = nil
+    self.tertiaryButtonText = nil
+    self.primaryAction = primaryAction
+    self.secondaryAction = nil
+    self.tertiaryAction = nil
+  }
+
   init(
     title: String,
     message: String?,
