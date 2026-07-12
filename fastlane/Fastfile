@@ -33,6 +33,48 @@ def print_failed_tests_summary(output_dir)
   end
 end
 
+# Highest CURRENT_PROJECT_VERSION committed in the project. Used only as a lower
+# bound for the derived build number — never as the shipped value on its own.
+# Returns 0 if the setting can't be parsed so callers can still fall back to ASC.
+def committed_build_number
+  pbxproj = File.expand_path("../PlayolaRadio.xcodeproj/project.pbxproj", __dir__)
+  File.read(pbxproj).scan(/CURRENT_PROJECT_VERSION = (\d+);/).flatten.map(&:to_i).max || 0
+end
+
+# Derive the TestFlight build number from App Store Connect instead of trusting the
+# checked-in CURRENT_PROJECT_VERSION. Hotfix and release branches historically drifted
+# out of sync and reused a build number (7.3.0 and 7.3.1 both shipped as build 98,
+# because develop still read 97 when 7.3.1 was cut). Querying ASC for the highest build
+# that exists for THIS app and adding one makes collisions structurally impossible,
+# independent of branch or marketing version.
+def next_testflight_build_number(app_identifier:, api_key:)
+  latest = latest_testflight_build_number(
+    api_key: api_key,
+    app_identifier: app_identifier,
+    initial_build_number: 0
+  ).to_i
+
+  # Hard guard: a non-positive result means the ASC query failed (auth error, wrong
+  # app, network) — these apps always have upload history. Fail loudly rather than
+  # ship build 1. This is the "did the query actually work" preflight check.
+  if latest <= 0
+    UI.user_error!(
+      "latest_testflight_build_number returned #{latest} for #{app_identifier}. " \
+      "The App Store Connect query likely failed (auth/network/wrong app) — refusing to upload."
+    )
+  end
+
+  # Use the committed CURRENT_PROJECT_VERSION only as a LOWER BOUND, never as an
+  # equality guard. latest_testflight_build_number returns the most recent upload,
+  # which is not guaranteed to be the numeric max; the committed floor guards against
+  # that under-reporting. It is per-app safe: staging is a separate ASC sequence that
+  # may legitimately trail prod, so this advances its number rather than failing closed.
+  floor = committed_build_number
+  nxt = [latest, floor].max + 1
+  UI.message("Build number for #{app_identifier}: #{nxt} (ASC latest #{latest}, committed floor #{floor})")
+  nxt
+end
+
 platform :ios do
   before_all do
     setup_circle_ci if ENV['CI']
@@ -69,12 +111,18 @@ platform :ios do
       readonly: true
     )
 
+    api_key = asc_api_key
+    build_number = next_testflight_build_number(
+      app_identifier: "fm.playola.playolaradio.staging",
+      api_key: api_key
+    )
+
     build_app(
       project: "PlayolaRadio.xcodeproj",
       scheme: "PlayolaRadio-Staging",
       export_method: "app-store",
       output_directory: "./build",
-      xcargs: "-skipPackagePluginValidation -skipMacroValidation",
+      xcargs: "-skipPackagePluginValidation -skipMacroValidation CURRENT_PROJECT_VERSION=#{build_number}",
       export_options: {
         method: "app-store",
         # sentry-cocoa's SwiftPM `Sentry` product links statically (its symbols
@@ -96,8 +144,6 @@ platform :ios do
       project_slug: 'apple-ios',
       include_sources: true
     )
-
-    api_key = asc_api_key
 
     upload_to_testflight(
       api_key: api_key,
@@ -139,12 +185,18 @@ platform :ios do
     print_failed_tests_summary('./fastlane/test_output/xctest') if test_error
     raise test_error if test_error
 
+    api_key = asc_api_key
+    build_number = next_testflight_build_number(
+      app_identifier: "fm.playola.playolaradio",
+      api_key: api_key
+    )
+
     build_app(
       project: "PlayolaRadio.xcodeproj",
       scheme: "PlayolaRadio",
       export_method: "app-store",
       output_directory: "./build",
-      xcargs: "-skipPackagePluginValidation -skipMacroValidation",
+      xcargs: "-skipPackagePluginValidation -skipMacroValidation CURRENT_PROJECT_VERSION=#{build_number}",
       export_options: {
         method: "app-store",
         # See release_staging for rationale: Sentry links statically but Xcode
@@ -164,8 +216,6 @@ platform :ios do
       project_slug: 'apple-ios',
       include_sources: true
     )
-
-    api_key = asc_api_key
 
     upload_to_testflight(
       api_key: api_key,
