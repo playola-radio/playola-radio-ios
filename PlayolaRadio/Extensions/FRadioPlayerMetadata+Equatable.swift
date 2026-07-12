@@ -7,16 +7,14 @@
 
 import Foundation
 
-// swift-format-ignore: AvoidRetroactiveConformances
-extension FRadioPlayer.Metadata: @retroactive Equatable {
+// FRadioPlayer is vendored into this module (PlayolaRadio/Vendor/FRadioPlayer),
+// so these conformances are same-module — not retroactive.
+extension FRadioPlayer.Metadata: Equatable {
   public static func == (lhs: FRadioPlayer.Metadata, rhs: FRadioPlayer.Metadata) -> Bool {
     lhs.artistName == rhs.artistName && lhs.trackName == rhs.trackName
   }
 }
 
-// swift-format-ignore: AvoidRetroactiveConformances
-extension FRadioPlayer.PlaybackState: @retroactive @unchecked Sendable {}
-// swift-format-ignore: AvoidRetroactiveConformances
-extension FRadioPlayer.State: @retroactive @unchecked Sendable {}
-// swift-format-ignore: AvoidRetroactiveConformances
-extension FRadioPlayer.Metadata: @retroactive @unchecked Sendable {}
+extension FRadioPlayer.PlaybackState: @unchecked Sendable {}
+extension FRadioPlayer.State: @unchecked Sendable {}
+extension FRadioPlayer.Metadata: @unchecked Sendable {}
