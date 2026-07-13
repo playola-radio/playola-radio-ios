@@ -26,3 +26,6 @@ claude-files/
 DerivedData/
 
 .sentryclirc
+
+# Swift compile cache from CLI xcodebuild runs
+.swift-cache/
