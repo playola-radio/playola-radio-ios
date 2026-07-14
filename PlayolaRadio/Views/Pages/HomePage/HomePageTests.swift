@@ -767,4 +767,52 @@ struct HomePageTests {
     }
   }
 
+  // MARK: - Giveaway Badge (live-gated) Tests
+
+  @Test
+  func testHasUpcomingGiveawayForStationTrueWhenStationIsLive() {
+    let station = Station.mockWith(id: "live-station", curatorName: "DJ Live")
+    @Shared(.liveStations) var liveStations = [
+      LiveStationInfo(stationId: "live-station", liveStatus: .showAiring, station: station)
+    ]
+    @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
+      UpcomingGiveawayInfo(
+        event: GiveawayEvent(
+          id: "e1", stationId: "live-station", prizeName: "Prize", winningNumber: 1,
+          status: .scheduled))
+    ]
+
+    let model = HomePageModel()
+
+    #expect(model.hasUpcomingGiveawayForStation("live-station"))
+  }
+
+  @Test
+  func testHasUpcomingGiveawayForStationFalseWhenStationNotLive() {
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+    @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
+      UpcomingGiveawayInfo(
+        event: GiveawayEvent(
+          id: "e1", stationId: "not-live-station", prizeName: "Prize", winningNumber: 1,
+          status: .scheduled))
+    ]
+
+    let model = HomePageModel()
+
+    #expect(!model.hasUpcomingGiveawayForStation("not-live-station"))
+  }
+
+  @Test
+  func testHasUpcomingGiveawayForStationFalseWhenLiveButNoGiveaway() {
+    let station = Station.mockWith(id: "live-station", curatorName: "DJ Live")
+    @Shared(.liveStations) var liveStations = [
+      LiveStationInfo(stationId: "live-station", liveStatus: .voicetracking, station: station)
+    ]
+    @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = []
+
+    let model = HomePageModel()
+
+    #expect(!model.hasUpcomingGiveawayForStation("live-station"))
+  }
+
 }
