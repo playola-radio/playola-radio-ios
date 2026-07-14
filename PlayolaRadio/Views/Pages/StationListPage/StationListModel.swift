@@ -617,10 +617,12 @@ class StationListModel: ViewModel {
         id: list.id,
         title: list.title,
         rows: liveSortedStationItems(for: list, liveStations: liveStations).map { item in
-          DisplayedStationSection.Row(
+          let liveStatus = liveStations.first { $0.stationId == item.anyStation.id }?.liveStatus
+          return DisplayedStationSection.Row(
             item: item,
-            liveStatus: liveStations.first { $0.stationId == item.anyStation.id }?.liveStatus,
-            hasUpcomingGiveaway: upcomingGiveaways[id: item.anyStation.id] != nil
+            liveStatus: liveStatus,
+            hasUpcomingGiveaway: liveStatus != nil
+              && upcomingGiveaways[id: item.anyStation.id] != nil
           )
         }
       )

@@ -42,6 +42,12 @@ struct UpcomingGiveawayBannerModelTests {
         airingId: airingId))
   }
 
+  private func makeLiveStations(_ ids: String...) -> [LiveStationInfo] {
+    ids.map {
+      LiveStationInfo(stationId: $0, liveStatus: .showAiring, station: Station.mockWith(id: $0))
+    }
+  }
+
   /// Builds the model and simulates the once-a-minute tick having fired at `referenceNow`.
   private func makeModel() -> UpcomingGiveawayBannerModel {
     let model = UpcomingGiveawayBannerModel()
@@ -51,6 +57,7 @@ struct UpcomingGiveawayBannerModelTests {
 
   @Test func hiddenWhenNotPlayingAStation() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
+    @Shared(.liveStations) var liveStations = makeLiveStations("s1")
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       scheduled(id: "e1", station: "s1")
     ]
@@ -62,6 +69,7 @@ struct UpcomingGiveawayBannerModelTests {
 
   @Test func hiddenWhenNoUpcomingForCurrentStation() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.liveStations) var liveStations = makeLiveStations("s1")
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       scheduled(id: "e2", station: "other")
     ]
@@ -69,9 +77,23 @@ struct UpcomingGiveawayBannerModelTests {
     #expect(model.isVisible == false)
   }
 
+  @Test func hiddenWhenCurrentStationNotLive() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+    @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
+      scheduled(id: "e1", station: "s1")
+    ]
+    let model = makeModel()
+    #expect(model.isVisible == false)
+    #expect(model.bannerOpacity == 0)
+    #expect(model.bannerText == "")
+  }
+
   @Test func visibleWithBannerTextWhenUpcomingForCurrentStation() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    @Shared(.liveStations) var liveStations = makeLiveStations("s1")
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       scheduled(id: "e1", station: "s1", prize: "Two tickets")
     ]
@@ -85,6 +107,7 @@ struct UpcomingGiveawayBannerModelTests {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = GiveawayEvent(
       id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .open)
+    @Shared(.liveStations) var liveStations = makeLiveStations("s1")
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       scheduled(id: "e1", station: "s1")
     ]
@@ -96,6 +119,7 @@ struct UpcomingGiveawayBannerModelTests {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = GiveawayEvent(
       id: "eOther", stationId: "other", prizeName: "x", winningNumber: 9, status: .open)
+    @Shared(.liveStations) var liveStations = makeLiveStations("s1")
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       scheduled(id: "e1", station: "s1")
     ]
@@ -107,6 +131,7 @@ struct UpcomingGiveawayBannerModelTests {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(
       airingId: "a1", endTime: Self.referenceNow.addingTimeInterval(38 * 60))
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    @Shared(.liveStations) var liveStations = makeLiveStations("s1")
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       scheduled(id: "e1", station: "s1", airingId: "a1")
     ]
@@ -124,6 +149,7 @@ struct UpcomingGiveawayBannerModelTests {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(
       airingId: "a1", endTime: Self.referenceNow.addingTimeInterval(38 * 60))
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    @Shared(.liveStations) var liveStations = makeLiveStations("s1")
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       scheduled(id: "e1", station: "s1", airingId: "a1")
     ]
@@ -136,6 +162,7 @@ struct UpcomingGiveawayBannerModelTests {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(
       airingId: "a1", endTime: Self.referenceNow.addingTimeInterval(43 * 60))
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    @Shared(.liveStations) var liveStations = makeLiveStations("s1")
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       scheduled(id: "e1", station: "s1", airingId: "a1")
     ]
@@ -148,6 +175,7 @@ struct UpcomingGiveawayBannerModelTests {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(
       airingId: "a1", endTime: Self.referenceNow.addingTimeInterval(90))
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    @Shared(.liveStations) var liveStations = makeLiveStations("s1")
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       scheduled(id: "e1", station: "s1", airingId: "a1")
     ]
@@ -160,6 +188,7 @@ struct UpcomingGiveawayBannerModelTests {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(
       airingId: "other-airing", endTime: Self.referenceNow.addingTimeInterval(38 * 60))
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    @Shared(.liveStations) var liveStations = makeLiveStations("s1")
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       scheduled(id: "e1", station: "s1", airingId: "a1")
     ]
@@ -171,6 +200,7 @@ struct UpcomingGiveawayBannerModelTests {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(
       airingId: "a1", endTime: nil)
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    @Shared(.liveStations) var liveStations = makeLiveStations("s1")
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       scheduled(id: "e1", station: "s1", airingId: "a1")
     ]
@@ -182,6 +212,7 @@ struct UpcomingGiveawayBannerModelTests {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(
       airingId: "a1", endTime: Self.referenceNow.addingTimeInterval(-60))
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    @Shared(.liveStations) var liveStations = makeLiveStations("s1")
     @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
       scheduled(id: "e1", station: "s1", airingId: "a1")
     ]

@@ -188,4 +188,90 @@ struct StationListLiveSortTests {
 
     expectNoDifference(model.cancellables.count, 3)
   }
+
+  // MARK: - Giveaway Badge (live-gated) Tests
+
+  @Test
+  func testGiveawayBadgeShowsOnlyOnLiveStations() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let now = Date()
+
+    let liveStation = Station.mockWith(id: "live-station", name: "Live Station")
+    let offlineStation = Station.mockWith(id: "offline-station", name: "Offline Station")
+
+    let list = StationList(
+      id: "test-list",
+      name: "Test List",
+      slug: "test-list",
+      hidden: false,
+      sortOrder: 0,
+      createdAt: now,
+      updatedAt: now,
+      items: [
+        APIStationItem(sortOrder: 0, visibility: .visible, station: liveStation, urlStation: nil),
+        APIStationItem(
+          sortOrder: 1, visibility: .visible, station: offlineStation, urlStation: nil),
+      ]
+    )
+    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [list])
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = [
+      LiveStationInfo(stationId: "live-station", liveStatus: .showAiring, station: liveStation)
+    ]
+    @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
+      UpcomingGiveawayInfo(
+        event: GiveawayEvent(
+          id: "e-live", stationId: "live-station", prizeName: "Prize", winningNumber: 1,
+          status: .scheduled)),
+      UpcomingGiveawayInfo(
+        event: GiveawayEvent(
+          id: "e-offline", stationId: "offline-station", prizeName: "Prize", winningNumber: 2,
+          status: .scheduled)),
+    ]
+
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    let rows = model.displayedSections[0].rows
+    #expect(rows.first { $0.id == "live-station" }?.hasUpcomingGiveaway == true)
+    #expect(rows.first { $0.id == "offline-station" }?.hasUpcomingGiveaway == false)
+  }
+
+  @Test
+  func testGiveawayBadgeAppearsWhenStationGoesLive() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let now = Date()
+
+    let station = Station.mockWith(id: "station-1", name: "Station 1")
+    let list = StationList(
+      id: "test-list",
+      name: "Test List",
+      slug: "test-list",
+      hidden: false,
+      sortOrder: 0,
+      createdAt: now,
+      updatedAt: now,
+      items: [
+        APIStationItem(sortOrder: 0, visibility: .visible, station: station, urlStation: nil)
+      ]
+    )
+    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [list])
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+    @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = [
+      UpcomingGiveawayInfo(
+        event: GiveawayEvent(
+          id: "e1", stationId: "station-1", prizeName: "Prize", winningNumber: 1,
+          status: .scheduled))
+    ]
+
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    #expect(model.displayedSections[0].rows.first?.hasUpcomingGiveaway == false)
+
+    $liveStations.withLock {
+      $0 = [LiveStationInfo(stationId: "station-1", liveStatus: .showAiring, station: station)]
+    }
+
+    #expect(model.displayedSections[0].rows.first?.hasUpcomingGiveaway == true)
+  }
 }

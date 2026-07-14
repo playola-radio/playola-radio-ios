@@ -15,6 +15,7 @@ class UpcomingGiveawayBannerModel: ViewModel {
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
   @ObservationIgnored @Shared(.activeGiveaway) var activeGiveaway
   @ObservationIgnored @Shared(.upcomingGiveaways) var upcomingGiveaways
+  @ObservationIgnored @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
 
   // MARK: - Initialization
   override init() {
@@ -41,9 +42,10 @@ class UpcomingGiveawayBannerModel: ViewModel {
 
   // MARK: - View Helpers
 
-  /// Visible only while the now-playing station has an upcoming giveaway and its contest has not yet
-  /// opened. Reading `activeGiveaway` is what lets the banner self-hide the instant the tap overlay
-  /// takes over.
+  /// Visible only while the now-playing station is live and has an upcoming giveaway whose contest has
+  /// not yet opened. Gating on `liveStations` mirrors the station-list / Home badge, so the banner
+  /// won't surface a giveaway that's still hours/days out. Reading `activeGiveaway` is what lets the
+  /// banner self-hide the instant the tap overlay takes over.
   var isVisible: Bool { upcomingGiveaway != nil }
 
   var bannerOpacity: Double { isVisible ? 1 : 0 }
@@ -72,6 +74,7 @@ class UpcomingGiveawayBannerModel: ViewModel {
 
   private var upcomingGiveaway: UpcomingGiveawayInfo? {
     guard let stationId = currentStation?.id,
+      liveStations.contains(where: { $0.stationId == stationId }),
       let info = upcomingGiveaways[id: stationId]
     else { return nil }
     if let active = activeGiveaway, active.status == .open, active.stationId == stationId {
