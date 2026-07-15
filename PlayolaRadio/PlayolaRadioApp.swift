@@ -231,12 +231,13 @@ struct PlayolaRadioApp: App {
       await analytics.initialize()
     }
 
-    // Once per build per device, probe whether TLS 1.3 works on this user's
-    // network. The aggregated `tls13_probe` Sentry events tell us when the iOS
-    // 26 middlebox issue has cleared enough to revert the global TLS 1.2 cap
-    // in APIClient+Live.swift.
+    // Once per build per device, probe how this user's network handles TLS to our API
+    // (1.3 / 1.2 / HTTP/3) plus a control host. The aggregated `tls13_probe` Sentry events
+    // (see `ConnectivityProbe`) tell us which remediation helps and when the iOS 26 middlebox
+    // issue has cleared enough to revert the global TLS 1.2 cap.
+    @Dependency(\.connectivityProbe) var connectivityProbe
     Task {
-      await probeTLS13()
+      await connectivityProbe.run()
     }
   }
 

@@ -16,6 +16,10 @@ enum AnalyticsEvent: Equatable {
   case appBackgrounded
   case appForegrounded
 
+  // MARK: App Version Gate
+  case updateGateShown(currentVersion: String, requiredVersion: String, trigger: UpdateGateTrigger)
+  case updateGateUpdateTapped(currentVersion: String, requiredVersion: String)
+
   // MARK: Authentication
   case signInStarted(method: AuthMethod)
   case signInCompleted(method: AuthMethod, userId: String)
@@ -86,6 +90,8 @@ extension AnalyticsEvent {
     case .appOpened: return "App Opened"
     case .appBackgrounded: return "App Backgrounded"
     case .appForegrounded: return "App Foregrounded"
+    case .updateGateShown: return "Update Gate Shown"
+    case .updateGateUpdateTapped: return "Update Gate Update Tapped"
     case .signInStarted: return "Sign In Started"
     case .signInCompleted: return "Sign In Completed"
     case .signInFailed: return "Sign In Failed"
@@ -137,6 +143,19 @@ extension AnalyticsEvent {
 
     case .appBackgrounded, .appForegrounded:
       return [:]
+
+    case .updateGateShown(let currentVersion, let requiredVersion, let trigger):
+      return [
+        "current_version": currentVersion,
+        "required_version": requiredVersion,
+        "trigger": trigger.rawValue,
+      ]
+
+    case .updateGateUpdateTapped(let currentVersion, let requiredVersion):
+      return [
+        "current_version": currentVersion,
+        "required_version": requiredVersion,
+      ]
 
     case .signInStarted(let method):
       return ["method": method.rawValue]
@@ -325,6 +344,15 @@ enum AppOpenSource: String {
   case pushNotification = "push_notification"
   case sharedLink = "shared_link"
   case deepLink = "deep_link"
+}
+
+enum UpdateGateTrigger: String {
+  /// User's app version is below the general minimum required version.
+  case minimumVersion = "minimum_version"
+  /// A known broadcaster's app version is below the broadcaster minimum, detected on launch.
+  case broadcaster = "broadcaster"
+  /// The user was newly discovered to be a broadcaster mid-session while below the broadcaster minimum.
+  case broadcasterDiscovered = "broadcaster_discovered"
 }
 
 enum AuthMethod: String {

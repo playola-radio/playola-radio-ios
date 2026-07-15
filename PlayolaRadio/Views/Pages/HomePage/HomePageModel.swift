@@ -206,7 +206,7 @@ class HomePageModel: ViewModel {
   }
 
   func hasUpcomingGiveawayForStation(_ stationId: String) -> Bool {
-    upcomingGiveaways[id: stationId] != nil
+    liveStatusForStation(stationId) != nil && upcomingGiveaways[id: stationId] != nil
   }
 
   // MARK: - Private Helpers
