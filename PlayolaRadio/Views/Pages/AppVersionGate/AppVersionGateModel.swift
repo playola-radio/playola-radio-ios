@@ -31,10 +31,11 @@ class AppVersionGateModel: ViewModel {
 
   var presentedAlert: PlayolaAlert?
 
-  let alertTitle = "Update Required"
-  let alertMessage = "A new version of Playola Radio is available. Please update to continue."
-  let updateButtonTitle = "Update"
-  let appStoreURL = URL(string: "itms-apps://itunes.apple.com/app/id6480465361")!
+  private let alertTitle = "Update Required"
+  private let alertMessage =
+    "A new version of Playola Radio is available. Please update to continue."
+  private let updateButtonTitle = "Update"
+  private let appStoreURL = URL(string: "itms-apps://itunes.apple.com/app/id6480465361")!
 
   /// The versions the currently-shown gate was presented with, so the
   /// "Update Tapped" event reports the same required_version as its "Shown"
@@ -124,6 +125,17 @@ class AppVersionGateModel: ViewModel {
         guard let self else { return }
         await self.updateButtonTapped()
         _ = await UIApplication.shared.open(self.appStoreURL)
+        self.reblockAfterAppStoreReturn()
       })
+  }
+
+  /// Re-presents the blocking gate once the App Store is dismissed. `open()` suspends
+  /// while the App Store is foregrounded, so this runs the moment the user returns.
+  /// `checkVersionRequirements()` only runs on cold launch, so without re-presenting, a
+  /// user who taps "Update" and backs out without updating could keep using an
+  /// unsupported build. Reuses the existing `activeGate`, so it does not re-track a
+  /// "shown" event.
+  func reblockAfterAppStoreReturn() {
+    presentedAlert = makeUpdateRequiredAlert()
   }
 }

@@ -228,6 +228,34 @@ struct AppVersionGateModelTests {
   }
 
   @Test
+  func testGateReblocksAfterAppStoreReturnWithoutRetrackingShown() async {
+    // Tapping "Update" clears the alert (SwiftUI sets isPresented = false, which the
+    // binding maps to presentedAlert = nil). checkVersionRequirements() only runs on
+    // cold launch, so the gate must re-present itself when the user returns from the
+    // App Store without updating — without inflating the "shown" analytics count.
+    @Shared(.isBroadcaster) var isBroadcaster = false
+    let captured = LockIsolated<[AnalyticsEvent]>([])
+
+    await withDependencies {
+      $0.api.getAppVersionRequirements = { [unreachableVersion, ancientVersion] in
+        AppVersionRequirements(
+          minimumVersion: unreachableVersion, minimumBroadcasterVersion: ancientVersion)
+      }
+      $0.analytics.track = { event in captured.withValue { $0.append(event) } }
+    } operation: {
+      let model = AppVersionGateModel()
+      await model.checkVersionRequirements()
+      #expect(model.presentedAlert != nil)
+
+      model.presentedAlert = nil
+      model.reblockAfterAppStoreReturn()
+
+      #expect(model.presentedAlert != nil)
+      #expect(gateShownEvents(captured.value).count == 1)
+    }
+  }
+
+  @Test
   func testUpdateButtonTappedTracksEvent() async {
     @Shared(.appVersionRequirements) var appVersionRequirements = AppVersionRequirements(
       minimumVersion: "1.2.3", minimumBroadcasterVersion: "1.2.3")
