@@ -87,6 +87,17 @@ class AppVersionGateModel: ViewModel {
       trigger: .broadcasterDiscovered)
   }
 
+  /// Re-presents the gate when the app returns to the foreground. Tapping "Update"
+  /// dismisses the alert (SwiftUI clears `presentedAlert`) and opens the App Store, but
+  /// `UIApplication.open` returns immediately rather than waiting for the user to come
+  /// back, and `checkVersionRequirements()` only runs on cold launch. Without this, a
+  /// user who taps "Update" and returns without updating could keep using an unsupported
+  /// build. Reuses the existing `activeGate`, so it does not re-track a "shown" event.
+  func scenePhaseChanged(newPhase: ScenePhase) {
+    guard newPhase == .active, activeGate != nil, presentedAlert == nil else { return }
+    presentedAlert = makeUpdateRequiredAlert()
+  }
+
   /// Tracks the tap. Called from the alert action before opening the App Store,
   /// so the event is enqueued before the app is backgrounded and the event lost.
   func updateButtonTapped() async {
@@ -125,17 +136,6 @@ class AppVersionGateModel: ViewModel {
         guard let self else { return }
         await self.updateButtonTapped()
         _ = await UIApplication.shared.open(self.appStoreURL)
-        self.reblockAfterAppStoreReturn()
       })
-  }
-
-  /// Re-presents the blocking gate once the App Store is dismissed. `open()` suspends
-  /// while the App Store is foregrounded, so this runs the moment the user returns.
-  /// `checkVersionRequirements()` only runs on cold launch, so without re-presenting, a
-  /// user who taps "Update" and backs out without updating could keep using an
-  /// unsupported build. Reuses the existing `activeGate`, so it does not re-track a
-  /// "shown" event.
-  func reblockAfterAppStoreReturn() {
-    presentedAlert = makeUpdateRequiredAlert()
   }
 }
