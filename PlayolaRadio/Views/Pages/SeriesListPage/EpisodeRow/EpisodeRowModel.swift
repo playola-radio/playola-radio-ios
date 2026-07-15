@@ -23,11 +23,6 @@ class EpisodeRowModel: ViewModel {
     airing.airtime > now
   }
 
-  var hasAiredBefore: Bool {
-    guard let episode = airing.episode else { return false }
-    return episode.createdAt < airing.airtime.addingTimeInterval(-86400)
-  }
-
   var tuneInText: String {
     let time = formattedTime
     let dayOfWeek = dayOfWeekString
@@ -40,13 +35,6 @@ class EpisodeRowModel: ViewModel {
       let dayWithOrdinal = dayOfMonthWithOrdinal
       return "Tune in \(dayOfWeek) the \(dayWithOrdinal) at \(time)"
     }
-  }
-
-  var originallyAiredDateText: String {
-    guard let createdAt = airing.episode?.createdAt else { return "" }
-    let formatter = DateFormatter()
-    formatter.dateFormat = "M/d/yy"
-    return formatter.string(from: createdAt)
   }
 
   // MARK: - Private Helpers
