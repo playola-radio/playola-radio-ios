@@ -11,17 +11,13 @@ struct EpisodeRow: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
-      // Episode Title row with optional Originally Aired badge
+      // Episode Title row
       HStack {
         Text(model.airing.episode?.title ?? "Unknown Episode")
           .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
           .foregroundColor(.white)
 
         Spacer()
-
-        if model.hasAiredBefore {
-          OriginallyAiredBadge(dateText: model.originallyAiredDateText)
-        }
       }
 
       // Calendar badge and tune in text
@@ -95,22 +91,6 @@ struct CalendarDateBadge: View {
   }
 }
 
-// MARK: - Originally Aired Badge
-
-struct OriginallyAiredBadge: View {
-  let dateText: String
-
-  var body: some View {
-    Text("First Aired \(dateText)")
-      .font(.custom(FontNames.Inter_500_Medium, size: 11))
-      .foregroundColor(Color(hex: "#bababa"))
-      .padding(.horizontal, 8)
-      .padding(.vertical, 4)
-      .background(Color(hex: "#2a2a2a"))
-      .cornerRadius(4)
-  }
-}
-
 // MARK: - Preview
 
 #Preview {
@@ -125,28 +105,22 @@ struct OriginallyAiredBadge: View {
       )
     )
 
-    // Previously aired episode (next week)
+    // Upcoming episode (next week)
     EpisodeRow(
       model: EpisodeRowModel(
         airing: .mockWith(
           airtime: Date().addingTimeInterval(86400 * 10),
-          episode: .mockWith(
-            title: "Nashville Sessions",
-            createdAt: Date().addingTimeInterval(-86400 * 14)
-          )
+          episode: .mockWith(title: "Nashville Sessions")
         )
       )
     )
 
-    // Another episode (beyond next week)
+    // Upcoming episode (beyond next week)
     EpisodeRow(
       model: EpisodeRowModel(
         airing: .mockWith(
           airtime: Date().addingTimeInterval(86400 * 20),
-          episode: .mockWith(
-            title: "Texas Country Vibes",
-            createdAt: Date().addingTimeInterval(-86400 * 7)
-          )
+          episode: .mockWith(title: "Texas Country Vibes")
         )
       )
     )
