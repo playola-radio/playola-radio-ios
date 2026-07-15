@@ -31,11 +31,10 @@ class AppVersionGateModel: ViewModel {
 
   var presentedAlert: PlayolaAlert?
 
-  private let alertTitle = "Update Required"
-  private let alertMessage =
-    "A new version of Playola Radio is available. Please update to continue."
-  private let updateButtonTitle = "Update"
-  private let appStoreURL = URL(string: "itms-apps://itunes.apple.com/app/id6480465361")!
+  let alertTitle = "Update Required"
+  let alertMessage = "A new version of Playola Radio is available. Please update to continue."
+  let updateButtonTitle = "Update"
+  let appStoreURL = URL(string: "itms-apps://itunes.apple.com/app/id6480465361")!
 
   /// The versions the currently-shown gate was presented with, so the
   /// "Update Tapped" event reports the same required_version as its "Shown"
@@ -87,17 +86,6 @@ class AppVersionGateModel: ViewModel {
       trigger: .broadcasterDiscovered)
   }
 
-  /// Re-presents the gate when the app returns to the foreground. Tapping "Update"
-  /// dismisses the alert (SwiftUI clears `presentedAlert`) and opens the App Store, but
-  /// `UIApplication.open` returns immediately rather than waiting for the user to come
-  /// back, and `checkVersionRequirements()` only runs on cold launch. Without this, a
-  /// user who taps "Update" and returns without updating could keep using an unsupported
-  /// build. Reuses the existing `activeGate`, so it does not re-track a "shown" event.
-  func scenePhaseChanged(newPhase: ScenePhase) {
-    guard newPhase == .active, activeGate != nil, presentedAlert == nil else { return }
-    presentedAlert = makeUpdateRequiredAlert()
-  }
-
   /// Tracks the tap. Called from the alert action before opening the App Store,
   /// so the event is enqueued before the app is backgrounded and the event lost.
   func updateButtonTapped() async {
@@ -135,14 +123,7 @@ class AppVersionGateModel: ViewModel {
       primaryAction: { [weak self] in
         guard let self else { return }
         await self.updateButtonTapped()
-        let opened = await UIApplication.shared.open(self.appStoreURL)
-        // Normally the App Store foregrounds and `scenePhaseChanged` re-blocks on
-        // return. If it fails to open there is no foreground transition to re-block on,
-        // and the app is still active (no background race), so re-present immediately
-        // rather than let a too-old build slip through the dismissed gate.
-        if !opened {
-          self.presentedAlert = self.makeUpdateRequiredAlert()
-        }
+        _ = await UIApplication.shared.open(self.appStoreURL)
       })
   }
 }

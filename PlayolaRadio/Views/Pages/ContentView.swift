@@ -17,7 +17,6 @@ extension Notification.Name {
 struct ContentView: View {
   @Shared(.auth) var auth
   @Dependency(\.analytics) var analytics
-  @Environment(\.scenePhase) private var scenePhase
   @State private var hasTrackedAppOpen = false
   @State private var versionGate = AppVersionGateModel()
 
@@ -57,9 +56,6 @@ struct ContentView: View {
     }
     .onReceive(NotificationCenter.default.publisher(for: .requiresAppUpdate)) { _ in
       Task { await versionGate.broadcasterUpdateDiscovered() }
-    }
-    .onChange(of: scenePhase) { _, newPhase in
-      versionGate.scenePhaseChanged(newPhase: newPhase)
     }
   }
 

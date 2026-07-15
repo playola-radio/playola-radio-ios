@@ -7,7 +7,6 @@ import ConcurrencyExtras
 import Dependencies
 import Foundation
 import Sharing
-import SwiftUI
 import Testing
 
 @testable import PlayolaRadio
@@ -225,63 +224,6 @@ struct AppVersionGateModelTests {
 
       #expect(model.presentedAlert != nil)
       #expect(gateShownEvents(captured.value).count == 1)
-    }
-  }
-
-  @Test
-  func testGateReblocksWhenAppReturnsToForegroundWithoutRetrackingShown() async {
-    // Tapping "Update" clears the alert (SwiftUI sets isPresented = false, which the
-    // binding maps to presentedAlert = nil) and opens the App Store. UIApplication.open
-    // returns immediately, and checkVersionRequirements() only runs on cold launch, so
-    // the gate must re-present when the app returns to the foreground — without
-    // inflating the "shown" analytics count.
-    @Shared(.isBroadcaster) var isBroadcaster = false
-    let captured = LockIsolated<[AnalyticsEvent]>([])
-
-    await withDependencies {
-      $0.api.getAppVersionRequirements = { [unreachableVersion, ancientVersion] in
-        AppVersionRequirements(
-          minimumVersion: unreachableVersion, minimumBroadcasterVersion: ancientVersion)
-      }
-      $0.analytics.track = { event in captured.withValue { $0.append(event) } }
-    } operation: {
-      let model = AppVersionGateModel()
-      await model.checkVersionRequirements()
-      #expect(model.presentedAlert != nil)
-
-      model.presentedAlert = nil
-      model.scenePhaseChanged(newPhase: .active)
-
-      #expect(model.presentedAlert != nil)
-      #expect(gateShownEvents(captured.value).count == 1)
-    }
-  }
-
-  @Test
-  func testScenePhaseActiveDoesNotPresentGateWhenNoGateIsActive() async {
-    // Returning to the foreground on a supported build must not conjure a gate.
-    let model = AppVersionGateModel()
-    model.scenePhaseChanged(newPhase: .active)
-    #expect(model.presentedAlert == nil)
-  }
-
-  @Test
-  func testScenePhaseChangeToBackgroundLeavesShownGateVisible() async {
-    // Backgrounding while the gate is up (without tapping Update) must not clear it.
-    @Shared(.appVersionRequirements) var appVersionRequirements = AppVersionRequirements(
-      minimumVersion: "1.0.0", minimumBroadcasterVersion: "9.9.9")
-
-    await withDependencies {
-      $0.analytics.track = { _ in }
-    } operation: {
-      let model = AppVersionGateModel()
-      await model.broadcasterUpdateDiscovered()
-      let presented = model.presentedAlert
-      #expect(presented != nil)
-
-      model.scenePhaseChanged(newPhase: .background)
-
-      #expect(model.presentedAlert == presented)
     }
   }
 
