@@ -135,7 +135,14 @@ class AppVersionGateModel: ViewModel {
       primaryAction: { [weak self] in
         guard let self else { return }
         await self.updateButtonTapped()
-        _ = await UIApplication.shared.open(self.appStoreURL)
+        let opened = await UIApplication.shared.open(self.appStoreURL)
+        // Normally the App Store foregrounds and `scenePhaseChanged` re-blocks on
+        // return. If it fails to open there is no foreground transition to re-block on,
+        // and the app is still active (no background race), so re-present immediately
+        // rather than let a too-old build slip through the dismissed gate.
+        if !opened {
+          self.presentedAlert = self.makeUpdateRequiredAlert()
+        }
       })
   }
 }
