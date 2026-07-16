@@ -25,10 +25,18 @@ struct GiveawayWinnerPendingPushTests {
     // treated as a real name or the UI renders a blank where the winner's name belongs.
     let push = GiveawayWinnerPendingPush(userInfo: [
       "type": "giveaway_winner_pending", "eventId": "e1", "stationId": "s1",
-      "winnerName": "", "prizeName": "",
+      "winnerName": "", "prizeName": "   ",
     ])
     expectNoDifference(push?.winnerName, nil)
     expectNoDifference(push?.prizeName, nil)
+  }
+
+  @Test func trimsPaddedWinnerName() {
+    let push = GiveawayWinnerPendingPush(userInfo: [
+      "type": "giveaway_winner_pending", "eventId": "e1", "stationId": "s1",
+      "winnerName": " Jo ",
+    ])
+    expectNoDifference(push?.winnerName, "Jo")
   }
 
   @Test func parsesExpiryWithoutFractionalSeconds() {

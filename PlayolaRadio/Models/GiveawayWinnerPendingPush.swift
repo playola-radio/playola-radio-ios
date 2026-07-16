@@ -27,8 +27,10 @@ struct GiveawayWinnerPendingPush: Equatable, Sendable {
   }
 
   private static func nonEmpty(_ string: String?) -> String? {
-    guard let string, !string.isEmpty else { return nil }
-    return string
+    guard let trimmed = string?.trimmingCharacters(in: .whitespaces), !trimmed.isEmpty else {
+      return nil
+    }
+    return trimmed
   }
 
   /// Robust ISO-8601 parse: the server sends fractional seconds, but tolerate a value without them.

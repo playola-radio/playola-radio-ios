@@ -26,6 +26,15 @@ struct GiveawayCongratsSheetModelTests {
     expectNoDifference(model.headline, "just won Two tickets!")
   }
 
+  @Test func winnerNameWithoutPrizeUsesGiveawayHeadline() {
+    let action = CongratsAction(
+      eventId: "e1", stationId: "s1", winnerName: "Jo", prizeName: nil,
+      congratsExpiresAt: nil, state: .pending, startedAt: Date())
+    let model = GiveawayCongratsSheetModel(action: action, onClose: {})
+    expectNoDifference(model.winnerNameText, "Jo")
+    expectNoDifference(model.headline, "just won your giveaway!")
+  }
+
   @Test func winnerNameFallsBackWhenMissing() {
     let action = CongratsAction(
       eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil,
