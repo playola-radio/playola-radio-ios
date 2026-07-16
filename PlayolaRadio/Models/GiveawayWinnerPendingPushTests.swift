@@ -20,6 +20,17 @@ struct GiveawayWinnerPendingPushTests {
     #expect(push?.congratsExpiresAt != nil)
   }
 
+  @Test func treatsEmptyWinnerAndPrizeNamesAsMissing() {
+    // The server sends `winnerName: ""` when it can't resolve a name — an empty string must not be
+    // treated as a real name or the UI renders a blank where the winner's name belongs.
+    let push = GiveawayWinnerPendingPush(userInfo: [
+      "type": "giveaway_winner_pending", "eventId": "e1", "stationId": "s1",
+      "winnerName": "", "prizeName": "",
+    ])
+    expectNoDifference(push?.winnerName, nil)
+    expectNoDifference(push?.prizeName, nil)
+  }
+
   @Test func parsesExpiryWithoutFractionalSeconds() {
     let push = GiveawayWinnerPendingPush(userInfo: [
       "type": "giveaway_winner_pending", "eventId": "e1", "stationId": "s1",

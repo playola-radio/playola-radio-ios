@@ -8,10 +8,17 @@ struct GiveawayCongratsSheetView: View {
       Color.black.ignoresSafeArea()
 
       VStack(spacing: 16) {
-        Text(model.headline)
-          .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 24))
-          .foregroundColor(.white)
-          .multilineTextAlignment(.center)
+        VStack(spacing: 4) {
+          Text(model.winnerNameText)
+            .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 34))
+            .foregroundColor(.white)
+            .multilineTextAlignment(.center)
+
+          Text(model.headline)
+            .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 20))
+            .foregroundColor(.white)
+            .multilineTextAlignment(.center)
+        }
 
         Text(model.subtitle)
           .font(.custom(FontNames.Inter_400_Regular, size: 14))

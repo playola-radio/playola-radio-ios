@@ -203,10 +203,12 @@ class GiveawayCongratsSheetModel: ViewModel {
   }
 
   // MARK: - View Helpers
+  // The name is the hero of this screen — the curator reads it out loud while recording, so it must
+  // be unmissable rather than buried inside a sentence.
+  var winnerNameText: String { winnerName ?? "Your winner" }
   var headline: String {
-    let who = winnerName ?? "your winner"
-    if let prizeName { return "Congratulate \(who) on winning \(prizeName)!" }
-    return "Congratulate \(who)!"
+    if let prizeName { return "just won \(prizeName)!" }
+    return "just won your giveaway!"
   }
   var subtitle: String { "Record a short message — we'll play it on your station." }
   var skipButtonTitle: String { "Skip" }
