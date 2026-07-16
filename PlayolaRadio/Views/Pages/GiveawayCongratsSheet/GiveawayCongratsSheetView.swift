@@ -10,8 +10,8 @@ struct GiveawayCongratsSheetView: View {
       VStack(spacing: 16) {
         VStack(spacing: 4) {
           Text(model.winnerNameText)
-            .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 34))
-            .foregroundColor(.white)
+            .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 40))
+            .foregroundColor(.playolaRed)
             .multilineTextAlignment(.center)
 
           Text(model.headline)
