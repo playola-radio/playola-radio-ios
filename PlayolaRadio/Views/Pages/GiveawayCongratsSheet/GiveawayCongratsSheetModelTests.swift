@@ -20,9 +20,28 @@ struct GiveawayCongratsSheetModelTests {
       congratsExpiresAt: nil, state: .recorded(localRecordingPath: "/tmp/r.m4a"), startedAt: Date())
   }
 
-  @Test func headlineUsesWinnerAndPrize() {
+  @Test func winnerNameIsTheHeroText() {
     let model = GiveawayCongratsSheetModel(action: recordedAction(), onClose: {})
-    #expect(model.headline == "Congratulate Jo on winning Two tickets!")
+    expectNoDifference(model.winnerNameText, "Jo")
+    expectNoDifference(model.headline, "just won Two tickets!")
+  }
+
+  @Test func winnerNameWithoutPrizeUsesGiveawayHeadline() {
+    let action = CongratsAction(
+      eventId: "e1", stationId: "s1", winnerName: "Jo", prizeName: nil,
+      congratsExpiresAt: nil, state: .pending, startedAt: Date())
+    let model = GiveawayCongratsSheetModel(action: action, onClose: {})
+    expectNoDifference(model.winnerNameText, "Jo")
+    expectNoDifference(model.headline, "just won your giveaway!")
+  }
+
+  @Test func winnerNameFallsBackWhenMissing() {
+    let action = CongratsAction(
+      eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil,
+      congratsExpiresAt: nil, state: .pending, startedAt: Date())
+    let model = GiveawayCongratsSheetModel(action: action, onClose: {})
+    expectNoDifference(model.winnerNameText, "Your winner")
+    expectNoDifference(model.headline, "just won your giveaway!")
   }
 
   @Test func sendUploadsThenSubmitsAndMarksSubmitted() async {
