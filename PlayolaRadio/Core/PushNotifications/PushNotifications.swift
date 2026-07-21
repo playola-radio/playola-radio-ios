@@ -73,6 +73,10 @@ struct PushNotificationsClient: Sendable {
   /// Cancel all pending notifications
   var cancelAllNotifications: @Sendable () async -> Void
 
+  /// Remove a delivered notification from Notification Center
+  /// - Parameter identifier: The identifier of the delivered notification request
+  var removeDeliveredNotification: @Sendable (_ identifier: String) -> Void
+
   /// Register for remote notifications with APNs
   var registerForRemoteNotifications: @Sendable () async -> Void
 
@@ -141,6 +145,11 @@ extension PushNotificationsClient: DependencyKey {
     },
     cancelAllNotifications: {
       UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+    },
+    removeDeliveredNotification: { identifier in
+      UNUserNotificationCenter.current().removeDeliveredNotifications(
+        withIdentifiers: [identifier]
+      )
     },
     registerForRemoteNotifications: {
       await MainActor.run {

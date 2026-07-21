@@ -185,7 +185,21 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
     didReceive response: UNNotificationResponse,
     withCompletionHandler completionHandler: @escaping () -> Void
   ) {
-    let userInfo = response.notification.request.content.userInfo.sendablePayload()
+    let request = response.notification.request
+    handleNotificationResponse(
+      identifier: request.identifier,
+      userInfo: request.content.userInfo.sendablePayload(),
+      completionHandler: completionHandler
+    )
+  }
+
+  func handleNotificationResponse(
+    identifier: String,
+    userInfo: [String: any Sendable],
+    completionHandler: @escaping () -> Void
+  ) {
+    pushNotifications.removeDeliveredNotification(identifier)
+
     if userInfo["type"] as? String == "giveaway_winner" {
       // Defer completion until the participation mutation persists, so the system doesn't suspend
       // mid-write and drop the win.

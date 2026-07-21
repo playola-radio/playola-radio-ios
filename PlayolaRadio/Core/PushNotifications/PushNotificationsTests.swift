@@ -6,6 +6,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import Sharing
@@ -115,6 +116,30 @@ struct PushNotificationsTests {
   }
 
   // MARK: - Notification Response Handling
+
+  @Test
+  func testHandleNotificationResponseRemovesDeliveredNotification() {
+    let removedIdentifiers = LockIsolated<[String]>([])
+    let completionCalled = LockIsolated(false)
+
+    withDependencies {
+      $0.pushNotifications.removeDeliveredNotification = { identifier in
+        removedIdentifiers.withValue { $0.append(identifier) }
+      }
+      $0.pushNotifications.handleNotificationTap = { _ in }
+    } operation: {
+      let appDelegate = AppDelegate()
+      appDelegate.handleNotificationResponse(
+        identifier: "notification-123",
+        userInfo: [:]
+      ) {
+        completionCalled.setValue(true)
+      }
+    }
+
+    expectNoDifference(removedIdentifiers.value, ["notification-123"])
+    #expect(completionCalled.value)
+  }
 
   @Test
   func testHandleNotificationResponsePlaysStation() async {
