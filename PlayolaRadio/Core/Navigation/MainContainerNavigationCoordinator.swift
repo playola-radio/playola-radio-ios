@@ -69,6 +69,7 @@ final class MainContainerNavigationCoordinator {
   enum Path: Hashable, Equatable {
     case editProfilePage(EditProfilePageModel)
     case likedSongsPage(LikedSongsPageModel)
+    case rewardsPage(RewardsPageModel)
     case broadcastPage(BroadcastPageModel)
     case chooseStationToBroadcastPage(ChooseStationToBroadcastPageModel)
     case chooseStationPage(ChooseStationPageModel)
@@ -86,6 +87,8 @@ final class MainContainerNavigationCoordinator {
         EditProfilePageView(model: model)
       case .likedSongsPage(let model):
         LikedSongsPage(model: model)
+      case .rewardsPage(let model):
+        RewardsPageView(model: model)
       case .broadcastPage(let model):
         BroadcastPageView(model: model)
       case .chooseStationToBroadcastPage(let model):
