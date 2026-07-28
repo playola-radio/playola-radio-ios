@@ -4,11 +4,12 @@
 
 **Goal:** Move the Presets carousel from the Radio Stations page to the top of the Your Library page. Keep the ★ star on Radio Stations rows as the add control. Drop the "Presets" segment tab from Radio Stations.
 
-**Architecture (Codex-reviewed):** Extract two shared `@Observable @MainActor` models, both owned as single instances by `MainContainerModel` and injected into the pages that need them:
-- `StationPlaybackModel` — owns `stationSelected(_:)` + the welcome-message presentation flow (the station-play policy). `StationListModel` delegates to it; `YourLibraryPageModel` uses it for preset-tile taps.
+**Architecture (Codex-reviewed, then simplified):** Extract ONE shared `@Observable @MainActor` model — `PresetsModel` — owned as a single instance by `MainContainerModel` and injected into both pages:
 - `PresetsModel` — owns all preset domain + section-UI state (the 3 `@Shared` preset keys, loading/error/edit state, `displayPresets` hydration, `isPreset`, `starTapped`, add/remove/reorder/retry, load-once guard). `StationListModel` uses it for the row ★; `YourLibraryPageModel` uses it for the carousel.
 
 Preset state is already app-wide `@Shared` (`.presets`, `.pendingPresetStationIds`, `.pendingPresetRemovalStationIds`, all `.inMemory`), so a single shared model instance keeps both pages consistent without duplicated logic.
+
+**Playback:** no `StationPlaybackModel` is extracted. The `stationPlayer` dependency already unifies playback, and the player sheet auto-presents off `stationPlayer.$state` (`MainContainerModel.processNewStationState`). `stationSelected` only adds visibility guards, analytics, and the first-time welcome-message intro on top of `stationPlayer.play` — none of which are needed for tapping an already-saved preset. So `YourLibraryPageModel.presetTileTapped` calls `stationPlayer.play(station:)` directly (plus the existing preset-tap analytics). `PresetsModel` does not own playback.
 
 **Tech Stack:** SwiftUI, Point-Free swift-dependencies + swift-sharing + swift-identified-collections, `@Observable` MV models, swift-testing.
 
@@ -33,26 +34,7 @@ Preset state is already app-wide `@Shared` (`.presets`, `.pendingPresetStationId
 
 ---
 
-## Task 1: Extract `StationPlaybackModel`
-
-**Deliverable:** A shared `StationPlaybackModel` owning the station-play policy; `StationListModel` delegates `stationSelected` to it. No behavior change.
-
-**Files:**
-- Create: `PlayolaRadio/Views/Shared/Playback/StationPlaybackModel.swift` (+ pbxproj registration)
-- Create: `PlayolaRadio/Views/Shared/Playback/StationPlaybackModelTests.swift` (+ pbxproj)
-- Modify: `StationListModel.swift` (delegate `stationSelected`; keep its signature so callers are unchanged)
-- Modify: `MainContainerModel.swift` (own the shared instance, inject into `StationListModel`)
-
-**Approach:**
-- Move `stationSelected(_:)`, `shouldShowWelcomeMessage`, `presentWelcomeMessage`, and `welcomeMessageShownThisSession` (and only the dependencies/shared they need: `stationPlayer`, `analytics`, `@Shared(.showSecretStations)`, `@Shared(.welcomeMessageEligible)`, `@Shared(.stationLists)`, `@Shared(.mainContainerNavigationCoordinator)`) into `StationPlaybackModel`. Position analytics may use `stationLists` (full catalog) instead of the page-local `stationListsForDisplay`.
-- `StationListModel` gets `let playbackModel: StationPlaybackModel` injected; its `stationSelected(_:)` becomes `await playbackModel.stationSelected(item)`. Preserve existing behavior.
-- `MainContainerModel`: `let stationPlaybackModel = StationPlaybackModel()`, pass into `StationListModel(playbackModel:)`.
-
-**Tests:** Move/port the station-selection + welcome-message tests that currently target `StationListModel.stationSelected` to target `StationPlaybackModel`. Keep coming-soon/inactive/welcome/play assertions. Verify build (both app targets) + full test suite + lint. Commit: `refactor(playback): extract StationPlaybackModel from StationListModel`.
-
----
-
-## Task 2: Extract shared `PresetsModel`
+## Task 1: Extract shared `PresetsModel`
 
 **Deliverable:** A single shared `PresetsModel`; `StationListModel` delegates the row ★ and carousel props to it. Move preset types + view folder to shared locations. No behavior change (carousel + star still render on Radio Stations for now).
 
@@ -74,19 +56,19 @@ Preset state is already app-wide `@Shared` (`.presets`, `.pendingPresetStationId
 
 ---
 
-## Task 3: Move the carousel to the Library page; remove it from Radio Stations
+## Task 2: Move the carousel to the Library page; remove it from Radio Stations
 
-**Deliverable:** The user-visible move. Presets carousel renders at the top of Your Library; tapping a tile plays via `StationPlaybackModel`. Radio Stations loses the carousel + "Presets" segment tab but keeps the row ★.
+**Deliverable:** The user-visible move. Presets carousel renders at the top of Your Library; tapping a tile plays via `stationPlayer.play`. Radio Stations loses the carousel + "Presets" segment tab but keeps the row ★.
 
 **Files:**
-- Modify: `YourLibraryPageModel.swift` (inject `presetsModel` + `playbackModel`; add `presetTileTapped(_:)` that tracks position analytics then `await playbackModel.stationSelected(display.stationItem)`; call `presetsModel.loadPresetsIfNeeded()` on appear)
+- Modify: `YourLibraryPageModel.swift` (inject `presetsModel`; add `@Dependency(\.stationPlayer)` + `@Dependency(\.analytics)`; add `presetTileTapped(_:)` that tracks the `.presetTileTapped` analytics then `await stationPlayer.play(station: display.stationItem.anyStation)`; call `presetsModel.loadPresetsIfNeeded()` on appear)
 - Modify: `YourLibraryPageView.swift` (render `PresetsCarousel` from `model.presetsModel` above the title/section area)
 - Modify: `StationListPage.swift` (remove the `PresetsCarousel` block)
 - Modify: `StationListModel.swift` (remove the "Presets" segment injection + special-casing in `loadStationListsForDisplay`; drop `showsPresetsSection`/`showsPresetsOnly`/segment-preset logic; keep the row ★ via `presetsModel`)
-- Modify: `MainContainerModel.swift` (inject `presetsModel` + `stationPlaybackModel` into `YourLibraryPageModel`)
+- Modify: `MainContainerModel.swift` (inject the shared `presetsModel` into `YourLibraryPageModel`)
 
 **Approach:**
-- `YourLibraryPageModel` owns `presetTileTapped` (Codex's guidance: playback handler on the page, not `PresetsModel`), delegating to the shared `playbackModel`.
+- `YourLibraryPageModel` owns `presetTileTapped` (playback handler on the page, not `PresetsModel`), calling `stationPlayer.play(station:)` directly. The player sheet auto-presents via existing `stationPlayer.$state` observation in `MainContainerModel`.
 - Radio Stations segmented control: with the "Presets" segment removed, if only "All" remains, drop the segment selector and always show the full list (matches the earlier decision "keep All behavior, drop the Presets tab").
 - Confirm the ★ still adds/removes (writes shared state) and the carousel on Library reflects it live.
 
@@ -96,7 +78,8 @@ Preset state is already app-wide `@Shared` (`.presets`, `.pendingPresetStationId
 
 ## Self-review notes
 
-- Playback kept out of `PresetsModel` (Codex). Single shared instances of both models (Codex) → no split load state, minimal race surface.
-- Each task independently shippable; only Task 3 changes user-visible behavior.
+- Playback kept out of `PresetsModel`; preset taps call `stationPlayer.play` directly (the player already unifies playback + auto-presents the sheet). No `StationPlaybackModel` — that was cut as over-engineering.
+- Single shared `PresetsModel` instance (Codex) → no split load state, minimal race surface.
+- Each task independently shippable; only Task 2 changes user-visible behavior.
 - Load-once guard prevents double-fetch across the two pages.
 - ★ stays on Radio Stations as the add control (product decision).
