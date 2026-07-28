@@ -285,7 +285,13 @@ struct HomePageTests {
 
     await homePageModel.listeningTimeTileModel.buttonAction?()
 
-    #expect(activeTab == .rewards)
+    #expect(activeTab == .profile)
+    #expect(homePageModel.mainContainerNavigationCoordinator.path.count == 1)
+    if case .rewardsPage = homePageModel.mainContainerNavigationCoordinator.path.first {
+      // Successfully navigated to rewards page
+    } else {
+      Issue.record("Expected navigation to rewards page")
+    }
 
     let events = capturedEvents.value
     #expect(events.count == 1)

@@ -23,7 +23,7 @@ final class MainContainerNavigationCoordinator {
   // Per-tab navigation paths
   var homePath: [Path] = []
   var stationsPath: [Path] = []
-  var rewardsPath: [Path] = []
+  var yourLibraryPath: [Path] = []
   var profilePath: [Path] = []
   var broadcastPath: [Path] = []
   var libraryPath: [Path] = []
@@ -44,7 +44,7 @@ final class MainContainerNavigationCoordinator {
       switch activeTab {
       case .home: return homePath
       case .stationsList: return stationsPath
-      case .rewards: return rewardsPath
+      case .yourLibrary: return yourLibraryPath
       case .profile: return profilePath
       case .broadcast: return broadcastPath
       case .library: return libraryPath
@@ -56,7 +56,7 @@ final class MainContainerNavigationCoordinator {
       switch activeTab {
       case .home: homePath = newValue
       case .stationsList: stationsPath = newValue
-      case .rewards: rewardsPath = newValue
+      case .yourLibrary: yourLibraryPath = newValue
       case .profile: profilePath = newValue
       case .broadcast: broadcastPath = newValue
       case .library: libraryPath = newValue
@@ -136,7 +136,7 @@ final class MainContainerNavigationCoordinator {
   private func clearAllPaths() {
     homePath = []
     stationsPath = []
-    rewardsPath = []
+    yourLibraryPath = []
     profilePath = []
     broadcastPath = []
     libraryPath = []

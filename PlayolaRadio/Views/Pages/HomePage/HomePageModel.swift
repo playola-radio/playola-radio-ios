@@ -85,7 +85,8 @@ class HomePageModel: ViewModel {
       buttonAction: { [weak self] in
         guard let self = self else { return }
         await self.analytics.track(.navigatedToRewardsFromListeningTile)
-        await self.$activeTab.withLock { $0 = .rewards }
+        await self.$activeTab.withLock { $0 = .profile }
+        await self.mainContainerNavigationCoordinator.push(.rewardsPage(RewardsPageModel()))
       }
     )
 
