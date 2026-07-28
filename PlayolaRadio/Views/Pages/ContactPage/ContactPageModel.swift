@@ -30,7 +30,7 @@ class ContactPageModel: ViewModel {
   // MARK: - Properties
 
   var editProfilePageModel: EditProfilePageModel = EditProfilePageModel()
-  var likedSongsPageModel: LikedSongsPageModel = LikedSongsPageModel()
+  var rewardsPageModel: RewardsPageModel = RewardsPageModel()
   var notificationsSettingsPageModel: NotificationsSettingsPageModel =
     NotificationsSettingsPageModel()
   var chooseStationToBroadcastPageModel: ChooseStationToBroadcastPageModel?
@@ -98,8 +98,8 @@ class ContactPageModel: ViewModel {
   }
 
   @MainActor
-  func onLikedSongsTapped() {
-    mainContainerNavigationCoordinator.path.append(.likedSongsPage(self.likedSongsPageModel))
+  func onRewardsTapped() {
+    mainContainerNavigationCoordinator.path.append(.rewardsPage(self.rewardsPageModel))
   }
 
   @MainActor
@@ -191,7 +191,7 @@ class ContactPageModel: ViewModel {
   var navigationTitle: String { "Your Profile" }
   var switchToListeningModeLabel: String { "Switch to Listening Mode" }
   var switchToBroadcastingModeLabel: String { "Switch to Broadcasting Mode" }
-  var likedSongsLabel: String { "Liked Songs" }
+  var rewardsLabel: String { "Rewards" }
   var notificationsLabel: String { "Notifications" }
   var contactUsLabel: String { "Contact Us" }
   var askArtistLabel: String { "Ask An Artist A Question" }

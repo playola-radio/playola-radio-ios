@@ -150,18 +150,18 @@ struct ContactPageView: View {
             .padding(.horizontal, 20)
           }
 
-          // Liked Songs Button
+          // Rewards Button
           Button(
             action: {
-              model.onLikedSongsTapped()
+              model.onRewardsTapped()
             },
             label: {
               HStack(spacing: 12) {
-                Image(systemName: "heart.fill")
+                Image(systemName: "gift.fill")
                   .foregroundColor(.white)
                   .font(.system(size: 16))
 
-                Text(model.likedSongsLabel)
+                Text(model.rewardsLabel)
                   .font(.custom(FontNames.Inter_500_Medium, size: 16))
                   .foregroundColor(.white)
 
