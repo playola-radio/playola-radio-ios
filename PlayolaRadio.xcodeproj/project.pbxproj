@@ -93,6 +93,7 @@
 		D30F004C2E8592F0007BCC73 /* MainSceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C52D3E91B900E4E926 /* MainSceneDelegate.swift */; };
 		D30F004D2E8592F0007BCC73 /* RadioStation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673B12D3DC59100E4E926 /* RadioStation.swift */; };
 		D30F004E2E8592F0007BCC73 /* RewardsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C12E3131770042A427 /* RewardsPageView.swift */; };
+		0A6E6C233E85A650521A5331 /* YourLibraryPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 903A1DE2476388DF8FCC8874 /* YourLibraryPageView.swift */; };
 		D30F004F2E8592F0007BCC73 /* HomePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B12DF88BBD001BC6F9 /* HomePageModel.swift */; };
 		D30F00502E8592F0007BCC73 /* SongDrawerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302578F2E63C13400F4228B /* SongDrawerView.swift */; };
 		D30F00512E8592F0007BCC73 /* SongDrawerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302578E2E63C13400F4228B /* SongDrawerModel.swift */; };
@@ -141,6 +142,7 @@
 		D30F007A2E8592F0007BCC73 /* circleBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257C32DF8F87F001BC6F9 /* circleBackground.swift */; };
 		D30F007B2E8592F0007BCC73 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCF2E57947800497A4A /* ShareSheet.swift */; };
 		D30F007C2E8592F0007BCC73 /* RewardsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744BF2E31316D0042A427 /* RewardsPageModel.swift */; };
+		6DB99ADC7A25C5E364543B5E /* YourLibraryPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C05FDC46B20CB37D84A8197 /* YourLibraryPageModel.swift */; };
 		D30F007D2E8592F0007BCC73 /* ToastClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302576C2E63428700F4228B /* ToastClient.swift */; };
 		D30F007E2E8592F0007BCC73 /* RewardsProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */; };
 		D30F007F2E8592F0007BCC73 /* LikedSongsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257862E63B6B700F4228B /* LikedSongsPage.swift */; };
@@ -421,6 +423,9 @@
 		D3B744C02E3131730042A427 /* RewardsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744BF2E31316D0042A427 /* RewardsPageModel.swift */; };
 		D3B744C22E31317B0042A427 /* RewardsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C12E3131770042A427 /* RewardsPageView.swift */; };
 		D3B744C52E31318A0042A427 /* RewardsPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C32E31317F0042A427 /* RewardsPageTests.swift */; };
+		BD3E0D31823FDD5950701308 /* YourLibraryPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C05FDC46B20CB37D84A8197 /* YourLibraryPageModel.swift */; };
+		930065958AE65D1A65716F54 /* YourLibraryPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 903A1DE2476388DF8FCC8874 /* YourLibraryPageView.swift */; };
+		2891A2D21D67E32129F5F2ED /* YourLibraryPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B5384ED9FE3A984F23C18BA /* YourLibraryPageTests.swift */; };
 		D3B744C82E31399E0042A427 /* ListeningTimeTileModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C72E3139960042A427 /* ListeningTimeTileModel.swift */; };
 		D3B744CB2E313B230042A427 /* ListeningTimeTileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C92E313B170042A427 /* ListeningTimeTileTests.swift */; };
 		D3B744CD2E368DB50042A427 /* Prize.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744CC2E368D790042A427 /* Prize.swift */; };
@@ -758,6 +763,9 @@
 		D3B744BF2E31316D0042A427 /* RewardsPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsPageModel.swift; sourceTree = "<group>"; };
 		D3B744C12E3131770042A427 /* RewardsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsPageView.swift; sourceTree = "<group>"; };
 		D3B744C32E31317F0042A427 /* RewardsPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsPageTests.swift; sourceTree = "<group>"; };
+		6C05FDC46B20CB37D84A8197 /* YourLibraryPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YourLibraryPageModel.swift; sourceTree = "<group>"; };
+		903A1DE2476388DF8FCC8874 /* YourLibraryPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YourLibraryPageView.swift; sourceTree = "<group>"; };
+		6B5384ED9FE3A984F23C18BA /* YourLibraryPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YourLibraryPageTests.swift; sourceTree = "<group>"; };
 		D3B744C72E3139960042A427 /* ListeningTimeTileModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTimeTileModel.swift; sourceTree = "<group>"; };
 		D3B744C92E313B170042A427 /* ListeningTimeTileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTimeTileTests.swift; sourceTree = "<group>"; };
 		D3B744CC2E368D790042A427 /* Prize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Prize.swift; sourceTree = "<group>"; };
@@ -1112,6 +1120,7 @@
 				D39728682F60CF59008591E3 /* StationSuggestionPage */,
 				D35EFC382F192C76000F64A4 /* SupportPage */,
 				FE110A0000000000000000A0 /* WelcomeMessage */,
+				A54D4D5A8EFD52CF2764EF6B /* YourLibraryPage */,
 				D3536A062BFA4F49006942D6 /* ContentView.swift */,
 				5BCFD236E4802E5BC59860C6 /* GiveawayWinnerSheet */,
 				358480181ADB29C686D6482F /* GiveawayCongratsSheet */,
@@ -1676,6 +1685,16 @@
 			path = RewardsPage;
 			sourceTree = "<group>";
 		};
+		A54D4D5A8EFD52CF2764EF6B /* YourLibraryPage */ = {
+			isa = PBXGroup;
+			children = (
+				6B5384ED9FE3A984F23C18BA /* YourLibraryPageTests.swift */,
+				903A1DE2476388DF8FCC8874 /* YourLibraryPageView.swift */,
+				6C05FDC46B20CB37D84A8197 /* YourLibraryPageModel.swift */,
+			);
+			path = YourLibraryPage;
+			sourceTree = "<group>";
+		};
 		D3B744C62E3139860042A427 /* ListeningTimeTile */ = {
 			isa = PBXGroup;
 			children = (
@@ -2015,6 +2034,7 @@
 				D3776A1C2F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift in Sources */,
 				D30F004D2E8592F0007BCC73 /* RadioStation.swift in Sources */,
 				D30F004E2E8592F0007BCC73 /* RewardsPageView.swift in Sources */,
+				0A6E6C233E85A650521A5331 /* YourLibraryPageView.swift in Sources */,
 				D3F493B82EEDD2AC008ED463 /* RecordPageModel.swift in Sources */,
 				D30F004F2E8592F0007BCC73 /* HomePageModel.swift in Sources */,
 				D30F00502E8592F0007BCC73 /* SongDrawerView.swift in Sources */,
@@ -2095,6 +2115,7 @@
 				D30F007B2E8592F0007BCC73 /* ShareSheet.swift in Sources */,
 				D35EFC1D2F17D361000F64A4 /* LiveStationInfo.swift in Sources */,
 				D30F007C2E8592F0007BCC73 /* RewardsPageModel.swift in Sources */,
+				6DB99ADC7A25C5E364543B5E /* YourLibraryPageModel.swift in Sources */,
 				D30F007D2E8592F0007BCC73 /* ToastClient.swift in Sources */,
 				D30F007E2E8592F0007BCC73 /* RewardsProfile.swift in Sources */,
 				D3367BF92F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */,
@@ -2212,6 +2233,7 @@
 				D3776A192F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift in Sources */,
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
 				D3B744C22E31317B0042A427 /* RewardsPageView.swift in Sources */,
+				930065958AE65D1A65716F54 /* YourLibraryPageView.swift in Sources */,
 				D3F493B92EEDD2AC008ED463 /* RecordPageModel.swift in Sources */,
 				D37257B22DF88BC1001BC6F9 /* HomePageModel.swift in Sources */,
 				D30257902E63C13400F4228B /* SongDrawerView.swift in Sources */,
@@ -2292,6 +2314,7 @@
 				D378CCD02E57947800497A4A /* ShareSheet.swift in Sources */,
 				D35EFC1C2F17D361000F64A4 /* LiveStationInfo.swift in Sources */,
 				D3B744C02E3131730042A427 /* RewardsPageModel.swift in Sources */,
+				BD3E0D31823FDD5950701308 /* YourLibraryPageModel.swift in Sources */,
 				D302576D2E63428800F4228B /* ToastClient.swift in Sources */,
 				D3B744B02E2FE6FB0042A427 /* RewardsProfile.swift in Sources */,
 				D3367BFC2F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */,
@@ -2404,6 +2427,7 @@
 				D3A1B2C001000000000000C6 /* PlayStationActionTests.swift in Sources */,
 				D3B744CB2E313B230042A427 /* ListeningTimeTileTests.swift in Sources */,
 				D3B744C52E31318A0042A427 /* RewardsPageTests.swift in Sources */,
+				2891A2D21D67E32129F5F2ED /* YourLibraryPageTests.swift in Sources */,
 				D35EFC172F159728000F64A4 /* SeriesListPageTests.swift in Sources */,
 				D3F493C02EEDD2D2008ED463 /* RecordPageTests.swift in Sources */,
 				D3A08A352E4E6F66002468E0 /* NowPlayingUpdaterTests.swift in Sources */,
