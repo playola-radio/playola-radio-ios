@@ -19,7 +19,7 @@ struct ListeningTimeTile: View {
         Image("listening-time-icon")
           .foregroundColor(.white)
 
-        Text("Listening Time")
+        Text(model.titleText)
           .font(.custom(FontNames.SpaceGrotesk_500_Medium, size: 16))
           .foregroundColor(.white)
 

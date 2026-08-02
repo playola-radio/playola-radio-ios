@@ -23,6 +23,8 @@ class EpisodeRowModel: ViewModel {
     airing.airtime > now
   }
 
+  // MARK: - View Helpers
+
   var tuneInText: String {
     let time = formattedTime
     let dayOfWeek = dayOfWeekString
@@ -36,6 +38,8 @@ class EpisodeRowModel: ViewModel {
       return "Tune in \(dayOfWeek) the \(dayWithOrdinal) at \(time)"
     }
   }
+
+  var episodeTitle: String { airing.episode?.title ?? "Unknown Episode" }
 
   // MARK: - Private Helpers
 

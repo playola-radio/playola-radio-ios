@@ -15,6 +15,7 @@ struct PrizeTierRow: View {
   let status: RedemptionStatus
   let buttonText: String
   let redeemedText: String
+  let hoursToGoText: String
   let onRedeem: () -> Void
 
   private var isRedeemed: Bool {
@@ -90,13 +91,13 @@ struct PrizeTierRow: View {
             .cornerRadius(6)
         }
 
-      case .moreTimeRequired(let hoursToGo):
+      case .moreTimeRequired:
         HStack(spacing: 4) {
           Image(systemName: "lock.fill")
             .foregroundColor(.white)
             .font(.system(size: 14))
 
-          Text("\(hoursToGo) hours to go")
+          Text(hoursToGoText)
             .lineLimit(1)
             .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
             .foregroundColor(.white)
@@ -122,6 +123,7 @@ struct PrizeTierRow_Previews: PreviewProvider {
       status: .redeemable,
       buttonText: "Redeem",
       redeemedText: "Redeemed",
+      hoursToGoText: "5 hours to go",
       onRedeem: {})
   }
 }

@@ -196,6 +196,15 @@ class NotificationsSettingsPageModel: ViewModel {
 
     togglingStationIds.removeAll()
   }
+
+  // MARK: - View Helpers
+
+  var navigationTitle: String { "Notifications" }
+  var emptyStateTitle: String { "No stations available" }
+  var emptyStateMessage: String { "No stations are currently available for notifications." }
+  var allNotificationsTitle: String { "All Notifications" }
+  var allNotificationsSubtitle: String { "Enable or disable all station notifications" }
+  var stationsSectionTitle: String { "Stations" }
 }
 
 extension PlayolaAlert {

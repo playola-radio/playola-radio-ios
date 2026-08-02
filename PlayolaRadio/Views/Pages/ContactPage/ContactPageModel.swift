@@ -186,6 +186,17 @@ class ContactPageModel: ViewModel {
     }
   }
 
+  // MARK: - View Helpers
+
+  var navigationTitle: String { "Your Profile" }
+  var switchToListeningModeLabel: String { "Switch to Listening Mode" }
+  var switchToBroadcastingModeLabel: String { "Switch to Broadcasting Mode" }
+  var likedSongsLabel: String { "Liked Songs" }
+  var notificationsLabel: String { "Notifications" }
+  var contactUsLabel: String { "Contact Us" }
+  var askArtistLabel: String { "Ask An Artist A Question" }
+  var logOutLabel: String { "Log out" }
+
   private func handleRegularUserFlow(jwt: String) async {
     do {
       let response = try await api.getSupportConversation(jwt)
