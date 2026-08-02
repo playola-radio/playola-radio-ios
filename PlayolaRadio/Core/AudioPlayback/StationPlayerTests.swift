@@ -8,6 +8,7 @@
 import AVFoundation
 import Combine
 import CustomDump
+import Dependencies
 import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
@@ -340,6 +341,78 @@ struct StationPlayerTests {
   }
 
   // MARK: - Play Failure Tests
+
+  @Test
+  func testUrlStationPlayReturnsFalseWhenStreamFails() async {
+    let urlStreamPlayer = URLStreamPlayerMock()
+    let stationPlayer = StationPlayer(urlStreamPlayer: urlStreamPlayer)
+    let urlStation = UrlStation.mockWith()
+    let station = AnyStation.url(urlStation)
+    urlStreamPlayer.stateAfterSet = URLStreamPlayer.State(
+      playbackState: .stopped,
+      playerStatus: .error,
+      currentStation: urlStation,
+      nowPlaying: nil
+    )
+
+    let started = await withDependencies {
+      $0.continuousClock = ContinuousClock()
+    } operation: {
+      await stationPlayer.play(station: station)
+    }
+
+    #expect(!started)
+    expectNoDifference(stationPlayer.state.playbackStatus, .error)
+  }
+
+  @Test
+  func testUrlStationPlayReturnsTrueAfterStreamStarts() async {
+    let urlStreamPlayer = URLStreamPlayerMock()
+    let stationPlayer = StationPlayer(urlStreamPlayer: urlStreamPlayer)
+    let urlStation = UrlStation.mockWith()
+    let station = AnyStation.url(urlStation)
+    urlStreamPlayer.stateAfterSet = URLStreamPlayer.State(
+      playbackState: .playing,
+      playerStatus: .readyToPlay,
+      currentStation: urlStation,
+      nowPlaying: nil
+    )
+
+    let started = await withDependencies {
+      $0.continuousClock = ContinuousClock()
+    } operation: {
+      await stationPlayer.play(station: station)
+    }
+
+    #expect(started)
+    expectNoDifference(stationPlayer.state.playbackStatus, .playing(station))
+  }
+
+  @Test
+  func testUrlStationPlayReturnsFalseAfterStartTimeout() async {
+    let clock = TestClock()
+    let urlStreamPlayer = URLStreamPlayerMock()
+    let stationPlayer = StationPlayer(urlStreamPlayer: urlStreamPlayer)
+    let urlStation = UrlStation.mockWith()
+    let station = AnyStation.url(urlStation)
+    urlStreamPlayer.stateAfterSet = URLStreamPlayer.State(
+      playbackState: .stopped,
+      playerStatus: .loading,
+      currentStation: urlStation,
+      nowPlaying: nil
+    )
+
+    let playTask = withDependencies {
+      $0.continuousClock = clock
+    } operation: {
+      Task { await stationPlayer.play(station: station) }
+    }
+    await Task.yield()
+    await clock.advance(by: .seconds(10))
+
+    let started = await playTask.value
+    #expect(!started)
+  }
 
   @Test
   func testHandlePlayFailureSetsErrorState() {

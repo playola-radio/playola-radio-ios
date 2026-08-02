@@ -161,8 +161,7 @@ class StationPlayer: ObservableObject {
 
     switch station {
     case .url(let urlStation):
-      urlStreamPlayer.set(station: urlStation)
-      return true
+      return await urlStreamPlayer.play(station: urlStation)
     case .playola(let playolaStation):
       urlStreamPlayer.reset()
       do {

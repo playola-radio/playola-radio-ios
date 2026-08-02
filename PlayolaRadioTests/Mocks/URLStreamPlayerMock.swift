@@ -11,7 +11,20 @@ import Foundation
 @testable import PlayolaRadio
 
 class URLStreamPlayerMock: URLStreamPlayer {
+  var stateAfterSet: URLStreamPlayer.State?
+
   override func addObserverToPlayer() {}
+
+  override func set(station: UrlStation?) {
+    guard let stateAfterSet else {
+      super.set(station: station)
+      return
+    }
+    Task { @MainActor [weak self] in
+      await Task.yield()
+      self?.state = stateAfterSet
+    }
+  }
 
   func setNowPlaying(station: UrlStation, artist: String, title: String) {
     state = URLStreamPlayer.State(
