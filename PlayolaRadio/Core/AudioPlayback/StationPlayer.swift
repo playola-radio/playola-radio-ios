@@ -131,8 +131,10 @@ class StationPlayer: ObservableObject {
 
   /// Starts playing the specified station
   /// - Parameter station: The station to play
-  public func play(station: AnyStation) async {
-    guard currentStation != station else { return }
+  /// - Returns: Whether playback started successfully
+  @discardableResult
+  public func play(station: AnyStation) async -> Bool {
+    guard currentStation != station else { return true }
     stop()
     let token = beginPlaybackAttempt()
     state = State(playbackStatus: .startingNewStation(station))
@@ -150,26 +152,29 @@ class StationPlayer: ObservableObject {
       // surface the failure if this attempt still owns the token — a stale
       // failure must not clobber the newer station or a deliberate stop.
       if token == playToken { handlePlayFailure(error) }
-      return
+      return false
     }
 
     // Bail if superseded during the activation suspension, before starting a
     // backend the user no longer wants.
-    guard token == playToken else { return }
+    guard token == playToken else { return false }
 
     switch station {
     case .url(let urlStation):
       urlStreamPlayer.set(station: urlStation)
+      return true
     case .playola(let playolaStation):
       urlStreamPlayer.reset()
       do {
         try await playolaStationPlayer.play(stationId: playolaStation.id)
+        return true
       } catch {
         // The SDK play() also suspends; guard the failure the same way so a
         // stale throw can't clobber newer state. A stale *success* is left
         // alone: the superseding stop()/play() has already re-driven the SDK
         // (single-station), so tearing down here could kill the newer attempt.
         if token == playToken { handlePlayFailure(error) }
+        return false
       }
     }
   }

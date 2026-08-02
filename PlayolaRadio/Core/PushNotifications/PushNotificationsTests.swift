@@ -214,6 +214,24 @@ struct PushNotificationsTests {
     #expect(!handled)
   }
 
+  @Test
+  func testHandleNotificationTapReturnsFalseWhenPlaybackFails() async {
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    let stationPlayer = StationPlayerMock()
+    stationPlayer.playResult = false
+
+    let handled = await withDependencies {
+      $0.stationPlayer = stationPlayer
+    } operation: {
+      await PushNotificationsClient.liveValue.handleNotificationTap([
+        "stationId": "mock-playola-id"
+      ])
+    }
+
+    #expect(!handled)
+    expectNoDifference(stationPlayer.callsToPlay.map(\.id), ["mock-playola-id"])
+  }
+
   // MARK: - Support Notification Badge Handling
 
   @Test

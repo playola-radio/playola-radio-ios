@@ -235,8 +235,7 @@ extension PushNotificationsClient: DependencyKey {
       }
 
       @Dependency(\.stationPlayer) var stationPlayer
-      await stationPlayer.play(station: station)
-      return true
+      return await stationPlayer.play(station: station)
     },
     handleGiveawayWinnerPush: { userInfo in
       guard let push = GiveawayWinnerPush(userInfo: userInfo) else {
