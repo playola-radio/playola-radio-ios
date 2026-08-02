@@ -29,7 +29,7 @@ struct StationListPageTests {
     let model = StationListModel()
     await model.viewAppeared()
     #expect(model.stationListsForDisplay == expectedVisibleLists)
-    #expect(model.segmentTitles == ["All", "Presets"] + expectedVisibleLists.map { $0.title })
+    #expect(model.segmentTitles == ["All"] + expectedVisibleLists.map { $0.title })
     #expect(model.selectedSegment == "All")
   }
 
@@ -140,7 +140,7 @@ struct StationListPageTests {
     await model.viewAppeared()
 
     #expect(model.stationListsForDisplay == stationLists)
-    #expect(model.segmentTitles == ["All", "Presets"] + stationLists.map { $0.title })
+    #expect(model.segmentTitles == ["All"] + stationLists.map { $0.title })
   }
 
   // MARK: - Player Interaction Tests

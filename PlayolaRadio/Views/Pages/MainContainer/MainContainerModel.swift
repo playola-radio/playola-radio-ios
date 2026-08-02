@@ -74,9 +74,9 @@ class MainContainerModel: ViewModel {
   var settingsTabTitle: String { "Profile" }
 
   var homePageModel = HomePageModel()
-  var presetsModel = PresetsModel()
+  var presetsModel: PresetsModel
   var stationListModel: StationListModel
-  var yourLibraryPageModel = YourLibraryPageModel()
+  var yourLibraryPageModel: YourLibraryPageModel
   var contactPageModel = ContactPageModel()
   var liveStationsPoller = LiveStationsPoller()
   var giveawayCoordinator = GiveawayCoordinator()
@@ -97,6 +97,7 @@ class MainContainerModel: ViewModel {
     let presetsModel = PresetsModel()
     self.presetsModel = presetsModel
     self.stationListModel = StationListModel(presetsModel: presetsModel)
+    self.yourLibraryPageModel = YourLibraryPageModel(presetsModel: presetsModel)
     super.init()
   }
 

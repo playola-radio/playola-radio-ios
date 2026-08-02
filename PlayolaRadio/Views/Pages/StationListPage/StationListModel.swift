@@ -68,7 +68,6 @@ class StationListModel: ViewModel {
   let noResultsIconName = "music.note.list"
   let noResultsMessage = "No stations found"
   let noResultsHint = "Try a different search, or tap Suggest Station to request one."
-  let presetsSegmentTitle = "Presets"
 
   // MARK: - Initialization
 
@@ -161,17 +160,6 @@ class StationListModel: ViewModel {
       ))
   }
 
-  func presetTileTapped(_ display: PresetDisplayItem) async {
-    guard !presetsModel.isEditingPresets else { return }
-    let position = presetsModel.displayPresets.firstIndex(where: { $0.id == display.id }) ?? 0
-    await analytics.track(
-      .presetTileTapped(
-        station: StationInfo(from: display.stationItem.anyStation),
-        position: position
-      ))
-    await stationSelected(display.stationItem)
-  }
-
   func stationSelected(_ item: APIStationItem) async {
     if item.visibility == .comingSoon && showSecretStations == false {
       return
@@ -239,14 +227,6 @@ class StationListModel: ViewModel {
 
   // MARK: - View Helpers
 
-  var showsPresetsSection: Bool {
-    selectedSegment == "All" || selectedSegment == presetsSegmentTitle
-  }
-
-  var showsPresetsOnly: Bool {
-    selectedSegment == presetsSegmentTitle
-  }
-
   var isShowingNoResults: Bool {
     guard !searchText.isEmpty else { return false }
     return stationListsForDisplay.allSatisfy { list in
@@ -290,7 +270,7 @@ class StationListModel: ViewModel {
     let includeHidden = showSecretStations
     let visibleLists = includeHidden ? rawList : rawList.filter { !$0.hidden }
 
-    var titles = ["All", presetsSegmentTitle]
+    var titles = ["All"]
     titles.append(contentsOf: visibleLists.map { $0.title })
     segmentTitles = titles
 
@@ -300,8 +280,6 @@ class StationListModel: ViewModel {
 
     if selectedSegment == "All" {
       stationListsForDisplay = visibleLists
-    } else if selectedSegment == presetsSegmentTitle {
-      stationListsForDisplay = []
     } else {
       stationListsForDisplay = visibleLists.filter { $0.title == selectedSegment }
     }

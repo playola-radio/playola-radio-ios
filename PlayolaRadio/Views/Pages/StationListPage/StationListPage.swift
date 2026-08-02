@@ -99,27 +99,6 @@ struct StationListPage: View {
           .padding(.top, 64)
         } else {
           VStack(alignment: .leading, spacing: 20) {
-            if model.showsPresetsSection {
-              PresetsCarousel(
-                displays: model.presetsModel.displayPresets,
-                sectionTitle: model.presetsModel.presetsSectionTitle,
-                emptyStateText: model.presetsModel.presetsEmptyStateText,
-                doneButtonText: model.presetsModel.presetsEditDoneButtonText,
-                isEditing: model.presetsModel.isEditingPresets,
-                isLoading: model.presetsModel.isLoadingPresets,
-                hasLoadError: model.presetsModel.presetsLoadFailed,
-                loadErrorText: model.presetsModel.presetsLoadErrorText,
-                retryButtonText: model.presetsModel.presetsRetryButtonText,
-                onTilePlay: { display in await model.presetTileTapped(display) },
-                onTileLongPress: { display in model.presetsModel.presetTileLongPressed(display) },
-                onTileRemove: { display in await model.presetsModel.presetRemoveTapped(display) },
-                onMove: { presetId, to in
-                  await model.presetsModel.presetMoved(presetId: presetId, to: to)
-                },
-                onEditDoneTapped: { model.presetsModel.presetsEditDoneTapped() },
-                onRetryTapped: { await model.presetsModel.retryLoadPresetsTapped() }
-              )
-            }
             ForEach(model.displayedSections) { section in
               stationSection(section: section)
             }
