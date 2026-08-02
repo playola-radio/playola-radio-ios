@@ -55,33 +55,16 @@ struct PlayerPage: View {
       ScrollView {
 
         // Main Image
-        WebImage(
-          url: model.stationArtUrl,
-          context: RemoteArtwork.downsampleContext(
-            CGSize(
-              width: UIScreen.main.bounds.width - 148,
-              height: UIScreen.main.bounds.width - 148),
-            scale: displayScale)
-        ) { image in
-          image
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-        } placeholder: {
-          Color(white: 0.2)
-        }
-        .frame(
-          width: UIScreen.main.bounds.width - 148,
-          height: UIScreen.main.bounds.width - 148
-        )
-        .cornerRadius(14)
-        .padding(.top, 32)
-        .padding(.horizontal, 74)
+        HeroArtwork(url: model.stationArtUrl, displayScale: displayScale)
+          .cornerRadius(14)
+          .padding(.top, 32)
+          .padding(.horizontal, 74)
 
         // Now Playing Section
         VStack(alignment: .leading, spacing: 4) {
           HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 8) {
-              Text("NOW PLAYING")
+              Text(model.nowPlayingLabel)
                 .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
                 .foregroundColor(Color(hex: "#C7C7C7"))
 
@@ -117,13 +100,13 @@ struct PlayerPage: View {
 
           // Live indicator
           HStack(spacing: 8) {
-            Text("ON AIR")
+            Text(model.onAirLabel)
               .font(.custom(FontNames.Inter_400_Regular, size: 12))
               .foregroundColor(.gray)
 
             Spacer()
 
-            Text("LIVE")
+            Text(model.liveLabel)
               .font(.custom(FontNames.Inter_400_Regular, size: 12))
               .foregroundColor(.gray)
 
@@ -170,7 +153,7 @@ struct PlayerPage: View {
               HStack(spacing: 8) {
                 Image(systemName: "mic.fill")
                   .font(.system(size: 14))
-                Text("Ask the Artist")
+                Text(model.askArtistLabel)
                   .font(.custom(FontNames.Inter_500_Medium, size: 14))
               }
               .foregroundColor(.white)
@@ -210,6 +193,42 @@ struct PlayerPage: View {
     .background(Color.black)
     .onChange(of: scenePhase) { _, newValue in
       model.scenePhaseChanged(newPhase: newValue)
+    }
+  }
+}
+
+// The square station-art hero. `.aspectRatio(1, contentMode: .fit)` sizes it to a
+// square of the proposed (container) width synchronously on first layout, so the
+// slot never collapses to zero and content doesn't jump. The rendered width is
+// captured into `side` and used to size the `WebImage` downsample target; the URL
+// is withheld until `side` is known so the image is never decoded at a zero (i.e.
+// unbounded, full-resolution) size.
+private struct HeroArtwork: View {
+  let url: URL?
+  let displayScale: CGFloat
+
+  @State private var side: CGFloat = 0
+
+  var body: some View {
+    WebImage(
+      url: side > 0 ? url : nil,
+      context: RemoteArtwork.downsampleContext(
+        CGSize(width: side, height: side),
+        scale: displayScale)
+    ) { image in
+      image
+        .resizable()
+        .aspectRatio(contentMode: .fill)
+    } placeholder: {
+      Color(white: 0.2)
+    }
+    .aspectRatio(1, contentMode: .fit)
+    .onGeometryChange(for: CGFloat.self) { proxy in
+      proxy.size.width
+    } action: { width in
+      // Ignore transient zero-width passes so a measured size is never cleared
+      // (which would drop the loaded image back to the placeholder).
+      if width > 0 { side = width }
     }
   }
 }

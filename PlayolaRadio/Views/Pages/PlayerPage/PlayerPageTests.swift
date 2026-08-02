@@ -909,4 +909,20 @@ struct PlayerPageTests {
 
     #expect(navCoordinator.path.isEmpty)
   }
+
+  // MARK: - Static Label Tests
+
+  @Test
+  func testStaticLabels() {
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
+
+    #expect(model.nowPlayingLabel == "NOW PLAYING")
+    #expect(model.onAirLabel == "ON AIR")
+    #expect(model.liveLabel == "LIVE")
+    #expect(model.askArtistLabel == "Ask the Artist")
+  }
 }

@@ -236,4 +236,10 @@ class PlayerPageModel: ViewModel {
     mainContainerNavigationCoordinator.path.append(.askQuestionPage(model))
     onDismiss?()
   }
+
+  // MARK: - View Helpers
+  var nowPlayingLabel: String { "NOW PLAYING" }
+  var onAirLabel: String { "ON AIR" }
+  var liveLabel: String { "LIVE" }
+  var askArtistLabel: String { "Ask the Artist" }
 }
