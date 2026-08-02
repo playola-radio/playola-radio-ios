@@ -567,6 +567,15 @@ extension FRadioPlayer {
     } else {
       // Audio file
       self.duration = Double(CMTimeGetSeconds(duration))
+
+      // Remove any existing observer first — durationDidChange can fire more than
+      // once as the asset becomes ready, and re-adding without removing stacks
+      // observers, duplicating periodic callbacks.
+      if let timeObserver = self.timeObserver {
+        player?.removeTimeObserver(timeObserver)
+        self.timeObserver = nil
+      }
+
       let interval = CMTime(seconds: 0.5, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
 
       timeObserver = player?.addPeriodicTimeObserver(

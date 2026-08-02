@@ -18,10 +18,15 @@ struct DefaultMetadataExtractor: FRadioMetadataExtractor {
 
     let rawValue = groups.first?.items.first?.value as? String
     let rawValueCleaned = cleanRawMetadataIfNeeded(rawValue)
-    let parts = rawValueCleaned?.components(separatedBy: " - ")
+    // Split on the FIRST " - " only: "Artist - Song - Live" is artist "Artist"
+    // and track "Song - Live", not "Live" (splitting on every delimiter dropped
+    // the middle segment).
+    let parts = rawValueCleaned?.components(separatedBy: " - ") ?? []
+    let artistName = parts.first
+    let trackName = parts.count > 1 ? parts.dropFirst().joined(separator: " - ") : nil
 
     return FRadioPlayer.Metadata(
-      artistName: parts?.first, trackName: parts?.last, rawValue: rawValueCleaned, groups: groups)
+      artistName: artistName, trackName: trackName, rawValue: rawValueCleaned, groups: groups)
   }
 
   private func cleanRawMetadataIfNeeded(_ rawValue: String?) -> String? {
@@ -29,7 +34,9 @@ struct DefaultMetadataExtractor: FRadioMetadataExtractor {
     // Strip off trailing '[???]' characters left there by ShoutCast and Centova Streams
     // It will leave the string alone if the pattern is not there
 
-    let pattern = #"(\(.*?\)\w*)|(\[.*?\]\w*)"#
+    // Anchor to the END of the string so only trailing markers are stripped —
+    // legitimate metadata like "Song (Live)" or "[Remastered]" mid-string is kept.
+    let pattern = #"(?:\s*(?:\([^)]*\)|\[[^\]]*\]))+$"#
     guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
       return rawValue
     }
