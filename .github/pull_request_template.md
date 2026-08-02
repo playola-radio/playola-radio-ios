@@ -6,7 +6,8 @@
 ## Long-running work
 
 - [ ] This PR does **not** advance/start a long-running effort, **or** I updated
-      [`LONG_RUNNING.md`](../LONG_RUNNING.md) in this PR (step / soak / phase).
+      [`LONG_RUNNING.md`](https://github.com/playola-radio/playola-radio-ios/blob/develop/LONG_RUNNING.md)
+      in this PR (step / soak / phase).
 
 <!--
 LONG_RUNNING.md tracks anything spanning >1 PR or carrying a production soak.
