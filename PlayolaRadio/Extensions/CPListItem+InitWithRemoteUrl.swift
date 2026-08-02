@@ -6,6 +6,7 @@
 //
 @preconcurrency import CarPlay
 import Foundation
+import ImageIO
 import UIKit
 
 // MARK: - Image Loader Actor
@@ -16,6 +17,11 @@ actor CarPlayImageLoader {
 
   private let cache = NSCache<NSURL, UIImage>()
   private var activeTasks: [URL: Task<UIImage?, Never>] = [:]
+
+  /// Max pixel size for downsampled CarPlay list thumbnails. CarPlay rows show
+  /// artwork at roughly 44–60pt; 200px covers that comfortably on high-scale
+  /// displays while keeping the decoded bitmap tiny.
+  private static let maxThumbnailPixelSize: CGFloat = 200
 
   private let urlSession: URLSession = {
     let config = URLSessionConfiguration.default
@@ -49,7 +55,14 @@ actor CarPlayImageLoader {
     let task = Task { () -> UIImage? in
       do {
         let (data, _) = try await urlSession.data(from: url)
-        guard let image = UIImage(data: data) else {
+        // Downsample to CarPlay's small thumbnail size. Station artwork is
+        // full-resolution (often >1000px); decoding it whole is slow and holds
+        // multi-MB bitmaps in memory just to draw a ~60pt row image. A thumbnail
+        // decode is far faster and tiny.
+        guard
+          let image = Self.downsampledImage(
+            from: data, maxPixelSize: Self.maxThumbnailPixelSize)
+        else {
           print("CarPlay image loading failed: Invalid image data from \(url)")
           return nil
         }
@@ -78,6 +91,26 @@ actor CarPlayImageLoader {
   func cancelLoading(for url: URL) {
     activeTasks[url]?.cancel()
     activeTasks[url] = nil
+  }
+
+  /// Decodes `data` directly to a thumbnail no larger than `maxPixelSize` on its
+  /// long edge via ImageIO, without ever materializing the full-resolution bitmap.
+  static func downsampledImage(from data: Data, maxPixelSize: CGFloat) -> UIImage? {
+    let sourceOptions = [kCGImageSourceShouldCache: false] as CFDictionary
+    guard let source = CGImageSourceCreateWithData(data as CFData, sourceOptions) else {
+      return nil
+    }
+    let options =
+      [
+        kCGImageSourceCreateThumbnailFromImageAlways: true,
+        kCGImageSourceCreateThumbnailWithTransform: true,
+        kCGImageSourceShouldCacheImmediately: true,
+        kCGImageSourceThumbnailMaxPixelSize: maxPixelSize,
+      ] as CFDictionary
+    guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, options) else {
+      return nil
+    }
+    return UIImage(cgImage: cgImage)
   }
 
   func clearCache() {

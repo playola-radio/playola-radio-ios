@@ -6,7 +6,6 @@
 //
 import Combine
 import Dependencies
-import FRadioPlayer
 import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
@@ -25,6 +24,7 @@ class StationPlayer: ObservableObject {
   enum PlaybackStatus: Codable, Equatable {
     case startingNewStation(AnyStation)
     case playing(AnyStation)
+    case paused(AnyStation)
     case stopped
     case loading(AnyStation, Float? = nil)
     case error
@@ -42,12 +42,19 @@ class StationPlayer: ObservableObject {
   @Published var isSeeking = false
   let authProvider: PlayolaTokenProvider = .init()
 
+  /// True only while playback is paused because the coordinator told us to
+  /// (interruption / route loss). Gates auto-resume so we never resume after the
+  /// user explicitly stopped, and never double-resume on repeated events.
+  private var pausedBySystem = false
+
   /// The currently playing radio station, if any
   public var currentStation: AnyStation? {
     switch state.playbackStatus {
     case .startingNewStation(let station):
       return station
     case .playing(let station):
+      return station
+    case .paused(let station):
       return station
     case .loading(let station, _):
       return station
@@ -59,7 +66,8 @@ class StationPlayer: ObservableObject {
   // MARK: Dependencies
 
   var urlStreamPlayer: URLStreamPlayer
-  var playolaStationPlayer: PlayolaStationPlayer
+  var playolaStationPlayer: any PlayolaTransport
+  let audioSessionCoordinator: AudioSessionCoordinator
 
   // The Combine subscriptions below capture `self` weakly so the cancellable
   // owned by this StationPlayer is the only thing keeping each subscription
@@ -68,11 +76,14 @@ class StationPlayer: ObservableObject {
   // StationPlayer is a dependency-injected service.
   init(
     urlStreamPlayer: URLStreamPlayer? = nil,
-    playolaStationPlayer: PlayolaStationPlayer? = nil
+    playolaStationPlayer: (any PlayolaTransport)? = nil,
+    audioSessionCoordinator: AudioSessionCoordinator? = nil
   ) {
     @Dependency(\.urlStreamPlayer) var injectedUrlStreamPlayer
+    @Dependency(\.audioSessionCoordinator) var injectedCoordinator
     self.urlStreamPlayer = urlStreamPlayer ?? injectedUrlStreamPlayer
-    self.playolaStationPlayer = playolaStationPlayer ?? .shared
+    self.playolaStationPlayer = playolaStationPlayer ?? PlayolaStationPlayer.shared
+    self.audioSessionCoordinator = audioSessionCoordinator ?? injectedCoordinator
 
     self.urlStreamPlayer.$state
       .sink { [weak self] state in
@@ -86,7 +97,7 @@ class StationPlayer: ObservableObject {
       }
       .store(in: &disposeBag)
 
-    self.playolaStationPlayer.$state
+    self.playolaStationPlayer.statePublisher
       .sink { [weak self] state in
         self?.processPlayolaStationPlayerState(state)
       }
@@ -94,6 +105,11 @@ class StationPlayer: ObservableObject {
 
     self.playolaStationPlayer.configure(
       authProvider: self.authProvider, baseURL: Config.shared.baseUrl)
+
+    // Become the interruption/route delegate LAST — after the subscriptions and
+    // SDK configure are in place — so an interruption arriving mid-init can't
+    // drive pause/resume before global state is coherent.
+    self.audioSessionCoordinator.delegate = self
   }
 
   // MARK: Public Interface
@@ -105,6 +121,17 @@ class StationPlayer: ObservableObject {
     stop()
     state = State(playbackStatus: .startingNewStation(station))
     state = State(playbackStatus: .loading(station))
+
+    // The app now owns the AVAudioSession: activate it BEFORE either backend.
+    // The SDK no longer activates the session, so without this the SDK's
+    // engine.start() would throw deep in playback. A config failure must surface
+    // as .error, not be swallowed.
+    do {
+      try audioSessionCoordinator.configureForPlayback()
+    } catch {
+      handlePlayFailure(error)
+      return
+    }
 
     switch station {
     case .url(let urlStation):
@@ -141,9 +168,40 @@ class StationPlayer: ObservableObject {
 
   /// Stops the currently playing station
   public func stop() {
+    pausedBySystem = false
     urlStreamPlayer.reset()
     playolaStationPlayer.stop()
     state = State(playbackStatus: .stopped)
+  }
+
+  /// Pauses whichever backend is active (driven by interruptions / route loss).
+  /// Routes Playola through the SDK's pauseForInterruption(); URL stations
+  /// through the vendored player. No-op when nothing is playing.
+  func pause() {
+    switch currentStation {
+    case .some(.playola): playolaStationPlayer.pauseForInterruption()
+    case .some(.url): urlStreamPlayer.pause()
+    case .none: break
+    }
+  }
+
+  /// Resumes the active backend after an interruption. We own the session now,
+  /// so reactivate it first; a failure surfaces as .error via handlePlayFailure.
+  func resume() async {
+    // Clearing here also covers the manual lock-screen resume path, so a stale
+    // interruption-ended event can't trigger a second resume.
+    pausedBySystem = false
+    guard currentStation != nil else { return }
+    do {
+      try audioSessionCoordinator.configureForPlayback()
+      switch currentStation {
+      case .some(.playola): try await playolaStationPlayer.resumeAfterInterruption()
+      case .some(.url): urlStreamPlayer.resume()
+      case .none: break
+      }
+    } catch {
+      handlePlayFailure(error)
+    }
   }
 
   /// Seeks to the next station in the artist list, wrapping around if at the end
@@ -240,6 +298,21 @@ class StationPlayer: ObservableObject {
         )
       }
 
+    // `.paused` is published by the SDK when the host pauses playback for an
+    // interruption (phone call, Siri, route loss). Keep the interrupted spin's
+    // metadata so the lock screen keeps showing what was playing and offers a
+    // play button to resume.
+    case .paused(let spin):
+      if let currentStation {
+        state = .init(
+          playbackStatus: .paused(currentStation),
+          artistPlaying: spin.audioBlock.artist,
+          titlePlaying: spin.audioBlock.title,
+          albumArtworkUrl: spin.audioBlock.imageUrl,
+          playolaSpinPlaying: spin
+        )
+      }
+
     // `.error` is PlayolaPlayer 0.19.0's terminal failure (e.g. the schedule
     // fetch exhausted its retries); `.none` is an unexpected empty state. Both
     // surface the recoverable `.error` state so the user sees the error and can
@@ -266,6 +339,19 @@ class StationPlayer: ObservableObject {
     // (e.g. dismissing CarPlay's Now Playing, or mislabeling it with URL
     // metadata). Real stops are driven by `stop()`, which sets `.stopped`.
     if case .playola = currentStation { return }
+    // A URL stream paused for an interruption: FRadioPlayer reports
+    // playbackState == .paused while playerStatus stays .loadingFinished, so map
+    // it to .paused here instead of letting the playerStatus switch below report
+    // .playing with a rate of 1.0.
+    if urlStreamPlayerState.playbackState == .paused, let currentStation {
+      state = State(
+        playbackStatus: .paused(currentStation),
+        artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
+        titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
+        albumArtworkUrl: state.albumArtworkUrl  // keep artwork across the pause
+      )
+      return
+    }
     switch urlStreamPlayerState.playerStatus {
     case .loading:
       guard let currentStation else {
@@ -299,6 +385,71 @@ class StationPlayer: ObservableObject {
       albumArtworkUrl: albumArtworkURL,
       playolaSpinPlaying: state.playolaSpinPlaying
     )
+  }
+}
+
+// MARK: - AudioInterruptionDelegate
+
+extension StationPlayer: AudioInterruptionDelegate {
+  /// The coordinator detected an interruption begin or a personal-listening
+  /// route loss. Arm auto-resume only for interruptions (`shouldAutoResume`);
+  /// a route loss requires manual resume (lock-screen play), so we do not arm
+  /// the flag and a later unrelated `.shouldResume` cannot restart it.
+  func audioSessionShouldPause(shouldAutoResume: Bool) {
+    // Only arm auto-resume when we were actively playing. If we are already
+    // paused (e.g. a prior route loss that requires manual resume), a later
+    // interruption must not flip the flag back on — otherwise its `.shouldResume`
+    // would restart audio that route-loss recovery deliberately left paused.
+    let wasActivelyPlaying: Bool
+    switch state.playbackStatus {
+    case .playing, .loading, .startingNewStation:
+      wasActivelyPlaying = true
+    case .paused, .stopped, .error:
+      wasActivelyPlaying = false
+    }
+    pausedBySystem = shouldAutoResume && wasActivelyPlaying
+    pause()
+  }
+
+  /// The coordinator says the interruption ended with `.shouldResume`. Only
+  /// resume if the system paused us (not if the user stopped meanwhile) — which
+  /// also guards against double-resume on repeated events.
+  func audioSessionShouldResume() {
+    guard pausedBySystem else { return }
+    pausedBySystem = false
+    Task { @MainActor in
+      // Re-check on the next turn: if the user switched stations or stopped
+      // between the interruption ending and this Task running, we are no longer
+      // paused and must not resume a superseded station/backend. Also bail if a
+      // second interruption re-armed pausedBySystem before this Task ran —
+      // resuming during an active interruption would silence the wrong session.
+      guard case .paused = self.state.playbackStatus, !self.pausedBySystem else { return }
+      await self.resume()
+    }
+  }
+}
+
+// MARK: - PlayolaTransport
+
+/// Minimal transport seam over the PlayolaPlayer SDK so `StationPlayer` can be
+/// driven by a spy in tests (the SDK type is a concrete `@MainActor` class that
+/// is awkward to fake directly). Conformed by `PlayolaStationPlayer` below.
+@MainActor
+protocol PlayolaTransport: AnyObject {
+  var statePublisher: AnyPublisher<PlayolaStationPlayer.State, Never> { get }
+  func configure(authProvider: PlayolaAuthenticationProvider, baseURL: URL)
+  func play(stationId: String) async throws
+  func stop()
+  func pauseForInterruption()
+  func resumeAfterInterruption() async throws
+}
+
+extension PlayolaStationPlayer: PlayolaTransport {
+  var statePublisher: AnyPublisher<PlayolaStationPlayer.State, Never> {
+    $state.eraseToAnyPublisher()
+  }
+  func play(stationId: String) async throws {
+    try await play(stationId: stationId, atDate: nil)
   }
 }
 

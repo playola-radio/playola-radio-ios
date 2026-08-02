@@ -29,3 +29,6 @@ DerivedData/
 
 # Swift compile cache from CLI xcodebuild runs
 .swift-cache/
+
+# Local Swift package build artifacts
+LocalPackages/**/.build/

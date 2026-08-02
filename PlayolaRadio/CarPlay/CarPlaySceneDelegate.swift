@@ -7,7 +7,6 @@
 @preconcurrency import CarPlay
 import Combine
 import Dependencies
-import FRadioPlayer
 import IdentifiedCollections
 import Sharing
 
@@ -38,7 +37,21 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   @Dependency(\.analytics) var analytics
   @Dependency(\.stationPlayer) var stationPlayer
 
-  private var isTransitioningToNowPlaying = false
+  /// True while a CarPlay push/pop is animating. Every navigation op is async, so
+  /// issuing a second one before the first completes can overlap and re-trigger the
+  /// "same template instance" rejection. Set before a push/pop, cleared in its
+  /// completion (unlike the old synchronous `defer` guard, which cleared before the
+  /// op ever finished and therefore serialized nothing).
+  private var navigationInFlight = false
+
+  /// The most recent desired Now Playing visibility requested while a navigation
+  /// op was in flight. Applied when that op completes (latest wins), so a rapid
+  /// stop→play can't strand us in the wrong state.
+  private var pendingNowPlayingVisible: Bool?
+
+  /// Incremented for each nav op so the watchdog can tell whether the op it was
+  /// scheduled for is still the one in flight (vs. already completed and replaced).
+  private var navigationGeneration = 0
 
   override init() {
     super.init()
@@ -52,7 +65,14 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     Task { @MainActor in
       await stationPlayer.play(station: station)
     }
-    showNowPlayingTemplate()
+
+    // Show Now Playing immediately on tap, routed through the SAME serialized
+    // reconciler as the observer — not a second, racing writer (that was half of
+    // the "stuck on the list" bug). Going through `setNowPlaying` also covers
+    // re-tapping the already-playing station: `play()` early-returns without a
+    // status change, so the observer emits nothing and only this call surfaces
+    // Now Playing.
+    setNowPlaying(visible: true)
   }
 
   private func sectionFromStations(_ stations: [AnyStation]) -> CPListSection {
@@ -112,7 +132,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         // controller exists) and is then deduplicated, so without this replay a
         // session already playing/loading/erroring when CarPlay connects would be
         // stuck on the station list until the next real status transition.
-        self.applyPlaybackTransition(for: self.stationPlayer.state.playbackStatus)
+        self.apply(CarPlayPlaybackTransition.action(for: self.stationPlayer.state.playbackStatus))
       }
     }
   }
@@ -124,63 +144,18 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     MainActor.assumeIsolated {
       self.interfaceController = nil
 
+      // Reset navigation state: a push/pop that was mid-flight when CarPlay
+      // disconnected will never call its completion, so without this
+      // `navigationInFlight` would stay true and block every future transition
+      // after a reconnect (this delegate instance is reused).
+      navigationInFlight = false
+      pendingNowPlayingVisible = nil
+
       for observer in observers {
         observer.cancel()
       }
       observers.removeAll()
       CPListItem.clearImageCache()
-    }
-  }
-
-  private func showNowPlayingTemplate(animated: Bool = true) {
-    guard let interfaceController = interfaceController else {
-      print("No interface controller available")
-      return
-    }
-
-    // Prevent overlapping transitions
-    guard !isTransitioningToNowPlaying else {
-      print("Already transitioning to now playing, ignoring")
-      return
-    }
-
-    defer { isTransitioningToNowPlaying = false }
-    isTransitioningToNowPlaying = true
-
-    print("showNowPlayingTemplate called")
-    print("Current top template: \(String(describing: interfaceController.topTemplate))")
-    print("Templates in stack: \(interfaceController.templates.count)")
-    print(
-      "Now playing template in stack: \(interfaceController.templates.contains(CPNowPlayingTemplate.shared))"
-    )
-
-    // Don't do anything if already showing
-    if interfaceController.topTemplate == CPNowPlayingTemplate.shared {
-      print("Already showing now playing template, returning")
-      return
-    }
-
-    // Check if it's already in the stack
-    if interfaceController.templates.contains(CPNowPlayingTemplate.shared) {
-      print("Now playing template in stack, popping to it")
-      interfaceController.pop(to: CPNowPlayingTemplate.shared, animated: animated) {
-        _, error in
-        if let error = error {
-          print("Error popping to now playing template: \(error)")
-        } else {
-          print("Successfully popped to now playing template")
-        }
-      }
-    } else {
-      print("Pushing now playing template to stack")
-      interfaceController.pushTemplate(CPNowPlayingTemplate.shared, animated: animated) {
-        _, error in
-        if let error = error {
-          print("Error pushing now playing template: \(error)")
-        } else {
-          print("Successfully pushed now playing template")
-        }
-      }
     }
   }
 
@@ -195,24 +170,32 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     // every such update would re-run the template logic and (because `.playing`
     // shows Now Playing) yank the user back to Now Playing while they are browsing
     // the station list mid-playback.
+    // Dedupe on the CarPlay *action*, not the raw `playbackStatus`. The Playola
+    // SDK streams `.loading(station, progress)` with a changing progress float on
+    // every buffering tick, so `removeDuplicates()` on the status never collapses
+    // them and `handleStationLoading()` fires hundreds of times — each re-pushing
+    // `CPNowPlayingTemplate.shared`, which CarPlay rejects ("Pushing the same
+    // template instance more than once"), stranding the user on the station list.
+    // `.loading` and `.playing` both map to `.showNowPlaying`, so deduping on the
+    // action collapses the whole flood to a single push.
     stationPlayer.$state
-      .map(\.playbackStatus)
+      .map { CarPlayPlaybackTransition.action(for: $0.playbackStatus) }
       .removeDuplicates()
-      .sink { [weak self] playbackStatus in
-        self?.applyPlaybackTransition(for: playbackStatus)
+      .sink { [weak self] action in
+        self?.apply(action)
       }
       .store(in: &observers)
   }
 
-  /// Translates a playback status into the corresponding CarPlay template change.
-  /// Shared by the live `$state` observer and the `didConnect` replay so both
-  /// paths run through the same (unit-tested) `CarPlayPlaybackTransition` logic.
+  /// Applies a CarPlay template change for the given transition action. Shared by
+  /// the live `$state` observer and the `didConnect` replay so both paths run
+  /// through the same (unit-tested) `CarPlayPlaybackTransition` logic.
   ///
-  /// `.playing` shows Now Playing too (not a no-op): if a stray `.stopped` ever
-  /// dismissed it, the next transition into `.playing` restores it instead of
-  /// leaving the user stuck on the station list.
-  private func applyPlaybackTransition(for playbackStatus: StationPlayer.PlaybackStatus) {
-    switch CarPlayPlaybackTransition.action(for: playbackStatus) {
+  /// `.showNowPlaying` fires for `.playing` too (not just `.loading`): if a stray
+  /// `.stopped` ever dismissed Now Playing, the next transition into `.playing`
+  /// restores it instead of leaving the user stuck on the station list.
+  private func apply(_ action: CarPlayPlaybackTransition.Action) {
+    switch action {
     case .showNowPlaying:
       handleStationLoading()
     case .removeNowPlaying:
@@ -225,69 +208,106 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   }
 
   private func handleStationLoading() {
-    guard let interfaceController = interfaceController else { return }
+    guard let interfaceController else { return }
 
-    // 1) Dismiss any alerts
-    if let presentedTemplate = interfaceController.presentedTemplate {
-      print("Dismissing presented template: \(presentedTemplate)")
-      interfaceController.dismissTemplate(animated: true) { _, error in
-        if let error = error {
-          print("Error dismissing template: \(error)")
-        }
-      }
-    }
-
-    // 2) If the now playing template is showing, do nothing
-    if interfaceController.topTemplate == CPNowPlayingTemplate.shared {
-      print("Now playing template already showing, no action needed")
-      return
-    }
-
-    // 3) If there is a nowplaying template on the stack, pop to it
-    if interfaceController.templates.contains(CPNowPlayingTemplate.shared) {
-      print("Now playing template in stack, popping to it")
-      interfaceController.pop(to: CPNowPlayingTemplate.shared, animated: true) { _, error in
-        if let error = error {
-          print("Error popping to now playing template: \(error)")
-        } else {
-          print("Successfully popped to now playing template")
-        }
+    // If an alert (e.g. a prior "Unable to Connect") is up, dismiss it first and
+    // show Now Playing from the dismissal completion so the two CarPlay animations
+    // don't overlap. No alert: show immediately.
+    if interfaceController.presentedTemplate != nil {
+      interfaceController.dismissTemplate(animated: true) { [weak self] _, _ in
+        self?.setNowPlaying(visible: true)
       }
     } else {
-      // 4) If there is no nowplaying template on the stack, push to it
-      print("Pushing now playing template to stack")
-      interfaceController.pushTemplate(CPNowPlayingTemplate.shared, animated: true) {
-        _, error in
-        if let error = error {
-          print("Error pushing now playing template: \(error)")
-        } else {
-          print("Successfully pushed now playing template")
-        }
-      }
+      setNowPlaying(visible: true)
     }
   }
 
   private func handleStationStopped() {
-    guard let interfaceController = interfaceController else { return }
+    // Don't leave Now Playing while we're just seeking to another station.
+    if stationPlayer.isSeeking { return }
+    setNowPlaying(visible: false)
+  }
 
-    // Don't dismiss if we're just seeking to another station
-    if stationPlayer.isSeeking {
-      print("Station stopped during seek - keeping now playing template")
+  /// Serialized reconciler toward "Now Playing visible" or "station list visible".
+  ///
+  /// All decisions use `topTemplate` (reliable), never `templates.contains(_:)`:
+  /// under a `CPTabBarTemplate` root that array does NOT include the shared Now
+  /// Playing singleton, so it reports `false` even when CarPlay still holds the
+  /// instance — trusting it made the code push a second time, which CarPlay rejects
+  /// with "Pushing the same template instance more than once", stranding the user
+  /// on the station list.
+  ///
+  /// Only one push/pop runs at a time (`navigationInFlight`); a request that
+  /// arrives mid-animation is coalesced into `pendingNowPlayingVisible` and applied
+  /// on completion.
+  private func setNowPlaying(visible: Bool) {
+    guard let interfaceController else { return }
+
+    guard !navigationInFlight else {
+      pendingNowPlayingVisible = visible
       return
     }
 
-    // If Now Playing template is in the stack, remove it by popping back to root
-    if interfaceController.templates.contains(CPNowPlayingTemplate.shared) {
-      print("Station stopped - removing now playing template from stack")
-      interfaceController.popToRootTemplate(animated: true) { _, error in
-        if let error = error {
-          print("Error popping to root after stop: \(error)")
-        } else {
-          print("Successfully removed now playing template after stop")
+    let isShowing = interfaceController.topTemplate == CPNowPlayingTemplate.shared
+    guard visible != isShowing else {
+      pendingNowPlayingVisible = nil  // desired state reached; drop any stale intent
+      return
+    }
+
+    navigationInFlight = true
+    navigationGeneration += 1
+    scheduleNavigationWatchdog(for: navigationGeneration)
+    if visible {
+      interfaceController.pushTemplate(CPNowPlayingTemplate.shared, animated: true) {
+        [weak self] _, error in
+        guard let self else { return }
+        guard error != nil else {
+          self.navigationCompleted()
+          return
+        }
+        // Push rejected — the shared singleton is already in the hierarchy. Surface
+        // that existing instance instead of failing. One push, one recovery pop;
+        // never recurse.
+        self.interfaceController?.pop(to: CPNowPlayingTemplate.shared, animated: true) {
+          [weak self] _, _ in
+          self?.navigationCompleted()
         }
       }
     } else {
-      print("Station stopped - now playing template not in stack")
+      interfaceController.popToRootTemplate(animated: true) { [weak self] _, _ in
+        self?.navigationCompleted()
+      }
+    }
+  }
+
+  private func navigationCompleted() {
+    navigationInFlight = false
+    guard let pending = pendingNowPlayingVisible else { return }
+    pendingNowPlayingVisible = nil
+    setNowPlaying(visible: pending)
+  }
+
+  /// Failsafe for a dropped CarPlay completion. Push/pop completions are normally
+  /// always delivered, but if one is ever lost during transient controller
+  /// disruption (without a full disconnect, which already resets state),
+  /// `navigationInFlight` would stay true and silently block every future
+  /// transition. If the op that bumped `generation` is still in flight after a
+  /// grace period, clear the gate and re-reconcile from the current player state.
+  private func scheduleNavigationWatchdog(for generation: Int) {
+    Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .seconds(2))
+      guard let self,
+        self.navigationInFlight,
+        self.navigationGeneration == generation
+      else { return }  // completed normally, or superseded by a newer op
+
+      self.navigationInFlight = false
+      if let pending = self.pendingNowPlayingVisible {
+        self.pendingNowPlayingVisible = nil
+        self.setNowPlaying(visible: pending)
+      } else {
+        self.apply(CarPlayPlaybackTransition.action(for: self.stationPlayer.state.playbackStatus))
+      }
     }
   }
 
@@ -326,24 +346,17 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   }
 
   private func popToStationList() {
-    guard let interfaceController = interfaceController else { return }
+    guard let interfaceController else { return }
 
-    // First dismiss any presented alert
+    // Dismiss the alert, then return to the list via the shared reconciler.
+    // Routing through `setNowPlaying(visible:)` keeps a single navigation writer
+    // and avoids `templates.count`, which is unreliable under a tab-bar root.
     if interfaceController.presentedTemplate != nil {
-      interfaceController.dismissTemplate(animated: true) { _, error in
-        if let error = error {
-          print("Error dismissing template: \(error)")
-        }
+      interfaceController.dismissTemplate(animated: true) { [weak self] _, _ in
+        self?.setNowPlaying(visible: false)
       }
-    }
-
-    // If we're not already at the root, pop to it
-    if interfaceController.templates.count > 1 {
-      interfaceController.popToRootTemplate(animated: true) { _, error in
-        if let error = error {
-          print("Error popping to root: \(error)")
-        }
-      }
+    } else {
+      setNowPlaying(visible: false)
     }
   }
 
