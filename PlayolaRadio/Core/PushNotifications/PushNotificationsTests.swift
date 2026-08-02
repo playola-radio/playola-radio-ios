@@ -9,6 +9,7 @@ import ConcurrencyExtras
 import CustomDump
 import Dependencies
 import Foundation
+import IdentifiedCollections
 import Sharing
 import Testing
 
@@ -134,6 +135,7 @@ struct PushNotificationsTests {
         }
         $0.pushNotifications.handleNotificationTap = { userInfo in
           handledPayload.setValue(userInfo.compactMapValues { $0 as? String })
+          return true
         }
       } operation: {
         let appDelegate = AppDelegate()
@@ -156,6 +158,33 @@ struct PushNotificationsTests {
   }
 
   @Test
+  func testHandleNotificationResponseKeepsDeliveredNotificationWhenPayloadIsUnhandled() async {
+    let removedIdentifiers = LockIsolated<[String]>([])
+    let completionCalled = LockIsolated(false)
+
+    await withMainSerialExecutor {
+      await withDependencies {
+        $0.pushNotifications.removeDeliveredNotification = { identifier in
+          removedIdentifiers.withValue { $0.append(identifier) }
+        }
+        $0.pushNotifications.handleNotificationTap = { _ in false }
+      } operation: {
+        let appDelegate = AppDelegate()
+        appDelegate.handleNotificationResponse(
+          identifier: "notification-123",
+          userInfo: [:]
+        ) {
+          completionCalled.setValue(true)
+        }
+        await Task.yield()
+      }
+    }
+
+    expectNoDifference(removedIdentifiers.value, [])
+    #expect(completionCalled.value)
+  }
+
+  @Test
   func testHandleNotificationResponsePlaysStation() async {
     let playedStationId = LockIsolated<String?>(nil)
 
@@ -164,14 +193,25 @@ struct PushNotificationsTests {
         if let stationId = userInfo["stationId"] as? String {
           playedStationId.setValue(stationId)
         }
+        return true
       }
     } operation: {
       @Dependency(PushNotificationsClient.self) var pushNotifications
       let userInfo: [String: any Sendable] = ["stationId": "station-abc"]
-      await pushNotifications.handleNotificationTap(userInfo)
+      _ = await pushNotifications.handleNotificationTap(userInfo)
     }
 
     #expect(playedStationId.value == "station-abc")
+  }
+
+  @Test
+  func testHandleNotificationTapReturnsFalseWhenStationIsUnavailable() async {
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
+    let handled = await PushNotificationsClient.liveValue.handleNotificationTap([
+      "stationId": "station-abc"
+    ])
+
+    #expect(!handled)
   }
 
   // MARK: - Support Notification Badge Handling
@@ -265,8 +305,9 @@ struct PushNotificationsTests {
       "type": "support_message",
       "conversationId": "conv-123",
     ]
-    await PushNotificationsClient.liveValue.handleNotificationTap(userInfo)
+    let handled = await PushNotificationsClient.liveValue.handleNotificationTap(userInfo)
 
+    #expect(handled)
     #expect(refreshNotificationPosted.value)
   }
 
@@ -285,7 +326,8 @@ struct PushNotificationsTests {
         id: "e", stationId: "s", prizeName: "Two tickets", winningNumber: 9, tapNumber: 5,
         status: .resolvedLost(toastShown: true), tappedAt: Date())
     ]
-    await PushNotificationsClient.liveValue.handleGiveawayWinnerPush(winnerPayload())
+    let handled = await PushNotificationsClient.liveValue.handleGiveawayWinnerPush(winnerPayload())
+    #expect(handled)
     #expect(
       participations["e"]?.status
         == GiveawayParticipationStatus.resolvedWon(submissionCompleted: false))
@@ -299,7 +341,8 @@ struct PushNotificationsTests {
         status: .resolvedWon(submissionCompleted: true), tappedAt: Date(),
         winnerSheetPresentedAt: presentedAt)
     ]
-    await PushNotificationsClient.liveValue.handleGiveawayWinnerPush(winnerPayload())
+    let handled = await PushNotificationsClient.liveValue.handleGiveawayWinnerPush(winnerPayload())
+    #expect(handled)
     // Untouched: a completed claim must not be reset, and the presentation stamp must survive.
     #expect(
       participations["e"]?.status
@@ -317,7 +360,8 @@ struct PushNotificationsTests {
     ]
     var payload = winnerPayload()
     payload["submissionCompleted"] = true
-    await PushNotificationsClient.liveValue.handleGiveawayWinnerPush(payload)
+    let handled = await PushNotificationsClient.liveValue.handleGiveawayWinnerPush(payload)
+    #expect(handled)
     // A pending win must flip to completed (claimed on another device) so the arbiter stops
     // re-presenting the form — while the original presentation stamp survives.
     #expect(
@@ -328,7 +372,8 @@ struct PushNotificationsTests {
 
   @Test func winnerPushCreatesParticipationOnReinstall() async {
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
-    await PushNotificationsClient.liveValue.handleGiveawayWinnerPush(winnerPayload())
+    let handled = await PushNotificationsClient.liveValue.handleGiveawayWinnerPush(winnerPayload())
+    #expect(handled)
     #expect(
       participations["e"]?.status
         == GiveawayParticipationStatus.resolvedWon(submissionCompleted: false))
@@ -337,9 +382,10 @@ struct PushNotificationsTests {
 
   @Test func nonGiveawayPushIsIgnored() async {
     @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
-    await PushNotificationsClient.liveValue.handleGiveawayWinnerPush([
+    let handled = await PushNotificationsClient.liveValue.handleGiveawayWinnerPush([
       "type": "giveaway_closed", "eventId": "e",
     ])
+    #expect(!handled)
     #expect(participations.isEmpty)
   }
 
@@ -348,10 +394,11 @@ struct PushNotificationsTests {
   @Test func pendingPushCreatesPendingCongrats() async {
     @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
     $actions.withLock { $0 = [:] }
-    await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
+    let handled = await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
       "type": "giveaway_winner_pending", "eventId": "e1", "stationId": "s1",
       "winnerName": "Jo", "prizeName": "Two tickets",
     ])
+    #expect(handled)
     #expect(actions["e1"]?.state == .pending)
     #expect(actions["e1"]?.winnerName == "Jo")
     #expect(actions["e1"]?.prizeName == "Two tickets")
@@ -366,9 +413,10 @@ struct PushNotificationsTests {
           state: .recorded(localRecordingPath: "/tmp/r.m4a"), startedAt: Date())
       ]
     }
-    await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
+    let handled = await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
       "type": "giveaway_winner_pending", "eventId": "e1", "stationId": "s1", "winnerName": "Jo",
     ])
+    #expect(handled)
     // The in-progress recording must survive a duplicate push.
     #expect(actions["e1"]?.state == .recorded(localRecordingPath: "/tmp/r.m4a"))
   }
@@ -384,18 +432,20 @@ struct PushNotificationsTests {
     }
     // A delayed duplicate push after the owner already submitted must not re-prompt or allow a
     // second congrats — the terminal state stands.
-    await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
+    let handled = await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
       "type": "giveaway_winner_pending", "eventId": "e1", "stationId": "s1", "winnerName": "Jo",
     ])
+    #expect(handled)
     #expect(actions["e1"]?.state == .submitted)
   }
 
   @Test func pendingPushIgnoresNonPendingType() async {
     @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
     $actions.withLock { $0 = [:] }
-    await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
+    let handled = await PushNotificationsClient.liveValue.handleGiveawayWinnerPendingPush([
       "type": "giveaway_closed", "eventId": "e1", "stationId": "s1",
     ])
+    #expect(!handled)
     #expect(actions.isEmpty)
   }
 }
