@@ -118,26 +118,40 @@ struct PushNotificationsTests {
   // MARK: - Notification Response Handling
 
   @Test
-  func testHandleNotificationResponseRemovesDeliveredNotification() {
+  func testHandleNotificationResponseRemovesDeliveredNotificationAndRoutesPayload() async throws {
     let removedIdentifiers = LockIsolated<[String]>([])
+    let handledPayload = LockIsolated<[String: String]?>(nil)
     let completionCalled = LockIsolated(false)
+    let userInfo: [String: any Sendable] = [
+      "stationId": "station-abc",
+      "source": "push",
+    ]
 
-    withDependencies {
-      $0.pushNotifications.removeDeliveredNotification = { identifier in
-        removedIdentifiers.withValue { $0.append(identifier) }
-      }
-      $0.pushNotifications.handleNotificationTap = { _ in }
-    } operation: {
-      let appDelegate = AppDelegate()
-      appDelegate.handleNotificationResponse(
-        identifier: "notification-123",
-        userInfo: [:]
-      ) {
-        completionCalled.setValue(true)
+    await withMainSerialExecutor {
+      await withDependencies {
+        $0.pushNotifications.removeDeliveredNotification = { identifier in
+          removedIdentifiers.withValue { $0.append(identifier) }
+        }
+        $0.pushNotifications.handleNotificationTap = { userInfo in
+          handledPayload.setValue(userInfo.compactMapValues { $0 as? String })
+        }
+      } operation: {
+        let appDelegate = AppDelegate()
+        appDelegate.handleNotificationResponse(
+          identifier: "notification-123",
+          userInfo: userInfo
+        ) {
+          completionCalled.setValue(true)
+        }
+        await Task.yield()
       }
     }
 
     expectNoDifference(removedIdentifiers.value, ["notification-123"])
+    expectNoDifference(
+      try #require(handledPayload.value),
+      ["stationId": "station-abc", "source": "push"]
+    )
     #expect(completionCalled.value)
   }
 
