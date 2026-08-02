@@ -8,6 +8,19 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  # Serialize only runs for the SAME commit (e.g. a manual re-run of this workflow) so
+  # they can't both pass the idempotency check and double-trigger the release. Keyed by
+  # github.sha, NOT github.ref: a ref-wide group would put every main push in one group,
+  # and GitHub keeps only one running + one pending run per group, so a third push would
+  # cancel the pending second and that commit would never get tagged/triggered. Per-sha
+  # groups let every distinct commit run while still de-duping same-commit re-runs.
+  # cancel-in-progress: false lets a queued re-run still execute afterward (by which time
+  # the first run's API pipeline is visible to the idempotency check), so a genuinely
+  # failed trigger can still recover.
+  group: ${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: false
+
 jobs:
   create-tag:
     runs-on: ubuntu-latest
@@ -72,12 +85,16 @@ jobs:
             exit 1
           fi
           # Idempotency: page through the CircleCI pipeline list (most-recent-first)
-          # looking for an existing pipeline for this tag. Combined with the HEAD
-          # check above, a re-run RECOVERS a failed trigger but never duplicates a
-          # successful one. FAIL CLOSED — if the pipeline state can't be
-          # determined, do NOT POST (re-running retries the check), so a flaky API
-          # never causes a duplicate release build/upload. Paginating (not just the
-          # first page) keeps this correct even if other pipelines ran in between.
+          # looking for an existing API-triggered pipeline for this tag. Combined with
+          # the HEAD check above, a re-run RECOVERS a failed trigger but never duplicates
+          # a successful one. We match trigger.type == "api" ONLY: the release workflow
+          # runs solely on our API trigger (it carries run_release: true), so a native
+          # tag-webhook pipeline for this tag does NOT release and must not be mistaken
+          # for a successful trigger — otherwise we'd skip the POST and never release.
+          # FAIL CLOSED — if the pipeline state can't be determined, do NOT POST
+          # (re-running retries the check), so a flaky API never causes a duplicate
+          # release build/upload. Paginating (not just the first page) keeps this correct
+          # even if other pipelines ran in between.
           PAGE_TOKEN=""
           FOUND=0
           for _ in $(seq 1 10); do
@@ -94,7 +111,7 @@ jobs:
               echo "::error::Unexpected response while checking existing pipelines; refusing to trigger. Re-run this job to retry."
               cat "$LIST"; exit 1
             fi
-            MATCH=$(jq -r --arg t "$TAG" '[.items[] | select(((.vcs // {}).tag // "") == $t)] | length' "$LIST")
+            MATCH=$(jq -r --arg t "$TAG" '[.items[] | select(((.vcs // {}).tag // "") == $t and (.trigger.type // "") == "api")] | length' "$LIST")
             if [ "$MATCH" != "0" ]; then FOUND=1; break; fi
             PAGE_TOKEN=$(jq -r '.next_page_token // ""' "$LIST")
             [ -z "$PAGE_TOKEN" ] && break
@@ -104,7 +121,10 @@ jobs:
             exit 0
           fi
           echo "Triggering CircleCI release pipeline for tag $TAG"
-          PAYLOAD=$(jq -nc --arg t "$TAG" '{tag: $t}')
+          # run_release: true gates the release workflow on in the config, so ONLY this
+          # API-triggered pipeline uploads a build (the native tag-webhook pipeline, which
+          # lacks the parameter, skips the release).
+          PAYLOAD=$(jq -nc --arg t "$TAG" '{tag: $t, parameters: {run_release: true}}')
           HTTP=$(curl -sS -o /tmp/cci-response.json -w '%{http_code}' \
             -X POST "https://circleci.com/api/v2/project/gh/playola-radio/playola-radio-ios/pipeline" \
             -H "Circle-Token: $CIRCLECI_TOKEN" \
