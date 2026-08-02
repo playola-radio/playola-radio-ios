@@ -47,9 +47,9 @@
 		A1750A0000000000000000F5 /* ConnectivityProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F4 /* ConnectivityProbe.swift */; };
 		A1750A0000000000000000F6 /* ConnectivityProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F4 /* ConnectivityProbe.swift */; };
 		A1750A0000000000000000F8 /* ConnectivityProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F7 /* ConnectivityProbeTests.swift */; };
-		A1B2C3D4E5F6A7B8C9D0E1F2 /* StationListPresetComingSoonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B3C4D5E6F7A8B9C0D1E2F3 /* StationListPresetComingSoonTests.swift */; };
 		A8034ECCAE01C4925AEA0BA4 /* GiveawayCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DBB4FE7E4F57517A32804E0 /* GiveawayCoordinator.swift */; };
 		AA01000000000001AAAAAAAA /* PresetStarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0E48AF7714364A04B11B2 /* PresetStarButton.swift */; };
+		C816D77FF9455BD1B83AF237 /* PresetsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ED42817003307A164F85FE7 /* PresetsModel.swift */; };
 		AA01000000000002AAAAAAAA /* PresetTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0E49DF7714364A04B11B3 /* PresetTile.swift */; };
 		AA01000000000003AAAAAAAA /* PresetsCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0EA0DF7714364A04B11B7 /* PresetsCarousel.swift */; };
 		AA01000000000004AAAAAAAA /* PresetStarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0E48AF7714364A04B11B2 /* PresetStarButton.swift */; };
@@ -507,8 +507,9 @@
 		FAE000000000000000000005 /* AudioSessionCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */; };
 		FAF000000000000000000002 /* AudioRecorderClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF000000000000000000001 /* AudioRecorderClientTests.swift */; };
 		FE01A0C72DFCB368002BAC30 /* SharedStateTestTrait.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */; };
-		FE02FE02FE02FE02FE02FE02 /* StationListPresetErrorReportingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE01FE01FE01FE01FE01FE01 /* StationListPresetErrorReportingTests.swift */; };
 		FE110A0000000000000000B2 /* WelcomeMessagePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F2 /* WelcomeMessagePageModel.swift */; };
+		C40A6A2D4B9EF1448F77A68E /* PresetsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ED42817003307A164F85FE7 /* PresetsModel.swift */; };
+		1DFA251ED9768A3CF235AF92 /* PresetsModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4951B01E879591B4AC3CDA52 /* PresetsModelTests.swift */; };
 		FE110A0000000000000000B3 /* WelcomeMessagePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F3 /* WelcomeMessagePageView.swift */; };
 		FE110A0000000000000000B4 /* WelcomeMessagePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F4 /* WelcomeMessagePageTests.swift */; };
 		FE110A0000000000000000B5 /* WelcomeMessagePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F2 /* WelcomeMessagePageModel.swift */; };
@@ -555,8 +556,8 @@
 		A1750A0000000000000000F1 /* PlayolaTLS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTLS.swift; sourceTree = "<group>"; };
 		A1750A0000000000000000F4 /* ConnectivityProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectivityProbe.swift; sourceTree = "<group>"; };
 		A1750A0000000000000000F7 /* ConnectivityProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectivityProbeTests.swift; sourceTree = "<group>"; };
-		A2B3C4D5E6F7A8B9C0D1E2F3 /* StationListPresetComingSoonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPresetComingSoonTests.swift; sourceTree = "<group>"; };
 		A6613FD7A13B448187CB8595 /* PresetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetTests.swift; sourceTree = "<group>"; };
+		4ED42817003307A164F85FE7 /* PresetsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetsModel.swift; sourceTree = "<group>"; };
 		AC860B8DF872B25EFF727088 /* GiveawayWinnerSheetView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerSheetView.swift; sourceTree = "<group>"; };
 		BA44EE33EB697E44CEC84351 /* GiveawayWinnerPushTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerPushTests.swift; sourceTree = "<group>"; };
 		BC138D8C4809A3F89A5B4985 /* GiveawayWinnerSheetModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerSheetModelTests.swift; sourceTree = "<group>"; };
@@ -817,9 +818,9 @@
 		FAE000000000000000000001 /* AudioSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinator.swift; sourceTree = "<group>"; };
 		FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinatorTests.swift; sourceTree = "<group>"; };
 		FAF000000000000000000001 /* AudioRecorderClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderClientTests.swift; sourceTree = "<group>"; };
-		FE01FE01FE01FE01FE01FE01 /* StationListPresetErrorReportingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPresetErrorReportingTests.swift; sourceTree = "<group>"; };
 		FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStateTestTrait.swift; sourceTree = "<group>"; };
 		FE110A0000000000000000F2 /* WelcomeMessagePageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessagePageModel.swift; sourceTree = "<group>"; };
+		4951B01E879591B4AC3CDA52 /* PresetsModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetsModelTests.swift; sourceTree = "<group>"; };
 		FE110A0000000000000000F3 /* WelcomeMessagePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessagePageView.swift; sourceTree = "<group>"; };
 		FE110A0000000000000000F4 /* WelcomeMessagePageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessagePageTests.swift; sourceTree = "<group>"; };
 		FE110AC0DE0000000000F1F1 /* WelcomeMessageEligibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessageEligibilityTests.swift; sourceTree = "<group>"; };
@@ -917,6 +918,8 @@
 				BFF0E48AF7714364A04B11B2 /* PresetStarButton.swift */,
 				BFF0E49DF7714364A04B11B3 /* PresetTile.swift */,
 				BFF0EA0DF7714364A04B11B7 /* PresetsCarousel.swift */,
+				4ED42817003307A164F85FE7 /* PresetsModel.swift */,
+				4951B01E879591B4AC3CDA52 /* PresetsModelTests.swift */,
 			);
 			path = Presets;
 			sourceTree = "<group>";
@@ -991,8 +994,6 @@
 				D339E5662BFD10AE00B9E35B /* StationListPage.swift */,
 				D3137DC12D39B4FC0070033A /* StationListPageTests.swift */,
 				BFF0E489F7714364A04B11B1 /* StationListPresetTests.swift */,
-				FE01FE01FE01FE01FE01FE01 /* StationListPresetErrorReportingTests.swift */,
-				A2B3C4D5E6F7A8B9C0D1E2F3 /* StationListPresetComingSoonTests.swift */,
 				BFF0E48DF7714364A04B11B2 /* Presets */,
 				3B83C3893A771EB211B3AF8F /* StationListLiveSortTests.swift */,
 			);
@@ -2178,6 +2179,7 @@
 				AA01000000000001AAAAAAAA /* PresetStarButton.swift in Sources */,
 				AA01000000000002AAAAAAAA /* PresetTile.swift in Sources */,
 				AA01000000000003AAAAAAAA /* PresetsCarousel.swift in Sources */,
+				C816D77FF9455BD1B83AF237 /* PresetsModel.swift in Sources */,
 				659E9B124BCB08D5F3D216D7 /* GiveawayEvent.swift in Sources */,
 				E96C77B08E039DD3EC6916BF /* GiveawayParticipation.swift in Sources */,
 				725E8382CB9672F532FC2CDD /* GiveawayMyResult.swift in Sources */,
@@ -2377,6 +2379,7 @@
 				AA01000000000004AAAAAAAA /* PresetStarButton.swift in Sources */,
 				AA01000000000005AAAAAAAA /* PresetTile.swift in Sources */,
 				AA01000000000006AAAAAAAA /* PresetsCarousel.swift in Sources */,
+				C40A6A2D4B9EF1448F77A68E /* PresetsModel.swift in Sources */,
 				E6A2E13F3905B715C7E6FA15 /* GiveawayEvent.swift in Sources */,
 				354451A630DF81468815108F /* GiveawayParticipation.swift in Sources */,
 				8CECE7D0544EBE95DA92A501 /* GiveawayMyResult.swift in Sources */,
@@ -2448,8 +2451,7 @@
 				D3C7E5E32EF0A44D00EDD3ED /* SongSearchPageTests.swift in Sources */,
 				D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */,
 				76C4967DBFE548C0884C2931 /* StationListPresetTests.swift in Sources */,
-				FE02FE02FE02FE02FE02FE02 /* StationListPresetErrorReportingTests.swift in Sources */,
-				A1B2C3D4E5F6A7B8C9D0E1F2 /* StationListPresetComingSoonTests.swift in Sources */,
+				1DFA251ED9768A3CF235AF92 /* PresetsModelTests.swift in Sources */,
 				D30F00BF2E87196A007BCC73 /* StationListStationRowTests.swift in Sources */,
 				D395912D2E3D1E1E00720CF8 /* EditProfilePageTests.swift in Sources */,
 				D34D5C392D7106CD00148048 /* AuthServiceMock.swift in Sources */,

@@ -74,7 +74,8 @@ class MainContainerModel: ViewModel {
   var settingsTabTitle: String { "Profile" }
 
   var homePageModel = HomePageModel()
-  var stationListModel = StationListModel()
+  var presetsModel = PresetsModel()
+  var stationListModel: StationListModel
   var yourLibraryPageModel = YourLibraryPageModel()
   var contactPageModel = ContactPageModel()
   var liveStationsPoller = LiveStationsPoller()
@@ -89,6 +90,15 @@ class MainContainerModel: ViewModel {
 
   var shouldShowSmallPlayer: Bool = false
   private var hasCheckedRatingPromptThisSession = false
+
+  // MARK: - Initialization
+
+  override init() {
+    let presetsModel = PresetsModel()
+    self.presetsModel = presetsModel
+    self.stationListModel = StationListModel(presetsModel: presetsModel)
+    super.init()
+  }
 
   // MARK: - Mode-Aware Properties
 

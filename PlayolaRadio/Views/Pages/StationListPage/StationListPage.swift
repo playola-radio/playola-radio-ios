@@ -101,21 +101,23 @@ struct StationListPage: View {
           VStack(alignment: .leading, spacing: 20) {
             if model.showsPresetsSection {
               PresetsCarousel(
-                displays: model.displayPresets,
-                sectionTitle: model.presetsSectionTitle,
-                emptyStateText: model.presetsEmptyStateText,
-                doneButtonText: model.presetsEditDoneButtonText,
-                isEditing: model.isEditingPresets,
-                isLoading: model.isLoadingPresets,
-                hasLoadError: model.presetsLoadFailed,
-                loadErrorText: model.presetsLoadErrorText,
-                retryButtonText: model.presetsRetryButtonText,
+                displays: model.presetsModel.displayPresets,
+                sectionTitle: model.presetsModel.presetsSectionTitle,
+                emptyStateText: model.presetsModel.presetsEmptyStateText,
+                doneButtonText: model.presetsModel.presetsEditDoneButtonText,
+                isEditing: model.presetsModel.isEditingPresets,
+                isLoading: model.presetsModel.isLoadingPresets,
+                hasLoadError: model.presetsModel.presetsLoadFailed,
+                loadErrorText: model.presetsModel.presetsLoadErrorText,
+                retryButtonText: model.presetsModel.presetsRetryButtonText,
                 onTilePlay: { display in await model.presetTileTapped(display) },
-                onTileLongPress: { display in model.presetTileLongPressed(display) },
-                onTileRemove: { display in await model.presetRemoveTapped(display) },
-                onMove: { presetId, to in await model.presetMoved(presetId: presetId, to: to) },
-                onEditDoneTapped: { model.presetsEditDoneTapped() },
-                onRetryTapped: { await model.retryLoadPresetsTapped() }
+                onTileLongPress: { display in model.presetsModel.presetTileLongPressed(display) },
+                onTileRemove: { display in await model.presetsModel.presetRemoveTapped(display) },
+                onMove: { presetId, to in
+                  await model.presetsModel.presetMoved(presetId: presetId, to: to)
+                },
+                onEditDoneTapped: { model.presetsModel.presetsEditDoneTapped() },
+                onRetryTapped: { await model.presetsModel.retryLoadPresetsTapped() }
               )
             }
             ForEach(model.displayedSections) { section in
@@ -134,6 +136,7 @@ struct StationListPage: View {
     .background(Color.black)
     .onAppear { Task { await model.viewAppeared() } }
     .playolaAlert($model.presentedAlert)
+    .playolaAlert(Bindable(model.presetsModel).presentedAlert)
   }
 
   private var searchBar: some View {
@@ -185,16 +188,16 @@ struct StationListPage: View {
             let rowModel = StationListStationRowModel(
               item: item, liveStatus: row.liveStatus,
               hasUpcomingGiveaway: row.hasUpcomingGiveaway)
-            let isPreset = model.isPreset(stationId: item.anyStation.id)
+            let isPreset = model.presetsModel.isPreset(stationId: item.anyStation.id)
             StationListStationRowView(
               model: rowModel,
               action: {
                 Task { await model.stationSelected(item) }
               },
               isPreset: isPreset,
-              presetAccessibilityLabel: model.presetStarAccessibilityLabel(
+              presetAccessibilityLabel: model.presetsModel.presetStarAccessibilityLabel(
                 isPreset: isPreset, stationName: rowModel.titleText),
-              onTogglePreset: { await model.starTapped(for: item) }
+              onTogglePreset: { await model.presetsModel.starTapped(for: item) }
             )
           }
         }
