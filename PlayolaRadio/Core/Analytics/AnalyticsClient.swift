@@ -66,6 +66,29 @@ extension DependencyValues {
   }
 }
 
+// MARK: - Mixpanel Instance Holder
+
+/// Lazily initializes Mixpanel exactly once and caches the returned instance so that
+/// no `AnalyticsClient` call reaches `Mixpanel.mainInstance()` before
+/// `Mixpanel.initialize(token:)` has run — the SDK asserts if it does. All access is
+/// `@MainActor`-isolated, so the first caller wins the initialization and every later
+/// call reuses the same instance regardless of startup ordering. All Mixpanel access
+/// must go through here; do not call `Mixpanel.mainInstance()` directly.
+@MainActor
+private enum MixpanelHolder {
+  private static var instance: MixpanelInstance?
+
+  static func shared() -> MixpanelInstance {
+    if let instance { return instance }
+    let created = Mixpanel.initialize(
+      token: Config.shared.mixpanelToken,
+      trackAutomaticEvents: false
+    )
+    instance = created
+    return created
+  }
+}
+
 // MARK: - Live Implementation
 
 extension AnalyticsClient: DependencyKey {
@@ -81,7 +104,7 @@ extension AnalyticsClient: DependencyKey {
             properties["user_id"] = userId
           }
 
-          Mixpanel.mainInstance().track(
+          MixpanelHolder.shared().track(
             event: event.name,
             properties: properties
           )
@@ -89,18 +112,18 @@ extension AnalyticsClient: DependencyKey {
       },
       identify: { userId in
         await MainActor.run {
-          Mixpanel.mainInstance().identify(distinctId: userId)
+          MixpanelHolder.shared().identify(distinctId: userId)
         }
       },
       reset: {
         await MainActor.run {
-          Mixpanel.mainInstance().reset()
+          MixpanelHolder.shared().reset()
         }
       },
       setUserProperties: { properties in
         await MainActor.run {
           let mixpanelProps: [String: any MixpanelType] = properties
-          Mixpanel.mainInstance().people.set(properties: mixpanelProps)
+          MixpanelHolder.shared().people.set(properties: mixpanelProps)
         }
       },
       startListeningSession: { station in
@@ -110,11 +133,12 @@ extension AnalyticsClient: DependencyKey {
             "station_name": station.name,
             "station_type": station.type.rawValue,
           ]
-          Mixpanel.mainInstance().track(
+          let mixpanel = MixpanelHolder.shared()
+          mixpanel.track(
             event: "Listening Session Started",
             properties: properties
           )
-          Mixpanel.mainInstance().time(event: "Listening Session Ended")
+          mixpanel.time(event: "Listening Session Ended")
         }
       },
       endListeningSession: { station, duration in
@@ -125,7 +149,7 @@ extension AnalyticsClient: DependencyKey {
             "station_type": station.type.rawValue,
             "session_length_sec": Int(duration),
           ]
-          Mixpanel.mainInstance().track(
+          MixpanelHolder.shared().track(
             event: "Listening Session Ended",
             properties: properties
           )
@@ -150,7 +174,7 @@ extension AnalyticsClient: DependencyKey {
             let properties: [String: any MixpanelType] = [
               "pause_duration_sec": Int(pauseDuration)
             ]
-            Mixpanel.mainInstance().track(
+            MixpanelHolder.shared().track(
               event: "Listening Session Resumed",
               properties: properties
             )
@@ -160,15 +184,12 @@ extension AnalyticsClient: DependencyKey {
       },
       initialize: {
         await MainActor.run {
-          _ = Mixpanel.initialize(
-            token: Config.shared.mixpanelToken,
-            trackAutomaticEvents: false
-          )
+          _ = MixpanelHolder.shared()
         }
       },
       flush: {
         await MainActor.run {
-          Mixpanel.mainInstance().flush()
+          MixpanelHolder.shared().flush()
         }
       }
     )
