@@ -9,11 +9,16 @@ permissions:
   contents: write
 
 concurrency:
-  # Serialize auto-tag runs so two overlapping runs for main can't both pass the
-  # idempotency check and double-trigger the release. cancel-in-progress: false lets a
-  # queued run still execute afterward (by which time the first run's API pipeline is
-  # visible to the idempotency check), so a genuinely-failed trigger can still recover.
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Serialize only runs for the SAME commit (e.g. a manual re-run of this workflow) so
+  # they can't both pass the idempotency check and double-trigger the release. Keyed by
+  # github.sha, NOT github.ref: a ref-wide group would put every main push in one group,
+  # and GitHub keeps only one running + one pending run per group, so a third push would
+  # cancel the pending second and that commit would never get tagged/triggered. Per-sha
+  # groups let every distinct commit run while still de-duping same-commit re-runs.
+  # cancel-in-progress: false lets a queued re-run still execute afterward (by which time
+  # the first run's API pipeline is visible to the idempotency check), so a genuinely
+  # failed trigger can still recover.
+  group: ${{ github.workflow }}-${{ github.sha }}
   cancel-in-progress: false
 
 jobs:
