@@ -31,15 +31,10 @@ struct MainContainerNavigationCoordinatorTests {
 
       await coordinator.navigateToLikedSongs()
 
-      // Should have completed both transitions and pushed liked songs page
+      // Should dismiss the sheet and switch to the Your Library tab
       #expect(coordinator.presentedSheet == nil)
-      #expect(activeTab == .profile)
-      #expect(coordinator.path.count == 1)
-      if case .likedSongsPage = coordinator.path.first {
-        // Success
-      } else {
-        Issue.record("Expected likedSongsPage to be pushed")
-      }
+      #expect(activeTab == .yourLibrary)
+      #expect(coordinator.path.isEmpty)
     }
   }
 
@@ -48,23 +43,18 @@ struct MainContainerNavigationCoordinatorTests {
     await withDependencies {
       $0.continuousClock = ImmediateClock()
     } operation: {
-      @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .profile
+      @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .yourLibrary
 
       let coordinator = MainContainerNavigationCoordinator()
       coordinator.presentedSheet = .player(PlayerPageModel())
-      $activeTab.withLock { $0 = .profile }
+      $activeTab.withLock { $0 = .yourLibrary }
 
       await coordinator.navigateToLikedSongs()
 
-      // Should have dismissed sheet, kept same tab, and pushed liked songs page
+      // Should dismiss the sheet and stay on the Your Library tab
       #expect(coordinator.presentedSheet == nil)
-      #expect(activeTab == .profile)
-      #expect(coordinator.path.count == 1)
-      if case .likedSongsPage = coordinator.path.first {
-        // Success
-      } else {
-        Issue.record("Expected likedSongsPage to be pushed")
-      }
+      #expect(activeTab == .yourLibrary)
+      #expect(coordinator.path.isEmpty)
     }
   }
 
@@ -81,14 +71,9 @@ struct MainContainerNavigationCoordinatorTests {
 
       await coordinator.navigateToLikedSongs()
 
-      // Should have changed tab and pushed liked songs page
-      #expect(activeTab == .profile)
-      #expect(coordinator.path.count == 1)
-      if case .likedSongsPage = coordinator.path.first {
-        // Success
-      } else {
-        Issue.record("Expected likedSongsPage to be pushed")
-      }
+      // Should switch to the Your Library tab
+      #expect(activeTab == .yourLibrary)
+      #expect(coordinator.path.isEmpty)
     }
   }
 
@@ -97,49 +82,38 @@ struct MainContainerNavigationCoordinatorTests {
     await withDependencies {
       $0.continuousClock = ImmediateClock()
     } operation: {
-      @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .profile
+      @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .yourLibrary
 
       let coordinator = MainContainerNavigationCoordinator()
       coordinator.presentedSheet = nil
-      $activeTab.withLock { $0 = .profile }
+      $activeTab.withLock { $0 = .yourLibrary }
 
       await coordinator.navigateToLikedSongs()
 
-      // Should have pushed liked songs page
-      #expect(coordinator.path.count == 1)
-      #expect(activeTab == .profile)
+      // Should stay on the Your Library tab with no pushed pages
+      #expect(coordinator.path.isEmpty)
+      #expect(activeTab == .yourLibrary)
       #expect(coordinator.presentedSheet == nil)
-
-      if case .likedSongsPage = coordinator.path.first {
-        // Success
-      } else {
-        Issue.record("Expected likedSongsPage to be pushed")
-      }
     }
   }
 
   @Test
-  func testNavigateToLikedSongsCreatesLikedSongsPageModel() async {
+  func testNavigateToLikedSongsClearsYourLibraryStack() async {
     await withDependencies {
       $0.continuousClock = ImmediateClock()
     } operation: {
-      @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .profile
+      @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .yourLibrary
 
       let coordinator = MainContainerNavigationCoordinator()
-
-      // Ensure we start in the desired state
       coordinator.presentedSheet = nil
-      $activeTab.withLock { $0 = .profile }
+      $activeTab.withLock { $0 = .yourLibrary }
+      coordinator.yourLibraryPath = [.editProfilePage(EditProfilePageModel())]
 
       await coordinator.navigateToLikedSongs()
 
-      // Verify that a LikedSongsPageModel was created
-      #expect(coordinator.path.count == 1)
-      if case .likedSongsPage = coordinator.path.first {
-        // Success
-      } else {
-        Issue.record("Expected likedSongsPage with model to be pushed")
-      }
+      // Any pushed pages on the Your Library stack are cleared
+      #expect(coordinator.path.isEmpty)
+      #expect(activeTab == .yourLibrary)
     }
   }
 
@@ -331,12 +305,8 @@ struct MainContainerNavigationCoordinatorTests {
       await coordinator.navigateToLikedSongs()
 
       #expect(coordinator.appMode == .listening)
-      #expect(coordinator.path.count == 1)
-      if case .likedSongsPage = coordinator.path.first {
-        // Success
-      } else {
-        Issue.record("Expected likedSongsPage to be pushed")
-      }
+      #expect(activeTab == .yourLibrary)
+      #expect(coordinator.path.isEmpty)
     }
   }
 

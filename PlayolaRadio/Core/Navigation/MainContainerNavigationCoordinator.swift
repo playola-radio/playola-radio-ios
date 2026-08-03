@@ -165,19 +165,17 @@ final class MainContainerNavigationCoordinator {
       try? await clock.sleep(for: .milliseconds(300))
     }
 
-    // Set active tab to profile if needed
-    if activeTab != .profile {
+    // Liked songs now live on the Your Library tab; switch to it and reset its
+    // stack so the library root (Presets + Liked Songs) is shown.
+    yourLibraryPath = []
+    if activeTab != .yourLibrary {
       withAnimation(.easeInOut(duration: 0.3)) {
-        $activeTab.withLock { $0 = .profile }
+        $activeTab.withLock { $0 = .yourLibrary }
       }
 
       // Wait for tab transition animation
       try? await clock.sleep(for: .milliseconds(300))
     }
-
-    // Navigate to liked songs page
-    let likedSongsModel = LikedSongsPageModel()
-    push(.likedSongsPage(likedSongsModel))
   }
 
   @MainActor
