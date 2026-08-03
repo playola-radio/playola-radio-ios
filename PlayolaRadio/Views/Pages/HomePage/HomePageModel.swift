@@ -70,6 +70,10 @@ class HomePageModel: ViewModel {
     }
   }
 
+  var introMessage: String { "Discover music through independent artist made radio stations." }
+
+  var stationListTitle: String { "Artist stations for you" }
+
   var supportMessageTileContent: String {
     let count = unreadSupportCount
     return count == 1 ? "1 New Message" : "\(count) New Messages"
@@ -81,7 +85,12 @@ class HomePageModel: ViewModel {
       buttonAction: { [weak self] in
         guard let self = self else { return }
         await self.analytics.track(.navigatedToRewardsFromListeningTile)
-        await self.$activeTab.withLock { $0 = .rewards }
+        await self.$activeTab.withLock { $0 = .profile }
+        // Idempotent: don't stack duplicate Rewards pages on repeat taps.
+        if case .rewardsPage = await self.mainContainerNavigationCoordinator.profilePath.last {
+          return
+        }
+        await self.mainContainerNavigationCoordinator.push(.rewardsPage(RewardsPageModel()))
       }
     )
 

@@ -41,7 +41,7 @@ struct PresetsCarousel: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
         Text(sectionTitle)
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+          .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 28))
           .foregroundColor(.white)
         Spacer()
         if isEditing {
@@ -55,7 +55,7 @@ struct PresetsCarousel: View {
           .buttonStyle(.plain)
         }
       }
-      .padding(.horizontal, 16)
+      .padding(.horizontal, 20)
 
       if isLoading {
         loadingState
@@ -78,7 +78,7 @@ struct PresetsCarousel: View {
       Spacer()
     }
     .frame(height: 92)
-    .padding(.horizontal, 16)
+    .padding(.horizontal, 20)
   }
 
   private var errorState: some View {
@@ -112,7 +112,7 @@ struct PresetsCarousel: View {
           style: StrokeStyle(lineWidth: 1, dash: [4])
         )
     )
-    .padding(.horizontal, 16)
+    .padding(.horizontal, 20)
   }
 
   private var emptyState: some View {
@@ -134,7 +134,7 @@ struct PresetsCarousel: View {
           style: StrokeStyle(lineWidth: 1, dash: [4])
         )
     )
-    .padding(.horizontal, 16)
+    .padding(.horizontal, 20)
   }
 
   private var tiles: some View {
@@ -182,7 +182,7 @@ struct PresetsCarousel: View {
             }
           }
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 20)
         .animation(.smooth(duration: 0.22), value: idOrder)
 
         if let dragState,

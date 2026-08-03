@@ -12,7 +12,7 @@ struct SeriesListPage: View {
     VStack(spacing: 0) {
       // Page Title
       HStack {
-        Text("Radio Shows")
+        Text(model.navigationTitle)
           .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 24))
           .tracking(0.12)
           .foregroundColor(.white)
@@ -42,7 +42,7 @@ struct SeriesListPage: View {
     .navigationBarTitleDisplayMode(.inline)
     .toolbarBackground(.hidden, for: .navigationBar)
     .onAppear { Task { await model.viewAppeared() } }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
   }
 }
 

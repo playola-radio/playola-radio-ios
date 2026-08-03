@@ -19,9 +19,18 @@ struct GiveawayWinnerPendingPush: Equatable, Sendable {
     self.eventId = eventId
     self.stationId = stationId
     self.giveawayId = userInfo["giveawayId"] as? String
-    self.winnerName = userInfo["winnerName"] as? String
-    self.prizeName = userInfo["prizeName"] as? String
+    // The server sends "" (not absent) when a name is unknown — normalize so the UI's fallback copy
+    // kicks in instead of rendering a blank.
+    self.winnerName = Self.nonEmpty(userInfo["winnerName"] as? String)
+    self.prizeName = Self.nonEmpty(userInfo["prizeName"] as? String)
     self.congratsExpiresAt = (userInfo["congratsExpiresAt"] as? String).flatMap(Self.parseISO8601)
+  }
+
+  private static func nonEmpty(_ string: String?) -> String? {
+    guard let trimmed = string?.trimmingCharacters(in: .whitespaces), !trimmed.isEmpty else {
+      return nil
+    }
+    return trimmed
   }
 
   /// Robust ISO-8601 parse: the server sends fractional seconds, but tolerate a value without them.

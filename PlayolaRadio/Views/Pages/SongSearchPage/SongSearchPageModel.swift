@@ -60,10 +60,6 @@ class SongSearchPageModel: ViewModel {
     onAddedToLibrary != nil
   }
 
-  var songSeedsSectionHeader: String {
-    isLibraryAddMode ? "APPLE MUSIC" : "AVAILABLE SOON BY REQUEST"
-  }
-
   private func onSearchTextChanged() {
     debounceTask?.cancel()
 
@@ -186,6 +182,20 @@ class SongSearchPageModel: ViewModel {
       presentedAlert = .libraryAddError(error.localizedDescription)
     }
   }
+
+  // MARK: - View Helpers
+
+  var songSeedsSectionHeader: String {
+    isLibraryAddMode ? "APPLE MUSIC" : "AVAILABLE SOON BY REQUEST"
+  }
+
+  var emptyPromptMessage: String { "Search for songs to add to your schedule" }
+  var noResultsMessage: String { "No songs found" }
+  var librarySectionHeader: String { "LIBRARY" }
+  var searchFieldPlaceholder: String { "Search for songs" }
+  var cancelButtonText: String { "Cancel" }
+  var selectButtonText: String { "SELECT" }
+  var songSeedActionButtonText: String { isLibraryAddMode ? "ADD" : "REQUEST" }
 
   private func updateSongRequestToRequested(_ songRequest: SongRequest) {
     guard

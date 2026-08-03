@@ -68,9 +68,73 @@ public class URLStreamPlayer: ObservableObject {
     player.radioURL = URL(string: station.streamUrl)
   }
 
+  /// Starts a URL stream and waits until the player reports either audible playback or failure.
+  /// Returning before one of those outcomes would let callers treat an unreachable stream as
+  /// successfully handled.
+  func play(station: UrlStation) async -> Bool {
+    @Dependency(\.continuousClock) var clock
+
+    return await withCheckedContinuation { continuation in
+      let attempt = URLPlaybackAttempt(continuation: continuation)
+      attempt.cancellable = $state.sink { state in
+        guard state.currentStation?.id == station.id else { return }
+
+        if state.playbackState == .playing {
+          attempt.resolve(true)
+        } else if state.playerStatus == .error {
+          attempt.resolve(false)
+        }
+      }
+
+      attempt.timeoutTask = Task {
+        do {
+          try await clock.sleep(for: .seconds(10))
+        } catch {
+          return
+        }
+        attempt.resolve(false)
+      }
+
+      set(station: station)
+    }
+  }
+
   public func reset() {
     currentStation = nil
     player.radioURL = nil
+  }
+
+  /// Pauses the URL stream for an interruption/route loss. The app's
+  /// AudioSessionCoordinator owns the session and decides when this happens;
+  /// the vendored FRadioPlayer no longer self-handles interruptions.
+  func pause() {
+    player.pause()
+  }
+
+  /// Resumes the URL stream after an interruption. The caller reactivates the
+  /// session first.
+  func resume() {
+    player.play()
+  }
+}
+
+@MainActor
+private final class URLPlaybackAttempt {
+  var cancellable: AnyCancellable?
+  var timeoutTask: Task<Void, Never>?
+  private var continuation: CheckedContinuation<Bool, Never>?
+
+  init(continuation: CheckedContinuation<Bool, Never>) {
+    self.continuation = continuation
+  }
+
+  func resolve(_ started: Bool) {
+    guard let continuation else { return }
+    self.continuation = nil
+    cancellable = nil
+    timeoutTask?.cancel()
+    timeoutTask = nil
+    continuation.resume(returning: started)
   }
 }
 

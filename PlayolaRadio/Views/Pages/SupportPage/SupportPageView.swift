@@ -22,7 +22,7 @@ struct SupportPageView: View {
         ChatView(model: model)
       }
     }
-    .navigationTitle("Contact Us")
+    .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .toolbarBackground(.visible, for: .navigationBar)
     .toolbarBackground(Color.black, for: .navigationBar)
@@ -33,7 +33,7 @@ struct SupportPageView: View {
     .task {
       await model.observeRefreshNotifications()
     }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
     .onChange(of: scenePhase) { _, newPhase in
       Task { await model.handleScenePhaseChange(newPhase) }
     }
@@ -83,7 +83,7 @@ struct ChatView: View {
         .background(Color(hex: "#333333"))
 
       HStack(spacing: 12) {
-        TextField("Message", text: $model.newMessage, axis: .vertical)
+        TextField(model.messageFieldPlaceholder, text: $model.newMessage, axis: .vertical)
           .font(.custom(FontNames.Inter_400_Regular, size: 16))
           .foregroundColor(.white)
           .padding(.horizontal, 16)

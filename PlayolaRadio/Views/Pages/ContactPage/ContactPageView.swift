@@ -16,7 +16,7 @@ struct ContactPageView: View {
     VStack(spacing: 0) {
       // Title
       HStack {
-        Text("Your Profile")
+        Text(model.navigationTitle)
           .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 32))
           .foregroundColor(.white)
         Spacer()
@@ -100,7 +100,7 @@ struct ContactPageView: View {
                     .foregroundColor(.white)
                     .font(.system(size: 16))
 
-                  Text("Switch to Listening Mode")
+                  Text(model.switchToListeningModeLabel)
                     .font(.custom(FontNames.Inter_500_Medium, size: 16))
                     .foregroundColor(.white)
 
@@ -132,7 +132,7 @@ struct ContactPageView: View {
                     .foregroundColor(.white)
                     .font(.system(size: 16))
 
-                  Text("Switch to Broadcasting Mode")
+                  Text(model.switchToBroadcastingModeLabel)
                     .font(.custom(FontNames.Inter_500_Medium, size: 16))
                     .foregroundColor(.white)
 
@@ -150,18 +150,18 @@ struct ContactPageView: View {
             .padding(.horizontal, 20)
           }
 
-          // Liked Songs Button
+          // Rewards Button
           Button(
             action: {
-              model.onLikedSongsTapped()
+              model.onRewardsTapped()
             },
             label: {
               HStack(spacing: 12) {
-                Image(systemName: "heart.fill")
+                Image(systemName: "gift.fill")
                   .foregroundColor(.white)
                   .font(.system(size: 16))
 
-                Text("Liked Songs")
+                Text(model.rewardsLabel)
                   .font(.custom(FontNames.Inter_500_Medium, size: 16))
                   .foregroundColor(.white)
 
@@ -189,7 +189,7 @@ struct ContactPageView: View {
                   .foregroundColor(.white)
                   .font(.system(size: 16))
 
-                Text("Notifications")
+                Text(model.notificationsLabel)
                   .font(.custom(FontNames.Inter_500_Medium, size: 16))
                   .foregroundColor(.white)
 
@@ -236,7 +236,7 @@ struct ContactPageView: View {
                   }
                 }
 
-                Text("Contact Us")
+                Text(model.contactUsLabel)
                   .font(.custom(FontNames.Inter_500_Medium, size: 16))
                   .foregroundColor(.white)
 
@@ -265,7 +265,7 @@ struct ContactPageView: View {
                   .foregroundColor(.white)
                   .font(.system(size: 16))
 
-                Text("Ask An Artist A Question")
+                Text(model.askArtistLabel)
                   .font(.custom(FontNames.Inter_500_Medium, size: 16))
                   .foregroundColor(.white)
 
@@ -293,7 +293,7 @@ struct ContactPageView: View {
                   .renderingMode(.template)
                   .foregroundColor(.white)
 
-                Text("Log out")
+                Text(model.logOutLabel)
                   .font(.custom(FontNames.Inter_500_Medium, size: 16))
                   .foregroundColor(.white)
               }
@@ -315,7 +315,7 @@ struct ContactPageView: View {
     .task {
       await model.onViewAppeared()
     }
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
   }
 }
 

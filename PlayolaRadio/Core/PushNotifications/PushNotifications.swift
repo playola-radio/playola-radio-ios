@@ -73,6 +73,10 @@ struct PushNotificationsClient: Sendable {
   /// Cancel all pending notifications
   var cancelAllNotifications: @Sendable () async -> Void
 
+  /// Remove a delivered notification from Notification Center
+  /// - Parameter identifier: The identifier of the delivered notification request
+  var removeDeliveredNotification: @Sendable (_ identifier: String) -> Void
+
   /// Register for remote notifications with APNs
   var registerForRemoteNotifications: @Sendable () async -> Void
 
@@ -82,18 +86,28 @@ struct PushNotificationsClient: Sendable {
 
   /// Handle notification tap - extracts station ID and plays it
   /// - Parameter userInfo: The notification payload
-  var handleNotificationTap: @Sendable (_ userInfo: [String: any Sendable]) async -> Void
+  /// - Returns: Whether the notification was handled successfully
+  var handleNotificationTap: @Sendable (_ userInfo: [String: any Sendable]) async -> Bool = {
+    _ in false
+  }
 
   /// Handle the targeted "you won" giveaway push. Flips (or creates) the winning participation in
   /// durable shared state; the MainContainer arbiter presents the winner sheet. Idempotent.
   /// - Parameter userInfo: The notification payload
-  var handleGiveawayWinnerPush: @Sendable (_ userInfo: [String: any Sendable]) async -> Void
+  /// - Returns: Whether the notification was handled successfully
+  var handleGiveawayWinnerPush: @Sendable (_ userInfo: [String: any Sendable]) async -> Bool = {
+    _ in false
+  }
 
   /// Handle the owner-only "winner pending" giveaway push: the owner can record a congrats. Writes a
   /// pending `CongratsAction` into durable shared state; the MainContainer arbiter presents the
   /// congrats sheet. Never clobbers an in-progress (non-terminal) action.
   /// - Parameter userInfo: The notification payload
-  var handleGiveawayWinnerPendingPush: @Sendable (_ userInfo: [String: any Sendable]) async -> Void
+  /// - Returns: Whether the notification was handled successfully
+  var handleGiveawayWinnerPendingPush:
+    @Sendable (_ userInfo: [String: any Sendable]) async -> Bool = {
+      _ in false
+    }
 
   /// Set the app icon badge count
   /// - Parameter count: The badge count to display
@@ -141,6 +155,11 @@ extension PushNotificationsClient: DependencyKey {
     },
     cancelAllNotifications: {
       UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+    },
+    removeDeliveredNotification: { identifier in
+      UNUserNotificationCenter.current().removeDeliveredNotifications(
+        withIdentifiers: [identifier]
+      )
     },
     registerForRemoteNotifications: {
       await MainActor.run {
@@ -201,22 +220,22 @@ extension PushNotificationsClient: DependencyKey {
         if needsNavigation {
           await navCoordinatorShared.wrappedValue.navigateToSupport(SupportPageModel())
         }
-        return
+        return true
       }
 
       guard let stationId = NotificationPayload.stationId(from: userInfo) else {
-        return
+        return false
       }
 
       let allStations = stationLists.flatMap { $0.stationItems(includeHidden: true) }
         .map { $0.anyStation }
 
       guard let station = allStations.first(where: { $0.id == stationId }) else {
-        return
+        return false
       }
 
       @Dependency(\.stationPlayer) var stationPlayer
-      await stationPlayer.play(station: station)
+      return await stationPlayer.play(station: station)
     },
     handleGiveawayWinnerPush: { userInfo in
       guard let push = GiveawayWinnerPush(userInfo: userInfo) else {
@@ -225,7 +244,7 @@ extension PushNotificationsClient: DependencyKey {
         if userInfo["type"] as? String == "giveaway_winner" {
           reportIssue("Dropped malformed giveaway_winner push: \(userInfo)")
         }
-        return
+        return false
       }
       // Honor the server's claim flag: an already-claimed prize (other device) resolves straight to a
       // completed win, so the arbiter never prompts the form for it.
@@ -254,13 +273,14 @@ extension PushNotificationsClient: DependencyKey {
           }
         }
       }
+      return true
     },
     handleGiveawayWinnerPendingPush: { userInfo in
       guard let push = GiveawayWinnerPendingPush(userInfo: userInfo) else {
         if userInfo["type"] as? String == "giveaway_winner_pending" {
           reportIssue("Dropped malformed giveaway_winner_pending push: \(userInfo)")
         }
-        return
+        return false
       }
       @Shared(.pendingCongratsActions) var actions
       let actionsShared = $actions
@@ -285,6 +305,7 @@ extension PushNotificationsClient: DependencyKey {
             state: .pending, startedAt: Date())
         }
       }
+      return true
     },
     setBadgeCount: { count in
       try? await UNUserNotificationCenter.current().setBadgeCount(count)

@@ -23,7 +23,7 @@ class PlayerPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.likesManager) var likesManager
   var nowPlayingText: String {
     switch nowPlaying?.playbackStatus {
-    case .playing:
+    case .playing, .paused:
       guard let audioBlock = playolaAudioBlockPlaying else {
         // Non-Playola station - use title/artist if available
         if let title = nowPlaying?.titlePlaying, let artist = nowPlaying?.artistPlaying {
@@ -236,4 +236,10 @@ class PlayerPageModel: ViewModel {
     mainContainerNavigationCoordinator.path.append(.askQuestionPage(model))
     onDismiss?()
   }
+
+  // MARK: - View Helpers
+  var nowPlayingLabel: String { "NOW PLAYING" }
+  var onAirLabel: String { "ON AIR" }
+  var liveLabel: String { "LIVE" }
+  var askArtistLabel: String { "Ask the Artist" }
 }

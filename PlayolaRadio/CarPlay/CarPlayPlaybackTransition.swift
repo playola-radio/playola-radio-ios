@@ -34,10 +34,33 @@ enum CarPlayPlaybackTransition {
     switch playbackStatus {
     case .error:
       return .showError
-    case .loading, .startingNewStation, .playing:
+    case .loading, .startingNewStation, .playing, .paused:
       return .showNowPlaying
     case .stopped:
       return .removeNowPlaying
     }
+  }
+
+  /// The distinct CarPlay actions for a sequence of playback statuses, collapsing
+  /// consecutive duplicates — the exact policy the live `$state` observer applies
+  /// via `.map(action(for:)).removeDuplicates()`.
+  ///
+  /// Deduping on the *status* (as the observer originally did) fails to collapse
+  /// the `.loading(station, progress)` stream, because the progress `Float` makes
+  /// every buffering tick a distinct status. Deduping on the *action* collapses
+  /// the whole flood to one `.showNowPlaying`, so `CPNowPlayingTemplate.shared` is
+  /// pushed once instead of hundreds of times (each re-push is rejected by CarPlay
+  /// with "Pushing the same template instance more than once", which stranded the
+  /// user on the station list).
+  ///
+  /// Exposed so that invariant can be unit-tested without a system
+  /// `CPInterfaceController`.
+  static func distinctActions(for statuses: [StationPlayer.PlaybackStatus]) -> [Action] {
+    var result: [Action] = []
+    for status in statuses {
+      let next = action(for: status)
+      if result.last != next { result.append(next) }
+    }
+    return result
   }
 }

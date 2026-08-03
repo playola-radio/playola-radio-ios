@@ -61,12 +61,18 @@ struct LikedSongsPage: View {
               ForEach(songsWithTimestamps, id: \.0.id) { audioBlockWithTimestamp in
                 let (audioBlock, likedDate) = audioBlockWithTimestamp
                 if !removingAudioBlockIds.contains(audioBlock.id) {
-                  SongRow(audioBlock: audioBlock, likedDate: likedDate, model: model)
-                    .transition(
-                      .asymmetric(
-                        insertion: .opacity.combined(with: .move(edge: .trailing)),
-                        removal: .opacity.combined(with: .scale(scale: 0.95))
-                      ))
+                  LikedSongRow(
+                    audioBlock: audioBlock,
+                    dateText: model.formatTimestamp(for: likedDate),
+                    onMenuTapped: {
+                      model.menuButtonTapped(for: audioBlock, likedDate: likedDate)
+                    }
+                  )
+                  .transition(
+                    .asymmetric(
+                      insertion: .opacity.combined(with: .move(edge: .trailing)),
+                      removal: .opacity.combined(with: .scale(scale: 0.95))
+                    ))
                 }
               }
             }
@@ -104,70 +110,6 @@ struct LikedSongsPage: View {
       model.removeSongTapped(audioBlock)
       removingAudioBlockIds.remove(audioBlock.id)
     }
-  }
-}
-
-struct SongRow: View {
-  @Environment(\.displayScale) private var displayScale
-  let audioBlock: AudioBlock
-  let likedDate: Date
-  let model: LikedSongsPageModel
-
-  var body: some View {
-    HStack(spacing: 12) {
-      // Album Art Placeholder
-      WebImage(
-        url: audioBlock.imageUrl,
-        context: RemoteArtwork.downsampleContext(CGSize(width: 56, height: 56), scale: displayScale)
-      ) { image in
-        image
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-      } placeholder: {
-        RoundedRectangle(cornerRadius: 6)
-          .fill(Color(hex: "#666666"))
-          .overlay(
-            Image(systemName: "music.note")
-              .foregroundColor(Color(hex: "#999999"))
-              .font(.system(size: 24))
-          )
-      }
-      .frame(width: 56, height: 56)
-      .cornerRadius(6)
-
-      // Song Info
-      VStack(alignment: .leading, spacing: 2) {
-        Text(audioBlock.title)
-          .font(.custom(FontNames.Inter_500_Medium, size: 16))
-          .foregroundColor(.white)
-          .lineLimit(1)
-
-        Text(audioBlock.artist)
-          .font(.custom(FontNames.Inter_400_Regular, size: 14))
-          .foregroundColor(Color(hex: "#C7C7C7"))
-          .lineLimit(1)
-
-        Text(model.formatTimestamp(for: likedDate))
-          .font(.custom(FontNames.Inter_400_Regular, size: 12))
-          .foregroundColor(Color(hex: "#888888"))
-          .lineLimit(1)
-      }
-      .frame(maxWidth: .infinity, alignment: .leading)
-
-      Spacer()
-
-      // Menu Button
-      Button(
-        action: { model.menuButtonTapped(for: audioBlock, likedDate: likedDate) },
-        label: {
-          Image(systemName: "ellipsis")
-            .foregroundColor(Color(hex: "#C7C7C7"))
-            .font(.system(size: 16))
-        }
-      )
-    }
-    .padding(.horizontal, 24)
-    .padding(.vertical, 8)
   }
 }
 

@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct HomeIntroSection: View {
+  var introMessage: String
   var onIconTapped10Times: () -> Void = {}
 
   var body: some View {
@@ -22,7 +23,7 @@ struct HomeIntroSection: View {
             count: 10,
             perform: onIconTapped10Times)
 
-        Text("Discover music through independent artist made radio stations.")
+        Text(introMessage)
           .foregroundColor(.white)
           .font(.custom("Inter-Regular", size: 20))
           .tracking(0.10)
@@ -41,8 +42,10 @@ struct HomeIntroSection: View {
 
 struct CircleSection_Previews: PreviewProvider {
   static var previews: some View {
-    HomeIntroSection()
-      .padding(.horizontal, 24)
-      .background(Color.black)
+    HomeIntroSection(
+      introMessage: "Discover music through independent artist made radio stations."
+    )
+    .padding(.horizontal, 24)
+    .background(Color.black)
   }
 }

@@ -68,6 +68,7 @@ class ListenerQuestionDetailPageModel: ViewModel {
   let responseSectionTitle = "YOUR RESPONSE"
   let discardButtonTitle = "Discard"
   let uploadButtonTitle = "Upload Response"
+  let recordingIndicatorText = "Recording"
 
   var recordButtonLabel: String {
     switch recordingPhase {

@@ -49,8 +49,17 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
   // MARK: - Properties
 
   let stationId: String
-  let navigationTitle = "Questions from Listeners"
+  let navigationTitle = "Listener Questions"
   let filterOptions: [ListenerQuestionFilter] = [.pending, .answered, .all]
+
+  let emptyStateTitle = "No Questions Yet"
+  let emptyStateMessage = "When listeners send you questions,\nthey'll appear here."
+  let declineButtonText = "Decline"
+  let answeredBadgeText = "Answered"
+  let missingTranscriptionText = "No transcription available"
+  let unknownListenerText = "Unknown Listener"
+  let showMoreText = "Show more"
+  let showLessText = "Show less"
 
   var questions: IdentifiedArrayOf<ListenerQuestion> = []
   var expandedQuestionIds: Set<String> = []
@@ -157,6 +166,10 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
 
   func isExpanded(_ questionId: String) -> Bool {
     expandedQuestionIds.contains(questionId)
+  }
+
+  func expandToggleText(for questionId: String) -> String {
+    isExpanded(questionId) ? showLessText : showMoreText
   }
 
   func isPlaying(_ questionId: String) -> Bool {

@@ -199,6 +199,34 @@ class RecordPageModel: ViewModel {
     mainContainerNavigationCoordinator.presentedSheet = nil
   }
 
+  // MARK: - View Helpers
+
+  var navigationTitle: String { "Audio Recording" }
+
+  var doneButtonTitle: String { "Done" }
+
+  var waveformPlaceholderText: String { "Your recording will appear here" }
+
+  var recordingStatusText: String { "Recording" }
+
+  var recordButtonLabel: String { "Tap to Record" }
+
+  var stopButtonLabel: String { "Tap to Stop" }
+
+  var reRecordButtonLabel: String { "Try Again" }
+
+  var currentButtonLabel: String {
+    switch recordingPhase {
+    case .idle: return recordButtonLabel
+    case .recording: return stopButtonLabel
+    case .review: return reRecordButtonLabel
+    }
+  }
+
+  var discardButtonTitle: String { "Discard" }
+
+  var useRecordingButtonTitle: String { "Use Recording" }
+
   // MARK: - Helpers
 
   private func formatTime(_ seconds: TimeInterval) -> String {

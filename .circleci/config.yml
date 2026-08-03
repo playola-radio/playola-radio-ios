@@ -1,5 +1,17 @@
 version: 2.1
 
+parameters:
+  # Set to true only by the auto-tag GitHub Action's API trigger (see
+  # .github/workflows/auto-tag-release.yml). CircleCI's native tag webhook is
+  # unreliable — it fires on some release tags and not others — so the API POST is
+  # the real release trigger. Gating the release workflow on this parameter makes
+  # the API-triggered pipeline the SINGLE deterministic release path: a webhook tag
+  # pipeline arrives without the parameter (default false) and skips the release,
+  # instead of racing the API pipeline and double-uploading the same build (ITMS-90189).
+  run_release:
+    type: boolean
+    default: false
+
 jobs:
   swiftlint_check:
     macos:
@@ -161,6 +173,10 @@ workflows:
             - build-and-test
 
   release:
+    # Only run on the API-triggered pipeline that carries run_release: true. A native
+    # tag webhook pipeline lacks the parameter and is skipped, so exactly one pipeline
+    # per tag uploads a build. See the run_release parameter definition above.
+    when: << pipeline.parameters.run_release >>
     jobs:
       - release_build:
           context: ios-release

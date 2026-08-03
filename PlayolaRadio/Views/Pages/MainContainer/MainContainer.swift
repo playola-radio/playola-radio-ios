@@ -25,20 +25,14 @@ struct MainContainer: View {
       } else {
         homeTab
         stationsTab
-        rewardsTab
+        yourLibraryTab
         profileTab
       }
     }
-    //        .tabBarMinimizeBehavior(.onScrollDown)  // add in iOS 26
     .accentColor(.white)  // Makes the selected tab icon white
-    .onAppear {
-      let tabBarAppearance = UITabBarAppearance()
-      tabBarAppearance.configureWithOpaqueBackground()
-      tabBarAppearance.backgroundColor = .black
-
-      UITabBar.appearance().standardAppearance = tabBarAppearance
-      UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
-      UITabBar.appearance().unselectedItemTintColor = UIColor(white: 0.7, alpha: 1.0)
+    .playolaTabBarChrome()
+    .playolaBottomAccessory(isEnabled: model.shouldShowSmallPlayer) {
+      smallPlayer(isGlassAccessory: true)
     }
     .playolaAlert($model.presentedAlert)
     .onChange(of: model.activeTab) {
@@ -165,7 +159,7 @@ struct MainContainer: View {
     }
     .tabItem {
       Image("HomeTabImage")
-      Text("Home")
+      Text(model.homeTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.home)
   }
@@ -182,26 +176,26 @@ struct MainContainer: View {
     }
     .tabItem {
       Image("RadioStationsTabImage")
-      Text("Radio Stations")
+      Text(model.stationsTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.stationsList)
   }
 
   @ViewBuilder
-  private var rewardsTab: some View {
-    NavigationStack(path: navigationPathBinding(\.rewardsPath)) {
+  private var yourLibraryTab: some View {
+    NavigationStack(path: navigationPathBinding(\.yourLibraryPath)) {
       tabContentWithSmallPlayer {
-        RewardsPageView(model: model.rewardsPageModel)
+        YourLibraryPageView(model: model.yourLibraryPageModel)
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
         path.destinationView
       }
     }
     .tabItem {
-      Image("gift")
-      Text("Rewards")
+      Image(systemName: "heart.fill")
+      Text(model.yourLibraryTabTitle)
     }
-    .tag(MainContainerModel.ActiveTab.rewards)
+    .tag(MainContainerModel.ActiveTab.yourLibrary)
   }
 
   @ViewBuilder
@@ -216,7 +210,7 @@ struct MainContainer: View {
     }
     .tabItem {
       Image("ProfileTabImage")
-      Text("Your Profile")
+      Text(model.profileTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.profile)
   }
@@ -237,7 +231,7 @@ struct MainContainer: View {
     }
     .tabItem {
       Image(systemName: "antenna.radiowaves.left.and.right")
-      Text("Broadcast")
+      Text(model.broadcastTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.broadcast)
   }
@@ -256,7 +250,7 @@ struct MainContainer: View {
     }
     .tabItem {
       Image(systemName: "music.note.list")
-      Text("Library")
+      Text(model.libraryTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.library)
   }
@@ -275,7 +269,7 @@ struct MainContainer: View {
     }
     .tabItem {
       Image(systemName: "bubble.left.and.bubble.right")
-      Text("Listeners")
+      Text(model.listenersTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.listeners)
   }
@@ -292,7 +286,7 @@ struct MainContainer: View {
     }
     .tabItem {
       Image("ProfileTabImage")
-      Text("Profile")
+      Text(model.settingsTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.settings)
   }
@@ -303,18 +297,17 @@ struct MainContainer: View {
   private func tabContentWithSmallPlayer<Content: View>(@ViewBuilder content: () -> Content)
     -> some View
   {
-    VStack(spacing: 0) {
-      content()
-
-      if model.shouldShowSmallPlayer {
-        SmallPlayer()
-          .onTapGesture {
-            model.onSmallPlayerTapped()
-          }
-          .transition(.move(edge: .bottom))
-          .zIndex(1)
+    content()
+      .playolaLegacySmallPlayer(isEnabled: model.shouldShowSmallPlayer) {
+        smallPlayer(isGlassAccessory: false)
       }
-    }
+  }
+
+  private func smallPlayer(isGlassAccessory: Bool) -> some View {
+    SmallPlayer(isGlassAccessory: isGlassAccessory)
+      .onTapGesture {
+        model.onSmallPlayerTapped()
+      }
   }
 
   private var activeTabBinding: Binding<MainContainerModel.ActiveTab> {
