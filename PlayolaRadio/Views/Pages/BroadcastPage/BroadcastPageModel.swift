@@ -112,10 +112,6 @@ class BroadcastPageModel: ViewModel {
     return "at \(timeString)"
   }
 
-  private var userName: String {
-    auth.currentUser?.fullName ?? "Unknown"
-  }
-
   init(stationId: String, stationName: String? = nil) {
     self.stationId = stationId
     self.providedStationName = stationName
@@ -127,8 +123,7 @@ class BroadcastPageModel: ViewModel {
     await analytics.track(
       .viewedBroadcastScreen(
         stationId: stationId,
-        stationName: navigationTitle,
-        userName: userName
+        stationName: navigationTitle
       ))
     await withTaskGroup(of: Void.self) { group in
       group.addTask { await self.loadSchedule() }
@@ -256,8 +251,7 @@ class BroadcastPageModel: ViewModel {
     await analytics.track(
       .broadcastVoicetrackRecorded(
         stationId: stationId,
-        stationName: navigationTitle,
-        userName: userName
+        stationName: navigationTitle
       ))
 
     let formatter = DateFormatter()
@@ -292,8 +286,7 @@ class BroadcastPageModel: ViewModel {
       await analytics.track(
         .broadcastVoicetrackUploaded(
           stationId: stationId,
-          stationName: navigationTitle,
-          userName: userName
+          stationName: navigationTitle
         ))
     } catch {
       updateVoicetrackStatus(id: voicetrack.id, status: .failed(error: error.localizedDescription))
@@ -327,8 +320,7 @@ class BroadcastPageModel: ViewModel {
     await analytics.track(
       .broadcastSongSearchTapped(
         stationId: stationId,
-        stationName: navigationTitle,
-        userName: userName
+        stationName: navigationTitle
       ))
     let model = SongSearchPageModel(searchMode: .all)
     model.onDismiss = { [weak self] in
@@ -349,7 +341,6 @@ class BroadcastPageModel: ViewModel {
       .broadcastSongAdded(
         stationId: stationId,
         stationName: navigationTitle,
-        userName: userName,
         songTitle: audioBlock.title,
         artistName: audioBlock.artist
       ))
@@ -380,7 +371,6 @@ class BroadcastPageModel: ViewModel {
         .broadcastNotificationSent(
           stationId: stationId,
           stationName: navigationTitle,
-          userName: userName,
           messageLength: messageLength
         ))
       showNotifyListenersSheet = false

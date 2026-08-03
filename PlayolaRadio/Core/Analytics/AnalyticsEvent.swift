@@ -51,14 +51,13 @@ enum AnalyticsEvent: Equatable {
   case uploadedProfilePhoto
 
   // MARK: Broadcasting
-  case viewedBroadcastScreen(stationId: String, stationName: String, userName: String)
-  case broadcastNotificationSent(
-    stationId: String, stationName: String, userName: String, messageLength: Int)
-  case broadcastVoicetrackRecorded(stationId: String, stationName: String, userName: String)
-  case broadcastVoicetrackUploaded(stationId: String, stationName: String, userName: String)
-  case broadcastSongSearchTapped(stationId: String, stationName: String, userName: String)
+  case viewedBroadcastScreen(stationId: String, stationName: String)
+  case broadcastNotificationSent(stationId: String, stationName: String, messageLength: Int)
+  case broadcastVoicetrackRecorded(stationId: String, stationName: String)
+  case broadcastVoicetrackUploaded(stationId: String, stationName: String)
+  case broadcastSongSearchTapped(stationId: String, stationName: String)
   case broadcastSongAdded(
-    stationId: String, stationName: String, userName: String, songTitle: String, artistName: String)
+    stationId: String, stationName: String, songTitle: String, artistName: String)
 
   // MARK: Engagement
   case audioOutputChanged(outputTypes: [String])
@@ -244,48 +243,42 @@ extension AnalyticsEvent {
     case .uploadedProfilePhoto:
       return [:]
 
-    case .viewedBroadcastScreen(let stationId, let stationName, let userName):
+    case .viewedBroadcastScreen(let stationId, let stationName):
       return [
         "station_id": stationId,
         "station_name": stationName,
-        "user_name": userName,
       ]
 
-    case .broadcastNotificationSent(let stationId, let stationName, let userName, let messageLength):
+    case .broadcastNotificationSent(let stationId, let stationName, let messageLength):
       return [
         "station_id": stationId,
         "station_name": stationName,
-        "user_name": userName,
         "message_length": messageLength,
       ]
 
-    case .broadcastVoicetrackRecorded(let stationId, let stationName, let userName):
+    case .broadcastVoicetrackRecorded(let stationId, let stationName):
       return [
         "station_id": stationId,
         "station_name": stationName,
-        "user_name": userName,
       ]
 
-    case .broadcastVoicetrackUploaded(let stationId, let stationName, let userName):
+    case .broadcastVoicetrackUploaded(let stationId, let stationName):
       return [
         "station_id": stationId,
         "station_name": stationName,
-        "user_name": userName,
       ]
 
-    case .broadcastSongSearchTapped(let stationId, let stationName, let userName):
+    case .broadcastSongSearchTapped(let stationId, let stationName):
       return [
         "station_id": stationId,
         "station_name": stationName,
-        "user_name": userName,
       ]
 
     case .broadcastSongAdded(
-      let stationId, let stationName, let userName, let songTitle, let artistName):
+      let stationId, let stationName, let songTitle, let artistName):
       return [
         "station_id": stationId,
         "station_name": stationName,
-        "user_name": userName,
         "song_title": songTitle,
         "artist_name": artistName,
       ]
