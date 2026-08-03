@@ -127,11 +127,22 @@ class StationPlayer: ObservableObject {
     // engine.start() would throw deep in playback. A config failure must surface
     // as .error, not be swallowed.
     do {
-      try audioSessionCoordinator.configureForPlayback()
+      try await audioSessionCoordinator.configureForPlayback()
     } catch {
-      handlePlayFailure(error)
+      // Activation now hops off the main actor (see AudioSessionCoordinator), so
+      // this method suspended above and another play()/stop() may have run. Only
+      // surface the failure if this attempt is still current — a stale failure
+      // must not clobber the newer station or a deliberate stop with .error.
+      if currentStation == station { handlePlayFailure(error) }
       return
     }
+
+    // Same staleness check for the success path: if a stop() or a play() for a
+    // different station landed during the activation suspension, this attempt is
+    // stale — bail before starting a backend the user no longer wants. The happy
+    // path is unaffected: nothing mutates state during activation, so
+    // currentStation is still `station` here.
+    guard currentStation == station else { return }
 
     switch station {
     case .url(let urlStation):
@@ -191,16 +202,20 @@ class StationPlayer: ObservableObject {
     // Clearing here also covers the manual lock-screen resume path, so a stale
     // interruption-ended event can't trigger a second resume.
     pausedBySystem = false
-    guard currentStation != nil else { return }
+    // Snapshot the station: activation hops off the main actor (see
+    // AudioSessionCoordinator), so this method suspends below. If a stop() or a
+    // switch to a different station lands in that window, this resume is stale
+    // and must not reactivate/resume against state the user has moved on from.
+    guard let station = currentStation else { return }
     do {
-      try audioSessionCoordinator.configureForPlayback()
-      switch currentStation {
-      case .some(.playola): try await playolaStationPlayer.resumeAfterInterruption()
-      case .some(.url): urlStreamPlayer.resume()
-      case .none: break
+      try await audioSessionCoordinator.configureForPlayback()
+      guard currentStation == station else { return }
+      switch station {
+      case .playola: try await playolaStationPlayer.resumeAfterInterruption()
+      case .url: urlStreamPlayer.resume()
       }
     } catch {
-      handlePlayFailure(error)
+      if currentStation == station { handlePlayFailure(error) }
     }
   }
 

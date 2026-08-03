@@ -11,8 +11,10 @@ import Foundation
 
 /// Thin seam over `AVAudioSession` so the coordinator is unit-testable.
 /// NOT `@MainActor`: `AVAudioSession`'s members are nonisolated; isolation lives
-/// on the coordinator, which is the only caller.
-protocol AudioSessionProtocol {
+/// on the coordinator, which is the only caller. `Sendable` so the coordinator
+/// can hand the seam to the detached task that runs `setActive` off the main
+/// thread (see `AudioSessionCoordinator.activate`).
+protocol AudioSessionProtocol: Sendable {
   func setCategory(
     _ category: AVAudioSession.Category, mode: AVAudioSession.Mode,
     policy: AVAudioSession.RouteSharingPolicy, options: AVAudioSession.CategoryOptions
@@ -58,17 +60,63 @@ protocol AudioInterruptionDelegate: AnyObject {
   func audioSessionShouldResume()
 }
 
+/// Serializes the real `AVAudioSession` mutations on a single executor OFF the
+/// main actor. This is an `actor` (not inline detached tasks) for two reasons:
+///
+/// 1. Off-main: `AVAudioSession.setActive` blocks, and calling it on the main
+///    thread trips a runtime warning ("This method can lead to UI
+///    unresponsiveness..."). iOS's own async activate/deactivate API is iOS 27+
+///    only (our floor is iOS 18.1), so we run the calls on the actor's executor,
+///    which is never the main thread. Unlike a `nonisolated async` seam method,
+///    actor isolation is unaffected by the Swift concurrency mode
+///    (`NonisolatedNonsendingByDefault` would run a `nonisolated async` call back
+///    on the caller's MainActor and silently reintroduce the warning).
+/// 2. Atomic + ordered: each `setCategory` + `setActive` pair runs without
+///    interleaving, so a concurrent playback/recording configure can't activate
+///    the session under the other flow's category. The old fully-synchronous
+///    `@MainActor` path had this guarantee for free; moving activation off-main
+///    would lose it without a single serial owner.
+private actor SessionConfigurator {
+  private let session: any AudioSessionProtocol
+
+  init(_ session: any AudioSessionProtocol) { self.session = session }
+
+  /// Sets the category and activates the session as one atomic unit.
+  func activate(
+    category: AVAudioSession.Category, mode: AVAudioSession.Mode,
+    policy: AVAudioSession.RouteSharingPolicy, options: AVAudioSession.CategoryOptions
+  ) throws {
+    try session.setCategory(category, mode: mode, policy: policy, options: options)
+    try session.setActive(true, options: [])
+  }
+
+  /// Sets the category WITHOUT activating (post-recording restore).
+  func setCategory(
+    _ category: AVAudioSession.Category, mode: AVAudioSession.Mode,
+    policy: AVAudioSession.RouteSharingPolicy, options: AVAudioSession.CategoryOptions
+  ) throws {
+    try session.setCategory(category, mode: mode, policy: policy, options: options)
+  }
+
+  /// Deactivates the session.
+  func deactivate(options: AVAudioSession.SetActiveOptions) throws {
+    try session.setActive(false, options: options)
+  }
+}
+
 /// THE single owner of the process-global `AVAudioSession` for the whole app.
 /// The Playola SDK (host-owned, 0.20.0+), the vendored FRadioPlayer, and the
 /// recorder all defer to this. Also the single owner of interruption/route
 /// policy (see the observer wiring below).
 @MainActor
 final class AudioSessionCoordinator {
-  private let session: AudioSessionProtocol
+  /// All real session mutations funnel through here so they run off-main,
+  /// atomically, and serialized (see `SessionConfigurator`).
+  private let configurator: SessionConfigurator
   weak var delegate: AudioInterruptionDelegate?
 
   init(session: AudioSessionProtocol = LiveAudioSession()) {
-    self.session = session
+    self.configurator = SessionConfigurator(session)
     registerObservers()
   }
 
@@ -83,30 +131,28 @@ final class AudioSessionCoordinator {
   /// already routes Bluetooth A2DP, and adding `.allowBluetooth` /
   /// `.allowBluetoothA2DP` to a `.longFormAudio` category can throw OSStatus
   /// `-50`. Activates the session.
-  func configureForPlayback() throws {
-    try session.setCategory(
-      .playback, mode: .default, policy: .longFormAudio, options: [])
-    try session.setActive(true, options: [])
+  func configureForPlayback() async throws {
+    try await configurator.activate(
+      category: .playback, mode: .default, policy: .longFormAudio, options: [])
   }
 
   /// Voicetrack recording. Activates the session.
-  func configureForRecording() throws {
-    try session.setCategory(
-      .playAndRecord, mode: .default, policy: .default,
+  func configureForRecording() async throws {
+    try await configurator.activate(
+      category: .playAndRecord, mode: .default, policy: .default,
       options: [.defaultToSpeaker, .allowBluetoothHFP])
-    try session.setActive(true, options: [])
   }
 
   /// Restores the playback category after recording WITHOUT activating —
   /// resuming playback (and therefore activation) is an explicit user/app
   /// decision, not a side effect of stopping a recording.
-  func restorePlaybackCategory() throws {
-    try session.setCategory(
+  func restorePlaybackCategory() async throws {
+    try await configurator.setCategory(
       .playback, mode: .default, policy: .longFormAudio, options: [])
   }
 
-  func deactivate() throws {
-    try session.setActive(false, options: [.notifyOthersOnDeactivation])
+  func deactivate() async throws {
+    try await configurator.deactivate(options: [.notifyOthersOnDeactivation])
   }
 
   // MARK: - Interruption / route policy
