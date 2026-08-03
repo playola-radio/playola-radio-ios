@@ -4,6 +4,26 @@
 
 **`develop` must always be in a deployable state.** Both as a matter of policy and so we can ship from it at any time in an emergency. Never merge work into `develop` that doesn't compile, has failing tests, or leaves the app in a broken/half-finished runtime state. If a change can't be made deployable in one PR, keep it on a feature branch until it is (see the gating rule below — do NOT reach for an environment gate).
 
+## Long-Running Work Tracking
+
+`LONG_RUNNING.md` (repo root) is the source of truth for efforts that span **more
+than one PR** or carry a **production soak**. Keep it current:
+
+- **If a PR advances a step, changes a soak state, or completes a phase of a task
+  tracked in `LONG_RUNNING.md`, update `LONG_RUNNING.md` in the *same PR*.** A
+  stale tracker is worse than none.
+- **If a PR *starts* a new effort that is clearly multi-PR or will need a staged
+  rollout, add it to `LONG_RUNNING.md`** in that PR. (One-off PRs with no soak do
+  NOT go there — a normal PR description covers them.)
+- **The soak state is load-bearing:** a task is not done until its soak clears.
+  Don't cut an App Store release for a soaking task before its "Advance when"
+  criteria are met.
+
+Reviewers (including Greptile): flag any PR that clearly advances or completes a
+`LONG_RUNNING.md` task but leaves the tracker untouched. Keep this narrow — only
+flag *obvious* advancement of an *already-tracked* task; whether something new
+*should* be tracked is a human judgment call, not a review gate.
+
 ## NEVER NEVER NEVER gate a feature to an environment
 
 **Do not gate any user-facing feature so that it behaves differently in production than in staging/development.** Absolutely never write code of the form `Config.shared.environment != .production` (or any equivalent) to turn a feature on in staging while leaving it dark in production.
