@@ -33,8 +33,14 @@ struct LikedSongsSection: View {
             horizontalPadding: 16,
             onMenuTapped: { onMenuTapped(audioBlock, likedDate) }
           )
+          .transition(
+            .asymmetric(
+              insertion: .opacity.combined(with: .move(edge: .trailing)),
+              removal: .opacity.combined(with: .scale(scale: 0.95))
+            ))
         }
       }
+      .animation(.easeInOut(duration: 0.3), value: songs.map(\.0.id))
     }
   }
 }
