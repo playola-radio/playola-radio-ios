@@ -157,12 +157,21 @@ struct PlayerPage: View {
   }
 }
 
-// The square station-art hero. `.aspectRatio(1, contentMode: .fit)` sizes it to a
-// square of the proposed (container) width synchronously on first layout, so the
-// slot never collapses to zero and content doesn't jump. The rendered width is
-// captured into `side` and used to size the `WebImage` downsample target; the URL
-// is withheld until `side` is known so the image is never decoded at a zero (i.e.
-// unbounded, full-resolution) size.
+// The square station-art hero. A zero-intrinsic-size `Color` establishes the
+// square slot: `.aspectRatio(1, contentMode: .fit)` sizes *the Color* to a square
+// of the proposed (container) width synchronously on first layout, so the slot
+// never collapses to zero and content doesn't jump. The `WebImage` is layered on
+// top via `.overlay` so its own (possibly non-square) decoded intrinsic size can
+// never drive layout — it is bounded by the square and `.clipped()` crops the
+// `.fill` overflow. The rendered width is captured into `side` and used to size the
+// downsample target; the URL is withheld until `side` is known so the image is
+// never decoded at a zero (i.e. unbounded, full-resolution) size.
+//
+// Anchoring the square on the Color (not on the WebImage) is load-bearing: a
+// non-square source decodes to a non-square bitmap (`imagePreserveAspectRatio`),
+// and applying `.aspectRatio(1, .fit)` directly to the WebImage let that intrinsic
+// size leak into layout under the ScrollView's unspecified height proposal —
+// rendering some artwork oversized.
 private struct HeroArtwork: View {
   let url: URL?
   let displayScale: CGFloat
@@ -170,26 +179,30 @@ private struct HeroArtwork: View {
   @State private var side: CGFloat = 0
 
   var body: some View {
-    WebImage(
-      url: side > 0 ? url : nil,
-      context: RemoteArtwork.downsampleContext(
-        CGSize(width: side, height: side),
-        scale: displayScale)
-    ) { image in
-      image
-        .resizable()
-        .aspectRatio(contentMode: .fill)
-    } placeholder: {
-      Color(white: 0.2)
-    }
-    .aspectRatio(1, contentMode: .fit)
-    .onGeometryChange(for: CGFloat.self) { proxy in
-      proxy.size.width
-    } action: { width in
-      // Ignore transient zero-width passes so a measured size is never cleared
-      // (which would drop the loaded image back to the placeholder).
-      if width > 0 { side = width }
-    }
+    Color(white: 0.2)
+      .aspectRatio(1, contentMode: .fit)
+      .overlay {
+        WebImage(
+          url: side > 0 ? url : nil,
+          context: RemoteArtwork.downsampleContext(
+            CGSize(width: side, height: side),
+            scale: displayScale)
+        ) { image in
+          image
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+        } placeholder: {
+          Color.clear
+        }
+      }
+      .clipped()
+      .onGeometryChange(for: CGFloat.self) { proxy in
+        proxy.size.width
+      } action: { width in
+        // Ignore transient zero-width passes so a measured size is never cleared
+        // (which would drop the loaded image back to the placeholder).
+        if width > 0 { side = width }
+      }
   }
 }
 
