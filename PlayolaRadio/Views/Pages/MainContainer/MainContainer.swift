@@ -29,16 +29,10 @@ struct MainContainer: View {
         profileTab
       }
     }
-    //        .tabBarMinimizeBehavior(.onScrollDown)  // add in iOS 26
     .accentColor(.white)  // Makes the selected tab icon white
-    .onAppear {
-      let tabBarAppearance = UITabBarAppearance()
-      tabBarAppearance.configureWithOpaqueBackground()
-      tabBarAppearance.backgroundColor = .black
-
-      UITabBar.appearance().standardAppearance = tabBarAppearance
-      UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
-      UITabBar.appearance().unselectedItemTintColor = UIColor(white: 0.7, alpha: 1.0)
+    .playolaTabBarChrome()
+    .playolaBottomAccessory(isEnabled: model.shouldShowSmallPlayer) {
+      smallPlayer(isGlassAccessory: true)
     }
     .playolaAlert($model.presentedAlert)
     .onChange(of: model.activeTab) {
@@ -303,18 +297,17 @@ struct MainContainer: View {
   private func tabContentWithSmallPlayer<Content: View>(@ViewBuilder content: () -> Content)
     -> some View
   {
-    VStack(spacing: 0) {
-      content()
-
-      if model.shouldShowSmallPlayer {
-        SmallPlayer()
-          .onTapGesture {
-            model.onSmallPlayerTapped()
-          }
-          .transition(.move(edge: .bottom))
-          .zIndex(1)
+    content()
+      .playolaLegacySmallPlayer(isEnabled: model.shouldShowSmallPlayer) {
+        smallPlayer(isGlassAccessory: false)
       }
-    }
+  }
+
+  private func smallPlayer(isGlassAccessory: Bool) -> some View {
+    SmallPlayer(isGlassAccessory: isGlassAccessory)
+      .onTapGesture {
+        model.onSmallPlayerTapped()
+      }
   }
 
   private var activeTabBinding: Binding<MainContainerModel.ActiveTab> {

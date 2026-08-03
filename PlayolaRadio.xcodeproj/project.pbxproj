@@ -159,6 +159,7 @@
 		D30F008D2E8592F0007BCC73 /* URLStreamPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E56C2BFD2FAB00B9E35B /* URLStreamPlayer.swift */; };
 		D30F008E2E8592F0007BCC73 /* StationListPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5662BFD10AE00B9E35B /* StationListPage.swift */; };
 		D30F008F2E8592F0007BCC73 /* MainContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257C82DFA247A001BC6F9 /* MainContainer.swift */; };
+		ABCDEF010000000000000002 /* TabBarPlatformChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF010000000000000001 /* TabBarPlatformChrome.swift */; };
 		D30F00902E8592F0007BCC73 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257752E6342C600F4228B /* ToastView.swift */; };
 		D30F00912E8592F0007BCC73 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5682BFD1C0800B9E35B /* APIClient.swift */; };
 		D30F00922E8592F0007BCC73 /* SmallPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D382671B2E00C13E0006BAC2 /* SmallPlayer.swift */; };
@@ -310,6 +311,7 @@
 		D37257C42DF8F885001BC6F9 /* circleBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257C32DF8F87F001BC6F9 /* circleBackground.swift */; };
 		D37257C62DF9F064001BC6F9 /* HomePageStationList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257C52DF9EF8D001BC6F9 /* HomePageStationList.swift */; };
 		D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257C82DFA247A001BC6F9 /* MainContainer.swift */; };
+		ABCDEF010000000000000003 /* TabBarPlatformChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF010000000000000001 /* TabBarPlatformChrome.swift */; };
 		D37257CC2DFA3F83001BC6F9 /* FontNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257CB2DFA3F7F001BC6F9 /* FontNames.swift */; };
 		D37257D02DFB4368001BC6F9 /* PlayerPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */; };
 		D37769F92F22B38700200ADF /* ChooseStationPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37769F62F22B38700200ADF /* ChooseStationPageModel.swift */; };
@@ -685,6 +687,7 @@
 		D37257C32DF8F87F001BC6F9 /* circleBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = circleBackground.swift; sourceTree = "<group>"; };
 		D37257C52DF9EF8D001BC6F9 /* HomePageStationList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePageStationList.swift; sourceTree = "<group>"; };
 		D37257C82DFA247A001BC6F9 /* MainContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainer.swift; sourceTree = "<group>"; };
+		ABCDEF010000000000000001 /* TabBarPlatformChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarPlatformChrome.swift; sourceTree = "<group>"; };
 		D37257CB2DFA3F7F001BC6F9 /* FontNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontNames.swift; sourceTree = "<group>"; };
 		D37257CF2DFB4364001BC6F9 /* PlayerPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPage.swift; sourceTree = "<group>"; };
 		D37769F62F22B38700200ADF /* ChooseStationPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseStationPageModel.swift; sourceTree = "<group>"; };
@@ -1387,6 +1390,7 @@
 				D31CD5252DFBB47D009B9780 /* MainContainerTests.swift */,
 				FE110AC0DE0000000000F1F1 /* WelcomeMessageEligibilityTests.swift */,
 				D37257C82DFA247A001BC6F9 /* MainContainer.swift */,
+				ABCDEF010000000000000001 /* TabBarPlatformChrome.swift */,
 			);
 			path = MainContainer;
 			sourceTree = "<group>";
@@ -2132,6 +2136,7 @@
 				D3B9C7A62F534CE0002D75C2 /* IntroPresignedURLResponse.swift in Sources */,
 				D30F008E2E8592F0007BCC73 /* StationListPage.swift in Sources */,
 				D30F008F2E8592F0007BCC73 /* MainContainer.swift in Sources */,
+				ABCDEF010000000000000002 /* TabBarPlatformChrome.swift in Sources */,
 				D3776A3B2F2918DE00200ADF /* WaveformViews.swift in Sources */,
 				D39728712F60DCCC008591E3 /* ArtistSuggestion.swift in Sources */,
 				D30F00902E8592F0007BCC73 /* ToastView.swift in Sources */,
@@ -2329,6 +2334,7 @@
 				D3B9C7A72F534CE0002D75C2 /* IntroPresignedURLResponse.swift in Sources */,
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */,
+				ABCDEF010000000000000003 /* TabBarPlatformChrome.swift in Sources */,
 				D3776A3C2F2918DE00200ADF /* WaveformViews.swift in Sources */,
 				D39728722F60DCCC008591E3 /* ArtistSuggestion.swift in Sources */,
 				D30257762E6342C900F4228B /* ToastView.swift in Sources */,
