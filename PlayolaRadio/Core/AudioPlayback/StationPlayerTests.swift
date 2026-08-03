@@ -5,6 +5,7 @@
 //  Created by Claude on 1/8/26.
 //
 
+import AVFoundation
 import Combine
 import CustomDump
 import Foundation
@@ -39,9 +40,205 @@ final class SpyPlayolaStationPlayer: PlayolaTransport {
   func resumeAfterInterruption() async throws { resumeAfterInterruptionCount += 1 }
 }
 
+/// Session double whose `setActive` blocks until the test releases it, so a test
+/// can deterministically interleave a `stop()`/`play()` during the off-main
+/// activation window without `Task.sleep`. `@unchecked Sendable`: the coordinator
+/// runs `setActive` on its serial actor (off-main); the semaphores are the sync
+/// primitives that make the hand-off deterministic.
+final class GatedAudioSession: AudioSessionProtocol, @unchecked Sendable {
+  let entered = DispatchSemaphore(value: 0)
+  let proceed = DispatchSemaphore(value: 0)
+  private let throwOnActivate: Bool
+
+  init(throwOnActivate: Bool) { self.throwOnActivate = throwOnActivate }
+
+  func setCategory(
+    _ category: AVAudioSession.Category, mode: AVAudioSession.Mode,
+    policy: AVAudioSession.RouteSharingPolicy, options: AVAudioSession.CategoryOptions
+  ) throws {}
+  func setActive(_ active: Bool, options: AVAudioSession.SetActiveOptions) throws {
+    entered.signal()
+    proceed.wait()
+    if throwOnActivate { throw AudioSessionConfigError() }
+  }
+}
+
+/// One-shot async gate: `wait()` suspends until `open()` is called (or returns
+/// immediately if already opened). Lets a test hold an async call suspended
+/// without blocking a thread.
+actor AsyncGate {
+  private var opened = false
+  private var continuation: CheckedContinuation<Void, Never>?
+
+  func wait() async {
+    if opened { return }
+    await withCheckedContinuation { continuation = $0 }
+  }
+
+  func open() {
+    guard !opened else { return }
+    opened = true
+    continuation?.resume()
+    continuation = nil
+  }
+}
+
+/// PlayolaTransport double whose `play` suspends on an async gate until the test
+/// opens it, so a test can interleave a `stop()`/`play()` while the SDK play call
+/// is in flight (the second await inside `StationPlayer.play`).
+@MainActor
+final class GatedPlayolaStationPlayer: PlayolaTransport {
+  private let stateSubject = CurrentValueSubject<PlayolaStationPlayer.State, Never>(.idle)
+  var statePublisher: AnyPublisher<PlayolaStationPlayer.State, Never> {
+    stateSubject.eraseToAnyPublisher()
+  }
+
+  /// Signaled (off-actor safe: a `let` Sendable) when `play` has been entered.
+  let entered = DispatchSemaphore(value: 0)
+  let gate = AsyncGate()
+  private let throwOnPlay: Bool
+  var playCount = 0
+
+  init(throwOnPlay: Bool) { self.throwOnPlay = throwOnPlay }
+
+  func configure(authProvider: PlayolaAuthenticationProvider, baseURL: URL) {}
+  func play(stationId: String) async throws {
+    playCount += 1
+    entered.signal()
+    await gate.wait()
+    if throwOnPlay { throw PlayFailureTestError() }
+  }
+  func stop() {}
+  func pauseForInterruption() {}
+  func resumeAfterInterruption() async throws {}
+}
+
 @Suite(.freshSharedState)
 @MainActor
 struct StationPlayerTests {
+
+  /// Waits (off the main actor) until the gated session's `setActive` has been
+  /// entered, i.e. `play()`/`resume()` is suspended inside activation.
+  private func awaitActivationInFlight(_ gate: GatedAudioSession) async {
+    await withCheckedContinuation { continuation in
+      DispatchQueue.global().async {
+        gate.entered.wait()
+        continuation.resume()
+      }
+    }
+  }
+
+  /// Waits until the gated Playola double's `play` has been entered, i.e.
+  /// `StationPlayer.play` is suspended inside the backend (second) await.
+  private func awaitBackendPlayInFlight(_ playola: GatedPlayolaStationPlayer) async {
+    await withCheckedContinuation { continuation in
+      DispatchQueue.global().async {
+        playola.entered.wait()
+        continuation.resume()
+      }
+    }
+  }
+
+  @Test
+  func stopDuringActivationDropsStalePlayBeforeBackendStart() async {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let gate = GatedAudioSession(throwOnActivate: false)
+    let coordinator = AudioSessionCoordinator(session: gate)
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+
+    let playTask = Task { await player.play(station: .mockPlayola()) }
+    await awaitActivationInFlight(gate)
+
+    // User stops while activation is still in flight.
+    player.stop()
+    gate.proceed.signal()
+    await playTask.value
+
+    // The superseded attempt must not start the backend, and stop wins.
+    #expect(playola.playCount == 0)
+    guard case .stopped = player.state.playbackStatus else {
+      Issue.record("stale play started a backend: \(player.state.playbackStatus)")
+      return
+    }
+  }
+
+  @Test
+  func staleActivationFailureDoesNotClobberNewerState() async {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let gate = GatedAudioSession(throwOnActivate: true)
+    let coordinator = AudioSessionCoordinator(session: gate)
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+
+    let playTask = Task { await player.play(station: .mockPlayola()) }
+    await awaitActivationInFlight(gate)
+
+    // User stops before activation fails; the stale failure must not surface as
+    // .error over the deliberate stop.
+    player.stop()
+    gate.proceed.signal()
+    await playTask.value
+
+    guard case .stopped = player.state.playbackStatus else {
+      Issue.record("stale activation failure clobbered state: \(player.state.playbackStatus)")
+      return
+    }
+  }
+
+  @Test
+  func sameStationReplayDuringActivationDoesNotReviveStaleAttempt() async {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let gate = GatedAudioSession(throwOnActivate: false)
+    let coordinator = AudioSessionCoordinator(session: gate)
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+    let station = AnyStation.mockPlayola()
+
+    // First attempt suspends inside activation.
+    let firstPlay = Task { await player.play(station: station) }
+    await awaitActivationInFlight(gate)
+
+    // User stops, then replays the SAME station while the first is still parked.
+    player.stop()
+    gate.proceed.signal()
+    await firstPlay.value
+
+    // Station equality would let the stale first attempt revive; the token must
+    // drop it, so only the second (real) attempt reaches the backend.
+    let secondPlay = Task { await player.play(station: station) }
+    await awaitActivationInFlight(gate)
+    gate.proceed.signal()
+    await secondPlay.value
+
+    #expect(playola.playCount == 1)
+  }
+
+  @Test
+  func stalePlayolaPlayFailureDoesNotClobberNewerState() async {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let coordinator = AudioSessionCoordinator(session: SpyAudioSession())
+    let playola = GatedPlayolaStationPlayer(throwOnPlay: true)
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+
+    let playTask = Task { await player.play(station: .mockPlayola()) }
+    await awaitBackendPlayInFlight(playola)
+
+    // User stops while the SDK play() is suspended; the later throw must not
+    // surface .error over the deliberate stop.
+    player.stop()
+    await playola.gate.open()
+    await playTask.value
+
+    guard case .stopped = player.state.playbackStatus else {
+      Issue.record("stale SDK-play failure clobbered state: \(player.state.playbackStatus)")
+      return
+    }
+  }
 
   // MARK: - Session Ownership Tests
 

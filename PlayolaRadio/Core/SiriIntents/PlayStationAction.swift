@@ -17,7 +17,7 @@ struct PlayStationAction {
     let catalog = StationVoiceCatalog()
     guard let station = catalog.station(id: stationID) else { return .notFound }
     let label = catalog.match(id: stationID)?.label ?? station.stationName
-    PlaybackBootstrap().prepareForPlayback()
+    await PlaybackBootstrap().prepareForPlayback()
     await stationPlayer.play(station: station)
     return .playing(stationName: label)
   }

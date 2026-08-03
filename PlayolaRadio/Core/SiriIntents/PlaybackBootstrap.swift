@@ -9,9 +9,9 @@ import IssueReporting
 struct PlaybackBootstrap {
   @Dependency(\.audioSessionCoordinator) var audioSessionCoordinator
 
-  func prepareForPlayback() {
+  func prepareForPlayback() async {
     do {
-      try audioSessionCoordinator.configureForPlayback()
+      try await audioSessionCoordinator.configureForPlayback()
     } catch {
       reportIssue("PlaybackBootstrap failed to configure the audio session: \(error)")
     }

@@ -9,8 +9,12 @@ import Testing
 @testable import PlayolaRadio
 
 /// Plain class (not `@MainActor`) — the protocol is nonisolated; tests run on
-/// the main actor anyway via the suite annotation.
-final class SpyAudioSession: AudioSessionProtocol {
+/// the main actor anyway via the suite annotation. `@unchecked Sendable` because
+/// the coordinator hands the seam to a detached task that calls `setActive`
+/// off-main, so the seam must be `Sendable`; the recorded arrays are only read
+/// after the caller `await`s the coordinator method, so there is no concurrent
+/// access to guard.
+final class SpyAudioSession: AudioSessionProtocol, @unchecked Sendable {
   struct CategoryCall {
     let category: AVAudioSession.Category
     let mode: AVAudioSession.Mode
@@ -37,7 +41,7 @@ struct AudioSessionConfigError: Error {}
 
 /// Session double whose category/activation calls always throw — used to prove
 /// callers surface session-config failures instead of swallowing them.
-final class FailingAudioSession: AudioSessionProtocol {
+final class FailingAudioSession: AudioSessionProtocol, @unchecked Sendable {
   func setCategory(
     _ category: AVAudioSession.Category, mode: AVAudioSession.Mode,
     policy: AVAudioSession.RouteSharingPolicy, options: AVAudioSession.CategoryOptions
@@ -68,11 +72,11 @@ final class SpyInterruptionDelegate: AudioInterruptionDelegate {
 @MainActor
 struct AudioSessionCoordinatorTests {
   @Test
-  func playbackConfigUsesLongFormAudioAndActivates() throws {
+  func playbackConfigUsesLongFormAudioAndActivates() async throws {
     let spy = SpyAudioSession()
     let coordinator = AudioSessionCoordinator(session: spy)
 
-    try coordinator.configureForPlayback()
+    try await coordinator.configureForPlayback()
 
     #expect(spy.categories.last?.category == .playback)
     #expect(spy.categories.last?.policy == .longFormAudio)
@@ -81,26 +85,26 @@ struct AudioSessionCoordinatorTests {
   }
 
   @Test
-  func recordingConfigUsesPlayAndRecordAndActivates() throws {
+  func recordingConfigUsesPlayAndRecordAndActivates() async throws {
     let spy = SpyAudioSession()
     let coordinator = AudioSessionCoordinator(session: spy)
 
-    try coordinator.configureForRecording()
+    try await coordinator.configureForRecording()
 
     #expect(spy.categories.last?.category == .playAndRecord)
     #expect(spy.activations.last == true)
   }
 
   @Test
-  func recordingThenRestoreReturnsToPlaybackWithoutActivating() throws {
+  func recordingThenRestoreReturnsToPlaybackWithoutActivating() async throws {
     let spy = SpyAudioSession()
     let coordinator = AudioSessionCoordinator(session: spy)
 
-    try coordinator.configureForRecording()
+    try await coordinator.configureForRecording()
     #expect(spy.categories.last?.category == .playAndRecord)
 
     spy.activations = []
-    try coordinator.restorePlaybackCategory()  // category only — no auto-activate
+    try await coordinator.restorePlaybackCategory()  // category only — no auto-activate
 
     #expect(spy.categories.last?.category == .playback)
     #expect(spy.categories.last?.policy == .longFormAudio)
@@ -108,11 +112,11 @@ struct AudioSessionCoordinatorTests {
   }
 
   @Test
-  func deactivateDeactivatesTheSession() throws {
+  func deactivateDeactivatesTheSession() async throws {
     let spy = SpyAudioSession()
     let coordinator = AudioSessionCoordinator(session: spy)
 
-    try coordinator.deactivate()
+    try await coordinator.deactivate()
 
     #expect(spy.activations.last == false)
   }
