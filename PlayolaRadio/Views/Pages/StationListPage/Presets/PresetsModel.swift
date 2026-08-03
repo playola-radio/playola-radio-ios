@@ -383,6 +383,10 @@ final class PresetsModel: ViewModel {
     defer { isLoadingPresets = false }
     do {
       let fetched = try await api.getPresets(token)
+      // The account may have changed during the await; only commit a response
+      // that still matches the current JWT so one user's presets never land in
+      // another user's session.
+      guard auth.jwt == token else { return }
       $presets.withLock { $0 = IdentifiedArray(uniqueElements: fetched) }
       presetsLoadFailed = false
       hasLoadedPresets = true
