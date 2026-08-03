@@ -12,8 +12,8 @@ import Foundation
 /// Thin seam over `AVAudioSession` so the coordinator is unit-testable.
 /// NOT `@MainActor`: `AVAudioSession`'s members are nonisolated; isolation lives
 /// on the coordinator, which is the only caller. `Sendable` so the coordinator
-/// can hand the seam to the detached task that runs `setActive` off the main
-/// thread (see `AudioSessionCoordinator.activate`).
+/// can hand the seam to the `SessionConfigurator` actor, which runs `setActive`
+/// off the main thread (see `SessionConfigurator.activate`).
 protocol AudioSessionProtocol: Sendable {
   func setCategory(
     _ category: AVAudioSession.Category, mode: AVAudioSession.Mode,

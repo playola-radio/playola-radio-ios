@@ -47,6 +47,21 @@ class StationPlayer: ObservableObject {
   /// user explicitly stopped, and never double-resume on repeated events.
   private var pausedBySystem = false
 
+  /// Monotonic supersession token. `play()`/`resume()` claim a fresh token via
+  /// `beginPlaybackAttempt()`; `stop()` bumps it to invalidate anything in
+  /// flight. Because session activation now suspends off the main actor, an
+  /// attempt can be superseded mid-flight (a stop, or a *same-station* replay);
+  /// each attempt re-checks its token after every suspension so a stale one can't
+  /// start a backend or clobber newer state. Station equality alone can't tell
+  /// two attempts for the same station apart.
+  private var playToken = 0
+
+  /// Claims and returns a fresh token for a new playback attempt.
+  private func beginPlaybackAttempt() -> Int {
+    playToken += 1
+    return playToken
+  }
+
   /// The currently playing radio station, if any
   public var currentStation: AnyStation? {
     switch state.playbackStatus {
@@ -119,6 +134,7 @@ class StationPlayer: ObservableObject {
   public func play(station: AnyStation) async {
     guard currentStation != station else { return }
     stop()
+    let token = beginPlaybackAttempt()
     state = State(playbackStatus: .startingNewStation(station))
     state = State(playbackStatus: .loading(station))
 
@@ -129,20 +145,17 @@ class StationPlayer: ObservableObject {
     do {
       try await audioSessionCoordinator.configureForPlayback()
     } catch {
-      // Activation now hops off the main actor (see AudioSessionCoordinator), so
-      // this method suspended above and another play()/stop() may have run. Only
-      // surface the failure if this attempt is still current — a stale failure
-      // must not clobber the newer station or a deliberate stop with .error.
-      if currentStation == station { handlePlayFailure(error) }
+      // Activation hops off the main actor (see AudioSessionCoordinator), so this
+      // method suspended above and a stop()/play() may have superseded it. Only
+      // surface the failure if this attempt still owns the token — a stale
+      // failure must not clobber the newer station or a deliberate stop.
+      if token == playToken { handlePlayFailure(error) }
       return
     }
 
-    // Same staleness check for the success path: if a stop() or a play() for a
-    // different station landed during the activation suspension, this attempt is
-    // stale — bail before starting a backend the user no longer wants. The happy
-    // path is unaffected: nothing mutates state during activation, so
-    // currentStation is still `station` here.
-    guard currentStation == station else { return }
+    // Bail if superseded during the activation suspension, before starting a
+    // backend the user no longer wants.
+    guard token == playToken else { return }
 
     switch station {
     case .url(let urlStation):
@@ -152,7 +165,11 @@ class StationPlayer: ObservableObject {
       do {
         try await playolaStationPlayer.play(stationId: playolaStation.id)
       } catch {
-        handlePlayFailure(error)
+        // The SDK play() also suspends; guard the failure the same way so a
+        // stale throw can't clobber newer state. A stale *success* is left
+        // alone: the superseding stop()/play() has already re-driven the SDK
+        // (single-station), so tearing down here could kill the newer attempt.
+        if token == playToken { handlePlayFailure(error) }
       }
     }
   }
@@ -179,6 +196,9 @@ class StationPlayer: ObservableObject {
 
   /// Stops the currently playing station
   public func stop() {
+    // Invalidate any in-flight play()/resume() so a superseded attempt resuming
+    // from its activation await can't restart a backend or clobber .stopped.
+    playToken += 1
     pausedBySystem = false
     urlStreamPlayer.reset()
     playolaStationPlayer.stop()
@@ -202,20 +222,21 @@ class StationPlayer: ObservableObject {
     // Clearing here also covers the manual lock-screen resume path, so a stale
     // interruption-ended event can't trigger a second resume.
     pausedBySystem = false
-    // Snapshot the station: activation hops off the main actor (see
-    // AudioSessionCoordinator), so this method suspends below. If a stop() or a
-    // switch to a different station lands in that window, this resume is stale
-    // and must not reactivate/resume against state the user has moved on from.
+    // Snapshot the station and claim a token: activation hops off the main actor
+    // (see AudioSessionCoordinator), so this method suspends below. If a stop()
+    // or another play()/resume() lands in that window, this resume is stale and
+    // must not reactivate/resume against state the user has moved on from.
     guard let station = currentStation else { return }
+    let token = beginPlaybackAttempt()
     do {
       try await audioSessionCoordinator.configureForPlayback()
-      guard currentStation == station else { return }
+      guard token == playToken else { return }
       switch station {
       case .playola: try await playolaStationPlayer.resumeAfterInterruption()
       case .url: urlStreamPlayer.resume()
       }
     } catch {
-      if currentStation == station { handlePlayFailure(error) }
+      if token == playToken { handlePlayFailure(error) }
     }
   }
 

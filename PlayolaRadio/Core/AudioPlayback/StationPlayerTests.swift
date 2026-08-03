@@ -63,6 +63,56 @@ final class GatedAudioSession: AudioSessionProtocol, @unchecked Sendable {
   }
 }
 
+/// One-shot async gate: `wait()` suspends until `open()` is called (or returns
+/// immediately if already opened). Lets a test hold an async call suspended
+/// without blocking a thread.
+actor AsyncGate {
+  private var opened = false
+  private var continuation: CheckedContinuation<Void, Never>?
+
+  func wait() async {
+    if opened { return }
+    await withCheckedContinuation { continuation = $0 }
+  }
+
+  func open() {
+    guard !opened else { return }
+    opened = true
+    continuation?.resume()
+    continuation = nil
+  }
+}
+
+/// PlayolaTransport double whose `play` suspends on an async gate until the test
+/// opens it, so a test can interleave a `stop()`/`play()` while the SDK play call
+/// is in flight (the second await inside `StationPlayer.play`).
+@MainActor
+final class GatedPlayolaStationPlayer: PlayolaTransport {
+  private let stateSubject = CurrentValueSubject<PlayolaStationPlayer.State, Never>(.idle)
+  var statePublisher: AnyPublisher<PlayolaStationPlayer.State, Never> {
+    stateSubject.eraseToAnyPublisher()
+  }
+
+  /// Signaled (off-actor safe: a `let` Sendable) when `play` has been entered.
+  let entered = DispatchSemaphore(value: 0)
+  let gate = AsyncGate()
+  private let throwOnPlay: Bool
+  var playCount = 0
+
+  init(throwOnPlay: Bool) { self.throwOnPlay = throwOnPlay }
+
+  func configure(authProvider: PlayolaAuthenticationProvider, baseURL: URL) {}
+  func play(stationId: String) async throws {
+    playCount += 1
+    entered.signal()
+    await gate.wait()
+    if throwOnPlay { throw PlayFailureTestError() }
+  }
+  func stop() {}
+  func pauseForInterruption() {}
+  func resumeAfterInterruption() async throws {}
+}
+
 @Suite(.freshSharedState)
 @MainActor
 struct StationPlayerTests {
@@ -73,6 +123,17 @@ struct StationPlayerTests {
     await withCheckedContinuation { continuation in
       DispatchQueue.global().async {
         gate.entered.wait()
+        continuation.resume()
+      }
+    }
+  }
+
+  /// Waits until the gated Playola double's `play` has been entered, i.e.
+  /// `StationPlayer.play` is suspended inside the backend (second) await.
+  private func awaitBackendPlayInFlight(_ playola: GatedPlayolaStationPlayer) async {
+    await withCheckedContinuation { continuation in
+      DispatchQueue.global().async {
+        playola.entered.wait()
         continuation.resume()
       }
     }
@@ -123,6 +184,58 @@ struct StationPlayerTests {
 
     guard case .stopped = player.state.playbackStatus else {
       Issue.record("stale activation failure clobbered state: \(player.state.playbackStatus)")
+      return
+    }
+  }
+
+  @Test
+  func sameStationReplayDuringActivationDoesNotReviveStaleAttempt() async {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let gate = GatedAudioSession(throwOnActivate: false)
+    let coordinator = AudioSessionCoordinator(session: gate)
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+    let station = AnyStation.mockPlayola()
+
+    // First attempt suspends inside activation.
+    let firstPlay = Task { await player.play(station: station) }
+    await awaitActivationInFlight(gate)
+
+    // User stops, then replays the SAME station while the first is still parked.
+    player.stop()
+    gate.proceed.signal()
+    await firstPlay.value
+
+    // Station equality would let the stale first attempt revive; the token must
+    // drop it, so only the second (real) attempt reaches the backend.
+    let secondPlay = Task { await player.play(station: station) }
+    await awaitActivationInFlight(gate)
+    gate.proceed.signal()
+    await secondPlay.value
+
+    #expect(playola.playCount == 1)
+  }
+
+  @Test
+  func stalePlayolaPlayFailureDoesNotClobberNewerState() async {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let coordinator = AudioSessionCoordinator(session: SpyAudioSession())
+    let playola = GatedPlayolaStationPlayer(throwOnPlay: true)
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+
+    let playTask = Task { await player.play(station: .mockPlayola()) }
+    await awaitBackendPlayInFlight(playola)
+
+    // User stops while the SDK play() is suspended; the later throw must not
+    // surface .error over the deliberate stop.
+    player.stop()
+    await playola.gate.open()
+    await playTask.value
+
+    guard case .stopped = player.state.playbackStatus else {
+      Issue.record("stale SDK-play failure clobbered state: \(player.state.playbackStatus)")
       return
     }
   }
