@@ -181,6 +181,8 @@
 		D30F00A72E8592F0007BCC73 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3536A0B2BFA4F4A006942D6 /* Preview Assets.xcassets */; };
 		D30F00A82E8592F0007BCC73 /* SpaceGrotesk.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D37257BA2DF891D5001BC6F9 /* SpaceGrotesk.ttf */; };
 		D30F00AA2E8592F0007BCC73 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3536A082BFA4F4A006942D6 /* Assets.xcassets */; };
+		AAF1000000000000000000B1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */; };
+		AAF1000000000000000000B2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */; };
 		D30F00AC2E8592F0007BCC73 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D37257AA2DF87C72001BC6F9 /* LaunchScreen.storyboard */; };
 		D30F00B72E871945007BCC73 /* StationListStationRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30F00B62E871940007BCC73 /* StationListStationRowView.swift */; };
 		D30F00B82E871945007BCC73 /* StationListStationRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30F00B62E871940007BCC73 /* StationListStationRowView.swift */; };
@@ -636,6 +638,7 @@
 		D35673BD2D3DCA1E00E4E926 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		D35673BF2D3DCA3600E4E926 /* Secrets-Example.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Example.xcconfig"; sourceTree = "<group>"; };
 		D35673C12D3DCF6000E4E926 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		D35673C22D3E871800E4E926 /* CPListItem+InitWithRemoteUrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CPListItem+InitWithRemoteUrl.swift"; sourceTree = "<group>"; };
 		D35673C42D3E8E1E00E4E926 /* PlayolaRadio.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PlayolaRadio.entitlements; sourceTree = "<group>"; };
 		D35673C52D3E91B900E4E926 /* MainSceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainSceneDelegate.swift; sourceTree = "<group>"; };
@@ -1180,6 +1183,7 @@
 				D3536A0A2BFA4F4A006942D6 /* Preview Content */,
 				D35673C42D3E8E1E00E4E926 /* PlayolaRadio.entitlements */,
 				D35673C12D3DCF6000E4E926 /* Info.plist */,
+				AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */,
 				D30F00B42E8592F0007BCC73 /* Info-Staging.plist */,
 				D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */,
 			);
@@ -1961,6 +1965,7 @@
 				D30F00A72E8592F0007BCC73 /* Preview Assets.xcassets in Resources */,
 				D30F00A82E8592F0007BCC73 /* SpaceGrotesk.ttf in Resources */,
 				D30F00AA2E8592F0007BCC73 /* Assets.xcassets in Resources */,
+				AAF1000000000000000000B2 /* PrivacyInfo.xcprivacy in Resources */,
 				D30F00AC2E8592F0007BCC73 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1974,6 +1979,7 @@
 				D3536A0C2BFA4F4A006942D6 /* Preview Assets.xcassets in Resources */,
 				D37257BB2DF891D5001BC6F9 /* SpaceGrotesk.ttf in Resources */,
 				D3536A092BFA4F4A006942D6 /* Assets.xcassets in Resources */,
+				AAF1000000000000000000B1 /* PrivacyInfo.xcprivacy in Resources */,
 				D37257AB2DF87C72001BC6F9 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
