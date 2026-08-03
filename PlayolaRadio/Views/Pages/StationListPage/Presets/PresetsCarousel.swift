@@ -41,7 +41,7 @@ struct PresetsCarousel: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
         Text(sectionTitle)
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+          .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 28))
           .foregroundColor(.white)
         Spacer()
         if isEditing {

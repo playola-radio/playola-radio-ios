@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import PlayolaPlayer
 import SwiftUI
 
 struct YourLibraryPageView: View {
@@ -42,14 +43,38 @@ struct YourLibraryPageView: View {
             onEditDoneTapped: { model.presetsModel.presetsEditDoneTapped() },
             onRetryTapped: { await model.presetsModel.retryLoadPresetsTapped() }
           )
+
+          LikedSongsSection(
+            title: model.likedSongsSectionTitle,
+            songs: model.likedSongs,
+            dateText: { model.formatTimestamp(for: $0) },
+            onMenuTapped: { audioBlock, likedDate in
+              model.songMenuTapped(for: audioBlock, likedDate: likedDate)
+            }
+          )
         }
         .padding(.top, 8)
+        .padding(.bottom, 24)
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(Color.black)
     .task { await model.viewAppeared() }
     .playolaAlert(Bindable(model.presetsModel).presentedAlert)
+    .sheet(item: $model.presentedSongActionSheet) { sheet in
+      SongDrawerView(
+        model: SongDrawerModel(
+          audioBlock: sheet.audioBlock,
+          likedDate: sheet.likedDate,
+          onDismiss: { model.presentedSongActionSheet = nil },
+          onRemove: { audioBlock in model.removeSong(audioBlock) }
+        )
+      )
+      .presentationCornerRadius(20)
+      .presentationDetents([.height(320), .medium])
+      .presentationDragIndicator(.visible)
+      .presentationBackground(Color(hex: "#323232"))
+    }
   }
 }
 

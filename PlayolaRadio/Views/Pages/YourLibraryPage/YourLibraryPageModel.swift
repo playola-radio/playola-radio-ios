@@ -4,6 +4,7 @@
 //
 
 import Dependencies
+import Foundation
 import Observation
 import PlayolaPlayer
 import SwiftUI
@@ -16,10 +17,15 @@ class YourLibraryPageModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.likesManager) var likesManager: LikesManager
 
   // MARK: - Sub-Models
 
   let presetsModel: PresetsModel
+
+  // MARK: - Properties
+
+  var presentedSongActionSheet: SongActionSheet?
 
   // MARK: - Initialization
 
@@ -31,6 +37,18 @@ class YourLibraryPageModel: ViewModel {
   // MARK: - View Helpers
 
   var navigationTitle: String { "Your Library" }
+  var likedSongsSectionTitle: String { "Liked Songs" }
+
+  /// All liked songs, newest first (flat — no date grouping).
+  var likedSongs: [(AudioBlock, Date)] {
+    likesManager.allLikedAudioBlocksWithTimestamps.sorted { $0.1 > $1.1 }
+  }
+
+  func formatTimestamp(for date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMMM d, yyyy 'at' h:mm a"
+    return formatter.string(from: date)
+  }
 
   // MARK: - User Actions
 
@@ -47,5 +65,13 @@ class YourLibraryPageModel: ViewModel {
         position: position
       ))
     await stationPlayer.play(station: display.stationItem.anyStation)
+  }
+
+  func songMenuTapped(for audioBlock: AudioBlock, likedDate: Date) {
+    presentedSongActionSheet = SongActionSheet(audioBlock: audioBlock, likedDate: likedDate)
+  }
+
+  func removeSong(_ audioBlock: AudioBlock) {
+    likesManager.unlike(audioBlock)
   }
 }
