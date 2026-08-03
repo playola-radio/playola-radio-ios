@@ -301,6 +301,8 @@ struct HomePageTests {
   @Test
   func testListeningTileNavigationToRewardsIsIdempotent() async {
     @Shared(.activeTab) var activeTab = MainContainerModel.ActiveTab.home
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
 
     let homePageModel = withDependencies {
       $0.analytics.track = { _ in }
@@ -312,7 +314,7 @@ struct HomePageTests {
     await homePageModel.listeningTimeTileModel.buttonAction?()
 
     // Repeat taps must not stack duplicate Rewards pages.
-    #expect(homePageModel.mainContainerNavigationCoordinator.path.count == 1)
+    #expect(coordinator.path.count == 1)
   }
 
   // MARK: - Player Interaction Tests
