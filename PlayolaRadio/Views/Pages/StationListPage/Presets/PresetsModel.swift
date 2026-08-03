@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import Combine
 import Dependencies
 import IdentifiedCollections
 import PlayolaPlayer
@@ -85,6 +86,15 @@ final class PresetsModel: ViewModel {
   let presetsRetryButtonText = "Retry"
 
   @ObservationIgnored private var hasLoadedPresets = false
+  @ObservationIgnored private var lastJWT: String?
+  @ObservationIgnored private var authCancellable: AnyCancellable?
+
+  // MARK: - Initialization
+
+  override init() {
+    super.init()
+    setupAuthObserver()
+  }
 
   // MARK: - User Actions
 
@@ -337,6 +347,33 @@ final class PresetsModel: ViewModel {
         endpoint: "DELETE /v1/presets/\(presetId)",
         extraTags: ["preset_id": presetId])
       presentedAlert = .errorRemovingPreset
+    }
+  }
+
+  // Presets are per-account. Mirror LikesManager: force a refetch when the JWT
+  // changes and clear the shared collection on sign-out, so a second user who
+  // signs in without restarting never sees the first user's presets.
+  private func setupAuthObserver() {
+    authCancellable =
+      $auth.publisher
+      .sink { [weak self] newAuth in
+        Task { @MainActor [weak self] in
+          await self?.handleAuthChange(newAuth)
+        }
+      }
+  }
+
+  private func handleAuthChange(_ newAuth: Auth) async {
+    let newJWT = newAuth.jwt
+    guard newJWT != lastJWT else { return }
+    let hadJWT = lastJWT != nil
+    lastJWT = newJWT
+    // Force the next loadPresetsIfNeeded to refetch for the new auth state.
+    hasLoadedPresets = false
+    if newJWT == nil && hadJWT {
+      $presets.withLock { $0.removeAll() }
+      $pendingPresetStationIds.withLock { $0.removeAll() }
+      $pendingPresetRemovalStationIds.withLock { $0.removeAll() }
     }
   }
 

@@ -1,7 +1,10 @@
 # Move Rewards to a Profile button; replace the Rewards tab with a "Your Library" tab
 
 **Date:** 2026-07-28
-**Status:** Approved
+**Status:** Superseded — the "blank placeholder" scope below was the first step only. The
+Your Library page now hosts the Presets carousel and a Liked Songs section (see
+`docs/superpowers/plans/2026-07-28-presets-to-library.md`). This document is kept as the
+original tab-move spec; sections describing Your Library as blank no longer reflect the code.
 
 ## Goal
 

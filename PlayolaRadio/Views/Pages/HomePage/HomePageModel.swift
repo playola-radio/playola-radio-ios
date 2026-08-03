@@ -86,6 +86,10 @@ class HomePageModel: ViewModel {
         guard let self = self else { return }
         await self.analytics.track(.navigatedToRewardsFromListeningTile)
         await self.$activeTab.withLock { $0 = .profile }
+        // Idempotent: don't stack duplicate Rewards pages on repeat taps.
+        if case .rewardsPage = await self.mainContainerNavigationCoordinator.profilePath.last {
+          return
+        }
         await self.mainContainerNavigationCoordinator.push(.rewardsPage(RewardsPageModel()))
       }
     )
