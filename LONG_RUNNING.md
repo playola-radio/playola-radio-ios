@@ -9,7 +9,7 @@ soak gate passes/fails — in the *same PR* that caused the change. Keeping this
 current is the point; a stale tracker is worse than none. (See the "Long-Running
 Work Tracking" rule in `CLAUDE.md`.)
 
-**Status legend:** 🟢 planning · 🔵 in progress · 🟡 soaking (merged, watching prod) · ✅ done · ⏸️ paused
+**Status legend:** 🟢 planning · 🔵 in progress · 🟡 soaking (merged; watching staging → phased prod) · ✅ done · ⏸️ paused
 
 **Soak is a first-class state here on purpose.** "Merged" ≠ "shipped safely."
 Risky changes (especially audio) merge to `develop`, then **soak** on staging /
@@ -27,7 +27,7 @@ _Last updated: 2026-08-02_
 
 | Task | Status | Current step | Soak | Links |
 |------|--------|--------------|------|-------|
-| Host-owned audio → Sonos | 🟡 soaking | Phase 1 merged; staging soak + device matrix | Staging, since `⟨owner: staging build date⟩` | PR #345 · plan |
+| Host-owned audio → Sonos | 🟡 soaking | Phase 1 merged; staging soak + device matrix | Not started (pending first staging build) | PR #345 · plan |
 | Clip share | 🔵 in progress | ⟨owner: current step⟩ | none (standard release) | PR #219 |
 | Rewards → Your Library | 🔵 in progress | Rewards→Profile, Library tab, Presets move | none | PR #372 · `fix-library-requests-ui` |
 | Siri "Play on Playola" (App Intents media schema) | 🟢 planning | Approach B decided (2026-06-14); not started | n/a | — |
@@ -45,6 +45,7 @@ CarPlay teardown, speaker-stuck-after-recording) along the way.
 **Plan doc:** `~/playola/shared/PLAYOLA_AUDIO_OWNERSHIP_PLAN.md` (authoritative).
 
 ### Phases
+
 - [x] **Phase 0 — SDK host-only** (shipped as PlayolaPlayer 0.20.0 → 0.20.2)
 - [x] **Phase 1 — app owns session + interruptions** (PR #345, merged to develop) — 🟡 soaking
 - [ ] **Phase 2 — single Now Playing writer** (low risk, ~1 PR)
@@ -54,13 +55,17 @@ CarPlay teardown, speaker-stuck-after-recording) along the way.
 - [ ] **Phase 5 — Sonos renderer** (AVSampleBuffer render path; big; own plan + server-flag rollout)
 
 ### Current step
+
 Phase 1 merged. Now: run the device-verification matrix on real hardware and
 soak on staging before an App Store release. Phase 2 can proceed on develop in
 parallel — it does not block the Phase 1 release soak.
 
 ### Soak — Phase 1
+
 - **Environment:** staging TestFlight → then App Store 7-day phased rollout.
-- **Soaking since:** `⟨owner: date the staging build ships⟩`
+- **Soaking since:** not started yet — pending the first staging TestFlight build.
+  Fill the date when it ships (the "~1 week clean" advance criterion is measured
+  from here).
 - **Device matrix (must pass before App Store):** phone-call/Siri interruption
   resumes · interruption-without-shouldResume stays paused · headphone unplug
   pauses (not stops) · Bluetooth A2DP + car HFP route · CarPlay connect/play/
@@ -73,10 +78,15 @@ parallel — it does not block the Phase 1 release soak.
 - **Advance when:** device matrix passes AND ~1 week of clean staging dogfooding
   AND Mixpanel session metrics flat. Then cut the release; don't over-soak on
   develop (it just entangles with later changes).
-- **Rollback lever:** revert the PlayolaPlayer SPM pin (0.20.2 → 0.19.x) + revert
-  the app PR = instant return to old session-managed behavior.
+- **Rollback lever:** known-good prior version is PlayolaPlayer **0.19.0**. Rolling
+  back = revert the SPM pin (0.20.2 → 0.19.0) + revert the app PR, then **build and
+  ship a new release** — reverting source does *not* change binaries already
+  installed via TestFlight/App Store. Because Phase 1 hasn't reached production
+  yet, the cheapest rollback right now is simply **not cutting the release**; once
+  it's live, roll back by shipping a build repinned to 0.19.0 (phased release again).
 
 ### Notes
+
 - FRadioPlayer is now a maintained local package (`LocalPackages/FRadioPlayer`),
   isolated from the app's strict build settings.
 - Phase 5 (the actual Sonos-enabling renderer) is the highest-risk item and gets

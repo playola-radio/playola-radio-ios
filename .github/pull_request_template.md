@@ -1,6 +1,6 @@
 <!-- Keep this light. Delete sections that don't apply. -->
 
-## What & why
+# What & why
 
 
 ## Long-running work
