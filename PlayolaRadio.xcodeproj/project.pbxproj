@@ -36,7 +36,6 @@
 		6D6D8F5B3570802E2D336F7C /* GiveawayOverlayModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E16A5F5E27CF6BD0259ED1E5 /* GiveawayOverlayModelTests.swift */; };
 		6E073224D257FDD579575841 /* UpcomingGiveawayBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73585D96F0A0EB79FFD39F8E /* UpcomingGiveawayBadge.swift */; };
 		725E8382CB9672F532FC2CDD /* GiveawayMyResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B82DD37711E160592E3842D /* GiveawayMyResult.swift */; };
-		76C4967DBFE548C0884C2931 /* StationListPresetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0E489F7714364A04B11B1 /* StationListPresetTests.swift */; };
 		81599AD0B41E4A2496EEF25A /* PresetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6613FD7A13B448187CB8595 /* PresetTests.swift */; };
 		8CECE7D0544EBE95DA92A501 /* GiveawayMyResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B82DD37711E160592E3842D /* GiveawayMyResult.swift */; };
 		922EDF2DC64B95D9A7E981EC /* UpcomingGiveawayInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36EB0D70D43F1CF6504F637E /* UpcomingGiveawayInfo.swift */; };
@@ -47,9 +46,9 @@
 		A1750A0000000000000000F5 /* ConnectivityProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F4 /* ConnectivityProbe.swift */; };
 		A1750A0000000000000000F6 /* ConnectivityProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F4 /* ConnectivityProbe.swift */; };
 		A1750A0000000000000000F8 /* ConnectivityProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1750A0000000000000000F7 /* ConnectivityProbeTests.swift */; };
-		A1B2C3D4E5F6A7B8C9D0E1F2 /* StationListPresetComingSoonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B3C4D5E6F7A8B9C0D1E2F3 /* StationListPresetComingSoonTests.swift */; };
 		A8034ECCAE01C4925AEA0BA4 /* GiveawayCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DBB4FE7E4F57517A32804E0 /* GiveawayCoordinator.swift */; };
 		AA01000000000001AAAAAAAA /* PresetStarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0E48AF7714364A04B11B2 /* PresetStarButton.swift */; };
+		C816D77FF9455BD1B83AF237 /* PresetsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ED42817003307A164F85FE7 /* PresetsModel.swift */; };
 		AA01000000000002AAAAAAAA /* PresetTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0E49DF7714364A04B11B3 /* PresetTile.swift */; };
 		AA01000000000003AAAAAAAA /* PresetsCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0EA0DF7714364A04B11B7 /* PresetsCarousel.swift */; };
 		AA01000000000004AAAAAAAA /* PresetStarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF0E48AF7714364A04B11B2 /* PresetStarButton.swift */; };
@@ -93,6 +92,7 @@
 		D30F004C2E8592F0007BCC73 /* MainSceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C52D3E91B900E4E926 /* MainSceneDelegate.swift */; };
 		D30F004D2E8592F0007BCC73 /* RadioStation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673B12D3DC59100E4E926 /* RadioStation.swift */; };
 		D30F004E2E8592F0007BCC73 /* RewardsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C12E3131770042A427 /* RewardsPageView.swift */; };
+		0A6E6C233E85A650521A5331 /* YourLibraryPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 903A1DE2476388DF8FCC8874 /* YourLibraryPageView.swift */; };
 		D30F004F2E8592F0007BCC73 /* HomePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B12DF88BBD001BC6F9 /* HomePageModel.swift */; };
 		D30F00502E8592F0007BCC73 /* SongDrawerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302578F2E63C13400F4228B /* SongDrawerView.swift */; };
 		D30F00512E8592F0007BCC73 /* SongDrawerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302578E2E63C13400F4228B /* SongDrawerModel.swift */; };
@@ -141,9 +141,12 @@
 		D30F007A2E8592F0007BCC73 /* circleBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257C32DF8F87F001BC6F9 /* circleBackground.swift */; };
 		D30F007B2E8592F0007BCC73 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCF2E57947800497A4A /* ShareSheet.swift */; };
 		D30F007C2E8592F0007BCC73 /* RewardsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744BF2E31316D0042A427 /* RewardsPageModel.swift */; };
+		6DB99ADC7A25C5E364543B5E /* YourLibraryPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C05FDC46B20CB37D84A8197 /* YourLibraryPageModel.swift */; };
 		D30F007D2E8592F0007BCC73 /* ToastClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302576C2E63428700F4228B /* ToastClient.swift */; };
 		D30F007E2E8592F0007BCC73 /* RewardsProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */; };
 		D30F007F2E8592F0007BCC73 /* LikedSongsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257862E63B6B700F4228B /* LikedSongsPage.swift */; };
+		A5EC7100000000000000F002 /* LikedSongsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5EC7100000000000000F001 /* LikedSongsSection.swift */; };
+		A5EC7100000000000000F003 /* LikedSongsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5EC7100000000000000F001 /* LikedSongsSection.swift */; };
 		D30F00802E8592F0007BCC73 /* EnumTypeEquatableProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DD32D3AC9B40070033A /* EnumTypeEquatableProtocol.swift */; };
 		D30F00822E8592F0007BCC73 /* LikedSongsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257882E63B6BE00F4228B /* LikedSongsPageModel.swift */; };
 		D30F00832E8592F0007BCC73 /* UIApplication+keyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A276682D496282006055AF /* UIApplication+keyWindow.swift */; };
@@ -425,6 +428,9 @@
 		D3B744C02E3131730042A427 /* RewardsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744BF2E31316D0042A427 /* RewardsPageModel.swift */; };
 		D3B744C22E31317B0042A427 /* RewardsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C12E3131770042A427 /* RewardsPageView.swift */; };
 		D3B744C52E31318A0042A427 /* RewardsPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C32E31317F0042A427 /* RewardsPageTests.swift */; };
+		BD3E0D31823FDD5950701308 /* YourLibraryPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C05FDC46B20CB37D84A8197 /* YourLibraryPageModel.swift */; };
+		930065958AE65D1A65716F54 /* YourLibraryPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 903A1DE2476388DF8FCC8874 /* YourLibraryPageView.swift */; };
+		2891A2D21D67E32129F5F2ED /* YourLibraryPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B5384ED9FE3A984F23C18BA /* YourLibraryPageTests.swift */; };
 		D3B744C82E31399E0042A427 /* ListeningTimeTileModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C72E3139960042A427 /* ListeningTimeTileModel.swift */; };
 		D3B744CB2E313B230042A427 /* ListeningTimeTileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744C92E313B170042A427 /* ListeningTimeTileTests.swift */; };
 		D3B744CD2E368DB50042A427 /* Prize.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744CC2E368D790042A427 /* Prize.swift */; };
@@ -506,8 +512,9 @@
 		FAE000000000000000000005 /* AudioSessionCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */; };
 		FAF000000000000000000002 /* AudioRecorderClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF000000000000000000001 /* AudioRecorderClientTests.swift */; };
 		FE01A0C72DFCB368002BAC30 /* SharedStateTestTrait.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */; };
-		FE02FE02FE02FE02FE02FE02 /* StationListPresetErrorReportingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE01FE01FE01FE01FE01FE01 /* StationListPresetErrorReportingTests.swift */; };
 		FE110A0000000000000000B2 /* WelcomeMessagePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F2 /* WelcomeMessagePageModel.swift */; };
+		C40A6A2D4B9EF1448F77A68E /* PresetsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ED42817003307A164F85FE7 /* PresetsModel.swift */; };
+		1DFA251ED9768A3CF235AF92 /* PresetsModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4951B01E879591B4AC3CDA52 /* PresetsModelTests.swift */; };
 		FE110A0000000000000000B3 /* WelcomeMessagePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F3 /* WelcomeMessagePageView.swift */; };
 		FE110A0000000000000000B4 /* WelcomeMessagePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F4 /* WelcomeMessagePageTests.swift */; };
 		FE110A0000000000000000B5 /* WelcomeMessagePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F2 /* WelcomeMessagePageModel.swift */; };
@@ -554,12 +561,11 @@
 		A1750A0000000000000000F1 /* PlayolaTLS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTLS.swift; sourceTree = "<group>"; };
 		A1750A0000000000000000F4 /* ConnectivityProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectivityProbe.swift; sourceTree = "<group>"; };
 		A1750A0000000000000000F7 /* ConnectivityProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectivityProbeTests.swift; sourceTree = "<group>"; };
-		A2B3C4D5E6F7A8B9C0D1E2F3 /* StationListPresetComingSoonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPresetComingSoonTests.swift; sourceTree = "<group>"; };
 		A6613FD7A13B448187CB8595 /* PresetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetTests.swift; sourceTree = "<group>"; };
+		4ED42817003307A164F85FE7 /* PresetsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetsModel.swift; sourceTree = "<group>"; };
 		AC860B8DF872B25EFF727088 /* GiveawayWinnerSheetView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerSheetView.swift; sourceTree = "<group>"; };
 		BA44EE33EB697E44CEC84351 /* GiveawayWinnerPushTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerPushTests.swift; sourceTree = "<group>"; };
 		BC138D8C4809A3F89A5B4985 /* GiveawayWinnerSheetModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerSheetModelTests.swift; sourceTree = "<group>"; };
-		BFF0E489F7714364A04B11B1 /* StationListPresetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPresetTests.swift; sourceTree = "<group>"; };
 		BFF0E48AF7714364A04B11B2 /* PresetStarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetStarButton.swift; sourceTree = "<group>"; };
 		BFF0E49DF7714364A04B11B3 /* PresetTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetTile.swift; sourceTree = "<group>"; };
 		BFF0EA0DF7714364A04B11B7 /* PresetsCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetsCarousel.swift; sourceTree = "<group>"; };
@@ -573,6 +579,7 @@
 		D302577F2E639FDD00F4228B /* LikesManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikesManagerTests.swift; sourceTree = "<group>"; };
 		D30257822E63A36A00F4228B /* LikeOperationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikeOperationTests.swift; sourceTree = "<group>"; };
 		D30257862E63B6B700F4228B /* LikedSongsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedSongsPage.swift; sourceTree = "<group>"; };
+		A5EC7100000000000000F001 /* LikedSongsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedSongsSection.swift; sourceTree = "<group>"; };
 		D30257882E63B6BE00F4228B /* LikedSongsPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedSongsPageModel.swift; sourceTree = "<group>"; };
 		D302578A2E63B6C800F4228B /* LikedSongsPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedSongsPageTests.swift; sourceTree = "<group>"; };
 		D302578E2E63C13400F4228B /* SongDrawerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongDrawerModel.swift; sourceTree = "<group>"; };
@@ -764,6 +771,9 @@
 		D3B744BF2E31316D0042A427 /* RewardsPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsPageModel.swift; sourceTree = "<group>"; };
 		D3B744C12E3131770042A427 /* RewardsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsPageView.swift; sourceTree = "<group>"; };
 		D3B744C32E31317F0042A427 /* RewardsPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsPageTests.swift; sourceTree = "<group>"; };
+		6C05FDC46B20CB37D84A8197 /* YourLibraryPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YourLibraryPageModel.swift; sourceTree = "<group>"; };
+		903A1DE2476388DF8FCC8874 /* YourLibraryPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YourLibraryPageView.swift; sourceTree = "<group>"; };
+		6B5384ED9FE3A984F23C18BA /* YourLibraryPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YourLibraryPageTests.swift; sourceTree = "<group>"; };
 		D3B744C72E3139960042A427 /* ListeningTimeTileModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTimeTileModel.swift; sourceTree = "<group>"; };
 		D3B744C92E313B170042A427 /* ListeningTimeTileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTimeTileTests.swift; sourceTree = "<group>"; };
 		D3B744CC2E368D790042A427 /* Prize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Prize.swift; sourceTree = "<group>"; };
@@ -815,9 +825,9 @@
 		FAE000000000000000000001 /* AudioSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinator.swift; sourceTree = "<group>"; };
 		FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinatorTests.swift; sourceTree = "<group>"; };
 		FAF000000000000000000001 /* AudioRecorderClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderClientTests.swift; sourceTree = "<group>"; };
-		FE01FE01FE01FE01FE01FE01 /* StationListPresetErrorReportingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPresetErrorReportingTests.swift; sourceTree = "<group>"; };
 		FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStateTestTrait.swift; sourceTree = "<group>"; };
 		FE110A0000000000000000F2 /* WelcomeMessagePageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessagePageModel.swift; sourceTree = "<group>"; };
+		4951B01E879591B4AC3CDA52 /* PresetsModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetsModelTests.swift; sourceTree = "<group>"; };
 		FE110A0000000000000000F3 /* WelcomeMessagePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessagePageView.swift; sourceTree = "<group>"; };
 		FE110A0000000000000000F4 /* WelcomeMessagePageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessagePageTests.swift; sourceTree = "<group>"; };
 		FE110AC0DE0000000000F1F1 /* WelcomeMessageEligibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessageEligibilityTests.swift; sourceTree = "<group>"; };
@@ -915,6 +925,8 @@
 				BFF0E48AF7714364A04B11B2 /* PresetStarButton.swift */,
 				BFF0E49DF7714364A04B11B3 /* PresetTile.swift */,
 				BFF0EA0DF7714364A04B11B7 /* PresetsCarousel.swift */,
+				4ED42817003307A164F85FE7 /* PresetsModel.swift */,
+				4951B01E879591B4AC3CDA52 /* PresetsModelTests.swift */,
 			);
 			path = Presets;
 			sourceTree = "<group>";
@@ -945,6 +957,7 @@
 				D302578A2E63B6C800F4228B /* LikedSongsPageTests.swift */,
 				D30257882E63B6BE00F4228B /* LikedSongsPageModel.swift */,
 				D30257862E63B6B700F4228B /* LikedSongsPage.swift */,
+				A5EC7100000000000000F001 /* LikedSongsSection.swift */,
 			);
 			path = LikedSongsPage;
 			sourceTree = "<group>";
@@ -988,9 +1001,6 @@
 				D35905EB2DFCDA110064A9C1 /* StationListModel.swift */,
 				D339E5662BFD10AE00B9E35B /* StationListPage.swift */,
 				D3137DC12D39B4FC0070033A /* StationListPageTests.swift */,
-				BFF0E489F7714364A04B11B1 /* StationListPresetTests.swift */,
-				FE01FE01FE01FE01FE01FE01 /* StationListPresetErrorReportingTests.swift */,
-				A2B3C4D5E6F7A8B9C0D1E2F3 /* StationListPresetComingSoonTests.swift */,
 				BFF0E48DF7714364A04B11B2 /* Presets */,
 				3B83C3893A771EB211B3AF8F /* StationListLiveSortTests.swift */,
 			);
@@ -1118,6 +1128,7 @@
 				D39728682F60CF59008591E3 /* StationSuggestionPage */,
 				D35EFC382F192C76000F64A4 /* SupportPage */,
 				FE110A0000000000000000A0 /* WelcomeMessage */,
+				A54D4D5A8EFD52CF2764EF6B /* YourLibraryPage */,
 				D3536A062BFA4F49006942D6 /* ContentView.swift */,
 				5BCFD236E4802E5BC59860C6 /* GiveawayWinnerSheet */,
 				358480181ADB29C686D6482F /* GiveawayCongratsSheet */,
@@ -1684,6 +1695,16 @@
 			path = RewardsPage;
 			sourceTree = "<group>";
 		};
+		A54D4D5A8EFD52CF2764EF6B /* YourLibraryPage */ = {
+			isa = PBXGroup;
+			children = (
+				6B5384ED9FE3A984F23C18BA /* YourLibraryPageTests.swift */,
+				903A1DE2476388DF8FCC8874 /* YourLibraryPageView.swift */,
+				6C05FDC46B20CB37D84A8197 /* YourLibraryPageModel.swift */,
+			);
+			path = YourLibraryPage;
+			sourceTree = "<group>";
+		};
 		D3B744C62E3139860042A427 /* ListeningTimeTile */ = {
 			isa = PBXGroup;
 			children = (
@@ -2025,6 +2046,7 @@
 				D3776A1C2F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift in Sources */,
 				D30F004D2E8592F0007BCC73 /* RadioStation.swift in Sources */,
 				D30F004E2E8592F0007BCC73 /* RewardsPageView.swift in Sources */,
+				0A6E6C233E85A650521A5331 /* YourLibraryPageView.swift in Sources */,
 				D3F493B82EEDD2AC008ED463 /* RecordPageModel.swift in Sources */,
 				D30F004F2E8592F0007BCC73 /* HomePageModel.swift in Sources */,
 				D30F00502E8592F0007BCC73 /* SongDrawerView.swift in Sources */,
@@ -2105,11 +2127,13 @@
 				D30F007B2E8592F0007BCC73 /* ShareSheet.swift in Sources */,
 				D35EFC1D2F17D361000F64A4 /* LiveStationInfo.swift in Sources */,
 				D30F007C2E8592F0007BCC73 /* RewardsPageModel.swift in Sources */,
+				6DB99ADC7A25C5E364543B5E /* YourLibraryPageModel.swift in Sources */,
 				D30F007D2E8592F0007BCC73 /* ToastClient.swift in Sources */,
 				D30F007E2E8592F0007BCC73 /* RewardsProfile.swift in Sources */,
 				D3367BF92F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */,
 				D3367BFB2F08B7DC00AF87FA /* NotificationsSettingsPageView.swift in Sources */,
 				D30F007F2E8592F0007BCC73 /* LikedSongsPage.swift in Sources */,
+				A5EC7100000000000000F002 /* LikedSongsSection.swift in Sources */,
 				D3776A2E2F2695B800200ADF /* ListenerQuestionDetailPageView.swift in Sources */,
 				D3776A2F2F2695B800200ADF /* ListenerQuestionDetailPageModel.swift in Sources */,
 				D30F00802E8592F0007BCC73 /* EnumTypeEquatableProtocol.swift in Sources */,
@@ -2168,6 +2192,7 @@
 				AA01000000000001AAAAAAAA /* PresetStarButton.swift in Sources */,
 				AA01000000000002AAAAAAAA /* PresetTile.swift in Sources */,
 				AA01000000000003AAAAAAAA /* PresetsCarousel.swift in Sources */,
+				C816D77FF9455BD1B83AF237 /* PresetsModel.swift in Sources */,
 				659E9B124BCB08D5F3D216D7 /* GiveawayEvent.swift in Sources */,
 				E96C77B08E039DD3EC6916BF /* GiveawayParticipation.swift in Sources */,
 				725E8382CB9672F532FC2CDD /* GiveawayMyResult.swift in Sources */,
@@ -2223,6 +2248,7 @@
 				D3776A192F243F7A00200ADF /* BroadcastersListenerQuestionPageView.swift in Sources */,
 				D35673B22D3DC59300E4E926 /* RadioStation.swift in Sources */,
 				D3B744C22E31317B0042A427 /* RewardsPageView.swift in Sources */,
+				930065958AE65D1A65716F54 /* YourLibraryPageView.swift in Sources */,
 				D3F493B92EEDD2AC008ED463 /* RecordPageModel.swift in Sources */,
 				D37257B22DF88BC1001BC6F9 /* HomePageModel.swift in Sources */,
 				D30257902E63C13400F4228B /* SongDrawerView.swift in Sources */,
@@ -2303,11 +2329,13 @@
 				D378CCD02E57947800497A4A /* ShareSheet.swift in Sources */,
 				D35EFC1C2F17D361000F64A4 /* LiveStationInfo.swift in Sources */,
 				D3B744C02E3131730042A427 /* RewardsPageModel.swift in Sources */,
+				BD3E0D31823FDD5950701308 /* YourLibraryPageModel.swift in Sources */,
 				D302576D2E63428800F4228B /* ToastClient.swift in Sources */,
 				D3B744B02E2FE6FB0042A427 /* RewardsProfile.swift in Sources */,
 				D3367BFC2F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */,
 				D3367BFE2F08B7DC00AF87FA /* NotificationsSettingsPageView.swift in Sources */,
 				D30257872E63B6BB00F4228B /* LikedSongsPage.swift in Sources */,
+				A5EC7100000000000000F003 /* LikedSongsSection.swift in Sources */,
 				D3776A312F2695B800200ADF /* ListenerQuestionDetailPageView.swift in Sources */,
 				D3776A322F2695B800200ADF /* ListenerQuestionDetailPageModel.swift in Sources */,
 				D3137DD42D3AC9BE0070033A /* EnumTypeEquatableProtocol.swift in Sources */,
@@ -2366,6 +2394,7 @@
 				AA01000000000004AAAAAAAA /* PresetStarButton.swift in Sources */,
 				AA01000000000005AAAAAAAA /* PresetTile.swift in Sources */,
 				AA01000000000006AAAAAAAA /* PresetsCarousel.swift in Sources */,
+				C40A6A2D4B9EF1448F77A68E /* PresetsModel.swift in Sources */,
 				E6A2E13F3905B715C7E6FA15 /* GiveawayEvent.swift in Sources */,
 				354451A630DF81468815108F /* GiveawayParticipation.swift in Sources */,
 				8CECE7D0544EBE95DA92A501 /* GiveawayMyResult.swift in Sources */,
@@ -2416,6 +2445,7 @@
 				D3A1B2C001000000000000C6 /* PlayStationActionTests.swift in Sources */,
 				D3B744CB2E313B230042A427 /* ListeningTimeTileTests.swift in Sources */,
 				D3B744C52E31318A0042A427 /* RewardsPageTests.swift in Sources */,
+				2891A2D21D67E32129F5F2ED /* YourLibraryPageTests.swift in Sources */,
 				D35EFC172F159728000F64A4 /* SeriesListPageTests.swift in Sources */,
 				D3F493C02EEDD2D2008ED463 /* RecordPageTests.swift in Sources */,
 				D3A08A352E4E6F66002468E0 /* NowPlayingUpdaterTests.swift in Sources */,
@@ -2435,9 +2465,7 @@
 				D3367BFF2F08B7E900AF87FA /* NotificationsSettingsPageTests.swift in Sources */,
 				D3C7E5E32EF0A44D00EDD3ED /* SongSearchPageTests.swift in Sources */,
 				D3137DC22D39B5070070033A /* StationListPageTests.swift in Sources */,
-				76C4967DBFE548C0884C2931 /* StationListPresetTests.swift in Sources */,
-				FE02FE02FE02FE02FE02FE02 /* StationListPresetErrorReportingTests.swift in Sources */,
-				A1B2C3D4E5F6A7B8C9D0E1F2 /* StationListPresetComingSoonTests.swift in Sources */,
+				1DFA251ED9768A3CF235AF92 /* PresetsModelTests.swift in Sources */,
 				D30F00BF2E87196A007BCC73 /* StationListStationRowTests.swift in Sources */,
 				D395912D2E3D1E1E00720CF8 /* EditProfilePageTests.swift in Sources */,
 				D34D5C392D7106CD00148048 /* AuthServiceMock.swift in Sources */,

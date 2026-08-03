@@ -23,7 +23,7 @@ final class MainContainerNavigationCoordinator {
   // Per-tab navigation paths
   var homePath: [Path] = []
   var stationsPath: [Path] = []
-  var rewardsPath: [Path] = []
+  var yourLibraryPath: [Path] = []
   var profilePath: [Path] = []
   var broadcastPath: [Path] = []
   var libraryPath: [Path] = []
@@ -44,7 +44,7 @@ final class MainContainerNavigationCoordinator {
       switch activeTab {
       case .home: return homePath
       case .stationsList: return stationsPath
-      case .rewards: return rewardsPath
+      case .yourLibrary: return yourLibraryPath
       case .profile: return profilePath
       case .broadcast: return broadcastPath
       case .library: return libraryPath
@@ -56,7 +56,7 @@ final class MainContainerNavigationCoordinator {
       switch activeTab {
       case .home: homePath = newValue
       case .stationsList: stationsPath = newValue
-      case .rewards: rewardsPath = newValue
+      case .yourLibrary: yourLibraryPath = newValue
       case .profile: profilePath = newValue
       case .broadcast: broadcastPath = newValue
       case .library: libraryPath = newValue
@@ -69,6 +69,7 @@ final class MainContainerNavigationCoordinator {
   enum Path: Hashable, Equatable {
     case editProfilePage(EditProfilePageModel)
     case likedSongsPage(LikedSongsPageModel)
+    case rewardsPage(RewardsPageModel)
     case broadcastPage(BroadcastPageModel)
     case chooseStationToBroadcastPage(ChooseStationToBroadcastPageModel)
     case chooseStationPage(ChooseStationPageModel)
@@ -86,6 +87,8 @@ final class MainContainerNavigationCoordinator {
         EditProfilePageView(model: model)
       case .likedSongsPage(let model):
         LikedSongsPage(model: model)
+      case .rewardsPage(let model):
+        RewardsPageView(model: model)
       case .broadcastPage(let model):
         BroadcastPageView(model: model)
       case .chooseStationToBroadcastPage(let model):
@@ -133,7 +136,7 @@ final class MainContainerNavigationCoordinator {
   private func clearAllPaths() {
     homePath = []
     stationsPath = []
-    rewardsPath = []
+    yourLibraryPath = []
     profilePath = []
     broadcastPath = []
     libraryPath = []
@@ -162,19 +165,17 @@ final class MainContainerNavigationCoordinator {
       try? await clock.sleep(for: .milliseconds(300))
     }
 
-    // Set active tab to profile if needed
-    if activeTab != .profile {
+    // Liked songs now live on the Your Library tab; switch to it and reset its
+    // stack so the library root (Presets + Liked Songs) is shown.
+    yourLibraryPath = []
+    if activeTab != .yourLibrary {
       withAnimation(.easeInOut(duration: 0.3)) {
-        $activeTab.withLock { $0 = .profile }
+        $activeTab.withLock { $0 = .yourLibrary }
       }
 
       // Wait for tab transition animation
       try? await clock.sleep(for: .milliseconds(300))
     }
-
-    // Navigate to liked songs page
-    let likedSongsModel = LikedSongsPageModel()
-    push(.likedSongsPage(likedSongsModel))
   }
 
   @MainActor

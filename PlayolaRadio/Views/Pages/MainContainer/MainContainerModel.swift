@@ -52,7 +52,7 @@ class MainContainerModel: ViewModel {
     // Listening mode tabs
     case home
     case stationsList
-    case rewards
+    case yourLibrary
     case profile
     // Broadcast mode tabs
     case broadcast
@@ -66,7 +66,7 @@ class MainContainerModel: ViewModel {
 
   var homeTabTitle: String { "Home" }
   var stationsTabTitle: String { "Radio Stations" }
-  var rewardsTabTitle: String { "Rewards" }
+  var yourLibraryTabTitle: String { "Your Library" }
   var profileTabTitle: String { "Your Profile" }
   var broadcastTabTitle: String { "Broadcast" }
   var libraryTabTitle: String { "Library" }
@@ -74,8 +74,9 @@ class MainContainerModel: ViewModel {
   var settingsTabTitle: String { "Profile" }
 
   var homePageModel = HomePageModel()
-  var stationListModel = StationListModel()
-  var rewardsPageModel = RewardsPageModel()
+  var presetsModel: PresetsModel
+  var stationListModel: StationListModel
+  var yourLibraryPageModel: YourLibraryPageModel
   var contactPageModel = ContactPageModel()
   var liveStationsPoller = LiveStationsPoller()
   var giveawayCoordinator = GiveawayCoordinator()
@@ -89,6 +90,16 @@ class MainContainerModel: ViewModel {
 
   var shouldShowSmallPlayer: Bool = false
   private var hasCheckedRatingPromptThisSession = false
+
+  // MARK: - Initialization
+
+  override init() {
+    let presetsModel = PresetsModel()
+    self.presetsModel = presetsModel
+    self.stationListModel = StationListModel(presetsModel: presetsModel)
+    self.yourLibraryPageModel = YourLibraryPageModel(presetsModel: presetsModel)
+    super.init()
+  }
 
   // MARK: - Mode-Aware Properties
 

@@ -114,22 +114,19 @@ struct ContactPageTests {
   }
 
   @Test
-  func testOnLikedSongsTappedNavigatesToLikedSongsPage() {
+  func testOnRewardsTappedNavigatesToRewardsPage() {
     let model = ContactPageModel()
 
-    // Verify initial navigation state
     #expect(model.mainContainerNavigationCoordinator.path.isEmpty)
 
-    // Tap liked songs button
-    model.onLikedSongsTapped()
+    model.onRewardsTapped()
 
-    // Verify navigation occurred
     #expect(model.mainContainerNavigationCoordinator.path.count == 1)
 
-    if case .likedSongsPage = model.mainContainerNavigationCoordinator.path.first {
-      // Successfully navigated to liked songs page
+    if case .rewardsPage = model.mainContainerNavigationCoordinator.path.first {
+      // Successfully navigated to rewards page
     } else {
-      Issue.record("Expected navigation to liked songs page")
+      Issue.record("Expected navigation to rewards page")
     }
   }
 

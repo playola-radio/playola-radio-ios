@@ -285,11 +285,36 @@ struct HomePageTests {
 
     await homePageModel.listeningTimeTileModel.buttonAction?()
 
-    #expect(activeTab == .rewards)
+    #expect(activeTab == .profile)
+    #expect(homePageModel.mainContainerNavigationCoordinator.path.count == 1)
+    if case .rewardsPage = homePageModel.mainContainerNavigationCoordinator.path.first {
+      // Successfully navigated to rewards page
+    } else {
+      Issue.record("Expected navigation to rewards page")
+    }
 
     let events = capturedEvents.value
     #expect(events.count == 1)
     #expect(events.first == .navigatedToRewardsFromListeningTile)
+  }
+
+  @Test
+  func testListeningTileNavigationToRewardsIsIdempotent() async {
+    @Shared(.activeTab) var activeTab = MainContainerModel.ActiveTab.home
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let homePageModel = withDependencies {
+      $0.analytics.track = { _ in }
+    } operation: {
+      HomePageModel()
+    }
+
+    await homePageModel.listeningTimeTileModel.buttonAction?()
+    await homePageModel.listeningTimeTileModel.buttonAction?()
+
+    // Repeat taps must not stack duplicate Rewards pages.
+    #expect(coordinator.path.count == 1)
   }
 
   // MARK: - Player Interaction Tests

@@ -25,7 +25,7 @@ struct MainContainer: View {
       } else {
         homeTab
         stationsTab
-        rewardsTab
+        yourLibraryTab
         profileTab
       }
     }
@@ -182,20 +182,20 @@ struct MainContainer: View {
   }
 
   @ViewBuilder
-  private var rewardsTab: some View {
-    NavigationStack(path: navigationPathBinding(\.rewardsPath)) {
+  private var yourLibraryTab: some View {
+    NavigationStack(path: navigationPathBinding(\.yourLibraryPath)) {
       tabContentWithSmallPlayer {
-        RewardsPageView(model: model.rewardsPageModel)
+        YourLibraryPageView(model: model.yourLibraryPageModel)
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
         path.destinationView
       }
     }
     .tabItem {
-      Image("gift")
-      Text(model.rewardsTabTitle)
+      Image(systemName: "heart.fill")
+      Text(model.yourLibraryTabTitle)
     }
-    .tag(MainContainerModel.ActiveTab.rewards)
+    .tag(MainContainerModel.ActiveTab.yourLibrary)
   }
 
   @ViewBuilder
