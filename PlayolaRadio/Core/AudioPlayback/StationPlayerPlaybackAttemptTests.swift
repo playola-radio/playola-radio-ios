@@ -108,18 +108,21 @@ struct StationPlayerPlaybackAttemptTests {
 
   @Test
   func sameStationStartingStateDoesNotReportSuccess() async {
-    let urlStreamPlayer = URLStreamPlayerMock()
-    urlStreamPlayer.shouldHoldPlayResult = true
-    let stationPlayer = StationPlayer(urlStreamPlayer: urlStreamPlayer)
-    let station = AnyStation.mockUrl()
-    stationPlayer.state = StationPlayer.State(playbackStatus: .startingNewStation(station))
+    await withMainSerialExecutor {
+      let urlStreamPlayer = URLStreamPlayerMock()
+      urlStreamPlayer.shouldHoldPlayResult = true
+      let stationPlayer = StationPlayer(urlStreamPlayer: urlStreamPlayer)
+      let station = AnyStation.mockUrl()
+      stationPlayer.state = StationPlayer.State(playbackStatus: .startingNewStation(station))
 
-    let playTask = Task { await stationPlayer.play(station: station) }
-    await Task.yield()
+      let playTask = Task { await stationPlayer.play(station: station) }
+      await Task.yield()
 
-    expectNoDifference(urlStreamPlayer.playCallCount, 1)
-    urlStreamPlayer.resolveHeldPlay(with: false)
-    #expect(!(await playTask.value))
+      expectNoDifference(urlStreamPlayer.playCallCount, 1)
+      urlStreamPlayer.resolveHeldPlay(with: false)
+      let started = await playTask.value
+      expectNoDifference(started, false)
+    }
   }
 
   @Test
