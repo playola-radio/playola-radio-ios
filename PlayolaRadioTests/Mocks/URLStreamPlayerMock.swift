@@ -11,7 +11,41 @@ import Foundation
 @testable import PlayolaRadio
 
 class URLStreamPlayerMock: URLStreamPlayer {
+  var stateAfterSet: URLStreamPlayer.State?
+  var shouldHoldPlayResult = false
+  private(set) var playCallCount = 0
+  private var heldPlayContinuations: [CheckedContinuation<Bool, Never>] = []
+
   override func addObserverToPlayer() {}
+
+  override func play(station: UrlStation) async -> Bool {
+    playCallCount += 1
+    guard shouldHoldPlayResult else {
+      return await super.play(station: station)
+    }
+    return await withCheckedContinuation { continuation in
+      heldPlayContinuations.append(continuation)
+    }
+  }
+
+  func resolveHeldPlay(with result: Bool) {
+    let continuations = heldPlayContinuations
+    heldPlayContinuations = []
+    for continuation in continuations {
+      continuation.resume(returning: result)
+    }
+  }
+
+  override func set(station: UrlStation?) {
+    guard let stateAfterSet else {
+      super.set(station: station)
+      return
+    }
+    Task { @MainActor [weak self] in
+      await Task.yield()
+      self?.state = stateAfterSet
+    }
+  }
 
   func setNowPlaying(station: UrlStation, artist: String, title: String) {
     state = URLStreamPlayer.State(

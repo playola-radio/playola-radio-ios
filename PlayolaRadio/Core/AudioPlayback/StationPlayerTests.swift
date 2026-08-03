@@ -8,6 +8,7 @@
 import AVFoundation
 import Combine
 import CustomDump
+import Dependencies
 import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
@@ -154,7 +155,7 @@ struct StationPlayerTests {
     // User stops while activation is still in flight.
     player.stop()
     gate.proceed.signal()
-    await playTask.value
+    _ = await playTask.value
 
     // The superseded attempt must not start the backend, and stop wins.
     #expect(playola.playCount == 0)
@@ -180,7 +181,7 @@ struct StationPlayerTests {
     // .error over the deliberate stop.
     player.stop()
     gate.proceed.signal()
-    await playTask.value
+    _ = await playTask.value
 
     guard case .stopped = player.state.playbackStatus else {
       Issue.record("stale activation failure clobbered state: \(player.state.playbackStatus)")
@@ -205,14 +206,14 @@ struct StationPlayerTests {
     // User stops, then replays the SAME station while the first is still parked.
     player.stop()
     gate.proceed.signal()
-    await firstPlay.value
+    _ = await firstPlay.value
 
     // Station equality would let the stale first attempt revive; the token must
     // drop it, so only the second (real) attempt reaches the backend.
     let secondPlay = Task { await player.play(station: station) }
     await awaitActivationInFlight(gate)
     gate.proceed.signal()
-    await secondPlay.value
+    _ = await secondPlay.value
 
     #expect(playola.playCount == 1)
   }
@@ -232,7 +233,7 @@ struct StationPlayerTests {
     // surface .error over the deliberate stop.
     player.stop()
     await playola.gate.open()
-    await playTask.value
+    _ = await playTask.value
 
     guard case .stopped = player.state.playbackStatus else {
       Issue.record("stale SDK-play failure clobbered state: \(player.state.playbackStatus)")
@@ -502,9 +503,9 @@ struct StationPlayerTests {
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    await stationPlayer.play(station: stations[0])
+    await play(stationPlayer, station: stations[0])
 
-    await stationPlayer.seekNext()
+    await seekNext(stationPlayer)
 
     #expect(stationPlayer.currentStation?.id == stations[1].id)
   }
@@ -516,9 +517,9 @@ struct StationPlayerTests {
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    await stationPlayer.play(station: stations[2])
+    await play(stationPlayer, station: stations[2])
 
-    await stationPlayer.seekNext()
+    await seekNext(stationPlayer)
 
     #expect(stationPlayer.currentStation?.id == stations[0].id)
   }
@@ -531,7 +532,7 @@ struct StationPlayerTests {
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
 
-    await stationPlayer.seekNext()
+    await seekNext(stationPlayer)
 
     #expect(stationPlayer.currentStation?.id == stations[0].id)
   }
@@ -543,7 +544,7 @@ struct StationPlayerTests {
 
     let stationPlayer = StationPlayer()
 
-    await stationPlayer.seekNext()
+    await seekNext(stationPlayer)
 
     #expect(stationPlayer.currentStation == nil)
   }
@@ -557,9 +558,9 @@ struct StationPlayerTests {
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    await stationPlayer.play(station: stations[1])
+    await play(stationPlayer, station: stations[1])
 
-    await stationPlayer.seekPrevious()
+    await seekPrevious(stationPlayer)
 
     #expect(stationPlayer.currentStation?.id == stations[0].id)
   }
@@ -571,9 +572,9 @@ struct StationPlayerTests {
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    await stationPlayer.play(station: stations[0])
+    await play(stationPlayer, station: stations[0])
 
-    await stationPlayer.seekPrevious()
+    await seekPrevious(stationPlayer)
 
     #expect(stationPlayer.currentStation?.id == stations[2].id)
   }
@@ -586,7 +587,7 @@ struct StationPlayerTests {
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
 
-    await stationPlayer.seekPrevious()
+    await seekPrevious(stationPlayer)
 
     #expect(stationPlayer.currentStation?.id == stations[0].id)
   }
@@ -602,8 +603,8 @@ struct StationPlayerTests {
     let artistList = stationLists.first { $0.id == StationList.KnownIDs.artistList.rawValue }!
     let artistStations = artistList.stations
 
-    await stationPlayer.play(station: artistStations[0])
-    await stationPlayer.seekNext()
+    await play(stationPlayer, station: artistStations[0])
+    await seekNext(stationPlayer)
 
     #expect(stationPlayer.currentStation?.id == artistStations[1].id)
   }
@@ -616,8 +617,8 @@ struct StationPlayerTests {
     let stationPlayer = StationPlayer()
     let allStations = stationLists.first!.stations
 
-    await stationPlayer.play(station: allStations[0])
-    await stationPlayer.seekNext()
+    await play(stationPlayer, station: allStations[0])
+    await seekNext(stationPlayer)
 
     #expect(stationPlayer.currentStation?.id == allStations[2].id)
   }
@@ -630,8 +631,8 @@ struct StationPlayerTests {
     let stationPlayer = StationPlayer()
     let allStations = stationLists.first!.stations
 
-    await stationPlayer.play(station: allStations[0])
-    await stationPlayer.seekNext()
+    await play(stationPlayer, station: allStations[0])
+    await seekNext(stationPlayer)
 
     #expect(stationPlayer.currentStation?.id == allStations[2].id)
   }
@@ -644,8 +645,8 @@ struct StationPlayerTests {
     let stationPlayer = StationPlayer()
     let allStations = stationLists.first!.stations
 
-    await stationPlayer.play(station: allStations[0])
-    await stationPlayer.seekNext()
+    await play(stationPlayer, station: allStations[0])
+    await seekNext(stationPlayer)
 
     #expect(stationPlayer.currentStation?.id == allStations[1].id)
   }
@@ -719,9 +720,9 @@ struct StationPlayerTests {
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    await stationPlayer.play(station: stations[0])
+    await play(stationPlayer, station: stations[0])
 
-    await stationPlayer.seekNext()
+    await seekNext(stationPlayer)
 
     #expect(!stationPlayer.isSeeking, "isSeeking should be false after seek completes")
   }
@@ -733,9 +734,9 @@ struct StationPlayerTests {
 
     let stationPlayer = StationPlayer()
     let stations = stationLists.first!.stations
-    await stationPlayer.play(station: stations[1])
+    await play(stationPlayer, station: stations[1])
 
-    await stationPlayer.seekPrevious()
+    await seekPrevious(stationPlayer)
 
     #expect(!stationPlayer.isSeeking, "isSeeking should be false after seek completes")
   }
@@ -747,12 +748,37 @@ struct StationPlayerTests {
 
     let stationPlayer = StationPlayer()
 
-    await stationPlayer.seekNext()
+    await seekNext(stationPlayer)
 
     #expect(!stationPlayer.isSeeking, "isSeeking should remain false when no stations")
   }
 
   // MARK: - Helper Methods
+
+  @discardableResult
+  private func play(_ stationPlayer: StationPlayer, station: AnyStation) async -> Bool {
+    await withDependencies {
+      $0.continuousClock = ImmediateClock()
+    } operation: {
+      await stationPlayer.play(station: station)
+    }
+  }
+
+  private func seekNext(_ stationPlayer: StationPlayer) async {
+    await withDependencies {
+      $0.continuousClock = ImmediateClock()
+    } operation: {
+      await stationPlayer.seekNext()
+    }
+  }
+
+  private func seekPrevious(_ stationPlayer: StationPlayer) async {
+    await withDependencies {
+      $0.continuousClock = ImmediateClock()
+    } operation: {
+      await stationPlayer.seekPrevious()
+    }
+  }
 
   private func makeArtistListWithThreeStations() -> IdentifiedArrayOf<StationList> {
     let now = Date()

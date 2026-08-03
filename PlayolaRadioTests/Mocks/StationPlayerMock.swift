@@ -10,6 +10,7 @@ import PlayolaPlayer
 
 class StationPlayerMock: StationPlayer {
   var callsToPlay: [AnyStation] = []
+  var playResult = true
   var stopCalledCount = 0
   override init(
     urlStreamPlayer: URLStreamPlayer? = nil,
@@ -22,8 +23,9 @@ class StationPlayerMock: StationPlayer {
       audioSessionCoordinator: audioSessionCoordinator)
   }
 
-  override public func play(station: AnyStation) async {
+  override public func play(station: AnyStation) async -> Bool {
     callsToPlay.append(station)
+    return playResult
   }
 
   override public func stop() {

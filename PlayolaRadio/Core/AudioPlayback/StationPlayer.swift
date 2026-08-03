@@ -83,6 +83,7 @@ class StationPlayer: ObservableObject {
   var urlStreamPlayer: URLStreamPlayer
   var playolaStationPlayer: any PlayolaTransport
   let audioSessionCoordinator: AudioSessionCoordinator
+  private var activePlaybackAttempt: StationPlaybackAttempt?
 
   // The Combine subscriptions below capture `self` weakly so the cancellable
   // owned by this StationPlayer is the only thing keeping each subscription
@@ -131,12 +132,28 @@ class StationPlayer: ObservableObject {
 
   /// Starts playing the specified station
   /// - Parameter station: The station to play
-  public func play(station: AnyStation) async {
-    guard currentStation != station else { return }
+  /// - Returns: Whether playback started successfully
+  @discardableResult
+  public func play(station: AnyStation) async -> Bool {
+    if case .playing(let currentStation) = state.playbackStatus,
+      currentStation == station
+    {
+      return true
+    }
+
+    if let activePlaybackAttempt,
+      activePlaybackAttempt.station == station
+    {
+      return await activePlaybackAttempt.waitForResult()
+    }
+
     stop()
     let token = beginPlaybackAttempt()
     state = State(playbackStatus: .startingNewStation(station))
     state = State(playbackStatus: .loading(station))
+
+    let playbackAttempt = StationPlaybackAttempt(station: station)
+    activePlaybackAttempt = playbackAttempt
 
     // The app now owns the AVAudioSession: activate it BEFORE either backend.
     // The SDK no longer activates the session, so without this the SDK's
@@ -150,28 +167,46 @@ class StationPlayer: ObservableObject {
       // surface the failure if this attempt still owns the token — a stale
       // failure must not clobber the newer station or a deliberate stop.
       if token == playToken { handlePlayFailure(error) }
-      return
+      return finishPlaybackAttempt(playbackAttempt, started: false)
     }
 
     // Bail if superseded during the activation suspension, before starting a
     // backend the user no longer wants.
-    guard token == playToken else { return }
+    guard token == playToken else {
+      return finishPlaybackAttempt(playbackAttempt, started: false)
+    }
 
+    let started: Bool
     switch station {
     case .url(let urlStation):
-      urlStreamPlayer.set(station: urlStation)
+      started = await urlStreamPlayer.play(station: urlStation)
     case .playola(let playolaStation):
       urlStreamPlayer.reset()
       do {
         try await playolaStationPlayer.play(stationId: playolaStation.id)
+        started = true
       } catch {
         // The SDK play() also suspends; guard the failure the same way so a
         // stale throw can't clobber newer state. A stale *success* is left
         // alone: the superseding stop()/play() has already re-driven the SDK
         // (single-station), so tearing down here could kill the newer attempt.
         if token == playToken { handlePlayFailure(error) }
+        started = false
       }
     }
+
+    return finishPlaybackAttempt(playbackAttempt, started: started)
+  }
+
+  private func finishPlaybackAttempt(
+    _ playbackAttempt: StationPlaybackAttempt,
+    started: Bool
+  ) -> Bool {
+    if activePlaybackAttempt === playbackAttempt {
+      activePlaybackAttempt = nil
+    }
+    playbackAttempt.resolve(with: started)
+    return started
   }
 
   // internal for testability
@@ -486,6 +521,30 @@ extension PlayolaStationPlayer: PlayolaTransport {
   }
   func play(stationId: String) async throws {
     try await play(stationId: stationId, atDate: nil)
+  }
+}
+
+@MainActor
+private final class StationPlaybackAttempt {
+  let station: AnyStation
+  private var continuations: [CheckedContinuation<Bool, Never>] = []
+
+  init(station: AnyStation) {
+    self.station = station
+  }
+
+  func waitForResult() async -> Bool {
+    await withCheckedContinuation { continuation in
+      continuations.append(continuation)
+    }
+  }
+
+  func resolve(with result: Bool) {
+    let continuations = continuations
+    self.continuations = []
+    for continuation in continuations {
+      continuation.resume(returning: result)
+    }
   }
 }
 
