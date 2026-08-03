@@ -117,8 +117,7 @@ class ContactPageModel: ViewModel {
       await analytics.track(
         .viewedBroadcastScreen(
           stationId: station.id,
-          stationName: station.name,
-          userName: auth.currentUser?.fullName ?? "Unknown"
+          stationName: station.name
         ))
     } else {
       let model = ChooseStationToBroadcastPageModel(stations: userStations)

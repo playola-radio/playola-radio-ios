@@ -1533,10 +1533,9 @@ extension BroadcastPageTests {
 
       let events = capturedEvents.value
       let hasViewedEvent = events.contains { event in
-        if case .viewedBroadcastScreen(let stationId, let stationName, let userName) = event {
+        if case .viewedBroadcastScreen(let stationId, let stationName) = event {
           return stationId == testStationId
             && stationName == "Test Station"
-            && userName == "Test User"
         }
         return false
       }
@@ -1569,11 +1568,10 @@ extension BroadcastPageTests {
       let events = capturedEvents.value
       let hasNotificationEvent = events.contains { event in
         if case .broadcastNotificationSent(
-          let stationId, let stationName, let userName, let messageLength
+          let stationId, let stationName, let messageLength
         ) = event {
           return stationId == testStationId
             && stationName == "Test Station"
-            && userName == "Test User"
             && messageLength == 16
         }
         return false
@@ -1609,11 +1607,10 @@ extension BroadcastPageTests {
       let events = capturedEvents.value
       let hasRecordedEvent = events.contains { event in
         if case .broadcastVoicetrackRecorded(
-          let stationId, let stationName, let userName
+          let stationId, let stationName
         ) = event {
           return stationId == testStationId
             && stationName == "Test Station"
-            && userName == "Test User"
         }
         return false
       }
@@ -1649,11 +1646,10 @@ extension BroadcastPageTests {
       let events = capturedEvents.value
       let hasUploadedEvent = events.contains { event in
         if case .broadcastVoicetrackUploaded(
-          let stationId, let stationName, let userName
+          let stationId, let stationName
         ) = event {
           return stationId == testStationId
             && stationName == "Test Station"
-            && userName == "Test User"
         }
         return false
       }
@@ -1698,11 +1694,10 @@ extension BroadcastPageTests {
       let events = capturedEvents.value
       let hasSearchEvent = events.contains { event in
         if case .broadcastSongSearchTapped(
-          let stationId, let stationName, let userName
+          let stationId, let stationName
         ) = event {
           return stationId == testStationId
             && stationName == "Test Station"
-            && userName == "Test User"
         }
         return false
       }
@@ -1752,11 +1747,10 @@ extension BroadcastPageTests {
       let events = capturedEvents.value
       let hasSongAddedEvent = events.contains { event in
         if case .broadcastSongAdded(
-          let stationId, let stationName, let userName, let songTitle, let artistName
+          let stationId, let stationName, let songTitle, let artistName
         ) = event {
           return stationId == testStationId
             && stationName == "Test Station"
-            && userName == "Test User"
             && songTitle == "Test Song"
             && artistName == "Test Artist"
         }
