@@ -22,7 +22,7 @@ struct LikedSongsSection: View {
           .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 28))
           .foregroundColor(.white)
           .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(.horizontal, 16)
+          .padding(.horizontal, 20)
           .padding(.top, 24)
           .padding(.bottom, 8)
 
@@ -30,7 +30,7 @@ struct LikedSongsSection: View {
           LikedSongRow(
             audioBlock: audioBlock,
             dateText: dateText(likedDate),
-            horizontalPadding: 16,
+            horizontalPadding: 20,
             onMenuTapped: { onMenuTapped(audioBlock, likedDate) }
           )
           .transition(
