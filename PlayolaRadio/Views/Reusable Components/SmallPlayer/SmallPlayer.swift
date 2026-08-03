@@ -18,6 +18,27 @@ struct SmallPlayer: View {
   @Dependency(\.likesManager) var likesManager
   @Dependency(\.stationPlayer) var stationPlayer
 
+  /// `true` when hosted in the iOS 26.1+ Liquid Glass `tabViewBottomAccessory`:
+  /// the player draws no background (system glass shows through), and shows the
+  /// station artwork inset and smaller, Apple-Music style. `false` keeps the
+  /// legacy opaque-black bar embedded above the tab bar (full-bleed art).
+  var isGlassAccessory = false
+
+  private var artworkSize: CGFloat { isGlassAccessory ? 40 : 64 }
+
+  // Glass content uses vibrant hierarchical styles so it stays legible on the
+  // system glass surface — a hardcoded white vanishes on light glass.
+  private var titleStyle: AnyShapeStyle {
+    isGlassAccessory ? AnyShapeStyle(.primary) : AnyShapeStyle(Color.white)
+  }
+  private var subtitleStyle: AnyShapeStyle {
+    isGlassAccessory ? AnyShapeStyle(.secondary) : AnyShapeStyle(Color(hex: "#C7C7C7"))
+  }
+  private var heartStyle: AnyShapeStyle {
+    if isCurrentSongLiked { return AnyShapeStyle(Color(hex: "#EF6962")) }
+    return isGlassAccessory ? AnyShapeStyle(.secondary) : AnyShapeStyle(Color(hex: "#BABABA"))
+  }
+
   // Computed properties from nowPlaying data
   var mainTitle: String {
     nowPlaying?.currentStation?.name ?? ""
@@ -37,7 +58,13 @@ struct SmallPlayer: View {
   }
 
   var artworkURL: URL {
-    nowPlaying?.albumArtworkUrl
+    if isGlassAccessory {
+      // Glass mini player represents the station, so lead with the station art.
+      return nowPlaying?.currentStation?.processedImageURL()
+        ?? nowPlaying?.albumArtworkUrl
+        ?? URL(string: "https://example.com")!
+    }
+    return nowPlaying?.albumArtworkUrl
       ?? nowPlaying?.currentStation?.processedImageURL()
       ?? URL(string: "https://example.com")!
   }
@@ -51,16 +78,33 @@ struct SmallPlayer: View {
     return likesManager.isLiked(audioBlock.id)
   }
 
+  // Glass: a small plain glyph like Apple Music. Legacy: black icon on a white circle.
+  @ViewBuilder
+  private var stopButtonLabel: some View {
+    if isGlassAccessory {
+      Image(systemName: "stop.fill")
+        .font(.system(size: 22))
+        .foregroundStyle(.primary)
+        .frame(width: 28, height: 28)
+    } else {
+      Image(systemName: "stop.fill")
+        .foregroundColor(.black)
+        .frame(width: 34, height: 34)
+        .background(.white)
+        .clipShape(Circle())
+    }
+  }
+
   // MARK: - Body
   var body: some View {
     VStack(spacing: 0) {
       // Player bar
-      HStack(spacing: 16) {
+      HStack(spacing: isGlassAccessory ? 10 : 16) {
         // Artwork
         WebImage(
           url: artworkURL,
           context: RemoteArtwork.downsampleContext(
-            CGSize(width: 64, height: 64), scale: displayScale)
+            CGSize(width: artworkSize, height: artworkSize), scale: displayScale)
         ) { image in
           image
             .resizable()
@@ -68,20 +112,25 @@ struct SmallPlayer: View {
         } placeholder: {
           Color.gray.opacity(0.3)
         }
-        .frame(width: 64, height: 64)
+        .frame(width: artworkSize, height: artworkSize)
         .clipped()
-        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .clipShape(RoundedRectangle(cornerRadius: isGlassAccessory ? 8 : 6))
+        .padding(.vertical, isGlassAccessory ? 8 : 0)
+        .padding(.leading, isGlassAccessory ? 6 : 0)
 
         // Title & subtitle
         VStack(alignment: .leading, spacing: 4) {
           Text(mainTitle)
-            .font(.custom(FontNames.Inter_500_Medium, size: 16))
-            .foregroundColor(.white)
+            .font(.custom(FontNames.Inter_500_Medium, size: isGlassAccessory ? 13 : 16))
+            .foregroundStyle(titleStyle)
+            .lineLimit(isGlassAccessory ? 1 : nil)
           Text(secondaryTitle)
-            .font(.custom(FontNames.Inter_400_Regular, size: 14))
-            .foregroundColor(Color(hex: "#C7C7C7"))
+            .font(.custom(FontNames.Inter_400_Regular, size: isGlassAccessory ? 11 : 14))
+            .foregroundStyle(subtitleStyle)
+            .lineLimit(isGlassAccessory ? 2 : nil)
+            .fixedSize(horizontal: false, vertical: isGlassAccessory)
         }
-        .padding(.vertical, 12)
+        .padding(.vertical, isGlassAccessory ? 4 : 12)
 
         Spacer()
 
@@ -93,7 +142,7 @@ struct SmallPlayer: View {
             },
             label: {
               Image(systemName: isCurrentSongLiked ? "heart.fill" : "heart")
-                .foregroundColor(isCurrentSongLiked ? Color(hex: "#EF6962") : Color(hex: "#BABABA"))
+                .foregroundStyle(heartStyle)
                 .font(.system(size: 20))
                 .frame(width: 20, height: 20)
             }
@@ -103,19 +152,13 @@ struct SmallPlayer: View {
 
         Button(
           action: { stationPlayer.stop() },
-          label: {
-            Image(systemName: "stop.fill")
-              .foregroundColor(.black)
-              .frame(width: 34, height: 34)
-              .background(.white)
-              .clipShape(Circle())
-          }
+          label: { stopButtonLabel }
         )
-        .padding(.trailing, 24)
+        .padding(.trailing, isGlassAccessory ? 16 : 24)
       }
       .padding(.horizontal)
       .padding(.vertical, 8)
-      .background(Color.black.opacity(0.85))
+      .background(isGlassAccessory ? Color.clear : Color.black.opacity(0.85))
 
       // Progress bar
       GeometryReader { geo in
@@ -127,7 +170,7 @@ struct SmallPlayer: View {
       }
       .frame(height: 2)
     }
-    .background(Color.black)
+    .background(isGlassAccessory ? Color.clear : Color.black)
   }
 }
 
