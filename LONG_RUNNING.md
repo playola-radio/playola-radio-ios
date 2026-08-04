@@ -74,9 +74,9 @@ CarPlay teardown, speaker-stuck-after-recording) along the way.
 
 - [x] **Phase 0 — SDK host-only** (shipped as PlayolaPlayer 0.20.0 → 0.20.2)
 - [x] **Phase 1 — app owns session + interruptions** (PR #345, merged to develop) — 🟡 soaking
-- [ ] **Phase 2 — single Now Playing writer** (low risk, ~1 PR) — 🔵 in PR (removes URLStreamPlayer's MPNowPlayingInfoCenter writes; NowPlayingUpdater sole writer)
+- [ ] **Phase 2 — single Now Playing writer** (low risk) — 🔵 in PR #384 (removes URLStreamPlayer's MPNowPlayingInfoCenter writes; NowPlayingUpdater sole writer)
 - [ ] **Verify URL stations → Sonos** (quick AirPlay-2 check; possible early win)
-- [ ] **Phase 3 — single state-derivation source** (low–med risk, ~1 PR)
+- [ ] **Phase 3 — single state-derivation source** — 🔵 in PR #384 (StationPlayer is the sole `@Shared(.nowPlaying)` writer + single derivation authority; NowPlayingUpdater is now a pure renderer of `stationPlayer.$state`; structural + behavioral tests guard it)
 - [ ] **Owned URLStreamBackend** (retire the vendored FRadioPlayer fork; optional)
 - [ ] **Phase 5 — Sonos renderer** (AVSampleBuffer render path; big; own plan + server-flag rollout)
 
@@ -86,10 +86,20 @@ Phase 1 merged. Now: run the device-verification matrix on real hardware and
 soak on staging before an App Store release. Phase 2 can proceed on develop in
 parallel — it does not block the Phase 1 release soak.
 
-Phase 2 is now in a PR (single MPNowPlayingInfoCenter writer): URLStreamPlayer no
-longer writes the lock screen, NowPlayingUpdater is the sole writer, guarded by a
-structural test. **Hold the merge until the Phase 1 release branch is cut** so the
-Phase 1 soak canary (Mixpanel session metrics) stays attributable to Phase 1 alone.
+Phases 2 and 3 are stacked as two distinct commits on `briankeane/audio-migration-next-step`
+(PR #384). **Phase 2** (single MPNowPlayingInfoCenter writer): URLStreamPlayer no longer
+writes the lock screen, NowPlayingUpdater is the sole writer. **Phase 3** (single
+state-derivation source): StationPlayer is the sole writer of `@Shared(.nowPlaying)` and
+the single derivation authority — its backend processors publish `nowPlaying` as a
+projection of `state` (so the two can't drift); NowPlayingUpdater is a pure renderer of
+`stationPlayer.$state` and no longer subscribes to the backends. Both guarded by structural
++ behavioral tests. **Hold the merge until the Phase 1 release branch is cut** so the Phase 1
+soak canary (Mixpanel session metrics) stays attributable to Phase 1 alone.
+
+One intentional cosmetic change to flag at review: for a URL station paused by an
+interruption, in-app now-playing artwork is now the ICY track artwork (a projection of
+`state`) rather than being blanked; previously the shared value carried no URL artwork.
+Lock-screen artwork (station image) is unchanged.
 
 ### Soak — Phase 1
 

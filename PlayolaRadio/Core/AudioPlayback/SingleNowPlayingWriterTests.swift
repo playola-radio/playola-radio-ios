@@ -49,4 +49,41 @@ struct SingleNowPlayingWriterTests {
       offenders.isEmpty,
       "MPNowPlayingInfoCenter must be written only by NowPlayingUpdater; found in: \(offenders)")
   }
+
+  // Structural guard for Phase 3: StationPlayer is the ONLY writer of
+  // `@Shared(.nowPlaying)`. A second writer (historically NowPlayingUpdater's
+  // duplicated backend processors) can drift from `StationPlayer.state`, so the
+  // lock screen and in-app UI disagree. This scans the app source tree and fails
+  // if `$nowPlaying.withLock` appears anywhere except StationPlayer.swift.
+  @Test
+  func onlyStationPlayerWritesSharedNowPlaying() throws {
+    let appSourceRoot = URL(fileURLWithPath: #filePath)
+      .deletingLastPathComponent()  // AudioPlayback
+      .deletingLastPathComponent()  // Core
+      .deletingLastPathComponent()  // PlayolaRadio
+
+    let enumerator = try #require(
+      FileManager.default.enumerator(at: appSourceRoot, includingPropertiesForKeys: nil),
+      "Could not enumerate app source root at \(appSourceRoot.path)")
+
+    // Allowlist by resolved relative path, not basename — see the sibling test.
+    let allowedRelativePaths: Set<String> = [
+      "Core/AudioPlayback/StationPlayer.swift"
+    ]
+
+    var offenders: [String] = []
+    for case let url as URL in enumerator where url.pathExtension == "swift" {
+      guard !url.lastPathComponent.hasSuffix("Tests.swift") else { continue }
+      let relativePath = url.path.replacingOccurrences(of: appSourceRoot.path + "/", with: "")
+      guard !allowedRelativePaths.contains(relativePath) else { continue }
+      let content = try String(contentsOf: url, encoding: .utf8)
+      if content.contains("$nowPlaying.withLock") {
+        offenders.append(relativePath)
+      }
+    }
+
+    #expect(
+      offenders.isEmpty,
+      "@Shared(.nowPlaying) must be written only by StationPlayer; found in: \(offenders)")
+  }
 }

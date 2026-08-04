@@ -64,19 +64,36 @@ class StationPlayer: ObservableObject {
 
   /// The currently playing radio station, if any
   public var currentStation: AnyStation? {
-    switch state.playbackStatus {
-    case .startingNewStation(let station):
-      return station
-    case .playing(let station):
-      return station
-    case .paused(let station):
-      return station
-    case .loading(let station, _):
-      return station
-    case .error, .stopped:
-      return nil
-    }
+    state.playbackStatus.station
   }
+
+  /// Sets the authoritative `state` and republishes `@Shared(.nowPlaying)` as a
+  /// projection of that same value. `state` drives the lock screen (via
+  /// `NowPlayingUpdater`); `nowPlaying` is the app-wide UI truth. Writing both
+  /// from one derivation is what keeps them from drifting — and makes
+  /// `StationPlayer` the single writer of `@Shared(.nowPlaying)` (Phase 3).
+  ///
+  /// Only the backend processors and `handlePlayFailure` route through this.
+  /// `play()`/`stop()`/`processAlbumArtworkURLChanged` deliberately set `state`
+  /// directly: today the shared loading/stopped/artwork transitions are driven
+  /// by the backend events those processors handle, and routing them here would
+  /// change observable behavior.
+  private func setState(_ newState: State) {
+    state = newState
+    // Skip the shared write only for the init-time subscription echoes (see
+    // `publishesSharedNowPlaying`): construction must set `state` without
+    // clobbering `@Shared(.nowPlaying)`, matching the pre-Phase-3 contract.
+    guard publishesSharedNowPlaying else { return }
+    $nowPlaying.withLock { $0 = NowPlaying(from: newState) }
+  }
+
+  /// False only while `init` wires the backend subscriptions, which replay their
+  /// current values synchronously. Those init-time echoes must set `state` (as
+  /// they always have) without publishing `@Shared(.nowPlaying)` — historically
+  /// `StationPlayer` never wrote the shared value on construction (the updater
+  /// did), and app-wide code seeds `nowPlaying` around building the player.
+  /// Flipped true at the end of `init`, so every real transition publishes.
+  private var publishesSharedNowPlaying = false
 
   // MARK: Dependencies
 
@@ -126,6 +143,10 @@ class StationPlayer: ObservableObject {
     // SDK configure are in place — so an interruption arriving mid-init can't
     // drive pause/resume before global state is coherent.
     self.audioSessionCoordinator.delegate = self
+
+    // Construction (and its initial subscription echoes) is done; from here on
+    // every derived state also publishes `@Shared(.nowPlaying)`.
+    self.publishesSharedNowPlaying = true
   }
 
   // MARK: Public Interface
@@ -225,8 +246,7 @@ class StationPlayer: ObservableObject {
   /// superseded this attempt and owns the current state.
   func handlePlayFailure(_ error: Error) {
     if error is CancellationError { return }
-    state = State(playbackStatus: .error)
-    $nowPlaying.withLock { $0 = NowPlaying(playbackStatus: .error) }
+    setState(State(playbackStatus: .error))
   }
 
   /// Stops the currently playing station
@@ -342,31 +362,20 @@ class StationPlayer: ObservableObject {
     if case .url = currentStation { return }
     switch playolaState {
     case .idle:
-      state = .init(
-        playbackStatus: .stopped,
-        artistPlaying: nil,
-        titlePlaying: nil,
-        albumArtworkUrl: nil,
-        playolaSpinPlaying: nil
-      )
+      setState(.init(playbackStatus: .stopped))
     case .loading(let progress):
       guard let currentStation else { return }
-      state = .init(
-        playbackStatus: .loading(currentStation, progress),
-        artistPlaying: nil,
-        titlePlaying: nil,
-        albumArtworkUrl: nil,
-        playolaSpinPlaying: nil
-      )
+      setState(.init(playbackStatus: .loading(currentStation, progress)))
     case .playing(let nowPlaying):
       if let currentStation {
-        state = .init(
-          playbackStatus: .playing(currentStation),
-          artistPlaying: nowPlaying.audioBlock.artist,
-          titlePlaying: nowPlaying.audioBlock.title,
-          albumArtworkUrl: nowPlaying.audioBlock.imageUrl,
-          playolaSpinPlaying: nowPlaying
-        )
+        setState(
+          .init(
+            playbackStatus: .playing(currentStation),
+            artistPlaying: nowPlaying.audioBlock.artist,
+            titlePlaying: nowPlaying.audioBlock.title,
+            albumArtworkUrl: nowPlaying.audioBlock.imageUrl,
+            playolaSpinPlaying: nowPlaying
+          ))
       }
 
     // `.paused` is published by the SDK when the host pauses playback for an
@@ -375,13 +384,14 @@ class StationPlayer: ObservableObject {
     // play button to resume.
     case .paused(let spin):
       if let currentStation {
-        state = .init(
-          playbackStatus: .paused(currentStation),
-          artistPlaying: spin.audioBlock.artist,
-          titlePlaying: spin.audioBlock.title,
-          albumArtworkUrl: spin.audioBlock.imageUrl,
-          playolaSpinPlaying: spin
-        )
+        setState(
+          .init(
+            playbackStatus: .paused(currentStation),
+            artistPlaying: spin.audioBlock.artist,
+            titlePlaying: spin.audioBlock.title,
+            albumArtworkUrl: spin.audioBlock.imageUrl,
+            playolaSpinPlaying: spin
+          ))
       }
 
     // `.error` is PlayolaPlayer 0.19.0's terminal failure (e.g. the schedule
@@ -389,13 +399,7 @@ class StationPlayer: ObservableObject {
     // surface the recoverable `.error` state so the user sees the error and can
     // tap play again to retry.
     case .error, .none:
-      state = .init(
-        playbackStatus: .error,
-        artistPlaying: nil,
-        titlePlaying: nil,
-        albumArtworkUrl: nil,
-        playolaSpinPlaying: nil
-      )
+      setState(.init(playbackStatus: .error))
     }
   }
 
@@ -415,12 +419,17 @@ class StationPlayer: ObservableObject {
     // it to .paused here instead of letting the playerStatus switch below report
     // .playing with a rate of 1.0.
     if urlStreamPlayerState.playbackState == .paused, let currentStation {
-      state = State(
-        playbackStatus: .paused(currentStation),
-        artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
-        titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
-        albumArtworkUrl: state.albumArtworkUrl  // keep artwork across the pause
-      )
+      setState(
+        State(
+          playbackStatus: .paused(currentStation),
+          artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
+          titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
+          // Keep the current artwork across the pause. Since Phase 3 projects
+          // `nowPlaying` from `state`, this carries `state.albumArtworkUrl` (the
+          // ICY artwork `processAlbumArtworkURLChanged` tracks) into shared state,
+          // keeping the two consistent rather than blanking it on pause.
+          albumArtworkUrl: state.albumArtworkUrl
+        ))
       return
     }
     switch urlStreamPlayerState.playerStatus {
@@ -429,22 +438,23 @@ class StationPlayer: ObservableObject {
         // Log error: currentStation is nil while URLStreamPlayer.state.playerStatus is .loading
         return
       }
-      state = State(playbackStatus: .loading(currentStation))
+      setState(State(playbackStatus: .loading(currentStation)))
     case .loadingFinished, .readyToPlay:
       guard let currentStation else {
         // Log error: currentStation is nil while URLStreamPlayer.state.playerStatus is .loadingFinished
         return
       }
-      state = State(
-        playbackStatus: .playing(currentStation),
-        artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
-        titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
-        albumArtworkUrl: nil
-      )
+      setState(
+        State(
+          playbackStatus: .playing(currentStation),
+          artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
+          titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
+          albumArtworkUrl: nil
+        ))
     case .error:
-      state = State(playbackStatus: .error)
+      setState(State(playbackStatus: .error))
     case .urlNotSet, .none:
-      state = State(playbackStatus: .stopped)
+      setState(State(playbackStatus: .stopped))
     }
   }
 
@@ -456,6 +466,23 @@ class StationPlayer: ObservableObject {
       albumArtworkUrl: albumArtworkURL,
       playolaSpinPlaying: state.playolaSpinPlaying
     )
+  }
+}
+
+extension StationPlayer.PlaybackStatus {
+  /// The station this status refers to, if any. `.stopped`/`.error` carry none.
+  /// The single source for deriving `currentStation` / `NowPlaying.currentStation`
+  /// from a status, so a status and its station can never disagree.
+  var station: AnyStation? {
+    switch self {
+    case .startingNewStation(let station),
+      .playing(let station),
+      .paused(let station),
+      .loading(let station, _):
+      return station
+    case .error, .stopped:
+      return nil
+    }
   }
 }
 
