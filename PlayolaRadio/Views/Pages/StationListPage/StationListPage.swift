@@ -79,6 +79,13 @@ struct StationListPage: View {
               .foregroundColor(.playolaGray)
               .multilineTextAlignment(.center)
               .padding(.horizontal, 32)
+
+            SuggestStationRow(
+              isVisible: true,
+              text: model.suggestArtistButtonText,
+              action: { model.suggestArtistTapped() }
+            )
+            .padding(.top, 4)
           }
           .frame(maxWidth: .infinity)
           .padding(.top, 64)
