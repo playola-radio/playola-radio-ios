@@ -214,6 +214,13 @@ class NowPlayingUpdater {
       if !artist.isEmpty {
         info[MPMediaItemPropertyArtist] = artist
       }
+    } else if case .url = station {
+      // URL stream with no ICY track metadata: fall back to the station's own
+      // name/description so the lock screen isn't blank. Mirrors the
+      // `UrlStation.trackName ?? name` / `artistName ?? description` fallback
+      // URLStreamPlayer wrote directly before Phase 2.
+      info[MPMediaItemPropertyTitle] = state.titlePlaying ?? station.name
+      info[MPMediaItemPropertyArtist] = state.artistPlaying ?? station.description
     } else {
       if let artistPlaying = state.artistPlaying {
         info[MPMediaItemPropertyArtist] = artistPlaying

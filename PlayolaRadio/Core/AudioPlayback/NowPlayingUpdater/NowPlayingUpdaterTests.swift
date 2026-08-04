@@ -143,6 +143,27 @@ struct NowPlayingUpdaterTests {
   }
 
   @Test
+  func testUrlStationWithoutTrackMetadataFallsBackToStationNameAndDescription() {
+    let urlStation = AnyStation.mockUrl()  // name "Mock FM", description "Mock FM Station"
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      let stationPlayer = StationPlayer()
+      // Playing URL station whose stream reported no ICY track metadata.
+      stationPlayer.state = StationPlayer.State(playbackStatus: .playing(urlStation))
+      return NowPlayingUpdater(stationPlayer: stationPlayer)
+    }
+
+    // Regression (Phase 2): after URLStreamPlayer stopped writing the lock screen
+    // directly, NowPlayingUpdater must still fall back to the station's own
+    // name/description instead of leaving the lock-screen title/artist blank.
+    #expect(updater.currentNowPlayingInfo[MPMediaItemPropertyTitle] as? String == "Mock FM")
+    #expect(
+      updater.currentNowPlayingInfo[MPMediaItemPropertyArtist] as? String == "Mock FM Station")
+  }
+
+  @Test
   func testIsStillCurrentTrueForPlayingStationFalseAfterSwitch() {
     let updater = withDependencies {
       $0.analytics.track = { _ in }

@@ -74,7 +74,7 @@ CarPlay teardown, speaker-stuck-after-recording) along the way.
 
 - [x] **Phase 0 — SDK host-only** (shipped as PlayolaPlayer 0.20.0 → 0.20.2)
 - [x] **Phase 1 — app owns session + interruptions** (PR #345, merged to develop) — 🟡 soaking
-- [ ] **Phase 2 — single Now Playing writer** (low risk, ~1 PR)
+- [ ] **Phase 2 — single Now Playing writer** (low risk, ~1 PR) — 🔵 in PR (removes URLStreamPlayer's MPNowPlayingInfoCenter writes; NowPlayingUpdater sole writer)
 - [ ] **Verify URL stations → Sonos** (quick AirPlay-2 check; possible early win)
 - [ ] **Phase 3 — single state-derivation source** (low–med risk, ~1 PR)
 - [ ] **Owned URLStreamBackend** (retire the vendored FRadioPlayer fork; optional)
@@ -85,6 +85,11 @@ CarPlay teardown, speaker-stuck-after-recording) along the way.
 Phase 1 merged. Now: run the device-verification matrix on real hardware and
 soak on staging before an App Store release. Phase 2 can proceed on develop in
 parallel — it does not block the Phase 1 release soak.
+
+Phase 2 is now in a PR (single MPNowPlayingInfoCenter writer): URLStreamPlayer no
+longer writes the lock screen, NowPlayingUpdater is the sole writer, guarded by a
+structural test. **Hold the merge until the Phase 1 release branch is cut** so the
+Phase 1 soak canary (Mixpanel session metrics) stays attributable to Phase 1 alone.
 
 ### Soak — Phase 1
 

@@ -513,6 +513,7 @@
 		FAE000000000000000000002 /* AudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000001 /* AudioSessionCoordinator.swift */; };
 		FAE000000000000000000003 /* AudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000001 /* AudioSessionCoordinator.swift */; };
 		FAE000000000000000000005 /* AudioSessionCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */; };
+		FAE000000000000000000011 /* SingleNowPlayingWriterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000010 /* SingleNowPlayingWriterTests.swift */; };
 		FAF000000000000000000002 /* AudioRecorderClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF000000000000000000001 /* AudioRecorderClientTests.swift */; };
 		FE01A0C72DFCB368002BAC30 /* SharedStateTestTrait.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */; };
 		FE110A0000000000000000B2 /* WelcomeMessagePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F2 /* WelcomeMessagePageModel.swift */; };
@@ -829,6 +830,7 @@
 		FAD00000000000000000000B /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		FAE000000000000000000001 /* AudioSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinator.swift; sourceTree = "<group>"; };
 		FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinatorTests.swift; sourceTree = "<group>"; };
+		FAE000000000000000000010 /* SingleNowPlayingWriterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleNowPlayingWriterTests.swift; sourceTree = "<group>"; };
 		FAF000000000000000000001 /* AudioRecorderClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderClientTests.swift; sourceTree = "<group>"; };
 		FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStateTestTrait.swift; sourceTree = "<group>"; };
 		FE110A0000000000000000F2 /* WelcomeMessagePageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessagePageModel.swift; sourceTree = "<group>"; };
@@ -1536,6 +1538,7 @@
 				D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */,
 				FAE000000000000000000001 /* AudioSessionCoordinator.swift */,
 				FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */,
+				FAE000000000000000000010 /* SingleNowPlayingWriterTests.swift */,
 				D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */,
 				D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */,
 				D339E56C2BFD2FAB00B9E35B /* URLStreamPlayer.swift */,
@@ -2434,6 +2437,7 @@
 			files = (
 				FAF000000000000000000002 /* AudioRecorderClientTests.swift in Sources */,
 				FAE000000000000000000005 /* AudioSessionCoordinatorTests.swift in Sources */,
+				FAE000000000000000000011 /* SingleNowPlayingWriterTests.swift in Sources */,
 				D35EFC142F1595C5000F64A4 /* SeriesCardTests.swift in Sources */,
 				D3776A1D2F243F8600200ADF /* BroadcastersListenerQuestionPageTests.swift in Sources */,
 				D35EFC532F1A99E6000F64A4 /* ConversationListPageTests.swift in Sources */,
