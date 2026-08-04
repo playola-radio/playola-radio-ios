@@ -15,6 +15,7 @@ import SwiftUI
 struct DisplayedStationSection: Identifiable {
   let id: String
   let title: String
+  let isArtistList: Bool
   let rows: [Row]
 
   struct Row: Identifiable {
@@ -63,11 +64,11 @@ class StationListModel: ViewModel {
   var searchText = ""
   var presentedAlert: PlayolaAlert?
   let navigationTitle = "Radio Stations"
-  let suggestArtistButtonText = "Suggest Station"
+  let suggestArtistButtonText = "Don't see your artist? Suggest a station"
   let searchBarPlaceholder = "Search stations"
   let noResultsIconName = "music.note.list"
   let noResultsMessage = "No stations found"
-  let noResultsHint = "Try a different search, or tap Suggest Station to request one."
+  let noResultsHint = "Try a different search, or suggest a station to request one."
 
   // MARK: - Initialization
 
@@ -288,6 +289,7 @@ class StationListModel: ViewModel {
       DisplayedStationSection(
         id: list.id,
         title: list.title,
+        isArtistList: list.slug == StationList.artistListSlug,
         rows: liveSortedStationItems(for: list, liveStations: liveStations).map { item in
           let liveStatus = liveStations.first { $0.stationId == item.anyStation.id }?.liveStatus
           return DisplayedStationSection.Row(
