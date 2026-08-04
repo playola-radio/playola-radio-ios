@@ -406,6 +406,11 @@ struct StationPlayerTests {
     expectNoDifference(nowPlaying?.playbackStatus, .playing(urlStation))
     #expect(nowPlaying?.artistPlaying == "ICY Artist")
     #expect(nowPlaying?.titlePlaying == "ICY Track")
+
+    // ICY artwork (URL backend) publishes to shared state too — no state/nowPlaying drift.
+    let artwork = URL(string: "https://example.com/icy.jpg")
+    urlStreamPlayer.albumArtworkURL = artwork
+    expectNoDifference(nowPlaying?.albumArtworkUrl, artwork)
   }
 
   // MARK: - Playola State Processing Tests
@@ -454,8 +459,7 @@ struct StationPlayerTests {
 
   @Test
   func testUrlStreamUrlNotSetDoesNotClobberPlayingPlayolaStation() {
-    // Also asserts the guard protects shared `nowPlaying` (migrated from the old
-    // NowPlayingUpdater ownership test): StationPlayer is now the sole writer.
+    // Also asserts the guard protects shared `nowPlaying` (sole-writer migration).
     let playolaStation = AnyStation.mockPlayola()
     @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .playing(playolaStation))
     let urlStreamPlayer = URLStreamPlayerMock()
@@ -471,6 +475,11 @@ struct StationPlayerTests {
 
     expectNoDifference(stationPlayer.state.playbackStatus, .playing(playolaStation))
     expectNoDifference(nowPlaying?.playbackStatus, .playing(playolaStation))
+
+    // A stale URL-backend artwork event (the `artworkDidChange(nil)` every Playola
+    // play triggers via `reset()`) must not clobber the Playola artwork — the guard.
+    urlStreamPlayer.albumArtworkURL = URL(string: "https://example.com/stale.jpg")
+    #expect(nowPlaying?.albumArtworkUrl == nil)
   }
 
   // Covers the brief `.startingNewStation` window between `stop()` and
@@ -498,8 +507,7 @@ struct StationPlayerTests {
   // station's playback could be wiped the same way.
   @Test
   func testPlayolaIdleDoesNotClobberActiveUrlStation() {
-    // Also asserts the guard protects shared `nowPlaying` (migrated from the old
-    // NowPlayingUpdater ownership test): StationPlayer is now the sole writer.
+    // Also asserts the guard protects shared `nowPlaying` (sole-writer migration).
     let urlStation = AnyStation.mockUrl()
     @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .playing(urlStation))
     let stationPlayer = StationPlayer()

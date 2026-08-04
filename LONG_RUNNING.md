@@ -96,10 +96,14 @@ projection of `state` (so the two can't drift); NowPlayingUpdater is a pure rend
 + behavioral tests. **Hold the merge until the Phase 1 release branch is cut** so the Phase 1
 soak canary (Mixpanel session metrics) stays attributable to Phase 1 alone.
 
-One intentional cosmetic change to flag at review: for a URL station paused by an
-interruption, in-app now-playing artwork is now the ICY track artwork (a projection of
-`state`) rather than being blanked; previously the shared value carried no URL artwork.
-Lock-screen artwork (station image) is unchanged.
+Behavior change to note: URL stations now surface their ICY track artwork in the in-app
+now-playing UI (SmallPlayer / PlayerPage), consistent with Playola stations. Phase 3 makes
+`nowPlaying` a projection of `state`, and `processAlbumArtworkURLChanged` (the URL artwork
+signal) now routes through the shared writer, so `state` and `nowPlaying` no longer drift
+(previously the artwork lived only in `state` and surfaced only after an interruption). The
+write is guarded to the URL backend so the stale `artworkDidChange(nil)` that every Playola
+play triggers via `reset()` can't blank the active Playola spin's artwork. Lock-screen
+artwork (station image) is unchanged.
 
 ### Soak — Phase 1
 

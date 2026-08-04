@@ -13,37 +13,13 @@ import Foundation
 import Testing
 
 @Suite(.freshSharedState)
+@MainActor
 struct SingleNowPlayingWriterTests {
   @Test
   func onlyNowPlayingUpdaterReferencesNowPlayingCenter() throws {
-    // This file lives at PlayolaRadio/Core/AudioPlayback/<file>; walk up three
-    // levels to the PlayolaRadio app-source root and scan every Swift file under it.
-    let appSourceRoot = URL(fileURLWithPath: #filePath)
-      .deletingLastPathComponent()  // AudioPlayback
-      .deletingLastPathComponent()  // Core
-      .deletingLastPathComponent()  // PlayolaRadio
-
-    let enumerator = try #require(
-      FileManager.default.enumerator(at: appSourceRoot, includingPropertiesForKeys: nil),
-      "Could not enumerate app source root at \(appSourceRoot.path)")
-
-    // Allowlist by resolved relative path, not basename — a basename match would
-    // silently skip any other file named NowPlayingUpdater.swift elsewhere in the
-    // tree, letting a second writer slip past the guard.
-    let allowedRelativePaths: Set<String> = [
-      "Core/AudioPlayback/NowPlayingUpdater/NowPlayingUpdater.swift"
-    ]
-
-    var offenders: [String] = []
-    for case let url as URL in enumerator where url.pathExtension == "swift" {
-      guard !url.lastPathComponent.hasSuffix("Tests.swift") else { continue }
-      let relativePath = url.path.replacingOccurrences(of: appSourceRoot.path + "/", with: "")
-      guard !allowedRelativePaths.contains(relativePath) else { continue }
-      let content = try String(contentsOf: url, encoding: .utf8)
-      if content.contains("MPNowPlayingInfoCenter") {
-        offenders.append(relativePath)
-      }
-    }
+    let offenders = try appSwiftFilesContaining(
+      "MPNowPlayingInfoCenter",
+      allowedRelativePaths: ["Core/AudioPlayback/NowPlayingUpdater/NowPlayingUpdater.swift"])
 
     #expect(
       offenders.isEmpty,
@@ -57,6 +33,29 @@ struct SingleNowPlayingWriterTests {
   // if `$nowPlaying.withLock` appears anywhere except StationPlayer.swift.
   @Test
   func onlyStationPlayerWritesSharedNowPlaying() throws {
+    let offenders = try appSwiftFilesContaining(
+      "$nowPlaying.withLock",
+      allowedRelativePaths: ["Core/AudioPlayback/StationPlayer.swift"])
+
+    #expect(
+      offenders.isEmpty,
+      "@Shared(.nowPlaying) must be written only by StationPlayer; found in: \(offenders)")
+  }
+
+  /// Relative paths of every app-source Swift file (excluding `*Tests.swift` and
+  /// the allowlist) that contains `needle`. This file lives at
+  /// `PlayolaRadio/Core/AudioPlayback/<file>`; walk up three levels to the
+  /// app-source root. Allowlisting by resolved relative path — not basename —
+  /// avoids silently skipping a same-named file elsewhere in the tree.
+  ///
+  /// The needle is the exact write idiom (`$nowPlaying.withLock` /
+  /// `MPNowPlayingInfoCenter`), not the `@Shared` key: several files legitimately
+  /// declare `@Shared(.nowPlaying)` to *read* it (and some also `.withLock` other
+  /// keys), so a key-based match would false-positive on readers.
+  private func appSwiftFilesContaining(
+    _ needle: String,
+    allowedRelativePaths: Set<String>
+  ) throws -> [String] {
     let appSourceRoot = URL(fileURLWithPath: #filePath)
       .deletingLastPathComponent()  // AudioPlayback
       .deletingLastPathComponent()  // Core
@@ -66,24 +65,16 @@ struct SingleNowPlayingWriterTests {
       FileManager.default.enumerator(at: appSourceRoot, includingPropertiesForKeys: nil),
       "Could not enumerate app source root at \(appSourceRoot.path)")
 
-    // Allowlist by resolved relative path, not basename — see the sibling test.
-    let allowedRelativePaths: Set<String> = [
-      "Core/AudioPlayback/StationPlayer.swift"
-    ]
-
     var offenders: [String] = []
     for case let url as URL in enumerator where url.pathExtension == "swift" {
       guard !url.lastPathComponent.hasSuffix("Tests.swift") else { continue }
       let relativePath = url.path.replacingOccurrences(of: appSourceRoot.path + "/", with: "")
       guard !allowedRelativePaths.contains(relativePath) else { continue }
       let content = try String(contentsOf: url, encoding: .utf8)
-      if content.contains("$nowPlaying.withLock") {
+      if content.contains(needle) {
         offenders.append(relativePath)
       }
     }
-
-    #expect(
-      offenders.isEmpty,
-      "@Shared(.nowPlaying) must be written only by StationPlayer; found in: \(offenders)")
+    return offenders
   }
 }

@@ -73,11 +73,11 @@ class StationPlayer: ObservableObject {
   /// from one derivation is what keeps them from drifting — and makes
   /// `StationPlayer` the single writer of `@Shared(.nowPlaying)` (Phase 3).
   ///
-  /// Only the backend processors and `handlePlayFailure` route through this.
-  /// `play()`/`stop()`/`processAlbumArtworkURLChanged` deliberately set `state`
-  /// directly: today the shared loading/stopped/artwork transitions are driven
-  /// by the backend events those processors handle, and routing them here would
-  /// change observable behavior.
+  /// The backend processors (including `processAlbumArtworkURLChanged`) and
+  /// `handlePlayFailure` route through this. `play()`/`stop()` deliberately set
+  /// `state` directly: their `.startingNewStation`/`.loading`/`.stopped`
+  /// transitions are echoed by the backend events the processors handle, so the
+  /// shared value is published there and routing them here would double-write.
   private func setState(_ newState: State) {
     state = newState
     // Skip the shared write only for the init-time subscription echoes (see
@@ -424,11 +424,7 @@ class StationPlayer: ObservableObject {
           playbackStatus: .paused(currentStation),
           artistPlaying: urlStreamPlayerState.nowPlaying?.artistName,
           titlePlaying: urlStreamPlayerState.nowPlaying?.trackName,
-          // Keep the current artwork across the pause. Since Phase 3 projects
-          // `nowPlaying` from `state`, this carries `state.albumArtworkUrl` (the
-          // ICY artwork `processAlbumArtworkURLChanged` tracks) into shared state,
-          // keeping the two consistent rather than blanking it on pause.
-          albumArtworkUrl: state.albumArtworkUrl
+          albumArtworkUrl: state.albumArtworkUrl  // keep artwork across the pause
         ))
       return
     }
@@ -459,13 +455,23 @@ class StationPlayer: ObservableObject {
   }
 
   private func processAlbumArtworkURLChanged(_ albumArtworkURL: URL?) {
-    state = State(
-      playbackStatus: state.playbackStatus,
-      artistPlaying: state.artistPlaying,
-      titlePlaying: state.titlePlaying,
-      albumArtworkUrl: albumArtworkURL,
-      playolaSpinPlaying: state.playolaSpinPlaying
-    )
+    // Album artwork is a URL-backend signal (`urlStreamPlayer.$albumArtworkURL`).
+    // Backend ownership: only apply it while a URL station is active. Every
+    // Playola play calls `urlStreamPlayer.reset()`, which sets `radioURL = nil`
+    // and makes FRadioPlayer emit `artworkDidChange(nil)`; without this guard that
+    // stale event would blank the active Playola spin's artwork. Routing through
+    // `setState` publishes the artwork so `state` and shared `nowPlaying` stay
+    // consistent (previously `state` carried URL artwork the shared value never
+    // saw, so it surfaced only after an interruption).
+    guard case .url = currentStation else { return }
+    setState(
+      State(
+        playbackStatus: state.playbackStatus,
+        artistPlaying: state.artistPlaying,
+        titlePlaying: state.titlePlaying,
+        albumArtworkUrl: albumArtworkURL,
+        playolaSpinPlaying: state.playolaSpinPlaying
+      ))
   }
 }
 
