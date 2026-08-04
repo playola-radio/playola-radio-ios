@@ -23,21 +23,6 @@ struct StationListPage: View {
             .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 32))
             .foregroundColor(.white)
           Spacer()
-          Button {
-            model.suggestArtistTapped()
-          } label: {
-            HStack(spacing: 4) {
-              Image(systemName: "plus")
-                .font(.system(size: 11, weight: .bold))
-              Text(model.suggestArtistButtonText)
-                .font(.custom(FontNames.Inter_500_Medium, size: 12))
-            }
-            .foregroundColor(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(Color.playolaRed)
-            .cornerRadius(16)
-          }
         }
         .padding(.horizontal, 16)
         .padding(.top, 20)
@@ -94,6 +79,13 @@ struct StationListPage: View {
               .foregroundColor(.playolaGray)
               .multilineTextAlignment(.center)
               .padding(.horizontal, 32)
+
+            SuggestStationRow(
+              isVisible: true,
+              text: model.suggestArtistButtonText,
+              action: { model.suggestArtistTapped() }
+            )
+            .padding(.top, 4)
           }
           .frame(maxWidth: .infinity)
           .padding(.top, 64)
@@ -161,6 +153,12 @@ struct StationListPage: View {
           .padding(.horizontal)
           .padding(.bottom, 8)
 
+        SuggestStationRow(
+          isVisible: section.isArtistList,
+          text: model.suggestArtistButtonText,
+          action: { model.suggestArtistTapped() }
+        )
+
         VStack(spacing: 1) {
           ForEach(rows) { row in
             let item = row.item
@@ -180,6 +178,43 @@ struct StationListPage: View {
             )
           }
         }
+      }
+    }
+  }
+}
+
+// MARK: - Suggest Station Row
+
+private struct SuggestStationRow: View {
+  let isVisible: Bool
+  let text: String
+  let action: () -> Void
+
+  var body: some View {
+    if isVisible {
+      Button(action: action) {
+        HStack(spacing: 12) {
+          Image(systemName: "plus")
+            .font(.system(size: 15, weight: .bold))
+          Text(text)
+            .font(.custom(FontNames.Inter_700_Bold, size: 15))
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
+          Spacer(minLength: 0)
+        }
+        .foregroundColor(.playolaRed)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 22)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(
+          RoundedRectangle(cornerRadius: 12)
+            .strokeBorder(
+              Color(hex: "#4D4D4D"),
+              style: StrokeStyle(lineWidth: 1, dash: [4])
+            )
+        )
+        .padding(.horizontal, 16)
+        .padding(.bottom, 12)
       }
     }
   }
