@@ -33,6 +33,33 @@ struct StationListPageTests {
     #expect(model.selectedSegment == "All")
   }
 
+  @Test
+  func testArtistSectionFlaggedBySlugNotId() async {
+    // Real server data gives each list a UUID id and identifies the artist list
+    // by its slug, so the flag must key off slug — not the mock-only id value.
+    let now = Date()
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [
+      StationList(
+        id: "8f051a90-067d-4c98-aab8-019d1292377d", name: "Artist Stations",
+        slug: StationList.artistListSlug, hidden: false, sortOrder: 0,
+        createdAt: now, updatedAt: now,
+        items: [APIStationItem(sortOrder: 0, station: nil, urlStation: .mock)]),
+      StationList(
+        id: "b1234567-0000-0000-0000-000000000000", name: "FM Stations",
+        slug: "fm-stations", hidden: false, sortOrder: 1,
+        createdAt: now, updatedAt: now,
+        items: [APIStationItem(sortOrder: 0, station: nil, urlStation: .mock)]),
+    ])
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    let flaggedSlugs = model.displayedSections
+      .filter(\.isArtistList)
+      .compactMap { section in stationLists[id: section.id]?.slug }
+    #expect(flaggedSlugs == [StationList.artistListSlug])
+  }
+
   // MARK: - Segment Selection Tests
 
   @Test

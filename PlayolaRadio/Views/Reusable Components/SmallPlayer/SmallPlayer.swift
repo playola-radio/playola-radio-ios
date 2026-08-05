@@ -24,7 +24,18 @@ struct SmallPlayer: View {
   /// legacy opaque-black bar embedded above the tab bar (full-bleed art).
   var isGlassAccessory = false
 
+  /// `true` once the glass subtitle has wrapped past a single line. When it has,
+  /// the title/subtitle gap tightens so the extra line doesn't push the block
+  /// apart; a single-line subtitle keeps the roomier default spacing.
+  @State private var subtitleIsMultiline = false
+
   private var artworkSize: CGFloat { isGlassAccessory ? 40 : 64 }
+
+  /// Gap between the title and subtitle. Tightens for a wrapped glass subtitle.
+  private var titleSubtitleSpacing: CGFloat {
+    guard isGlassAccessory else { return 4 }
+    return subtitleIsMultiline ? 1 : 4
+  }
 
   // Glass content uses vibrant hierarchical styles so it stays legible on the
   // system glass surface — a hardcoded white vanishes on light glass.
@@ -99,7 +110,7 @@ struct SmallPlayer: View {
   var body: some View {
     VStack(spacing: 0) {
       // Player bar
-      HStack(spacing: isGlassAccessory ? 10 : 16) {
+      HStack(spacing: isGlassAccessory ? 12 : 16) {
         // Artwork
         WebImage(
           url: artworkURL,
@@ -115,11 +126,10 @@ struct SmallPlayer: View {
         .frame(width: artworkSize, height: artworkSize)
         .clipped()
         .clipShape(RoundedRectangle(cornerRadius: isGlassAccessory ? 8 : 6))
-        .padding(.vertical, isGlassAccessory ? 8 : 0)
         .padding(.leading, isGlassAccessory ? 6 : 0)
 
         // Title & subtitle
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: titleSubtitleSpacing) {
           Text(mainTitle)
             .font(.custom(FontNames.Inter_500_Medium, size: isGlassAccessory ? 13 : 16))
             .foregroundStyle(titleStyle)
@@ -129,8 +139,14 @@ struct SmallPlayer: View {
             .foregroundStyle(subtitleStyle)
             .lineLimit(isGlassAccessory ? 2 : nil)
             .fixedSize(horizontal: false, vertical: isGlassAccessory)
+            .onGeometryChange(for: CGFloat.self) {
+              $0.size.height
+            } action: { height in
+              // A single 11pt line is ~15pt tall; two lines clear 20pt.
+              subtitleIsMultiline = height > 20
+            }
         }
-        .padding(.vertical, isGlassAccessory ? 4 : 12)
+        .padding(.vertical, isGlassAccessory ? 0 : 12)
 
         Spacer()
 
@@ -157,7 +173,7 @@ struct SmallPlayer: View {
         .padding(.trailing, isGlassAccessory ? 16 : 24)
       }
       .padding(.horizontal)
-      .padding(.vertical, 8)
+      .padding(.vertical, isGlassAccessory ? 12 : 8)
       .background(isGlassAccessory ? Color.clear : Color.black.opacity(0.85))
 
       // Progress bar
