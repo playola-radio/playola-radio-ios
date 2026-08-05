@@ -31,6 +31,7 @@ struct MainContainer: View {
     }
     .accentColor(.white)  // Makes the selected tab icon white
     .playolaTabBarChrome()
+    .playolaTabBarMinimize()
     .playolaBottomAccessory(isEnabled: model.shouldShowSmallPlayer) {
       smallPlayer(isGlassAccessory: true)
     }

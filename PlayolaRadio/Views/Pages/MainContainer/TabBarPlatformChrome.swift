@@ -80,4 +80,43 @@ extension View {
       }
     }
   }
+
+  /// Minimizes the tab bar on scroll-down (Apple Music style).
+  /// - iOS 26.1+: `.tabBarMinimizeBehavior(.onScrollDown)`.
+  /// - Legacy: no-op (no glass tab bar to minimize).
+  @ViewBuilder
+  func playolaTabBarMinimize() -> some View {
+    if #available(iOS 26.1, *) {
+      self.tabBarMinimizeBehavior(.onScrollDown)
+    } else {
+      self
+    }
+  }
+}
+
+/// Hands `content` a plain `isInline` bool so `SmallPlayer` (deployment target
+/// 18.1, also used in the legacy embed) never references an iOS 26 symbol.
+/// - iOS 26.1+: `isInline == true` when the bottom accessory has squeezed inline
+///   with a minimized tab bar.
+/// - Legacy: always `false`.
+struct PlayolaAccessoryPlacementReader<Content: View>: View {
+  @ViewBuilder let content: (_ isInline: Bool) -> Content
+
+  var body: some View {
+    if #available(iOS 26.1, *) {
+      PlacementEnvReader(content: content)
+    } else {
+      content(false)
+    }
+  }
+}
+
+@available(iOS 26.1, *)
+private struct PlacementEnvReader<Content: View>: View {
+  @Environment(\.tabViewBottomAccessoryPlacement) private var placement
+  @ViewBuilder let content: (_ isInline: Bool) -> Content
+
+  var body: some View {
+    content(placement == .inline)
+  }
 }
