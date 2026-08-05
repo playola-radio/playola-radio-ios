@@ -1,0 +1,17 @@
+# Safe-by-default config for `deliver` / the `screenshots` lane.
+#
+# This repo manages App Store SCREENSHOTS via fastlane, and nothing else. These
+# defaults guarantee that even a bare `fastlane deliver` can never overwrite the
+# live description/keywords/promo text or push a binary — only the screenshot set.
+app_identifier "fm.playola.playolaradio"
+
+# Screenshots only.
+skip_metadata true
+skip_binary_upload true
+
+# git is the source of truth: replace the live set with what's in fastlane/screenshots.
+overwrite_screenshots true
+
+# Never auto-submit for review or run precheck; we only stage the assets.
+submit_for_review false
+run_precheck_before_submit false
