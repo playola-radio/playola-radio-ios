@@ -108,6 +108,14 @@ struct SmallPlayer: View {
 
   // MARK: - Body
   var body: some View {
+    PlayolaAccessoryPlacementReader { isInline in
+      playerBody(hidesHeart: isGlassAccessory && isInline)
+    }
+  }
+
+  // swiftlint:disable function_body_length
+  @ViewBuilder
+  private func playerBody(hidesHeart: Bool) -> some View {
     VStack(spacing: 0) {
       // Player bar
       HStack(spacing: isGlassAccessory ? 12 : 16) {
@@ -150,8 +158,8 @@ struct SmallPlayer: View {
 
         Spacer()
 
-        // Heart button (only for songs)
-        if let audioBlock = currentAudioBlock, audioBlock.type == "song" {
+        // Heart button (only for songs; hidden when the glass player is squeezed inline)
+        if !hidesHeart, let audioBlock = currentAudioBlock, audioBlock.type == "song" {
           Button(
             action: {
               likesManager.toggleLike(audioBlock)
@@ -188,6 +196,7 @@ struct SmallPlayer: View {
     }
     .background(isGlassAccessory ? Color.clear : Color.black)
   }
+  // swiftlint:enable function_body_length
 }
 
 struct SmallPlayer_Previews: PreviewProvider {
