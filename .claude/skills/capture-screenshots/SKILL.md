@@ -32,9 +32,10 @@ Upload is handled by the existing `fastlane screenshots` lane (see
 
 ## Device & filename reference
 
-Standardize on these two devices so every image matches an App Store slot exactly
-(`deliver` auto-detects the device from the resolution; the filename token is
-informational, the **leading number sets slot order**):
+Standardize on these two devices so every image matches an App Store slot exactly.
+`deliver` infers the device from the resolution and the **leading number sets slot
+order** — but keep the `IPAD_PRO_3GEN_129` token in the iPad filenames: resolution
+alone can misclassify the 12.9" iPad as 2nd- vs 3rd-gen, so that marker is load-bearing:
 
 | Slot set | Simulator | Resolution | Filenames |
 |----------|-----------|-----------|-----------|
@@ -70,7 +71,7 @@ wrong size).
    referring creative (see `fastlane/screenshots/README.md`).
 5. **Review & upload.** `git status` the folder, eyeball the diff, then:
    ```sh
-   bundle exec fastlane screenshots   # HTML preview → replaces the live set
+   bundle exec fastlane screenshots   # HTML preview → updates the next-release (edit) version
    ```
 
 ## Common mistakes

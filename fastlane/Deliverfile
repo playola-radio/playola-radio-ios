@@ -5,9 +5,11 @@
 # live description/keywords/promo text or push a binary — only the screenshot set.
 app_identifier "fm.playola.playolaradio"
 
-# Screenshots only.
+# Screenshots only. skip_app_version_update also stops deliver from creating or
+# renaming an App Store version (skip_binary_upload alone does not cover that).
 skip_metadata true
 skip_binary_upload true
+skip_app_version_update true
 
 # git is the source of truth: replace the live set with what's in fastlane/screenshots.
 overwrite_screenshots true

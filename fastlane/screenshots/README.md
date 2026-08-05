@@ -12,22 +12,33 @@ the binary are intentionally out of scope — the `screenshots` lane and the
 
 ### 1. Seed / re-sync the baseline (first time, or to check for drift)
 
-Pull whatever is currently live into this folder:
+Pull whatever is currently on the store into this folder. Download into a clean
+temp dir and replace, because `download_screenshots` only *writes* files — it
+never deletes local ones, so a stale PNG (removed on ASC) would otherwise survive
+with a clean `git status` and get re-uploaded:
 
 ```sh
-bundle exec fastlane deliver download_screenshots
+rm -rf /tmp/asc_shots && mkdir -p /tmp/asc_shots
+bundle exec fastlane deliver download_screenshots \
+  --use_live_version true \
+  --screenshots_path /tmp/asc_shots
+rm -rf fastlane/screenshots/en-US && mv /tmp/asc_shots/en-US fastlane/screenshots/
 ```
 
-Uses the Apple ID in `fastlane/Appfile` (expect a 2FA prompt). Commit the result
-so the repo reflects the live state. Running this later is also how you confirm
-git and the store haven't drifted apart — a clean `git status` means they match.
+`--use_live_version true` pulls the **currently live** set (without it, deliver
+targets the editable "Prepare for Submission" version instead). Uses the Apple ID
+in `fastlane/Appfile` (expect a 2FA prompt). Commit the result so the repo
+reflects the live state — after the replace above, a clean `git status` means git
+and the store match.
 
 ### 2. Replace the images
 
 Drop new PNGs into `fastlane/screenshots/en-US/`. Notes:
 
 - **Device is auto-detected from the image resolution**, so all sizes live in the
-  same locale folder together.
+  same locale folder together — **except iPad Pro 12.9", which needs an explicit
+  device marker in the filename** (`IPAD_PRO_3GEN_129`, as in the existing files);
+  resolution alone can misclassify 2nd- vs 3rd-gen. Keep that token in iPad names.
 - **Ordering is alphabetical.** Prefix filenames to control slot order, e.g.
   `0_home.png`, `1_player.png`, `2_giveaway.png`.
 - **Provide the full set per device size before uploading.** The lane uses
@@ -41,15 +52,17 @@ Drop new PNGs into `fastlane/screenshots/en-US/`. Notes:
 bundle exec fastlane screenshots
 ```
 
-Opens an HTML preview for confirmation, then replaces the live screenshots. No
-review submission — the assets are staged on the next version.
+Opens an HTML preview for confirmation, then replaces the screenshot set on the
+editable "Prepare for Submission" version — i.e. staged for the **next** App Store
+release, not the currently-live listing. No review submission.
 
 ## Keeping in sync
 
 Tie a refresh to the release process: when a `release/X.Y.Z` branch involves a
 material UI change, refresh the relevant screenshots in the **same PR** (steps 2–3)
-so the store never drifts from the shipped UI. A quick `download_screenshots` +
-`git status` is the cheap way to audit whether they've gone stale.
+so the store never drifts from the shipped UI. The re-sync in step 1 (download to
+a temp dir, replace, then `git status`) is the cheap way to audit whether they've
+gone stale.
 
 ## Message-match (why the first shots matter most)
 

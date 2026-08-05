@@ -292,12 +292,15 @@ platform :ios do
   end
 
   # Upload the App Store screenshots that live in fastlane/screenshots/<locale>/.
-  # Screenshots ONLY — skip_metadata and skip_binary_upload make it structurally
-  # impossible for this lane to overwrite the live description/keywords or push a
-  # build. overwrite_screenshots replaces the existing set so git stays the source
-  # of truth. Locally it opens the HTML preview for confirmation before uploading;
-  # on CI it runs unattended (force). Seed the folder first with:
-  #   bundle exec fastlane deliver download_screenshots
+  # Screenshots ONLY — skip_metadata, skip_binary_upload, and skip_app_version_update
+  # make it structurally impossible for this lane to touch the live
+  # description/keywords, push a build, or create/rename an App Store version.
+  # overwrite_screenshots replaces the screenshot set on the editable "Prepare for
+  # Submission" version (staged for the next release — NOT the currently-live one),
+  # so git stays the source of truth. Locally it opens the HTML preview for
+  # confirmation before uploading; on CI it runs unattended (force). Seed the folder
+  # first with (--use_live_version pulls what's currently on the store, not the edit):
+  #   bundle exec fastlane deliver download_screenshots --use_live_version true
   desc "Upload App Store screenshots from fastlane/screenshots (screenshots only — no metadata, no binary)"
   lane :screenshots do
     api_key = asc_api_key
@@ -306,10 +309,12 @@ platform :ios do
       app_identifier: "fm.playola.playolaradio",
       skip_metadata: true,
       skip_binary_upload: true,
+      skip_app_version_update: true,
       overwrite_screenshots: true,
       run_precheck_before_submit: false,
       submit_for_review: false,
-      force: ENV['CI'] ? true : false
+      # ENV['CI'] is a string; "false"/"0" must NOT read as truthy, so parse explicitly.
+      force: %w[true 1 yes].include?(ENV['CI'].to_s.downcase)
     )
   end
 
