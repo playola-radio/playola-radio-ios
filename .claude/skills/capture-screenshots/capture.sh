@@ -29,11 +29,16 @@ IPAD_TYPE="iPad Pro (12.9-inch) (6th generation)"   # 2048x2732 (App Store 12.9"
 BUNDLE_ID="fm.playola.playolaradio"
 SCHEME="PlayolaRadio"
 
-udid_for() { # $1 = device-type name; prints the first available instance's UDID
-  xcrun simctl list devices available \
-    | grep -F "$1 (" \
-    | grep -oE '[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}' \
-    | head -1
+UUID_RE='[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}'
+
+udid_for() { # $1 = device-type name; prefer a BOOTED instance, else first available.
+  # Preferring booted matters when duplicates exist (e.g. an old-OS copy of the
+  # same device sitting alongside the one setup booted) — otherwise capture could
+  # target the wrong, app-less simulator.
+  local u
+  u="$(xcrun simctl list devices booted | grep -F "$1 (" | grep -oE "$UUID_RE" | head -1)"
+  [ -n "$u" ] || u="$(xcrun simctl list devices available | grep -F "$1 (" | grep -oE "$UUID_RE" | head -1)"
+  printf '%s' "$u"
 }
 
 require_udid() { # $1 = type name; prints udid or fails loudly
@@ -66,15 +71,18 @@ cmd_setup() {
   clean_status_bar "$ipad"
 
   if [ "${1:-}" != "--no-build" ]; then
-    echo "Building $SCHEME with Xcode 26.5 (a few minutes)…"
+    # Release, NOT Debug: Debug bakes DEV_ENVIRONMENT=development, so the app talks
+    # to the dev backend — production sign-in fails silently and the content is
+    # wrong for the store. Release = the App Store production environment.
+    echo "Building $SCHEME (Release/production) with Xcode 26.5 (a few minutes)…"
     DEVELOPER_DIR="$DEVELOPER_DIR_PATH" xcodebuild \
       -project "$REPO/PlayolaRadio.xcodeproj" \
-      -scheme "$SCHEME" -configuration Debug \
+      -scheme "$SCHEME" -configuration Release \
       -destination "platform=iOS Simulator,id=$iphone" \
       -derivedDataPath "$REPO/build" \
       -skipPackagePluginValidation -skipMacroValidation \
       CODE_SIGNING_ALLOWED=NO build
-    local app="$REPO/build/Build/Products/Debug-iphonesimulator/PlayolaRadio.app"
+    local app="$REPO/build/Build/Products/Release-iphonesimulator/PlayolaRadio.app"
     for u in "$iphone" "$ipad"; do
       xcrun simctl install "$u" "$app"
       xcrun simctl launch "$u" "$BUNDLE_ID"

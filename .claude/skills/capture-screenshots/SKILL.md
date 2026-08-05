@@ -26,7 +26,9 @@ Upload is handled by the existing `fastlane screenshots` lane (see
   default is a beta that fails this repo's warnings-as-errors build).
 - **A real Playola account** (your own, or ask the team) to sign into on each
   simulator so screens show live data — pick one with a good-looking library and
-  followed stations. There is no demo/bypass login.
+  followed stations. There is no demo/bypass login. `setup` builds **Release**, so
+  the app runs against **production** — sign in with your production account (a
+  Debug build points at the dev backend and sign-in fails silently).
 - **Simulator language = English** (Settings → General → Language & Region) so the
   captured UI text matches the `en-US` slot.
 
@@ -81,6 +83,15 @@ wrong size).
 - **Partial set wipes the store.** The lane uses `overwrite_screenshots`. If your
   new set has fewer/renamed files than what's in `fastlane/screenshots/en-US/`,
   `rm` the old PNGs first so no stale slot survives.
+- **iPad sim on too-old iOS → install fails ("Requires a Newer Version").** The
+  app's min is iOS 18.1, but the stock "iPad Pro (12.9-inch) (6th generation)" sim
+  may be on an older runtime. Create a compatible one (same name so the script
+  resolves it, then re-run `setup`):
+  ```sh
+  xcrun simctl create "iPad Pro (12.9-inch) (6th generation)" \
+    com.apple.CoreSimulator.SimDeviceType.iPad-Pro-12-9-inch-6th-generation-8GB \
+    com.apple.CoreSimulator.SimRuntime.iOS-18-1
+  ```
 - **Live-gated screens are blank when no station is live.** The giveaway banner
   and LIVE badge only render when a station is actually live. Capture those while
   a station is live, or source that slot another way.
