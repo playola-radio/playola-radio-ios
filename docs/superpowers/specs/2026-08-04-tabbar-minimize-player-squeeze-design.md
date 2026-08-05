@@ -4,6 +4,15 @@
 **Branch:** `briankeane/apple-music-player-squeeze`
 **Status:** Design approved, ready for implementation plan
 
+## Post-review updates (2026-08-05)
+
+Two changes landed after runtime testing that this design predates:
+
+- The minimize trigger is gated on player visibility: `playolaTabBarMinimize(isEnabled: model.shouldShowSmallPlayer)` applies `.onScrollDown` only while the mini player shows, `.never` otherwise (so an empty tab bar never collapses to a lone pill). Snippets below show the original no-arg form.
+- Added app-wide `.preferredColorScheme(.dark)`: the app is dark-only but never declared it, so the glass player's `.primary`/`.secondary` text rendered black-on-black on light-mode devices.
+
+Legacy range throughout means **iOS 18.1 through 26.0** (the feature floor is iOS 26.1). CI compiles on Xcode 26.2.
+
 ## Goal
 
 Match Apple Music's behavior on the phone: when the user scrolls down, the Liquid
@@ -12,8 +21,9 @@ Glass tab bar minimizes (truncates to a pill), and the persistent glass mini-pla
 (inline) state the mini-player drops its Favorites (heart) button; everything else
 stays exactly as it is today.
 
-This is an **additive iOS 26.1+ enhancement**. The pre-iOS-26 (legacy) path — opaque
-black tab bar with the mini-player embedded beneath each tab's content — is untouched.
+This is an **additive iOS 26.1+ enhancement**. The pre-iOS-26.1 legacy path (iOS 18.1
+through 26.0) — opaque black tab bar with the mini-player embedded beneath each tab's
+content — is untouched.
 
 ## Scope (decided with the user — do not relitigate)
 
@@ -23,8 +33,8 @@ black tab bar with the mini-player embedded beneath each tab's content — is un
   title + subtitle + heart (songs only) + stop).
 - **Inline (minimized) accessory state:** identical to expanded **except the heart
   button is removed**. Nothing else changes.
-- **Legacy (pre-26):** no glass tab bar exists, so minimize never applies. Byte-for-byte
-  unchanged.
+- **Legacy (pre-26.1, iOS 18.1–26.0):** no glass tab bar exists, so minimize never
+  applies. Byte-for-byte unchanged.
 
 Out of scope: converting the app's search field to the iOS 26 glass search style. Search
 is a custom `TextField` in a full-screen-cover modal (`SongSearchPageView`); it is not a
@@ -46,13 +56,14 @@ existing glass floor — iOS 26.0 is intentionally on the legacy path in this ap
 ### 1. New minimize shim — `TabBarPlatformChrome.swift`
 
 ```swift
-/// Minimizes the tab bar on scroll (Apple Music style).
-/// - iOS 26.1+: `.tabBarMinimizeBehavior(.onScrollDown)`.
+/// Minimizes the tab bar on scroll (Apple Music style), only while the mini
+/// player is present so the bar never collapses to a lone tab pill.
+/// - iOS 26.1+: `.onScrollDown` when `isEnabled`, else `.never`.
 /// - Legacy: no-op.
 @ViewBuilder
-func playolaTabBarMinimize() -> some View {
+func playolaTabBarMinimize(isEnabled: Bool) -> some View {
   if #available(iOS 26.1, *) {
-    self.tabBarMinimizeBehavior(.onScrollDown)
+    self.tabBarMinimizeBehavior(isEnabled ? .onScrollDown : .never)
   } else {
     self
   }
@@ -65,7 +76,7 @@ accessory:
 ```swift
 .accentColor(.white)
 .playolaTabBarChrome()
-.playolaTabBarMinimize()          // new
+.playolaTabBarMinimize(isEnabled: model.shouldShowSmallPlayer)   // new
 .playolaBottomAccessory(isEnabled: model.shouldShowSmallPlayer) {
   smallPlayer(isGlassAccessory: true)
 }
@@ -170,7 +181,7 @@ Nothing more.
   only if needed.
 - **Legacy regression:** on an iOS 18 simulator, confirm the embedded mini-player is
   visually and behaviorally identical to before (heart present for songs, no minimize).
-- **Build:** must compile under Xcode 26.5 (CI) and the local Xcode 27 beta, with
+- **Build:** must compile under Xcode 26.2 (CI) and the local Xcode 27 beta, with
   `SWIFT_TREAT_WARNINGS_AS_ERRORS=YES` — so the availability isolation must be exact.
 - **Unit tests:** this is presentation-only (no model logic changes), so no new model
   tests are expected. If we later move the "should the heart show" decision into a

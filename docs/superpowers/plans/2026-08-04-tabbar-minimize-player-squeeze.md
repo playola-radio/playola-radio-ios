@@ -8,12 +8,20 @@
 
 **Tech Stack:** SwiftUI, iOS 26 tab APIs (`tabBarMinimizeBehavior`, `tabViewBottomAccessoryPlacement`), existing `@Observable` MV pattern.
 
+## Post-review updates (2026-08-05)
+
+Reconciling this plan with what shipped after runtime testing:
+
+- The minimize shim gained an `isEnabled:` parameter: `playolaTabBarMinimize(isEnabled: Bool)` applies `.onScrollDown` only when the mini player is showing and `.never` otherwise, wired as `.playolaTabBarMinimize(isEnabled: model.shouldShowSmallPlayer)`. This prevents the bar collapsing to a lone tab pill when nothing is playing. The snippets below show the original no-arg form; the shipped form takes `isEnabled`.
+- Added an app-wide `.preferredColorScheme(.dark)` on the root view: the app is dark-only but never declared it, so the glass player's `.primary`/`.secondary` text resolved black-on-black on light-mode devices.
+- CI Xcode is **26.2** (see `.circleci/config.yml`), not 26.5; local builds used an available stable 26.x.
+
 ## Global Constraints
 
-- iOS 26.1+ for all new behavior; legacy (iOS 18.0 through 26.0) path byte-for-byte unchanged.
+- iOS 26.1+ for all new behavior; legacy (iOS 18.1 through 26.0) path byte-for-byte unchanged.
 - Deployment target iOS 18.1. `SmallPlayer` must contain NO direct iOS 26 API reference (it is compiled at 18.1 and reused in the legacy embed).
 - `SWIFT_TREAT_WARNINGS_AS_ERRORS=YES` on app + staging targets (tests target excluded). Availability isolation must be exact or the build fails.
-- Must compile under Xcode 26.5 (CI) **and** local Xcode 27 beta. Build with `DEVELOPER_DIR=Xcode-26.5.0` locally to match CI.
+- Must compile under Xcode 26.2 (CI) **and** the local Xcode 27 beta. Build locally with a stable Xcode 26.x (never the 27 beta), e.g. `DEVELOPER_DIR=/Applications/Xcode-26.5.0.app/Contents/Developer`, to approximate CI (which pins Xcode 26.2).
 - Pre-commit hook runs swift-format only; run `make lint` (SwiftLint) manually before pushing or CI fails.
 - No environment gates. Feature ships on for all qualifying (26.1+) users.
 - Presentation-only change: no model logic, no new model tests. `hidesHeart` is a view-layer/OS-placement concern and correctly lives in the view.
@@ -24,12 +32,12 @@
 
 **Files:**
 - Modify: `PlayolaRadio/Views/Pages/MainContainer/TabBarPlatformChrome.swift` (add one shim + two wrapper views)
-- Modify: `PlayolaRadio/Views/Pages/MainContainer/MainContainer.swift:33` (add `.playolaTabBarMinimize()`)
+- Modify: `PlayolaRadio/Views/Pages/MainContainer/MainContainer.swift:33` (add `.playolaTabBarMinimize(isEnabled:)`)
 
 **Interfaces:**
 - Consumes: nothing new.
 - Produces:
-  - `func playolaTabBarMinimize() -> some View` (View extension)
+  - `func playolaTabBarMinimize(isEnabled: Bool) -> some View` (View extension; shipped form — see Post-review updates)
   - `struct PlayolaAccessoryPlacementReader<Content: View>: View` with initializer taking `@ViewBuilder content: @escaping (_ isInline: Bool) -> Content` — renders `content(true)` only when the glass accessory is squeezed inline, else `content(false)`. Task 2 consumes this.
 
 - [ ] **Step 1: Add the `playolaTabBarMinimize()` shim inside the existing `extension View` in `TabBarPlatformChrome.swift`**
@@ -37,13 +45,14 @@
 Place it after `playolaTabBarChrome()`:
 
 ```swift
-  /// Minimizes the tab bar on scroll-down (Apple Music style).
-  /// - iOS 26.1+: `.tabBarMinimizeBehavior(.onScrollDown)`.
+  /// Minimizes the tab bar on scroll-down (Apple Music style), only while the
+  /// mini player is present so the bar never collapses to a lone tab pill.
+  /// - iOS 26.1+: `.onScrollDown` when `isEnabled`, else `.never`.
   /// - Legacy: no-op (no glass tab bar to minimize).
   @ViewBuilder
-  func playolaTabBarMinimize() -> some View {
+  func playolaTabBarMinimize(isEnabled: Bool) -> some View {
     if #available(iOS 26.1, *) {
-      self.tabBarMinimizeBehavior(.onScrollDown)
+      self.tabBarMinimizeBehavior(isEnabled ? .onScrollDown : .never)
     } else {
       self
     }
@@ -88,7 +97,7 @@ Insert `.playolaTabBarMinimize()` between `.playolaTabBarChrome()` and `.playola
 ```swift
     .accentColor(.white)  // Makes the selected tab icon white
     .playolaTabBarChrome()
-    .playolaTabBarMinimize()
+    .playolaTabBarMinimize(isEnabled: model.shouldShowSmallPlayer)
     .playolaBottomAccessory(isEnabled: model.shouldShowSmallPlayer) {
       smallPlayer(isGlassAccessory: true)
     }
