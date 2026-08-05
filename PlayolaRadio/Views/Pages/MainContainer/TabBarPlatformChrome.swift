@@ -81,13 +81,15 @@ extension View {
     }
   }
 
-  /// Minimizes the tab bar on scroll-down (Apple Music style).
-  /// - iOS 26.1+: `.tabBarMinimizeBehavior(.onScrollDown)`.
+  /// Minimizes the tab bar on scroll-down (Apple Music style), but only while the
+  /// mini player is present — collapsing the bar when there's nothing to squeeze
+  /// into the inline slot just leaves a lone tab pill, so keep the bar full then.
+  /// - iOS 26.1+: `.onScrollDown` when `isEnabled`, else `.never`.
   /// - Legacy: no-op (no glass tab bar to minimize).
   @ViewBuilder
-  func playolaTabBarMinimize() -> some View {
+  func playolaTabBarMinimize(isEnabled: Bool) -> some View {
     if #available(iOS 26.1, *) {
-      self.tabBarMinimizeBehavior(.onScrollDown)
+      self.tabBarMinimizeBehavior(isEnabled ? .onScrollDown : .never)
     } else {
       self
     }
