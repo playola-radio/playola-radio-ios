@@ -259,6 +259,11 @@ struct PlayolaRadioApp: App {
         EmptyView()
       } else {
         ContentView()
+          // Playola is a dark-only app (every screen draws on black). Lock the
+          // interface style so system semantic colors (e.g. the glass mini
+          // player's `.primary`/`.secondary` text) resolve to the dark palette
+          // on light-mode devices instead of rendering black-on-black.
+          .preferredColorScheme(.dark)
           .onOpenURL { url in
             GIDSignIn.sharedInstance.handle(url)
           }
