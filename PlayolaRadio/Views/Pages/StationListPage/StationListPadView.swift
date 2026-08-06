@@ -71,7 +71,7 @@ struct StationListPadView: View {
         .textInputAutocapitalization(.never)
 
       Button {
-        model.searchText = ""
+        model.clearSearchTapped()
       } label: {
         Image(systemName: "xmark.circle.fill")
           .font(.system(size: 16))
@@ -183,6 +183,10 @@ struct StationListPadView: View {
         isPreset: isPreset, stationName: rowModel.titleText),
       onTogglePreset: { await model.presetsModel.starTapped(for: item) }
     )
+    // At half width, cap title/subtitle to one line so long names truncate instead of
+    // shoving the live/giveaway badges and preset star out of the cell. Applied here via
+    // the environment so the shared row (and the iPhone layout) stay untouched.
+    .lineLimit(1)
   }
 
   @ViewBuilder
@@ -206,7 +210,7 @@ struct StationListPadView: View {
   }
 }
 
-#Preview {
+#Preview(traits: .fixedLayout(width: 1024, height: 768)) {
   NavigationStack {
     StationListPadView(model: StationListModel())
   }

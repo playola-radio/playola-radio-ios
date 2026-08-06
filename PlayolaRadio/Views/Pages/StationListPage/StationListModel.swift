@@ -138,6 +138,10 @@ class StationListModel: ViewModel {
     presentedAlert = nil
   }
 
+  func clearSearchTapped() {
+    searchText = ""
+  }
+
   func suggestArtistTapped() {
     let model = StationSuggestionPageModel()
     model.onDismiss = { [weak self] in
