@@ -19,7 +19,7 @@ not ✅ done until its soak clears.
 > Entries marked `⟨owner: …⟩` are placeholders the task owner should fill in —
 > I scaffolded them from open PRs/branches but don't know the internal plan.
 
-_Last updated: 2026-08-02_
+_Last updated: 2026-08-06_
 
 ---
 
@@ -32,6 +32,32 @@ _Last updated: 2026-08-02_
 | Rewards → Your Library | 🔵 in progress | Rewards→Profile, Library tab, Presets move | none | PR #372 · `fix-library-requests-ui` |
 | Siri "Play on Playola" (App Intents media schema) | 🟢 planning | Approach B decided (2026-06-14); not started | n/a | — |
 | View/Model pattern cleanup | 🔵 in progress (opportunistic) | ongoing, fix-on-touch | none | `TODO_VIEW_MODEL_VIOLATIONS.md` |
+| Prettify iPad screens | 🔵 in progress | Radio Stations (screen 1 of N) | none (standard release) | spec: `docs/superpowers/specs/2026-08-05-ipad-radio-stations-design.md` |
+
+---
+
+## Prettify iPad screens
+
+**Goal:** the app is iPhone-first; on iPad several screens render as a single narrow
+column with large dead space and misplaced controls. Make them "not embarrassing" on
+iPad, **one screen at a time**, without taxing the maintained iPhone path.
+
+**Guiding constraint (load-bearing):** iPad is **not** a maintained priority. Each
+screen's iPad layout must be **quarantined** — the iPhone/compact path stays byte-for-byte
+unchanged and no shared abstraction may couple iPhone changes to iPad. iPad code lives in
+its own `*PadView` file, branched once on `horizontalSizeClass == .regular`, reusing only
+already-shared leaf components + the page model. Design drift (iPad styling lagging
+iPhone) is acceptable. Any iPad file may be deleted wholesale without touching iPhone.
+
+### Screens
+
+- [ ] **Radio Stations** — 2-col grid, top search, right-aligned suggest button.
+      Spec: `docs/superpowers/specs/2026-08-05-ipad-radio-stations-design.md`. 🔵 in progress.
+- [ ] (further screens added as they're tackled)
+
+### Current step
+
+Radio Stations: design approved (Codex-reviewed), implementing `StationListPadView`.
 
 ---
 

@@ -65,6 +65,7 @@ class StationListModel: ViewModel {
   var presentedAlert: PlayolaAlert?
   let navigationTitle = "Radio Stations"
   let suggestArtistButtonText = "Don't see your artist? Suggest a station"
+  let suggestStationShortText = "Suggest a station"
   let searchBarPlaceholder = "Search stations"
   let noResultsIconName = "music.note.list"
   let noResultsMessage = "No stations found"
@@ -135,6 +136,10 @@ class StationListModel: ViewModel {
   func notificationAlertNoTapped() async {
     $hasAskedForNotificationPermission.withLock { $0 = true }
     presentedAlert = nil
+  }
+
+  func clearSearchTapped() {
+    searchText = ""
   }
 
   func suggestArtistTapped() {

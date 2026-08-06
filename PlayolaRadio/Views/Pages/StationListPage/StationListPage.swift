@@ -12,8 +12,27 @@ struct StationListPage: View {
   // MARK: - Model
   @Bindable var model: StationListModel
 
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
   // MARK: - View
   var body: some View {
+    Group {
+      if horizontalSizeClass == .regular {
+        StationListPadView(model: model)
+      } else {
+        compactBody
+      }
+    }
+    .toolbarBackground(.hidden, for: .navigationBar)
+    .navigationBarTitleDisplayMode(.inline)
+    .background(Color.black)
+    .onAppear { Task { await model.viewAppeared() } }
+    .playolaAlert($model.presentedAlert)
+    .playolaAlert(Bindable(model.presetsModel).presentedAlert)
+  }
+
+  // MARK: - Compact (iPhone) layout — unchanged
+  private var compactBody: some View {
     VStack(spacing: 0) {
       // Header
       VStack(spacing: 0) {
@@ -102,12 +121,6 @@ struct StationListPage: View {
     .safeAreaInset(edge: .bottom) {
       searchBar
     }
-    .toolbarBackground(.hidden, for: .navigationBar)
-    .navigationBarTitleDisplayMode(.inline)
-    .background(Color.black)
-    .onAppear { Task { await model.viewAppeared() } }
-    .playolaAlert($model.presentedAlert)
-    .playolaAlert(Bindable(model.presetsModel).presentedAlert)
   }
 
   private var searchBar: some View {
