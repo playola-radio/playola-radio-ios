@@ -26,9 +26,10 @@ Upload is handled by the existing `fastlane screenshots` lane (see
   default is a beta that fails this repo's warnings-as-errors build).
 - **A real Playola account** (your own, or ask the team) to sign into on each
   simulator so screens show live data — pick one with a good-looking library and
-  followed stations. There is no demo/bypass login. `setup` builds **Release**, so
-  the app runs against **production** — sign in with your production account (a
-  Debug build points at the dev backend and sign-in fails silently).
+  followed stations. There is no demo/bypass login. (`setup` builds Debug with
+  normal development signing — required so the keychain works; without proper
+  signing, Google sign-in fails silently with keychain error -34018. Dev and prod
+  point at the same backend, so the content is the real thing regardless.)
 - **Simulator language = English** (Settings → General → Language & Region) so the
   captured UI text matches the `en-US` slot.
 

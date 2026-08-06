@@ -71,18 +71,27 @@ cmd_setup() {
   clean_status_bar "$ipad"
 
   if [ "${1:-}" != "--no-build" ]; then
-    # Release, NOT Debug: Debug bakes DEV_ENVIRONMENT=development, so the app talks
-    # to the dev backend — production sign-in fails silently and the content is
-    # wrong for the store. Release = the App Store production environment.
-    echo "Building $SCHEME (Release/production) with Xcode 26.5 (a few minutes)…"
+    # Build Debug with normal automatic *development* signing. Two hard-won points:
+    #   1. Do NOT pass CODE_SIGNING_ALLOWED=NO. It skips code signing, so the app has
+    #      no application-identifier entitlement and every keychain call fails with
+    #      -34018 (errSecMissingEntitlement). Google Sign-In stores its token in the
+    #      keychain, so sign-in then fails *silently*. Development signing embeds the
+    #      simulator's "simulated entitlements" (application-identifier + keychain
+    #      group), and keychain works. (codesign -d won't SHOW simulated entitlements
+    #      — verify by launching and confirming no -34018 in the log, not via codesign.)
+    #   2. Debug, not Release: Release uses manual *Distribution* signing, which can't
+    #      sign a simulator build and falls back to empty ad-hoc (same -34018). The
+    #      environment doesn't matter for content — Config points dev and prod at the
+    #      same backend, so a Debug build shows the same real stations/library.
+    echo "Building $SCHEME (Debug, dev-signed) with Xcode 26.5 (a few minutes)…"
     DEVELOPER_DIR="$DEVELOPER_DIR_PATH" xcodebuild \
       -project "$REPO/PlayolaRadio.xcodeproj" \
-      -scheme "$SCHEME" -configuration Release \
+      -scheme "$SCHEME" -configuration Debug \
       -destination "platform=iOS Simulator,id=$iphone" \
       -derivedDataPath "$REPO/build" \
       -skipPackagePluginValidation -skipMacroValidation \
-      CODE_SIGNING_ALLOWED=NO build
-    local app="$REPO/build/Build/Products/Release-iphonesimulator/PlayolaRadio.app"
+      -allowProvisioningUpdates build
+    local app="$REPO/build/Build/Products/Debug-iphonesimulator/PlayolaRadio.app"
     for u in "$iphone" "$ipad"; do
       xcrun simctl install "$u" "$app"
       xcrun simctl launch "$u" "$BUNDLE_ID"
