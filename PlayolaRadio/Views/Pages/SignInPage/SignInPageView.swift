@@ -15,7 +15,21 @@ import SwiftUI
 struct SignInPage: View {
   @Bindable var model: SignInPageModel
 
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
   var body: some View {
+    Group {
+      if horizontalSizeClass == .regular {
+        SignInPadView(model: model)
+      } else {
+        compactBody
+      }
+    }
+    .playolaAlert($model.presentedAlert)
+  }
+
+  // MARK: - Compact (iPhone) layout — unchanged
+  private var compactBody: some View {
     NavigationView {
       ZStack {
         // Background gradient
@@ -107,7 +121,6 @@ struct SignInPage: View {
       .navigationBarHidden(true)
     }
     .navigationViewStyle(StackNavigationViewStyle())
-    .playolaAlert($model.presentedAlert)
   }
 }
 
