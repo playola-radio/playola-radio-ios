@@ -459,9 +459,10 @@ struct StationPlayerTests {
 
   @Test
   func testUrlStreamUrlNotSetDoesNotClobberPlayingPlayolaStation() {
-    // Also asserts the guard protects shared `nowPlaying` (sole-writer migration).
     let playolaStation = AnyStation.mockPlayola()
-    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .playing(playolaStation))
+    let playolaArtwork = URL(string: "https://example.com/playola-spin.jpg")
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(
+      albumArtworkUrl: playolaArtwork, playbackStatus: .playing(playolaStation))
     let urlStreamPlayer = URLStreamPlayerMock()
     let stationPlayer = StationPlayer(urlStreamPlayer: urlStreamPlayer)
     stationPlayer.state = StationPlayer.State(playbackStatus: .playing(playolaStation))
@@ -476,10 +477,10 @@ struct StationPlayerTests {
     expectNoDifference(stationPlayer.state.playbackStatus, .playing(playolaStation))
     expectNoDifference(nowPlaying?.playbackStatus, .playing(playolaStation))
 
-    // A stale URL-backend artwork event (the `artworkDidChange(nil)` every Playola
-    // play triggers via `reset()`) must not clobber the Playola artwork — the guard.
-    urlStreamPlayer.albumArtworkURL = URL(string: "https://example.com/stale.jpg")
-    #expect(nowPlaying?.albumArtworkUrl == nil)
+    // The stale `artworkDidChange(nil)` a Playola play triggers via `reset()` must
+    // not clear the Playola station's artwork — the URL-backend ownership guard.
+    urlStreamPlayer.albumArtworkURL = nil
+    expectNoDifference(nowPlaying?.albumArtworkUrl, playolaArtwork)
   }
 
   // Covers the brief `.startingNewStation` window between `stop()` and
