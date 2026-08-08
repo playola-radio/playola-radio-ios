@@ -44,18 +44,8 @@ struct HomePageView: View {
             introMessage: model.introMessage,
             onIconTapped10Times: model.playolaIconTapped10Times)
 
-          if model.hasUnreadSupportMessages {
-            NewFeatureTile(model: model.supportMessageTileModel)
-              .padding(.bottom, 20)
-          }
-
-          if model.hasScheduledShows {
-            NewFeatureTile(model: model.scheduledShowsTileModel)
-              .padding(.bottom, 20)
-          }
-
-          if model.hasUpcomingQuestionAiring {
-            NewFeatureTile(model: model.questionAiringTileModel)
+          ForEach(model.visibleFeatureTileModels, id: \.label) { tile in
+            NewFeatureTile(model: tile)
               .padding(.bottom, 20)
           }
 
