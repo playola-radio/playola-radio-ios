@@ -34,10 +34,13 @@ UUID_RE='[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}'
 udid_for() { # $1 = device-type name; prefer a BOOTED instance, else first available.
   # Preferring booted matters when duplicates exist (e.g. an old-OS copy of the
   # same device sitting alongside the one setup booted) — otherwise capture could
-  # target the wrong, app-less simulator.
+  # target the wrong, app-less simulator. The `|| true` on each lookup is required:
+  # under `set -euo pipefail` a no-match grep makes the pipeline (pipefail) fail, and
+  # the `u="$(…)"` assignment would abort the script. That happens on a fresh run —
+  # setup calls this BEFORE booting anything, so the booted list is empty.
   local u
-  u="$(xcrun simctl list devices booted | grep -F "$1 (" | grep -oE "$UUID_RE" | head -1)"
-  [ -n "$u" ] || u="$(xcrun simctl list devices available | grep -F "$1 (" | grep -oE "$UUID_RE" | head -1)"
+  u="$(xcrun simctl list devices booted | grep -F "$1 (" | grep -oE "$UUID_RE" | head -1 || true)"
+  [ -n "$u" ] || u="$(xcrun simctl list devices available | grep -F "$1 (" | grep -oE "$UUID_RE" | head -1 || true)"
   printf '%s' "$u"
 }
 

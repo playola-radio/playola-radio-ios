@@ -54,25 +54,30 @@ wrong size).
 
 1. **Set up** — boots both sims, cleans the status bar, builds + installs the
    production app:
+
    ```sh
    .claude/skills/capture-screenshots/capture.sh setup
    ```
+
 2. **Sign in** on each simulator (Apple or Google) with a real account.
 3. **Navigate + capture** each screen. Recommended shot list (mirror the current
    store order): **iPhone** — 0 = Home, 1 = Player / now-playing, 2 = Stations
    list, 3 = Library, 4 = a feature/giveaway screen; **iPad** — 0 = Home,
    1 = Player.
+
    ```sh
    .claude/skills/capture-screenshots/capture.sh iphone 0   # after navigating to Home
    .claude/skills/capture-screenshots/capture.sh iphone 1   # …and so on
    .claude/skills/capture-screenshots/capture.sh ipad 0
    ```
+
    The script re-applies the clean status bar and prints the captured resolution
    each time — verify it matches the table above.
 4. **Message-match the first slots.** Most installs are direct-referral (FB ad /
    artist post), not App Store browsing, so slots 0–1 should visually echo the
    referring creative (see `fastlane/screenshots/README.md`).
 5. **Review & upload.** `git status` the folder, eyeball the diff, then:
+
    ```sh
    bundle exec fastlane screenshots   # HTML preview → updates the next-release (edit) version
    ```
@@ -88,11 +93,13 @@ wrong size).
   app's min is iOS 18.1, but the stock "iPad Pro (12.9-inch) (6th generation)" sim
   may be on an older runtime. Create a compatible one (same name so the script
   resolves it, then re-run `setup`):
+
   ```sh
   xcrun simctl create "iPad Pro (12.9-inch) (6th generation)" \
     com.apple.CoreSimulator.SimDeviceType.iPad-Pro-12-9-inch-6th-generation-8GB \
     com.apple.CoreSimulator.SimRuntime.iOS-18-1
   ```
+
 - **Live-gated screens are blank when no station is live.** The giveaway banner
   and LIVE badge only render when a station is actually live. Capture those while
   a station is live, or source that slot another way.
