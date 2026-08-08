@@ -10,7 +10,23 @@ import SwiftUI
 struct HomePageView: View {
   @Bindable var model: HomePageModel
 
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
   var body: some View {
+    Group {
+      if horizontalSizeClass == .regular {
+        HomePagePadView(model: model)
+      } else {
+        compactBody
+      }
+    }
+    .background(Color.black.ignoresSafeArea())
+    .playolaAlert($model.presentedAlert)
+    .onAppear { Task { await model.viewAppeared() } }
+  }
+
+  // MARK: - Compact (iPhone) layout — unchanged
+  private var compactBody: some View {
     VStack {
       VStack {
         Text(model.welcomeMessage)
@@ -64,9 +80,6 @@ struct HomePageView: View {
       }
       .circleBackground(offsetY: -180)
     }
-    .background(Color.black.ignoresSafeArea())
-    .playolaAlert($model.presentedAlert)
-    .onAppear { Task { await model.viewAppeared() } }
   }
 }
 

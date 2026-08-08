@@ -32,7 +32,7 @@ _Last updated: 2026-08-06_
 | Rewards → Your Library | 🔵 in progress | Rewards→Profile, Library tab, Presets move | none | PR #372 · `fix-library-requests-ui` |
 | Siri "Play on Playola" (App Intents media schema) | 🟢 planning | Approach B decided (2026-06-14); not started | n/a | — |
 | View/Model pattern cleanup | 🔵 in progress (opportunistic) | ongoing, fix-on-touch | none | `TODO_VIEW_MODEL_VIOLATIONS.md` |
-| Prettify iPad screens | 🔵 in progress | Radio Stations (screen 1 of N) | none (standard release) | spec: `docs/superpowers/specs/2026-08-05-ipad-radio-stations-design.md` |
+| Prettify iPad screens | 🔵 in progress | Profile (screen 4 of N) | none (standard release) | specs in `docs/superpowers/specs/2026-08-0*-ipad-*-design.md` |
 
 ---
 
@@ -53,11 +53,22 @@ iPhone) is acceptable. Any iPad file may be deleted wholesale without touching i
 
 - [ ] **Radio Stations** — 2-col grid, top search, right-aligned suggest button.
       Spec: `docs/superpowers/specs/2026-08-05-ipad-radio-stations-design.md`. 🔵 in progress.
+- [ ] **Home** — logo+welcome header, 2-col compact reward/listening tiles, 2-col station
+      card grid (reuses the shared `StationCardView`). `HomePagePadView.swift`.
+      Spec: `docs/superpowers/specs/2026-08-06-ipad-home-design.md`. 🔵 in progress.
+- [ ] **Sign In** — centered, width-constrained auth card on the gradient (logo, wordmark,
+      welcome text, Google + Apple buttons, terms footer). `SignInPadView.swift`.
+      Spec: `docs/superpowers/specs/2026-08-06-ipad-sign-in-design.md`. 🔵 in progress.
+- [ ] **Profile** ("Your Profile" tab = `ContactPageView`) — centered profile card + 2-col
+      action-button grid, outlined Log out below. `ContactPagePadView.swift`.
+      Spec: `docs/superpowers/specs/2026-08-06-ipad-profile-design.md`. 🔵 in progress.
 - [ ] (further screens added as they're tackled)
 
 ### Current step
 
-Radio Stations: design approved (Codex-reviewed), implementing `StationListPadView`.
+Profile: `ContactPagePadView` implemented (branched on `horizontalSizeClass` in
+`ContactPageView`); no model change (all text/flags already existed). iPhone path untouched.
+Verified via `ImageRenderer` throwaway render.
 
 ---
 

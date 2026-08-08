@@ -163,6 +163,12 @@
 		D30F008E2E8592F0007BCC73 /* StationListPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5662BFD10AE00B9E35B /* StationListPage.swift */; };
 		ABCDEF020000000000000002 /* StationListPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF020000000000000001 /* StationListPadView.swift */; };
 		ABCDEF020000000000000003 /* StationListPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF020000000000000001 /* StationListPadView.swift */; };
+		ABCDEF030000000000000002 /* HomePagePadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF030000000000000001 /* HomePagePadView.swift */; };
+		ABCDEF030000000000000003 /* HomePagePadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF030000000000000001 /* HomePagePadView.swift */; };
+		ABCDEF040000000000000002 /* SignInPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF040000000000000001 /* SignInPadView.swift */; };
+		ABCDEF040000000000000003 /* SignInPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF040000000000000001 /* SignInPadView.swift */; };
+		ABCDEF050000000000000002 /* ContactPagePadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF050000000000000001 /* ContactPagePadView.swift */; };
+		ABCDEF050000000000000003 /* ContactPagePadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF050000000000000001 /* ContactPagePadView.swift */; };
 		D30F008F2E8592F0007BCC73 /* MainContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257C82DFA247A001BC6F9 /* MainContainer.swift */; };
 		ABCDEF010000000000000002 /* TabBarPlatformChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF010000000000000001 /* TabBarPlatformChrome.swift */; };
 		D30F00902E8592F0007BCC73 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257752E6342C600F4228B /* ToastView.swift */; };
@@ -627,6 +633,9 @@
 		D3367C002F097D0D00AF87FA /* PushNotificationSubscription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationSubscription.swift; sourceTree = "<group>"; };
 		D339E5662BFD10AE00B9E35B /* StationListPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPage.swift; sourceTree = "<group>"; };
 		ABCDEF020000000000000001 /* StationListPadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPadView.swift; sourceTree = "<group>"; };
+		ABCDEF030000000000000001 /* HomePagePadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePagePadView.swift; sourceTree = "<group>"; };
+		ABCDEF040000000000000001 /* SignInPadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPadView.swift; sourceTree = "<group>"; };
+		ABCDEF050000000000000001 /* ContactPagePadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactPagePadView.swift; sourceTree = "<group>"; };
 		D339E5682BFD1C0800B9E35B /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		D339E56C2BFD2FAB00B9E35B /* URLStreamPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLStreamPlayer.swift; sourceTree = "<group>"; };
 		D339E56E2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FRadioPlayerMetadata+Equatable.swift"; sourceTree = "<group>"; };
@@ -1373,6 +1382,7 @@
 				D37257B32DF88BD9001BC6F9 /* HomePageTests.swift */,
 				D37257B12DF88BBD001BC6F9 /* HomePageModel.swift */,
 				D37257AF2DF88BB2001BC6F9 /* HomePageView.swift */,
+				ABCDEF030000000000000001 /* HomePagePadView.swift */,
 			);
 			path = HomePage;
 			sourceTree = "<group>";
@@ -1602,6 +1612,7 @@
 				D39591182E39932800720CF8 /* ContactPageTests.swift */,
 				D39591162E39932300720CF8 /* ContactPageModel.swift */,
 				D39591142E39931D00720CF8 /* ContactPageView.swift */,
+				ABCDEF050000000000000001 /* ContactPagePadView.swift */,
 			);
 			path = ContactPage;
 			sourceTree = "<group>";
@@ -1665,6 +1676,7 @@
 			children = (
 				D378CCCD2E56011500497A4A /* SignInPageModel.swift */,
 				D3B662692D40103800975D2F /* SignInPageView.swift */,
+				ABCDEF040000000000000001 /* SignInPadView.swift */,
 				D3B662752D41B0C700975D2F /* SignInPageTests.swift */,
 			);
 			path = SignInPage;
@@ -2070,6 +2082,7 @@
 				D3FACE020000000000000003 /* RemoteArtwork.swift in Sources */,
 				D30F00542E8592F0007BCC73 /* ViewModel.swift in Sources */,
 				D30F00552E8592F0007BCC73 /* SignInPageView.swift in Sources */,
+				ABCDEF040000000000000002 /* SignInPadView.swift in Sources */,
 				D30F00562E8592F0007BCC73 /* UrlStation.swift in Sources */,
 				D3C7E5DB2EF0A43000EDD3ED /* SongSearchPageModel.swift in Sources */,
 				D30F00572E8592F0007BCC73 /* Color+Hex.swift in Sources */,
@@ -2129,6 +2142,7 @@
 				D3C7E5E12EF0A44400EDD3ED /* SongSearchPageView.swift in Sources */,
 				D30F00772E8592F0007BCC73 /* UIImage+Cache.swift in Sources */,
 				D30F00782E8592F0007BCC73 /* ContactPageView.swift in Sources */,
+				ABCDEF050000000000000002 /* ContactPagePadView.swift in Sources */,
 				D30F00792E8592F0007BCC73 /* PlayolaTokenProvider.swift in Sources */,
 				D30F007A2E8592F0007BCC73 /* circleBackground.swift in Sources */,
 				D30F007B2E8592F0007BCC73 /* ShareSheet.swift in Sources */,
@@ -2173,6 +2187,7 @@
 				D3B9C7A62F534CE0002D75C2 /* IntroPresignedURLResponse.swift in Sources */,
 				D30F008E2E8592F0007BCC73 /* StationListPage.swift in Sources */,
 				ABCDEF020000000000000002 /* StationListPadView.swift in Sources */,
+				ABCDEF030000000000000002 /* HomePagePadView.swift in Sources */,
 				D30F008F2E8592F0007BCC73 /* MainContainer.swift in Sources */,
 				ABCDEF010000000000000002 /* TabBarPlatformChrome.swift in Sources */,
 				D3776A3B2F2918DE00200ADF /* WaveformViews.swift in Sources */,
@@ -2273,6 +2288,7 @@
 				D3FACE020000000000000002 /* RemoteArtwork.swift in Sources */,
 				D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */,
 				D3B6626A2D40103C00975D2F /* SignInPageView.swift in Sources */,
+				ABCDEF040000000000000003 /* SignInPadView.swift in Sources */,
 				D30AE8A72E75C92700D9FBCA /* UrlStation.swift in Sources */,
 				D3C7E5DC2EF0A43000EDD3ED /* SongSearchPageModel.swift in Sources */,
 				D3536A3B2BFA6520006942D6 /* Color+Hex.swift in Sources */,
@@ -2332,6 +2348,7 @@
 				D3C7E5E22EF0A44400EDD3ED /* SongSearchPageView.swift in Sources */,
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
 				D39591152E39932000720CF8 /* ContactPageView.swift in Sources */,
+				ABCDEF050000000000000003 /* ContactPagePadView.swift in Sources */,
 				D3BECAC62E201A380009E618 /* PlayolaTokenProvider.swift in Sources */,
 				D37257C42DF8F885001BC6F9 /* circleBackground.swift in Sources */,
 				D378CCD02E57947800497A4A /* ShareSheet.swift in Sources */,
@@ -2376,6 +2393,7 @@
 				D3B9C7A72F534CE0002D75C2 /* IntroPresignedURLResponse.swift in Sources */,
 				D339E5672BFD10AE00B9E35B /* StationListPage.swift in Sources */,
 				ABCDEF020000000000000003 /* StationListPadView.swift in Sources */,
+				ABCDEF030000000000000003 /* HomePagePadView.swift in Sources */,
 				D37257C92DFA247D001BC6F9 /* MainContainer.swift in Sources */,
 				ABCDEF010000000000000003 /* TabBarPlatformChrome.swift in Sources */,
 				D3776A3C2F2918DE00200ADF /* WaveformViews.swift in Sources */,
