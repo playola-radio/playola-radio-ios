@@ -9,8 +9,6 @@ import Combine
 import Dependencies
 import FRadioPlayer
 import Foundation
-import MediaPlayer
-import UIKit
 
 @MainActor
 public class URLStreamPlayer: ObservableObject {
@@ -138,46 +136,6 @@ private final class URLPlaybackAttempt {
   }
 }
 
-// MARK: - MPNowPlayingInfoCenter (Lock screen)
-
-extension URLStreamPlayer {
-  private func resetArtwork(with station: UrlStation?) {
-    guard let station else {
-      updateLockScreen(with: nil)
-      return
-    }
-
-    Task { [weak self] in
-      let image = await station.getImage()
-      self?.updateLockScreen(with: image)
-    }
-  }
-
-  private func updateLockScreen(with artworkImage: UIImage?) {
-    // Define Now Playing Info
-    var nowPlayingInfo = [String: Any]()
-
-    if let image = artworkImage {
-      nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(
-        boundsSize: image.size,
-        requestHandler: { _ -> UIImage in
-          return image
-        })
-    }
-
-    if let artistName = currentStation?.artistName {
-      nowPlayingInfo[MPMediaItemPropertyArtist] = artistName
-    }
-
-    if let trackName = currentStation?.trackName {
-      nowPlayingInfo[MPMediaItemPropertyTitle] = trackName
-    }
-
-    // Set the metadata
-    MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-  }
-}
-
 // MARK: - FRadioPlayerObserver
 
 extension URLStreamPlayer: @preconcurrency FRadioPlayerObserver {
@@ -189,24 +147,14 @@ extension URLStreamPlayer: @preconcurrency FRadioPlayerObserver {
       playerStatus: FRadioPlayer.shared.state,
       currentStation: currentStation,
       nowPlaying: player.currentMetadata)
-    resetArtwork(with: currentStation)
   }
 
+  // URLStreamPlayer only publishes metadata; NowPlayingUpdater is the single
+  // writer of the system Now Playing info center. `$albumArtworkURL` feeds the
+  // in-app now-playing UI (via StationPlayer); the lock screen uses station
+  // artwork by design. See SingleNowPlayingWriterTests.
   public func radioPlayer(_: FRadioPlayer, artworkDidChange artworkURL: URL?) {
     albumArtworkURL = artworkURL
-    guard let artworkURL else {
-      resetArtwork(with: currentStation)
-      return
-    }
-
-    Task { [weak self] in
-      let image = await UIImage.image(from: artworkURL)
-      guard let image else {
-        self?.resetArtwork(with: self?.currentStation)
-        return
-      }
-      self?.updateLockScreen(with: image)
-    }
   }
 
   public func radioPlayer(

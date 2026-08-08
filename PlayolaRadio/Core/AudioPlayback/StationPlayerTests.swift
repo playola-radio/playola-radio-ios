@@ -9,6 +9,7 @@ import AVFoundation
 import Combine
 import CustomDump
 import Dependencies
+import FRadioPlayer
 import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
@@ -367,6 +368,51 @@ struct StationPlayerTests {
     expectNoDifference(nowPlaying?.playbackStatus, .loading(.mock))
   }
 
+  // MARK: - Shared Now Playing Writer Tests
+
+  // Phase 3: StationPlayer is the sole writer of `@Shared(.nowPlaying)`, writing
+  // it as a projection of the authoritative `state` so the two can't drift.
+
+  @Test
+  func stationPlayerIsSoleWriterOfSharedNowPlaying() {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let playolaStation = AnyStation.mockPlayola()
+    let stationPlayer = StationPlayer()
+    stationPlayer.state = StationPlayer.State(playbackStatus: .loading(playolaStation))
+
+    stationPlayer.processPlayolaStationPlayerState(.playing(.mock))
+
+    expectNoDifference(nowPlaying?.playbackStatus, .playing(playolaStation))
+    #expect(nowPlaying?.playolaSpinPlaying?.id == Spin.mock.id)
+    #expect(nowPlaying?.artistPlaying == Spin.mock.audioBlock.artist)
+  }
+
+  @Test
+  func processUrlStreamPlayingWritesSharedNowPlaying() {
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .stopped)
+    let urlStreamPlayer = URLStreamPlayerMock()
+    let urlStation = AnyStation.mockUrl()
+    let stationPlayer = StationPlayer(urlStreamPlayer: urlStreamPlayer)
+    stationPlayer.state = StationPlayer.State(playbackStatus: .loading(urlStation))
+
+    urlStreamPlayer.state = URLStreamPlayer.State(
+      playbackState: .playing,
+      playerStatus: .readyToPlay,
+      currentStation: nil,
+      nowPlaying: FRadioPlayer.Metadata(
+        artistName: "ICY Artist", trackName: "ICY Track", rawValue: nil, groups: [])
+    )
+
+    expectNoDifference(nowPlaying?.playbackStatus, .playing(urlStation))
+    #expect(nowPlaying?.artistPlaying == "ICY Artist")
+    #expect(nowPlaying?.titlePlaying == "ICY Track")
+
+    // ICY artwork (URL backend) publishes to shared state too — no state/nowPlaying drift.
+    let artwork = URL(string: "https://example.com/icy.jpg")
+    urlStreamPlayer.albumArtworkURL = artwork
+    expectNoDifference(nowPlaying?.albumArtworkUrl, artwork)
+  }
+
   // MARK: - Playola State Processing Tests
 
   @Test
@@ -380,10 +426,8 @@ struct StationPlayerTests {
     stationPlayer.processPlayolaStationPlayerState(.error(.networkError("boom")))
 
     expectNoDifference(stationPlayer.state.playbackStatus, .error)
-    // StationPlayer.processPlayolaStationPlayerState drives only `state`; the
-    // shared `nowPlaying` is NowPlayingUpdater's responsibility and must be
-    // left untouched here.
-    expectNoDifference(nowPlaying?.playbackStatus, .loading(.mock))
+    // Phase 3: sole writer of shared `nowPlaying`, so `.error` reaches the UI too.
+    expectNoDifference(nowPlaying?.playbackStatus, .error)
   }
 
   // MARK: - Backend Ownership Regression Tests
@@ -415,9 +459,12 @@ struct StationPlayerTests {
 
   @Test
   func testUrlStreamUrlNotSetDoesNotClobberPlayingPlayolaStation() {
+    let playolaStation = AnyStation.mockPlayola()
+    let playolaArtwork = URL(string: "https://example.com/playola-spin.jpg")
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(
+      albumArtworkUrl: playolaArtwork, playbackStatus: .playing(playolaStation))
     let urlStreamPlayer = URLStreamPlayerMock()
     let stationPlayer = StationPlayer(urlStreamPlayer: urlStreamPlayer)
-    let playolaStation = AnyStation.mockPlayola()
     stationPlayer.state = StationPlayer.State(playbackStatus: .playing(playolaStation))
 
     urlStreamPlayer.state = URLStreamPlayer.State(
@@ -428,6 +475,12 @@ struct StationPlayerTests {
     )
 
     expectNoDifference(stationPlayer.state.playbackStatus, .playing(playolaStation))
+    expectNoDifference(nowPlaying?.playbackStatus, .playing(playolaStation))
+
+    // The stale `artworkDidChange(nil)` a Playola play triggers via `reset()` must
+    // not clear the Playola station's artwork — the URL-backend ownership guard.
+    urlStreamPlayer.albumArtworkURL = nil
+    expectNoDifference(nowPlaying?.albumArtworkUrl, playolaArtwork)
   }
 
   // Covers the brief `.startingNewStation` window between `stop()` and
@@ -455,13 +508,16 @@ struct StationPlayerTests {
   // station's playback could be wiped the same way.
   @Test
   func testPlayolaIdleDoesNotClobberActiveUrlStation() {
-    let stationPlayer = StationPlayer()
+    // Also asserts the guard protects shared `nowPlaying` (sole-writer migration).
     let urlStation = AnyStation.mockUrl()
+    @Shared(.nowPlaying) var nowPlaying = NowPlaying(playbackStatus: .playing(urlStation))
+    let stationPlayer = StationPlayer()
     stationPlayer.state = StationPlayer.State(playbackStatus: .playing(urlStation))
 
     stationPlayer.processPlayolaStationPlayerState(.idle)
 
     expectNoDifference(stationPlayer.state.playbackStatus, .playing(urlStation))
+    expectNoDifference(nowPlaying?.playbackStatus, .playing(urlStation))
   }
 
   // Ownership also covers non-`.stopped` terminal events: an inactive backend's

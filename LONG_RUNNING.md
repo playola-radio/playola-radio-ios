@@ -19,7 +19,7 @@ not ✅ done until its soak clears.
 > Entries marked `⟨owner: …⟩` are placeholders the task owner should fill in —
 > I scaffolded them from open PRs/branches but don't know the internal plan.
 
-_Last updated: 2026-08-06_
+_Last updated: 2026-08-08_
 
 ---
 
@@ -27,7 +27,7 @@ _Last updated: 2026-08-06_
 
 | Task | Status | Current step | Soak | Links |
 |------|--------|--------------|------|-------|
-| Host-owned audio → Sonos | 🟡 soaking | Phase 1 merged; staging soak + device matrix | Not started (pending first staging build) | PR #345 · plan |
+| Host-owned audio → Sonos | 🟡 soaking | Phase 1 in prod (phased, from 2026-08-08); Phase 2+3 merged to develop, soaking on staging | Phase 1: prod phased rollout · Phase 2+3: staging soak from 2026-08-08 | PR #345 · #384 · plan |
 | Clip share | 🔵 in progress | ⟨owner: current step⟩ | none (standard release) | PR #219 |
 | Rewards → Your Library | 🔵 in progress | Rewards→Profile, Library tab, Presets move | none | PR #372 · `fix-library-requests-ui` |
 | Siri "Play on Playola" (App Intents media schema) | 🟢 planning | Approach B decided (2026-06-14); not started | n/a | — |
@@ -84,43 +84,75 @@ CarPlay teardown, speaker-stuck-after-recording) along the way.
 ### Phases
 
 - [x] **Phase 0 — SDK host-only** (shipped as PlayolaPlayer 0.20.0 → 0.20.2)
-- [x] **Phase 1 — app owns session + interruptions** (PR #345, merged to develop) — 🟡 soaking
-- [ ] **Phase 2 — single Now Playing writer** (low risk, ~1 PR)
+- [x] **Phase 1 — app owns session + interruptions** (PR #345) — released to production 2026-08-08 (🟡 phased-rollout soak)
+- [x] **Phase 2 — single Now Playing writer** (low risk, PR #384) — 🟡 merged to develop, soaking on staging (removes URLStreamPlayer's MPNowPlayingInfoCenter writes; NowPlayingUpdater sole writer)
 - [ ] **Verify URL stations → Sonos** (quick AirPlay-2 check; possible early win)
-- [ ] **Phase 3 — single state-derivation source** (low–med risk, ~1 PR)
+- [x] **Phase 3 — single state-derivation source** (PR #384) — 🟡 merged to develop, soaking on staging (StationPlayer is the sole `@Shared(.nowPlaying)` writer + single derivation authority; NowPlayingUpdater is now a pure renderer of `stationPlayer.$state`; structural + behavioral tests guard it)
 - [ ] **Owned URLStreamBackend** (retire the vendored FRadioPlayer fork; optional)
 - [ ] **Phase 5 — Sonos renderer** (AVSampleBuffer render path; big; own plan + server-flag rollout)
 
 ### Current step
 
-Phase 1 merged. Now: run the device-verification matrix on real hardware and
-soak on staging before an App Store release. Phase 2 can proceed on develop in
-parallel — it does not block the Phase 1 release soak.
+Phase 1 **released to production 2026-08-08** (phased rollout under way). That lifted the
+hold on PR #384 — the hold existed so the Phase 1 *staging* soak canary stayed attributable
+to Phase 1 alone; Phase 1 is now off staging, so Phase 2+3 can soak there without
+contaminating it (different metric stream from Phase 1's prod rollout).
+
+**Phase 2 + Phase 3 merged to develop together (PR #384) and are now soaking on staging.**
+Phase 2 (single MPNowPlayingInfoCenter writer): URLStreamPlayer no longer writes the lock
+screen, NowPlayingUpdater is the sole writer. Phase 3 (single state-derivation source):
+StationPlayer is the sole writer of `@Shared(.nowPlaying)` and the single derivation
+authority — its backend processors publish `nowPlaying` as a projection of `state` (so the
+two can't drift); NowPlayingUpdater is a pure renderer of `stationPlayer.$state`. Both
+guarded by structural + behavioral tests.
+
+**Next:** cut a staging TestFlight build (`fastlane release_staging` from develop), soak ~1
+week (see "Soak — Phase 2+3"). **Do NOT cut the Phase 2+3 production release while Phase 1's
+phased prod rollout is still in flight** — stacking two audio changes on real listeners
+re-muddies prod attribution. Gate the prod cut on: staging soak clean AND Phase 1 prod
+rollout completed cleanly.
+
+Behavior change to note: URL stations now surface their ICY track artwork in the in-app
+now-playing UI (SmallPlayer / PlayerPage), consistent with Playola stations. Phase 3 makes
+`nowPlaying` a projection of `state`, and `processAlbumArtworkURLChanged` (the URL artwork
+signal) now routes through the shared writer, so `state` and `nowPlaying` no longer drift
+(previously the artwork lived only in `state` and surfaced only after an interruption). The
+write is guarded to the URL backend so the stale `artworkDidChange(nil)` that every Playola
+play triggers via `reset()` can't blank the active Playola spin's artwork. Lock-screen
+artwork (station image) is unchanged.
 
 ### Soak — Phase 1
 
-- **Environment:** staging TestFlight → then App Store 7-day phased rollout.
-- **Soaking since:** not started yet — pending the first staging TestFlight build.
-  Fill the date when it ships (the "~1 week clean" advance criterion is measured
-  from here).
-- **Device matrix (must pass before App Store):** phone-call/Siri interruption
-  resumes · interruption-without-shouldResume stays paused · headphone unplug
-  pauses (not stops) · Bluetooth A2DP + car HFP route · CarPlay connect/play/
-  interrupt/resume · AirPlay long-form (watch for a `-50` on `.longFormAudio`) ·
-  record voicetrack → stop → play → output not speaker-stuck · URL station
-  interruption pauses/resumes via the coordinator.
+- **Environment:** staging TestFlight (cleared) → App Store phased rollout, **live from 2026-08-08**.
+- **Now:** in production phased rollout. Watch the go/no-go metrics below across the
+  rollout; hold Phase 2+3's *production* cut until this rollout completes cleanly.
 - **Watch (go/no-go metrics):** Mixpanel `listeningSessionStarted` count + session
   length (the canary — a dip means audio broke in the field without a crash);
   Sentry for new `AVAudioSession` / `engine.start` error clusters.
-- **Advance when:** device matrix passes AND ~1 week of clean staging dogfooding
-  AND Mixpanel session metrics flat. Then cut the release; don't over-soak on
-  develop (it just entangles with later changes).
-- **Rollback lever:** known-good prior version is PlayolaPlayer **0.19.0**. Rolling
-  back = revert the SPM pin (0.20.2 → 0.19.0) + revert the app PR, then **build and
-  ship a new release** — reverting source does *not* change binaries already
-  installed via TestFlight/App Store. Because Phase 1 hasn't reached production
-  yet, the cheapest rollback right now is simply **not cutting the release**; once
-  it's live, roll back by shipping a build repinned to 0.19.0 (phased release again).
+- **Rollback lever:** known-good prior version is PlayolaPlayer **0.19.0**. Now that
+  Phase 1 is live, roll back by shipping a build repinned to 0.19.0 (phased release
+  again) — reverting source does *not* change binaries already installed.
+
+### Soak — Phase 2+3
+
+- **Environment:** staging TestFlight (from develop) → later a production phased rollout.
+- **Soaking since:** 2026-08-08 (merged to develop). Cut the staging build with
+  `fastlane release_staging` from develop; the "~1 week clean" clock runs from that build.
+- **Device matrix (must pass before the production cut) — focused on the now-playing
+  surface these phases change:** lock screen shows the correct track/title/artist ·
+  **CarPlay Now Playing is NOT dismissed when a Playola station starts** (the `.urlNotSet`
+  ownership guard) · interruption pause keeps artwork + metadata and the play button
+  resumes · station switch updates the lock screen · **URL station shows ICY track artwork
+  in-app** (new in Phase 3 — confirm it reads as an improvement). Re-run the Phase 1
+  interruption/route/Bluetooth/CarPlay matrix too, since these phases sit on that path.
+- **Watch (go/no-go metrics):** same canary — Mixpanel `listeningSessionStarted` count +
+  session length; Sentry for `AVAudioSession` / `engine.start` clusters and any new
+  MediaPlayer/now-playing errors.
+- **Advance when:** device matrix passes AND ~1 week clean staging dogfooding AND Mixpanel
+  session metrics flat **AND Phase 1's production rollout has completed cleanly**. Then cut
+  the Phase 2+3 production release.
+- **Rollback lever:** revert the PR #384 merge on develop; nothing shipped to production
+  until the gate above is met, so pre-prod rollback is just not cutting the release.
 
 ### Notes
 
