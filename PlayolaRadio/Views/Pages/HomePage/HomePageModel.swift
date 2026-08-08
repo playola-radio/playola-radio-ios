@@ -34,6 +34,7 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
   @ObservationIgnored @Shared(.unreadSupportCount) var unreadSupportCount
+  @ObservationIgnored @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
   @ObservationIgnored @Shared(.welcomeMessageEligible) var welcomeMessageEligible: Bool = false
   @ObservationIgnored @Shared(.welcomeMessageShownThisSession)
   var welcomeMessageShownThisSession: Bool = false
@@ -51,6 +52,14 @@ class HomePageModel: ViewModel {
 
   var hasUpcomingQuestionAiring: Bool {
     upcomingQuestionAiring != nil
+  }
+
+  var canInviteFriends: Bool {
+    guard let totalMSListened = listeningTracker?.totalListenTimeMS, totalMSListened > 0 else {
+      return false
+    }
+    let totalHours = Double(totalMSListened) / 1000.0 / 3600.0
+    return totalHours >= 2.0
   }
 
   var welcomeMessage: String {
@@ -125,6 +134,20 @@ class HomePageModel: ViewModel {
       buttonAction: { [weak self] in
         guard let self = self else { return }
         await self.shareQuestionAiringButtonTapped()
+      }
+    )
+
+  @ObservationIgnored lazy var inviteFriendsTileModel: NewFeatureTileModel =
+    NewFeatureTileModel(
+      iconName: "person.2.fill",
+      isSystemImage: true,
+      label: "Power Listener Reward",
+      content: "Invite Your Friends",
+      paragraph: "You've unlocked the ability to invite friends to Playola!",
+      buttonText: "Invite",
+      buttonAction: { [weak self] in
+        guard let self = self else { return }
+        await self.inviteFriendsButtonTapped()
       }
     )
 
@@ -268,6 +291,11 @@ class HomePageModel: ViewModel {
   }
 
   private static let appStoreUrl = "https://apps.apple.com/us/app/playola-radio/id6480465361"
+
+  private func inviteFriendsButtonTapped() async {
+    let shareModel = ShareSheetModel(items: [Self.appStoreUrl])
+    mainContainerNavigationCoordinator.presentedSheet = .share(shareModel)
+  }
 
   private func shareQuestionAiringButtonTapped() async {
     guard let airing = upcomingQuestionAiring else { return }
