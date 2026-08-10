@@ -50,7 +50,8 @@ deployable even if the client ships before (or without) the server.
   `shouldShowKoozieCongrats` is true only while earned AND the in-app congrats has not been
   dismissed.
 
-- **Prize name (congrats copy):** the koozie `Prize.name` from `/tiers`.
+- **Prize name (congrats copy):** the koozie `Prize.name` from `/tiers`. Congrats reads
+  "You've earned a {prizeName}! Thanks for listening!".
 
 All koozie state rides on the already-fetched `listeningTracker.rewardsProfile`
 (`MainContainerModel.loadListeningTracker`). **No new durable `@Shared` koozie flag** — the
@@ -73,7 +74,7 @@ logic-free and just renders the header counter + a mode-driven bottom section):
 | `.koozieInProgress(hoursRemaining, progress)` | koozie, `!koozieEarned`, live hrs `<` threshold | koozie icon · "Playola Koozie" · "Xh Ym of listening to go" · "NN%" + progress bar |
 | `.koozieClaimable` | koozie, `!koozieEarned`, live hrs `≥` threshold | "You earned a koozie!" + **Redeem your koozie** button (no ✕) |
 | `.koozieAddressForm` | *(client-only sub-state of Claimable)* | "Where should we send it? · US addresses only. We'll only use this to ship your koozie." + address fields + **Back** / **Send my koozie** |
-| `.koozieCongrats` | koozie, `koozieEarned`, `shouldShowKoozieCongrats` | "Congrats on winning your {prizeName}!" + **✕ dismiss** |
+| `.koozieCongrats` | koozie, `koozieEarned`, `shouldShowKoozieCongrats` | "You've earned a {prizeName}! Thanks for listening!" + **✕ dismiss** |
 | `.koozieEarned` | koozie, `koozieEarned`, `!shouldShowKoozieCongrats` | quiet row: "Koozie redeemed — check your email" |
 
 Notes:
