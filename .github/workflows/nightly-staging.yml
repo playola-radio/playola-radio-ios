@@ -15,8 +15,18 @@ on:
   # Manual "build develop now" button — always builds, bypassing the already-built check.
   workflow_dispatch: {}
 
+# Serialize every run of this workflow (scheduled, manual, or a re-run) so the
+# check-then-trigger below can't interleave: a second run can't read the marker tag and
+# POST before the first run has moved the tag, which would otherwise let both trigger a
+# build for the same commit. cancel-in-progress: false lets the queued run still execute
+# (by which time the first has moved the tag, so it correctly skips).
+concurrency:
+  group: nightly-staging
+  cancel-in-progress: false
+
+# contents: write is needed to move the `nightly-staging-last` marker tag after a build.
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   trigger:
@@ -30,18 +40,18 @@ jobs:
 
       - name: Decide whether to build
         id: gate
-        env:
-          CIRCLECI_TOKEN: ${{ secrets.CCI_TOKEN }}
         run: |
           # A manual run always builds. A scheduled run builds only if develop's tip
-          # commit has NOT already been built by a prior nightly staging trigger — so a
-          # quiet day (develop hasn't moved) produces zero builds and the staging
-          # TestFlight list never fills with identical rebuilds of the same commit.
+          # commit has NOT already been built by a prior nightly staging run — so a quiet
+          # day (develop hasn't moved) produces zero builds and the staging TestFlight list
+          # never fills with identical rebuilds of the same commit.
           #
-          # We dedupe on the exact HEAD commit rather than a time window: the schedule
-          # fires every 24h but GitHub can delay a scheduled run, so any fixed lookback
-          # can overlap the previous run and rebuild the same HEAD. Matching the commit
-          # is the only thing that reliably prevents consecutive same-HEAD builds.
+          # We dedupe on the exact HEAD commit, not a time window: the schedule fires every
+          # 24h but GitHub can delay a run, so any fixed lookback can overlap the previous
+          # run and rebuild the same HEAD. The `nightly-staging-last` marker tag records the
+          # last commit we actually triggered a build for (moved in the trigger step below),
+          # so it names our own builds exactly — an unrelated pipeline on develop can never
+          # be mistaken for a completed nightly.
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "build=true" >> "$GITHUB_OUTPUT"
             exit 0
@@ -50,48 +60,16 @@ jobs:
           HEAD_SHA=$(git rev-parse HEAD)
           echo "develop tip is $HEAD_SHA"
 
-          if [ -z "$CIRCLECI_TOKEN" ]; then
-            echo "::error::CCI_TOKEN secret is not set — cannot check for a prior build."
-            exit 1
-          fi
+          # Read the marker straight from the remote so we don't depend on tags being
+          # fetched locally. For a lightweight tag, ls-remote prints the commit SHA. On any
+          # failure (network), LAST is empty and we build — a missed nightly staging build
+          # hurts testers more than a rare duplicate. `|| LAST=...` keeps the step alive
+          # under `bash -eo pipefail`, where a failed command substitution would abort it.
+          LAST=$(git ls-remote origin refs/tags/nightly-staging-last 2>/dev/null | awk '{print $1}') || LAST=""
 
-          # Idempotency by commit: page through the CircleCI pipeline list
-          # (most-recent-first) for an API-triggered develop pipeline whose checked-out
-          # revision is this exact commit. If one exists we already triggered a nightly
-          # staging build for this HEAD, so this scheduled run must skip. We match
-          # trigger.type == "api" so native develop push pipelines (which don't run the
-          # staging upload) never count as a prior nightly build. Mirrors the idempotency
-          # check in auto-tag-release.yml.
-          #
-          # FAIL OPEN — if the pipeline state can't be determined we build anyway: a
-          # missed nightly staging build hurts testers more than a rare duplicate, and the
-          # systematic same-HEAD duplicate this guards against is still eliminated.
-          PAGE_TOKEN=""
-          FOUND=0
-          for _ in $(seq 1 10); do
-            URL="https://circleci.com/api/v2/project/gh/playola-radio/playola-radio-ios/pipeline"
-            [ -n "$PAGE_TOKEN" ] && URL="${URL}?page-token=${PAGE_TOKEN}"
-            LIST=$(mktemp)
-            # `|| true`: GitHub runs this with `bash -eo pipefail`, so a curl failure
-            # (DNS/TLS/network) would abort the step before the fail-open branch below —
-            # keep going so an unreachable API builds rather than skips.
-            GET_HTTP=$(curl -sS -o "$LIST" -w '%{http_code}' \
-              -H "Circle-Token: $CIRCLECI_TOKEN" "$URL") || true
-            if [ "$GET_HTTP" != "200" ] || ! jq -e '(.items | type) == "array"' "$LIST" >/dev/null 2>&1; then
-              echo "::warning::Could not query existing CircleCI pipelines (HTTP $GET_HTTP); building without the duplicate check."
-              cat "$LIST"
-              FOUND=0
-              break
-            fi
-            MATCH=$(jq -r --arg r "$HEAD_SHA" '[.items[] | select(((.vcs // {}).revision // "") == $r and ((.vcs // {}).branch // "") == "develop" and (.trigger.type // "") == "api")] | length' "$LIST")
-            if [ "$MATCH" != "0" ]; then FOUND=1; break; fi
-            PAGE_TOKEN=$(jq -r '.next_page_token // ""' "$LIST")
-            [ -z "$PAGE_TOKEN" ] && break
-          done
-
-          if [ "$FOUND" != "0" ]; then
+          if [ -n "$LAST" ] && [ "$LAST" = "$HEAD_SHA" ]; then
             echo "build=false" >> "$GITHUB_OUTPUT"
-            echo "develop tip $HEAD_SHA already has a nightly staging pipeline — skipping."
+            echo "develop tip $HEAD_SHA already built by a prior nightly staging run — skipping."
           else
             echo "build=true" >> "$GITHUB_OUTPUT"
           fi
@@ -116,5 +94,17 @@ jobs:
           echo
           if [ "$HTTP" != "200" ] && [ "$HTTP" != "201" ]; then
             echo "::error::CircleCI staging trigger failed (HTTP $HTTP)"
+            exit 1
+          fi
+
+          # Record the commit we just built so the next scheduled run skips it. Moved only
+          # AFTER a successful trigger: if the POST fails we never advance the marker, so a
+          # re-run retries the build rather than silently marking it done. A failed tag push
+          # fails the job loudly (exit 1) rather than leaving the marker stale, because a
+          # stale marker would silently re-trigger this same commit every night.
+          HEAD_SHA=$(git rev-parse HEAD)
+          git tag -f nightly-staging-last "$HEAD_SHA"
+          if ! git push -f origin refs/tags/nightly-staging-last; then
+            echo "::error::Triggered the build but could not move the nightly-staging-last tag; re-runs may duplicate this build until this is fixed."
             exit 1
           fi
