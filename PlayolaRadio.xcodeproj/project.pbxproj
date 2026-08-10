@@ -11,6 +11,7 @@
 		0574C4A160288D8AE401D4C9 /* UpcomingGiveawayInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36EB0D70D43F1CF6504F637E /* UpcomingGiveawayInfo.swift */; };
 		086EF07946AAF32C92DE834A /* UpcomingGiveawayBannerModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3C275E61DA6CA4C482EC79 /* UpcomingGiveawayBannerModelTests.swift */; };
 		0A6E6C233E85A650521A5331 /* YourLibraryPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 903A1DE2476388DF8FCC8874 /* YourLibraryPageView.swift */; };
+		0A70B3257BA0A86D3F1AA9E5 /* KoozieTileModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63FB46A7FE838F3A8A4C8A6 /* KoozieTileModelTests.swift */; };
 		0F528AC0AC6E8A8043556CEC /* GiveawayCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DBB4FE7E4F57517A32804E0 /* GiveawayCoordinator.swift */; };
 		100DEE4C2F7441167117CC58 /* GiveawayCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD2F408E712B42EAED9BE68 /* GiveawayCoordinatorTests.swift */; };
 		1D674687C98A493790039AA2 /* GiveawayCongratsSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1493664DBC23415D4EE04C91 /* GiveawayCongratsSheetView.swift */; };
@@ -21,14 +22,17 @@
 		1F6F57E01E254F5483BD939B /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E8719F70AFA4992B9037775 /* Preset.swift */; };
 		23D5CA2938294DB58EB23395 /* KoozieShippingAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EC624A968B0E0DA09E64702 /* KoozieShippingAddress.swift */; };
 		24801FB664BFA5B73E518BC3 /* RewardsExperience.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBD876AFF9DD0588179EB37B /* RewardsExperience.swift */; };
+		24B6384BAEEAB70B98AF2B36 /* KoozieAddressFormModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07AAD05D9D43997B4956B822 /* KoozieAddressFormModel.swift */; };
 		2613B751F316B4688367E6D7 /* UpcomingGiveawayBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73585D96F0A0EB79FFD39F8E /* UpcomingGiveawayBadge.swift */; };
 		2891A2D21D67E32129F5F2ED /* YourLibraryPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B5384ED9FE3A984F23C18BA /* YourLibraryPageTests.swift */; };
 		2ADE71F9A72B59B6B6C727B5 /* GiveawayWinnerPendingPush.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C547ECE1FDB131CE832D3D /* GiveawayWinnerPendingPush.swift */; };
 		354451A630DF81468815108F /* GiveawayParticipation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CB3EF3C094D149DDC849813 /* GiveawayParticipation.swift */; };
+		35CB87DC50E3ED61D6FEA027 /* KoozieTileModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3712613B63E92D656D1A78E7 /* KoozieTileModel.swift */; };
 		36BE0070A8ED1A8626D2D52D /* GiveawayWinnerSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8084127A5D5C1680EE2ECA /* GiveawayWinnerSheetModel.swift */; };
 		373573B1AD8886BC8570DD8F /* UpcomingGiveawayBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43C99E3FBFDF4522AA71C3C /* UpcomingGiveawayBanner.swift */; };
 		37BCC67C3543B124A9EDB4C8 /* GiveawayWinnerPendingPushTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3809555E7296131D612667B9 /* GiveawayWinnerPendingPushTests.swift */; };
 		3E9CF257B133D2AD4734F378 /* GiveawayWinnerSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8084127A5D5C1680EE2ECA /* GiveawayWinnerSheetModel.swift */; };
+		438B06FF18E95D6D698E7678 /* KoozieAddressFormModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D7B33C7D72A6E770CF667F /* KoozieAddressFormModelTests.swift */; };
 		45C15A64DBFAC157AF8EBA65 /* GiveawayCongratsSheetModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2261DEC52F41A8CC973B73FF /* GiveawayCongratsSheetModelTests.swift */; };
 		4F0799748F9B6F6C03B34E06 /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = 8A2626DA6E1408E57A38509F /* FRadioPlayer */; };
 		51CBBA46B5E06C646C37BD3A /* GiveawayWinnerPendingPush.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C547ECE1FDB131CE832D3D /* GiveawayWinnerPendingPush.swift */; };
@@ -516,6 +520,7 @@
 		E6A2E13F3905B715C7E6FA15 /* GiveawayEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02EDCED098E801AAB2E9DC82 /* GiveawayEvent.swift */; };
 		E6FA723C089B9E0115951DD1 /* GiveawayBannerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 917BAF1376F852871F0F3159 /* GiveawayBannerState.swift */; };
 		E96C77B08E039DD3EC6916BF /* GiveawayParticipation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CB3EF3C094D149DDC849813 /* GiveawayParticipation.swift */; };
+		EAFEAD89072009BB8142CF3A /* KoozieTileModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3712613B63E92D656D1A78E7 /* KoozieTileModel.swift */; };
 		EDC6A1FF8A6499631C7E1C1A /* GiveawayCongratsSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51C95B740988B02A7A472F8C /* GiveawayCongratsSheetModel.swift */; };
 		EDE2B63A1AB34C74CC65C898 /* CongratsAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = DACFAE7FE27DBB3341C0CE77 /* CongratsAction.swift */; };
 		EFAE322408433F245D07A620 /* UpcomingGiveawayBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43C99E3FBFDF4522AA71C3C /* UpcomingGiveawayBanner.swift */; };
@@ -537,6 +542,7 @@
 		FE110AC0DE0000000000B1B1 /* WelcomeMessageEligibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110AC0DE0000000000F1F1 /* WelcomeMessageEligibilityTests.swift */; };
 		FE654232793406CA6A2FA1FE /* GiveawayWinnerSheetModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC138D8C4809A3F89A5B4985 /* GiveawayWinnerSheetModelTests.swift */; };
 		FFC4AC782A480E2C45DFBA9C /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = 33C7DB3D3801D1C1C337B26D /* FRadioPlayer */; };
+		FFE2EA430C2866C7B05C9B12 /* KoozieAddressFormModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07AAD05D9D43997B4956B822 /* KoozieAddressFormModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -553,6 +559,7 @@
 		02EDCED098E801AAB2E9DC82 /* GiveawayEvent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayEvent.swift; sourceTree = "<group>"; };
 		0463608FA7279EBB205BF80E /* GiveawayWinnerPush.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerPush.swift; sourceTree = "<group>"; };
 		0488057E2A6456204E582B15 /* CongratsActionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CongratsActionTests.swift; sourceTree = "<group>"; };
+		07AAD05D9D43997B4956B822 /* KoozieAddressFormModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KoozieAddressFormModel.swift; sourceTree = "<group>"; };
 		0C8084127A5D5C1680EE2ECA /* GiveawayWinnerSheetModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerSheetModel.swift; sourceTree = "<group>"; };
 		1493664DBC23415D4EE04C91 /* GiveawayCongratsSheetView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayCongratsSheetView.swift; sourceTree = "<group>"; };
 		1DBB4FE7E4F57517A32804E0 /* GiveawayCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayCoordinator.swift; sourceTree = "<group>"; };
@@ -560,6 +567,7 @@
 		2B82DD37711E160592E3842D /* GiveawayMyResult.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayMyResult.swift; sourceTree = "<group>"; };
 		36AE0F6CC37C4970321497CF /* GiveawayWinnerSubmission.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerSubmission.swift; sourceTree = "<group>"; };
 		36EB0D70D43F1CF6504F637E /* UpcomingGiveawayInfo.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UpcomingGiveawayInfo.swift; sourceTree = "<group>"; };
+		3712613B63E92D656D1A78E7 /* KoozieTileModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KoozieTileModel.swift; sourceTree = "<group>"; };
 		3809555E7296131D612667B9 /* GiveawayWinnerPendingPushTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerPendingPushTests.swift; sourceTree = "<group>"; };
 		3A4D634B4C9B84C1C25F6458 /* GiveawayOverlayModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayOverlayModel.swift; sourceTree = "<group>"; };
 		3B83C3893A771EB211B3AF8F /* StationListLiveSortTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StationListLiveSortTests.swift; sourceTree = "<group>"; };
@@ -593,11 +601,13 @@
 		ABCDEF040000000000000001 /* SignInPadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPadView.swift; sourceTree = "<group>"; };
 		ABCDEF050000000000000001 /* ContactPagePadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactPagePadView.swift; sourceTree = "<group>"; };
 		AC860B8DF872B25EFF727088 /* GiveawayWinnerSheetView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerSheetView.swift; sourceTree = "<group>"; };
+		B63FB46A7FE838F3A8A4C8A6 /* KoozieTileModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KoozieTileModelTests.swift; sourceTree = "<group>"; };
 		BA44EE33EB697E44CEC84351 /* GiveawayWinnerPushTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerPushTests.swift; sourceTree = "<group>"; };
 		BC138D8C4809A3F89A5B4985 /* GiveawayWinnerSheetModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerSheetModelTests.swift; sourceTree = "<group>"; };
 		BFF0E48AF7714364A04B11B2 /* PresetStarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetStarButton.swift; sourceTree = "<group>"; };
 		BFF0E49DF7714364A04B11B3 /* PresetTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetTile.swift; sourceTree = "<group>"; };
 		BFF0EA0DF7714364A04B11B7 /* PresetsCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetsCarousel.swift; sourceTree = "<group>"; };
+		C5D7B33C7D72A6E770CF667F /* KoozieAddressFormModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KoozieAddressFormModelTests.swift; sourceTree = "<group>"; };
 		CCD2F408E712B42EAED9BE68 /* GiveawayCoordinatorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayCoordinatorTests.swift; sourceTree = "<group>"; };
 		D302576A2E63423B00F4228B /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		D302576C2E63428700F4228B /* ToastClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastClient.swift; sourceTree = "<group>"; };
@@ -1735,6 +1745,10 @@
 				D3B744C92E313B170042A427 /* ListeningTimeTileTests.swift */,
 				D3B744C72E3139960042A427 /* ListeningTimeTileModel.swift */,
 				D3B744B82E2FF1600042A427 /* ListeningTimeTile.swift */,
+				07AAD05D9D43997B4956B822 /* KoozieAddressFormModel.swift */,
+				C5D7B33C7D72A6E770CF667F /* KoozieAddressFormModelTests.swift */,
+				3712613B63E92D656D1A78E7 /* KoozieTileModel.swift */,
+				B63FB46A7FE838F3A8A4C8A6 /* KoozieTileModelTests.swift */,
 			);
 			path = ListeningTimeTile;
 			sourceTree = "<group>";
@@ -2253,6 +2267,8 @@
 				2613B751F316B4688367E6D7 /* UpcomingGiveawayBadge.swift in Sources */,
 				24801FB664BFA5B73E518BC3 /* RewardsExperience.swift in Sources */,
 				1E1FEF5BE44432473298C8CB /* KoozieShippingAddress.swift in Sources */,
+				FFE2EA430C2866C7B05C9B12 /* KoozieAddressFormModel.swift in Sources */,
+				EAFEAD89072009BB8142CF3A /* KoozieTileModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2461,6 +2477,8 @@
 				6E073224D257FDD579575841 /* UpcomingGiveawayBadge.swift in Sources */,
 				9B14EE137DB923F77EBEFB37 /* RewardsExperience.swift in Sources */,
 				23D5CA2938294DB58EB23395 /* KoozieShippingAddress.swift in Sources */,
+				24B6384BAEEAB70B98AF2B36 /* KoozieAddressFormModel.swift in Sources */,
+				35CB87DC50E3ED61D6FEA027 /* KoozieTileModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2552,6 +2570,8 @@
 				45C15A64DBFAC157AF8EBA65 /* GiveawayCongratsSheetModelTests.swift in Sources */,
 				086EF07946AAF32C92DE834A /* UpcomingGiveawayBannerModelTests.swift in Sources */,
 				7C3EB088AA47A09C775DB7DC /* RewardsExperienceTests.swift in Sources */,
+				438B06FF18E95D6D698E7678 /* KoozieAddressFormModelTests.swift in Sources */,
+				0A70B3257BA0A86D3F1AA9E5 /* KoozieTileModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
