@@ -86,7 +86,8 @@ extension PrizeTier {
             id: "7d03685d-1872-4bcd-a4b3-8d77f6999fd8",
             name: "Bri Bagwell's Banned Radio Koozie",
             prizeTierId: "8e43d874-d63f-4479-8759-8258a0b63fc3",
-            imageUrl: nil
+            imageUrl: nil,
+            slug: "koozie"
           ),
           Prize(
             id: "koozie-2",

@@ -137,10 +137,12 @@ struct ContactPagePadView: View {
 
   private var actionGrid: some View {
     LazyVGrid(columns: columns, spacing: 16) {
-      ProfilePadActionButton(
-        icon: "gift.fill", label: model.rewardsLabel, background: .playolaRed
-      ) {
-        model.onRewardsTapped()
+      if model.showRewardsButton {
+        ProfilePadActionButton(
+          icon: "gift.fill", label: model.rewardsLabel, background: .playolaRed
+        ) {
+          model.onRewardsTapped()
+        }
       }
 
       ProfilePadActionButton(

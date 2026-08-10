@@ -24,6 +24,7 @@ class ContactPageModel: ViewModel {
 
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.stationLists) var stationLists
+  @ObservationIgnored @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
 
@@ -97,9 +98,15 @@ class ContactPageModel: ViewModel {
     print(mainContainerNavigationCoordinator.path)
   }
 
+  /// Koozie-only users have no multi-tier rewards page, so the button is hidden for them.
+  var showRewardsButton: Bool {
+    listeningTracker?.rewardsProfile.rewardsExperienceType != .koozieOnly
+  }
+
   @MainActor
   func onRewardsTapped() {
-    mainContainerNavigationCoordinator.path.append(.rewardsPage(self.rewardsPageModel))
+    // Guarded at the coordinator: a no-op for koozie-only users even if this is reached.
+    mainContainerNavigationCoordinator.pushRewards(self.rewardsPageModel)
   }
 
   @MainActor

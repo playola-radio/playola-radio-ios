@@ -34,9 +34,14 @@ final class MainContainerNavigationCoordinator {
   var appMode: AppMode = .listening
 
   @ObservationIgnored @Shared(.activeTab) var activeTab
+  @ObservationIgnored @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
   @ObservationIgnored @Dependency(\.continuousClock) var clock
 
   nonisolated init() {}
+
+  private var isKoozieOnly: Bool {
+    listeningTracker?.rewardsProfile.rewardsExperienceType == .koozieOnly
+  }
 
   /// Returns a binding-compatible path for the current active tab
   var path: [Path] {
@@ -113,6 +118,33 @@ final class MainContainerNavigationCoordinator {
 
   func push(_ path: Path) {
     self.path.append(path)
+  }
+
+  /// Pushes the Rewards page unless the user is koozie-only (the route is inert for them —
+  /// they have no multi-tier rewards page).
+  func pushRewards(_ model: RewardsPageModel) {
+    guard !isKoozieOnly else { return }
+    push(.rewardsPage(model))
+  }
+
+  /// Drops any `.rewardsPage` entries from every tab path. Called when a koozie-only profile
+  /// loads so restored nav state / deep links can't surface the legacy Rewards page.
+  func sanitizeRewardsRouteForKoozie() {
+    guard isKoozieOnly else { return }
+    let strip: ([Path]) -> [Path] = { paths in
+      paths.filter { path in
+        if case .rewardsPage = path { return false }
+        return true
+      }
+    }
+    homePath = strip(homePath)
+    stationsPath = strip(stationsPath)
+    yourLibraryPath = strip(yourLibraryPath)
+    profilePath = strip(profilePath)
+    broadcastPath = strip(broadcastPath)
+    libraryPath = strip(libraryPath)
+    listenersPath = strip(listenersPath)
+    settingsPath = strip(settingsPath)
   }
 
   func pop() {

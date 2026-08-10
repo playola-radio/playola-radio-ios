@@ -63,4 +63,12 @@ final class ListeningTracker {
     let serverListeningTimeMS = rewardsProfile.totalTimeListenedMS
     return localListeningMS + serverListeningTimeMS
   }
+
+  /// Returns a new tracker with a refreshed `rewardsProfile` but the SAME
+  /// `localListeningSessions`, so a mid-session profile refetch (e.g. after a koozie
+  /// redeem/dismiss) doesn't reset the live counter. Snapshot sessions at call time —
+  /// call this after any network await, not before.
+  func replacingRewardsProfile(_ profile: RewardsProfile) -> ListeningTracker {
+    ListeningTracker(rewardsProfile: profile, localListeningSessions: localListeningSessions)
+  }
 }

@@ -385,6 +385,29 @@ struct ListeningTrackerTests {
       #expect(duration >= 0)  // Should be non-negative
     }
   }
+
+  // MARK: - replacingRewardsProfile
+
+  @Test func replacingRewardsProfilePreservesLocalSessions() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
+    let original = ListeningTracker(
+      rewardsProfile: createMockRewardsProfile(totalTimeListenedMS: 1_000),
+      localListeningSessions: [
+        LocalListeningSession(
+          startTime: Date(timeIntervalSince1970: 0),
+          endTime: Date(timeIntervalSince1970: 60))  // 60s = 60_000ms
+      ])
+    let newProfile = RewardsProfile(
+      totalTimeListenedMS: 5_000, totalMSAvailableForRewards: 5_000, accurateAsOfTime: Date(),
+      koozieEarned: true)
+
+    let replaced = original.replacingRewardsProfile(newProfile)
+
+    #expect(replaced.rewardsProfile.totalTimeListenedMS == 5_000)
+    #expect(replaced.rewardsProfile.koozieEarned == true)
+    // Local sessions carried over: 5_000 server + 60_000 local
+    #expect(replaced.totalListenTimeMS == 65_000)
+  }
 }
 
 // swiftlint:enable redundant_optional_initialization

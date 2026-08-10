@@ -96,6 +96,18 @@ struct APIClient: Sendable {
           redeemedAt: Date(), createdAt: Date(), updatedAt: Date(), prize: nil)
       }
 
+  /// Claims the koozie prize with a US shipping address.
+  /// 201 → claimed (server sends the congrats email). 409 ("already redeemed", incl. a
+  /// concurrent double-tap) is treated as success (idempotent). 400 → throws
+  /// `APIError.validationError(serverMessage)` for inline display on the form.
+  var redeemKooziePrize:
+    @Sendable (_ jwtToken: String, _ prizeId: String, _ address: KoozieShippingAddress)
+      async throws -> Void = { _, _, _ in }
+
+  /// Marks the in-app koozie congrats dismissed (write-once). 204 → recorded;
+  /// 409 (not earned) tolerated as success.
+  var markKoozieCongratsSeen: @Sendable (_ jwtToken: String) async throws -> Void = { _ in }
+
   ///   - jwtToken: Current JWT
   ///   - firstName: New first name
   ///   - lastName: New last name (optional, "" treated as nil)

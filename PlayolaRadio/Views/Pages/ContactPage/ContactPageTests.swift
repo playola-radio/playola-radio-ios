@@ -554,4 +554,25 @@ struct ContactPageTests {
       #expect(!model.myStationButtonVisible)
     }
   }
+
+  // MARK: - Rewards button visibility (koozie cohort)
+
+  @Test func showRewardsButtonFalseForKoozieUser() {
+    @Shared(.listeningTracker) var lt = ListeningTracker(
+      rewardsProfile: RewardsProfile(
+        totalTimeListenedMS: 0, totalMSAvailableForRewards: 0, accurateAsOfTime: Date(),
+        rewardsExperience: "koozie_only"))
+    #expect(ContactPageModel().showRewardsButton == false)
+  }
+
+  @Test func showRewardsButtonTrueForFullTiersUser() {
+    @Shared(.listeningTracker) var lt = ListeningTracker(
+      rewardsProfile: RewardsProfile(
+        totalTimeListenedMS: 0, totalMSAvailableForRewards: 0, accurateAsOfTime: Date()))
+    #expect(ContactPageModel().showRewardsButton == true)
+  }
+
+  @Test func showRewardsButtonTrueWhenNoTracker() {
+    #expect(ContactPageModel().showRewardsButton == true)
+  }
 }
