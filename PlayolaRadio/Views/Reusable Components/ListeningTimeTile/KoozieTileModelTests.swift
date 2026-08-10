@@ -21,6 +21,7 @@ struct KoozieTileModelTests {
   {
     // ListeningTracker subscribes to @Shared(.nowPlaying) in init; seed it locally (in the
     // test's fresh scope) so no leaked playback state can start a session and skew totals.
+    // swiftlint:disable:next redundant_optional_initialization
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     return ListeningTracker(
       rewardsProfile: RewardsProfile(
