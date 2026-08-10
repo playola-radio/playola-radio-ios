@@ -111,13 +111,20 @@ Body:
   // stationId omitted for the koozie
 }
 ```
+**API design (locked):** a **new** `redeemKooziePrize(jwt, prizeId, address)` client
+method (do **not** overload the station-shaped `redeemPrize`), with a typed
+`KoozieShippingAddress: Encodable` body built via a manual `serializingData().response`
+path (the generic `[String:String]` helpers can't express the nested JSON and discard the
+error body). HTTP handling lives **inside the live dependency closure** — models never
+inspect `AFError`:
 - **201** → claimed; server sends the congrats email. Response is the `UserPrize` (with the
-  address snapshot); the client does not need to read it — it re-fetches the profile.
-- **409** ("Prize already redeemed", incl. concurrent double-tap) → **treat as success**
-  (idempotent). Re-fetch profile.
-- **400** (missing/invalid address or bad UUID) → surface an inline error on the form using
-  the server's `error.message`; keep the form open so the user can fix it. (Client also
-  validates ZIP `#####`/`#####-####` first for a nicer message.)
+  address snapshot); the client does not read it — it re-fetches the profile.
+- **409** ("Prize already redeemed", incl. concurrent double-tap) → **caught in the
+  dependency and returned as success** (idempotent). Re-fetch profile.
+- **400** (missing/invalid address or bad UUID) → dependency throws
+  `APIError.validationError(serverMessage)` (parsed from `error.message`); the model shows
+  it inline on the form and keeps the form open. (Client validates ZIP `#####`/`#####-####`
+  first for a nicer message.)
 - On success (201 or 409) → **re-fetch profile** → `koozieEarned: true`,
   `shouldShowKoozieCongrats: true` → drives `.koozieCongrats`.
 
@@ -125,28 +132,40 @@ Field mapping (form → body): Full name → `fullName`, Street address → `add
 (+ optional line 2 → `addressLine2`), City → `city`, State → `state`, ZIP → `postalCode`.
 
 ### Dismiss congrats (✕)
+New `markKoozieCongratsSeen(jwt)` void POST →
 `POST /v1/rewards/users/me/koozie-congrats-seen` (no body; mirrors `welcome-message-seen`).
 - **204** → recorded (write-once + idempotent).
-- 409 KOOZIE_NOT_EARNED / other → tolerated (we only offer ✕ in `.koozieCongrats`, so this
-  is defensive).
+- 409 KOOZIE_NOT_EARNED / other → **tolerated as success inside the dependency** (we only
+  offer ✕ in `.koozieCongrats`, so this is defensive).
 - Optimistically drop to `.koozieEarned`; reconcile on the next profile fetch
   (`shouldShowKoozieCongrats: false`).
 
 ### Profile refresh preserving local sessions
 After redeem/dismiss the client must refresh the rewards profile to pick up the new flags.
 Today's `loadListeningTracker` rebuilds `ListeningTracker(rewardsProfile:)` with an **empty**
-`localListeningSessions`, which would reset the live local delta mid-session. The refresh
-used here must **preserve the current tracker's `localListeningSessions`** (build the new
-tracker with the existing sessions). This is a shared concern with `MainContainerModel`.
+`localListeningSessions`, which would visibly jump the live timer backward mid-session.
+
+**Mechanism (locked):** add a preservation primitive on `ListeningTracker`, e.g.
+`replacingRewardsProfile(_ profile:) -> ListeningTracker`, that carries over the current
+`localListeningSessions`. Use it from **both** `MainContainerModel.loadListeningTracker`
+(fixing the existing reset at `MainContainerModel.swift:255`) and the koozie redeem/dismiss
+refresh. **Snapshot the sessions at assignment time — after the network await, not before**
+— so a slow profile fetch can't overwrite sessions accrued while it was in flight. All
+writes are on the main actor; the 1s loop only reads `totalListenTimeMS`, so main-actor
+replacement of the shared tracker is safe.
 
 ## Removals for koozie users
 
 - **Home tile:** no "Redeem Your Rewards!" button (the koozie sections replace it).
 - **Profile (Contact) page:** hide the "Rewards" button — model exposes
   `showRewardsButton: Bool` (false for koozie-only); the view stays control-flow-free.
-- **Guard the route, not just the button:** the `.rewardsPage` destination is inert
-  (no-op / not pushed) for koozie users so nav-state restoration / deep links can't surface
-  the legacy page. The route + model stay in code, just unused for this cohort.
+- **Guard the route at the coordinator, not just the button** (locked): hiding buttons +
+  no-op `onRewardsTapped` is cosmetic — restored nav state or a stray push can still land on
+  `.rewardsPage`, which renders unconditionally today
+  (`MainContainerNavigationCoordinator.swift:90`). Guard the push/append entry points for
+  `.rewardsPage` and **sanitize the existing profile path** (drop any `.rewardsPage`
+  entries) when a koozie-only profile loads. The route + model stay in code, just
+  unreachable for this cohort.
 
 Full-tiers users: **zero change** to Home, Profile, Rewards page, or the tile.
 
@@ -164,18 +183,26 @@ below the live counter in `.koozieAddressForm`.
 - Keyboard/scroll: the tile lives on the Home scroll view; ensure the form is reachable
   above the keyboard (implementation detail; no design impact).
 
-## Model ownership
+## Model ownership (locked in architecture pass — Codex consult 2026-08-10)
 
-`ListeningTimeTileModel` (the model layer) owns: the koozie `mode` derivation, **all**
-display copy, progress values, the address-form field state + validation, and the redeem /
-dismiss / profile-refresh actions. It gains `@Dependency(\.api)` and `@Shared(.auth)` (for
-the authenticated calls) in addition to its existing `listeningTracker` + clock. The
-`ListeningTimeTile` **view** renders header + mode-driven bottom section and address-form
-bindings only — no logic. (Whether the address-form state is a small nested value/model is
-an architecture-phase decision.)
-
-`ContactPageModel` gains read access to `rewardsExperience` (via
-`listeningTracker.rewardsProfile`) to drive `showRewardsButton` and the route guard.
+- **`ListeningTimeTileModel` stays thin.** It keeps its existing 1s live-counter loop and
+  legacy button behavior **byte-for-byte unchanged**, and only gains a selector between
+  `.legacy` and `.koozie(KoozieTileModel)`. Do **not** fatten it into a rewards workflow
+  object, and do **not** have a parent (Home) inject the mode (that would move reward
+  derivation + timing into the page). This keeps the reusable tile reusable.
+- **`KoozieTileModel` (new, `@Observable`)** owns the koozie concerns: mode derivation
+  (from `rewardsExperience` / `koozieEarned` / `shouldShowKoozieCongrats` / live hrs vs
+  threshold), **all** koozie copy + progress values, the redeem / dismiss / profile-refresh
+  actions, and the tiers lookup (`slug == "koozie"` → `prizeId` + `requiredListeningHours`).
+  It holds `@Dependency(\.api)`, `@Shared(.auth)`, `@Shared(.listeningTracker)`.
+- **`KoozieAddressFormModel` (new, nested `@Observable`)** owns the form: bindable fields
+  (fullName / addressLine1 / addressLine2 / city / state / postalCode), trimming, ZIP
+  validation, `canSubmit`, the trimmed `KoozieShippingAddress` payload, and the inline
+  server-error string. Keeps the tile model out of "junk-drawer" territory.
+- The `ListeningTimeTile` **view** renders header + a mode-driven bottom section and binds
+  to the form fields only — no logic.
+- **`ContactPageModel`** gains read access to `rewardsExperience` (via
+  `listeningTracker.rewardsProfile`) to drive `showRewardsButton`.
 
 ## Backward compatibility & sequencing
 
