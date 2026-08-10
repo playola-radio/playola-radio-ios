@@ -12,7 +12,7 @@ on:
   schedule:
     # 08:00 UTC daily (~1am PT). Testers wake up to a fresh build.
     - cron: '0 8 * * *'
-  # Manual "build develop now" button — always builds, bypassing the no-new-commits gate.
+  # Manual "build develop now" button — always builds, bypassing the already-built check.
   workflow_dispatch: {}
 
 permissions:
@@ -30,19 +30,70 @@ jobs:
 
       - name: Decide whether to build
         id: gate
+        env:
+          CIRCLECI_TOKEN: ${{ secrets.CCI_TOKEN }}
         run: |
-          # A manual run always builds. A scheduled run builds only if develop actually
-          # moved in the last day — quiet days produce zero builds, which directly keeps
-          # the staging TestFlight list from filling with identical rebuilds.
+          # A manual run always builds. A scheduled run builds only if develop's tip
+          # commit has NOT already been built by a prior nightly staging trigger — so a
+          # quiet day (develop hasn't moved) produces zero builds and the staging
+          # TestFlight list never fills with identical rebuilds of the same commit.
+          #
+          # We dedupe on the exact HEAD commit rather than a time window: the schedule
+          # fires every 24h but GitHub can delay a scheduled run, so any fixed lookback
+          # can overlap the previous run and rebuild the same HEAD. Matching the commit
+          # is the only thing that reliably prevents consecutive same-HEAD builds.
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "build=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          if [ -n "$(git log --since='25 hours ago' --oneline HEAD)" ]; then
-            echo "build=true" >> "$GITHUB_OUTPUT"
-          else
+
+          HEAD_SHA=$(git rev-parse HEAD)
+          echo "develop tip is $HEAD_SHA"
+
+          if [ -z "$CIRCLECI_TOKEN" ]; then
+            echo "::error::CCI_TOKEN secret is not set — cannot check for a prior build."
+            exit 1
+          fi
+
+          # Idempotency by commit: page through the CircleCI pipeline list
+          # (most-recent-first) for an API-triggered develop pipeline whose checked-out
+          # revision is this exact commit. If one exists we already triggered a nightly
+          # staging build for this HEAD, so this scheduled run must skip. We match
+          # trigger.type == "api" so native develop push pipelines (which don't run the
+          # staging upload) never count as a prior nightly build. Mirrors the idempotency
+          # check in auto-tag-release.yml.
+          #
+          # FAIL OPEN — if the pipeline state can't be determined we build anyway: a
+          # missed nightly staging build hurts testers more than a rare duplicate, and the
+          # systematic same-HEAD duplicate this guards against is still eliminated.
+          PAGE_TOKEN=""
+          FOUND=0
+          for _ in $(seq 1 10); do
+            URL="https://circleci.com/api/v2/project/gh/playola-radio/playola-radio-ios/pipeline"
+            [ -n "$PAGE_TOKEN" ] && URL="${URL}?page-token=${PAGE_TOKEN}"
+            LIST=$(mktemp)
+            # `|| true`: GitHub runs this with `bash -eo pipefail`, so a curl failure
+            # (DNS/TLS/network) would abort the step before the fail-open branch below —
+            # keep going so an unreachable API builds rather than skips.
+            GET_HTTP=$(curl -sS -o "$LIST" -w '%{http_code}' \
+              -H "Circle-Token: $CIRCLECI_TOKEN" "$URL") || true
+            if [ "$GET_HTTP" != "200" ] || ! jq -e '(.items | type) == "array"' "$LIST" >/dev/null 2>&1; then
+              echo "::warning::Could not query existing CircleCI pipelines (HTTP $GET_HTTP); building without the duplicate check."
+              cat "$LIST"
+              FOUND=0
+              break
+            fi
+            MATCH=$(jq -r --arg r "$HEAD_SHA" '[.items[] | select(((.vcs // {}).revision // "") == $r and ((.vcs // {}).branch // "") == "develop" and (.trigger.type // "") == "api")] | length' "$LIST")
+            if [ "$MATCH" != "0" ]; then FOUND=1; break; fi
+            PAGE_TOKEN=$(jq -r '.next_page_token // ""' "$LIST")
+            [ -z "$PAGE_TOKEN" ] && break
+          done
+
+          if [ "$FOUND" != "0" ]; then
             echo "build=false" >> "$GITHUB_OUTPUT"
-            echo "No new commits on develop in the last 25h — skipping nightly staging build."
+            echo "develop tip $HEAD_SHA already has a nightly staging pipeline — skipping."
+          else
+            echo "build=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Trigger CircleCI staging build
