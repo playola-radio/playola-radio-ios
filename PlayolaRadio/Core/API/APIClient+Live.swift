@@ -288,6 +288,46 @@ extension APIClient: DependencyKey {
           parameters: params
         )
       },
+      redeemKooziePrize: { jwtToken, prizeId, address in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/rewards/users/me/prizes/\(prizeId)/redeem"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let body = RedeemKooziePrizeRequest(shippingAddress: address)
+
+        let dataResponse = await apiSession.request(
+          url, method: .post, parameters: body, encoder: JSONParameterEncoder.default,
+          headers: headers
+        )
+        .serializingData()
+        .response
+
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw transportFailure(dataResponse.error)
+        }
+        // 409 "already redeemed" is idempotent success (e.g. a concurrent double-tap).
+        if (200..<300).contains(statusCode) || statusCode == 409 { return }
+        let message =
+          dataResponse.value.flatMap { parsePlayolaErrorMessage(from: $0) }
+          ?? "Could not claim your koozie. Please try again."
+        throw APIError.validationError(message)
+      },
+      markKoozieCongratsSeen: { jwtToken in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/users/me/koozie-congrats-seen"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+
+        let dataResponse = await apiSession.request(url, method: .post, headers: headers)
+          .serializingData()
+          .response
+
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw transportFailure(dataResponse.error)
+        }
+        if (200..<300).contains(statusCode) || statusCode == 409 { return }
+        let message =
+          dataResponse.value.flatMap { parsePlayolaErrorMessage(from: $0) }
+          ?? "Could not dismiss the koozie message."
+        throw APIError.validationError(message)
+      },
       updateUser: { jwtToken, firstName, lastName, verifiedEmail in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me"
 

@@ -252,7 +252,11 @@ class MainContainerModel: ViewModel {
     }
     do {
       let rewards = try await api.getRewardsProfile(authJWT)
-      self.$listeningTracker.withLock { $0 = ListeningTracker(rewardsProfile: rewards) }
+      self.$listeningTracker.withLock { tracker in
+        // Preserve any local sessions accrued this run instead of resetting the live counter.
+        tracker =
+          tracker?.replacingRewardsProfile(rewards) ?? ListeningTracker(rewardsProfile: rewards)
+      }
       self.$welcomeMessageEligible.withLock { $0 = rewards.shouldShowWelcomeMessage ?? false }
     } catch let err {
       // TODO: Show inline error state on the listening hours tile (instead of

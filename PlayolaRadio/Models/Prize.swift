@@ -12,6 +12,7 @@ struct Prize: Decodable, Sendable, Identifiable, Equatable {
   let name: String
   let prizeTierId: String
   let imageUrl: URL?
+  let slug: String?
   let createdAt: Date
   let updatedAt: Date
 
@@ -20,6 +21,7 @@ struct Prize: Decodable, Sendable, Identifiable, Equatable {
     case name
     case prizeTierId
     case imageUrl
+    case slug
     case createdAt
     case updatedAt
   }
@@ -37,6 +39,8 @@ struct Prize: Decodable, Sendable, Identifiable, Equatable {
       imageUrl = nil
     }
 
+    slug = try container.decodeIfPresent(String.self, forKey: .slug)
+
     createdAt = try container.decode(Date.self, forKey: .createdAt)
     updatedAt = try container.decode(Date.self, forKey: .updatedAt)
   }
@@ -46,6 +50,7 @@ struct Prize: Decodable, Sendable, Identifiable, Equatable {
     name: String,
     prizeTierId: String,
     imageUrl: URL?,
+    slug: String? = nil,
     createdAt: Date = Date(),
     updatedAt: Date = Date()
   ) {
@@ -53,6 +58,7 @@ struct Prize: Decodable, Sendable, Identifiable, Equatable {
     self.name = name
     self.prizeTierId = prizeTierId
     self.imageUrl = imageUrl
+    self.slug = slug
     self.createdAt = createdAt
     self.updatedAt = updatedAt
   }
