@@ -1,0 +1,69 @@
+name: Nightly Staging Build
+
+# Builds the current develop tip to the STAGING TestFlight app once a day, so internal
+# testers/soak always run the latest develop. Triggering CircleCI from a GitHub Action
+# (rather than a CircleCI-side schedule) keeps the schedule version-controlled and reuses
+# the existing CCI_TOKEN + API-trigger pattern from auto-tag-release.yml.
+#
+# Scheduled workflows only run from the repository default branch (develop), so this file
+# must live on develop for the cron to fire.
+
+on:
+  schedule:
+    # 08:00 UTC daily (~1am PT). Testers wake up to a fresh build.
+    - cron: '0 8 * * *'
+  # Manual "build develop now" button — always builds, bypassing the no-new-commits gate.
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      - name: Decide whether to build
+        id: gate
+        run: |
+          # A manual run always builds. A scheduled run builds only if develop actually
+          # moved in the last day — quiet days produce zero builds, which directly keeps
+          # the staging TestFlight list from filling with identical rebuilds.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "build=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -n "$(git log --since='25 hours ago' --oneline HEAD)" ]; then
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "build=false" >> "$GITHUB_OUTPUT"
+            echo "No new commits on develop in the last 25h — skipping nightly staging build."
+          fi
+
+      - name: Trigger CircleCI staging build
+        if: steps.gate.outputs.build == 'true'
+        env:
+          CIRCLECI_TOKEN: ${{ secrets.CCI_TOKEN }}
+        run: |
+          if [ -z "$CIRCLECI_TOKEN" ]; then
+            echo "::error::CCI_TOKEN secret is not set — cannot trigger the staging build."
+            exit 1
+          fi
+          PAYLOAD=$(jq -nc '{branch: "develop", parameters: {run_nightly_staging: true}}')
+          HTTP=$(curl -sS -o /tmp/cci-response.json -w '%{http_code}' \
+            -X POST "https://circleci.com/api/v2/project/gh/playola-radio/playola-radio-ios/pipeline" \
+            -H "Circle-Token: $CIRCLECI_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD")
+          echo "CircleCI responded HTTP $HTTP:"
+          cat /tmp/cci-response.json
+          echo
+          if [ "$HTTP" != "200" ] && [ "$HTTP" != "201" ]; then
+            echo "::error::CircleCI staging trigger failed (HTTP $HTTP)"
+            exit 1
+          fi
