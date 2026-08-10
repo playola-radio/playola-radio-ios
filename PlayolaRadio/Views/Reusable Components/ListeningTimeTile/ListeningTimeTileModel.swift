@@ -82,7 +82,7 @@ class ListeningTimeTileModel: ViewModel {
         self.refreshFromTracker()
         if let koozie = self.koozieTileModel {
           koozie.liveTotalMS = ms
-          await koozie.viewAppeared()  // idempotent: fetches /tiers once
+          koozie.startTiersLoadIfNeeded()  // one-shot, decoupled — never stalls this counter
         }
         try? await self.clock.sleep(for: .seconds(1))
       }

@@ -44,10 +44,14 @@ final class KoozieAddressFormModel {
     trimmed(postalCode).range(of: #"^\d{5}(-\d{4})?$"#, options: .regularExpression) != nil
   }
 
+  private var isStateValid: Bool {
+    trimmed(state).range(of: #"^[A-Za-z]{2}$"#, options: .regularExpression) != nil
+  }
+
   var canSubmit: Bool {
     guard !isSubmitting else { return false }
     return !trimmed(fullName).isEmpty && !trimmed(addressLine1).isEmpty && !trimmed(city).isEmpty
-      && !trimmed(state).isEmpty && isZipValid
+      && isStateValid && isZipValid
   }
 
   /// Trimmed, wire-ready address. `state` is uppercased; empty line 2 becomes nil.

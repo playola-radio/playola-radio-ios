@@ -132,11 +132,12 @@ struct KoozieTileModelTests {
     #expect(model.mode == .addressForm)
   }
 
-  @Test func viewAppearedFetchesTiersOnlyOnceEvenWhenNoKoozie() async {
+  @Test func startTiersLoadLaunchesSingleFetchEvenWhenCalledEveryTick() async {
     @Shared(.listeningTracker) var lt = tracker(totalMS: 0)
     let callCount = LockIsolated(0)
     let model = withDependencies {
-      // Returns tiers with NO koozie slug → kooziePrizeInfo stays nil.
+      $0.continuousClock = ImmediateClock()
+      // Returns tiers with NO koozie slug → kooziePrizeInfo stays nil, but still a success.
       $0.api.getPrizeTiers = {
         callCount.withValue { $0 += 1 }
         return [
@@ -149,12 +150,70 @@ struct KoozieTileModelTests {
       KoozieTileModel()
     }
 
-    await model.viewAppeared()
-    await model.viewAppeared()
-    await model.viewAppeared()
+    model.startTiersLoadIfNeeded()
+    model.startTiersLoadIfNeeded()
+    model.startTiersLoadIfNeeded()
+    await model.tiersLoadTask?.value
 
-    #expect(callCount.value == 1)  // no per-tick refetch storm
+    #expect(callCount.value == 1)  // single task, no per-tick refetch storm
     #expect(model.kooziePrizeInfo == nil)
+  }
+
+  @Test func startTiersLoadRetriesOnFailureThenSucceeds() async {
+    @Shared(.listeningTracker) var lt = tracker(totalMS: 0)
+    let callCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.continuousClock = ImmediateClock()
+      $0.api.getPrizeTiers = {
+        let attempt = callCount.withValue {
+          $0 += 1
+          return $0
+        }
+        if attempt < 3 { throw APIError.dataNotValid }
+        return [
+          PrizeTier(
+            id: "tk", name: "Koozie", requiredListeningHours: 50, imageIconUrl: nil,
+            prizes: [
+              Prize(
+                id: "pk", name: "Playola Koozie", prizeTierId: "tk", imageUrl: nil, slug: "koozie")
+            ])
+        ]
+      }
+    } operation: {
+      KoozieTileModel()
+    }
+
+    model.startTiersLoadIfNeeded()
+    await model.tiersLoadTask?.value
+
+    #expect(callCount.value == 3)  // retried past two transient failures
+    #expect(model.kooziePrizeInfo?.requiredHours == 50)
+  }
+
+  @Test func refreshOnlyUpdatesFlagsAndKeepsTimeTotal() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.listeningTracker) var lt = tracker(
+      totalMS: 60 * 3_600_000, koozieEarned: true, congrats: true)
+    let model = withDependencies {
+      $0.api.markKoozieCongratsSeen = { _ in }
+      // Server reports a DIFFERENT (much higher) total; the client must NOT adopt it mid-session,
+      // or it would double-count local listening already reflected in the fresh server total.
+      $0.api.getRewardsProfile = { _ in
+        RewardsProfile(
+          totalTimeListenedMS: 999 * 3_600_000, totalMSAvailableForRewards: 0,
+          accurateAsOfTime: Date(), rewardsExperience: "koozie_only", koozieEarned: true,
+          shouldShowKoozieCongrats: false)
+      }
+    } operation: {
+      KoozieTileModel()
+    }
+    model.kooziePrizeInfo = info
+    model.liveTotalMS = 60 * 3_600_000
+
+    await model.dismissCongratsTapped()
+
+    #expect(model.mode == .earned)  // flag adopted
+    #expect(lt?.rewardsProfile.totalTimeListenedMS == 60 * 3_600_000)  // total NOT jumped
   }
 
   @Test func dismissCongratsOptimisticallyShowsEarned() async {

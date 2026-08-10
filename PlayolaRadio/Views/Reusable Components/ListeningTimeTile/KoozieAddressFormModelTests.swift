@@ -46,6 +46,16 @@ struct KoozieAddressFormModelTests {
     #expect(model.canSubmit == false)
   }
 
+  @Test func stateMustBeTwoLetters() {
+    let model = filledModel()
+    model.state = "Texas"
+    #expect(model.canSubmit == false)
+    model.state = "T"
+    #expect(model.canSubmit == false)
+    model.state = "tx"
+    #expect(model.canSubmit == true)  // case-insensitive; uppercased in trimmedAddress
+  }
+
   @Test func whitespaceOnlyFieldsDoNotCount() {
     let model = filledModel()
     model.fullName = "   "

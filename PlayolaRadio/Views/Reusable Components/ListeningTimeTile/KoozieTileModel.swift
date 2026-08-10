@@ -24,6 +24,7 @@ enum KoozieTileMode: Equatable {
 @Observable
 final class KoozieTileModel {
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
 
@@ -35,7 +36,9 @@ final class KoozieTileModel {
 
   private var isShowingAddressForm = false
   private var congratsDismissedLocally = false
-  private var hasAttemptedTiersLoad = false
+  /// The single in-flight/completed tiers-load task. Kept non-nil once started so the tile's
+  /// 1s loop can call `startTiersLoadIfNeeded()` every tick without launching duplicates.
+  private(set) var tiersLoadTask: Task<Void, Never>?
 
   // MARK: - Copy
 
@@ -82,14 +85,32 @@ final class KoozieTileModel {
 
   // MARK: - Actions
 
-  /// One-shot tiers fetch to resolve the koozie prize id + threshold. Attempts exactly once
-  /// per model lifetime — the flag is set regardless of outcome so a failed `/tiers` (or one
-  /// with no `slug == "koozie"`) does NOT get refetched every second by the tile's 1s loop.
-  func viewAppeared() async {
-    guard !hasAttemptedTiersLoad else { return }
-    hasAttemptedTiersLoad = true
-    if let tiers = try? await api.getPrizeTiers() {
+  /// Launches the tiers load once, decoupled from the tile's 1s counter loop (so a slow
+  /// `/tiers` never stalls the live counter) and retrying with capped backoff on network
+  /// failure (so one transient failure doesn't permanently strand a claimable user in
+  /// `.inProgress`). Safe to call every tick — guarded to a single task.
+  func startTiersLoadIfNeeded() {
+    guard tiersLoadTask == nil, kooziePrizeInfo == nil else { return }
+    tiersLoadTask = Task { [weak self] in
+      guard let self else { return }
+      var delay: Duration = .seconds(2)
+      while !Task.isCancelled {
+        if await self.loadTiersOnce() { return }  // stop on any successful fetch
+        try? await self.clock.sleep(for: delay)
+        delay = min(delay * 2, .seconds(30))
+      }
+    }
+  }
+
+  /// A single tiers fetch attempt. Returns true when the fetch succeeded (whether or not a
+  /// koozie prize was present); false only on a thrown/transport error.
+  func loadTiersOnce() async -> Bool {
+    do {
+      let tiers = try await api.getPrizeTiers()
       kooziePrizeInfo = tiers.kooziePrizeInfo
+      return true
+    } catch {
+      return false
     }
   }
 
@@ -128,8 +149,18 @@ final class KoozieTileModel {
     guard let jwt = auth.jwt else { return }
     guard let refreshed = try? await api.getRewardsProfile(jwt) else { return }
     $listeningTracker.withLock { tracker in
-      tracker =
-        tracker?.replacingRewardsProfile(refreshed) ?? ListeningTracker(rewardsProfile: refreshed)
+      guard let current = tracker else {
+        tracker = ListeningTracker(rewardsProfile: refreshed)
+        return
+      }
+      // Adopt ONLY the koozie/earned flags. Keep the existing time totals + local sessions so
+      // the live counter neither jumps backward nor double-counts local listening the refreshed
+      // server total may already include. The full total re-syncs on the next app launch.
+      var merged = current.rewardsProfile
+      merged.rewardsExperience = refreshed.rewardsExperience
+      merged.koozieEarned = refreshed.koozieEarned
+      merged.shouldShowKoozieCongrats = refreshed.shouldShowKoozieCongrats
+      tracker = current.replacingRewardsProfile(merged)
     }
   }
 }
