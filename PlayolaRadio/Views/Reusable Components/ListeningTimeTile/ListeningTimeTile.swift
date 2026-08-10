@@ -30,7 +30,9 @@ struct ListeningTimeTile: View {
         .font(.custom(FontNames.Inter_700_Bold, size: 32))
         .foregroundColor(.white)
 
-      if let buttonText = model.buttonText {
+      if let koozie = model.koozieTileModel {
+        KoozieTileSection(model: koozie)
+      } else if let buttonText = model.buttonText {
         Button(
           action: { Task { await model.onButtonTapped() } },
           label: {

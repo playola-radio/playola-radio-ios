@@ -51,21 +51,40 @@ class ListeningTimeTileModel: ViewModel {
 
   var titleText: String { "Listening Time" }
 
+  /// Non-nil only for the koozie-only cohort. When present, the tile renders the koozie
+  /// sections instead of the legacy "Redeem Your Rewards!" button.
+  private(set) var koozieTileModel: KoozieTileModel?
+
+  /// Legacy button shows only when there is no koozie tile and a button was configured.
+  var showsLegacyButton: Bool { koozieTileModel == nil && buttonText != nil }
+
+  /// Creates or tears down the koozie sub-model to match the current cohort. Cheap and
+  /// idempotent — safe to call on appear and each refresh tick.
+  func refreshFromTracker() {
+    let isKoozie = listeningTracker?.rewardsProfile.rewardsExperienceType == .koozieOnly
+    if isKoozie, koozieTileModel == nil {
+      koozieTileModel = KoozieTileModel()
+    } else if !isKoozie, koozieTileModel != nil {
+      koozieTileModel = nil
+    }
+  }
+
   private var refreshTask: Task<Void, Never>?
 
   func viewAppeared() {
+    refreshFromTracker()
     refreshTask?.cancel()
     refreshTask = Task { [weak self] in
       while !Task.isCancelled {
         guard let self else { return }
-        if let ms = listeningTracker?.totalListenTimeMS {
-          totalListeningTime = ms
-        } else {
-          print("Tracker missing or zero")
-          totalListeningTime = 0
+        let ms = self.listeningTracker?.totalListenTimeMS ?? 0
+        self.totalListeningTime = ms
+        self.refreshFromTracker()
+        if let koozie = self.koozieTileModel {
+          koozie.liveTotalMS = ms
+          await koozie.viewAppeared()  // idempotent: fetches /tiers once
         }
-
-        try? await clock.sleep(for: .seconds(1))
+        try? await self.clock.sleep(for: .seconds(1))
       }
     }
   }

@@ -319,5 +319,27 @@ struct ListeningTimeTileModelTests {
 
     model.viewDisappeared()
   }
+
+  // MARK: - Koozie cohort selection
+
+  @Test func legacyUserHasNoKoozieModel() {
+    @Shared(.listeningTracker) var lt = createMockListeningTracker(totalTimeMS: 1_000)
+    let model = ListeningTimeTileModel(buttonText: "Redeem Your Rewards!", buttonAction: {})
+    model.refreshFromTracker()
+    #expect(model.koozieTileModel == nil)
+    #expect(model.showsLegacyButton == true)
+    #expect(model.buttonText == "Redeem Your Rewards!")
+  }
+
+  @Test func koozieUserGetsKoozieModelAndSuppressesLegacyButton() {
+    @Shared(.listeningTracker) var lt = ListeningTracker(
+      rewardsProfile: RewardsProfile(
+        totalTimeListenedMS: 1_000, totalMSAvailableForRewards: 1_000, accurateAsOfTime: Date(),
+        rewardsExperience: "koozie_only"))
+    let model = ListeningTimeTileModel(buttonText: "Redeem Your Rewards!", buttonAction: {})
+    model.refreshFromTracker()
+    #expect(model.koozieTileModel != nil)
+    #expect(model.showsLegacyButton == false)
+  }
 }
 // swiftlint:enable redundant_optional_initialization
