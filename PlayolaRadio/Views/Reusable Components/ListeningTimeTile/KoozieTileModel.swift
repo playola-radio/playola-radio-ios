@@ -35,6 +35,7 @@ final class KoozieTileModel {
 
   private var isShowingAddressForm = false
   private var congratsDismissedLocally = false
+  private var hasAttemptedTiersLoad = false
 
   // MARK: - Copy
 
@@ -81,9 +82,12 @@ final class KoozieTileModel {
 
   // MARK: - Actions
 
-  /// One-shot tiers fetch to resolve the koozie prize id + threshold.
+  /// One-shot tiers fetch to resolve the koozie prize id + threshold. Attempts exactly once
+  /// per model lifetime — the flag is set regardless of outcome so a failed `/tiers` (or one
+  /// with no `slug == "koozie"`) does NOT get refetched every second by the tile's 1s loop.
   func viewAppeared() async {
-    guard kooziePrizeInfo == nil else { return }
+    guard !hasAttemptedTiersLoad else { return }
+    hasAttemptedTiersLoad = true
     if let tiers = try? await api.getPrizeTiers() {
       kooziePrizeInfo = tiers.kooziePrizeInfo
     }

@@ -132,6 +132,31 @@ struct KoozieTileModelTests {
     #expect(model.mode == .addressForm)
   }
 
+  @Test func viewAppearedFetchesTiersOnlyOnceEvenWhenNoKoozie() async {
+    @Shared(.listeningTracker) var lt = tracker(totalMS: 0)
+    let callCount = LockIsolated(0)
+    let model = withDependencies {
+      // Returns tiers with NO koozie slug → kooziePrizeInfo stays nil.
+      $0.api.getPrizeTiers = {
+        callCount.withValue { $0 += 1 }
+        return [
+          PrizeTier(
+            id: "t", name: "Tee", requiredListeningHours: 100, imageIconUrl: nil,
+            prizes: [Prize(id: "p", name: "Tee", prizeTierId: "t", imageUrl: nil, slug: "tshirt")])
+        ]
+      }
+    } operation: {
+      KoozieTileModel()
+    }
+
+    await model.viewAppeared()
+    await model.viewAppeared()
+    await model.viewAppeared()
+
+    #expect(callCount.value == 1)  // no per-tick refetch storm
+    #expect(model.kooziePrizeInfo == nil)
+  }
+
   @Test func dismissCongratsOptimisticallyShowsEarned() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.listeningTracker) var lt = tracker(
