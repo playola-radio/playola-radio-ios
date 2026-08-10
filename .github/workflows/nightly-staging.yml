@@ -12,11 +12,21 @@ on:
   schedule:
     # 08:00 UTC daily (~1am PT). Testers wake up to a fresh build.
     - cron: '0 8 * * *'
-  # Manual "build develop now" button — always builds, bypassing the no-new-commits gate.
+  # Manual "build develop now" button — always builds, bypassing the already-built check.
   workflow_dispatch: {}
 
+# Serialize every run of this workflow (scheduled, manual, or a re-run) so the
+# check-then-trigger below can't interleave: a second run can't read the marker tag and
+# POST before the first run has moved the tag, which would otherwise let both trigger a
+# build for the same commit. cancel-in-progress: false lets the queued run still execute
+# (by which time the first has moved the tag, so it correctly skips).
+concurrency:
+  group: nightly-staging
+  cancel-in-progress: false
+
+# contents: write is needed to move the `nightly-staging-last` marker tag after a build.
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   trigger:
@@ -31,18 +41,37 @@ jobs:
       - name: Decide whether to build
         id: gate
         run: |
-          # A manual run always builds. A scheduled run builds only if develop actually
-          # moved in the last day — quiet days produce zero builds, which directly keeps
-          # the staging TestFlight list from filling with identical rebuilds.
+          # A manual run always builds. A scheduled run builds only if develop's tip
+          # commit has NOT already been built by a prior nightly staging run — so a quiet
+          # day (develop hasn't moved) produces zero builds and the staging TestFlight list
+          # never fills with identical rebuilds of the same commit.
+          #
+          # We dedupe on the exact HEAD commit, not a time window: the schedule fires every
+          # 24h but GitHub can delay a run, so any fixed lookback can overlap the previous
+          # run and rebuild the same HEAD. The `nightly-staging-last` marker tag records the
+          # last commit we actually triggered a build for (moved in the trigger step below),
+          # so it names our own builds exactly — an unrelated pipeline on develop can never
+          # be mistaken for a completed nightly.
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "build=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          if [ -n "$(git log --since='25 hours ago' --oneline HEAD)" ]; then
-            echo "build=true" >> "$GITHUB_OUTPUT"
-          else
+
+          HEAD_SHA=$(git rev-parse HEAD)
+          echo "develop tip is $HEAD_SHA"
+
+          # Read the marker straight from the remote so we don't depend on tags being
+          # fetched locally. For a lightweight tag, ls-remote prints the commit SHA. On any
+          # failure (network), LAST is empty and we build — a missed nightly staging build
+          # hurts testers more than a rare duplicate. `|| LAST=...` keeps the step alive
+          # under `bash -eo pipefail`, where a failed command substitution would abort it.
+          LAST=$(git ls-remote origin refs/tags/nightly-staging-last 2>/dev/null | awk '{print $1}') || LAST=""
+
+          if [ -n "$LAST" ] && [ "$LAST" = "$HEAD_SHA" ]; then
             echo "build=false" >> "$GITHUB_OUTPUT"
-            echo "No new commits on develop in the last 25h — skipping nightly staging build."
+            echo "develop tip $HEAD_SHA already built by a prior nightly staging run — skipping."
+          else
+            echo "build=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Trigger CircleCI staging build
@@ -65,5 +94,17 @@ jobs:
           echo
           if [ "$HTTP" != "200" ] && [ "$HTTP" != "201" ]; then
             echo "::error::CircleCI staging trigger failed (HTTP $HTTP)"
+            exit 1
+          fi
+
+          # Record the commit we just built so the next scheduled run skips it. Moved only
+          # AFTER a successful trigger: if the POST fails we never advance the marker, so a
+          # re-run retries the build rather than silently marking it done. A failed tag push
+          # fails the job loudly (exit 1) rather than leaving the marker stale, because a
+          # stale marker would silently re-trigger this same commit every night.
+          HEAD_SHA=$(git rev-parse HEAD)
+          git tag -f nightly-staging-last "$HEAD_SHA"
+          if ! git push -f origin refs/tags/nightly-staging-last; then
+            echo "::error::Triggered the build but could not move the nightly-staging-last tag; re-runs may duplicate this build until this is fixed."
             exit 1
           fi
