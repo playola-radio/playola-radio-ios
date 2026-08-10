@@ -10,6 +10,8 @@ import Testing
 
 @testable import PlayolaRadio
 
+// swiftlint:disable line_length
+
 @Suite(.freshSharedState)
 struct RewardsExperienceTests {
   private func decodeProfile(_ json: String) throws -> RewardsProfile {
@@ -101,3 +103,5 @@ struct RewardsExperienceTests {
     #expect(tiers.kooziePrizeInfo == nil)
   }
 }
+
+// swiftlint:enable line_length

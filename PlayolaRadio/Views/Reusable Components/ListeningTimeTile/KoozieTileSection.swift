@@ -73,15 +73,17 @@ struct KoozieTileSection: View {
         }
         Spacer()
       }
-      Button(action: { model.redeemTapped() }) {
-        Text(model.redeemButtonText)
-          .font(.custom(FontNames.Inter_500_Medium, size: 16))
-          .foregroundColor(.white)
-          .frame(maxWidth: .infinity)
-          .padding(.vertical, 14)
-          .background(Color.playolaRed)
-          .cornerRadius(8)
-      }
+      Button(
+        action: { model.redeemTapped() },
+        label: {
+          Text(model.redeemButtonText)
+            .font(.custom(FontNames.Inter_500_Medium, size: 16))
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(Color.playolaRed)
+            .cornerRadius(8)
+        })
     }
     .padding(16)
     .background(Color.elevatedSurface)
@@ -98,11 +100,13 @@ struct KoozieTileSection: View {
         .foregroundColor(.white)
         .fixedSize(horizontal: false, vertical: true)
       Spacer(minLength: 8)
-      Button(action: { Task { await model.dismissCongratsTapped() } }) {
-        Image(systemName: "xmark.circle.fill")
-          .font(.system(size: 20))
-          .foregroundColor(Color.textSecondary)
-      }
+      Button(
+        action: { Task { await model.dismissCongratsTapped() } },
+        label: {
+          Image(systemName: "xmark.circle.fill")
+            .font(.system(size: 20))
+            .foregroundColor(Color.textSecondary)
+        })
     }
     .padding(16)
     .background(Color.elevatedSurface)
@@ -190,14 +194,17 @@ struct KoozieAddressFormView: View {
             .cornerRadius(8)
         }
         Spacer()
-        Button(action: { Task { await onSend() } }) {
-          Text(form.submitButtonText)
-            .font(.custom(FontNames.Inter_700_Bold, size: 16))
-            .foregroundColor(.white)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 20)
-            .opacity(form.canSubmit ? 1.0 : 0.5)
-        }
+        Button(
+          action: { Task { await onSend() } },
+          label: {
+            Text(form.submitButtonText)
+              .font(.custom(FontNames.Inter_700_Bold, size: 16))
+              .foregroundColor(.white)
+              .padding(.vertical, 12)
+              .padding(.horizontal, 20)
+              .opacity(form.canSubmit ? 1.0 : 0.5)
+          }
+        )
         .disabled(!form.canSubmit)
       }
     }
