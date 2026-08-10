@@ -12,7 +12,25 @@ struct ContactPageView: View {
   @Bindable var model: ContactPageModel
   @Shared(.unreadSupportCount) var unreadSupportCount
 
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
   var body: some View {
+    Group {
+      if horizontalSizeClass == .regular {
+        ContactPagePadView(model: model)
+      } else {
+        compactBody
+      }
+    }
+    .background(Color.black)
+    .task {
+      await model.onViewAppeared()
+    }
+    .playolaAlert($model.presentedAlert)
+  }
+
+  // MARK: - Compact (iPhone) layout — unchanged
+  private var compactBody: some View {
     VStack(spacing: 0) {
       // Title
       HStack {
@@ -311,11 +329,6 @@ struct ContactPageView: View {
         .padding(.bottom, 100)  // Account for tab bar
       }
     }
-    .background(Color.black)
-    .task {
-      await model.onViewAppeared()
-    }
-    .playolaAlert($model.presentedAlert)
   }
 }
 

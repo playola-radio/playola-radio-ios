@@ -170,6 +170,18 @@ struct StationListPageTests {
     #expect(model.segmentTitles == ["All"] + stationLists.map { $0.title })
   }
 
+  @Test
+  func testClearSearchTappedClearsSearchText() async {
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    let model = StationListModel()
+    await model.viewAppeared()
+    model.searchText = "reckless"
+
+    model.clearSearchTapped()
+
+    #expect(model.searchText == "")
+  }
+
   // MARK: - Player Interaction Tests
 
   @Test

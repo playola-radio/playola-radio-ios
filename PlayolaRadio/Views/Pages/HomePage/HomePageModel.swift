@@ -218,6 +218,22 @@ class HomePageModel: ViewModel {
     liveStatusForStation(stationId) != nil && upcomingGiveaways[id: stationId] != nil
   }
 
+  // MARK: - iPad Layout Helpers
+
+  /// Ordered feature tiles currently visible on the Home screen, mirroring the compact
+  /// layout's conditional tiles. Consumed only by the quarantined iPad layout
+  /// (`HomePagePadView`) so it can render the tile row without duplicating the
+  /// visibility logic. The always-present listening-time tile is intentionally excluded
+  /// (it lives outside this list because it drives a live ticking timer).
+  var visibleFeatureTileModels: [NewFeatureTileModel] {
+    var tiles: [NewFeatureTileModel] = []
+    if hasUnreadSupportMessages { tiles.append(supportMessageTileModel) }
+    if hasScheduledShows { tiles.append(scheduledShowsTileModel) }
+    if hasUpcomingQuestionAiring { tiles.append(questionAiringTileModel) }
+    if canInviteFriends { tiles.append(inviteFriendsTileModel) }
+    return tiles
+  }
+
   // MARK: - Private Helpers
 
   private func stationItem(for station: AnyStation) -> APIStationItem? {

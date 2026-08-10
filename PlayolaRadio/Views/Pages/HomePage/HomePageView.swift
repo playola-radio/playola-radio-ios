@@ -10,7 +10,23 @@ import SwiftUI
 struct HomePageView: View {
   @Bindable var model: HomePageModel
 
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
   var body: some View {
+    Group {
+      if horizontalSizeClass == .regular {
+        HomePagePadView(model: model)
+      } else {
+        compactBody
+      }
+    }
+    .background(Color.black.ignoresSafeArea())
+    .playolaAlert($model.presentedAlert)
+    .onAppear { Task { await model.viewAppeared() } }
+  }
+
+  // MARK: - Compact (iPhone) layout — unchanged
+  private var compactBody: some View {
     VStack {
       VStack {
         Text(model.welcomeMessage)
@@ -28,23 +44,8 @@ struct HomePageView: View {
             introMessage: model.introMessage,
             onIconTapped10Times: model.playolaIconTapped10Times)
 
-          if model.hasUnreadSupportMessages {
-            NewFeatureTile(model: model.supportMessageTileModel)
-              .padding(.bottom, 20)
-          }
-
-          if model.hasScheduledShows {
-            NewFeatureTile(model: model.scheduledShowsTileModel)
-              .padding(.bottom, 20)
-          }
-
-          if model.hasUpcomingQuestionAiring {
-            NewFeatureTile(model: model.questionAiringTileModel)
-              .padding(.bottom, 20)
-          }
-
-          if model.canInviteFriends {
-            NewFeatureTile(model: model.inviteFriendsTileModel)
+          ForEach(model.visibleFeatureTileModels, id: \.label) { tile in
+            NewFeatureTile(model: tile)
               .padding(.bottom, 20)
           }
 
@@ -64,9 +65,6 @@ struct HomePageView: View {
       }
       .circleBackground(offsetY: -180)
     }
-    .background(Color.black.ignoresSafeArea())
-    .playolaAlert($model.presentedAlert)
-    .onAppear { Task { await model.viewAppeared() } }
   }
 }
 
