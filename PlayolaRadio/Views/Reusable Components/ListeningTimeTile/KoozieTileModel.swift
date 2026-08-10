@@ -22,11 +22,13 @@ enum KoozieTileMode: Equatable {
 
 @MainActor
 @Observable
-final class KoozieTileModel {
+final class KoozieTileModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker: ListeningTracker?
+
+  override init() { super.init() }
 
   /// Koozie prize id + threshold, loaded once from `/tiers`. Nil until loaded.
   var kooziePrizeInfo: KooziePrizeInfo?
@@ -36,6 +38,10 @@ final class KoozieTileModel {
 
   private var isShowingAddressForm = false
   private var congratsDismissedLocally = false
+  /// Set once a redeem returns 201/409 (claim persisted server-side). Keeps the tile out of
+  /// `.claimable` even if the follow-up profile refresh fails, so the koozie can't be
+  /// re-submitted while the server flags catch up.
+  private var hasClaimedLocally = false
   /// The single in-flight/completed tiers-load task. Kept non-nil once started so the tile's
   /// 1s loop can call `startTiersLoadIfNeeded()` every tick without launching duplicates.
   private(set) var tiersLoadTask: Task<Void, Never>?
@@ -61,6 +67,12 @@ final class KoozieTileModel {
         return .congrats
       }
       return .earned
+    }
+    // A claim that succeeded this session but isn't yet reflected in the profile (e.g. the
+    // post-redeem refresh failed): show the claimed state so it can't be re-submitted, and
+    // still honor an optimistic dismiss.
+    if hasClaimedLocally {
+      return congratsDismissedLocally ? .earned : .congrats
     }
     if isShowingAddressForm { return .addressForm }
     if let info = kooziePrizeInfo, liveTotalMS >= info.requiredHours * 3_600_000 {
@@ -132,12 +144,15 @@ final class KoozieTileModel {
   }
 
   func sendMyKoozieTapped() async {
+    guard !addressForm.isSubmitting else { return }  // no concurrent redemptions
+    guard !hasClaimedLocally else { return }  // already claimed this session — no re-submit
     guard addressForm.canSubmit, let jwt = auth.jwt, let info = kooziePrizeInfo else { return }
     addressForm.serverError = nil
     addressForm.isSubmitting = true
     defer { addressForm.isSubmitting = false }
     do {
       try await api.redeemKooziePrize(jwt, info.prizeId, addressForm.trimmedAddress())
+      hasClaimedLocally = true  // 201/409 → claimed server-side; lock out re-submission
       isShowingAddressForm = false
       await refreshProfile()
     } catch {

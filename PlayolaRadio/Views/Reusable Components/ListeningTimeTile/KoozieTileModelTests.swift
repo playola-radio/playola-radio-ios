@@ -19,7 +19,10 @@ struct KoozieTileModelTests {
   private func tracker(totalMS: Int, koozieEarned: Bool? = nil, congrats: Bool? = nil)
     -> ListeningTracker
   {
-    ListeningTracker(
+    // ListeningTracker subscribes to @Shared(.nowPlaying) in init; seed it locally (in the
+    // test's fresh scope) so no leaked playback state can start a session and skew totals.
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
+    return ListeningTracker(
       rewardsProfile: RewardsProfile(
         totalTimeListenedMS: totalMS, totalMSAvailableForRewards: totalMS, accurateAsOfTime: Date(),
         rewardsExperience: "koozie_only", koozieEarned: koozieEarned,
@@ -105,6 +108,34 @@ struct KoozieTileModelTests {
 
     #expect(captured.value?.state == "TX")  // uppercased
     #expect(model.mode == .congrats)
+  }
+
+  @Test func redeemSuccessKeepsClaimedEvenWhenRefreshFailsAndBlocksResubmit() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.listeningTracker) var lt = tracker(totalMS: 50 * 3_600_000)
+    let redeemCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.redeemKooziePrize = { _, _, _ in redeemCount.withValue { $0 += 1 } }
+      $0.api.getRewardsProfile = { _ in throw APIError.dataNotValid }  // post-redeem refresh fails
+    } operation: {
+      KoozieTileModel()
+    }
+    model.kooziePrizeInfo = info
+    model.liveTotalMS = 50 * 3_600_000
+    model.redeemTapped()
+    model.addressForm.fullName = "Jane Doe"
+    model.addressForm.addressLine1 = "123 Main St"
+    model.addressForm.city = "Austin"
+    model.addressForm.state = "TX"
+    model.addressForm.postalCode = "78704"
+
+    await model.sendMyKoozieTapped()
+
+    #expect(model.mode == .congrats)  // NOT .claimable despite the failed refresh
+    #expect(redeemCount.value == 1)
+
+    await model.sendMyKoozieTapped()  // a second attempt must not re-redeem
+    #expect(redeemCount.value == 1)
   }
 
   @Test func sendMyKoozieValidationErrorSurfacesInlineAndStaysOnForm() async {

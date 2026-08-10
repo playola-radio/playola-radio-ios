@@ -323,6 +323,7 @@ struct ListeningTimeTileModelTests {
   // MARK: - Koozie cohort selection
 
   @Test func legacyUserHasNoKoozieModel() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     @Shared(.listeningTracker) var lt = createMockListeningTracker(totalTimeMS: 1_000)
     let model = ListeningTimeTileModel(buttonText: "Redeem Your Rewards!", buttonAction: {})
     model.refreshFromTracker()
@@ -332,6 +333,7 @@ struct ListeningTimeTileModelTests {
   }
 
   @Test func koozieUserGetsKoozieModelAndSuppressesLegacyButton() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     @Shared(.listeningTracker) var lt = ListeningTracker(
       rewardsProfile: RewardsProfile(
         totalTimeListenedMS: 1_000, totalMSAvailableForRewards: 1_000, accurateAsOfTime: Date(),

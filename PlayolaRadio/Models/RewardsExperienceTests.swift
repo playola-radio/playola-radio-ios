@@ -13,6 +13,7 @@ import Testing
 // swiftlint:disable line_length
 
 @Suite(.freshSharedState)
+@MainActor
 struct RewardsExperienceTests {
   private func decodeProfile(_ json: String) throws -> RewardsProfile {
     let decoder = JSONDecoder()

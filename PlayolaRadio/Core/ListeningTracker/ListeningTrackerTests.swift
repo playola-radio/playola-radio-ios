@@ -389,6 +389,7 @@ struct ListeningTrackerTests {
   // MARK: - replacingRewardsProfile
 
   @Test func replacingRewardsProfilePreservesLocalSessions() {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     let original = ListeningTracker(
       rewardsProfile: createMockRewardsProfile(totalTimeListenedMS: 1_000),
       localListeningSessions: [

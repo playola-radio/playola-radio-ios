@@ -10,7 +10,9 @@ import Observation
 
 @MainActor
 @Observable
-final class KoozieAddressFormModel {
+final class KoozieAddressFormModel: ViewModel {
+  override init() { super.init() }
+
   var fullName: String = ""
   var addressLine1: String = ""
   var addressLine2: String = ""
