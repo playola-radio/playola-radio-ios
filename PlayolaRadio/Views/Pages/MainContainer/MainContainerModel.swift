@@ -258,6 +258,8 @@ class MainContainerModel: ViewModel {
           tracker?.replacingRewardsProfile(rewards) ?? ListeningTracker(rewardsProfile: rewards)
       }
       self.$welcomeMessageEligible.withLock { $0 = rewards.shouldShowWelcomeMessage ?? false }
+      // Koozie-only users must never reach the legacy Rewards page, even via restored nav state.
+      mainContainerNavigationCoordinator.sanitizeRewardsRouteForKoozie()
     } catch let err {
       // TODO: Show inline error state on the listening hours tile (instead of
       // a modal alert) — see PR #272 review. Background tile loads shouldn't

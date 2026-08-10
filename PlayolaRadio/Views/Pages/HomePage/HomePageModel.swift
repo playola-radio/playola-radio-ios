@@ -90,7 +90,8 @@ class HomePageModel: ViewModel {
         if case .rewardsPage = await self.mainContainerNavigationCoordinator.profilePath.last {
           return
         }
-        await self.mainContainerNavigationCoordinator.push(.rewardsPage(RewardsPageModel()))
+        // Guarded for koozie-only users (no-op) even though the koozie tile hides this button.
+        await self.mainContainerNavigationCoordinator.pushRewards(RewardsPageModel())
       }
     )
 

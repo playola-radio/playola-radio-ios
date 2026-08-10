@@ -169,32 +169,34 @@ struct ContactPageView: View {
           }
 
           // Rewards Button
-          Button(
-            action: {
-              model.onRewardsTapped()
-            },
-            label: {
-              HStack(spacing: 12) {
-                Image(systemName: "gift.fill")
-                  .foregroundColor(.white)
-                  .font(.system(size: 16))
+          if model.showRewardsButton {
+            Button(
+              action: {
+                model.onRewardsTapped()
+              },
+              label: {
+                HStack(spacing: 12) {
+                  Image(systemName: "gift.fill")
+                    .foregroundColor(.white)
+                    .font(.system(size: 16))
 
-                Text(model.rewardsLabel)
-                  .font(.custom(FontNames.Inter_500_Medium, size: 16))
-                  .foregroundColor(.white)
+                  Text(model.rewardsLabel)
+                    .font(.custom(FontNames.Inter_500_Medium, size: 16))
+                    .foregroundColor(.white)
 
-                Image(systemName: "chevron.right")
-                  .foregroundColor(.white)
-                  .font(.system(size: 14))
+                  Image(systemName: "chevron.right")
+                    .foregroundColor(.white)
+                    .font(.system(size: 14))
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .padding(.horizontal, 16)
+                .background(Color.playolaRed)
+                .cornerRadius(6)
               }
-              .frame(maxWidth: .infinity)
-              .frame(height: 50)
-              .padding(.horizontal, 16)
-              .background(Color.playolaRed)
-              .cornerRadius(6)
-            }
-          )
-          .padding(.horizontal, 20)
+            )
+            .padding(.horizontal, 20)
+          }
 
           // Notifications Button
           Button(
