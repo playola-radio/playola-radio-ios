@@ -65,6 +65,7 @@ class ListeningTimeTileModel: ViewModel {
     if isKoozie, koozieTileModel == nil {
       koozieTileModel = KoozieTileModel()
     } else if !isKoozie, koozieTileModel != nil {
+      koozieTileModel?.cancelTiersLoad()
       koozieTileModel = nil
     }
   }
@@ -96,5 +97,6 @@ class ListeningTimeTileModel: ViewModel {
   func viewDisappeared() {
     refreshTask?.cancel()
     refreshTask = nil
+    koozieTileModel?.cancelTiersLoad()
   }
 }

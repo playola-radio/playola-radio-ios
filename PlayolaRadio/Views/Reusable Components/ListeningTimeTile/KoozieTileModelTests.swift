@@ -190,6 +190,23 @@ struct KoozieTileModelTests {
     #expect(model.kooziePrizeInfo?.requiredHours == 50)
   }
 
+  @Test func cancelTiersLoadStopsRetryingAndClearsTask() async {
+    @Shared(.listeningTracker) var lt = tracker(totalMS: 0)
+    let model = withDependencies {
+      $0.continuousClock = ImmediateClock()
+      $0.api.getPrizeTiers = { throw APIError.dataNotValid }  // always fails → would retry forever
+    } operation: {
+      KoozieTileModel()
+    }
+
+    model.startTiersLoadIfNeeded()
+    let task = model.tiersLoadTask
+    model.cancelTiersLoad()
+
+    #expect(model.tiersLoadTask == nil)
+    await task?.value  // terminates via cancellation; would hang forever if not cancelled
+  }
+
   @Test func refreshOnlyUpdatesFlagsAndKeepsTimeTotal() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.listeningTracker) var lt = tracker(

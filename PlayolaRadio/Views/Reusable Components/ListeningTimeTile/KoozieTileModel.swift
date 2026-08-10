@@ -102,6 +102,14 @@ final class KoozieTileModel {
     }
   }
 
+  /// Cancels the tiers backoff task (breaking the strong self-retain it holds while looping)
+  /// and clears it so the load can restart if the tile reappears. Called on tile disappear
+  /// and when the koozie model is torn down.
+  func cancelTiersLoad() {
+    tiersLoadTask?.cancel()
+    tiersLoadTask = nil
+  }
+
   /// A single tiers fetch attempt. Returns true when the fetch succeeded (whether or not a
   /// koozie prize was present); false only on a thrown/transport error.
   func loadTiersOnce() async -> Bool {
