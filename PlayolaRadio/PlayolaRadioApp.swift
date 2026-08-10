@@ -47,6 +47,19 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
           }
           options.enableLogs = true
 
+          // Skip auto-capturing the Cloudflare edge-error band (520–524) as
+          // failed HTTP requests. A 520–524 is emitted by Cloudflare's edge —
+          // not our origin — when a response can't be delivered cleanly back to
+          // a backgrounded/suspended app. It's transient connection noise on the
+          // high-frequency listening-session heartbeat (verified: origin logged
+          // 200s for the matching requests). Genuine origin 5xx (500–519, 525+)
+          // still report here, and real backend errors still surface via our
+          // explicit APIError reporting. (Sentry APPLE-IOS-A / APPLE-IOS-20.)
+          options.failedRequestStatusCodes = [
+            HttpStatusCodeRange(min: 500, max: 519),
+            HttpStatusCodeRange(min: 525, max: 599),
+          ]
+
           // App Hang Tracking: capture the real main-thread blocking stack so
           // hangs resolve to named functions instead of collapsing into the
           // generic `$main` bucket (Sentry APPLE-IOS-V / 7460768272).
