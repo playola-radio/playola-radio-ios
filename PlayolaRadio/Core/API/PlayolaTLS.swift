@@ -21,10 +21,15 @@ import Foundation
 /// unavailable. Only first-party Playola API hosts (which advertise `alt-svc: h3`) get the
 /// hint; third-party hosts (e.g. S3 artwork) are untouched.
 enum PlayolaTLS {
-  /// First-party API hosts we own that advertise HTTP/3. Only these get the QUIC hint.
+  /// First-party API hosts we own. All Playola API subdomains (`admin-api`,
+  /// `admin-api-staging`, `production-api`, …) are on Cloudflare and advertise `alt-svc: h3`,
+  /// so match the whole `*.playola.fm` zone — this keeps staging/TestFlight able to exercise
+  /// the mitigation, and future subdomains work automatically. Non-Playola hosts (e.g. S3
+  /// artwork on `amazonaws.com`) are excluded; `assumesHTTP3Capable` falls back gracefully
+  /// anyway, so an over-match would be harmless.
   static func isPlayolaAPIHost(_ host: String?) -> Bool {
     guard let host else { return false }
-    return host == "admin-api.playola.fm" || host == "production-api.playola.fm"
+    return host == "playola.fm" || host.hasSuffix(".playola.fm")
   }
 
   /// Marks a request to a Playola API host as HTTP/3-preferring. No-op for other hosts.
