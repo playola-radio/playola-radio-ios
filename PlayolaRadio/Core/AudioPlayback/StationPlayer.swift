@@ -23,6 +23,10 @@ class StationPlayer: ObservableObject {
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
   @ObservationIgnored @Shared(.sampleBufferRendererEnabled)
   var sampleBufferRendererEnabled: Bool = false
+  @ObservationIgnored @Shared(.sampleBufferRendererAllowed)
+  var sampleBufferRendererAllowed: Bool = true
+  @ObservationIgnored @Shared(.sampleBufferRendererLocalOverride)
+  var sampleBufferRendererLocalOverride: Bool = false
 
   enum PlaybackStatus: Codable, Equatable {
     case startingNewStation(AnyStation)
@@ -230,13 +234,19 @@ class StationPlayer: ObservableObject {
   /// cannot switch a live pipeline. Both branches assert their backend so a
   /// pre-lock `.sampleBuffer` selection left by a failed play cannot leak into a
   /// flag-off session (e.g. after a same-process account switch).
-  /// `outputLatencyCompensation` is the host-fed route latency the SDK reads
-  /// once per `play()` (it cannot read `AVAudioSession` itself); it has no
-  /// effect on the legacy backend.
+  ///
+  /// Selection: `allowed && (serverEnabled || localOverride)`. The device-local
+  /// override (developer options sheet) lets us test on real hardware without a
+  /// server cohort, but the server-side kill-gate (`allowed`) retains remote
+  /// disable authority over overridden devices. `outputLatencyCompensation` is
+  /// the host-fed route latency the SDK reads once per `play()` (it cannot read
+  /// `AVAudioSession` itself); it has no effect on the legacy backend.
   private func applyRenderBackendSelection() {
-    playolaStationPlayer.setRenderBackend(
-      sampleBufferRendererEnabled ? .sampleBuffer : .legacyEngine)
-    guard sampleBufferRendererEnabled else { return }
+    let useSampleBuffer =
+      sampleBufferRendererAllowed
+      && (sampleBufferRendererEnabled || sampleBufferRendererLocalOverride)
+    playolaStationPlayer.setRenderBackend(useSampleBuffer ? .sampleBuffer : .legacyEngine)
+    guard useSampleBuffer else { return }
     playolaStationPlayer.outputLatencyCompensation =
       AVAudioSession.sharedInstance().outputLatency
   }

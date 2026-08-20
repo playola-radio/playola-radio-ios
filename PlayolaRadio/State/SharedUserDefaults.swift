@@ -44,10 +44,27 @@ extension SharedKey where Self == InMemoryKey<Bool>.Default {
   }
 
   /// Server-driven opt-in for the SDK's sample-buffer render backend (AirPlay-2 long-form),
-  /// refreshed from the rewards profile on launch. In-memory only: the backend locks at the
+  /// refreshed from the client config on launch. In-memory only: the backend locks at the
   /// first `play()`, so a persisted stale value could not take effect mid-session anyway.
   static var sampleBufferRendererEnabled: Self {
     Self[.inMemory("sampleBufferRendererEnabled"), default: false]
+  }
+
+  /// Server kill-gate for the sample-buffer renderer: when false, neither the server flag nor
+  /// the device's local override may select it. Defaults true (absent from the payload ⇒
+  /// allowed) so local testing works before the endpoint ships and offline; a remote kill
+  /// lands on the next successful config fetch.
+  static var sampleBufferRendererAllowed: Self {
+    Self[.inMemory("sampleBufferRendererAllowed"), default: true]
+  }
+}
+
+extension SharedKey where Self == AppStorageKey<Bool>.Default {
+  /// Device-local force-on for the sample-buffer renderer, set from the hidden developer
+  /// options sheet. OR'd with the server flag but still behind the server kill-gate.
+  /// Deliberately device-scoped (like `showSecretStations`): survives sign-out.
+  static var sampleBufferRendererLocalOverride: Self {
+    Self[.appStorage("sampleBufferRendererLocalOverride"), default: false]
   }
 }
 

@@ -16,4 +16,10 @@ struct ClientConfig: Codable, Equatable, Sendable {
   /// Opt-in for the SDK's sample-buffer render backend (AirPlay-2 long-form,
   /// PlayolaPlayer 0.21.0+). Absent ⇒ false ⇒ legacy engine.
   var sampleBufferRendererEnabled: Bool?
+
+  /// Server kill-gate for the sample-buffer renderer: when false, neither the
+  /// server flag nor a device-local override may select it. Absent ⇒ true, so
+  /// local testing works before the endpoint ships (and offline); a remote kill
+  /// lands on the next successful config fetch.
+  var sampleBufferRendererAllowed: Bool?
 }

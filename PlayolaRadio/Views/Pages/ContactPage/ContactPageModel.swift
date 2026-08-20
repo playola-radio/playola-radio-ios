@@ -91,6 +91,12 @@ class ContactPageModel: ViewModel {
   }
 
   @MainActor
+  func profileImageTapped10Times() {
+    mainContainerNavigationCoordinator.presentedSheet =
+      .developerOptions(DeveloperOptionsSheetModel())
+  }
+
+  @MainActor
   func onEditProfileTapped() {
     // TODO: Navigate to edit profile view
     print("Edit profile tapped")

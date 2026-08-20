@@ -32,6 +32,8 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.welcomeMessageEligible) var welcomeMessageEligible: Bool = false
   @ObservationIgnored @Shared(.sampleBufferRendererEnabled)
   var sampleBufferRendererEnabled: Bool = false
+  @ObservationIgnored @Shared(.sampleBufferRendererAllowed)
+  var sampleBufferRendererAllowed: Bool = true
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
@@ -260,6 +262,9 @@ class MainContainerModel: ViewModel {
       let config = try await api.getClientConfig(jwt)
       $sampleBufferRendererEnabled.withLock {
         $0 = config.sampleBufferRendererEnabled ?? false
+      }
+      $sampleBufferRendererAllowed.withLock {
+        $0 = config.sampleBufferRendererAllowed ?? true
       }
     } catch {
       // Deliberately quiet: the conservative default (false ⇒ legacy renderer)

@@ -317,6 +317,11 @@
 		D35EFC3C2F192C76000F64A4 /* SupportPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC352F192C76000F64A4 /* SupportPageModel.swift */; };
 		D35EFC3D2F192C76000F64A4 /* SupportPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC372F192C76000F64A4 /* SupportPageView.swift */; };
 		D35EFC3F2F192C8F000F64A4 /* SupportPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC362F192C76000F64A4 /* SupportPageTests.swift */; };
+		AB0B00000000000000000001 /* DeveloperOptionsSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0B00000000000000000007 /* DeveloperOptionsSheetModel.swift */; };
+		AB0B00000000000000000002 /* DeveloperOptionsSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0B00000000000000000008 /* DeveloperOptionsSheetView.swift */; };
+		AB0B00000000000000000003 /* DeveloperOptionsSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0B00000000000000000007 /* DeveloperOptionsSheetModel.swift */; };
+		AB0B00000000000000000004 /* DeveloperOptionsSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0B00000000000000000008 /* DeveloperOptionsSheetView.swift */; };
+		AB0B00000000000000000005 /* DeveloperOptionsSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0B00000000000000000009 /* DeveloperOptionsSheetTests.swift */; };
 		D35EFC432F1930C8000F64A4 /* FeedbackSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC402F1930C8000F64A4 /* FeedbackSheetModel.swift */; };
 		D35EFC442F1930C8000F64A4 /* FeedbackSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC412F1930C8000F64A4 /* FeedbackSheetView.swift */; };
 		D35EFC452F1930C8000F64A4 /* FeedbackSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC402F1930C8000F64A4 /* FeedbackSheetModel.swift */; };
@@ -722,6 +727,9 @@
 		D35EFC352F192C76000F64A4 /* SupportPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportPageModel.swift; sourceTree = "<group>"; };
 		D35EFC362F192C76000F64A4 /* SupportPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportPageTests.swift; sourceTree = "<group>"; };
 		D35EFC372F192C76000F64A4 /* SupportPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportPageView.swift; sourceTree = "<group>"; };
+		AB0B00000000000000000007 /* DeveloperOptionsSheetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperOptionsSheetModel.swift; sourceTree = "<group>"; };
+		AB0B00000000000000000008 /* DeveloperOptionsSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperOptionsSheetView.swift; sourceTree = "<group>"; };
+		AB0B00000000000000000009 /* DeveloperOptionsSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperOptionsSheetTests.swift; sourceTree = "<group>"; };
 		D35EFC402F1930C8000F64A4 /* FeedbackSheetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSheetModel.swift; sourceTree = "<group>"; };
 		D35EFC412F1930C8000F64A4 /* FeedbackSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSheetView.swift; sourceTree = "<group>"; };
 		D35EFC472F19314E000F64A4 /* FeedbackSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSheetTests.swift; sourceTree = "<group>"; };
@@ -1168,6 +1176,7 @@
 				D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */,
 				D39591132E39930500720CF8 /* ContactPage */,
 				D35EFC4C2F1A9911000F64A4 /* ConversationListPage */,
+				AB0B00000000000000000006 /* DeveloperOptionsSheet */,
 				D39591242E3BB6F400720CF8 /* EditProfilePage */,
 				D35EFC422F1930C8000F64A4 /* FeedbackSheet */,
 				D37257AC2DF88B89001BC6F9 /* HomePage */,
@@ -1388,6 +1397,16 @@
 				D35EFC362F192C76000F64A4 /* SupportPageTests.swift */,
 			);
 			path = SupportPage;
+			sourceTree = "<group>";
+		};
+		AB0B00000000000000000006 /* DeveloperOptionsSheet */ = {
+			isa = PBXGroup;
+			children = (
+				AB0B00000000000000000007 /* DeveloperOptionsSheetModel.swift */,
+				AB0B00000000000000000008 /* DeveloperOptionsSheetView.swift */,
+				AB0B00000000000000000009 /* DeveloperOptionsSheetTests.swift */,
+			);
+			path = DeveloperOptionsSheet;
 			sourceTree = "<group>";
 		};
 		D35EFC422F1930C8000F64A4 /* FeedbackSheet */ = {
@@ -2210,6 +2229,8 @@
 				D3776A532F2BEB6500200ADF /* LibrarySong.swift in Sources */,
 				D3F493C52EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */,
 				D3776A0B2F22BF6A00200ADF /* ListenerQuestion.swift in Sources */,
+				AB0B00000000000000000001 /* DeveloperOptionsSheetModel.swift in Sources */,
+				AB0B00000000000000000002 /* DeveloperOptionsSheetView.swift in Sources */,
 				D35EFC432F1930C8000F64A4 /* FeedbackSheetModel.swift in Sources */,
 				D35EFC442F1930C8000F64A4 /* FeedbackSheetView.swift in Sources */,
 				D30F00832E8592F0007BCC73 /* UIApplication+keyWindow.swift in Sources */,
@@ -2422,6 +2443,8 @@
 				D3776A522F2BEB6500200ADF /* LibrarySong.swift in Sources */,
 				D3F493C42EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */,
 				D3776A0C2F22BF6A00200ADF /* ListenerQuestion.swift in Sources */,
+				AB0B00000000000000000003 /* DeveloperOptionsSheetModel.swift in Sources */,
+				AB0B00000000000000000004 /* DeveloperOptionsSheetView.swift in Sources */,
 				D35EFC452F1930C8000F64A4 /* FeedbackSheetModel.swift in Sources */,
 				D35EFC462F1930C8000F64A4 /* FeedbackSheetView.swift in Sources */,
 				D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */,
@@ -2543,6 +2566,7 @@
 				D39728562F5F03FF008591E3 /* VersionComparisonTests.swift in Sources */,
 				D3C7E5EF2EF0C58900EDD3ED /* StagingItemTests.swift in Sources */,
 				81599AD0B41E4A2496EEF25A /* PresetTests.swift in Sources */,
+				AB0B00000000000000000005 /* DeveloperOptionsSheetTests.swift in Sources */,
 				D35EFC482F19314E000F64A4 /* FeedbackSheetTests.swift in Sources */,
 				D3367BFF2F08B7E900AF87FA /* NotificationsSettingsPageTests.swift in Sources */,
 				D3C7E5E32EF0A44D00EDD3ED /* SongSearchPageTests.swift in Sources */,

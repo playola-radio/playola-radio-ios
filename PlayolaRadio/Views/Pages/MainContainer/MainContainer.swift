@@ -44,7 +44,7 @@ struct MainContainer: View {
         get: {
           switch model.mainContainerNavigationCoordinator.presentedSheet {
           case .player, .feedbackSheet, .share, .redeemPrize, .artistSuggestion, .welcomeMessage,
-            .giveawayWinner, .giveawayCongrats:
+            .giveawayWinner, .giveawayCongrats, .developerOptions:
             return model.mainContainerNavigationCoordinator.presentedSheet
           default:
             return nil
@@ -75,6 +75,8 @@ struct MainContainer: View {
             GiveawayWinnerSheetView(model: winnerModel)
           case .giveawayCongrats(let congratsModel):
             GiveawayCongratsSheetView(model: congratsModel)
+          case .developerOptions(let developerOptionsModel):
+            DeveloperOptionsSheetView(model: developerOptionsModel)
           default:
             EmptyView()
           }

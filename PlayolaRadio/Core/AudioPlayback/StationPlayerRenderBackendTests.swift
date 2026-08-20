@@ -102,6 +102,36 @@ struct StationPlayerRenderBackendTests {
     #expect(transport.events[2] == .play(stationId: station.id))
   }
 
+  @Test
+  func localOverrideForcesSampleBufferWhenServerFlagOff() async {
+    @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = false
+    @Shared(.sampleBufferRendererLocalOverride) var localOverride = true
+    let transport = RenderBackendSpyTransport()
+    let player = makePlayer(transport: transport)
+
+    await player.play(station: AnyStation.mockPlayola())
+
+    #expect(transport.events.first == .setRenderBackend(.sampleBuffer))
+  }
+
+  @Test
+  func serverKillGateBlocksBothServerFlagAndLocalOverride() async {
+    @Shared(.sampleBufferRendererAllowed) var sampleBufferRendererAllowed = false
+    @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = true
+    @Shared(.sampleBufferRendererLocalOverride) var localOverride = true
+    let transport = RenderBackendSpyTransport()
+    let player = makePlayer(transport: transport)
+    let station = AnyStation.mockPlayola()
+
+    await player.play(station: station)
+
+    #expect(
+      transport.events == [
+        .setRenderBackend(.legacyEngine),
+        .play(stationId: station.id),
+      ])
+  }
+
   // MARK: - Decode (ClientConfig)
 
   @Test
@@ -151,6 +181,28 @@ struct StationPlayerRenderBackendTests {
     await model.loadClientConfig()
 
     #expect(sampleBufferRendererEnabled == false)
+  }
+
+  @Test
+  func loadClientConfigProjectsKillGateAndDefaultsToAllowed() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.sampleBufferRendererAllowed) var sampleBufferRendererAllowed = true
+
+    let killed = withDependencies {
+      $0.api.getClientConfig = { _ in ClientConfig(sampleBufferRendererAllowed: false) }
+    } operation: {
+      MainContainerModel()
+    }
+    await killed.loadClientConfig()
+    #expect(sampleBufferRendererAllowed == false)
+
+    let absent = withDependencies {
+      $0.api.getClientConfig = { _ in ClientConfig() }
+    } operation: {
+      MainContainerModel()
+    }
+    await absent.loadClientConfig()
+    #expect(sampleBufferRendererAllowed == true)
   }
 
   @Test
