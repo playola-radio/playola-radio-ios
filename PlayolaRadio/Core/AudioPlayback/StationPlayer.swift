@@ -4,6 +4,7 @@
 //
 //  Created by Brian D Keane on 1/18/25.
 //
+import AVFAudio
 import Combine
 import Dependencies
 import Foundation
@@ -20,6 +21,8 @@ class StationPlayer: ObservableObject {
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
+  @ObservationIgnored @Shared(.sampleBufferRendererEnabled)
+  var sampleBufferRendererEnabled: Bool = false
 
   enum PlaybackStatus: Codable, Equatable {
     case startingNewStation(AnyStation)
@@ -203,6 +206,7 @@ class StationPlayer: ObservableObject {
       started = await urlStreamPlayer.play(station: urlStation)
     case .playola(let playolaStation):
       urlStreamPlayer.reset()
+      selectRenderBackendIfFlagged()
       do {
         try await playolaStationPlayer.play(stationId: playolaStation.id)
         started = true
@@ -217,6 +221,20 @@ class StationPlayer: ObservableObject {
     }
 
     return finishPlaybackAttempt(playbackAttempt, started: started)
+  }
+
+  /// The renderer-selection seam (server-flagged, PlayolaPlayer 0.21.0+). Runs
+  /// after `configureForPlayback()` (the session is set) and before the SDK
+  /// `play()` — the backend locks at the first play, and `setRenderBackend` is a
+  /// hard no-op once locked, so a flag that arrives after playback has started
+  /// cannot switch a live pipeline. `outputLatencyCompensation` is the host-fed
+  /// route latency the SDK reads once per `play()` (it cannot read
+  /// `AVAudioSession` itself); it has no effect on the legacy backend.
+  private func selectRenderBackendIfFlagged() {
+    guard sampleBufferRendererEnabled else { return }
+    playolaStationPlayer.setRenderBackend(.sampleBuffer)
+    playolaStationPlayer.outputLatencyCompensation =
+      AVAudioSession.sharedInstance().outputLatency
   }
 
   private func finishPlaybackAttempt(
@@ -541,7 +559,9 @@ extension StationPlayer: AudioInterruptionDelegate {
 @MainActor
 protocol PlayolaTransport: AnyObject {
   var statePublisher: AnyPublisher<PlayolaStationPlayer.State, Never> { get }
+  var outputLatencyCompensation: TimeInterval { get set }
   func configure(authProvider: PlayolaAuthenticationProvider, baseURL: URL)
+  func setRenderBackend(_ backend: PlayolaRenderBackend)
   func play(stationId: String) async throws
   func stop()
   func pauseForInterruption()
@@ -551,6 +571,12 @@ protocol PlayolaTransport: AnyObject {
 extension PlayolaStationPlayer: PlayolaTransport {
   var statePublisher: AnyPublisher<PlayolaStationPlayer.State, Never> {
     $state.eraseToAnyPublisher()
+  }
+  // The SDK's configure gained an optional `renderBackend:` parameter in 0.21.0;
+  // a defaulted parameter can't witness the protocol's two-arg requirement, so
+  // forward explicitly. Passing nil leaves any prior backend selection intact.
+  func configure(authProvider: PlayolaAuthenticationProvider, baseURL: URL) {
+    configure(authProvider: authProvider, baseURL: baseURL, renderBackend: nil)
   }
   func play(stationId: String) async throws {
     try await play(stationId: stationId, atDate: nil)

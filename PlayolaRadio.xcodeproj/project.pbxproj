@@ -74,6 +74,8 @@
 		AAF1000000000000000000B1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */; };
 		AAF1000000000000000000B2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */; };
 		AB0A00000000000000000001 /* StationPlayerPlaybackAttemptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00000000000000000002 /* StationPlayerPlaybackAttemptTests.swift */; };
+		AB0A00000000000000000003 /* StationPlayerRenderBackendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00000000000000000004 /* StationPlayerRenderBackendTests.swift */; };
+		AB0A00000000000000000005 /* StationPlayerTestDoubles.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00000000000000000006 /* StationPlayerTestDoubles.swift */; };
 		ABCDEF010000000000000002 /* TabBarPlatformChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF010000000000000001 /* TabBarPlatformChrome.swift */; };
 		ABCDEF010000000000000003 /* TabBarPlatformChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF010000000000000001 /* TabBarPlatformChrome.swift */; };
 		ABCDEF020000000000000002 /* StationListPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF020000000000000001 /* StationListPadView.swift */; };
@@ -598,6 +600,8 @@
 		A6613FD7A13B448187CB8595 /* PresetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetTests.swift; sourceTree = "<group>"; };
 		AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		AB0A00000000000000000002 /* StationPlayerPlaybackAttemptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerPlaybackAttemptTests.swift; sourceTree = "<group>"; };
+		AB0A00000000000000000004 /* StationPlayerRenderBackendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerRenderBackendTests.swift; sourceTree = "<group>"; };
+		AB0A00000000000000000006 /* StationPlayerTestDoubles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerTestDoubles.swift; sourceTree = "<group>"; };
 		ABCDEF010000000000000001 /* TabBarPlatformChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarPlatformChrome.swift; sourceTree = "<group>"; };
 		ABCDEF020000000000000001 /* StationListPadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPadView.swift; sourceTree = "<group>"; };
 		ABCDEF030000000000000001 /* HomePagePadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePagePadView.swift; sourceTree = "<group>"; };
@@ -1579,6 +1583,8 @@
 			isa = PBXGroup;
 			children = (
 				AB0A00000000000000000002 /* StationPlayerPlaybackAttemptTests.swift */,
+				AB0A00000000000000000004 /* StationPlayerRenderBackendTests.swift */,
+				AB0A00000000000000000006 /* StationPlayerTestDoubles.swift */,
 				D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */,
 				FAE000000000000000000001 /* AudioSessionCoordinator.swift */,
 				FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */,
@@ -2558,6 +2564,8 @@
 				D3B9C7AE2F534D57002D75C2 /* IntroUploadServiceTests.swift in Sources */,
 				D37769FE2F22B70600200ADF /* ChooseStationPageTests.swift in Sources */,
 				AB0A00000000000000000001 /* StationPlayerPlaybackAttemptTests.swift in Sources */,
+				AB0A00000000000000000003 /* StationPlayerRenderBackendTests.swift in Sources */,
+				AB0A00000000000000000005 /* StationPlayerTestDoubles.swift in Sources */,
 				D35EFBD92F101A76000F64A4 /* StationPlayerTests.swift in Sources */,
 				E1CA0000000000000000A005 /* CarPlayPlaybackTransitionTests.swift in Sources */,
 				D395911A2E39933800720CF8 /* ContactPageTests.swift in Sources */,
@@ -3193,8 +3201,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/playola-radio/playola-player-swift";
 			requirement = {
-				kind = upToNextMinorVersion;
-				minimumVersion = 0.20.2;
+				kind = exactVersion;
+				version = "0.21.0-beta.2";
 			};
 		};
 		D30F003A2E8592F0007BCC73 /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
@@ -3321,8 +3329,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/playola-radio/playola-player-swift";
 			requirement = {
-				kind = upToNextMinorVersion;
-				minimumVersion = 0.20.2;
+				kind = exactVersion;
+				version = "0.21.0-beta.2";
 			};
 		};
 		D3FF74D32FA7CA760052D500 /* XCRemoteSwiftPackageReference "swift-custom-dump" */ = {
