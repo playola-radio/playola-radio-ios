@@ -133,10 +133,12 @@ class MainContainerModel: ViewModel {
   }
 
   func viewAppeared() async {
-    // Client-config flags load first, on purpose: the renderer flag only takes
-    // effect if it beats the first play() of the process (the SDK locks the
-    // backend there), so everything else in launch waits one small fetch.
-    await loadClientConfig()
+    // Kick off the client-config fetch first but do NOT await it: the renderer
+    // flag only matters if it beats the first play() of the process (the SDK
+    // locks the backend there), so it should be in flight as early as possible —
+    // but it is best-effort by design, and a slow config endpoint must not
+    // stall station loading for up to the 60s request timeout.
+    Task { await loadClientConfig() }
 
     // Register for remote notifications (user is now logged in)
     await pushNotifications.registerForRemoteNotifications()
