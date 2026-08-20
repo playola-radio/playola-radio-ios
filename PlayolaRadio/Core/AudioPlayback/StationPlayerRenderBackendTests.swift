@@ -102,73 +102,70 @@ struct StationPlayerRenderBackendTests {
     #expect(transport.events[2] == .play(stationId: station.id))
   }
 
-  // MARK: - Decode (RewardsProfile)
+  // MARK: - Decode (ClientConfig)
 
   @Test
-  func rewardsProfileDecodesFlagAndDefaultsToNilWhenAbsent() throws {
+  func clientConfigDecodesFlagAndDefaultsToNilWhenAbsent() throws {
     let decoder = JSONDecoder()
-    decoder.dateDecodingStrategy = .iso8601
 
-    let withFlag = Data(
-      """
-      {"totalTimeListenedMS":0,"totalMSAvailableForRewards":0,\
-      "accurateAsOfTime":"2026-01-01T00:00:00Z","sampleBufferRendererEnabled":true}
-      """.utf8)
+    let withFlag = Data(#"{"sampleBufferRendererEnabled":true}"#.utf8)
     #expect(
-      try decoder.decode(RewardsProfile.self, from: withFlag).sampleBufferRendererEnabled == true)
+      try decoder.decode(ClientConfig.self, from: withFlag).sampleBufferRendererEnabled == true)
 
-    let withoutFlag = Data(
-      """
-      {"totalTimeListenedMS":0,"totalMSAvailableForRewards":0,\
-      "accurateAsOfTime":"2026-01-01T00:00:00Z"}
-      """.utf8)
+    let withoutFlag = Data("{}".utf8)
     #expect(
-      try decoder.decode(RewardsProfile.self, from: withoutFlag).sampleBufferRendererEnabled == nil)
+      try decoder.decode(ClientConfig.self, from: withoutFlag).sampleBufferRendererEnabled == nil)
   }
 
-  // MARK: - Projection (MainContainerModel.loadListeningTracker)
+  // MARK: - Projection (MainContainerModel.loadClientConfig)
 
   @Test
-  func loadListeningTrackerEnablesFlagWhenServerSendsTrue() async {
+  func loadClientConfigEnablesFlagWhenServerSendsTrue() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = false
 
     let model = withDependencies {
-      $0.api.getRewardsProfile = { _ in
-        RewardsProfile(
-          totalTimeListenedMS: 0,
-          totalMSAvailableForRewards: 0,
-          accurateAsOfTime: Date(),
-          sampleBufferRendererEnabled: true
-        )
+      $0.api.getClientConfig = { _ in
+        ClientConfig(sampleBufferRendererEnabled: true)
       }
     } operation: {
       MainContainerModel()
     }
 
-    await model.loadListeningTracker()
+    await model.loadClientConfig()
 
     #expect(sampleBufferRendererEnabled == true)
   }
 
   @Test
-  func loadListeningTrackerClearsFlagWhenServerOmitsIt() async {
+  func loadClientConfigClearsFlagWhenServerOmitsIt() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = true
 
     let model = withDependencies {
-      $0.api.getRewardsProfile = { _ in
-        RewardsProfile(
-          totalTimeListenedMS: 0,
-          totalMSAvailableForRewards: 0,
-          accurateAsOfTime: Date()
-        )
-      }
+      $0.api.getClientConfig = { _ in ClientConfig() }
     } operation: {
       MainContainerModel()
     }
 
-    await model.loadListeningTracker()
+    await model.loadClientConfig()
+
+    #expect(sampleBufferRendererEnabled == false)
+  }
+
+  @Test
+  func loadClientConfigFailureLeavesConservativeDefault() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = false
+
+    struct FetchFailed: Error {}
+    let model = withDependencies {
+      $0.api.getClientConfig = { _ in throw FetchFailed() }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await model.loadClientConfig()
 
     #expect(sampleBufferRendererEnabled == false)
   }

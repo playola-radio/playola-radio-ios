@@ -24,11 +24,6 @@ struct RewardsProfile: Codable, Sendable {
   var koozieEarned: Bool?
   var shouldShowKoozieCongrats: Bool?
 
-  // Server-driven opt-in for the SDK's sample-buffer render backend (AirPlay-2
-  // long-form, PlayolaPlayer 0.21.0+). Absent ⇒ false ⇒ legacy engine. Same
-  // `var` + optional rationale as `shouldShowWelcomeMessage`.
-  var sampleBufferRendererEnabled: Bool?
-
   var rewardsExperienceType: RewardsExperience {
     RewardsExperience(rawServerValue: rewardsExperience)
   }

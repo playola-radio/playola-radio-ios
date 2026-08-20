@@ -52,6 +52,13 @@ struct APIClient: Sendable {
     RewardsProfile(totalTimeListenedMS: 0, totalMSAvailableForRewards: 0, accurateAsOfTime: Date())
   }
 
+  /// Fetches the per-user client configuration (server-driven flags).
+  /// - Parameter jwtToken: The JWT token for authentication
+  /// - Returns: ClientConfig; absent fields fall back to conservative defaults
+  var getClientConfig: @Sendable (_ jwtToken: String) async throws -> ClientConfig = { _ in
+    ClientConfig()
+  }
+
   /// Marks the welcome message as seen for the authenticated user (write-once, idempotent).
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication

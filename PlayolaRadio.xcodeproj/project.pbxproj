@@ -174,6 +174,7 @@
 		D30F007C2E8592F0007BCC73 /* RewardsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744BF2E31316D0042A427 /* RewardsPageModel.swift */; };
 		D30F007D2E8592F0007BCC73 /* ToastClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302576C2E63428700F4228B /* ToastClient.swift */; };
 		D30F007E2E8592F0007BCC73 /* RewardsProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */; };
+		AB0A00000000000000000007 /* ClientConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00000000000000000009 /* ClientConfig.swift */; };
 		D30F007F2E8592F0007BCC73 /* LikedSongsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257862E63B6B700F4228B /* LikedSongsPage.swift */; };
 		D30F00802E8592F0007BCC73 /* EnumTypeEquatableProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DD32D3AC9B40070033A /* EnumTypeEquatableProtocol.swift */; };
 		D30F00822E8592F0007BCC73 /* LikedSongsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257882E63B6BE00F4228B /* LikedSongsPageModel.swift */; };
@@ -445,6 +446,7 @@
 		D3B744A82E2F185F0042A427 /* SmallPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744A62E2F18530042A427 /* SmallPlayerTests.swift */; };
 		D3B744AD2E2FCD930042A427 /* MainContainerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744AC2E2FCD8E0042A427 /* MainContainerModel.swift */; };
 		D3B744B02E2FE6FB0042A427 /* RewardsProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */; };
+		AB0A00000000000000000008 /* ClientConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00000000000000000009 /* ClientConfig.swift */; };
 		D3B744B42E2FECE10042A427 /* LocalListeningSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744B32E2FECC80042A427 /* LocalListeningSession.swift */; };
 		D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744B62E2FED8D0042A427 /* ListeningTracker.swift */; };
 		D3B744B92E2FF16F0042A427 /* ListeningTimeTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744B82E2FF1600042A427 /* ListeningTimeTile.swift */; };
@@ -805,6 +807,7 @@
 		D3B744A62E2F18530042A427 /* SmallPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmallPlayerTests.swift; sourceTree = "<group>"; };
 		D3B744AC2E2FCD8E0042A427 /* MainContainerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainerModel.swift; sourceTree = "<group>"; };
 		D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsProfile.swift; sourceTree = "<group>"; };
+		AB0A00000000000000000009 /* ClientConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientConfig.swift; sourceTree = "<group>"; };
 		D3B744B32E2FECC80042A427 /* LocalListeningSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalListeningSession.swift; sourceTree = "<group>"; };
 		D3B744B62E2FED8D0042A427 /* ListeningTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTracker.swift; sourceTree = "<group>"; };
 		D3B744B82E2FF1600042A427 /* ListeningTimeTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTimeTile.swift; sourceTree = "<group>"; };
@@ -1083,6 +1086,7 @@
 				D3367C002F097D0D00AF87FA /* PushNotificationSubscription.swift */,
 				D35673B12D3DC59100E4E926 /* RadioStation.swift */,
 				D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */,
+				AB0A00000000000000000009 /* ClientConfig.swift */,
 				D3C7E5F52EF0D12A00EDD3ED /* SongSeed */,
 				D3C7E5E42EF0C51500EDD3ED /* StagingItem */,
 				5C5534927BB84EF0BB547E65 /* Preset */,
@@ -2189,6 +2193,7 @@
 				6DB99ADC7A25C5E364543B5E /* YourLibraryPageModel.swift in Sources */,
 				D30F007D2E8592F0007BCC73 /* ToastClient.swift in Sources */,
 				D30F007E2E8592F0007BCC73 /* RewardsProfile.swift in Sources */,
+				AB0A00000000000000000007 /* ClientConfig.swift in Sources */,
 				D3367BF92F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */,
 				D3367BFB2F08B7DC00AF87FA /* NotificationsSettingsPageView.swift in Sources */,
 				D30F007F2E8592F0007BCC73 /* LikedSongsPage.swift in Sources */,
@@ -2400,6 +2405,7 @@
 				BD3E0D31823FDD5950701308 /* YourLibraryPageModel.swift in Sources */,
 				D302576D2E63428800F4228B /* ToastClient.swift in Sources */,
 				D3B744B02E2FE6FB0042A427 /* RewardsProfile.swift in Sources */,
+				AB0A00000000000000000008 /* ClientConfig.swift in Sources */,
 				D3367BFC2F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */,
 				D3367BFE2F08B7DC00AF87FA /* NotificationsSettingsPageView.swift in Sources */,
 				D30257872E63B6BB00F4228B /* LikedSongsPage.swift in Sources */,

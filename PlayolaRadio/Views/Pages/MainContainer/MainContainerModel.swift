@@ -133,6 +133,11 @@ class MainContainerModel: ViewModel {
   }
 
   func viewAppeared() async {
+    // Client-config flags load first, on purpose: the renderer flag only takes
+    // effect if it beats the first play() of the process (the SDK locks the
+    // backend there), so everything else in launch waits one small fetch.
+    await loadClientConfig()
+
     // Register for remote notifications (user is now logged in)
     await pushNotifications.registerForRemoteNotifications()
 
@@ -247,6 +252,20 @@ class MainContainerModel: ViewModel {
     }
   }
 
+  func loadClientConfig() async {
+    guard let jwt = auth.jwt else { return }
+    do {
+      let config = try await api.getClientConfig(jwt)
+      $sampleBufferRendererEnabled.withLock {
+        $0 = config.sampleBufferRendererEnabled ?? false
+      }
+    } catch {
+      // Deliberately quiet: the conservative default (false ⇒ legacy renderer)
+      // is the correct behavior when the fetch fails, and this endpoint may 404
+      // until the server side ships — analytics noise would drown real errors.
+    }
+  }
+
   func loadListeningTracker() async {
     guard let authJWT = auth.jwt else {
       print("Error not signed in")
@@ -256,9 +275,6 @@ class MainContainerModel: ViewModel {
       let rewards = try await api.getRewardsProfile(authJWT)
       self.$listeningTracker.withLock { $0 = ListeningTracker(rewardsProfile: rewards) }
       self.$welcomeMessageEligible.withLock { $0 = rewards.shouldShowWelcomeMessage ?? false }
-      self.$sampleBufferRendererEnabled.withLock {
-        $0 = rewards.sampleBufferRendererEnabled ?? false
-      }
       // Koozie-only users must never reach the legacy Rewards page, even via restored nav state.
       mainContainerNavigationCoordinator.sanitizeRewardsRouteForKoozie()
     } catch let err {
