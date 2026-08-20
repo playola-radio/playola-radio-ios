@@ -19,7 +19,7 @@ not ✅ done until its soak clears.
 > Entries marked `⟨owner: …⟩` are placeholders the task owner should fill in —
 > I scaffolded them from open PRs/branches but don't know the internal plan.
 
-_Last updated: 2026-08-08_
+_Last updated: 2026-08-20_
 
 ---
 
@@ -28,6 +28,7 @@ _Last updated: 2026-08-08_
 | Task | Status | Current step | Soak | Links |
 |------|--------|--------------|------|-------|
 | Host-owned audio → Sonos | 🟡 soaking | Phase 1 in prod (phased, from 2026-08-08); Phase 2+3 merged to develop, soaking on staging | Phase 1: prod phased rollout · Phase 2+3: staging soak from 2026-08-08 | PR #345 · #384 · plan |
+| AirPlay-2 sample-buffer renderer (Phase 5) | 🔵 in progress | App wired to SDK 0.21.0-beta.2 behind server flag `sampleBufferRendererEnabled` (default off); PR opened 2026-08-20 and **HELD** pending the SDK beta soak decision | none yet — flag stays off in prod; enabling it server-side is a launch-checklist item | PR #404 (HOLD) |
 | Clip share | 🔵 in progress | ⟨owner: current step⟩ | none (standard release) | PR #219 |
 | Rewards → Your Library | 🔵 in progress | Rewards→Profile, Library tab, Presets move | none | PR #372 · `fix-library-requests-ui` |
 | Siri "Play on Playola" (App Intents media schema) | 🟢 planning | Approach B decided (2026-06-14); not started | n/a | — |
