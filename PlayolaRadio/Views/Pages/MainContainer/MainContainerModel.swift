@@ -260,6 +260,10 @@ class MainContainerModel: ViewModel {
     guard let jwt = auth.jwt else { return }
     do {
       let config = try await api.getClientConfig(jwt)
+      // A response for a stale token must not leak one account's flags into the
+      // next session: if the user signed out (or switched accounts) while the
+      // request was in flight, drop it — the new session refetches on launch.
+      guard auth.jwt == jwt else { return }
       $sampleBufferRendererEnabled.withLock {
         $0 = config.sampleBufferRendererEnabled ?? false
       }

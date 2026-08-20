@@ -50,13 +50,6 @@ extension SharedKey where Self == InMemoryKey<Bool>.Default {
     Self[.inMemory("sampleBufferRendererEnabled"), default: false]
   }
 
-  /// Server kill-gate for the sample-buffer renderer: when false, neither the server flag nor
-  /// the device's local override may select it. Defaults true (absent from the payload ⇒
-  /// allowed) so local testing works before the endpoint ships and offline; a remote kill
-  /// lands on the next successful config fetch.
-  static var sampleBufferRendererAllowed: Self {
-    Self[.inMemory("sampleBufferRendererAllowed"), default: true]
-  }
 }
 
 extension SharedKey where Self == AppStorageKey<Bool>.Default {
@@ -65,6 +58,16 @@ extension SharedKey where Self == AppStorageKey<Bool>.Default {
   /// Deliberately device-scoped (like `showSecretStations`): survives sign-out.
   static var sampleBufferRendererLocalOverride: Self {
     Self[.appStorage("sampleBufferRendererLocalOverride"), default: false]
+  }
+
+  /// Server kill-gate for the sample-buffer renderer: when false, neither the server flag nor
+  /// the device's local override may select it. Defaults true (absent from the payload ⇒
+  /// allowed) so local testing works before the endpoint ships and offline. Persisted so a
+  /// received kill survives relaunch and holds before the next config fetch resolves — an
+  /// in-memory value would reopen the override-beats-the-fetch race on every cold launch.
+  /// Device-level safety, not account state: NOT reset on sign-out.
+  static var sampleBufferRendererAllowed: Self {
+    Self[.appStorage("sampleBufferRendererAllowed"), default: true]
   }
 }
 

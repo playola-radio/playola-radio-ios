@@ -200,7 +200,6 @@ class AuthService: @unchecked Sendable {
     @Shared(.welcomeMessageEligible) var welcomeMessageEligible
     @Shared(.welcomeMessageShownThisSession) var welcomeMessageShownThisSession
     @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled
-    @Shared(.sampleBufferRendererAllowed) var sampleBufferRendererAllowed
     @Shared(.activeGiveaway) var activeGiveaway
     @Shared(.upcomingGiveaways) var upcomingGiveaways
     @Shared(.giveawayBanner) var giveawayBanner
@@ -227,7 +226,6 @@ class AuthService: @unchecked Sendable {
     $welcomeMessageEligible.withLock { $0 = false }
     $welcomeMessageShownThisSession.withLock { $0 = false }
     $sampleBufferRendererEnabled.withLock { $0 = false }
-    $sampleBufferRendererAllowed.withLock { $0 = true }
     $activeGiveaway.withLock { $0 = nil }
     $upcomingGiveaways.withLock { $0 = [] }
     $giveawayBanner.withLock { $0 = nil }

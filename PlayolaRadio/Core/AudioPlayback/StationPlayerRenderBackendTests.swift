@@ -206,6 +206,27 @@ struct StationPlayerRenderBackendTests {
   }
 
   @Test
+  func loadClientConfigDiscardsResponseAfterSignOutMidFlight() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = false
+
+    let model = withDependencies {
+      $0.api.getClientConfig = { _ in
+        // Simulate a sign-out landing while the request is in flight.
+        @Shared(.auth) var innerAuth: Auth
+        $innerAuth.withLock { $0 = Auth() }
+        return ClientConfig(sampleBufferRendererEnabled: true)
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await model.loadClientConfig()
+
+    #expect(sampleBufferRendererEnabled == false)
+  }
+
+  @Test
   func loadClientConfigFailureLeavesConservativeDefault() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = false
