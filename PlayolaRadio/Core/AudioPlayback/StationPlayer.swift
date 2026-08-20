@@ -206,7 +206,7 @@ class StationPlayer: ObservableObject {
       started = await urlStreamPlayer.play(station: urlStation)
     case .playola(let playolaStation):
       urlStreamPlayer.reset()
-      selectRenderBackendIfFlagged()
+      applyRenderBackendSelection()
       do {
         try await playolaStationPlayer.play(stationId: playolaStation.id)
         started = true
@@ -227,12 +227,16 @@ class StationPlayer: ObservableObject {
   /// after `configureForPlayback()` (the session is set) and before the SDK
   /// `play()` — the backend locks at the first play, and `setRenderBackend` is a
   /// hard no-op once locked, so a flag that arrives after playback has started
-  /// cannot switch a live pipeline. `outputLatencyCompensation` is the host-fed
-  /// route latency the SDK reads once per `play()` (it cannot read
-  /// `AVAudioSession` itself); it has no effect on the legacy backend.
-  private func selectRenderBackendIfFlagged() {
+  /// cannot switch a live pipeline. Both branches assert their backend so a
+  /// pre-lock `.sampleBuffer` selection left by a failed play cannot leak into a
+  /// flag-off session (e.g. after a same-process account switch).
+  /// `outputLatencyCompensation` is the host-fed route latency the SDK reads
+  /// once per `play()` (it cannot read `AVAudioSession` itself); it has no
+  /// effect on the legacy backend.
+  private func applyRenderBackendSelection() {
+    playolaStationPlayer.setRenderBackend(
+      sampleBufferRendererEnabled ? .sampleBuffer : .legacyEngine)
     guard sampleBufferRendererEnabled else { return }
-    playolaStationPlayer.setRenderBackend(.sampleBuffer)
     playolaStationPlayer.outputLatencyCompensation =
       AVAudioSession.sharedInstance().outputLatency
   }

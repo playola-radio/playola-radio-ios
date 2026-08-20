@@ -63,7 +63,7 @@ struct StationPlayerRenderBackendTests {
   // MARK: - Seam (StationPlayer.play)
 
   @Test
-  func flagOffPlaysWithoutTouchingRenderBackend() async {
+  func flagOffAssertsLegacyBackendAndSkipsLatency() async {
     @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = false
     let transport = RenderBackendSpyTransport()
     let player = makePlayer(transport: transport)
@@ -71,7 +71,14 @@ struct StationPlayerRenderBackendTests {
 
     await player.play(station: station)
 
-    #expect(transport.events == [.play(stationId: station.id)])
+    // Legacy is asserted (not merely left alone) so a pre-lock .sampleBuffer
+    // selection from a previous flag-on account cannot leak into this session,
+    // and no latency compensation is fed on the legacy path.
+    #expect(
+      transport.events == [
+        .setRenderBackend(.legacyEngine),
+        .play(stationId: station.id),
+      ])
   }
 
   @Test
