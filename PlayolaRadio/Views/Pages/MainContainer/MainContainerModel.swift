@@ -30,6 +30,8 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker
   @ObservationIgnored @Shared(.welcomeMessageEligible) var welcomeMessageEligible: Bool = false
+  @ObservationIgnored @Shared(.sampleBufferRendererEnabled)
+  var sampleBufferRendererEnabled: Bool = false
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
@@ -254,6 +256,9 @@ class MainContainerModel: ViewModel {
       let rewards = try await api.getRewardsProfile(authJWT)
       self.$listeningTracker.withLock { $0 = ListeningTracker(rewardsProfile: rewards) }
       self.$welcomeMessageEligible.withLock { $0 = rewards.shouldShowWelcomeMessage ?? false }
+      self.$sampleBufferRendererEnabled.withLock {
+        $0 = rewards.sampleBufferRendererEnabled ?? false
+      }
       // Koozie-only users must never reach the legacy Rewards page, even via restored nav state.
       mainContainerNavigationCoordinator.sanitizeRewardsRouteForKoozie()
     } catch let err {

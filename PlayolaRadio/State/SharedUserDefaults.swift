@@ -42,6 +42,13 @@ extension SharedKey where Self == InMemoryKey<Bool>.Default {
   static var welcomeMessageShownThisSession: Self {
     Self[.inMemory("welcomeMessageShownThisSession"), default: false]
   }
+
+  /// Server-driven opt-in for the SDK's sample-buffer render backend (AirPlay-2 long-form),
+  /// refreshed from the rewards profile on launch. In-memory only: the backend locks at the
+  /// first `play()`, so a persisted stale value could not take effect mid-session anyway.
+  static var sampleBufferRendererEnabled: Self {
+    Self[.inMemory("sampleBufferRendererEnabled"), default: false]
+  }
 }
 
 extension SharedKey
