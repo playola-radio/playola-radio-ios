@@ -3,7 +3,7 @@
 //  PlayolaRadio
 //
 //  Server-flagged sample-buffer renderer selection (PlayolaPlayer 0.21.0+):
-//  the flag rides on the rewards profile, is projected into
+//  the flag rides on the client config (/v1/users/me/client-config), is projected into
 //  @Shared(.sampleBufferRendererEnabled), and is read only at the
 //  renderer-selection seam in StationPlayer.play — before the SDK play() that
 //  locks the backend.
