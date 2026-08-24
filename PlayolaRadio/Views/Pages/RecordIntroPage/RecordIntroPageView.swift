@@ -96,7 +96,7 @@ struct RecordIntroPageView: View {
             CGSize(width: 56, height: 56), scale: displayScale)
         )
         .resizable()
-        .aspectRatio(contentMode: .fill)
+        .scaledToFill()
         .frame(width: 56, height: 56)
         .cornerRadius(6)
         .clipped()

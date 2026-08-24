@@ -25,7 +25,7 @@ struct SongDrawerView: View {
         ) { image in
           image
             .resizable()
-            .aspectRatio(contentMode: .fill)
+            .scaledToFill()
         } placeholder: {
           RoundedRectangle(cornerRadius: 6)
             .fill(Color(hex: "#666666"))

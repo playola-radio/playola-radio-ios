@@ -148,7 +148,7 @@ struct NotificationsSettingsPageView: View {
       ) { image in
         image
           .resizable()
-          .aspectRatio(contentMode: .fill)
+          .scaledToFill()
       } placeholder: {
         Color(white: 0.2)
       }

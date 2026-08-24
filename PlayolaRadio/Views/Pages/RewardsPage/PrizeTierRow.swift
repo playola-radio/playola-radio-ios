@@ -40,7 +40,7 @@ struct PrizeTierRow: View {
         )
         .renderingMode(.template)
         .resizable()
-        .aspectRatio(contentMode: .fit)
+        .scaledToFit()
         .frame(width: 28, height: 28)
         .foregroundColor(
           isRedeemed ? Color(red: 153 / 255, green: 153 / 255, blue: 153 / 255) : .white)

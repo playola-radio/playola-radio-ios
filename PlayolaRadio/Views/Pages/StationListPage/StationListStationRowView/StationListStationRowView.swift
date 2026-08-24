@@ -27,7 +27,7 @@ struct StationListStationRowView: View {
           ) { image in
             image
               .resizable()
-              .aspectRatio(contentMode: .fill)
+              .scaledToFill()
           } placeholder: {
             Color(hex: "#333333")
           }

@@ -84,7 +84,7 @@ struct ListenerQuestionDetailPageView: View {
             CGSize(width: 48, height: 48), scale: displayScale)
         )
         .resizable()
-        .aspectRatio(contentMode: .fill)
+        .scaledToFill()
         .frame(width: 48, height: 48)
         .clipShape(Circle())
       } else {
