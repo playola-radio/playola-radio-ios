@@ -195,7 +195,7 @@ struct StagingRowView: View {
             CGSize(width: 40, height: 40), scale: displayScale)
         )
         .resizable()
-        .aspectRatio(contentMode: .fill)
+        .scaledToFill()
         .frame(width: 40, height: 40)
         .clipShape(Circle())
       } else if let icon = item.icon {
@@ -561,7 +561,7 @@ struct ScheduleItemImage: View {
             CGSize(width: 45, height: 45), scale: displayScale)
         )
         .resizable()
-        .aspectRatio(contentMode: .fill)
+        .scaledToFill()
         .frame(width: 45, height: 45)
         .clipped()
       } else {

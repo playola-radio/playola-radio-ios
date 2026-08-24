@@ -94,7 +94,7 @@ struct SeriesCard: View {
         ) { image in
           image
             .resizable()
-            .aspectRatio(contentMode: .fill)
+            .scaledToFill()
         } placeholder: {
           Circle()
             .fill(Color.gray.opacity(0.3))

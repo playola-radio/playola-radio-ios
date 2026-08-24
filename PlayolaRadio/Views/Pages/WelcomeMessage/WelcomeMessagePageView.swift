@@ -30,7 +30,7 @@ struct WelcomeMessagePageView: View {
           } placeholder: {
             WelcomePalette.cardSurface
           }
-          .aspectRatio(contentMode: .fill)
+          .scaledToFill()
           .frame(width: geo.size.width, height: geo.size.height * 0.44)
           .clipped()
 
