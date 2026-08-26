@@ -22,8 +22,10 @@ import Testing
 /// Ordered-event transport spy: the seam's contract is not just *that* the
 /// backend/latency calls happen, but that they happen BEFORE the SDK `play()`
 /// (the backend locks at first play), so the events are recorded as one list.
+/// Internal (not private) so NowPlayingUpdaterTests can lock a real
+/// StationPlayer's backend the same way the app does — by playing.
 @MainActor
-private final class RenderBackendSpyTransport: PlayolaTransport {
+final class RenderBackendSpyTransport: PlayolaTransport {
   enum Event: Equatable {
     case setRenderBackend(PlayolaRenderBackend)
     case setOutputLatencyCompensation(TimeInterval)
@@ -130,6 +132,58 @@ struct StationPlayerRenderBackendTests {
         .setRenderBackend(.legacyEngine),
         .play(stationId: station.id),
       ])
+  }
+
+  // MARK: - Locked-backend record (telemetry seam)
+
+  @Test
+  func lockedRenderBackendRecordsFirstSelectionAndIgnoresLaterFlagChanges() async {
+    @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = true
+    let transport = RenderBackendSpyTransport()
+    let player = makePlayer(transport: transport)
+
+    #expect(player.lockedRenderBackend == nil)
+    await player.play(station: AnyStation.mockPlayola())
+    #expect(player.lockedRenderBackend == .sampleBuffer)
+
+    // The SDK locks the backend at the first play(), so the record must not
+    // follow a flag change mid-process.
+    $sampleBufferRendererEnabled.withLock { $0 = false }
+    await player.play(station: AnyStation.mockPlayola(id: "different-station"))
+    #expect(player.lockedRenderBackend == .sampleBuffer)
+  }
+
+  @Test
+  func lockedRenderBackendRecordsLegacyWhenFlagOff() async {
+    @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = false
+    let transport = RenderBackendSpyTransport()
+    let player = makePlayer(transport: transport)
+
+    await player.play(station: AnyStation.mockPlayola())
+
+    #expect(player.lockedRenderBackend == .legacyEngine)
+  }
+
+  @Test
+  func firstPlaySetsSentryRenderBackendTagExactlyOnce() async {
+    @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = true
+    let capturedTags = LockIsolated<[(key: String, value: String)]>([])
+
+    let transport = RenderBackendSpyTransport()
+    let player = withDependencies {
+      $0.errorReporting.setGlobalTag = { key, value in
+        capturedTags.withValue { $0.append((key: key, value: value)) }
+      }
+    } operation: {
+      makePlayer(transport: transport)
+    }
+
+    await player.play(station: AnyStation.mockPlayola())
+    await player.play(station: AnyStation.mockPlayola(id: "different-station"))
+
+    #expect(capturedTags.value.count == 1)
+    #expect(capturedTags.value.first?.key == "render_backend")
+    #expect(capturedTags.value.first?.value == "sampleBuffer")
   }
 
   // MARK: - Decode (ClientConfig)

@@ -102,8 +102,21 @@ class StationPlayer: ObservableObject {
   /// Flipped true at the end of `init`, so every real transition publishes.
   private var publishesSharedNowPlaying = false
 
+  /// The backend asserted at the first SDK `play()` of this process. The SDK
+  /// locks its backend there (even when that play later throws), so this is the
+  /// renderer every Playola session in the process actually uses — the flags may
+  /// change afterwards, this record must not. `nil` until a Playola station has
+  /// been played. It feeds the `render_backend` analytics property/Sentry tag.
+  ///
+  /// The record shares the SDK lock's process lifetime because production has
+  /// exactly one StationPlayer (`liveValue` is a `static let` singleton and
+  /// nothing else constructs one) — a fresh instance next to an already-locked
+  /// SDK would re-record from the current flags, which may have changed.
+  private(set) var lockedRenderBackend: PlayolaRenderBackend?
+
   // MARK: Dependencies
 
+  @Dependency(\.errorReporting) var errorReporting
   var urlStreamPlayer: URLStreamPlayer
   var playolaStationPlayer: any PlayolaTransport
   let audioSessionCoordinator: AudioSessionCoordinator
@@ -245,7 +258,14 @@ class StationPlayer: ObservableObject {
     let useSampleBuffer =
       sampleBufferRendererAllowed
       && (sampleBufferRendererEnabled || sampleBufferRendererLocalOverride)
-    playolaStationPlayer.setRenderBackend(useSampleBuffer ? .sampleBuffer : .legacyEngine)
+    let backend: PlayolaRenderBackend = useSampleBuffer ? .sampleBuffer : .legacyEngine
+    playolaStationPlayer.setRenderBackend(backend)
+    if lockedRenderBackend == nil {
+      // Nothing suspends between here and the SDK play() that locks the
+      // backend, so the first selection IS the locked one.
+      lockedRenderBackend = backend
+      errorReporting.setGlobalTag("render_backend", backend.analyticsValue)
+    }
     guard useSampleBuffer else { return }
     playolaStationPlayer.outputLatencyCompensation =
       AVAudioSession.sharedInstance().outputLatency
@@ -580,6 +600,17 @@ protocol PlayolaTransport: AnyObject {
   func stop()
   func pauseForInterruption()
   func resumeAfterInterruption() async throws
+}
+
+extension PlayolaRenderBackend {
+  /// Stable name for analytics properties and Sentry tags — decoupled from the
+  /// SDK enum's case names so a rename there can't silently fork the data.
+  var analyticsValue: String {
+    switch self {
+    case .legacyEngine: return "legacyEngine"
+    case .sampleBuffer: return "sampleBuffer"
+    }
+  }
 }
 
 extension PlayolaStationPlayer: PlayolaTransport {
