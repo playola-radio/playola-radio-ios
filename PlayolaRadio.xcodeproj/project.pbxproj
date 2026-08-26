@@ -3232,7 +3232,7 @@
 			repositoryURL = "https://github.com/playola-radio/playola-player-swift";
 			requirement = {
 				kind = exactVersion;
-				version = "0.21.0-beta.5";
+				version = "0.21.0";
 			};
 		};
 		D30F003A2E8592F0007BCC73 /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
@@ -3360,7 +3360,7 @@
 			repositoryURL = "https://github.com/playola-radio/playola-player-swift";
 			requirement = {
 				kind = exactVersion;
-				version = "0.21.0-beta.5";
+				version = "0.21.0";
 			};
 		};
 		D3FF74D32FA7CA760052D500 /* XCRemoteSwiftPackageReference "swift-custom-dump" */ = {
