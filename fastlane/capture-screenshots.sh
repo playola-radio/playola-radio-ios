@@ -5,7 +5,8 @@
 # Build the Debug app first:
 #   DEVELOPER_DIR=/Applications/Xcode-26.5.0.app/Contents/Developer \
 #     xcodebuild -project PlayolaRadio.xcodeproj -scheme PlayolaRadio \
-#     -configuration Debug -destination "platform=iOS Simulator,id=$SIM" \
+#     -configuration Debug \
+#     -destination "platform=iOS Simulator,name=iPhone 16 Pro Max" \
 #     -derivedDataPath build -skipPackagePluginValidation -skipMacroValidation build
 #
 # Output names follow the fastlane deliver convention (N_APP_IPHONE_67_N.png)
@@ -32,9 +33,22 @@ echo "Using simulator $SIM"
 APP="build/Build/Products/Debug-iphonesimulator/PlayolaRadio.app"
 BUNDLE=fm.playola.playolaradio
 OUT="fastlane/screenshots/en-US"
+# Clean up even when a capture step fails mid-run: the status-bar override and
+# the harness's fake persisted account must not outlive the script. Uninstall
+# only once the fixture app was actually installed.
+INSTALLED=0
+cleanup() {
+  if [ "$INSTALLED" = 1 ]; then
+    xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
+    xcrun simctl uninstall "$SIM" "$BUNDLE" 2>/dev/null || true
+  fi
+  xcrun simctl status_bar "$SIM" clear 2>/dev/null || true
+}
+trap cleanup EXIT
 xcrun simctl bootstatus "$SIM" -b
 xcrun simctl status_bar "$SIM" override --time "9:41" --batteryState charged --batteryLevel 100 --wifiMode active --wifiBars 3 --cellularMode active --cellularBars 4
 xcrun simctl install "$SIM" "$APP"
+INSTALLED=1
 capture() {
   local page=$1 name=$2
   xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
@@ -49,9 +63,3 @@ capture player 1_APP_IPHONE_67_1.png
 capture player-tap 2_APP_IPHONE_67_2.png
 capture stations 3_APP_IPHONE_67_3.png
 capture library 4_APP_IPHONE_67_4.png
-xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
-# The harness persists fake auth/likes/presets into the app container; uninstall
-# so a later manual run on this simulator doesn't start logged in as the
-# screenshot fixture user.
-xcrun simctl uninstall "$SIM" "$BUNDLE" 2>/dev/null || true
-xcrun simctl status_bar "$SIM" clear 2>/dev/null || true
