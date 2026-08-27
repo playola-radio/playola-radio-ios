@@ -195,6 +195,7 @@
 		D30F00912E8592F0007BCC73 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339E5682BFD1C0800B9E35B /* APIClient.swift */; };
 		D30F00922E8592F0007BCC73 /* SmallPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D382671B2E00C13E0006BAC2 /* SmallPlayer.swift */; };
 		D30F00932E8592F0007BCC73 /* PlayolaRadioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */; };
+		5C12EE7A0000000000000003 /* ScreenshotHarness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C12EE7A0000000000000001 /* ScreenshotHarness.swift */; };
 		D30F00942E8592F0007BCC73 /* SignInPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D378CCCD2E56011500497A4A /* SignInPageModel.swift */; };
 		D30F00952E8592F0007BCC73 /* MainContainerNavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39591292E3BD02300720CF8 /* MainContainerNavigationCoordinator.swift */; };
 		D30F00972E8592F0007BCC73 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D30F00372E8592F0007BCC73 /* PlayolaPlayer */; };
@@ -262,6 +263,7 @@
 		D342A0C72DFCB368002BAC30 /* HomePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257B32DF88BD9001BC6F9 /* HomePageTests.swift */; };
 		D34D5C392D7106CD00148048 /* AuthServiceMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34D5C382D7106CA00148048 /* AuthServiceMock.swift */; };
 		D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */; };
+		5C12EE7A0000000000000002 /* ScreenshotHarness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C12EE7A0000000000000001 /* ScreenshotHarness.swift */; };
 		D3536A072BFA4F49006942D6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3536A062BFA4F49006942D6 /* ContentView.swift */; };
 		D3536A092BFA4F4A006942D6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3536A082BFA4F4A006942D6 /* Assets.xcassets */; };
 		D3536A0C2BFA4F4A006942D6 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3536A0B2BFA4F4A006942D6 /* Preview Assets.xcassets */; };
@@ -683,6 +685,7 @@
 		D34D5C382D7106CA00148048 /* AuthServiceMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthServiceMock.swift; sourceTree = "<group>"; };
 		D3536A012BFA4F49006942D6 /* PlayolaRadio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PlayolaRadio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaRadioApp.swift; sourceTree = "<group>"; };
+		5C12EE7A0000000000000001 /* ScreenshotHarness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotHarness.swift; sourceTree = "<group>"; };
 		D3536A062BFA4F49006942D6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		D3536A082BFA4F4A006942D6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D3536A0B2BFA4F4A006942D6 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -1265,6 +1268,7 @@
 				AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */,
 				D30F00B42E8592F0007BCC73 /* Info-Staging.plist */,
 				D3536A042BFA4F49006942D6 /* PlayolaRadioApp.swift */,
+				5C12EE7A0000000000000001 /* ScreenshotHarness.swift */,
 			);
 			path = PlayolaRadio;
 			sourceTree = "<group>";
@@ -2270,6 +2274,7 @@
 				D35EFC3D2F192C76000F64A4 /* SupportPageView.swift in Sources */,
 				D30F00922E8592F0007BCC73 /* SmallPlayer.swift in Sources */,
 				D30F00932E8592F0007BCC73 /* PlayolaRadioApp.swift in Sources */,
+				5C12EE7A0000000000000003 /* ScreenshotHarness.swift in Sources */,
 				D35EFC0B2F15915C000F64A4 /* EpisodeRowModel.swift in Sources */,
 				D35EFBF52F1576EF000F64A4 /* NewFeatureTile.swift in Sources */,
 				D35EFBF62F1576EF000F64A4 /* NewFeatureTileModel.swift in Sources */,
@@ -2484,6 +2489,7 @@
 				D35EFC3A2F192C76000F64A4 /* SupportPageView.swift in Sources */,
 				D382671C2E00C1460006BAC2 /* SmallPlayer.swift in Sources */,
 				D3536A052BFA4F49006942D6 /* PlayolaRadioApp.swift in Sources */,
+				5C12EE7A0000000000000002 /* ScreenshotHarness.swift in Sources */,
 				D35EFC0C2F15915C000F64A4 /* EpisodeRowModel.swift in Sources */,
 				D35EFBF72F1576EF000F64A4 /* NewFeatureTile.swift in Sources */,
 				D35EFBF82F1576EF000F64A4 /* NewFeatureTileModel.swift in Sources */,

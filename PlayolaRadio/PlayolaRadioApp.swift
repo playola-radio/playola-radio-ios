@@ -271,21 +271,33 @@ struct PlayolaRadioApp: App {
         // NB: Don't run application in tests to avoid interference between the app and the test.
         EmptyView()
       } else {
-        ContentView()
-          // Playola is a dark-only app (every screen draws on black). Lock the
-          // interface style so system semantic colors (e.g. the glass mini
-          // player's `.primary`/`.secondary` text) resolve to the dark palette
-          // on light-mode devices instead of rendering black-on-black.
-          .preferredColorScheme(.dark)
-          .onOpenURL { url in
-            GIDSignIn.sharedInstance.handle(url)
+        #if DEBUG
+          if let screenshotPage = ScreenshotHarness.requestedPage {
+            ScreenshotHarness(page: screenshotPage)
+          } else {
+            appContent
           }
-          .onAppear {
-            GIDSignIn.sharedInstance.restorePreviousSignIn { _, _ in
-              // Check if `user` exists; otherwise, do something with `error`
-            }
-          }
+        #else
+          appContent
+        #endif
       }
     }
+  }
+
+  private var appContent: some View {
+    ContentView()
+      // Playola is a dark-only app (every screen draws on black). Lock the
+      // interface style so system semantic colors (e.g. the glass mini
+      // player's `.primary`/`.secondary` text) resolve to the dark palette
+      // on light-mode devices instead of rendering black-on-black.
+      .preferredColorScheme(.dark)
+      .onOpenURL { url in
+        GIDSignIn.sharedInstance.handle(url)
+      }
+      .onAppear {
+        GIDSignIn.sharedInstance.restorePreviousSignIn { _, _ in
+          // Check if `user` exists; otherwise, do something with `error`
+        }
+      }
   }
 }
