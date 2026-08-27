@@ -27,12 +27,15 @@ private struct CreateVoicetrackParameters: Encodable, Sendable {
 
 private let sharedIsoDecoder = JSONDecoderWithIsoFull()
 
-// TEMPORARY: Global TLS 1.2 cap. Every Alamofire request in this file is routed through
-// `apiSession`, which caps the URLSession to TLS 1.2 so the iOS 26 post-quantum ClientHello
-// stays small enough for broken middleboxes to pass through. The policy itself lives in
-// `PlayolaTLS` (single source of truth); the aggregated `tls13_probe` Sentry trend
-// (see `ConnectivityProbe`) tells us when it is safe to revert. Full background there.
-private let apiSession = Alamofire.Session(configuration: PlayolaTLS.mitigated(.af.default))
+// Playola API requests prefer HTTP/3 (QUIC). Some listeners sit behind networks that
+// interfere with TCP to *.playola.fm specifically (host/SNI-targeted resets) while leaving
+// UDP/QUIC alone — the old TLS 1.2 cap was still TCP and never helped them (Sentry
+// `tls13_probe` diagnosis `http3Rescues`). The interceptor sets `assumesHTTP3Capable` on
+// Playola API hosts; QUIC races on the first request and falls back to HTTP/2 over TCP
+// automatically. Policy lives in `PlayolaTLS`. Pairs with the matching PlayolaPlayer SDK fix
+// (0.20.3+), which does the same for schedule fetch + audio.
+private let apiSession = Alamofire.Session(
+  configuration: .af.default, interceptor: PlayolaTLS.http3Interceptor)
 
 private func signInPost(
   authMethod: AuthMethod,

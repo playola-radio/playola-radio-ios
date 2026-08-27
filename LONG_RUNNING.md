@@ -19,7 +19,7 @@ not ✅ done until its soak clears.
 > Entries marked `⟨owner: …⟩` are placeholders the task owner should fill in —
 > I scaffolded them from open PRs/branches but don't know the internal plan.
 
-_Last updated: 2026-08-08_
+_Last updated: 2026-08-19_
 
 ---
 
@@ -27,7 +27,7 @@ _Last updated: 2026-08-08_
 
 | Task | Status | Current step | Soak | Links |
 |------|--------|--------------|------|-------|
-| Host-owned audio → Sonos | 🟡 soaking | Phase 1 in prod (phased, from 2026-08-08); Phase 2+3 merged to develop, soaking on staging | Phase 1: prod phased rollout · Phase 2+3: staging soak from 2026-08-08 | PR #345 · #384 · plan |
+| Host-owned audio → Sonos | 🟡 soaking | Phase 1 done (7.4.2 at 100% since ~2026-08-09, canary clean); Phase 2+3 shipping to prod in 7.5.1 (this PR) | Phase 2+3: prod phased rollout via 7.5.1 (submission held on device matrix) | PR #345 · #384 · #402 · plan |
 | Clip share | 🔵 in progress | ⟨owner: current step⟩ | none (standard release) | PR #219 |
 | Rewards → Your Library | 🔵 in progress | Rewards→Profile, Library tab, Presets move | none | PR #372 · `fix-library-requests-ui` |
 | Siri "Play on Playola" (App Intents media schema) | 🟢 planning | Approach B decided (2026-06-14); not started | n/a | — |
@@ -84,21 +84,29 @@ CarPlay teardown, speaker-stuck-after-recording) along the way.
 ### Phases
 
 - [x] **Phase 0 — SDK host-only** (shipped as PlayolaPlayer 0.20.0 → 0.20.2)
-- [x] **Phase 1 — app owns session + interruptions** (PR #345) — released to production 2026-08-08 (🟡 phased-rollout soak)
-- [x] **Phase 2 — single Now Playing writer** (low risk, PR #384) — 🟡 merged to develop, soaking on staging (removes URLStreamPlayer's MPNowPlayingInfoCenter writes; NowPlayingUpdater sole writer)
+- [x] **Phase 1 — app owns session + interruptions** (PR #345) — ✅ done. Shipped in 7.4.2 (build 103); went to **100% immediately** (no phased rollout, despite the plan). Field adoption from ~2026-08-09. Canary verified clean 2026-08-19: listening minutes/session *up* post-rollout, zero new audio clusters in Sentry, and the one real CoreAudio issue (APPLE-IOS-1P "player did not see an IO cycle") has zero events on 7.4.2.
+- [x] **Phase 2 — single Now Playing writer** (low risk, PR #384) — 🟡 shipping to prod in **7.5.1** (PR #402); staging-soaked since 2026-08-08 (removes URLStreamPlayer's MPNowPlayingInfoCenter writes; NowPlayingUpdater sole writer)
 - [ ] **Verify URL stations → Sonos** (quick AirPlay-2 check; possible early win)
-- [x] **Phase 3 — single state-derivation source** (PR #384) — 🟡 merged to develop, soaking on staging (StationPlayer is the sole `@Shared(.nowPlaying)` writer + single derivation authority; NowPlayingUpdater is now a pure renderer of `stationPlayer.$state`; structural + behavioral tests guard it)
+- [x] **Phase 3 — single state-derivation source** (PR #384) — 🟡 shipping to prod in **7.5.1** (PR #402); staging-soaked since 2026-08-08 (StationPlayer is the sole `@Shared(.nowPlaying)` writer + single derivation authority; NowPlayingUpdater is now a pure renderer of `stationPlayer.$state`; structural + behavioral tests guard it)
 - [ ] **Owned URLStreamBackend** (retire the vendored FRadioPlayer fork; optional)
 - [ ] **Phase 5 — Sonos renderer** (AVSampleBuffer render path; big; own plan + server-flag rollout)
 
 ### Current step
 
-Phase 1 **released to production 2026-08-08** (phased rollout under way). That lifted the
-hold on PR #384 — the hold existed so the Phase 1 *staging* soak canary stayed attributable
-to Phase 1 alone; Phase 1 is now off staging, so Phase 2+3 can soak there without
-contaminating it (different metric stream from Phase 1's prod rollout).
+**Shipping Phase 2+3 to production via 7.5.1 (PR #402, this PR).** What happened between
+the last update and now, discovered 2026-08-19:
 
-**Phase 2 + Phase 3 merged to develop together (PR #384) and are now soaking on staging.**
+- 7.4.2 (Phase 1) shipped to **100% immediately** — it was never a phased rollout. It's been
+  in the field at scale since ~2026-08-09 with clean metrics (see Phase 1 checklist entry).
+- **7.5.0 was tagged (`v7.5.0-b103`) and its build uploaded to TestFlight (build 104) but
+  never submitted to the App Store** — no 7.5.0 version record exists in ASC. The release
+  process ends at TestFlight; the ASC submission step is manual and silently didn't happen.
+  Its payload (Phase 2+3 + iPad layouts) therefore ships in 7.5.1 instead.
+- Phase 2+3's gates were re-verified 2026-08-19: staging soak 11 days (> the ~1-week bar),
+  Mixpanel canary flat-to-up, Sentry clean. **Remaining gate: the device matrix below —
+  the 7.5.1 ASC submission is held until it passes.**
+
+**Phase 2 + Phase 3 (merged to develop 2026-08-08, PR #384).**
 Phase 2 (single MPNowPlayingInfoCenter writer): URLStreamPlayer no longer writes the lock
 screen, NowPlayingUpdater is the sole writer. Phase 3 (single state-derivation source):
 StationPlayer is the sole writer of `@Shared(.nowPlaying)` and the single derivation
@@ -106,11 +114,10 @@ authority — its backend processors publish `nowPlaying` as a projection of `st
 two can't drift); NowPlayingUpdater is a pure renderer of `stationPlayer.$state`. Both
 guarded by structural + behavioral tests.
 
-**Next:** cut a staging TestFlight build (`fastlane release_staging` from develop), soak ~1
-week (see "Soak — Phase 2+3"). **Do NOT cut the Phase 2+3 production release while Phase 1's
-phased prod rollout is still in flight** — stacking two audio changes on real listeners
-re-muddies prod attribution. Gate the prod cut on: staging soak clean AND Phase 1 prod
-rollout completed cleanly.
+**Next:** device matrix on the 7.5.1 build → create ASC version 7.5.1, attach the build,
+**phased release ON** (7.4.2 skipped it; for an audio change we want the pause lever), submit.
+Watch the canary across the 7-day rollout. Koozie/develop content waits for the next release
+(7.6.x) so this rollout's audio attribution stays clean.
 
 Behavior change to note: URL stations now surface their ICY track artwork in the in-app
 now-playing UI (SmallPlayer / PlayerPage), consistent with Playola stations. Phase 3 makes
@@ -121,23 +128,21 @@ write is guarded to the URL backend so the stale `artworkDidChange(nil)` that ev
 play triggers via `reset()` can't blank the active Playola spin's artwork. Lock-screen
 artwork (station image) is unchanged.
 
-### Soak — Phase 1
+### Soak — Phase 1 (✅ cleared 2026-08-19)
 
-- **Environment:** staging TestFlight (cleared) → App Store phased rollout, **live from 2026-08-08**.
-- **Now:** in production phased rollout. Watch the go/no-go metrics below across the
-  rollout; hold Phase 2+3's *production* cut until this rollout completes cleanly.
-- **Watch (go/no-go metrics):** Mixpanel `listeningSessionStarted` count + session
-  length (the canary — a dip means audio broke in the field without a crash);
-  Sentry for new `AVAudioSession` / `engine.start` error clusters.
-- **Rollback lever:** known-good prior version is PlayolaPlayer **0.19.0**. Now that
-  Phase 1 is live, roll back by shipping a build repinned to 0.19.0 (phased release
-  again) — reverting source does *not* change binaries already installed.
+- Shipped in 7.4.2 (build 103), live at **100% from ~2026-08-09** (released all-at-once,
+  not phased). ~11 days of field exposure at 87% adoption of the active listening base.
+- **Canary results (verified 2026-08-19):** weekly `listeningSessionStarted` flat through
+  the rollout (the 7.4.2-crossover week was the highest of the four-week window); per-user
+  session counts on 7.4.2 ≥ same-window 7.3.1; server-side listening minutes hit the
+  window's high the week 7.4.2 owned the base, with avg session length up 28.5 → 32.7 min.
+  Sentry: zero new audio clusters; APPLE-IOS-1P (CoreAudio IO-cycle) has no 7.4.2 events.
+- **Rollback lever (unchanged, now historical):** repin PlayolaPlayer 0.19.0 and ship.
 
 ### Soak — Phase 2+3
 
-- **Environment:** staging TestFlight (from develop) → later a production phased rollout.
-- **Soaking since:** 2026-08-08 (merged to develop). Cut the staging build with
-  `fastlane release_staging` from develop; the "~1 week clean" clock runs from that build.
+- **Environment:** staging TestFlight (from develop) → production phased rollout via 7.5.1.
+- **Staging soak:** 2026-08-08 → 2026-08-19 (11 days, clean) — the ~1-week bar is met.
 - **Device matrix (must pass before the production cut) — focused on the now-playing
   surface these phases change:** lock screen shows the correct track/title/artist ·
   **CarPlay Now Playing is NOT dismissed when a Playola station starts** (the `.urlNotSet`
@@ -148,11 +153,11 @@ artwork (station image) is unchanged.
 - **Watch (go/no-go metrics):** same canary — Mixpanel `listeningSessionStarted` count +
   session length; Sentry for `AVAudioSession` / `engine.start` clusters and any new
   MediaPlayer/now-playing errors.
-- **Advance when:** device matrix passes AND ~1 week clean staging dogfooding AND Mixpanel
-  session metrics flat **AND Phase 1's production rollout has completed cleanly**. Then cut
-  the Phase 2+3 production release.
-- **Rollback lever:** revert the PR #384 merge on develop; nothing shipped to production
-  until the gate above is met, so pre-prod rollback is just not cutting the release.
+- **Advance when:** device matrix passes (**the only gate still open** — staging soak,
+  Mixpanel, Sentry, and Phase 1 all verified clean 2026-08-19). Then submit 7.5.1 in ASC
+  with phased release ON.
+- **Rollback lever:** before ASC submission — just don't submit. During the phased rollout —
+  pause it in ASC; if a fix is needed, revert PR #384 on a hotfix branch from main and ship.
 
 ### Notes
 
