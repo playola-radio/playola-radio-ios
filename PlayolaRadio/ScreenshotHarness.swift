@@ -75,9 +75,15 @@
 
     init(page: String) {
       self.page = page
-      let lists =
-        (try? JSONDecoderWithIsoFull().decode(
-          [StationList].self, from: Data(Self.stationListsJSON.utf8))) ?? []
+      let lists: [StationList]
+      do {
+        lists = try JSONDecoderWithIsoFull().decode(
+          [StationList].self, from: Data(Self.stationListsJSON.utf8))
+      } catch {
+        // Fail loudly: a silent empty fallback would capture blank App Store
+        // screenshots if the fixture JSON drifts from the models.
+        fatalError("Screenshot fixture stationListsJSON failed to decode: \(error)")
+      }
       stationLists = IdentifiedArray(uniqueElements: lists)
     }
 

@@ -50,3 +50,8 @@ capture player-tap 2_APP_IPHONE_67_2.png
 capture stations 3_APP_IPHONE_67_3.png
 capture library 4_APP_IPHONE_67_4.png
 xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
+# The harness persists fake auth/likes/presets into the app container; uninstall
+# so a later manual run on this simulator doesn't start logged in as the
+# screenshot fixture user.
+xcrun simctl uninstall "$SIM" "$BUNDLE" 2>/dev/null || true
+xcrun simctl status_bar "$SIM" clear 2>/dev/null || true
