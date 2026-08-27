@@ -3264,7 +3264,7 @@
 			repositoryURL = "https://github.com/pointfreeco/swift-dependencies";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.12.0;
+				minimumVersion = 1.17.0;
 			};
 		};
 		D30F00462E8592F0007BCC73 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
@@ -3312,7 +3312,7 @@
 			repositoryURL = "https://github.com/pointfreeco/swift-sharing";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 2.8.0;
+				minimumVersion = 2.9.1;
 			};
 		};
 		D395910D2E38069200720CF8 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
@@ -3352,7 +3352,7 @@
 			repositoryURL = "https://github.com/pointfreeco/swift-dependencies";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.12.0;
+				minimumVersion = 1.17.0;
 			};
 		};
 		D3CE19012D3C825C0091B888 /* XCRemoteSwiftPackageReference "playola-player-swift" */ = {
@@ -3368,7 +3368,7 @@
 			repositoryURL = "https://github.com/pointfreeco/swift-custom-dump";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.5.0;
+				minimumVersion = 1.7.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
