@@ -18,7 +18,8 @@ extension ErrorReportingClient {
       @escaping @Sendable (
         Error, [String: String], String, [String: String]
       ) -> Void = { _, _, _, _ in },
-    messageHandler: @escaping @Sendable (String, [String: String]) -> Void = { _, _ in }
+    messageHandler: @escaping @Sendable (String, [String: String]) -> Void = { _, _ in },
+    globalTagHandler: @escaping @Sendable (String, String) -> Void = { _, _ in }
   ) -> Self {
     Self(
       reportError: { error, tags in
@@ -29,6 +30,9 @@ extension ErrorReportingClient {
       },
       reportMessage: { message, tags in
         messageHandler(message, tags)
+      },
+      setGlobalTag: { key, value in
+        globalTagHandler(key, value)
       }
     )
   }

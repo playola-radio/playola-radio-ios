@@ -4,6 +4,7 @@
 //
 //  Created by Brian D Keane on 1/18/25.
 //
+import AVFAudio
 import Combine
 import Dependencies
 import Foundation
@@ -20,6 +21,12 @@ class StationPlayer: ObservableObject {
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
+  @ObservationIgnored @Shared(.sampleBufferRendererEnabled)
+  var sampleBufferRendererEnabled: Bool = false
+  @ObservationIgnored @Shared(.sampleBufferRendererAllowed)
+  var sampleBufferRendererAllowed: Bool = true
+  @ObservationIgnored @Shared(.sampleBufferRendererLocalOverride)
+  var sampleBufferRendererLocalOverride: Bool = false
 
   enum PlaybackStatus: Codable, Equatable {
     case startingNewStation(AnyStation)
@@ -95,8 +102,21 @@ class StationPlayer: ObservableObject {
   /// Flipped true at the end of `init`, so every real transition publishes.
   private var publishesSharedNowPlaying = false
 
+  /// The backend asserted at the first SDK `play()` of this process. The SDK
+  /// locks its backend there (even when that play later throws), so this is the
+  /// renderer every Playola session in the process actually uses — the flags may
+  /// change afterwards, this record must not. `nil` until a Playola station has
+  /// been played. It feeds the `render_backend` analytics property/Sentry tag.
+  ///
+  /// The record shares the SDK lock's process lifetime because production has
+  /// exactly one StationPlayer (`liveValue` is a `static let` singleton and
+  /// nothing else constructs one) — a fresh instance next to an already-locked
+  /// SDK would re-record from the current flags, which may have changed.
+  private(set) var lockedRenderBackend: PlayolaRenderBackend?
+
   // MARK: Dependencies
 
+  @Dependency(\.errorReporting) var errorReporting
   var urlStreamPlayer: URLStreamPlayer
   var playolaStationPlayer: any PlayolaTransport
   let audioSessionCoordinator: AudioSessionCoordinator
@@ -203,6 +223,7 @@ class StationPlayer: ObservableObject {
       started = await urlStreamPlayer.play(station: urlStation)
     case .playola(let playolaStation):
       urlStreamPlayer.reset()
+      applyRenderBackendSelection()
       do {
         try await playolaStationPlayer.play(stationId: playolaStation.id)
         started = true
@@ -217,6 +238,37 @@ class StationPlayer: ObservableObject {
     }
 
     return finishPlaybackAttempt(playbackAttempt, started: started)
+  }
+
+  /// The renderer-selection seam (server-flagged, PlayolaPlayer 0.21.0+). Runs
+  /// after `configureForPlayback()` (the session is set) and before the SDK
+  /// `play()` — the backend locks at the first play, and `setRenderBackend` is a
+  /// hard no-op once locked, so a flag that arrives after playback has started
+  /// cannot switch a live pipeline. Both branches assert their backend so a
+  /// pre-lock `.sampleBuffer` selection left by a failed play cannot leak into a
+  /// flag-off session (e.g. after a same-process account switch).
+  ///
+  /// Selection: `allowed && (serverEnabled || localOverride)`. The device-local
+  /// override (developer options sheet) lets us test on real hardware without a
+  /// server cohort, but the server-side kill-gate (`allowed`) retains remote
+  /// disable authority over overridden devices. `outputLatencyCompensation` is
+  /// the host-fed route latency the SDK reads once per `play()` (it cannot read
+  /// `AVAudioSession` itself); it has no effect on the legacy backend.
+  private func applyRenderBackendSelection() {
+    let useSampleBuffer =
+      sampleBufferRendererAllowed
+      && (sampleBufferRendererEnabled || sampleBufferRendererLocalOverride)
+    let backend: PlayolaRenderBackend = useSampleBuffer ? .sampleBuffer : .legacyEngine
+    playolaStationPlayer.setRenderBackend(backend)
+    if lockedRenderBackend == nil {
+      // Nothing suspends between here and the SDK play() that locks the
+      // backend, so the first selection IS the locked one.
+      lockedRenderBackend = backend
+      errorReporting.setGlobalTag("render_backend", backend.analyticsValue)
+    }
+    guard useSampleBuffer else { return }
+    playolaStationPlayer.outputLatencyCompensation =
+      AVAudioSession.sharedInstance().outputLatency
   }
 
   private func finishPlaybackAttempt(
@@ -541,16 +593,35 @@ extension StationPlayer: AudioInterruptionDelegate {
 @MainActor
 protocol PlayolaTransport: AnyObject {
   var statePublisher: AnyPublisher<PlayolaStationPlayer.State, Never> { get }
+  var outputLatencyCompensation: TimeInterval { get set }
   func configure(authProvider: PlayolaAuthenticationProvider, baseURL: URL)
+  func setRenderBackend(_ backend: PlayolaRenderBackend)
   func play(stationId: String) async throws
   func stop()
   func pauseForInterruption()
   func resumeAfterInterruption() async throws
 }
 
+extension PlayolaRenderBackend {
+  /// Stable name for analytics properties and Sentry tags — decoupled from the
+  /// SDK enum's case names so a rename there can't silently fork the data.
+  var analyticsValue: String {
+    switch self {
+    case .legacyEngine: return "legacyEngine"
+    case .sampleBuffer: return "sampleBuffer"
+    }
+  }
+}
+
 extension PlayolaStationPlayer: PlayolaTransport {
   var statePublisher: AnyPublisher<PlayolaStationPlayer.State, Never> {
     $state.eraseToAnyPublisher()
+  }
+  // The SDK's configure gained an optional `renderBackend:` parameter in 0.21.0;
+  // a defaulted parameter can't witness the protocol's two-arg requirement, so
+  // forward explicitly. Passing nil leaves any prior backend selection intact.
+  func configure(authProvider: PlayolaAuthenticationProvider, baseURL: URL) {
+    configure(authProvider: authProvider, baseURL: baseURL, renderBackend: nil)
   }
   func play(stationId: String) async throws {
     try await play(stationId: stationId, atDate: nil)

@@ -2,8 +2,16 @@ ORIGINAL_REPO := $(HOME)/playola/playola-radio-ios
 
 .PHONY: lint format format-check create-release create-new-build release-production release-staging setup-conductor
 
-# Run SwiftLint (strict mode to match CI)
+# Run SwiftLint (strict mode to match CI).
+# Warns when the local swiftlint drifts from the pinned version in .swiftlint-version,
+# since a newer release adds rules and reports violations CI will not.
 lint:
+	@expected="$$(cat .swiftlint-version)"; \
+	actual="$$(swiftlint version)"; \
+	if [ "$$expected" != "$$actual" ]; then \
+		echo "warning: swiftlint $$actual installed, but this repo pins $$expected."; \
+		echo "warning: results may differ from CI. Install the pinned version to match."; \
+	fi
 	swiftlint --strict
 
 # Auto-fix formatting issues (vendored third-party code under */Vendor/* excluded)

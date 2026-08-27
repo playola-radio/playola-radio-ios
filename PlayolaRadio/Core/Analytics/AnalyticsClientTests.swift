@@ -60,4 +60,35 @@ struct AnalyticsClientTests {
     // resume should clear the stored timestamp after computing the duration
     #expect(UserDefaults.standard.object(forKey: Self.pauseKey) == nil)
   }
+
+  // MARK: - render_backend property mapping
+
+  @Test
+  func testListeningSessionStartedIncludesRenderBackendProperty() {
+    let event = AnalyticsEvent.listeningSessionStarted(
+      station: StationInfo(from: AnyStation.mockPlayola()),
+      renderBackend: "sampleBuffer"
+    )
+    #expect(event.properties["render_backend"] as? String == "sampleBuffer")
+  }
+
+  @Test
+  func testListeningSessionStartedOmitsRenderBackendPropertyWhenNil() {
+    let event = AnalyticsEvent.listeningSessionStarted(
+      station: StationInfo(from: AnyStation.mockUrl()),
+      renderBackend: nil
+    )
+    #expect(event.properties["render_backend"] == nil)
+  }
+
+  @Test
+  func testPlaybackErrorIncludesRenderBackendProperty() {
+    let event = AnalyticsEvent.playbackError(
+      station: StationInfo(from: AnyStation.mockPlayola()),
+      error: "boom",
+      renderBackend: "legacyEngine"
+    )
+    #expect(event.properties["render_backend"] as? String == "legacyEngine")
+    #expect(event.properties["error"] as? String == "boom")
+  }
 }

@@ -154,7 +154,7 @@ struct SongSearchResultRow: View {
             CGSize(width: 45, height: 45), scale: displayScale)
         )
         .resizable()
-        .aspectRatio(contentMode: .fill)
+        .scaledToFill()
         .frame(width: 45, height: 45)
         .clipped()
       } else {
@@ -213,7 +213,7 @@ struct SongRequestResultRow: View {
             CGSize(width: 45, height: 45), scale: displayScale)
         )
         .resizable()
-        .aspectRatio(contentMode: .fill)
+        .scaledToFill()
         .frame(width: 45, height: 45)
         .clipped()
       } else {

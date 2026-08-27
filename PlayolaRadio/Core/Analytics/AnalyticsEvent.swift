@@ -33,11 +33,13 @@ enum AnalyticsEvent: Equatable {
 
   // MARK: Playback
   case startedStation(station: StationInfo, entryPoint: String)
-  case listeningSessionStarted(station: StationInfo)
+  /// `renderBackend` is the SDK renderer locked for this process ("legacyEngine"
+  /// or "sampleBuffer"); nil for URL streams, which never touch the SDK.
+  case listeningSessionStarted(station: StationInfo, renderBackend: String?)
   case listeningSessionEnded(station: StationInfo, sessionLengthSec: Int)
   case switchedStation(
     from: StationInfo, to: StationInfo, timeBeforeSwitchSec: Int, reason: SwitchReason)
-  case playbackError(station: StationInfo, error: String)
+  case playbackError(station: StationInfo, error: String, renderBackend: String?)
 
   // MARK: Rewards
   case viewedRewardsScreen(currentHours: Double)
@@ -194,8 +196,12 @@ extension AnalyticsEvent {
       props["entry_point"] = entryPoint
       return props
 
-    case .listeningSessionStarted(let station):
-      return station.properties
+    case .listeningSessionStarted(let station, let renderBackend):
+      var props = station.properties
+      if let renderBackend {
+        props["render_backend"] = renderBackend
+      }
+      return props
 
     case .listeningSessionEnded(let station, let sessionLengthSec):
       var props = station.properties
@@ -214,9 +220,12 @@ extension AnalyticsEvent {
         "switch_reason": reason.rawValue,
       ]
 
-    case .playbackError(let station, let error):
+    case .playbackError(let station, let error, let renderBackend):
       var props = station.properties
       props["error"] = error
+      if let renderBackend {
+        props["render_backend"] = renderBackend
+      }
       return props
 
     case .viewedRewardsScreen(let currentHours):

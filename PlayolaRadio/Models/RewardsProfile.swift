@@ -15,4 +15,16 @@ struct RewardsProfile: Codable, Sendable {
   // memberwise init stays source-compatible with existing call sites while the optional
   // is still decoded (decodeIfPresent → nil when the server omits it).
   var shouldShowWelcomeMessage: Bool?
+
+  // Koozie-only cohort fields (self-only, all optional). Absent ⇒ today's full-tiers
+  // behavior. Same `var` + default rationale as `shouldShowWelcomeMessage`: synthesized
+  // Decodable uses decodeIfPresent for optionals, and the memberwise init stays
+  // source-compatible with existing positional call sites.
+  var rewardsExperience: String?
+  var koozieEarned: Bool?
+  var shouldShowKoozieCongrats: Bool?
+
+  var rewardsExperienceType: RewardsExperience {
+    RewardsExperience(rawServerValue: rewardsExperience)
+  }
 }

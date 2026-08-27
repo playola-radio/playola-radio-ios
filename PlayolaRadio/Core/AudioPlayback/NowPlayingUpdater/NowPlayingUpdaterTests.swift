@@ -106,6 +106,104 @@ struct NowPlayingUpdaterTests {
 
   // MARK: - Analytics Tests
 
+  // MARK: - render_backend plumbing
+
+  /// A StationPlayer whose render backend is locked the way the app locks it:
+  /// by actually playing a Playola station through the selection seam.
+  private func makePlayerWithLockedBackend() async -> StationPlayer {
+    let player = StationPlayer(
+      playolaStationPlayer: RenderBackendSpyTransport(),
+      audioSessionCoordinator: AudioSessionCoordinator(session: NoOpAudioSession()))
+    await player.play(station: AnyStation.mockPlayola())
+    return player
+  }
+
+  @Test
+  func testListeningSessionStartedCarriesLockedRenderBackendForPlayolaStation() async {
+    @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = true
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    let station = AnyStation.mockPlayola()
+    let player = await makePlayerWithLockedBackend()
+
+    let updater = withDependencies {
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+      $0.date = .constant(Date())
+    } operation: {
+      NowPlayingUpdater(stationPlayer: player)
+    }
+
+    await updater.trackListeningSession(
+      currentStatus: .playing(station),
+      previousStatus: .stopped
+    )
+
+    guard case .listeningSessionStarted(_, let renderBackend)? = capturedEvents.value.first else {
+      Issue.record("Expected listeningSessionStarted, got: \(capturedEvents.value)")
+      return
+    }
+    #expect(renderBackend == "sampleBuffer")
+  }
+
+  @Test
+  func testListeningSessionStartedOmitsRenderBackendForUrlStation() async {
+    @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = true
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    // Even with a locked backend from an earlier Playola play, a URL-stream
+    // session never touches the SDK, so it must not carry the renderer.
+    let player = await makePlayerWithLockedBackend()
+
+    let updater = withDependencies {
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+      $0.date = .constant(Date())
+    } operation: {
+      NowPlayingUpdater(stationPlayer: player)
+    }
+
+    await updater.trackListeningSession(
+      currentStatus: .playing(AnyStation.mockUrl()),
+      previousStatus: .stopped
+    )
+
+    guard case .listeningSessionStarted(_, let renderBackend)? = capturedEvents.value.first else {
+      Issue.record("Expected listeningSessionStarted, got: \(capturedEvents.value)")
+      return
+    }
+    #expect(renderBackend == nil)
+  }
+
+  @Test
+  func testPlaybackErrorCarriesLockedRenderBackendForPlayolaStation() async {
+    @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = true
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    let station = AnyStation.mockPlayola()
+    let player = await makePlayerWithLockedBackend()
+
+    let updater = withDependencies {
+      $0.analytics.track = { event in
+        capturedEvents.withValue { $0.append(event) }
+      }
+      $0.date = .constant(Date())
+    } operation: {
+      NowPlayingUpdater(stationPlayer: player)
+    }
+    updater.lastPlayedStation = station
+
+    await updater.trackListeningSession(
+      currentStatus: .error,
+      previousStatus: .loading(station)
+    )
+
+    guard case .playbackError(_, _, let renderBackend)? = capturedEvents.value.first else {
+      Issue.record("Expected playbackError, got: \(capturedEvents.value)")
+      return
+    }
+    #expect(renderBackend == "sampleBuffer")
+  }
+
   @Test
   func testTrackListeningSessionStartsSessionWhenTransitioningToPlaying() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
@@ -129,7 +227,7 @@ struct NowPlayingUpdaterTests {
     // Verify session started event was tracked
     let events = capturedEvents.value
     #expect(events.count == 1)
-    if case .listeningSessionStarted(let stationInfo) = events.first {
+    if case .listeningSessionStarted(let stationInfo, _) = events.first {
       #expect(stationInfo.id == station.id)
       #expect(stationInfo.name == station.name)
     } else {
@@ -215,7 +313,7 @@ struct NowPlayingUpdaterTests {
     capturedEvents.withValue { $0.removeAll() }
     await updater.trackListeningSession(
       currentStatus: .playing(stationB), previousStatus: .startingNewStation(stationB))
-    guard case .listeningSessionStarted(let startedInfo)? = capturedEvents.value.first else {
+    guard case .listeningSessionStarted(let startedInfo, _)? = capturedEvents.value.first else {
       Issue.record(
         "Expected B's session to start, got \(String(describing: capturedEvents.value.first))")
       return
@@ -422,7 +520,7 @@ struct NowPlayingUpdaterTests {
     // Verify session started
     let events = capturedEvents.value
     #expect(events.count == 1)
-    if case .listeningSessionStarted(let stationInfo) = events.first {
+    if case .listeningSessionStarted(let stationInfo, _) = events.first {
       #expect(stationInfo.id == station.id)
     } else {
       Issue.record(
@@ -645,7 +743,7 @@ struct NowPlayingUpdaterTests {
   private func verifySessionStartedEvent(
     _ event: AnalyticsEvent, expectedStationId: String, eventIndex: Int
   ) {
-    guard case .listeningSessionStarted(let stationInfo) = event else {
+    guard case .listeningSessionStarted(let stationInfo, _) = event else {
       Issue.record("Expected listeningSessionStarted event at index \(eventIndex), got: \(event)")
       return
     }

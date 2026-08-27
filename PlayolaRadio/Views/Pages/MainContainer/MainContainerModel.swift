@@ -30,6 +30,10 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker
   @ObservationIgnored @Shared(.welcomeMessageEligible) var welcomeMessageEligible: Bool = false
+  @ObservationIgnored @Shared(.sampleBufferRendererEnabled)
+  var sampleBufferRendererEnabled: Bool = false
+  @ObservationIgnored @Shared(.sampleBufferRendererAllowed)
+  var sampleBufferRendererAllowed: Bool = true
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
@@ -131,6 +135,13 @@ class MainContainerModel: ViewModel {
   }
 
   func viewAppeared() async {
+    // Kick off the client-config fetch first but do NOT await it: the renderer
+    // flag only matters if it beats the first play() of the process (the SDK
+    // locks the backend there), so it should be in flight as early as possible —
+    // but it is best-effort by design, and a slow config endpoint must not
+    // stall station loading for up to the 60s request timeout.
+    Task { await loadClientConfig() }
+
     // Register for remote notifications (user is now logged in)
     await pushNotifications.registerForRemoteNotifications()
 
@@ -245,6 +256,27 @@ class MainContainerModel: ViewModel {
     }
   }
 
+  func loadClientConfig() async {
+    guard let jwt = auth.jwt else { return }
+    do {
+      let config = try await api.getClientConfig(jwt)
+      // A response for a stale token must not leak one account's flags into the
+      // next session: if the user signed out (or switched accounts) while the
+      // request was in flight, drop it — the new session refetches on launch.
+      guard auth.jwt == jwt else { return }
+      $sampleBufferRendererEnabled.withLock {
+        $0 = config.sampleBufferRendererEnabled ?? false
+      }
+      $sampleBufferRendererAllowed.withLock {
+        $0 = config.sampleBufferRendererAllowed ?? true
+      }
+    } catch {
+      // Deliberately quiet: the conservative default (false ⇒ legacy renderer)
+      // is the correct behavior when the fetch fails, and this endpoint may 404
+      // until the server side ships — analytics noise would drown real errors.
+    }
+  }
+
   func loadListeningTracker() async {
     guard let authJWT = auth.jwt else {
       print("Error not signed in")
@@ -254,6 +286,8 @@ class MainContainerModel: ViewModel {
       let rewards = try await api.getRewardsProfile(authJWT)
       self.$listeningTracker.withLock { $0 = ListeningTracker(rewardsProfile: rewards) }
       self.$welcomeMessageEligible.withLock { $0 = rewards.shouldShowWelcomeMessage ?? false }
+      // Koozie-only users must never reach the legacy Rewards page, even via restored nav state.
+      mainContainerNavigationCoordinator.sanitizeRewardsRouteForKoozie()
     } catch let err {
       // TODO: Show inline error state on the listening hours tile (instead of
       // a modal alert) — see PR #272 review. Background tile loads shouldn't

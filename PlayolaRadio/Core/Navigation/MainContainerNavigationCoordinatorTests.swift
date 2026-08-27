@@ -335,4 +335,51 @@ struct MainContainerNavigationCoordinatorTests {
       }
     }
   }
+
+  // MARK: - Koozie route guard
+
+  private func koozieTracker(koozieOnly: Bool) -> ListeningTracker {
+    ListeningTracker(
+      rewardsProfile: RewardsProfile(
+        totalTimeListenedMS: 0, totalMSAvailableForRewards: 0, accurateAsOfTime: Date(),
+        rewardsExperience: koozieOnly ? "koozie_only" : nil))
+  }
+
+  @Test func pushRewardsNoOpsForKoozieUser() {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .profile
+    @Shared(.listeningTracker) var lt = koozieTracker(koozieOnly: true)
+    let coordinator = MainContainerNavigationCoordinator()
+    coordinator.pushRewards(RewardsPageModel())
+    #expect(coordinator.profilePath.isEmpty)
+  }
+
+  @Test func pushRewardsPushesForFullTiersUser() {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .profile
+    @Shared(.listeningTracker) var lt = koozieTracker(koozieOnly: false)
+    let coordinator = MainContainerNavigationCoordinator()
+    coordinator.pushRewards(RewardsPageModel())
+    #expect(coordinator.profilePath.count == 1)
+  }
+
+  @Test func sanitizeStripsRewardsFromProfilePathForKoozie() {
+    @Shared(.listeningTracker) var lt = koozieTracker(koozieOnly: true)
+    let coordinator = MainContainerNavigationCoordinator()
+    coordinator.profilePath = [
+      .rewardsPage(RewardsPageModel()),
+      .notificationsSettingsPage(NotificationsSettingsPageModel()),
+    ]
+    coordinator.sanitizeRewardsRouteForKoozie()
+    #expect(coordinator.profilePath.count == 1)
+    if case .rewardsPage = coordinator.profilePath.first {
+      Issue.record("rewardsPage should have been stripped for koozie user")
+    }
+  }
+
+  @Test func sanitizeLeavesRewardsForFullTiersUser() {
+    @Shared(.listeningTracker) var lt = koozieTracker(koozieOnly: false)
+    let coordinator = MainContainerNavigationCoordinator()
+    coordinator.profilePath = [.rewardsPage(RewardsPageModel())]
+    coordinator.sanitizeRewardsRouteForKoozie()
+    #expect(coordinator.profilePath.count == 1)
+  }
 }

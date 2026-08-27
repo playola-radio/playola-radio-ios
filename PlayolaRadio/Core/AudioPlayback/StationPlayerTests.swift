@@ -20,28 +20,6 @@ import Testing
 
 private struct PlayFailureTestError: Error {}
 
-/// Records transport calls so StationPlayer's backend routing can be asserted
-/// without constructing a real (CoreAudio-backed) PlayolaStationPlayer.
-@MainActor
-final class SpyPlayolaStationPlayer: PlayolaTransport {
-  private let stateSubject = CurrentValueSubject<PlayolaStationPlayer.State, Never>(.idle)
-  var statePublisher: AnyPublisher<PlayolaStationPlayer.State, Never> {
-    stateSubject.eraseToAnyPublisher()
-  }
-
-  var configureCount = 0
-  var playCount = 0
-  var stopCount = 0
-  var pauseForInterruptionCount = 0
-  var resumeAfterInterruptionCount = 0
-
-  func configure(authProvider: PlayolaAuthenticationProvider, baseURL: URL) { configureCount += 1 }
-  func play(stationId: String) async throws { playCount += 1 }
-  func stop() { stopCount += 1 }
-  func pauseForInterruption() { pauseForInterruptionCount += 1 }
-  func resumeAfterInterruption() async throws { resumeAfterInterruptionCount += 1 }
-}
-
 /// Session double whose `setActive` blocks until the test releases it, so a test
 /// can deterministically interleave a `stop()`/`play()` during the off-main
 /// activation window without `Task.sleep`. `@unchecked Sendable`: the coordinator
@@ -100,10 +78,12 @@ final class GatedPlayolaStationPlayer: PlayolaTransport {
   let gate = AsyncGate()
   private let throwOnPlay: Bool
   var playCount = 0
+  var outputLatencyCompensation: TimeInterval = 0
 
   init(throwOnPlay: Bool) { self.throwOnPlay = throwOnPlay }
 
   func configure(authProvider: PlayolaAuthenticationProvider, baseURL: URL) {}
+  func setRenderBackend(_ backend: PlayolaRenderBackend) {}
   func play(stationId: String) async throws {
     playCount += 1
     entered.signal()

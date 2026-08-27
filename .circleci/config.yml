@@ -12,6 +12,15 @@ parameters:
     type: boolean
     default: false
 
+  # Set to true only by the nightly GitHub Action (.github/workflows/nightly-staging.yml),
+  # which POSTs this pipeline on develop. Gates the nightly-staging workflow ON and gates the
+  # ordinary lint/build-test workflows OFF, so a scheduled run does exactly one thing: build
+  # the develop tip to the STAGING TestFlight app. An ordinary develop push lacks the
+  # parameter (default false) and behaves as before.
+  run_nightly_staging:
+    type: boolean
+    default: false
+
 jobs:
   swiftlint_check:
     macos:
@@ -26,8 +35,17 @@ jobs:
           name: Install Fastlane
           command: bundle install
       - run:
-          name: Install SwiftLint (Homebrew)
-          command: brew install swiftlint
+          name: Install SwiftLint (pinned)
+          command: |
+            # Pinned deliberately: `brew install swiftlint` floats to latest, so a new
+            # SwiftLint release adds rules and fails builds nobody touched. Keep this in
+            # sync with the SwiftLintPlugins version in Package.resolved.
+            SWIFTLINT_VERSION="$(cat .swiftlint-version)"
+            curl -sSfL -o /tmp/swiftlint.zip \
+              "https://github.com/realm/SwiftLint/releases/download/${SWIFTLINT_VERSION}/portable_swiftlint.zip"
+            unzip -q -o /tmp/swiftlint.zip -d /tmp/swiftlint
+            sudo install -m 0755 /tmp/swiftlint/swiftlint /usr/local/bin/swiftlint
+            swiftlint version
       - run:
           name: Run SwiftLint via Fastlane
           command: bundle exec fastlane lint_code
@@ -159,10 +177,18 @@ jobs:
 
 workflows:
   lint-codebase:
+    # Skip on the nightly pipeline — it only builds the staging app, nothing to lint.
+    when:
+      not: << pipeline.parameters.run_nightly_staging >>
     jobs:
       - swiftlint_check
 
   build-test-adhoc:
+    # Skip on the nightly pipeline so a scheduled run does exactly one thing (staging build).
+    # develop is already kept green by per-PR CI, so re-running the full suite nightly is
+    # redundant.
+    when:
+      not: << pipeline.parameters.run_nightly_staging >>
     jobs:
       - build-and-test
       - adhoc:
@@ -171,6 +197,16 @@ workflows:
               only: development
           requires:
             - build-and-test
+
+  nightly-staging:
+    # Triggered only by .github/workflows/nightly-staging.yml, which POSTs this pipeline on
+    # develop with run_nightly_staging: true. Builds the develop tip to the STAGING TestFlight
+    # app (internal only — the release_staging lane sets distribute_external: false and
+    # notify_external_testers: false). Reuses the same job as the release-time staging build.
+    when: << pipeline.parameters.run_nightly_staging >>
+    jobs:
+      - release_staging_build:
+          context: ios-release
 
   release:
     # Only run on the API-triggered pipeline that carries run_release: true. A native

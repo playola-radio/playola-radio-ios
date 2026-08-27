@@ -31,6 +31,10 @@ struct ErrorReportingClient: Sendable {
   /// Report a message (non-Error situation) to the crash/error reporting backend.
   /// Tags are attached to the event for filtering in the Sentry UI.
   var reportMessage: @Sendable (_ message: String, _ tags: [String: String]) async -> Void
+
+  /// Set a tag on the global scope so every subsequent event (crashes included)
+  /// carries it — unlike the per-capture tags above.
+  var setGlobalTag: @Sendable (_ key: String, _ value: String) -> Void
 }
 
 // MARK: - Dependency Registration
@@ -79,6 +83,13 @@ extension ErrorReportingClient: DependencyKey {
           }
         }
       #endif
+    },
+    setGlobalTag: { key, value in
+      #if canImport(Sentry)
+        SentrySDK.configureScope { scope in
+          scope.setTag(value: value, key: key)
+        }
+      #endif
     }
   )
 }
@@ -89,7 +100,8 @@ extension ErrorReportingClient {
   static let noop = Self(
     reportError: { _, _ in },
     reportErrorWithContext: { _, _, _, _ in },
-    reportMessage: { _, _ in }
+    reportMessage: { _, _ in },
+    setGlobalTag: { _, _ in }
   )
 }
 
