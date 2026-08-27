@@ -27,6 +27,7 @@ class StationPlayer: ObservableObject {
   var sampleBufferRendererAllowed: Bool = true
   @ObservationIgnored @Shared(.sampleBufferRendererLocalOverride)
   var sampleBufferRendererLocalOverride: Bool = false
+  @ObservationIgnored @Shared(.lastPlayedStation) var lastPlayedStation: LastPlayedStation?
 
   enum PlaybackStatus: Codable, Equatable {
     case startingNewStation(AnyStation)
@@ -186,6 +187,16 @@ class StationPlayer: ObservableObject {
       activePlaybackAttempt.station == station
     {
       return await activePlaybackAttempt.waitForResult()
+    }
+
+    // Persist the last-played Playola station on accepted user intent — before
+    // stopping the previous one — so the lock-screen / car play command can
+    // resume it after Stop and across a cold-but-alive relaunch. Written here,
+    // not on `.playing`: if the user selects a station and then hits a dead zone
+    // mid-buffer, we still remember their choice. Only `.playola` stations are
+    // persisted; the legacy URL backend is being retired and never overwrites it.
+    if case .playola = station {
+      $lastPlayedStation.withLock { $0 = LastPlayedStation(station: station) }
     }
 
     stop()

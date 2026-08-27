@@ -190,7 +190,10 @@ class AuthService: @unchecked Sendable {
   func signOut() async {
     @Dependency(\.api) var api
     @Dependency(\.analytics) var analytics
+    @Dependency(\.nowPlayingUpdater) var nowPlayingUpdater
+    @Dependency(\.stationPlayer) var stationPlayer
     @Shared(.auth) var auth
+    @Shared(.lastPlayedStation) var lastPlayedStation
     @Shared(.registeredDeviceId) var registeredDeviceId
     @Shared(.userLikes) var userLikes
     @Shared(.pendingLikeOperations) var pendingLikeOperations
@@ -217,6 +220,7 @@ class AuthService: @unchecked Sendable {
     await analytics.reset()
 
     $auth.withLock { $0 = Auth() }
+    $lastPlayedStation.withLock { $0 = nil }
     $registeredDeviceId.withLock { $0 = nil }
     $userLikes.withLock { $0 = [:] }
     $pendingLikeOperations.withLock { $0 = [] }
@@ -232,6 +236,16 @@ class AuthService: @unchecked Sendable {
     $giveawayParticipations.withLock { $0 = [:] }
     $dismissedGiveawayBannerIds.withLock { $0 = [] }
     $pendingCongratsActions.withLock { $0 = [:] }
+
+    // Sign-out is the one real teardown event for the remote command center.
+    // Stop any active playback first (the snapshot is already cleared above, so
+    // the resulting stopped state can't repopulate Now Playing from a persisted
+    // station), then clear the lock-screen entry and unregister the play/stop
+    // handlers now that there is no account-scoped station to resume.
+    await MainActor.run {
+      stationPlayer.stop()
+      nowPlayingUpdater.releaseRemoteControlCenter()
+    }
 
     UserDefaults.standard.removeObject(forKey: "analytics_session_paused_at")
   }
