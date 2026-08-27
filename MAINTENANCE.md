@@ -86,7 +86,8 @@ swift-identified-collections, swift-custom-dump, SwiftLintPlugins have one.)
 
 ### Current sweep — started 2026-08-27
 
-- [x] Group 1: Point-Free family — PR #411 (swift-dependencies 1.12.0→1.17.0,
+- [ ] Group 1: Point-Free family — PR #411 open; check off when it merges
+      (swift-dependencies 1.12.0→1.17.0,
       swift-sharing 2.8.0→2.9.1, swift-custom-dump 1.5.0→1.7.0,
       swift-identified-collections already current at 1.1.1).
       swift-custom-dump capped at 1.7.0: 1.7.1 depends on the renamed

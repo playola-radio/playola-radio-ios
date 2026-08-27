@@ -16,10 +16,11 @@ trackers at the repo root.
    checklist under Dependency updates for unchecked groups.
 3. Read `LONG_RUNNING.md`. In the **Active** table, compare each row's
    "Next check" date to today. `—` means opportunistic — skip it.
-4. Report three buckets, most urgent first:
+4. Report three mutually exclusive buckets, most urgent first:
    - **Overdue** (due date < today) — include how many days overdue.
-   - **Due today / this week** (within 7 days).
-   - **Coming up** (within 30 days) — one line each, no detail.
+   - **Due today / this week** (today through today + 7 days).
+   - **Coming up** (today + 8 through today + 30 days) — one line each, no
+     detail.
 5. For each due item, say what the *next concrete action* is (pull it from the
    item's section in the file — e.g. which dependency group is next, or which
    soak gate to verify), not just that it's due.
