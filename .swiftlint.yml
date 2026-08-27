@@ -4,6 +4,7 @@
 excluded:
   - PlayolaRadio/Vendor
   - LocalPackages
+  - build
 
 disabled_rules:
   - trailing_whitespace
