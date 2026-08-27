@@ -19,21 +19,27 @@ not ✅ done until its soak clears.
 > Entries marked `⟨owner: …⟩` are placeholders the task owner should fill in —
 > I scaffolded them from open PRs/branches but don't know the internal plan.
 
-_Last updated: 2026-08-26_
+_Last updated: 2026-08-27_
 
 ---
 
 ## Active
 
-| Task | Status | Current step | Soak | Links |
-|------|--------|--------------|------|-------|
-| Host-owned audio → Sonos | 🟡 soaking | Phase 1 done (7.4.2 at 100% since ~2026-08-09, canary clean); Phase 2+3 shipping to prod in 7.5.1 | Phase 2+3: prod phased rollout via 7.5.1 (submission held on device matrix) | PR #345 · #384 · #402 · plan |
-| AirPlay-2 sample-buffer renderer (Phase 5) | 🟡 soaking | App on SDK **0.21.0 (stable)**; **shipping to 100% of users in 7.6.0** (PR #408) — the server flag is now a **rollback lever**, not a rollout gate | prod at **100%**: the sample-buffer renderer is served to everyone via the server flag. Kill lever (rollback): flip `SAMPLE_BUFFER_RENDERER_ALLOWED=false` (or clear the enabled env) to revert the whole population to the legacy renderer at each user's next app launch (backend locks per process). Watch Mixpanel `render_backend` on Listening Session Started + Sentry `render_backend` tag; hold ✅ until metrics clean across a full release cycle | PR #404 · #408 |
-| Clip share | 🔵 in progress | ⟨owner: current step⟩ | none (standard release) | PR #219 |
-| Rewards → Your Library | 🔵 in progress | Rewards→Profile, Library tab, Presets move | none | PR #372 · `fix-library-requests-ui` |
-| Siri "Play on Playola" (App Intents media schema) | 🟢 planning | Approach B decided (2026-06-14); not started | n/a | — |
-| View/Model pattern cleanup | 🔵 in progress (opportunistic) | ongoing, fix-on-touch | none | `TODO_VIEW_MODEL_VIOLATIONS.md` |
-| Prettify iPad screens | 🔵 in progress | Profile (screen 4 of N) | none (standard release) | specs in `docs/superpowers/specs/2026-08-0*-ipad-*-design.md` |
+**"Next check"** is the ISO date by which someone should look at the task again
+(advance it, verify a soak gate, or ping the owner) — not a delivery deadline.
+An item is **due** when today ≥ that date. Update it whenever you touch the
+task. `—` = opportunistic, no scheduled check. Ask "What long-running tasks do
+we need to tackle?" (or run the `whats-due` skill) to see what's due.
+
+| Task | Status | Current step | Soak | Next check | Links |
+|------|--------|--------------|------|------------|-------|
+| Host-owned audio → Sonos | 🟡 soaking | Phase 1 done (7.4.2 at 100% since ~2026-08-09, canary clean); Phase 2+3 shipping to prod in 7.5.1 | Phase 2+3: prod phased rollout via 7.5.1 (submission held on device matrix) | 2026-09-03 | PR #345 · #384 · #402 · plan |
+| AirPlay-2 sample-buffer renderer (Phase 5) | 🟡 soaking | App on SDK **0.21.0 (stable)**; **shipping to 100% of users in 7.6.0** (PR #408) — the server flag is now a **rollback lever**, not a rollout gate | prod at **100%**: the sample-buffer renderer is served to everyone via the server flag. Kill lever (rollback): flip `SAMPLE_BUFFER_RENDERER_ALLOWED=false` (or clear the enabled env) to revert the whole population to the legacy renderer at each user's next app launch (backend locks per process). Watch Mixpanel `render_backend` on Listening Session Started + Sentry `render_backend` tag; hold ✅ until metrics clean across a full release cycle | 2026-09-10 | PR #404 · #408 |
+| Clip share | 🔵 in progress | ⟨owner: current step⟩ | none (standard release) | 2026-09-10 | PR #219 |
+| Rewards → Your Library | 🔵 in progress | Rewards→Profile, Library tab, Presets move | none | 2026-09-10 | PR #372 · `fix-library-requests-ui` |
+| Siri "Play on Playola" (App Intents media schema) | 🟢 planning | Approach B decided (2026-06-14); not started | n/a | 2026-10-01 | — |
+| View/Model pattern cleanup | 🔵 in progress (opportunistic) | ongoing, fix-on-touch | none | — | `TODO_VIEW_MODEL_VIOLATIONS.md` |
+| Prettify iPad screens | 🔵 in progress | Profile (screen 4 of N) | none (standard release) | 2026-09-10 | specs in `docs/superpowers/specs/2026-08-0*-ipad-*-design.md` |
 
 ---
 
