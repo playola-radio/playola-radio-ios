@@ -11,7 +11,24 @@
 # Output names follow the fastlane deliver convention (N_APP_IPHONE_67_N.png)
 # so `fastlane deliver` picks them up from fastlane/screenshots/en-US.
 set -euo pipefail
-SIM="${SCREENSHOT_SIM:-8DD1E461-F822-4CE6-80EB-AC52CA49959A}"  # iPhone 16 Pro Max (iOS 26.5)
+# Capture on an iPhone 16 Pro Max (6.7"/6.9" class for App Store 67 shots).
+# Set SCREENSHOT_SIM=<udid> to pin a specific simulator.
+if [ -n "${SCREENSHOT_SIM:-}" ]; then
+  SIM="$SCREENSHOT_SIM"
+else
+  # Prefer an already-booted match; otherwise take the last listed, which
+  # falls in the newest iOS runtime section of `simctl list`.
+  MATCHES=$(xcrun simctl list devices available | grep "iPhone 16 Pro Max (" || true)
+  SIM=$(echo "$MATCHES" | grep "(Booted)" | head -1 | grep -oE '\([0-9A-F-]{36}\)' | tr -d '()' || true)
+  if [ -z "$SIM" ]; then
+    SIM=$(echo "$MATCHES" | tail -1 | grep -oE '\([0-9A-F-]{36}\)' | tr -d '()' || true)
+  fi
+fi
+if [ -z "$SIM" ]; then
+  echo "No available iPhone 16 Pro Max simulator found; set SCREENSHOT_SIM=<udid>" >&2
+  exit 1
+fi
+echo "Using simulator $SIM"
 APP="build/Build/Products/Debug-iphonesimulator/PlayolaRadio.app"
 BUNDLE=fm.playola.playolaradio
 OUT="fastlane/screenshots/en-US"

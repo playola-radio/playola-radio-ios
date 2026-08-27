@@ -50,6 +50,7 @@
         $0.api = fixtures.apiClient()
         $0.analytics = .noop
         $0.appRating.shouldShowRatingPrompt = { _ in false }
+        $0.pushNotifications.registerForRemoteNotifications = {}
       } operation: {
         let model = MainContainerModel()
         fixtures.presentPlayerSheetIfNeeded()

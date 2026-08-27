@@ -24,6 +24,18 @@ extension Notification.Name {
   static let scheduleUpdated = Notification.Name("scheduleUpdated")
 }
 
+/// Screenshot captures must stay deterministic: skip live startup work
+/// (Sentry, analytics, connectivity probe) that would run outside the
+/// harness's fixture dependency scope.
+@MainActor
+private var isScreenshotMode: Bool {
+  #if DEBUG
+    ScreenshotHarness.requestedPage != nil
+  #else
+    false
+  #endif
+}
+
 @MainActor
 class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotificationCenterDelegate
 {
@@ -35,7 +47,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
   ) -> Bool {
     #if canImport(Sentry)
       let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-      if !isRunningTests {
+      if !isRunningTests && !isScreenshotMode {
         SentrySDK.start { options in
           options.dsn =
             "https://c024cbc3afc46a4539e4cd73ea4f32c0@o4511043985801216.ingest.us.sentry.io/4511043987898368"
@@ -248,6 +260,8 @@ struct PlayolaRadioApp: App {
 
     @Dependency(\.nowPlayingUpdater) var nowPlayingUpdater
     nowPlayingUpdater.setupRemoteControlCenter()
+
+    guard !isScreenshotMode else { return }
 
     // Initialize analytics
     Task {
