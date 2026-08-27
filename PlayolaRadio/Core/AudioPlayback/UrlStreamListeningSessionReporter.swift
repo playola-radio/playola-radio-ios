@@ -144,6 +144,7 @@ public class UrlStreamListeningSessionReporter {
     request.httpBody = jsonData
     request.addValue("Bearer \(jwtToken)", forHTTPHeaderField: "Authorization")
     request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+    PlayolaTLS.preferHTTP3IfPlayolaHost(&request)
     return request
   }
 }
