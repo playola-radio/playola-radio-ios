@@ -35,8 +35,17 @@ jobs:
           name: Install Fastlane
           command: bundle install
       - run:
-          name: Install SwiftLint (Homebrew)
-          command: brew install swiftlint
+          name: Install SwiftLint (pinned)
+          command: |
+            # Pinned deliberately: `brew install swiftlint` floats to latest, so a new
+            # SwiftLint release adds rules and fails builds nobody touched. Keep this in
+            # sync with the SwiftLintPlugins version in Package.resolved.
+            SWIFTLINT_VERSION="$(cat .swiftlint-version)"
+            curl -sSfL -o /tmp/swiftlint.zip \
+              "https://github.com/realm/SwiftLint/releases/download/${SWIFTLINT_VERSION}/portable_swiftlint.zip"
+            unzip -q -o /tmp/swiftlint.zip -d /tmp/swiftlint
+            sudo install -m 0755 /tmp/swiftlint/swiftlint /usr/local/bin/swiftlint
+            swiftlint version
       - run:
           name: Run SwiftLint via Fastlane
           command: bundle exec fastlane lint_code
