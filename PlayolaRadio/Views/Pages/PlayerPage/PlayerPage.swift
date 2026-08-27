@@ -190,7 +190,7 @@ private struct HeroArtwork: View {
         ) { image in
           image
             .resizable()
-            .aspectRatio(contentMode: .fill)
+            .scaledToFill()
         } placeholder: {
           Color.clear
         }

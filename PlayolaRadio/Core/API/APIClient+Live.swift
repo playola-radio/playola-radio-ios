@@ -257,6 +257,9 @@ extension APIClient: DependencyKey {
       getRewardsProfile: { jwtToken in
         try await authenticatedGet(path: "/v1/rewards/users/me/profile", token: jwtToken)
       },
+      getClientConfig: { jwtToken in
+        try await authenticatedGet(path: "/v1/users/me/client-config", token: jwtToken)
+      },
       markWelcomeMessageSeen: { jwtToken, stationId in
         try await authenticatedPostVoid(
           path: "/v1/users/me/welcome-message-seen",

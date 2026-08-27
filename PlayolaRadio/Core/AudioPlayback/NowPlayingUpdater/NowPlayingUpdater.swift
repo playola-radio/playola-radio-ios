@@ -513,7 +513,8 @@ extension NowPlayingUpdater {
         sessionStartTime = now
         await analytics.track(
           .listeningSessionStarted(
-            station: StationInfo(from: station)
+            station: StationInfo(from: station),
+            renderBackend: renderBackend(for: station)
           )
         )
       }
@@ -548,7 +549,8 @@ extension NowPlayingUpdater {
         await analytics.track(
           .playbackError(
             station: StationInfo(from: lastStation),
-            error: "Playback error occurred"
+            error: "Playback error occurred",
+            renderBackend: renderBackend(for: lastStation)
           )
         )
       }
@@ -583,11 +585,19 @@ extension NowPlayingUpdater {
     // Start new session
     await analytics.track(
       .listeningSessionStarted(
-        station: StationInfo(from: toStation)
+        station: StationInfo(from: toStation),
+        renderBackend: renderBackend(for: toStation)
       )
     )
 
     sessionStartTime = now
+  }
+
+  /// The SDK renderer this process locked at its first Playola play — only
+  /// meaningful for Playola stations; URL streams bypass the SDK entirely.
+  private func renderBackend(for station: AnyStation) -> String? {
+    guard case .playola = station else { return nil }
+    return stationPlayer.lockedRenderBackend?.analyticsValue
   }
 }
 

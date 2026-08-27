@@ -74,6 +74,8 @@
 		AAF1000000000000000000B1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */; };
 		AAF1000000000000000000B2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */; };
 		AB0A00000000000000000001 /* StationPlayerPlaybackAttemptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00000000000000000002 /* StationPlayerPlaybackAttemptTests.swift */; };
+		AB0A00000000000000000003 /* StationPlayerRenderBackendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00000000000000000004 /* StationPlayerRenderBackendTests.swift */; };
+		AB0A00000000000000000005 /* StationPlayerTestDoubles.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00000000000000000006 /* StationPlayerTestDoubles.swift */; };
 		ABCDEF010000000000000002 /* TabBarPlatformChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF010000000000000001 /* TabBarPlatformChrome.swift */; };
 		ABCDEF010000000000000003 /* TabBarPlatformChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF010000000000000001 /* TabBarPlatformChrome.swift */; };
 		ABCDEF020000000000000002 /* StationListPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF020000000000000001 /* StationListPadView.swift */; };
@@ -172,6 +174,7 @@
 		D30F007C2E8592F0007BCC73 /* RewardsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744BF2E31316D0042A427 /* RewardsPageModel.swift */; };
 		D30F007D2E8592F0007BCC73 /* ToastClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302576C2E63428700F4228B /* ToastClient.swift */; };
 		D30F007E2E8592F0007BCC73 /* RewardsProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */; };
+		AB0A00000000000000000007 /* ClientConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00000000000000000009 /* ClientConfig.swift */; };
 		D30F007F2E8592F0007BCC73 /* LikedSongsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257862E63B6B700F4228B /* LikedSongsPage.swift */; };
 		D30F00802E8592F0007BCC73 /* EnumTypeEquatableProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3137DD32D3AC9B40070033A /* EnumTypeEquatableProtocol.swift */; };
 		D30F00822E8592F0007BCC73 /* LikedSongsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30257882E63B6BE00F4228B /* LikedSongsPageModel.swift */; };
@@ -314,6 +317,11 @@
 		D35EFC3C2F192C76000F64A4 /* SupportPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC352F192C76000F64A4 /* SupportPageModel.swift */; };
 		D35EFC3D2F192C76000F64A4 /* SupportPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC372F192C76000F64A4 /* SupportPageView.swift */; };
 		D35EFC3F2F192C8F000F64A4 /* SupportPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC362F192C76000F64A4 /* SupportPageTests.swift */; };
+		AB0B00000000000000000001 /* DeveloperOptionsSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0B00000000000000000007 /* DeveloperOptionsSheetModel.swift */; };
+		AB0B00000000000000000002 /* DeveloperOptionsSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0B00000000000000000008 /* DeveloperOptionsSheetView.swift */; };
+		AB0B00000000000000000003 /* DeveloperOptionsSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0B00000000000000000007 /* DeveloperOptionsSheetModel.swift */; };
+		AB0B00000000000000000004 /* DeveloperOptionsSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0B00000000000000000008 /* DeveloperOptionsSheetView.swift */; };
+		AB0B00000000000000000005 /* DeveloperOptionsSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0B00000000000000000009 /* DeveloperOptionsSheetTests.swift */; };
 		D35EFC432F1930C8000F64A4 /* FeedbackSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC402F1930C8000F64A4 /* FeedbackSheetModel.swift */; };
 		D35EFC442F1930C8000F64A4 /* FeedbackSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC412F1930C8000F64A4 /* FeedbackSheetView.swift */; };
 		D35EFC452F1930C8000F64A4 /* FeedbackSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC402F1930C8000F64A4 /* FeedbackSheetModel.swift */; };
@@ -443,6 +451,7 @@
 		D3B744A82E2F185F0042A427 /* SmallPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744A62E2F18530042A427 /* SmallPlayerTests.swift */; };
 		D3B744AD2E2FCD930042A427 /* MainContainerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744AC2E2FCD8E0042A427 /* MainContainerModel.swift */; };
 		D3B744B02E2FE6FB0042A427 /* RewardsProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */; };
+		AB0A00000000000000000008 /* ClientConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00000000000000000009 /* ClientConfig.swift */; };
 		D3B744B42E2FECE10042A427 /* LocalListeningSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744B32E2FECC80042A427 /* LocalListeningSession.swift */; };
 		D3B744B72E2FED940042A427 /* ListeningTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744B62E2FED8D0042A427 /* ListeningTracker.swift */; };
 		D3B744B92E2FF16F0042A427 /* ListeningTimeTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B744B82E2FF1600042A427 /* ListeningTimeTile.swift */; };
@@ -598,6 +607,8 @@
 		A6613FD7A13B448187CB8595 /* PresetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetTests.swift; sourceTree = "<group>"; };
 		AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		AB0A00000000000000000002 /* StationPlayerPlaybackAttemptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerPlaybackAttemptTests.swift; sourceTree = "<group>"; };
+		AB0A00000000000000000004 /* StationPlayerRenderBackendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerRenderBackendTests.swift; sourceTree = "<group>"; };
+		AB0A00000000000000000006 /* StationPlayerTestDoubles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerTestDoubles.swift; sourceTree = "<group>"; };
 		ABCDEF010000000000000001 /* TabBarPlatformChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarPlatformChrome.swift; sourceTree = "<group>"; };
 		ABCDEF020000000000000001 /* StationListPadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListPadView.swift; sourceTree = "<group>"; };
 		ABCDEF030000000000000001 /* HomePagePadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePagePadView.swift; sourceTree = "<group>"; };
@@ -716,6 +727,9 @@
 		D35EFC352F192C76000F64A4 /* SupportPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportPageModel.swift; sourceTree = "<group>"; };
 		D35EFC362F192C76000F64A4 /* SupportPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportPageTests.swift; sourceTree = "<group>"; };
 		D35EFC372F192C76000F64A4 /* SupportPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportPageView.swift; sourceTree = "<group>"; };
+		AB0B00000000000000000007 /* DeveloperOptionsSheetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperOptionsSheetModel.swift; sourceTree = "<group>"; };
+		AB0B00000000000000000008 /* DeveloperOptionsSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperOptionsSheetView.swift; sourceTree = "<group>"; };
+		AB0B00000000000000000009 /* DeveloperOptionsSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperOptionsSheetTests.swift; sourceTree = "<group>"; };
 		D35EFC402F1930C8000F64A4 /* FeedbackSheetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSheetModel.swift; sourceTree = "<group>"; };
 		D35EFC412F1930C8000F64A4 /* FeedbackSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSheetView.swift; sourceTree = "<group>"; };
 		D35EFC472F19314E000F64A4 /* FeedbackSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSheetTests.swift; sourceTree = "<group>"; };
@@ -801,6 +815,7 @@
 		D3B744A62E2F18530042A427 /* SmallPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmallPlayerTests.swift; sourceTree = "<group>"; };
 		D3B744AC2E2FCD8E0042A427 /* MainContainerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainerModel.swift; sourceTree = "<group>"; };
 		D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsProfile.swift; sourceTree = "<group>"; };
+		AB0A00000000000000000009 /* ClientConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientConfig.swift; sourceTree = "<group>"; };
 		D3B744B32E2FECC80042A427 /* LocalListeningSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalListeningSession.swift; sourceTree = "<group>"; };
 		D3B744B62E2FED8D0042A427 /* ListeningTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTracker.swift; sourceTree = "<group>"; };
 		D3B744B82E2FF1600042A427 /* ListeningTimeTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningTimeTile.swift; sourceTree = "<group>"; };
@@ -1079,6 +1094,7 @@
 				D3367C002F097D0D00AF87FA /* PushNotificationSubscription.swift */,
 				D35673B12D3DC59100E4E926 /* RadioStation.swift */,
 				D3B744AF2E2FE6F80042A427 /* RewardsProfile.swift */,
+				AB0A00000000000000000009 /* ClientConfig.swift */,
 				D3C7E5F52EF0D12A00EDD3ED /* SongSeed */,
 				D3C7E5E42EF0C51500EDD3ED /* StagingItem */,
 				5C5534927BB84EF0BB547E65 /* Preset */,
@@ -1160,6 +1176,7 @@
 				D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */,
 				D39591132E39930500720CF8 /* ContactPage */,
 				D35EFC4C2F1A9911000F64A4 /* ConversationListPage */,
+				AB0B00000000000000000006 /* DeveloperOptionsSheet */,
 				D39591242E3BB6F400720CF8 /* EditProfilePage */,
 				D35EFC422F1930C8000F64A4 /* FeedbackSheet */,
 				D37257AC2DF88B89001BC6F9 /* HomePage */,
@@ -1382,6 +1399,16 @@
 			path = SupportPage;
 			sourceTree = "<group>";
 		};
+		AB0B00000000000000000006 /* DeveloperOptionsSheet */ = {
+			isa = PBXGroup;
+			children = (
+				AB0B00000000000000000007 /* DeveloperOptionsSheetModel.swift */,
+				AB0B00000000000000000008 /* DeveloperOptionsSheetView.swift */,
+				AB0B00000000000000000009 /* DeveloperOptionsSheetTests.swift */,
+			);
+			path = DeveloperOptionsSheet;
+			sourceTree = "<group>";
+		};
 		D35EFC422F1930C8000F64A4 /* FeedbackSheet */ = {
 			isa = PBXGroup;
 			children = (
@@ -1579,6 +1606,8 @@
 			isa = PBXGroup;
 			children = (
 				AB0A00000000000000000002 /* StationPlayerPlaybackAttemptTests.swift */,
+				AB0A00000000000000000004 /* StationPlayerRenderBackendTests.swift */,
+				AB0A00000000000000000006 /* StationPlayerTestDoubles.swift */,
 				D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */,
 				FAE000000000000000000001 /* AudioSessionCoordinator.swift */,
 				FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */,
@@ -2183,6 +2212,7 @@
 				6DB99ADC7A25C5E364543B5E /* YourLibraryPageModel.swift in Sources */,
 				D30F007D2E8592F0007BCC73 /* ToastClient.swift in Sources */,
 				D30F007E2E8592F0007BCC73 /* RewardsProfile.swift in Sources */,
+				AB0A00000000000000000007 /* ClientConfig.swift in Sources */,
 				D3367BF92F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */,
 				D3367BFB2F08B7DC00AF87FA /* NotificationsSettingsPageView.swift in Sources */,
 				D30F007F2E8592F0007BCC73 /* LikedSongsPage.swift in Sources */,
@@ -2199,6 +2229,8 @@
 				D3776A532F2BEB6500200ADF /* LibrarySong.swift in Sources */,
 				D3F493C52EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */,
 				D3776A0B2F22BF6A00200ADF /* ListenerQuestion.swift in Sources */,
+				AB0B00000000000000000001 /* DeveloperOptionsSheetModel.swift in Sources */,
+				AB0B00000000000000000002 /* DeveloperOptionsSheetView.swift in Sources */,
 				D35EFC432F1930C8000F64A4 /* FeedbackSheetModel.swift in Sources */,
 				D35EFC442F1930C8000F64A4 /* FeedbackSheetView.swift in Sources */,
 				D30F00832E8592F0007BCC73 /* UIApplication+keyWindow.swift in Sources */,
@@ -2394,6 +2426,7 @@
 				BD3E0D31823FDD5950701308 /* YourLibraryPageModel.swift in Sources */,
 				D302576D2E63428800F4228B /* ToastClient.swift in Sources */,
 				D3B744B02E2FE6FB0042A427 /* RewardsProfile.swift in Sources */,
+				AB0A00000000000000000008 /* ClientConfig.swift in Sources */,
 				D3367BFC2F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift in Sources */,
 				D3367BFE2F08B7DC00AF87FA /* NotificationsSettingsPageView.swift in Sources */,
 				D30257872E63B6BB00F4228B /* LikedSongsPage.swift in Sources */,
@@ -2410,6 +2443,8 @@
 				D3776A522F2BEB6500200ADF /* LibrarySong.swift in Sources */,
 				D3F493C42EEDD9F8008ED463 /* AudioRecorderClient.swift in Sources */,
 				D3776A0C2F22BF6A00200ADF /* ListenerQuestion.swift in Sources */,
+				AB0B00000000000000000003 /* DeveloperOptionsSheetModel.swift in Sources */,
+				AB0B00000000000000000004 /* DeveloperOptionsSheetView.swift in Sources */,
 				D35EFC452F1930C8000F64A4 /* FeedbackSheetModel.swift in Sources */,
 				D35EFC462F1930C8000F64A4 /* FeedbackSheetView.swift in Sources */,
 				D3A276692D49628C006055AF /* UIApplication+keyWindow.swift in Sources */,
@@ -2531,6 +2566,7 @@
 				D39728562F5F03FF008591E3 /* VersionComparisonTests.swift in Sources */,
 				D3C7E5EF2EF0C58900EDD3ED /* StagingItemTests.swift in Sources */,
 				81599AD0B41E4A2496EEF25A /* PresetTests.swift in Sources */,
+				AB0B00000000000000000005 /* DeveloperOptionsSheetTests.swift in Sources */,
 				D35EFC482F19314E000F64A4 /* FeedbackSheetTests.swift in Sources */,
 				D3367BFF2F08B7E900AF87FA /* NotificationsSettingsPageTests.swift in Sources */,
 				D3C7E5E32EF0A44D00EDD3ED /* SongSearchPageTests.swift in Sources */,
@@ -2558,6 +2594,8 @@
 				D3B9C7AE2F534D57002D75C2 /* IntroUploadServiceTests.swift in Sources */,
 				D37769FE2F22B70600200ADF /* ChooseStationPageTests.swift in Sources */,
 				AB0A00000000000000000001 /* StationPlayerPlaybackAttemptTests.swift in Sources */,
+				AB0A00000000000000000003 /* StationPlayerRenderBackendTests.swift in Sources */,
+				AB0A00000000000000000005 /* StationPlayerTestDoubles.swift in Sources */,
 				D35EFBD92F101A76000F64A4 /* StationPlayerTests.swift in Sources */,
 				E1CA0000000000000000A005 /* CarPlayPlaybackTransitionTests.swift in Sources */,
 				D395911A2E39933800720CF8 /* ContactPageTests.swift in Sources */,
@@ -3193,8 +3231,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/playola-radio/playola-player-swift";
 			requirement = {
-				kind = upToNextMinorVersion;
-				minimumVersion = 0.20.3;
+				kind = exactVersion;
+				version = "0.21.0";
 			};
 		};
 		D30F003A2E8592F0007BCC73 /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
@@ -3321,8 +3359,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/playola-radio/playola-player-swift";
 			requirement = {
-				kind = upToNextMinorVersion;
-				minimumVersion = 0.20.3;
+				kind = exactVersion;
+				version = "0.21.0";
 			};
 		};
 		D3FF74D32FA7CA760052D500 /* XCRemoteSwiftPackageReference "swift-custom-dump" */ = {

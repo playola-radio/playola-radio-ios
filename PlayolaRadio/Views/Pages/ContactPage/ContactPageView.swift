@@ -63,6 +63,9 @@ struct ContactPageView: View {
                     .frame(width: 72, height: 72)
                     .foregroundColor(Color.gray400)
                 }
+                .onTapGesture(
+                  count: 10,
+                  perform: model.profileImageTapped10Times)
 
                 // Name and Email
                 VStack(spacing: 4) {

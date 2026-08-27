@@ -40,7 +40,8 @@ extension AnalyticsClient {
       startListeningSession: { station in
         listeningSessionStartTime = Date()
         let event = AnalyticsEvent.listeningSessionStarted(
-          station: StationInfo(from: station)
+          station: StationInfo(from: station),
+          renderBackend: nil
         )
         trackedEvents.append(event)
         eventHandler(event)
@@ -89,7 +90,8 @@ extension AnalyticsClient {
       startListeningSession: { station in
         await storage.startSession(station)
         let event = AnalyticsEvent.listeningSessionStarted(
-          station: StationInfo(from: station)
+          station: StationInfo(from: station),
+          renderBackend: nil
         )
         await storage.addEvent(event)
       },

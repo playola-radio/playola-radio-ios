@@ -282,7 +282,7 @@ struct LibrarySongRow: View {
             CGSize(width: 45, height: 45), scale: displayScale)
         )
         .resizable()
-        .aspectRatio(contentMode: .fill)
+        .scaledToFill()
         .frame(width: 45, height: 45)
         .clipped()
       } else {
@@ -388,7 +388,7 @@ struct LibraryRequestRow: View {
               CGSize(width: 45, height: 45), scale: displayScale)
           )
           .resizable()
-          .aspectRatio(contentMode: .fill)
+          .scaledToFill()
           .frame(width: 45, height: 45)
           .clipped()
         } else {

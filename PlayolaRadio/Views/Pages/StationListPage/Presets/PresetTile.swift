@@ -23,7 +23,7 @@ struct PresetTile: View {
         url: display.imageUrl,
         context: RemoteArtwork.downsampleContext(CGSize(width: 92, height: 92), scale: displayScale)
       ) { image in
-        image.resizable().aspectRatio(contentMode: .fill)
+        image.resizable().scaledToFill()
       } placeholder: {
         Color(hex: "#333333")
       }
