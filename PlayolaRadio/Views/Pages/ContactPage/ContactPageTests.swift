@@ -48,7 +48,10 @@ struct ContactPageTests {
       await ContactPageModel().onLogOutTapped()
     }
 
-    #expect(stationPlayerMock.stopCalledCount == 1)
+    // Stopped twice: once by the page for an immediate audio cut on tap, once by
+    // `signOut()` as the account-teardown backstop covering non-UI sign-out paths
+    // (e.g. the credential-revoked observer). `stop()` is idempotent.
+    #expect(stationPlayerMock.stopCalledCount == 2)
     #expect(unregisterCalls.value.count == 1)
     #expect(unregisterCalls.value.first?.0 == "test-jwt")
     #expect(unregisterCalls.value.first?.1 == "device-xyz")

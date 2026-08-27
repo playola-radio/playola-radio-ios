@@ -104,6 +104,125 @@ struct NowPlayingUpdaterTests {
     #expect(!updater.isStillCurrent(makeTestStation2()))
   }
 
+  // MARK: - Resume Last Station Tests
+
+  @Test
+  func stoppedWithPersistedStationRendersNowPlayingEntry() {
+    let station = AnyStation.mockPlayola(name: "Bri's Show", curatorName: "Bri")
+    @Shared(.lastPlayedStation) var persisted: LastPlayedStation? =
+      LastPlayedStation(station: station)
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      let stationPlayer = StationPlayer(
+        playolaStationPlayer: SpyPlayolaStationPlayer(),
+        audioSessionCoordinator: AudioSessionCoordinator(session: NoOpAudioSession()))
+      // Default state is `.stopped` (currentStation nil): the init `$state` sink
+      // fires synchronously and must render the persisted snapshot, not clear.
+      return NowPlayingUpdater(stationPlayer: stationPlayer)
+    }
+
+    // A Stop with a persisted snapshot keeps the Now Playing entry populated (so
+    // the lock-screen button stays live) instead of clearing it, and reports rate
+    // 0.0 so iOS shows a functional Play button rather than a Pause.
+    #expect(!updater.currentNowPlayingInfo.isEmpty)
+    #expect(updater.currentNowPlayingInfo[MPMediaItemPropertyTitle] as? String == "Bri's Show")
+    #expect(updater.currentNowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] as? Double == 0.0)
+  }
+
+  @Test
+  func stoppedWithNonPlayolaSnapshotClearsNowPlayingEntry() {
+    // Mirror of the resume-boundary guard on the display side: only `.playola`
+    // snapshots drive a stopped Now Playing entry, so a stale/corrupt `.url`
+    // snapshot must not surface a live lock-screen button for the retiring URL
+    // backend. (`.url` is never persisted today; this enforces the invariant.)
+    @Shared(.lastPlayedStation) var persisted: LastPlayedStation? =
+      LastPlayedStation(station: .mockUrl())
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      let stationPlayer = StationPlayer(
+        playolaStationPlayer: SpyPlayolaStationPlayer(),
+        audioSessionCoordinator: AudioSessionCoordinator(session: NoOpAudioSession()))
+      return NowPlayingUpdater(stationPlayer: stationPlayer)
+    }
+
+    #expect(updater.currentNowPlayingInfo.isEmpty)
+  }
+
+  @Test
+  func handlePlayCommandResumesPersistedStationWhenStopped() {
+    @Shared(.lastPlayedStation) var persisted: LastPlayedStation? =
+      LastPlayedStation(station: .mockPlayola())
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      let stationPlayer = StationPlayer(
+        playolaStationPlayer: SpyPlayolaStationPlayer(),
+        audioSessionCoordinator: AudioSessionCoordinator(session: NoOpAudioSession()))
+      return NowPlayingUpdater(stationPlayer: stationPlayer)
+    }
+
+    // Stopped with a durable snapshot: the play command accepts and restarts it.
+    #expect(updater.handlePlayCommand() == .success)
+  }
+
+  @Test
+  func handlePlayCommandReturnsCommandFailedWhenNoPersistedStation() {
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      let stationPlayer = StationPlayer(
+        playolaStationPlayer: SpyPlayolaStationPlayer(),
+        audioSessionCoordinator: AudioSessionCoordinator(session: NoOpAudioSession()))
+      return NowPlayingUpdater(stationPlayer: stationPlayer)
+    }
+
+    // Nothing was ever played: there is genuinely nothing to resume.
+    #expect(updater.handlePlayCommand() == .commandFailed)
+  }
+
+  @Test
+  func handlePlayCommandRefusesNonPlayolaSnapshot() {
+    // Only `.playola` is ever persisted, but enforce the invariant at the resume
+    // boundary: a stale/corrupt `.url` snapshot must never reach the retiring URL
+    // backend via the play command.
+    @Shared(.lastPlayedStation) var persisted: LastPlayedStation? =
+      LastPlayedStation(station: .mockUrl())
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      let stationPlayer = StationPlayer(
+        playolaStationPlayer: SpyPlayolaStationPlayer(),
+        audioSessionCoordinator: AudioSessionCoordinator(session: NoOpAudioSession()))
+      return NowPlayingUpdater(stationPlayer: stationPlayer)
+    }
+
+    #expect(updater.handlePlayCommand() == .commandFailed)
+  }
+
+  @Test
+  func handlePlayCommandResumesPausedStation() {
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      let stationPlayer = StationPlayer(
+        playolaStationPlayer: SpyPlayolaStationPlayer(),
+        audioSessionCoordinator: AudioSessionCoordinator(session: NoOpAudioSession()))
+      stationPlayer.state = StationPlayer.State(playbackStatus: .paused(.mockPlayola()))
+      return NowPlayingUpdater(stationPlayer: stationPlayer)
+    }
+
+    // Interruption pause: the play command resumes the live backend directly.
+    #expect(updater.handlePlayCommand() == .success)
+  }
+
   // MARK: - Analytics Tests
 
   // MARK: - render_backend plumbing

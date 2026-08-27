@@ -101,6 +101,26 @@ extension SharedKey where Self == InMemoryKey<ListeningTracker?>.Default {
   }
 }
 
+// MARK: - Last Played Station
+
+/// Durable snapshot of the last Playola station the user chose to play. Keeps the
+/// lock-screen Now Playing entry alive after Stop and lets the car / lock-screen
+/// play command resume the last station — including after a cold-but-alive
+/// relaunch, before station lists have been fetched. Only `.playola` stations are
+/// persisted (the legacy URL backend is being retired). A wrapper struct (rather
+/// than a bare `AnyStation?`) leaves room to grow without a storage migration.
+struct LastPlayedStation: Codable, Equatable, Sendable {
+  var station: AnyStation
+}
+
+extension SharedKey where Self == FileStorageKey<LastPlayedStation?>.Default {
+  static var lastPlayedStation: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "last-played-station.json")),
+      default: nil]
+  }
+}
+
 extension SharedKey where Self == InMemoryKey<MainContainerModel.ActiveTab>.Default {
   static var activeTab: Self {
     Self[.inMemory("activeTab"), default: .home]
