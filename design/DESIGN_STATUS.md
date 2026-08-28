@@ -23,8 +23,10 @@ the document), with a large color-matched zone title above it and its label note
 | Amber | Proposal, exploring (`nz0Eu`, `Vnt0C`, `VOaSl`, `t011CZ`) |
 | Blue | Proposal, proposed direction (`cJb6J` 3-Tab IA, `U8c7us` Home v2) |
 
-When a proposal's status changes, recolor its zone rectangle to match (and when it
-ships, move its frames into the green Current App zone).
+When a proposal's status changes, recolor its zone rectangle to match, and
+`git mv` its folder in `exports/` to the matching bucket (`future/` = exploring,
+`in-progress/` = proposed/implementing, `current-app/` = shipped). When it ships,
+move its frames into the green Current App zone.
 
 **Statuses**
 
