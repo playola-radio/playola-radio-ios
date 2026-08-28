@@ -49,7 +49,7 @@ layout" section of `DESIGN_STATUS.md`. Conventions:
 - New proposal = new labeled row (zone rect + big title + note, 1584px below
   the last row) + a section in `DESIGN_STATUS.md`.
 - Zone colors track status: gray = components, amber = exploring,
-  blue = proposed, green = shipped/current app.
+  blue = proposed or implementing, green = shipped/current app.
 - **After any visual change to a screen, re-export it** so `exports/` never
   lies. From the `execute` tool:
 

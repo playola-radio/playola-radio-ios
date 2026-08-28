@@ -21,7 +21,7 @@ the document), with a large color-matched zone title above it and its label note
 | Gray | Components — shared library (`mykNr`) |
 | Green | Current app — shipped (`iPLiG` listener, `g7bIip` broadcaster) |
 | Amber | Proposal, exploring (`nz0Eu`, `Vnt0C`, `VOaSl`, `t011CZ`) |
-| Blue | Proposal, proposed direction (`cJb6J` 3-Tab IA, `U8c7us` Home v2) |
+| Blue | Proposal, proposed or implementing (`cJb6J` 3-Tab IA, `U8c7us` Home v2) |
 
 When a proposal's status changes, recolor its zone rectangle to match, and
 `git mv` its folder in `exports/` to the matching bucket (`future/` = exploring,
@@ -35,7 +35,7 @@ move its frames into the green Current App zone.
 | Shipped | In the app; the frame documents current state |
 | Proposed | Direction chosen on canvas, not yet implemented |
 | Exploring | One of several candidates; no decision yet |
-| Implementing | Actively being built (link the PR) |
+| Implementing | Actively being built (link the PR); zone stays blue |
 | Dropped | Rejected; frame kept (or deleted) for reference |
 
 ---
