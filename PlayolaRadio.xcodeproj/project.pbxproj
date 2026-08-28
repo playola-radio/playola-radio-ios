@@ -242,6 +242,16 @@
 		D3219C1A2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */; };
 		D3219C1B2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */; };
 		D3219C1F2EDD22360008AFDA /* BroadcastPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3219C1C2EDD22230008AFDA /* BroadcastPageTests.swift */; };
+		AA10000000000000000000B1 /* ArtistHomePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A1 /* ArtistHomePageModel.swift */; };
+		AA10000000000000000000B2 /* ArtistHomePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A1 /* ArtistHomePageModel.swift */; };
+		AA10000000000000000000B3 /* ArtistHomePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A2 /* ArtistHomePageView.swift */; };
+		AA10000000000000000000B4 /* ArtistHomePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A2 /* ArtistHomePageView.swift */; };
+		AA10000000000000000000B6 /* ArtistDashboardPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */; };
+		AA10000000000000000000B7 /* ArtistDashboardPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */; };
+		AA10000000000000000000B8 /* ArtistDashboardPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A5 /* ArtistDashboardPageView.swift */; };
+		AA10000000000000000000B9 /* ArtistDashboardPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A5 /* ArtistDashboardPageView.swift */; };
+		AA10000000000000000000B5 /* ArtistHomePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A3 /* ArtistHomePageTests.swift */; };
+		AA10000000000000000000BA /* ArtistDashboardPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A6 /* ArtistDashboardPageTests.swift */; };
 		D334827A2F9B1A83002CAC52 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 0B6E1320AC744E9FAEC2F50F /* Sentry */; };
 		D334827B2F9B1A83002CAC52 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 0B6E1320AC744E9FAEC2F50F /* Sentry */; };
 		D334827E2F9B1AB5002CAC52 /* ErrorReportingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D334827C2F9B1AB5002CAC52 /* ErrorReportingClient.swift */; };
@@ -671,6 +681,12 @@
 		D3219C162EDD22100008AFDA /* BroadcastPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageView.swift; sourceTree = "<group>"; };
 		D3219C192EDD22180008AFDA /* BroadcastPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageModel.swift; sourceTree = "<group>"; };
 		D3219C1C2EDD22230008AFDA /* BroadcastPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPageTests.swift; sourceTree = "<group>"; };
+		AA10000000000000000000A1 /* ArtistHomePageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistHomePageModel.swift; sourceTree = "<group>"; };
+		AA10000000000000000000A2 /* ArtistHomePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistHomePageView.swift; sourceTree = "<group>"; };
+		AA10000000000000000000A3 /* ArtistHomePageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistHomePageTests.swift; sourceTree = "<group>"; };
+		AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardPageModel.swift; sourceTree = "<group>"; };
+		AA10000000000000000000A5 /* ArtistDashboardPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardPageView.swift; sourceTree = "<group>"; };
+		AA10000000000000000000A6 /* ArtistDashboardPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardPageTests.swift; sourceTree = "<group>"; };
 		D334827C2F9B1AB5002CAC52 /* ErrorReportingClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorReportingClient.swift; sourceTree = "<group>"; };
 		D33482802F9B1B03002CAC52 /* ErrorReportingClientMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorReportingClientMock.swift; sourceTree = "<group>"; };
 		D3367BF52F08B7DC00AF87FA /* NotificationsSettingsPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsSettingsPageModel.swift; sourceTree = "<group>"; };
@@ -1133,6 +1149,26 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		AA10000000000000000000C2 /* ArtistDashboardPage */ = {
+			isa = PBXGroup;
+			children = (
+				AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */,
+				AA10000000000000000000A5 /* ArtistDashboardPageView.swift */,
+				AA10000000000000000000A6 /* ArtistDashboardPageTests.swift */,
+			);
+			path = ArtistDashboardPage;
+			sourceTree = "<group>";
+		};
+		AA10000000000000000000C1 /* ArtistHomePage */ = {
+			isa = PBXGroup;
+			children = (
+				AA10000000000000000000A1 /* ArtistHomePageModel.swift */,
+				AA10000000000000000000A2 /* ArtistHomePageView.swift */,
+				AA10000000000000000000A3 /* ArtistHomePageTests.swift */,
+			);
+			path = ArtistHomePage;
+			sourceTree = "<group>";
+		};
 		D3219C152EDD22060008AFDA /* BroadcastPage */ = {
 			isa = PBXGroup;
 			children = (
@@ -1176,6 +1212,8 @@
 				E1AB0000000000000000AC01 /* AppVersionGate */,
 				D3776A022F22BA1A00200ADF /* AskQuestionPage */,
 				D3776A162F243F7A00200ADF /* BroadcastersListenerQuestionPage */,
+				AA10000000000000000000C2 /* ArtistDashboardPage */,
+				AA10000000000000000000C1 /* ArtistHomePage */,
 				D3219C152EDD22060008AFDA /* BroadcastPage */,
 				D37769F82F22B38700200ADF /* ChooseStationPage */,
 				D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */,
@@ -2180,6 +2218,10 @@
 				D30F00622E8592F0007BCC73 /* MailService.swift in Sources */,
 				D30F00632E8592F0007BCC73 /* FRadioPlayerMetadata+Equatable.swift in Sources */,
 				D3219C1A2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */,
+				AA10000000000000000000B1 /* ArtistHomePageModel.swift in Sources */,
+				AA10000000000000000000B3 /* ArtistHomePageView.swift in Sources */,
+				AA10000000000000000000B6 /* ArtistDashboardPageModel.swift in Sources */,
+				AA10000000000000000000B8 /* ArtistDashboardPageView.swift in Sources */,
 				D30F00642E8592F0007BCC73 /* PrizeTier.swift in Sources */,
 				D30F00652E8592F0007BCC73 /* PlayolaSheet.swift in Sources */,
 				D3C7E5E92EF0C56200EDD3ED /* StagingItem.swift in Sources */,
@@ -2395,6 +2437,10 @@
 				D339E57E2BFD750700B9E35B /* MailService.swift in Sources */,
 				D339E56F2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift in Sources */,
 				D3219C1B2EDD22200008AFDA /* BroadcastPageModel.swift in Sources */,
+				AA10000000000000000000B2 /* ArtistHomePageModel.swift in Sources */,
+				AA10000000000000000000B4 /* ArtistHomePageView.swift in Sources */,
+				AA10000000000000000000B7 /* ArtistDashboardPageModel.swift in Sources */,
+				AA10000000000000000000B9 /* ArtistDashboardPageView.swift in Sources */,
 				D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */,
 				D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */,
 				D3C7E5EA2EF0C56200EDD3ED /* StagingItem.swift in Sources */,
@@ -2553,6 +2599,8 @@
 				D30257792E634A2600F4228B /* ToastClientTests.swift in Sources */,
 				D3C7E5FA2EF0D13800EDD3ED /* SongSeedTests.swift in Sources */,
 				D3219C1F2EDD22360008AFDA /* BroadcastPageTests.swift in Sources */,
+				AA10000000000000000000B5 /* ArtistHomePageTests.swift in Sources */,
+				AA10000000000000000000BA /* ArtistDashboardPageTests.swift in Sources */,
 				D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */,
 				D3FEC80D2EDF689F00A33AE8 /* ChooseStationToBroadcastPageTests.swift in Sources */,
 				D3A1B2C001000000000000A6 /* StationVoiceCatalogTests.swift in Sources */,

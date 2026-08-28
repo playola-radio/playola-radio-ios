@@ -69,8 +69,9 @@ move its frames into the green Current App zone.
 ### Open decision: navigation IA
 
 Two competing IAs — **3-tab** (Home · Dashboard · Profile) vs **2-tab
-dashboard-style Home v2**. Pick one before implementation starts; mark the
-loser Dropped.
+dashboard-style Home v2**. Implementation has started on the **3-tab IA**
+(branch `briankeane/new-3-tab-navigation`); mark Home v2 (`ccNgg`, `Q1nN0v`) Dropped
+once that decision is confirmed.
 
 ### Proposal · Artist Home & Station Health (label `Pz47j`)
 
@@ -105,9 +106,9 @@ loser Dropped.
 
 | Frame | Node ID | Status | Notes |
 |---|---|---|---|
-| Home (Artist · Tab Root) | `tscZI` | Proposed | |
-| Dashboard (Artist · Tab Root) | `NLnb0` | Proposed | |
-| Profile (Artist · Tab Root) | `LeACy` | Proposed | |
+| Home (Artist · Tab Root) | `tscZI` | Implementing | Placeholder page shipped on `briankeane/new-3-tab-navigation` (hardcoded model values) |
+| Dashboard (Artist · Tab Root) | `NLnb0` | Implementing | Placeholder page shipped on `briankeane/new-3-tab-navigation` (hardcoded model values) |
+| Profile (Artist · Tab Root) | `LeACy` | Implementing | Tab renamed "Profile"; still renders the old ContactPage for now |
 
 ### Proposal · Home v2 · 2-Tab (label `OMoHs`)
 
@@ -120,7 +121,7 @@ loser Dropped.
 | Component | Node ID | Status |
 |---|---|---|
 | Tab Bar (Broadcast · Glass) | `k7Cd7m` | Exploring |
-| Tab Bar (Artist · 3-tab Glass) | `R0hsG` | Proposed (3-tab IA) |
+| Tab Bar (Artist · 3-tab Glass) | `R0hsG` | Implementing (3-tab IA; native TabView) |
 | Tab Bar (Artist · 2-tab Glass) | `Q1nN0v` | Proposed (Home v2) |
 | Broadcast Action Button | `EqHkj` | Exploring |
 | Schedule Row | `th8Fu` | Exploring |
