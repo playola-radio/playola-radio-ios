@@ -1,0 +1,664 @@
+{
+  "screen": {
+    "type": "frame",
+    "id": "yZGmG",
+    "x": 1479,
+    "y": 1338,
+    "name": "Player",
+    "clip": true,
+    "width": 393,
+    "height": 852,
+    "fill": "$surface-base",
+    "layout": "vertical",
+    "padding": [
+      24,
+      0,
+      0,
+      0
+    ],
+    "alignItems": "center",
+    "children": [
+      {
+        "type": "frame",
+        "id": "T0F5iq",
+        "name": "Header",
+        "width": "fill_container",
+        "padding": [
+          8,
+          16,
+          0,
+          16
+        ],
+        "justifyContent": "space_between",
+        "alignItems": "center",
+        "children": [
+          {
+            "type": "icon",
+            "id": "rgiUy",
+            "name": "Dismiss",
+            "width": 24,
+            "height": 24,
+            "icon": "chevron-down",
+            "library": "lucide",
+            "fill": "$text-primary"
+          },
+          {
+            "type": "frame",
+            "id": "jUMcz",
+            "name": "Station Titles",
+            "layout": "vertical",
+            "gap": 4,
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "s2hDo",
+                "name": "Primary",
+                "fill": "$text-primary",
+                "content": "Bri Bagwell",
+                "fontFamily": "Inter",
+                "fontSize": 20,
+                "fontWeight": "500"
+              },
+              {
+                "type": "text",
+                "id": "GARMd",
+                "name": "Secondary",
+                "fill": "$text-secondary",
+                "content": "Banned Radio",
+                "fontFamily": "Inter",
+                "fontSize": 14,
+                "fontWeight": "normal"
+              }
+            ]
+          },
+          {
+            "type": "icon",
+            "id": "V0rQT",
+            "name": "More",
+            "width": 24,
+            "height": 24,
+            "icon": "ellipsis",
+            "library": "lucide",
+            "fill": "$text-primary"
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "jcT6l",
+        "name": "Art Wrap",
+        "width": "fill_container",
+        "padding": [
+          32,
+          0,
+          0,
+          0
+        ],
+        "justifyContent": "center",
+        "children": [
+          {
+            "type": "frame",
+            "id": "agHJw",
+            "name": "Station Art",
+            "clip": true,
+            "width": 245,
+            "height": 245,
+            "fill": {
+              "type": "image",
+              "enabled": true,
+              "url": "../images/bri.jpg",
+              "mode": "fill"
+            },
+            "cornerRadius": 14
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "s1oK9G",
+        "name": "Now Playing Block",
+        "width": "fill_container",
+        "layout": "vertical",
+        "gap": 4,
+        "padding": [
+          32,
+          24,
+          0,
+          24
+        ],
+        "children": [
+          {
+            "type": "frame",
+            "id": "GQx4S",
+            "name": "Track Row",
+            "width": "fill_container",
+            "gap": 12,
+            "children": [
+              {
+                "type": "frame",
+                "id": "T6seRy",
+                "name": "Track Text",
+                "width": "fill_container",
+                "layout": "vertical",
+                "gap": 8,
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "J9alg",
+                    "name": "Eyebrow",
+                    "fill": "$text-secondary",
+                    "content": "NOW PLAYING",
+                    "fontFamily": "Inter",
+                    "fontSize": 12,
+                    "fontWeight": "600"
+                  },
+                  {
+                    "type": "text",
+                    "id": "h7ZuV",
+                    "name": "Track",
+                    "fill": "$text-primary",
+                    "textGrowth": "fixed-width",
+                    "width": "fill_container",
+                    "content": "Cheat On Me - Bri Bagwell",
+                    "fontFamily": "Inter",
+                    "fontSize": 20,
+                    "fontWeight": "500"
+                  }
+                ]
+              },
+              {
+                "type": "icon",
+                "id": "iTvEJ",
+                "name": "Heart",
+                "width": 24,
+                "height": 24,
+                "icon": "heart",
+                "library": "lucide",
+                "fill": "$icon-inactive"
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "FKUcO",
+            "name": "Progress Wrap",
+            "width": "fill_container",
+            "padding": [
+              32,
+              0,
+              0,
+              0
+            ],
+            "children": [
+              {
+                "type": "frame",
+                "id": "kBBq0",
+                "name": "Progress",
+                "width": "fill_container",
+                "height": 4,
+                "fill": "$surface-control",
+                "cornerRadius": 8,
+                "children": [
+                  {
+                    "type": "rectangle",
+                    "cornerRadius": 8,
+                    "id": "b5CYAM",
+                    "name": "Fill",
+                    "fill": "$brand-primary",
+                    "width": "fill_container",
+                    "height": 4
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "WxHUt",
+            "name": "Live Row",
+            "width": "fill_container",
+            "gap": 8,
+            "padding": [
+              8,
+              0,
+              0,
+              0
+            ],
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "NzDRV",
+                "name": "On Air",
+                "fill": "$text-system-gray",
+                "content": "ON AIR",
+                "fontFamily": "Inter",
+                "fontSize": 12,
+                "fontWeight": "normal"
+              },
+              {
+                "type": "frame",
+                "id": "L4dGQI",
+                "name": "Spacer",
+                "width": "fill_container",
+                "height": 1
+              },
+              {
+                "type": "text",
+                "id": "U0Odg",
+                "name": "Live",
+                "fill": "$text-system-gray",
+                "content": "LIVE",
+                "fontFamily": "Inter",
+                "fontSize": 12,
+                "fontWeight": "normal"
+              },
+              {
+                "type": "ellipse",
+                "id": "icYdo",
+                "name": "Live Dot",
+                "fill": "$brand-primary",
+                "width": 8,
+                "height": 8
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "w3GJsK",
+        "name": "Play Button Wrap",
+        "width": "fill_container",
+        "padding": [
+          32,
+          0,
+          0,
+          0
+        ],
+        "justifyContent": "center",
+        "children": [
+          {
+            "type": "frame",
+            "id": "ysYQz",
+            "name": "Play Button",
+            "width": 80,
+            "height": 80,
+            "fill": "$text-primary",
+            "cornerRadius": 40,
+            "justifyContent": "center",
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "rectangle",
+                "cornerRadius": 4,
+                "id": "H2VMu",
+                "name": "Stop Glyph",
+                "fill": "$surface-base",
+                "width": 34,
+                "height": 34
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "WcAS4",
+        "name": "Ask Wrap",
+        "width": "fill_container",
+        "padding": [
+          16,
+          0,
+          0,
+          0
+        ],
+        "justifyContent": "center",
+        "children": [
+          {
+            "type": "frame",
+            "id": "JMVTu",
+            "name": "Ask the Artist",
+            "fill": "$surface-row",
+            "cornerRadius": 20,
+            "gap": 8,
+            "padding": [
+              12,
+              20
+            ],
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "icon",
+                "id": "ZTG8h",
+                "name": "Mic",
+                "width": 14,
+                "height": 14,
+                "icon": "mic",
+                "library": "lucide",
+                "fill": "$text-primary"
+              },
+              {
+                "type": "text",
+                "id": "y9Jmb",
+                "name": "Label",
+                "fill": "$text-primary",
+                "content": "Ask the Artist",
+                "fontFamily": "Inter",
+                "fontSize": 14,
+                "fontWeight": "500"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "RxuPA",
+        "name": "Related Text Wrap",
+        "width": "fill_container",
+        "padding": [
+          32,
+          24,
+          0,
+          24
+        ],
+        "children": [
+          {
+            "type": "frame",
+            "id": "fVOlg",
+            "name": "Why I Chose This Song",
+            "width": "fill_container",
+            "fill": "$surface-row",
+            "layout": "vertical",
+            "gap": 16,
+            "padding": 16,
+            "children": [
+              {
+                "type": "text",
+                "id": "mgcFt",
+                "name": "Title",
+                "fill": "$text-primary",
+                "textGrowth": "fixed-width",
+                "width": "fill_container",
+                "content": "Why I chose this song",
+                "fontFamily": "Space Grotesk",
+                "fontSize": 18,
+                "fontWeight": "700"
+              },
+              {
+                "type": "text",
+                "id": "JNNTp",
+                "name": "Body",
+                "fill": "$text-system-gray",
+                "textGrowth": "fixed-width",
+                "width": "fill_container",
+                "content": "I wrote this one in a motel outside Amarillo, after a show that forty people came to.",
+                "lineHeight": 1.5,
+                "fontFamily": "Inter",
+                "fontSize": 14,
+                "fontWeight": "normal"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "components": {},
+  "variables": {
+    "surface-base": {
+      "type": "color",
+      "value": "#000000"
+    },
+    "surface-section": {
+      "type": "color",
+      "value": "#1A1A1A"
+    },
+    "surface-raised": {
+      "type": "color",
+      "value": "#2A2A2A"
+    },
+    "surface-row": {
+      "type": "color",
+      "value": "#333333"
+    },
+    "surface-control": {
+      "type": "color",
+      "value": "#444444"
+    },
+    "surface-muted": {
+      "type": "color",
+      "value": "#4A4A4A"
+    },
+    "warm-base": {
+      "type": "color",
+      "value": "#130000"
+    },
+    "warm-surface": {
+      "type": "color",
+      "value": "#3A1212"
+    },
+    "warm-surface-raised": {
+      "type": "color",
+      "value": "#471818"
+    },
+    "warm-control-disabled": {
+      "type": "color",
+      "value": "#2A1313"
+    },
+    "warm-text-secondary": {
+      "type": "color",
+      "value": "#D7BFBF"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#C7C7C7"
+    },
+    "text-tertiary": {
+      "type": "color",
+      "value": "#999999"
+    },
+    "text-disabled": {
+      "type": "color",
+      "value": "#868686"
+    },
+    "brand-primary": {
+      "type": "color",
+      "value": "#EF6962"
+    },
+    "radius-xs": {
+      "type": "number",
+      "value": 4
+    },
+    "radius-sm": {
+      "type": "number",
+      "value": 6
+    },
+    "radius-md": {
+      "type": "number",
+      "value": 8
+    },
+    "radius-lg": {
+      "type": "number",
+      "value": 12
+    },
+    "radius-pill": {
+      "type": "number",
+      "value": 24
+    },
+    "space-1": {
+      "type": "number",
+      "value": 4
+    },
+    "space-2": {
+      "type": "number",
+      "value": 8
+    },
+    "space-3": {
+      "type": "number",
+      "value": 12
+    },
+    "space-4": {
+      "type": "number",
+      "value": 16
+    },
+    "space-5": {
+      "type": "number",
+      "value": 20
+    },
+    "space-6": {
+      "type": "number",
+      "value": 24
+    },
+    "space-8": {
+      "type": "number",
+      "value": 32
+    },
+    "font-body": {
+      "type": "string",
+      "value": "Inter"
+    },
+    "font-display": {
+      "type": "string",
+      "value": "Space Grotesk"
+    },
+    "icon-inactive": {
+      "type": "color",
+      "value": "#BABABA"
+    },
+    "text-system-gray": {
+      "type": "color",
+      "value": "#8E8E93"
+    },
+    "star-active": {
+      "type": "color",
+      "value": "#FFD24A"
+    },
+    "star-inactive": {
+      "type": "color",
+      "value": "$text-quaternary"
+    },
+    "text-quaternary": {
+      "type": "color",
+      "value": "#888888"
+    },
+    "live-on-air": {
+      "type": "color",
+      "value": "#34C759"
+    },
+    "text-muted": {
+      "type": "color",
+      "value": "#AAAAAA"
+    },
+    "system-red": {
+      "type": "color",
+      "value": "#FF3B30"
+    },
+    "overlay-scrim-85": {
+      "type": "color",
+      "value": "#000000D9"
+    },
+    "giveaway-purple": {
+      "type": "color",
+      "value": "#AF52DE"
+    },
+    "border-dashed": {
+      "type": "color",
+      "value": "#4D4D4D"
+    },
+    "overlay-scrim-70": {
+      "type": "color",
+      "value": "#000000B3"
+    },
+    "glass-fill": {
+      "type": "color",
+      "value": "#2C2C2ECC"
+    },
+    "glass-hairline": {
+      "type": "color",
+      "value": "#FFFFFF26"
+    },
+    "surface-placeholder": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "surface-tile": {
+      "type": "color",
+      "value": "#262626"
+    },
+    "cta-dusty-red": {
+      "type": "color",
+      "value": "#CC6666"
+    },
+    "ring-stroke": {
+      "type": "color",
+      "value": "#1F1F1F"
+    },
+    "surface-art-placeholder": {
+      "type": "color",
+      "value": "#4D4D4D"
+    },
+    "warm-gray-900": {
+      "type": "color",
+      "value": "#3D3634"
+    },
+    "warm-gray-700": {
+      "type": "color",
+      "value": "#6B6260"
+    },
+    "warm-gray-600": {
+      "type": "color",
+      "value": "#827876"
+    },
+    "warm-gray-400": {
+      "type": "color",
+      "value": "#B0A7A5"
+    },
+    "info-blue": {
+      "type": "color",
+      "value": "#6EC6FF"
+    },
+    "schedule-row": {
+      "type": "color",
+      "value": "#333333"
+    },
+    "schedule-row-locked": {
+      "type": "color",
+      "value": "#444444"
+    },
+    "progress-track": {
+      "type": "color",
+      "value": "#5E5F5F"
+    },
+    "commercial-green": {
+      "type": "color",
+      "value": "#2E7D32"
+    },
+    "success-green": {
+      "type": "color",
+      "value": "#34C759"
+    },
+    "disabled-fill": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "disabled-stroke": {
+      "type": "color",
+      "value": "#888888"
+    },
+    "success-material": {
+      "type": "color",
+      "value": "#4CAF50"
+    },
+    "warning-amber": {
+      "type": "color",
+      "value": "#FFC107"
+    }
+  }
+}

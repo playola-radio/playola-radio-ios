@@ -1,0 +1,713 @@
+{
+  "screen": {
+    "type": "frame",
+    "id": "NLnb0",
+    "x": 493,
+    "y": 10886,
+    "name": "Dashboard (Artist · Tab Root)",
+    "clip": true,
+    "width": 393,
+    "height": 852,
+    "fill": "$surface-base",
+    "layout": "vertical",
+    "children": [
+      {
+        "type": "frame",
+        "id": "eoUwc",
+        "name": "Header",
+        "width": "fill_container",
+        "layout": "vertical",
+        "padding": [
+          28,
+          20,
+          0,
+          20
+        ],
+        "children": [
+          {
+            "type": "text",
+            "id": "kiNPU",
+            "name": "Title",
+            "fill": "$text-primary",
+            "content": "Dashboard",
+            "fontFamily": "$font-display",
+            "fontSize": 28,
+            "fontWeight": "600"
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "mBCGE",
+        "name": "Health Hero",
+        "width": "fill_container",
+        "layout": "vertical",
+        "gap": 14,
+        "padding": [
+          28,
+          20,
+          0,
+          20
+        ],
+        "alignItems": "center",
+        "children": [
+          {
+            "type": "frame",
+            "id": "KiAy6",
+            "name": "Ring",
+            "width": 116,
+            "height": 116,
+            "layout": "none",
+            "children": [
+              {
+                "type": "ellipse",
+                "id": "iqmeZ",
+                "x": 0,
+                "y": 0,
+                "name": "Track",
+                "innerRadius": 0.93,
+                "fill": "$surface-control",
+                "width": 116,
+                "height": 116
+              },
+              {
+                "type": "ellipse",
+                "id": "xnOBh",
+                "x": 0,
+                "y": 0,
+                "name": "Progress",
+                "innerRadius": 0.93,
+                "startAngle": 90,
+                "sweepAngle": -331,
+                "fill": "$success-green",
+                "width": 116,
+                "height": 116
+              },
+              {
+                "type": "text",
+                "id": "a1pltw",
+                "x": 0,
+                "y": 40,
+                "name": "Value",
+                "fill": "$text-primary",
+                "textGrowth": "fixed-width",
+                "width": 116,
+                "content": "92",
+                "textAlign": "center",
+                "fontFamily": "$font-display",
+                "fontSize": 36,
+                "fontWeight": "600"
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "aPdx8",
+            "name": "Text",
+            "layout": "vertical",
+            "gap": 4,
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "MuGgM",
+                "name": "Status",
+                "fill": "$text-primary",
+                "content": "In good shape",
+                "fontFamily": "$font-body",
+                "fontSize": 16,
+                "fontWeight": "600"
+              },
+              {
+                "type": "text",
+                "id": "uxrud",
+                "name": "Weakest",
+                "fill": "$warning-amber",
+                "content": "Weakest: intro coverage · 12 songs missing intros",
+                "fontFamily": "$font-body",
+                "fontSize": 12,
+                "fontWeight": "500"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "rk55j",
+        "name": "Stats",
+        "width": "fill_container",
+        "padding": [
+          22,
+          20,
+          0,
+          20
+        ],
+        "children": [
+          {
+            "type": "frame",
+            "id": "n15Gnt",
+            "name": "Stat · LISTENERS NOW",
+            "width": "fill_container",
+            "layout": "vertical",
+            "gap": 4,
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "scMO8",
+                "name": "Value",
+                "fill": "$text-primary",
+                "content": "23",
+                "fontFamily": "$font-display",
+                "fontSize": 24,
+                "fontWeight": "600"
+              },
+              {
+                "type": "text",
+                "id": "XdmS0",
+                "name": "Label",
+                "fill": "$text-disabled",
+                "content": "LISTENERS NOW",
+                "fontFamily": "$font-body",
+                "fontSize": 10,
+                "fontWeight": "600",
+                "letterSpacing": 1.1
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "A5EsO",
+            "name": "Stat · THIS WEEK",
+            "width": "fill_container",
+            "layout": "vertical",
+            "gap": 4,
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "siWpV",
+                "name": "Value",
+                "fill": "$text-primary",
+                "content": "11h 20m",
+                "fontFamily": "$font-display",
+                "fontSize": 24,
+                "fontWeight": "600"
+              },
+              {
+                "type": "text",
+                "id": "Ujr37",
+                "name": "Label",
+                "fill": "$text-disabled",
+                "content": "LISTENER HOURS",
+                "fontFamily": "$font-body",
+                "fontSize": 10,
+                "fontWeight": "600",
+                "letterSpacing": 1.1
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "y4MluW",
+            "name": "Stat · LIKES",
+            "width": "fill_container",
+            "layout": "vertical",
+            "gap": 4,
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "WT2f8",
+                "name": "Value",
+                "fill": "$text-primary",
+                "content": "6",
+                "fontFamily": "$font-display",
+                "fontSize": 24,
+                "fontWeight": "600"
+              },
+              {
+                "type": "text",
+                "id": "rwUP1",
+                "name": "Label",
+                "fill": "$text-disabled",
+                "content": "NEW THIS WEEK",
+                "fontFamily": "$font-body",
+                "fontSize": 10,
+                "fontWeight": "600",
+                "letterSpacing": 1.1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "iUGtI",
+        "name": "Report Section",
+        "width": "fill_container",
+        "layout": "vertical",
+        "padding": [
+          40,
+          20,
+          0,
+          20
+        ],
+        "children": [
+          {
+            "type": "rectangle",
+            "id": "n5rCb",
+            "name": "Divider",
+            "fill": "$surface-section",
+            "width": "fill_container",
+            "height": 1
+          },
+          {
+            "type": "frame",
+            "id": "i1S0sq",
+            "name": "Report Row",
+            "width": "fill_container",
+            "gap": 10,
+            "padding": [
+              16,
+              0
+            ],
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "i7azvC",
+                "name": "Label",
+                "fill": "$text-primary",
+                "content": "This week",
+                "fontFamily": "$font-body",
+                "fontSize": 14,
+                "fontWeight": "500"
+              },
+              {
+                "type": "frame",
+                "id": "NxGoU",
+                "name": "Spacer",
+                "width": "fill_container",
+                "height": 1
+              },
+              {
+                "type": "text",
+                "id": "w5OmB",
+                "name": "Trend",
+                "fill": "$success-green",
+                "content": "↑ 12%",
+                "fontFamily": "$font-body",
+                "fontSize": 13,
+                "fontWeight": "600"
+              },
+              {
+                "type": "icon",
+                "id": "vq6C7",
+                "name": "Chevron",
+                "width": 14,
+                "height": 14,
+                "icon": "chevron-right",
+                "library": "lucide",
+                "fill": "$text-disabled"
+              }
+            ]
+          },
+          {
+            "type": "rectangle",
+            "id": "r9OyU",
+            "name": "Divider 2",
+            "fill": "$surface-section",
+            "width": "fill_container",
+            "height": 1
+          }
+        ]
+      },
+      {
+        "id": "bOzS1",
+        "type": "ref",
+        "ref": "R0hsG",
+        "name": "Tab Bar",
+        "layoutPosition": "absolute",
+        "x": 16,
+        "y": 762,
+        "descendants": {
+          "hucGR/Mb28I": {
+            "fill": "$text-disabled"
+          },
+          "hucGR/x7cAoO": {
+            "fill": "$text-disabled"
+          },
+          "Kq4ks/Mb28I": {
+            "fill": "$text-primary"
+          },
+          "Kq4ks/x7cAoO": {
+            "fill": "$text-primary"
+          }
+        }
+      }
+    ]
+  },
+  "components": {
+    "R0hsG": {
+      "type": "frame",
+      "id": "R0hsG",
+      "x": 1972,
+      "y": 493,
+      "name": "Tab Bar (Artist · 3-tab Glass)",
+      "reusable": true,
+      "width": 361,
+      "height": 56,
+      "fill": "$glass-fill",
+      "cornerRadius": 28,
+      "stroke": "$glass-hairline",
+      "strokeWidth": 1,
+      "justifyContent": "space_around",
+      "alignItems": "center",
+      "children": [
+        {
+          "id": "hucGR",
+          "type": "ref",
+          "ref": "HXMdX",
+          "name": "Home",
+          "descendants": {
+            "Mb28I": {
+              "icon": "house",
+              "fill": "$text-primary"
+            },
+            "x7cAoO": {
+              "content": "Home",
+              "fill": "$text-primary"
+            }
+          }
+        },
+        {
+          "id": "Kq4ks",
+          "type": "ref",
+          "ref": "HXMdX",
+          "name": "Dashboard",
+          "descendants": {
+            "Mb28I": {
+              "icon": "chart-line",
+              "fill": "$text-disabled"
+            },
+            "x7cAoO": {
+              "content": "Dashboard",
+              "fill": "$text-disabled"
+            }
+          }
+        },
+        {
+          "id": "Z7dIob",
+          "type": "ref",
+          "ref": "HXMdX",
+          "name": "Profile",
+          "descendants": {
+            "Mb28I": {
+              "icon": "user",
+              "fill": "$text-disabled"
+            },
+            "x7cAoO": {
+              "content": "Profile",
+              "fill": "$text-disabled"
+            }
+          }
+        }
+      ]
+    },
+    "HXMdX": {
+      "type": "frame",
+      "id": "HXMdX",
+      "x": 493,
+      "y": 0,
+      "name": "Tab Item",
+      "reusable": true,
+      "width": 80,
+      "layout": "vertical",
+      "gap": "$space-1",
+      "padding": [
+        "$space-2",
+        0
+      ],
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "icon",
+          "id": "Mb28I",
+          "name": "Icon",
+          "width": 24,
+          "height": 24,
+          "icon": "radio",
+          "library": "lucide",
+          "fill": "$text-disabled"
+        },
+        {
+          "type": "text",
+          "id": "x7cAoO",
+          "name": "Label",
+          "fill": "$text-disabled",
+          "content": "Stations",
+          "fontFamily": "$font-body",
+          "fontSize": 10,
+          "fontWeight": "500"
+        }
+      ]
+    }
+  },
+  "variables": {
+    "surface-base": {
+      "type": "color",
+      "value": "#000000"
+    },
+    "surface-section": {
+      "type": "color",
+      "value": "#1A1A1A"
+    },
+    "surface-raised": {
+      "type": "color",
+      "value": "#2A2A2A"
+    },
+    "surface-row": {
+      "type": "color",
+      "value": "#333333"
+    },
+    "surface-control": {
+      "type": "color",
+      "value": "#444444"
+    },
+    "surface-muted": {
+      "type": "color",
+      "value": "#4A4A4A"
+    },
+    "warm-base": {
+      "type": "color",
+      "value": "#130000"
+    },
+    "warm-surface": {
+      "type": "color",
+      "value": "#3A1212"
+    },
+    "warm-surface-raised": {
+      "type": "color",
+      "value": "#471818"
+    },
+    "warm-control-disabled": {
+      "type": "color",
+      "value": "#2A1313"
+    },
+    "warm-text-secondary": {
+      "type": "color",
+      "value": "#D7BFBF"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#C7C7C7"
+    },
+    "text-tertiary": {
+      "type": "color",
+      "value": "#999999"
+    },
+    "text-disabled": {
+      "type": "color",
+      "value": "#868686"
+    },
+    "brand-primary": {
+      "type": "color",
+      "value": "#EF6962"
+    },
+    "radius-xs": {
+      "type": "number",
+      "value": 4
+    },
+    "radius-sm": {
+      "type": "number",
+      "value": 6
+    },
+    "radius-md": {
+      "type": "number",
+      "value": 8
+    },
+    "radius-lg": {
+      "type": "number",
+      "value": 12
+    },
+    "radius-pill": {
+      "type": "number",
+      "value": 24
+    },
+    "space-1": {
+      "type": "number",
+      "value": 4
+    },
+    "space-2": {
+      "type": "number",
+      "value": 8
+    },
+    "space-3": {
+      "type": "number",
+      "value": 12
+    },
+    "space-4": {
+      "type": "number",
+      "value": 16
+    },
+    "space-5": {
+      "type": "number",
+      "value": 20
+    },
+    "space-6": {
+      "type": "number",
+      "value": 24
+    },
+    "space-8": {
+      "type": "number",
+      "value": 32
+    },
+    "font-body": {
+      "type": "string",
+      "value": "Inter"
+    },
+    "font-display": {
+      "type": "string",
+      "value": "Space Grotesk"
+    },
+    "icon-inactive": {
+      "type": "color",
+      "value": "#BABABA"
+    },
+    "text-system-gray": {
+      "type": "color",
+      "value": "#8E8E93"
+    },
+    "star-active": {
+      "type": "color",
+      "value": "#FFD24A"
+    },
+    "star-inactive": {
+      "type": "color",
+      "value": "$text-quaternary"
+    },
+    "text-quaternary": {
+      "type": "color",
+      "value": "#888888"
+    },
+    "live-on-air": {
+      "type": "color",
+      "value": "#34C759"
+    },
+    "text-muted": {
+      "type": "color",
+      "value": "#AAAAAA"
+    },
+    "system-red": {
+      "type": "color",
+      "value": "#FF3B30"
+    },
+    "overlay-scrim-85": {
+      "type": "color",
+      "value": "#000000D9"
+    },
+    "giveaway-purple": {
+      "type": "color",
+      "value": "#AF52DE"
+    },
+    "border-dashed": {
+      "type": "color",
+      "value": "#4D4D4D"
+    },
+    "overlay-scrim-70": {
+      "type": "color",
+      "value": "#000000B3"
+    },
+    "glass-fill": {
+      "type": "color",
+      "value": "#2C2C2ECC"
+    },
+    "glass-hairline": {
+      "type": "color",
+      "value": "#FFFFFF26"
+    },
+    "surface-placeholder": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "surface-tile": {
+      "type": "color",
+      "value": "#262626"
+    },
+    "cta-dusty-red": {
+      "type": "color",
+      "value": "#CC6666"
+    },
+    "ring-stroke": {
+      "type": "color",
+      "value": "#1F1F1F"
+    },
+    "surface-art-placeholder": {
+      "type": "color",
+      "value": "#4D4D4D"
+    },
+    "warm-gray-900": {
+      "type": "color",
+      "value": "#3D3634"
+    },
+    "warm-gray-700": {
+      "type": "color",
+      "value": "#6B6260"
+    },
+    "warm-gray-600": {
+      "type": "color",
+      "value": "#827876"
+    },
+    "warm-gray-400": {
+      "type": "color",
+      "value": "#B0A7A5"
+    },
+    "info-blue": {
+      "type": "color",
+      "value": "#6EC6FF"
+    },
+    "schedule-row": {
+      "type": "color",
+      "value": "#333333"
+    },
+    "schedule-row-locked": {
+      "type": "color",
+      "value": "#444444"
+    },
+    "progress-track": {
+      "type": "color",
+      "value": "#5E5F5F"
+    },
+    "commercial-green": {
+      "type": "color",
+      "value": "#2E7D32"
+    },
+    "success-green": {
+      "type": "color",
+      "value": "#34C759"
+    },
+    "disabled-fill": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "disabled-stroke": {
+      "type": "color",
+      "value": "#888888"
+    },
+    "success-material": {
+      "type": "color",
+      "value": "#4CAF50"
+    },
+    "warning-amber": {
+      "type": "color",
+      "value": "#FFC107"
+    }
+  }
+}
