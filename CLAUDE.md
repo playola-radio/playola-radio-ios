@@ -58,6 +58,7 @@ If you are dispatching subagents (via `superpowers:subagent-driven-development` 
 | Task Type | Read This |
 |-----------|-----------|
 | Creating a new page | `.claude/PAGE_CREATION.md` |
+| Implementing a designed screen | `design/README.md` then `design/DESIGN_STATUS.md` |
 | Adding API calls (iOS) | `.claude/API_CLIENT.md` |
 | Looking up server endpoints | `../playola/.claude/API_ENDPOINTS.md` then `../playola/server/src/api/[module]/ENDPOINTS.md` (ask user for monorepo path if not found) |
 | Navigation (push/pop/sheets) | `.claude/NAVIGATION.md` |
