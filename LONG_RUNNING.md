@@ -40,7 +40,7 @@ we need to tackle?" (or run the `whats-due` skill) to see what's due.
 | Siri "Play on Playola" (App Intents media schema) | 🟢 planning | Approach B decided (2026-06-14); not started | n/a | 2026-10-01 | — |
 | View/Model pattern cleanup | 🔵 in progress (opportunistic) | ongoing, fix-on-touch | none | — | `TODO_VIEW_MODEL_VIOLATIONS.md` |
 | Prettify iPad screens | 🔵 in progress | Profile (screen 4 of N) | none (standard release) | 2026-09-10 | specs in `docs/superpowers/specs/2026-08-0*-ipad-*-design.md` |
-| Artist 3-tab IA (broadcast redesign) | 🔵 in progress | PR 1: new tabs + placeholder Home/Dashboard pages | none (standard release) | 2026-09-10 | designs `design/exports/in-progress/3-tab-ia` · `design/DESIGN_STATUS.md` |
+| Artist 3-tab IA (broadcast redesign) | 🔵 in progress | PR 1: new tabs + placeholder Dashboard/Station pages | none (standard release) | 2026-09-10 | designs `design/exports/in-progress/3-tab-ia` · `design/DESIGN_STATUS.md` |
 
 ---
 
@@ -218,17 +218,19 @@ by adopting the App Intents media Assistant Schema (approach B, decided 2026-06-
 ## Artist 3-tab IA (broadcast redesign)
 
 **Goal:** replace the broadcast-mode experience with the 3-tab IA from
-`design/exports/in-progress/3-tab-ia` (Home · Dashboard · Profile). No existing
+`design/exports/in-progress/3-tab-ia` (Dashboard · Station · Profile). No existing
 screens are eliminated — they move a level below the new tab roots (e.g. the
-broadcast schedule screen will hang off the new Home).
+broadcast schedule screen will hang off the new Station tab).
 
 - **Status:** 🔵 in progress.
 - **Steps:**
   1. New tabs + placeholder pages — broadcast-mode tabs are now
-     Home (`ArtistHomePage`) / Dashboard (`ArtistDashboardPage`) / Profile (old
-     ContactPage), with hardcoded model values to lock the visuals. Old
+     Dashboard (`ArtistDashboardPage`) / Station (`ArtistStationPage`) / Profile
+     (old ContactPage), with hardcoded model values to lock the visuals. Old
      Broadcast/Library/Listeners tabs removed from the tab bar (pages kept).
-  2. `⟨wire real data into Home + Dashboard models⟩`
+     Revised per design v2 (2026-08-28): Home renamed to Station, Dashboard
+     moved first and absorbed the improve-your-station checklist.
+  2. `⟨wire real data into Station + Dashboard models⟩`
   3. `⟨re-home the old screens (schedule, library, listeners) a level below⟩`
 - **Soak:** none (standard release), but don't cut an App Store release while
   broadcast mode is mid-transition in a way that strands a screen.

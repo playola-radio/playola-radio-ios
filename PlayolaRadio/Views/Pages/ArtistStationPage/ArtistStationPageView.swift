@@ -1,5 +1,5 @@
 //
-//  ArtistHomePageView.swift
+//  ArtistStationPageView.swift
 //  PlayolaRadio
 //
 //  Created by Brian D Keane on 8/28/26.
@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-struct ArtistHomePageView: View {
-  @Bindable var model: ArtistHomePageModel
+struct ArtistStationPageView: View {
+  @Bindable var model: ArtistStationPageModel
 
   var body: some View {
     ScrollView {
@@ -16,8 +16,6 @@ struct ArtistHomePageView: View {
         header
         broadcastCard
           .padding(.top, 24)
-        improveSection
-          .padding(.top, 28)
         links
           .padding(.top, 20)
       }
@@ -28,9 +26,14 @@ struct ArtistHomePageView: View {
   }
 
   private var header: some View {
-    Text(model.stationName)
-      .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 28))
-      .foregroundColor(.white)
+    VStack(alignment: .leading, spacing: 10) {
+      Text(model.navigationTitle)
+        .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 28))
+        .foregroundColor(.white)
+      Text(model.stationName)
+        .font(.custom(FontNames.Inter_500_Medium, size: 13))
+        .foregroundColor(Color(hex: "#999999"))
+    }
   }
 
   private var broadcastCard: some View {
@@ -93,10 +96,10 @@ struct ArtistHomePageView: View {
         }
         Spacer()
         Button {
-          model.manageBroadcastTapped()
+          model.broadcastSettingsTapped()
         } label: {
           HStack(spacing: 4) {
-            Text(model.manageBroadcastLabel)
+            Text(model.broadcastSettingsLabel)
               .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
               .foregroundColor(.playolaRed)
             Image(systemName: "chevron.right")
@@ -112,58 +115,6 @@ struct ArtistHomePageView: View {
     .cornerRadius(12)
   }
 
-  private var improveSection: some View {
-    VStack(alignment: .leading, spacing: 0) {
-      HStack(spacing: 8) {
-        Text(model.improveSectionTitle)
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 11))
-          .tracking(1.4)
-          .foregroundColor(.playolaGray)
-        Text(model.improvementCountLabel)
-          .font(.custom(FontNames.Inter_700_Bold, size: 11))
-          .foregroundColor(.playolaRed)
-      }
-      .padding(.bottom, 6)
-
-      ForEach(model.improvementItems) { item in
-        Button {
-          model.improvementItemTapped(item)
-        } label: {
-          improvementRow(item)
-        }
-        Rectangle()
-          .fill(Color(hex: "#1A1A1A"))
-          .frame(height: 1)
-      }
-    }
-  }
-
-  private func improvementRow(_ item: ArtistHomePageModel.ImprovementItem) -> some View {
-    HStack(spacing: 14) {
-      Circle()
-        .fill(Color(hex: "#1A1A1A"))
-        .frame(width: 36, height: 36)
-        .overlay(
-          Image(systemName: item.icon)
-            .font(.system(size: 16))
-            .foregroundColor(item.iconTint)
-        )
-      VStack(alignment: .leading, spacing: 2) {
-        Text(item.title)
-          .font(.custom(FontNames.Inter_500_Medium, size: 14))
-          .foregroundColor(.white)
-        Text(item.subtitle)
-          .font(.custom(FontNames.Inter_400_Regular, size: 12))
-          .foregroundColor(Color(hex: "#999999"))
-      }
-      Spacer(minLength: 0)
-      Image(systemName: "chevron.right")
-        .font(.system(size: 14))
-        .foregroundColor(.playolaGray)
-    }
-    .padding(.vertical, 14)
-  }
-
   private var links: some View {
     VStack(spacing: 0) {
       Button {
@@ -175,6 +126,11 @@ struct ArtistHomePageView: View {
         model.musicLibraryRowTapped()
       } label: {
         linkRow(title: model.musicLibraryLinkTitle)
+      }
+      Button {
+        model.scheduleRowTapped()
+      } label: {
+        linkRow(title: model.scheduleLinkTitle)
       }
     }
   }
@@ -194,6 +150,6 @@ struct ArtistHomePageView: View {
 }
 
 #Preview {
-  ArtistHomePageView(model: ArtistHomePageModel())
+  ArtistStationPageView(model: ArtistStationPageModel())
     .preferredColorScheme(.dark)
 }

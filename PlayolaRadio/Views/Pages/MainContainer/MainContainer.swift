@@ -18,8 +18,8 @@ struct MainContainer: View {
   var body: some View {
     TabView(selection: activeTabBinding) {
       if model.isInBroadcastMode {
-        artistHomeTab
         artistDashboardTab
+        artistStationTab
         settingsTab
       } else {
         homeTab
@@ -139,7 +139,7 @@ struct MainContainer: View {
     }
     .onChange(of: model.mainContainerNavigationCoordinator.appMode) { _, newMode in
       if case .broadcasting = newMode {
-        model.$activeTab.withLock { $0 = .artistHome }
+        model.$activeTab.withLock { $0 = .artistDashboard }
       } else {
         model.$activeTab.withLock { $0 = .home }
       }
@@ -219,23 +219,6 @@ struct MainContainer: View {
   // MARK: - Broadcast Mode Tabs
 
   @ViewBuilder
-  private var artistHomeTab: some View {
-    NavigationStack(path: navigationPathBinding(\.artistHomePath)) {
-      tabContentWithSmallPlayer {
-        ArtistHomePageView(model: model.artistHomePageModel)
-      }
-      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
-        path.destinationView
-      }
-    }
-    .tabItem {
-      Image("HomeTabImage")
-      Text(model.artistHomeTabTitle)
-    }
-    .tag(MainContainerModel.ActiveTab.artistHome)
-  }
-
-  @ViewBuilder
   private var artistDashboardTab: some View {
     NavigationStack(path: navigationPathBinding(\.artistDashboardPath)) {
       tabContentWithSmallPlayer {
@@ -246,10 +229,27 @@ struct MainContainer: View {
       }
     }
     .tabItem {
-      Image(systemName: "chart.xyaxis.line")
+      Image(systemName: "square.grid.2x2")
       Text(model.artistDashboardTabTitle)
     }
     .tag(MainContainerModel.ActiveTab.artistDashboard)
+  }
+
+  @ViewBuilder
+  private var artistStationTab: some View {
+    NavigationStack(path: navigationPathBinding(\.artistStationPath)) {
+      tabContentWithSmallPlayer {
+        ArtistStationPageView(model: model.artistStationPageModel)
+      }
+      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
+        path.destinationView
+      }
+    }
+    .tabItem {
+      Image(systemName: "dot.radiowaves.left.and.right")
+      Text(model.artistStationTabTitle)
+    }
+    .tag(MainContainerModel.ActiveTab.artistStation)
   }
 
   @ViewBuilder

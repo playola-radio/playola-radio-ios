@@ -967,8 +967,8 @@ struct MainContainerTests {
   func testBroadcastModeTabTitles() {
     let mainContainerModel = MainContainerModel()
 
-    expectNoDifference(mainContainerModel.artistHomeTabTitle, "Home")
     expectNoDifference(mainContainerModel.artistDashboardTabTitle, "Dashboard")
+    expectNoDifference(mainContainerModel.artistStationTabTitle, "Station")
     expectNoDifference(mainContainerModel.settingsTabTitle, "Profile")
   }
 

@@ -256,13 +256,13 @@ struct MainContainerNavigationCoordinatorTests {
   }
 
   @Test
-  func testSwitchToBroadcastModeSelectsArtistHomeTab() {
+  func testSwitchToBroadcastModeSelectsArtistDashboardTab() {
     @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .profile
     let coordinator = MainContainerNavigationCoordinator()
 
     coordinator.switchToBroadcastMode(stationId: "station-123")
 
-    #expect(activeTab == .artistHome)
+    #expect(activeTab == .artistDashboard)
   }
 
   @Test

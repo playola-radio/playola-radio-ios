@@ -23,7 +23,7 @@
   /// prompts, no live-poller races.
   ///
   /// Pages: `home` | `stations` | `library` | `player` | `player-tap` |
-  /// `artist-home` | `artist-dashboard`
+  /// `artist-dashboard` | `artist-station`
   @MainActor
   struct ScreenshotHarness: View {
     static var requestedPage: String? {
@@ -99,8 +99,8 @@
       case "stations": .stationsList
       case "library": .yourLibrary
       case "profile": .profile
-      case "artist-home": .artistHome
       case "artist-dashboard": .artistDashboard
+      case "artist-station": .artistStation
       default: .home
       }
     }

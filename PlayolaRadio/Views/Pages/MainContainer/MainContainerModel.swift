@@ -59,8 +59,8 @@ class MainContainerModel: ViewModel {
     case yourLibrary
     case profile
     // Broadcast mode tabs
-    case artistHome
     case artistDashboard
+    case artistStation
     case settings
   }
 
@@ -71,8 +71,8 @@ class MainContainerModel: ViewModel {
   var stationsTabTitle: String { "Radio Stations" }
   var yourLibraryTabTitle: String { "Your Library" }
   var profileTabTitle: String { "Your Profile" }
-  var artistHomeTabTitle: String { "Home" }
   var artistDashboardTabTitle: String { "Dashboard" }
+  var artistStationTabTitle: String { "Station" }
   var settingsTabTitle: String { "Profile" }
 
   var homePageModel = HomePageModel()
@@ -86,8 +86,8 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored private var toastObservationTask: Task<Void, Never>?
 
   // Broadcast mode models
-  var artistHomePageModel = ArtistHomePageModel()
   var artistDashboardPageModel = ArtistDashboardPageModel()
+  var artistStationPageModel = ArtistStationPageModel()
 
   var shouldShowSmallPlayer: Bool = false
   private var hasCheckedRatingPromptThisSession = false

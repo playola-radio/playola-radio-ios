@@ -68,7 +68,7 @@ move its frames into the green Current App zone.
 
 ### Open decision: navigation IA
 
-Two competing IAs — **3-tab** (Home · Dashboard · Profile) vs **2-tab
+Two competing IAs — **3-tab** (Dashboard · Station · Profile) vs **2-tab
 dashboard-style Home v2**. Implementation has started on the **3-tab IA**
 (branch `briankeane/new-3-tab-navigation`); mark Home v2 (`ccNgg`, `Q1nN0v`) Dropped
 once that decision is confirmed.
@@ -106,8 +106,8 @@ once that decision is confirmed.
 
 | Frame | Node ID | Status | Notes |
 |---|---|---|---|
-| Home (Artist · Tab Root) | `tscZI` | Implementing | Placeholder page shipped on `briankeane/new-3-tab-navigation` (hardcoded model values) |
-| Dashboard (Artist · Tab Root) | `NLnb0` | Implementing | Placeholder page shipped on `briankeane/new-3-tab-navigation` (hardcoded model values) |
+| Dashboard (Artist · Tab Root) | `NLnb0` | Implementing | Placeholder page shipped on `briankeane/new-3-tab-navigation` (hardcoded model values); v2 (health + listeners + 6-week chart + improve checklist) implemented |
+| Station (Artist · Tab Root) | `tscZI` | Implementing | Renamed from "Home"; placeholder implemented from canvas spec — export `station-tab-root--tscZI.png` is stale (shows the old Home design) |
 | Profile (Artist · Tab Root) | `LeACy` | Implementing | Tab renamed "Profile"; still renders the old ContactPage for now |
 
 ### Proposal · Home v2 · 2-Tab (label `OMoHs`)

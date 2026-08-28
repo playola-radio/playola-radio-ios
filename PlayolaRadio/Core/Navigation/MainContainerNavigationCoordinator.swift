@@ -25,7 +25,7 @@ final class MainContainerNavigationCoordinator {
   var stationsPath: [Path] = []
   var yourLibraryPath: [Path] = []
   var profilePath: [Path] = []
-  var artistHomePath: [Path] = []
+  var artistStationPath: [Path] = []
   var artistDashboardPath: [Path] = []
   var settingsPath: [Path] = []
 
@@ -50,7 +50,7 @@ final class MainContainerNavigationCoordinator {
       case .stationsList: return stationsPath
       case .yourLibrary: return yourLibraryPath
       case .profile: return profilePath
-      case .artistHome: return artistHomePath
+      case .artistStation: return artistStationPath
       case .artistDashboard: return artistDashboardPath
       case .settings: return settingsPath
       }
@@ -61,7 +61,7 @@ final class MainContainerNavigationCoordinator {
       case .stationsList: stationsPath = newValue
       case .yourLibrary: yourLibraryPath = newValue
       case .profile: profilePath = newValue
-      case .artistHome: artistHomePath = newValue
+      case .artistStation: artistStationPath = newValue
       case .artistDashboard: artistDashboardPath = newValue
       case .settings: settingsPath = newValue
       }
@@ -138,7 +138,7 @@ final class MainContainerNavigationCoordinator {
     stationsPath = strip(stationsPath)
     yourLibraryPath = strip(yourLibraryPath)
     profilePath = strip(profilePath)
-    artistHomePath = strip(artistHomePath)
+    artistStationPath = strip(artistStationPath)
     artistDashboardPath = strip(artistDashboardPath)
     settingsPath = strip(settingsPath)
   }
@@ -154,7 +154,7 @@ final class MainContainerNavigationCoordinator {
   func switchToBroadcastMode(stationId: String) {
     clearAllPaths()
     appMode = .broadcasting(stationId: stationId)
-    $activeTab.withLock { $0 = .artistHome }
+    $activeTab.withLock { $0 = .artistDashboard }
   }
 
   func switchToListeningMode() {
@@ -168,7 +168,7 @@ final class MainContainerNavigationCoordinator {
     stationsPath = []
     yourLibraryPath = []
     profilePath = []
-    artistHomePath = []
+    artistStationPath = []
     artistDashboardPath = []
     settingsPath = []
   }
