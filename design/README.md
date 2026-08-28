@@ -54,10 +54,11 @@ layout" section of `DESIGN_STATUS.md`. Conventions:
   lies. From the `execute` tool:
 
   ```js
-  Export(["<frameId>"], "png", "/Users/brian/playola/playola-radio-ios/design/exports/<bucket>/<proposal>")
+  Export(["<frameId>"], "png", "./design/exports/<bucket>/<proposal>")
   ```
 
   then rename the emitted `<nodeId>.png` to `<screen-name>--<nodeId>.png`.
+  (Relative paths resolve from the workspace root, not the .pen file's folder.)
 - Export dirs follow status: when a proposal's status changes, `git mv` its
   folder between `future/`, `in-progress/`, and (on ship) fold the screens
   into `current-app/`.
