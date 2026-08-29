@@ -838,6 +838,19 @@ struct APIClient: Sendable {
   var removeArtistSuggestionVote:
     @Sendable (_ jwtToken: String, _ artistSuggestionId: String) async throws -> Void = { _, _ in }
 
+  // MARK: - Station Health
+
+  /// Fetches a station's health score plus its server-owned "improve your station" task list.
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication (caller needs edit access to the station)
+  ///   - stationId: The station UUID
+  /// - Returns: StationHealth with score, band, factors, and tasks
+  /// - Throws: APIError if the request fails (401 unauthorized, 403 no edit access, 404 not found)
+  var getStationHealthScore:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> StationHealth = { _, _ in
+      StationHealth(score: nil, band: .unavailable, factors: [], tasks: [])
+    }
+
   // MARK: - App Version Requirements
 
   /// Fetches minimum app version requirements (no auth required)

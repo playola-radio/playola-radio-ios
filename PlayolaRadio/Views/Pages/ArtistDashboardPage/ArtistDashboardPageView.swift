@@ -30,6 +30,7 @@ struct ArtistDashboardPageView: View {
       .padding(.top, 28)
     }
     .background(Color.black)
+    .task { await model.viewAppeared() }
   }
 
   private var header: some View {
@@ -189,7 +190,7 @@ struct ArtistDashboardPageView: View {
           .foregroundColor(item.subtitleColor)
         ZStack(alignment: .leading) {
           RoundedRectangle(cornerRadius: 2)
-            .fill(Color(hex: "#5E5F5F"))
+            .fill(item.progressTrackColor)
           RoundedRectangle(cornerRadius: 2)
             .fill(item.progressColor)
             .frame(width: 84 * item.progress)

@@ -946,6 +946,10 @@ extension APIClient: DependencyKey {
         try await authenticatedDelete(
           path: "/v1/artist-suggestions/\(artistSuggestionId)/vote", token: jwtToken)
       },
+      getStationHealthScore: { jwtToken, stationId in
+        try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/health-score", token: jwtToken)
+      },
       getAppVersionRequirements: {
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/app-version-requirements"
         return try await apiSession.request(url)
