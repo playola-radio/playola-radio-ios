@@ -681,7 +681,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "../../../../../playola/playola-radio-ios/images/bri.jpg",
+                            "url": "../images/bri.jpg",
                             "mode": "fill"
                           }
                         },
@@ -710,7 +710,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "../../../../../playola/playola-radio-ios/images/wcg.jpg",
+                            "url": "../images/wcg.jpg",
                             "mode": "fill"
                           }
                         },
@@ -739,7 +739,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "../../../../../playola/playola-radio-ios/images/jlw.jpg",
+                            "url": "../images/jlw.jpg",
                             "mode": "fill"
                           }
                         },
@@ -812,7 +812,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "../../../../../playola/playola-radio-ios/images/rebel.jpeg",
+                            "url": "../images/rebel.jpeg",
                             "mode": "fill"
                           }
                         },
@@ -841,7 +841,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "../../../../../playola/playola-radio-ios/images/koke.png",
+                            "url": "../images/koke.png",
                             "mode": "fill"
                           }
                         },
@@ -1073,7 +1073,7 @@
               "fill": {
                 "type": "image",
                 "enabled": true,
-                "url": "../../../../../playola/playola-radio-ios/images/bri.jpg",
+                "url": "../images/bri.jpg",
                 "mode": "fill"
               },
               "cornerRadius": 14
@@ -1478,7 +1478,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "../../../../../playola/playola-radio-ios/images/bri.jpg",
+                            "url": "../images/bri.jpg",
                             "mode": "fill"
                           }
                         },
@@ -1500,7 +1500,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "../../../../../playola/playola-radio-ios/images/cory.jpg",
+                            "url": "../images/cory.jpg",
                             "mode": "fill"
                           }
                         },
@@ -1522,7 +1522,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "../../../../../playola/playola-radio-ios/images/jlw.jpg",
+                            "url": "../images/jlw.jpg",
                             "mode": "fill"
                           }
                         },
@@ -1544,7 +1544,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "../../../../../playola/playola-radio-ios/images/hood.jpg",
+                            "url": "../images/hood.jpg",
                             "mode": "fill"
                           }
                         },
@@ -2151,7 +2151,7 @@
               "fill": {
                 "type": "image",
                 "enabled": true,
-                "url": "../../../../../playola/playola-radio-ios/images/bri.jpg",
+                "url": "../images/bri.jpg",
                 "mode": "fill"
               },
               "width": 393,
@@ -2994,7 +2994,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "../../../../../playola/playola-radio-ios/images/bri.jpg",
+                            "url": "../images/bri.jpg",
                             "mode": "fill"
                           }
                         },
@@ -3023,7 +3023,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "../../../../../playola/playola-radio-ios/images/cory.jpg",
+                            "url": "../images/cory.jpg",
                             "mode": "fill"
                           }
                         },
@@ -3052,7 +3052,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "../../../../../playola/playola-radio-ios/images/jlw.jpg",
+                            "url": "../images/jlw.jpg",
                             "mode": "fill"
                           }
                         },
@@ -3156,7 +3156,7 @@
               "fill": {
                 "type": "image",
                 "enabled": true,
-                "url": "../../../../../playola/playola-radio-ios/images/bri.jpg",
+                "url": "../images/bri.jpg",
                 "mode": "fill"
               },
               "cornerRadius": 6
@@ -3439,7 +3439,7 @@
           "fill": {
             "type": "image",
             "enabled": true,
-            "url": "../../../../../playola/playola-radio-ios/images/bri.jpg",
+            "url": "../images/bri.jpg",
             "mode": "fill"
           },
           "cornerRadius": 8
