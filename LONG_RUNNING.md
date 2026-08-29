@@ -40,7 +40,7 @@ we need to tackle?" (or run the `whats-due` skill) to see what's due.
 | Siri "Play on Playola" (App Intents media schema) | 🟢 planning | Approach B decided (2026-06-14); not started | n/a | 2026-10-01 | — |
 | View/Model pattern cleanup | 🔵 in progress (opportunistic) | ongoing, fix-on-touch | none | — | `TODO_VIEW_MODEL_VIOLATIONS.md` |
 | Prettify iPad screens | 🔵 in progress | Profile (screen 4 of N) | none (standard release) | 2026-09-10 | specs in `docs/superpowers/specs/2026-08-0*-ipad-*-design.md` |
-| Artist 3-tab IA (broadcast redesign) | 🔵 in progress | PR 1: new tabs + placeholder Dashboard/Station pages | none (standard release) | 2026-09-10 | designs `design/exports/in-progress/3-tab-ia` · `design/DESIGN_STATUS.md` |
+| Artist 3-tab IA (broadcast redesign) | 🔵 in progress | Step 2: Dashboard health wired to `health-score`; Station tab + re-homing next | none (standard release) | 2026-09-10 | designs `design/exports/in-progress/3-tab-ia` · `design/DESIGN_STATUS.md` |
 
 ---
 
