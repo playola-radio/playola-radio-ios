@@ -63,6 +63,8 @@ class ArtistDashboardPageModel: ViewModel {
   // MARK: - State
 
   private var stationHealth: StationHealth?
+  var isLoading = false
+  var presentedAlert: PlayolaAlert?
 
   // MARK: - Properties
 
@@ -159,9 +161,12 @@ class ArtistDashboardPageModel: ViewModel {
 
   private func loadHealthScore() async {
     guard let token = auth.jwt, let stationId else { return }
+    isLoading = true
+    defer { isLoading = false }
     do {
       stationHealth = try await api.getStationHealthScore(token, stationId)
     } catch {
+      presentedAlert = .stationHealthError(error.localizedDescription)
       await analytics.track(
         .apiError(endpoint: "getStationHealthScore", error: error.localizedDescription))
     }
@@ -233,5 +238,17 @@ class ArtistDashboardPageModel: ViewModel {
     case "appearances": return "bubble.left.and.bubble.right.fill"
     default: return "checklist"
     }
+  }
+}
+
+// MARK: - Alerts
+
+extension PlayolaAlert {
+  static func stationHealthError(_ message: String) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Error",
+      message: message,
+      dismissButton: .cancel(Text("OK"))
+    )
   }
 }

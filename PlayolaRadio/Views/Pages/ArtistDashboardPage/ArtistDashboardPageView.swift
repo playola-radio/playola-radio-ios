@@ -31,6 +31,7 @@ struct ArtistDashboardPageView: View {
     }
     .background(Color.black)
     .task { await model.viewAppeared() }
+    .playolaAlert($model.presentedAlert)
   }
 
   private var header: some View {

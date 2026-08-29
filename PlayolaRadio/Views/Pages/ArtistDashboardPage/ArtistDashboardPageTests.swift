@@ -256,6 +256,15 @@ struct ArtistDashboardPageTests {
     expectNoDifference(model.healthScoreLabel, "—")
     expectNoDifference(model.improvementItems.isEmpty, true)
     expectNoDifference(model.improveCountLabel, "0 OF 0 DONE")
+    expectNoDifference(model.presentedAlert != nil, true)
+    expectNoDifference(model.isLoading, false)
+  }
+
+  @Test func successfulLoadClearsLoadingAndPresentsNoAlert() async {
+    let model = await makeModel(returning: makeHealth(score: 80, band: .good))
+
+    expectNoDifference(model.isLoading, false)
+    expectNoDifference(model.presentedAlert == nil, true)
   }
 
   @Test func skipsLoadWhenNotBroadcasting() async {
