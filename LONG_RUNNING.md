@@ -230,7 +230,11 @@ broadcast schedule screen will hang off the new Station tab).
      Broadcast/Library/Listeners tabs removed from the tab bar (pages kept).
      Revised per design v2 (2026-08-28): Home renamed to Station, Dashboard
      moved first and absorbed the improve-your-station checklist.
-  2. `⟨wire real data into Station + Dashboard models⟩`
+  2. Wire real data into Station + Dashboard models — **in progress.** Dashboard's
+     Station Health ring + improve-your-station list are now live against
+     `GET /v1/stations/:id/health-score` (`StationHealth` model +
+     `api.getStationHealthScore`). Remaining: weekly-report / listeners / 6-week
+     chart (still placeholder, endpoints TBD) and the Station tab.
   3. `⟨re-home the old screens (schedule, library, listeners) a level below⟩`
 - **Soak:** none (standard release), but don't cut an App Store release while
   broadcast mode is mid-transition in a way that strands a screen.
