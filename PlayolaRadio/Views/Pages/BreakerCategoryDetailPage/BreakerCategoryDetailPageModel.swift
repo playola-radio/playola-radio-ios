@@ -59,7 +59,7 @@ class BreakerCategoryDetailPageModel: ViewModel {
   }
 
   func playButtonIcon(for block: AudioBlock) -> String {
-    isPlaying(block) ? "pause.fill" : "play.fill"
+    isPlaying(block) ? "stop.fill" : "play.fill"
   }
 
   func playButtonBackgroundColor(for block: AudioBlock) -> Color {
@@ -91,17 +91,15 @@ class BreakerCategoryDetailPageModel: ViewModel {
   func playButtonTapped(_ block: AudioBlock) async {
     guard let downloadUrl = block.downloadUrl else { return }
 
-    if isActive(block) {
-      if playbackState.isPlaying {
-        await playbackSession?.pause()
-      } else {
-        await playbackSession?.play()
-      }
-      return
-    }
+    let wasActive = isActive(block)
 
-    await stopPlayback()
+    playbackGeneration &+= 1
     let generation = playbackGeneration
+
+    await teardownCurrentSession()
+    guard playbackGeneration == generation else { return }
+    if wasActive { return }
+
     playingBlockId = block.id
 
     do {
@@ -130,7 +128,8 @@ class BreakerCategoryDetailPageModel: ViewModel {
   }
 
   func viewDisappeared() async {
-    await stopPlayback()
+    playbackGeneration &+= 1
+    await teardownCurrentSession()
   }
 
   // MARK: - Private Helpers
@@ -142,12 +141,12 @@ class BreakerCategoryDetailPageModel: ViewModel {
     return TimeInterval(block.durationMS) / 1000
   }
 
-  private func stopPlayback() async {
-    playbackGeneration &+= 1
-    await playbackSession?.stop()
+  private func teardownCurrentSession() async {
+    let session = playbackSession
     playbackSession = nil
     playbackState = .idle
     playingBlockId = nil
+    await session?.stop()
   }
 
   private func formatTime(_ seconds: TimeInterval) -> String {

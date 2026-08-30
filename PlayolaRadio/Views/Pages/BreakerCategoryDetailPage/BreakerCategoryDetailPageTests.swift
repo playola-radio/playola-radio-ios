@@ -105,7 +105,156 @@ struct BreakerCategoryDetailPageTests {
 
     #expect(model.isActive(block))
     #expect(model.isPlaying(block))
-    expectNoDifference(model.playButtonIcon(for: block), "pause.fill")
+    expectNoDifference(model.playButtonIcon(for: block), "stop.fill")
+  }
+
+  @Test func tappingActiveClipStopsPlayback() async {
+    let sessionStopped = LockIsolated(false)
+    let stoppingPlayer = AudioPlayerClient(
+      loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+      currentTime: { 0 }, duration: { 18 }, isPlaying: { true },
+      startPlayback: { _, onStateChange in
+        await onStateChange(PlaybackState(currentTime: 0, duration: 18, isPlaying: true))
+        return PlaybackSession(
+          play: {}, pause: {},
+          stop: { sessionStopped.setValue(true) },
+          seek: { _ in }, cancel: {})
+      }
+    )
+
+    let category = StationCategory.mockWith(
+      audioBlocks: [
+        .mockWith(
+          id: "1", durationMS: 18_000, downloadUrl: URL(string: "https://example.com/1.mp3"))
+      ]
+    )
+    let model = withDependencies {
+      $0.audioPlayer = stoppingPlayer
+    } operation: {
+      BreakerCategoryDetailPageModel(category: category)
+    }
+    let block = model.clips[0]
+
+    await model.playButtonTapped(block)
+    #expect(model.isActive(block))
+
+    await model.playButtonTapped(block)
+
+    #expect(!model.isActive(block))
+    #expect(!model.isPlaying(block))
+    #expect(sessionStopped.value)
+  }
+
+  @Test func tappingAgainWhileStartPendingCancelsAndStaysInactive() async {
+    let lateSessionStopped = LockIsolated(false)
+    let gate = LockIsolated<[CheckedContinuation<Void, Never>]>([])
+
+    let gatedPlayer = AudioPlayerClient(
+      loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+      currentTime: { 0 }, duration: { 18 }, isPlaying: { true },
+      startPlayback: { _, _ in
+        await withCheckedContinuation { continuation in
+          gate.withValue { $0.append(continuation) }
+        }
+        return PlaybackSession(
+          play: {}, pause: {},
+          stop: { lateSessionStopped.setValue(true) },
+          seek: { _ in }, cancel: {})
+      }
+    )
+
+    let category = StationCategory.mockWith(
+      audioBlocks: [
+        .mockWith(
+          id: "1", durationMS: 18_000, downloadUrl: URL(string: "https://example.com/1.mp3"))
+      ]
+    )
+    let model = withDependencies {
+      $0.audioPlayer = gatedPlayer
+    } operation: {
+      BreakerCategoryDetailPageModel(category: category)
+    }
+    let block = model.clips[0]
+
+    async let firstTap: Void = model.playButtonTapped(block)
+    while gate.count < 1 { await Task.yield() }
+
+    await model.playButtonTapped(block)
+    gate.withValue { $0[0].resume() }
+    await firstTap
+
+    #expect(!model.isActive(block))
+    #expect(lateSessionStopped.value)
+  }
+
+  private func makeTrackingPlayer(
+    gatedStopId: String,
+    stopGate: LockIsolated<[CheckedContinuation<Void, Never>]>,
+    started: LockIsolated<[String]>,
+    stopped: LockIsolated<[String]>
+  ) -> AudioPlayerClient {
+    AudioPlayerClient(
+      loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+      currentTime: { 0 }, duration: { 18 }, isPlaying: { true },
+      startPlayback: { url, onStateChange in
+        let id = url.lastPathComponent
+        started.withValue { $0.append(id) }
+        await onStateChange(PlaybackState(currentTime: 0, duration: 18, isPlaying: true))
+        return PlaybackSession(
+          play: {}, pause: {},
+          stop: {
+            if id == gatedStopId {
+              await withCheckedContinuation { continuation in
+                stopGate.withValue { $0.append(continuation) }
+              }
+            }
+            stopped.withValue { $0.append(id) }
+          },
+          seek: { _ in }, cancel: {})
+      }
+    )
+  }
+
+  @Test func tappingTwiceWhileActiveStopIsPendingStartsOnlyNewestClip() async {
+    let stopGate = LockIsolated<[CheckedContinuation<Void, Never>]>([])
+    let started = LockIsolated<[String]>([])
+    let stopped = LockIsolated<[String]>([])
+    let player = makeTrackingPlayer(
+      gatedStopId: "a.mp3", stopGate: stopGate, started: started, stopped: stopped)
+
+    let category = StationCategory.mockWith(
+      audioBlocks: [
+        .mockWith(id: "a", downloadUrl: URL(string: "https://example.com/a.mp3")),
+        .mockWith(id: "b", downloadUrl: URL(string: "https://example.com/b.mp3")),
+        .mockWith(id: "c", downloadUrl: URL(string: "https://example.com/c.mp3")),
+      ]
+    )
+    let model = withDependencies {
+      $0.audioPlayer = player
+    } operation: {
+      BreakerCategoryDetailPageModel(category: category)
+    }
+    let blockA = model.clips[0]
+    let blockB = model.clips[1]
+    let blockC = model.clips[2]
+
+    await model.playButtonTapped(blockA)
+    #expect(model.isActive(blockA))
+
+    async let tapB: Void = model.playButtonTapped(blockB)
+    while stopGate.count < 1 { await Task.yield() }
+
+    await model.playButtonTapped(blockC)
+    stopGate.withValue { $0[0].resume() }
+    await tapB
+
+    #expect(model.isActive(blockC))
+    #expect(!model.isActive(blockA))
+    #expect(!model.isActive(blockB))
+    #expect(stopped.value.contains("a.mp3"))
+    for id in started.value where id != "c.mp3" {
+      #expect(stopped.value.contains(id))
+    }
   }
 
   @Test func tappingDifferentClipSwitchesActiveClip() async {

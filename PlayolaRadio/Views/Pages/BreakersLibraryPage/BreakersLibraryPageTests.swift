@@ -64,7 +64,9 @@ struct BreakersLibraryPageTests {
       $0.api.getStationCategories = { _, _ in throw BreakersLibraryTestError.failed }
     }
 
-    expectNoDifference(model.presentedAlert, .errorLoadingBreakers)
+    expectNoDifference(
+      model.presentedAlert,
+      .errorLoadingBreakers(BreakersLibraryTestError.failed.localizedDescription))
   }
 
   @Test func blockCountLabelIsSingularForOneBlock() {

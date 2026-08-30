@@ -76,16 +76,16 @@ class BreakersLibraryPageModel: ViewModel {
           .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
       )
     } catch {
-      presentedAlert = .errorLoadingBreakers
+      presentedAlert = .errorLoadingBreakers(error.localizedDescription)
     }
   }
 }
 
 extension PlayolaAlert {
-  static var errorLoadingBreakers: PlayolaAlert {
+  static func errorLoadingBreakers(_ message: String) -> PlayolaAlert {
     PlayolaAlert(
       title: "Error",
-      message: "Unable to load the breakers library. Please try again.",
+      message: message,
       dismissButton: .cancel(Text("OK"))
     )
   }
