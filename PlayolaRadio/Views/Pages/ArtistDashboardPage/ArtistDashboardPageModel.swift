@@ -9,9 +9,10 @@ import Dependencies
 import Sharing
 import SwiftUI
 
-// NOTE: The Station Health ring and the "Improve your station" checklist are driven by the live
-// `getStationHealthScore` endpoint. The Weekly Report header, Listeners stats, and 6-week chart
-// are not part of that endpoint yet and remain hard-coded placeholders.
+// NOTE: The Station Health ring / "Improve your station" checklist come from `getStationHealthScore`;
+// the Listeners stat cards come from `getActiveListeningSessions` (one call per card); the 6-week
+// chart comes from `getListenerCounts`. Only the Weekly Report header trend ("↑ 12%") remains a
+// hard-coded placeholder pending the percent-change deltas fast-follow.
 @MainActor
 @Observable
 class ArtistDashboardPageModel: ViewModel {
@@ -20,6 +21,8 @@ class ArtistDashboardPageModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.calendar) var calendar
 
   // MARK: - Shared State
 
@@ -63,6 +66,10 @@ class ArtistDashboardPageModel: ViewModel {
   // MARK: - State
 
   private var stationHealth: StationHealth?
+  private var nowUniqueUsers: Int?
+  private var weekUniqueUsers: Int?
+  private var monthUniqueUsers: Int?
+  private var listenerBuckets: [ListenerCountsResponse.Bucket] = []
   var isLoading = false
   var presentedAlert: PlayolaAlert?
 
@@ -86,9 +93,9 @@ class ArtistDashboardPageModel: ViewModel {
 
   var stats: [Stat] {
     [
-      Stat(id: "now", value: "23", label: "NOW"),
-      Stat(id: "this-week", value: "184", label: "THIS WEEK"),
-      Stat(id: "this-month", value: "721", label: "THIS MONTH"),
+      Stat(id: "now", value: Self.statValue(nowUniqueUsers), label: "NOW"),
+      Stat(id: "this-week", value: Self.statValue(weekUniqueUsers), label: "THIS WEEK"),
+      Stat(id: "this-month", value: Self.statValue(monthUniqueUsers), label: "THIS MONTH"),
     ]
   }
 
@@ -96,32 +103,21 @@ class ArtistDashboardPageModel: ViewModel {
   var chartLinkLabel: String { "Stats ›" }
 
   var weekBars: [WeekBar] {
-    [
-      WeekBar(
-        id: "7/20", label: "7/20", labelColor: .playolaGray,
-        labelFontName: FontNames.Inter_500_Medium, labelFontSize: 8,
-        barColor: .playolaRed, heightFraction: 22.0 / 39.0),
-      WeekBar(
-        id: "7/27", label: "7/27", labelColor: .playolaGray,
-        labelFontName: FontNames.Inter_500_Medium, labelFontSize: 8,
-        barColor: .playolaRed, heightFraction: 30.0 / 39.0),
-      WeekBar(
-        id: "8/3", label: "8/3", labelColor: .playolaGray,
-        labelFontName: FontNames.Inter_500_Medium, labelFontSize: 8,
-        barColor: .playolaRed, heightFraction: 26.0 / 39.0),
-      WeekBar(
-        id: "8/10", label: "8/10", labelColor: .playolaGray,
-        labelFontName: FontNames.Inter_500_Medium, labelFontSize: 8,
-        barColor: .playolaRed, heightFraction: 1.0),
-      WeekBar(
-        id: "8/17", label: "8/17", labelColor: .playolaGray,
-        labelFontName: FontNames.Inter_500_Medium, labelFontSize: 8,
-        barColor: .playolaRed, heightFraction: 34.0 / 39.0),
-      WeekBar(
-        id: "so-far", label: "SO FAR", labelColor: Color(hex: "#FFC107"),
-        labelFontName: FontNames.Inter_700_Bold, labelFontSize: 7,
-        barColor: Color(hex: "#FFC107"), heightFraction: 25.0 / 39.0),
-    ]
+    let maxUsers = listenerBuckets.map { max(0, $0.uniqueUsers) }.max() ?? 0
+    return listenerBuckets.map { bucket in
+      let rawFraction = maxUsers == 0 ? 0 : Double(max(0, bucket.uniqueUsers)) / Double(maxUsers)
+      let fraction = min(1, max(0, rawFraction))
+      if bucket.isLive {
+        return WeekBar(
+          id: bucket.bucketStart, label: "SO FAR", labelColor: Color(hex: "#FFC107"),
+          labelFontName: FontNames.Inter_700_Bold, labelFontSize: 7,
+          barColor: Color(hex: "#FFC107"), heightFraction: fraction)
+      }
+      return WeekBar(
+        id: bucket.bucketStart, label: Self.monthDayLabel(bucket.bucketStart),
+        labelColor: .playolaGray, labelFontName: FontNames.Inter_500_Medium, labelFontSize: 8,
+        barColor: .playolaRed, heightFraction: fraction)
+    }
   }
 
   var improveSectionTitle: String { "IMPROVE YOUR STATION" }
@@ -141,7 +137,13 @@ class ArtistDashboardPageModel: ViewModel {
   // MARK: - User Actions
 
   func viewAppeared() async {
-    await loadHealthScore()
+    guard let token = auth.jwt, let stationId else { return }
+    isLoading = true
+    defer { isLoading = false }
+    async let health: Void = loadHealthScore(token: token, stationId: stationId)
+    async let listeners: Void = loadListenerStats(token: token, stationId: stationId)
+    async let counts: Void = loadListenerCounts(token: token, stationId: stationId)
+    _ = await (health, listeners, counts)
   }
 
   func weeklyReportTapped() {}
@@ -159,10 +161,7 @@ class ArtistDashboardPageModel: ViewModel {
     return nil
   }
 
-  private func loadHealthScore() async {
-    guard let token = auth.jwt, let stationId else { return }
-    isLoading = true
-    defer { isLoading = false }
+  private func loadHealthScore(token: String, stationId: String) async {
     do {
       stationHealth = try await api.getStationHealthScore(token, stationId)
     } catch {
@@ -170,6 +169,59 @@ class ArtistDashboardPageModel: ViewModel {
       await analytics.track(
         .apiError(endpoint: "getStationHealthScore", error: error.localizedDescription))
     }
+  }
+
+  private func loadListenerStats(token: String, stationId: String) async {
+    let referenceNow = now
+    let startOfToday = calendar.startOfDay(for: referenceNow)
+    let endOfYesterday = startOfToday
+    let weekStart = calendar.date(byAdding: .day, value: -7, to: endOfYesterday) ?? endOfYesterday
+    let monthStart = calendar.date(byAdding: .day, value: -30, to: endOfYesterday) ?? endOfYesterday
+
+    async let nowCount = uniqueUsers(
+      token: token, stationId: stationId, airtime: startOfToday, endTime: referenceNow)
+    async let weekCount = uniqueUsers(
+      token: token, stationId: stationId, airtime: weekStart, endTime: endOfYesterday)
+    async let monthCount = uniqueUsers(
+      token: token, stationId: stationId, airtime: monthStart, endTime: endOfYesterday)
+
+    nowUniqueUsers = await nowCount
+    weekUniqueUsers = await weekCount
+    monthUniqueUsers = await monthCount
+  }
+
+  private func uniqueUsers(
+    token: String, stationId: String, airtime: Date, endTime: Date?
+  ) async -> Int? {
+    do {
+      return try await api.getActiveListeningSessions(token, stationId, airtime, endTime)
+        .summary.uniqueUsers
+    } catch {
+      await analytics.track(
+        .apiError(endpoint: "getActiveListeningSessions", error: error.localizedDescription))
+      return nil
+    }
+  }
+
+  private func loadListenerCounts(token: String, stationId: String) async {
+    do {
+      listenerBuckets = try await api.getListenerCounts(token, stationId).buckets
+    } catch {
+      await analytics.track(
+        .apiError(endpoint: "getListenerCounts", error: error.localizedDescription))
+    }
+  }
+
+  private static func statValue(_ count: Int?) -> String {
+    count.map(String.init) ?? "—"
+  }
+
+  private static func monthDayLabel(_ bucketStart: String) -> String {
+    let parts = bucketStart.split(separator: "-")
+    guard parts.count == 3, let month = Int(parts[1]), let day = Int(parts[2]) else {
+      return bucketStart
+    }
+    return "\(month)/\(day)"
   }
 
   private func ringColor(for band: StationHealthBand?) -> Color {
