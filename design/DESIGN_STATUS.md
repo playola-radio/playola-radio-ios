@@ -123,9 +123,9 @@ per-clip audio preview. Exports under `exports/in-progress/breakers-library/`.
 
 | Frame | Node ID | Status | Notes |
 |---|---|---|---|
-| Breakers Library · Categories | `yxMJo` | Implementing | Non-song categories, name + clip count, drill-down |
-| Breakers · Fan Spotlights | `X0aSe` | Implementing | Detail page; per-clip play/pause + scrubber |
-| Breakers · Intros | `y6LWT3` | Implementing | Detail page |
+| Breakers Library · Categories | `yxMJo` | Implementing (PR #417) | Non-song categories (zero-clip filtered out), name + clip count, drill-down |
+| Breakers · Fan Spotlights | `X0aSe` | Implementing (PR #417) | Detail page; per-clip play/stop + scrubber |
+| Breakers · Intros | `y6LWT3` | Implementing (PR #417) | Detail page |
 | Breakers · Pre Commercial | `P2kA4P` | Implementing | Detail page |
 | Breakers · Promotions | `vaOkW` | Implementing | Detail page |
 | Breakers · Post Commercial | `e9gP0d` | Implementing | Detail page |

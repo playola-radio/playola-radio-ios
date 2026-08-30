@@ -40,6 +40,21 @@ struct BreakerCategoryDetailPageTests {
     )
   }
 
+  private func makeSeekRecordingPlayer(
+    seekedTo: LockIsolated<[TimeInterval]>, duration: TimeInterval = 18
+  ) -> AudioPlayerClient {
+    AudioPlayerClient(
+      loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+      currentTime: { 0 }, duration: { duration }, isPlaying: { true },
+      startPlayback: { _, onStateChange in
+        await onStateChange(PlaybackState(currentTime: 0, duration: duration, isPlaying: true))
+        return PlaybackSession(
+          play: {}, pause: {}, stop: {},
+          seek: { target in seekedTo.withValue { $0.append(target) } }, cancel: {})
+      }
+    )
+  }
+
   @Test func navigationTitleIsCategoryName() {
     let model = BreakerCategoryDetailPageModel(category: .mockWith(name: "Fan Spotlights"))
 
@@ -280,6 +295,59 @@ struct BreakerCategoryDetailPageTests {
 
     #expect(!model.isActive(firstBlock))
     #expect(model.isActive(secondBlock))
+  }
+
+  @Test func scrubberAccessibilityLabelAndValueReflectClip() {
+    let category = StationCategory.mockWith(
+      audioBlocks: [.mockWith(id: "1", durationMS: 18_000)]
+    )
+    let model = BreakerCategoryDetailPageModel(category: category)
+    let block = model.clips[0]
+
+    expectNoDifference(
+      model.scrubberAccessibilityLabel(for: block), "\(model.clipTitle(for: block)) scrubber")
+    expectNoDifference(model.scrubberAccessibilityValue(for: block), "0:00 of 0:18")
+  }
+
+  @Test func scrubberAdjustedSeeksForwardWhenActive() async {
+    let seekedTo = LockIsolated<[TimeInterval]>([])
+    let category = StationCategory.mockWith(
+      audioBlocks: [
+        .mockWith(
+          id: "1", durationMS: 18_000, downloadUrl: URL(string: "https://example.com/1.mp3"))
+      ]
+    )
+    let model = withDependencies {
+      $0.audioPlayer = makeSeekRecordingPlayer(seekedTo: seekedTo)
+    } operation: {
+      BreakerCategoryDetailPageModel(category: category)
+    }
+    let block = model.clips[0]
+
+    await model.playButtonTapped(block)
+    await model.scrubberAdjusted(block, increment: true)
+
+    expectNoDifference(seekedTo.value, [5])
+  }
+
+  @Test func scrubberAdjustedIsNoOpWhenInactive() async {
+    let seekedTo = LockIsolated<[TimeInterval]>([])
+    let category = StationCategory.mockWith(
+      audioBlocks: [
+        .mockWith(
+          id: "1", durationMS: 18_000, downloadUrl: URL(string: "https://example.com/1.mp3"))
+      ]
+    )
+    let model = withDependencies {
+      $0.audioPlayer = makeSeekRecordingPlayer(seekedTo: seekedTo)
+    } operation: {
+      BreakerCategoryDetailPageModel(category: category)
+    }
+    let block = model.clips[0]
+
+    await model.scrubberAdjusted(block, increment: true)
+
+    #expect(seekedTo.value.isEmpty)
   }
 
   @Test func viewDisappearedStopsPlayback() async {

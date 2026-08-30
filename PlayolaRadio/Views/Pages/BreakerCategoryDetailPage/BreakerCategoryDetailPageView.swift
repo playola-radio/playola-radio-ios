@@ -117,6 +117,12 @@ struct BreakerCategoryDetailPageView: View {
             }
           }
       )
+      .accessibilityElement()
+      .accessibilityLabel(model.scrubberAccessibilityLabel(for: block))
+      .accessibilityValue(model.scrubberAccessibilityValue(for: block))
+      .accessibilityAdjustableAction { direction in
+        Task { await model.scrubberAdjusted(block, increment: direction == .increment) }
+      }
     }
     .frame(height: 20)
   }

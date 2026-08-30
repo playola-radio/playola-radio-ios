@@ -32,6 +32,7 @@ class BreakerCategoryDetailPageModel: ViewModel {
   private var playbackState: PlaybackState = .idle
   private var playbackSession: PlaybackSession?
   private var playbackGeneration = 0
+  private let scrubberStep: TimeInterval = 5
 
   var navigationTitle: String { category.name }
   var clips: [AudioBlock] { category.audioBlocks }
@@ -86,6 +87,14 @@ class BreakerCategoryDetailPageModel: ViewModel {
     return min(1, max(0, playbackState.currentTime / total))
   }
 
+  func scrubberAccessibilityLabel(for block: AudioBlock) -> String {
+    "\(clipTitle(for: block)) scrubber"
+  }
+
+  func scrubberAccessibilityValue(for block: AudioBlock) -> String {
+    "\(elapsedText(for: block)) of \(durationText(for: block))"
+  }
+
   // MARK: - User Actions
 
   func playButtonTapped(_ block: AudioBlock) async {
@@ -123,6 +132,15 @@ class BreakerCategoryDetailPageModel: ViewModel {
     guard isActive(block), trackWidth > 0 else { return }
     let percent = min(1, max(0, locationX / trackWidth))
     let target = TimeInterval(percent) * duration(for: block)
+    guard target.isFinite else { return }
+    await playbackSession?.seek(target)
+  }
+
+  func scrubberAdjusted(_ block: AudioBlock, increment: Bool) async {
+    guard isActive(block) else { return }
+    let total = duration(for: block)
+    let current = playbackState.currentTime
+    let target = min(total, max(0, current + (increment ? scrubberStep : -scrubberStep)))
     guard target.isFinite else { return }
     await playbackSession?.seek(target)
   }
