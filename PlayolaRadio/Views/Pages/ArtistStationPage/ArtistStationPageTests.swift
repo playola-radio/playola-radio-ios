@@ -146,6 +146,44 @@ struct ArtistStationPageTests {
     #expect(model.schedule == nil)
   }
 
+  @Test func staleScheduleResponseDoesNotOverwriteNewerData() async {
+    let oldSpins = [
+      spin(id: "old", airtimeOffset: -60, title: "Old Song", artist: "Old Artist")
+    ]
+    let newSpins = [
+      spin(id: "new", airtimeOffset: -60, title: "New Song", artist: "New Artist")
+    ]
+
+    let continuations = LockIsolated<[CheckedContinuation<[Spin], Never>]>([])
+
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in
+        await withCheckedContinuation { continuation in
+          continuations.withValue { $0.append(continuation) }
+        }
+      }
+    } operation: {
+      let model = ArtistStationPageModel()
+
+      async let firstLoad: Void = model.viewAppeared()
+      async let secondLoad: Void = model.viewAppeared()
+
+      while continuations.count < 2 { await Task.yield() }
+
+      continuations.withValue { $0[1].resume(returning: newSpins) }
+      continuations.withValue { $0[0].resume(returning: oldSpins) }
+
+      _ = await (firstLoad, secondLoad)
+
+      expectNoDifference(model.nowPlayingTitle, "New Song")
+    }
+  }
+
   // MARK: - Navigation
 
   @Test func broadcastCardTappedPushesBroadcastPage() async {

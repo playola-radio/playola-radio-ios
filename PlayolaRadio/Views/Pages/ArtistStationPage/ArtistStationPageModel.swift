@@ -35,6 +35,7 @@ class ArtistStationPageModel: ViewModel {
   var hasLoadError = false
 
   @ObservationIgnored private var scheduleUpdateCancellable: AnyCancellable?
+  @ObservationIgnored private var loadGeneration = 0
 
   var navigationTitle: String { "Station" }
   var stationName: String { "Reckless Radio" }
@@ -103,16 +104,20 @@ class ArtistStationPageModel: ViewModel {
 
   private func loadSchedule() async {
     guard let stationId else { return }
+    loadGeneration += 1
+    let generation = loadGeneration
     isLoading = true
     hasLoadError = false
-    defer { isLoading = false }
     do {
       let spins = try await api.fetchSchedule(stationId, true)
+      guard generation == loadGeneration else { return }
       schedule = Schedule(
         stationId: stationId, spins: spins, dateProvider: DependencyDateProvider())
     } catch {
+      guard generation == loadGeneration else { return }
       hasLoadError = true
     }
+    isLoading = false
   }
 
   private func startObservingScheduleUpdates() {
