@@ -474,6 +474,69 @@ struct ArtistDashboardPageTests {
     expectNoDifference(model.weekBars.map(\.heightFraction), [0, 1.0])
   }
 
+  // MARK: - Reload Staleness & Cancellation
+
+  @Test func healthReloadFailureClearsStaleScore() async {
+    let shouldFail = LockIsolated(false)
+    let health = makeHealth(score: 88, band: .good)
+    let model = await makeBroadcastingModel {
+      $0.api.getStationHealthScore = { _, _ in
+        if shouldFail.value { throw TestError.networkError }
+        return health
+      }
+    }
+
+    expectNoDifference(model.healthScoreLabel, "88")
+
+    shouldFail.setValue(true)
+    await model.viewAppeared()
+
+    expectNoDifference(model.healthScoreLabel, "—")
+    expectNoDifference(model.presentedAlert != nil, true)
+  }
+
+  @Test func countsReloadFailureClearsStaleBuckets() async {
+    let shouldFail = LockIsolated(false)
+    let model = await makeBroadcastingModel {
+      $0.api.getListenerCounts = { _, _ in
+        if shouldFail.value { throw TestError.networkError }
+        return Self.counts([Self.bucket("2024-07-21", uniqueUsers: 12)])
+      }
+    }
+
+    expectNoDifference(model.weekBars.count, 1)
+
+    shouldFail.setValue(true)
+    await model.viewAppeared()
+
+    expectNoDifference(model.weekBars.isEmpty, true)
+  }
+
+  @Test func cancelledReloadKeepsStateWithoutAlert() async {
+    let shouldCancel = LockIsolated(false)
+    let health = makeHealth(score: 88, band: .good)
+    let model = await makeBroadcastingModel {
+      $0.api.getStationHealthScore = { _, _ in
+        if shouldCancel.value { throw CancellationError() }
+        return health
+      }
+      $0.api.getListenerCounts = { _, _ in
+        if shouldCancel.value { throw CancellationError() }
+        return Self.counts([Self.bucket("2024-07-21", uniqueUsers: 12)])
+      }
+    }
+
+    expectNoDifference(model.healthScoreLabel, "88")
+    expectNoDifference(model.weekBars.count, 1)
+
+    shouldCancel.setValue(true)
+    await model.viewAppeared()
+
+    expectNoDifference(model.healthScoreLabel, "88")
+    expectNoDifference(model.weekBars.count, 1)
+    expectNoDifference(model.presentedAlert == nil, true)
+  }
+
   // MARK: - Decoding Tolerance
 
   @Test func bucketDefaultsIsLiveFalseWhenServerOmitsIt() throws {

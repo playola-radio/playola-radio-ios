@@ -165,6 +165,8 @@ class ArtistDashboardPageModel: ViewModel {
     do {
       stationHealth = try await api.getStationHealthScore(token, stationId)
     } catch {
+      guard !isCancellation(error) else { return }
+      stationHealth = nil
       presentedAlert = .stationHealthError(error.localizedDescription)
       await analytics.track(
         .apiError(endpoint: "getStationHealthScore", error: error.localizedDescription))
@@ -197,6 +199,7 @@ class ArtistDashboardPageModel: ViewModel {
       return try await api.getActiveListeningSessions(token, stationId, airtime, endTime)
         .summary.uniqueUsers
     } catch {
+      guard !isCancellation(error) else { return nil }
       await analytics.track(
         .apiError(endpoint: "getActiveListeningSessions", error: error.localizedDescription))
       return nil
@@ -207,9 +210,18 @@ class ArtistDashboardPageModel: ViewModel {
     do {
       listenerBuckets = try await api.getListenerCounts(token, stationId).buckets
     } catch {
+      guard !isCancellation(error) else { return }
+      listenerBuckets = []
       await analytics.track(
         .apiError(endpoint: "getListenerCounts", error: error.localizedDescription))
     }
+  }
+
+  /// A cancelled `.task` auto-cancels the in-flight request (Alamofire surfaces
+  /// `AFError.explicitlyCancelled`, so `Task.isCancelled` is already set). Treat that as a
+  /// non-event: don't clear loaded state, alert, or record an API error for a navigation away.
+  private func isCancellation(_ error: any Error) -> Bool {
+    Task.isCancelled || error is CancellationError
   }
 
   private static func statValue(_ count: Int?) -> String {
