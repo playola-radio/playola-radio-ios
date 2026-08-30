@@ -5563,9 +5563,9 @@
           "width": "fill_container",
           "gap": 12,
           "padding": [
-            16,
-            16,
             12,
+            16,
+            8,
             16
           ],
           "alignItems": "center",
@@ -5582,7 +5582,7 @@
                   "id": "flGDe",
                   "name": "Name",
                   "fill": "$text-primary",
-                  "content": "Sarah Whitmore",
+                  "content": "Mark Hinds",
                   "fontFamily": "$font-body",
                   "fontSize": 15,
                   "fontWeight": "600"
@@ -5610,11 +5610,12 @@
               "type": "frame",
               "id": "dNGy0",
               "name": "Play Button",
+              "height": 44,
               "fill": "$brand-primary",
-              "cornerRadius": 20,
+              "cornerRadius": 22,
               "gap": 6,
               "padding": [
-                8,
+                0,
                 12
               ],
               "alignItems": "center",
@@ -5650,6 +5651,75 @@
               "icon": "chevron-right",
               "library": "lucide",
               "fill": "$warm-text-secondary"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "IQZez",
+          "name": "Transcript Body",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            0,
+            16,
+            14,
+            16
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "im9DJ",
+              "name": "Transcript Preview",
+              "clip": true,
+              "width": "fill_container",
+              "height": 38,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "RVsHS",
+                  "name": "Transcript",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "My name is Mark Hinds. I live in Miramar Beach, Florida. My question is how long has this little thing been going?…",
+                  "lineHeight": 1.25,
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "mYt7b",
+              "name": "Show More",
+              "height": 44,
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "EyHgR",
+                  "name": "Show More Label",
+                  "fill": "$brand-primary",
+                  "content": "Expand transcript",
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "icon",
+                  "id": "LwqVP",
+                  "name": "Show More Chevron",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "chevron-down",
+                  "library": "lucide",
+                  "fill": "$brand-primary"
+                }
+              ]
             }
           ]
         }
@@ -5704,12 +5774,14 @@
               "type": "frame",
               "id": "Y8pEq",
               "name": "Pending Pill",
+              "height": 44,
               "fill": "$brand-primary",
               "cornerRadius": 20,
               "padding": [
-                8,
+                0,
                 16
               ],
+              "alignItems": "center",
               "children": [
                 {
                   "type": "text",
@@ -5727,12 +5799,14 @@
               "type": "frame",
               "id": "ksXgz",
               "name": "Answered Pill",
+              "height": 44,
               "fill": "$warm-surface-raised",
               "cornerRadius": 20,
               "padding": [
-                8,
+                0,
                 16
               ],
+              "alignItems": "center",
               "children": [
                 {
                   "type": "text",
@@ -5750,12 +5824,14 @@
               "type": "frame",
               "id": "LPtwu",
               "name": "All Pill",
+              "height": 44,
               "fill": "$warm-surface-raised",
               "cornerRadius": 20,
               "padding": [
-                8,
+                0,
                 16
               ],
+              "alignItems": "center",
               "children": [
                 {
                   "type": "text",
@@ -5777,7 +5853,7 @@
           "name": "List",
           "clip": true,
           "width": "fill_container",
-          "height": "fill_container",
+          "height": 638,
           "layout": "vertical",
           "gap": 12,
           "padding": [
@@ -5789,17 +5865,31 @@
               "id": "r2PoN",
               "type": "ref",
               "ref": "hIdNG",
-              "name": "Question · Sarah Whitmore",
+              "name": "Question · Mark Hinds",
               "width": "fill_container",
+              "height": 168,
               "descendants": {
                 "flGDe": {
-                  "content": "Sarah Whitmore"
+                  "content": "Mark Hinds"
                 },
                 "IyXeU": {
-                  "content": "2h ago"
+                  "content": "2mo ago"
+                },
+                "dNGy0": {
+                  "height": 44
                 },
                 "G8f98C": {
-                  "content": "0:24"
+                  "content": "0:29"
+                },
+                "RVsHS": {
+                  "content": "My name is Mark Hinds. I live in Miramar Beach, Florida. My question is how long has this little thing been going?…"
+                },
+                "mYt7b": {
+                  "enabled": true,
+                  "height": 44
+                },
+                "EyHgR": {
+                  "content": "Expand transcript"
                 }
               }
             },
@@ -5807,75 +5897,47 @@
               "id": "Ni5xU",
               "type": "ref",
               "ref": "hIdNG",
-              "name": "Question · Marcus Delaney",
+              "name": "Question · Joe McCulley",
               "width": "fill_container",
+              "height": 116,
               "descendants": {
                 "flGDe": {
-                  "content": "Marcus Delaney"
+                  "content": "Joe McCulley"
                 },
                 "IyXeU": {
-                  "content": "5h ago"
+                  "content": "3mo ago"
+                },
+                "dNGy0": {
+                  "height": 44
                 },
                 "G8f98C": {
-                  "content": "0:12"
-                }
-              }
-            },
-            {
-              "id": "idakH",
-              "type": "ref",
-              "ref": "hIdNG",
-              "name": "Question · Unknown Listener",
-              "width": "fill_container",
-              "descendants": {
-                "flGDe": {
-                  "content": "Unknown Listener"
+                  "content": "0:08"
                 },
-                "IyXeU": {
-                  "content": "1d ago"
+                "RVsHS": {
+                  "content": "Hey this is Joe McCulley from listening from Orange Beach. What's your favorite song?"
                 },
-                "G8f98C": {
-                  "content": "0:41"
-                }
-              }
-            },
-            {
-              "id": "HIIoA",
-              "type": "ref",
-              "ref": "hIdNG",
-              "name": "Question · Jenna Ruiz",
-              "width": "fill_container",
-              "descendants": {
-                "flGDe": {
-                  "content": "Jenna Ruiz"
+                "mYt7b": {
+                  "enabled": false,
+                  "height": 0
                 },
-                "IyXeU": {
-                  "content": "2d ago"
+                "EyHgR": {
+                  "enabled": false
                 },
-                "G8f98C": {
-                  "content": "1:03"
+                "LwqVP": {
+                  "enabled": false
                 }
               }
             }
           ]
         },
         {
-          "id": "q5B6MH",
-          "type": "ref",
-          "ref": "GMXbb",
-          "name": "Small Player (Glass)",
-          "layoutPosition": "absolute",
-          "x": 16,
-          "y": 690
-        },
-        {
-          "id": "chUmO",
+          "id": "LU3BY",
           "type": "ref",
           "ref": "k7Cd7m",
-          "name": "Tab Bar (Broadcast)",
-          "layoutPosition": "absolute",
+          "name": "Tab Bar (Broadcast) · List",
           "x": 16,
           "y": 762,
+          "layoutPosition": "absolute",
           "descendants": {
             "wd9Lk/Mb28I": {
               "fill": "$text-disabled"
@@ -14210,7 +14272,7 @@
             {
               "type": "text",
               "id": "Yi8et",
-              "name": "Station Name",
+              "name": "Title",
               "fill": "$text-primary",
               "content": "Station",
               "fontFamily": "$font-display",
@@ -14220,7 +14282,7 @@
             {
               "type": "text",
               "id": "IXMvR",
-              "name": "Station Name",
+              "name": "Station Subtitle",
               "fill": "$text-tertiary",
               "content": "Reckless Radio",
               "fontFamily": "$font-body",
@@ -16304,7 +16366,7 @@
       "name": "Label · Proposal · 3-Tab IA",
       "width": 0,
       "height": 0,
-      "content": "PROPOSAL · 3-Tab IA (Home · Dashboard · Profile) — proposed"
+      "content": "PROPOSAL · 3-Tab IA (Dashboard · Station · Profile) — implementing"
     },
     {
       "type": "frame",
@@ -16385,7 +16447,7 @@
             {
               "type": "text",
               "id": "j7sD1o",
-              "name": "Station Name",
+              "name": "Station Name (Home v2)",
               "fill": "$text-primary",
               "content": "Reckless Radio",
               "fontFamily": "$font-display",
@@ -17351,6 +17413,1522 @@
       "fontSize": 180,
       "fontWeight": "bold",
       "letterSpacing": 6
+    },
+    {
+      "type": "frame",
+      "id": "t9aeF",
+      "x": 2032,
+      "y": 2922,
+      "name": "Listener Question · Answer · Idle",
+      "clip": true,
+      "width": 393,
+      "height": 852,
+      "fill": "$warm-base",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "qnyQL",
+          "name": "Navigation",
+          "width": "fill_container",
+          "height": 64,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "k8GTlU",
+              "x": 14,
+              "y": 10,
+              "name": "Back Button",
+              "width": 44,
+              "height": 44,
+              "fill": "$warm-surface-raised",
+              "cornerRadius": 22,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "igUch",
+                  "name": "Back Chevron",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "chevron-left",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "becY9",
+              "x": 0,
+              "y": 21,
+              "name": "Screen Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": 393,
+              "content": "Listener Question",
+              "textAlign": "center",
+              "fontFamily": "$font-body",
+              "fontSize": 17,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "oAR82",
+          "name": "Question Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            12,
+            16,
+            0,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "fQk7r",
+              "name": "Question Label",
+              "fill": "$warm-text-secondary",
+              "content": "QUESTION",
+              "fontFamily": "$font-body",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "UDbWl",
+              "name": "Joe McCulley Question",
+              "width": "fill_container",
+              "fill": "$warm-surface",
+              "cornerRadius": 12,
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "wN9La",
+                  "name": "Listener Identity",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "XYvKL",
+                      "name": "Avatar · JM",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "$warm-surface-raised",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "UpdDB",
+                          "name": "Initials",
+                          "fill": "$warm-text-secondary",
+                          "content": "JM",
+                          "fontFamily": "$font-body",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "RF06d",
+                      "name": "Listener Details",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "yFHQ6",
+                          "name": "Listener Name",
+                          "fill": "$text-primary",
+                          "content": "Joe McCulley",
+                          "fontFamily": "$font-body",
+                          "fontSize": 15,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "cWwPI",
+                          "name": "Asked At",
+                          "fill": "$warm-text-secondary",
+                          "content": "3 months ago",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "hDXKS",
+                  "name": "Question Transcript",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Hey this is Joe McCulley from listening from Orange Beach. What's your favorite song?",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "SyYhh",
+                  "name": "Question Audio Transport",
+                  "width": "fill_container",
+                  "height": 48,
+                  "fill": "$warm-surface-raised",
+                  "cornerRadius": 10,
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "EZ3B0",
+                      "name": "Idle Play Button",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "$brand-primary",
+                      "cornerRadius": 16,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "K0dD9",
+                          "name": "Idle Play Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "play",
+                          "library": "lucide",
+                          "fill": "$text-primary"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "nsmVH",
+                      "name": "Idle Elapsed Time",
+                      "fill": "$warm-text-secondary",
+                      "content": "0:00",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "wVsb9",
+                      "name": "Idle Seek Track",
+                      "width": "fill_container",
+                      "height": 12,
+                      "fill": "#00000000",
+                      "cornerRadius": 2,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "A74qja",
+                          "x": 0,
+                          "y": 4,
+                          "name": "Idle Seek Rail",
+                          "opacity": 0.45,
+                          "fill": "$warm-text-secondary",
+                          "width": 199,
+                          "height": 4
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "y52S9o",
+                          "x": 0,
+                          "y": 4,
+                          "name": "Idle Played Progress",
+                          "fill": "$brand-primary",
+                          "width": 2,
+                          "height": 4
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "G70dOl",
+                          "x": 0,
+                          "y": 0,
+                          "name": "Idle Seek Thumb",
+                          "fill": "$brand-primary",
+                          "width": 12,
+                          "height": 12
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "pmduQ",
+                      "name": "Idle Total Duration",
+                      "fill": "$warm-text-secondary",
+                      "content": "0:08",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "n0ed8",
+          "name": "Response Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            20,
+            16,
+            0,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "j4CRL",
+              "name": "Response Label",
+              "fill": "$warm-text-secondary",
+              "content": "YOUR RESPONSE",
+              "fontFamily": "$font-body",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "uFuXH",
+              "name": "Response Recorder · Idle",
+              "width": "fill_container",
+              "fill": "$warm-surface",
+              "cornerRadius": 12,
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "t2ZSx",
+                  "name": "Idle Preview",
+                  "width": "fill_container",
+                  "height": 84,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "CfU4Q",
+                      "name": "Idle Microphone",
+                      "width": 26,
+                      "height": 26,
+                      "icon": "mic",
+                      "library": "lucide",
+                      "fill": "$brand-primary"
+                    },
+                    {
+                      "type": "text",
+                      "id": "wLt6O",
+                      "name": "Idle Instruction",
+                      "fill": "$text-primary",
+                      "content": "Tap the mic to record your response",
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ILAuM",
+                      "name": "Maximum Length",
+                      "fill": "$warm-text-secondary",
+                      "content": "Up to 2:00",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "sQaY6",
+                  "name": "Start Recording Button",
+                  "width": 52,
+                  "height": 52,
+                  "fill": "$brand-primary",
+                  "cornerRadius": 26,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "hmgNU",
+                      "name": "Start Microphone",
+                      "width": 24,
+                      "height": 24,
+                      "icon": "mic",
+                      "library": "lucide",
+                      "fill": "$text-primary"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "oNBrR",
+                  "name": "Start Recording Label",
+                  "fill": "$warm-text-secondary",
+                  "content": "Tap to start recording",
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "Tek2t",
+          "type": "ref",
+          "ref": "k7Cd7m",
+          "name": "Tab Bar (Broadcast)",
+          "layoutPosition": "absolute",
+          "x": 16,
+          "y": 762,
+          "descendants": {
+            "wd9Lk/Mb28I": {
+              "fill": "$text-disabled"
+            },
+            "wd9Lk/x7cAoO": {
+              "fill": "$text-disabled"
+            },
+            "d2EwSK/Mb28I": {
+              "fill": "$text-primary"
+            },
+            "d2EwSK/x7cAoO": {
+              "fill": "$text-primary"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "t69Km",
+      "x": 2505,
+      "y": 2922,
+      "name": "Listener Question · Answer · Recording",
+      "clip": true,
+      "width": 393,
+      "height": 852,
+      "fill": "$warm-base",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "FlZwg",
+          "name": "Navigation",
+          "width": "fill_container",
+          "height": 64,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "Dd6Gb",
+              "x": 14,
+              "y": 10,
+              "name": "Back Button",
+              "width": 44,
+              "height": 44,
+              "fill": "$warm-surface-raised",
+              "cornerRadius": 22,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "c9DRKP",
+                  "name": "Back Chevron",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "chevron-left",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "rbktN",
+              "x": 0,
+              "y": 21,
+              "name": "Screen Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": 393,
+              "content": "Listener Question",
+              "textAlign": "center",
+              "fontFamily": "$font-body",
+              "fontSize": 17,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Mg5mj",
+          "name": "Question Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            12,
+            16,
+            0,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "A5HBc1",
+              "name": "Question Label",
+              "fill": "$warm-text-secondary",
+              "content": "QUESTION",
+              "fontFamily": "$font-body",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "eJVhf",
+              "name": "Joe McCulley Question",
+              "width": "fill_container",
+              "fill": "$warm-surface",
+              "cornerRadius": 12,
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "MMvRe",
+                  "name": "Listener Identity",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "z2pZG",
+                      "name": "Avatar · JM",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "$warm-surface-raised",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "lm0zx",
+                          "name": "Initials",
+                          "fill": "$warm-text-secondary",
+                          "content": "JM",
+                          "fontFamily": "$font-body",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ZObLf",
+                      "name": "Listener Details",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "viT1p",
+                          "name": "Listener Name",
+                          "fill": "$text-primary",
+                          "content": "Joe McCulley",
+                          "fontFamily": "$font-body",
+                          "fontSize": 15,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Up1Tj",
+                          "name": "Asked At",
+                          "fill": "$warm-text-secondary",
+                          "content": "3 months ago",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "DNJNS",
+                  "name": "Question Transcript",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Hey this is Joe McCulley from listening from Orange Beach. What's your favorite song?",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "RXHip",
+                  "name": "Question Audio Transport",
+                  "width": "fill_container",
+                  "height": 48,
+                  "fill": "$warm-surface-raised",
+                  "cornerRadius": 10,
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "rgasD",
+                      "name": "Recording Play Button",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "$brand-primary",
+                      "cornerRadius": 16,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "F34Fc0",
+                          "name": "Recording Play Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "play",
+                          "library": "lucide",
+                          "fill": "$text-primary"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "Bj3rs",
+                      "name": "Recording Elapsed Time",
+                      "fill": "$warm-text-secondary",
+                      "content": "0:00",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "jRYrT",
+                      "name": "Recording Seek Track",
+                      "width": "fill_container",
+                      "height": 12,
+                      "fill": "#00000000",
+                      "cornerRadius": 2,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "r8FD0",
+                          "x": 0,
+                          "y": 4,
+                          "name": "Recording Seek Rail",
+                          "opacity": 0.45,
+                          "fill": "$warm-text-secondary",
+                          "width": 199,
+                          "height": 4
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "NOvwY",
+                          "x": 0,
+                          "y": 4,
+                          "name": "Recording Played Progress",
+                          "fill": "$brand-primary",
+                          "width": 2,
+                          "height": 4
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "o4ZkNY",
+                          "x": 0,
+                          "y": 0,
+                          "name": "Recording Seek Thumb",
+                          "fill": "$brand-primary",
+                          "width": 12,
+                          "height": 12
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "Z8qhW",
+                      "name": "Recording Total Duration",
+                      "fill": "$warm-text-secondary",
+                      "content": "0:08",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "z6sD2",
+          "name": "Response Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            20,
+            16,
+            0,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "ntb5E",
+              "name": "Response Label",
+              "fill": "$warm-text-secondary",
+              "content": "YOUR RESPONSE",
+              "fontFamily": "$font-body",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "p6cmr",
+              "name": "Response Recorder · Recording",
+              "width": "fill_container",
+              "fill": "$warm-surface",
+              "cornerRadius": 12,
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "P07Jao",
+                  "name": "Recording Status",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "V86Vm",
+                      "name": "Live Indicator",
+                      "gap": 7,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "RdQZ4",
+                          "name": "Live Dot",
+                          "fill": "$brand-primary",
+                          "width": 8,
+                          "height": 8
+                        },
+                        {
+                          "type": "text",
+                          "id": "t1e3a",
+                          "name": "Recording Label",
+                          "fill": "$text-primary",
+                          "content": "Recording",
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "PhYLS",
+                      "name": "Recording Timer",
+                      "fill": "$text-primary",
+                      "content": "0:37 / 2:00",
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "XTBSz",
+                  "name": "Live Waveform",
+                  "width": "fill_container",
+                  "height": 72,
+                  "fill": "$warm-surface-raised",
+                  "cornerRadius": 8,
+                  "gap": 5,
+                  "padding": [
+                    0,
+                    16
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "Y8ferN",
+                      "name": "Wave Bar 1",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 18
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "l2AuJk",
+                      "name": "Wave Bar 2",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 34
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "MhxvM",
+                      "name": "Wave Bar 3",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 24
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "kCBck",
+                      "name": "Wave Bar 4",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 48
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "t9TVQX",
+                      "name": "Wave Bar 5",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 30
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "ca25t",
+                      "name": "Wave Bar 6",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 56
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "PF8XU",
+                      "name": "Wave Bar 7",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 40
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "UpqZu",
+                      "name": "Wave Bar 8",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 22
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "CHdph",
+                      "name": "Wave Bar 9",
+                      "fill": "$warm-text-secondary",
+                      "width": 4,
+                      "height": 50
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "uxjGp",
+                      "name": "Wave Bar 10",
+                      "fill": "$warm-text-secondary",
+                      "width": 4,
+                      "height": 32
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "T1i8c0",
+                      "name": "Wave Bar 11",
+                      "fill": "$warm-text-secondary",
+                      "width": 4,
+                      "height": 44
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "x8uNeJ",
+                      "name": "Wave Bar 12",
+                      "fill": "$warm-text-secondary",
+                      "width": 4,
+                      "height": 20
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "TyZIp",
+                  "name": "Stop Recording Button",
+                  "height": 44,
+                  "fill": "$brand-primary",
+                  "cornerRadius": 22,
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    20
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "PFhLv",
+                      "name": "Stop Icon",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "square",
+                      "library": "lucide",
+                      "fill": "$text-primary"
+                    },
+                    {
+                      "type": "text",
+                      "id": "K5TwPD",
+                      "name": "Stop Label",
+                      "fill": "$text-primary",
+                      "content": "Stop recording",
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "c6iQq",
+          "type": "ref",
+          "ref": "k7Cd7m",
+          "name": "Tab Bar (Broadcast)",
+          "layoutPosition": "absolute",
+          "x": 16,
+          "y": 762,
+          "descendants": {
+            "wd9Lk/Mb28I": {
+              "fill": "$text-disabled"
+            },
+            "wd9Lk/x7cAoO": {
+              "fill": "$text-disabled"
+            },
+            "d2EwSK/Mb28I": {
+              "fill": "$text-primary"
+            },
+            "d2EwSK/x7cAoO": {
+              "fill": "$text-primary"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ZCBuR",
+      "x": 2978,
+      "y": 2922,
+      "name": "Listener Question · Answer · Review",
+      "clip": true,
+      "width": 393,
+      "height": 852,
+      "fill": "$warm-base",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "zGaBm",
+          "name": "Navigation",
+          "width": "fill_container",
+          "height": 64,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "kM2sM",
+              "x": 14,
+              "y": 10,
+              "name": "Back Button",
+              "width": 44,
+              "height": 44,
+              "fill": "$warm-surface-raised",
+              "cornerRadius": 22,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "lpw7P",
+                  "name": "Back Chevron",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "chevron-left",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "HVFuh",
+              "x": 0,
+              "y": 21,
+              "name": "Screen Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": 393,
+              "content": "Listener Question",
+              "textAlign": "center",
+              "fontFamily": "$font-body",
+              "fontSize": 17,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "iCx5R",
+          "name": "Question Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            12,
+            16,
+            0,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "F49ot",
+              "name": "Question Label",
+              "fill": "$warm-text-secondary",
+              "content": "QUESTION",
+              "fontFamily": "$font-body",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "v7h0oR",
+              "name": "Joe McCulley Question",
+              "width": "fill_container",
+              "fill": "$warm-surface",
+              "cornerRadius": 12,
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "I7ewh",
+                  "name": "Listener Identity",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "po8fA",
+                      "name": "Avatar · JM",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "$warm-surface-raised",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "e30TPn",
+                          "name": "Initials",
+                          "fill": "$warm-text-secondary",
+                          "content": "JM",
+                          "fontFamily": "$font-body",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "LAbkR",
+                      "name": "Listener Details",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "DD4lS",
+                          "name": "Listener Name",
+                          "fill": "$text-primary",
+                          "content": "Joe McCulley",
+                          "fontFamily": "$font-body",
+                          "fontSize": 15,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "h2LHMo",
+                          "name": "Asked At",
+                          "fill": "$warm-text-secondary",
+                          "content": "3 months ago",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "xTtlZ",
+                  "name": "Question Transcript",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Hey this is Joe McCulley from listening from Orange Beach. What's your favorite song?",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "JQInC",
+                  "name": "Question Audio",
+                  "height": 44,
+                  "fill": "$brand-primary",
+                  "cornerRadius": 22,
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    14
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "W414E",
+                      "name": "Play",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "play",
+                      "library": "lucide",
+                      "fill": "$text-primary"
+                    },
+                    {
+                      "type": "text",
+                      "id": "F4feA",
+                      "name": "Audio Duration",
+                      "fill": "$text-primary",
+                      "content": "0:08",
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "dZOvX",
+          "name": "Response Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            20,
+            16,
+            0,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "c6SVy",
+              "name": "Response Label",
+              "fill": "$warm-text-secondary",
+              "content": "YOUR RESPONSE",
+              "fontFamily": "$font-body",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "dT96q",
+              "name": "Response Recorder · Review",
+              "width": "fill_container",
+              "fill": "$warm-surface",
+              "cornerRadius": 12,
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "d0wRo",
+                  "name": "Review Status",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "t9riyi",
+                      "name": "Ready Label",
+                      "fill": "$text-primary",
+                      "content": "Ready to review",
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "XkZOL",
+                      "name": "Recorded Duration",
+                      "fill": "$text-primary",
+                      "content": "0:42 / 2:00",
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "K5BVKG",
+                  "name": "Playback Preview",
+                  "width": "fill_container",
+                  "height": 72,
+                  "fill": "$warm-surface-raised",
+                  "cornerRadius": 8,
+                  "gap": 12,
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "u5LaA",
+                      "name": "Playback Button",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "$brand-primary",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "BdkUD",
+                          "name": "Playback Icon",
+                          "width": 18,
+                          "height": 18,
+                          "icon": "play",
+                          "library": "lucide",
+                          "fill": "$text-primary"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "edalE",
+                      "name": "Review Waveform",
+                      "width": "fill_container",
+                      "height": 48,
+                      "gap": 4,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "Kh9gc",
+                          "name": "Review Bar 1",
+                          "fill": "$brand-primary",
+                          "width": 4,
+                          "height": 16
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "U8pVx5",
+                          "name": "Review Bar 2",
+                          "fill": "$brand-primary",
+                          "width": 4,
+                          "height": 30
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "M64xM",
+                          "name": "Review Bar 3",
+                          "fill": "$brand-primary",
+                          "width": 4,
+                          "height": 22
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "k8IQkp",
+                          "name": "Review Bar 4",
+                          "fill": "$brand-primary",
+                          "width": 4,
+                          "height": 40
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "uW3I0",
+                          "name": "Review Bar 5",
+                          "fill": "$brand-primary",
+                          "width": 4,
+                          "height": 26
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "p1UCOv",
+                          "name": "Review Bar 6",
+                          "fill": "$warm-text-secondary",
+                          "width": 4,
+                          "height": 46
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "SnSQW",
+                          "name": "Review Bar 7",
+                          "fill": "$warm-text-secondary",
+                          "width": 4,
+                          "height": 34
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "lR4By",
+                          "name": "Review Bar 8",
+                          "fill": "$warm-text-secondary",
+                          "width": 4,
+                          "height": 18
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "TFZS7",
+                          "name": "Review Bar 9",
+                          "fill": "$warm-text-secondary",
+                          "width": 4,
+                          "height": 38
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "MIzlX",
+                          "name": "Review Bar 10",
+                          "fill": "$warm-text-secondary",
+                          "width": 4,
+                          "height": 24
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "MmOky",
+                          "name": "Review Bar 11",
+                          "fill": "$warm-text-secondary",
+                          "width": 4,
+                          "height": 32
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "A6EtFN",
+                          "name": "Review Bar 12",
+                          "fill": "$warm-text-secondary",
+                          "width": 4,
+                          "height": 14
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "WU17e",
+                  "name": "Review Actions",
+                  "width": "fill_container",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "w4aNIO",
+                      "name": "Re-record Button",
+                      "width": "fill_container",
+                      "height": 44,
+                      "fill": "$brand-primary",
+                      "cornerRadius": 22,
+                      "gap": 7,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "yqyB0",
+                          "name": "Re-record Icon",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "rotate-ccw",
+                          "library": "lucide",
+                          "fill": "$text-primary"
+                        },
+                        {
+                          "type": "text",
+                          "id": "ITOiw",
+                          "name": "Re-record Label",
+                          "fill": "$text-primary",
+                          "content": "Re-record",
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "hAzb8",
+                      "name": "Cancel Button",
+                      "width": "fill_container",
+                      "height": 44,
+                      "fill": "$warm-surface-raised",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "X9iSbS",
+                          "name": "Cancel Label",
+                          "fill": "$text-primary",
+                          "content": "Cancel",
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "Yporz",
+          "type": "ref",
+          "ref": "k7Cd7m",
+          "name": "Tab Bar (Broadcast)",
+          "layoutPosition": "absolute",
+          "x": 16,
+          "y": 762,
+          "descendants": {
+            "wd9Lk/Mb28I": {
+              "fill": "$text-disabled"
+            },
+            "wd9Lk/x7cAoO": {
+              "fill": "$text-disabled"
+            },
+            "d2EwSK/Mb28I": {
+              "fill": "$text-primary"
+            },
+            "d2EwSK/x7cAoO": {
+              "fill": "$text-primary"
+            }
+          }
+        }
+      ]
     }
   ],
   "variables": {
