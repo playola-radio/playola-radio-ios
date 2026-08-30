@@ -566,6 +566,12 @@ struct ArtistDashboardPageTests {
     expectNoDifference(model.weekBars.last?.heightFraction, 1.0)
   }
 
+  @Test func chartSectionTitleMatchesVisibleWeekCap() {
+    let model = ArtistDashboardPageModel()
+
+    expectNoDifference(model.chartSectionTitle, "LAST 8 WEEKS")
+  }
+
   @Test func weekBarsClampNegativeCountsToZeroHeight() async {
     let model = await makeBroadcastingModel {
       $0.api.getListenerCounts = { _, _ in
@@ -625,6 +631,10 @@ struct ArtistDashboardPageTests {
         if shouldCancel.value { throw CancellationError() }
         return health
       }
+      $0.api.getActiveListeningSessions = { _, _, _, _ in
+        if shouldCancel.value { throw CancellationError() }
+        return Self.active(23)
+      }
       $0.api.getListenerCounts = { _, _ in
         if shouldCancel.value { throw CancellationError() }
         return Self.counts([Self.bucket("2024-07-21", uniqueUsers: 12)])
@@ -632,14 +642,47 @@ struct ArtistDashboardPageTests {
     }
 
     expectNoDifference(model.healthScoreLabel, "88")
+    expectNoDifference(model.stats.map(\.value), ["23", "23", "23"])
     expectNoDifference(model.weekBars.count, 1)
 
     shouldCancel.setValue(true)
     await model.viewAppeared()
 
     expectNoDifference(model.healthScoreLabel, "88")
+    expectNoDifference(model.stats.map(\.value), ["23", "23", "23"])
     expectNoDifference(model.weekBars.count, 1)
     expectNoDifference(model.presentedAlert == nil, true)
+  }
+
+  @Test func stationSwitchClearsStaleCardsEvenWhenNewLoadCancels() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: "station-A")
+
+    let model = await withDependencies {
+      $0.date = .constant(fixedNow)
+      $0.calendar = fixedCalendar
+      $0.api.getStationHealthScore = { _, _ in
+        StationHealth(score: nil, band: .unavailable, factors: [], tasks: [])
+      }
+      $0.api.getActiveListeningSessions = { _, stationId, _, _ in
+        if stationId == "station-B" { throw CancellationError() }
+        return Self.active(23)
+      }
+      $0.api.getListenerCounts = { _, _ in Self.emptyCounts }
+    } operation: {
+      let model = ArtistDashboardPageModel()
+      await model.viewAppeared()
+      return model
+    }
+
+    expectNoDifference(model.stats.map(\.value), ["23", "23", "23"])
+
+    coordinator.switchToBroadcastMode(stationId: "station-B")
+    await model.viewAppeared()
+
+    expectNoDifference(model.stats.map(\.value), ["—", "—", "—"])
   }
 
   // MARK: - Decoding Tolerance

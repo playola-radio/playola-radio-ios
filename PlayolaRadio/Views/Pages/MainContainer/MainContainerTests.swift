@@ -964,6 +964,19 @@ struct MainContainerTests {
   }
 
   @Test
+  func testBroadcastStationIdTracksStationSwitch() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: "station-A")
+
+    let mainContainerModel = MainContainerModel()
+    #expect(mainContainerModel.broadcastStationId == "station-A")
+
+    coordinator.switchToBroadcastMode(stationId: "station-B")
+    #expect(mainContainerModel.broadcastStationId == "station-B")
+  }
+
+  @Test
   func testBroadcastModeTabTitles() {
     let mainContainerModel = MainContainerModel()
 

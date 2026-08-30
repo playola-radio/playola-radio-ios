@@ -223,6 +223,7 @@ struct MainContainer: View {
     NavigationStack(path: navigationPathBinding(\.artistDashboardPath)) {
       tabContentWithSmallPlayer {
         ArtistDashboardPageView(model: model.artistDashboardPageModel)
+          .id(model.broadcastStationId)
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
         path.destinationView
@@ -240,6 +241,7 @@ struct MainContainer: View {
     NavigationStack(path: navigationPathBinding(\.artistStationPath)) {
       tabContentWithSmallPlayer {
         ArtistStationPageView(model: model.artistStationPageModel)
+          .id(model.broadcastStationId)
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
         path.destinationView

@@ -70,6 +70,7 @@ class ArtistDashboardPageModel: ViewModel {
   private var weekUniqueUsers: Int?
   private var monthUniqueUsers: Int?
   private var listenerBuckets: [ListenerCountsResponse.Bucket] = []
+  private var loadedStationId: String?
   var isLoading = false
   var presentedAlert: PlayolaAlert?
 
@@ -99,7 +100,7 @@ class ArtistDashboardPageModel: ViewModel {
     ]
   }
 
-  var chartSectionTitle: String { "LAST 6 WEEKS" }
+  var chartSectionTitle: String { "LAST \(Self.maxVisibleWeeks) WEEKS" }
   var chartLinkLabel: String { "Stats ›" }
 
   /// The chart shows only the most-recent weeks so the fixed-width bars stay within the screen;
@@ -143,6 +144,10 @@ class ArtistDashboardPageModel: ViewModel {
 
   func viewAppeared() async {
     guard let token = auth.jwt, let stationId else { return }
+    if stationId != loadedStationId {
+      loadedStationId = stationId
+      clearDisplayState()
+    }
     isLoading = true
     defer { isLoading = false }
     async let health: Void = loadHealthScore(token: token, stationId: stationId)
@@ -200,19 +205,37 @@ class ArtistDashboardPageModel: ViewModel {
     async let monthCount = uniqueUsers(
       token: token, stationId: stationId, airtime: monthStart, endTime: endOfYesterday)
 
-    nowUniqueUsers = await nowCount
-    weekUniqueUsers = await weekCount
-    monthUniqueUsers = await monthCount
+    do {
+      let (now, week, month) = try await (nowCount, weekCount, monthCount)
+      nowUniqueUsers = now
+      weekUniqueUsers = week
+      monthUniqueUsers = month
+    } catch {
+      // The task was cancelled (navigation away / remount): keep the cards' prior values and
+      // skip analytics, mirroring `loadHealthScore` / `loadListenerCounts`. Reached only when
+      // cancelled — a genuine one-card failure on a live task is swallowed inside `uniqueUsers`
+      // (tracked there, returns `nil`) so only that card degrades to "—". (If a real error
+      // happens to surface while the task is already cancelled, it is dropped here on purpose:
+      // the view is going away.)
+    }
+  }
+
+  private func clearDisplayState() {
+    stationHealth = nil
+    nowUniqueUsers = nil
+    weekUniqueUsers = nil
+    monthUniqueUsers = nil
+    listenerBuckets = []
   }
 
   private func uniqueUsers(
     token: String, stationId: String, airtime: Date, endTime: Date?
-  ) async -> Int? {
+  ) async throws -> Int? {
     do {
       return try await api.getActiveListeningSessions(token, stationId, airtime, endTime)
         .summary.uniqueUsers
     } catch {
-      guard !isCancellation(error) else { return nil }
+      guard !isCancellation(error) else { throw error }
       await analytics.track(
         .apiError(endpoint: "getActiveListeningSessions", error: error.localizedDescription))
       return nil
