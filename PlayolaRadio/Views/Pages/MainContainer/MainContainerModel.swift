@@ -59,9 +59,8 @@ class MainContainerModel: ViewModel {
     case yourLibrary
     case profile
     // Broadcast mode tabs
-    case broadcast
-    case library
-    case listeners
+    case artistDashboard
+    case artistStation
     case settings
   }
 
@@ -72,9 +71,8 @@ class MainContainerModel: ViewModel {
   var stationsTabTitle: String { "Radio Stations" }
   var yourLibraryTabTitle: String { "Your Library" }
   var profileTabTitle: String { "Your Profile" }
-  var broadcastTabTitle: String { "Broadcast" }
-  var libraryTabTitle: String { "Library" }
-  var listenersTabTitle: String { "Listeners" }
+  var artistDashboardTabTitle: String { "Dashboard" }
+  var artistStationTabTitle: String { "Station" }
   var settingsTabTitle: String { "Profile" }
 
   var homePageModel = HomePageModel()
@@ -88,9 +86,8 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored private var toastObservationTask: Task<Void, Never>?
 
   // Broadcast mode models
-  var broadcastPageModel: BroadcastPageModel?
-  var libraryPageModel: LibraryPageModel?
-  var listenerQuestionPageModel: BroadcastersListenerQuestionPageModel?
+  var artistDashboardPageModel = ArtistDashboardPageModel()
+  var artistStationPageModel = ArtistStationPageModel()
 
   var shouldShowSmallPlayer: Bool = false
   private var hasCheckedRatingPromptThisSession = false
@@ -119,19 +116,6 @@ class MainContainerModel: ViewModel {
       return stationId
     }
     return nil
-  }
-
-  func ensureBroadcastModels() {
-    guard let stationId = broadcastStationId else { return }
-    if broadcastPageModel?.stationId != stationId {
-      broadcastPageModel = BroadcastPageModel(stationId: stationId)
-    }
-    if libraryPageModel?.stationId != stationId {
-      libraryPageModel = LibraryPageModel(stationId: stationId)
-    }
-    if listenerQuestionPageModel?.stationId != stationId {
-      listenerQuestionPageModel = BroadcastersListenerQuestionPageModel(stationId: stationId)
-    }
   }
 
   func viewAppeared() async {

@@ -18,9 +18,8 @@ struct MainContainer: View {
   var body: some View {
     TabView(selection: activeTabBinding) {
       if model.isInBroadcastMode {
-        broadcastTab
-        libraryTab
-        listenersTab
+        artistDashboardTab
+        artistStationTab
         settingsTab
       } else {
         homeTab
@@ -140,8 +139,7 @@ struct MainContainer: View {
     }
     .onChange(of: model.mainContainerNavigationCoordinator.appMode) { _, newMode in
       if case .broadcasting = newMode {
-        model.ensureBroadcastModels()
-        model.$activeTab.withLock { $0 = .broadcast }
+        model.$activeTab.withLock { $0 = .artistDashboard }
       } else {
         model.$activeTab.withLock { $0 = .home }
       }
@@ -221,60 +219,39 @@ struct MainContainer: View {
   // MARK: - Broadcast Mode Tabs
 
   @ViewBuilder
-  private var broadcastTab: some View {
-    NavigationStack(path: navigationPathBinding(\.broadcastPath)) {
+  private var artistDashboardTab: some View {
+    NavigationStack(path: navigationPathBinding(\.artistDashboardPath)) {
       tabContentWithSmallPlayer {
-        if let broadcastModel = model.broadcastPageModel {
-          BroadcastPageView(model: broadcastModel)
-        }
+        ArtistDashboardPageView(model: model.artistDashboardPageModel)
+          .id(model.broadcastStationId)
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
         path.destinationView
       }
     }
     .tabItem {
-      Image(systemName: "antenna.radiowaves.left.and.right")
-      Text(model.broadcastTabTitle)
+      Image(systemName: "square.grid.2x2")
+      Text(model.artistDashboardTabTitle)
     }
-    .tag(MainContainerModel.ActiveTab.broadcast)
+    .tag(MainContainerModel.ActiveTab.artistDashboard)
   }
 
   @ViewBuilder
-  private var libraryTab: some View {
-    NavigationStack(path: navigationPathBinding(\.libraryPath)) {
+  private var artistStationTab: some View {
+    NavigationStack(path: navigationPathBinding(\.artistStationPath)) {
       tabContentWithSmallPlayer {
-        if let libraryModel = model.libraryPageModel {
-          LibraryPageView(model: libraryModel)
-        }
+        ArtistStationPageView(model: model.artistStationPageModel)
+          .id(model.broadcastStationId)
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
         path.destinationView
       }
     }
     .tabItem {
-      Image(systemName: "music.note.list")
-      Text(model.libraryTabTitle)
+      Image(systemName: "dot.radiowaves.left.and.right")
+      Text(model.artistStationTabTitle)
     }
-    .tag(MainContainerModel.ActiveTab.library)
-  }
-
-  @ViewBuilder
-  private var listenersTab: some View {
-    NavigationStack(path: navigationPathBinding(\.listenersPath)) {
-      tabContentWithSmallPlayer {
-        if let listenerModel = model.listenerQuestionPageModel {
-          BroadcastersListenerQuestionPageView(model: listenerModel)
-        }
-      }
-      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
-        path.destinationView
-      }
-    }
-    .tabItem {
-      Image(systemName: "bubble.left.and.bubble.right")
-      Text(model.listenersTabTitle)
-    }
-    .tag(MainContainerModel.ActiveTab.listeners)
+    .tag(MainContainerModel.ActiveTab.artistStation)
   }
 
   @ViewBuilder

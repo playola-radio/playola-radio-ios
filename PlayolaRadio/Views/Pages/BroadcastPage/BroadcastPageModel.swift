@@ -220,10 +220,7 @@ class BroadcastPageModel: ViewModel {
 
   var nowPlayingProgress: Double {
     guard let spin = nowPlaying else { return 0 }
-    let elapsed = now.timeIntervalSince(spin.airtime)
-    let duration = Double(spin.audioBlock.endOfMessageMS) / 1000.0
-    guard duration > 0 else { return 0 }
-    return min(max(elapsed / duration, 0), 1)
+    return spin.progress(at: now)
   }
 
   func canDeleteSpin(_ spin: Spin) -> Bool {

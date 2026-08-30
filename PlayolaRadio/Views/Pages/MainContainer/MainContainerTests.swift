@@ -9,6 +9,7 @@
 // swiftlint:disable file_length
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import IdentifiedCollections
@@ -963,49 +964,25 @@ struct MainContainerTests {
   }
 
   @Test
-  func testEnsureBroadcastModelsCreatesBroadcastPageModel() {
+  func testBroadcastStationIdTracksStationSwitch() {
     @Shared(.mainContainerNavigationCoordinator)
     var coordinator = MainContainerNavigationCoordinator()
-    coordinator.appMode = .broadcasting(stationId: "station-123")
+    coordinator.switchToBroadcastMode(stationId: "station-A")
 
     let mainContainerModel = MainContainerModel()
-    #expect(mainContainerModel.broadcastPageModel == nil)
+    #expect(mainContainerModel.broadcastStationId == "station-A")
 
-    mainContainerModel.ensureBroadcastModels()
-
-    #expect(mainContainerModel.broadcastPageModel != nil)
-    #expect(mainContainerModel.broadcastPageModel?.stationId == "station-123")
+    coordinator.switchToBroadcastMode(stationId: "station-B")
+    #expect(mainContainerModel.broadcastStationId == "station-B")
   }
 
   @Test
-  func testEnsureBroadcastModelsDoesNothingWhenListening() {
-    @Shared(.mainContainerNavigationCoordinator)
-    var coordinator = MainContainerNavigationCoordinator()
-    coordinator.appMode = .listening
-
+  func testBroadcastModeTabTitles() {
     let mainContainerModel = MainContainerModel()
-    mainContainerModel.ensureBroadcastModels()
 
-    #expect(mainContainerModel.broadcastPageModel == nil)
-  }
-
-  @Test
-  func testEnsureBroadcastModelsRecreatesModelsWhenStationIdChanges() {
-    @Shared(.mainContainerNavigationCoordinator)
-    var coordinator = MainContainerNavigationCoordinator()
-    coordinator.appMode = .broadcasting(stationId: "station-123")
-
-    let mainContainerModel = MainContainerModel()
-    mainContainerModel.ensureBroadcastModels()
-
-    let originalModel = mainContainerModel.broadcastPageModel
-    #expect(originalModel?.stationId == "station-123")
-
-    coordinator.appMode = .broadcasting(stationId: "station-456")
-    mainContainerModel.ensureBroadcastModels()
-
-    #expect(mainContainerModel.broadcastPageModel?.stationId == "station-456")
-    #expect(!(mainContainerModel.broadcastPageModel === originalModel))
+    expectNoDifference(mainContainerModel.artistDashboardTabTitle, "Dashboard")
+    expectNoDifference(mainContainerModel.artistStationTabTitle, "Station")
+    expectNoDifference(mainContainerModel.settingsTabTitle, "Profile")
   }
 
   // MARK: - Giveaway Resolution Arbiter Tests

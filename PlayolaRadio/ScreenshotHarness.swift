@@ -22,7 +22,8 @@
   /// so each shot is fully deterministic: no sign-in, no network, no permission
   /// prompts, no live-poller races.
   ///
-  /// Pages: `home` | `stations` | `library` | `player` | `player-tap`
+  /// Pages: `home` | `stations` | `library` | `player` | `player-tap` |
+  /// `artist-dashboard` | `artist-station`
   @MainActor
   struct ScreenshotHarness: View {
     static var requestedPage: String? {
@@ -91,11 +92,15 @@
 
     private var isPlayerPage: Bool { page == "player" || page == "player-tap" }
 
+    private var isArtistPage: Bool { page.hasPrefix("artist-") }
+
     private var activeTab: MainContainerModel.ActiveTab {
       switch page {
       case "stations": .stationsList
       case "library": .yourLibrary
       case "profile": .profile
+      case "artist-dashboard": .artistDashboard
+      case "artist-station": .artistStation
       default: .home
       }
     }
@@ -417,6 +422,8 @@
       @Shared(.activeTab) var tab
       $tab.withLock { $0 = activeTab }
 
+      seedBroadcastModeIfNeeded()
+
       @Shared(.stationLists) var lists
       $lists.withLock { $0 = stationLists }
       @Shared(.stationListsLoaded) var stationListsLoaded
@@ -462,6 +469,12 @@
         @Shared(.activeGiveaway) var activeGiveaway
         $activeGiveaway.withLock { $0 = openGiveaway }
       }
+    }
+
+    private func seedBroadcastModeIfNeeded() {
+      guard isArtistPage else { return }
+      @Shared(.mainContainerNavigationCoordinator) var coordinator
+      coordinator.appMode = .broadcasting(stationId: Self.recklessStationId)
     }
 
     func presentPlayerSheetIfNeeded() {

@@ -25,9 +25,8 @@ final class MainContainerNavigationCoordinator {
   var stationsPath: [Path] = []
   var yourLibraryPath: [Path] = []
   var profilePath: [Path] = []
-  var broadcastPath: [Path] = []
-  var libraryPath: [Path] = []
-  var listenersPath: [Path] = []
+  var artistStationPath: [Path] = []
+  var artistDashboardPath: [Path] = []
   var settingsPath: [Path] = []
 
   var presentedSheet: PlayolaSheet?
@@ -51,9 +50,8 @@ final class MainContainerNavigationCoordinator {
       case .stationsList: return stationsPath
       case .yourLibrary: return yourLibraryPath
       case .profile: return profilePath
-      case .broadcast: return broadcastPath
-      case .library: return libraryPath
-      case .listeners: return listenersPath
+      case .artistStation: return artistStationPath
+      case .artistDashboard: return artistDashboardPath
       case .settings: return settingsPath
       }
     }
@@ -63,9 +61,8 @@ final class MainContainerNavigationCoordinator {
       case .stationsList: stationsPath = newValue
       case .yourLibrary: yourLibraryPath = newValue
       case .profile: profilePath = newValue
-      case .broadcast: broadcastPath = newValue
-      case .library: libraryPath = newValue
-      case .listeners: listenersPath = newValue
+      case .artistStation: artistStationPath = newValue
+      case .artistDashboard: artistDashboardPath = newValue
       case .settings: settingsPath = newValue
       }
     }
@@ -83,6 +80,7 @@ final class MainContainerNavigationCoordinator {
     case seriesListPage(SeriesListPageModel)
     case supportPage(SupportPageModel)
     case conversationListPage(ConversationListPageModel)
+    case broadcastersListenerQuestionPage(BroadcastersListenerQuestionPageModel)
     case listenerQuestionDetailPage(ListenerQuestionDetailPageModel)
 
     @MainActor @ViewBuilder
@@ -110,6 +108,8 @@ final class MainContainerNavigationCoordinator {
         SupportPageView(model: model)
       case .conversationListPage(let model):
         ConversationListPageView(model: model)
+      case .broadcastersListenerQuestionPage(let model):
+        BroadcastersListenerQuestionPageView(model: model)
       case .listenerQuestionDetailPage(let model):
         ListenerQuestionDetailPageView(model: model)
       }
@@ -141,9 +141,8 @@ final class MainContainerNavigationCoordinator {
     stationsPath = strip(stationsPath)
     yourLibraryPath = strip(yourLibraryPath)
     profilePath = strip(profilePath)
-    broadcastPath = strip(broadcastPath)
-    libraryPath = strip(libraryPath)
-    listenersPath = strip(listenersPath)
+    artistStationPath = strip(artistStationPath)
+    artistDashboardPath = strip(artistDashboardPath)
     settingsPath = strip(settingsPath)
   }
 
@@ -158,11 +157,13 @@ final class MainContainerNavigationCoordinator {
   func switchToBroadcastMode(stationId: String) {
     clearAllPaths()
     appMode = .broadcasting(stationId: stationId)
+    $activeTab.withLock { $0 = .artistDashboard }
   }
 
   func switchToListeningMode() {
     clearAllPaths()
     appMode = .listening
+    $activeTab.withLock { $0 = .home }
   }
 
   private func clearAllPaths() {
@@ -170,9 +171,8 @@ final class MainContainerNavigationCoordinator {
     stationsPath = []
     yourLibraryPath = []
     profilePath = []
-    broadcastPath = []
-    libraryPath = []
-    listenersPath = []
+    artistStationPath = []
+    artistDashboardPath = []
     settingsPath = []
   }
 

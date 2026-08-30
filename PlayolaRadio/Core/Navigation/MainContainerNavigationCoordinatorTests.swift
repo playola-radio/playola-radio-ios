@@ -256,6 +256,16 @@ struct MainContainerNavigationCoordinatorTests {
   }
 
   @Test
+  func testSwitchToBroadcastModeSelectsArtistDashboardTab() {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .profile
+    let coordinator = MainContainerNavigationCoordinator()
+
+    coordinator.switchToBroadcastMode(stationId: "station-123")
+
+    #expect(activeTab == .artistDashboard)
+  }
+
+  @Test
   func testSwitchToBroadcastModeFromListeningMode() {
     let coordinator = MainContainerNavigationCoordinator()
     #expect(coordinator.appMode == .listening)
@@ -287,6 +297,17 @@ struct MainContainerNavigationCoordinatorTests {
     coordinator.switchToListeningMode()
 
     #expect(coordinator.appMode == .listening)
+  }
+
+  @Test
+  func testSwitchToListeningModeSelectsHomeTab() {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
+    let coordinator = MainContainerNavigationCoordinator()
+    coordinator.appMode = .broadcasting(stationId: "station-123")
+
+    coordinator.switchToListeningMode()
+
+    #expect(activeTab == .home)
   }
 
   // MARK: - navigateToLikedSongs from Broadcast Mode Tests
