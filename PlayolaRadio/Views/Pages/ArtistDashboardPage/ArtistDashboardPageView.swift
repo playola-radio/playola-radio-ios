@@ -126,20 +126,26 @@ struct ArtistDashboardPageView: View {
             .foregroundColor(.playolaRed)
         }
       }
-      HStack(alignment: .bottom, spacing: 8) {
-        ForEach(model.weekBars) { bar in
-          VStack(spacing: 4) {
-            RoundedRectangle(cornerRadius: 2)
-              .fill(bar.barColor)
-              .frame(maxWidth: 32)
-              .frame(height: maxBarHeight * bar.heightFraction)
-            Text(bar.label)
-              .font(.custom(bar.labelFontName, size: bar.labelFontSize))
-              .foregroundColor(bar.labelColor)
+      ZStack {
+        HStack(alignment: .bottom, spacing: 8) {
+          ForEach(model.weekBars) { bar in
+            VStack(spacing: 4) {
+              RoundedRectangle(cornerRadius: 2)
+                .fill(bar.barColor)
+                .frame(maxWidth: 32)
+                .frame(height: maxBarHeight * bar.heightFraction)
+              Text(bar.label)
+                .font(.custom(bar.labelFontName, size: bar.labelFontSize))
+                .foregroundColor(bar.labelColor)
+            }
+            .frame(maxWidth: .infinity)
           }
-          .frame(maxWidth: .infinity)
         }
+        ProgressView()
+          .tint(.white)
+          .opacity(model.chartSpinnerOpacity)
       }
+      .frame(maxWidth: .infinity, minHeight: maxBarHeight + 20)
     }
   }
 

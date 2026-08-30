@@ -141,6 +141,23 @@ struct ArtistDashboardPageTests {
     }
   }
 
+  private var rollingWeekAgo: Date { fixedCalendar.date(byAdding: .day, value: -7, to: fixedNow)! }
+  private var rollingTwoWeeksAgo: Date {
+    fixedCalendar.date(byAdding: .day, value: -14, to: fixedNow)!
+  }
+
+  /// Builds a loaded model whose two rolling-trend windows (`[weekAgo…now]`, `[twoWeeksAgo…weekAgo]`)
+  /// resolve to the given unique-user counts. Stat-card windows fall through to `emptyActive`.
+  private func makeTrendModel(trailing: Int, prior: Int) async -> ArtistDashboardPageModel {
+    await makeBroadcastingModel {
+      $0.api.getActiveListeningSessions = { [rollingWeekAgo, rollingTwoWeeksAgo] _, _, airtime, _ in
+        if airtime == rollingWeekAgo { return Self.active(trailing) }
+        if airtime == rollingTwoWeeksAgo { return Self.active(prior) }
+        return Self.emptyActive
+      }
+    }
+  }
+
   // MARK: - Static Placeholder Content
 
   @Test func displaysStaticHeaderAndEmptyDataState() {
@@ -148,6 +165,8 @@ struct ArtistDashboardPageTests {
 
     expectNoDifference(model.navigationTitle, "Dashboard")
     expectNoDifference(model.weeklyReportLabel, "Weekly report")
+    expectNoDifference(model.weeklyReportTrendLabel, "")
+    expectNoDifference(model.weeklyReportTrendColor, .clear)
     expectNoDifference(model.healthSectionTitle, "STATION HEALTH")
     expectNoDifference(model.listenersSectionTitle, "LISTENERS")
     expectNoDifference(model.stats.map(\.value), ["—", "—", "—"])
@@ -473,7 +492,9 @@ struct ArtistDashboardPageTests {
     expectNoDifference(windows.value[startOfToday], fixedNow)
     expectNoDifference(windows.value[weekStart], startOfToday)
     expectNoDifference(windows.value[monthStart], startOfToday)
-    expectNoDifference(windows.value.count, 3)
+    // Five windows total: the three stat cards above plus the two rolling weekly-trend windows
+    // (asserted in `weeklyTrendUsesRollingSevenDayWindows`).
+    expectNoDifference(windows.value.count, 5)
   }
 
   @Test func listenerCardDegradesIndependentlyOnFailure() async {
@@ -585,6 +606,130 @@ struct ArtistDashboardPageTests {
     expectNoDifference(model.weekBars.map(\.heightFraction), [0, 1.0])
   }
 
+  // MARK: - Weekly Report Trend
+
+  @Test func weeklyTrendShowsUpPercentWhenTrailingWeekHigher() async {
+    let model = await makeTrendModel(trailing: 120, prior: 100)
+
+    expectNoDifference(model.weeklyReportTrendLabel, "↑ 20%")
+    expectNoDifference(model.weeklyReportTrendColor, Color(hex: "#34C759"))
+  }
+
+  @Test func weeklyTrendShowsDownPercentWhenTrailingWeekLower() async {
+    let model = await makeTrendModel(trailing: 80, prior: 100)
+
+    expectNoDifference(model.weeklyReportTrendLabel, "↓ 20%")
+    expectNoDifference(model.weeklyReportTrendColor, .playolaRed)
+  }
+
+  @Test func weeklyTrendShowsZeroPercentWhenFlat() async {
+    let model = await makeTrendModel(trailing: 100, prior: 100)
+
+    expectNoDifference(model.weeklyReportTrendLabel, "0%")
+    expectNoDifference(model.weeklyReportTrendColor, .playolaGray)
+  }
+
+  @Test func weeklyTrendRoundsToNearestPercent() async {
+    let model = await makeTrendModel(trailing: 125, prior: 120)  // +4.166% → 4%
+
+    expectNoDifference(model.weeklyReportTrendLabel, "↑ 4%")
+  }
+
+  @Test func weeklyTrendHiddenWhenPriorWeekHasNoListeners() async {
+    let model = await makeTrendModel(trailing: 50, prior: 0)
+
+    expectNoDifference(model.weeklyReportTrendLabel, "")
+    expectNoDifference(model.weeklyReportTrendColor, .clear)
+  }
+
+  @Test func weeklyTrendHiddenWhenWindowFailsWithoutAlert() async {
+    let model = await makeBroadcastingModel {
+      $0.api.getActiveListeningSessions = { [rollingWeekAgo] _, _, airtime, _ in
+        if airtime == rollingWeekAgo { throw TestError.networkError }
+        return Self.active(100)
+      }
+    }
+
+    expectNoDifference(model.weeklyReportTrendLabel, "")
+    expectNoDifference(model.weeklyReportTrendColor, .clear)
+    expectNoDifference(model.presentedAlert == nil, true)
+  }
+
+  @Test func weeklyTrendUsesRollingSevenDayWindows() async {
+    let windows = LockIsolated<[Date: Date?]>([:])
+
+    _ = await makeBroadcastingModel {
+      $0.api.getActiveListeningSessions = { _, _, airtime, endTime in
+        windows.withValue { $0[airtime] = endTime }
+        return Self.emptyActive
+      }
+    }
+
+    expectNoDifference(windows.value[rollingWeekAgo], fixedNow)
+    expectNoDifference(windows.value[rollingTwoWeeksAgo], rollingWeekAgo)
+  }
+
+  // MARK: - Chart Loading Indicator
+
+  @Test func chartSpinnerReflectsLoadingWhenNoBucketsYet() {
+    let model = ArtistDashboardPageModel()
+    model.isLoading = true
+
+    expectNoDifference(model.isChartLoading, true)
+    expectNoDifference(model.chartSpinnerOpacity, 1)
+  }
+
+  @Test func chartSpinnerHiddenAfterBucketsLoad() async {
+    let model = await makeBroadcastingModel {
+      $0.api.getListenerCounts = { _, _ in
+        Self.counts([Self.bucket("2024-07-21", uniqueUsers: 5)])
+      }
+    }
+
+    expectNoDifference(model.isChartLoading, false)
+    expectNoDifference(model.chartSpinnerOpacity, 0)
+  }
+
+  @Test func chartSpinnerVisibleDuringInitialLoadThenHidden() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+
+    let release = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
+    let started = AsyncStream.makeStream(of: Void.self)
+
+    let model = withDependencies {
+      $0.date = .constant(fixedNow)
+      $0.calendar = fixedCalendar
+      $0.api.getStationHealthScore = { _, _ in
+        StationHealth(score: nil, band: .unavailable, factors: [], tasks: [])
+      }
+      $0.api.getActiveListeningSessions = { _, _, _, _ in Self.emptyActive }
+      $0.api.getListenerCounts = { _, _ in
+        started.continuation.yield()
+        await withCheckedContinuation { release.setValue($0) }
+        return Self.counts([Self.bucket("2024-07-21", uniqueUsers: 5)])
+      }
+    } operation: {
+      ArtistDashboardPageModel()
+    }
+
+    let task = Task { await model.viewAppeared() }
+    var iterator = started.stream.makeAsyncIterator()
+    await iterator.next()
+
+    expectNoDifference(model.isChartLoading, true)
+    expectNoDifference(model.chartSpinnerOpacity, 1)
+
+    release.value?.resume()
+    await task.value
+
+    expectNoDifference(model.isChartLoading, false)
+    expectNoDifference(model.chartSpinnerOpacity, 0)
+    expectNoDifference(model.weekBars.count, 1)
+  }
+
   // MARK: - Reload Staleness & Cancellation
 
   @Test func healthReloadFailureClearsStaleScore() async {
@@ -683,6 +828,49 @@ struct ArtistDashboardPageTests {
     await model.viewAppeared()
 
     expectNoDifference(model.stats.map(\.value), ["—", "—", "—"])
+  }
+
+  @Test func staleInFlightLoadDoesNotClobberNewerStationData() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: "station-A")
+
+    let releaseA = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
+    let aStarted = AsyncStream.makeStream(of: Void.self)
+
+    let model = withDependencies {
+      $0.date = .constant(fixedNow)
+      $0.calendar = fixedCalendar
+      $0.api.getStationHealthScore = { _, stationId in
+        if stationId == "station-A" {
+          aStarted.continuation.yield()
+          await withCheckedContinuation { releaseA.setValue($0) }
+          return StationHealth(score: 11, band: .attention, factors: [], tasks: [])
+        }
+        return StationHealth(score: 99, band: .good, factors: [], tasks: [])
+      }
+      $0.api.getActiveListeningSessions = { _, _, _, _ in Self.emptyActive }
+      $0.api.getListenerCounts = { _, _ in Self.emptyCounts }
+    } operation: {
+      ArtistDashboardPageModel()
+    }
+
+    // Station A's health load starts and blocks mid-flight (generation 1).
+    let taskA = Task { await model.viewAppeared() }
+    var iterator = aStarted.stream.makeAsyncIterator()
+    await iterator.next()
+
+    // Switch to station B and let its load finish fully (generation 2).
+    coordinator.switchToBroadcastMode(stationId: "station-B")
+    await model.viewAppeared()
+    expectNoDifference(model.healthScoreLabel, "99")
+
+    // A's now-stale request returns last; the generation guard must drop its write.
+    releaseA.value?.resume()
+    await taskA.value
+
+    expectNoDifference(model.healthScoreLabel, "99")
   }
 
   // MARK: - Decoding Tolerance

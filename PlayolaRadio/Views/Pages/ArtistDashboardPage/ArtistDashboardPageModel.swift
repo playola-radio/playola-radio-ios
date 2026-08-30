@@ -11,8 +11,9 @@ import SwiftUI
 
 // NOTE: The Station Health ring / "Improve your station" checklist come from `getStationHealthScore`;
 // the Listeners stat cards come from `getActiveListeningSessions` (one call per card); the 6-week
-// chart comes from `getListenerCounts`. Only the Weekly Report header trend ("↑ 12%") remains a
-// hard-coded placeholder pending the percent-change deltas fast-follow.
+// chart comes from `getListenerCounts`. The Weekly Report header trend is a rolling week-over-week
+// change (trailing 7 days vs. the prior 7 days) computed from two more `getActiveListeningSessions`
+// windows.
 @MainActor
 @Observable
 class ArtistDashboardPageModel: ViewModel {
@@ -69,8 +70,16 @@ class ArtistDashboardPageModel: ViewModel {
   private var nowUniqueUsers: Int?
   private var weekUniqueUsers: Int?
   private var monthUniqueUsers: Int?
+  private var trailingWeekUsers: Int?
+  private var priorWeekUsers: Int?
   private var listenerBuckets: [ListenerCountsResponse.Bucket] = []
   private var loadedStationId: String?
+  /// Bumped once per `viewAppeared`. Each concurrent load captures the value at launch and only
+  /// writes back if it still matches — so a slow load from an older station (or an earlier reload)
+  /// can't clobber fresher data if it finishes after a newer load has started. Cancellation covers
+  /// the common navigation-away case; this closes the narrow window where an in-flight request has
+  /// already returned before cancellation propagates.
+  private var loadGeneration = 0
   var isLoading = false
   var presentedAlert: PlayolaAlert?
 
@@ -79,8 +88,22 @@ class ArtistDashboardPageModel: ViewModel {
   var navigationTitle: String { "Dashboard" }
 
   var weeklyReportLabel: String { "Weekly report" }
-  var weeklyReportTrendLabel: String { "↑ 12%" }
-  var weeklyReportTrendColor: Color { Color(hex: "#34C759") }
+
+  /// Rolling week-over-week trend for the header. Hidden (empty label, clear color) whenever it
+  /// can't be shown honestly — see `weeklyTrendPercent`.
+  var weeklyReportTrendLabel: String {
+    guard let percent = weeklyTrendPercent else { return "" }
+    if percent > 0 { return "↑ \(percent)%" }
+    if percent < 0 { return "↓ \(-percent)%" }
+    return "0%"
+  }
+
+  var weeklyReportTrendColor: Color {
+    guard let percent = weeklyTrendPercent else { return .clear }
+    if percent > 0 { return Color(hex: "#34C759") }
+    if percent < 0 { return .playolaRed }
+    return .playolaGray
+  }
 
   var healthSectionTitle: String { "STATION HEALTH" }
   var healthScoreLabel: String { stationHealth?.score.map(String.init) ?? "—" }
@@ -102,6 +125,11 @@ class ArtistDashboardPageModel: ViewModel {
 
   var chartSectionTitle: String { "LAST \(Self.maxVisibleWeeks) WEEKS" }
   var chartLinkLabel: String { "Stats ›" }
+
+  /// True only on the first load for a station, before any buckets have arrived. A same-station
+  /// reload keeps the existing bars visible (no spinner) rather than blanking the chart.
+  var isChartLoading: Bool { isLoading && listenerBuckets.isEmpty }
+  var chartSpinnerOpacity: Double { isChartLoading ? 1 : 0 }
 
   /// The chart shows only the most-recent weeks so the fixed-width bars stay within the screen;
   /// older buckets are dropped rather than overflowing the row.
@@ -148,12 +176,19 @@ class ArtistDashboardPageModel: ViewModel {
       loadedStationId = stationId
       clearDisplayState()
     }
+    loadGeneration += 1
+    let generation = loadGeneration
     isLoading = true
-    defer { isLoading = false }
-    async let health: Void = loadHealthScore(token: token, stationId: stationId)
-    async let listeners: Void = loadListenerStats(token: token, stationId: stationId)
-    async let counts: Void = loadListenerCounts(token: token, stationId: stationId)
-    _ = await (health, listeners, counts)
+    defer { if generation == loadGeneration { isLoading = false } }
+    async let health: Void = loadHealthScore(
+      token: token, stationId: stationId, generation: generation)
+    async let listeners: Void = loadListenerStats(
+      token: token, stationId: stationId, generation: generation)
+    async let counts: Void = loadListenerCounts(
+      token: token, stationId: stationId, generation: generation)
+    async let trend: Void = loadWeeklyTrend(
+      token: token, stationId: stationId, generation: generation)
+    _ = await (health, listeners, counts, trend)
   }
 
   func weeklyReportTapped() {}
@@ -179,11 +214,14 @@ class ArtistDashboardPageModel: ViewModel {
     return nil
   }
 
-  private func loadHealthScore(token: String, stationId: String) async {
+  private func loadHealthScore(token: String, stationId: String, generation: Int) async {
     do {
-      stationHealth = try await api.getStationHealthScore(token, stationId)
+      let health = try await api.getStationHealthScore(token, stationId)
+      guard generation == loadGeneration else { return }
+      stationHealth = health
     } catch {
       guard !isCancellation(error) else { return }
+      guard generation == loadGeneration else { return }
       stationHealth = nil
       presentedAlert = .stationHealthError(error.localizedDescription)
       await analytics.track(
@@ -191,7 +229,7 @@ class ArtistDashboardPageModel: ViewModel {
     }
   }
 
-  private func loadListenerStats(token: String, stationId: String) async {
+  private func loadListenerStats(token: String, stationId: String, generation: Int) async {
     let referenceNow = now
     let startOfToday = calendar.startOfDay(for: referenceNow)
     let endOfYesterday = startOfToday
@@ -207,6 +245,7 @@ class ArtistDashboardPageModel: ViewModel {
 
     do {
       let (now, week, month) = try await (nowCount, weekCount, monthCount)
+      guard generation == loadGeneration else { return }
       nowUniqueUsers = now
       weekUniqueUsers = week
       monthUniqueUsers = month
@@ -220,11 +259,46 @@ class ArtistDashboardPageModel: ViewModel {
     }
   }
 
+  /// Rolling week-over-week change powering the header trend: trailing 7 days vs. the 7 days
+  /// before. Both windows are exactly seven days, so it stays low-noise while still moving daily.
+  /// Returns `nil` when it can't be computed honestly — either window failed to load, or the prior
+  /// window had no listeners to divide by (a "new station" that would otherwise show ∞%).
+  private var weeklyTrendPercent: Int? {
+    guard let trailing = trailingWeekUsers, let prior = priorWeekUsers, prior > 0 else {
+      return nil
+    }
+    let change = Double(trailing - prior) / Double(prior)
+    return Int((change * 100).rounded())
+  }
+
+  private func loadWeeklyTrend(token: String, stationId: String, generation: Int) async {
+    let weekAgo = calendar.date(byAdding: .day, value: -7, to: now) ?? now
+    let twoWeeksAgo = calendar.date(byAdding: .day, value: -14, to: now) ?? now
+
+    async let trailing = uniqueUsers(
+      token: token, stationId: stationId, airtime: weekAgo, endTime: now)
+    async let prior = uniqueUsers(
+      token: token, stationId: stationId, airtime: twoWeeksAgo, endTime: weekAgo)
+
+    do {
+      let (trailingUsers, priorUsers) = try await (trailing, prior)
+      guard generation == loadGeneration else { return }
+      trailingWeekUsers = trailingUsers
+      priorWeekUsers = priorUsers
+    } catch {
+      // Cancelled (navigation away / remount): keep the prior trend values, mirroring the other
+      // loads. A genuine one-window failure is swallowed inside `uniqueUsers` (returns `nil`),
+      // which hides the trend rather than reaching here.
+    }
+  }
+
   private func clearDisplayState() {
     stationHealth = nil
     nowUniqueUsers = nil
     weekUniqueUsers = nil
     monthUniqueUsers = nil
+    trailingWeekUsers = nil
+    priorWeekUsers = nil
     listenerBuckets = []
   }
 
@@ -242,11 +316,14 @@ class ArtistDashboardPageModel: ViewModel {
     }
   }
 
-  private func loadListenerCounts(token: String, stationId: String) async {
+  private func loadListenerCounts(token: String, stationId: String, generation: Int) async {
     do {
-      listenerBuckets = try await api.getListenerCounts(token, stationId).buckets
+      let buckets = try await api.getListenerCounts(token, stationId).buckets
+      guard generation == loadGeneration else { return }
+      listenerBuckets = buckets
     } catch {
       guard !isCancellation(error) else { return }
+      guard generation == loadGeneration else { return }
       listenerBuckets = []
       await analytics.track(
         .apiError(endpoint: "getListenerCounts", error: error.localizedDescription))
