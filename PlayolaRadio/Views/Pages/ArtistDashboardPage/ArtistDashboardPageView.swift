@@ -131,7 +131,8 @@ struct ArtistDashboardPageView: View {
           VStack(spacing: 4) {
             RoundedRectangle(cornerRadius: 2)
               .fill(bar.barColor)
-              .frame(width: 32, height: maxBarHeight * bar.heightFraction)
+              .frame(maxWidth: 32)
+              .frame(height: maxBarHeight * bar.heightFraction)
             Text(bar.label)
               .font(.custom(bar.labelFontName, size: bar.labelFontSize))
               .foregroundColor(bar.labelColor)

@@ -102,9 +102,14 @@ class ArtistDashboardPageModel: ViewModel {
   var chartSectionTitle: String { "LAST 6 WEEKS" }
   var chartLinkLabel: String { "Stats ›" }
 
+  /// The chart shows only the most-recent weeks so the fixed-width bars stay within the screen;
+  /// older buckets are dropped rather than overflowing the row.
+  private static let maxVisibleWeeks = 8
+
   var weekBars: [WeekBar] {
-    let maxUsers = listenerBuckets.map { max(0, $0.uniqueUsers) }.max() ?? 0
-    return listenerBuckets.map { bucket in
+    let visibleBuckets = listenerBuckets.suffix(Self.maxVisibleWeeks)
+    let maxUsers = visibleBuckets.map { max(0, $0.uniqueUsers) }.max() ?? 0
+    return visibleBuckets.map { bucket in
       let rawFraction = maxUsers == 0 ? 0 : Double(max(0, bucket.uniqueUsers)) / Double(maxUsers)
       let fraction = min(1, max(0, rawFraction))
       if bucket.isLive {

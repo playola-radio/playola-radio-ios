@@ -461,6 +461,31 @@ struct ArtistDashboardPageTests {
     expectNoDifference(model.presentedAlert == nil, true)
   }
 
+  @Test func weekBarsCapAtMostRecentEightWeeks() async {
+    let model = await makeBroadcastingModel {
+      $0.api.getListenerCounts = { _, _ in
+        Self.counts([
+          Self.bucket("2024-06-02", uniqueUsers: 1),
+          Self.bucket("2024-06-09", uniqueUsers: 2),
+          Self.bucket("2024-06-16", uniqueUsers: 3),
+          Self.bucket("2024-06-23", uniqueUsers: 4),
+          Self.bucket("2024-06-30", uniqueUsers: 5),
+          Self.bucket("2024-07-07", uniqueUsers: 6),
+          Self.bucket("2024-07-14", uniqueUsers: 7),
+          Self.bucket("2024-07-21", uniqueUsers: 8),
+          Self.bucket("2024-07-28", uniqueUsers: 9),
+          Self.bucket("2024-08-04", uniqueUsers: 10, isLive: true),
+        ])
+      }
+    }
+
+    expectNoDifference(model.weekBars.count, 8)
+    expectNoDifference(
+      model.weekBars.map(\.label),
+      ["6/16", "6/23", "6/30", "7/7", "7/14", "7/21", "7/28", "SO FAR"])
+    expectNoDifference(model.weekBars.last?.heightFraction, 1.0)
+  }
+
   @Test func weekBarsClampNegativeCountsToZeroHeight() async {
     let model = await makeBroadcastingModel {
       $0.api.getListenerCounts = { _, _ in
