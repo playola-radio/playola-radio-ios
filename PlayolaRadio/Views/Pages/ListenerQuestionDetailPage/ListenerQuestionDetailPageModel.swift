@@ -108,12 +108,33 @@ class ListenerQuestionDetailPageModel: ViewModel {
 
   // MARK: - Question Playback Display
 
+  /// Total question length in seconds. Once playback is underway the live player's duration is
+  /// authoritative; before that it falls back to the server-sent `durationMS` so the scrubber can
+  /// show the full length at rest. Preferring the live duration avoids showing an impossible
+  /// position/duration pair (e.g. `0:09 / 0:08`) when the two sources disagree.
+  var questionDuration: TimeInterval {
+    if questionPlaybackState.duration > 0 {
+      return questionPlaybackState.duration
+    }
+    guard let durationMS = question.durationMS else {
+      return questionPlaybackState.duration
+    }
+    return TimeInterval(durationMS) / 1000
+  }
+
   var questionDurationText: String {
-    formatTime(questionPlaybackState.duration)
+    formatTime(questionDuration)
   }
 
   var questionPlaybackPositionText: String {
     formatTime(questionPlaybackState.currentTime)
+  }
+
+  /// The scrubber fill fraction (`0...1`), guarded against a zero/unknown duration.
+  var questionPlaybackProgress: Double {
+    let duration = questionDuration
+    guard duration > 0 else { return 0 }
+    return min(1, max(0, questionPlaybackState.currentTime / duration))
   }
 
   var questionPlayButtonIcon: String {
@@ -135,6 +156,12 @@ class ListenerQuestionDetailPageModel: ViewModel {
 
   var showRecordingIndicator: Bool {
     recordingPhase == .recording
+  }
+
+  /// Hides the tab bar during an active recording so an accidental tab switch
+  /// can't discard in-progress audio. Restored once recording stops.
+  var tabBarVisibility: Visibility {
+    recordingPhase == .recording ? .hidden : .automatic
   }
 
   var waveformSamples: [Float] {
@@ -254,6 +281,19 @@ class ListenerQuestionDetailPageModel: ViewModel {
         presentedAlert = .audioPlaybackError(error.localizedDescription)
       }
     }
+  }
+
+  /// Seeks the question audio to the drag location. The View passes the raw gesture x and the
+  /// track width so the fraction math (and the zero-width guard that avoids a NaN seek) lives in
+  /// the model rather than the View. Also rejects a non-finite target, since an indeterminate
+  /// stream can report a `+inf`/`NaN` duration that would otherwise seek to a bad timestamp. A
+  /// no-op until playback has started, matching the answer scrubber.
+  func questionScrubberDragged(locationX: CGFloat, trackWidth: CGFloat) async {
+    guard trackWidth > 0 else { return }
+    let percent = min(1, max(0, locationX / trackWidth))
+    let target = TimeInterval(percent) * questionDuration
+    guard target.isFinite else { return }
+    await questionPlaybackSession?.seek(target)
   }
 
   // MARK: - Recording Actions

@@ -60,6 +60,8 @@ struct BroadcastersListenerQuestionPageView: View {
                   : Color.elevatedSurface
               )
               .cornerRadius(20)
+              .frame(minHeight: 44)
+              .contentShape(Rectangle())
           }
         }
       }
@@ -284,6 +286,8 @@ struct ListenerQuestionRow: View {
       .padding(.vertical, 8)
       .background(Color.playolaRed)
       .cornerRadius(20)
+      .frame(minWidth: 44, minHeight: 44)
+      .contentShape(Rectangle())
     }
   }
 

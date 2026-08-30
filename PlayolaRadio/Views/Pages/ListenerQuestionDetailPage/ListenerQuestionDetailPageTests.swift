@@ -8,6 +8,7 @@ import Dependencies
 import Foundation
 import PlayolaPlayer
 import Sharing
+import SwiftUI
 import Testing
 
 @testable import PlayolaRadio
@@ -631,6 +632,135 @@ struct ListenerQuestionDetailPageTests {
     #expect(model.questionPlayButtonIcon == "stop.fill")
   }
 
+  // MARK: - Question Duration Display Tests
+
+  @Test
+  func testQuestionDurationTextShowsQuestionDurationAtRest() {
+    let audioBlock = AudioBlock.mockWith(durationMS: 8000)
+    let model = makeModel(question: .mockWith(audioBlock: audioBlock))
+    #expect(model.questionDurationText == "0:08")
+  }
+
+  @Test
+  func testQuestionDurationTextFallsBackToPlaybackDurationWhenUnknown() {
+    let model = makeModel(question: .mockWith(audioBlock: nil))
+    model.questionPlaybackState = PlaybackState(currentTime: 0, duration: 12, isPlaying: false)
+    #expect(model.questionDurationText == "0:12")
+  }
+
+  @Test
+  func testQuestionDurationTextShowsZeroWhenNoDurationAvailable() {
+    let model = makeModel(question: .mockWith(audioBlock: nil))
+    #expect(model.questionDurationText == "0:00")
+  }
+
+  // MARK: - Question Scrubber Display Tests
+
+  @Test
+  func testQuestionPlaybackPositionTextShowsCurrentTime() {
+    let model = makeModel()
+    model.questionPlaybackState = PlaybackState(currentTime: 5, duration: 8, isPlaying: true)
+    #expect(model.questionPlaybackPositionText == "0:05")
+  }
+
+  @Test
+  func testQuestionPlaybackPositionTextIsZeroAtRest() {
+    let model = makeModel()
+    model.questionPlaybackState = .idle
+    #expect(model.questionPlaybackPositionText == "0:00")
+  }
+
+  @Test
+  func testQuestionPlaybackProgressIsFractionOfQuestionDuration() {
+    let audioBlock = AudioBlock.mockWith(durationMS: 8000)
+    let model = makeModel(question: .mockWith(audioBlock: audioBlock))
+    model.questionPlaybackState = PlaybackState(currentTime: 4, duration: 8, isPlaying: true)
+    #expect(model.questionPlaybackProgress == 0.5)
+  }
+
+  @Test
+  func testQuestionPlaybackProgressIsZeroWhenNoDuration() {
+    let model = makeModel(question: .mockWith(audioBlock: nil))
+    model.questionPlaybackState = PlaybackState(currentTime: 4, duration: 0, isPlaying: true)
+    #expect(model.questionPlaybackProgress == 0)
+  }
+
+  @Test
+  func testQuestionPlaybackProgressClampsToOne() {
+    let audioBlock = AudioBlock.mockWith(durationMS: 8000)
+    let model = makeModel(question: .mockWith(audioBlock: audioBlock))
+    model.questionPlaybackState = PlaybackState(currentTime: 20, duration: 8, isPlaying: true)
+    #expect(model.questionPlaybackProgress == 1)
+  }
+
+  @Test
+  func testQuestionScrubberDraggedSeeksToFractionOfDuration() async {
+    let seekedTo = LockIsolated<TimeInterval?>(nil)
+    let model = makePlayingQuestionModel(durationSeconds: 8, seekedTo: seekedTo)
+    await model.playQuestionButtonTapped()
+
+    await model.questionScrubberDragged(locationX: 4, trackWidth: 8)
+
+    #expect(seekedTo.value == 4)
+  }
+
+  @Test
+  func testQuestionScrubberDraggedClampsToDuration() async {
+    let seekedTo = LockIsolated<TimeInterval?>(nil)
+    let model = makePlayingQuestionModel(durationSeconds: 8, seekedTo: seekedTo)
+    await model.playQuestionButtonTapped()
+
+    await model.questionScrubberDragged(locationX: 100, trackWidth: 8)
+
+    #expect(seekedTo.value == 8)
+  }
+
+  @Test
+  func testQuestionScrubberDraggedIsNoOpForZeroWidth() async {
+    let seekedTo = LockIsolated<TimeInterval?>(nil)
+    let model = makePlayingQuestionModel(durationSeconds: 8, seekedTo: seekedTo)
+    await model.playQuestionButtonTapped()
+
+    await model.questionScrubberDragged(locationX: 4, trackWidth: 0)
+
+    #expect(seekedTo.value == nil)
+  }
+
+  @Test
+  func testQuestionScrubberDraggedIsNoOpForNonFiniteDuration() async {
+    let seekedTo = LockIsolated<TimeInterval?>(nil)
+    let model = makePlayingQuestionModel(
+      durationSeconds: 8, seekedTo: seekedTo, reportedDuration: .infinity)
+    await model.playQuestionButtonTapped()
+
+    await model.questionScrubberDragged(locationX: 4, trackWidth: 8)
+
+    #expect(seekedTo.value == nil)
+  }
+
+  // MARK: - Tab Bar Visibility Tests
+
+  @Test
+  func testTabBarHiddenWhileRecording() {
+    let model = makeModel()
+    model.recordingPhase = .recording
+    #expect(model.tabBarVisibility == .hidden)
+  }
+
+  @Test
+  func testTabBarVisibleWhenIdle() {
+    let model = makeModel()
+    model.recordingPhase = .idle
+    #expect(model.tabBarVisibility == .automatic)
+  }
+
+  @Test
+  func testTabBarVisibleWhenReviewing() {
+    let model = makeModel()
+    model.recordingPhase = .review
+    #expect(model.tabBarVisibility == .automatic)
+  }
+
   // MARK: - Answer Playback Display Tests
 
   @Test
@@ -713,6 +843,44 @@ struct ListenerQuestionDetailPageTests {
       $0.audioPlayer = .testValue
       $0.audioRecorder = .testValue
       $0.voicetrackUploadService = .testValue
+    } operation: {
+      ListenerQuestionDetailPageModel(question: question)
+    }
+  }
+
+  /// Builds a model whose question playback starts immediately with a known duration and records
+  /// any `seek` the model requests, so scrubber math can be asserted end-to-end. `reportedDuration`
+  /// overrides the duration the live player reports (defaults to `durationSeconds`); pass a
+  /// non-finite value to exercise the indeterminate-stream guard.
+  private func makePlayingQuestionModel(
+    durationSeconds: TimeInterval,
+    seekedTo: LockIsolated<TimeInterval?>,
+    reportedDuration: TimeInterval? = nil
+  ) -> ListenerQuestionDetailPageModel {
+    let question = ListenerQuestion.mockWith(
+      audioBlock: .mockWith(
+        durationMS: Int(durationSeconds * 1000),
+        downloadUrl: URL(string: "https://example.com/question.m4a")))
+    let playerDuration = reportedDuration ?? durationSeconds
+    return withDependencies {
+      $0.audioRecorder = .testValue
+      $0.voicetrackUploadService = .testValue
+      $0.audioPlayer = AudioPlayerClient(
+        loadFile: { _ in },
+        play: {},
+        pause: {},
+        stop: {},
+        seek: { _ in },
+        currentTime: { 0 },
+        duration: { playerDuration },
+        isPlaying: { true },
+        startPlayback: { _, onStateChange in
+          await onStateChange(
+            PlaybackState(currentTime: 0, duration: playerDuration, isPlaying: true))
+          return PlaybackSession(
+            play: {}, pause: {}, stop: {}, seek: { seekedTo.setValue($0) }, cancel: {})
+        }
+      )
     } operation: {
       ListenerQuestionDetailPageModel(question: question)
     }
