@@ -83,6 +83,14 @@
 		AA10000000000000000000B3 /* ArtistStationPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A2 /* ArtistStationPageView.swift */; };
 		AA10000000000000000000B4 /* ArtistStationPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A2 /* ArtistStationPageView.swift */; };
 		AA10000000000000000000B5 /* ArtistStationPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A3 /* ArtistStationPageTests.swift */; };
+		CC0000000000000000000102 /* StationCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000101 /* StationCategory.swift */; };
+		CC0000000000000000000103 /* StationCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000101 /* StationCategory.swift */; };
+		CC0000000000000000000105 /* StationCategoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000104 /* StationCategoryTests.swift */; };
+		CC0000000000000000000112 /* BreakersLibraryPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000111 /* BreakersLibraryPageModel.swift */; };
+		CC0000000000000000000113 /* BreakersLibraryPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000111 /* BreakersLibraryPageModel.swift */; };
+		CC0000000000000000000115 /* BreakersLibraryPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000114 /* BreakersLibraryPageView.swift */; };
+		CC0000000000000000000116 /* BreakersLibraryPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000114 /* BreakersLibraryPageView.swift */; };
+		CC0000000000000000000118 /* BreakersLibraryPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000117 /* BreakersLibraryPageTests.swift */; };
 		AA10000000000000000000B6 /* ArtistDashboardPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */; };
 		AA10000000000000000000B7 /* ArtistDashboardPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */; };
 		AA10000000000000000000B8 /* ArtistDashboardPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A5 /* ArtistDashboardPageView.swift */; };
@@ -634,6 +642,11 @@
 		AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardPageModel.swift; sourceTree = "<group>"; };
 		AA10000000000000000000A5 /* ArtistDashboardPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardPageView.swift; sourceTree = "<group>"; };
 		AA10000000000000000000A6 /* ArtistDashboardPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardPageTests.swift; sourceTree = "<group>"; };
+		CC0000000000000000000101 /* StationCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationCategory.swift; sourceTree = "<group>"; };
+		CC0000000000000000000104 /* StationCategoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationCategoryTests.swift; sourceTree = "<group>"; };
+		CC0000000000000000000111 /* BreakersLibraryPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakersLibraryPageModel.swift; sourceTree = "<group>"; };
+		CC0000000000000000000114 /* BreakersLibraryPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakersLibraryPageView.swift; sourceTree = "<group>"; };
+		CC0000000000000000000117 /* BreakersLibraryPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakersLibraryPageTests.swift; sourceTree = "<group>"; };
 		AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		AB0A00000000000000000002 /* StationPlayerPlaybackAttemptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerPlaybackAttemptTests.swift; sourceTree = "<group>"; };
 		AB0A00000000000000000004 /* StationPlayerRenderBackendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerRenderBackendTests.swift; sourceTree = "<group>"; };
@@ -1033,6 +1046,16 @@
 			path = ArtistDashboardPage;
 			sourceTree = "<group>";
 		};
+		CC0000000000000000000110 /* BreakersLibraryPage */ = {
+			isa = PBXGroup;
+			children = (
+				CC0000000000000000000111 /* BreakersLibraryPageModel.swift */,
+				CC0000000000000000000114 /* BreakersLibraryPageView.swift */,
+				CC0000000000000000000117 /* BreakersLibraryPageTests.swift */,
+			);
+			path = BreakersLibraryPage;
+			sourceTree = "<group>";
+		};
 		AB0B00000000000000000006 /* DeveloperOptionsSheet */ = {
 			isa = PBXGroup;
 			children = (
@@ -1191,6 +1214,8 @@
 				5713A17100000000000000A3 /* StationHealth.swift */,
 				5713A17100000000000000A5 /* StationHealthTests.swift */,
 				9EC624A968B0E0DA09E64702 /* KoozieShippingAddress.swift */,
+				CC0000000000000000000101 /* StationCategory.swift */,
+				CC0000000000000000000104 /* StationCategoryTests.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1240,6 +1265,7 @@
 				D3776A162F243F7A00200ADF /* BroadcastersListenerQuestionPage */,
 				AA10000000000000000000C2 /* ArtistDashboardPage */,
 				AA10000000000000000000C1 /* ArtistStationPage */,
+				CC0000000000000000000110 /* BreakersLibraryPage */,
 				D3219C152EDD22060008AFDA /* BroadcastPage */,
 				D37769F82F22B38700200ADF /* ChooseStationPage */,
 				D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */,
@@ -2237,6 +2263,9 @@
 				AA10000000000000000000B3 /* ArtistStationPageView.swift in Sources */,
 				AA10000000000000000000B6 /* ArtistDashboardPageModel.swift in Sources */,
 				AA10000000000000000000B8 /* ArtistDashboardPageView.swift in Sources */,
+				CC0000000000000000000102 /* StationCategory.swift in Sources */,
+				CC0000000000000000000112 /* BreakersLibraryPageModel.swift in Sources */,
+				CC0000000000000000000115 /* BreakersLibraryPageView.swift in Sources */,
 				D30F00642E8592F0007BCC73 /* PrizeTier.swift in Sources */,
 				D30F00652E8592F0007BCC73 /* PlayolaSheet.swift in Sources */,
 				D3C7E5E92EF0C56200EDD3ED /* StagingItem.swift in Sources */,
@@ -2459,6 +2488,9 @@
 				AA10000000000000000000B4 /* ArtistStationPageView.swift in Sources */,
 				AA10000000000000000000B7 /* ArtistDashboardPageModel.swift in Sources */,
 				AA10000000000000000000B9 /* ArtistDashboardPageView.swift in Sources */,
+				CC0000000000000000000103 /* StationCategory.swift in Sources */,
+				CC0000000000000000000113 /* BreakersLibraryPageModel.swift in Sources */,
+				CC0000000000000000000116 /* BreakersLibraryPageView.swift in Sources */,
 				D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */,
 				D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */,
 				D3C7E5EA2EF0C56200EDD3ED /* StagingItem.swift in Sources */,
@@ -2622,6 +2654,8 @@
 				D3219C1F2EDD22360008AFDA /* BroadcastPageTests.swift in Sources */,
 				AA10000000000000000000B5 /* ArtistStationPageTests.swift in Sources */,
 				AA10000000000000000000BA /* ArtistDashboardPageTests.swift in Sources */,
+				CC0000000000000000000105 /* StationCategoryTests.swift in Sources */,
+				CC0000000000000000000118 /* BreakersLibraryPageTests.swift in Sources */,
 				D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */,
 				D3FEC80D2EDF689F00A33AE8 /* ChooseStationToBroadcastPageTests.swift in Sources */,
 				D3A1B2C001000000000000A6 /* StationVoiceCatalogTests.swift in Sources */,

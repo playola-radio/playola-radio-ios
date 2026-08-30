@@ -80,7 +80,7 @@ struct ArtistStationPageTests {
 
     expectNoDifference(model.showsLinkTitle, "Shows")
     expectNoDifference(model.musicLibraryLinkTitle, "Music Library")
-    expectNoDifference(model.scheduleLinkTitle, "Schedule")
+    expectNoDifference(model.breakersLibraryLinkTitle, "Breakers Library")
   }
 
   // MARK: - Now Playing / Up Next Wiring
@@ -219,6 +219,43 @@ struct ArtistStationPageTests {
     }
 
     model.broadcastCardTapped()
+
+    #expect(coordinator.path.isEmpty)
+  }
+
+  @Test func breakersLibraryRowTappedPushesBreakersLibraryPage() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+
+    let model = withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [] }
+    } operation: {
+      ArtistStationPageModel()
+    }
+
+    model.breakersLibraryRowTapped()
+
+    guard case .breakersLibraryPage(let pushedModel) = coordinator.path.last else {
+      Issue.record("Expected a breakersLibraryPage to be pushed")
+      return
+    }
+    expectNoDifference(pushedModel.stationId, testStationId)
+  }
+
+  @Test func breakersLibraryRowTappedIsNoOpWhenNotBroadcasting() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let model = withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [] }
+    } operation: {
+      ArtistStationPageModel()
+    }
+
+    model.breakersLibraryRowTapped()
 
     #expect(coordinator.path.isEmpty)
   }

@@ -917,6 +917,12 @@ extension APIClient: DependencyKey {
           token: jwtToken
         )
       },
+      getStationCategories: { jwtToken, stationId in
+        try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/categories",
+          token: jwtToken
+        )
+      },
       getArtistRecordingAudioBlockIds: { jwtToken, stationId in
         let url =
           "\(Config.shared.productionBaseUrl.absoluteString)/v1/ios/stations/\(stationId)/source-tapes/audio-block-ids"

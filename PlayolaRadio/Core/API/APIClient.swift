@@ -788,6 +788,16 @@ struct APIClient: Sendable {
     @Sendable (_ jwtToken: String, _ stationId: String, _ requestId: String) async throws
       -> Void = { _, _, _ in }
 
+  /// Fetches all categories for a station
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to fetch categories for
+  /// - Returns: Array of StationCategory objects
+  /// - Throws: APIError if the request fails
+  var getStationCategories:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> [StationCategory] =
+      { _, _ in [] }
+
   // MARK: - Production Artist Recordings
 
   /// Fetches audioBlockIds that have artist-recording source tapes for a station
