@@ -272,6 +272,45 @@ struct BreakerCategoryDetailPageTests {
     }
   }
 
+  @Test func tappingCompletedClipReplaysInsteadOfConsumingTap() async {
+    let started = LockIsolated<[String]>([])
+    let callbackBox = LockIsolated<(@MainActor @Sendable (PlaybackState) -> Void)?>(nil)
+    let player = AudioPlayerClient(
+      loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+      currentTime: { 0 }, duration: { 18 }, isPlaying: { true },
+      startPlayback: { url, onStateChange in
+        started.withValue { $0.append(url.lastPathComponent) }
+        await onStateChange(PlaybackState(currentTime: 0, duration: 18, isPlaying: true))
+        callbackBox.setValue(onStateChange)
+        return PlaybackSession(play: {}, pause: {}, stop: {}, seek: { _ in }, cancel: {})
+      }
+    )
+
+    let category = StationCategory.mockWith(
+      audioBlocks: [
+        .mockWith(
+          id: "1", durationMS: 18_000, downloadUrl: URL(string: "https://example.com/1.mp3"))
+      ]
+    )
+    let model = withDependencies {
+      $0.audioPlayer = player
+    } operation: {
+      BreakerCategoryDetailPageModel(category: category)
+    }
+    let block = model.clips[0]
+
+    await model.playButtonTapped(block)
+    #expect(model.isPlaying(block))
+
+    callbackBox.value?(PlaybackState(currentTime: 18, duration: 18, isPlaying: false))
+    #expect(!model.isPlaying(block))
+
+    await model.playButtonTapped(block)
+
+    #expect(model.isPlaying(block))
+    expectNoDifference(started.value, ["1.mp3", "1.mp3"])
+  }
+
   @Test func tappingDifferentClipSwitchesActiveClip() async {
     let category = StationCategory.mockWith(
       audioBlocks: [

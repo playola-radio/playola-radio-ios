@@ -100,14 +100,15 @@ class BreakerCategoryDetailPageModel: ViewModel {
   func playButtonTapped(_ block: AudioBlock) async {
     guard let downloadUrl = block.downloadUrl else { return }
 
-    let wasActive = isActive(block)
+    let wasPlaying = isPlaying(block)
+    let hasPendingStart = isActive(block) && playbackSession == nil
 
     playbackGeneration &+= 1
     let generation = playbackGeneration
 
     await teardownCurrentSession()
     guard playbackGeneration == generation else { return }
-    if wasActive { return }
+    if wasPlaying || hasPendingStart { return }
 
     playingBlockId = block.id
 
