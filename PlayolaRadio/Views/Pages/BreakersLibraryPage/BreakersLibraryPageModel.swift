@@ -20,6 +20,7 @@ class BreakersLibraryPageModel: ViewModel {
   // MARK: - Shared State
 
   @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator
 
   // MARK: - Initialization
 
@@ -47,15 +48,16 @@ class BreakersLibraryPageModel: ViewModel {
     await loadCategories()
   }
 
+  func categoryRowTapped(_ category: StationCategory) {
+    navigationCoordinator.push(
+      .breakerCategoryDetailPage(BreakerCategoryDetailPageModel(category: category)))
+  }
+
   // MARK: - View Helpers
 
   func blockCountLabel(for category: StationCategory) -> String {
     let count = category.audioBlocks.count
     return count == 1 ? "1 clip" : "\(count) clips"
-  }
-
-  func iconSystemName(for category: StationCategory) -> String {
-    category.audioBlockType.iconSystemName
   }
 
   // MARK: - Private Helpers
@@ -70,6 +72,7 @@ class BreakersLibraryPageModel: ViewModel {
         uniqueElements:
           all
           .filter { !$0.isSong }
+          .filter { !$0.audioBlocks.isEmpty }
           .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
       )
     } catch {

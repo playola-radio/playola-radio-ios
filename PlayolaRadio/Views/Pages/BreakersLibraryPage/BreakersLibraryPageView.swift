@@ -37,18 +37,27 @@ struct BreakersLibraryPageView: View {
   }
 
   private func categoryRow(_ category: StationCategory) -> some View {
-    HStack {
-      VStack(alignment: .leading, spacing: 4) {
-        Text(category.name)
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 17))
-          .foregroundColor(.white)
-        Text(model.blockCountLabel(for: category))
-          .font(.custom(FontNames.Inter_400_Regular, size: 14))
+    Button {
+      model.categoryRowTapped(category)
+    } label: {
+      HStack {
+        VStack(alignment: .leading, spacing: 4) {
+          Text(category.name)
+            .font(.custom(FontNames.Inter_600_SemiBold, size: 17))
+            .foregroundColor(.white)
+          Text(model.blockCountLabel(for: category))
+            .font(.custom(FontNames.Inter_400_Regular, size: 14))
+            .foregroundColor(.playolaGray)
+        }
+        Spacer()
+        Image(systemName: "chevron.right")
+          .font(.system(size: 14))
           .foregroundColor(.playolaGray)
       }
-      Spacer()
+      .padding(.vertical, 16)
+      .contentShape(Rectangle())
     }
-    .padding(.vertical, 16)
+    .buttonStyle(.plain)
   }
 
   private var emptyState: some View {

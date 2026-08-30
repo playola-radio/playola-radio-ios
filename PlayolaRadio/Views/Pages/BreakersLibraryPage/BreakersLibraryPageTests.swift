@@ -34,13 +34,29 @@ struct BreakersLibraryPageTests {
 
   @Test func filtersOutSongCategoriesAndSortsByName() async {
     let categories: [StationCategory] = [
-      .mockWith(id: "1", name: "Zebra Sounders", audioBlockType: .commercialblock),
-      .mockWith(id: "2", name: "All Songs", audioBlockType: .song),
-      .mockWith(id: "3", name: "Anthems", audioBlockType: .audioimage),
+      .mockWith(
+        id: "1", name: "Zebra Sounders", audioBlockType: .commercialblock,
+        audioBlocks: [.mockWith(id: "z")]),
+      .mockWith(
+        id: "2", name: "All Songs", audioBlockType: .song, audioBlocks: [.mockWith(id: "s")]),
+      .mockWith(
+        id: "3", name: "Anthems", audioBlockType: .audioimage,
+        audioBlocks: [.mockWith(id: "a")]),
     ]
     let model = await makeModel { $0.api.getStationCategories = { _, _ in categories } }
 
     expectNoDifference(model.categories.map(\.id), ["3", "1"])
+  }
+
+  @Test func filtersOutEmptyCategories() async {
+    let categories: [StationCategory] = [
+      .mockWith(
+        id: "1", name: "Intros", audioBlockType: .audioimage, audioBlocks: [.mockWith(id: "a")]),
+      .mockWith(id: "2", name: "Empty Breakers", audioBlockType: .commercialblock, audioBlocks: []),
+    ]
+    let model = await makeModel { $0.api.getStationCategories = { _, _ in categories } }
+
+    expectNoDifference(model.categories.map(\.id), ["1"])
   }
 
   @Test func setsErrorAlertWhenFetchFails() async {
@@ -77,11 +93,28 @@ struct BreakersLibraryPageTests {
 
   @Test func hidesEmptyStateWhenCategoriesPresent() async {
     let categories: [StationCategory] = [
-      .mockWith(id: "1", name: "Anthems", audioBlockType: .audioimage)
+      .mockWith(
+        id: "1", name: "Anthems", audioBlockType: .audioimage, audioBlocks: [.mockWith(id: "a")])
     ]
     let model = await makeModel { $0.api.getStationCategories = { _, _ in categories } }
 
     #expect(!model.showsEmptyState)
+  }
+
+  @Test func categoryRowTappedPushesDetailPage() {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let model = BreakersLibraryPageModel(stationId: testStationId)
+    let category = StationCategory.mockWith(id: "1", name: "Intros")
+
+    model.categoryRowTapped(category)
+
+    guard case .breakerCategoryDetailPage(let pushedModel) = coordinator.path.last else {
+      Issue.record("Expected a breakerCategoryDetailPage to be pushed")
+      return
+    }
+    expectNoDifference(pushedModel.category.id, category.id)
   }
 }
 
