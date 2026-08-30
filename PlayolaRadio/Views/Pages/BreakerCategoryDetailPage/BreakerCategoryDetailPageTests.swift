@@ -304,11 +304,118 @@ struct BreakerCategoryDetailPageTests {
 
     callbackBox.value?(PlaybackState(currentTime: 18, duration: 18, isPlaying: false))
     #expect(!model.isPlaying(block))
+    #expect(!model.isActive(block))
 
     await model.playButtonTapped(block)
 
     #expect(model.isPlaying(block))
     expectNoDifference(started.value, ["1.mp3", "1.mp3"])
+  }
+
+  @Test func nearEndTickWhileStillPlayingDoesNotResetClip() async {
+    let callbackBox = LockIsolated<(@MainActor @Sendable (PlaybackState) -> Void)?>(nil)
+    let player = AudioPlayerClient(
+      loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+      currentTime: { 0 }, duration: { 18 }, isPlaying: { true },
+      startPlayback: { _, onStateChange in
+        await onStateChange(PlaybackState(currentTime: 1, duration: 18, isPlaying: true))
+        callbackBox.setValue(onStateChange)
+        return PlaybackSession(play: {}, pause: {}, stop: {}, seek: { _ in }, cancel: {})
+      }
+    )
+
+    let category = StationCategory.mockWith(
+      audioBlocks: [
+        .mockWith(
+          id: "1", durationMS: 18_000, downloadUrl: URL(string: "https://example.com/1.mp3"))
+      ]
+    )
+    let model = withDependencies {
+      $0.audioPlayer = player
+    } operation: {
+      BreakerCategoryDetailPageModel(category: category)
+    }
+    let block = model.clips[0]
+
+    await model.playButtonTapped(block)
+    #expect(model.isActive(block))
+
+    callbackBox.value?(PlaybackState(currentTime: 17.91, duration: 18, isPlaying: true))
+
+    #expect(model.isActive(block))
+    #expect(model.isPlaying(block))
+  }
+
+  @Test func bufferingStallMidPlaybackDoesNotResetClip() async {
+    let callbackBox = LockIsolated<(@MainActor @Sendable (PlaybackState) -> Void)?>(nil)
+    let player = AudioPlayerClient(
+      loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+      currentTime: { 0 }, duration: { 18 }, isPlaying: { true },
+      startPlayback: { _, onStateChange in
+        await onStateChange(PlaybackState(currentTime: 1, duration: 18, isPlaying: true))
+        callbackBox.setValue(onStateChange)
+        return PlaybackSession(play: {}, pause: {}, stop: {}, seek: { _ in }, cancel: {})
+      }
+    )
+
+    let category = StationCategory.mockWith(
+      audioBlocks: [
+        .mockWith(
+          id: "1", durationMS: 18_000, downloadUrl: URL(string: "https://example.com/1.mp3"))
+      ]
+    )
+    let model = withDependencies {
+      $0.audioPlayer = player
+    } operation: {
+      BreakerCategoryDetailPageModel(category: category)
+    }
+    let block = model.clips[0]
+
+    await model.playButtonTapped(block)
+    #expect(model.isActive(block))
+
+    callbackBox.value?(PlaybackState(currentTime: 1.2, duration: 18, isPlaying: false))
+
+    #expect(model.isActive(block))
+  }
+
+  @Test func tappingDuringStartupBeforePlaybackCallbackStopsNotRestarts() async {
+    let started = LockIsolated<[String]>([])
+    let sessionStopped = LockIsolated(false)
+    let player = AudioPlayerClient(
+      loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+      currentTime: { 0 }, duration: { 18 }, isPlaying: { true },
+      startPlayback: { url, _ in
+        started.withValue { $0.append(url.lastPathComponent) }
+        return PlaybackSession(
+          play: {}, pause: {},
+          stop: { sessionStopped.setValue(true) },
+          seek: { _ in }, cancel: {})
+      }
+    )
+
+    let category = StationCategory.mockWith(
+      audioBlocks: [
+        .mockWith(
+          id: "1", durationMS: 18_000, downloadUrl: URL(string: "https://example.com/1.mp3"))
+      ]
+    )
+    let model = withDependencies {
+      $0.audioPlayer = player
+    } operation: {
+      BreakerCategoryDetailPageModel(category: category)
+    }
+    let block = model.clips[0]
+
+    await model.playButtonTapped(block)
+    #expect(model.isActive(block))
+    #expect(!model.isPlaying(block))
+
+    await model.playButtonTapped(block)
+
+    #expect(!model.isActive(block))
+    #expect(sessionStopped.value)
+    expectNoDifference(started.value, ["1.mp3"])
   }
 
   @Test func tappingDifferentClipSwitchesActiveClip() async {

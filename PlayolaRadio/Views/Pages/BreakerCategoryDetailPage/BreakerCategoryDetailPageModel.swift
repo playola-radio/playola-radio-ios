@@ -32,6 +32,7 @@ class BreakerCategoryDetailPageModel: ViewModel {
   private var playbackState: PlaybackState = .idle
   private var playbackSession: PlaybackSession?
   private var playbackGeneration = 0
+  private var observedPlaying = false
   private let scrubberStep: TimeInterval = 5
 
   var navigationTitle: String { category.name }
@@ -100,24 +101,33 @@ class BreakerCategoryDetailPageModel: ViewModel {
   func playButtonTapped(_ block: AudioBlock) async {
     guard let downloadUrl = block.downloadUrl else { return }
 
-    let wasPlaying = isPlaying(block)
-    let hasPendingStart = isActive(block) && playbackSession == nil
+    let wasActive = isActive(block)
 
     playbackGeneration &+= 1
     let generation = playbackGeneration
 
     await teardownCurrentSession()
     guard playbackGeneration == generation else { return }
-    if wasPlaying || hasPendingStart { return }
+    if wasActive { return }
 
     playingBlockId = block.id
+    observedPlaying = false
 
     do {
       let session = try await audioPlayer.startPlayback(downloadUrl) { [weak self] state in
         guard let self, self.playbackGeneration == generation else { return }
         self.playbackState = state
+        if state.isPlaying {
+          self.observedPlaying = true
+        }
+        // Complete only on a stopped state near the end. Requiring !isPlaying avoids cutting
+        // off a still-playing clip a hair early; requiring near-end progress (>= 0.97, since
+        // the engine often halts just short of the exact duration) avoids treating a mid-clip
+        // buffering stall — which also reports not-playing (rate == 0) — as completion.
+        guard self.observedPlaying, !state.isPlaying, state.progress >= 0.97 else { return }
+        self.handlePlaybackCompletion()
       }
-      guard playbackGeneration == generation else {
+      guard playbackGeneration == generation, playingBlockId == block.id else {
         await session.stop()
         return
       }
@@ -165,7 +175,19 @@ class BreakerCategoryDetailPageModel: ViewModel {
     playbackSession = nil
     playbackState = .idle
     playingBlockId = nil
+    observedPlaying = false
     await session?.stop()
+  }
+
+  // Called only for a stopped, near-end state, so the underlying player has already halted
+  // (the client's polling loop breaks on isPlaying == false and self-completes). Dropping the
+  // session reference is enough — an explicit async stop here would race a subsequently started
+  // clip on the shared player, so we don't issue one.
+  private func handlePlaybackCompletion() {
+    playbackSession = nil
+    playbackState = .idle
+    playingBlockId = nil
+    observedPlaying = false
   }
 
   private func formatTime(_ seconds: TimeInterval) -> String {
