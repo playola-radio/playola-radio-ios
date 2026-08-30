@@ -23,6 +23,9 @@ struct ArtistStationPageView: View {
       .padding(.top, 28)
     }
     .background(Color.black)
+    .task {
+      await model.viewAppeared()
+    }
   }
 
   private var header: some View {
@@ -37,6 +40,15 @@ struct ArtistStationPageView: View {
   }
 
   private var broadcastCard: some View {
+    Button {
+      model.broadcastCardTapped()
+    } label: {
+      broadcastCardContent
+    }
+    .buttonStyle(.plain)
+  }
+
+  private var broadcastCardContent: some View {
     VStack(spacing: 10) {
       HStack {
         Text(model.onAirLabel)
@@ -54,36 +66,40 @@ struct ArtistStationPageView: View {
         }
       }
 
-      HStack(spacing: 12) {
-        RoundedRectangle(cornerRadius: 4)
-          .fill(Color(hex: "#4D4D4D"))
-          .frame(width: 45, height: 45)
-          .overlay(
-            Image(systemName: "music.note")
-              .font(.system(size: 20))
-              .foregroundColor(Color(hex: "#999999"))
-          )
-        VStack(alignment: .leading, spacing: 2) {
-          Text(model.nowPlayingTitle)
-            .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
-            .foregroundColor(.white)
-          Text(model.nowPlayingSubtitle)
-            .font(.custom(FontNames.Inter_400_Regular, size: 12))
-            .foregroundColor(.playolaGray)
-        }
-        Spacer(minLength: 0)
-      }
+      TimelineView(.periodic(from: .now, by: 0.5)) { _ in
+        VStack(spacing: 10) {
+          HStack(spacing: 12) {
+            RoundedRectangle(cornerRadius: 4)
+              .fill(Color(hex: "#4D4D4D"))
+              .frame(width: 45, height: 45)
+              .overlay(
+                Image(systemName: "music.note")
+                  .font(.system(size: 20))
+                  .foregroundColor(Color(hex: "#999999"))
+              )
+            VStack(alignment: .leading, spacing: 2) {
+              Text(model.nowPlayingTitle)
+                .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+                .foregroundColor(.white)
+              Text(model.nowPlayingSubtitle)
+                .font(.custom(FontNames.Inter_400_Regular, size: 12))
+                .foregroundColor(.playolaGray)
+            }
+            Spacer(minLength: 0)
+          }
 
-      GeometryReader { proxy in
-        ZStack(alignment: .leading) {
-          RoundedRectangle(cornerRadius: 2)
-            .fill(Color(hex: "#5E5F5F"))
-          RoundedRectangle(cornerRadius: 2)
-            .fill(Color.playolaRed)
-            .frame(width: proxy.size.width * model.nowPlayingProgress)
+          GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+              RoundedRectangle(cornerRadius: 2)
+                .fill(Color(hex: "#5E5F5F"))
+              RoundedRectangle(cornerRadius: 2)
+                .fill(Color.playolaRed)
+                .frame(width: proxy.size.width * model.nowPlayingProgress)
+            }
+          }
+          .frame(height: 4)
         }
       }
-      .frame(height: 4)
 
       HStack {
         HStack(spacing: 6) {
@@ -95,17 +111,13 @@ struct ArtistStationPageView: View {
             .foregroundColor(Color(hex: "#999999"))
         }
         Spacer()
-        Button {
-          model.broadcastSettingsTapped()
-        } label: {
-          HStack(spacing: 4) {
-            Text(model.broadcastSettingsLabel)
-              .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
-              .foregroundColor(.playolaRed)
-            Image(systemName: "chevron.right")
-              .font(.system(size: 12, weight: .semibold))
-              .foregroundColor(.playolaRed)
-          }
+        HStack(spacing: 4) {
+          Text(model.viewFullScheduleLabel)
+            .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
+            .foregroundColor(.playolaRed)
+          Image(systemName: "chevron.right")
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundColor(.playolaRed)
         }
       }
     }
