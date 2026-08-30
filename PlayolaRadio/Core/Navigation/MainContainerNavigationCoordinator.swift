@@ -80,6 +80,7 @@ final class MainContainerNavigationCoordinator {
     case seriesListPage(SeriesListPageModel)
     case supportPage(SupportPageModel)
     case conversationListPage(ConversationListPageModel)
+    case broadcastersListenerQuestionPage(BroadcastersListenerQuestionPageModel)
     case listenerQuestionDetailPage(ListenerQuestionDetailPageModel)
 
     @MainActor @ViewBuilder
@@ -107,6 +108,8 @@ final class MainContainerNavigationCoordinator {
         SupportPageView(model: model)
       case .conversationListPage(let model):
         ConversationListPageView(model: model)
+      case .broadcastersListenerQuestionPage(let model):
+        BroadcastersListenerQuestionPageView(model: model)
       case .listenerQuestionDetailPage(let model):
         ListenerQuestionDetailPageView(model: model)
       }

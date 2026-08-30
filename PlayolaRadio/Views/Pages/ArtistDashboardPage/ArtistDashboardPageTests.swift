@@ -294,6 +294,86 @@ struct ArtistDashboardPageTests {
     expectNoDifference(model.healthRingProgress, 1)
   }
 
+  // MARK: - Improve Item Navigation
+
+  @Test func tappingAnswerQuestionsTaskPushesListenerQuestionsList() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+
+    let health = makeHealth(
+      score: 40, band: .attention,
+      tasks: [
+        makeTask(
+          key: "answered", label: "Answer questions", priority: 10, factorKey: "appearances",
+          current: 0, total: 3)
+      ])
+
+    let model = await withDependencies {
+      $0.date = .constant(fixedNow)
+      $0.calendar = fixedCalendar
+      $0.api.getStationHealthScore = { _, _ in health }
+      $0.api.getActiveListeningSessions = { _, _, _, _ in Self.emptyActive }
+      $0.api.getListenerCounts = { _, _ in Self.emptyCounts }
+    } operation: {
+      let model = ArtistDashboardPageModel()
+      await model.viewAppeared()
+      return model
+    }
+
+    guard let item = model.improvementItems.first else {
+      Issue.record("expected an improvement item")
+      return
+    }
+    model.improvementItemTapped(item)
+
+    guard
+      case .broadcastersListenerQuestionPage(let pushed) =
+        coordinator.artistDashboardPath.last
+    else {
+      Issue.record("expected broadcastersListenerQuestionPage to be pushed")
+      return
+    }
+    expectNoDifference(pushed.stationId, testStationId)
+    expectNoDifference(coordinator.artistDashboardPath.count, 1)
+  }
+
+  @Test func tappingNonAppearanceTaskDoesNotNavigate() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+
+    let health = makeHealth(
+      score: 40, band: .attention,
+      tasks: [
+        makeTask(
+          key: "intros", label: "Record intros", priority: 10, factorKey: "intros",
+          current: 4, total: 12)
+      ])
+
+    let model = await withDependencies {
+      $0.date = .constant(fixedNow)
+      $0.calendar = fixedCalendar
+      $0.api.getStationHealthScore = { _, _ in health }
+      $0.api.getActiveListeningSessions = { _, _, _, _ in Self.emptyActive }
+      $0.api.getListenerCounts = { _, _ in Self.emptyCounts }
+    } operation: {
+      let model = ArtistDashboardPageModel()
+      await model.viewAppeared()
+      return model
+    }
+
+    guard let item = model.improvementItems.first else {
+      Issue.record("expected an improvement item")
+      return
+    }
+    model.improvementItemTapped(item)
+
+    expectNoDifference(coordinator.artistDashboardPath.isEmpty, true)
+  }
+
   // MARK: - Loading Behavior
 
   @Test func viewAppearedRequestsBroadcastingStationId() async {

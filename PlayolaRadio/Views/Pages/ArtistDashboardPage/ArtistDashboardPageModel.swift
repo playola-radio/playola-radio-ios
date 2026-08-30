@@ -155,7 +155,15 @@ class ArtistDashboardPageModel: ViewModel {
 
   func statsLinkTapped() {}
 
-  func improvementItemTapped(_ item: ImprovementItem) {}
+  func improvementItemTapped(_ item: ImprovementItem) {
+    guard let stationId,
+      let task = stationHealth?.tasks.first(where: { $0.key == item.id }),
+      task.factorKey == Self.appearancesFactorKey
+    else { return }
+    navigationCoordinator.push(
+      .broadcastersListenerQuestionPage(BroadcastersListenerQuestionPageModel(stationId: stationId))
+    )
+  }
 
   // MARK: - Private Helpers
 
@@ -300,11 +308,15 @@ class ArtistDashboardPageModel: ViewModel {
       progressTrackColor: trackColor)
   }
 
+  /// The server-owned factor key for listener questions / DJ appearances. Its improve task
+  /// ("Answer questions") is the one that drills into the listener-questions list.
+  private static let appearancesFactorKey = "appearances"
+
   /// Presentation-only icon per factor. The server never sends an icon; a sensible default keeps
   /// new factors rendering without a contract change.
   private static func icon(forFactorKey key: String) -> String {
     switch key {
-    case "appearances": return "bubble.left.and.bubble.right.fill"
+    case appearancesFactorKey: return "bubble.left.and.bubble.right.fill"
     default: return "checklist"
     }
   }
