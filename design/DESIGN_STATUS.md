@@ -123,8 +123,8 @@ per-clip audio preview. Exports under `exports/in-progress/breakers-library/`.
 
 | Frame | Node ID | Status | Notes |
 |---|---|---|---|
-| Breakers Library · Categories | `yxMJo` | Implementing (PR #417) | Non-song categories (zero-clip filtered out), name + clip count, drill-down |
-| Breakers · Fan Spotlights | `X0aSe` | Implementing (PR #417) | Detail page; per-clip play/stop + scrubber |
+| Breakers Library · Categories | `Ycl19` | Implementing (PR #417) | Non-song categories (zero-clip filtered out), name + clip count, drill-down |
+| Breakers · Fan Spotlights | `zPsR6` | Implementing (PR #417) | Detail page; per-clip play/stop + scrubber |
 | Breakers · Intros | `y6LWT3` | Implementing (PR #417) | Detail page |
 | Breakers · Pre Commercial | `P2kA4P` | Implementing | Detail page |
 | Breakers · Promotions | `vaOkW` | Implementing | Detail page |
@@ -134,11 +134,11 @@ per-clip audio preview. Exports under `exports/in-progress/breakers-library/`.
 
 Song-category browser reached from the Station tab. Category list → per-category (or
 "All Songs" aggregate) detail with sort (Title/Artist), A–Z section index, and per-song
-full-track audio preview + scrubber. Exports under `exports/music-library/`.
+full-track audio preview + scrubber. Exports under `exports/in-progress/music-library/`.
 
 | Frame | Node ID | Status | Notes |
 |---|---|---|---|
-| Music Library · Categories | `—` | Implementing (this PR) | Song categories + "All Songs" row, deduped counts, drill-down |
+| Music Library · Categories | `z2PgEC` | Implementing (this PR) | Song categories + "All Songs" row, deduped counts, drill-down |
 | Music Library · All Songs / Category Detail | `SeRvJ` | Implementing (this PR) | Detail page; sort control, A–Z index, per-song play/pause + scrubber |
 
 ### Supporting components (artist/DJ)
@@ -150,7 +150,7 @@ full-track audio preview + scrubber. Exports under `exports/music-library/`.
 | Tab Bar (Artist · 2-tab Glass) | `Q1nN0v` | Proposed (Home v2) |
 | Broadcast Action Button | `EqHkj` | Exploring |
 | Schedule Row | `th8Fu` | Exploring (superseded by Breakers Library on Station tab) |
-| Breaker Audio Row | `A2JkO` | Implementing (Breakers Library detail rows) |
+| Breaker Audio Row | `BPD1R` | Implementing (Breakers Library detail rows) |
 | Staging Row | `GpwDu` | Exploring |
 | Library Song Row | `dugqD` | Exploring |
 | Library Request Row | `trUfU` | Exploring |

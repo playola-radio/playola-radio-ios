@@ -607,7 +607,10 @@ struct MusicCategoryDetailPageTests {
     await model.playButtonTapped(block)
     await model.scrubberDragged(block, locationX: 25, trackWidth: 100)
 
-    #expect(seekedTo.value.allSatisfy { $0 >= 0 })
+    // A negative duration clamps to 0, so the one seek that fires targets exactly 0.
+    // Asserting the exact array (not allSatisfy, which passes vacuously on an empty array)
+    // proves the clamped seek actually happened.
+    expectNoDifference(seekedTo.value, [0])
   }
 
   @Test func tappingDuringStartupBeforePlaybackCallbackStopsNotRestarts() async {
@@ -649,6 +652,41 @@ struct MusicCategoryDetailPageTests {
     #expect(!model.isActive(block))
     #expect(sessionStopped.value)
     expectNoDifference(started.value, ["1.mp3"])
+  }
+
+  @Test func sortSegmentAccessibilityTraitsMarkSelectedMode() {
+    let model = MusicCategoryDetailPageModel(title: "All Songs", songs: [])
+
+    expectNoDifference(model.sortSegmentAccessibilityTraits(for: .title), .isSelected)
+    expectNoDifference(model.sortSegmentAccessibilityTraits(for: .artist), [])
+  }
+
+  @Test func playButtonAccessibilityLabelIsPlayWhenInactive() {
+    let model = MusicCategoryDetailPageModel(
+      title: "All Songs",
+      songs: [.mockWith(id: "1", title: "Whiskey", durationMS: 18_000)])
+    let block = model.songs[0]
+
+    expectNoDifference(model.playButtonAccessibilityLabel(for: block), "Play Whiskey")
+  }
+
+  @Test func scrubberAccessibilityHiddenWhenInactive() {
+    let model = MusicCategoryDetailPageModel(
+      title: "All Songs",
+      songs: [.mockWith(id: "1", durationMS: 18_000)])
+    let block = model.songs[0]
+
+    #expect(model.scrubberAccessibilityHidden(for: block))
+  }
+
+  @Test func emptyStateAccessibilityHiddenReflectsContent() {
+    let withSongs = MusicCategoryDetailPageModel(
+      title: "All Songs",
+      songs: [.mockWith(id: "1", durationMS: 18_000)])
+    let empty = MusicCategoryDetailPageModel(title: "All Songs", songs: [])
+
+    #expect(withSongs.emptyStateAccessibilityHidden)
+    #expect(!empty.emptyStateAccessibilityHidden)
   }
 
   @Test func scrubberAccessibilityLabelAndValueReflectSong() {
@@ -722,8 +760,21 @@ struct MusicCategoryDetailPageTests {
   }
 
   @Test func viewDisappearedStopsPlayback() async {
+    let sessionStopped = LockIsolated(false)
+    let player = AudioPlayerClient(
+      loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+      currentTime: { 0 }, duration: { 18 }, isPlaying: { true },
+      startPlayback: { _, onStateChange in
+        await onStateChange(PlaybackState(currentTime: 0, duration: 18, isPlaying: true))
+        return PlaybackSession(
+          play: {}, pause: {},
+          stop: { sessionStopped.setValue(true) },
+          seek: { _ in }, cancel: {})
+      }
+    )
+
     let model = withDependencies {
-      $0.audioPlayer = makePlayingAudioPlayer(duration: 18)
+      $0.audioPlayer = player
     } operation: {
       MusicCategoryDetailPageModel(
         title: "All Songs",
@@ -738,6 +789,7 @@ struct MusicCategoryDetailPageTests {
     await model.viewDisappeared()
 
     #expect(!model.isActive(block))
+    #expect(sessionStopped.value)
   }
 
   @Test func playButtonTappedWithNilDownloadUrlIsNoOp() async {

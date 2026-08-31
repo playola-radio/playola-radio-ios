@@ -11,17 +11,28 @@ struct SectionIndexView: View {
 
   @GestureState private var isDragging = false
   @State private var selectedLetter: String?
+  @State private var accessibilityIndex = 0
+
+  // Layout constants the drag math is derived from, so the hit-testing can't drift from the
+  // rendered geometry. Each letter cell is `letterHeight` tall with `letterSpacing` between cells
+  // (row pitch), and the whole strip is inset by `verticalPadding` at the top and bottom.
+  private enum Layout {
+    static let letterHeight: CGFloat = 14
+    static let letterSpacing: CGFloat = 2
+    static let verticalPadding: CGFloat = 4
+    static var rowPitch: CGFloat { letterHeight + letterSpacing }
+  }
 
   var body: some View {
-    VStack(spacing: 2) {
+    VStack(spacing: Layout.letterSpacing) {
       ForEach(letters, id: \.self) { letter in
         Text(letter)
           .font(.system(size: 11, weight: .semibold))
           .foregroundColor(selectedLetter == letter ? .playolaRed : .playolaGray)
-          .frame(width: 16, height: 14)
+          .frame(width: 16, height: Layout.letterHeight)
       }
     }
-    .padding(.vertical, 4)
+    .padding(.vertical, Layout.verticalPadding)
     .background(Color.black.opacity(0.3))
     .cornerRadius(8)
     .gesture(
@@ -30,8 +41,9 @@ struct SectionIndexView: View {
           state = true
         }
         .onChanged { value in
-          let letterHeight: CGFloat = 16
-          let index = Int(value.location.y / letterHeight)
+          // Subtract the top inset before mapping to a row so a touch lands on the letter under
+          // the finger; without it every row is shifted down by `verticalPadding`.
+          let index = Int((value.location.y - Layout.verticalPadding) / Layout.rowPitch)
           if index >= 0 && index < letters.count {
             let letter = letters[index]
             if selectedLetter != letter {
@@ -44,5 +56,31 @@ struct SectionIndexView: View {
           selectedLetter = nil
         }
     )
+    // Touch users scrub with the drag gesture above; expose the strip as a single adjustable
+    // element so VoiceOver / Switch Control / Voice Control users can step through the sections too.
+    .accessibilityElement()
+    .accessibilityLabel("Section index")
+    .accessibilityValue(accessibilityValue)
+    .accessibilityAdjustableAction { direction in
+      accessibilityAdjust(direction)
+    }
+  }
+
+  private var accessibilityValue: String {
+    guard letters.indices.contains(accessibilityIndex) else { return "" }
+    return letters[accessibilityIndex]
+  }
+
+  private func accessibilityAdjust(_ direction: AccessibilityAdjustmentDirection) {
+    guard !letters.isEmpty else { return }
+    switch direction {
+    case .increment:
+      accessibilityIndex = min(letters.count - 1, accessibilityIndex + 1)
+    case .decrement:
+      accessibilityIndex = max(0, accessibilityIndex - 1)
+    @unknown default:
+      return
+    }
+    onSelectLetter(letters[accessibilityIndex])
   }
 }

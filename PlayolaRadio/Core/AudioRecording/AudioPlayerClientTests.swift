@@ -8,6 +8,8 @@ import Testing
 
 @testable import PlayolaRadio
 
+@Suite(.freshSharedState)
+@MainActor
 struct PlaybackStateTests {
   @Test func isCompleteTrueWhenDidFinish() {
     let state = PlaybackState(currentTime: 0, duration: 0, isPlaying: false, didFinish: true)
@@ -35,6 +37,8 @@ struct PlaybackStateTests {
   }
 }
 
+@Suite(.freshSharedState)
+@MainActor
 struct AudioPlaybackMathDetectEndTests {
   @Test func neverPlayedIsNotEnd() {
     #expect(
@@ -76,6 +80,8 @@ struct AudioPlaybackMathDetectEndTests {
   }
 }
 
+@Suite(.freshSharedState)
+@MainActor
 struct AudioPlaybackMathClampSeekTests {
   @Test func negativeTargetClampsToZero() {
     #expect(AudioPlaybackMath.clampSeekTarget(-5, duration: 18) == 0)

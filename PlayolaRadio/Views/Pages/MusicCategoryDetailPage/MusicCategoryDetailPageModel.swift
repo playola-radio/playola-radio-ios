@@ -117,6 +117,10 @@ class MusicCategoryDetailPageModel: ViewModel {
     isSortSelected(mode) ? .white : .playolaGray
   }
 
+  func sortSegmentAccessibilityTraits(for mode: SortMode) -> AccessibilityTraits {
+    isSortSelected(mode) ? .isSelected : []
+  }
+
   func firstSongId(forLetter letter: String) -> String? {
     displayedSongs.first { sortKey(for: $0).uppercased().hasPrefix(letter.uppercased()) }?.id
   }
@@ -179,6 +183,20 @@ class MusicCategoryDetailPageModel: ViewModel {
 
   func scrubberAreaHeight(for block: AudioBlock) -> CGFloat {
     isActive(block) ? 26 : 0
+  }
+
+  func playButtonAccessibilityLabel(for block: AudioBlock) -> String {
+    isActive(block) ? "Pause \(songTitle(for: block))" : "Play \(songTitle(for: block))"
+  }
+
+  // The scrubber only exists (height/opacity > 0) for the active song; hide the collapsed,
+  // zero-height copy under every inactive row from assistive tech.
+  func scrubberAccessibilityHidden(for block: AudioBlock) -> Bool {
+    !isActive(block)
+  }
+
+  var emptyStateAccessibilityHidden: Bool {
+    !showsEmptyState
   }
 
   func scrubberAccessibilityLabel(for block: AudioBlock) -> String {

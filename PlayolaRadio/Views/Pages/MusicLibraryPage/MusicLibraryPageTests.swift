@@ -22,9 +22,7 @@ struct MusicLibraryPageTests {
   private func makeModel(
     _ configure: (inout DependencyValues) -> Void = { _ in }
   ) async -> MusicLibraryPageModel {
-    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-
-    return await withDependencies {
+    await withDependencies {
       configure(&$0)
     } operation: {
       let model = MusicLibraryPageModel(stationId: testStationId)
@@ -34,6 +32,8 @@ struct MusicLibraryPageTests {
   }
 
   @Test func keepsOnlySongCategoriesAndSortsByName() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
     let categories: [StationCategory] = [
       .mockWith(
         id: "1", name: "Zydeco", audioBlockType: .song, audioBlocks: [.mockWith(id: "z")]),
@@ -49,6 +49,8 @@ struct MusicLibraryPageTests {
   }
 
   @Test func filtersOutEmptyCategories() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
     let categories: [StationCategory] = [
       .mockWith(
         id: "1", name: "Acoustic", audioBlockType: .song, audioBlocks: [.mockWith(id: "a")]),
@@ -60,6 +62,8 @@ struct MusicLibraryPageTests {
   }
 
   @Test func rowsPrependAllSongsWithDedupedCount() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
     let categories: [StationCategory] = [
       .mockWith(
         id: "1", name: "Texas Country", audioBlockType: .song,
@@ -80,6 +84,8 @@ struct MusicLibraryPageTests {
   }
 
   @Test func rowsAreEmptyWhenNoSongCategories() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
     let model = await makeModel { $0.api.getStationCategories = { _, _ in [] } }
 
     expectNoDifference(model.rows, [])
@@ -100,6 +106,8 @@ struct MusicLibraryPageTests {
   }
 
   @Test func setsErrorAlertWhenFetchFails() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
     let model = await makeModel {
       $0.api.getStationCategories = { _, _ in throw MusicLibraryTestError.failed }
     }
@@ -110,6 +118,8 @@ struct MusicLibraryPageTests {
   }
 
   @Test func ignoresCancellationErrorWhenFetchFails() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
     let model = await makeModel {
       $0.api.getStationCategories = { _, _ in throw CancellationError() }
     }
@@ -149,12 +159,16 @@ struct MusicLibraryPageTests {
   }
 
   @Test func showsEmptyStateWhenNoCategories() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
     let model = await makeModel { $0.api.getStationCategories = { _, _ in [] } }
 
     #expect(model.showsEmptyState)
   }
 
   @Test func hidesEmptyStateWhenCategoriesPresent() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
     let categories: [StationCategory] = [
       .mockWith(
         id: "1", name: "Acoustic", audioBlockType: .song, audioBlocks: [.mockWith(id: "a")])
@@ -165,6 +179,7 @@ struct MusicLibraryPageTests {
   }
 
   @Test func allSongsRowTappedPushesDetailWithEveryUniqueSong() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
 
@@ -191,6 +206,7 @@ struct MusicLibraryPageTests {
   }
 
   @Test func categoryRowTappedPushesDetailWithCategorySongs() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
 

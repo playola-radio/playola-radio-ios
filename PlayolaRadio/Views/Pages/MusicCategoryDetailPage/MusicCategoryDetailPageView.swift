@@ -62,6 +62,7 @@ struct MusicCategoryDetailPageView: View {
               .cornerRadius(6)
           }
           .buttonStyle(.plain)
+          .accessibilityAddTraits(model.sortSegmentAccessibilityTraits(for: mode))
         }
       }
       .padding(3)
@@ -109,6 +110,7 @@ struct MusicCategoryDetailPageView: View {
         .frame(height: model.scrubberAreaHeight(for: block))
         .opacity(model.scrubberOpacity(for: block))
         .clipped()
+        .accessibilityHidden(model.scrubberAccessibilityHidden(for: block))
     }
     .padding(.vertical, 12)
     .contentShape(Rectangle())
@@ -129,6 +131,7 @@ struct MusicCategoryDetailPageView: View {
       }
     }
     .disabled(!model.isPlayButtonEnabled(for: block))
+    .accessibilityLabel(model.playButtonAccessibilityLabel(for: block))
   }
 
   private func scrubber(_ block: AudioBlock) -> some View {
@@ -197,6 +200,7 @@ struct MusicCategoryDetailPageView: View {
     .frame(maxWidth: .infinity)
     .padding(.top, 60)
     .opacity(model.emptyStateOpacity)
+    .accessibilityHidden(model.emptyStateAccessibilityHidden)
   }
 }
 
