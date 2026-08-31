@@ -25,10 +25,8 @@ struct MusicCategoryDetailPageView: View {
         SectionIndexView(
           letters: model.availableSectionLetters,
           onSelectLetter: { letter in
-            if let songId = model.firstSongId(forLetter: letter) {
-              withAnimation {
-                proxy.scrollTo(songId, anchor: .top)
-              }
+            withAnimation {
+              proxy.scrollTo(model.scrollTargetId(forLetter: letter), anchor: .top)
             }
           }
         )

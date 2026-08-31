@@ -193,6 +193,26 @@ struct MusicCategoryDetailPageTests {
     expectNoDifference(model.firstSongId(forLetter: "Z"), "1")
   }
 
+  @Test func scrollTargetIdResolvesLetterToSongId() {
+    let model = MusicCategoryDetailPageModel(
+      title: "All Songs",
+      songs: [
+        .mockWith(id: "1", title: "Memphis", artist: "Zed"),
+        .mockWith(id: "2", title: "Austin", artist: "Yon"),
+      ])
+
+    expectNoDifference(model.scrollTargetId(forLetter: "A"), "2")
+    expectNoDifference(model.scrollTargetId(forLetter: "M"), "1")
+  }
+
+  @Test func scrollTargetIdReturnsEmptyStringWhenNoSongMatches() {
+    let model = MusicCategoryDetailPageModel(
+      title: "All Songs",
+      songs: [.mockWith(id: "1", title: "Memphis", artist: "Zed")])
+
+    expectNoDifference(model.scrollTargetId(forLetter: "Q"), "")
+  }
+
   @Test func sortSegmentTitlesAndSelection() {
     let model = MusicCategoryDetailPageModel(title: "All Songs", songs: [])
 

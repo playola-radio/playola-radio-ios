@@ -108,6 +108,13 @@ class MusicCategoryDetailPageModel: ViewModel {
     displayedSongs.first { sortKey(for: $0).uppercased().hasPrefix(letter.uppercased()) }?.id
   }
 
+  // The section-index letters are derived from displayedSongs, so a tapped letter always resolves
+  // to a song. Returning a non-optional target keeps the view free of control flow — it can scroll
+  // unconditionally, and the empty-string fallback is a harmless no-op if no row matches.
+  func scrollTargetId(forLetter letter: String) -> String {
+    firstSongId(forLetter: letter) ?? ""
+  }
+
   func isActive(_ block: AudioBlock) -> Bool {
     playingBlockId == block.id
   }
