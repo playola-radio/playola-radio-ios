@@ -777,6 +777,52 @@ struct ListenerQuestionDetailPageTests {
     #expect(model.answerPlayButtonIcon == "pause.fill")
   }
 
+  @Test
+  func testStartingAnswerPlaybackStopsQuestionPlayback() async {
+    // Question and answer each own an isolated player now, so starting one no longer stops the
+    // other implicitly. The model must stop the question explicitly — otherwise both play at once.
+    let questionStopped = LockIsolated(false)
+    let questionUrl = URL(string: "https://example.com/question.m4a")!
+    let answerUrl = URL(fileURLWithPath: "/tmp/answer.wav")
+
+    let model = withDependencies {
+      $0.audioRecorder = .testValue
+      $0.voicetrackUploadService = .testValue
+      $0.audioPlayer = AudioPlayerClient(
+        loadFile: { _ in },
+        play: {},
+        pause: {},
+        stop: {},
+        seek: { _ in },
+        currentTime: { 0 },
+        duration: { 8 },
+        isPlaying: { true },
+        startPlayback: { url, onStateChange in
+          let isQuestion = url == questionUrl
+          await onStateChange(PlaybackState(currentTime: 0, duration: 8, isPlaying: true))
+          return PlaybackSession(
+            play: {},
+            pause: {},
+            stop: { if isQuestion { questionStopped.setValue(true) } },
+            seek: { _ in },
+            cancel: {})
+        }
+      )
+    } operation: {
+      ListenerQuestionDetailPageModel(
+        question: .mockWith(audioBlock: .mockWith(downloadUrl: questionUrl)))
+    }
+
+    model.recordingURL = answerUrl
+    await model.playQuestionButtonTapped()
+    #expect(model.questionPlaybackState.isPlaying)
+
+    await model.answerPlayPauseButtonTapped()
+
+    #expect(questionStopped.value)
+    #expect(!model.questionPlaybackState.isPlaying)
+  }
+
   // MARK: - Recording Button Tapped Tests
 
   @Test

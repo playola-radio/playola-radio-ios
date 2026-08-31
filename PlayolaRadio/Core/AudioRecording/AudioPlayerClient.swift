@@ -12,13 +12,75 @@ public struct PlaybackState: Equatable, Sendable {
   public let currentTime: TimeInterval
   public let duration: TimeInterval
   public let isPlaying: Bool
+  /// True only on the final state the client emits when a track has played to its end.
+  /// Lets a caller detect completion even when `duration` is 0/unknown (progress-based
+  /// completion can never fire there).
+  public let didFinish: Bool
+
+  public init(
+    currentTime: TimeInterval,
+    duration: TimeInterval,
+    isPlaying: Bool,
+    didFinish: Bool = false
+  ) {
+    self.currentTime = currentTime
+    self.duration = duration
+    self.isPlaying = isPlaying
+    self.didFinish = didFinish
+  }
 
   public var progress: Double {
     guard duration > 0 else { return 0 }
     return currentTime / duration
   }
 
+  /// Playback has reached the end of the track, whether reported explicitly by the
+  /// client (`didFinish`) or inferred from near-end progress (the engine often halts a
+  /// hair short of the exact duration).
+  public var isComplete: Bool {
+    didFinish || progress >= 0.97
+  }
+
   public static let idle = PlaybackState(currentTime: 0, duration: 0, isPlaying: false)
+}
+
+// MARK: - Playback Math
+
+/// Pure, deterministic playback decisions extracted for unit testing (the live actor wraps
+/// AVFoundation, which can't run headlessly).
+enum AudioPlaybackMath {
+  /// End-of-track is reached only after we've actually observed playback and the engine has
+  /// since stopped at (or past) the end. A mid-song buffering stall — and a user-initiated
+  /// pause — also report not-playing, so neither is treated as the end (the `!isPlaying` gate
+  /// alone can't fire mid-track because it also requires being at/past the duration).
+  ///
+  /// A zero/unknown duration has no reliable poll-based end signal: not-playing there is
+  /// indistinguishable from a pause or a pre-roll buffering gap, so we do NOT infer completion
+  /// (returning `true` here made the first pause/stall look like the end). Such a clip simply
+  /// never auto-completes via polling — every real caller supplies a positive duration.
+  ///
+  /// Accepted edge: a stopped sample within the final 0.5s reads as end, so pausing a sub-second
+  /// clip in its last half-second would complete it. No real clip (full songs, multi-second
+  /// recorded answers) is that short, so this isn't worth a fractional-threshold heuristic.
+  static func detectEnd(
+    hasPlayed: Bool,
+    isPlaying: Bool,
+    currentTime: TimeInterval,
+    duration: TimeInterval
+  ) -> Bool {
+    guard hasPlayed, !isPlaying else { return false }
+    guard duration > 0 else { return false }
+    return currentTime >= duration - 0.5
+  }
+
+  /// Clamps a seek target into a valid range. Rejects non-finite targets (an indeterminate
+  /// stream can report `+inf`/`NaN`). Clamps to `[0, duration]` when the duration is known,
+  /// otherwise just floors at zero so a negative target never seeks before the start.
+  static func clampSeekTarget(_ target: TimeInterval, duration: TimeInterval) -> TimeInterval? {
+    guard target.isFinite else { return nil }
+    guard duration > 0 else { return max(0, target) }
+    return min(duration, max(0, target))
+  }
 }
 
 public struct AudioPlayerClient: Sendable {
@@ -65,6 +127,11 @@ public final class PlaybackSession: Sendable {
     self._cancel = cancel
   }
 
+  // Backstop: if a session is dropped without an explicit stop/cancel, tear down its polling
+  // task so an orphaned session can't leave a 100ms poll loop running forever. Callers that stop
+  // or cancel explicitly have already torn it down; _cancel is idempotent.
+  deinit { _cancel() }
+
   public func play() async { await _play() }
   public func pause() async { await _pause() }
   public func stop() async { await _stop() }
@@ -88,41 +155,55 @@ extension AudioPlayerClient: DependencyKey {
       duration: { await player.duration() },
       isPlaying: { await player.isPlaying() },
       startPlayback: { url, onStateChange in
-        try await player.loadFile(url)
-        let duration = await player.duration()
-        await player.play()
+        // Each playback session gets its own isolated player. Every caller stops its previous
+        // session before starting a new one, so nothing relies on a shared player to auto-stop —
+        // and isolation means a stale session's load/play/stop can never hijack a newer song's
+        // audio (the reentrancy race that a single shared actor allowed).
+        let sessionPlayer = LiveAudioPlayer()
+        try await sessionPlayer.loadFile(url)
+        let duration = await sessionPlayer.duration()
+        await sessionPlayer.play()
 
         let updateTask = Task {
+          // Poll for the session's lifetime. A transient buffering stall OR a user pause both
+          // report not-playing, and the loop must survive both so position updates resume when
+          // playback continues — so it never gives up on a not-playing sample. It self-terminates
+          // only at a real end of track (detectEnd); otherwise it is bounded by session teardown
+          // (stop/cancel) and, as a backstop for an orphaned session, PlaybackSession.deinit.
+          var hasPlayed = false
           while !Task.isCancelled {
-            let state = PlaybackState(
-              currentTime: await player.currentTime(),
-              duration: duration,
-              isPlaying: await player.isPlaying()
-            )
-            await onStateChange(state)
+            let playing = await sessionPlayer.isPlaying()
+            let currentTime = await sessionPlayer.currentTime()
+            if playing { hasPlayed = true }
 
-            if await !player.isPlaying() {
-              break
+            await onStateChange(
+              PlaybackState(currentTime: currentTime, duration: duration, isPlaying: playing))
+
+            if AudioPlaybackMath.detectEnd(
+              hasPlayed: hasPlayed, isPlaying: playing, currentTime: currentTime,
+              duration: duration)
+            {
+              await onStateChange(
+                PlaybackState(
+                  currentTime: currentTime, duration: duration, isPlaying: false, didFinish: true))
+              return
             }
             try? await Task.sleep(for: .milliseconds(100))
           }
-          // Send final state
-          await onStateChange(
-            PlaybackState(
-              currentTime: await player.currentTime(),
-              duration: duration,
-              isPlaying: false
-            ))
         }
 
         return PlaybackSession(
-          play: { await player.play() },
-          pause: { await player.pause() },
+          play: { await sessionPlayer.play() },
+          pause: { await sessionPlayer.pause() },
           stop: {
-            await player.stop()
+            await sessionPlayer.stop()
             updateTask.cancel()
           },
-          seek: { time in await player.seek(to: time) },
+          seek: { time in
+            guard let clamped = AudioPlaybackMath.clampSeekTarget(time, duration: duration)
+            else { return }
+            await sessionPlayer.seek(to: clamped)
+          },
           cancel: { updateTask.cancel() }
         )
       }

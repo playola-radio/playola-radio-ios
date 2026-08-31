@@ -325,6 +325,9 @@ class ListenerQuestionDetailPageModel: ViewModel {
     if answerPlaybackState.isPlaying {
       await answerPlaybackSession?.pause()
     } else {
+      // Question and answer each own an isolated player, so starting the answer no longer stops
+      // the question implicitly — do it explicitly (mirrors playQuestionButtonTapped).
+      await stopQuestionPlayback()
       if answerPlaybackSession == nil, let url = recordingURL {
         do {
           answerPlaybackSession = try await audioPlayer.startPlayback(url) { [weak self] state in
