@@ -259,6 +259,43 @@ struct ArtistStationPageTests {
 
     #expect(coordinator.path.isEmpty)
   }
+
+  @Test func musicLibraryRowTappedPushesMusicLibraryPage() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+
+    let model = withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [] }
+    } operation: {
+      ArtistStationPageModel()
+    }
+
+    model.musicLibraryRowTapped()
+
+    guard case .musicLibraryPage(let pushedModel) = coordinator.path.last else {
+      Issue.record("Expected a musicLibraryPage to be pushed")
+      return
+    }
+    expectNoDifference(pushedModel.stationId, testStationId)
+  }
+
+  @Test func musicLibraryRowTappedIsNoOpWhenNotBroadcasting() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let model = withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [] }
+    } operation: {
+      ArtistStationPageModel()
+    }
+
+    model.musicLibraryRowTapped()
+
+    #expect(coordinator.path.isEmpty)
+  }
 }
 
 private enum ArtistStationTestError: Error {

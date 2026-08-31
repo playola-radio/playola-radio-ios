@@ -89,7 +89,10 @@ class ArtistStationPageModel: ViewModel {
 
   func showsRowTapped() {}
 
-  func musicLibraryRowTapped() {}
+  func musicLibraryRowTapped() {
+    guard let stationId else { return }
+    navigationCoordinator.push(.musicLibraryPage(MusicLibraryPageModel(stationId: stationId)))
+  }
 
   func breakersLibraryRowTapped() {
     guard let stationId else { return }

@@ -84,6 +84,8 @@ final class MainContainerNavigationCoordinator {
     case listenerQuestionDetailPage(ListenerQuestionDetailPageModel)
     case breakersLibraryPage(BreakersLibraryPageModel)
     case breakerCategoryDetailPage(BreakerCategoryDetailPageModel)
+    case musicLibraryPage(MusicLibraryPageModel)
+    case musicCategoryDetailPage(MusicCategoryDetailPageModel)
 
     @MainActor @ViewBuilder
     var destinationView: some View {
@@ -118,6 +120,10 @@ final class MainContainerNavigationCoordinator {
         BreakersLibraryPageView(model: model)
       case .breakerCategoryDetailPage(let model):
         BreakerCategoryDetailPageView(model: model)
+      case .musicLibraryPage(let model):
+        MusicLibraryPageView(model: model)
+      case .musicCategoryDetailPage(let model):
+        MusicCategoryDetailPageView(model: model)
       }
     }
   }

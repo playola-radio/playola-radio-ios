@@ -96,6 +96,16 @@
 		CC0000000000000000000205 /* BreakerCategoryDetailPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000204 /* BreakerCategoryDetailPageView.swift */; };
 		CC0000000000000000000206 /* BreakerCategoryDetailPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000204 /* BreakerCategoryDetailPageView.swift */; };
 		CC0000000000000000000208 /* BreakerCategoryDetailPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000207 /* BreakerCategoryDetailPageTests.swift */; };
+		CC0000000000000000000302 /* MusicLibraryPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000301 /* MusicLibraryPageModel.swift */; };
+		CC0000000000000000000303 /* MusicLibraryPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000301 /* MusicLibraryPageModel.swift */; };
+		CC0000000000000000000305 /* MusicLibraryPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000304 /* MusicLibraryPageView.swift */; };
+		CC0000000000000000000306 /* MusicLibraryPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000304 /* MusicLibraryPageView.swift */; };
+		CC0000000000000000000308 /* MusicLibraryPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000307 /* MusicLibraryPageTests.swift */; };
+		CC0000000000000000000402 /* MusicCategoryDetailPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000401 /* MusicCategoryDetailPageModel.swift */; };
+		CC0000000000000000000403 /* MusicCategoryDetailPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000401 /* MusicCategoryDetailPageModel.swift */; };
+		CC0000000000000000000405 /* MusicCategoryDetailPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000404 /* MusicCategoryDetailPageView.swift */; };
+		CC0000000000000000000406 /* MusicCategoryDetailPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000404 /* MusicCategoryDetailPageView.swift */; };
+		CC0000000000000000000408 /* MusicCategoryDetailPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000407 /* MusicCategoryDetailPageTests.swift */; };
 		AA10000000000000000000B6 /* ArtistDashboardPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */; };
 		AA10000000000000000000B7 /* ArtistDashboardPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */; };
 		AA10000000000000000000B8 /* ArtistDashboardPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A5 /* ArtistDashboardPageView.swift */; };
@@ -655,6 +665,12 @@
 		CC0000000000000000000201 /* BreakerCategoryDetailPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakerCategoryDetailPageModel.swift; sourceTree = "<group>"; };
 		CC0000000000000000000204 /* BreakerCategoryDetailPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakerCategoryDetailPageView.swift; sourceTree = "<group>"; };
 		CC0000000000000000000207 /* BreakerCategoryDetailPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakerCategoryDetailPageTests.swift; sourceTree = "<group>"; };
+		CC0000000000000000000301 /* MusicLibraryPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicLibraryPageModel.swift; sourceTree = "<group>"; };
+		CC0000000000000000000304 /* MusicLibraryPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicLibraryPageView.swift; sourceTree = "<group>"; };
+		CC0000000000000000000307 /* MusicLibraryPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicLibraryPageTests.swift; sourceTree = "<group>"; };
+		CC0000000000000000000401 /* MusicCategoryDetailPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicCategoryDetailPageModel.swift; sourceTree = "<group>"; };
+		CC0000000000000000000404 /* MusicCategoryDetailPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicCategoryDetailPageView.swift; sourceTree = "<group>"; };
+		CC0000000000000000000407 /* MusicCategoryDetailPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicCategoryDetailPageTests.swift; sourceTree = "<group>"; };
 		AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		AB0A00000000000000000002 /* StationPlayerPlaybackAttemptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerPlaybackAttemptTests.swift; sourceTree = "<group>"; };
 		AB0A00000000000000000004 /* StationPlayerRenderBackendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerRenderBackendTests.swift; sourceTree = "<group>"; };
@@ -1074,6 +1090,26 @@
 			path = BreakerCategoryDetailPage;
 			sourceTree = "<group>";
 		};
+		CC0000000000000000000300 /* MusicLibraryPage */ = {
+			isa = PBXGroup;
+			children = (
+				CC0000000000000000000301 /* MusicLibraryPageModel.swift */,
+				CC0000000000000000000304 /* MusicLibraryPageView.swift */,
+				CC0000000000000000000307 /* MusicLibraryPageTests.swift */,
+			);
+			path = MusicLibraryPage;
+			sourceTree = "<group>";
+		};
+		CC0000000000000000000400 /* MusicCategoryDetailPage */ = {
+			isa = PBXGroup;
+			children = (
+				CC0000000000000000000401 /* MusicCategoryDetailPageModel.swift */,
+				CC0000000000000000000404 /* MusicCategoryDetailPageView.swift */,
+				CC0000000000000000000407 /* MusicCategoryDetailPageTests.swift */,
+			);
+			path = MusicCategoryDetailPage;
+			sourceTree = "<group>";
+		};
 		AB0B00000000000000000006 /* DeveloperOptionsSheet */ = {
 			isa = PBXGroup;
 			children = (
@@ -1285,6 +1321,8 @@
 				AA10000000000000000000C1 /* ArtistStationPage */,
 				CC0000000000000000000110 /* BreakersLibraryPage */,
 				CC0000000000000000000200 /* BreakerCategoryDetailPage */,
+				CC0000000000000000000300 /* MusicLibraryPage */,
+				CC0000000000000000000400 /* MusicCategoryDetailPage */,
 				D3219C152EDD22060008AFDA /* BroadcastPage */,
 				D37769F82F22B38700200ADF /* ChooseStationPage */,
 				D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */,
@@ -2287,6 +2325,10 @@
 				CC0000000000000000000115 /* BreakersLibraryPageView.swift in Sources */,
 				CC0000000000000000000202 /* BreakerCategoryDetailPageModel.swift in Sources */,
 				CC0000000000000000000205 /* BreakerCategoryDetailPageView.swift in Sources */,
+				CC0000000000000000000302 /* MusicLibraryPageModel.swift in Sources */,
+				CC0000000000000000000305 /* MusicLibraryPageView.swift in Sources */,
+				CC0000000000000000000402 /* MusicCategoryDetailPageModel.swift in Sources */,
+				CC0000000000000000000405 /* MusicCategoryDetailPageView.swift in Sources */,
 				D30F00642E8592F0007BCC73 /* PrizeTier.swift in Sources */,
 				D30F00652E8592F0007BCC73 /* PlayolaSheet.swift in Sources */,
 				D3C7E5E92EF0C56200EDD3ED /* StagingItem.swift in Sources */,
@@ -2514,6 +2556,10 @@
 				CC0000000000000000000116 /* BreakersLibraryPageView.swift in Sources */,
 				CC0000000000000000000203 /* BreakerCategoryDetailPageModel.swift in Sources */,
 				CC0000000000000000000206 /* BreakerCategoryDetailPageView.swift in Sources */,
+				CC0000000000000000000303 /* MusicLibraryPageModel.swift in Sources */,
+				CC0000000000000000000306 /* MusicLibraryPageView.swift in Sources */,
+				CC0000000000000000000403 /* MusicCategoryDetailPageModel.swift in Sources */,
+				CC0000000000000000000406 /* MusicCategoryDetailPageView.swift in Sources */,
 				D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */,
 				D3137DCF2D3AA1E40070033A /* PlayolaSheet.swift in Sources */,
 				D3C7E5EA2EF0C56200EDD3ED /* StagingItem.swift in Sources */,
@@ -2680,6 +2726,8 @@
 				CC0000000000000000000105 /* StationCategoryTests.swift in Sources */,
 				CC0000000000000000000118 /* BreakersLibraryPageTests.swift in Sources */,
 				CC0000000000000000000208 /* BreakerCategoryDetailPageTests.swift in Sources */,
+				CC0000000000000000000308 /* MusicLibraryPageTests.swift in Sources */,
+				CC0000000000000000000408 /* MusicCategoryDetailPageTests.swift in Sources */,
 				D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */,
 				D3FEC80D2EDF689F00A33AE8 /* ChooseStationToBroadcastPageTests.swift in Sources */,
 				D3A1B2C001000000000000A6 /* StationVoiceCatalogTests.swift in Sources */,
