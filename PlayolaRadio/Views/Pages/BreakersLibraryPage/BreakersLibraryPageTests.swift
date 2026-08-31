@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import ConcurrencyExtras
 import CustomDump
 import Dependencies
 import Foundation
@@ -73,6 +74,37 @@ struct BreakersLibraryPageTests {
     let model = await makeModel {
       $0.api.getStationCategories = { _, _ in throw CancellationError() }
     }
+
+    #expect(model.presentedAlert == nil)
+  }
+
+  // Exercises the `Task.isCancelled` branch specifically: the fetch throws a *non*-cancellation
+  // error after the enclosing task is cancelled (mirroring Alamofire, which surfaces
+  // AFError.explicitlyCancelled — not Swift's CancellationError — on task cancellation). Only the
+  // Task.isCancelled check suppresses the alert here, so removing it would fail this test.
+  @Test func ignoresCancellationWhenTaskCancelledMidLoad() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    let continuationBox = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
+    let suspended = LockIsolated(false)
+
+    let model = withDependencies {
+      $0.api.getStationCategories = { _, _ in
+        await withCheckedContinuation { continuation in
+          continuationBox.setValue(continuation)
+          suspended.setValue(true)
+        }
+        throw BreakersLibraryTestError.failed
+      }
+    } operation: {
+      BreakersLibraryPageModel(stationId: testStationId)
+    }
+
+    let task = Task { await model.viewAppeared() }
+    while !suspended.value { await Task.yield() }
+    task.cancel()
+    continuationBox.value?.resume()
+    await task.value
 
     #expect(model.presentedAlert == nil)
   }
