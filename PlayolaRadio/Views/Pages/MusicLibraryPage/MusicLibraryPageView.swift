@@ -18,12 +18,25 @@ struct MusicLibraryPageView: View {
       .padding(.top, 20)
     }
     .background(Color.black)
+    .overlay { loadingSpinner }
     .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .task {
       await model.viewAppeared()
     }
     .playolaAlert($model.presentedAlert)
+  }
+
+  private var loadingSpinner: some View {
+    ProgressView()
+      .progressViewStyle(.circular)
+      .tint(.white)
+      .scaleEffect(1.5)
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .background(Color.black)
+      .opacity(model.loadingOpacity)
+      .allowsHitTesting(model.isLoading)
+      .accessibilityHidden(!model.isLoading)
   }
 
   private var rowList: some View {

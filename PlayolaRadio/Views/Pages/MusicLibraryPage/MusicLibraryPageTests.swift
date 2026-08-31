@@ -83,6 +83,20 @@ struct MusicLibraryPageTests {
       ])
   }
 
+  @Test func categoryRowCountDedupesRepeatedBlockIds() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    let categories: [StationCategory] = [
+      .mockWith(
+        id: "1", name: "Texas Country", audioBlockType: .song,
+        audioBlocks: [.mockWith(id: "a"), .mockWith(id: "b"), .mockWith(id: "a")])
+    ]
+    let model = await makeModel { $0.api.getStationCategories = { _, _ in categories } }
+
+    let categoryRow = model.rows[1]
+    expectNoDifference(model.songCountLabel(for: categoryRow), "2 songs")
+  }
+
   @Test func rowsAreEmptyWhenNoSongCategories() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
@@ -176,6 +190,50 @@ struct MusicLibraryPageTests {
     let model = await makeModel { $0.api.getStationCategories = { _, _ in categories } }
 
     #expect(!model.showsEmptyState)
+  }
+
+  @Test func loadingOpacityIsZeroBeforeAndAfterLoad() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    let model = MusicLibraryPageModel(stationId: testStationId)
+    expectNoDifference(model.loadingOpacity, 0)
+
+    await withDependencies {
+      $0.api.getStationCategories = { _, _ in [] }
+    } operation: {
+      await model.viewAppeared()
+    }
+
+    expectNoDifference(model.loadingOpacity, 0)
+  }
+
+  @Test func loadingOpacityIsOneWhileFetchInFlight() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    let continuationBox = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
+    let suspended = LockIsolated(false)
+
+    let model = withDependencies {
+      $0.api.getStationCategories = { _, _ in
+        await withCheckedContinuation { continuation in
+          continuationBox.setValue(continuation)
+          suspended.setValue(true)
+        }
+        return []
+      }
+    } operation: {
+      MusicLibraryPageModel(stationId: testStationId)
+    }
+
+    let task = Task { await model.viewAppeared() }
+    while !suspended.value { await Task.yield() }
+
+    expectNoDifference(model.loadingOpacity, 1)
+
+    continuationBox.value?.resume()
+    await task.value
+
+    expectNoDifference(model.loadingOpacity, 0)
   }
 
   @Test func allSongsRowTappedPushesDetailWithEveryUniqueSong() async {

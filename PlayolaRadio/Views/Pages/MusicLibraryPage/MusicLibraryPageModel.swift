@@ -43,6 +43,8 @@ class MusicLibraryPageModel: ViewModel {
   var showsEmptyState: Bool { !isLoading && categories.isEmpty }
   var emptyStateOpacity: Double { showsEmptyState ? 1 : 0 }
 
+  var loadingOpacity: Double { isLoading ? 1 : 0 }
+
   // MARK: - View Helpers
 
   var rows: [MusicLibraryRow] {
@@ -56,7 +58,9 @@ class MusicLibraryPageModel: ViewModel {
       MusicLibraryRow(
         id: category.id,
         title: category.name,
-        songCount: category.audioBlocks.count,
+        // Match the detail page, which dedups blocks by id; a category with a repeated id would
+        // otherwise show a count higher than the number of rows the detail page renders.
+        songCount: Set(category.audioBlocks.map(\.id)).count,
         isAllSongs: false)
     }
     return [allSongsRow] + categoryRows

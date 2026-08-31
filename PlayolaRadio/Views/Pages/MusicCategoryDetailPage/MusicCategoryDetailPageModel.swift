@@ -5,6 +5,7 @@
 
 import Dependencies
 import Foundation
+import IdentifiedCollections
 import PlayolaPlayer
 import SwiftUI
 
@@ -20,7 +21,7 @@ class MusicCategoryDetailPageModel: ViewModel {
 
   init(title: String, songs: [AudioBlock]) {
     self.title = title
-    self.songs = songs
+    self.songs = IdentifiedArray(songs, uniquingIDsWith: { first, _ in first })
     super.init()
   }
 
@@ -34,10 +35,11 @@ class MusicCategoryDetailPageModel: ViewModel {
   // MARK: - Properties
 
   let title: String
-  let songs: [AudioBlock]
+  let songs: IdentifiedArrayOf<AudioBlock>
 
   var sortMode: SortMode = .title
   var searchText: String = ""
+  var isLoading = false
   var presentedAlert: PlayolaAlert?
 
   private var playingBlockId: String?
@@ -56,20 +58,25 @@ class MusicCategoryDetailPageModel: ViewModel {
     !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
   }
 
-  var displayedSongs: [AudioBlock] {
+  var clearButtonOpacity: Double { isSearching ? 1 : 0 }
+  var pageLoadingOpacity: Double { isLoading ? 1 : 0 }
+
+  var displayedSongs: IdentifiedArrayOf<AudioBlock> {
     switch sortMode {
     case .title:
-      return filteredSongs.sorted {
-        $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
-      }
+      return IdentifiedArray(
+        uniqueElements: filteredSongs.sorted {
+          $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
+        })
     case .artist:
-      return filteredSongs.sorted {
-        let byArtist = $0.artist.localizedCaseInsensitiveCompare($1.artist)
-        if byArtist == .orderedSame {
-          return $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
-        }
-        return byArtist == .orderedAscending
-      }
+      return IdentifiedArray(
+        uniqueElements: filteredSongs.sorted {
+          let byArtist = $0.artist.localizedCaseInsensitiveCompare($1.artist)
+          if byArtist == .orderedSame {
+            return $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
+          }
+          return byArtist == .orderedAscending
+        })
     }
   }
 
@@ -140,11 +147,27 @@ class MusicCategoryDetailPageModel: ViewModel {
     isActive(block) && playbackState.isPlaying
   }
 
+  // The active song is "buffering" from the tap until the first playing state arrives (and again
+  // if playback stalls mid-song): it's the current song but not yet producing audio.
+  func isBuffering(_ block: AudioBlock) -> Bool {
+    isActive(block) && !playbackState.isPlaying
+  }
+
   func playButtonIcon(for block: AudioBlock) -> String {
     // Mirror the tap toggle, which stops any active song (including during startup/buffering,
     // when isActive is true but isPlaying is briefly false). Deriving from isActive keeps the
     // icon and the button's behavior consistent.
     isActive(block) ? "pause.fill" : "play.fill"
+  }
+
+  // A spinner replaces the play/pause glyph while the active clip buffers; both are driven off
+  // isBuffering so the view stays free of control flow.
+  func bufferingSpinnerOpacity(for block: AudioBlock) -> Double {
+    isBuffering(block) ? 1 : 0
+  }
+
+  func playIconOpacity(for block: AudioBlock) -> Double {
+    isBuffering(block) ? 0 : 1
   }
 
   func playButtonBackgroundColor(for block: AudioBlock) -> Color {
@@ -185,6 +208,9 @@ class MusicCategoryDetailPageModel: ViewModel {
     isActive(block) ? 26 : 0
   }
 
+  // During buffering isActive is already true and the icon shows pause.fill; keep the label
+  // action-oriented ("Pause") to match the visible control and the stop-on-tap behavior, rather
+  // than announcing passive "Loading" status on an actionable button.
   func playButtonAccessibilityLabel(for block: AudioBlock) -> String {
     isActive(block) ? "Pause \(songTitle(for: block))" : "Play \(songTitle(for: block))"
   }
@@ -211,6 +237,10 @@ class MusicCategoryDetailPageModel: ViewModel {
 
   func sortModeTapped(_ mode: SortMode) {
     sortMode = mode
+  }
+
+  func clearSearchTapped() {
+    searchText = ""
   }
 
   func playButtonTapped(_ block: AudioBlock) async {
@@ -278,13 +308,14 @@ class MusicCategoryDetailPageModel: ViewModel {
 
   // MARK: - Private Helpers
 
-  private var filteredSongs: [AudioBlock] {
+  private var filteredSongs: IdentifiedArrayOf<AudioBlock> {
     let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !query.isEmpty else { return songs }
-    return songs.filter {
-      $0.title.localizedCaseInsensitiveContains(query)
-        || $0.artist.localizedCaseInsensitiveContains(query)
-    }
+    return IdentifiedArray(
+      uniqueElements: songs.filter {
+        $0.title.localizedCaseInsensitiveContains(query)
+          || $0.artist.localizedCaseInsensitiveContains(query)
+      })
   }
 
   private func sortKey(for block: AudioBlock) -> String {

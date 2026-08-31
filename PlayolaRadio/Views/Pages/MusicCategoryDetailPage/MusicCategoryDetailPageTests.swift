@@ -670,6 +670,141 @@ struct MusicCategoryDetailPageTests {
     expectNoDifference(model.playButtonAccessibilityLabel(for: block), "Play Whiskey")
   }
 
+  // MARK: - Buffering
+
+  @Test func inactiveSongIsNotBuffering() {
+    let model = MusicCategoryDetailPageModel(
+      title: "All Songs", songs: [.mockWith(id: "1", durationMS: 18_000)])
+    let block = model.songs[0]
+
+    #expect(!model.isBuffering(block))
+    expectNoDifference(model.bufferingSpinnerOpacity(for: block), 0)
+    expectNoDifference(model.playIconOpacity(for: block), 1)
+  }
+
+  @Test func activeSongBuffersDuringStartupBeforeFirstPlayingState() async {
+    let player = AudioPlayerClient(
+      loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+      currentTime: { 0 }, duration: { 18 }, isPlaying: { true },
+      startPlayback: { _, _ in
+        // Never reports a playing state, so the song stays in the buffering window.
+        PlaybackSession(play: {}, pause: {}, stop: {}, seek: { _ in }, cancel: {})
+      }
+    )
+
+    let model = withDependencies {
+      $0.audioPlayer = player
+    } operation: {
+      MusicCategoryDetailPageModel(
+        title: "All Songs",
+        songs: [
+          .mockWith(
+            id: "1", title: "Whiskey", durationMS: 18_000,
+            downloadUrl: URL(string: "https://example.com/1.mp3"))
+        ])
+    }
+    let block = model.songs[0]
+
+    await model.playButtonTapped(block)
+
+    #expect(model.isBuffering(block))
+    expectNoDifference(model.bufferingSpinnerOpacity(for: block), 1)
+    expectNoDifference(model.playIconOpacity(for: block), 0)
+    // Label stays action-oriented (matches the pause.fill icon and stop-on-tap), not passive status.
+    expectNoDifference(model.playButtonAccessibilityLabel(for: block), "Pause Whiskey")
+  }
+
+  @Test func playingSongIsNotBuffering() async {
+    let model = withDependencies {
+      $0.audioPlayer = makePlayingAudioPlayer(duration: 18)
+    } operation: {
+      MusicCategoryDetailPageModel(
+        title: "All Songs",
+        songs: [
+          .mockWith(
+            id: "1", title: "Whiskey", durationMS: 18_000,
+            downloadUrl: URL(string: "https://example.com/1.mp3"))
+        ])
+    }
+    let block = model.songs[0]
+
+    await model.playButtonTapped(block)
+
+    #expect(!model.isBuffering(block))
+    expectNoDifference(model.bufferingSpinnerOpacity(for: block), 0)
+    expectNoDifference(model.playIconOpacity(for: block), 1)
+    expectNoDifference(model.playButtonAccessibilityLabel(for: block), "Pause Whiskey")
+  }
+
+  @Test func stalledSongBuffersMidPlayback() async {
+    let callbackBox = LockIsolated<(@MainActor @Sendable (PlaybackState) -> Void)?>(nil)
+    let player = AudioPlayerClient(
+      loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+      currentTime: { 0 }, duration: { 18 }, isPlaying: { true },
+      startPlayback: { _, onStateChange in
+        await onStateChange(PlaybackState(currentTime: 1, duration: 18, isPlaying: true))
+        callbackBox.setValue(onStateChange)
+        return PlaybackSession(play: {}, pause: {}, stop: {}, seek: { _ in }, cancel: {})
+      }
+    )
+
+    let model = withDependencies {
+      $0.audioPlayer = player
+    } operation: {
+      MusicCategoryDetailPageModel(
+        title: "All Songs",
+        songs: [
+          .mockWith(
+            id: "1", durationMS: 18_000, downloadUrl: URL(string: "https://example.com/1.mp3"))
+        ])
+    }
+    let block = model.songs[0]
+
+    await model.playButtonTapped(block)
+    #expect(!model.isBuffering(block))
+
+    callbackBox.value?(PlaybackState(currentTime: 1.2, duration: 18, isPlaying: false))
+
+    #expect(model.isBuffering(block))
+    expectNoDifference(model.bufferingSpinnerOpacity(for: block), 1)
+  }
+
+  // MARK: - Search bar
+
+  @Test func clearSearchTappedResetsSearchText() {
+    let model = MusicCategoryDetailPageModel(
+      title: "All Songs",
+      songs: [.mockWith(id: "1", title: "Austin"), .mockWith(id: "2", title: "Marfa")])
+    model.searchText = "austin"
+
+    model.clearSearchTapped()
+
+    expectNoDifference(model.searchText, "")
+    #expect(!model.isSearching)
+    expectNoDifference(model.displayedSongs.map(\.id), ["1", "2"])
+  }
+
+  @Test func clearButtonOpacityReflectsSearchingState() {
+    let model = MusicCategoryDetailPageModel(
+      title: "All Songs", songs: [.mockWith(id: "1", title: "Austin")])
+
+    expectNoDifference(model.clearButtonOpacity, 0)
+
+    model.searchText = "austin"
+
+    expectNoDifference(model.clearButtonOpacity, 1)
+  }
+
+  @Test func pageLoadingOpacityReflectsIsLoading() {
+    let model = MusicCategoryDetailPageModel(title: "All Songs", songs: [])
+
+    expectNoDifference(model.pageLoadingOpacity, 0)
+
+    model.isLoading = true
+
+    expectNoDifference(model.pageLoadingOpacity, 1)
+  }
+
   @Test func scrubberAccessibilityHiddenWhenInactive() {
     let model = MusicCategoryDetailPageModel(
       title: "All Songs",

@@ -32,12 +32,57 @@ struct MusicCategoryDetailPageView: View {
         )
         .padding(.trailing, 4)
       }
+      .overlay { pageLoadingSpinner }
       .navigationTitle(model.navigationTitle)
       .navigationBarTitleDisplayMode(.inline)
-      .searchable(text: $model.searchText, prompt: model.searchPrompt)
+      .safeAreaInset(edge: .bottom) { searchBar }
       .playolaAlert($model.presentedAlert)
       .onDisappear { Task { await model.viewDisappeared() } }
     }
+  }
+
+  private var pageLoadingSpinner: some View {
+    ProgressView()
+      .progressViewStyle(.circular)
+      .tint(.white)
+      .scaleEffect(1.5)
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .background(Color.black)
+      .opacity(model.pageLoadingOpacity)
+      .allowsHitTesting(model.isLoading)
+      .accessibilityHidden(!model.isLoading)
+  }
+
+  private var searchBar: some View {
+    HStack(spacing: 8) {
+      Image(systemName: "magnifyingglass")
+        .font(.system(size: 16))
+        .foregroundColor(.playolaGray)
+
+      TextField(model.searchPrompt, text: $model.searchText)
+        .font(.custom(FontNames.Inter_400_Regular, size: 16))
+        .foregroundColor(.white)
+        .autocorrectionDisabled()
+        .textInputAutocapitalization(.never)
+
+      Button {
+        model.clearSearchTapped()
+      } label: {
+        Image(systemName: "xmark.circle.fill")
+          .font(.system(size: 16))
+          .foregroundColor(.playolaGray)
+      }
+      .opacity(model.clearButtonOpacity)
+      .disabled(!model.isSearching)
+      .accessibilityHidden(!model.isSearching)
+    }
+    .padding(.horizontal, 12)
+    .padding(.vertical, 10)
+    .background(Color(hex: "#333333"))
+    .clipShape(.rect(cornerRadius: 8))
+    .padding(.horizontal, 16)
+    .padding(.vertical, 12)
+    .background(Color.black)
   }
 
   private var sortControls: some View {
@@ -125,9 +170,15 @@ struct MusicCategoryDetailPageView: View {
           .fill(model.playButtonBackgroundColor(for: block))
           .frame(width: 44, height: 44)
 
+        ProgressView()
+          .progressViewStyle(.circular)
+          .tint(.white)
+          .opacity(model.bufferingSpinnerOpacity(for: block))
+
         Image(systemName: model.playButtonIcon(for: block))
           .font(.system(size: 15))
           .foregroundColor(.white)
+          .opacity(model.playIconOpacity(for: block))
       }
     }
     .disabled(!model.isPlayButtonEnabled(for: block))
