@@ -213,6 +213,92 @@ struct MusicCategoryDetailPageTests {
     expectNoDifference(model.scrollTargetId(forLetter: "Q"), "")
   }
 
+  @Test func searchFiltersByTitle() {
+    let model = MusicCategoryDetailPageModel(
+      title: "All Songs",
+      songs: [
+        .mockWith(id: "1", title: "Marfa Lights", artist: "Zed"),
+        .mockWith(id: "2", title: "Austin", artist: "Yon"),
+      ])
+
+    model.searchText = "marfa"
+
+    expectNoDifference(model.displayedSongs.map(\.id), ["1"])
+  }
+
+  @Test func searchFiltersByArtist() {
+    let model = MusicCategoryDetailPageModel(
+      title: "All Songs",
+      songs: [
+        .mockWith(id: "1", title: "Marfa Lights", artist: "Charley Crockett"),
+        .mockWith(id: "2", title: "Austin", artist: "Bri Bagwell"),
+      ])
+
+    model.searchText = "bagwell"
+
+    expectNoDifference(model.displayedSongs.map(\.id), ["2"])
+  }
+
+  @Test func searchMatchesTitleOrArtistCaseInsensitively() {
+    let model = MusicCategoryDetailPageModel(
+      title: "All Songs",
+      songs: [
+        .mockWith(id: "1", title: "Bagwell Blues", artist: "Zed"),
+        .mockWith(id: "2", title: "Austin", artist: "Bri Bagwell"),
+        .mockWith(id: "3", title: "Memphis", artist: "Yon"),
+      ])
+
+    model.searchText = "BAGWELL"
+
+    // Both match ("Bagwell Blues" by title, "Austin" by artist "Bri Bagwell"); default title sort
+    // orders "Austin" (id 2) before "Bagwell Blues" (id 1).
+    expectNoDifference(model.displayedSongs.map(\.id), ["2", "1"])
+  }
+
+  @Test func blankSearchShowsAllSongs() {
+    let model = MusicCategoryDetailPageModel(
+      title: "All Songs",
+      songs: [.mockWith(id: "1", title: "Austin"), .mockWith(id: "2", title: "Memphis")])
+
+    model.searchText = "   "
+
+    #expect(!model.isSearching)
+    expectNoDifference(model.displayedSongs.map(\.id), ["1", "2"])
+  }
+
+  @Test func searchNarrowsSectionLetters() {
+    let model = MusicCategoryDetailPageModel(
+      title: "All Songs",
+      songs: [
+        .mockWith(id: "1", title: "Austin", artist: "Zed"),
+        .mockWith(id: "2", title: "Marfa", artist: "Yon"),
+      ])
+
+    model.searchText = "austin"
+
+    expectNoDifference(model.availableSectionLetters, ["A"])
+  }
+
+  @Test func emptySearchResultsShowSearchEmptyState() {
+    let model = MusicCategoryDetailPageModel(
+      title: "All Songs",
+      songs: [.mockWith(id: "1", title: "Austin", artist: "Zed")])
+
+    model.searchText = "nothingmatches"
+
+    #expect(model.showsEmptyState)
+    expectNoDifference(model.emptyStateOpacity, 1)
+    expectNoDifference(model.emptyStateMessage, "No songs match your search.")
+    expectNoDifference(model.emptyStateSystemImage, "magnifyingglass")
+  }
+
+  @Test func emptyCategoryShowsCategoryEmptyState() {
+    let model = MusicCategoryDetailPageModel(title: "All Songs", songs: [])
+
+    expectNoDifference(model.emptyStateMessage, "No songs in this category yet.")
+    expectNoDifference(model.emptyStateSystemImage, "music.note")
+  }
+
   @Test func sortSegmentTitlesAndSelection() {
     let model = MusicCategoryDetailPageModel(title: "All Songs", songs: [])
 

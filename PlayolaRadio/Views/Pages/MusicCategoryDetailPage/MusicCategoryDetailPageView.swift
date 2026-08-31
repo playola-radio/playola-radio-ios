@@ -34,6 +34,7 @@ struct MusicCategoryDetailPageView: View {
       }
       .navigationTitle(model.navigationTitle)
       .navigationBarTitleDisplayMode(.inline)
+      .searchable(text: $model.searchText, prompt: model.searchPrompt)
       .playolaAlert($model.presentedAlert)
       .onDisappear { Task { await model.viewDisappeared() } }
     }
@@ -186,7 +187,7 @@ struct MusicCategoryDetailPageView: View {
 
   private var emptyState: some View {
     VStack(spacing: 8) {
-      Image(systemName: "music.note")
+      Image(systemName: model.emptyStateSystemImage)
         .font(.system(size: 32))
         .foregroundColor(.playolaGray)
       Text(model.emptyStateMessage)

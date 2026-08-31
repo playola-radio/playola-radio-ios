@@ -37,6 +37,7 @@ class MusicCategoryDetailPageModel: ViewModel {
   let songs: [AudioBlock]
 
   var sortMode: SortMode = .title
+  var searchText: String = ""
   var presentedAlert: PlayolaAlert?
 
   private var playingBlockId: String?
@@ -49,15 +50,20 @@ class MusicCategoryDetailPageModel: ViewModel {
   var navigationTitle: String { title }
   var sortLabel: String { "SORT BY" }
   var sortModes: [SortMode] { SortMode.allCases }
+  var searchPrompt: String { "Search songs" }
+
+  var isSearching: Bool {
+    !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+  }
 
   var displayedSongs: [AudioBlock] {
     switch sortMode {
     case .title:
-      return songs.sorted {
+      return filteredSongs.sorted {
         $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
       }
     case .artist:
-      return songs.sorted {
+      return filteredSongs.sorted {
         let byArtist = $0.artist.localizedCaseInsensitiveCompare($1.artist)
         if byArtist == .orderedSame {
           return $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
@@ -71,9 +77,16 @@ class MusicCategoryDetailPageModel: ViewModel {
     Set(displayedSongs.compactMap { sortKey(for: $0).first?.uppercased() }).sorted()
   }
 
-  var emptyStateMessage: String { "No songs in this category yet." }
-  var showsEmptyState: Bool { songs.isEmpty }
+  var showsEmptyState: Bool { displayedSongs.isEmpty }
   var emptyStateOpacity: Double { showsEmptyState ? 1 : 0 }
+
+  var emptyStateMessage: String {
+    isSearching ? "No songs match your search." : "No songs in this category yet."
+  }
+
+  var emptyStateSystemImage: String {
+    isSearching ? "magnifyingglass" : "music.note"
+  }
 
   // MARK: - View Helpers
 
@@ -246,6 +259,15 @@ class MusicCategoryDetailPageModel: ViewModel {
   }
 
   // MARK: - Private Helpers
+
+  private var filteredSongs: [AudioBlock] {
+    let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !query.isEmpty else { return songs }
+    return songs.filter {
+      $0.title.localizedCaseInsensitiveContains(query)
+        || $0.artist.localizedCaseInsensitiveContains(query)
+    }
+  }
 
   private func sortKey(for block: AudioBlock) -> String {
     switch sortMode {
