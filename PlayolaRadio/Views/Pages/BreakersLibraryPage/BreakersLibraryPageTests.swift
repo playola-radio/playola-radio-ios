@@ -69,6 +69,14 @@ struct BreakersLibraryPageTests {
       .errorLoadingBreakers(BreakersLibraryTestError.failed.localizedDescription))
   }
 
+  @Test func ignoresCancellationErrorWhenFetchFails() async {
+    let model = await makeModel {
+      $0.api.getStationCategories = { _, _ in throw CancellationError() }
+    }
+
+    #expect(model.presentedAlert == nil)
+  }
+
   @Test func blockCountLabelIsSingularForOneBlock() {
     let model = BreakersLibraryPageModel(stationId: testStationId)
     let category = StationCategory.mockWith(

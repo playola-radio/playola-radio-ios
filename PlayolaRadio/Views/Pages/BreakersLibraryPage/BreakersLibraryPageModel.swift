@@ -76,8 +76,16 @@ class BreakersLibraryPageModel: ViewModel {
           .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
       )
     } catch {
+      guard !isCancellation(error) else { return }
       presentedAlert = .errorLoadingBreakers(error.localizedDescription)
     }
+  }
+
+  /// A cancelled `.task` auto-cancels the in-flight request (Alamofire surfaces
+  /// `AFError.explicitlyCancelled`, so `Task.isCancelled` is already set). Treat that as a
+  /// non-event: don't alert for a navigation away.
+  private func isCancellation(_ error: any Error) -> Bool {
+    Task.isCancelled || error is CancellationError
   }
 }
 

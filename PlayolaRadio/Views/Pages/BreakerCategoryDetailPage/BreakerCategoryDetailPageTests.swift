@@ -410,6 +410,9 @@ struct BreakerCategoryDetailPageTests {
     await model.playButtonTapped(block)
     #expect(model.isActive(block))
     #expect(!model.isPlaying(block))
+    // During startup the tap toggle stops, so the icon must read "stop.fill" even though
+    // isPlaying is still false.
+    expectNoDifference(model.playButtonIcon(for: block), "stop.fill")
 
     await model.playButtonTapped(block)
 

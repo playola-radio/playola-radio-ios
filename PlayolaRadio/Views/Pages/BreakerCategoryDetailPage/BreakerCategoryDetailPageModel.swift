@@ -61,7 +61,10 @@ class BreakerCategoryDetailPageModel: ViewModel {
   }
 
   func playButtonIcon(for block: AudioBlock) -> String {
-    isPlaying(block) ? "stop.fill" : "play.fill"
+    // Mirror the tap toggle, which stops any active clip (including during startup/buffering,
+    // when isActive is true but isPlaying is briefly false). Deriving from isActive keeps the
+    // icon and the button's behavior consistent.
+    isActive(block) ? "stop.fill" : "play.fill"
   }
 
   func playButtonBackgroundColor(for block: AudioBlock) -> Color {
