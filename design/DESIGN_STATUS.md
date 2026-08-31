@@ -138,8 +138,8 @@ full-track audio preview + scrubber. Exports under `exports/in-progress/music-li
 
 | Frame | Node ID | Status | Notes |
 |---|---|---|---|
-| Music Library · Categories | `z2PgEC` | Implementing (this PR) | Song categories + "All Songs" row, deduped counts, drill-down |
-| Music Library · All Songs / Category Detail | `SeRvJ` | Implementing (this PR) | Detail page; sort control, A–Z index, per-song play/pause + scrubber |
+| Music Library · Categories | `z2PgEC` | Implementing (#418) | Song categories + "All Songs" row, deduped counts, drill-down |
+| Music Library · All Songs / Category Detail | `SeRvJ` | Implementing (#418) | Detail page; sort control, A–Z index, per-song play/pause + scrubber |
 
 ### Supporting components (artist/DJ)
 

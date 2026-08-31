@@ -795,16 +795,6 @@ struct MusicCategoryDetailPageTests {
     expectNoDifference(model.clearButtonOpacity, 1)
   }
 
-  @Test func pageLoadingOpacityReflectsIsLoading() {
-    let model = MusicCategoryDetailPageModel(title: "All Songs", songs: [])
-
-    expectNoDifference(model.pageLoadingOpacity, 0)
-
-    model.isLoading = true
-
-    expectNoDifference(model.pageLoadingOpacity, 1)
-  }
-
   @Test func scrubberAccessibilityHiddenWhenInactive() {
     let model = MusicCategoryDetailPageModel(
       title: "All Songs",

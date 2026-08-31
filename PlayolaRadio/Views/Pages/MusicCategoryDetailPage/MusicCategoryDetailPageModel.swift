@@ -39,7 +39,6 @@ class MusicCategoryDetailPageModel: ViewModel {
 
   var sortMode: SortMode = .title
   var searchText: String = ""
-  var isLoading = false
   var presentedAlert: PlayolaAlert?
 
   private var playingBlockId: String?
@@ -59,7 +58,6 @@ class MusicCategoryDetailPageModel: ViewModel {
   }
 
   var clearButtonOpacity: Double { isSearching ? 1 : 0 }
-  var pageLoadingOpacity: Double { isLoading ? 1 : 0 }
 
   var displayedSongs: IdentifiedArrayOf<AudioBlock> {
     switch sortMode {

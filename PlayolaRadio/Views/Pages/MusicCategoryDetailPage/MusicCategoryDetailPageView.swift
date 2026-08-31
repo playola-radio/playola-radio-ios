@@ -32,25 +32,12 @@ struct MusicCategoryDetailPageView: View {
         )
         .padding(.trailing, 4)
       }
-      .overlay { pageLoadingSpinner }
       .navigationTitle(model.navigationTitle)
       .navigationBarTitleDisplayMode(.inline)
       .safeAreaInset(edge: .bottom) { searchBar }
       .playolaAlert($model.presentedAlert)
       .onDisappear { Task { await model.viewDisappeared() } }
     }
-  }
-
-  private var pageLoadingSpinner: some View {
-    ProgressView()
-      .progressViewStyle(.circular)
-      .tint(.white)
-      .scaleEffect(1.5)
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background(Color.black)
-      .opacity(model.pageLoadingOpacity)
-      .allowsHitTesting(model.isLoading)
-      .accessibilityHidden(!model.isLoading)
   }
 
   private var searchBar: some View {

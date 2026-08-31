@@ -73,11 +73,15 @@ struct SectionIndexView: View {
 
   private func accessibilityAdjust(_ direction: AccessibilityAdjustmentDirection) {
     guard !letters.isEmpty else { return }
+    // `letters` can shrink (e.g. search narrows the index) while this view's identity — and so its
+    // persisted `accessibilityIndex` — stays put. Re-clamp the stale index into the current range
+    // before adjusting so the subscript below can never go out of bounds.
+    let current = min(accessibilityIndex, letters.count - 1)
     switch direction {
     case .increment:
-      accessibilityIndex = min(letters.count - 1, accessibilityIndex + 1)
+      accessibilityIndex = min(letters.count - 1, current + 1)
     case .decrement:
-      accessibilityIndex = max(0, accessibilityIndex - 1)
+      accessibilityIndex = max(0, current - 1)
     @unknown default:
       return
     }
