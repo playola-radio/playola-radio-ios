@@ -130,6 +130,17 @@ per-clip audio preview. Exports under `exports/in-progress/breakers-library/`.
 | Breakers · Promotions | `vaOkW` | Implementing | Detail page |
 | Breakers · Post Commercial | `e9gP0d` | Implementing | Detail page |
 
+### Proposal · Music Library (Artist · Station tab)
+
+Song-category browser reached from the Station tab. Category list → per-category (or
+"All Songs" aggregate) detail with sort (Title/Artist), A–Z section index, and per-song
+full-track audio preview + scrubber. Exports under `exports/music-library/`.
+
+| Frame | Node ID | Status | Notes |
+|---|---|---|---|
+| Music Library · Categories | `—` | Implementing (this PR) | Song categories + "All Songs" row, deduped counts, drill-down |
+| Music Library · All Songs / Category Detail | `SeRvJ` | Implementing (this PR) | Detail page; sort control, A–Z index, per-song play/pause + scrubber |
+
 ### Supporting components (artist/DJ)
 
 | Component | Node ID | Status |
