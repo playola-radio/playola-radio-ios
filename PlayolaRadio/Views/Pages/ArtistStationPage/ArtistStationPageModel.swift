@@ -68,7 +68,7 @@ class ArtistStationPageModel: ViewModel {
 
   var showsLinkTitle: String { "Shows" }
   var musicLibraryLinkTitle: String { "Music Library" }
-  var scheduleLinkTitle: String { "Schedule" }
+  var breakersLibraryLinkTitle: String { "Breakers Library" }
 
   // MARK: - View Helpers
 
@@ -91,7 +91,10 @@ class ArtistStationPageModel: ViewModel {
 
   func musicLibraryRowTapped() {}
 
-  func scheduleRowTapped() {}
+  func breakersLibraryRowTapped() {
+    guard let stationId else { return }
+    navigationCoordinator.push(.breakersLibraryPage(BreakersLibraryPageModel(stationId: stationId)))
+  }
 
   // MARK: - Private Helpers
 

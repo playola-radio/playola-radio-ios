@@ -82,6 +82,8 @@ final class MainContainerNavigationCoordinator {
     case conversationListPage(ConversationListPageModel)
     case broadcastersListenerQuestionPage(BroadcastersListenerQuestionPageModel)
     case listenerQuestionDetailPage(ListenerQuestionDetailPageModel)
+    case breakersLibraryPage(BreakersLibraryPageModel)
+    case breakerCategoryDetailPage(BreakerCategoryDetailPageModel)
 
     @MainActor @ViewBuilder
     var destinationView: some View {
@@ -112,6 +114,10 @@ final class MainContainerNavigationCoordinator {
         BroadcastersListenerQuestionPageView(model: model)
       case .listenerQuestionDetailPage(let model):
         ListenerQuestionDetailPageView(model: model)
+      case .breakersLibraryPage(let model):
+        BreakersLibraryPageView(model: model)
+      case .breakerCategoryDetailPage(let model):
+        BreakerCategoryDetailPageView(model: model)
       }
     }
   }

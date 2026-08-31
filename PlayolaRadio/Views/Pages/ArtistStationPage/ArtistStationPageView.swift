@@ -140,9 +140,9 @@ struct ArtistStationPageView: View {
         linkRow(title: model.musicLibraryLinkTitle)
       }
       Button {
-        model.scheduleRowTapped()
+        model.breakersLibraryRowTapped()
       } label: {
-        linkRow(title: model.scheduleLinkTitle)
+        linkRow(title: model.breakersLibraryLinkTitle)
       }
     }
   }

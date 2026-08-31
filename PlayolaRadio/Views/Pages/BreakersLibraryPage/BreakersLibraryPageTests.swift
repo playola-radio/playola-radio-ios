@@ -1,0 +1,165 @@
+//
+//  BreakersLibraryPageTests.swift
+//  PlayolaRadio
+//
+
+import ConcurrencyExtras
+import CustomDump
+import Dependencies
+import Foundation
+import PlayolaPlayer
+import Sharing
+import Testing
+
+@testable import PlayolaRadio
+
+@Suite(.freshSharedState)
+@MainActor
+struct BreakersLibraryPageTests {
+
+  private let testStationId = "station-abc"
+
+  private func makeModel(
+    _ configure: (inout DependencyValues) -> Void = { _ in }
+  ) async -> BreakersLibraryPageModel {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    return await withDependencies {
+      configure(&$0)
+    } operation: {
+      let model = BreakersLibraryPageModel(stationId: testStationId)
+      await model.viewAppeared()
+      return model
+    }
+  }
+
+  @Test func filtersOutSongCategoriesAndSortsByName() async {
+    let categories: [StationCategory] = [
+      .mockWith(
+        id: "1", name: "Zebra Sounders", audioBlockType: .commercialblock,
+        audioBlocks: [.mockWith(id: "z")]),
+      .mockWith(
+        id: "2", name: "All Songs", audioBlockType: .song, audioBlocks: [.mockWith(id: "s")]),
+      .mockWith(
+        id: "3", name: "Anthems", audioBlockType: .audioimage,
+        audioBlocks: [.mockWith(id: "a")]),
+    ]
+    let model = await makeModel { $0.api.getStationCategories = { _, _ in categories } }
+
+    expectNoDifference(model.categories.map(\.id), ["3", "1"])
+  }
+
+  @Test func filtersOutEmptyCategories() async {
+    let categories: [StationCategory] = [
+      .mockWith(
+        id: "1", name: "Intros", audioBlockType: .audioimage, audioBlocks: [.mockWith(id: "a")]),
+      .mockWith(id: "2", name: "Empty Breakers", audioBlockType: .commercialblock, audioBlocks: []),
+    ]
+    let model = await makeModel { $0.api.getStationCategories = { _, _ in categories } }
+
+    expectNoDifference(model.categories.map(\.id), ["1"])
+  }
+
+  @Test func setsErrorAlertWhenFetchFails() async {
+    let model = await makeModel {
+      $0.api.getStationCategories = { _, _ in throw BreakersLibraryTestError.failed }
+    }
+
+    expectNoDifference(
+      model.presentedAlert,
+      .errorLoadingBreakers(BreakersLibraryTestError.failed.localizedDescription))
+  }
+
+  @Test func ignoresCancellationErrorWhenFetchFails() async {
+    let model = await makeModel {
+      $0.api.getStationCategories = { _, _ in throw CancellationError() }
+    }
+
+    #expect(model.presentedAlert == nil)
+  }
+
+  // Exercises the `Task.isCancelled` branch specifically: the fetch throws a *non*-cancellation
+  // error after the enclosing task is cancelled (mirroring Alamofire, which surfaces
+  // AFError.explicitlyCancelled — not Swift's CancellationError — on task cancellation). Only the
+  // Task.isCancelled check suppresses the alert here, so removing it would fail this test.
+  @Test func ignoresCancellationWhenTaskCancelledMidLoad() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    let continuationBox = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
+    let suspended = LockIsolated(false)
+
+    let model = withDependencies {
+      $0.api.getStationCategories = { _, _ in
+        await withCheckedContinuation { continuation in
+          continuationBox.setValue(continuation)
+          suspended.setValue(true)
+        }
+        throw BreakersLibraryTestError.failed
+      }
+    } operation: {
+      BreakersLibraryPageModel(stationId: testStationId)
+    }
+
+    let task = Task { await model.viewAppeared() }
+    while !suspended.value { await Task.yield() }
+    task.cancel()
+    continuationBox.value?.resume()
+    await task.value
+
+    #expect(model.presentedAlert == nil)
+  }
+
+  @Test func blockCountLabelIsSingularForOneBlock() {
+    let model = BreakersLibraryPageModel(stationId: testStationId)
+    let category = StationCategory.mockWith(
+      audioBlocks: [.mockWith()]
+    )
+
+    expectNoDifference(model.blockCountLabel(for: category), "1 clip")
+  }
+
+  @Test func blockCountLabelIsPluralForMultipleBlocks() {
+    let model = BreakersLibraryPageModel(stationId: testStationId)
+    let category = StationCategory.mockWith(
+      audioBlocks: [.mockWith(id: "a"), .mockWith(id: "b")]
+    )
+
+    expectNoDifference(model.blockCountLabel(for: category), "2 clips")
+  }
+
+  @Test func showsEmptyStateWhenNoCategories() async {
+    let model = await makeModel { $0.api.getStationCategories = { _, _ in [] } }
+
+    #expect(model.showsEmptyState)
+  }
+
+  @Test func hidesEmptyStateWhenCategoriesPresent() async {
+    let categories: [StationCategory] = [
+      .mockWith(
+        id: "1", name: "Anthems", audioBlockType: .audioimage, audioBlocks: [.mockWith(id: "a")])
+    ]
+    let model = await makeModel { $0.api.getStationCategories = { _, _ in categories } }
+
+    #expect(!model.showsEmptyState)
+  }
+
+  @Test func categoryRowTappedPushesDetailPage() {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let model = BreakersLibraryPageModel(stationId: testStationId)
+    let category = StationCategory.mockWith(id: "1", name: "Intros")
+
+    model.categoryRowTapped(category)
+
+    guard case .breakerCategoryDetailPage(let pushedModel) = coordinator.path.last else {
+      Issue.record("Expected a breakerCategoryDetailPage to be pushed")
+      return
+    }
+    expectNoDifference(pushedModel.category.id, category.id)
+  }
+}
+
+private enum BreakersLibraryTestError: Error {
+  case failed
+}

@@ -116,6 +116,20 @@ once that decision is confirmed.
 |---|---|---|---|
 | Home (Artist · Tab Root v2 · Dashboard Style) | `ccNgg` | Proposed | Alternative to 3-tab IA |
 
+### Proposal · Breakers Library (Artist · Station tab)
+
+Replaces the Station page "Schedule" row. Category list → per-category detail with
+per-clip audio preview. Exports under `exports/in-progress/breakers-library/`.
+
+| Frame | Node ID | Status | Notes |
+|---|---|---|---|
+| Breakers Library · Categories | `yxMJo` | Implementing (PR #417) | Non-song categories (zero-clip filtered out), name + clip count, drill-down |
+| Breakers · Fan Spotlights | `X0aSe` | Implementing (PR #417) | Detail page; per-clip play/stop + scrubber |
+| Breakers · Intros | `y6LWT3` | Implementing (PR #417) | Detail page |
+| Breakers · Pre Commercial | `P2kA4P` | Implementing | Detail page |
+| Breakers · Promotions | `vaOkW` | Implementing | Detail page |
+| Breakers · Post Commercial | `e9gP0d` | Implementing | Detail page |
+
 ### Supporting components (artist/DJ)
 
 | Component | Node ID | Status |
@@ -124,7 +138,8 @@ once that decision is confirmed.
 | Tab Bar (Artist · 3-tab Glass) | `R0hsG` | Implementing (3-tab IA; native TabView; PR #416) |
 | Tab Bar (Artist · 2-tab Glass) | `Q1nN0v` | Proposed (Home v2) |
 | Broadcast Action Button | `EqHkj` | Exploring |
-| Schedule Row | `th8Fu` | Exploring |
+| Schedule Row | `th8Fu` | Exploring (superseded by Breakers Library on Station tab) |
+| Breaker Audio Row | `A2JkO` | Implementing (Breakers Library detail rows) |
 | Staging Row | `GpwDu` | Exploring |
 | Library Song Row | `dugqD` | Exploring |
 | Library Request Row | `trUfU` | Exploring |
