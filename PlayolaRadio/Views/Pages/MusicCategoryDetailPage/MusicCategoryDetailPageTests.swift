@@ -441,6 +441,69 @@ struct MusicCategoryDetailPageTests {
     #expect(model.isActive(block))
   }
 
+  @Test func zeroDurationClipCompletesOnDidFinish() async {
+    let callbackBox = LockIsolated<(@MainActor @Sendable (PlaybackState) -> Void)?>(nil)
+    let player = AudioPlayerClient(
+      loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+      currentTime: { 0 }, duration: { 0 }, isPlaying: { true },
+      startPlayback: { _, onStateChange in
+        await onStateChange(PlaybackState(currentTime: 0, duration: 0, isPlaying: true))
+        callbackBox.setValue(onStateChange)
+        return PlaybackSession(play: {}, pause: {}, stop: {}, seek: { _ in }, cancel: {})
+      }
+    )
+
+    let model = withDependencies {
+      $0.audioPlayer = player
+    } operation: {
+      MusicCategoryDetailPageModel(
+        title: "All Songs",
+        songs: [
+          .mockWith(id: "1", durationMS: 0, downloadUrl: URL(string: "https://example.com/1.mp3"))
+        ])
+    }
+    let block = model.songs[0]
+
+    await model.playButtonTapped(block)
+    #expect(model.isActive(block))
+
+    callbackBox.value?(
+      PlaybackState(currentTime: 0, duration: 0, isPlaying: false, didFinish: true))
+
+    #expect(!model.isActive(block))
+  }
+
+  @Test func negativeDurationDoesNotProduceNegativeSeek() async {
+    let seekedTo = LockIsolated<[TimeInterval]>([])
+    let player = AudioPlayerClient(
+      loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+      currentTime: { 0 }, duration: { 0 }, isPlaying: { true },
+      startPlayback: { _, onStateChange in
+        await onStateChange(PlaybackState(currentTime: 0, duration: 0, isPlaying: true))
+        return PlaybackSession(
+          play: {}, pause: {}, stop: {},
+          seek: { target in seekedTo.withValue { $0.append(target) } }, cancel: {})
+      }
+    )
+
+    let model = withDependencies {
+      $0.audioPlayer = player
+    } operation: {
+      MusicCategoryDetailPageModel(
+        title: "All Songs",
+        songs: [
+          .mockWith(
+            id: "1", durationMS: -5000, downloadUrl: URL(string: "https://example.com/1.mp3"))
+        ])
+    }
+    let block = model.songs[0]
+
+    await model.playButtonTapped(block)
+    await model.scrubberDragged(block, locationX: 25, trackWidth: 100)
+
+    #expect(seekedTo.value.allSatisfy { $0 >= 0 })
+  }
+
   @Test func tappingDuringStartupBeforePlaybackCallbackStopsNotRestarts() async {
     let started = LockIsolated<[String]>([])
     let sessionStopped = LockIsolated(false)

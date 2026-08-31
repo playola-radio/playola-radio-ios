@@ -123,11 +123,11 @@ class BreakerCategoryDetailPageModel: ViewModel {
         if state.isPlaying {
           self.observedPlaying = true
         }
-        // Complete only on a stopped state near the end. Requiring !isPlaying avoids cutting
-        // off a still-playing clip a hair early; requiring near-end progress (>= 0.97, since
-        // the engine often halts just short of the exact duration) avoids treating a mid-clip
-        // buffering stall — which also reports not-playing (rate == 0) — as completion.
-        guard self.observedPlaying, !state.isPlaying, state.progress >= 0.97 else { return }
+        // Complete only on a stopped, ended state. Requiring !isPlaying avoids cutting off a
+        // still-playing clip; `isComplete` is the client's end signal (explicit didFinish, or
+        // near-end progress) so a mid-clip buffering stall — which also reports not-playing —
+        // is not treated as completion.
+        guard self.observedPlaying, !state.isPlaying, state.isComplete else { return }
         self.handlePlaybackCompletion()
       }
       guard playbackGeneration == generation, playingBlockId == block.id else {
@@ -170,7 +170,7 @@ class BreakerCategoryDetailPageModel: ViewModel {
     if isActive(block), playbackState.duration > 0 {
       return playbackState.duration
     }
-    return TimeInterval(block.durationMS) / 1000
+    return max(0, TimeInterval(block.durationMS) / 1000)
   }
 
   private func teardownCurrentSession() async {
@@ -182,10 +182,9 @@ class BreakerCategoryDetailPageModel: ViewModel {
     await session?.stop()
   }
 
-  // Called only for a stopped, near-end state, so the underlying player has already halted
-  // (the client's polling loop breaks on isPlaying == false and self-completes). Dropping the
-  // session reference is enough — an explicit async stop here would race a subsequently started
-  // clip on the shared player, so we don't issue one.
+  // Called only for a stopped, ended state, so the client's per-session player has already
+  // halted and its polling loop has self-completed. Dropping the session reference is enough;
+  // no explicit async stop is needed.
   private func handlePlaybackCompletion() {
     playbackSession = nil
     playbackState = .idle
