@@ -102,6 +102,15 @@ once that decision is confirmed.
 |---|---|---|---|
 | Station Dashboard (Tab Root) | `wXZ1h` | Exploring | Predecessor of 3-tab Dashboard? |
 
+### Proposal · Station in Development
+
+Sequential artist experience while a station is being assembled. Exports under
+`exports/in-progress/station-in-development/`.
+
+| Frame | Node ID | Status | Notes |
+|---|---|---|---|
+| Dashboard · Station Setup (Artist · In Development) | `XjSto` | Proposed | Initial dashboard state; beginning of the station-in-development flow |
+
 ### Proposal · 3-Tab IA (label `QkDeh`)
 
 | Frame | Node ID | Status | Notes |

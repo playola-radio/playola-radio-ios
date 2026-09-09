@@ -1,0 +1,1942 @@
+{
+  "exportedAt": "2026-09-09T02:27:20.409Z",
+  "penFile": "design/playola-ios.pen",
+  "variables": {
+    "surface-base": {
+      "type": "color",
+      "value": "#000000"
+    },
+    "surface-section": {
+      "type": "color",
+      "value": "#1A1A1A"
+    },
+    "surface-raised": {
+      "type": "color",
+      "value": "#2A2A2A"
+    },
+    "surface-row": {
+      "type": "color",
+      "value": "#333333"
+    },
+    "surface-control": {
+      "type": "color",
+      "value": "#444444"
+    },
+    "surface-muted": {
+      "type": "color",
+      "value": "#4A4A4A"
+    },
+    "warm-base": {
+      "type": "color",
+      "value": "#130000"
+    },
+    "warm-surface": {
+      "type": "color",
+      "value": "#3A1212"
+    },
+    "warm-surface-raised": {
+      "type": "color",
+      "value": "#471818"
+    },
+    "warm-control-disabled": {
+      "type": "color",
+      "value": "#2A1313"
+    },
+    "warm-text-secondary": {
+      "type": "color",
+      "value": "#D7BFBF"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#C7C7C7"
+    },
+    "text-tertiary": {
+      "type": "color",
+      "value": "#999999"
+    },
+    "text-disabled": {
+      "type": "color",
+      "value": "#868686"
+    },
+    "brand-primary": {
+      "type": "color",
+      "value": "#EF6962"
+    },
+    "radius-xs": {
+      "type": "number",
+      "value": 4
+    },
+    "radius-sm": {
+      "type": "number",
+      "value": 6
+    },
+    "radius-md": {
+      "type": "number",
+      "value": 8
+    },
+    "radius-lg": {
+      "type": "number",
+      "value": 12
+    },
+    "radius-pill": {
+      "type": "number",
+      "value": 24
+    },
+    "space-1": {
+      "type": "number",
+      "value": 4
+    },
+    "space-2": {
+      "type": "number",
+      "value": 8
+    },
+    "space-3": {
+      "type": "number",
+      "value": 12
+    },
+    "space-4": {
+      "type": "number",
+      "value": 16
+    },
+    "space-5": {
+      "type": "number",
+      "value": 20
+    },
+    "space-6": {
+      "type": "number",
+      "value": 24
+    },
+    "space-8": {
+      "type": "number",
+      "value": 32
+    },
+    "font-body": {
+      "type": "string",
+      "value": "Inter"
+    },
+    "font-display": {
+      "type": "string",
+      "value": "Space Grotesk"
+    },
+    "icon-inactive": {
+      "type": "color",
+      "value": "#BABABA"
+    },
+    "text-system-gray": {
+      "type": "color",
+      "value": "#8E8E93"
+    },
+    "star-active": {
+      "type": "color",
+      "value": "#FFD24A"
+    },
+    "star-inactive": {
+      "type": "color",
+      "value": "$text-quaternary"
+    },
+    "text-quaternary": {
+      "type": "color",
+      "value": "#888888"
+    },
+    "live-on-air": {
+      "type": "color",
+      "value": "#34C759"
+    },
+    "text-muted": {
+      "type": "color",
+      "value": "#AAAAAA"
+    },
+    "system-red": {
+      "type": "color",
+      "value": "#FF3B30"
+    },
+    "overlay-scrim-85": {
+      "type": "color",
+      "value": "#000000D9"
+    },
+    "giveaway-purple": {
+      "type": "color",
+      "value": "#AF52DE"
+    },
+    "border-dashed": {
+      "type": "color",
+      "value": "#4D4D4D"
+    },
+    "overlay-scrim-70": {
+      "type": "color",
+      "value": "#000000B3"
+    },
+    "glass-fill": {
+      "type": "color",
+      "value": "#2C2C2ECC"
+    },
+    "glass-hairline": {
+      "type": "color",
+      "value": "#FFFFFF26"
+    },
+    "surface-placeholder": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "surface-tile": {
+      "type": "color",
+      "value": "#262626"
+    },
+    "cta-dusty-red": {
+      "type": "color",
+      "value": "#CC6666"
+    },
+    "ring-stroke": {
+      "type": "color",
+      "value": "#1F1F1F"
+    },
+    "surface-art-placeholder": {
+      "type": "color",
+      "value": "#4D4D4D"
+    },
+    "warm-gray-900": {
+      "type": "color",
+      "value": "#3D3634"
+    },
+    "warm-gray-700": {
+      "type": "color",
+      "value": "#6B6260"
+    },
+    "warm-gray-600": {
+      "type": "color",
+      "value": "#827876"
+    },
+    "warm-gray-400": {
+      "type": "color",
+      "value": "#B0A7A5"
+    },
+    "info-blue": {
+      "type": "color",
+      "value": "#6EC6FF"
+    },
+    "schedule-row": {
+      "type": "color",
+      "value": "#333333"
+    },
+    "schedule-row-locked": {
+      "type": "color",
+      "value": "#444444"
+    },
+    "progress-track": {
+      "type": "color",
+      "value": "#5E5F5F"
+    },
+    "commercial-green": {
+      "type": "color",
+      "value": "#2E7D32"
+    },
+    "success-green": {
+      "type": "color",
+      "value": "#34C759"
+    },
+    "disabled-fill": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "disabled-stroke": {
+      "type": "color",
+      "value": "#888888"
+    },
+    "success-material": {
+      "type": "color",
+      "value": "#4CAF50"
+    },
+    "warning-amber": {
+      "type": "color",
+      "value": "#FFC107"
+    }
+  },
+  "frames": [
+    {
+      "id": "XjSto",
+      "name": "Dashboard · Station Setup (Artist · In Development)",
+      "png": "exports/dashboard-station-setup-artist-in-development--XjSto.png",
+      "node": {
+        "type": "frame",
+        "id": "XjSto",
+        "x": -964,
+        "y": 2922,
+        "name": "Dashboard · Station Setup (Artist · In Development)",
+        "clip": true,
+        "width": 393,
+        "height": 852,
+        "fill": "#000000",
+        "layout": "vertical",
+        "children": [
+          {
+            "type": "frame",
+            "id": "Y2X7nY",
+            "name": "Header",
+            "width": "fill_container",
+            "padding": [
+              28,
+              20,
+              0,
+              20
+            ],
+            "justifyContent": "space_between",
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "WKeGE",
+                "name": "Title",
+                "fill": "#FFFFFF",
+                "content": "Dashboard",
+                "fontFamily": "Space Grotesk",
+                "fontSize": 28,
+                "fontWeight": "600"
+              },
+              {
+                "type": "frame",
+                "id": "nuS4P",
+                "name": "Status Badge · In Development",
+                "height": 26,
+                "fill": "#3A1212",
+                "cornerRadius": 13,
+                "padding": [
+                  0,
+                  10
+                ],
+                "justifyContent": "center",
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "VUTTk",
+                    "name": "Status Badge Label",
+                    "fill": "#EF6962",
+                    "content": "IN DEVELOPMENT",
+                    "fontFamily": "Inter",
+                    "fontSize": 9,
+                    "fontWeight": "700",
+                    "letterSpacing": 0.8
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "IxwaQ",
+            "name": "Setup Progress Hero",
+            "width": "fill_container",
+            "height": 150,
+            "layout": "vertical",
+            "gap": 7,
+            "padding": [
+              16,
+              20,
+              0,
+              20
+            ],
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "CnOZs",
+                "name": "Setup Progress Eyebrow",
+                "fill": "#868686",
+                "content": "STATION SETUP",
+                "fontFamily": "Inter",
+                "fontSize": 11,
+                "fontWeight": "600",
+                "letterSpacing": 1.4
+              },
+              {
+                "type": "frame",
+                "id": "vooKa",
+                "name": "Setup Progress Ring",
+                "width": 86,
+                "height": 86,
+                "layout": "none",
+                "children": [
+                  {
+                    "type": "ellipse",
+                    "id": "HI2QF",
+                    "x": 0,
+                    "y": 0,
+                    "name": "Setup Progress Track",
+                    "innerRadius": 0.91,
+                    "fill": "#444444",
+                    "width": 86,
+                    "height": 86
+                  },
+                  {
+                    "type": "ellipse",
+                    "id": "Oghda",
+                    "x": 0,
+                    "y": 0,
+                    "name": "Setup Progress Arc",
+                    "innerRadius": 0.91,
+                    "startAngle": 90,
+                    "sweepAngle": -169,
+                    "fill": "#EF6962",
+                    "width": 86,
+                    "height": 86
+                  },
+                  {
+                    "type": "text",
+                    "id": "n2AcJa",
+                    "x": 0,
+                    "y": 27,
+                    "name": "Setup Progress Value",
+                    "fill": "#FFFFFF",
+                    "textGrowth": "fixed-width",
+                    "width": 86,
+                    "content": "47%",
+                    "textAlign": "center",
+                    "fontFamily": "Space Grotesk",
+                    "fontSize": 26,
+                    "fontWeight": "600"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "id": "Z5Qk2",
+                "name": "Setup Progress Summary",
+                "fill": "#FFFFFF",
+                "content": "Southern Lines Radio is taking shape",
+                "fontFamily": "Inter",
+                "fontSize": 14,
+                "fontWeight": "600"
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "cq59J",
+            "name": "Station Components Section",
+            "width": "fill_container",
+            "height": 224,
+            "layout": "vertical",
+            "padding": [
+              18,
+              20,
+              0,
+              20
+            ],
+            "children": [
+              {
+                "type": "frame",
+                "id": "C8vFz1",
+                "name": "Station Components Header",
+                "width": "fill_container",
+                "height": 21,
+                "justifyContent": "space_between",
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "UxlpR",
+                    "name": "Station Components Title",
+                    "fill": "#868686",
+                    "content": "STATION COMPONENTS",
+                    "fontFamily": "Inter",
+                    "fontSize": 11,
+                    "fontWeight": "600",
+                    "letterSpacing": 1.4
+                  },
+                  {
+                    "type": "text",
+                    "id": "WJ0eo",
+                    "name": "Station Components Completion",
+                    "fill": "#999999",
+                    "content": "1 OF 4 COMPLETE",
+                    "fontFamily": "Inter",
+                    "fontSize": 9,
+                    "fontWeight": "700",
+                    "letterSpacing": 0.7
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "ozlBc",
+                "name": "Station Components List",
+                "width": "fill_container",
+                "height": 185,
+                "layout": "vertical",
+                "children": [
+                  {
+                    "type": "frame",
+                    "id": "tdR7I",
+                    "name": "Station Component · Source tapes",
+                    "width": "fill_container",
+                    "height": 46,
+                    "gap": 10,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "frame",
+                        "id": "kO9ke",
+                        "name": "Source tapes Icon Wrap",
+                        "width": 28,
+                        "height": 28,
+                        "fill": "#1A1A1A",
+                        "cornerRadius": 14,
+                        "justifyContent": "center",
+                        "alignItems": "center",
+                        "children": [
+                          {
+                            "type": "icon",
+                            "id": "GA9mF",
+                            "name": "Source tapes Icon",
+                            "width": 14,
+                            "height": 14,
+                            "icon": "mic",
+                            "library": "lucide",
+                            "fill": "#EF6962"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "frame",
+                        "id": "LiWOo",
+                        "name": "Source tapes Progress Copy",
+                        "width": "fill_container",
+                        "layout": "vertical",
+                        "gap": 3,
+                        "children": [
+                          {
+                            "type": "frame",
+                            "id": "axDsQ",
+                            "name": "Source tapes Progress Header",
+                            "width": "fill_container",
+                            "justifyContent": "space_between",
+                            "alignItems": "center",
+                            "children": [
+                              {
+                                "type": "text",
+                                "id": "QYDrR",
+                                "name": "Source tapes Label",
+                                "fill": "#FFFFFF",
+                                "content": "Source tapes",
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "fontWeight": "600"
+                              },
+                              {
+                                "type": "text",
+                                "id": "Q5GQe",
+                                "name": "Source tapes Value",
+                                "fill": "#EF6962",
+                                "content": "1 of 3",
+                                "fontFamily": "Inter",
+                                "fontSize": 11,
+                                "fontWeight": "600"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "frame",
+                            "id": "IpVkO",
+                            "name": "Source tapes Progress Track",
+                            "width": "fill_container",
+                            "height": 3,
+                            "fill": "#5E5F5F",
+                            "cornerRadius": 2,
+                            "layout": "none",
+                            "children": [
+                              {
+                                "type": "rectangle",
+                                "cornerRadius": 2,
+                                "id": "MLCyk",
+                                "x": 0,
+                                "y": 0,
+                                "name": "Source tapes Progress Fill",
+                                "fill": "#EF6962",
+                                "width": 91,
+                                "height": 3
+                              }
+                            ]
+                          },
+                          {
+                            "type": "text",
+                            "id": "LsPl3",
+                            "name": "Source tapes Weight",
+                            "fill": "#999999",
+                            "content": "60% of setup",
+                            "fontFamily": "Inter",
+                            "fontSize": 9
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "PtMxO",
+                    "name": "Station Component · Welcome message",
+                    "width": "fill_container",
+                    "height": 46,
+                    "gap": 10,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "frame",
+                        "id": "J1C79",
+                        "name": "Welcome message Icon Wrap",
+                        "width": 28,
+                        "height": 28,
+                        "fill": "#1A1A1A",
+                        "cornerRadius": 14,
+                        "justifyContent": "center",
+                        "alignItems": "center",
+                        "children": [
+                          {
+                            "type": "icon",
+                            "id": "NZMK0",
+                            "name": "Welcome message Icon",
+                            "width": 14,
+                            "height": 14,
+                            "icon": "volume-2",
+                            "library": "lucide",
+                            "fill": "#34C759"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "frame",
+                        "id": "PkEmH",
+                        "name": "Welcome message Progress Copy",
+                        "width": "fill_container",
+                        "layout": "vertical",
+                        "gap": 3,
+                        "children": [
+                          {
+                            "type": "frame",
+                            "id": "aBFzi",
+                            "name": "Welcome message Progress Header",
+                            "width": "fill_container",
+                            "justifyContent": "space_between",
+                            "alignItems": "center",
+                            "children": [
+                              {
+                                "type": "text",
+                                "id": "k7IAGu",
+                                "name": "Welcome message Label",
+                                "fill": "#FFFFFF",
+                                "content": "Welcome message",
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "fontWeight": "600"
+                              },
+                              {
+                                "type": "text",
+                                "id": "SyioX",
+                                "name": "Welcome Message Status",
+                                "fill": "#34C759",
+                                "content": "Ready",
+                                "fontFamily": "Inter",
+                                "fontSize": 11,
+                                "fontWeight": "600"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "frame",
+                            "id": "Y8m9s",
+                            "name": "Welcome message Progress Track",
+                            "width": "fill_container",
+                            "height": 3,
+                            "fill": "#5E5F5F",
+                            "cornerRadius": 2,
+                            "layout": "none",
+                            "children": [
+                              {
+                                "type": "rectangle",
+                                "cornerRadius": 2,
+                                "id": "W4ZiC",
+                                "x": 0,
+                                "y": 0,
+                                "name": "Welcome message Progress Fill",
+                                "fill": "#34C759",
+                                "width": 315,
+                                "height": 3
+                              }
+                            ]
+                          },
+                          {
+                            "type": "text",
+                            "id": "x7SnYr",
+                            "name": "Welcome message Weight",
+                            "fill": "#999999",
+                            "content": "5% of setup",
+                            "fontFamily": "Inter",
+                            "fontSize": 9
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "Q6ppX",
+                    "name": "Station Component · Songs",
+                    "width": "fill_container",
+                    "height": 46,
+                    "gap": 10,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "frame",
+                        "id": "n11Vaq",
+                        "name": "Songs Icon Wrap",
+                        "width": 28,
+                        "height": 28,
+                        "fill": "#1A1A1A",
+                        "cornerRadius": 14,
+                        "justifyContent": "center",
+                        "alignItems": "center",
+                        "children": [
+                          {
+                            "type": "icon",
+                            "id": "j1YLPB",
+                            "name": "Songs Icon",
+                            "width": 14,
+                            "height": 14,
+                            "icon": "music",
+                            "library": "lucide",
+                            "fill": "#FFC107"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "frame",
+                        "id": "MTIDq",
+                        "name": "Songs Progress Copy",
+                        "width": "fill_container",
+                        "layout": "vertical",
+                        "gap": 3,
+                        "children": [
+                          {
+                            "type": "frame",
+                            "id": "a9Kx40",
+                            "name": "Songs Progress Header",
+                            "width": "fill_container",
+                            "justifyContent": "space_between",
+                            "alignItems": "center",
+                            "children": [
+                              {
+                                "type": "text",
+                                "id": "n7Ydxt",
+                                "name": "Songs Label",
+                                "fill": "#FFFFFF",
+                                "content": "Songs",
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "fontWeight": "600"
+                              },
+                              {
+                                "type": "text",
+                                "id": "o76RE",
+                                "name": "Songs Value",
+                                "fill": "#FFC107",
+                                "content": "341 of 505",
+                                "fontFamily": "Inter",
+                                "fontSize": 11,
+                                "fontWeight": "600"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "frame",
+                            "id": "Irkrm",
+                            "name": "Songs Progress Track",
+                            "width": "fill_container",
+                            "height": 3,
+                            "fill": "#5E5F5F",
+                            "cornerRadius": 2,
+                            "layout": "none",
+                            "children": [
+                              {
+                                "type": "rectangle",
+                                "cornerRadius": 2,
+                                "id": "Ebher",
+                                "x": 0,
+                                "y": 0,
+                                "name": "Songs Progress Fill",
+                                "fill": "#FFC107",
+                                "width": 187,
+                                "height": 3
+                              }
+                            ]
+                          },
+                          {
+                            "type": "text",
+                            "id": "t5tbdE",
+                            "name": "Songs Weight",
+                            "fill": "#999999",
+                            "content": "25% of setup",
+                            "fontFamily": "Inter",
+                            "fontSize": 9
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "cYYqJ",
+                    "name": "Station Component · Breakers",
+                    "width": "fill_container",
+                    "height": 46,
+                    "gap": 10,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "frame",
+                        "id": "wsLF8",
+                        "name": "Breakers Icon Wrap",
+                        "width": 28,
+                        "height": 28,
+                        "fill": "#1A1A1A",
+                        "cornerRadius": 14,
+                        "justifyContent": "center",
+                        "alignItems": "center",
+                        "children": [
+                          {
+                            "type": "icon",
+                            "id": "q1PCKg",
+                            "name": "Breakers Icon",
+                            "width": 14,
+                            "height": 14,
+                            "icon": "radio",
+                            "library": "lucide",
+                            "fill": "#FFC107"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "frame",
+                        "id": "wOIHH",
+                        "name": "Breakers Progress Copy",
+                        "width": "fill_container",
+                        "layout": "vertical",
+                        "gap": 3,
+                        "children": [
+                          {
+                            "type": "frame",
+                            "id": "oYG7i",
+                            "name": "Breakers Progress Header",
+                            "width": "fill_container",
+                            "justifyContent": "space_between",
+                            "alignItems": "center",
+                            "children": [
+                              {
+                                "type": "text",
+                                "id": "NMwL4",
+                                "name": "Breakers Label",
+                                "fill": "#FFFFFF",
+                                "content": "Breakers",
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "fontWeight": "600"
+                              },
+                              {
+                                "type": "text",
+                                "id": "v6jXM",
+                                "name": "Breakers Value",
+                                "fill": "#FFC107",
+                                "content": "135 of 245",
+                                "fontFamily": "Inter",
+                                "fontSize": 11,
+                                "fontWeight": "600"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "frame",
+                            "id": "idxi6",
+                            "name": "Breakers Progress Track",
+                            "width": "fill_container",
+                            "height": 3,
+                            "fill": "#5E5F5F",
+                            "cornerRadius": 2,
+                            "layout": "none",
+                            "children": [
+                              {
+                                "type": "rectangle",
+                                "cornerRadius": 2,
+                                "id": "l4lw0f",
+                                "x": 0,
+                                "y": 0,
+                                "name": "Breakers Progress Fill",
+                                "fill": "#FFC107",
+                                "width": 151,
+                                "height": 3
+                              }
+                            ]
+                          },
+                          {
+                            "type": "text",
+                            "id": "TWmXa",
+                            "name": "Breakers Weight",
+                            "fill": "#999999",
+                            "content": "10% of setup",
+                            "fontFamily": "Inter",
+                            "fontSize": 9
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "P7lG5",
+            "name": "Scrollable Category Progress Section",
+            "clip": true,
+            "width": "fill_container",
+            "height": 324,
+            "layout": "vertical",
+            "padding": [
+              14,
+              20,
+              0,
+              20
+            ],
+            "children": [
+              {
+                "type": "frame",
+                "id": "O3jARb",
+                "name": "Category Progress Header",
+                "width": "fill_container",
+                "height": 22,
+                "justifyContent": "space_between",
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "rnxST",
+                    "name": "Category Progress Title",
+                    "fill": "#868686",
+                    "content": "CATEGORY PROGRESS",
+                    "fontFamily": "Inter",
+                    "fontSize": 11,
+                    "fontWeight": "600",
+                    "letterSpacing": 1.4
+                  },
+                  {
+                    "type": "text",
+                    "id": "yNt4p",
+                    "name": "Category Count",
+                    "fill": "#999999",
+                    "content": "11 CATEGORIES",
+                    "fontFamily": "Inter",
+                    "fontSize": 9,
+                    "fontWeight": "600",
+                    "letterSpacing": 0.7
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "BWDA8",
+                "name": "Scrollable Category List · Fullest to Emptiest",
+                "width": "fill_container",
+                "layout": "vertical",
+                "children": [
+                  {
+                    "type": "frame",
+                    "id": "BbwRc",
+                    "name": "Category · Gold",
+                    "width": "fill_container",
+                    "height": 38,
+                    "gap": 9,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "o8UPxN",
+                        "name": "Gold Status",
+                        "width": 14,
+                        "height": 14,
+                        "icon": "circle-check",
+                        "library": "lucide",
+                        "fill": "#34C759"
+                      },
+                      {
+                        "type": "text",
+                        "id": "YTYgX",
+                        "name": "Gold Name",
+                        "fill": "#FFFFFF",
+                        "content": "Gold",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "kzLVi",
+                        "name": "Gold Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "frame",
+                        "id": "kudt7",
+                        "name": "Gold Mini Progress Track",
+                        "width": 66,
+                        "height": 4,
+                        "fill": "#333333",
+                        "cornerRadius": 2,
+                        "layout": "none",
+                        "children": [
+                          {
+                            "type": "rectangle",
+                            "cornerRadius": 2,
+                            "id": "eSVjE",
+                            "x": 0,
+                            "y": 0,
+                            "name": "Gold Mini Progress Fill",
+                            "fill": "#34C759",
+                            "width": 66,
+                            "height": 4
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "id": "C67jPI",
+                        "name": "Gold Count",
+                        "fill": "#34C759",
+                        "textGrowth": "fixed-width",
+                        "width": 62,
+                        "content": "150 / 130",
+                        "textAlign": "right",
+                        "fontFamily": "Inter",
+                        "fontSize": 10,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "icon",
+                        "id": "pJ5vt",
+                        "name": "Gold Chevron",
+                        "width": 12,
+                        "height": 12,
+                        "icon": "chevron-right",
+                        "library": "lucide",
+                        "fill": "#868686"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "FXB1b",
+                    "name": "Category · Current Hits",
+                    "width": "fill_container",
+                    "height": 38,
+                    "gap": 9,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "XdA4r",
+                        "name": "Current Hits Status",
+                        "width": 14,
+                        "height": 14,
+                        "icon": "circle-check",
+                        "library": "lucide",
+                        "fill": "#34C759"
+                      },
+                      {
+                        "type": "text",
+                        "id": "TvNXN",
+                        "name": "Current Hits Name",
+                        "fill": "#FFFFFF",
+                        "content": "Current Hits",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "AlzGF",
+                        "name": "Current Hits Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "frame",
+                        "id": "BqPEe",
+                        "name": "Current Hits Mini Progress Track",
+                        "width": 66,
+                        "height": 4,
+                        "fill": "#333333",
+                        "cornerRadius": 2,
+                        "layout": "none",
+                        "children": [
+                          {
+                            "type": "rectangle",
+                            "cornerRadius": 2,
+                            "id": "zevOE",
+                            "x": 0,
+                            "y": 0,
+                            "name": "Current Hits Mini Progress Fill",
+                            "fill": "#34C759",
+                            "width": 66,
+                            "height": 4
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "id": "GS5WW",
+                        "name": "Current Hits Count",
+                        "fill": "#34C759",
+                        "textGrowth": "fixed-width",
+                        "width": 62,
+                        "content": "21 / 20",
+                        "textAlign": "right",
+                        "fontFamily": "Inter",
+                        "fontSize": 10,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "icon",
+                        "id": "u37l6Z",
+                        "name": "Current Hits Chevron",
+                        "width": 12,
+                        "height": 12,
+                        "icon": "chevron-right",
+                        "library": "lucide",
+                        "fill": "#868686"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "s1Ue2h",
+                    "name": "Category · Imaging",
+                    "width": "fill_container",
+                    "height": 38,
+                    "gap": 9,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "M83Pi",
+                        "name": "Imaging Status",
+                        "width": 14,
+                        "height": 14,
+                        "icon": "circle-check",
+                        "library": "lucide",
+                        "fill": "#34C759"
+                      },
+                      {
+                        "type": "text",
+                        "id": "EOfLG",
+                        "name": "Imaging Name",
+                        "fill": "#FFFFFF",
+                        "content": "Imaging",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "lEWPW",
+                        "name": "Imaging Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "frame",
+                        "id": "lxi33",
+                        "name": "Imaging Mini Progress Track",
+                        "width": 66,
+                        "height": 4,
+                        "fill": "#333333",
+                        "cornerRadius": 2,
+                        "layout": "none",
+                        "children": [
+                          {
+                            "type": "rectangle",
+                            "cornerRadius": 2,
+                            "id": "OIgtT",
+                            "x": 0,
+                            "y": 0,
+                            "name": "Imaging Mini Progress Fill",
+                            "fill": "#34C759",
+                            "width": 66,
+                            "height": 4
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "id": "GYu4t",
+                        "name": "Imaging Count",
+                        "fill": "#34C759",
+                        "textGrowth": "fixed-width",
+                        "width": 62,
+                        "content": "24 / 24",
+                        "textAlign": "right",
+                        "fontFamily": "Inter",
+                        "fontSize": 10,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "icon",
+                        "id": "ehGpO",
+                        "name": "Imaging Chevron",
+                        "width": 12,
+                        "height": 12,
+                        "icon": "chevron-right",
+                        "library": "lucide",
+                        "fill": "#868686"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "V3D0M0",
+                    "name": "Category · Pre-commercial Imaging",
+                    "width": "fill_container",
+                    "height": 38,
+                    "gap": 9,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "AbFri",
+                        "name": "Pre-commercial Imaging Status",
+                        "width": 14,
+                        "height": 14,
+                        "icon": "circle-check",
+                        "library": "lucide",
+                        "fill": "#34C759"
+                      },
+                      {
+                        "type": "text",
+                        "id": "jb4vl",
+                        "name": "Pre-commercial Imaging Name",
+                        "fill": "#FFFFFF",
+                        "content": "Pre-commercial Imaging",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "f4oKSx",
+                        "name": "Pre-commercial Imaging Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "frame",
+                        "id": "XbtGL",
+                        "name": "Pre-commercial Imaging Mini Progress Track",
+                        "width": 66,
+                        "height": 4,
+                        "fill": "#333333",
+                        "cornerRadius": 2,
+                        "layout": "none",
+                        "children": [
+                          {
+                            "type": "rectangle",
+                            "cornerRadius": 2,
+                            "id": "xhL2u",
+                            "x": 0,
+                            "y": 0,
+                            "name": "Pre-commercial Imaging Mini Progress Fill",
+                            "fill": "#34C759",
+                            "width": 66,
+                            "height": 4
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "id": "UrvF8",
+                        "name": "Pre-commercial Imaging Count",
+                        "fill": "#34C759",
+                        "textGrowth": "fixed-width",
+                        "width": 62,
+                        "content": "8 / 8",
+                        "textAlign": "right",
+                        "fontFamily": "Inter",
+                        "fontSize": 10,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "icon",
+                        "id": "aRjas",
+                        "name": "Pre-commercial Imaging Chevron",
+                        "width": 12,
+                        "height": 12,
+                        "icon": "chevron-right",
+                        "library": "lucide",
+                        "fill": "#868686"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "Ef7Gc",
+                    "name": "Category · Post-commercial Imaging",
+                    "width": "fill_container",
+                    "height": 38,
+                    "gap": 9,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "UBOXy",
+                        "name": "Post-commercial Imaging Status",
+                        "width": 14,
+                        "height": 14,
+                        "icon": "circle-check",
+                        "library": "lucide",
+                        "fill": "#34C759"
+                      },
+                      {
+                        "type": "text",
+                        "id": "LPv4J",
+                        "name": "Post-commercial Imaging Name",
+                        "fill": "#FFFFFF",
+                        "content": "Post-commercial Imaging",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "S86BOF",
+                        "name": "Post-commercial Imaging Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "frame",
+                        "id": "h74Nam",
+                        "name": "Post-commercial Imaging Mini Progress Track",
+                        "width": 66,
+                        "height": 4,
+                        "fill": "#333333",
+                        "cornerRadius": 2,
+                        "layout": "none",
+                        "children": [
+                          {
+                            "type": "rectangle",
+                            "cornerRadius": 2,
+                            "id": "Nfw1B",
+                            "x": 0,
+                            "y": 0,
+                            "name": "Post-commercial Imaging Mini Progress Fill",
+                            "fill": "#34C759",
+                            "width": 66,
+                            "height": 4
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "id": "SfTLb",
+                        "name": "Post-commercial Imaging Count",
+                        "fill": "#34C759",
+                        "textGrowth": "fixed-width",
+                        "width": 62,
+                        "content": "7 / 7",
+                        "textAlign": "right",
+                        "fontFamily": "Inter",
+                        "fontSize": 10,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "icon",
+                        "id": "KCL0R",
+                        "name": "Post-commercial Imaging Chevron",
+                        "width": 12,
+                        "height": 12,
+                        "icon": "chevron-right",
+                        "library": "lucide",
+                        "fill": "#868686"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "NGHk5",
+                    "name": "Category · Recurrent",
+                    "width": "fill_container",
+                    "height": 38,
+                    "gap": 9,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "VbSUi",
+                        "name": "Recurrent Status",
+                        "width": 14,
+                        "height": 14,
+                        "icon": "circle-dashed",
+                        "library": "lucide",
+                        "fill": "#FFC107"
+                      },
+                      {
+                        "type": "text",
+                        "id": "qepFw",
+                        "name": "Recurrent Name",
+                        "fill": "#FFFFFF",
+                        "content": "Recurrent",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "XkkDr",
+                        "name": "Recurrent Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "frame",
+                        "id": "yZFuj",
+                        "name": "Recurrent Mini Progress Track",
+                        "width": 66,
+                        "height": 4,
+                        "fill": "#333333",
+                        "cornerRadius": 2,
+                        "layout": "none",
+                        "children": [
+                          {
+                            "type": "rectangle",
+                            "cornerRadius": 2,
+                            "id": "pk4Sz",
+                            "x": 0,
+                            "y": 0,
+                            "name": "Recurrent Mini Progress Fill",
+                            "fill": "#FFC107",
+                            "width": 40,
+                            "height": 4
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "id": "xg2Pa",
+                        "name": "Recurrent Count",
+                        "fill": "#FFC107",
+                        "textGrowth": "fixed-width",
+                        "width": 62,
+                        "content": "120 / 200",
+                        "textAlign": "right",
+                        "fontFamily": "Inter",
+                        "fontSize": 10,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "icon",
+                        "id": "Y4uMz",
+                        "name": "Recurrent Chevron",
+                        "width": 12,
+                        "height": 12,
+                        "icon": "chevron-right",
+                        "library": "lucide",
+                        "fill": "#868686"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "Z4uK5t",
+                    "name": "Category · Artist Picks",
+                    "width": "fill_container",
+                    "height": 38,
+                    "gap": 9,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "IsWvb",
+                        "name": "Artist Picks Status",
+                        "width": 14,
+                        "height": 14,
+                        "icon": "circle-dashed",
+                        "library": "lucide",
+                        "fill": "#FFC107"
+                      },
+                      {
+                        "type": "text",
+                        "id": "zm2bB",
+                        "name": "Artist Picks Name",
+                        "fill": "#FFFFFF",
+                        "content": "Artist Picks",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "z4BoYH",
+                        "name": "Artist Picks Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "frame",
+                        "id": "j0bDko",
+                        "name": "Artist Picks Mini Progress Track",
+                        "width": 66,
+                        "height": 4,
+                        "fill": "#333333",
+                        "cornerRadius": 2,
+                        "layout": "none",
+                        "children": [
+                          {
+                            "type": "rectangle",
+                            "cornerRadius": 2,
+                            "id": "ty1ho",
+                            "x": 0,
+                            "y": 0,
+                            "name": "Artist Picks Mini Progress Fill",
+                            "fill": "#FFC107",
+                            "width": 37,
+                            "height": 4
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "id": "Pe2ts",
+                        "name": "Artist Picks Count",
+                        "fill": "#FFC107",
+                        "textGrowth": "fixed-width",
+                        "width": 62,
+                        "content": "31 / 55",
+                        "textAlign": "right",
+                        "fontFamily": "Inter",
+                        "fontSize": 10,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "icon",
+                        "id": "kXnox",
+                        "name": "Artist Picks Chevron",
+                        "width": 12,
+                        "height": 12,
+                        "icon": "chevron-right",
+                        "library": "lucide",
+                        "fill": "#868686"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "SLUh7",
+                    "name": "Category · Intros",
+                    "width": "fill_container",
+                    "height": 38,
+                    "gap": 9,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "LOVZf",
+                        "name": "Intros Status",
+                        "width": 14,
+                        "height": 14,
+                        "icon": "circle-dashed",
+                        "library": "lucide",
+                        "fill": "#FFC107"
+                      },
+                      {
+                        "type": "text",
+                        "id": "dzGWb",
+                        "name": "Intros Name",
+                        "fill": "#FFFFFF",
+                        "content": "Intros",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "cmQpa",
+                        "name": "Intros Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "frame",
+                        "id": "LmxSh",
+                        "name": "Intros Mini Progress Track",
+                        "width": 66,
+                        "height": 4,
+                        "fill": "#333333",
+                        "cornerRadius": 2,
+                        "layout": "none",
+                        "children": [
+                          {
+                            "type": "rectangle",
+                            "cornerRadius": 2,
+                            "id": "D81Toj",
+                            "x": 0,
+                            "y": 0,
+                            "name": "Intros Mini Progress Fill",
+                            "fill": "#FFC107",
+                            "width": 32,
+                            "height": 4
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "id": "xlfPh",
+                        "name": "Intros Count",
+                        "fill": "#FFC107",
+                        "textGrowth": "fixed-width",
+                        "width": 62,
+                        "content": "96 / 200",
+                        "textAlign": "right",
+                        "fontFamily": "Inter",
+                        "fontSize": 10,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "icon",
+                        "id": "i2AcxA",
+                        "name": "Intros Chevron",
+                        "width": 12,
+                        "height": 12,
+                        "icon": "chevron-right",
+                        "library": "lucide",
+                        "fill": "#868686"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "w7q2XV",
+                    "name": "Category · Power Gold",
+                    "width": "fill_container",
+                    "height": 38,
+                    "gap": 9,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "gUa5p",
+                        "name": "Power Gold Status",
+                        "width": 14,
+                        "height": 14,
+                        "icon": "circle-dashed",
+                        "library": "lucide",
+                        "fill": "#FFC107"
+                      },
+                      {
+                        "type": "text",
+                        "id": "BV7MY",
+                        "name": "Power Gold Name",
+                        "fill": "#FFFFFF",
+                        "content": "Power Gold",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "tmCzU",
+                        "name": "Power Gold Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "frame",
+                        "id": "HogGY",
+                        "name": "Power Gold Mini Progress Track",
+                        "width": 66,
+                        "height": 4,
+                        "fill": "#333333",
+                        "cornerRadius": 2,
+                        "layout": "none",
+                        "children": [
+                          {
+                            "type": "rectangle",
+                            "cornerRadius": 2,
+                            "id": "xpJ7y",
+                            "x": 0,
+                            "y": 0,
+                            "name": "Power Gold Mini Progress Fill",
+                            "fill": "#FFC107",
+                            "width": 31,
+                            "height": 4
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "id": "DvZMc",
+                        "name": "Power Gold Count",
+                        "fill": "#FFC107",
+                        "textGrowth": "fixed-width",
+                        "width": 62,
+                        "content": "28 / 60",
+                        "textAlign": "right",
+                        "fontFamily": "Inter",
+                        "fontSize": 10,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "icon",
+                        "id": "OQfYF",
+                        "name": "Power Gold Chevron",
+                        "width": 12,
+                        "height": 12,
+                        "icon": "chevron-right",
+                        "library": "lucide",
+                        "fill": "#868686"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "QxYbL",
+                    "name": "Category · Originals",
+                    "width": "fill_container",
+                    "height": 38,
+                    "gap": 9,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "ApW0z",
+                        "name": "Originals Status",
+                        "width": 14,
+                        "height": 14,
+                        "icon": "circle-dashed",
+                        "library": "lucide",
+                        "fill": "#FFC107"
+                      },
+                      {
+                        "type": "text",
+                        "id": "DDAis",
+                        "name": "Originals Name",
+                        "fill": "#FFFFFF",
+                        "content": "Originals",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "vxf4S",
+                        "name": "Originals Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "frame",
+                        "id": "wzL75",
+                        "name": "Originals Mini Progress Track",
+                        "width": 66,
+                        "height": 4,
+                        "fill": "#333333",
+                        "cornerRadius": 2,
+                        "layout": "none",
+                        "children": [
+                          {
+                            "type": "rectangle",
+                            "cornerRadius": 2,
+                            "id": "d3hTF",
+                            "x": 0,
+                            "y": 0,
+                            "name": "Originals Mini Progress Fill",
+                            "fill": "#FFC107",
+                            "width": 20,
+                            "height": 4
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "id": "dQzN8",
+                        "name": "Originals Count",
+                        "fill": "#FFC107",
+                        "textGrowth": "fixed-width",
+                        "width": 62,
+                        "content": "12 / 40",
+                        "textAlign": "right",
+                        "fontFamily": "Inter",
+                        "fontSize": 10,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "icon",
+                        "id": "X45rQB",
+                        "name": "Originals Chevron",
+                        "width": 12,
+                        "height": 12,
+                        "icon": "chevron-right",
+                        "library": "lucide",
+                        "fill": "#868686"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "Y9lgh",
+                    "name": "Category · Fan Imaging",
+                    "width": "fill_container",
+                    "height": 38,
+                    "gap": 9,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "Rby3h",
+                        "name": "Fan Imaging Status",
+                        "width": 14,
+                        "height": 14,
+                        "icon": "circle-dashed",
+                        "library": "lucide",
+                        "fill": "#FFC107"
+                      },
+                      {
+                        "type": "text",
+                        "id": "x9c0l",
+                        "name": "Fan Imaging Name",
+                        "fill": "#FFFFFF",
+                        "content": "Fan Imaging",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "h6Ek1",
+                        "name": "Fan Imaging Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "frame",
+                        "id": "L66VR",
+                        "name": "Fan Imaging Mini Progress Track",
+                        "width": 66,
+                        "height": 4,
+                        "fill": "#333333",
+                        "cornerRadius": 2,
+                        "layout": "none",
+                        "children": [
+                          {
+                            "type": "rectangle",
+                            "cornerRadius": 2,
+                            "id": "PgFYQ",
+                            "x": 0,
+                            "y": 0,
+                            "name": "Fan Imaging Mini Progress Fill",
+                            "fill": "#FFC107",
+                            "width": 0,
+                            "height": 4
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "id": "fjyzd",
+                        "name": "Fan Imaging Count",
+                        "fill": "#FFC107",
+                        "textGrowth": "fixed-width",
+                        "width": 62,
+                        "content": "0 / 6",
+                        "textAlign": "right",
+                        "fontFamily": "Inter",
+                        "fontSize": 10,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "icon",
+                        "id": "ecbRD",
+                        "name": "Fan Imaging Chevron",
+                        "width": 12,
+                        "height": 12,
+                        "icon": "chevron-right",
+                        "library": "lucide",
+                        "fill": "#868686"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "rampR",
+                "layoutPosition": "absolute",
+                "x": 387,
+                "y": 48,
+                "name": "Category Scroll Indicator Track",
+                "width": 2,
+                "height": 246,
+                "fill": "#1A1A1A",
+                "cornerRadius": 1,
+                "layout": "none",
+                "children": [
+                  {
+                    "type": "rectangle",
+                    "cornerRadius": 1,
+                    "id": "Uc6M4",
+                    "x": 0,
+                    "y": 0,
+                    "name": "Category Scroll Indicator Thumb",
+                    "fill": "#444444",
+                    "width": 2,
+                    "height": 72
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "EcKcR",
+            "type": "ref",
+            "ref": "R0hsG",
+            "name": "Tab Bar",
+            "layoutPosition": "absolute",
+            "x": 16,
+            "y": 762,
+            "descendants": {
+              "hucGR/Mb28I": {
+                "fill": "#FFFFFF"
+              },
+              "hucGR/x7cAoO": {
+                "fill": "#FFFFFF"
+              },
+              "Kq4ks/Mb28I": {
+                "fill": "#868686"
+              },
+              "Kq4ks/x7cAoO": {
+                "fill": "#868686"
+              },
+              "Z7dIob/Mb28I": {
+                "fill": "#868686"
+              },
+              "Z7dIob/x7cAoO": {
+                "fill": "#868686"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+
