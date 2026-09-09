@@ -267,7 +267,7 @@ struct StationSetupPageTests {
     expectNoDifference(row.countText, "9 / 5")
   }
 
-  @Test func incompleteCategoryUsesDashedIconAndAmberTint() async {
+  @Test func incompleteCategoryBelowHalfUsesDashedIconAndRedTint() async {
     let model = await makeModel {
       $0.api.getDraftStationCategoryProgress = { _, _ in
         StationCategoryProgressResponse(
@@ -280,8 +280,25 @@ struct StationSetupPageTests {
 
     let row = model.categoryRows[0]
     expectNoDifference(row.iconSystemName, "circle.dashed")
-    expectNoDifference(row.tint, Color(hex: "#FFC107"))
+    expectNoDifference(row.tint, .playolaRed)
     expectNoDifference(row.countText, "2 / 5")
+  }
+
+  @Test func incompleteCategoryAtOrAboveHalfUsesAmberTint() async {
+    let model = await makeModel {
+      $0.api.getDraftStationCategoryProgress = { _, _ in
+        StationCategoryProgressResponse(
+          usesCategoryProgress: true, readiness: 0.6,
+          categories: [
+            Self.category(id: "c1", name: "Fan Spotlights", minimum: 5, count: 3, sortOrder: 0)
+          ])
+      }
+    }
+
+    let row = model.categoryRows[0]
+    expectNoDifference(row.iconSystemName, "circle.dashed")
+    expectNoDifference(row.tint, Color(hex: "#FFC107"))
+    expectNoDifference(row.countText, "3 / 5")
   }
 
   @Test func categoryCountLabelReflectsCategoryCount() async {

@@ -209,10 +209,13 @@ class StationSetupPageModel: ViewModel {
 
   private static func categoryRow(from category: StationCategoryProgress) -> CategoryRow {
     let isComplete = category.audioBlockCount >= category.minimumCount
-    let tint: Color = isComplete ? Color(hex: "#34C759") : Color(hex: "#FFC107")
     let fraction =
       category.minimumCount <= 0
       ? 1 : clamp01(Double(category.audioBlockCount) / Double(category.minimumCount))
+    let tint: Color =
+      isComplete
+      ? Color(hex: "#34C759")
+      : fraction >= 0.5 ? Color(hex: "#FFC107") : .playolaRed
     return CategoryRow(
       id: category.id,
       iconSystemName: isComplete ? "checkmark.circle" : "circle.dashed",
