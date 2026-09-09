@@ -1,0 +1,1074 @@
+{
+  "screen": {
+    "type": "frame",
+    "id": "CJSos",
+    "x": 986,
+    "y": 6134,
+    "name": "Station Report (Established · Up Week)",
+    "clip": true,
+    "width": 393,
+    "height": 852,
+    "fill": "$surface-base",
+    "layout": "vertical",
+    "children": [
+      {
+        "type": "frame",
+        "id": "I6Nbf",
+        "name": "Nav Bar",
+        "width": "fill_container",
+        "height": 56,
+        "justifyContent": "center",
+        "alignItems": "center",
+        "children": [
+          {
+            "type": "text",
+            "id": "mLhX9",
+            "name": "Title",
+            "fill": "$text-primary",
+            "content": "Station Report",
+            "fontFamily": "$font-body",
+            "fontSize": 17,
+            "fontWeight": "600"
+          },
+          {
+            "type": "icon",
+            "id": "ADvW3",
+            "layoutPosition": "absolute",
+            "x": 12,
+            "y": 17,
+            "name": "Back",
+            "width": 22,
+            "height": 22,
+            "icon": "chevron-left",
+            "library": "lucide",
+            "fill": "$text-primary"
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "gdu3z",
+        "name": "Content",
+        "width": "fill_container",
+        "layout": "vertical",
+        "gap": 16,
+        "padding": [
+          12,
+          16,
+          18,
+          16
+        ],
+        "children": [
+          {
+            "type": "frame",
+            "id": "CbBhp",
+            "name": "Hero",
+            "width": "fill_container",
+            "layout": "vertical",
+            "gap": 8,
+            "children": [
+              {
+                "type": "text",
+                "id": "sbKAZ",
+                "name": "Week Label",
+                "fill": "$text-tertiary",
+                "content": "AUG 18 – 24",
+                "fontFamily": "$font-body",
+                "fontSize": 11,
+                "fontWeight": "600",
+                "letterSpacing": 1.2
+              },
+              {
+                "type": "text",
+                "id": "orEKp",
+                "name": "Headline",
+                "fill": "$text-primary",
+                "textGrowth": "fixed-width",
+                "width": "fill_container",
+                "content": "Your biggest week since July — 112 people, 58 hours.",
+                "lineHeight": 1.25,
+                "fontFamily": "$font-display",
+                "fontSize": 23,
+                "fontWeight": "600"
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "vEauj",
+            "name": "KPI Row",
+            "width": "fill_container",
+            "layout": "vertical",
+            "gap": 6,
+            "children": [
+              {
+                "type": "frame",
+                "id": "W4WzjY",
+                "name": "Tiles",
+                "width": "fill_container",
+                "gap": 8,
+                "children": [
+                  {
+                    "type": "frame",
+                    "id": "VM1nC",
+                    "name": "Tile · LISTENERS",
+                    "width": "fill_container",
+                    "fill": "$surface-section",
+                    "cornerRadius": 12,
+                    "layout": "vertical",
+                    "gap": 2,
+                    "padding": 12,
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "elPxj",
+                        "name": "Value",
+                        "fill": "$text-primary",
+                        "content": "112",
+                        "fontFamily": "$font-display",
+                        "fontSize": 26,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "text",
+                        "id": "uhsbj",
+                        "name": "Delta",
+                        "fill": "$text-tertiary",
+                        "content": "↑ 9",
+                        "fontFamily": "$font-body",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "text",
+                        "id": "vV4it",
+                        "name": "Label",
+                        "fill": "$text-disabled",
+                        "content": "LISTENERS",
+                        "fontFamily": "$font-body",
+                        "fontSize": 10,
+                        "fontWeight": "600",
+                        "letterSpacing": 0.8
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "MLF4w",
+                    "name": "Tile · HOURS",
+                    "width": "fill_container",
+                    "fill": "$surface-section",
+                    "cornerRadius": 12,
+                    "layout": "vertical",
+                    "gap": 2,
+                    "padding": 12,
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "UAXBa",
+                        "name": "Value",
+                        "fill": "$text-primary",
+                        "content": "58",
+                        "fontFamily": "$font-display",
+                        "fontSize": 26,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "text",
+                        "id": "wrFA4",
+                        "name": "Delta",
+                        "fill": "$text-tertiary",
+                        "content": "↑ 7",
+                        "fontFamily": "$font-body",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "text",
+                        "id": "C96KC",
+                        "name": "Label",
+                        "fill": "$text-disabled",
+                        "content": "HOURS",
+                        "fontFamily": "$font-body",
+                        "fontSize": 10,
+                        "fontWeight": "600",
+                        "letterSpacing": 0.8
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "nQqth",
+                    "name": "Tile · LIKES",
+                    "width": "fill_container",
+                    "fill": "$surface-section",
+                    "cornerRadius": 12,
+                    "layout": "vertical",
+                    "gap": 2,
+                    "padding": 12,
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "t9Mfsq",
+                        "name": "Value",
+                        "fill": "$text-primary",
+                        "content": "15",
+                        "fontFamily": "$font-display",
+                        "fontSize": 26,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "text",
+                        "id": "MCNml",
+                        "name": "Delta",
+                        "fill": "$text-tertiary",
+                        "content": "↑ 6",
+                        "fontFamily": "$font-body",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "text",
+                        "id": "oFAz1",
+                        "name": "Label",
+                        "fill": "$text-disabled",
+                        "content": "LIKES",
+                        "fontFamily": "$font-body",
+                        "fontSize": 10,
+                        "fontWeight": "600",
+                        "letterSpacing": 0.8
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "id": "ngQWQ",
+                "name": "Caption",
+                "fill": "$text-tertiary",
+                "content": "compared with your 4-week average",
+                "fontFamily": "$font-body",
+                "fontSize": 11,
+                "fontWeight": "normal"
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "hiS0f",
+            "name": "Trend",
+            "width": "fill_container",
+            "layout": "vertical",
+            "gap": 10,
+            "children": [
+              {
+                "type": "text",
+                "id": "Z0CyC",
+                "name": "Header",
+                "fill": "$text-disabled",
+                "content": "LISTENERS BY WEEK",
+                "fontFamily": "$font-body",
+                "fontSize": 11,
+                "fontWeight": "600",
+                "letterSpacing": 1.2
+              },
+              {
+                "type": "frame",
+                "id": "UPb7E",
+                "name": "Bars",
+                "width": "fill_container",
+                "gap": 10,
+                "alignItems": "end",
+                "children": [
+                  {
+                    "type": "frame",
+                    "id": "MXDGz",
+                    "name": "Week · JUL 28",
+                    "width": "fill_container",
+                    "layout": "vertical",
+                    "gap": 5,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "Ld2zn",
+                        "name": "Value",
+                        "fill": "$text-tertiary",
+                        "content": "96",
+                        "fontFamily": "$font-body",
+                        "fontSize": 12,
+                        "fontWeight": "normal"
+                      },
+                      {
+                        "type": "rectangle",
+                        "cornerRadius": [
+                          4,
+                          4,
+                          0,
+                          0
+                        ],
+                        "id": "s4PGy",
+                        "name": "Bar",
+                        "fill": "$surface-muted",
+                        "width": "fill_container",
+                        "height": 62
+                      },
+                      {
+                        "type": "text",
+                        "id": "bHQl3",
+                        "name": "Label",
+                        "fill": "$text-tertiary",
+                        "content": "JUL 28",
+                        "fontFamily": "$font-body",
+                        "fontSize": 10,
+                        "fontWeight": "normal"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "k2cvwn",
+                    "name": "Week · AUG 4",
+                    "width": "fill_container",
+                    "layout": "vertical",
+                    "gap": 5,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "AhtUV",
+                        "name": "Value",
+                        "fill": "$text-tertiary",
+                        "content": "102",
+                        "fontFamily": "$font-body",
+                        "fontSize": 12,
+                        "fontWeight": "normal"
+                      },
+                      {
+                        "type": "rectangle",
+                        "cornerRadius": [
+                          4,
+                          4,
+                          0,
+                          0
+                        ],
+                        "id": "OaRN7",
+                        "name": "Bar",
+                        "fill": "$surface-muted",
+                        "width": "fill_container",
+                        "height": 66
+                      },
+                      {
+                        "type": "text",
+                        "id": "YD6ik",
+                        "name": "Label",
+                        "fill": "$text-tertiary",
+                        "content": "AUG 4",
+                        "fontFamily": "$font-body",
+                        "fontSize": 10,
+                        "fontWeight": "normal"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "X92AS",
+                    "name": "Week · AUG 11",
+                    "width": "fill_container",
+                    "layout": "vertical",
+                    "gap": 5,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "gzQIl",
+                        "name": "Value",
+                        "fill": "$text-tertiary",
+                        "content": "98",
+                        "fontFamily": "$font-body",
+                        "fontSize": 12,
+                        "fontWeight": "normal"
+                      },
+                      {
+                        "type": "rectangle",
+                        "cornerRadius": [
+                          4,
+                          4,
+                          0,
+                          0
+                        ],
+                        "id": "p9uqq0",
+                        "name": "Bar",
+                        "fill": "$surface-muted",
+                        "width": "fill_container",
+                        "height": 63
+                      },
+                      {
+                        "type": "text",
+                        "id": "vIYw9",
+                        "name": "Label",
+                        "fill": "$text-tertiary",
+                        "content": "AUG 11",
+                        "fontFamily": "$font-body",
+                        "fontSize": 10,
+                        "fontWeight": "normal"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "hPj5b",
+                    "name": "Week · THIS WK",
+                    "width": "fill_container",
+                    "layout": "vertical",
+                    "gap": 5,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "YTvlx",
+                        "name": "Value",
+                        "fill": "$text-primary",
+                        "content": "112",
+                        "fontFamily": "$font-body",
+                        "fontSize": 12,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "rectangle",
+                        "cornerRadius": [
+                          4,
+                          4,
+                          0,
+                          0
+                        ],
+                        "id": "T6yF6V",
+                        "name": "Bar",
+                        "fill": "$brand-primary",
+                        "width": "fill_container",
+                        "height": 72
+                      },
+                      {
+                        "type": "text",
+                        "id": "zYxu8",
+                        "name": "Label",
+                        "fill": "$text-tertiary",
+                        "content": "THIS WK",
+                        "fontFamily": "$font-body",
+                        "fontSize": 10,
+                        "fontWeight": "normal"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "DwggZ",
+            "name": "Takeaway",
+            "width": "fill_container",
+            "fill": "$surface-section",
+            "cornerRadius": 12,
+            "padding": [
+              12,
+              14
+            ],
+            "children": [
+              {
+                "type": "text",
+                "id": "ZolL0",
+                "name": "Text",
+                "fill": "$text-secondary",
+                "textGrowth": "fixed-width",
+                "width": "fill_container",
+                "content": "The intros you recorded last Sunday aired 38 times this week — and your listeners stayed longer than any week this month. Keep it fresh with the moves below.",
+                "lineHeight": 1.4,
+                "fontFamily": "$font-body",
+                "fontSize": 13,
+                "fontWeight": "normal"
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "Iotkz",
+            "name": "Songs This Week",
+            "width": "fill_container",
+            "layout": "vertical",
+            "gap": 8,
+            "children": [
+              {
+                "type": "text",
+                "id": "VYhtZ",
+                "name": "Header",
+                "fill": "$text-disabled",
+                "content": "SONGS THIS WEEK",
+                "fontFamily": "$font-body",
+                "fontSize": 11,
+                "fontWeight": "600",
+                "letterSpacing": 1.2
+              },
+              {
+                "type": "frame",
+                "id": "XOioZ",
+                "name": "Song · “Highway Dust”",
+                "width": "fill_container",
+                "fill": "$surface-section",
+                "cornerRadius": 10,
+                "gap": 10,
+                "padding": [
+                  10,
+                  12
+                ],
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "icon",
+                    "id": "u5Srp",
+                    "name": "Icon",
+                    "width": 16,
+                    "height": 16,
+                    "icon": "heart",
+                    "library": "lucide",
+                    "fill": "$brand-primary"
+                  },
+                  {
+                    "type": "text",
+                    "id": "XhVSG",
+                    "name": "Title",
+                    "fill": "$text-primary",
+                    "content": "“Highway Dust”",
+                    "fontFamily": "$font-body",
+                    "fontSize": 14,
+                    "fontWeight": "500"
+                  },
+                  {
+                    "type": "frame",
+                    "id": "sJy7A",
+                    "name": "Spacer",
+                    "width": "fill_container",
+                    "height": 1
+                  },
+                  {
+                    "type": "text",
+                    "id": "PC0Lf",
+                    "name": "Detail",
+                    "fill": "$text-tertiary",
+                    "content": "3 likes this week",
+                    "fontFamily": "$font-body",
+                    "fontSize": 12,
+                    "fontWeight": "normal"
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "bymrX",
+                "name": "Song · “Long Gone”",
+                "width": "fill_container",
+                "fill": "$surface-section",
+                "cornerRadius": 10,
+                "gap": 10,
+                "padding": [
+                  10,
+                  12
+                ],
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "icon",
+                    "id": "oqGEc",
+                    "name": "Icon",
+                    "width": 16,
+                    "height": 16,
+                    "icon": "heart",
+                    "library": "lucide",
+                    "fill": "$brand-primary"
+                  },
+                  {
+                    "type": "text",
+                    "id": "XfJyo",
+                    "name": "Title",
+                    "fill": "$text-primary",
+                    "content": "“Casino Lights”",
+                    "fontFamily": "$font-body",
+                    "fontSize": 14,
+                    "fontWeight": "500"
+                  },
+                  {
+                    "type": "frame",
+                    "id": "t9lYSD",
+                    "name": "Spacer",
+                    "width": "fill_container",
+                    "height": 1
+                  },
+                  {
+                    "type": "text",
+                    "id": "jTPov",
+                    "name": "Detail",
+                    "fill": "$text-tertiary",
+                    "content": "3 likes this week",
+                    "fontFamily": "$font-body",
+                    "fontSize": 12,
+                    "fontWeight": "normal"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "I6yxE",
+            "name": "This Week's Moves",
+            "width": "fill_container",
+            "layout": "vertical",
+            "gap": 8,
+            "children": [
+              {
+                "type": "text",
+                "id": "pTxR6",
+                "name": "Header",
+                "fill": "$text-disabled",
+                "content": "THIS WEEK’S MOVES",
+                "fontFamily": "$font-body",
+                "fontSize": 11,
+                "fontWeight": "600",
+                "letterSpacing": 1.2
+              },
+              {
+                "type": "frame",
+                "id": "wFqWy",
+                "name": "Move · Freshen up Medium Rotation",
+                "width": "fill_container",
+                "fill": "$warm-surface",
+                "cornerRadius": 12,
+                "gap": 12,
+                "padding": [
+                  12,
+                  14
+                ],
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "icon",
+                    "id": "OImYv",
+                    "name": "Icon",
+                    "width": 20,
+                    "height": 20,
+                    "icon": "refresh-cw",
+                    "library": "lucide",
+                    "fill": "$brand-primary"
+                  },
+                  {
+                    "type": "frame",
+                    "id": "mCCBL",
+                    "name": "Text",
+                    "width": "fill_container",
+                    "layout": "vertical",
+                    "gap": 3,
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "rjvAd",
+                        "name": "Title",
+                        "fill": "$text-primary",
+                        "textGrowth": "fixed-width",
+                        "width": "fill_container",
+                        "content": "Freshen up Medium Rotation",
+                        "fontFamily": "$font-body",
+                        "fontSize": 15,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "text",
+                        "id": "nJOSA",
+                        "name": "Reason",
+                        "fill": "$warm-text-secondary",
+                        "textGrowth": "fixed-width",
+                        "width": "fill_container",
+                        "content": "6 of its songs have been spinning since June",
+                        "lineHeight": 1.35,
+                        "fontFamily": "$font-body",
+                        "fontSize": 12,
+                        "fontWeight": "normal"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "B2upM1",
+                    "name": "CTA",
+                    "fill": "$brand-primary",
+                    "cornerRadius": "$radius-pill",
+                    "padding": [
+                      8,
+                      14
+                    ],
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "ixDhs",
+                        "name": "Label",
+                        "fill": "$text-primary",
+                        "content": "Library",
+                        "fontFamily": "$font-body",
+                        "fontSize": 13,
+                        "fontWeight": "600"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "C3y8zt",
+                "name": "Move · Record intros for your new adds",
+                "width": "fill_container",
+                "fill": "$warm-surface",
+                "cornerRadius": 12,
+                "gap": 12,
+                "padding": [
+                  12,
+                  14
+                ],
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "icon",
+                    "id": "Il1U7",
+                    "name": "Icon",
+                    "width": 20,
+                    "height": 20,
+                    "icon": "message-circle",
+                    "library": "lucide",
+                    "fill": "$brand-primary"
+                  },
+                  {
+                    "type": "frame",
+                    "id": "U9emfE",
+                    "name": "Text",
+                    "width": "fill_container",
+                    "layout": "vertical",
+                    "gap": 3,
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "e48a1",
+                        "name": "Title",
+                        "fill": "$text-primary",
+                        "textGrowth": "fixed-width",
+                        "width": "fill_container",
+                        "content": "Answer Marcus’s question",
+                        "fontFamily": "$font-body",
+                        "fontSize": 15,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "text",
+                        "id": "D30OW",
+                        "name": "Reason",
+                        "fill": "$warm-text-secondary",
+                        "textGrowth": "fixed-width",
+                        "width": "fill_container",
+                        "content": "He asked about your new single yesterday",
+                        "lineHeight": 1.35,
+                        "fontFamily": "$font-body",
+                        "fontSize": 12,
+                        "fontWeight": "normal"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "pN39H",
+                    "name": "CTA",
+                    "fill": "$brand-primary",
+                    "cornerRadius": "$radius-pill",
+                    "padding": [
+                      8,
+                      14
+                    ],
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "JHJ6Q",
+                        "name": "Label",
+                        "fill": "$text-primary",
+                        "content": "Answer",
+                        "fontFamily": "$font-body",
+                        "fontSize": 13,
+                        "fontWeight": "600"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "components": {},
+  "variables": {
+    "surface-base": {
+      "type": "color",
+      "value": "#000000"
+    },
+    "surface-section": {
+      "type": "color",
+      "value": "#1A1A1A"
+    },
+    "surface-raised": {
+      "type": "color",
+      "value": "#2A2A2A"
+    },
+    "surface-row": {
+      "type": "color",
+      "value": "#333333"
+    },
+    "surface-control": {
+      "type": "color",
+      "value": "#444444"
+    },
+    "surface-muted": {
+      "type": "color",
+      "value": "#4A4A4A"
+    },
+    "warm-base": {
+      "type": "color",
+      "value": "#130000"
+    },
+    "warm-surface": {
+      "type": "color",
+      "value": "#3A1212"
+    },
+    "warm-surface-raised": {
+      "type": "color",
+      "value": "#471818"
+    },
+    "warm-control-disabled": {
+      "type": "color",
+      "value": "#2A1313"
+    },
+    "warm-text-secondary": {
+      "type": "color",
+      "value": "#D7BFBF"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#C7C7C7"
+    },
+    "text-tertiary": {
+      "type": "color",
+      "value": "#999999"
+    },
+    "text-disabled": {
+      "type": "color",
+      "value": "#868686"
+    },
+    "brand-primary": {
+      "type": "color",
+      "value": "#EF6962"
+    },
+    "radius-xs": {
+      "type": "number",
+      "value": 4
+    },
+    "radius-sm": {
+      "type": "number",
+      "value": 6
+    },
+    "radius-md": {
+      "type": "number",
+      "value": 8
+    },
+    "radius-lg": {
+      "type": "number",
+      "value": 12
+    },
+    "radius-pill": {
+      "type": "number",
+      "value": 24
+    },
+    "space-1": {
+      "type": "number",
+      "value": 4
+    },
+    "space-2": {
+      "type": "number",
+      "value": 8
+    },
+    "space-3": {
+      "type": "number",
+      "value": 12
+    },
+    "space-4": {
+      "type": "number",
+      "value": 16
+    },
+    "space-5": {
+      "type": "number",
+      "value": 20
+    },
+    "space-6": {
+      "type": "number",
+      "value": 24
+    },
+    "space-8": {
+      "type": "number",
+      "value": 32
+    },
+    "font-body": {
+      "type": "string",
+      "value": "Inter"
+    },
+    "font-display": {
+      "type": "string",
+      "value": "Space Grotesk"
+    },
+    "icon-inactive": {
+      "type": "color",
+      "value": "#BABABA"
+    },
+    "text-system-gray": {
+      "type": "color",
+      "value": "#8E8E93"
+    },
+    "star-active": {
+      "type": "color",
+      "value": "#FFD24A"
+    },
+    "star-inactive": {
+      "type": "color",
+      "value": "$text-quaternary"
+    },
+    "text-quaternary": {
+      "type": "color",
+      "value": "#888888"
+    },
+    "live-on-air": {
+      "type": "color",
+      "value": "#34C759"
+    },
+    "text-muted": {
+      "type": "color",
+      "value": "#AAAAAA"
+    },
+    "system-red": {
+      "type": "color",
+      "value": "#FF3B30"
+    },
+    "overlay-scrim-85": {
+      "type": "color",
+      "value": "#000000D9"
+    },
+    "giveaway-purple": {
+      "type": "color",
+      "value": "#AF52DE"
+    },
+    "border-dashed": {
+      "type": "color",
+      "value": "#4D4D4D"
+    },
+    "overlay-scrim-70": {
+      "type": "color",
+      "value": "#000000B3"
+    },
+    "glass-fill": {
+      "type": "color",
+      "value": "#2C2C2ECC"
+    },
+    "glass-hairline": {
+      "type": "color",
+      "value": "#FFFFFF26"
+    },
+    "surface-placeholder": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "surface-tile": {
+      "type": "color",
+      "value": "#262626"
+    },
+    "cta-dusty-red": {
+      "type": "color",
+      "value": "#CC6666"
+    },
+    "ring-stroke": {
+      "type": "color",
+      "value": "#1F1F1F"
+    },
+    "surface-art-placeholder": {
+      "type": "color",
+      "value": "#4D4D4D"
+    },
+    "warm-gray-900": {
+      "type": "color",
+      "value": "#3D3634"
+    },
+    "warm-gray-700": {
+      "type": "color",
+      "value": "#6B6260"
+    },
+    "warm-gray-600": {
+      "type": "color",
+      "value": "#827876"
+    },
+    "warm-gray-400": {
+      "type": "color",
+      "value": "#B0A7A5"
+    },
+    "info-blue": {
+      "type": "color",
+      "value": "#6EC6FF"
+    },
+    "schedule-row": {
+      "type": "color",
+      "value": "#333333"
+    },
+    "schedule-row-locked": {
+      "type": "color",
+      "value": "#444444"
+    },
+    "progress-track": {
+      "type": "color",
+      "value": "#5E5F5F"
+    },
+    "commercial-green": {
+      "type": "color",
+      "value": "#2E7D32"
+    },
+    "success-green": {
+      "type": "color",
+      "value": "#34C759"
+    },
+    "disabled-fill": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "disabled-stroke": {
+      "type": "color",
+      "value": "#888888"
+    },
+    "success-material": {
+      "type": "color",
+      "value": "#4CAF50"
+    },
+    "warning-amber": {
+      "type": "color",
+      "value": "#FFC107"
+    }
+  }
+}

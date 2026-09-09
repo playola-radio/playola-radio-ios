@@ -9,9 +9,10 @@ design session needs to keep this directory trustworthy.
 |---|---|
 | `playola-ios.pen` | The design source of truth — a [pen.dev](https://pen.dev) canvas. Plain JSON; every screen is a top-level frame with a stable node ID. |
 | `DESIGN_STATUS.md` | The index: every screen, its node ID, and its implementation status. Start here. |
-| `exports/` | 2x PNG renders of every screen, named `<screen-name>--<nodeId>.png`. Top-level dirs mirror status: `current-app/` (shipped), `in-progress/<proposal>/` (Proposed/Implementing), `future/<proposal>/` (Exploring). |
+| `exports/` | Per screen: a 2x PNG render plus a self-contained `.json` spec (node tree + referenced components + variables), named `<screen-name>--<nodeId>.{png,json}`. Top-level dirs mirror status: `current-app/` (shipped), `in-progress/<proposal>/` (Proposed/Implementing), `future/<proposal>/` (Exploring). |
 | `images/` | Photos referenced by the .pen file as image fills. Must stay alongside it. |
 | `DESIGN_SYSTEM_FIXES.md` | Standalone task brief for reconciling the app's color/font systems. |
+| `export-specs.py` | Regenerates every `.json` spec from the .pen. Plain python3, works in any checkout. |
 
 ## For implementation agents (no pen.dev needed)
 
@@ -23,15 +24,12 @@ directory — do not look for a design tool.
 2. **Look at it**: `Read` the PNG under `exports/in-progress/<proposal>/`
    (agents can view images). This is the visual contract. `current-app/` shows
    what's shipped; `future/` holds explorations no one should build yet.
-3. **Get exact values** (colors, spacing, fonts, corner radii) from the .pen
-   JSON rather than eyeballing the PNG:
-
-   ```bash
-   jq '.. | objects | select(.id? == "tscZI")' design/playola-ios.pen
-   ```
-
-   Values like `"$text-primary"` are variables — resolve them in the
-   top-level `variables` block of the same file.
+3. **Get exact values** (colors, spacing, fonts, corner radii) from the
+   `.json` spec sitting next to each PNG. It is self-contained: the screen's
+   full node tree (`screen`), every component it references (`components`),
+   and the document `variables` block, which resolves values like
+   `"$text-primary"`. (`design/playola-ios.pen` remains the source of truth
+   if you need anything beyond one screen.)
 4. **Map to the codebase**: designs use raw hex/font values; the app has its
    own tokens — see `.claude/VIEWS.md`. Prefer an existing token that matches
    over a new hex literal.
@@ -57,7 +55,8 @@ layout" section of `DESIGN_STATUS.md`. Conventions:
   Export(["<frameId>"], "png", "./design/exports/<bucket>/<proposal>")
   ```
 
-  then rename the emitted `<nodeId>.png` to `<screen-name>--<nodeId>.png`.
+  then rename the emitted `<nodeId>.png` to `<screen-name>--<nodeId>.png`
+  and run `python3 design/export-specs.py` to refresh the `.json` specs.
   (Relative paths resolve from the workspace root, not the .pen file's folder.)
 - Export dirs follow status: when a proposal's status changes, `git mv` its
   folder between `future/`, `in-progress/`, and (on ship) fold the screens

@@ -1,0 +1,1014 @@
+{
+  "screen": {
+    "type": "frame",
+    "id": "roZ5g",
+    "x": 1972,
+    "y": 1338,
+    "name": "Your Library",
+    "clip": true,
+    "width": 393,
+    "height": 852,
+    "fill": "$surface-base",
+    "layout": "vertical",
+    "justifyContent": "space_between",
+    "children": [
+      {
+        "type": "frame",
+        "id": "qwebG",
+        "name": "Header",
+        "width": "fill_container",
+        "fill": "$surface-base",
+        "padding": [
+          20,
+          20,
+          24,
+          20
+        ],
+        "children": [
+          {
+            "type": "text",
+            "id": "GzoL8",
+            "name": "Title",
+            "fill": "$text-primary",
+            "content": "Your Library",
+            "fontFamily": "Space Grotesk",
+            "fontSize": 32,
+            "fontWeight": "700"
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "d3w4tG",
+        "name": "Content",
+        "clip": true,
+        "width": "fill_container",
+        "height": "fill_container",
+        "layout": "vertical",
+        "gap": 20,
+        "padding": [
+          8,
+          0,
+          24,
+          0
+        ],
+        "children": [
+          {
+            "type": "frame",
+            "id": "SH1I4",
+            "name": "Presets Carousel",
+            "width": "fill_container",
+            "layout": "vertical",
+            "gap": 8,
+            "children": [
+              {
+                "type": "frame",
+                "id": "YRh6m",
+                "name": "Section Header",
+                "width": "fill_container",
+                "padding": [
+                  0,
+                  20
+                ],
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "uzIZ5",
+                    "name": "Title",
+                    "fill": "$text-primary",
+                    "content": "Presets",
+                    "fontFamily": "Space Grotesk",
+                    "fontSize": 28,
+                    "fontWeight": "700"
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "DTd3e",
+                "name": "Tiles",
+                "clip": true,
+                "width": "fill_container",
+                "gap": 12,
+                "padding": [
+                  0,
+                  20
+                ],
+                "children": [
+                  {
+                    "id": "jhzSr",
+                    "type": "ref",
+                    "ref": "wcaR9",
+                    "name": "Bri Bagwell",
+                    "descendants": {
+                      "M95Nr4": {
+                        "fill": {
+                          "type": "image",
+                          "enabled": true,
+                          "url": "../images/bri.jpg",
+                          "mode": "fill"
+                        }
+                      },
+                      "abf7W": {
+                        "content": "Bri Bagwell"
+                      },
+                      "y4zl06": {
+                        "enabled": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "U3U2P",
+                    "type": "ref",
+                    "ref": "wcaR9",
+                    "name": "Cory Morrow",
+                    "descendants": {
+                      "M95Nr4": {
+                        "fill": {
+                          "type": "image",
+                          "enabled": true,
+                          "url": "../images/cory.jpg",
+                          "mode": "fill"
+                        }
+                      },
+                      "abf7W": {
+                        "content": "Cory Morrow"
+                      },
+                      "y4zl06": {
+                        "enabled": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "GEKwD",
+                    "type": "ref",
+                    "ref": "wcaR9",
+                    "name": "Jamie Lin Wilson",
+                    "descendants": {
+                      "M95Nr4": {
+                        "fill": {
+                          "type": "image",
+                          "enabled": true,
+                          "url": "../images/jlw.jpg",
+                          "mode": "fill"
+                        }
+                      },
+                      "abf7W": {
+                        "content": "Jamie Lin Wilson"
+                      },
+                      "y4zl06": {
+                        "enabled": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "OBR5M",
+                    "type": "ref",
+                    "ref": "wcaR9",
+                    "name": "Adam Hood",
+                    "descendants": {
+                      "M95Nr4": {
+                        "fill": {
+                          "type": "image",
+                          "enabled": true,
+                          "url": "../images/hood.jpg",
+                          "mode": "fill"
+                        }
+                      },
+                      "abf7W": {
+                        "content": "Adam Hood"
+                      },
+                      "y4zl06": {
+                        "enabled": false
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "v4TP1C",
+            "name": "Liked Songs",
+            "width": "fill_container",
+            "layout": "vertical",
+            "children": [
+              {
+                "type": "frame",
+                "id": "S0syiq",
+                "name": "Section Header",
+                "width": "fill_container",
+                "padding": [
+                  24,
+                  20,
+                  8,
+                  20
+                ],
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "xEgAT",
+                    "name": "Title",
+                    "fill": "$text-primary",
+                    "content": "Liked Songs",
+                    "fontFamily": "Space Grotesk",
+                    "fontSize": 28,
+                    "fontWeight": "700"
+                  }
+                ]
+              },
+              {
+                "id": "Sc29D",
+                "type": "ref",
+                "ref": "Ybl28",
+                "name": "Cheat On Me",
+                "width": "fill_container",
+                "descendants": {
+                  "R6MU1u": {
+                    "content": "Cheat On Me"
+                  },
+                  "eGc3g": {
+                    "content": "Bri Bagwell"
+                  },
+                  "mFqYG": {
+                    "content": "Yesterday"
+                  }
+                }
+              },
+              {
+                "id": "tP1Y5",
+                "type": "ref",
+                "ref": "Ybl28",
+                "name": "Welcome To Hard Times",
+                "width": "fill_container",
+                "descendants": {
+                  "R6MU1u": {
+                    "content": "Welcome To Hard Times"
+                  },
+                  "eGc3g": {
+                    "content": "Charley Crockett"
+                  },
+                  "mFqYG": {
+                    "content": "2 days ago"
+                  }
+                }
+              },
+              {
+                "id": "W9E3wK",
+                "type": "ref",
+                "ref": "Ybl28",
+                "name": "Death & Life",
+                "width": "fill_container",
+                "descendants": {
+                  "R6MU1u": {
+                    "content": "Death & Life"
+                  },
+                  "eGc3g": {
+                    "content": "Jamie Lin Wilson"
+                  },
+                  "mFqYG": {
+                    "content": "Last week"
+                  }
+                }
+              },
+              {
+                "id": "ecy0K",
+                "type": "ref",
+                "ref": "Ybl28",
+                "name": "Sway",
+                "width": "fill_container",
+                "descendants": {
+                  "R6MU1u": {
+                    "content": "Sway"
+                  },
+                  "eGc3g": {
+                    "content": "Kelsey Waldon"
+                  },
+                  "mFqYG": {
+                    "content": "Last week"
+                  }
+                }
+              },
+              {
+                "id": "Fem3s",
+                "type": "ref",
+                "ref": "Ybl28",
+                "name": "My Boots",
+                "width": "fill_container",
+                "descendants": {
+                  "R6MU1u": {
+                    "content": "My Boots"
+                  },
+                  "eGc3g": {
+                    "content": "Bri Bagwell"
+                  },
+                  "mFqYG": {
+                    "content": "Mar 14"
+                  }
+                }
+              },
+              {
+                "id": "jgpG4",
+                "type": "ref",
+                "ref": "Ybl28",
+                "name": "Run Wild",
+                "width": "fill_container",
+                "descendants": {
+                  "R6MU1u": {
+                    "content": "Run Wild"
+                  },
+                  "eGc3g": {
+                    "content": "Charley Crockett"
+                  },
+                  "mFqYG": {
+                    "content": "Mar 11"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "R1vGTc",
+        "type": "ref",
+        "ref": "GMXbb",
+        "name": "Small Player (Glass)",
+        "layoutPosition": "absolute",
+        "x": 16,
+        "y": 690
+      },
+      {
+        "id": "ZsIdw",
+        "type": "ref",
+        "ref": "wc8zL",
+        "name": "Tab Bar (Glass)",
+        "layoutPosition": "absolute",
+        "x": 16,
+        "y": 762,
+        "descendants": {
+          "KiWbV/Mb28I": {
+            "fill": "$text-disabled"
+          },
+          "KiWbV/x7cAoO": {
+            "fill": "$text-disabled"
+          },
+          "N1YIr/Mb28I": {
+            "fill": "$text-disabled"
+          },
+          "N1YIr/x7cAoO": {
+            "fill": "$text-disabled"
+          },
+          "lwmmM/Mb28I": {
+            "fill": "$text-primary"
+          },
+          "lwmmM/x7cAoO": {
+            "fill": "$text-primary"
+          },
+          "NhsUt/Mb28I": {
+            "fill": "$text-disabled"
+          },
+          "NhsUt/x7cAoO": {
+            "fill": "$text-disabled"
+          }
+        }
+      }
+    ]
+  },
+  "components": {
+    "wcaR9": {
+      "type": "frame",
+      "id": "wcaR9",
+      "x": 986,
+      "y": 0,
+      "name": "Preset Tile",
+      "reusable": true,
+      "width": 92,
+      "layout": "vertical",
+      "gap": 6,
+      "children": [
+        {
+          "type": "frame",
+          "id": "M95Nr4",
+          "name": "Artwork",
+          "clip": true,
+          "width": 92,
+          "height": 92,
+          "fill": "$surface-row",
+          "cornerRadius": 8
+        },
+        {
+          "type": "frame",
+          "id": "tlqs8",
+          "name": "Meta",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "abf7W",
+              "name": "Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Bri Bagwell",
+              "fontFamily": "$font-body",
+              "fontSize": 13,
+              "fontWeight": "500"
+            },
+            {
+              "type": "text",
+              "id": "y4zl06",
+              "x": 0,
+              "y": 22,
+              "name": "Subtitle",
+              "enabled": false,
+              "fill": "$brand-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container(92)",
+              "content": "Coming Soon",
+              "fontFamily": "$font-body",
+              "fontSize": 11,
+              "fontWeight": "500"
+            }
+          ]
+        }
+      ]
+    },
+    "Ybl28": {
+      "type": "frame",
+      "id": "Ybl28",
+      "x": 2465,
+      "y": 0,
+      "name": "Liked Song Row",
+      "reusable": true,
+      "width": 393,
+      "gap": 12,
+      "padding": [
+        8,
+        20
+      ],
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "ltqO0",
+          "name": "Artwork",
+          "width": 56,
+          "height": 56,
+          "fill": "$surface-placeholder",
+          "cornerRadius": 6,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "qO7do",
+              "name": "Note",
+              "width": 24,
+              "height": 24,
+              "icon": "music",
+              "library": "lucide",
+              "fill": "$text-tertiary"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "XZlCu",
+          "name": "Meta",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 2,
+          "children": [
+            {
+              "type": "text",
+              "id": "R6MU1u",
+              "name": "Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Cheat On Me",
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "500"
+            },
+            {
+              "type": "text",
+              "id": "eGc3g",
+              "name": "Artist",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Bri Bagwell",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "mFqYG",
+              "name": "Date",
+              "fill": "$text-quaternary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Yesterday",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "icon",
+          "id": "IUak1",
+          "name": "Menu",
+          "width": 16,
+          "height": 16,
+          "icon": "ellipsis",
+          "library": "lucide",
+          "fill": "$text-secondary"
+        }
+      ]
+    },
+    "GMXbb": {
+      "type": "frame",
+      "id": "GMXbb",
+      "x": 986,
+      "y": 312,
+      "name": "Small Player (Glass · 26.1+)",
+      "reusable": true,
+      "width": 361,
+      "height": 64,
+      "fill": "$glass-fill",
+      "cornerRadius": 26,
+      "stroke": "$glass-hairline",
+      "strokeWidth": 1,
+      "gap": 12,
+      "padding": [
+        0,
+        16
+      ],
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "y1lXft",
+          "name": "Artwork",
+          "width": 40,
+          "height": 40,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "../images/bri.jpg",
+            "mode": "fill"
+          },
+          "cornerRadius": 8
+        },
+        {
+          "type": "frame",
+          "id": "yEeoi",
+          "name": "Meta",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 4,
+          "children": [
+            {
+              "type": "text",
+              "id": "HRbjx",
+              "name": "Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Bri Bagwell",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "500"
+            },
+            {
+              "type": "text",
+              "id": "OKOxh",
+              "name": "Subtitle",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Bri Bagwell - Cheat On Me",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "icon",
+          "id": "HV0H5",
+          "name": "Heart",
+          "width": 22,
+          "height": 22,
+          "icon": "heart",
+          "library": "lucide",
+          "fill": "$text-secondary"
+        },
+        {
+          "type": "frame",
+          "id": "YWPPt",
+          "name": "Stop Button",
+          "width": 34,
+          "height": 34,
+          "fill": "$text-primary",
+          "cornerRadius": 17,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "rectangle",
+              "cornerRadius": 1.5,
+              "id": "cjI2e",
+              "name": "Stop Glyph",
+              "fill": "$surface-base",
+              "width": 12,
+              "height": 12
+            }
+          ]
+        }
+      ]
+    },
+    "wc8zL": {
+      "type": "frame",
+      "id": "wc8zL",
+      "x": 1972,
+      "y": 312,
+      "name": "Tab Bar (Glass · 26.1+)",
+      "reusable": true,
+      "width": 361,
+      "height": 56,
+      "fill": "$glass-fill",
+      "cornerRadius": 28,
+      "stroke": "$glass-hairline",
+      "strokeWidth": 1,
+      "justifyContent": "space_around",
+      "alignItems": "center",
+      "children": [
+        {
+          "id": "KiWbV",
+          "type": "ref",
+          "ref": "HXMdX",
+          "name": "Home",
+          "descendants": {
+            "Mb28I": {
+              "icon": "house",
+              "fill": "$text-disabled"
+            },
+            "x7cAoO": {
+              "content": "Home",
+              "fill": "$text-disabled"
+            }
+          }
+        },
+        {
+          "id": "N1YIr",
+          "type": "ref",
+          "ref": "HXMdX",
+          "name": "Radio Stations",
+          "descendants": {
+            "Mb28I": {
+              "icon": "radio",
+              "fill": "$text-primary"
+            },
+            "x7cAoO": {
+              "content": "Radio Stations",
+              "fill": "$text-primary"
+            }
+          }
+        },
+        {
+          "id": "lwmmM",
+          "type": "ref",
+          "ref": "HXMdX",
+          "name": "Your Library",
+          "descendants": {
+            "Mb28I": {
+              "icon": "heart",
+              "fill": "$text-disabled"
+            },
+            "x7cAoO": {
+              "content": "Your Library",
+              "fill": "$text-disabled"
+            }
+          }
+        },
+        {
+          "id": "NhsUt",
+          "type": "ref",
+          "ref": "HXMdX",
+          "name": "Your Profile",
+          "descendants": {
+            "Mb28I": {
+              "icon": "user",
+              "fill": "$text-disabled"
+            },
+            "x7cAoO": {
+              "content": "Your Profile",
+              "fill": "$text-disabled"
+            }
+          }
+        }
+      ]
+    },
+    "HXMdX": {
+      "type": "frame",
+      "id": "HXMdX",
+      "x": 493,
+      "y": 0,
+      "name": "Tab Item",
+      "reusable": true,
+      "width": 80,
+      "layout": "vertical",
+      "gap": "$space-1",
+      "padding": [
+        "$space-2",
+        0
+      ],
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "icon",
+          "id": "Mb28I",
+          "name": "Icon",
+          "width": 24,
+          "height": 24,
+          "icon": "radio",
+          "library": "lucide",
+          "fill": "$text-disabled"
+        },
+        {
+          "type": "text",
+          "id": "x7cAoO",
+          "name": "Label",
+          "fill": "$text-disabled",
+          "content": "Stations",
+          "fontFamily": "$font-body",
+          "fontSize": 10,
+          "fontWeight": "500"
+        }
+      ]
+    }
+  },
+  "variables": {
+    "surface-base": {
+      "type": "color",
+      "value": "#000000"
+    },
+    "surface-section": {
+      "type": "color",
+      "value": "#1A1A1A"
+    },
+    "surface-raised": {
+      "type": "color",
+      "value": "#2A2A2A"
+    },
+    "surface-row": {
+      "type": "color",
+      "value": "#333333"
+    },
+    "surface-control": {
+      "type": "color",
+      "value": "#444444"
+    },
+    "surface-muted": {
+      "type": "color",
+      "value": "#4A4A4A"
+    },
+    "warm-base": {
+      "type": "color",
+      "value": "#130000"
+    },
+    "warm-surface": {
+      "type": "color",
+      "value": "#3A1212"
+    },
+    "warm-surface-raised": {
+      "type": "color",
+      "value": "#471818"
+    },
+    "warm-control-disabled": {
+      "type": "color",
+      "value": "#2A1313"
+    },
+    "warm-text-secondary": {
+      "type": "color",
+      "value": "#D7BFBF"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#C7C7C7"
+    },
+    "text-tertiary": {
+      "type": "color",
+      "value": "#999999"
+    },
+    "text-disabled": {
+      "type": "color",
+      "value": "#868686"
+    },
+    "brand-primary": {
+      "type": "color",
+      "value": "#EF6962"
+    },
+    "radius-xs": {
+      "type": "number",
+      "value": 4
+    },
+    "radius-sm": {
+      "type": "number",
+      "value": 6
+    },
+    "radius-md": {
+      "type": "number",
+      "value": 8
+    },
+    "radius-lg": {
+      "type": "number",
+      "value": 12
+    },
+    "radius-pill": {
+      "type": "number",
+      "value": 24
+    },
+    "space-1": {
+      "type": "number",
+      "value": 4
+    },
+    "space-2": {
+      "type": "number",
+      "value": 8
+    },
+    "space-3": {
+      "type": "number",
+      "value": 12
+    },
+    "space-4": {
+      "type": "number",
+      "value": 16
+    },
+    "space-5": {
+      "type": "number",
+      "value": 20
+    },
+    "space-6": {
+      "type": "number",
+      "value": 24
+    },
+    "space-8": {
+      "type": "number",
+      "value": 32
+    },
+    "font-body": {
+      "type": "string",
+      "value": "Inter"
+    },
+    "font-display": {
+      "type": "string",
+      "value": "Space Grotesk"
+    },
+    "icon-inactive": {
+      "type": "color",
+      "value": "#BABABA"
+    },
+    "text-system-gray": {
+      "type": "color",
+      "value": "#8E8E93"
+    },
+    "star-active": {
+      "type": "color",
+      "value": "#FFD24A"
+    },
+    "star-inactive": {
+      "type": "color",
+      "value": "$text-quaternary"
+    },
+    "text-quaternary": {
+      "type": "color",
+      "value": "#888888"
+    },
+    "live-on-air": {
+      "type": "color",
+      "value": "#34C759"
+    },
+    "text-muted": {
+      "type": "color",
+      "value": "#AAAAAA"
+    },
+    "system-red": {
+      "type": "color",
+      "value": "#FF3B30"
+    },
+    "overlay-scrim-85": {
+      "type": "color",
+      "value": "#000000D9"
+    },
+    "giveaway-purple": {
+      "type": "color",
+      "value": "#AF52DE"
+    },
+    "border-dashed": {
+      "type": "color",
+      "value": "#4D4D4D"
+    },
+    "overlay-scrim-70": {
+      "type": "color",
+      "value": "#000000B3"
+    },
+    "glass-fill": {
+      "type": "color",
+      "value": "#2C2C2ECC"
+    },
+    "glass-hairline": {
+      "type": "color",
+      "value": "#FFFFFF26"
+    },
+    "surface-placeholder": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "surface-tile": {
+      "type": "color",
+      "value": "#262626"
+    },
+    "cta-dusty-red": {
+      "type": "color",
+      "value": "#CC6666"
+    },
+    "ring-stroke": {
+      "type": "color",
+      "value": "#1F1F1F"
+    },
+    "surface-art-placeholder": {
+      "type": "color",
+      "value": "#4D4D4D"
+    },
+    "warm-gray-900": {
+      "type": "color",
+      "value": "#3D3634"
+    },
+    "warm-gray-700": {
+      "type": "color",
+      "value": "#6B6260"
+    },
+    "warm-gray-600": {
+      "type": "color",
+      "value": "#827876"
+    },
+    "warm-gray-400": {
+      "type": "color",
+      "value": "#B0A7A5"
+    },
+    "info-blue": {
+      "type": "color",
+      "value": "#6EC6FF"
+    },
+    "schedule-row": {
+      "type": "color",
+      "value": "#333333"
+    },
+    "schedule-row-locked": {
+      "type": "color",
+      "value": "#444444"
+    },
+    "progress-track": {
+      "type": "color",
+      "value": "#5E5F5F"
+    },
+    "commercial-green": {
+      "type": "color",
+      "value": "#2E7D32"
+    },
+    "success-green": {
+      "type": "color",
+      "value": "#34C759"
+    },
+    "disabled-fill": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "disabled-stroke": {
+      "type": "color",
+      "value": "#888888"
+    },
+    "success-material": {
+      "type": "color",
+      "value": "#4CAF50"
+    },
+    "warning-amber": {
+      "type": "color",
+      "value": "#FFC107"
+    }
+  }
+}

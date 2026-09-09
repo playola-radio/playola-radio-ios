@@ -1,0 +1,1198 @@
+{
+  "screen": {
+    "type": "frame",
+    "id": "L46hv",
+    "x": 986,
+    "y": 1338,
+    "name": "Radio Stations",
+    "clip": true,
+    "width": 393,
+    "height": 852,
+    "fill": "$surface-base",
+    "layout": "vertical",
+    "children": [
+      {
+        "type": "frame",
+        "id": "X3fnD",
+        "name": "Header",
+        "width": "fill_container",
+        "fill": "$surface-base",
+        "layout": "vertical",
+        "children": [
+          {
+            "type": "frame",
+            "id": "leJ3n",
+            "name": "Title Row",
+            "width": "fill_container",
+            "padding": [
+              20,
+              16,
+              0,
+              16
+            ],
+            "justifyContent": "space_between",
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "RLMGg",
+                "name": "Title",
+                "fill": "$text-primary",
+                "content": "Radio Stations",
+                "fontFamily": "Space Grotesk",
+                "fontSize": 32,
+                "fontWeight": "700"
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "Omp5i",
+            "name": "Segments",
+            "clip": true,
+            "width": "fill_container",
+            "padding": [
+              8,
+              0
+            ],
+            "children": [
+              {
+                "type": "frame",
+                "id": "qyU3I",
+                "name": "Pills",
+                "width": "fill_container",
+                "gap": 8,
+                "padding": [
+                  24,
+                  16,
+                  0,
+                  16
+                ],
+                "children": [
+                  {
+                    "id": "tDUbP",
+                    "type": "ref",
+                    "ref": "ENpFP",
+                    "name": "All",
+                    "fill": "$brand-primary",
+                    "descendants": {
+                      "AQfji": {
+                        "content": "All"
+                      }
+                    }
+                  },
+                  {
+                    "id": "CGgIH",
+                    "type": "ref",
+                    "ref": "ENpFP",
+                    "name": "Artists",
+                    "fill": "$surface-row",
+                    "descendants": {
+                      "AQfji": {
+                        "content": "Artists"
+                      }
+                    }
+                  },
+                  {
+                    "id": "U0lJB",
+                    "type": "ref",
+                    "ref": "ENpFP",
+                    "name": "FM Stations",
+                    "fill": "$surface-row",
+                    "descendants": {
+                      "AQfji": {
+                        "content": "FM Stations"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "rectangle",
+                "id": "rAkg2",
+                "layoutPosition": "absolute",
+                "x": 369,
+                "y": 24,
+                "name": "Fade",
+                "fill": {
+                  "type": "gradient",
+                  "gradientType": "linear",
+                  "enabled": true,
+                  "rotation": 270,
+                  "size": {
+                    "height": 1
+                  },
+                  "colors": [
+                    {
+                      "color": "#00000000",
+                      "position": 0
+                    },
+                    {
+                      "color": "#000000",
+                      "position": 1
+                    }
+                  ]
+                },
+                "width": 24,
+                "height": 35
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "bTmPc",
+        "name": "Content",
+        "clip": true,
+        "width": "fill_container",
+        "height": "fill_container",
+        "layout": "vertical",
+        "gap": 20,
+        "padding": [
+          8,
+          0,
+          0,
+          0
+        ],
+        "children": [
+          {
+            "type": "frame",
+            "id": "a5pS0",
+            "name": "Artists Section",
+            "width": "fill_container",
+            "layout": "vertical",
+            "gap": 1,
+            "children": [
+              {
+                "type": "frame",
+                "id": "a9Wmrh",
+                "name": "Section Header",
+                "width": "fill_container",
+                "padding": [
+                  0,
+                  16,
+                  8,
+                  16
+                ],
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "qLzIn",
+                    "name": "Title",
+                    "fill": "$text-primary",
+                    "content": "Artists",
+                    "fontFamily": "Inter",
+                    "fontSize": 14,
+                    "fontWeight": "600"
+                  }
+                ]
+              },
+              {
+                "id": "L4mG05",
+                "type": "ref",
+                "ref": "QFygA",
+                "name": "Suggest Station Row",
+                "width": "fill_container"
+              },
+              {
+                "type": "frame",
+                "id": "OoCeE",
+                "name": "Rows",
+                "width": "fill_container",
+                "layout": "vertical",
+                "gap": 1,
+                "children": [
+                  {
+                    "id": "s2kPW",
+                    "type": "ref",
+                    "ref": "mDSiF",
+                    "name": "Bri Bagwell",
+                    "width": "fill_container",
+                    "descendants": {
+                      "dT4yX": {
+                        "fill": {
+                          "type": "image",
+                          "enabled": true,
+                          "url": "../images/bri.jpg",
+                          "mode": "fill"
+                        }
+                      },
+                      "AJ8mQ": {
+                        "content": "Bri Bagwell"
+                      },
+                      "hImwo": {
+                        "content": "Banned Radio"
+                      },
+                      "vUihl": {
+                        "enabled": false
+                      },
+                      "yq19v": {
+                        "fill": "$star-active"
+                      }
+                    }
+                  },
+                  {
+                    "id": "tKLVa",
+                    "type": "ref",
+                    "ref": "mDSiF",
+                    "name": "William Clark Green",
+                    "width": "fill_container",
+                    "descendants": {
+                      "dT4yX": {
+                        "fill": {
+                          "type": "image",
+                          "enabled": true,
+                          "url": "../images/wcg.jpg",
+                          "mode": "fill"
+                        }
+                      },
+                      "AJ8mQ": {
+                        "content": "William Clark Green"
+                      },
+                      "hImwo": {
+                        "content": "Bill Grease Radio"
+                      },
+                      "vUihl": {
+                        "enabled": true
+                      },
+                      "yq19v": {
+                        "fill": "$star-inactive"
+                      }
+                    }
+                  },
+                  {
+                    "id": "CRfPL",
+                    "type": "ref",
+                    "ref": "mDSiF",
+                    "name": "Jamie Lin Wilson",
+                    "width": "fill_container",
+                    "descendants": {
+                      "dT4yX": {
+                        "fill": {
+                          "type": "image",
+                          "enabled": true,
+                          "url": "../images/jlw.jpg",
+                          "mode": "fill"
+                        }
+                      },
+                      "AJ8mQ": {
+                        "content": "Jamie Lin Wilson"
+                      },
+                      "hImwo": {
+                        "content": "Simple Enough Radio"
+                      },
+                      "vUihl": {
+                        "enabled": false
+                      },
+                      "yq19v": {
+                        "fill": "$star-inactive"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "DKLta",
+            "name": "FM Stations Section",
+            "width": "fill_container",
+            "layout": "vertical",
+            "gap": 1,
+            "children": [
+              {
+                "type": "frame",
+                "id": "hmnEd",
+                "name": "Section Header",
+                "width": "fill_container",
+                "padding": [
+                  0,
+                  16,
+                  8,
+                  16
+                ],
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "gxm1A",
+                    "name": "Title",
+                    "fill": "$text-primary",
+                    "content": "FM Stations",
+                    "fontFamily": "Inter",
+                    "fontSize": 14,
+                    "fontWeight": "600"
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "v9OJn",
+                "name": "Rows",
+                "width": "fill_container",
+                "layout": "vertical",
+                "gap": 1,
+                "children": [
+                  {
+                    "id": "SYp0b",
+                    "type": "ref",
+                    "ref": "mDSiF",
+                    "name": "Red Dirt Rebel - 107.7",
+                    "width": "fill_container",
+                    "descendants": {
+                      "dT4yX": {
+                        "fill": {
+                          "type": "image",
+                          "enabled": true,
+                          "url": "../images/rebel.jpeg",
+                          "mode": "fill"
+                        }
+                      },
+                      "AJ8mQ": {
+                        "content": "Red Dirt Rebel - 107.7"
+                      },
+                      "hImwo": {
+                        "content": "Red Dirt Rebel - 107.7"
+                      },
+                      "vUihl": {
+                        "enabled": false
+                      },
+                      "yq19v": {
+                        "fill": "$star-inactive"
+                      }
+                    }
+                  },
+                  {
+                    "id": "h8iJ0",
+                    "type": "ref",
+                    "ref": "mDSiF",
+                    "name": "KOKE FM",
+                    "width": "fill_container",
+                    "descendants": {
+                      "dT4yX": {
+                        "fill": {
+                          "type": "image",
+                          "enabled": true,
+                          "url": "../images/koke.png",
+                          "mode": "fill"
+                        }
+                      },
+                      "AJ8mQ": {
+                        "content": "KOKE FM"
+                      },
+                      "hImwo": {
+                        "content": "KOKE FM"
+                      },
+                      "vUihl": {
+                        "enabled": false
+                      },
+                      "yq19v": {
+                        "fill": "$star-inactive"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "AFi6G",
+        "layoutPosition": "absolute",
+        "x": 0,
+        "y": 627,
+        "name": "Search Bar",
+        "width": 393,
+        "fill": "$surface-base",
+        "padding": [
+          12,
+          16
+        ],
+        "children": [
+          {
+            "type": "frame",
+            "id": "NFhvP",
+            "name": "Field",
+            "width": "fill_container",
+            "fill": "$surface-row",
+            "cornerRadius": 8,
+            "gap": 8,
+            "padding": [
+              10,
+              12
+            ],
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "icon",
+                "id": "IsBo6",
+                "name": "Search",
+                "width": 16,
+                "height": 16,
+                "icon": "search",
+                "library": "lucide",
+                "fill": "$text-disabled"
+              },
+              {
+                "type": "text",
+                "id": "e49kkv",
+                "name": "Placeholder",
+                "fill": "$text-disabled",
+                "textGrowth": "fixed-width",
+                "width": "fill_container",
+                "content": "Search stations",
+                "fontFamily": "Inter",
+                "fontSize": 16,
+                "fontWeight": "normal"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "Ed8K7",
+        "type": "ref",
+        "ref": "GMXbb",
+        "name": "Small Player (Glass)",
+        "layoutPosition": "absolute",
+        "x": 16,
+        "y": 690
+      },
+      {
+        "id": "CFWiP",
+        "type": "ref",
+        "ref": "wc8zL",
+        "name": "Tab Bar (Glass)",
+        "layoutPosition": "absolute",
+        "x": 16,
+        "y": 762,
+        "descendants": {
+          "KiWbV/Mb28I": {
+            "fill": "$text-disabled"
+          },
+          "KiWbV/x7cAoO": {
+            "fill": "$text-disabled"
+          },
+          "N1YIr/Mb28I": {
+            "fill": "$text-primary"
+          },
+          "N1YIr/x7cAoO": {
+            "fill": "$text-primary"
+          },
+          "lwmmM/Mb28I": {
+            "fill": "$text-disabled"
+          },
+          "lwmmM/x7cAoO": {
+            "fill": "$text-disabled"
+          },
+          "NhsUt/Mb28I": {
+            "fill": "$text-disabled"
+          },
+          "NhsUt/x7cAoO": {
+            "fill": "$text-disabled"
+          }
+        }
+      }
+    ]
+  },
+  "components": {
+    "ENpFP": {
+      "type": "frame",
+      "id": "ENpFP",
+      "x": 0,
+      "y": 0,
+      "name": "Filter Pill",
+      "reusable": true,
+      "fill": "$surface-row",
+      "cornerRadius": 20,
+      "padding": [
+        8,
+        16
+      ],
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "AQfji",
+          "name": "Label",
+          "fill": "$text-primary",
+          "content": "All",
+          "fontFamily": "$font-body",
+          "fontSize": 16,
+          "fontWeight": "500"
+        }
+      ]
+    },
+    "QFygA": {
+      "type": "frame",
+      "id": "QFygA",
+      "x": 2958,
+      "y": 0,
+      "name": "Suggest Station Row",
+      "reusable": true,
+      "width": 393,
+      "padding": [
+        0,
+        16,
+        12,
+        16
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "BW4lR",
+          "name": "Dashed Box",
+          "width": "fill_container",
+          "cornerRadius": 12,
+          "stroke": "$border-dashed",
+          "strokeWidth": 1,
+          "gap": 12,
+          "padding": [
+            22,
+            16
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "eL8k6",
+              "name": "Plus",
+              "width": 15,
+              "height": 15,
+              "icon": "plus",
+              "library": "lucide",
+              "weight": 700,
+              "fill": "$brand-primary"
+            },
+            {
+              "type": "text",
+              "id": "GbvAt",
+              "name": "Label",
+              "fill": "$brand-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Don't see your artist? Suggest a station",
+              "fontFamily": "Inter",
+              "fontSize": 15,
+              "fontWeight": "700"
+            }
+          ]
+        }
+      ]
+    },
+    "mDSiF": {
+      "type": "frame",
+      "id": "mDSiF",
+      "x": 1479,
+      "y": 0,
+      "name": "Station Row",
+      "reusable": true,
+      "width": 393,
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "L8YIC",
+          "name": "Tap Area",
+          "width": "fill_container",
+          "gap": 16,
+          "padding": [
+            12,
+            0,
+            12,
+            16
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "dT4yX",
+              "name": "Artwork",
+              "clip": true,
+              "width": 64,
+              "height": 64,
+              "fill": "$surface-row",
+              "cornerRadius": 6
+            },
+            {
+              "type": "frame",
+              "id": "pRbuE",
+              "name": "Meta",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 2,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "AJ8mQ",
+                  "name": "Title",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Bri Bagwell",
+                  "fontFamily": "$font-body",
+                  "fontSize": 22,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "hImwo",
+                  "name": "Subtitle",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Banned Radio",
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "vUihl",
+              "name": "Badges",
+              "layout": "vertical",
+              "gap": 4,
+              "padding": [
+                0,
+                8,
+                0,
+                0
+              ],
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "fjQJd",
+                  "name": "Live Badge",
+                  "fill": "$overlay-scrim-70",
+                  "cornerRadius": 4,
+                  "stroke": "$brand-primary",
+                  "strokeWidth": 1,
+                  "padding": [
+                    4,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "JAjkc",
+                      "name": "Label",
+                      "fill": "$brand-primary",
+                      "content": "LIVE NOW",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "XKdyJ",
+          "name": "Preset Star",
+          "width": 44,
+          "height": 44,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "yq19v",
+              "name": "Star",
+              "width": 22,
+              "height": 22,
+              "icon": "star",
+              "library": "lucide",
+              "fill": "$star-inactive"
+            }
+          ]
+        }
+      ]
+    },
+    "GMXbb": {
+      "type": "frame",
+      "id": "GMXbb",
+      "x": 986,
+      "y": 312,
+      "name": "Small Player (Glass · 26.1+)",
+      "reusable": true,
+      "width": 361,
+      "height": 64,
+      "fill": "$glass-fill",
+      "cornerRadius": 26,
+      "stroke": "$glass-hairline",
+      "strokeWidth": 1,
+      "gap": 12,
+      "padding": [
+        0,
+        16
+      ],
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "y1lXft",
+          "name": "Artwork",
+          "width": 40,
+          "height": 40,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "../images/bri.jpg",
+            "mode": "fill"
+          },
+          "cornerRadius": 8
+        },
+        {
+          "type": "frame",
+          "id": "yEeoi",
+          "name": "Meta",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 4,
+          "children": [
+            {
+              "type": "text",
+              "id": "HRbjx",
+              "name": "Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Bri Bagwell",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "500"
+            },
+            {
+              "type": "text",
+              "id": "OKOxh",
+              "name": "Subtitle",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Bri Bagwell - Cheat On Me",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "icon",
+          "id": "HV0H5",
+          "name": "Heart",
+          "width": 22,
+          "height": 22,
+          "icon": "heart",
+          "library": "lucide",
+          "fill": "$text-secondary"
+        },
+        {
+          "type": "frame",
+          "id": "YWPPt",
+          "name": "Stop Button",
+          "width": 34,
+          "height": 34,
+          "fill": "$text-primary",
+          "cornerRadius": 17,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "rectangle",
+              "cornerRadius": 1.5,
+              "id": "cjI2e",
+              "name": "Stop Glyph",
+              "fill": "$surface-base",
+              "width": 12,
+              "height": 12
+            }
+          ]
+        }
+      ]
+    },
+    "wc8zL": {
+      "type": "frame",
+      "id": "wc8zL",
+      "x": 1972,
+      "y": 312,
+      "name": "Tab Bar (Glass · 26.1+)",
+      "reusable": true,
+      "width": 361,
+      "height": 56,
+      "fill": "$glass-fill",
+      "cornerRadius": 28,
+      "stroke": "$glass-hairline",
+      "strokeWidth": 1,
+      "justifyContent": "space_around",
+      "alignItems": "center",
+      "children": [
+        {
+          "id": "KiWbV",
+          "type": "ref",
+          "ref": "HXMdX",
+          "name": "Home",
+          "descendants": {
+            "Mb28I": {
+              "icon": "house",
+              "fill": "$text-disabled"
+            },
+            "x7cAoO": {
+              "content": "Home",
+              "fill": "$text-disabled"
+            }
+          }
+        },
+        {
+          "id": "N1YIr",
+          "type": "ref",
+          "ref": "HXMdX",
+          "name": "Radio Stations",
+          "descendants": {
+            "Mb28I": {
+              "icon": "radio",
+              "fill": "$text-primary"
+            },
+            "x7cAoO": {
+              "content": "Radio Stations",
+              "fill": "$text-primary"
+            }
+          }
+        },
+        {
+          "id": "lwmmM",
+          "type": "ref",
+          "ref": "HXMdX",
+          "name": "Your Library",
+          "descendants": {
+            "Mb28I": {
+              "icon": "heart",
+              "fill": "$text-disabled"
+            },
+            "x7cAoO": {
+              "content": "Your Library",
+              "fill": "$text-disabled"
+            }
+          }
+        },
+        {
+          "id": "NhsUt",
+          "type": "ref",
+          "ref": "HXMdX",
+          "name": "Your Profile",
+          "descendants": {
+            "Mb28I": {
+              "icon": "user",
+              "fill": "$text-disabled"
+            },
+            "x7cAoO": {
+              "content": "Your Profile",
+              "fill": "$text-disabled"
+            }
+          }
+        }
+      ]
+    },
+    "HXMdX": {
+      "type": "frame",
+      "id": "HXMdX",
+      "x": 493,
+      "y": 0,
+      "name": "Tab Item",
+      "reusable": true,
+      "width": 80,
+      "layout": "vertical",
+      "gap": "$space-1",
+      "padding": [
+        "$space-2",
+        0
+      ],
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "icon",
+          "id": "Mb28I",
+          "name": "Icon",
+          "width": 24,
+          "height": 24,
+          "icon": "radio",
+          "library": "lucide",
+          "fill": "$text-disabled"
+        },
+        {
+          "type": "text",
+          "id": "x7cAoO",
+          "name": "Label",
+          "fill": "$text-disabled",
+          "content": "Stations",
+          "fontFamily": "$font-body",
+          "fontSize": 10,
+          "fontWeight": "500"
+        }
+      ]
+    }
+  },
+  "variables": {
+    "surface-base": {
+      "type": "color",
+      "value": "#000000"
+    },
+    "surface-section": {
+      "type": "color",
+      "value": "#1A1A1A"
+    },
+    "surface-raised": {
+      "type": "color",
+      "value": "#2A2A2A"
+    },
+    "surface-row": {
+      "type": "color",
+      "value": "#333333"
+    },
+    "surface-control": {
+      "type": "color",
+      "value": "#444444"
+    },
+    "surface-muted": {
+      "type": "color",
+      "value": "#4A4A4A"
+    },
+    "warm-base": {
+      "type": "color",
+      "value": "#130000"
+    },
+    "warm-surface": {
+      "type": "color",
+      "value": "#3A1212"
+    },
+    "warm-surface-raised": {
+      "type": "color",
+      "value": "#471818"
+    },
+    "warm-control-disabled": {
+      "type": "color",
+      "value": "#2A1313"
+    },
+    "warm-text-secondary": {
+      "type": "color",
+      "value": "#D7BFBF"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#C7C7C7"
+    },
+    "text-tertiary": {
+      "type": "color",
+      "value": "#999999"
+    },
+    "text-disabled": {
+      "type": "color",
+      "value": "#868686"
+    },
+    "brand-primary": {
+      "type": "color",
+      "value": "#EF6962"
+    },
+    "radius-xs": {
+      "type": "number",
+      "value": 4
+    },
+    "radius-sm": {
+      "type": "number",
+      "value": 6
+    },
+    "radius-md": {
+      "type": "number",
+      "value": 8
+    },
+    "radius-lg": {
+      "type": "number",
+      "value": 12
+    },
+    "radius-pill": {
+      "type": "number",
+      "value": 24
+    },
+    "space-1": {
+      "type": "number",
+      "value": 4
+    },
+    "space-2": {
+      "type": "number",
+      "value": 8
+    },
+    "space-3": {
+      "type": "number",
+      "value": 12
+    },
+    "space-4": {
+      "type": "number",
+      "value": 16
+    },
+    "space-5": {
+      "type": "number",
+      "value": 20
+    },
+    "space-6": {
+      "type": "number",
+      "value": 24
+    },
+    "space-8": {
+      "type": "number",
+      "value": 32
+    },
+    "font-body": {
+      "type": "string",
+      "value": "Inter"
+    },
+    "font-display": {
+      "type": "string",
+      "value": "Space Grotesk"
+    },
+    "icon-inactive": {
+      "type": "color",
+      "value": "#BABABA"
+    },
+    "text-system-gray": {
+      "type": "color",
+      "value": "#8E8E93"
+    },
+    "star-active": {
+      "type": "color",
+      "value": "#FFD24A"
+    },
+    "star-inactive": {
+      "type": "color",
+      "value": "$text-quaternary"
+    },
+    "text-quaternary": {
+      "type": "color",
+      "value": "#888888"
+    },
+    "live-on-air": {
+      "type": "color",
+      "value": "#34C759"
+    },
+    "text-muted": {
+      "type": "color",
+      "value": "#AAAAAA"
+    },
+    "system-red": {
+      "type": "color",
+      "value": "#FF3B30"
+    },
+    "overlay-scrim-85": {
+      "type": "color",
+      "value": "#000000D9"
+    },
+    "giveaway-purple": {
+      "type": "color",
+      "value": "#AF52DE"
+    },
+    "border-dashed": {
+      "type": "color",
+      "value": "#4D4D4D"
+    },
+    "overlay-scrim-70": {
+      "type": "color",
+      "value": "#000000B3"
+    },
+    "glass-fill": {
+      "type": "color",
+      "value": "#2C2C2ECC"
+    },
+    "glass-hairline": {
+      "type": "color",
+      "value": "#FFFFFF26"
+    },
+    "surface-placeholder": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "surface-tile": {
+      "type": "color",
+      "value": "#262626"
+    },
+    "cta-dusty-red": {
+      "type": "color",
+      "value": "#CC6666"
+    },
+    "ring-stroke": {
+      "type": "color",
+      "value": "#1F1F1F"
+    },
+    "surface-art-placeholder": {
+      "type": "color",
+      "value": "#4D4D4D"
+    },
+    "warm-gray-900": {
+      "type": "color",
+      "value": "#3D3634"
+    },
+    "warm-gray-700": {
+      "type": "color",
+      "value": "#6B6260"
+    },
+    "warm-gray-600": {
+      "type": "color",
+      "value": "#827876"
+    },
+    "warm-gray-400": {
+      "type": "color",
+      "value": "#B0A7A5"
+    },
+    "info-blue": {
+      "type": "color",
+      "value": "#6EC6FF"
+    },
+    "schedule-row": {
+      "type": "color",
+      "value": "#333333"
+    },
+    "schedule-row-locked": {
+      "type": "color",
+      "value": "#444444"
+    },
+    "progress-track": {
+      "type": "color",
+      "value": "#5E5F5F"
+    },
+    "commercial-green": {
+      "type": "color",
+      "value": "#2E7D32"
+    },
+    "success-green": {
+      "type": "color",
+      "value": "#34C759"
+    },
+    "disabled-fill": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "disabled-stroke": {
+      "type": "color",
+      "value": "#888888"
+    },
+    "success-material": {
+      "type": "color",
+      "value": "#4CAF50"
+    },
+    "warning-amber": {
+      "type": "color",
+      "value": "#FFC107"
+    }
+  }
+}
