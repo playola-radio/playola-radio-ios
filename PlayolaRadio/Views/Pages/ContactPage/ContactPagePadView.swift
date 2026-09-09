@@ -35,6 +35,7 @@ struct ContactPagePadView: View {
           modeButtons
           actionGrid
           logOutButton
+          appVersion
         }
         .frame(maxWidth: contentMaxWidth, alignment: .leading)
         .frame(maxWidth: .infinity, alignment: .center)
@@ -234,6 +235,16 @@ struct ContactPagePadView: View {
       )
     }
     .padding(.top, 4)
+  }
+
+  // MARK: - App version
+
+  private var appVersion: some View {
+    Text(model.appVersionLabel)
+      .font(.custom(FontNames.Inter_400_Regular, size: 10))
+      .foregroundColor(Color(hex: "#999999"))
+      .frame(maxWidth: .infinity, alignment: .center)
+      .padding(.top, 4)
   }
 }
 

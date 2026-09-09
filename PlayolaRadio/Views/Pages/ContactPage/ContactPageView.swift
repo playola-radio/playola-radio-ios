@@ -330,6 +330,13 @@ struct ContactPageView: View {
             }
           )
           .padding(.horizontal, 20)
+
+          // App Version
+          Text(model.appVersionLabel)
+            .font(.custom(FontNames.Inter_400_Regular, size: 10))
+            .foregroundColor(Color(hex: "#999999"))
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.top, 4)
         }
         .padding(.bottom, 100)  // Account for tab bar
       }

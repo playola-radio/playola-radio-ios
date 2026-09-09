@@ -209,6 +209,12 @@ class ContactPageModel: ViewModel {
   var askArtistLabel: String { "Ask An Artist A Question" }
   var logOutLabel: String { "Log out" }
 
+  var appVersionLabel: String {
+    let version = Bundle.main.releaseVersionNumber ?? "—"
+    let build = Bundle.main.buildVersionNumber ?? "—"
+    return "Version \(version) (\(build))"
+  }
+
   private func handleRegularUserFlow(jwt: String) async {
     do {
       let response = try await api.getSupportConversation(jwt)
