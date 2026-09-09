@@ -86,6 +86,16 @@
 		AA10000000000000000000B8 /* ArtistDashboardPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A5 /* ArtistDashboardPageView.swift */; };
 		AA10000000000000000000B9 /* ArtistDashboardPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A5 /* ArtistDashboardPageView.swift */; };
 		AA10000000000000000000BA /* ArtistDashboardPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A6 /* ArtistDashboardPageTests.swift */; };
+		FEED00000000000000000102 /* StationSetupPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEED00000000000000000101 /* StationSetupPageModel.swift */; };
+		FEED00000000000000000103 /* StationSetupPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEED00000000000000000101 /* StationSetupPageModel.swift */; };
+		FEED00000000000000000202 /* StationSetupPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEED00000000000000000201 /* StationSetupPageView.swift */; };
+		FEED00000000000000000203 /* StationSetupPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEED00000000000000000201 /* StationSetupPageView.swift */; };
+		FEED00000000000000000302 /* StationSetupPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEED00000000000000000301 /* StationSetupPageTests.swift */; };
+		FEED00000000000000000402 /* ArtistDashboardTabRootModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEED00000000000000000401 /* ArtistDashboardTabRootModel.swift */; };
+		FEED00000000000000000403 /* ArtistDashboardTabRootModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEED00000000000000000401 /* ArtistDashboardTabRootModel.swift */; };
+		FEED00000000000000000502 /* ArtistDashboardTabRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEED00000000000000000501 /* ArtistDashboardTabRootView.swift */; };
+		FEED00000000000000000503 /* ArtistDashboardTabRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEED00000000000000000501 /* ArtistDashboardTabRootView.swift */; };
+		FEED00000000000000000602 /* ArtistDashboardTabRootTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEED00000000000000000601 /* ArtistDashboardTabRootTests.swift */; };
 		AAF1000000000000000000B1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */; };
 		AAF1000000000000000000B2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */; };
 		AB0A00000000000000000001 /* StationPlayerPlaybackAttemptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00000000000000000002 /* StationPlayerPlaybackAttemptTests.swift */; };
@@ -120,6 +130,10 @@
 		C8DC13568BBCD5F8E6845644 /* GiveawayCongratsSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1493664DBC23415D4EE04C91 /* GiveawayCongratsSheetView.swift */; };
 		CC0000000000000000000102 /* StationCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000101 /* StationCategory.swift */; };
 		CC0000000000000000000103 /* StationCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000101 /* StationCategory.swift */; };
+		BEEF00000000000000000102 /* StationSetupProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEF00000000000000000101 /* StationSetupProgress.swift */; };
+		BEEF00000000000000000103 /* StationSetupProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEF00000000000000000101 /* StationSetupProgress.swift */; };
+		BEEF00000000000000000202 /* StationCategoryProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEF00000000000000000201 /* StationCategoryProgress.swift */; };
+		BEEF00000000000000000203 /* StationCategoryProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEF00000000000000000201 /* StationCategoryProgress.swift */; };
 		CC0000000000000000000105 /* StationCategoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000104 /* StationCategoryTests.swift */; };
 		CC0000000000000000000112 /* BreakersLibraryPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000111 /* BreakersLibraryPageModel.swift */; };
 		CC0000000000000000000113 /* BreakersLibraryPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000111 /* BreakersLibraryPageModel.swift */; };
@@ -552,6 +566,8 @@
 		D3FACE010000000000000002 /* InDevelopmentBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE010000000000000001 /* InDevelopmentBadge.swift */; };
 		D3FACE010000000000000003 /* InDevelopmentBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE010000000000000001 /* InDevelopmentBadge.swift */; };
 		D3FACE010000000000000005 /* ArtistSuggestionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE010000000000000004 /* ArtistSuggestionTests.swift */; };
+		BEEF00000000000000000302 /* StationSetupProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEF00000000000000000301 /* StationSetupProgressTests.swift */; };
+		BEEF00000000000000000402 /* StationCategoryProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEF00000000000000000401 /* StationCategoryProgressTests.swift */; };
 		D3FACE020000000000000002 /* RemoteArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE020000000000000001 /* RemoteArtwork.swift */; };
 		D3FACE020000000000000003 /* RemoteArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE020000000000000001 /* RemoteArtwork.swift */; };
 		D3FACE030000000000000011 /* Spin+Progress.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE030000000000000010 /* Spin+Progress.swift */; };
@@ -663,6 +679,12 @@
 		AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardPageModel.swift; sourceTree = "<group>"; };
 		AA10000000000000000000A5 /* ArtistDashboardPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardPageView.swift; sourceTree = "<group>"; };
 		AA10000000000000000000A6 /* ArtistDashboardPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardPageTests.swift; sourceTree = "<group>"; };
+		FEED00000000000000000101 /* StationSetupPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationSetupPageModel.swift; sourceTree = "<group>"; };
+		FEED00000000000000000201 /* StationSetupPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationSetupPageView.swift; sourceTree = "<group>"; };
+		FEED00000000000000000301 /* StationSetupPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationSetupPageTests.swift; sourceTree = "<group>"; };
+		FEED00000000000000000401 /* ArtistDashboardTabRootModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardTabRootModel.swift; sourceTree = "<group>"; };
+		FEED00000000000000000501 /* ArtistDashboardTabRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardTabRootView.swift; sourceTree = "<group>"; };
+		FEED00000000000000000601 /* ArtistDashboardTabRootTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardTabRootTests.swift; sourceTree = "<group>"; };
 		AAF1000000000000000000A1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		AB0A00000000000000000002 /* StationPlayerPlaybackAttemptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerPlaybackAttemptTests.swift; sourceTree = "<group>"; };
 		AB0A00000000000000000004 /* StationPlayerRenderBackendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerRenderBackendTests.swift; sourceTree = "<group>"; };
@@ -685,6 +707,8 @@
 		BFF0EA0DF7714364A04B11B7 /* PresetsCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetsCarousel.swift; sourceTree = "<group>"; };
 		C5D7B33C7D72A6E770CF667F /* KoozieAddressFormModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KoozieAddressFormModelTests.swift; sourceTree = "<group>"; };
 		CC0000000000000000000101 /* StationCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationCategory.swift; sourceTree = "<group>"; };
+		BEEF00000000000000000101 /* StationSetupProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationSetupProgress.swift; sourceTree = "<group>"; };
+		BEEF00000000000000000201 /* StationCategoryProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationCategoryProgress.swift; sourceTree = "<group>"; };
 		CC0000000000000000000104 /* StationCategoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationCategoryTests.swift; sourceTree = "<group>"; };
 		CC0000000000000000000111 /* BreakersLibraryPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakersLibraryPageModel.swift; sourceTree = "<group>"; };
 		CC0000000000000000000114 /* BreakersLibraryPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakersLibraryPageView.swift; sourceTree = "<group>"; };
@@ -932,6 +956,8 @@
 		D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPageModel.swift; sourceTree = "<group>"; };
 		D3FACE010000000000000001 /* InDevelopmentBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InDevelopmentBadge.swift; sourceTree = "<group>"; };
 		D3FACE010000000000000004 /* ArtistSuggestionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistSuggestionTests.swift; sourceTree = "<group>"; };
+		BEEF00000000000000000301 /* StationSetupProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationSetupProgressTests.swift; sourceTree = "<group>"; };
+		BEEF00000000000000000401 /* StationCategoryProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationCategoryProgressTests.swift; sourceTree = "<group>"; };
 		D3FACE020000000000000001 /* RemoteArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteArtwork.swift; sourceTree = "<group>"; };
 		D3FACE030000000000000010 /* Spin+Progress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Spin+Progress.swift"; sourceTree = "<group>"; };
 		D3FACE030000000000000020 /* Spin+ProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Spin+ProgressTests.swift"; sourceTree = "<group>"; };
@@ -1074,8 +1100,21 @@
 				AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */,
 				AA10000000000000000000A5 /* ArtistDashboardPageView.swift */,
 				AA10000000000000000000A6 /* ArtistDashboardPageTests.swift */,
+				FEED00000000000000000401 /* ArtistDashboardTabRootModel.swift */,
+				FEED00000000000000000501 /* ArtistDashboardTabRootView.swift */,
+				FEED00000000000000000601 /* ArtistDashboardTabRootTests.swift */,
 			);
 			path = ArtistDashboardPage;
+			sourceTree = "<group>";
+		};
+		FEED00000000000000000C2 /* StationSetupPage */ = {
+			isa = PBXGroup;
+			children = (
+				FEED00000000000000000101 /* StationSetupPageModel.swift */,
+				FEED00000000000000000201 /* StationSetupPageView.swift */,
+				FEED00000000000000000301 /* StationSetupPageTests.swift */,
+			);
+			path = StationSetupPage;
 			sourceTree = "<group>";
 		};
 		AB0B00000000000000000006 /* DeveloperOptionsSheet */ = {
@@ -1278,6 +1317,10 @@
 				9EC624A968B0E0DA09E64702 /* KoozieShippingAddress.swift */,
 				CC0000000000000000000101 /* StationCategory.swift */,
 				CC0000000000000000000104 /* StationCategoryTests.swift */,
+				BEEF00000000000000000101 /* StationSetupProgress.swift */,
+				BEEF00000000000000000301 /* StationSetupProgressTests.swift */,
+				BEEF00000000000000000201 /* StationCategoryProgress.swift */,
+				BEEF00000000000000000401 /* StationCategoryProgressTests.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1326,6 +1369,7 @@
 				D3776A022F22BA1A00200ADF /* AskQuestionPage */,
 				D3776A162F243F7A00200ADF /* BroadcastersListenerQuestionPage */,
 				AA10000000000000000000C2 /* ArtistDashboardPage */,
+				FEED00000000000000000C2 /* StationSetupPage */,
 				AA10000000000000000000C1 /* ArtistStationPage */,
 				CC0000000000000000000110 /* BreakersLibraryPage */,
 				CC0000000000000000000200 /* BreakerCategoryDetailPage */,
@@ -2332,7 +2376,13 @@
 				AA10000000000000000000B3 /* ArtistStationPageView.swift in Sources */,
 				AA10000000000000000000B6 /* ArtistDashboardPageModel.swift in Sources */,
 				AA10000000000000000000B8 /* ArtistDashboardPageView.swift in Sources */,
+				FEED00000000000000000102 /* StationSetupPageModel.swift in Sources */,
+				FEED00000000000000000202 /* StationSetupPageView.swift in Sources */,
+				FEED00000000000000000402 /* ArtistDashboardTabRootModel.swift in Sources */,
+				FEED00000000000000000502 /* ArtistDashboardTabRootView.swift in Sources */,
 				CC0000000000000000000102 /* StationCategory.swift in Sources */,
+				BEEF00000000000000000102 /* StationSetupProgress.swift in Sources */,
+				BEEF00000000000000000202 /* StationCategoryProgress.swift in Sources */,
 				CC0000000000000000000112 /* BreakersLibraryPageModel.swift in Sources */,
 				CC0000000000000000000115 /* BreakersLibraryPageView.swift in Sources */,
 				CC0000000000000000000202 /* BreakerCategoryDetailPageModel.swift in Sources */,
@@ -2565,7 +2615,13 @@
 				AA10000000000000000000B4 /* ArtistStationPageView.swift in Sources */,
 				AA10000000000000000000B7 /* ArtistDashboardPageModel.swift in Sources */,
 				AA10000000000000000000B9 /* ArtistDashboardPageView.swift in Sources */,
+				FEED00000000000000000103 /* StationSetupPageModel.swift in Sources */,
+				FEED00000000000000000203 /* StationSetupPageView.swift in Sources */,
+				FEED00000000000000000403 /* ArtistDashboardTabRootModel.swift in Sources */,
+				FEED00000000000000000503 /* ArtistDashboardTabRootView.swift in Sources */,
 				CC0000000000000000000103 /* StationCategory.swift in Sources */,
+				BEEF00000000000000000103 /* StationSetupProgress.swift in Sources */,
+				BEEF00000000000000000203 /* StationCategoryProgress.swift in Sources */,
 				CC0000000000000000000113 /* BreakersLibraryPageModel.swift in Sources */,
 				CC0000000000000000000116 /* BreakersLibraryPageView.swift in Sources */,
 				CC0000000000000000000203 /* BreakerCategoryDetailPageModel.swift in Sources */,
@@ -2739,6 +2795,8 @@
 				D3219C1F2EDD22360008AFDA /* BroadcastPageTests.swift in Sources */,
 				AA10000000000000000000B5 /* ArtistStationPageTests.swift in Sources */,
 				AA10000000000000000000BA /* ArtistDashboardPageTests.swift in Sources */,
+				FEED00000000000000000302 /* StationSetupPageTests.swift in Sources */,
+				FEED00000000000000000602 /* ArtistDashboardTabRootTests.swift in Sources */,
 				CC0000000000000000000105 /* StationCategoryTests.swift in Sources */,
 				CC0000000000000000000118 /* BreakersLibraryPageTests.swift in Sources */,
 				CC0000000000000000000208 /* BreakerCategoryDetailPageTests.swift in Sources */,
@@ -2781,6 +2839,8 @@
 				D35EFBEE2F1092A7000F64A4 /* RRuleFormatterTests.swift in Sources */,
 				D39728762F60E2A7008591E3 /* StationSuggestionPageTests.swift in Sources */,
 				D3FACE010000000000000005 /* ArtistSuggestionTests.swift in Sources */,
+				BEEF00000000000000000302 /* StationSetupProgressTests.swift in Sources */,
+				BEEF00000000000000000402 /* StationCategoryProgressTests.swift in Sources */,
 				D3FACE030000000000000021 /* Spin+ProgressTests.swift in Sources */,
 				D30257812E639FF200F4228B /* LikesManagerTests.swift in Sources */,
 				D35EFC592F1B0472000F64A4 /* AppRatingClientTests.swift in Sources */,
