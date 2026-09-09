@@ -108,6 +108,26 @@ struct StationSetupPageTests {
     expectNoDifference(model.ringProgress, 0)
   }
 
+  @Test func ringIsAmberWhileBuilding() async {
+    let model = await makeModel {
+      $0.api.getStationSetupProgress = { _, _ in
+        Self.setupProgress(displayPercentage: 47, progress: 0.47)
+      }
+    }
+
+    expectNoDifference(model.ringColor, Color(hex: "#FFC107"))
+  }
+
+  @Test func ringTurnsGreenOnceComplete() async {
+    let model = await makeModel {
+      $0.api.getStationSetupProgress = { _, _ in
+        Self.setupProgress(displayPercentage: 100, progress: 1)
+      }
+    }
+
+    expectNoDifference(model.ringColor, Color(hex: "#34C759"))
+  }
+
   // MARK: - Tagline
 
   @Test func taglineComposesStationNameClientSide() async {
@@ -140,7 +160,9 @@ struct StationSetupPageTests {
     expectNoDifference(model.componentRows[1].tint, Color(hex: "#FFC107"))
   }
 
-  @Test func incompleteFactorBelowHalfUsesRedTint() async {
+  @Test func incompleteFactorBelowHalfStillUsesAmberTint() async {
+    // A barely-started station is "building", not an error — an incomplete factor is amber
+    // regardless of how far along it is, never red.
     let model = await makeModel {
       $0.api.getStationSetupProgress = { _, _ in
         Self.setupProgress(
@@ -148,7 +170,7 @@ struct StationSetupPageTests {
       }
     }
 
-    expectNoDifference(model.componentRows[2].tint, .playolaRed)
+    expectNoDifference(model.componentRows[2].tint, Color(hex: "#FFC107"))
   }
 
   @Test func welcomeValueTextShowsReadyWhenComplete() async {
@@ -267,7 +289,7 @@ struct StationSetupPageTests {
     expectNoDifference(row.countText, "9 / 5")
   }
 
-  @Test func incompleteCategoryBelowHalfUsesDashedIconAndRedTint() async {
+  @Test func incompleteCategoryBelowHalfStillUsesDashedIconAndAmberTint() async {
     let model = await makeModel {
       $0.api.getDraftStationCategoryProgress = { _, _ in
         StationCategoryProgressResponse(
@@ -280,11 +302,11 @@ struct StationSetupPageTests {
 
     let row = model.categoryRows[0]
     expectNoDifference(row.iconSystemName, "circle.dashed")
-    expectNoDifference(row.tint, .playolaRed)
+    expectNoDifference(row.tint, Color(hex: "#FFC107"))
     expectNoDifference(row.countText, "2 / 5")
   }
 
-  @Test func incompleteCategoryAtOrAboveHalfUsesAmberTint() async {
+  @Test func incompleteCategoryAboveHalfUsesDashedIconAndAmberTint() async {
     let model = await makeModel {
       $0.api.getDraftStationCategoryProgress = { _, _ in
         StationCategoryProgressResponse(

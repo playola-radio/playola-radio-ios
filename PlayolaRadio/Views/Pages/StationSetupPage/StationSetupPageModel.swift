@@ -68,7 +68,7 @@ class StationSetupPageModel: ViewModel {
   var setupEyebrow: String { "STATION SETUP" }
   var ringPercentLabel: String { "\(progress?.displayPercentage ?? 0)%" }
   var ringProgress: Double { Self.clamp01(progress?.progress ?? 0) }
-  var ringColor: Color { .playolaRed }
+  var ringColor: Color { Self.tint(isComplete: ringProgress >= 1) }
   var tagline: String { "\(station.name) is taking shape" }
 
   var componentsSectionTitle: String { "STATION COMPONENTS" }
@@ -189,10 +189,14 @@ class StationSetupPageModel: ViewModel {
     factor.required == 0 || factor.current >= factor.required
   }
 
+  // A station in development is a positive "building" state, not an error state, so an unfinished
+  // component reads as amber ("in progress"), never red. Green only once it's complete.
+  private static func tint(isComplete: Bool) -> Color {
+    isComplete ? Color(hex: "#34C759") : Color(hex: "#FFC107")
+  }
+
   private func tint(for factor: StationSetupProgress.Factor) -> Color {
-    if Self.isFactorComplete(factor) { return Color(hex: "#34C759") }
-    if factor.progress >= 0.5 { return Color(hex: "#FFC107") }
-    return .playolaRed
+    Self.tint(isComplete: Self.isFactorComplete(factor))
   }
 
   private static func countValueText(_ factor: StationSetupProgress.Factor) -> String {
@@ -212,14 +216,10 @@ class StationSetupPageModel: ViewModel {
     let fraction =
       category.minimumCount <= 0
       ? 1 : clamp01(Double(category.audioBlockCount) / Double(category.minimumCount))
-    let tint: Color =
-      isComplete
-      ? Color(hex: "#34C759")
-      : fraction >= 0.5 ? Color(hex: "#FFC107") : .playolaRed
     return CategoryRow(
       id: category.id,
       iconSystemName: isComplete ? "checkmark.circle" : "circle.dashed",
-      tint: tint,
+      tint: tint(isComplete: isComplete),
       name: category.name,
       countText: "\(category.audioBlockCount) / \(category.minimumCount)",
       progress: fraction)
