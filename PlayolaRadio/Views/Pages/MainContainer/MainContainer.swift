@@ -222,7 +222,7 @@ struct MainContainer: View {
   private var artistDashboardTab: some View {
     NavigationStack(path: navigationPathBinding(\.artistDashboardPath)) {
       tabContentWithSmallPlayer {
-        ArtistDashboardPageView(model: model.artistDashboardPageModel)
+        ArtistDashboardTabRootView(model: model.artistDashboardTabRootModel)
           .id(model.broadcastStationId)
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in

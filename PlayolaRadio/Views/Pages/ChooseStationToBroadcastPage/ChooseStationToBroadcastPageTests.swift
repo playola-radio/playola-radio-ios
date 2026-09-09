@@ -84,7 +84,7 @@ struct ChooseStationToBroadcastPageTests {
   }
 
   @Test
-  func testSortedStationsFiltersOutInactiveStations() {
+  func testSortedStationsIncludesInDevelopmentStations() {
     let stations = [
       Station.mockWith(id: "active-1", name: "Active Station", curatorName: "Alice", active: true),
       Station.mockWith(
@@ -97,10 +97,14 @@ struct ChooseStationToBroadcastPageTests {
 
     let model = ChooseStationToBroadcastPageModel(stations: stations)
 
-    #expect(model.sortedStations.count == 3)
-    #expect(!model.sortedStations.contains { $0.id == "inactive-1" })
+    // In-development stations (active == false) are now selectable so artists can reach the
+    // station-setup Dashboard; the Dashboard tab routes active vs. setup itself.
+    #expect(model.sortedStations.count == 4)
+    #expect(model.sortedStations.contains { $0.id == "inactive-1" })
     #expect(model.sortedStations.contains { $0.id == "active-1" })
     #expect(model.sortedStations.contains { $0.id == "active-2" })
     #expect(model.sortedStations.contains { $0.id == "nil-active" })
+    // Still sorted by curatorName: Alice, Bob, Charlie, Dave.
+    #expect(model.sortedStations.map(\.id) == ["active-1", "inactive-1", "active-2", "nil-active"])
   }
 }

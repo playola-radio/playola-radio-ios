@@ -861,6 +861,44 @@ struct APIClient: Sendable {
       StationHealth(score: nil, band: .unavailable, factors: [], tasks: [])
     }
 
+  // MARK: - Station Setup
+
+  /// Fetches a station's overall setup-completion progress.
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station UUID
+  /// - Returns: StationSetupProgress with the overall progress and its weighted factors
+  /// - Throws: APIError if the request fails
+  var getStationSetupProgress:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> StationSetupProgress = {
+      _, _ in
+      StationSetupProgress(
+        stationId: "",
+        progress: 0,
+        displayPercentage: 0,
+        factors: StationSetupProgress.Factors(
+          sourceTapes: StationSetupProgress.Factor(current: 0, required: 0, progress: 0, weight: 0),
+          welcome: StationSetupProgress.Factor(current: 0, required: 0, progress: 0, weight: 0),
+          songs: StationSetupProgress.Factor(current: 0, required: 0, progress: 0, weight: 0),
+          breakers: StationSetupProgress.Factor(current: 0, required: 0, progress: 0, weight: 0)
+        )
+      )
+    }
+
+  /// Fetches a station's draft category progress (fill status toward each category's minimum
+  /// audio-block count). Always requests the `draft` version, since a station in setup only has
+  /// a draft category version.
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station UUID
+  /// - Returns: StationCategoryProgressResponse with readiness and per-category progress
+  /// - Throws: APIError if the request fails
+  var getDraftStationCategoryProgress:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws ->
+      StationCategoryProgressResponse = { _, _ in
+        StationCategoryProgressResponse(usesCategoryProgress: false, readiness: nil, categories: [])
+      }
+
   // MARK: - Station Listener Analytics
 
   /// Fetches active-listener summary counts for a station over a time window. Pass `airtime` as

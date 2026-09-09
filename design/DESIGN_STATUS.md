@@ -109,7 +109,7 @@ Sequential artist experience while a station is being assembled. Exports under
 
 | Frame | Node ID | Status | Notes |
 |---|---|---|---|
-| Dashboard · Station Setup (Artist · In Development) | `XjSto` | Proposed | Initial dashboard state; beginning of the station-in-development flow |
+| Dashboard · Station Setup (Artist · In Development) | `XjSto` | Implementing | Dashboard tab routes to a station-setup screen when the artist's own station has `active == false` (thin `ArtistDashboardTabRootModel` router + `StationSetupPage`); `/setup-progress` + `/station-categories?version=draft` endpoints. **Intentional deviation from the mock:** progress uses amber-while-building / green-when-complete only — the mock's coral (`#EF6962`) low-progress state was dropped because "in development" is a positive building stage, not an error; coral is kept only for the "IN DEVELOPMENT" badge label |
 
 ### Proposal · 3-Tab IA (label `QkDeh`)
 

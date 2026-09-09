@@ -86,7 +86,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored private var toastObservationTask: Task<Void, Never>?
 
   // Broadcast mode models
-  var artistDashboardPageModel = ArtistDashboardPageModel()
+  var artistDashboardTabRootModel = ArtistDashboardTabRootModel()
   var artistStationPageModel = ArtistStationPageModel()
 
   var shouldShowSmallPlayer: Bool = false

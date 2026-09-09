@@ -956,6 +956,16 @@ extension APIClient: DependencyKey {
         try await authenticatedGet(
           path: "/v1/stations/\(stationId)/health-score", token: jwtToken)
       },
+      getStationSetupProgress: { jwtToken, stationId in
+        try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/setup-progress", token: jwtToken)
+      },
+      getDraftStationCategoryProgress: { jwtToken, stationId in
+        try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/station-categories",
+          token: jwtToken,
+          queryParams: ["version": "draft"])
+      },
       getActiveListeningSessions: { jwtToken, stationId, airtime, endTime in
         var queryParams: [String: String] = [
           "airtime": airtime.ISO8601Format(),
