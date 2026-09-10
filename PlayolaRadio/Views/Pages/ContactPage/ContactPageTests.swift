@@ -578,4 +578,13 @@ struct ContactPageTests {
   @Test func showRewardsButtonTrueWhenNoTracker() {
     #expect(ContactPageModel().showRewardsButton == true)
   }
+
+  // MARK: - App Version Label
+
+  @Test func appVersionLabelMatchesBundleVersionAndBuild() {
+    let version = Bundle.main.releaseVersionNumber ?? "—"
+    let build = Bundle.main.buildVersionNumber ?? "—"
+
+    #expect(ContactPageModel().appVersionLabel == "Version \(version) (\(build))")
+  }
 }
