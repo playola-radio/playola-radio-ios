@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  ArtistDashboardPageTests.swift
 //  PlayolaRadio
@@ -60,40 +61,28 @@ struct ArtistDashboardPageTests {
   private let fixedNow = Date(timeIntervalSince1970: 1_724_864_400)  // 2024-08-28T17:00:00Z
 
   private func makeHealth(
-    score: Int?,
-    band: StationHealthBand,
-    tasks: [StationHealthTask] = []
-  ) -> StationHealth {
-    StationHealth(
-      score: score,
-      band: band,
-      factors: [
-        StationHealthFactor(
-          key: "appearances", label: "Appearances", weight: 100, applicable: true, score: 0.4)
-      ],
-      tasks: tasks)
+    freshPct: Int?,
+    status: ProgrammingHealthStatus,
+    checks: [ProgrammingHealthCheck] = []
+  ) -> ProgrammingHealth {
+    ProgrammingHealth(stationId: testStationId, status: status, freshPct: freshPct, checks: checks)
   }
 
-  private func makeTask(
-    key: String,
-    label: String,
-    priority: Int,
-    factorKey: String = "appearances",
+  private func makeCheck(
+    kind: String,
+    status: ProgrammingHealthStatus,
     current: Int?,
-    total: Int?,
-    progressLabel: String? = nil
-  ) -> StationHealthTask {
-    var progress: StationHealthTaskProgress?
-    if let current, let total {
-      progress = StationHealthTaskProgress(
-        current: current, total: total, label: progressLabel ?? "\(current) of \(total)")
+    required: Int?
+  ) -> ProgrammingHealthCheck {
+    var progress: ProgrammingHealthCheckProgress?
+    if let current, let required {
+      progress = ProgrammingHealthCheckProgress(current: current, required: required)
     }
-    return StationHealthTask(
-      key: key, label: label, priority: priority, factorKey: factorKey, progress: progress)
+    return ProgrammingHealthCheck(kind: kind, status: status, progress: progress)
   }
 
   private func makeModel(
-    returning health: StationHealth,
+    returning health: ProgrammingHealth,
     capturingStationId captured: LockIsolated<String?>? = nil
   ) async -> ArtistDashboardPageModel {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -104,12 +93,12 @@ struct ArtistDashboardPageTests {
     return await withDependencies {
       $0.date = .constant(fixedNow)
       $0.calendar = fixedCalendar
-      $0.api.getStationHealthScore = { _, stationId in
+      $0.api.getProgrammingHealth = { _, stationId in
         captured?.setValue(stationId)
         return health
       }
       $0.api.getActiveListeningSessions = { _, _, _, _ in Self.emptyActive }
-      $0.api.getListenerCounts = { _, _ in Self.emptyCounts }
+      $0.api.getListenerCounts = { _, _, _, _ in Self.emptyCounts }
     } operation: {
       let model = ArtistDashboardPageModel()
       await model.viewAppeared()
@@ -128,11 +117,12 @@ struct ArtistDashboardPageTests {
     return await withDependencies {
       $0.date = .constant(fixedNow)
       $0.calendar = fixedCalendar
-      $0.api.getStationHealthScore = { _, _ in
-        StationHealth(score: nil, band: .unavailable, factors: [], tasks: [])
+      $0.api.getProgrammingHealth = { _, _ in
+        ProgrammingHealth(
+          stationId: self.testStationId, status: .unknown, freshPct: nil, checks: [])
       }
       $0.api.getActiveListeningSessions = { _, _, _, _ in Self.emptyActive }
-      $0.api.getListenerCounts = { _, _ in Self.emptyCounts }
+      $0.api.getListenerCounts = { _, _, _, _ in Self.emptyCounts }
       configure(&$0)
     } operation: {
       let model = ArtistDashboardPageModel()
@@ -177,8 +167,8 @@ struct ArtistDashboardPageTests {
 
   // MARK: - Health Ring
 
-  @Test func healthScoreAndRingReflectServerScore() async {
-    let model = await makeModel(returning: makeHealth(score: 92, band: .good))
+  @Test func healthScoreAndRingReflectServerFreshPct() async {
+    let model = await makeModel(returning: makeHealth(freshPct: 92, status: .healthy))
 
     expectNoDifference(model.healthScoreLabel, "92")
     expectNoDifference(model.healthRingProgress, 0.92)
@@ -186,22 +176,22 @@ struct ArtistDashboardPageTests {
     expectNoDifference(model.healthStatusLabel, "Your station is in good shape")
   }
 
-  @Test func fairBandUsesAmberRingAndCopy() async {
-    let model = await makeModel(returning: makeHealth(score: 60, band: .fair))
+  @Test func warningStatusUsesAmberRingAndCopy() async {
+    let model = await makeModel(returning: makeHealth(freshPct: 80, status: .warning))
 
     expectNoDifference(model.healthRingColor, Color(hex: "#FFC107"))
     expectNoDifference(model.healthStatusLabel, "Your station could use a little attention")
   }
 
-  @Test func attentionBandUsesRedRingAndCopy() async {
-    let model = await makeModel(returning: makeHealth(score: 30, band: .attention))
+  @Test func unhealthyStatusUsesRedRingAndCopy() async {
+    let model = await makeModel(returning: makeHealth(freshPct: 40, status: .unhealthy))
 
     expectNoDifference(model.healthRingColor, .playolaRed)
     expectNoDifference(model.healthStatusLabel, "Your station needs some attention")
   }
 
-  @Test func nullScoreRendersNeutralEmptyState() async {
-    let model = await makeModel(returning: makeHealth(score: nil, band: .unavailable))
+  @Test func nullFreshPctRendersNeutralEmptyStateNeverZero() async {
+    let model = await makeModel(returning: makeHealth(freshPct: nil, status: .unknown))
 
     expectNoDifference(model.healthScoreLabel, "—")
     expectNoDifference(model.healthRingProgress, 0)
@@ -209,57 +199,157 @@ struct ArtistDashboardPageTests {
     expectNoDifference(model.healthStatusLabel, "Station health isn't available yet")
   }
 
-  @Test func unknownBandFallsBackToNeutral() async {
-    let model = await makeModel(returning: makeHealth(score: nil, band: .unknown))
+  @Test func ringProgressClampsOutOfRangeFreshPct() async {
+    let model = await makeModel(returning: makeHealth(freshPct: 140, status: .healthy))
 
-    expectNoDifference(model.healthRingColor, Color(hex: "#999999"))
-    expectNoDifference(model.healthStatusLabel, "Station health isn't available yet")
+    expectNoDifference(model.healthRingProgress, 1)
   }
 
-  // MARK: - Improve Your Station
+  // MARK: - Improve Your Station: Known Kinds & Copy
 
-  @Test func improvementItemsSortByPriorityAscending() async {
+  @Test func unknownCheckKindsAreHiddenAndExcludedFromCount() async {
     let health = makeHealth(
-      score: 50,
-      band: .fair,
-      tasks: [
-        makeTask(key: "c", label: "Third", priority: 30, current: 0, total: 2),
-        makeTask(key: "a", label: "First", priority: 10, current: 0, total: 2),
-        makeTask(key: "b", label: "Second", priority: 20, current: 0, total: 2),
+      freshPct: 50, status: .warning,
+      checks: [
+        makeCheck(kind: "appearances", status: .healthy, current: 2, required: 2),
+        makeCheck(kind: "brandNewKind", status: .healthy, current: 1, required: 1),
       ])
     let model = await makeModel(returning: health)
 
-    expectNoDifference(model.improvementItems.map(\.title), ["First", "Second", "Third"])
+    expectNoDifference(model.improvementItems.map(\.title), ["Make DJ appearances"])
+    expectNoDifference(model.improveCountLabel, "1 OF 1 DONE")
   }
 
-  @Test func improveCountCountsCompletedTasks() async {
+  @Test func improveCountCountsChecksWithHealthyStatus() async {
     let health = makeHealth(
-      score: 50,
-      band: .fair,
-      tasks: [
-        makeTask(key: "done", label: "Done", priority: 10, current: 3, total: 3),
-        makeTask(key: "partial", label: "Partial", priority: 20, current: 1, total: 4),
-        makeTask(key: "no-progress", label: "No progress", priority: 30, current: nil, total: nil),
+      freshPct: 50, status: .warning,
+      checks: [
+        makeCheck(kind: "appearances", status: .healthy, current: 3, required: 3),
+        makeCheck(kind: "songCategoryFreshness", status: .warning, current: 1, required: 4),
+        makeCheck(
+          kind: "breakerCategoryFreshness", status: .unhealthy, current: nil, required: nil),
       ])
     let model = await makeModel(returning: health)
 
     expectNoDifference(model.improveCountLabel, "1 OF 3 DONE")
   }
 
-  @Test func incompleteItemUsesServerSubtitleAndFractionalProgress() async {
+  @Test func completionCountsAreNeverRederivedFromProgress() async {
+    // status says healthy even though current < required — status is the single source of
+    // truth for completion, never re-derived from progress client-side.
     let health = makeHealth(
-      score: 50,
-      band: .fair,
-      tasks: [
-        makeTask(
-          key: "intros", label: "Record intros", priority: 10, current: 4, total: 12,
-          progressLabel: "4 of 12 intros recorded")
+      freshPct: 90, status: .healthy,
+      checks: [
+        makeCheck(kind: "appearances", status: .healthy, current: 1, required: 5)
+      ])
+    let model = await makeModel(returning: health)
+
+    expectNoDifference(model.improveCountLabel, "1 OF 1 DONE")
+    expectNoDifference(model.improvementItems.first?.icon, "checkmark")
+  }
+
+  @Test func appearancesSubtitleReadsCurrentOfRequired() async {
+    let health = makeHealth(
+      freshPct: 50, status: .warning,
+      checks: [makeCheck(kind: "appearances", status: .warning, current: 1, required: 3)])
+    let model = await makeModel(returning: health)
+
+    expectNoDifference(model.improvementItems.first?.subtitle, "1 of 3")
+  }
+
+  @Test func categoryFreshnessSubtitleAppendsCategoriesFresh() async {
+    let health = makeHealth(
+      freshPct: 50, status: .warning,
+      checks: [
+        makeCheck(kind: "songCategoryFreshness", status: .warning, current: 4, required: 5)
+      ])
+    let model = await makeModel(returning: health)
+
+    expectNoDifference(model.improvementItems.first?.subtitle, "4 of 5 categories fresh")
+  }
+
+  @Test func breakerCategoryFreshnessSubtitleAppendsCategoriesFresh() async {
+    let health = makeHealth(
+      freshPct: 50, status: .warning,
+      checks: [
+        makeCheck(kind: "breakerCategoryFreshness", status: .healthy, current: 3, required: 3)
+      ])
+    let model = await makeModel(returning: health)
+
+    expectNoDifference(model.improvementItems.first?.subtitle, "3 of 3 categories fresh")
+  }
+
+  @Test func pendingQuestionsSubtitleReadsWaitingCountNotZeroOfZero() async {
+    let health = makeHealth(
+      freshPct: 50, status: .warning,
+      checks: [
+        makeCheck(kind: "pendingListenerQuestions", status: .warning, current: 4, required: 0)
+      ])
+    let model = await makeModel(returning: health)
+
+    expectNoDifference(model.improvementItems.first?.subtitle, "4 waiting")
+  }
+
+  @Test func pendingQuestionsSubtitleReadsAllCaughtUpWhenZero() async {
+    let health = makeHealth(
+      freshPct: 90, status: .healthy,
+      checks: [
+        makeCheck(kind: "pendingListenerQuestions", status: .healthy, current: 0, required: 0)
+      ])
+    let model = await makeModel(returning: health)
+
+    expectNoDifference(model.improvementItems.first?.subtitle, "All caught up")
+    // Never "0 of 0".
+    expectNoDifference(model.improvementItems.first?.subtitle.contains("of"), false)
+  }
+
+  @Test func requiredZeroHidesProgressBarButKeepsSubtitle() async {
+    let health = makeHealth(
+      freshPct: 50, status: .warning,
+      checks: [
+        makeCheck(kind: "pendingListenerQuestions", status: .warning, current: 2, required: 0)
       ])
     let model = await makeModel(returning: health)
 
     let item = model.improvementItems.first
-    expectNoDifference(item?.title, "Record intros")
-    expectNoDifference(item?.subtitle, "4 of 12 intros recorded")
+    expectNoDifference(item?.subtitle, "2 waiting")
+    expectNoDifference(item?.progress, 0)
+    expectNoDifference(item?.progressTrackColor, .clear)
+  }
+
+  @Test func currentGreaterThanRequiredShowsVerbatimWithCappedBar() async {
+    let health = makeHealth(
+      freshPct: 50, status: .warning,
+      checks: [makeCheck(kind: "appearances", status: .healthy, current: 3, required: 2)])
+    let model = await makeModel(returning: health)
+
+    let item = model.improvementItems.first
+    expectNoDifference(item?.subtitle, "3 of 2")
+    expectNoDifference(item?.progress, 1)
+  }
+
+  @Test func progressNilShowsTitleOnlyNoSubtitleNoBar() async {
+    let health = makeHealth(
+      freshPct: 50, status: .warning,
+      checks: [makeCheck(kind: "appearances", status: .warning, current: nil, required: nil)])
+    let model = await makeModel(returning: health)
+
+    let item = model.improvementItems.first
+    expectNoDifference(item?.subtitle, "")
+    expectNoDifference(item?.progress, 0)
+    expectNoDifference(item?.progressTrackColor, .clear)
+  }
+
+  @Test func incompleteItemUsesFractionalProgress() async {
+    let health = makeHealth(
+      freshPct: 50, status: .warning,
+      checks: [makeCheck(kind: "songCategoryFreshness", status: .warning, current: 4, required: 12)]
+    )
+    let model = await makeModel(returning: health)
+
+    let item = model.improvementItems.first
+    expectNoDifference(item?.title, "Keep song categories fresh")
+    expectNoDifference(item?.subtitle, "4 of 12 categories fresh")
     expectNoDifference(item?.progress, 4.0 / 12.0)
     expectNoDifference(item?.titleColor, .white)
     expectNoDifference(item?.progressColor, .playolaRed)
@@ -267,12 +357,9 @@ struct ArtistDashboardPageTests {
 
   @Test func completedItemUsesCheckedStyling() async {
     let health = makeHealth(
-      score: 90,
-      band: .good,
-      tasks: [
-        makeTask(
-          key: "answered", label: "Answer questions", priority: 10, current: 12, total: 12,
-          progressLabel: "12 of 12 questions answered")
+      freshPct: 90, status: .healthy,
+      checks: [
+        makeCheck(kind: "pendingListenerQuestions", status: .healthy, current: 0, required: 0)
       ])
     let model = await makeModel(returning: health)
 
@@ -284,72 +371,35 @@ struct ArtistDashboardPageTests {
     expectNoDifference(item?.progressColor, Color(hex: "#34C759"))
   }
 
-  @Test func taskWithoutProgressHasEmptySubtitleAndNoFill() async {
-    let health = makeHealth(
-      score: 50,
-      band: .fair,
-      tasks: [makeTask(key: "x", label: "Setup", priority: 10, current: nil, total: nil)])
-    let model = await makeModel(returning: health)
-
-    let item = model.improvementItems.first
-    expectNoDifference(item?.subtitle, "")
-    expectNoDifference(item?.progress, 0)
-    expectNoDifference(item?.progressTrackColor, .clear)
-  }
-
   @Test func taskWithProgressShowsVisibleTrack() async {
     let health = makeHealth(
-      score: 50,
-      band: .fair,
-      tasks: [makeTask(key: "x", label: "Do it", priority: 10, current: 1, total: 4)])
+      freshPct: 50, status: .warning,
+      checks: [makeCheck(kind: "appearances", status: .warning, current: 1, required: 4)])
     let model = await makeModel(returning: health)
 
     expectNoDifference(model.improvementItems.first?.progressTrackColor, Color(hex: "#5E5F5F"))
   }
 
-  @Test func ringProgressClampsOutOfRangeScore() async {
-    let model = await makeModel(returning: makeHealth(score: 140, band: .good))
-
-    expectNoDifference(model.healthRingProgress, 1)
-  }
-
   // MARK: - Improve Item Navigation
 
-  @Test func tappingAnswerQuestionsTaskPushesListenerQuestionsList() async {
-    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    @Shared(.mainContainerNavigationCoordinator) var coordinator =
-      MainContainerNavigationCoordinator()
-    coordinator.switchToBroadcastMode(stationId: testStationId)
-
+  @Test func tappingAppearancesRowPushesListenerQuestionsList() async {
     let health = makeHealth(
-      score: 40, band: .attention,
-      tasks: [
-        makeTask(
-          key: "answered", label: "Answer questions", priority: 10, factorKey: "appearances",
-          current: 0, total: 3)
-      ])
-
-    let model = await withDependencies {
-      $0.date = .constant(fixedNow)
-      $0.calendar = fixedCalendar
-      $0.api.getStationHealthScore = { _, _ in health }
-      $0.api.getActiveListeningSessions = { _, _, _, _ in Self.emptyActive }
-      $0.api.getListenerCounts = { _, _ in Self.emptyCounts }
-    } operation: {
-      let model = ArtistDashboardPageModel()
-      await model.viewAppeared()
-      return model
-    }
+      freshPct: 40, status: .unhealthy,
+      checks: [makeCheck(kind: "appearances", status: .warning, current: 0, required: 3)])
+    let model = await makeModel(returning: health)
 
     guard let item = model.improvementItems.first else {
       Issue.record("expected an improvement item")
       return
     }
+    expectNoDifference(item.isTappable, true)
+    expectNoDifference(item.chevronOpacity, 1)
+
     model.improvementItemTapped(item)
 
+    @Shared(.mainContainerNavigationCoordinator) var coordinator
     guard
-      case .broadcastersListenerQuestionPage(let pushed) =
-        coordinator.artistDashboardPath.last
+      case .broadcastersListenerQuestionPage(let pushed) = coordinator.artistDashboardPath.last
     else {
       Issue.record("expected broadcastersListenerQuestionPage to be pushed")
       return
@@ -358,31 +408,13 @@ struct ArtistDashboardPageTests {
     expectNoDifference(coordinator.artistDashboardPath.count, 1)
   }
 
-  @Test func tappingNonAppearanceTaskDoesNotNavigate() async {
-    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    @Shared(.mainContainerNavigationCoordinator) var coordinator =
-      MainContainerNavigationCoordinator()
-    coordinator.switchToBroadcastMode(stationId: testStationId)
-
+  @Test func tappingPendingQuestionsRowPushesListenerQuestionsList() async {
     let health = makeHealth(
-      score: 40, band: .attention,
-      tasks: [
-        makeTask(
-          key: "intros", label: "Record intros", priority: 10, factorKey: "intros",
-          current: 4, total: 12)
+      freshPct: 40, status: .unhealthy,
+      checks: [
+        makeCheck(kind: "pendingListenerQuestions", status: .warning, current: 2, required: 0)
       ])
-
-    let model = await withDependencies {
-      $0.date = .constant(fixedNow)
-      $0.calendar = fixedCalendar
-      $0.api.getStationHealthScore = { _, _ in health }
-      $0.api.getActiveListeningSessions = { _, _, _, _ in Self.emptyActive }
-      $0.api.getListenerCounts = { _, _ in Self.emptyCounts }
-    } operation: {
-      let model = ArtistDashboardPageModel()
-      await model.viewAppeared()
-      return model
-    }
+    let model = await makeModel(returning: health)
 
     guard let item = model.improvementItems.first else {
       Issue.record("expected an improvement item")
@@ -390,6 +422,34 @@ struct ArtistDashboardPageTests {
     }
     model.improvementItemTapped(item)
 
+    @Shared(.mainContainerNavigationCoordinator) var coordinator
+    guard
+      case .broadcastersListenerQuestionPage(let pushed) = coordinator.artistDashboardPath.last
+    else {
+      Issue.record("expected broadcastersListenerQuestionPage to be pushed")
+      return
+    }
+    expectNoDifference(pushed.stationId, testStationId)
+  }
+
+  @Test func tappingFreshnessRowDoesNotNavigateAndHasNoChevron() async {
+    let health = makeHealth(
+      freshPct: 40, status: .unhealthy,
+      checks: [
+        makeCheck(kind: "songCategoryFreshness", status: .warning, current: 4, required: 12)
+      ])
+    let model = await makeModel(returning: health)
+
+    guard let item = model.improvementItems.first else {
+      Issue.record("expected an improvement item")
+      return
+    }
+    expectNoDifference(item.isTappable, false)
+    expectNoDifference(item.chevronOpacity, 0)
+
+    model.improvementItemTapped(item)
+
+    @Shared(.mainContainerNavigationCoordinator) var coordinator
     expectNoDifference(coordinator.artistDashboardPath.isEmpty, true)
   }
 
@@ -398,7 +458,7 @@ struct ArtistDashboardPageTests {
   @Test func viewAppearedRequestsBroadcastingStationId() async {
     let captured = LockIsolated<String?>(nil)
     _ = await makeModel(
-      returning: makeHealth(score: 80, band: .good), capturingStationId: captured)
+      returning: makeHealth(freshPct: 80, status: .healthy), capturingStationId: captured)
 
     expectNoDifference(captured.value, testStationId)
   }
@@ -412,9 +472,9 @@ struct ArtistDashboardPageTests {
     let model = await withDependencies {
       $0.date = .constant(fixedNow)
       $0.calendar = fixedCalendar
-      $0.api.getStationHealthScore = { _, _ in throw TestError.networkError }
+      $0.api.getProgrammingHealth = { _, _ in throw TestError.networkError }
       $0.api.getActiveListeningSessions = { _, _, _, _ in Self.emptyActive }
-      $0.api.getListenerCounts = { _, _ in Self.emptyCounts }
+      $0.api.getListenerCounts = { _, _, _, _ in Self.emptyCounts }
     } operation: {
       let model = ArtistDashboardPageModel()
       await model.viewAppeared()
@@ -429,7 +489,7 @@ struct ArtistDashboardPageTests {
   }
 
   @Test func successfulLoadClearsLoadingAndPresentsNoAlert() async {
-    let model = await makeModel(returning: makeHealth(score: 80, band: .good))
+    let model = await makeModel(returning: makeHealth(freshPct: 80, status: .healthy))
 
     expectNoDifference(model.isLoading, false)
     expectNoDifference(model.presentedAlert == nil, true)
@@ -437,13 +497,13 @@ struct ArtistDashboardPageTests {
 
   @Test func skipsLoadWhenNotBroadcasting() async {
     let captured = LockIsolated<String?>(nil)
-    let health = makeHealth(score: 80, band: .good)
+    let health = makeHealth(freshPct: 80, status: .healthy)
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
 
     let model = await withDependencies {
-      $0.api.getStationHealthScore = { _, stationId in
+      $0.api.getProgrammingHealth = { _, stationId in
         captured.setValue(stationId)
         return health
       }
@@ -466,7 +526,7 @@ struct ArtistDashboardPageTests {
 
     let model = await makeBroadcastingModel {
       $0.api.getActiveListeningSessions = { _, _, airtime, _ in
-        if airtime == startOfToday { return Self.active(23) }
+        if airtime == fixedNow { return Self.active(23) }
         if airtime == weekStart { return Self.active(184) }
         if airtime == monthStart { return Self.active(721) }
         return Self.emptyActive
@@ -476,7 +536,7 @@ struct ArtistDashboardPageTests {
     expectNoDifference(model.stats.map(\.value), ["23", "184", "721"])
   }
 
-  @Test func activeListenerWindowsUseTrailingCompleteDays() async {
+  @Test func nowCardRequestsPointInTimeWindowNotTodaySoFar() async {
     let startOfToday = fixedCalendar.startOfDay(for: fixedNow)
     let weekStart = fixedCalendar.date(byAdding: .day, value: -7, to: startOfToday)!
     let monthStart = fixedCalendar.date(byAdding: .day, value: -30, to: startOfToday)!
@@ -489,7 +549,9 @@ struct ArtistDashboardPageTests {
       }
     }
 
-    expectNoDifference(windows.value[startOfToday], fixedNow)
+    // NOW: airtime == now, endTime == nil ("listening right now"), not
+    // airtime == startOfToday / endTime == now ("listened at any point today").
+    expectNoDifference(windows.value[fixedNow] ?? .some(nil), .some(nil))
     expectNoDifference(windows.value[weekStart], startOfToday)
     expectNoDifference(windows.value[monthStart], startOfToday)
     // Five windows total: the three stat cards above plus the two rolling weekly-trend windows
@@ -516,7 +578,7 @@ struct ArtistDashboardPageTests {
 
   @Test func weekBarsMapServerBucketsWithLiveSoFarBar() async {
     let model = await makeBroadcastingModel {
-      $0.api.getListenerCounts = { _, _ in
+      $0.api.getListenerCounts = { _, _, _, _ in
         Self.counts([
           Self.bucket("2024-07-21", uniqueUsers: 22),
           Self.bucket("2024-07-28", uniqueUsers: 44),
@@ -534,7 +596,7 @@ struct ArtistDashboardPageTests {
 
   @Test func weekBarsEmptyWhenNoBuckets() async {
     let model = await makeBroadcastingModel {
-      $0.api.getListenerCounts = { _, _ in Self.counts([]) }
+      $0.api.getListenerCounts = { _, _, _, _ in Self.counts([]) }
     }
 
     expectNoDifference(model.weekBars.isEmpty, true)
@@ -542,7 +604,7 @@ struct ArtistDashboardPageTests {
 
   @Test func weekBarsUseZeroHeightWhenAllCountsZero() async {
     let model = await makeBroadcastingModel {
-      $0.api.getListenerCounts = { _, _ in
+      $0.api.getListenerCounts = { _, _, _, _ in
         Self.counts([
           Self.bucket("2024-07-21", uniqueUsers: 0),
           Self.bucket("2024-07-28", uniqueUsers: 0),
@@ -555,7 +617,7 @@ struct ArtistDashboardPageTests {
 
   @Test func chartFailureLeavesEmptyBarsWithoutAlert() async {
     let model = await makeBroadcastingModel {
-      $0.api.getListenerCounts = { _, _ in throw TestError.networkError }
+      $0.api.getListenerCounts = { _, _, _, _ in throw TestError.networkError }
     }
 
     expectNoDifference(model.weekBars.isEmpty, true)
@@ -564,7 +626,7 @@ struct ArtistDashboardPageTests {
 
   @Test func weekBarsCapAtMostRecentEightWeeks() async {
     let model = await makeBroadcastingModel {
-      $0.api.getListenerCounts = { _, _ in
+      $0.api.getListenerCounts = { _, _, _, _ in
         Self.counts([
           Self.bucket("2024-06-02", uniqueUsers: 1),
           Self.bucket("2024-06-09", uniqueUsers: 2),
@@ -595,7 +657,7 @@ struct ArtistDashboardPageTests {
 
   @Test func weekBarsClampNegativeCountsToZeroHeight() async {
     let model = await makeBroadcastingModel {
-      $0.api.getListenerCounts = { _, _ in
+      $0.api.getListenerCounts = { _, _, _, _ in
         Self.counts([
           Self.bucket("2024-07-21", uniqueUsers: -5),
           Self.bucket("2024-07-28", uniqueUsers: 40),
@@ -604,6 +666,75 @@ struct ArtistDashboardPageTests {
     }
 
     expectNoDifference(model.weekBars.map(\.heightFraction), [0, 1.0])
+  }
+
+  @Test func listenerCountsRequestsComputedChicagoDateRange() async {
+    let requestedRange = LockIsolated<(String, String)?>(nil)
+
+    _ = await makeBroadcastingModel {
+      $0.api.getListenerCounts = { _, _, startDate, endDate in
+        requestedRange.setValue((startDate, endDate))
+        return Self.emptyCounts
+      }
+    }
+
+    let expected = ArtistDashboardPageModel.listenerCountsDateRange(now: fixedNow)
+    expectNoDifference(requestedRange.value?.0, expected.startDate)
+    expectNoDifference(requestedRange.value?.1, expected.endDate)
+  }
+
+  // MARK: - Listener Counts Date Range Helper
+
+  @Test func dateRangeHelperMidweekDate() {
+    // Wednesday 2026-09-16 12:00 UTC (America/Chicago: still Wed 2026-09-16).
+    let now = Date(timeIntervalSince1970: 1_789_567_200)
+    let range = ArtistDashboardPageModel.listenerCountsDateRange(now: now)
+
+    expectNoDifference(range.endDate, "2026-09-16")
+    // Current week's Monday is 2026-09-14; 7 preceding weeks back is 2026-07-27.
+    expectNoDifference(range.startDate, "2026-07-27")
+  }
+
+  @Test func dateRangeHelperOnAMonday() {
+    // Monday 2026-09-14 12:00 UTC.
+    let now = Date(timeIntervalSince1970: 1_789_394_400)
+    let range = ArtistDashboardPageModel.listenerCountsDateRange(now: now)
+
+    expectNoDifference(range.endDate, "2026-09-14")
+    expectNoDifference(range.startDate, "2026-07-27")
+  }
+
+  @Test func dateRangeHelperSundayNightUSEasternDeviceTime() {
+    // Sunday 2026-09-13, 23:30 US-Eastern == 2026-09-14 03:30 UTC == Sunday 2026-09-13 22:30
+    // America/Chicago (still Sunday there — one hour behind Eastern).
+    let now = Date(timeIntervalSince1970: 1_789_357_800)
+    let range = ArtistDashboardPageModel.listenerCountsDateRange(now: now)
+
+    expectNoDifference(range.endDate, "2026-09-13")
+    // Current week's Monday (containing 2026-09-13, a Sunday) is 2026-09-07.
+    expectNoDifference(range.startDate, "2026-07-20")
+  }
+
+  @Test func dateRangeHelperSpringForwardDST() {
+    // 2026-03-08 is US spring-forward (America/Chicago: 2am -> 3am). Noon UTC lands on the
+    // morning of 2026-03-08 in Chicago (just after the transition).
+    let now = Date(timeIntervalSince1970: 1_772_971_200)
+    let range = ArtistDashboardPageModel.listenerCountsDateRange(now: now)
+
+    expectNoDifference(range.endDate, "2026-03-08")
+    // 2026-03-08 is a Sunday; current week's Monday is 2026-03-02, minus 7 weeks = 2026-01-12.
+    expectNoDifference(range.startDate, "2026-01-12")
+  }
+
+  @Test func dateRangeHelperFallBackDST() {
+    // 2026-11-01 is US fall-back (America/Chicago: 2am -> 1am). Noon UTC lands on the
+    // morning of 2026-11-01 in Chicago.
+    let now = Date(timeIntervalSince1970: 1_793_534_400)
+    let range = ArtistDashboardPageModel.listenerCountsDateRange(now: now)
+
+    expectNoDifference(range.endDate, "2026-11-01")
+    // 2026-11-01 is a Sunday; current week's Monday is 2026-10-26, minus 7 weeks = 2026-09-07.
+    expectNoDifference(range.startDate, "2026-09-07")
   }
 
   // MARK: - Weekly Report Trend
@@ -681,7 +812,7 @@ struct ArtistDashboardPageTests {
 
   @Test func chartSpinnerHiddenAfterBucketsLoad() async {
     let model = await makeBroadcastingModel {
-      $0.api.getListenerCounts = { _, _ in
+      $0.api.getListenerCounts = { _, _, _, _ in
         Self.counts([Self.bucket("2024-07-21", uniqueUsers: 5)])
       }
     }
@@ -702,11 +833,11 @@ struct ArtistDashboardPageTests {
     let model = withDependencies {
       $0.date = .constant(fixedNow)
       $0.calendar = fixedCalendar
-      $0.api.getStationHealthScore = { _, _ in
-        StationHealth(score: nil, band: .unavailable, factors: [], tasks: [])
+      $0.api.getProgrammingHealth = { _, _ in
+        ProgrammingHealth(stationId: testStationId, status: .unknown, freshPct: nil, checks: [])
       }
       $0.api.getActiveListeningSessions = { _, _, _, _ in Self.emptyActive }
-      $0.api.getListenerCounts = { _, _ in
+      $0.api.getListenerCounts = { _, _, _, _ in
         started.continuation.yield()
         await withCheckedContinuation { release.setValue($0) }
         return Self.counts([Self.bucket("2024-07-21", uniqueUsers: 5)])
@@ -734,9 +865,9 @@ struct ArtistDashboardPageTests {
 
   @Test func healthReloadFailureClearsStaleScore() async {
     let shouldFail = LockIsolated(false)
-    let health = makeHealth(score: 88, band: .good)
+    let health = makeHealth(freshPct: 88, status: .healthy)
     let model = await makeBroadcastingModel {
-      $0.api.getStationHealthScore = { _, _ in
+      $0.api.getProgrammingHealth = { _, _ in
         if shouldFail.value { throw TestError.networkError }
         return health
       }
@@ -754,7 +885,7 @@ struct ArtistDashboardPageTests {
   @Test func countsReloadFailureClearsStaleBuckets() async {
     let shouldFail = LockIsolated(false)
     let model = await makeBroadcastingModel {
-      $0.api.getListenerCounts = { _, _ in
+      $0.api.getListenerCounts = { _, _, _, _ in
         if shouldFail.value { throw TestError.networkError }
         return Self.counts([Self.bucket("2024-07-21", uniqueUsers: 12)])
       }
@@ -770,9 +901,9 @@ struct ArtistDashboardPageTests {
 
   @Test func cancelledReloadKeepsStateWithoutAlert() async {
     let shouldCancel = LockIsolated(false)
-    let health = makeHealth(score: 88, band: .good)
+    let health = makeHealth(freshPct: 88, status: .healthy)
     let model = await makeBroadcastingModel {
-      $0.api.getStationHealthScore = { _, _ in
+      $0.api.getProgrammingHealth = { _, _ in
         if shouldCancel.value { throw CancellationError() }
         return health
       }
@@ -780,7 +911,7 @@ struct ArtistDashboardPageTests {
         if shouldCancel.value { throw CancellationError() }
         return Self.active(23)
       }
-      $0.api.getListenerCounts = { _, _ in
+      $0.api.getListenerCounts = { _, _, _, _ in
         if shouldCancel.value { throw CancellationError() }
         return Self.counts([Self.bucket("2024-07-21", uniqueUsers: 12)])
       }
@@ -808,14 +939,14 @@ struct ArtistDashboardPageTests {
     let model = await withDependencies {
       $0.date = .constant(fixedNow)
       $0.calendar = fixedCalendar
-      $0.api.getStationHealthScore = { _, _ in
-        StationHealth(score: nil, band: .unavailable, factors: [], tasks: [])
+      $0.api.getProgrammingHealth = { _, _ in
+        ProgrammingHealth(stationId: "station-A", status: .unknown, freshPct: nil, checks: [])
       }
       $0.api.getActiveListeningSessions = { _, stationId, _, _ in
         if stationId == "station-B" { throw CancellationError() }
         return Self.active(23)
       }
-      $0.api.getListenerCounts = { _, _ in Self.emptyCounts }
+      $0.api.getListenerCounts = { _, _, _, _ in Self.emptyCounts }
     } operation: {
       let model = ArtistDashboardPageModel()
       await model.viewAppeared()
@@ -842,16 +973,17 @@ struct ArtistDashboardPageTests {
     let model = withDependencies {
       $0.date = .constant(fixedNow)
       $0.calendar = fixedCalendar
-      $0.api.getStationHealthScore = { _, stationId in
+      $0.api.getProgrammingHealth = { _, stationId in
         if stationId == "station-A" {
           aStarted.continuation.yield()
           await withCheckedContinuation { releaseA.setValue($0) }
-          return StationHealth(score: 11, band: .attention, factors: [], tasks: [])
+          return ProgrammingHealth(
+            stationId: "station-A", status: .unhealthy, freshPct: 11, checks: [])
         }
-        return StationHealth(score: 99, band: .good, factors: [], tasks: [])
+        return ProgrammingHealth(stationId: "station-B", status: .healthy, freshPct: 99, checks: [])
       }
       $0.api.getActiveListeningSessions = { _, _, _, _ in Self.emptyActive }
-      $0.api.getListenerCounts = { _, _ in Self.emptyCounts }
+      $0.api.getListenerCounts = { _, _, _, _ in Self.emptyCounts }
     } operation: {
       ArtistDashboardPageModel()
     }

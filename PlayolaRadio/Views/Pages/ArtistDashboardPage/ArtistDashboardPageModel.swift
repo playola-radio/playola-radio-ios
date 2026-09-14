@@ -9,11 +9,11 @@ import Dependencies
 import Sharing
 import SwiftUI
 
-// NOTE: The Station Health ring / "Improve your station" checklist come from `getStationHealthScore`;
-// the Listeners stat cards come from `getActiveListeningSessions` (one call per card); the 6-week
-// chart comes from `getListenerCounts`. The Weekly Report header trend is a rolling week-over-week
-// change (trailing 7 days vs. the prior 7 days) computed from two more `getActiveListeningSessions`
-// windows.
+// NOTE: The Station Health ring / "Improve your station" checklist come from
+// `getProgrammingHealth`; the Listeners stat cards come from `getActiveListeningSessions` (one
+// call per card); the 6-week chart comes from `getListenerCounts`. The Weekly Report header trend
+// is a rolling week-over-week change (trailing 7 days vs. the prior 7 days) computed from two
+// more `getActiveListeningSessions` windows.
 @MainActor
 @Observable
 class ArtistDashboardPageModel: ViewModel {
@@ -62,11 +62,15 @@ class ArtistDashboardPageModel: ViewModel {
     let progress: Double
     let progressColor: Color
     let progressTrackColor: Color
+    /// Drives the row's tap affordance without any control flow in the view: rows that navigate
+    /// somewhere get a visible chevron, rows that don't get a fully transparent one.
+    let chevronOpacity: Double
+    let isTappable: Bool
   }
 
   // MARK: - State
 
-  private var stationHealth: StationHealth?
+  private var programmingHealth: ProgrammingHealth?
   private var nowUniqueUsers: Int?
   private var weekUniqueUsers: Int?
   private var monthUniqueUsers: Int?
@@ -106,12 +110,12 @@ class ArtistDashboardPageModel: ViewModel {
   }
 
   var healthSectionTitle: String { "STATION HEALTH" }
-  var healthScoreLabel: String { stationHealth?.score.map(String.init) ?? "—" }
+  var healthScoreLabel: String { programmingHealth?.freshPct.map(String.init) ?? "—" }
   var healthRingProgress: Double {
-    stationHealth?.score.map { min(1, max(0, Double($0) / 100)) } ?? 0
+    programmingHealth?.freshPct.map { min(1, max(0, Double($0) / 100)) } ?? 0
   }
-  var healthRingColor: Color { ringColor(for: stationHealth?.band) }
-  var healthStatusLabel: String { statusLabel(for: stationHealth?.band) }
+  var healthRingColor: Color { ringColor(for: programmingHealth?.status) }
+  var healthStatusLabel: String { statusLabel(for: programmingHealth?.status) }
 
   var listenersSectionTitle: String { "LISTENERS" }
 
@@ -156,16 +160,33 @@ class ArtistDashboardPageModel: ViewModel {
 
   var improveSectionTitle: String { "IMPROVE YOUR STATION" }
 
+  /// Kinds the client knows how to render. Unknown kinds are hidden entirely — no meaningful
+  /// client-owned copy exists for them yet — and excluded from the N/M count below.
+  private static let knownCheckKinds: Set<String> = [
+    "appearances", "songCategoryFreshness", "breakerCategoryFreshness",
+    "pendingListenerQuestions",
+  ]
+
+  /// Kinds whose row navigates to the listener-questions list: answering questions is how
+  /// appearances get made, so both the backlog and the completion counter for it land there.
+  private static let navigableCheckKinds: Set<String> = [
+    "appearances", "pendingListenerQuestions",
+  ]
+
+  private var knownChecks: [ProgrammingHealthCheck] {
+    (programmingHealth?.checks ?? []).filter { Self.knownCheckKinds.contains($0.kind) }
+  }
+
   var improveCountLabel: String {
-    let done = stationHealth?.completedTaskCount ?? 0
-    let total = stationHealth?.tasks.count ?? 0
-    return "\(done) OF \(total) DONE"
+    let checks = knownChecks
+    let done = checks.filter { $0.status == .healthy }.count
+    return "\(done) OF \(checks.count) DONE"
   }
 
   var improveCountColor: Color { Color(hex: "#34C759") }
 
   var improvementItems: [ImprovementItem] {
-    (stationHealth?.sortedTasks ?? []).map(Self.improvementItem(from:))
+    knownChecks.map(Self.improvementItem(from:))
   }
 
   // MARK: - User Actions
@@ -180,7 +201,7 @@ class ArtistDashboardPageModel: ViewModel {
     let generation = loadGeneration
     isLoading = true
     defer { if generation == loadGeneration { isLoading = false } }
-    async let health: Void = loadHealthScore(
+    async let health: Void = loadProgrammingHealth(
       token: token, stationId: stationId, generation: generation)
     async let listeners: Void = loadListenerStats(
       token: token, stationId: stationId, generation: generation)
@@ -196,13 +217,39 @@ class ArtistDashboardPageModel: ViewModel {
   func statsLinkTapped() {}
 
   func improvementItemTapped(_ item: ImprovementItem) {
-    guard let stationId,
-      let task = stationHealth?.tasks.first(where: { $0.key == item.id }),
-      task.factorKey == Self.appearancesFactorKey
-    else { return }
+    guard let stationId, item.isTappable else { return }
     navigationCoordinator.push(
       .broadcastersListenerQuestionPage(BroadcastersListenerQuestionPageModel(stationId: stationId))
     )
+  }
+
+  // MARK: - Date Range Helper
+
+  /// Computes the `[startDate, endDate]` range (`YYYY-MM-DD`, America/Chicago) requested from
+  /// `getListenerCounts`: the current Chicago week plus the 7 preceding weeks (8 total, matching
+  /// `maxVisibleWeeks`). Pure and independent of the model's injected `\.calendar` — the server
+  /// buckets in America/Chicago regardless of device locale, so this helper owns its own
+  /// Gregorian, Monday-first, America/Chicago calendar rather than trusting the device's.
+  static func listenerCountsDateRange(now: Date) -> (startDate: String, endDate: String) {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(identifier: "America/Chicago")!
+    calendar.firstWeekday = 2  // Monday
+
+    let today = calendar.startOfDay(for: now)
+    let weekday = calendar.component(.weekday, from: today)
+    let daysSinceMonday = (weekday - calendar.firstWeekday + 7) % 7
+    let currentWeekMonday =
+      calendar.date(byAdding: .day, value: -daysSinceMonday, to: today) ?? today
+    let precedingWeeks = maxVisibleWeeks - 1
+    let startDate =
+      calendar.date(byAdding: .day, value: -7 * precedingWeeks, to: currentWeekMonday)
+      ?? currentWeekMonday
+
+    let formatter = DateFormatter()
+    formatter.calendar = calendar
+    formatter.timeZone = calendar.timeZone
+    formatter.dateFormat = "yyyy-MM-dd"
+    return (startDate: formatter.string(from: startDate), endDate: formatter.string(from: today))
   }
 
   // MARK: - Private Helpers
@@ -214,18 +261,18 @@ class ArtistDashboardPageModel: ViewModel {
     return nil
   }
 
-  private func loadHealthScore(token: String, stationId: String, generation: Int) async {
+  private func loadProgrammingHealth(token: String, stationId: String, generation: Int) async {
     do {
-      let health = try await api.getStationHealthScore(token, stationId)
+      let health = try await api.getProgrammingHealth(token, stationId)
       guard generation == loadGeneration else { return }
-      stationHealth = health
+      programmingHealth = health
     } catch {
       guard !isCancellation(error) else { return }
       guard generation == loadGeneration else { return }
-      stationHealth = nil
+      programmingHealth = nil
       presentedAlert = .stationHealthError(error.localizedDescription)
       await analytics.track(
-        .apiError(endpoint: "getStationHealthScore", error: error.localizedDescription))
+        .apiError(endpoint: "getProgrammingHealth", error: error.localizedDescription))
     }
   }
 
@@ -236,8 +283,10 @@ class ArtistDashboardPageModel: ViewModel {
     let weekStart = calendar.date(byAdding: .day, value: -7, to: endOfYesterday) ?? endOfYesterday
     let monthStart = calendar.date(byAdding: .day, value: -30, to: endOfYesterday) ?? endOfYesterday
 
+    // NOW means "listening right now": a point-in-time check (no endTime), not "listened at any
+    // point today".
     async let nowCount = uniqueUsers(
-      token: token, stationId: stationId, airtime: startOfToday, endTime: referenceNow)
+      token: token, stationId: stationId, airtime: referenceNow, endTime: nil)
     async let weekCount = uniqueUsers(
       token: token, stationId: stationId, airtime: weekStart, endTime: endOfYesterday)
     async let monthCount = uniqueUsers(
@@ -251,7 +300,7 @@ class ArtistDashboardPageModel: ViewModel {
       monthUniqueUsers = month
     } catch {
       // The task was cancelled (navigation away / remount): keep the cards' prior values and
-      // skip analytics, mirroring `loadHealthScore` / `loadListenerCounts`. Reached only when
+      // skip analytics, mirroring `loadProgrammingHealth` / `loadListenerCounts`. Reached only when
       // cancelled — a genuine one-card failure on a live task is swallowed inside `uniqueUsers`
       // (tracked there, returns `nil`) so only that card degrades to "—". (If a real error
       // happens to surface while the task is already cancelled, it is dropped here on purpose:
@@ -293,7 +342,7 @@ class ArtistDashboardPageModel: ViewModel {
   }
 
   private func clearDisplayState() {
-    stationHealth = nil
+    programmingHealth = nil
     nowUniqueUsers = nil
     weekUniqueUsers = nil
     monthUniqueUsers = nil
@@ -317,8 +366,11 @@ class ArtistDashboardPageModel: ViewModel {
   }
 
   private func loadListenerCounts(token: String, stationId: String, generation: Int) async {
+    let range = Self.listenerCountsDateRange(now: now)
     do {
-      let buckets = try await api.getListenerCounts(token, stationId).buckets
+      let buckets = try await api.getListenerCounts(
+        token, stationId, range.startDate, range.endDate
+      ).buckets
       guard generation == loadGeneration else { return }
       listenerBuckets = buckets
     } catch {
@@ -349,76 +401,118 @@ class ArtistDashboardPageModel: ViewModel {
     return "\(month)/\(day)"
   }
 
-  private func ringColor(for band: StationHealthBand?) -> Color {
-    switch band {
-    case .good: return Color(hex: "#34C759")
-    case .fair: return Color(hex: "#FFC107")
-    case .attention: return .playolaRed
-    case .unavailable, .unknown, .none: return Color(hex: "#999999")
+  private func ringColor(for status: ProgrammingHealthStatus?) -> Color {
+    switch status {
+    case .healthy: return Color(hex: "#34C759")
+    case .warning: return Color(hex: "#FFC107")
+    case .unhealthy: return .playolaRed
+    case .unknown, .none: return Color(hex: "#999999")
     }
   }
 
-  private func statusLabel(for band: StationHealthBand?) -> String {
-    switch band {
-    case .good: return "Your station is in good shape"
-    case .fair: return "Your station could use a little attention"
-    case .attention: return "Your station needs some attention"
-    case .unavailable, .unknown, .none: return "Station health isn't available yet"
+  private func statusLabel(for status: ProgrammingHealthStatus?) -> String {
+    switch status {
+    case .healthy: return "Your station is in good shape"
+    case .warning: return "Your station could use a little attention"
+    case .unhealthy: return "Your station needs some attention"
+    case .unknown, .none: return "Station health isn't available yet"
     }
   }
 
-  private static func improvementItem(from task: StationHealthTask) -> ImprovementItem {
-    let isComplete = task.progress?.isComplete ?? false
-    let subtitle = task.progress?.label ?? ""
-    let fraction = task.progress?.fraction ?? 0
-    // Contract: a task with no progress shows no subtitle or bar. Since the view has no
-    // control flow, an absent progress hides the bar by making its track transparent.
-    let trackColor: Color = task.progress == nil ? .clear : Color(hex: "#5E5F5F")
+  /// Client-owned title per known check kind. The server no longer sends display copy, so the
+  /// client composes it — this is what keeps unknown kinds hidden rather than shown with an
+  /// empty/garbled label.
+  private static func title(forKind kind: String) -> String {
+    switch kind {
+    case "appearances": return "Make DJ appearances"
+    case "songCategoryFreshness": return "Keep song categories fresh"
+    case "breakerCategoryFreshness": return "Keep breaker categories fresh"
+    case "pendingListenerQuestions": return "Answer listener questions"
+    default: return kind
+    }
+  }
+
+  /// Client-owned subtitle per known check kind and its progress, following the per-kind copy
+  /// rules: completion counters ("X of Y[...]") read current/required verbatim (capped display of
+  /// `current > required` is intentional, not clamped), while the listener-questions backlog reads
+  /// off `current` alone since a required count of 0 would otherwise misleadingly read "0 of 0".
+  /// Returns `nil` when there's no progress to describe (title-only row).
+  private static func subtitle(for check: ProgrammingHealthCheck) -> String? {
+    guard let progress = check.progress else { return nil }
+    switch check.kind {
+    case "pendingListenerQuestions":
+      return progress.current > 0 ? "\(progress.current) waiting" : "All caught up"
+    case "appearances":
+      return "\(progress.current) of \(progress.required)"
+    case "songCategoryFreshness", "breakerCategoryFreshness":
+      return "\(progress.current) of \(progress.required) categories fresh"
+    default:
+      return nil
+    }
+  }
+
+  /// `0...1` fill for the progress bar. A `required` of `0` makes the fraction undefined, so the
+  /// bar is hidden entirely (see `hasProgressBar`) rather than rendered at a meaningless value.
+  private static func progressFraction(for check: ProgrammingHealthCheck) -> Double {
+    guard let progress = check.progress, progress.required > 0 else { return 0 }
+    return min(1, max(0, Double(progress.current) / Double(progress.required)))
+  }
+
+  private static func hasProgressBar(for check: ProgrammingHealthCheck) -> Bool {
+    guard let progress = check.progress else { return false }
+    return progress.required > 0
+  }
+
+  private static func icon(forKind kind: String) -> String {
+    Self.navigableCheckKinds.contains(kind) ? "bubble.left.and.bubble.right.fill" : "checklist"
+  }
+
+  private static func improvementItem(from check: ProgrammingHealthCheck) -> ImprovementItem {
+    // Completion is server-owned: `status` is the single source of truth and is never
+    // re-derived from `progress` client-side.
+    let isComplete = check.status == .healthy
+    let title = title(forKind: check.kind)
+    let subtitle = subtitle(for: check) ?? ""
+    let fraction = progressFraction(for: check)
+    let trackColor: Color = hasProgressBar(for: check) ? Color(hex: "#5E5F5F") : .clear
+    let isTappable = Self.navigableCheckKinds.contains(check.kind)
+    let chevronOpacity: Double = isTappable ? 1 : 0
 
     if isComplete {
       return ImprovementItem(
-        id: task.key,
+        id: check.kind,
         icon: "checkmark",
         iconColor: .black,
         iconBackgroundColor: Color(hex: "#34C759"),
         iconBorderColor: .clear,
-        title: task.label,
+        title: title,
         titleColor: Color(hex: "#999999"),
         titleFontName: FontNames.Inter_500_Medium,
         subtitle: subtitle,
         subtitleColor: Color(hex: "#34C759"),
         progress: 1,
         progressColor: Color(hex: "#34C759"),
-        progressTrackColor: trackColor)
+        progressTrackColor: trackColor,
+        chevronOpacity: chevronOpacity,
+        isTappable: isTappable)
     }
 
     return ImprovementItem(
-      id: task.key,
-      icon: icon(forFactorKey: task.factorKey),
+      id: check.kind,
+      icon: icon(forKind: check.kind),
       iconColor: Color(hex: "#C7C7C7"),
       iconBackgroundColor: .black,
       iconBorderColor: Color(hex: "#999999"),
-      title: task.label,
+      title: title,
       titleColor: .white,
       titleFontName: FontNames.Inter_600_SemiBold,
       subtitle: subtitle,
       subtitleColor: Color(hex: "#999999"),
       progress: fraction,
       progressColor: .playolaRed,
-      progressTrackColor: trackColor)
-  }
-
-  /// The server-owned factor key for listener questions / DJ appearances. Its improve task
-  /// ("Answer questions") is the one that drills into the listener-questions list.
-  private static let appearancesFactorKey = "appearances"
-
-  /// Presentation-only icon per factor. The server never sends an icon; a sensible default keeps
-  /// new factors rendering without a contract change.
-  private static func icon(forFactorKey key: String) -> String {
-    switch key {
-    case appearancesFactorKey: return "bubble.left.and.bubble.right.fill"
-    default: return "checklist"
-    }
+      progressTrackColor: trackColor,
+      chevronOpacity: chevronOpacity,
+      isTappable: isTappable)
   }
 }
 

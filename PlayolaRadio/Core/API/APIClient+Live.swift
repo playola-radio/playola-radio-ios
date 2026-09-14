@@ -952,9 +952,9 @@ extension APIClient: DependencyKey {
         try await authenticatedDelete(
           path: "/v1/artist-suggestions/\(artistSuggestionId)/vote", token: jwtToken)
       },
-      getStationHealthScore: { jwtToken, stationId in
+      getProgrammingHealth: { jwtToken, stationId in
         try await authenticatedGet(
-          path: "/v1/stations/\(stationId)/health-score", token: jwtToken)
+          path: "/v1/stations/\(stationId)/programming-health", token: jwtToken)
       },
       getStationSetupProgress: { jwtToken, stationId in
         try await authenticatedGet(
@@ -968,6 +968,7 @@ extension APIClient: DependencyKey {
       },
       getActiveListeningSessions: { jwtToken, stationId, airtime, endTime in
         var queryParams: [String: String] = [
+          "stationId": stationId,
           "airtime": airtime.ISO8601Format(),
           "limit": "1",
         ]
@@ -975,13 +976,14 @@ extension APIClient: DependencyKey {
           queryParams["endTime"] = endTime.ISO8601Format()
         }
         return try await authenticatedGet(
-          path: "/v1/stations/\(stationId)/listening-sessions/active",
+          path: "/v1/listening-sessions/active",
           token: jwtToken,
           queryParams: queryParams)
       },
-      getListenerCounts: { jwtToken, stationId in
+      getListenerCounts: { jwtToken, stationId, startDate, endDate in
         try await authenticatedGet(
-          path: "/v1/stations/\(stationId)/listener-counts", token: jwtToken)
+          path: "/v1/stations/\(stationId)/listener-counts", token: jwtToken,
+          queryParams: ["granularity": "week", "startDate": startDate, "endDate": endDate])
       },
       getAppVersionRequirements: {
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/app-version-requirements"

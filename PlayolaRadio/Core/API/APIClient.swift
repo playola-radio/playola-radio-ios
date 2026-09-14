@@ -850,15 +850,17 @@ struct APIClient: Sendable {
 
   // MARK: - Station Health
 
-  /// Fetches a station's health score plus its server-owned "improve your station" task list.
+  /// Fetches a station's programming health (freshness score plus the server-owned check list),
+  /// computed from the station's published (live) version.
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication (caller needs edit access to the station)
   ///   - stationId: The station UUID
-  /// - Returns: StationHealth with score, band, factors, and tasks
+  /// - Returns: ProgrammingHealth with status, freshPct, and checks
   /// - Throws: APIError if the request fails (401 unauthorized, 403 no edit access, 404 not found)
-  var getStationHealthScore:
-    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> StationHealth = { _, _ in
-      StationHealth(score: nil, band: .unavailable, factors: [], tasks: [])
+  var getProgrammingHealth:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> ProgrammingHealth = {
+      _, stationId in
+      ProgrammingHealth(stationId: stationId, status: .unknown, freshPct: nil, checks: [])
     }
 
   // MARK: - Station Setup
@@ -903,7 +905,8 @@ struct APIClient: Sendable {
 
   /// Fetches active-listener summary counts for a station over a time window. Pass `airtime` as
   /// the window start (or point-in-time) and `endTime` as the window end (omit for point-in-time).
-  /// The headline is `summary.uniqueUsers`.
+  /// The headline is `summary.uniqueUsers`. `stationId` is passed as a query parameter against
+  /// the global `/v1/listening-sessions/active` endpoint.
   /// - Throws: APIError (401 unauthorized, 403 no access, 404 not found, 400 malformed)
   var getActiveListeningSessions:
     @Sendable (_ jwtToken: String, _ stationId: String, _ airtime: Date, _ endTime: Date?)
@@ -913,15 +916,19 @@ struct APIClient: Sendable {
             totalSessions: 0, uniqueUsers: 0, uniqueDevices: 0, anonymousSessions: 0))
       }
 
-  /// Fetches weekly unique-listener buckets for the station chart. Server defaults (weekly
-  /// granularity, release-clamped window ending today, America/Chicago) are correct, so no params.
+  /// Fetches weekly unique-listener buckets for the station chart, against the station-scoped
+  /// `/v1/stations/:stationId/listener-counts` endpoint. Buckets are Monday-anchored,
+  /// America/Chicago. `startDate`/`endDate` are `YYYY-MM-DD` strings computed by the caller in
+  /// America/Chicago (see `ArtistDashboardPageModel.listenerCountsDateRange`).
   /// - Throws: APIError (401 unauthorized, 403 no access, 404 not found, 400 malformed)
   var getListenerCounts:
-    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> ListenerCountsResponse = {
-      _, _ in
-      ListenerCountsResponse(
-        granularity: "week", startDate: "", endDate: "", timezone: "America/Chicago", buckets: [])
-    }
+    @Sendable (_ jwtToken: String, _ stationId: String, _ startDate: String, _ endDate: String)
+      async throws -> ListenerCountsResponse = {
+        _, _, _, _ in
+        ListenerCountsResponse(
+          granularity: "week", startDate: "", endDate: "", timezone: "America/Chicago",
+          buckets: [])
+      }
 
   // MARK: - App Version Requirements
 

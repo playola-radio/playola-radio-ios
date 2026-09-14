@@ -19,7 +19,7 @@ not ✅ done until its soak clears.
 > Entries marked `⟨owner: …⟩` are placeholders the task owner should fill in —
 > I scaffolded them from open PRs/branches but don't know the internal plan.
 
-_Last updated: 2026-08-30_
+_Last updated: 2026-09-12_
 
 ---
 
@@ -41,6 +41,7 @@ we need to tackle?" (or run the `whats-due` skill) to see what's due.
 | View/Model pattern cleanup | 🔵 in progress (opportunistic) | ongoing, fix-on-touch | none | — | `TODO_VIEW_MODEL_VIOLATIONS.md` |
 | Prettify iPad screens | 🔵 in progress | Profile (screen 4 of N) | none (standard release) | 2026-09-10 | specs in `docs/superpowers/specs/2026-08-0*-ipad-*-design.md` |
 | Artist 3-tab IA (broadcast redesign) | 🔵 in progress | Step 2: Dashboard health + Listeners cards + 6-week chart wired; Station tab's third link row now pushes a new Breakers Library category list (categories fetch, non-song + zero-clip filter) with a per-category detail page (per-clip audio preview, play/stop toggle + scrubber) landed in PR #417; re-homing next — **must not merge until Step 3 re-homes Broadcast/Library/Listeners** | none (standard release) | 2026-09-10 | designs `design/exports/in-progress/3-tab-ia` · `design/exports/breakers-library` · `design/DESIGN_STATUS.md` |
+| Artist Dashboard API Repair | 🔵 in progress | iOS PR (this repo) repointed to the new/renamed endpoints and is ready for staging verification; server PR (playola repo) is owned by a separate human implementer, not tracked here in detail | **prod gate**: server must ship `programming-health` + the station-filtered `listener-counts`/`active` work to production before any App Store release containing the dashboard | 2026-09-19 | see "Artist Dashboard API Repair" section below |
 
 ---
 
@@ -232,12 +233,16 @@ broadcast schedule screen will hang off the new Station tab).
      moved first and absorbed the improve-your-station checklist.
   2. Wire real data into Station + Dashboard models — **in progress.** Dashboard's
      Station Health ring + improve-your-station list are live against
-     `GET /v1/stations/:id/health-score`; the Listeners cards (NOW / THIS WEEK /
-     THIS MONTH) are live against `GET /v1/stations/:id/listening-sessions/active`
-     and the "Last 6 Weeks" chart against `GET /v1/stations/:id/listener-counts`
+     `GET /v1/stations/:id/programming-health`; the Listeners cards (NOW / THIS WEEK /
+     THIS MONTH) are live against `GET /v1/listening-sessions/active` (global path,
+     `stationId` query param) and the "Last 8 Weeks" chart against
+     `GET /v1/stations/:id/listener-counts` (station-scoped path, `granularity=week`
+     + explicit `startDate`/`endDate` query params) —
      (`ListenerAnalytics` DTOs + `api.getActiveListeningSessions` /
-     `api.getListenerCounts`). Remaining: the weekly-report header trend ("↑ 12%",
-     awaiting the percent-change deltas fast-follow) and the Station tab.
+     `api.getListenerCounts`; see the "Artist Dashboard API Repair" entry below for
+     why these paths changed from the original station-scoped ones). Remaining: the
+     weekly-report header trend ("↑ 12%", awaiting the percent-change deltas
+     fast-follow) and the Station tab.
   3. `⟨re-home the old screens (schedule, library, listeners) a level below⟩`
 - **Merge gate:** this work must **not** merge to `develop` on its own until Step 3
   re-homes Broadcast, Library, and Listeners. Steps 1–2 remove those tabs from the
@@ -249,6 +254,58 @@ broadcast schedule screen will hang off the new Station tab).
 - **Notes:** design status per frame lives in `design/DESIGN_STATUS.md`
   (3-Tab IA rows `tscZI` / `NLnb0` / `LeACy` → Implementing). Home v2 2-tab
   alternative (`ccNgg`) pending an explicit Dropped decision.
+
+---
+
+## Artist Dashboard API Repair
+
+**Goal:** the Artist Dashboard (Step 2 of the 3-tab IA above) called three
+station-scoped server endpoints that a server tree-reset deleted before the
+dashboard ever shipped. Repoint the client to the endpoints that actually
+exist post-reset, matching a contract the two repos agreed on.
+
+**Why this is cross-repo (2 PRs):** the client-facing contract required real
+server changes (a new `programming-health` response shape, a `stationId`
+filter + authz on the previously-global `listener-counts`/`active` endpoints),
+so this can't land as a single-repo PR.
+
+- **PR 1 (server, playola repo, base `develop`):** provide the station-scoped
+  analytics the client consumes — a `stationId`-filtered active-listeners count
+  on `GET /v1/listening-sessions/active` (query param) and a station-scoped
+  `GET /v1/stations/:id/listener-counts`, both with participant authz (admin or
+  owner/contributor/viewer of that station). **Owned by a separate human
+  implementer as of 2026-09-12 — not built or tracked in detail from this
+  repo.**
+- **PR 2 (iOS, this repo):** repoint `APIClient+Live.swift` to the
+  agreed-on contract — `getActiveListeningSessions` now hits the global
+  `/v1/listening-sessions/active` path with a `stationId` query param;
+  `getListenerCounts` hits the station-scoped
+  `/v1/stations/:id/listener-counts` path with explicit `startDate`/`endDate`
+  (America/Chicago week range, computed client-side) and `granularity=week`;
+  `getStationHealthScore` is renamed to
+  `getProgrammingHealth` and returns the new `ProgrammingHealth` model
+  (`freshPct`-driven health ring, server-owned `status`, per-check progress).
+  Old `StationHealth` model deleted. Status: implemented, tests green, ready
+  for an authenticated staging smoke pass against the server's `develop`
+  branch once PR 1 lands.
+
+**Production gate (load-bearing):** the server must ship `programming-health`
++ the station-filtered `listener-counts`/`active` work to **production**
+before any App Store release that contains the Artist Dashboard. Verified
+2026-09-12: the dashboard has never shipped (not in `origin/main`, not in any
+release tag through v7.6.0-b105) — no production user has a broken dashboard
+today, so there's no compat shim to maintain; the gate only sequences the
+*future* release. No environment gating in the client (hard project rule):
+the dashboard points at the same endpoints in every environment, and the
+server release date is what gates the App Store release, not a runtime check.
+
+**Advance when:** PR 1 merges to the server's `develop` and deploys to
+staging → run the authenticated iOS smoke pass against staging → once clean,
+this task's remaining gate is the server's production deploy, tracked here
+until it ships and an App Store release containing the dashboard is cut.
+
+**Links:** iOS PR 2 branch `briankeane/artist-dashboard-api-repair` (this
+repo). Server PR 1 tracked in the playola repo by its own implementer.
 
 ---
 
