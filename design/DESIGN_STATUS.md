@@ -96,6 +96,67 @@ once that decision is confirmed.
 | Broadcast (Live AMA) | `PKL5j` | Exploring | |
 | Broadcast (Live AMA · Low Buffer) | `HvVZz` | Exploring | Low-buffer warning state |
 
+### Proposal · Live Shows — formerly AMA Show Runner (zone `dGvzn`)
+
+Initial alternatives, V2, and three V3 variations for the near-live curator runner. Spec and exports live in
+[`features/live-shows/`](features/live-shows/spec.md), following the design-feature workflow.
+
+**Data layer pivoted + renamed (S39, 2026-09-13):** the heavy `AmaSession`/worker design (S38) was rejected for a slim generic **live-shows** primitive — a `liveShows` identity row + `spins.liveShowId`/`isFiller`, two endpoints, live edits through the existing schedule editor, 3 filler spins for graceful fallback, and four small scheduler guards (~2 PRs). `ask-me-anything` is the first `type`. The visual-design frames below (labeled "AMA Runner/Setup/Q/A") are unaffected and still approved; only the backend contract changed. See `features/live-shows/spec.md` §S39 and `implementation-plan.md`.
+H including its buffer readout and all five numbered setup states are visually approved (S31). D–G are archived drafts; earlier alternatives remain reference explorations. The overall feature is not implementation-ready. The earlier Live AMA
+frames above remain reference material. The new zone is below Home v2.
+
+| Frame | Node ID | Status | Notes |
+|---|---|---|---|
+| AMA Runner · A · Questions First | `f9reh` | Exploring | Incoming question inbox with inline answer action; full queue on demand |
+| AMA Runner · B · Schedule First | `k06CM4` | Exploring | Rundown, locked items, reorder handles; question selection tray |
+| AMA Runner · C · One Answer at a Time | `n7lNyi` | Exploring | Large current transcript and recording action; compact rundown |
+| AMA Runner · V2 · Familiar Broadcast | `TPitr` | Exploring | Reuses Broadcast actions, staging and grouped queue; question answering opens separately; follows feedback that A was cluttered |
+| AMA Runner · D · Coverage in the Queue | `h4ZY4a` | Dropped | Archived draft; retained in Drafts area for comparison |
+| AMA Runner · E · Queue Timeline | `UtE2s` | Dropped | Archived draft; retained in Drafts area for comparison |
+| AMA Runner · F · Simplified | `o23lK` | Dropped | Archived draft; retained in Drafts area for comparison |
+| AMA Runner · G · Add Audio in Playlist | `rIca5` | Dropped | Archived draft; retained in Drafts area for comparison |
+| AMA Runner · H · Three Playlist Actions | `K9H7f` | Proposed | Approved 2026-09-13 (S31), including 6:32 buffered and 65% of 10 min above End Show; follows 04 in the approved design row |
+
+PNG and resolved JSON exports: `features/live-shows/exports/exploration/`.
+
+Drafts zone `G0JLmd` at y=17162 contains D–G, below the approved design area. Dropped here means an archived alternative; the frames are preserved.
+
+Approved design zone `eoeNV` at y=15578 contains 01 → 01b → 02 → 03 → 04 → H. All six shown screens were approved 2026-09-13 (S31).
+
+| State | Node ID | Status | Notes |
+|---|---|---|---|
+| AMA Setup · 01 · Record an Intro | `u1jha` | Proposed | Approved 2026-09-13; intro-first state with user-provided guidance |
+| AMA Setup · 01b · Build Your Opening | `cDCux` | Proposed | Approved 2026-09-13 (S31); intro recorded; guide building ten minutes with songs, past Q&As and song intros |
+| AMA Setup · 02 · Almost Ready | `M6FLxv` | Proposed | Approved 2026-09-13; 8:35 ready; Start Show disabled |
+| AMA Setup · 03 · Ready to Start | `F4XUs4` | Proposed | Approved 2026-09-13 (S31); 10:35 ready; Start Show enabled |
+| AMA Setup · 04 · Waiting to Air | `OFqgG` | Proposed | Approved 2026-09-13 (S31); countdown while last regular-programming spin finishes |
+
+Approved PNG, JSON and HTML exports: `features/live-shows/exports/approved/`. Machine-readable manifest: `features/live-shows/pen-nodes.json`.
+
+### Proposal · AMA Buffer Protection (zone `Tx61O`)
+
+Two states immediately right of H, at y=15578, visually approved 2026-09-13 (S33). Their zone and labels now use the approved blue styling.
+
+| Frame | Node ID | Status | Notes |
+|---|---|---|---|
+| AMA Runner · H1 · Song About to Be Added | `GLrlG` | Proposed | Approved S33; Amber 3:30 / 35% buffer; Adding Hummingbird in 0:30; shown insertion at 3:00 |
+| AMA Runner · H2 · Song Automatically Added | `VPjJg` | Proposed | Approved S33; Hummingbird appended; green 6:05 / 61% buffer and brief confirmation |
+
+PNG and resolved JSON: `features/live-shows/exports/approved/`.
+
+### Proposal · AMA Q/A Flow (zone `Kc5c1`)
+
+Approved Q/A flow below Drafts at y=18746 (S36). Based on existing question cards and answer recording/review screens; Q4 includes the optional song-after-Q/A action. Song and Voicetrack reuse the existing Broadcast interfaces.
+
+| Frame | Node ID | Status | Notes |
+|---|---|---|---|
+| AMA Q/A · Q1 · Question Picker | `NeOtx` | Proposed | Approved S36; S35: All / Unanswered / Answered; status badges and New this show marker; expandable transcripts and audio sampling |
+| AMA Q/A · Q2 · Read and Record | `E4LFx` | Proposed | Approved S36; Full transcript, question scrubber, familiar recorder and buffer |
+| AMA Q/A · Q3 · Recording Answer | `HadXP` | Proposed | Approved S36; Transcript visible while recording; persistent buffer |
+| AMA Q/A · Q4 · Review and Add | `Q52Pi9` | Proposed | Approved S36; Preview, Re-record and Add to Show; optional song immediately after the Q/A pair |
+
+PNG and resolved JSON: `features/live-shows/exports/approved/`.
+
 ### Proposal · Station Dashboard (label `dF5d1`)
 
 | Frame | Node ID | Status | Notes |
