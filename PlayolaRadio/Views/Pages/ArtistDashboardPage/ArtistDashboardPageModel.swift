@@ -223,7 +223,7 @@ class ArtistDashboardPageModel: ViewModel {
     )
   }
 
-  // MARK: - Date Range Helper
+  // MARK: - View Helpers
 
   /// Computes the `[startDate, endDate]` range (`YYYY-MM-DD`, America/Chicago) requested from
   /// `getListenerCounts`: the current Chicago week plus the 7 preceding weeks (8 total, matching
