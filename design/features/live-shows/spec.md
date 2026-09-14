@@ -486,7 +486,7 @@ Exact transaction/lock boundary + idempotency-key design; the scheduler integrat
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| POST | `/v1/stations/:stationId/liveShow` | Go-live. Body `{ type, audioBlockIds: [~10] }`. Under the station lock, one txn: find next safe boundary (song boundary ≥ the existing 2-min horizon, not colliding with a scheduled airing), batch-insert the explicit spins + **3 trailing fillers**, create the `liveShows` row, enqueue the go-live push. Returns `liveShowId` + derived `scheduledStartsAt`/`scheduledEndsAt`. |
+| POST | `/v1/stations/:stationId/liveShow` | Go-live. Body `{ type, audioBlockIds: [~10] }`. Under the station lock, one txn: find next safe boundary (song boundary ≥ the existing 2-min horizon, not colliding with a scheduled airing), **create the `liveShows` row first** (`endingSpinId = NULL`, so the `spins.liveShowId` FK resolves — no deferred FK needed), then batch-insert the explicit spins + **3 trailing fillers** tagged with that `liveShowId`; enqueue the go-live push **after commit**. Returns `liveShowId` + derived `scheduledStartsAt`/`scheduledEndsAt`. |
 | POST | `/v1/stations/:stationId/liveShow/:liveShowId/end` | Body `{ audioBlockId }`. Under the lock, one txn: append the ending spin after the last live/filler spin, set `endingSpinId`, remove still-removable (future, outside the horizon) fillers. Idempotent via `endingSpinId`; `:liveShowId` prevents ending a later show. |
 
 Live editing (add/reorder/delete, answer Q&A) reuses the **existing** spin/airing endpoints — the spins already carry `liveShowId`; those endpoints gain filler-tail maintenance and (for `ask-me-anything`) the deferred-answer behavior.
