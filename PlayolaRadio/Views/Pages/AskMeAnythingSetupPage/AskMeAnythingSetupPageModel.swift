@@ -25,6 +25,18 @@ class AskMeAnythingSetupPageModel: ViewModel {
 
   let stationId: String
 
+  // MARK: - User Actions
+
+  func backButtonTapped() {
+    navigationCoordinator.pop()
+  }
+
+  func recordIntroButtonTapped() {}
+
+  func startShowButtonTapped() {}
+
+  // MARK: - View Helpers
+
   var navigationTitle: String { "Ask Me Anything" }
   var setupLabel: String { "SETUP" }
 
@@ -44,14 +56,4 @@ class AskMeAnythingSetupPageModel: ViewModel {
   var startShowButtonTitle: String { "Start Show" }
   var isStartShowEnabled: Bool { false }
   var startShowButtonTitleColor: Color { isStartShowEnabled ? .white : .playolaGray }
-
-  // MARK: - User Actions
-
-  func backButtonTapped() {
-    navigationCoordinator.pop()
-  }
-
-  func recordIntroButtonTapped() {}
-
-  func startShowButtonTapped() {}
 }

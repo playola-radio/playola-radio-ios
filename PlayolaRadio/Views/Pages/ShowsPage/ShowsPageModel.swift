@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import IdentifiedCollections
 import Sharing
 import SwiftUI
 
@@ -25,23 +26,6 @@ class ShowsPageModel: ViewModel {
 
   let stationId: String
 
-  var navigationTitle: String { "Shows" }
-  var introTitle: String { "Go live on your station" }
-  var introBody: String { "Start a new show now." }
-  var sectionLabel: String { "GET STARTED" }
-
-  // MARK: - View Helpers
-
-  var showTypes: [ShowTypeRow] {
-    [
-      ShowTypeRow(
-        id: .askMeAnything,
-        title: "Ask Me Anything",
-        description: "Take questions from your listeners live.",
-        iconSystemName: "bubble.left.and.bubble.right.fill")
-    ]
-  }
-
   // MARK: - User Actions
 
   func showTypeRowTapped(_ row: ShowTypeRow) {
@@ -51,10 +35,27 @@ class ShowsPageModel: ViewModel {
         .askMeAnythingSetupPage(AskMeAnythingSetupPageModel(stationId: stationId)))
     }
   }
+
+  // MARK: - View Helpers
+
+  var navigationTitle: String { "Shows" }
+  var introTitle: String { "Go live on your station" }
+  var introBody: String { "Start a new show now." }
+  var sectionLabel: String { "GET STARTED" }
+
+  var showTypes: IdentifiedArrayOf<ShowTypeRow> {
+    [
+      ShowTypeRow(
+        id: .askMeAnything,
+        title: "Ask Me Anything",
+        description: "Take questions from your listeners live.",
+        iconSystemName: "bubble.left.and.bubble.right.fill")
+    ]
+  }
 }
 
 struct ShowTypeRow: Identifiable, Equatable {
-  enum ShowType: Equatable {
+  enum ShowType: Hashable {
     case askMeAnything
   }
 
