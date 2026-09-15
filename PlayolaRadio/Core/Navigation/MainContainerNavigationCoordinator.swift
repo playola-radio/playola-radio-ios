@@ -86,6 +86,8 @@ final class MainContainerNavigationCoordinator {
     case breakerCategoryDetailPage(BreakerCategoryDetailPageModel)
     case musicLibraryPage(MusicLibraryPageModel)
     case musicCategoryDetailPage(MusicCategoryDetailPageModel)
+    case showsPage(ShowsPageModel)
+    case askMeAnythingSetupPage(AskMeAnythingSetupPageModel)
 
     @MainActor @ViewBuilder
     var destinationView: some View {
@@ -124,6 +126,10 @@ final class MainContainerNavigationCoordinator {
         MusicLibraryPageView(model: model)
       case .musicCategoryDetailPage(let model):
         MusicCategoryDetailPageView(model: model)
+      case .showsPage(let model):
+        ShowsPageView(model: model)
+      case .askMeAnythingSetupPage(let model):
+        AskMeAnythingSetupPageView(model: model)
       }
     }
   }

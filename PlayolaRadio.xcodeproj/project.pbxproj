@@ -150,6 +150,16 @@
 		CC0000000000000000000305 /* MusicLibraryPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000304 /* MusicLibraryPageView.swift */; };
 		CC0000000000000000000306 /* MusicLibraryPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000304 /* MusicLibraryPageView.swift */; };
 		CC0000000000000000000308 /* MusicLibraryPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000307 /* MusicLibraryPageTests.swift */; };
+		CC0000000000000000000602 /* ShowsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000601 /* ShowsPageModel.swift */; };
+		CC0000000000000000000603 /* ShowsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000601 /* ShowsPageModel.swift */; };
+		CC0000000000000000000605 /* ShowsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000604 /* ShowsPageView.swift */; };
+		CC0000000000000000000606 /* ShowsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000604 /* ShowsPageView.swift */; };
+		CC0000000000000000000608 /* ShowsPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000607 /* ShowsPageTests.swift */; };
+		CC0000000000000000000702 /* AskMeAnythingSetupPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000701 /* AskMeAnythingSetupPageModel.swift */; };
+		CC0000000000000000000703 /* AskMeAnythingSetupPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000701 /* AskMeAnythingSetupPageModel.swift */; };
+		CC0000000000000000000705 /* AskMeAnythingSetupPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000704 /* AskMeAnythingSetupPageView.swift */; };
+		CC0000000000000000000706 /* AskMeAnythingSetupPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000704 /* AskMeAnythingSetupPageView.swift */; };
+		CC0000000000000000000708 /* AskMeAnythingSetupPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000707 /* AskMeAnythingSetupPageTests.swift */; };
 		CC0000000000000000000402 /* MusicCategoryDetailPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000401 /* MusicCategoryDetailPageModel.swift */; };
 		CC0000000000000000000403 /* MusicCategoryDetailPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000401 /* MusicCategoryDetailPageModel.swift */; };
 		CC0000000000000000000405 /* MusicCategoryDetailPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000404 /* MusicCategoryDetailPageView.swift */; };
@@ -719,6 +729,12 @@
 		CC0000000000000000000301 /* MusicLibraryPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicLibraryPageModel.swift; sourceTree = "<group>"; };
 		CC0000000000000000000304 /* MusicLibraryPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicLibraryPageView.swift; sourceTree = "<group>"; };
 		CC0000000000000000000307 /* MusicLibraryPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicLibraryPageTests.swift; sourceTree = "<group>"; };
+		CC0000000000000000000601 /* ShowsPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsPageModel.swift; sourceTree = "<group>"; };
+		CC0000000000000000000604 /* ShowsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsPageView.swift; sourceTree = "<group>"; };
+		CC0000000000000000000607 /* ShowsPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsPageTests.swift; sourceTree = "<group>"; };
+		CC0000000000000000000701 /* AskMeAnythingSetupPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingSetupPageModel.swift; sourceTree = "<group>"; };
+		CC0000000000000000000704 /* AskMeAnythingSetupPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingSetupPageView.swift; sourceTree = "<group>"; };
+		CC0000000000000000000707 /* AskMeAnythingSetupPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingSetupPageTests.swift; sourceTree = "<group>"; };
 		CC0000000000000000000401 /* MusicCategoryDetailPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicCategoryDetailPageModel.swift; sourceTree = "<group>"; };
 		CC0000000000000000000404 /* MusicCategoryDetailPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicCategoryDetailPageView.swift; sourceTree = "<group>"; };
 		CC0000000000000000000407 /* MusicCategoryDetailPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicCategoryDetailPageTests.swift; sourceTree = "<group>"; };
@@ -1169,6 +1185,26 @@
 			path = MusicLibraryPage;
 			sourceTree = "<group>";
 		};
+		CC0000000000000000000600 /* ShowsPage */ = {
+			isa = PBXGroup;
+			children = (
+				CC0000000000000000000601 /* ShowsPageModel.swift */,
+				CC0000000000000000000604 /* ShowsPageView.swift */,
+				CC0000000000000000000607 /* ShowsPageTests.swift */,
+			);
+			path = ShowsPage;
+			sourceTree = "<group>";
+		};
+		CC0000000000000000000700 /* AskMeAnythingSetupPage */ = {
+			isa = PBXGroup;
+			children = (
+				CC0000000000000000000701 /* AskMeAnythingSetupPageModel.swift */,
+				CC0000000000000000000704 /* AskMeAnythingSetupPageView.swift */,
+				CC0000000000000000000707 /* AskMeAnythingSetupPageTests.swift */,
+			);
+			path = AskMeAnythingSetupPage;
+			sourceTree = "<group>";
+		};
 		CC0000000000000000000400 /* MusicCategoryDetailPage */ = {
 			isa = PBXGroup;
 			children = (
@@ -1375,6 +1411,8 @@
 				CC0000000000000000000200 /* BreakerCategoryDetailPage */,
 				CC0000000000000000000300 /* MusicLibraryPage */,
 				CC0000000000000000000400 /* MusicCategoryDetailPage */,
+				CC0000000000000000000600 /* ShowsPage */,
+				CC0000000000000000000700 /* AskMeAnythingSetupPage */,
 				D3219C152EDD22060008AFDA /* BroadcastPage */,
 				D37769F82F22B38700200ADF /* ChooseStationPage */,
 				D3FEC8032EDF643600A33AE8 /* ChooseStationToBroadcastPage */,
@@ -2389,6 +2427,10 @@
 				CC0000000000000000000205 /* BreakerCategoryDetailPageView.swift in Sources */,
 				CC0000000000000000000302 /* MusicLibraryPageModel.swift in Sources */,
 				CC0000000000000000000305 /* MusicLibraryPageView.swift in Sources */,
+				CC0000000000000000000602 /* ShowsPageModel.swift in Sources */,
+				CC0000000000000000000605 /* ShowsPageView.swift in Sources */,
+				CC0000000000000000000702 /* AskMeAnythingSetupPageModel.swift in Sources */,
+				CC0000000000000000000705 /* AskMeAnythingSetupPageView.swift in Sources */,
 				CC0000000000000000000402 /* MusicCategoryDetailPageModel.swift in Sources */,
 				CC0000000000000000000405 /* MusicCategoryDetailPageView.swift in Sources */,
 				CC0000000000000000000505 /* SectionIndexView.swift in Sources */,
@@ -2628,6 +2670,10 @@
 				CC0000000000000000000206 /* BreakerCategoryDetailPageView.swift in Sources */,
 				CC0000000000000000000303 /* MusicLibraryPageModel.swift in Sources */,
 				CC0000000000000000000306 /* MusicLibraryPageView.swift in Sources */,
+				CC0000000000000000000603 /* ShowsPageModel.swift in Sources */,
+				CC0000000000000000000606 /* ShowsPageView.swift in Sources */,
+				CC0000000000000000000703 /* AskMeAnythingSetupPageModel.swift in Sources */,
+				CC0000000000000000000706 /* AskMeAnythingSetupPageView.swift in Sources */,
 				CC0000000000000000000403 /* MusicCategoryDetailPageModel.swift in Sources */,
 				CC0000000000000000000406 /* MusicCategoryDetailPageView.swift in Sources */,
 				CC0000000000000000000506 /* SectionIndexView.swift in Sources */,
@@ -2801,6 +2847,8 @@
 				CC0000000000000000000118 /* BreakersLibraryPageTests.swift in Sources */,
 				CC0000000000000000000208 /* BreakerCategoryDetailPageTests.swift in Sources */,
 				CC0000000000000000000308 /* MusicLibraryPageTests.swift in Sources */,
+				CC0000000000000000000608 /* ShowsPageTests.swift in Sources */,
+				CC0000000000000000000708 /* AskMeAnythingSetupPageTests.swift in Sources */,
 				CC0000000000000000000408 /* MusicCategoryDetailPageTests.swift in Sources */,
 				D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */,
 				D3FEC80D2EDF689F00A33AE8 /* ChooseStationToBroadcastPageTests.swift in Sources */,

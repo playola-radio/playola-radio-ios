@@ -223,6 +223,43 @@ struct ArtistStationPageTests {
     #expect(coordinator.path.isEmpty)
   }
 
+  @Test func showsRowTappedPushesShowsPage() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+
+    let model = withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [] }
+    } operation: {
+      ArtistStationPageModel()
+    }
+
+    model.showsRowTapped()
+
+    guard case .showsPage(let pushedModel) = coordinator.path.last else {
+      Issue.record("Expected a showsPage to be pushed")
+      return
+    }
+    expectNoDifference(pushedModel.stationId, testStationId)
+  }
+
+  @Test func showsRowTappedIsNoOpWhenNotBroadcasting() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let model = withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [] }
+    } operation: {
+      ArtistStationPageModel()
+    }
+
+    model.showsRowTapped()
+
+    #expect(coordinator.path.isEmpty)
+  }
+
   @Test func breakersLibraryRowTappedPushesBreakersLibraryPage() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()

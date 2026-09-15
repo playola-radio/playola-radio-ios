@@ -87,7 +87,10 @@ class ArtistStationPageModel: ViewModel {
     navigationCoordinator.push(.broadcastPage(BroadcastPageModel(stationId: stationId)))
   }
 
-  func showsRowTapped() {}
+  func showsRowTapped() {
+    guard let stationId else { return }
+    navigationCoordinator.push(.showsPage(ShowsPageModel(stationId: stationId)))
+  }
 
   func musicLibraryRowTapped() {
     guard let stationId else { return }
