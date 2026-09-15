@@ -11,9 +11,7 @@ struct AskMeAnythingSetupPageView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 0) {
-        header
         introCard
-          .padding(.top, 20)
         Text(model.preparationReassurance)
           .font(.custom(FontNames.Inter_400_Regular, size: 12))
           .foregroundColor(.playolaTextSecondary)
@@ -27,20 +25,19 @@ struct AskMeAnythingSetupPageView: View {
     }
     .background(Color.playolaSurfaceBase)
     .navigationBarTitleDisplayMode(.inline)
-    .safeAreaInset(edge: .bottom) { bottomBar }
-  }
-
-  private var header: some View {
-    HStack(spacing: 8) {
-      Text(model.navigationTitle)
-        .font(.custom(FontNames.Inter_600_SemiBold, size: 17))
-        .foregroundColor(.playolaTextPrimary)
-      Spacer()
-      Text(model.setupLabel)
-        .font(.custom(FontNames.Inter_400_Regular, size: 11))
-        .foregroundColor(.playolaTextSecondary)
+    .toolbar {
+      ToolbarItem(placement: .topBarLeading) {
+        Text(model.navigationTitle)
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 17))
+          .foregroundColor(.playolaTextPrimary)
+      }
+      ToolbarItem(placement: .topBarTrailing) {
+        Text(model.setupLabel)
+          .font(.custom(FontNames.Inter_400_Regular, size: 11))
+          .foregroundColor(.playolaTextSecondary)
+      }
     }
-    .frame(height: 44)
+    .safeAreaInset(edge: .bottom) { bottomBar }
   }
 
   private var introCard: some View {
