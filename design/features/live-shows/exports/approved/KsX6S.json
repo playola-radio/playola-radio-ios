@@ -1,0 +1,71 @@
+{
+  "status": "Visual design approved 2026-09-15; implementation pending",
+  "screen": {
+    "type": "frame",
+    "id": "KsX6S",
+    "x": 6429,
+    "y": 2922,
+    "name": "Shows (Artist · Station)",
+    "clip": true,
+    "width": 393,
+    "height": 852,
+    "fill": "#000000",
+    "layout": "vertical",
+    "children": [
+      {
+        "type": "frame",
+        "id": "lxeT2",
+        "name": "Navigation Bar",
+        "width": "fill_container",
+        "height": 60,
+        "layout": "none",
+        "children": [
+          {"type":"icon","id":"mtR9H","x":16,"y":27,"name":"Back to Station","width":18,"height":18,"icon":"chevron-left","library":"lucide","fill":"#EF6962"},
+          {"type":"text","id":"IQK7Q","x":20,"y":26,"name":"Navigation Title","fill":"#FFFFFF","textGrowth":"fixed-width","width":353,"content":"Shows","textAlign":"center","fontFamily":"Inter","fontSize":17,"fontWeight":"600"}
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "JuzIc",
+        "name": "Shows Introduction",
+        "width": "fill_container",
+        "layout": "vertical",
+        "gap": 8,
+        "padding": [18,20,24,20],
+        "children": [
+          {"type":"text","id":"een6C","name":"Introduction Title","fill":"#FFFFFF","content":"Go live on your station","fontFamily":"Space Grotesk","fontSize":26,"fontWeight":"600"},
+          {"type":"text","id":"obMnU","name":"Introduction Body","fill":"#C7C7C7","textGrowth":"fixed-width","width":"fill_container","content":"Start a new show now.","lineHeight":1.45,"fontFamily":"Inter","fontSize":14,"fontWeight":"normal"}
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "I7zrl",
+        "name": "Show Types",
+        "width": "fill_container",
+        "layout": "vertical",
+        "gap": 8,
+        "padding": [0,20],
+        "children": [
+          {"type":"text","id":"txCht","name":"Section Label","fill":"#868686","content":"GET STARTED","fontFamily":"Inter","fontSize":11,"fontWeight":"600","letterSpacing":1.2},
+          {
+            "type":"frame","id":"xzSbo","name":"Show Type · Ask Me Anything","width":"fill_container","height":78,"gap":12,"alignItems":"center",
+            "children":[
+              {"type":"frame","id":"FQgf0","name":"Ask Me Anything Icon","width":42,"height":42,"fill":"#FF5A5F22","cornerRadius":21,"justifyContent":"center","alignItems":"center","children":[{"type":"icon","id":"nAw9Q","name":"Question Bubbles","width":20,"height":20,"icon":"messages-square","library":"lucide","fill":"#EF6962"}]},
+              {"type":"frame","id":"ercK1","name":"Ask Me Anything Text","width":"fill_container","layout":"vertical","gap":4,"children":[{"type":"text","id":"FKv5k","name":"Ask Me Anything Label","fill":"#FFFFFF","content":"Ask Me Anything","fontFamily":"Inter","fontSize":16,"fontWeight":"600"},{"type":"text","id":"N0h4x","name":"Ask Me Anything Description","fill":"#999999","textGrowth":"fixed-width","width":"fill_container","content":"Take questions from your listeners live.","lineHeight":1.35,"fontFamily":"Inter","fontSize":12,"fontWeight":"normal"}]},
+              {"type":"icon","id":"Lq6hL","name":"Open Ask Me Anything","width":15,"height":15,"icon":"chevron-right","library":"lucide","fill":"#868686"}
+            ]
+          },
+          {"type":"rectangle","id":"XnBMD","name":"Show Type Divider","fill":"#FFFFFF12","width":"fill_container","height":1}
+        ]
+      },
+      {
+        "type":"frame","id":"SCn44","layoutPosition":"absolute","x":16,"y":762,"name":"Tab Bar","width":361,"height":56,"fill":"#2C2C2ECC","cornerRadius":28,"stroke":"#FFFFFF26","strokeWidth":1,"justifyContent":"space_around","alignItems":"center",
+        "children":[
+          {"type":"frame","id":"SCn44/hucGR","name":"Dashboard","width":80,"layout":"vertical","gap":4,"padding":[8,0],"justifyContent":"center","alignItems":"center","children":[{"type":"icon","id":"SCn44/hucGR/Mb28I","name":"Icon","width":24,"height":24,"icon":"layout-dashboard","library":"lucide","fill":"#868686"},{"type":"text","id":"SCn44/hucGR/x7cAoO","name":"Label","fill":"#868686","content":"Dashboard","fontFamily":"Inter","fontSize":10,"fontWeight":"500"}]},
+          {"type":"frame","id":"SCn44/Kq4ks","name":"Station","width":80,"layout":"vertical","gap":4,"padding":[8,0],"justifyContent":"center","alignItems":"center","children":[{"type":"icon","id":"SCn44/Kq4ks/Mb28I","name":"Icon","width":24,"height":24,"icon":"radio","library":"lucide","fill":"#FFFFFF"},{"type":"text","id":"SCn44/Kq4ks/x7cAoO","name":"Label","fill":"#FFFFFF","content":"Station","fontFamily":"Inter","fontSize":10,"fontWeight":"500"}]},
+          {"type":"frame","id":"SCn44/Z7dIob","name":"Profile","width":80,"layout":"vertical","gap":4,"padding":[8,0],"justifyContent":"center","alignItems":"center","children":[{"type":"icon","id":"SCn44/Z7dIob/Mb28I","name":"Icon","width":24,"height":24,"icon":"user","library":"lucide","fill":"#868686"},{"type":"text","id":"SCn44/Z7dIob/x7cAoO","name":"Label","fill":"#868686","content":"Profile","fontFamily":"Inter","fontSize":10,"fontWeight":"500"}]}
+        ]
+      }
+    ]
+  }
+}

@@ -115,6 +115,7 @@ frames above remain reference material. The new zone is below Home v2.
 | AMA Runner · E · Queue Timeline | `UtE2s` | Dropped | Archived draft; retained in Drafts area for comparison |
 | AMA Runner · F · Simplified | `o23lK` | Dropped | Archived draft; retained in Drafts area for comparison |
 | AMA Runner · G · Add Audio in Playlist | `rIca5` | Dropped | Archived draft; retained in Drafts area for comparison |
+| Shows (Artist · Station) | `KsX6S` | Implementing | Station-tab Shows destination; Ask Me Anything starts the approved setup flow directly. Implemented as `ShowsPage` (intro + single "Ask Me Anything" show-type row). **Intentional deviation:** the mock's 4-tab bottom bar was dropped — it predates the 3-tab IA; this pushes onto the real 3-tab shell instead |
 | AMA Runner · H · Three Playlist Actions | `K9H7f` | Proposed | Approved 2026-09-13 (S31), including 6:32 buffered and 65% of 10 min above End Show; follows 04 in the approved design row |
 
 PNG and resolved JSON exports: `features/live-shows/exports/exploration/`.
@@ -125,7 +126,7 @@ Approved design zone `eoeNV` at y=15578 contains 01 → 01b → 02 → 03 → 04
 
 | State | Node ID | Status | Notes |
 |---|---|---|---|
-| AMA Setup · 01 · Record an Intro | `u1jha` | Proposed | Approved 2026-09-13; intro-first state with user-provided guidance |
+| AMA Setup · 01 · Record an Intro | `u1jha` | Implementing | Approved 2026-09-13; intro-first state with user-provided guidance. Implemented as `AskMeAnythingSetupPage` — a **static shell** (Record Intro / Start Show are inert; no API calls in this slice). **Intentional deviation:** the mock's 4-tab bottom bar was dropped for the 3-tab IA |
 | AMA Setup · 01b · Build Your Opening | `cDCux` | Proposed | Approved 2026-09-13 (S31); intro recorded; guide building ten minutes with songs, past Q&As and song intros |
 | AMA Setup · 02 · Almost Ready | `M6FLxv` | Proposed | Approved 2026-09-13; 8:35 ready; Start Show disabled |
 | AMA Setup · 03 · Ready to Start | `F4XUs4` | Proposed | Approved 2026-09-13 (S31); 10:35 ready; Start Show enabled |
