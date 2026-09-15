@@ -3,11 +3,16 @@
 //  PlayolaRadio
 //
 
+import Sharing
 import SwiftUI
 
 @MainActor
 @Observable
 class AskMeAnythingSetupPageModel: ViewModel {
+
+  // MARK: - Shared State
+
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator
 
   // MARK: - Initialization
 
@@ -41,6 +46,10 @@ class AskMeAnythingSetupPageModel: ViewModel {
   var startShowButtonTitleColor: Color { isStartShowEnabled ? .white : .playolaGray }
 
   // MARK: - User Actions
+
+  func backButtonTapped() {
+    navigationCoordinator.pop()
+  }
 
   func recordIntroButtonTapped() {}
 

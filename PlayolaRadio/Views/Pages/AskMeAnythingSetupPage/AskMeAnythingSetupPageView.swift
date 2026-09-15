@@ -9,35 +9,48 @@ struct AskMeAnythingSetupPageView: View {
   @Bindable var model: AskMeAnythingSetupPageModel
 
   var body: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: 0) {
-        introCard
-        Text(model.preparationReassurance)
-          .font(.custom(FontNames.Inter_400_Regular, size: 12))
-          .foregroundColor(.playolaTextSecondary)
-          .lineSpacing(4.8)
-          .frame(maxWidth: .infinity)
-          .multilineTextAlignment(.center)
-          .padding(.top, 16)
+    VStack(spacing: 0) {
+      header
+      ScrollView {
+        VStack(alignment: .leading, spacing: 0) {
+          introCard
+          Text(model.preparationReassurance)
+            .font(.custom(FontNames.Inter_400_Regular, size: 12))
+            .foregroundColor(.playolaTextSecondary)
+            .lineSpacing(4.8)
+            .frame(maxWidth: .infinity)
+            .multilineTextAlignment(.center)
+            .padding(.top, 16)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 20)
       }
-      .padding(.horizontal, 16)
-      .padding(.top, 20)
     }
     .background(Color.playolaSurfaceBase)
-    .navigationBarTitleDisplayMode(.inline)
-    .toolbar {
-      ToolbarItem(placement: .topBarLeading) {
-        Text(model.navigationTitle)
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 17))
-          .foregroundColor(.playolaTextPrimary)
-      }
-      ToolbarItem(placement: .topBarTrailing) {
-        Text(model.setupLabel)
-          .font(.custom(FontNames.Inter_400_Regular, size: 11))
-          .foregroundColor(.playolaTextSecondary)
-      }
-    }
+    .navigationBarHidden(true)
     .safeAreaInset(edge: .bottom) { bottomBar }
+  }
+
+  private var header: some View {
+    HStack(spacing: 8) {
+      Button {
+        model.backButtonTapped()
+      } label: {
+        Image(systemName: "chevron.left")
+          .font(.system(size: 18, weight: .semibold))
+          .foregroundColor(.playolaRed)
+      }
+      .buttonStyle(.plain)
+      Text(model.navigationTitle)
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 17))
+        .foregroundColor(.playolaTextPrimary)
+      Spacer()
+      Text(model.setupLabel)
+        .font(.custom(FontNames.Inter_400_Regular, size: 11))
+        .foregroundColor(.playolaTextSecondary)
+    }
+    .frame(height: 44)
+    .padding(.horizontal, 16)
   }
 
   private var introCard: some View {

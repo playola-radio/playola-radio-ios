@@ -35,4 +35,16 @@ struct AskMeAnythingSetupPageTests {
     expectNoDifference(model.readyProgress, 0)
     #expect(!model.isStartShowEnabled)
   }
+
+  @Test func backButtonTappedPopsNavigation() {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    coordinator.push(.askMeAnythingSetupPage(model))
+
+    model.backButtonTapped()
+
+    #expect(coordinator.path.isEmpty)
+  }
 }
