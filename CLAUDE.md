@@ -269,4 +269,4 @@ The five canonical roles, each label string equal to its name. See `docs/agents/
 
 ### Domain docs
 
-Single-context: one `CONTEXT.md` plus `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+The domain map lives in the server monorepo at `../playola/docs/context/`, not in this repo. There is no `CONTEXT.md` and no `docs/adr/` here. See `docs/agents/domain.md`.
