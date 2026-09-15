@@ -13,59 +13,64 @@ struct AskMeAnythingSetupPageView: View {
       VStack(alignment: .leading, spacing: 0) {
         header
         introCard
-          .padding(.top, 24)
+          .padding(.top, 20)
         Text(model.preparationReassurance)
-          .font(.custom(FontNames.Inter_400_Regular, size: 13))
-          .foregroundColor(.playolaGray)
+          .font(.custom(FontNames.Inter_400_Regular, size: 12))
+          .foregroundColor(.playolaTextSecondary)
+          .lineSpacing(4.8)
           .frame(maxWidth: .infinity)
           .multilineTextAlignment(.center)
           .padding(.top, 16)
       }
-      .padding(.horizontal, 20)
+      .padding(.horizontal, 16)
       .padding(.top, 20)
     }
-    .background(Color.black)
+    .background(Color.playolaSurfaceBase)
     .navigationBarTitleDisplayMode(.inline)
     .safeAreaInset(edge: .bottom) { bottomBar }
   }
 
   private var header: some View {
-    HStack(alignment: .firstTextBaseline) {
+    HStack(spacing: 8) {
       Text(model.navigationTitle)
-        .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 26))
-        .foregroundColor(.white)
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 17))
+        .foregroundColor(.playolaTextPrimary)
       Spacer()
       Text(model.setupLabel)
-        .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
-        .tracking(1.2)
-        .foregroundColor(.playolaGray)
+        .font(.custom(FontNames.Inter_400_Regular, size: 11))
+        .foregroundColor(.playolaTextSecondary)
     }
+    .frame(height: 44)
   }
 
   private var introCard: some View {
-    VStack(alignment: .leading, spacing: 16) {
+    VStack(alignment: .leading, spacing: 18) {
       ZStack {
         Circle()
-          .fill(Color.playolaRed.opacity(0.15))
-          .frame(width: 52, height: 52)
+          .fill(Color.playolaWarmSurface)
+          .frame(width: 56, height: 56)
         Image(systemName: "mic.fill")
-          .font(.system(size: 20))
+          .font(.system(size: 26))
           .foregroundColor(.playolaRed)
       }
       Text(model.introTitle)
-        .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 24))
-        .foregroundColor(.white)
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 21))
+        .foregroundColor(.playolaTextPrimary)
       Text(model.introBody)
         .font(.custom(FontNames.Inter_400_Regular, size: 15))
-        .foregroundColor(Color(hex: "#B3B3B3"))
+        .foregroundColor(.playolaTextSecondary)
+        .lineSpacing(6.75)
         .fixedSize(horizontal: false, vertical: true)
       recordIntroButton
-        .padding(.top, 4)
     }
     .padding(20)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color(hex: "#1A1A1A"))
+    .background(Color.playolaSurfaceSection)
     .cornerRadius(16)
+    .overlay(
+      RoundedRectangle(cornerRadius: 16)
+        .stroke(Color.playolaGlassHairline, lineWidth: 1)
+    )
   }
 
   private var recordIntroButton: some View {
@@ -74,13 +79,13 @@ struct AskMeAnythingSetupPageView: View {
     } label: {
       HStack(spacing: 8) {
         Image(systemName: "mic.fill")
-          .font(.system(size: 15))
+          .font(.system(size: 18))
         Text(model.recordIntroButtonTitle)
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
       }
-      .foregroundColor(.white)
+      .foregroundColor(.playolaTextPrimary)
       .frame(maxWidth: .infinity)
-      .padding(.vertical, 15)
+      .frame(height: 48)
       .background(Color.playolaRed)
       .cornerRadius(12)
     }
@@ -88,34 +93,32 @@ struct AskMeAnythingSetupPageView: View {
   }
 
   private var bottomBar: some View {
-    VStack(spacing: 12) {
-      VStack(spacing: 8) {
-        HStack {
-          Text(model.preparedAudioLabel)
-            .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
-            .foregroundColor(.white)
-          Spacer()
-          Text(model.readinessHint)
-            .font(.custom(FontNames.Inter_400_Regular, size: 13))
-            .foregroundColor(.playolaGray)
-        }
-        GeometryReader { proxy in
-          ZStack(alignment: .leading) {
-            RoundedRectangle(cornerRadius: 2)
-              .fill(Color(hex: "#333333"))
-            RoundedRectangle(cornerRadius: 2)
-              .fill(Color.playolaRed)
-              .frame(width: proxy.size.width * model.readyProgress)
-          }
-        }
-        .frame(height: 4)
+    VStack(spacing: 8) {
+      HStack {
+        Text(model.preparedAudioLabel)
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 13))
+          .foregroundColor(.playolaTextPrimary)
+        Spacer()
+        Text(model.readinessHint)
+          .font(.custom(FontNames.Inter_400_Regular, size: 12))
+          .foregroundColor(.playolaTextSecondary)
       }
+      GeometryReader { proxy in
+        ZStack(alignment: .leading) {
+          RoundedRectangle(cornerRadius: 2)
+            .fill(Color.playolaSurfaceControl)
+          RoundedRectangle(cornerRadius: 2)
+            .fill(Color.playolaRed)
+            .frame(width: proxy.size.width * model.readyProgress)
+        }
+      }
+      .frame(height: 4)
 
       startShowButton
     }
-    .padding(.horizontal, 20)
-    .padding(.top, 12)
-    .background(Color.black)
+    .padding(.horizontal, 16)
+    .padding(.vertical, 12)
+    .background(Color.playolaSurfaceBase)
   }
 
   private var startShowButton: some View {
@@ -123,12 +126,16 @@ struct AskMeAnythingSetupPageView: View {
       model.startShowButtonTapped()
     } label: {
       Text(model.startShowButtonTitle)
-        .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
         .foregroundColor(model.startShowButtonTitleColor)
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 15)
-        .background(Color(hex: "#1A1A1A"))
+        .frame(height: 44)
+        .background(Color.playolaSurfaceRaised)
         .cornerRadius(12)
+        .overlay(
+          RoundedRectangle(cornerRadius: 12)
+            .stroke(Color.playolaGlassHairline, lineWidth: 1)
+        )
     }
     .buttonStyle(.plain)
     .disabled(!model.isStartShowEnabled)

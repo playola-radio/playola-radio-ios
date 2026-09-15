@@ -24,7 +24,7 @@ struct ShowsPageView: View {
       .padding(.horizontal, 20)
       .padding(.top, 20)
     }
-    .background(Color.black)
+    .background(Color.playolaSurfaceBase)
     .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
   }
@@ -32,11 +32,11 @@ struct ShowsPageView: View {
   private var intro: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text(model.introTitle)
-        .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 28))
-        .foregroundColor(.white)
+        .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 26))
+        .foregroundColor(.playolaTextPrimary)
       Text(model.introBody)
-        .font(.custom(FontNames.Inter_400_Regular, size: 15))
-        .foregroundColor(.playolaGray)
+        .font(.custom(FontNames.Inter_400_Regular, size: 14))
+        .foregroundColor(.playolaTextSecondary)
     }
   }
 
@@ -44,8 +44,9 @@ struct ShowsPageView: View {
     VStack(spacing: 0) {
       ForEach(model.showTypes) { row in
         rowView(row)
-        Divider()
-          .background(Color(hex: "#333333"))
+        Rectangle()
+          .fill(Color.playolaDividerSubtle)
+          .frame(height: 1)
       }
     }
   }
@@ -54,29 +55,29 @@ struct ShowsPageView: View {
     Button {
       model.showTypeRowTapped(row)
     } label: {
-      HStack(spacing: 14) {
+      HStack(spacing: 12) {
         ZStack {
           Circle()
-            .fill(Color.playolaRed.opacity(0.15))
-            .frame(width: 52, height: 52)
+            .fill(Color.playolaAMASoft)
+            .frame(width: 42, height: 42)
           Image(systemName: row.iconSystemName)
             .font(.system(size: 20))
             .foregroundColor(.playolaRed)
         }
         VStack(alignment: .leading, spacing: 4) {
           Text(row.title)
-            .font(.custom(FontNames.Inter_600_SemiBold, size: 17))
-            .foregroundColor(.white)
+            .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
+            .foregroundColor(.playolaTextPrimary)
           Text(row.description)
-            .font(.custom(FontNames.Inter_400_Regular, size: 14))
-            .foregroundColor(.playolaGray)
+            .font(.custom(FontNames.Inter_400_Regular, size: 12))
+            .foregroundColor(.playolaTextTertiary)
         }
         Spacer(minLength: 0)
         Image(systemName: "chevron.right")
-          .font(.system(size: 14))
+          .font(.system(size: 15))
           .foregroundColor(.playolaGray)
       }
-      .padding(.vertical, 16)
+      .frame(height: 78)
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
