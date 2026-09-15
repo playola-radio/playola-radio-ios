@@ -38,7 +38,7 @@ struct AskMeAnythingSetupPageView: View {
       } label: {
         Image(systemName: "chevron.left")
           .font(.system(size: 18, weight: .semibold))
-          .foregroundColor(.playolaRed)
+          .foregroundColor(.playolaTextPrimary)
       }
       .buttonStyle(.plain)
       Text(model.navigationTitle)
