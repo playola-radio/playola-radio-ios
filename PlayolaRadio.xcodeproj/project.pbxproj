@@ -37,9 +37,9 @@
 		4F0799748F9B6F6C03B34E06 /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = 8A2626DA6E1408E57A38509F /* FRadioPlayer */; };
 		51CBBA46B5E06C646C37BD3A /* GiveawayWinnerPendingPush.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C547ECE1FDB131CE832D3D /* GiveawayWinnerPendingPush.swift */; };
 		54419FC022E2F30E137BEDD6 /* GiveawayWinnerSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC860B8DF872B25EFF727088 /* GiveawayWinnerSheetView.swift */; };
-		5713A17100000000000000A1 /* StationHealth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5713A17100000000000000A3 /* StationHealth.swift */; };
-		5713A17100000000000000A2 /* StationHealth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5713A17100000000000000A3 /* StationHealth.swift */; };
-		5713A17100000000000000A4 /* StationHealthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5713A17100000000000000A5 /* StationHealthTests.swift */; };
+		5713A17100000000000000A1 /* ProgrammingHealth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5713A17100000000000000A3 /* ProgrammingHealth.swift */; };
+		5713A17100000000000000A2 /* ProgrammingHealth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5713A17100000000000000A3 /* ProgrammingHealth.swift */; };
+		5713A17100000000000000A4 /* ProgrammingHealthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5713A17100000000000000A5 /* ProgrammingHealthTests.swift */; };
 		5C0327C159D6D3268DBB9EB7 /* KoozieTileSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AEE39FF8556B795049C7D10 /* KoozieTileSection.swift */; };
 		5C12EE7A0000000000000002 /* ScreenshotHarness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C12EE7A0000000000000001 /* ScreenshotHarness.swift */; };
 		5C12EE7A0000000000000003 /* ScreenshotHarness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C12EE7A0000000000000001 /* ScreenshotHarness.swift */; };
@@ -654,8 +654,8 @@
 		4D6113F0F682A5AB22EC6C63 /* RewardsExperienceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RewardsExperienceTests.swift; sourceTree = "<group>"; };
 		4ED42817003307A164F85FE7 /* PresetsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetsModel.swift; sourceTree = "<group>"; };
 		51C95B740988B02A7A472F8C /* GiveawayCongratsSheetModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayCongratsSheetModel.swift; sourceTree = "<group>"; };
-		5713A17100000000000000A3 /* StationHealth.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StationHealth.swift; sourceTree = "<group>"; };
-		5713A17100000000000000A5 /* StationHealthTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StationHealthTests.swift; sourceTree = "<group>"; };
+		5713A17100000000000000A3 /* ProgrammingHealth.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProgrammingHealth.swift; sourceTree = "<group>"; };
+		5713A17100000000000000A5 /* ProgrammingHealthTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProgrammingHealthTests.swift; sourceTree = "<group>"; };
 		5B3C275E61DA6CA4C482EC79 /* UpcomingGiveawayBannerModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UpcomingGiveawayBannerModelTests.swift; sourceTree = "<group>"; };
 		5C12EE7A0000000000000001 /* ScreenshotHarness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotHarness.swift; sourceTree = "<group>"; };
 		6B5384ED9FE3A984F23C18BA /* YourLibraryPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YourLibraryPageTests.swift; sourceTree = "<group>"; };
@@ -1312,8 +1312,8 @@
 				FBD876AFF9DD0588179EB37B /* RewardsExperience.swift */,
 				FEEDA11C0000000000000001 /* ListenerAnalytics.swift */,
 				4D6113F0F682A5AB22EC6C63 /* RewardsExperienceTests.swift */,
-				5713A17100000000000000A3 /* StationHealth.swift */,
-				5713A17100000000000000A5 /* StationHealthTests.swift */,
+				5713A17100000000000000A3 /* ProgrammingHealth.swift */,
+				5713A17100000000000000A5 /* ProgrammingHealthTests.swift */,
 				9EC624A968B0E0DA09E64702 /* KoozieShippingAddress.swift */,
 				CC0000000000000000000101 /* StationCategory.swift */,
 				CC0000000000000000000104 /* StationCategoryTests.swift */,
@@ -2524,7 +2524,7 @@
 				2613B751F316B4688367E6D7 /* UpcomingGiveawayBadge.swift in Sources */,
 				24801FB664BFA5B73E518BC3 /* RewardsExperience.swift in Sources */,
 				FEEDA11C0000000000000002 /* ListenerAnalytics.swift in Sources */,
-				5713A17100000000000000A1 /* StationHealth.swift in Sources */,
+				5713A17100000000000000A1 /* ProgrammingHealth.swift in Sources */,
 				1E1FEF5BE44432473298C8CB /* KoozieShippingAddress.swift in Sources */,
 				FFE2EA430C2866C7B05C9B12 /* KoozieAddressFormModel.swift in Sources */,
 				EAFEAD89072009BB8142CF3A /* KoozieTileModel.swift in Sources */,
@@ -2763,7 +2763,7 @@
 				6E073224D257FDD579575841 /* UpcomingGiveawayBadge.swift in Sources */,
 				9B14EE137DB923F77EBEFB37 /* RewardsExperience.swift in Sources */,
 				FEEDA11C0000000000000003 /* ListenerAnalytics.swift in Sources */,
-				5713A17100000000000000A2 /* StationHealth.swift in Sources */,
+				5713A17100000000000000A2 /* ProgrammingHealth.swift in Sources */,
 				23D5CA2938294DB58EB23395 /* KoozieShippingAddress.swift in Sources */,
 				24B6384BAEEAB70B98AF2B36 /* KoozieAddressFormModel.swift in Sources */,
 				35CB87DC50E3ED61D6FEA027 /* KoozieTileModel.swift in Sources */,
@@ -2876,7 +2876,7 @@
 				45C15A64DBFAC157AF8EBA65 /* GiveawayCongratsSheetModelTests.swift in Sources */,
 				086EF07946AAF32C92DE834A /* UpcomingGiveawayBannerModelTests.swift in Sources */,
 				7C3EB088AA47A09C775DB7DC /* RewardsExperienceTests.swift in Sources */,
-				5713A17100000000000000A4 /* StationHealthTests.swift in Sources */,
+				5713A17100000000000000A4 /* ProgrammingHealthTests.swift in Sources */,
 				438B06FF18E95D6D698E7678 /* KoozieAddressFormModelTests.swift in Sources */,
 				0A70B3257BA0A86D3F1AA9E5 /* KoozieTileModelTests.swift in Sources */,
 			);
