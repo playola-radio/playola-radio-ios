@@ -256,3 +256,17 @@ PlayolaRadio/
 - Use `async/await`, no completion handlers
 - Alerts via `PlayolaAlert` enum
 - Navigation via `PlayolaSheet` enum and navigation coordinator (see `.claude/NAVIGATION.md`)
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in this repo's GitHub Issues (`playola-radio/playola-radio-ios`), via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical roles, each label string equal to its name. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` plus `docs/adr/` at the repo root. See `docs/agents/domain.md`.
