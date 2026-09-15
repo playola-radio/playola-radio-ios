@@ -11,7 +11,7 @@ import SwiftUI
 
 // NOTE: The Station Health ring / "Improve your station" checklist come from
 // `getProgrammingHealth`; the Listeners stat cards come from `getActiveListeningSessions` (one
-// call per card); the 6-week chart comes from `getListenerCounts`. The Weekly Report header trend
+// call per card); the 8-week chart comes from `getListenerCounts`. The Weekly Report header trend
 // is a rolling week-over-week change (trailing 7 days vs. the prior 7 days) computed from two
 // more `getActiveListeningSessions` windows.
 @MainActor
@@ -246,6 +246,7 @@ class ArtistDashboardPageModel: ViewModel {
       ?? currentWeekMonday
 
     let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
     formatter.calendar = calendar
     formatter.timeZone = calendar.timeZone
     formatter.dateFormat = "yyyy-MM-dd"
