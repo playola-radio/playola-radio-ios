@@ -12,17 +12,15 @@ struct AskMeAnythingSetupPageView: View {
     VStack(spacing: 0) {
       header
       ScrollView {
-        VStack(alignment: .leading, spacing: 0) {
-          introCard
-          Text(model.preparationReassurance)
-            .font(.custom(FontNames.Inter_400_Regular, size: 12))
-            .foregroundColor(.playolaTextSecondary)
-            .lineSpacing(4.8)
-            .frame(maxWidth: .infinity)
-            .multilineTextAlignment(.center)
-            .padding(.top, 16)
+        ZStack(alignment: .top) {
+          introPromptContent
+            .padding(.horizontal, 16)
+            .opacity(model.introPromptOpacity)
+            .allowsHitTesting(model.introPromptInteractive)
+          openingPlaylistContent
+            .opacity(model.openingPlaylistOpacity)
+            .allowsHitTesting(model.openingPlaylistInteractive)
         }
-        .padding(.horizontal, 16)
         .padding(.top, 20)
       }
     }
@@ -51,6 +49,21 @@ struct AskMeAnythingSetupPageView: View {
     }
     .frame(height: 44)
     .padding(.horizontal, 16)
+  }
+
+  // MARK: - Record-intro state (01)
+
+  private var introPromptContent: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      introCard
+      Text(model.preparationReassurance)
+        .font(.custom(FontNames.Inter_400_Regular, size: 12))
+        .foregroundColor(.playolaTextSecondary)
+        .lineSpacing(4.8)
+        .frame(maxWidth: .infinity)
+        .multilineTextAlignment(.center)
+        .padding(.top, 16)
+    }
   }
 
   private var introCard: some View {
@@ -102,6 +115,134 @@ struct AskMeAnythingSetupPageView: View {
     .buttonStyle(.plain)
   }
 
+  // MARK: - Build-your-opening state (01b)
+
+  private var openingPlaylistContent: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      openingPlaylistHeading
+        .padding(.horizontal, 16)
+      showIntroRow
+      addToShowCard
+        .padding(.horizontal, 16)
+    }
+  }
+
+  private var openingPlaylistHeading: some View {
+    VStack(alignment: .leading, spacing: 6) {
+      Text(model.openingPlaylistTitle)
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 21))
+        .foregroundColor(.playolaTextPrimary)
+      Text(model.openingPlaylistSubtitle)
+        .font(.custom(FontNames.Inter_400_Regular, size: 14))
+        .foregroundColor(.playolaTextSecondary)
+    }
+  }
+
+  private var showIntroRow: some View {
+    HStack(spacing: 12) {
+      ZStack {
+        RoundedRectangle(cornerRadius: 4)
+          .fill(Color.playolaRed)
+          .frame(width: 45, height: 45)
+        Image(systemName: "mic")
+          .font(.system(size: 20))
+          .foregroundColor(.playolaTextPrimary)
+      }
+      VStack(alignment: .leading, spacing: 2) {
+        Text(model.introRowTitle)
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+          .foregroundColor(.playolaTextPrimary)
+        Text(model.introRowSubtitle)
+          .font(.custom(FontNames.Inter_400_Regular, size: 12))
+          .foregroundColor(.playolaTextDisabled)
+      }
+      Spacer()
+      Text(model.introRowDurationLabel)
+        .font(.custom(FontNames.Inter_400_Regular, size: 11))
+        .foregroundColor(.playolaTextDisabled)
+      Image(systemName: "pin")
+        .font(.system(size: 14))
+        .foregroundColor(.playolaTextDisabled)
+        .padding(.leading, 8)
+    }
+    .padding(.vertical, 8)
+    .padding(.horizontal, 12)
+    .frame(maxWidth: .infinity)
+    .background(Color.playolaSurfaceRow)
+  }
+
+  private var addToShowCard: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      HStack(spacing: 7) {
+        Image(systemName: "plus.circle")
+          .font(.system(size: 18))
+          .foregroundColor(.playolaRed)
+        Text(model.addSectionTitle)
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 19))
+          .foregroundColor(.playolaTextPrimary)
+      }
+      Text(model.addSectionExplanation)
+        .font(.custom(FontNames.Inter_400_Regular, size: 14))
+        .foregroundColor(.playolaTextSecondary)
+        .lineSpacing(4.8)
+        .fixedSize(horizontal: false, vertical: true)
+      HStack(spacing: 12) {
+        addAction(icon: "mic", label: model.voicetrackActionLabel) {
+          model.voicetrackActionTapped()
+        }
+        addAction(icon: "music.note", label: model.songActionLabel) {
+          model.songActionTapped()
+        }
+        addAction(icon: "bubble.left.and.bubble.right", label: model.qaActionLabel) {
+          model.qaActionTapped()
+        }
+      }
+      .frame(maxWidth: .infinity)
+    }
+    .padding(20)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(Color.playolaSurfaceSection)
+    .cornerRadius(16)
+    .overlay(
+      RoundedRectangle(cornerRadius: 16)
+        .stroke(Color.playolaGlassHairline, lineWidth: 1)
+    )
+  }
+
+  private func addAction(icon: String, label: String, action: @escaping () -> Void) -> some View {
+    Button(action: action) {
+      VStack(spacing: 10) {
+        ZStack(alignment: .bottomTrailing) {
+          ZStack {
+            Circle()
+              .fill(Color.playolaRed)
+              .frame(width: 64, height: 64)
+              .overlay(Circle().stroke(Color.playolaTextPrimary, lineWidth: 2))
+            Image(systemName: icon)
+              .font(.system(size: 24))
+              .foregroundColor(.playolaTextPrimary)
+          }
+          ZStack {
+            Circle()
+              .fill(Color.playolaWarmSurface)
+              .frame(width: 22, height: 22)
+              .overlay(Circle().stroke(Color.playolaTextPrimary, lineWidth: 1.5))
+            Image(systemName: "plus")
+              .font(.system(size: 13, weight: .semibold))
+              .foregroundColor(.playolaTextPrimary)
+          }
+        }
+        Text(label)
+          .font(.custom(FontNames.Inter_400_Regular, size: 13))
+          .foregroundColor(.playolaTextPrimary)
+      }
+      .frame(maxWidth: .infinity)
+    }
+    .buttonStyle(.plain)
+  }
+
+  // MARK: - Bottom bar
+
   private var bottomBar: some View {
     VStack(spacing: 8) {
       HStack {
@@ -152,9 +293,18 @@ struct AskMeAnythingSetupPageView: View {
   }
 }
 
-#Preview {
+#Preview("Record intro") {
   NavigationStack {
     AskMeAnythingSetupPageView(model: AskMeAnythingSetupPageModel(stationId: "station-preview"))
+  }
+  .preferredColorScheme(.dark)
+}
+
+#Preview("Build your opening") {
+  let model = AskMeAnythingSetupPageModel(stationId: "station-preview")
+  model.introDuration = 30
+  return NavigationStack {
+    AskMeAnythingSetupPageView(model: model)
   }
   .preferredColorScheme(.dark)
 }
