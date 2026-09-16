@@ -304,7 +304,10 @@ struct AskMeAnythingSetupPageView: View {
 
 #Preview("Build your opening") {
   let model = AskMeAnythingSetupPageModel(stationId: "station-preview")
-  model.introDuration = 30
+  model.openingItems.append(
+    AMAOpeningItem(
+      id: UUID(uuidString: "00000000-0000-0000-0000-0000000000AA")!,
+      content: .intro(.mockWith(id: "intro", durationMS: 30_000))))
   return NavigationStack {
     AskMeAnythingSetupPageView(model: model)
   }

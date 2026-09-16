@@ -4,6 +4,7 @@
 //
 
 import CustomDump
+import Dependencies
 import Foundation
 import PlayolaPlayer
 import Sharing
@@ -16,6 +17,12 @@ import Testing
 struct AskMeAnythingSetupPageTests {
 
   private let testStationId = "station-abc"
+
+  private func introItem(durationMS: Int) -> AMAOpeningItem {
+    AMAOpeningItem(
+      id: UUID(uuidString: "00000000-0000-0000-0000-0000000000AA")!,
+      content: .intro(.mockWith(id: "intro", durationMS: durationMS)))
+  }
 
   @Test func displaysIntroCopy() {
     let model = AskMeAnythingSetupPageModel(stationId: testStationId)
@@ -67,7 +74,7 @@ struct AskMeAnythingSetupPageTests {
     #expect(!model.introPromptAccessibilityHidden)
     #expect(model.openingPlaylistAccessibilityHidden)
 
-    model.introDuration = 30
+    model.openingItems.append(introItem(durationMS: 30_000))
 
     #expect(model.introPromptAccessibilityHidden)
     #expect(!model.openingPlaylistAccessibilityHidden)
@@ -85,9 +92,18 @@ struct AskMeAnythingSetupPageTests {
       Issue.record("Expected record page to be pushed")
       return
     }
-    await recorder.onCompleted?(.mockWith(durationMS: 30000))
+    await withDependencies {
+      $0.uuid = .incrementing
+    } operation: {
+      await recorder.onCompleted?(.mockWith(durationMS: 30000))
+    }
 
     #expect(model.hasRecordedIntro)
+    expectNoDifference(model.openingItems.count, 1)
+    guard case .intro? = model.openingItems.first?.content else {
+      Issue.record("Expected the recorded item to be an intro")
+      return
+    }
     expectNoDifference(model.introPromptOpacity, 0)
     #expect(!model.introPromptInteractive)
     expectNoDifference(model.openingPlaylistOpacity, 1)
@@ -116,19 +132,15 @@ struct AskMeAnythingSetupPageTests {
 
   @Test func displaysOpeningPlaylistCopyAfterIntroRecorded() {
     let model = AskMeAnythingSetupPageModel(stationId: testStationId)
-
-    model.introDuration = 30
+    model.openingItems.append(introItem(durationMS: 30_000))
 
     expectNoDifference(model.openingPlaylistTitle, "Your opening playlist")
     expectNoDifference(
       model.openingPlaylistSubtitle, "Your station keeps playing while you prepare.")
-    expectNoDifference(model.introRowTitle, "Show Intro")
-    expectNoDifference(model.introRowSubtitle, "Your voice")
-    expectNoDifference(model.introRowDurationLabel, "0:30")
     expectNoDifference(model.addSectionTitle, "Let\u{2019}s get a little ahead")
     expectNoDifference(
       model.addSectionExplanation,
-      "Build the first 10 minutes of your show with songs and past Q&As. "
+      "Build the first 10 minutes of your show with songs and voicetracks. "
         + "Use Voicetrack to record a quick intro for a song.")
     expectNoDifference(model.voicetrackActionLabel, "Voicetrack")
     expectNoDifference(model.songActionLabel, "Song")
@@ -137,13 +149,28 @@ struct AskMeAnythingSetupPageTests {
 
   @Test func bottomBarReflectsRecordedIntroProgress() {
     let model = AskMeAnythingSetupPageModel(stationId: testStationId)
-
-    model.introDuration = 30
+    model.openingItems.append(introItem(durationMS: 30_000))
 
     expectNoDifference(model.preparedAudioLabel, "0:30 / 10:00 ready")
     expectNoDifference(model.readinessHint, "Add 9:30 more")
     expectNoDifference(model.readyProgress, 0.05)
     #expect(!model.isStartShowEnabled)
+  }
+
+  @Test func startShowEnablesAtTenMinutesOfReadyAudio() {
+    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+
+    model.openingItems.append(introItem(durationMS: 599_999))
+    #expect(!model.isStartShowEnabled)
+    expectNoDifference(model.readinessHint, "Add 0:01 more")
+
+    model.openingItems.append(
+      AMAOpeningItem(
+        id: UUID(uuidString: "00000000-0000-0000-0000-0000000000BB")!,
+        content: .song(.mockWith(id: "s", durationMS: 1))))
+    #expect(model.isStartShowEnabled)
+    expectNoDifference(model.readyProgress, 1)
+    expectNoDifference(model.readinessHint, "Ready to start")
   }
 }
 

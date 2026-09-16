@@ -3,6 +3,9 @@
 //  PlayolaRadio
 //
 
+import CasePaths
+import Dependencies
+import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
 import SwiftUI
@@ -11,9 +14,17 @@ import SwiftUI
 @Observable
 class AskMeAnythingSetupPageModel: ViewModel {
 
+  // MARK: - Dependencies
+
+  @ObservationIgnored @Dependency(\.uuid) var uuid
+  @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
+  @ObservationIgnored @Dependency(\.audioRecorder) var audioRecorder
+
   // MARK: - Shared State
 
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator
+  @ObservationIgnored @Shared(.auth) var auth
 
   // MARK: - Initialization
 
@@ -25,9 +36,10 @@ class AskMeAnythingSetupPageModel: ViewModel {
   // MARK: - Properties
 
   let stationId: String
-  private let targetDuration: TimeInterval = 600
+  private let targetMilliseconds = 600_000
 
-  var introDuration: TimeInterval?
+  var openingItems: IdentifiedArrayOf<AMAOpeningItem> = []
+  var presentedAlert: PlayolaAlert?
 
   // MARK: - User Actions
 
@@ -38,8 +50,10 @@ class AskMeAnythingSetupPageModel: ViewModel {
   func recordIntroButtonTapped() {
     let recorder = RecordWithMultiStepPromptModel.askMeAnythingIntro(stationId: stationId)
     recorder.onCompleted = { [weak self] audioBlock in
-      guard audioBlock.durationMS > 0 else { return }
-      self?.introDuration = TimeInterval(audioBlock.durationMS) / 1000
+      guard let self, audioBlock.durationMS > 0 else { return }
+      guard !openingItems.contains(where: { $0.content.is(\.intro) }) else { return }
+      openingItems.insert(
+        AMAOpeningItem(id: uuid(), content: .intro(audioBlock)), at: 0)
     }
     navigationCoordinator.push(.recordWithMultiStepPromptPage(recorder))
   }
@@ -55,7 +69,7 @@ class AskMeAnythingSetupPageModel: ViewModel {
   var navigationTitle: String { "Ask Me Anything" }
   var setupLabel: String { "SETUP" }
 
-  var hasRecordedIntro: Bool { introDuration != nil }
+  var hasRecordedIntro: Bool { openingItems.contains { $0.content.is(\.intro) } }
   var introPromptOpacity: Double { hasRecordedIntro ? 0 : 1 }
   var introPromptInteractive: Bool { !hasRecordedIntro }
   var introPromptAccessibilityHidden: Bool { hasRecordedIntro }
@@ -77,37 +91,48 @@ class AskMeAnythingSetupPageModel: ViewModel {
 
   var introRowTitle: String { "Show Intro" }
   var introRowSubtitle: String { "Your voice" }
-  var introRowDurationLabel: String { durationLabel(introDuration ?? 0) }
+  var introRowDurationLabel: String {
+    durationLabel(openingItems.first(where: { $0.content.is(\.intro) })?.readyDurationMS ?? 0)
+  }
 
   var addSectionTitle: String { "Let\u{2019}s get a little ahead" }
   var addSectionExplanation: String {
-    "Build the first 10 minutes of your show with songs and past Q&As. "
+    "Build the first 10 minutes of your show with songs and voicetracks. "
       + "Use Voicetrack to record a quick intro for a song."
   }
   var voicetrackActionLabel: String { "Voicetrack" }
   var songActionLabel: String { "Song" }
   var qaActionLabel: String { "Q/A" }
 
+  private var readyMilliseconds: Int {
+    openingItems.reduce(0) { $0 + $1.readyDurationMS }
+  }
+
   var preparedAudioLabel: String {
-    "\(durationLabel(introDuration ?? 0)) / \(durationLabel(targetDuration)) ready"
+    "\(durationLabel(readyMilliseconds)) / \(durationLabel(targetMilliseconds)) ready"
   }
   var readinessHint: String {
-    guard let introDuration else { return "Record your intro" }
-    return "Add \(durationLabel(max(0, targetDuration - introDuration).rounded(.up))) more"
+    guard hasRecordedIntro else { return "Record your intro" }
+    if isStartShowEnabled { return "Ready to start" }
+    return "Add \(durationLabelCeil(max(0, targetMilliseconds - readyMilliseconds))) more"
   }
   var readyProgress: Double {
-    guard let introDuration else { return 0 }
-    return min(1, introDuration / targetDuration)
+    min(1, Double(readyMilliseconds) / Double(targetMilliseconds))
   }
 
   var startShowButtonTitle: String { "Start Show" }
-  var isStartShowEnabled: Bool { false }
+  var isStartShowEnabled: Bool { readyMilliseconds >= targetMilliseconds }
   var startShowButtonTitleColor: Color { isStartShowEnabled ? .white : .playolaGray }
 
   // MARK: - Private Helpers
 
-  private func durationLabel(_ seconds: TimeInterval) -> String {
-    let total = Int(seconds.rounded())
+  private func durationLabel(_ milliseconds: Int) -> String {
+    let total = max(0, milliseconds) / 1000
+    return String(format: "%d:%02d", total / 60, total % 60)
+  }
+
+  private func durationLabelCeil(_ milliseconds: Int) -> String {
+    let total = Int((Double(max(0, milliseconds)) / 1000).rounded(.up))
     return String(format: "%d:%02d", total / 60, total % 60)
   }
 }
