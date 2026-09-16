@@ -118,10 +118,27 @@ class AskMeAnythingSetupPageModel: ViewModel {
   var openingPlaylistTitle: String { "Your opening playlist" }
   var openingPlaylistSubtitle: String { "Your station keeps playing while you prepare." }
 
-  var introRowTitle: String { "Show Intro" }
-  var introRowSubtitle: String { "Your voice" }
-  var introRowDurationLabel: String {
-    durationLabel(openingItems.first(where: { $0.content.is(\.intro) })?.readyDurationMS ?? 0)
+  var openingRows: [AMAOpeningRowData] {
+    openingItems.map { item in
+      switch item.content {
+      case .intro(let block):
+        return AMAOpeningRowData(
+          id: item.id, title: "Show Intro", subtitle: "Your voice",
+          subtitleColor: .playolaTextDisabled, iconSystemName: "mic", albumImageUrl: nil,
+          trailingText: durationLabel(block.durationMS), isProcessing: false, showsPin: true)
+      case .song(let block):
+        return AMAOpeningRowData(
+          id: item.id, title: block.title, subtitle: block.artist,
+          subtitleColor: .playolaTextDisabled, iconSystemName: nil, albumImageUrl: block.imageUrl,
+          trailingText: durationLabel(block.durationMS), isProcessing: false, showsPin: false)
+      case .voicetrack(let voicetrack, let completedDurationMS):
+        return AMAOpeningRowData(
+          id: item.id, title: voicetrack.title, subtitle: voicetrack.subtitleText,
+          subtitleColor: voicetrack.subtitleColor, iconSystemName: "mic", albumImageUrl: nil,
+          trailingText: completedDurationMS.map { durationLabel($0) },
+          isProcessing: voicetrack.isProcessing, showsPin: false)
+      }
+    }
   }
 
   var addSectionTitle: String { "Let\u{2019}s get a little ahead" }

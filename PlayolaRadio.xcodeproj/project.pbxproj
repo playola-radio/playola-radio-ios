@@ -573,6 +573,8 @@
 		D3F493CB2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493C92EEE4133008ED463 /* LocalVoicetrack.swift */; };
 		3323D0CF9D68CA09140097AC /* AMAOpeningItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC3062D8D253F844CBA99697 /* AMAOpeningItem.swift */; };
 		719FF97AE552513461BCC570 /* AMAOpeningItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC3062D8D253F844CBA99697 /* AMAOpeningItem.swift */; };
+		ED782639689341641D657686 /* AMAOpeningRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E4BD99E31BA9B882C7056A /* AMAOpeningRowView.swift */; };
+		C29B4F9EAEED22434B85EFA0 /* AMAOpeningRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E4BD99E31BA9B882C7056A /* AMAOpeningRowView.swift */; };
 		D3F493CD2EEE50A4008ED463 /* AudioConverterClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493CC2EEE50A4008ED463 /* AudioConverterClient.swift */; };
 		D3F493CE2EEE50A4008ED463 /* AudioConverterClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493CC2EEE50A4008ED463 /* AudioConverterClient.swift */; };
 		D3F493D02EEE52F9008ED463 /* PresignedURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493CF2EEE52F4008ED463 /* PresignedURLResponse.swift */; };
@@ -979,6 +981,7 @@
 		D3F493C62EEE03F3008ED463 /* AudioPlayerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerClient.swift; sourceTree = "<group>"; };
 		D3F493C92EEE4133008ED463 /* LocalVoicetrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalVoicetrack.swift; sourceTree = "<group>"; };
 		AC3062D8D253F844CBA99697 /* AMAOpeningItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAOpeningItem.swift; sourceTree = "<group>"; };
+		D1E4BD99E31BA9B882C7056A /* AMAOpeningRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAOpeningRowView.swift; sourceTree = "<group>"; };
 		D3F493CC2EEE50A4008ED463 /* AudioConverterClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioConverterClient.swift; sourceTree = "<group>"; };
 		D3F493CF2EEE52F4008ED463 /* PresignedURLResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresignedURLResponse.swift; sourceTree = "<group>"; };
 		D3F493D22EEE58CF008ED463 /* VoicetrackUploadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicetrackUploadService.swift; sourceTree = "<group>"; };
@@ -1217,6 +1220,7 @@
 				CC0000000000000000000704 /* AskMeAnythingSetupPageView.swift */,
 				CC0000000000000000000707 /* AskMeAnythingSetupPageTests.swift */,
 				AC3062D8D253F844CBA99697 /* AMAOpeningItem.swift */,
+				D1E4BD99E31BA9B882C7056A /* AMAOpeningRowView.swift */,
 			);
 			path = AskMeAnythingSetupPage;
 			sourceTree = "<group>";
@@ -2462,6 +2466,7 @@
 				CC0000000000000000000702 /* AskMeAnythingSetupPageModel.swift in Sources */,
 				CC0000000000000000000705 /* AskMeAnythingSetupPageView.swift in Sources */,
 				3323D0CF9D68CA09140097AC /* AMAOpeningItem.swift in Sources */,
+				ED782639689341641D657686 /* AMAOpeningRowView.swift in Sources */,
 				CC0000000000000000000902 /* RecordWithMultiStepPromptModel.swift in Sources */,
 				CC0000000000000000000905 /* RecordWithMultiStepPromptView.swift in Sources */,
 				CC0000000000000000000402 /* MusicCategoryDetailPageModel.swift in Sources */,
@@ -2708,6 +2713,7 @@
 				CC0000000000000000000703 /* AskMeAnythingSetupPageModel.swift in Sources */,
 				CC0000000000000000000706 /* AskMeAnythingSetupPageView.swift in Sources */,
 				719FF97AE552513461BCC570 /* AMAOpeningItem.swift in Sources */,
+				C29B4F9EAEED22434B85EFA0 /* AMAOpeningRowView.swift in Sources */,
 				CC0000000000000000000903 /* RecordWithMultiStepPromptModel.swift in Sources */,
 				CC0000000000000000000906 /* RecordWithMultiStepPromptView.swift in Sources */,
 				CC0000000000000000000403 /* MusicCategoryDetailPageModel.swift in Sources */,

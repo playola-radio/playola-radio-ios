@@ -351,6 +351,43 @@ struct AskMeAnythingSetupPageTests {
     }
   }
 
+  @Test func openingRowsResolveIntroSongAndVoicetrackDisplayData() {
+    let model = withDependencies {
+      $0.uuid = .incrementing
+    } operation: {
+      AskMeAnythingSetupPageModel(stationId: testStationId)
+    }
+    model.openingItems.append(
+      AMAOpeningItem(
+        id: UUID(uuidString: "00000000-0000-0000-0000-0000000000A1")!,
+        content: .intro(.mockWith(id: "intro", durationMS: 30_000))))
+    model.openingItems.append(
+      AMAOpeningItem(
+        id: UUID(uuidString: "00000000-0000-0000-0000-0000000000A2")!,
+        content: .song(
+          .mockWith(id: "song", title: "Song X", artist: "Artist Y", durationMS: 200_000))))
+    let vt = LocalVoicetrack(
+      id: UUID(uuidString: "00000000-0000-0000-0000-0000000000A3")!,
+      originalURL: URL(fileURLWithPath: "/tmp/a.wav"),
+      status: .uploading(progress: 0.5), createdAt: Date(timeIntervalSince1970: 0), title: "VT")
+    model.openingItems.append(
+      AMAOpeningItem(
+        id: UUID(uuidString: "00000000-0000-0000-0000-0000000000A4")!,
+        content: .voicetrack(vt, completedDurationMS: nil)))
+
+    let rows = model.openingRows
+    expectNoDifference(rows.count, 3)
+    expectNoDifference(rows[0].title, "Show Intro")
+    expectNoDifference(rows[0].subtitle, "Your voice")
+    expectNoDifference(rows[0].trailingText, "0:30")
+    #expect(rows[0].showsPin)
+    expectNoDifference(rows[1].title, "Song X")
+    expectNoDifference(rows[1].subtitle, "Artist Y")
+    expectNoDifference(rows[1].trailingText, "3:20")
+    #expect(rows[2].isProcessing)
+    #expect(rows[2].trailingText == nil)
+  }
+
   @Test func backButtonCancelsInFlightUploads() async throws {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator) var coordinator =

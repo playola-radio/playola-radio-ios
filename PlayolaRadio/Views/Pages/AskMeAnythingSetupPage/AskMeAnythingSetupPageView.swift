@@ -29,6 +29,7 @@ struct AskMeAnythingSetupPageView: View {
     .background(Color.playolaSurfaceBase)
     .navigationBarHidden(true)
     .safeAreaInset(edge: .bottom) { bottomBar }
+    .playolaAlert($model.presentedAlert)
   }
 
   private var header: some View {
@@ -123,7 +124,11 @@ struct AskMeAnythingSetupPageView: View {
     VStack(alignment: .leading, spacing: 16) {
       openingPlaylistHeading
         .padding(.horizontal, 16)
-      showIntroRow
+      VStack(spacing: 0) {
+        ForEach(model.openingRows) { row in
+          AMAOpeningRowView(data: row)
+        }
+      }
       addToShowCard
         .padding(.horizontal, 16)
     }
@@ -138,39 +143,6 @@ struct AskMeAnythingSetupPageView: View {
         .font(.custom(FontNames.Inter_400_Regular, size: 14))
         .foregroundColor(.playolaTextSecondary)
     }
-  }
-
-  private var showIntroRow: some View {
-    HStack(spacing: 12) {
-      ZStack {
-        RoundedRectangle(cornerRadius: 4)
-          .fill(Color.playolaRed)
-          .frame(width: 45, height: 45)
-        Image(systemName: "mic")
-          .font(.system(size: 20))
-          .foregroundColor(.playolaTextPrimary)
-      }
-      VStack(alignment: .leading, spacing: 2) {
-        Text(model.introRowTitle)
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
-          .foregroundColor(.playolaTextPrimary)
-        Text(model.introRowSubtitle)
-          .font(.custom(FontNames.Inter_400_Regular, size: 12))
-          .foregroundColor(.playolaTextDisabled)
-      }
-      Spacer()
-      Text(model.introRowDurationLabel)
-        .font(.custom(FontNames.Inter_400_Regular, size: 11))
-        .foregroundColor(.playolaTextDisabled)
-      Image(systemName: "pin")
-        .font(.system(size: 14))
-        .foregroundColor(.playolaTextDisabled)
-        .padding(.leading, 8)
-    }
-    .padding(.vertical, 8)
-    .padding(.horizontal, 12)
-    .frame(maxWidth: .infinity)
-    .background(Color.playolaSurfaceRow)
   }
 
   private var addToShowCard: some View {
