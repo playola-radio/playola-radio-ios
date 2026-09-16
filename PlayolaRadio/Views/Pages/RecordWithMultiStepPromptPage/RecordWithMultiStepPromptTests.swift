@@ -167,6 +167,45 @@ struct RecordWithMultiStepPromptTests {
     expectNoDifference(model.recordingPhase, .ready)
   }
 
+  @Test func rapidRecordTapsStartOneRecording() async {
+    let startCount = LockIsolated(0)
+    let (started, startedContinuation) = AsyncStream<Void>.makeStream()
+    let (release, releaseContinuation) = AsyncStream<Void>.makeStream()
+    let model = withDependencies {
+      $0.audioPlayer = .testValue
+      $0.audioRecorder = AudioRecorderClient(
+        requestPermission: { true },
+        prepareForRecording: {},
+        startRecording: {},
+        stopRecording: { URL(fileURLWithPath: "/tmp/test.wav") },
+        currentTime: { 0 },
+        deleteRecording: { _ in },
+        getAudioLevel: { 0 },
+        startRecordingWithUpdates: { _ in
+          let count = startCount.withValue {
+            $0 += 1
+            return $0
+          }
+          if count == 1 {
+            startedContinuation.yield()
+            for await _ in release.prefix(1) {}
+          }
+          return RecordingSession(
+            stop: { URL(fileURLWithPath: "/tmp/test.wav") }, cancel: {}, delete: { _ in })
+        })
+    } operation: {
+      makeReadyModel()
+    }
+
+    let firstTap = Task { await model.recordButtonTapped() }
+    for await _ in started.prefix(1) {}
+    await model.recordButtonTapped()
+    releaseContinuation.yield()
+    await firstTap.value
+
+    expectNoDifference(startCount.value, 1)
+  }
+
   // MARK: - Review Actions
 
   @Test func reRecordReturnsToReadyState() async {
@@ -185,7 +224,14 @@ struct RecordWithMultiStepPromptTests {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     let handedOff = LockIsolated<URL?>(nil)
-    let model = makeModel()
+    let deleted = LockIsolated<URL?>(nil)
+    let model = withDependencies {
+      $0.audioPlayer = .testValue
+      $0.audioRecorder = .testValue
+      $0.audioRecorder.deleteRecording = { deleted.setValue($0) }
+    } operation: {
+      makeReadyModel()
+    }
     coordinator.push(.recordWithMultiStepPromptPage(model))
     model.recordingPhase = .review
     model.recordingURL = URL(fileURLWithPath: "/tmp/recorded.wav")
@@ -194,8 +240,37 @@ struct RecordWithMultiStepPromptTests {
     await model.useRecordingButtonTapped()
 
     expectNoDifference(handedOff.value, URL(fileURLWithPath: "/tmp/recorded.wav"))
+    expectNoDifference(deleted.value, URL(fileURLWithPath: "/tmp/recorded.wav"))
+    #expect(model.recordingURL == nil)
     #expect(model.presentedAlert == nil)
     #expect(coordinator.path.isEmpty)
+  }
+
+  @Test func rapidUseRecordingTapsStartOneUpload() async {
+    let uploadCount = LockIsolated(0)
+    let (started, startedContinuation) = AsyncStream<Void>.makeStream()
+    let (release, releaseContinuation) = AsyncStream<Void>.makeStream()
+    let model = makeModel()
+    model.recordingPhase = .review
+    model.recordingURL = URL(fileURLWithPath: "/tmp/recorded.wav")
+    model.onUseRecording = { _, _ in
+      let count = uploadCount.withValue {
+        $0 += 1
+        return $0
+      }
+      if count == 1 {
+        startedContinuation.yield()
+        for await _ in release.prefix(1) {}
+      }
+    }
+
+    let firstTap = Task { await model.useRecordingButtonTapped() }
+    for await _ in started.prefix(1) {}
+    await model.useRecordingButtonTapped()
+    releaseContinuation.yield()
+    await firstTap.value
+
+    expectNoDifference(uploadCount.value, 1)
   }
 
   @Test func useRecordingDrivesProgressToUploading() async {

@@ -4,6 +4,7 @@
 //
 
 import Dependencies
+import IdentifiedCollections
 import Sharing
 import SwiftUI
 
@@ -37,20 +38,20 @@ class RecordWithMultiStepPromptModel: ViewModel {
     self.guideBadge = guideBadge
     self.title = title
     self.subtitle = subtitle
-    self.steps = steps
+    self.steps = IdentifiedArray(uniqueElements: steps)
     self.trackLabel = trackLabel
     self.isUpsideDown = isUpsideDown
     super.init()
   }
 
-  // MARK: - Configuration
+  // MARK: - Properties
 
   let screenTitle: String
   let eyebrow: String
   let guideBadge: String?
   let title: String
   let subtitle: String?
-  let steps: [RecordPromptStep]
+  let steps: IdentifiedArrayOf<RecordPromptStep>
   let trackLabel: String
   let isUpsideDown: Bool
 
@@ -63,31 +64,27 @@ class RecordWithMultiStepPromptModel: ViewModel {
         Void
     )?
 
-  // MARK: - Recording State
-
   var recordingPhase: RecordPromptPhase = .ready
   var recordingState: RecordingState = .idle
   var recordingURL: URL?
   var recordedDuration: TimeInterval = 0
   @ObservationIgnored private var recordingSession: RecordingSession?
-
-  // MARK: - Playback State
-
   var playbackState: PlaybackState = .idle
   @ObservationIgnored private var playbackSession: PlaybackSession?
-
-  // MARK: - Submission State
-
   var uploadProgress: Double = 0
   var presentedAlert: PlayolaAlert?
+  @ObservationIgnored private var isRecordingActionInFlight = false
+  @ObservationIgnored private var isLeaving = false
 
   // MARK: - User Actions
 
   func viewAppeared() async {
+    isLeaving = false
     try? await audioRecorder.prepareForRecording()
   }
 
   func viewDisappeared() async {
+    isLeaving = true
     await teardown()
   }
 
@@ -105,6 +102,9 @@ class RecordWithMultiStepPromptModel: ViewModel {
   }
 
   func recordButtonTapped() async {
+    guard !isRecordingActionInFlight else { return }
+    isRecordingActionInFlight = true
+    defer { isRecordingActionInFlight = false }
     switch recordingPhase {
     case .ready: await startRecording()
     case .recording: await stopRecording()
@@ -141,31 +141,20 @@ class RecordWithMultiStepPromptModel: ViewModel {
   }
 
   func useRecordingButtonTapped() async {
-    guard let url = recordingURL else { return }
-    await stopPlayback()
+    guard recordingPhase == .review, let url = recordingURL else { return }
     uploadProgress = 0
     recordingPhase = .saving
+    await stopPlayback()
     do {
       try await onUseRecording?(url) { [weak self] progress in
         self?.applyUploadProgress(progress)
       }
+      await audioRecorder.deleteRecording(url)
+      recordingURL = nil
       navigationCoordinator.pop()
     } catch {
       recordingPhase = .review
       presentedAlert = .recordingSaveFailed(error.localizedDescription)
-    }
-  }
-
-  private func applyUploadProgress(_ progress: RecordUploadProgress) {
-    switch progress {
-    case .saving:
-      recordingPhase = .saving
-    case .uploading(let fraction):
-      recordingPhase = .uploading
-      uploadProgress = min(1, max(0, fraction))
-    case .finishing:
-      recordingPhase = .uploading
-      uploadProgress = 1
     }
   }
 
@@ -257,17 +246,19 @@ class RecordWithMultiStepPromptModel: ViewModel {
   private let readyWaveformHeights: [CGFloat] = [4, 6, 4, 8, 4, 6, 4, 8, 4, 6, 4, 8, 4, 6, 4]
   private let liveWaveformBarCount = 15
 
-  var waveformBars: [RecordWaveformBar] {
+  var waveformBars: IdentifiedArrayOf<RecordWaveformBar> {
     guard isRecording else {
-      return readyWaveformHeights.enumerated().map { index, height in
-        RecordWaveformBar(id: index, height: height, color: .playolaTextTertiary)
-      }
+      return IdentifiedArray(
+        uniqueElements: readyWaveformHeights.enumerated().map { index, height in
+          RecordWaveformBar(id: index, height: height, color: .playolaTextTertiary)
+        })
     }
     let recent = recordingState.waveformSamples.suffix(liveWaveformBarCount)
     let padding = Array(repeating: Float(0), count: max(0, liveWaveformBarCount - recent.count))
-    return (padding + recent).enumerated().map { index, sample in
-      RecordWaveformBar(id: index, height: 4 + CGFloat(sample) * 32, color: .playolaRed)
-    }
+    return IdentifiedArray(
+      uniqueElements: (padding + recent).enumerated().map { index, sample in
+        RecordWaveformBar(id: index, height: 4 + CGFloat(sample) * 32, color: .playolaRed)
+      })
   }
 
   // MARK: - Review Card
@@ -301,9 +292,9 @@ class RecordWithMultiStepPromptModel: ViewModel {
     recordingPhase == .uploading ? uploadProgress : savingProgressFraction
   }
 
-  var progressSteps: [RecordProgressStep] {
+  var progressSteps: IdentifiedArrayOf<RecordProgressStep> {
     if recordingPhase == .uploading {
-      return [
+      return IdentifiedArray(uniqueElements: [
         RecordProgressStep(
           id: 0, systemImage: "checkmark", iconColor: .playolaTextPrimary,
           iconBackgroundColor: .playolaRed, label: "Saved on this device",
@@ -312,9 +303,9 @@ class RecordWithMultiStepPromptModel: ViewModel {
           id: 1, systemImage: "icloud.and.arrow.up", iconColor: .playolaRed,
           iconBackgroundColor: .playolaWarmSurface, label: "Uploading to Playola",
           labelColor: .playolaTextPrimary),
-      ]
+      ])
     }
-    return [
+    return IdentifiedArray(uniqueElements: [
       RecordProgressStep(
         id: 0, systemImage: "arrow.triangle.2.circlepath", iconColor: .playolaRed,
         iconBackgroundColor: .playolaWarmSurface, label: "Saving",
@@ -323,7 +314,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
         id: 1, systemImage: "icloud.and.arrow.up", iconColor: .playolaTextTertiary,
         iconBackgroundColor: .playolaSurfaceControl, label: "Uploading to Playola",
         labelColor: .playolaTextTertiary),
-    ]
+    ])
   }
 
   private var playbackDuration: TimeInterval {
@@ -344,14 +335,15 @@ class RecordWithMultiStepPromptModel: ViewModel {
     16, 28, 38, 22, 44, 32, 20, 40, 26, 34, 18, 30,
   ]
 
-  var reviewWaveformBars: [RecordWaveformBar] {
+  var reviewWaveformBars: IdentifiedArrayOf<RecordWaveformBar> {
     let progress = playbackProgress
     let count = reviewWaveformHeights.count
-    return reviewWaveformHeights.enumerated().map { index, height in
-      let played = Double(index) / Double(count) < progress
-      return RecordWaveformBar(
-        id: index, height: height, color: played ? .playolaRed : .playolaTextSecondary)
-    }
+    return IdentifiedArray(
+      uniqueElements: reviewWaveformHeights.enumerated().map { index, height in
+        let played = Double(index) / Double(count) < progress
+        return RecordWaveformBar(
+          id: index, height: height, color: played ? .playolaRed : .playolaTextSecondary)
+      })
   }
 
   // MARK: - Cue Helpers
@@ -368,19 +360,41 @@ class RecordWithMultiStepPromptModel: ViewModel {
     step.id == steps.last?.id ? .clear : .playolaGlassHairline
   }
 
-  // MARK: - Private Recording Logic
+  // MARK: - Private Helpers
+
+  private func applyUploadProgress(_ progress: RecordUploadProgress) {
+    switch progress {
+    case .saving:
+      recordingPhase = .saving
+    case .uploading(let fraction):
+      recordingPhase = .uploading
+      uploadProgress = min(1, max(0, fraction))
+    case .finishing:
+      recordingPhase = .uploading
+      uploadProgress = 1
+    }
+  }
 
   private func startRecording() async {
     await stopPlayback()
     do {
-      recordingSession = try await audioRecorder.startRecordingWithUpdates { [weak self] state in
+      let session = try await audioRecorder.startRecordingWithUpdates { [weak self] state in
         self?.recordingState = state
       }
+      guard !isLeaving else {
+        await session.cancel()
+        return
+      }
+      recordingSession = session
       recordingPhase = .recording
     } catch AudioRecorderError.permissionDenied {
-      presentedAlert = .microphonePermissionDeniedAlert
+      if !isLeaving {
+        presentedAlert = .microphonePermissionDeniedAlert
+      }
     } catch {
-      presentedAlert = .recordingFailedAlert(error.localizedDescription)
+      if !isLeaving {
+        presentedAlert = .recordingFailedAlert(error.localizedDescription)
+      }
     }
   }
 
@@ -404,6 +418,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
   }
 
   private func leave() {
+    isLeaving = true
     navigationCoordinator.pop()
     Task { await discardRecording() }
   }

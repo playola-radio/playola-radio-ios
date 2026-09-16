@@ -16,7 +16,7 @@ struct RecordWithMultiStepPromptView: View {
     }
     .navigationBarHidden(true)
     .toolbar(model.tabBarVisibility, for: .tabBar)
-    .alert(item: $model.presentedAlert) { $0.alert }
+    .playolaAlert($model.presentedAlert)
     .task { await model.viewAppeared() }
     .onDisappear { Task { await model.viewDisappeared() } }
   }
@@ -61,17 +61,22 @@ struct RecordWithMultiStepPromptView: View {
   }
 
   private var cueDeck: some View {
-    VStack(spacing: 0) {
-      introHeader
-      recordSections
-      reviewSection
-      progressSection
+    GeometryReader { proxy in
+      ScrollView {
+        VStack(spacing: 0) {
+          introHeader
+          recordSections
+          reviewSection
+          progressSection
+        }
+        .padding(.top, 12)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 24)
+        .frame(maxWidth: .infinity, minHeight: proxy.size.height)
+        .animation(.easeInOut(duration: 0.35), value: model.recordingPhase)
+      }
+      .scrollIndicators(.hidden)
     }
-    .padding(.top, 12)
-    .padding(.horizontal, 16)
-    .padding(.bottom, 24)
-    .frame(maxHeight: .infinity)
-    .animation(.easeInOut(duration: 0.35), value: model.recordingPhase)
   }
 
   private var introHeader: some View {
