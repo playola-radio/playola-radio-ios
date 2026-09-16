@@ -69,7 +69,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
   /// Notifies the caller that the recording was accepted, uploaded, and processed, passing the
   /// resulting audio block. Fires only on success, after `onUseRecording`, right before the pop
   /// back.
-  @ObservationIgnored var onCompleted: ((AudioBlock) -> Void)?
+  @ObservationIgnored var onCompleted: ((AudioBlock) async -> Void)?
 
   var recordingPhase: RecordPromptPhase = .ready
   var recordingState: RecordingState = .idle
@@ -169,7 +169,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
       stopProcessingTimer()
       guard !isLeaving else { return }
       processingProgress = 1
-      if let audioBlock { onCompleted?(audioBlock) }
+      if let audioBlock { await onCompleted?(audioBlock) }
       navigationCoordinator.pop()
     } catch {
       stopProcessingTimer()

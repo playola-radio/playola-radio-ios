@@ -58,8 +58,10 @@ class AskMeAnythingSetupPageModel: ViewModel {
   var hasRecordedIntro: Bool { introDuration != nil }
   var introPromptOpacity: Double { hasRecordedIntro ? 0 : 1 }
   var introPromptInteractive: Bool { !hasRecordedIntro }
+  var introPromptAccessibilityHidden: Bool { hasRecordedIntro }
   var openingPlaylistOpacity: Double { hasRecordedIntro ? 1 : 0 }
   var openingPlaylistInteractive: Bool { hasRecordedIntro }
+  var openingPlaylistAccessibilityHidden: Bool { !hasRecordedIntro }
 
   var introTitle: String { "First, record your intro" }
   var introBody: String {

@@ -61,7 +61,19 @@ struct AskMeAnythingSetupPageTests {
     #expect(!model.openingPlaylistInteractive)
   }
 
-  @Test func recordIntroButtonPushesRecorderThatFlipsToOpeningPlaylist() {
+  @Test func hiddenSetupLayerAccessibilityFlipsWithRecordedIntro() {
+    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+
+    #expect(!model.introPromptAccessibilityHidden)
+    #expect(model.openingPlaylistAccessibilityHidden)
+
+    model.introDuration = 30
+
+    #expect(model.introPromptAccessibilityHidden)
+    #expect(!model.openingPlaylistAccessibilityHidden)
+  }
+
+  @Test func recordIntroButtonPushesRecorderThatFlipsToOpeningPlaylist() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     let model = AskMeAnythingSetupPageModel(stationId: testStationId)
@@ -73,7 +85,7 @@ struct AskMeAnythingSetupPageTests {
       Issue.record("Expected record page to be pushed")
       return
     }
-    recorder.onCompleted?(.mockWith(durationMS: 30000))
+    await recorder.onCompleted?(.mockWith(durationMS: 30000))
 
     #expect(model.hasRecordedIntro)
     expectNoDifference(model.introPromptOpacity, 0)
@@ -82,7 +94,7 @@ struct AskMeAnythingSetupPageTests {
     #expect(model.openingPlaylistInteractive)
   }
 
-  @Test func nonPositiveIntroDurationDoesNotFlipToOpeningPlaylist() {
+  @Test func nonPositiveIntroDurationDoesNotFlipToOpeningPlaylist() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     let model = AskMeAnythingSetupPageModel(stationId: testStationId)
@@ -94,8 +106,8 @@ struct AskMeAnythingSetupPageTests {
       Issue.record("Expected record page to be pushed")
       return
     }
-    recorder.onCompleted?(.mockWith(durationMS: 0))
-    recorder.onCompleted?(.mockWith(durationMS: -30000))
+    await recorder.onCompleted?(.mockWith(durationMS: 0))
+    await recorder.onCompleted?(.mockWith(durationMS: -30000))
 
     #expect(!model.hasRecordedIntro)
     expectNoDifference(model.introPromptOpacity, 1)

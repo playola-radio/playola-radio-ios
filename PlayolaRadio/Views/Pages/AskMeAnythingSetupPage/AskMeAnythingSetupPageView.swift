@@ -17,9 +17,11 @@ struct AskMeAnythingSetupPageView: View {
             .padding(.horizontal, 16)
             .opacity(model.introPromptOpacity)
             .allowsHitTesting(model.introPromptInteractive)
+            .accessibilityHidden(model.introPromptAccessibilityHidden)
           openingPlaylistContent
             .opacity(model.openingPlaylistOpacity)
             .allowsHitTesting(model.openingPlaylistInteractive)
+            .accessibilityHidden(model.openingPlaylistAccessibilityHidden)
         }
         .padding(.top, 20)
       }
