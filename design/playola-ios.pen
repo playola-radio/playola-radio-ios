@@ -42183,7 +42183,7 @@
                       "name": "Cue Number 01",
                       "width": 32,
                       "height": 32,
-                      "fill": "$warm-surface",
+                      "fill": "$surface-control",
                       "cornerRadius": 16,
                       "justifyContent": "center",
                       "alignItems": "center",
@@ -42192,7 +42192,7 @@
                           "type": "text",
                           "id": "j79rdS",
                           "name": "Cue Number Text 01",
-                          "fill": "$brand-primary",
+                          "fill": "$text-secondary",
                           "content": "01",
                           "fontFamily": "$font-body",
                           "fontSize": 11,
@@ -42213,7 +42213,7 @@
                           "type": "text",
                           "id": "c9FuI",
                           "name": "Cue Title 01",
-                          "fill": "$brand-primary",
+                          "fill": "$text-secondary",
                           "content": "INTRODUCE",
                           "fontFamily": "$font-body",
                           "fontSize": 11,
@@ -46708,6 +46708,2293 @@
                           "name": "Stop Label",
                           "fill": "$text-primary",
                           "content": "Stop recording",
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "U24Zsa",
+      "x": 8762,
+      "y": 16590,
+      "name": "AMA Intro Recorder · C2a · About to Record",
+      "clip": true,
+      "width": 393,
+      "height": 852,
+      "fill": "$surface-base",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "RZBGo",
+          "name": "iOS Status Bar",
+          "width": "fill_container",
+          "height": 44,
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "nZE4D",
+              "name": "Time",
+              "fill": "$text-primary",
+              "content": "9:41",
+              "fontFamily": "$font-body",
+              "fontSize": 14,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "mGnOK",
+              "name": "Status Icons",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "DpzqX",
+                  "name": "Cellular",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "signal",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                },
+                {
+                  "type": "icon",
+                  "id": "ukQ52",
+                  "name": "Wi-Fi",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "wifi",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                },
+                {
+                  "type": "icon",
+                  "id": "GRhKZ",
+                  "name": "Battery",
+                  "width": 21,
+                  "height": 21,
+                  "icon": "battery-full",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "rw7S4",
+          "name": "Navigation",
+          "width": "fill_container",
+          "height": 64,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "ZGcwq",
+              "x": 14,
+              "y": 10,
+              "name": "Back Button",
+              "width": 44,
+              "height": 44,
+              "fill": "$surface-control",
+              "cornerRadius": 22,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "X49p6",
+                  "name": "Back Chevron",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "chevron-left",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "Gabfz",
+              "x": 0,
+              "y": 21,
+              "name": "Screen Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": 393,
+              "content": "Record Intro",
+              "textAlign": "center",
+              "fontFamily": "$font-body",
+              "fontSize": 17,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "sfcEf",
+          "name": "Cue Deck Content",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "#00000000",
+          "layout": "vertical",
+          "gap": 20,
+          "padding": [
+            12,
+            16,
+            24,
+            16
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "frame",
+              "id": "J5RsZa",
+              "name": "Intro Header",
+              "width": "fill_container",
+              "fill": "#00000000",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "z2ATgL",
+                  "name": "Intro Metadata",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "TNVm1",
+                      "name": "Step Label",
+                      "fill": "$brand-primary",
+                      "content": "RECORD AN INTRO",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.8
+                    },
+                    {
+                      "type": "frame",
+                      "id": "RYzUl",
+                      "name": "Natural Take Tag",
+                      "height": 28,
+                      "fill": "$surface-section",
+                      "cornerRadius": 14,
+                      "padding": [
+                        0,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "DZprS",
+                          "name": "Natural Take Label",
+                          "fill": "$text-secondary",
+                          "content": "OPTIONAL GUIDE",
+                          "fontFamily": "$font-body",
+                          "fontSize": 10,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.6
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "O6og4",
+                  "name": "Intro Heading",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Record a short introduction.",
+                  "lineHeight": 1.15,
+                  "fontFamily": "$font-display",
+                  "fontSize": 27,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "c7hMOQ",
+                  "name": "Intro Subtitle",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Introduce the AMA and tell listeners how to send a question.",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "RyWLN",
+              "name": "Speaking Cues",
+              "width": "fill_container",
+              "fill": "$surface-section",
+              "cornerRadius": 14,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "padding": [
+                4,
+                16
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "k5jNW",
+                  "name": "Cue 01",
+                  "width": "fill_container",
+                  "stroke": "$glass-hairline",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 12,
+                  "padding": [
+                    12,
+                    0
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "S20cX",
+                      "name": "Cue Number 01",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "$warm-surface",
+                      "cornerRadius": 16,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "m1b2L",
+                          "name": "Cue Number Text 01",
+                          "fill": "$brand-primary",
+                          "content": "01",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "teINA",
+                      "name": "Cue Copy 01",
+                      "width": "fill_container",
+                      "fill": "#00000000",
+                      "layout": "vertical",
+                      "gap": 3,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "nm1Lh",
+                          "name": "Cue Title 01",
+                          "fill": "$brand-primary",
+                          "content": "INTRODUCE",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.6
+                        },
+                        {
+                          "type": "text",
+                          "id": "l6fjBK",
+                          "name": "Cue Detail 01",
+                          "fill": "$text-primary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Say hello and introduce yourself.",
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "w54NpT",
+                  "name": "Cue 02",
+                  "width": "fill_container",
+                  "stroke": "$glass-hairline",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 12,
+                  "padding": [
+                    12,
+                    0
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "GbIjC",
+                      "name": "Cue Number 02",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "$surface-control",
+                      "cornerRadius": 16,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "hXzZs",
+                          "name": "Cue Number Text 02",
+                          "fill": "$text-secondary",
+                          "content": "02",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "uaGdy",
+                      "name": "Cue Copy 02",
+                      "width": "fill_container",
+                      "fill": "#00000000",
+                      "layout": "vertical",
+                      "gap": 3,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "I3um0Q",
+                          "name": "Cue Title 02",
+                          "fill": "$text-secondary",
+                          "content": "EXPLAIN",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.6
+                        },
+                        {
+                          "type": "text",
+                          "id": "bgM2p",
+                          "name": "Cue Detail 02",
+                          "fill": "$text-primary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Briefly explain that listeners can ask about your music, the station, or what you’re working on.",
+                          "lineHeight": 1.35,
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "uzfiy",
+                  "name": "Cue 03",
+                  "width": "fill_container",
+                  "stroke": "#00000000",
+                  "gap": 12,
+                  "padding": [
+                    12,
+                    0
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "uGwbw",
+                      "name": "Cue Number 03",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "$surface-control",
+                      "cornerRadius": 16,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "kbol1",
+                          "name": "Cue Number Text 03",
+                          "fill": "$text-secondary",
+                          "content": "03",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "hnypD",
+                      "name": "Cue Copy 03",
+                      "width": "fill_container",
+                      "fill": "#00000000",
+                      "layout": "vertical",
+                      "gap": 3,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "KnBbh",
+                          "name": "Cue Title 03",
+                          "fill": "$text-secondary",
+                          "content": "DIRECT",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.6
+                        },
+                        {
+                          "type": "text",
+                          "id": "hYAsB",
+                          "name": "Cue Detail 03",
+                          "fill": "$text-primary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Tell listeners to tap Question in the player.",
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "M7YSJq",
+              "name": "Live Broadcast Recorder",
+              "width": "fill_container",
+              "fill": "#2A2A2A",
+              "cornerRadius": 16,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "cId1X",
+                  "name": "Recorder Header",
+                  "width": "fill_container",
+                  "fill": "#00000000",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "n1WTsQ",
+                      "name": "On Mic Indicator",
+                      "height": 28,
+                      "fill": "$surface-control",
+                      "cornerRadius": 14,
+                      "gap": 7,
+                      "padding": [
+                        0,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "YAMf3",
+                          "name": "On Mic Dot",
+                          "fill": "$text-secondary",
+                          "width": 8,
+                          "height": 8
+                        },
+                        {
+                          "type": "text",
+                          "id": "ran0P",
+                          "name": "On Mic Label",
+                          "fill": "$text-secondary",
+                          "content": "READY",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.7
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "h8HByr",
+                      "name": "Take Label",
+                      "fill": "$text-tertiary",
+                      "content": "INTRO",
+                      "fontFamily": "$font-body",
+                      "fontSize": 11,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.6
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "W4YPXZ",
+                  "name": "Audio Meter",
+                  "width": "fill_container",
+                  "height": 92,
+                  "fill": "$surface-section",
+                  "cornerRadius": 10,
+                  "layout": "vertical",
+                  "gap": 7,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "oVQ9f",
+                      "name": "Recording Timer",
+                      "fill": "$text-primary",
+                      "content": "0:00",
+                      "fontFamily": "$font-display",
+                      "fontSize": 24,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "oiB9S",
+                      "name": "Live Waveform",
+                      "height": 38,
+                      "fill": "#00000000",
+                      "gap": 4,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "A07wNV",
+                          "name": "Meter Bar 1",
+                          "fill": "$text-tertiary",
+                          "width": 3,
+                          "height": 4
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "R5fxS",
+                          "name": "Meter Bar 2",
+                          "fill": "$text-tertiary",
+                          "width": 3,
+                          "height": 6
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "x76H9",
+                          "name": "Meter Bar 3",
+                          "fill": "$text-tertiary",
+                          "width": 3,
+                          "height": 4
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "tWzmq",
+                          "name": "Meter Bar 4",
+                          "fill": "$text-tertiary",
+                          "width": 3,
+                          "height": 8
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "rGR9K",
+                          "name": "Meter Bar 5",
+                          "fill": "$text-tertiary",
+                          "width": 3,
+                          "height": 4
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "DoKbQ",
+                          "name": "Meter Bar 6",
+                          "fill": "$text-tertiary",
+                          "width": 3,
+                          "height": 6
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "Hy3Ps",
+                          "name": "Meter Bar 7",
+                          "fill": "$text-tertiary",
+                          "width": 3,
+                          "height": 4
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "xSljR",
+                          "name": "Meter Bar 8",
+                          "fill": "$text-tertiary",
+                          "width": 3,
+                          "height": 8
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "kyxXc",
+                          "name": "Meter Bar 9",
+                          "fill": "$text-tertiary",
+                          "width": 3,
+                          "height": 4
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "r8XrO",
+                          "name": "Meter Bar 10",
+                          "fill": "$text-tertiary",
+                          "width": 3,
+                          "height": 6
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "UQTCe",
+                          "name": "Meter Bar 11",
+                          "fill": "$text-tertiary",
+                          "width": 3,
+                          "height": 4
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "m4xnpI",
+                          "name": "Meter Bar 12",
+                          "fill": "$text-tertiary",
+                          "width": 3,
+                          "height": 8
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "YM0kM",
+                          "name": "Meter Bar 13",
+                          "fill": "$text-tertiary",
+                          "width": 3,
+                          "height": 4
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "Egoys",
+                          "name": "Meter Bar 14",
+                          "fill": "$text-tertiary",
+                          "width": 3,
+                          "height": 6
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "qGkTd",
+                          "name": "Meter Bar 15",
+                          "fill": "$text-tertiary",
+                          "width": 3,
+                          "height": 4
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "HsuBT",
+                  "name": "Recorder Actions",
+                  "width": "fill_container",
+                  "fill": "#00000000",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "BX12R",
+                      "name": "Start Recording Button",
+                      "width": "fill_container",
+                      "height": 48,
+                      "fill": "$brand-primary",
+                      "cornerRadius": 24,
+                      "gap": 8,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "MRVym",
+                          "name": "Microphone Icon",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "mic",
+                          "library": "lucide",
+                          "fill": "$text-primary"
+                        },
+                        {
+                          "type": "text",
+                          "id": "kbWZg",
+                          "name": "Start Label",
+                          "fill": "$text-primary",
+                          "content": "Start recording",
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "pSULo",
+      "x": 9235,
+      "y": 16590,
+      "name": "AMA Recorder · C2b · Review Recording",
+      "clip": true,
+      "width": 393,
+      "height": 852,
+      "fill": "$surface-base",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "aVIJ6",
+          "name": "iOS Status Bar",
+          "width": "fill_container",
+          "height": 44,
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "vjVvh",
+              "name": "Time",
+              "fill": "$text-primary",
+              "content": "9:41",
+              "fontFamily": "$font-body",
+              "fontSize": 14,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "FDEWA",
+              "name": "Status Icons",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "Ijv2F",
+                  "name": "Cellular",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "signal",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                },
+                {
+                  "type": "icon",
+                  "id": "DFaXU",
+                  "name": "Wi-Fi",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "wifi",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                },
+                {
+                  "type": "icon",
+                  "id": "K283x",
+                  "name": "Battery",
+                  "width": 21,
+                  "height": 21,
+                  "icon": "battery-full",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "MTI4N",
+          "name": "Navigation",
+          "width": "fill_container",
+          "height": 64,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "InitO",
+              "x": 14,
+              "y": 10,
+              "name": "Back Button",
+              "width": 44,
+              "height": 44,
+              "fill": "$surface-control",
+              "cornerRadius": 22,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "i5ujb",
+                  "name": "Back Chevron",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "chevron-left",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "OFqco",
+              "x": 0,
+              "y": 21,
+              "name": "Screen Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": 393,
+              "content": "Review Recording",
+              "textAlign": "center",
+              "fontFamily": "$font-body",
+              "fontSize": 17,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "E8OwNK",
+          "name": "Cue Deck Content",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "#00000000",
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            12,
+            16,
+            24,
+            16
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "YcQXH",
+              "name": "Recording Header",
+              "width": "fill_container",
+              "fill": "#00000000",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "C8RoDZ",
+                  "name": "Recording Metadata",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "UAE8a",
+                      "name": "Step Label",
+                      "fill": "$brand-primary",
+                      "content": "RECORDING SAVED",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.8
+                    },
+                    {
+                      "type": "frame",
+                      "id": "JV3iY",
+                      "name": "Natural Take Tag",
+                      "height": 28,
+                      "fill": "$surface-section",
+                      "cornerRadius": 14,
+                      "padding": [
+                        0,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "v06rEu",
+                          "name": "Natural Take Label",
+                          "fill": "$text-secondary",
+                          "content": "READY TO REVIEW",
+                          "fontFamily": "$font-body",
+                          "fontSize": 10,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.6
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "vIoY6",
+                  "name": "Recording Heading",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "How does it sound?",
+                  "lineHeight": 1.15,
+                  "fontFamily": "$font-display",
+                  "fontSize": 27,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "mbptY",
+                  "name": "Recording Subtitle",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Listen back, then re-record or use this recording.",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "baAoa",
+              "name": "Recording Review Player",
+              "width": "fill_container",
+              "fill": "$surface-raised",
+              "cornerRadius": 16,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "hXLAo",
+                  "name": "Review Status Row",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "H55gqo",
+                      "name": "Recorded Status Badge",
+                      "height": 28,
+                      "fill": "$warm-surface",
+                      "cornerRadius": 14,
+                      "gap": 7,
+                      "padding": [
+                        0,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "c1TMF",
+                          "name": "Recorded Check Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "check",
+                          "library": "lucide",
+                          "fill": "$brand-primary"
+                        },
+                        {
+                          "type": "text",
+                          "id": "vdYx0",
+                          "name": "Recorded Status Label",
+                          "fill": "$brand-primary",
+                          "content": "RECORDED",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.7
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "R4TWZ",
+                      "name": "Recording Duration",
+                      "fill": "$text-secondary",
+                      "content": "0:22",
+                      "fontFamily": "$font-body",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "f5RHhu",
+                  "name": "Recording Playback Preview",
+                  "width": "fill_container",
+                  "fill": "$surface-control",
+                  "cornerRadius": 12,
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "D4lMlO",
+                      "name": "Playback Waveform Row",
+                      "width": "fill_container",
+                      "gap": 12,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "P33vJW",
+                          "name": "Play Recording Button",
+                          "width": 48,
+                          "height": 48,
+                          "fill": "$brand-primary",
+                          "cornerRadius": 24,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "YO3pg",
+                              "name": "Play Recording Icon",
+                              "width": 20,
+                              "height": 20,
+                              "icon": "play",
+                              "library": "lucide",
+                              "fill": "$text-primary"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "GeQGm",
+                          "name": "Recorded Waveform",
+                          "width": "fill_container",
+                          "height": 52,
+                          "gap": 5,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 2,
+                              "id": "AAcOk",
+                              "name": "Review Wave Bar 01",
+                              "fill": "$brand-primary",
+                              "width": 4,
+                              "height": 16
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 2,
+                              "id": "pi1xl",
+                              "name": "Review Wave Bar 02",
+                              "fill": "$brand-primary",
+                              "width": 4,
+                              "height": 28
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 2,
+                              "id": "xFtAh",
+                              "name": "Review Wave Bar 03",
+                              "fill": "$brand-primary",
+                              "width": 4,
+                              "height": 38
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 2,
+                              "id": "a38rj",
+                              "name": "Review Wave Bar 04",
+                              "fill": "$brand-primary",
+                              "width": 4,
+                              "height": 22
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 2,
+                              "id": "XhhF0",
+                              "name": "Review Wave Bar 05",
+                              "fill": "$brand-primary",
+                              "width": 4,
+                              "height": 44
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 2,
+                              "id": "qBEV5",
+                              "name": "Review Wave Bar 06",
+                              "fill": "$text-secondary",
+                              "width": 4,
+                              "height": 32
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 2,
+                              "id": "NDMSY",
+                              "name": "Review Wave Bar 07",
+                              "fill": "$text-secondary",
+                              "width": 4,
+                              "height": 20
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 2,
+                              "id": "Q1iHyf",
+                              "name": "Review Wave Bar 08",
+                              "fill": "$text-secondary",
+                              "width": 4,
+                              "height": 40
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 2,
+                              "id": "JXIS9",
+                              "name": "Review Wave Bar 09",
+                              "fill": "$text-secondary",
+                              "width": 4,
+                              "height": 26
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 2,
+                              "id": "ya5WO",
+                              "name": "Review Wave Bar 10",
+                              "fill": "$text-secondary",
+                              "width": 4,
+                              "height": 34
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 2,
+                              "id": "L1cJQ",
+                              "name": "Review Wave Bar 11",
+                              "fill": "$text-secondary",
+                              "width": 4,
+                              "height": 18
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 2,
+                              "id": "vW8Ip",
+                              "name": "Review Wave Bar 12",
+                              "fill": "$text-secondary",
+                              "width": 4,
+                              "height": 30
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "K4zSMT",
+                      "name": "Playback Timeline",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "A7WQp",
+                          "name": "Playback Elapsed",
+                          "fill": "$text-secondary",
+                          "content": "0:00",
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "o3e5D",
+                          "name": "Playback Seek Track",
+                          "width": "fill_container",
+                          "height": 12,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 2,
+                              "id": "qaiaG",
+                              "x": 0,
+                              "y": 4,
+                              "name": "Playback Seek Rail",
+                              "opacity": 0.4,
+                              "fill": "$text-secondary",
+                              "width": 235,
+                              "height": 4
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 2,
+                              "id": "ZnrKN",
+                              "x": 0,
+                              "y": 4,
+                              "name": "Playback Progress",
+                              "fill": "$brand-primary",
+                              "width": 2,
+                              "height": 4
+                            },
+                            {
+                              "type": "ellipse",
+                              "id": "iDF1Y",
+                              "x": 0,
+                              "y": 0,
+                              "name": "Playback Seek Thumb",
+                              "fill": "$brand-primary",
+                              "width": 12,
+                              "height": 12
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "nJ9cO",
+                          "name": "Playback Total",
+                          "fill": "$text-secondary",
+                          "content": "0:22",
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "i1UUz",
+                  "name": "Recording Review Actions",
+                  "width": "fill_container",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "xGZvW",
+                      "name": "Re-record Button",
+                      "width": "fill_container",
+                      "height": 48,
+                      "fill": "$surface-control",
+                      "cornerRadius": 24,
+                      "gap": 7,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "B0IoWU",
+                          "name": "Re-record Icon",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "rotate-ccw",
+                          "library": "lucide",
+                          "fill": "$text-primary"
+                        },
+                        {
+                          "type": "text",
+                          "id": "vzBbr",
+                          "name": "Re-record Label",
+                          "fill": "$text-primary",
+                          "content": "Re-record",
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "cAq7R",
+                      "name": "Use Recording Button",
+                      "width": "fill_container",
+                      "height": 48,
+                      "fill": "$brand-primary",
+                      "cornerRadius": 24,
+                      "gap": 7,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "f6oCi",
+                          "name": "Use Recording Check Icon",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "check",
+                          "library": "lucide",
+                          "fill": "$text-primary"
+                        },
+                        {
+                          "type": "text",
+                          "id": "IKYZJ",
+                          "name": "Use Recording Label",
+                          "fill": "$text-primary",
+                          "content": "Use recording",
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "kFa6D",
+      "x": 9708,
+      "y": 16590,
+      "name": "AMA Recorder · C2c · Saving Recording",
+      "clip": true,
+      "width": 393,
+      "height": 852,
+      "fill": "$surface-base",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "AY0sB",
+          "name": "iOS Status Bar",
+          "width": "fill_container",
+          "height": 44,
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "RNE41",
+              "name": "Time",
+              "fill": "$text-primary",
+              "content": "9:41",
+              "fontFamily": "$font-body",
+              "fontSize": 14,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "e3WZcw",
+              "name": "Status Icons",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "MSC6J",
+                  "name": "Cellular",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "signal",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                },
+                {
+                  "type": "icon",
+                  "id": "SdBnw",
+                  "name": "Wi-Fi",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "wifi",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                },
+                {
+                  "type": "icon",
+                  "id": "TqIzb",
+                  "name": "Battery",
+                  "width": 21,
+                  "height": 21,
+                  "icon": "battery-full",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Z7ob9O",
+          "name": "Navigation",
+          "width": "fill_container",
+          "height": 64,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "nldJf",
+              "x": 14,
+              "y": 10,
+              "name": "Back Button",
+              "opacity": 0.4,
+              "width": 44,
+              "height": 44,
+              "fill": "$surface-control",
+              "cornerRadius": 22,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "KkCkE",
+                  "name": "Back Chevron",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "chevron-left",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "LdCSd",
+              "x": 0,
+              "y": 21,
+              "name": "Screen Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": 393,
+              "content": "Saving Recording",
+              "textAlign": "center",
+              "fontFamily": "$font-body",
+              "fontSize": 17,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "NETye",
+          "name": "Cue Deck Content",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "#00000000",
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            12,
+            16,
+            24,
+            16
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "cgqpS",
+              "name": "Recording Header",
+              "width": "fill_container",
+              "fill": "#00000000",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "QZaSP",
+                  "name": "Recording Metadata",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "QYjBT",
+                      "name": "Step Label",
+                      "fill": "$brand-primary",
+                      "content": "SAVING RECORDING",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.8
+                    },
+                    {
+                      "type": "frame",
+                      "id": "u9Ymz",
+                      "name": "Natural Take Tag",
+                      "height": 28,
+                      "fill": "$surface-section",
+                      "cornerRadius": 14,
+                      "padding": [
+                        0,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "jFP6U",
+                          "name": "Natural Take Label",
+                          "fill": "$text-secondary",
+                          "content": "STEP 1 OF 2",
+                          "fontFamily": "$font-body",
+                          "fontSize": 10,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.6
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "PUhKy",
+                  "name": "Recording Heading",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Uploading your recording…",
+                  "lineHeight": 1.15,
+                  "fontFamily": "$font-display",
+                  "fontSize": 27,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "q6thz",
+                  "name": "Recording Upload Subtitle",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "This should only take a moment.",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "BDxEq",
+              "name": "Saving Progress Card",
+              "width": "fill_container",
+              "fill": "$surface-raised",
+              "cornerRadius": 16,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 20,
+              "padding": 20,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "t9ANo2",
+                  "name": "Saving Icon Well",
+                  "width": 64,
+                  "height": 64,
+                  "fill": "$warm-surface",
+                  "cornerRadius": 32,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "Hn4yu",
+                      "name": "Saving Icon",
+                      "width": 28,
+                      "height": 28,
+                      "icon": "save",
+                      "library": "lucide",
+                      "fill": "$brand-primary"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "EPv49",
+                  "name": "Saving Copy",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "w3ib1",
+                      "name": "Saving Title",
+                      "fill": "$text-primary",
+                      "content": "Saving and Uploading",
+                      "fontFamily": "$font-display",
+                      "fontSize": 20,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "FSlHY",
+                  "name": "Saving Progress",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "GzteW",
+                      "name": "Saving Progress Labels",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "CJRa2",
+                          "name": "Saving Progress Label",
+                          "fill": "$text-primary",
+                          "content": "Saving…",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Fz17P",
+                          "name": "Saving Progress Value",
+                          "fill": "$text-secondary",
+                          "content": "Preparing",
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "U5HxdX",
+                      "name": "Saving Progress Track",
+                      "width": "fill_container",
+                      "height": 6,
+                      "fill": "$surface-control",
+                      "cornerRadius": 3,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 3,
+                          "id": "B33lk",
+                          "x": 0,
+                          "y": 0,
+                          "name": "Saving Progress Fill",
+                          "fill": "$brand-primary",
+                          "width": 112,
+                          "height": 6
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "knPkX",
+                  "name": "Processing Steps",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "zMLrZ",
+                      "name": "Save Step Active",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "TovnB",
+                          "name": "Save Step Icon Well",
+                          "width": 28,
+                          "height": 28,
+                          "fill": "$warm-surface",
+                          "cornerRadius": 14,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "IP5mZ",
+                              "name": "Save Step Icon",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "loader-circle",
+                              "library": "lucide",
+                              "fill": "$brand-primary"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "f1sSku",
+                          "name": "Save Step Label",
+                          "fill": "$text-primary",
+                          "content": "Saving",
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "HZBs6",
+                      "name": "Upload Step Pending",
+                      "opacity": 0.5,
+                      "width": "fill_container",
+                      "gap": 10,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "VCySw",
+                          "name": "Upload Step Pending Icon Well",
+                          "width": 28,
+                          "height": 28,
+                          "fill": "$surface-control",
+                          "cornerRadius": 14,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "aiF61",
+                              "name": "Upload Step Pending Icon",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "cloud-upload",
+                              "library": "lucide",
+                              "fill": "$text-secondary"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "HIXir",
+                          "name": "Upload Step Pending Label",
+                          "fill": "$text-secondary",
+                          "content": "Uploading to Playola",
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "VLySz",
+      "x": 10181,
+      "y": 16590,
+      "name": "AMA Recorder · C2d · Uploading Recording",
+      "clip": true,
+      "width": 393,
+      "height": 852,
+      "fill": "$surface-base",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "vfqmv",
+          "name": "iOS Status Bar",
+          "width": "fill_container",
+          "height": 44,
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "pWRWv",
+              "name": "Time",
+              "fill": "$text-primary",
+              "content": "9:41",
+              "fontFamily": "$font-body",
+              "fontSize": 14,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "gtU9J",
+              "name": "Status Icons",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "ONvs7",
+                  "name": "Cellular",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "signal",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                },
+                {
+                  "type": "icon",
+                  "id": "os0b0",
+                  "name": "Wi-Fi",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "wifi",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                },
+                {
+                  "type": "icon",
+                  "id": "A3bH3e",
+                  "name": "Battery",
+                  "width": 21,
+                  "height": 21,
+                  "icon": "battery-full",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "NU2bn",
+          "name": "Navigation",
+          "width": "fill_container",
+          "height": 64,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "m3NZQ",
+              "x": 14,
+              "y": 10,
+              "name": "Back Button",
+              "opacity": 0.4,
+              "width": 44,
+              "height": 44,
+              "fill": "$surface-control",
+              "cornerRadius": 22,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "rmV7F",
+                  "name": "Back Chevron",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "chevron-left",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "Ig26i",
+              "x": 0,
+              "y": 21,
+              "name": "Screen Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": 393,
+              "content": "Uploading Recording",
+              "textAlign": "center",
+              "fontFamily": "$font-body",
+              "fontSize": 17,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "FD9pZ",
+          "name": "Cue Deck Content",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "#00000000",
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            12,
+            16,
+            24,
+            16
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "USf4A",
+              "name": "Recording Header",
+              "width": "fill_container",
+              "fill": "#00000000",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "vuHvB",
+                  "name": "Recording Metadata",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "M8sUPm",
+                      "name": "Step Label",
+                      "fill": "$brand-primary",
+                      "content": "UPLOADING RECORDING",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.8
+                    },
+                    {
+                      "type": "frame",
+                      "id": "xJGSC",
+                      "name": "Natural Take Tag",
+                      "height": 28,
+                      "fill": "$surface-section",
+                      "cornerRadius": 14,
+                      "padding": [
+                        0,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "m6GNeT",
+                          "name": "Natural Take Label",
+                          "fill": "$text-secondary",
+                          "content": "STEP 2 OF 2",
+                          "fontFamily": "$font-body",
+                          "fontSize": 10,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.6
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "frIWu",
+                  "name": "Recording Heading",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Uploading your recording…",
+                  "lineHeight": 1.15,
+                  "fontFamily": "$font-display",
+                  "fontSize": 27,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "a8coC",
+                  "name": "Recording Upload Subtitle",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "This should only take a moment.",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "UALWS",
+              "name": "Uploading Progress Card",
+              "width": "fill_container",
+              "fill": "$surface-raised",
+              "cornerRadius": 16,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 20,
+              "padding": 20,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "hyyMT",
+                  "name": "Uploading Icon Well",
+                  "width": 64,
+                  "height": 64,
+                  "fill": "$warm-surface",
+                  "cornerRadius": 32,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "bzhzU",
+                      "name": "Uploading Icon",
+                      "width": 28,
+                      "height": 28,
+                      "icon": "cloud-upload",
+                      "library": "lucide",
+                      "fill": "$brand-primary"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "a9PW8",
+                  "name": "Uploading Copy",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "E65nN",
+                      "name": "Uploading Title",
+                      "fill": "$text-primary",
+                      "content": "Saving and Uploading",
+                      "fontFamily": "$font-display",
+                      "fontSize": 20,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "A3YpgI",
+                  "name": "Uploading Progress",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "j3f2Nf",
+                      "name": "Uploading Progress Labels",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "vsVsR",
+                          "name": "Uploading Progress Label",
+                          "fill": "$text-primary",
+                          "content": "Uploading…",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "j7hAza",
+                          "name": "Uploading Progress Value",
+                          "fill": "$text-secondary",
+                          "content": "68%",
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Y4wHLt",
+                      "name": "Uploading Progress Track",
+                      "width": "fill_container",
+                      "height": 6,
+                      "fill": "$surface-control",
+                      "cornerRadius": 3,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 3,
+                          "id": "tw8L8",
+                          "x": 0,
+                          "y": 0,
+                          "name": "Uploading Progress Fill",
+                          "fill": "$brand-primary",
+                          "width": 218,
+                          "height": 6
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "p4aU1",
+                  "name": "Processing Steps",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Gx5QM",
+                      "name": "Save Step Complete",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "n93XNH",
+                          "name": "Save Step Complete Icon Well",
+                          "width": 28,
+                          "height": 28,
+                          "fill": "$live-on-air",
+                          "cornerRadius": 14,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "HCUAa",
+                              "name": "Save Step Complete Icon",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "check",
+                              "library": "lucide",
+                              "fill": "$text-primary"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "e2fX96",
+                          "name": "Save Step Complete Label",
+                          "fill": "$text-primary",
+                          "content": "Saved on this device",
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "jVmQO",
+                      "name": "Upload Step Active",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "VmIdW",
+                          "name": "Upload Step Active Icon Well",
+                          "width": 28,
+                          "height": 28,
+                          "fill": "$warm-surface",
+                          "cornerRadius": 14,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "rxAGb",
+                              "name": "Upload Step Active Icon",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "cloud-upload",
+                              "library": "lucide",
+                              "fill": "$brand-primary"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "Fbvmt",
+                          "name": "Upload Step Active Label",
+                          "fill": "$text-primary",
+                          "content": "Uploading to Playola",
                           "fontFamily": "$font-body",
                           "fontSize": 14,
                           "fontWeight": "600"
