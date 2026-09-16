@@ -56,7 +56,7 @@ struct ArtistDashboardTabRootTests {
 
     let model = await withDependencies {
       $0.api.fetchStation = { _, _ in Self.testStation(active: false) }
-      $0.api.getStationHealthScore = { _, _ in
+      $0.api.getProgrammingHealth = { _, _ in
         healthCalls.withValue { $0 += 1 }
         throw TestError.shouldNotBeCalled
       }
@@ -64,7 +64,7 @@ struct ArtistDashboardTabRootTests {
         listenerCalls.withValue { $0 += 1 }
         throw TestError.shouldNotBeCalled
       }
-      $0.api.getListenerCounts = { _, _ in
+      $0.api.getListenerCounts = { _, _, _, _ in
         countsCalls.withValue { $0 += 1 }
         throw TestError.shouldNotBeCalled
       }

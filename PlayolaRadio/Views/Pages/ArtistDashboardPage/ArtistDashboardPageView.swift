@@ -170,6 +170,7 @@ struct ArtistDashboardPageView: View {
         } label: {
           improvementRow(item)
         }
+        .disabled(!item.isTappable)
         divider
       }
     }
@@ -209,6 +210,7 @@ struct ArtistDashboardPageView: View {
       Image(systemName: "chevron.right")
         .font(.system(size: 14))
         .foregroundColor(.playolaGray)
+        .opacity(item.chevronOpacity)
     }
     .padding(.vertical, 9)
   }

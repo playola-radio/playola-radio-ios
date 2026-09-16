@@ -7,10 +7,11 @@
 
 import Foundation
 
-/// Response for `GET /v1/stations/:stationId/listening-sessions/active`. Only the summary is
-/// decoded — the headline for each Listeners card is `summary.uniqueUsers`, which the server
-/// computes over all matching rows regardless of pagination. The other summary fields aren't used
-/// by the dashboard, so they're optional: server schema drift on them must not fail the whole card.
+/// Response for `GET /v1/listening-sessions/active` (station-scoped via a `stationId` query
+/// parameter). Only the summary is decoded — the headline for each Listeners card is
+/// `summary.uniqueUsers`, which the server computes over all matching rows regardless of
+/// pagination. The other summary fields aren't used by the dashboard, so they're optional: server
+/// schema drift on them must not fail the whole card.
 struct ActiveListeningSessionsResponse: Decodable, Equatable, Sendable {
   struct Summary: Decodable, Equatable, Sendable {
     var totalSessions: Int?
@@ -23,8 +24,9 @@ struct ActiveListeningSessionsResponse: Decodable, Equatable, Sendable {
 }
 
 /// Response for `GET /v1/stations/:stationId/listener-counts`. Buckets are server-owned
-/// (Sunday-anchored, America/Chicago, DST-safe, release-clamped); render `bucketStart` as given
-/// and flag `isLive` as the "SO FAR" bar. Only `bucketStart`, `uniqueUsers`, and `isLive` drive the
+/// (Monday-anchored, America/Chicago, DST-safe) over the explicit `startDate`/`endDate` range the
+/// client requests; render `bucketStart` as given and flag `isLive` as the "SO FAR" bar. Only
+/// `bucketStart`, `uniqueUsers`, and `isLive` drive the
 /// chart, so the rest is optional and `isLive` defaults to `false` — a bucket that omits it renders
 /// as an ordinary (non-"SO FAR") bar rather than emptying the whole chart.
 struct ListenerCountsResponse: Decodable, Equatable, Sendable {
