@@ -212,12 +212,12 @@ struct AskMeAnythingSetupPageTests {
     coordinator.push(.askMeAnythingSetupPage(model))
 
     model.songActionTapped()
-    if case .songSearchPage(let s) = coordinator.presentedSheet {
-      s.onSongSelected?(.mockWith(id: "dup", durationMS: 10_000))
+    if case .songSearchPage(let search) = coordinator.presentedSheet {
+      search.onSongSelected?(.mockWith(id: "dup", durationMS: 10_000))
     }
     model.songActionTapped()
-    if case .songSearchPage(let s) = coordinator.presentedSheet {
-      s.onSongSelected?(.mockWith(id: "dup", durationMS: 10_000))
+    if case .songSearchPage(let search) = coordinator.presentedSheet {
+      search.onSongSelected?(.mockWith(id: "dup", durationMS: 10_000))
     }
 
     expectNoDifference(model.openingItems.count, 2)

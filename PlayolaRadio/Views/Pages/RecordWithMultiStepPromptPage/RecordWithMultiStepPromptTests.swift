@@ -706,7 +706,7 @@ struct RecordWithMultiStepPromptTests {
     model.recordingPhase = .review
 
     var handoff: (URL, TimeInterval)?
-    model.onRecordingAccepted = { u, d in handoff = (u, d) }
+    model.onRecordingAccepted = { acceptedURL, duration in handoff = (acceptedURL, duration) }
 
     await model.useRecordingButtonTapped()
 
