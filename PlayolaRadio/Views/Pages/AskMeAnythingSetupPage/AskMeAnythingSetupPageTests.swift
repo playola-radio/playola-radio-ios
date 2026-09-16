@@ -146,3 +146,42 @@ struct AskMeAnythingSetupPageTests {
     #expect(!model.isStartShowEnabled)
   }
 }
+
+@Suite(.freshSharedState)
+@MainActor
+struct AMAOpeningItemTests {
+  private func block(_ ms: Int) -> AudioBlock { .mockWith(id: "b", durationMS: ms) }
+
+  private func uuid(_ index: Int) -> UUID {
+    UUID(uuidString: String(format: "00000000-0000-0000-0000-%012d", index))!
+  }
+
+  @Test func introAndSongAreAlwaysReadyAndCountFullDuration() {
+    let intro = AMAOpeningItem(id: uuid(0), content: .intro(block(30_000)))
+    let song = AMAOpeningItem(id: uuid(1), content: .song(block(200_000)))
+    #expect(intro.isReady)
+    expectNoDifference(intro.readyDurationMS, 30_000)
+    #expect(song.isReady)
+    expectNoDifference(song.readyDurationMS, 200_000)
+  }
+
+  @Test func processingVoicetrackIsNotReadyAndCountsZero() {
+    let vt = LocalVoicetrack(
+      id: uuid(2), originalURL: URL(fileURLWithPath: "/tmp/a.wav"),
+      status: .uploading(progress: 0.5), createdAt: Date(timeIntervalSince1970: 0),
+      title: "VT")
+    let item = AMAOpeningItem(id: uuid(3), content: .voicetrack(vt, completedDurationMS: nil))
+    #expect(!item.isReady)
+    expectNoDifference(item.readyDurationMS, 0)
+  }
+
+  @Test func completedVoicetrackWithDurationIsReadyAndCountsThatDuration() {
+    var vt = LocalVoicetrack(
+      id: uuid(4), originalURL: URL(fileURLWithPath: "/tmp/a.wav"),
+      status: .completed, createdAt: Date(timeIntervalSince1970: 0), title: "VT")
+    vt.audioBlockId = "vt-block"
+    let item = AMAOpeningItem(id: uuid(5), content: .voicetrack(vt, completedDurationMS: 45_000))
+    #expect(item.isReady)
+    expectNoDifference(item.readyDurationMS, 45_000)
+  }
+}

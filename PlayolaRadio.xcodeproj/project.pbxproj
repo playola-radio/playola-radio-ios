@@ -571,6 +571,8 @@
 		D3F493C82EEE03F3008ED463 /* AudioPlayerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493C62EEE03F3008ED463 /* AudioPlayerClient.swift */; };
 		D3F493CA2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493C92EEE4133008ED463 /* LocalVoicetrack.swift */; };
 		D3F493CB2EEE4136008ED463 /* LocalVoicetrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493C92EEE4133008ED463 /* LocalVoicetrack.swift */; };
+		3323D0CF9D68CA09140097AC /* AMAOpeningItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC3062D8D253F844CBA99697 /* AMAOpeningItem.swift */; };
+		719FF97AE552513461BCC570 /* AMAOpeningItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC3062D8D253F844CBA99697 /* AMAOpeningItem.swift */; };
 		D3F493CD2EEE50A4008ED463 /* AudioConverterClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493CC2EEE50A4008ED463 /* AudioConverterClient.swift */; };
 		D3F493CE2EEE50A4008ED463 /* AudioConverterClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493CC2EEE50A4008ED463 /* AudioConverterClient.swift */; };
 		D3F493D02EEE52F9008ED463 /* PresignedURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F493CF2EEE52F4008ED463 /* PresignedURLResponse.swift */; };
@@ -595,6 +597,8 @@
 		D3FEC80C2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC80A2EDF646E00A33AE8 /* ChooseStationToBroadcastPageModel.swift */; };
 		D3FEC80D2EDF689F00A33AE8 /* ChooseStationToBroadcastPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FEC8042EDF644B00A33AE8 /* ChooseStationToBroadcastPageTests.swift */; };
 		D3FF74D52FA7CA760052D500 /* CustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = D3FF74D42FA7CA760052D500 /* CustomDump */; };
+		6225CB344818620AF58D5319 /* CasePaths in Frameworks */ = {isa = PBXBuildFile; productRef = 8FD787399FBA22CAEDB712C4 /* CasePaths */; };
+		D062C26394998D3920B68588 /* CasePaths in Frameworks */ = {isa = PBXBuildFile; productRef = E244AC3209AB45939EA1379B /* CasePaths */; };
 		D43D3440F8D39E737DAB1D24 /* UpcomingGiveawayBannerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49F23EC5D834733F19B23706 /* UpcomingGiveawayBannerModel.swift */; };
 		DA5BD241BADE11FCACB9AEA0 /* GiveawayWinnerSubmission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36AE0F6CC37C4970321497CF /* GiveawayWinnerSubmission.swift */; };
 		DBD70D257638FF5934CA78DA /* CongratsAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = DACFAE7FE27DBB3341C0CE77 /* CongratsAction.swift */; };
@@ -974,6 +978,7 @@
 		D3F493C32EEDD9F1008ED463 /* AudioRecorderClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderClient.swift; sourceTree = "<group>"; };
 		D3F493C62EEE03F3008ED463 /* AudioPlayerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerClient.swift; sourceTree = "<group>"; };
 		D3F493C92EEE4133008ED463 /* LocalVoicetrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalVoicetrack.swift; sourceTree = "<group>"; };
+		AC3062D8D253F844CBA99697 /* AMAOpeningItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAOpeningItem.swift; sourceTree = "<group>"; };
 		D3F493CC2EEE50A4008ED463 /* AudioConverterClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioConverterClient.swift; sourceTree = "<group>"; };
 		D3F493CF2EEE52F4008ED463 /* PresignedURLResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresignedURLResponse.swift; sourceTree = "<group>"; };
 		D3F493D22EEE58CF008ED463 /* VoicetrackUploadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicetrackUploadService.swift; sourceTree = "<group>"; };
@@ -1033,6 +1038,7 @@
 				D30F00A22E8592F0007BCC73 /* GoogleSignIn in Frameworks */,
 				D334827A2F9B1A83002CAC52 /* Sentry in Frameworks */,
 				FFC4AC782A480E2C45DFBA9C /* FRadioPlayer in Frameworks */,
+				D062C26394998D3920B68588 /* CasePaths in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1054,6 +1060,7 @@
 				D3A2761E2D43C747006055AF /* GoogleSignIn in Frameworks */,
 				F35D444BFD44486391C161D6 /* Sentry in Frameworks */,
 				4F0799748F9B6F6C03B34E06 /* FRadioPlayer in Frameworks */,
+				6225CB344818620AF58D5319 /* CasePaths in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1209,6 +1216,7 @@
 				CC0000000000000000000701 /* AskMeAnythingSetupPageModel.swift */,
 				CC0000000000000000000704 /* AskMeAnythingSetupPageView.swift */,
 				CC0000000000000000000707 /* AskMeAnythingSetupPageTests.swift */,
+				AC3062D8D253F844CBA99697 /* AMAOpeningItem.swift */,
 			);
 			path = AskMeAnythingSetupPage;
 			sourceTree = "<group>";
@@ -2199,6 +2207,7 @@
 				D3916A682ECD22E600CAAD50 /* IdentifiedCollections */,
 				D3916A6D2ECD231E00CAAD50 /* Sharing */,
 				33C7DB3D3801D1C1C337B26D /* FRadioPlayer */,
+				E244AC3209AB45939EA1379B /* CasePaths */,
 			);
 			productName = PlayolaRadio;
 			productReference = D30F00B32E8592F0007BCC73 /* PlayolaRadio Staging.app */;
@@ -2233,6 +2242,7 @@
 				D3916A6B2ECD231200CAAD50 /* Sharing */,
 				0B6E1320AC744E9FAEC2F50F /* Sentry */,
 				8A2626DA6E1408E57A38509F /* FRadioPlayer */,
+				8FD787399FBA22CAEDB712C4 /* CasePaths */,
 			);
 			productName = PlayolaRadio;
 			productReference = D3536A012BFA4F49006942D6 /* PlayolaRadio.app */;
@@ -2297,6 +2307,7 @@
 				D3916A6A2ECD231200CAAD50 /* XCRemoteSwiftPackageReference "swift-sharing" */,
 				9E0939D453C04700B9C51BBD /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				D3FF74D32FA7CA760052D500 /* XCRemoteSwiftPackageReference "swift-custom-dump" */,
+				8B03CEBE291D349145DDF2E4 /* XCRemoteSwiftPackageReference "swift-case-paths" */,
 				7B24CB53D9EC3E684596F625 /* XCLocalSwiftPackageReference "LocalPackages/FRadioPlayer" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -2450,6 +2461,7 @@
 				CC0000000000000000000605 /* ShowsPageView.swift in Sources */,
 				CC0000000000000000000702 /* AskMeAnythingSetupPageModel.swift in Sources */,
 				CC0000000000000000000705 /* AskMeAnythingSetupPageView.swift in Sources */,
+				3323D0CF9D68CA09140097AC /* AMAOpeningItem.swift in Sources */,
 				CC0000000000000000000902 /* RecordWithMultiStepPromptModel.swift in Sources */,
 				CC0000000000000000000905 /* RecordWithMultiStepPromptView.swift in Sources */,
 				CC0000000000000000000402 /* MusicCategoryDetailPageModel.swift in Sources */,
@@ -2695,6 +2707,7 @@
 				CC0000000000000000000606 /* ShowsPageView.swift in Sources */,
 				CC0000000000000000000703 /* AskMeAnythingSetupPageModel.swift in Sources */,
 				CC0000000000000000000706 /* AskMeAnythingSetupPageView.swift in Sources */,
+				719FF97AE552513461BCC570 /* AMAOpeningItem.swift in Sources */,
 				CC0000000000000000000903 /* RecordWithMultiStepPromptModel.swift in Sources */,
 				CC0000000000000000000906 /* RecordWithMultiStepPromptView.swift in Sources */,
 				CC0000000000000000000403 /* MusicCategoryDetailPageModel.swift in Sources */,
@@ -3706,6 +3719,14 @@
 				minimumVersion = 1.7.0;
 			};
 		};
+		8B03CEBE291D349145DDF2E4 /* XCRemoteSwiftPackageReference "swift-case-paths" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-case-paths";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.10.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -3856,6 +3877,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D3FF74D32FA7CA760052D500 /* XCRemoteSwiftPackageReference "swift-custom-dump" */;
 			productName = CustomDump;
+		};
+		8FD787399FBA22CAEDB712C4 /* CasePaths */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8B03CEBE291D349145DDF2E4 /* XCRemoteSwiftPackageReference "swift-case-paths" */;
+			productName = CasePaths;
+		};
+		E244AC3209AB45939EA1379B /* CasePaths */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8B03CEBE291D349145DDF2E4 /* XCRemoteSwiftPackageReference "swift-case-paths" */;
+			productName = CasePaths;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
