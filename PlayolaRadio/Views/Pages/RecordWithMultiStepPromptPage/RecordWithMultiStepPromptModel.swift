@@ -74,6 +74,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
   var uploadProgress: Double = 0
   var presentedAlert: PlayolaAlert?
   @ObservationIgnored private var isRecordingActionInFlight = false
+  @ObservationIgnored private var isPlaybackActionInFlight = false
   @ObservationIgnored private var isLeaving = false
 
   // MARK: - User Actions
@@ -112,6 +113,9 @@ class RecordWithMultiStepPromptModel: ViewModel {
   }
 
   func playButtonTapped() async {
+    guard !isPlaybackActionInFlight else { return }
+    isPlaybackActionInFlight = true
+    defer { isPlaybackActionInFlight = false }
     if playbackState.isPlaying {
       await playbackSession?.pause()
       return

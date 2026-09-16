@@ -245,6 +245,42 @@ struct RecordWithMultiStepPromptTests {
     expectNoDifference(startCount.value, 2)
   }
 
+  @Test func rapidPlayTapsStartOnePlayback() async {
+    let startCount = LockIsolated(0)
+    let (started, startedContinuation) = AsyncStream<Void>.makeStream()
+    let (release, releaseContinuation) = AsyncStream<Void>.makeStream()
+    let model = withDependencies {
+      $0.audioRecorder = .testValue
+      $0.audioPlayer = AudioPlayerClient(
+        loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+        currentTime: { 0 }, duration: { 1 }, isPlaying: { false },
+        startPlayback: { _, onStateChange in
+          let count = startCount.withValue {
+            $0 += 1
+            return $0
+          }
+          if count == 1 {
+            startedContinuation.yield()
+            for await _ in release.prefix(1) {}
+          }
+          await onStateChange(PlaybackState(currentTime: 0, duration: 1, isPlaying: true))
+          return PlaybackSession(play: {}, pause: {}, stop: {}, seek: { _ in }, cancel: {})
+        })
+    } operation: {
+      makeReadyModel()
+    }
+    model.recordingPhase = .review
+    model.recordingURL = URL(fileURLWithPath: "/tmp/recorded.wav")
+
+    let firstTap = Task { await model.playButtonTapped() }
+    for await _ in started.prefix(1) {}
+    await model.playButtonTapped()
+    releaseContinuation.yield()
+    await firstTap.value
+
+    expectNoDifference(startCount.value, 1)
+  }
+
   @Test func useRecordingHandsOffThenPops() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
