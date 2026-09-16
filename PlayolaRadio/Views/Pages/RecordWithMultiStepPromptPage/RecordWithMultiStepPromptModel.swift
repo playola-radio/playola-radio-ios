@@ -71,6 +71,11 @@ class RecordWithMultiStepPromptModel: ViewModel {
   /// back.
   @ObservationIgnored var onCompleted: ((AudioBlock) async -> Void)?
 
+  /// Deferred-acceptance mode: hands the caller just the recorded file URL and duration, then pops
+  /// immediately, letting the caller run its own upload in the background. Mutually exclusive with
+  /// `onUseRecording`, which blocks the recorder through upload+processing before popping.
+  @ObservationIgnored var onRecordingAccepted: (@MainActor (URL, TimeInterval) throws -> Void)?
+
   var recordingPhase: RecordPromptPhase = .ready
   var recordingState: RecordingState = .idle
   var recordingURL: URL?
@@ -157,6 +162,19 @@ class RecordWithMultiStepPromptModel: ViewModel {
 
   func useRecordingButtonTapped() async {
     guard recordingPhase == .review, let url = recordingURL else { return }
+    if let onRecordingAccepted {
+      if onUseRecording != nil {
+        reportIssue("RecordWithMultiStepPromptModel has both acceptance callbacks set")
+      }
+      do {
+        try onRecordingAccepted(url, recordedDuration)
+        recordingURL = nil
+        navigationCoordinator.pop()
+      } catch {
+        presentedAlert = .recordingSaveFailed(error.localizedDescription)
+      }
+      return
+    }
     uploadProgress = 0
     recordingPhase = .uploading
     await stopPlayback()
@@ -554,6 +572,24 @@ extension RecordWithMultiStepPromptModel {
       }
     }
     return model
+  }
+
+  static func askMeAnythingVoicetrack(stationId: String) -> RecordWithMultiStepPromptModel {
+    RecordWithMultiStepPromptModel(
+      screenTitle: "Record Voicetrack",
+      eyebrow: "RECORD A VOICETRACK",
+      guideBadge: "OPTIONAL GUIDE",
+      title: "Record a short voicetrack.",
+      subtitle: "Talk over the intro to a song or set up what\u{2019}s coming next.",
+      steps: [
+        RecordPromptStep(
+          id: 1, label: "SET UP", detail: "Tease the song or moment you\u{2019}re leading into."),
+        RecordPromptStep(
+          id: 2, label: "KEEP IT TIGHT",
+          detail: "A few seconds is plenty \u{2014} keep the energy up."),
+      ],
+      trackLabel: "VOICETRACK",
+      isUpsideDown: true)
   }
 }
 

@@ -687,6 +687,54 @@ struct RecordWithMultiStepPromptTests {
     }
   }
 
+  // MARK: - Deferred Acceptance
+
+  @Test func deferredAcceptHandsOffUrlPopsAndDoesNotDeleteFile() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let deletedURLs = LockIsolated<[URL]>([])
+    let model = withDependencies {
+      $0.audioRecorder.deleteRecording = { url in deletedURLs.withValue { $0.append(url) } }
+    } operation: {
+      RecordWithMultiStepPromptModel.askMeAnythingVoicetrack(stationId: "s")
+    }
+    coordinator.push(.recordWithMultiStepPromptPage(model))
+    let url = URL(fileURLWithPath: "/tmp/vt.wav")
+    model.recordingURL = url
+    model.recordedDuration = 42
+    model.recordingPhase = .review
+
+    var handoff: (URL, TimeInterval)?
+    model.onRecordingAccepted = { u, d in handoff = (u, d) }
+
+    await model.useRecordingButtonTapped()
+
+    #expect(handoff?.0 == url)
+    expectNoDifference(handoff?.1, 42)
+    #expect(model.recordingURL == nil)
+    #expect(coordinator.path.isEmpty)
+    expectNoDifference(deletedURLs.value, [])
+  }
+
+  @Test func deferredAcceptThrowingKeepsRecorderOnReviewWithAlert() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let model = RecordWithMultiStepPromptModel.askMeAnythingVoicetrack(stationId: "s")
+    coordinator.push(.recordWithMultiStepPromptPage(model))
+    model.recordingURL = URL(fileURLWithPath: "/tmp/vt.wav")
+    model.recordingPhase = .review
+    model.onRecordingAccepted = { _, _ in throw RecordPromptError.notAuthenticated }
+
+    await model.useRecordingButtonTapped()
+
+    #expect(model.recordingPhase == .review)
+    #expect(model.recordingURL != nil)
+    #expect(model.presentedAlert != nil)
+    #expect(coordinator.path.count == 1)
+  }
+
   // MARK: - Helpers
 
   private func makeReadyModel() -> RecordWithMultiStepPromptModel {
