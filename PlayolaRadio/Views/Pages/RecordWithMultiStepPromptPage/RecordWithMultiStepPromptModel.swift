@@ -5,6 +5,7 @@
 
 import Dependencies
 import IdentifiedCollections
+import PlayolaPlayer
 import Sharing
 import SwiftUI
 
@@ -16,6 +17,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.audioRecorder) var audioRecorder
   @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
+  @ObservationIgnored @Dependency(\.continuousClock) var clock
 
   // MARK: - Shared State
 
@@ -61,8 +63,13 @@ class RecordWithMultiStepPromptModel: ViewModel {
   @ObservationIgnored var onUseRecording:
     (
       @Sendable (URL, @escaping @MainActor @Sendable (RecordUploadProgress) -> Void) async throws ->
-        Void
+        AudioBlock
     )?
+
+  /// Notifies the caller that the recording was accepted, uploaded, and processed, passing the
+  /// resulting audio block. Fires only on success, after `onUseRecording`, right before the pop
+  /// back.
+  @ObservationIgnored var onCompleted: ((AudioBlock) async -> Void)?
 
   var recordingPhase: RecordPromptPhase = .ready
   var recordingState: RecordingState = .idle
@@ -72,10 +79,17 @@ class RecordWithMultiStepPromptModel: ViewModel {
   var playbackState: PlaybackState = .idle
   @ObservationIgnored private var playbackSession: PlaybackSession?
   var uploadProgress: Double = 0
+  var processingProgress: Double = 0
   var presentedAlert: PlayolaAlert?
   @ObservationIgnored private var isRecordingActionInFlight = false
   @ObservationIgnored private var isPlaybackActionInFlight = false
   @ObservationIgnored private var isLeaving = false
+  @ObservationIgnored private var processingTimerTask: Task<Void, Never>?
+
+  /// The artificial processing bar eases toward this ceiling over the recording's duration and only
+  /// snaps to 1 once the real server completion signal arrives, so it never claims to be finished
+  /// before it actually is.
+  private let processingProgressCeiling = 0.95
 
   // MARK: - User Actions
 
@@ -90,7 +104,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
 
   func backButtonTapped() {
     switch recordingPhase {
-    case .saving, .uploading:
+    case .uploading, .processing:
       return
     case .review:
       presentedAlert = .discardRecordingConfirmation { [weak self] in
@@ -108,7 +122,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
     switch recordingPhase {
     case .ready: await startRecording()
     case .recording: await stopRecording()
-    case .review, .saving, .uploading: break
+    case .review, .uploading, .processing: break
     }
   }
 
@@ -144,17 +158,21 @@ class RecordWithMultiStepPromptModel: ViewModel {
   func useRecordingButtonTapped() async {
     guard recordingPhase == .review, let url = recordingURL else { return }
     uploadProgress = 0
-    recordingPhase = .saving
+    recordingPhase = .uploading
     await stopPlayback()
     do {
-      try await onUseRecording?(url) { [weak self] progress in
+      let audioBlock = try await onUseRecording?(url) { [weak self] progress in
         self?.applyUploadProgress(progress)
       }
       await audioRecorder.deleteRecording(url)
       recordingURL = nil
+      stopProcessingTimer()
       guard !isLeaving else { return }
+      processingProgress = 1
+      if let audioBlock { await onCompleted?(audioBlock) }
       navigationCoordinator.pop()
     } catch {
+      stopProcessingTimer()
       guard !isLeaving else { return }
       recordingPhase = .review
       presentedAlert = .recordingSaveFailed(error.localizedDescription)
@@ -178,7 +196,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
   var tabBarVisibility: Visibility { .hidden }
 
   private var isRecording: Bool { recordingPhase == .recording }
-  private var isProcessing: Bool { recordingPhase == .saving || recordingPhase == .uploading }
+  private var isProcessing: Bool { recordingPhase == .uploading || recordingPhase == .processing }
 
   var showsRecorder: Bool { recordingPhase == .ready || recordingPhase == .recording }
   var showsReview: Bool { recordingPhase == .review }
@@ -191,8 +209,8 @@ class RecordWithMultiStepPromptModel: ViewModel {
     switch recordingPhase {
     case .ready, .recording: return screenTitle
     case .review: return "Review Recording"
-    case .saving: return "Saving Recording"
     case .uploading: return "Uploading Recording"
+    case .processing: return "Processing Recording"
     }
   }
 
@@ -202,8 +220,8 @@ class RecordWithMultiStepPromptModel: ViewModel {
     switch recordingPhase {
     case .ready, .recording: return eyebrow
     case .review: return "RECORDING SAVED"
-    case .saving: return "SAVING RECORDING"
     case .uploading: return "UPLOADING RECORDING"
+    case .processing: return "PROCESSING RECORDING"
     }
   }
 
@@ -211,8 +229,8 @@ class RecordWithMultiStepPromptModel: ViewModel {
     switch recordingPhase {
     case .ready, .recording: return guideBadge
     case .review: return "READY TO REVIEW"
-    case .saving: return "STEP 1 OF 2"
-    case .uploading: return "STEP 2 OF 2"
+    case .uploading: return "STEP 1 OF 2"
+    case .processing: return "STEP 2 OF 2"
     }
   }
 
@@ -220,7 +238,8 @@ class RecordWithMultiStepPromptModel: ViewModel {
     switch recordingPhase {
     case .ready, .recording: return title
     case .review: return "How does it sound?"
-    case .saving, .uploading: return "Uploading your recording\u{2026}"
+    case .uploading: return "Uploading your recording\u{2026}"
+    case .processing: return "Processing your recording\u{2026}"
     }
   }
 
@@ -228,7 +247,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
     switch recordingPhase {
     case .ready, .recording: return subtitle
     case .review: return "Listen back, then re-record or use this recording."
-    case .saving, .uploading: return "This should only take a moment."
+    case .uploading, .processing: return "This should only take a moment."
     }
   }
 
@@ -272,48 +291,46 @@ class RecordWithMultiStepPromptModel: ViewModel {
 
   // MARK: - Progress Card
 
-  private let savingProgressFraction: Double = 0.2
-
   var progressIconSystemImage: String {
-    recordingPhase == .uploading ? "icloud.and.arrow.up" : "square.and.arrow.down"
+    recordingPhase == .processing ? "waveform" : "icloud.and.arrow.up"
   }
 
-  var progressCardTitle: String { "Saving and Uploading" }
+  var progressCardTitle: String { "Uploading and Processing" }
 
   var progressLabel: String {
-    recordingPhase == .uploading ? "Uploading\u{2026}" : "Saving\u{2026}"
+    recordingPhase == .processing ? "Processing\u{2026}" : "Uploading\u{2026}"
   }
 
   var progressValue: String {
-    guard recordingPhase == .uploading else { return "Preparing" }
+    guard recordingPhase == .uploading else { return "Almost done" }
     return "\(Int((uploadProgress * 100).rounded()))%"
   }
 
   var progressFraction: Double {
-    recordingPhase == .uploading ? uploadProgress : savingProgressFraction
+    recordingPhase == .processing ? processingProgress : uploadProgress
   }
 
   var progressSteps: IdentifiedArrayOf<RecordProgressStep> {
-    if recordingPhase == .uploading {
+    if recordingPhase == .processing {
       return IdentifiedArray(uniqueElements: [
         RecordProgressStep(
           id: 0, systemImage: "checkmark", iconColor: .playolaTextPrimary,
-          iconBackgroundColor: .playolaRed, label: "Saved on this device",
+          iconBackgroundColor: .playolaRed, label: "Uploaded to Playola",
           labelColor: .playolaTextPrimary),
         RecordProgressStep(
-          id: 1, systemImage: "icloud.and.arrow.up", iconColor: .playolaRed,
-          iconBackgroundColor: .playolaWarmSurface, label: "Uploading to Playola",
+          id: 1, systemImage: "waveform", iconColor: .playolaRed,
+          iconBackgroundColor: .playolaWarmSurface, label: "Processing audio",
           labelColor: .playolaTextPrimary),
       ])
     }
     return IdentifiedArray(uniqueElements: [
       RecordProgressStep(
-        id: 0, systemImage: "arrow.triangle.2.circlepath", iconColor: .playolaRed,
-        iconBackgroundColor: .playolaWarmSurface, label: "Saving",
+        id: 0, systemImage: "icloud.and.arrow.up", iconColor: .playolaRed,
+        iconBackgroundColor: .playolaWarmSurface, label: "Uploading to Playola",
         labelColor: .playolaTextPrimary),
       RecordProgressStep(
-        id: 1, systemImage: "icloud.and.arrow.up", iconColor: .playolaTextTertiary,
-        iconBackgroundColor: .playolaSurfaceControl, label: "Uploading to Playola",
+        id: 1, systemImage: "waveform", iconColor: .playolaTextTertiary,
+        iconBackgroundColor: .playolaSurfaceControl, label: "Processing audio",
         labelColor: .playolaTextTertiary),
     ])
   }
@@ -364,16 +381,43 @@ class RecordWithMultiStepPromptModel: ViewModel {
   // MARK: - Private Helpers
 
   private func applyUploadProgress(_ progress: RecordUploadProgress) {
+    guard !isLeaving else { return }
     switch progress {
-    case .saving:
-      recordingPhase = .saving
     case .uploading(let fraction):
       recordingPhase = .uploading
       uploadProgress = min(1, max(0, fraction))
-    case .finishing:
-      recordingPhase = .uploading
-      uploadProgress = 1
+    case .processing:
+      recordingPhase = .processing
+      startProcessingTimerIfNeeded()
     }
+  }
+
+  private func startProcessingTimerIfNeeded() {
+    guard processingTimerTask == nil else { return }
+    let totalMS = recordedDuration * 1000
+    processingProgress = 0
+    guard totalMS.isFinite, totalMS > 0 else {
+      processingProgress = processingProgressCeiling
+      return
+    }
+    let ceiling = processingProgressCeiling
+    let clock = clock
+    processingTimerTask = Task { [weak self] in
+      var elapsedMS = 0.0
+      while !Task.isCancelled {
+        try? await clock.sleep(for: .milliseconds(50))
+        guard let self, !Task.isCancelled else { return }
+        elapsedMS += 50
+        let fraction = min(ceiling, elapsedMS / totalMS)
+        self.processingProgress = fraction
+        if fraction >= ceiling { return }
+      }
+    }
+  }
+
+  private func stopProcessingTimer() {
+    processingTimerTask?.cancel()
+    processingTimerTask = nil
   }
 
   private func startRecording() async {
@@ -454,6 +498,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
   }
 
   private func teardown() async {
+    stopProcessingTimer()
     await stopPlayback()
     await recordingSession?.cancel()
     recordingSession = nil
@@ -492,14 +537,19 @@ extension RecordWithMultiStepPromptModel {
       trackLabel: "INTRO",
       isUpsideDown: true)
     model.onUseRecording = { url, reportProgress in
-      @Dependency(\.introUploadService) var introUploadService
+      @Dependency(\.voicetrackUploadService) var voicetrackUploadService
       @Shared(.auth) var auth
       guard let jwt = auth.jwt else { throw RecordPromptError.notAuthenticated }
-      try await introUploadService.uploadIntro(jwt, url, stationId, "Intro", nil) { status in
+      let voicetrack = LocalVoicetrack(originalURL: url, title: "Intro")
+      return try await voicetrackUploadService.processVoicetrack(voicetrack, stationId, jwt) {
+        status in
         switch status {
-        case .converting: reportProgress(.saving)
-        case .uploading(let progress): reportProgress(.uploading(progress))
-        case .registering, .completed, .failed: reportProgress(.finishing)
+        case .converting:
+          reportProgress(.uploading(0))
+        case .uploading(let progress):
+          reportProgress(.uploading(progress))
+        case .normalizing, .finalizing, .completed, .failed:
+          reportProgress(.processing)
         }
       }
     }
@@ -515,14 +565,13 @@ enum RecordPromptPhase: Equatable {
   case ready
   case recording
   case review
-  case saving
   case uploading
+  case processing
 }
 
 enum RecordUploadProgress: Equatable {
-  case saving
   case uploading(Double)
-  case finishing
+  case processing
 }
 
 struct RecordPromptStep: Identifiable, Equatable {

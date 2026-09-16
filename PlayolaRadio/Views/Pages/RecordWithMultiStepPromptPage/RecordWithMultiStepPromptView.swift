@@ -432,7 +432,7 @@ struct RecordWithMultiStepPromptView: View {
     }
   }
 
-  // MARK: - Progress Section (saving + uploading)
+  // MARK: - Progress Section (uploading + processing)
 
   @ViewBuilder private var progressSection: some View {
     if model.showsProgress {

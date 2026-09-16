@@ -127,7 +127,7 @@ Approved design zone `eoeNV` at y=15578 contains 01 → 01b → 02 → 03 → 04
 | State | Node ID | Status | Notes |
 |---|---|---|---|
 | AMA Setup · 01 · Record an Intro | `u1jha` | Implementing | Approved 2026-09-13; intro-first state with user-provided guidance. Implemented as `AskMeAnythingSetupPage` — a **static shell** (Record Intro / Start Show are inert; no API calls in this slice). **Intentional deviation:** the mock's 4-tab bottom bar was dropped for the 3-tab IA |
-| AMA Setup · 01b · Build Your Opening | `cDCux` | Proposed | Approved 2026-09-13 (S31); intro recorded; guide building ten minutes with songs, past Q&As and song intros |
+| AMA Setup · 01b · Build Your Opening | `cDCux` | Implementing | Approved 2026-09-13 (S31); intro-recorded state of `AskMeAnythingSetupPage`. Intro recorder returns via `onCompleted` callback and the page flips to the opening-playlist layout. **This slice:** the three add-actions (Voicetrack/Song/Q/A) are inert (static-shell precedent); a follow-up wires Broadcast-style staging. Same 4-tab→3-tab-shell deviation as `u1jha` |
 | AMA Setup · 02 · Almost Ready | `M6FLxv` | Proposed | Approved 2026-09-13; 8:35 ready; Start Show disabled |
 | AMA Setup · 03 · Ready to Start | `F4XUs4` | Proposed | Approved 2026-09-13 (S31); 10:35 ready; Start Show enabled |
 | AMA Setup · 04 · Waiting to Air | `OFqgG` | Proposed | Approved 2026-09-13 (S31); countdown while last regular-programming spin finishes |

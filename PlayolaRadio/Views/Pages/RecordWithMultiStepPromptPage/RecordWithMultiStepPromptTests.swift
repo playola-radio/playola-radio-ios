@@ -296,7 +296,10 @@ struct RecordWithMultiStepPromptTests {
     coordinator.push(.recordWithMultiStepPromptPage(model))
     model.recordingPhase = .review
     model.recordingURL = URL(fileURLWithPath: "/tmp/recorded.wav")
-    model.onUseRecording = { url, _ in handedOff.setValue(url) }
+    model.onUseRecording = { url, _ in
+      handedOff.setValue(url)
+      return .mockWith()
+    }
 
     await model.useRecordingButtonTapped()
 
@@ -323,6 +326,7 @@ struct RecordWithMultiStepPromptTests {
         startedContinuation.yield()
         for await _ in release.prefix(1) {}
       }
+      return .mockWith()
     }
 
     let firstTap = Task { await model.useRecordingButtonTapped() }
@@ -339,6 +343,7 @@ struct RecordWithMultiStepPromptTests {
       MainContainerNavigationCoordinator()
     let (started, startedContinuation) = AsyncStream<Void>.makeStream()
     let (release, releaseContinuation) = AsyncStream<Void>.makeStream()
+    let completedFired = LockIsolated(false)
     let model = makeModel()
     coordinator.push(.recordWithMultiStepPromptPage(model))
     model.recordingPhase = .review
@@ -346,7 +351,9 @@ struct RecordWithMultiStepPromptTests {
     model.onUseRecording = { _, _ in
       startedContinuation.yield()
       for await _ in release.prefix(1) {}
+      return .mockWith()
     }
+    model.onCompleted = { _ in completedFired.setValue(true) }
 
     let tap = Task { await model.useRecordingButtonTapped() }
     for await _ in started.prefix(1) {}
@@ -355,22 +362,22 @@ struct RecordWithMultiStepPromptTests {
     await tap.value
 
     expectNoDifference(coordinator.path.count, 1)
+    #expect(!completedFired.value)
   }
 
-  @Test func useRecordingDrivesProgressToUploading() async {
+  @Test func useRecordingDrivesProgressToProcessing() async {
     let model = makeModel()
     model.recordingPhase = .review
     model.recordingURL = URL(fileURLWithPath: "/tmp/recorded.wav")
     model.onUseRecording = { _, report in
-      await report(.saving)
       await report(.uploading(0.5))
-      await report(.finishing)
+      await report(.processing)
+      return .mockWith()
     }
 
     await model.useRecordingButtonTapped()
 
-    expectNoDifference(model.recordingPhase, .uploading)
-    expectNoDifference(model.uploadProgress, 1)
+    expectNoDifference(model.recordingPhase, .processing)
   }
 
   @Test func useRecordingFailureShowsErrorAndStaysInReview() async {
@@ -385,35 +392,173 @@ struct RecordWithMultiStepPromptTests {
     expectNoDifference(model.recordingPhase, .review)
   }
 
+  @Test func useRecordingFiresOnCompletedWithAudioBlock() async {
+    let completedId = LockIsolated<String?>(nil)
+    let model = makeModel()
+    model.recordingPhase = .review
+    model.recordingURL = URL(fileURLWithPath: "/tmp/recorded.wav")
+    model.onUseRecording = { _, _ in AudioBlock.mockWith(id: "intro-block") }
+    model.onCompleted = { completedId.setValue($0.id) }
+
+    await model.useRecordingButtonTapped()
+
+    expectNoDifference(completedId.value, "intro-block")
+  }
+
+  @Test func useRecordingFailureDoesNotFireOnCompleted() async {
+    let fired = LockIsolated(false)
+    let model = makeModel()
+    model.recordingPhase = .review
+    model.recordingURL = URL(fileURLWithPath: "/tmp/recorded.wav")
+    model.onUseRecording = { _, _ in throw RecordPromptError.notAuthenticated }
+    model.onCompleted = { _ in fired.setValue(true) }
+
+    await model.useRecordingButtonTapped()
+
+    #expect(!fired.value)
+  }
+
   // MARK: - Progress Screen
 
-  @Test func savingPhaseExposesStepOneContent() {
+  @Test func uploadingPhaseExposesStepOne() {
     let model = makeModel()
-    model.recordingPhase = .saving
+    model.recordingPhase = .uploading
+    model.uploadProgress = 0.68
 
-    expectNoDifference(model.navTitle, "Saving Recording")
-    expectNoDifference(model.headerEyebrow, "SAVING RECORDING")
+    expectNoDifference(model.navTitle, "Uploading Recording")
+    expectNoDifference(model.headerEyebrow, "UPLOADING RECORDING")
     expectNoDifference(model.headerBadge, "STEP 1 OF 2")
     expectNoDifference(model.headerTitle, "Uploading your recording\u{2026}")
-    expectNoDifference(model.progressLabel, "Saving\u{2026}")
-    expectNoDifference(model.progressValue, "Preparing")
+    expectNoDifference(model.progressLabel, "Uploading\u{2026}")
+    expectNoDifference(model.progressValue, "68%")
+    expectNoDifference(model.progressFraction, 0.68)
+    expectNoDifference(model.progressSteps.first?.label, "Uploading to Playola")
     #expect(model.showsProgress)
     #expect(!model.showsReview)
     #expect(!model.showsRecorder)
     #expect(!model.backButtonEnabled)
   }
 
-  @Test func uploadingPhaseShowsPercentAndCompletedFirstStep() {
+  @Test func processingPhaseExposesStepTwo() {
     let model = makeModel()
-    model.recordingPhase = .uploading
-    model.uploadProgress = 0.68
+    model.recordingPhase = .processing
+    model.processingProgress = 0.42
 
-    expectNoDifference(model.navTitle, "Uploading Recording")
+    expectNoDifference(model.navTitle, "Processing Recording")
+    expectNoDifference(model.headerEyebrow, "PROCESSING RECORDING")
     expectNoDifference(model.headerBadge, "STEP 2 OF 2")
-    expectNoDifference(model.progressLabel, "Uploading\u{2026}")
-    expectNoDifference(model.progressValue, "68%")
-    expectNoDifference(model.progressFraction, 0.68)
-    expectNoDifference(model.progressSteps.first?.label, "Saved on this device")
+    expectNoDifference(model.headerTitle, "Processing your recording\u{2026}")
+    expectNoDifference(model.progressLabel, "Processing\u{2026}")
+    expectNoDifference(model.progressValue, "Almost done")
+    expectNoDifference(model.progressFraction, 0.42)
+    expectNoDifference(model.progressSteps.first?.label, "Uploaded to Playola")
+    expectNoDifference(model.progressSteps.last?.label, "Processing audio")
+    #expect(model.showsProgress)
+    #expect(!model.backButtonEnabled)
+  }
+
+  @Test func processingBarAdvancesOverDurationThenSnapsOnCompletion() async {
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      let (started, startedContinuation) = AsyncStream<Void>.makeStream()
+      let (release, releaseContinuation) = AsyncStream<Void>.makeStream()
+      let model = withDependencies {
+        $0.audioPlayer = .testValue
+        $0.audioRecorder = .testValue
+        $0.continuousClock = clock
+      } operation: {
+        makeReadyModel()
+      }
+      model.recordingPhase = .review
+      model.recordingURL = URL(fileURLWithPath: "/tmp/recorded.wav")
+      // Total 500ms, so each 50ms timer tick advances the bar by 10%.
+      model.recordedDuration = 0.5
+      model.onUseRecording = { _, report in
+        await report(.processing)
+        startedContinuation.yield()
+        for await _ in release.prefix(1) {}
+        return .mockWith()
+      }
+
+      let tap = Task { await model.useRecordingButtonTapped() }
+      for await _ in started.prefix(1) {}
+      await Task.megaYield()
+      expectNoDifference(model.progressFraction, 0)
+
+      await clock.advance(by: .milliseconds(150))
+      expectNoDifference(model.progressFraction, 0.3)
+
+      releaseContinuation.yield()
+      await tap.value
+
+      expectNoDifference(model.progressFraction, 1)
+
+      // Completion must cancel the timer: further ticks stay at 1, never fall
+      // back to the 0.95 ceiling.
+      await clock.advance(by: .milliseconds(500))
+      expectNoDifference(model.progressFraction, 1)
+    }
+  }
+
+  @Test func progressCallbackAfterDisappearDoesNotRestartTimer() async {
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      let (started, startedContinuation) = AsyncStream<Void>.makeStream()
+      let (release, releaseContinuation) = AsyncStream<Void>.makeStream()
+      let model = withDependencies {
+        $0.audioPlayer = .testValue
+        $0.audioRecorder = .testValue
+        $0.continuousClock = clock
+      } operation: {
+        makeReadyModel()
+      }
+      model.recordingPhase = .review
+      model.recordingURL = URL(fileURLWithPath: "/tmp/recorded.wav")
+      model.recordedDuration = 0.5
+      model.onUseRecording = { _, report in
+        await report(.uploading(0.5))
+        startedContinuation.yield()
+        for await _ in release.prefix(1) {}
+        await report(.processing)
+        return .mockWith()
+      }
+
+      let tap = Task { await model.useRecordingButtonTapped() }
+      for await _ in started.prefix(1) {}
+      await model.viewDisappeared()
+
+      releaseContinuation.yield()
+      await tap.value
+
+      // The late .processing report arrives after teardown; the leaving guard
+      // must ignore it so no timer restarts on the hidden model.
+      expectNoDifference(model.recordingPhase, .uploading)
+      expectNoDifference(model.processingProgress, 0)
+    }
+  }
+
+  @Test func processingBarWithZeroDurationHoldsAtCeilingUntilCompletion() async {
+    let (started, startedContinuation) = AsyncStream<Void>.makeStream()
+    let (release, releaseContinuation) = AsyncStream<Void>.makeStream()
+    let model = makeModel()
+    model.recordingPhase = .review
+    model.recordingURL = URL(fileURLWithPath: "/tmp/recorded.wav")
+    model.recordedDuration = 0
+    model.onUseRecording = { _, report in
+      await report(.processing)
+      startedContinuation.yield()
+      for await _ in release.prefix(1) {}
+      return .mockWith()
+    }
+
+    let tap = Task { await model.useRecordingButtonTapped() }
+    for await _ in started.prefix(1) {}
+    expectNoDifference(model.progressFraction, 0.95)
+
+    releaseContinuation.yield()
+    await tap.value
+
+    expectNoDifference(model.progressFraction, 1)
   }
 
   @Test func backButtonDuringUploadIsIgnored() {
