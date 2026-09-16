@@ -17,7 +17,7 @@ struct RecordWithMultiStepPromptView: View {
     .navigationBarHidden(true)
     .toolbar(model.tabBarVisibility, for: .tabBar)
     .playolaAlert($model.presentedAlert)
-    .task { await model.viewAppeared() }
+    .onAppear { model.viewAppeared() }
     .onDisappear { Task { await model.viewDisappeared() } }
   }
 

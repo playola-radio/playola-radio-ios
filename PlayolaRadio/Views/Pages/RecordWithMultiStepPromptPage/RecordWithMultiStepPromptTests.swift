@@ -63,7 +63,6 @@ struct RecordWithMultiStepPromptTests {
     expectNoDifference(model.elapsedTime, "0:00")
     expectNoDifference(model.recordButtonTitle, "Start recording")
     expectNoDifference(model.recordButtonSystemImage, "mic.fill")
-    #expect(model.showsCues)
     #expect(model.showsRecorder)
     #expect(!model.showsReview)
   }
@@ -220,6 +219,32 @@ struct RecordWithMultiStepPromptTests {
     #expect(model.showsRecorder)
   }
 
+  @Test func replayAfterCompletionStartsFreshPlayback() async {
+    let startCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.audioRecorder = .testValue
+      $0.audioPlayer = AudioPlayerClient(
+        loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+        currentTime: { 0 }, duration: { 1 }, isPlaying: { false },
+        startPlayback: { _, onStateChange in
+          startCount.withValue { $0 += 1 }
+          await onStateChange(
+            PlaybackState(currentTime: 1, duration: 1, isPlaying: false, didFinish: true))
+          return PlaybackSession(play: {}, pause: {}, stop: {}, seek: { _ in }, cancel: {})
+        })
+    } operation: {
+      makeReadyModel()
+    }
+    model.recordingPhase = .review
+    model.recordingURL = URL(fileURLWithPath: "/tmp/recorded.wav")
+
+    await model.playButtonTapped()
+    #expect(model.playbackState.isComplete)
+    await model.playButtonTapped()
+
+    expectNoDifference(startCount.value, 2)
+  }
+
   @Test func useRecordingHandsOffThenPops() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
@@ -333,13 +358,18 @@ struct RecordWithMultiStepPromptTests {
   }
 
   @Test func backButtonDuringUploadIsIgnored() {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
     let model = makeModel()
+    coordinator.push(.recordWithMultiStepPromptPage(model))
     model.recordingPhase = .uploading
 
     model.backButtonTapped()
 
     #expect(model.presentedAlert == nil)
     expectNoDifference(model.recordingPhase, .uploading)
+    expectNoDifference(coordinator.path.count, 1)
   }
 
   @Test func backButtonInReviewAsksToDiscard() {

@@ -78,9 +78,8 @@ class RecordWithMultiStepPromptModel: ViewModel {
 
   // MARK: - User Actions
 
-  func viewAppeared() async {
+  func viewAppeared() {
     isLeaving = false
-    try? await audioRecorder.prepareForRecording()
   }
 
   func viewDisappeared() async {
@@ -115,29 +114,27 @@ class RecordWithMultiStepPromptModel: ViewModel {
   func playButtonTapped() async {
     if playbackState.isPlaying {
       await playbackSession?.pause()
-    } else if playbackSession == nil, let url = recordingURL {
-      do {
-        playbackSession = try await audioPlayer.startPlayback(url) { [weak self] state in
-          self?.playbackState = state
-        }
-      } catch {
-        presentedAlert = .audioPlaybackError(error.localizedDescription)
-      }
-    } else {
-      await playbackSession?.play()
+      return
     }
+    if playbackSession != nil, !playbackState.isComplete {
+      await playbackSession?.play()
+      return
+    }
+    await beginPlayback()
   }
 
   func reRecordButtonTapped() async {
-    await stopPlayback()
-    if let url = recordingURL {
-      await audioRecorder.deleteRecording(url)
-    }
+    guard recordingPhase == .review else { return }
+    let url = recordingURL
     recordingURL = nil
     recordingSession = nil
     recordingState = .idle
     recordedDuration = 0
     recordingPhase = .ready
+    await stopPlayback()
+    if let url {
+      await audioRecorder.deleteRecording(url)
+    }
   }
 
   func useRecordingButtonTapped() async {
@@ -175,12 +172,10 @@ class RecordWithMultiStepPromptModel: ViewModel {
   var tabBarVisibility: Visibility { .hidden }
 
   private var isRecording: Bool { recordingPhase == .recording }
-  private var isReviewing: Bool { recordingPhase == .review }
   private var isProcessing: Bool { recordingPhase == .saving || recordingPhase == .uploading }
 
-  var showsCues: Bool { recordingPhase == .ready || recordingPhase == .recording }
   var showsRecorder: Bool { recordingPhase == .ready || recordingPhase == .recording }
-  var showsReview: Bool { isReviewing }
+  var showsReview: Bool { recordingPhase == .review }
   var showsProgress: Bool { isProcessing }
 
   var backButtonEnabled: Bool { !isProcessing }
@@ -402,12 +397,33 @@ class RecordWithMultiStepPromptModel: ViewModel {
     let captured = recordingState.currentTime
     do {
       let url = try await recordingSession?.stop()
+      recordingSession = nil
+      guard !isLeaving else {
+        if let url { await audioRecorder.deleteRecording(url) }
+        return
+      }
       recordingURL = url
       recordedDuration = captured
-      recordingSession = nil
       recordingPhase = .review
     } catch {
       presentedAlert = .recordingFailedAlert(error.localizedDescription)
+    }
+  }
+
+  private func beginPlayback() async {
+    guard let url = recordingURL else { return }
+    await stopPlayback()
+    do {
+      let session = try await audioPlayer.startPlayback(url) { [weak self] state in
+        self?.playbackState = state
+      }
+      guard recordingPhase == .review, !isLeaving else {
+        await session.stop()
+        return
+      }
+      playbackSession = session
+    } catch {
+      presentedAlert = .audioPlaybackError(error.localizedDescription)
     }
   }
 
