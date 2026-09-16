@@ -88,6 +88,7 @@ final class MainContainerNavigationCoordinator {
     case musicCategoryDetailPage(MusicCategoryDetailPageModel)
     case showsPage(ShowsPageModel)
     case askMeAnythingSetupPage(AskMeAnythingSetupPageModel)
+    case recordWithMultiStepPromptPage(RecordWithMultiStepPromptModel)
 
     @MainActor @ViewBuilder
     var destinationView: some View {
@@ -130,6 +131,8 @@ final class MainContainerNavigationCoordinator {
         ShowsPageView(model: model)
       case .askMeAnythingSetupPage(let model):
         AskMeAnythingSetupPageView(model: model)
+      case .recordWithMultiStepPromptPage(let model):
+        RecordWithMultiStepPromptView(model: model)
       }
     }
   }

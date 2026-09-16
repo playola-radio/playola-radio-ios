@@ -31,7 +31,10 @@ class AskMeAnythingSetupPageModel: ViewModel {
     navigationCoordinator.pop()
   }
 
-  func recordIntroButtonTapped() {}
+  func recordIntroButtonTapped() {
+    navigationCoordinator.push(
+      .recordWithMultiStepPromptPage(.askMeAnythingIntro(stationId: stationId)))
+  }
 
   func startShowButtonTapped() {}
 

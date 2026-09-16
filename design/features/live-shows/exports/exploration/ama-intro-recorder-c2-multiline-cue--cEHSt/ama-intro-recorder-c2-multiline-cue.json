@@ -1,0 +1,762 @@
+{
+  "type": "frame",
+  "id": "cEHSt",
+  "x": 8289,
+  "y": 16590,
+  "name": "AMA Intro Recorder · C2 · Multiline Cue",
+  "clip": true,
+  "width": 393,
+  "height": 852,
+  "fill": "#000000",
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "pBfEf",
+      "name": "iOS Status Bar",
+      "width": "fill_container",
+      "height": 44,
+      "padding": [
+        0,
+        24
+      ],
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "ZX6A1",
+          "name": "Time",
+          "fill": "#FFFFFF",
+          "content": "9:41",
+          "fontFamily": "Inter",
+          "fontSize": 14,
+          "fontWeight": "600"
+        },
+        {
+          "type": "frame",
+          "id": "tcgu5",
+          "name": "Status Icons",
+          "gap": 6,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "nyKvC",
+              "name": "Cellular",
+              "width": 15,
+              "height": 15,
+              "icon": "signal",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            },
+            {
+              "type": "icon",
+              "id": "K2Om2",
+              "name": "Wi-Fi",
+              "width": 15,
+              "height": 15,
+              "icon": "wifi",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            },
+            {
+              "type": "icon",
+              "id": "cGDGx",
+              "name": "Battery",
+              "width": 21,
+              "height": 21,
+              "icon": "battery-full",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "uLaAw",
+      "name": "Navigation",
+      "width": "fill_container",
+      "height": 64,
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "w8vtdE",
+          "x": 14,
+          "y": 10,
+          "name": "Back Button",
+          "width": 44,
+          "height": 44,
+          "fill": "#444444",
+          "cornerRadius": 22,
+          "stroke": "#FFFFFF26",
+          "strokeWidth": 1,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "U7aiGn",
+              "name": "Back Chevron",
+              "width": 20,
+              "height": 20,
+              "icon": "chevron-left",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "NXSAZ",
+          "x": 0,
+          "y": 21,
+          "name": "Screen Title",
+          "fill": "#FFFFFF",
+          "textGrowth": "fixed-width",
+          "width": 393,
+          "content": "Record Intro",
+          "textAlign": "center",
+          "fontFamily": "Inter",
+          "fontSize": 17,
+          "fontWeight": "600"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "KXfaR",
+      "name": "Cue Deck Content",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "#00000000",
+      "layout": "vertical",
+      "gap": 20,
+      "padding": [
+        12,
+        16,
+        24,
+        16
+      ],
+      "justifyContent": "space_between",
+      "children": [
+        {
+          "type": "frame",
+          "id": "enD4y",
+          "name": "Intro Header",
+          "width": "fill_container",
+          "fill": "#00000000",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "frame",
+              "id": "wq3iM",
+              "name": "Intro Metadata",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "x8mOKo",
+                  "name": "Step Label",
+                  "fill": "#EF6962",
+                  "content": "RECORD AN INTRO",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                  "letterSpacing": 0.8
+                },
+                {
+                  "type": "frame",
+                  "id": "U6i42n",
+                  "name": "Natural Take Tag",
+                  "height": 28,
+                  "fill": "#1A1A1A",
+                  "cornerRadius": 14,
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ZdMQI",
+                      "name": "Natural Take Label",
+                      "fill": "#C7C7C7",
+                      "content": "OPTIONAL GUIDE",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.6
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "PVVSs",
+              "name": "Intro Heading",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Record a short introduction.",
+              "lineHeight": 1.15,
+              "fontFamily": "Space Grotesk",
+              "fontSize": 27,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "fZAzP",
+              "name": "Intro Subtitle",
+              "fill": "#C7C7C7",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Introduce the AMA and tell listeners how to send a question.",
+              "lineHeight": 1.4,
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "pCX47",
+          "name": "Speaking Cues",
+          "width": "fill_container",
+          "fill": "#1A1A1A",
+          "cornerRadius": 14,
+          "stroke": "#FFFFFF26",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "padding": [
+            4,
+            16
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "p0LG6b",
+              "name": "Cue 01",
+              "width": "fill_container",
+              "stroke": "#FFFFFF26",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "gap": 12,
+              "padding": [
+                12,
+                0
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "CIr1w",
+                  "name": "Cue Number 01",
+                  "width": 32,
+                  "height": 32,
+                  "fill": "#3A1212",
+                  "cornerRadius": 16,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "j4ruIA",
+                      "name": "Cue Number Text 01",
+                      "fill": "#EF6962",
+                      "content": "01",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "crCXV",
+                  "name": "Cue Copy 01",
+                  "width": "fill_container",
+                  "fill": "#00000000",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Z2DijW",
+                      "name": "Cue Title 01",
+                      "fill": "#EF6962",
+                      "content": "INTRODUCE",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.6
+                    },
+                    {
+                      "type": "text",
+                      "id": "sxYLu",
+                      "name": "Cue Detail 01",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Say hello and introduce yourself.",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "QxH7I",
+              "name": "Cue 02",
+              "width": "fill_container",
+              "stroke": "#FFFFFF26",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "gap": 12,
+              "padding": [
+                12,
+                0
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "QXqE4",
+                  "name": "Cue Number 02",
+                  "width": 32,
+                  "height": 32,
+                  "fill": "#444444",
+                  "cornerRadius": 16,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "RTwnE",
+                      "name": "Cue Number Text 02",
+                      "fill": "#C7C7C7",
+                      "content": "02",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "jGFtN",
+                  "name": "Cue Copy 02",
+                  "width": "fill_container",
+                  "fill": "#00000000",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "QNIX3",
+                      "name": "Cue Title 02",
+                      "fill": "#C7C7C7",
+                      "content": "EXPLAIN",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.6
+                    },
+                    {
+                      "type": "text",
+                      "id": "eTR5O",
+                      "name": "Cue Detail 02",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Briefly explain that listeners can ask about your music, the station, or what you’re working on.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "uaiwP",
+              "name": "Cue 03",
+              "width": "fill_container",
+              "stroke": "#00000000",
+              "gap": 12,
+              "padding": [
+                12,
+                0
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Jer0J",
+                  "name": "Cue Number 03",
+                  "width": 32,
+                  "height": 32,
+                  "fill": "#444444",
+                  "cornerRadius": 16,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Okdnt",
+                      "name": "Cue Number Text 03",
+                      "fill": "#C7C7C7",
+                      "content": "03",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "A5qBRE",
+                  "name": "Cue Copy 03",
+                  "width": "fill_container",
+                  "fill": "#00000000",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "xeupo",
+                      "name": "Cue Title 03",
+                      "fill": "#C7C7C7",
+                      "content": "DIRECT",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.6
+                    },
+                    {
+                      "type": "text",
+                      "id": "e0eOu3",
+                      "name": "Cue Detail 03",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Tell listeners to tap Question in the player.",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "zPPSy",
+          "name": "Live Broadcast Recorder",
+          "width": "fill_container",
+          "fill": "#2A2A2A",
+          "cornerRadius": 16,
+          "stroke": "#FFFFFF26",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 14,
+          "padding": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "kbtvM",
+              "name": "Recorder Header",
+              "width": "fill_container",
+              "fill": "#00000000",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "g9C0h",
+                  "name": "On Mic Indicator",
+                  "height": 28,
+                  "fill": "#3A1212",
+                  "cornerRadius": 14,
+                  "gap": 7,
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "eEQnm",
+                      "name": "On Mic Dot",
+                      "fill": "#EF6962",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "D1nVl",
+                      "name": "On Mic Label",
+                      "fill": "#EF6962",
+                      "content": "RECORDING",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.7
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "q37Vu",
+                  "name": "Take Label",
+                  "fill": "#999999",
+                  "content": "INTRO",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "600",
+                  "letterSpacing": 0.6
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "P8LyIp",
+              "name": "Audio Meter",
+              "width": "fill_container",
+              "height": 92,
+              "fill": "#130000",
+              "cornerRadius": 10,
+              "layout": "vertical",
+              "gap": 7,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "cK6Cu",
+                  "name": "Recording Timer",
+                  "fill": "#FFFFFF",
+                  "content": "0:22",
+                  "fontFamily": "Space Grotesk",
+                  "fontSize": 24,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "hCWm2",
+                  "name": "Live Waveform",
+                  "height": 38,
+                  "fill": "#00000000",
+                  "gap": 4,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "cdCZ1",
+                      "name": "Meter Bar 1",
+                      "fill": "#EF6962",
+                      "width": 3,
+                      "height": 10
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "EHGcz",
+                      "name": "Meter Bar 2",
+                      "fill": "#EF6962",
+                      "width": 3,
+                      "height": 18
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "B8VWIY",
+                      "name": "Meter Bar 3",
+                      "fill": "#EF6962",
+                      "width": 3,
+                      "height": 28
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "RZqd2",
+                      "name": "Meter Bar 4",
+                      "fill": "#EF6962",
+                      "width": 3,
+                      "height": 16
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "KqfXv",
+                      "name": "Meter Bar 5",
+                      "fill": "#EF6962",
+                      "width": 3,
+                      "height": 34
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "T13gM7",
+                      "name": "Meter Bar 6",
+                      "fill": "#EF6962",
+                      "width": 3,
+                      "height": 22
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "MYEvK",
+                      "name": "Meter Bar 7",
+                      "fill": "#EF6962",
+                      "width": 3,
+                      "height": 30
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "gcFbq",
+                      "name": "Meter Bar 8",
+                      "fill": "#EF6962",
+                      "width": 3,
+                      "height": 14
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "B9cjHF",
+                      "name": "Meter Bar 9",
+                      "fill": "#EF6962",
+                      "width": 3,
+                      "height": 26
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "X4m6b",
+                      "name": "Meter Bar 10",
+                      "fill": "#EF6962",
+                      "width": 3,
+                      "height": 36
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "MxCyA",
+                      "name": "Meter Bar 11",
+                      "fill": "#D7BFBF",
+                      "width": 3,
+                      "height": 20
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "A4xCra",
+                      "name": "Meter Bar 12",
+                      "fill": "#D7BFBF",
+                      "width": 3,
+                      "height": 28
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "uv9pQ",
+                      "name": "Meter Bar 13",
+                      "fill": "#D7BFBF",
+                      "width": 3,
+                      "height": 12
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "B9D9n7",
+                      "name": "Meter Bar 14",
+                      "fill": "#D7BFBF",
+                      "width": 3,
+                      "height": 18
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "fcJlf",
+                      "name": "Meter Bar 15",
+                      "fill": "#D7BFBF",
+                      "width": 3,
+                      "height": 8
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "x6EcM",
+              "name": "Recorder Actions",
+              "width": "fill_container",
+              "fill": "#00000000",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Q3IKi",
+                  "name": "Stop Recording Button",
+                  "width": "fill_container",
+                  "height": 48,
+                  "fill": "#EF6962",
+                  "cornerRadius": 24,
+                  "gap": 8,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "R7Du8p",
+                      "name": "Stop Icon",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "square",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    },
+                    {
+                      "type": "text",
+                      "id": "O29Xn",
+                      "name": "Stop Label",
+                      "fill": "#FFFFFF",
+                      "content": "Stop recording",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

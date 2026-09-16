@@ -1,0 +1,453 @@
+{
+  "type": "frame",
+  "id": "kFa6D",
+  "x": 9708,
+  "y": 16590,
+  "name": "AMA Recorder · C2c · Saving Recording",
+  "clip": true,
+  "width": 393,
+  "height": 852,
+  "fill": "#000000",
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "AY0sB",
+      "name": "iOS Status Bar",
+      "width": "fill_container",
+      "height": 44,
+      "padding": [
+        0,
+        24
+      ],
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "RNE41",
+          "name": "Time",
+          "fill": "#FFFFFF",
+          "content": "9:41",
+          "fontFamily": "Inter",
+          "fontSize": 14,
+          "fontWeight": "600"
+        },
+        {
+          "type": "frame",
+          "id": "e3WZcw",
+          "name": "Status Icons",
+          "gap": 6,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "MSC6J",
+              "name": "Cellular",
+              "width": 15,
+              "height": 15,
+              "icon": "signal",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            },
+            {
+              "type": "icon",
+              "id": "SdBnw",
+              "name": "Wi-Fi",
+              "width": 15,
+              "height": 15,
+              "icon": "wifi",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            },
+            {
+              "type": "icon",
+              "id": "TqIzb",
+              "name": "Battery",
+              "width": 21,
+              "height": 21,
+              "icon": "battery-full",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Z7ob9O",
+      "name": "Navigation",
+      "width": "fill_container",
+      "height": 64,
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "nldJf",
+          "x": 14,
+          "y": 10,
+          "name": "Back Button",
+          "opacity": 0.4,
+          "width": 44,
+          "height": 44,
+          "fill": "#444444",
+          "cornerRadius": 22,
+          "stroke": "#FFFFFF26",
+          "strokeWidth": 1,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "KkCkE",
+              "name": "Back Chevron",
+              "width": 20,
+              "height": 20,
+              "icon": "chevron-left",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "LdCSd",
+          "x": 0,
+          "y": 21,
+          "name": "Screen Title",
+          "fill": "#FFFFFF",
+          "textGrowth": "fixed-width",
+          "width": 393,
+          "content": "Saving Recording",
+          "textAlign": "center",
+          "fontFamily": "Inter",
+          "fontSize": 17,
+          "fontWeight": "600"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "NETye",
+      "name": "Cue Deck Content",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "#00000000",
+      "layout": "vertical",
+      "gap": 28,
+      "padding": [
+        12,
+        16,
+        24,
+        16
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "cgqpS",
+          "name": "Recording Header",
+          "width": "fill_container",
+          "fill": "#00000000",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "frame",
+              "id": "QZaSP",
+              "name": "Recording Metadata",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "QYjBT",
+                  "name": "Step Label",
+                  "fill": "#EF6962",
+                  "content": "SAVING RECORDING",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                  "letterSpacing": 0.8
+                },
+                {
+                  "type": "frame",
+                  "id": "u9Ymz",
+                  "name": "Natural Take Tag",
+                  "height": 28,
+                  "fill": "#1A1A1A",
+                  "cornerRadius": 14,
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "jFP6U",
+                      "name": "Natural Take Label",
+                      "fill": "#C7C7C7",
+                      "content": "STEP 1 OF 2",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.6
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "PUhKy",
+              "name": "Recording Heading",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Uploading your recording…",
+              "lineHeight": 1.15,
+              "fontFamily": "Space Grotesk",
+              "fontSize": 27,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "q6thz",
+              "name": "Recording Upload Subtitle",
+              "fill": "#C7C7C7",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "This should only take a moment.",
+              "lineHeight": 1.4,
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "BDxEq",
+          "name": "Saving Progress Card",
+          "width": "fill_container",
+          "fill": "#2A2A2A",
+          "cornerRadius": 16,
+          "stroke": "#FFFFFF26",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 20,
+          "padding": 20,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "t9ANo2",
+              "name": "Saving Icon Well",
+              "width": 64,
+              "height": 64,
+              "fill": "#3A1212",
+              "cornerRadius": 32,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "Hn4yu",
+                  "name": "Saving Icon",
+                  "width": 28,
+                  "height": 28,
+                  "icon": "save",
+                  "library": "lucide",
+                  "fill": "#EF6962"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "EPv49",
+              "name": "Saving Copy",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "w3ib1",
+                  "name": "Saving Title",
+                  "fill": "#FFFFFF",
+                  "content": "Saving and Uploading",
+                  "fontFamily": "Space Grotesk",
+                  "fontSize": 20,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "FSlHY",
+              "name": "Saving Progress",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "GzteW",
+                  "name": "Saving Progress Labels",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "CJRa2",
+                      "name": "Saving Progress Label",
+                      "fill": "#FFFFFF",
+                      "content": "Saving…",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Fz17P",
+                      "name": "Saving Progress Value",
+                      "fill": "#C7C7C7",
+                      "content": "Preparing",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "U5HxdX",
+                  "name": "Saving Progress Track",
+                  "width": "fill_container",
+                  "height": 6,
+                  "fill": "#444444",
+                  "cornerRadius": 3,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 3,
+                      "id": "B33lk",
+                      "x": 0,
+                      "y": 0,
+                      "name": "Saving Progress Fill",
+                      "fill": "#EF6962",
+                      "width": 112,
+                      "height": 6
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "knPkX",
+              "name": "Processing Steps",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "zMLrZ",
+                  "name": "Save Step Active",
+                  "width": "fill_container",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "TovnB",
+                      "name": "Save Step Icon Well",
+                      "width": 28,
+                      "height": 28,
+                      "fill": "#3A1212",
+                      "cornerRadius": 14,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "IP5mZ",
+                          "name": "Save Step Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "loader-circle",
+                          "library": "lucide",
+                          "fill": "#EF6962"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "f1sSku",
+                      "name": "Save Step Label",
+                      "fill": "#FFFFFF",
+                      "content": "Saving",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "HZBs6",
+                  "name": "Upload Step Pending",
+                  "opacity": 0.5,
+                  "width": "fill_container",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "VCySw",
+                      "name": "Upload Step Pending Icon Well",
+                      "width": 28,
+                      "height": 28,
+                      "fill": "#444444",
+                      "cornerRadius": 14,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "aiF61",
+                          "name": "Upload Step Pending Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "cloud-upload",
+                          "library": "lucide",
+                          "fill": "#C7C7C7"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "HIXir",
+                      "name": "Upload Step Pending Label",
+                      "fill": "#C7C7C7",
+                      "content": "Uploading to Playola",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
