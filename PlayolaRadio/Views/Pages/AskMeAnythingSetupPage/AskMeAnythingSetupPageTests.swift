@@ -332,10 +332,16 @@ struct AskMeAnythingSetupPageTests {
       coordinator.push(.askMeAnythingSetupPage(model))
 
       model.voicetrackActionTapped()
-      guard case .recordWithMultiStepPromptPage(let r1) = coordinator.path.last else { return }
+      guard case .recordWithMultiStepPromptPage(let r1) = coordinator.path.last else {
+        Issue.record("Expected recorder push")
+        return
+      }
       try r1.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/first.wav"), 10)
       model.voicetrackActionTapped()
-      guard case .recordWithMultiStepPromptPage(let r2) = coordinator.path.last else { return }
+      guard case .recordWithMultiStepPromptPage(let r2) = coordinator.path.last else {
+        Issue.record("Expected recorder push")
+        return
+      }
       try r2.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/second.wav"), 10)
 
       await model.waitForPendingUploads()
@@ -363,6 +369,7 @@ struct AskMeAnythingSetupPageTests {
       coordinator.push(.askMeAnythingSetupPage(model))
       model.voicetrackActionTapped()
       guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+        Issue.record("Expected recorder push")
         return
       }
       try recorder.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/vt.wav"), 60)
