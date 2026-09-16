@@ -93,7 +93,7 @@ class AskMeAnythingSetupPageModel: ViewModel {
   }
   var readinessHint: String {
     guard let introDuration else { return "Record your intro" }
-    return "Add \(durationLabel(max(0, targetDuration - introDuration))) more"
+    return "Add \(durationLabel(max(0, targetDuration - introDuration).rounded(.up))) more"
   }
   var readyProgress: Double {
     guard let introDuration else { return 0 }

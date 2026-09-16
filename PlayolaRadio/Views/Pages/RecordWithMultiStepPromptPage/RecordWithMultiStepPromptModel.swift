@@ -396,7 +396,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
     guard processingTimerTask == nil else { return }
     let totalMS = recordedDuration * 1000
     processingProgress = 0
-    guard totalMS > 0 else {
+    guard totalMS.isFinite, totalMS > 0 else {
       processingProgress = processingProgressCeiling
       return
     }
