@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import ConcurrencyExtras
 import CustomDump
 import Dependencies
 import Foundation
@@ -220,6 +221,159 @@ struct AskMeAnythingSetupPageTests {
     }
 
     expectNoDifference(model.openingItems.count, 2)
+  }
+
+  @Test func voicetrackAcceptAppendsProcessingRowThenCompletesAndCounts() async throws {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let deleted = LockIsolated<[URL]>([])
+    try await withDependencies {
+      $0.uuid = .incrementing
+      $0.date.now = Date(timeIntervalSince1970: 0)
+      $0.audioRecorder.deleteRecording = { url in deleted.withValue { $0.append(url) } }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, onStatus in
+        await onStatus(.completed)
+        return .mockWith(id: "vt-block", durationMS: 605_000)
+      }
+    } operation: {
+      let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+      coordinator.push(.askMeAnythingSetupPage(model))
+
+      model.voicetrackActionTapped()
+      guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+        Issue.record("Expected recorder push")
+        return
+      }
+      let url = URL(fileURLWithPath: "/tmp/vt.wav")
+      try recorder.onRecordingAccepted?(url, 60)
+
+      expectNoDifference(model.openingItems.count, 1)
+      guard case .voicetrack? = model.openingItems.first?.content else {
+        Issue.record("Expected first item to be a voicetrack")
+        return
+      }
+
+      await model.waitForPendingUploads()
+
+      #expect(model.isStartShowEnabled)
+      expectNoDifference(deleted.value, [url])
+      #expect(model.presentedAlert == nil)
+    }
+  }
+
+  @Test func voicetrackUploadFailureRemovesRowAndAlertsAndDeletesFile() async throws {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let deleted = LockIsolated<[URL]>([])
+    try await withDependencies {
+      $0.uuid = .incrementing
+      $0.date.now = Date(timeIntervalSince1970: 0)
+      $0.audioRecorder.deleteRecording = { url in deleted.withValue { $0.append(url) } }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, _ in
+        throw NSError(domain: "test", code: 1)
+      }
+    } operation: {
+      let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+      coordinator.push(.askMeAnythingSetupPage(model))
+
+      model.voicetrackActionTapped()
+      guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+        Issue.record("Expected recorder push")
+        return
+      }
+      let url = URL(fileURLWithPath: "/tmp/vt.wav")
+      try recorder.onRecordingAccepted?(url, 60)
+      await model.waitForPendingUploads()
+
+      #expect(model.openingItems.isEmpty)
+      #expect(model.presentedAlert != nil)
+      expectNoDifference(deleted.value, [url])
+    }
+  }
+
+  @Test func acceptWithoutAuthThrowsAndAddsNothing() {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    coordinator.push(.askMeAnythingSetupPage(model))
+
+    model.voicetrackActionTapped()
+    guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+      Issue.record("Expected recorder push")
+      return
+    }
+
+    #expect(throws: RecordPromptError.self) {
+      try recorder.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/vt.wav"), 60)
+    }
+    #expect(model.openingItems.isEmpty)
+  }
+
+  @Test func outOfOrderCompletionsPreserveRowOrder() async throws {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    try await withDependencies {
+      $0.uuid = .incrementing
+      $0.date.now = Date(timeIntervalSince1970: 0)
+      $0.audioRecorder.deleteRecording = { _ in }
+      $0.voicetrackUploadService = VoicetrackUploadService { vt, _, _, onStatus in
+        await onStatus(.completed)
+        let ms = vt.originalURL.lastPathComponent.contains("first") ? 100_000 : 200_000
+        return .mockWith(id: vt.originalURL.lastPathComponent, durationMS: ms)
+      }
+    } operation: {
+      let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+      coordinator.push(.askMeAnythingSetupPage(model))
+
+      model.voicetrackActionTapped()
+      guard case .recordWithMultiStepPromptPage(let r1) = coordinator.path.last else { return }
+      try r1.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/first.wav"), 10)
+      model.voicetrackActionTapped()
+      guard case .recordWithMultiStepPromptPage(let r2) = coordinator.path.last else { return }
+      try r2.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/second.wav"), 10)
+
+      await model.waitForPendingUploads()
+
+      expectNoDifference(model.openingItems.count, 2)
+      expectNoDifference(model.openingItems.map(\.readyDurationMS), [100_000, 200_000])
+    }
+  }
+
+  @Test func backButtonCancelsInFlightUploads() async throws {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    try await withDependencies {
+      $0.uuid = .incrementing
+      $0.date.now = Date(timeIntervalSince1970: 0)
+      $0.audioRecorder.deleteRecording = { _ in }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, _ in
+        while !Task.isCancelled { await Task.yield() }
+        throw CancellationError()
+      }
+    } operation: {
+      let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+      coordinator.push(.askMeAnythingSetupPage(model))
+      model.voicetrackActionTapped()
+      guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+        return
+      }
+      try recorder.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/vt.wav"), 60)
+      coordinator.pop()
+
+      model.backButtonTapped()
+      await model.waitForPendingUploads()
+
+      #expect(model.presentedAlert == nil)
+      #expect(coordinator.path.isEmpty)
+    }
   }
 }
 

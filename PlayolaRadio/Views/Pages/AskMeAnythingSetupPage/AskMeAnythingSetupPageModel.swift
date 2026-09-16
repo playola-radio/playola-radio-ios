@@ -41,9 +41,12 @@ class AskMeAnythingSetupPageModel: ViewModel {
   var openingItems: IdentifiedArrayOf<AMAOpeningItem> = []
   var presentedAlert: PlayolaAlert?
 
+  @ObservationIgnored private var uploadTasks: [UUID: Task<Void, Never>] = [:]
+
   // MARK: - User Actions
 
   func backButtonTapped() {
+    cancelUploads()
     navigationCoordinator.pop()
   }
 
@@ -58,7 +61,20 @@ class AskMeAnythingSetupPageModel: ViewModel {
     navigationCoordinator.push(.recordWithMultiStepPromptPage(recorder))
   }
 
-  func voicetrackActionTapped() {}
+  func voicetrackActionTapped() {
+    let recorder = RecordWithMultiStepPromptModel.askMeAnythingVoicetrack(stationId: stationId)
+    recorder.onRecordingAccepted = { [weak self] url, _ in
+      guard let self else { return }
+      try acceptVoicetrack(url: url)
+    }
+    navigationCoordinator.push(.recordWithMultiStepPromptPage(recorder))
+  }
+
+  func waitForPendingUploads() async {
+    for task in Array(uploadTasks.values) {
+      await task.value
+    }
+  }
 
   func songActionTapped() {
     let search = SongSearchPageModel(searchMode: .all, stationId: stationId)
@@ -141,6 +157,66 @@ class AskMeAnythingSetupPageModel: ViewModel {
 
   private func addSong(_ audioBlock: AudioBlock) {
     openingItems.append(AMAOpeningItem(id: uuid(), content: .song(audioBlock)))
+  }
+
+  private func acceptVoicetrack(url: URL) throws {
+    guard let jwt = auth.jwt else { throw RecordPromptError.notAuthenticated }
+    let voicetrack = LocalVoicetrack(
+      id: uuid(), originalURL: url, createdAt: now, title: voicetrackTitle(for: now))
+    let itemId = uuid()
+    openingItems.append(
+      AMAOpeningItem(id: itemId, content: .voicetrack(voicetrack, completedDurationMS: nil)))
+    let stationId = stationId
+    uploadTasks[itemId] = Task { [weak self] in
+      await self?.runVoicetrackUpload(
+        itemId: itemId, voicetrack: voicetrack, stationId: stationId, jwt: jwt, originalURL: url)
+    }
+  }
+
+  private func runVoicetrackUpload(
+    itemId: UUID, voicetrack: LocalVoicetrack, stationId: String, jwt: String, originalURL: URL
+  ) async {
+    defer { uploadTasks[itemId] = nil }
+    do {
+      let audioBlock = try await voicetrackUploadService.processVoicetrack(
+        voicetrack, stationId, jwt
+      ) { [weak self] status in
+        self?.updateVoicetrackStatus(itemId: itemId, status: status)
+      }
+      guard openingItems[id: itemId] != nil else {
+        await audioRecorder.deleteRecording(originalURL)
+        return
+      }
+      completeVoicetrack(itemId: itemId, audioBlock: audioBlock)
+      await audioRecorder.deleteRecording(originalURL)
+    } catch {
+      await audioRecorder.deleteRecording(originalURL)
+      guard !Task.isCancelled else { return }
+      openingItems.remove(id: itemId)
+      presentedAlert = .voicetrackUploadFailed(error.localizedDescription)
+    }
+  }
+
+  private func updateVoicetrackStatus(itemId: UUID, status: LocalVoicetrackStatus) {
+    openingItems[id: itemId]?.content.modify(\.voicetrack) { $0.0.status = status }
+  }
+
+  private func completeVoicetrack(itemId: UUID, audioBlock: AudioBlock) {
+    openingItems[id: itemId]?.content.modify(\.voicetrack) {
+      $0.0.status = .completed
+      $0.0.audioBlockId = audioBlock.id
+      $0.1 = audioBlock.durationMS
+    }
+  }
+
+  private func voicetrackTitle(for date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "h:mma"
+    return "Voicetrack \(formatter.string(from: date).lowercased())"
+  }
+
+  private func cancelUploads() {
+    for task in uploadTasks.values { task.cancel() }
   }
 
   private func durationLabel(_ milliseconds: Int) -> String {
