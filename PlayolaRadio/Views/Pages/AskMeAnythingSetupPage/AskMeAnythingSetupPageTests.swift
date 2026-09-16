@@ -172,6 +172,55 @@ struct AskMeAnythingSetupPageTests {
     expectNoDifference(model.readyProgress, 1)
     expectNoDifference(model.readinessHint, "Ready to start")
   }
+
+  @Test func songActionPresentsSearchAndSelectingAppendsAndDismisses() {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = withDependencies {
+      $0.uuid = .incrementing
+    } operation: {
+      AskMeAnythingSetupPageModel(stationId: testStationId)
+    }
+    coordinator.push(.askMeAnythingSetupPage(model))
+
+    model.songActionTapped()
+
+    guard case .songSearchPage(let search) = coordinator.presentedSheet else {
+      Issue.record("Expected song search sheet")
+      return
+    }
+
+    search.onSongSelected?(.mockWith(id: "song-1", durationMS: 180_000))
+
+    expectNoDifference(model.openingItems.count, 1)
+    guard case .song? = model.openingItems.first?.content else {
+      Issue.record("Expected first item to be a song")
+      return
+    }
+    #expect(coordinator.presentedSheet == nil)
+  }
+
+  @Test func selectingSameSongTwiceKeepsBothOccurrences() {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = withDependencies {
+      $0.uuid = .incrementing
+    } operation: {
+      AskMeAnythingSetupPageModel(stationId: testStationId)
+    }
+    coordinator.push(.askMeAnythingSetupPage(model))
+
+    model.songActionTapped()
+    if case .songSearchPage(let s) = coordinator.presentedSheet {
+      s.onSongSelected?(.mockWith(id: "dup", durationMS: 10_000))
+    }
+    model.songActionTapped()
+    if case .songSearchPage(let s) = coordinator.presentedSheet {
+      s.onSongSelected?(.mockWith(id: "dup", durationMS: 10_000))
+    }
+
+    expectNoDifference(model.openingItems.count, 2)
+  }
 }
 
 @Suite(.freshSharedState)

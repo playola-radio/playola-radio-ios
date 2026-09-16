@@ -59,7 +59,20 @@ class AskMeAnythingSetupPageModel: ViewModel {
   }
 
   func voicetrackActionTapped() {}
-  func songActionTapped() {}
+
+  func songActionTapped() {
+    let search = SongSearchPageModel(searchMode: .all, stationId: stationId)
+    search.onDismiss = { [weak self] in
+      self?.navigationCoordinator.presentedSheet = nil
+    }
+    search.onSongSelected = { [weak self] audioBlock in
+      guard let self else { return }
+      addSong(audioBlock)
+      navigationCoordinator.presentedSheet = nil
+    }
+    navigationCoordinator.presentedSheet = .songSearchPage(search)
+  }
+
   func qaActionTapped() {}
 
   func startShowButtonTapped() {}
@@ -125,6 +138,10 @@ class AskMeAnythingSetupPageModel: ViewModel {
   var startShowButtonTitleColor: Color { isStartShowEnabled ? .white : .playolaGray }
 
   // MARK: - Private Helpers
+
+  private func addSong(_ audioBlock: AudioBlock) {
+    openingItems.append(AMAOpeningItem(id: uuid(), content: .song(audioBlock)))
+  }
 
   private func durationLabel(_ milliseconds: Int) -> String {
     let total = max(0, milliseconds) / 1000
