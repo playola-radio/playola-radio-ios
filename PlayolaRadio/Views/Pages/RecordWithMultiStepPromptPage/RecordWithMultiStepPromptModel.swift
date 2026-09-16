@@ -152,8 +152,10 @@ class RecordWithMultiStepPromptModel: ViewModel {
       }
       await audioRecorder.deleteRecording(url)
       recordingURL = nil
+      guard !isLeaving else { return }
       navigationCoordinator.pop()
     } catch {
+      guard !isLeaving else { return }
       recordingPhase = .review
       presentedAlert = .recordingSaveFailed(error.localizedDescription)
     }

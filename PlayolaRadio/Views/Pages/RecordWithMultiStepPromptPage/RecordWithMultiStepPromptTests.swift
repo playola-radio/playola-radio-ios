@@ -334,6 +334,29 @@ struct RecordWithMultiStepPromptTests {
     expectNoDifference(uploadCount.value, 1)
   }
 
+  @Test func uploadCompletingAfterLeaveDoesNotPop() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let (started, startedContinuation) = AsyncStream<Void>.makeStream()
+    let (release, releaseContinuation) = AsyncStream<Void>.makeStream()
+    let model = makeModel()
+    coordinator.push(.recordWithMultiStepPromptPage(model))
+    model.recordingPhase = .review
+    model.recordingURL = URL(fileURLWithPath: "/tmp/recorded.wav")
+    model.onUseRecording = { _, _ in
+      startedContinuation.yield()
+      for await _ in release.prefix(1) {}
+    }
+
+    let tap = Task { await model.useRecordingButtonTapped() }
+    for await _ in started.prefix(1) {}
+    await model.viewDisappeared()
+    releaseContinuation.yield()
+    await tap.value
+
+    expectNoDifference(coordinator.path.count, 1)
+  }
+
   @Test func useRecordingDrivesProgressToUploading() async {
     let model = makeModel()
     model.recordingPhase = .review
