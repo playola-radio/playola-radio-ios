@@ -263,6 +263,42 @@ struct AskMeAnythingSetupPageTests {
     }
   }
 
+  @Test func lateStatusCallbackDoesNotDowngradeCompletedVoicetrack() async throws {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let lateStatus = LockIsolated<(@MainActor @Sendable (LocalVoicetrackStatus) -> Void)?>(nil)
+    try await withDependencies {
+      $0.uuid = .incrementing
+      $0.date.now = Date(timeIntervalSince1970: 0)
+      $0.audioRecorder.deleteRecording = { _ in }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, onStatus in
+        lateStatus.withValue { $0 = onStatus }
+        await onStatus(.completed)
+        return .mockWith(id: "vt-block", durationMS: 605_000)
+      }
+    } operation: {
+      let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+      coordinator.push(.askMeAnythingSetupPage(model))
+
+      model.voicetrackActionTapped()
+      guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+        Issue.record("Expected recorder push")
+        return
+      }
+      try recorder.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/vt.wav"), 60)
+      await model.waitForPendingUploads()
+
+      #expect(model.isStartShowEnabled)
+
+      lateStatus.value?(.uploading(progress: 0.5))
+
+      #expect(model.isStartShowEnabled)
+      expectNoDifference(model.openingItems.first?.readyDurationMS, 605_000)
+    }
+  }
+
   @Test func voicetrackUploadFailureRemovesRowAndAlertsAndDeletesFile() async throws {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
@@ -313,7 +349,7 @@ struct AskMeAnythingSetupPageTests {
     #expect(model.openingItems.isEmpty)
   }
 
-  @Test func outOfOrderCompletionsPreserveRowOrder() async throws {
+  @Test func appendedVoicetracksKeepAppendOrderAndOwnReadyDurations() async throws {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()

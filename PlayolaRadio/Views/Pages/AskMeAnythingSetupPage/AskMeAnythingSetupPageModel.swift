@@ -215,7 +215,10 @@ class AskMeAnythingSetupPageModel: ViewModel {
   }
 
   private func updateVoicetrackStatus(itemId: UUID, status: LocalVoicetrackStatus) {
-    openingItems[id: itemId]?.content.modify(\.voicetrack) { $0.0.status = status }
+    openingItems[id: itemId]?.content.modify(\.voicetrack) {
+      guard $0.1 == nil else { return }
+      $0.0.status = status
+    }
   }
 
   private func completeVoicetrack(itemId: UUID, audioBlock: AudioBlock) {
