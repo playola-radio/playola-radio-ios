@@ -379,11 +379,15 @@ struct AskMeAnythingSetupPageTests {
       $0.voicetrackUploadService = VoicetrackUploadService { vt, _, _, onStatus in
         let isFirst = vt.originalURL.lastPathComponent.contains("first")
         if isFirst {
-          firstStarted.continuation.yield()
-          await withCheckedContinuation { releaseFirst.setValue($0) }
+          await withCheckedContinuation { continuation in
+            releaseFirst.setValue(continuation)
+            firstStarted.continuation.yield()
+          }
         } else {
-          secondStarted.continuation.yield()
-          await withCheckedContinuation { releaseSecond.setValue($0) }
+          await withCheckedContinuation { continuation in
+            releaseSecond.setValue(continuation)
+            secondStarted.continuation.yield()
+          }
         }
         await onStatus(.completed)
         let ms = isFirst ? 100_000 : 200_000
