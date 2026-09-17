@@ -83,12 +83,12 @@ class AskMeAnythingSetupPageModel: ViewModel {
   func songActionTapped() {
     let search = SongSearchPageModel(searchMode: .all, stationId: stationId)
     search.onDismiss = { [weak self] in
-      self?.navigationCoordinator.presentedSheet = nil
+      self?.$navigationCoordinator.withLock { $0.presentedSheet = nil }
     }
     search.onSongSelected = { [weak self] audioBlock in
       guard let self else { return }
       addSong(audioBlock)
-      navigationCoordinator.presentedSheet = nil
+      $navigationCoordinator.withLock { $0.presentedSheet = nil }
     }
     navigationCoordinator.presentedSheet = .songSearchPage(search)
   }
@@ -122,34 +122,35 @@ class AskMeAnythingSetupPageModel: ViewModel {
   var openingPlaylistTitle: String { "Your opening playlist" }
   var openingPlaylistSubtitle: String { "Your station keeps playing while you prepare." }
 
-  var openingRows: [AMAOpeningRowData] {
-    openingItems.map { item in
-      switch item.content {
-      case .intro(let block):
-        return AMAOpeningRowData(
-          id: item.id, title: "Show Intro", subtitle: "Your voice",
-          subtitleColor: .playolaTextDisabled, iconSystemName: "mic", albumImageUrl: nil,
-          leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
-          trailingText: durationLabel(block.durationMS), trailingIconSystemName: "pin",
-          processingOpacity: 0, completedOpacity: 1)
-      case .song(let block):
-        return AMAOpeningRowData(
-          id: item.id, title: block.title, subtitle: block.artist,
-          subtitleColor: .playolaTextDisabled, iconSystemName: "music.note",
-          albumImageUrl: block.imageUrl, leadingArtworkOpacity: 1, leadingFallbackOpacity: 0,
-          trailingText: durationLabel(block.durationMS), trailingIconSystemName: "checkmark",
-          processingOpacity: 0, completedOpacity: 1)
-      case .voicetrack(let voicetrack, let completedDurationMS):
-        let isProcessing = voicetrack.isProcessing
-        return AMAOpeningRowData(
-          id: item.id, title: voicetrack.title, subtitle: voicetrack.subtitleText,
-          subtitleColor: voicetrack.subtitleColor, iconSystemName: "mic", albumImageUrl: nil,
-          leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
-          trailingText: completedDurationMS.map { durationLabel($0) } ?? "",
-          trailingIconSystemName: "checkmark", processingOpacity: isProcessing ? 1 : 0,
-          completedOpacity: isProcessing ? 0 : 1)
-      }
-    }
+  var openingRows: IdentifiedArrayOf<AMAOpeningRowData> {
+    IdentifiedArray(
+      uniqueElements: openingItems.map { item in
+        switch item.content {
+        case .intro(let block):
+          return AMAOpeningRowData(
+            id: item.id, title: "Show Intro", subtitle: "Your voice",
+            subtitleColor: .playolaTextDisabled, iconSystemName: "mic", albumImageUrl: nil,
+            leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
+            trailingText: durationLabel(block.durationMS), trailingIconSystemName: "pin",
+            processingOpacity: 0, completedOpacity: 1)
+        case .song(let block):
+          return AMAOpeningRowData(
+            id: item.id, title: block.title, subtitle: block.artist,
+            subtitleColor: .playolaTextDisabled, iconSystemName: "music.note",
+            albumImageUrl: block.imageUrl, leadingArtworkOpacity: 1, leadingFallbackOpacity: 0,
+            trailingText: durationLabel(block.durationMS), trailingIconSystemName: "checkmark",
+            processingOpacity: 0, completedOpacity: 1)
+        case .voicetrack(let voicetrack, let completedDurationMS):
+          let isProcessing = voicetrack.isProcessing
+          return AMAOpeningRowData(
+            id: item.id, title: voicetrack.title, subtitle: voicetrack.subtitleText,
+            subtitleColor: voicetrack.subtitleColor, iconSystemName: "mic", albumImageUrl: nil,
+            leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
+            trailingText: completedDurationMS.map { durationLabel($0) } ?? "",
+            trailingIconSystemName: "checkmark", processingOpacity: isProcessing ? 1 : 0,
+            completedOpacity: isProcessing ? 0 : 1)
+        }
+      })
   }
 
   var addSectionTitle: String { "Let\u{2019}s get a little ahead" }

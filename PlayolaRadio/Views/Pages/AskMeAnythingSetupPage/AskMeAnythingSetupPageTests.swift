@@ -409,6 +409,13 @@ struct AskMeAnythingSetupPageTests {
 
     let rows = model.openingRows
     expectNoDifference(rows.count, 3)
+    expectNoDifference(
+      Array(rows.ids),
+      [
+        UUID(uuidString: "00000000-0000-0000-0000-0000000000A1")!,
+        UUID(uuidString: "00000000-0000-0000-0000-0000000000A2")!,
+        UUID(uuidString: "00000000-0000-0000-0000-0000000000A4")!,
+      ])
     expectNoDifference(rows[0].title, "Show Intro")
     expectNoDifference(rows[0].subtitle, "Your voice")
     expectNoDifference(rows[0].trailingText, "0:30")
