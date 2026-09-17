@@ -186,12 +186,12 @@ class AskMeAnythingSetupPageModel: ViewModel {
     let stationId = stationId
     uploadTasks[itemId] = Task { [weak self] in
       await self?.runVoicetrackUpload(
-        itemId: itemId, voicetrack: voicetrack, stationId: stationId, jwt: jwt, originalURL: url)
+        itemId: itemId, voicetrack: voicetrack, stationId: stationId, jwt: jwt)
     }
   }
 
   private func runVoicetrackUpload(
-    itemId: UUID, voicetrack: LocalVoicetrack, stationId: String, jwt: String, originalURL: URL
+    itemId: UUID, voicetrack: LocalVoicetrack, stationId: String, jwt: String
   ) async {
     defer { uploadTasks[itemId] = nil }
     do {
@@ -201,13 +201,13 @@ class AskMeAnythingSetupPageModel: ViewModel {
         self?.updateVoicetrackStatus(itemId: itemId, status: status)
       }
       guard openingItems[id: itemId] != nil else {
-        await audioRecorder.deleteRecording(originalURL)
+        await audioRecorder.deleteRecording(voicetrack.originalURL)
         return
       }
       completeVoicetrack(itemId: itemId, audioBlock: audioBlock)
-      await audioRecorder.deleteRecording(originalURL)
+      await audioRecorder.deleteRecording(voicetrack.originalURL)
     } catch {
-      await audioRecorder.deleteRecording(originalURL)
+      await audioRecorder.deleteRecording(voicetrack.originalURL)
       guard !Task.isCancelled else { return }
       openingItems.remove(id: itemId)
       presentedAlert = .voicetrackUploadFailed(error.localizedDescription)

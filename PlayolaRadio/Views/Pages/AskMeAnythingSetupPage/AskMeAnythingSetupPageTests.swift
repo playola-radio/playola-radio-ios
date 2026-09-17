@@ -388,11 +388,7 @@ struct AskMeAnythingSetupPageTests {
   }
 
   @Test func openingRowsResolveIntroSongAndVoicetrackDisplayData() {
-    let model = withDependencies {
-      $0.uuid = .incrementing
-    } operation: {
-      AskMeAnythingSetupPageModel(stationId: testStationId)
-    }
+    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
     model.openingItems.append(
       AMAOpeningItem(
         id: UUID(uuidString: "00000000-0000-0000-0000-0000000000A1")!,
