@@ -84,10 +84,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
           // 2.0s is the SDK default; set explicitly as the tuning knob if these
           // turn out noisy.
           options.appHangTimeoutInterval = 2.0
-          // Ignore non-fully-blocking hangs (app stutters but still renders a
-          // few frames): their stacks don't pinpoint the blocking location, so
-          // they add noise without being actionable.
-          options.enableReportNonFullyBlockingAppHangs = false
         }
       }
     #endif
