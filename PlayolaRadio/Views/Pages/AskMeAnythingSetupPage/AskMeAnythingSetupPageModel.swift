@@ -46,8 +46,12 @@ class AskMeAnythingSetupPageModel: ViewModel {
   // MARK: - User Actions
 
   func backButtonTapped() {
-    cancelUploads()
+    setupAbandoned()
     navigationCoordinator.pop()
+  }
+
+  func setupAbandoned() {
+    cancelUploads()
   }
 
   func recordIntroButtonTapped() {
@@ -125,18 +129,25 @@ class AskMeAnythingSetupPageModel: ViewModel {
         return AMAOpeningRowData(
           id: item.id, title: "Show Intro", subtitle: "Your voice",
           subtitleColor: .playolaTextDisabled, iconSystemName: "mic", albumImageUrl: nil,
-          trailingText: durationLabel(block.durationMS), isProcessing: false, showsPin: true)
+          leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
+          trailingText: durationLabel(block.durationMS), trailingIconSystemName: "pin",
+          processingOpacity: 0, completedOpacity: 1)
       case .song(let block):
         return AMAOpeningRowData(
           id: item.id, title: block.title, subtitle: block.artist,
-          subtitleColor: .playolaTextDisabled, iconSystemName: nil, albumImageUrl: block.imageUrl,
-          trailingText: durationLabel(block.durationMS), isProcessing: false, showsPin: false)
+          subtitleColor: .playolaTextDisabled, iconSystemName: "music.note",
+          albumImageUrl: block.imageUrl, leadingArtworkOpacity: 1, leadingFallbackOpacity: 0,
+          trailingText: durationLabel(block.durationMS), trailingIconSystemName: "checkmark",
+          processingOpacity: 0, completedOpacity: 1)
       case .voicetrack(let voicetrack, let completedDurationMS):
+        let isProcessing = voicetrack.isProcessing
         return AMAOpeningRowData(
           id: item.id, title: voicetrack.title, subtitle: voicetrack.subtitleText,
           subtitleColor: voicetrack.subtitleColor, iconSystemName: "mic", albumImageUrl: nil,
-          trailingText: completedDurationMS.map { durationLabel($0) },
-          isProcessing: voicetrack.isProcessing, showsPin: false)
+          leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
+          trailingText: completedDurationMS.map { durationLabel($0) } ?? "",
+          trailingIconSystemName: "checkmark", processingOpacity: isProcessing ? 1 : 0,
+          completedOpacity: isProcessing ? 0 : 1)
       }
     }
   }
@@ -237,6 +248,7 @@ class AskMeAnythingSetupPageModel: ViewModel {
 
   private func cancelUploads() {
     for task in uploadTasks.values { task.cancel() }
+    uploadTasks.removeAll()
   }
 
   private func durationLabel(_ milliseconds: Int) -> String {

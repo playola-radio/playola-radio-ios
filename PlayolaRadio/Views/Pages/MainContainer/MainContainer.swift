@@ -300,7 +300,7 @@ struct MainContainer: View {
   }
 
   private func navigationPathBinding(
-    _ keyPath: WritableKeyPath<
+    _ keyPath: ReferenceWritableKeyPath<
       MainContainerNavigationCoordinator, [MainContainerNavigationCoordinator.Path]
     >
   ) -> Binding<[MainContainerNavigationCoordinator.Path]> {
@@ -310,7 +310,7 @@ struct MainContainer: View {
       },
       set: { newValue in
         model.$mainContainerNavigationCoordinator.withLock {
-          $0[keyPath: keyPath] = newValue
+          $0.setPath(newValue, at: keyPath)
         }
       }
     )

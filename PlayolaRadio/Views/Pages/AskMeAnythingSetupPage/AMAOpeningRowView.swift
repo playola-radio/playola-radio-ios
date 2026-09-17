@@ -12,11 +12,14 @@ struct AMAOpeningRowData: Identifiable, Equatable {
   let title: String
   let subtitle: String
   let subtitleColor: Color
-  let iconSystemName: String?
+  let iconSystemName: String
   let albumImageUrl: URL?
-  let trailingText: String?
-  let isProcessing: Bool
-  let showsPin: Bool
+  let leadingArtworkOpacity: Double
+  let leadingFallbackOpacity: Double
+  let trailingText: String
+  let trailingIconSystemName: String
+  let processingOpacity: Double
+  let completedOpacity: Double
 }
 
 struct AMAOpeningRowView: View {
@@ -46,9 +49,18 @@ struct AMAOpeningRowView: View {
   }
 
   @ViewBuilder private var leading: some View {
-    if let url = data.albumImageUrl {
+    ZStack {
+      ZStack {
+        RoundedRectangle(cornerRadius: 4)
+          .fill(Color.playolaRed)
+          .frame(width: 45, height: 45)
+        Image(systemName: data.iconSystemName)
+          .font(.system(size: 20))
+          .foregroundColor(.playolaTextPrimary)
+      }
+      .opacity(data.leadingFallbackOpacity)
       WebImage(
-        url: url,
+        url: data.albumImageUrl,
         context: RemoteArtwork.downsampleContext(
           CGSize(width: 45, height: 45), scale: displayScale)
       )
@@ -56,32 +68,25 @@ struct AMAOpeningRowView: View {
       .scaledToFill()
       .frame(width: 45, height: 45)
       .clipShape(RoundedRectangle(cornerRadius: 4))
-    } else {
-      ZStack {
-        RoundedRectangle(cornerRadius: 4)
-          .fill(Color.playolaRed)
-          .frame(width: 45, height: 45)
-        Image(systemName: data.iconSystemName ?? "music.note")
-          .font(.system(size: 20))
-          .foregroundColor(.playolaTextPrimary)
-      }
+      .opacity(data.leadingArtworkOpacity)
     }
   }
 
   @ViewBuilder private var trailing: some View {
-    if data.isProcessing {
+    ZStack {
       ProgressView()
         .tint(.playolaTextPrimary)
         .scaleEffect(0.8)
-    } else {
+        .opacity(data.processingOpacity)
       HStack(spacing: 8) {
-        Text(data.trailingText ?? "")
+        Text(data.trailingText)
           .font(.custom(FontNames.Inter_400_Regular, size: 11))
           .foregroundColor(.playolaTextDisabled)
-        Image(systemName: data.showsPin ? "pin" : "checkmark")
+        Image(systemName: data.trailingIconSystemName)
           .font(.system(size: 14))
           .foregroundColor(.playolaTextDisabled)
       }
+      .opacity(data.completedOpacity)
     }
   }
 }

@@ -412,12 +412,18 @@ struct AskMeAnythingSetupPageTests {
     expectNoDifference(rows[0].title, "Show Intro")
     expectNoDifference(rows[0].subtitle, "Your voice")
     expectNoDifference(rows[0].trailingText, "0:30")
-    #expect(rows[0].showsPin)
+    expectNoDifference(rows[0].trailingIconSystemName, "pin")
+    expectNoDifference(rows[0].leadingArtworkOpacity, 0)
+    expectNoDifference(rows[0].leadingFallbackOpacity, 1)
     expectNoDifference(rows[1].title, "Song X")
     expectNoDifference(rows[1].subtitle, "Artist Y")
     expectNoDifference(rows[1].trailingText, "3:20")
-    #expect(rows[2].isProcessing)
-    #expect(rows[2].trailingText == nil)
+    expectNoDifference(rows[1].trailingIconSystemName, "checkmark")
+    expectNoDifference(rows[1].leadingArtworkOpacity, 1)
+    expectNoDifference(rows[1].leadingFallbackOpacity, 0)
+    expectNoDifference(rows[2].trailingText, "")
+    expectNoDifference(rows[2].processingOpacity, 1)
+    expectNoDifference(rows[2].completedOpacity, 0)
   }
 
   @Test func backButtonCancelsInFlightUploads() async throws {
@@ -445,6 +451,38 @@ struct AskMeAnythingSetupPageTests {
       coordinator.pop()
 
       model.backButtonTapped()
+      await model.waitForPendingUploads()
+
+      #expect(model.presentedAlert == nil)
+      #expect(coordinator.path.isEmpty)
+    }
+  }
+
+  @Test func coordinatorRemovingSetupCancelsInFlightUploads() async throws {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    try await withDependencies {
+      $0.uuid = .incrementing
+      $0.date.now = Date(timeIntervalSince1970: 0)
+      $0.audioRecorder.deleteRecording = { _ in }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, _ in
+        while !Task.isCancelled { await Task.yield() }
+        throw CancellationError()
+      }
+    } operation: {
+      let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+      coordinator.push(.askMeAnythingSetupPage(model))
+      model.voicetrackActionTapped()
+      guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+        Issue.record("Expected recorder push")
+        return
+      }
+      try recorder.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/vt.wav"), 60)
+      coordinator.pop()
+      coordinator.pop()
+
       await model.waitForPendingUploads()
 
       #expect(model.presentedAlert == nil)
