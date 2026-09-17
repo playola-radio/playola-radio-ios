@@ -1,0 +1,891 @@
+{
+  "type": "frame",
+  "id": "dXnbm",
+  "x": 1972,
+  "y": 18806,
+  "name": "AMA · Song Search · Sheet",
+  "clip": true,
+  "width": 393,
+  "height": 852,
+  "fill": "#000000",
+  "cornerRadius": [
+    24,
+    24,
+    0,
+    0
+  ],
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "uGUVL",
+      "name": "Sheet drag handle area",
+      "width": "fill_container",
+      "height": 24,
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "rectangle",
+          "cornerRadius": 3,
+          "id": "jDaT8",
+          "name": "Sheet drag handle",
+          "fill": "#444444",
+          "width": 36,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "efczx",
+      "name": "Navigation",
+      "width": "fill_container",
+      "height": 64,
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "A7JVUw",
+          "x": 335,
+          "y": 10,
+          "name": "Close sheet",
+          "width": 44,
+          "height": 44,
+          "fill": "#2A2A2A",
+          "cornerRadius": 22,
+          "stroke": "#FFFFFF26",
+          "strokeWidth": 1,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "BSp6m",
+              "name": "Close icon",
+              "width": 20,
+              "height": 20,
+              "icon": "x",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "G3nkL",
+          "x": 0,
+          "y": 21,
+          "name": "Screen Title",
+          "fill": "#FFFFFF",
+          "textGrowth": "fixed-width",
+          "width": 393,
+          "content": "Add a Song",
+          "textAlign": "center",
+          "fontFamily": "Inter",
+          "fontSize": 17,
+          "fontWeight": "600"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "IYmrA",
+      "name": "Search and Suggestions tabs",
+      "metadata": {
+        "type": "interaction",
+        "behavior": "Switch between Search and Suggestions without dismissing the sheet. Preserve search query and added state."
+      },
+      "width": "fill_container",
+      "gap": 4,
+      "padding": [
+        0,
+        16,
+        12,
+        16
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "KEpbh",
+          "name": "Search tab",
+          "width": "fill_container",
+          "height": 40,
+          "fill": "#444444",
+          "cornerRadius": 10,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "n09bBQ",
+              "name": "Search tab label",
+              "fill": "#FFFFFF",
+              "content": "Search",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "if0Th",
+          "name": "Suggestions tab",
+          "width": "fill_container",
+          "height": 40,
+          "fill": "#000000",
+          "cornerRadius": 10,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "twnQ2",
+              "name": "Suggestions tab label",
+              "fill": "#C7C7C7",
+              "content": "Suggestions",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "600"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "deO3j",
+      "name": "Song search results",
+      "width": "fill_container",
+      "height": "fill_container",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "fiU0s",
+          "name": "Available now heading",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "padding": [
+            14,
+            16,
+            8,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "YvyeO",
+              "name": "Available now",
+              "fill": "#FFFFFF",
+              "content": "Available now",
+              "fontFamily": "Inter",
+              "fontSize": 18,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "evmps",
+              "name": "Available now description",
+              "fill": "#C7C7C7",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Ready to add to this show.",
+              "lineHeight": 1.4,
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "LFaoO",
+          "name": "Available songs",
+          "width": "fill_container",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "sLC7Y",
+              "name": "Available · Cheat On Your Man",
+              "width": "fill_container",
+              "height": 76,
+              "fill": "#000000",
+              "gap": 12,
+              "padding": [
+                8,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "sLC7Y/xE0L6",
+                  "name": "Artwork",
+                  "width": 50,
+                  "height": 50,
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "images/i.scdn.co/ca5219cb9a593f33.jpg",
+                    "mode": "stretch"
+                  },
+                  "cornerRadius": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "DV2Z0",
+                      "name": "Preview song",
+                      "width": 22,
+                      "height": 22,
+                      "fill": "#00000099",
+                      "cornerRadius": 11,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "G6YtP1",
+                          "name": "Preview play icon",
+                          "width": 12,
+                          "height": 12,
+                          "icon": "play",
+                          "library": "lucide",
+                          "fill": "#FFFFFF"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "sLC7Y/S1gtmB",
+                  "name": "Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "sLC7Y/HL2vA",
+                      "name": "Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Cheat On Your Man",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "sLC7Y/oBIrh",
+                      "name": "Artist",
+                      "fill": "#C7C7C7",
+                      "content": "Bri Bagwell · 3:18",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "mB81L",
+                  "name": "Add to show",
+                  "width": 70,
+                  "height": 44,
+                  "fill": "#EF6962",
+                  "cornerRadius": 22,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "sCcF8",
+                      "name": "Add label",
+                      "fill": "#000000",
+                      "content": "Add",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "x4yl7i",
+              "name": "Available · Hummingbird",
+              "width": "fill_container",
+              "height": 76,
+              "fill": "#000000",
+              "gap": 12,
+              "padding": [
+                8,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "x4yl7i/xE0L6",
+                  "name": "Artwork",
+                  "width": 50,
+                  "height": 50,
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "images/static.wixstatic.com/f832357fe101dd5d.jpg",
+                    "mode": "stretch"
+                  },
+                  "cornerRadius": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "W7ue15",
+                      "name": "Preview song",
+                      "width": 22,
+                      "height": 22,
+                      "fill": "#00000099",
+                      "cornerRadius": 11,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "SAt8m",
+                          "name": "Preview play icon",
+                          "width": 12,
+                          "height": 12,
+                          "icon": "play",
+                          "library": "lucide",
+                          "fill": "#FFFFFF"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "x4yl7i/S1gtmB",
+                  "name": "Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "x4yl7i/HL2vA",
+                      "name": "Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Hummingbird",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "x4yl7i/oBIrh",
+                      "name": "Artist",
+                      "fill": "#C7C7C7",
+                      "content": "Bri Bagwell · 4:06",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "GhRsc",
+                  "name": "Add to show",
+                  "width": 70,
+                  "height": 44,
+                  "fill": "#EF6962",
+                  "cornerRadius": 22,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "m6Qsf",
+                      "name": "Add label",
+                      "fill": "#000000",
+                      "content": "Add",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "YFpqO",
+              "name": "Available · My Boots",
+              "width": "fill_container",
+              "height": 76,
+              "fill": "#000000",
+              "gap": 12,
+              "padding": [
+                8,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "YFpqO/xE0L6",
+                  "name": "Artwork",
+                  "width": 50,
+                  "height": 50,
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "images/i.scdn.co/ca5219cb9a593f33.jpg",
+                    "mode": "stretch"
+                  },
+                  "cornerRadius": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "J2l2x",
+                      "name": "Preview song",
+                      "width": 22,
+                      "height": 22,
+                      "fill": "#00000099",
+                      "cornerRadius": 11,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "wR3Ha",
+                          "name": "Preview play icon",
+                          "width": 12,
+                          "height": 12,
+                          "icon": "play",
+                          "library": "lucide",
+                          "fill": "#FFFFFF"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "YFpqO/S1gtmB",
+                  "name": "Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "YFpqO/HL2vA",
+                      "name": "Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "My Boots",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "YFpqO/oBIrh",
+                      "name": "Artist",
+                      "fill": "#C7C7C7",
+                      "content": "Bri Bagwell · 3:22",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "z6fyQO",
+                  "name": "Added to show",
+                  "width": 70,
+                  "height": 44,
+                  "fill": "#2A2A2A",
+                  "cornerRadius": 22,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Mv3Kr",
+                      "name": "Added label",
+                      "fill": "#C7C7C7",
+                      "content": "Added",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "J8XrOu",
+          "name": "Section divider inset",
+          "width": "fill_container",
+          "padding": [
+            10,
+            16,
+            0,
+            16
+          ],
+          "children": [
+            {
+              "type": "rectangle",
+              "id": "ADkCy",
+              "name": "Section divider",
+              "fill": "#FFFFFF26",
+              "width": "fill_container",
+              "height": 1
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "X24Rzp",
+          "name": "Request for next time heading",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "padding": [
+            14,
+            16,
+            8,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "Xrpru",
+              "name": "Request for next time",
+              "fill": "#FFFFFF",
+              "content": "Request for next time",
+              "fontFamily": "Inter",
+              "fontSize": 18,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "chUlM",
+              "name": "Request for next time description",
+              "fill": "#C7C7C7",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Not available yet. Request for a future show.",
+              "lineHeight": 1.4,
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "J7Kb7",
+          "name": "Songs to request",
+          "width": "fill_container",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "I1MMy",
+              "name": "Request · Whiskey",
+              "width": "fill_container",
+              "height": 72,
+              "fill": "#000000",
+              "gap": 12,
+              "padding": [
+                8,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "I1MMy/xE0L6",
+                  "name": "Artwork",
+                  "width": 50,
+                  "height": 50,
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "images/static.wixstatic.com/f832357fe101dd5d.jpg",
+                    "mode": "stretch"
+                  },
+                  "cornerRadius": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "I1MMy/PM0T4",
+                      "x": 15,
+                      "y": 15,
+                      "name": "Glyph",
+                      "enabled": false,
+                      "width": 20,
+                      "height": 20,
+                      "icon": "music",
+                      "library": "lucide",
+                      "fill": "#999999"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "I1MMy/S1gtmB",
+                  "name": "Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "I1MMy/HL2vA",
+                      "name": "Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Whiskey",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "I1MMy/oBIrh",
+                      "name": "Artist",
+                      "fill": "#C7C7C7",
+                      "content": "Bri Bagwell",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "f3a9Je",
+                  "name": "Request for next time",
+                  "width": 94,
+                  "height": 44,
+                  "fill": "#2A2A2A",
+                  "cornerRadius": 22,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "DszOg",
+                      "name": "Request label",
+                      "fill": "#EF6962",
+                      "content": "Request",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "x5jhmM",
+              "name": "Request · South Texas Rain",
+              "width": "fill_container",
+              "height": 72,
+              "fill": "#000000",
+              "gap": 12,
+              "padding": [
+                8,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "x5jhmM/xE0L6",
+                  "name": "Artwork",
+                  "width": 50,
+                  "height": 50,
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "images/i.scdn.co/ca5219cb9a593f33.jpg",
+                    "mode": "stretch"
+                  },
+                  "cornerRadius": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "x5jhmM/PM0T4",
+                      "x": 15,
+                      "y": 15,
+                      "name": "Glyph",
+                      "enabled": false,
+                      "width": 20,
+                      "height": 20,
+                      "icon": "music",
+                      "library": "lucide",
+                      "fill": "#999999"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "x5jhmM/S1gtmB",
+                  "name": "Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "x5jhmM/HL2vA",
+                      "name": "Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "South Texas Rain",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "x5jhmM/oBIrh",
+                      "name": "Artist",
+                      "fill": "#C7C7C7",
+                      "content": "Bri Bagwell",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "zGeRa",
+                  "name": "Request sent",
+                  "width": 94,
+                  "height": 44,
+                  "fill": "#2A2A2A",
+                  "cornerRadius": 22,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "dKBFQ",
+                      "name": "Requested label",
+                      "fill": "#C7C7C7",
+                      "content": "Requested",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "V1Zos",
+      "name": "Bottom search toolbar",
+      "context": "Search stays at the bottom of the sheet and moves above the keyboard when focused.",
+      "width": "fill_container",
+      "padding": [
+        12,
+        16,
+        34,
+        16
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "ZM9Rm",
+          "name": "Search songs or artists",
+          "width": "fill_container",
+          "height": 50,
+          "fill": "#2C2C2ECC",
+          "cornerRadius": 25,
+          "stroke": "#FFFFFF26",
+          "strokeWidth": 1,
+          "gap": 10,
+          "padding": [
+            0,
+            12
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "S8IZt",
+              "name": "Search",
+              "width": 20,
+              "height": 20,
+              "icon": "search",
+              "library": "lucide",
+              "fill": "#C7C7C7"
+            },
+            {
+              "type": "text",
+              "id": "l9pUO",
+              "name": "Search query",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Bri Bagwell",
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "icon",
+              "id": "oR92Z",
+              "name": "Clear search",
+              "width": 18,
+              "height": 18,
+              "icon": "circle-x",
+              "library": "lucide",
+              "fill": "#999999"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
