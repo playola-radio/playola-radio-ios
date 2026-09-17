@@ -56,6 +56,7 @@ final class MainContainerNavigationCoordinator {
       }
     }
     set {
+      cancelAbandonedAskMeAnythingSetups(from: path, to: newValue)
       switch activeTab {
       case .home: homePath = newValue
       case .stationsList: stationsPath = newValue
@@ -66,6 +67,14 @@ final class MainContainerNavigationCoordinator {
       case .settings: settingsPath = newValue
       }
     }
+  }
+
+  func setPath(
+    _ newValue: [Path],
+    at keyPath: ReferenceWritableKeyPath<MainContainerNavigationCoordinator, [Path]>
+  ) {
+    cancelAbandonedAskMeAnythingSetups(from: self[keyPath: keyPath], to: newValue)
+    self[keyPath: keyPath] = newValue
   }
 
   enum Path: Hashable, Equatable {
@@ -188,13 +197,25 @@ final class MainContainerNavigationCoordinator {
   }
 
   private func clearAllPaths() {
-    homePath = []
-    stationsPath = []
-    yourLibraryPath = []
-    profilePath = []
-    artistStationPath = []
-    artistDashboardPath = []
-    settingsPath = []
+    setPath([], at: \.homePath)
+    setPath([], at: \.stationsPath)
+    setPath([], at: \.yourLibraryPath)
+    setPath([], at: \.profilePath)
+    setPath([], at: \.artistStationPath)
+    setPath([], at: \.artistDashboardPath)
+    setPath([], at: \.settingsPath)
+  }
+
+  private func cancelAbandonedAskMeAnythingSetups(from oldPath: [Path], to newPath: [Path]) {
+    for case .askMeAnythingSetupPage(let model) in oldPath {
+      guard
+        !newPath.contains(where: { path in
+          guard case .askMeAnythingSetupPage(let newModel) = path else { return false }
+          return newModel === model
+        })
+      else { continue }
+      model.setupAbandoned()
+    }
   }
 
   func replace(with path: Path) {
@@ -220,7 +241,7 @@ final class MainContainerNavigationCoordinator {
 
     // Liked songs now live on the Your Library tab; switch to it and reset its
     // stack so the library root (Presets + Liked Songs) is shown.
-    yourLibraryPath = []
+    setPath([], at: \.yourLibraryPath)
     if activeTab != .yourLibrary {
       withAnimation(.easeInOut(duration: 0.3)) {
         $activeTab.withLock { $0 = .yourLibrary }

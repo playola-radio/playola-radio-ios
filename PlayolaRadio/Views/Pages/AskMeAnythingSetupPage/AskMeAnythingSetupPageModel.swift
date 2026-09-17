@@ -3,6 +3,9 @@
 //  PlayolaRadio
 //
 
+import CasePaths
+import Dependencies
+import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
 import SwiftUI
@@ -11,9 +14,17 @@ import SwiftUI
 @Observable
 class AskMeAnythingSetupPageModel: ViewModel {
 
+  // MARK: - Dependencies
+
+  @ObservationIgnored @Dependency(\.uuid) var uuid
+  @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
+  @ObservationIgnored @Dependency(\.audioRecorder) var audioRecorder
+
   // MARK: - Shared State
 
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator
+  @ObservationIgnored @Shared(.auth) var auth
 
   // MARK: - Initialization
 
@@ -25,27 +36,63 @@ class AskMeAnythingSetupPageModel: ViewModel {
   // MARK: - Properties
 
   let stationId: String
-  private let targetDuration: TimeInterval = 600
+  private let targetMilliseconds = 600_000
 
-  var introDuration: TimeInterval?
+  var openingItems: IdentifiedArrayOf<AMAOpeningItem> = []
+  var presentedAlert: PlayolaAlert?
+
+  @ObservationIgnored private var uploadTasks: [UUID: Task<Void, Never>] = [:]
 
   // MARK: - User Actions
 
   func backButtonTapped() {
+    setupAbandoned()
     navigationCoordinator.pop()
+  }
+
+  func setupAbandoned() {
+    cancelUploads()
   }
 
   func recordIntroButtonTapped() {
     let recorder = RecordWithMultiStepPromptModel.askMeAnythingIntro(stationId: stationId)
     recorder.onCompleted = { [weak self] audioBlock in
-      guard audioBlock.durationMS > 0 else { return }
-      self?.introDuration = TimeInterval(audioBlock.durationMS) / 1000
+      guard let self, audioBlock.durationMS > 0 else { return }
+      guard !openingItems.contains(where: { $0.content.is(\.intro) }) else { return }
+      openingItems.insert(
+        AMAOpeningItem(id: uuid(), content: .intro(audioBlock)), at: 0)
     }
     navigationCoordinator.push(.recordWithMultiStepPromptPage(recorder))
   }
 
-  func voicetrackActionTapped() {}
-  func songActionTapped() {}
+  func voicetrackActionTapped() {
+    let recorder = RecordWithMultiStepPromptModel.askMeAnythingVoicetrack(stationId: stationId)
+    recorder.onRecordingAccepted = { [weak self] url, _ in
+      guard let self else { return }
+      try acceptVoicetrack(url: url)
+    }
+    navigationCoordinator.push(.recordWithMultiStepPromptPage(recorder))
+  }
+
+  func waitForPendingUploads() async {
+    while let task = uploadTasks.values.first {
+      await task.value
+    }
+  }
+
+  func songActionTapped() {
+    let search = SongSearchPageModel(searchMode: .all, stationId: stationId)
+    search.onDismiss = { [weak self] in
+      self?.$navigationCoordinator.withLock { $0.presentedSheet = nil }
+    }
+    search.onSongSelected = { [weak self] audioBlock in
+      guard let self else { return }
+      addSong(audioBlock)
+      $navigationCoordinator.withLock { $0.presentedSheet = nil }
+    }
+    navigationCoordinator.presentedSheet = .songSearchPage(search)
+  }
+
   func qaActionTapped() {}
 
   func startShowButtonTapped() {}
@@ -55,7 +102,7 @@ class AskMeAnythingSetupPageModel: ViewModel {
   var navigationTitle: String { "Ask Me Anything" }
   var setupLabel: String { "SETUP" }
 
-  var hasRecordedIntro: Bool { introDuration != nil }
+  var hasRecordedIntro: Bool { openingItems.contains { $0.content.is(\.intro) } }
   var introPromptOpacity: Double { hasRecordedIntro ? 0 : 1 }
   var introPromptInteractive: Bool { !hasRecordedIntro }
   var introPromptAccessibilityHidden: Bool { hasRecordedIntro }
@@ -75,39 +122,142 @@ class AskMeAnythingSetupPageModel: ViewModel {
   var openingPlaylistTitle: String { "Your opening playlist" }
   var openingPlaylistSubtitle: String { "Your station keeps playing while you prepare." }
 
-  var introRowTitle: String { "Show Intro" }
-  var introRowSubtitle: String { "Your voice" }
-  var introRowDurationLabel: String { durationLabel(introDuration ?? 0) }
+  var openingRows: IdentifiedArrayOf<AMAOpeningRowData> {
+    IdentifiedArray(
+      uniqueElements: openingItems.map { item in
+        switch item.content {
+        case .intro(let block):
+          return AMAOpeningRowData(
+            id: item.id, title: "Show Intro", subtitle: "Your voice",
+            subtitleColor: .playolaTextDisabled, iconSystemName: "mic", albumImageUrl: nil,
+            leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
+            trailingText: durationLabel(block.durationMS), trailingIconSystemName: "pin",
+            processingOpacity: 0, completedOpacity: 1)
+        case .song(let block):
+          return AMAOpeningRowData(
+            id: item.id, title: block.title, subtitle: block.artist,
+            subtitleColor: .playolaTextDisabled, iconSystemName: "music.note",
+            albumImageUrl: block.imageUrl, leadingArtworkOpacity: 1, leadingFallbackOpacity: 0,
+            trailingText: durationLabel(block.durationMS), trailingIconSystemName: "checkmark",
+            processingOpacity: 0, completedOpacity: 1)
+        case .voicetrack(let voicetrack, let completedDurationMS):
+          let isProcessing = voicetrack.isProcessing
+          return AMAOpeningRowData(
+            id: item.id, title: voicetrack.title, subtitle: voicetrack.subtitleText,
+            subtitleColor: voicetrack.subtitleColor, iconSystemName: "mic", albumImageUrl: nil,
+            leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
+            trailingText: completedDurationMS.map { durationLabel($0) } ?? "",
+            trailingIconSystemName: "checkmark", processingOpacity: isProcessing ? 1 : 0,
+            completedOpacity: isProcessing ? 0 : 1)
+        }
+      })
+  }
 
   var addSectionTitle: String { "Let\u{2019}s get a little ahead" }
   var addSectionExplanation: String {
-    "Build the first 10 minutes of your show with songs and past Q&As. "
+    "Build the first 10 minutes of your show with songs and voicetracks. "
       + "Use Voicetrack to record a quick intro for a song."
   }
   var voicetrackActionLabel: String { "Voicetrack" }
   var songActionLabel: String { "Song" }
   var qaActionLabel: String { "Q/A" }
 
+  private var readyMilliseconds: Int {
+    openingItems.reduce(0) { $0 + $1.readyDurationMS }
+  }
+
   var preparedAudioLabel: String {
-    "\(durationLabel(introDuration ?? 0)) / \(durationLabel(targetDuration)) ready"
+    "\(durationLabel(readyMilliseconds)) / \(durationLabel(targetMilliseconds)) ready"
   }
   var readinessHint: String {
-    guard let introDuration else { return "Record your intro" }
-    return "Add \(durationLabel(max(0, targetDuration - introDuration).rounded(.up))) more"
+    guard hasRecordedIntro else { return "Record your intro" }
+    if isStartShowEnabled { return "Ready to start" }
+    return "Add \(durationLabelCeil(max(0, targetMilliseconds - readyMilliseconds))) more"
   }
   var readyProgress: Double {
-    guard let introDuration else { return 0 }
-    return min(1, introDuration / targetDuration)
+    min(1, Double(readyMilliseconds) / Double(targetMilliseconds))
   }
 
   var startShowButtonTitle: String { "Start Show" }
-  var isStartShowEnabled: Bool { false }
+  var isStartShowEnabled: Bool { readyMilliseconds >= targetMilliseconds }
   var startShowButtonTitleColor: Color { isStartShowEnabled ? .white : .playolaGray }
 
   // MARK: - Private Helpers
 
-  private func durationLabel(_ seconds: TimeInterval) -> String {
-    let total = Int(seconds.rounded())
+  private func addSong(_ audioBlock: AudioBlock) {
+    openingItems.append(AMAOpeningItem(id: uuid(), content: .song(audioBlock)))
+  }
+
+  private func acceptVoicetrack(url: URL) throws {
+    guard let jwt = auth.jwt else { throw RecordPromptError.notAuthenticated }
+    let voicetrack = LocalVoicetrack(
+      id: uuid(), originalURL: url, createdAt: now, title: voicetrackTitle(for: now))
+    let itemId = uuid()
+    openingItems.append(
+      AMAOpeningItem(id: itemId, content: .voicetrack(voicetrack, completedDurationMS: nil)))
+    let stationId = stationId
+    uploadTasks[itemId] = Task { [weak self] in
+      await self?.runVoicetrackUpload(
+        itemId: itemId, voicetrack: voicetrack, stationId: stationId, jwt: jwt)
+    }
+  }
+
+  private func runVoicetrackUpload(
+    itemId: UUID, voicetrack: LocalVoicetrack, stationId: String, jwt: String
+  ) async {
+    defer { uploadTasks[itemId] = nil }
+    do {
+      let audioBlock = try await voicetrackUploadService.processVoicetrack(
+        voicetrack, stationId, jwt
+      ) { [weak self] status in
+        self?.updateVoicetrackStatus(itemId: itemId, status: status)
+      }
+      guard openingItems[id: itemId] != nil else {
+        await audioRecorder.deleteRecording(voicetrack.originalURL)
+        return
+      }
+      completeVoicetrack(itemId: itemId, audioBlock: audioBlock)
+      await audioRecorder.deleteRecording(voicetrack.originalURL)
+    } catch {
+      await audioRecorder.deleteRecording(voicetrack.originalURL)
+      guard !Task.isCancelled else { return }
+      openingItems.remove(id: itemId)
+      presentedAlert = .voicetrackUploadFailed(error.localizedDescription)
+    }
+  }
+
+  private func updateVoicetrackStatus(itemId: UUID, status: LocalVoicetrackStatus) {
+    openingItems[id: itemId]?.content.modify(\.voicetrack) {
+      guard $0.1 == nil else { return }
+      $0.0.status = status
+    }
+  }
+
+  private func completeVoicetrack(itemId: UUID, audioBlock: AudioBlock) {
+    openingItems[id: itemId]?.content.modify(\.voicetrack) {
+      $0.0.status = .completed
+      $0.0.audioBlockId = audioBlock.id
+      $0.1 = audioBlock.durationMS
+    }
+  }
+
+  private func voicetrackTitle(for date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "h:mma"
+    return "Voicetrack \(formatter.string(from: date).lowercased())"
+  }
+
+  private func cancelUploads() {
+    for task in uploadTasks.values { task.cancel() }
+  }
+
+  private func durationLabel(_ milliseconds: Int) -> String {
+    let total = max(0, milliseconds) / 1000
+    return String(format: "%d:%02d", total / 60, total % 60)
+  }
+
+  private func durationLabelCeil(_ milliseconds: Int) -> String {
+    let total = Int((Double(max(0, milliseconds)) / 1000).rounded(.up))
     return String(format: "%d:%02d", total / 60, total % 60)
   }
 }

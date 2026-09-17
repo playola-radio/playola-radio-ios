@@ -39851,7 +39851,8 @@
                       "fill": "$text-primary",
                       "content": "0:22",
                       "fontFamily": "$font-body",
-                      "fontSize": 34
+                      "fontSize": 34,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -39902,7 +39903,8 @@
                       "fill": "$text-secondary",
                       "content": "Tap to stop",
                       "fontFamily": "$font-body",
-                      "fontSize": 16
+                      "fontSize": 16,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -39934,7 +39936,8 @@
                   "fill": "$text-tertiary",
                   "content": "Your station keeps playing while you record.",
                   "fontFamily": "$font-body",
-                  "fontSize": 12
+                  "fontSize": 12,
+                  "fontWeight": "normal"
                 }
               ]
             }
@@ -49000,6 +49003,1413 @@
                           "fontWeight": "600"
                         }
                       ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "dXnbm",
+      "x": 1972,
+      "y": 18806,
+      "name": "AMA · Song Search · Sheet",
+      "clip": true,
+      "width": 393,
+      "height": 852,
+      "fill": "$surface-base",
+      "cornerRadius": [
+        24,
+        24,
+        0,
+        0
+      ],
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "uGUVL",
+          "name": "Sheet drag handle area",
+          "width": "fill_container",
+          "height": 24,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "rectangle",
+              "cornerRadius": 3,
+              "id": "jDaT8",
+              "name": "Sheet drag handle",
+              "fill": "$surface-control",
+              "width": 36,
+              "height": 5
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "efczx",
+          "name": "Navigation",
+          "width": "fill_container",
+          "height": 64,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "A7JVUw",
+              "x": 335,
+              "y": 10,
+              "name": "Close sheet",
+              "width": 44,
+              "height": 44,
+              "fill": "$surface-raised",
+              "cornerRadius": 22,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "BSp6m",
+                  "name": "Close icon",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "x",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "G3nkL",
+              "x": 0,
+              "y": 21,
+              "name": "Screen Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": 393,
+              "content": "Add a Song",
+              "textAlign": "center",
+              "fontFamily": "$font-body",
+              "fontSize": 17,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "IYmrA",
+          "name": "Search and Suggestions tabs",
+          "metadata": {
+            "type": "interaction",
+            "behavior": "Switch between Search and Suggestions without dismissing the sheet. Preserve search query and added state."
+          },
+          "width": "fill_container",
+          "gap": 4,
+          "padding": [
+            0,
+            16,
+            12,
+            16
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "KEpbh",
+              "name": "Search tab",
+              "width": "fill_container",
+              "height": 40,
+              "fill": "$surface-control",
+              "cornerRadius": 10,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "n09bBQ",
+                  "name": "Search tab label",
+                  "fill": "$text-primary",
+                  "content": "Search",
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "if0Th",
+              "name": "Suggestions tab",
+              "width": "fill_container",
+              "height": 40,
+              "fill": "$surface-base",
+              "cornerRadius": 10,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "twnQ2",
+                  "name": "Suggestions tab label",
+                  "fill": "$text-secondary",
+                  "content": "Suggestions",
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "deO3j",
+          "name": "Song search results",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "fiU0s",
+              "name": "Available now heading",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 6,
+              "padding": [
+                14,
+                16,
+                8,
+                16
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "YvyeO",
+                  "name": "Available now",
+                  "fill": "$text-primary",
+                  "content": "Available now",
+                  "fontFamily": "$font-body",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "evmps",
+                  "name": "Available now description",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Ready to add to this show.",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-body",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "LFaoO",
+              "name": "Available songs",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "id": "sLC7Y",
+                  "type": "ref",
+                  "ref": "dugqD",
+                  "name": "Available · Cheat On Your Man",
+                  "width": "fill_container",
+                  "height": 76,
+                  "fill": "$surface-base",
+                  "padding": [
+                    8,
+                    16
+                  ],
+                  "descendants": {
+                    "xE0L6": {
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "images/i.scdn.co/ca5219cb9a593f33.jpg",
+                        "mode": "stretch"
+                      },
+                      "cornerRadius": 6,
+                      "width": 50,
+                      "height": 50,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "DV2Z0",
+                          "name": "Preview song",
+                          "width": 22,
+                          "height": 22,
+                          "fill": "#00000099",
+                          "cornerRadius": 11,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "G6YtP1",
+                              "name": "Preview play icon",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "play",
+                              "library": "lucide",
+                              "fill": "#FFFFFF"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "HL2vA": {
+                      "content": "Cheat On Your Man",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container"
+                    },
+                    "oBIrh": {
+                      "content": "Bri Bagwell · 3:18",
+                      "fill": "$text-secondary"
+                    },
+                    "YnQ3w": {
+                      "type": "frame",
+                      "id": "mB81L",
+                      "name": "Add to show",
+                      "width": 70,
+                      "height": 44,
+                      "fill": "$brand-primary",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "sCcF8",
+                          "name": "Add label",
+                          "fill": "#000000",
+                          "content": "Add",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "id": "x4yl7i",
+                  "type": "ref",
+                  "ref": "dugqD",
+                  "name": "Available · Hummingbird",
+                  "width": "fill_container",
+                  "height": 76,
+                  "fill": "$surface-base",
+                  "padding": [
+                    8,
+                    16
+                  ],
+                  "descendants": {
+                    "xE0L6": {
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "images/static.wixstatic.com/f832357fe101dd5d.jpg",
+                        "mode": "stretch"
+                      },
+                      "cornerRadius": 6,
+                      "width": 50,
+                      "height": 50,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "W7ue15",
+                          "name": "Preview song",
+                          "width": 22,
+                          "height": 22,
+                          "fill": "#00000099",
+                          "cornerRadius": 11,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "SAt8m",
+                              "name": "Preview play icon",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "play",
+                              "library": "lucide",
+                              "fill": "#FFFFFF"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "HL2vA": {
+                      "content": "Hummingbird",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container"
+                    },
+                    "oBIrh": {
+                      "content": "Bri Bagwell · 4:06",
+                      "fill": "$text-secondary"
+                    },
+                    "YnQ3w": {
+                      "type": "frame",
+                      "id": "GhRsc",
+                      "name": "Add to show",
+                      "width": 70,
+                      "height": 44,
+                      "fill": "$brand-primary",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "m6Qsf",
+                          "name": "Add label",
+                          "fill": "#000000",
+                          "content": "Add",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "id": "YFpqO",
+                  "type": "ref",
+                  "ref": "dugqD",
+                  "name": "Available · My Boots",
+                  "width": "fill_container",
+                  "height": 76,
+                  "fill": "$surface-base",
+                  "padding": [
+                    8,
+                    16
+                  ],
+                  "descendants": {
+                    "xE0L6": {
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "images/i.scdn.co/ca5219cb9a593f33.jpg",
+                        "mode": "stretch"
+                      },
+                      "cornerRadius": 6,
+                      "width": 50,
+                      "height": 50,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "J2l2x",
+                          "name": "Preview song",
+                          "width": 22,
+                          "height": 22,
+                          "fill": "#00000099",
+                          "cornerRadius": 11,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "wR3Ha",
+                              "name": "Preview play icon",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "play",
+                              "library": "lucide",
+                              "fill": "#FFFFFF"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "HL2vA": {
+                      "content": "My Boots",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container"
+                    },
+                    "oBIrh": {
+                      "content": "Bri Bagwell · 3:22",
+                      "fill": "$text-secondary"
+                    },
+                    "YnQ3w": {
+                      "type": "frame",
+                      "id": "z6fyQO",
+                      "name": "Added to show",
+                      "width": 70,
+                      "height": 44,
+                      "fill": "$surface-raised",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Mv3Kr",
+                          "name": "Added label",
+                          "fill": "$text-secondary",
+                          "content": "Added",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "J8XrOu",
+              "name": "Section divider inset",
+              "width": "fill_container",
+              "padding": [
+                10,
+                16,
+                0,
+                16
+              ],
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "ADkCy",
+                  "name": "Section divider",
+                  "fill": "$glass-hairline",
+                  "width": "fill_container",
+                  "height": 1
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "X24Rzp",
+              "name": "Request for next time heading",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 6,
+              "padding": [
+                14,
+                16,
+                8,
+                16
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Xrpru",
+                  "name": "Request for next time",
+                  "fill": "$text-primary",
+                  "content": "Request for next time",
+                  "fontFamily": "$font-body",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "chUlM",
+                  "name": "Request for next time description",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Not available yet. Request for a future show.",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-body",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "J7Kb7",
+              "name": "Songs to request",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "id": "I1MMy",
+                  "type": "ref",
+                  "ref": "dugqD",
+                  "name": "Request · Whiskey",
+                  "width": "fill_container",
+                  "height": 72,
+                  "fill": "$surface-base",
+                  "padding": [
+                    8,
+                    16
+                  ],
+                  "descendants": {
+                    "xE0L6": {
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "images/static.wixstatic.com/f832357fe101dd5d.jpg",
+                        "mode": "stretch"
+                      },
+                      "width": 50,
+                      "height": 50,
+                      "cornerRadius": 6
+                    },
+                    "PM0T4": {
+                      "fill": "$text-tertiary",
+                      "enabled": false
+                    },
+                    "HL2vA": {
+                      "content": "Whiskey",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container"
+                    },
+                    "oBIrh": {
+                      "content": "Bri Bagwell",
+                      "fill": "$text-secondary"
+                    },
+                    "YnQ3w": {
+                      "type": "frame",
+                      "id": "f3a9Je",
+                      "name": "Request for next time",
+                      "width": 94,
+                      "height": 44,
+                      "fill": "$surface-raised",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "DszOg",
+                          "name": "Request label",
+                          "fill": "$brand-primary",
+                          "content": "Request",
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "id": "x5jhmM",
+                  "type": "ref",
+                  "ref": "dugqD",
+                  "name": "Request · South Texas Rain",
+                  "width": "fill_container",
+                  "height": 72,
+                  "fill": "$surface-base",
+                  "padding": [
+                    8,
+                    16
+                  ],
+                  "descendants": {
+                    "xE0L6": {
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "images/i.scdn.co/ca5219cb9a593f33.jpg",
+                        "mode": "stretch"
+                      },
+                      "width": 50,
+                      "height": 50,
+                      "cornerRadius": 6
+                    },
+                    "PM0T4": {
+                      "fill": "$text-tertiary",
+                      "enabled": false
+                    },
+                    "HL2vA": {
+                      "content": "South Texas Rain",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container"
+                    },
+                    "oBIrh": {
+                      "content": "Bri Bagwell",
+                      "fill": "$text-secondary"
+                    },
+                    "YnQ3w": {
+                      "type": "frame",
+                      "id": "zGeRa",
+                      "name": "Request sent",
+                      "width": 94,
+                      "height": 44,
+                      "fill": "$surface-raised",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "dKBFQ",
+                          "name": "Requested label",
+                          "fill": "$text-secondary",
+                          "content": "Requested",
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "V1Zos",
+          "name": "Bottom search toolbar",
+          "context": "Search stays at the bottom of the sheet and moves above the keyboard when focused.",
+          "width": "fill_container",
+          "padding": [
+            12,
+            16,
+            34,
+            16
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "ZM9Rm",
+              "name": "Search songs or artists",
+              "width": "fill_container",
+              "height": 50,
+              "fill": "$glass-fill",
+              "cornerRadius": 25,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "gap": 10,
+              "padding": [
+                0,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "S8IZt",
+                  "name": "Search",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "search",
+                  "library": "lucide",
+                  "fill": "$text-secondary"
+                },
+                {
+                  "type": "text",
+                  "id": "l9pUO",
+                  "name": "Search query",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Bri Bagwell",
+                  "fontFamily": "$font-body",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "icon",
+                  "id": "oR92Z",
+                  "name": "Clear search",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "circle-x",
+                  "library": "lucide",
+                  "fill": "$text-tertiary"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "SQv86",
+      "x": 2445,
+      "y": 18806,
+      "name": "AMA · Song Suggestions · Sheet",
+      "clip": true,
+      "width": 393,
+      "height": 852,
+      "fill": "$surface-base",
+      "cornerRadius": [
+        24,
+        24,
+        0,
+        0
+      ],
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "YYugu",
+          "name": "Sheet drag handle area",
+          "width": "fill_container",
+          "height": 24,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "rectangle",
+              "cornerRadius": 3,
+              "id": "E3E2K",
+              "name": "Sheet drag handle",
+              "fill": "$surface-control",
+              "width": 36,
+              "height": 5
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "w5l1h",
+          "name": "Navigation",
+          "width": "fill_container",
+          "height": 64,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "xrqje",
+              "x": 335,
+              "y": 10,
+              "name": "Close sheet",
+              "width": 44,
+              "height": 44,
+              "fill": "$surface-raised",
+              "cornerRadius": 22,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "dy7Xt",
+                  "name": "Close icon",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "x",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "DfJwo",
+              "x": 0,
+              "y": 21,
+              "name": "Screen Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": 393,
+              "content": "Add a Song",
+              "textAlign": "center",
+              "fontFamily": "$font-body",
+              "fontSize": 17,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "JeAVG",
+          "name": "Search and Suggestions tabs",
+          "metadata": {
+            "type": "interaction",
+            "behavior": "Switch between Search and Suggestions without dismissing the sheet. Preserve search query and added state."
+          },
+          "width": "fill_container",
+          "gap": 4,
+          "padding": [
+            0,
+            16,
+            12,
+            16
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "WgsrR",
+              "name": "Search tab",
+              "width": "fill_container",
+              "height": 40,
+              "fill": "$surface-base",
+              "cornerRadius": 10,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "HLb7Y",
+                  "name": "Search tab label",
+                  "fill": "$text-secondary",
+                  "content": "Search",
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "pGnQt",
+              "name": "Suggestions tab",
+              "width": "fill_container",
+              "height": 40,
+              "fill": "$surface-control",
+              "cornerRadius": 10,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "pBDzi",
+                  "name": "Suggestions tab label",
+                  "fill": "$text-primary",
+                  "content": "Suggestions",
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "jg6Ca",
+          "name": "Song search results",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "tYRWY",
+              "name": "Available now heading",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 6,
+              "padding": [
+                14,
+                16,
+                8,
+                16
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "LCcqx",
+                  "name": "Available now",
+                  "fill": "$text-primary",
+                  "content": "Suggested for this show",
+                  "fontFamily": "$font-body",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "hEK5h",
+                  "name": "Available now description",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "A few songs to keep your show going. Preview a song, then add it when you’re ready.",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-body",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "eeGGq",
+              "name": "Available songs",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "id": "PEriE",
+                  "type": "ref",
+                  "ref": "dugqD",
+                  "name": "Available · Cheat On Your Man",
+                  "width": "fill_container",
+                  "height": 76,
+                  "fill": "$surface-base",
+                  "padding": [
+                    8,
+                    16
+                  ],
+                  "descendants": {
+                    "xE0L6": {
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "images/i.scdn.co/ca5219cb9a593f33.jpg",
+                        "mode": "stretch"
+                      },
+                      "cornerRadius": 6,
+                      "width": 50,
+                      "height": 50,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "h3h5pT",
+                          "name": "Preview song",
+                          "width": 22,
+                          "height": 22,
+                          "fill": "#00000099",
+                          "cornerRadius": 11,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "lm03s",
+                              "name": "Preview play icon",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "play",
+                              "library": "lucide",
+                              "fill": "#FFFFFF"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "HL2vA": {
+                      "content": "Cheat On Your Man",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container"
+                    },
+                    "oBIrh": {
+                      "content": "Bri Bagwell · 3:18",
+                      "fill": "$text-secondary"
+                    },
+                    "YnQ3w": {
+                      "type": "frame",
+                      "id": "aafjT",
+                      "name": "Add to show",
+                      "width": 70,
+                      "height": 44,
+                      "fill": "$brand-primary",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "PnKd2",
+                          "name": "Add label",
+                          "fill": "#000000",
+                          "content": "Add",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "id": "J3GXq",
+                  "type": "ref",
+                  "ref": "dugqD",
+                  "name": "Available · Hummingbird",
+                  "width": "fill_container",
+                  "height": 76,
+                  "fill": "$surface-base",
+                  "padding": [
+                    8,
+                    16
+                  ],
+                  "descendants": {
+                    "xE0L6": {
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "images/static.wixstatic.com/f832357fe101dd5d.jpg",
+                        "mode": "stretch"
+                      },
+                      "cornerRadius": 6,
+                      "width": 50,
+                      "height": 50,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Uh1CB",
+                          "name": "Preview song",
+                          "width": 22,
+                          "height": 22,
+                          "fill": "#00000099",
+                          "cornerRadius": 11,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "UfTmO",
+                              "name": "Preview play icon",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "play",
+                              "library": "lucide",
+                              "fill": "#FFFFFF"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "HL2vA": {
+                      "content": "Hummingbird",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container"
+                    },
+                    "oBIrh": {
+                      "content": "Bri Bagwell · 4:06",
+                      "fill": "$text-secondary"
+                    },
+                    "YnQ3w": {
+                      "type": "frame",
+                      "id": "ruaXs",
+                      "name": "Add to show",
+                      "width": 70,
+                      "height": 44,
+                      "fill": "$brand-primary",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "qfAVK",
+                          "name": "Add label",
+                          "fill": "#000000",
+                          "content": "Add",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "id": "tDBCt",
+                  "type": "ref",
+                  "ref": "dugqD",
+                  "name": "Available · My Boots",
+                  "width": "fill_container",
+                  "height": 76,
+                  "fill": "$surface-base",
+                  "padding": [
+                    8,
+                    16
+                  ],
+                  "descendants": {
+                    "xE0L6": {
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "images/i.scdn.co/ca5219cb9a593f33.jpg",
+                        "mode": "stretch"
+                      },
+                      "cornerRadius": 6,
+                      "width": 50,
+                      "height": 50,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "UZeDX",
+                          "name": "Preview song",
+                          "width": 22,
+                          "height": 22,
+                          "fill": "#00000099",
+                          "cornerRadius": 11,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "FWmGp",
+                              "name": "Preview play icon",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "play",
+                              "library": "lucide",
+                              "fill": "#FFFFFF"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "HL2vA": {
+                      "content": "My Boots",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container"
+                    },
+                    "oBIrh": {
+                      "content": "Bri Bagwell · 3:22",
+                      "fill": "$text-secondary"
+                    },
+                    "YnQ3w": {
+                      "type": "frame",
+                      "id": "xccqF",
+                      "name": "Added to show",
+                      "width": 70,
+                      "height": 44,
+                      "fill": "$surface-raised",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "W5y1ag",
+                          "name": "Added label",
+                          "fill": "$text-secondary",
+                          "content": "Added",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "id": "MMnzN",
+                  "type": "ref",
+                  "ref": "dugqD",
+                  "name": "Suggested · If You Were a Cowboy",
+                  "width": "fill_container",
+                  "height": 76,
+                  "fill": "$surface-base",
+                  "padding": [
+                    8,
+                    16
+                  ],
+                  "descendants": {
+                    "xE0L6": {
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "images/i.scdn.co/ca5219cb9a593f33.jpg",
+                        "mode": "stretch"
+                      },
+                      "cornerRadius": 6,
+                      "width": 50,
+                      "height": 50,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "ypBQR",
+                          "name": "Preview song",
+                          "width": 22,
+                          "height": 22,
+                          "fill": "#00000099",
+                          "cornerRadius": 11,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "GnRUS",
+                              "name": "Preview play icon",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "play",
+                              "library": "lucide",
+                              "fill": "#FFFFFF"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "HL2vA": {
+                      "content": "If You Were a Cowboy",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container"
+                    },
+                    "oBIrh": {
+                      "content": "Bri Bagwell · 3:24",
+                      "fill": "$text-secondary"
+                    },
+                    "YnQ3w": {
+                      "type": "frame",
+                      "id": "s8ZihJ",
+                      "name": "Add to show",
+                      "width": 70,
+                      "height": 44,
+                      "fill": "$brand-primary",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "tiBRK",
+                          "name": "Add label",
+                          "fill": "#000000",
+                          "content": "Add",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "id": "iLeLX",
+                  "type": "ref",
+                  "ref": "dugqD",
+                  "name": "Suggested · Trenches",
+                  "width": "fill_container",
+                  "height": 76,
+                  "fill": "$surface-base",
+                  "padding": [
+                    8,
+                    16
+                  ],
+                  "descendants": {
+                    "xE0L6": {
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "images/static.wixstatic.com/f832357fe101dd5d.jpg",
+                        "mode": "stretch"
+                      },
+                      "cornerRadius": 6,
+                      "width": 50,
+                      "height": 50,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "wo8dU",
+                          "name": "Preview song",
+                          "width": 22,
+                          "height": 22,
+                          "fill": "#00000099",
+                          "cornerRadius": 11,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "Mc42a",
+                              "name": "Preview play icon",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "play",
+                              "library": "lucide",
+                              "fill": "#FFFFFF"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "HL2vA": {
+                      "content": "Trenches",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container"
+                    },
+                    "oBIrh": {
+                      "content": "Bri Bagwell · 3:45",
+                      "fill": "$text-secondary"
+                    },
+                    "YnQ3w": {
+                      "type": "frame",
+                      "id": "AofVi",
+                      "name": "Add to show",
+                      "width": 70,
+                      "height": 44,
+                      "fill": "$brand-primary",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "dMafo",
+                          "name": "Add label",
+                          "fill": "#000000",
+                          "content": "Add",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "GYJ76",
+              "name": "More suggestions action",
+              "width": "fill_container",
+              "layout": "vertical",
+              "padding": [
+                20,
+                16,
+                16,
+                16
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "tlNe2",
+                  "name": "More suggestions button",
+                  "metadata": {
+                    "type": "interaction",
+                    "behavior": "Append another batch of suggestions, excluding songs already shown. Keep existing results, Added states and scroll position. While loading disable repeat taps and show spinner with Finding songs… label. On failure retain results and show Try again. If no more results, show You're all caught up with Search available via the tab."
+                  },
+                  "width": "fill_container",
+                  "height": 48,
+                  "fill": "$surface-raised",
+                  "cornerRadius": 24,
+                  "gap": 8,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "v1TDP",
+                      "name": "More suggestions icon",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "plus",
+                      "library": "lucide",
+                      "fill": "$brand-primary"
+                    },
+                    {
+                      "type": "text",
+                      "id": "PChHz",
+                      "name": "More suggestions label",
+                      "fill": "$brand-primary",
+                      "content": "More suggestions",
+                      "fontFamily": "$font-body",
+                      "fontSize": 15,
+                      "fontWeight": "600"
                     }
                   ]
                 }

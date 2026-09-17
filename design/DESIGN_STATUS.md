@@ -155,6 +155,8 @@ Approved Q/A flow below Drafts at y=18746 (S36). Based on existing question card
 | AMA Q/A · Q2 · Read and Record | `E4LFx` | Proposed | Approved S36; Full transcript, question scrubber, familiar recorder and buffer |
 | AMA Q/A · Q3 · Recording Answer | `HadXP` | Proposed | Approved S36; Transcript visible while recording; persistent buffer |
 | AMA Q/A · Q4 · Review and Add | `Q52Pi9` | Proposed | Approved S36; Preview, Re-record and Add to Show; optional song immediately after the Q/A pair |
+| AMA · Song Search · Sheet | `dXnbm` | Proposed | Approved 2026-09-16; album artwork; Search / Suggestions tabs; bottom search field; available songs and future requests; no buffer |
+| AMA · Song Suggestions · Sheet | `SQv86` | Proposed | Approved 2026-09-16; Suggestions tab; artwork, preview, Add/Added states; five illustrative suggestions; More suggestions appends new choices |
 
 PNG and resolved JSON: `features/live-shows/exports/approved/`.
 

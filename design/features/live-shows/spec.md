@@ -511,3 +511,19 @@ Indefinite show continuation; continuous live-repair; a measured-duration guaran
 ### S39 approval
 
 39. Revision S39 — User rejected the S38 heavy design and approved the generic **live-shows** primitive: slim `liveShows` identity row + `spins.liveShowId`/`isFiller`; two endpoints (`liveShow` create, `liveShow/:id/end`); live edits reuse the existing schedule editor unchanged; the 2-min horizon is inherited (no new constant); 3 filler spins + insertion-shift give graceful fallback to rotation with no worker; deferred Q&A answers during a show; liveness derived + batched; one durable go-live push. Four small scheduler guards are the only real deltas. Estimated ~2 PRs. Feature/dir renamed `ama-show-runner` → `live-shows`; the S1–S36 visual-design log remains valid. `implementation-plan.md` rewritten to match. Ready for the design PR to `develop`.
+
+## Song Search sheet — visual approval (2026-09-16)
+
+User approved `dXnbm` (AMA · Song Search · Sheet) and requested export. Presents two distinct result lists: available database songs with Add/Added actions, followed by songs to request for next time with Request/Requested actions. Presented as a dismissible sheet with a drag handle and close button; no timeline, live buffer, or tab bar. Search is anchored at the bottom and is intended to move above the keyboard when focused. PNG: `exports/approved/ama-song-search-sheet--dXnbm.png`; resolved node: `exports/approved/dXnbm.json`. This records visual approval; no new backend contract is established by this export.
+
+
+## Song picker tabs and artwork — visual approval (2026-09-16)
+
+User approved the revised Search sheet `dXnbm` and new Suggestions sheet `SQv86` and requested both exports. This supersedes the previous no-tab-bar note for the song picker: both sheets now show Search / Suggestions tabs beneath Add a Song. Search retains its bottom field and available-versus-request sections. Suggestions shows five illustrative available songs with preview and Add/Added controls. Both use album artwork thumbnails; sample covers are illustrative, and implementation must bind each song’s matching catalog artwork. Preserve query and added state when switching tabs. This is visual approval only; recommendation selection and backend contracts are not established by these exports.
+
+Exports: `exports/approved/ama-song-search-sheet--dXnbm.png`, `exports/approved/ama-song-suggestions-sheet--SQv86.png`, `dXnbm.json`, `SQv86.json`, `song-picker-pen-nodes.json`, `song-picker-css.html`, and `song-picker-tailwind.html` in the same approved export folder.
+
+
+### More suggestions — user revision (2026-09-16)
+
+Added a More suggestions button below the list in `SQv86`. It appends fresh choices without replacing current results or Added states. Loading disables repeat requests; failure retains results and offers retry; exhaustion directs users to Search. Canvas and PNG/JSON/HTML exports updated. Backend recommendation contracts remain to be defined.
