@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 8/31/25.
 //
 
+import ConcurrencyExtras
 import Dependencies
 import Foundation
 import Sharing
@@ -114,6 +115,54 @@ struct MainContainerNavigationCoordinatorTests {
       // Any pushed pages on the Your Library stack are cleared
       #expect(coordinator.path.isEmpty)
       #expect(activeTab == .yourLibrary)
+    }
+  }
+
+  @Test
+  func testNavigateToLikedSongsAbandonsAMASetupOnYourLibraryStack() async throws {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .yourLibrary
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let uploadStarted = AsyncStream.makeStream(of: Void.self)
+    let uploadCancelled = LockIsolated(false)
+
+    try await withDependencies {
+      $0.continuousClock = ImmediateClock()
+      $0.uuid = .incrementing
+      $0.date.now = Date(timeIntervalSince1970: 0)
+      $0.audioRecorder.deleteRecording = { _ in }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, _ in
+        try await withTaskCancellationHandler {
+          uploadStarted.continuation.yield()
+          while !Task.isCancelled { await Task.yield() }
+          throw CancellationError()
+        } onCancel: {
+          uploadCancelled.setValue(true)
+        }
+      }
+    } operation: {
+      let model = AskMeAnythingSetupPageModel(stationId: "station-abc")
+      coordinator.yourLibraryPath = [.askMeAnythingSetupPage(model)]
+
+      model.voicetrackActionTapped()
+      guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+        Issue.record("Expected recorder push")
+        return
+      }
+      try recorder.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/vt.wav"), 60)
+      var iterator = uploadStarted.stream.makeAsyncIterator()
+      await iterator.next()
+
+      await coordinator.navigateToLikedSongs()
+      await Task.yield()
+
+      #expect(uploadCancelled.value)
+      #expect(coordinator.yourLibraryPath.isEmpty)
+
+      model.setupAbandoned()
+      await model.waitForPendingUploads()
     }
   }
 

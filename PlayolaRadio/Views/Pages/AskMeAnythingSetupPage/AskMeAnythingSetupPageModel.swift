@@ -75,7 +75,7 @@ class AskMeAnythingSetupPageModel: ViewModel {
   }
 
   func waitForPendingUploads() async {
-    for task in Array(uploadTasks.values) {
+    while let task = uploadTasks.values.first {
       await task.value
     }
   }
@@ -249,7 +249,6 @@ class AskMeAnythingSetupPageModel: ViewModel {
 
   private func cancelUploads() {
     for task in uploadTasks.values { task.cancel() }
-    uploadTasks.removeAll()
   }
 
   private func durationLabel(_ milliseconds: Int) -> String {

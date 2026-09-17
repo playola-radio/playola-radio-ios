@@ -25,6 +25,19 @@ struct AskMeAnythingSetupPageTests {
       content: .intro(.mockWith(id: "intro", durationMS: durationMS)))
   }
 
+  private func acceptVoicetrack(
+    named name: String,
+    model: AskMeAnythingSetupPageModel,
+    coordinator: MainContainerNavigationCoordinator
+  ) throws {
+    model.voicetrackActionTapped()
+    guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+      Issue.record("Expected recorder push")
+      return
+    }
+    try recorder.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/\(name)"), 10)
+  }
+
   @Test func displaysIntroCopy() {
     let model = AskMeAnythingSetupPageModel(stationId: testStationId)
 
@@ -354,33 +367,45 @@ struct AskMeAnythingSetupPageTests {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
 
+    let firstStarted = AsyncStream.makeStream(of: Void.self)
+    let secondStarted = AsyncStream.makeStream(of: Void.self)
+    let releaseFirst = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
+    let releaseSecond = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
+
     try await withDependencies {
       $0.uuid = .incrementing
       $0.date.now = Date(timeIntervalSince1970: 0)
       $0.audioRecorder.deleteRecording = { _ in }
       $0.voicetrackUploadService = VoicetrackUploadService { vt, _, _, onStatus in
+        let isFirst = vt.originalURL.lastPathComponent.contains("first")
+        if isFirst {
+          firstStarted.continuation.yield()
+          await withCheckedContinuation { releaseFirst.setValue($0) }
+        } else {
+          secondStarted.continuation.yield()
+          await withCheckedContinuation { releaseSecond.setValue($0) }
+        }
         await onStatus(.completed)
-        let ms = vt.originalURL.lastPathComponent.contains("first") ? 100_000 : 200_000
+        let ms = isFirst ? 100_000 : 200_000
         return .mockWith(id: vt.originalURL.lastPathComponent, durationMS: ms)
       }
     } operation: {
       let model = AskMeAnythingSetupPageModel(stationId: testStationId)
       coordinator.push(.askMeAnythingSetupPage(model))
 
-      model.voicetrackActionTapped()
-      guard case .recordWithMultiStepPromptPage(let r1) = coordinator.path.last else {
-        Issue.record("Expected recorder push")
-        return
-      }
-      try r1.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/first.wav"), 10)
-      model.voicetrackActionTapped()
-      guard case .recordWithMultiStepPromptPage(let r2) = coordinator.path.last else {
-        Issue.record("Expected recorder push")
-        return
-      }
-      try r2.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/second.wav"), 10)
+      try acceptVoicetrack(named: "first.wav", model: model, coordinator: coordinator)
+      var firstIterator = firstStarted.stream.makeAsyncIterator()
+      await firstIterator.next()
 
-      await model.waitForPendingUploads()
+      try acceptVoicetrack(named: "second.wav", model: model, coordinator: coordinator)
+      var secondIterator = secondStarted.stream.makeAsyncIterator()
+      await secondIterator.next()
+
+      let waitTask = Task { await model.waitForPendingUploads() }
+      releaseSecond.withValue { $0?.resume() }
+      await Task.yield()
+      releaseFirst.withValue { $0?.resume() }
+      await waitTask.value
 
       expectNoDifference(model.openingItems.count, 2)
       expectNoDifference(model.openingItems.map(\.readyDurationMS), [100_000, 200_000])
@@ -438,10 +463,11 @@ struct AskMeAnythingSetupPageTests {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
 
+    let deleted = LockIsolated<[URL]>([])
     try await withDependencies {
       $0.uuid = .incrementing
       $0.date.now = Date(timeIntervalSince1970: 0)
-      $0.audioRecorder.deleteRecording = { _ in }
+      $0.audioRecorder.deleteRecording = { url in deleted.withValue { $0.append(url) } }
       $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, _ in
         while !Task.isCancelled { await Task.yield() }
         throw CancellationError()
@@ -454,7 +480,8 @@ struct AskMeAnythingSetupPageTests {
         Issue.record("Expected recorder push")
         return
       }
-      try recorder.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/vt.wav"), 60)
+      let url = URL(fileURLWithPath: "/tmp/vt.wav")
+      try recorder.onRecordingAccepted?(url, 60)
       coordinator.pop()
 
       model.backButtonTapped()
@@ -462,6 +489,7 @@ struct AskMeAnythingSetupPageTests {
 
       #expect(model.presentedAlert == nil)
       #expect(coordinator.path.isEmpty)
+      expectNoDifference(deleted.value, [url])
     }
   }
 

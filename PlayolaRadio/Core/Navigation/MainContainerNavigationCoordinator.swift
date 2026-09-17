@@ -241,7 +241,7 @@ final class MainContainerNavigationCoordinator {
 
     // Liked songs now live on the Your Library tab; switch to it and reset its
     // stack so the library root (Presets + Liked Songs) is shown.
-    yourLibraryPath = []
+    setPath([], at: \.yourLibraryPath)
     if activeTab != .yourLibrary {
       withAnimation(.easeInOut(duration: 0.3)) {
         $activeTab.withLock { $0 = .yourLibrary }
