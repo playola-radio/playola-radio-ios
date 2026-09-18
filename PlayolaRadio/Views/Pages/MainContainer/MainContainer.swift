@@ -92,7 +92,7 @@ struct MainContainer: View {
       item: Binding(
         get: {
           switch model.mainContainerNavigationCoordinator.presentedSheet {
-          case .recordPage, .recordIntroPage, .songSearchPage:
+          case .recordPage, .recordIntroPage, .songSearchPage, .curatorSongPicker:
             return model.mainContainerNavigationCoordinator.presentedSheet
           default:
             return nil
@@ -116,6 +116,10 @@ struct MainContainer: View {
           }
         case .songSearchPage(let songSearchPageModel):
           SongSearchPageView(model: songSearchPageModel)
+        case .curatorSongPicker(let curatorSongPickerModel):
+          NavigationStack {
+            CuratorSongPickerPageView(model: curatorSongPickerModel)
+          }
         default:
           EmptyView()
         }

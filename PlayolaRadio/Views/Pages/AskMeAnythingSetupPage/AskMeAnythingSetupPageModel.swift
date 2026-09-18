@@ -81,16 +81,15 @@ class AskMeAnythingSetupPageModel: ViewModel {
   }
 
   func songActionTapped() {
-    let search = SongSearchPageModel(searchMode: .all, stationId: stationId)
-    search.onDismiss = { [weak self] in
+    let picker = CuratorSongPickerPageModel(
+      stationId: stationId, initialAddedSongIds: addedSongIds)
+    picker.onAddSong = { [weak self] audioBlock in
+      self?.addSong(audioBlock)
+    }
+    picker.onDismiss = { [weak self] in
       self?.$navigationCoordinator.withLock { $0.presentedSheet = nil }
     }
-    search.onSongSelected = { [weak self] audioBlock in
-      guard let self else { return }
-      addSong(audioBlock)
-      $navigationCoordinator.withLock { $0.presentedSheet = nil }
-    }
-    navigationCoordinator.presentedSheet = .songSearchPage(search)
+    navigationCoordinator.presentedSheet = .curatorSongPicker(picker)
   }
 
   func qaActionTapped() {}
@@ -183,6 +182,14 @@ class AskMeAnythingSetupPageModel: ViewModel {
   var startShowButtonTitleColor: Color { isStartShowEnabled ? .white : .playolaGray }
 
   // MARK: - Private Helpers
+
+  private var addedSongIds: Set<String> {
+    Set(
+      openingItems.compactMap { item -> String? in
+        guard case .song(let block) = item.content else { return nil }
+        return block.id
+      })
+  }
 
   private func addSong(_ audioBlock: AudioBlock) {
     openingItems.append(AMAOpeningItem(id: uuid(), content: .song(audioBlock)))

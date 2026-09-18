@@ -5,6 +5,8 @@
 //  Created by Brian D Keane on 5/21/24.
 //
 
+// swiftlint:disable file_length
+
 import Alamofire
 import Dependencies
 import DependenciesMacros
@@ -452,6 +454,17 @@ struct APIClient: Sendable {
   /// - Throws: APIError if the request fails
   var requestSong: @Sendable (_ jwtToken: String, _ songRequest: SongRequest) async throws -> Void =
     { _, _ in
+    }
+
+  /// Fetches curated song suggestions for a station
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station to suggest songs for
+  /// - Returns: Array of SongSuggestions ordered least→most burned out
+  /// - Throws: APIError if the request fails
+  var getSongSuggestions:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> [SongSuggestion] = {
+      _, _ in []
     }
 
   /// Registers a device for push notifications

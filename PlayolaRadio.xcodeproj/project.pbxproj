@@ -170,6 +170,11 @@
 		CC0000000000000000000405 /* MusicCategoryDetailPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000404 /* MusicCategoryDetailPageView.swift */; };
 		CC0000000000000000000406 /* MusicCategoryDetailPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000404 /* MusicCategoryDetailPageView.swift */; };
 		CC0000000000000000000408 /* MusicCategoryDetailPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000407 /* MusicCategoryDetailPageTests.swift */; };
+		CURA700000000000000002 /* CuratorSongPickerPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CURA700000000000000001 /* CuratorSongPickerPageModel.swift */; };
+		CURA700000000000000003 /* CuratorSongPickerPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CURA700000000000000001 /* CuratorSongPickerPageModel.swift */; };
+		CURA700000000000000011 /* CuratorSongPickerPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CURA700000000000000010 /* CuratorSongPickerPageTests.swift */; };
+		CURA700000000000000021 /* CuratorSongPickerPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CURA700000000000000020 /* CuratorSongPickerPageView.swift */; };
+		CURA700000000000000022 /* CuratorSongPickerPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CURA700000000000000020 /* CuratorSongPickerPageView.swift */; };
 		CC0000000000000000000505 /* SectionIndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000504 /* SectionIndexView.swift */; };
 		CC0000000000000000000506 /* SectionIndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000504 /* SectionIndexView.swift */; };
 		D0CD5FE434D4950E16A7B1F9 /* GiveawayOverlayModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A4D634B4C9B84C1C25F6458 /* GiveawayOverlayModel.swift */; };
@@ -490,6 +495,8 @@
 		D397286C2F60CF59008591E3 /* StationSuggestionPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39728672F60CF59008591E3 /* StationSuggestionPageView.swift */; };
 		D39728712F60DCCC008591E3 /* ArtistSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39728702F60DCCC008591E3 /* ArtistSuggestion.swift */; };
 		D39728722F60DCCC008591E3 /* ArtistSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39728702F60DCCC008591E3 /* ArtistSuggestion.swift */; };
+		D3FACE040000000000000002 /* SongSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE040000000000000001 /* SongSuggestion.swift */; };
+		D3FACE040000000000000003 /* SongSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE040000000000000001 /* SongSuggestion.swift */; };
 		D39728762F60E2A7008591E3 /* StationSuggestionPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39728732F60E29B008591E3 /* StationSuggestionPageTests.swift */; };
 		D3A08A2F2E4E2A35002468E0 /* AnalyticsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A08A2E2E4E2A31002468E0 /* AnalyticsClient.swift */; };
 		D3A08A312E4E2E2A002468E0 /* AnalyticsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A08A302E4E2E0F002468E0 /* AnalyticsEvent.swift */; };
@@ -585,10 +592,14 @@
 		D3FACE010000000000000002 /* InDevelopmentBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE010000000000000001 /* InDevelopmentBadge.swift */; };
 		D3FACE010000000000000003 /* InDevelopmentBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE010000000000000001 /* InDevelopmentBadge.swift */; };
 		D3FACE010000000000000005 /* ArtistSuggestionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE010000000000000004 /* ArtistSuggestionTests.swift */; };
+		D3FACE040000000000000011 /* SongSuggestionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE040000000000000010 /* SongSuggestionTests.swift */; };
 		BEEF00000000000000000302 /* StationSetupProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEF00000000000000000301 /* StationSetupProgressTests.swift */; };
 		BEEF00000000000000000402 /* StationCategoryProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEF00000000000000000401 /* StationCategoryProgressTests.swift */; };
 		D3FACE020000000000000002 /* RemoteArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE020000000000000001 /* RemoteArtwork.swift */; };
 		D3FACE020000000000000003 /* RemoteArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE020000000000000001 /* RemoteArtwork.swift */; };
+		D3FACE020000000000000011 /* SongPreviewPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE020000000000000010 /* SongPreviewPlayer.swift */; };
+		D3FACE020000000000000012 /* SongPreviewPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE020000000000000010 /* SongPreviewPlayer.swift */; };
+		D3FACE020000000000000021 /* SongPreviewPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE020000000000000020 /* SongPreviewPlayerTests.swift */; };
 		D3FACE030000000000000011 /* Spin+Progress.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE030000000000000010 /* Spin+Progress.swift */; };
 		D3FACE030000000000000012 /* Spin+Progress.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE030000000000000010 /* Spin+Progress.swift */; };
 		D3FACE030000000000000021 /* Spin+ProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FACE030000000000000020 /* Spin+ProgressTests.swift */; };
@@ -752,6 +763,9 @@
 		CC0000000000000000000401 /* MusicCategoryDetailPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicCategoryDetailPageModel.swift; sourceTree = "<group>"; };
 		CC0000000000000000000404 /* MusicCategoryDetailPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicCategoryDetailPageView.swift; sourceTree = "<group>"; };
 		CC0000000000000000000407 /* MusicCategoryDetailPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicCategoryDetailPageTests.swift; sourceTree = "<group>"; };
+		CURA700000000000000001 /* CuratorSongPickerPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuratorSongPickerPageModel.swift; sourceTree = "<group>"; };
+		CURA700000000000000010 /* CuratorSongPickerPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuratorSongPickerPageTests.swift; sourceTree = "<group>"; };
+		CURA700000000000000020 /* CuratorSongPickerPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuratorSongPickerPageView.swift; sourceTree = "<group>"; };
 		CC0000000000000000000504 /* SectionIndexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionIndexView.swift; sourceTree = "<group>"; };
 		CCD2F408E712B42EAED9BE68 /* GiveawayCoordinatorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayCoordinatorTests.swift; sourceTree = "<group>"; };
 		D302576A2E63423B00F4228B /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
@@ -922,6 +936,7 @@
 		D39728662F60CF59008591E3 /* StationSuggestionPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationSuggestionPageModel.swift; sourceTree = "<group>"; };
 		D39728672F60CF59008591E3 /* StationSuggestionPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationSuggestionPageView.swift; sourceTree = "<group>"; };
 		D39728702F60DCCC008591E3 /* ArtistSuggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistSuggestion.swift; sourceTree = "<group>"; };
+		D3FACE040000000000000001 /* SongSuggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongSuggestion.swift; sourceTree = "<group>"; };
 		D39728732F60E29B008591E3 /* StationSuggestionPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationSuggestionPageTests.swift; sourceTree = "<group>"; };
 		D3A08A2E2E4E2A31002468E0 /* AnalyticsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsClient.swift; sourceTree = "<group>"; };
 		D3A08A302E4E2E0F002468E0 /* AnalyticsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEvent.swift; sourceTree = "<group>"; };
@@ -988,9 +1003,12 @@
 		D3FA61292E00583F00E9DF49 /* PlayerPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPageModel.swift; sourceTree = "<group>"; };
 		D3FACE010000000000000001 /* InDevelopmentBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InDevelopmentBadge.swift; sourceTree = "<group>"; };
 		D3FACE010000000000000004 /* ArtistSuggestionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistSuggestionTests.swift; sourceTree = "<group>"; };
+		D3FACE040000000000000010 /* SongSuggestionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongSuggestionTests.swift; sourceTree = "<group>"; };
 		BEEF00000000000000000301 /* StationSetupProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationSetupProgressTests.swift; sourceTree = "<group>"; };
 		BEEF00000000000000000401 /* StationCategoryProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationCategoryProgressTests.swift; sourceTree = "<group>"; };
 		D3FACE020000000000000001 /* RemoteArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteArtwork.swift; sourceTree = "<group>"; };
+		D3FACE020000000000000010 /* SongPreviewPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongPreviewPlayer.swift; sourceTree = "<group>"; };
+		D3FACE020000000000000020 /* SongPreviewPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongPreviewPlayerTests.swift; sourceTree = "<group>"; };
 		D3FACE030000000000000010 /* Spin+Progress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Spin+Progress.swift"; sourceTree = "<group>"; };
 		D3FACE030000000000000020 /* Spin+ProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Spin+ProgressTests.swift"; sourceTree = "<group>"; };
 		D3FE88832E37EF24009AE7B7 /* PrizeTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTier.swift; sourceTree = "<group>"; };
@@ -1245,6 +1263,16 @@
 			path = MusicCategoryDetailPage;
 			sourceTree = "<group>";
 		};
+		CURA700000000000000000 /* CuratorSongPickerPage */ = {
+			isa = PBXGroup;
+			children = (
+				CURA700000000000000001 /* CuratorSongPickerPageModel.swift */,
+				CURA700000000000000020 /* CuratorSongPickerPageView.swift */,
+				CURA700000000000000010 /* CuratorSongPickerPageTests.swift */,
+			);
+			path = CuratorSongPickerPage;
+			sourceTree = "<group>";
+		};
 		D302576E2E63429000F4228B /* Toast */ = {
 			isa = PBXGroup;
 			children = (
@@ -1328,6 +1356,8 @@
 				D39728582F5F0427008591E3 /* AppVersionRequirements.swift */,
 				D39728702F60DCCC008591E3 /* ArtistSuggestion.swift */,
 				D3FACE010000000000000004 /* ArtistSuggestionTests.swift */,
+				D3FACE040000000000000001 /* SongSuggestion.swift */,
+				D3FACE040000000000000010 /* SongSuggestionTests.swift */,
 				D3FACE030000000000000010 /* Spin+Progress.swift */,
 				D3FACE030000000000000020 /* Spin+ProgressTests.swift */,
 				D35EFC252F192AAF000F64A4 /* Conversation.swift */,
@@ -1441,6 +1471,7 @@
 				CC0000000000000000000200 /* BreakerCategoryDetailPage */,
 				CC0000000000000000000300 /* MusicLibraryPage */,
 				CC0000000000000000000400 /* MusicCategoryDetailPage */,
+				CURA700000000000000000 /* CuratorSongPickerPage */,
 				CC0000000000000000000600 /* ShowsPage */,
 				CC0000000000000000000700 /* AskMeAnythingSetupPage */,
 				CC0000000000000000000900 /* RecordWithMultiStepPromptPage */,
@@ -1484,6 +1515,8 @@
 				D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */,
 				D3FACE010000000000000001 /* InDevelopmentBadge.swift */,
 				D3FACE020000000000000001 /* RemoteArtwork.swift */,
+				D3FACE020000000000000010 /* SongPreviewPlayer.swift */,
+				D3FACE020000000000000020 /* SongPreviewPlayerTests.swift */,
 				D35EFBF42F1576EF000F64A4 /* NewFeatureTile */,
 				D3137DBA2D3976550070033A /* PlayolaAlert.swift */,
 				D3137DCE2D3AA1E10070033A /* PlayolaSheet.swift */,
@@ -2411,6 +2444,7 @@
 				D35EFC242F17D4CC000F64A4 /* LiveBadge.swift in Sources */,
 				D3FACE010000000000000003 /* InDevelopmentBadge.swift in Sources */,
 				D3FACE020000000000000003 /* RemoteArtwork.swift in Sources */,
+				D3FACE020000000000000012 /* SongPreviewPlayer.swift in Sources */,
 				D30F00542E8592F0007BCC73 /* ViewModel.swift in Sources */,
 				D30F00552E8592F0007BCC73 /* SignInPageView.swift in Sources */,
 				ABCDEF040000000000000002 /* SignInPadView.swift in Sources */,
@@ -2470,6 +2504,8 @@
 				CC0000000000000000000902 /* RecordWithMultiStepPromptModel.swift in Sources */,
 				CC0000000000000000000905 /* RecordWithMultiStepPromptView.swift in Sources */,
 				CC0000000000000000000402 /* MusicCategoryDetailPageModel.swift in Sources */,
+				CURA700000000000000002 /* CuratorSongPickerPageModel.swift in Sources */,
+				CURA700000000000000021 /* CuratorSongPickerPageView.swift in Sources */,
 				CC0000000000000000000405 /* MusicCategoryDetailPageView.swift in Sources */,
 				CC0000000000000000000505 /* SectionIndexView.swift in Sources */,
 				D30F00642E8592F0007BCC73 /* PrizeTier.swift in Sources */,
@@ -2555,6 +2591,7 @@
 				ABCDEF010000000000000002 /* TabBarPlatformChrome.swift in Sources */,
 				D3776A3B2F2918DE00200ADF /* WaveformViews.swift in Sources */,
 				D39728712F60DCCC008591E3 /* ArtistSuggestion.swift in Sources */,
+				D3FACE040000000000000002 /* SongSuggestion.swift in Sources */,
 				D3FACE030000000000000011 /* Spin+Progress.swift in Sources */,
 				D30F00902E8592F0007BCC73 /* ToastView.swift in Sources */,
 				D3FEC80C2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */,
@@ -2658,6 +2695,7 @@
 				D35EFC232F17D4CC000F64A4 /* LiveBadge.swift in Sources */,
 				D3FACE010000000000000002 /* InDevelopmentBadge.swift in Sources */,
 				D3FACE020000000000000002 /* RemoteArtwork.swift in Sources */,
+				D3FACE020000000000000011 /* SongPreviewPlayer.swift in Sources */,
 				D31CD5232DFBA1F2009B9780 /* ViewModel.swift in Sources */,
 				D3B6626A2D40103C00975D2F /* SignInPageView.swift in Sources */,
 				ABCDEF040000000000000003 /* SignInPadView.swift in Sources */,
@@ -2717,6 +2755,8 @@
 				CC0000000000000000000903 /* RecordWithMultiStepPromptModel.swift in Sources */,
 				CC0000000000000000000906 /* RecordWithMultiStepPromptView.swift in Sources */,
 				CC0000000000000000000403 /* MusicCategoryDetailPageModel.swift in Sources */,
+				CURA700000000000000003 /* CuratorSongPickerPageModel.swift in Sources */,
+				CURA700000000000000022 /* CuratorSongPickerPageView.swift in Sources */,
 				CC0000000000000000000406 /* MusicCategoryDetailPageView.swift in Sources */,
 				CC0000000000000000000506 /* SectionIndexView.swift in Sources */,
 				D3FE88842E37EF29009AE7B7 /* PrizeTier.swift in Sources */,
@@ -2802,6 +2842,7 @@
 				ABCDEF010000000000000003 /* TabBarPlatformChrome.swift in Sources */,
 				D3776A3C2F2918DE00200ADF /* WaveformViews.swift in Sources */,
 				D39728722F60DCCC008591E3 /* ArtistSuggestion.swift in Sources */,
+				D3FACE040000000000000003 /* SongSuggestion.swift in Sources */,
 				D3FACE030000000000000012 /* Spin+Progress.swift in Sources */,
 				D30257762E6342C900F4228B /* ToastView.swift in Sources */,
 				D3FEC80B2EDF647600A33AE8 /* ChooseStationToBroadcastPageModel.swift in Sources */,
@@ -2893,6 +2934,8 @@
 				CC0000000000000000000708 /* AskMeAnythingSetupPageTests.swift in Sources */,
 				CC0000000000000000000908 /* RecordWithMultiStepPromptTests.swift in Sources */,
 				CC0000000000000000000408 /* MusicCategoryDetailPageTests.swift in Sources */,
+				CURA700000000000000011 /* CuratorSongPickerPageTests.swift in Sources */,
+				D3FACE020000000000000021 /* SongPreviewPlayerTests.swift in Sources */,
 				D3137DC62D39BEE00070033A /* URLStreamPlayerMock.swift in Sources */,
 				D3FEC80D2EDF689F00A33AE8 /* ChooseStationToBroadcastPageTests.swift in Sources */,
 				D3A1B2C001000000000000A6 /* StationVoiceCatalogTests.swift in Sources */,
@@ -2930,6 +2973,7 @@
 				D35EFBEE2F1092A7000F64A4 /* RRuleFormatterTests.swift in Sources */,
 				D39728762F60E2A7008591E3 /* StationSuggestionPageTests.swift in Sources */,
 				D3FACE010000000000000005 /* ArtistSuggestionTests.swift in Sources */,
+				D3FACE040000000000000011 /* SongSuggestionTests.swift in Sources */,
 				BEEF00000000000000000302 /* StationSetupProgressTests.swift in Sources */,
 				BEEF00000000000000000402 /* StationCategoryProgressTests.swift in Sources */,
 				D3FACE030000000000000021 /* Spin+ProgressTests.swift in Sources */,

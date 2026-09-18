@@ -5,6 +5,8 @@
 //  Created by Brian D Keane on 12/17/25.
 //
 
+// swiftlint:disable file_length
+
 import Alamofire
 import Dependencies
 import Foundation
@@ -712,6 +714,10 @@ extension APIClient: DependencyKey {
         try await authenticatedPostVoid(
           path: "/v1/songs/requests", token: jwtToken, parameters: parameters
         )
+      },
+      getSongSuggestions: { jwtToken, stationId in
+        try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/song-suggestions", token: jwtToken)
       },
       registerDevice: { jwtToken, deviceToken, platform, appVersion in
         try await authenticatedPost(
