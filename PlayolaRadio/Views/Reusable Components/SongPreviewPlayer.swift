@@ -178,12 +178,13 @@ final class SongPreviewPlayer {
 
   private func formatTime(_ seconds: TimeInterval) -> String {
     guard seconds.isFinite else { return "0:00" }
-    let totalSeconds = Int(seconds)
+    let nonNegative = max(0, seconds)
+    let totalSeconds = nonNegative >= Double(Int.max) ? Int.max : Int(nonNegative)
     let hours = totalSeconds / 3600
     let minutes = (totalSeconds % 3600) / 60
     let secs = totalSeconds % 60
     if hours > 0 {
-      return String(format: "%d:%02d:%02d", hours, minutes, secs)
+      return "\(hours):" + String(format: "%02d:%02d", minutes, secs)
     }
     return String(format: "%d:%02d", minutes, secs)
   }

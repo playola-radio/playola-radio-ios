@@ -233,6 +233,7 @@ struct CuratorSongPickerPageView: View {
     }
     .padding(.horizontal, 40)
     .opacity(model.suggestionsErrorOpacity)
+    .allowsHitTesting(model.suggestionsErrorAllowsHitTesting)
     .accessibilityHidden(model.suggestionsErrorAccessibilityHidden)
   }
 

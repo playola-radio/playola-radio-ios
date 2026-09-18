@@ -4,6 +4,7 @@
 //
 
 import Dependencies
+import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
 import SwiftUI
@@ -21,20 +22,11 @@ class CuratorSongPickerPageModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.continuousClock) var clock
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
 
   // MARK: - Shared State
 
   @ObservationIgnored @Shared(.auth) var auth
-
-  // MARK: - Configuration
-
-  let stationId: String
-  var onAddSong: ((AudioBlock) -> Void)?
-  var onDismiss: (() -> Void)?
-
-  // MARK: - Preview
-
-  let preview: SongPreviewPlayer
 
   // MARK: - Initialization
 
@@ -51,18 +43,23 @@ class CuratorSongPickerPageModel: ViewModel {
 
   // MARK: - Properties
 
+  let stationId: String
+  var onAddSong: ((AudioBlock) -> Void)?
+  var onDismiss: (() -> Void)?
+  let preview: SongPreviewPlayer
+
   var selectedTab: Tab = .search
   var searchText: String = "" {
     didSet { onSearchTextChanged() }
   }
-  var searchResults: [AudioBlock] = []
-  var songRequestResults: [SongRequest] = []
+  var searchResults: IdentifiedArrayOf<AudioBlock> = []
+  var songRequestResults: IdentifiedArrayOf<SongRequest> = []
   var isSearching = false
 
   private(set) var addedSongIds: Set<String>
   var requestedAppleIds: Set<String> = []
 
-  var suggestions: [AudioBlock] = []
+  var suggestions: IdentifiedArrayOf<AudioBlock> = []
   var visibleSuggestionCount = 0
   var isLoadingSuggestions = false
   var suggestionsFailed = false
@@ -181,14 +178,14 @@ class CuratorSongPickerPageModel: ViewModel {
     "\(block.artist) \u{00B7} \(durationLabel(block.durationMS))"
   }
 
-  var dedupedRequests: [SongRequest] {
+  var dedupedRequests: IdentifiedArrayOf<SongRequest> {
     songRequestResults.filter { request in
       !searchResults.contains { block in Self.isSameSong(request, block) }
     }
   }
 
-  var visibleSuggestions: [AudioBlock] {
-    Array(suggestions.prefix(visibleSuggestionCount))
+  var visibleSuggestions: IdentifiedArrayOf<AudioBlock> {
+    .init(uniqueElements: suggestions.prefix(visibleSuggestionCount))
   }
 
   var canLoadMoreSuggestions: Bool {
@@ -301,6 +298,7 @@ class CuratorSongPickerPageModel: ViewModel {
   var suggestionsLoadingAccessibilityHidden: Bool { !isLoadingSuggestions }
   var suggestionsErrorOpacity: Double { suggestionsFailed ? 1 : 0 }
   var suggestionsErrorAccessibilityHidden: Bool { !suggestionsFailed }
+  var suggestionsErrorAllowsHitTesting: Bool { suggestionsFailed }
   var moreSuggestionsButtons: [String] {
     canLoadMoreSuggestions ? [moreSuggestionsButtonText] : []
   }
@@ -312,6 +310,12 @@ class CuratorSongPickerPageModel: ViewModel {
 
   private func onSearchTextChanged() {
     debounceTask?.cancel()
+    guard !trimmedSearchText.isEmpty else {
+      searchResults = []
+      songRequestResults = []
+      isSearching = false
+      return
+    }
     debounceTask = Task { [weak self] in
       guard let self else { return }
       do {
@@ -335,6 +339,8 @@ class CuratorSongPickerPageModel: ViewModel {
     }
 
     guard let jwt = auth.jwt else {
+      searchResults = []
+      songRequestResults = []
       presentedAlert = .notAuthenticated
       isSearching = false
       return
@@ -348,23 +354,33 @@ class CuratorSongPickerPageModel: ViewModel {
     // half-updated result set (a library song could otherwise surface as a requestable row), and
     // bail if a newer search has since superseded this one so it can't clear the live spinner.
     guard !Task.isCancelled else { return }
-    searchResults = foundSongs
-    songRequestResults = foundRequests
+    searchResults = .init(foundSongs.results, uniquingIDsWith: { first, _ in first })
+    songRequestResults = .init(foundRequests.results, uniquingIDsWith: { first, _ in first })
     isSearching = false
-  }
-
-  private func searchSongs(jwt: String, query: String) async -> [AudioBlock] {
-    do {
-      return try await api.searchSongs(jwt, query)
-    } catch {
-      guard !Task.isCancelled else { return [] }
-      presentedAlert = .searchError(error.localizedDescription)
-      return []
+    let errors = [foundSongs.errorMessage, foundRequests.errorMessage].compactMap { $0 }
+    if !errors.isEmpty {
+      presentedAlert = .searchError(errors.joined(separator: "\n"))
     }
   }
 
-  private func searchSongRequests(jwt: String, query: String) async -> [SongRequest] {
-    (try? await api.searchSongRequests(jwt, query)) ?? []
+  private func searchSongs(jwt: String, query: String) async -> (
+    results: [AudioBlock], errorMessage: String?
+  ) {
+    do {
+      return (try await api.searchSongs(jwt, query), nil)
+    } catch {
+      return ([], error.localizedDescription)
+    }
+  }
+
+  private func searchSongRequests(jwt: String, query: String) async -> (
+    results: [SongRequest], errorMessage: String?
+  ) {
+    do {
+      return (try await api.searchSongRequests(jwt, query), nil)
+    } catch {
+      return ([], error.localizedDescription)
+    }
   }
 
   // The fetch is owned here (not by the view's `.task(id:)`) so switching away from and back to the
@@ -388,22 +404,22 @@ class CuratorSongPickerPageModel: ViewModel {
       return
     }
     isLoadingSuggestions = true
+    defer { isLoadingSuggestions = false }
     suggestionsFailed = false
     do {
       let fetched = try await api.getSongSuggestions(jwt, stationId)
-      var seenIds = Set<String>()
-      let uniqueBlocks = fetched.map(\.audioBlock).filter { seenIds.insert($0.id).inserted }
-      suggestions = uniqueBlocks
-      visibleSuggestionCount = min(suggestionsPageSize, uniqueBlocks.count)
+      suggestions = .init(fetched.map(\.audioBlock), uniquingIDsWith: { first, _ in first })
+      visibleSuggestionCount = min(suggestionsPageSize, suggestions.count)
       hasLoadedSuggestions = true
     } catch {
       // A cancellation (sheet dismissed) is not a load failure: leave the tab retryable rather than
       // showing the error state.
       if !Task.isCancelled {
         suggestionsFailed = true
+        await errorReporting.reportError(
+          error, ["feature": "curatorSongPicker", "operation": "getSongSuggestions"])
       }
     }
-    isLoadingSuggestions = false
   }
 
   private func durationLabel(_ milliseconds: Int) -> String {

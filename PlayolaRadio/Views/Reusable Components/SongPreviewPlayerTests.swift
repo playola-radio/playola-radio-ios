@@ -154,6 +154,33 @@ struct SongPreviewPlayerTests {
     #expect(player.isBuffering(song))
   }
 
+  @Test(arguments: [
+    (-5.0, "0:00"),
+    (Double.nan, "0:00"),
+    (Double.infinity, "0:00"),
+    (-Double.infinity, "0:00"),
+    (90_061.0, "25:01:01"),
+    (Double(Int.max), "2562047788015215:30:07"),
+    (Double.greatestFiniteMagnitude, "2562047788015215:30:07"),
+  ])
+  func elapsedTimeHandlesInvalidAndLargeValues(seconds: Double, expected: String) async {
+    let client = AudioPlayerClient(
+      loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+      currentTime: { seconds }, duration: { 18 }, isPlaying: { true },
+      startPlayback: { _, onStateChange in
+        await onStateChange(PlaybackState(currentTime: seconds, duration: 18, isPlaying: true))
+        return PlaybackSession(play: {}, pause: {}, stop: {}, seek: { _ in }, cancel: {})
+      })
+    let player = withDependencies {
+      $0.audioPlayer = client
+    } operation: {
+      SongPreviewPlayer()
+    }
+    let song = block("1")
+    await player.toggle(song)
+    expectNoDifference(player.elapsedText(for: song), expected)
+  }
+
   @Test func nonFiniteDurationDoesNotTrapDurationText() async {
     let callbackBox = LockIsolated<(@MainActor @Sendable (PlaybackState) -> Void)?>(nil)
     let client = AudioPlayerClient(

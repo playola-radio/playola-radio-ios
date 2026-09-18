@@ -8,6 +8,7 @@ import ConcurrencyExtras
 import CustomDump
 import Dependencies
 import Foundation
+import Observation
 import PlayolaPlayer
 import Sharing
 import Testing
@@ -187,6 +188,121 @@ struct CuratorSongPickerPageTests {
 
   // MARK: - Search / debounce
 
+  @Test(arguments: ["", " \n "])
+  func clearingSearchImmediatelyRemovesRows(query: String) {
+    withDependencies {
+      $0.continuousClock = TestClock()
+      $0.date = .constant(Date())
+    } operation: {
+      let model = CuratorSongPickerPageModel(stationId: "s")
+      model.searchResults = [audioBlock(id: "stale")]
+      model.songRequestResults = [songRequest()]
+      model.isSearching = true
+
+      expectDifference(model.searchResults) {
+        model.searchText = query
+      } changes: {
+        $0 = []
+      }
+      #expect(model.songRequestResults.isEmpty)
+      #expect(!model.isSearching)
+    }
+  }
+
+  @Test(arguments: [false, true])
+  func requestSearchFailurePresentsOneCombinedAlert(songsFail: Bool) async {
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      let songError = NSError(
+        domain: "search", code: 1, userInfo: [NSLocalizedDescriptionKey: "Songs failed"])
+      let requestError = NSError(
+        domain: "search", code: 2, userInfo: [NSLocalizedDescriptionKey: "Requests failed"])
+      await withDependencies {
+        $0.continuousClock = clock
+        $0.date = .constant(Date())
+        $0.api.searchSongs = { _, _ in
+          if songsFail { throw songError }
+          return [self.audioBlock(id: "song")]
+        }
+        $0.api.searchSongRequests = { _, _ in throw requestError }
+      } operation: {
+        let model = CuratorSongPickerPageModel(stationId: "s")
+        model.searchText = "test"
+        await clock.advance(by: .milliseconds(300))
+        expectNoDifference(
+          model.presentedAlert?.message,
+          songsFail ? "Songs failed\nRequests failed" : "Requests failed")
+        #expect(!model.isSearching)
+        #expect(model.songRequestResults.isEmpty)
+        expectNoDifference(model.searchResults.map(\.id), songsFail ? [] : ["song"])
+      }
+    }
+  }
+
+  @Test func searchRemovesDuplicateIdentitiesWithoutChangingOrder() async {
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      await withDependencies {
+        $0.continuousClock = clock
+        $0.date = .constant(Date())
+        $0.api.searchSongs = { _, _ in
+          [
+            self.audioBlock(id: "first"), self.audioBlock(id: "first"),
+            self.audioBlock(id: "second"),
+          ]
+        }
+        $0.api.searchSongRequests = { _, _ in
+          [
+            self.songRequest(appleId: "first"), self.songRequest(appleId: "first"),
+            self.songRequest(appleId: "second"),
+          ]
+        }
+      } operation: {
+        let model = CuratorSongPickerPageModel(stationId: "s")
+        model.searchText = "test"
+        await clock.advance(by: .milliseconds(300))
+        expectNoDifference(model.searchResults.map(\.id), ["first", "second"])
+        expectNoDifference(model.songRequestResults.map(\.appleId), ["first", "second"])
+      }
+    }
+  }
+
+  @Test func previewTicksDoNotInvalidateListCollections() async {
+    let callback = LockIsolated<(@MainActor @Sendable (PlaybackState) -> Void)?>(nil)
+    let invalidated = LockIsolated(false)
+    let client = AudioPlayerClient(
+      loadFile: { _ in }, play: {}, pause: {}, stop: {}, seek: { _ in },
+      currentTime: { 0 }, duration: { 18 }, isPlaying: { true },
+      startPlayback: { _, onStateChange in
+        callback.setValue(onStateChange)
+        return PlaybackSession(play: {}, pause: {}, stop: {}, seek: { _ in }, cancel: {})
+      })
+    await withDependencies {
+      $0.date = .constant(Date())
+      $0.audioPlayer = client
+    } operation: {
+      let model = CuratorSongPickerPageModel(stationId: "s")
+      let song = audioBlock(id: "song")
+      model.searchResults = [song]
+      model.songRequestResults = [songRequest()]
+      model.suggestions = [song]
+      model.visibleSuggestionCount = 1
+      await model.previewButtonTapped(song)
+      withObservationTracking {
+        _ = model.searchResults
+        _ = model.dedupedRequests
+        _ = model.visibleSuggestions
+      } onChange: {
+        invalidated.setValue(true)
+      }
+      callback.value?(PlaybackState(currentTime: 0.1, duration: 18, isPlaying: true))
+      #expect(!invalidated.value)
+      await model.preview.stop()
+    }
+  }
+
   @Test func debounceCollapsesRapidInputToOneSearch() async {
     await withMainSerialExecutor {
       let clock = TestClock()
@@ -281,12 +397,16 @@ struct CuratorSongPickerPageTests {
         let model = CuratorSongPickerPageModel(stationId: "s")
         // A prior search put the spinner up; the token then expired (auth.jwt == nil).
         model.isSearching = true
+        model.searchResults = [audioBlock(id: "stale")]
+        model.songRequestResults = [songRequest()]
         model.searchText = "test"
 
         await clock.advance(by: .milliseconds(300))
 
         #expect(!model.isSearching)
         #expect(model.presentedAlert == .notAuthenticated)
+        #expect(model.searchResults.isEmpty)
+        #expect(model.songRequestResults.isEmpty)
       }
     }
   }
@@ -409,6 +529,47 @@ struct CuratorSongPickerPageTests {
 
   // MARK: - Suggestions
 
+  @Test func suggestionsErrorOnlyInterceptsTouchesWhenVisible() {
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let model = CuratorSongPickerPageModel(stationId: "s")
+      #expect(!model.suggestionsErrorAllowsHitTesting)
+      model.suggestionsFailed = true
+      #expect(model.suggestionsErrorAllowsHitTesting)
+      model.suggestionsFailed = false
+      #expect(!model.suggestionsErrorAllowsHitTesting)
+    }
+  }
+
+  @Test func dismissCancelsSuggestionsWithoutReportingFailure() async {
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      let reported = LockIsolated(false)
+      await withDependencies {
+        $0.continuousClock = clock
+        $0.date = .constant(Date())
+        $0.api.getSongSuggestions = { _, _ in
+          try await clock.sleep(for: .seconds(2))
+          return []
+        }
+        $0.errorReporting.reportError = { _, _ in reported.setValue(true) }
+      } operation: {
+        let model = CuratorSongPickerPageModel(stationId: "s")
+        let appearance = Task { await model.suggestionsAppeared() }
+        await clock.advance(by: .milliseconds(1))
+        #expect(model.isLoadingSuggestions)
+        model.doneButtonTapped()
+        await appearance.value
+        #expect(!model.isLoadingSuggestions)
+        #expect(!model.suggestionsFailed)
+        #expect(!reported.value)
+        #expect(model.presentedAlert == nil)
+      }
+    }
+  }
+
   @Test func suggestionsAppearedLoadsAndWindowsFirstPage() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let blocks = (0..<25).map { suggestion(audioBlock(id: "s\($0)")) }
@@ -474,9 +635,13 @@ struct CuratorSongPickerPageTests {
     struct SuggestionError: Error {}
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let shouldFail = LockIsolated(true)
+    let reportedErrors = LockIsolated<[String]>([])
 
     await withDependencies {
       $0.date = .constant(Date())
+      $0.errorReporting.reportError = { error, _ in
+        reportedErrors.withValue { $0.append(error.localizedDescription) }
+      }
       $0.api.getSongSuggestions = { _, _ in
         if shouldFail.value { throw SuggestionError() }
         return [self.suggestion(self.audioBlock(id: "s0"))]
@@ -486,6 +651,8 @@ struct CuratorSongPickerPageTests {
 
       await model.suggestionsAppeared()
       #expect(model.suggestionsFailed)
+      expectNoDifference(reportedErrors.value, [SuggestionError().localizedDescription])
+      #expect(model.presentedAlert == nil)
       #expect(model.suggestions.isEmpty)
       #expect(!model.isLoadingSuggestions)
 
