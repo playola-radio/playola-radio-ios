@@ -85,6 +85,7 @@ class CuratorSongPickerPageModel: ViewModel {
     guard !isAdded(block) else { return }
     addedSongIds.insert(block.id)
     onAddSong?(block)
+    onDismiss?()
   }
 
   func requestButtonTapped(_ request: SongRequest) async {

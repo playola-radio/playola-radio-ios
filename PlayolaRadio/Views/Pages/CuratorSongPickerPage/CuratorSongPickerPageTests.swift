@@ -443,52 +443,77 @@ struct CuratorSongPickerPageTests {
     }
   }
 
-  // MARK: - Add (one-way)
+  // MARK: - Add (dismisses on selection)
 
-  @Test func addButtonTappedInsertsIdAndCallsCallback() {
+  @Test func addButtonTappedAddsSongAndDismisses() {
     withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let added = LockIsolated<[String]>([])
+      let dismissCount = LockIsolated(0)
       let model = CuratorSongPickerPageModel(stationId: "s")
       model.onAddSong = { block in added.withValue { $0.append(block.id) } }
+      model.onDismiss = { dismissCount.withValue { $0 += 1 } }
       let block = audioBlock(id: "b1")
 
       model.addButtonTapped(block)
 
-      #expect(model.isAdded(block))
       #expect(added.value == ["b1"])
-      expectNoDifference(model.addButtonText(for: block), "Added")
+      #expect(dismissCount.value == 1)
+      #expect(model.isAdded(block))
     }
   }
 
-  @Test func addButtonTappedIsOneWay() {
+  @Test func addButtonTappedGuardsAgainstDoubleAddBeforeDismiss() {
     withDependencies {
       $0.date = .constant(Date())
     } operation: {
       let added = LockIsolated<[String]>([])
+      let dismissCount = LockIsolated(0)
       let model = CuratorSongPickerPageModel(stationId: "s")
       model.onAddSong = { block in added.withValue { $0.append(block.id) } }
+      model.onDismiss = { dismissCount.withValue { $0 += 1 } }
       let block = audioBlock(id: "b1")
 
       model.addButtonTapped(block)
       model.addButtonTapped(block)
 
       #expect(added.value == ["b1"])
+      #expect(dismissCount.value == 1)
       #expect(model.isAdded(block))
+    }
+  }
+
+  @Test func addingAnAlreadyAddedSongDoesNotDismiss() {
+    withDependencies {
+      $0.date = .constant(Date())
+    } operation: {
+      let added = LockIsolated<[String]>([])
+      let dismissCount = LockIsolated(0)
+      let model = CuratorSongPickerPageModel(
+        stationId: "s", initialAddedSongIds: ["b1"])
+      model.onAddSong = { block in added.withValue { $0.append(block.id) } }
+      model.onDismiss = { dismissCount.withValue { $0 += 1 } }
+
+      model.addButtonTapped(audioBlock(id: "b1"))
+
+      #expect(added.value.isEmpty)
+      #expect(dismissCount.value == 0)
     }
   }
 
   // MARK: - Request
 
-  @Test func requestButtonTappedMarksRequested() async {
+  @Test func requestButtonTappedMarksRequestedAndLeavesSheetOpen() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
       $0.date = .constant(Date())
       $0.api.requestSong = { _, _ in }
     } operation: {
+      let dismissCount = LockIsolated(0)
       let model = CuratorSongPickerPageModel(stationId: "s")
+      model.onDismiss = { dismissCount.withValue { $0 += 1 } }
       let request = songRequest(appleId: "req-a")
 
       await model.requestButtonTapped(request)
@@ -496,6 +521,7 @@ struct CuratorSongPickerPageTests {
       #expect(model.isRequested(request))
       #expect(model.requestedAppleIds.contains("req-a"))
       expectNoDifference(model.requestButtonText(for: request), "Requested")
+      #expect(dismissCount.value == 0)
     }
   }
 
