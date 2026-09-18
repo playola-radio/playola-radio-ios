@@ -187,7 +187,31 @@ struct AskMeAnythingSetupPageTests {
     expectNoDifference(model.readinessHint, "Ready to start")
   }
 
-  @Test func songActionPresentsSearchAndSelectingAppendsAndDismisses() {
+  @Test func readinessColorsReflectBuildingState() {
+    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    model.openingItems.append(introItem(durationMS: 30_000))
+
+    #expect(!model.isStartShowEnabled)
+    expectNoDifference(model.readinessHintColor, .playolaTextSecondary)
+    expectNoDifference(model.readyProgressColor, .playolaRed)
+    expectNoDifference(model.startShowButtonBackgroundColor, .playolaSurfaceRaised)
+    expectNoDifference(model.startShowButtonBorderColor, .playolaGlassHairline)
+    expectNoDifference(model.startShowButtonTitleColor, .playolaGray)
+  }
+
+  @Test func readinessColorsTurnGreenWhenReady() {
+    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    model.openingItems.append(introItem(durationMS: 600_000))
+
+    #expect(model.isStartShowEnabled)
+    expectNoDifference(model.readinessHintColor, .playolaSuccessGreen)
+    expectNoDifference(model.readyProgressColor, .playolaSuccessGreen)
+    expectNoDifference(model.startShowButtonBackgroundColor, .playolaRed)
+    expectNoDifference(model.startShowButtonBorderColor, .playolaRed)
+    expectNoDifference(model.startShowButtonTitleColor, .white)
+  }
+
+  @Test func songActionPresentsCuratorPickerAndAddingAppendsWithoutDismissing() {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     let model = withDependencies {
@@ -199,22 +223,25 @@ struct AskMeAnythingSetupPageTests {
 
     model.songActionTapped()
 
-    guard case .songSearchPage(let search) = coordinator.presentedSheet else {
-      Issue.record("Expected song search sheet")
+    guard case .curatorSongPicker(let picker) = coordinator.presentedSheet else {
+      Issue.record("Expected curator song picker sheet")
       return
     }
 
-    search.onSongSelected?(.mockWith(id: "song-1", durationMS: 180_000))
+    picker.onAddSong?(.mockWith(id: "song-1", durationMS: 180_000))
 
     expectNoDifference(model.openingItems.count, 1)
     guard case .song? = model.openingItems.first?.content else {
       Issue.record("Expected first item to be a song")
       return
     }
+    #expect(coordinator.presentedSheet != nil)
+
+    picker.onDismiss?()
     #expect(coordinator.presentedSheet == nil)
   }
 
-  @Test func selectingSameSongTwiceKeepsBothOccurrences() {
+  @Test func addingSongsSeedsPickerWithAlreadyAddedIds() {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     let model = withDependencies {
@@ -225,15 +252,20 @@ struct AskMeAnythingSetupPageTests {
     coordinator.push(.askMeAnythingSetupPage(model))
 
     model.songActionTapped()
-    if case .songSearchPage(let search) = coordinator.presentedSheet {
-      search.onSongSelected?(.mockWith(id: "dup", durationMS: 10_000))
+    guard case .curatorSongPicker(let firstPicker) = coordinator.presentedSheet else {
+      Issue.record("Expected curator song picker sheet")
+      return
     }
+    firstPicker.onAddSong?(.mockWith(id: "already", durationMS: 10_000))
+    firstPicker.onDismiss?()
+
     model.songActionTapped()
-    if case .songSearchPage(let search) = coordinator.presentedSheet {
-      search.onSongSelected?(.mockWith(id: "dup", durationMS: 10_000))
+    guard case .curatorSongPicker(let secondPicker) = coordinator.presentedSheet else {
+      Issue.record("Expected curator song picker sheet")
+      return
     }
 
-    expectNoDifference(model.openingItems.count, 2)
+    #expect(secondPicker.addedSongIds == ["already"])
   }
 
   @Test func voicetrackAcceptAppendsProcessingRowThenCompletesAndCounts() async throws {

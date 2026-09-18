@@ -472,7 +472,8 @@ struct MusicCategoryDetailPageTests {
     await model.playButtonTapped(block)
     #expect(model.isPlaying(block))
 
-    callbackBox.value?(PlaybackState(currentTime: 18, duration: 18, isPlaying: false))
+    callbackBox.value?(
+      PlaybackState(currentTime: 18, duration: 18, isPlaying: false, didFinish: true))
     #expect(!model.isPlaying(block))
     #expect(!model.isActive(block))
 

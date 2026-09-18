@@ -81,16 +81,15 @@ class AskMeAnythingSetupPageModel: ViewModel {
   }
 
   func songActionTapped() {
-    let search = SongSearchPageModel(searchMode: .all, stationId: stationId)
-    search.onDismiss = { [weak self] in
+    let picker = CuratorSongPickerPageModel(
+      stationId: stationId, initialAddedSongIds: addedSongIds)
+    picker.onAddSong = { [weak self] audioBlock in
+      self?.addSong(audioBlock)
+    }
+    picker.onDismiss = { [weak self] in
       self?.$navigationCoordinator.withLock { $0.presentedSheet = nil }
     }
-    search.onSongSelected = { [weak self] audioBlock in
-      guard let self else { return }
-      addSong(audioBlock)
-      $navigationCoordinator.withLock { $0.presentedSheet = nil }
-    }
-    navigationCoordinator.presentedSheet = .songSearchPage(search)
+    navigationCoordinator.presentedSheet = .curatorSongPicker(picker)
   }
 
   func qaActionTapped() {}
@@ -177,12 +176,32 @@ class AskMeAnythingSetupPageModel: ViewModel {
   var readyProgress: Double {
     min(1, Double(readyMilliseconds) / Double(targetMilliseconds))
   }
+  var readinessHintColor: Color {
+    isStartShowEnabled ? .playolaSuccessGreen : .playolaTextSecondary
+  }
+  var readyProgressColor: Color {
+    isStartShowEnabled ? .playolaSuccessGreen : .playolaRed
+  }
 
   var startShowButtonTitle: String { "Start Show" }
   var isStartShowEnabled: Bool { readyMilliseconds >= targetMilliseconds }
   var startShowButtonTitleColor: Color { isStartShowEnabled ? .white : .playolaGray }
+  var startShowButtonBackgroundColor: Color {
+    isStartShowEnabled ? .playolaRed : .playolaSurfaceRaised
+  }
+  var startShowButtonBorderColor: Color {
+    isStartShowEnabled ? .playolaRed : .playolaGlassHairline
+  }
 
   // MARK: - Private Helpers
+
+  private var addedSongIds: Set<String> {
+    Set(
+      openingItems.compactMap { item -> String? in
+        guard case .song(let block) = item.content else { return nil }
+        return block.id
+      })
+  }
 
   private func addSong(_ audioBlock: AudioBlock) {
     openingItems.append(AMAOpeningItem(id: uuid(), content: .song(audioBlock)))

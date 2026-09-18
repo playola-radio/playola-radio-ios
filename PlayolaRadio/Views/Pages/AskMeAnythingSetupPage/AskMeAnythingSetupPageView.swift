@@ -226,14 +226,14 @@ struct AskMeAnythingSetupPageView: View {
         Spacer()
         Text(model.readinessHint)
           .font(.custom(FontNames.Inter_400_Regular, size: 12))
-          .foregroundColor(.playolaTextSecondary)
+          .foregroundColor(model.readinessHintColor)
       }
       GeometryReader { proxy in
         ZStack(alignment: .leading) {
           RoundedRectangle(cornerRadius: 2)
             .fill(Color.playolaSurfaceControl)
           RoundedRectangle(cornerRadius: 2)
-            .fill(Color.playolaRed)
+            .fill(model.readyProgressColor)
             .frame(width: proxy.size.width * model.readyProgress)
         }
       }
@@ -255,11 +255,11 @@ struct AskMeAnythingSetupPageView: View {
         .foregroundColor(model.startShowButtonTitleColor)
         .frame(maxWidth: .infinity)
         .frame(height: 44)
-        .background(Color.playolaSurfaceRaised)
+        .background(model.startShowButtonBackgroundColor)
         .cornerRadius(12)
         .overlay(
           RoundedRectangle(cornerRadius: 12)
-            .stroke(Color.playolaGlassHairline, lineWidth: 1)
+            .stroke(model.startShowButtonBorderColor, lineWidth: 1)
         )
     }
     .buttonStyle(.plain)
