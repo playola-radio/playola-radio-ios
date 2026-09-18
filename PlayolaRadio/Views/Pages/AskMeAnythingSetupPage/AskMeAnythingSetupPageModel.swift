@@ -176,10 +176,22 @@ class AskMeAnythingSetupPageModel: ViewModel {
   var readyProgress: Double {
     min(1, Double(readyMilliseconds) / Double(targetMilliseconds))
   }
+  var readinessHintColor: Color {
+    isStartShowEnabled ? .playolaSuccessGreen : .playolaTextSecondary
+  }
+  var readyProgressColor: Color {
+    isStartShowEnabled ? .playolaSuccessGreen : .playolaRed
+  }
 
   var startShowButtonTitle: String { "Start Show" }
   var isStartShowEnabled: Bool { readyMilliseconds >= targetMilliseconds }
   var startShowButtonTitleColor: Color { isStartShowEnabled ? .white : .playolaGray }
+  var startShowButtonBackgroundColor: Color {
+    isStartShowEnabled ? .playolaRed : .playolaSurfaceRaised
+  }
+  var startShowButtonBorderColor: Color {
+    isStartShowEnabled ? .playolaRed : .playolaGlassHairline
+  }
 
   // MARK: - Private Helpers
 

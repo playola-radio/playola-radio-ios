@@ -187,6 +187,30 @@ struct AskMeAnythingSetupPageTests {
     expectNoDifference(model.readinessHint, "Ready to start")
   }
 
+  @Test func readinessColorsReflectBuildingState() {
+    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    model.openingItems.append(introItem(durationMS: 30_000))
+
+    #expect(!model.isStartShowEnabled)
+    expectNoDifference(model.readinessHintColor, .playolaTextSecondary)
+    expectNoDifference(model.readyProgressColor, .playolaRed)
+    expectNoDifference(model.startShowButtonBackgroundColor, .playolaSurfaceRaised)
+    expectNoDifference(model.startShowButtonBorderColor, .playolaGlassHairline)
+    expectNoDifference(model.startShowButtonTitleColor, .playolaGray)
+  }
+
+  @Test func readinessColorsTurnGreenWhenReady() {
+    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    model.openingItems.append(introItem(durationMS: 600_000))
+
+    #expect(model.isStartShowEnabled)
+    expectNoDifference(model.readinessHintColor, .playolaSuccessGreen)
+    expectNoDifference(model.readyProgressColor, .playolaSuccessGreen)
+    expectNoDifference(model.startShowButtonBackgroundColor, .playolaRed)
+    expectNoDifference(model.startShowButtonBorderColor, .playolaRed)
+    expectNoDifference(model.startShowButtonTitleColor, .white)
+  }
+
   @Test func songActionPresentsCuratorPickerAndAddingAppendsWithoutDismissing() {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
