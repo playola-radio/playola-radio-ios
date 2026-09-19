@@ -49,6 +49,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   private var schedule: Schedule?
   private(set) var listenerCount: Int?
   private(set) var hasConfirmedRunning = false
+  private(set) var hasEnded = false
   private(set) var endOutcome: EndLiveShowResponse?
   private var pendingOutroBlock: AudioBlock?
   var presentedAlert: PlayolaAlert?
@@ -83,6 +84,9 @@ class AskMeAnythingLivePageModel: ViewModel {
   // MARK: - Phase
 
   var phase: Phase {
+    // The server has told us the show is permanently gone (finished/replaced): latch terminal
+    // immediately rather than trusting a stale cached schedule that may still show our spins.
+    if hasEnded { return .ended }
     guard let schedule else { return endOutcome != nil ? .ending : .loading }
 
     if let np = schedule.nowPlaying(), np.liveShowId == liveShowId {
@@ -180,14 +184,14 @@ class AskMeAnythingLivePageModel: ViewModel {
       // The show already wrapped (natural exhaustion / race). Treat as ended; discard the outro.
       endOutcome = nil
       pendingOutroBlock = nil
-      hasConfirmedRunning = true
+      hasEnded = true
       presentedAlert = .liveShowAlreadyEnded
     } catch APIError.liveShowReplaced {
       // Another show/edit superseded this one. It is no longer endable; discard the outro and
       // land in the terminal state rather than offering an unwinnable Retry.
       endOutcome = nil
       pendingOutroBlock = nil
-      hasConfirmedRunning = true
+      hasEnded = true
       presentedAlert = .liveShowAlreadyEnded
     } catch {
       presentedAlert = .liveShowEndFailed { [weak self] in await self?.retryEndButtonTapped() }

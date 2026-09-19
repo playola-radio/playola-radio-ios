@@ -191,6 +191,12 @@ struct AskMeAnythingLivePageTests {
       await model.submitEnd(outroAudioBlock: .mockWith(id: "outro"))
       #expect(endCalls.value == 1)
 
+      // Terminal must latch immediately off the server's "replaced" response — even though the
+      // cached schedule still shows our show running, End Show is gone and Done is exposed.
+      #expect(model.phase == .ended)
+      #expect(model.isEndShowEnabled == false)
+      #expect(model.doneButtonOpacity == 1)
+
       // The outro was discarded; Retry must not re-hit the permanently-gone show.
       await model.retryEndButtonTapped()
       #expect(endCalls.value == 1)
