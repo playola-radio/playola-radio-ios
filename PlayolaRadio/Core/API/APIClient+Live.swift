@@ -972,6 +972,16 @@ extension APIClient: DependencyKey {
           token: jwtToken,
           queryParams: ["version": "draft"])
       },
+      // MARK: - Live Shows (Ask Me Anything)
+      // Live network implementation lands with the AMA live-show behavior work; these are
+      // placeholder throws so `APIClient`'s memberwise initializer (which requires every
+      // endpoint closure) compiles until then.
+      startLiveShow: { _, _, _ in
+        throw APIError.validationError("startLiveShow is not yet implemented")
+      },
+      endLiveShow: { _, _, _, _ in
+        throw APIError.validationError("endLiveShow is not yet implemented")
+      },
       getActiveListeningSessions: { jwtToken, stationId, airtime, endTime in
         var queryParams: [String: String] = [
           "stationId": stationId,
