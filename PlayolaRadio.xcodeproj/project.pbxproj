@@ -155,11 +155,11 @@
 		CC0000000000000000000605 /* ShowsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000604 /* ShowsPageView.swift */; };
 		CC0000000000000000000606 /* ShowsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000604 /* ShowsPageView.swift */; };
 		CC0000000000000000000608 /* ShowsPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000607 /* ShowsPageTests.swift */; };
-		CC0000000000000000000702 /* AskMeAnythingSetupPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000701 /* AskMeAnythingSetupPageModel.swift */; };
-		CC0000000000000000000703 /* AskMeAnythingSetupPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000701 /* AskMeAnythingSetupPageModel.swift */; };
-		CC0000000000000000000705 /* AskMeAnythingSetupPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000704 /* AskMeAnythingSetupPageView.swift */; };
-		CC0000000000000000000706 /* AskMeAnythingSetupPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000704 /* AskMeAnythingSetupPageView.swift */; };
-		CC0000000000000000000708 /* AskMeAnythingSetupPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000707 /* AskMeAnythingSetupPageTests.swift */; };
+		CC0000000000000000000702 /* AskMeAnythingLivePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000701 /* AskMeAnythingLivePageModel.swift */; };
+		CC0000000000000000000703 /* AskMeAnythingLivePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000701 /* AskMeAnythingLivePageModel.swift */; };
+		CC0000000000000000000705 /* AskMeAnythingLivePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000704 /* AskMeAnythingLivePageView.swift */; };
+		CC0000000000000000000706 /* AskMeAnythingLivePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000704 /* AskMeAnythingLivePageView.swift */; };
+		CC0000000000000000000708 /* AskMeAnythingLivePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000707 /* AskMeAnythingLivePageTests.swift */; };
 		CC0000000000000000000902 /* RecordWithMultiStepPromptModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000901 /* RecordWithMultiStepPromptModel.swift */; };
 		CC0000000000000000000903 /* RecordWithMultiStepPromptModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000901 /* RecordWithMultiStepPromptModel.swift */; };
 		CC0000000000000000000905 /* RecordWithMultiStepPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000904 /* RecordWithMultiStepPromptView.swift */; };
@@ -755,9 +755,9 @@
 		CC0000000000000000000601 /* ShowsPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsPageModel.swift; sourceTree = "<group>"; };
 		CC0000000000000000000604 /* ShowsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsPageView.swift; sourceTree = "<group>"; };
 		CC0000000000000000000607 /* ShowsPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsPageTests.swift; sourceTree = "<group>"; };
-		CC0000000000000000000701 /* AskMeAnythingSetupPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingSetupPageModel.swift; sourceTree = "<group>"; };
-		CC0000000000000000000704 /* AskMeAnythingSetupPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingSetupPageView.swift; sourceTree = "<group>"; };
-		CC0000000000000000000707 /* AskMeAnythingSetupPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingSetupPageTests.swift; sourceTree = "<group>"; };
+		CC0000000000000000000701 /* AskMeAnythingLivePageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingLivePageModel.swift; sourceTree = "<group>"; };
+		CC0000000000000000000704 /* AskMeAnythingLivePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingLivePageView.swift; sourceTree = "<group>"; };
+		CC0000000000000000000707 /* AskMeAnythingLivePageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingLivePageTests.swift; sourceTree = "<group>"; };
 		CC0000000000000000000901 /* RecordWithMultiStepPromptModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordWithMultiStepPromptModel.swift; sourceTree = "<group>"; };
 		CC0000000000000000000904 /* RecordWithMultiStepPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordWithMultiStepPromptView.swift; sourceTree = "<group>"; };
 		CC0000000000000000000907 /* RecordWithMultiStepPromptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordWithMultiStepPromptTests.swift; sourceTree = "<group>"; };
@@ -1233,16 +1233,16 @@
 			path = ShowsPage;
 			sourceTree = "<group>";
 		};
-		CC0000000000000000000700 /* AskMeAnythingSetupPage */ = {
+		CC0000000000000000000700 /* AskMeAnythingLivePage */ = {
 			isa = PBXGroup;
 			children = (
-				CC0000000000000000000701 /* AskMeAnythingSetupPageModel.swift */,
-				CC0000000000000000000704 /* AskMeAnythingSetupPageView.swift */,
-				CC0000000000000000000707 /* AskMeAnythingSetupPageTests.swift */,
+				CC0000000000000000000701 /* AskMeAnythingLivePageModel.swift */,
+				CC0000000000000000000704 /* AskMeAnythingLivePageView.swift */,
+				CC0000000000000000000707 /* AskMeAnythingLivePageTests.swift */,
 				AC3062D8D253F844CBA99697 /* AMAOpeningItem.swift */,
 				D1E4BD99E31BA9B882C7056A /* AMAOpeningRowView.swift */,
 			);
-			path = AskMeAnythingSetupPage;
+			path = AskMeAnythingLivePage;
 			sourceTree = "<group>";
 		};
 		CC0000000000000000000900 /* RecordWithMultiStepPromptPage */ = {
@@ -1475,7 +1475,7 @@
 				CC0000000000000000000400 /* MusicCategoryDetailPage */,
 				CURA700000000000000000 /* CuratorSongPickerPage */,
 				CC0000000000000000000600 /* ShowsPage */,
-				CC0000000000000000000700 /* AskMeAnythingSetupPage */,
+				CC0000000000000000000700 /* AskMeAnythingLivePage */,
 				CC0000000000000000000900 /* RecordWithMultiStepPromptPage */,
 				D3219C152EDD22060008AFDA /* BroadcastPage */,
 				D37769F82F22B38700200ADF /* ChooseStationPage */,
@@ -2500,8 +2500,8 @@
 				CC0000000000000000000305 /* MusicLibraryPageView.swift in Sources */,
 				CC0000000000000000000602 /* ShowsPageModel.swift in Sources */,
 				CC0000000000000000000605 /* ShowsPageView.swift in Sources */,
-				CC0000000000000000000702 /* AskMeAnythingSetupPageModel.swift in Sources */,
-				CC0000000000000000000705 /* AskMeAnythingSetupPageView.swift in Sources */,
+				CC0000000000000000000702 /* AskMeAnythingLivePageModel.swift in Sources */,
+				CC0000000000000000000705 /* AskMeAnythingLivePageView.swift in Sources */,
 				3323D0CF9D68CA09140097AC /* AMAOpeningItem.swift in Sources */,
 				ED782639689341641D657686 /* AMAOpeningRowView.swift in Sources */,
 				CC0000000000000000000902 /* RecordWithMultiStepPromptModel.swift in Sources */,
@@ -2751,8 +2751,8 @@
 				CC0000000000000000000306 /* MusicLibraryPageView.swift in Sources */,
 				CC0000000000000000000603 /* ShowsPageModel.swift in Sources */,
 				CC0000000000000000000606 /* ShowsPageView.swift in Sources */,
-				CC0000000000000000000703 /* AskMeAnythingSetupPageModel.swift in Sources */,
-				CC0000000000000000000706 /* AskMeAnythingSetupPageView.swift in Sources */,
+				CC0000000000000000000703 /* AskMeAnythingLivePageModel.swift in Sources */,
+				CC0000000000000000000706 /* AskMeAnythingLivePageView.swift in Sources */,
 				719FF97AE552513461BCC570 /* AMAOpeningItem.swift in Sources */,
 				C29B4F9EAEED22434B85EFA0 /* AMAOpeningRowView.swift in Sources */,
 				CC0000000000000000000903 /* RecordWithMultiStepPromptModel.swift in Sources */,
@@ -2934,7 +2934,7 @@
 				CC0000000000000000000208 /* BreakerCategoryDetailPageTests.swift in Sources */,
 				CC0000000000000000000308 /* MusicLibraryPageTests.swift in Sources */,
 				CC0000000000000000000608 /* ShowsPageTests.swift in Sources */,
-				CC0000000000000000000708 /* AskMeAnythingSetupPageTests.swift in Sources */,
+				CC0000000000000000000708 /* AskMeAnythingLivePageTests.swift in Sources */,
 				CC0000000000000000000908 /* RecordWithMultiStepPromptTests.swift in Sources */,
 				CC0000000000000000000408 /* MusicCategoryDetailPageTests.swift in Sources */,
 				CURA700000000000000011 /* CuratorSongPickerPageTests.swift in Sources */,

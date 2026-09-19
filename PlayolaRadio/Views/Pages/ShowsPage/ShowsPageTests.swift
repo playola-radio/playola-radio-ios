@@ -48,8 +48,8 @@ struct ShowsPageTests {
 
     model.showTypeRowTapped(model.showTypes[0])
 
-    guard case .askMeAnythingSetupPage(let pushedModel) = coordinator.path.last else {
-      Issue.record("Expected an askMeAnythingSetupPage to be pushed")
+    guard case .askMeAnythingLivePage(let pushedModel) = coordinator.path.last else {
+      Issue.record("Expected an askMeAnythingLivePage to be pushed")
       return
     }
     expectNoDifference(pushedModel.stationId, testStationId)

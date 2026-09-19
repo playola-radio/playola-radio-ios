@@ -32,7 +32,7 @@ class ShowsPageModel: ViewModel {
     switch row.id {
     case .askMeAnything:
       navigationCoordinator.push(
-        .askMeAnythingSetupPage(AskMeAnythingSetupPageModel(stationId: stationId)))
+        .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: stationId)))
     }
   }
 

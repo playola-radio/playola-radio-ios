@@ -1,35 +1,74 @@
 //
-//  AskMeAnythingSetupPageView.swift
+//  AskMeAnythingLivePageView.swift
 //  PlayolaRadio
 //
 
 import SwiftUI
 
-struct AskMeAnythingSetupPageView: View {
-  @Bindable var model: AskMeAnythingSetupPageModel
+struct AskMeAnythingLivePageView: View {
+  @Bindable var model: AskMeAnythingLivePageModel
 
   var body: some View {
     VStack(spacing: 0) {
       header
-      ScrollView {
-        ZStack(alignment: .top) {
-          introPromptContent
-            .padding(.horizontal, 16)
-            .opacity(model.introPromptOpacity)
-            .allowsHitTesting(model.introPromptInteractive)
-            .accessibilityHidden(model.introPromptAccessibilityHidden)
-          openingPlaylistContent
-            .opacity(model.openingPlaylistOpacity)
-            .allowsHitTesting(model.openingPlaylistInteractive)
-            .accessibilityHidden(model.openingPlaylistAccessibilityHidden)
-        }
-        .padding(.top, 20)
+      ZStack {
+        setupContent
+          .opacity(model.setupLayerOpacity)
+          .allowsHitTesting(model.setupLayerInteractive)
+          .accessibilityHidden(model.setupLayerAccessibilityHidden)
+        activeContent
+          .opacity(model.activeLayerOpacity)
+          .allowsHitTesting(model.activeLayerInteractive)
+          .accessibilityHidden(model.activeLayerAccessibilityHidden)
+        ProgressView()
+          .tint(.white)
+          .opacity(model.loadingOpacity)
+          .accessibilityHidden(model.loadingAccessibilityHidden)
       }
     }
     .background(Color.playolaSurfaceBase)
     .navigationBarHidden(true)
-    .safeAreaInset(edge: .bottom) { bottomBar }
+    .task { await model.viewAppeared() }
+    .onChange(of: model.broadcast.currentNowPlayingId) { model.schedulePlaybackChanged() }
     .playolaAlert($model.presentedAlert)
+  }
+
+  private var setupContent: some View {
+    ScrollView {
+      ZStack(alignment: .top) {
+        introPromptContent
+          .padding(.horizontal, 16)
+          .opacity(model.introPromptOpacity)
+          .allowsHitTesting(model.introPromptInteractive)
+          .accessibilityHidden(model.introPromptAccessibilityHidden)
+        openingPlaylistContent
+          .opacity(model.openingPlaylistOpacity)
+          .allowsHitTesting(model.openingPlaylistInteractive)
+          .accessibilityHidden(model.openingPlaylistAccessibilityHidden)
+      }
+      .padding(.top, 20)
+    }
+    .safeAreaInset(edge: .bottom) { bottomBar }
+  }
+
+  private var activeContent: some View {
+    BroadcastContentView(model: model.broadcast)
+      .safeAreaInset(edge: .bottom) {
+        Button {
+          Task { await model.endShowButtonTapped() }
+        } label: {
+          Text(model.endShowButtonTitle)
+            .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 44)
+            .background(Color.playolaRed)
+            .cornerRadius(12)
+        }
+        .disabled(!model.isEndShowEnabled)
+        .padding(16)
+        .background(Color.playolaSurfaceBase)
+      }
   }
 
   private var header: some View {
@@ -219,6 +258,12 @@ struct AskMeAnythingSetupPageView: View {
 
   private var bottomBar: some View {
     VStack(spacing: 8) {
+      Button(model.scheduleRetryTitle) {
+        Task { await model.viewAppeared() }
+      }
+      .opacity(model.scheduleRetryOpacity)
+      .allowsHitTesting(model.scheduleRetryVisible)
+      .accessibilityHidden(model.scheduleRetryAccessibilityHidden)
       HStack {
         Text(model.preparedAudioLabel)
           .font(.custom(FontNames.Inter_600_SemiBold, size: 13))
@@ -248,7 +293,7 @@ struct AskMeAnythingSetupPageView: View {
 
   private var startShowButton: some View {
     Button {
-      model.startShowButtonTapped()
+      Task { await model.startShowButtonTapped() }
     } label: {
       Text(model.startShowButtonTitle)
         .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
@@ -269,19 +314,19 @@ struct AskMeAnythingSetupPageView: View {
 
 #Preview("Record intro") {
   NavigationStack {
-    AskMeAnythingSetupPageView(model: AskMeAnythingSetupPageModel(stationId: "station-preview"))
+    AskMeAnythingLivePageView(model: AskMeAnythingLivePageModel(stationId: "station-preview"))
   }
   .preferredColorScheme(.dark)
 }
 
 #Preview("Build your opening") {
-  let model = AskMeAnythingSetupPageModel(stationId: "station-preview")
+  let model = AskMeAnythingLivePageModel(stationId: "station-preview")
   model.openingItems.append(
     AMAOpeningItem(
       id: UUID(uuidString: "00000000-0000-0000-0000-0000000000AA")!,
       content: .intro(.mockWith(id: "intro", durationMS: 30_000))))
   return NavigationStack {
-    AskMeAnythingSetupPageView(model: model)
+    AskMeAnythingLivePageView(model: model)
   }
   .preferredColorScheme(.dark)
 }

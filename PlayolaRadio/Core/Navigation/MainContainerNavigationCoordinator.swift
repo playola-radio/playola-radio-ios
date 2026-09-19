@@ -96,7 +96,7 @@ final class MainContainerNavigationCoordinator {
     case musicLibraryPage(MusicLibraryPageModel)
     case musicCategoryDetailPage(MusicCategoryDetailPageModel)
     case showsPage(ShowsPageModel)
-    case askMeAnythingSetupPage(AskMeAnythingSetupPageModel)
+    case askMeAnythingLivePage(AskMeAnythingLivePageModel)
     case recordWithMultiStepPromptPage(RecordWithMultiStepPromptModel)
 
     @MainActor @ViewBuilder
@@ -138,8 +138,8 @@ final class MainContainerNavigationCoordinator {
         MusicCategoryDetailPageView(model: model)
       case .showsPage(let model):
         ShowsPageView(model: model)
-      case .askMeAnythingSetupPage(let model):
-        AskMeAnythingSetupPageView(model: model)
+      case .askMeAnythingLivePage(let model):
+        AskMeAnythingLivePageView(model: model)
       case .recordWithMultiStepPromptPage(let model):
         RecordWithMultiStepPromptView(model: model)
       }
@@ -207,10 +207,10 @@ final class MainContainerNavigationCoordinator {
   }
 
   private func cancelAbandonedAskMeAnythingSetups(from oldPath: [Path], to newPath: [Path]) {
-    for case .askMeAnythingSetupPage(let model) in oldPath {
+    for case .askMeAnythingLivePage(let model) in oldPath {
       guard
         !newPath.contains(where: { path in
-          guard case .askMeAnythingSetupPage(let newModel) = path else { return false }
+          guard case .askMeAnythingLivePage(let newModel) = path else { return false }
           return newModel === model
         })
       else { continue }

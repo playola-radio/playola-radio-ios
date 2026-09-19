@@ -7,6 +7,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -52,6 +53,65 @@ struct BroadcastPageTests {
       title: "Test Voicetrack",
       audioBlockId: audioBlockId
     )
+  }
+
+  @Test func liveShowFilterHidesFillerAndLeavesNowPlayingUnfiltered() async {
+    let spins = [
+      Spin.mockWith(
+        id: "rotation-now", airtime: fixedNow.addingTimeInterval(-30),
+        audioBlock: .mockWith(endOfMessageMS: 180_000)),
+      Spin.mockWith(
+        id: "other-show", airtime: fixedNow.addingTimeInterval(150), liveShowId: "other"),
+      Spin.mockWith(id: "opener", airtime: fixedNow.addingTimeInterval(300), liveShowId: "show"),
+      Spin.mockWith(
+        id: "filler", airtime: fixedNow.addingTimeInterval(600), liveShowId: "show", isFiller: true),
+      Spin.mockWith(id: "rotation-next", airtime: fixedNow.addingTimeInterval(900)),
+    ]
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, liveShowId: "show")
+      await model.loadSchedule()
+      expectNoDifference(model.upcomingSpins.map(\.id), ["opener"])
+      expectNoDifference(model.nowPlaying?.id, "rotation-now")
+      expectNoDifference(model.showEndDropTargets, ["filler"])
+      model.liveShowId = nil
+      expectNoDifference(
+        model.upcomingSpins.map(\.id), ["other-show", "opener", "filler", "rotation-next"])
+      #expect(model.showEndDropTargets.isEmpty)
+    }
+  }
+
+  @Test func placingContentAtShowEndUsesTheHiddenFillerBoundary() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let anchors = LockIsolated<[String]>([])
+    let spins = [
+      Spin.mockWith(
+        id: "playing", airtime: fixedNow.addingTimeInterval(-30),
+        audioBlock: .mockWith(endOfMessageMS: 180_000), liveShowId: "show"),
+      Spin.mockWith(
+        id: "last-content", airtime: fixedNow.addingTimeInterval(150), liveShowId: "show"),
+      Spin.mockWith(
+        id: "hidden-tail", airtime: fixedNow.addingTimeInterval(400), liveShowId: "show",
+        isFiller: true),
+    ]
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+      $0.api.insertSpin = { _, _, anchor in
+        anchors.withValue { $0.append(anchor) }
+        return spins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, liveShowId: "show")
+      await model.loadSchedule()
+      let voicetrack = makeStagingVoicetrack()
+      model.stagingItems = [voicetrack]
+      await model.insertStagingItem(stagingId: voicetrack.stagingId, beforeSpinId: "hidden-tail")
+      expectNoDifference(anchors.value, ["last-content"])
+      #expect(model.stagingItems.isEmpty)
+    }
   }
 
   // MARK: - Schedule Loading Tests

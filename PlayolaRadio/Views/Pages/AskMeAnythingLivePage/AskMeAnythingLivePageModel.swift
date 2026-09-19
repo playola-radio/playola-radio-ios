@@ -1,5 +1,5 @@
 //
-//  AskMeAnythingSetupPageModel.swift
+//  AskMeAnythingLivePageModel.swift
 //  PlayolaRadio
 //
 
@@ -12,10 +12,11 @@ import SwiftUI
 
 @MainActor
 @Observable
-class AskMeAnythingSetupPageModel: ViewModel {
+class AskMeAnythingLivePageModel: ViewModel {
 
   // MARK: - Dependencies
 
+  @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.uuid) var uuid
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
@@ -30,6 +31,7 @@ class AskMeAnythingSetupPageModel: ViewModel {
 
   init(stationId: String) {
     self.stationId = stationId
+    self.broadcast = BroadcastPageModel(stationId: stationId, stationName: "Ask Me Anything")
     super.init()
   }
 
@@ -39,11 +41,35 @@ class AskMeAnythingSetupPageModel: ViewModel {
   private let targetMilliseconds = 600_000
 
   var openingItems: IdentifiedArrayOf<AMAOpeningItem> = []
-  var presentedAlert: PlayolaAlert?
+  let broadcast: BroadcastPageModel
+  var isCheckingSchedule = false
+  var isStartingShow = false
+  var isEndingShow = false
+  private var hasScheduleLoadFailed = false
+  private var outroAudioBlockId: String?
+  private var effectiveEndsAt: Date?
+
+  var presentedAlert: PlayolaAlert? {
+    get { broadcast.presentedAlert }
+    set { broadcast.presentedAlert = newValue }
+  }
 
   @ObservationIgnored private var uploadTasks: [UUID: Task<Void, Never>] = [:]
 
   // MARK: - User Actions
+
+  func viewAppeared() async {
+    isCheckingSchedule = true
+    defer { isCheckingSchedule = false }
+    await broadcast.viewAppeared(trackScreenView: false)
+    hasScheduleLoadFailed = broadcast.schedule == nil
+    updateShowFromSchedule()
+  }
+
+  func schedulePlaybackChanged() {
+    guard !isStartingShow, !isEndingShow else { return }
+    updateShowFromSchedule()
+  }
 
   func backButtonTapped() {
     setupAbandoned()
@@ -94,12 +120,77 @@ class AskMeAnythingSetupPageModel: ViewModel {
 
   func qaActionTapped() {}
 
-  func startShowButtonTapped() {}
+  func startShowButtonTapped() async {
+    guard isStartShowEnabled else { return }
+    guard let jwt = auth.jwt else {
+      presentedAlert = showAlert(title: "Sign In Required", message: "Sign in to start your show.")
+      return
+    }
+    isStartingShow = true
+    defer { isStartingShow = false }
+    do {
+      let response = try await api.startLiveShow(
+        jwt, stationId, openingItems.compactMap(\.audioBlockId))
+      broadcast.liveShowId = response.liveShowId
+      effectiveEndsAt = nil
+      outroAudioBlockId = nil
+      openingItems.removeAll()
+      await broadcast.loadSchedule()
+    } catch APIError.liveShowUnavailable(let delayUntil) {
+      let message =
+        delayUntil.map {
+          "Another show or scheduled program is still on air. Try again after "
+            + $0.formatted(date: .abbreviated, time: .shortened) + "."
+        } ?? "Another show or scheduled program is still on air. Please try again later."
+      presentedAlert = showAlert(title: "Show Unavailable", message: message)
+    } catch {
+      presentedAlert = showAlert(title: "Unable to Start Show", message: error.localizedDescription)
+    }
+  }
+
+  func endShowButtonTapped() async {
+    guard isEndShowEnabled, let showId = broadcast.liveShowId else { return }
+    if outroAudioBlockId != nil {
+      await submitEnding()
+      return
+    }
+    let recorder = RecordWithMultiStepPromptModel.askMeAnythingOutro(stationId: stationId)
+    recorder.onCompleted = { [weak self] audioBlock in
+      guard let self, broadcast.liveShowId == showId else { return }
+      await outroRecordingCompleted(audioBlock)
+    }
+    navigationCoordinator.push(.recordWithMultiStepPromptPage(recorder))
+  }
+
+  func outroRecordingCompleted(_ audioBlock: AudioBlock) async {
+    guard isEndShowEnabled else { return }
+    outroAudioBlockId = audioBlock.id
+    await submitEnding()
+  }
 
   // MARK: - View Helpers
 
   var navigationTitle: String { "Ask Me Anything" }
-  var setupLabel: String { "SETUP" }
+  var setupLabel: String { isShowActive ? "LIVE" : "SETUP" }
+  var isShowActive: Bool { broadcast.liveShowId != nil }
+  var setupLayerOpacity: Double { isShowActive ? 0 : 1 }
+  var setupLayerInteractive: Bool { !isShowActive && !isCheckingSchedule && !isStartingShow }
+  var setupLayerAccessibilityHidden: Bool { isShowActive }
+  var activeLayerOpacity: Double { isShowActive ? 1 : 0 }
+  var activeLayerInteractive: Bool { isShowActive }
+  var activeLayerAccessibilityHidden: Bool { !isShowActive }
+  var scheduleRetryVisible: Bool { hasScheduleLoadFailed }
+  var scheduleRetryOpacity: Double { scheduleRetryVisible ? 1 : 0 }
+  var scheduleRetryAccessibilityHidden: Bool { !scheduleRetryVisible }
+  var scheduleRetryTitle: String { "Retry Loading Show" }
+  var loadingOpacity: Double { isCheckingSchedule ? 1 : 0 }
+  var loadingAccessibilityHidden: Bool { !isCheckingSchedule }
+  var isEndShowEnabled: Bool { isShowActive && !isEndingShow && effectiveEndsAt == nil }
+  var endShowButtonTitle: String {
+    if effectiveEndsAt != nil { return "Show Ending" }
+    if isEndingShow { return "Ending Show…" }
+    return outroAudioBlockId == nil ? "End Show" : "Retry End Show"
+  }
 
   var hasRecordedIntro: Bool { openingItems.contains { $0.content.is(\.intro) } }
   var introPromptOpacity: Double { hasRecordedIntro ? 0 : 1 }
@@ -170,6 +261,7 @@ class AskMeAnythingSetupPageModel: ViewModel {
   }
   var readinessHint: String {
     guard hasRecordedIntro else { return "Record your intro" }
+    if !openingItems.allSatisfy(\.isReady) { return "Waiting for recordings to upload" }
     if isStartShowEnabled { return "Ready to start" }
     return "Add \(durationLabelCeil(max(0, targetMilliseconds - readyMilliseconds))) more"
   }
@@ -183,8 +275,12 @@ class AskMeAnythingSetupPageModel: ViewModel {
     isStartShowEnabled ? .playolaSuccessGreen : .playolaRed
   }
 
-  var startShowButtonTitle: String { "Start Show" }
-  var isStartShowEnabled: Bool { readyMilliseconds >= targetMilliseconds }
+  var startShowButtonTitle: String { isStartingShow ? "Starting Show…" : "Start Show" }
+  var isStartShowEnabled: Bool {
+    readyMilliseconds >= targetMilliseconds
+      && openingItems.allSatisfy(\.isReady) && !isStartingShow && !isCheckingSchedule
+      && !hasScheduleLoadFailed && !isShowActive
+  }
   var startShowButtonTitleColor: Color { isStartShowEnabled ? .white : .playolaGray }
   var startShowButtonBackgroundColor: Color {
     isStartShowEnabled ? .playolaRed : .playolaSurfaceRaised
@@ -194,6 +290,51 @@ class AskMeAnythingSetupPageModel: ViewModel {
   }
 
   // MARK: - Private Helpers
+
+  private func updateShowFromSchedule() {
+    guard let schedule = broadcast.schedule else { return }
+    let showId =
+      schedule.nowPlaying()?.liveShowId
+      ?? schedule.current().first(where: { $0.liveShowId != nil })?.liveShowId
+    if broadcast.liveShowId != showId {
+      effectiveEndsAt = nil
+      outroAudioBlockId = nil
+      broadcast.liveShowId = showId
+    }
+  }
+
+  private func submitEnding() async {
+    guard isEndShowEnabled, let showId = broadcast.liveShowId,
+      let audioBlockId = outroAudioBlockId
+    else { return }
+    guard let jwt = auth.jwt else {
+      presentedAlert = showAlert(title: "Sign In Required", message: "Sign in to end your show.")
+      return
+    }
+    isEndingShow = true
+    defer { isEndingShow = false }
+    do {
+      let response = try await api.endLiveShow(jwt, stationId, showId, audioBlockId)
+      effectiveEndsAt = response.effectiveEndsAt
+      await broadcast.loadSchedule()
+    } catch APIError.liveShowReplaced {
+      presentedAlert = showAlert(
+        title: "Show Replaced",
+        message: "Another show has replaced this one. Return to Shows to open it.")
+    } catch APIError.liveShowFinished {
+      presentedAlert = showAlert(
+        title: "Unable to End Show",
+        message:
+          "The show may have finished, or there is no safe place for the outro yet. Please try again."
+      )
+    } catch {
+      presentedAlert = showAlert(title: "Unable to End Show", message: error.localizedDescription)
+    }
+  }
+
+  private func showAlert(title: String, message: String) -> PlayolaAlert {
+    PlayolaAlert(title: title, message: message, dismissButton: .cancel(Text("OK")))
+  }
 
   private var addedSongIds: Set<String> {
     Set(

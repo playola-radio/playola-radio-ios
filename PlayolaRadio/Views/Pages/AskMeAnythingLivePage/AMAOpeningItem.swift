@@ -20,6 +20,13 @@ struct AMAOpeningItem: Identifiable, Equatable {
 }
 
 extension AMAOpeningItem {
+  var audioBlockId: String? {
+    switch content {
+    case .intro(let block), .song(let block): return block.id
+    case .voicetrack(let voicetrack, _): return voicetrack.audioBlockId
+    }
+  }
+
   var isReady: Bool {
     switch content {
     case .intro, .song:

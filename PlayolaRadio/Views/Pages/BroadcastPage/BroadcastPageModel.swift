@@ -24,6 +24,7 @@ struct DependencyDateProvider: DateProviderProtocol {
 @Observable
 class BroadcastPageModel: ViewModel {
   let stationId: String
+  var liveShowId: String?
   private let providedStationName: String?
   private var fetchedStationName: String?
   var schedule: Schedule?
@@ -112,19 +113,19 @@ class BroadcastPageModel: ViewModel {
     return "at \(timeString)"
   }
 
-  init(stationId: String, stationName: String? = nil) {
+  init(stationId: String, stationName: String? = nil, liveShowId: String? = nil) {
     self.stationId = stationId
+    self.liveShowId = liveShowId
     self.providedStationName = stationName
     super.init()
   }
 
-  func viewAppeared() async {
+  func viewAppeared(trackScreenView: Bool = true) async {
     startObservingScheduleUpdates()
-    await analytics.track(
-      .viewedBroadcastScreen(
-        stationId: stationId,
-        stationName: navigationTitle
-      ))
+    if trackScreenView {
+      await analytics.track(
+        .viewedBroadcastScreen(stationId: stationId, stationName: navigationTitle))
+    }
     await withTaskGroup(of: Void.self) { group in
       group.addTask { await self.loadSchedule() }
       group.addTask { await self.loadStation() }
@@ -206,7 +207,10 @@ class BroadcastPageModel: ViewModel {
 
   var upcomingSpins: [Spin] {
     guard let schedule else { return [] }
-    let futureSpins = schedule.current().filter { $0.airtime > now }
+    let futureSpins = schedule.current().filter {
+      $0.airtime > now
+        && (liveShowId == nil || ($0.liveShowId == liveShowId && $0.isFiller != true))
+    }
 
     // If we have a custom order, use it
     if let orderedIds = reorderedSpinIds {
@@ -216,6 +220,23 @@ class BroadcastPageModel: ViewModel {
     }
 
     return futureSpins
+  }
+
+  var showEndDropTargets: [String] {
+    guard let liveShowId,
+      let filler = schedule?.current().first(where: {
+        $0.liveShowId == liveShowId && $0.isFiller == true && canDeleteSpin($0)
+      })
+    else { return [] }
+    return [filler.id]
+  }
+
+  var showEndDropLabel: String { "Add to end of show" }
+
+  func stagingItemsDropped(_ items: [String], beforeSpinId: String) -> Bool {
+    guard let stagingId = items.first else { return false }
+    Task { await insertStagingItem(stagingId: stagingId, beforeSpinId: beforeSpinId) }
+    return true
   }
 
   var nowPlayingProgress: Double {
@@ -394,7 +415,10 @@ class BroadcastPageModel: ViewModel {
     }
 
     // Find the spin to place after (the one before beforeSpinId)
-    guard let beforeIndex = upcomingSpins.firstIndex(where: { $0.id == beforeSpinId }) else {
+    let futureSpins =
+      liveShowId == nil
+      ? upcomingSpins : schedule?.current().filter { $0.airtime > now } ?? []
+    guard let beforeIndex = futureSpins.firstIndex(where: { $0.id == beforeSpinId }) else {
       print("insertStagingItem: Target spin not found: \(beforeSpinId)")
       return
     }
@@ -408,7 +432,7 @@ class BroadcastPageModel: ViewModel {
       }
       placeAfterSpinId = nowPlayingId
     } else {
-      placeAfterSpinId = upcomingSpins[beforeIndex - 1].id
+      placeAfterSpinId = futureSpins[beforeIndex - 1].id
     }
 
     do {
