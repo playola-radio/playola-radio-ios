@@ -591,6 +591,42 @@ extension RecordWithMultiStepPromptModel {
       trackLabel: "VOICETRACK",
       isUpsideDown: true)
   }
+
+  static func askMeAnythingOutro(stationId: String) -> RecordWithMultiStepPromptModel {
+    let model = RecordWithMultiStepPromptModel(
+      screenTitle: "Record Outro",
+      eyebrow: "RECORD AN OUTRO",
+      guideBadge: "OPTIONAL GUIDE",
+      title: "Wrap up your show.",
+      subtitle: "Thank your listeners and let them know the AMA is ending.",
+      steps: [
+        RecordPromptStep(
+          id: 1, label: "THANK", detail: "Thank listeners for their questions."),
+        RecordPromptStep(
+          id: 2, label: "WRAP UP",
+          detail: "Let them know the AMA is ending and the station keeps playing."),
+      ],
+      trackLabel: "OUTRO",
+      isUpsideDown: true)
+    model.onUseRecording = { url, reportProgress in
+      @Dependency(\.voicetrackUploadService) var voicetrackUploadService
+      @Shared(.auth) var auth
+      guard let jwt = auth.jwt else { throw RecordPromptError.notAuthenticated }
+      let voicetrack = LocalVoicetrack(originalURL: url, title: "Outro")
+      return try await voicetrackUploadService.processVoicetrack(voicetrack, stationId, jwt) {
+        status in
+        switch status {
+        case .converting:
+          reportProgress(.uploading(0))
+        case .uploading(let progress):
+          reportProgress(.uploading(progress))
+        case .normalizing, .finalizing, .completed, .failed:
+          reportProgress(.processing)
+        }
+      }
+    }
+    return model
+  }
 }
 
 enum RecordPromptError: Error {

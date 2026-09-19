@@ -656,6 +656,13 @@ struct RecordWithMultiStepPromptTests {
     #expect(model.onUseRecording != nil)
   }
 
+  @Test func askMeAnythingOutroConfiguresBlockingUploadFactory() {
+    let model = RecordWithMultiStepPromptModel.askMeAnythingOutro(stationId: "station-1")
+    #expect(model.screenTitle == "Record Outro")
+    #expect(model.onUseRecording != nil)
+    #expect(model.onRecordingAccepted == nil)
+  }
+
   @Test func backButtonTappedPopsNavigation() {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
