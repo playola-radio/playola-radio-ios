@@ -30,6 +30,7 @@ struct AskMeAnythingLivePageView: View {
     .navigationBarHidden(true)
     .task { await model.viewAppeared() }
     .onChange(of: model.broadcast.currentNowPlayingId) { model.schedulePlaybackChanged() }
+    .onChange(of: model.broadcast.schedule) { model.schedulePlaybackChanged() }
     .playolaAlert($model.presentedAlert)
   }
 

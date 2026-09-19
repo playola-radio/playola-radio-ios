@@ -236,7 +236,8 @@ struct AskMeAnythingLivePageTests {
     } operation: {
       let model = AskMeAnythingLivePageModel(stationId: testStationId)
       model.broadcast.liveShowId = "show"
-      await model.outroRecordingCompleted(.mockWith(id: "outro"))
+      model.outroRecordingCompleted(.mockWith(id: "outro"))
+      await model.viewAppeared()
       await model.endShowButtonTapped()
       expectNoDifference(calls.value, 1)
       #expect(model.isShowActive)
@@ -257,12 +258,42 @@ struct AskMeAnythingLivePageTests {
       AskMeAnythingLivePageModel(stationId: testStationId)
     }
     model.broadcast.liveShowId = "show"
-    await model.outroRecordingCompleted(.mockWith(id: "outro"))
+    model.outroRecordingCompleted(.mockWith(id: "outro"))
+    await model.viewAppeared()
     #expect(model.isShowActive)
     #expect(model.isEndShowEnabled)
     expectNoDifference(model.endShowButtonTitle, "Retry End Show")
     await model.endShowButtonTapped()
     expectNoDifference(calls.value, ["outro", "outro"])
+    expectNoDifference(model.presentedAlert?.title, "Unable to End Show")
+  }
+
+  @Test func outroCompletionDefersSubmissionUntilLivePageAppears() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let calls = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.endLiveShow = { _, _, _, _ in
+        calls.withValue { $0 += 1 }
+        throw APIError.liveShowFinished
+      }
+    } operation: {
+      AskMeAnythingLivePageModel(stationId: testStationId)
+    }
+    model.broadcast.liveShowId = "show"
+    coordinator.push(.askMeAnythingLivePage(model))
+    await model.endShowButtonTapped()
+    guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+      Issue.record("Expected outro recorder")
+      return
+    }
+    await recorder.onCompleted?(.mockWith(id: "outro"))
+    expectNoDifference(calls.value, 0)
+    #expect(model.presentedAlert == nil)
+    coordinator.pop()
+    await model.viewAppeared()
+    expectNoDifference(calls.value, 1)
     expectNoDifference(model.presentedAlert?.title, "Unable to End Show")
   }
 

@@ -114,6 +114,32 @@ struct BroadcastPageTests {
     }
   }
 
+  @Test func movingToFrontOfShowStaysAfterThePreShowRotation() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let anchors = LockIsolated<[String?]>([])
+    let spins = [
+      Spin.mockWith(id: "rotation", airtime: fixedNow.addingTimeInterval(150)),
+      Spin.mockWith(
+        id: "show-first", airtime: fixedNow.addingTimeInterval(400), liveShowId: "show"),
+      Spin.mockWith(
+        id: "show-second", airtime: fixedNow.addingTimeInterval(600), liveShowId: "show"),
+    ]
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+      $0.api.moveSpin = { _, spinId, anchor in
+        expectNoDifference(spinId, "show-second")
+        anchors.withValue { $0.append(anchor) }
+        return spins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, liveShowId: "show")
+      await model.loadSchedule()
+      await model.moveSpins(from: IndexSet(integer: 1), to: 0)
+      expectNoDifference(anchors.value, ["rotation"])
+    }
+  }
+
   // MARK: - Schedule Loading Tests
 
   @Test

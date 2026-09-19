@@ -231,6 +231,14 @@ class BroadcastPageModel: ViewModel {
     return [filler.id]
   }
 
+  private var spinBeforeShowQueueId: String? {
+    guard liveShowId != nil, let firstShowSpin = upcomingSpins.first,
+      let currentSpins = schedule?.current(),
+      let firstIndex = currentSpins.firstIndex(where: { $0.id == firstShowSpin.id }), firstIndex > 0
+    else { return nil }
+    return currentSpins[firstIndex - 1].id
+  }
+
   var showEndDropLabel: String { "Add to end of show" }
 
   func stagingItemsDropped(_ items: [String], beforeSpinId: String) -> Bool {
@@ -549,8 +557,7 @@ class BroadcastPageModel: ViewModel {
     let insertionIndex = max(0, adjustedDestination)
     spins.insert(contentsOf: spinsToMove, at: insertionIndex)
 
-    // Determine placeAfterSpinId: the spin just before the insertion point, or nil if at beginning
-    let placeAfterSpinId: String? = insertionIndex > 0 ? spins[insertionIndex - 1].id : nil
+    let placeAfterSpinId = insertionIndex > 0 ? spins[insertionIndex - 1].id : spinBeforeShowQueueId
 
     // Optimistically store the new order
     reorderedSpinIds = spins.map { $0.id }

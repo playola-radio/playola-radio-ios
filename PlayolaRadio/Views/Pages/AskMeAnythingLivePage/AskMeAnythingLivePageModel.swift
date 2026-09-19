@@ -47,6 +47,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   var isEndingShow = false
   private var hasScheduleLoadFailed = false
   private var outroAudioBlockId: String?
+  private var shouldSubmitOutroOnAppear = false
   private var effectiveEndsAt: Date?
 
   var presentedAlert: PlayolaAlert? {
@@ -59,6 +60,11 @@ class AskMeAnythingLivePageModel: ViewModel {
   // MARK: - User Actions
 
   func viewAppeared() async {
+    if shouldSubmitOutroOnAppear {
+      shouldSubmitOutroOnAppear = false
+      await submitEnding()
+      return
+    }
     isCheckingSchedule = true
     defer { isCheckingSchedule = false }
     await broadcast.viewAppeared(trackScreenView: false)
@@ -77,6 +83,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   }
 
   func setupAbandoned() {
+    shouldSubmitOutroOnAppear = false
     cancelUploads()
   }
 
@@ -157,15 +164,15 @@ class AskMeAnythingLivePageModel: ViewModel {
     let recorder = RecordWithMultiStepPromptModel.askMeAnythingOutro(stationId: stationId)
     recorder.onCompleted = { [weak self] audioBlock in
       guard let self, broadcast.liveShowId == showId else { return }
-      await outroRecordingCompleted(audioBlock)
+      outroRecordingCompleted(audioBlock)
     }
     navigationCoordinator.push(.recordWithMultiStepPromptPage(recorder))
   }
 
-  func outroRecordingCompleted(_ audioBlock: AudioBlock) async {
+  func outroRecordingCompleted(_ audioBlock: AudioBlock) {
     guard isEndShowEnabled else { return }
     outroAudioBlockId = audioBlock.id
-    await submitEnding()
+    shouldSubmitOutroOnAppear = true
   }
 
   // MARK: - View Helpers

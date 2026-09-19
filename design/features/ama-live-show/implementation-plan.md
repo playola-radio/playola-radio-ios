@@ -30,7 +30,7 @@ Product choices: the owner explicitly chose to HIDE filler songs and record an o
 - [x] Preserve abandoned-setup upload cancellation under the renamed navigation route.
 - [x] Run all touched suites: AMA, Broadcast, Shows, navigation coordinator, and recorder if changed.
 - [x] Run Swift formatting and strict lint; inspect the final diff.
-- [ ] Run one Claude adversarial review, following the handoff's light-review instruction and the global provider swap.
+- [x] Run one Claude adversarial review, following the handoff's light-review instruction and the global provider swap.
 
 Test command (fresh DerivedData resolves the pinned SDK):
 
@@ -52,4 +52,15 @@ Architecture review: Claude recommended one composed Broadcast model and extract
 
 Owner steering: hide filler songs; record an outro. Queue-end placement uses the full schedule to resolve its insertion anchor, preserving the hidden filler boundary.
 
-Verification: 169 tests passed across the five touched suites; strict SwiftLint passed with zero violations. Final review pending.
+Verification: 171 tests passed across the five touched suites; strict SwiftLint passed with zero violations. Claude review completed; dispositions below.
+
+## Final review dispositions
+
+- Rejected expired-spin lockout finding: pinned SDK `Schedule.current()` explicitly filters `endtime > dateProvider.now()`, and both SDK source and the expiration regression test verify it. Adding the same predicate would duplicate the existing scheduler.
+- Added schedule-change detection alongside playback-change detection so remote edits are recognized even when now-playing remains unchanged. No additional timer or poller.
+- Deferred the end request until the AMA page reappears after outro recording. Errors and progress now belong to the visible page, while failed submissions retain the uploaded outro for an explicit retry.
+- Anchored moves to the front of the filtered queue after the actual predecessor of the show's first visible spin, preserving rotation before a scheduled show. Default Broadcast behavior is unchanged.
+- Kept the actual predecessor for terminal inserts: the required behavior is to insert immediately before the removable filler boundary using the existing scheduler, which requires the predecessor in the full schedule.
+- Kept existing insertion-error copy for default Broadcast; changing it is outside this feature and the no-anchor condition is handled by the same scheduler guard.
+
+The two concrete behavior corrections were reproduced with failing tests before implementation. The owner's light-review instruction is honored with one external code-review pass; final regression checks cover the corrections.
