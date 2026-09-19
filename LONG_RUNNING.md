@@ -19,7 +19,7 @@ not ✅ done until its soak clears.
 > Entries marked `⟨owner: …⟩` are placeholders the task owner should fill in —
 > I scaffolded them from open PRs/branches but don't know the internal plan.
 
-_Last updated: 2026-09-12_
+_Last updated: 2026-09-19_
 
 ---
 
@@ -42,6 +42,7 @@ we need to tackle?" (or run the `whats-due` skill) to see what's due.
 | Prettify iPad screens | 🔵 in progress | Profile (screen 4 of N) | none (standard release) | 2026-09-10 | specs in `docs/superpowers/specs/2026-08-0*-ipad-*-design.md` |
 | Artist 3-tab IA (broadcast redesign) | 🔵 in progress | Step 2: Dashboard health + Listeners cards + 8-week chart wired; Station tab's third link row now pushes a new Breakers Library category list (categories fetch, non-song + zero-clip filter) with a per-category detail page (per-clip audio preview, play/stop toggle + scrubber) landed in PR #417; re-homing next — **must not merge until Step 3 re-homes Broadcast/Library/Listeners** | none (standard release) | 2026-09-10 | designs `design/exports/in-progress/3-tab-ia` · `design/exports/breakers-library` · `design/DESIGN_STATUS.md` |
 | Artist Dashboard API Repair | 🔵 in progress | iOS PR (this repo) repointed to the new/renamed endpoints and is ready for staging verification; server PR (playola repo) is owned by a separate human implementer, not tracked here in detail | **prod gate**: server must ship `programming-health` + the station-filtered `listener-counts`/`active` work to production before any App Store release containing the dashboard | 2026-09-19 | see "Artist Dashboard API Repair" section below |
+| Ask Me Anything live show | 🔵 in progress | PR1 (Start Show → schedule → live monitor) implemented, ready for review; PR2 (Add to Show while live) and PR3 (queue reorder/lock) not started | none (standard release); don't cut an App Store release while server AMA endpoints are unshipped to prod | 2026-09-26 | see "Ask Me Anything live show" section below |
 
 ---
 
@@ -306,6 +307,36 @@ until it ships and an App Store release containing the dashboard is cut.
 
 **Links:** iOS PR 2 branch `briankeane/artist-dashboard-api-repair` (this
 repo). Server PR 1 tracked in the playola repo by its own implementer.
+
+---
+
+## Ask Me Anything live show
+
+**Goal:** let a station host run a live "Ask Me Anything" show — record an opening,
+go live, and monitor the show (listener count, now-playing, upcoming queue,
+preparedness meter) with an End Show flow. Multi-PR because the full feature (live
+editing, queue management) is too large for one deployable PR.
+
+**Spec:** `docs/superpowers/specs/2026-09-18-ama-live-show-design.md`
+**Plan:** `docs/superpowers/plans/2026-09-18-ama-live-show.md`
+
+- **PR 1 (this repo, base `develop`) — implemented, in review.** Wire "Start Show":
+  wait for pending voicetrack uploads, collect the ordered opening audioBlockIds,
+  POST to schedule the show, persist `ActiveLiveShow`, and navigate (replacing the
+  setup route) to the AMA Live monitor — waiting→running phases, live listener
+  count, schedule-derived now-playing, read-only upcoming queue, a client-computed
+  "buffered" preparedness meter, and the End Show flow. "Add to Show" is rendered
+  **disabled**; queue reorder/lock deferred; the availability endpoint is
+  intentionally **not** wired.
+- **PR 2 — not started.** Enable "Add to Show" (append material to a running show).
+- **PR 3 — not started.** Queue reorder / lock.
+
+- **Soak:** none (standard release).
+- **Release gate:** the server's AMA endpoints (`startLiveShow`, `endLiveShow`,
+  schedule/live-show fields) must be live in **production** before an App Store
+  release containing this feature is cut. No environment gating in the client
+  (hard project rule) — the server ship date sequences the release, not a runtime
+  check.
 
 ---
 
