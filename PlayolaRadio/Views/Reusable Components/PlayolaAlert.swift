@@ -352,3 +352,24 @@ extension PlayolaAlert {
       secondaryButtonText: "OK")
   }
 }
+
+extension PlayolaAlert {
+  static func liveShowEndFailed(retry: @escaping @MainActor () async -> Void) -> PlayolaAlert {
+    let message =
+      "We couldn\u{2019}t end your show. Your outro is saved \u{2014} tap Retry to try again."
+    return PlayolaAlert(
+      title: "Couldn\u{2019}t End the Show",
+      message: message,
+      primaryButtonText: "Retry",
+      primaryAction: retry,
+      secondaryButtonText: "Cancel",
+      secondaryAction: nil)
+  }
+
+  static var liveShowAlreadyEnded: PlayolaAlert {
+    PlayolaAlert(
+      title: "Your Show Already Wrapped",
+      message: "This AMA already finished and your station is back to its regular schedule.",
+      dismissButton: .default(Text("OK")))
+  }
+}
