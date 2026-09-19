@@ -29,6 +29,15 @@ extension AMAOpeningItem {
     }
   }
 
+  var audioBlockId: String? {
+    switch content {
+    case .intro(let block), .song(let block):
+      return block.id
+    case .voicetrack(let voicetrack, _):
+      return voicetrack.audioBlockId
+    }
+  }
+
   var readyDurationMS: Int {
     guard isReady else { return 0 }
     switch content {

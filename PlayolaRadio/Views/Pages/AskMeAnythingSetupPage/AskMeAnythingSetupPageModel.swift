@@ -165,6 +165,14 @@ class AskMeAnythingSetupPageModel: ViewModel {
     openingItems.reduce(0) { $0 + $1.readyDurationMS }
   }
 
+  var readyAudioBlockIds: [String] {
+    openingItems.compactMap { $0.isReady ? $0.audioBlockId : nil }
+  }
+
+  var allOpeningItemsReady: Bool {
+    openingItems.allSatisfy { $0.isReady }
+  }
+
   var preparedAudioLabel: String {
     "\(durationLabel(readyMilliseconds)) / \(durationLabel(targetMilliseconds)) ready"
   }

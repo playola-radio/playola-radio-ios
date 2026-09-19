@@ -448,6 +448,30 @@ struct AskMeAnythingSetupPageTests {
     }
   }
 
+  @Test func readyAudioBlockIdsAreOrderedAndSkipUnreadyVoicetracks() {
+    @Shared(.auth) var auth = Auth(jwt: "test-token")
+
+    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    let introBlock = AudioBlock.mockWith(id: "intro-1")
+    let songBlock = AudioBlock.mockWith(id: "song-1")
+    model.openingItems = [
+      AMAOpeningItem(
+        id: UUID(uuidString: "00000000-0000-0000-0000-0000000000C1")!,
+        content: .intro(introBlock)),
+      AMAOpeningItem(
+        id: UUID(uuidString: "00000000-0000-0000-0000-0000000000C2")!,
+        content: .song(songBlock)),
+      AMAOpeningItem(
+        id: UUID(uuidString: "00000000-0000-0000-0000-0000000000C3")!,
+        content: .voicetrack(
+          LocalVoicetrack(originalURL: URL(string: "file:///v.wav")!, title: "V"),
+          completedDurationMS: nil)),
+    ]
+
+    expectNoDifference(model.readyAudioBlockIds, ["intro-1", "song-1"])
+    #expect(model.allOpeningItemsReady == false)
+  }
+
   @Test func openingRowsResolveIntroSongAndVoicetrackDisplayData() {
     let model = AskMeAnythingSetupPageModel(stationId: testStationId)
     model.openingItems.append(
