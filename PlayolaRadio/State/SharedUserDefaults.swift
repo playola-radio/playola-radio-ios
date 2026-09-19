@@ -121,6 +121,16 @@ extension SharedKey where Self == FileStorageKey<LastPlayedStation?>.Default {
   }
 }
 
+// MARK: - Live Show
+
+extension SharedKey where Self == FileStorageKey<ActiveLiveShow?>.Default {
+  static var activeLiveShow: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "active-live-show.json")),
+      default: nil]
+  }
+}
+
 extension SharedKey where Self == InMemoryKey<MainContainerModel.ActiveTab>.Default {
   static var activeTab: Self {
     Self[.inMemory("activeTab"), default: .home]
