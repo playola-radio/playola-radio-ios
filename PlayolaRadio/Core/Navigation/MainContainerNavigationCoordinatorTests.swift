@@ -452,4 +452,39 @@ struct MainContainerNavigationCoordinatorTests {
     coordinator.sanitizeRewardsRouteForKoozie()
     #expect(coordinator.profilePath.count == 1)
   }
+
+  // MARK: - replaceAskMeAnythingSetup Tests
+
+  @Test func replaceAskMeAnythingSetupSwapsEntryInOriginatingStack() {
+    @Shared(.activeTab) var activeTab = .artistDashboard
+    let coordinator = MainContainerNavigationCoordinator()
+    let setup = AskMeAnythingSetupPageModel(stationId: "station-1")
+    coordinator.artistDashboardPath = [.askMeAnythingSetupPage(setup)]
+
+    let live = AskMeAnythingLivePageModel(
+      stationId: "station-1", liveShowId: "show-1", scheduledStartsAt: Date())
+    coordinator.replaceAskMeAnythingSetup(setup, with: .askMeAnythingLivePage(live))
+
+    #expect(coordinator.artistDashboardPath.count == 1)
+    guard case .askMeAnythingLivePage = coordinator.artistDashboardPath[0] else {
+      Issue.record("expected live page on the stack")
+      return
+    }
+  }
+
+  @Test func replaceFindsSetupEvenWhenActiveTabChanged() {
+    @Shared(.activeTab) var activeTab = .home  // active tab differs from the stack holding setup
+    let coordinator = MainContainerNavigationCoordinator()
+    let setup = AskMeAnythingSetupPageModel(stationId: "station-1")
+    coordinator.artistDashboardPath = [.askMeAnythingSetupPage(setup)]
+
+    let live = AskMeAnythingLivePageModel(
+      stationId: "station-1", liveShowId: "show-1", scheduledStartsAt: Date())
+    coordinator.replaceAskMeAnythingSetup(setup, with: .askMeAnythingLivePage(live))
+
+    guard case .askMeAnythingLivePage = coordinator.artistDashboardPath[0] else {
+      Issue.record("expected live page on the artistDashboard stack")
+      return
+    }
+  }
 }

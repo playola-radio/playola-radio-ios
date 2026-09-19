@@ -98,6 +98,7 @@ final class MainContainerNavigationCoordinator {
     case showsPage(ShowsPageModel)
     case askMeAnythingSetupPage(AskMeAnythingSetupPageModel)
     case recordWithMultiStepPromptPage(RecordWithMultiStepPromptModel)
+    case askMeAnythingLivePage(AskMeAnythingLivePageModel)
 
     @MainActor @ViewBuilder
     var destinationView: some View {
@@ -142,6 +143,8 @@ final class MainContainerNavigationCoordinator {
         AskMeAnythingSetupPageView(model: model)
       case .recordWithMultiStepPromptPage(let model):
         RecordWithMultiStepPromptView(model: model)
+      case .askMeAnythingLivePage(let model):
+        AskMeAnythingLivePageView(model: model)
       }
     }
   }
@@ -220,6 +223,30 @@ final class MainContainerNavigationCoordinator {
 
   func replace(with path: Path) {
     self.path = [path]
+  }
+
+  /// Replaces the `askMeAnythingSetupPage` entry for `setupModel` — in whichever tab stack holds
+  /// it — with `newPath`, in place. Immune to the active tab changing during an await (spec §8):
+  /// it targets the setup model's identity, not "whatever is on top now."
+  func replaceAskMeAnythingSetup(
+    _ setupModel: AskMeAnythingSetupPageModel, with newPath: Path
+  ) {
+    let stacks: [ReferenceWritableKeyPath<MainContainerNavigationCoordinator, [Path]>] = [
+      \.homePath, \.stationsPath, \.yourLibraryPath, \.profilePath,
+      \.artistStationPath, \.artistDashboardPath, \.settingsPath,
+    ]
+    for keyPath in stacks {
+      guard
+        let index = self[keyPath: keyPath].firstIndex(where: { path in
+          guard case .askMeAnythingSetupPage(let model) = path else { return false }
+          return model === setupModel
+        })
+      else { continue }
+      var updated = self[keyPath: keyPath]
+      updated[index] = newPath
+      setPath(updated, at: keyPath)
+      return
+    }
   }
 
   @MainActor
