@@ -127,4 +127,34 @@ struct AskMeAnythingLivePageTests {
       #expect(model.bufferedMeterLabel == "3:00 buffered")
     }
   }
+
+  @Test func endShowDisabledOnceEnding() async {
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    @Shared(.auth) var auth = Auth(jwt: "t")
+    let spins = [
+      Spin.mockWith(
+        id: "s1", airtime: now.addingTimeInterval(-5),
+        audioBlock: .mockWith(endOfMessageMS: 120_000), liveShowId: "show-1")
+    ]
+    await withDependencies {
+      $0.date = .constant(now)
+      $0.api.fetchSchedule = { _, _ in spins }
+      $0.api.getActiveListeningSessions = { _, _, _, _ in
+        ActiveListeningSessionsResponse(
+          summary: .init(totalSessions: 0, uniqueUsers: 0, uniqueDevices: 0, anonymousSessions: 0))
+      }
+      $0.api.endLiveShow = { _, _, _, _ in
+        EndLiveShowResponse(endingSpinId: "end-1", effectiveEndsAt: now.addingTimeInterval(60))
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(
+        stationId: "station-1", liveShowId: "show-1", scheduledStartsAt: now)
+
+      await model.refreshNow()
+      #expect(model.isEndShowEnabled == true)
+      await model.submitEnd(outroAudioBlock: .mockWith(id: "outro"))
+      #expect(model.phase == .ending)
+      #expect(model.isEndShowEnabled == false)
+    }
+  }
 }

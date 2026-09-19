@@ -234,7 +234,18 @@ class AskMeAnythingLivePageModel: ViewModel {
     "This show is no longer live. Your station is back to its regular schedule."
   }
 
+  var waitingBannerOpacity: Double { phase == .waiting ? 1 : 0 }
+  var runningMonitorOpacity: Double { (phase == .running || phase == .ending) ? 1 : 0 }
+  var isEndShowEnabled: Bool { phase == .running }
+  var endShowButtonOpacity: Double { (phase == .running || phase == .ending) ? 1 : 0 }
+  var endShowButtonDisplayTitle: String {
+    phase == .ending ? endingButtonTitle : endShowButtonTitle
+  }
+  var doneButtonOpacity: Double { (phase == .ended || phase == .unavailable) ? 1 : 0 }
+
   func airtimeLabel(for date: Date) -> String { "at \(timeString(for: date))" }
+
+  func pinOpacity(for spin: Spin) -> Double { upcomingSpins.first?.id == spin.id ? 1 : 0 }
 
   // MARK: - Private Helpers
 
