@@ -157,4 +157,105 @@ struct AskMeAnythingLivePageTests {
       #expect(model.isEndShowEnabled == false)
     }
   }
+
+  @Test func endReplacedDiscardsOutroAndLandsTerminal() async {
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    @Shared(.auth) var auth = Auth(jwt: "t")
+    let ourRunning = [
+      makeSpin(id: "s1", airtimeOffset: -5, durationMS: 120_000, now: now, liveShowId: "show-1")
+    ]
+    // Another show has superseded ours: the schedule now shows a different live show.
+    let replacing = [
+      makeSpin(id: "o1", airtimeOffset: -5, durationMS: 120_000, now: now, liveShowId: "show-2")
+    ]
+    let box = LockIsolated([ourRunning, replacing])
+    let endCalls = LockIsolated(0)
+    await withDependencies {
+      $0.date = .constant(now)
+      $0.api.fetchSchedule = { _, _ in box.withValue { $0.removeFirst() } }
+      $0.api.getActiveListeningSessions = { _, _, _, _ in
+        ActiveListeningSessionsResponse(
+          summary: .init(totalSessions: 0, uniqueUsers: 0, uniqueDevices: 0, anonymousSessions: 0))
+      }
+      $0.api.endLiveShow = { _, _, _, _ in
+        endCalls.withValue { $0 += 1 }
+        throw APIError.liveShowReplaced
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(
+        stationId: "station-1", liveShowId: "show-1", scheduledStartsAt: now)
+
+      await model.refreshNow()
+      #expect(model.phase == .running)
+
+      await model.submitEnd(outroAudioBlock: .mockWith(id: "outro"))
+      #expect(endCalls.value == 1)
+
+      // The outro was discarded; Retry must not re-hit the permanently-gone show.
+      await model.retryEndButtonTapped()
+      #expect(endCalls.value == 1)
+
+      await model.refreshNow()  // schedule now reflects the replacing show
+      #expect(model.phase == .ended)
+      #expect(model.doneButtonOpacity == 1)
+    }
+  }
+
+  @Test func endingStaysUntilEffectiveEndsAtEvenIfScheduleDropsShowSpins() async {
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    @Shared(.auth) var auth = Auth(jwt: "t")
+    let ourRunning = [
+      makeSpin(id: "s1", airtimeOffset: -5, durationMS: 120_000, now: now, liveShowId: "show-1")
+    ]
+    let empty: [Spin] = []  // a post-End refresh that dropped our show spins
+    let box = LockIsolated([ourRunning, empty])
+    await withDependencies {
+      $0.date = .constant(now)
+      $0.api.fetchSchedule = { _, _ in box.withValue { $0.removeFirst() } }
+      $0.api.getActiveListeningSessions = { _, _, _, _ in
+        ActiveListeningSessionsResponse(
+          summary: .init(totalSessions: 0, uniqueUsers: 0, uniqueDevices: 0, anonymousSessions: 0))
+      }
+      $0.api.endLiveShow = { _, _, _, _ in
+        EndLiveShowResponse(endingSpinId: "end-1", effectiveEndsAt: now.addingTimeInterval(120))
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(
+        stationId: "station-1", liveShowId: "show-1", scheduledStartsAt: now)
+
+      await model.refreshNow()
+      await model.submitEnd(outroAudioBlock: .mockWith(id: "outro"))
+      // The outro airs until effectiveEndsAt (+120s); a schedule that already dropped the show
+      // spins must not flip the monitor to .ended and expose Done prematurely.
+      #expect(model.phase == .ending)
+      #expect(model.doneButtonOpacity == 0)
+    }
+  }
+
+  @Test func bufferedCountsUpcomingShowSpinWhenFillerAiringNow() async {
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    @Shared(.auth) var auth = Auth(jwt: "t")
+    // A protected filler is airing now; an upcoming show spin follows. Per spec §7.4 the meter
+    // starts at the first upcoming show spin (it does NOT collapse to zero on the filler).
+    let spins = [
+      makeSpin(
+        id: "f0", airtimeOffset: -10, durationMS: 60_000, now: now, liveShowId: "show-1",
+        isFiller: true),
+      makeSpin(id: "s1", airtimeOffset: 50, durationMS: 120_000, now: now, liveShowId: "show-1"),
+    ]
+    await withDependencies {
+      $0.date = .constant(now)
+      $0.api.fetchSchedule = { _, _ in spins }
+      $0.api.getActiveListeningSessions = { _, _, _, _ in
+        ActiveListeningSessionsResponse(
+          summary: .init(totalSessions: 0, uniqueUsers: 0, uniqueDevices: 0, anonymousSessions: 0))
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(
+        stationId: "station-1", liveShowId: "show-1", scheduledStartsAt: now)
+
+      await model.refreshNow()
+      #expect(model.bufferedMilliseconds == 120_000)
+    }
+  }
 }

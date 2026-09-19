@@ -670,6 +670,180 @@ struct AskMeAnythingSetupPageTests {
       #expect(coordinator.path.isEmpty)
     }
   }
+
+  @Test func recoveryPrefersActiveShowOverFinishedHistory() async {
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    @Shared(.auth) var auth = Auth(jwt: "t")
+    @Shared(.activeLiveShow) var activeLiveShow: ActiveLiveShow?
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    @Shared(.activeTab) var activeTab = .artistDashboard
+
+    // The extended schedule carries a finished earlier show plus the currently-active one.
+    let spins = [
+      Spin.mockWith(
+        id: "old", airtime: now.addingTimeInterval(-3600),
+        audioBlock: .mockWith(endOfMessageMS: 600_000), liveShowId: "show-old"),
+      Spin.mockWith(
+        id: "new", airtime: now.addingTimeInterval(-60),
+        audioBlock: .mockWith(endOfMessageMS: 600_000), liveShowId: "show-new"),
+    ]
+    let model = withDependencies {
+      $0.date = .constant(now)
+      $0.api.startLiveShow = { _, _, _ in throw APIError.liveShowUnavailable(delayUntil: nil) }
+      $0.api.fetchSchedule = { _, _ in spins }
+    } operation: {
+      AskMeAnythingSetupPageModel(stationId: "station-1")
+    }
+    model.openingItems = [
+      AMAOpeningItem(
+        id: UUID(uuidString: "00000000-0000-0000-0000-0000000000E1")!,
+        content: .intro(.mockWith(id: "i", durationMS: 600_000)))
+    ]
+    coordinator.artistDashboardPath = [.askMeAnythingSetupPage(model)]
+
+    await model.startShowButtonTapped()  // 409 w/ no delay → recovery from schedule
+
+    #expect(activeLiveShow?.liveShowId == "show-new")
+    guard case .askMeAnythingLivePage = coordinator.artistDashboardPath[0] else {
+      Issue.record("expected live page after recovery")
+      return
+    }
+  }
+
+  @Test func openingEditsFrozenWhileSubmitting() async {
+    @Shared(.auth) var auth = Auth(jwt: "t")
+    @Shared(.activeLiveShow) var activeLiveShow: ActiveLiveShow?
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    @Shared(.activeTab) var activeTab = .artistDashboard
+
+    let started = AsyncStream.makeStream(of: Void.self)
+    let release = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
+    let model = withDependencies {
+      $0.uuid = .incrementing
+      $0.api.startLiveShow = { _, _, _ in
+        await withCheckedContinuation { continuation in
+          release.setValue(continuation)
+          started.continuation.yield()
+        }
+        return StartLiveShowResponse(
+          liveShowId: "show-1", scheduledStartsAt: Date(), scheduledEndsAt: Date())
+      }
+    } operation: {
+      AskMeAnythingSetupPageModel(stationId: "station-1")
+    }
+    model.openingItems = [
+      AMAOpeningItem(
+        id: UUID(uuidString: "00000000-0000-0000-0000-0000000000E2")!,
+        content: .intro(.mockWith(id: "i", durationMS: 600_000)))
+    ]
+    coordinator.artistDashboardPath = [.askMeAnythingSetupPage(model)]
+
+    let startTask = Task { await model.startShowButtonTapped() }
+    var iterator = started.stream.makeAsyncIterator()
+    await iterator.next()  // POST is in-flight → submissionState == .submitting
+    #expect(model.submissionState == .submitting)
+    #expect(!model.isOpeningEditingEnabled)
+
+    model.songActionTapped()
+    model.voicetrackActionTapped()
+
+    #expect(model.openingItems.count == 1)  // no material added while submitting
+    #expect(coordinator.presentedSheet == nil)  // song picker not presented
+    #expect(coordinator.artistDashboardPath.count == 1)  // no voicetrack recorder pushed
+
+    release.withValue { $0?.resume() }
+    await startTask.value
+  }
+
+  @Test func startRejectedWhenIntendedItemDroppedDuringUpload() async throws {
+    @Shared(.auth) var auth = Auth(jwt: "t")
+    @Shared(.activeLiveShow) var activeLiveShow: ActiveLiveShow?
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let started = AsyncStream.makeStream(of: Void.self)
+    let release = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
+    let startCalls = LockIsolated(0)
+    try await withDependencies {
+      $0.uuid = .incrementing
+      $0.date.now = Date(timeIntervalSince1970: 0)
+      $0.audioRecorder.deleteRecording = { _ in }
+      $0.api.startLiveShow = { _, _, _ in
+        startCalls.withValue { $0 += 1 }
+        return StartLiveShowResponse(
+          liveShowId: "show-1", scheduledStartsAt: Date(), scheduledEndsAt: Date())
+      }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, _ in
+        await withCheckedContinuation { continuation in
+          release.setValue(continuation)
+          started.continuation.yield()
+        }
+        throw NSError(domain: "test", code: 1)  // fails → its row is removed
+      }
+    } operation: {
+      let model = AskMeAnythingSetupPageModel(stationId: "station-1")
+      coordinator.push(.askMeAnythingSetupPage(model))
+      model.openingItems = [
+        AMAOpeningItem(
+          id: UUID(uuidString: "00000000-0000-0000-0000-0000000000E3")!,
+          content: .intro(.mockWith(id: "i", durationMS: 600_000)))
+      ]
+      try acceptVoicetrack(named: "vt.wav", model: model, coordinator: coordinator)
+      var iterator = started.stream.makeAsyncIterator()
+      await iterator.next()  // voicetrack upload in-flight (intended, not yet ready)
+
+      let startTask = Task { await model.startShowButtonTapped() }
+      await Task.yield()  // start snapshots intended items, then awaits the upload
+      release.withValue { $0?.resume() }  // upload fails → drops the voicetrack row
+      await startTask.value
+
+      #expect(startCalls.value == 0)  // never scheduled an opening missing the voicetrack
+      #expect(model.submissionState == .editing)
+      #expect(model.presentedAlert != nil)
+    }
+  }
+
+  @Test func startReRunsRecoveryWhenOutcomeUnknown() async {
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    @Shared(.auth) var auth = Auth(jwt: "t")
+    @Shared(.activeLiveShow) var activeLiveShow: ActiveLiveShow?
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    @Shared(.activeTab) var activeTab = .artistDashboard
+
+    let scheduleCalls = LockIsolated(0)
+    let spins = [
+      Spin.mockWith(
+        id: "new", airtime: now.addingTimeInterval(-60),
+        audioBlock: .mockWith(endOfMessageMS: 600_000), liveShowId: "show-new")
+    ]
+    let model = withDependencies {
+      $0.date = .constant(now)
+      $0.api.startLiveShow = { _, _, _ in throw URLError(.timedOut) }
+      $0.api.fetchSchedule = { _, _ in
+        scheduleCalls.withValue { $0 += 1 }
+        return spins
+      }
+    } operation: {
+      AskMeAnythingSetupPageModel(stationId: "station-1")
+    }
+    model.openingItems = [
+      AMAOpeningItem(
+        id: UUID(uuidString: "00000000-0000-0000-0000-0000000000E4")!,
+        content: .intro(.mockWith(id: "i", durationMS: 600_000)))
+    ]
+    coordinator.artistDashboardPath = [.askMeAnythingSetupPage(model)]
+
+    await model.startShowButtonTapped()  // transport failure → ambiguous
+    #expect(model.submissionState == .outcomeUnknown)
+    #expect(scheduleCalls.value == 0)
+
+    await model.startShowButtonTapped()  // re-tap recovers rather than no-op'ing
+    #expect(scheduleCalls.value == 1)
+    #expect(activeLiveShow?.liveShowId == "show-new")
+  }
 }
 
 @Suite(.freshSharedState)

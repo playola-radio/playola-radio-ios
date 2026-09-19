@@ -116,6 +116,7 @@ struct AskMeAnythingSetupPageView: View {
       .cornerRadius(12)
     }
     .buttonStyle(.plain)
+    .disabled(!model.isOpeningEditingEnabled)
   }
 
   // MARK: - Build-your-opening state (01b)
@@ -172,6 +173,7 @@ struct AskMeAnythingSetupPageView: View {
         }
       }
       .frame(maxWidth: .infinity)
+      .disabled(!model.isOpeningEditingEnabled)
     }
     .padding(20)
     .frame(maxWidth: .infinity, alignment: .leading)

@@ -48,7 +48,6 @@ class AskMeAnythingLivePageModel: ViewModel {
 
   private var schedule: Schedule?
   private(set) var listenerCount: Int?
-  private(set) var isStale = false
   private(set) var hasConfirmedRunning = false
   private(set) var endOutcome: EndLiveShowResponse?
   private var pendingOutroBlock: AudioBlock?
@@ -68,12 +67,13 @@ class AskMeAnythingLivePageModel: ViewModel {
   func refreshNow() async {
     async let scheduleFetch = fetchScheduleSafely()
     async let listenerFetch = fetchListenerCountSafely()
-    let (newSchedule, scheduleOK) = await scheduleFetch
-    let (count, listenerOK) = await listenerFetch
+    let newSchedule = await scheduleFetch
+    let count = await listenerFetch
+
+    if Task.isCancelled { return }
 
     if let newSchedule { schedule = newSchedule }
     if let count { listenerCount = count }
-    isStale = !(scheduleOK && listenerOK)
 
     if let np = schedule?.nowPlaying(), np.liveShowId == liveShowId {
       hasConfirmedRunning = true
@@ -89,8 +89,9 @@ class AskMeAnythingLivePageModel: ViewModel {
       return endOutcome != nil ? .ending : .running
     }
 
-    if endOutcome != nil {
-      return hasShowSpinsRemaining(in: schedule) ? .ending : .ended
+    if let endOutcome {
+      let beforeEffectiveEnd = now < endOutcome.effectiveEndsAt
+      return (beforeEffectiveEnd || hasShowSpinsRemaining(in: schedule)) ? .ending : .ended
     }
 
     if hasConfirmedRunning {
@@ -181,6 +182,13 @@ class AskMeAnythingLivePageModel: ViewModel {
       pendingOutroBlock = nil
       hasConfirmedRunning = true
       presentedAlert = .liveShowAlreadyEnded
+    } catch APIError.liveShowReplaced {
+      // Another show/edit superseded this one. It is no longer endable; discard the outro and
+      // land in the terminal state rather than offering an unwinnable Retry.
+      endOutcome = nil
+      pendingOutroBlock = nil
+      hasConfirmedRunning = true
+      presentedAlert = .liveShowAlreadyEnded
     } catch {
       presentedAlert = .liveShowEndFailed { [weak self] in await self?.retryEndButtonTapped() }
     }
@@ -256,24 +264,22 @@ class AskMeAnythingLivePageModel: ViewModel {
       .min()
   }
 
-  private func fetchScheduleSafely() async -> (Schedule?, Bool) {
+  private func fetchScheduleSafely() async -> Schedule? {
     do {
       let spins = try await api.fetchSchedule(stationId, true)
-      return (
-        Schedule(stationId: stationId, spins: spins, dateProvider: DependencyDateProvider()), true
-      )
+      return Schedule(stationId: stationId, spins: spins, dateProvider: DependencyDateProvider())
     } catch {
-      return (nil, false)
+      return nil
     }
   }
 
-  private func fetchListenerCountSafely() async -> (Int?, Bool) {
-    guard let jwt = auth.jwt else { return (nil, false) }
+  private func fetchListenerCountSafely() async -> Int? {
+    guard let jwt = auth.jwt else { return nil }
     do {
       let response = try await api.getActiveListeningSessions(jwt, stationId, now, nil)
-      return (response.summary.uniqueUsers, true)
+      return response.summary.uniqueUsers
     } catch {
-      return (nil, false)
+      return nil
     }
   }
 
@@ -284,7 +290,7 @@ class AskMeAnythingLivePageModel: ViewModel {
 
   private func timeString(for date: Date) -> String {
     let formatter = DateFormatter()
-    formatter.dateFormat = "h:mm:ssa"
+    formatter.dateFormat = "h:mm a"
     return formatter.string(from: date)
   }
 }

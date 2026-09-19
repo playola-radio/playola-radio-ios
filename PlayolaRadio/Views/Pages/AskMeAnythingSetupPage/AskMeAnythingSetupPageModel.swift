@@ -67,9 +67,10 @@ class AskMeAnythingSetupPageModel: ViewModel {
   }
 
   func recordIntroButtonTapped() {
+    guard isOpeningEditingEnabled else { return }
     let recorder = RecordWithMultiStepPromptModel.askMeAnythingIntro(stationId: stationId)
     recorder.onCompleted = { [weak self] audioBlock in
-      guard let self, audioBlock.durationMS > 0 else { return }
+      guard let self, isOpeningEditingEnabled, audioBlock.durationMS > 0 else { return }
       guard !openingItems.contains(where: { $0.content.is(\.intro) }) else { return }
       openingItems.insert(
         AMAOpeningItem(id: uuid(), content: .intro(audioBlock)), at: 0)
@@ -78,6 +79,7 @@ class AskMeAnythingSetupPageModel: ViewModel {
   }
 
   func voicetrackActionTapped() {
+    guard isOpeningEditingEnabled else { return }
     let recorder = RecordWithMultiStepPromptModel.askMeAnythingVoicetrack(stationId: stationId)
     recorder.onRecordingAccepted = { [weak self] url, _ in
       guard let self else { return }
@@ -93,6 +95,7 @@ class AskMeAnythingSetupPageModel: ViewModel {
   }
 
   func songActionTapped() {
+    guard isOpeningEditingEnabled else { return }
     let picker = CuratorSongPickerPageModel(
       stationId: stationId, initialAddedSongIds: addedSongIds)
     picker.onAddSong = { [weak self] audioBlock in
@@ -107,13 +110,24 @@ class AskMeAnythingSetupPageModel: ViewModel {
   func qaActionTapped() {}
 
   func startShowButtonTapped() async {
+    // If a prior attempt left the outcome ambiguous (transport failure + the recovery prompt was
+    // dismissed), tapping Start again re-checks whether the show actually started rather than
+    // silently no-op'ing (spec §8 / Codex ambiguous-start case).
+    if submissionState == .outcomeUnknown {
+      await recoverStartedShow()
+      return
+    }
     guard submissionState == .editing else { return }
     guard isStartShowEnabled, hasRecordedIntro else { return }
 
     submissionState = .preparing
+    let intendedItemIds = Set(openingItems.ids)
     await waitForPendingUploads()
 
-    guard hasRecordedIntro, isStartShowEnabled, allOpeningItemsReady else {
+    // A failed upload silently removes its row; do not schedule an opening that omits something the
+    // curator meant to include (spec §8 step 3). Every intended item must survive and be ready.
+    let allIntendedSurvived = intendedItemIds.allSatisfy { openingItems[id: $0] != nil }
+    guard hasRecordedIntro, isStartShowEnabled, allOpeningItemsReady, allIntendedSurvived else {
       submissionState = .editing
       presentedAlert = .amaOpeningIncomplete
       return
@@ -151,6 +165,10 @@ class AskMeAnythingSetupPageModel: ViewModel {
 
   var navigationTitle: String { "Ask Me Anything" }
   var setupLabel: String { "SETUP" }
+
+  // Opening edits are frozen once submission begins (spec §8 step 1): the captured opening must
+  // match what goes live.
+  var isOpeningEditingEnabled: Bool { submissionState == .editing }
 
   var hasRecordedIntro: Bool { openingItems.contains { $0.content.is(\.intro) } }
   var introPromptOpacity: Double { hasRecordedIntro ? 0 : 1 }
@@ -263,10 +281,12 @@ class AskMeAnythingSetupPageModel: ViewModel {
   }
 
   private func addSong(_ audioBlock: AudioBlock) {
+    guard isOpeningEditingEnabled else { return }
     openingItems.append(AMAOpeningItem(id: uuid(), content: .song(audioBlock)))
   }
 
   private func acceptVoicetrack(url: URL) throws {
+    guard isOpeningEditingEnabled else { return }
     guard let jwt = auth.jwt else { throw RecordPromptError.notAuthenticated }
     let voicetrack = LocalVoicetrack(
       id: uuid(), originalURL: url, createdAt: now, title: voicetrackTitle(for: now))
@@ -344,12 +364,18 @@ class AskMeAnythingSetupPageModel: ViewModel {
     }
     do {
       let spins = try await api.fetchSchedule(stationId, true)
-      guard let recoveredId = spins.compactMap({ $0.liveShowId }).first else {
+      // The extended schedule carries ~12h of history; recover the *active* show (an unfinished
+      // live spin), earliest first — never an already-finished show from the history window.
+      let activeShowSpin =
+        spins
+        .filter { $0.liveShowId != nil && $0.endtime > now }
+        .min(by: { $0.airtime < $1.airtime })
+      guard let recovered = activeShowSpin, let recoveredId = recovered.liveShowId else {
         submissionState = .editing
         presentedAlert = .amaStartFailed("We couldn\u{2019}t confirm your show. Please try again.")
         return
       }
-      let startsAt = spins.first(where: { $0.liveShowId == recoveredId })?.airtime ?? now
+      let startsAt = recovered.airtime
       $activeLiveShow.withLock {
         $0 = ActiveLiveShow(liveShowId: recoveredId, stationId: stationId)
       }
