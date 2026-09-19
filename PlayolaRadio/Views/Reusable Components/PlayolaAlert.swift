@@ -373,3 +373,41 @@ extension PlayolaAlert {
       dismissButton: .default(Text("OK")))
   }
 }
+
+extension PlayolaAlert {
+  static var amaOpeningIncomplete: PlayolaAlert {
+    PlayolaAlert(
+      title: "Show Not Ready",
+      message:
+        "Some of your opening isn\u{2019}t ready yet. Make sure your intro and every item "
+        + "finished before going live.",
+      dismissButton: .default(Text("OK")))
+  }
+
+  static func amaStartUnavailable(delayUntil: Date) -> PlayolaAlert {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "h:mma"
+    return PlayolaAlert(
+      title: "Can\u{2019}t Go Live Yet",
+      message:
+        "Your station is busy right now. You can go live at "
+        + "\(formatter.string(from: delayUntil)).",
+      dismissButton: .default(Text("OK")))
+  }
+
+  static func amaStartFailed(_ message: String) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Couldn\u{2019}t Start the Show", message: message,
+      dismissButton: .default(Text("OK")))
+  }
+
+  static func amaStartUnknown(retry: @escaping @MainActor () async -> Void) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Did Your Show Start?",
+      message: "We lost the connection before confirming. Tap Check to see if your show is live.",
+      primaryButtonText: "Check",
+      primaryAction: retry,
+      secondaryButtonText: "Cancel",
+      secondaryAction: nil)
+  }
+}

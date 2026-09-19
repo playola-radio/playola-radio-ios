@@ -553,6 +553,92 @@ struct AskMeAnythingSetupPageTests {
     }
   }
 
+  @Test func startShowNavigatesToLiveOnSuccess() async {
+    @Shared(.auth) var auth = Auth(jwt: "t")
+    @Shared(.activeLiveShow) var activeLiveShow: ActiveLiveShow?
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    @Shared(.activeTab) var activeTab = .artistDashboard
+
+    let model = withDependencies {
+      $0.api.startLiveShow = { _, _, _ in
+        StartLiveShowResponse(
+          liveShowId: "show-1", scheduledStartsAt: Date(), scheduledEndsAt: Date())
+      }
+    } operation: {
+      AskMeAnythingSetupPageModel(stationId: "station-1")
+    }
+    model.openingItems = [
+      AMAOpeningItem(
+        id: UUID(uuidString: "00000000-0000-0000-0000-0000000000D1")!,
+        content: .intro(.mockWith(id: "i", durationMS: 600_000)))
+    ]
+    coordinator.artistDashboardPath = [.askMeAnythingSetupPage(model)]
+
+    await model.startShowButtonTapped()
+
+    #expect(activeLiveShow?.liveShowId == "show-1")
+    guard case .askMeAnythingLivePage = coordinator.artistDashboardPath[0] else {
+      Issue.record("expected live page after start")
+      return
+    }
+  }
+
+  @Test func duplicateStartTapsRejected() async {
+    @Shared(.auth) var auth = Auth(jwt: "t")
+    @Shared(.activeLiveShow) var activeLiveShow: ActiveLiveShow?
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    @Shared(.activeTab) var activeTab = .artistDashboard
+
+    let callCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.startLiveShow = { _, _, _ in
+        callCount.withValue { $0 += 1 }
+        return StartLiveShowResponse(
+          liveShowId: "show-1", scheduledStartsAt: Date(), scheduledEndsAt: Date())
+      }
+    } operation: {
+      AskMeAnythingSetupPageModel(stationId: "station-1")
+    }
+    model.openingItems = [
+      AMAOpeningItem(
+        id: UUID(uuidString: "00000000-0000-0000-0000-0000000000D2")!,
+        content: .intro(.mockWith(id: "i", durationMS: 600_000)))
+    ]
+    coordinator.artistDashboardPath = [.askMeAnythingSetupPage(model)]
+
+    await model.startShowButtonTapped()
+    await model.startShowButtonTapped()  // no longer .editing → rejected
+
+    #expect(callCount.value == 1)
+  }
+
+  @Test func startShowUnavailableShowsAlertAndReturnsToEditing() async {
+    @Shared(.auth) var auth = Auth(jwt: "t")
+    @Shared(.activeLiveShow) var activeLiveShow: ActiveLiveShow?
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let model = withDependencies {
+      $0.api.startLiveShow = { _, _, _ in
+        throw APIError.liveShowUnavailable(delayUntil: Date(timeIntervalSince1970: 2_000_000))
+      }
+    } operation: {
+      AskMeAnythingSetupPageModel(stationId: "station-1")
+    }
+    model.openingItems = [
+      AMAOpeningItem(
+        id: UUID(uuidString: "00000000-0000-0000-0000-0000000000D3")!,
+        content: .intro(.mockWith(id: "i", durationMS: 600_000)))
+    ]
+
+    await model.startShowButtonTapped()
+
+    #expect(model.submissionState == .editing)
+    #expect(model.presentedAlert != nil)
+  }
+
   @Test func coordinatorRemovingSetupCancelsInFlightUploads() async throws {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator) var coordinator =

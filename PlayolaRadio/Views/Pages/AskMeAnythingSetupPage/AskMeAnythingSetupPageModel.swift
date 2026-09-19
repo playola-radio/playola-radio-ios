@@ -20,11 +20,13 @@ class AskMeAnythingSetupPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
   @ObservationIgnored @Dependency(\.audioRecorder) var audioRecorder
+  @ObservationIgnored @Dependency(\.api) var api
 
   // MARK: - Shared State
 
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator
   @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.activeLiveShow) var activeLiveShow
 
   // MARK: - Initialization
 
@@ -41,6 +43,11 @@ class AskMeAnythingSetupPageModel: ViewModel {
   var openingItems: IdentifiedArrayOf<AMAOpeningItem> = []
   var presentedAlert: PlayolaAlert?
 
+  enum SubmissionState: Equatable {
+    case editing, preparing, submitting, scheduled, outcomeUnknown
+  }
+  private(set) var submissionState: SubmissionState = .editing
+
   @ObservationIgnored private var uploadTasks: [UUID: Task<Void, Never>] = [:]
 
   // MARK: - User Actions
@@ -51,7 +58,12 @@ class AskMeAnythingSetupPageModel: ViewModel {
   }
 
   func setupAbandoned() {
-    cancelUploads()
+    switch submissionState {
+    case .editing, .preparing:
+      cancelUploads()
+    case .submitting, .scheduled, .outcomeUnknown:
+      break  // A committed/in-flight show must not be torn down (spec §8).
+    }
   }
 
   func recordIntroButtonTapped() {
@@ -94,7 +106,46 @@ class AskMeAnythingSetupPageModel: ViewModel {
 
   func qaActionTapped() {}
 
-  func startShowButtonTapped() {}
+  func startShowButtonTapped() async {
+    guard submissionState == .editing else { return }
+    guard isStartShowEnabled, hasRecordedIntro else { return }
+
+    submissionState = .preparing
+    await waitForPendingUploads()
+
+    guard hasRecordedIntro, isStartShowEnabled, allOpeningItemsReady else {
+      submissionState = .editing
+      presentedAlert = .amaOpeningIncomplete
+      return
+    }
+
+    guard let jwt = auth.jwt else {
+      submissionState = .editing
+      presentedAlert = .amaStartFailed("You need to be signed in to go live.")
+      return
+    }
+
+    let audioBlockIds = readyAudioBlockIds
+    submissionState = .submitting
+    do {
+      let response = try await api.startLiveShow(jwt, stationId, audioBlockIds)
+      $activeLiveShow.withLock {
+        $0 = ActiveLiveShow(liveShowId: response.liveShowId, stationId: stationId)
+      }
+      submissionState = .scheduled
+      navigateToLive(liveShowId: response.liveShowId, scheduledStartsAt: response.scheduledStartsAt)
+    } catch APIError.liveShowUnavailable(let delayUntil) {
+      if let delayUntil {
+        submissionState = .editing
+        presentedAlert = .amaStartUnavailable(delayUntil: delayUntil)
+      } else {
+        await recoverStartedShow()
+      }
+    } catch {
+      submissionState = .outcomeUnknown
+      presentedAlert = .amaStartUnknown { [weak self] in await self?.recoverStartedShow() }
+    }
+  }
 
   // MARK: - View Helpers
 
@@ -276,6 +327,38 @@ class AskMeAnythingSetupPageModel: ViewModel {
 
   private func cancelUploads() {
     for task in uploadTasks.values { task.cancel() }
+  }
+
+  private func navigateToLive(liveShowId: String, scheduledStartsAt: Date) {
+    let liveModel = AskMeAnythingLivePageModel(
+      stationId: stationId, liveShowId: liveShowId, scheduledStartsAt: scheduledStartsAt)
+    navigationCoordinator.replaceAskMeAnythingSetup(
+      self, with: .askMeAnythingLivePage(liveModel))
+  }
+
+  private func recoverStartedShow() async {
+    guard auth.jwt != nil else {
+      submissionState = .editing
+      presentedAlert = .amaStartFailed("You need to be signed in to go live.")
+      return
+    }
+    do {
+      let spins = try await api.fetchSchedule(stationId, true)
+      guard let recoveredId = spins.compactMap({ $0.liveShowId }).first else {
+        submissionState = .editing
+        presentedAlert = .amaStartFailed("We couldn\u{2019}t confirm your show. Please try again.")
+        return
+      }
+      let startsAt = spins.first(where: { $0.liveShowId == recoveredId })?.airtime ?? now
+      $activeLiveShow.withLock {
+        $0 = ActiveLiveShow(liveShowId: recoveredId, stationId: stationId)
+      }
+      submissionState = .scheduled
+      navigateToLive(liveShowId: recoveredId, scheduledStartsAt: startsAt)
+    } catch {
+      submissionState = .editing
+      presentedAlert = .amaStartFailed("We couldn\u{2019}t confirm your show. Please try again.")
+    }
   }
 
   private func durationLabel(_ milliseconds: Int) -> String {

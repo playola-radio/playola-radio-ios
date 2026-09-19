@@ -248,7 +248,7 @@ struct AskMeAnythingSetupPageView: View {
 
   private var startShowButton: some View {
     Button {
-      model.startShowButtonTapped()
+      Task { await model.startShowButtonTapped() }
     } label: {
       Text(model.startShowButtonTitle)
         .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
