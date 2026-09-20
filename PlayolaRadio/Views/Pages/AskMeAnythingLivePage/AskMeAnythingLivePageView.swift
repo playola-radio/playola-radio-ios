@@ -11,6 +11,10 @@ struct AskMeAnythingLivePageView: View {
   var body: some View {
     VStack(spacing: 0) {
       header
+        .frame(height: model.setupHeaderHeight)
+        .clipped()
+        .opacity(model.setupLayerOpacity)
+        .accessibilityHidden(model.setupLayerAccessibilityHidden)
       ZStack {
         setupContent
           .opacity(model.setupLayerOpacity)
@@ -53,23 +57,10 @@ struct AskMeAnythingLivePageView: View {
   }
 
   private var activeContent: some View {
-    BroadcastContentView(model: model.broadcast)
-      .safeAreaInset(edge: .bottom) {
-        Button {
-          Task { await model.endShowButtonTapped() }
-        } label: {
-          Text(model.endShowButtonTitle)
-            .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 44)
-            .background(Color.playolaRed)
-            .cornerRadius(12)
-        }
-        .disabled(!model.isEndShowEnabled)
-        .padding(16)
-        .background(Color.playolaSurfaceBase)
-      }
+    TimelineView(.periodic(from: .now, by: 0.5)) { context in
+      AMALiveContentView(model: model)
+        .onChange(of: context.date) { model.playbackTick() }
+    }
   }
 
   private var header: some View {

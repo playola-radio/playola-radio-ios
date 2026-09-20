@@ -64,3 +64,17 @@ Verification: 171 tests passed across the five touched suites; strict SwiftLint 
 - Kept existing insertion-error copy for default Broadcast; changing it is outside this feature and the no-anchor condition is handled by the same scheduler guard.
 
 The two concrete behavior corrections were reproduced with failing tests before implementation. The owner's light-review instruction is honored with one external code-review pass; final regression checks cover the corrections.
+
+## Dedicated AMA design follow-up (2026-09-19)
+
+Owner approved the four supplied exports and showing promoted filler while keeping reserve filler hidden. This supersedes the embedded Broadcast view and unconditional filler hiding above. Keep BroadcastPageModel for schedule mutations only.
+
+1. Model and regression tests: derive waiting/countdown, visible queue, 10-minute buffer, and three-minute filler reveal from the real schedule. Retain revealed IDs for this page lifetime; intersect against each refreshed schedule. No scheduler, phase enum, persistence, or network poller. Read listener count and Q/A metadata from existing endpoints on appearance. Preserve recorded-outro ending.
+2. Dedicated AMA rendering: match exported header, now-playing strip, grouped Q/A rows, action card, and pinned footer. Reuse existing insertion/move/delete operations. Automatically append successful songs/voicetracks before reserve filler; provide retry for failed adds. Preserve the approved native three-tab shell. Waiting footer uses truthful “Show starts automatically”; notification delivery has no client confirmation.
+3. Verify: focused regressions, full touched suites, four simulator-rendered states, formatting/lint, one light Claude review.
+
+Architecture consultation: keep shared insertion anchor resolution. Reject showing all filler because it contradicts the owner's explicit selection. Three-minute promotion is presentation of audio already on the server schedule, not a new insertion request. Use the exact existing amber/green tokens. Validate List rendering with UIKit, not ImageRenderer. Pinned SDK source is present in /tmp/ama-live-tacoma-dd. Server auto-tagging landed on origin/develop at 53d7b6a3, superseding the earlier dependency warning.
+
+Follow-up contract trace: the current server's classifier accepts inserts before its first removable filler. A visually revealed song remains removable until two minutes before airtime; new host audio replaces that fallback rather than being inserted outside the show. The insertion boundary therefore intentionally includes visible-but-removable filler. Q/A deletion uses the existing single-spin endpoint in reverse order (answer then question), stopping on failure; moves retain server-side grouping. Icons are the exact SVG vectors extracted from the supplied HTML exports.
+
+Follow-up verification: 180 tests passed across AMA presentation, AMA live page, Broadcast, Shows, navigation coordinator, and recorder suites. Strict SwiftLint: zero violations. Full swift-format check passed. All four content states were rendered in the iOS Simulator at the exported 393-point width and visually compared; the temporary rendering harness was removed. Artifacts remain in the workspace's ignored .context/ama-visual-validation directory. The checked-in tests cover countdown boundaries, filler reveal/confirmation expiry, normal buffer, grouped Q/A move/delete, hidden insertion boundary, retry, live voicetrack upload/append, and actual listener-count query parameters.

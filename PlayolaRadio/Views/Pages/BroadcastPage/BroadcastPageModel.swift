@@ -25,6 +25,8 @@ struct DependencyDateProvider: DateProviderProtocol {
 class BroadcastPageModel: ViewModel {
   let stationId: String
   var liveShowId: String?
+  // AMA reveals scheduled fallback audio without changing its server-side filler status.
+  var visibleFillerIds: Set<String> = []
   private let providedStationName: String?
   private var fetchedStationName: String?
   var schedule: Schedule?
@@ -209,7 +211,9 @@ class BroadcastPageModel: ViewModel {
     guard let schedule else { return [] }
     let futureSpins = schedule.current().filter {
       $0.airtime > now
-        && (liveShowId == nil || ($0.liveShowId == liveShowId && $0.isFiller != true))
+        && (liveShowId == nil
+          || ($0.liveShowId == liveShowId
+            && ($0.isFiller != true || visibleFillerIds.contains($0.id))))
     }
 
     // If we have a custom order, use it

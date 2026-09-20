@@ -40,6 +40,14 @@ class AskMeAnythingLivePageModel: ViewModel {
   let stationId: String
   private let targetMilliseconds = 600_000
 
+  var displayDate = Date.distantPast
+  var scheduledStartsAt: Date?
+  var listenerCount: Int?
+  var listenerQuestions: [ListenerQuestion] = []
+  var lastPromotedFiller: (title: String, date: Date)?
+  var hasPresentedSchedule = false
+  var isAddingToShow = false
+
   var openingItems: IdentifiedArrayOf<AMAOpeningItem> = []
   let broadcast: BroadcastPageModel
   var isCheckingSchedule = false
@@ -67,14 +75,18 @@ class AskMeAnythingLivePageModel: ViewModel {
     }
     isCheckingSchedule = true
     defer { isCheckingSchedule = false }
+    async let metadata: Void = loadLiveMetadata()
     await broadcast.viewAppeared(trackScreenView: false)
+    await metadata
     hasScheduleLoadFailed = broadcast.schedule == nil
     updateShowFromSchedule()
+    updateLivePresentation()
   }
 
   func schedulePlaybackChanged() {
     guard !isStartingShow, !isEndingShow else { return }
     updateShowFromSchedule()
+    updateLivePresentation()
   }
 
   func backButtonTapped() {
@@ -125,7 +137,11 @@ class AskMeAnythingLivePageModel: ViewModel {
     navigationCoordinator.presentedSheet = .curatorSongPicker(picker)
   }
 
-  func qaActionTapped() {}
+  func qaActionTapped() {
+    navigationCoordinator.push(
+      .broadcastersListenerQuestionPage(BroadcastersListenerQuestionPageModel(stationId: stationId))
+    )
+  }
 
   func startShowButtonTapped() async {
     guard isStartShowEnabled else { return }
@@ -139,10 +155,14 @@ class AskMeAnythingLivePageModel: ViewModel {
       let response = try await api.startLiveShow(
         jwt, stationId, openingItems.compactMap(\.audioBlockId))
       broadcast.liveShowId = response.liveShowId
+      scheduledStartsAt = response.scheduledStartsAt
+      broadcast.visibleFillerIds = []
+      hasPresentedSchedule = false
       effectiveEndsAt = nil
       outroAudioBlockId = nil
       openingItems.removeAll()
       await broadcast.loadSchedule()
+      updateLivePresentation()
     } catch APIError.liveShowUnavailable(let delayUntil) {
       let message =
         delayUntil.map {
@@ -192,7 +212,9 @@ class AskMeAnythingLivePageModel: ViewModel {
   var scheduleRetryTitle: String { "Retry Loading Show" }
   var loadingOpacity: Double { isCheckingSchedule ? 1 : 0 }
   var loadingAccessibilityHidden: Bool { !isCheckingSchedule }
-  var isEndShowEnabled: Bool { isShowActive && !isEndingShow && effectiveEndsAt == nil }
+  var isEndShowEnabled: Bool {
+    isShowActive && !isEndingShow && !isAddingToShow && effectiveEndsAt == nil
+  }
   var endShowButtonTitle: String {
     if effectiveEndsAt != nil { return "Show Ending" }
     if isEndingShow { return "Ending Show…" }
@@ -307,6 +329,11 @@ class AskMeAnythingLivePageModel: ViewModel {
       effectiveEndsAt = nil
       outroAudioBlockId = nil
       broadcast.liveShowId = showId
+      scheduledStartsAt = nil
+      broadcast.visibleFillerIds = []
+      lastPromotedFiller = nil
+      hasPresentedSchedule = false
+      broadcast.stagingItems = []
     }
   }
 
@@ -352,6 +379,10 @@ class AskMeAnythingLivePageModel: ViewModel {
   }
 
   private func addSong(_ audioBlock: AudioBlock) {
+    if let showId = broadcast.liveShowId {
+      Task { await appendToShow(audioBlock, showId: showId) }
+      return
+    }
     openingItems.append(AMAOpeningItem(id: uuid(), content: .song(audioBlock)))
   }
 
@@ -363,14 +394,15 @@ class AskMeAnythingLivePageModel: ViewModel {
     openingItems.append(
       AMAOpeningItem(id: itemId, content: .voicetrack(voicetrack, completedDurationMS: nil)))
     let stationId = stationId
+    let showId = broadcast.liveShowId
     uploadTasks[itemId] = Task { [weak self] in
       await self?.runVoicetrackUpload(
-        itemId: itemId, voicetrack: voicetrack, stationId: stationId, jwt: jwt)
+        itemId: itemId, voicetrack: voicetrack, stationId: stationId, jwt: jwt, showId: showId)
     }
   }
 
   private func runVoicetrackUpload(
-    itemId: UUID, voicetrack: LocalVoicetrack, stationId: String, jwt: String
+    itemId: UUID, voicetrack: LocalVoicetrack, stationId: String, jwt: String, showId: String?
   ) async {
     defer { uploadTasks[itemId] = nil }
     do {
@@ -384,6 +416,10 @@ class AskMeAnythingLivePageModel: ViewModel {
         return
       }
       completeVoicetrack(itemId: itemId, audioBlock: audioBlock)
+      if let showId {
+        await appendToShow(audioBlock, showId: showId)
+        openingItems.remove(id: itemId)
+      }
       await audioRecorder.deleteRecording(voicetrack.originalURL)
     } catch {
       await audioRecorder.deleteRecording(voicetrack.originalURL)
