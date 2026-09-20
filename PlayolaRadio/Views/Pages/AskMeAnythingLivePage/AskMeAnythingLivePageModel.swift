@@ -47,6 +47,8 @@ class AskMeAnythingLivePageModel: ViewModel {
   var lastPromotedFiller: (title: String, date: Date)?
   var hasPresentedSchedule = false
   var isAddingToShow = false
+  var isEditingSchedule = false
+  var isAwaitingStartedSchedule = false
 
   var openingItems: IdentifiedArrayOf<AMAOpeningItem> = []
   let broadcast: BroadcastPageModel
@@ -160,7 +162,8 @@ class AskMeAnythingLivePageModel: ViewModel {
       hasPresentedSchedule = false
       effectiveEndsAt = nil
       outroAudioBlockId = nil
-      openingItems.removeAll()
+      isAwaitingStartedSchedule = true
+      displayDate = now
       await broadcast.loadSchedule()
       updateLivePresentation()
     } catch APIError.liveShowUnavailable(let delayUntil) {
@@ -206,14 +209,16 @@ class AskMeAnythingLivePageModel: ViewModel {
   var activeLayerOpacity: Double { isShowActive ? 1 : 0 }
   var activeLayerInteractive: Bool { isShowActive }
   var activeLayerAccessibilityHidden: Bool { !isShowActive }
-  var scheduleRetryVisible: Bool { hasScheduleLoadFailed }
+  var scheduleRetryVisible: Bool {
+    hasScheduleLoadFailed || (isAwaitingStartedSchedule && !isScheduleProcessing)
+  }
   var scheduleRetryOpacity: Double { scheduleRetryVisible ? 1 : 0 }
   var scheduleRetryAccessibilityHidden: Bool { !scheduleRetryVisible }
   var scheduleRetryTitle: String { "Retry Loading Show" }
-  var loadingOpacity: Double { isCheckingSchedule ? 1 : 0 }
-  var loadingAccessibilityHidden: Bool { !isCheckingSchedule }
+  var loadingOpacity: Double { isCheckingSchedule && !isShowActive ? 1 : 0 }
+  var loadingAccessibilityHidden: Bool { loadingOpacity == 0 }
   var isEndShowEnabled: Bool {
-    isShowActive && !isEndingShow && !isAddingToShow && effectiveEndsAt == nil
+    isShowActive && !isScheduleProcessing && !isAwaitingStartedSchedule && effectiveEndsAt == nil
   }
   var endShowButtonTitle: String {
     if effectiveEndsAt != nil { return "Show Ending" }
@@ -321,6 +326,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   // MARK: - Private Helpers
 
   private func updateShowFromSchedule() {
+    guard !isAwaitingStartedSchedule else { return }
     guard let schedule = broadcast.schedule else { return }
     let showId =
       schedule.nowPlaying()?.liveShowId

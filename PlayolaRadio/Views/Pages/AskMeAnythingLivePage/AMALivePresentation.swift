@@ -2,6 +2,7 @@ import PlayolaPlayer
 import SwiftUI
 
 struct AMALiveRowData: Identifiable {
+  let id: String
   let spins: [Spin]
   let title: String
   let subtitle: String
@@ -11,18 +12,27 @@ struct AMALiveRowData: Identifiable {
   let airtime: String
   let trailingIcon: String
   let isEditable: Bool
-  var id: String { spins[0].id }
+  let isProcessing: Bool
+  var processingOpacity: Double { isProcessing ? 1 : 0 }
+  var airtimeOpacity: Double { isProcessing ? 0 : 1 }
+  var processingLabel: String { "Updating schedule" }
 }
 
 extension AskMeAnythingLivePageModel {
   func playbackTick() {
+    if isAwaitingStartedSchedule { displayDate = now }
     broadcast.tick()
     schedulePlaybackChanged()
   }
 
   func updateLivePresentation() {
+    if isAwaitingStartedSchedule { displayDate = now }
     guard let showId = broadcast.liveShowId, let schedule = broadcast.schedule else { return }
     displayDate = now
+    if isAwaitingStartedSchedule, schedule.spins.contains(where: { $0.liveShowId == showId }) {
+      isAwaitingStartedSchedule = false
+      openingItems.removeAll()
+    }
     let showSpins = schedule.current().filter { $0.liveShowId == showId }
     if scheduledStartsAt == nil { scheduledStartsAt = showSpins.first?.airtime }
     let filler = showSpins.filter { $0.isFiller == true }
@@ -79,6 +89,13 @@ extension AskMeAnythingLivePageModel {
   }
   var retryAddLabel: String { "Retry adding audio" }
   var pendingAddIds: [String] { broadcast.stagingItems.map(\.stagingId) }
+  var isScheduleProcessing: Bool {
+    isStartingShow || isAddingToShow || isEditingSchedule || isEndingShow || broadcast.isLoading
+  }
+  var scheduleProcessingOpacity: Double { isScheduleProcessing ? 1 : 0 }
+  var scheduleProcessingLabel: String { "Updating schedule" }
+  var liveScheduleRetryTitles: [String] { scheduleRetryVisible ? [scheduleRetryTitle] : [] }
+  var canEditLiveQueue: Bool { !isScheduleProcessing && !isAwaitingStartedSchedule }
   var canAddLiveAudio: Bool { isEndShowEnabled && !isAddingToShow }
   var deleteRowLabel: String { "Delete" }
 
@@ -120,6 +137,17 @@ extension AskMeAnythingLivePageModel {
   var bufferMessages: [String] { bufferMessage.isEmpty ? [] : [bufferMessage] }
 
   var liveRows: [AMALiveRowData] {
+    if isAwaitingStartedSchedule {
+      return openingRows.map { row in
+        AMALiveRowData(
+          id: row.id.uuidString, spins: [], title: row.title, subtitle: row.subtitle,
+          icon: row.iconSystemName == "music.note" ? "music" : "mic",
+          artworkURL: row.albumImageUrl,
+          artworkColor: row.iconSystemName == "music.note" ? .playolaSurfaceMuted : .playolaRed,
+          airtime: "", trailingIcon: row.trailingIconSystemName == "pin" ? "pin" : "lock-keyhole",
+          isEditable: false, isProcessing: isScheduleProcessing)
+      }
+    }
     let spins = broadcast.upcomingSpins
     var consumed: Set<String> = []
     return spins.compactMap { spin in
@@ -149,32 +177,37 @@ extension AskMeAnythingLivePageModel {
       } else {
         subtitle = spin.audioBlock.artist + (isWaitingToAir ? "" : " · \(duration)")
       }
-      let editable = !isIntro && members.allSatisfy { broadcast.canDeleteSpin($0) }
+      let editable =
+        canEditLiveQueue && !isIntro && members.allSatisfy { broadcast.canDeleteSpin($0) }
       return AMALiveRowData(
-        spins: members, title: title, subtitle: subtitle,
+        id: spin.id, spins: members, title: title, subtitle: subtitle,
         icon: question != nil
           ? "messages-square" : (isIntro || isVoice ? "mic" : "music"),
         artworkURL: question != nil || isIntro || isVoice ? nil : spin.audioBlock.imageUrl,
         artworkColor: question != nil || isIntro || isVoice ? .playolaRed : .playolaSurfaceMuted,
         airtime: "at \(airtimeString(spin.airtime))",
         trailingIcon: isIntro ? "pin" : (editable ? "menu" : "lock-keyhole"),
-        isEditable: editable)
+        isEditable: editable,
+        isProcessing: members.contains { broadcast.spinIdsBeingRescheduled.contains($0.id) })
     }
   }
 
   func deleteLiveRow(_ row: AMALiveRowData) async {
     guard let current = liveRows.first(where: { $0.id == row.id }), current.isEditable
     else { return }
+    isEditingSchedule = true
     // The existing endpoint deletes one spin. Delete the answer first so the
     // question's airtime does not move across the safety boundary mid-operation.
     for member in current.spins.reversed() {
       guard let latest = broadcast.schedule?.current().first(where: { $0.id == member.id }),
         broadcast.canDeleteSpin(latest)
-      else { return }
+      else { break }
       await broadcast.deleteSpin(latest)
-      if broadcast.schedule?.current().contains(where: { $0.id == member.id }) == true { return }
+      if broadcast.schedule?.current().contains(where: { $0.id == member.id }) == true { break }
     }
+    isEditingSchedule = false
     schedulePlaybackChanged()
+    await retryAddingAudio()
   }
 
   func moveLiveRows(from source: IndexSet, to destination: Int) async {
@@ -190,8 +223,11 @@ extension AskMeAnythingLivePageModel {
       destination == rows.count
       ? spins.count
       : spins.firstIndex(where: { $0.id == rows[destination].id }) ?? spins.count
+    isEditingSchedule = true
     await broadcast.moveSpins(from: indices, to: target)
+    isEditingSchedule = false
     schedulePlaybackChanged()
+    await retryAddingAudio()
   }
 
   func appendToShow(_ audioBlock: AudioBlock, showId: String) async {

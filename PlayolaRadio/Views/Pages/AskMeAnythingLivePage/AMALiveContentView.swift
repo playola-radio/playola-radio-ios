@@ -123,10 +123,20 @@ struct AMALiveContentView: View {
           .lineLimit(1)
       }
       Spacer(minLength: 0)
-      Text(row.airtime)
-        .font(.custom(FontNames.Inter_400_Regular, size: 11))
-        .foregroundStyle(Color.playolaTextDisabled)
-        .fixedSize()
+      ZStack {
+        Text(row.airtime)
+          .font(.custom(FontNames.Inter_400_Regular, size: 11))
+          .foregroundStyle(Color.playolaTextDisabled)
+          .fixedSize()
+          .opacity(row.airtimeOpacity)
+          .accessibilityHidden(row.isProcessing)
+        ProgressView()
+          .tint(.playolaGray)
+          .scaleEffect(0.8)
+          .opacity(row.processingOpacity)
+          .accessibilityLabel(row.processingLabel)
+          .accessibilityHidden(!row.isProcessing)
+      }
       Image("AMA-" + row.trailingIcon).resizable().scaledToFit().frame(width: 14, height: 14)
         .foregroundStyle(Color.playolaTextDisabled)
         .padding(.leading, 8)
@@ -143,10 +153,23 @@ struct AMALiveContentView: View {
             .foregroundStyle(Color.playolaRed)
           Text(model.liveAddTitle)
             .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
+          Spacer()
+          ProgressView()
+            .tint(.playolaGray)
+            .scaleEffect(0.8)
+            .frame(width: 18, height: 18)
+            .opacity(model.scheduleProcessingOpacity)
+            .accessibilityLabel(model.scheduleProcessingLabel)
+            .accessibilityHidden(!model.isScheduleProcessing)
         }
         Text(model.liveAddExplanation)
           .font(.custom(FontNames.Inter_400_Regular, size: 12))
           .foregroundStyle(Color.playolaTextSecondary)
+      }
+      ForEach(model.liveScheduleRetryTitles, id: \.self) { title in
+        Button(title) { Task { await model.viewAppeared() } }
+          .font(.custom(FontNames.Inter_400_Regular, size: 12))
+          .disabled(model.isScheduleProcessing)
       }
       HStack(spacing: 8) {
         action(icon: "mic", label: model.voicetrackActionLabel) { model.voicetrackActionTapped() }

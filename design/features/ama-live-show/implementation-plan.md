@@ -86,3 +86,13 @@ Follow-up review dispositions (one light Claude pass):
 - Removed the empty footer message's spacing and let visible message text use its intrinsic height, aligning End Show with the exported normal/low/confirmation positions. Re-rendered all four states in the simulator.
 
 Final verification after review: 181 regression tests pass across all six touched suites; zero strict lint violations and a clean full format check. No temporary rendering code remains in the test target. No API/server changes were needed.
+
+## Immediate opener and scheduling feedback (2026-09-19)
+
+Owner requested reusing Broadcast's processing behavior and showing the known opener immediately after Start succeeds. Broadcast's ScheduleRowView replaces airtime with a gray 0.8-scale spinner driven by spinIdsBeingRescheduled; moves mark all rows and deletes mark the downstream suffix. Insert lacked this state.
+
+Implementation: retain the existing openingItems until the accepted liveShowId appears in the fetched schedule; render them as non-editable presentation rows with independent display IDs, never synthetic server spins. Preserve accepted identity across failed/empty reads and expose the existing retry action on the active card. Initialize the waiting clock at acceptance. AMA uses the existing shared rescheduling IDs (any Q/A member), and insertion marks/clears its affected suffix. Show a small card progress indicator for operations whose affected rows are hidden. Serialize AMA queue edits and disable conflicting actions while processing. Keep the approved layout, no scheduler/poller/persistence/API changes.
+
+Architecture consultation: adopted keeping openingItems rather than a separate provisional-row store, guarding identity detection while awaiting confirmation, and matching Broadcast's spinner styling. The suggested countdown-only alternative would not satisfy the owner's explicit request to populate the list, so provisional display rows remain. Schedule reconciliation uses liveShowId for the whole authoritative batch, not fabricated per-spin IDs.
+
+Verification for immediate opener/feedback: 186 regression tests plus a temporary two-state simulator rendering check passed across the six AMA/Broadcast/Shows/navigation/recorder suites. Tests gate real async boundaries for accepted-but-unconfirmed start, empty/failed refresh and retry, ticking countdown, insert success/failure, move rollback, downstream-only delete progress, and draining an upload completed during an edit. Strict lint and full formatting pass. Temporary rendering code removed; captures are in .context/ama-processing-validation. Background uploads queued during a serialized edit drain through the existing append path after that edit finishes.

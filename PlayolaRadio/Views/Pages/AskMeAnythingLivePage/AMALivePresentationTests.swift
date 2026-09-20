@@ -11,6 +11,197 @@ import Testing
 @Suite(.freshSharedState)
 @MainActor
 struct AMALivePresentationTests {
+  @Test func startingImmediatelyShowsTheOpenerUntilSavedSpinsArrive() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let date = Date(timeIntervalSince1970: 1_000_000)
+    let clock = LockIsolated(date)
+    let started = AsyncStream<Void>.makeStream()
+    let release = AsyncStream<Void>.makeStream()
+    await withDependencies {
+      $0.date = DateGenerator { clock.value }
+      $0.api.startLiveShow = { _, _, _ in
+        .init(
+          liveShowId: "show", scheduledStartsAt: date.addingTimeInterval(138),
+          scheduledEndsAt: date.addingTimeInterval(738))
+      }
+      $0.api.fetchSchedule = { _, _ in
+        started.continuation.yield(())
+        var iterator = release.stream.makeAsyncIterator()
+        await iterator.next()
+        return [
+          .mockWith(
+            id: "saved-intro", airtime: date.addingTimeInterval(138),
+            audioBlock: .mockWith(id: "intro"), liveShowId: "show")
+        ]
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: "station")
+      model.openingItems = [
+        AMAOpeningItem(id: UUID(), content: .intro(.mockWith(id: "intro", durationMS: 30_000))),
+        AMAOpeningItem(
+          id: UUID(), content: .song(.mockWith(title: "Hummingbird", durationMS: 570_000))),
+      ]
+      let start = Task { await model.startShowButtonTapped() }
+      var iterator = started.stream.makeAsyncIterator()
+      await iterator.next()
+      expectNoDifference(model.liveRows.map(\.title), ["Show Intro", "Hummingbird"])
+      #expect(model.liveRows.allSatisfy { $0.spins.isEmpty && !$0.isEditable && $0.isProcessing })
+      #expect(!model.canAddLiveAudio)
+      expectNoDifference(model.waitingTitle, "Your Show Starts in 2:18")
+      clock.withValue { $0 += 2 }
+      model.playbackTick()
+      expectNoDifference(model.waitingTitle, "Your Show Starts in 2:16")
+      release.continuation.yield(())
+      await start.value
+      expectNoDifference(model.liveRows.map(\.id), ["saved-intro"])
+      #expect(model.liveRows.allSatisfy { !$0.isProcessing })
+      #expect(model.canAddLiveAudio)
+    }
+  }
+
+  @Test(arguments: [false, true])
+  func openerSurvivesAnUnconfirmedScheduleAndCanRetry(throwsError: Bool) async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let date = Date(timeIntervalSince1970: 1_000_000)
+    let fetches = LockIsolated(0)
+    await withDependencies {
+      $0.date.now = date
+      $0.api.startLiveShow = { _, _, _ in
+        .init(
+          liveShowId: "show", scheduledStartsAt: date.addingTimeInterval(138),
+          scheduledEndsAt: date.addingTimeInterval(738))
+      }
+      $0.api.fetchSchedule = { _, _ in
+        fetches.withValue { $0 += 1 }
+        if fetches.value == 1 {
+          if throwsError { throw NSError(domain: "offline", code: 1) }
+          return []
+        }
+        return [.mockWith(id: "saved", airtime: date.addingTimeInterval(138), liveShowId: "show")]
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: "station")
+      model.openingItems = [
+        AMAOpeningItem(id: UUID(), content: .intro(.mockWith(durationMS: 600_000)))
+      ]
+      await model.startShowButtonTapped()
+      model.schedulePlaybackChanged()
+      expectNoDifference(model.liveRows.map(\.title), ["Show Intro"])
+      #expect(model.isShowActive)
+      #expect(model.scheduleRetryVisible)
+      #expect(model.liveRows.allSatisfy { !$0.isProcessing && !$0.isEditable })
+      await model.viewAppeared()
+      expectNoDifference(model.liveRows.map(\.id), ["saved"])
+      #expect(!model.scheduleRetryVisible)
+    }
+  }
+
+  @Test func moveShowsBroadcastSpinnersAndRestoresRowsAfterFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let response = LockIsolated<[Spin]>([])
+    let inserted = LockIsolated<String?>(nil)
+    let started = AsyncStream<Void>.makeStream()
+    let release = AsyncStream<Void>.makeStream()
+    await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.api.insertSpin = { _, id, _ in
+        inserted.setValue(id)
+        return response.value
+      }
+      $0.api.moveSpin = { _, _, _ in
+        started.continuation.yield(())
+        var iterator = release.stream.makeAsyncIterator()
+        await iterator.next()
+        throw NSError(domain: "offline", code: 1)
+      }
+    } operation: {
+      let model = makeLiveModel(buffer: 392)
+      let spins = model.broadcast.schedule!.spins
+      response.setValue(spins)
+      let originalIds = model.liveRows.map(\.id)
+      let move = Task { await model.moveLiveRows(from: IndexSet(integer: 1), to: 3) }
+      var iterator = started.stream.makeAsyncIterator()
+      await iterator.next()
+      #expect(model.liveRows.allSatisfy { $0.isProcessing })
+      #expect(model.liveRows.allSatisfy { !$0.isEditable })
+      #expect(!model.canAddLiveAudio)
+      #expect(!model.isEndShowEnabled)
+      await model.appendToShow(.mockWith(id: "finished-upload"), showId: "show")
+      expectNoDifference(inserted.value, nil)
+      release.continuation.yield(())
+      await move.value
+      expectNoDifference(model.liveRows.map(\.id), originalIds)
+      #expect(model.liveRows.allSatisfy { !$0.isProcessing })
+      #expect(model.canAddLiveAudio)
+      expectNoDifference(inserted.value, "finished-upload")
+      #expect(model.pendingAddIds.isEmpty)
+    }
+  }
+
+  @Test(arguments: [false, true])
+  func insertingMarksTheAffectedSuffixAndAlwaysClearsProgress(throwsError: Bool) async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let clock = LockIsolated(Date(timeIntervalSince1970: 1_000_000))
+    let response = LockIsolated<[Spin]>([])
+    let started = AsyncStream<Void>.makeStream()
+    let release = AsyncStream<Void>.makeStream()
+    await withDependencies {
+      $0.date = DateGenerator { clock.value }
+      $0.api.insertSpin = { _, _, _ in
+        started.continuation.yield(())
+        var iterator = release.stream.makeAsyncIterator()
+        await iterator.next()
+        if throwsError { throw NSError(domain: "offline", code: 1) }
+        return response.value
+      }
+    } operation: {
+      let model = makeLiveModel(buffer: 210)
+      let spins = model.broadcast.schedule!.spins
+      response.setValue(spins)
+      clock.withValue { $0 += 30 }
+      model.playbackTick()
+      let insert = Task { await model.appendToShow(.mockWith(id: "new"), showId: "show") }
+      var iterator = started.stream.makeAsyncIterator()
+      await iterator.next()
+      expectNoDifference(model.broadcast.spinIdsBeingRescheduled, Set(["filler", "reserve"]))
+      expectNoDifference(model.liveRows.filter(\.isProcessing).map(\.id), ["filler"])
+      #expect(model.isScheduleProcessing)
+      #expect(!model.canAddLiveAudio)
+      release.continuation.yield(())
+      await insert.value
+      #expect(model.broadcast.spinIdsBeingRescheduled.isEmpty)
+      #expect(!model.isScheduleProcessing)
+      expectNoDifference(model.pendingAddIds, throwsError ? ["new"] : [])
+    }
+  }
+
+  @Test func deletingMarksOnlyDownstreamRowsAndClearsAfterRollback() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let started = AsyncStream<Void>.makeStream()
+    let release = AsyncStream<Void>.makeStream()
+    await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.api.deleteSpin = { _, _ in
+        started.continuation.yield(())
+        var iterator = release.stream.makeAsyncIterator()
+        await iterator.next()
+        throw NSError(domain: "offline", code: 1)
+      }
+    } operation: {
+      let model = makeLiveModel(buffer: 392)
+      let deletion = Task { await model.deleteLiveRow(model.liveRows[1]) }
+      var iterator = started.stream.makeAsyncIterator()
+      await iterator.next()
+      expectNoDifference(model.liveRows.map(\.id), ["question", "song"])
+      expectNoDifference(model.liveRows.filter(\.isProcessing).map(\.id), ["song"])
+      release.continuation.yield(())
+      await deletion.value
+      expectNoDifference(model.liveRows.map(\.id), ["question", "voice", "song"])
+      #expect(model.liveRows.allSatisfy { !$0.isProcessing })
+      #expect(model.canAddLiveAudio)
+    }
+  }
+
   @Test func lowBufferRevealsOnlyTheNextFillerAndExpiresConfirmation() {
     let clock = LockIsolated(Date(timeIntervalSince1970: 1_000_000))
     withDependencies {

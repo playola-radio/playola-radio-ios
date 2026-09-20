@@ -42,6 +42,7 @@ struct AskMeAnythingLivePageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let capturedIds = LockIsolated<[String]>([])
     let model = withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.api.startLiveShow = { jwt, stationId, ids in
         expectNoDifference(jwt, "test-jwt")
         expectNoDifference(stationId, "station-abc")
@@ -62,7 +63,8 @@ struct AskMeAnythingLivePageTests {
     expectNoDifference(capturedIds.value, ["intro", "song"])
     expectNoDifference(model.broadcast.liveShowId, "show-1")
     #expect(model.isShowActive)
-    #expect(model.openingItems.isEmpty)
+    expectNoDifference(model.openingItems.count, 2)
+    #expect(model.isAwaitingStartedSchedule)
   }
 
   @Test func repeatedStartTapsSendOnlyOneRequest() async {
@@ -71,6 +73,7 @@ struct AskMeAnythingLivePageTests {
     let finish = AsyncStream<Void>.makeStream()
     let calls = LockIsolated(0)
     let model = withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.api.startLiveShow = { _, _, _ in
         calls.withValue { $0 += 1 }
         started.continuation.yield(())

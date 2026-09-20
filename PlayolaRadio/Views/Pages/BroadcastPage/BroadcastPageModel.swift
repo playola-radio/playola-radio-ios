@@ -447,6 +447,9 @@ class BroadcastPageModel: ViewModel {
       placeAfterSpinId = futureSpins[beforeIndex - 1].id
     }
 
+    spinIdsBeingRescheduled = Set(futureSpins[beforeIndex...].map(\.id))
+    defer { spinIdsBeingRescheduled = [] }
+
     do {
       let newSpins = try await api.insertSpin(jwt, audioBlockId, placeAfterSpinId)
       withAnimation(.easeInOut(duration: 0.3)) {
