@@ -73,6 +73,7 @@ extension AskMeAnythingLivePageModel {
   var liveAddTitle: String { "Add to Show" }
   var liveAddExplanation: String {
     if isAddingToShow { return "Adding to your playlist…" }
+    if !pendingAddIds.isEmpty { return "Audio is ready. Retry adding it below." }
     if openingItems.contains(where: { !$0.isReady }) { return "Uploading your voicetrack…" }
     return "Added to the end of your playlist"
   }
@@ -116,7 +117,7 @@ extension AskMeAnythingLivePageModel {
       isBufferLow ? FontNames.Inter_600_SemiBold : FontNames.Inter_400_Regular,
       size: isBufferLow ? 13 : 12)
   }
-  var bufferMessageHeight: CGFloat { bufferMessage.isEmpty ? 0 : 22 }
+  var bufferMessages: [String] { bufferMessage.isEmpty ? [] : [bufferMessage] }
 
   var liveRows: [AMALiveRowData] {
     let spins = broadcast.upcomingSpins

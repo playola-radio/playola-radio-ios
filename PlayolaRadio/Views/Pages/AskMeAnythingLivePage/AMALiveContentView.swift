@@ -212,12 +212,12 @@ struct AMALiveContentView: View {
             .foregroundStyle(Color.playolaTextSecondary)
         }
         progress(model.bufferProgress, color: model.bufferColor, track: .playolaSurfaceControl)
-        Text(model.bufferMessage)
-          .font(model.bufferMessageFont)
-          .foregroundStyle(model.bufferMessageColor)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .frame(height: model.bufferMessageHeight)
-          .clipped()
+        ForEach(model.bufferMessages, id: \.self) { message in
+          Text(message)
+            .font(model.bufferMessageFont)
+            .foregroundStyle(model.bufferMessageColor)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
         Button {
           Task { await model.endShowButtonTapped() }
         } label: {

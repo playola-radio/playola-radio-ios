@@ -142,6 +142,7 @@ struct AMALivePresentationTests {
       let model = makeLiveModel(buffer: 210)
       await model.appendToShow(.mockWith(id: "new-song"), showId: "show")
       expectNoDifference(model.pendingAddIds, ["new-song"])
+      expectNoDifference(model.liveAddExplanation, "Audio is ready. Retry adding it below.")
       #expect(model.presentedAlert != nil)
       await model.retryAddingAudio()
       expectNoDifference(model.pendingAddIds, [])
@@ -225,6 +226,37 @@ struct AMALivePresentationTests {
       model.scheduledStartsAt = date.addingTimeInterval(-1)
       await model.moveLiveRows(from: IndexSet(integer: 0), to: 2)
       expectNoDifference(moved.value, ["question", "song"])
+    }
+  }
+
+  @Test func anUngroupedQuestionCannotConsumeOrDeleteUnrelatedSongs() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let date = Date(timeIntervalSince1970: 1_000_000)
+    let question = Spin.mockWith(
+      id: "question", airtime: date.addingTimeInterval(180),
+      audioBlock: .mockWith(id: "q"), liveShowId: "show")
+    let song = Spin.mockWith(id: "song", airtime: date.addingTimeInterval(300), liveShowId: "show")
+    expectNoDifference(question.spinGroupId, nil)
+    expectNoDifference(song.spinGroupId, nil)
+    let deleted = LockIsolated<[String]>([])
+    await withDependencies {
+      $0.date.now = date
+      $0.api.deleteSpin = { _, id in
+        deleted.withValue { $0.append(id) }
+        return [song]
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: "station")
+      model.broadcast.schedule = Schedule(
+        stationId: "station", spins: [question, song],
+        dateProvider: DependencyDateProvider())
+      model.listenerQuestions = [.mockWith(audioBlockId: "q")]
+      model.schedulePlaybackChanged()
+      model.scheduledStartsAt = date.addingTimeInterval(-1)
+      expectNoDifference(model.liveRows.map { $0.spins.map(\.id) }, [["question"], ["song"]])
+      await model.deleteLiveRow(model.liveRows[0])
+      expectNoDifference(deleted.value, ["question"])
+      expectNoDifference(model.broadcast.upcomingSpins.map(\.id), ["song"])
     }
   }
 
