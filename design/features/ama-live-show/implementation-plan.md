@@ -160,3 +160,5 @@ Verification: 89 tests pass across Shows, Artist Station, navigation, AMA page, 
 Final-review correction: an interrupted check could otherwise leave a retained Shows page loading without recovery. The view now keys its task to whether this exact page is current and invalidates its in-flight check on disappearance. A local generation counter prevents the old response/defer from changing a newer check; cancelling a still-visible check exposes Retry. Added a suspended-response regression that switches tabs and returns before the cancelled request completes, verifies a fresh check succeeds, then releases the stale live-show response and verifies no redirect or loading-state overwrite.
 
 Corrected verification: all 90 tests across the same five suites pass, including the rapid-tab-return recovery regression; strict lint, format, and whitespace checks remain clean.
+
+Final re-review: PASS. The reviewer confirmed automatic rechecking on return, Retry after cancellation on a still-visible page, and generation guards covering both stale navigation and stale defer state. No remaining correctness findings.
