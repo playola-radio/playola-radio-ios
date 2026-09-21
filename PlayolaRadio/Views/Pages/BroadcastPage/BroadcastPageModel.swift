@@ -40,6 +40,7 @@ class BroadcastPageModel: ViewModel {
   var currentNowPlayingId: String?
   private var reorderedSpinIds: [String]?  // nil means use default order
   var stagingItems: [any StagingItem] = []
+  private var stagingIdsBeingInserted: Set<String> = []
 
   // Notify Listeners state
   var showNotifyListenersSheet: Bool = false
@@ -250,7 +251,10 @@ class BroadcastPageModel: ViewModel {
   var showEndDropLabel: String { "Add to end of show" }
 
   func stagingItemsDropped(_ items: [String], beforeSpinId: String) -> Bool {
-    guard let stagingId = items.first else { return false }
+    guard let stagingId = items.first, !stagingIdsBeingInserted.contains(stagingId) else {
+      return false
+    }
+    stagingIdsBeingInserted.insert(stagingId)
     Task { await insertStagingItem(stagingId: stagingId, beforeSpinId: beforeSpinId) }
     return true
   }
@@ -414,7 +418,33 @@ class BroadcastPageModel: ViewModel {
     }
   }
 
+  // Returns the spins at/after the insertion point, and the id of the spin the new item
+  // should be placed after. Returns nil (with an alert/log already handled) if not insertable.
+  private func placementForInsertingStagingItem(beforeSpinId: String) -> (
+    futureSpins: [Spin], placeAfterSpinId: String
+  )? {
+    let futureSpins =
+      liveShowId == nil
+      ? upcomingSpins : schedule?.current().filter { $0.airtime > now } ?? []
+    guard let beforeIndex = futureSpins.firstIndex(where: { $0.id == beforeSpinId }) else {
+      print("insertStagingItem: Target spin not found: \(beforeSpinId)")
+      return nil
+    }
+
+    if beforeIndex == 0 {
+      guard let nowPlayingId = nowPlaying?.id else {
+        print("insertStagingItem: Cannot insert before first spin (no nowPlaying to place after)")
+        presentedAlert = .cannotInsertBeforeFirstSpin
+        return nil
+      }
+      return (futureSpins, nowPlayingId)
+    }
+    return (futureSpins, futureSpins[beforeIndex - 1].id)
+  }
+
   func insertStagingItem(stagingId: String, beforeSpinId: String) async {
+    defer { stagingIdsBeingInserted.remove(stagingId) }
+
     guard let jwt = auth.jwt else {
       print("insertStagingItem: No JWT")
       return
@@ -430,27 +460,12 @@ class BroadcastPageModel: ViewModel {
       return
     }
 
-    // Find the spin to place after (the one before beforeSpinId)
-    let futureSpins =
-      liveShowId == nil
-      ? upcomingSpins : schedule?.current().filter { $0.airtime > now } ?? []
-    guard let beforeIndex = futureSpins.firstIndex(where: { $0.id == beforeSpinId }) else {
-      print("insertStagingItem: Target spin not found: \(beforeSpinId)")
-      return
-    }
+    guard
+      let (futureSpins, placeAfterSpinId) = placementForInsertingStagingItem(
+        beforeSpinId: beforeSpinId)
+    else { return }
 
-    let placeAfterSpinId: String
-    if beforeIndex == 0 {
-      guard let nowPlayingId = nowPlaying?.id else {
-        print("insertStagingItem: Cannot insert before first spin (no nowPlaying to place after)")
-        presentedAlert = .cannotInsertBeforeFirstSpin
-        return
-      }
-      placeAfterSpinId = nowPlayingId
-    } else {
-      placeAfterSpinId = futureSpins[beforeIndex - 1].id
-    }
-
+    let beforeIndex = futureSpins.firstIndex(where: { $0.id == beforeSpinId }) ?? 0
     spinIdsBeingRescheduled = Set(futureSpins[beforeIndex...].map(\.id))
     defer { spinIdsBeingRescheduled = [] }
 

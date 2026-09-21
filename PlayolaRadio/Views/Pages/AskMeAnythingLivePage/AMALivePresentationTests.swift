@@ -393,6 +393,7 @@ struct AMALivePresentationTests {
       model.enqueueSong(.mockWith(id: "earlier-song"))
       await model.endShowButtonTapped()
       guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+        Issue.record("Expected outro recorder")
         return
       }
       let insert = Task { await model.schedulePendingAudio() }

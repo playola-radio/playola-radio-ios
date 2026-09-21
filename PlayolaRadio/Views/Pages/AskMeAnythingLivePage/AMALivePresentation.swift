@@ -18,8 +18,15 @@ struct AMALiveRowData: Identifiable {
   var processingLabel: String { "Updating schedule" }
 }
 
+private let amaAirtimeFormatter: DateFormatter = {
+  let formatter = DateFormatter()
+  formatter.dateFormat = "h:mm:ssa"
+  return formatter
+}()
+
 extension AskMeAnythingLivePageModel {
   func playbackTick() {
+    guard isShowActive else { return }
     if isAwaitingStartedSchedule { displayDate = now }
     broadcast.tick()
     schedulePlaybackChanged()
@@ -221,8 +228,6 @@ extension AskMeAnythingLivePageModel {
     return String(format: "%d:%02d", total / 60, total % 60)
   }
   private func airtimeString(_ date: Date) -> String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "h:mm:ssa"
-    return formatter.string(from: date).lowercased()
+    amaAirtimeFormatter.string(from: date).lowercased()
   }
 }

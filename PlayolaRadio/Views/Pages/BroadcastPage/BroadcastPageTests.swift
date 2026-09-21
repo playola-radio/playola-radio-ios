@@ -911,14 +911,12 @@ extension BroadcastPageTests {
   func testDeleteSpinMarksSpinsAfterDeletedAsReschedulingDuringCall() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    let deleteStarted = LockIsolated(false)
     let deleteContinuation = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.deleteSpin = { _, _ in
-        deleteStarted.setValue(true)
         await withCheckedContinuation { continuation in
           deleteContinuation.setValue(continuation)
         }
@@ -934,7 +932,7 @@ extension BroadcastPageTests {
         await model.deleteSpin(initialSpins[1])
       }
 
-      while !deleteStarted.value {
+      while deleteContinuation.value == nil {
         await Task.yield()
       }
 
@@ -1121,6 +1119,55 @@ extension BroadcastPageTests {
 
       #expect(capturedPlaceAfterSpinId.value == "now-playing")
       #expect(model.presentedAlert == nil)
+    }
+  }
+
+  @Test
+  func testStagingItemsDroppedIgnoresDuplicateDropWhileInsertIsInFlight() async {
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    let insertSpinCallCount = LockIsolated(0)
+    let insertContinuation = LockIsolated<CheckedContinuation<[Spin], Never>?>(nil)
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in initialSpins }
+      $0.api.insertSpin = { _, _, _ in
+        insertSpinCallCount.withValue { $0 += 1 }
+        return await withCheckedContinuation { continuation in
+          insertContinuation.setValue(continuation)
+        }
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      let voicetrackId = UUID()
+      model.stagingItems = [makeStagingVoicetrack(id: voicetrackId)]
+
+      let firstDropAccepted = model.stagingItemsDropped(
+        [voicetrackId.uuidString], beforeSpinId: "spin-2")
+      #expect(firstDropAccepted)
+
+      while insertContinuation.value == nil {
+        await Task.yield()
+      }
+
+      let secondDropAccepted = model.stagingItemsDropped(
+        [voicetrackId.uuidString], beforeSpinId: "spin-2")
+      #expect(!secondDropAccepted)
+
+      insertContinuation.withValue { continuation in
+        continuation?.resume(returning: initialSpins)
+        continuation = nil
+      }
+
+      while model.stagingItems.count == 1 {
+        await Task.yield()
+      }
+
+      #expect(insertSpinCallCount.value == 1)
     }
   }
 
@@ -1445,13 +1492,11 @@ extension BroadcastPageTests {
   @Test
   func testIsSendingNotificationTracksLoadingState() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    let requestStarted = LockIsolated(false)
     let requestContinuation = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.sendStationNotification = { _, _, _ in
-        requestStarted.setValue(true)
         await withCheckedContinuation { continuation in
           requestContinuation.setValue(continuation)
         }
@@ -1466,7 +1511,7 @@ extension BroadcastPageTests {
         await model.sendNotification()
       }
 
-      while !requestStarted.value {
+      while requestContinuation.value == nil {
         await Task.yield()
       }
 
