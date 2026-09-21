@@ -296,6 +296,53 @@ struct AMALivePresentationTests {
     }
   }
 
+  @Test func acceptingOutroWhileAnEarlierInsertRunsKeepsItsPlace() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let started = AsyncStream<Void>.makeStream()
+    let release = AsyncStream<Void>.makeStream()
+    let response = LockIsolated<[Spin]>([])
+    let ended = LockIsolated<[String]>([])
+    await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.uuid = .incrementing
+      $0.audioRecorder.deleteRecording = { _ in }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, _ in .mockWith(id: "outro") }
+      $0.api.insertSpin = { _, _, _ in
+        started.continuation.yield(())
+        var iterator = release.stream.makeAsyncIterator()
+        await iterator.next()
+        return response.value
+      }
+      $0.api.endLiveShow = { _, _, _, audio in
+        ended.withValue { $0.append(audio) }
+        throw APIError.liveShowFinished
+      }
+    } operation: {
+      let model = makeLiveModel(buffer: 210)
+      let spins = model.broadcast.schedule!.spins
+      response.setValue(spins)
+      model.enqueueSong(.mockWith(id: "earlier-song"))
+      await model.endShowButtonTapped()
+      guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+        return
+      }
+      let insert = Task { await model.schedulePendingAudio() }
+      var iterator = started.stream.makeAsyncIterator()
+      await iterator.next()
+      do { try recorder.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/outro.wav"), 30) } catch {
+        Issue.record("Outro acceptance should queue behind the active insert: \(error)")
+      }
+      expectNoDifference(model.pendingRows.map(\.titleText).last, "Show Outro")
+      await model.waitForPendingUploads()
+      expectNoDifference(ended.value, [])
+      release.continuation.yield(())
+      await insert.value
+      expectNoDifference(ended.value, ["outro"])
+    }
+  }
+
   @Test func startingImmediatelyShowsTheOpenerUntilSavedSpinsArrive() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let date = Date(timeIntervalSince1970: 1_000_000)

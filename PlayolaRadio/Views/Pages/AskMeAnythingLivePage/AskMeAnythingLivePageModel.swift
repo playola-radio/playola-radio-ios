@@ -196,7 +196,7 @@ class AskMeAnythingLivePageModel: ViewModel {
     recorder.onUseRecording = nil
     recorder.onRecordingAccepted = { [weak self] url, _ in
       guard let self else { return }
-      guard broadcast.liveShowId == showId, isEndShowEnabled else { throw CancellationError() }
+      guard broadcast.liveShowId == showId, canAddLiveAudio else { throw CancellationError() }
       try acceptVoicetrack(url: url, isOutro: true)
     }
     navigationCoordinator.push(.recordWithMultiStepPromptPage(recorder))
