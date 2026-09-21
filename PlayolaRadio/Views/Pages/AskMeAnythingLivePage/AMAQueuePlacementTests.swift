@@ -192,8 +192,13 @@ struct AMAQueuePlacementTests {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let response = LockIsolated<[Spin]>([])
     let calls = LockIsolated<[String]>([])
+    let endings = LockIsolated(0)
     await withDependencies {
       $0.date.now = date
+      $0.api.endLiveShow = { _, _, _, _ in
+        endings.withValue { $0 += 1 }
+        throw APIError.liveShowFinished
+      }
       $0.api.insertSpin = { _, audio, anchor in
         calls.withValue { $0.append(audio) }
         if calls.value.count == 1 { throw APIError.liveShowFinished }
@@ -210,7 +215,14 @@ struct AMAQueuePlacementTests {
       await model.schedulePendingAudio()
       expectNoDifference(calls.value, ["voice", "song"])
       expectNoDifference(model.failedSchedulingItemIds, [voice.stagingId])
+      let outro = stageVoice(model)
+      completeVoice(outro, audio: "outro", model: model)
+      model.outroStagingId = outro.stagingId
+      await model.schedulePendingAudio()
+      expectNoDifference(endings.value, 0)
+      expectNoDifference(model.pendingRows.first?.retryTitles, ["Retry scheduling"])
       await model.retryPendingRow(voice.stagingId)
+      expectNoDifference(endings.value, 1)
       expectNoDifference(calls.value, ["voice", "song", "voice"])
       expectNoDifference(model.liveRows.map(\.id), ["a", "b", "placed-voice", "placed-song"])
     }
