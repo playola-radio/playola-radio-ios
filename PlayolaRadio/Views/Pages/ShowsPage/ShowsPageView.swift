@@ -31,7 +31,8 @@ struct ShowsPageView: View {
     .background(Color.playolaSurfaceBase)
     .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
-    .task { await model.viewAppeared() }
+    .task(id: model.isCurrentPage) { await model.viewAppeared() }
+    .onDisappear { model.viewDisappeared() }
   }
 
   private var checkStatus: some View {

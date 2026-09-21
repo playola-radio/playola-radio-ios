@@ -28,19 +28,33 @@ class ShowsPageModel: ViewModel {
   var isLoading = true
   private var hasLoadFailed = false
   @ObservationIgnored private var isCheckingForShow = false
+  @ObservationIgnored private var checkGeneration = 0
 
   // MARK: - User Actions
 
   func viewAppeared() async {
-    guard !isCheckingForShow, isCurrentPage else { return }
+    guard isCurrentPage else {
+      viewDisappeared()
+      return
+    }
+    guard !isCheckingForShow else { return }
+    let generation = checkGeneration
     isCheckingForShow = true
     isLoading = true
     hasLoadFailed = false
-    defer { isCheckingForShow = false }
+    defer {
+      if generation == checkGeneration {
+        isCheckingForShow = false
+        if isLoading && isCurrentPage {
+          hasLoadFailed = true
+          isLoading = false
+        }
+      }
+    }
 
     let show = AskMeAnythingLivePageModel(stationId: stationId)
     await show.broadcast.loadSchedule()
-    guard !Task.isCancelled, isCurrentPage else { return }
+    guard generation == checkGeneration, !Task.isCancelled, isCurrentPage else { return }
     guard show.broadcast.schedule != nil else {
       hasLoadFailed = true
       isLoading = false
@@ -54,6 +68,13 @@ class ShowsPageModel: ViewModel {
     var path = navigationCoordinator.path
     path[path.count - 1] = .askMeAnythingLivePage(show)
     navigationCoordinator.path = path
+  }
+
+  func viewDisappeared() {
+    checkGeneration += 1
+    isCheckingForShow = false
+    isLoading = true
+    hasLoadFailed = false
   }
 
   func showTypeRowTapped(_ row: ShowTypeRow) {
@@ -93,9 +114,7 @@ class ShowsPageModel: ViewModel {
     ]
   }
 
-  // MARK: - Private Helpers
-
-  private var isCurrentPage: Bool {
+  var isCurrentPage: Bool {
     guard case .showsPage(let model) = navigationCoordinator.path.last else { return false }
     return model === self
   }

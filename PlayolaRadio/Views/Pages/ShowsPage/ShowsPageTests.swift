@@ -194,6 +194,7 @@ struct ShowsPageTests {
       ])
       await check.value
       expectNoDifference(coordinator.path, expectedPath)
+      if action == "cancel" { expectNoDifference(model.retryTitles, ["Retry"]) }
     }
   }
   @Test func chooserIgnoresFinishedShowsAndRechecksWhenItAppearsAgain() async {
@@ -223,6 +224,49 @@ struct ShowsPageTests {
         return
       }
       expectNoDifference(live.broadcast.liveShowId, "new-show")
+    }
+  }
+
+  @Test func returningBeforeCancelledCheckFinishesStartsFreshAndIgnoresOldResponse() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    @Shared(.activeTab) var tab = MainContainerModel.ActiveTab.home
+    let started = AsyncStream<Void>.makeStream()
+    let reply = LockIsolated<CheckedContinuation<[Spin], Never>?>(nil)
+    let calls = LockIsolated(0)
+    let date = Date(timeIntervalSince1970: 1_000_000)
+    await withDependencies {
+      $0.date.now = date
+      $0.api.fetchSchedule = { _, _ in
+        let count = calls.withValue {
+          $0 += 1
+          return $0
+        }
+        guard count == 1 else { return [] }
+        return await withCheckedContinuation { continuation in
+          reply.setValue(continuation)
+          started.continuation.yield(())
+        }
+      }
+    } operation: {
+      let model = ShowsPageModel(stationId: testStationId)
+      coordinator.push(.showsPage(model))
+      let oldCheck = Task { await model.viewAppeared() }
+      for await _ in started.stream { break }
+      $tab.withLock { $0 = .profile }
+      model.viewDisappeared()
+      oldCheck.cancel()
+      await model.viewAppeared()
+      $tab.withLock { $0 = .home }
+      await model.viewAppeared()
+      expectNoDifference(calls.value, 2)
+      #expect(model.canChooseShow)
+      reply.value?.resume(returning: [
+        .mockWith(airtime: date.addingTimeInterval(300), liveShowId: "stale-show")
+      ])
+      await oldCheck.value
+      #expect(model.canChooseShow)
+      expectNoDifference(coordinator.path, [.showsPage(model)])
     }
   }
 
