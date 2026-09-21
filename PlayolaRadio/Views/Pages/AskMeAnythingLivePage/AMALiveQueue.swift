@@ -7,6 +7,7 @@ struct AMAQueuedRowData: Identifiable, StagingItem {
   let schedulingFailed: Bool
   let awaitingConfirmation: Bool
   let canDiscard: Bool
+  let canMove: Bool
 
   var id: String { item.stagingId }
   var stagingId: String { id }
@@ -15,7 +16,6 @@ struct AMAQueuedRowData: Identifiable, StagingItem {
     if isScheduling { return "Scheduling…" }
     if schedulingFailed { return "Scheduling failed" }
     if awaitingConfirmation { return "Show ending · Refresh to confirm" }
-    if item.isReady { return "Waiting to schedule" }
     return item.subtitleText
   }
   var subtitleColor: Color {
@@ -40,14 +40,16 @@ extension AskMeAnythingLivePageModel {
       let acceptedOutro = item.stagingId == outroStagingId && endingSpinId != nil
       return AMAQueuedRowData(
         item: item, isScheduling: schedulingItemId == item.stagingId,
-        schedulingFailed: failedSchedulingItemId == item.stagingId,
+        schedulingFailed: failedSchedulingItemIds.contains(item.stagingId),
         awaitingConfirmation: acceptedOutro,
-        canDiscard: schedulingItemId != item.stagingId && !acceptedOutro)
+        canDiscard: schedulingItemId != item.stagingId && !acceptedOutro,
+        canMove: canEditLiveQueue && item.stagingId != outroStagingId)
     }
   }
 
   func enqueueSong(_ audioBlock: AudioBlock) {
     guard !broadcast.stagingItems.contains(where: { $0.stagingId == audioBlock.id }) else { return }
+    rememberPendingPosition(audioBlock.stagingId)
     broadcast.stagingItems.append(audioBlock)
   }
 
@@ -55,8 +57,9 @@ extension AskMeAnythingLivePageModel {
     guard broadcast.stagingItems.contains(where: { $0.stagingId == id }) else { return }
     if id == outroStagingId, endingSpinId != nil {
       await viewAppeared()
-    } else if failedSchedulingItemId == id {
-      await retryAddingAudio()
+    } else if failedSchedulingItemIds.contains(id), !isScheduleProcessing {
+      failedSchedulingItemIds.remove(id)
+      await schedulePendingAudio()
     }
   }
 
@@ -64,14 +67,15 @@ extension AskMeAnythingLivePageModel {
     guard pendingRows.first(where: { $0.id == id })?.canDiscard == true else { return }
     if let uuid = UUID(uuidString: id) { uploadTasks[uuid]?.cancel() }
     broadcast.stagingItems.removeAll { $0.stagingId == id }
-    if failedSchedulingItemId == id { failedSchedulingItemId = nil }
+    failedSchedulingItemIds.remove(id)
+    pendingPredecessors[id] = nil
     if outroStagingId == id { outroStagingId = nil }
     await schedulePendingAudio()
   }
 
   func retryAddingAudio() async {
     guard !isAddingToShow, !isEndingShow else { return }
-    failedSchedulingItemId = nil
+    failedSchedulingItemIds.removeAll()
     await schedulePendingAudio()
   }
 
@@ -80,34 +84,39 @@ extension AskMeAnythingLivePageModel {
       expectedShowId == nil || expectedShowId == showId,
       !isAddingToShow, !isEditingSchedule, !isEndingShow, !broadcast.isLoading,
       !isCheckingSchedule, !isAwaitingStartedSchedule, effectiveEndsAt == nil,
-      failedSchedulingItemId == nil, auth.jwt != nil, !Task.isCancelled
+      auth.jwt != nil, !Task.isCancelled
     else { return }
     isAddingToShow = true
     defer {
       isAddingToShow = false
       schedulingItemId = nil
     }
-    while let item = broadcast.stagingItems.first {
-      guard broadcast.liveShowId == showId, item.isReady, !Task.isCancelled else { return }
+    while let item = broadcast.stagingItems.first(where: {
+      $0.isReady && !failedSchedulingItemIds.contains($0.stagingId)
+        && ($0.stagingId != outroStagingId || broadcast.stagingItems.count == 1)
+    }) {
+      guard broadcast.liveShowId == showId, !Task.isCancelled else { return }
       schedulingItemId = item.stagingId
       if item.stagingId == outroStagingId {
         await submitQueuedOutro(item, showId: showId)
         return
       }
-      guard let target = broadcast.showEndDropTargets.first else {
-        failedSchedulingItemId = item.stagingId
+      guard let target = insertionTarget(for: item.stagingId) else {
+        failedSchedulingItemIds.insert(item.stagingId)
         presentedAlert = PlayolaAlert(
           title: "Unable to Add Audio",
           message: "Refresh the show and try again. Your audio is ready to retry.",
           dismissButton: .cancel(Text("OK")))
-        return
+        continue
       }
+      let previousSpinIds = Set(broadcast.schedule?.spins.map(\.id) ?? [])
       await broadcast.insertStagingItem(stagingId: item.stagingId, beforeSpinId: target)
       guard broadcast.liveShowId == showId else { return }
       guard !broadcast.stagingItems.contains(where: { $0.stagingId == item.stagingId }) else {
-        failedSchedulingItemId = item.stagingId
-        return
+        failedSchedulingItemIds.insert(item.stagingId)
+        continue
       }
+      replacePendingPosition(item, previousSpinIds: previousSpinIds)
       schedulePlaybackChanged()
     }
   }
@@ -123,6 +132,7 @@ extension AskMeAnythingLivePageModel {
     let itemId: UUID
     if showId != nil {
       itemId = voicetrack.id
+      rememberPendingPosition(voicetrack.stagingId)
       broadcast.stagingItems.append(voicetrack)
       if isOutro { outroStagingId = voicetrack.stagingId }
     } else {
@@ -207,7 +217,7 @@ extension AskMeAnythingLivePageModel {
       updateLivePresentation()
     } catch {
       guard broadcast.liveShowId == showId else { return }
-      failedSchedulingItemId = item.stagingId
+      failedSchedulingItemIds.insert(item.stagingId)
       let message: String
       switch error {
       case APIError.liveShowReplaced:

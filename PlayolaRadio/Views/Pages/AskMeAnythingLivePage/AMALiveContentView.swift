@@ -78,15 +78,27 @@ struct AMALiveContentView: View {
 
   private var queue: some View {
     List {
-      ForEach(model.liveRows) { row in
-        queueRow(row)
-          .moveDisabled(!row.isEditable)
-          .swipeActions {
-            Button(model.deleteRowLabel, role: .destructive) {
-              Task { await model.deleteLiveRow(row) }
+      ForEach(model.playlistRows) { row in
+        VStack(alignment: .leading, spacing: 0) {
+          ForEach(row.scheduledRows) { saved in queueRow(saved) }
+          ForEach(row.pendingRows) { pending in
+            StagingRowView(item: pending)
+            ForEach(pending.retryTitles, id: \.self) { title in
+              Button(title) { Task { await model.retryPendingRow(pending.id) } }
+                .font(.custom(FontNames.Inter_400_Regular, size: 12))
+                .padding(.horizontal, 16)
+                .padding(.bottom, 10)
+                .disabled(model.isScheduleProcessing)
             }
-            .disabled(!row.isEditable)
           }
+        }
+        .moveDisabled(!row.canMove)
+        .swipeActions {
+          Button(model.deleteRowLabel, role: .destructive) {
+            Task { await model.deletePlaylistRow(row) }
+          }
+          .disabled(!row.canDelete)
+        }
       }
       .onMove { source, destination in
         Task { await model.moveLiveRows(from: source, to: destination) }
@@ -94,28 +106,6 @@ struct AMALiveContentView: View {
       .listRowInsets(EdgeInsets())
       .listRowSeparator(.hidden)
       .listRowBackground(Color.playolaSurfaceRow)
-      ForEach(model.pendingRows) { row in
-        VStack(alignment: .leading, spacing: 0) {
-          StagingRowView(item: row)
-          ForEach(row.retryTitles, id: \.self) { title in
-            Button(title) { Task { await model.retryPendingRow(row.id) } }
-              .font(.custom(FontNames.Inter_400_Regular, size: 12))
-              .padding(.horizontal, 16)
-              .padding(.bottom, 10)
-              .disabled(model.isScheduleProcessing)
-          }
-        }
-        .moveDisabled(true)
-        .swipeActions {
-          Button(model.deleteRowLabel, role: .destructive) {
-            Task { await model.discardPendingRow(row.id) }
-          }
-          .disabled(!row.canDiscard)
-        }
-        .listRowInsets(EdgeInsets())
-        .listRowSeparator(.hidden)
-        .listRowBackground(Color.playolaSurfaceRow)
-      }
       addCard
         .padding(.top, 16)
         .padding(.horizontal, 16)

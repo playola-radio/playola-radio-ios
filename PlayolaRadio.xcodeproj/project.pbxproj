@@ -659,6 +659,9 @@
 		FFE2EA430C2866C7B05C9B12 /* KoozieAddressFormModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07AAD05D9D43997B4956B822 /* KoozieAddressFormModel.swift */; };
 		AF0000000000000000000001 /* AMALiveQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0000000000000000000003 /* AMALiveQueue.swift */; };
 		AF0000000000000000000002 /* AMALiveQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0000000000000000000003 /* AMALiveQueue.swift */; };
+		AF1000000000000000000001 /* AMAQueuePlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000003 /* AMAQueuePlacement.swift */; };
+		AF1000000000000000000002 /* AMAQueuePlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000003 /* AMAQueuePlacement.swift */; };
+		AF1000000000000000000004 /* AMAQueuePlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000005 /* AMAQueuePlacementTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1051,6 +1054,8 @@
 		FE110AC0DE0000000000F1F1 /* WelcomeMessageEligibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessageEligibilityTests.swift; sourceTree = "<group>"; };
 		FEEDA11C0000000000000001 /* ListenerAnalytics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ListenerAnalytics.swift; sourceTree = "<group>"; };
 		AF0000000000000000000003 /* AMALiveQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMALiveQueue.swift; sourceTree = "<group>"; };
+		AF1000000000000000000003 /* AMAQueuePlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQueuePlacement.swift; sourceTree = "<group>"; };
+		AF1000000000000000000005 /* AMAQueuePlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQueuePlacementTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1251,6 +1256,8 @@
 				ECF44C76DE06AB953BB6F669 /* AMALiveContentView.swift */,
 				A29DFFABB0DD05FFE6503767 /* AMALivePresentation.swift */,
 				AF0000000000000000000003 /* AMALiveQueue.swift */,
+				AF1000000000000000000003 /* AMAQueuePlacement.swift */,
+				AF1000000000000000000005 /* AMAQueuePlacementTests.swift */,
 				CC0000000000000000000704 /* AskMeAnythingLivePageView.swift */,
 				CC0000000000000000000707 /* AskMeAnythingLivePageTests.swift */,
 				7752A7B6B151CAE286858861 /* AMALivePresentationTests.swift */,
@@ -2519,6 +2526,7 @@
 				738F19D97BE820E1DFCD0CCF /* AMALiveContentView.swift in Sources */,
 				1C3736397C57CB3F1753B410 /* AMALivePresentation.swift in Sources */,
 				AF0000000000000000000001 /* AMALiveQueue.swift in Sources */,
+				AF1000000000000000000001 /* AMAQueuePlacement.swift in Sources */,
 				CC0000000000000000000705 /* AskMeAnythingLivePageView.swift in Sources */,
 				3323D0CF9D68CA09140097AC /* AMAOpeningItem.swift in Sources */,
 				ED782639689341641D657686 /* AMAOpeningRowView.swift in Sources */,
@@ -2773,6 +2781,7 @@
 				7D201A14140F79A2A330F756 /* AMALiveContentView.swift in Sources */,
 				B217109F8D99187EB514C6C4 /* AMALivePresentation.swift in Sources */,
 				AF0000000000000000000002 /* AMALiveQueue.swift in Sources */,
+				AF1000000000000000000002 /* AMAQueuePlacement.swift in Sources */,
 				CC0000000000000000000706 /* AskMeAnythingLivePageView.swift in Sources */,
 				719FF97AE552513461BCC570 /* AMAOpeningItem.swift in Sources */,
 				C29B4F9EAEED22434B85EFA0 /* AMAOpeningRowView.swift in Sources */,
@@ -2957,6 +2966,7 @@
 				CC0000000000000000000608 /* ShowsPageTests.swift in Sources */,
 				CC0000000000000000000708 /* AskMeAnythingLivePageTests.swift in Sources */,
 				A1C4E243012B0E186CC7680B /* AMALivePresentationTests.swift in Sources */,
+				AF1000000000000000000004 /* AMAQueuePlacementTests.swift in Sources */,
 				CC0000000000000000000908 /* RecordWithMultiStepPromptTests.swift in Sources */,
 				CC0000000000000000000408 /* MusicCategoryDetailPageTests.swift in Sources */,
 				CURA700000000000000011 /* CuratorSongPickerPageTests.swift in Sources */,

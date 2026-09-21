@@ -33,6 +33,7 @@ extension AskMeAnythingLivePageModel {
       let outroStagingId
     {
       broadcast.stagingItems.removeAll { $0.stagingId == outroStagingId }
+      pendingPredecessors[outroStagingId] = nil
     }
     if isAwaitingStartedSchedule, schedule.spins.contains(where: { $0.liveShowId == showId }) {
       isAwaitingStartedSchedule = false
@@ -97,7 +98,7 @@ extension AskMeAnythingLivePageModel {
       && !isEditingSchedule && !broadcast.isLoading && !isCheckingSchedule
       && outroStagingId == nil && effectiveEndsAt == nil
   }
-  var canAddQuestion: Bool { canAddLiveAudio && broadcast.stagingItems.isEmpty }
+  var canAddQuestion: Bool { canAddLiveAudio && !isScheduleProcessing }
   var deleteRowLabel: String { "Delete" }
 
   private var nextReserveFiller: Spin? {
@@ -210,26 +211,6 @@ extension AskMeAnythingLivePageModel {
       await broadcast.deleteSpin(latest)
       if broadcast.schedule?.current().contains(where: { $0.id == member.id }) == true { break }
     }
-    isEditingSchedule = false
-    schedulePlaybackChanged()
-    await schedulePendingAudio()
-  }
-
-  func moveLiveRows(from source: IndexSet, to destination: Int) async {
-    let rows = liveRows
-    guard source.allSatisfy({ rows.indices.contains($0) && rows[$0].isEditable }),
-      destination >= 0, destination <= rows.count,
-      destination == rows.count || rows[destination].isEditable
-    else { return }
-    let spins = broadcast.upcomingSpins
-    let moving = Set(source.flatMap { rows[$0].spins.map(\.id) })
-    let indices = IndexSet(spins.indices.filter { moving.contains(spins[$0].id) })
-    let target =
-      destination == rows.count
-      ? spins.count
-      : spins.firstIndex(where: { $0.id == rows[destination].id }) ?? spins.count
-    isEditingSchedule = true
-    await broadcast.moveSpins(from: indices, to: target)
     isEditingSchedule = false
     schedulePlaybackChanged()
     await schedulePendingAudio()

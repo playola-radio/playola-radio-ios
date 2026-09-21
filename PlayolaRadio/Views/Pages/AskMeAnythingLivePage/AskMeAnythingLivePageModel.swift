@@ -59,7 +59,8 @@ class AskMeAnythingLivePageModel: ViewModel {
   var outroStagingId: String?
   var endingSpinId: String?
   var schedulingItemId: String?
-  var failedSchedulingItemId: String?
+  var failedSchedulingItemIds: Set<String> = []
+  var pendingPredecessors: [String: [String]] = [:]
   var effectiveEndsAt: Date?
 
   var presentedAlert: PlayolaAlert? {
@@ -99,6 +100,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   func setupAbandoned() {
     cancelUploads()
     broadcast.stagingItems.removeAll()
+    pendingPredecessors.removeAll()
   }
 
   func recordIntroButtonTapped() {
@@ -169,7 +171,8 @@ class AskMeAnythingLivePageModel: ViewModel {
       effectiveEndsAt = nil
       outroStagingId = nil
       endingSpinId = nil
-      failedSchedulingItemId = nil
+      failedSchedulingItemIds = []
+      pendingPredecessors = [:]
       isAwaitingStartedSchedule = true
       displayDate = now
       await broadcast.loadSchedule()
@@ -223,12 +226,12 @@ class AskMeAnythingLivePageModel: ViewModel {
   var loadingAccessibilityHidden: Bool { loadingOpacity == 0 }
   var isEndShowEnabled: Bool {
     isShowActive && !isScheduleProcessing && !isAwaitingStartedSchedule && effectiveEndsAt == nil
-      && (outroStagingId == nil || failedSchedulingItemId == outroStagingId)
+      && (outroStagingId.map { failedSchedulingItemIds.contains($0) } ?? true)
   }
   var endShowButtonTitle: String {
     if effectiveEndsAt != nil { return "Show Ending" }
     if let outroStagingId {
-      return failedSchedulingItemId == outroStagingId ? "Retry End Show" : "Ending Show…"
+      return failedSchedulingItemIds.contains(outroStagingId) ? "Retry End Show" : "Ending Show…"
     }
     return "End Show"
   }
@@ -342,7 +345,8 @@ class AskMeAnythingLivePageModel: ViewModel {
       effectiveEndsAt = nil
       outroStagingId = nil
       endingSpinId = nil
-      failedSchedulingItemId = nil
+      failedSchedulingItemIds = []
+      pendingPredecessors = [:]
       broadcast.liveShowId = showId
       scheduledStartsAt = nil
       broadcast.visibleFillerIds = []

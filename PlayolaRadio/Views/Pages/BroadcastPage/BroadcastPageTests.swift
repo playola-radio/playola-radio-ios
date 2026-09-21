@@ -823,7 +823,7 @@ extension BroadcastPageTests {
         continuation = nil
       }
 
-      await moveTask.value
+      #expect(await moveTask.value)
 
       #expect(model.spinIdsBeingRescheduled.isEmpty)
     }

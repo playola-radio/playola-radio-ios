@@ -24,7 +24,11 @@ struct DependencyDateProvider: DateProviderProtocol {
 @Observable
 class BroadcastPageModel: ViewModel {
   let stationId: String
-  var liveShowId: String?
+  var liveShowId: String? {
+    didSet {
+      if liveShowId != oldValue { reorderedSpinIds = nil }
+    }
+  }
   // AMA reveals scheduled fallback audio without changing its server-side filler status.
   var visibleFillerIds: Set<String> = []
   private let providedStationName: String?
@@ -519,8 +523,9 @@ class BroadcastPageModel: ViewModel {
   }
 
   /// Handles moving spins in the list, automatically including grouped spins
-  func moveSpins(from source: IndexSet, to destination: Int) async {
-    guard let jwt = auth.jwt else { return }
+  @discardableResult
+  func moveSpins(from source: IndexSet, to destination: Int) async -> Bool {
+    guard let jwt = auth.jwt else { return false }
 
     var spins = upcomingSpins
 
@@ -543,7 +548,7 @@ class BroadcastPageModel: ViewModel {
     // Extract the spins to move (in order)
     let spinsToMove = sortedIndices.map { spins[$0] }
 
-    guard let spinToMove = spinsToMove.first else { return }
+    guard let spinToMove = spinsToMove.first else { return false }
 
     // Save original state for rollback
     let originalSchedule = schedule
@@ -572,8 +577,11 @@ class BroadcastPageModel: ViewModel {
     // Optimistically store the new order
     reorderedSpinIds = spins.map { $0.id }
 
+    defer { spinIdsBeingRescheduled = [] }
+    let expectedShowId = liveShowId
     do {
       let newSpins = try await api.moveSpin(jwt, spinToMove.id, placeAfterSpinId)
+      guard liveShowId == expectedShowId else { return false }
       schedule = Schedule(
         stationId: stationId,
         spins: newSpins,
@@ -581,13 +589,14 @@ class BroadcastPageModel: ViewModel {
       )
       reorderedSpinIds = nil
       currentNowPlayingId = nowPlaying?.id
+      return true
     } catch {
+      guard liveShowId == expectedShowId else { return false }
       schedule = originalSchedule
       reorderedSpinIds = originalReorderedIds
       presentedAlert = .schedulingError(error.localizedDescription)
+      return false
     }
-
-    spinIdsBeingRescheduled = []
   }
 }
 

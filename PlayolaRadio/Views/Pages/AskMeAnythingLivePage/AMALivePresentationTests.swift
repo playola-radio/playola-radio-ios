@@ -12,7 +12,7 @@ import Testing
 @MainActor
 struct AMALivePresentationTests {
   // swiftlint:disable:next function_body_length
-  @Test func liveVoicetrackReservesItsPlaceBeforeALaterSong() async throws {
+  @Test func laterSongSchedulesImmediatelyAndVoiceInsertsInItsReservedPlace() async throws {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
@@ -37,7 +37,7 @@ struct AMALivePresentationTests {
         return .mockWith(id: "uploaded", type: "voiceTrack")
       }
       $0.api.insertSpin = { _, audio, anchor in
-        expectNoDifference(anchor, inserted.value.last.map { "saved-" + $0 } ?? "voice")
+        expectNoDifference(anchor, "voice")
         inserted.withValue { $0.append(audio) }
         if audio == "uploaded" {
           inserting.continuation.yield(())
@@ -45,7 +45,7 @@ struct AMALivePresentationTests {
           await iterator.next()
         }
         response.withValue { spins in
-          let index = spins.firstIndex { $0.id == "filler" }!
+          let index = spins.firstIndex { $0.id == anchor }! + 1
           let airtime = spins[index].airtime
           for offset in index..<spins.count { spins[offset] = spins[offset].withOffset(30) }
           spins.insert(
@@ -57,7 +57,7 @@ struct AMALivePresentationTests {
         return response.value
       }
       $0.api.endLiveShow = { _, _, _, audio in
-        expectNoDifference(inserted.value, ["uploaded", "later-song"])
+        expectNoDifference(inserted.value, ["later-song", "uploaded"])
         ended.withValue { $0.append(audio) }
         response.withValue {
           $0.append(
@@ -84,8 +84,8 @@ struct AMALivePresentationTests {
       expectNoDifference(model.broadcast.stagingItems.first?.subtitleText, "Uploading 50%")
       model.enqueueSong(.mockWith(id: "later-song"))
       await model.schedulePendingAudio()
-      expectNoDifference(model.broadcast.stagingItems.count, 2)
-      expectNoDifference(inserted.value, [])
+      expectNoDifference(model.broadcast.stagingItems.count, 1)
+      expectNoDifference(inserted.value, ["later-song"])
       await model.endShowButtonTapped()
       guard case .recordWithMultiStepPromptPage(let outroRecorder) = coordinator.path.last else {
         Issue.record("Expected outro recorder")
@@ -96,7 +96,7 @@ struct AMALivePresentationTests {
       await model.uploadTasks[outroId]?.value
       expectNoDifference(
         model.pendingRows.map(\.subtitleText),
-        ["Uploading 50%", "Waiting to schedule", "Waiting to schedule"])
+        ["Uploading 50%", "Ready"])
       expectNoDifference(ended.value, [])
       release.continuation.yield(())
       var insertIterator = inserting.stream.makeAsyncIterator()
@@ -105,10 +105,10 @@ struct AMALivePresentationTests {
       #expect(model.pendingRows.first?.isProcessing == true)
       #expect(model.pendingRows.first?.canDiscard == false)
       await model.retryAddingAudio()
-      expectNoDifference(inserted.value, ["uploaded"])
+      expectNoDifference(inserted.value, ["later-song", "uploaded"])
       releaseInsert.continuation.yield(())
       await model.waitForPendingUploads()
-      expectNoDifference(inserted.value, ["uploaded", "later-song"])
+      expectNoDifference(inserted.value, ["later-song", "uploaded"])
       expectNoDifference(ended.value, ["outro"])
       #expect(model.broadcast.stagingItems.isEmpty)
     }
@@ -186,7 +186,7 @@ struct AMALivePresentationTests {
     }
   }
 
-  @Test func failedUploadCanBeDiscardedToUnblockTheLaterSong() async throws {
+  @Test func failedUploadDoesNotBlockTheLaterSongAndCanBeDiscarded() async throws {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let inserted = LockIsolated<[String]>([])
     let response = LockIsolated<[Spin]>([])
@@ -209,7 +209,7 @@ struct AMALivePresentationTests {
       model.enqueueSong(.mockWith(id: "later-song"))
       await model.schedulePendingAudio()
       await model.waitForPendingUploads()
-      expectNoDifference(inserted.value, [])
+      expectNoDifference(inserted.value, ["later-song"])
       let failed = try #require(model.pendingRows.first)
       #expect(!failed.isProcessing)
       #expect(!failed.isReady)
