@@ -74,6 +74,8 @@ struct AMAQueuePlacementTests {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let response = LockIsolated<[Spin]>([])
     let anchors = LockIsolated<[String]>([])
+    let started = AsyncStream<Void>.makeStream()
+    let finish = AsyncStream<Void>.makeStream()
     await withDependencies {
       $0.date.now = date
       $0.api.insertSpin = { _, audio, anchor in
@@ -83,6 +85,8 @@ struct AMAQueuePlacementTests {
       $0.api.moveSpin = { _, id, anchor in
         expectNoDifference(id, "b")
         expectNoDifference(anchor, "placed-song")
+        started.continuation.yield(())
+        for await _ in finish.stream { break }
         if fails { throw APIError.liveShowFinished }
         return response.withValue { spins in
           let moved = spins.remove(at: spins.firstIndex { $0.id == id }!)
@@ -98,7 +102,13 @@ struct AMAQueuePlacementTests {
       let voice = stageVoice(model)
       model.enqueueSong(.mockWith(id: "song"))
       await model.schedulePendingAudio()
-      await model.moveLiveRows(from: IndexSet(integer: 1), to: 4)
+      let move = Task { await model.moveLiveRows(from: IndexSet(integer: 1), to: 4) }
+      for await _ in started.stream { break }
+      expectNoDifference(model.liveRows.first?.id, "a")
+      expectNoDifference(model.liveRows.first?.airtimeOpacity, 1)
+      expectNoDifference(model.liveRows.filter(\.isProcessing).map(\.id), ["placed-song", "b"])
+      finish.continuation.yield(())
+      await move.value
       completeVoice(voice, audio: "voice", model: model)
       await model.schedulePendingAudio()
       expectNoDifference(anchors.value, ["b", fails ? "b" : "a"])

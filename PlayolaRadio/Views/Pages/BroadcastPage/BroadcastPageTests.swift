@@ -785,46 +785,42 @@ extension BroadcastPageTests {
     }
   }
 
-  @Test
-  func testMoveSpinMarksAllSpinsAsReschedulingDuringCall() async {
-    let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
+  @Test(arguments: [
+    (2, 5, false, ["spin-3", "spin-4", "spin-5"]),
+    (4, 2, false, ["spin-3", "spin-4", "spin-5"]),
+    (2, 2, false, []),
+    (0, 5, false, ["spin-1", "spin-2", "spin-3", "spin-4", "spin-5"]),
+    (3, 5, true, ["spin-3", "spin-4", "spin-5"]),
+  ])
+  func testMoveOnlyMarksSpinsFromFirstChangedPosition(
+    source: Int, destination: Int, grouped: Bool, expected: [String]
+  ) async {
+    let initialSpins = (0..<5).map { index in
+      Spin.mockWith(
+        id: "spin-\(index + 1)", airtime: fixedNow.addingTimeInterval(Double(index + 1) * 180),
+        spinGroupId: grouped && (2...3).contains(index) ? "pair" : nil)
+    }
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    let moveStarted = LockIsolated(false)
-    let moveContinuation = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
-
+    let started = AsyncStream<Void>.makeStream()
+    let finish = AsyncStream<Void>.makeStream()
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.moveSpin = { _, _, _ in
-        moveStarted.setValue(true)
-        await withCheckedContinuation { continuation in
-          moveContinuation.setValue(continuation)
-        }
+        started.continuation.yield(())
+        for await _ in finish.stream { break }
         return initialSpins
       }
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
+      let move = Task { await model.moveSpins(from: IndexSet(integer: source), to: destination) }
+      for await _ in started.stream { break }
 
-      #expect(model.spinIdsBeingRescheduled.isEmpty)
+      expectNoDifference(model.spinIdsBeingRescheduled, Set(expected))
 
-      let moveTask = Task {
-        await model.moveSpins(from: IndexSet(integer: 0), to: 2)
-      }
-
-      while !moveStarted.value {
-        await Task.yield()
-      }
-
-      #expect(model.spinIdsBeingRescheduled == ["spin-1", "spin-2", "spin-3"])
-
-      moveContinuation.withValue { continuation in
-        continuation?.resume()
-        continuation = nil
-      }
-
-      #expect(await moveTask.value)
-
+      finish.continuation.yield(())
+      #expect(await move.value)
       #expect(model.spinIdsBeingRescheduled.isEmpty)
     }
   }

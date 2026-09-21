@@ -524,6 +524,7 @@ class BroadcastPageModel: ViewModel {
 
   /// Handles moving spins in the list, automatically including grouped spins
   @discardableResult
+  // swiftlint:disable:next function_body_length
   func moveSpins(from source: IndexSet, to destination: Int) async -> Bool {
     guard let jwt = auth.jwt else { return false }
 
@@ -554,8 +555,7 @@ class BroadcastPageModel: ViewModel {
     let originalSchedule = schedule
     let originalReorderedIds = reorderedSpinIds
 
-    // Mark all spins as being rescheduled
-    spinIdsBeingRescheduled = Set(spins.map { $0.id })
+    let originalSpinIds = spins.map(\.id)
 
     // Remove from original positions (in reverse to maintain indices)
     for index in sortedIndices.reversed() {
@@ -571,6 +571,9 @@ class BroadcastPageModel: ViewModel {
     // Insert at destination
     let insertionIndex = max(0, adjustedDestination)
     spins.insert(contentsOf: spinsToMove, at: insertionIndex)
+    let firstChangedIndex =
+      spins.indices.first { spins[$0].id != originalSpinIds[$0] } ?? spins.count
+    spinIdsBeingRescheduled = Set(spins.dropFirst(firstChangedIndex).map(\.id))
 
     let placeAfterSpinId = insertionIndex > 0 ? spins[insertionIndex - 1].id : spinBeforeShowQueueId
 

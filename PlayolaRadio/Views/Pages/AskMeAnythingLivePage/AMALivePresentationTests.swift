@@ -428,7 +428,7 @@ struct AMALivePresentationTests {
     }
   }
 
-  @Test func moveShowsBroadcastSpinnersAndRestoresRowsAfterFailure() async {
+  @Test func moveShowsOnlyAffectedSpinnersAndRestoresRowsAfterFailure() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let response = LockIsolated<[Spin]>([])
     let inserted = LockIsolated<String?>(nil)
@@ -454,7 +454,8 @@ struct AMALivePresentationTests {
       let move = Task { await model.moveLiveRows(from: IndexSet(integer: 1), to: 3) }
       var iterator = started.stream.makeAsyncIterator()
       await iterator.next()
-      #expect(model.liveRows.allSatisfy { $0.isProcessing })
+      expectNoDifference(model.liveRows.first?.airtimeOpacity, 1)
+      #expect(model.liveRows.dropFirst().allSatisfy { $0.isProcessing })
       #expect(model.liveRows.allSatisfy { !$0.isEditable })
       #expect(!model.canAddLiveAudio)
       #expect(!model.isEndShowEnabled)
