@@ -194,8 +194,18 @@ class AskMeAnythingLivePageModel: ViewModel {
             + $0.formatted(date: .abbreviated, time: .shortened) + "."
         } ?? "Another show or scheduled program is still on air. Please try again later."
       presentedAlert = showAlert(title: "Show Unavailable", message: message)
+    } catch APIError.validationError(let message) {
+      presentedAlert = showAlert(title: "Unable to Start Show", message: message)
     } catch {
-      presentedAlert = showAlert(title: "Unable to Start Show", message: error.localizedDescription)
+      // The request's outcome is uncertain (e.g. lost response): the server may have
+      // created the show even though this call never saw a decodable reply. Reconcile
+      // against the real schedule before re-enabling Start Show, so an already-created
+      // show is adopted instead of becoming unreachable behind a repeat start attempt.
+      await viewAppeared()
+      if !isShowActive {
+        presentedAlert = showAlert(
+          title: "Unable to Start Show", message: error.localizedDescription)
+      }
     }
   }
 

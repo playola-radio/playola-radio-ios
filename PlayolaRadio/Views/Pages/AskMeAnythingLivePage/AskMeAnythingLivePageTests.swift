@@ -137,6 +137,79 @@ struct AskMeAnythingLivePageTests {
     #expect(model.presentedAlert?.message?.contains("Try again after") == true)
   }
 
+  @Test func startShowShowsAValidationErrorWithoutReconciling() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let fetches = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.startLiveShow = { _, _, _ in
+        throw APIError.validationError("Opener audio is too short.")
+      }
+      $0.api.fetchSchedule = { _, _ in
+        fetches.withValue { $0 += 1 }
+        return []
+      }
+    } operation: {
+      AskMeAnythingLivePageModel(stationId: testStationId)
+    }
+    model.openingItems.append(introItem(durationMS: 600_000))
+
+    await model.startShowButtonTapped()
+
+    expectNoDifference(model.presentedAlert?.title, "Unable to Start Show")
+    expectNoDifference(model.presentedAlert?.message, "Opener audio is too short.")
+    expectNoDifference(fetches.value, 0)
+    #expect(!model.isShowActive)
+    #expect(model.isStartShowEnabled)
+  }
+
+  @Test func uncertainStartFailureAdoptsTheShowTheServerActuallyCreated() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    await withDependencies {
+      $0.date.now = now
+      $0.api.startLiveShow = { _, _, _ in
+        throw URLError(.networkConnectionLost)
+      }
+      $0.api.fetchSchedule = { _, _ in
+        [
+          .mockWith(
+            id: "created-by-lost-response", airtime: now.addingTimeInterval(60),
+            liveShowId: "show")
+        ]
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      model.openingItems.append(introItem(durationMS: 600_000))
+
+      await model.startShowButtonTapped()
+
+      expectNoDifference(model.presentedAlert, nil)
+      expectNoDifference(model.broadcast.liveShowId, "show")
+      #expect(model.isShowActive)
+      #expect(!model.isStartingShow)
+    }
+  }
+
+  @Test func uncertainStartFailureShowsAlertWhenNoShowWasActuallyCreated() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.api.startLiveShow = { _, _, _ in
+        throw URLError(.networkConnectionLost)
+      }
+      $0.api.fetchSchedule = { _, _ in [] }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      model.openingItems.append(introItem(durationMS: 600_000))
+
+      await model.startShowButtonTapped()
+
+      expectNoDifference(model.presentedAlert?.title, "Unable to Start Show")
+      #expect(!model.isShowActive)
+      #expect(model.isStartShowEnabled)
+    }
+  }
+
   @Test func detectsUpcomingShowBeforeItStartsAndKeepsFillerOnlyShowsActive() async {
     for isFiller in [false, true] {
       let now = Date(timeIntervalSince1970: 1_000_000)

@@ -296,6 +296,73 @@ struct AMALivePresentationTests {
     }
   }
 
+  @Test func replacingShowDoesNotApplyAnOldDeletionResponse() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let started = AsyncStream<Void>.makeStream()
+    let release = AsyncStream<Void>.makeStream()
+    let date = Date(timeIntervalSince1970: 1_000_000)
+    await withDependencies {
+      $0.date.now = date
+      $0.api.deleteSpin = { _, _ in
+        started.continuation.yield(())
+        var iterator = release.stream.makeAsyncIterator()
+        await iterator.next()
+        return [
+          .mockWith(id: "stale-survivor", airtime: date.addingTimeInterval(210), liveShowId: "show")
+        ]
+      }
+    } operation: {
+      let model = makeLiveModel(buffer: 210)
+      let toDelete = model.broadcast.schedule!.current().first { $0.id == "reserve" }!
+      let deletion = Task { await model.broadcast.deleteSpin(toDelete) }
+      var iterator = started.stream.makeAsyncIterator()
+      await iterator.next()
+      model.broadcast.schedule = Schedule(
+        stationId: "station",
+        spins: [
+          .mockWith(id: "replacement", airtime: date.addingTimeInterval(30), liveShowId: "new-show")
+        ], dateProvider: DependencyDateProvider())
+      model.schedulePlaybackChanged()
+      release.continuation.yield(())
+      await deletion.value
+      expectNoDifference(model.broadcast.liveShowId, "new-show")
+      expectNoDifference(model.broadcast.schedule?.spins.map(\.id), ["replacement"])
+    }
+  }
+
+  @Test func replacingShowDoesNotRollBackAfterAStaleDeletionFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let started = AsyncStream<Void>.makeStream()
+    let release = AsyncStream<Void>.makeStream()
+    let date = Date(timeIntervalSince1970: 1_000_000)
+    await withDependencies {
+      $0.date.now = date
+      $0.api.deleteSpin = { _, _ in
+        started.continuation.yield(())
+        var iterator = release.stream.makeAsyncIterator()
+        await iterator.next()
+        throw NSError(domain: "offline", code: 1)
+      }
+    } operation: {
+      let model = makeLiveModel(buffer: 210)
+      let toDelete = model.broadcast.schedule!.current().first { $0.id == "reserve" }!
+      let deletion = Task { await model.broadcast.deleteSpin(toDelete) }
+      var iterator = started.stream.makeAsyncIterator()
+      await iterator.next()
+      model.broadcast.schedule = Schedule(
+        stationId: "station",
+        spins: [
+          .mockWith(id: "replacement", airtime: date.addingTimeInterval(30), liveShowId: "new-show")
+        ], dateProvider: DependencyDateProvider())
+      model.schedulePlaybackChanged()
+      release.continuation.yield(())
+      await deletion.value
+      expectNoDifference(model.broadcast.liveShowId, "new-show")
+      expectNoDifference(model.broadcast.schedule?.spins.map(\.id), ["replacement"])
+      #expect(model.presentedAlert == nil)
+    }
+  }
+
   @Test func acceptingOutroWhileAnEarlierInsertRunsKeepsItsPlace() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
@@ -644,6 +711,52 @@ struct AMALivePresentationTests {
       model.scheduledStartsAt = date.addingTimeInterval(-1)
       await model.deleteLiveRow(model.liveRows[0])
       expectNoDifference(deleted.value, ["answer", "question"])
+      expectNoDifference(model.liveRows.count, 0)
+    }
+  }
+
+  @Test func failedQuestionDeleteAfterAnswerDeleteLeavesTheOrphanedQuestionRetryable() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let deleted = LockIsolated<[String]>([])
+    let questionDeleteCalls = LockIsolated(0)
+    let date = Date(timeIntervalSince1970: 1_000_000)
+    await withDependencies {
+      $0.date.now = date
+      $0.api.deleteSpin = { _, id in
+        if id == "question" {
+          let attempt = questionDeleteCalls.withValue {
+            $0 += 1
+            return $0
+          }
+          if attempt == 1 { throw NSError(domain: "offline", code: 1) }
+        }
+        deleted.withValue { $0.append(id) }
+        return Self.pairSpins(at: date).filter { !deleted.value.contains($0.id) }
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: "station")
+      model.broadcast.schedule = Schedule(
+        stationId: "station", spins: Self.pairSpins(at: date),
+        dateProvider: DependencyDateProvider())
+      model.listenerQuestions = [.mockWith(audioBlockId: "q", answerAudioBlockId: "a")]
+      model.schedulePlaybackChanged()
+      model.scheduledStartsAt = date.addingTimeInterval(-1)
+
+      await model.deleteLiveRow(model.liveRows[0])
+
+      // The answer was actually deleted server-side before the question delete failed;
+      // only the still-scheduled question remains, and it must stay retryable rather
+      // than airing silently or getting stuck as an uneditable orphan.
+      expectNoDifference(deleted.value, ["answer"])
+      expectNoDifference(model.broadcast.upcomingSpins.map(\.id), ["question"])
+      expectNoDifference(model.liveRows.map { $0.spins.map(\.id) }, [["question"]])
+      #expect(model.liveRows[0].isEditable)
+      #expect(model.presentedAlert != nil)
+
+      await model.deleteLiveRow(model.liveRows[0])
+
+      expectNoDifference(deleted.value, ["answer", "question"])
+      expectNoDifference(model.broadcast.upcomingSpins.map(\.id), [])
       expectNoDifference(model.liveRows.count, 0)
     }
   }

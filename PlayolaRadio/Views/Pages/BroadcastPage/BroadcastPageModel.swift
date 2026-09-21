@@ -504,8 +504,11 @@ class BroadcastPageModel: ViewModel {
       }
     }
 
+    let expectedShowId = liveShowId
+    defer { spinIdsBeingRescheduled = [] }
     do {
       let newSpins = try await api.deleteSpin(jwt, spin.id)
+      guard liveShowId == expectedShowId else { return }
       schedule = Schedule(
         stationId: stationId,
         spins: newSpins,
@@ -514,12 +517,11 @@ class BroadcastPageModel: ViewModel {
       reorderedSpinIds = nil
       currentNowPlayingId = nowPlaying?.id
     } catch {
+      guard liveShowId == expectedShowId else { return }
       schedule = originalSchedule
       reorderedSpinIds = originalReorderedIds
       presentedAlert = .schedulingError(error.localizedDescription)
     }
-
-    spinIdsBeingRescheduled = []
   }
 
   /// Handles moving spins in the list, automatically including grouped spins
