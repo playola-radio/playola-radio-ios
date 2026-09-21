@@ -94,6 +94,28 @@ struct AMALiveContentView: View {
       .listRowInsets(EdgeInsets())
       .listRowSeparator(.hidden)
       .listRowBackground(Color.playolaSurfaceRow)
+      ForEach(model.pendingRows) { row in
+        VStack(alignment: .leading, spacing: 0) {
+          StagingRowView(item: row)
+          ForEach(row.retryTitles, id: \.self) { title in
+            Button(title) { Task { await model.retryPendingRow(row.id) } }
+              .font(.custom(FontNames.Inter_400_Regular, size: 12))
+              .padding(.horizontal, 16)
+              .padding(.bottom, 10)
+              .disabled(model.isScheduleProcessing)
+          }
+        }
+        .moveDisabled(true)
+        .swipeActions {
+          Button(model.deleteRowLabel, role: .destructive) {
+            Task { await model.discardPendingRow(row.id) }
+          }
+          .disabled(!row.canDiscard)
+        }
+        .listRowInsets(EdgeInsets())
+        .listRowSeparator(.hidden)
+        .listRowBackground(Color.playolaSurfaceRow)
+      }
       addCard
         .padding(.top, 16)
         .padding(.horizontal, 16)
@@ -153,14 +175,6 @@ struct AMALiveContentView: View {
             .foregroundStyle(Color.playolaRed)
           Text(model.liveAddTitle)
             .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
-          Spacer()
-          ProgressView()
-            .tint(.playolaGray)
-            .scaleEffect(0.8)
-            .frame(width: 18, height: 18)
-            .opacity(model.scheduleProcessingOpacity)
-            .accessibilityLabel(model.scheduleProcessingLabel)
-            .accessibilityHidden(!model.isScheduleProcessing)
         }
         Text(model.liveAddExplanation)
           .font(.custom(FontNames.Inter_400_Regular, size: 12))
@@ -177,15 +191,11 @@ struct AMALiveContentView: View {
         action(icon: "messages-square", label: model.qaActionLabel) {
           model.qaActionTapped()
         }
+        .disabled(!model.canAddQuestion)
       }
       .padding(.top, 4)
       .frame(height: 92)
       .disabled(!model.canAddLiveAudio)
-      ForEach(model.pendingAddIds.prefix(1), id: \.self) { _ in
-        Button(model.retryAddLabel) { Task { await model.retryAddingAudio() } }
-          .font(.custom(FontNames.Inter_400_Regular, size: 12))
-          .disabled(model.isAddingToShow)
-      }
     }
     .padding(16)
     .background(Color.playolaSurfaceSection)

@@ -56,25 +56,23 @@ class AskMeAnythingLivePageModel: ViewModel {
   var isStartingShow = false
   var isEndingShow = false
   private var hasScheduleLoadFailed = false
-  private var outroAudioBlockId: String?
-  private var shouldSubmitOutroOnAppear = false
-  private var effectiveEndsAt: Date?
+  var outroStagingId: String?
+  var endingSpinId: String?
+  var schedulingItemId: String?
+  var failedSchedulingItemId: String?
+  var effectiveEndsAt: Date?
 
   var presentedAlert: PlayolaAlert? {
     get { broadcast.presentedAlert }
     set { broadcast.presentedAlert = newValue }
   }
 
-  @ObservationIgnored private var uploadTasks: [UUID: Task<Void, Never>] = [:]
+  @ObservationIgnored var uploadTasks: [UUID: Task<Void, Never>] = [:]
 
   // MARK: - User Actions
 
   func viewAppeared() async {
-    if shouldSubmitOutroOnAppear {
-      shouldSubmitOutroOnAppear = false
-      await submitEnding()
-      return
-    }
+    guard !isAddingToShow, !isEndingShow else { return }
     isCheckingSchedule = true
     defer { isCheckingSchedule = false }
     async let metadata: Void = loadLiveMetadata()
@@ -83,6 +81,8 @@ class AskMeAnythingLivePageModel: ViewModel {
     hasScheduleLoadFailed = broadcast.schedule == nil
     updateShowFromSchedule()
     updateLivePresentation()
+    isCheckingSchedule = false
+    await schedulePendingAudio()
   }
 
   func schedulePlaybackChanged() {
@@ -97,8 +97,8 @@ class AskMeAnythingLivePageModel: ViewModel {
   }
 
   func setupAbandoned() {
-    shouldSubmitOutroOnAppear = false
     cancelUploads()
+    broadcast.stagingItems.removeAll()
   }
 
   func recordIntroButtonTapped() {
@@ -113,9 +113,13 @@ class AskMeAnythingLivePageModel: ViewModel {
   }
 
   func voicetrackActionTapped() {
+    let showId = broadcast.liveShowId
     let recorder = RecordWithMultiStepPromptModel.askMeAnythingVoicetrack(stationId: stationId)
     recorder.onRecordingAccepted = { [weak self] url, _ in
       guard let self else { return }
+      guard broadcast.liveShowId == showId, showId == nil || canAddLiveAudio else {
+        throw CancellationError()
+      }
       try acceptVoicetrack(url: url)
     }
     navigationCoordinator.push(.recordWithMultiStepPromptPage(recorder))
@@ -128,10 +132,12 @@ class AskMeAnythingLivePageModel: ViewModel {
   }
 
   func songActionTapped() {
+    let showId = broadcast.liveShowId
     let picker = CuratorSongPickerPageModel(
       stationId: stationId, initialAddedSongIds: addedSongIds)
     picker.onAddSong = { [weak self] audioBlock in
-      self?.addSong(audioBlock)
+      guard let self, broadcast.liveShowId == showId else { return }
+      addSong(audioBlock)
     }
     picker.onDismiss = { [weak self] in
       self?.$navigationCoordinator.withLock { $0.presentedSheet = nil }
@@ -161,7 +167,9 @@ class AskMeAnythingLivePageModel: ViewModel {
       broadcast.visibleFillerIds = []
       hasPresentedSchedule = false
       effectiveEndsAt = nil
-      outroAudioBlockId = nil
+      outroStagingId = nil
+      endingSpinId = nil
+      failedSchedulingItemId = nil
       isAwaitingStartedSchedule = true
       displayDate = now
       await broadcast.loadSchedule()
@@ -180,22 +188,18 @@ class AskMeAnythingLivePageModel: ViewModel {
 
   func endShowButtonTapped() async {
     guard isEndShowEnabled, let showId = broadcast.liveShowId else { return }
-    if outroAudioBlockId != nil {
-      await submitEnding()
+    if outroStagingId != nil {
+      await retryAddingAudio()
       return
     }
     let recorder = RecordWithMultiStepPromptModel.askMeAnythingOutro(stationId: stationId)
-    recorder.onCompleted = { [weak self] audioBlock in
-      guard let self, broadcast.liveShowId == showId else { return }
-      outroRecordingCompleted(audioBlock)
+    recorder.onUseRecording = nil
+    recorder.onRecordingAccepted = { [weak self] url, _ in
+      guard let self else { return }
+      guard broadcast.liveShowId == showId, isEndShowEnabled else { throw CancellationError() }
+      try acceptVoicetrack(url: url, isOutro: true)
     }
     navigationCoordinator.push(.recordWithMultiStepPromptPage(recorder))
-  }
-
-  func outroRecordingCompleted(_ audioBlock: AudioBlock) {
-    guard isEndShowEnabled else { return }
-    outroAudioBlockId = audioBlock.id
-    shouldSubmitOutroOnAppear = true
   }
 
   // MARK: - View Helpers
@@ -219,11 +223,14 @@ class AskMeAnythingLivePageModel: ViewModel {
   var loadingAccessibilityHidden: Bool { loadingOpacity == 0 }
   var isEndShowEnabled: Bool {
     isShowActive && !isScheduleProcessing && !isAwaitingStartedSchedule && effectiveEndsAt == nil
+      && (outroStagingId == nil || failedSchedulingItemId == outroStagingId)
   }
   var endShowButtonTitle: String {
     if effectiveEndsAt != nil { return "Show Ending" }
-    if isEndingShow { return "Ending Show…" }
-    return outroAudioBlockId == nil ? "End Show" : "Retry End Show"
+    if let outroStagingId {
+      return failedSchedulingItemId == outroStagingId ? "Retry End Show" : "Ending Show…"
+    }
+    return "End Show"
   }
 
   var hasRecordedIntro: Bool { openingItems.contains { $0.content.is(\.intro) } }
@@ -333,42 +340,16 @@ class AskMeAnythingLivePageModel: ViewModel {
       ?? schedule.current().first(where: { $0.liveShowId != nil })?.liveShowId
     if broadcast.liveShowId != showId {
       effectiveEndsAt = nil
-      outroAudioBlockId = nil
+      outroStagingId = nil
+      endingSpinId = nil
+      failedSchedulingItemId = nil
       broadcast.liveShowId = showId
       scheduledStartsAt = nil
       broadcast.visibleFillerIds = []
       lastPromotedFiller = nil
       hasPresentedSchedule = false
+      cancelUploads()
       broadcast.stagingItems = []
-    }
-  }
-
-  private func submitEnding() async {
-    guard isEndShowEnabled, let showId = broadcast.liveShowId,
-      let audioBlockId = outroAudioBlockId
-    else { return }
-    guard let jwt = auth.jwt else {
-      presentedAlert = showAlert(title: "Sign In Required", message: "Sign in to end your show.")
-      return
-    }
-    isEndingShow = true
-    defer { isEndingShow = false }
-    do {
-      let response = try await api.endLiveShow(jwt, stationId, showId, audioBlockId)
-      effectiveEndsAt = response.effectiveEndsAt
-      await broadcast.loadSchedule()
-    } catch APIError.liveShowReplaced {
-      presentedAlert = showAlert(
-        title: "Show Replaced",
-        message: "Another show has replaced this one. Return to Shows to open it.")
-    } catch APIError.liveShowFinished {
-      presentedAlert = showAlert(
-        title: "Unable to End Show",
-        message:
-          "The show may have finished, or there is no safe place for the outro yet. Please try again."
-      )
-    } catch {
-      presentedAlert = showAlert(title: "Unable to End Show", message: error.localizedDescription)
     }
   }
 
@@ -386,78 +367,12 @@ class AskMeAnythingLivePageModel: ViewModel {
 
   private func addSong(_ audioBlock: AudioBlock) {
     if let showId = broadcast.liveShowId {
-      Task { await appendToShow(audioBlock, showId: showId) }
+      guard canAddLiveAudio else { return }
+      enqueueSong(audioBlock)
+      Task { await schedulePendingAudio(for: showId) }
       return
     }
     openingItems.append(AMAOpeningItem(id: uuid(), content: .song(audioBlock)))
-  }
-
-  private func acceptVoicetrack(url: URL) throws {
-    guard let jwt = auth.jwt else { throw RecordPromptError.notAuthenticated }
-    let voicetrack = LocalVoicetrack(
-      id: uuid(), originalURL: url, createdAt: now, title: voicetrackTitle(for: now))
-    let itemId = uuid()
-    openingItems.append(
-      AMAOpeningItem(id: itemId, content: .voicetrack(voicetrack, completedDurationMS: nil)))
-    let stationId = stationId
-    let showId = broadcast.liveShowId
-    uploadTasks[itemId] = Task { [weak self] in
-      await self?.runVoicetrackUpload(
-        itemId: itemId, voicetrack: voicetrack, stationId: stationId, jwt: jwt, showId: showId)
-    }
-  }
-
-  private func runVoicetrackUpload(
-    itemId: UUID, voicetrack: LocalVoicetrack, stationId: String, jwt: String, showId: String?
-  ) async {
-    defer { uploadTasks[itemId] = nil }
-    do {
-      let audioBlock = try await voicetrackUploadService.processVoicetrack(
-        voicetrack, stationId, jwt
-      ) { [weak self] status in
-        self?.updateVoicetrackStatus(itemId: itemId, status: status)
-      }
-      guard openingItems[id: itemId] != nil else {
-        await audioRecorder.deleteRecording(voicetrack.originalURL)
-        return
-      }
-      completeVoicetrack(itemId: itemId, audioBlock: audioBlock)
-      if let showId {
-        await appendToShow(audioBlock, showId: showId)
-        openingItems.remove(id: itemId)
-      }
-      await audioRecorder.deleteRecording(voicetrack.originalURL)
-    } catch {
-      await audioRecorder.deleteRecording(voicetrack.originalURL)
-      guard !Task.isCancelled else { return }
-      openingItems.remove(id: itemId)
-      presentedAlert = .voicetrackUploadFailed(error.localizedDescription)
-    }
-  }
-
-  private func updateVoicetrackStatus(itemId: UUID, status: LocalVoicetrackStatus) {
-    openingItems[id: itemId]?.content.modify(\.voicetrack) {
-      guard $0.1 == nil else { return }
-      $0.0.status = status
-    }
-  }
-
-  private func completeVoicetrack(itemId: UUID, audioBlock: AudioBlock) {
-    openingItems[id: itemId]?.content.modify(\.voicetrack) {
-      $0.0.status = .completed
-      $0.0.audioBlockId = audioBlock.id
-      $0.1 = audioBlock.durationMS
-    }
-  }
-
-  private func voicetrackTitle(for date: Date) -> String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "h:mma"
-    return "Voicetrack \(formatter.string(from: date).lowercased())"
-  }
-
-  private func cancelUploads() {
-    for task in uploadTasks.values { task.cancel() }
   }
 
   private func durationLabel(_ milliseconds: Int) -> String {

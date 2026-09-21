@@ -450,8 +450,10 @@ class BroadcastPageModel: ViewModel {
     spinIdsBeingRescheduled = Set(futureSpins[beforeIndex...].map(\.id))
     defer { spinIdsBeingRescheduled = [] }
 
+    let expectedShowId = liveShowId
     do {
       let newSpins = try await api.insertSpin(jwt, audioBlockId, placeAfterSpinId)
+      guard liveShowId == expectedShowId else { return }
       withAnimation(.easeInOut(duration: 0.3)) {
         schedule = Schedule(
           stationId: stationId,
@@ -465,6 +467,7 @@ class BroadcastPageModel: ViewModel {
         stagingItems.removeAll { $0.stagingId == stagingId }
       }
     } catch {
+      guard liveShowId == expectedShowId else { return }
       presentedAlert = .errorInsertingSpin(error.localizedDescription)
     }
   }

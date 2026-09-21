@@ -29,6 +29,11 @@ extension AskMeAnythingLivePageModel {
     if isAwaitingStartedSchedule { displayDate = now }
     guard let showId = broadcast.liveShowId, let schedule = broadcast.schedule else { return }
     displayDate = now
+    if let endingSpinId, schedule.spins.contains(where: { $0.id == endingSpinId }),
+      let outroStagingId
+    {
+      broadcast.stagingItems.removeAll { $0.stagingId == outroStagingId }
+    }
     if isAwaitingStartedSchedule, schedule.spins.contains(where: { $0.liveShowId == showId }) {
       isAwaitingStartedSchedule = false
       openingItems.removeAll()
@@ -81,22 +86,18 @@ extension AskMeAnythingLivePageModel {
   var nowPlayingProgress: Double { broadcast.nowPlaying?.progress(at: displayDate) ?? 0 }
   var liveNowLabel: String { "LIVE NOW" }
   var liveAddTitle: String { "Add to Show" }
-  var liveAddExplanation: String {
-    if isAddingToShow { return "Adding to your playlist…" }
-    if !pendingAddIds.isEmpty { return "Audio is ready. Retry adding it below." }
-    if openingItems.contains(where: { !$0.isReady }) { return "Uploading your voicetrack…" }
-    return "Added to the end of your playlist"
-  }
-  var retryAddLabel: String { "Retry adding audio" }
-  var pendingAddIds: [String] { broadcast.stagingItems.map(\.stagingId) }
+  var liveAddExplanation: String { "Added to the end of your playlist" }
   var isScheduleProcessing: Bool {
     isStartingShow || isAddingToShow || isEditingSchedule || isEndingShow || broadcast.isLoading
   }
-  var scheduleProcessingOpacity: Double { isScheduleProcessing ? 1 : 0 }
-  var scheduleProcessingLabel: String { "Updating schedule" }
   var liveScheduleRetryTitles: [String] { scheduleRetryVisible ? [scheduleRetryTitle] : [] }
   var canEditLiveQueue: Bool { !isScheduleProcessing && !isAwaitingStartedSchedule }
-  var canAddLiveAudio: Bool { isEndShowEnabled && !isAddingToShow }
+  var canAddLiveAudio: Bool {
+    isShowActive && !isAwaitingStartedSchedule && !isStartingShow && !isEndingShow
+      && !isEditingSchedule && !broadcast.isLoading && !isCheckingSchedule
+      && outroStagingId == nil && effectiveEndsAt == nil
+  }
+  var canAddQuestion: Bool { canAddLiveAudio && broadcast.stagingItems.isEmpty }
   var deleteRowLabel: String { "Delete" }
 
   private var nextReserveFiller: Spin? {
@@ -161,10 +162,13 @@ extension AskMeAnythingLivePageModel {
       let members = pair.isEmpty ? [spin] : pair
       consumed.formUnion(members.map(\.id))
       let isIntro = isWaitingToAir && spin.airtime == scheduledStartsAt
+      let isOutro = spin.id == endingSpinId
       let isVoice = spin.audioBlock.type == "voiceTrack"
       let title =
         question.map { "Question and Answer: \($0.listener?.firstName ?? "Listener")" }
-        ?? (isIntro ? "Show Intro" : (isVoice ? "VoiceTrack" : spin.audioBlock.title))
+        ?? (isIntro
+          ? "Show Intro"
+          : (isOutro ? "Show Outro" : (isVoice ? "VoiceTrack" : spin.audioBlock.title)))
       let duration = secondsLabel(
         members.reduce(0) { $0 + $1.endtime.timeIntervalSince($1.airtime) })
       let subtitle: String
@@ -178,7 +182,8 @@ extension AskMeAnythingLivePageModel {
         subtitle = spin.audioBlock.artist + (isWaitingToAir ? "" : " · \(duration)")
       }
       let editable =
-        canEditLiveQueue && !isIntro && members.allSatisfy { broadcast.canDeleteSpin($0) }
+        canEditLiveQueue && !isIntro && !isOutro
+        && members.allSatisfy { broadcast.canDeleteSpin($0) }
       return AMALiveRowData(
         id: spin.id, spins: members, title: title, subtitle: subtitle,
         icon: question != nil
@@ -207,7 +212,7 @@ extension AskMeAnythingLivePageModel {
     }
     isEditingSchedule = false
     schedulePlaybackChanged()
-    await retryAddingAudio()
+    await schedulePendingAudio()
   }
 
   func moveLiveRows(from source: IndexSet, to destination: Int) async {
@@ -227,35 +232,7 @@ extension AskMeAnythingLivePageModel {
     await broadcast.moveSpins(from: indices, to: target)
     isEditingSchedule = false
     schedulePlaybackChanged()
-    await retryAddingAudio()
-  }
-
-  func appendToShow(_ audioBlock: AudioBlock, showId: String) async {
-    guard broadcast.liveShowId == showId else { return }
-    if !broadcast.stagingItems.contains(where: { $0.stagingId == audioBlock.id }) {
-      broadcast.stagingItems.append(audioBlock)
-    }
-    await retryAddingAudio()
-  }
-
-  func retryAddingAudio() async {
-    guard canAddLiveAudio, auth.jwt != nil else { return }
-    isAddingToShow = true
-    defer { isAddingToShow = false }
-    while let item = broadcast.stagingItems.first {
-      guard let target = broadcast.showEndDropTargets.first else {
-        presentedAlert = PlayolaAlert(
-          title: "Unable to Add Audio",
-          message: "Refresh the show and try again. Your audio is ready to retry.",
-          dismissButton: .cancel(Text("OK")))
-        return
-      }
-      await broadcast.insertStagingItem(stagingId: item.stagingId, beforeSpinId: target)
-      guard !broadcast.stagingItems.contains(where: { $0.stagingId == item.stagingId }) else {
-        return
-      }
-      schedulePlaybackChanged()
-    }
+    await schedulePendingAudio()
   }
 
   private func secondsLabel(_ seconds: TimeInterval) -> String {

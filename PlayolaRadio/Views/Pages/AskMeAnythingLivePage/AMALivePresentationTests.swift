@@ -11,6 +11,291 @@ import Testing
 @Suite(.freshSharedState)
 @MainActor
 struct AMALivePresentationTests {
+  // swiftlint:disable:next function_body_length
+  @Test func liveVoicetrackReservesItsPlaceBeforeALaterSong() async throws {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let uploading = AsyncStream<Void>.makeStream()
+    let release = AsyncStream<Void>.makeStream()
+    let inserted = LockIsolated<[String]>([])
+    let response = LockIsolated<[Spin]>([])
+    let ended = LockIsolated<[String]>([])
+    let inserting = AsyncStream<Void>.makeStream()
+    let releaseInsert = AsyncStream<Void>.makeStream()
+    let date = Date(timeIntervalSince1970: 1_000_000)
+    try await withDependencies {
+      $0.date.now = date
+      $0.uuid = .incrementing
+      $0.audioRecorder.deleteRecording = { _ in }
+      $0.voicetrackUploadService = VoicetrackUploadService { recording, _, _, status in
+        if recording.title == "Show Outro" { return .mockWith(id: "outro", type: "voiceTrack") }
+        await status(.uploading(progress: 0.5))
+        uploading.continuation.yield(())
+        var iterator = release.stream.makeAsyncIterator()
+        await iterator.next()
+        return .mockWith(id: "uploaded", type: "voiceTrack")
+      }
+      $0.api.insertSpin = { _, audio, anchor in
+        expectNoDifference(anchor, inserted.value.last.map { "saved-" + $0 } ?? "voice")
+        inserted.withValue { $0.append(audio) }
+        if audio == "uploaded" {
+          inserting.continuation.yield(())
+          var iterator = releaseInsert.stream.makeAsyncIterator()
+          await iterator.next()
+        }
+        response.withValue { spins in
+          let index = spins.firstIndex { $0.id == "filler" }!
+          let airtime = spins[index].airtime
+          for offset in index..<spins.count { spins[offset] = spins[offset].withOffset(30) }
+          spins.insert(
+            .mockWith(
+              id: "saved-" + audio,
+              airtime: airtime,
+              audioBlock: .mockWith(id: audio), liveShowId: "show"), at: index)
+        }
+        return response.value
+      }
+      $0.api.endLiveShow = { _, _, _, audio in
+        expectNoDifference(inserted.value, ["uploaded", "later-song"])
+        ended.withValue { $0.append(audio) }
+        response.withValue {
+          $0.append(
+            .mockWith(
+              id: "ending",
+              airtime: date.addingTimeInterval(240), audioBlock: .mockWith(id: audio),
+              liveShowId: "show"))
+        }
+        return .init(endingSpinId: "ending", effectiveEndsAt: date.addingTimeInterval(300))
+      }
+      $0.api.fetchSchedule = { _, _ in response.value }
+    } operation: {
+      let model = makeLiveModel(buffer: 210)
+      let spins = model.broadcast.schedule!.spins
+      response.setValue(spins)
+      model.voicetrackActionTapped()
+      guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+        Issue.record("Expected recorder")
+        return
+      }
+      try recorder.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/ordered.wav"), 30)
+      var iterator = uploading.stream.makeAsyncIterator()
+      await iterator.next()
+      expectNoDifference(model.broadcast.stagingItems.first?.subtitleText, "Uploading 50%")
+      model.enqueueSong(.mockWith(id: "later-song"))
+      await model.schedulePendingAudio()
+      expectNoDifference(model.broadcast.stagingItems.count, 2)
+      expectNoDifference(inserted.value, [])
+      await model.endShowButtonTapped()
+      guard case .recordWithMultiStepPromptPage(let outroRecorder) = coordinator.path.last else {
+        Issue.record("Expected outro recorder")
+        return
+      }
+      try outroRecorder.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/outro.wav"), 30)
+      let outroId = try #require(model.outroStagingId.flatMap(UUID.init(uuidString:)))
+      await model.uploadTasks[outroId]?.value
+      expectNoDifference(
+        model.pendingRows.map(\.subtitleText),
+        ["Uploading 50%", "Waiting to schedule", "Waiting to schedule"])
+      expectNoDifference(ended.value, [])
+      release.continuation.yield(())
+      var insertIterator = inserting.stream.makeAsyncIterator()
+      await insertIterator.next()
+      expectNoDifference(model.pendingRows.first?.subtitleText, "Scheduling…")
+      #expect(model.pendingRows.first?.isProcessing == true)
+      #expect(model.pendingRows.first?.canDiscard == false)
+      await model.retryAddingAudio()
+      expectNoDifference(inserted.value, ["uploaded"])
+      releaseInsert.continuation.yield(())
+      await model.waitForPendingUploads()
+      expectNoDifference(inserted.value, ["uploaded", "later-song"])
+      expectNoDifference(ended.value, ["outro"])
+      #expect(model.broadcast.stagingItems.isEmpty)
+    }
+  }
+
+  @Test(arguments: [false, true])
+  // swiftlint:disable:next function_body_length
+  func outroUsesDeferredAcceptanceAndAppearsInTheQueue(refreshFails: Bool) async throws {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let uploading = AsyncStream<Void>.makeStream()
+    let release = AsyncStream<Void>.makeStream()
+    let ended = LockIsolated<[String]>([])
+    let fetches = LockIsolated(0)
+    let response = LockIsolated<[Spin]>([])
+    let date = Date(timeIntervalSince1970: 1_000_000)
+    try await withDependencies {
+      $0.date.now = date
+      $0.uuid = .incrementing
+      $0.audioRecorder.deleteRecording = { _ in }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, status in
+        await status(.normalizing)
+        uploading.continuation.yield(())
+        var iterator = release.stream.makeAsyncIterator()
+        await iterator.next()
+        return .mockWith(id: "outro", type: "voiceTrack")
+      }
+      $0.api.endLiveShow = { _, _, show, audio in
+        ended.withValue { $0.append(audio) }
+        expectNoDifference(show, "show")
+        return .init(endingSpinId: "ending", effectiveEndsAt: date.addingTimeInterval(300))
+      }
+      $0.api.fetchSchedule = { _, _ in
+        fetches.withValue { $0 += 1 }
+        if refreshFails && fetches.value == 1 { throw NSError(domain: "offline", code: 1) }
+        return response.value
+      }
+    } operation: {
+      let model = makeLiveModel(buffer: 210)
+      let spins = model.broadcast.schedule!.spins
+      response.setValue(
+        spins + [
+          .mockWith(
+            id: "ending",
+            airtime: date.addingTimeInterval(210), audioBlock: .mockWith(id: "outro"),
+            liveShowId: "show")
+        ])
+      await model.endShowButtonTapped()
+      guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+        Issue.record("Expected outro recorder")
+        return
+      }
+      let accept = try #require(recorder.onRecordingAccepted)
+      #expect(recorder.onUseRecording == nil)
+      try accept(URL(fileURLWithPath: "/tmp/outro.wav"), 30)
+      var iterator = uploading.stream.makeAsyncIterator()
+      await iterator.next()
+      expectNoDifference(model.broadcast.stagingItems.last?.titleText, "Show Outro")
+      expectNoDifference(model.broadcast.stagingItems.last?.subtitleText, "Normalizing...")
+      #expect(!model.canAddLiveAudio)
+      #expect(!model.isEndShowEnabled)
+      release.continuation.yield(())
+      await model.waitForPendingUploads()
+      if refreshFails {
+        let row = try #require(model.pendingRows.last)
+        expectNoDifference(row.subtitleText, "Show ending · Refresh to confirm")
+        #expect(!row.canDiscard)
+        await model.endShowButtonTapped()
+        await model.retryPendingRow(row.id)
+      }
+      expectNoDifference(ended.value, ["outro"])
+      #expect(model.broadcast.stagingItems.isEmpty)
+      #expect(!model.isEndShowEnabled)
+    }
+  }
+
+  @Test func failedUploadCanBeDiscardedToUnblockTheLaterSong() async throws {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let inserted = LockIsolated<[String]>([])
+    let response = LockIsolated<[Spin]>([])
+    try await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.uuid = .incrementing
+      $0.audioRecorder.deleteRecording = { _ in }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, _ in
+        throw NSError(domain: "offline", code: 1)
+      }
+      $0.api.insertSpin = { _, audio, _ in
+        inserted.withValue { $0.append(audio) }
+        return response.value
+      }
+    } operation: {
+      let model = makeLiveModel(buffer: 210)
+      let spins = model.broadcast.schedule!.spins
+      response.setValue(spins)
+      try model.acceptVoicetrack(url: URL(fileURLWithPath: "/tmp/failed.wav"))
+      model.enqueueSong(.mockWith(id: "later-song"))
+      await model.schedulePendingAudio()
+      await model.waitForPendingUploads()
+      expectNoDifference(inserted.value, [])
+      let failed = try #require(model.pendingRows.first)
+      #expect(!failed.isProcessing)
+      #expect(!failed.isReady)
+      #expect(failed.canDiscard)
+      expectNoDifference(failed.subtitleText, "Upload failed — delete and record again")
+      await model.discardPendingRow(failed.id)
+      expectNoDifference(inserted.value, ["later-song"])
+      #expect(model.pendingRows.isEmpty)
+    }
+  }
+
+  @Test func replacingShowIgnoresLateUploadCompletion() async throws {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let started = AsyncStream<Void>.makeStream()
+    let release = AsyncStream<Void>.makeStream()
+    let inserted = LockIsolated<[String]>([])
+    let date = Date(timeIntervalSince1970: 1_000_000)
+    try await withDependencies {
+      $0.date.now = date
+      $0.uuid = .incrementing
+      $0.audioRecorder.deleteRecording = { _ in }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, status in
+        started.continuation.yield(())
+        var iterator = release.stream.makeAsyncIterator()
+        await iterator.next()
+        await status(.finalizing)
+        return .mockWith(id: "old-upload")
+      }
+      $0.api.insertSpin = { _, audio, _ in
+        inserted.withValue { $0.append(audio) }
+        return []
+      }
+    } operation: {
+      let model = makeLiveModel(buffer: 210)
+      try model.acceptVoicetrack(url: URL(fileURLWithPath: "/tmp/old.wav"))
+      var iterator = started.stream.makeAsyncIterator()
+      await iterator.next()
+      model.broadcast.schedule = Schedule(
+        stationId: "station",
+        spins: [
+          .mockWith(id: "replacement", airtime: date.addingTimeInterval(30), liveShowId: "new-show")
+        ], dateProvider: DependencyDateProvider())
+      model.schedulePlaybackChanged()
+      release.continuation.yield(())
+      await model.waitForPendingUploads()
+      expectNoDifference(model.broadcast.liveShowId, "new-show")
+      expectNoDifference(inserted.value, [])
+      #expect(model.pendingRows.isEmpty)
+    }
+  }
+
+  @Test func replacingShowDoesNotApplyAnOldInsertionResponse() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let started = AsyncStream<Void>.makeStream()
+    let release = AsyncStream<Void>.makeStream()
+    let date = Date(timeIntervalSince1970: 1_000_000)
+    await withDependencies {
+      $0.date.now = date
+      $0.api.insertSpin = { _, _, _ in
+        started.continuation.yield(())
+        var iterator = release.stream.makeAsyncIterator()
+        await iterator.next()
+        return [
+          .mockWith(id: "old-insert", airtime: date.addingTimeInterval(210), liveShowId: "show")
+        ]
+      }
+    } operation: {
+      let model = makeLiveModel(buffer: 210)
+      model.enqueueSong(.mockWith(id: "song"))
+      let insertion = Task { await model.schedulePendingAudio() }
+      var iterator = started.stream.makeAsyncIterator()
+      await iterator.next()
+      model.broadcast.schedule = Schedule(
+        stationId: "station",
+        spins: [
+          .mockWith(id: "replacement", airtime: date.addingTimeInterval(30), liveShowId: "new-show")
+        ], dateProvider: DependencyDateProvider())
+      model.schedulePlaybackChanged()
+      release.continuation.yield(())
+      await insertion.value
+      expectNoDifference(model.broadcast.liveShowId, "new-show")
+      expectNoDifference(model.broadcast.schedule?.spins.map(\.id), ["replacement"])
+      #expect(model.pendingRows.isEmpty)
+    }
+  }
+
   @Test func startingImmediatelyShowsTheOpenerUntilSavedSpinsArrive() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let date = Date(timeIntervalSince1970: 1_000_000)
@@ -126,7 +411,8 @@ struct AMALivePresentationTests {
       #expect(model.liveRows.allSatisfy { !$0.isEditable })
       #expect(!model.canAddLiveAudio)
       #expect(!model.isEndShowEnabled)
-      await model.appendToShow(.mockWith(id: "finished-upload"), showId: "show")
+      model.enqueueSong(.mockWith(id: "finished-upload"))
+      await model.schedulePendingAudio()
       expectNoDifference(inserted.value, nil)
       release.continuation.yield(())
       await move.value
@@ -134,7 +420,7 @@ struct AMALivePresentationTests {
       #expect(model.liveRows.allSatisfy { !$0.isProcessing })
       #expect(model.canAddLiveAudio)
       expectNoDifference(inserted.value, "finished-upload")
-      #expect(model.pendingAddIds.isEmpty)
+      #expect(model.pendingRows.map(\.id).isEmpty)
     }
   }
 
@@ -160,18 +446,21 @@ struct AMALivePresentationTests {
       response.setValue(spins)
       clock.withValue { $0 += 30 }
       model.playbackTick()
-      let insert = Task { await model.appendToShow(.mockWith(id: "new"), showId: "show") }
+      let insert = Task {
+        model.enqueueSong(.mockWith(id: "new"))
+        await model.schedulePendingAudio()
+      }
       var iterator = started.stream.makeAsyncIterator()
       await iterator.next()
       expectNoDifference(model.broadcast.spinIdsBeingRescheduled, Set(["filler", "reserve"]))
       expectNoDifference(model.liveRows.filter(\.isProcessing).map(\.id), ["filler"])
       #expect(model.isScheduleProcessing)
-      #expect(!model.canAddLiveAudio)
+      #expect(model.canAddLiveAudio)
       release.continuation.yield(())
       await insert.value
       #expect(model.broadcast.spinIdsBeingRescheduled.isEmpty)
       #expect(!model.isScheduleProcessing)
-      expectNoDifference(model.pendingAddIds, throwsError ? ["new"] : [])
+      expectNoDifference(model.pendingRows.map(\.id), throwsError ? ["new"] : [])
     }
   }
 
@@ -331,12 +620,15 @@ struct AMALivePresentationTests {
       }
     } operation: {
       let model = makeLiveModel(buffer: 210)
-      await model.appendToShow(.mockWith(id: "new-song"), showId: "show")
-      expectNoDifference(model.pendingAddIds, ["new-song"])
-      expectNoDifference(model.liveAddExplanation, "Audio is ready. Retry adding it below.")
+      model.enqueueSong(.mockWith(id: "new-song"))
+      await model.schedulePendingAudio()
+      expectNoDifference(model.pendingRows.map(\.id), ["new-song"])
+      expectNoDifference(model.liveAddExplanation, "Added to the end of your playlist")
+      expectNoDifference(model.pendingRows.first?.subtitleText, "Scheduling failed")
+      expectNoDifference(model.pendingRows.first?.retryTitles, ["Retry scheduling"])
       #expect(model.presentedAlert != nil)
       await model.retryAddingAudio()
-      expectNoDifference(model.pendingAddIds, [])
+      expectNoDifference(model.pendingRows.map(\.id), [])
       expectNoDifference(model.broadcast.upcomingSpins.map(\.id), ["inserted"])
       expectNoDifference(calls.value, 2)
     }
@@ -391,7 +683,7 @@ struct AMALivePresentationTests {
       await model.waitForPendingUploads()
       expectNoDifference(inserted.value, ["uploaded"])
       #expect(model.openingItems.isEmpty)
-      #expect(model.pendingAddIds.isEmpty)
+      #expect(model.pendingRows.map(\.id).isEmpty)
     }
   }
 
