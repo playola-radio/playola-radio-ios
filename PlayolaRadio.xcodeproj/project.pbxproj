@@ -662,6 +662,9 @@
 		AF1000000000000000000001 /* AMAQueuePlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000003 /* AMAQueuePlacement.swift */; };
 		AF1000000000000000000002 /* AMAQueuePlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000003 /* AMAQueuePlacement.swift */; };
 		AF1000000000000000000004 /* AMAQueuePlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000005 /* AMAQueuePlacementTests.swift */; };
+		7EE71A663259435CAB224095 /* AMADraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B613D7A104E349D9A15E0554 /* AMADraftTests.swift */; };
+		AB60901F7E4B485A9B828F8A /* AMAOpeningDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F0516EDD754AF79351E4CA /* AMAOpeningDraft.swift */; };
+		35C33AD86471431C84A4CE45 /* AMAOpeningDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F0516EDD754AF79351E4CA /* AMAOpeningDraft.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1056,6 +1059,8 @@
 		AF0000000000000000000003 /* AMALiveQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMALiveQueue.swift; sourceTree = "<group>"; };
 		AF1000000000000000000003 /* AMAQueuePlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQueuePlacement.swift; sourceTree = "<group>"; };
 		AF1000000000000000000005 /* AMAQueuePlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQueuePlacementTests.swift; sourceTree = "<group>"; };
+		B613D7A104E349D9A15E0554 /* AMADraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMADraftTests.swift; sourceTree = "<group>"; };
+		79F0516EDD754AF79351E4CA /* AMAOpeningDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAOpeningDraft.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1257,10 +1262,12 @@
 				A29DFFABB0DD05FFE6503767 /* AMALivePresentation.swift */,
 				AF0000000000000000000003 /* AMALiveQueue.swift */,
 				AF1000000000000000000003 /* AMAQueuePlacement.swift */,
+				B613D7A104E349D9A15E0554 /* AMADraftTests.swift */,
 				AF1000000000000000000005 /* AMAQueuePlacementTests.swift */,
 				CC0000000000000000000704 /* AskMeAnythingLivePageView.swift */,
 				CC0000000000000000000707 /* AskMeAnythingLivePageTests.swift */,
 				7752A7B6B151CAE286858861 /* AMALivePresentationTests.swift */,
+				79F0516EDD754AF79351E4CA /* AMAOpeningDraft.swift */,
 				AC3062D8D253F844CBA99697 /* AMAOpeningItem.swift */,
 				D1E4BD99E31BA9B882C7056A /* AMAOpeningRowView.swift */,
 			);
@@ -2528,6 +2535,7 @@
 				AF0000000000000000000001 /* AMALiveQueue.swift in Sources */,
 				AF1000000000000000000001 /* AMAQueuePlacement.swift in Sources */,
 				CC0000000000000000000705 /* AskMeAnythingLivePageView.swift in Sources */,
+				AB60901F7E4B485A9B828F8A /* AMAOpeningDraft.swift in Sources */,
 				3323D0CF9D68CA09140097AC /* AMAOpeningItem.swift in Sources */,
 				ED782639689341641D657686 /* AMAOpeningRowView.swift in Sources */,
 				CC0000000000000000000902 /* RecordWithMultiStepPromptModel.swift in Sources */,
@@ -2783,6 +2791,7 @@
 				AF0000000000000000000002 /* AMALiveQueue.swift in Sources */,
 				AF1000000000000000000002 /* AMAQueuePlacement.swift in Sources */,
 				CC0000000000000000000706 /* AskMeAnythingLivePageView.swift in Sources */,
+				35C33AD86471431C84A4CE45 /* AMAOpeningDraft.swift in Sources */,
 				719FF97AE552513461BCC570 /* AMAOpeningItem.swift in Sources */,
 				C29B4F9EAEED22434B85EFA0 /* AMAOpeningRowView.swift in Sources */,
 				CC0000000000000000000903 /* RecordWithMultiStepPromptModel.swift in Sources */,
@@ -2966,6 +2975,7 @@
 				CC0000000000000000000608 /* ShowsPageTests.swift in Sources */,
 				CC0000000000000000000708 /* AskMeAnythingLivePageTests.swift in Sources */,
 				A1C4E243012B0E186CC7680B /* AMALivePresentationTests.swift in Sources */,
+				7EE71A663259435CAB224095 /* AMADraftTests.swift in Sources */,
 				AF1000000000000000000004 /* AMAQueuePlacementTests.swift in Sources */,
 				CC0000000000000000000908 /* RecordWithMultiStepPromptTests.swift in Sources */,
 				CC0000000000000000000408 /* MusicCategoryDetailPageTests.swift in Sources */,

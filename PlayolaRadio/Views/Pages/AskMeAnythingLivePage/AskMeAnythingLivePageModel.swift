@@ -26,13 +26,17 @@ class AskMeAnythingLivePageModel: ViewModel {
 
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator
   @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.amaOpeningDrafts) var amaOpeningDrafts
 
   // MARK: - Initialization
 
   init(stationId: String) {
+    @Shared(.auth) var auth
+    self.openingDraftUserId = auth.currentUser?.id
     self.stationId = stationId
     self.broadcast = BroadcastPageModel(stationId: stationId, stationName: "Ask Me Anything")
     super.init()
+    restoreOpeningDraft()
   }
 
   // MARK: - Properties
@@ -50,7 +54,10 @@ class AskMeAnythingLivePageModel: ViewModel {
   var isEditingSchedule = false
   var isAwaitingStartedSchedule = false
 
-  var openingItems: IdentifiedArrayOf<AMAOpeningItem> = []
+  let openingDraftUserId: String?
+  var openingItems: IdentifiedArrayOf<AMAOpeningItem> = [] {
+    didSet { persistOpeningDraft() }
+  }
   let broadcast: BroadcastPageModel
   var isCheckingSchedule = false
   var isStartingShow = false
@@ -83,6 +90,7 @@ class AskMeAnythingLivePageModel: ViewModel {
     updateShowFromSchedule()
     updateLivePresentation()
     isCheckingSchedule = false
+    if !hasScheduleLoadFailed { resumeOpeningUploads() }
     await schedulePendingAudio()
   }
 
@@ -165,6 +173,8 @@ class AskMeAnythingLivePageModel: ViewModel {
       let response = try await api.startLiveShow(
         jwt, stationId, openingItems.compactMap(\.audioBlockId))
       broadcast.liveShowId = response.liveShowId
+      clearOpeningDraft()
+      try? await $amaOpeningDrafts.save()
       scheduledStartsAt = response.scheduledStartsAt
       broadcast.visibleFillerIds = []
       hasPresentedSchedule = false
@@ -354,6 +364,10 @@ class AskMeAnythingLivePageModel: ViewModel {
       hasPresentedSchedule = false
       cancelUploads()
       broadcast.stagingItems = []
+      if showId != nil {
+        clearOpeningDraft()
+        openingItems.removeAll()
+      }
     }
   }
 

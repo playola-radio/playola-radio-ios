@@ -755,8 +755,9 @@ struct AskMeAnythingLivePageTests {
     expectNoDifference(rows[2].completedOpacity, 0)
   }
 
-  @Test func backButtonCancelsInFlightUploads() async throws {
-    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+  @Test func backButtonCancelsUploadButKeepsDraftRecording() async throws {
+    @Shared(.auth) var auth = Auth(
+      loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
 
@@ -786,7 +787,7 @@ struct AskMeAnythingLivePageTests {
 
       #expect(model.presentedAlert == nil)
       #expect(coordinator.path.isEmpty)
-      expectNoDifference(deleted.value, [url])
+      #expect(deleted.value.isEmpty)
     }
   }
 

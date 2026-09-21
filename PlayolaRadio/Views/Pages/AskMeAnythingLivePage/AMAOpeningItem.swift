@@ -7,12 +7,12 @@ import CasePaths
 import Foundation
 import PlayolaPlayer
 
-struct AMAOpeningItem: Identifiable, Equatable {
+struct AMAOpeningItem: Codable, Identifiable, Equatable {
   let id: UUID
   var content: Content
 
   @CasePathable
-  enum Content: Equatable {
+  enum Content: Codable, Equatable {
     case intro(AudioBlock)
     case song(AudioBlock)
     case voicetrack(LocalVoicetrack, completedDurationMS: Int?)

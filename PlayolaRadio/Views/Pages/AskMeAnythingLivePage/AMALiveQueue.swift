@@ -1,3 +1,4 @@
+import Dependencies
 import PlayolaPlayer
 import SwiftUI
 
@@ -126,8 +127,11 @@ extension AskMeAnythingLivePageModel {
     let showId = broadcast.liveShowId
     let formatter = DateFormatter()
     formatter.dateFormat = "h:mma"
+    @Dependency(AMARecordingFiles.self) var recordingFiles
+    let recordingId = uuid()
+    let source = showId == nil ? try recordingFiles.preserve(url, recordingId) : url
     let voicetrack = LocalVoicetrack(
-      id: uuid(), originalURL: url, createdAt: now,
+      id: recordingId, originalURL: source, createdAt: now,
       title: isOutro ? "Show Outro" : "Voicetrack \(formatter.string(from: now).lowercased())")
     let itemId: UUID
     if showId != nil {
@@ -146,7 +150,7 @@ extension AskMeAnythingLivePageModel {
     }
   }
 
-  private func runVoicetrackUpload(
+  func runVoicetrackUpload(
     itemId: UUID, voicetrack: LocalVoicetrack, jwt: String, showId: String?
   ) async {
     defer { uploadTasks[itemId] = nil }
@@ -161,7 +165,7 @@ extension AskMeAnythingLivePageModel {
         }
       }
       guard !Task.isCancelled, broadcast.liveShowId == showId else {
-        await audioRecorder.deleteRecording(voicetrack.originalURL)
+        if showId != nil { await audioRecorder.deleteRecording(voicetrack.originalURL) }
         return
       }
       updateVoicetrack(itemId: itemId, showId: showId) {
@@ -172,9 +176,11 @@ extension AskMeAnythingLivePageModel {
         await schedulePendingAudio(for: showId)
       } else {
         openingItems[id: itemId]?.content.modify(\.voicetrack) { $0.1 = audioBlock.durationMS }
+        do { try await $amaOpeningDrafts.save() } catch { return }
       }
       await audioRecorder.deleteRecording(voicetrack.originalURL)
     } catch {
+      if showId == nil, Task.isCancelled { return }
       await audioRecorder.deleteRecording(voicetrack.originalURL)
       guard !Task.isCancelled, broadcast.liveShowId == showId else { return }
       if showId != nil {
@@ -191,7 +197,7 @@ extension AskMeAnythingLivePageModel {
   private func updateVoicetrack(
     itemId: UUID, showId: String?, update: (inout LocalVoicetrack) -> Void
   ) {
-    guard broadcast.liveShowId == showId else { return }
+    guard broadcast.liveShowId == showId, uploadTasks[itemId]?.isCancelled == false else { return }
     if showId != nil {
       guard
         let index = broadcast.stagingItems.firstIndex(where: { $0.stagingId == itemId.uuidString }),
