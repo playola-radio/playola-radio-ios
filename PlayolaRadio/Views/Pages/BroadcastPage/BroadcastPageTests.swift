@@ -7,6 +7,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -52,6 +53,91 @@ struct BroadcastPageTests {
       title: "Test Voicetrack",
       audioBlockId: audioBlockId
     )
+  }
+
+  @Test func liveShowFilterHidesFillerAndLeavesNowPlayingUnfiltered() async {
+    let spins = [
+      Spin.mockWith(
+        id: "rotation-now", airtime: fixedNow.addingTimeInterval(-30),
+        audioBlock: .mockWith(endOfMessageMS: 180_000)),
+      Spin.mockWith(
+        id: "other-show", airtime: fixedNow.addingTimeInterval(150), liveShowId: "other"),
+      Spin.mockWith(id: "opener", airtime: fixedNow.addingTimeInterval(300), liveShowId: "show"),
+      Spin.mockWith(
+        id: "filler", airtime: fixedNow.addingTimeInterval(600), liveShowId: "show", isFiller: true),
+      Spin.mockWith(id: "rotation-next", airtime: fixedNow.addingTimeInterval(900)),
+    ]
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, liveShowId: "show")
+      await model.loadSchedule()
+      expectNoDifference(model.upcomingSpins.map(\.id), ["opener"])
+      expectNoDifference(model.nowPlaying?.id, "rotation-now")
+      expectNoDifference(model.showEndDropTargets, ["filler"])
+      model.liveShowId = nil
+      expectNoDifference(
+        model.upcomingSpins.map(\.id), ["other-show", "opener", "filler", "rotation-next"])
+      #expect(model.showEndDropTargets.isEmpty)
+    }
+  }
+
+  @Test func placingContentAtShowEndUsesTheHiddenFillerBoundary() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let anchors = LockIsolated<[String]>([])
+    let spins = [
+      Spin.mockWith(
+        id: "playing", airtime: fixedNow.addingTimeInterval(-30),
+        audioBlock: .mockWith(endOfMessageMS: 180_000), liveShowId: "show"),
+      Spin.mockWith(
+        id: "last-content", airtime: fixedNow.addingTimeInterval(150), liveShowId: "show"),
+      Spin.mockWith(
+        id: "hidden-tail", airtime: fixedNow.addingTimeInterval(400), liveShowId: "show",
+        isFiller: true),
+    ]
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+      $0.api.insertSpin = { _, _, anchor in
+        anchors.withValue { $0.append(anchor) }
+        return spins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, liveShowId: "show")
+      await model.loadSchedule()
+      let voicetrack = makeStagingVoicetrack()
+      model.stagingItems = [voicetrack]
+      await model.insertStagingItem(stagingId: voicetrack.stagingId, beforeSpinId: "hidden-tail")
+      expectNoDifference(anchors.value, ["last-content"])
+      #expect(model.stagingItems.isEmpty)
+    }
+  }
+
+  @Test func movingToFrontOfShowStaysAfterThePreShowRotation() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let anchors = LockIsolated<[String?]>([])
+    let spins = [
+      Spin.mockWith(id: "rotation", airtime: fixedNow.addingTimeInterval(150)),
+      Spin.mockWith(
+        id: "show-first", airtime: fixedNow.addingTimeInterval(400), liveShowId: "show"),
+      Spin.mockWith(
+        id: "show-second", airtime: fixedNow.addingTimeInterval(600), liveShowId: "show"),
+    ]
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+      $0.api.moveSpin = { _, spinId, anchor in
+        expectNoDifference(spinId, "show-second")
+        anchors.withValue { $0.append(anchor) }
+        return spins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, liveShowId: "show")
+      await model.loadSchedule()
+      await model.moveSpins(from: IndexSet(integer: 1), to: 0)
+      expectNoDifference(anchors.value, ["rotation"])
+    }
   }
 
   // MARK: - Schedule Loading Tests
@@ -699,46 +785,42 @@ extension BroadcastPageTests {
     }
   }
 
-  @Test
-  func testMoveSpinMarksAllSpinsAsReschedulingDuringCall() async {
-    let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
+  @Test(arguments: [
+    (2, 5, false, ["spin-3", "spin-4", "spin-5"]),
+    (4, 2, false, ["spin-3", "spin-4", "spin-5"]),
+    (2, 2, false, []),
+    (0, 5, false, ["spin-1", "spin-2", "spin-3", "spin-4", "spin-5"]),
+    (3, 5, true, ["spin-3", "spin-4", "spin-5"]),
+  ])
+  func testMoveOnlyMarksSpinsFromFirstChangedPosition(
+    source: Int, destination: Int, grouped: Bool, expected: [String]
+  ) async {
+    let initialSpins = (0..<5).map { index in
+      Spin.mockWith(
+        id: "spin-\(index + 1)", airtime: fixedNow.addingTimeInterval(Double(index + 1) * 180),
+        spinGroupId: grouped && (2...3).contains(index) ? "pair" : nil)
+    }
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    let moveStarted = LockIsolated(false)
-    let moveContinuation = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
-
+    let started = AsyncStream<Void>.makeStream()
+    let finish = AsyncStream<Void>.makeStream()
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.moveSpin = { _, _, _ in
-        moveStarted.setValue(true)
-        await withCheckedContinuation { continuation in
-          moveContinuation.setValue(continuation)
-        }
+        started.continuation.yield(())
+        for await _ in finish.stream { break }
         return initialSpins
       }
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
+      let move = Task { await model.moveSpins(from: IndexSet(integer: source), to: destination) }
+      for await _ in started.stream { break }
 
-      #expect(model.spinIdsBeingRescheduled.isEmpty)
+      expectNoDifference(model.spinIdsBeingRescheduled, Set(expected))
 
-      let moveTask = Task {
-        await model.moveSpins(from: IndexSet(integer: 0), to: 2)
-      }
-
-      while !moveStarted.value {
-        await Task.yield()
-      }
-
-      #expect(model.spinIdsBeingRescheduled == ["spin-1", "spin-2", "spin-3"])
-
-      moveContinuation.withValue { continuation in
-        continuation?.resume()
-        continuation = nil
-      }
-
-      await moveTask.value
-
+      finish.continuation.yield(())
+      #expect(await move.value)
       #expect(model.spinIdsBeingRescheduled.isEmpty)
     }
   }
@@ -829,14 +911,12 @@ extension BroadcastPageTests {
   func testDeleteSpinMarksSpinsAfterDeletedAsReschedulingDuringCall() async {
     let initialSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    let deleteStarted = LockIsolated(false)
     let deleteContinuation = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.deleteSpin = { _, _ in
-        deleteStarted.setValue(true)
         await withCheckedContinuation { continuation in
           deleteContinuation.setValue(continuation)
         }
@@ -852,7 +932,7 @@ extension BroadcastPageTests {
         await model.deleteSpin(initialSpins[1])
       }
 
-      while !deleteStarted.value {
+      while deleteContinuation.value == nil {
         await Task.yield()
       }
 
@@ -1039,6 +1119,55 @@ extension BroadcastPageTests {
 
       #expect(capturedPlaceAfterSpinId.value == "now-playing")
       #expect(model.presentedAlert == nil)
+    }
+  }
+
+  @Test
+  func testStagingItemsDroppedIgnoresDuplicateDropWhileInsertIsInFlight() async {
+    let initialSpins = makeSpins(ids: ["spin-1", "spin-2"])
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    let insertSpinCallCount = LockIsolated(0)
+    let insertContinuation = LockIsolated<CheckedContinuation<[Spin], Never>?>(nil)
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in initialSpins }
+      $0.api.insertSpin = { _, _, _ in
+        insertSpinCallCount.withValue { $0 += 1 }
+        return await withCheckedContinuation { continuation in
+          insertContinuation.setValue(continuation)
+        }
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      let voicetrackId = UUID()
+      model.stagingItems = [makeStagingVoicetrack(id: voicetrackId)]
+
+      let firstDropAccepted = model.stagingItemsDropped(
+        [voicetrackId.uuidString], beforeSpinId: "spin-2")
+      #expect(firstDropAccepted)
+
+      while insertContinuation.value == nil {
+        await Task.yield()
+      }
+
+      let secondDropAccepted = model.stagingItemsDropped(
+        [voicetrackId.uuidString], beforeSpinId: "spin-2")
+      #expect(!secondDropAccepted)
+
+      insertContinuation.withValue { continuation in
+        continuation?.resume(returning: initialSpins)
+        continuation = nil
+      }
+
+      while model.stagingItems.count == 1 {
+        await Task.yield()
+      }
+
+      #expect(insertSpinCallCount.value == 1)
     }
   }
 
@@ -1363,13 +1492,11 @@ extension BroadcastPageTests {
   @Test
   func testIsSendingNotificationTracksLoadingState() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    let requestStarted = LockIsolated(false)
     let requestContinuation = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.sendStationNotification = { _, _, _ in
-        requestStarted.setValue(true)
         await withCheckedContinuation { continuation in
           requestContinuation.setValue(continuation)
         }
@@ -1384,7 +1511,7 @@ extension BroadcastPageTests {
         await model.sendNotification()
       }
 
-      while !requestStarted.value {
+      while requestContinuation.value == nil {
         await Task.yield()
       }
 

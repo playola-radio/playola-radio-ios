@@ -25,6 +25,15 @@ private struct CreateVoicetrackParameters: Encodable, Sendable {
   let durationMS: Int
 }
 
+private struct StartLiveShowParameters: Encodable, Sendable {
+  let type: String
+  let audioBlockIds: [String]
+}
+
+private struct EndLiveShowParameters: Encodable, Sendable {
+  let audioBlockId: String
+}
+
 // MARK: - Request Helpers
 
 private let sharedIsoDecoder = JSONDecoderWithIsoFull()
@@ -75,6 +84,26 @@ private func signInPost(
 private func transportFailure(_ underlying: AFError?) -> Error {
   if let underlying { return underlying }
   return APIError.dataNotValid
+}
+
+private struct LiveShowConflictEnvelope: Decodable {
+  let error: LiveShowConflictErrorBody?
+}
+
+private struct LiveShowConflictErrorBody: Decodable {
+  let data: LiveShowConflictDataBody?
+}
+
+private struct LiveShowConflictDataBody: Decodable {
+  let delayUntil: Date?
+}
+
+/// Parses the `delayUntil` timestamp out of a live-show 409 conflict envelope
+/// (`{ error: { data: { delayUntil: ISO8601 } } }`). Returns nil when absent (e.g. the
+/// unfinished-show conflict, which carries no delayUntil).
+func parseLiveShowDelayUntil(from data: Data) -> Date? {
+  let decoder = JSONDecoderWithIsoFull()
+  return (try? decoder.decode(LiveShowConflictEnvelope.self, from: data))?.error?.data?.delayUntil
 }
 
 private func authenticatedGet<T: Decodable & Sendable>(
@@ -971,6 +1000,63 @@ extension APIClient: DependencyKey {
           path: "/v1/stations/\(stationId)/station-categories",
           token: jwtToken,
           queryParams: ["version": "draft"])
+      },
+      // MARK: - Live Shows (Ask Me Anything)
+      startLiveShow: { token, stationId, audioBlockIds in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/liveShow"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
+        let parameters = StartLiveShowParameters(
+          type: "ask-me-anything", audioBlockIds: audioBlockIds)
+
+        let dataResponse = await apiSession.request(
+          url, method: .post, parameters: parameters,
+          encoder: JSONParameterEncoder.default, headers: headers
+        )
+        .serializingData()
+        .response
+
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw transportFailure(dataResponse.error)
+        }
+        guard let data = dataResponse.value else { throw APIError.dataNotValid }
+
+        if statusCode >= 200, statusCode < 300 {
+          return try isoDecoder.decode(StartLiveShowResponse.self, from: data)
+        } else if statusCode == 409 {
+          throw APIError.liveShowUnavailable(delayUntil: parseLiveShowDelayUntil(from: data))
+        } else {
+          throw APIError.validationError(
+            parsePlayolaErrorMessage(from: data) ?? "Failed to start live show")
+        }
+      },
+      endLiveShow: { token, stationId, liveShowId, audioBlockId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/liveShow/\(liveShowId)/end"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
+        let parameters = EndLiveShowParameters(audioBlockId: audioBlockId)
+
+        let dataResponse = await apiSession.request(
+          url, method: .post, parameters: parameters,
+          encoder: JSONParameterEncoder.default, headers: headers
+        )
+        .serializingData()
+        .response
+
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw transportFailure(dataResponse.error)
+        }
+        guard let data = dataResponse.value else { throw APIError.dataNotValid }
+
+        if statusCode >= 200, statusCode < 300 {
+          return try isoDecoder.decode(EndLiveShowResponse.self, from: data)
+        } else if statusCode == 409 {
+          throw APIError.liveShowReplaced
+        } else if statusCode == 400 {
+          throw APIError.liveShowFinished
+        } else {
+          throw APIError.validationError(
+            parsePlayolaErrorMessage(from: data) ?? "Failed to end live show")
+        }
       },
       getActiveListeningSessions: { jwtToken, stationId, airtime, endTime in
         var queryParams: [String: String] = [

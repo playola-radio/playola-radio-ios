@@ -24,6 +24,13 @@ struct DependencyDateProvider: DateProviderProtocol {
 @Observable
 class BroadcastPageModel: ViewModel {
   let stationId: String
+  var liveShowId: String? {
+    didSet {
+      if liveShowId != oldValue { reorderedSpinIds = nil }
+    }
+  }
+  // AMA reveals scheduled fallback audio without changing its server-side filler status.
+  var visibleFillerIds: Set<String> = []
   private let providedStationName: String?
   private var fetchedStationName: String?
   var schedule: Schedule?
@@ -33,6 +40,7 @@ class BroadcastPageModel: ViewModel {
   var currentNowPlayingId: String?
   private var reorderedSpinIds: [String]?  // nil means use default order
   var stagingItems: [any StagingItem] = []
+  private var stagingIdsBeingInserted: Set<String> = []
 
   // Notify Listeners state
   var showNotifyListenersSheet: Bool = false
@@ -112,19 +120,19 @@ class BroadcastPageModel: ViewModel {
     return "at \(timeString)"
   }
 
-  init(stationId: String, stationName: String? = nil) {
+  init(stationId: String, stationName: String? = nil, liveShowId: String? = nil) {
     self.stationId = stationId
+    self.liveShowId = liveShowId
     self.providedStationName = stationName
     super.init()
   }
 
-  func viewAppeared() async {
+  func viewAppeared(trackScreenView: Bool = true) async {
     startObservingScheduleUpdates()
-    await analytics.track(
-      .viewedBroadcastScreen(
-        stationId: stationId,
-        stationName: navigationTitle
-      ))
+    if trackScreenView {
+      await analytics.track(
+        .viewedBroadcastScreen(stationId: stationId, stationName: navigationTitle))
+    }
     await withTaskGroup(of: Void.self) { group in
       group.addTask { await self.loadSchedule() }
       group.addTask { await self.loadStation() }
@@ -206,7 +214,12 @@ class BroadcastPageModel: ViewModel {
 
   var upcomingSpins: [Spin] {
     guard let schedule else { return [] }
-    let futureSpins = schedule.current().filter { $0.airtime > now }
+    let futureSpins = schedule.current().filter {
+      $0.airtime > now
+        && (liveShowId == nil
+          || ($0.liveShowId == liveShowId
+            && ($0.isFiller != true || visibleFillerIds.contains($0.id))))
+    }
 
     // If we have a custom order, use it
     if let orderedIds = reorderedSpinIds {
@@ -216,6 +229,34 @@ class BroadcastPageModel: ViewModel {
     }
 
     return futureSpins
+  }
+
+  var showEndDropTargets: [String] {
+    guard let liveShowId,
+      let filler = schedule?.current().first(where: {
+        $0.liveShowId == liveShowId && $0.isFiller == true && canDeleteSpin($0)
+      })
+    else { return [] }
+    return [filler.id]
+  }
+
+  private var spinBeforeShowQueueId: String? {
+    guard liveShowId != nil, let firstShowSpin = upcomingSpins.first,
+      let currentSpins = schedule?.current(),
+      let firstIndex = currentSpins.firstIndex(where: { $0.id == firstShowSpin.id }), firstIndex > 0
+    else { return nil }
+    return currentSpins[firstIndex - 1].id
+  }
+
+  var showEndDropLabel: String { "Add to end of show" }
+
+  func stagingItemsDropped(_ items: [String], beforeSpinId: String) -> Bool {
+    guard let stagingId = items.first, !stagingIdsBeingInserted.contains(stagingId) else {
+      return false
+    }
+    stagingIdsBeingInserted.insert(stagingId)
+    Task { await insertStagingItem(stagingId: stagingId, beforeSpinId: beforeSpinId) }
+    return true
   }
 
   var nowPlayingProgress: Double {
@@ -377,7 +418,33 @@ class BroadcastPageModel: ViewModel {
     }
   }
 
+  // Returns the spins at/after the insertion point, and the id of the spin the new item
+  // should be placed after. Returns nil (with an alert/log already handled) if not insertable.
+  private func placementForInsertingStagingItem(beforeSpinId: String) -> (
+    futureSpins: [Spin], placeAfterSpinId: String
+  )? {
+    let futureSpins =
+      liveShowId == nil
+      ? upcomingSpins : schedule?.current().filter { $0.airtime > now } ?? []
+    guard let beforeIndex = futureSpins.firstIndex(where: { $0.id == beforeSpinId }) else {
+      print("insertStagingItem: Target spin not found: \(beforeSpinId)")
+      return nil
+    }
+
+    if beforeIndex == 0 {
+      guard let nowPlayingId = nowPlaying?.id else {
+        print("insertStagingItem: Cannot insert before first spin (no nowPlaying to place after)")
+        presentedAlert = .cannotInsertBeforeFirstSpin
+        return nil
+      }
+      return (futureSpins, nowPlayingId)
+    }
+    return (futureSpins, futureSpins[beforeIndex - 1].id)
+  }
+
   func insertStagingItem(stagingId: String, beforeSpinId: String) async {
+    defer { stagingIdsBeingInserted.remove(stagingId) }
+
     guard let jwt = auth.jwt else {
       print("insertStagingItem: No JWT")
       return
@@ -393,26 +460,19 @@ class BroadcastPageModel: ViewModel {
       return
     }
 
-    // Find the spin to place after (the one before beforeSpinId)
-    guard let beforeIndex = upcomingSpins.firstIndex(where: { $0.id == beforeSpinId }) else {
-      print("insertStagingItem: Target spin not found: \(beforeSpinId)")
-      return
-    }
+    guard
+      let (futureSpins, placeAfterSpinId) = placementForInsertingStagingItem(
+        beforeSpinId: beforeSpinId)
+    else { return }
 
-    let placeAfterSpinId: String
-    if beforeIndex == 0 {
-      guard let nowPlayingId = nowPlaying?.id else {
-        print("insertStagingItem: Cannot insert before first spin (no nowPlaying to place after)")
-        presentedAlert = .cannotInsertBeforeFirstSpin
-        return
-      }
-      placeAfterSpinId = nowPlayingId
-    } else {
-      placeAfterSpinId = upcomingSpins[beforeIndex - 1].id
-    }
+    let beforeIndex = futureSpins.firstIndex(where: { $0.id == beforeSpinId }) ?? 0
+    spinIdsBeingRescheduled = Set(futureSpins[beforeIndex...].map(\.id))
+    defer { spinIdsBeingRescheduled = [] }
 
+    let expectedShowId = liveShowId
     do {
       let newSpins = try await api.insertSpin(jwt, audioBlockId, placeAfterSpinId)
+      guard liveShowId == expectedShowId else { return }
       withAnimation(.easeInOut(duration: 0.3)) {
         schedule = Schedule(
           stationId: stationId,
@@ -426,6 +486,7 @@ class BroadcastPageModel: ViewModel {
         stagingItems.removeAll { $0.stagingId == stagingId }
       }
     } catch {
+      guard liveShowId == expectedShowId else { return }
       presentedAlert = .errorInsertingSpin(error.localizedDescription)
     }
   }
@@ -458,8 +519,11 @@ class BroadcastPageModel: ViewModel {
       }
     }
 
+    let expectedShowId = liveShowId
+    defer { spinIdsBeingRescheduled = [] }
     do {
       let newSpins = try await api.deleteSpin(jwt, spin.id)
+      guard liveShowId == expectedShowId else { return }
       schedule = Schedule(
         stationId: stationId,
         spins: newSpins,
@@ -468,17 +532,18 @@ class BroadcastPageModel: ViewModel {
       reorderedSpinIds = nil
       currentNowPlayingId = nowPlaying?.id
     } catch {
+      guard liveShowId == expectedShowId else { return }
       schedule = originalSchedule
       reorderedSpinIds = originalReorderedIds
       presentedAlert = .schedulingError(error.localizedDescription)
     }
-
-    spinIdsBeingRescheduled = []
   }
 
   /// Handles moving spins in the list, automatically including grouped spins
-  func moveSpins(from source: IndexSet, to destination: Int) async {
-    guard let jwt = auth.jwt else { return }
+  @discardableResult
+  // swiftlint:disable:next function_body_length
+  func moveSpins(from source: IndexSet, to destination: Int) async -> Bool {
+    guard let jwt = auth.jwt else { return false }
 
     var spins = upcomingSpins
 
@@ -501,14 +566,13 @@ class BroadcastPageModel: ViewModel {
     // Extract the spins to move (in order)
     let spinsToMove = sortedIndices.map { spins[$0] }
 
-    guard let spinToMove = spinsToMove.first else { return }
+    guard let spinToMove = spinsToMove.first else { return false }
 
     // Save original state for rollback
     let originalSchedule = schedule
     let originalReorderedIds = reorderedSpinIds
 
-    // Mark all spins as being rescheduled
-    spinIdsBeingRescheduled = Set(spins.map { $0.id })
+    let originalSpinIds = spins.map(\.id)
 
     // Remove from original positions (in reverse to maintain indices)
     for index in sortedIndices.reversed() {
@@ -524,15 +588,20 @@ class BroadcastPageModel: ViewModel {
     // Insert at destination
     let insertionIndex = max(0, adjustedDestination)
     spins.insert(contentsOf: spinsToMove, at: insertionIndex)
+    let firstChangedIndex =
+      spins.indices.first { spins[$0].id != originalSpinIds[$0] } ?? spins.count
+    spinIdsBeingRescheduled = Set(spins.dropFirst(firstChangedIndex).map(\.id))
 
-    // Determine placeAfterSpinId: the spin just before the insertion point, or nil if at beginning
-    let placeAfterSpinId: String? = insertionIndex > 0 ? spins[insertionIndex - 1].id : nil
+    let placeAfterSpinId = insertionIndex > 0 ? spins[insertionIndex - 1].id : spinBeforeShowQueueId
 
     // Optimistically store the new order
     reorderedSpinIds = spins.map { $0.id }
 
+    defer { spinIdsBeingRescheduled = [] }
+    let expectedShowId = liveShowId
     do {
       let newSpins = try await api.moveSpin(jwt, spinToMove.id, placeAfterSpinId)
+      guard liveShowId == expectedShowId else { return false }
       schedule = Schedule(
         stationId: stationId,
         spins: newSpins,
@@ -540,13 +609,14 @@ class BroadcastPageModel: ViewModel {
       )
       reorderedSpinIds = nil
       currentNowPlayingId = nowPlaying?.id
+      return true
     } catch {
+      guard liveShowId == expectedShowId else { return false }
       schedule = originalSchedule
       reorderedSpinIds = originalReorderedIds
       presentedAlert = .schedulingError(error.localizedDescription)
+      return false
     }
-
-    spinIdsBeingRescheduled = []
   }
 }
 

@@ -143,8 +143,8 @@ struct MainContainerNavigationCoordinatorTests {
         }
       }
     } operation: {
-      let model = AskMeAnythingSetupPageModel(stationId: "station-abc")
-      coordinator.yourLibraryPath = [.askMeAnythingSetupPage(model)]
+      let model = AskMeAnythingLivePageModel(stationId: "station-abc")
+      coordinator.yourLibraryPath = [.askMeAnythingLivePage(model)]
 
       model.voicetrackActionTapped()
       guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {

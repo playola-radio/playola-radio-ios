@@ -318,3 +318,13 @@ extension SharedKey where Self == InMemoryKey<Set<String>>.Default {
     Self[.inMemory("pendingPresetRemovalStationIds"), default: []]
   }
 }
+
+extension SharedKey
+where Self == FileStorageKey<[String: [String: IdentifiedArrayOf<AMAOpeningItem>]]>.Default {
+  static var amaOpeningDrafts: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "ama-opening-drafts.json")),
+      default: [:]
+    ]
+  }
+}

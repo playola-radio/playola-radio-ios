@@ -12,6 +12,22 @@ import SwiftUI
 
 struct BroadcastPageView: View {
   @Bindable var model: BroadcastPageModel
+  var body: some View {
+    BroadcastContentView(model: model)
+      .navigationTitle(model.navigationTitle)
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbarBackground(.visible, for: .navigationBar)
+      .toolbarBackground(Color.black, for: .navigationBar)
+      .toolbarColorScheme(.dark, for: .navigationBar)
+      .task {
+        await model.viewAppeared()
+      }
+      .playolaAlert($model.presentedAlert)
+  }
+}
+
+struct BroadcastContentView: View {
+  @Bindable var model: BroadcastPageModel
   @State private var dropTargetSpinId: String?
 
   var body: some View {
@@ -100,11 +116,7 @@ struct BroadcastPageView: View {
                   )
                 }
                 .dropDestination(for: String.self) { items, _ in
-                  guard let voicetrackId = items.first else { return false }
-                  Task {
-                    await model.insertStagingItem(stagingId: voicetrackId, beforeSpinId: spin.id)
-                  }
-                  return true
+                  model.stagingItemsDropped(items, beforeSpinId: spin.id)
                 } isTargeted: { isTargeted in
                   withAnimation(.easeInOut(duration: 0.2)) {
                     dropTargetSpinId = isTargeted ? spin.id : nil
@@ -129,6 +141,18 @@ struct BroadcastPageView: View {
                   await model.moveSpins(from: source, to: destination)
                 }
               }
+              ForEach(model.showEndDropTargets, id: \.self) { targetId in
+                Text(model.showEndDropLabel)
+                  .font(.custom(FontNames.Inter_400_Regular, size: 14))
+                  .foregroundColor(.playolaGray)
+                  .frame(maxWidth: .infinity, minHeight: 56)
+                  .background(Color.playolaSurfaceRaised)
+                  .dropDestination(for: String.self) { items, _ in
+                    model.stagingItemsDropped(items, beforeSpinId: targetId)
+                  }
+                  .listRowSeparator(.hidden)
+                  .listRowBackground(Color.clear)
+              }
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
@@ -138,15 +162,6 @@ struct BroadcastPageView: View {
         }
       }
     }
-    .navigationTitle(model.navigationTitle)
-    .navigationBarTitleDisplayMode(.inline)
-    .toolbarBackground(.visible, for: .navigationBar)
-    .toolbarBackground(Color.black, for: .navigationBar)
-    .toolbarColorScheme(.dark, for: .navigationBar)
-    .task {
-      await model.viewAppeared()
-    }
-    .playolaAlert($model.presentedAlert)
     .sheet(isPresented: $model.showNotifyListenersSheet) {
       NotifyListenersSheet(model: model)
     }

@@ -116,7 +116,7 @@ frames above remain reference material. The new zone is below Home v2.
 | AMA Runner · F · Simplified | `o23lK` | Dropped | Archived draft; retained in Drafts area for comparison |
 | AMA Runner · G · Add Audio in Playlist | `rIca5` | Dropped | Archived draft; retained in Drafts area for comparison |
 | Shows (Artist · Station) | `KsX6S` | Implementing | Station-tab Shows destination; Ask Me Anything starts the approved setup flow directly. Implemented as `ShowsPage` (intro + single "Ask Me Anything" show-type row). **Intentional deviation:** the mock's 4-tab bottom bar was dropped — it predates the 3-tab IA; this pushes onto the real 3-tab shell instead |
-| AMA Runner · H · Three Playlist Actions | `K9H7f` | Proposed | Approved 2026-09-13 (S31), including 6:32 buffered and 65% of 10 min above End Show; follows 04 in the approved design row |
+| AMA Runner · H · Three Playlist Actions | `K9H7f` | Implementing | Approved 2026-09-13 (S31), including 6:32 buffered and 65% of 10 min above End Show; follows 04 in the approved design row. Dedicated AskMeAnythingLivePage follows the exported layout; reserve filler stays hidden, with the next fallback revealed at three minutes. Native three-tab shell retained. |
 
 PNG and resolved JSON exports: `features/live-shows/exports/exploration/`.
 
@@ -126,11 +126,11 @@ Approved design zone `eoeNV` at y=15578 contains 01 → 01b → 02 → 03 → 04
 
 | State | Node ID | Status | Notes |
 |---|---|---|---|
-| AMA Setup · 01 · Record an Intro | `u1jha` | Implementing | Approved 2026-09-13; intro-first state with user-provided guidance. Implemented as `AskMeAnythingSetupPage` — a **static shell** (Record Intro / Start Show are inert; no API calls in this slice). **Intentional deviation:** the mock's 4-tab bottom bar was dropped for the 3-tab IA |
-| AMA Setup · 01b · Build Your Opening | `cDCux` | Implementing | Approved 2026-09-13 (S31); intro-recorded state of `AskMeAnythingSetupPage`. Intro recorder returns via `onCompleted` callback and the page flips to the opening-playlist layout. **This slice:** the three add-actions (Voicetrack/Song/Q/A) are inert (static-shell precedent); a follow-up wires Broadcast-style staging. Same 4-tab→3-tab-shell deviation as `u1jha` |
+| AMA Setup · 01 · Record an Intro | `u1jha` | Implementing | Approved 2026-09-13; intro-first state with user-provided guidance. Implemented as `AskMeAnythingLivePage` with recorded intro and live-show API integration. **Intentional deviation:** the mock's 4-tab bottom bar was dropped for the 3-tab IA |
+| AMA Setup · 01b · Build Your Opening | `cDCux` | Implementing | Approved 2026-09-13 (S31); intro-recorded state of `AskMeAnythingLivePage`. Intro recorder returns via `onCompleted` callback and the page flips to the opening-playlist layout. Songs and uploaded voicetracks build the opener; the Q/A action opens the existing question inbox. Same 4-tab→3-tab-shell deviation as `u1jha` |
 | AMA Setup · 02 · Almost Ready | `M6FLxv` | Proposed | Approved 2026-09-13; 8:35 ready; Start Show disabled |
 | AMA Setup · 03 · Ready to Start | `F4XUs4` | Proposed | Approved 2026-09-13 (S31); 10:35 ready; Start Show enabled |
-| AMA Setup · 04 · Waiting to Air | `OFqgG` | Proposed | Approved 2026-09-13 (S31); countdown while last regular-programming spin finishes |
+| AMA Setup · 04 · Waiting to Air | `OFqgG` | Implementing | Approved 2026-09-13 (S31); countdown while last regular-programming spin finishes. Dedicated AskMeAnythingLivePage follows the exported layout; reserve filler stays hidden, with the next fallback revealed at three minutes. Native three-tab shell retained. |
 
 Approved PNG, JSON and HTML exports: `features/live-shows/exports/approved/`. Machine-readable manifest: `features/live-shows/pen-nodes.json`.
 
@@ -140,8 +140,8 @@ Two states immediately right of H, at y=15578, visually approved 2026-09-13 (S33
 
 | Frame | Node ID | Status | Notes |
 |---|---|---|---|
-| AMA Runner · H1 · Song About to Be Added | `GLrlG` | Proposed | Approved S33; Amber 3:30 / 35% buffer; Adding Hummingbird in 0:30; shown insertion at 3:00 |
-| AMA Runner · H2 · Song Automatically Added | `VPjJg` | Proposed | Approved S33; Hummingbird appended; green 6:05 / 61% buffer and brief confirmation |
+| AMA Runner · H1 · Song About to Be Added | `GLrlG` | Implementing | Approved S33; Amber 3:30 / 35% buffer; Adding Hummingbird in 0:30; shown insertion at 3:00. Dedicated AskMeAnythingLivePage follows the exported layout; reserve filler stays hidden, with the next fallback revealed at three minutes. Native three-tab shell retained. |
+| AMA Runner · H2 · Song Automatically Added | `VPjJg` | Implementing | Approved S33; Hummingbird appended; green 6:05 / 61% buffer and brief confirmation. Dedicated AskMeAnythingLivePage follows the exported layout; reserve filler stays hidden, with the next fallback revealed at three minutes. Native three-tab shell retained. |
 
 PNG and resolved JSON: `features/live-shows/exports/approved/`.
 

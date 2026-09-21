@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum LocalVoicetrackStatus: Equatable {
+enum LocalVoicetrackStatus: Codable, Equatable {
   case converting
   case uploading(progress: Double)
   case normalizing
@@ -16,7 +16,7 @@ enum LocalVoicetrackStatus: Equatable {
   case failed(error: String)
 }
 
-struct LocalVoicetrack: Identifiable, Equatable {
+struct LocalVoicetrack: Codable, Identifiable, Equatable {
   let id: UUID
   let originalURL: URL
   var convertedURL: URL?

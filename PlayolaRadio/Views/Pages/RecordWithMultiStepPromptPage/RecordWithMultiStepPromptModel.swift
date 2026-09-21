@@ -554,11 +554,37 @@ extension RecordWithMultiStepPromptModel {
       ],
       trackLabel: "INTRO",
       isUpsideDown: true)
+    configureLiveShowUpload(model, stationId: stationId, title: "Intro")
+    return model
+  }
+
+  static func askMeAnythingOutro(stationId: String) -> RecordWithMultiStepPromptModel {
+    let model = RecordWithMultiStepPromptModel(
+      screenTitle: "Record Outro",
+      eyebrow: "RECORD AN OUTRO",
+      guideBadge: "OPTIONAL GUIDE",
+      title: "Wrap up your show.",
+      subtitle: "Thank your listeners and let them know the station will keep playing.",
+      steps: [
+        RecordPromptStep(
+          id: 1, label: "THANK", detail: "Thank everyone for listening and sending questions."),
+        RecordPromptStep(
+          id: 2, label: "SIGN OFF", detail: "Say goodbye and let listeners know what comes next."),
+      ],
+      trackLabel: "OUTRO",
+      isUpsideDown: true)
+    configureLiveShowUpload(model, stationId: stationId, title: "Outro")
+    return model
+  }
+
+  private static func configureLiveShowUpload(
+    _ model: RecordWithMultiStepPromptModel, stationId: String, title: String
+  ) {
     model.onUseRecording = { url, reportProgress in
       @Dependency(\.voicetrackUploadService) var voicetrackUploadService
       @Shared(.auth) var auth
       guard let jwt = auth.jwt else { throw RecordPromptError.notAuthenticated }
-      let voicetrack = LocalVoicetrack(originalURL: url, title: "Intro")
+      let voicetrack = LocalVoicetrack(originalURL: url, title: title)
       return try await voicetrackUploadService.processVoicetrack(voicetrack, stationId, jwt) {
         status in
         switch status {
@@ -571,7 +597,6 @@ extension RecordWithMultiStepPromptModel {
         }
       }
     }
-    return model
   }
 
   static func askMeAnythingVoicetrack(stationId: String) -> RecordWithMultiStepPromptModel {

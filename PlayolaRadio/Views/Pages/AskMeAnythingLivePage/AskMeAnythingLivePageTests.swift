@@ -1,5 +1,5 @@
 //
-//  AskMeAnythingSetupPageTests.swift
+//  AskMeAnythingLivePageTests.swift
 //  PlayolaRadio
 //
 
@@ -15,7 +15,7 @@ import Testing
 
 @Suite(.freshSharedState)
 @MainActor
-struct AskMeAnythingSetupPageTests {
+struct AskMeAnythingLivePageTests {
 
   private let testStationId = "station-abc"
 
@@ -27,7 +27,7 @@ struct AskMeAnythingSetupPageTests {
 
   private func acceptVoicetrack(
     named name: String,
-    model: AskMeAnythingSetupPageModel,
+    model: AskMeAnythingLivePageModel,
     coordinator: MainContainerNavigationCoordinator
   ) throws {
     model.voicetrackActionTapped()
@@ -38,8 +38,342 @@ struct AskMeAnythingSetupPageTests {
     try recorder.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/\(name)"), 10)
   }
 
+  @Test func startShowSendsTheReadyOpenerInOrder() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let capturedIds = LockIsolated<[String]>([])
+    let model = withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.api.startLiveShow = { jwt, stationId, ids in
+        expectNoDifference(jwt, "test-jwt")
+        expectNoDifference(stationId, "station-abc")
+        capturedIds.setValue(ids)
+        return StartLiveShowResponse(
+          liveShowId: "show-1", scheduledStartsAt: .distantFuture,
+          scheduledEndsAt: .distantFuture)
+      }
+    } operation: {
+      AskMeAnythingLivePageModel(stationId: testStationId)
+    }
+    model.openingItems.append(introItem(durationMS: 30_000))
+    model.openingItems.append(
+      AMAOpeningItem(id: UUID(), content: .song(.mockWith(id: "song", durationMS: 570_000))))
+
+    await model.startShowButtonTapped()
+
+    expectNoDifference(capturedIds.value, ["intro", "song"])
+    expectNoDifference(model.broadcast.liveShowId, "show-1")
+    #expect(model.isShowActive)
+    expectNoDifference(model.openingItems.count, 2)
+    #expect(model.isAwaitingStartedSchedule)
+  }
+
+  @Test func repeatedStartTapsSendOnlyOneRequest() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let started = AsyncStream<Void>.makeStream()
+    let finish = AsyncStream<Void>.makeStream()
+    let calls = LockIsolated(0)
+    let model = withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.api.startLiveShow = { _, _, _ in
+        calls.withValue { $0 += 1 }
+        started.continuation.yield(())
+        var iterator = finish.stream.makeAsyncIterator()
+        await iterator.next()
+        return StartLiveShowResponse(
+          liveShowId: "show", scheduledStartsAt: .distantFuture, scheduledEndsAt: .distantFuture)
+      }
+    } operation: {
+      AskMeAnythingLivePageModel(stationId: testStationId)
+    }
+    model.openingItems.append(introItem(durationMS: 600_000))
+    let firstStart = Task { await model.startShowButtonTapped() }
+    var iterator = started.stream.makeAsyncIterator()
+    await iterator.next()
+    await model.startShowButtonTapped()
+    finish.continuation.yield(())
+    await firstStart.value
+    expectNoDifference(calls.value, 1)
+    expectNoDifference(model.broadcast.liveShowId, "show")
+    #expect(!model.isStartingShow)
+  }
+
+  @Test func playbackAdvancingPastTheShowReturnsToSetup() async {
+    let currentDate = LockIsolated(Date(timeIntervalSince1970: 1_000_000))
+    await withDependencies {
+      $0.date = DateGenerator { currentDate.value }
+      $0.api.fetchSchedule = { _, _ in
+        [
+          .mockWith(
+            id: "last", airtime: currentDate.value.addingTimeInterval(-30),
+            audioBlock: .mockWith(endOfMessageMS: 60_000), liveShowId: "show")
+        ]
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      await model.viewAppeared()
+      #expect(model.isShowActive)
+      currentDate.withValue { $0 += 60 }
+      model.broadcast.tick()
+      model.schedulePlaybackChanged()
+      #expect(!model.isShowActive)
+      #expect(model.setupLayerInteractive)
+    }
+  }
+
+  @Test func startShowExplainsAnUnavailableTime() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let model = withDependencies {
+      $0.api.startLiveShow = { _, _, _ in
+        throw APIError.liveShowUnavailable(delayUntil: Date(timeIntervalSince1970: 1_000_000))
+      }
+    } operation: {
+      AskMeAnythingLivePageModel(stationId: testStationId)
+    }
+    model.openingItems.append(introItem(durationMS: 600_000))
+
+    await model.startShowButtonTapped()
+
+    expectNoDifference(model.presentedAlert?.title, "Show Unavailable")
+    #expect(model.presentedAlert?.message?.contains("Try again after") == true)
+  }
+
+  @Test func startShowShowsAValidationErrorWithoutReconciling() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let fetches = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.startLiveShow = { _, _, _ in
+        throw APIError.validationError("Opener audio is too short.")
+      }
+      $0.api.fetchSchedule = { _, _ in
+        fetches.withValue { $0 += 1 }
+        return []
+      }
+    } operation: {
+      AskMeAnythingLivePageModel(stationId: testStationId)
+    }
+    model.openingItems.append(introItem(durationMS: 600_000))
+
+    await model.startShowButtonTapped()
+
+    expectNoDifference(model.presentedAlert?.title, "Unable to Start Show")
+    expectNoDifference(model.presentedAlert?.message, "Opener audio is too short.")
+    expectNoDifference(fetches.value, 0)
+    #expect(!model.isShowActive)
+    #expect(model.isStartShowEnabled)
+  }
+
+  @Test func uncertainStartFailureAdoptsTheShowTheServerActuallyCreated() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    await withDependencies {
+      $0.date.now = now
+      $0.api.startLiveShow = { _, _, _ in
+        throw URLError(.networkConnectionLost)
+      }
+      $0.api.fetchSchedule = { _, _ in
+        [
+          .mockWith(
+            id: "created-by-lost-response", airtime: now.addingTimeInterval(60),
+            liveShowId: "show")
+        ]
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      model.openingItems.append(introItem(durationMS: 600_000))
+
+      await model.startShowButtonTapped()
+
+      expectNoDifference(model.presentedAlert, nil)
+      expectNoDifference(model.broadcast.liveShowId, "show")
+      #expect(model.isShowActive)
+      #expect(!model.isStartingShow)
+    }
+  }
+
+  @Test func uncertainStartFailureShowsAlertWhenNoShowWasActuallyCreated() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.api.startLiveShow = { _, _, _ in
+        throw URLError(.networkConnectionLost)
+      }
+      $0.api.fetchSchedule = { _, _ in [] }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      model.openingItems.append(introItem(durationMS: 600_000))
+
+      await model.startShowButtonTapped()
+
+      expectNoDifference(model.presentedAlert?.title, "Unable to Start Show")
+      #expect(!model.isShowActive)
+      #expect(model.isStartShowEnabled)
+    }
+  }
+
+  @Test func detectsUpcomingShowBeforeItStartsAndKeepsFillerOnlyShowsActive() async {
+    for isFiller in [false, true] {
+      let now = Date(timeIntervalSince1970: 1_000_000)
+      await withDependencies {
+        $0.date.now = now
+        $0.api.fetchSchedule = { stationId, extended in
+          expectNoDifference(stationId, "station-abc")
+          #expect(extended)
+          return [
+            .mockWith(
+              id: "ended", airtime: now.addingTimeInterval(-1_000),
+              audioBlock: .mockWith(endOfMessageMS: 30_000), liveShowId: "old"),
+            .mockWith(
+              id: "upcoming", airtime: now.addingTimeInterval(300),
+              liveShowId: "show", isFiller: isFiller),
+          ]
+        }
+      } operation: {
+        let model = AskMeAnythingLivePageModel(stationId: testStationId)
+        await model.viewAppeared()
+        expectNoDifference(model.broadcast.liveShowId, "show")
+        #expect(model.isShowActive)
+        #expect(!model.setupLayerInteractive)
+      }
+    }
+  }
+
+  @Test func detectsPlayingShowBeforeAnotherUpcomingShow() async {
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    await withDependencies {
+      $0.date.now = now
+      $0.api.fetchSchedule = { _, _ in
+        [
+          .mockWith(
+            airtime: now.addingTimeInterval(-30),
+            audioBlock: .mockWith(endOfMessageMS: 180_000), liveShowId: "current"),
+          .mockWith(airtime: now.addingTimeInterval(600), liveShowId: "future"),
+        ]
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      await model.viewAppeared()
+      expectNoDifference(model.broadcast.liveShowId, "current")
+    }
+  }
+
+  @Test func scheduleFailureOffersRetryWithoutEnablingStart() async {
+    let model = withDependencies {
+      $0.api.fetchSchedule = { _, _ in throw APIError.liveShowFinished }
+    } operation: {
+      AskMeAnythingLivePageModel(stationId: testStationId)
+    }
+    model.openingItems.append(introItem(durationMS: 600_000))
+    await model.viewAppeared()
+    #expect(!model.isStartShowEnabled)
+    #expect(model.scheduleRetryVisible)
+    expectNoDifference(model.presentedAlert?.title, "Error")
+  }
+
+  @Test func startDoesNotSkipAnUploadingVoicetrack() async {
+    let calls = LockIsolated(0)
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let model = withDependencies {
+      $0.api.startLiveShow = { _, _, _ in
+        calls.withValue { $0 += 1 }
+        throw APIError.liveShowFinished
+      }
+    } operation: {
+      AskMeAnythingLivePageModel(stationId: testStationId)
+    }
+    model.openingItems.append(introItem(durationMS: 600_000))
+    model.openingItems.append(
+      AMAOpeningItem(
+        id: UUID(),
+        content: .voicetrack(
+          LocalVoicetrack(originalURL: URL(fileURLWithPath: "/tmp/pending.wav"), title: "Pending"),
+          completedDurationMS: nil)))
+    await model.startShowButtonTapped()
+    #expect(!model.isStartShowEnabled)
+    expectNoDifference(calls.value, 0)
+  }
+
+  @Test func endingRetainsLivePageUntilScheduledEndAndSubmitsOnlyOnce() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    let calls = LockIsolated(0)
+    await withDependencies {
+      $0.date.now = now
+      $0.api.endLiveShow = { jwt, stationId, showId, audioBlockId in
+        expectNoDifference(
+          [jwt, stationId, showId, audioBlockId],
+          ["test-jwt", "station-abc", "show", "outro"])
+        calls.withValue { $0 += 1 }
+        return EndLiveShowResponse(
+          endingSpinId: "ending", effectiveEndsAt: now.addingTimeInterval(300))
+      }
+      $0.api.fetchSchedule = { _, _ in
+        [.mockWith(airtime: now.addingTimeInterval(60), liveShowId: "show")]
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      model.broadcast.liveShowId = "show"
+      let outro = LocalVoicetrack(
+        originalURL: URL(fileURLWithPath: "/tmp/outro.wav"),
+        status: .completed, title: "Show Outro", audioBlockId: "outro")
+      model.broadcast.stagingItems = [outro]
+      model.outroStagingId = outro.stagingId
+      await model.schedulePendingAudio()
+      await model.endShowButtonTapped()
+      expectNoDifference(calls.value, 1)
+      #expect(model.isShowActive)
+      #expect(!model.isEndShowEnabled)
+      expectNoDifference(model.endShowButtonTitle, "Show Ending")
+    }
+  }
+
+  @Test func failedEndingRetriesTheUploadedOutro() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let calls = LockIsolated<[String]>([])
+    let model = withDependencies {
+      $0.api.endLiveShow = { _, _, _, blockId in
+        calls.withValue { $0.append(blockId) }
+        throw APIError.liveShowFinished
+      }
+    } operation: {
+      AskMeAnythingLivePageModel(stationId: testStationId)
+    }
+    model.broadcast.liveShowId = "show"
+    let outro = LocalVoicetrack(
+      originalURL: URL(fileURLWithPath: "/tmp/outro.wav"),
+      status: .completed, title: "Show Outro", audioBlockId: "outro")
+    model.broadcast.stagingItems = [outro]
+    model.outroStagingId = outro.stagingId
+    await model.schedulePendingAudio()
+    #expect(model.isShowActive)
+    #expect(model.isEndShowEnabled)
+    expectNoDifference(model.endShowButtonTitle, "Retry End Show")
+    await model.endShowButtonTapped()
+    expectNoDifference(calls.value, ["outro", "outro"])
+    expectNoDifference(model.presentedAlert?.title, "Unable to End Show")
+  }
+
+  @Test func endShowPushesOutroRecorderAndBackingOutDoesNotEndShow() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    coordinator.push(.askMeAnythingLivePage(model))
+    model.broadcast.liveShowId = "show"
+    await model.endShowButtonTapped()
+    guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+      Issue.record("Expected outro recorder")
+      return
+    }
+    expectNoDifference(recorder.screenTitle, "Record Outro")
+    #expect(recorder.onUseRecording == nil)
+    #expect(recorder.onRecordingAccepted != nil)
+    coordinator.pop()
+    model.backButtonTapped()
+    #expect(coordinator.path.isEmpty)
+    expectNoDifference(model.broadcast.liveShowId, "show")
+  }
+
   @Test func displaysIntroCopy() {
-    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
 
     expectNoDifference(model.navigationTitle, "Ask Me Anything")
     expectNoDifference(model.setupLabel, "SETUP")
@@ -50,7 +384,7 @@ struct AskMeAnythingSetupPageTests {
   }
 
   @Test func startShowIsDisabledAtZeroProgress() {
-    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
 
     expectNoDifference(model.preparedAudioLabel, "0:00 / 10:00 ready")
     expectNoDifference(model.readinessHint, "Record your intro")
@@ -62,8 +396,8 @@ struct AskMeAnythingSetupPageTests {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
 
-    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
-    coordinator.push(.askMeAnythingSetupPage(model))
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    coordinator.push(.askMeAnythingLivePage(model))
 
     model.backButtonTapped()
 
@@ -73,7 +407,7 @@ struct AskMeAnythingSetupPageTests {
   // MARK: - Intro-recorded state (01b · Build Your Opening)
 
   @Test func startsInIntroPromptState() {
-    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
 
     #expect(!model.hasRecordedIntro)
     expectNoDifference(model.introPromptOpacity, 1)
@@ -83,7 +417,7 @@ struct AskMeAnythingSetupPageTests {
   }
 
   @Test func hiddenSetupLayerAccessibilityFlipsWithRecordedIntro() {
-    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
 
     #expect(!model.introPromptAccessibilityHidden)
     #expect(model.openingPlaylistAccessibilityHidden)
@@ -97,8 +431,8 @@ struct AskMeAnythingSetupPageTests {
   @Test func recordIntroButtonPushesRecorderThatFlipsToOpeningPlaylist() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
-    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
-    coordinator.push(.askMeAnythingSetupPage(model))
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    coordinator.push(.askMeAnythingLivePage(model))
 
     model.recordIntroButtonTapped()
 
@@ -127,8 +461,8 @@ struct AskMeAnythingSetupPageTests {
   @Test func nonPositiveIntroDurationDoesNotFlipToOpeningPlaylist() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
-    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
-    coordinator.push(.askMeAnythingSetupPage(model))
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    coordinator.push(.askMeAnythingLivePage(model))
 
     model.recordIntroButtonTapped()
 
@@ -145,7 +479,7 @@ struct AskMeAnythingSetupPageTests {
   }
 
   @Test func displaysOpeningPlaylistCopyAfterIntroRecorded() {
-    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
     model.openingItems.append(introItem(durationMS: 30_000))
 
     expectNoDifference(model.openingPlaylistTitle, "Your opening playlist")
@@ -162,7 +496,7 @@ struct AskMeAnythingSetupPageTests {
   }
 
   @Test func bottomBarReflectsRecordedIntroProgress() {
-    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
     model.openingItems.append(introItem(durationMS: 30_000))
 
     expectNoDifference(model.preparedAudioLabel, "0:30 / 10:00 ready")
@@ -172,7 +506,7 @@ struct AskMeAnythingSetupPageTests {
   }
 
   @Test func startShowEnablesAtTenMinutesOfReadyAudio() {
-    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
 
     model.openingItems.append(introItem(durationMS: 599_999))
     #expect(!model.isStartShowEnabled)
@@ -188,7 +522,7 @@ struct AskMeAnythingSetupPageTests {
   }
 
   @Test func readinessColorsReflectBuildingState() {
-    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
     model.openingItems.append(introItem(durationMS: 30_000))
 
     #expect(!model.isStartShowEnabled)
@@ -200,7 +534,7 @@ struct AskMeAnythingSetupPageTests {
   }
 
   @Test func readinessColorsTurnGreenWhenReady() {
-    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
     model.openingItems.append(introItem(durationMS: 600_000))
 
     #expect(model.isStartShowEnabled)
@@ -217,9 +551,9 @@ struct AskMeAnythingSetupPageTests {
     let model = withDependencies {
       $0.uuid = .incrementing
     } operation: {
-      AskMeAnythingSetupPageModel(stationId: testStationId)
+      AskMeAnythingLivePageModel(stationId: testStationId)
     }
-    coordinator.push(.askMeAnythingSetupPage(model))
+    coordinator.push(.askMeAnythingLivePage(model))
 
     model.songActionTapped()
 
@@ -247,9 +581,9 @@ struct AskMeAnythingSetupPageTests {
     let model = withDependencies {
       $0.uuid = .incrementing
     } operation: {
-      AskMeAnythingSetupPageModel(stationId: testStationId)
+      AskMeAnythingLivePageModel(stationId: testStationId)
     }
-    coordinator.push(.askMeAnythingSetupPage(model))
+    coordinator.push(.askMeAnythingLivePage(model))
 
     model.songActionTapped()
     guard case .curatorSongPicker(let firstPicker) = coordinator.presentedSheet else {
@@ -283,8 +617,8 @@ struct AskMeAnythingSetupPageTests {
         return .mockWith(id: "vt-block", durationMS: 605_000)
       }
     } operation: {
-      let model = AskMeAnythingSetupPageModel(stationId: testStationId)
-      coordinator.push(.askMeAnythingSetupPage(model))
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      coordinator.push(.askMeAnythingLivePage(model))
 
       model.voicetrackActionTapped()
       guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
@@ -324,8 +658,8 @@ struct AskMeAnythingSetupPageTests {
         return .mockWith(id: "vt-block", durationMS: 605_000)
       }
     } operation: {
-      let model = AskMeAnythingSetupPageModel(stationId: testStationId)
-      coordinator.push(.askMeAnythingSetupPage(model))
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      coordinator.push(.askMeAnythingLivePage(model))
 
       model.voicetrackActionTapped()
       guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
@@ -358,8 +692,8 @@ struct AskMeAnythingSetupPageTests {
         throw NSError(domain: "test", code: 1)
       }
     } operation: {
-      let model = AskMeAnythingSetupPageModel(stationId: testStationId)
-      coordinator.push(.askMeAnythingSetupPage(model))
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      coordinator.push(.askMeAnythingLivePage(model))
 
       model.voicetrackActionTapped()
       guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
@@ -379,8 +713,8 @@ struct AskMeAnythingSetupPageTests {
   @Test func acceptWithoutAuthThrowsAndAddsNothing() {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
-    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
-    coordinator.push(.askMeAnythingSetupPage(model))
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    coordinator.push(.askMeAnythingLivePage(model))
 
     model.voicetrackActionTapped()
     guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
@@ -426,8 +760,8 @@ struct AskMeAnythingSetupPageTests {
         return .mockWith(id: vt.originalURL.lastPathComponent, durationMS: ms)
       }
     } operation: {
-      let model = AskMeAnythingSetupPageModel(stationId: testStationId)
-      coordinator.push(.askMeAnythingSetupPage(model))
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      coordinator.push(.askMeAnythingLivePage(model))
 
       try acceptVoicetrack(named: "first.wav", model: model, coordinator: coordinator)
       var firstIterator = firstStarted.stream.makeAsyncIterator()
@@ -449,7 +783,7 @@ struct AskMeAnythingSetupPageTests {
   }
 
   @Test func openingRowsResolveIntroSongAndVoicetrackDisplayData() {
-    let model = AskMeAnythingSetupPageModel(stationId: testStationId)
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
     model.openingItems.append(
       AMAOpeningItem(
         id: UUID(uuidString: "00000000-0000-0000-0000-0000000000A1")!,
@@ -494,8 +828,9 @@ struct AskMeAnythingSetupPageTests {
     expectNoDifference(rows[2].completedOpacity, 0)
   }
 
-  @Test func backButtonCancelsInFlightUploads() async throws {
-    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+  @Test func backButtonCancelsUploadButKeepsDraftRecording() async throws {
+    @Shared(.auth) var auth = Auth(
+      loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
 
@@ -509,8 +844,8 @@ struct AskMeAnythingSetupPageTests {
         throw CancellationError()
       }
     } operation: {
-      let model = AskMeAnythingSetupPageModel(stationId: testStationId)
-      coordinator.push(.askMeAnythingSetupPage(model))
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      coordinator.push(.askMeAnythingLivePage(model))
       model.voicetrackActionTapped()
       guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
         Issue.record("Expected recorder push")
@@ -525,7 +860,7 @@ struct AskMeAnythingSetupPageTests {
 
       #expect(model.presentedAlert == nil)
       #expect(coordinator.path.isEmpty)
-      expectNoDifference(deleted.value, [url])
+      #expect(deleted.value.isEmpty)
     }
   }
 
@@ -543,8 +878,8 @@ struct AskMeAnythingSetupPageTests {
         throw CancellationError()
       }
     } operation: {
-      let model = AskMeAnythingSetupPageModel(stationId: testStationId)
-      coordinator.push(.askMeAnythingSetupPage(model))
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      coordinator.push(.askMeAnythingLivePage(model))
       model.voicetrackActionTapped()
       guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
         Issue.record("Expected recorder push")

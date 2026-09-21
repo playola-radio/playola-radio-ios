@@ -676,7 +676,7 @@ struct RecordWithMultiStepPromptTests {
       $0.audioPlayer = .testValue
       $0.audioRecorder = .testValue
     } operation: {
-      AskMeAnythingSetupPageModel(stationId: "station-abc")
+      AskMeAnythingLivePageModel(stationId: "station-abc")
     }
     setup.recordIntroButtonTapped()
 

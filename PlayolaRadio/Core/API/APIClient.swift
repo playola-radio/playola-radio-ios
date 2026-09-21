@@ -914,6 +914,29 @@ struct APIClient: Sendable {
         StationCategoryProgressResponse(usesCategoryProgress: false, readiness: nil, categories: [])
       }
 
+  // MARK: - Live Shows (Ask Me Anything)
+
+  /// Schedules an Ask-Me-Anything live show: the ordered opening `audioBlockIds` plus three
+  /// trailing fillers at a safe song boundary ≥2 min ahead. Duplicates allowed, order preserved.
+  /// - Throws: `APIError.liveShowUnavailable(delayUntil:)` on a 409 conflict (unfinished show or a
+  ///   materialized Episode/Q&A airing spin blocks go-live); the envelope's `delayUntil` is nil for
+  ///   the unfinished-show case.
+  var startLiveShow:
+    @Sendable (_ token: String, _ stationId: String, _ audioBlockIds: [String]) async throws ->
+      StartLiveShowResponse = { _, _, _ in
+        StartLiveShowResponse(
+          liveShowId: "", scheduledStartsAt: .distantPast, scheduledEndsAt: .distantPast)
+      }
+
+  /// Ends a live show by appending the outro `audioBlockId`; removes replaceable fillers. Idempotent.
+  /// - Throws: `APIError.liveShowReplaced` on a 409 (the show was replaced);
+  ///   `APIError.liveShowFinished` on a 400 (already finished / unsafe placement).
+  var endLiveShow:
+    @Sendable (_ token: String, _ stationId: String, _ liveShowId: String, _ audioBlockId: String)
+      async throws -> EndLiveShowResponse = { _, _, _, _ in
+        EndLiveShowResponse(endingSpinId: "", effectiveEndsAt: .distantPast)
+      }
+
   // MARK: - Station Listener Analytics
 
   /// Fetches active-listener summary counts for a station over a time window. Pass `airtime` as
@@ -953,9 +976,23 @@ struct APIClient: Sendable {
   }
 }
 
+struct StartLiveShowResponse: Decodable, Equatable, Sendable {
+  let liveShowId: String
+  let scheduledStartsAt: Date
+  let scheduledEndsAt: Date
+}
+
+struct EndLiveShowResponse: Decodable, Equatable, Sendable {
+  let endingSpinId: String
+  let effectiveEndsAt: Date
+}
+
 enum APIError: Error, LocalizedError {
   case dataNotValid
   case validationError(String)
+  case liveShowUnavailable(delayUntil: Date?)
+  case liveShowReplaced
+  case liveShowFinished
 
   var errorDescription: String? {
     switch self {
@@ -963,6 +1000,12 @@ enum APIError: Error, LocalizedError {
       return "Invalid data received from server"
     case .validationError(let message):
       return message
+    case .liveShowUnavailable:
+      return "This station can\u{2019}t go live right now."
+    case .liveShowReplaced:
+      return "This live show was replaced."
+    case .liveShowFinished:
+      return "This live show has already finished."
     }
   }
 }

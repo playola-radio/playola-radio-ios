@@ -155,11 +155,16 @@
 		CC0000000000000000000605 /* ShowsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000604 /* ShowsPageView.swift */; };
 		CC0000000000000000000606 /* ShowsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000604 /* ShowsPageView.swift */; };
 		CC0000000000000000000608 /* ShowsPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000607 /* ShowsPageTests.swift */; };
-		CC0000000000000000000702 /* AskMeAnythingSetupPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000701 /* AskMeAnythingSetupPageModel.swift */; };
-		CC0000000000000000000703 /* AskMeAnythingSetupPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000701 /* AskMeAnythingSetupPageModel.swift */; };
-		CC0000000000000000000705 /* AskMeAnythingSetupPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000704 /* AskMeAnythingSetupPageView.swift */; };
-		CC0000000000000000000706 /* AskMeAnythingSetupPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000704 /* AskMeAnythingSetupPageView.swift */; };
-		CC0000000000000000000708 /* AskMeAnythingSetupPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000707 /* AskMeAnythingSetupPageTests.swift */; };
+		CC0000000000000000000702 /* AskMeAnythingLivePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000701 /* AskMeAnythingLivePageModel.swift */; };
+		738F19D97BE820E1DFCD0CCF /* AMALiveContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF44C76DE06AB953BB6F669 /* AMALiveContentView.swift */; };
+		1C3736397C57CB3F1753B410 /* AMALivePresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A29DFFABB0DD05FFE6503767 /* AMALivePresentation.swift */; };
+		CC0000000000000000000703 /* AskMeAnythingLivePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000701 /* AskMeAnythingLivePageModel.swift */; };
+		7D201A14140F79A2A330F756 /* AMALiveContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF44C76DE06AB953BB6F669 /* AMALiveContentView.swift */; };
+		B217109F8D99187EB514C6C4 /* AMALivePresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A29DFFABB0DD05FFE6503767 /* AMALivePresentation.swift */; };
+		CC0000000000000000000705 /* AskMeAnythingLivePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000704 /* AskMeAnythingLivePageView.swift */; };
+		CC0000000000000000000706 /* AskMeAnythingLivePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000704 /* AskMeAnythingLivePageView.swift */; };
+		CC0000000000000000000708 /* AskMeAnythingLivePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000707 /* AskMeAnythingLivePageTests.swift */; };
+		A1C4E243012B0E186CC7680B /* AMALivePresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7752A7B6B151CAE286858861 /* AMALivePresentationTests.swift */; };
 		CC0000000000000000000902 /* RecordWithMultiStepPromptModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000901 /* RecordWithMultiStepPromptModel.swift */; };
 		CC0000000000000000000903 /* RecordWithMultiStepPromptModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000901 /* RecordWithMultiStepPromptModel.swift */; };
 		CC0000000000000000000905 /* RecordWithMultiStepPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000904 /* RecordWithMultiStepPromptView.swift */; };
@@ -360,6 +365,7 @@
 		D35673C82D3EBFBA00E4E926 /* NowPlayingUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */; };
 		D35905EC2DFCDA140064A9C1 /* StationListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35905EB2DFCDA110064A9C1 /* StationListModel.swift */; };
 		D35EFBD72F0EC6F7000F64A4 /* APIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBD62F0EC6F7000F64A4 /* APIClientTests.swift */; };
+		003B2E877478D395DBEB710A /* APIClientLiveShowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0017D8D68B91A2679AFC6D /* APIClientLiveShowTests.swift */; };
 		D35EFBD92F101A76000F64A4 /* StationPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */; };
 		D35EFBEE2F1092A7000F64A4 /* RRuleFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBEC2F1092A7000F64A4 /* RRuleFormatterTests.swift */; };
 		D35EFBF02F1092D7000F64A4 /* RRuleFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBEF2F1092D7000F64A4 /* RRuleFormatter.swift */; };
@@ -651,6 +657,14 @@
 		FEEDA11C0000000000000003 /* ListenerAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEEDA11C0000000000000001 /* ListenerAnalytics.swift */; };
 		FFC4AC782A480E2C45DFBA9C /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = 33C7DB3D3801D1C1C337B26D /* FRadioPlayer */; };
 		FFE2EA430C2866C7B05C9B12 /* KoozieAddressFormModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07AAD05D9D43997B4956B822 /* KoozieAddressFormModel.swift */; };
+		AF0000000000000000000001 /* AMALiveQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0000000000000000000003 /* AMALiveQueue.swift */; };
+		AF0000000000000000000002 /* AMALiveQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0000000000000000000003 /* AMALiveQueue.swift */; };
+		AF1000000000000000000001 /* AMAQueuePlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000003 /* AMAQueuePlacement.swift */; };
+		AF1000000000000000000002 /* AMAQueuePlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000003 /* AMAQueuePlacement.swift */; };
+		AF1000000000000000000004 /* AMAQueuePlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000005 /* AMAQueuePlacementTests.swift */; };
+		7EE71A663259435CAB224095 /* AMADraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B613D7A104E349D9A15E0554 /* AMADraftTests.swift */; };
+		AB60901F7E4B485A9B828F8A /* AMAOpeningDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F0516EDD754AF79351E4CA /* AMAOpeningDraft.swift */; };
+		35C33AD86471431C84A4CE45 /* AMAOpeningDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F0516EDD754AF79351E4CA /* AMAOpeningDraft.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -754,9 +768,12 @@
 		CC0000000000000000000601 /* ShowsPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsPageModel.swift; sourceTree = "<group>"; };
 		CC0000000000000000000604 /* ShowsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsPageView.swift; sourceTree = "<group>"; };
 		CC0000000000000000000607 /* ShowsPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsPageTests.swift; sourceTree = "<group>"; };
-		CC0000000000000000000701 /* AskMeAnythingSetupPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingSetupPageModel.swift; sourceTree = "<group>"; };
-		CC0000000000000000000704 /* AskMeAnythingSetupPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingSetupPageView.swift; sourceTree = "<group>"; };
-		CC0000000000000000000707 /* AskMeAnythingSetupPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingSetupPageTests.swift; sourceTree = "<group>"; };
+		CC0000000000000000000701 /* AskMeAnythingLivePageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingLivePageModel.swift; sourceTree = "<group>"; };
+		ECF44C76DE06AB953BB6F669 /* AMALiveContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMALiveContentView.swift; sourceTree = "<group>"; };
+		A29DFFABB0DD05FFE6503767 /* AMALivePresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMALivePresentation.swift; sourceTree = "<group>"; };
+		CC0000000000000000000704 /* AskMeAnythingLivePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingLivePageView.swift; sourceTree = "<group>"; };
+		CC0000000000000000000707 /* AskMeAnythingLivePageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingLivePageTests.swift; sourceTree = "<group>"; };
+		7752A7B6B151CAE286858861 /* AMALivePresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMALivePresentationTests.swift; sourceTree = "<group>"; };
 		CC0000000000000000000901 /* RecordWithMultiStepPromptModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordWithMultiStepPromptModel.swift; sourceTree = "<group>"; };
 		CC0000000000000000000904 /* RecordWithMultiStepPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordWithMultiStepPromptView.swift; sourceTree = "<group>"; };
 		CC0000000000000000000907 /* RecordWithMultiStepPromptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordWithMultiStepPromptTests.swift; sourceTree = "<group>"; };
@@ -850,6 +867,7 @@
 		D35673CA2D3EE5E100E4E926 /* Secrets-Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Development.xcconfig"; sourceTree = "<group>"; };
 		D35905EB2DFCDA110064A9C1 /* StationListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListModel.swift; sourceTree = "<group>"; };
 		D35EFBD62F0EC6F7000F64A4 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
+		4B0017D8D68B91A2679AFC6D /* APIClientLiveShowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientLiveShowTests.swift; sourceTree = "<group>"; };
 		D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerTests.swift; sourceTree = "<group>"; };
 		D35EFBEC2F1092A7000F64A4 /* RRuleFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RRuleFormatterTests.swift; sourceTree = "<group>"; };
 		D35EFBEF2F1092D7000F64A4 /* RRuleFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RRuleFormatter.swift; sourceTree = "<group>"; };
@@ -1038,6 +1056,11 @@
 		FE110A0000000000000000F4 /* WelcomeMessagePageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessagePageTests.swift; sourceTree = "<group>"; };
 		FE110AC0DE0000000000F1F1 /* WelcomeMessageEligibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessageEligibilityTests.swift; sourceTree = "<group>"; };
 		FEEDA11C0000000000000001 /* ListenerAnalytics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ListenerAnalytics.swift; sourceTree = "<group>"; };
+		AF0000000000000000000003 /* AMALiveQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMALiveQueue.swift; sourceTree = "<group>"; };
+		AF1000000000000000000003 /* AMAQueuePlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQueuePlacement.swift; sourceTree = "<group>"; };
+		AF1000000000000000000005 /* AMAQueuePlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQueuePlacementTests.swift; sourceTree = "<group>"; };
+		B613D7A104E349D9A15E0554 /* AMADraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMADraftTests.swift; sourceTree = "<group>"; };
+		79F0516EDD754AF79351E4CA /* AMAOpeningDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAOpeningDraft.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1231,16 +1254,24 @@
 			path = ShowsPage;
 			sourceTree = "<group>";
 		};
-		CC0000000000000000000700 /* AskMeAnythingSetupPage */ = {
+		CC0000000000000000000700 /* AskMeAnythingLivePage */ = {
 			isa = PBXGroup;
 			children = (
-				CC0000000000000000000701 /* AskMeAnythingSetupPageModel.swift */,
-				CC0000000000000000000704 /* AskMeAnythingSetupPageView.swift */,
-				CC0000000000000000000707 /* AskMeAnythingSetupPageTests.swift */,
+				CC0000000000000000000701 /* AskMeAnythingLivePageModel.swift */,
+				ECF44C76DE06AB953BB6F669 /* AMALiveContentView.swift */,
+				A29DFFABB0DD05FFE6503767 /* AMALivePresentation.swift */,
+				AF0000000000000000000003 /* AMALiveQueue.swift */,
+				AF1000000000000000000003 /* AMAQueuePlacement.swift */,
+				B613D7A104E349D9A15E0554 /* AMADraftTests.swift */,
+				AF1000000000000000000005 /* AMAQueuePlacementTests.swift */,
+				CC0000000000000000000704 /* AskMeAnythingLivePageView.swift */,
+				CC0000000000000000000707 /* AskMeAnythingLivePageTests.swift */,
+				7752A7B6B151CAE286858861 /* AMALivePresentationTests.swift */,
+				79F0516EDD754AF79351E4CA /* AMAOpeningDraft.swift */,
 				AC3062D8D253F844CBA99697 /* AMAOpeningItem.swift */,
 				D1E4BD99E31BA9B882C7056A /* AMAOpeningRowView.swift */,
 			);
-			path = AskMeAnythingSetupPage;
+			path = AskMeAnythingLivePage;
 			sourceTree = "<group>";
 		};
 		CC0000000000000000000900 /* RecordWithMultiStepPromptPage */ = {
@@ -1473,7 +1504,7 @@
 				CC0000000000000000000400 /* MusicCategoryDetailPage */,
 				CURA700000000000000000 /* CuratorSongPickerPage */,
 				CC0000000000000000000600 /* ShowsPage */,
-				CC0000000000000000000700 /* AskMeAnythingSetupPage */,
+				CC0000000000000000000700 /* AskMeAnythingLivePage */,
 				CC0000000000000000000900 /* RecordWithMultiStepPromptPage */,
 				D3219C152EDD22060008AFDA /* BroadcastPage */,
 				D37769F82F22B38700200ADF /* ChooseStationPage */,
@@ -1892,6 +1923,7 @@
 			isa = PBXGroup;
 			children = (
 				D35EFBD62F0EC6F7000F64A4 /* APIClientTests.swift */,
+				4B0017D8D68B91A2679AFC6D /* APIClientLiveShowTests.swift */,
 				D317C0D72EF3500500DBC82E /* APIClient+Live.swift */,
 				A1750A0000000000000000F1 /* PlayolaTLS.swift */,
 				A1750A0000000000000000F4 /* ConnectivityProbe.swift */,
@@ -2497,8 +2529,13 @@
 				CC0000000000000000000305 /* MusicLibraryPageView.swift in Sources */,
 				CC0000000000000000000602 /* ShowsPageModel.swift in Sources */,
 				CC0000000000000000000605 /* ShowsPageView.swift in Sources */,
-				CC0000000000000000000702 /* AskMeAnythingSetupPageModel.swift in Sources */,
-				CC0000000000000000000705 /* AskMeAnythingSetupPageView.swift in Sources */,
+				CC0000000000000000000702 /* AskMeAnythingLivePageModel.swift in Sources */,
+				738F19D97BE820E1DFCD0CCF /* AMALiveContentView.swift in Sources */,
+				1C3736397C57CB3F1753B410 /* AMALivePresentation.swift in Sources */,
+				AF0000000000000000000001 /* AMALiveQueue.swift in Sources */,
+				AF1000000000000000000001 /* AMAQueuePlacement.swift in Sources */,
+				CC0000000000000000000705 /* AskMeAnythingLivePageView.swift in Sources */,
+				AB60901F7E4B485A9B828F8A /* AMAOpeningDraft.swift in Sources */,
 				3323D0CF9D68CA09140097AC /* AMAOpeningItem.swift in Sources */,
 				ED782639689341641D657686 /* AMAOpeningRowView.swift in Sources */,
 				CC0000000000000000000902 /* RecordWithMultiStepPromptModel.swift in Sources */,
@@ -2748,8 +2785,13 @@
 				CC0000000000000000000306 /* MusicLibraryPageView.swift in Sources */,
 				CC0000000000000000000603 /* ShowsPageModel.swift in Sources */,
 				CC0000000000000000000606 /* ShowsPageView.swift in Sources */,
-				CC0000000000000000000703 /* AskMeAnythingSetupPageModel.swift in Sources */,
-				CC0000000000000000000706 /* AskMeAnythingSetupPageView.swift in Sources */,
+				CC0000000000000000000703 /* AskMeAnythingLivePageModel.swift in Sources */,
+				7D201A14140F79A2A330F756 /* AMALiveContentView.swift in Sources */,
+				B217109F8D99187EB514C6C4 /* AMALivePresentation.swift in Sources */,
+				AF0000000000000000000002 /* AMALiveQueue.swift in Sources */,
+				AF1000000000000000000002 /* AMAQueuePlacement.swift in Sources */,
+				CC0000000000000000000706 /* AskMeAnythingLivePageView.swift in Sources */,
+				35C33AD86471431C84A4CE45 /* AMAOpeningDraft.swift in Sources */,
 				719FF97AE552513461BCC570 /* AMAOpeningItem.swift in Sources */,
 				C29B4F9EAEED22434B85EFA0 /* AMAOpeningRowView.swift in Sources */,
 				CC0000000000000000000903 /* RecordWithMultiStepPromptModel.swift in Sources */,
@@ -2931,7 +2973,10 @@
 				CC0000000000000000000208 /* BreakerCategoryDetailPageTests.swift in Sources */,
 				CC0000000000000000000308 /* MusicLibraryPageTests.swift in Sources */,
 				CC0000000000000000000608 /* ShowsPageTests.swift in Sources */,
-				CC0000000000000000000708 /* AskMeAnythingSetupPageTests.swift in Sources */,
+				CC0000000000000000000708 /* AskMeAnythingLivePageTests.swift in Sources */,
+				A1C4E243012B0E186CC7680B /* AMALivePresentationTests.swift in Sources */,
+				7EE71A663259435CAB224095 /* AMADraftTests.swift in Sources */,
+				AF1000000000000000000004 /* AMAQueuePlacementTests.swift in Sources */,
 				CC0000000000000000000908 /* RecordWithMultiStepPromptTests.swift in Sources */,
 				CC0000000000000000000408 /* MusicCategoryDetailPageTests.swift in Sources */,
 				CURA700000000000000011 /* CuratorSongPickerPageTests.swift in Sources */,
@@ -2953,6 +2998,7 @@
 				FE01A0C72DFCB368002BAC30 /* SharedStateTestTrait.swift in Sources */,
 				D3776A4D2F2BE8F900200ADF /* LibraryPageTests.swift in Sources */,
 				D35EFBD72F0EC6F7000F64A4 /* APIClientTests.swift in Sources */,
+				003B2E877478D395DBEB710A /* APIClientLiveShowTests.swift in Sources */,
 				A1750A0000000000000000F8 /* ConnectivityProbeTests.swift in Sources */,
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,
 				D39728562F5F03FF008591E3 /* VersionComparisonTests.swift in Sources */,
@@ -3630,7 +3676,7 @@
 			repositoryURL = "https://github.com/playola-radio/playola-player-swift";
 			requirement = {
 				kind = exactVersion;
-				version = 0.21.0;
+				version = 0.21.1;
 			};
 		};
 		D30F003A2E8592F0007BCC73 /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
@@ -3758,7 +3804,7 @@
 			repositoryURL = "https://github.com/playola-radio/playola-player-swift";
 			requirement = {
 				kind = exactVersion;
-				version = 0.21.0;
+				version = 0.21.1;
 			};
 		};
 		D3FF74D32FA7CA760052D500 /* XCRemoteSwiftPackageReference "swift-custom-dump" */ = {
