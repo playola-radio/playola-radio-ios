@@ -24,9 +24,35 @@ struct ShowsPageView: View {
       .padding(.horizontal, 20)
       .padding(.top, 20)
     }
+    .opacity(model.chooserOpacity)
+    .allowsHitTesting(model.canChooseShow)
+    .accessibilityHidden(model.isStatusVisible)
+    .overlay { checkStatus }
     .background(Color.playolaSurfaceBase)
     .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
+    .task { await model.viewAppeared() }
+  }
+
+  private var checkStatus: some View {
+    VStack(spacing: 16) {
+      ProgressView()
+        .tint(.white)
+        .opacity(model.loadingOpacity)
+      Text(model.checkStatusMessage)
+        .font(.custom(FontNames.Inter_400_Regular, size: 14))
+        .foregroundColor(.playolaTextSecondary)
+        .multilineTextAlignment(.center)
+      ForEach(model.retryTitles, id: \.self) { title in
+        Button(title) { Task { await model.viewAppeared() } }
+          .buttonStyle(.borderedProminent)
+          .tint(.playolaRed)
+      }
+    }
+    .padding(24)
+    .opacity(model.statusOpacity)
+    .allowsHitTesting(model.isStatusVisible)
+    .accessibilityHidden(model.canChooseShow)
   }
 
   private var intro: some View {
