@@ -533,20 +533,72 @@ struct BroadcastPageTests {
   @Test
   func testMoveSpinRowsMovesUngroupedRowNormally() async {
     let mockSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
-    let reorderedSpins = makeSpins(ids: ["spin-2", "spin-1", "spin-3"])
+    let captured = LockIsolated<(spinId: String, placeAfter: String?)?>(nil)
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in mockSpins }
-      $0.api.moveSpin = { _, _, _ in reorderedSpins }
+      $0.api.moveSpin = { _, spinId, placeAfter in
+        captured.setValue((spinId, placeAfter))
+        return mockSpins
+      }
     } operation: {
       let model = BroadcastPageModel(stationId: testStationId)
       await model.viewAppeared()
 
       await model.moveSpinRows(from: IndexSet(integer: 0), to: 2)
 
-      expectNoDifference(model.upcomingSpins.map(\.id), ["spin-2", "spin-1", "spin-3"])
+      #expect(captured.value?.spinId == "spin-1")
+      #expect(captured.value?.placeAfter == "spin-2")
+    }
+  }
+
+  @Test
+  func testSpinRowsKeepsNonContiguousGroupSeparate() async {
+    let groupId = "group-1"
+    let mockSpins =
+      makeSpins(ids: ["a1"], groupId: groupId)
+      + makeSpins(ids: ["x"], startOffset: 120)
+      + makeSpins(ids: ["a2"], startOffset: 240, groupId: groupId)
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      let rowIds = model.spinRows.map { $0.spins.map(\.id) }
+      expectNoDifference(rowIds, [["a1"], ["x"], ["a2"]])
+    }
+  }
+
+  @Test
+  func testDeleteSpinRowDeletesEveryGroupMember() async {
+    let groupId = "group-1"
+    let mockSpins =
+      makeSpins(ids: ["x"])
+      + makeSpins(ids: ["a", "b"], startOffset: 300, groupId: groupId)
+    let deletedIds = LockIsolated<[String]>([])
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+      $0.api.deleteSpin = { _, spinId in
+        deletedIds.withValue { $0.append(spinId) }
+        return mockSpins.filter { !deletedIds.value.contains($0.id) }
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      let groupedRow = model.spinRows.first { $0.spins.count > 1 }!
+      await model.deleteSpinRow(groupedRow)
+
+      expectNoDifference(deletedIds.value, ["b", "a"])
     }
   }
 

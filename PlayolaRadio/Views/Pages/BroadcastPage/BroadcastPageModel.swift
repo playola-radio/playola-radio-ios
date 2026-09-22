@@ -233,17 +233,25 @@ class BroadcastPageModel: ViewModel {
 
   var spinRows: [SpinRow] {
     let spins = upcomingSpins
-    var consumed: Set<String> = []
-    return spins.compactMap { spin in
-      guard !consumed.contains(spin.id) else { return nil }
+    var rows: [SpinRow] = []
+    var index = 0
+    while index < spins.count {
+      let spin = spins[index]
       guard let groupId = spin.spinGroupId else {
-        consumed.insert(spin.id)
-        return SpinRow(spins: [spin])
+        rows.append(SpinRow(spins: [spin]))
+        index += 1
+        continue
       }
-      let members = spins.filter { $0.spinGroupId == groupId }
-      consumed.formUnion(members.map(\.id))
-      return SpinRow(spins: members)
+      var members = [spin]
+      var next = index + 1
+      while next < spins.count, spins[next].spinGroupId == groupId {
+        members.append(spins[next])
+        next += 1
+      }
+      rows.append(SpinRow(spins: members))
+      index = next
     }
+    return rows
   }
 
   var showEndDropTargets: [String] {
@@ -635,12 +643,11 @@ class BroadcastPageModel: ViewModel {
   }
 
   /// Handles a row-level reorder, moving every spin in a tied group together
-  @discardableResult
-  func moveSpinRows(from source: IndexSet, to destination: Int) async -> Bool {
+  func moveSpinRows(from source: IndexSet, to destination: Int) async {
     let rows = spinRows
     guard !source.isEmpty, source.allSatisfy({ rows.indices.contains($0) }),
       destination >= 0, destination <= rows.count
-    else { return false }
+    else { return }
 
     var reordered = rows
     reordered.move(fromOffsets: source, toOffset: destination)
@@ -650,7 +657,7 @@ class BroadcastPageModel: ViewModel {
       let firstMoved = reordered.firstIndex(where: { row in
         row.spins.contains { movingIds.contains($0.id) }
       })
-    else { return false }
+    else { return }
 
     let saved = upcomingSpins
     let indices = IndexSet(saved.indices.filter { movingIds.contains(saved[$0].id) })
@@ -658,14 +665,26 @@ class BroadcastPageModel: ViewModel {
       .first { !movingIds.contains($0.id) }
     let target = next.flatMap { next in saved.firstIndex { $0.id == next.id } } ?? saved.count
 
-    return await moveSpins(from: indices, to: target)
+    await moveSpins(from: indices, to: target)
+  }
+
+  /// Deletes every spin in a tied group. The delete endpoint removes one spin at
+  /// a time, so members are removed last-first and re-checked against the live
+  /// schedule between calls.
+  func deleteSpinRow(_ row: SpinRow) async {
+    for member in row.spins.reversed() {
+      guard let latest = schedule?.current().first(where: { $0.id == member.id }),
+        canDeleteSpin(latest)
+      else { break }
+      await deleteSpin(latest)
+      if schedule?.current().contains(where: { $0.id == member.id }) == true { break }
+    }
   }
 }
 
 struct SpinRow: Identifiable {
   let spins: [Spin]
   var id: String { spins.map(\.id).joined(separator: "|") }
-  var isGrouped: Bool { spins.contains { $0.spinGroupId != nil } }
 }
 
 extension PlayolaAlert {

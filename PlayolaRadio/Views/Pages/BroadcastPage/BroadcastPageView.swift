@@ -133,11 +133,10 @@ struct BroadcastContentView: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
               }
               .onDelete { indexSet in
-                guard let index = indexSet.first,
-                  let spin = model.spinRows[index].spins.first
-                else { return }
+                guard let index = indexSet.first else { return }
+                let row = model.spinRows[index]
                 Task {
-                  await model.deleteSpin(spin)
+                  await model.deleteSpinRow(row)
                 }
               }
               .onMove { source, destination in
