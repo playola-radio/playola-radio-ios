@@ -8,6 +8,7 @@
 import Combine
 import Dependencies
 import Foundation
+import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
 import SwiftUI
@@ -233,9 +234,9 @@ class BroadcastPageModel: ViewModel {
     return futureSpins
   }
 
-  var spinRows: [SpinRow] {
+  var spinRows: IdentifiedArrayOf<SpinRow> {
     let spins = upcomingSpins
-    var rows: [SpinRow] = []
+    var rows: IdentifiedArrayOf<SpinRow> = []
     var index = 0
     while index < spins.count {
       let spin = spins[index]
@@ -254,6 +255,10 @@ class BroadcastPageModel: ViewModel {
       index = next
     }
     return rows
+  }
+
+  func isRowDeletable(_ row: SpinRow) -> Bool {
+    row.spins.allSatisfy { canDeleteSpin($0) }
   }
 
   var showEndDropTargets: [String] {
@@ -566,23 +571,15 @@ class BroadcastPageModel: ViewModel {
 
   /// Handles moving spins in the list, automatically including grouped spins
   @discardableResult
-  // swiftlint:disable:next function_body_length
   func moveSpins(from source: IndexSet, to destination: Int) async -> Bool {
     guard let jwt = auth.jwt else { return false }
 
     var spins = upcomingSpins
 
-    // Get the indices being moved and check for grouped spins
+    // Get the indices being moved and check for contiguous grouped spins
     var indicesToMove = source
-    for index in source {
-      guard index < spins.count else { continue }
-      let spin = spins[index]
-      if let groupId = spin.spinGroupId {
-        // Find all spins in the same group and add their indices
-        for (idx, otherSpin) in spins.enumerated() where otherSpin.spinGroupId == groupId {
-          indicesToMove.insert(idx)
-        }
-      }
+    for index in source where index < spins.count {
+      indicesToMove.formUnion(Self.contiguousGroupIndices(around: index, in: spins))
     }
 
     // Sort indices to maintain relative order
@@ -644,6 +641,24 @@ class BroadcastPageModel: ViewModel {
     }
   }
 
+  /// Returns the indices of spins adjacent to `index` sharing its spinGroupId, matching
+  /// the contiguous-run grouping `spinRows` uses.
+  private static func contiguousGroupIndices(around index: Int, in spins: [Spin]) -> IndexSet {
+    guard let groupId = spins[index].spinGroupId else { return [] }
+    var indices = IndexSet()
+    var before = index - 1
+    while before >= 0, spins[before].spinGroupId == groupId {
+      indices.insert(before)
+      before -= 1
+    }
+    var after = index + 1
+    while after < spins.count, spins[after].spinGroupId == groupId {
+      indices.insert(after)
+      after += 1
+    }
+    return indices
+  }
+
   /// Handles a row-level reorder, moving every spin in a tied group together
   func moveSpinRows(from source: IndexSet, to destination: Int) async {
     let rows = spinRows
@@ -696,6 +711,7 @@ class BroadcastPageModel: ViewModel {
 struct SpinRow: Identifiable {
   let spins: [Spin]
   var id: String { spins.map(\.id).joined(separator: "|") }
+  var dropAnchorSpinId: String? { spins.first?.id }
 }
 
 extension PlayolaAlert {

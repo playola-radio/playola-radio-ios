@@ -98,8 +98,8 @@ struct BroadcastContentView: View {
             // Schedule List (scrolls)
             List {
               ForEach(model.spinRows) { row in
-                let isDeletable = row.spins.allSatisfy { model.canDeleteSpin($0) }
-                let firstSpinId = row.spins.first?.id
+                let isDeletable = model.isRowDeletable(row)
+                let firstSpinId = row.dropAnchorSpinId
                 VStack(spacing: 0) {
                   // Drop indicator above this row
                   if dropTargetSpinId == firstSpinId {

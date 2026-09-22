@@ -525,8 +525,8 @@ struct BroadcastPageTests {
 
       await model.moveSpinRows(from: IndexSet(integer: 1), to: 3)
 
-      #expect(captured.value?.spinId == "a")
-      #expect(captured.value?.placeAfter == "y")
+      expectNoDifference(captured.value?.spinId, "a")
+      expectNoDifference(captured.value?.placeAfter, "y")
     }
   }
 
@@ -549,8 +549,8 @@ struct BroadcastPageTests {
 
       await model.moveSpinRows(from: IndexSet(integer: 0), to: 2)
 
-      #expect(captured.value?.spinId == "spin-1")
-      #expect(captured.value?.placeAfter == "spin-2")
+      expectNoDifference(captured.value?.spinId, "spin-1")
+      expectNoDifference(captured.value?.placeAfter, "spin-2")
     }
   }
 
@@ -572,6 +572,34 @@ struct BroadcastPageTests {
 
       let rowIds = model.spinRows.map { $0.spins.map(\.id) }
       expectNoDifference(rowIds, [["a1"], ["x"], ["a2"]])
+    }
+  }
+
+  @Test
+  func testMoveSpinRowsLeavesNonContiguousGroupMemberInPlace() async {
+    let groupId = "group-1"
+    let mockSpins =
+      makeSpins(ids: ["a1"], groupId: groupId)
+      + makeSpins(ids: ["x"], startOffset: 120)
+      + makeSpins(ids: ["a2"], startOffset: 240, groupId: groupId)
+    let captured = LockIsolated<(spinId: String, placeAfter: String?)?>(nil)
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+      $0.api.moveSpin = { _, spinId, placeAfter in
+        captured.setValue((spinId, placeAfter))
+        return mockSpins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      await model.moveSpinRows(from: IndexSet(integer: 0), to: 2)
+
+      expectNoDifference(captured.value?.spinId, "a1")
+      expectNoDifference(captured.value?.placeAfter, "x")
     }
   }
 
