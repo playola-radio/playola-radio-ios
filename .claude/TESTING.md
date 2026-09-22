@@ -63,8 +63,10 @@ The trait makes these unnecessary for *isolation*, but they remain valid tools:
 - `$shared.withLock { $0 = ... }` — to drive a **mid-test change** after the model is observing, or
   to force a real write for a value you then read back across an `await`.
 - `withMainSerialExecutor { ... }` — to deterministically order a model's **internal** fire-and-forget
-  `Task { }` work (see "Code That Spawns Internal Tasks" below). This is about task scheduling, not
-  `@Shared` isolation, so those uses are NOT redundant with the trait.
+  `Task { }` work (see "Code That Spawns Internal Tasks" below), and — **required for performance** —
+  around any test that advances a `TestClock`/`ImmediateClock` across a spawned async loop (see
+  "Advancing a clock across a spawned Task"). This is about task scheduling, not `@Shared` isolation,
+  so those uses are NOT redundant with the trait.
 
 Do **not** use class-level `@Shared` stored properties in tests: a property initialized outside the
 test method body runs outside the trait's per-test scope and will not be isolated.
@@ -127,3 +129,40 @@ func testActionThatSpawnsTask() async {
 ```
 
 **Rule of thumb**: If a spawned `Task` has N suspension points (`await` calls), you need N+1 `Task.yield()` calls to be safe (one to start the task, one per suspension point).
+
+### Advancing a clock across a spawned Task — wrap it or the test is silently slow
+
+If a test injects a controlled clock and the model spawns a `Task { while … { … await clock.sleep(…) } }`
+that the test then drives, the whole test body **MUST** be wrapped in `await withMainSerialExecutor { … }`.
+This applies to both clock styles, which are driven differently:
+
+- **`TestClock()`** — sleeps suspend until you manually advance the clock with `await clock.advance(by:)`
+  (or `advance(to:)`). This is the case in the example below.
+- **`ImmediateClock()`** — sleeps complete immediately with **no** `advance` call (the clock has no
+  `advance(by:)` method); you drive the loop by awaiting the spawned task's `.value` and asserting when
+  it finishes. This is the case in `KoozieTileModelTests.startTiersLoadRetriesOnFailureThenSucceeds`.
+
+This is not just about determinism — it is a **performance cliff**. Without the serial main executor,
+resuming a `clock.sleep` continuation bounces across the cooperative thread pool, and
+each hop stalls for **seconds of real wall-clock**. The dangerous part: **the test still PASSES** — it
+is just ~500–1000× too slow, so it hides inside a green suite. Three such tests (in
+`ListeningTimeTileTests`, `ToastClientTests`, `KoozieTileModelTests`) once made up the bulk of a ~250s
+local run; wrapping them dropped that to ~99s. Symptom to watch for: one test in a suite takes 5–30s
+while its peers are ~0.01s.
+
+```swift
+@Test func testAutoDismiss() async {
+  await withMainSerialExecutor {            // ← required; omit it and this test costs seconds
+    let clock = TestClock()
+    await withDependencies { $0.continuousClock = clock } operation: {
+      let client = ToastClient.liveValue
+      await client.show(toast)
+      await clock.advance(by: .seconds(2))  // continuation resumes instantly under the serial executor
+      #expect(await client.currentToast() == nil)
+    }
+  }
+}
+```
+
+To audit for offenders: any test file with `.advance(` (or that awaits a clock-sleeping task's
+`.value`) but no `withMainSerialExecutor` is suspect.
