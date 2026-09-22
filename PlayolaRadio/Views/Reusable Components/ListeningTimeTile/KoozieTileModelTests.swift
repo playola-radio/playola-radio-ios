@@ -193,33 +193,36 @@ struct KoozieTileModelTests {
 
   @Test func startTiersLoadRetriesOnFailureThenSucceeds() async {
     @Shared(.listeningTracker) var lt = tracker(totalMS: 0)
-    let callCount = LockIsolated(0)
-    let model = withDependencies {
-      $0.continuousClock = ImmediateClock()
-      $0.api.getPrizeTiers = {
-        let attempt = callCount.withValue {
-          $0 += 1
-          return $0
+    await withMainSerialExecutor {
+      let callCount = LockIsolated(0)
+      let model = withDependencies {
+        $0.continuousClock = ImmediateClock()
+        $0.api.getPrizeTiers = {
+          let attempt = callCount.withValue {
+            $0 += 1
+            return $0
+          }
+          if attempt < 3 { throw APIError.dataNotValid }
+          return [
+            PrizeTier(
+              id: "tk", name: "Koozie", requiredListeningHours: 50, imageIconUrl: nil,
+              prizes: [
+                Prize(
+                  id: "pk", name: "Playola Koozie", prizeTierId: "tk", imageUrl: nil, slug: "koozie"
+                )
+              ])
+          ]
         }
-        if attempt < 3 { throw APIError.dataNotValid }
-        return [
-          PrizeTier(
-            id: "tk", name: "Koozie", requiredListeningHours: 50, imageIconUrl: nil,
-            prizes: [
-              Prize(
-                id: "pk", name: "Playola Koozie", prizeTierId: "tk", imageUrl: nil, slug: "koozie")
-            ])
-        ]
+      } operation: {
+        KoozieTileModel()
       }
-    } operation: {
-      KoozieTileModel()
+
+      model.startTiersLoadIfNeeded()
+      await model.tiersLoadTask?.value
+
+      #expect(callCount.value == 3)  // retried past two transient failures
+      #expect(model.kooziePrizeInfo?.requiredHours == 50)
     }
-
-    model.startTiersLoadIfNeeded()
-    await model.tiersLoadTask?.value
-
-    #expect(callCount.value == 3)  // retried past two transient failures
-    #expect(model.kooziePrizeInfo?.requiredHours == 50)
   }
 
   @Test func cancelTiersLoadStopsRetryingAndClearsTask() async {

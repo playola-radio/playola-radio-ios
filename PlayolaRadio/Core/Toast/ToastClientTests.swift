@@ -128,64 +128,68 @@ struct ToastClientTests {
 
   @Test
   func testAutoDismissAfterSpecifiedDuration() async {
-    let clock = TestClock()
+    await withMainSerialExecutor {
+      let clock = TestClock()
 
-    await withDependencies {
-      $0.continuousClock = clock
-    } operation: {
-      let toast = PlayolaToast(
-        message: "Test message",
-        buttonTitle: "OK",
-        duration: 2.0
-      )
+      await withDependencies {
+        $0.continuousClock = clock
+      } operation: {
+        let toast = PlayolaToast(
+          message: "Test message",
+          buttonTitle: "OK",
+          duration: 2.0
+        )
 
-      let client = ToastClient.liveValue
+        let client = ToastClient.liveValue
 
-      await client.show(toast)
+        await client.show(toast)
 
-      var currentToast = await client.currentToast()
-      #expect(currentToast?.message == "Test message")
+        var currentToast = await client.currentToast()
+        #expect(currentToast?.message == "Test message")
 
-      await clock.advance(by: .seconds(1.0))
-      currentToast = await client.currentToast()
-      #expect(currentToast != nil)
+        await clock.advance(by: .seconds(1.0))
+        currentToast = await client.currentToast()
+        #expect(currentToast != nil)
 
-      await clock.advance(by: .seconds(1.5))
-      currentToast = await client.currentToast()
-      #expect(currentToast == nil)
+        await clock.advance(by: .seconds(1.5))
+        currentToast = await client.currentToast()
+        #expect(currentToast == nil)
+      }
     }
   }
 
   @Test
   func testAutoDismissShowsNextToastInQueue() async {
-    let clock = TestClock()
+    await withMainSerialExecutor {
+      let clock = TestClock()
 
-    await withDependencies {
-      $0.continuousClock = clock
-    } operation: {
-      let toast1 = PlayolaToast(
-        message: "First toast",
-        buttonTitle: "OK",
-        duration: 1.0
-      )
-      let toast2 = PlayolaToast(
-        message: "Second toast",
-        buttonTitle: "OK",
-        duration: 2.0
-      )
+      await withDependencies {
+        $0.continuousClock = clock
+      } operation: {
+        let toast1 = PlayolaToast(
+          message: "First toast",
+          buttonTitle: "OK",
+          duration: 1.0
+        )
+        let toast2 = PlayolaToast(
+          message: "Second toast",
+          buttonTitle: "OK",
+          duration: 2.0
+        )
 
-      let client = ToastClient.liveValue
+        let client = ToastClient.liveValue
 
-      await client.show(toast1)
-      await client.show(toast2)
+        await client.show(toast1)
+        await client.show(toast2)
 
-      var currentToast = await client.currentToast()
-      #expect(currentToast?.message == "First toast")
+        var currentToast = await client.currentToast()
+        #expect(currentToast?.message == "First toast")
 
-      await clock.advance(by: .seconds(1.5))
+        await clock.advance(by: .seconds(1.5))
 
-      currentToast = await client.currentToast()
-      #expect(currentToast?.message == "Second toast")
+        currentToast = await client.currentToast()
+        #expect(currentToast?.message == "Second toast")
+      }
     }
   }
 
@@ -193,33 +197,35 @@ struct ToastClientTests {
 
   @Test
   func testManualDismissCancelsAutoDismissTimer() async {
-    let clock = TestClock()
+    await withMainSerialExecutor {
+      let clock = TestClock()
 
-    await withDependencies {
-      $0.continuousClock = clock
-    } operation: {
-      let toast = PlayolaToast(
-        message: "Test toast",
-        buttonTitle: "OK",
-        duration: 3.0
-      )
+      await withDependencies {
+        $0.continuousClock = clock
+      } operation: {
+        let toast = PlayolaToast(
+          message: "Test toast",
+          buttonTitle: "OK",
+          duration: 3.0
+        )
 
-      let client = ToastClient.liveValue
+        let client = ToastClient.liveValue
 
-      await client.show(toast)
+        await client.show(toast)
 
-      var currentToast = await client.currentToast()
-      #expect(currentToast != nil)
+        var currentToast = await client.currentToast()
+        #expect(currentToast != nil)
 
-      await client.dismiss()
+        await client.dismiss()
 
-      currentToast = await client.currentToast()
-      #expect(currentToast == nil)
+        currentToast = await client.currentToast()
+        #expect(currentToast == nil)
 
-      // Ensure timer was cancelled - toast shouldn't resurrect
-      await clock.advance(by: .seconds(5.0))
-      currentToast = await client.currentToast()
-      #expect(currentToast == nil)
+        // Ensure timer was cancelled - toast shouldn't resurrect
+        await clock.advance(by: .seconds(5.0))
+        currentToast = await client.currentToast()
+        #expect(currentToast == nil)
+      }
     }
   }
 
