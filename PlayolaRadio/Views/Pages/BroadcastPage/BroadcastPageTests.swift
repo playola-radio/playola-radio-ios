@@ -479,6 +479,77 @@ struct BroadcastPageTests {
     }
   }
 
+  // MARK: - Spin Row Tests
+
+  @Test
+  func testSpinRowsGroupsTiedSpinsIntoSingleRow() async {
+    let groupId = "group-1"
+    let mockSpins =
+      makeSpins(ids: ["x"])
+      + makeSpins(ids: ["a", "b"], startOffset: 120, groupId: groupId)
+      + makeSpins(ids: ["y"], startOffset: 240)
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      let rowIds = model.spinRows.map { $0.spins.map(\.id) }
+      expectNoDifference(rowIds, [["x"], ["a", "b"], ["y"]])
+    }
+  }
+
+  @Test
+  func testMoveSpinRowsMovesGroupedRowAsUnit() async {
+    let groupId = "group-1"
+    let mockSpins =
+      makeSpins(ids: ["x"])
+      + makeSpins(ids: ["a", "b"], startOffset: 120, groupId: groupId)
+      + makeSpins(ids: ["y", "z"], startOffset: 240)
+    let captured = LockIsolated<(spinId: String, placeAfter: String?)?>(nil)
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+      $0.api.moveSpin = { _, spinId, placeAfter in
+        captured.setValue((spinId, placeAfter))
+        return mockSpins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      await model.moveSpinRows(from: IndexSet(integer: 1), to: 3)
+
+      #expect(captured.value?.spinId == "a")
+      #expect(captured.value?.placeAfter == "y")
+    }
+  }
+
+  @Test
+  func testMoveSpinRowsMovesUngroupedRowNormally() async {
+    let mockSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
+    let reorderedSpins = makeSpins(ids: ["spin-2", "spin-1", "spin-3"])
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+      $0.api.moveSpin = { _, _, _ in reorderedSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      await model.moveSpinRows(from: IndexSet(integer: 0), to: 2)
+
+      expectNoDifference(model.upcomingSpins.map(\.id), ["spin-2", "spin-1", "spin-3"])
+    }
+  }
+
   // MARK: - Coming Soon Alert Tests
 
   @Test

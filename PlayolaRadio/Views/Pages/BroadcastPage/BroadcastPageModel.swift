@@ -231,6 +231,21 @@ class BroadcastPageModel: ViewModel {
     return futureSpins
   }
 
+  var spinRows: [SpinRow] {
+    let spins = upcomingSpins
+    var consumed: Set<String> = []
+    return spins.compactMap { spin in
+      guard !consumed.contains(spin.id) else { return nil }
+      guard let groupId = spin.spinGroupId else {
+        consumed.insert(spin.id)
+        return SpinRow(spins: [spin])
+      }
+      let members = spins.filter { $0.spinGroupId == groupId }
+      consumed.formUnion(members.map(\.id))
+      return SpinRow(spins: members)
+    }
+  }
+
   var showEndDropTargets: [String] {
     guard let liveShowId,
       let filler = schedule?.current().first(where: {
@@ -618,6 +633,39 @@ class BroadcastPageModel: ViewModel {
       return false
     }
   }
+
+  /// Handles a row-level reorder, moving every spin in a tied group together
+  @discardableResult
+  func moveSpinRows(from source: IndexSet, to destination: Int) async -> Bool {
+    let rows = spinRows
+    guard !source.isEmpty, source.allSatisfy({ rows.indices.contains($0) }),
+      destination >= 0, destination <= rows.count
+    else { return false }
+
+    var reordered = rows
+    reordered.move(fromOffsets: source, toOffset: destination)
+
+    let movingIds = Set(source.flatMap { rows[$0].spins.map(\.id) })
+    guard
+      let firstMoved = reordered.firstIndex(where: { row in
+        row.spins.contains { movingIds.contains($0.id) }
+      })
+    else { return false }
+
+    let saved = upcomingSpins
+    let indices = IndexSet(saved.indices.filter { movingIds.contains(saved[$0].id) })
+    let next = reordered.dropFirst(firstMoved).flatMap(\.spins)
+      .first { !movingIds.contains($0.id) }
+    let target = next.flatMap { next in saved.firstIndex { $0.id == next.id } } ?? saved.count
+
+    return await moveSpins(from: indices, to: target)
+  }
+}
+
+struct SpinRow: Identifiable {
+  let spins: [Spin]
+  var id: String { spins.map(\.id).joined(separator: "|") }
+  var isGrouped: Bool { spins.contains { $0.spinGroupId != nil } }
 }
 
 extension PlayolaAlert {
