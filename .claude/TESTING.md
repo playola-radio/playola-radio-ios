@@ -132,12 +132,18 @@ func testActionThatSpawnsTask() async {
 
 ### Advancing a clock across a spawned Task — wrap it or the test is silently slow
 
-If a test injects `$0.continuousClock = TestClock()` (or `ImmediateClock()`) and the model spawns a
-`Task { while … { … await clock.sleep(…) } }` that the test then drives with `await clock.advance(…)`
-or `await someTask.value`, the whole test body **MUST** be wrapped in `await withMainSerialExecutor { … }`.
+If a test injects a controlled clock and the model spawns a `Task { while … { … await clock.sleep(…) } }`
+that the test then drives, the whole test body **MUST** be wrapped in `await withMainSerialExecutor { … }`.
+This applies to both clock styles, which are driven differently:
+
+- **`TestClock()`** — sleeps suspend until you manually advance the clock with `await clock.advance(by:)`
+  (or `advance(to:)`). This is the case in the example below.
+- **`ImmediateClock()`** — sleeps complete immediately with **no** `advance` call (the clock has no
+  `advance(by:)` method); you drive the loop by awaiting the spawned task's `.value` and asserting when
+  it finishes. This is the case in `KoozieTileModelTests.startTiersLoadRetriesOnFailureThenSucceeds`.
 
 This is not just about determinism — it is a **performance cliff**. Without the serial main executor,
-resuming a `clock.sleep` continuation after `advance` bounces across the cooperative thread pool, and
+resuming a `clock.sleep` continuation bounces across the cooperative thread pool, and
 each hop stalls for **seconds of real wall-clock**. The dangerous part: **the test still PASSES** — it
 is just ~500–1000× too slow, so it hides inside a green suite. Three such tests (in
 `ListeningTimeTileTests`, `ToastClientTests`, `KoozieTileModelTests`) once made up the bulk of a ~250s
