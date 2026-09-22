@@ -36,6 +36,7 @@ class BroadcastPageModel: ViewModel {
   var schedule: Schedule?
   var isLoading: Bool = false
   var spinIdsBeingRescheduled: Set<String> = []
+  var spinIdsBeingDeleted: Set<String> = []
   var presentedAlert: PlayolaAlert?
   var currentNowPlayingId: String?
   private var reorderedSpinIds: [String]?  // nil means use default order
@@ -216,6 +217,7 @@ class BroadcastPageModel: ViewModel {
     guard let schedule else { return [] }
     let futureSpins = schedule.current().filter {
       $0.airtime > now
+        && !spinIdsBeingDeleted.contains($0.id)
         && (liveShowId == nil
           || ($0.liveShowId == liveShowId
             && ($0.isFiller != true || visibleFillerIds.contains($0.id))))
@@ -669,14 +671,23 @@ class BroadcastPageModel: ViewModel {
   }
 
   /// Deletes every spin in a tied group. The delete endpoint removes one spin at
-  /// a time, so members are removed last-first and re-checked against the live
-  /// schedule between calls.
+  /// a time, so the whole group is hidden up front and then removed last-first,
+  /// keeping members from reappearing between the sequential server responses.
   func deleteSpinRow(_ row: SpinRow) async {
-    for member in row.spins.reversed() {
+    let members = row.spins.reversed().compactMap { member -> Spin? in
       guard let latest = schedule?.current().first(where: { $0.id == member.id }),
         canDeleteSpin(latest)
-      else { break }
-      await deleteSpin(latest)
+      else { return nil }
+      return latest
+    }
+    guard !members.isEmpty else { return }
+
+    let memberIds = members.map(\.id)
+    spinIdsBeingDeleted.formUnion(memberIds)
+    defer { spinIdsBeingDeleted.subtract(memberIds) }
+
+    for member in members {
+      await deleteSpin(member)
       if schedule?.current().contains(where: { $0.id == member.id }) == true { break }
     }
   }

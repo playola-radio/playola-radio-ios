@@ -602,6 +602,49 @@ struct BroadcastPageTests {
     }
   }
 
+  @Test
+  func testDeleteSpinRowHidesWholeGroupWhileDeleting() async {
+    let groupId = "group-1"
+    let mockSpins =
+      makeSpins(ids: ["x"])
+      + makeSpins(ids: ["a", "b"], startOffset: 300, groupId: groupId)
+    let (gate, gateContinuation) = AsyncStream.makeStream(of: Void.self)
+    let firstDeleteStarted = LockIsolated(false)
+    let deletedIds = LockIsolated<[String]>([])
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+      $0.api.deleteSpin = { _, spinId in
+        if !firstDeleteStarted.value {
+          firstDeleteStarted.setValue(true)
+          var iterator = gate.makeAsyncIterator()
+          _ = await iterator.next()
+        }
+        deletedIds.withValue { $0.append(spinId) }
+        return mockSpins.filter { !deletedIds.value.contains($0.id) }
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+      let groupedRow = model.spinRows.first { $0.spins.count > 1 }!
+
+      let deletion = Task { await model.deleteSpinRow(groupedRow) }
+      while !firstDeleteStarted.value { await Task.yield() }
+
+      // While the first server delete is in flight, the whole group is hidden.
+      expectNoDifference(model.upcomingSpins.map(\.id), ["x"])
+
+      gateContinuation.yield()
+      gateContinuation.finish()
+      await deletion.value
+
+      expectNoDifference(deletedIds.value, ["b", "a"])
+      #expect(model.spinIdsBeingDeleted.isEmpty)
+    }
+  }
+
   // MARK: - Coming Soon Alert Tests
 
   @Test
