@@ -8,6 +8,7 @@
 import Combine
 import Dependencies
 import Foundation
+import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
 import SwiftUI
@@ -36,6 +37,7 @@ class BroadcastPageModel: ViewModel {
   var schedule: Schedule?
   var isLoading: Bool = false
   var spinIdsBeingRescheduled: Set<String> = []
+  var spinIdsBeingDeleted: Set<String> = []
   var presentedAlert: PlayolaAlert?
   var currentNowPlayingId: String?
   private var reorderedSpinIds: [String]?  // nil means use default order
@@ -216,6 +218,7 @@ class BroadcastPageModel: ViewModel {
     guard let schedule else { return [] }
     let futureSpins = schedule.current().filter {
       $0.airtime > now
+        && !spinIdsBeingDeleted.contains($0.id)
         && (liveShowId == nil
           || ($0.liveShowId == liveShowId
             && ($0.isFiller != true || visibleFillerIds.contains($0.id))))
@@ -229,6 +232,33 @@ class BroadcastPageModel: ViewModel {
     }
 
     return futureSpins
+  }
+
+  var spinRows: IdentifiedArrayOf<SpinRow> {
+    let spins = upcomingSpins
+    var rows: IdentifiedArrayOf<SpinRow> = []
+    var index = 0
+    while index < spins.count {
+      let spin = spins[index]
+      guard let groupId = spin.spinGroupId else {
+        rows.append(SpinRow(spins: [spin]))
+        index += 1
+        continue
+      }
+      var members = [spin]
+      var next = index + 1
+      while next < spins.count, spins[next].spinGroupId == groupId {
+        members.append(spins[next])
+        next += 1
+      }
+      rows.append(SpinRow(spins: members))
+      index = next
+    }
+    return rows
+  }
+
+  func isRowDeletable(_ row: SpinRow) -> Bool {
+    row.spins.allSatisfy { canDeleteSpin($0) }
   }
 
   var showEndDropTargets: [String] {
@@ -541,23 +571,15 @@ class BroadcastPageModel: ViewModel {
 
   /// Handles moving spins in the list, automatically including grouped spins
   @discardableResult
-  // swiftlint:disable:next function_body_length
   func moveSpins(from source: IndexSet, to destination: Int) async -> Bool {
     guard let jwt = auth.jwt else { return false }
 
     var spins = upcomingSpins
 
-    // Get the indices being moved and check for grouped spins
+    // Get the indices being moved and check for contiguous grouped spins
     var indicesToMove = source
-    for index in source {
-      guard index < spins.count else { continue }
-      let spin = spins[index]
-      if let groupId = spin.spinGroupId {
-        // Find all spins in the same group and add their indices
-        for (idx, otherSpin) in spins.enumerated() where otherSpin.spinGroupId == groupId {
-          indicesToMove.insert(idx)
-        }
-      }
+    for index in source where index < spins.count {
+      indicesToMove.formUnion(Self.contiguousGroupIndices(around: index, in: spins))
     }
 
     // Sort indices to maintain relative order
@@ -618,6 +640,78 @@ class BroadcastPageModel: ViewModel {
       return false
     }
   }
+
+  /// Returns the indices of spins adjacent to `index` sharing its spinGroupId, matching
+  /// the contiguous-run grouping `spinRows` uses.
+  private static func contiguousGroupIndices(around index: Int, in spins: [Spin]) -> IndexSet {
+    guard let groupId = spins[index].spinGroupId else { return [] }
+    var indices = IndexSet()
+    var before = index - 1
+    while before >= 0, spins[before].spinGroupId == groupId {
+      indices.insert(before)
+      before -= 1
+    }
+    var after = index + 1
+    while after < spins.count, spins[after].spinGroupId == groupId {
+      indices.insert(after)
+      after += 1
+    }
+    return indices
+  }
+
+  /// Handles a row-level reorder, moving every spin in a tied group together
+  func moveSpinRows(from source: IndexSet, to destination: Int) async {
+    let rows = spinRows
+    guard !source.isEmpty, source.allSatisfy({ rows.indices.contains($0) }),
+      destination >= 0, destination <= rows.count
+    else { return }
+
+    var reordered = rows
+    reordered.move(fromOffsets: source, toOffset: destination)
+
+    let movingIds = Set(source.flatMap { rows[$0].spins.map(\.id) })
+    guard
+      let firstMoved = reordered.firstIndex(where: { row in
+        row.spins.contains { movingIds.contains($0.id) }
+      })
+    else { return }
+
+    let saved = upcomingSpins
+    let indices = IndexSet(saved.indices.filter { movingIds.contains(saved[$0].id) })
+    let next = reordered.dropFirst(firstMoved).flatMap(\.spins)
+      .first { !movingIds.contains($0.id) }
+    let target = next.flatMap { next in saved.firstIndex { $0.id == next.id } } ?? saved.count
+
+    await moveSpins(from: indices, to: target)
+  }
+
+  /// Deletes every spin in a tied group. The delete endpoint removes one spin at
+  /// a time, so the whole group is hidden up front and then removed last-first,
+  /// keeping members from reappearing between the sequential server responses.
+  func deleteSpinRow(_ row: SpinRow) async {
+    let members = row.spins.reversed().compactMap { member -> Spin? in
+      guard let latest = schedule?.current().first(where: { $0.id == member.id }),
+        canDeleteSpin(latest)
+      else { return nil }
+      return latest
+    }
+    guard !members.isEmpty else { return }
+
+    let memberIds = members.map(\.id)
+    spinIdsBeingDeleted.formUnion(memberIds)
+    defer { spinIdsBeingDeleted.subtract(memberIds) }
+
+    for member in members {
+      await deleteSpin(member)
+      if schedule?.current().contains(where: { $0.id == member.id }) == true { break }
+    }
+  }
+}
+
+struct SpinRow: Identifiable {
+  let spins: [Spin]
+  var id: String { spins.map(\.id).joined(separator: "|") }
+  var dropAnchorSpinId: String? { spins.first?.id }
 }
 
 extension PlayolaAlert {

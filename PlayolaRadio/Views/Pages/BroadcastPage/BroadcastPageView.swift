@@ -97,29 +97,32 @@ struct BroadcastContentView: View {
 
             // Schedule List (scrolls)
             List {
-              ForEach(model.upcomingSpins, id: \.id) { spin in
-                let isDeletable = model.canDeleteSpin(spin)
+              ForEach(model.spinRows) { row in
+                let isDeletable = model.isRowDeletable(row)
+                let firstSpinId = row.dropAnchorSpinId
                 VStack(spacing: 0) {
                   // Drop indicator above this row
-                  if dropTargetSpinId == spin.id {
+                  if dropTargetSpinId == firstSpinId {
                     Rectangle()
                       .fill(Color.playolaRed)
                       .frame(height: 3)
                       .transition(.opacity)
                   }
 
-                  ScheduleRowView(
-                    spin: spin,
-                    airtimeLabel: model.airtimeLabel(for: spin),
-                    isBeingRescheduled: model.spinIdsBeingRescheduled.contains(spin.id),
-                    isDeletable: isDeletable
-                  )
+                  ForEach(row.spins, id: \.id) { spin in
+                    ScheduleRowView(
+                      spin: spin,
+                      airtimeLabel: model.airtimeLabel(for: spin),
+                      isBeingRescheduled: model.spinIdsBeingRescheduled.contains(spin.id),
+                      isDeletable: isDeletable
+                    )
+                  }
                 }
                 .dropDestination(for: String.self) { items, _ in
-                  model.stagingItemsDropped(items, beforeSpinId: spin.id)
+                  model.stagingItemsDropped(items, beforeSpinId: firstSpinId ?? "")
                 } isTargeted: { isTargeted in
                   withAnimation(.easeInOut(duration: 0.2)) {
-                    dropTargetSpinId = isTargeted ? spin.id : nil
+                    dropTargetSpinId = isTargeted ? firstSpinId : nil
                   }
                 }
                 .listRowInsets(EdgeInsets())
@@ -131,14 +134,14 @@ struct BroadcastContentView: View {
               }
               .onDelete { indexSet in
                 guard let index = indexSet.first else { return }
-                let spin = model.upcomingSpins[index]
+                let row = model.spinRows[index]
                 Task {
-                  await model.deleteSpin(spin)
+                  await model.deleteSpinRow(row)
                 }
               }
               .onMove { source, destination in
                 Task {
-                  await model.moveSpins(from: source, to: destination)
+                  await model.moveSpinRows(from: source, to: destination)
                 }
               }
               ForEach(model.showEndDropTargets, id: \.self) { targetId in

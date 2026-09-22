@@ -479,6 +479,200 @@ struct BroadcastPageTests {
     }
   }
 
+  // MARK: - Spin Row Tests
+
+  @Test
+  func testSpinRowsGroupsTiedSpinsIntoSingleRow() async {
+    let groupId = "group-1"
+    let mockSpins =
+      makeSpins(ids: ["x"])
+      + makeSpins(ids: ["a", "b"], startOffset: 120, groupId: groupId)
+      + makeSpins(ids: ["y"], startOffset: 240)
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      let rowIds = model.spinRows.map { $0.spins.map(\.id) }
+      expectNoDifference(rowIds, [["x"], ["a", "b"], ["y"]])
+    }
+  }
+
+  @Test
+  func testMoveSpinRowsMovesGroupedRowAsUnit() async {
+    let groupId = "group-1"
+    let mockSpins =
+      makeSpins(ids: ["x"])
+      + makeSpins(ids: ["a", "b"], startOffset: 120, groupId: groupId)
+      + makeSpins(ids: ["y", "z"], startOffset: 240)
+    let captured = LockIsolated<(spinId: String, placeAfter: String?)?>(nil)
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+      $0.api.moveSpin = { _, spinId, placeAfter in
+        captured.setValue((spinId, placeAfter))
+        return mockSpins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      await model.moveSpinRows(from: IndexSet(integer: 1), to: 3)
+
+      expectNoDifference(captured.value?.spinId, "a")
+      expectNoDifference(captured.value?.placeAfter, "y")
+    }
+  }
+
+  @Test
+  func testMoveSpinRowsMovesUngroupedRowNormally() async {
+    let mockSpins = makeSpins(ids: ["spin-1", "spin-2", "spin-3"])
+    let captured = LockIsolated<(spinId: String, placeAfter: String?)?>(nil)
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+      $0.api.moveSpin = { _, spinId, placeAfter in
+        captured.setValue((spinId, placeAfter))
+        return mockSpins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      await model.moveSpinRows(from: IndexSet(integer: 0), to: 2)
+
+      expectNoDifference(captured.value?.spinId, "spin-1")
+      expectNoDifference(captured.value?.placeAfter, "spin-2")
+    }
+  }
+
+  @Test
+  func testSpinRowsKeepsNonContiguousGroupSeparate() async {
+    let groupId = "group-1"
+    let mockSpins =
+      makeSpins(ids: ["a1"], groupId: groupId)
+      + makeSpins(ids: ["x"], startOffset: 120)
+      + makeSpins(ids: ["a2"], startOffset: 240, groupId: groupId)
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      let rowIds = model.spinRows.map { $0.spins.map(\.id) }
+      expectNoDifference(rowIds, [["a1"], ["x"], ["a2"]])
+    }
+  }
+
+  @Test
+  func testMoveSpinRowsLeavesNonContiguousGroupMemberInPlace() async {
+    let groupId = "group-1"
+    let mockSpins =
+      makeSpins(ids: ["a1"], groupId: groupId)
+      + makeSpins(ids: ["x"], startOffset: 120)
+      + makeSpins(ids: ["a2"], startOffset: 240, groupId: groupId)
+    let captured = LockIsolated<(spinId: String, placeAfter: String?)?>(nil)
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+      $0.api.moveSpin = { _, spinId, placeAfter in
+        captured.setValue((spinId, placeAfter))
+        return mockSpins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      await model.moveSpinRows(from: IndexSet(integer: 0), to: 2)
+
+      expectNoDifference(captured.value?.spinId, "a1")
+      expectNoDifference(captured.value?.placeAfter, "x")
+    }
+  }
+
+  @Test
+  func testDeleteSpinRowDeletesEveryGroupMember() async {
+    let groupId = "group-1"
+    let mockSpins =
+      makeSpins(ids: ["x"])
+      + makeSpins(ids: ["a", "b"], startOffset: 300, groupId: groupId)
+    let deletedIds = LockIsolated<[String]>([])
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+      $0.api.deleteSpin = { _, spinId in
+        deletedIds.withValue { $0.append(spinId) }
+        return mockSpins.filter { !deletedIds.value.contains($0.id) }
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+
+      let groupedRow = model.spinRows.first { $0.spins.count > 1 }!
+      await model.deleteSpinRow(groupedRow)
+
+      expectNoDifference(deletedIds.value, ["b", "a"])
+    }
+  }
+
+  @Test
+  func testDeleteSpinRowHidesWholeGroupWhileDeleting() async {
+    let groupId = "group-1"
+    let mockSpins =
+      makeSpins(ids: ["x"])
+      + makeSpins(ids: ["a", "b"], startOffset: 300, groupId: groupId)
+    let (gate, gateContinuation) = AsyncStream.makeStream(of: Void.self)
+    let firstDeleteStarted = LockIsolated(false)
+    let deletedIds = LockIsolated<[String]>([])
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in mockSpins }
+      $0.api.deleteSpin = { _, spinId in
+        if !firstDeleteStarted.value {
+          firstDeleteStarted.setValue(true)
+          var iterator = gate.makeAsyncIterator()
+          _ = await iterator.next()
+        }
+        deletedIds.withValue { $0.append(spinId) }
+        return mockSpins.filter { !deletedIds.value.contains($0.id) }
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId)
+      await model.viewAppeared()
+      let groupedRow = model.spinRows.first { $0.spins.count > 1 }!
+
+      let deletion = Task { await model.deleteSpinRow(groupedRow) }
+      while !firstDeleteStarted.value { await Task.yield() }
+
+      // While the first server delete is in flight, the whole group is hidden.
+      expectNoDifference(model.upcomingSpins.map(\.id), ["x"])
+
+      gateContinuation.yield()
+      gateContinuation.finish()
+      await deletion.value
+
+      expectNoDifference(deletedIds.value, ["b", "a"])
+      #expect(model.spinIdsBeingDeleted.isEmpty)
+    }
+  }
+
   // MARK: - Coming Soon Alert Tests
 
   @Test
