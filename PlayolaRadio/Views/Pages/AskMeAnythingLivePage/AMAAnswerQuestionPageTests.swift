@@ -1,0 +1,275 @@
+//
+//  AMAAnswerQuestionPageTests.swift
+//  PlayolaRadio
+//
+
+import ConcurrencyExtras
+import CustomDump
+import Dependencies
+import Foundation
+import PlayolaPlayer
+import Sharing
+import SwiftUI
+import Testing
+
+@testable import PlayolaRadio
+
+@Suite(.freshSharedState)
+@MainActor
+struct AMAAnswerQuestionPageTests {
+
+  private let recordingURL = URL(fileURLWithPath: "/tmp/answer.wav")
+
+  private func noopAir(_ id: String) async throws {}
+
+  // MARK: - Trailing Song Display
+
+  @Test func displayedTrailingSongReflectsDraft() {
+    let existing = AudioBlock.mockWith(id: "existing")
+    let question = ListenerQuestion.mockWith(trailingAudioBlock: existing)
+    let model = makeModel(question: question, airQuestion: noopAir)
+
+    #expect(model.displayedTrailingSong?.id == "existing")
+    #expect(!model.showAddSongButton)
+
+    model.trailingDraft = .cleared
+    #expect(model.displayedTrailingSong == nil)
+    #expect(model.showAddSongButton)
+
+    let picked = AudioBlock.mockWith(id: "picked")
+    model.trailingDraft = .selected(picked)
+    #expect(model.displayedTrailingSong?.id == "picked")
+    #expect(!model.showAddSongButton)
+  }
+
+  // MARK: - Submit: Trailing PUT Semantics
+
+  @Test func unchangedDraftSkipsTheTrailingPut() async {
+    let trailingCalls = LockIsolated(0)
+    let model = makeSubmitModel(
+      trailingDraft: .unchanged,
+      onTrailing: { _ in trailingCalls.withValue { $0 += 1 } })
+
+    await model.addToShowButtonTapped()
+
+    #expect(trailingCalls.value == 0)
+    #expect(model.submissionPhase == .completed)
+  }
+
+  @Test func clearedDraftSendsNullTrailingPut() async {
+    let capturedTrailing = LockIsolated<String??>(nil)
+    let model = makeSubmitModel(
+      trailingDraft: .cleared,
+      onTrailing: { id in capturedTrailing.setValue(id) })
+
+    await model.addToShowButtonTapped()
+
+    #expect(capturedTrailing.value == .some(.none))
+    #expect(model.submissionPhase == .completed)
+  }
+
+  @Test func selectedDraftSendsBlockIdTrailingPut() async {
+    let capturedTrailing = LockIsolated<String??>(nil)
+    let model = makeSubmitModel(
+      trailingDraft: .selected(.mockWith(id: "new-song")),
+      onTrailing: { id in capturedTrailing.setValue(id) })
+
+    await model.addToShowButtonTapped()
+
+    #expect(capturedTrailing.value == .some(.some("new-song")))
+    #expect(model.submissionPhase == .completed)
+  }
+
+  // MARK: - Submit: Ordering
+
+  @Test func submitRunsUploadThenAnswerThenTrailingThenAir() async {
+    let log = LockIsolated<[String]>([])
+    let model = makeSubmitModel(
+      trailingDraft: .selected(.mockWith(id: "song")),
+      onUpload: { log.withValue { $0.append("upload") } },
+      onRegister: { log.withValue { $0.append("register") } },
+      onTrailing: { _ in log.withValue { $0.append("trailing") } },
+      onAir: { log.withValue { $0.append("air") } })
+
+    await model.addToShowButtonTapped()
+
+    expectNoDifference(log.value, ["upload", "register", "trailing", "air"])
+  }
+
+  // MARK: - Submit: Success Navigation
+
+  @Test func successfulSubmitMarksAiredAndPopsToLive() async {
+    let coordinator = MainContainerNavigationCoordinator()
+    let model = makeSubmitModel(
+      trailingDraft: .unchanged, coordinator: coordinator,
+      configureCoordinator: {
+        coordinator.push(.askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "s1")))
+        coordinator.push(
+          .amaQuestionPickerPage(
+            AMAQuestionPickerPageModel(stationId: "s1", showStartedAt: nil, airQuestion: { _ in })))
+      })
+
+    await model.addToShowButtonTapped()
+
+    #expect(model.submissionPhase == .completed)
+    #expect(!model.controlsInteractive)
+    guard case .askMeAnythingLivePage = coordinator.path.last else {
+      Issue.record("Expected to pop back to the live page")
+      return
+    }
+  }
+
+  // MARK: - Submit: Partial-Failure Resume
+
+  @Test func retryAfterAirFailureDoesNotReUploadOrReRegister() async {
+    let uploadCalls = LockIsolated(0)
+    let registerCalls = LockIsolated(0)
+    let airAttempts = LockIsolated(0)
+    let model = makeSubmitModel(
+      trailingDraft: .unchanged,
+      onUpload: { uploadCalls.withValue { $0 += 1 } },
+      onRegister: { registerCalls.withValue { $0 += 1 } },
+      onAir: {
+        airAttempts.withValue { $0 += 1 }
+        if airAttempts.value == 1 { throw NSError(domain: "offline", code: 1) }
+      })
+
+    await model.addToShowButtonTapped()
+    #expect(
+      model.submissionPhase
+        == .failed(error: NSError(domain: "offline", code: 1).localizedDescription))
+
+    await model.addToShowButtonTapped()
+
+    #expect(uploadCalls.value == 1)
+    #expect(registerCalls.value == 1)
+    #expect(airAttempts.value == 2)
+    #expect(model.submissionPhase == .completed)
+  }
+
+  @Test func changingTrailingDraftAfterFailureReAppliesTheTrailing() async {
+    let trailingCalls = LockIsolated(0)
+    let airAttempts = LockIsolated(0)
+    let model = makeSubmitModel(
+      trailingDraft: .selected(.mockWith(id: "first")),
+      onTrailing: { _ in trailingCalls.withValue { $0 += 1 } },
+      onAir: {
+        airAttempts.withValue { $0 += 1 }
+        if airAttempts.value == 1 { throw NSError(domain: "offline", code: 1) }
+      })
+
+    await model.addToShowButtonTapped()
+    #expect(trailingCalls.value == 1)
+
+    model.trailingDraft = .selected(.mockWith(id: "second"))
+    await model.addToShowButtonTapped()
+
+    #expect(trailingCalls.value == 2)
+    #expect(model.submissionPhase == .completed)
+  }
+
+  // MARK: - Submit: Guards
+
+  @Test func submitRequiresSignInWhenNoJwt() async {
+    let uploadCalls = LockIsolated(0)
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: nil)
+    let model = withDependencies {
+      $0.audioPlayer = .testValue
+      $0.audioRecorder = .testValue
+      $0.voicetrackUploadService = VoicetrackUploadService(
+        processVoicetrack: { _, _, _, _ in
+          uploadCalls.withValue { $0 += 1 }
+          return .mockWith(id: "a")
+        })
+    } operation: {
+      AMAAnswerQuestionPageModel(question: .mock, airQuestion: { _ in })
+    }
+    model.recordingPhase = .review
+    model.recordingURL = recordingURL
+
+    await model.addToShowButtonTapped()
+
+    #expect(uploadCalls.value == 0)
+    #expect(model.presentedAlert != nil)
+  }
+
+  @Test func submitIgnoredUnlessInReviewPhase() async {
+    let uploadCalls = LockIsolated(0)
+    let model = makeSubmitModel(
+      trailingDraft: .unchanged,
+      onUpload: { uploadCalls.withValue { $0 += 1 } })
+    model.recordingPhase = .idle
+
+    await model.addToShowButtonTapped()
+
+    #expect(uploadCalls.value == 0)
+    #expect(model.submissionPhase == .notStarted)
+  }
+
+  @Test func backButtonIsIgnoredWhileSubmitting() {
+    let model = makeSubmitModel(trailingDraft: .unchanged)
+    model.submissionPhase = .scheduling
+
+    model.backButtonTapped()
+
+    #expect(model.presentedAlert == nil)
+  }
+
+  // MARK: - Helpers
+
+  private func makeModel(
+    question: ListenerQuestion,
+    airQuestion: @escaping @MainActor (String) async throws -> Void
+  ) -> AMAAnswerQuestionPageModel {
+    withDependencies {
+      $0.audioPlayer = .testValue
+      $0.audioRecorder = .testValue
+      $0.voicetrackUploadService = .testValue
+    } operation: {
+      AMAAnswerQuestionPageModel(question: question, airQuestion: airQuestion)
+    }
+  }
+
+  /// Builds a model already in the review phase with a recording, wired so `addToShowButtonTapped`
+  /// runs the full submit pipeline. Each hook lets a test observe or fail a stage.
+  private func makeSubmitModel(
+    trailingDraft: AMATrailingSongDraft,
+    coordinator: MainContainerNavigationCoordinator = MainContainerNavigationCoordinator(),
+    configureCoordinator: () -> Void = {},
+    onUpload: @escaping @Sendable () -> Void = {},
+    onRegister: @escaping @Sendable () -> Void = {},
+    onTrailing: @escaping @Sendable (String?) -> Void = { _ in },
+    onAir: @escaping @Sendable () async throws -> Void = {}
+  ) -> AMAAnswerQuestionPageModel {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = coordinator
+
+    let model = withDependencies {
+      $0.audioPlayer = .testValue
+      $0.audioRecorder = .testValue
+      $0.voicetrackUploadService = VoicetrackUploadService(
+        processVoicetrack: { _, _, _, _ in
+          onUpload()
+          return .mockWith(id: "answer-block")
+        })
+      $0.api.registerListenerQuestionAnswer = { _, _, _, _ in
+        onRegister()
+        return .mock
+      }
+      $0.api.updateListenerQuestionTrailingAudioBlock = { _, _, _, trailingId in
+        onTrailing(trailingId)
+        return .mock
+      }
+    } operation: {
+      configureCoordinator()
+      let model = AMAAnswerQuestionPageModel(
+        question: .mockWith(id: "q1", stationId: "s1"),
+        airQuestion: { _ in try await onAir() })
+      model.recordingPhase = .review
+      model.recordingURL = recordingURL
+      model.trailingDraft = trailingDraft
+      return model
+    }
+    return model
+  }
+}

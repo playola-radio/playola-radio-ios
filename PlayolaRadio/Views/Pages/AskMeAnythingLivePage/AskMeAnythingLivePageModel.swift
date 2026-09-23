@@ -156,9 +156,17 @@ class AskMeAnythingLivePageModel: ViewModel {
   }
 
   func qaActionTapped() {
-    navigationCoordinator.push(
-      .broadcastersListenerQuestionPage(BroadcastersListenerQuestionPageModel(stationId: stationId))
+    let showId = broadcast.liveShowId
+    let picker = AMAQuestionPickerPageModel(
+      stationId: stationId,
+      showStartedAt: scheduledStartsAt,
+      airQuestion: { [weak self] questionId in
+        guard let self else { throw CancellationError() }
+        guard broadcast.liveShowId == showId else { throw CancellationError() }
+        try await airQuestion(questionId)
+      }
     )
+    navigationCoordinator.push(.amaQuestionPickerPage(picker))
   }
 
   func startShowButtonTapped() async {

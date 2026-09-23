@@ -403,6 +403,37 @@ struct APIClient: Sendable {
         ListenerQuestion.mock
       }
 
+  /// Sets (or clears) the permanent trailing AudioBlock a listener question's answer leads into.
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - questionId: The ID of the question
+  ///   - trailingAudioBlockId: The AudioBlock ID to lead into, or `nil` to clear (sent as JSON null)
+  /// - Returns: The updated ListenerQuestion
+  /// - Throws: APIError if the request fails
+  var updateListenerQuestionTrailingAudioBlock:
+    @Sendable (
+      _ jwtToken: String, _ stationId: String, _ questionId: String,
+      _ trailingAudioBlockId: String?
+    )
+      async throws -> ListenerQuestion = { _, _, _, _ in
+        ListenerQuestion.mock
+      }
+
+  /// Airs an answered listener question by inserting its question+answer (+trailing) group into
+  /// the live schedule. The server pulls the question/answer/trailing content.
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - listenerQuestionId: The ID of the question to air
+  ///   - placeAfterSpinId: The ID of the spin to place the Q&A group after
+  /// - Returns: Updated array of Spin objects representing the new schedule
+  /// - Throws: APIError if the request fails
+  var insertListenerQuestionSpin:
+    @Sendable (
+      _ jwtToken: String, _ listenerQuestionId: String, _ placeAfterSpinId: String
+    )
+      async throws -> [Spin] = { _, _, _ in [] }
+
   /// Declines a listener question
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication

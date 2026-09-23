@@ -20,6 +20,15 @@ private struct MoveSpinParameters: Encodable, Sendable {
   let placeAfterSpinId: String?
 }
 
+struct UpdateTrailingAudioBlockParameters: Encodable, Sendable {
+  let trailingAudioBlockId: String?
+  func encode(to encoder: any Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(trailingAudioBlockId, forKey: .trailingAudioBlockId)
+  }
+  private enum CodingKeys: String, CodingKey { case trailingAudioBlockId }
+}
+
 private struct CreateVoicetrackParameters: Encodable, Sendable {
   let s3Key: String
   let durationMS: Int
@@ -707,6 +716,78 @@ extension APIClient: DependencyKey {
           token: jwtToken,
           parameters: ["answerAudioBlockId": answerAudioBlockId]
         )
+      },
+      updateListenerQuestionTrailingAudioBlock: {
+        jwtToken, stationId, questionId, trailingAudioBlockId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/listener-questions/\(questionId)"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters = UpdateTrailingAudioBlockParameters(
+          trailingAudioBlockId: trailingAudioBlockId)
+
+        let dataResponse = await apiSession.request(
+          url,
+          method: .put,
+          parameters: parameters,
+          encoder: JSONParameterEncoder.default,
+          headers: headers
+        )
+        .serializingData()
+        .response
+
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw transportFailure(dataResponse.error)
+        }
+
+        guard let data = dataResponse.value else {
+          throw APIError.dataNotValid
+        }
+
+        if statusCode >= 200, statusCode < 300 {
+          return try isoDecoder.decode(ListenerQuestion.self, from: data)
+        } else {
+          let message =
+            parsePlayolaErrorMessage(from: data) ?? "Failed to update trailing audio"
+          throw APIError.validationError(message)
+        }
+      },
+      insertListenerQuestionSpin: { jwtToken, listenerQuestionId, placeAfterSpinId in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/spins"
+        @Shared(.registeredDeviceId) var registeredDeviceId
+        var headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        if let deviceId = registeredDeviceId {
+          headers.add(name: "X-Device-Id", value: deviceId)
+        }
+        let parameters: [String: String] = [
+          "listenerQuestionId": listenerQuestionId,
+          "placeAfterSpinId": placeAfterSpinId,
+        ]
+
+        let dataResponse = await apiSession.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .serializingData()
+        .response
+
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw transportFailure(dataResponse.error)
+        }
+
+        guard let data = dataResponse.value else {
+          throw APIError.dataNotValid
+        }
+
+        if statusCode >= 200, statusCode < 300 {
+          let spins = try isoDecoder.decode([Spin].self, from: data)
+          return spins
+        } else {
+          let message = parsePlayolaErrorMessage(from: data) ?? "Failed to air question"
+          throw APIError.validationError(message)
+        }
       },
       declineListenerQuestion: { jwtToken, stationId, questionId in
         try await authenticatedPost(

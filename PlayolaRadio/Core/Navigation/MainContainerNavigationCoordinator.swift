@@ -97,6 +97,8 @@ final class MainContainerNavigationCoordinator {
     case musicCategoryDetailPage(MusicCategoryDetailPageModel)
     case showsPage(ShowsPageModel)
     case askMeAnythingLivePage(AskMeAnythingLivePageModel)
+    case amaQuestionPickerPage(AMAQuestionPickerPageModel)
+    case amaAnswerQuestionPage(AMAAnswerQuestionPageModel)
     case recordWithMultiStepPromptPage(RecordWithMultiStepPromptModel)
 
     @MainActor @ViewBuilder
@@ -140,6 +142,10 @@ final class MainContainerNavigationCoordinator {
         ShowsPageView(model: model)
       case .askMeAnythingLivePage(let model):
         AskMeAnythingLivePageView(model: model)
+      case .amaQuestionPickerPage(let model):
+        AMAQuestionPickerPageView(model: model)
+      case .amaAnswerQuestionPage(let model):
+        AMAAnswerQuestionPageView(model: model)
       case .recordWithMultiStepPromptPage(let model):
         RecordWithMultiStepPromptView(model: model)
       }
@@ -182,6 +188,23 @@ final class MainContainerNavigationCoordinator {
 
   func popToRoot() {
     self.path.removeAll()
+  }
+
+  /// Pops the AMA question picker/answer sub-flow back to the live show page. Leaves the stack
+  /// untouched if no `.askMeAnythingLivePage` is present (nothing to return to).
+  func popToAskMeAnythingLive() {
+    guard
+      path.contains(where: {
+        if case .askMeAnythingLivePage = $0 { return true }
+        return false
+      })
+    else { return }
+    var newPath = path
+    while let last = newPath.last {
+      if case .askMeAnythingLivePage = last { break }
+      newPath.removeLast()
+    }
+    path = newPath
   }
 
   func switchToBroadcastMode(stationId: String) {
