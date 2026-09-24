@@ -34,7 +34,9 @@ class BroadcastPageModel: ViewModel {
   var visibleFillerIds: Set<String> = []
   private let providedStationName: String?
   private var fetchedStationName: String?
-  var schedule: Schedule?
+  var schedule: Schedule? {
+    didSet { scheduleRevision += 1 }
+  }
   var isLoading: Bool = false
   var spinIdsBeingRescheduled: Set<String> = []
   var spinIdsBeingDeleted: Set<String> = []
@@ -63,6 +65,8 @@ class BroadcastPageModel: ViewModel {
   var songSearchPageModel: SongSearchPageModel?
 
   @ObservationIgnored private var scheduleUpdateCancellable: AnyCancellable?
+  @ObservationIgnored private var latestScheduleRequestId = 0
+  @ObservationIgnored private var scheduleRevision = 0
 
   private let notificationCooldownSeconds: TimeInterval = 12 * 60 * 60
 
@@ -177,11 +181,7 @@ class BroadcastPageModel: ViewModel {
     defer { isLoading = false }
 
     do {
-      let spins = try await api.fetchSchedule(stationId, true)
-      schedule = Schedule(
-        stationId: stationId, spins: spins, dateProvider: DependencyDateProvider()
-      )
-      currentNowPlayingId = nowPlaying?.id
+      try await refreshScheduleAuthoritatively()
     } catch {
       presentedAlert = .errorLoadingSchedule
     }
@@ -189,14 +189,7 @@ class BroadcastPageModel: ViewModel {
 
   func refreshScheduleFromRemote(editorName: String? = nil) async {
     do {
-      let spins = try await api.fetchSchedule(stationId, true)
-      withAnimation(.easeInOut(duration: 0.3)) {
-        schedule = Schedule(
-          stationId: stationId, spins: spins, dateProvider: DependencyDateProvider()
-        )
-        reorderedSpinIds = nil
-        currentNowPlayingId = nowPlaying?.id
-      }
+      try await refreshScheduleAuthoritatively()
       if let editorName {
         await toast.show(
           PlayolaToast(
@@ -208,6 +201,22 @@ class BroadcastPageModel: ViewModel {
     } catch {
       // Silently fail - user's current view is still valid
     }
+  }
+
+  @discardableResult
+  func refreshScheduleAuthoritatively() async throws -> [Spin]? {
+    latestScheduleRequestId += 1
+    let requestId = latestScheduleRequestId
+    let spins = try await api.fetchSchedule(stationId, true)
+    guard requestId == latestScheduleRequestId else { return nil }
+    withAnimation(.easeInOut(duration: 0.3)) {
+      schedule = Schedule(
+        stationId: stationId, spins: spins, dateProvider: DependencyDateProvider()
+      )
+      reorderedSpinIds = nil
+      currentNowPlayingId = nowPlaying?.id
+    }
+    return spins
   }
 
   var nowPlaying: Spin? {
@@ -541,16 +550,23 @@ class BroadcastPageModel: ViewModel {
   func airListenerQuestion(questionId: String, placeAfterSpinId: String) async throws {
     guard let jwt = auth.jwt else { throw CancellationError() }
     let expectedShowId = liveShowId
+    let startingRevision = scheduleRevision
     let newSpins = try await api.insertListenerQuestionSpin(jwt, questionId, placeAfterSpinId)
     guard liveShowId == expectedShowId else { throw CancellationError() }
-    withAnimation(.easeInOut(duration: 0.3)) {
-      schedule = Schedule(
-        stationId: stationId,
-        spins: newSpins,
-        dateProvider: DependencyDateProvider()
-      )
-      reorderedSpinIds = nil
-      currentNowPlayingId = nowPlaying?.id
+    do {
+      try await refreshScheduleAuthoritatively()
+    } catch {
+      guard liveShowId == expectedShowId else { throw CancellationError() }
+      guard scheduleRevision == startingRevision else { return }
+      withAnimation(.easeInOut(duration: 0.3)) {
+        schedule = Schedule(
+          stationId: stationId,
+          spins: newSpins,
+          dateProvider: DependencyDateProvider()
+        )
+        reorderedSpinIds = nil
+        currentNowPlayingId = nowPlaying?.id
+      }
     }
   }
 

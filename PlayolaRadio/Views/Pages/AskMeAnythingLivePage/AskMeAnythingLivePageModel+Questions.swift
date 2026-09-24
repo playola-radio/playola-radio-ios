@@ -9,6 +9,7 @@ enum AMAAddToShowError: Error, LocalizedError, Equatable {
   /// The show the picker was opened against is no longer the one we'd add to (a show
   /// started/ended, or the account changed) — the answer is saved but wasn't added here.
   case destinationChanged
+  case airingUncertain
 
   var errorDescription: String? {
     switch self {
@@ -16,6 +17,9 @@ enum AMAAddToShowError: Error, LocalizedError, Equatable {
       return "Couldn\u{2019}t add — your show is updating. Try again in a moment."
     case .destinationChanged:
       return "Your answer was saved, but couldn\u{2019}t be added to this show."
+    case .airingUncertain:
+      return
+        "We couldn\u{2019}t confirm whether this was added. Refresh the show before trying again."
     }
   }
 }
@@ -33,7 +37,7 @@ extension AskMeAnythingLivePageModel {
       guard broadcast.liveShowId == capturedShowId else {
         throw AMAAddToShowError.destinationChanged
       }
-      try await airQuestion(questionAnswer.questionId)
+      try await airQuestion(questionAnswer)
     } else {
       guard !isStartingShow, !isCheckingSchedule else { throw AMAAddToShowError.showUpdating }
       guard broadcast.liveShowId == nil else { throw AMAAddToShowError.destinationChanged }
@@ -63,21 +67,103 @@ extension AskMeAnythingLivePageModel {
   /// child never believes it aired when it didn't. Serialized against queued-song scheduling via
   /// `isAddingToShow` (which `canAddQuestion` also excludes), so a double-tap or a concurrent song
   /// insert can't air twice.
-  func airQuestion(_ questionId: String) async throws {
+  func airQuestion(_ questionAnswer: AMAQuestionAnswer) async throws {
     guard let showId = broadcast.liveShowId, canAddQuestion else { throw CancellationError() }
-    guard let placeAfterSpinId = broadcast.placeAfterSpinIdForShowEnd() else {
-      throw CancellationError()
-    }
 
     isAddingToShow = true
     defer { isAddingToShow = false }
 
-    try await broadcast.airListenerQuestion(
-      questionId: questionId, placeAfterSpinId: placeAfterSpinId)
+    if let uncertain = uncertainQuestionAirings[questionAnswer.questionId] {
+      let didAir = try await reconcileUncertainAiring(
+        uncertain.answer, baselineSpinIds: uncertain.baselineSpinIds)
+      uncertainQuestionAirings[questionAnswer.questionId] = nil
+      if didAir {
+        await refreshListenerQuestionsAfterAiring()
+        updateLivePresentation()
+        return
+      }
+    }
+
+    guard let placeAfterSpinId = broadcast.placeAfterSpinIdForShowEnd() else {
+      throw CancellationError()
+    }
+
+    let baselineSpinIds = Set(broadcast.schedule?.spins.map(\.id) ?? [])
+    try await insertQuestionAnswer(
+      questionAnswer, placeAfterSpinId: placeAfterSpinId, baselineSpinIds: baselineSpinIds)
     guard broadcast.liveShowId == showId else { throw CancellationError() }
 
     await refreshListenerQuestionsAfterAiring()
     updateLivePresentation()
+  }
+
+  private func insertQuestionAnswer(
+    _ questionAnswer: AMAQuestionAnswer,
+    placeAfterSpinId: String,
+    baselineSpinIds: Set<String>
+  ) async throws {
+    do {
+      try await broadcast.airListenerQuestion(
+        questionId: questionAnswer.questionId, placeAfterSpinId: placeAfterSpinId)
+      uncertainQuestionAirings[questionAnswer.questionId] = nil
+    } catch let error as APIError {
+      switch error {
+      case .validationError, .liveShowUnavailable, .liveShowReplaced, .liveShowFinished:
+        throw error
+      case .dataNotValid, .serverError:
+        break
+      }
+      uncertainQuestionAirings[questionAnswer.questionId] = (
+        questionAnswer, baselineSpinIds
+      )
+      let didAir = try await reconcileUncertainAiring(
+        questionAnswer, baselineSpinIds: baselineSpinIds)
+      guard didAir else { throw AMAAddToShowError.airingUncertain }
+      uncertainQuestionAirings[questionAnswer.questionId] = nil
+    } catch is CancellationError {
+      throw CancellationError()
+    } catch {
+      uncertainQuestionAirings[questionAnswer.questionId] = (
+        questionAnswer, baselineSpinIds
+      )
+      let didAir = try await reconcileUncertainAiring(
+        questionAnswer, baselineSpinIds: baselineSpinIds)
+      guard didAir else { throw AMAAddToShowError.airingUncertain }
+      uncertainQuestionAirings[questionAnswer.questionId] = nil
+    }
+  }
+
+  private func reconcileUncertainAiring(
+    _ questionAnswer: AMAQuestionAnswer, baselineSpinIds: Set<String>
+  ) async throws -> Bool {
+    let spins: [Spin]
+    do {
+      guard let refreshed = try await broadcast.refreshScheduleAuthoritatively() else {
+        throw AMAAddToShowError.airingUncertain
+      }
+      spins = refreshed
+    } catch {
+      throw AMAAddToShowError.airingUncertain
+    }
+    return hasNewAiredPair(questionAnswer, in: spins, excluding: baselineSpinIds)
+  }
+
+  private func hasNewAiredPair(
+    _ questionAnswer: AMAQuestionAnswer, in spins: [Spin], excluding baselineSpinIds: Set<String>
+  ) -> Bool {
+    let matching =
+      spins.filter {
+        $0.liveShowId == broadcast.liveShowId
+          && ($0.audioBlock.id == questionAnswer.questionBlock.id
+            || $0.audioBlock.id == questionAnswer.answerBlock.id)
+      }
+    guard matching.contains(where: { !baselineSpinIds.contains($0.id) }) else { return false }
+    let grouped = Dictionary(grouping: matching, by: \.spinGroupId)
+    return grouped.contains { groupId, spins in
+      groupId != nil
+        && spins.contains { $0.audioBlock.id == questionAnswer.questionBlock.id }
+        && spins.contains { $0.audioBlock.id == questionAnswer.answerBlock.id }
+    }
   }
 
   /// Best-effort refresh so `liveRows` can group the freshly aired Q&A pair under the listener's

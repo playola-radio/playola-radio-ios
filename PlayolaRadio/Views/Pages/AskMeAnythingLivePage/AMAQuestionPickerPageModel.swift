@@ -66,6 +66,7 @@ class AMAQuestionPickerPageModel: ViewModel {
   let newThisShowText = "New this show"
   let missingTranscriptionText = "No transcription available"
   let unknownListenerText = "Listener"
+  let declineButtonText = "Decline"
 
   var questions: IdentifiedArrayOf<ListenerQuestion> = []
   var selectedFilter: AMAQuestionFilter = .all
@@ -73,6 +74,7 @@ class AMAQuestionPickerPageModel: ViewModel {
   var playingQuestionId: String?
   var isLoading = false
   var airingQuestionId: String?
+  var decliningQuestionIds: Set<String> = []
   var presentedAlert: PlayolaAlert?
 
   var emptyStateTitle: String {
@@ -91,7 +93,7 @@ class AMAQuestionPickerPageModel: ViewModel {
     }
   }
 
-  var filteredQuestions: [ListenerQuestion] {
+  var filteredQuestions: IdentifiedArrayOf<ListenerQuestion> {
     let matching = questions.filter { question in
       switch selectedFilter {
       case .all: return question.status != .declined
@@ -99,7 +101,7 @@ class AMAQuestionPickerPageModel: ViewModel {
       case .answered: return question.status == .answered
       }
     }
-    return matching.sorted { $0.createdAt > $1.createdAt }
+    return IdentifiedArray(uniqueElements: matching.sorted { $0.createdAt > $1.createdAt })
   }
 
   var showEmptyState: Bool { !isLoading && filteredQuestions.isEmpty }
@@ -171,6 +173,22 @@ class AMAQuestionPickerPageModel: ViewModel {
     }
   }
 
+  func declineQuestionSwiped(_ question: ListenerQuestion) async {
+    guard
+      let jwt = auth.jwt,
+      canDecline(question),
+      airingQuestionId == nil,
+      decliningQuestionIds.insert(question.id).inserted
+    else { return }
+    defer { decliningQuestionIds.remove(question.id) }
+    do {
+      questions[id: question.id] = try await api.declineListenerQuestion(
+        jwt, stationId, question.id)
+    } catch {
+      presentedAlert = .declineQuestionError(error.localizedDescription)
+    }
+  }
+
   // MARK: - View Helpers
 
   func isExpanded(_ questionId: String) -> Bool {
@@ -195,6 +213,10 @@ class AMAQuestionPickerPageModel: ViewModel {
 
   func isAnswered(_ question: ListenerQuestion) -> Bool {
     question.status == .answered
+  }
+
+  func canDecline(_ question: ListenerQuestion) -> Bool {
+    question.status == .pending
   }
 
   func isNewThisShow(_ question: ListenerQuestion) -> Bool {

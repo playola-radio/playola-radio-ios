@@ -97,6 +97,10 @@ class AMAAnswerQuestionPageModel: ViewModel {
   var recordingPhase: AnswerRecordingPhase = .idle
   var recordingState: RecordingState = .idle
   @ObservationIgnored private var recordingSession: RecordingSession?
+  @ObservationIgnored private var isStoppingRecording = false
+  @ObservationIgnored private var isCancellingRecording = false
+  @ObservationIgnored private var shouldDiscardRecordingAfterStop = false
+  @ObservationIgnored private var recordingLifecycleId = 0
   var recordingURL: URL?
   private var answerDurationSeconds: TimeInterval = 0
 
@@ -250,7 +254,7 @@ class AMAAnswerQuestionPageModel: ViewModel {
 
   /// The re-record action only exists while recording a fresh answer; an already-answered question
   /// is immutable, so the row collapses in `.reviewAnswer`.
-  var showReRecord: Bool { mode == .record }
+  var showReRecord: Bool { mode == .record && !hasRegisteredAnswer }
   var reRecordOpacity: Double { showReRecord ? 1 : 0 }
   var reRecordHeight: CGFloat { showReRecord ? 44 : 0 }
   var reRecordInteractive: Bool { showReRecord && controlsInteractive }
@@ -394,7 +398,9 @@ class AMAAnswerQuestionPageModel: ViewModel {
     switch recordingPhase {
     case .idle: await startRecording()
     case .recording: await stopRecording()
-    case .review: await reRecord()
+    case .review:
+      guard !hasRegisteredAnswer else { return }
+      await reRecord()
     }
   }
 
@@ -466,41 +472,72 @@ class AMAAnswerQuestionPageModel: ViewModel {
   // MARK: - Private Recording Logic
 
   private func startRecording() async {
+    let lifecycleId = recordingLifecycleId
+    recordingPhase = .recording
     await stopQuestionPlayback()
     await stopAnswerPlayback()
     do {
-      recordingSession = try await audioRecorder.startRecordingWithUpdates { [weak self] state in
+      let session = try await audioRecorder.startRecordingWithUpdates { [weak self] state in
         guard let self else { return }
         recordingState = state
         if recordingPhase == .recording, state.currentTime >= maxAnswerSeconds {
           Task { await self.stopRecording() }
         }
       }
-      recordingPhase = .recording
+      guard lifecycleId == recordingLifecycleId else {
+        await session.cancel()
+        return
+      }
+      recordingSession = session
     } catch AudioRecorderError.permissionDenied {
+      recordingPhase = .idle
       presentedAlert = .microphonePermissionDeniedAlert
     } catch {
+      recordingPhase = .idle
       presentedAlert = .recordingFailedAlert(error.localizedDescription)
     }
   }
 
   private func stopRecording() async {
-    guard recordingPhase == .recording else { return }
+    guard recordingPhase == .recording, recordingSession != nil, !isStoppingRecording else {
+      return
+    }
+    isStoppingRecording = true
+    defer { isStoppingRecording = false }
     let recordedSeconds = recordingState.currentTime
     do {
       let url = try await recordingSession?.stop()
+      if shouldDiscardRecordingAfterStop {
+        if let url { await audioRecorder.deleteRecording(url) }
+        recordingURL = nil
+        recordingState = .idle
+        recordingSession = nil
+        recordingPhase = .idle
+        answerDurationSeconds = 0
+        shouldDiscardRecordingAfterStop = false
+        return
+      }
       recordingURL = url
       answerDurationSeconds = min(recordedSeconds, maxAnswerSeconds)
       recordingSession = nil
       recordingPhase = .review
     } catch {
-      presentedAlert = .recordingFailedAlert(error.localizedDescription)
+      if shouldDiscardRecordingAfterStop {
+        recordingURL = nil
+        recordingState = .idle
+        recordingSession = nil
+        recordingPhase = .idle
+        answerDurationSeconds = 0
+        shouldDiscardRecordingAfterStop = false
+      } else {
+        presentedAlert = .recordingFailedAlert(error.localizedDescription)
+      }
     }
   }
 
   private func reRecord() async {
     await stopAnswerPlayback()
-    if let url = recordingURL { await recordingSession?.delete(url) }
+    if let url = recordingURL { await audioRecorder.deleteRecording(url) }
     recordingURL = nil
     recordingState = .idle
     recordingPhase = .idle
@@ -541,6 +578,10 @@ class AMAAnswerQuestionPageModel: ViewModel {
       try await addToShow(payload)
       hasAired = true
       submissionPhase = .completed
+      if mode == .record, let url = recordingURL {
+        await audioRecorder.deleteRecording(url)
+        recordingURL = nil
+      }
       navigationCoordinator.popToAskMeAnythingLive()
     } catch is CancellationError {
       submissionPhase = .failed(error: "Your answer was saved, but couldn't be added to this show.")
@@ -616,9 +657,10 @@ class AMAAnswerQuestionPageModel: ViewModel {
       trailingDraft = .selected(audioBlock)
     }
     picker.onDismiss = { [weak self] in
-      self?.navigationCoordinator.presentedSheet = nil
+      guard let self else { return }
+      $navigationCoordinator.withLock { $0.presentedSheet = nil }
     }
-    navigationCoordinator.presentedSheet = .curatorSongPicker(picker)
+    $navigationCoordinator.withLock { $0.presentedSheet = .curatorSongPicker(picker) }
   }
 
   private func navigateBack() async {
@@ -642,10 +684,24 @@ class AMAAnswerQuestionPageModel: ViewModel {
   }
 
   private func stopAllPlayback() async {
+    recordingLifecycleId &+= 1
     await stopQuestionPlayback()
     await stopAnswerPlayback()
+    guard !isStoppingRecording else {
+      shouldDiscardRecordingAfterStop = true
+      return
+    }
+    guard !isCancellingRecording else { return }
+    isCancellingRecording = true
+    defer { isCancellingRecording = false }
     await recordingSession?.cancel()
     recordingSession = nil
+    if recordingPhase == .recording {
+      recordingPhase = .idle
+      recordingState = .idle
+      recordingURL = nil
+      answerDurationSeconds = 0
+    }
   }
 
   private func formatTime(_ seconds: TimeInterval) -> String {

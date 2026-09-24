@@ -70,6 +70,59 @@ struct AMAQuestionPickerPageTests {
     expectNoDifference(model.filterPillsOpacity, 1)
   }
 
+  @Test func decliningAPendingQuestionUpdatesTheIdentifiedQuestion() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let pending = ListenerQuestion.mockWith(id: "pending", status: .pending)
+    let declined = ListenerQuestion.mockWith(id: "pending", status: .declined)
+    let model = withDependencies {
+      $0.api.declineListenerQuestion = { jwt, stationId, questionId in
+        expectNoDifference([jwt, stationId, questionId], ["jwt", self.stationId, "pending"])
+        return declined
+      }
+    } operation: {
+      AMAQuestionPickerPageModel(
+        stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
+    }
+    model.questions = [pending]
+
+    await model.declineQuestionSwiped(pending)
+
+    expectNoDifference(model.questions[id: "pending"]?.status, .declined)
+    #expect(!model.canDecline(declined))
+  }
+
+  @Test func decliningAQuestionTwiceWhileTheRequestIsInFlightOnlySendsOnce() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let pending = ListenerQuestion.mockWith(id: "pending", status: .pending)
+    let declined = ListenerQuestion.mockWith(id: "pending", status: .declined)
+    let calls = LockIsolated(0)
+    let started = AsyncStream<Void>.makeStream()
+    let release = AsyncStream<Void>.makeStream()
+    let model = withDependencies {
+      $0.api.declineListenerQuestion = { _, _, _ in
+        calls.withValue { $0 += 1 }
+        started.continuation.yield()
+        var iterator = release.stream.makeAsyncIterator()
+        await iterator.next()
+        return declined
+      }
+    } operation: {
+      AMAQuestionPickerPageModel(
+        stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
+    }
+    model.questions = [pending]
+
+    let first = Task { await model.declineQuestionSwiped(pending) }
+    var startedIterator = started.stream.makeAsyncIterator()
+    await startedIterator.next()
+    await model.declineQuestionSwiped(pending)
+    release.continuation.yield()
+    await first.value
+
+    expectNoDifference(calls.value, 1)
+    expectNoDifference(model.questions[id: "pending"]?.status, .declined)
+  }
+
   @Test func marksQuestionsCreatedAfterShowStartAsNewThisShow() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let showStart = baseDate.addingTimeInterval(-100)

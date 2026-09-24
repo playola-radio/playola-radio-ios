@@ -335,16 +335,17 @@ insert/move spins with the active show ID already exist on the server's
 `develop` (confirmed at `365e2cc1` in the `playola` repo). No further server
 work is required for this PR.
 
-**Advance when:** PR #434 merges to `develop`. No soak — standard release,
-no environment gating, no server gate remaining.
+**Advance when:** PRs #434 and #437 merge to `develop`. No soak — standard
+release, no environment gating, no server gate remaining.
 
-**Follow-on (branch `briankeane/ask-me-anything-flow`):** two client-only host
-refinements on top of #434 — (1) tapping an already-answered question now opens
+**Follow-on (branch `briankeane/ask-me-anything-flow`, PR #437):** client-only
+host refinements on top of #434 — (1) tapping an already-answered question now opens
 a **read-only review screen** (view/play the existing answer, set/change/remove
 the trailing song, "Add to Show") instead of re-recording and airing directly;
 (2) the **pre-show "Add to Show" now works** by staging the answered Q&A into the
 opening playlist and appending its block ids (question → answer → [trailing]) to
-the flat `audioBlockIds` sent to Start Show.
+the flat `audioBlockIds` sent to Start Show; (3) restoring question decline and
+guarding live Q&A insertion against duplicate submissions and stale schedules.
 
 **Deferred — server-side Q&A grouping (Option A):** the pre-show path is
 intentionally **flat** (D2): a staged Q&A airs as separate, independently-editable
@@ -354,7 +355,7 @@ still groups via `insertListenerQuestionSpin`. Making pre-show Q&As air as one
 grouped unit needs a server change (accept grouped blocks at Start Show) and is a
 future item; not scheduled.
 
-**Links:** PR #434 (this repo) · plan
+**Links:** PR #434 · PR #437 (this repo) · plan
 `design/features/ama-live-show/implementation-plan.md`.
 
 ---

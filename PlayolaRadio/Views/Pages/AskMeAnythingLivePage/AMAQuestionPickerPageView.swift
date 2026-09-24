@@ -100,6 +100,16 @@ struct AMAQuestionPickerPageView: View {
           .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
           .listRowBackground(Color.clear)
           .listRowSeparator(.hidden)
+          .swipeActions(edge: .trailing, allowsFullSwipe: model.canDecline(question)) {
+            if model.canDecline(question) {
+              Button(role: .destructive) {
+                Task { await model.declineQuestionSwiped(question) }
+              } label: {
+                Label(model.declineButtonText, systemImage: "xmark.circle")
+              }
+              .tint(Color.error)
+            }
+          }
       }
     }
     .listStyle(.plain)
@@ -187,6 +197,7 @@ private struct AMAQuestionRow: View {
       .frame(minWidth: 44, minHeight: 44)
       .contentShape(Rectangle())
     }
+    .buttonStyle(.borderless)
   }
 
   private var transcriptSection: some View {
@@ -220,6 +231,7 @@ private struct AMAQuestionRow: View {
           .rotationEffect(.degrees(model.expandChevronRotation(question.id)))
       }
     }
+    .buttonStyle(.borderless)
   }
 }
 

@@ -139,6 +139,10 @@ struct AMAAnswerQuestionPageTests {
     #expect(
       model.submissionPhase
         == .failed(error: NSError(domain: "offline", code: 1).localizedDescription))
+    #expect(!model.showReRecord)
+
+    await model.recordButtonTapped()
+    expectNoDifference(model.recordingPhase, .review)
 
     await model.addToShowButtonTapped()
 
@@ -216,6 +220,155 @@ struct AMAAnswerQuestionPageTests {
     #expect(model.presentedAlert == nil)
   }
 
+  @Test func disappearingWhileRecordingCancelsAndResetsRecordingState() async {
+    let cancelled = LockIsolated(0)
+    let model = withDependencies {
+      $0.audioRecorder = AudioRecorderClient(
+        requestPermission: { true }, prepareForRecording: {}, startRecording: {},
+        stopRecording: { self.recordingURL }, currentTime: { 0 }, deleteRecording: { _ in },
+        getAudioLevel: { 0 },
+        startRecordingWithUpdates: { _ in
+          RecordingSession(
+            stop: { self.recordingURL },
+            cancel: { cancelled.withValue { $0 += 1 } }, delete: { _ in })
+        })
+    } operation: {
+      AMAAnswerQuestionPageModel(question: .mock, addToShow: noopAdd)
+    }
+
+    await model.recordButtonTapped()
+    await model.viewDisappeared()
+
+    expectNoDifference(cancelled.value, 1)
+    expectNoDifference(model.recordingPhase, .idle)
+    expectNoDifference(model.recordingState, .idle)
+    expectNoDifference(model.recordingURL, nil)
+  }
+
+  @Test func disappearingWhileRecordingStartsCancelsTheLateSession() async {
+    let cancelled = LockIsolated(0)
+    let started = AsyncStream<Void>.makeStream()
+    let release = AsyncStream<Void>.makeStream()
+    let model = withDependencies {
+      $0.audioRecorder.startRecordingWithUpdates = { _ in
+        started.continuation.yield()
+        var iterator = release.stream.makeAsyncIterator()
+        await iterator.next()
+        return RecordingSession(
+          stop: { self.recordingURL },
+          cancel: { cancelled.withValue { $0 += 1 } },
+          delete: { _ in })
+      }
+    } operation: {
+      AMAAnswerQuestionPageModel(question: .mock, addToShow: noopAdd)
+    }
+
+    let recording = Task { await model.recordButtonTapped() }
+    var startedIterator = started.stream.makeAsyncIterator()
+    await startedIterator.next()
+    await model.viewDisappeared()
+    release.continuation.yield()
+    await recording.value
+
+    expectNoDifference(cancelled.value, 1)
+    expectNoDifference(model.recordingPhase, .idle)
+  }
+
+  @Test func overlappingStopsOnlyStopTheRecordingSessionOnce() async {
+    let stopCalls = LockIsolated(0)
+    let gate = AsyncStream<Void>.makeStream()
+    let started = AsyncStream<Void>.makeStream()
+    let model = withDependencies {
+      $0.audioRecorder.startRecordingWithUpdates = { _ in
+        RecordingSession(
+          stop: {
+            stopCalls.withValue { $0 += 1 }
+            started.continuation.yield(())
+            var iterator = gate.stream.makeAsyncIterator()
+            await iterator.next()
+            return self.recordingURL
+          }, cancel: {}, delete: { _ in })
+      }
+    } operation: {
+      AMAAnswerQuestionPageModel(question: .mock, addToShow: noopAdd)
+    }
+
+    await model.recordButtonTapped()
+    let firstStop = Task { await model.recordButtonTapped() }
+    var startedIterator = started.stream.makeAsyncIterator()
+    await startedIterator.next()
+    await model.recordButtonTapped()
+    gate.continuation.yield(())
+    await firstStop.value
+
+    expectNoDifference(stopCalls.value, 1)
+    expectNoDifference(model.recordingPhase, .review)
+  }
+
+  @Test func stopTappedWhileRecordingStartsDoesNotEnterAnEmptyReview() async {
+    let stopCalls = LockIsolated(0)
+    let started = AsyncStream<Void>.makeStream()
+    let release = AsyncStream<Void>.makeStream()
+    let model = withDependencies {
+      $0.audioRecorder.startRecordingWithUpdates = { _ in
+        started.continuation.yield()
+        var iterator = release.stream.makeAsyncIterator()
+        await iterator.next()
+        return RecordingSession(
+          stop: {
+            stopCalls.withValue { $0 += 1 }
+            return self.recordingURL
+          }, cancel: {}, delete: { _ in })
+      }
+    } operation: {
+      AMAAnswerQuestionPageModel(question: .mock, addToShow: noopAdd)
+    }
+
+    let starting = Task { await model.recordButtonTapped() }
+    var startedIterator = started.stream.makeAsyncIterator()
+    await startedIterator.next()
+    await model.recordButtonTapped()
+    expectNoDifference(model.recordingPhase, .recording)
+    expectNoDifference(model.recordingURL, nil)
+
+    release.continuation.yield()
+    await starting.value
+    await model.recordButtonTapped()
+
+    expectNoDifference(stopCalls.value, 1)
+    expectNoDifference(model.recordingPhase, .review)
+    expectNoDifference(model.recordingURL, recordingURL)
+  }
+
+  @Test func reRecordingDeletesTheCompletedRecording() async {
+    let deleted = LockIsolated<[URL]>([])
+    let model = withDependencies {
+      $0.audioRecorder.deleteRecording = { url in
+        deleted.withValue { $0.append(url) }
+      }
+    } operation: {
+      AMAAnswerQuestionPageModel(question: .mock, addToShow: noopAdd)
+    }
+    model.recordingPhase = .review
+    model.recordingURL = recordingURL
+
+    await model.recordButtonTapped()
+
+    expectNoDifference(deleted.value, [recordingURL])
+    expectNoDifference(model.recordingPhase, .idle)
+  }
+
+  @Test func successfulSubmitDeletesTheCompletedRecording() async {
+    let deleted = LockIsolated<[URL]>([])
+    let model = makeSubmitModel(
+      trailingDraft: .unchanged,
+      onDelete: { url in deleted.withValue { $0.append(url) } })
+
+    await model.addToShowButtonTapped()
+
+    expectNoDifference(deleted.value, [recordingURL])
+  }
+
   // MARK: - Helpers
 
   private func makeModel(
@@ -238,6 +391,7 @@ struct AMAAnswerQuestionPageTests {
     existingTrailing: AudioBlock? = nil,
     coordinator: MainContainerNavigationCoordinator = MainContainerNavigationCoordinator(),
     configureCoordinator: () -> Void = {},
+    onDelete: @escaping @Sendable (URL) -> Void = { _ in },
     onUpload: @escaping @Sendable () -> Void = {},
     onRegister: @escaping @Sendable () -> Void = {},
     onTrailing: @escaping @Sendable (String?) -> Void = { _ in },
@@ -249,6 +403,7 @@ struct AMAAnswerQuestionPageTests {
     let model = withDependencies {
       $0.audioPlayer = .testValue
       $0.audioRecorder = .testValue
+      $0.audioRecorder.deleteRecording = onDelete
       $0.voicetrackUploadService = VoicetrackUploadService(
         processVoicetrack: { _, _, _, _ in
           onUpload()

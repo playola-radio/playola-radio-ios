@@ -69,6 +69,8 @@ class AskMeAnythingLivePageModel: ViewModel {
   var failedSchedulingItemIds: Set<String> = []
   var pendingPredecessors: [String: [String]] = [:]
   var effectiveEndsAt: Date?
+  @ObservationIgnored var uncertainQuestionAirings:
+    [String: (answer: AMAQuestionAnswer, baselineSpinIds: Set<String>)] = [:]
 
   var presentedAlert: PlayolaAlert? {
     get { broadcast.presentedAlert }

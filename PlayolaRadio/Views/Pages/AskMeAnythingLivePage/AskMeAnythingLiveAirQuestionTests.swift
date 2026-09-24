@@ -22,6 +22,9 @@ struct AskMeAnythingLiveAirQuestionTests {
   private func makeLiveAirModel(
     now: Date,
     insert: @escaping @Sendable (String, String, String) async throws -> [Spin],
+    fetchSchedule: @escaping @Sendable (String, Bool) async throws -> [Spin] = { _, _ in
+      Self.airedPair(now: Date(timeIntervalSince1970: 1_000_000))
+    },
     getQuestions: @escaping @Sendable (String, String) async throws -> [ListenerQuestion] = {
       _, _ in []
     }
@@ -29,6 +32,7 @@ struct AskMeAnythingLiveAirQuestionTests {
     withDependencies {
       $0.date.now = now
       $0.api.insertListenerQuestionSpin = insert
+      $0.api.fetchSchedule = fetchSchedule
       $0.api.getListenerQuestions = getQuestions
     } operation: {
       let model = AskMeAnythingLivePageModel(stationId: testStationId)
@@ -76,7 +80,7 @@ struct AskMeAnythingLiveAirQuestionTests {
     try await withDependencies {
       $0.date.now = now
     } operation: {
-      try await model.airQuestion("question-1")
+      try await model.airQuestion(Self.qaPayload(questionId: "question-1"))
 
       expectNoDifference(insertArgs.value, ["test-jwt", "question-1", "current"])
       expectNoDifference(
@@ -92,14 +96,14 @@ struct AskMeAnythingLiveAirQuestionTests {
     let refreshed = LockIsolated(false)
     let model = makeLiveAirModel(
       now: now,
-      insert: { _, _, _ in throw APIError.dataNotValid },
+      insert: { _, _, _ in throw APIError.validationError("rejected") },
       getQuestions: { _, _ in
         refreshed.setValue(true)
         return []
       })
 
     await #expect(throws: APIError.self) {
-      try await model.airQuestion("question-1")
+      try await model.airQuestion(Self.qaPayload(questionId: "question-1"))
     }
     #expect(!refreshed.value)
     expectNoDifference(model.broadcast.upcomingSpins.map(\.id), [])
@@ -119,7 +123,7 @@ struct AskMeAnythingLiveAirQuestionTests {
     model.isAddingToShow = true
 
     await #expect(throws: CancellationError.self) {
-      try await model.airQuestion("question-1")
+      try await model.airQuestion(Self.qaPayload(questionId: "question-1"))
     }
     expectNoDifference(insertCalls.value, 0)
   }
@@ -137,7 +141,7 @@ struct AskMeAnythingLiveAirQuestionTests {
     model.broadcast.liveShowId = nil
 
     await #expect(throws: CancellationError.self) {
-      try await model.airQuestion("question-1")
+      try await model.airQuestion(Self.qaPayload(questionId: "question-1"))
     }
     expectNoDifference(insertCalls.value, 0)
   }
@@ -152,18 +156,139 @@ struct AskMeAnythingLiveAirQuestionTests {
         insertCalls.withValue { $0 += 1 }
         return Self.airedPair(now: now)
       },
+      fetchSchedule: { _, _ in throw APIError.dataNotValid },
       getQuestions: { _, _ in throw APIError.dataNotValid })
 
     try await withDependencies {
       $0.date.now = now
     } operation: {
-      try await model.airQuestion("question-1")
+      try await model.airQuestion(Self.qaPayload(questionId: "question-1"))
 
       expectNoDifference(insertCalls.value, 1)
       expectNoDifference(
         model.broadcast.upcomingSpins.map(\.id), ["aired-question", "aired-answer"])
       #expect(model.presentedAlert == nil)
     }
+  }
+
+  @Test func uncertainInsertFailureReconcilesWithoutBlindlyReposting() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    let insertCalls = LockIsolated(0)
+    let model = makeLiveAirModel(
+      now: now,
+      insert: { _, _, _ in
+        insertCalls.withValue { $0 += 1 }
+        throw APIError.serverError("gateway timeout")
+      },
+      fetchSchedule: { _, _ in throw APIError.dataNotValid })
+    let payload = Self.qaPayload(questionId: "question-1")
+
+    await #expect(throws: AMAAddToShowError.airingUncertain) {
+      try await model.airQuestion(payload)
+    }
+    await #expect(throws: AMAAddToShowError.airingUncertain) {
+      try await model.airQuestion(payload)
+    }
+
+    expectNoDifference(insertCalls.value, 1)
+  }
+
+  @Test func explicitRetryRepostsAfterTwoAuthoritativeSchedulesShowNoPair() async throws {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    let insertCalls = LockIsolated(0)
+    let fetchCalls = LockIsolated(0)
+    let unchangedSchedule = [
+      Spin.mockWith(
+        id: "current", airtime: now.addingTimeInterval(-30),
+        audioBlock: .mockWith(endOfMessageMS: 120_000), liveShowId: "show"),
+      Spin.mockWith(
+        id: "filler", airtime: now.addingTimeInterval(150),
+        audioBlock: .mockWith(endOfMessageMS: 185_000), liveShowId: "show", isFiller: true),
+    ]
+    let model = makeLiveAirModel(
+      now: now,
+      insert: { _, _, _ in
+        let attempt = insertCalls.withValue {
+          $0 += 1
+          return $0
+        }
+        if attempt == 1 { throw APIError.dataNotValid }
+        return Self.airedPair(now: now)
+      },
+      fetchSchedule: { _, _ in
+        let attempt = fetchCalls.withValue {
+          $0 += 1
+          return $0
+        }
+        return attempt < 3 ? unchangedSchedule : Self.airedPair(now: now)
+      })
+    let payload = Self.qaPayload(questionId: "question-1")
+
+    try await withDependencies {
+      $0.date.now = now
+    } operation: {
+      await #expect(throws: AMAAddToShowError.airingUncertain) {
+        try await model.airQuestion(payload)
+      }
+      try await model.airQuestion(payload)
+    }
+
+    expectNoDifference(insertCalls.value, 2)
+    expectNoDifference(fetchCalls.value, 3)
+    expectNoDifference(model.broadcast.upcomingSpins.map(\.id), ["aired-question", "aired-answer"])
+  }
+
+  @Test func overtakenReconciliationDoesNotRepostFromAnOldSchedule() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    let insertCalls = LockIsolated(0)
+    let fetchCalls = LockIsolated(0)
+    let reconcileStarted = AsyncStream<Void>.makeStream()
+    let releaseReconcile = AsyncStream<Void>.makeStream()
+    let unchangedSchedule = [
+      Spin.mockWith(
+        id: "current", airtime: now.addingTimeInterval(-30),
+        audioBlock: .mockWith(endOfMessageMS: 120_000), liveShowId: "show"),
+      Spin.mockWith(
+        id: "filler", airtime: now.addingTimeInterval(150),
+        audioBlock: .mockWith(endOfMessageMS: 185_000), liveShowId: "show", isFiller: true),
+    ]
+    let model = makeLiveAirModel(
+      now: now,
+      insert: { _, _, _ in
+        insertCalls.withValue { $0 += 1 }
+        throw APIError.dataNotValid
+      },
+      fetchSchedule: { _, _ in
+        let attempt = fetchCalls.withValue {
+          $0 += 1
+          return $0
+        }
+        if attempt == 1 { throw APIError.dataNotValid }
+        if attempt == 2 {
+          reconcileStarted.continuation.yield(())
+          var iterator = releaseReconcile.stream.makeAsyncIterator()
+          await iterator.next()
+        }
+        return unchangedSchedule
+      })
+    let payload = Self.qaPayload(questionId: "question-1")
+
+    await #expect(throws: AMAAddToShowError.airingUncertain) {
+      try await model.airQuestion(payload)
+    }
+    let retry = Task { try await model.airQuestion(payload) }
+    var startedIterator = reconcileStarted.stream.makeAsyncIterator()
+    await startedIterator.next()
+    await model.broadcast.refreshScheduleFromRemote()
+    releaseReconcile.continuation.yield(())
+
+    await #expect(throws: AMAAddToShowError.airingUncertain) {
+      try await retry.value
+    }
+    expectNoDifference(insertCalls.value, 1)
   }
 
   @Test func qaActionTappedPushesPickerWiredToAir() async throws {

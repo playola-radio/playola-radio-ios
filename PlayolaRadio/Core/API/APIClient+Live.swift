@@ -786,6 +786,9 @@ extension APIClient: DependencyKey {
           return spins
         } else {
           let message = parsePlayolaErrorMessage(from: data) ?? "Failed to air question"
+          if statusCode >= 500 {
+            throw APIError.serverError(message)
+          }
           throw APIError.validationError(message)
         }
       },

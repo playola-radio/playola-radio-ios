@@ -1021,6 +1021,7 @@ struct EndLiveShowResponse: Decodable, Equatable, Sendable {
 enum APIError: Error, LocalizedError {
   case dataNotValid
   case validationError(String)
+  case serverError(String)
   case liveShowUnavailable(delayUntil: Date?)
   case liveShowReplaced
   case liveShowFinished
@@ -1030,6 +1031,8 @@ enum APIError: Error, LocalizedError {
     case .dataNotValid:
       return "Invalid data received from server"
     case .validationError(let message):
+      return message
+    case .serverError(let message):
       return message
     case .liveShowUnavailable:
       return "This station can\u{2019}t go live right now."
