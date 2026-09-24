@@ -20,14 +20,14 @@ struct AMAAnswerQuestionPageTests {
 
   private let recordingURL = URL(fileURLWithPath: "/tmp/answer.wav")
 
-  private func noopAir(_ id: String) async throws {}
+  private func noopAdd(_ qa: AMAQuestionAnswer) async throws {}
 
   // MARK: - Trailing Song Display
 
   @Test func displayedTrailingSongReflectsDraft() {
     let existing = AudioBlock.mockWith(id: "existing")
     let question = ListenerQuestion.mockWith(trailingAudioBlock: existing)
-    let model = makeModel(question: question, airQuestion: noopAir)
+    let model = makeModel(question: question, addToShow: noopAdd)
 
     #expect(model.displayedTrailingSong?.id == "existing")
     #expect(!model.showAddSongButton)
@@ -60,6 +60,7 @@ struct AMAAnswerQuestionPageTests {
     let capturedTrailing = LockIsolated<String??>(nil)
     let model = makeSubmitModel(
       trailingDraft: .cleared,
+      existingTrailing: .mockWith(id: "old"),
       onTrailing: { id in capturedTrailing.setValue(id) })
 
     await model.addToShowButtonTapped()
@@ -106,7 +107,7 @@ struct AMAAnswerQuestionPageTests {
         coordinator.push(.askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "s1")))
         coordinator.push(
           .amaQuestionPickerPage(
-            AMAQuestionPickerPageModel(stationId: "s1", showStartedAt: nil, airQuestion: { _ in })))
+            AMAQuestionPickerPageModel(stationId: "s1", showStartedAt: nil, addToShow: { _ in })))
       })
 
     await model.addToShowButtonTapped()
@@ -182,7 +183,7 @@ struct AMAAnswerQuestionPageTests {
           return .mockWith(id: "a")
         })
     } operation: {
-      AMAAnswerQuestionPageModel(question: .mock, airQuestion: { _ in })
+      AMAAnswerQuestionPageModel(question: .mock, addToShow: { _ in })
     }
     model.recordingPhase = .review
     model.recordingURL = recordingURL
@@ -219,14 +220,14 @@ struct AMAAnswerQuestionPageTests {
 
   private func makeModel(
     question: ListenerQuestion,
-    airQuestion: @escaping @MainActor (String) async throws -> Void
+    addToShow: @escaping @MainActor (AMAQuestionAnswer) async throws -> Void
   ) -> AMAAnswerQuestionPageModel {
     withDependencies {
       $0.audioPlayer = .testValue
       $0.audioRecorder = .testValue
       $0.voicetrackUploadService = .testValue
     } operation: {
-      AMAAnswerQuestionPageModel(question: question, airQuestion: airQuestion)
+      AMAAnswerQuestionPageModel(question: question, addToShow: addToShow)
     }
   }
 
@@ -234,6 +235,7 @@ struct AMAAnswerQuestionPageTests {
   /// runs the full submit pipeline. Each hook lets a test observe or fail a stage.
   private func makeSubmitModel(
     trailingDraft: AMATrailingSongDraft,
+    existingTrailing: AudioBlock? = nil,
     coordinator: MainContainerNavigationCoordinator = MainContainerNavigationCoordinator(),
     configureCoordinator: () -> Void = {},
     onUpload: @escaping @Sendable () -> Void = {},
@@ -263,13 +265,127 @@ struct AMAAnswerQuestionPageTests {
     } operation: {
       configureCoordinator()
       let model = AMAAnswerQuestionPageModel(
-        question: .mockWith(id: "q1", stationId: "s1"),
-        airQuestion: { _ in try await onAir() })
+        question: .mockWith(
+          id: "q1", stationId: "s1", audioBlock: .mockWith(id: "question-block"),
+          trailingAudioBlock: existingTrailing),
+        addToShow: { _ in try await onAir() })
       model.recordingPhase = .review
       model.recordingURL = recordingURL
       model.trailingDraft = trailingDraft
       return model
     }
     return model
+  }
+
+  /// Builds a review-mode model over an already-answered question, wired so a test can observe
+  /// whether recording, upload, register, or trailing calls happen.
+  private func makeReviewModel(
+    existingTrailing: AudioBlock? = nil,
+    onUpload: @escaping @Sendable () -> Void = {},
+    onRegister: @escaping @Sendable () -> Void = {},
+    onTrailing: @escaping @Sendable (String?) -> Void = { _ in },
+    onAdd: @escaping @Sendable (AMAQuestionAnswer) async throws -> Void = { _ in }
+  ) -> AMAAnswerQuestionPageModel {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
+
+    return withDependencies {
+      $0.audioPlayer = .testValue
+      $0.audioRecorder = .testValue
+      $0.voicetrackUploadService = VoicetrackUploadService(
+        processVoicetrack: { _, _, _, _ in
+          onUpload()
+          return .mockWith(id: "unexpected")
+        })
+      $0.api.registerListenerQuestionAnswer = { _, _, _, _ in
+        onRegister()
+        return .mock
+      }
+      $0.api.updateListenerQuestionTrailingAudioBlock = { _, _, _, trailingId in
+        onTrailing(trailingId)
+        return .mock
+      }
+    } operation: {
+      AMAAnswerQuestionPageModel(
+        answeredQuestion: .mockWith(
+          id: "q1", stationId: "s1", status: .answered,
+          audioBlock: .mockWith(id: "question-block"),
+          answerAudioBlock: .mockWith(id: "answer-block"),
+          trailingAudioBlock: existingTrailing),
+        addToShow: onAdd)
+    }
+  }
+
+  // MARK: - Review Mode
+
+  @Test func reviewModeDoesNoRecorderOrUploadWork() async {
+    let uploadCalls = LockIsolated(0)
+    let registerCalls = LockIsolated(0)
+    let added = LockIsolated<[String]>([])
+    let model = makeReviewModel(
+      onUpload: { uploadCalls.withValue { $0 += 1 } },
+      onRegister: { registerCalls.withValue { $0 += 1 } },
+      onAdd: { qa in added.withValue { $0.append(qa.questionId) } })
+
+    // `.testValue` audioRecorder reports an issue if any recorder endpoint is touched, so a
+    // clean run here also proves review mode never prepares/records.
+    await model.viewAppeared()
+    await model.addToShowButtonTapped()
+
+    #expect(uploadCalls.value == 0)
+    #expect(registerCalls.value == 0)
+    expectNoDifference(added.value, ["q1"])
+    #expect(model.submissionPhase == .completed)
+  }
+
+  @Test func reviewModeWithUnchangedTrailingSkipsThePut() async {
+    let trailingCalls = LockIsolated(0)
+    let model = makeReviewModel(
+      existingTrailing: .mockWith(id: "existing"),
+      onTrailing: { _ in trailingCalls.withValue { $0 += 1 } })
+
+    await model.addToShowButtonTapped()
+
+    #expect(trailingCalls.value == 0)
+    #expect(model.submissionPhase == .completed)
+  }
+
+  @Test func reviewModeChangedTrailingSendsOnePutThenAdds() async {
+    let capturedTrailing = LockIsolated<String??>(nil)
+    let added = LockIsolated<[String]>([])
+    let model = makeReviewModel(
+      existingTrailing: .mockWith(id: "existing"),
+      onTrailing: { id in capturedTrailing.setValue(id) },
+      onAdd: { qa in added.withValue { $0.append(qa.questionId) } })
+    model.trailingDraft = .selected(.mockWith(id: "new-song"))
+
+    await model.addToShowButtonTapped()
+
+    #expect(capturedTrailing.value == .some(.some("new-song")))
+    expectNoDifference(added.value, ["q1"])
+    #expect(model.submissionPhase == .completed)
+  }
+
+  @Test func reviewModeRemovingTrailingAfterAFailedAddClearsItOnRetry() async {
+    let trailingPuts = LockIsolated<[String?]>([])
+    let addAttempts = LockIsolated(0)
+    let added = LockIsolated<[String]>([])
+    let model = makeReviewModel(
+      onTrailing: { id in trailingPuts.withValue { $0.append(id) } },
+      onAdd: { qa in
+        addAttempts.withValue { $0 += 1 }
+        if addAttempts.value == 1 { throw CancellationError() }
+        added.withValue { $0.append(qa.questionId) }
+      })
+
+    model.trailingDraft = .selected(.mockWith(id: "song-b"))
+    await model.addToShowButtonTapped()
+
+    model.trailingDraft = .cleared
+    await model.addToShowButtonTapped()
+
+    expectNoDifference(trailingPuts.value, ["song-b", nil])
+    expectNoDifference(added.value, ["q1"])
+    #expect(model.submissionPhase == .completed)
   }
 }

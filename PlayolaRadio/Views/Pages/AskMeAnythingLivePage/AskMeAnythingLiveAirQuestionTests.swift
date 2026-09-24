@@ -189,7 +189,7 @@ struct AskMeAnythingLiveAirQuestionTests {
     }
     expectNoDifference(picker.showStartedAt, now.addingTimeInterval(-120))
 
-    try await picker.airQuestion("question-1")
+    try await picker.addToShow(Self.qaPayload(questionId: "question-1"))
     expectNoDifference(insertCalls.value, 1)
   }
 
@@ -215,9 +215,15 @@ struct AskMeAnythingLiveAirQuestionTests {
 
     model.broadcast.liveShowId = "show-2"
 
-    await #expect(throws: CancellationError.self) {
-      try await picker.airQuestion("question-1")
+    await #expect(throws: AMAAddToShowError.destinationChanged) {
+      try await picker.addToShow(Self.qaPayload(questionId: "question-1"))
     }
     expectNoDifference(insertCalls.value, 0)
+  }
+
+  private static func qaPayload(questionId: String) -> AMAQuestionAnswer {
+    AMAQuestionAnswer(
+      questionId: questionId, listenerName: "Test",
+      questionBlock: .mockWith(id: "q"), answerBlock: .mockWith(id: "a"), trailingBlock: nil)
   }
 }

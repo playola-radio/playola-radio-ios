@@ -43,11 +43,11 @@ class AMAQuestionPickerPageModel: ViewModel {
   init(
     stationId: String,
     showStartedAt: Date?,
-    airQuestion: @escaping @MainActor (String) async throws -> Void
+    addToShow: @escaping @MainActor (AMAQuestionAnswer) async throws -> Void
   ) {
     self.stationId = stationId
     self.showStartedAt = showStartedAt
-    self.airQuestion = airQuestion
+    self.addToShow = addToShow
     super.init()
   }
 
@@ -55,7 +55,7 @@ class AMAQuestionPickerPageModel: ViewModel {
 
   let stationId: String
   let showStartedAt: Date?
-  @ObservationIgnored let airQuestion: @MainActor (String) async throws -> Void
+  @ObservationIgnored let addToShow: @MainActor (AMAQuestionAnswer) async throws -> Void
 
   let navigationTitle = "Questions"
   let filterOptions: [AMAQuestionFilter] = [.all, .unanswered, .answered]
@@ -151,12 +151,22 @@ class AMAQuestionPickerPageModel: ViewModel {
     guard airingQuestionId == nil else { return }
     airingQuestionId = question.id
     await stopPlayback()
+    // Keep the row lock held across the push so a second queued tap can't open a duplicate
+    // page; `viewAppeared` clears it when the picker reappears.
     if question.status == .answered {
-      await airAnsweredQuestion(question)
+      guard question.answerAudioBlock != nil else {
+        airingQuestionId = nil
+        presentedAlert = PlayolaAlert(
+          title: "Answer Not Ready",
+          message: "This answer is still processing. Try again in a moment.",
+          dismissButton: .cancel(Text("OK")))
+        return
+      }
+      let reviewModel = AMAAnswerQuestionPageModel(
+        answeredQuestion: question, addToShow: addToShow)
+      navigationCoordinator.push(.amaAnswerQuestionPage(reviewModel))
     } else {
-      // Keep the row lock held across the push so a second queued tap can't open a duplicate
-      // answer page; `viewAppeared` clears it when the picker reappears.
-      let answerModel = AMAAnswerQuestionPageModel(question: question, airQuestion: airQuestion)
+      let answerModel = AMAAnswerQuestionPageModel(question: question, addToShow: addToShow)
       navigationCoordinator.push(.amaAnswerQuestionPage(answerModel))
     }
   }
@@ -255,19 +265,6 @@ class AMAQuestionPickerPageModel: ViewModel {
 
   // MARK: - Private Helpers
 
-  private func airAnsweredQuestion(_ question: ListenerQuestion) async {
-    airingQuestionId = question.id
-    defer { airingQuestionId = nil }
-    do {
-      try await airQuestion(question.id)
-      navigationCoordinator.popToAskMeAnythingLive()
-    } catch is CancellationError {
-      // Parent show ended or became ineligible mid-air; leave the picker in place.
-    } catch {
-      presentedAlert = .airQuestionError(error.localizedDescription)
-    }
-  }
-
   private func fetchQuestions() async {
     guard let jwt = auth.jwt else { return }
     isLoading = true
@@ -284,17 +281,5 @@ class AMAQuestionPickerPageModel: ViewModel {
     guard playingQuestionId != nil else { return }
     await audioPlayer.stop()
     playingQuestionId = nil
-  }
-}
-
-// MARK: - Alerts
-
-extension PlayolaAlert {
-  static func airQuestionError(_ message: String) -> PlayolaAlert {
-    PlayolaAlert(
-      title: "Couldn't Add to Show",
-      message: message,
-      dismissButton: .cancel(Text("OK"))
-    )
   }
 }

@@ -156,14 +156,13 @@ class AskMeAnythingLivePageModel: ViewModel {
   }
 
   func qaActionTapped() {
-    let showId = broadcast.liveShowId
+    let capturedShowId = broadcast.liveShowId
     let picker = AMAQuestionPickerPageModel(
       stationId: stationId,
       showStartedAt: scheduledStartsAt,
-      airQuestion: { [weak self] questionId in
+      addToShow: { [weak self] questionAnswer in
         guard let self else { throw CancellationError() }
-        guard broadcast.liveShowId == showId else { throw CancellationError() }
-        try await airQuestion(questionId)
+        try await addQuestionAnswerToShow(questionAnswer, capturedShowId: capturedShowId)
       }
     )
     navigationCoordinator.push(.amaQuestionPickerPage(picker))
@@ -179,7 +178,7 @@ class AskMeAnythingLivePageModel: ViewModel {
     defer { isStartingShow = false }
     do {
       let response = try await api.startLiveShow(
-        jwt, stationId, openingItems.compactMap(\.audioBlockId))
+        jwt, stationId, openingItems.flatMap(\.audioBlockIds))
       broadcast.liveShowId = response.liveShowId
       clearOpeningDraft()
       try? await $amaOpeningDrafts.save()
@@ -263,6 +262,13 @@ class AskMeAnythingLivePageModel: ViewModel {
     }
     return "End Show"
   }
+  var endShowButtonForeground: Color {
+    isEndShowEnabled ? .playolaTextPrimary : .playolaTextTertiary
+  }
+  var endShowButtonBackground: Color {
+    isEndShowEnabled ? .playolaBrandSoft18 : .playolaSurfaceRaised
+  }
+  var endShowButtonBorder: Color { isEndShowEnabled ? .playolaRed : .playolaGlassHairline }
 
   var hasRecordedIntro: Bool { openingItems.contains { $0.content.is(\.intro) } }
   var introPromptOpacity: Double { hasRecordedIntro ? 0 : 1 }
@@ -311,6 +317,15 @@ class AskMeAnythingLivePageModel: ViewModel {
             trailingText: completedDurationMS.map { durationLabel($0) } ?? "",
             trailingIconSystemName: "checkmark", processingOpacity: isProcessing ? 1 : 0,
             completedOpacity: isProcessing ? 0 : 1)
+        case .questionAnswer(let qa):
+          let subtitle =
+            qa.trailingBlock.map { "Question, answer & \($0.title)" } ?? "Question & answer"
+          return AMAOpeningRowData(
+            id: item.id, title: "Question and Answer: \(qa.listenerName)", subtitle: subtitle,
+            subtitleColor: .playolaTextDisabled, iconSystemName: "bubble.left.and.bubble.right",
+            albumImageUrl: nil, leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
+            trailingText: durationLabel(item.readyDurationMS), trailingIconSystemName: "checkmark",
+            processingOpacity: 0, completedOpacity: 1)
         }
       })
   }

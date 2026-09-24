@@ -231,7 +231,7 @@ private struct AMAQuestionRow: View {
       model: AMAQuestionPickerPageModel(
         stationId: "preview-station",
         showStartedAt: nil,
-        airQuestion: { _ in }
+        addToShow: { _ in }
       )
     )
   }

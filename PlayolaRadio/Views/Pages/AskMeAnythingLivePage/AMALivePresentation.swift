@@ -172,16 +172,31 @@ extension AskMeAnythingLivePageModel {
       let isIntro = isWaitingToAir && spin.airtime == scheduledStartsAt
       let isOutro = spin.id == endingSpinId
       let isVoice = spin.audioBlock.type == "voiceTrack"
+      let listenerName = question?.listener?.firstName ?? "Listener"
+      let isAnswerSpin = question?.answerAudioBlockId == spin.audioBlock.id
+      // Classify a matched question spin once, driving both title and subtitle: the grouped
+      // (spinGroupId) pair renders as a merged "Question and Answer" row, while flat pre-show
+      // spins render as separate question / answer rows.
+      let qaLabels: (title: String, subtitleWord: String)?
+      if question == nil {
+        qaLabels = nil
+      } else if members.count > 1 {
+        qaLabels = ("Question and Answer: \(listenerName)", "Question and answer")
+      } else if isAnswerSpin {
+        qaLabels = ("Answer to \(listenerName)", "Answer")
+      } else {
+        qaLabels = ("Question from \(listenerName)", "Question")
+      }
       let title =
-        question.map { "Question and Answer: \($0.listener?.firstName ?? "Listener")" }
+        qaLabels?.title
         ?? (isIntro
           ? "Show Intro"
           : (isOutro ? "Show Outro" : (isVoice ? "VoiceTrack" : spin.audioBlock.title)))
       let duration = secondsLabel(
         members.reduce(0) { $0 + $1.endtime.timeIntervalSince($1.airtime) })
       let subtitle: String
-      if question != nil {
-        subtitle = "\(duration) · Question and answer"
+      if let qaLabels {
+        subtitle = "\(duration) · \(qaLabels.subtitleWord)"
       } else if isIntro {
         subtitle = "Your voice"
       } else if isVoice {

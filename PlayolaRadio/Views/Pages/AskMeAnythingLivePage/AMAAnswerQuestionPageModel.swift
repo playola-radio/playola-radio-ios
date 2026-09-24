@@ -17,6 +17,14 @@ enum AMATrailingSongDraft: Equatable {
   case cleared
 }
 
+/// How the page behaves. `.record` captures a new answer; `.reviewAnswer` opens an
+/// already-answered question read-only — the recorder stays inert, the existing answer plays,
+/// and only the trailing song and "Add to Show" remain actionable.
+enum AMAAnswerMode: Equatable {
+  case record
+  case reviewAnswer
+}
+
 enum AMAAnswerSubmissionPhase: Equatable {
   case notStarted
   case converting
@@ -51,17 +59,34 @@ class AMAAnswerQuestionPageModel: ViewModel {
 
   init(
     question: ListenerQuestion,
-    airQuestion: @escaping @MainActor (String) async throws -> Void
+    addToShow: @escaping @MainActor (AMAQuestionAnswer) async throws -> Void
   ) {
     self.question = question
-    self.airQuestion = airQuestion
+    self.addToShow = addToShow
+    self.mode = .record
+    self.persistedTrailingId = question.trailingAudioBlock?.id
+    super.init()
+  }
+
+  init(
+    answeredQuestion question: ListenerQuestion,
+    addToShow: @escaping @MainActor (AMAQuestionAnswer) async throws -> Void
+  ) {
+    self.question = question
+    self.addToShow = addToShow
+    self.mode = .reviewAnswer
+    self.answerDurationSeconds =
+      question.answerAudioBlock.map { TimeInterval($0.durationMS) / 1000 }
+      ?? 0
+    self.persistedTrailingId = question.trailingAudioBlock?.id
     super.init()
   }
 
   // MARK: - Properties
 
   let question: ListenerQuestion
-  @ObservationIgnored let airQuestion: @MainActor (String) async throws -> Void
+  let mode: AMAAnswerMode
+  @ObservationIgnored let addToShow: @MainActor (AMAQuestionAnswer) async throws -> Void
   let maxAnswerSeconds: TimeInterval = 120
 
   // Question playback
@@ -80,35 +105,39 @@ class AMAAnswerQuestionPageModel: ViewModel {
   @ObservationIgnored private var answerPlaybackSession: PlaybackSession?
 
   // Trailing song draft
-  var trailingDraft: AMATrailingSongDraft = .unchanged {
-    didSet { hasAppliedTrailing = false }
-  }
+  var trailingDraft: AMATrailingSongDraft = .unchanged
 
   // Submission (resumable)
   var submissionPhase: AMAAnswerSubmissionPhase = .notStarted
-  private var uploadedAudioBlockId: String?
+  private var uploadedAnswerBlock: AudioBlock?
   private var hasRegisteredAnswer = false
-  private var hasAppliedTrailing = false
+  private var persistedTrailingId: String?
   private var hasAired = false
 
   var presentedAlert: PlayolaAlert?
 
   // MARK: - Display Text
 
-  var navigationTitle: String { "Answer \(question.listener?.firstName ?? "Listener")" }
+  var navigationTitle: String {
+    switch mode {
+    case .record: return "Answer \(question.listener?.firstName ?? "Listener")"
+    case .reviewAnswer: return "Review Answer"
+    }
+  }
   let questionSectionTitle = "QUESTION"
   let responseSectionTitle = "YOUR RESPONSE"
-  let idlePrompt = "Tap the mic to record your response"
-  let idleHint = "Up to 2:00"
+  let idleInstruction = "Tap the mic to record your response"
+  let idleMaxLength = "Up to 2:00"
   let idleRecordLabel = "Tap to start recording"
   let recordingLabel = "Recording"
   let stopRecordingLabel = "Stop recording"
   let reviewLabel = "Ready to review"
   let reRecordLabel = "Re-record"
   let addToShowLabel = "Add to Show"
-  let addSongLabel = "Add a song after this"
+  let attachSongLabel = "Attach a song"
   let changeSongLabel = "Change song"
-  let removeSongLabel = "Remove"
+  let pairingText = "This question and your answer stay together."
+  let flowText = "Question → your answer → optional song"
   let missingTranscriptionText = "No transcription available"
 
   // MARK: - Listener Display
@@ -129,10 +158,11 @@ class AMAAnswerQuestionPageModel: ViewModel {
 
   var transcription: String { question.transcription ?? missingTranscriptionText }
 
-  var timeAgoText: String {
+  var questionMetaText: String {
     let formatter = RelativeDateTimeFormatter()
     formatter.unitsStyle = .full
-    return formatter.localizedString(for: question.createdAt, relativeTo: now)
+    return
+      "\(formatter.localizedString(for: question.createdAt, relativeTo: now)) · Ask Me Anything"
   }
 
   // MARK: - Question Playback Display
@@ -156,49 +186,82 @@ class AMAAnswerQuestionPageModel: ViewModel {
     questionPlaybackState.isPlaying ? "stop.fill" : "play.fill"
   }
 
+  /// Once an answer is ready the full question transport collapses to a compact "▷ 0:08" chip so
+  /// the review controls own the vertical space.
+  var showQuestionChip: Bool { showReviewControls }
+  var questionTransportOpacity: Double { showQuestionChip ? 0 : 1 }
+  var questionChipOpacity: Double { showQuestionChip ? 1 : 0 }
+  var questionTransportHeight: CGFloat { showQuestionChip ? 0 : 48 }
+  var questionChipHeight: CGFloat { showQuestionChip ? 44 : 0 }
+  var questionTransportInteractive: Bool { !showQuestionChip }
+  var questionChipInteractive: Bool { showQuestionChip }
+
+  // MARK: - Response State
+
+  var showIdleResponse: Bool { mode == .record && recordingPhase == .idle }
+  var showRecordingResponse: Bool { recordingPhase == .recording }
+  var showReviewResponse: Bool { showReviewControls }
+
+  var idleResponseOpacity: Double { showIdleResponse ? 1 : 0 }
+  var recordingResponseOpacity: Double { showRecordingResponse ? 1 : 0 }
+  var reviewResponseOpacity: Double { showReviewResponse ? 1 : 0 }
+
+  /// Natural height when active, `0` to collapse — only one response block is ever active, so the
+  /// card sizes to it.
+  var idleResponseHeight: CGFloat? { showIdleResponse ? nil : 0 }
+  var recordingResponseHeight: CGFloat? { showRecordingResponse ? nil : 0 }
+  var reviewResponseHeight: CGFloat? { showReviewResponse ? nil : 0 }
+
+  var idleResponseInteractive: Bool { showIdleResponse && controlsInteractive }
+  var recordingResponseInteractive: Bool { showRecordingResponse && controlsInteractive }
+  var reviewResponseInteractive: Bool { showReviewResponse && controlsInteractive }
+
+  var tabBarVisibility: Visibility { recordingPhase == .recording ? .hidden : .automatic }
+
+  var waveformSamples: [Float] { recordingState.waveformSamples }
+
+  var showReviewControls: Bool { canSubmit }
+
+  /// True once the host can add the Q&A to the show: a recorded answer must reach review; a
+  /// previously-answered question is submittable immediately.
+  var canSubmit: Bool {
+    switch mode {
+    case .record: return recordingPhase == .review
+    case .reviewAnswer: return true
+    }
+  }
+
   // MARK: - Recording Display
 
   var recordingTimeText: String {
     "\(formatTime(recordingState.currentTime)) / \(formatTime(maxAnswerSeconds))"
   }
 
-  var recordButtonIcon: String {
-    switch recordingPhase {
-    case .idle, .review: return "mic.fill"
-    case .recording: return "stop.fill"
-    }
-  }
+  // MARK: - Review Display
 
-  var recordStatusText: String {
-    switch recordingPhase {
-    case .idle: return idlePrompt
-    case .recording: return recordingLabel
-    case .review: return reviewLabel
-    }
-  }
-
-  var showRecordingIndicator: Bool { recordingPhase == .recording }
-
-  var tabBarVisibility: Visibility { recordingPhase == .recording ? .hidden : .automatic }
-
-  var waveformSamples: [Float] { recordingState.waveformSamples }
-
-  var showWaveformPlaceholder: Bool {
-    recordingPhase == .idle && waveformSamples.isEmpty
-  }
-
-  var showIdlePrompt: Bool { recordingPhase == .idle }
-  var showReviewControls: Bool { recordingPhase == .review }
-
-  // MARK: - Answer Playback Display
-
-  var answerPlaybackPositionText: String { formatTime(answerPlaybackState.currentTime) }
+  var reviewStatusText: String { mode == .reviewAnswer ? "Your recorded answer" : reviewLabel }
   var answerDurationText: String {
     "\(formatTime(answerDurationSeconds)) / \(formatTime(maxAnswerSeconds))"
   }
 
   var answerPlayButtonIcon: String {
     answerPlaybackState.isPlaying ? "pause.fill" : "play.fill"
+  }
+
+  /// The re-record action only exists while recording a fresh answer; an already-answered question
+  /// is immutable, so the row collapses in `.reviewAnswer`.
+  var showReRecord: Bool { mode == .record }
+  var reRecordOpacity: Double { showReRecord ? 1 : 0 }
+  var reRecordHeight: CGFloat { showReRecord ? 44 : 0 }
+  var reRecordInteractive: Bool { showReRecord && controlsInteractive }
+
+  /// The audio the answer play/pause control renders: the freshly recorded file while recording,
+  /// or the already-registered answer block when reviewing an answered question.
+  private var answerPlaybackURL: URL? {
+    switch mode {
+    case .record: return recordingURL
+    case .reviewAnswer: return question.answerAudioBlock?.downloadUrl
+    }
   }
 
   // MARK: - Trailing Song Display
@@ -211,18 +274,41 @@ class AMAAnswerQuestionPageModel: ViewModel {
     }
   }
 
+  var songSectionLabel: String {
+    showAddSongButton ? "PLAY AFTER ANSWER · OPTIONAL" : "PLAY AFTER ANSWER"
+  }
+
   var showAddSongButton: Bool { displayedTrailingSong == nil }
   var trailingSongTitle: String { displayedTrailingSong?.title ?? "" }
-  var trailingSongArtist: String { displayedTrailingSong?.artist ?? "" }
-  var trailingSongArtworkURL: URL? { displayedTrailingSong?.imageUrl }
-
-  // MARK: - Pair Total Display
-
-  var pairTotalText: String {
-    let questionSeconds = questionDuration
-    let total = questionSeconds + answerDurationSeconds
-    return "Question + answer · \(formatTime(total)) total"
+  var trailingSongSubtitle: String {
+    guard let song = displayedTrailingSong else { return "" }
+    return "\(song.artist) · \(formatTime(TimeInterval(song.durationMS) / 1000))"
   }
+
+  var attachRowOpacity: Double { showAddSongButton ? 1 : 0 }
+  var attachRowHeight: CGFloat { showAddSongButton ? 56 : 0 }
+  var attachInteractive: Bool { showAddSongButton && controlsInteractive }
+  var songRowOpacity: Double { showAddSongButton ? 0 : 1 }
+  var songRowHeight: CGFloat { showAddSongButton ? 0 : 76 }
+  var songRowInteractive: Bool { !showAddSongButton && controlsInteractive }
+  var changeSongHeight: CGFloat { showAddSongButton ? 0 : 18 }
+
+  // MARK: - Footer Display
+
+  var pairingLineOpacity: Double { showReviewControls ? 1 : 0 }
+  var pairingLineHeight: CGFloat { showReviewControls ? 16 : 0 }
+
+  var playlistBehaviorText: String {
+    guard let song = displayedTrailingSong else { return flowText }
+    let questionText = formatTime(questionDuration)
+    let answerText = formatTime(answerDurationSeconds)
+    let songText = formatTime(TimeInterval(song.durationMS) / 1000)
+    return "Question \(questionText) + answer \(answerText) + song \(songText)"
+  }
+
+  var addToShowEnabled: Bool { canSubmit && controlsInteractive }
+  var addToShowBackground: Color { addToShowEnabled ? .playolaRed : .playolaSurfaceRaised }
+  var addToShowForeground: Color { addToShowEnabled ? .playolaSurfaceBase : .playolaTextDisabled }
 
   // MARK: - Submission Display
 
@@ -256,27 +342,15 @@ class AMAAnswerQuestionPageModel: ViewModel {
     case .failed(let error): return "Failed: \(error)"
     }
   }
+  var submissionStatusOpacity: Double { showSubmissionStatus ? 1 : 0 }
 
   var addToShowButtonTitle: String { isSubmitting ? "Adding…" : addToShowLabel }
   var controlsInteractive: Bool { !isSubmitting && !hasAired }
 
-  // MARK: - View Styling
-
-  var controlsDisabled: Bool { !controlsInteractive }
-  var recordingIndicatorOpacity: Double { showRecordingIndicator ? 1 : 0 }
-  var reviewControlsOpacity: Double { showReviewControls ? 1 : 0 }
-  var recordButtonSectionOpacity: Double { showReviewControls ? 0 : 1 }
-  var submissionStatusOpacity: Double { showSubmissionStatus ? 1 : 0 }
-  var submissionSpinnerOpacity: Double { isSubmitting ? 1 : 0 }
-  var waveformPlaceholderOpacity: Double { showWaveformPlaceholder ? 1 : 0 }
-  var idlePromptOpacity: Double { showIdlePrompt ? 1 : 0 }
-  var addSongButtonOpacity: Double { showAddSongButton ? 1 : 0 }
-  var trailingSongRowOpacity: Double { showAddSongButton ? 0 : 1 }
-  var answerPlaybackProgress: Double { answerPlaybackState.progress }
-
   // MARK: - View Lifecycle
 
   func viewAppeared() async {
+    guard mode == .record else { return }
     do {
       try await audioRecorder.prepareForRecording()
     } catch {
@@ -316,7 +390,7 @@ class AMAAnswerQuestionPageModel: ViewModel {
   // MARK: - Recording Actions
 
   func recordButtonTapped() async {
-    guard controlsInteractive else { return }
+    guard mode == .record, controlsInteractive else { return }
     switch recordingPhase {
     case .idle: await startRecording()
     case .recording: await stopRecording()
@@ -331,7 +405,7 @@ class AMAAnswerQuestionPageModel: ViewModel {
       await answerPlaybackSession?.pause()
     } else {
       await stopQuestionPlayback()
-      if answerPlaybackSession == nil, let url = recordingURL {
+      if answerPlaybackSession == nil, let url = answerPlaybackURL {
         do {
           answerPlaybackSession = try await audioPlayer.startPlayback(url) { [weak self] state in
             self?.answerPlaybackState = state
@@ -370,13 +444,13 @@ class AMAAnswerQuestionPageModel: ViewModel {
   // MARK: - Submit / Navigation Actions
 
   func addToShowButtonTapped() async {
-    guard recordingPhase == .review, !isSubmitting, !hasAired else { return }
+    guard canSubmit, !isSubmitting, !hasAired else { return }
     await submit()
   }
 
   func backButtonTapped() {
     guard !isSubmitting else { return }
-    if recordingPhase == .review, !hasAired {
+    if mode == .record, recordingPhase == .review, !hasAired {
       presentedAlert = .discardRecordingConfirmation { [weak self] in
         Task { await self?.navigateBack() }
       }
@@ -436,9 +510,8 @@ class AMAAnswerQuestionPageModel: ViewModel {
 
   private func resetSubmissionProgress() {
     submissionPhase = .notStarted
-    uploadedAudioBlockId = nil
+    uploadedAnswerBlock = nil
     hasRegisteredAnswer = false
-    hasAppliedTrailing = false
   }
 
   private func submit() async {
@@ -448,26 +521,52 @@ class AMAAnswerQuestionPageModel: ViewModel {
         dismissButton: .cancel(Text("OK")))
       return
     }
-    submissionPhase = .converting
+    guard let questionBlock = question.audioBlock else {
+      submissionPhase = .failed(
+        error: "This question's audio isn't available yet. Try again shortly.")
+      return
+    }
+    if mode == .record { submissionPhase = .converting }
     do {
-      let audioBlockId = try await uploadIfNeeded(jwt: jwt)
-      try await registerAnswerIfNeeded(jwt: jwt, audioBlockId: audioBlockId)
+      let answerBlock = try await resolvedAnswerBlock(jwt: jwt)
       try await applyTrailingIfNeeded(jwt: jwt)
 
+      let payload = AMAQuestionAnswer(
+        questionId: question.id,
+        listenerName: question.listener?.firstName ?? "Listener",
+        questionBlock: questionBlock,
+        answerBlock: answerBlock,
+        trailingBlock: displayedTrailingSong)
       submissionPhase = .scheduling
-      try await airQuestion(question.id)
+      try await addToShow(payload)
       hasAired = true
       submissionPhase = .completed
       navigationCoordinator.popToAskMeAnythingLive()
     } catch is CancellationError {
-      submissionPhase = .failed(error: "Your show is no longer available.")
+      submissionPhase = .failed(error: "Your answer was saved, but couldn't be added to this show.")
     } catch {
+      // AMAAddToShowError is a LocalizedError, so its errorDescription surfaces here too.
       submissionPhase = .failed(error: error.localizedDescription)
     }
   }
 
-  private func uploadIfNeeded(jwt: String) async throws -> String {
-    if let existing = uploadedAudioBlockId { return existing }
+  /// Returns the answer's `AudioBlock`, uploading + registering a freshly recorded answer as
+  /// needed. An already-answered question never re-uploads or re-registers — its immutable block
+  /// is returned directly.
+  private func resolvedAnswerBlock(jwt: String) async throws -> AudioBlock {
+    switch mode {
+    case .record:
+      let block = try await uploadIfNeeded(jwt: jwt)
+      try await registerAnswerIfNeeded(jwt: jwt, audioBlock: block)
+      return block
+    case .reviewAnswer:
+      guard let block = question.answerAudioBlock else { throw CancellationError() }
+      return block
+    }
+  }
+
+  private func uploadIfNeeded(jwt: String) async throws -> AudioBlock {
+    if let existing = uploadedAnswerBlock { return existing }
     guard let url = recordingURL else { throw CancellationError() }
     await stopAnswerPlayback()
     let voicetrack = LocalVoicetrack(originalURL: url, title: "Response to \(listenerName)")
@@ -476,33 +575,27 @@ class AMAAnswerQuestionPageModel: ViewModel {
     ) { [weak self] status in
       self?.handleUploadStatusChange(status)
     }
-    uploadedAudioBlockId = audioBlock.id
-    return audioBlock.id
+    uploadedAnswerBlock = audioBlock
+    return audioBlock
   }
 
-  private func registerAnswerIfNeeded(jwt: String, audioBlockId: String) async throws {
+  private func registerAnswerIfNeeded(jwt: String, audioBlock: AudioBlock) async throws {
     guard !hasRegisteredAnswer else { return }
     submissionPhase = .linkingAnswer
     _ = try await api.registerListenerQuestionAnswer(
-      jwt, question.stationId, question.id, audioBlockId)
+      jwt, question.stationId, question.id, audioBlock.id)
     hasRegisteredAnswer = true
   }
 
+  /// Applies the trailing song only when it actually differs from what the server already has,
+  /// so opening review with an unchanged trailing issues no PUT.
   private func applyTrailingIfNeeded(jwt: String) async throws {
-    guard !hasAppliedTrailing else { return }
-    switch trailingDraft {
-    case .unchanged:
-      break
-    case .selected(let block):
-      submissionPhase = .applyingTrailing
-      _ = try await api.updateListenerQuestionTrailingAudioBlock(
-        jwt, question.stationId, question.id, block.id)
-    case .cleared:
-      submissionPhase = .applyingTrailing
-      _ = try await api.updateListenerQuestionTrailingAudioBlock(
-        jwt, question.stationId, question.id, nil)
-    }
-    hasAppliedTrailing = true
+    let desired = displayedTrailingSong?.id
+    guard desired != persistedTrailingId else { return }
+    submissionPhase = .applyingTrailing
+    _ = try await api.updateListenerQuestionTrailingAudioBlock(
+      jwt, question.stationId, question.id, desired)
+    persistedTrailingId = desired
   }
 
   private func handleUploadStatusChange(_ status: LocalVoicetrackStatus) {

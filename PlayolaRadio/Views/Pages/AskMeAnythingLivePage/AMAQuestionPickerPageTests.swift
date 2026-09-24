@@ -20,19 +20,19 @@ struct AMAQuestionPickerPageTests {
   private let stationId = "station-abc"
   private let baseDate = Date(timeIntervalSince1970: 1_000_000)
 
-  private func noopAir(_ id: String) async throws {}
+  private func noopAdd(_ qa: AMAQuestionAnswer) async throws {}
 
   private func makeModel(
     questions: [ListenerQuestion],
     showStartedAt: Date? = nil,
-    airQuestion: @escaping @MainActor (String) async throws -> Void
+    addToShow: @escaping @MainActor (AMAQuestionAnswer) async throws -> Void
   ) -> AMAQuestionPickerPageModel {
     withDependencies {
       $0.date.now = baseDate
       $0.api.getListenerQuestions = { _, _ in questions }
     } operation: {
       AMAQuestionPickerPageModel(
-        stationId: stationId, showStartedAt: showStartedAt, airQuestion: airQuestion)
+        stationId: stationId, showStartedAt: showStartedAt, addToShow: addToShow)
     }
   }
 
@@ -44,7 +44,7 @@ struct AMAQuestionPickerPageTests {
       .mockWith(id: "new-pending", status: .pending, createdAt: baseDate.addingTimeInterval(-10)),
       .mockWith(id: "declined", status: .declined, createdAt: baseDate.addingTimeInterval(-5)),
     ]
-    let model = makeModel(questions: questions, airQuestion: noopAir)
+    let model = makeModel(questions: questions, addToShow: noopAdd)
     await model.viewAppeared()
 
     model.filterSelected(.all)
@@ -60,7 +60,7 @@ struct AMAQuestionPickerPageTests {
   @Test func filterPillsStayVisibleWhenTheActiveFilterIsEmpty() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let model = makeModel(
-      questions: [.mockWith(id: "pending", status: .pending)], airQuestion: noopAir)
+      questions: [.mockWith(id: "pending", status: .pending)], addToShow: noopAdd)
     await model.viewAppeared()
 
     model.filterSelected(.answered)
@@ -77,53 +77,72 @@ struct AMAQuestionPickerPageTests {
       id: "before", createdAt: baseDate.addingTimeInterval(-200))
     let after = ListenerQuestion.mockWith(id: "after", createdAt: baseDate.addingTimeInterval(-50))
     let model = makeModel(
-      questions: [before, after], showStartedAt: showStart, airQuestion: noopAir)
+      questions: [before, after], showStartedAt: showStart, addToShow: noopAdd)
     await model.viewAppeared()
 
     #expect(!model.isNewThisShow(before))
     #expect(model.isNewThisShow(after))
   }
 
-  @Test func answeredRowTapAirsWithoutOpeningTheAnswerPage() async {
+  @Test func answeredRowTapPushesTheDetailScreenWithoutAdding() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
-    let aired = LockIsolated<[String]>([])
-    let question = ListenerQuestion.mockWith(id: "answered-1", status: .answered)
+    let added = LockIsolated<[String]>([])
+    let question = ListenerQuestion.mockWith(
+      id: "answered-1", status: .answered, answerAudioBlock: .mockWith(id: "answer"))
 
     coordinator.push(.askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: stationId)))
     let model = makeModel(
       questions: [question],
-      airQuestion: { id in aired.withValue { $0.append(id) } })
+      addToShow: { qa in added.withValue { $0.append(qa.questionId) } })
     coordinator.push(.amaQuestionPickerPage(model))
     await model.viewAppeared()
 
     await model.questionRowTapped(question)
 
-    expectNoDifference(aired.value, ["answered-1"])
-    guard case .askMeAnythingLivePage = coordinator.path.last else {
-      Issue.record("Expected to pop back to the live page")
+    expectNoDifference(added.value, [])
+    #expect(model.presentedAlert == nil)
+    guard case .amaAnswerQuestionPage = coordinator.path.last else {
+      Issue.record("Expected the answer detail page to be pushed")
       return
     }
-    #expect(model.presentedAlert == nil)
   }
 
-  @Test func unansweredRowTapPushesTheAnswerPageWithoutAiring() async {
+  @Test func answeredRowTapWithoutAProcessedAnswerAlertsInsteadOfPushing() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
-    let aired = LockIsolated<[String]>([])
+    let question = ListenerQuestion.mockWith(
+      id: "answered-1", status: .answered, answerAudioBlock: nil)
+
+    let model = makeModel(questions: [question], addToShow: noopAdd)
+    coordinator.push(.amaQuestionPickerPage(model))
+    await model.viewAppeared()
+
+    await model.questionRowTapped(question)
+
+    #expect(model.presentedAlert != nil)
+    #expect(model.airingQuestionId == nil)
+    expectNoDifference(coordinator.path.count, 1)
+  }
+
+  @Test func unansweredRowTapPushesTheAnswerPageWithoutAdding() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let added = LockIsolated<[String]>([])
     let question = ListenerQuestion.mockWith(id: "pending-1", status: .pending)
 
     let model = makeModel(
       questions: [question],
-      airQuestion: { id in aired.withValue { $0.append(id) } })
+      addToShow: { qa in added.withValue { $0.append(qa.questionId) } })
     coordinator.push(.amaQuestionPickerPage(model))
     await model.viewAppeared()
 
     await model.questionRowTapped(question)
 
-    expectNoDifference(aired.value, [])
+    expectNoDifference(added.value, [])
     guard case .amaAnswerQuestionPage = coordinator.path.last else {
       Issue.record("Expected the answer page to be pushed")
       return
@@ -135,7 +154,7 @@ struct AMAQuestionPickerPageTests {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     let question = ListenerQuestion.mockWith(id: "pending-1", status: .pending)
-    let model = makeModel(questions: [question], airQuestion: noopAir)
+    let model = makeModel(questions: [question], addToShow: noopAdd)
     coordinator.push(.amaQuestionPickerPage(model))
     await model.viewAppeared()
 
@@ -147,48 +166,6 @@ struct AMAQuestionPickerPageTests {
     expectNoDifference(coordinator.path.count, 2)
 
     await model.viewAppeared()
-    #expect(model.airingQuestionId == nil)
-  }
-
-  @Test func airFailureSurfacesAnAlertAndReenablesRows() async {
-    @Shared(.auth) var auth = Auth(jwt: "jwt")
-    @Shared(.mainContainerNavigationCoordinator) var coordinator =
-      MainContainerNavigationCoordinator()
-    let question = ListenerQuestion.mockWith(id: "answered-1", status: .answered)
-
-    coordinator.push(.askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: stationId)))
-    let model = makeModel(
-      questions: [question],
-      airQuestion: { _ in throw NSError(domain: "offline", code: 1) })
-    coordinator.push(.amaQuestionPickerPage(model))
-    await model.viewAppeared()
-
-    await model.questionRowTapped(question)
-
-    #expect(model.presentedAlert != nil)
-    #expect(model.airingQuestionId == nil)
-    #expect(model.rowInteractive(question.id))
-    guard case .amaQuestionPickerPage = coordinator.path.last else {
-      Issue.record("Expected to remain on the picker after a failure")
-      return
-    }
-  }
-
-  @Test func silentCancellationLeavesThePickerWithoutAnAlert() async {
-    @Shared(.auth) var auth = Auth(jwt: "jwt")
-    @Shared(.mainContainerNavigationCoordinator) var coordinator =
-      MainContainerNavigationCoordinator()
-    let question = ListenerQuestion.mockWith(id: "answered-1", status: .answered)
-
-    let model = makeModel(
-      questions: [question],
-      airQuestion: { _ in throw CancellationError() })
-    coordinator.push(.amaQuestionPickerPage(model))
-    await model.viewAppeared()
-
-    await model.questionRowTapped(question)
-
-    #expect(model.presentedAlert == nil)
     #expect(model.airingQuestionId == nil)
   }
 }

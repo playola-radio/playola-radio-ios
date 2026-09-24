@@ -338,6 +338,22 @@ work is required for this PR.
 **Advance when:** PR #434 merges to `develop`. No soak — standard release,
 no environment gating, no server gate remaining.
 
+**Follow-on (branch `briankeane/ask-me-anything-flow`):** two client-only host
+refinements on top of #434 — (1) tapping an already-answered question now opens
+a **read-only review screen** (view/play the existing answer, set/change/remove
+the trailing song, "Add to Show") instead of re-recording and airing directly;
+(2) the **pre-show "Add to Show" now works** by staging the answered Q&A into the
+opening playlist and appending its block ids (question → answer → [trailing]) to
+the flat `audioBlockIds` sent to Start Show.
+
+**Deferred — server-side Q&A grouping (Option A):** the pre-show path is
+intentionally **flat** (D2): a staged Q&A airs as separate, independently-editable
+rows once live (labeled "Question from …" / "Answer to …"), with the trailing song
+as an ordinary row — there is **no `spinGroupId` grouping pre-show**. The live path
+still groups via `insertListenerQuestionSpin`. Making pre-show Q&As air as one
+grouped unit needs a server change (accept grouped blocks at Start Show) and is a
+future item; not scheduled.
+
 **Links:** PR #434 (this repo) · plan
 `design/features/ama-live-show/implementation-plan.md`.
 
