@@ -659,6 +659,19 @@
 		FFE2EA430C2866C7B05C9B12 /* KoozieAddressFormModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07AAD05D9D43997B4956B822 /* KoozieAddressFormModel.swift */; };
 		AF0000000000000000000001 /* AMALiveQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0000000000000000000003 /* AMALiveQueue.swift */; };
 		AF0000000000000000000002 /* AMALiveQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0000000000000000000003 /* AMALiveQueue.swift */; };
+		DDA0000000000000000A0002 /* AMAQuestionPickerPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000A0001 /* AMAQuestionPickerPageModel.swift */; };
+		DDA0000000000000000A0003 /* AMAQuestionPickerPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000A0001 /* AMAQuestionPickerPageModel.swift */; };
+		DDA0000000000000000A0012 /* AMAAnswerQuestionPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000A0011 /* AMAAnswerQuestionPageModel.swift */; };
+		DDA0000000000000000A0013 /* AMAAnswerQuestionPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000A0011 /* AMAAnswerQuestionPageModel.swift */; };
+		DDA0000000000000000A0022 /* AskMeAnythingLivePageModel+Questions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000A0021 /* AskMeAnythingLivePageModel+Questions.swift */; };
+		DDA0000000000000000A0023 /* AskMeAnythingLivePageModel+Questions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000A0021 /* AskMeAnythingLivePageModel+Questions.swift */; };
+		DDA0000000000000000A0032 /* AMAQuestionPickerPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000A0031 /* AMAQuestionPickerPageView.swift */; };
+		DDA0000000000000000A0033 /* AMAQuestionPickerPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000A0031 /* AMAQuestionPickerPageView.swift */; };
+		DDA0000000000000000A0042 /* AMAAnswerQuestionPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000A0041 /* AMAAnswerQuestionPageView.swift */; };
+		DDA0000000000000000A0043 /* AMAAnswerQuestionPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000A0041 /* AMAAnswerQuestionPageView.swift */; };
+		DDA0000000000000000B0002 /* AMAQuestionPickerPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000B0001 /* AMAQuestionPickerPageTests.swift */; };
+		DDA0000000000000000B0012 /* AMAAnswerQuestionPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000B0011 /* AMAAnswerQuestionPageTests.swift */; };
+		DDA0000000000000000B0092 /* AskMeAnythingLiveAirQuestionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000B0091 /* AskMeAnythingLiveAirQuestionTests.swift */; };
 		AF1000000000000000000001 /* AMAQueuePlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000003 /* AMAQueuePlacement.swift */; };
 		AF1000000000000000000002 /* AMAQueuePlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000003 /* AMAQueuePlacement.swift */; };
 		AF1000000000000000000004 /* AMAQueuePlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000005 /* AMAQueuePlacementTests.swift */; };
@@ -1057,6 +1070,14 @@
 		FE110AC0DE0000000000F1F1 /* WelcomeMessageEligibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeMessageEligibilityTests.swift; sourceTree = "<group>"; };
 		FEEDA11C0000000000000001 /* ListenerAnalytics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ListenerAnalytics.swift; sourceTree = "<group>"; };
 		AF0000000000000000000003 /* AMALiveQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMALiveQueue.swift; sourceTree = "<group>"; };
+		DDA0000000000000000A0001 /* AMAQuestionPickerPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQuestionPickerPageModel.swift; sourceTree = "<group>"; };
+		DDA0000000000000000A0011 /* AMAAnswerQuestionPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAAnswerQuestionPageModel.swift; sourceTree = "<group>"; };
+		DDA0000000000000000A0021 /* AskMeAnythingLivePageModel+Questions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AskMeAnythingLivePageModel+Questions.swift"; sourceTree = "<group>"; };
+		DDA0000000000000000A0031 /* AMAQuestionPickerPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQuestionPickerPageView.swift; sourceTree = "<group>"; };
+		DDA0000000000000000A0041 /* AMAAnswerQuestionPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAAnswerQuestionPageView.swift; sourceTree = "<group>"; };
+		DDA0000000000000000B0001 /* AMAQuestionPickerPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQuestionPickerPageTests.swift; sourceTree = "<group>"; };
+		DDA0000000000000000B0011 /* AMAAnswerQuestionPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAAnswerQuestionPageTests.swift; sourceTree = "<group>"; };
+		DDA0000000000000000B0091 /* AskMeAnythingLiveAirQuestionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingLiveAirQuestionTests.swift; sourceTree = "<group>"; };
 		AF1000000000000000000003 /* AMAQueuePlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQueuePlacement.swift; sourceTree = "<group>"; };
 		AF1000000000000000000005 /* AMAQueuePlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQueuePlacementTests.swift; sourceTree = "<group>"; };
 		B613D7A104E349D9A15E0554 /* AMADraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMADraftTests.swift; sourceTree = "<group>"; };
@@ -1261,6 +1282,14 @@
 				ECF44C76DE06AB953BB6F669 /* AMALiveContentView.swift */,
 				A29DFFABB0DD05FFE6503767 /* AMALivePresentation.swift */,
 				AF0000000000000000000003 /* AMALiveQueue.swift */,
+				DDA0000000000000000A0001 /* AMAQuestionPickerPageModel.swift */,
+				DDA0000000000000000A0011 /* AMAAnswerQuestionPageModel.swift */,
+				DDA0000000000000000A0021 /* AskMeAnythingLivePageModel+Questions.swift */,
+				DDA0000000000000000A0031 /* AMAQuestionPickerPageView.swift */,
+				DDA0000000000000000A0041 /* AMAAnswerQuestionPageView.swift */,
+				DDA0000000000000000B0001 /* AMAQuestionPickerPageTests.swift */,
+				DDA0000000000000000B0011 /* AMAAnswerQuestionPageTests.swift */,
+				DDA0000000000000000B0091 /* AskMeAnythingLiveAirQuestionTests.swift */,
 				AF1000000000000000000003 /* AMAQueuePlacement.swift */,
 				B613D7A104E349D9A15E0554 /* AMADraftTests.swift */,
 				AF1000000000000000000005 /* AMAQueuePlacementTests.swift */,
@@ -2533,6 +2562,11 @@
 				738F19D97BE820E1DFCD0CCF /* AMALiveContentView.swift in Sources */,
 				1C3736397C57CB3F1753B410 /* AMALivePresentation.swift in Sources */,
 				AF0000000000000000000001 /* AMALiveQueue.swift in Sources */,
+				DDA0000000000000000A0002 /* AMAQuestionPickerPageModel.swift in Sources */,
+				DDA0000000000000000A0012 /* AMAAnswerQuestionPageModel.swift in Sources */,
+				DDA0000000000000000A0022 /* AskMeAnythingLivePageModel+Questions.swift in Sources */,
+				DDA0000000000000000A0032 /* AMAQuestionPickerPageView.swift in Sources */,
+				DDA0000000000000000A0042 /* AMAAnswerQuestionPageView.swift in Sources */,
 				AF1000000000000000000001 /* AMAQueuePlacement.swift in Sources */,
 				CC0000000000000000000705 /* AskMeAnythingLivePageView.swift in Sources */,
 				AB60901F7E4B485A9B828F8A /* AMAOpeningDraft.swift in Sources */,
@@ -2789,6 +2823,11 @@
 				7D201A14140F79A2A330F756 /* AMALiveContentView.swift in Sources */,
 				B217109F8D99187EB514C6C4 /* AMALivePresentation.swift in Sources */,
 				AF0000000000000000000002 /* AMALiveQueue.swift in Sources */,
+				DDA0000000000000000A0003 /* AMAQuestionPickerPageModel.swift in Sources */,
+				DDA0000000000000000A0013 /* AMAAnswerQuestionPageModel.swift in Sources */,
+				DDA0000000000000000A0023 /* AskMeAnythingLivePageModel+Questions.swift in Sources */,
+				DDA0000000000000000A0033 /* AMAQuestionPickerPageView.swift in Sources */,
+				DDA0000000000000000A0043 /* AMAAnswerQuestionPageView.swift in Sources */,
 				AF1000000000000000000002 /* AMAQueuePlacement.swift in Sources */,
 				CC0000000000000000000706 /* AskMeAnythingLivePageView.swift in Sources */,
 				35C33AD86471431C84A4CE45 /* AMAOpeningDraft.swift in Sources */,
@@ -2977,6 +3016,9 @@
 				A1C4E243012B0E186CC7680B /* AMALivePresentationTests.swift in Sources */,
 				7EE71A663259435CAB224095 /* AMADraftTests.swift in Sources */,
 				AF1000000000000000000004 /* AMAQueuePlacementTests.swift in Sources */,
+				DDA0000000000000000B0002 /* AMAQuestionPickerPageTests.swift in Sources */,
+				DDA0000000000000000B0012 /* AMAAnswerQuestionPageTests.swift in Sources */,
+				DDA0000000000000000B0092 /* AskMeAnythingLiveAirQuestionTests.swift in Sources */,
 				CC0000000000000000000908 /* RecordWithMultiStepPromptTests.swift in Sources */,
 				CC0000000000000000000408 /* MusicCategoryDetailPageTests.swift in Sources */,
 				CURA700000000000000011 /* CuratorSongPickerPageTests.swift in Sources */,

@@ -67,6 +67,37 @@ struct AskMeAnythingLivePageTests {
     #expect(model.isAwaitingStartedSchedule)
   }
 
+  @Test func startShowFlattensAQuestionAnswerIntoOrderedBlockIds() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let capturedIds = LockIsolated<[String]>([])
+    let model = withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.api.startLiveShow = { _, _, ids in
+        capturedIds.setValue(ids)
+        return StartLiveShowResponse(
+          liveShowId: "show-1", scheduledStartsAt: .distantFuture,
+          scheduledEndsAt: .distantFuture)
+      }
+    } operation: {
+      AskMeAnythingLivePageModel(stationId: testStationId)
+    }
+    model.openingItems.append(introItem(durationMS: 600_000))
+    model.openingItems.append(
+      AMAOpeningItem(
+        id: UUID(),
+        content: .questionAnswer(
+          AMAQuestionAnswer(
+            questionId: "q1", listenerName: "Sam",
+            questionBlock: .mockWith(id: "question-block"),
+            answerBlock: .mockWith(id: "answer-block"),
+            trailingBlock: .mockWith(id: "trailing-block")))))
+
+    await model.startShowButtonTapped()
+
+    expectNoDifference(
+      capturedIds.value, ["intro", "question-block", "answer-block", "trailing-block"])
+  }
+
   @Test func repeatedStartTapsSendOnlyOneRequest() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let started = AsyncStream<Void>.makeStream()
