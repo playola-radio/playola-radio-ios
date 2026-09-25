@@ -490,9 +490,11 @@ class AMAAnswerQuestionPageModel: ViewModel {
       }
       recordingSession = session
     } catch AudioRecorderError.permissionDenied {
+      guard lifecycleId == recordingLifecycleId else { return }
       recordingPhase = .idle
       presentedAlert = .microphonePermissionDeniedAlert
     } catch {
+      guard lifecycleId == recordingLifecycleId else { return }
       recordingPhase = .idle
       presentedAlert = .recordingFailedAlert(error.localizedDescription)
     }

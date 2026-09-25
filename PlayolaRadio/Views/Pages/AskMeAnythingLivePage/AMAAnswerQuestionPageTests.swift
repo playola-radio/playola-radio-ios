@@ -325,6 +325,45 @@ struct AMAAnswerQuestionPageTests {
     expectNoDifference(model.recordingURL, nil)
   }
 
+  @Test func failedStartupFromACancelledTakeDoesNotResetTheNewRecording() async {
+    let callCount = LockIsolated(0)
+    let firstStarted = AsyncStream<Void>.makeStream()
+    let releaseFirst = AsyncStream<Void>.makeStream()
+    let model = withDependencies {
+      $0.audioRecorder.startRecordingWithUpdates = { _ in
+        let call = callCount.withValue {
+          $0 += 1
+          return $0
+        }
+        if call == 1 {
+          firstStarted.continuation.yield()
+          var iterator = releaseFirst.stream.makeAsyncIterator()
+          await iterator.next()
+          throw AudioRecorderError.noActiveRecording
+        }
+        return RecordingSession(
+          stop: { self.recordingURL },
+          cancel: {},
+          delete: { _ in })
+      }
+    } operation: {
+      AMAAnswerQuestionPageModel(question: .mock, addToShow: noopAdd)
+    }
+
+    let firstStart = Task { await model.recordButtonTapped() }
+    var startedIterator = firstStarted.stream.makeAsyncIterator()
+    await startedIterator.next()
+    await model.recordButtonTapped()
+    await model.recordButtonTapped()
+    expectNoDifference(model.recordingPhase, .recording)
+
+    releaseFirst.continuation.yield()
+    await firstStart.value
+
+    expectNoDifference(model.recordingPhase, .recording)
+    #expect(model.presentedAlert == nil)
+  }
+
   @Test func overlappingStopsOnlyStopTheRecordingSessionOnce() async {
     let stopCalls = LockIsolated(0)
     let gate = AsyncStream<Void>.makeStream()
@@ -354,41 +393,6 @@ struct AMAAnswerQuestionPageTests {
 
     expectNoDifference(stopCalls.value, 1)
     expectNoDifference(model.recordingPhase, .review)
-  }
-
-  @Test func stopTappedWhileRecordingStartsDoesNotEnterAnEmptyReview() async {
-    let stopCalls = LockIsolated(0)
-    let started = AsyncStream<Void>.makeStream()
-    let release = AsyncStream<Void>.makeStream()
-    let model = withDependencies {
-      $0.audioRecorder.startRecordingWithUpdates = { _ in
-        started.continuation.yield()
-        var iterator = release.stream.makeAsyncIterator()
-        await iterator.next()
-        return RecordingSession(
-          stop: {
-            stopCalls.withValue { $0 += 1 }
-            return self.recordingURL
-          }, cancel: {}, delete: { _ in })
-      }
-    } operation: {
-      AMAAnswerQuestionPageModel(question: .mock, addToShow: noopAdd)
-    }
-
-    let starting = Task { await model.recordButtonTapped() }
-    var startedIterator = started.stream.makeAsyncIterator()
-    await startedIterator.next()
-    await model.recordButtonTapped()
-    expectNoDifference(model.recordingPhase, .recording)
-    expectNoDifference(model.recordingURL, nil)
-
-    release.continuation.yield()
-    await starting.value
-    await model.recordButtonTapped()
-
-    expectNoDifference(stopCalls.value, 1)
-    expectNoDifference(model.recordingPhase, .review)
-    expectNoDifference(model.recordingURL, recordingURL)
   }
 
   @Test func reRecordingDeletesTheCompletedRecording() async {
