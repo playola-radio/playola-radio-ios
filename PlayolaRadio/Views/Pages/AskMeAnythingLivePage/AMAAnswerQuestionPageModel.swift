@@ -499,7 +499,13 @@ class AMAAnswerQuestionPageModel: ViewModel {
   }
 
   private func stopRecording() async {
-    guard recordingPhase == .recording, recordingSession != nil, !isStoppingRecording else {
+    guard recordingPhase == .recording, !isStoppingRecording else { return }
+    guard recordingSession != nil else {
+      recordingLifecycleId &+= 1
+      recordingPhase = .idle
+      recordingState = .idle
+      recordingURL = nil
+      answerDurationSeconds = 0
       return
     }
     isStoppingRecording = true

@@ -45,6 +45,8 @@ struct AMAAnswerQuestionPageTests {
   // MARK: - Submit: Trailing PUT Semantics
 
   @Test func unchangedDraftSkipsTheTrailingPut() async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
     let trailingCalls = LockIsolated(0)
     let model = makeSubmitModel(
       trailingDraft: .unchanged,
@@ -57,6 +59,8 @@ struct AMAAnswerQuestionPageTests {
   }
 
   @Test func clearedDraftSendsNullTrailingPut() async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
     let capturedTrailing = LockIsolated<String??>(nil)
     let model = makeSubmitModel(
       trailingDraft: .cleared,
@@ -70,6 +74,8 @@ struct AMAAnswerQuestionPageTests {
   }
 
   @Test func selectedDraftSendsBlockIdTrailingPut() async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
     let capturedTrailing = LockIsolated<String??>(nil)
     let model = makeSubmitModel(
       trailingDraft: .selected(.mockWith(id: "new-song")),
@@ -84,6 +90,8 @@ struct AMAAnswerQuestionPageTests {
   // MARK: - Submit: Ordering
 
   @Test func submitRunsUploadThenAnswerThenTrailingThenAir() async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
     let log = LockIsolated<[String]>([])
     let model = makeSubmitModel(
       trailingDraft: .selected(.mockWith(id: "song")),
@@ -100,12 +108,13 @@ struct AMAAnswerQuestionPageTests {
   // MARK: - Submit: Success Navigation
 
   @Test func successfulSubmitMarksAiredAndPopsToLive() async {
-    let coordinator = MainContainerNavigationCoordinator()
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
     let model = makeSubmitModel(
-      trailingDraft: .unchanged, coordinator: coordinator,
+      trailingDraft: .unchanged,
       configureCoordinator: {
-        coordinator.push(.askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "s1")))
-        coordinator.push(
+        nav.push(.askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "s1")))
+        nav.push(
           .amaQuestionPickerPage(
             AMAQuestionPickerPageModel(stationId: "s1", showStartedAt: nil, addToShow: { _ in })))
       })
@@ -114,7 +123,7 @@ struct AMAAnswerQuestionPageTests {
 
     #expect(model.submissionPhase == .completed)
     #expect(!model.controlsInteractive)
-    guard case .askMeAnythingLivePage = coordinator.path.last else {
+    guard case .askMeAnythingLivePage = nav.path.last else {
       Issue.record("Expected to pop back to the live page")
       return
     }
@@ -123,6 +132,8 @@ struct AMAAnswerQuestionPageTests {
   // MARK: - Submit: Partial-Failure Resume
 
   @Test func retryAfterAirFailureDoesNotReUploadOrReRegister() async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
     let uploadCalls = LockIsolated(0)
     let registerCalls = LockIsolated(0)
     let airAttempts = LockIsolated(0)
@@ -153,6 +164,8 @@ struct AMAAnswerQuestionPageTests {
   }
 
   @Test func changingTrailingDraftAfterFailureReAppliesTheTrailing() async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
     let trailingCalls = LockIsolated(0)
     let airAttempts = LockIsolated(0)
     let model = makeSubmitModel(
@@ -199,6 +212,8 @@ struct AMAAnswerQuestionPageTests {
   }
 
   @Test func submitIgnoredUnlessInReviewPhase() async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
     let uploadCalls = LockIsolated(0)
     let model = makeSubmitModel(
       trailingDraft: .unchanged,
@@ -212,6 +227,8 @@ struct AMAAnswerQuestionPageTests {
   }
 
   @Test func backButtonIsIgnoredWhileSubmitting() {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
     let model = makeSubmitModel(trailingDraft: .unchanged)
     model.submissionPhase = .scheduling
 
@@ -272,6 +289,40 @@ struct AMAAnswerQuestionPageTests {
 
     expectNoDifference(cancelled.value, 1)
     expectNoDifference(model.recordingPhase, .idle)
+  }
+
+  @Test func stopTappedDuringRecordingStartupCancelsTheArrivingSession() async {
+    let cancelled = LockIsolated(0)
+    let started = AsyncStream<Void>.makeStream()
+    let release = AsyncStream<Void>.makeStream()
+    let model = withDependencies {
+      $0.audioRecorder.startRecordingWithUpdates = { _ in
+        started.continuation.yield()
+        var iterator = release.stream.makeAsyncIterator()
+        await iterator.next()
+        return RecordingSession(
+          stop: { self.recordingURL },
+          cancel: { cancelled.withValue { $0 += 1 } },
+          delete: { _ in })
+      }
+    } operation: {
+      AMAAnswerQuestionPageModel(question: .mock, addToShow: noopAdd)
+    }
+
+    let starting = Task { await model.recordButtonTapped() }
+    var startedIterator = started.stream.makeAsyncIterator()
+    await startedIterator.next()
+    await model.recordButtonTapped()
+
+    expectNoDifference(model.recordingPhase, .idle)
+    expectNoDifference(model.recordingURL, nil)
+
+    release.continuation.yield()
+    await starting.value
+
+    expectNoDifference(cancelled.value, 1)
+    expectNoDifference(model.recordingPhase, .idle)
+    expectNoDifference(model.recordingURL, nil)
   }
 
   @Test func overlappingStopsOnlyStopTheRecordingSessionOnce() async {
@@ -359,6 +410,8 @@ struct AMAAnswerQuestionPageTests {
   }
 
   @Test func successfulSubmitDeletesTheCompletedRecording() async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
     let deleted = LockIsolated<[URL]>([])
     let model = makeSubmitModel(
       trailingDraft: .unchanged,
@@ -389,7 +442,6 @@ struct AMAAnswerQuestionPageTests {
   private func makeSubmitModel(
     trailingDraft: AMATrailingSongDraft,
     existingTrailing: AudioBlock? = nil,
-    coordinator: MainContainerNavigationCoordinator = MainContainerNavigationCoordinator(),
     configureCoordinator: () -> Void = {},
     onDelete: @escaping @Sendable (URL) -> Void = { _ in },
     onUpload: @escaping @Sendable () -> Void = {},
@@ -397,9 +449,6 @@ struct AMAAnswerQuestionPageTests {
     onTrailing: @escaping @Sendable (String?) -> Void = { _ in },
     onAir: @escaping @Sendable () async throws -> Void = {}
   ) -> AMAAnswerQuestionPageModel {
-    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
-    @Shared(.mainContainerNavigationCoordinator) var nav = coordinator
-
     let model = withDependencies {
       $0.audioPlayer = .testValue
       $0.audioRecorder = .testValue
@@ -441,9 +490,6 @@ struct AMAAnswerQuestionPageTests {
     onTrailing: @escaping @Sendable (String?) -> Void = { _ in },
     onAdd: @escaping @Sendable (AMAQuestionAnswer) async throws -> Void = { _ in }
   ) -> AMAAnswerQuestionPageModel {
-    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
-    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
-
     return withDependencies {
       $0.audioPlayer = .testValue
       $0.audioRecorder = .testValue
@@ -474,6 +520,8 @@ struct AMAAnswerQuestionPageTests {
   // MARK: - Review Mode
 
   @Test func reviewModeDoesNoRecorderOrUploadWork() async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
     let uploadCalls = LockIsolated(0)
     let registerCalls = LockIsolated(0)
     let added = LockIsolated<[String]>([])
@@ -494,6 +542,8 @@ struct AMAAnswerQuestionPageTests {
   }
 
   @Test func reviewModeWithUnchangedTrailingSkipsThePut() async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
     let trailingCalls = LockIsolated(0)
     let model = makeReviewModel(
       existingTrailing: .mockWith(id: "existing"),
@@ -506,6 +556,8 @@ struct AMAAnswerQuestionPageTests {
   }
 
   @Test func reviewModeChangedTrailingSendsOnePutThenAdds() async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
     let capturedTrailing = LockIsolated<String??>(nil)
     let added = LockIsolated<[String]>([])
     let model = makeReviewModel(
@@ -522,6 +574,8 @@ struct AMAAnswerQuestionPageTests {
   }
 
   @Test func reviewModeRemovingTrailingAfterAFailedAddClearsItOnRetry() async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
     let trailingPuts = LockIsolated<[String?]>([])
     let addAttempts = LockIsolated(0)
     let added = LockIsolated<[String]>([])
