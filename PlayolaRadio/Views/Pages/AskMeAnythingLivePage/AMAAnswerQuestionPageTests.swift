@@ -393,6 +393,7 @@ struct AMAAnswerQuestionPageTests {
 
     expectNoDifference(stopCalls.value, 1)
     expectNoDifference(model.recordingPhase, .review)
+    expectNoDifference(model.recordingURL, recordingURL)
   }
 
   @Test func reRecordingDeletesTheCompletedRecording() async {
