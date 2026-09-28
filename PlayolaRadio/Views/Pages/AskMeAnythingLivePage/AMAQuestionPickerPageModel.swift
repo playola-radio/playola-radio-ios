@@ -317,16 +317,16 @@ class AMAQuestionPickerPageModel: ViewModel {
     guard let jwt = auth.jwt else { return }
     questionsVersion += 1
     let version = questionsVersion
-    isLoading = !hasLoadedQuestions
+    if reportsErrors { isLoading = !hasLoadedQuestions }
     defer {
       if version == questionsVersion { isLoading = false }
     }
     do {
       let fetched = try await api.getListenerQuestions(jwt, stationId)
-      guard version == questionsVersion else { return }
+      guard version == questionsVersion || !hasLoadedQuestions else { return }
       mergeFetchedQuestions(fetched)
       if let playingQuestionId, questions[id: playingQuestionId]?.status ?? .declined == .declined {
-        await stopPlayback()
+        await stopPlayback(playingQuestionId)
       }
     } catch {
       guard reportsErrors, version == questionsVersion, !Task.isCancelled else { return }
@@ -352,9 +352,10 @@ class AMAQuestionPickerPageModel: ViewModel {
     }
   }
 
-  private func stopPlayback() async {
+  private func stopPlayback(_ questionId: String? = nil) async {
     guard playingQuestionId != nil else { return }
     await audioPlayer.stop()
+    guard questionId == nil || playingQuestionId == questionId else { return }
     playingQuestionId = nil
   }
 }

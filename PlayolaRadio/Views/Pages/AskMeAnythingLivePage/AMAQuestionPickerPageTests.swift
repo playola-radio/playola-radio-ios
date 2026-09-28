@@ -196,6 +196,74 @@ struct AMAQuestionPickerPageTests {
     #expect(model.playingQuestionId == nil)
   }
 
+  @Test func aNewPreviewStartedWhileStoppingAnOldOneIsNotClearedByTheOldStop() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let removed = ListenerQuestion.mockWith(id: "removed", status: .pending)
+    let response = LockIsolated<[ListenerQuestion]>([removed])
+    let stopStarted = AsyncStream<Void>.makeStream()
+    let releaseStop = AsyncStream<Void>.makeStream()
+    let model = withDependencies {
+      $0.api.getListenerQuestions = { _, _ in response.value }
+      $0.audioPlayer.stop = {
+        stopStarted.continuation.yield()
+        var iterator = releaseStop.stream.makeAsyncIterator()
+        await iterator.next()
+      }
+    } operation: {
+      AMAQuestionPickerPageModel(stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
+    }
+    await model.viewAppeared()
+    model.playingQuestionId = "removed"
+
+    response.setValue([.mockWith(id: "removed", status: .declined)])
+    let refresh = Task { await model.refreshPulledDown() }
+    var startedIterator = stopStarted.stream.makeAsyncIterator()
+    await startedIterator.next()
+
+    model.playingQuestionId = "newPreview"
+    releaseStop.continuation.yield()
+    await refresh.value
+
+    #expect(model.playingQuestionId == "newPreview")
+  }
+
+  @Test func aFailedRefreshDuringTheFirstLoadKeepsTheEarlierSuccessfulResponse() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    struct RefreshFailure: Error {}
+    let question = ListenerQuestion.mockWith(id: "question")
+    let callCount = LockIsolated(0)
+    let firstFetchStarted = AsyncStream<Void>.makeStream()
+    let releaseFirstFetch = AsyncStream<Void>.makeStream()
+    let model = withDependencies {
+      $0.api.getListenerQuestions = { _, _ in
+        let call = callCount.withValue {
+          $0 += 1
+          return $0
+        }
+        if call == 1 {
+          firstFetchStarted.continuation.yield()
+          var iterator = releaseFirstFetch.stream.makeAsyncIterator()
+          await iterator.next()
+          return [question]
+        }
+        throw RefreshFailure()
+      }
+    } operation: {
+      AMAQuestionPickerPageModel(stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
+    }
+
+    let firstLoad = Task { await model.viewAppeared() }
+    var startedIterator = firstFetchStarted.stream.makeAsyncIterator()
+    await startedIterator.next()
+
+    await model.refreshPulledDown()
+    releaseFirstFetch.continuation.yield()
+    await firstLoad.value
+
+    expectNoDifference(model.questions.map(\.id), ["question"])
+    #expect(model.presentedAlert != nil)
+  }
+
   @Test func aFetchThatStartedBeforeADeclineDoesNotUndoIt() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let pending = ListenerQuestion.mockWith(id: "pending", status: .pending)
