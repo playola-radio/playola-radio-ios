@@ -3710,7 +3710,7 @@
 			repositoryURL = "https://github.com/getsentry/sentry-cocoa/";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 9.10.0;
+				minimumVersion = 9.29.2;
 			};
 		};
 		D30F00382E8592F0007BCC73 /* XCRemoteSwiftPackageReference "playola-player-swift" */ = {
