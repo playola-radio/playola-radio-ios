@@ -35,8 +35,8 @@ struct AMAQuestionPickerPageView: View {
     .toolbarBackground(.visible, for: .navigationBar)
     .toolbarBackground(Color.playolaSurfaceBase, for: .navigationBar)
     .toolbarColorScheme(.dark, for: .navigationBar)
-    .onAppear {
-      Task { await model.viewAppeared() }
+    .task {
+      await model.task()
     }
     .playolaAlert(presentedAlertBinding)
   }

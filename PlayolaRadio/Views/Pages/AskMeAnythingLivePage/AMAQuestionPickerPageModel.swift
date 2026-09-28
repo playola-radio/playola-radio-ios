@@ -32,6 +32,7 @@ class AMAQuestionPickerPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.continuousClock) var clock
 
   // MARK: - Shared State
 
@@ -76,6 +77,8 @@ class AMAQuestionPickerPageModel: ViewModel {
   var airingQuestionId: String?
   var decliningQuestionIds: Set<String> = []
   var presentedAlert: PlayolaAlert?
+  @ObservationIgnored private var hasLoadedQuestions = false
+  @ObservationIgnored private var questionsVersion = 0
 
   var emptyStateTitle: String {
     switch selectedFilter {
@@ -101,20 +104,32 @@ class AMAQuestionPickerPageModel: ViewModel {
       case .answered: return question.status == .answered
       }
     }
-    return IdentifiedArray(uniqueElements: matching.sorted { $0.createdAt > $1.createdAt })
+    return IdentifiedArray(uniqueElements: matching)
   }
 
   var showEmptyState: Bool { !isLoading && filteredQuestions.isEmpty }
 
   // MARK: - User Actions
 
+  func task() async {
+    await viewAppeared()
+    while !Task.isCancelled {
+      do {
+        try await clock.sleep(for: .seconds(10))
+      } catch {
+        break
+      }
+      await fetchQuestions(reportsErrors: false)
+    }
+  }
+
   func viewAppeared() async {
     airingQuestionId = nil
-    await fetchQuestions()
+    await fetchQuestions(reportsErrors: true)
   }
 
   func refreshPulledDown() async {
-    await fetchQuestions()
+    await fetchQuestions(reportsErrors: true)
   }
 
   func filterSelected(_ filter: AMAQuestionFilter) {
@@ -184,6 +199,7 @@ class AMAQuestionPickerPageModel: ViewModel {
     do {
       questions[id: question.id] = try await api.declineListenerQuestion(
         jwt, stationId, question.id)
+      questionsVersion += 1
     } catch {
       presentedAlert = .declineQuestionError(error.localizedDescription)
     }
@@ -291,15 +307,39 @@ class AMAQuestionPickerPageModel: ViewModel {
 
   // MARK: - Private Helpers
 
-  private func fetchQuestions() async {
+  private func fetchQuestions(reportsErrors: Bool) async {
     guard let jwt = auth.jwt else { return }
-    isLoading = true
-    defer { isLoading = false }
+    questionsVersion += 1
+    let version = questionsVersion
+    isLoading = !hasLoadedQuestions
+    defer {
+      if version == questionsVersion { isLoading = false }
+    }
     do {
       let fetched = try await api.getListenerQuestions(jwt, stationId)
-      questions = IdentifiedArray(uniqueElements: fetched)
+      guard version == questionsVersion else { return }
+      mergeFetchedQuestions(fetched)
     } catch {
+      guard reportsErrors, version == questionsVersion, !Task.isCancelled else { return }
       presentedAlert = .fetchQuestionsError(error.localizedDescription)
+    }
+  }
+
+  private func mergeFetchedQuestions(_ fetched: [ListenerQuestion]) {
+    guard hasLoadedQuestions else {
+      questions = IdentifiedArray(
+        uniqueElements: fetched.sorted { ($0.createdAt, $0.id) > ($1.createdAt, $1.id) })
+      hasLoadedQuestions = true
+      return
+    }
+    let latest = IdentifiedArray(uniqueElements: fetched)
+    let arrivals =
+      fetched
+      .filter { questions[id: $0.id] == nil }
+      .sorted { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }
+    withAnimation {
+      questions = IdentifiedArray(
+        uniqueElements: questions.compactMap { latest[id: $0.id] } + arrivals)
     }
   }
 

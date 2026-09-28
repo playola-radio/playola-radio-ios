@@ -37,6 +37,182 @@ struct AMAQuestionPickerPageTests {
     }
   }
 
+  private func makePollingModel(
+    clock: TestClock<Duration>,
+    response: LockIsolated<Result<[ListenerQuestion], any Error>>
+  ) -> AMAQuestionPickerPageModel {
+    withDependencies {
+      $0.date.now = baseDate
+      $0.continuousClock = clock
+      $0.api.getListenerQuestions = { _, _ in try response.value.get() }
+    } operation: {
+      AMAQuestionPickerPageModel(stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
+    }
+  }
+
+  @Test func newQuestionsArrivingWhileOpenAreAppendedAtTheBottom() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      let older = ListenerQuestion.mockWith(
+        id: "older", status: .pending, createdAt: baseDate.addingTimeInterval(-300))
+      let newer = ListenerQuestion.mockWith(
+        id: "newer", status: .pending, createdAt: baseDate.addingTimeInterval(-10))
+      let arrived = ListenerQuestion.mockWith(
+        id: "arrived", status: .pending, createdAt: baseDate.addingTimeInterval(-1))
+      let response = LockIsolated<Result<[ListenerQuestion], any Error>>(.success([older, newer]))
+      let model = makePollingModel(clock: clock, response: response)
+      model.filterSelected(.unanswered)
+      let task = Task { await model.task() }
+
+      await clock.advance(by: .seconds(1))
+      expectNoDifference(model.filteredQuestions.map(\.id), ["newer", "older"])
+
+      response.setValue(.success([arrived, older, newer]))
+      await clock.advance(by: .seconds(10))
+      expectNoDifference(model.filteredQuestions.map(\.id), ["newer", "older", "arrived"])
+
+      task.cancel()
+      await task.value
+    }
+  }
+
+  @Test func questionsArrivingAfterAnEmptyFirstLoadAreAppendedOldestFirst() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      let first = ListenerQuestion.mockWith(
+        id: "first", createdAt: baseDate.addingTimeInterval(-20))
+      let second = ListenerQuestion.mockWith(
+        id: "second", createdAt: baseDate.addingTimeInterval(-10))
+      let response = LockIsolated<Result<[ListenerQuestion], any Error>>(.success([]))
+      let model = makePollingModel(clock: clock, response: response)
+      let task = Task { await model.task() }
+
+      await clock.advance(by: .seconds(1))
+      response.setValue(.success([second, first]))
+      await clock.advance(by: .seconds(10))
+
+      expectNoDifference(model.filteredQuestions.map(\.id), ["first", "second"])
+      task.cancel()
+      await task.value
+    }
+  }
+
+  @Test func pollingUpdatesExistingQuestionsInPlaceAndDropsRemovedOnes() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      let top = ListenerQuestion.mockWith(
+        id: "top", status: .pending, createdAt: baseDate.addingTimeInterval(-10))
+      let middle = ListenerQuestion.mockWith(
+        id: "middle", status: .pending, createdAt: baseDate.addingTimeInterval(-20))
+      let bottom = ListenerQuestion.mockWith(
+        id: "bottom", status: .pending, createdAt: baseDate.addingTimeInterval(-30))
+      let response = LockIsolated<Result<[ListenerQuestion], any Error>>(
+        .success([bottom, middle, top]))
+      let model = makePollingModel(clock: clock, response: response)
+      let task = Task { await model.task() }
+
+      await clock.advance(by: .seconds(1))
+      response.setValue(
+        .success([
+          .mockWith(id: "top", status: .answered, createdAt: baseDate.addingTimeInterval(-10)),
+          bottom,
+        ]))
+      await clock.advance(by: .seconds(10))
+
+      expectNoDifference(model.questions.map(\.id), ["top", "bottom"])
+      expectNoDifference(model.questions[id: "top"]?.status, .answered)
+      task.cancel()
+      await task.value
+    }
+  }
+
+  @Test func aFailedPollDoesNotAlertOrShowLoading() async {
+    struct PollFailure: Error {}
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      let question = ListenerQuestion.mockWith(id: "question")
+      let response = LockIsolated<Result<[ListenerQuestion], any Error>>(.success([question]))
+      let model = makePollingModel(clock: clock, response: response)
+      let task = Task { await model.task() }
+
+      await clock.advance(by: .seconds(1))
+      response.setValue(.failure(PollFailure()))
+      await clock.advance(by: .seconds(10))
+
+      #expect(model.presentedAlert == nil)
+      #expect(!model.isLoading)
+      expectNoDifference(model.questions.map(\.id), ["question"])
+      task.cancel()
+      await task.value
+    }
+  }
+
+  @Test func aFetchThatStartedBeforeADeclineDoesNotUndoIt() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let pending = ListenerQuestion.mockWith(id: "pending", status: .pending)
+    let declined = ListenerQuestion.mockWith(id: "pending", status: .declined)
+    let blocksFetch = LockIsolated(false)
+    let fetchStarted = AsyncStream<Void>.makeStream()
+    let releaseFetch = AsyncStream<Void>.makeStream()
+    let model = withDependencies {
+      $0.api.getListenerQuestions = { _, _ in
+        if blocksFetch.value {
+          fetchStarted.continuation.yield()
+          var iterator = releaseFetch.stream.makeAsyncIterator()
+          await iterator.next()
+        }
+        return [pending]
+      }
+      $0.api.declineListenerQuestion = { _, _, _ in declined }
+    } operation: {
+      AMAQuestionPickerPageModel(stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
+    }
+    await model.viewAppeared()
+
+    blocksFetch.setValue(true)
+    let refresh = Task { await model.refreshPulledDown() }
+    var startedIterator = fetchStarted.stream.makeAsyncIterator()
+    await startedIterator.next()
+    await model.declineQuestionSwiped(pending)
+    releaseFetch.continuation.yield()
+    await refresh.value
+
+    expectNoDifference(model.questions[id: "pending"]?.status, .declined)
+  }
+
+  @Test func refetchingAfterTheFirstLoadKeepsTheListVisible() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let blocksFetch = LockIsolated(false)
+    let fetchStarted = AsyncStream<Void>.makeStream()
+    let releaseFetch = AsyncStream<Void>.makeStream()
+    let model = withDependencies {
+      $0.api.getListenerQuestions = { _, _ in
+        if blocksFetch.value {
+          fetchStarted.continuation.yield()
+          var iterator = releaseFetch.stream.makeAsyncIterator()
+          await iterator.next()
+        }
+        return [.mockWith(id: "question")]
+      }
+    } operation: {
+      AMAQuestionPickerPageModel(stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
+    }
+    await model.viewAppeared()
+
+    blocksFetch.setValue(true)
+    let refresh = Task { await model.refreshPulledDown() }
+    var startedIterator = fetchStarted.stream.makeAsyncIterator()
+    await startedIterator.next()
+
+    #expect(!model.isLoading)
+    releaseFetch.continuation.yield()
+    await refresh.value
+  }
+
   @Test func filtersAndSortsByNewestFirst() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let questions: [ListenerQuestion] = [
