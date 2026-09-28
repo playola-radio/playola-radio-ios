@@ -78,7 +78,7 @@ class AMAQuestionPickerPageModel: ViewModel {
   var airingQuestionId: String?
   var decliningQuestionIds: Set<String> = []
   var presentedAlert: PlayolaAlert?
-  @ObservationIgnored private var hasLoadedQuestions = false
+  private var hasLoadedQuestions = false
   @ObservationIgnored private var questionsVersion = 0
   @ObservationIgnored private var isAppActive = true
 
@@ -109,7 +109,9 @@ class AMAQuestionPickerPageModel: ViewModel {
     return IdentifiedArray(uniqueElements: matching)
   }
 
-  var showEmptyState: Bool { !isLoading && filteredQuestions.isEmpty }
+  var showsLoadingSpinner: Bool { isLoading && !hasLoadedQuestions }
+
+  var showEmptyState: Bool { !showsLoadingSpinner && filteredQuestions.isEmpty }
 
   // MARK: - User Actions
 
@@ -128,11 +130,11 @@ class AMAQuestionPickerPageModel: ViewModel {
 
   func viewAppeared() async {
     airingQuestionId = nil
-    await fetchQuestions(isUserInitiated: true)
+    await loadQuestions()
   }
 
   func refreshPulledDown() async {
-    await fetchQuestions(isUserInitiated: true)
+    await loadQuestions()
   }
 
   func scenePhaseChanged(newPhase: ScenePhase) {
@@ -275,14 +277,14 @@ class AMAQuestionPickerPageModel: ViewModel {
   // MARK: - View Styling
 
   var hasFilterableQuestions: Bool { questions.contains { $0.status != .declined } }
-  var filterPillsVisible: Bool { hasFilterableQuestions && !isLoading }
+  var filterPillsVisible: Bool { hasFilterableQuestions && !showsLoadingSpinner }
   var filterPillsOpacity: Double { filterPillsVisible ? 1 : 0 }
   var filterPillsAccessibilityHidden: Bool { !filterPillsVisible }
-  var loadingOpacity: Double { isLoading ? 1 : 0 }
+  var loadingOpacity: Double { showsLoadingSpinner ? 1 : 0 }
   var emptyStateOpacity: Double { showEmptyState ? 1 : 0 }
   var emptyStateAccessibilityHidden: Bool { !showEmptyState }
-  var contentOpacity: Double { showEmptyState || isLoading ? 0 : 1 }
-  var contentAccessibilityHidden: Bool { showEmptyState || isLoading }
+  var contentOpacity: Double { showEmptyState || showsLoadingSpinner ? 0 : 1 }
+  var contentAccessibilityHidden: Bool { showEmptyState || showsLoadingSpinner }
 
   func filterBackground(_ filter: AMAQuestionFilter) -> Color {
     selectedFilter == filter ? Color.playolaRed : Color.playolaSurfaceRaised
@@ -314,14 +316,16 @@ class AMAQuestionPickerPageModel: ViewModel {
 
   // MARK: - Private Helpers
 
+  private func loadQuestions() async {
+    isLoading = true
+    defer { isLoading = false }
+    await fetchQuestions(isUserInitiated: true)
+  }
+
   private func fetchQuestions(isUserInitiated: Bool) async {
     guard let jwt = auth.jwt else { return }
     questionsVersion += 1
     let version = questionsVersion
-    if isUserInitiated { isLoading = !hasLoadedQuestions }
-    defer {
-      if version == questionsVersion { isLoading = false }
-    }
     do {
       let fetched = try await api.getListenerQuestions(jwt, stationId)
       guard version == questionsVersion || !hasLoadedQuestions else { return }

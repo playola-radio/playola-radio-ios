@@ -146,7 +146,7 @@ struct AMAQuestionPickerPageTests {
       await clock.advance(by: .seconds(10))
 
       #expect(model.presentedAlert == nil)
-      #expect(!model.isLoading)
+      #expect(model.loadingOpacity == 0)
       expectNoDifference(model.questions.map(\.id), ["question"])
       task.cancel()
       await task.value
@@ -338,6 +338,32 @@ struct AMAQuestionPickerPageTests {
     expectNoDifference(model.questions[id: "pending"]?.status, .declined)
   }
 
+  @Test func theFirstLoadShowsTheSpinnerUntilQuestionsArrive() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let fetchStarted = AsyncStream<Void>.makeStream()
+    let releaseFetch = AsyncStream<Void>.makeStream()
+    let model = withDependencies {
+      $0.api.getListenerQuestions = { _, _ in
+        fetchStarted.continuation.yield()
+        var iterator = releaseFetch.stream.makeAsyncIterator()
+        await iterator.next()
+        return [.mockWith(id: "question")]
+      }
+    } operation: {
+      AMAQuestionPickerPageModel(stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
+    }
+
+    let load = Task { await model.viewAppeared() }
+    var startedIterator = fetchStarted.stream.makeAsyncIterator()
+    await startedIterator.next()
+    #expect(model.loadingOpacity == 1)
+
+    releaseFetch.continuation.yield()
+    await load.value
+    #expect(model.loadingOpacity == 0)
+    #expect(model.contentOpacity == 1)
+  }
+
   @Test func refetchingAfterTheFirstLoadKeepsTheListVisible() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let blocksFetch = LockIsolated(false)
@@ -362,7 +388,8 @@ struct AMAQuestionPickerPageTests {
     var startedIterator = fetchStarted.stream.makeAsyncIterator()
     await startedIterator.next()
 
-    #expect(!model.isLoading)
+    #expect(model.contentOpacity == 1)
+    #expect(model.loadingOpacity == 0)
     releaseFetch.continuation.yield()
     await refresh.value
   }
