@@ -273,6 +273,37 @@ struct AMAQueuePlacementTests {
     }
   }
 
+  @Test func flatQuestionAndAnswerSpinsRenderAsDistinctRows() {
+    withDependencies {
+      $0.date.now = date
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: "station")
+      model.broadcast.schedule = Schedule(
+        stationId: "station",
+        spins: [
+          .mockWith(
+            id: "question", airtime: date.addingTimeInterval(60),
+            audioBlock: .mockWith(id: "q", endOfMessageMS: 30_000), liveShowId: "show"),
+          .mockWith(
+            id: "answer", airtime: date.addingTimeInterval(90),
+            audioBlock: .mockWith(id: "a", endOfMessageMS: 54_000), liveShowId: "show"),
+        ], dateProvider: DependencyDateProvider())
+      model.listenerQuestions = [
+        .mockWith(
+          audioBlockId: "q", answerAudioBlockId: "a",
+          listener: .mockWith(firstName: "Sam"))
+      ]
+      model.schedulePlaybackChanged()
+      model.scheduledStartsAt = date.addingTimeInterval(-1)
+
+      expectNoDifference(
+        model.liveRows.map(\.title), ["Question from Sam", "Answer to Sam"])
+      expectNoDifference(
+        model.liveRows.map(\.subtitle), ["0:30 · Question", "0:54 · Answer"])
+      expectNoDifference(model.liveRows.map { $0.spins.map(\.id) }, [["question"], ["answer"]])
+    }
+  }
+
   private func makeModel() -> AskMeAnythingLivePageModel {
     let model = AskMeAnythingLivePageModel(stationId: "station")
     model.broadcast.schedule = Schedule(

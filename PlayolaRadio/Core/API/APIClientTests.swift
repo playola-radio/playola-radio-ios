@@ -72,4 +72,22 @@ struct APIClientTests {
       )
     }
   }
+
+  // MARK: - Trailing AudioBlock Encoding
+
+  @Test
+  func trailingParametersEncodesValueWhenSet() throws {
+    let data = try JSONEncoder().encode(
+      UpdateTrailingAudioBlockParameters(trailingAudioBlockId: "audio-123"))
+    let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+    #expect(object?["trailingAudioBlockId"] as? String == "audio-123")
+  }
+
+  @Test
+  func trailingParametersEncodesExplicitNullWhenCleared() throws {
+    let data = try JSONEncoder().encode(
+      UpdateTrailingAudioBlockParameters(trailingAudioBlockId: nil))
+    let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+    #expect(object?["trailingAudioBlockId"] is NSNull)
+  }
 }

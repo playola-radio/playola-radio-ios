@@ -246,12 +246,13 @@ struct AMALiveContentView: View {
         } label: {
           Text(model.endShowButtonTitle)
             .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
+            .foregroundStyle(model.endShowButtonForeground)
             .frame(maxWidth: .infinity)
             .frame(height: 44)
-            .background(Color.playolaSurfaceRaised)
+            .background(model.endShowButtonBackground)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(
-              RoundedRectangle(cornerRadius: 12).stroke(Color.playolaGlassHairline, lineWidth: 1))
+              RoundedRectangle(cornerRadius: 12).stroke(model.endShowButtonBorder, lineWidth: 1))
         }
         .buttonStyle(.plain)
         .disabled(!model.isEndShowEnabled)

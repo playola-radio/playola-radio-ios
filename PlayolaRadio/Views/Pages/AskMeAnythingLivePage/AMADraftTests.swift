@@ -17,6 +17,43 @@ struct AMADraftTests {
     AMAOpeningItem(id: UUID(), content: .intro(.mockWith(id: "intro", durationMS: durationMS)))
   }
 
+  private func questionAnswerItem(trailing: Bool) -> AMAOpeningItem {
+    AMAOpeningItem(
+      id: UUID(),
+      content: .questionAnswer(
+        AMAQuestionAnswer(
+          questionId: "q1", listenerName: "Sarah",
+          questionBlock: .mockWith(id: "q-block", durationMS: 45_000),
+          answerBlock: .mockWith(id: "a-block", durationMS: 90_000),
+          trailingBlock: trailing ? .mockWith(id: "t-block", durationMS: 180_000) : nil)))
+  }
+
+  @Test func questionAnswerItemFlattensBlockIdsInOrderAndSumsDuration() {
+    let withTrailing = questionAnswerItem(trailing: true)
+    expectNoDifference(withTrailing.audioBlockIds, ["q-block", "a-block", "t-block"])
+    expectNoDifference(withTrailing.audioBlockId, nil)
+    #expect(withTrailing.isReady)
+    expectNoDifference(withTrailing.readyDurationMS, 315_000)
+
+    let noTrailing = questionAnswerItem(trailing: false)
+    expectNoDifference(noTrailing.audioBlockIds, ["q-block", "a-block"])
+    expectNoDifference(noTrailing.readyDurationMS, 135_000)
+  }
+
+  @Test func stagedQuestionAnswerSurvivesLeavingAndReopeningSetup() {
+    @Shared(.auth) var auth = Auth(
+      loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    model.openingItems = [introItem(durationMS: 30_000), questionAnswerItem(trailing: true)]
+    model.setupAbandoned()
+
+    let restored = AskMeAnythingLivePageModel(stationId: testStationId)
+
+    expectNoDifference(restored.openingItems, model.openingItems)
+    expectNoDifference(
+      restored.openingItems.flatMap(\.audioBlockIds), ["intro", "q-block", "a-block", "t-block"])
+  }
+
   @Test func prefilledPlaylistSurvivesLeavingAndReopeningSetup() {
     @Shared(.auth) var auth = Auth(
       loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))

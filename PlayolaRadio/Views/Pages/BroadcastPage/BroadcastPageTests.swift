@@ -83,6 +83,85 @@ struct BroadcastPageTests {
     }
   }
 
+  @Test func placeAfterSpinIdForShowEndReturnsSpinBeforeReserveFiller() async {
+    let spins = [
+      Spin.mockWith(
+        id: "rotation-now", airtime: fixedNow.addingTimeInterval(-30),
+        audioBlock: .mockWith(endOfMessageMS: 180_000)),
+      Spin.mockWith(
+        id: "other-show", airtime: fixedNow.addingTimeInterval(150), liveShowId: "other"),
+      Spin.mockWith(id: "opener", airtime: fixedNow.addingTimeInterval(300), liveShowId: "show"),
+      Spin.mockWith(
+        id: "filler", airtime: fixedNow.addingTimeInterval(600), liveShowId: "show", isFiller: true),
+      Spin.mockWith(id: "rotation-next", airtime: fixedNow.addingTimeInterval(900)),
+    ]
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, liveShowId: "show")
+      await model.loadSchedule()
+      expectNoDifference(model.placeAfterSpinIdForShowEnd(), "opener")
+    }
+  }
+
+  @Test func placeAfterSpinIdForShowEndReturnsNowPlayingWhenFillerIsFirstFutureSpin() async {
+    let spins = [
+      Spin.mockWith(
+        id: "rotation-now", airtime: fixedNow.addingTimeInterval(-30),
+        audioBlock: .mockWith(endOfMessageMS: 180_000)),
+      Spin.mockWith(
+        id: "filler", airtime: fixedNow.addingTimeInterval(300), liveShowId: "show", isFiller: true),
+      Spin.mockWith(id: "rotation-next", airtime: fixedNow.addingTimeInterval(900)),
+    ]
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, liveShowId: "show")
+      await model.loadSchedule()
+      expectNoDifference(model.placeAfterSpinIdForShowEnd(), "rotation-now")
+    }
+  }
+
+  @Test func placeAfterSpinIdForShowEndFallsBackToLastShowSpinWhenNoReserveFiller() async {
+    let spins = [
+      Spin.mockWith(
+        id: "rotation-now", airtime: fixedNow.addingTimeInterval(-30),
+        audioBlock: .mockWith(endOfMessageMS: 180_000)),
+      Spin.mockWith(id: "opener", airtime: fixedNow.addingTimeInterval(300), liveShowId: "show"),
+      Spin.mockWith(
+        id: "show-second", airtime: fixedNow.addingTimeInterval(600), liveShowId: "show"),
+      Spin.mockWith(id: "rotation-next", airtime: fixedNow.addingTimeInterval(900)),
+    ]
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, liveShowId: "show")
+      await model.loadSchedule()
+      #expect(model.showEndDropTargets.isEmpty)
+      expectNoDifference(model.placeAfterSpinIdForShowEnd(), "show-second")
+    }
+  }
+
+  @Test func placeAfterSpinIdForShowEndFallsBackToNowPlayingWhenShowQueueEmpty() async {
+    let spins = [
+      Spin.mockWith(
+        id: "rotation-now", airtime: fixedNow.addingTimeInterval(-30),
+        audioBlock: .mockWith(endOfMessageMS: 180_000)),
+      Spin.mockWith(id: "rotation-next", airtime: fixedNow.addingTimeInterval(900)),
+    ]
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, liveShowId: "show")
+      await model.loadSchedule()
+      expectNoDifference(model.placeAfterSpinIdForShowEnd(), "rotation-now")
+    }
+  }
+
   @Test func placingContentAtShowEndUsesTheHiddenFillerBoundary() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let anchors = LockIsolated<[String]>([])
