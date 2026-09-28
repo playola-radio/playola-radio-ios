@@ -245,7 +245,10 @@ class AMAAnswerQuestionPageModel: ViewModel {
 
   var reviewStatusText: String { mode == .reviewAnswer ? "Your recorded answer" : reviewLabel }
   var answerDurationText: String {
-    "\(formatTime(answerDurationSeconds)) / \(formatTime(maxAnswerSeconds))"
+    switch mode {
+    case .record: return "\(formatTime(answerDurationSeconds)) / \(formatTime(maxAnswerSeconds))"
+    case .reviewAnswer: return formatTime(answerDurationSeconds)
+    }
   }
 
   var answerPlayButtonIcon: String {
