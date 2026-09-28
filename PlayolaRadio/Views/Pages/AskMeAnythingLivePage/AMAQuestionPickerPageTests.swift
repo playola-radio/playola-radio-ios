@@ -9,6 +9,7 @@ import Dependencies
 import Foundation
 import PlayolaPlayer
 import Sharing
+import SwiftUI
 import Testing
 
 @testable import PlayolaRadio
@@ -68,6 +69,17 @@ struct AMAQuestionPickerPageTests {
     #expect(model.showEmptyState)
     #expect(model.filterPillsVisible)
     expectNoDifference(model.filterPillsOpacity, 1)
+  }
+
+  @Test func answeredBadgeUsesGreenTextAndUnansweredBadgeUsesSecondaryText() {
+    let model = makeModel(questions: [], addToShow: noopAdd)
+
+    expectNoDifference(
+      model.badgeForeground(.mockWith(id: "answered", status: .answered)),
+      Color.playolaSuccessGreen)
+    expectNoDifference(
+      model.badgeForeground(.mockWith(id: "pending", status: .pending)),
+      Color.playolaTextSecondary)
   }
 
   @Test func decliningAPendingQuestionUpdatesTheIdentifiedQuestion() async {

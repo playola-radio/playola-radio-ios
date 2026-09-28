@@ -262,7 +262,7 @@ class AMAQuestionPickerPageModel: ViewModel {
   var contentAccessibilityHidden: Bool { showEmptyState || isLoading }
 
   func filterBackground(_ filter: AMAQuestionFilter) -> Color {
-    selectedFilter == filter ? Color.playolaRed : Color.elevatedSurface
+    selectedFilter == filter ? Color.playolaRed : Color.playolaSurfaceRaised
   }
 
   func rowOpacity(_ questionId: String) -> Double {
@@ -274,7 +274,11 @@ class AMAQuestionPickerPageModel: ViewModel {
   }
 
   func badgeBackground(_ question: ListenerQuestion) -> Color {
-    isAnswered(question) ? Color.success : Color.elevatedSurface
+    isAnswered(question) ? Color.playolaSuccessGreen.opacity(0.15) : Color.playolaSurfaceRaised
+  }
+
+  func badgeForeground(_ question: ListenerQuestion) -> Color {
+    isAnswered(question) ? Color.playolaSuccessGreen : Color.playolaTextSecondary
   }
 
   func transcriptLineLimit(_ questionId: String) -> Int? {

@@ -10,11 +10,11 @@ struct AMAQuestionPickerPageView: View {
 
   var body: some View {
     ZStack {
-      Color.background
+      Color.playolaSurfaceBase
         .edgesIgnoringSafeArea(.all)
 
       ProgressView()
-        .tint(.textPrimary)
+        .tint(.playolaTextPrimary)
         .opacity(model.loadingOpacity)
 
       emptyState
@@ -33,7 +33,7 @@ struct AMAQuestionPickerPageView: View {
     .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .toolbarBackground(.visible, for: .navigationBar)
-    .toolbarBackground(Color.background, for: .navigationBar)
+    .toolbarBackground(Color.playolaSurfaceBase, for: .navigationBar)
     .toolbarColorScheme(.dark, for: .navigationBar)
     .onAppear {
       Task { await model.viewAppeared() }
@@ -56,7 +56,7 @@ struct AMAQuestionPickerPageView: View {
           } label: {
             Text(filter.displayText)
               .font(.custom(FontNames.Inter_500_Medium, size: 14))
-              .foregroundColor(.textPrimary)
+              .foregroundColor(.playolaTextPrimary)
               .padding(.horizontal, 16)
               .padding(.vertical, 8)
               .background(model.filterBackground(filter))
@@ -77,15 +77,15 @@ struct AMAQuestionPickerPageView: View {
     VStack(spacing: 16) {
       Image(systemName: "bubble.left.and.bubble.right")
         .font(.system(size: 48))
-        .foregroundColor(.textSecondary)
+        .foregroundColor(.playolaTextSecondary)
 
       Text(model.emptyStateTitle)
         .font(.custom(FontNames.Inter_600_SemiBold, size: 18))
-        .foregroundColor(.textPrimary)
+        .foregroundColor(.playolaTextPrimary)
 
       Text(model.emptyStateMessage)
         .font(.custom(FontNames.Inter_400_Regular, size: 14))
-        .foregroundColor(.textSecondary)
+        .foregroundColor(.playolaTextSecondary)
         .multilineTextAlignment(.center)
     }
     .padding()
@@ -131,7 +131,7 @@ private struct AMAQuestionRow: View {
       header
       transcriptSection
     }
-    .background(Color.cardSurface)
+    .background(Color.playolaSurfaceSection)
     .cornerRadius(12)
     .opacity(model.rowOpacity(question.id))
     .contentShape(Rectangle())
@@ -146,11 +146,11 @@ private struct AMAQuestionRow: View {
       VStack(alignment: .leading, spacing: 2) {
         Text(model.listenerName(question))
           .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
-          .foregroundColor(.textPrimary)
+          .foregroundColor(.playolaTextPrimary)
 
         Text(model.timeAgoText(question))
           .font(.custom(FontNames.Inter_400_Regular, size: 12))
-          .foregroundColor(.textSecondary)
+          .foregroundColor(.playolaTextSecondary)
       }
 
       Spacer()
@@ -161,7 +161,7 @@ private struct AMAQuestionRow: View {
 
       Image(systemName: "chevron.right")
         .font(.system(size: 14, weight: .semibold))
-        .foregroundColor(.textSecondary)
+        .foregroundColor(.playolaTextSecondary)
     }
     .padding(.horizontal, 16)
     .padding(.top, 16)
@@ -171,7 +171,7 @@ private struct AMAQuestionRow: View {
   private var badge: some View {
     Text(model.statusBadgeText(question))
       .font(.custom(FontNames.Inter_500_Medium, size: 11))
-      .foregroundColor(.textPrimary)
+      .foregroundColor(model.badgeForeground(question))
       .padding(.horizontal, 8)
       .padding(.vertical, 3)
       .background(model.badgeBackground(question))
@@ -189,7 +189,7 @@ private struct AMAQuestionRow: View {
         Text(model.durationText(question))
           .font(.custom(FontNames.Inter_500_Medium, size: 12))
       }
-      .foregroundColor(.textPrimary)
+      .foregroundColor(.playolaTextPrimary)
       .padding(.horizontal, 12)
       .padding(.vertical, 8)
       .background(Color.playolaRed)
@@ -204,7 +204,7 @@ private struct AMAQuestionRow: View {
     VStack(alignment: .leading, spacing: 8) {
       Text(model.transcription(question))
         .font(.custom(FontNames.Inter_400_Regular, size: 14))
-        .foregroundColor(.textPrimary)
+        .foregroundColor(.playolaTextPrimary)
         .lineLimit(model.transcriptLineLimit(question.id))
         .animation(.easeInOut(duration: 0.2), value: model.isExpanded(question.id))
 
