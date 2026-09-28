@@ -19,7 +19,7 @@ not ✅ done until its soak clears.
 > Entries marked `⟨owner: …⟩` are placeholders the task owner should fill in —
 > I scaffolded them from open PRs/branches but don't know the internal plan.
 
-_Last updated: 2026-09-12_
+_Last updated: 2026-09-28_
 
 ---
 
@@ -42,7 +42,6 @@ we need to tackle?" (or run the `whats-due` skill) to see what's due.
 | Prettify iPad screens | 🔵 in progress | Profile (screen 4 of N) | none (standard release) | 2026-09-10 | specs in `docs/superpowers/specs/2026-08-0*-ipad-*-design.md` |
 | Artist 3-tab IA (broadcast redesign) | 🔵 in progress | Step 2: Dashboard health + Listeners cards + 8-week chart wired; Station tab's third link row now pushes a new Breakers Library category list (categories fetch, non-song + zero-clip filter) with a per-category detail page (per-clip audio preview, play/stop toggle + scrubber) landed in PR #417; re-homing next — **must not merge until Step 3 re-homes Broadcast/Library/Listeners** | none (standard release) | 2026-09-10 | designs `design/exports/in-progress/3-tab-ia` · `design/exports/breakers-library` · `design/DESIGN_STATUS.md` |
 | Artist Dashboard API Repair | 🔵 in progress | iOS PR (this repo) repointed to the new/renamed endpoints and is ready for staging verification; server PR (playola repo) is owned by a separate human implementer, not tracked here in detail | **prod gate**: server must ship `programming-health` + the station-filtered `listener-counts`/`active` work to production before any App Store release containing the dashboard | 2026-09-19 | see "Artist Dashboard API Repair" section below |
-| Ask Me Anything live show | 🔵 in progress | Host-facing live page (setup, start/end, live queue editing, durable opening draft, outro) built across six iterative PRs on `briankeane/ama-api-client`; PR #434 addressing final review round | none (standard release) | 2026-09-21 | PR #434 · plan `design/features/ama-live-show/implementation-plan.md` |
 
 ---
 
@@ -310,33 +309,46 @@ repo). Server PR 1 tracked in the playola repo by its own implementer.
 
 ---
 
-## Ask Me Anything live show
+## View/Model pattern cleanup
+
+Standing, **opportunistic** cleanup (fix-on-touch, not a scheduled task) —
+tracked in `TODO_VIEW_MODEL_VIOLATIONS.md`. Listed here only for visibility; it
+has no phases or soak. Don't spin up dedicated PRs for it; fix violations when
+you're already in a file.
+
+---
+
+## Done
+
+### Ask Me Anything live show — ✅ done 2026-09-28
 
 **Goal:** give station hosts a live "Ask Me Anything" page: build and persist
 an opening playlist (intro + songs + optional voicetracks), start the show,
 watch/edit the live schedule (listener count, grouped Q&A rows, filler hidden
 except a promoted low-buffer song), and end through a recorded outro.
 
-**Why this is multi-PR:** the feature landed as a sequence of iterative
+**Why this was multi-PR:** the feature landed as a sequence of iterative
 follow-ups on one long-lived branch (`briankeane/ama-api-client`), each adding
-owner-requested behavior on top of the previous approved slice — durable
-setup drafts across restarts, independent local scheduling positions for
-pending voicetracks, airtime-spinner scoping on moves, and forwarding the
-Shows page directly to an already-active show. Full history and verification
-counts per step are in `design/features/ama-live-show/implementation-plan.md`.
+owner-requested behavior on top of the previous approved slice — durable setup
+drafts across restarts, independent local scheduling positions for pending
+voicetracks, airtime-spinner scoping on moves, and forwarding the Shows page
+directly to an already-active show. Full history and verification counts per
+step are in `design/features/ama-live-show/implementation-plan.md`.
 
-**Current step:** all planned slices are implemented and tested (210+
-regression tests across the touched suites as of the last logged step). PR
-#434 is open against `develop` and is in its final review round.
+**Completed:** PR #434 merged to `develop` on 2026-09-21 and PR #437 merged to
+`develop` on 2026-09-28. All planned live-show slices are implemented and
+tested (210+ regression tests across the touched suites as of the last logged
+step); no soak or remaining server gate applied.
 
 **Server dependency:** the live-show endpoints (`POST
 /v1/stations/:id/liveShow`, `.../end`) and auto-tagging of ordinary
-insert/move spins with the active show ID already exist on the server's
+insert/move spins with the active show ID already existed on the server's
 `develop` (confirmed at `365e2cc1` in the `playola` repo). No further server
-work is required for this PR.
+work was required.
 
-**Advance when:** PRs #434 and #437 merge to `develop`. No soak — standard
-release, no environment gating, no server gate remaining.
+**Follow-on:** the picker polish on `briankeane/ama-questions-list-colors`
+matches the answer-screen colors, shows real answer lengths, inserts live
+questions at the bottom, and pauses polling in the background.
 
 **Follow-on (branch `briankeane/ask-me-anything-flow`, PR #437):** client-only
 host refinements on top of #434 — (1) tapping an already-answered question now opens
@@ -357,18 +369,3 @@ future item; not scheduled.
 
 **Links:** PR #434 · PR #437 (this repo) · plan
 `design/features/ama-live-show/implementation-plan.md`.
-
----
-
-## View/Model pattern cleanup
-
-Standing, **opportunistic** cleanup (fix-on-touch, not a scheduled task) —
-tracked in `TODO_VIEW_MODEL_VIOLATIONS.md`. Listed here only for visibility; it
-has no phases or soak. Don't spin up dedicated PRs for it; fix violations when
-you're already in a file.
-
----
-
-## Done
-
-_(none yet — move tasks here with their completion date once their soak clears)_
