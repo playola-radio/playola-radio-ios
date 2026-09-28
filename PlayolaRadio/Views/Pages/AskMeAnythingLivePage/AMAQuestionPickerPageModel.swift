@@ -79,6 +79,7 @@ class AMAQuestionPickerPageModel: ViewModel {
   var presentedAlert: PlayolaAlert?
   @ObservationIgnored private var hasLoadedQuestions = false
   @ObservationIgnored private var questionsVersion = 0
+  @ObservationIgnored private var isAppActive = true
 
   var emptyStateTitle: String {
     switch selectedFilter {
@@ -119,6 +120,7 @@ class AMAQuestionPickerPageModel: ViewModel {
       } catch {
         break
       }
+      guard isAppActive else { continue }
       await fetchQuestions(reportsErrors: false)
     }
   }
@@ -130,6 +132,10 @@ class AMAQuestionPickerPageModel: ViewModel {
 
   func refreshPulledDown() async {
     await fetchQuestions(reportsErrors: true)
+  }
+
+  func scenePhaseChanged(newPhase: ScenePhase) {
+    isAppActive = newPhase == .active
   }
 
   func filterSelected(_ filter: AMAQuestionFilter) {
@@ -319,6 +325,9 @@ class AMAQuestionPickerPageModel: ViewModel {
       let fetched = try await api.getListenerQuestions(jwt, stationId)
       guard version == questionsVersion else { return }
       mergeFetchedQuestions(fetched)
+      if let playingQuestionId, questions[id: playingQuestionId]?.status ?? .declined == .declined {
+        await stopPlayback()
+      }
     } catch {
       guard reportsErrors, version == questionsVersion, !Task.isCancelled else { return }
       presentedAlert = .fetchQuestionsError(error.localizedDescription)

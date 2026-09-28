@@ -151,6 +151,51 @@ struct AMAQuestionPickerPageTests {
     }
   }
 
+  @Test func pollingPausesWhileTheAppIsInTheBackground() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      let arrived = ListenerQuestion.mockWith(id: "arrived")
+      let response = LockIsolated<Result<[ListenerQuestion], any Error>>(.success([]))
+      let model = makePollingModel(clock: clock, response: response)
+      let task = Task { await model.task() }
+
+      await clock.advance(by: .seconds(1))
+      model.scenePhaseChanged(newPhase: .background)
+      response.setValue(.success([arrived]))
+      await clock.advance(by: .seconds(10))
+      expectNoDifference(model.questions.map(\.id), [])
+
+      model.scenePhaseChanged(newPhase: .active)
+      await clock.advance(by: .seconds(10))
+      expectNoDifference(model.questions.map(\.id), ["arrived"])
+
+      task.cancel()
+      await task.value
+    }
+  }
+
+  @Test func aRefreshThatRemovesThePlayingQuestionStopsItsPreview() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let playing = ListenerQuestion.mockWith(id: "playing", status: .pending)
+    let response = LockIsolated<[ListenerQuestion]>([playing])
+    let stopCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.getListenerQuestions = { _, _ in response.value }
+      $0.audioPlayer.stop = { stopCount.withValue { $0 += 1 } }
+    } operation: {
+      AMAQuestionPickerPageModel(stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
+    }
+    await model.viewAppeared()
+    model.playingQuestionId = "playing"
+
+    response.setValue([.mockWith(id: "playing", status: .declined)])
+    await model.refreshPulledDown()
+
+    expectNoDifference(stopCount.value, 1)
+    #expect(model.playingQuestionId == nil)
+  }
+
   @Test func aFetchThatStartedBeforeADeclineDoesNotUndoIt() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let pending = ListenerQuestion.mockWith(id: "pending", status: .pending)

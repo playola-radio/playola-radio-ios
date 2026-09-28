@@ -7,6 +7,7 @@ import SwiftUI
 
 struct AMAQuestionPickerPageView: View {
   let model: AMAQuestionPickerPageModel
+  @Environment(\.scenePhase) private var scenePhase
 
   var body: some View {
     ZStack {
@@ -37,6 +38,9 @@ struct AMAQuestionPickerPageView: View {
     .toolbarColorScheme(.dark, for: .navigationBar)
     .task {
       await model.task()
+    }
+    .onChange(of: scenePhase) { _, newPhase in
+      model.scenePhaseChanged(newPhase: newPhase)
     }
     .playolaAlert(presentedAlertBinding)
   }
