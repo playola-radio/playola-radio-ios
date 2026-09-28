@@ -92,7 +92,7 @@
     },
     {
       "id": "api-error-handling",
-      "rule": "All API calls must be wrapped in do/catch blocks. Errors should set `presentedAlert` to an appropriate `PlayolaAlert` case with the error's `localizedDescription`. Never silently swallow API errors.",
+      "rule": "All API calls must be wrapped in do/catch blocks. Errors should set `presentedAlert` to an appropriate `PlayolaAlert` case with the error's `localizedDescription`. Never silently swallow API errors. Exception: a background or periodic refresh the user did not start (e.g. a polling loop) may skip the alert so it doesn't interrupt the user every cycle, but it must report non-network failures via `errorReporting.reportError` (skipping `NetworkErrorClassifier.isNetworkError` connectivity blips). An empty or log-only catch is still a violation.",
       "scope": ["PlayolaRadio/Views/**/*Model.swift"],
       "severity": "high"
     },

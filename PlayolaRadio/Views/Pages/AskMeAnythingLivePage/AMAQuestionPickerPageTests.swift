@@ -39,12 +39,14 @@ struct AMAQuestionPickerPageTests {
 
   private func makePollingModel(
     clock: TestClock<Duration>,
-    response: LockIsolated<Result<[ListenerQuestion], any Error>>
+    response: LockIsolated<Result<[ListenerQuestion], any Error>>,
+    reportedErrors: LockIsolated<[[String: String]]> = LockIsolated([])
   ) -> AMAQuestionPickerPageModel {
     withDependencies {
       $0.date.now = baseDate
       $0.continuousClock = clock
       $0.api.getListenerQuestions = { _, _ in try response.value.get() }
+      $0.errorReporting.reportError = { _, tags in reportedErrors.withValue { $0.append(tags) } }
     } operation: {
       AMAQuestionPickerPageModel(stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
     }
@@ -146,6 +148,45 @@ struct AMAQuestionPickerPageTests {
       #expect(model.presentedAlert == nil)
       #expect(!model.isLoading)
       expectNoDifference(model.questions.map(\.id), ["question"])
+      task.cancel()
+      await task.value
+    }
+  }
+
+  @Test func aFailedPollIsReportedToErrorReporting() async {
+    struct PollFailure: Error {}
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      let response = LockIsolated<Result<[ListenerQuestion], any Error>>(.success([]))
+      let reportedErrors = LockIsolated<[[String: String]]>([])
+      let model = makePollingModel(clock: clock, response: response, reportedErrors: reportedErrors)
+      let task = Task { await model.task() }
+
+      await clock.advance(by: .seconds(1))
+      response.setValue(.failure(PollFailure()))
+      await clock.advance(by: .seconds(10))
+
+      expectNoDifference(reportedErrors.value.map { $0["endpoint"] }, ["getListenerQuestions"])
+      task.cancel()
+      await task.value
+    }
+  }
+
+  @Test func aPollThatFailsForLackOfConnectionIsNotReported() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      let response = LockIsolated<Result<[ListenerQuestion], any Error>>(.success([]))
+      let reportedErrors = LockIsolated<[[String: String]]>([])
+      let model = makePollingModel(clock: clock, response: response, reportedErrors: reportedErrors)
+      let task = Task { await model.task() }
+
+      await clock.advance(by: .seconds(1))
+      response.setValue(.failure(URLError(.notConnectedToInternet)))
+      await clock.advance(by: .seconds(10))
+
+      #expect(reportedErrors.value.isEmpty)
       task.cancel()
       await task.value
     }

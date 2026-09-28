@@ -33,6 +33,7 @@ class AMAQuestionPickerPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.continuousClock) var clock
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
 
   // MARK: - Shared State
 
@@ -121,17 +122,17 @@ class AMAQuestionPickerPageModel: ViewModel {
         break
       }
       guard isAppActive else { continue }
-      await fetchQuestions(reportsErrors: false)
+      await fetchQuestions(isUserInitiated: false)
     }
   }
 
   func viewAppeared() async {
     airingQuestionId = nil
-    await fetchQuestions(reportsErrors: true)
+    await fetchQuestions(isUserInitiated: true)
   }
 
   func refreshPulledDown() async {
-    await fetchQuestions(reportsErrors: true)
+    await fetchQuestions(isUserInitiated: true)
   }
 
   func scenePhaseChanged(newPhase: ScenePhase) {
@@ -313,11 +314,11 @@ class AMAQuestionPickerPageModel: ViewModel {
 
   // MARK: - Private Helpers
 
-  private func fetchQuestions(reportsErrors: Bool) async {
+  private func fetchQuestions(isUserInitiated: Bool) async {
     guard let jwt = auth.jwt else { return }
     questionsVersion += 1
     let version = questionsVersion
-    if reportsErrors { isLoading = !hasLoadedQuestions }
+    if isUserInitiated { isLoading = !hasLoadedQuestions }
     defer {
       if version == questionsVersion { isLoading = false }
     }
@@ -326,12 +327,23 @@ class AMAQuestionPickerPageModel: ViewModel {
       guard version == questionsVersion || !hasLoadedQuestions else { return }
       mergeFetchedQuestions(fetched)
       if let playingQuestionId, questions[id: playingQuestionId]?.status ?? .declined == .declined {
-        await stopPlayback(playingQuestionId)
+        await stopPlayback()
       }
     } catch {
-      guard reportsErrors, version == questionsVersion, !Task.isCancelled else { return }
-      presentedAlert = .fetchQuestionsError(error.localizedDescription)
+      guard !Task.isCancelled else { return }
+      if !isUserInitiated {
+        await reportPollFailure(error)
+      } else if version == questionsVersion {
+        presentedAlert = .fetchQuestionsError(error.localizedDescription)
+      }
     }
+  }
+
+  private func reportPollFailure(_ error: Error) async {
+    guard !NetworkErrorClassifier.isNetworkError(error) else { return }
+    var tags = NetworkErrorClassifier.errorTags(for: error)
+    tags["endpoint"] = "getListenerQuestions"
+    await errorReporting.reportError(error, tags)
   }
 
   private func mergeFetchedQuestions(_ fetched: [ListenerQuestion]) {
@@ -352,10 +364,9 @@ class AMAQuestionPickerPageModel: ViewModel {
     }
   }
 
-  private func stopPlayback(_ questionId: String? = nil) async {
+  private func stopPlayback() async {
     guard playingQuestionId != nil else { return }
-    await audioPlayer.stop()
-    guard questionId == nil || playingQuestionId == questionId else { return }
     playingQuestionId = nil
+    await audioPlayer.stop()
   }
 }
