@@ -32,6 +32,8 @@ class AMAQuestionPickerPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.continuousClock) var clock
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
 
   // MARK: - Shared State
 
@@ -76,6 +78,9 @@ class AMAQuestionPickerPageModel: ViewModel {
   var airingQuestionId: String?
   var decliningQuestionIds: Set<String> = []
   var presentedAlert: PlayolaAlert?
+  private var hasLoadedQuestions = false
+  @ObservationIgnored private var questionsVersion = 0
+  @ObservationIgnored private var isAppActive = true
 
   var emptyStateTitle: String {
     switch selectedFilter {
@@ -101,20 +106,43 @@ class AMAQuestionPickerPageModel: ViewModel {
       case .answered: return question.status == .answered
       }
     }
-    return IdentifiedArray(uniqueElements: matching.sorted { $0.createdAt > $1.createdAt })
+    return IdentifiedArray(uniqueElements: matching)
   }
 
-  var showEmptyState: Bool { !isLoading && filteredQuestions.isEmpty }
+  var showsLoadingSpinner: Bool { isLoading && !hasLoadedQuestions }
+
+  var showEmptyState: Bool { !showsLoadingSpinner && filteredQuestions.isEmpty }
 
   // MARK: - User Actions
 
+  func task() async {
+    await viewAppeared()
+    while !Task.isCancelled {
+      do {
+        try await clock.sleep(for: .seconds(10))
+      } catch {
+        break
+      }
+      guard isAppActive, !isLoading else { continue }
+      await fetchQuestions(isUserInitiated: false)
+    }
+  }
+
   func viewAppeared() async {
     airingQuestionId = nil
-    await fetchQuestions()
+    await loadQuestions()
+  }
+
+  func viewDisappeared() async {
+    await stopPlayback()
   }
 
   func refreshPulledDown() async {
-    await fetchQuestions()
+    await loadQuestions()
+  }
+
+  func scenePhaseChanged(newPhase: ScenePhase) {
+    isAppActive = newPhase == .active
   }
 
   func filterSelected(_ filter: AMAQuestionFilter) {
@@ -184,6 +212,7 @@ class AMAQuestionPickerPageModel: ViewModel {
     do {
       questions[id: question.id] = try await api.declineListenerQuestion(
         jwt, stationId, question.id)
+      questionsVersion += 1
     } catch {
       presentedAlert = .declineQuestionError(error.localizedDescription)
     }
@@ -219,6 +248,10 @@ class AMAQuestionPickerPageModel: ViewModel {
     question.status == .pending
   }
 
+  func declineSwipeActions(_ question: ListenerQuestion) -> [ListenerQuestion] {
+    canDecline(question) ? [question] : []
+  }
+
   func isNewThisShow(_ question: ListenerQuestion) -> Bool {
     guard let showStartedAt else { return false }
     return question.createdAt >= showStartedAt
@@ -252,17 +285,17 @@ class AMAQuestionPickerPageModel: ViewModel {
   // MARK: - View Styling
 
   var hasFilterableQuestions: Bool { questions.contains { $0.status != .declined } }
-  var filterPillsVisible: Bool { hasFilterableQuestions && !isLoading }
+  var filterPillsVisible: Bool { hasFilterableQuestions && !showsLoadingSpinner }
   var filterPillsOpacity: Double { filterPillsVisible ? 1 : 0 }
   var filterPillsAccessibilityHidden: Bool { !filterPillsVisible }
-  var loadingOpacity: Double { isLoading ? 1 : 0 }
+  var loadingOpacity: Double { showsLoadingSpinner ? 1 : 0 }
   var emptyStateOpacity: Double { showEmptyState ? 1 : 0 }
   var emptyStateAccessibilityHidden: Bool { !showEmptyState }
-  var contentOpacity: Double { showEmptyState || isLoading ? 0 : 1 }
-  var contentAccessibilityHidden: Bool { showEmptyState || isLoading }
+  var contentOpacity: Double { showEmptyState || showsLoadingSpinner ? 0 : 1 }
+  var contentAccessibilityHidden: Bool { showEmptyState || showsLoadingSpinner }
 
   func filterBackground(_ filter: AMAQuestionFilter) -> Color {
-    selectedFilter == filter ? Color.playolaRed : Color.elevatedSurface
+    selectedFilter == filter ? Color.playolaRed : Color.playolaSurfaceRaised
   }
 
   func rowOpacity(_ questionId: String) -> Double {
@@ -274,7 +307,11 @@ class AMAQuestionPickerPageModel: ViewModel {
   }
 
   func badgeBackground(_ question: ListenerQuestion) -> Color {
-    isAnswered(question) ? Color.success : Color.elevatedSurface
+    isAnswered(question) ? Color.playolaSuccessGreen.opacity(0.15) : Color.playolaSurfaceRaised
+  }
+
+  func badgeForeground(_ question: ListenerQuestion) -> Color {
+    isAnswered(question) ? Color.playolaSuccessGreen : Color.playolaTextSecondary
   }
 
   func transcriptLineLimit(_ questionId: String) -> Int? {
@@ -287,21 +324,61 @@ class AMAQuestionPickerPageModel: ViewModel {
 
   // MARK: - Private Helpers
 
-  private func fetchQuestions() async {
-    guard let jwt = auth.jwt else { return }
+  private func loadQuestions() async {
     isLoading = true
     defer { isLoading = false }
+    await fetchQuestions(isUserInitiated: true)
+  }
+
+  private func fetchQuestions(isUserInitiated: Bool) async {
+    guard let jwt = auth.jwt else { return }
+    questionsVersion += 1
+    let version = questionsVersion
     do {
       let fetched = try await api.getListenerQuestions(jwt, stationId)
-      questions = IdentifiedArray(uniqueElements: fetched)
+      guard version == questionsVersion || !hasLoadedQuestions else { return }
+      mergeFetchedQuestions(fetched)
+      if let playingQuestionId, questions[id: playingQuestionId]?.status ?? .declined == .declined {
+        await stopPlayback()
+      }
     } catch {
-      presentedAlert = .fetchQuestionsError(error.localizedDescription)
+      guard !Task.isCancelled else { return }
+      if !isUserInitiated {
+        await reportPollFailure(error)
+      } else {
+        presentedAlert = .fetchQuestionsError(error.localizedDescription)
+      }
+    }
+  }
+
+  private func reportPollFailure(_ error: Error) async {
+    guard !NetworkErrorClassifier.isNetworkError(error) else { return }
+    var tags = NetworkErrorClassifier.errorTags(for: error)
+    tags["endpoint"] = "getListenerQuestions"
+    await errorReporting.reportError(error, tags)
+  }
+
+  private func mergeFetchedQuestions(_ fetched: [ListenerQuestion]) {
+    guard hasLoadedQuestions else {
+      questions = IdentifiedArray(
+        uniqueElements: fetched.sorted { ($0.createdAt, $0.id) > ($1.createdAt, $1.id) })
+      hasLoadedQuestions = true
+      return
+    }
+    let latest = IdentifiedArray(uniqueElements: fetched)
+    let arrivals =
+      fetched
+      .filter { questions[id: $0.id] == nil }
+      .sorted { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }
+    withAnimation {
+      questions = IdentifiedArray(
+        uniqueElements: questions.compactMap { latest[id: $0.id] } + arrivals)
     }
   }
 
   private func stopPlayback() async {
     guard playingQuestionId != nil else { return }
-    await audioPlayer.stop()
     playingQuestionId = nil
+    await audioPlayer.stop()
   }
 }

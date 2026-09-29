@@ -546,6 +546,15 @@ struct AMAAnswerQuestionPageTests {
     #expect(model.submissionPhase == .completed)
   }
 
+  @Test func reviewModeShowsOnlyTheSavedAnswerLength() {
+    let model = AMAAnswerQuestionPageModel(
+      answeredQuestion: .mockWith(
+        status: .answered, answerAudioBlock: .mockWith(id: "answer-block", durationMS: 2_000)),
+      addToShow: { _ in })
+
+    expectNoDifference(model.answerDurationText, "0:02")
+  }
+
   @Test func reviewModeWithUnchangedTrailingSkipsThePut() async {
     @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()
