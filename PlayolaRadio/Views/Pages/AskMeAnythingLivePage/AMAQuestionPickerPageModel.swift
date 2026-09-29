@@ -337,7 +337,7 @@ class AMAQuestionPickerPageModel: ViewModel {
       guard !Task.isCancelled else { return }
       if !isUserInitiated {
         await reportPollFailure(error)
-      } else if version == questionsVersion {
+      } else {
         presentedAlert = .fetchQuestionsError(error.localizedDescription)
       }
     }
