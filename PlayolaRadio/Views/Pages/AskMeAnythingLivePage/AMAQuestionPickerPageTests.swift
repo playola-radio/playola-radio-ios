@@ -327,6 +327,34 @@ struct AMAQuestionPickerPageTests {
     #expect(model.playingQuestionId == nil)
   }
 
+  @Test func leavingThePickerStopsAPlayingPreview() async {
+    let stopCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.audioPlayer.stop = { stopCount.withValue { $0 += 1 } }
+    } operation: {
+      AMAQuestionPickerPageModel(stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
+    }
+    model.playingQuestionId = "playing"
+
+    await model.viewDisappeared()
+
+    expectNoDifference(stopCount.value, 1)
+    #expect(model.playingQuestionId == nil)
+  }
+
+  @Test func leavingThePickerWithNothingPlayingDoesNotStopAudio() async {
+    let stopCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.audioPlayer.stop = { stopCount.withValue { $0 += 1 } }
+    } operation: {
+      AMAQuestionPickerPageModel(stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
+    }
+
+    await model.viewDisappeared()
+
+    expectNoDifference(stopCount.value, 0)
+  }
+
   @Test func aNewPreviewStartedWhileStoppingAnOldOneIsNotClearedByTheOldStop() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let removed = ListenerQuestion.mockWith(id: "removed", status: .pending)
@@ -527,6 +555,15 @@ struct AMAQuestionPickerPageTests {
     expectNoDifference(
       model.badgeForeground(.mockWith(id: "pending", status: .pending)),
       Color.playolaTextSecondary)
+  }
+
+  @Test func onlyPendingQuestionsOfferTheDeclineSwipe() {
+    let model = makeModel(questions: [], addToShow: noopAdd)
+    let pending = ListenerQuestion.mockWith(id: "pending", status: .pending)
+
+    expectNoDifference(model.declineSwipeActions(pending), [pending])
+    expectNoDifference(model.declineSwipeActions(.mockWith(id: "answered", status: .answered)), [])
+    expectNoDifference(model.declineSwipeActions(.mockWith(id: "declined", status: .declined)), [])
   }
 
   @Test func decliningAPendingQuestionUpdatesTheIdentifiedQuestion() async {

@@ -39,6 +39,9 @@ struct AMAQuestionPickerPageView: View {
     .task {
       await model.task()
     }
+    .onDisappear {
+      Task { await model.viewDisappeared() }
+    }
     .onChange(of: scenePhase) { _, newPhase in
       model.scenePhaseChanged(newPhase: newPhase)
     }
@@ -105,9 +108,9 @@ struct AMAQuestionPickerPageView: View {
           .listRowBackground(Color.clear)
           .listRowSeparator(.hidden)
           .swipeActions(edge: .trailing, allowsFullSwipe: model.canDecline(question)) {
-            if model.canDecline(question) {
+            ForEach(model.declineSwipeActions(question)) { declinable in
               Button(role: .destructive) {
-                Task { await model.declineQuestionSwiped(question) }
+                Task { await model.declineQuestionSwiped(declinable) }
               } label: {
                 Label(model.declineButtonText, systemImage: "xmark.circle")
               }

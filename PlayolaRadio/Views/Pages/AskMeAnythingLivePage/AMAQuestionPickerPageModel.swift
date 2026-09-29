@@ -133,6 +133,10 @@ class AMAQuestionPickerPageModel: ViewModel {
     await loadQuestions()
   }
 
+  func viewDisappeared() async {
+    await stopPlayback()
+  }
+
   func refreshPulledDown() async {
     await loadQuestions()
   }
@@ -242,6 +246,10 @@ class AMAQuestionPickerPageModel: ViewModel {
 
   func canDecline(_ question: ListenerQuestion) -> Bool {
     question.status == .pending
+  }
+
+  func declineSwipeActions(_ question: ListenerQuestion) -> [ListenerQuestion] {
+    canDecline(question) ? [question] : []
   }
 
   func isNewThisShow(_ question: ListenerQuestion) -> Bool {
