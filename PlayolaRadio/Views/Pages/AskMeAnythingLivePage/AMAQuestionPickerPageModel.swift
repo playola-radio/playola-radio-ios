@@ -74,12 +74,13 @@ class AMAQuestionPickerPageModel: ViewModel {
   var selectedFilter: AMAQuestionFilter = .all
   var expandedQuestionIds: Set<String> = []
   var playingQuestionId: String?
-  var isLoading = false
+  private var activeLoadCount = 0
   var airingQuestionId: String?
   var decliningQuestionIds: Set<String> = []
   var presentedAlert: PlayolaAlert?
   private var hasLoadedQuestions = false
   @ObservationIgnored private var questionsVersion = 0
+  @ObservationIgnored private var appliedQuestionsVersion = 0
   @ObservationIgnored private var isAppActive = true
 
   var emptyStateTitle: String {
@@ -109,6 +110,7 @@ class AMAQuestionPickerPageModel: ViewModel {
     return IdentifiedArray(uniqueElements: matching)
   }
 
+  var isLoading: Bool { activeLoadCount > 0 }
   var showsLoadingSpinner: Bool { isLoading && !hasLoadedQuestions }
 
   var showEmptyState: Bool { !showsLoadingSpinner && filteredQuestions.isEmpty }
@@ -213,6 +215,7 @@ class AMAQuestionPickerPageModel: ViewModel {
       questions[id: question.id] = try await api.declineListenerQuestion(
         jwt, stationId, question.id)
       questionsVersion += 1
+      appliedQuestionsVersion = questionsVersion
     } catch {
       presentedAlert = .declineQuestionError(error.localizedDescription)
     }
@@ -325,8 +328,8 @@ class AMAQuestionPickerPageModel: ViewModel {
   // MARK: - Private Helpers
 
   private func loadQuestions() async {
-    isLoading = true
-    defer { isLoading = false }
+    activeLoadCount += 1
+    defer { activeLoadCount -= 1 }
     await fetchQuestions(isUserInitiated: true)
   }
 
@@ -336,7 +339,8 @@ class AMAQuestionPickerPageModel: ViewModel {
     let version = questionsVersion
     do {
       let fetched = try await api.getListenerQuestions(jwt, stationId)
-      guard version == questionsVersion || !hasLoadedQuestions else { return }
+      guard version > appliedQuestionsVersion else { return }
+      appliedQuestionsVersion = version
       mergeFetchedQuestions(fetched)
       if let playingQuestionId, questions[id: playingQuestionId]?.status ?? .declined == .declined {
         await stopPlayback()
