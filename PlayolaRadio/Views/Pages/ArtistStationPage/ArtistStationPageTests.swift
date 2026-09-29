@@ -154,7 +154,7 @@ struct ArtistStationPageTests {
       spin(id: "new", airtimeOffset: -60, title: "New Song", artist: "New Artist")
     ]
 
-    let continuations = LockIsolated<[CheckedContinuation<[Spin], Never>]>([])
+    let pendingRequests = AsyncStream.makeStream(of: CheckedContinuation<[Spin], Never>.self)
 
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
@@ -163,20 +163,27 @@ struct ArtistStationPageTests {
     await withDependencies {
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in
-        await withCheckedContinuation { continuation in
-          continuations.withValue { $0.append(continuation) }
-        }
+        await withCheckedContinuation { pendingRequests.continuation.yield($0) }
       }
     } operation: {
       let model = ArtistStationPageModel()
+      var requests = pendingRequests.stream.makeAsyncIterator()
 
+      // Start the loads one at a time: `fetchSchedule` runs off the main actor, so two
+      // concurrent calls can reach the stub in either order.
       async let firstLoad: Void = model.viewAppeared()
+      guard let firstRequest = await requests.next() else {
+        Issue.record("Expected a first schedule request")
+        return
+      }
       async let secondLoad: Void = model.viewAppeared()
+      guard let secondRequest = await requests.next() else {
+        Issue.record("Expected a second schedule request")
+        return
+      }
 
-      while continuations.count < 2 { await Task.yield() }
-
-      continuations.withValue { $0[1].resume(returning: newSpins) }
-      continuations.withValue { $0[0].resume(returning: oldSpins) }
+      secondRequest.resume(returning: newSpins)
+      firstRequest.resume(returning: oldSpins)
 
       _ = await (firstLoad, secondLoad)
 
