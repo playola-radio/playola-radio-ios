@@ -282,6 +282,86 @@ struct AMAQuestionPickerPageTests {
     }
   }
 
+  @Test func aFailedRefreshDoesNotDiscardAPollThatSucceeds() async {
+    struct RefreshFailure: Error {}
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      let callCount = LockIsolated(0)
+      let pollStarted = AsyncStream<Void>.makeStream()
+      let releasePoll = AsyncStream<Void>.makeStream()
+      let model = withDependencies {
+        $0.date.now = baseDate
+        $0.continuousClock = clock
+        $0.api.getListenerQuestions = { _, _ in
+          let call = callCount.withValue {
+            $0 += 1
+            return $0
+          }
+          switch call {
+          case 1:
+            return [.mockWith(id: "first")]
+          case 2:
+            pollStarted.continuation.yield()
+            var iterator = releasePoll.stream.makeAsyncIterator()
+            await iterator.next()
+            return [.mockWith(id: "first"), .mockWith(id: "polled")]
+          default:
+            throw RefreshFailure()
+          }
+        }
+      } operation: {
+        AMAQuestionPickerPageModel(stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
+      }
+      let task = Task { await model.task() }
+      await clock.advance(by: .seconds(10))
+      var startedIterator = pollStarted.stream.makeAsyncIterator()
+      await startedIterator.next()
+
+      await model.refreshPulledDown()
+      releasePoll.continuation.yield()
+      await Task.megaYield()
+
+      expectNoDifference(model.questions.map(\.id).sorted(), ["first", "polled"])
+      task.cancel()
+      await task.value
+    }
+  }
+
+  @Test func aFailedRefreshDuringTheFirstLoadKeepsTheSpinnerUntilTheFirstLoadFinishes() async {
+    struct RefreshFailure: Error {}
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let callCount = LockIsolated(0)
+    let firstLoadStarted = AsyncStream<Void>.makeStream()
+    let releaseFirstLoad = AsyncStream<Void>.makeStream()
+    let model = withDependencies {
+      $0.date.now = baseDate
+      $0.api.getListenerQuestions = { _, _ in
+        let call = callCount.withValue {
+          $0 += 1
+          return $0
+        }
+        guard call == 1 else { throw RefreshFailure() }
+        firstLoadStarted.continuation.yield()
+        var iterator = releaseFirstLoad.stream.makeAsyncIterator()
+        await iterator.next()
+        return [.mockWith(id: "first")]
+      }
+    } operation: {
+      AMAQuestionPickerPageModel(stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
+    }
+    let firstLoad = Task { await model.viewAppeared() }
+    var startedIterator = firstLoadStarted.stream.makeAsyncIterator()
+    await startedIterator.next()
+
+    await model.refreshPulledDown()
+    #expect(model.showsLoadingSpinner)
+
+    releaseFirstLoad.continuation.yield()
+    await firstLoad.value
+    #expect(!model.showsLoadingSpinner)
+  }
+
   @Test func pollingPausesWhileTheAppIsInTheBackground() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     await withMainSerialExecutor {
