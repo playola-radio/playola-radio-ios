@@ -328,8 +328,7 @@ struct AMAQuestionPickerPageTests {
     }
   }
 
-  @Test func aFailedRefreshDuringTheFirstLoadKeepsTheSpinnerUntilTheFirstLoadFinishes() async {
-    struct RefreshFailure: Error {}
+  @Test func aRefreshDuringTheFirstLoadKeepsTheSpinnerUntilTheFirstLoadFinishes() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let callCount = LockIsolated(0)
     let firstLoadStarted = AsyncStream<Void>.makeStream()
@@ -337,11 +336,7 @@ struct AMAQuestionPickerPageTests {
     let model = withDependencies {
       $0.date.now = baseDate
       $0.api.getListenerQuestions = { _, _ in
-        let call = callCount.withValue {
-          $0 += 1
-          return $0
-        }
-        guard call == 1 else { throw RefreshFailure() }
+        callCount.withValue { $0 += 1 }
         firstLoadStarted.continuation.yield()
         var iterator = releaseFirstLoad.stream.makeAsyncIterator()
         await iterator.next()
@@ -360,6 +355,7 @@ struct AMAQuestionPickerPageTests {
     releaseFirstLoad.continuation.yield()
     await firstLoad.value
     #expect(!model.showsLoadingSpinner)
+    #expect(callCount.value == 1)
   }
 
   @Test func pollingPausesWhileTheAppIsInTheBackground() async {
@@ -466,26 +462,19 @@ struct AMAQuestionPickerPageTests {
     #expect(model.playingQuestionId == "newPreview")
   }
 
-  @Test func aFailedRefreshDuringTheFirstLoadKeepsTheEarlierSuccessfulResponse() async {
+  @Test func aRefreshDuringTheFirstLoadDoesNotStartASecondLoad() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
-    struct RefreshFailure: Error {}
     let question = ListenerQuestion.mockWith(id: "question")
     let callCount = LockIsolated(0)
     let firstFetchStarted = AsyncStream<Void>.makeStream()
     let releaseFirstFetch = AsyncStream<Void>.makeStream()
     let model = withDependencies {
       $0.api.getListenerQuestions = { _, _ in
-        let call = callCount.withValue {
-          $0 += 1
-          return $0
-        }
-        if call == 1 {
-          firstFetchStarted.continuation.yield()
-          var iterator = releaseFirstFetch.stream.makeAsyncIterator()
-          await iterator.next()
-          return [question]
-        }
-        throw RefreshFailure()
+        callCount.withValue { $0 += 1 }
+        firstFetchStarted.continuation.yield()
+        var iterator = releaseFirstFetch.stream.makeAsyncIterator()
+        await iterator.next()
+        return [question]
       }
     } operation: {
       AMAQuestionPickerPageModel(stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
@@ -499,8 +488,9 @@ struct AMAQuestionPickerPageTests {
     releaseFirstFetch.continuation.yield()
     await firstLoad.value
 
+    #expect(callCount.value == 1)
     expectNoDifference(model.questions.map(\.id), ["question"])
-    #expect(model.presentedAlert != nil)
+    #expect(model.presentedAlert == nil)
   }
 
   @Test func aFetchThatStartedBeforeADeclineDoesNotUndoIt() async {

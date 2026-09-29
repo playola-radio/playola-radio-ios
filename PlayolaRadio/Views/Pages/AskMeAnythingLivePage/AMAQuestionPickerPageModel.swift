@@ -74,7 +74,7 @@ class AMAQuestionPickerPageModel: ViewModel {
   var selectedFilter: AMAQuestionFilter = .all
   var expandedQuestionIds: Set<String> = []
   var playingQuestionId: String?
-  private var activeLoadCount = 0
+  var isLoading = false
   var airingQuestionId: String?
   var decliningQuestionIds: Set<String> = []
   var presentedAlert: PlayolaAlert?
@@ -110,7 +110,6 @@ class AMAQuestionPickerPageModel: ViewModel {
     return IdentifiedArray(uniqueElements: matching)
   }
 
-  var isLoading: Bool { activeLoadCount > 0 }
   var showsLoadingSpinner: Bool { isLoading && !hasLoadedQuestions }
 
   var showEmptyState: Bool { !showsLoadingSpinner && filteredQuestions.isEmpty }
@@ -328,8 +327,9 @@ class AMAQuestionPickerPageModel: ViewModel {
   // MARK: - Private Helpers
 
   private func loadQuestions() async {
-    activeLoadCount += 1
-    defer { activeLoadCount -= 1 }
+    guard !isLoading else { return }
+    isLoading = true
+    defer { isLoading = false }
     await fetchQuestions(isUserInitiated: true)
   }
 
