@@ -192,7 +192,7 @@ struct AMAQuestionPickerPageTests {
     }
   }
 
-  @Test func aFailedRefreshStillAlertsWhenAPollOverlapsIt() async {
+  @Test func aFailedRefreshStillAlertsWhenAPollComesDueWhileItLoads() async {
     struct RefreshFailure: Error {}
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     await withMainSerialExecutor {
@@ -229,8 +229,54 @@ struct AMAQuestionPickerPageTests {
       releaseRefresh.continuation.yield()
       await refresh.value
 
-      #expect(callCount.value == 3)
       #expect(model.presentedAlert != nil)
+      task.cancel()
+      await task.value
+    }
+  }
+
+  @Test func aPollDoesNotDiscardARefreshThatIsStillLoading() async {
+    struct PollFailure: Error {}
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      let callCount = LockIsolated(0)
+      let refreshStarted = AsyncStream<Void>.makeStream()
+      let releaseRefresh = AsyncStream<Void>.makeStream()
+      let model = withDependencies {
+        $0.date.now = baseDate
+        $0.continuousClock = clock
+        $0.api.getListenerQuestions = { _, _ in
+          let call = callCount.withValue {
+            $0 += 1
+            return $0
+          }
+          switch call {
+          case 1:
+            return [.mockWith(id: "first")]
+          case 2:
+            refreshStarted.continuation.yield()
+            var iterator = releaseRefresh.stream.makeAsyncIterator()
+            await iterator.next()
+            return [.mockWith(id: "first"), .mockWith(id: "refreshed")]
+          default:
+            throw PollFailure()
+          }
+        }
+      } operation: {
+        AMAQuestionPickerPageModel(stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
+      }
+      let task = Task { await model.task() }
+      await clock.advance(by: .seconds(1))
+
+      let refresh = Task { await model.refreshPulledDown() }
+      var startedIterator = refreshStarted.stream.makeAsyncIterator()
+      await startedIterator.next()
+      await clock.advance(by: .seconds(10))
+      releaseRefresh.continuation.yield()
+      await refresh.value
+
+      expectNoDifference(model.questions.map(\.id).sorted(), ["first", "refreshed"])
       task.cancel()
       await task.value
     }

@@ -123,7 +123,7 @@ class AMAQuestionPickerPageModel: ViewModel {
       } catch {
         break
       }
-      guard isAppActive else { continue }
+      guard isAppActive, !isLoading else { continue }
       await fetchQuestions(isUserInitiated: false)
     }
   }
