@@ -373,6 +373,10 @@ extension FulfillmentRequest {
 - [ ] **Step 1: Write the failing tests** (`ClaimAPIErrorTests.swift`)
 
 ```swift
+import CustomDump
+import Dependencies
+import Foundation
+import Sharing
 import Testing
 
 @testable import PlayolaRadio
@@ -422,6 +426,26 @@ struct FulfillmentRequestsRefresherTests {
     }
     #expect(ok)
     expectNoDifference(requests, [])
+  }
+
+  @Test func testAccountChangeDiscardsFetchedList() async {
+    let initialAuth = Auth(loggedInUser: LoggedInUser(
+      id: "first-user", firstName: "First", email: "first@example.com"))
+    let changedAuth = Auth(loggedInUser: LoggedInUser(
+      id: "second-user", firstName: "Second", email: "second@example.com"))
+    let initialRequests = [FulfillmentRequest.mock()]
+    @Shared(.auth) var auth = initialAuth
+    @Shared(.fulfillmentRequests) var requests = initialRequests
+    let ok = await withDependencies {
+      $0.api.getMyFulfillmentRequests = { _ in
+        $auth.withLock { $0 = changedAuth }
+        return []
+      }
+    } operation: {
+      await refreshFulfillmentRequests()
+    }
+    #expect(!ok)
+    expectNoDifference(requests, initialRequests)
   }
 }
 ```
@@ -545,8 +569,10 @@ func refreshFulfillmentRequests() async -> Bool {
   @Shared(.auth) var auth
   @Shared(.fulfillmentRequests) var requests
   guard let jwt = auth.jwt else { return false }
+  let userId = auth.currentUser?.id
   do {
     let fetched = try await api.getMyFulfillmentRequests(jwt)
+    guard auth.jwt == jwt, auth.currentUser?.id == userId else { return false }
     $requests.withLock { $0 = fetched }
     return true
   } catch {
