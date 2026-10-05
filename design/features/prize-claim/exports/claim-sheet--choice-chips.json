@@ -1,0 +1,180 @@
+{
+  "type": "frame",
+  "id": "K4D70",
+  "x": 0,
+  "y": 21900,
+  "name": "Choice Field · 1 · Chips",
+  "width": 393,
+  "fill": "#000000",
+  "cornerRadius": 16,
+  "layout": "vertical",
+  "gap": 16,
+  "padding": 24,
+  "children": [
+    {
+      "type": "text",
+      "id": "GRC94",
+      "name": "Rule caption",
+      "fill": "#0A6FD6",
+      "textGrowth": "fixed-width",
+      "width": "fill_container",
+      "content": "2–5 options, every label ≤ 4 characters → inline segmented chips",
+      "lineHeight": 1.4,
+      "fontFamily": "Inter",
+      "fontSize": 13,
+      "fontWeight": "600"
+    },
+    {
+      "type": "frame",
+      "id": "ZIziK",
+      "name": "Field · SINGLE_CHOICE · chips",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 8,
+      "children": [
+        {
+          "type": "text",
+          "id": "HW4i8",
+          "name": "Field label",
+          "fill": "#888888",
+          "content": "Shirt size",
+          "fontFamily": "Inter",
+          "fontSize": 12,
+          "fontWeight": "600"
+        },
+        {
+          "type": "frame",
+          "id": "YZker",
+          "name": "Choice chips",
+          "width": "fill_container",
+          "gap": 8,
+          "children": [
+            {
+              "type": "frame",
+              "id": "krimM",
+              "name": "Chip · S",
+              "width": "fill_container",
+              "height": 44,
+              "fill": "#1A1A1A",
+              "cornerRadius": 8,
+              "stroke": "#FFFFFF26",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "HWUb2",
+                  "name": "Chip label",
+                  "fill": "#FFFFFF",
+                  "content": "S",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "mTaV1",
+              "name": "Chip · M",
+              "width": "fill_container",
+              "height": 44,
+              "fill": "#1A1A1A",
+              "cornerRadius": 8,
+              "stroke": "#FFFFFF26",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "K5sRDp",
+                  "name": "Chip label",
+                  "fill": "#FFFFFF",
+                  "content": "M",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "qGKNV",
+              "name": "Chip · L",
+              "width": "fill_container",
+              "height": 44,
+              "fill": "#EF6962",
+              "cornerRadius": 8,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "yxfwT",
+                  "name": "Chip label",
+                  "fill": "#000000",
+                  "content": "L",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "lURWW",
+              "name": "Chip · XL",
+              "width": "fill_container",
+              "height": 44,
+              "fill": "#1A1A1A",
+              "cornerRadius": 8,
+              "stroke": "#FFFFFF26",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "mQbio",
+                  "name": "Chip label",
+                  "fill": "#FFFFFF",
+                  "content": "XL",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "U9gY9",
+              "name": "Chip · XXL",
+              "width": "fill_container",
+              "height": 44,
+              "fill": "#1A1A1A",
+              "cornerRadius": 8,
+              "stroke": "#FFFFFF26",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "wXbEU",
+                  "name": "Chip label",
+                  "fill": "#FFFFFF",
+                  "content": "XXL",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
