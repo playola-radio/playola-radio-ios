@@ -158,17 +158,10 @@ class HomePageModel: ViewModel {
 
   func viewAppeared() async {
     updateSupportMessageTile()
-    await refreshPrizes()
     await checkForScheduledShows()
     await checkForUpcomingQuestionAirings()
-
-    guard disposeBag.isEmpty else { return }
-
-    $unreadSupportCount.publisher
-      .sink { [weak self] _ in
-        self?.updateSupportMessageTile()
-      }
-      .store(in: &disposeBag)
+    observeUnreadSupportCountIfNeeded()
+    await refreshPrizes()
   }
 
   func playolaIconTapped10Times() {
@@ -269,6 +262,16 @@ class HomePageModel: ViewModel {
     return sources
   }
 
+  private func observeUnreadSupportCountIfNeeded() {
+    guard disposeBag.isEmpty else { return }
+
+    $unreadSupportCount.publisher
+      .sink { [weak self] _ in
+        self?.updateSupportMessageTile()
+      }
+      .store(in: &disposeBag)
+  }
+
   private func refreshPrizes() async {
     await withDependencies(from: self) {
       _ in
@@ -292,8 +295,8 @@ class HomePageModel: ViewModel {
       buttonText: "Claim your prize",
       buttonAction: { [weak self] in
         guard let self else { return }
-        await self.analytics.track(.prizeTileTapped(source: source))
         self.presentClaimSheet(.request(request))
+        await self.analytics.track(.prizeTileTapped(source: source))
       }
     )
   }
@@ -308,8 +311,8 @@ class HomePageModel: ViewModel {
       buttonText: "Claim my koozie",
       buttonAction: { [weak self] in
         guard let self else { return }
-        await self.analytics.track(.prizeTileTapped(source: "koozie"))
         self.presentClaimSheet(.reward(claim), onClaimed: { koozie.markClaimed() })
+        await self.analytics.track(.prizeTileTapped(source: "koozie"))
       }
     )
   }

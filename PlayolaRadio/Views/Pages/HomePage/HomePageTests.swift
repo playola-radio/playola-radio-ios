@@ -924,6 +924,90 @@ struct HomePageTests {
     expectNoDifference(captured.value, [.prizeTileTapped(source: "reward")])
   }
 
+  @Test func testPrizeTilePresentsClaimSheetBeforeTracking() async {
+    let presentedWhenTracked = LockIsolated<Bool?>(nil)
+    @Shared(.fulfillmentRequests) var requests = [FulfillmentRequest.mock(source: .reward)]
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let sharedCoordinator = $coordinator
+    let model = withDependencies {
+      $0.analytics.track = { _ in
+        let isPresented = await MainActor.run {
+          sharedCoordinator.wrappedValue.presentedSheet != nil
+        }
+        presentedWhenTracked.setValue(isPresented)
+      }
+    } operation: {
+      HomePageModel()
+    }
+    await model.prizeTileModels[0].onButtonTapped()
+    #expect(presentedWhenTracked.value == true)
+  }
+
+  @Test func testKooziePrizeTilePresentsClaimSheetBeforeTracking() async {
+    let presentedWhenTracked = LockIsolated<Bool?>(nil)
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let sharedCoordinator = $coordinator
+    let model = withDependencies {
+      $0.analytics.track = { _ in
+        let isPresented = await MainActor.run {
+          sharedCoordinator.wrappedValue.presentedSheet != nil
+        }
+        presentedWhenTracked.setValue(isPresented)
+      }
+    } operation: {
+      makeHomeWithClaimableKoozie()
+    }
+    await model.prizeTileModels[0].onButtonTapped()
+    #expect(presentedWhenTracked.value == true)
+  }
+
+  @Test func testViewAppearedChecksShowsAndQuestionsBeforeRefreshingPrizes() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.fulfillmentRequests) var requests = []
+    let calls = LockIsolated<[String]>([])
+    let model = withDependencies {
+      $0.api.getMyFulfillmentRequests = { _ in
+        calls.withValue { $0.append("prizes") }
+        return []
+      }
+      $0.api.getAirings = { _, _ in
+        calls.withValue { $0.append("airings") }
+        return []
+      }
+      $0.api.getMyListenerQuestionAirings = { _ in
+        calls.withValue { $0.append("questions") }
+        return []
+      }
+      $0.analytics.track = { _ in }
+    } operation: {
+      HomePageModel()
+    }
+    await model.viewAppeared()
+    expectNoDifference(calls.value, ["airings", "questions", "prizes"])
+  }
+
+  @Test func testSecondViewAppearedStillRefreshesPrizes() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.fulfillmentRequests) var requests = []
+    let prizeFetches = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.getMyFulfillmentRequests = { _ in
+        prizeFetches.withValue { $0 += 1 }
+        return []
+      }
+      $0.api.getAirings = { _, _ in [] }
+      $0.api.getMyListenerQuestionAirings = { _ in [] }
+      $0.analytics.track = { _ in }
+    } operation: {
+      HomePageModel()
+    }
+    await model.viewAppeared()
+    await model.viewAppeared()
+    #expect(prizeFetches.value == 2)
+  }
+
   @Test func testClosingClaimSheetDismissesIt() async {
     @Shared(.fulfillmentRequests) var requests = [FulfillmentRequest.mock()]
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
