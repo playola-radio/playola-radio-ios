@@ -109,6 +109,7 @@ class RewardsPageModel: ViewModel {
   // MARK: - Private Helpers
 
   private func presentClaimSheet(for prizeTier: PrizeTier, prize: Prize) {
+    guard mainContainerNavigationCoordinator.presentedSheet == nil else { return }
     let claim = RewardClaim(
       prizeId: prize.id,
       prizeSlug: prize.slug,

@@ -217,12 +217,13 @@ struct RewardsPageModelTests {
       Issue.record("expected claim sheet")
       return
     }
-    await model.redeemPrizeTapped(for: .mock)
-    guard case .claim(let newer) = coordinator.presentedSheet else {
-      Issue.record("expected claim sheet")
-      return
-    }
-    #expect(older !== newer)
+    let newer = ClaimSheetModel(
+      entry: .reward(
+        RewardClaim(
+          prizeId: "p", prizeSlug: "koozie", prizeTitle: "Koozie", prizeImageUrl: nil,
+          requiredHours: 50)),
+      onClaimed: {}, onClose: {})
+    coordinator.presentedSheet = .claim(newer)
 
     older.laterTapped()
 
@@ -231,6 +232,23 @@ struct RewardsPageModelTests {
       return
     }
     #expect(current === newer)
+  }
+
+  @Test
+  func testRedeemNeverReplacesAnOccupiedClaimSheet() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let giveawayClaim = ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    coordinator.presentedSheet = .claim(giveawayClaim)
+    let model = RewardsPageModel()
+
+    await model.redeemPrizeTapped(for: .mock)
+
+    guard case .claim(let current) = coordinator.presentedSheet else {
+      Issue.record("expected the giveaway claim sheet to stay")
+      return
+    }
+    #expect(current === giveawayClaim)
   }
 
   @Test
