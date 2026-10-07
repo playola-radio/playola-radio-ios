@@ -38,6 +38,12 @@ final class MainContainerNavigationCoordinator {
 
   nonisolated init() {}
 
+  func dismissClaimSheet(_ model: ClaimSheetModel) {
+    if case .claim(let current) = presentedSheet, current === model {
+      presentedSheet = nil
+    }
+  }
+
   private var isKoozieOnly: Bool {
     listeningTracker?.rewardsProfile.rewardsExperienceType == .koozieOnly
   }

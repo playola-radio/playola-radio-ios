@@ -43,24 +43,10 @@ class RewardsPageModel: ViewModel {
 
   func redeemPrizeTapped(for prizeTier: PrizeTier) async {
     let currentHours = getCurrentListeningHours()
-    await analytics.track(.tappedRedeemRewards(currentHours: currentHours))
-
-    guard let prize = prizeTier.prizes.first else { return }
-    let claim = RewardClaim(
-      prizeId: prize.id,
-      prizeSlug: prize.slug,
-      prizeTitle: prize.name,
-      prizeImageUrl: prize.imageUrl,
-      requiredHours: prizeTier.requiredListeningHours)
-    let sheetModel = withDependencies(from: self) {
-      _ in
-    } operation: {
-      ClaimSheetModel(
-        entry: .reward(claim),
-        onClaimed: { [weak self] in self?.redeemedPrizeTierIds.insert(prizeTier.id) },
-        onClose: { [weak self] in self?.dismissClaimSheet() })
+    if let prize = prizeTier.prizes.first {
+      presentClaimSheet(for: prizeTier, prize: prize)
     }
-    mainContainerNavigationCoordinator.presentedSheet = .claim(sheetModel)
+    await analytics.track(.tappedRedeemRewards(currentHours: currentHours))
   }
 
   // MARK: - View Helpers
@@ -122,10 +108,24 @@ class RewardsPageModel: ViewModel {
 
   // MARK: - Private Helpers
 
-  private func dismissClaimSheet() {
-    if case .claim = mainContainerNavigationCoordinator.presentedSheet {
-      mainContainerNavigationCoordinator.presentedSheet = nil
+  private func presentClaimSheet(for prizeTier: PrizeTier, prize: Prize) {
+    let claim = RewardClaim(
+      prizeId: prize.id,
+      prizeSlug: prize.slug,
+      prizeTitle: prize.name,
+      prizeImageUrl: prize.imageUrl,
+      requiredHours: prizeTier.requiredListeningHours)
+    let sheetModel = withDependencies(from: self) {
+      _ in
+    } operation: {
+      ClaimSheetModel(
+        entry: .reward(claim),
+        onClaimed: { [weak self] in self?.redeemedPrizeTierIds.insert(prizeTier.id) },
+        onClose: { [weak self] model in
+          self?.mainContainerNavigationCoordinator.dismissClaimSheet(model)
+        })
     }
+    mainContainerNavigationCoordinator.presentedSheet = .claim(sheetModel)
   }
 
   private func loadPrizeTiers() async {

@@ -186,6 +186,54 @@ struct RewardsPageModelTests {
   }
 
   @Test
+  func testRedeemPresentsClaimSheetBeforeTracking() async {
+    let presentedWhenTracked = LockIsolated<Bool?>(nil)
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let sharedCoordinator = $coordinator
+    let model = withDependencies {
+      $0.analytics.track = { _ in
+        let isPresented = await MainActor.run {
+          sharedCoordinator.wrappedValue.presentedSheet != nil
+        }
+        presentedWhenTracked.setValue(isPresented)
+      }
+    } operation: {
+      RewardsPageModel()
+    }
+
+    await model.redeemPrizeTapped(for: .mock)
+
+    #expect(presentedWhenTracked.value == true)
+  }
+
+  @Test
+  func testClosingAnOlderClaimSheetNeverDismissesANewerClaimSheet() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = RewardsPageModel()
+    await model.redeemPrizeTapped(for: .mock)
+    guard case .claim(let older) = coordinator.presentedSheet else {
+      Issue.record("expected claim sheet")
+      return
+    }
+    await model.redeemPrizeTapped(for: .mock)
+    guard case .claim(let newer) = coordinator.presentedSheet else {
+      Issue.record("expected claim sheet")
+      return
+    }
+    #expect(older !== newer)
+
+    older.laterTapped()
+
+    guard case .claim(let current) = coordinator.presentedSheet else {
+      Issue.record("the newer claim sheet was dismissed")
+      return
+    }
+    #expect(current === newer)
+  }
+
+  @Test
   func testRedeemWithoutPrizeDoesNotPresentASheet() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()

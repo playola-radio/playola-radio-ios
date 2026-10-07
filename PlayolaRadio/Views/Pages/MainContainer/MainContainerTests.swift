@@ -1304,6 +1304,43 @@ extension MainContainerTests {
     }
   }
 
+  @Test func closingAnOlderClaimSheetDoesNotDismissANewerClaimSheet() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "token")
+      @Shared(.giveawayParticipations) var participations = [
+        "event-1": GiveawayParticipation.mockWon(id: "event-1")
+      ]
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 100))
+        $0.api.getMyFulfillmentRequests = { _ in [.mock(giveawayEventId: "event-1")] }
+      } operation: {
+        MainContainerModel()
+      }
+      await model.processGiveawayResolutions()
+      guard case .claim(let older) = coordinator.presentedSheet else {
+        Issue.record("expected claim sheet")
+        return
+      }
+      let newer = ClaimSheetModel(
+        entry: .reward(
+          RewardClaim(
+            prizeId: "p", prizeSlug: "koozie", prizeTitle: "Koozie", prizeImageUrl: nil,
+            requiredHours: 50)),
+        onClaimed: {}, onClose: {})
+      coordinator.presentedSheet = .claim(newer)
+
+      older.laterTapped()
+
+      guard case .claim(let current) = coordinator.presentedSheet else {
+        Issue.record("the newer claim sheet was dismissed")
+        return
+      }
+      #expect(current === newer)
+    }
+  }
+
   @Test func foregroundPresentsGiveawayClaimBeforeKoozie() async {
     await withMainSerialExecutor {
       @Shared(.auth) var auth = Auth(jwt: "token")

@@ -440,7 +440,9 @@ class MainContainerModel: ViewModel {
     mainContainerNavigationCoordinator.presentedSheet = .claim(
       ClaimSheetModel(
         entry: .request(request),
-        onClose: { [weak self] in self?.dismissClaimSheet() }))
+        onClose: { [weak self] model in
+          self?.mainContainerNavigationCoordinator.dismissClaimSheet(model)
+        }))
   }
 
   private var unpresentedGiveawayWins: [GiveawayParticipation] {
@@ -485,12 +487,6 @@ class MainContainerModel: ViewModel {
     await toast.show(
       PlayolaToast(
         message: "You were listener #\(loss.tapNumber) — good luck next time!", buttonTitle: ""))
-  }
-
-  private func dismissClaimSheet() {
-    if case .claim = mainContainerNavigationCoordinator.presentedSheet {
-      mainContainerNavigationCoordinator.presentedSheet = nil
-    }
   }
 
   // MARK: - Artist Congrats Presentation

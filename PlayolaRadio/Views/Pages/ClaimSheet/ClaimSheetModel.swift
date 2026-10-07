@@ -56,12 +56,20 @@ class ClaimSheetModel: ViewModel {
   private let rewardClaim: RewardClaim?
   private let source: String
   private let onClaimed: () -> Void
-  private let onClose: () -> Void
+  private let onClose: (ClaimSheetModel) -> Void
+
+  convenience init(
+    entry: ClaimSheetEntry,
+    onClaimed: @escaping () -> Void = {},
+    onClose: @escaping () -> Void
+  ) {
+    self.init(entry: entry, onClaimed: onClaimed, onClose: { _ in onClose() })
+  }
 
   init(
     entry: ClaimSheetEntry,
     onClaimed: @escaping () -> Void = {},
-    onClose: @escaping () -> Void
+    onClose: @escaping (ClaimSheetModel) -> Void
   ) {
     self.onClaimed = onClaimed
     self.onClose = onClose
@@ -373,7 +381,7 @@ class ClaimSheetModel: ViewModel {
   private func close() {
     guard !hasClosed else { return }
     hasClosed = true
-    onClose()
+    onClose(self)
   }
 
   private func refreshRequests() async {

@@ -1030,6 +1030,22 @@ struct HomePageTests {
     #expect(coordinator.presentedSheet == .share(ShareSheetModel(items: ["x"])))
   }
 
+  @Test func testClosingAnOlderClaimSheetNeverDismissesANewerClaimSheet() async {
+    @Shared(.fulfillmentRequests) var requests = [FulfillmentRequest.mock()]
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = HomePageModel()
+    await model.prizeTileModels[0].onButtonTapped()
+    let older = claimModel(in: coordinator)
+    await model.prizeTileModels[0].onButtonTapped()
+    let newer = claimModel(in: coordinator)
+    #expect(older !== newer)
+
+    older?.laterTapped()
+
+    #expect(claimModel(in: coordinator) === newer)
+  }
+
   @Test func testViewAppearedRefreshesPrizesAndTracksShownPerTile() async {
     let captured = LockIsolated<[AnalyticsEvent]>([])
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")

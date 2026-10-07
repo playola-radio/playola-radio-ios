@@ -321,14 +321,10 @@ class HomePageModel: ViewModel {
     let model = ClaimSheetModel(
       entry: entry,
       onClaimed: onClaimed,
-      onClose: { [weak self] in self?.dismissClaimSheet() })
+      onClose: { [weak self] model in
+        self?.mainContainerNavigationCoordinator.dismissClaimSheet(model)
+      })
     mainContainerNavigationCoordinator.presentedSheet = .claim(model)
-  }
-
-  private func dismissClaimSheet() {
-    if case .claim = mainContainerNavigationCoordinator.presentedSheet {
-      mainContainerNavigationCoordinator.presentedSheet = nil
-    }
   }
 
   private func stationItem(for station: AnyStation) -> APIStationItem? {
