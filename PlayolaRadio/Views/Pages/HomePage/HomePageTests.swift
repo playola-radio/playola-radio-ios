@@ -1219,8 +1219,9 @@ extension HomePageTests {
     #expect(participations["event-1"]?.winnerSheetPresentedAt == nil)
   }
 
-  @Test func testKooziePromptPresentsOnceWhenPrizeTiersArriveAfterHomeAppeared() async {
-    @Shared(.auth) var auth = Self.signedInUser
+  private func makeHomeWithLateKoozie(
+    requests: [FulfillmentRequest] = []
+  ) -> HomePageModel {
     // swiftlint:disable:next redundant_optional_initialization
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
     @Shared(.listeningTracker) var lt: ListeningTracker?
@@ -1230,9 +1231,7 @@ extension HomePageTests {
           totalTimeListenedMS: 51 * 3_600_000, totalMSAvailableForRewards: 51 * 3_600_000,
           accurateAsOfTime: Date(), rewardsExperience: "koozie_only"))
     }
-    @Shared(.mainContainerNavigationCoordinator) var coordinator =
-      MainContainerNavigationCoordinator()
-    let model = withDependencies {
+    return withDependencies {
       $0.continuousClock = ImmediateClock()
       $0.api.getPrizeTiers = {
         [
@@ -1244,21 +1243,53 @@ extension HomePageTests {
             ])
         ]
       }
+      $0.api.getMyFulfillmentRequests = { _ in requests }
+      $0.api.getAirings = { _, _ in [] }
+      $0.api.getMyListenerQuestionAirings = { _ in [] }
     } operation: {
       HomePageModel()
     }
+  }
+
+  @Test func testKooziePromptWaitsForThePrizeListThenPresentsOnce() async {
+    @Shared(.auth) var auth = Self.signedInUser
+    @Shared(.fulfillmentRequests) var requests = []
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = makeHomeWithLateKoozie()
     let tile = model.listeningTimeTileModel
 
     tile.tick()
-    #expect(coordinator.presentedSheet == nil)
-
     await tile.koozieTileModel?.tiersLoadTask?.value
     tile.tick()
-    let presented = claimModel(in: coordinator)
-    #expect(presented != nil)
+    #expect(coordinator.presentedSheet == nil)
+
+    await model.viewAppeared()
+    #expect(claimModel(in: coordinator) != nil)
 
     coordinator.presentedSheet = nil
     tile.tick()
     #expect(coordinator.presentedSheet == nil)
+  }
+
+  @Test func testKooziePromptStillYieldsToAGiveawayRequestOnceThePrizeListLoads() async {
+    @Shared(.auth) var auth = Self.signedInUser
+    @Shared(.fulfillmentRequests) var requests = []
+    @Shared(.giveawayParticipations) var participations = [
+      "event-1": GiveawayParticipation.mockWon(id: "event-1")
+    ]
+    @Shared(.koozieClaimPromptShownUserIds) var shown = []
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = makeHomeWithLateKoozie(requests: [.mock(giveawayEventId: "event-1")])
+    let tile = model.listeningTimeTileModel
+
+    tile.tick()
+    await tile.koozieTileModel?.tiersLoadTask?.value
+    tile.tick()
+    await model.viewAppeared()
+
+    #expect(coordinator.presentedSheet == nil)
+    #expect(shown.isEmpty)
   }
 }

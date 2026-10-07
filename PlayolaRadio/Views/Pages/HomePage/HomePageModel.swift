@@ -82,6 +82,8 @@ class HomePageModel: ViewModel {
     return count == 1 ? "1 New Message" : "\(count) New Messages"
   }
 
+  @ObservationIgnored private var hasLoadedPrizeList = false
+
   @ObservationIgnored lazy var listeningTimeTileModel: ListeningTimeTileModel = {
     let tile = ListeningTimeTileModel(
       buttonText: "Redeem Your Rewards!",
@@ -97,7 +99,10 @@ class HomePageModel: ViewModel {
         await self.mainContainerNavigationCoordinator.pushRewards(RewardsPageModel())
       }
     )
-    tile.onKoozieBecameClaimable = { [weak self] in self?.presentKoozieClaimIfNeeded() }
+    tile.onKoozieBecameClaimable = { [weak self] in
+      guard let self, self.hasLoadedPrizeList else { return }
+      self.presentKoozieClaimIfNeeded()
+    }
     return tile
   }()
 
@@ -278,12 +283,13 @@ class HomePageModel: ViewModel {
   }
 
   private func refreshPrizes() async {
-    await withDependencies(from: self) {
+    let refreshed = await withDependencies(from: self) {
       _ in
     } operation: {
       await refreshFulfillmentRequests()
     }
-    presentKoozieClaimIfNeeded()
+    if refreshed { hasLoadedPrizeList = true }
+    if hasLoadedPrizeList { presentKoozieClaimIfNeeded() }
     for source in prizeTileSources {
       await analytics.track(.prizeTileShown(source: source))
     }
