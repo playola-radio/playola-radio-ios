@@ -18,7 +18,7 @@ struct ClaimSheetContent: View {
       case .form, .sending, .sendFailed:
         hero
         form
-      case .notYetClaimed, .noLongerOpen, .nothingToFillIn:
+      case .notYetClaimed, .claimFailed, .noLongerOpen, .nothingToFillIn:
         hero
         Spacer(minLength: 0)
       case .claiming:

@@ -230,7 +230,7 @@ struct ClaimSheetTests {
     #expect(model.phase == .noLongerOpen)
   }
 
-  @Test func testRewardUnexpectedErrorShowsConnectionFailure() async {
+  @Test func testRewardUnexpectedErrorShowsClaimFailed() async {
     @Shared(.auth) var auth = Auth(jwt: "token")
     let model = withDependencies {
       $0.api.createRewardRedemption = { _, _ in throw UnreadableResponse() }
@@ -238,10 +238,10 @@ struct ClaimSheetTests {
       ClaimSheetModel(entry: .reward(koozie), onClose: {})
     }
     await model.claimItTapped()
-    #expect(model.phase == .sendFailed(.connection))
+    #expect(model.phase == .claimFailed)
   }
 
-  @Test func testRewardFailureShowsSendFailedAndRetries() async {
+  @Test func testRewardFailureShowsClaimFailedAndRetries() async {
     @Shared(.auth) var auth = Auth(jwt: "token")
     let attempts = LockIsolated(0)
     let model = withDependencies {
@@ -253,9 +253,114 @@ struct ClaimSheetTests {
       ClaimSheetModel(entry: .reward(koozie), onClose: {})
     }
     await model.claimItTapped()
-    #expect(model.phase == .sendFailed(.connection))
+    #expect(model.phase == .claimFailed)
     await model.tryAgainTapped()
     #expect(attempts.value == 2)
+  }
+
+  @Test func testClaimFailedKeepsRewardLayoutWithOneClaimErrorLine() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let model = withDependencies {
+      $0.api.createRewardRedemption = { _, _ in throw ClaimAPIError.failed }
+    } operation: {
+      ClaimSheetModel(entry: .reward(koozie), onClose: {})
+    }
+    await model.claimItTapped()
+    #expect(model.phase == .claimFailed)
+    #expect(model.fields.isEmpty)
+    #expect(model.subtitle.hasPrefix("You've listened 50 hours on Playola."))
+    #expect(model.primaryButtonTitle == "Claim my koozie")
+    #expect(model.isPrimaryButtonEnabled)
+    #expect(!model.isPrimaryButtonMuted)
+    #expect(model.isLaterShown)
+    #expect(
+      model.errorText == "We couldn't claim your prize. Check your connection and try again.")
+  }
+
+  @Test func testPrimaryButtonOnClaimFailedRetriesClaim() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let attempts = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.createRewardRedemption = { _, _ in
+        attempts.withValue { $0 += 1 }
+        if attempts.value == 1 { throw ClaimAPIError.failed }
+        return .mock(source: .reward, giveawayEventId: nil)
+      }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+    } operation: {
+      ClaimSheetModel(entry: .reward(koozie), onClose: {})
+    }
+    await model.primaryButtonTapped()
+    #expect(model.phase == .claimFailed)
+    await model.primaryButtonTapped()
+    #expect(model.phase == .form)
+    #expect(attempts.value == 2)
+  }
+
+  @Test func testSignedOutClaimShowsClaimFailed() async {
+    @Shared(.auth) var auth = Auth()
+    let model = ClaimSheetModel(entry: .reward(koozie), onClose: {})
+    await model.claimItTapped()
+    #expect(model.phase == .claimFailed)
+  }
+
+  private func trackedClaimFailureReasons(
+    createRewardRedemption: @escaping @Sendable (String, String) async throws -> FulfillmentRequest
+  ) async -> [AnalyticsEvent] {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let events = LockIsolated<[AnalyticsEvent]>([])
+    let model = withDependencies {
+      $0.analytics.track = { event in events.withValue { $0.append(event) } }
+      $0.api.createRewardRedemption = createRewardRedemption
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+    } operation: {
+      ClaimSheetModel(entry: .reward(koozie), onClose: {})
+    }
+    await withKnownIssue(isIntermittent: true) { await model.claimItTapped() }
+    return events.value
+  }
+
+  @Test func testClaimConnectionFailureTracksClaimConnection() async {
+    let events = await trackedClaimFailureReasons { _, _ in throw ClaimAPIError.failed }
+    expectNoDifference(
+      events, [.claimSheetSubmitFailed(source: "koozie", reason: "claim_connection")])
+  }
+
+  @Test func testClaimNotOpenTracksClaimNotOpen() async {
+    let events = await trackedClaimFailureReasons { _, _ in throw ClaimAPIError.notOpen }
+    expectNoDifference(
+      events, [.claimSheetSubmitFailed(source: "koozie", reason: "claim_not_open")])
+  }
+
+  @Test func testClaimInvalidTracksClaimInvalid() async {
+    let events = await trackedClaimFailureReasons { _, _ in throw ClaimAPIError.invalidAnswers }
+    expectNoDifference(
+      events, [.claimSheetSubmitFailed(source: "koozie", reason: "claim_invalid")])
+  }
+
+  @Test func testClaimConflictIsNotTrackedAsFailure() async {
+    let events = await trackedClaimFailureReasons { _, _ in throw ClaimAPIError.conflict }
+    expectNoDifference(events, [])
+  }
+
+  @Test(arguments: [
+    (ClaimAPIError.notOpen, "no_longer_open"),
+    (.conflict, "conflict"),
+  ])
+  func testSendNoLongerOpenTracksSubmitFailed(error: ClaimAPIError, reason: String) async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let events = LockIsolated<[AnalyticsEvent]>([])
+    let model = withDependencies {
+      $0.analytics.track = { event in events.withValue { $0.append(event) } }
+      $0.api.submitFulfillmentAnswers = { _, _, _ in throw error }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+    } operation: {
+      ClaimSheetModel(
+        entry: .request(.mock(infoAnswers: ["shippingAddress": fullAddress])), onClose: {})
+    }
+    await model.sendTapped()
+    expectNoDifference(
+      events.value, [.claimSheetSubmitFailed(source: "giveaway", reason: reason)])
   }
 
   @Test func testSwipeDismissDisabledOnlyWhileInFlight() {

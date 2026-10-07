@@ -34,6 +34,7 @@ enum ClaimSheetPhase: Equatable {
   case claiming
   case form
   case sending
+  case claimFailed
   case sendFailed(SendFailure)
   case noLongerOpen
   case nothingToFillIn
@@ -91,7 +92,8 @@ class ClaimSheetModel: ViewModel {
   func claimItTapped() async {
     guard let rewardClaim, request == nil, canStartClaim else { return }
     guard let jwt = auth.jwt else {
-      phase = .sendFailed(.connection)
+      phase = .claimFailed
+      await analytics.track(.claimSheetSubmitFailed(source: source, reason: "claim_connection"))
       return
     }
     phase = .claiming
@@ -117,8 +119,12 @@ class ClaimSheetModel: ViewModel {
       reportIssue(ClaimAPIError.invalidAnswers)
       phase = .sendFailed(.invalidAnswers)
       await analytics.track(.claimSheetSubmitFailed(source: source, reason: "invalid_answers"))
-    } catch ClaimAPIError.notOpen, ClaimAPIError.conflict {
+    } catch ClaimAPIError.notOpen {
       phase = .noLongerOpen
+      await analytics.track(.claimSheetSubmitFailed(source: source, reason: "no_longer_open"))
+    } catch ClaimAPIError.conflict {
+      phase = .noLongerOpen
+      await analytics.track(.claimSheetSubmitFailed(source: source, reason: "conflict"))
     } catch {
       phase = .sendFailed(.connection)
       await analytics.track(.claimSheetSubmitFailed(source: source, reason: "connection"))
@@ -128,7 +134,7 @@ class ClaimSheetModel: ViewModel {
 
   func primaryButtonTapped() async {
     switch phase {
-    case .notYetClaimed: await claimItTapped()
+    case .notYetClaimed, .claimFailed: await claimItTapped()
     case .form: await sendTapped()
     case .sendFailed: await tryAgainTapped()
     case .noLongerOpen, .nothingToFillIn, .sent: doneTapped()
@@ -179,7 +185,7 @@ class ClaimSheetModel: ViewModel {
     switch phase {
     case .form, .sending, .sendFailed:
       return "Tell us a few things so we can get it to you."
-    case .notYetClaimed:
+    case .notYetClaimed, .claimFailed:
       return notYetClaimedSubtitle
     case .noLongerOpen:
       return "This prize has already been shipped or closed, so there's nothing left to fill in."
@@ -200,7 +206,7 @@ class ClaimSheetModel: ViewModel {
 
   var primaryButtonTitle: String {
     switch phase {
-    case .notYetClaimed: return isKoozie ? "Claim my koozie" : "Claim it"
+    case .notYetClaimed, .claimFailed: return isKoozie ? "Claim my koozie" : "Claim it"
     case .claiming: return loadingText
     case .form: return "Send it to me"
     case .sending: return "Sending…"
@@ -211,7 +217,7 @@ class ClaimSheetModel: ViewModel {
 
   var isPrimaryButtonEnabled: Bool {
     switch phase {
-    case .notYetClaimed, .noLongerOpen, .nothingToFillIn, .sent: return true
+    case .notYetClaimed, .claimFailed, .noLongerOpen, .nothingToFillIn, .sent: return true
     case .form, .sendFailed: return isSendEnabled
     case .claiming, .sending: return false
     }
@@ -242,7 +248,7 @@ class ClaimSheetModel: ViewModel {
 
   var isLaterShown: Bool {
     switch phase {
-    case .notYetClaimed, .claiming, .form, .sending, .sendFailed: return true
+    case .notYetClaimed, .claimFailed, .claiming, .form, .sending, .sendFailed: return true
     case .noLongerOpen, .nothingToFillIn, .sent: return false
     }
   }
@@ -253,13 +259,15 @@ class ClaimSheetModel: ViewModel {
 
   var isLaterAvailable: Bool {
     switch phase {
-    case .notYetClaimed, .form, .sendFailed: return true
+    case .notYetClaimed, .claimFailed, .form, .sendFailed: return true
     case .claiming, .sending, .noLongerOpen, .nothingToFillIn, .sent: return false
     }
   }
 
   var errorText: String {
     switch phase {
+    case .claimFailed:
+      return "We couldn't claim your prize. Check your connection and try again."
     case .sendFailed(.connection):
       return "We couldn't send your answers. Check your connection and try again."
     case .sendFailed(.invalidAnswers):
@@ -305,7 +313,7 @@ class ClaimSheetModel: ViewModel {
 
   private var canStartClaim: Bool {
     switch phase {
-    case .notYetClaimed, .sendFailed: return true
+    case .notYetClaimed, .claimFailed: return true
     default: return false
     }
   }
@@ -343,11 +351,14 @@ class ClaimSheetModel: ViewModel {
     case .notOpen:
       reportIssue(error)
       phase = .noLongerOpen
+      await analytics.track(.claimSheetSubmitFailed(source: source, reason: "claim_not_open"))
     case .invalidAnswers:
       reportIssue(error)
-      phase = .sendFailed(.connection)
+      phase = .claimFailed
+      await analytics.track(.claimSheetSubmitFailed(source: source, reason: "claim_invalid"))
     case .failed, .none:
-      phase = .sendFailed(.connection)
+      phase = .claimFailed
+      await analytics.track(.claimSheetSubmitFailed(source: source, reason: "claim_connection"))
     }
   }
 
