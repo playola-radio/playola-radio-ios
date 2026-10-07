@@ -28,17 +28,15 @@ struct RewardsExperienceTests {
       """#)
     #expect(profile.rewardsExperienceType == .fullTiers)
     #expect(profile.koozieEarned == nil)
-    #expect(profile.shouldShowKoozieCongrats == nil)
   }
 
   @Test func koozieOnlyStringIsKoozieOnly() throws {
     let profile = try decodeProfile(
       #"""
-      {"totalTimeListenedMS":1000,"totalMSAvailableForRewards":1000,"accurateAsOfTime":"2026-09-20T14:00:00Z","rewardsExperience":"koozie_only","koozieEarned":true,"shouldShowKoozieCongrats":true}
+      {"totalTimeListenedMS":1000,"totalMSAvailableForRewards":1000,"accurateAsOfTime":"2026-09-20T14:00:00Z","rewardsExperience":"koozie_only","koozieEarned":true}
       """#)
     #expect(profile.rewardsExperienceType == .koozieOnly)
     #expect(profile.koozieEarned == true)
-    #expect(profile.shouldShowKoozieCongrats == true)
   }
 
   @Test func unknownRewardsExperienceFallsBackToFullTiers() throws {

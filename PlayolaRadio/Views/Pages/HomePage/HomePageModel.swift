@@ -38,6 +38,9 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Shared(.welcomeMessageEligible) var welcomeMessageEligible: Bool = false
   @ObservationIgnored @Shared(.welcomeMessageShownThisSession)
   var welcomeMessageShownThisSession: Bool = false
+  @ObservationIgnored @Shared(.fulfillmentRequests) var fulfillmentRequests
+  @ObservationIgnored @Shared(.giveawayParticipations) var giveawayParticipations
+  @ObservationIgnored @Shared(.koozieClaimPromptShownUserIds) var koozieClaimPromptShownUserIds
 
   // MARK: - Properties
 
@@ -79,8 +82,10 @@ class HomePageModel: ViewModel {
     return count == 1 ? "1 New Message" : "\(count) New Messages"
   }
 
-  @ObservationIgnored lazy var listeningTimeTileModel: ListeningTimeTileModel =
-    ListeningTimeTileModel(
+  @ObservationIgnored private var hasLoadedPrizeList = false
+
+  @ObservationIgnored lazy var listeningTimeTileModel: ListeningTimeTileModel = {
+    let tile = ListeningTimeTileModel(
       buttonText: "Redeem Your Rewards!",
       buttonAction: { [weak self] in
         guard let self = self else { return }
@@ -94,6 +99,12 @@ class HomePageModel: ViewModel {
         await self.mainContainerNavigationCoordinator.pushRewards(RewardsPageModel())
       }
     )
+    tile.onKoozieBecameClaimable = { [weak self] in
+      guard let self, self.hasLoadedPrizeList else { return }
+      self.presentKoozieClaimIfNeeded()
+    }
+    return tile
+  }()
 
   @ObservationIgnored lazy var scheduledShowsTileModel: NewFeatureTileModel =
     NewFeatureTileModel(
@@ -158,14 +169,8 @@ class HomePageModel: ViewModel {
     updateSupportMessageTile()
     await checkForScheduledShows()
     await checkForUpcomingQuestionAirings()
-
-    guard disposeBag.isEmpty else { return }
-
-    $unreadSupportCount.publisher
-      .sink { [weak self] _ in
-        self?.updateSupportMessageTile()
-      }
-      .store(in: &disposeBag)
+    observeUnreadSupportCountIfNeeded()
+    await refreshPrizes()
   }
 
   func playolaIconTapped10Times() {
@@ -192,7 +197,27 @@ class HomePageModel: ViewModel {
     await stationPlayer.play(station: station)
   }
 
+  func presentKoozieClaimIfNeeded() {
+    guard mainContainerNavigationCoordinator.presentedSheet == nil,
+      let userId = auth.currentUser?.id,
+      !koozieClaimPromptShownUserIds.contains(userId),
+      !hasPendingGiveawayClaim,
+      let koozie = listeningTimeTileModel.koozieTileModel,
+      let claim = koozie.rewardClaim
+    else { return }
+    markKooziePromptShown()
+    presentClaimSheet(.reward(claim), onClaimed: { koozie.markClaimed() })
+  }
+
   // MARK: - View Helpers
+
+  var prizeTileModels: [NewFeatureTileModel] {
+    var tiles = awaitingInfoRequests.map(requestTile)
+    if let koozie = listeningTimeTileModel.koozieTileModel, let claim = koozie.rewardClaim {
+      tiles.append(koozieTile(koozie: koozie, claim: claim))
+    }
+    return tiles
+  }
 
   var forYouStations: IdentifiedArrayOf<AnyStation> {
     guard let artistList = stationLists.first(where: { $0.slug == StationList.artistListSlug })
@@ -227,7 +252,7 @@ class HomePageModel: ViewModel {
   /// visibility logic. The always-present listening-time tile is intentionally excluded
   /// (it lives outside this list because it drives a live ticking timer).
   var visibleFeatureTileModels: [NewFeatureTileModel] {
-    var tiles: [NewFeatureTileModel] = []
+    var tiles = prizeTileModels
     if hasUnreadSupportMessages { tiles.append(supportMessageTileModel) }
     if hasScheduledShows { tiles.append(scheduledShowsTileModel) }
     if hasUpcomingQuestionAiring { tiles.append(questionAiringTileModel) }
@@ -236,6 +261,104 @@ class HomePageModel: ViewModel {
   }
 
   // MARK: - Private Helpers
+
+  private var awaitingInfoRequests: [FulfillmentRequest] {
+    fulfillmentRequests.filter { $0.status == .awaitingInfo }
+  }
+
+  private var prizeTileSources: [String] {
+    var sources = awaitingInfoRequests.map { $0.source.rawValue }
+    if listeningTimeTileModel.koozieTileModel?.isClaimable == true { sources.append("koozie") }
+    return sources
+  }
+
+  private func observeUnreadSupportCountIfNeeded() {
+    guard disposeBag.isEmpty else { return }
+
+    $unreadSupportCount.publisher
+      .sink { [weak self] _ in
+        self?.updateSupportMessageTile()
+      }
+      .store(in: &disposeBag)
+  }
+
+  private func refreshPrizes() async {
+    let refreshed = await withDependencies(from: self) {
+      _ in
+    } operation: {
+      await refreshFulfillmentRequests()
+    }
+    if refreshed { hasLoadedPrizeList = true }
+    if hasLoadedPrizeList { presentKoozieClaimIfNeeded() }
+    for source in prizeTileSources {
+      await analytics.track(.prizeTileShown(source: source))
+    }
+  }
+
+  private func requestTile(_ request: FulfillmentRequest) -> NewFeatureTileModel {
+    let source = request.source.rawValue
+    return NewFeatureTileModel(
+      iconName: "gift.fill",
+      isSystemImage: true,
+      label: request.source == .reward ? "You earned" : "You won",
+      content: request.prizeTitle ?? "Your prize",
+      paragraph: "Tell us where to send it and we'll get it out to you.",
+      buttonText: "Claim your prize",
+      buttonAction: { [weak self] in
+        guard let self else { return }
+        self.markGiveawayWinPresented(for: request)
+        self.presentClaimSheet(.request(request))
+        await self.analytics.track(.prizeTileTapped(source: source))
+      }
+    )
+  }
+
+  private func koozieTile(koozie: KoozieTileModel, claim: RewardClaim) -> NewFeatureTileModel {
+    NewFeatureTileModel(
+      iconName: "headphones",
+      isSystemImage: true,
+      label: "You earned",
+      content: claim.prizeTitle ?? "Your prize",
+      paragraph: "Your listening earned you a free koozie. Tell us where to mail it.",
+      buttonText: "Claim my koozie",
+      buttonAction: { [weak self] in
+        guard let self else { return }
+        self.markKooziePromptShown()
+        self.presentClaimSheet(.reward(claim), onClaimed: { koozie.markClaimed() })
+        await self.analytics.track(.prizeTileTapped(source: "koozie"))
+      }
+    )
+  }
+
+  private var hasPendingGiveawayClaim: Bool {
+    giveawayParticipations.values.contains { participation in
+      guard case .resolvedWon = participation.status, participation.winnerSheetPresentedAt == nil
+      else { return false }
+      return fulfillmentRequests.contains { $0.giveawayEventId == participation.id }
+    }
+  }
+
+  private func markKooziePromptShown() {
+    guard let userId = auth.currentUser?.id else { return }
+    $koozieClaimPromptShownUserIds.withLock { _ = $0.insert(userId) }
+  }
+
+  private func markGiveawayWinPresented(for request: FulfillmentRequest) {
+    guard let eventId = request.giveawayEventId,
+      giveawayParticipations[eventId]?.winnerSheetPresentedAt == nil
+    else { return }
+    $giveawayParticipations.withLock { $0[eventId]?.winnerSheetPresentedAt = now }
+  }
+
+  private func presentClaimSheet(_ entry: ClaimSheetEntry, onClaimed: @escaping () -> Void = {}) {
+    let model = ClaimSheetModel(
+      entry: entry,
+      onClaimed: onClaimed,
+      onClose: { [weak self] model in
+        self?.mainContainerNavigationCoordinator.dismissClaimSheet(model)
+      })
+    mainContainerNavigationCoordinator.presentedSheet = .claim(model)
+  }
 
   private func stationItem(for station: AnyStation) -> APIStationItem? {
     stationLists

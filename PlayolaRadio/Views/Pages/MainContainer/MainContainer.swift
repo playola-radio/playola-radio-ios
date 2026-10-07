@@ -42,18 +42,14 @@ struct MainContainer: View {
       item: Binding(
         get: {
           switch model.mainContainerNavigationCoordinator.presentedSheet {
-          case .player, .feedbackSheet, .share, .redeemPrize, .artistSuggestion, .welcomeMessage,
-            .giveawayWinner, .giveawayCongrats, .developerOptions:
+          case .player, .feedbackSheet, .share, .artistSuggestion, .welcomeMessage,
+            .giveawayCongrats, .developerOptions, .claim:
             return model.mainContainerNavigationCoordinator.presentedSheet
           default:
             return nil
           }
         },
-        set: { newValue in
-          model.$mainContainerNavigationCoordinator.withLock {
-            $0.presentedSheet = newValue
-          }
-        }
+        set: { model.presentedSheetChanged(to: $0) }
       ),
       content: { item in
         ZStack {
@@ -64,18 +60,16 @@ struct MainContainer: View {
             FeedbackSheetView(model: feedbackModel)
           case .share(let shareModel):
             ShareSheet(items: shareModel.items)
-          case .redeemPrize(let redeemModel):
-            RedeemPrizeSheetView(model: redeemModel)
           case .artistSuggestion(let artistSuggestionModel):
             StationSuggestionPageView(model: artistSuggestionModel)
           case .welcomeMessage(let welcomeModel):
             WelcomeMessagePageView(model: welcomeModel)
-          case .giveawayWinner(let winnerModel):
-            GiveawayWinnerSheetView(model: winnerModel)
           case .giveawayCongrats(let congratsModel):
             GiveawayCongratsSheetView(model: congratsModel)
           case .developerOptions(let developerOptionsModel):
             DeveloperOptionsSheetView(model: developerOptionsModel)
+          case .claim(let claimModel):
+            ClaimSheetView(model: claimModel)
           default:
             EmptyView()
           }

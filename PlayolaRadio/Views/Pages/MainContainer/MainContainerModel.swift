@@ -43,6 +43,10 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.appVersionRequirements) var appVersionRequirements
   @ObservationIgnored @Shared(.giveawayParticipations) var giveawayParticipations
   @ObservationIgnored @Shared(.pendingCongratsActions) var pendingCongratsActions
+  @ObservationIgnored @Shared(.fulfillmentRequests) var fulfillmentRequests
+
+  @ObservationIgnored private var isPresentingGiveawayClaim = false
+  @ObservationIgnored private var needsGiveawayClaimRerun = false
 
   /// Client-side ceiling for presenting a congrats whose push carried no `congratsExpiresAt`. After
   /// this long past `startedAt` we stop prompting the owner (the schedule slot is almost certainly gone).
@@ -206,6 +210,12 @@ class MainContainerModel: ViewModel {
     await fetchUnreadSupportCount()
     await giveawayCoordinator.pollNow()
     await processGiveawayResolutions()
+    await withDependencies(from: self) {
+      _ in
+    } operation: {
+      await refreshFulfillmentRequests()
+    }
+    homePageModel.presentKoozieClaimIfNeeded()
   }
 
   private func applyStationLists(_ lists: IdentifiedArrayOf<StationList>) {
@@ -302,10 +312,20 @@ class MainContainerModel: ViewModel {
   func processNewStationState(_ newState: StationPlayer.State) {
     switch newState.playbackStatus {
     case .startingNewStation:
+      if case .claim = mainContainerNavigationCoordinator.presentedSheet { break }
       self.mainContainerNavigationCoordinator.presentedSheet = .player(makePlayerModel())
     default: break
     }
     self.setShouldShowSmallPlayer(newState)
+  }
+
+  func presentedSheetChanged(to newSheet: PlayolaSheet?) {
+    if newSheet == nil,
+      case .claim(let claimModel) = mainContainerNavigationCoordinator.presentedSheet
+    {
+      claimModel.laterTapped()
+    }
+    $mainContainerNavigationCoordinator.withLock { $0.presentedSheet = newSheet }
   }
 
   func checkAndShowRatingPromptIfNeeded() {
@@ -390,42 +410,76 @@ class MainContainerModel: ViewModel {
 
   /// The single app-wide consumer of resolved giveaway participations. The coordinator and push
   /// handler only mutate `@Shared(.giveawayParticipations)`; this turns those durable facts into a
-  /// winner sheet (once per win) or a one-time consolation toast. Idempotent — safe to call on every
+  /// claim sheet (once per win) or a one-time consolation toast. Idempotent — safe to call on every
   /// dict change and on foreground.
   func processGiveawayResolutions() async {
-    presentPendingGiveawayWinnerIfNeeded()
+    await presentPendingGiveawayClaimIfNeeded()
     await fireGiveawayLossToastIfNeeded()
-    // Winner sheet wins the stage: if the call above presented one, this sees a non-empty/-player
+    // The claim sheet wins the stage: if the call above presented one, this sees a non-empty/-player
     // sheet and defers the congrats to the next foreground.
     presentPendingCongratsIfNeeded()
   }
 
-  private func presentPendingGiveawayWinnerIfNeeded() {
-    // Only take over an empty stage or the player (the immediate-win context). Never clobber another
-    // modal flow (feedback, redeem, welcome, …); those defer the win to the next foreground.
-    switch mainContainerNavigationCoordinator.presentedSheet {
-    case .none, .player: break
-    default: return
+  func presentPendingGiveawayClaimIfNeeded() async {
+    guard !isPresentingGiveawayClaim else {
+      needsGiveawayClaimRerun = true
+      return
     }
-    // Gate on the unclaimed prize, NOT on whether we've presented before: a winner who dismisses the
-    // sheet without submitting (or backgrounds before claiming) must get it back on the next
-    // foreground. The early-return above prevents a re-present loop while the sheet is up.
-    let pending = giveawayParticipations.values
+    isPresentingGiveawayClaim = true
+    await presentPendingGiveawayClaim()
+    isPresentingGiveawayClaim = false
+    if needsGiveawayClaimRerun {
+      needsGiveawayClaimRerun = false
+      await presentPendingGiveawayClaimIfNeeded()
+    }
+  }
+
+  private func presentPendingGiveawayClaim() async {
+    guard !unpresentedGiveawayWins.isEmpty, isStageOpenForGiveawayClaim else { return }
+
+    let refreshed = await withDependencies(from: self) {
+      _ in
+    } operation: {
+      await refreshFulfillmentRequests()
+    }
+    guard refreshed, isStageOpenForGiveawayClaim,
+      let (winner, request) = firstUnpresentedWinWithRequest()
+    else { return }
+
+    $giveawayParticipations.withLock { $0[winner.id]?.winnerSheetPresentedAt = now }
+    mainContainerNavigationCoordinator.presentedSheet = .claim(
+      ClaimSheetModel(
+        entry: .request(request),
+        onClose: { [weak self] model in
+          self?.mainContainerNavigationCoordinator.dismissClaimSheet(model)
+        }))
+  }
+
+  private var unpresentedGiveawayWins: [GiveawayParticipation] {
+    giveawayParticipations.values
       .filter {
-        guard case .resolvedWon(let submissionCompleted) = $0.status else { return false }
-        return !submissionCompleted
+        guard case .resolvedWon = $0.status else { return false }
+        return $0.winnerSheetPresentedAt == nil
       }
       .sorted { $0.tappedAt < $1.tappedAt }
-    guard let winner = pending.first else { return }
-    let model = GiveawayWinnerSheetModel(
-      participation: winner,
-      onClose: { [weak self] in self?.dismissGiveawayWinnerSheet() })
-    $giveawayParticipations.withLock {
-      if $0[winner.id]?.winnerSheetPresentedAt == nil {
-        $0[winner.id]?.winnerSheetPresentedAt = now
+  }
+
+  private func firstUnpresentedWinWithRequest() -> (GiveawayParticipation, FulfillmentRequest)? {
+    for winner in unpresentedGiveawayWins {
+      if let request = fulfillmentRequests.first(where: { $0.giveawayEventId == winner.id }) {
+        return (winner, request)
       }
     }
-    mainContainerNavigationCoordinator.presentedSheet = .giveawayWinner(model)
+    return nil
+  }
+
+  /// Only take over an empty stage or the player (the immediate-win context). Never clobber another
+  /// modal flow (feedback, redeem, welcome, …); those defer the win to the next foreground.
+  private var isStageOpenForGiveawayClaim: Bool {
+    switch mainContainerNavigationCoordinator.presentedSheet {
+    case .none, .player: return true
+    default: return false
+    }
   }
 
   private func fireGiveawayLossToastIfNeeded() async {
@@ -445,16 +499,10 @@ class MainContainerModel: ViewModel {
         message: "You were listener #\(loss.tapNumber) — good luck next time!", buttonTitle: ""))
   }
 
-  private func dismissGiveawayWinnerSheet() {
-    if case .giveawayWinner = mainContainerNavigationCoordinator.presentedSheet {
-      mainContainerNavigationCoordinator.presentedSheet = nil
-    }
-  }
-
   // MARK: - Artist Congrats Presentation
 
   /// Presents the most-urgent pending congrats (owner side) when the stage is clear. Lower priority
-  /// than the winner sheet and unrelated modals, and never re-prompts a sheet dismissed this
+  /// than the claim sheet and unrelated modals, and never re-prompts a sheet dismissed this
   /// foreground.
   private func presentPendingCongratsIfNeeded() {
     switch mainContainerNavigationCoordinator.presentedSheet {

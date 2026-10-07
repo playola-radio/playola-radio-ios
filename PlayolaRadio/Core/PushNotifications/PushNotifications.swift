@@ -246,16 +246,15 @@ extension PushNotificationsClient: DependencyKey {
         }
         return false
       }
-      // Honor the server's claim flag: an already-claimed prize (other device) resolves straight to a
-      // completed win, so the arbiter never prompts the form for it.
+      // The server's claim flag is only recorded on the participation. The claim sheet decides what to
+      // show from the server's fulfillment request, so this flag never gates presentation.
       let submissionCompleted = push.submissionCompleted ?? false
       @Shared(.giveawayParticipations) var participations
       let participationsShared = $participations
       await MainActor.run {
         participationsShared.withLock { dict in
-          // Already a win. Honor a server "claimed elsewhere" upgrade by flipping a locally-pending
-          // win to completed (so the arbiter stops re-presenting the claim form), but never clobber
-          // the `winnerSheetPresentedAt` stamp or re-open an already-completed claim.
+          // Already a win. Record a server "claimed elsewhere" upgrade on a locally-pending win, but
+          // never clobber the `winnerSheetPresentedAt` stamp or re-open an already-completed claim.
           if case .resolvedWon(let alreadyCompleted) = dict[push.eventId]?.status {
             if submissionCompleted, !alreadyCompleted {
               dict[push.eventId]?.status = .resolvedWon(submissionCompleted: true)

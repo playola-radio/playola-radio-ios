@@ -28,6 +28,10 @@ struct RewardsPageModelTests {
     return ListeningTracker(rewardsProfile: rewardsProfile)
   }
 
+  private var emptyTier: PrizeTier {
+    PrizeTier(id: "empty", name: "Empty", requiredListeningHours: 0, imageIconUrl: nil, prizes: [])
+  }
+
   // MARK: - Prize Tiers Loading Tests
 
   @Test
@@ -110,27 +114,165 @@ struct RewardsPageModelTests {
   }
 
   @Test
-  func testRedeemPrizeTappedPresentsRedeemSheet() async {
-    @Shared(.listeningTracker) var listeningTracker = createMockListeningTracker(
-      totalTimeMS: 108_000_000)
-    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+  func testRedeemOpensClaimSheetForTiersSinglePrize() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
-    let mockPrizeTiers = PrizeTier.mocks
+    let model = RewardsPageModel()
 
+    await model.redeemPrizeTapped(for: .mock)
+
+    guard case .claim(let sheet) = coordinator.presentedSheet else {
+      Issue.record("expected claim sheet")
+      return
+    }
+    #expect(sheet.phase == .notYetClaimed)
+    #expect(sheet.prizeTitle == PrizeTier.mock.prizes[0].name)
+  }
+
+  @Test
+  func testClaimMarksTierRedeemed() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
     let model = withDependencies {
-      $0.api.getPrizeTiers = { mockPrizeTiers }
+      $0.api.createRewardRedemption = { _, _ in .mock(source: .reward, giveawayEventId: nil) }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+    } operation: {
+      RewardsPageModel()
+    }
+    await model.redeemPrizeTapped(for: .mock)
+    guard case .claim(let sheet) = coordinator.presentedSheet else {
+      Issue.record("expected claim sheet")
+      return
+    }
+
+    await sheet.claimItTapped()
+
+    #expect(model.redemptionStatus(for: .mock) == .redeemed)
+  }
+
+  @Test
+  func testClosingClaimSheetDismissesIt() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = RewardsPageModel()
+    await model.redeemPrizeTapped(for: .mock)
+    guard case .claim(let sheet) = coordinator.presentedSheet else {
+      Issue.record("expected claim sheet")
+      return
+    }
+
+    sheet.laterTapped()
+
+    #expect(coordinator.presentedSheet == nil)
+  }
+
+  @Test
+  func testClosingClaimSheetLeavesADifferentSheetPresented() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = RewardsPageModel()
+    await model.redeemPrizeTapped(for: .mock)
+    guard case .claim(let sheet) = coordinator.presentedSheet else {
+      Issue.record("expected claim sheet")
+      return
+    }
+    let other = PlayolaSheet.share(ShareSheetModel(items: []))
+    $coordinator.withLock { $0.presentedSheet = other }
+
+    sheet.laterTapped()
+
+    #expect(coordinator.presentedSheet == other)
+  }
+
+  @Test
+  func testRedeemPresentsClaimSheetBeforeTracking() async {
+    let presentedWhenTracked = LockIsolated<Bool?>(nil)
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let sharedCoordinator = $coordinator
+    let model = withDependencies {
+      $0.analytics.track = { _ in
+        let isPresented = await MainActor.run {
+          sharedCoordinator.wrappedValue.presentedSheet != nil
+        }
+        presentedWhenTracked.setValue(isPresented)
+      }
     } operation: {
       RewardsPageModel()
     }
 
-    await model.redeemPrizeTapped(for: mockPrizeTiers[0])
+    await model.redeemPrizeTapped(for: .mock)
 
-    if case .redeemPrize(let sheetModel) = navCoordinator.presentedSheet {
-      #expect(sheetModel.prizeTier.id == mockPrizeTiers[0].id)
-    } else {
-      Issue.record(
-        "Expected redeemPrize sheet, got \(String(describing: navCoordinator.presentedSheet))")
+    #expect(presentedWhenTracked.value == true)
+  }
+
+  @Test
+  func testClosingAnOlderClaimSheetNeverDismissesANewerClaimSheet() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = RewardsPageModel()
+    await model.redeemPrizeTapped(for: .mock)
+    guard case .claim(let older) = coordinator.presentedSheet else {
+      Issue.record("expected claim sheet")
+      return
     }
+    let newer = ClaimSheetModel(
+      entry: .reward(
+        RewardClaim(
+          prizeId: "p", prizeSlug: "koozie", prizeTitle: "Koozie", prizeImageUrl: nil,
+          requiredHours: 50)),
+      onClaimed: {}, onClose: {})
+    coordinator.presentedSheet = .claim(newer)
+
+    older.laterTapped()
+
+    guard case .claim(let current) = coordinator.presentedSheet else {
+      Issue.record("the newer claim sheet was dismissed")
+      return
+    }
+    #expect(current === newer)
+  }
+
+  @Test
+  func testRedeemNeverReplacesAnOccupiedClaimSheet() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let giveawayClaim = ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    coordinator.presentedSheet = .claim(giveawayClaim)
+    let model = RewardsPageModel()
+
+    await model.redeemPrizeTapped(for: .mock)
+
+    guard case .claim(let current) = coordinator.presentedSheet else {
+      Issue.record("expected the giveaway claim sheet to stay")
+      return
+    }
+    #expect(current === giveawayClaim)
+  }
+
+  @Test
+  func testRedeemWithoutPrizeDoesNotPresentASheet() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = RewardsPageModel()
+
+    await model.redeemPrizeTapped(for: emptyTier)
+
+    #expect(coordinator.presentedSheet == nil)
+  }
+
+  @Test
+  func testTierWithoutPrizeIsUnavailable() {
+    let model = RewardsPageModel()
+    #expect(model.redemptionStatus(for: emptyTier) == .unavailable)
+  }
+
+  @Test
+  func testRedeemedTakesPrecedenceOverUnavailable() {
+    let model = RewardsPageModel()
+    model.redeemedPrizeTierIds.insert(emptyTier.id)
+    #expect(model.redemptionStatus(for: emptyTier) == .redeemed)
   }
 
   @Test

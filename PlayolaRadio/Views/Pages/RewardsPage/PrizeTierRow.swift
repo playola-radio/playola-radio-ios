@@ -104,6 +104,12 @@ struct PrizeTierRow: View {
             .fixedSize(horizontal: true, vertical: false)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+
+      case .unavailable:
+        Image(systemName: "lock.fill")
+          .foregroundColor(.white)
+          .font(.system(size: 14))
+          .frame(maxWidth: .infinity, alignment: .leading)
       }
     }
     .padding(.vertical, 12)

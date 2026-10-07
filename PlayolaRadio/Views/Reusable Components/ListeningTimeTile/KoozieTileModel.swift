@@ -15,8 +15,6 @@ import Sharing
 enum KoozieTileMode: Equatable {
   case inProgress
   case claimable
-  case addressForm
-  case congrats
   case earned
 }
 
@@ -34,14 +32,13 @@ final class KoozieTileModel: ViewModel {
   var kooziePrizeInfo: KooziePrizeInfo?
   /// Live listening total (ms), fed each second by the parent tile model's refresh loop.
   var liveTotalMS: Int = 0
-  var addressForm = KoozieAddressFormModel()
 
-  private var isShowingAddressForm = false
-  private var congratsDismissedLocally = false
-  /// Set once a redeem returns 201/409 (claim persisted server-side). Keeps the tile out of
-  /// `.claimable` even if the follow-up profile refresh fails, so the koozie can't be
-  /// re-submitted while the server flags catch up.
-  private var hasClaimedLocally = false
+  /// Set by `markClaimed()` once the claim sheet reports success. Keeps the tile out of
+  /// `.claimable` even if the follow-up profile refresh fails or lags. Keyed by user id so a
+  /// claim never carries over to another account signed in on the same model.
+  private var locallyClaimedUserKeys: Set<String> = []
+  private var currentUserKey: String { auth.currentUser?.id ?? "" }
+  private var hasClaimedLocally: Bool { locallyClaimedUserKeys.contains(currentUserKey) }
   /// The single in-flight/completed tiers-load task. Kept non-nil once started so the tile's
   /// 1s loop can call `startTiersLoadIfNeeded()` every tick without launching duplicates.
   private(set) var tiersLoadTask: Task<Void, Never>?
@@ -50,35 +47,31 @@ final class KoozieTileModel: ViewModel {
 
   var progressTitle: String { "Playola Koozie" }
   var claimableTitle: String { "You earned a koozie!" }
-  var claimableSubtitle: String { "Claim it and we'll get one out to you." }
-  var redeemButtonText: String { "Redeem your koozie" }
-  var earnedText: String { "Koozie redeemed — check your email" }
-  var congratsMessage: String {
-    "You've earned a \(kooziePrizeInfo?.prizeName ?? "koozie")! Thanks for listening!"
-  }
+  var claimableSubtitle: String { "Claim it from your prize tile above." }
+  var earnedText: String { "Koozie claimed — thanks for listening!" }
 
   // MARK: - Derived state
 
   private var profile: RewardsProfile? { listeningTracker?.rewardsProfile }
 
   var mode: KoozieTileMode {
-    if profile?.koozieEarned == true {
-      if profile?.shouldShowKoozieCongrats == true, !congratsDismissedLocally {
-        return .congrats
-      }
-      return .earned
-    }
-    // A claim that succeeded this session but isn't yet reflected in the profile (e.g. the
-    // post-redeem refresh failed): show the claimed state so it can't be re-submitted, and
-    // still honor an optimistic dismiss.
-    if hasClaimedLocally {
-      return congratsDismissedLocally ? .earned : .congrats
-    }
-    if isShowingAddressForm { return .addressForm }
-    if let info = kooziePrizeInfo, liveTotalMS >= info.requiredHours * 3_600_000 {
-      return .claimable
-    }
+    if profile?.koozieEarned == true || hasClaimedLocally { return .earned }
+    if isClaimable { return .claimable }
     return .inProgress
+  }
+
+  var isClaimable: Bool {
+    guard profile?.koozieEarned != true, !hasClaimedLocally, let info = kooziePrizeInfo else {
+      return false
+    }
+    return liveTotalMS >= info.requiredHours * 3_600_000
+  }
+
+  var rewardClaim: RewardClaim? {
+    guard isClaimable, let info = kooziePrizeInfo else { return nil }
+    return RewardClaim(
+      prizeId: info.prizeId, prizeSlug: "koozie", prizeTitle: info.prizeName,
+      prizeImageUrl: nil, requiredHours: info.requiredHours)
   }
 
   var progressFraction: Double {
@@ -134,43 +127,16 @@ final class KoozieTileModel: ViewModel {
     }
   }
 
-  func redeemTapped() {
-    addressForm.serverError = nil
-    isShowingAddressForm = true
+  func markClaimed() {
+    locallyClaimedUserKeys.insert(currentUserKey)
+    Task { [weak self] in await self?.refreshProfile() }
   }
 
-  func backTapped() {
-    isShowingAddressForm = false
-  }
-
-  func sendMyKoozieTapped() async {
-    guard !addressForm.isSubmitting else { return }  // no concurrent redemptions
-    guard !hasClaimedLocally else { return }  // already claimed this session — no re-submit
-    guard addressForm.canSubmit, let jwt = auth.jwt, let info = kooziePrizeInfo else { return }
-    addressForm.serverError = nil
-    addressForm.isSubmitting = true
-    defer { addressForm.isSubmitting = false }
-    do {
-      try await api.redeemKooziePrize(jwt, info.prizeId, addressForm.trimmedAddress())
-      hasClaimedLocally = true  // 201/409 → claimed server-side; lock out re-submission
-      isShowingAddressForm = false
-      await refreshProfile()
-    } catch {
-      addressForm.serverError =
-        (error as? APIError)?.errorDescription ?? "Could not claim your koozie. Please try again."
-    }
-  }
-
-  func dismissCongratsTapped() async {
-    congratsDismissedLocally = true  // optimistic → .earned
+  func refreshProfile() async {
     guard let jwt = auth.jwt else { return }
-    try? await api.markKoozieCongratsSeen(jwt)
-    await refreshProfile()
-  }
-
-  private func refreshProfile() async {
-    guard let jwt = auth.jwt else { return }
-    guard let refreshed = try? await api.getRewardsProfile(jwt) else { return }
+    let identity = auth.identity
+    guard let refreshed = try? await api.getRewardsProfile(jwt), auth.identity == identity
+    else { return }
     $listeningTracker.withLock { tracker in
       guard let current = tracker else {
         tracker = ListeningTracker(rewardsProfile: refreshed)
@@ -182,7 +148,6 @@ final class KoozieTileModel: ViewModel {
       var merged = current.rewardsProfile
       merged.rewardsExperience = refreshed.rewardsExperience
       merged.koozieEarned = refreshed.koozieEarned
-      merged.shouldShowKoozieCongrats = refreshed.shouldShowKoozieCongrats
       tracker = current.replacingRewardsProfile(merged)
     }
   }
