@@ -33,19 +33,19 @@ struct GiveawayParticipation: Codable, Equatable, Sendable, Identifiable {
     }
   }
 
-  /// True when the user won without hitting the winning number — the last-tapper promotion at close.
-  /// A regular Nth-tapper winner always has `tapNumber == winningNumber`, so this isolates the
-  /// "surprise upgrade" path that the winner sheet headline acknowledges.
-  var wasPromotedWin: Bool {
-    guard case .resolvedWon = status else { return false }
-    return tapNumber != winningNumber
-  }
-
   static var mock: GiveawayParticipation {
     GiveawayParticipation(
       id: "giveaway-1", stationId: "station-1",
       prizeName: "Two tickets to Reckless Kelly at the Heights",
       winningNumber: 9, tapNumber: 7, status: .tappedStandby,
       tappedAt: Date(timeIntervalSince1970: 1_781_722_800))
+  }
+
+  static func mockWon(id: String, winnerSheetPresentedAt: Date? = nil) -> GiveawayParticipation {
+    GiveawayParticipation(
+      id: id, stationId: "station-1", prizeName: "Two tickets to Reckless Kelly at the Heights",
+      winningNumber: 9, tapNumber: 9, status: .resolvedWon(submissionCompleted: false),
+      tappedAt: Date(timeIntervalSince1970: 1_781_722_800),
+      winnerSheetPresentedAt: winnerSheetPresentedAt)
   }
 }

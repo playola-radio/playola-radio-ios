@@ -634,11 +634,6 @@ struct APIClient: Sendable {
       .mock
     }
 
-  /// Submits (upserts) the winner's mailing details for an event. Winner-only on the server.
-  var submitGiveawayWinnerDetails:
-    @Sendable (_ jwtToken: String, _ eventId: String, _ body: GiveawayWinnerSubmissionRequest)
-      async throws -> Void = { _, _, _ in }
-
   /// Owner submits a recorded congrats (an uploaded voicetrack `audioBlockId`) for an event; the
   /// server inserts it as a spin. Idempotent per (eventId, audioBlockId) on the server.
   var recordGiveawayEventCongrats:

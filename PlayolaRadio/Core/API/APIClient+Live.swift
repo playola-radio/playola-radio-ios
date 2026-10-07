@@ -892,11 +892,6 @@ extension APIClient: DependencyKey {
         try await authenticatedGet(
           path: "/v1/giveaway-events/\(eventId)/my-result", token: jwtToken)
       },
-      submitGiveawayWinnerDetails: { jwtToken, eventId, body in
-        try await authenticatedPostVoid(
-          path: "/v1/giveaway-events/\(eventId)/winner-submission",
-          token: jwtToken, parameters: body.asParameters)
-      },
       recordGiveawayEventCongrats: { jwtToken, eventId, audioBlockId in
         do {
           try await authenticatedPostVoid(
