@@ -1235,6 +1235,48 @@ extension MainContainerTests {
     }
   }
 
+  @Test func triggerArrivingMidFlightIsRerunNotDropped() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "token")
+      @Shared(.giveawayParticipations) var participations = [
+        "event-1": GiveawayParticipation.mockWon(id: "event-1")
+      ]
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let fetches = LockIsolated(0)
+      let (fetchStarted, startedContinuation) = AsyncStream<Void>.makeStream()
+      let (fetchGate, gateContinuation) = AsyncStream<Void>.makeStream()
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 100))
+        $0.api.getMyFulfillmentRequests = { _ in
+          let attempt = fetches.withValue { count -> Int in
+            count += 1
+            return count
+          }
+          guard attempt == 1 else { return [.mock(giveawayEventId: "event-1")] }
+          startedContinuation.yield()
+          for await _ in fetchGate { break }
+          return []
+        }
+      } operation: {
+        MainContainerModel()
+      }
+
+      let first = Task { await model.processGiveawayResolutions() }
+      for await _ in fetchStarted { break }
+      await model.processGiveawayResolutions()
+      gateContinuation.yield()
+      await first.value
+
+      #expect(fetches.value == 2)
+      guard case .claim(let sheet) = coordinator.presentedSheet else {
+        Issue.record("expected claim sheet")
+        return
+      }
+      #expect(sheet.request?.id == "request-1")
+    }
+  }
+
   @Test func closingClaimSheetDoesNotClobberAReplacementSheet() async {
     await withMainSerialExecutor {
       @Shared(.auth) var auth = Auth(jwt: "token")

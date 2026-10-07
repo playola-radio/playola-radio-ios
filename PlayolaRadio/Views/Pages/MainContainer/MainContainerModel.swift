@@ -46,6 +46,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.fulfillmentRequests) var fulfillmentRequests
 
   @ObservationIgnored private var isPresentingGiveawayClaim = false
+  @ObservationIgnored private var needsGiveawayClaimRerun = false
 
   /// Client-side ceiling for presenting a congrats whose push carried no `congratsExpiresAt`. After
   /// this long past `startedAt` we stop prompting the owner (the schedule slot is almost certainly gone).
@@ -410,10 +411,20 @@ class MainContainerModel: ViewModel {
   }
 
   func presentPendingGiveawayClaimIfNeeded() async {
-    guard !isPresentingGiveawayClaim else { return }
+    guard !isPresentingGiveawayClaim else {
+      needsGiveawayClaimRerun = true
+      return
+    }
     isPresentingGiveawayClaim = true
-    defer { isPresentingGiveawayClaim = false }
+    await presentPendingGiveawayClaim()
+    isPresentingGiveawayClaim = false
+    if needsGiveawayClaimRerun {
+      needsGiveawayClaimRerun = false
+      await presentPendingGiveawayClaimIfNeeded()
+    }
+  }
 
+  private func presentPendingGiveawayClaim() async {
     guard !unpresentedGiveawayWins.isEmpty, isStageOpenForGiveawayClaim else { return }
 
     let refreshed = await withDependencies(from: self) {
