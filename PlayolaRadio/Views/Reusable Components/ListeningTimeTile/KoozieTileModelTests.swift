@@ -205,4 +205,31 @@ struct KoozieTileModelTests {
     #expect(model.mode == .earned)
     #expect(lt?.rewardsProfile.totalTimeListenedMS == 50 * 3_600_000)
   }
+
+  @Test func claimedOverrideSurvivesStaleOrFailedRefresh() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.listeningTracker) var lt = tracker(totalMS: 50 * 3_600_000)
+    let refreshResult = LockIsolated<Result<RewardsProfile, APIError>>(.failure(.dataNotValid))
+    let model = withDependencies {
+      $0.api.getRewardsProfile = { _ in try refreshResult.value.get() }
+    } operation: {
+      KoozieTileModel()
+    }
+    model.kooziePrizeInfo = info
+    model.liveTotalMS = 50 * 3_600_000
+
+    model.markClaimed()
+    await model.refreshProfile()
+    #expect(model.mode == .earned)
+    #expect(!model.isClaimable)
+
+    refreshResult.setValue(
+      .success(
+        RewardsProfile(
+          totalTimeListenedMS: 50 * 3_600_000, totalMSAvailableForRewards: 0,
+          accurateAsOfTime: Date(), rewardsExperience: "koozie_only", koozieEarned: false)))
+    await model.refreshProfile()
+    #expect(model.mode == .earned)
+    #expect(!model.isClaimable)
+  }
 }
