@@ -107,21 +107,6 @@ struct APIClient: Sendable {
       .mock(source: .reward, giveawayEventId: nil)
     }
 
-  /// Redeems a prize for the user
-  /// - Parameters:
-  ///   - jwtToken: The JWT token for authentication
-  ///   - prizeId: The ID of the prize to redeem
-  ///   - stationId: Optional station ID for per-station prizes
-  /// - Returns: The created UserPrize
-  var redeemPrize:
-    @Sendable (_ jwtToken: String, _ prizeId: String, _ stationId: String?) async throws ->
-      UserPrize = {
-        _, _, _ in
-        UserPrize(
-          id: "", userId: "", prizeId: "",
-          redeemedAt: Date(), createdAt: Date(), updatedAt: Date(), prize: nil)
-      }
-
   ///   - jwtToken: Current JWT
   ///   - firstName: New first name
   ///   - lastName: New last name (optional, "" treated as nil)

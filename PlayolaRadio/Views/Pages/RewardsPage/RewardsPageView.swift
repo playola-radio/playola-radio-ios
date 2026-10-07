@@ -7,10 +7,11 @@
 
 import SwiftUI
 
-enum RedemptionStatus {
+enum RedemptionStatus: Equatable {
   case redeemed
   case redeemable
   case moreTimeRequired(Int)
+  case unavailable
 }
 
 struct RewardsPageView: View {

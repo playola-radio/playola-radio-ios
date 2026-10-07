@@ -316,13 +316,6 @@ extension PlayolaAlert {
     )
   }
 
-  static var prizeRedeemed: PlayolaAlert {
-    PlayolaAlert(
-      title: "Prize Redeemed!",
-      message: "We'll follow up via email to coordinate your reward.",
-      dismissButton: .cancel(Text("OK")))
-  }
-
   static var signInNetworkError: PlayolaAlert {
     let message =
       "Your network is blocking the secure connection to Playola. Try turning "

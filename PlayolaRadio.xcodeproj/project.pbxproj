@@ -223,11 +223,6 @@
 		D30AE8A72E75C92700D9FBCA /* UrlStation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30AE8A62E75C91E00D9FBCA /* UrlStation.swift */; };
 		D30C01C52F5C9C8400889E6D /* UserPrize.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30C01C42F5C9C8400889E6D /* UserPrize.swift */; };
 		D30C01C62F5C9C8500889E6D /* UserPrize.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30C01C42F5C9C8400889E6D /* UserPrize.swift */; };
-		D30C01CA2F5C9F9D00889E6D /* RedeemPrizeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30C01C92F5C9F9D00889E6D /* RedeemPrizeSheetView.swift */; };
-		D30C01CC2F5C9F9D00889E6D /* RedeemPrizeSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30C01C72F5C9F9D00889E6D /* RedeemPrizeSheetModel.swift */; };
-		D30C01CD2F5C9F9D00889E6D /* RedeemPrizeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30C01C92F5C9F9D00889E6D /* RedeemPrizeSheetView.swift */; };
-		D30C01CF2F5C9F9D00889E6D /* RedeemPrizeSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30C01C72F5C9F9D00889E6D /* RedeemPrizeSheetModel.swift */; };
-		D30C01D02F5CA12300889E6D /* RedeemPrizeSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30C01C82F5C9F9D00889E6D /* RedeemPrizeSheetTests.swift */; };
 		D30F004A2E8592F0007BCC73 /* UrlStreamListeningSessionReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D6CE5E2D5ECECB0059BDCA /* UrlStreamListeningSessionReporter.swift */; };
 		D30F004B2E8592F0007BCC73 /* HomePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37257AF2DF88BB2001BC6F9 /* HomePageView.swift */; };
 		D30F004C2E8592F0007BCC73 /* MainSceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35673C52D3E91B900E4E926 /* MainSceneDelegate.swift */; };
@@ -851,9 +846,6 @@
 		D30257AA2E652F8D00F4228B /* SongDrawerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongDrawerTests.swift; sourceTree = "<group>"; };
 		D30AE8A62E75C91E00D9FBCA /* UrlStation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlStation.swift; sourceTree = "<group>"; };
 		D30C01C42F5C9C8400889E6D /* UserPrize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPrize.swift; sourceTree = "<group>"; };
-		D30C01C72F5C9F9D00889E6D /* RedeemPrizeSheetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedeemPrizeSheetModel.swift; sourceTree = "<group>"; };
-		D30C01C82F5C9F9D00889E6D /* RedeemPrizeSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedeemPrizeSheetTests.swift; sourceTree = "<group>"; };
-		D30C01C92F5C9F9D00889E6D /* RedeemPrizeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedeemPrizeSheetView.swift; sourceTree = "<group>"; };
 		D30F00B32E8592F0007BCC73 /* PlayolaRadio Staging.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PlayolaRadio Staging.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D30F00B42E8592F0007BCC73 /* Info-Staging.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Info-Staging.plist"; path = "/Users/brian/playola/playola-radio-ios/PlayolaRadio/Info-Staging.plist"; sourceTree = "<absolute>"; };
 		D30F00B62E871940007BCC73 /* StationListStationRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationListStationRowView.swift; sourceTree = "<group>"; };
@@ -2186,9 +2178,6 @@
 				D3B744C32E31317F0042A427 /* RewardsPageTests.swift */,
 				D3B744C12E3131770042A427 /* RewardsPageView.swift */,
 				D3B744BF2E31316D0042A427 /* RewardsPageModel.swift */,
-				D30C01C72F5C9F9D00889E6D /* RedeemPrizeSheetModel.swift */,
-				D30C01C82F5C9F9D00889E6D /* RedeemPrizeSheetTests.swift */,
-				D30C01C92F5C9F9D00889E6D /* RedeemPrizeSheetView.swift */,
 			);
 			path = RewardsPage;
 			sourceTree = "<group>";
@@ -2665,8 +2654,6 @@
 				D3367C022F097D0D00AF87FA /* PushNotificationSubscription.swift in Sources */,
 				D30F00752E8592F0007BCC73 /* ListeningTimeTile.swift in Sources */,
 				D30F00762E8592F0007BCC73 /* GenericNowPlaying.swift in Sources */,
-				D30C01CA2F5C9F9D00889E6D /* RedeemPrizeSheetView.swift in Sources */,
-				D30C01CC2F5C9F9D00889E6D /* RedeemPrizeSheetModel.swift in Sources */,
 				D3C7E5E12EF0A44400EDD3ED /* SongSearchPageView.swift in Sources */,
 				D30F00772E8592F0007BCC73 /* UIImage+Cache.swift in Sources */,
 				D30F00782E8592F0007BCC73 /* ContactPageView.swift in Sources */,
@@ -2935,8 +2922,6 @@
 				D3367C012F097D0D00AF87FA /* PushNotificationSubscription.swift in Sources */,
 				D3B744B92E2FF16F0042A427 /* ListeningTimeTile.swift in Sources */,
 				D3137DD22D3ABB520070033A /* GenericNowPlaying.swift in Sources */,
-				D30C01CD2F5C9F9D00889E6D /* RedeemPrizeSheetView.swift in Sources */,
-				D30C01CF2F5C9F9D00889E6D /* RedeemPrizeSheetModel.swift in Sources */,
 				D3C7E5E22EF0A44400EDD3ED /* SongSearchPageView.swift in Sources */,
 				D3536A3C2BFA6520006942D6 /* UIImage+Cache.swift in Sources */,
 				D39591152E39932000720CF8 /* ContactPageView.swift in Sources */,
@@ -3075,7 +3060,6 @@
 				D35EFC3F2F192C8F000F64A4 /* SupportPageTests.swift in Sources */,
 				D3B9C7A42F528929002D75C2 /* RecordIntroPageTests.swift in Sources */,
 				D38031352E00AFD20011DD64 /* PlayerPageTests.swift in Sources */,
-				D30C01D02F5CA12300889E6D /* RedeemPrizeSheetTests.swift in Sources */,
 				D3137DC02D39818E0070033A /* MailServiceMock.swift in Sources */,
 				D33482812F9B1B03002CAC52 /* ErrorReportingClientMock.swift in Sources */,
 				D30257A92E651C9E00F4228B /* MainContainerNavigationCoordinatorTests.swift in Sources */,

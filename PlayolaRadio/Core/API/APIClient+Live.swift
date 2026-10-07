@@ -357,15 +357,6 @@ extension APIClient: DependencyKey {
         }
         return try sharedIsoDecoder.decode(FulfillmentRequest.self, from: data)
       },
-      redeemPrize: { jwtToken, prizeId, stationId in
-        var params: [String: String] = [:]
-        if let stationId { params["stationId"] = stationId }
-        return try await authenticatedPost(
-          path: "/v1/rewards/users/me/prizes/\(prizeId)/redeem",
-          token: jwtToken,
-          parameters: params
-        )
-      },
       updateUser: { jwtToken, firstName, lastName, verifiedEmail in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me"
 

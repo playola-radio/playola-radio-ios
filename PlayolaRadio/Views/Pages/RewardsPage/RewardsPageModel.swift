@@ -46,19 +46,22 @@ class RewardsPageModel: ViewModel {
     let currentHours = getCurrentListeningHours()
     await analytics.track(.tappedRedeemRewards(currentHours: currentHours))
 
-    let sheetModel = RedeemPrizeSheetModel(
-      prizeTier: prizeTier,
-      onSuccess: { [weak self] userPrize in
-        guard let self else { return }
-        if let prize = userPrize.prize {
-          self.redeemedPrizeTierIds.insert(prize.prizeTierId)
-        } else {
-          self.redeemedPrizeTierIds.insert(prizeTier.id)
-        }
-        self.presentedAlert = .prizeRedeemed
-      }
-    )
-    mainContainerNavigationCoordinator.presentedSheet = .redeemPrize(sheetModel)
+    guard let prize = prizeTier.prizes.first else { return }
+    let claim = RewardClaim(
+      prizeId: prize.id,
+      prizeSlug: prize.slug,
+      prizeTitle: prize.name,
+      prizeImageUrl: prize.imageUrl,
+      requiredHours: prizeTier.requiredListeningHours)
+    let sheetModel = withDependencies(from: self) {
+      _ in
+    } operation: {
+      ClaimSheetModel(
+        entry: .reward(claim),
+        onClaimed: { [weak self] in self?.redeemedPrizeTierIds.insert(prizeTier.id) },
+        onClose: { [weak self] in self?.dismissClaimSheet() })
+    }
+    mainContainerNavigationCoordinator.presentedSheet = .claim(sheetModel)
   }
 
   // MARK: - View Helpers
@@ -77,6 +80,10 @@ class RewardsPageModel: ViewModel {
   func redemptionStatus(for prizeTier: PrizeTier) -> RedemptionStatus {
     if redeemedPrizeTierIds.contains(prizeTier.id) {
       return .redeemed
+    }
+
+    if prizeTier.prizes.isEmpty {
+      return .unavailable
     }
 
     let userListeningHours = getUserListeningHours()
@@ -115,6 +122,12 @@ class RewardsPageModel: ViewModel {
   }
 
   // MARK: - Private Helpers
+
+  private func dismissClaimSheet() {
+    if case .claim = mainContainerNavigationCoordinator.presentedSheet {
+      mainContainerNavigationCoordinator.presentedSheet = nil
+    }
+  }
 
   private func loadPrizeTiers() async {
     do {
