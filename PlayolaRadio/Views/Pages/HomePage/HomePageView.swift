@@ -44,8 +44,8 @@ struct HomePageView: View {
             introMessage: model.introMessage,
             onIconTapped10Times: model.playolaIconTapped10Times)
 
-          ForEach(model.visibleFeatureTileModels, id: \.label) { tile in
-            NewFeatureTile(model: tile)
+          ForEach(Array(model.visibleFeatureTileModels.enumerated()), id: \.offset) { entry in
+            NewFeatureTile(model: entry.element)
               .padding(.bottom, 20)
           }
 

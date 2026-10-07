@@ -5,6 +5,8 @@
 //  Created by Brian D Keane on 6/10/25.
 //
 
+// swiftlint:disable file_length
+
 import ConcurrencyExtras
 import CustomDump
 import Dependencies
@@ -840,4 +842,173 @@ struct HomePageTests {
     #expect(!model.hasUpcomingGiveawayForStation("live-station"))
   }
 
+  // MARK: - Prize Tiles
+
+  /// A koozie-only listener past the 50h threshold, so Home's koozie tile is claimable — driven through
+  /// the real cohort path (`refreshFromTracker`), no test-only hook in app code. The tracker is force-written
+  /// (not default-seeded) because the navigation coordinator may already have loaded the key as nil.
+  private func makeHomeWithClaimableKoozie() -> HomePageModel {
+    // swiftlint:disable:next redundant_optional_initialization
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
+    @Shared(.listeningTracker) var lt: ListeningTracker?
+    $lt.withLock {
+      $0 = ListeningTracker(
+        rewardsProfile: RewardsProfile(
+          totalTimeListenedMS: 51 * 3_600_000, totalMSAvailableForRewards: 51 * 3_600_000,
+          accurateAsOfTime: Date(), rewardsExperience: "koozie_only"))
+    }
+    let model = HomePageModel()
+    model.listeningTimeTileModel.refreshFromTracker()
+    let koozie = model.listeningTimeTileModel.koozieTileModel
+    koozie?.kooziePrizeInfo = KooziePrizeInfo(
+      prizeId: "p1", prizeName: "Playola Koozie", requiredHours: 50)
+    koozie?.liveTotalMS = 51 * 3_600_000
+    return model
+  }
+
+  private func claimModel(in coordinator: MainContainerNavigationCoordinator) -> ClaimSheetModel? {
+    guard case .claim(let model) = coordinator.presentedSheet else { return nil }
+    return model
+  }
+
+  @Test func testPrizeTilesFollowServerOrderThenKoozie() async {
+    @Shared(.fulfillmentRequests) var requests = [
+      FulfillmentRequest.mock(id: "b", prizeTitle: "Poster"),
+      FulfillmentRequest.mock(
+        id: "a", source: .reward, giveawayEventId: nil, prizeTitle: "Show Tix"),
+      FulfillmentRequest.mock(id: "c", status: .readyToShip, prizeTitle: "Shipped"),
+    ]
+    let model = makeHomeWithClaimableKoozie()
+    expectNoDifference(
+      model.prizeTileModels.map(\.content), ["Poster", "Show Tix", "Playola Koozie"])
+    expectNoDifference(
+      model.prizeTileModels.map(\.label), ["You won", "You earned", "You earned"])
+  }
+
+  @Test func testVisibleFeatureTilesStartWithPrizeTiles() async {
+    @Shared(.fulfillmentRequests) var requests = [FulfillmentRequest.mock(prizeTitle: "Poster")]
+    @Shared(.unreadSupportCount) var unreadSupportCount = 2
+    let model = HomePageModel()
+    expectNoDifference(
+      model.visibleFeatureTileModels.map(\.label), ["You won", "Messages"])
+  }
+
+  @Test func testPrizeTileOpensClaimSheet() async {
+    @Shared(.fulfillmentRequests) var requests = [FulfillmentRequest.mock()]
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = HomePageModel()
+    await model.prizeTileModels[0].onButtonTapped()
+    #expect(claimModel(in: coordinator) != nil)
+  }
+
+  @Test func testKooziePrizeTileOpensClaimSheet() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = makeHomeWithClaimableKoozie()
+    await model.prizeTileModels[0].onButtonTapped()
+    #expect(claimModel(in: coordinator) != nil)
+  }
+
+  @Test func testPrizeTileTapTracksSourceFromRequest() async {
+    let captured = LockIsolated<[AnalyticsEvent]>([])
+    @Shared(.fulfillmentRequests) var requests = [FulfillmentRequest.mock(source: .reward)]
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = withDependencies {
+      $0.analytics.track = { event in captured.withValue { $0.append(event) } }
+    } operation: {
+      HomePageModel()
+    }
+    await model.prizeTileModels[0].onButtonTapped()
+    expectNoDifference(captured.value, [.prizeTileTapped(source: "reward")])
+  }
+
+  @Test func testClosingClaimSheetDismissesIt() async {
+    @Shared(.fulfillmentRequests) var requests = [FulfillmentRequest.mock()]
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = HomePageModel()
+    await model.prizeTileModels[0].onButtonTapped()
+    claimModel(in: coordinator)?.laterTapped()
+    #expect(coordinator.presentedSheet == nil)
+  }
+
+  @Test func testClosingClaimSheetNeverClobbersAReplacementSheet() async {
+    @Shared(.fulfillmentRequests) var requests = [FulfillmentRequest.mock()]
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = HomePageModel()
+    await model.prizeTileModels[0].onButtonTapped()
+    let presentedClaim = claimModel(in: coordinator)
+    coordinator.presentedSheet = .share(ShareSheetModel(items: ["x"]))
+    presentedClaim?.laterTapped()
+    #expect(coordinator.presentedSheet == .share(ShareSheetModel(items: ["x"])))
+  }
+
+  @Test func testViewAppearedRefreshesPrizesAndTracksShownPerTile() async {
+    let captured = LockIsolated<[AnalyticsEvent]>([])
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.fulfillmentRequests) var requests = []
+    let model = withDependencies {
+      $0.api.getMyFulfillmentRequests = { _ in
+        [
+          FulfillmentRequest.mock(id: "a"),
+          FulfillmentRequest.mock(id: "b", source: .reward, giveawayEventId: nil),
+          FulfillmentRequest.mock(id: "c", status: .readyToShip),
+        ]
+      }
+      $0.api.getAirings = { _, _ in [] }
+      $0.api.getMyListenerQuestionAirings = { _ in [] }
+      $0.analytics.track = { event in captured.withValue { $0.append(event) } }
+    } operation: {
+      HomePageModel()
+    }
+    await model.viewAppeared()
+    let shown = captured.value.filter {
+      if case .prizeTileShown = $0 { return true }
+      return false
+    }
+    expectNoDifference(
+      shown, [.prizeTileShown(source: "giveaway"), .prizeTileShown(source: "reward")])
+  }
+
+  @Test func testKooziePromptShownOncePerUser() {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(id: "user-1", firstName: "Me", email: "me@playola.fm"),
+      jwt: "token")
+    @Shared(.koozieClaimPromptShownUserIds) var shown = []
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = makeHomeWithClaimableKoozie()
+    model.presentKoozieClaimIfNeeded()
+    #expect(coordinator.presentedSheet != nil)
+    coordinator.presentedSheet = nil
+    model.presentKoozieClaimIfNeeded()
+    #expect(coordinator.presentedSheet == nil)
+    #expect(shown == ["user-1"])
+  }
+
+  @Test func testKooziePromptNeedsALoggedInUser() {
+    @Shared(.auth) var auth = Auth()
+    @Shared(.koozieClaimPromptShownUserIds) var shown = []
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = makeHomeWithClaimableKoozie()
+    model.presentKoozieClaimIfNeeded()
+    #expect(coordinator.presentedSheet == nil)
+    #expect(shown.isEmpty)
+  }
+
+  @Test func testKooziePromptNeverTakesAnOccupiedSlot() {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(id: "user-1", firstName: "Me", email: "me@playola.fm"),
+      jwt: "token")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.presentedSheet = .share(ShareSheetModel(items: ["x"]))
+    let model = makeHomeWithClaimableKoozie()
+    model.presentKoozieClaimIfNeeded()
+    #expect(coordinator.presentedSheet == .share(ShareSheetModel(items: ["x"])))
+  }
 }
