@@ -312,10 +312,20 @@ class MainContainerModel: ViewModel {
   func processNewStationState(_ newState: StationPlayer.State) {
     switch newState.playbackStatus {
     case .startingNewStation:
+      if case .claim = mainContainerNavigationCoordinator.presentedSheet { break }
       self.mainContainerNavigationCoordinator.presentedSheet = .player(makePlayerModel())
     default: break
     }
     self.setShouldShowSmallPlayer(newState)
+  }
+
+  func presentedSheetChanged(to newSheet: PlayolaSheet?) {
+    if newSheet == nil,
+      case .claim(let claimModel) = mainContainerNavigationCoordinator.presentedSheet
+    {
+      claimModel.laterTapped()
+    }
+    $mainContainerNavigationCoordinator.withLock { $0.presentedSheet = newSheet }
   }
 
   func checkAndShowRatingPromptIfNeeded() {

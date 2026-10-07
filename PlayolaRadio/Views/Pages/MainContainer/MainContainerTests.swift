@@ -362,6 +362,88 @@ struct MainContainerTests {
     #expect(mainContainerModel.mainContainerNavigationCoordinator.presentedSheet == nil)
   }
 
+  @Test
+  func testProcessNewStationStateKeepsAnOpenClaimSheetWhenStartingNewStation() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    let mainContainerModel = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      MainContainerModel()
+    }
+    let claim = makeRewardClaimSheet()
+    coordinator.presentedSheet = .claim(claim)
+
+    mainContainerModel.processNewStationState(
+      StationPlayer.State(playbackStatus: .startingNewStation(.mock)))
+
+    guard case .claim(let current) = coordinator.presentedSheet else {
+      Issue.record("Expected the claim sheet to stay open")
+      return
+    }
+    #expect(current === claim)
+    #expect(mainContainerModel.shouldShowSmallPlayer)
+  }
+
+  @Test
+  func testProcessNewStationStateStillReplacesOtherSheetsWhenStartingNewStation() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    let mainContainerModel = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      MainContainerModel()
+    }
+    coordinator.presentedSheet = .share(ShareSheetModel(items: ["x"]))
+
+    mainContainerModel.processNewStationState(
+      StationPlayer.State(playbackStatus: .startingNewStation(.mock)))
+
+    if case .player = coordinator.presentedSheet {
+      // Test passes
+    } else {
+      Issue.record("Expected player sheet to replace the share sheet")
+    }
+  }
+
+  // MARK: - Sheet Dismissal Tests
+
+  @Test
+  func testSwipeDismissingAClaimSheetGoesToLater() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    let closeCount = LockIsolated(0)
+    let mainContainerModel = MainContainerModel()
+    coordinator.presentedSheet = .claim(
+      makeRewardClaimSheet(onClose: { closeCount.withValue { $0 += 1 } }))
+
+    mainContainerModel.presentedSheetChanged(to: nil)
+
+    #expect(closeCount.value == 1)
+    #expect(coordinator.presentedSheet == nil)
+  }
+
+  @Test
+  func testSwipeDismissingAnotherSheetJustClearsIt() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    let mainContainerModel = MainContainerModel()
+    coordinator.presentedSheet = .share(ShareSheetModel(items: ["x"]))
+
+    mainContainerModel.presentedSheetChanged(to: nil)
+
+    #expect(coordinator.presentedSheet == nil)
+  }
+
+  private func makeRewardClaimSheet(onClose: @escaping () -> Void = {}) -> ClaimSheetModel {
+    ClaimSheetModel(
+      entry: .reward(
+        RewardClaim(
+          prizeId: "p", prizeSlug: "koozie", prizeTitle: "Koozie", prizeImageUrl: nil,
+          requiredHours: 50)),
+      onClaimed: {}, onClose: onClose)
+  }
+
   // MARK: - Dismiss Button Tests
 
   @Test

@@ -49,16 +49,7 @@ struct MainContainer: View {
             return nil
           }
         },
-        set: { newValue in
-          if newValue == nil,
-            case .claim(let claimModel) = model.mainContainerNavigationCoordinator.presentedSheet
-          {
-            claimModel.laterTapped()
-          }
-          model.$mainContainerNavigationCoordinator.withLock {
-            $0.presentedSheet = newValue
-          }
-        }
+        set: { model.presentedSheetChanged(to: $0) }
       ),
       content: { item in
         ZStack {
