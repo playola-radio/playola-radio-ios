@@ -82,8 +82,8 @@ class HomePageModel: ViewModel {
     return count == 1 ? "1 New Message" : "\(count) New Messages"
   }
 
-  @ObservationIgnored lazy var listeningTimeTileModel: ListeningTimeTileModel =
-    ListeningTimeTileModel(
+  @ObservationIgnored lazy var listeningTimeTileModel: ListeningTimeTileModel = {
+    let tile = ListeningTimeTileModel(
       buttonText: "Redeem Your Rewards!",
       buttonAction: { [weak self] in
         guard let self = self else { return }
@@ -97,6 +97,9 @@ class HomePageModel: ViewModel {
         await self.mainContainerNavigationCoordinator.pushRewards(RewardsPageModel())
       }
     )
+    tile.onKoozieBecameClaimable = { [weak self] in self?.presentKoozieClaimIfNeeded() }
+    return tile
+  }()
 
   @ObservationIgnored lazy var scheduledShowsTileModel: NewFeatureTileModel =
     NewFeatureTileModel(

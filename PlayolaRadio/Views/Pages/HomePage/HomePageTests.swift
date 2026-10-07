@@ -1111,7 +1111,12 @@ struct HomePageTests {
     model.presentKoozieClaimIfNeeded()
     #expect(coordinator.presentedSheet == .share(ShareSheetModel(items: ["x"])))
   }
+}
 
+// MARK: - Prize Claim Ordering Tests
+
+@MainActor
+extension HomePageTests {
   private static let signedInUser = Auth(
     currentUser: LoggedInUser(id: "user-1", firstName: "Me", email: "me@playola.fm"),
     jwt: "token")
@@ -1212,5 +1217,48 @@ struct HomePageTests {
     await model.prizeTileModels[0].onButtonTapped()
 
     #expect(participations["event-1"]?.winnerSheetPresentedAt == nil)
+  }
+
+  @Test func testKooziePromptPresentsOnceWhenPrizeTiersArriveAfterHomeAppeared() async {
+    @Shared(.auth) var auth = Self.signedInUser
+    // swiftlint:disable:next redundant_optional_initialization
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
+    @Shared(.listeningTracker) var lt: ListeningTracker?
+    $lt.withLock {
+      $0 = ListeningTracker(
+        rewardsProfile: RewardsProfile(
+          totalTimeListenedMS: 51 * 3_600_000, totalMSAvailableForRewards: 51 * 3_600_000,
+          accurateAsOfTime: Date(), rewardsExperience: "koozie_only"))
+    }
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = withDependencies {
+      $0.continuousClock = ImmediateClock()
+      $0.api.getPrizeTiers = {
+        [
+          PrizeTier(
+            id: "tk", name: "Koozie", requiredListeningHours: 50, imageIconUrl: nil,
+            prizes: [
+              Prize(
+                id: "pk", name: "Playola Koozie", prizeTierId: "tk", imageUrl: nil, slug: "koozie")
+            ])
+        ]
+      }
+    } operation: {
+      HomePageModel()
+    }
+    let tile = model.listeningTimeTileModel
+
+    tile.tick()
+    #expect(coordinator.presentedSheet == nil)
+
+    await tile.koozieTileModel?.tiersLoadTask?.value
+    tile.tick()
+    let presented = claimModel(in: coordinator)
+    #expect(presented != nil)
+
+    coordinator.presentedSheet = nil
+    tile.tick()
+    #expect(coordinator.presentedSheet == nil)
   }
 }
