@@ -7,6 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C11C43518324BAC0E91B7213 /* AddressFieldModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42FFFA75E4359DA912575D3 /* AddressFieldModel.swift */; };
+		17945FB93AD4DE38669DFF43 /* ClaimFieldModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CAD2F3485430E4EEE1B8EB1 /* ClaimFieldModel.swift */; };
+		E4077BD7E18C4BF0BABFA2C1 /* USStateCodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E3C9996DCA37D40A4552F1 /* USStateCodes.swift */; };
+		1B66437EA4C8E800E5E72EE9 /* AddressFieldModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42FFFA75E4359DA912575D3 /* AddressFieldModel.swift */; };
+		7C2D1D0DEBE81765088E0133 /* ClaimFieldModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CAD2F3485430E4EEE1B8EB1 /* ClaimFieldModel.swift */; };
+		4AA2AD79E9488C61C6F663DE /* USStateCodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E3C9996DCA37D40A4552F1 /* USStateCodes.swift */; };
+		9D0294250B1108CACB20B95B /* AddressFieldModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 066BA1341DC897090E15E132 /* AddressFieldModelTests.swift */; };
+		35E3F2AB74E3887F74E0C8F4 /* ClaimFieldModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF2BBBDB7DF73E8D1A1D5F47 /* ClaimFieldModelTests.swift */; };
 		03D9929612C3E595D9BD88D5 /* GiveawayParticipationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5283C7C8C9FAF45659BA98E /* GiveawayParticipationTests.swift */; };
 		0574C4A160288D8AE401D4C9 /* UpcomingGiveawayInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36EB0D70D43F1CF6504F637E /* UpcomingGiveawayInfo.swift */; };
 		086EF07946AAF32C92DE834A /* UpcomingGiveawayBannerModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3C275E61DA6CA4C482EC79 /* UpcomingGiveawayBannerModelTests.swift */; };
@@ -700,6 +708,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D42FFFA75E4359DA912575D3 /* AddressFieldModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressFieldModel.swift; sourceTree = "<group>"; };
+		3CAD2F3485430E4EEE1B8EB1 /* ClaimFieldModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimFieldModel.swift; sourceTree = "<group>"; };
+		68E3C9996DCA37D40A4552F1 /* USStateCodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USStateCodes.swift; sourceTree = "<group>"; };
+		066BA1341DC897090E15E132 /* AddressFieldModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressFieldModelTests.swift; sourceTree = "<group>"; };
+		BF2BBBDB7DF73E8D1A1D5F47 /* ClaimFieldModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimFieldModelTests.swift; sourceTree = "<group>"; };
 		02EDCED098E801AAB2E9DC82 /* GiveawayEvent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayEvent.swift; sourceTree = "<group>"; };
 		0463608FA7279EBB205BF80E /* GiveawayWinnerPush.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayWinnerPush.swift; sourceTree = "<group>"; };
 		0488057E2A6456204E582B15 /* CongratsActionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CongratsActionTests.swift; sourceTree = "<group>"; };
@@ -1156,6 +1169,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		298F5BDFBA72141B2E1863E5 /* ClaimForm */ = {
+			isa = PBXGroup;
+			children = (
+				066BA1341DC897090E15E132 /* AddressFieldModelTests.swift */,
+				BF2BBBDB7DF73E8D1A1D5F47 /* ClaimFieldModelTests.swift */,
+				D42FFFA75E4359DA912575D3 /* AddressFieldModel.swift */,
+				3CAD2F3485430E4EEE1B8EB1 /* ClaimFieldModel.swift */,
+				68E3C9996DCA37D40A4552F1 /* USStateCodes.swift */,
+			);
+			path = ClaimForm;
+			sourceTree = "<group>";
+		};
 		358480181ADB29C686D6482F /* GiveawayCongratsSheet */ = {
 			isa = PBXGroup;
 			children = (
@@ -1588,6 +1613,7 @@
 		D339E55D2BFD0FC200B9E35B /* Reusable Components */ = {
 			isa = PBXGroup;
 			children = (
+				298F5BDFBA72141B2E1863E5 /* ClaimForm */,
 				D3B744C62E3139860042A427 /* ListeningTimeTile */,
 				D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */,
 				D3FACE010000000000000001 /* InDevelopmentBadge.swift */,
@@ -2736,6 +2762,9 @@
 				24801FB664BFA5B73E518BC3 /* RewardsExperience.swift in Sources */,
 				FEEDA11C0000000000000002 /* ListenerAnalytics.swift in Sources */,
 				5713A17100000000000000A1 /* ProgrammingHealth.swift in Sources */,
+				C11C43518324BAC0E91B7213 /* AddressFieldModel.swift in Sources */,
+				17945FB93AD4DE38669DFF43 /* ClaimFieldModel.swift in Sources */,
+				E4077BD7E18C4BF0BABFA2C1 /* USStateCodes.swift in Sources */,
 				1E1FEF5BE44432473298C8CB /* ShippingAddress.swift in Sources */,
 				A9F1000000000000000000A2 /* FulfillmentRequest.swift in Sources */,
 				FFE2EA430C2866C7B05C9B12 /* KoozieAddressFormModel.swift in Sources */,
@@ -3000,6 +3029,9 @@
 				9B14EE137DB923F77EBEFB37 /* RewardsExperience.swift in Sources */,
 				FEEDA11C0000000000000003 /* ListenerAnalytics.swift in Sources */,
 				5713A17100000000000000A2 /* ProgrammingHealth.swift in Sources */,
+				1B66437EA4C8E800E5E72EE9 /* AddressFieldModel.swift in Sources */,
+				7C2D1D0DEBE81765088E0133 /* ClaimFieldModel.swift in Sources */,
+				4AA2AD79E9488C61C6F663DE /* USStateCodes.swift in Sources */,
 				23D5CA2938294DB58EB23395 /* ShippingAddress.swift in Sources */,
 				A9F1000000000000000000A3 /* FulfillmentRequest.swift in Sources */,
 				24B6384BAEEAB70B98AF2B36 /* KoozieAddressFormModel.swift in Sources */,
@@ -3130,6 +3162,8 @@
 				086EF07946AAF32C92DE834A /* UpcomingGiveawayBannerModelTests.swift in Sources */,
 				7C3EB088AA47A09C775DB7DC /* RewardsExperienceTests.swift in Sources */,
 				5713A17100000000000000A4 /* ProgrammingHealthTests.swift in Sources */,
+				9D0294250B1108CACB20B95B /* AddressFieldModelTests.swift in Sources */,
+				35E3F2AB74E3887F74E0C8F4 /* ClaimFieldModelTests.swift in Sources */,
 				438B06FF18E95D6D698E7678 /* KoozieAddressFormModelTests.swift in Sources */,
 				0A70B3257BA0A86D3F1AA9E5 /* KoozieTileModelTests.swift in Sources */,
 			);
