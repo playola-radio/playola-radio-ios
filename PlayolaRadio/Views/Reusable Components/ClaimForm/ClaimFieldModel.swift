@@ -53,7 +53,7 @@ final class ClaimFieldModel: ViewModel, Identifiable {
   let kind: Kind
   let address: AddressFieldModel
   var selectedOption: String?
-  var isPickerPresented = false
+  var picker: ChoicePickerModel?
   var text: String = "" {
     didSet { if text.exceeds(utf16Limit: textLimit) { text = text.clamped(toUTF16: textLimit) } }
   }
@@ -99,27 +99,24 @@ final class ClaimFieldModel: ViewModel, Identifiable {
   var pickerShowsNone: Bool { !field.required }
 
   var pickerPlaceholder: String { "Choose one" }
-  var pickerNoneTitle: String { "None" }
-  var pickerSearchPlaceholder: String { "Search \(field.options.count) options" }
   var pickerValueText: String { selectedOption ?? pickerPlaceholder }
   var isPickerValuePlaceholder: Bool { selectedOption == nil }
 
   func pickerRowTapped() {
-    isPickerPresented = true
-  }
-
-  func pickerOptionTapped(_ option: String) {
-    selectedOption = option
-    isPickerPresented = false
-  }
-
-  func pickerNoneTapped() {
-    selectedOption = nil
-    isPickerPresented = false
-  }
-
-  func pickerCloseTapped() {
-    isPickerPresented = false
+    picker = ChoicePickerModel(
+      title: label,
+      options: field.options,
+      selectedOption: selectedOption,
+      showsSearch: pickerShowsSearch,
+      showsNone: pickerShowsNone,
+      onFinish: { [weak self] outcome in
+        switch outcome {
+        case .selected(let option): self?.selectedOption = option
+        case .cleared: self?.selectedOption = nil
+        case .dismissed: break
+        }
+        self?.picker = nil
+      })
   }
 
   func optionTapped(_ option: String) {

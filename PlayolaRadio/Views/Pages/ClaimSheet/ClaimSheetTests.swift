@@ -410,12 +410,48 @@ struct ClaimSheetTests {
     #expect(model.isPrimaryButtonBusy)
     #expect(!model.isPrimaryButtonMuted)
     model.phase = .claiming
-    #expect(model.isPrimaryButtonBusy)
+    #expect(!model.isPrimaryButtonBusy)
     model.phase = .sent
     #expect(!model.isLaterShown)
     model.phase = .sending
     #expect(model.isLaterShown)
     #expect(!model.isLaterAvailable)
+  }
+
+  @Test func testClaimingPhaseHidesPrimaryButtonAndSubtitle() {
+    let model = ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    #expect(model.isPrimaryButtonShown)
+    #expect(model.isSubtitleShown)
+    model.phase = .claiming
+    #expect(!model.isPrimaryButtonShown)
+    #expect(!model.isSubtitleShown)
+    #expect(model.loadingText == "Getting your prize ready…")
+  }
+
+  @Test func testLaterIsDimmedOnlyWhileSending() {
+    let model = ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    model.phase = .claiming
+    #expect(model.isLaterShown)
+    #expect(!model.isLaterAvailable)
+    #expect(model.laterButtonOpacity == 1)
+    model.phase = .sending
+    #expect(model.laterButtonOpacity == 0.35)
+    model.phase = .form
+    #expect(model.laterButtonOpacity == 1)
+  }
+
+  @Test func testFieldsDimWhileSending() {
+    let model = ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    #expect(model.fieldsOpacity == 1)
+    model.phase = .sending
+    #expect(model.fieldsOpacity == 0.45)
+  }
+
+  @Test func testHeaderPillHiddenWhenNoLongerOpen() {
+    let model = ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    #expect(model.isHeaderPillShown)
+    model.phase = .noLongerOpen
+    #expect(!model.isHeaderPillShown)
   }
 
   @Test func testPrizeImageDimsWhenNoLongerOpen() {

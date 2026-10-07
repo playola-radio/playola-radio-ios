@@ -6,35 +6,23 @@
 import SwiftUI
 
 struct ChoicePickerView: View {
-  let title: String
-  let searchPlaceholder: String
-  let showsSearch: Bool
-  let noneTitle: String?
-  let options: [String]
-  let selected: String?
-  let onSelect: (String) -> Void
-  let onNone: () -> Void
-  let onClose: () -> Void
-
-  @State private var searchText = ""
-
-  private var visibleOptions: [String] {
-    let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard showsSearch, !query.isEmpty else { return options }
-    return options.filter { $0.localizedCaseInsensitiveContains(query) }
-  }
+  @Bindable var model: ChoicePickerModel
 
   var body: some View {
     VStack(spacing: 0) {
       navigationBar
-      if showsSearch { searchField }
+      if model.showsSearch { searchField }
       ScrollView {
         LazyVStack(spacing: 0) {
-          if let noneTitle {
-            row(title: noneTitle, isSelected: selected == nil, action: onNone)
+          if model.showsNone {
+            row(title: model.noneTitle, isSelected: model.isNoneSelected) {
+              model.noneTapped()
+            }
           }
-          ForEach(visibleOptions, id: \.self) { option in
-            row(title: option, isSelected: option == selected) { onSelect(option) }
+          ForEach(model.filteredOptions, id: \.self) { option in
+            row(title: option, isSelected: model.isOptionSelected(option)) {
+              model.optionTapped(option)
+            }
           }
         }
         .padding(.horizontal, 16)
@@ -48,16 +36,18 @@ struct ChoicePickerView: View {
 
   private var navigationBar: some View {
     HStack {
-      Button(action: onClose) {
+      Button {
+        model.closeTapped()
+      } label: {
         Image(systemName: "xmark")
           .font(.system(size: 18, weight: .semibold))
           .foregroundColor(.playolaTextPrimary)
           .frame(width: 44, height: 44)
           .background(Circle().fill(Color.playolaSurfaceRaised))
       }
-      .accessibilityLabel("Close")
+      .accessibilityLabel(model.closeAccessibilityLabel)
       Spacer()
-      Text(title)
+      Text(model.title)
         .font(.custom(FontNames.Inter_600_SemiBold, size: 17))
         .foregroundColor(.playolaTextPrimary)
         .lineLimit(1)
@@ -66,7 +56,7 @@ struct ChoicePickerView: View {
     }
     .padding(.horizontal, 16)
     .padding(.top, 8)
-    .frame(height: 64)
+    .frame(height: 56)
   }
 
   private var searchField: some View {
@@ -75,8 +65,8 @@ struct ChoicePickerView: View {
         .font(.system(size: 16))
         .foregroundColor(.playolaTextTertiary)
       TextField(
-        "", text: $searchText,
-        prompt: Text(searchPlaceholder).foregroundColor(.playolaTextTertiary)
+        "", text: $model.searchText,
+        prompt: Text(model.searchPlaceholder).foregroundColor(.playolaTextTertiary)
       )
       .font(.custom(FontNames.Inter_400_Regular, size: 16))
       .foregroundColor(.playolaTextPrimary)

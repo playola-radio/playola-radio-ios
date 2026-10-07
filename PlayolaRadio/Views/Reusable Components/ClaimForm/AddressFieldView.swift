@@ -59,17 +59,8 @@ struct AddressFieldView: View {
     }
     .accessibilityLabel(address.statePlaceholder)
     .accessibilityValue(address.stateValueText)
-    .sheet(isPresented: $address.isStatePickerPresented) {
-      ChoicePickerView(
-        title: address.statePickerTitle,
-        searchPlaceholder: address.statePickerSearchPlaceholder,
-        showsSearch: true,
-        noneTitle: nil,
-        options: address.stateOptions,
-        selected: address.state,
-        onSelect: { address.stateSelected($0) },
-        onNone: {},
-        onClose: { address.statePickerCloseTapped() })
+    .sheet(item: $address.statePicker) { picker in
+      ChoicePickerView(model: picker)
     }
   }
 }

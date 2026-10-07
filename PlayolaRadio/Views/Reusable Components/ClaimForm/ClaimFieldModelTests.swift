@@ -192,35 +192,40 @@ struct ClaimFieldModelTests {
       options: (1...8).map { "Song \($0)" }, required: false)
   }
 
-  @Test func testPickerRowTappedPresentsPicker() {
-    let field = ClaimFieldModel(field: song, prefill: nil)
+  @Test func testPickerRowTappedPresentsConfiguredPicker() throws {
+    let field = ClaimFieldModel(field: song, prefill: .text("Song 2"))
     field.pickerRowTapped()
-    #expect(field.isPickerPresented)
+    let picker = try #require(field.picker)
+    #expect(picker.title == "Pick a song")
+    expectNoDifference(picker.options, (1...8).map { "Song \($0)" })
+    #expect(picker.selectedOption == "Song 2")
+    #expect(picker.showsNone)
+    #expect(!picker.showsSearch)
   }
 
-  @Test func testPickerOptionTappedSelectsAndDismisses() {
+  @Test func testPickerOptionTappedSelectsAndDismisses() throws {
     let field = ClaimFieldModel(field: song, prefill: nil)
     field.pickerRowTapped()
-    field.pickerOptionTapped("Song 3")
+    try #require(field.picker).optionTapped("Song 3")
     #expect(field.selectedOption == "Song 3")
-    #expect(!field.isPickerPresented)
+    #expect(field.picker == nil)
     #expect(field.pickerValueText == "Song 3")
   }
 
-  @Test func testPickerNoneTappedClearsSelectionAndDismisses() {
+  @Test func testPickerNoneTappedClearsSelectionAndDismisses() throws {
     let field = ClaimFieldModel(field: song, prefill: .text("Song 2"))
     field.pickerRowTapped()
-    field.pickerNoneTapped()
+    try #require(field.picker).noneTapped()
     #expect(field.selectedOption == nil)
-    #expect(!field.isPickerPresented)
+    #expect(field.picker == nil)
     #expect(field.pickerValueText == "Choose one")
   }
 
-  @Test func testPickerCloseTappedKeepsSelection() {
+  @Test func testPickerCloseTappedKeepsSelection() throws {
     let field = ClaimFieldModel(field: song, prefill: .text("Song 2"))
     field.pickerRowTapped()
-    field.pickerCloseTapped()
+    try #require(field.picker).closeTapped()
     #expect(field.selectedOption == "Song 2")
-    #expect(!field.isPickerPresented)
+    #expect(field.picker == nil)
   }
 }

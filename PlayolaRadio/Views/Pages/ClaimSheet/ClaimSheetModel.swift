@@ -163,6 +163,10 @@ class ClaimSheetModel: ViewModel {
     isGiveaway ? "trophy" : "headphones"
   }
 
+  var isHeaderPillShown: Bool {
+    phase != .noLongerOpen
+  }
+
   var prizeTitle: String {
     request?.prizeTitle ?? rewardClaim?.prizeTitle ?? "Your prize"
   }
@@ -173,7 +177,7 @@ class ClaimSheetModel: ViewModel {
 
   var subtitle: String {
     switch phase {
-    case .form, .sending, .sendFailed, .claiming:
+    case .form, .sending, .sendFailed:
       return "Tell us a few things so we can get it to you."
     case .notYetClaimed:
       return notYetClaimedSubtitle
@@ -181,9 +185,13 @@ class ClaimSheetModel: ViewModel {
       return "This prize has already been shipped or closed, so there's nothing left to fill in."
     case .nothingToFillIn:
       return "Nothing else needed from you — we'll take it from here."
-    case .sent:
+    case .claiming, .sent:
       return ""
     }
+  }
+
+  var isSubtitleShown: Bool {
+    phase != .claiming
   }
 
   var sentTitle: String { "You're all set" }
@@ -193,7 +201,8 @@ class ClaimSheetModel: ViewModel {
   var primaryButtonTitle: String {
     switch phase {
     case .notYetClaimed: return isKoozie ? "Claim my koozie" : "Claim it"
-    case .claiming, .form: return "Send it to me"
+    case .claiming: return loadingText
+    case .form: return "Send it to me"
     case .sending: return "Sending…"
     case .sendFailed: return "Try again"
     case .noLongerOpen, .nothingToFillIn, .sent: return "Done"
@@ -210,8 +219,12 @@ class ClaimSheetModel: ViewModel {
 
   var loadingText: String { "Getting your prize ready…" }
 
+  var isPrimaryButtonShown: Bool {
+    phase != .claiming
+  }
+
   var isPrimaryButtonBusy: Bool {
-    phase == .claiming || phase == .sending
+    phase == .sending
   }
 
   var isPrimaryButtonMuted: Bool {
@@ -232,6 +245,10 @@ class ClaimSheetModel: ViewModel {
     case .notYetClaimed, .claiming, .form, .sending, .sendFailed: return true
     case .noLongerOpen, .nothingToFillIn, .sent: return false
     }
+  }
+
+  var laterButtonOpacity: Double {
+    phase == .sending ? 0.35 : 1
   }
 
   var isLaterAvailable: Bool {
@@ -270,7 +287,7 @@ class ClaimSheetModel: ViewModel {
   }
 
   var fieldsOpacity: Double {
-    phase == .sending ? 0.5 : 1
+    phase == .sending ? 0.45 : 1
   }
 
   var areFieldsEnabled: Bool {

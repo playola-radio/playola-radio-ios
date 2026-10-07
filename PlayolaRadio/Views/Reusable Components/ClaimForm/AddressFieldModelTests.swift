@@ -120,13 +120,24 @@ struct AddressFieldModelTests {
     #expect(model.addressLine2.utf16.count == 255)
   }
 
-  @Test func testStateSelectedSetsStateAndDismissesPicker() {
+  @Test func testStateRowTappedPresentsConfiguredPicker() throws {
+    let model = AddressFieldModel(prefill: nil)
+    model.state = "CA"
+    model.stateRowTapped()
+    let picker = try #require(model.statePicker)
+    #expect(picker.title == "State")
+    expectNoDifference(picker.options, USStateCodes.all)
+    #expect(picker.selectedOption == "CA")
+    #expect(picker.showsSearch)
+    #expect(!picker.showsNone)
+  }
+
+  @Test func testStatePickerSelectionSetsStateAndDismisses() throws {
     let model = AddressFieldModel(prefill: nil)
     model.stateRowTapped()
-    #expect(model.isStatePickerPresented)
-    model.stateSelected("TX")
+    try #require(model.statePicker).optionTapped("TX")
     #expect(model.state == "TX")
-    #expect(!model.isStatePickerPresented)
+    #expect(model.statePicker == nil)
     #expect(model.stateValueText == "TX")
   }
 
@@ -136,12 +147,12 @@ struct AddressFieldModelTests {
     #expect(model.isStatePlaceholder)
   }
 
-  @Test func testStatePickerCloseKeepsState() {
+  @Test func testStatePickerCloseKeepsState() throws {
     let model = AddressFieldModel(prefill: nil)
     model.state = "CA"
     model.stateRowTapped()
-    model.statePickerCloseTapped()
+    try #require(model.statePicker).closeTapped()
     #expect(model.state == "CA")
-    #expect(!model.isStatePickerPresented)
+    #expect(model.statePicker == nil)
   }
 }

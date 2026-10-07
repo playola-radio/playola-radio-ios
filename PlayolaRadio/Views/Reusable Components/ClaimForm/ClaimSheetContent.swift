@@ -38,12 +38,7 @@ struct ClaimSheetContent: View {
         .foregroundColor(.playolaTextPrimary)
         .multilineTextAlignment(.center)
         .frame(maxWidth: .infinity)
-      Text(model.subtitle)
-        .font(.custom(FontNames.Inter_400_Regular, size: 14))
-        .foregroundColor(.playolaTextSecondary)
-        .lineSpacing(3)
-        .multilineTextAlignment(.center)
-        .frame(maxWidth: .infinity)
+      subtitle
     }
     .padding(EdgeInsets(top: 16, leading: 24, bottom: 8, trailing: 24))
   }
@@ -65,18 +60,31 @@ struct ClaimSheetContent: View {
     }
   }
 
-  private var pill: some View {
-    HStack(spacing: 6) {
-      Image(systemName: model.headerPillSymbol)
-        .font(.system(size: 11, weight: .bold))
-      Text(model.headerPill)
-        .font(.custom(FontNames.Inter_700_Bold, size: 11))
-        .tracking(1)
+  @ViewBuilder private var subtitle: some View {
+    if model.isSubtitleShown {
+      Text(model.subtitle)
+        .font(.custom(FontNames.Inter_400_Regular, size: 14))
+        .foregroundColor(.playolaTextSecondary)
+        .lineSpacing(3)
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
     }
-    .foregroundColor(.playolaGiveawayPurple)
-    .padding(.horizontal, 10)
-    .padding(.vertical, 4)
-    .background(Capsule().fill(Color.playolaGiveawayPurple.opacity(0.2)))
+  }
+
+  @ViewBuilder private var pill: some View {
+    if model.isHeaderPillShown {
+      HStack(spacing: 6) {
+        Image(systemName: model.headerPillSymbol)
+          .font(.system(size: 13, weight: .bold))
+        Text(model.headerPill)
+          .font(.custom(FontNames.Inter_700_Bold, size: 11))
+          .tracking(1)
+      }
+      .foregroundColor(.playolaGiveawayPurple)
+      .padding(.horizontal, 10)
+      .padding(.vertical, 4)
+      .background(Capsule().fill(Color.playolaGiveawayPurple.opacity(0.2)))
+    }
   }
 
   private var form: some View {
@@ -165,7 +173,13 @@ struct ClaimSheetContent: View {
     }
   }
 
-  private var primaryButton: some View {
+  @ViewBuilder private var primaryButton: some View {
+    if model.isPrimaryButtonShown {
+      primaryButtonBody
+    }
+  }
+
+  private var primaryButtonBody: some View {
     Button {
       Task { await model.primaryButtonTapped() }
     } label: {
@@ -202,7 +216,7 @@ struct ClaimSheetContent: View {
           .foregroundColor(.playolaTextSecondary)
           .frame(maxWidth: .infinity)
           .frame(height: 48)
-          .opacity(model.isLaterAvailable ? 1 : 0.35)
+          .opacity(model.laterButtonOpacity)
       }
       .disabled(!model.isLaterAvailable)
     }

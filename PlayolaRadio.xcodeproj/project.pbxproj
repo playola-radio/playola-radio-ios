@@ -10,6 +10,9 @@
 		EFCA11A06CFAF58BE69896C5 /* ClaimSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43FC9CD1BE0AC016C946B1DA /* ClaimSheetModel.swift */; };
 		D495306A8B23BB7E88178BC1 /* ClaimSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43FC9CD1BE0AC016C946B1DA /* ClaimSheetModel.swift */; };
 		A10B50426143041CA56E9C06 /* ChoicePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B04AE31AA99135244791D1 /* ChoicePickerView.swift */; };
+		C41A0D9E7B2F4A6081D35E73 /* ChoicePickerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C41A0D9E7B2F4A6081D35E71 /* ChoicePickerModel.swift */; };
+		C41A0D9E7B2F4A6081D35E74 /* ChoicePickerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C41A0D9E7B2F4A6081D35E71 /* ChoicePickerModel.swift */; };
+		C41A0D9E7B2F4A6081D35E75 /* ChoicePickerModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C41A0D9E7B2F4A6081D35E72 /* ChoicePickerModelTests.swift */; };
 		19530F206C2FBA12BE10170F /* ChoicePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B04AE31AA99135244791D1 /* ChoicePickerView.swift */; };
 		D060B600C5D637357A59E8BE /* ChoiceFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C9FCABDFAF433B0BBCC1809 /* ChoiceFieldView.swift */; };
 		09BA2CFDF950CD818390F126 /* ChoiceFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C9FCABDFAF433B0BBCC1809 /* ChoiceFieldView.swift */; };
@@ -725,6 +728,8 @@
 /* Begin PBXFileReference section */
 		43FC9CD1BE0AC016C946B1DA /* ClaimSheetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimSheetModel.swift; sourceTree = "<group>"; };
 		31B04AE31AA99135244791D1 /* ChoicePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChoicePickerView.swift; sourceTree = "<group>"; };
+		C41A0D9E7B2F4A6081D35E71 /* ChoicePickerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChoicePickerModel.swift; sourceTree = "<group>"; };
+		C41A0D9E7B2F4A6081D35E72 /* ChoicePickerModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChoicePickerModelTests.swift; sourceTree = "<group>"; };
 		7C9FCABDFAF433B0BBCC1809 /* ChoiceFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChoiceFieldView.swift; sourceTree = "<group>"; };
 		4B5446224FE15D0FDF477C44 /* AddressFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressFieldView.swift; sourceTree = "<group>"; };
 		24ABCFFE52A4CEC4B778DC44 /* ClaimFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimFieldView.swift; sourceTree = "<group>"; };
@@ -1210,6 +1215,8 @@
 				D42FFFA75E4359DA912575D3 /* AddressFieldModel.swift */,
 				3CAD2F3485430E4EEE1B8EB1 /* ClaimFieldModel.swift */,
 				31B04AE31AA99135244791D1 /* ChoicePickerView.swift */,
+				C41A0D9E7B2F4A6081D35E71 /* ChoicePickerModel.swift */,
+				C41A0D9E7B2F4A6081D35E72 /* ChoicePickerModelTests.swift */,
 				7C9FCABDFAF433B0BBCC1809 /* ChoiceFieldView.swift */,
 				4B5446224FE15D0FDF477C44 /* AddressFieldView.swift */,
 				24ABCFFE52A4CEC4B778DC44 /* ClaimFieldView.swift */,
@@ -2805,6 +2812,7 @@
 				17945FB93AD4DE38669DFF43 /* ClaimFieldModel.swift in Sources */,
 				EFCA11A06CFAF58BE69896C5 /* ClaimSheetModel.swift in Sources */,
 				A10B50426143041CA56E9C06 /* ChoicePickerView.swift in Sources */,
+				C41A0D9E7B2F4A6081D35E73 /* ChoicePickerModel.swift in Sources */,
 				D060B600C5D637357A59E8BE /* ChoiceFieldView.swift in Sources */,
 				E788990F6474B3D35E5968A1 /* AddressFieldView.swift in Sources */,
 				15BF66A90107EB59006B6CAD /* ClaimFieldView.swift in Sources */,
@@ -3079,6 +3087,7 @@
 				7C2D1D0DEBE81765088E0133 /* ClaimFieldModel.swift in Sources */,
 				D495306A8B23BB7E88178BC1 /* ClaimSheetModel.swift in Sources */,
 				19530F206C2FBA12BE10170F /* ChoicePickerView.swift in Sources */,
+				C41A0D9E7B2F4A6081D35E74 /* ChoicePickerModel.swift in Sources */,
 				09BA2CFDF950CD818390F126 /* ChoiceFieldView.swift in Sources */,
 				43FE41690FB4542E5B945893 /* AddressFieldView.swift in Sources */,
 				AC185F6C289B50D5F6CEA89E /* ClaimFieldView.swift in Sources */,
@@ -3217,6 +3226,7 @@
 				5713A17100000000000000A4 /* ProgrammingHealthTests.swift in Sources */,
 				9D0294250B1108CACB20B95B /* AddressFieldModelTests.swift in Sources */,
 				35E3F2AB74E3887F74E0C8F4 /* ClaimFieldModelTests.swift in Sources */,
+				C41A0D9E7B2F4A6081D35E75 /* ChoicePickerModelTests.swift in Sources */,
 				95DCE3D5B66638B2F8EED419 /* ClaimSheetTests.swift in Sources */,
 				438B06FF18E95D6D698E7678 /* KoozieAddressFormModelTests.swift in Sources */,
 				0A70B3257BA0A86D3F1AA9E5 /* KoozieTileModelTests.swift in Sources */,

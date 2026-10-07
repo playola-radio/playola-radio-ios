@@ -107,17 +107,8 @@ struct ChoiceFieldView: View {
     }
     .accessibilityLabel(field.label)
     .accessibilityValue(field.pickerValueText)
-    .sheet(isPresented: $field.isPickerPresented) {
-      ChoicePickerView(
-        title: field.label,
-        searchPlaceholder: field.pickerSearchPlaceholder,
-        showsSearch: field.pickerShowsSearch,
-        noneTitle: field.pickerShowsNone ? field.pickerNoneTitle : nil,
-        options: field.field.options,
-        selected: field.selectedOption,
-        onSelect: { field.pickerOptionTapped($0) },
-        onNone: { field.pickerNoneTapped() },
-        onClose: { field.pickerCloseTapped() })
+    .sheet(item: $field.picker) { picker in
+      ChoicePickerView(model: picker)
     }
   }
 }

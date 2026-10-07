@@ -52,7 +52,7 @@ final class AddressFieldModel: ViewModel {
     }
   }
 
-  var isStatePickerPresented = false
+  var statePicker: ChoicePickerModel?
 
   init(prefill: ShippingAddress?) {
     super.init()
@@ -75,23 +75,20 @@ final class AddressFieldModel: ViewModel {
   var statePlaceholder: String { "State" }
   var zipPlaceholder: String { "ZIP" }
 
-  var stateOptions: [String] { USStateCodes.all }
-  var statePickerTitle: String { "State" }
-  var statePickerSearchPlaceholder: String { "Search \(USStateCodes.all.count) options" }
   var stateValueText: String { isStatePlaceholder ? statePlaceholder : state }
   var isStatePlaceholder: Bool { trimmed(state).isEmpty }
 
   func stateRowTapped() {
-    isStatePickerPresented = true
-  }
-
-  func stateSelected(_ code: String) {
-    state = code
-    isStatePickerPresented = false
-  }
-
-  func statePickerCloseTapped() {
-    isStatePickerPresented = false
+    statePicker = ChoicePickerModel(
+      title: statePlaceholder,
+      options: USStateCodes.all,
+      selectedOption: isStatePlaceholder ? nil : state,
+      showsSearch: true,
+      showsNone: false,
+      onFinish: { [weak self] outcome in
+        if case .selected(let code) = outcome { self?.state = code }
+        self?.statePicker = nil
+      })
   }
 
   // MARK: - Validation
