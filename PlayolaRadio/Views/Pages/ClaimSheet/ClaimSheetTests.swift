@@ -22,7 +22,8 @@ struct ClaimSheetTests {
       fullName: "Jane", addressLine1: "1 Main", addressLine2: nil, city: "Austin", state: "TX",
       postalCode: "78701"))
   private let koozie = RewardClaim(
-    prizeId: "prize-koozie", prizeTitle: "Playola Koozie", prizeImageUrl: nil, requiredHours: 50)
+    prizeId: "prize-1", prizeSlug: "koozie", prizeTitle: "Playola Koozie", prizeImageUrl: nil,
+    requiredHours: 50)
 
   private func makeSendableModel(
     submit:
@@ -160,6 +161,17 @@ struct ClaimSheetTests {
     #expect(model.primaryButtonTitle == "Claim my koozie")
   }
 
+  @Test func testNonKoozieSlugGetsGenericClaimCopy() {
+    let claim = RewardClaim(
+      prizeId: "prize-2", prizeSlug: "tote-bag", prizeTitle: "Koozie-ish tote", prizeImageUrl: nil,
+      requiredHours: 100)
+    let model = ClaimSheetModel(entry: .reward(claim), onClose: {})
+    #expect(model.primaryButtonTitle == "Claim it")
+    #expect(
+      model.subtitle
+        == "You've listened 100 hours on Playola. Claim it and tell us where to send it.")
+  }
+
   @Test func testClaimItMovesToReturnedFormAndReportsClaim() async {
     @Shared(.auth) var auth = Auth(jwt: "token")
     let claimed = LockIsolated(false)
@@ -258,5 +270,88 @@ struct ClaimSheetTests {
   @Test func testNilTitleFallsBack() {
     let model = ClaimSheetModel(entry: .request(.mock(prizeTitle: nil)), onClose: {})
     #expect(model.prizeTitle == "Your prize")
+  }
+
+  @Test func testSuccessfulSendTracksSubmitted() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let events = LockIsolated<[AnalyticsEvent]>([])
+    let model = withDependencies {
+      $0.analytics.track = { event in events.withValue { $0.append(event) } }
+      $0.api.submitFulfillmentAnswers = { _, _, _ in }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+    } operation: {
+      ClaimSheetModel(
+        entry: .request(.mock(infoAnswers: ["shippingAddress": fullAddress])), onClose: {})
+    }
+    await model.sendTapped()
+    expectNoDifference(events.value, [.claimSheetSubmitted(source: "giveaway")])
+  }
+
+  @Test func testConnectionFailureTracksSubmitFailed() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let events = LockIsolated<[AnalyticsEvent]>([])
+    let model = withDependencies {
+      $0.analytics.track = { event in events.withValue { $0.append(event) } }
+      $0.api.submitFulfillmentAnswers = { _, _, _ in throw ClaimAPIError.failed }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+    } operation: {
+      ClaimSheetModel(
+        entry: .request(.mock(infoAnswers: ["shippingAddress": fullAddress])), onClose: {})
+    }
+    await model.sendTapped()
+    expectNoDifference(
+      events.value, [.claimSheetSubmitFailed(source: "giveaway", reason: "connection")])
+  }
+
+  @Test func testLaterTappedTwiceClosesOnce() {
+    let closes = LockIsolated(0)
+    let model = ClaimSheetModel(entry: .request(.mock()), onClose: { closes.withValue { $0 += 1 } })
+    model.laterTapped()
+    model.laterTapped()
+    #expect(closes.value == 1)
+  }
+
+  @Test func testDoneThenLaterClosesOnce() {
+    let closes = LockIsolated(0)
+    let model = ClaimSheetModel(entry: .request(.mock()), onClose: { closes.withValue { $0 += 1 } })
+    model.doneTapped()
+    model.laterTapped()
+    #expect(closes.value == 1)
+  }
+
+  @Test func testLaterTappedAfterSentStillCloses() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let closes = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.submitFulfillmentAnswers = { _, _, _ in }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+    } operation: {
+      ClaimSheetModel(
+        entry: .request(.mock(infoAnswers: ["shippingAddress": fullAddress])),
+        onClose: { closes.withValue { $0 += 1 } })
+    }
+    await model.sendTapped()
+    #expect(!model.isLaterAvailable)
+    model.laterTapped()
+    #expect(closes.value == 1)
+  }
+
+  @Test func testConcurrentSendsCallApiOnce() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let calls = LockIsolated(0)
+    let model = makeSendableModel { _, _, _ in calls.withValue { $0 += 1 } }
+    async let first: Void = model.sendTapped()
+    async let second: Void = model.sendTapped()
+    _ = await (first, second)
+    #expect(calls.value == 1)
+  }
+
+  @Test func testSendWhileSendingMakesNoApiCall() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let calls = LockIsolated(0)
+    let model = makeSendableModel { _, _, _ in calls.withValue { $0 += 1 } }
+    model.phase = .sending
+    await model.sendTapped()
+    #expect(calls.value == 0)
   }
 }

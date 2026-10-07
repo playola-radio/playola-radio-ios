@@ -11,13 +11,12 @@ import Sharing
 
 struct RewardClaim: Equatable, Sendable {
   let prizeId: String
+  let prizeSlug: String?
   let prizeTitle: String?
   let prizeImageUrl: URL?
   let requiredHours: Int
 
-  var isKoozie: Bool {
-    [prizeId, prizeTitle ?? ""].contains { $0.localizedCaseInsensitiveContains("koozie") }
-  }
+  var isKoozie: Bool { prizeSlug == "koozie" }
 }
 
 enum ClaimSheetEntry: Equatable {
@@ -82,6 +81,7 @@ class ClaimSheetModel: ViewModel {
   var phase: ClaimSheetPhase = .notYetClaimed
   var fields: [ClaimFieldModel] = []
   private(set) var request: FulfillmentRequest?
+  @ObservationIgnored private var hasClosed = false
 
   // MARK: - User Actions
   func viewAppeared() {
@@ -112,16 +112,16 @@ class ClaimSheetModel: ViewModel {
     do {
       try await api.submitFulfillmentAnswers(jwt, request.id, body)
       phase = .sent
-      track(.claimSheetSubmitted(source: source))
+      await analytics.track(.claimSheetSubmitted(source: source))
     } catch ClaimAPIError.invalidAnswers {
       reportIssue(ClaimAPIError.invalidAnswers)
       phase = .sendFailed(.invalidAnswers)
-      track(.claimSheetSubmitFailed(source: source, reason: "invalid_answers"))
+      await analytics.track(.claimSheetSubmitFailed(source: source, reason: "invalid_answers"))
     } catch ClaimAPIError.notOpen, ClaimAPIError.conflict {
       phase = .noLongerOpen
     } catch {
       phase = .sendFailed(.connection)
-      track(.claimSheetSubmitFailed(source: source, reason: "connection"))
+      await analytics.track(.claimSheetSubmitFailed(source: source, reason: "connection"))
     }
     await refreshRequests()
   }
@@ -135,12 +135,13 @@ class ClaimSheetModel: ViewModel {
   }
 
   func laterTapped() {
-    track(.claimSheetLater(source: source))
-    onClose()
+    guard !hasClosed else { return }
+    if isLaterAvailable { track(.claimSheetLater(source: source)) }
+    close()
   }
 
   func doneTapped() {
-    onClose()
+    close()
   }
 
   // MARK: - View Helpers
@@ -272,7 +273,7 @@ class ClaimSheetModel: ViewModel {
     case .conflict:
       onClaimed()
       await refreshRequests()
-      onClose()
+      close()
     case .notOpen:
       reportIssue(error)
       phase = .noLongerOpen
@@ -282,6 +283,12 @@ class ClaimSheetModel: ViewModel {
     case .failed, .none:
       phase = .sendFailed(.connection)
     }
+  }
+
+  private func close() {
+    guard !hasClosed else { return }
+    hasClosed = true
+    onClose()
   }
 
   private func refreshRequests() async {
