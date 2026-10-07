@@ -354,4 +354,74 @@ struct ClaimSheetTests {
     await model.sendTapped()
     #expect(calls.value == 0)
   }
+
+  @Test func testPrimaryButtonTappedOnDoneStatesCloses() async {
+    let closes = LockIsolated(0)
+    let model = ClaimSheetModel(
+      entry: .request(.mock(infoFields: [])), onClose: { closes.withValue { $0 += 1 } })
+    #expect(model.phase == .nothingToFillIn)
+    await model.primaryButtonTapped()
+    #expect(closes.value == 1)
+  }
+
+  @Test func testPrimaryButtonTappedOnFormSends() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let model = makeSendableModel { _, _, _ in }
+    await model.primaryButtonTapped()
+    #expect(model.phase == .sent)
+  }
+
+  @Test func testPrimaryButtonTappedOnSendFailedRetriesSend() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let attempts = LockIsolated(0)
+    let model = makeSendableModel { _, _, _ in
+      attempts.withValue { $0 += 1 }
+      if attempts.value == 1 { throw ClaimAPIError.failed }
+    }
+    await model.primaryButtonTapped()
+    #expect(model.phase == .sendFailed(.connection))
+    await model.primaryButtonTapped()
+    #expect(model.phase == .sent)
+  }
+
+  @Test func testPrimaryButtonDisabledWhileInFlightOrIncomplete() {
+    let model = ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    #expect(!model.isPrimaryButtonEnabled)
+    model.phase = .sending
+    #expect(!model.isPrimaryButtonEnabled)
+    model.phase = .claiming
+    #expect(!model.isPrimaryButtonEnabled)
+    model.phase = .noLongerOpen
+    #expect(model.isPrimaryButtonEnabled)
+  }
+
+  @Test func testHeaderPillSymbolMatchesSource() {
+    let giveaway = ClaimSheetModel(entry: .request(.mock(source: .giveaway)), onClose: {})
+    let reward = ClaimSheetModel(entry: .reward(koozie), onClose: {})
+    #expect(giveaway.headerPillSymbol == "trophy")
+    #expect(reward.headerPillSymbol == "headphones")
+  }
+
+  @Test func testButtonStatesPerPhase() {
+    let model = ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    #expect(model.isPrimaryButtonMuted)
+    #expect(!model.isPrimaryButtonBusy)
+    model.phase = .sending
+    #expect(model.isPrimaryButtonBusy)
+    #expect(!model.isPrimaryButtonMuted)
+    model.phase = .claiming
+    #expect(model.isPrimaryButtonBusy)
+    model.phase = .sent
+    #expect(!model.isLaterShown)
+    model.phase = .sending
+    #expect(model.isLaterShown)
+    #expect(!model.isLaterAvailable)
+  }
+
+  @Test func testPrizeImageDimsWhenNoLongerOpen() {
+    let model = ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    #expect(model.prizeImageOpacity == 1)
+    model.phase = .noLongerOpen
+    #expect(model.prizeImageOpacity == 0.5)
+  }
 }

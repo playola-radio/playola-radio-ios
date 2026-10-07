@@ -9,6 +9,18 @@
 /* Begin PBXBuildFile section */
 		EFCA11A06CFAF58BE69896C5 /* ClaimSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43FC9CD1BE0AC016C946B1DA /* ClaimSheetModel.swift */; };
 		D495306A8B23BB7E88178BC1 /* ClaimSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43FC9CD1BE0AC016C946B1DA /* ClaimSheetModel.swift */; };
+		A10B50426143041CA56E9C06 /* ChoicePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B04AE31AA99135244791D1 /* ChoicePickerView.swift */; };
+		19530F206C2FBA12BE10170F /* ChoicePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B04AE31AA99135244791D1 /* ChoicePickerView.swift */; };
+		D060B600C5D637357A59E8BE /* ChoiceFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C9FCABDFAF433B0BBCC1809 /* ChoiceFieldView.swift */; };
+		09BA2CFDF950CD818390F126 /* ChoiceFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C9FCABDFAF433B0BBCC1809 /* ChoiceFieldView.swift */; };
+		E788990F6474B3D35E5968A1 /* AddressFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B5446224FE15D0FDF477C44 /* AddressFieldView.swift */; };
+		43FE41690FB4542E5B945893 /* AddressFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B5446224FE15D0FDF477C44 /* AddressFieldView.swift */; };
+		15BF66A90107EB59006B6CAD /* ClaimFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24ABCFFE52A4CEC4B778DC44 /* ClaimFieldView.swift */; };
+		AC185F6C289B50D5F6CEA89E /* ClaimFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24ABCFFE52A4CEC4B778DC44 /* ClaimFieldView.swift */; };
+		5FC8624F2E9A60EADF328F05 /* ClaimSheetContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07E78959976B47486ADB0D4A /* ClaimSheetContent.swift */; };
+		0E3D75AC2808E0FC83FBE15B /* ClaimSheetContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07E78959976B47486ADB0D4A /* ClaimSheetContent.swift */; };
+		1FBAD6B8AC35E5683E79CF13 /* ClaimSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033C99F842A56F1BCDDCD43A /* ClaimSheetView.swift */; };
+		0B51568D8E93B74F923F7CDB /* ClaimSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033C99F842A56F1BCDDCD43A /* ClaimSheetView.swift */; };
 		95DCE3D5B66638B2F8EED419 /* ClaimSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C61842AC6F39D165F6B7E519 /* ClaimSheetTests.swift */; };
 		C11C43518324BAC0E91B7213 /* AddressFieldModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42FFFA75E4359DA912575D3 /* AddressFieldModel.swift */; };
 		17945FB93AD4DE38669DFF43 /* ClaimFieldModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CAD2F3485430E4EEE1B8EB1 /* ClaimFieldModel.swift */; };
@@ -712,6 +724,12 @@
 
 /* Begin PBXFileReference section */
 		43FC9CD1BE0AC016C946B1DA /* ClaimSheetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimSheetModel.swift; sourceTree = "<group>"; };
+		31B04AE31AA99135244791D1 /* ChoicePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChoicePickerView.swift; sourceTree = "<group>"; };
+		7C9FCABDFAF433B0BBCC1809 /* ChoiceFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChoiceFieldView.swift; sourceTree = "<group>"; };
+		4B5446224FE15D0FDF477C44 /* AddressFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressFieldView.swift; sourceTree = "<group>"; };
+		24ABCFFE52A4CEC4B778DC44 /* ClaimFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimFieldView.swift; sourceTree = "<group>"; };
+		07E78959976B47486ADB0D4A /* ClaimSheetContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimSheetContent.swift; sourceTree = "<group>"; };
+		033C99F842A56F1BCDDCD43A /* ClaimSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimSheetView.swift; sourceTree = "<group>"; };
 		C61842AC6F39D165F6B7E519 /* ClaimSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimSheetTests.swift; sourceTree = "<group>"; };
 		D42FFFA75E4359DA912575D3 /* AddressFieldModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressFieldModel.swift; sourceTree = "<group>"; };
 		3CAD2F3485430E4EEE1B8EB1 /* ClaimFieldModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimFieldModel.swift; sourceTree = "<group>"; };
@@ -1178,6 +1196,7 @@
 			isa = PBXGroup;
 			children = (
 				43FC9CD1BE0AC016C946B1DA /* ClaimSheetModel.swift */,
+				033C99F842A56F1BCDDCD43A /* ClaimSheetView.swift */,
 				C61842AC6F39D165F6B7E519 /* ClaimSheetTests.swift */,
 			);
 			path = ClaimSheet;
@@ -1190,6 +1209,11 @@
 				BF2BBBDB7DF73E8D1A1D5F47 /* ClaimFieldModelTests.swift */,
 				D42FFFA75E4359DA912575D3 /* AddressFieldModel.swift */,
 				3CAD2F3485430E4EEE1B8EB1 /* ClaimFieldModel.swift */,
+				31B04AE31AA99135244791D1 /* ChoicePickerView.swift */,
+				7C9FCABDFAF433B0BBCC1809 /* ChoiceFieldView.swift */,
+				4B5446224FE15D0FDF477C44 /* AddressFieldView.swift */,
+				24ABCFFE52A4CEC4B778DC44 /* ClaimFieldView.swift */,
+				07E78959976B47486ADB0D4A /* ClaimSheetContent.swift */,
 				68E3C9996DCA37D40A4552F1 /* USStateCodes.swift */,
 			);
 			path = ClaimForm;
@@ -2780,6 +2804,12 @@
 				C11C43518324BAC0E91B7213 /* AddressFieldModel.swift in Sources */,
 				17945FB93AD4DE38669DFF43 /* ClaimFieldModel.swift in Sources */,
 				EFCA11A06CFAF58BE69896C5 /* ClaimSheetModel.swift in Sources */,
+				A10B50426143041CA56E9C06 /* ChoicePickerView.swift in Sources */,
+				D060B600C5D637357A59E8BE /* ChoiceFieldView.swift in Sources */,
+				E788990F6474B3D35E5968A1 /* AddressFieldView.swift in Sources */,
+				15BF66A90107EB59006B6CAD /* ClaimFieldView.swift in Sources */,
+				5FC8624F2E9A60EADF328F05 /* ClaimSheetContent.swift in Sources */,
+				1FBAD6B8AC35E5683E79CF13 /* ClaimSheetView.swift in Sources */,
 				E4077BD7E18C4BF0BABFA2C1 /* USStateCodes.swift in Sources */,
 				1E1FEF5BE44432473298C8CB /* ShippingAddress.swift in Sources */,
 				A9F1000000000000000000A2 /* FulfillmentRequest.swift in Sources */,
@@ -3048,6 +3078,12 @@
 				1B66437EA4C8E800E5E72EE9 /* AddressFieldModel.swift in Sources */,
 				7C2D1D0DEBE81765088E0133 /* ClaimFieldModel.swift in Sources */,
 				D495306A8B23BB7E88178BC1 /* ClaimSheetModel.swift in Sources */,
+				19530F206C2FBA12BE10170F /* ChoicePickerView.swift in Sources */,
+				09BA2CFDF950CD818390F126 /* ChoiceFieldView.swift in Sources */,
+				43FE41690FB4542E5B945893 /* AddressFieldView.swift in Sources */,
+				AC185F6C289B50D5F6CEA89E /* ClaimFieldView.swift in Sources */,
+				0E3D75AC2808E0FC83FBE15B /* ClaimSheetContent.swift in Sources */,
+				0B51568D8E93B74F923F7CDB /* ClaimSheetView.swift in Sources */,
 				4AA2AD79E9488C61C6F663DE /* USStateCodes.swift in Sources */,
 				23D5CA2938294DB58EB23395 /* ShippingAddress.swift in Sources */,
 				A9F1000000000000000000A3 /* FulfillmentRequest.swift in Sources */,

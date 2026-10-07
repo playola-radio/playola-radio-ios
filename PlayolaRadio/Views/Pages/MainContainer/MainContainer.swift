@@ -43,13 +43,18 @@ struct MainContainer: View {
         get: {
           switch model.mainContainerNavigationCoordinator.presentedSheet {
           case .player, .feedbackSheet, .share, .redeemPrize, .artistSuggestion, .welcomeMessage,
-            .giveawayWinner, .giveawayCongrats, .developerOptions:
+            .giveawayWinner, .giveawayCongrats, .developerOptions, .claim:
             return model.mainContainerNavigationCoordinator.presentedSheet
           default:
             return nil
           }
         },
         set: { newValue in
+          if newValue == nil,
+            case .claim(let claimModel) = model.mainContainerNavigationCoordinator.presentedSheet
+          {
+            claimModel.laterTapped()
+          }
           model.$mainContainerNavigationCoordinator.withLock {
             $0.presentedSheet = newValue
           }
@@ -76,6 +81,8 @@ struct MainContainer: View {
             GiveawayCongratsSheetView(model: congratsModel)
           case .developerOptions(let developerOptionsModel):
             DeveloperOptionsSheetView(model: developerOptionsModel)
+          case .claim(let claimModel):
+            ClaimSheetView(model: claimModel)
           default:
             EmptyView()
           }

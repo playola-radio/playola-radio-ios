@@ -119,4 +119,29 @@ struct AddressFieldModelTests {
     model.addressLine2 = String(repeating: "b", count: 300)
     #expect(model.addressLine2.utf16.count == 255)
   }
+
+  @Test func testStateSelectedSetsStateAndDismissesPicker() {
+    let model = AddressFieldModel(prefill: nil)
+    model.stateRowTapped()
+    #expect(model.isStatePickerPresented)
+    model.stateSelected("TX")
+    #expect(model.state == "TX")
+    #expect(!model.isStatePickerPresented)
+    #expect(model.stateValueText == "TX")
+  }
+
+  @Test func testStateValueTextIsPlaceholderUntilChosen() {
+    let model = AddressFieldModel(prefill: nil)
+    #expect(model.stateValueText == "State")
+    #expect(model.isStatePlaceholder)
+  }
+
+  @Test func testStatePickerCloseKeepsState() {
+    let model = AddressFieldModel(prefill: nil)
+    model.state = "CA"
+    model.stateRowTapped()
+    model.statePickerCloseTapped()
+    #expect(model.state == "CA")
+    #expect(!model.isStatePickerPresented)
+  }
 }

@@ -185,4 +185,42 @@ struct ClaimFieldModelTests {
     field.address.city = String(repeating: "a", count: 400)
     #expect(field.address.city.utf16.count == 255)
   }
+
+  private var song: InfoField {
+    InfoField(
+      key: "song", label: "Pick a song", type: .singleChoice,
+      options: (1...8).map { "Song \($0)" }, required: false)
+  }
+
+  @Test func testPickerRowTappedPresentsPicker() {
+    let field = ClaimFieldModel(field: song, prefill: nil)
+    field.pickerRowTapped()
+    #expect(field.isPickerPresented)
+  }
+
+  @Test func testPickerOptionTappedSelectsAndDismisses() {
+    let field = ClaimFieldModel(field: song, prefill: nil)
+    field.pickerRowTapped()
+    field.pickerOptionTapped("Song 3")
+    #expect(field.selectedOption == "Song 3")
+    #expect(!field.isPickerPresented)
+    #expect(field.pickerValueText == "Song 3")
+  }
+
+  @Test func testPickerNoneTappedClearsSelectionAndDismisses() {
+    let field = ClaimFieldModel(field: song, prefill: .text("Song 2"))
+    field.pickerRowTapped()
+    field.pickerNoneTapped()
+    #expect(field.selectedOption == nil)
+    #expect(!field.isPickerPresented)
+    #expect(field.pickerValueText == "Choose one")
+  }
+
+  @Test func testPickerCloseTappedKeepsSelection() {
+    let field = ClaimFieldModel(field: song, prefill: .text("Song 2"))
+    field.pickerRowTapped()
+    field.pickerCloseTapped()
+    #expect(field.selectedOption == "Song 2")
+    #expect(!field.isPickerPresented)
+  }
 }

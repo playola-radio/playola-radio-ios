@@ -5,6 +5,8 @@
 //  Created by Brian D Keane on 1/17/25.
 //
 
+import CasePaths
+
 struct ShareSheetModel: Hashable, Equatable {
   let items: [String]
 
@@ -17,6 +19,7 @@ struct ShareSheetModel: Hashable, Equatable {
   }
 }
 
+@CasePathable
 enum PlayolaSheet: Hashable, Identifiable, Equatable {
   var id: Self {
     self
@@ -35,4 +38,5 @@ enum PlayolaSheet: Hashable, Identifiable, Equatable {
   case giveawayWinner(GiveawayWinnerSheetModel)
   case giveawayCongrats(GiveawayCongratsSheetModel)
   case developerOptions(DeveloperOptionsSheetModel)
+  case claim(ClaimSheetModel)
 }

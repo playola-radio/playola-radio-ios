@@ -126,6 +126,16 @@ class ClaimSheetModel: ViewModel {
     await refreshRequests()
   }
 
+  func primaryButtonTapped() async {
+    switch phase {
+    case .notYetClaimed: await claimItTapped()
+    case .form: await sendTapped()
+    case .sendFailed: await tryAgainTapped()
+    case .noLongerOpen, .nothingToFillIn, .sent: doneTapped()
+    case .claiming, .sending: break
+    }
+  }
+
   func tryAgainTapped() async {
     if request == nil {
       await claimItTapped()
@@ -147,6 +157,10 @@ class ClaimSheetModel: ViewModel {
   // MARK: - View Helpers
   var headerPill: String {
     isGiveaway ? "YOU WON" : "YOU EARNED"
+  }
+
+  var headerPillSymbol: String {
+    isGiveaway ? "trophy" : "headphones"
   }
 
   var prizeTitle: String {
@@ -179,15 +193,46 @@ class ClaimSheetModel: ViewModel {
   var primaryButtonTitle: String {
     switch phase {
     case .notYetClaimed: return isKoozie ? "Claim my koozie" : "Claim it"
-    case .claiming: return "Getting your prize ready…"
-    case .form: return "Send it to me"
+    case .claiming, .form: return "Send it to me"
     case .sending: return "Sending…"
     case .sendFailed: return "Try again"
     case .noLongerOpen, .nothingToFillIn, .sent: return "Done"
     }
   }
 
+  var isPrimaryButtonEnabled: Bool {
+    switch phase {
+    case .notYetClaimed, .noLongerOpen, .nothingToFillIn, .sent: return true
+    case .form, .sendFailed: return isSendEnabled
+    case .claiming, .sending: return false
+    }
+  }
+
+  var loadingText: String { "Getting your prize ready…" }
+
+  var isPrimaryButtonBusy: Bool {
+    phase == .claiming || phase == .sending
+  }
+
+  var isPrimaryButtonMuted: Bool {
+    switch phase {
+    case .form, .sendFailed: return !isSendEnabled
+    default: return false
+    }
+  }
+
+  var prizeImageOpacity: Double {
+    phase == .noLongerOpen ? 0.5 : 1
+  }
+
   var laterButtonTitle: String { "I'll finish this later" }
+
+  var isLaterShown: Bool {
+    switch phase {
+    case .notYetClaimed, .claiming, .form, .sending, .sendFailed: return true
+    case .noLongerOpen, .nothingToFillIn, .sent: return false
+    }
+  }
 
   var isLaterAvailable: Bool {
     switch phase {
@@ -226,6 +271,10 @@ class ClaimSheetModel: ViewModel {
 
   var fieldsOpacity: Double {
     phase == .sending ? 0.5 : 1
+  }
+
+  var areFieldsEnabled: Bool {
+    phase != .sending
   }
 
   // MARK: - Private Helpers
