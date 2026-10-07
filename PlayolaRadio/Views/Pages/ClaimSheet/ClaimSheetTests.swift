@@ -1,0 +1,262 @@
+//
+//  ClaimSheetTests.swift
+//  PlayolaRadio
+//
+
+import ConcurrencyExtras
+import CustomDump
+import Dependencies
+import Foundation
+import Sharing
+import Testing
+
+@testable import PlayolaRadio
+
+@Suite(.freshSharedState)
+@MainActor
+struct ClaimSheetTests {
+  private struct UnreadableResponse: Error {}
+
+  private let fullAddress: InfoAnswer = .address(
+    ShippingAddress(
+      fullName: "Jane", addressLine1: "1 Main", addressLine2: nil, city: "Austin", state: "TX",
+      postalCode: "78701"))
+  private let koozie = RewardClaim(
+    prizeId: "prize-koozie", prizeTitle: "Playola Koozie", prizeImageUrl: nil, requiredHours: 50)
+
+  private func makeSendableModel(
+    submit:
+      @escaping @Sendable (String, String, SubmitFulfillmentAnswersRequest) async throws ->
+      Void
+  ) -> ClaimSheetModel {
+    withDependencies {
+      $0.api.submitFulfillmentAnswers = submit
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+    } operation: {
+      ClaimSheetModel(
+        entry: .request(.mock(infoAnswers: ["shippingAddress": fullAddress])), onClose: {})
+    }
+  }
+
+  @Test func testRequestWithRequiredFieldsOpensForm() {
+    let model = ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    #expect(model.phase == .form)
+  }
+
+  @Test func testRequestWithNoRequiredFieldsShowsNothingToFillIn() {
+    let model = ClaimSheetModel(entry: .request(.mock(infoFields: [])), onClose: {})
+    #expect(model.phase == .nothingToFillIn)
+  }
+
+  @Test func testSendPutsOnlyAnsweredFields() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let sent = LockIsolated<SubmitFulfillmentAnswersRequest?>(nil)
+    let request = FulfillmentRequest.mock(
+      infoFields: [
+        InfoField(
+          key: "addr", label: "Shipping address", type: .address, options: [], required: true),
+        InfoField(
+          key: "note", label: "Name to sign it to", type: .shortText, options: [], required: false),
+      ], infoAnswers: ["addr": fullAddress])
+    let model = withDependencies {
+      $0.api.submitFulfillmentAnswers = { _, _, body in sent.setValue(body) }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+    } operation: {
+      ClaimSheetModel(entry: .request(request), onClose: {})
+    }
+    await model.sendTapped()
+    expectNoDifference(
+      sent.value, SubmitFulfillmentAnswersRequest(infoAnswers: ["addr": fullAddress]))
+    #expect(model.phase == .sent)
+  }
+
+  @Test func testSendRefetchesList() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    @Shared(.fulfillmentRequests) var requests = [FulfillmentRequest.mock()]
+    let model = makeSendableModel { _, _, _ in }
+    await model.sendTapped()
+    expectNoDifference(requests, [])
+  }
+
+  @Test(arguments: [
+    (ClaimAPIError.failed, ClaimSheetPhase.sendFailed(.connection)),
+    (.notOpen, .noLongerOpen),
+    (.conflict, .noLongerOpen),
+  ])
+  func testSendFailureMapsToPhase(error: ClaimAPIError, expected: ClaimSheetPhase) async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let model = makeSendableModel { _, _, _ in throw error }
+    await model.sendTapped()
+    #expect(model.phase == expected)
+  }
+
+  @Test func testSendInvalidAnswersShowsInvalidAnswersAndReportsIssue() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let model = makeSendableModel { _, _, _ in throw ClaimAPIError.invalidAnswers }
+    await withKnownIssue { await model.sendTapped() }
+    #expect(model.phase == .sendFailed(.invalidAnswers))
+  }
+
+  @Test func testSendUnexpectedErrorShowsConnectionFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let model = makeSendableModel { _, _, _ in throw UnreadableResponse() }
+    await model.sendTapped()
+    #expect(model.phase == .sendFailed(.connection))
+  }
+
+  @Test func testSendFailedKeepsAnswers() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let model = makeSendableModel { _, _, _ in throw ClaimAPIError.failed }
+    await model.sendTapped()
+    #expect(model.fields.first?.answer == fullAddress)
+  }
+
+  @Test func testSendDisabledWhileIncomplete() {
+    let model = ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    #expect(!model.isSendEnabled)
+    #expect(
+      model.incompleteHintText == "Add your name, street address, city, state, and ZIP to send.")
+  }
+
+  @Test func testIncompleteHintNamesMissingParts() {
+    let noZip = ShippingAddress(
+      fullName: "Jane", addressLine1: "1 Main", addressLine2: nil, city: "Austin", state: "TX",
+      postalCode: "")
+    let model = ClaimSheetModel(
+      entry: .request(
+        .mock(
+          infoFields: [
+            InfoField(
+              key: "addr", label: "Shipping address", type: .address, options: [], required: true),
+            InfoField(
+              key: "size", label: "Shirt size", type: .singleChoice, options: ["S", "M"],
+              required: true),
+          ], infoAnswers: ["addr": .address(noZip)])),
+      onClose: {})
+    #expect(model.incompleteHintText == "Add your ZIP and shirt size to send.")
+  }
+
+  @Test func testIncompleteHintForMalformedZip() {
+    let badZip = InfoAnswer.address(
+      ShippingAddress(
+        fullName: "Jane", addressLine1: "1 Main", addressLine2: nil, city: "Austin", state: "TX",
+        postalCode: "7870"))
+    let model = ClaimSheetModel(
+      entry: .request(.mock(infoAnswers: ["shippingAddress": badZip])), onClose: {})
+    #expect(model.incompleteHintText == "Enter a 5-digit ZIP code.")
+    #expect(!model.isSendEnabled)
+  }
+
+  @Test func testCompleteFormHasNoHint() {
+    let model = ClaimSheetModel(
+      entry: .request(.mock(infoAnswers: ["shippingAddress": fullAddress])), onClose: {})
+    #expect(model.incompleteHintText == nil)
+    #expect(model.isSendEnabled)
+  }
+
+  @Test func testRewardEntryStartsNotYetClaimed() {
+    let model = ClaimSheetModel(entry: .reward(koozie), onClose: {})
+    #expect(model.phase == .notYetClaimed)
+    #expect(model.primaryButtonTitle == "Claim my koozie")
+  }
+
+  @Test func testClaimItMovesToReturnedFormAndReportsClaim() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let claimed = LockIsolated(false)
+    let model = withDependencies {
+      $0.api.createRewardRedemption = { _, _ in .mock(source: .reward, giveawayEventId: nil) }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+    } operation: {
+      ClaimSheetModel(entry: .reward(koozie), onClaimed: { claimed.setValue(true) }, onClose: {})
+    }
+    await model.claimItTapped()
+    #expect(model.phase == .form)
+    #expect(claimed.value)
+  }
+
+  @Test func testClaimItReadyToShipShowsNothingToFillIn() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let model = withDependencies {
+      $0.api.createRewardRedemption = { _, _ in
+        .mock(status: .readyToShip, source: .reward, giveawayEventId: nil, infoFields: [])
+      }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+    } operation: {
+      ClaimSheetModel(entry: .reward(koozie), onClose: {})
+    }
+    await model.claimItTapped()
+    #expect(model.phase == .nothingToFillIn)
+  }
+
+  @Test func testRewardConflictCountsAsClaimed() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    @Shared(.fulfillmentRequests) var requests = []
+    let claimed = LockIsolated(false)
+    let closed = LockIsolated(false)
+    let model = withDependencies {
+      $0.api.createRewardRedemption = { _, _ in throw ClaimAPIError.conflict }
+      $0.api.getMyFulfillmentRequests = { _ in [.mock(source: .reward, giveawayEventId: nil)] }
+    } operation: {
+      ClaimSheetModel(
+        entry: .reward(koozie), onClaimed: { claimed.setValue(true) },
+        onClose: { closed.setValue(true) })
+    }
+    await model.claimItTapped()
+    #expect(claimed.value)
+    #expect(closed.value)
+    #expect(requests.count == 1)
+  }
+
+  @Test func testRewardNotOpenShowsNoLongerOpenAndReportsIssue() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let model = withDependencies {
+      $0.api.createRewardRedemption = { _, _ in throw ClaimAPIError.notOpen }
+    } operation: {
+      ClaimSheetModel(entry: .reward(koozie), onClose: {})
+    }
+    await withKnownIssue { await model.claimItTapped() }
+    #expect(model.phase == .noLongerOpen)
+  }
+
+  @Test func testRewardUnexpectedErrorShowsConnectionFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let model = withDependencies {
+      $0.api.createRewardRedemption = { _, _ in throw UnreadableResponse() }
+    } operation: {
+      ClaimSheetModel(entry: .reward(koozie), onClose: {})
+    }
+    await model.claimItTapped()
+    #expect(model.phase == .sendFailed(.connection))
+  }
+
+  @Test func testRewardFailureShowsSendFailedAndRetries() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let attempts = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.createRewardRedemption = { _, _ in
+        attempts.withValue { $0 += 1 }
+        throw ClaimAPIError.failed
+      }
+    } operation: {
+      ClaimSheetModel(entry: .reward(koozie), onClose: {})
+    }
+    await model.claimItTapped()
+    #expect(model.phase == .sendFailed(.connection))
+    await model.tryAgainTapped()
+    #expect(attempts.value == 2)
+  }
+
+  @Test func testSwipeDismissDisabledOnlyWhileInFlight() {
+    let model = ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    #expect(!model.isInteractiveDismissDisabled)
+    model.phase = .sending
+    #expect(model.isInteractiveDismissDisabled)
+    model.phase = .claiming
+    #expect(model.isInteractiveDismissDisabled)
+  }
+
+  @Test func testNilTitleFallsBack() {
+    let model = ClaimSheetModel(entry: .request(.mock(prizeTitle: nil)), onClose: {})
+    #expect(model.prizeTitle == "Your prize")
+  }
+}

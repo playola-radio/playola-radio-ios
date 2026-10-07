@@ -73,6 +73,14 @@ enum AnalyticsEvent: Equatable {
   case presetMoved(station: StationInfo, fromIndex: Int, toIndex: Int)
   case presetTileTapped(station: StationInfo, position: Int)
 
+  // MARK: Prize Claim
+  case claimSheetShown(source: String)
+  case claimSheetLater(source: String)
+  case claimSheetSubmitted(source: String)
+  case claimSheetSubmitFailed(source: String, reason: String)
+  case prizeTileShown(source: String)
+  case prizeTileTapped(source: String)
+
   // MARK: Errors
   case apiError(endpoint: String, error: String)
 
@@ -122,6 +130,12 @@ extension AnalyticsEvent {
     case .carPlayInitialized: return "CarPlay Initialized"
     case .stationChanged: return "Station Changed"
     case .notifyMeRequested: return "Notify Me Requested"
+    case .claimSheetShown: return "Claim Sheet Shown"
+    case .claimSheetLater: return "Claim Sheet Later"
+    case .claimSheetSubmitted: return "Claim Sheet Submitted"
+    case .claimSheetSubmitFailed: return "Claim Sheet Submit Failed"
+    case .prizeTileShown: return "Prize Tile Shown"
+    case .prizeTileTapped: return "Prize Tile Tapped"
     case .apiError: return "API Error"
     case .ratingPromptEnjoying: return "Rating Prompt Enjoying"
     case .ratingPromptNotEnjoying: return "Rating Prompt Not Enjoying"
@@ -311,6 +325,13 @@ extension AnalyticsEvent {
         "show_name": showName,
         "station_name": stationName,
       ]
+
+    case .claimSheetShown(let source), .claimSheetLater(let source),
+      .claimSheetSubmitted(let source), .prizeTileShown(let source), .prizeTileTapped(let source):
+      return ["source": source]
+
+    case .claimSheetSubmitFailed(let source, let reason):
+      return ["source": source, "reason": reason]
 
     case .apiError(let endpoint, let error):
       return [

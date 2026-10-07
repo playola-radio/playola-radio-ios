@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EFCA11A06CFAF58BE69896C5 /* ClaimSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43FC9CD1BE0AC016C946B1DA /* ClaimSheetModel.swift */; };
+		D495306A8B23BB7E88178BC1 /* ClaimSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43FC9CD1BE0AC016C946B1DA /* ClaimSheetModel.swift */; };
+		95DCE3D5B66638B2F8EED419 /* ClaimSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C61842AC6F39D165F6B7E519 /* ClaimSheetTests.swift */; };
 		C11C43518324BAC0E91B7213 /* AddressFieldModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42FFFA75E4359DA912575D3 /* AddressFieldModel.swift */; };
 		17945FB93AD4DE38669DFF43 /* ClaimFieldModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CAD2F3485430E4EEE1B8EB1 /* ClaimFieldModel.swift */; };
 		E4077BD7E18C4BF0BABFA2C1 /* USStateCodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E3C9996DCA37D40A4552F1 /* USStateCodes.swift */; };
@@ -708,6 +711,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		43FC9CD1BE0AC016C946B1DA /* ClaimSheetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimSheetModel.swift; sourceTree = "<group>"; };
+		C61842AC6F39D165F6B7E519 /* ClaimSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimSheetTests.swift; sourceTree = "<group>"; };
 		D42FFFA75E4359DA912575D3 /* AddressFieldModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressFieldModel.swift; sourceTree = "<group>"; };
 		3CAD2F3485430E4EEE1B8EB1 /* ClaimFieldModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimFieldModel.swift; sourceTree = "<group>"; };
 		68E3C9996DCA37D40A4552F1 /* USStateCodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USStateCodes.swift; sourceTree = "<group>"; };
@@ -1169,6 +1174,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1D83B6FF044297E63655CC7A /* ClaimSheet */ = {
+			isa = PBXGroup;
+			children = (
+				43FC9CD1BE0AC016C946B1DA /* ClaimSheetModel.swift */,
+				C61842AC6F39D165F6B7E519 /* ClaimSheetTests.swift */,
+			);
+			path = ClaimSheet;
+			sourceTree = "<group>";
+		};
 		298F5BDFBA72141B2E1863E5 /* ClaimForm */ = {
 			isa = PBXGroup;
 			children = (
@@ -1606,6 +1620,7 @@
 				D3536A062BFA4F49006942D6 /* ContentView.swift */,
 				5BCFD236E4802E5BC59860C6 /* GiveawayWinnerSheet */,
 				358480181ADB29C686D6482F /* GiveawayCongratsSheet */,
+				1D83B6FF044297E63655CC7A /* ClaimSheet */,
 			);
 			path = Pages;
 			sourceTree = "<group>";
@@ -2764,6 +2779,7 @@
 				5713A17100000000000000A1 /* ProgrammingHealth.swift in Sources */,
 				C11C43518324BAC0E91B7213 /* AddressFieldModel.swift in Sources */,
 				17945FB93AD4DE38669DFF43 /* ClaimFieldModel.swift in Sources */,
+				EFCA11A06CFAF58BE69896C5 /* ClaimSheetModel.swift in Sources */,
 				E4077BD7E18C4BF0BABFA2C1 /* USStateCodes.swift in Sources */,
 				1E1FEF5BE44432473298C8CB /* ShippingAddress.swift in Sources */,
 				A9F1000000000000000000A2 /* FulfillmentRequest.swift in Sources */,
@@ -3031,6 +3047,7 @@
 				5713A17100000000000000A2 /* ProgrammingHealth.swift in Sources */,
 				1B66437EA4C8E800E5E72EE9 /* AddressFieldModel.swift in Sources */,
 				7C2D1D0DEBE81765088E0133 /* ClaimFieldModel.swift in Sources */,
+				D495306A8B23BB7E88178BC1 /* ClaimSheetModel.swift in Sources */,
 				4AA2AD79E9488C61C6F663DE /* USStateCodes.swift in Sources */,
 				23D5CA2938294DB58EB23395 /* ShippingAddress.swift in Sources */,
 				A9F1000000000000000000A3 /* FulfillmentRequest.swift in Sources */,
@@ -3164,6 +3181,7 @@
 				5713A17100000000000000A4 /* ProgrammingHealthTests.swift in Sources */,
 				9D0294250B1108CACB20B95B /* AddressFieldModelTests.swift in Sources */,
 				35E3F2AB74E3887F74E0C8F4 /* ClaimFieldModelTests.swift in Sources */,
+				95DCE3D5B66638B2F8EED419 /* ClaimSheetTests.swift in Sources */,
 				438B06FF18E95D6D698E7678 /* KoozieAddressFormModelTests.swift in Sources */,
 				0A70B3257BA0A86D3F1AA9E5 /* KoozieTileModelTests.swift in Sources */,
 			);
