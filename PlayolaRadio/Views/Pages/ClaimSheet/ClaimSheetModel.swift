@@ -5,6 +5,7 @@
 
 import Dependencies
 import Foundation
+import IdentifiedCollections
 import IssueReporting
 import Observation
 import Sharing
@@ -88,7 +89,7 @@ class ClaimSheetModel: ViewModel {
 
   // MARK: - Properties
   var phase: ClaimSheetPhase = .notYetClaimed
-  var fields: [ClaimFieldModel] = []
+  var fields: IdentifiedArrayOf<ClaimFieldModel> = []
   private(set) var request: FulfillmentRequest?
   @ObservationIgnored private var hasClosed = false
 
@@ -342,9 +343,10 @@ class ClaimSheetModel: ViewModel {
 
   private func adopt(_ newRequest: FulfillmentRequest) {
     request = newRequest
-    fields = newRequest.infoFields.map {
-      ClaimFieldModel(field: $0, prefill: newRequest.infoAnswers[$0.key])
-    }
+    fields = IdentifiedArrayOf(
+      uniqueElements: newRequest.infoFields.map {
+        ClaimFieldModel(field: $0, prefill: newRequest.infoAnswers[$0.key])
+      })
     let needsInfo =
       newRequest.status == .awaitingInfo && newRequest.infoFields.contains(where: \.required)
     phase = needsInfo ? .form : .nothingToFillIn
