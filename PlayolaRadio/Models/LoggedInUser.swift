@@ -33,6 +33,17 @@ struct Auth: Codable {
   }
 }
 
+struct AuthIdentity: Equatable, Sendable {
+  let jwt: String?
+  let userId: String?
+}
+
+extension Auth {
+  var identity: AuthIdentity {
+    AuthIdentity(jwt: jwt, userId: currentUser?.id)
+  }
+}
+
 struct LoggedInUser: Codable {
   let id: String
   let firstName: String

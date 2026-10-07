@@ -222,6 +222,32 @@ struct KoozieTileModelTests {
     #expect(lt?.rewardsProfile.totalTimeListenedMS == 50 * 3_600_000)
   }
 
+  @Test func refreshDiscardsResponseWhenAccountChangedMidFlight() async {
+    let userA = LoggedInUser(id: "user-a", firstName: "A", email: "a@playola.fm")
+    let userB = LoggedInUser(id: "user-b", firstName: "B", email: "b@playola.fm")
+    @Shared(.auth) var auth = Auth(currentUser: userA, jwt: "token-a")
+    @Shared(.listeningTracker) var lt = tracker(totalMS: 50 * 3_600_000)
+    let sharedAuth = $auth
+    let model = withDependencies {
+      $0.api.getRewardsProfile = { _ in
+        sharedAuth.withLock { $0 = Auth(currentUser: userB, jwt: "token-b") }
+        return RewardsProfile(
+          totalTimeListenedMS: 50 * 3_600_000, totalMSAvailableForRewards: 0,
+          accurateAsOfTime: Date(), rewardsExperience: "full_tiers", koozieEarned: true)
+      }
+    } operation: {
+      KoozieTileModel()
+    }
+    model.kooziePrizeInfo = info
+    model.liveTotalMS = 50 * 3_600_000
+
+    await model.refreshProfile()
+
+    #expect(lt?.rewardsProfile.koozieEarned != true)
+    #expect(lt?.rewardsProfile.rewardsExperience == "koozie_only")
+    #expect(model.mode == .claimable)
+  }
+
   @Test func claimedOverrideSurvivesStaleOrFailedRefresh() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.listeningTracker) var lt = tracker(totalMS: 50 * 3_600_000)

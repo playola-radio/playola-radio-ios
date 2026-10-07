@@ -10,10 +10,10 @@ func refreshFulfillmentRequests() async -> Bool {
   @Shared(.auth) var auth
   @Shared(.fulfillmentRequests) var requests
   guard let jwt = auth.jwt else { return false }
-  let userId = auth.currentUser?.id
+  let identity = auth.identity
   do {
     let fetched = try await api.getMyFulfillmentRequests(jwt)
-    guard auth.jwt == jwt, auth.currentUser?.id == userId else { return false }
+    guard auth.identity == identity else { return false }
     $requests.withLock { $0 = fetched }
     return true
   } catch {

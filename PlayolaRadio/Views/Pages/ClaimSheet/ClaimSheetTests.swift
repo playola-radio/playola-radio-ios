@@ -186,6 +186,55 @@ struct ClaimSheetTests {
     #expect(claimed.value)
   }
 
+  @Test func testAccountSwitchDuringClaimDropsResult() async {
+    let userA = LoggedInUser(id: "user-a", firstName: "A", email: "a@playola.fm")
+    let userB = LoggedInUser(id: "user-b", firstName: "B", email: "b@playola.fm")
+    @Shared(.auth) var auth = Auth(currentUser: userA, jwt: "token-a")
+    @Shared(.fulfillmentRequests) var requests = [FulfillmentRequest]()
+    let sharedAuth = $auth
+    let claimed = LockIsolated(false)
+    let closed = LockIsolated(false)
+    let model = withDependencies {
+      $0.api.createRewardRedemption = { _, _ in
+        sharedAuth.withLock { $0 = Auth(currentUser: userB, jwt: "token-b") }
+        return .mock(source: .reward, giveawayEventId: nil)
+      }
+      $0.api.getMyFulfillmentRequests = { _ in [.mock(source: .reward, giveawayEventId: nil)] }
+    } operation: {
+      ClaimSheetModel(
+        entry: .reward(koozie), onClaimed: { claimed.setValue(true) },
+        onClose: { closed.setValue(true) })
+    }
+    await model.claimItTapped()
+    #expect(!claimed.value)
+    #expect(closed.value)
+    #expect(model.request == nil)
+    expectNoDifference(requests, [])
+  }
+
+  @Test func testAccountSwitchDuringSendClosesWithoutSideEffects() async {
+    let userA = LoggedInUser(id: "user-a", firstName: "A", email: "a@playola.fm")
+    let userB = LoggedInUser(id: "user-b", firstName: "B", email: "b@playola.fm")
+    @Shared(.auth) var auth = Auth(currentUser: userA, jwt: "token-a")
+    @Shared(.fulfillmentRequests) var requests = [FulfillmentRequest.mock()]
+    let sharedAuth = $auth
+    let closed = LockIsolated(false)
+    let model = withDependencies {
+      $0.api.submitFulfillmentAnswers = { _, _, _ in
+        sharedAuth.withLock { $0 = Auth(currentUser: userB, jwt: "token-b") }
+      }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+    } operation: {
+      ClaimSheetModel(
+        entry: .request(.mock(infoAnswers: ["shippingAddress": fullAddress])),
+        onClose: { closed.setValue(true) })
+    }
+    await model.sendTapped()
+    #expect(closed.value)
+    #expect(model.phase != .sent)
+    expectNoDifference(requests, [FulfillmentRequest.mock()])
+  }
+
   @Test func testClaimItReadyToShipShowsNothingToFillIn() async {
     @Shared(.auth) var auth = Auth(jwt: "token")
     let model = withDependencies {

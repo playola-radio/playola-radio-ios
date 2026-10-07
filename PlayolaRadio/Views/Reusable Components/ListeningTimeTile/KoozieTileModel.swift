@@ -134,7 +134,9 @@ final class KoozieTileModel: ViewModel {
 
   func refreshProfile() async {
     guard let jwt = auth.jwt else { return }
-    guard let refreshed = try? await api.getRewardsProfile(jwt) else { return }
+    let identity = auth.identity
+    guard let refreshed = try? await api.getRewardsProfile(jwt), auth.identity == identity
+    else { return }
     $listeningTracker.withLock { tracker in
       guard let current = tracker else {
         tracker = ListeningTracker(rewardsProfile: refreshed)

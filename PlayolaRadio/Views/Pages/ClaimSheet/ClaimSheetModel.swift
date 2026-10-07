@@ -96,25 +96,33 @@ class ClaimSheetModel: ViewModel {
       await analytics.track(.claimSheetSubmitFailed(source: source, reason: "claim_connection"))
       return
     }
+    let identity = auth.identity
     phase = .claiming
     do {
       let created = try await api.createRewardRedemption(jwt, rewardClaim.prizeId)
+      guard auth.identity == identity else { return close() }
       adopt(created)
       onClaimed()
       await refreshRequests()
     } catch {
+      guard auth.identity == identity else { return close() }
       await handleClaimFailure(error)
     }
   }
 
   func sendTapped() async {
     guard isSendEnabled, let request, let jwt = auth.jwt else { return }
+    let identity = auth.identity
     phase = .sending
     let body = SubmitFulfillmentAnswersRequest(infoAnswers: answeredFields)
     do {
       try await api.submitFulfillmentAnswers(jwt, request.id, body)
+      guard auth.identity == identity else { return close() }
       phase = .sent
       await analytics.track(.claimSheetSubmitted(source: source))
+    } catch  where auth.identity != identity {
+      close()
+      return
     } catch ClaimAPIError.invalidAnswers {
       reportIssue(ClaimAPIError.invalidAnswers)
       phase = .sendFailed(.invalidAnswers)
