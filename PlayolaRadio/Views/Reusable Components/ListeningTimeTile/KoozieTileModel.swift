@@ -34,8 +34,11 @@ final class KoozieTileModel: ViewModel {
   var liveTotalMS: Int = 0
 
   /// Set by `markClaimed()` once the claim sheet reports success. Keeps the tile out of
-  /// `.claimable` even if the follow-up profile refresh fails or lags.
-  private var hasClaimedLocally = false
+  /// `.claimable` even if the follow-up profile refresh fails or lags. Keyed by user id so a
+  /// claim never carries over to another account signed in on the same model.
+  private var locallyClaimedUserKeys: Set<String> = []
+  private var currentUserKey: String { auth.currentUser?.id ?? "" }
+  private var hasClaimedLocally: Bool { locallyClaimedUserKeys.contains(currentUserKey) }
   /// The single in-flight/completed tiers-load task. Kept non-nil once started so the tile's
   /// 1s loop can call `startTiersLoadIfNeeded()` every tick without launching duplicates.
   private(set) var tiersLoadTask: Task<Void, Never>?
@@ -125,7 +128,7 @@ final class KoozieTileModel: ViewModel {
   }
 
   func markClaimed() {
-    hasClaimedLocally = true
+    locallyClaimedUserKeys.insert(currentUserKey)
     Task { [weak self] in await self?.refreshProfile() }
   }
 

@@ -61,6 +61,22 @@ struct KoozieTileModelTests {
     #expect(!model.isClaimable)
   }
 
+  @Test func claimedLocallyDoesNotLeakToAnotherAccount() {
+    let userA = LoggedInUser(id: "user-a", firstName: "A", email: "a@playola.fm")
+    let userB = LoggedInUser(id: "user-b", firstName: "B", email: "b@playola.fm")
+    @Shared(.auth) var auth = Auth(currentUser: userA, jwt: "token-a")
+    @Shared(.listeningTracker) var lt = tracker(totalMS: 51 * 3_600_000)
+    let model = KoozieTileModel()
+    model.kooziePrizeInfo = info
+    model.liveTotalMS = 51 * 3_600_000
+    model.markClaimed()
+    #expect(model.mode == .earned)
+
+    $auth.withLock { $0 = Auth(currentUser: userB, jwt: "token-b") }
+
+    #expect(model.mode == .claimable)
+  }
+
   @Test func earnedProfileIsNotClaimable() {
     @Shared(.listeningTracker) var lt = tracker(totalMS: 60 * 3_600_000, koozieEarned: true)
     let model = KoozieTileModel()
