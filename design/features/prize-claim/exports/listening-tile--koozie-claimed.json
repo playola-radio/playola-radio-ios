@@ -1,0 +1,113 @@
+{
+  "type": "frame",
+  "id": "wtGs8",
+  "x": 986,
+  "y": 24960,
+  "name": "Listening Tile · Koozie · Claimed",
+  "width": 393,
+  "fill": "#000000",
+  "layout": "vertical",
+  "padding": 24,
+  "children": [
+    {
+      "type": "frame",
+      "id": "cmBA0",
+      "name": "Listening Time Tile",
+      "width": "fill_container",
+      "fill": "#262626",
+      "cornerRadius": 8,
+      "layout": "vertical",
+      "gap": 16,
+      "padding": 20,
+      "children": [
+        {
+          "type": "frame",
+          "id": "cGnqs",
+          "name": "Head",
+          "gap": 8,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "xbqVx",
+              "name": "Icon",
+              "width": 17,
+              "height": 17,
+              "icon": "headphones",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            },
+            {
+              "type": "text",
+              "id": "eTg7f",
+              "name": "Label",
+              "fill": "#FFFFFF",
+              "content": "Listening Time",
+              "fontFamily": "Space Grotesk",
+              "fontSize": 16,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "ixbG8",
+          "name": "Total",
+          "fill": "#FFFFFF",
+          "content": "52h 14m 08s",
+          "fontFamily": "Inter",
+          "fontSize": 32,
+          "fontWeight": "700"
+        },
+        {
+          "type": "frame",
+          "id": "dg6e5",
+          "name": "Koozie Section · Claimed",
+          "width": "fill_container",
+          "fill": "#1A1A1A",
+          "cornerRadius": 10,
+          "gap": 12,
+          "padding": 12,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "cB8Hp",
+              "name": "Koozie Icon",
+              "width": 28,
+              "height": 28,
+              "fill": "#EF6962",
+              "cornerRadius": 8,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "JYhiz",
+                  "name": "Koozie Glyph",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "cup-soda",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "WwXdn",
+              "name": "Claimed Text",
+              "fill": "#C7C7C7",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Koozie claimed — thanks for listening!",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "500"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

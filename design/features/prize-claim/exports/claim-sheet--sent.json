@@ -1,0 +1,170 @@
+{
+  "type": "frame",
+  "id": "yS1Dw",
+  "x": 4437,
+  "y": 23300,
+  "name": "Claim Sheet · 10 · Sent",
+  "clip": true,
+  "width": 393,
+  "height": 852,
+  "fill": "#000000",
+  "cornerRadius": [
+    24,
+    24,
+    0,
+    0
+  ],
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "tYAjN",
+      "name": "Sheet drag handle area",
+      "width": "fill_container",
+      "height": 24,
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "rectangle",
+          "cornerRadius": 3,
+          "id": "z0Vk1",
+          "name": "Sheet drag handle",
+          "fill": "#444444",
+          "width": 36,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "XROus",
+      "name": "Sent message",
+      "width": "fill_container",
+      "height": "fill_container",
+      "layout": "vertical",
+      "gap": 14,
+      "padding": [
+        0,
+        32
+      ],
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "he5cA",
+          "name": "Success badge",
+          "width": 72,
+          "height": 72,
+          "fill": "#34C75926",
+          "cornerRadius": 36,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "Ybwsj",
+              "name": "Check",
+              "width": 36,
+              "height": 36,
+              "icon": "check",
+              "library": "lucide",
+              "fill": "#34C759"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "oLKaW",
+          "name": "Sent title",
+          "fill": "#FFFFFF",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "You're all set",
+          "textAlign": "center",
+          "fontFamily": "Space Grotesk",
+          "fontSize": 28,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "i1D9v",
+          "name": "Sent body",
+          "fill": "#C7C7C7",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "We'll get your Signed Bri Bagwell tour shirt out to you.",
+          "lineHeight": 1.4,
+          "textAlign": "center",
+          "fontFamily": "Inter",
+          "fontSize": 15,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "gXvb9",
+      "name": "Actions",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 4,
+      "padding": [
+        16,
+        24,
+        34,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "M1BEke",
+          "name": "Submit button",
+          "width": "fill_container",
+          "height": 54,
+          "fill": "#EF6962",
+          "cornerRadius": 14,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "rJj5C",
+              "name": "Submit label",
+              "fill": "#FFFFFF",
+              "content": "Done",
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "O0gg3",
+          "x": 24,
+          "y": 74,
+          "name": "Later button",
+          "enabled": false,
+          "width": "fill_container(345)",
+          "height": 48,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Rj2Fu",
+              "name": "Later label",
+              "fill": "#C7C7C7",
+              "content": "I'll finish this later",
+              "fontFamily": "Inter",
+              "fontSize": 15,
+              "fontWeight": "500"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

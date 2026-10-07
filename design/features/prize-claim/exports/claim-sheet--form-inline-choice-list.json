@@ -1,0 +1,412 @@
+{
+  "type": "frame",
+  "id": "wGxLF",
+  "x": 1972,
+  "y": 21900,
+  "name": "Prize Claim · A · Inline List in Context",
+  "clip": true,
+  "width": 393,
+  "fill": "#000000",
+  "cornerRadius": [
+    24,
+    24,
+    0,
+    0
+  ],
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "pD2vx",
+      "name": "Sheet drag handle area",
+      "width": "fill_container",
+      "height": 24,
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "rectangle",
+          "cornerRadius": 3,
+          "id": "R7EMF",
+          "name": "Sheet drag handle",
+          "fill": "#444444",
+          "width": 36,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "WrgX7",
+      "name": "Hero",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 10,
+      "padding": [
+        28,
+        24,
+        8,
+        24
+      ],
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "G6oWVQ",
+          "x": 136.5,
+          "y": 16,
+          "name": "Prize image fallback",
+          "enabled": false,
+          "width": 120,
+          "height": 120,
+          "fill": "#AF52DE26",
+          "cornerRadius": 14,
+          "stroke": "#AF52DE59",
+          "strokeWidth": 1,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "ZYI2h",
+              "name": "Gift icon",
+              "width": 52,
+              "height": 52,
+              "icon": "gift",
+              "library": "lucide",
+              "fill": "#AF52DE"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "X2KoS",
+          "name": "Won pill",
+          "fill": "#AF52DE33",
+          "cornerRadius": 999,
+          "gap": 6,
+          "padding": [
+            4,
+            10
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "MJ9TU",
+              "name": "Trophy",
+              "width": 13,
+              "height": 13,
+              "icon": "trophy",
+              "library": "lucide",
+              "fill": "#AF52DE"
+            },
+            {
+              "type": "text",
+              "id": "SXX5e",
+              "name": "Won label",
+              "fill": "#AF52DE",
+              "content": "YOU WON",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "700",
+              "letterSpacing": 1
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "po0jM",
+          "name": "Prize title",
+          "fill": "#FFFFFF",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2 tickets to Reckless Kelly",
+          "textAlign": "center",
+          "fontFamily": "Space Grotesk",
+          "fontSize": 26,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "s4aJwU",
+          "name": "Instructions",
+          "fill": "#C7C7C7",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Pick your night and tell us whose name goes on the guest list.",
+          "lineHeight": 1.4,
+          "textAlign": "center",
+          "fontFamily": "Inter",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "PEnhx",
+      "name": "Form",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 24,
+      "padding": [
+        16,
+        24,
+        8,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "kDB7e",
+          "name": "Field · SINGLE_CHOICE · list",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "text",
+              "id": "M8m4B",
+              "name": "Field label",
+              "fill": "#888888",
+              "content": "Which show?",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "BduLn",
+              "name": "Option · Fri Oct 17 · Gruene Hall, New Braunfels",
+              "width": "fill_container",
+              "fill": "#1A1A1A",
+              "cornerRadius": 10,
+              "stroke": "#FFFFFF26",
+              "strokeWidth": 1,
+              "gap": 12,
+              "padding": [
+                14,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "E09Vs",
+                  "name": "Option label",
+                  "fill": "#FFFFFF",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Fri Oct 17 · Gruene Hall, New Braunfels",
+                  "lineHeight": 1.3,
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "icon",
+                  "id": "I2xAcV",
+                  "name": "Radio",
+                  "width": 22,
+                  "height": 22,
+                  "icon": "circle",
+                  "library": "lucide",
+                  "fill": "#999999"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "p7YCJU",
+              "name": "Option · Sat Oct 18 · The Heights Theater, Houston",
+              "width": "fill_container",
+              "fill": "#EF696222",
+              "cornerRadius": 10,
+              "stroke": "#EF6962",
+              "strokeWidth": 1,
+              "gap": 12,
+              "padding": [
+                14,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "dmyeW",
+                  "name": "Option label",
+                  "fill": "#FFFFFF",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Sat Oct 18 · The Heights Theater, Houston",
+                  "lineHeight": 1.3,
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "icon",
+                  "id": "Vikwx",
+                  "name": "Radio",
+                  "width": 22,
+                  "height": 22,
+                  "icon": "circle-check",
+                  "library": "lucide",
+                  "fill": "#EF6962"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "P4JYe",
+              "name": "Option · Sun Oct 19 · Floore's Country Store, Helotes",
+              "width": "fill_container",
+              "fill": "#1A1A1A",
+              "cornerRadius": 10,
+              "stroke": "#FFFFFF26",
+              "strokeWidth": 1,
+              "gap": 12,
+              "padding": [
+                14,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Sfd5r",
+                  "name": "Option label",
+                  "fill": "#FFFFFF",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Sun Oct 19 · Floore's Country Store, Helotes",
+                  "lineHeight": 1.3,
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "icon",
+                  "id": "NjAc8",
+                  "name": "Radio",
+                  "width": 22,
+                  "height": 22,
+                  "icon": "circle",
+                  "library": "lucide",
+                  "fill": "#999999"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "AIae6",
+          "name": "Field · SHORT_TEXT",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "text",
+              "id": "bi4tP",
+              "name": "Field label",
+              "fill": "#888888",
+              "content": "Name for the guest list",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "k90Hr",
+              "name": "Short text",
+              "width": "fill_container",
+              "height": 48,
+              "fill": "#1A1A1A",
+              "cornerRadius": 8,
+              "padding": [
+                0,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "tApKk",
+                  "name": "Value",
+                  "fill": "#FFFFFF",
+                  "content": "Brian Keane",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "aLieE",
+      "name": "Actions",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 4,
+      "padding": [
+        16,
+        24,
+        34,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "dui20",
+          "name": "Submit button",
+          "width": "fill_container",
+          "height": 54,
+          "fill": "#EF6962",
+          "cornerRadius": 14,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Iow4B",
+              "name": "Submit label",
+              "fill": "#FFFFFF",
+              "content": "Send it to me",
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "U6wl8X",
+          "name": "Later button",
+          "width": "fill_container",
+          "height": 48,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Bky7M",
+              "name": "Later label",
+              "fill": "#C7C7C7",
+              "content": "I'll finish this later",
+              "fontFamily": "Inter",
+              "fontSize": 15,
+              "fontWeight": "500"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

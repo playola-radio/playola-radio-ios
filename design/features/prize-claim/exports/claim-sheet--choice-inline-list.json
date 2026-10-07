@@ -1,0 +1,171 @@
+{
+  "type": "frame",
+  "id": "tp5TU",
+  "x": 493,
+  "y": 21900,
+  "name": "Choice Field · 2 · Inline List",
+  "width": 393,
+  "fill": "#000000",
+  "cornerRadius": 16,
+  "layout": "vertical",
+  "gap": 16,
+  "padding": 24,
+  "children": [
+    {
+      "type": "text",
+      "id": "y0MeX9",
+      "name": "Rule caption",
+      "fill": "#0A6FD6",
+      "textGrowth": "fixed-width",
+      "width": "fill_container",
+      "content": "Otherwise, ≤ 6 options → inline single-selection list",
+      "lineHeight": 1.4,
+      "fontFamily": "Inter",
+      "fontSize": 13,
+      "fontWeight": "600"
+    },
+    {
+      "type": "frame",
+      "id": "qHP3h",
+      "name": "Field · SINGLE_CHOICE · list",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 8,
+      "children": [
+        {
+          "type": "text",
+          "id": "PWTzg",
+          "name": "Field label",
+          "fill": "#888888",
+          "content": "Which show do you want tickets to?",
+          "fontFamily": "Inter",
+          "fontSize": 12,
+          "fontWeight": "600"
+        },
+        {
+          "type": "frame",
+          "id": "H3qRHz",
+          "name": "Option · Fri Oct 17 · Gruene Hall",
+          "width": "fill_container",
+          "fill": "#1A1A1A",
+          "cornerRadius": 10,
+          "stroke": "#FFFFFF26",
+          "strokeWidth": 1,
+          "gap": 12,
+          "padding": [
+            14,
+            16
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "P2SZ8",
+              "name": "Option label",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Fri Oct 17 · Gruene Hall",
+              "lineHeight": 1.3,
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "icon",
+              "id": "CUb9y",
+              "name": "Radio",
+              "width": 22,
+              "height": 22,
+              "icon": "circle",
+              "library": "lucide",
+              "fill": "#999999"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "P4BcYv",
+          "name": "Option · Sat Oct 18 · The Heights Theater, Houston",
+          "width": "fill_container",
+          "fill": "#EF696222",
+          "cornerRadius": 10,
+          "stroke": "#EF6962",
+          "strokeWidth": 1,
+          "gap": 12,
+          "padding": [
+            14,
+            16
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "YOtYV",
+              "name": "Option label",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Sat Oct 18 · The Heights Theater, Houston",
+              "lineHeight": 1.3,
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "600"
+            },
+            {
+              "type": "icon",
+              "id": "M4uz8",
+              "name": "Radio",
+              "width": 22,
+              "height": 22,
+              "icon": "circle-check",
+              "library": "lucide",
+              "fill": "#EF6962"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "aILzA",
+          "name": "Option · Sun Oct 19 · Floore's Country Store",
+          "width": "fill_container",
+          "fill": "#1A1A1A",
+          "cornerRadius": 10,
+          "stroke": "#FFFFFF26",
+          "strokeWidth": 1,
+          "gap": 12,
+          "padding": [
+            14,
+            16
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "wBX2M",
+              "name": "Option label",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Sun Oct 19 · Floore's Country Store",
+              "lineHeight": 1.3,
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "icon",
+              "id": "orDMr",
+              "name": "Radio",
+              "width": 22,
+              "height": 22,
+              "icon": "circle",
+              "library": "lucide",
+              "fill": "#999999"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
