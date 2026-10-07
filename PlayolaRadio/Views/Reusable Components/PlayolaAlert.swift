@@ -268,13 +268,6 @@ extension PlayolaAlert {
     )
   }
 
-  static var errorRedeemingPrize: PlayolaAlert {
-    PlayolaAlert(
-      title: "Error",
-      message: "There was an error redeeming your prize. Please try again.",
-      dismissButton: .cancel(Text("OK")))
-  }
-
   static func errorSavingPreset(_ serverMessage: String? = nil) -> PlayolaAlert {
     let message: String
     if let serverMessage, !serverMessage.isEmpty {

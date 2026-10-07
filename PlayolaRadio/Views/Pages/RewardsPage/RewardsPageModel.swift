@@ -30,7 +30,6 @@ class RewardsPageModel: ViewModel {
 
   var prizeTiers: [PrizeTier] = []
   var redeemedPrizeTierIds: Set<String> = []
-  var presentedAlert: PlayolaAlert?
 
   // MARK: - User Actions
 
