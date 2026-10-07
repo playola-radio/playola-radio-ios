@@ -24,15 +24,6 @@ struct GiveawayParticipation: Codable, Equatable, Sendable, Identifiable {
     return false
   }
 
-  var isFullyHandled: Bool {
-    switch status {
-    case .tappedStandby: return false
-    case .resolvedWon(let submissionCompleted): return submissionCompleted
-    case .resolvedLost(let toastShown): return toastShown
-    case .canceled: return true
-    }
-  }
-
   static var mock: GiveawayParticipation {
     GiveawayParticipation(
       id: "giveaway-1", stationId: "station-1",

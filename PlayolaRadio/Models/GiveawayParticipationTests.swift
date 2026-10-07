@@ -16,24 +16,4 @@ struct GiveawayParticipationTests {
     let back = try JSONDecoder().decode(GiveawayParticipation.self, from: data)
     expectNoDifference(back, participation)
   }
-
-  @Test func terminalStatesAreHandledFlags() {
-    var participation = GiveawayParticipation(
-      id: "g1", stationId: "s1", prizeName: "Tickets", winningNumber: 9,
-      tapNumber: 5, status: .tappedStandby, tappedAt: Date())
-    #expect(!participation.isFullyHandled)
-
-    participation.status = .resolvedLost(toastShown: false)
-    #expect(!participation.isFullyHandled)
-    participation.status = .resolvedLost(toastShown: true)
-    #expect(participation.isFullyHandled)
-
-    participation.status = .resolvedWon(submissionCompleted: false)
-    #expect(!participation.isFullyHandled)
-    participation.status = .resolvedWon(submissionCompleted: true)
-    #expect(participation.isFullyHandled)
-
-    participation.status = .canceled
-    #expect(participation.isFullyHandled)
-  }
 }
