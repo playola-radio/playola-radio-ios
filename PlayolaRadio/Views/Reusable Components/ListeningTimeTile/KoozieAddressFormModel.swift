@@ -57,9 +57,9 @@ final class KoozieAddressFormModel: ViewModel {
   }
 
   /// Trimmed, wire-ready address. `state` is uppercased; empty line 2 becomes nil.
-  func trimmedAddress() -> KoozieShippingAddress {
+  func trimmedAddress() -> ShippingAddress {
     let line2 = trimmed(addressLine2)
-    return KoozieShippingAddress(
+    return ShippingAddress(
       fullName: trimmed(fullName),
       addressLine1: trimmed(addressLine1),
       addressLine2: line2.isEmpty ? nil : line2,

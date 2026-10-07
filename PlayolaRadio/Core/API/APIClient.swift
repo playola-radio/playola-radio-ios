@@ -110,7 +110,7 @@ struct APIClient: Sendable {
   /// concurrent double-tap) is treated as success (idempotent). 400 → throws
   /// `APIError.validationError(serverMessage)` for inline display on the form.
   var redeemKooziePrize:
-    @Sendable (_ jwtToken: String, _ prizeId: String, _ address: KoozieShippingAddress)
+    @Sendable (_ jwtToken: String, _ prizeId: String, _ address: ShippingAddress)
       async throws -> Void = { _, _, _ in }
 
   /// Marks the in-app koozie congrats dismissed (write-once). 204 → recorded;

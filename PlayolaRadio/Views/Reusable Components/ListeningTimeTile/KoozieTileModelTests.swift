@@ -83,7 +83,7 @@ struct KoozieTileModelTests {
   @Test func sendMyKoozieSuccessRefreshesToCongrats() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.listeningTracker) var lt = tracker(totalMS: 50 * 3_600_000)
-    let captured = LockIsolated<KoozieShippingAddress?>(nil)
+    let captured = LockIsolated<ShippingAddress?>(nil)
     let model = withDependencies {
       $0.api.getPrizeTiers = { [] }
       $0.api.redeemKooziePrize = { _, _, address in captured.setValue(address) }

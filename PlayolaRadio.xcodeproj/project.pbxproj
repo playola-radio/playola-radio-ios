@@ -18,9 +18,12 @@
 		1DBE6EEE6CD7879ED93BB12C /* GiveawayTapResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D67B3CE3BA4BEB883A33FB94 /* GiveawayTapResponse.swift */; };
 		1DFA251ED9768A3CF235AF92 /* PresetsModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4951B01E879591B4AC3CDA52 /* PresetsModelTests.swift */; };
 		1E09F417B01F258C6D38D660 /* GiveawayPlayerOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D3D10F16230F15FFF80C665 /* GiveawayPlayerOverlayView.swift */; };
-		1E1FEF5BE44432473298C8CB /* KoozieShippingAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EC624A968B0E0DA09E64702 /* KoozieShippingAddress.swift */; };
+		1E1FEF5BE44432473298C8CB /* ShippingAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EC624A968B0E0DA09E64702 /* ShippingAddress.swift */; };
 		1F6F57E01E254F5483BD939B /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E8719F70AFA4992B9037775 /* Preset.swift */; };
-		23D5CA2938294DB58EB23395 /* KoozieShippingAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EC624A968B0E0DA09E64702 /* KoozieShippingAddress.swift */; };
+		23D5CA2938294DB58EB23395 /* ShippingAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EC624A968B0E0DA09E64702 /* ShippingAddress.swift */; };
+		A9F1000000000000000000A2 /* FulfillmentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F1000000000000000000A1 /* FulfillmentRequest.swift */; };
+		A9F1000000000000000000A3 /* FulfillmentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F1000000000000000000A1 /* FulfillmentRequest.swift */; };
+		A9F1000000000000000000B2 /* FulfillmentRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F1000000000000000000B1 /* FulfillmentRequestTests.swift */; };
 		24801FB664BFA5B73E518BC3 /* RewardsExperience.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBD876AFF9DD0588179EB37B /* RewardsExperience.swift */; };
 		24B6384BAEEAB70B98AF2B36 /* KoozieAddressFormModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07AAD05D9D43997B4956B822 /* KoozieAddressFormModel.swift */; };
 		2613B751F316B4688367E6D7 /* UpcomingGiveawayBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73585D96F0A0EB79FFD39F8E /* UpcomingGiveawayBadge.swift */; };
@@ -726,7 +729,9 @@
 		917BAF1376F852871F0F3159 /* GiveawayBannerState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayBannerState.swift; sourceTree = "<group>"; };
 		9553B35A6FBA27239EF49033 /* GiveawayModelsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayModelsTests.swift; sourceTree = "<group>"; };
 		9E8719F70AFA4992B9037775 /* Preset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preset.swift; sourceTree = "<group>"; };
-		9EC624A968B0E0DA09E64702 /* KoozieShippingAddress.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KoozieShippingAddress.swift; sourceTree = "<group>"; };
+		9EC624A968B0E0DA09E64702 /* ShippingAddress.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShippingAddress.swift; sourceTree = "<group>"; };
+		A9F1000000000000000000A1 /* FulfillmentRequest.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FulfillmentRequest.swift; sourceTree = "<group>"; };
+		A9F1000000000000000000B1 /* FulfillmentRequestTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FulfillmentRequestTests.swift; sourceTree = "<group>"; };
 		A1750A0000000000000000F1 /* PlayolaTLS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayolaTLS.swift; sourceTree = "<group>"; };
 		A1750A0000000000000000F4 /* ConnectivityProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectivityProbe.swift; sourceTree = "<group>"; };
 		A1750A0000000000000000F7 /* ConnectivityProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectivityProbeTests.swift; sourceTree = "<group>"; };
@@ -1470,7 +1475,9 @@
 				4D6113F0F682A5AB22EC6C63 /* RewardsExperienceTests.swift */,
 				5713A17100000000000000A3 /* ProgrammingHealth.swift */,
 				5713A17100000000000000A5 /* ProgrammingHealthTests.swift */,
-				9EC624A968B0E0DA09E64702 /* KoozieShippingAddress.swift */,
+				9EC624A968B0E0DA09E64702 /* ShippingAddress.swift */,
+				A9F1000000000000000000A1 /* FulfillmentRequest.swift */,
+				A9F1000000000000000000B1 /* FulfillmentRequestTests.swift */,
 				CC0000000000000000000101 /* StationCategory.swift */,
 				CC0000000000000000000104 /* StationCategoryTests.swift */,
 				BEEF00000000000000000101 /* StationSetupProgress.swift */,
@@ -2713,7 +2720,8 @@
 				24801FB664BFA5B73E518BC3 /* RewardsExperience.swift in Sources */,
 				FEEDA11C0000000000000002 /* ListenerAnalytics.swift in Sources */,
 				5713A17100000000000000A1 /* ProgrammingHealth.swift in Sources */,
-				1E1FEF5BE44432473298C8CB /* KoozieShippingAddress.swift in Sources */,
+				1E1FEF5BE44432473298C8CB /* ShippingAddress.swift in Sources */,
+				A9F1000000000000000000A2 /* FulfillmentRequest.swift in Sources */,
 				FFE2EA430C2866C7B05C9B12 /* KoozieAddressFormModel.swift in Sources */,
 				EAFEAD89072009BB8142CF3A /* KoozieTileModel.swift in Sources */,
 				6A6D03832896B38A5CBE843A /* KoozieTileSection.swift in Sources */,
@@ -2974,7 +2982,8 @@
 				9B14EE137DB923F77EBEFB37 /* RewardsExperience.swift in Sources */,
 				FEEDA11C0000000000000003 /* ListenerAnalytics.swift in Sources */,
 				5713A17100000000000000A2 /* ProgrammingHealth.swift in Sources */,
-				23D5CA2938294DB58EB23395 /* KoozieShippingAddress.swift in Sources */,
+				23D5CA2938294DB58EB23395 /* ShippingAddress.swift in Sources */,
+				A9F1000000000000000000A3 /* FulfillmentRequest.swift in Sources */,
 				24B6384BAEEAB70B98AF2B36 /* KoozieAddressFormModel.swift in Sources */,
 				35CB87DC50E3ED61D6FEA027 /* KoozieTileModel.swift in Sources */,
 				5C0327C159D6D3268DBB9EB7 /* KoozieTileSection.swift in Sources */,
@@ -3088,6 +3097,7 @@
 				D3B744BC2E312FB60042A427 /* ListeningTrackerTests.swift in Sources */,
 				D3B744A82E2F185F0042A427 /* SmallPlayerTests.swift in Sources */,
 				F94F092AC0FB044790B38A0E /* GiveawayModelsTests.swift in Sources */,
+				A9F1000000000000000000B2 /* FulfillmentRequestTests.swift in Sources */,
 				03D9929612C3E595D9BD88D5 /* GiveawayParticipationTests.swift in Sources */,
 				65D0683FA2A905693317C5AB /* CongratsActionTests.swift in Sources */,
 				6D6D8F5B3570802E2D336F7C /* GiveawayOverlayModelTests.swift in Sources */,
