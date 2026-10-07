@@ -207,13 +207,11 @@ class AuthService: @unchecked Sendable {
     @Shared(.upcomingGiveaways) var upcomingGiveaways
     @Shared(.giveawayBanner) var giveawayBanner
     @Shared(.giveawayParticipations) var giveawayParticipations
+    @Shared(.fulfillmentRequests) var fulfillmentRequests
     @Shared(.dismissedGiveawayBannerIds) var dismissedGiveawayBannerIds
     @Shared(.pendingCongratsActions) var pendingCongratsActions
 
-    let jwt = auth.jwt
-    let deviceId = registeredDeviceId
-
-    if let jwt, let deviceId {
+    if let jwt = auth.jwt, let deviceId = registeredDeviceId {
       try? await api.unregisterDevice(jwt, deviceId)
     }
 
@@ -234,6 +232,7 @@ class AuthService: @unchecked Sendable {
     $upcomingGiveaways.withLock { $0 = [] }
     $giveawayBanner.withLock { $0 = nil }
     $giveawayParticipations.withLock { $0 = [:] }
+    $fulfillmentRequests.withLock { $0 = [] }
     $dismissedGiveawayBannerIds.withLock { $0 = [] }
     $pendingCongratsActions.withLock { $0 = [:] }
 

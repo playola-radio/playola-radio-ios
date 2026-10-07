@@ -325,6 +325,38 @@ extension APIClient: DependencyKey {
       getUserPrizes: { jwtToken in
         try await authenticatedGet(path: "/v1/rewards/users/me/prizes", token: jwtToken)
       },
+      getMyFulfillmentRequests: { jwtToken in
+        try await authenticatedGet(path: "/v1/users/me/fulfillment-requests", token: jwtToken)
+      },
+      submitFulfillmentAnswers: { jwtToken, requestId, body in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/fulfillment-requests/\(requestId)/answers"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let response = await apiSession.request(
+          url, method: .put, parameters: body, encoder: JSONParameterEncoder.default,
+          headers: headers
+        )
+        .serializingData()
+        .response
+        let status = response.response?.statusCode
+        if let status, (200..<300).contains(status) { return }
+        throw ClaimAPIError(status: status)
+      },
+      createRewardRedemption: { jwtToken, prizeId in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/reward-redemptions"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let response = await apiSession.request(
+          url, method: .post, parameters: CreateRewardRedemptionRequest(prizeId: prizeId),
+          encoder: JSONParameterEncoder.default, headers: headers
+        )
+        .serializingData()
+        .response
+        let status = response.response?.statusCode
+        guard let status, (200..<300).contains(status), let data = response.data else {
+          throw ClaimAPIError(status: status)
+        }
+        return try sharedIsoDecoder.decode(FulfillmentRequest.self, from: data)
+      },
       redeemPrize: { jwtToken, prizeId, stationId in
         var params: [String: String] = [:]
         if let stationId { params["stationId"] = stationId }

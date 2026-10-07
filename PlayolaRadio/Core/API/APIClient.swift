@@ -90,6 +90,23 @@ struct APIClient: Sendable {
   /// - Returns: Array of UserPrize objects
   var getUserPrizes: @Sendable (_ jwtToken: String) async throws -> [UserPrize] = { _ in [] }
 
+  /// Prize requests still in progress (`awaiting_info` + `ready_to_ship`), server-ordered.
+  var getMyFulfillmentRequests:
+    @Sendable (_ jwtToken: String) async throws -> [FulfillmentRequest] =
+      { _ in [] }
+
+  /// Saves answers. Any 2xx is success (the body is not decoded — admins get a different shape).
+  /// Throws `ClaimAPIError` mapped from the status.
+  var submitFulfillmentAnswers:
+    @Sendable (_ jwtToken: String, _ requestId: String, _ body: SubmitFulfillmentAnswersRequest)
+      async throws -> Void = { _, _, _ in }
+
+  /// Claims a reward prize; returns its new fulfillment request. Throws `ClaimAPIError`.
+  var createRewardRedemption:
+    @Sendable (_ jwtToken: String, _ prizeId: String) async throws -> FulfillmentRequest = { _, _ in
+      .mock(source: .reward, giveawayEventId: nil)
+    }
+
   /// Redeems a prize for the user
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication

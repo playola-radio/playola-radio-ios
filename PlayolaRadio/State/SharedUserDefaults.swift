@@ -328,3 +328,21 @@ where Self == FileStorageKey<[String: [String: IdentifiedArrayOf<AMAOpeningItem>
     ]
   }
 }
+
+extension SharedKey where Self == InMemoryKey<[FulfillmentRequest]>.Default {
+  /// Last successfully fetched prize requests. Kept when a refetch fails; never persisted.
+  static var fulfillmentRequests: Self {
+    Self[.inMemory("fulfillmentRequests"), default: []]
+  }
+}
+
+extension SharedKey where Self == FileStorageKey<Set<String>>.Default {
+  /// User ids that have already seen the up-front koozie Claim sheet on this device. Not cleared on
+  /// sign-out, so each account is prompted once and re-signing-in doesn't re-prompt.
+  static var koozieClaimPromptShownUserIds: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "koozie-claim-prompt-shown.json")),
+      default: []
+    ]
+  }
+}

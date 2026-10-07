@@ -681,6 +681,12 @@
 		7EE71A663259435CAB224095 /* AMADraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B613D7A104E349D9A15E0554 /* AMADraftTests.swift */; };
 		AB60901F7E4B485A9B828F8A /* AMAOpeningDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F0516EDD754AF79351E4CA /* AMAOpeningDraft.swift */; };
 		35C33AD86471431C84A4CE45 /* AMAOpeningDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F0516EDD754AF79351E4CA /* AMAOpeningDraft.swift */; };
+		A9F1000000000000000000C2 /* ClaimAPIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F1000000000000000000C1 /* ClaimAPIError.swift */; };
+		A9F1000000000000000000C3 /* ClaimAPIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F1000000000000000000C1 /* ClaimAPIError.swift */; };
+		A9F1000000000000000000D2 /* ClaimAPIErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F1000000000000000000D1 /* ClaimAPIErrorTests.swift */; };
+		A9F1000000000000000000E2 /* FulfillmentRequestsRefresher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F1000000000000000000E1 /* FulfillmentRequestsRefresher.swift */; };
+		A9F1000000000000000000E3 /* FulfillmentRequestsRefresher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F1000000000000000000E1 /* FulfillmentRequestsRefresher.swift */; };
+		A9F1000000000000000000F2 /* FulfillmentRequestsRefresherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F1000000000000000000F1 /* FulfillmentRequestsRefresherTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1087,6 +1093,10 @@
 		AF1000000000000000000005 /* AMAQueuePlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQueuePlacementTests.swift; sourceTree = "<group>"; };
 		B613D7A104E349D9A15E0554 /* AMADraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMADraftTests.swift; sourceTree = "<group>"; };
 		79F0516EDD754AF79351E4CA /* AMAOpeningDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAOpeningDraft.swift; sourceTree = "<group>"; };
+		A9F1000000000000000000C1 /* ClaimAPIError.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClaimAPIError.swift; sourceTree = "<group>"; };
+		A9F1000000000000000000D1 /* ClaimAPIErrorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClaimAPIErrorTests.swift; sourceTree = "<group>"; };
+		A9F1000000000000000000E1 /* FulfillmentRequestsRefresher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FulfillmentRequestsRefresher.swift; sourceTree = "<group>"; };
+		A9F1000000000000000000F1 /* FulfillmentRequestsRefresherTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FulfillmentRequestsRefresherTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1958,6 +1968,8 @@
 		D378CCD32E58C3B100497A4A /* API */ = {
 			isa = PBXGroup;
 			children = (
+				A9F1000000000000000000C1 /* ClaimAPIError.swift */,
+				A9F1000000000000000000D1 /* ClaimAPIErrorTests.swift */,
 				D35EFBD62F0EC6F7000F64A4 /* APIClientTests.swift */,
 				4B0017D8D68B91A2679AFC6D /* APIClientLiveShowTests.swift */,
 				D317C0D72EF3500500DBC82E /* APIClient+Live.swift */,
@@ -2008,6 +2020,8 @@
 		D378CCD72E58C5F300497A4A /* State */ = {
 			isa = PBXGroup;
 			children = (
+				A9F1000000000000000000E1 /* FulfillmentRequestsRefresher.swift */,
+				A9F1000000000000000000F1 /* FulfillmentRequestsRefresherTests.swift */,
 				D3CE19042D3CA6150091B888 /* SharedUserDefaults.swift */,
 			);
 			path = State;
@@ -2470,6 +2484,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9F1000000000000000000E2 /* FulfillmentRequestsRefresher.swift in Sources */,
+				A9F1000000000000000000C2 /* ClaimAPIError.swift in Sources */,
 				FAE000000000000000000002 /* AudioSessionCoordinator.swift in Sources */,
 				D35EFC4D2F1A9911000F64A4 /* ConversationListPageModel.swift in Sources */,
 				D39728692F60CF59008591E3 /* StationSuggestionPageModel.swift in Sources */,
@@ -2732,6 +2748,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9F1000000000000000000E3 /* FulfillmentRequestsRefresher.swift in Sources */,
+				A9F1000000000000000000C3 /* ClaimAPIError.swift in Sources */,
 				FAE000000000000000000003 /* AudioSessionCoordinator.swift in Sources */,
 				D35EFC502F1A9911000F64A4 /* ConversationListPageModel.swift in Sources */,
 				D397286B2F60CF59008591E3 /* StationSuggestionPageModel.swift in Sources */,
@@ -2994,6 +3012,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9F1000000000000000000F2 /* FulfillmentRequestsRefresherTests.swift in Sources */,
+				A9F1000000000000000000D2 /* ClaimAPIErrorTests.swift in Sources */,
 				FAF000000000000000000002 /* AudioRecorderClientTests.swift in Sources */,
 				FAF000000000000000000011 /* AudioPlayerClientTests.swift in Sources */,
 				FAE000000000000000000005 /* AudioSessionCoordinatorTests.swift in Sources */,
