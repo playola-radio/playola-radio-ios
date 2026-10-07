@@ -1111,4 +1111,106 @@ struct HomePageTests {
     model.presentKoozieClaimIfNeeded()
     #expect(coordinator.presentedSheet == .share(ShareSheetModel(items: ["x"])))
   }
+
+  private static let signedInUser = Auth(
+    currentUser: LoggedInUser(id: "user-1", firstName: "Me", email: "me@playola.fm"),
+    jwt: "token")
+
+  @Test func testKooziePromptYieldsToAPendingGiveawayClaim() {
+    @Shared(.auth) var auth = Self.signedInUser
+    @Shared(.koozieClaimPromptShownUserIds) var shown = []
+    @Shared(.giveawayParticipations) var participations = [
+      "event-1": GiveawayParticipation.mockWon(id: "event-1")
+    ]
+    @Shared(.fulfillmentRequests) var requests = [
+      FulfillmentRequest.mock(giveawayEventId: "event-1")
+    ]
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = makeHomeWithClaimableKoozie()
+
+    model.presentKoozieClaimIfNeeded()
+
+    #expect(coordinator.presentedSheet == nil)
+    #expect(shown.isEmpty)
+  }
+
+  @Test func testKooziePromptIgnoresAWinWithoutAMatchingRequest() {
+    @Shared(.auth) var auth = Self.signedInUser
+    @Shared(.giveawayParticipations) var participations = [
+      "event-1": GiveawayParticipation.mockWon(id: "event-1")
+    ]
+    @Shared(.fulfillmentRequests) var requests = []
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = makeHomeWithClaimableKoozie()
+
+    model.presentKoozieClaimIfNeeded()
+
+    #expect(coordinator.presentedSheet != nil)
+  }
+
+  @Test func testKooziePromptIgnoresAnAlreadyPresentedWin() {
+    @Shared(.auth) var auth = Self.signedInUser
+    @Shared(.giveawayParticipations) var participations = [
+      "event-1": GiveawayParticipation.mockWon(id: "event-1", winnerSheetPresentedAt: Date())
+    ]
+    @Shared(.fulfillmentRequests) var requests = [
+      FulfillmentRequest.mock(giveawayEventId: "event-1")
+    ]
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = makeHomeWithClaimableKoozie()
+
+    model.presentKoozieClaimIfNeeded()
+
+    #expect(coordinator.presentedSheet != nil)
+  }
+
+  @Test func testOpeningTheKoozieTileSatisfiesTheShowOncePrompt() async {
+    @Shared(.auth) var auth = Self.signedInUser
+    @Shared(.koozieClaimPromptShownUserIds) var shown = []
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = makeHomeWithClaimableKoozie()
+
+    await model.prizeTileModels[0].onButtonTapped()
+    claimModel(in: coordinator)?.laterTapped()
+    model.presentKoozieClaimIfNeeded()
+
+    #expect(shown == ["user-1"])
+    #expect(coordinator.presentedSheet == nil)
+  }
+
+  @Test func testOpeningAGiveawayRequestTileStampsTheMatchingWin() async {
+    @Shared(.giveawayParticipations) var participations = [
+      "event-1": GiveawayParticipation.mockWon(id: "event-1")
+    ]
+    @Shared(.fulfillmentRequests) var requests = [
+      FulfillmentRequest.mock(giveawayEventId: "event-1")
+    ]
+    let model = withDependencies {
+      $0.date = .constant(Date(timeIntervalSince1970: 100))
+    } operation: {
+      HomePageModel()
+    }
+
+    await model.prizeTileModels[0].onButtonTapped()
+
+    #expect(participations["event-1"]?.winnerSheetPresentedAt == Date(timeIntervalSince1970: 100))
+  }
+
+  @Test func testOpeningARewardRequestTileLeavesWinsUntouched() async {
+    @Shared(.giveawayParticipations) var participations = [
+      "event-1": GiveawayParticipation.mockWon(id: "event-1")
+    ]
+    @Shared(.fulfillmentRequests) var requests = [
+      FulfillmentRequest.mock(source: .reward, giveawayEventId: nil)
+    ]
+    let model = HomePageModel()
+
+    await model.prizeTileModels[0].onButtonTapped()
+
+    #expect(participations["event-1"]?.winnerSheetPresentedAt == nil)
+  }
 }

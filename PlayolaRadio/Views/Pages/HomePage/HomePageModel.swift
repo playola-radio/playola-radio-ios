@@ -39,6 +39,7 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Shared(.welcomeMessageShownThisSession)
   var welcomeMessageShownThisSession: Bool = false
   @ObservationIgnored @Shared(.fulfillmentRequests) var fulfillmentRequests
+  @ObservationIgnored @Shared(.giveawayParticipations) var giveawayParticipations
   @ObservationIgnored @Shared(.koozieClaimPromptShownUserIds) var koozieClaimPromptShownUserIds
 
   // MARK: - Properties
@@ -192,10 +193,11 @@ class HomePageModel: ViewModel {
     guard mainContainerNavigationCoordinator.presentedSheet == nil,
       let userId = auth.currentUser?.id,
       !koozieClaimPromptShownUserIds.contains(userId),
+      !hasPendingGiveawayClaim,
       let koozie = listeningTimeTileModel.koozieTileModel,
       let claim = koozie.rewardClaim
     else { return }
-    $koozieClaimPromptShownUserIds.withLock { _ = $0.insert(userId) }
+    markKooziePromptShown()
     presentClaimSheet(.reward(claim), onClaimed: { koozie.markClaimed() })
   }
 
@@ -295,6 +297,7 @@ class HomePageModel: ViewModel {
       buttonText: "Claim your prize",
       buttonAction: { [weak self] in
         guard let self else { return }
+        self.markGiveawayWinPresented(for: request)
         self.presentClaimSheet(.request(request))
         await self.analytics.track(.prizeTileTapped(source: source))
       }
@@ -311,10 +314,31 @@ class HomePageModel: ViewModel {
       buttonText: "Claim my koozie",
       buttonAction: { [weak self] in
         guard let self else { return }
+        self.markKooziePromptShown()
         self.presentClaimSheet(.reward(claim), onClaimed: { koozie.markClaimed() })
         await self.analytics.track(.prizeTileTapped(source: "koozie"))
       }
     )
+  }
+
+  private var hasPendingGiveawayClaim: Bool {
+    giveawayParticipations.values.contains { participation in
+      guard case .resolvedWon = participation.status, participation.winnerSheetPresentedAt == nil
+      else { return false }
+      return fulfillmentRequests.contains { $0.giveawayEventId == participation.id }
+    }
+  }
+
+  private func markKooziePromptShown() {
+    guard let userId = auth.currentUser?.id else { return }
+    $koozieClaimPromptShownUserIds.withLock { _ = $0.insert(userId) }
+  }
+
+  private func markGiveawayWinPresented(for request: FulfillmentRequest) {
+    guard let eventId = request.giveawayEventId,
+      giveawayParticipations[eventId]?.winnerSheetPresentedAt == nil
+    else { return }
+    $giveawayParticipations.withLock { $0[eventId]?.winnerSheetPresentedAt = now }
   }
 
   private func presentClaimSheet(_ entry: ClaimSheetEntry, onClaimed: @escaping () -> Void = {}) {
