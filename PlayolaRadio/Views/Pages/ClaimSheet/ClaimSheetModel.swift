@@ -152,17 +152,9 @@ class ClaimSheetModel: ViewModel {
     switch phase {
     case .notYetClaimed, .claimFailed: await claimItTapped()
     case .form: await sendTapped()
-    case .sendFailed: await tryAgainTapped()
+    case .sendFailed: await sendTapped()
     case .noLongerOpen, .nothingToFillIn, .sent: doneTapped()
     case .claiming, .sending: break
-    }
-  }
-
-  func tryAgainTapped() async {
-    if request == nil {
-      await claimItTapped()
-    } else {
-      await sendTapped()
     }
   }
 

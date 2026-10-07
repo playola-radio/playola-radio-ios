@@ -290,23 +290,6 @@ struct ClaimSheetTests {
     #expect(model.phase == .claimFailed)
   }
 
-  @Test func testRewardFailureShowsClaimFailedAndRetries() async {
-    @Shared(.auth) var auth = Auth(jwt: "token")
-    let attempts = LockIsolated(0)
-    let model = withDependencies {
-      $0.api.createRewardRedemption = { _, _ in
-        attempts.withValue { $0 += 1 }
-        throw ClaimAPIError.failed
-      }
-    } operation: {
-      ClaimSheetModel(entry: .reward(koozie), onClose: {})
-    }
-    await model.claimItTapped()
-    #expect(model.phase == .claimFailed)
-    await model.tryAgainTapped()
-    #expect(attempts.value == 2)
-  }
-
   @Test func testClaimFailedKeepsRewardLayoutWithOneClaimErrorLine() async {
     @Shared(.auth) var auth = Auth(jwt: "token")
     let model = withDependencies {

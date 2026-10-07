@@ -5,14 +5,6 @@
 
 import SwiftUI
 
-extension View {
-  func claimInputStyle() -> some View {
-    padding(.horizontal, 16)
-      .frame(minHeight: 48)
-      .background(RoundedRectangle(cornerRadius: 8).fill(Color.playolaSurfaceSection))
-  }
-}
-
 struct ClaimFieldLabel: View {
   let text: String
 
@@ -44,7 +36,9 @@ struct ClaimTextInput: View {
     .keyboardType(keyboardType)
     .textInputAutocapitalization(capitalization)
     .padding(.vertical, multiLine ? 14 : 0)
-    .claimInputStyle()
+    .padding(.horizontal, 16)
+    .frame(minHeight: 48)
+    .background(RoundedRectangle(cornerRadius: 8).fill(Color.playolaSurfaceSection))
   }
 }
 

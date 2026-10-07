@@ -125,10 +125,6 @@ final class AddressFieldModel: ViewModel {
     return parts
   }
 
-  var isComplete: Bool {
-    missingParts.isEmpty && !hasMalformedZip
-  }
-
   /// Trimmed, wire-ready address. `state` is uppercased; empty line 2 becomes nil.
   func answer() -> ShippingAddress {
     let line2 = trimmed(addressLine2)

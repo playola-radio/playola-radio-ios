@@ -21,7 +21,6 @@ struct AddressFieldModelTests {
   @Test func testPrefillNilStartsBlank() {
     let model = AddressFieldModel(prefill: nil)
     #expect(model.isBlank)
-    #expect(!model.isComplete)
   }
 
   @Test func testPrefillFillsEveryPart() {
@@ -46,7 +45,6 @@ struct AddressFieldModelTests {
 
   @Test func testCompleteWhenRequiredPartsFilled() {
     let model = filledModel()
-    #expect(model.isComplete)
     #expect(model.missingParts.isEmpty)
   }
 
@@ -54,10 +52,8 @@ struct AddressFieldModelTests {
     let model = filledModel()
     model.postalCode = "7870"
     #expect(model.hasMalformedZip)
-    #expect(!model.isComplete)
     model.postalCode = "78704-1234"
     #expect(!model.hasMalformedZip)
-    #expect(model.isComplete)
     model.postalCode = "abcde"
     #expect(model.hasMalformedZip)
   }
