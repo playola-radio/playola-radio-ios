@@ -18,8 +18,3 @@ struct ShippingAddress: Codable, Equatable, Sendable {
   var state: String
   var postalCode: String
 }
-
-/// Redeem request body. `stationId` is omitted for the koozie.
-struct RedeemKooziePrizeRequest: Encodable, Sendable {
-  let shippingAddress: ShippingAddress
-}

@@ -6,6 +6,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import Sharing
@@ -16,7 +17,7 @@ import Testing
 @Suite(.freshSharedState)
 @MainActor
 struct KoozieTileModelTests {
-  private func tracker(totalMS: Int, koozieEarned: Bool? = nil, congrats: Bool? = nil)
+  private func tracker(totalMS: Int, koozieEarned: Bool? = nil)
     -> ListeningTracker
   {
     // ListeningTracker subscribes to @Shared(.nowPlaying) in init; seed it locally (in the
@@ -26,8 +27,7 @@ struct KoozieTileModelTests {
     return ListeningTracker(
       rewardsProfile: RewardsProfile(
         totalTimeListenedMS: totalMS, totalMSAvailableForRewards: totalMS, accurateAsOfTime: Date(),
-        rewardsExperience: "koozie_only", koozieEarned: koozieEarned,
-        shouldShowKoozieCongrats: congrats))
+        rewardsExperience: "koozie_only", koozieEarned: koozieEarned))
   }
 
   private let info = KooziePrizeInfo(prizeId: "p1", prizeName: "Playola Koozie", requiredHours: 50)
@@ -50,118 +50,59 @@ struct KoozieTileModelTests {
     #expect(model.mode == .claimable)
   }
 
-  @Test func redeemTappedShowsAddressFormAndBackReturns() {
-    @Shared(.listeningTracker) var lt = tracker(totalMS: 50 * 3_600_000)
+  @Test func claimedLocallyShowsEarnedBeforeProfileCatchesUp() {
+    @Shared(.listeningTracker) var lt = tracker(totalMS: 51 * 3_600_000)
     let model = KoozieTileModel()
     model.kooziePrizeInfo = info
-    model.liveTotalMS = 50 * 3_600_000
-    model.redeemTapped()
-    #expect(model.mode == .addressForm)
-    model.backTapped()
+    model.liveTotalMS = 51 * 3_600_000
     #expect(model.mode == .claimable)
+    model.markClaimed()
+    #expect(model.mode == .earned)
+    #expect(!model.isClaimable)
   }
 
-  @Test func earnedWithCongratsIsCongrats() {
-    @Shared(.listeningTracker) var lt = tracker(
-      totalMS: 60 * 3_600_000, koozieEarned: true, congrats: true)
-    let model = KoozieTileModel()
-    model.kooziePrizeInfo = info
-    model.liveTotalMS = 60 * 3_600_000
-    #expect(model.mode == .congrats)
-    #expect(model.congratsMessage == "You've earned a Playola Koozie! Thanks for listening!")
-  }
-
-  @Test func earnedWithoutCongratsIsEarned() {
-    @Shared(.listeningTracker) var lt = tracker(
-      totalMS: 60 * 3_600_000, koozieEarned: true, congrats: false)
+  @Test func earnedProfileIsNotClaimable() {
+    @Shared(.listeningTracker) var lt = tracker(totalMS: 60 * 3_600_000, koozieEarned: true)
     let model = KoozieTileModel()
     model.kooziePrizeInfo = info
     model.liveTotalMS = 60 * 3_600_000
     #expect(model.mode == .earned)
+    #expect(!model.isClaimable)
   }
 
-  @Test func sendMyKoozieSuccessRefreshesToCongrats() async {
-    @Shared(.auth) var auth = Auth(jwt: "jwt")
-    @Shared(.listeningTracker) var lt = tracker(totalMS: 50 * 3_600_000)
-    let captured = LockIsolated<ShippingAddress?>(nil)
-    let model = withDependencies {
-      $0.api.getPrizeTiers = { [] }
-      $0.api.redeemKooziePrize = { _, _, address in captured.setValue(address) }
-      $0.api.getRewardsProfile = { _ in
-        RewardsProfile(
-          totalTimeListenedMS: 50 * 3_600_000, totalMSAvailableForRewards: 0,
-          accurateAsOfTime: Date(), rewardsExperience: "koozie_only", koozieEarned: true,
-          shouldShowKoozieCongrats: true)
-      }
-    } operation: {
-      KoozieTileModel()
-    }
+  @Test func belowThresholdIsNotClaimable() {
+    @Shared(.listeningTracker) var lt = tracker(totalMS: 10 * 3_600_000)
+    let model = KoozieTileModel()
     model.kooziePrizeInfo = info
-    model.liveTotalMS = 50 * 3_600_000
-    model.redeemTapped()
-    model.addressForm.fullName = "Jane Doe"
-    model.addressForm.addressLine1 = "123 Main St"
-    model.addressForm.city = "Austin"
-    model.addressForm.state = "tx"
-    model.addressForm.postalCode = "78704"
-
-    await model.sendMyKoozieTapped()
-
-    #expect(captured.value?.state == "TX")  // uppercased
-    #expect(model.mode == .congrats)
+    model.liveTotalMS = 10 * 3_600_000
+    #expect(!model.isClaimable)
   }
 
-  @Test func redeemSuccessKeepsClaimedEvenWhenRefreshFailsAndBlocksResubmit() async {
-    @Shared(.auth) var auth = Auth(jwt: "jwt")
+  @Test func rewardClaimIsBuiltFromKooziePrizeInfoWhenClaimable() {
     @Shared(.listeningTracker) var lt = tracker(totalMS: 50 * 3_600_000)
-    let redeemCount = LockIsolated(0)
-    let model = withDependencies {
-      $0.api.redeemKooziePrize = { _, _, _ in redeemCount.withValue { $0 += 1 } }
-      $0.api.getRewardsProfile = { _ in throw APIError.dataNotValid }  // post-redeem refresh fails
-    } operation: {
-      KoozieTileModel()
-    }
+    let model = KoozieTileModel()
     model.kooziePrizeInfo = info
     model.liveTotalMS = 50 * 3_600_000
-    model.redeemTapped()
-    model.addressForm.fullName = "Jane Doe"
-    model.addressForm.addressLine1 = "123 Main St"
-    model.addressForm.city = "Austin"
-    model.addressForm.state = "TX"
-    model.addressForm.postalCode = "78704"
-
-    await model.sendMyKoozieTapped()
-
-    #expect(model.mode == .congrats)  // NOT .claimable despite the failed refresh
-    #expect(redeemCount.value == 1)
-
-    await model.sendMyKoozieTapped()  // a second attempt must not re-redeem
-    #expect(redeemCount.value == 1)
+    expectNoDifference(
+      model.rewardClaim,
+      RewardClaim(
+        prizeId: "p1", prizeSlug: "koozie", prizeTitle: "Playola Koozie", prizeImageUrl: nil,
+        requiredHours: 50))
   }
 
-  @Test func sendMyKoozieValidationErrorSurfacesInlineAndStaysOnForm() async {
-    @Shared(.auth) var auth = Auth(jwt: "jwt")
-    @Shared(.listeningTracker) var lt = tracker(totalMS: 50 * 3_600_000)
-    let model = withDependencies {
-      $0.api.redeemKooziePrize = { _, _, _ in
-        throw APIError.validationError("Invalid US shipping address")
-      }
-    } operation: {
-      KoozieTileModel()
-    }
+  @Test func rewardClaimIsNilWhenNotClaimable() {
+    @Shared(.listeningTracker) var lt = tracker(totalMS: 10 * 3_600_000)
+    let model = KoozieTileModel()
     model.kooziePrizeInfo = info
-    model.liveTotalMS = 50 * 3_600_000
-    model.redeemTapped()
-    model.addressForm.fullName = "Jane"
-    model.addressForm.addressLine1 = "1 St"
-    model.addressForm.city = "Austin"
-    model.addressForm.state = "TX"
-    model.addressForm.postalCode = "78704"
+    model.liveTotalMS = 10 * 3_600_000
+    #expect(model.rewardClaim == nil)
+  }
 
-    await model.sendMyKoozieTapped()
-
-    #expect(model.addressForm.serverError == "Invalid US shipping address")
-    #expect(model.mode == .addressForm)
+  @Test func copy() {
+    let model = KoozieTileModel()
+    #expect(model.claimableTitle == "You earned a koozie!")
+    #expect(model.claimableSubtitle == "Claim it from your prize tile above.")
+    #expect(model.earnedText == "Koozie claimed — thanks for listening!")
   }
 
   @Test func startTiersLoadLaunchesSingleFetchEvenWhenCalledEveryTick() async {
@@ -244,50 +185,24 @@ struct KoozieTileModelTests {
 
   @Test func refreshOnlyUpdatesFlagsAndKeepsTimeTotal() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
-    @Shared(.listeningTracker) var lt = tracker(
-      totalMS: 60 * 3_600_000, koozieEarned: true, congrats: true)
+    @Shared(.listeningTracker) var lt = tracker(totalMS: 50 * 3_600_000)
     let model = withDependencies {
-      $0.api.markKoozieCongratsSeen = { _ in }
       // Server reports a DIFFERENT (much higher) total; the client must NOT adopt it mid-session,
       // or it would double-count local listening already reflected in the fresh server total.
       $0.api.getRewardsProfile = { _ in
         RewardsProfile(
           totalTimeListenedMS: 999 * 3_600_000, totalMSAvailableForRewards: 0,
-          accurateAsOfTime: Date(), rewardsExperience: "koozie_only", koozieEarned: true,
-          shouldShowKoozieCongrats: false)
+          accurateAsOfTime: Date(), rewardsExperience: "koozie_only", koozieEarned: true)
       }
     } operation: {
       KoozieTileModel()
     }
     model.kooziePrizeInfo = info
-    model.liveTotalMS = 60 * 3_600_000
+    model.liveTotalMS = 50 * 3_600_000
 
-    await model.dismissCongratsTapped()
-
-    #expect(model.mode == .earned)  // flag adopted
-    #expect(lt?.rewardsProfile.totalTimeListenedMS == 60 * 3_600_000)  // total NOT jumped
-  }
-
-  @Test func dismissCongratsOptimisticallyShowsEarned() async {
-    @Shared(.auth) var auth = Auth(jwt: "jwt")
-    @Shared(.listeningTracker) var lt = tracker(
-      totalMS: 60 * 3_600_000, koozieEarned: true, congrats: true)
-    let model = withDependencies {
-      $0.api.markKoozieCongratsSeen = { _ in }
-      $0.api.getRewardsProfile = { _ in
-        RewardsProfile(
-          totalTimeListenedMS: 60 * 3_600_000, totalMSAvailableForRewards: 0,
-          accurateAsOfTime: Date(), rewardsExperience: "koozie_only", koozieEarned: true,
-          shouldShowKoozieCongrats: false)
-      }
-    } operation: {
-      KoozieTileModel()
-    }
-    model.kooziePrizeInfo = info
-    model.liveTotalMS = 60 * 3_600_000
-
-    await model.dismissCongratsTapped()
+    await model.refreshProfile()
 
     #expect(model.mode == .earned)
+    #expect(lt?.rewardsProfile.totalTimeListenedMS == 50 * 3_600_000)
   }
 }
