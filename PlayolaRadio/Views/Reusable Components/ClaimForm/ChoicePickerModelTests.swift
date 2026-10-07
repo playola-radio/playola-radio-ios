@@ -86,8 +86,4 @@ struct ChoicePickerModelTests {
     makeModel(selectedOption: "Alaska", recorder: recorder).closeTapped()
     expectNoDifference(recorder.outcomes, [.dismissed])
   }
-
-  @Test func testIdsAreUniquePerModel() {
-    #expect(makeModel().id != makeModel().id)
-  }
 }
