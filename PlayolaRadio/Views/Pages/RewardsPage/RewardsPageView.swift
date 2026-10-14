@@ -7,10 +7,11 @@
 
 import SwiftUI
 
-enum RedemptionStatus {
+enum RedemptionStatus: Equatable {
   case redeemed
   case redeemable
   case moreTimeRequired(Int)
+  case unavailable
 }
 
 struct RewardsPageView: View {
@@ -79,7 +80,6 @@ struct RewardsPageView: View {
       }
     }
     .background(Color.black)
-    .playolaAlert($model.presentedAlert)
     .task {
       await model.viewAppeared()
     }

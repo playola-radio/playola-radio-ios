@@ -325,54 +325,37 @@ extension APIClient: DependencyKey {
       getUserPrizes: { jwtToken in
         try await authenticatedGet(path: "/v1/rewards/users/me/prizes", token: jwtToken)
       },
-      redeemPrize: { jwtToken, prizeId, stationId in
-        var params: [String: String] = [:]
-        if let stationId { params["stationId"] = stationId }
-        return try await authenticatedPost(
-          path: "/v1/rewards/users/me/prizes/\(prizeId)/redeem",
-          token: jwtToken,
-          parameters: params
-        )
+      getMyFulfillmentRequests: { jwtToken in
+        try await authenticatedGet(path: "/v1/users/me/fulfillment-requests", token: jwtToken)
       },
-      redeemKooziePrize: { jwtToken, prizeId, address in
+      submitFulfillmentAnswers: { jwtToken, requestId, body in
         let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/rewards/users/me/prizes/\(prizeId)/redeem"
+          "\(Config.shared.baseUrl.absoluteString)/v1/fulfillment-requests/\(requestId)/answers"
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        let body = RedeemKooziePrizeRequest(shippingAddress: address)
-
-        let dataResponse = await apiSession.request(
-          url, method: .post, parameters: body, encoder: JSONParameterEncoder.default,
+        let response = await apiSession.request(
+          url, method: .put, parameters: body, encoder: JSONParameterEncoder.default,
           headers: headers
         )
         .serializingData()
         .response
-
-        guard let statusCode = dataResponse.response?.statusCode else {
-          throw transportFailure(dataResponse.error)
-        }
-        // 409 "already redeemed" is idempotent success (e.g. a concurrent double-tap).
-        if (200..<300).contains(statusCode) || statusCode == 409 { return }
-        let message =
-          dataResponse.value.flatMap { parsePlayolaErrorMessage(from: $0) }
-          ?? "Could not claim your koozie. Please try again."
-        throw APIError.validationError(message)
+        let status = response.response?.statusCode
+        if let status, (200..<300).contains(status) { return }
+        throw ClaimAPIError(status: status)
       },
-      markKoozieCongratsSeen: { jwtToken in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/users/me/koozie-congrats-seen"
+      createRewardRedemption: { jwtToken, prizeId in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/reward-redemptions"
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let dataResponse = await apiSession.request(url, method: .post, headers: headers)
-          .serializingData()
-          .response
-
-        guard let statusCode = dataResponse.response?.statusCode else {
-          throw transportFailure(dataResponse.error)
+        let response = await apiSession.request(
+          url, method: .post, parameters: CreateRewardRedemptionRequest(prizeId: prizeId),
+          encoder: JSONParameterEncoder.default, headers: headers
+        )
+        .serializingData()
+        .response
+        let status = response.response?.statusCode
+        guard let status, (200..<300).contains(status), let data = response.data else {
+          throw ClaimAPIError(status: status)
         }
-        if (200..<300).contains(statusCode) || statusCode == 409 { return }
-        let message =
-          dataResponse.value.flatMap { parsePlayolaErrorMessage(from: $0) }
-          ?? "Could not dismiss the koozie message."
-        throw APIError.validationError(message)
+        return try sharedIsoDecoder.decode(FulfillmentRequest.self, from: data)
       },
       updateUser: { jwtToken, firstName, lastName, verifiedEmail in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me"
@@ -899,11 +882,6 @@ extension APIClient: DependencyKey {
       giveawayEventMyResult: { jwtToken, eventId in
         try await authenticatedGet(
           path: "/v1/giveaway-events/\(eventId)/my-result", token: jwtToken)
-      },
-      submitGiveawayWinnerDetails: { jwtToken, eventId, body in
-        try await authenticatedPostVoid(
-          path: "/v1/giveaway-events/\(eventId)/winner-submission",
-          token: jwtToken, parameters: body.asParameters)
       },
       recordGiveawayEventCongrats: { jwtToken, eventId, audioBlockId in
         do {

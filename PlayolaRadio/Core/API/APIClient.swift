@@ -90,32 +90,22 @@ struct APIClient: Sendable {
   /// - Returns: Array of UserPrize objects
   var getUserPrizes: @Sendable (_ jwtToken: String) async throws -> [UserPrize] = { _ in [] }
 
-  /// Redeems a prize for the user
-  /// - Parameters:
-  ///   - jwtToken: The JWT token for authentication
-  ///   - prizeId: The ID of the prize to redeem
-  ///   - stationId: Optional station ID for per-station prizes
-  /// - Returns: The created UserPrize
-  var redeemPrize:
-    @Sendable (_ jwtToken: String, _ prizeId: String, _ stationId: String?) async throws ->
-      UserPrize = {
-        _, _, _ in
-        UserPrize(
-          id: "", userId: "", prizeId: "",
-          redeemedAt: Date(), createdAt: Date(), updatedAt: Date(), prize: nil)
-      }
+  /// Prize requests still in progress (`awaiting_info` + `ready_to_ship`), server-ordered.
+  var getMyFulfillmentRequests:
+    @Sendable (_ jwtToken: String) async throws -> [FulfillmentRequest] =
+      { _ in [] }
 
-  /// Claims the koozie prize with a US shipping address.
-  /// 201 → claimed (server sends the congrats email). 409 ("already redeemed", incl. a
-  /// concurrent double-tap) is treated as success (idempotent). 400 → throws
-  /// `APIError.validationError(serverMessage)` for inline display on the form.
-  var redeemKooziePrize:
-    @Sendable (_ jwtToken: String, _ prizeId: String, _ address: KoozieShippingAddress)
+  /// Saves answers. Any 2xx is success (the body is not decoded — admins get a different shape).
+  /// Throws `ClaimAPIError` mapped from the status.
+  var submitFulfillmentAnswers:
+    @Sendable (_ jwtToken: String, _ requestId: String, _ body: SubmitFulfillmentAnswersRequest)
       async throws -> Void = { _, _, _ in }
 
-  /// Marks the in-app koozie congrats dismissed (write-once). 204 → recorded;
-  /// 409 (not earned) tolerated as success.
-  var markKoozieCongratsSeen: @Sendable (_ jwtToken: String) async throws -> Void = { _ in }
+  /// Claims a reward prize; returns its new fulfillment request. Throws `ClaimAPIError`.
+  var createRewardRedemption:
+    @Sendable (_ jwtToken: String, _ prizeId: String) async throws -> FulfillmentRequest = { _, _ in
+      .mock(source: .reward, giveawayEventId: nil)
+    }
 
   ///   - jwtToken: Current JWT
   ///   - firstName: New first name
@@ -628,11 +618,6 @@ struct APIClient: Sendable {
     @Sendable (_ jwtToken: String, _ eventId: String) async throws -> GiveawayMyResult = { _, _ in
       .mock
     }
-
-  /// Submits (upserts) the winner's mailing details for an event. Winner-only on the server.
-  var submitGiveawayWinnerDetails:
-    @Sendable (_ jwtToken: String, _ eventId: String, _ body: GiveawayWinnerSubmissionRequest)
-      async throws -> Void = { _, _, _ in }
 
   /// Owner submits a recorded congrats (an uploaded voicetrack `audioBlockId`) for an event; the
   /// server inserts it as a spin. Idempotent per (eventId, audioBlockId) on the server.

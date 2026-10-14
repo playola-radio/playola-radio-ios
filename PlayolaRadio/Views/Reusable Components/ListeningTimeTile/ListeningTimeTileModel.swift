@@ -71,6 +71,9 @@ class ListeningTimeTileModel: ViewModel {
   }
 
   private var refreshTask: Task<Void, Never>?
+  private var wasKoozieClaimable = false
+
+  var onKoozieBecameClaimable: (() -> Void)?
 
   func viewAppeared() {
     refreshFromTracker()
@@ -78,16 +81,23 @@ class ListeningTimeTileModel: ViewModel {
     refreshTask = Task { [weak self] in
       while !Task.isCancelled {
         guard let self else { return }
-        let ms = self.listeningTracker?.totalListenTimeMS ?? 0
-        self.totalListeningTime = ms
-        self.refreshFromTracker()
-        if let koozie = self.koozieTileModel {
-          koozie.liveTotalMS = ms
-          koozie.startTiersLoadIfNeeded()  // one-shot, decoupled — never stalls this counter
-        }
+        self.tick()
         try? await self.clock.sleep(for: .seconds(1))
       }
     }
+  }
+
+  func tick() {
+    let ms = listeningTracker?.totalListenTimeMS ?? 0
+    totalListeningTime = ms
+    refreshFromTracker()
+    if let koozie = koozieTileModel {
+      koozie.liveTotalMS = ms
+      koozie.startTiersLoadIfNeeded()  // one-shot, decoupled — never stalls this counter
+    }
+    let isKoozieClaimable = koozieTileModel?.isClaimable == true
+    if isKoozieClaimable, !wasKoozieClaimable { onKoozieBecameClaimable?() }
+    wasKoozieClaimable = isKoozieClaimable
   }
 
   func onButtonTapped() async {

@@ -26,9 +26,4 @@ struct GiveawayWinnerPushTests {
   @Test func rejectsMissingRequiredFields() {
     #expect(GiveawayWinnerPush(userInfo: ["type": "giveaway_winner", "eventId": "evt-1"]) == nil)
   }
-
-  @Test func submissionRequestParametersAreEmailOnly() {
-    let request = GiveawayWinnerSubmissionRequest(preferredEmail: "winner@example.com")
-    expectNoDifference(request.asParameters, ["preferredEmail": "winner@example.com"])
-  }
 }
