@@ -20,7 +20,7 @@ The Action only asks CircleCI to start the build; it finishes in ~10s. The real 
 
 ```bash
 gh run list --workflow nightly-staging.yml --limit 1          # the trigger run
-gh run view <run-id> --log | grep "CircleCI responded HTTP [0-9]" -A3   # HTTP 201 + pipeline number
+gh run view <run-id> --log | grep "CircleCI responded HTTP [0-9]" -A3   # HTTP 200 or 201 + pipeline number
 ```
 
 Grep for the digit: the log also prints the script source, so a bare `::error::` match is not a
