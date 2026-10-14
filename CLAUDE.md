@@ -66,6 +66,7 @@ If you are dispatching subagents (via `superpowers:subagent-driven-development` 
 | Writing tests | "Testing" section below + `.claude/TESTING.md` |
 | View styling (colors, fonts) | `.claude/VIEWS.md` |
 | Analytics testing | `.claude/TESTING.md` |
+| Building to staging TestFlight | `.claude/STAGING_BUILDS.md` |
 
 ## Server / API Documentation
 
