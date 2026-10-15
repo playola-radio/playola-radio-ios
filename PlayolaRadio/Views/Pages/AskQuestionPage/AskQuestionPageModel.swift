@@ -70,8 +70,8 @@ class AskQuestionPageModel: ViewModel {
   }
 
   var instructionsText: String {
-    "Start with your name and where you’re listening from, then tell "
-      + "\(curatorName) whatever you want: a question, a shout-out, a story. "
+    "Start with your name and where you’re listening from, then say or ask "
+      + "whatever you want: a question, a shout-out, a story. "
       + "If they choose yours, your message and their response will air on the station."
   }
 
