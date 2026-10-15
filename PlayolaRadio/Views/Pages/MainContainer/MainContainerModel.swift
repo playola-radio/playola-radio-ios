@@ -69,8 +69,8 @@ class MainContainerModel: ViewModel {
 
   var homeTabTitle: String { "Home" }
   var stationsTabTitle: String { "Radio Stations" }
-  var yourLibraryTabTitle: String { "Library" }
-  var profileTabTitle: String { "Profile" }
+  var yourLibraryTabTitle: String { "Your Library" }
+  var profileTabTitle: String { "Your Profile" }
   var artistDashboardTabTitle: String { "Dashboard" }
   var artistStationTabTitle: String { "Station" }
   var settingsTabTitle: String { "Profile" }

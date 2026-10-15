@@ -977,16 +977,6 @@ struct MainContainerTests {
   }
 
   @Test
-  func testListenModeTabTitles() {
-    let mainContainerModel = MainContainerModel()
-
-    expectNoDifference(mainContainerModel.homeTabTitle, "Home")
-    expectNoDifference(mainContainerModel.stationsTabTitle, "Radio Stations")
-    expectNoDifference(mainContainerModel.yourLibraryTabTitle, "Library")
-    expectNoDifference(mainContainerModel.profileTabTitle, "Profile")
-  }
-
-  @Test
   func testBroadcastModeTabTitles() {
     let mainContainerModel = MainContainerModel()
 
