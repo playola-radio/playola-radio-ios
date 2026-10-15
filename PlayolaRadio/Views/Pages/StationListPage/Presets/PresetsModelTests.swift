@@ -3,6 +3,8 @@
 //  PlayolaRadio
 //
 
+// swiftlint:disable file_length
+
 import ConcurrencyExtras
 import CustomDump
 import Dependencies
@@ -888,6 +890,30 @@ struct PresetsModelTests {
       sortOrder: 0, visibility: .visible,
       station: Station.mockWith(id: "s1", active: false), urlStation: nil)
     #expect(presetSubtitle(for: item) == "Coming Soon")
+  }
+
+  @Test
+  func testDisplayPresetsListsSecretOnlyWhenUnlocked() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let item = APIStationItem(
+      sortOrder: 0, visibility: .hidden,
+      station: Station.mockWith(id: "s1"), urlStation: nil)
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [
+      StationList(
+        id: "preset-test-list", name: "Test List", slug: "preset-test-list",
+        hidden: false, sortOrder: 0, createdAt: Date(), updatedAt: Date(), items: [item])
+    ]
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [
+      Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
+    ]
+    let model = PresetsModel()
+
+    #expect(model.displayPresets.isEmpty)
+
+    $showSecretStations.withLock { $0 = true }
+
+    #expect(model.displayPresets.map(\.id) == ["p1"])
+    #expect(model.displayPresets.first?.subtitleText == nil)
   }
 
   private func presetSubtitle(for item: APIStationItem) -> String? {

@@ -189,6 +189,56 @@ struct StationListStationRowTests {
   }
 
   @Test
+  func testRowSubtitleInactiveVisibleWithDateIsUndatedComingSoon() {
+    @Shared(.showSecretStations) var showSecretStations: Bool = false
+    let now = Date(timeIntervalSince1970: 1_758_915_200)
+    let station = PlayolaPlayer.Station(
+      id: "inactive-visible",
+      name: "Dormant Station",
+      curatorName: "Inactive DJ",
+      imageUrl: URL(string: "https://example.com/inactive.png"),
+      description: "Inactive",
+      active: false,
+      releaseDate: Calendar.current.date(from: DateComponents(year: 2025, month: 12, day: 25))!,
+      createdAt: now,
+      updatedAt: now
+    )
+    let item = APIStationItem(
+      sortOrder: 0, visibility: .visible, station: station, urlStation: nil)
+
+    let model = StationListStationRowModel(item: item)
+
+    #expect(model.subtitleText == "Coming Soon")
+    #expect(model.subtitleColor == Color.playolaRed)
+  }
+
+  @Test
+  func testRowSubtitleComingSoonWithDateIsDated() {
+    @Shared(.showSecretStations) var showSecretStations: Bool = false
+    let now = Date(timeIntervalSince1970: 1_758_915_200)
+    var utcCalendar = Calendar(identifier: .gregorian)
+    utcCalendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    let station = PlayolaPlayer.Station(
+      id: "coming-soon-dated",
+      name: "Moondog Radio",
+      curatorName: "Jacob Stelly",
+      imageUrl: URL(string: "https://example.com/moondog.png"),
+      description: "Coming soon",
+      active: false,
+      releaseDate: utcCalendar.date(from: DateComponents(year: 2025, month: 12, day: 25))!,
+      createdAt: now,
+      updatedAt: now
+    )
+    let item = APIStationItem(
+      sortOrder: 0, visibility: .comingSoon, station: station, urlStation: nil)
+
+    let model = StationListStationRowModel(item: item)
+
+    #expect(model.subtitleText == "Coming Dec 25th")
+    #expect(model.subtitleColor == Color.playolaRed)
+  }
+
+  @Test
   func testInactiveVisibleStationShowsComingSoonWhenSecretsHidden() {
     @Shared(.showSecretStations) var showSecretStations: Bool = false
     let now = Date(timeIntervalSince1970: 1_758_915_200)

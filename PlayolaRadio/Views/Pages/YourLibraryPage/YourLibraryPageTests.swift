@@ -51,6 +51,30 @@ struct YourLibraryPageTests {
   }
 
   @Test
+  func testPresetTileTappedIgnoresUnplayableSecret() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let item = APIStationItem(
+      sortOrder: 0, visibility: .hidden,
+      station: Station.mockWith(id: "secret"), urlStation: nil)
+    let display = PresetDisplayItem(id: "p1", stationItem: item, isPending: false)
+
+    let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+    let model = withDependencies {
+      $0.stationPlayer = stationPlayerMock
+      $0.analytics.track = { _ in }
+    } operation: {
+      YourLibraryPageModel()
+    }
+
+    await model.presetTileTapped(display)
+    #expect(stationPlayerMock.callsToPlay.isEmpty)
+
+    $showSecretStations.withLock { $0 = true }
+    await model.presetTileTapped(display)
+    #expect(stationPlayerMock.callsToPlay.map(\.id) == ["secret"])
+  }
+
+  @Test
   func testPresetTileTappedNoOpInEditMode() async {
     @Shared(.showSecretStations) var showSecretStations = false
     let item = presetItem("s1")

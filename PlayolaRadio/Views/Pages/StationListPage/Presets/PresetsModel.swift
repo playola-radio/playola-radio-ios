@@ -35,9 +35,7 @@ struct PresetDisplayItem: Identifiable {
     self.accessibilityLabel = "Preset: \(title)"
     self.removeAccessibilityLabel = "Remove \(title) from presets"
 
-    let isInactive = !station.active
-    let isComingSoonAndHidden = stationItem.visibility == .comingSoon && !showSecretStations
-    if isInactive || isComingSoonAndHidden {
+    if !stationItem.isPlayable(unlocked: showSecretStations) {
       self.subtitleText = "Coming Soon"
       self.subtitleColor = Color.playolaRed
     } else {
@@ -187,7 +185,7 @@ final class PresetsModel: ViewModel {
       let preset = presets[id: display.id]
     else { return }
 
-    let allItems = stationLists.flatMap { $0.stationItems(includeHidden: showSecretStations) }
+    let allItems = stationLists.flatMap { $0.listedItems(unlocked: showSecretStations) }
     let stationInfo: StationInfo? =
       allItems
       .first(where: { $0.anyStation.id == preset.embeddedStationId })
@@ -213,7 +211,7 @@ final class PresetsModel: ViewModel {
   var isEditingPresets: Bool { presetListState == .editing }
 
   var displayPresets: [PresetDisplayItem] {
-    let allItems = stationLists.flatMap { $0.stationItems(includeHidden: showSecretStations) }
+    let allItems = stationLists.flatMap { $0.listedItems(unlocked: showSecretStations) }
 
     let real: [PresetDisplayItem] =
       presets

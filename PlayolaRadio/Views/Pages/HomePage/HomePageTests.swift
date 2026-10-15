@@ -137,6 +137,58 @@ struct HomePageTests {
   }
 
   @Test
+  func testForYouExcludesLockedComingSoonButIncludesUnlockedSecret() async {
+    let visibleStation = Station.mockWith(id: "visible-station", curatorName: "DJ Visible")
+    let comingSoonStation = Station.mockWith(id: "coming-soon-station", curatorName: "DJ Soon")
+    let secretStation = Station.mockWith(id: "secret-station", curatorName: "DJ Secret")
+    let artistList = StationList.mockArtistList(items: [
+      .mockWith(sortOrder: 0, visibility: .visible, station: visibleStation),
+      .mockWith(sortOrder: 1, visibility: .comingSoon, station: comingSoonStation),
+      .mockWith(sortOrder: 2, visibility: .hidden, station: secretStation),
+    ])
+
+    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [artistList])
+    @Shared(.showSecretStations) var showSecretStations = false
+
+    let model = HomePageModel()
+    await model.viewAppeared()
+
+    #expect(model.forYouStations.map(\.id) == [visibleStation.id])
+
+    $showSecretStations.withLock { $0 = true }
+
+    #expect(
+      model.forYouStations.map(\.id)
+        == [visibleStation.id, comingSoonStation.id, secretStation.id])
+  }
+
+  @Test
+  func testHomeStationTappedRefusesUnplayableStation() async {
+    let comingSoonStation = Station.mockWith(id: "coming-soon-station")
+    let secretStation = Station.mockWith(id: "secret-station")
+    let artistList = StationList.mockArtistList(items: [
+      .mockWith(sortOrder: 0, visibility: .comingSoon, station: comingSoonStation),
+      .mockWith(sortOrder: 1, visibility: .hidden, station: secretStation),
+    ])
+    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [artistList])
+    @Shared(.showSecretStations) var showSecretStations = false
+
+    let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+    let model = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.stationPlayer = stationPlayerMock
+    } operation: {
+      HomePageModel()
+    }
+
+    await model.stationTapped(.playola(comingSoonStation))
+    await model.stationTapped(.playola(secretStation))
+    await model.stationTapped(.mockPlayola(id: "not-in-any-list"))
+
+    #expect(stationPlayerMock.callsToPlay.isEmpty)
+  }
+
+  @Test
   func testShowSecretStationsStillHidesInactiveComingSoonStations() async {
     let visibleStation = Station.mockWith(id: "visible-station", curatorName: "DJ Visible")
     let inactiveStation = Station.mockWith(
@@ -323,8 +375,13 @@ struct HomePageTests {
 
   @Test
   func testPlayerInteractionPlaysAStationWhenItIsTapped() async {
+    let playolaStation = Station.mockWith(id: "tapped-station")
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [
+      StationList.mockArtistList(items: [.mockWith(visibility: .visible, station: playolaStation)])
+    ])
     let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
-    let station: AnyStation = .mock
+    let station: AnyStation = .playola(playolaStation)
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     let homePageModel = withDependencies {
