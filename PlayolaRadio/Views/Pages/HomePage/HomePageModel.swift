@@ -128,7 +128,7 @@ class HomePageModel: ViewModel {
     NewFeatureTileModel(
       iconName: "mic.fill",
       isSystemImage: true,
-      label: "Listener Questions",
+      label: "Listener Messages",
       content: "",
       paragraph: "",
       buttonText: "Invite Friends",
@@ -288,7 +288,7 @@ class HomePageModel: ViewModel {
     let curatorName = airing.station?.curatorName ?? "Station"
     questionAiringTileModel.content = "You're On Air Soon!"
     questionAiringTileModel.paragraph =
-      "\(curatorName) picked your question! It will air on \(formattedAirtime(airing.airtime))."
+      "\(curatorName) picked your message! It will air on \(formattedAirtime(airing.airtime))."
   }
 
   private static let appStoreUrl = "https://apps.apple.com/us/app/playola-radio/id6480465361"

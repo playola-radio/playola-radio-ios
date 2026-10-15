@@ -63,8 +63,8 @@ class ListenerQuestionDetailPageModel: ViewModel {
 
   // MARK: - Display Text
 
-  let navigationTitle = "Listener Question"
-  let questionSectionTitle = "QUESTION"
+  let navigationTitle = "Listener Message"
+  let questionSectionTitle = "MESSAGE"
   let responseSectionTitle = "YOUR RESPONSE"
   let discardButtonTitle = "Discard"
   let uploadButtonTitle = "Upload Response"

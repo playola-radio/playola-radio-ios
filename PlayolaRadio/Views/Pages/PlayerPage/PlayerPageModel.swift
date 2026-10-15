@@ -241,5 +241,7 @@ class PlayerPageModel: ViewModel {
   var nowPlayingLabel: String { "NOW PLAYING" }
   var onAirLabel: String { "ON AIR" }
   var liveLabel: String { "LIVE" }
-  var askArtistLabel: String { "Ask the Artist" }
+  var askArtistLabel: String {
+    "Send \(currentPlayolaStation?.curatorName ?? "the Artist") a Message"
+  }
 }

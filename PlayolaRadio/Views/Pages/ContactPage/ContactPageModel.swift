@@ -206,7 +206,7 @@ class ContactPageModel: ViewModel {
   var rewardsLabel: String { "Rewards" }
   var notificationsLabel: String { "Notifications" }
   var contactUsLabel: String { "Contact Us" }
-  var askArtistLabel: String { "Ask An Artist A Question" }
+  var askArtistLabel: String { "Send An Artist A Message" }
   var logOutLabel: String { "Log out" }
 
   var appVersionLabel: String {

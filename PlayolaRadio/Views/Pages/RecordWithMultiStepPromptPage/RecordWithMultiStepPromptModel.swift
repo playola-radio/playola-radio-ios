@@ -550,7 +550,9 @@ extension RecordWithMultiStepPromptModel {
           detail: "Briefly explain that listeners can ask about your music, the station, "
             + "or what you\u{2019}re working on."),
         RecordPromptStep(
-          id: 3, label: "DIRECT", detail: "Tell listeners to tap Question in the player."),
+          id: 3, label: "DIRECT",
+          detail:
+            "Tell listeners to tap \u{201C}Send [your name] a Message\u{201D} in the player."),
       ],
       trackLabel: "INTRO",
       isUpsideDown: true)

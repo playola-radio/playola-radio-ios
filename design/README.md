@@ -52,12 +52,12 @@ layout" section of `DESIGN_STATUS.md`. Conventions:
   lies. From the `execute` tool:
 
   ```js
-  Export(["<frameId>"], "png", "./design/exports/<bucket>/<proposal>")
+  Export(["<frameId>"], "png", "./exports/<bucket>/<proposal>")
   ```
 
   then rename the emitted `<nodeId>.png` to `<screen-name>--<nodeId>.png`
   and run `python3 design/export-specs.py` to refresh the `.json` specs.
-  (Relative paths resolve from the workspace root, not the .pen file's folder.)
+  (Relative paths resolve from the .pen file's folder, `design/`.)
 - Export dirs follow status: when a proposal's status changes, `git mv` its
   folder between `future/`, `in-progress/`, and (on ship) fold the screens
   into `current-app/`.
