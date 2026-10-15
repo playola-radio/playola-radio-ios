@@ -71,9 +71,9 @@ struct FulfillmentRequestTests {
       {"id":"r1","status":"awaiting_info","source":"reward","giveawayEventId":null,"prize":null,
        "infoFields":[],"infoAnswers":{}}
       """)
-    #expect(request.id == "r1")
-    #expect(request.prizeTitle == nil)
-    #expect(request.prizeImageUrl == nil)
+    expectNoDifference(request.id, "r1")
+    expectNoDifference(request.prizeTitle, nil)
+    expectNoDifference(request.prizeImageUrl, nil)
   }
 
   @Test func testRequestMissingPrizeDoesNotFailTheWholeArray() throws {
@@ -87,8 +87,8 @@ struct FulfillmentRequestTests {
           "infoFields":[],"infoAnswers":{}}]
         """.utf8))
     expectNoDifference(requests.map(\.id), ["r1", "r2"])
-    #expect(requests[0].prizeTitle == "Tour Poster")
-    #expect(requests[1].prizeTitle == nil)
+    expectNoDifference(requests[0].prizeTitle, "Tour Poster")
+    expectNoDifference(requests[1].prizeTitle, nil)
   }
 
   @Test func testAnswersRequestEncodesTextAndAddressWithoutCountry() throws {

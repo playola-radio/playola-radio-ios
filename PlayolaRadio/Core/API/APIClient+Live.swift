@@ -47,6 +47,15 @@ private struct EndLiveShowParameters: Encodable, Sendable {
 
 private let sharedIsoDecoder = JSONDecoderWithIsoFull()
 
+func decodeRewardRedemptionResponse(_ data: Data) throws -> FulfillmentRequest {
+  do {
+    return try sharedIsoDecoder.decode(FulfillmentRequest.self, from: data)
+  } catch {
+    // The redemption exists; let the caller treat it as already claimed.
+    throw ClaimAPIError.conflict
+  }
+}
+
 // Playola API requests prefer HTTP/3 (QUIC). Some listeners sit behind networks that
 // interfere with TCP to *.playola.fm specifically (host/SNI-targeted resets) while leaving
 // UDP/QUIC alone — the old TLS 1.2 cap was still TCP and never helped them (Sentry
@@ -355,12 +364,7 @@ extension APIClient: DependencyKey {
         guard let status, (200..<300).contains(status), let data = response.data else {
           throw ClaimAPIError(status: status)
         }
-        do {
-          return try sharedIsoDecoder.decode(FulfillmentRequest.self, from: data)
-        } catch {
-          // The redemption exists; let the caller treat it as already claimed.
-          throw ClaimAPIError.conflict
-        }
+        return try decodeRewardRedemptionResponse(data)
       },
       updateUser: { jwtToken, firstName, lastName, verifiedEmail in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me"

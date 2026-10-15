@@ -1059,8 +1059,8 @@ struct HomePageTests {
 
     await model.prizeTileModels[0].onButtonTapped()
 
-    #expect(coordinator.presentedSheet == .share(share))
-    #expect(participations["event-1"]?.winnerSheetPresentedAt == nil)
+    expectNoDifference(coordinator.presentedSheet, .share(share))
+    expectNoDifference(participations["event-1"]?.winnerSheetPresentedAt, nil)
   }
 
   @Test func testTappingAKoozieTileNeverReplacesAnOpenSheetOrMarksThePromptShown() async {
@@ -1076,7 +1076,7 @@ struct HomePageTests {
 
     await model.prizeTileModels[0].onButtonTapped()
 
-    #expect(coordinator.presentedSheet == .share(share))
+    expectNoDifference(coordinator.presentedSheet, .share(share))
     #expect(shown.isEmpty)
   }
 
