@@ -660,12 +660,26 @@ struct StationPlayerTests {
   }
 
   @Test
-  func testSeekSkipsComingSoonStationsWhenSecretsDisabled() async {
+  func testSeekNextSkipsComingSoonWhenLocked() async {
     @Shared(.stationLists) var stationLists = makeArtistListWithComingSoonStation()
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
     let allStations = stationLists.first!.stations
+
+    await play(stationPlayer, station: allStations[0])
+    await seekNext(stationPlayer)
+
+    #expect(stationPlayer.currentStation?.id == allStations[2].id)
+  }
+
+  @Test
+  func testSeekNextSkipsSecretStationWhenLocked() async {
+    @Shared(.stationLists) var stationLists = makeArtistListWithComingSoonStation(
+      middleVisibility: .hidden)
+    @Shared(.showSecretStations) var showSecretStations = false
+    let stationPlayer = StationPlayer()
+    let allStations = stationLists.first!.items!.map(\.anyStation)
 
     await play(stationPlayer, station: allStations[0])
     await seekNext(stationPlayer)
@@ -929,7 +943,9 @@ struct StationPlayerTests {
     return IdentifiedArray(uniqueElements: [artistList])
   }
 
-  private func makeArtistListWithComingSoonStation() -> IdentifiedArrayOf<StationList> {
+  private func makeArtistListWithComingSoonStation(
+    middleVisibility: StationListItemVisibility = .comingSoon
+  ) -> IdentifiedArrayOf<StationList> {
     let now = Date()
     let artistList = StationList(
       id: StationList.KnownIDs.artistList.rawValue,
@@ -948,7 +964,7 @@ struct StationPlayerTests {
         ),
         APIStationItem(
           sortOrder: 1,
-          visibility: .comingSoon,
+          visibility: middleVisibility,
           station: nil,
           urlStation: makeUrlStation(id: "station2", name: "Station 2 (Coming Soon)")
         ),

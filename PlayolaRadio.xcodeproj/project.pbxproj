@@ -54,6 +54,7 @@
 		A9F1000000000000000000A3 /* FulfillmentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F1000000000000000000A1 /* FulfillmentRequest.swift */; };
 		A9F1000000000000000000B2 /* FulfillmentRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F1000000000000000000B1 /* FulfillmentRequestTests.swift */; };
 		24801FB664BFA5B73E518BC3 /* RewardsExperience.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBD876AFF9DD0588179EB37B /* RewardsExperience.swift */; };
+		24F91C532CA7F88C98FB5E22 /* CarPlaySceneDelegateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB4A8E7E29181C814FDA326E /* CarPlaySceneDelegateTests.swift */; };
 		2613B751F316B4688367E6D7 /* UpcomingGiveawayBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73585D96F0A0EB79FFD39F8E /* UpcomingGiveawayBadge.swift */; };
 		2891A2D21D67E32129F5F2ED /* YourLibraryPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B5384ED9FE3A984F23C18BA /* YourLibraryPageTests.swift */; };
 		2ADE71F9A72B59B6B6C727B5 /* GiveawayWinnerPendingPush.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C547ECE1FDB131CE832D3D /* GiveawayWinnerPendingPush.swift */; };
@@ -1084,6 +1085,7 @@
 		E1AB0000000000000000AA02 /* AppVersionGateModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersionGateModelTests.swift; sourceTree = "<group>"; };
 		E1CA0000000000000000A001 /* CarPlayPlaybackTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayPlaybackTransition.swift; sourceTree = "<group>"; };
 		E1CA0000000000000000A004 /* CarPlayPlaybackTransitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayPlaybackTransitionTests.swift; sourceTree = "<group>"; };
+		EB4A8E7E29181C814FDA326E /* CarPlaySceneDelegateTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegateTests.swift; sourceTree = "<group>"; };
 		F43C99E3FBFDF4522AA71C3C /* UpcomingGiveawayBanner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UpcomingGiveawayBanner.swift; sourceTree = "<group>"; };
 		F5283C7C8C9FAF45659BA98E /* GiveawayParticipationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayParticipationTests.swift; sourceTree = "<group>"; };
 		FAD00000000000000000000B /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
@@ -1736,6 +1738,7 @@
 				D35673AF2D3DC54F00E4E926 /* CarPlaySceneDelegate.swift */,
 				E1CA0000000000000000A001 /* CarPlayPlaybackTransition.swift */,
 				E1CA0000000000000000A004 /* CarPlayPlaybackTransitionTests.swift */,
+				EB4A8E7E29181C814FDA326E /* CarPlaySceneDelegateTests.swift */,
 			);
 			path = CarPlay;
 			sourceTree = "<group>";
@@ -3178,6 +3181,7 @@
 				95DCE3D5B66638B2F8EED419 /* ClaimSheetTests.swift in Sources */,
 				0A70B3257BA0A86D3F1AA9E5 /* KoozieTileModelTests.swift in Sources */,
 				219100B6E226B5A2B0A6B7D8 /* StationListingPolicyTests.swift in Sources */,
+				24F91C532CA7F88C98FB5E22 /* CarPlaySceneDelegateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

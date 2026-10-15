@@ -75,11 +75,15 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     setNowPlaying(visible: true)
   }
 
-  private func sectionFromStations(_ stations: [AnyStation]) -> CPListSection {
-    let listItems: [CPListItem] = stations.map { station in
+  private func sectionFromStations(_ items: [APIStationItem]) -> CPListSection {
+    let listItems: [CPListItem] = items.compactMap { item in
+      guard let station = item.anyStationIfPresent else { return nil }
       let listItem = self.cPListItemFrom(station: station)
+      let isPlayable = item.isPlayable(unlocked: showSecretStations)
       listItem.handler = { _, completion in
-        self.playStation(station)
+        if isPlayable {
+          self.playStation(station)
+        }
         completion()
       }
       return listItem
@@ -88,7 +92,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   }
 
   private func templateFromStationList(_ stationList: StationList) -> CPListTemplate {
-    let section = sectionFromStations(stationList.stations)
+    let section = sectionFromStations(stationList.listedItems(unlocked: showSecretStations))
     let template = CPListTemplate(title: stationList.title, sections: [section])
     template.tabTitle = stationList.title
     template.tabImage = tabImage(stationList.id)
@@ -97,8 +101,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
   func generateTemplates(_ stationLists: IdentifiedArrayOf<StationList>) -> [CPListTemplate] {
     stationLists
-      .filter { $0.stations.count > 0 }
-      .filter { $0.id != StationList.KnownIDs.inDevelopmentList.rawValue || showSecretStations }
+      .filter { !$0.listedItems(unlocked: showSecretStations).isEmpty }
       .map { templateFromStationList($0) }
   }
 
@@ -373,14 +376,6 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
       remoteImageUrl: station.imageUrl,
       placeholder: placeholder
     )
-    listItem.handler = { _, completion in
-      if station.active {
-        Task { @MainActor in
-          await self.stationPlayer.play(station: station)
-        }
-      }
-      completion()
-    }
     return listItem
   }
 }
