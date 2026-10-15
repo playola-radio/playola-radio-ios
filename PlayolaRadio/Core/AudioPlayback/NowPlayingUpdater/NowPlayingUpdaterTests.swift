@@ -8,6 +8,7 @@
 import CustomDump
 import Dependencies
 import Foundation
+import IdentifiedCollections
 import MediaPlayer
 import PlayolaPlayer
 import Sharing
@@ -152,11 +153,8 @@ struct NowPlayingUpdaterTests {
     #expect(updater.currentNowPlayingInfo.isEmpty)
   }
 
-  @Test
-  func handlePlayCommandResumesPersistedStationWhenStopped() {
-    @Shared(.lastPlayedStation) var persisted: LastPlayedStation? =
-      LastPlayedStation(station: .mockPlayola())
-    let updater = withDependencies {
+  private func makeStoppedUpdater() -> NowPlayingUpdater {
+    withDependencies {
       $0.analytics.track = { _ in }
       $0.date = .constant(Date())
     } operation: {
@@ -165,8 +163,52 @@ struct NowPlayingUpdaterTests {
         audioSessionCoordinator: AudioSessionCoordinator(session: NoOpAudioSession()))
       return NowPlayingUpdater(stationPlayer: stationPlayer)
     }
+  }
 
-    // Stopped with a durable snapshot: the play command accepts and restarts it.
+  private func makeLists(
+    containing station: Station, visibility: StationListItemVisibility
+  ) -> IdentifiedArrayOf<StationList> {
+    IdentifiedArrayOf(uniqueElements: [
+      StationList.mockArtistList(items: [
+        APIStationItem(sortOrder: 0, visibility: visibility, station: station, urlStation: nil)
+      ])
+    ])
+  }
+
+  // Intentional behavior change (spec "iOS runtime behavior"): resume is no longer a
+  // zero-network cold-launch path. A station absent from every fetched list (including
+  // lists not loaded yet) is not playable, so there is nothing to resume.
+  @Test
+  func testResumeRefusesWhenStationListsEmpty() {
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = []
+    @Shared(.lastPlayedStation) var persisted: LastPlayedStation? =
+      LastPlayedStation(station: .mockPlayola())
+    let updater = makeStoppedUpdater()
+
+    #expect(updater.handlePlayCommand() == .commandFailed)
+  }
+
+  @Test
+  func testResumeRefusesStationThatBecameSecretWhenLocked() {
+    let station = Station.mockWith(id: "became-secret-id")
+    @Shared(.stationLists) var stationLists = makeLists(containing: station, visibility: .hidden)
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.lastPlayedStation) var persisted: LastPlayedStation? =
+      LastPlayedStation(station: .playola(station))
+    let updater = makeStoppedUpdater()
+
+    #expect(updater.handlePlayCommand() == .commandFailed)
+  }
+
+  @Test
+  func testResumeResolvesPlayableStationFromLists() {
+    let station = Station.mockWith(id: "playable-id")
+    @Shared(.stationLists) var stationLists = makeLists(containing: station, visibility: .visible)
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.lastPlayedStation) var persisted: LastPlayedStation? =
+      LastPlayedStation(station: .playola(station))
+    let updater = makeStoppedUpdater()
+
     #expect(updater.handlePlayCommand() == .success)
   }
 
