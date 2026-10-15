@@ -57,6 +57,7 @@ If you are dispatching subagents (via `superpowers:subagent-driven-development` 
 
 | Task Type | Read This |
 |-----------|-----------|
+| Designing a feature (new or change), before any code | `design-feature` skill (shared via playola-skills; installed at `~/.claude/skills/design-feature/SKILL.md`) |
 | Creating a new page | `.claude/PAGE_CREATION.md` |
 | Implementing a designed screen | `design/README.md` then `design/DESIGN_STATUS.md` |
 | Adding API calls (iOS) | `.claude/API_CLIENT.md` |
