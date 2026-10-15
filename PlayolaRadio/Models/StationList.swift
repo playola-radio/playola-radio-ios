@@ -289,7 +289,7 @@ struct APIStationItem: Codable {
     sortOrder = try container.decode(Int.self, forKey: .sortOrder)
     visibility =
       try container.decodeIfPresent(StationListItemVisibility.self, forKey: .visibility)
-      ?? .visible
+      ?? .unknown
     station = try container.decodeIfPresent(PlayolaPlayer.Station.self, forKey: .station)
     urlStation = try container.decodeIfPresent(UrlStation.self, forKey: .urlStation)
     // Server payload nests the id inside station; our own cached encoding stores it top-level.
