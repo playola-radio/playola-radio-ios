@@ -226,7 +226,7 @@ private struct HeartButton: View {
   }
 }
 
-// The "Ask the Artist" button, shown only when the now-playing station is a Playola station.
+// The "Send {curator} a Message" button, shown only when the now-playing station is a Playola station.
 // Collapses to nothing (no button, no top padding) when `isVisible` is false.
 private struct AskArtistButton: View {
   let isVisible: Bool

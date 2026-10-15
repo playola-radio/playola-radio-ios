@@ -134,7 +134,7 @@ struct BroadcastersListenerQuestionPageTests {
     await model.viewAppeared()
 
     #expect(model.presentedAlert != nil)
-    #expect(model.presentedAlert?.title == "Error Loading Questions")
+    #expect(model.presentedAlert?.title == "Error Loading Messages")
   }
 
   @Test
@@ -484,7 +484,7 @@ struct BroadcastersListenerQuestionPageTests {
 
   @Test
   func testFilterDisplayTextForAnswered() {
-    #expect(ListenerQuestionFilter.answered.displayText == "Answered")
+    #expect(ListenerQuestionFilter.answered.displayText == "Replied")
   }
 
   @Test

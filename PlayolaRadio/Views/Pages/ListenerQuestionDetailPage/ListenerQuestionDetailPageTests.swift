@@ -22,13 +22,13 @@ struct ListenerQuestionDetailPageTests {
   @Test
   func testNavigationTitleIsListenerQuestion() {
     let model = makeModel()
-    #expect(model.navigationTitle == "Listener Question")
+    #expect(model.navigationTitle == "Listener Message")
   }
 
   @Test
   func testQuestionSectionTitleIsQUESTION() {
     let model = makeModel()
-    #expect(model.questionSectionTitle == "QUESTION")
+    #expect(model.questionSectionTitle == "MESSAGE")
   }
 
   @Test

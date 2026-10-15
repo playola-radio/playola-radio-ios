@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 6/16/25.
 //
 
+import CustomDump
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -923,6 +924,19 @@ struct PlayerPageTests {
     #expect(model.nowPlayingLabel == "NOW PLAYING")
     #expect(model.onAirLabel == "ON AIR")
     #expect(model.liveLabel == "LIVE")
-    #expect(model.askArtistLabel == "Ask the Artist")
+    #expect(model.askArtistLabel == "Send the Artist a Message")
+  }
+
+  @Test
+  func testAskArtistLabelUsesCuratorNameForPlayolaStation() {
+    let station = AnyStation.mockPlayola(id: "test-id", curatorName: "Bri Bagwell")
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = .mockWith(station: station)
+    let model = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      PlayerPageModel()
+    }
+
+    expectNoDifference(model.askArtistLabel, "Send Bri Bagwell a Message")
   }
 }

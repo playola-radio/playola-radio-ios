@@ -660,7 +660,7 @@ struct HomePageTests {
 
       #expect(model.questionAiringTileModel.content == "You're On Air Soon!")
       #expect(
-        model.questionAiringTileModel.paragraph!.contains("DJ Awesome picked your question!"))
+        model.questionAiringTileModel.paragraph!.contains("DJ Awesome picked your message!"))
     }
   }
 

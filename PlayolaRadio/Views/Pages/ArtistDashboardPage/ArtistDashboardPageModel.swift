@@ -428,7 +428,7 @@ class ArtistDashboardPageModel: ViewModel {
     case "appearances": return "Make DJ appearances"
     case "songCategoryFreshness": return "Keep song categories fresh"
     case "breakerCategoryFreshness": return "Keep breaker categories fresh"
-    case "pendingListenerQuestions": return "Answer listener questions"
+    case "pendingListenerQuestions": return "Reply to listener messages"
     default: return kind
     }
   }

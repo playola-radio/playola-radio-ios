@@ -66,13 +66,13 @@ class AskQuestionPageModel: ViewModel {
   }
 
   var navigationTitle: String {
-    "Ask \(curatorName)"
+    "Message \(curatorName)"
   }
 
   var instructionsText: String {
-    "Start with your name and where you’re listening from, then ask "
-      + "\(curatorName) a question. If they choose yours, your "
-      + "question and their response will air on the station."
+    "Start with your name and where you’re listening from, then say or ask "
+      + "whatever you want: a question, a shout-out, a story. "
+      + "If they choose yours, your message and their response will air on the station."
   }
 
   let cancelButtonTitle = "Cancel"
@@ -81,7 +81,7 @@ class AskQuestionPageModel: ViewModel {
   let recordButtonLabelIdle = "Tap to Record"
   let recordButtonLabelRecording = "Tap to Stop"
   let recordButtonLabelReview = "Try Again"
-  let sendButtonTitle = "Send Question"
+  let sendButtonTitle = "Send Message"
 
   var recordButtonLabel: String {
     switch recordingPhase {
@@ -396,9 +396,9 @@ extension PlayolaAlert {
     onDismiss: @escaping () -> Void
   ) -> PlayolaAlert {
     PlayolaAlert(
-      title: "Question Sent!",
+      title: "Message Sent!",
       message:
-        "If \(curatorName) answers it, your question and their response will air on the station, "
+        "If \(curatorName) replies, your message and their reply will air on the station, "
         + "and we'll let you know when it plays.",
       dismissButton: .default(Text("OK"), action: onDismiss)
     )
