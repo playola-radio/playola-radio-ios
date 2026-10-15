@@ -283,7 +283,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   var introTitle: String { "First, record your intro" }
   var introBody: String {
     "Tell your listeners you\u{2019}re about to do an Ask Me Anything session."
-      + "\n\nAsk them to tap \u{201C}Send [your name] a Message\u{201D} on the Player screen to send a question. "
+      + "\n\nAsk them to tap the message button on the Player screen to send a message. "
       + "Let them know you\u{2019}ll do your best to answer as many as you can."
   }
   var recordIntroButtonTitle: String { "Record Intro" }

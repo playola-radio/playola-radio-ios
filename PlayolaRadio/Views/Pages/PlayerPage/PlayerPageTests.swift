@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 6/16/25.
 //
 
+import CustomDump
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -936,6 +937,6 @@ struct PlayerPageTests {
       PlayerPageModel()
     }
 
-    #expect(model.askArtistLabel == "Send Bri Bagwell a Message")
+    expectNoDifference(model.askArtistLabel, "Send Bri Bagwell a Message")
   }
 }

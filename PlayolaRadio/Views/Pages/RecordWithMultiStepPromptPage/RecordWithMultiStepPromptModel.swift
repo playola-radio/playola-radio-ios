@@ -552,7 +552,7 @@ extension RecordWithMultiStepPromptModel {
         RecordPromptStep(
           id: 3, label: "DIRECT",
           detail:
-            "Tell listeners to tap \u{201C}Send [your name] a Message\u{201D} in the player."),
+            "Tell listeners to tap the message button in the player."),
       ],
       trackLabel: "INTRO",
       isUpsideDown: true)
