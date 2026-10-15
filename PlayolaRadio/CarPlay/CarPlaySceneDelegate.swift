@@ -79,9 +79,8 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     let listItems: [CPListItem] = items.compactMap { item in
       guard let station = item.anyStationIfPresent else { return nil }
       let listItem = self.cPListItemFrom(station: station)
-      let isPlayable = item.isPlayable(unlocked: showSecretStations)
       listItem.handler = { _, completion in
-        if isPlayable {
+        if item.isPlayable(unlocked: self.showSecretStations) {
           self.playStation(station)
         }
         completion()

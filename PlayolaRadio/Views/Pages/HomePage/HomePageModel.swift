@@ -179,7 +179,7 @@ class HomePageModel: ViewModel {
   }
 
   func stationTapped(_ station: AnyStation) async {
-    guard let item = stationItem(for: station), item.isPlayable(unlocked: showSecretStations)
+    guard let item = stationLists.playableItem(stationId: station.id, unlocked: showSecretStations)
     else { return }
 
     if WelcomeMessagePageModel.shouldPresent(
@@ -359,12 +359,6 @@ class HomePageModel: ViewModel {
         self?.mainContainerNavigationCoordinator.dismissClaimSheet(model)
       })
     mainContainerNavigationCoordinator.presentedSheet = .claim(model)
-  }
-
-  private func stationItem(for station: AnyStation) -> APIStationItem? {
-    stationLists
-      .flatMap { $0.listedItems(unlocked: showSecretStations) }
-      .first { $0.anyStation.id == station.id }
   }
 
   // Mirrors StationListModel.presentWelcomeMessage — the server "seen" stamp happens in

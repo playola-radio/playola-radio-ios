@@ -190,6 +190,33 @@ struct HomePageTests {
   }
 
   @Test
+  func testHomeStationTappedPlaysWhenAnEarlierListHasANonPlayableDuplicate() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let station = Station.mockWith(id: "duplicated-station")
+    let earlierList = StationList(
+      id: "earlier-list", name: "Earlier", slug: "earlier-list", hidden: false, sortOrder: 0,
+      createdAt: Date(), updatedAt: Date(),
+      items: [.mockWith(sortOrder: 0, visibility: .comingSoon, station: station)])
+    let artistList = StationList.mockArtistList(items: [
+      .mockWith(sortOrder: 0, visibility: .visible, station: station)
+    ])
+    @Shared(.stationLists) var stationLists = IdentifiedArray(
+      uniqueElements: [earlierList, artistList])
+
+    let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+    let model = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.stationPlayer = stationPlayerMock
+    } operation: {
+      HomePageModel()
+    }
+
+    await model.stationTapped(.playola(station))
+
+    #expect(stationPlayerMock.callsToPlay.map(\.id) == [station.id])
+  }
+
+  @Test
   func testShowSecretStationsStillHidesInactiveComingSoonStations() async {
     let visibleStation = Station.mockWith(id: "visible-station", curatorName: "DJ Visible")
     let inactiveStation = Station.mockWith(

@@ -97,8 +97,37 @@ struct CarPlaySceneDelegateTests {
 
     tap(tappedRows[0])
     tap(tappedRows[1])
-    while player.callsToPlay.isEmpty { await Task.yield() }
+    await waitForFirstPlay(on: player)
 
     #expect(player.callsToPlay.map(\.id) == ["list-1"])
+  }
+
+  @Test
+  func testTappingSecretRowAfterDeviceIsLockedDoesNotPlay() async {
+    @Shared(.showSecretStations) var showSecretStations = true
+    let player = StationPlayerMock()
+    let delegate = withDependencies {
+      $0.stationPlayer = player
+    } operation: {
+      CarPlaySceneDelegate()
+    }
+    let templates = delegate.generateTemplates([list(visibilities: [.hidden, .visible])])
+    let tappedRows = rows(of: templates[0])
+
+    $showSecretStations.withLock { $0 = false }
+    tap(tappedRows[0])
+    tap(tappedRows[1])
+    await waitForFirstPlay(on: player)
+
+    #expect(player.callsToPlay.map(\.id) == ["list-1"])
+  }
+
+  private func waitForFirstPlay(on player: StationPlayerMock) async {
+    var yields = 0
+    while player.callsToPlay.isEmpty && yields < 1000 {
+      await Task.yield()
+      yields += 1
+    }
+    #expect(!player.callsToPlay.isEmpty, "Expected a tapped CarPlay row to start playback")
   }
 }
