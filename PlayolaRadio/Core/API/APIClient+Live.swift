@@ -355,7 +355,12 @@ extension APIClient: DependencyKey {
         guard let status, (200..<300).contains(status), let data = response.data else {
           throw ClaimAPIError(status: status)
         }
-        return try sharedIsoDecoder.decode(FulfillmentRequest.self, from: data)
+        do {
+          return try sharedIsoDecoder.decode(FulfillmentRequest.self, from: data)
+        } catch {
+          // The redemption exists; let the caller treat it as already claimed.
+          throw ClaimAPIError.conflict
+        }
       },
       updateUser: { jwtToken, firstName, lastName, verifiedEmail in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me"
