@@ -42,9 +42,9 @@ extension FulfillmentRequest {
     status = try container.decode(Status.self, forKey: .status)
     source = try container.decode(Source.self, forKey: .source)
     giveawayEventId = try container.decodeIfPresent(String.self, forKey: .giveawayEventId)
-    let prize = try container.nestedContainer(keyedBy: PrizeKeys.self, forKey: .prize)
-    prizeTitle = try prize.decodeIfPresent(String.self, forKey: .title)
-    prizeImageUrl = (try? prize.decodeIfPresent(String.self, forKey: .imageUrl))
+    let prize = try? container.nestedContainer(keyedBy: PrizeKeys.self, forKey: .prize)
+    prizeTitle = (try? prize?.decodeIfPresent(String.self, forKey: .title)).flatMap { $0 }
+    prizeImageUrl = (try? prize?.decodeIfPresent(String.self, forKey: .imageUrl))
       .flatMap { $0 }
       .flatMap(URL.init(string:))
     infoFields = try container.decodeIfPresent([InfoField].self, forKey: .infoFields) ?? []

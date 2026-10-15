@@ -65,6 +65,32 @@ struct FulfillmentRequestTests {
     expectNoDifference(request.infoAnswers, ["a": .text("ok")])
   }
 
+  @Test func testNullPrizeDecodesWithNilTitleAndImage() throws {
+    let request = try decode(
+      """
+      {"id":"r1","status":"awaiting_info","source":"reward","giveawayEventId":null,"prize":null,
+       "infoFields":[],"infoAnswers":{}}
+      """)
+    #expect(request.id == "r1")
+    #expect(request.prizeTitle == nil)
+    #expect(request.prizeImageUrl == nil)
+  }
+
+  @Test func testRequestMissingPrizeDoesNotFailTheWholeArray() throws {
+    let requests = try JSONDecoderWithIsoFull().decode(
+      [FulfillmentRequest].self,
+      from: Data(
+        """
+        [{"id":"r1","status":"awaiting_info","source":"giveaway","giveawayEventId":"e1",
+          "prize":{"title":"Tour Poster","imageUrl":null},"infoFields":[],"infoAnswers":{}},
+         {"id":"r2","status":"ready_to_ship","source":"reward","giveawayEventId":null,
+          "infoFields":[],"infoAnswers":{}}]
+        """.utf8))
+    expectNoDifference(requests.map(\.id), ["r1", "r2"])
+    #expect(requests[0].prizeTitle == "Tour Poster")
+    #expect(requests[1].prizeTitle == nil)
+  }
+
   @Test func testAnswersRequestEncodesTextAndAddressWithoutCountry() throws {
     let body = SubmitFulfillmentAnswersRequest(infoAnswers: [
       "size": .text("M"),
