@@ -19,8 +19,7 @@ struct StationListStationRowTests {
   @Test
   func testModelInitializationFromStation() {
     @Shared(.showSecretStations) var showSecretStations: Bool = true
-    let stationList = StationList.mocks.first { !$0.visibleStationItems.isEmpty }!
-    let item = stationList.visibleStationItems.first!
+    let item = StationList.mocks.flatMap { $0.items ?? [] }.first!
     let station = item.anyStation
 
     let model = StationListStationRowModel(item: item)

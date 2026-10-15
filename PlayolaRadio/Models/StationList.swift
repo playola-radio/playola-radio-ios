@@ -136,7 +136,6 @@ enum StationListItemVisibility: String, Codable, Equatable, Sendable {
 struct StationList: Codable, Identifiable, Equatable, Sendable {
   public enum KnownIDs: String {
     case artistList = "artist_list"
-    case inDevelopmentList = "in_development_list"
     case fmStationsList = "fm_list"
   }
 
@@ -163,61 +162,10 @@ struct StationList: Codable, Identifiable, Equatable, Sendable {
     (items ?? []).sorted { $0.sortOrder < $1.sortOrder }
   }
 
-  private var comingSoonItems: [APIStationItem] {
-    sortedItems.filter { $0.visibility == .comingSoon }
-  }
-
-  private var hiddenItems: [APIStationItem] {
-    sortedItems.filter { $0.visibility == .hidden }
-  }
-
-  func stationItems(includeHidden: Bool, includeComingSoon: Bool = true) -> [APIStationItem] {
-    sortedItems.filter { item in
-      switch item.visibility {
-      case .visible, .unknown:
-        return true
-      case .comingSoon:
-        return includeComingSoon
-      case .hidden:
-        return includeHidden
-      }
-    }
-  }
-
-  private func anyStations(from items: [APIStationItem]) -> [AnyStation] {
-    items.reduce(into: [AnyStation]()) { result, item in
-      if let station = item.station {
-        result.append(.playola(station))
-      } else if let urlStation = item.urlStation {
-        result.append(.url(urlStation))
-      }
-    }
-  }
-
-  var visibleStationItems: [APIStationItem] { stationItems(includeHidden: false) }
-  var comingSoonStationItems: [APIStationItem] { comingSoonItems }
-  var hiddenStationItems: [APIStationItem] { hiddenItems }
-
-  // Return separate arrays of properly typed stations
+  /// Non-playback consumers only (contact, notification settings, screenshots);
+  /// playback surfaces go through `StationListingPolicy`.
   var playolaStations: [PlayolaPlayer.Station] {
-    stationItems(includeHidden: false).compactMap { $0.station }
-  }
-
-  var urlStations: [UrlStation] {
-    stationItems(includeHidden: false).compactMap { $0.urlStation }
-  }
-
-  // Combined array of AnyStation enum objects
-  var stations: [AnyStation] {
-    anyStations(from: stationItems(includeHidden: false))
-  }
-
-  var comingSoonStations: [AnyStation] {
-    anyStations(from: comingSoonItems)
-  }
-
-  var hiddenStations: [AnyStation] {
-    anyStations(from: hiddenItems)
+    sortedItems.filter { $0.visibility != .hidden }.compactMap(\.station)
   }
 
   init(
@@ -353,13 +301,13 @@ extension StationList {
 
 extension StationList {
   static var artistListSlug: String { return "artist-list" }
-  static var inDevelopmentListId: String { return "in_development_list" }
   static var fmListId: String { return "fm_list" }
 }
 
 extension AnyStation {
   static var mock: AnyStation {
-    StationList.mocks.first(where: { !$0.stations.isEmpty })?.stations.first ?? .url(mockUrlStation)
+    StationList.mocks.flatMap { $0.items ?? [] }.compactMap(\.anyStationIfPresent).first
+      ?? .url(mockUrlStation)
   }
 
   static func mockPlayola(

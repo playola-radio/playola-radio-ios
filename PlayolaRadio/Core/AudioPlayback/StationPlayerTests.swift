@@ -538,7 +538,7 @@ struct StationPlayerTests {
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
-    let stations = stationLists.first!.stations
+    let stations = stationLists.first!.items!.map(\.anyStation)
     await play(stationPlayer, station: stations[0])
 
     await seekNext(stationPlayer)
@@ -552,7 +552,7 @@ struct StationPlayerTests {
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
-    let stations = stationLists.first!.stations
+    let stations = stationLists.first!.items!.map(\.anyStation)
     await play(stationPlayer, station: stations[2])
 
     await seekNext(stationPlayer)
@@ -566,7 +566,7 @@ struct StationPlayerTests {
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
-    let stations = stationLists.first!.stations
+    let stations = stationLists.first!.items!.map(\.anyStation)
 
     await seekNext(stationPlayer)
 
@@ -593,7 +593,7 @@ struct StationPlayerTests {
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
-    let stations = stationLists.first!.stations
+    let stations = stationLists.first!.items!.map(\.anyStation)
     await play(stationPlayer, station: stations[1])
 
     await seekPrevious(stationPlayer)
@@ -607,7 +607,7 @@ struct StationPlayerTests {
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
-    let stations = stationLists.first!.stations
+    let stations = stationLists.first!.items!.map(\.anyStation)
     await play(stationPlayer, station: stations[0])
 
     await seekPrevious(stationPlayer)
@@ -621,7 +621,7 @@ struct StationPlayerTests {
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
-    let stations = stationLists.first!.stations
+    let stations = stationLists.first!.items!.map(\.anyStation)
 
     await seekPrevious(stationPlayer)
 
@@ -637,7 +637,7 @@ struct StationPlayerTests {
 
     let stationPlayer = StationPlayer()
     let artistList = stationLists.first { $0.id == StationList.KnownIDs.artistList.rawValue }!
-    let artistStations = artistList.stations
+    let artistStations = artistList.items!.map(\.anyStation)
 
     await play(stationPlayer, station: artistStations[0])
     await seekNext(stationPlayer)
@@ -651,7 +651,7 @@ struct StationPlayerTests {
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
-    let allStations = stationLists.first!.stations
+    let allStations = stationLists.first!.items!.map(\.anyStation)
 
     await play(stationPlayer, station: allStations[0])
     await seekNext(stationPlayer)
@@ -665,7 +665,7 @@ struct StationPlayerTests {
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
-    let allStations = stationLists.first!.stations
+    let allStations = stationLists.first!.items!.map(\.anyStation)
 
     await play(stationPlayer, station: allStations[0])
     await seekNext(stationPlayer)
@@ -693,7 +693,7 @@ struct StationPlayerTests {
     @Shared(.showSecretStations) var showSecretStations = true
 
     let stationPlayer = StationPlayer()
-    let allStations = stationLists.first!.stations
+    let allStations = stationLists.first!.items!.map(\.anyStation)
 
     await play(stationPlayer, station: allStations[0])
     await seekNext(stationPlayer)
@@ -769,7 +769,7 @@ struct StationPlayerTests {
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
-    let stations = stationLists.first!.stations
+    let stations = stationLists.first!.items!.map(\.anyStation)
     await play(stationPlayer, station: stations[0])
 
     await seekNext(stationPlayer)
@@ -783,7 +783,7 @@ struct StationPlayerTests {
     @Shared(.showSecretStations) var showSecretStations = false
 
     let stationPlayer = StationPlayer()
-    let stations = stationLists.first!.stations
+    let stations = stationLists.first!.items!.map(\.anyStation)
     await play(stationPlayer, station: stations[1])
 
     await seekPrevious(stationPlayer)

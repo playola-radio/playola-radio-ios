@@ -65,7 +65,7 @@ struct StationListPageTests {
   func testSegmentSelectionFiltersWhenSegmentSelected() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
-    let visibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
+    let visibleLists = stationLists.filter { $0.id != "in_development_list" }
     guard let firstList = visibleLists.first else {
       Issue.record("StationList.mocks should have at least one non-development list")
       return
@@ -83,7 +83,7 @@ struct StationListPageTests {
   func testSharedStationListsUpdatesKeepsSelectedSegmentWhenStillPresent() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
-    let visibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
+    let visibleLists = stationLists.filter { $0.id != "in_development_list" }
     guard let targetList = visibleLists.first else {
       Issue.record("StationList.mocks should have at least one non-development list")
       return
@@ -120,7 +120,7 @@ struct StationListPageTests {
   func testSharedStationListsUpdatesResetsSelectedSegmentWhenSegmentMissing() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
-    let visibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
+    let visibleLists = stationLists.filter { $0.id != "in_development_list" }
     guard let targetList = visibleLists.first else {
       Issue.record("StationList.mocks should have at least one non-development list")
       return
@@ -152,7 +152,7 @@ struct StationListPageTests {
     }
 
     let expectedVisibleAfterUpdate = stationLists.filter {
-      $0.id != StationList.inDevelopmentListId
+      $0.id != "in_development_list"
     }
     #expect(model.selectedSegment == "All")
     #expect(model.stationListsForDisplay == expectedVisibleAfterUpdate)
