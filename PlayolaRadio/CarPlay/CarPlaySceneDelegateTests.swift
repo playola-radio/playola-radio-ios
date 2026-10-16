@@ -22,9 +22,10 @@ struct CarPlaySceneDelegateTests {
   }
 
   private func list(
-    id: String = "list", hidden: Bool = false, visibilities: [StationListItemVisibility]
+    hidden: Bool = false, visibilities: [StationListItemVisibility]
   ) -> StationList {
-    StationList(
+    let id = "list"
+    return StationList(
       id: id, name: "List \(id)", slug: id, hidden: hidden, createdAt: Date(), updatedAt: Date(),
       items: visibilities.enumerated().map { index, visibility in
         APIStationItem(
@@ -120,6 +121,37 @@ struct CarPlaySceneDelegateTests {
     await waitForFirstPlay(on: player)
 
     #expect(player.callsToPlay.map(\.id) == ["list-1"])
+  }
+
+  @Test
+  func testRelockingWhileConnectedRemovesHiddenRow() async {
+    @Shared(.showSecretStations) var showSecretStations = true
+    @Shared(.stationLists) var stationLists = IdentifiedArray(
+      uniqueElements: [list(visibilities: [.visible, .hidden])])
+    let delegate = CarPlaySceneDelegate()
+    delegate.tabBarTemplate = CPTabBarTemplate(templates: delegate.generateTemplates(stationLists))
+    delegate.observeStationCatalog()
+    #expect(connectedRowCount(of: delegate) == 2)
+
+    $showSecretStations.withLock { $0 = false }
+    await yieldUntil { connectedRowCount(of: delegate) == 1 }
+
+    #expect(connectedRowCount(of: delegate) == 1)
+  }
+
+  private func connectedRowCount(of delegate: CarPlaySceneDelegate) -> Int {
+    guard let template = delegate.tabBarTemplate?.templates.first as? CPListTemplate else {
+      return 0
+    }
+    return rows(of: template).count
+  }
+
+  private func yieldUntil(_ condition: () -> Bool) async {
+    var yields = 0
+    while !condition() && yields < 1000 {
+      await Task.yield()
+      yields += 1
+    }
   }
 
   private func waitForFirstPlay(on player: StationPlayerMock) async {
