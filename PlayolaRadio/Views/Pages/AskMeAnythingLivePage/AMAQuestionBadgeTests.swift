@@ -31,6 +31,7 @@ struct AMAQuestionBadgeTests {
   /// model must be exercised there, not just constructed there.
   private func withBadgeModel(
     showSpinAirtime: Date,
+    endedShowSpins: [Spin] = [],
     questions: LockIsolated<[ListenerQuestion]>,
     clock: TestClock<Duration> = TestClock(),
     operation: (AskMeAnythingLivePageModel) async -> Void
@@ -38,7 +39,9 @@ struct AMAQuestionBadgeTests {
     await withDependencies {
       $0.date.now = Self.now
       $0.continuousClock = clock
-      $0.api.fetchSchedule = { _, _ in [Self.playingShowSpin(startedAt: showSpinAirtime)] }
+      $0.api.fetchSchedule = { _, _ in
+        endedShowSpins + [Self.playingShowSpin(startedAt: showSpinAirtime)]
+      }
       $0.api.getActiveListeningSessions = { _, _, _, _ in .init(summary: .init(uniqueUsers: 1)) }
       $0.api.getListenerQuestions = { _, _ in questions.value }
     } operation: {
@@ -90,7 +93,7 @@ struct AMAQuestionBadgeTests {
 
     await model.startShowButtonTapped()
 
-    expectNoDifference(amaShowStartTimes, ["show-1": startsAt])
+    expectNoDifference(amaShowStartTimes, ["old-show": .distantPast, "show-1": startsAt])
   }
 
   @Test func reenteringAShowCountsQuestionsSinceItsRememberedStart() async {
@@ -119,6 +122,52 @@ struct AMAQuestionBadgeTests {
     }
 
     expectNoDifference(amaShowStartTimes, ["show": showStart])
+  }
+
+  @Test func firstVisitMidShowRemembersTheShowsEarliestSpin() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.amaShowStartTimes) var amaShowStartTimes = [:]
+    let showStart = Self.now.addingTimeInterval(-600)
+    let endedSpin = Spin.mockWith(
+      id: "ended", airtime: showStart, audioBlock: .mockWith(endOfMessageMS: 60_000),
+      liveShowId: "show")
+    await withBadgeModel(
+      showSpinAirtime: Self.now.addingTimeInterval(-30), endedShowSpins: [endedSpin],
+      questions: LockIsolated([])
+    ) { model in
+      await model.viewAppeared()
+    }
+
+    expectNoDifference(amaShowStartTimes, ["show": showStart])
+  }
+
+  @Test func anOlderQuestionFetchNeverOverwritesANewerOne() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let (staleStarted, staleStartedContinuation) = AsyncStream<Void>.makeStream()
+    let (releaseStale, releaseStaleContinuation) = AsyncStream<Void>.makeStream()
+    let calls = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.getListenerQuestions = { _, _ in
+        let call = calls.withValue { calls in
+          calls += 1
+          return calls
+        }
+        guard call == 1 else { return [.mockWith(id: "newer", status: .pending)] }
+        staleStartedContinuation.yield()
+        for await _ in releaseStale { break }
+        return []
+      }
+    } operation: {
+      AskMeAnythingLivePageModel(stationId: testStationId)
+    }
+
+    let staleRefresh = Task { await model.refreshListenerQuestions() }
+    for await _ in staleStarted { break }
+    await model.refreshListenerQuestions()
+    releaseStaleContinuation.yield()
+    await staleRefresh.value
+
+    expectNoDifference(model.listenerQuestions.map(\.id), ["newer"])
   }
 
   @Test func qaBadgePicksUpQuestionsArrivingDuringTheShow() async {

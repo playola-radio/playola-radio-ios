@@ -50,6 +50,8 @@ class AskMeAnythingLivePageModel: ViewModel {
   var scheduledStartsAt: Date?
   var listenerCount: Int?
   var listenerQuestions: [ListenerQuestion] = []
+  @ObservationIgnored var listenerQuestionsRequestCount = 0
+  @ObservationIgnored var appliedListenerQuestionsRequest = 0
   var lastPromotedFiller: (title: String, date: Date)?
   var hasPresentedSchedule = false
   var isAddingToShow = false
@@ -200,7 +202,7 @@ class AskMeAnythingLivePageModel: ViewModel {
       clearOpeningDraft()
       try? await $amaOpeningDrafts.save()
       scheduledStartsAt = response.scheduledStartsAt
-      $amaShowStartTimes.withLock { $0 = [response.liveShowId: response.scheduledStartsAt] }
+      $amaShowStartTimes.withLock { $0[response.liveShowId] = response.scheduledStartsAt }
       broadcast.visibleFillerIds = []
       hasPresentedSchedule = false
       effectiveEndsAt = nil

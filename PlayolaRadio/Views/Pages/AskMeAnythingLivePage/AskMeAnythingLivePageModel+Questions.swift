@@ -168,11 +168,16 @@ extension AskMeAnythingLivePageModel {
 
   /// Best-effort refresh that keeps the Q/A badge current and lets `liveRows` group a freshly
   /// aired Q&A pair under the listener's name. After an airing the Q&A has already aired; a
-  /// failure here only degrades labeling and must never re-air.
+  /// failure here only degrades labeling and must never re-air. Responses that resolve out of
+  /// order are dropped so an older fetch never undoes a newer one.
   func refreshListenerQuestions() async {
     guard let jwt = auth.jwt else { return }
-    if let refreshed = try? await api.getListenerQuestions(jwt, stationId) {
-      listenerQuestions = refreshed
-    }
+    listenerQuestionsRequestCount += 1
+    let request = listenerQuestionsRequestCount
+    guard let refreshed = try? await api.getListenerQuestions(jwt, stationId),
+      request > appliedListenerQuestionsRequest
+    else { return }
+    appliedListenerQuestionsRequest = request
+    listenerQuestions = refreshed
   }
 }
