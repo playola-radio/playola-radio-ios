@@ -530,6 +530,44 @@ struct CuratorSongPickerPageTests {
     }
   }
 
+  @Test func cancelingAnActiveRequestRetryClearsSearching() async {
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      let requestSearchCount = LockIsolated(0)
+
+      await withDependencies {
+        $0.continuousClock = clock
+        $0.date = .constant(Date())
+        $0.api.searchSongs = { _, _ in [] }
+        $0.api.searchSongRequests = { _, _ in
+          let attempt = requestSearchCount.withValue {
+            $0 += 1
+            return $0
+          }
+          guard attempt > 1 else {
+            throw APIError.validationError("Apple Music rate limit exceeded")
+          }
+          try await clock.sleep(for: .seconds(1))
+          return []
+        }
+      } operation: {
+        let model = CuratorSongPickerPageModel(stationId: "s")
+        model.searchText = "clouds"
+        await clock.advance(by: .milliseconds(300))
+
+        let retryTask = Task { await model.requestRetryButtonTapped() }
+        await Task.yield()
+        #expect(model.isSearching)
+
+        await model.viewDisappeared()
+        await retryTask.value
+
+        #expect(!model.isSearching)
+      }
+    }
+  }
+
   // MARK: - Tab switching
 
   @Test func tabSwitchPreservesQueryAndAddedStateAndStopsPreview() async {

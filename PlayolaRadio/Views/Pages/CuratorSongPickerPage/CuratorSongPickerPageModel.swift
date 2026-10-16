@@ -77,6 +77,7 @@ class CuratorSongPickerPageModel: ViewModel {
   @ObservationIgnored private var processingRequestAppleIds: Set<String> = []
   @ObservationIgnored private var hasLoadedSuggestions = false
   @ObservationIgnored private var searchTask: Task<Void, Never>?
+  @ObservationIgnored private var searchID: UUID?
   @ObservationIgnored private var suggestionsTask: Task<Void, Never>?
 
   private let suggestionsPageSize = 20
@@ -132,8 +133,8 @@ class CuratorSongPickerPageModel: ViewModel {
   }
 
   func requestRetryButtonTapped() async {
-    await startSearchTask { [weak self] in
-      await self?.retryRequestSearch()
+    await startSearchTask { [weak self] searchID in
+      await self?.retryRequestSearch(searchID: searchID)
     }.value
   }
 
@@ -339,7 +340,7 @@ class CuratorSongPickerPageModel: ViewModel {
     // The retry belongs to the old query; leaving it tappable would mix new Apple Music results
     // with the old query's library results.
     requestSearchFailed = false
-    startSearchTask { [weak self] in
+    startSearchTask { [weak self] _ in
       guard let self else { return }
       do {
         try await clock.sleep(for: .milliseconds(300))
@@ -352,9 +353,11 @@ class CuratorSongPickerPageModel: ViewModel {
   }
 
   @discardableResult
-  private func startSearchTask(_ operation: @escaping () async -> Void) -> Task<Void, Never> {
+  private func startSearchTask(_ operation: @escaping (UUID) async -> Void) -> Task<Void, Never> {
     searchTask?.cancel()
-    let task = Task { await operation() }
+    let id = UUID()
+    searchID = id
+    let task = Task { await operation(id) }
     searchTask = task
     return task
   }
@@ -400,15 +403,19 @@ class CuratorSongPickerPageModel: ViewModel {
   }
 
   // Re-runs only the failed Apple Music half so the library results already on screen stay put.
-  private func retryRequestSearch() async {
+  private func retryRequestSearch(searchID: UUID) async {
     let query = trimmedSearchText
     guard !query.isEmpty, let jwt = auth.jwt else { return }
     isSearching = true
+    defer {
+      if self.searchID == searchID {
+        isSearching = false
+      }
+    }
     let foundRequests = await searchSongRequests(jwt: jwt, query: query)
     guard !Task.isCancelled else { return }
     songRequestResults = .init(foundRequests.results, uniquingIDsWith: { first, _ in first })
     requestSearchFailed = foundRequests.errorMessage != nil
-    isSearching = false
   }
 
   private func searchSongs(jwt: String, query: String) async -> (
