@@ -179,11 +179,13 @@ class HomePageModel: ViewModel {
   }
 
   func stationTapped(_ station: AnyStation) async {
-    if let item = stationItem(for: station),
-      WelcomeMessagePageModel.shouldPresent(
-        for: item,
-        eligible: welcomeMessageEligible,
-        alreadyShownThisSession: welcomeMessageShownThisSession)
+    guard let item = stationLists.playableItem(stationId: station.id, unlocked: showSecretStations)
+    else { return }
+
+    if WelcomeMessagePageModel.shouldPresent(
+      for: item,
+      eligible: welcomeMessageEligible,
+      alreadyShownThisSession: welcomeMessageShownThisSession)
     {
       presentWelcomeMessage(for: station)
       return
@@ -227,9 +229,8 @@ class HomePageModel: ViewModel {
 
     let stations =
       artistList
-      .stationItems(includeHidden: showSecretStations, includeComingSoon: true)
-      .filter { shouldShowStationItem($0, showSecretStations: showSecretStations) }
-      .filter { $0.anyStationIfPresent != nil }
+      .listedItems(unlocked: showSecretStations)
+      .filter { $0.visibility != .comingSoon || $0.isPlayable(unlocked: showSecretStations) }
       .sorted { $0.liveSortPriority(liveStations) < $1.liveSortPriority(liveStations) }
       .compactMap { $0.anyStationIfPresent }
 
@@ -360,12 +361,6 @@ class HomePageModel: ViewModel {
     mainContainerNavigationCoordinator.presentedSheet = .claim(model)
   }
 
-  private func stationItem(for station: AnyStation) -> APIStationItem? {
-    stationLists
-      .flatMap { $0.stationItems(includeHidden: true) }
-      .first { $0.anyStation.id == station.id }
-  }
-
   // Mirrors StationListModel.presentWelcomeMessage — the server "seen" stamp happens in
   // WelcomeMessagePageModel once the recording actually plays.
   private func presentWelcomeMessage(for station: AnyStation) {
@@ -472,11 +467,5 @@ class HomePageModel: ViewModel {
   private func navigateToSeriesListPage() {
     let model = SeriesListPageModel()
     mainContainerNavigationCoordinator.push(.seriesListPage(model))
-  }
-
-  private func shouldShowStationItem(_ item: APIStationItem, showSecretStations: Bool) -> Bool {
-    guard item.visibility == .comingSoon else { return true }
-    guard showSecretStations else { return false }
-    return item.station?.active == true
   }
 }

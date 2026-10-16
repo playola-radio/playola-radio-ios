@@ -23,6 +23,7 @@
 		5FC8624F2E9A60EADF328F05 /* ClaimSheetContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07E78959976B47486ADB0D4A /* ClaimSheetContent.swift */; };
 		0E3D75AC2808E0FC83FBE15B /* ClaimSheetContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07E78959976B47486ADB0D4A /* ClaimSheetContent.swift */; };
 		1FBAD6B8AC35E5683E79CF13 /* ClaimSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033C99F842A56F1BCDDCD43A /* ClaimSheetView.swift */; };
+		219100B6E226B5A2B0A6B7D8 /* StationListingPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C86D29AA99CE8CC14BB16767 /* StationListingPolicyTests.swift */; };
 		0B51568D8E93B74F923F7CDB /* ClaimSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033C99F842A56F1BCDDCD43A /* ClaimSheetView.swift */; };
 		95DCE3D5B66638B2F8EED419 /* ClaimSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C61842AC6F39D165F6B7E519 /* ClaimSheetTests.swift */; };
 		C11C43518324BAC0E91B7213 /* AddressFieldModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42FFFA75E4359DA912575D3 /* AddressFieldModel.swift */; };
@@ -32,6 +33,7 @@
 		7C2D1D0DEBE81765088E0133 /* ClaimFieldModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CAD2F3485430E4EEE1B8EB1 /* ClaimFieldModel.swift */; };
 		4AA2AD79E9488C61C6F663DE /* USStateCodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E3C9996DCA37D40A4552F1 /* USStateCodes.swift */; };
 		9D0294250B1108CACB20B95B /* AddressFieldModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 066BA1341DC897090E15E132 /* AddressFieldModelTests.swift */; };
+		A051F0E35F641E8D7FB0B7FC /* StationListingPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EB4A9B2BBE641E677629D5E /* StationListingPolicy.swift */; };
 		35E3F2AB74E3887F74E0C8F4 /* ClaimFieldModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF2BBBDB7DF73E8D1A1D5F47 /* ClaimFieldModelTests.swift */; };
 		03D9929612C3E595D9BD88D5 /* GiveawayParticipationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5283C7C8C9FAF45659BA98E /* GiveawayParticipationTests.swift */; };
 		0574C4A160288D8AE401D4C9 /* UpcomingGiveawayInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36EB0D70D43F1CF6504F637E /* UpcomingGiveawayInfo.swift */; };
@@ -45,12 +47,14 @@
 		1DFA251ED9768A3CF235AF92 /* PresetsModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4951B01E879591B4AC3CDA52 /* PresetsModelTests.swift */; };
 		1E09F417B01F258C6D38D660 /* GiveawayPlayerOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D3D10F16230F15FFF80C665 /* GiveawayPlayerOverlayView.swift */; };
 		1E1FEF5BE44432473298C8CB /* ShippingAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EC624A968B0E0DA09E64702 /* ShippingAddress.swift */; };
+		1F05B2BE7DA97420E75DD846 /* StationListingPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EB4A9B2BBE641E677629D5E /* StationListingPolicy.swift */; };
 		1F6F57E01E254F5483BD939B /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E8719F70AFA4992B9037775 /* Preset.swift */; };
 		23D5CA2938294DB58EB23395 /* ShippingAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EC624A968B0E0DA09E64702 /* ShippingAddress.swift */; };
 		A9F1000000000000000000A2 /* FulfillmentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F1000000000000000000A1 /* FulfillmentRequest.swift */; };
 		A9F1000000000000000000A3 /* FulfillmentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F1000000000000000000A1 /* FulfillmentRequest.swift */; };
 		A9F1000000000000000000B2 /* FulfillmentRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F1000000000000000000B1 /* FulfillmentRequestTests.swift */; };
 		24801FB664BFA5B73E518BC3 /* RewardsExperience.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBD876AFF9DD0588179EB37B /* RewardsExperience.swift */; };
+		24F91C532CA7F88C98FB5E22 /* CarPlaySceneDelegateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB4A8E7E29181C814FDA326E /* CarPlaySceneDelegateTests.swift */; };
 		2613B751F316B4688367E6D7 /* UpcomingGiveawayBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73585D96F0A0EB79FFD39F8E /* UpcomingGiveawayBadge.swift */; };
 		2891A2D21D67E32129F5F2ED /* YourLibraryPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B5384ED9FE3A984F23C18BA /* YourLibraryPageTests.swift */; };
 		2ADE71F9A72B59B6B6C727B5 /* GiveawayWinnerPendingPush.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C547ECE1FDB131CE832D3D /* GiveawayWinnerPendingPush.swift */; };
@@ -720,6 +724,7 @@
 		07E78959976B47486ADB0D4A /* ClaimSheetContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimSheetContent.swift; sourceTree = "<group>"; };
 		033C99F842A56F1BCDDCD43A /* ClaimSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimSheetView.swift; sourceTree = "<group>"; };
 		C61842AC6F39D165F6B7E519 /* ClaimSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimSheetTests.swift; sourceTree = "<group>"; };
+		C86D29AA99CE8CC14BB16767 /* StationListingPolicyTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StationListingPolicyTests.swift; sourceTree = "<group>"; };
 		D42FFFA75E4359DA912575D3 /* AddressFieldModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressFieldModel.swift; sourceTree = "<group>"; };
 		3CAD2F3485430E4EEE1B8EB1 /* ClaimFieldModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimFieldModel.swift; sourceTree = "<group>"; };
 		68E3C9996DCA37D40A4552F1 /* USStateCodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USStateCodes.swift; sourceTree = "<group>"; };
@@ -730,6 +735,7 @@
 		0488057E2A6456204E582B15 /* CongratsActionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CongratsActionTests.swift; sourceTree = "<group>"; };
 		1493664DBC23415D4EE04C91 /* GiveawayCongratsSheetView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayCongratsSheetView.swift; sourceTree = "<group>"; };
 		1DBB4FE7E4F57517A32804E0 /* GiveawayCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayCoordinator.swift; sourceTree = "<group>"; };
+		1EB4A9B2BBE641E677629D5E /* StationListingPolicy.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StationListingPolicy.swift; sourceTree = "<group>"; };
 		2261DEC52F41A8CC973B73FF /* GiveawayCongratsSheetModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayCongratsSheetModelTests.swift; sourceTree = "<group>"; };
 		2B82DD37711E160592E3842D /* GiveawayMyResult.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayMyResult.swift; sourceTree = "<group>"; };
 		36EB0D70D43F1CF6504F637E /* UpcomingGiveawayInfo.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UpcomingGiveawayInfo.swift; sourceTree = "<group>"; };
@@ -1080,6 +1086,7 @@
 		E1AB0000000000000000AA02 /* AppVersionGateModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersionGateModelTests.swift; sourceTree = "<group>"; };
 		E1CA0000000000000000A001 /* CarPlayPlaybackTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayPlaybackTransition.swift; sourceTree = "<group>"; };
 		E1CA0000000000000000A004 /* CarPlayPlaybackTransitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayPlaybackTransitionTests.swift; sourceTree = "<group>"; };
+		EB4A8E7E29181C814FDA326E /* CarPlaySceneDelegateTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegateTests.swift; sourceTree = "<group>"; };
 		F43C99E3FBFDF4522AA71C3C /* UpcomingGiveawayBanner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UpcomingGiveawayBanner.swift; sourceTree = "<group>"; };
 		F5283C7C8C9FAF45659BA98E /* GiveawayParticipationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayParticipationTests.swift; sourceTree = "<group>"; };
 		FAD00000000000000000000B /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
@@ -1528,6 +1535,8 @@
 				BEEF00000000000000000301 /* StationSetupProgressTests.swift */,
 				BEEF00000000000000000201 /* StationCategoryProgress.swift */,
 				BEEF00000000000000000401 /* StationCategoryProgressTests.swift */,
+				1EB4A9B2BBE641E677629D5E /* StationListingPolicy.swift */,
+				C86D29AA99CE8CC14BB16767 /* StationListingPolicyTests.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1732,6 +1741,7 @@
 				D35673AF2D3DC54F00E4E926 /* CarPlaySceneDelegate.swift */,
 				E1CA0000000000000000A001 /* CarPlayPlaybackTransition.swift */,
 				E1CA0000000000000000A004 /* CarPlayPlaybackTransitionTests.swift */,
+				EB4A8E7E29181C814FDA326E /* CarPlaySceneDelegateTests.swift */,
 			);
 			path = CarPlay;
 			sourceTree = "<group>";
@@ -2775,6 +2785,7 @@
 				A9F1000000000000000000A2 /* FulfillmentRequest.swift in Sources */,
 				EAFEAD89072009BB8142CF3A /* KoozieTileModel.swift in Sources */,
 				6A6D03832896B38A5CBE843A /* KoozieTileSection.swift in Sources */,
+				A051F0E35F641E8D7FB0B7FC /* StationListingPolicy.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3043,6 +3054,7 @@
 				A9F1000000000000000000A3 /* FulfillmentRequest.swift in Sources */,
 				35CB87DC50E3ED61D6FEA027 /* KoozieTileModel.swift in Sources */,
 				5C0327C159D6D3268DBB9EB7 /* KoozieTileSection.swift in Sources */,
+				1F05B2BE7DA97420E75DD846 /* StationListingPolicy.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3172,6 +3184,8 @@
 				C41A0D9E7B2F4A6081D35E75 /* ChoicePickerModelTests.swift in Sources */,
 				95DCE3D5B66638B2F8EED419 /* ClaimSheetTests.swift in Sources */,
 				0A70B3257BA0A86D3F1AA9E5 /* KoozieTileModelTests.swift in Sources */,
+				219100B6E226B5A2B0A6B7D8 /* StationListingPolicyTests.swift in Sources */,
+				24F91C532CA7F88C98FB5E22 /* CarPlaySceneDelegateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

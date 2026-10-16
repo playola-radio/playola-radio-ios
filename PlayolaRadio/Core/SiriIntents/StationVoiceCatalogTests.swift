@@ -71,21 +71,52 @@ struct StationVoiceCatalogTests {
     #expect(StationVoiceCatalog().station(id: "nonexistent") == nil)
   }
 
+  // StationList.mocks covers all three gated shapes: a list flagged hidden whose item is
+  // visible ("mock-playola-id"), a hidden item ("kftx-id"), and a coming-soon item
+  // ("lakes-country-id"). Only the item's own visibility gates it, never the list flag.
   @Test
-  func testHiddenAndComingSoonStationsAreIncluded() {
-    // Siri fails toward inclusion: a station gated behind the secret-stations
-    // unlock everywhere else is still voice-playable. StationList.mocks covers
-    // all three gated shapes — a hidden list ("mock-playola-id"), a hidden item
-    // ("kftx-id"), and a coming-soon item ("lakes-country-id").
+  func testSecretStationNotMatchableWhenLocked() {
     @Shared(.stationLists) var stationLists = StationList.mocks
+    @Shared(.showSecretStations) var showSecretStations = false
+    let catalog = StationVoiceCatalog()
+
+    #expect(!catalog.suggestedStations().map(\.id).contains("kftx-id"))
+    #expect(catalog.station(id: "kftx-id") == nil)
+    #expect(catalog.match(id: "kftx-id") == nil)
+    #expect(catalog.matches(query: "97.5 KFTX").isEmpty)
+  }
+
+  @Test
+  func testComingSoonStationNotMatchableWhenLocked() {
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    @Shared(.showSecretStations) var showSecretStations = false
+    let catalog = StationVoiceCatalog()
+
+    #expect(!catalog.suggestedStations().map(\.id).contains("lakes-country-id"))
+    #expect(catalog.station(id: "lakes-country-id") == nil)
+    #expect(catalog.matches(query: "Lakes Country").isEmpty)
+  }
+
+  @Test
+  func testVisibleStationInHiddenFlaggedListStaysMatchableWhenLocked() {
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    @Shared(.showSecretStations) var showSecretStations = false
+    let catalog = StationVoiceCatalog()
+
+    #expect(catalog.station(id: "mock-playola-id")?.id == "mock-playola-id")
+    #expect(catalog.matches(query: "Banned Radio").first?.id == "mock-playola-id")
+  }
+
+  @Test
+  func testSecretStationMatchableWhenUnlocked() {
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    @Shared(.showSecretStations) var showSecretStations = true
     let catalog = StationVoiceCatalog()
     let suggestedIDs = Set(catalog.suggestedStations().map(\.id))
-    #expect(suggestedIDs.contains("mock-playola-id"))
+
     #expect(suggestedIDs.contains("kftx-id"))
     #expect(suggestedIDs.contains("lakes-country-id"))
-    #expect(catalog.station(id: "mock-playola-id")?.id == "mock-playola-id")
     #expect(catalog.match(id: "kftx-id")?.label == "97.5 KFTX")
-    #expect(catalog.matches(query: "Banned Radio").first?.id == "mock-playola-id")
   }
 
   @Test

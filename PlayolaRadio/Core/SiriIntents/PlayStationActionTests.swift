@@ -51,6 +51,21 @@ struct PlayStationActionTests {
   }
 
   @Test
+  func testRunReturnsNotFoundForSecretStationWhenLocked() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    let player = StationPlayerMock()
+    let outcome = await withDependencies {
+      $0.stationPlayer = player
+    } operation: {
+      await PlayStationAction().run(stationID: "kftx-id")
+    }
+    #expect(outcome == .notFound)
+    #expect(player.callsToPlay.isEmpty)
+  }
+
+  @Test
   func testLoggedInValidStationPlaysAndReturnsPlaying() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.stationLists) var stationLists = makeStationLists()
