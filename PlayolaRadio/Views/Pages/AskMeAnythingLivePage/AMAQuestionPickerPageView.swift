@@ -151,11 +151,15 @@ private struct AMAQuestionRow: View {
   private var header: some View {
     HStack(spacing: 12) {
       VStack(alignment: .leading, spacing: 2) {
+        Text(model.listenerName(question))
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
+          .foregroundColor(.playolaTextPrimary)
+          .lineLimit(1)
+
         HStack(spacing: 6) {
-          Text(model.listenerName(question))
-            .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
-            .foregroundColor(.playolaTextPrimary)
-            .lineLimit(1)
+          Text(model.timeAgoText(question))
+            .font(.custom(FontNames.Inter_400_Regular, size: 12))
+            .foregroundColor(.playolaTextSecondary)
 
           ForEach(model.askedDuringShowBadges(question), id: \.self) { badge in
             Text(badge)
@@ -168,10 +172,6 @@ private struct AMAQuestionRow: View {
               .fixedSize()
           }
         }
-
-        Text(model.timeAgoText(question))
-          .font(.custom(FontNames.Inter_400_Regular, size: 12))
-          .foregroundColor(.playolaTextSecondary)
       }
 
       Spacer()

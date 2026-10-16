@@ -170,6 +170,22 @@ struct AMAQuestionBadgeTests {
     expectNoDifference(model.listenerQuestions.map(\.id), ["newer"])
   }
 
+  @Test func aNonNetworkQuestionRefreshFailureIsReported() async {
+    struct RefreshFailure: Error {}
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportedTags = LockIsolated<[String: String]?>(nil)
+    let model = withDependencies {
+      $0.api.getListenerQuestions = { _, _ in throw RefreshFailure() }
+      $0.errorReporting.reportError = { _, tags in reportedTags.setValue(tags) }
+    } operation: {
+      AskMeAnythingLivePageModel(stationId: testStationId)
+    }
+
+    await model.refreshListenerQuestions()
+
+    expectNoDifference(reportedTags.value?["endpoint"], "getListenerQuestions")
+  }
+
   @Test func qaBadgePicksUpQuestionsArrivingDuringTheShow() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     await withMainSerialExecutor {

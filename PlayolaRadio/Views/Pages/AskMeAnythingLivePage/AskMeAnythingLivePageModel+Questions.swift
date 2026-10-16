@@ -174,10 +174,16 @@ extension AskMeAnythingLivePageModel {
     guard let jwt = auth.jwt else { return }
     listenerQuestionsRequestCount += 1
     let request = listenerQuestionsRequestCount
-    guard let refreshed = try? await api.getListenerQuestions(jwt, stationId),
-      request > appliedListenerQuestionsRequest
-    else { return }
-    appliedListenerQuestionsRequest = request
-    listenerQuestions = refreshed
+    do {
+      let refreshed = try await api.getListenerQuestions(jwt, stationId)
+      guard request > appliedListenerQuestionsRequest else { return }
+      appliedListenerQuestionsRequest = request
+      listenerQuestions = refreshed
+    } catch {
+      guard !Task.isCancelled, !NetworkErrorClassifier.isNetworkError(error) else { return }
+      var tags = NetworkErrorClassifier.errorTags(for: error)
+      tags["endpoint"] = "getListenerQuestions"
+      await errorReporting.reportError(error, tags)
+    }
   }
 }
