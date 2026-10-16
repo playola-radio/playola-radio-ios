@@ -178,7 +178,10 @@ struct AMALiveContentView: View {
       HStack(spacing: 8) {
         action(icon: "mic", label: model.voicetrackActionLabel) { model.voicetrackActionTapped() }
         action(icon: "music-2", label: model.songActionLabel) { model.songActionTapped() }
-        action(icon: "messages-square", label: model.qaActionLabel) {
+        action(
+          icon: "messages-square", label: model.qaActionLabel, badges: model.qaBadgeLabels,
+          badgeAccessibilityLabel: model.qaBadgeAccessibilityLabel
+        ) {
           model.qaActionTapped()
         }
         .disabled(!model.canAddQuestion)
@@ -193,7 +196,10 @@ struct AMALiveContentView: View {
     .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.playolaGlassHairline, lineWidth: 1))
   }
 
-  private func action(icon: String, label: String, tapped: @escaping () -> Void) -> some View {
+  private func action(
+    icon: String, label: String, badges: [String] = [], badgeAccessibilityLabel: String = "",
+    tapped: @escaping () -> Void
+  ) -> some View {
     Button(action: tapped) {
       VStack(spacing: 8) {
         ZStack(alignment: .bottomTrailing) {
@@ -201,6 +207,18 @@ struct AMALiveContentView: View {
             .overlay(Circle().stroke(Color.white, lineWidth: 2))
             .overlay(Image("AMA-" + icon).resizable().scaledToFit().frame(width: 28, height: 28))
             .frame(width: 64, height: 64)
+            .overlay(alignment: .topTrailing) {
+              ForEach(badges, id: \.self) { badge in
+                Text(badge)
+                  .font(.custom(FontNames.Inter_600_SemiBold, size: 12))
+                  .foregroundStyle(Color.playolaRed)
+                  .padding(.horizontal, 6)
+                  .frame(minWidth: 22, minHeight: 22)
+                  .background(Capsule().fill(Color.white))
+                  .offset(x: 4, y: -4)
+                  .accessibilityLabel(badgeAccessibilityLabel)
+              }
+            }
           Circle().fill(Color.playolaWarmSurface)
             .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
             .overlay(Image("AMA-plus").resizable().scaledToFit().frame(width: 14, height: 14))

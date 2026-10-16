@@ -65,7 +65,7 @@ class AMAQuestionPickerPageModel: ViewModel {
   let collapseTranscriptText = "Collapse transcript"
   let answeredBadgeText = "Answered"
   let unansweredBadgeText = "Unanswered"
-  let newThisShowText = "New this show"
+  let askedDuringShowText = "Asked during show"
   let missingTranscriptionText = "No transcription available"
   let unknownListenerText = "Listener"
   let declineButtonText = "Decline"
@@ -254,9 +254,8 @@ class AMAQuestionPickerPageModel: ViewModel {
     canDecline(question) ? [question] : []
   }
 
-  func isNewThisShow(_ question: ListenerQuestion) -> Bool {
-    guard let showStartedAt else { return false }
-    return question.createdAt >= showStartedAt
+  func askedDuringShowBadges(_ question: ListenerQuestion) -> [String] {
+    question.wasAskedDuringShow(startingAt: showStartedAt) ? [askedDuringShowText] : []
   }
 
   func listenerName(_ question: ListenerQuestion) -> String {
@@ -270,8 +269,7 @@ class AMAQuestionPickerPageModel: ViewModel {
   func timeAgoText(_ question: ListenerQuestion) -> String {
     let formatter = RelativeDateTimeFormatter()
     formatter.unitsStyle = .full
-    let relative = formatter.localizedString(for: question.createdAt, relativeTo: now)
-    return isNewThisShow(question) ? "\(relative) · \(newThisShowText)" : relative
+    return formatter.localizedString(for: question.createdAt, relativeTo: now)
   }
 
   func durationText(_ question: ListenerQuestion) -> String {

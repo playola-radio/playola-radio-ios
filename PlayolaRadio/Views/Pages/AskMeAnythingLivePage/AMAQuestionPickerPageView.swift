@@ -154,10 +154,24 @@ private struct AMAQuestionRow: View {
         Text(model.listenerName(question))
           .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
           .foregroundColor(.playolaTextPrimary)
+          .lineLimit(1)
 
-        Text(model.timeAgoText(question))
-          .font(.custom(FontNames.Inter_400_Regular, size: 12))
-          .foregroundColor(.playolaTextSecondary)
+        HStack(spacing: 6) {
+          Text(model.timeAgoText(question))
+            .font(.custom(FontNames.Inter_400_Regular, size: 12))
+            .foregroundColor(.playolaTextSecondary)
+
+          ForEach(model.askedDuringShowBadges(question), id: \.self) { badge in
+            Text(badge)
+              .font(.custom(FontNames.Inter_600_SemiBold, size: 11))
+              .foregroundColor(.playolaRed)
+              .padding(.horizontal, 8)
+              .padding(.vertical, 3)
+              .background(Color.playolaBrandSoft18)
+              .cornerRadius(10)
+              .fixedSize()
+          }
+        }
       }
 
       Spacer()

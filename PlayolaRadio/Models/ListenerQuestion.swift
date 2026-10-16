@@ -32,6 +32,11 @@ struct ListenerQuestion: Codable, Identifiable, Equatable {
 
   var transcription: String? { audioBlock?.transcription }
   var durationMS: Int? { audioBlock?.durationMS }
+
+  func wasAskedDuringShow(startingAt showStartedAt: Date?) -> Bool {
+    guard let showStartedAt else { return false }
+    return createdAt >= showStartedAt
+  }
 }
 
 struct ListenerQuestionListener: Codable, Equatable {

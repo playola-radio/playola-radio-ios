@@ -47,7 +47,13 @@ extension AskMeAnythingLivePageModel {
       openingItems.removeAll()
     }
     let showSpins = schedule.current().filter { $0.liveShowId == showId }
-    if scheduledStartsAt == nil { scheduledStartsAt = showSpins.first?.airtime }
+    if scheduledStartsAt == nil {
+      let observedStart = schedule.spins.filter { $0.liveShowId == showId }.map(\.airtime).min()
+      scheduledStartsAt = amaShowStartTimes[showId] ?? observedStart
+      if let scheduledStartsAt, amaShowStartTimes[showId] == nil {
+        $amaShowStartTimes.withLock { $0[showId] = scheduledStartsAt }
+      }
+    }
     let filler = showSpins.filter { $0.isFiller == true }
     broadcast.visibleFillerIds.formIntersection(Set(filler.map(\.id)))
     let newlyVisible = filler.filter {
@@ -64,9 +70,9 @@ extension AskMeAnythingLivePageModel {
   func loadLiveMetadata() async {
     guard let jwt = auth.jwt else { return }
     async let sessions = try? api.getActiveListeningSessions(jwt, stationId, now, nil)
-    async let questions = try? api.getListenerQuestions(jwt, stationId)
+    async let questionsRefresh: Void = refreshListenerQuestions()
     listenerCount = await sessions?.summary.uniqueUsers
-    if let questions = await questions { listenerQuestions = questions }
+    await questionsRefresh
   }
 
   var isWaitingToAir: Bool {

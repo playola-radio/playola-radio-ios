@@ -78,7 +78,7 @@ extension AskMeAnythingLivePageModel {
         uncertain.answer, baselineSpinIds: uncertain.baselineSpinIds)
       uncertainQuestionAirings[questionAnswer.questionId] = nil
       if didAir {
-        await refreshListenerQuestionsAfterAiring()
+        await refreshListenerQuestions()
         updateLivePresentation()
         return
       }
@@ -93,7 +93,7 @@ extension AskMeAnythingLivePageModel {
       questionAnswer, placeAfterSpinId: placeAfterSpinId, baselineSpinIds: baselineSpinIds)
     guard broadcast.liveShowId == showId else { throw CancellationError() }
 
-    await refreshListenerQuestionsAfterAiring()
+    await refreshListenerQuestions()
     updateLivePresentation()
   }
 
@@ -166,13 +166,24 @@ extension AskMeAnythingLivePageModel {
     }
   }
 
-  /// Best-effort refresh so `liveRows` can group the freshly aired Q&A pair under the listener's
-  /// name. The Q&A has already aired; a failure here only degrades row labeling and must never
-  /// re-air.
-  private func refreshListenerQuestionsAfterAiring() async {
+  /// Best-effort refresh that keeps the Q/A badge current and lets `liveRows` group a freshly
+  /// aired Q&A pair under the listener's name. After an airing the Q&A has already aired; a
+  /// failure here only degrades labeling and must never re-air. Responses that resolve out of
+  /// order are dropped so an older fetch never undoes a newer one.
+  func refreshListenerQuestions() async {
     guard let jwt = auth.jwt else { return }
-    if let refreshed = try? await api.getListenerQuestions(jwt, stationId) {
+    listenerQuestionsRequestCount += 1
+    let request = listenerQuestionsRequestCount
+    do {
+      let refreshed = try await api.getListenerQuestions(jwt, stationId)
+      guard request > appliedListenerQuestionsRequest else { return }
+      appliedListenerQuestionsRequest = request
       listenerQuestions = refreshed
+    } catch {
+      guard !Task.isCancelled, !NetworkErrorClassifier.isNetworkError(error) else { return }
+      var tags = NetworkErrorClassifier.errorTags(for: error)
+      tags["endpoint"] = "getListenerQuestions"
+      await errorReporting.reportError(error, tags)
     }
   }
 }

@@ -32,7 +32,7 @@ struct AskMeAnythingLivePageView: View {
     }
     .background(Color.playolaSurfaceBase)
     .navigationBarHidden(true)
-    .task { await model.viewAppeared() }
+    .task { await model.task() }
     .onChange(of: model.broadcast.currentNowPlayingId) { model.schedulePlaybackChanged() }
     .onChange(of: model.broadcast.schedule) { model.schedulePlaybackChanged() }
     .playolaAlert($model.presentedAlert)
