@@ -21,12 +21,14 @@ class AskMeAnythingLivePageModel: ViewModel {
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
   @ObservationIgnored @Dependency(\.audioRecorder) var audioRecorder
+  @ObservationIgnored @Dependency(\.continuousClock) var clock
 
   // MARK: - Shared State
 
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.amaOpeningDrafts) var amaOpeningDrafts
+  @ObservationIgnored @Shared(.amaShowStartTimes) var amaShowStartTimes
 
   // MARK: - Initialization
 
@@ -80,6 +82,19 @@ class AskMeAnythingLivePageModel: ViewModel {
   @ObservationIgnored var uploadTasks: [UUID: Task<Void, Never>] = [:]
 
   // MARK: - User Actions
+
+  func task() async {
+    await viewAppeared()
+    while !Task.isCancelled {
+      do {
+        try await clock.sleep(for: .seconds(10))
+      } catch {
+        break
+      }
+      guard isShowActive else { continue }
+      await refreshListenerQuestions()
+    }
+  }
 
   func viewAppeared() async {
     guard !isAddingToShow, !isEndingShow else { return }
@@ -185,6 +200,7 @@ class AskMeAnythingLivePageModel: ViewModel {
       clearOpeningDraft()
       try? await $amaOpeningDrafts.save()
       scheduledStartsAt = response.scheduledStartsAt
+      $amaShowStartTimes.withLock { $0 = [response.liveShowId: response.scheduledStartsAt] }
       broadcast.visibleFillerIds = []
       hasPresentedSchedule = false
       effectiveEndsAt = nil
@@ -340,6 +356,18 @@ class AskMeAnythingLivePageModel: ViewModel {
   var voicetrackActionLabel: String { "Voicetrack" }
   var songActionLabel: String { "Song" }
   var qaActionLabel: String { "Q/A" }
+  var newShowQuestionCount: Int {
+    guard isShowActive else { return 0 }
+    return listenerQuestions.filter {
+      $0.status == .pending && $0.wasAskedDuringShow(startingAt: scheduledStartsAt)
+    }.count
+  }
+  var qaBadgeLabels: [String] {
+    newShowQuestionCount == 0 ? [] : [newShowQuestionCount > 99 ? "99+" : "\(newShowQuestionCount)"]
+  }
+  var qaBadgeAccessibilityLabel: String {
+    newShowQuestionCount == 1 ? "1 new question" : "\(newShowQuestionCount) new questions"
+  }
 
   private var readyMilliseconds: Int {
     openingItems.reduce(0) { $0 + $1.readyDurationMS }

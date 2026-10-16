@@ -688,6 +688,7 @@
 		AF1000000000000000000002 /* AMAQueuePlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000003 /* AMAQueuePlacement.swift */; };
 		AF1000000000000000000004 /* AMAQueuePlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000005 /* AMAQueuePlacementTests.swift */; };
 		7EE71A663259435CAB224095 /* AMADraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B613D7A104E349D9A15E0554 /* AMADraftTests.swift */; };
+		A1B2C3D4E5F60718293A4B01 /* AMAQuestionBadgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B02 /* AMAQuestionBadgeTests.swift */; };
 		AB60901F7E4B485A9B828F8A /* AMAOpeningDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F0516EDD754AF79351E4CA /* AMAOpeningDraft.swift */; };
 		35C33AD86471431C84A4CE45 /* AMAOpeningDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F0516EDD754AF79351E4CA /* AMAOpeningDraft.swift */; };
 		A9F1000000000000000000C2 /* ClaimAPIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F1000000000000000000C1 /* ClaimAPIError.swift */; };
@@ -1106,6 +1107,7 @@
 		AF1000000000000000000003 /* AMAQueuePlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQueuePlacement.swift; sourceTree = "<group>"; };
 		AF1000000000000000000005 /* AMAQueuePlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQueuePlacementTests.swift; sourceTree = "<group>"; };
 		B613D7A104E349D9A15E0554 /* AMADraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMADraftTests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B02 /* AMAQuestionBadgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQuestionBadgeTests.swift; sourceTree = "<group>"; };
 		79F0516EDD754AF79351E4CA /* AMAOpeningDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAOpeningDraft.swift; sourceTree = "<group>"; };
 		A9F1000000000000000000C1 /* ClaimAPIError.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClaimAPIError.swift; sourceTree = "<group>"; };
 		A9F1000000000000000000D1 /* ClaimAPIErrorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClaimAPIErrorTests.swift; sourceTree = "<group>"; };
@@ -1340,6 +1342,7 @@
 				DDA0000000000000000B0091 /* AskMeAnythingLiveAirQuestionTests.swift */,
 				AF1000000000000000000003 /* AMAQueuePlacement.swift */,
 				B613D7A104E349D9A15E0554 /* AMADraftTests.swift */,
+				A1B2C3D4E5F60718293A4B02 /* AMAQuestionBadgeTests.swift */,
 				AF1000000000000000000005 /* AMAQueuePlacementTests.swift */,
 				CC0000000000000000000704 /* AskMeAnythingLivePageView.swift */,
 				CC0000000000000000000707 /* AskMeAnythingLivePageTests.swift */,
@@ -3078,6 +3081,7 @@
 				CC0000000000000000000708 /* AskMeAnythingLivePageTests.swift in Sources */,
 				A1C4E243012B0E186CC7680B /* AMALivePresentationTests.swift in Sources */,
 				7EE71A663259435CAB224095 /* AMADraftTests.swift in Sources */,
+				A1B2C3D4E5F60718293A4B01 /* AMAQuestionBadgeTests.swift in Sources */,
 				AF1000000000000000000004 /* AMAQueuePlacementTests.swift in Sources */,
 				DDA0000000000000000B0002 /* AMAQuestionPickerPageTests.swift in Sources */,
 				DDA0000000000000000B0012 /* AMAAnswerQuestionPageTests.swift in Sources */,

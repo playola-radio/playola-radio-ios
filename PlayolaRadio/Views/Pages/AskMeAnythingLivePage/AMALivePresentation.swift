@@ -47,7 +47,12 @@ extension AskMeAnythingLivePageModel {
       openingItems.removeAll()
     }
     let showSpins = schedule.current().filter { $0.liveShowId == showId }
-    if scheduledStartsAt == nil { scheduledStartsAt = showSpins.first?.airtime }
+    if scheduledStartsAt == nil {
+      scheduledStartsAt = amaShowStartTimes[showId] ?? showSpins.first?.airtime
+      if let scheduledStartsAt, amaShowStartTimes[showId] == nil {
+        $amaShowStartTimes.withLock { $0 = [showId: scheduledStartsAt] }
+      }
+    }
     let filler = showSpins.filter { $0.isFiller == true }
     broadcast.visibleFillerIds.formIntersection(Set(filler.map(\.id)))
     let newlyVisible = filler.filter {

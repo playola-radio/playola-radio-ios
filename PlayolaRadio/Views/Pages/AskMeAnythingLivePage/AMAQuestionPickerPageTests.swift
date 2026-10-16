@@ -689,7 +689,7 @@ struct AMAQuestionPickerPageTests {
     expectNoDifference(model.questions[id: "pending"]?.status, .declined)
   }
 
-  @Test func marksQuestionsCreatedAfterShowStartAsNewThisShow() async {
+  @Test func badgesQuestionsAskedDuringTheShow() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let showStart = baseDate.addingTimeInterval(-100)
     let before = ListenerQuestion.mockWith(
@@ -699,8 +699,17 @@ struct AMAQuestionPickerPageTests {
       questions: [before, after], showStartedAt: showStart, addToShow: noopAdd)
     await model.viewAppeared()
 
-    #expect(!model.isNewThisShow(before))
-    #expect(model.isNewThisShow(after))
+    expectNoDifference(model.askedDuringShowBadges(before), [])
+    expectNoDifference(model.askedDuringShowBadges(after), ["Asked during show"])
+  }
+
+  @Test func noQuestionIsBadgedWhenThereIsNoShow() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let question = ListenerQuestion.mockWith(createdAt: baseDate)
+    let model = makeModel(questions: [question], addToShow: noopAdd)
+    await model.viewAppeared()
+
+    expectNoDifference(model.askedDuringShowBadges(question), [])
   }
 
   @Test func answeredRowTapPushesTheDetailScreenWithoutAdding() async {

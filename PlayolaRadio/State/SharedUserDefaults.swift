@@ -329,6 +329,17 @@ where Self == FileStorageKey<[String: [String: IdentifiedArrayOf<AMAOpeningItem>
   }
 }
 
+extension SharedKey where Self == FileStorageKey<[String: Date]>.Default {
+  /// Start time of the curator's current Ask Me Anything show, keyed by live show id, so
+  /// re-entering the show mid-way still knows which questions were asked during it.
+  static var amaShowStartTimes: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "ama-show-start-times.json")),
+      default: [:]
+    ]
+  }
+}
+
 extension SharedKey where Self == InMemoryKey<[FulfillmentRequest]>.Default {
   /// Last successfully fetched prize requests. Kept when a refetch fails; never persisted.
   static var fulfillmentRequests: Self {
