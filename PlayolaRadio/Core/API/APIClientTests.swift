@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 12/31/25.
 //
 
+import CustomDump
 import Foundation
 import Testing
 
@@ -13,6 +14,25 @@ import Testing
 @Suite(.freshSharedState)
 @MainActor
 struct APIClientTests {
+
+  @Test
+  func rewardRedemptionResponseDecodesFulfillmentRequest() throws {
+    let request = try decodeRewardRedemptionResponse(
+      Data(
+        """
+        {"id":"r1","status":"awaiting_info","source":"reward","giveawayEventId":null,
+         "prize":null,"infoFields":[],"infoAnswers":{}}
+        """.utf8))
+
+    expectNoDifference(request.id, "r1")
+  }
+
+  @Test
+  func malformedRewardRedemptionResponseMapsToConflict() {
+    #expect(throws: ClaimAPIError.conflict) {
+      try decodeRewardRedemptionResponse(Data("not JSON".utf8))
+    }
+  }
 
   // MARK: - URL Encoding Tests
 

@@ -1030,6 +1030,56 @@ struct HomePageTests {
     #expect(coordinator.presentedSheet == .share(ShareSheetModel(items: ["x"])))
   }
 
+  @Test func testTappingAPrizeTileNeverReplacesAnOpenClaimSheet() async {
+    @Shared(.fulfillmentRequests) var requests = [FulfillmentRequest.mock()]
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = HomePageModel()
+    await model.prizeTileModels[0].onButtonTapped()
+    let original = claimModel(in: coordinator)
+
+    await model.prizeTileModels[0].onButtonTapped()
+
+    #expect(original != nil)
+    #expect(claimModel(in: coordinator) === original)
+  }
+
+  @Test func testTappingAPrizeTileNeverReplacesAnotherOpenSheetOrStampsTheWin() async {
+    @Shared(.giveawayParticipations) var participations = [
+      "event-1": GiveawayParticipation.mockWon(id: "event-1")
+    ]
+    @Shared(.fulfillmentRequests) var requests = [
+      FulfillmentRequest.mock(giveawayEventId: "event-1")
+    ]
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let share = ShareSheetModel(items: ["x"])
+    coordinator.presentedSheet = .share(share)
+    let model = HomePageModel()
+
+    await model.prizeTileModels[0].onButtonTapped()
+
+    expectNoDifference(coordinator.presentedSheet, .share(share))
+    expectNoDifference(participations["event-1"]?.winnerSheetPresentedAt, nil)
+  }
+
+  @Test func testTappingAKoozieTileNeverReplacesAnOpenSheetOrMarksThePromptShown() async {
+    @Shared(.auth) var auth = Auth(
+      currentUser: LoggedInUser(id: "user-1", firstName: "Me", email: "me@playola.fm"),
+      jwt: "token")
+    @Shared(.koozieClaimPromptShownUserIds) var shown = []
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let share = ShareSheetModel(items: ["x"])
+    coordinator.presentedSheet = .share(share)
+    let model = makeHomeWithClaimableKoozie()
+
+    await model.prizeTileModels[0].onButtonTapped()
+
+    expectNoDifference(coordinator.presentedSheet, .share(share))
+    #expect(shown.isEmpty)
+  }
+
   @Test func testClosingAnOlderClaimSheetNeverDismissesANewerClaimSheet() async {
     @Shared(.fulfillmentRequests) var requests = [FulfillmentRequest.mock()]
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
@@ -1037,6 +1087,7 @@ struct HomePageTests {
     let model = HomePageModel()
     await model.prizeTileModels[0].onButtonTapped()
     let older = claimModel(in: coordinator)
+    coordinator.presentedSheet = nil
     await model.prizeTileModels[0].onButtonTapped()
     let newer = claimModel(in: coordinator)
     #expect(older !== newer)

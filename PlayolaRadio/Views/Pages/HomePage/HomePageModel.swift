@@ -205,8 +205,8 @@ class HomePageModel: ViewModel {
       let koozie = listeningTimeTileModel.koozieTileModel,
       let claim = koozie.rewardClaim
     else { return }
+    guard presentClaimSheet(.reward(claim), onClaimed: { koozie.markClaimed() }) else { return }
     markKooziePromptShown()
-    presentClaimSheet(.reward(claim), onClaimed: { koozie.markClaimed() })
   }
 
   // MARK: - View Helpers
@@ -306,8 +306,8 @@ class HomePageModel: ViewModel {
       buttonText: "Claim your prize",
       buttonAction: { [weak self] in
         guard let self else { return }
+        guard self.presentClaimSheet(.request(request)) else { return }
         self.markGiveawayWinPresented(for: request)
-        self.presentClaimSheet(.request(request))
         await self.analytics.track(.prizeTileTapped(source: source))
       }
     )
@@ -323,8 +323,10 @@ class HomePageModel: ViewModel {
       buttonText: "Claim my koozie",
       buttonAction: { [weak self] in
         guard let self else { return }
+        guard self.presentClaimSheet(.reward(claim), onClaimed: { koozie.markClaimed() }) else {
+          return
+        }
         self.markKooziePromptShown()
-        self.presentClaimSheet(.reward(claim), onClaimed: { koozie.markClaimed() })
         await self.analytics.track(.prizeTileTapped(source: "koozie"))
       }
     )
@@ -350,7 +352,11 @@ class HomePageModel: ViewModel {
     $giveawayParticipations.withLock { $0[eventId]?.winnerSheetPresentedAt = now }
   }
 
-  private func presentClaimSheet(_ entry: ClaimSheetEntry, onClaimed: @escaping () -> Void = {}) {
+  @discardableResult
+  private func presentClaimSheet(_ entry: ClaimSheetEntry, onClaimed: @escaping () -> Void = {})
+    -> Bool
+  {
+    guard mainContainerNavigationCoordinator.presentedSheet == nil else { return false }
     let model = ClaimSheetModel(
       entry: entry,
       onClaimed: onClaimed,
@@ -358,6 +364,7 @@ class HomePageModel: ViewModel {
         self?.mainContainerNavigationCoordinator.dismissClaimSheet(model)
       })
     mainContainerNavigationCoordinator.presentedSheet = .claim(model)
+    return true
   }
 
   private func stationItem(for station: AnyStation) -> APIStationItem? {
