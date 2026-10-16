@@ -49,12 +49,20 @@ class CuratorSongPickerPageModel: ViewModel {
   let preview: SongPreviewPlayer
 
   var selectedTab: Tab = .search
+  // TextField writes its current value back on focus changes and re-renders (e.g. when an alert
+  // presents), so only a change to the actual query may trigger a search. Re-searching on those
+  // write-backs looped against Apple Music until it rate limited us.
   var searchText: String = "" {
-    didSet { onSearchTextChanged() }
+    didSet {
+      let query = Self.normalizedQuery(searchText)
+      guard query.isEmpty || query != Self.normalizedQuery(oldValue) else { return }
+      onSearchTextChanged()
+    }
   }
   var searchResults: IdentifiedArrayOf<AudioBlock> = []
   var songRequestResults: IdentifiedArrayOf<SongRequest> = []
   var isSearching = false
+  var requestSearchFailed = false
 
   private(set) var addedSongIds: Set<String>
   var requestedAppleIds: Set<String> = []
@@ -68,7 +76,7 @@ class CuratorSongPickerPageModel: ViewModel {
 
   @ObservationIgnored private var processingRequestAppleIds: Set<String> = []
   @ObservationIgnored private var hasLoadedSuggestions = false
-  @ObservationIgnored private var debounceTask: Task<Void, Never>?
+  @ObservationIgnored private var searchTask: Task<Void, Never>?
   @ObservationIgnored private var suggestionsTask: Task<Void, Never>?
 
   private let suggestionsPageSize = 20
@@ -123,18 +131,24 @@ class CuratorSongPickerPageModel: ViewModel {
     await startSuggestionsLoadIfNeeded()
   }
 
+  func requestRetryButtonTapped() async {
+    await startSearchTask { [weak self] in
+      await self?.retryRequestSearch()
+    }.value
+  }
+
   func moreSuggestionsTapped() {
     visibleSuggestionCount = min(visibleSuggestionCount + suggestionsPageSize, suggestions.count)
   }
 
   func doneButtonTapped() {
-    debounceTask?.cancel()
+    searchTask?.cancel()
     suggestionsTask?.cancel()
     onDismiss?()
   }
 
   func viewDisappeared() async {
-    debounceTask?.cancel()
+    searchTask?.cancel()
     suggestionsTask?.cancel()
     await preview.stop()
   }
@@ -151,6 +165,10 @@ class CuratorSongPickerPageModel: ViewModel {
   var suggestionsSectionHeader: String { "SUGGESTED FOR THIS SHOW" }
   var searchEmptyPromptMessage: String { "Search for songs to add to your show" }
   var searchNoResultsMessage: String { "No songs found" }
+  var requestErrorMessage: String {
+    "Apple Music isn\u{2019}t responding right now. Try again in a moment."
+  }
+  var requestRetryButtonText: String { "Try Again" }
   var moreSuggestionsButtonText: String { "+ More suggestions" }
   var suggestionsLoadingMessage: String { "Finding songs for your show\u{2026}" }
   var suggestionsErrorMessage: String { "We couldn\u{2019}t load suggestions." }
@@ -232,11 +250,11 @@ class CuratorSongPickerPageModel: ViewModel {
   // MARK: - View Helpers (Search states)
 
   private var trimmedSearchText: String {
-    searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    Self.normalizedQuery(searchText)
   }
 
   private var hasSearchContent: Bool {
-    !searchResults.isEmpty || !dedupedRequests.isEmpty
+    !searchResults.isEmpty || !dedupedRequests.isEmpty || requestSearchFailed
   }
 
   var searchLoadingOpacity: Double { isSearching ? 1 : 0 }
@@ -260,7 +278,10 @@ class CuratorSongPickerPageModel: ViewModel {
     searchResults.isEmpty ? [] : [availableNowSectionHeader]
   }
   var requestHeaders: [String] {
-    dedupedRequests.isEmpty ? [] : [requestSectionHeader]
+    (dedupedRequests.isEmpty && requestErrorMessages.isEmpty) ? [] : [requestSectionHeader]
+  }
+  var requestErrorMessages: [String] {
+    (requestSearchFailed && !isSearching) ? [requestErrorMessage] : []
   }
 
   func songTitle(for block: AudioBlock) -> String { block.title }
@@ -310,14 +331,15 @@ class CuratorSongPickerPageModel: ViewModel {
   // MARK: - Private Helpers
 
   private func onSearchTextChanged() {
-    debounceTask?.cancel()
     guard !trimmedSearchText.isEmpty else {
-      searchResults = []
-      songRequestResults = []
-      isSearching = false
+      searchTask?.cancel()
+      clearSearchResults()
       return
     }
-    debounceTask = Task { [weak self] in
+    // The retry belongs to the old query; leaving it tappable would mix new Apple Music results
+    // with the old query's library results.
+    requestSearchFailed = false
+    startSearchTask { [weak self] in
       guard let self else { return }
       do {
         try await clock.sleep(for: .milliseconds(300))
@@ -329,21 +351,32 @@ class CuratorSongPickerPageModel: ViewModel {
     }
   }
 
+  @discardableResult
+  private func startSearchTask(_ operation: @escaping () async -> Void) -> Task<Void, Never> {
+    searchTask?.cancel()
+    let task = Task { await operation() }
+    searchTask = task
+    return task
+  }
+
+  private func clearSearchResults() {
+    searchResults = []
+    songRequestResults = []
+    requestSearchFailed = false
+    isSearching = false
+  }
+
   private func performSearch(_ query: String) async {
-    let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedQuery = Self.normalizedQuery(query)
 
     guard !trimmedQuery.isEmpty else {
-      searchResults = []
-      songRequestResults = []
-      isSearching = false
+      clearSearchResults()
       return
     }
 
     guard let jwt = auth.jwt else {
-      searchResults = []
-      songRequestResults = []
+      clearSearchResults()
       presentedAlert = .notAuthenticated
-      isSearching = false
       return
     }
 
@@ -357,11 +390,25 @@ class CuratorSongPickerPageModel: ViewModel {
     guard !Task.isCancelled else { return }
     searchResults = .init(foundSongs.results, uniquingIDsWith: { first, _ in first })
     songRequestResults = .init(foundRequests.results, uniquingIDsWith: { first, _ in first })
+    // The Apple Music half fails inline beside its rows: library results stay usable and a modal
+    // alert per failed search would interrupt the user over and over.
+    requestSearchFailed = foundRequests.errorMessage != nil
     isSearching = false
-    let errors = [foundSongs.errorMessage, foundRequests.errorMessage].compactMap { $0 }
-    if !errors.isEmpty {
-      presentedAlert = .searchError(errors.joined(separator: "\n"))
+    if let libraryError = foundSongs.errorMessage {
+      presentedAlert = .searchError(libraryError)
     }
+  }
+
+  // Re-runs only the failed Apple Music half so the library results already on screen stay put.
+  private func retryRequestSearch() async {
+    let query = trimmedSearchText
+    guard !query.isEmpty, let jwt = auth.jwt else { return }
+    isSearching = true
+    let foundRequests = await searchSongRequests(jwt: jwt, query: query)
+    guard !Task.isCancelled else { return }
+    songRequestResults = .init(foundRequests.results, uniquingIDsWith: { first, _ in first })
+    requestSearchFailed = foundRequests.errorMessage != nil
+    isSearching = false
   }
 
   private func searchSongs(jwt: String, query: String) async -> (
@@ -451,6 +498,10 @@ class CuratorSongPickerPageModel: ViewModel {
       return false
     }
     return requestTitle == blockTitle && requestArtist == blockArtist
+  }
+
+  private static func normalizedQuery(_ text: String) -> String {
+    text.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
   private static func nonEmpty(_ value: String?) -> String? {

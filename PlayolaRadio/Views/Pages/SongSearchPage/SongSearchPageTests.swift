@@ -7,6 +7,7 @@
 
 import Clocks
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -258,6 +259,35 @@ struct SongSearchPageTests {
         await clock.advance(by: .milliseconds(300))
 
         #expect(searchCount.value == 1)
+      }
+    }
+  }
+
+  @Test
+  func testReassigningTheSameQueryDoesNotSearchAgain() async {
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      let searchCount = LockIsolated(0)
+
+      await withDependencies {
+        $0.continuousClock = clock
+        $0.date = .constant(Date())
+        $0.api.searchSongs = { _, _ in
+          searchCount.withValue { $0 += 1 }
+          return []
+        }
+      } operation: {
+        let model = SongSearchPageModel()
+        model.searchText = "Bob"
+        await clock.advance(by: .milliseconds(300))
+
+        model.searchText = "Bob"
+        await clock.advance(by: .milliseconds(300))
+        model.searchText = "Bob "
+        await clock.advance(by: .milliseconds(300))
+
+        expectNoDifference(searchCount.value, 1)
       }
     }
   }

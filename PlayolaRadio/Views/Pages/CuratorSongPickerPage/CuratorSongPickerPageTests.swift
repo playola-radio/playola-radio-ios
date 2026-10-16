@@ -210,7 +210,7 @@ struct CuratorSongPickerPageTests {
   }
 
   @Test(arguments: [false, true])
-  func requestSearchFailurePresentsOneCombinedAlert(songsFail: Bool) async {
+  func requestSearchFailureShowsInlineErrorAndOnlyLibraryFailureAlerts(songsFail: Bool) async {
     await withMainSerialExecutor {
       let clock = TestClock()
       @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -230,9 +230,10 @@ struct CuratorSongPickerPageTests {
         let model = CuratorSongPickerPageModel(stationId: "s")
         model.searchText = "test"
         await clock.advance(by: .milliseconds(300))
-        expectNoDifference(
-          model.presentedAlert?.message,
-          songsFail ? "Songs failed\nRequests failed" : "Requests failed")
+        expectNoDifference(model.presentedAlert?.message, songsFail ? "Songs failed" : nil)
+        expectNoDifference(model.requestHeaders, [model.requestSectionHeader])
+        expectNoDifference(model.requestErrorMessages, [model.requestErrorMessage])
+        expectNoDifference(model.searchNoResultsOpacity, 0)
         #expect(!model.isSearching)
         #expect(model.songRequestResults.isEmpty)
         expectNoDifference(model.searchResults.map(\.id), songsFail ? [] : ["song"])
@@ -407,6 +408,124 @@ struct CuratorSongPickerPageTests {
         #expect(model.presentedAlert == .notAuthenticated)
         #expect(model.searchResults.isEmpty)
         #expect(model.songRequestResults.isEmpty)
+      }
+    }
+  }
+
+  // SwiftUI's TextField writes its current value back through the binding on focus changes and
+  // re-renders (e.g. when an alert presents). Treating that as a new query re-searched in a loop and
+  // got us rate limited by Apple Music.
+  @Test func reassigningTheSameQueryDoesNotSearchAgain() async {
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      let requestSearchCount = LockIsolated(0)
+
+      await withDependencies {
+        $0.continuousClock = clock
+        $0.date = .constant(Date())
+        $0.api.searchSongs = { _, _ in [] }
+        $0.api.searchSongRequests = { _, _ in
+          requestSearchCount.withValue { $0 += 1 }
+          return []
+        }
+      } operation: {
+        let model = CuratorSongPickerPageModel(stationId: "s")
+        model.searchText = "clouds"
+        await clock.advance(by: .milliseconds(300))
+
+        model.searchText = "clouds"
+        await clock.advance(by: .milliseconds(300))
+        model.searchText = "clouds "
+        await clock.advance(by: .milliseconds(300))
+
+        expectNoDifference(requestSearchCount.value, 1)
+      }
+    }
+  }
+
+  @Test func changingTheQueryHidesThePreviousAppleMusicError() async {
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+      await withDependencies {
+        $0.continuousClock = clock
+        $0.date = .constant(Date())
+        $0.api.searchSongs = { _, _ in [] }
+        $0.api.searchSongRequests = { _, _ in
+          throw APIError.validationError("Apple Music rate limit exceeded")
+        }
+      } operation: {
+        let model = CuratorSongPickerPageModel(stationId: "s")
+        model.searchText = "clouds"
+        await clock.advance(by: .milliseconds(300))
+
+        model.searchText = "cloudy"
+
+        expectNoDifference(model.requestErrorMessages, [])
+      }
+    }
+  }
+
+  @Test func librarySearchFailureStillAlerts() async {
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+      await withDependencies {
+        $0.continuousClock = clock
+        $0.date = .constant(Date())
+        $0.api.searchSongs = { _, _ in throw APIError.validationError("Library down") }
+        $0.api.searchSongRequests = { _, _ in [self.songRequest(appleId: "req-a")] }
+      } operation: {
+        let model = CuratorSongPickerPageModel(stationId: "s")
+        model.searchText = "clouds"
+
+        await clock.advance(by: .milliseconds(300))
+
+        #expect(model.presentedAlert == .searchError("Library down"))
+        expectNoDifference(model.requestErrorMessages, [])
+      }
+    }
+  }
+
+  @Test func requestRetryButtonTappedRetriesOnlyAppleMusicAndClearsInlineError() async {
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      let librarySearchCount = LockIsolated(0)
+      let requestSearchCount = LockIsolated(0)
+
+      await withDependencies {
+        $0.continuousClock = clock
+        $0.date = .constant(Date())
+        $0.api.searchSongs = { _, _ in
+          librarySearchCount.withValue { $0 += 1 }
+          return [self.audioBlock(id: "b1")]
+        }
+        $0.api.searchSongRequests = { _, _ in
+          let attempt = requestSearchCount.withValue {
+            $0 += 1
+            return $0
+          }
+          guard attempt > 1 else {
+            throw APIError.validationError("Apple Music rate limit exceeded")
+          }
+          return [self.songRequest(appleId: "req-a")]
+        }
+      } operation: {
+        let model = CuratorSongPickerPageModel(stationId: "s")
+        model.searchText = "clouds"
+        await clock.advance(by: .milliseconds(300))
+
+        await model.requestRetryButtonTapped()
+
+        expectNoDifference(librarySearchCount.value, 1)
+        expectNoDifference(model.searchResults.map(\.id), ["b1"])
+        expectNoDifference(model.songRequestResults.map(\.appleId), ["req-a"])
+        expectNoDifference(model.requestErrorMessages, [])
+        #expect(!model.isSearching)
       }
     }
   }

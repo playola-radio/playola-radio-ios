@@ -104,10 +104,34 @@ struct CuratorSongPickerPageView: View {
         ForEach(model.dedupedRequests, id: \.id) { request in
           CuratorRequestRow(model: model, request: request)
         }
+        ForEach(model.requestErrorMessages, id: \.self) { message in
+          requestErrorRow(message)
+        }
       }
       .padding(.horizontal, 16)
       .padding(.bottom, 16)
     }
+  }
+
+  private func requestErrorRow(_ message: String) -> some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text(message)
+        .font(.custom(FontNames.Inter_400_Regular, size: 14))
+        .foregroundColor(.playolaGray)
+      Button {
+        Task { await model.requestRetryButtonTapped() }
+      } label: {
+        Text(model.requestRetryButtonText)
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+          .foregroundColor(.white)
+          .padding(.horizontal, 20)
+          .padding(.vertical, 10)
+          .background(Color(hex: "#EF6962"))
+          .clipShape(.rect(cornerRadius: 8))
+      }
+      .buttonStyle(.plain)
+    }
+    .padding(.vertical, 12)
   }
 
   private var searchLoadingState: some View {
