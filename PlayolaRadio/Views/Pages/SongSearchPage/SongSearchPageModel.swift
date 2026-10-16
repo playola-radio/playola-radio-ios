@@ -19,8 +19,11 @@ enum SongSearchMode {
 @MainActor
 @Observable
 class SongSearchPageModel: ViewModel {
+  // TextField writes its current value back on focus changes and re-renders, so only a change to the
+  // actual query may trigger a search.
   var searchText: String = "" {
     didSet {
+      guard Self.trimmed(searchText) != Self.trimmed(oldValue) else { return }
       onSearchTextChanged()
     }
   }
@@ -75,8 +78,12 @@ class SongSearchPageModel: ViewModel {
     }
   }
 
+  private static func trimmed(_ text: String) -> String {
+    text.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
   private func performSearch(_ query: String) async {
-    let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedQuery = Self.trimmed(query)
 
     guard !trimmedQuery.isEmpty else {
       searchResults = []
