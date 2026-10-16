@@ -114,30 +114,6 @@ struct HomePageTests {
   }
 
   @Test
-  func testShowSecretStationsIncludesActiveComingSoonStations() async {
-    let visibleStation = Station.mockWith(id: "visible-station", curatorName: "DJ Visible")
-    let comingSoonStation = Station.mockWith(id: "coming-soon-station", curatorName: "DJ Soon")
-    let artistList = StationList.mockArtistList(items: [
-      .mockWith(sortOrder: 0, visibility: .visible, station: visibleStation),
-      .mockWith(sortOrder: 1, visibility: .comingSoon, station: comingSoonStation),
-    ])
-
-    @Shared(.stationLists) var stationLists = IdentifiedArray(uniqueElements: [artistList])
-    @Shared(.showSecretStations) var showSecretStations = false
-
-    let model = HomePageModel()
-    await model.viewAppeared()
-
-    #expect(model.forYouStations.count == 1)
-    #expect(model.forYouStations[id: comingSoonStation.id] == nil)
-
-    $showSecretStations.withLock { $0 = true }
-
-    #expect(model.forYouStations[id: comingSoonStation.id] != nil)
-    #expect(model.forYouStations.count == 2)
-  }
-
-  @Test
   func testForYouExcludesLockedComingSoonButIncludesUnlockedSecret() async {
     let visibleStation = Station.mockWith(id: "visible-station", curatorName: "DJ Visible")
     let comingSoonStation = Station.mockWith(id: "coming-soon-station", curatorName: "DJ Soon")

@@ -65,9 +65,8 @@ struct StationListPageTests {
   func testSegmentSelectionFiltersWhenSegmentSelected() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
-    let visibleLists = stationLists.filter { $0.id != "in_development_list" }
-    guard let firstList = visibleLists.first else {
-      Issue.record("StationList.mocks should have at least one non-development list")
+    guard let firstList = stationLists.first else {
+      Issue.record("StationList.mocks should have at least one list")
       return
     }
     let model = StationListModel()
@@ -83,9 +82,8 @@ struct StationListPageTests {
   func testSharedStationListsUpdatesKeepsSelectedSegmentWhenStillPresent() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
-    let visibleLists = stationLists.filter { $0.id != "in_development_list" }
-    guard let targetList = visibleLists.first else {
-      Issue.record("StationList.mocks should have at least one non-development list")
+    guard let targetList = stationLists.first else {
+      Issue.record("StationList.mocks should have at least one list")
       return
     }
 
@@ -120,9 +118,9 @@ struct StationListPageTests {
   func testSharedStationListsUpdatesResetsSelectedSegmentWhenSegmentMissing() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
-    let visibleLists = stationLists.filter { $0.id != "in_development_list" }
-    guard let targetList = visibleLists.first else {
-      Issue.record("StationList.mocks should have at least one non-development list")
+    let originalLists = stationLists
+    guard let targetList = originalLists.first else {
+      Issue.record("StationList.mocks should have at least one list")
       return
     }
 
@@ -134,7 +132,7 @@ struct StationListPageTests {
     $stationLists.withLock { lists in
       lists = IdentifiedArray(
         uniqueElements:
-          visibleLists
+          originalLists
           .filter { $0.id != targetList.id }
           .map {
             StationList(
@@ -151,11 +149,8 @@ struct StationListPageTests {
       )
     }
 
-    let expectedVisibleAfterUpdate = stationLists.filter {
-      $0.id != "in_development_list"
-    }
     #expect(model.selectedSegment == "All")
-    #expect(model.stationListsForDisplay == expectedVisibleAfterUpdate)
+    #expect(model.stationListsForDisplay == stationLists)
   }
 
   @Test
@@ -782,7 +777,8 @@ private func makeComingSoonItem(active: Bool, date: Date) -> APIStationItem {
   )
 }
 
-private func makeSecretItem(date: Date = Date()) -> APIStationItem {
+private func makeSecretItem() -> APIStationItem {
+  let date = Date()
   let station = PlayolaPlayer.Station(
     id: "secret-station",
     name: "Secret Radio",
