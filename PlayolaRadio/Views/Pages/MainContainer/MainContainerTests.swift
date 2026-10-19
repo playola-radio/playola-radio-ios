@@ -67,6 +67,7 @@ struct MainContainerTests {
   @Test
   func testUpsideDownFlowVisibilityChangedFlipsWindowWhenShowIsOpen() {
     @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
+    @Shared(.auth) var auth = Auth(jwtToken: createTestJWT())
     let upsideDownCalls = LockIsolated<[Bool]>([])
     let model = withDependencies {
       $0.windowOrientation.setUpsideDown = { isUpsideDown in
@@ -102,7 +103,9 @@ struct MainContainerTests {
   }
 
   @Test
-  func testMainContainerDisappearedRestoresWindowOrientation() {
+  func testUpsideDownFlowVisibilityChangedRestoresWindowWhenLoggedOut() {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
+    @Shared(.auth) var auth = Auth()
     let upsideDownCalls = LockIsolated<[Bool]>([])
     let model = withDependencies {
       $0.windowOrientation.setUpsideDown = { isUpsideDown in
@@ -111,8 +114,11 @@ struct MainContainerTests {
     } operation: {
       MainContainerModel()
     }
+    model.mainContainerNavigationCoordinator.artistDashboardPath = [
+      .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "station-abc"))
+    ]
 
-    model.mainContainerDisappeared()
+    model.upsideDownFlowVisibilityChanged()
 
     expectNoDifference(upsideDownCalls.value, [false])
   }

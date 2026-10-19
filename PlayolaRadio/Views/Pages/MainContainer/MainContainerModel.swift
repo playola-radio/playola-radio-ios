@@ -123,6 +123,10 @@ class MainContainerModel: ViewModel {
     return nil
   }
 
+  var shouldShowUpsideDown: Bool {
+    auth.isLoggedIn && mainContainerNavigationCoordinator.isShowingUpsideDownFlow
+  }
+
   func viewAppeared() async {
     // Kick off the client-config fetch first but do NOT await it: the renderer
     // flag only matters if it beats the first play() of the process (the SDK
@@ -390,11 +394,7 @@ class MainContainerModel: ViewModel {
   }
 
   func upsideDownFlowVisibilityChanged() {
-    windowOrientation.setUpsideDown(mainContainerNavigationCoordinator.isShowingUpsideDownFlow)
-  }
-
-  func mainContainerDisappeared() {
-    windowOrientation.setUpsideDown(false)
+    windowOrientation.setUpsideDown(shouldShowUpsideDown)
   }
 
   func onSmallPlayerTapped() {
