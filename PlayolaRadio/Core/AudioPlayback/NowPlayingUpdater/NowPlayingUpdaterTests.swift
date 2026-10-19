@@ -287,6 +287,29 @@ struct NowPlayingUpdaterTests {
     expectNoDifference(updater.handlePlayCommand(), .commandFailed)
   }
 
+  @Test
+  func pauseSupersedesQueuedPlayCommand() async {
+    let station = Station.mockWith(id: "queued-play-id")
+    @Shared(.stationLists) var stationLists = makeLists(containing: station, visibility: .visible)
+    let playola = SpyPlayolaStationPlayer()
+    let stationPlayer = StationPlayer(
+      playolaStationPlayer: playola,
+      audioSessionCoordinator: AudioSessionCoordinator(session: NoOpAudioSession()))
+    stationPlayer.state = StationPlayer.State(playbackStatus: .paused(.playola(station)))
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      NowPlayingUpdater(stationPlayer: stationPlayer)
+    }
+    await withMainSerialExecutor {
+      expectNoDifference(updater.handlePlayCommand(), .success)
+      stationPlayer.pauseWithoutAutoResume()
+      await Task.yield()
+      expectNoDifference(playola.resumeAfterInterruptionCount, 0)
+    }
+  }
+
   // MARK: - Remote Play Command Analytics Tests
 
   private func makeUpdaterTrackingRemotePlay(
