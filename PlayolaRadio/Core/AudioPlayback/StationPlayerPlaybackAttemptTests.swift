@@ -192,6 +192,16 @@ struct StationPlayerPlaybackAttemptTests {
     }
   }
 
+  private func awaitResumeEntered(_ playola: SpyPlayolaStationPlayer) async {
+    await withCheckedContinuation { continuation in
+      let entered = playola.resumeEntered
+      DispatchQueue.global().async {
+        entered.wait()
+        continuation.resume()
+      }
+    }
+  }
+
   @Test
   func pauseDuringSuspendedPlayActivationNeverStartsBackend() async {
     let gate = GatedAudioSession(throwOnActivate: false)
@@ -242,19 +252,34 @@ struct StationPlayerPlaybackAttemptTests {
     player.state = StationPlayer.State(playbackStatus: .paused(.mockPlayola()))
 
     let resumeTask = Task { await player.resume() }
-    await withCheckedContinuation { continuation in
-      let entered = playola.resumeEntered
-      DispatchQueue.global().async {
-        entered.wait()
-        continuation.resume()
-      }
-    }
+    await awaitResumeEntered(playola)
 
     player.pauseWithoutAutoResume()
     await playola.resumeGate?.open()
     await resumeTask.value
 
     expectNoDifference(player.state.playbackStatus, .stopped)
+  }
+
+  @Test
+  func repeatedResumeWhileSdkResumeIsInFlightIsIgnored() async {
+    let playola = SpyPlayolaStationPlayer()
+    playola.resumeGate = AsyncGate()
+    let player = StationPlayer(
+      playolaStationPlayer: playola,
+      audioSessionCoordinator: AudioSessionCoordinator(session: SpyAudioSession()))
+    player.state = StationPlayer.State(playbackStatus: .paused(.mockPlayola()))
+
+    let firstResumeTask = Task { await player.resume() }
+    await awaitResumeEntered(playola)
+    await player.resume()
+
+    expectNoDifference(playola.resumeAfterInterruptionCount, 1)
+    player.pauseWithoutAutoResume()
+    expectNoDifference(player.state.playbackStatus, .stopped)
+
+    await playola.resumeGate?.open()
+    await firstResumeTask.value
   }
 
   @Test

@@ -480,7 +480,8 @@ class NowPlayingUpdater {
   func handlePlayCommand() -> MPRemoteCommandHandlerStatus {
     if case .paused = stationPlayer.state.playbackStatus {
       trackRemotePlayCommand(action: "resume")
-      Task { @MainActor in await stationPlayer.resume() }
+      guard let token = stationPlayer.beginResumeAttempt() else { return .success }
+      Task { @MainActor in await stationPlayer.resume(intentToken: token) }
       return .success
     }
     guard stationPlayer.currentStation == nil,
@@ -490,8 +491,9 @@ class NowPlayingUpdater {
       return .commandFailed
     }
     trackRemotePlayCommand(action: "restart_last_station")
+    let token = stationPlayer.beginPlaybackAttempt()
     Task { @MainActor in
-      await stationPlayer.play(station: resumeStation)
+      await stationPlayer.play(station: resumeStation, intentToken: token)
     }
     return .success
   }

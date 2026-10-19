@@ -66,9 +66,16 @@ class StationPlayer: ObservableObject {
   private var resumingToken: Int?
 
   /// Claims and returns a fresh token for a new playback attempt.
-  private func beginPlaybackAttempt() -> Int {
+  func beginPlaybackAttempt() -> Int {
     playToken += 1
     return playToken
+  }
+
+  func beginResumeAttempt() -> Int? {
+    guard resumingToken == nil else { return nil }
+    let token = beginPlaybackAttempt()
+    resumingToken = token
+    return token
   }
 
   /// The currently playing radio station, if any
@@ -252,6 +259,12 @@ class StationPlayer: ObservableObject {
     return finishPlaybackAttempt(playbackAttempt, started: started)
   }
 
+  @discardableResult
+  func play(station: AnyStation, intentToken: Int) async -> Bool {
+    guard intentToken == playToken else { return false }
+    return await play(station: station)
+  }
+
   /// The renderer-selection seam (server-flagged, PlayolaPlayer 0.21.0+). Runs
   /// after `configureForPlayback()` (the session is set) and before the SDK
   /// `play()` — the backend locks at the first play, and `setRenderBackend` is a
@@ -361,14 +374,17 @@ class StationPlayer: ObservableObject {
       }
     case .loading, .startingNewStation:
       stop()
-    case .stopped, .error:
+    case .stopped:
+      playToken += 1
+      pausedBySystem = false
+    case .error:
       break
     }
   }
 
   /// Resumes the active backend after an interruption. We own the session now,
   /// so reactivate it first; a failure surfaces as .error via handlePlayFailure.
-  func resume() async {
+  func resume(intentToken: Int? = nil) async {
     // Clearing here also covers the manual lock-screen resume path, so a stale
     // interruption-ended event can't trigger a second resume.
     pausedBySystem = false
@@ -377,8 +393,14 @@ class StationPlayer: ObservableObject {
     // or another play()/resume() lands in that window, this resume is stale and
     // must not reactivate/resume against state the user has moved on from.
     guard let station = currentStation else { return }
-    let token = beginPlaybackAttempt()
-    resumingToken = token
+    let token: Int
+    if let intentToken {
+      guard intentToken == playToken, resumingToken == intentToken else { return }
+      token = intentToken
+    } else {
+      guard let claimedToken = beginResumeAttempt() else { return }
+      token = claimedToken
+    }
     defer { if resumingToken == token { resumingToken = nil } }
     do {
       try await audioSessionCoordinator.configureForPlayback()

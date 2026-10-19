@@ -39,6 +39,6 @@ final class SpyPlayolaStationPlayer: PlayolaTransport {
   func resumeAfterInterruption() async throws {
     resumeAfterInterruptionCount += 1
     resumeEntered.signal()
-    await resumeGate?.wait()
+    if resumeAfterInterruptionCount == 1 { await resumeGate?.wait() }
   }
 }
