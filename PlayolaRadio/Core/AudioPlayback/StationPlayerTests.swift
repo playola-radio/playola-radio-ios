@@ -302,6 +302,7 @@ struct StationPlayerTests {
     let player = StationPlayer(
       playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
     await player.play(station: .mockPlayola())
+    player.processPlayolaStationPlayerState(.playing(.mock))
 
     // Route loss (headphones unplugged): pause WITHOUT arming auto-resume.
     player.audioSessionShouldPause(shouldAutoResume: false)

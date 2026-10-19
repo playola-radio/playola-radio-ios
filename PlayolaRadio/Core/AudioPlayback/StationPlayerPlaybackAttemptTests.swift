@@ -1,5 +1,6 @@
 import CustomDump
 import Dependencies
+import Foundation
 import Sharing
 import Testing
 
@@ -178,5 +179,95 @@ struct StationPlayerPlaybackAttemptTests {
 
     #expect(reportedErrors.count == 1)
     #expect(reportedErrors.first is PlaybackStartTestError)
+  }
+
+  // MARK: - Explicit pause must stick
+
+  private func awaitActivationInFlight(_ gate: GatedAudioSession) async {
+    await withCheckedContinuation { continuation in
+      DispatchQueue.global().async {
+        gate.entered.wait()
+        continuation.resume()
+      }
+    }
+  }
+
+  @Test
+  func pauseDuringSuspendedPlayActivationNeverStartsBackend() async {
+    let gate = GatedAudioSession(throwOnActivate: false)
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola,
+      audioSessionCoordinator: AudioSessionCoordinator(session: gate))
+
+    let playTask = Task { await player.play(station: .mockPlayola()) }
+    await awaitActivationInFlight(gate)
+
+    player.pauseWithoutAutoResume()
+    gate.proceed.signal()
+    _ = await playTask.value
+
+    expectNoDifference(playola.playCount, 0)
+    expectNoDifference(player.state.playbackStatus, .stopped)
+  }
+
+  @Test
+  func pauseDuringSuspendedResumeActivationNeverResumesBackend() async {
+    let gate = GatedAudioSession(throwOnActivate: false)
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola,
+      audioSessionCoordinator: AudioSessionCoordinator(session: gate))
+    let station = AnyStation.mockPlayola()
+    player.state = StationPlayer.State(playbackStatus: .paused(station))
+
+    let resumeTask = Task { await player.resume() }
+    await awaitActivationInFlight(gate)
+
+    player.pauseWithoutAutoResume()
+    gate.proceed.signal()
+    await resumeTask.value
+
+    expectNoDifference(playola.resumeAfterInterruptionCount, 0)
+    expectNoDifference(player.state.playbackStatus, .paused(station))
+  }
+
+  @Test
+  func explicitPauseAfterInterruptionPauseDisarmsAutoResume() async throws {
+    let coordinator = AudioSessionCoordinator(session: SpyAudioSession())
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+    let station = AnyStation.mockPlayola()
+    player.state = StationPlayer.State(playbackStatus: .playing(station))
+
+    player.audioSessionShouldPause(shouldAutoResume: true)
+    player.state = StationPlayer.State(playbackStatus: .paused(station))
+    player.pauseWithoutAutoResume()
+    player.audioSessionShouldResume()
+
+    await Task.yield()
+    try await coordinator.configureForPlayback()
+    for _ in 0..<20 { await Task.yield() }
+
+    expectNoDifference(playola.resumeAfterInterruptionCount, 0)
+  }
+
+  @Test
+  func routeLossDuringSuspendedPlayActivationNeverStartsBackend() async {
+    let gate = GatedAudioSession(throwOnActivate: false)
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola,
+      audioSessionCoordinator: AudioSessionCoordinator(session: gate))
+
+    let playTask = Task { await player.play(station: .mockPlayola()) }
+    await awaitActivationInFlight(gate)
+
+    player.audioSessionShouldPause(shouldAutoResume: false)
+    gate.proceed.signal()
+    _ = await playTask.value
+
+    expectNoDifference(playola.playCount, 0)
   }
 }
