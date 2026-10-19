@@ -77,6 +77,11 @@ class StationPlayer: ObservableObject {
     return token
   }
 
+  private func finishResumeAttempt(_ token: Int?) {
+    guard let token, resumingToken == token else { return }
+    resumingToken = nil
+  }
+
   /// The currently playing radio station, if any
   public var currentStation: AnyStation? {
     state.playbackStatus.station
@@ -387,6 +392,7 @@ class StationPlayer: ObservableObject {
     // Clearing here also covers the manual lock-screen resume path, so a stale
     // interruption-ended event can't trigger a second resume.
     pausedBySystem = false
+    defer { finishResumeAttempt(intentToken) }
     // Snapshot the station and claim a token: activation hops off the main actor
     // (see AudioSessionCoordinator), so this method suspends below. If a stop()
     // or another play()/resume() lands in that window, this resume is stale and
@@ -400,7 +406,7 @@ class StationPlayer: ObservableObject {
       guard let claimedToken = beginResumeAttempt() else { return }
       token = claimedToken
     }
-    defer { if resumingToken == token { resumingToken = nil } }
+    defer { finishResumeAttempt(token) }
     do {
       try await audioSessionCoordinator.configureForPlayback()
       guard token == playToken else { return }
