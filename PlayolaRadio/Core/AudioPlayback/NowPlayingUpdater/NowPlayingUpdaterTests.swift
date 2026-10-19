@@ -166,7 +166,6 @@ struct NowPlayingUpdaterTests {
       return NowPlayingUpdater(stationPlayer: stationPlayer)
     }
 
-    // Stopped with a durable snapshot: the play command accepts and restarts it.
     #expect(updater.handlePlayCommand() == .success)
   }
 
@@ -182,15 +181,11 @@ struct NowPlayingUpdaterTests {
       return NowPlayingUpdater(stationPlayer: stationPlayer)
     }
 
-    // Nothing was ever played: there is genuinely nothing to resume.
     #expect(updater.handlePlayCommand() == .commandFailed)
   }
 
   @Test
   func handlePlayCommandRefusesNonPlayolaSnapshot() {
-    // Only `.playola` is ever persisted, but enforce the invariant at the resume
-    // boundary: a stale/corrupt `.url` snapshot must never reach the retiring URL
-    // backend via the play command.
     @Shared(.lastPlayedStation) var persisted: LastPlayedStation? =
       LastPlayedStation(station: .mockUrl())
     let updater = withDependencies {
@@ -226,10 +221,11 @@ struct NowPlayingUpdaterTests {
   @Test
   func pauseSupersedesQueuedPlayCommand() async {
     let playola = SpyPlayolaStationPlayer()
+    let station = AnyStation.mockPlayola()
     let stationPlayer = StationPlayer(
       playolaStationPlayer: playola,
       audioSessionCoordinator: AudioSessionCoordinator(session: NoOpAudioSession()))
-    stationPlayer.state = StationPlayer.State(playbackStatus: .paused(.mockPlayola()))
+    stationPlayer.state = StationPlayer.State(playbackStatus: .paused(station))
     let updater = withDependencies {
       $0.analytics.track = { _ in }
       $0.date = .constant(Date())
@@ -241,6 +237,11 @@ struct NowPlayingUpdaterTests {
       stationPlayer.pauseWithoutAutoResume()
       await Task.yield()
       expectNoDifference(playola.resumeAfterInterruptionCount, 0)
+
+      stationPlayer.state = StationPlayer.State(playbackStatus: .paused(station))
+      expectNoDifference(updater.handlePlayCommand(), .success)
+      await Task.yield()
+      expectNoDifference(playola.resumeAfterInterruptionCount, 1)
     }
   }
 
