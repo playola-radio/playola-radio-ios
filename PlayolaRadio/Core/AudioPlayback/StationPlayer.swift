@@ -62,6 +62,7 @@ class StationPlayer: ObservableObject {
   /// start a backend or clobber newer state. Station equality alone can't tell
   /// two attempts for the same station apart.
   private var playToken = 0
+  private var resumingToken: Int?
 
   /// Claims and returns a fresh token for a new playback attempt.
   private func beginPlaybackAttempt() -> Int {
@@ -341,10 +342,22 @@ class StationPlayer: ObservableObject {
   /// then restarts the persisted last station.
   func pauseWithoutAutoResume() {
     switch state.playbackStatus {
-    case .playing, .paused:
+    case .playing:
       playToken += 1
       pausedBySystem = false
       pause()
+    case .paused:
+      let resumeInFlight = resumingToken == playToken
+      playToken += 1
+      pausedBySystem = false
+      if resumeInFlight {
+        // The SDK consumes its saved station before awaiting the engine restart, so
+        // pausing mid-resume can't be undone by a later SDK resume. Stopping makes
+        // Play restart the persisted last station instead.
+        stop()
+      } else {
+        pause()
+      }
     case .loading, .startingNewStation:
       stop()
     case .stopped, .error:
@@ -364,6 +377,8 @@ class StationPlayer: ObservableObject {
     // must not reactivate/resume against state the user has moved on from.
     guard let station = currentStation else { return }
     let token = beginPlaybackAttempt()
+    resumingToken = token
+    defer { if resumingToken == token { resumingToken = nil } }
     do {
       try await audioSessionCoordinator.configureForPlayback()
       guard token == playToken else { return }
@@ -601,7 +616,11 @@ extension StationPlayer: AudioInterruptionDelegate {
   func audioSessionShouldResume() {
     guard pausedBySystem else { return }
     pausedBySystem = false
+    let token = playToken
     Task { @MainActor in
+      // An explicit pause in the meantime bumps the token even though the state
+      // is still .paused.
+      guard token == self.playToken else { return }
       // Re-check on the next turn: if the user switched stations or stopped
       // between the interruption ending and this Task running, we are no longer
       // paused and must not resume a superseded station/backend. Also bail if a
