@@ -287,6 +287,117 @@ struct NowPlayingUpdaterTests {
     expectNoDifference(updater.handlePlayCommand(), .commandFailed)
   }
 
+  // MARK: - Remote Play Command Analytics Tests
+
+  private func makeUpdaterTrackingRemotePlay(
+    status: StationPlayer.PlaybackStatus?,
+    launchedAt: Date = Date(),
+    commandAt: Date = Date(),
+    onEvent: @escaping @Sendable (AnalyticsEvent) -> Void
+  ) -> NowPlayingUpdater {
+    withDependencies {
+      $0.analytics.track = { event in
+        if case .remotePlayCommandReceived = event { onEvent(event) }
+      }
+      $0.date = .constant(commandAt)
+    } operation: {
+      let stationPlayer = StationPlayer(
+        playolaStationPlayer: SpyPlayolaStationPlayer(),
+        audioSessionCoordinator: AudioSessionCoordinator(session: NoOpAudioSession()))
+      if let status {
+        stationPlayer.state = StationPlayer.State(playbackStatus: status)
+      }
+      return NowPlayingUpdater(stationPlayer: stationPlayer, launchedAt: launchedAt)
+    }
+  }
+
+  @Test
+  func handlePlayCommandTracksResumeWhenPaused() async {
+    let station = Station.mockWith(id: "tracked-paused-id")
+    @Shared(.stationLists) var stationLists = makeLists(containing: station, visibility: .visible)
+    let launch = Date(timeIntervalSince1970: 1_000)
+    let event = await withCheckedContinuation { continuation in
+      let updater = makeUpdaterTrackingRemotePlay(
+        status: .paused(.playola(station)),
+        launchedAt: launch,
+        commandAt: launch.addingTimeInterval(42)
+      ) { continuation.resume(returning: $0) }
+      _ = updater.handlePlayCommand()
+    }
+
+    guard case .remotePlayCommandReceived(let action, _, let secondsSinceLaunch) = event else {
+      Issue.record("Expected remotePlayCommandReceived, got: \(event)")
+      return
+    }
+    #expect(action == "resume")
+    #expect(secondsSinceLaunch == 42)
+  }
+
+  @Test
+  func handlePlayCommandTracksRestartWhenStoppedWithLastStation() async {
+    let station = Station.mockWith(id: "tracked-last-id")
+    @Shared(.stationLists) var stationLists = makeLists(containing: station, visibility: .visible)
+    @Shared(.lastPlayedStation) var persisted: LastPlayedStation? =
+      LastPlayedStation(station: .playola(station))
+    let event = await withCheckedContinuation { continuation in
+      let updater = makeUpdaterTrackingRemotePlay(status: nil) {
+        continuation.resume(returning: $0)
+      }
+      _ = updater.handlePlayCommand()
+    }
+
+    guard case .remotePlayCommandReceived(let action, _, _) = event else {
+      Issue.record("Expected remotePlayCommandReceived, got: \(event)")
+      return
+    }
+    #expect(action == "restart_last_station")
+  }
+
+  @Test
+  func handlePlayCommandTracksNoneWhenNothingToResume() async {
+    let event = await withCheckedContinuation { continuation in
+      let updater = makeUpdaterTrackingRemotePlay(status: nil) {
+        continuation.resume(returning: $0)
+      }
+      _ = updater.handlePlayCommand()
+    }
+
+    guard case .remotePlayCommandReceived(let action, _, _) = event else {
+      Issue.record("Expected remotePlayCommandReceived, got: \(event)")
+      return
+    }
+    #expect(action == "none")
+  }
+
+  @Test
+  func remotePlayCommandReceivedEventNameAndProperties() {
+    let event = AnalyticsEvent.remotePlayCommandReceived(
+      action: "resume", appState: "background", secondsSinceLaunch: 7)
+
+    #expect(event.name == "Remote Play Command Received")
+    #expect(event.properties["action"] as? String == "resume")
+    #expect(event.properties["app_state"] as? String == "background")
+    #expect(event.properties["seconds_since_launch"] as? Int == 7)
+  }
+
+  // MARK: - Remote Command Tests
+
+  @Test
+  func setupRemoteControlCenterEnablesPauseCommand() {
+    let commandCenter = MPRemoteCommandCenter.shared()
+    commandCenter.pauseCommand.isEnabled = false
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      NowPlayingUpdater()
+    }
+
+    updater.setupRemoteControlCenter()
+
+    #expect(commandCenter.pauseCommand.isEnabled)
+  }
+
   // MARK: - Analytics Tests
 
   // MARK: - render_backend plumbing

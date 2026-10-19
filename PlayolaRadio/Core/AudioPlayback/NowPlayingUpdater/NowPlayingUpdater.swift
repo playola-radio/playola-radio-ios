@@ -87,6 +87,7 @@ class NowPlayingUpdater {
   @ObservationIgnored @Shared(.lastPlayedStation) var persistedLastStation: LastPlayedStation?
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
 
+  private let launchedAt: Date
   private var disposeBag = Set<AnyCancellable>()
   var lastPlayedStation: AnyStation?
   private var currentArtworkURL: String?
@@ -233,9 +234,9 @@ class NowPlayingUpdater {
       // Interruption pause OR a user Stop: keep the Now Playing entry and remote
       // controls alive so the lock-screen / car play button stays live and can
       // resume. Presented as `.paused` (never `.stopped`, which greys the button
-      // out). No teardown — the audio session is already released on Stop, and
-      // keeping the metadata + command handlers registered costs nothing. The
-      // command center is (re)registered so a cold-but-alive launch is resumable.
+      // out). No teardown — Stop never deactivates the audio session, and keeping
+      // the metadata + command handlers registered costs nothing. The command
+      // center is (re)registered so a cold-but-alive launch is resumable.
       setupRemoteControlCenter()
       MPNowPlayingInfoCenter.default().playbackState = .paused
     case .error:
@@ -395,9 +396,10 @@ class NowPlayingUpdater {
   // When the updater is deallocated, `disposeBag` releases the cancellables
   // and the subscriptions are torn down — without `[weak self]` the strong
   // self/closure/disposeBag cycle would keep replaced updaters alive forever.
-  init(stationPlayer: StationPlayer? = nil) {
+  init(stationPlayer: StationPlayer? = nil, launchedAt: Date = Date()) {
     @Dependency(\.stationPlayer) var injectedStationPlayer
     self.stationPlayer = stationPlayer ?? injectedStationPlayer
+    self.launchedAt = launchedAt
     self.stationPlayer.$state
       .sink { [weak self] state in
         self?.updateNowPlaying(with: state)
@@ -420,6 +422,7 @@ class NowPlayingUpdater {
 
     commandCenter.stopCommand.removeTarget(nil)
     commandCenter.playCommand.removeTarget(nil)
+    commandCenter.pauseCommand.removeTarget(nil)
     commandCenter.nextTrackCommand.removeTarget(nil)
     commandCenter.previousTrackCommand.removeTarget(nil)
 
@@ -447,6 +450,13 @@ class NowPlayingUpdater {
       return .success
     }
 
+    // Pause command - the car / lock-screen Pause button on a live stream.
+    commandCenter.pauseCommand.isEnabled = true
+    commandCenter.pauseCommand.addTarget { [weak self] _ in
+      self?.stationPlayer.pause()
+      return .success
+    }
+
     // Play command - resume a station paused by an interruption, or restart the
     // durably persisted last station when stopped.
     commandCenter.playCommand.isEnabled = true
@@ -468,16 +478,37 @@ class NowPlayingUpdater {
       stationPlayer.stationLists.playableItem(
         stationId: station.id, unlocked: showSecretStations) != nil
     {
+      trackRemotePlayCommand(action: "resume")
       Task { @MainActor in await stationPlayer.resume() }
       return .success
     }
     guard stationPlayer.currentStation == nil,
       let resumeStation = stationToResume()
-    else { return .commandFailed }
+    else {
+      trackRemotePlayCommand(action: "none")
+      return .commandFailed
+    }
+    trackRemotePlayCommand(action: "restart_last_station")
     Task { @MainActor in
       await stationPlayer.play(station: resumeStation)
     }
     return .success
+  }
+
+  private func trackRemotePlayCommand(action: String) {
+    let appState: String
+    switch UIApplication.shared.applicationState {
+    case .active: appState = "active"
+    case .inactive: appState = "inactive"
+    case .background: appState = "background"
+    @unknown default: appState = "unknown"
+    }
+    let event = AnalyticsEvent.remotePlayCommandReceived(
+      action: action,
+      appState: appState,
+      secondsSinceLaunch: Int(now.timeIntervalSince(launchedAt))
+    )
+    Task { await analytics.track(event) }
   }
 
   /// The persisted last Playola station, if the current catalog still lets this device play it.
@@ -495,6 +526,7 @@ class NowPlayingUpdater {
 
     // Remove all targets from commands
     commandCenter.playCommand.removeTarget(nil)
+    commandCenter.pauseCommand.removeTarget(nil)
     commandCenter.stopCommand.removeTarget(nil)
     commandCenter.nextTrackCommand.removeTarget(nil)
     commandCenter.previousTrackCommand.removeTarget(nil)

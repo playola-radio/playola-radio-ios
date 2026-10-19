@@ -308,6 +308,7 @@ class StationPlayer: ObservableObject {
   /// superseded this attempt and owns the current state.
   func handlePlayFailure(_ error: Error) {
     if error is CancellationError { return }
+    Task { await errorReporting.reportError(error, ["source": "playback_start"]) }
     setState(State(playbackStatus: .error))
   }
 
