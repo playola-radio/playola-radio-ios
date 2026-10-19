@@ -458,7 +458,7 @@ class NowPlayingUpdater {
     // Pause command - the car / lock-screen Pause button on a live stream.
     commandCenter.pauseCommand.isEnabled = true
     commandCenter.pauseCommand.addTarget { [weak self] _ in
-      self?.stationPlayer.pause()
+      self?.stationPlayer.pauseWithoutAutoResume()
       return .success
     }
 

@@ -90,7 +90,7 @@ enum AnyStation: Identifiable, Codable, Equatable {
   }
 
   // Image loading method for UI components
-  func getImage(maxPixelSize: CGFloat? = nil) async -> UIImage {
+  func getImage(maxPixelSize: CGFloat) async -> UIImage {
     switch self {
     case .playola(let station):
       if let imageUrl = station.imageUrl {

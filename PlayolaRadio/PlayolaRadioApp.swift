@@ -47,8 +47,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+    let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     #if canImport(Sentry)
-      let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
       if !isRunningTests && !isScreenshotMode {
         SentrySDK.start { options in
           options.dsn =
@@ -89,6 +89,10 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
         }
       }
     #endif
+
+    if !isRunningTests && !isScreenshotMode {
+      Task { await ClientConfigLoader().refresh() }
+    }
 
     UNUserNotificationCenter.current().delegate = self
     upsideDownKeyboard.start()

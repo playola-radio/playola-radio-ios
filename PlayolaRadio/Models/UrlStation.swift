@@ -107,7 +107,7 @@ struct UrlStation: Codable, Identifiable, Equatable, Sendable {
 }
 
 extension UrlStation {
-  func getImage(maxPixelSize: CGFloat? = nil) async -> UIImage {
+  func getImage(maxPixelSize: CGFloat) async -> UIImage {
     if let imageUrl = imageUrl {
       let image = await UIImage.image(from: imageUrl, maxPixelSize: maxPixelSize)
       // swiftlint:disable:next force_unwrapping

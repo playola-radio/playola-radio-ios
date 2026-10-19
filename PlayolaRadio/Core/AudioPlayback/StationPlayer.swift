@@ -334,6 +334,24 @@ class StationPlayer: ObservableObject {
     }
   }
 
+  /// An explicit pause that must stick: the car / lock-screen Pause, or losing the
+  /// output route. Disarms interruption auto-resume and invalidates any in-flight
+  /// play()/resume() so it can't start audio after the pause. A start that hasn't
+  /// produced audio yet is stopped instead — there is nothing to pause, and Play
+  /// then restarts the persisted last station.
+  func pauseWithoutAutoResume() {
+    switch state.playbackStatus {
+    case .playing, .paused:
+      playToken += 1
+      pausedBySystem = false
+      pause()
+    case .loading, .startingNewStation:
+      stop()
+    case .stopped, .error:
+      break
+    }
+  }
+
   /// Resumes the active backend after an interruption. We own the session now,
   /// so reactivate it first; a failure surfaces as .error via handlePlayFailure.
   func resume() async {
@@ -554,9 +572,14 @@ extension StationPlayer.PlaybackStatus {
 extension StationPlayer: AudioInterruptionDelegate {
   /// The coordinator detected an interruption begin or a personal-listening
   /// route loss. Arm auto-resume only for interruptions (`shouldAutoResume`);
-  /// a route loss requires manual resume (lock-screen play), so we do not arm
-  /// the flag and a later unrelated `.shouldResume` cannot restart it.
+  /// a route loss is an explicit pause that requires manual resume (lock-screen
+  /// play), so it also cancels any in-flight start and a later unrelated
+  /// `.shouldResume` cannot restart it.
   func audioSessionShouldPause(shouldAutoResume: Bool) {
+    guard shouldAutoResume else {
+      pauseWithoutAutoResume()
+      return
+    }
     // Only arm auto-resume when we were actively playing. If we are already
     // paused (e.g. a prior route loss that requires manual resume), a later
     // interruption must not flip the flag back on — otherwise its `.shouldResume`
@@ -568,7 +591,7 @@ extension StationPlayer: AudioInterruptionDelegate {
     case .paused, .stopped, .error:
       wasActivelyPlaying = false
     }
-    pausedBySystem = shouldAutoResume && wasActivelyPlaying
+    pausedBySystem = wasActivelyPlaying
     pause()
   }
 

@@ -18,6 +18,7 @@ import SwiftUI
 class MainContainerModel: ViewModel {
   var cancellables: Set<AnyCancellable> = []
   private var lastScenePhase: ScenePhase?
+  private let clientConfigLoader = ClientConfigLoader()
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
@@ -35,9 +36,6 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker
   @ObservationIgnored @Shared(.welcomeMessageEligible) var welcomeMessageEligible: Bool = false
-  @ObservationIgnored @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled
-  @ObservationIgnored @Shared(.sampleBufferRendererAllowed)
-  var sampleBufferRendererAllowed: Bool = true
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.activeTab) var activeTab
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
@@ -266,24 +264,7 @@ class MainContainerModel: ViewModel {
   }
 
   func loadClientConfig() async {
-    guard let jwt = auth.jwt else { return }
-    do {
-      let config = try await api.getClientConfig(jwt)
-      // A response for a stale token must not leak one account's flags into the
-      // next session: if the user signed out (or switched accounts) while the
-      // request was in flight, drop it — the new session refetches on launch.
-      guard auth.jwt == jwt else { return }
-      $sampleBufferRendererEnabled.withLock {
-        $0 = config.sampleBufferRendererEnabled ?? true
-      }
-      $sampleBufferRendererAllowed.withLock {
-        $0 = config.sampleBufferRendererAllowed ?? true
-      }
-    } catch {
-      // Deliberately quiet: the defaults (sample-buffer renderer, plus any
-      // persisted kill-gate) are the correct behavior when the fetch fails —
-      // analytics noise would drown real errors.
-    }
+    await clientConfigLoader.refresh()
   }
 
   func loadListeningTracker() async {
