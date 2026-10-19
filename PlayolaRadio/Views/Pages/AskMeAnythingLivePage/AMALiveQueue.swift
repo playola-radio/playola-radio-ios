@@ -102,7 +102,12 @@ extension AskMeAnythingLivePageModel {
         await submitQueuedOutro(item, showId: showId)
         return
       }
-      guard let target = insertionTarget(for: item.stagingId) else {
+      let previousSpinIds = Set(broadcast.schedule?.spins.map(\.id) ?? [])
+      if let target = insertionTarget(for: item.stagingId) {
+        await broadcast.insertStagingItem(stagingId: item.stagingId, beforeSpinId: target)
+      } else if let target = broadcast.placeAfterSpinIdForShowEnd() {
+        await broadcast.insertStagingItem(stagingId: item.stagingId, afterSpinId: target)
+      } else {
         failedSchedulingItemIds.insert(item.stagingId)
         presentedAlert = PlayolaAlert(
           title: "Unable to Add Audio",
@@ -110,8 +115,6 @@ extension AskMeAnythingLivePageModel {
           dismissButton: .cancel(Text("OK")))
         continue
       }
-      let previousSpinIds = Set(broadcast.schedule?.spins.map(\.id) ?? [])
-      await broadcast.insertStagingItem(stagingId: item.stagingId, beforeSpinId: target)
       guard broadcast.liveShowId == showId else { return }
       guard !broadcast.stagingItems.contains(where: { $0.stagingId == item.stagingId }) else {
         failedSchedulingItemIds.insert(item.stagingId)

@@ -341,6 +341,41 @@ struct AMAQueuePlacementTests {
     }
   }
 
+  @Test func voiceAddedAfterTheFinalRevealedFillerQueuesAfterThatFiller() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    let clock = LockIsolated(date)
+    let response = LockIsolated<[Spin]>([])
+    let anchors = LockIsolated<[String]>([])
+    await withDependencies {
+      $0.date = DateGenerator { clock.value }
+      $0.api.insertSpin = { _, audio, anchor in
+        anchors.withValue { $0.append(anchor) }
+        return response.withValue { Self.insert(audio, after: anchor, into: &$0) }
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: "station")
+      model.broadcast.schedule = Schedule(
+        stationId: "station",
+        spins: [
+          .mockWith(
+            id: "current", airtime: date.addingTimeInterval(-30),
+            audioBlock: .mockWith(endOfMessageMS: 175_000), liveShowId: "show"),
+          .mockWith(
+            id: "tough", airtime: date.addingTimeInterval(145),
+            audioBlock: .mockWith(endOfMessageMS: 185_000), liveShowId: "show", isFiller: true),
+        ], dateProvider: DependencyDateProvider())
+      model.schedulePlaybackChanged()
+      let spins = model.broadcast.schedule!.spins
+      response.setValue(spins)
+      clock.withValue { $0 += 30 }
+      model.playbackTick()
+      let voice = stageVoice(model)
+      completeVoice(voice, audio: "voice", model: model)
+      await model.schedulePendingAudio()
+      expectNoDifference(anchors.value, ["tough"])
+    }
+  }
+
   private func makeModel() -> AskMeAnythingLivePageModel {
     let model = AskMeAnythingLivePageModel(stationId: "station")
     model.broadcast.schedule = Schedule(
