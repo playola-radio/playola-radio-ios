@@ -393,6 +393,10 @@ class MainContainerModel: ViewModel {
     windowOrientation.setUpsideDown(mainContainerNavigationCoordinator.isShowingUpsideDownFlow)
   }
 
+  func mainContainerDisappeared() {
+    windowOrientation.setUpsideDown(false)
+  }
+
   func onSmallPlayerTapped() {
     self.mainContainerNavigationCoordinator.presentedSheet = .player(makePlayerModel())
   }

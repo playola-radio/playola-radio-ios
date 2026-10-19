@@ -101,6 +101,22 @@ struct MainContainerTests {
     expectNoDifference(upsideDownCalls.value, [false])
   }
 
+  @Test
+  func testMainContainerDisappearedRestoresWindowOrientation() {
+    let upsideDownCalls = LockIsolated<[Bool]>([])
+    let model = withDependencies {
+      $0.windowOrientation.setUpsideDown = { isUpsideDown in
+        upsideDownCalls.withValue { $0.append(isUpsideDown) }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    model.mainContainerDisappeared()
+
+    expectNoDifference(upsideDownCalls.value, [false])
+  }
+
   // MARK: - ViewAppeared Tests
 
   @Test
