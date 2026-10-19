@@ -149,40 +149,40 @@ private struct AMAQuestionRow: View {
   }
 
   private var header: some View {
-    HStack(spacing: 12) {
-      VStack(alignment: .leading, spacing: 2) {
-        Text(model.listenerName(question))
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
-          .foregroundColor(.playolaTextPrimary)
-          .lineLimit(1)
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 2) {
+          Text(model.listenerName(question))
+            .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
+            .foregroundColor(.playolaTextPrimary)
+            .lineLimit(1)
 
-        HStack(spacing: 6) {
           Text(model.timeAgoText(question))
             .font(.custom(FontNames.Inter_400_Regular, size: 12))
             .foregroundColor(.playolaTextSecondary)
-
-          ForEach(model.askedDuringShowBadges(question), id: \.self) { badge in
-            Text(badge)
-              .font(.custom(FontNames.Inter_600_SemiBold, size: 11))
-              .foregroundColor(.playolaRed)
-              .padding(.horizontal, 8)
-              .padding(.vertical, 3)
-              .background(Color.playolaBrandSoft18)
-              .cornerRadius(10)
-              .fixedSize()
-          }
+            .lineLimit(1)
         }
+
+        Spacer()
+
+        badge
+
+        playButton
+
+        Image(systemName: "chevron.right")
+          .font(.system(size: 14, weight: .semibold))
+          .foregroundColor(.playolaTextSecondary)
       }
 
-      Spacer()
-
-      badge
-
-      playButton
-
-      Image(systemName: "chevron.right")
-        .font(.system(size: 14, weight: .semibold))
-        .foregroundColor(.playolaTextSecondary)
+      ForEach(model.askedDuringShowBadges(question), id: \.self) { badge in
+        Text(badge)
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 11))
+          .foregroundColor(.playolaRed)
+          .padding(.horizontal, 8)
+          .padding(.vertical, 3)
+          .background(Color.playolaBrandSoft18)
+          .cornerRadius(10)
+      }
     }
     .padding(.horizontal, 16)
     .padding(.top, 16)
@@ -197,6 +197,7 @@ private struct AMAQuestionRow: View {
       .padding(.vertical, 3)
       .background(model.badgeBackground(question))
       .cornerRadius(10)
+      .fixedSize()
   }
 
   private var playButton: some View {
@@ -210,6 +211,7 @@ private struct AMAQuestionRow: View {
         Text(model.durationText(question))
           .font(.custom(FontNames.Inter_500_Medium, size: 12))
       }
+      .fixedSize()
       .foregroundColor(.playolaTextPrimary)
       .padding(.horizontal, 12)
       .padding(.vertical, 8)
