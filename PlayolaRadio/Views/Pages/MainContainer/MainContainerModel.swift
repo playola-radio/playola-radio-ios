@@ -25,6 +25,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Dependency(\.siriShortcuts) var siriShortcuts
   @ObservationIgnored @Dependency(\.appRating) var appRating
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
+  @ObservationIgnored @Dependency(\.windowOrientation) var windowOrientation
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
   @ObservationIgnored @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
@@ -386,6 +387,10 @@ class MainContainerModel: ViewModel {
         self.shouldShowSmallPlayer = false
       }
     }
+  }
+
+  func upsideDownFlowVisibilityChanged() {
+    windowOrientation.setUpsideDown(mainContainerNavigationCoordinator.isShowingUpsideDownFlow)
   }
 
   func onSmallPlayerTapped() {

@@ -32,8 +32,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
     title: String,
     subtitle: String?,
     steps: [RecordPromptStep],
-    trackLabel: String,
-    isUpsideDown: Bool
+    trackLabel: String
   ) {
     self.screenTitle = screenTitle
     self.eyebrow = eyebrow
@@ -42,7 +41,6 @@ class RecordWithMultiStepPromptModel: ViewModel {
     self.subtitle = subtitle
     self.steps = IdentifiedArray(uniqueElements: steps)
     self.trackLabel = trackLabel
-    self.isUpsideDown = isUpsideDown
     super.init()
   }
 
@@ -55,7 +53,6 @@ class RecordWithMultiStepPromptModel: ViewModel {
   let subtitle: String?
   let steps: IdentifiedArrayOf<RecordPromptStep>
   let trackLabel: String
-  let isUpsideDown: Bool
 
   /// Handles the finished recording (e.g. upload), reporting progress back so the model can drive
   /// the saving/uploading screen. Injected so the recorder stays generic while the model owns the
@@ -206,8 +203,6 @@ class RecordWithMultiStepPromptModel: ViewModel {
   }
 
   // MARK: - View Helpers
-
-  var rotationDegrees: Double { isUpsideDown ? 180 : 0 }
 
   /// Hides the tab bar for the full-screen record flow so an accidental tab
   /// switch can't interrupt an in-progress recording.
@@ -554,8 +549,7 @@ extension RecordWithMultiStepPromptModel {
           detail:
             "Tell listeners to tap the message button in the player."),
       ],
-      trackLabel: "INTRO",
-      isUpsideDown: true)
+      trackLabel: "INTRO")
     configureLiveShowUpload(model, stationId: stationId, title: "Intro")
     return model
   }
@@ -573,8 +567,7 @@ extension RecordWithMultiStepPromptModel {
         RecordPromptStep(
           id: 2, label: "SIGN OFF", detail: "Say goodbye and let listeners know what comes next."),
       ],
-      trackLabel: "OUTRO",
-      isUpsideDown: true)
+      trackLabel: "OUTRO")
     configureLiveShowUpload(model, stationId: stationId, title: "Outro")
     return model
   }
@@ -615,8 +608,7 @@ extension RecordWithMultiStepPromptModel {
           id: 2, label: "KEEP IT TIGHT",
           detail: "A few seconds is plenty \u{2014} keep the energy up."),
       ],
-      trackLabel: "VOICETRACK",
-      isUpsideDown: true)
+      trackLabel: "VOICETRACK")
   }
 }
 

@@ -62,6 +62,45 @@ func createTestJWT(
 @Suite(.freshSharedState)
 @MainActor
 struct MainContainerTests {
+  // MARK: - Upside-Down Orientation Tests
+
+  @Test
+  func testUpsideDownFlowVisibilityChangedFlipsWindowWhenShowIsOpen() {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
+    let upsideDownCalls = LockIsolated<[Bool]>([])
+    let model = withDependencies {
+      $0.windowOrientation.setUpsideDown = { isUpsideDown in
+        upsideDownCalls.withValue { $0.append(isUpsideDown) }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+    model.mainContainerNavigationCoordinator.artistDashboardPath = [
+      .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "station-abc"))
+    ]
+
+    model.upsideDownFlowVisibilityChanged()
+
+    expectNoDifference(upsideDownCalls.value, [true])
+  }
+
+  @Test
+  func testUpsideDownFlowVisibilityChangedRestoresWindowWhenShowIsClosed() {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
+    let upsideDownCalls = LockIsolated<[Bool]>([])
+    let model = withDependencies {
+      $0.windowOrientation.setUpsideDown = { isUpsideDown in
+        upsideDownCalls.withValue { $0.append(isUpsideDown) }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    model.upsideDownFlowVisibilityChanged()
+
+    expectNoDifference(upsideDownCalls.value, [false])
+  }
+
   // MARK: - ViewAppeared Tests
 
   @Test

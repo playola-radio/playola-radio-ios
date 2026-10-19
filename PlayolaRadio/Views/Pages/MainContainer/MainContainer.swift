@@ -129,6 +129,9 @@ struct MainContainer: View {
     }
     .animation(.easeInOut(duration: 0.3), value: model.presentedToast)
     .onAppear { Task { await model.viewAppeared() } }
+    .onChange(of: model.mainContainerNavigationCoordinator.isShowingUpsideDownFlow) {
+      model.upsideDownFlowVisibilityChanged()
+    }
     .onChange(of: scenePhase) { _, newPhase in
       model.handleScenePhaseChange(newPhase)
       if newPhase == .active {
