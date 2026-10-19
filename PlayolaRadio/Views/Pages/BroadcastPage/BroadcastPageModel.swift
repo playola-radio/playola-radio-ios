@@ -273,7 +273,8 @@ class BroadcastPageModel: ViewModel {
   var showEndDropTargets: [String] {
     guard let liveShowId,
       let filler = schedule?.current().first(where: {
-        $0.liveShowId == liveShowId && $0.isFiller == true && canDeleteSpin($0)
+        $0.liveShowId == liveShowId && $0.isFiller == true
+          && !visibleFillerIds.contains($0.id) && canDeleteSpin($0)
       })
     else { return [] }
     return [filler.id]

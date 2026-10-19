@@ -162,6 +162,57 @@ struct BroadcastPageTests {
     }
   }
 
+  private var revealedFillerSpins: [Spin] {
+    [
+      Spin.mockWith(
+        id: "playing", airtime: fixedNow.addingTimeInterval(-30),
+        audioBlock: .mockWith(endOfMessageMS: 175_000), liveShowId: "show"),
+      Spin.mockWith(
+        id: "tough", airtime: fixedNow.addingTimeInterval(145),
+        audioBlock: .mockWith(endOfMessageMS: 185_000), liveShowId: "show", isFiller: true),
+      Spin.mockWith(
+        id: "reserve", airtime: fixedNow.addingTimeInterval(330), liveShowId: "show",
+        isFiller: true),
+    ]
+  }
+
+  @Test func showEndDropTargetSkipsAFillerAlreadyRevealedToTheHost() async {
+    let spins = revealedFillerSpins
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, liveShowId: "show")
+      await model.loadSchedule()
+      model.visibleFillerIds = ["tough"]
+      expectNoDifference(model.showEndDropTargets, ["reserve"])
+      expectNoDifference(model.placeAfterSpinIdForShowEnd(), "tough")
+    }
+  }
+
+  @Test func placingContentAtShowEndLandsAfterARevealedFiller() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let anchors = LockIsolated<[String]>([])
+    let spins = revealedFillerSpins
+    await withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in spins }
+      $0.api.insertSpin = { _, _, anchor in
+        anchors.withValue { $0.append(anchor) }
+        return spins
+      }
+    } operation: {
+      let model = BroadcastPageModel(stationId: testStationId, liveShowId: "show")
+      await model.loadSchedule()
+      model.visibleFillerIds = ["tough"]
+      let voicetrack = makeStagingVoicetrack()
+      model.stagingItems = [voicetrack]
+      await model.insertStagingItem(
+        stagingId: voicetrack.stagingId, beforeSpinId: model.showEndDropTargets[0])
+      expectNoDifference(anchors.value, ["tough"])
+    }
+  }
+
   @Test func placingContentAtShowEndUsesTheHiddenFillerBoundary() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let anchors = LockIsolated<[String]>([])
