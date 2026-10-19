@@ -229,7 +229,69 @@ struct StationPlayerPlaybackAttemptTests {
     await resumeTask.value
 
     expectNoDifference(playola.resumeAfterInterruptionCount, 0)
+    expectNoDifference(player.state.playbackStatus, .stopped)
+  }
+
+  @Test
+  func pauseDuringSuspendedSdkResumeStopsSoPlayRestartsLastStation() async {
+    let playola = SpyPlayolaStationPlayer()
+    playola.resumeGate = AsyncGate()
+    let player = StationPlayer(
+      playolaStationPlayer: playola,
+      audioSessionCoordinator: AudioSessionCoordinator(session: SpyAudioSession()))
+    player.state = StationPlayer.State(playbackStatus: .paused(.mockPlayola()))
+
+    let resumeTask = Task { await player.resume() }
+    await withCheckedContinuation { continuation in
+      let entered = playola.resumeEntered
+      DispatchQueue.global().async {
+        entered.wait()
+        continuation.resume()
+      }
+    }
+
+    player.pauseWithoutAutoResume()
+    await playola.resumeGate?.open()
+    await resumeTask.value
+
+    expectNoDifference(player.state.playbackStatus, .stopped)
+  }
+
+  @Test
+  func pauseAfterResumeCompletesStillPausesInsteadOfStopping() async {
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola,
+      audioSessionCoordinator: AudioSessionCoordinator(session: SpyAudioSession()))
+    let station = AnyStation.mockPlayola()
+    player.state = StationPlayer.State(playbackStatus: .paused(station))
+
+    await player.resume()
+    player.pauseWithoutAutoResume()
+
+    expectNoDifference(playola.pauseForInterruptionCount, 1)
     expectNoDifference(player.state.playbackStatus, .paused(station))
+  }
+
+  @Test
+  func queuedAutoResumeIsCancelledByExplicitPause() async throws {
+    let coordinator = AudioSessionCoordinator(session: SpyAudioSession())
+    let playola = SpyPlayolaStationPlayer()
+    let player = StationPlayer(
+      playolaStationPlayer: playola, audioSessionCoordinator: coordinator)
+    let station = AnyStation.mockPlayola()
+    player.state = StationPlayer.State(playbackStatus: .playing(station))
+
+    player.audioSessionShouldPause(shouldAutoResume: true)
+    player.state = StationPlayer.State(playbackStatus: .paused(station))
+    player.audioSessionShouldResume()
+    player.pauseWithoutAutoResume()
+
+    await Task.yield()
+    try await coordinator.configureForPlayback()
+    for _ in 0..<20 { await Task.yield() }
+
+    expectNoDifference(playola.resumeAfterInterruptionCount, 0)
   }
 
   @Test
