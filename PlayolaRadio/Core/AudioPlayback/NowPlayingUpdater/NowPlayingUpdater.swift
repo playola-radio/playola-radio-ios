@@ -91,6 +91,11 @@ class NowPlayingUpdater {
   var lastPlayedStation: AnyStation?
   private var currentArtworkURL: String?
 
+  /// Lock-screen / car artwork is drawn at a few hundred points; decoding the
+  /// full-resolution station image just to show it that small wastes memory the
+  /// system may reclaim by evicting the app while it sits idle in the background.
+  static let artworkMaxPixelSize: CGFloat = 600
+
   // Local source of truth for the now-playing dictionary. We never read
   // MPNowPlayingInfoCenter.default().nowPlayingInfo: that getter performs a
   // synchronous cross-process wait that can block the main thread for seconds
@@ -363,7 +368,7 @@ class NowPlayingUpdater {
 
     // For CarPlay/Lock Screen: always use station image, ignore album artwork
     Task {
-      let image = await station.getImage()
+      let image = await station.getImage(maxPixelSize: Self.artworkMaxPixelSize)
       // Artwork loads asynchronously; a fast station switch can resolve a stale
       // image. Only apply it if this station is still the current one.
       guard self.isStillCurrent(station) else { return }

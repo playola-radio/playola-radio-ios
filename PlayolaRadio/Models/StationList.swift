@@ -90,18 +90,18 @@ enum AnyStation: Identifiable, Codable, Equatable {
   }
 
   // Image loading method for UI components
-  func getImage() async -> UIImage {
+  func getImage(maxPixelSize: CGFloat? = nil) async -> UIImage {
     switch self {
     case .playola(let station):
       if let imageUrl = station.imageUrl {
-        let image = await UIImage.image(from: imageUrl)
+        let image = await UIImage.image(from: imageUrl, maxPixelSize: maxPixelSize)
         // swiftlint:disable:next force_unwrapping
         return image ?? UIImage(named: "stationImage")!
       }
       // swiftlint:disable:next force_unwrapping
       return UIImage(named: "stationImage")!
     case .url(let station):
-      return await station.getImage()
+      return await station.getImage(maxPixelSize: maxPixelSize)
     }
   }
 }

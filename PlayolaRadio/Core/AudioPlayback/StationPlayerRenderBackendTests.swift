@@ -186,6 +186,18 @@ struct StationPlayerRenderBackendTests {
     #expect(capturedTags.value.first?.value == "sampleBuffer")
   }
 
+  // MARK: - Persistence
+
+  @Test
+  func enabledFlagPersistsToAppStorage() {
+    let appStorage = DependencyValues._current.defaultAppStorage
+    @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = false
+
+    $sampleBufferRendererEnabled.withLock { $0 = true }
+
+    #expect(appStorage.bool(forKey: "sampleBufferRendererEnabled") == true)
+  }
+
   // MARK: - Decode (ClientConfig)
 
   @Test

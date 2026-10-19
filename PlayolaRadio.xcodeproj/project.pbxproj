@@ -657,6 +657,7 @@
 		FAE000000000000000000003 /* AudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000001 /* AudioSessionCoordinator.swift */; };
 		FAE000000000000000000005 /* AudioSessionCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */; };
 		FAE000000000000000000011 /* SingleNowPlayingWriterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000010 /* SingleNowPlayingWriterTests.swift */; };
+		FAE000000000000000000021 /* UIImageCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000020 /* UIImageCacheTests.swift */; };
 		FAF000000000000000000002 /* AudioRecorderClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF000000000000000000001 /* AudioRecorderClientTests.swift */; };
 		FAF000000000000000000011 /* AudioPlayerClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF000000000000000000010 /* AudioPlayerClientTests.swift */; };
 		FE01A0C72DFCB368002BAC30 /* SharedStateTestTrait.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */; };
@@ -1086,6 +1087,7 @@
 		FAE000000000000000000001 /* AudioSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinator.swift; sourceTree = "<group>"; };
 		FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinatorTests.swift; sourceTree = "<group>"; };
 		FAE000000000000000000010 /* SingleNowPlayingWriterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleNowPlayingWriterTests.swift; sourceTree = "<group>"; };
+		FAE000000000000000000020 /* UIImageCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageCacheTests.swift; sourceTree = "<group>"; };
 		FAF000000000000000000001 /* AudioRecorderClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderClientTests.swift; sourceTree = "<group>"; };
 		FAF000000000000000000010 /* AudioPlayerClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerClientTests.swift; sourceTree = "<group>"; };
 		FBD876AFF9DD0588179EB37B /* RewardsExperience.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RewardsExperience.swift; sourceTree = "<group>"; };
@@ -1718,6 +1720,7 @@
 				D3536A362BFA6520006942D6 /* Bundle+Misc.swift */,
 				D3536A372BFA6520006942D6 /* Color+Hex.swift */,
 				D3536A382BFA6520006942D6 /* UIImage+Cache.swift */,
+				FAE000000000000000000020 /* UIImageCacheTests.swift */,
 				D339E56E2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift */,
 				A0D10B0C2E90000000000001 /* AudioBlock+Identifiable.swift */,
 				D39728572F5F040F008591E3 /* Version+Comparison */,
@@ -3056,6 +3059,7 @@
 				FAF000000000000000000011 /* AudioPlayerClientTests.swift in Sources */,
 				FAE000000000000000000005 /* AudioSessionCoordinatorTests.swift in Sources */,
 				FAE000000000000000000011 /* SingleNowPlayingWriterTests.swift in Sources */,
+				FAE000000000000000000021 /* UIImageCacheTests.swift in Sources */,
 				D35EFC142F1595C5000F64A4 /* SeriesCardTests.swift in Sources */,
 				D3776A1D2F243F8600200ADF /* BroadcastersListenerQuestionPageTests.swift in Sources */,
 				D35EFC532F1A99E6000F64A4 /* ConversationListPageTests.swift in Sources */,

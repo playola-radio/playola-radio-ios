@@ -9,6 +9,7 @@ import Combine
 import Dependencies
 import IdentifiedCollections
 import PlayolaPlayer
+import SDWebImage
 import Sharing
 import SwiftUI
 
@@ -16,6 +17,7 @@ import SwiftUI
 @Observable
 class MainContainerModel: ViewModel {
   var cancellables: Set<AnyCancellable> = []
+  private var lastScenePhase: ScenePhase?
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
@@ -224,6 +226,8 @@ class MainContainerModel: ViewModel {
   }
 
   func handleScenePhaseChange(_ phase: ScenePhase) {
+    lastScenePhase = phase
+    trimImageMemoryIfIdleInBackground(playbackStatus: stationPlayer.state.playbackStatus)
     switch phase {
     case .active:
       liveStationsPoller.startPolling()
@@ -317,6 +321,17 @@ class MainContainerModel: ViewModel {
     default: break
     }
     self.setShouldShowSmallPlayer(newState)
+    trimImageMemoryIfIdleInBackground(playbackStatus: newState.playbackStatus)
+  }
+
+  private func trimImageMemoryIfIdleInBackground(playbackStatus: StationPlayer.PlaybackStatus) {
+    guard lastScenePhase == .background else { return }
+    switch playbackStatus {
+    case .stopped, .paused, .error:
+      SDImageCache.shared.clearMemory()
+    default:
+      break
+    }
   }
 
   func presentedSheetChanged(to newSheet: PlayolaSheet?) {
