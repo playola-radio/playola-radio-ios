@@ -5,6 +5,8 @@ import Testing
 
 @testable import PlayolaRadio
 
+private struct PlaybackStartTestError: Error {}
+
 @Suite(.freshSharedState)
 @MainActor
 struct StationPlayerPlaybackAttemptTests {
@@ -137,5 +139,44 @@ struct StationPlayerPlaybackAttemptTests {
 
     #expect(started)
     expectNoDifference(urlStreamPlayer.playCallCount, 0)
+  }
+
+  @Test
+  func handlePlayFailureReportsErrorToSentryWithPlaybackStartSource() async {
+    var stationPlayer: StationPlayer!
+    let (error, tags) = await withCheckedContinuation { continuation in
+      stationPlayer = withDependencies {
+        $0.errorReporting.reportError = { error, tags in
+          continuation.resume(returning: (error, tags))
+        }
+      } operation: {
+        StationPlayer()
+      }
+      stationPlayer.handlePlayFailure(PlaybackStartTestError())
+    }
+
+    #expect(error is PlaybackStartTestError)
+    expectNoDifference(tags, ["source": "playback_start"])
+  }
+
+  @Test
+  func handlePlayFailureDoesNotReportCancellation() async {
+    var stationPlayer: StationPlayer!
+    let reportedErrors = await withCheckedContinuation { continuation in
+      let reported = LockIsolated<[Error]>([])
+      stationPlayer = withDependencies {
+        $0.errorReporting.reportError = { error, _ in
+          reported.withValue { $0.append(error) }
+          continuation.resume(returning: reported.value)
+        }
+      } operation: {
+        StationPlayer()
+      }
+      stationPlayer.handlePlayFailure(CancellationError())
+      stationPlayer.handlePlayFailure(PlaybackStartTestError())
+    }
+
+    #expect(reportedErrors.count == 1)
+    #expect(reportedErrors.first is PlaybackStartTestError)
   }
 }

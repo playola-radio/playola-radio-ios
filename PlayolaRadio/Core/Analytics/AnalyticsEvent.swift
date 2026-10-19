@@ -64,6 +64,9 @@ enum AnalyticsEvent: Equatable {
   // MARK: Engagement
   case audioOutputChanged(outputTypes: [String])
   case carPlayInitialized
+  /// `action`: `resume` / `restart_last_station` / `none`. `appState`: `active` /
+  /// `inactive` / `background`.
+  case remotePlayCommandReceived(action: String, appState: String, secondsSinceLaunch: Int)
   case stationChanged(from: String?, to: String)
   case notifyMeRequested(showId: String, showName: String, stationName: String)
 
@@ -128,6 +131,7 @@ extension AnalyticsEvent {
     case .broadcastSongAdded: return "Broadcast Song Added"
     case .audioOutputChanged: return "Audio Output Changed"
     case .carPlayInitialized: return "CarPlay Initialized"
+    case .remotePlayCommandReceived: return "Remote Play Command Received"
     case .stationChanged: return "Station Changed"
     case .notifyMeRequested: return "Notify Me Requested"
     case .claimSheetShown: return "Claim Sheet Shown"
@@ -311,6 +315,13 @@ extension AnalyticsEvent {
 
     case .carPlayInitialized:
       return [:]
+
+    case .remotePlayCommandReceived(let action, let appState, let secondsSinceLaunch):
+      return [
+        "action": action,
+        "app_state": appState,
+        "seconds_since_launch": secondsSinceLaunch,
+      ]
 
     case .stationChanged(let from, let to):
       var props: [String: any MixpanelType] = ["to": to]
