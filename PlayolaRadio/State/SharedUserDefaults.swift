@@ -347,6 +347,17 @@ extension SharedKey where Self == InMemoryKey<[FulfillmentRequest]>.Default {
   }
 }
 
+extension SharedKey where Self == FileStorageKey<[String: [String: InfoAnswer]]>.Default {
+  /// Unsent claim form answers keyed by fulfillment request id, so "finish later" keeps what the
+  /// winner typed. Cleared on sign-out since it holds a shipping address.
+  static var claimFormDrafts: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "claim-form-drafts.json")),
+      default: [:]
+    ]
+  }
+}
+
 extension SharedKey where Self == FileStorageKey<Set<String>>.Default {
   /// User ids that have already seen the up-front koozie Claim sheet on this device. Not cleared on
   /// sign-out, so each account is prompted once and re-signing-in doesn't re-prompt.

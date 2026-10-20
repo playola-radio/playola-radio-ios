@@ -114,6 +114,26 @@ struct StationPlayerLastPlayedTests {
   }
 
   @Test
+  func signOutClearsClaimFormDrafts() async {
+    @Shared(.auth) var auth = Auth()
+    @Shared(.claimFormDrafts) var drafts = ["request-1": ["note": .text("Jane")]]
+    let player = StationPlayer(
+      playolaStationPlayer: SpyPlayolaStationPlayer(),
+      audioSessionCoordinator: AudioSessionCoordinator(session: SpyAudioSession()))
+
+    await withDependencies {
+      $0.analytics.reset = {}
+      $0.analytics.track = { _ in }
+      $0.stationPlayer = player
+      $0.nowPlayingUpdater = NowPlayingUpdater(stationPlayer: player)
+    } operation: {
+      await AuthService.shared.signOut()
+    }
+
+    expectNoDifference(drafts, [:])
+  }
+
+  @Test
   func signOutStopsActivePlayback() async {
     @Shared(.auth) var auth = Auth()
     @Shared(.lastPlayedStation) var lastPlayedStation: LastPlayedStation?

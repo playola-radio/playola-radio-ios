@@ -52,6 +52,7 @@ class ClaimSheetModel: ViewModel {
 
   // MARK: - Shared State
   @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.claimFormDrafts) var claimFormDrafts
 
   // MARK: - Initialization
   private let rewardClaim: RewardClaim?
@@ -92,6 +93,8 @@ class ClaimSheetModel: ViewModel {
   var fields: IdentifiedArrayOf<ClaimFieldModel> = []
   private(set) var request: FulfillmentRequest?
   @ObservationIgnored private var hasClosed = false
+  @ObservationIgnored private var draftOwner: AuthIdentity?
+  @ObservationIgnored private var adoptedAnswers: [String: InfoAnswer] = [:]
 
   // MARK: - User Actions
   func viewAppeared() {
@@ -128,6 +131,7 @@ class ClaimSheetModel: ViewModel {
       try await api.submitFulfillmentAnswers(jwt, request.id, body)
       guard auth.identity == identity else { return close() }
       phase = .sent
+      clearDraft()
       await analytics.track(.claimSheetSubmitted(source: source))
     } catch  where auth.identity != identity {
       close()
@@ -138,9 +142,11 @@ class ClaimSheetModel: ViewModel {
       await analytics.track(.claimSheetSubmitFailed(source: source, reason: "invalid_answers"))
     } catch ClaimAPIError.notOpen {
       phase = .noLongerOpen
+      clearDraft()
       await analytics.track(.claimSheetSubmitFailed(source: source, reason: "no_longer_open"))
     } catch ClaimAPIError.conflict {
       phase = .noLongerOpen
+      clearDraft()
       await analytics.track(.claimSheetSubmitFailed(source: source, reason: "conflict"))
     } catch {
       phase = .sendFailed(.connection)
@@ -162,6 +168,7 @@ class ClaimSheetModel: ViewModel {
   func laterTapped() {
     guard !hasClosed else { return }
     if isLaterAvailable { track(.claimSheetLater(source: source)) }
+    saveDraft()
     close()
   }
 
@@ -320,6 +327,13 @@ class ClaimSheetModel: ViewModel {
     rewardClaim?.isKoozie ?? false
   }
 
+  private var isFillingIn: Bool {
+    switch phase {
+    case .form, .sendFailed: return true
+    default: return false
+    }
+  }
+
   private var canStartClaim: Bool {
     switch phase {
     case .notYetClaimed, .claimFailed: return true
@@ -343,13 +357,28 @@ class ClaimSheetModel: ViewModel {
 
   private func adopt(_ newRequest: FulfillmentRequest) {
     request = newRequest
+    draftOwner = auth.identity
+    let prefill = claimFormDrafts[newRequest.id] ?? newRequest.infoAnswers
     fields = IdentifiedArrayOf(
       uniqueElements: newRequest.infoFields.map {
-        ClaimFieldModel(field: $0, prefill: newRequest.infoAnswers[$0.key])
+        ClaimFieldModel(field: $0, prefill: prefill[$0.key])
       })
+    adoptedAnswers = answeredFields
     let needsInfo =
       newRequest.status == .awaitingInfo && newRequest.infoFields.contains(where: \.required)
     phase = needsInfo ? .form : .nothingToFillIn
+    if !needsInfo { clearDraft() }
+  }
+
+  private func saveDraft() {
+    guard let request, isFillingIn, auth.identity == draftOwner, answeredFields != adoptedAnswers
+    else { return }
+    $claimFormDrafts.withLock { $0[request.id] = answeredFields }
+  }
+
+  private func clearDraft() {
+    guard let request, claimFormDrafts[request.id] != nil else { return }
+    $claimFormDrafts.withLock { $0[request.id] = nil }
   }
 
   private func handleClaimFailure(_ error: Error) async {

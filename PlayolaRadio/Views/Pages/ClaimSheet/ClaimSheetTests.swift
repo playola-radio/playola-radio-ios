@@ -597,4 +597,105 @@ struct ClaimSheetTests {
     model.phase = .noLongerOpen
     #expect(model.prizeImageOpacity == 0.5)
   }
+
+  // MARK: - Drafts
+
+  @Test func testLaterSavesTypedAnswersForNextOpen() {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let first = ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    first.fields.first?.address.fullName = "Jane"
+    first.fields.first?.address.city = "Austin"
+    first.laterTapped()
+
+    let reopened = ClaimSheetModel(entry: .request(.mock()), onClose: {})
+
+    expectNoDifference(
+      reopened.fields.first?.answer,
+      .address(
+        ShippingAddress(
+          fullName: "Jane", addressLine1: "", addressLine2: nil, city: "Austin", state: "",
+          postalCode: "")))
+  }
+
+  @Test func testLaterSavesChosenOption() {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let request = FulfillmentRequest.mock(infoFields: [
+      InfoField(
+        key: "size", label: "Shirt size", type: .singleChoice, options: ["S", "M"], required: true)
+    ])
+    let first = ClaimSheetModel(entry: .request(request), onClose: {})
+    first.fields.first?.optionTapped("M")
+    first.laterTapped()
+
+    let reopened = ClaimSheetModel(entry: .request(request), onClose: {})
+
+    #expect(reopened.fields.first?.selectedOption == "M")
+  }
+
+  @Test func testDraftKeepsAFieldTheUserCleared() {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let request = FulfillmentRequest.mock(infoAnswers: ["shippingAddress": fullAddress])
+    let first = ClaimSheetModel(entry: .request(request), onClose: {})
+    first.fields.first?.address.fullName = ""
+    first.fields.first?.address.addressLine1 = ""
+    first.fields.first?.address.city = ""
+    first.fields.first?.address.state = ""
+    first.fields.first?.address.postalCode = ""
+    first.laterTapped()
+
+    let reopened = ClaimSheetModel(entry: .request(request), onClose: {})
+
+    #expect(reopened.fields.first?.answer == nil)
+  }
+
+  @Test func testLaterWithoutEditsSavesNoDraft() {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    @Shared(.claimFormDrafts) var drafts = [:]
+    let model = ClaimSheetModel(
+      entry: .request(.mock(infoAnswers: ["shippingAddress": fullAddress])), onClose: {})
+    model.laterTapped()
+    expectNoDifference(drafts, [:])
+  }
+
+  @Test func testLaterAfterAccountChangeSavesNoDraft() {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    @Shared(.claimFormDrafts) var drafts = [:]
+    let model = ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    model.fields.first?.address.fullName = "Jane"
+    $auth.withLock { $0 = Auth() }
+    model.laterTapped()
+    expectNoDifference(drafts, [:])
+  }
+
+  @Test func testSuccessfulSendClearsDraft() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    @Shared(.claimFormDrafts) var drafts = ["request-1": ["shippingAddress": fullAddress]]
+    let model = withDependencies {
+      $0.api.submitFulfillmentAnswers = { _, _, _ in }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+    } operation: {
+      ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    }
+    await model.sendTapped()
+    expectNoDifference(drafts, [:])
+  }
+
+  @Test func testNoLongerOpenClearsDraft() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    @Shared(.claimFormDrafts) var drafts = ["request-1": ["shippingAddress": fullAddress]]
+    let model = withDependencies {
+      $0.api.submitFulfillmentAnswers = { _, _, _ in throw ClaimAPIError.notOpen }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+    } operation: {
+      ClaimSheetModel(entry: .request(.mock()), onClose: {})
+    }
+    await model.sendTapped()
+    expectNoDifference(drafts, [:])
+  }
+
+  @Test func testRequestNoLongerAwaitingInfoClearsDraft() {
+    @Shared(.claimFormDrafts) var drafts = ["request-1": ["shippingAddress": fullAddress]]
+    _ = ClaimSheetModel(entry: .request(.mock(status: .readyToShip)), onClose: {})
+    expectNoDifference(drafts, [:])
+  }
 }
