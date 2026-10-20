@@ -648,6 +648,24 @@ struct ClaimSheetTests {
     #expect(reopened.fields.first?.answer == nil)
   }
 
+  @Test func testUntouchedFieldShowsNewerServerAnswer() {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    let fields = [
+      InfoField(
+        key: "addr", label: "Shipping address", type: .address, options: [], required: true),
+      InfoField(key: "note", label: "Note", type: .shortText, options: [], required: false),
+    ]
+    let first = ClaimSheetModel(entry: .request(.mock(infoFields: fields)), onClose: {})
+    first.fields[id: "note"]?.text = "Thanks!"
+    first.laterTapped()
+
+    let reopened = ClaimSheetModel(
+      entry: .request(.mock(infoFields: fields, infoAnswers: ["addr": fullAddress])),
+      onClose: {})
+
+    #expect(reopened.fields[id: "addr"]?.answer == fullAddress)
+  }
+
   @Test func testLaterWithoutEditsSavesNoDraft() {
     @Shared(.auth) var auth = Auth(jwt: "token")
     @Shared(.claimFormDrafts) var drafts = [:]

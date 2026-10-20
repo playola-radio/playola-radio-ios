@@ -94,7 +94,7 @@ class ClaimSheetModel: ViewModel {
   private(set) var request: FulfillmentRequest?
   @ObservationIgnored private var hasClosed = false
   @ObservationIgnored private var draftOwner: AuthIdentity?
-  @ObservationIgnored private var adoptedAnswers: [String: InfoAnswer] = [:]
+  @ObservationIgnored private var serverAnswers: [String: InfoAnswer] = [:]
 
   // MARK: - User Actions
   func viewAppeared() {
@@ -167,8 +167,10 @@ class ClaimSheetModel: ViewModel {
 
   func laterTapped() {
     guard !hasClosed else { return }
-    if isLaterAvailable { track(.claimSheetLater(source: source)) }
-    saveDraft()
+    if isLaterAvailable {
+      track(.claimSheetLater(source: source))
+      saveDraft()
+    }
     close()
   }
 
@@ -327,13 +329,6 @@ class ClaimSheetModel: ViewModel {
     rewardClaim?.isKoozie ?? false
   }
 
-  private var isFillingIn: Bool {
-    switch phase {
-    case .form, .sendFailed: return true
-    default: return false
-    }
-  }
-
   private var canStartClaim: Bool {
     switch phase {
     case .notYetClaimed, .claimFailed: return true
@@ -350,30 +345,52 @@ class ClaimSheetModel: ViewModel {
   }
 
   private var answeredFields: [String: InfoAnswer] {
+    Self.answers(of: fields)
+  }
+
+  private static func answers(of fields: IdentifiedArrayOf<ClaimFieldModel>) -> [String: InfoAnswer]
+  {
     fields.reduce(into: [:]) { result, field in
       result[field.field.key] = field.answer
     }
   }
 
+  private static func fieldModels(
+    for request: FulfillmentRequest, answers: [String: InfoAnswer]
+  ) -> IdentifiedArrayOf<ClaimFieldModel> {
+    IdentifiedArrayOf(
+      uniqueElements: request.infoFields.map {
+        ClaimFieldModel(field: $0, prefill: answers[$0.key])
+      })
+  }
+
   private func adopt(_ newRequest: FulfillmentRequest) {
     request = newRequest
     draftOwner = auth.identity
-    let prefill = claimFormDrafts[newRequest.id] ?? newRequest.infoAnswers
-    fields = IdentifiedArrayOf(
-      uniqueElements: newRequest.infoFields.map {
-        ClaimFieldModel(field: $0, prefill: prefill[$0.key])
-      })
-    adoptedAnswers = answeredFields
+    let serverFields = Self.fieldModels(for: newRequest, answers: newRequest.infoAnswers)
+    serverAnswers = Self.answers(of: serverFields)
+    if let edits = claimFormDrafts[newRequest.id] {
+      fields = Self.fieldModels(
+        for: newRequest, answers: newRequest.infoAnswers.merging(edits) { $1 })
+    } else {
+      fields = serverFields
+    }
     let needsInfo =
       newRequest.status == .awaitingInfo && newRequest.infoFields.contains(where: \.required)
     phase = needsInfo ? .form : .nothingToFillIn
     if !needsInfo { clearDraft() }
   }
 
+  /// Keeps only the fields the user changed, so untouched fields follow the server. A cleared
+  /// field is stored as an empty text answer, which prefills as blank for every field kind.
   private func saveDraft() {
-    guard let request, isFillingIn, auth.identity == draftOwner, answeredFields != adoptedAnswers
-    else { return }
-    $claimFormDrafts.withLock { $0[request.id] = answeredFields }
+    guard let request, auth.identity == draftOwner else { return }
+    let current = answeredFields
+    let edits: [String: InfoAnswer] = fields.ids.reduce(into: [:]) { result, key in
+      guard current[key] != serverAnswers[key] else { return }
+      result[key] = current[key] ?? .text("")
+    }
+    $claimFormDrafts.withLock { $0[request.id] = edits.isEmpty ? nil : edits }
   }
 
   private func clearDraft() {
