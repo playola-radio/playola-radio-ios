@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import IdentifiedCollections
 import Observation
 
 /// The in-app keyboard shown while the app is flipped upside down, where the system
@@ -39,7 +40,7 @@ final class UpsideDownKeyboardModel: ViewModel {
 
   struct Row: Identifiable {
     let id: Int
-    let keys: [Key]
+    let keys: IdentifiedArrayOf<Key>
   }
 
   // MARK: - Properties
@@ -75,13 +76,16 @@ final class UpsideDownKeyboardModel: ViewModel {
 
   // MARK: - View Helpers
 
-  var rows: [Row] {
+  var rows: IdentifiedArrayOf<Row> {
     switch layout {
     case .letters:
       return [
         Row(id: 0, keys: characterKeys("qwertyuiop")),
         Row(id: 1, keys: characterKeys("asdfghjkl")),
-        Row(id: 2, keys: [shiftKey] + characterKeys("zxcvbnm") + [deleteKey]),
+        Row(
+          id: 2,
+          keys: IdentifiedArrayOf(
+            uniqueElements: [shiftKey] + Array(characterKeys("zxcvbnm")) + [deleteKey])),
         Row(id: 3, keys: bottomRow(layoutToggleLabel: "123", accessibilityLabel: "Numbers")),
       ]
     case .numbers:
@@ -103,19 +107,24 @@ final class UpsideDownKeyboardModel: ViewModel {
     layout == .letters && isShifted ? character.uppercased() : character
   }
 
-  private func characterKeys(_ characters: String) -> [Key] {
-    characters.map { character in
-      let label = displayed(String(character))
-      return Key(action: .character(String(character)), label: label, accessibilityLabel: label)
-    }
+  private func characterKeys(_ characters: String) -> IdentifiedArrayOf<Key> {
+    IdentifiedArrayOf(
+      uniqueElements: characters.map { character in
+        let label = displayed(String(character))
+        return Key(action: .character(String(character)), label: label, accessibilityLabel: label)
+      })
   }
 
-  private func bottomRow(layoutToggleLabel: String, accessibilityLabel: String) -> [Key] {
-    [
-      Key(
-        action: .layoutToggle, label: layoutToggleLabel, accessibilityLabel: accessibilityLabel),
-      Key(action: .space, label: "space", accessibilityLabel: "Space"),
-      Key(action: .returnKey, label: "return", accessibilityLabel: "Return"),
-    ]
+  private func bottomRow(
+    layoutToggleLabel: String,
+    accessibilityLabel: String
+  ) -> IdentifiedArrayOf<Key> {
+    IdentifiedArrayOf(
+      uniqueElements: [
+        Key(
+          action: .layoutToggle, label: layoutToggleLabel, accessibilityLabel: accessibilityLabel),
+        Key(action: .space, label: "space", accessibilityLabel: "Space"),
+        Key(action: .returnKey, label: "return", accessibilityLabel: "Return"),
+      ])
   }
 }

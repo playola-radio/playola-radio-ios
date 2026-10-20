@@ -80,6 +80,20 @@ struct UpsideDownKeyboardModelTests {
   }
 
   @Test
+  func testEveryLayoutHasUniqueRowAndKeyIDs() {
+    let model = UpsideDownKeyboardModel()
+
+    for layout in [UpsideDownKeyboardModel.Layout.letters, .numbers] {
+      model.layout = layout
+
+      expectNoDifference(Set(model.rows.ids).count, model.rows.count)
+      for row in model.rows {
+        expectNoDifference(Set(row.keys.ids).count, row.keys.count)
+      }
+    }
+  }
+
+  @Test
   func testNumberTapInsertsNumberUnchanged() {
     let model = UpsideDownKeyboardModel()
     var commands: [UpsideDownKeyboardModel.Command] = []
