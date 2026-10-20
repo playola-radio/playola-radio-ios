@@ -43,7 +43,7 @@ struct ContentView: View {
       }
     }
     .onChange(of: mainContainerModel.shouldShowUpsideDown) {
-      mainContainerModel.upsideDownFlowVisibilityChanged()
+      Task { await mainContainerModel.upsideDownFlowVisibilityChanged() }
     }
     .playolaAlert($versionGate.presentedAlert)
     .task {

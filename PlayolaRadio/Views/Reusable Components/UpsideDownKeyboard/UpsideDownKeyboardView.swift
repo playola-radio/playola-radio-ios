@@ -17,12 +17,13 @@ struct UpsideDownKeyboardView: View {
               model.keyTapped(key.action)
             } label: {
               Text(key.label)
-                .font(.custom(FontNames.Inter_500_Medium, size: 18))
+                .font(.custom(FontNames.Inter_500_Medium, fixedSize: 18))
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .background(Color.playolaSurfaceControl, in: RoundedRectangle(cornerRadius: 6))
             }
             .accessibilityLabel(key.accessibilityLabel)
+            .accessibilityAddTraits(.isKeyboardKey)
           }
         }
       }

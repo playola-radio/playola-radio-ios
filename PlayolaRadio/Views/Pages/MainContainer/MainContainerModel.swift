@@ -394,13 +394,14 @@ class MainContainerModel: ViewModel {
     }
   }
 
-  func upsideDownFlowVisibilityChanged() {
+  func upsideDownFlowVisibilityChanged() async {
     if shouldShowUpsideDown {
-      windowOrientation.setUpsideDown(true)
+      await windowOrientation.setUpsideDown(true)
+      guard shouldShowUpsideDown else { return }
       upsideDownKeyboard.setUpsideDownModeEnabled(true)
     } else {
       upsideDownKeyboard.setUpsideDownModeEnabled(false)
-      windowOrientation.setUpsideDown(false)
+      await windowOrientation.setUpsideDown(false)
     }
   }
 

@@ -4,6 +4,7 @@
 //
 
 import CustomDump
+import SwiftUI
 import Testing
 import UIKit
 
@@ -179,20 +180,124 @@ struct UpsideDownKeyboardControllerTests {
     controller.setUpsideDownModeEnabled(false)
   }
 
+  @Test
+  func testStartedControllerFollowsRealFirstResponderChanges() throws {
+    let controller = UpsideDownKeyboardController()
+    controller.start()
+    let (window, field) = try makeWindowWithTextField()
+    let restoreKeyWindow = makeKey(window)
+    defer { restoreKeyWindow() }
+    window.transform = upsideDown
+    controller.setUpsideDownModeEnabled(true)
+
+    field.becomeFirstResponder()
+    #expect(controller.isShowingCustomKeyboard)
+
+    field.resignFirstResponder()
+    #expect(controller.isShowingCustomKeyboard == false)
+    #expect(field.inputView == nil)
+    controller.setUpsideDownModeEnabled(false)
+  }
+
+  @Test
+  func testKeyTapsTypeIntoSwiftUITextFieldAndReturnSubmitsOnce() throws {
+    let controller = UpsideDownKeyboardController()
+    controller.start()
+    let fields = SwiftUIFields()
+    let (window, host) = try makeWindow(hosting: SwiftUIFieldsView(fields: fields))
+    let restoreKeyWindow = makeKey(window)
+    defer { restoreKeyWindow() }
+    window.transform = upsideDown
+    controller.setUpsideDownModeEnabled(true)
+    let textField = try #require(firstSubview(of: UITextField.self, in: host.view))
+    textField.becomeFirstResponder()
+
+    controller.keyboardModel.keyTapped(.character("h"))
+    controller.keyboardModel.keyTapped(.character("i"))
+    controller.keyboardModel.keyTapped(.returnKey)
+
+    expectNoDifference(fields.searchText, "Hi")
+    expectNoDifference(fields.submitCount, 1)
+    controller.setUpsideDownModeEnabled(false)
+  }
+
+  @Test
+  func testKeyTapsTypeIntoSwiftUITextEditor() throws {
+    let controller = UpsideDownKeyboardController()
+    controller.start()
+    let fields = SwiftUIFields()
+    let (window, host) = try makeWindow(hosting: SwiftUIFieldsView(fields: fields))
+    let restoreKeyWindow = makeKey(window)
+    defer { restoreKeyWindow() }
+    window.transform = upsideDown
+    controller.setUpsideDownModeEnabled(true)
+    let textView = try #require(firstSubview(of: UITextView.self, in: host.view))
+    textView.becomeFirstResponder()
+
+    controller.keyboardModel.keyTapped(.character("h"))
+    controller.keyboardModel.keyTapped(.returnKey)
+    controller.keyboardModel.keyTapped(.character("i"))
+
+    expectNoDifference(fields.message, "H\ni")
+    controller.setUpsideDownModeEnabled(false)
+  }
+
   // MARK: - Helpers
 
   private let upsideDown = CGAffineTransform(rotationAngle: .pi)
 
   private func makeWindowWithTextField() throws -> (UIWindow, UITextField) {
+    let (window, root) = try makeWindow(root: UIViewController())
+    let field = UITextField()
+    root.view.addSubview(field)
+    return (window, field)
+  }
+
+  private func makeWindow(hosting view: some View) throws -> (UIWindow, UIViewController) {
+    let (window, host) = try makeWindow(root: UIHostingController(rootView: view))
+    host.view.layoutIfNeeded()
+    return (window, host)
+  }
+
+  private func makeWindow<Root: UIViewController>(root: Root) throws -> (UIWindow, Root) {
     let scene = try #require(
       UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
     )
     let window = UIWindow(windowScene: scene)
-    let root = UIViewController()
     window.rootViewController = root
     window.isHidden = false
-    let field = UITextField()
-    root.view.addSubview(field)
-    return (window, field)
+    return (window, root)
+  }
+
+  private func makeKey(_ window: UIWindow) -> () -> Void {
+    let previousKeyWindow = window.windowScene?.keyWindow
+    window.makeKey()
+    return { previousKeyWindow?.makeKey() }
+  }
+
+  private func firstSubview<T: UIView>(of type: T.Type, in view: UIView) -> T? {
+    if let match = view as? T { return match }
+    return view.subviews.lazy.compactMap { firstSubview(of: type, in: $0) }.first
+  }
+}
+
+@MainActor
+@Observable
+private final class SwiftUIFields {
+  var searchText = ""
+  var submitCount = 0
+  var message = ""
+}
+
+private struct SwiftUIFieldsView: View {
+  @Bindable var fields: SwiftUIFields
+
+  var body: some View {
+    VStack {
+      TextField("Search", text: $fields.searchText)
+        .onSubmit { fields.submitCount += 1 }
+      TextEditor(text: $fields.message)
+        .frame(height: 100)
+    }
   }
 }

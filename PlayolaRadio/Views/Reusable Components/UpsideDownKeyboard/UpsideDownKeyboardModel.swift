@@ -30,14 +30,14 @@ final class UpsideDownKeyboardModel: ViewModel {
     case numbers
   }
 
-  struct Key: Hashable, Identifiable {
+  struct Key: Identifiable {
     let action: Action
     let label: String
     let accessibilityLabel: String
     var id: Action { action }
   }
 
-  struct Row: Hashable, Identifiable {
+  struct Row: Identifiable {
     let id: Int
     let keys: [Key]
   }
