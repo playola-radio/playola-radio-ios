@@ -33,8 +33,7 @@ struct RecordWithMultiStepPromptTests {
           RecordPromptStep(id: 2, label: "EXPLAIN", detail: "Explain the AMA."),
           RecordPromptStep(id: 3, label: "DIRECT", detail: "Tell them to tap Question."),
         ],
-        trackLabel: "INTRO",
-        isUpsideDown: true)
+        trackLabel: "INTRO")
     }
   }
 
@@ -612,28 +611,7 @@ struct RecordWithMultiStepPromptTests {
     expectNoDifference(model.dividerColor(after: model.steps[2]), .clear)
   }
 
-  // MARK: - Rotation & Chrome
-
-  @Test func upsideDownRotatesHalfTurn() {
-    let model = makeModel()
-
-    expectNoDifference(model.rotationDegrees, 180)
-  }
-
-  @Test func rightSideUpDoesNotRotate() {
-    let model = withDependencies {
-      $0.audioPlayer = .testValue
-      $0.audioRecorder = .testValue
-    } operation: {
-      RecordWithMultiStepPromptModel(
-        screenTitle: "Record", eyebrow: "RECORD", guideBadge: nil,
-        title: "Title", subtitle: nil,
-        steps: [RecordPromptStep(id: 1, label: "ONE", detail: "First.")],
-        trackLabel: "TRACK", isUpsideDown: false)
-    }
-
-    expectNoDifference(model.rotationDegrees, 0)
-  }
+  // MARK: - Chrome
 
   @Test func tabBarIsHidden() {
     let model = makeModel()
@@ -652,7 +630,6 @@ struct RecordWithMultiStepPromptTests {
     }
 
     expectNoDifference(model.steps.map(\.label), ["INTRODUCE", "EXPLAIN", "DIRECT"])
-    #expect(model.isUpsideDown)
     #expect(model.onUseRecording != nil)
   }
 
@@ -749,7 +726,6 @@ struct RecordWithMultiStepPromptTests {
         RecordPromptStep(id: 2, label: "EXPLAIN", detail: "Explain the AMA."),
         RecordPromptStep(id: 3, label: "DIRECT", detail: "Tell them to tap Question."),
       ],
-      trackLabel: "INTRO",
-      isUpsideDown: true)
+      trackLabel: "INTRO")
   }
 }

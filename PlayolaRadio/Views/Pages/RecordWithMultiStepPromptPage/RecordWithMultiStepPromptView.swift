@@ -12,7 +12,6 @@ struct RecordWithMultiStepPromptView: View {
     ZStack {
       Color.playolaSurfaceBase.ignoresSafeArea()
       content
-        .rotationEffect(.degrees(model.rotationDegrees))
     }
     .navigationBarHidden(true)
     .toolbar(model.tabBarVisibility, for: .tabBar)
