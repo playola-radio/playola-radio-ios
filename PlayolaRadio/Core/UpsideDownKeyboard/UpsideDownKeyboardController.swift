@@ -31,6 +31,10 @@ final class UpsideDownKeyboardController {
     keyboardModel.onCommand = { [weak self] command in self?.perform(command) }
   }
 
+  isolated deinit {
+    observers.forEach(NotificationCenter.default.removeObserver)
+  }
+
   func start() {
     guard observers.isEmpty else { return }
     observers = [
