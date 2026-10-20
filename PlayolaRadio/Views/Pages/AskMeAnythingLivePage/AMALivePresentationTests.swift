@@ -568,8 +568,8 @@ struct AMALivePresentationTests {
       }
       var iterator = started.stream.makeAsyncIterator()
       await iterator.next()
-      expectNoDifference(model.broadcast.spinIdsBeingRescheduled, Set(["filler", "reserve"]))
-      expectNoDifference(model.liveRows.filter(\.isProcessing).map(\.id), ["filler"])
+      expectNoDifference(model.broadcast.spinIdsBeingRescheduled, Set(["reserve"]))
+      expectNoDifference(model.liveRows.filter(\.isProcessing).map(\.id), [])
       #expect(model.isScheduleProcessing)
       #expect(model.canAddLiveAudio)
       release.continuation.yield(())
@@ -796,18 +796,16 @@ struct AMALivePresentationTests {
     }
   }
 
-  @Test func revealedFillerStillUsesTheServerRemovableBoundary() {
+  @Test func revealedFillerIsNotTheShowEndBoundary() {
     let clock = LockIsolated(Date(timeIntervalSince1970: 1_000_000))
     withDependencies {
       $0.date = DateGenerator { clock.value }
     } operation: {
       let model = makeLiveModel(buffer: 210)
+      expectNoDifference(model.broadcast.showEndDropTargets, ["filler"])
       clock.withValue { $0 += 30 }
       model.playbackTick()
       expectNoDifference(model.broadcast.upcomingSpins.last?.id, "filler")
-      expectNoDifference(model.broadcast.showEndDropTargets, ["filler"])
-      clock.withValue { $0 += 61 }
-      model.playbackTick()
       expectNoDifference(model.broadcast.showEndDropTargets, ["reserve"])
     }
   }

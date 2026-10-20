@@ -18,6 +18,9 @@ struct AMALiveRowData: Identifiable {
   var processingLabel: String { "Updating schedule" }
 }
 
+// Mirrors the server's LIVE_SHOW_FILLER_REVEAL_MS (180000) in server/src/lib/scheduler/scheduler.ts.
+private let liveShowFillerRevealSeconds: TimeInterval = 180
+
 private let amaAirtimeFormatter: DateFormatter = {
   let formatter = DateFormatter()
   formatter.dateFormat = "h:mm:ssa"
@@ -57,7 +60,7 @@ extension AskMeAnythingLivePageModel {
     let filler = showSpins.filter { $0.isFiller == true }
     broadcast.visibleFillerIds.formIntersection(Set(filler.map(\.id)))
     let newlyVisible = filler.filter {
-      $0.airtime <= displayDate.addingTimeInterval(180)
+      $0.airtime <= displayDate.addingTimeInterval(liveShowFillerRevealSeconds)
         && !broadcast.visibleFillerIds.contains($0.id)
     }
     broadcast.visibleFillerIds.formUnion(newlyVisible.map(\.id))
@@ -136,7 +139,7 @@ extension AskMeAnythingLivePageModel {
   var bufferMessage: String {
     if isBufferLow, let filler = nextReserveFiller {
       return "Adding \(filler.audioBlock.title) in "
-        + secondsLabel(filler.airtime.timeIntervalSince(displayDate) - 180)
+        + secondsLabel(filler.airtime.timeIntervalSince(displayDate) - liveShowFillerRevealSeconds)
     }
     if let promoted = lastPromotedFiller, displayDate.timeIntervalSince(promoted.date) < 5 {
       return "\(promoted.title) added to keep your show going"
