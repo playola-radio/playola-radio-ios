@@ -65,13 +65,16 @@ struct MainContainerTests {
   // MARK: - Upside-Down Orientation Tests
 
   @Test
-  func testUpsideDownFlowVisibilityChangedFlipsWindowWhenShowIsOpen() {
+  func testUpsideDownFlowVisibilityChangedFlipsWindowThenEnablesKeyboardWhenShowIsOpen() {
     @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
     @Shared(.auth) var auth = Auth(jwtToken: createTestJWT())
-    let upsideDownCalls = LockIsolated<[Bool]>([])
+    let calls = LockIsolated<[String]>([])
     let model = withDependencies {
       $0.windowOrientation.setUpsideDown = { isUpsideDown in
-        upsideDownCalls.withValue { $0.append(isUpsideDown) }
+        calls.withValue { $0.append("window upsideDown=\(isUpsideDown)") }
+      }
+      $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
+        calls.withValue { $0.append("keyboard enabled=\(isEnabled)") }
       }
     } operation: {
       MainContainerModel()
@@ -82,16 +85,19 @@ struct MainContainerTests {
 
     model.upsideDownFlowVisibilityChanged()
 
-    expectNoDifference(upsideDownCalls.value, [true])
+    expectNoDifference(calls.value, ["window upsideDown=true", "keyboard enabled=true"])
   }
 
   @Test
-  func testUpsideDownFlowVisibilityChangedRestoresWindowWhenShowIsClosed() {
+  func testUpsideDownFlowVisibilityChangedDisablesKeyboardThenRestoresWindowWhenShowIsClosed() {
     @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
-    let upsideDownCalls = LockIsolated<[Bool]>([])
+    let calls = LockIsolated<[String]>([])
     let model = withDependencies {
       $0.windowOrientation.setUpsideDown = { isUpsideDown in
-        upsideDownCalls.withValue { $0.append(isUpsideDown) }
+        calls.withValue { $0.append("window upsideDown=\(isUpsideDown)") }
+      }
+      $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
+        calls.withValue { $0.append("keyboard enabled=\(isEnabled)") }
       }
     } operation: {
       MainContainerModel()
@@ -99,17 +105,20 @@ struct MainContainerTests {
 
     model.upsideDownFlowVisibilityChanged()
 
-    expectNoDifference(upsideDownCalls.value, [false])
+    expectNoDifference(calls.value, ["keyboard enabled=false", "window upsideDown=false"])
   }
 
   @Test
-  func testUpsideDownFlowVisibilityChangedRestoresWindowWhenLoggedOut() {
+  func testUpsideDownFlowVisibilityChangedDisablesKeyboardThenRestoresWindowWhenLoggedOut() {
     @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
     @Shared(.auth) var auth = Auth()
-    let upsideDownCalls = LockIsolated<[Bool]>([])
+    let calls = LockIsolated<[String]>([])
     let model = withDependencies {
       $0.windowOrientation.setUpsideDown = { isUpsideDown in
-        upsideDownCalls.withValue { $0.append(isUpsideDown) }
+        calls.withValue { $0.append("window upsideDown=\(isUpsideDown)") }
+      }
+      $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
+        calls.withValue { $0.append("keyboard enabled=\(isEnabled)") }
       }
     } operation: {
       MainContainerModel()
@@ -120,7 +129,7 @@ struct MainContainerTests {
 
     model.upsideDownFlowVisibilityChanged()
 
-    expectNoDifference(upsideDownCalls.value, [false])
+    expectNoDifference(calls.value, ["keyboard enabled=false", "window upsideDown=false"])
   }
 
   // MARK: - ViewAppeared Tests

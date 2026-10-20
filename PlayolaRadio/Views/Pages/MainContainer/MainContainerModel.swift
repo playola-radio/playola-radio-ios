@@ -26,6 +26,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Dependency(\.appRating) var appRating
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
   @ObservationIgnored @Dependency(\.windowOrientation) var windowOrientation
+  @ObservationIgnored @Dependency(\.upsideDownKeyboard) var upsideDownKeyboard
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
   @ObservationIgnored @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
@@ -394,7 +395,13 @@ class MainContainerModel: ViewModel {
   }
 
   func upsideDownFlowVisibilityChanged() {
-    windowOrientation.setUpsideDown(shouldShowUpsideDown)
+    if shouldShowUpsideDown {
+      windowOrientation.setUpsideDown(true)
+      upsideDownKeyboard.setUpsideDownModeEnabled(true)
+    } else {
+      upsideDownKeyboard.setUpsideDownModeEnabled(false)
+      windowOrientation.setUpsideDown(false)
+    }
   }
 
   func onSmallPlayerTapped() {
