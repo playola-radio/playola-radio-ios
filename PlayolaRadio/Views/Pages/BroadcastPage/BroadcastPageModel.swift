@@ -486,7 +486,7 @@ class BroadcastPageModel: ViewModel {
       ? upcomingSpins : schedule?.current().filter { $0.airtime > now } ?? []
     switch placement {
     case .after(let spinId):
-      guard futureSpins.contains(where: { $0.id == spinId }) else {
+      guard futureSpins.contains(where: { $0.id == spinId }) || nowPlaying?.id == spinId else {
         print("insertStagingItem: Target spin not found: \(spinId)")
         return nil
       }
