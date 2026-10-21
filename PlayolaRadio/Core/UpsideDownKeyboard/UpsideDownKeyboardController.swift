@@ -23,7 +23,7 @@ final class UpsideDownKeyboardController {
   private var insetBaselines: [InsetBaseline] = []
   private var overlayWindow: KeyboardOverlayWindow?
   private var keyboardBottomConstraint: NSLayoutConstraint?
-  private var observers: [NSObjectProtocol] = []
+  private let observerTokens = ObserverTokens()
 
   var isShowingCustomKeyboard: Bool { overlayWindow?.isHidden == false }
 
@@ -31,13 +31,9 @@ final class UpsideDownKeyboardController {
     keyboardModel.onCommand = { [weak self] command in self?.perform(command) }
   }
 
-  isolated deinit {
-    observers.forEach(NotificationCenter.default.removeObserver)
-  }
-
   func start() {
-    guard observers.isEmpty else { return }
-    observers = [
+    guard observerTokens.tokens.isEmpty else { return }
+    observerTokens.tokens = [
       observe(UITextField.textDidBeginEditingNotification) { $0.editingBegan($1) },
       observe(UITextView.textDidBeginEditingNotification) { $0.editingBegan($1) },
       observe(UITextField.textDidEndEditingNotification) { $0.editingEnded($1) },
@@ -207,6 +203,14 @@ private struct SuppressedInput {
 private struct InsetBaseline {
   weak var controller: UIViewController?
   let original: UIEdgeInsets
+}
+
+private final class ObserverTokens {
+  var tokens: [NSObjectProtocol] = []
+
+  deinit {
+    tokens.forEach(NotificationCenter.default.removeObserver)
+  }
 }
 
 /// A zero-height input view: hides the system keyboard without drawing anything in its place.
