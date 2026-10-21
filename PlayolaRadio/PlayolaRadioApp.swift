@@ -40,6 +40,7 @@ private var isScreenshotMode: Bool {
 class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotificationCenterDelegate
 {
   @Dependency(\.pushNotifications) var pushNotifications
+  @Dependency(\.upsideDownKeyboard) var upsideDownKeyboard
 
   func application(
     _ application: UIApplication,
@@ -89,6 +90,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
     #endif
 
     UNUserNotificationCenter.current().delegate = self
+    upsideDownKeyboard.start()
     return true
   }
 

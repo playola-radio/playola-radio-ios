@@ -26,6 +26,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Dependency(\.appRating) var appRating
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
   @ObservationIgnored @Dependency(\.windowOrientation) var windowOrientation
+  @ObservationIgnored @Dependency(\.upsideDownKeyboard) var upsideDownKeyboard
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
   @ObservationIgnored @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
@@ -48,6 +49,7 @@ class MainContainerModel: ViewModel {
 
   @ObservationIgnored private var isPresentingGiveawayClaim = false
   @ObservationIgnored private var needsGiveawayClaimRerun = false
+  @ObservationIgnored private var upsideDownTransition = 0
 
   /// Client-side ceiling for presenting a congrats whose push carried no `congratsExpiresAt`. After
   /// this long past `startedAt` we stop prompting the owner (the schedule slot is almost certainly gone).
@@ -393,8 +395,17 @@ class MainContainerModel: ViewModel {
     }
   }
 
-  func upsideDownFlowVisibilityChanged() {
-    windowOrientation.setUpsideDown(shouldShowUpsideDown)
+  func upsideDownFlowVisibilityChanged() async {
+    upsideDownTransition += 1
+    let transition = upsideDownTransition
+    if shouldShowUpsideDown {
+      await windowOrientation.setUpsideDown(true)
+      guard transition == upsideDownTransition else { return }
+      upsideDownKeyboard.setUpsideDownModeEnabled(true)
+    } else {
+      upsideDownKeyboard.setUpsideDownModeEnabled(false)
+      await windowOrientation.setUpsideDown(false)
+    }
   }
 
   func onSmallPlayerTapped() {
