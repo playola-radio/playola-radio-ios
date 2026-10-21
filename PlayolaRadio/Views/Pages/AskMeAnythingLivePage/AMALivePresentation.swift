@@ -173,8 +173,11 @@ extension AskMeAnythingLivePageModel {
       let question = listenerQuestions.first {
         $0.audioBlockId == spin.audioBlock.id || $0.answerAudioBlockId == spin.audioBlock.id
       }
+      // The airing's group also holds the attached song, which renders as its own row.
       let pair = spins.filter {
-        question != nil && spin.spinGroupId != nil && $0.spinGroupId == spin.spinGroupId
+        spin.spinGroupId != nil && $0.spinGroupId == spin.spinGroupId
+          && ($0.audioBlock.id == question?.audioBlockId
+            || $0.audioBlock.id == question?.answerAudioBlockId)
       }
       let members = pair.isEmpty ? [spin] : pair
       consumed.formUnion(members.map(\.id))

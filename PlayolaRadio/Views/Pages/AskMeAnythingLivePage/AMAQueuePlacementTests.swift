@@ -304,6 +304,42 @@ struct AMAQueuePlacementTests {
     }
   }
 
+  @Test func aQuestionsAttachedSongRendersAsItsOwnSongRow() {
+    withDependencies {
+      $0.date.now = date
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: "station")
+      model.broadcast.schedule = Schedule(
+        stationId: "station",
+        spins: [
+          .mockWith(
+            id: "question", airtime: date.addingTimeInterval(60),
+            audioBlock: .mockWith(id: "q", endOfMessageMS: 30_000),
+            spinGroupId: "airing", liveShowId: "show"),
+          .mockWith(
+            id: "answer", airtime: date.addingTimeInterval(90),
+            audioBlock: .mockWith(id: "a", endOfMessageMS: 54_000),
+            spinGroupId: "airing", liveShowId: "show"),
+          .mockWith(
+            id: "song", airtime: date.addingTimeInterval(140),
+            audioBlock: .mockWith(id: "s", title: "Hummingbird"),
+            spinGroupId: "airing", liveShowId: "show"),
+        ], dateProvider: DependencyDateProvider())
+      model.listenerQuestions = [
+        .mockWith(
+          audioBlockId: "q", answerAudioBlockId: "a",
+          listener: .mockWith(firstName: "Sam"))
+      ]
+      model.schedulePlaybackChanged()
+      model.scheduledStartsAt = date.addingTimeInterval(-1)
+
+      expectNoDifference(
+        model.liveRows.map(\.title), ["Question and Answer: Sam", "Hummingbird"])
+      expectNoDifference(
+        model.liveRows.map { $0.spins.map(\.id) }, [["question", "answer"], ["song"]])
+    }
+  }
+
   @Test func voiceAddedWhileAFillerIsRevealedQueuesAfterThatFiller() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let response = LockIsolated<[Spin]>([])
