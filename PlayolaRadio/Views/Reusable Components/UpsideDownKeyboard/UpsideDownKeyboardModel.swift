@@ -94,7 +94,7 @@ final class UpsideDownKeyboardModel: ViewModel {
       return [
         Row(id: 0, center: characterKeys("1234567890")),
         Row(id: 1, center: characterKeys("-/:;()$&@\"")),
-        Row(id: 2, center: characterKeys(".,?!'", widthInSlots: 1.4), trailing: [deleteKey]),
+        Row(id: 2, center: characterKeys(".,?!'#+=", widthInSlots: 1.05), trailing: [deleteKey]),
         bottomRow(layoutToggleLabel: "ABC", accessibilityLabel: "Letters"),
       ]
     }

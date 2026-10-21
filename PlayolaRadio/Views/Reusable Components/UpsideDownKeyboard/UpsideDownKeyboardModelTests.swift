@@ -73,9 +73,21 @@ struct UpsideDownKeyboardModelTests {
       [
         ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
         ["-", "/", ":", ";", "(", ")", "$", "&", "@", "\""],
-        [".", ",", "?", "!", "'", "⌫"],
+        [".", ",", "?", "!", "'", "#", "+", "=", "⌫"],
         ["ABC", "space", "return"],
       ]
+    )
+  }
+
+  @Test
+  func testNumbersLayoutIncludesCommonSymbols() {
+    let model = UpsideDownKeyboardModel()
+
+    model.keyTapped(.layoutToggle)
+
+    expectNoDifference(
+      keys(in: model.rows[2]).map(\.label),
+      [".", ",", "?", "!", "'", "#", "+", "=", "⌫"]
     )
   }
 
