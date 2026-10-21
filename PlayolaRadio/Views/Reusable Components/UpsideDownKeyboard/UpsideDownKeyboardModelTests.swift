@@ -16,7 +16,7 @@ struct UpsideDownKeyboardModelTests {
     let model = UpsideDownKeyboardModel()
 
     expectNoDifference(
-      model.rows.map { $0.keys.map(\.label) },
+      model.rows.map { keys(in: $0).map(\.label) },
       [
         ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
         ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
@@ -69,7 +69,7 @@ struct UpsideDownKeyboardModelTests {
     model.keyTapped(.layoutToggle)
 
     expectNoDifference(
-      model.rows.map { $0.keys.map(\.label) },
+      model.rows.map { keys(in: $0).map(\.label) },
       [
         ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
         ["-", "/", ":", ";", "(", ")", "$", "&", "@", "\""],
@@ -88,7 +88,21 @@ struct UpsideDownKeyboardModelTests {
 
       expectNoDifference(Set(model.rows.ids).count, model.rows.count)
       for row in model.rows {
-        expectNoDifference(Set(row.keys.ids).count, row.keys.count)
+        let ids = keys(in: row).map(\.id)
+        expectNoDifference(Set(ids).count, ids.count)
+      }
+    }
+  }
+
+  @Test
+  func testEveryRowFitsTheKeyboardWidth() {
+    let model = UpsideDownKeyboardModel()
+
+    for layout in [UpsideDownKeyboardModel.Layout.letters, .numbers] {
+      model.layout = layout
+
+      for row in model.rows {
+        #expect(keys(in: row).map(\.widthInSlots).reduce(0, +) <= 10)
       }
     }
   }
@@ -134,8 +148,14 @@ struct UpsideDownKeyboardModelTests {
     let model = UpsideDownKeyboardModel()
 
     expectNoDifference(
-      model.rows[2].keys.map(\.accessibilityLabel),
+      keys(in: model.rows[2]).map(\.accessibilityLabel),
       ["Shift", "Z", "X", "C", "V", "B", "N", "M", "Delete"]
     )
+  }
+
+  // MARK: - Helpers
+
+  private func keys(in row: UpsideDownKeyboardModel.Row) -> [UpsideDownKeyboardModel.Key] {
+    Array(row.leading) + Array(row.center) + Array(row.trailing)
   }
 }
