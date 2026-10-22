@@ -71,12 +71,6 @@ final class UpsideDownNotificationBannerModel: ViewModel {
     queue.append((Banner(id: uuid(), title: title, body: body), onTap))
   }
 
-  func hideAll() {
-    guard !queue.isEmpty else { return }
-    queue = []
-    onQueueDrained()
-  }
-
   // MARK: - Private Helpers
 
   private func dismissCurrentBanner() {

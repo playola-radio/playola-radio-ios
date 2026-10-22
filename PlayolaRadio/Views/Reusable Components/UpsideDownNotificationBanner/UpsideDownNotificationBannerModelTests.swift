@@ -44,20 +44,6 @@ struct UpsideDownNotificationBannerModelTests {
   }
 
   @Test
-  func testBannerTappedAfterHideAllDoesNotRunStaleTapAction() {
-    let model = makeModel()
-    let tapCount = LockIsolated(0)
-    model.show(title: "First", body: "") { tapCount.withValue { $0 += 1 } }
-    model.show(title: "Second", body: "") { tapCount.withValue { $0 += 1 } }
-    model.hideAll()
-
-    model.bannerTapped()
-
-    #expect(model.banner == nil)
-    #expect(tapCount.value == 0)
-  }
-
-  @Test
   func testBurstOfNotificationsShowsEachInTurn() {
     let model = makeModel()
     let tappedTitles = LockIsolated<[String]>([])

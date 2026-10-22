@@ -88,19 +88,22 @@ final class UpsideDownNotificationBannerController {
     overlayWindow.bannerModel = bannerModel
     let root = UIViewController()
     root.view.backgroundColor = .clear
-    let host = UIHostingController(rootView: UpsideDownNotificationBannerView(model: bannerModel))
+    let host = WidthConstrainedHostingController(
+      rootView: UpsideDownNotificationBannerView(model: bannerModel))
     host.safeAreaRegions = []
-    host.sizingOptions = .intrinsicContentSize
     host.view.backgroundColor = .clear
     host.view.translatesAutoresizingMaskIntoConstraints = false
     root.addChild(host)
     root.view.addSubview(host.view)
     let top = host.view.topAnchor.constraint(equalTo: root.view.topAnchor)
+    let height = host.view.heightAnchor.constraint(equalToConstant: 0)
     NSLayoutConstraint.activate([
       host.view.leadingAnchor.constraint(equalTo: root.view.leadingAnchor),
       host.view.trailingAnchor.constraint(equalTo: root.view.trailingAnchor),
       top,
+      height,
     ])
+    host.heightConstraint = height
     host.didMove(toParent: root)
     overlayWindow.rootViewController = root
     overlayWindow.bannerView = host.view
@@ -109,15 +112,32 @@ final class UpsideDownNotificationBannerController {
   }
 }
 
+private final class WidthConstrainedHostingController<Content: View>: UIHostingController<Content> {
+  var heightConstraint: NSLayoutConstraint?
+
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    guard view.bounds.width > 0 else { return }
+    let height = sizeThatFits(
+      in: CGSize(width: view.bounds.width, height: .greatestFiniteMagnitude)
+    ).height
+    if heightConstraint?.constant != height { heightConstraint?.constant = height }
+  }
+}
+
 /// Never takes key status from the app, and only intercepts touches on a showing banner.
-private final class BannerOverlayWindow: UIWindow {
+final class BannerOverlayWindow: UIWindow {
   weak var bannerView: UIView?
   weak var bannerModel: UpsideDownNotificationBannerModel?
 
   override var canBecomeKey: Bool { false }
 
   override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-    guard bannerModel?.banner != nil, let hit = super.hitTest(point, with: event), let bannerView,
+    guard bannerModel?.banner != nil, let hit = super.hitTest(point, with: event), let bannerView
+    else { return nil }
+    let localPoint = bannerView.convert(point, from: self)
+    let cardFrame = bannerView.bounds.insetBy(dx: 8, dy: 0)
+    guard UIBezierPath(roundedRect: cardFrame, cornerRadius: 18).contains(localPoint),
       hit.isDescendant(of: bannerView)
     else { return nil }
     return hit

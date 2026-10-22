@@ -116,6 +116,21 @@ struct UpsideDownBannerControllerTests {
     #expect(controller.showBanner(title: "New message", body: "Hi", onTap: {}) == false)
   }
 
+  @Test
+  func testOverlayOnlyInterceptsTouchesInsideBannerCard() throws {
+    let model = makeController(appWindow: nil).bannerModel
+    model.show(title: "New message", body: "Hi", onTap: {})
+    let overlay = BannerOverlayWindow(frame: CGRect(x: 0, y: 0, width: 200, height: 100))
+    overlay.bannerModel = model
+    let bannerView = UIView(frame: overlay.bounds)
+    overlay.addSubview(bannerView)
+    overlay.bannerView = bannerView
+    overlay.isHidden = false
+
+    #expect(overlay.hitTest(CGPoint(x: 4, y: 50), with: nil) == nil)
+    #expect(overlay.hitTest(CGPoint(x: 20, y: 50), with: nil) != nil)
+  }
+
   // MARK: - Helpers
 
   private let upsideDown = CGAffineTransform(rotationAngle: .pi)
