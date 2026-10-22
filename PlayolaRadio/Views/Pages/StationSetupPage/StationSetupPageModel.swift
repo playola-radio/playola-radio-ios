@@ -4,6 +4,7 @@
 //
 
 import Dependencies
+import IdentifiedCollections
 import Observation
 import PlayolaPlayer
 import Sharing
@@ -74,51 +75,53 @@ class StationSetupPageModel: ViewModel {
   var componentsSectionTitle: String { "STATION COMPONENTS" }
   var componentsCompletionLabel: String { "\(completeComponentCount) OF 4 COMPLETE" }
 
-  var componentRows: [ComponentRow] {
+  var componentRows: IdentifiedArrayOf<ComponentRow> {
     guard let factors = progress?.factors else { return [] }
-    return [
-      ComponentRow(
-        id: "sourceTapes",
-        iconSystemName: "mic.fill",
-        tint: tint(for: factors.sourceTapes),
-        label: "Source tapes",
-        valueText: Self.countValueText(factors.sourceTapes),
-        progress: Self.clamp01(factors.sourceTapes.progress),
-        weightCaption: Self.weightCaption(factors.sourceTapes.weight)),
-      ComponentRow(
-        id: "welcome",
-        iconSystemName: "speaker.wave.2.fill",
-        tint: tint(for: factors.welcome),
-        label: "Welcome message",
-        valueText: Self.readinessValueText(factors.welcome),
-        progress: Self.clamp01(factors.welcome.progress),
-        weightCaption: Self.weightCaption(factors.welcome.weight)),
-      ComponentRow(
-        id: "songs",
-        iconSystemName: "music.note",
-        tint: tint(for: factors.songs),
-        label: "Songs",
-        valueText: Self.countValueText(factors.songs),
-        progress: Self.clamp01(factors.songs.progress),
-        weightCaption: Self.weightCaption(factors.songs.weight)),
-      ComponentRow(
-        id: "breakers",
-        iconSystemName: "dot.radiowaves.left.and.right",
-        tint: tint(for: factors.breakers),
-        label: "Breakers",
-        valueText: Self.countValueText(factors.breakers),
-        progress: Self.clamp01(factors.breakers.progress),
-        weightCaption: Self.weightCaption(factors.breakers.weight)),
-    ]
+    return IdentifiedArray(
+      [
+        ComponentRow(
+          id: "sourceTapes",
+          iconSystemName: "mic.fill",
+          tint: tint(for: factors.sourceTapes),
+          label: "Source tapes",
+          valueText: Self.countValueText(factors.sourceTapes),
+          progress: Self.clamp01(factors.sourceTapes.progress),
+          weightCaption: Self.weightCaption(factors.sourceTapes.weight)),
+        ComponentRow(
+          id: "welcome",
+          iconSystemName: "speaker.wave.2.fill",
+          tint: tint(for: factors.welcome),
+          label: "Welcome message",
+          valueText: Self.readinessValueText(factors.welcome),
+          progress: Self.clamp01(factors.welcome.progress),
+          weightCaption: Self.weightCaption(factors.welcome.weight)),
+        ComponentRow(
+          id: "songs",
+          iconSystemName: "music.note",
+          tint: tint(for: factors.songs),
+          label: "Songs",
+          valueText: Self.countValueText(factors.songs),
+          progress: Self.clamp01(factors.songs.progress),
+          weightCaption: Self.weightCaption(factors.songs.weight)),
+        ComponentRow(
+          id: "breakers",
+          iconSystemName: "dot.radiowaves.left.and.right",
+          tint: tint(for: factors.breakers),
+          label: "Breakers",
+          valueText: Self.countValueText(factors.breakers),
+          progress: Self.clamp01(factors.breakers.progress),
+          weightCaption: Self.weightCaption(factors.breakers.weight)),
+      ], uniquingIDsWith: { first, _ in first })
   }
 
   var categorySectionTitle: String { "CATEGORY PROGRESS" }
   var categoryCountLabel: String { "\(categoryResponse?.categories.count ?? 0) CATEGORIES" }
 
-  var categoryRows: [CategoryRow] {
-    (categoryResponse?.categories ?? [])
-      .sorted { $0.sortOrder < $1.sortOrder }
-      .map(Self.categoryRow(from:))
+  var categoryRows: IdentifiedArrayOf<CategoryRow> {
+    IdentifiedArray(
+      (categoryResponse?.categories ?? [])
+        .sorted { $0.sortOrder < $1.sortOrder }
+        .map(Self.categoryRow(from:)), uniquingIDsWith: { first, _ in first })
   }
 
   // MARK: - User Actions

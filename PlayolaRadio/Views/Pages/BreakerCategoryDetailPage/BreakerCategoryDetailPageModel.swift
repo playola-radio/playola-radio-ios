@@ -5,6 +5,7 @@
 
 import Dependencies
 import Foundation
+import IdentifiedCollections
 import PlayolaPlayer
 import SwiftUI
 
@@ -39,7 +40,9 @@ class BreakerCategoryDetailPageModel: ViewModel {
   private let scrubberStep: TimeInterval = 5
 
   var navigationTitle: String { category.name }
-  var clips: [AudioBlock] { category.audioBlocks }
+  var clips: IdentifiedArrayOf<AudioBlock> {
+    IdentifiedArray(category.audioBlocks, uniquingIDsWith: { first, _ in first })
+  }
 
   var emptyStateMessage: String { "No clips in this category yet." }
   var showsEmptyState: Bool { clips.isEmpty }

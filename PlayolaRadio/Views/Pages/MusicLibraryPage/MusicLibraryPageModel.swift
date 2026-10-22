@@ -48,7 +48,7 @@ class MusicLibraryPageModel: ViewModel {
 
   // MARK: - View Helpers
 
-  var rows: [MusicLibraryRow] {
+  var rows: IdentifiedArrayOf<MusicLibraryRow> {
     guard !categories.isEmpty else { return [] }
     let allSongsRow = MusicLibraryRow(
       id: Self.allSongsRowID,
@@ -64,7 +64,8 @@ class MusicLibraryPageModel: ViewModel {
         songCount: Set(category.audioBlocks.map(\.id)).count,
         isAllSongs: false)
     }
-    return [allSongsRow] + categoryRows
+    return IdentifiedArray(
+      [allSongsRow] + categoryRows, uniquingIDsWith: { first, _ in first })
   }
 
   func songCountLabel(for row: MusicLibraryRow) -> String {

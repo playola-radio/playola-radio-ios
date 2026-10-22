@@ -1,3 +1,4 @@
+import IdentifiedCollections
 import PlayolaPlayer
 import SwiftUI
 
@@ -34,7 +35,7 @@ enum AMAPlaylistRowData: Identifiable {
 }
 
 extension AskMeAnythingLivePageModel {
-  var playlistRows: [AMAPlaylistRowData] {
+  var playlistRows: IdentifiedArrayOf<AMAPlaylistRowData> {
     var rows = liveRows.map(AMAPlaylistRowData.scheduled)
     for pending in pendingRows {
       let predecessors = pendingPredecessors[pending.id]
@@ -55,7 +56,7 @@ extension AskMeAnythingLivePageModel {
         ? rows.count : max(lockedEnd, min(desired, reserveStart))
       rows.insert(.pending(pending), at: index)
     }
-    return rows
+    return IdentifiedArray(rows, uniquingIDsWith: { first, _ in first })
   }
 
   func rememberPendingPosition(_ id: String) {
@@ -125,7 +126,9 @@ extension AskMeAnythingLivePageModel {
     await schedulePendingAudio()
   }
 
-  private func groupedSource(_ source: IndexSet, in rows: [AMAPlaylistRowData]) -> IndexSet {
+  private func groupedSource(
+    _ source: IndexSet, in rows: IdentifiedArrayOf<AMAPlaylistRowData>
+  ) -> IndexSet {
     let groupIds = Set(
       source.flatMap { rows[$0].scheduledRows.flatMap { $0.spins.compactMap(\.spinGroupId) } })
     return source.union(
@@ -137,7 +140,7 @@ extension AskMeAnythingLivePageModel {
         }))
   }
 
-  private func rememberPendingPositions(in rows: [AMAPlaylistRowData]) {
+  private func rememberPendingPositions(in rows: IdentifiedArrayOf<AMAPlaylistRowData>) {
     for (index, row) in rows.enumerated() {
       for pending in row.pendingRows {
         pendingPredecessors[pending.id] = rows.prefix(index).map(\.id).reversed()
