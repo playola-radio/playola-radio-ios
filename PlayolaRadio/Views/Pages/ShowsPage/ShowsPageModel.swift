@@ -42,7 +42,9 @@ class ShowsPageModel: ViewModel {
       viewDisappeared()
       return
     }
+    let generation = checkGeneration
     await analytics.track(.viewedScreen(screen: .shows, stationId: stationId))
+    guard generation == checkGeneration, !Task.isCancelled, isCurrentPage else { return }
     await checkForActiveShow()
   }
 
@@ -68,6 +70,39 @@ class ShowsPageModel: ViewModel {
       navigationCoordinator.push(
         .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: stationId)))
     }
+  }
+
+  // MARK: - View Helpers
+
+  var canChooseShow: Bool { !isLoading && !hasLoadFailed }
+  var chooserOpacity: Double { canChooseShow ? 1 : 0 }
+  var isStatusVisible: Bool { !canChooseShow }
+  var statusOpacity: Double { isStatusVisible ? 1 : 0 }
+  var loadingOpacity: Double { isLoading ? 1 : 0 }
+  var checkStatusMessage: String {
+    hasLoadFailed
+      ? "Unable to check for an active show. Please try again."
+      : "Checking for an active show…"
+  }
+  var retryTitles: [String] { hasLoadFailed ? ["Retry"] : [] }
+  var navigationTitle: String { "Shows" }
+  var introTitle: String { "Go live on your station" }
+  var introBody: String { "Start a new show now." }
+  var sectionLabel: String { "GET STARTED" }
+
+  var showTypes: IdentifiedArrayOf<ShowTypeRow> {
+    [
+      ShowTypeRow(
+        id: .askMeAnything,
+        title: "Ask Me Anything",
+        description: "Take questions from your listeners live.",
+        iconSystemName: "bubble.left.and.bubble.right.fill")
+    ]
+  }
+
+  var isCurrentPage: Bool {
+    guard case .showsPage(let model) = navigationCoordinator.path.last else { return false }
+    return model === self
   }
 
   // MARK: - Private Helpers
@@ -104,39 +139,6 @@ class ShowsPageModel: ViewModel {
     var path = navigationCoordinator.path
     path[path.count - 1] = .askMeAnythingLivePage(show)
     navigationCoordinator.path = path
-  }
-
-  // MARK: - View Helpers
-
-  var canChooseShow: Bool { !isLoading && !hasLoadFailed }
-  var chooserOpacity: Double { canChooseShow ? 1 : 0 }
-  var isStatusVisible: Bool { !canChooseShow }
-  var statusOpacity: Double { isStatusVisible ? 1 : 0 }
-  var loadingOpacity: Double { isLoading ? 1 : 0 }
-  var checkStatusMessage: String {
-    hasLoadFailed
-      ? "Unable to check for an active show. Please try again."
-      : "Checking for an active show…"
-  }
-  var retryTitles: [String] { hasLoadFailed ? ["Retry"] : [] }
-  var navigationTitle: String { "Shows" }
-  var introTitle: String { "Go live on your station" }
-  var introBody: String { "Start a new show now." }
-  var sectionLabel: String { "GET STARTED" }
-
-  var showTypes: IdentifiedArrayOf<ShowTypeRow> {
-    [
-      ShowTypeRow(
-        id: .askMeAnything,
-        title: "Ask Me Anything",
-        description: "Take questions from your listeners live.",
-        iconSystemName: "bubble.left.and.bubble.right.fill")
-    ]
-  }
-
-  var isCurrentPage: Bool {
-    guard case .showsPage(let model) = navigationCoordinator.path.last else { return false }
-    return model === self
   }
 
 }
