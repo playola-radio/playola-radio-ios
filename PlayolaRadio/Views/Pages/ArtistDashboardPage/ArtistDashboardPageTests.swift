@@ -234,6 +234,19 @@ struct ArtistDashboardPageTests {
     expectNoDifference(model.improveCountLabel, "1 OF 3 DONE")
   }
 
+  @Test func duplicateKnownChecksUseTheFirstDisplayedCheckForTheCount() async {
+    let health = makeHealth(
+      freshPct: 50, status: .warning,
+      checks: [
+        makeCheck(kind: "appearances", status: .warning, current: 1, required: 3),
+        makeCheck(kind: "appearances", status: .healthy, current: 3, required: 3),
+      ])
+    let model = await makeModel(returning: health)
+
+    expectNoDifference(model.improvementItems.count, 1)
+    expectNoDifference(model.improveCountLabel, "0 OF 1 DONE")
+  }
+
   @Test func completionCountsAreNeverRederivedFromProgress() async {
     // status says healthy even though current < required — status is the single source of
     // truth for completion, never re-derived from progress client-side.
@@ -719,6 +732,21 @@ struct ArtistDashboardPageTests {
     }
 
     expectNoDifference(model.weekBars.map(\.heightFraction), [0, 0])
+  }
+
+  @Test func duplicateWeekBucketsUseTheFirstVisibleBucketForChartScaling() async {
+    let model = await makeBroadcastingModel {
+      $0.api.getListenerCounts = { _, _, _, _ in
+        Self.counts([
+          Self.bucket("2024-07-21", uniqueUsers: 10),
+          Self.bucket("2024-07-21", uniqueUsers: 100),
+          Self.bucket("2024-07-28", uniqueUsers: 5),
+        ])
+      }
+    }
+
+    expectNoDifference(model.weekBars.map(\.id), ["2024-07-21", "2024-07-28"])
+    expectNoDifference(model.weekBars.map(\.heightFraction), [1.0, 0.5])
   }
 
   @Test func chartFailureLeavesEmptyBarsWithoutAlert() async {

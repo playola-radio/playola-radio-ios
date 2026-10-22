@@ -114,13 +114,17 @@ class StationSetupPageModel: ViewModel {
   }
 
   var categorySectionTitle: String { "CATEGORY PROGRESS" }
-  var categoryCountLabel: String { "\(categoryResponse?.categories.count ?? 0) CATEGORIES" }
+  var categoryCountLabel: String { "\(categories.count) CATEGORIES" }
 
   var categoryRows: IdentifiedArrayOf<CategoryRow> {
-    IdentifiedArray(
-      (categoryResponse?.categories ?? [])
-        .sorted { $0.sortOrder < $1.sortOrder }
-        .map(Self.categoryRow(from:)), uniquingIDsWith: { first, _ in first })
+    IdentifiedArray(uniqueElements: categories.map(Self.categoryRow(from:)))
+  }
+
+  private var categories: [StationCategoryProgress] {
+    var seenCategoryIDs = Set<String>()
+    return (categoryResponse?.categories ?? [])
+      .sorted { $0.sortOrder < $1.sortOrder }
+      .filter { seenCategoryIDs.insert($0.id).inserted }
   }
 
   // MARK: - User Actions

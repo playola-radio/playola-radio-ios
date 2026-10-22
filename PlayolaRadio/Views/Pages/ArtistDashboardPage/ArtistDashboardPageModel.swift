@@ -144,7 +144,9 @@ class ArtistDashboardPageModel: ViewModel {
   private static let maxVisibleWeeks = 8
 
   var weekBars: IdentifiedArrayOf<WeekBar> {
-    let visibleBuckets = listenerBuckets.suffix(Self.maxVisibleWeeks)
+    var seenBucketStarts = Set<String>()
+    let uniqueBuckets = listenerBuckets.filter { seenBucketStarts.insert($0.bucketStart).inserted }
+    let visibleBuckets = uniqueBuckets.suffix(Self.maxVisibleWeeks)
     let maxUsers = visibleBuckets.map { max(0, $0.uniqueUsers) }.max() ?? 0
     return IdentifiedArray(
       visibleBuckets.map { bucket in
@@ -179,7 +181,10 @@ class ArtistDashboardPageModel: ViewModel {
   ]
 
   private var knownChecks: [ProgrammingHealthCheck] {
-    (programmingHealth?.checks ?? []).filter { Self.knownCheckKinds.contains($0.kind) }
+    var seenKinds = Set<String>()
+    return (programmingHealth?.checks ?? []).filter {
+      Self.knownCheckKinds.contains($0.kind) && seenKinds.insert($0.kind).inserted
+    }
   }
 
   var improveCountLabel: String {

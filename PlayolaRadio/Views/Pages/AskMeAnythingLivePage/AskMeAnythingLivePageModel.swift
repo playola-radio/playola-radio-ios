@@ -92,6 +92,12 @@ class AskMeAnythingLivePageModel: ViewModel {
   func task() async {
     await analytics.track(.viewedScreen(screen: .askMeAnythingLiveShow, stationId: stationId))
     await viewAppeared()
+    async let listenerCountPolling: Void = pollListenerCount()
+    async let listenerQuestionsPolling: Void = pollListenerQuestions()
+    _ = await (listenerCountPolling, listenerQuestionsPolling)
+  }
+
+  private func pollListenerCount() async {
     while !Task.isCancelled {
       do {
         try await clock.sleep(for: .seconds(10))
@@ -99,9 +105,19 @@ class AskMeAnythingLivePageModel: ViewModel {
         break
       }
       guard isShowActive else { continue }
-      async let listenerCountRefresh: Void = refreshListenerCount()
-      async let questionsRefresh: Void = refreshListenerQuestions()
-      _ = await (listenerCountRefresh, questionsRefresh)
+      await refreshListenerCount()
+    }
+  }
+
+  private func pollListenerQuestions() async {
+    while !Task.isCancelled {
+      do {
+        try await clock.sleep(for: .seconds(10))
+      } catch {
+        break
+      }
+      guard isShowActive else { continue }
+      await refreshListenerQuestions()
     }
   }
 

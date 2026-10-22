@@ -352,6 +352,23 @@ struct StationSetupPageTests {
     expectNoDifference(model.categoryCountLabel, "3 CATEGORIES")
   }
 
+  @Test func categoryCountLabelUsesTheSameDeduplicatedCategoriesAsRows() async {
+    let model = await makeModel {
+      $0.api.getDraftStationCategoryProgress = { _, _ in
+        StationCategoryProgressResponse(
+          usesCategoryProgress: true, readiness: 0.5,
+          categories: [
+            Self.category(id: "c1", name: "First", minimum: 5, count: 1, sortOrder: 0),
+            Self.category(id: "c1", name: "Duplicate", minimum: 5, count: 5, sortOrder: 1),
+            Self.category(id: "c2", name: "Second", minimum: 5, count: 1, sortOrder: 2),
+          ])
+      }
+    }
+
+    expectNoDifference(model.categoryRows.map(\.name), ["First", "Second"])
+    expectNoDifference(model.categoryCountLabel, "2 CATEGORIES")
+  }
+
   @Test func emptyCategoriesProducesZeroCountAndNoRows() async {
     let model = await makeModel {
       $0.api.getDraftStationCategoryProgress = { _, _ in Self.emptyCategoryResponse }
