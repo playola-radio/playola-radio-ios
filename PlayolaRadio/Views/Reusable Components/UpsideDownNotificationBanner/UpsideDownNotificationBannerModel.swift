@@ -32,6 +32,7 @@ final class UpsideDownNotificationBannerModel: ViewModel {
   /// were already suppressed.
   private var queue: [(banner: Banner, onTap: @MainActor () -> Void)] = []
   var banner: Banner? { queue.first?.banner }
+  @ObservationIgnored var onQueueDrained: @MainActor () -> Void = {}
 
   let displayDuration = Duration.seconds(5)
   private let dismissDragDistance: CGFloat = 20
@@ -71,7 +72,9 @@ final class UpsideDownNotificationBannerModel: ViewModel {
   }
 
   func hideAll() {
+    guard !queue.isEmpty else { return }
     queue = []
+    onQueueDrained()
   }
 
   // MARK: - Private Helpers
@@ -79,5 +82,6 @@ final class UpsideDownNotificationBannerModel: ViewModel {
   private func dismissCurrentBanner() {
     guard !queue.isEmpty else { return }
     queue.removeFirst()
+    if queue.isEmpty { onQueueDrained() }
   }
 }

@@ -46,17 +46,45 @@ struct UpsideDownBannerControllerTests {
   }
 
   @Test
-  func testDisablingModeHidesShowingBanner() throws {
+  func testDisablingModeKeepsSuppressedBannersUntilTheyDrain() throws {
     let window = try makeWindow()
     window.transform = upsideDown
     let controller = makeController(appWindow: window)
     controller.setUpsideDownModeEnabled(true)
-    _ = controller.showBanner(title: "New message", body: "Hi", onTap: {})
+    _ = controller.showBanner(title: "First", body: "", onTap: {})
+    _ = controller.showBanner(title: "Second", body: "", onTap: {})
 
+    window.transform = .identity
     controller.setUpsideDownModeEnabled(false)
 
+    expectNoDifference(controller.bannerModel.banner?.title, "First")
+    #expect(controller.isShowingBanner)
+    #expect(controller.showBanner(title: "Third", body: "", onTap: {}) == false)
+
+    controller.bannerModel.bannerDragEnded(verticalTranslation: -40)
+    expectNoDifference(controller.bannerModel.banner?.title, "Second")
+    #expect(controller.isShowingBanner)
+
+    controller.bannerModel.bannerDragEnded(verticalTranslation: -40)
     #expect(controller.isShowingBanner == false)
     #expect(controller.bannerModel.banner == nil)
+  }
+
+  @Test
+  func testReenablingModeWhileBannerRemainsAcceptsUpsideDownNotifications() throws {
+    let window = try makeWindow()
+    window.transform = upsideDown
+    let controller = makeController(appWindow: window)
+    controller.setUpsideDownModeEnabled(true)
+    _ = controller.showBanner(title: "First", body: "", onTap: {})
+
+    window.transform = .identity
+    controller.setUpsideDownModeEnabled(false)
+    window.transform = upsideDown
+    controller.setUpsideDownModeEnabled(true)
+
+    #expect(controller.showBanner(title: "Second", body: "", onTap: {}))
+    expectNoDifference(controller.bannerModel.banner?.title, "First")
   }
 
   @Test

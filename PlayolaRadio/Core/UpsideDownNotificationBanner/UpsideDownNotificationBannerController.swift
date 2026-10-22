@@ -22,7 +22,7 @@ final class UpsideDownNotificationBannerController {
   private var overlayWindow: BannerOverlayWindow?
   private var bannerTopConstraint: NSLayoutConstraint?
 
-  var isShowingBanner: Bool { overlayWindow?.isHidden == false && bannerModel.banner != nil }
+  var isShowingBanner: Bool { overlayWindow?.isHidden == false }
 
   init(
     appWindow: @escaping @MainActor () -> UIWindow? = { UIApplication.shared.keyWindow },
@@ -32,13 +32,23 @@ final class UpsideDownNotificationBannerController {
   ) {
     self.appWindow = appWindow
     self.isSceneActive = isSceneActive
+    bannerModel.onQueueDrained = { [weak self] in
+      self?.overlayWindow?.isHidden = true
+    }
   }
 
   func setUpsideDownModeEnabled(_ isEnabled: Bool) {
     isModeEnabled = isEnabled
-    guard !isEnabled else { return }
-    bannerModel.hideAll()
-    overlayWindow?.isHidden = true
+    guard bannerModel.banner != nil, let window = appWindow() else { return }
+    if isEnabled, window.transform.a < 0, !window.isHidden, let scene = window.windowScene,
+      isSceneActive(scene)
+    {
+      showOverlay(over: window, in: scene)
+    } else if !isEnabled {
+      overlayWindow?.transform = .identity
+      bannerTopConstraint?.constant = window.safeAreaInsets.top + 8
+      overlayWindow?.isHidden = false
+    }
   }
 
   /// Returns `false` without showing anything when the app isn't visibly upside down, so the
