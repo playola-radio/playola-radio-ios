@@ -29,6 +29,7 @@ struct ListenerQuestionDetailPageView: View {
     .toolbarBackground(.visible, for: .navigationBar)
     .toolbarBackground(Color.background, for: .navigationBar)
     .toolbarColorScheme(.dark, for: .navigationBar)
+    .toolbar(model.tabBarVisibility, for: .tabBar)
     .alert(item: $model.presentedAlert) { $0.alert }
     .task { await model.viewAppeared() }
     .onDisappear { Task { await model.viewDisappeared() } }
@@ -105,30 +106,62 @@ struct ListenerQuestionDetailPageView: View {
       Button {
         Task { await model.playQuestionButtonTapped() }
       } label: {
-        HStack(spacing: 8) {
+        ZStack {
+          Circle()
+            .fill(Color.playolaRed)
+            .frame(width: 40, height: 40)
+
           Image(systemName: model.questionPlayButtonIcon)
             .font(.system(size: 14))
-
-          Text(
-            model.questionPlaybackState.isPlaying
-              ? model.questionPlaybackPositionText : model.questionDurationText
-          )
-          .font(.custom(FontNames.Inter_500_Medium, size: 14))
-          .monospacedDigit()
+            .foregroundColor(.white)
         }
-        .foregroundColor(.textPrimary)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(Color.playolaRed)
-        .cornerRadius(20)
+        .frame(minWidth: 44, minHeight: 44)
+        .contentShape(Rectangle())
       }
 
-      if model.questionPlaybackState.isPlaying {
-        ProgressView(value: model.questionPlaybackState.progress)
-          .progressViewStyle(LinearProgressViewStyle(tint: .playolaRed))
-          .background(Color.elevatedSurface)
-      }
+      Text(model.questionPlaybackPositionText)
+        .font(.custom(FontNames.Inter_400_Regular, size: 13))
+        .foregroundColor(.textPrimary)
+        .monospacedDigit()
+
+      questionScrubber
+
+      Text(model.questionDurationText)
+        .font(.custom(FontNames.Inter_400_Regular, size: 13))
+        .foregroundColor(.textSecondary)
+        .monospacedDigit()
     }
+  }
+
+  private var questionScrubber: some View {
+    GeometryReader { geometry in
+      ZStack(alignment: .leading) {
+        Capsule()
+          .fill(Color.elevatedSurface)
+          .frame(height: 4)
+
+        Capsule()
+          .fill(Color.playolaRed)
+          .frame(width: geometry.size.width * model.questionPlaybackProgress, height: 4)
+
+        Circle()
+          .fill(Color.playolaRed)
+          .frame(width: 14, height: 14)
+          .offset(x: geometry.size.width * model.questionPlaybackProgress - 7)
+      }
+      .frame(maxHeight: .infinity, alignment: .center)
+      .contentShape(Rectangle())
+      .gesture(
+        DragGesture(minimumDistance: 0)
+          .onChanged { value in
+            Task {
+              await model.questionScrubberDragged(
+                locationX: value.location.x, trackWidth: geometry.size.width)
+            }
+          }
+      )
+    }
+    .frame(height: 20)
   }
 
   // MARK: - Response Section

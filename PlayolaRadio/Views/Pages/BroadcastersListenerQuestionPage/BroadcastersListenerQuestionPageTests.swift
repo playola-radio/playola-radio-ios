@@ -4,6 +4,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import IdentifiedCollections
@@ -54,6 +55,24 @@ struct BroadcastersListenerQuestionPageTests {
     let model = makeModel()
 
     #expect(model.questions.isEmpty)
+  }
+
+  @Test
+  func viewAppearedTracksViewedScreen() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: testJwt)
+
+    let model = withDependencies {
+      $0.api.getListenerQuestions = { _, _ in [] }
+      $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+    } operation: {
+      BroadcastersListenerQuestionPageModel(stationId: testStationId)
+    }
+
+    await model.viewAppeared()
+
+    expectNoDifference(
+      capturedEvents.value, [.viewedScreen(screen: .listenerQuestions, stationId: testStationId)])
   }
 
   // MARK: - Fetch Tests
@@ -134,7 +153,7 @@ struct BroadcastersListenerQuestionPageTests {
     await model.viewAppeared()
 
     #expect(model.presentedAlert != nil)
-    #expect(model.presentedAlert?.title == "Error Loading Questions")
+    #expect(model.presentedAlert?.title == "Error Loading Messages")
   }
 
   @Test
@@ -484,7 +503,7 @@ struct BroadcastersListenerQuestionPageTests {
 
   @Test
   func testFilterDisplayTextForAnswered() {
-    #expect(ListenerQuestionFilter.answered.displayText == "Answered")
+    #expect(ListenerQuestionFilter.answered.displayText == "Replied")
   }
 
   @Test

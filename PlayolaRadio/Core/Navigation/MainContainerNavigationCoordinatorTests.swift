@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 8/31/25.
 //
 
+import ConcurrencyExtras
 import Dependencies
 import Foundation
 import Sharing
@@ -114,6 +115,54 @@ struct MainContainerNavigationCoordinatorTests {
       // Any pushed pages on the Your Library stack are cleared
       #expect(coordinator.path.isEmpty)
       #expect(activeTab == .yourLibrary)
+    }
+  }
+
+  @Test
+  func testNavigateToLikedSongsAbandonsAMASetupOnYourLibraryStack() async throws {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .yourLibrary
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let uploadStarted = AsyncStream.makeStream(of: Void.self)
+    let uploadCancelled = LockIsolated(false)
+
+    try await withDependencies {
+      $0.continuousClock = ImmediateClock()
+      $0.uuid = .incrementing
+      $0.date.now = Date(timeIntervalSince1970: 0)
+      $0.audioRecorder.deleteRecording = { _ in }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, _ in
+        try await withTaskCancellationHandler {
+          uploadStarted.continuation.yield()
+          while !Task.isCancelled { await Task.yield() }
+          throw CancellationError()
+        } onCancel: {
+          uploadCancelled.setValue(true)
+        }
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: "station-abc")
+      coordinator.yourLibraryPath = [.askMeAnythingLivePage(model)]
+
+      model.voicetrackActionTapped()
+      guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+        Issue.record("Expected recorder push")
+        return
+      }
+      try recorder.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/vt.wav"), 60)
+      var iterator = uploadStarted.stream.makeAsyncIterator()
+      await iterator.next()
+
+      await coordinator.navigateToLikedSongs()
+      await Task.yield()
+
+      #expect(uploadCancelled.value)
+      #expect(coordinator.yourLibraryPath.isEmpty)
+
+      model.setupAbandoned()
+      await model.waitForPendingUploads()
     }
   }
 
@@ -256,6 +305,16 @@ struct MainContainerNavigationCoordinatorTests {
   }
 
   @Test
+  func testSwitchToBroadcastModeSelectsArtistDashboardTab() {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .profile
+    let coordinator = MainContainerNavigationCoordinator()
+
+    coordinator.switchToBroadcastMode(stationId: "station-123")
+
+    #expect(activeTab == .artistDashboard)
+  }
+
+  @Test
   func testSwitchToBroadcastModeFromListeningMode() {
     let coordinator = MainContainerNavigationCoordinator()
     #expect(coordinator.appMode == .listening)
@@ -287,6 +346,17 @@ struct MainContainerNavigationCoordinatorTests {
     coordinator.switchToListeningMode()
 
     #expect(coordinator.appMode == .listening)
+  }
+
+  @Test
+  func testSwitchToListeningModeSelectsHomeTab() {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
+    let coordinator = MainContainerNavigationCoordinator()
+    coordinator.appMode = .broadcasting(stationId: "station-123")
+
+    coordinator.switchToListeningMode()
+
+    #expect(activeTab == .home)
   }
 
   // MARK: - navigateToLikedSongs from Broadcast Mode Tests
@@ -334,6 +404,52 @@ struct MainContainerNavigationCoordinatorTests {
         Issue.record("Expected supportPage to be pushed")
       }
     }
+  }
+
+  // MARK: - isShowingUpsideDownFlow Tests
+
+  @Test
+  func testIsShowingUpsideDownFlowWhenActiveTabHasBroadcastPageChild() {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistStation
+    let coordinator = MainContainerNavigationCoordinator()
+    coordinator.artistStationPath = [
+      .broadcastPage(BroadcastPageModel(stationId: "station-abc")),
+      .showsPage(ShowsPageModel(stationId: "station-abc")),
+    ]
+
+    #expect(coordinator.isShowingUpsideDownFlow)
+  }
+
+  @Test
+  func testIsShowingUpsideDownFlowWhenActiveTabHasLiveShowPage() {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
+    let coordinator = MainContainerNavigationCoordinator()
+    coordinator.artistDashboardPath = [
+      .showsPage(ShowsPageModel(stationId: "station-abc")),
+      .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "station-abc")),
+    ]
+
+    #expect(coordinator.isShowingUpsideDownFlow)
+  }
+
+  @Test
+  func testIsNotShowingUpsideDownFlowWhenLiveShowPageIsOnAnotherTab() {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistStation
+    let coordinator = MainContainerNavigationCoordinator()
+    coordinator.artistDashboardPath = [
+      .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "station-abc"))
+    ]
+
+    #expect(!coordinator.isShowingUpsideDownFlow)
+  }
+
+  @Test
+  func testIsNotShowingUpsideDownFlowWithoutBroadcastOrLiveShowPage() {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
+    let coordinator = MainContainerNavigationCoordinator()
+    coordinator.artistDashboardPath = [.showsPage(ShowsPageModel(stationId: "station-abc"))]
+
+    #expect(!coordinator.isShowingUpsideDownFlow)
   }
 
   // MARK: - Koozie route guard

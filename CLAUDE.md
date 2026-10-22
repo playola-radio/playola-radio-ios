@@ -58,6 +58,7 @@ If you are dispatching subagents (via `superpowers:subagent-driven-development` 
 | Task Type | Read This |
 |-----------|-----------|
 | Creating a new page | `.claude/PAGE_CREATION.md` |
+| Implementing a designed screen | `design/README.md` then `design/DESIGN_STATUS.md` |
 | Adding API calls (iOS) | `.claude/API_CLIENT.md` |
 | Looking up server endpoints | `../playola/.claude/API_ENDPOINTS.md` then `../playola/server/src/api/[module]/ENDPOINTS.md` (ask user for monorepo path if not found) |
 | Navigation (push/pop/sheets) | `.claude/NAVIGATION.md` |
@@ -65,6 +66,7 @@ If you are dispatching subagents (via `superpowers:subagent-driven-development` 
 | Writing tests | "Testing" section below + `.claude/TESTING.md` |
 | View styling (colors, fonts) | `.claude/VIEWS.md` |
 | Analytics testing | `.claude/TESTING.md` |
+| Building to staging TestFlight | `.claude/STAGING_BUILDS.md` |
 
 ## Server / API Documentation
 
@@ -253,5 +255,20 @@ PlayolaRadio/
 - All view models inherit from `ViewModel` base class
 - All view models and tests are `@MainActor`
 - Use `async/await`, no completion handlers
-- Alerts via `PlayolaAlert` enum
+- Use `PlayolaAlert` for failed user actions; use toasts or inline errors for failed loads.
+- Always report caught errors, except cancellations and classified connectivity blips.
 - Navigation via `PlayolaSheet` enum and navigation coordinator (see `.claude/NAVIGATION.md`)
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in this repo's GitHub Issues (`playola-radio/playola-radio-ios`), via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical roles, each label string equal to its name. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+The domain map lives in the server monorepo at `../playola/docs/context/`, not in this repo. There is no `CONTEXT.md` and no `docs/adr/` here. See `docs/agents/domain.md`.

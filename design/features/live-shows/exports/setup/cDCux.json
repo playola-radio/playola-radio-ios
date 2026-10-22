@@ -1,0 +1,917 @@
+{
+  "status": "Proposed state; awaiting visual approval",
+  "screen": {
+    "type": "frame",
+    "id": "cDCux",
+    "x": 493,
+    "y": 17222,
+    "name": "AMA Setup · 01b · Build Your Opening",
+    "clip": true,
+    "width": 393,
+    "height": 852,
+    "fill": "#000000",
+    "layout": "vertical",
+    "children": [
+      {
+        "type": "frame",
+        "id": "y0hpEN",
+        "name": "iOS status bar",
+        "width": "fill_container",
+        "height": 44,
+        "padding": [
+          0,
+          24
+        ],
+        "justifyContent": "space_between",
+        "alignItems": "center",
+        "children": [
+          {
+            "type": "text",
+            "id": "Y41cL",
+            "name": "Time",
+            "fill": "#FFFFFF",
+            "content": "9:41",
+            "fontFamily": "Inter",
+            "fontSize": 14,
+            "fontWeight": "600"
+          },
+          {
+            "type": "frame",
+            "id": "mBox4",
+            "name": "Status icons",
+            "gap": 6,
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "icon",
+                "id": "GsUZt",
+                "name": "Cellular",
+                "width": 15,
+                "height": 15,
+                "icon": "signal",
+                "library": "lucide",
+                "fill": "#FFFFFF"
+              },
+              {
+                "type": "icon",
+                "id": "IplzJ",
+                "name": "Wi-Fi",
+                "width": 15,
+                "height": 15,
+                "icon": "wifi",
+                "library": "lucide",
+                "fill": "#FFFFFF"
+              },
+              {
+                "type": "icon",
+                "id": "QpuHg",
+                "name": "Battery",
+                "width": 21,
+                "height": 21,
+                "icon": "battery-full",
+                "library": "lucide",
+                "fill": "#FFFFFF"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "IWzZf",
+        "name": "AMA header",
+        "width": "fill_container",
+        "height": 44,
+        "gap": 8,
+        "padding": [
+          0,
+          16
+        ],
+        "alignItems": "center",
+        "children": [
+          {
+            "type": "frame",
+            "id": "ZpA5w",
+            "name": "Show title and listener count",
+            "width": "fill_container",
+            "gap": 12,
+            "justifyContent": "space_between",
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "PmtzX",
+                "name": "Show title",
+                "fill": "#FFFFFF",
+                "content": "Ask Me Anything",
+                "fontFamily": "Inter",
+                "fontSize": 17,
+                "fontWeight": "600"
+              },
+              {
+                "type": "text",
+                "id": "fN3Ck",
+                "name": "Listener count",
+                "fill": "#C7C7C7",
+                "content": "SETUP",
+                "fontFamily": "Inter",
+                "fontSize": 11,
+                "fontWeight": "normal"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "yRoPv",
+        "name": "Opening playlist heading",
+        "width": "fill_container",
+        "height": 60,
+        "layout": "vertical",
+        "gap": 5,
+        "padding": [
+          8,
+          16
+        ],
+        "children": [
+          {
+            "type": "text",
+            "id": "J8D89",
+            "name": "Opening playlist title",
+            "fill": "#FFFFFF",
+            "content": "Your opening playlist",
+            "fontFamily": "Inter",
+            "fontSize": 16,
+            "fontWeight": "600"
+          },
+          {
+            "type": "text",
+            "id": "V1EGb",
+            "name": "Station continues explanation",
+            "fill": "#C7C7C7",
+            "content": "Your station keeps playing while you prepare.",
+            "fontFamily": "Inter",
+            "fontSize": 12,
+            "fontWeight": "normal"
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "aLX8L",
+        "name": "Upcoming schedule",
+        "width": "fill_container",
+        "height": "fill_container",
+        "layout": "vertical",
+        "children": [
+          {
+            "type": "frame",
+            "id": "YpyP7",
+            "name": "Opening Show Intro",
+            "width": "fill_container",
+            "fill": "#333333",
+            "children": [
+              {
+                "type": "frame",
+                "id": "YpyP7/U3D5a",
+                "x": 0,
+                "y": 0,
+                "name": "Group Bar Wrap",
+                "enabled": false,
+                "height": 61,
+                "layout": "vertical",
+                "padding": [
+                  4,
+                  0
+                ],
+                "children": [
+                  {
+                    "type": "rectangle",
+                    "cornerRadius": 2,
+                    "id": "YpyP7/y42Wem",
+                    "name": "Group Bar",
+                    "fill": "#EF6962",
+                    "width": 4,
+                    "height": "fill_container"
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "YpyP7/S3TKs7",
+                "name": "Body",
+                "width": "fill_container",
+                "gap": 12,
+                "padding": [
+                  8,
+                  12
+                ],
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "frame",
+                    "id": "YpyP7/FjQb3",
+                    "name": "Artwork",
+                    "width": 45,
+                    "height": 45,
+                    "fill": "#EF6962",
+                    "cornerRadius": 4,
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "YpyP7/u3FiM",
+                        "name": "Glyph",
+                        "width": 20,
+                        "height": 20,
+                        "icon": "mic",
+                        "library": "lucide",
+                        "fill": "#FFFFFF"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "YpyP7/UkodU",
+                    "name": "Text",
+                    "width": "fill_container",
+                    "layout": "vertical",
+                    "gap": 2,
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "YpyP7/p2Yva",
+                        "name": "Title",
+                        "fill": "#FFFFFF",
+                        "textGrowth": "fixed-width",
+                        "width": "fill_container",
+                        "content": "Show Intro",
+                        "fontFamily": "Inter",
+                        "fontSize": 14,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "text",
+                        "id": "YpyP7/lgz8a",
+                        "name": "Artist",
+                        "fill": "#868686",
+                        "content": "Your voice",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "normal"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "icon",
+                    "id": "YpyP7/A6rbJA",
+                    "x": 0,
+                    "y": 0,
+                    "name": "Play",
+                    "enabled": false,
+                    "width": 24,
+                    "height": 24,
+                    "icon": "circle-play",
+                    "library": "lucide",
+                    "fill": "#FFFFFF"
+                  },
+                  {
+                    "type": "text",
+                    "id": "YpyP7/o0bsjb",
+                    "name": "Airtime",
+                    "fill": "#868686",
+                    "content": "0:30",
+                    "fontFamily": "Inter",
+                    "fontSize": 11,
+                    "fontWeight": "normal"
+                  },
+                  {
+                    "type": "frame",
+                    "id": "YpyP7/U1DtJ",
+                    "name": "Handle Wrap",
+                    "padding": [
+                      0,
+                      0,
+                      0,
+                      8
+                    ],
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "YpyP7/Fcaui",
+                        "name": "Handle",
+                        "width": 14,
+                        "height": 14,
+                        "icon": "pin",
+                        "library": "lucide",
+                        "fill": "#868686"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "JgBhd",
+            "name": "Add to Show section spacing",
+            "width": "fill_container",
+            "layout": "vertical",
+            "padding": [
+              16,
+              16,
+              8,
+              16
+            ],
+            "children": [
+              {
+                "type": "frame",
+                "id": "IXtqi",
+                "name": "Add to Show action group",
+                "width": "fill_container",
+                "fill": "#1A1A1A",
+                "cornerRadius": 16,
+                "stroke": "#FFFFFF26",
+                "strokeWidth": 1,
+                "layout": "vertical",
+                "gap": 14,
+                "padding": 16,
+                "children": [
+                  {
+                    "type": "frame",
+                    "id": "I4UJd",
+                    "name": "Add section introduction",
+                    "width": "fill_container",
+                    "layout": "vertical",
+                    "gap": 12,
+                    "children": [
+                      {
+                        "type": "frame",
+                        "id": "gFh3v",
+                        "name": "Add section title row",
+                        "width": "fill_container",
+                        "gap": 7,
+                        "alignItems": "center",
+                        "children": [
+                          {
+                            "type": "icon",
+                            "id": "S6vRT",
+                            "name": "Add section plus",
+                            "width": 18,
+                            "height": 18,
+                            "icon": "circle-plus",
+                            "library": "lucide",
+                            "fill": "#EF6962"
+                          },
+                          {
+                            "type": "text",
+                            "id": "kd5lA",
+                            "name": "Add section title",
+                            "fill": "#FFFFFF",
+                            "content": "Let’s get a little ahead",
+                            "fontFamily": "Inter",
+                            "fontSize": 19,
+                            "fontWeight": "600"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "id": "DCv7J",
+                        "name": "Add section explanation",
+                        "fill": "#C7C7C7",
+                        "textGrowth": "fixed-width",
+                        "width": "fill_container",
+                        "content": "Build the first 10 minutes of your show with songs and past Q&As. Use Voicetrack to record a quick intro for a song.",
+                        "lineHeight": 1.45,
+                        "fontFamily": "Inter",
+                        "fontSize": 14,
+                        "fontWeight": "normal"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "mmihW",
+                    "name": "Playlist add actions",
+                    "width": "fill_container",
+                    "height": 92,
+                    "gap": 8,
+                    "padding": [
+                      4,
+                      1,
+                      0,
+                      0
+                    ],
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "frame",
+                        "id": "X0ZU93",
+                        "name": "Voicetrack",
+                        "width": "fill_container",
+                        "layout": "vertical",
+                        "gap": 8,
+                        "alignItems": "center",
+                        "children": [
+                          {
+                            "type": "frame",
+                            "id": "y6vRB",
+                            "name": "Add audio circle",
+                            "width": 64,
+                            "height": 64,
+                            "fill": "#EF6962",
+                            "cornerRadius": 32,
+                            "stroke": "#FFFFFF",
+                            "strokeWidth": 2,
+                            "layout": "none",
+                            "children": [
+                              {
+                                "type": "icon",
+                                "id": "l6QaK4",
+                                "x": 17,
+                                "y": 16,
+                                "name": "Audio type icon",
+                                "width": 28,
+                                "height": 28,
+                                "icon": "mic",
+                                "library": "lucide",
+                                "fill": "#FFFFFF"
+                              },
+                              {
+                                "type": "frame",
+                                "id": "VS1iw",
+                                "x": 42,
+                                "y": 42,
+                                "name": "Add badge",
+                                "width": 22,
+                                "height": 22,
+                                "fill": "#3A1212",
+                                "cornerRadius": 11,
+                                "stroke": "#FFFFFF",
+                                "strokeWidth": 1.5,
+                                "justifyContent": "center",
+                                "alignItems": "center",
+                                "children": [
+                                  {
+                                    "type": "icon",
+                                    "id": "v8rOH",
+                                    "name": "Add plus",
+                                    "width": 14,
+                                    "height": 14,
+                                    "icon": "plus",
+                                    "library": "lucide",
+                                    "fill": "#FFFFFF"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "type": "text",
+                            "id": "X0ZU93/LaZ61",
+                            "name": "Label",
+                            "fill": "#FFFFFF",
+                            "content": "Voicetrack",
+                            "fontFamily": "Inter",
+                            "fontSize": 12,
+                            "fontWeight": "normal"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "frame",
+                        "id": "dLvcW",
+                        "name": "Song",
+                        "width": "fill_container",
+                        "layout": "vertical",
+                        "gap": 8,
+                        "alignItems": "center",
+                        "children": [
+                          {
+                            "type": "frame",
+                            "id": "vteyT",
+                            "name": "Add audio circle",
+                            "width": 64,
+                            "height": 64,
+                            "fill": "#EF6962",
+                            "cornerRadius": 32,
+                            "stroke": "#FFFFFF",
+                            "strokeWidth": 2,
+                            "layout": "none",
+                            "children": [
+                              {
+                                "type": "icon",
+                                "id": "A0QpmA",
+                                "x": 17,
+                                "y": 16,
+                                "name": "Audio type icon",
+                                "width": 28,
+                                "height": 28,
+                                "icon": "music-2",
+                                "library": "lucide",
+                                "fill": "#FFFFFF"
+                              },
+                              {
+                                "type": "frame",
+                                "id": "IttFh",
+                                "x": 42,
+                                "y": 42,
+                                "name": "Add badge",
+                                "width": 22,
+                                "height": 22,
+                                "fill": "#3A1212",
+                                "cornerRadius": 11,
+                                "stroke": "#FFFFFF",
+                                "strokeWidth": 1.5,
+                                "justifyContent": "center",
+                                "alignItems": "center",
+                                "children": [
+                                  {
+                                    "type": "icon",
+                                    "id": "mxcqg",
+                                    "name": "Add plus",
+                                    "width": 14,
+                                    "height": 14,
+                                    "icon": "plus",
+                                    "library": "lucide",
+                                    "fill": "#FFFFFF"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "type": "text",
+                            "id": "dLvcW/LaZ61",
+                            "name": "Label",
+                            "fill": "#FFFFFF",
+                            "content": "Song",
+                            "fontFamily": "Inter",
+                            "fontSize": 12,
+                            "fontWeight": "normal"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "frame",
+                        "id": "sRACi",
+                        "name": "Q/A",
+                        "width": "fill_container",
+                        "layout": "vertical",
+                        "gap": 8,
+                        "alignItems": "center",
+                        "children": [
+                          {
+                            "type": "frame",
+                            "id": "vC32o",
+                            "name": "Add audio circle",
+                            "width": 64,
+                            "height": 64,
+                            "fill": "#EF6962",
+                            "cornerRadius": 32,
+                            "stroke": "#FFFFFF",
+                            "strokeWidth": 2,
+                            "layout": "none",
+                            "children": [
+                              {
+                                "type": "icon",
+                                "id": "liDow",
+                                "x": 17,
+                                "y": 16,
+                                "name": "Audio type icon",
+                                "width": 28,
+                                "height": 28,
+                                "icon": "messages-square",
+                                "library": "lucide",
+                                "fill": "#FFFFFF"
+                              },
+                              {
+                                "type": "frame",
+                                "id": "GLmt0",
+                                "x": 42,
+                                "y": 42,
+                                "name": "Add badge",
+                                "width": 22,
+                                "height": 22,
+                                "fill": "#3A1212",
+                                "cornerRadius": 11,
+                                "stroke": "#FFFFFF",
+                                "strokeWidth": 1.5,
+                                "justifyContent": "center",
+                                "alignItems": "center",
+                                "children": [
+                                  {
+                                    "type": "icon",
+                                    "id": "P4PW4",
+                                    "name": "Add plus",
+                                    "width": 14,
+                                    "height": 14,
+                                    "icon": "plus",
+                                    "library": "lucide",
+                                    "fill": "#FFFFFF"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "type": "text",
+                            "id": "sRACi/LaZ61",
+                            "name": "Label",
+                            "fill": "#FFFFFF",
+                            "content": "Q/A",
+                            "fontFamily": "Inter",
+                            "fontSize": 12,
+                            "fontWeight": "normal"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "G7MGFn",
+        "name": "Preparation readiness and Start",
+        "width": "fill_container",
+        "height": 112,
+        "layout": "vertical",
+        "gap": 8,
+        "padding": [
+          12,
+          16
+        ],
+        "children": [
+          {
+            "type": "frame",
+            "id": "kwanm",
+            "name": "Readiness count",
+            "width": "fill_container",
+            "justifyContent": "space_between",
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "NqeT1",
+                "name": "Prepared audio",
+                "fill": "#FFFFFF",
+                "content": "0:30 / 10:00 ready",
+                "fontFamily": "Inter",
+                "fontSize": 13,
+                "fontWeight": "600"
+              },
+              {
+                "type": "text",
+                "id": "zQBz6",
+                "name": "Readiness hint",
+                "fill": "#C7C7C7",
+                "content": "Add 9:30 more",
+                "fontFamily": "Inter",
+                "fontSize": 12,
+                "fontWeight": "normal"
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "XOxOy",
+            "name": "Preparation progress",
+            "width": "fill_container",
+            "height": 4,
+            "fill": "#444444",
+            "cornerRadius": 2,
+            "layout": "none",
+            "children": [
+              {
+                "type": "rectangle",
+                "cornerRadius": 2,
+                "id": "PlomM",
+                "x": 0,
+                "y": 0,
+                "name": "Prepared progress",
+                "fill": "#EF6962",
+                "width": 18.05,
+                "height": 4
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "aRdGe",
+            "name": "Start Show button",
+            "width": "fill_container",
+            "height": 44,
+            "fill": "#2A2A2A",
+            "cornerRadius": 12,
+            "stroke": "#FFFFFF26",
+            "strokeWidth": 1,
+            "gap": 7,
+            "padding": [
+              0,
+              16
+            ],
+            "justifyContent": "center",
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "NZa9G",
+                "name": "Start Show label",
+                "fill": "#868686",
+                "content": "Start Show",
+                "fontFamily": "Inter",
+                "fontSize": 15,
+                "fontWeight": "600"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "q9DqUS",
+        "name": "Familiar broadcast navigation",
+        "width": "fill_container",
+        "height": 80,
+        "layout": "vertical",
+        "padding": [
+          4,
+          16,
+          20,
+          16
+        ],
+        "children": [
+          {
+            "type": "frame",
+            "id": "tUStw",
+            "name": "Broadcast tabs",
+            "width": "fill_container",
+            "height": 56,
+            "fill": "#2C2C2ECC",
+            "cornerRadius": 28,
+            "stroke": "#FFFFFF26",
+            "strokeWidth": 1,
+            "justifyContent": "space_around",
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "frame",
+                "id": "tUStw/wd9Lk",
+                "name": "Broadcast",
+                "width": 80,
+                "layout": "vertical",
+                "gap": 4,
+                "padding": [
+                  8,
+                  0
+                ],
+                "justifyContent": "center",
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "icon",
+                    "id": "tUStw/wd9Lk/Mb28I",
+                    "name": "Icon",
+                    "width": 24,
+                    "height": 24,
+                    "icon": "antenna",
+                    "library": "lucide",
+                    "fill": "#FFFFFF"
+                  },
+                  {
+                    "type": "text",
+                    "id": "tUStw/wd9Lk/x7cAoO",
+                    "name": "Label",
+                    "fill": "#FFFFFF",
+                    "content": "Broadcast",
+                    "fontFamily": "Inter",
+                    "fontSize": 10,
+                    "fontWeight": "500"
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "tUStw/pzhJy",
+                "name": "Library",
+                "width": 80,
+                "layout": "vertical",
+                "gap": 4,
+                "padding": [
+                  8,
+                  0
+                ],
+                "justifyContent": "center",
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "icon",
+                    "id": "tUStw/pzhJy/Mb28I",
+                    "name": "Icon",
+                    "width": 24,
+                    "height": 24,
+                    "icon": "list-music",
+                    "library": "lucide",
+                    "fill": "#868686"
+                  },
+                  {
+                    "type": "text",
+                    "id": "tUStw/pzhJy/x7cAoO",
+                    "name": "Label",
+                    "fill": "#868686",
+                    "content": "Library",
+                    "fontFamily": "Inter",
+                    "fontSize": 10,
+                    "fontWeight": "500"
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "tUStw/d2EwSK",
+                "name": "Listeners",
+                "width": 80,
+                "layout": "vertical",
+                "gap": 4,
+                "padding": [
+                  8,
+                  0
+                ],
+                "justifyContent": "center",
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "icon",
+                    "id": "tUStw/d2EwSK/Mb28I",
+                    "name": "Icon",
+                    "width": 24,
+                    "height": 24,
+                    "icon": "messages-square",
+                    "library": "lucide",
+                    "fill": "#868686"
+                  },
+                  {
+                    "type": "text",
+                    "id": "tUStw/d2EwSK/x7cAoO",
+                    "name": "Label",
+                    "fill": "#868686",
+                    "content": "Listeners",
+                    "fontFamily": "Inter",
+                    "fontSize": 10,
+                    "fontWeight": "500"
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "tUStw/H6k6F",
+                "name": "Profile",
+                "width": 80,
+                "layout": "vertical",
+                "gap": 4,
+                "padding": [
+                  8,
+                  0
+                ],
+                "justifyContent": "center",
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "icon",
+                    "id": "tUStw/H6k6F/Mb28I",
+                    "name": "Icon",
+                    "width": 24,
+                    "height": 24,
+                    "icon": "user",
+                    "library": "lucide",
+                    "fill": "#868686"
+                  },
+                  {
+                    "type": "text",
+                    "id": "tUStw/H6k6F/x7cAoO",
+                    "name": "Label",
+                    "fill": "#868686",
+                    "content": "Profile",
+                    "fontFamily": "Inter",
+                    "fontSize": 10,
+                    "fontWeight": "500"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

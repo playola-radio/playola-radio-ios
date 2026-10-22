@@ -25,9 +25,8 @@ final class MainContainerNavigationCoordinator {
   var stationsPath: [Path] = []
   var yourLibraryPath: [Path] = []
   var profilePath: [Path] = []
-  var broadcastPath: [Path] = []
-  var libraryPath: [Path] = []
-  var listenersPath: [Path] = []
+  var artistStationPath: [Path] = []
+  var artistDashboardPath: [Path] = []
   var settingsPath: [Path] = []
 
   var presentedSheet: PlayolaSheet?
@@ -38,6 +37,12 @@ final class MainContainerNavigationCoordinator {
   @ObservationIgnored @Dependency(\.continuousClock) var clock
 
   nonisolated init() {}
+
+  func dismissClaimSheet(_ model: ClaimSheetModel) {
+    if case .claim(let current) = presentedSheet, current === model {
+      presentedSheet = nil
+    }
+  }
 
   private var isKoozieOnly: Bool {
     listeningTracker?.rewardsProfile.rewardsExperienceType == .koozieOnly
@@ -51,24 +56,42 @@ final class MainContainerNavigationCoordinator {
       case .stationsList: return stationsPath
       case .yourLibrary: return yourLibraryPath
       case .profile: return profilePath
-      case .broadcast: return broadcastPath
-      case .library: return libraryPath
-      case .listeners: return listenersPath
+      case .artistStation: return artistStationPath
+      case .artistDashboard: return artistDashboardPath
       case .settings: return settingsPath
       }
     }
     set {
+      cancelAbandonedAskMeAnythingSetups(from: path, to: newValue)
       switch activeTab {
       case .home: homePath = newValue
       case .stationsList: stationsPath = newValue
       case .yourLibrary: yourLibraryPath = newValue
       case .profile: profilePath = newValue
-      case .broadcast: broadcastPath = newValue
-      case .library: libraryPath = newValue
-      case .listeners: listenersPath = newValue
+      case .artistStation: artistStationPath = newValue
+      case .artistDashboard: artistDashboardPath = newValue
       case .settings: settingsPath = newValue
       }
     }
+  }
+
+  /// True while the broadcast page or the AMA live show page (or anything pushed on top of
+  /// either) is on the active tab's stack.
+  var isShowingUpsideDownFlow: Bool {
+    path.contains {
+      switch $0 {
+      case .broadcastPage, .askMeAnythingLivePage: return true
+      default: return false
+      }
+    }
+  }
+
+  func setPath(
+    _ newValue: [Path],
+    at keyPath: ReferenceWritableKeyPath<MainContainerNavigationCoordinator, [Path]>
+  ) {
+    cancelAbandonedAskMeAnythingSetups(from: self[keyPath: keyPath], to: newValue)
+    self[keyPath: keyPath] = newValue
   }
 
   enum Path: Hashable, Equatable {
@@ -83,7 +106,17 @@ final class MainContainerNavigationCoordinator {
     case seriesListPage(SeriesListPageModel)
     case supportPage(SupportPageModel)
     case conversationListPage(ConversationListPageModel)
+    case broadcastersListenerQuestionPage(BroadcastersListenerQuestionPageModel)
     case listenerQuestionDetailPage(ListenerQuestionDetailPageModel)
+    case breakersLibraryPage(BreakersLibraryPageModel)
+    case breakerCategoryDetailPage(BreakerCategoryDetailPageModel)
+    case musicLibraryPage(MusicLibraryPageModel)
+    case musicCategoryDetailPage(MusicCategoryDetailPageModel)
+    case showsPage(ShowsPageModel)
+    case askMeAnythingLivePage(AskMeAnythingLivePageModel)
+    case amaQuestionPickerPage(AMAQuestionPickerPageModel)
+    case amaAnswerQuestionPage(AMAAnswerQuestionPageModel)
+    case recordWithMultiStepPromptPage(RecordWithMultiStepPromptModel)
 
     @MainActor @ViewBuilder
     var destinationView: some View {
@@ -110,8 +143,28 @@ final class MainContainerNavigationCoordinator {
         SupportPageView(model: model)
       case .conversationListPage(let model):
         ConversationListPageView(model: model)
+      case .broadcastersListenerQuestionPage(let model):
+        BroadcastersListenerQuestionPageView(model: model)
       case .listenerQuestionDetailPage(let model):
         ListenerQuestionDetailPageView(model: model)
+      case .breakersLibraryPage(let model):
+        BreakersLibraryPageView(model: model)
+      case .breakerCategoryDetailPage(let model):
+        BreakerCategoryDetailPageView(model: model)
+      case .musicLibraryPage(let model):
+        MusicLibraryPageView(model: model)
+      case .musicCategoryDetailPage(let model):
+        MusicCategoryDetailPageView(model: model)
+      case .showsPage(let model):
+        ShowsPageView(model: model)
+      case .askMeAnythingLivePage(let model):
+        AskMeAnythingLivePageView(model: model)
+      case .amaQuestionPickerPage(let model):
+        AMAQuestionPickerPageView(model: model)
+      case .amaAnswerQuestionPage(let model):
+        AMAAnswerQuestionPageView(model: model)
+      case .recordWithMultiStepPromptPage(let model):
+        RecordWithMultiStepPromptView(model: model)
       }
     }
   }
@@ -141,9 +194,8 @@ final class MainContainerNavigationCoordinator {
     stationsPath = strip(stationsPath)
     yourLibraryPath = strip(yourLibraryPath)
     profilePath = strip(profilePath)
-    broadcastPath = strip(broadcastPath)
-    libraryPath = strip(libraryPath)
-    listenersPath = strip(listenersPath)
+    artistStationPath = strip(artistStationPath)
+    artistDashboardPath = strip(artistDashboardPath)
     settingsPath = strip(settingsPath)
   }
 
@@ -155,25 +207,55 @@ final class MainContainerNavigationCoordinator {
     self.path.removeAll()
   }
 
+  /// Pops the AMA question picker/answer sub-flow back to the live show page. Leaves the stack
+  /// untouched if no `.askMeAnythingLivePage` is present (nothing to return to).
+  func popToAskMeAnythingLive() {
+    guard
+      path.contains(where: {
+        if case .askMeAnythingLivePage = $0 { return true }
+        return false
+      })
+    else { return }
+    var newPath = path
+    while let last = newPath.last {
+      if case .askMeAnythingLivePage = last { break }
+      newPath.removeLast()
+    }
+    path = newPath
+  }
+
   func switchToBroadcastMode(stationId: String) {
     clearAllPaths()
     appMode = .broadcasting(stationId: stationId)
+    $activeTab.withLock { $0 = .artistDashboard }
   }
 
   func switchToListeningMode() {
     clearAllPaths()
     appMode = .listening
+    $activeTab.withLock { $0 = .home }
   }
 
   private func clearAllPaths() {
-    homePath = []
-    stationsPath = []
-    yourLibraryPath = []
-    profilePath = []
-    broadcastPath = []
-    libraryPath = []
-    listenersPath = []
-    settingsPath = []
+    setPath([], at: \.homePath)
+    setPath([], at: \.stationsPath)
+    setPath([], at: \.yourLibraryPath)
+    setPath([], at: \.profilePath)
+    setPath([], at: \.artistStationPath)
+    setPath([], at: \.artistDashboardPath)
+    setPath([], at: \.settingsPath)
+  }
+
+  private func cancelAbandonedAskMeAnythingSetups(from oldPath: [Path], to newPath: [Path]) {
+    for case .askMeAnythingLivePage(let model) in oldPath {
+      guard
+        !newPath.contains(where: { path in
+          guard case .askMeAnythingLivePage(let newModel) = path else { return false }
+          return newModel === model
+        })
+      else { continue }
+      model.setupAbandoned()
+    }
   }
 
   func replace(with path: Path) {
@@ -199,7 +281,7 @@ final class MainContainerNavigationCoordinator {
 
     // Liked songs now live on the Your Library tab; switch to it and reset its
     // stack so the library root (Presets + Liked Songs) is shown.
-    yourLibraryPath = []
+    setPath([], at: \.yourLibraryPath)
     if activeTab != .yourLibrary {
       withAnimation(.easeInOut(duration: 0.3)) {
         $activeTab.withLock { $0 = .yourLibrary }

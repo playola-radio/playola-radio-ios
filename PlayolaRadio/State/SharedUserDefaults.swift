@@ -101,6 +101,26 @@ extension SharedKey where Self == InMemoryKey<ListeningTracker?>.Default {
   }
 }
 
+// MARK: - Last Played Station
+
+/// Durable snapshot of the last Playola station the user chose to play. Keeps the
+/// lock-screen Now Playing entry alive after Stop and lets the car / lock-screen
+/// play command resume the last station — including after a cold-but-alive
+/// relaunch, before station lists have been fetched. Only `.playola` stations are
+/// persisted (the legacy URL backend is being retired). A wrapper struct (rather
+/// than a bare `AnyStation?`) leaves room to grow without a storage migration.
+struct LastPlayedStation: Codable, Equatable, Sendable {
+  var station: AnyStation
+}
+
+extension SharedKey where Self == FileStorageKey<LastPlayedStation?>.Default {
+  static var lastPlayedStation: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "last-played-station.json")),
+      default: nil]
+  }
+}
+
 extension SharedKey where Self == InMemoryKey<MainContainerModel.ActiveTab>.Default {
   static var activeTab: Self {
     Self[.inMemory("activeTab"), default: .home]
@@ -296,5 +316,55 @@ extension SharedKey where Self == InMemoryKey<Set<String>>.Default {
   /// `presets` before the network call completes.
   static var pendingPresetRemovalStationIds: Self {
     Self[.inMemory("pendingPresetRemovalStationIds"), default: []]
+  }
+}
+
+extension SharedKey
+where Self == FileStorageKey<[String: [String: IdentifiedArrayOf<AMAOpeningItem>]]>.Default {
+  static var amaOpeningDrafts: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "ama-opening-drafts.json")),
+      default: [:]
+    ]
+  }
+}
+
+extension SharedKey where Self == FileStorageKey<[String: Date]>.Default {
+  /// Start time of the curator's current Ask Me Anything show, keyed by live show id, so
+  /// re-entering the show mid-way still knows which questions were asked during it.
+  static var amaShowStartTimes: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "ama-show-start-times.json")),
+      default: [:]
+    ]
+  }
+}
+
+extension SharedKey where Self == InMemoryKey<[FulfillmentRequest]>.Default {
+  /// Last successfully fetched prize requests. Kept when a refetch fails; never persisted.
+  static var fulfillmentRequests: Self {
+    Self[.inMemory("fulfillmentRequests"), default: []]
+  }
+}
+
+extension SharedKey where Self == FileStorageKey<[String: [String: InfoAnswer]]>.Default {
+  /// Unsent claim form answers keyed by fulfillment request id, so "finish later" keeps what the
+  /// winner typed. Cleared on sign-out since it holds a shipping address.
+  static var claimFormDrafts: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "claim-form-drafts.json")),
+      default: [:]
+    ]
+  }
+}
+
+extension SharedKey where Self == FileStorageKey<Set<String>>.Default {
+  /// User ids that have already seen the up-front koozie Claim sheet on this device. Not cleared on
+  /// sign-out, so each account is prompted once and re-signing-in doesn't re-prompt.
+  static var koozieClaimPromptShownUserIds: Self {
+    Self[
+      .fileStorage(.documentsDirectory.appending(component: "koozie-claim-prompt-shown.json")),
+      default: []
+    ]
   }
 }

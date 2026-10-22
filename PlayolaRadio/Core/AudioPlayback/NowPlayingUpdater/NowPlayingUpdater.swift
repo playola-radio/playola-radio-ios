@@ -9,6 +9,7 @@ import Dependencies
 import Foundation
 import MediaPlayer
 import PlayolaPlayer
+import Sharing
 
 // MARK: - Now Playing Data Structure
 
@@ -76,13 +77,16 @@ struct NowPlaying: Equatable, Codable {
 class NowPlayingUpdater {
   var stationPlayer: StationPlayer
 
-  @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.date.now) var now
 
+  /// Durable snapshot of the last Playola station the user chose to play (written
+  /// by `StationPlayer` on accepted play intent). Survives Stop and relaunch, and
+  /// is the resume source for the lock-screen / car play command. The in-memory
+  /// `lastPlayedStation` below is only an analytics cache for the current session.
+  @ObservationIgnored @Shared(.lastPlayedStation) var persistedLastStation: LastPlayedStation?
+
   private var disposeBag = Set<AnyCancellable>()
-  private var inactivityTask: Task<Void, Never>?
-  private let inactivityTimeout: Duration = .seconds(15 * 60)  // 15 minutes
   var lastPlayedStation: AnyStation?
   private var currentArtworkURL: String?
 
@@ -97,21 +101,20 @@ class NowPlayingUpdater {
   private var sessionStartTime: Date?
   private var lastPlaybackStatus: StationPlayer.PlaybackStatus = .stopped
   private func updateNowPlaying(with stationPlayerState: StationPlayer.State) {
-    print(
-      "🎵 NowPlayingUpdater: updateNowPlaying called with status: \(stationPlayerState.playbackStatus)"
-    )
-    print("🎵 Current station: \(stationPlayer.currentStation?.name ?? "nil")")
-
-    guard let currentStation = stationPlayer.currentStation else {
-      print("🎵 No current station - clearing now playing info")
+    guard let displayStation = stationForDisplay(stationPlayerState) else {
       clearNowPlayingInfo()
       return
     }
 
-    lastPlayedStation = currentStation
+    // Only refresh the analytics cache while a station is genuinely current; a
+    // stopped-with-snapshot render must not resurrect it as "playing".
+    if let currentStation = stationPlayer.currentStation {
+      lastPlayedStation = currentStation
+    }
+
     var nowPlayingInfo = buildNowPlayingInfo(
       for: stationPlayerState,
-      station: currentStation
+      station: displayStation
     )
     updatePlaybackState(for: stationPlayerState.playbackStatus)
     setPlaybackRate(for: stationPlayerState.playbackStatus, in: &nowPlayingInfo)
@@ -122,9 +125,9 @@ class NowPlayingUpdater {
       // For loading/stopped states, preserve existing artwork if available, otherwise load new
       if currentNowPlayingInfo[MPMediaItemPropertyArtwork] != nil {
         nowPlayingInfo = preservingExistingArtwork(in: nowPlayingInfo)
-      } else if currentArtworkURL != currentStation.imageUrl?.absoluteString {
+      } else if currentArtworkURL != displayStation.imageUrl?.absoluteString {
         // Only load if we don't already have this station's artwork
-        loadStationArtwork(from: stationPlayerState, station: currentStation)
+        loadStationArtwork(from: stationPlayerState, station: displayStation)
       }
     case .playing, .paused:
       // Preserve existing artwork
@@ -134,6 +137,28 @@ class NowPlayingUpdater {
     }
 
     setNowPlayingInfo(nowPlayingInfo)
+  }
+
+  /// The station whose metadata the lock-screen / Now Playing entry should show.
+  /// While a station is current, that station. Once stopped, the durably persisted
+  /// last Playola station, so the entry — and its live play command — survive Stop
+  /// and a cold-but-alive relaunch, which is what lets the car resume it. Any other
+  /// stationless status (e.g. `.error` after a failed cold start) clears the entry.
+  private func stationForDisplay(_ state: StationPlayer.State) -> AnyStation? {
+    if let currentStation = stationPlayer.currentStation {
+      return currentStation
+    }
+    if case .stopped = state.playbackStatus,
+      let snapshotStation = persistedLastStation?.station,
+      case .playola = snapshotStation
+    {
+      // Only ever surface a `.playola` snapshot after Stop. The persisted store is
+      // written solely for `.playola` stations today, so this is defense-in-depth
+      // (matching the guard in `stationToResume()`): the retired URL backend must
+      // never drive a stopped Now Playing entry / live play button.
+      return snapshotStation
+    }
+    return nil
   }
 
   private func clearNowPlayingInfo() {
@@ -179,7 +204,7 @@ class NowPlayingUpdater {
     case .loading(_, let progress):
       populateLoadingInfo(&nowPlayingInfo, station: station, progress: progress)
     case .stopped:
-      populateStoppedInfo(&nowPlayingInfo, state: state)
+      populateStoppedInfo(&nowPlayingInfo, state: state, station: station)
     case .startingNewStation:
       populateConnectingInfo(&nowPlayingInfo, station: station)
     case .error:
@@ -201,18 +226,18 @@ class NowPlayingUpdater {
 
     switch status {
     case .playing, .loading, .startingNewStation:
-      cancelInactivityTimer()
       setupRemoteControlCenter()
       MPNowPlayingInfoCenter.default().playbackState = .playing
-    case .paused:
-      // Interruption pause: keep the Now Playing entry and remote controls alive
-      // so the lock-screen play button can resume. NOT `.stopped` (which tears
-      // the entry down) and no inactivity timer (which would eventually clear it).
-      cancelInactivityTimer()
+    case .paused, .stopped:
+      // Interruption pause OR a user Stop: keep the Now Playing entry and remote
+      // controls alive so the lock-screen / car play button stays live and can
+      // resume. Presented as `.paused` (never `.stopped`, which greys the button
+      // out). No teardown — the audio session is already released on Stop, and
+      // keeping the metadata + command handlers registered costs nothing. The
+      // command center is (re)registered so a cold-but-alive launch is resumable.
       setupRemoteControlCenter()
       MPNowPlayingInfoCenter.default().playbackState = .paused
-    case .stopped, .error:
-      if case .stopped = status { startInactivityTimer() }
+    case .error:
       MPNowPlayingInfoCenter.default().playbackState = .stopped
     }
   }
@@ -284,14 +309,14 @@ class NowPlayingUpdater {
 
   private func populateStoppedInfo(
     _ info: inout [String: Any],
-    state: StationPlayer.State
+    state: StationPlayer.State,
+    station: AnyStation
   ) {
-    if let artistPlaying = state.artistPlaying {
-      info[MPMediaItemPropertyArtist] = artistPlaying
-    }
-    if let titlePlaying = state.titlePlaying {
-      info[MPMediaItemPropertyTitle] = titlePlaying
-    }
+    // Fall back to the station's own name/curator so a cold-launch stopped entry
+    // (persisted snapshot, no in-session track metadata) still shows the station
+    // instead of a blank lock-screen control.
+    info[MPMediaItemPropertyTitle] = state.titlePlaying ?? station.stationName
+    info[MPMediaItemPropertyArtist] = state.artistPlaying ?? station.name
   }
 
   private func populateConnectingInfo(
@@ -315,9 +340,13 @@ class NowPlayingUpdater {
     in info: inout [String: Any]
   ) {
     guard !status.isLoading else { return }
-    if case .paused = status {
+    // iOS infers the lock-screen play-vs-pause button from the audio session
+    // state + this rate, NOT from `playbackState`. A stopped entry must report
+    // rate 0.0 (like paused) or iOS shows a Pause button over stopped audio.
+    switch status {
+    case .paused, .stopped:
       info[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
-    } else {
+    default:
       info[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
     }
   }
@@ -346,7 +375,7 @@ class NowPlayingUpdater {
   /// Whether `station` is still the one being played. Used to drop artwork that
   /// finished loading after a fast station switch superseded the request.
   func isStillCurrent(_ station: AnyStation) -> Bool {
-    stationPlayer.currentStation?.id == station.id
+    (stationPlayer.currentStation ?? persistedLastStation?.station)?.id == station.id
   }
 
   private func updateNowPlayingImage(_ image: UIImage) {
@@ -418,26 +447,52 @@ class NowPlayingUpdater {
     }
 
     // Play command - resume a station paused by an interruption, or restart the
-    // last played station when stopped.
+    // durably persisted last station when stopped.
     commandCenter.playCommand.isEnabled = true
     commandCenter.playCommand.addTarget { [weak self] _ in
-      guard let self else { return .commandFailed }
-      // Paused by an interruption/route loss: resume the active backend. This is
-      // the recovery path for an interruption that ended without `.shouldResume`
-      // (e.g. the user started another audio app).
-      if case .paused = self.stationPlayer.state.playbackStatus {
-        Task { @MainActor in await self.stationPlayer.resume() }
-        return .success
-      }
-      // Stopped: restart the last played station.
-      guard let lastStation = self.lastPlayedStation,
-        self.stationPlayer.currentStation == nil
-      else { return .commandFailed }
-      Task { @MainActor in
-        await self.stationPlayer.play(station: lastStation)
-      }
+      self?.handlePlayCommand() ?? .commandFailed
+    }
+  }
+
+  // internal for testability
+  /// The single resume path for the lock-screen / car play command. Paused (by an
+  /// interruption/route loss) → resume the live backend; this is the recovery path
+  /// for an interruption that ended without `.shouldResume` (e.g. the user started
+  /// another audio app). Stopped → restart the durably persisted last Playola
+  /// station, which survives relaunch so the car's play command can resume it even
+  /// after a cold-but-alive launch. `.commandFailed` only when there is genuinely
+  /// nothing to resume.
+  func handlePlayCommand() -> MPRemoteCommandHandlerStatus {
+    if case .paused = stationPlayer.state.playbackStatus {
+      Task { @MainActor in await stationPlayer.resume() }
       return .success
     }
+    guard stationPlayer.currentStation == nil,
+      let resumeStation = stationToResume()
+    else { return .commandFailed }
+    Task { @MainActor in
+      await stationPlayer.play(station: resumeStation)
+    }
+    return .success
+  }
+
+  /// The station a stopped play command should resume: the durably persisted last
+  /// Playola station, re-resolved against the loaded station lists for fresher
+  /// metadata / an active check when it appears there, and otherwise the raw
+  /// snapshot so a cold launch with no lists still resumes with zero network.
+  /// Refuses (nil) only when the station IS present in the lists and provably
+  /// inactive — never merely because lists haven't loaded.
+  private func stationToResume() -> AnyStation? {
+    guard let snapshotStation = persistedLastStation?.station,
+      case .playola = snapshotStation
+    else { return nil }
+    if let resolved = stationPlayer.stationLists
+      .flatMap({ $0.stations })
+      .first(where: { $0.id == snapshotStation.id })
+    {
+      return resolved.active ? resolved : nil
+    }
+    return snapshotStation
   }
 
   func releaseRemoteControlCenter() {
@@ -456,32 +511,6 @@ class NowPlayingUpdater {
 
     // Stop receiving remote control events
     UIApplication.shared.endReceivingRemoteControlEvents()
-  }
-
-  // MARK: - Inactivity Timer
-
-  func startInactivityTimer() {
-    cancelInactivityTimer()
-
-    inactivityTask = Task { [weak self] in
-      guard let self else { return }
-
-      do {
-        try await self.clock.sleep(for: self.inactivityTimeout)
-
-        // Clear Now Playing info after inactivity timeout
-        await MainActor.run {
-          self.releaseRemoteControlCenter()
-        }
-      } catch {
-        // Task was cancelled
-      }
-    }
-  }
-
-  private func cancelInactivityTimer() {
-    inactivityTask?.cancel()
-    inactivityTask = nil
   }
 }
 

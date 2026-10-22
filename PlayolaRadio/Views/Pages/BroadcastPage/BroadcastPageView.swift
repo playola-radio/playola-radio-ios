@@ -12,6 +12,22 @@ import SwiftUI
 
 struct BroadcastPageView: View {
   @Bindable var model: BroadcastPageModel
+  var body: some View {
+    BroadcastContentView(model: model)
+      .navigationTitle(model.navigationTitle)
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbarBackground(.visible, for: .navigationBar)
+      .toolbarBackground(Color.black, for: .navigationBar)
+      .toolbarColorScheme(.dark, for: .navigationBar)
+      .task {
+        await model.viewAppeared()
+      }
+      .playolaAlert($model.presentedAlert)
+  }
+}
+
+struct BroadcastContentView: View {
+  @Bindable var model: BroadcastPageModel
   @State private var dropTargetSpinId: String?
 
   var body: some View {
@@ -81,33 +97,32 @@ struct BroadcastPageView: View {
 
             // Schedule List (scrolls)
             List {
-              ForEach(model.upcomingSpins, id: \.id) { spin in
-                let isDeletable = model.canDeleteSpin(spin)
+              ForEach(model.spinRows) { row in
+                let isDeletable = model.isRowDeletable(row)
+                let firstSpinId = row.dropAnchorSpinId
                 VStack(spacing: 0) {
                   // Drop indicator above this row
-                  if dropTargetSpinId == spin.id {
+                  if dropTargetSpinId == firstSpinId {
                     Rectangle()
                       .fill(Color.playolaRed)
                       .frame(height: 3)
                       .transition(.opacity)
                   }
 
-                  ScheduleRowView(
-                    spin: spin,
-                    airtimeLabel: model.airtimeLabel(for: spin),
-                    isBeingRescheduled: model.spinIdsBeingRescheduled.contains(spin.id),
-                    isDeletable: isDeletable
-                  )
+                  ForEach(row.spins, id: \.id) { spin in
+                    ScheduleRowView(
+                      spin: spin,
+                      airtimeLabel: model.airtimeLabel(for: spin),
+                      isBeingRescheduled: model.spinIdsBeingRescheduled.contains(spin.id),
+                      isDeletable: isDeletable
+                    )
+                  }
                 }
                 .dropDestination(for: String.self) { items, _ in
-                  guard let voicetrackId = items.first else { return false }
-                  Task {
-                    await model.insertStagingItem(stagingId: voicetrackId, beforeSpinId: spin.id)
-                  }
-                  return true
+                  model.stagingItemsDropped(items, beforeSpinId: firstSpinId ?? "")
                 } isTargeted: { isTargeted in
                   withAnimation(.easeInOut(duration: 0.2)) {
-                    dropTargetSpinId = isTargeted ? spin.id : nil
+                    dropTargetSpinId = isTargeted ? firstSpinId : nil
                   }
                 }
                 .listRowInsets(EdgeInsets())
@@ -119,15 +134,27 @@ struct BroadcastPageView: View {
               }
               .onDelete { indexSet in
                 guard let index = indexSet.first else { return }
-                let spin = model.upcomingSpins[index]
+                let row = model.spinRows[index]
                 Task {
-                  await model.deleteSpin(spin)
+                  await model.deleteSpinRow(row)
                 }
               }
               .onMove { source, destination in
                 Task {
-                  await model.moveSpins(from: source, to: destination)
+                  await model.moveSpinRows(from: source, to: destination)
                 }
+              }
+              ForEach(model.showEndDropTargets, id: \.self) { targetId in
+                Text(model.showEndDropLabel)
+                  .font(.custom(FontNames.Inter_400_Regular, size: 14))
+                  .foregroundColor(.playolaGray)
+                  .frame(maxWidth: .infinity, minHeight: 56)
+                  .background(Color.playolaSurfaceRaised)
+                  .dropDestination(for: String.self) { items, _ in
+                    model.stagingItemsDropped(items, beforeSpinId: targetId)
+                  }
+                  .listRowSeparator(.hidden)
+                  .listRowBackground(Color.clear)
               }
             }
             .listStyle(.plain)
@@ -138,15 +165,6 @@ struct BroadcastPageView: View {
         }
       }
     }
-    .navigationTitle(model.navigationTitle)
-    .navigationBarTitleDisplayMode(.inline)
-    .toolbarBackground(.visible, for: .navigationBar)
-    .toolbarBackground(Color.black, for: .navigationBar)
-    .toolbarColorScheme(.dark, for: .navigationBar)
-    .task {
-      await model.viewAppeared()
-    }
-    .playolaAlert($model.presentedAlert)
     .sheet(isPresented: $model.showNotifyListenersSheet) {
       NotifyListenersSheet(model: model)
     }

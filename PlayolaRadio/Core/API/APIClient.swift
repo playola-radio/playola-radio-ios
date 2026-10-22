@@ -5,6 +5,8 @@
 //  Created by Brian D Keane on 5/21/24.
 //
 
+// swiftlint:disable file_length
+
 import Alamofire
 import Dependencies
 import DependenciesMacros
@@ -88,32 +90,22 @@ struct APIClient: Sendable {
   /// - Returns: Array of UserPrize objects
   var getUserPrizes: @Sendable (_ jwtToken: String) async throws -> [UserPrize] = { _ in [] }
 
-  /// Redeems a prize for the user
-  /// - Parameters:
-  ///   - jwtToken: The JWT token for authentication
-  ///   - prizeId: The ID of the prize to redeem
-  ///   - stationId: Optional station ID for per-station prizes
-  /// - Returns: The created UserPrize
-  var redeemPrize:
-    @Sendable (_ jwtToken: String, _ prizeId: String, _ stationId: String?) async throws ->
-      UserPrize = {
-        _, _, _ in
-        UserPrize(
-          id: "", userId: "", prizeId: "",
-          redeemedAt: Date(), createdAt: Date(), updatedAt: Date(), prize: nil)
-      }
+  /// Prize requests still in progress (`awaiting_info` + `ready_to_ship`), server-ordered.
+  var getMyFulfillmentRequests:
+    @Sendable (_ jwtToken: String) async throws -> [FulfillmentRequest] =
+      { _ in [] }
 
-  /// Claims the koozie prize with a US shipping address.
-  /// 201 → claimed (server sends the congrats email). 409 ("already redeemed", incl. a
-  /// concurrent double-tap) is treated as success (idempotent). 400 → throws
-  /// `APIError.validationError(serverMessage)` for inline display on the form.
-  var redeemKooziePrize:
-    @Sendable (_ jwtToken: String, _ prizeId: String, _ address: KoozieShippingAddress)
+  /// Saves answers. Any 2xx is success (the body is not decoded — admins get a different shape).
+  /// Throws `ClaimAPIError` mapped from the status.
+  var submitFulfillmentAnswers:
+    @Sendable (_ jwtToken: String, _ requestId: String, _ body: SubmitFulfillmentAnswersRequest)
       async throws -> Void = { _, _, _ in }
 
-  /// Marks the in-app koozie congrats dismissed (write-once). 204 → recorded;
-  /// 409 (not earned) tolerated as success.
-  var markKoozieCongratsSeen: @Sendable (_ jwtToken: String) async throws -> Void = { _ in }
+  /// Claims a reward prize; returns its new fulfillment request. Throws `ClaimAPIError`.
+  var createRewardRedemption:
+    @Sendable (_ jwtToken: String, _ prizeId: String) async throws -> FulfillmentRequest = { _, _ in
+      .mock(source: .reward, giveawayEventId: nil)
+    }
 
   ///   - jwtToken: Current JWT
   ///   - firstName: New first name
@@ -401,6 +393,37 @@ struct APIClient: Sendable {
         ListenerQuestion.mock
       }
 
+  /// Sets (or clears) the permanent trailing AudioBlock a listener question's answer leads into.
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID
+  ///   - questionId: The ID of the question
+  ///   - trailingAudioBlockId: The AudioBlock ID to lead into, or `nil` to clear (sent as JSON null)
+  /// - Returns: The updated ListenerQuestion
+  /// - Throws: APIError if the request fails
+  var updateListenerQuestionTrailingAudioBlock:
+    @Sendable (
+      _ jwtToken: String, _ stationId: String, _ questionId: String,
+      _ trailingAudioBlockId: String?
+    )
+      async throws -> ListenerQuestion = { _, _, _, _ in
+        ListenerQuestion.mock
+      }
+
+  /// Airs an answered listener question by inserting its question+answer (+trailing) group into
+  /// the live schedule. The server pulls the question/answer/trailing content.
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - listenerQuestionId: The ID of the question to air
+  ///   - placeAfterSpinId: The ID of the spin to place the Q&A group after
+  /// - Returns: Updated array of Spin objects representing the new schedule
+  /// - Throws: APIError if the request fails
+  var insertListenerQuestionSpin:
+    @Sendable (
+      _ jwtToken: String, _ listenerQuestionId: String, _ placeAfterSpinId: String
+    )
+      async throws -> [Spin] = { _, _, _ in [] }
+
   /// Declines a listener question
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
@@ -452,6 +475,17 @@ struct APIClient: Sendable {
   /// - Throws: APIError if the request fails
   var requestSong: @Sendable (_ jwtToken: String, _ songRequest: SongRequest) async throws -> Void =
     { _, _ in
+    }
+
+  /// Fetches curated song suggestions for a station
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station to suggest songs for
+  /// - Returns: Array of SongSuggestions ordered least→most burned out
+  /// - Throws: APIError if the request fails
+  var getSongSuggestions:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> [SongSuggestion] = {
+      _, _ in []
     }
 
   /// Registers a device for push notifications
@@ -584,11 +618,6 @@ struct APIClient: Sendable {
     @Sendable (_ jwtToken: String, _ eventId: String) async throws -> GiveawayMyResult = { _, _ in
       .mock
     }
-
-  /// Submits (upserts) the winner's mailing details for an event. Winner-only on the server.
-  var submitGiveawayWinnerDetails:
-    @Sendable (_ jwtToken: String, _ eventId: String, _ body: GiveawayWinnerSubmissionRequest)
-      async throws -> Void = { _, _, _ in }
 
   /// Owner submits a recorded congrats (an uploaded voicetrack `audioBlockId`) for an event; the
   /// server inserts it as a spin. Idempotent per (eventId, audioBlockId) on the server.
@@ -788,6 +817,16 @@ struct APIClient: Sendable {
     @Sendable (_ jwtToken: String, _ stationId: String, _ requestId: String) async throws
       -> Void = { _, _, _ in }
 
+  /// Fetches all categories for a station
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station ID to fetch categories for
+  /// - Returns: Array of StationCategory objects
+  /// - Throws: APIError if the request fails
+  var getStationCategories:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> [StationCategory] =
+      { _, _ in [] }
+
   // MARK: - Production Artist Recordings
 
   /// Fetches audioBlockIds that have artist-recording source tapes for a station
@@ -838,6 +877,111 @@ struct APIClient: Sendable {
   var removeArtistSuggestionVote:
     @Sendable (_ jwtToken: String, _ artistSuggestionId: String) async throws -> Void = { _, _ in }
 
+  // MARK: - Station Health
+
+  /// Fetches a station's programming health (freshness score plus the server-owned check list),
+  /// computed from the station's published (live) version.
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication (caller needs edit access to the station)
+  ///   - stationId: The station UUID
+  /// - Returns: ProgrammingHealth with status, freshPct, and checks
+  /// - Throws: APIError if the request fails (401 unauthorized, 403 no edit access, 404 not found)
+  var getProgrammingHealth:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> ProgrammingHealth = {
+      _, stationId in
+      ProgrammingHealth(stationId: stationId, status: .unknown, freshPct: nil, checks: [])
+    }
+
+  // MARK: - Station Setup
+
+  /// Fetches a station's overall setup-completion progress.
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station UUID
+  /// - Returns: StationSetupProgress with the overall progress and its weighted factors
+  /// - Throws: APIError if the request fails
+  var getStationSetupProgress:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> StationSetupProgress = {
+      _, _ in
+      StationSetupProgress(
+        stationId: "",
+        progress: 0,
+        displayPercentage: 0,
+        factors: StationSetupProgress.Factors(
+          sourceTapes: StationSetupProgress.Factor(current: 0, required: 0, progress: 0, weight: 0),
+          welcome: StationSetupProgress.Factor(current: 0, required: 0, progress: 0, weight: 0),
+          songs: StationSetupProgress.Factor(current: 0, required: 0, progress: 0, weight: 0),
+          breakers: StationSetupProgress.Factor(current: 0, required: 0, progress: 0, weight: 0)
+        )
+      )
+    }
+
+  /// Fetches a station's draft category progress (fill status toward each category's minimum
+  /// audio-block count). Always requests the `draft` version, since a station in setup only has
+  /// a draft category version.
+  /// - Parameters:
+  ///   - jwtToken: The JWT token for authentication
+  ///   - stationId: The station UUID
+  /// - Returns: StationCategoryProgressResponse with readiness and per-category progress
+  /// - Throws: APIError if the request fails
+  var getDraftStationCategoryProgress:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws ->
+      StationCategoryProgressResponse = { _, _ in
+        StationCategoryProgressResponse(usesCategoryProgress: false, readiness: nil, categories: [])
+      }
+
+  // MARK: - Live Shows (Ask Me Anything)
+
+  /// Schedules an Ask-Me-Anything live show: the ordered opening `audioBlockIds` plus three
+  /// trailing fillers at a safe song boundary ≥2 min ahead. Duplicates allowed, order preserved.
+  /// - Throws: `APIError.liveShowUnavailable(delayUntil:)` on a 409 conflict (unfinished show or a
+  ///   materialized Episode/Q&A airing spin blocks go-live); the envelope's `delayUntil` is nil for
+  ///   the unfinished-show case.
+  var startLiveShow:
+    @Sendable (_ token: String, _ stationId: String, _ audioBlockIds: [String]) async throws ->
+      StartLiveShowResponse = { _, _, _ in
+        StartLiveShowResponse(
+          liveShowId: "", scheduledStartsAt: .distantPast, scheduledEndsAt: .distantPast)
+      }
+
+  /// Ends a live show by appending the outro `audioBlockId`; removes replaceable fillers. Idempotent.
+  /// - Throws: `APIError.liveShowReplaced` on a 409 (the show was replaced);
+  ///   `APIError.liveShowFinished` on a 400 (already finished / unsafe placement).
+  var endLiveShow:
+    @Sendable (_ token: String, _ stationId: String, _ liveShowId: String, _ audioBlockId: String)
+      async throws -> EndLiveShowResponse = { _, _, _, _ in
+        EndLiveShowResponse(endingSpinId: "", effectiveEndsAt: .distantPast)
+      }
+
+  // MARK: - Station Listener Analytics
+
+  /// Fetches active-listener summary counts for a station over a time window. Pass `airtime` as
+  /// the window start (or point-in-time) and `endTime` as the window end (omit for point-in-time).
+  /// The headline is `summary.uniqueUsers`. `stationId` is passed as a query parameter against
+  /// the global `/v1/listening-sessions/active` endpoint.
+  /// - Throws: APIError (401 unauthorized, 403 no access, 404 not found, 400 malformed)
+  var getActiveListeningSessions:
+    @Sendable (_ jwtToken: String, _ stationId: String, _ airtime: Date, _ endTime: Date?)
+      async throws -> ActiveListeningSessionsResponse = { _, _, _, _ in
+        ActiveListeningSessionsResponse(
+          summary: .init(
+            totalSessions: 0, uniqueUsers: 0, uniqueDevices: 0, anonymousSessions: 0))
+      }
+
+  /// Fetches weekly unique-listener buckets for the station chart, against the station-scoped
+  /// `/v1/stations/:stationId/listener-counts` endpoint. Buckets are Monday-anchored,
+  /// America/Chicago. `startDate`/`endDate` are `YYYY-MM-DD` strings computed by the caller in
+  /// America/Chicago (see `ArtistDashboardPageModel.listenerCountsDateRange`).
+  /// - Throws: APIError (401 unauthorized, 403 no access, 404 not found, 400 malformed)
+  var getListenerCounts:
+    @Sendable (_ jwtToken: String, _ stationId: String, _ startDate: String, _ endDate: String)
+      async throws -> ListenerCountsResponse = {
+        _, _, _, _ in
+        ListenerCountsResponse(
+          granularity: "week", startDate: "", endDate: "", timezone: "America/Chicago",
+          buckets: [])
+      }
+
   // MARK: - App Version Requirements
 
   /// Fetches minimum app version requirements (no auth required)
@@ -848,9 +992,24 @@ struct APIClient: Sendable {
   }
 }
 
+struct StartLiveShowResponse: Decodable, Equatable, Sendable {
+  let liveShowId: String
+  let scheduledStartsAt: Date
+  let scheduledEndsAt: Date
+}
+
+struct EndLiveShowResponse: Decodable, Equatable, Sendable {
+  let endingSpinId: String
+  let effectiveEndsAt: Date
+}
+
 enum APIError: Error, LocalizedError {
   case dataNotValid
   case validationError(String)
+  case serverError(String)
+  case liveShowUnavailable(delayUntil: Date?)
+  case liveShowReplaced
+  case liveShowFinished
 
   var errorDescription: String? {
     switch self {
@@ -858,6 +1017,14 @@ enum APIError: Error, LocalizedError {
       return "Invalid data received from server"
     case .validationError(let message):
       return message
+    case .serverError(let message):
+      return message
+    case .liveShowUnavailable:
+      return "This station can\u{2019}t go live right now."
+    case .liveShowReplaced:
+      return "This live show was replaced."
+    case .liveShowFinished:
+      return "This live show has already finished."
     }
   }
 }

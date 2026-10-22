@@ -18,9 +18,8 @@ struct MainContainer: View {
   var body: some View {
     TabView(selection: activeTabBinding) {
       if model.isInBroadcastMode {
-        broadcastTab
-        libraryTab
-        listenersTab
+        artistDashboardTab
+        artistStationTab
         settingsTab
       } else {
         homeTab
@@ -43,18 +42,14 @@ struct MainContainer: View {
       item: Binding(
         get: {
           switch model.mainContainerNavigationCoordinator.presentedSheet {
-          case .player, .feedbackSheet, .share, .redeemPrize, .artistSuggestion, .welcomeMessage,
-            .giveawayWinner, .giveawayCongrats, .developerOptions:
+          case .player, .feedbackSheet, .share, .artistSuggestion, .welcomeMessage,
+            .giveawayCongrats, .developerOptions, .claim:
             return model.mainContainerNavigationCoordinator.presentedSheet
           default:
             return nil
           }
         },
-        set: { newValue in
-          model.$mainContainerNavigationCoordinator.withLock {
-            $0.presentedSheet = newValue
-          }
-        }
+        set: { model.presentedSheetChanged(to: $0) }
       ),
       content: { item in
         ZStack {
@@ -65,18 +60,16 @@ struct MainContainer: View {
             FeedbackSheetView(model: feedbackModel)
           case .share(let shareModel):
             ShareSheet(items: shareModel.items)
-          case .redeemPrize(let redeemModel):
-            RedeemPrizeSheetView(model: redeemModel)
           case .artistSuggestion(let artistSuggestionModel):
             StationSuggestionPageView(model: artistSuggestionModel)
           case .welcomeMessage(let welcomeModel):
             WelcomeMessagePageView(model: welcomeModel)
-          case .giveawayWinner(let winnerModel):
-            GiveawayWinnerSheetView(model: winnerModel)
           case .giveawayCongrats(let congratsModel):
             GiveawayCongratsSheetView(model: congratsModel)
           case .developerOptions(let developerOptionsModel):
             DeveloperOptionsSheetView(model: developerOptionsModel)
+          case .claim(let claimModel):
+            ClaimSheetView(model: claimModel)
           default:
             EmptyView()
           }
@@ -93,7 +86,7 @@ struct MainContainer: View {
       item: Binding(
         get: {
           switch model.mainContainerNavigationCoordinator.presentedSheet {
-          case .recordPage, .recordIntroPage, .songSearchPage:
+          case .recordPage, .recordIntroPage, .songSearchPage, .curatorSongPicker:
             return model.mainContainerNavigationCoordinator.presentedSheet
           default:
             return nil
@@ -117,6 +110,10 @@ struct MainContainer: View {
           }
         case .songSearchPage(let songSearchPageModel):
           SongSearchPageView(model: songSearchPageModel)
+        case .curatorSongPicker(let curatorSongPickerModel):
+          NavigationStack {
+            CuratorSongPickerPageView(model: curatorSongPickerModel)
+          }
         default:
           EmptyView()
         }
@@ -140,8 +137,7 @@ struct MainContainer: View {
     }
     .onChange(of: model.mainContainerNavigationCoordinator.appMode) { _, newMode in
       if case .broadcasting = newMode {
-        model.ensureBroadcastModels()
-        model.$activeTab.withLock { $0 = .broadcast }
+        model.$activeTab.withLock { $0 = .artistDashboard }
       } else {
         model.$activeTab.withLock { $0 = .home }
       }
@@ -221,60 +217,39 @@ struct MainContainer: View {
   // MARK: - Broadcast Mode Tabs
 
   @ViewBuilder
-  private var broadcastTab: some View {
-    NavigationStack(path: navigationPathBinding(\.broadcastPath)) {
+  private var artistDashboardTab: some View {
+    NavigationStack(path: navigationPathBinding(\.artistDashboardPath)) {
       tabContentWithSmallPlayer {
-        if let broadcastModel = model.broadcastPageModel {
-          BroadcastPageView(model: broadcastModel)
-        }
+        ArtistDashboardTabRootView(model: model.artistDashboardTabRootModel)
+          .id(model.broadcastStationId)
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
         path.destinationView
       }
     }
     .tabItem {
-      Image(systemName: "antenna.radiowaves.left.and.right")
-      Text(model.broadcastTabTitle)
+      Image(systemName: "square.grid.2x2")
+      Text(model.artistDashboardTabTitle)
     }
-    .tag(MainContainerModel.ActiveTab.broadcast)
+    .tag(MainContainerModel.ActiveTab.artistDashboard)
   }
 
   @ViewBuilder
-  private var libraryTab: some View {
-    NavigationStack(path: navigationPathBinding(\.libraryPath)) {
+  private var artistStationTab: some View {
+    NavigationStack(path: navigationPathBinding(\.artistStationPath)) {
       tabContentWithSmallPlayer {
-        if let libraryModel = model.libraryPageModel {
-          LibraryPageView(model: libraryModel)
-        }
+        ArtistStationPageView(model: model.artistStationPageModel)
+          .id(model.broadcastStationId)
       }
       .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
         path.destinationView
       }
     }
     .tabItem {
-      Image(systemName: "music.note.list")
-      Text(model.libraryTabTitle)
+      Image(systemName: "dot.radiowaves.left.and.right")
+      Text(model.artistStationTabTitle)
     }
-    .tag(MainContainerModel.ActiveTab.library)
-  }
-
-  @ViewBuilder
-  private var listenersTab: some View {
-    NavigationStack(path: navigationPathBinding(\.listenersPath)) {
-      tabContentWithSmallPlayer {
-        if let listenerModel = model.listenerQuestionPageModel {
-          BroadcastersListenerQuestionPageView(model: listenerModel)
-        }
-      }
-      .navigationDestination(for: MainContainerNavigationCoordinator.Path.self) { path in
-        path.destinationView
-      }
-    }
-    .tabItem {
-      Image(systemName: "bubble.left.and.bubble.right")
-      Text(model.listenersTabTitle)
-    }
-    .tag(MainContainerModel.ActiveTab.listeners)
+    .tag(MainContainerModel.ActiveTab.artistStation)
   }
 
   @ViewBuilder
@@ -323,7 +298,7 @@ struct MainContainer: View {
   }
 
   private func navigationPathBinding(
-    _ keyPath: WritableKeyPath<
+    _ keyPath: ReferenceWritableKeyPath<
       MainContainerNavigationCoordinator, [MainContainerNavigationCoordinator.Path]
     >
   ) -> Binding<[MainContainerNavigationCoordinator.Path]> {
@@ -333,7 +308,7 @@ struct MainContainer: View {
       },
       set: { newValue in
         model.$mainContainerNavigationCoordinator.withLock {
-          $0[keyPath: keyPath] = newValue
+          $0.setPath(newValue, at: keyPath)
         }
       }
     )

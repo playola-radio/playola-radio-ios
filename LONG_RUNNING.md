@@ -19,21 +19,29 @@ not ✅ done until its soak clears.
 > Entries marked `⟨owner: …⟩` are placeholders the task owner should fill in —
 > I scaffolded them from open PRs/branches but don't know the internal plan.
 
-_Last updated: 2026-08-26_
+_Last updated: 2026-10-22_
 
 ---
 
 ## Active
 
-| Task | Status | Current step | Soak | Links |
-|------|--------|--------------|------|-------|
-| Host-owned audio → Sonos | 🟡 soaking | Phase 1 done (7.4.2 at 100% since ~2026-08-09, canary clean); Phase 2+3 shipping to prod in 7.5.1 | Phase 2+3: prod phased rollout via 7.5.1 (submission held on device matrix) | PR #345 · #384 · #402 · plan |
-| AirPlay-2 sample-buffer renderer (Phase 5) | 🟡 soaking | App on SDK **0.21.0 (stable)**; **shipping to 100% of users in 7.6.0** (PR #408) — the server flag is now a **rollback lever**, not a rollout gate | prod at **100%**: the sample-buffer renderer is served to everyone via the server flag. Kill lever (rollback): flip `SAMPLE_BUFFER_RENDERER_ALLOWED=false` (or clear the enabled env) to revert the whole population to the legacy renderer at each user's next app launch (backend locks per process). Watch Mixpanel `render_backend` on Listening Session Started + Sentry `render_backend` tag; hold ✅ until metrics clean across a full release cycle | PR #404 · #408 |
-| Clip share | 🔵 in progress | ⟨owner: current step⟩ | none (standard release) | PR #219 |
-| Rewards → Your Library | 🔵 in progress | Rewards→Profile, Library tab, Presets move | none | PR #372 · `fix-library-requests-ui` |
-| Siri "Play on Playola" (App Intents media schema) | 🟢 planning | Approach B decided (2026-06-14); not started | n/a | — |
-| View/Model pattern cleanup | 🔵 in progress (opportunistic) | ongoing, fix-on-touch | none | `TODO_VIEW_MODEL_VIOLATIONS.md` |
-| Prettify iPad screens | 🔵 in progress | Profile (screen 4 of N) | none (standard release) | specs in `docs/superpowers/specs/2026-08-0*-ipad-*-design.md` |
+**"Next check"** is the ISO date by which someone should look at the task again
+(advance it, verify a soak gate, or ping the owner) — not a delivery deadline.
+An item is **due** when today ≥ that date. Update it whenever you touch the
+task. `—` = opportunistic, no scheduled check. Ask "What long-running tasks do
+we need to tackle?" (or run the `whats-due` skill) to see what's due.
+
+| Task | Status | Current step | Soak | Next check | Links |
+|------|--------|--------------|------|------------|-------|
+| Host-owned audio → Sonos | 🟡 soaking | Phase 1 done (7.4.2 at 100% since ~2026-08-09, canary clean); Phase 2+3 shipping to prod in 7.5.1 | Phase 2+3: prod phased rollout via 7.5.1 (submission held on device matrix) | 2026-09-03 | PR #345 · #384 · #402 · plan |
+| AirPlay-2 sample-buffer renderer (Phase 5) | 🟡 soaking | App on SDK **0.21.0 (stable)**; **shipping to 100% of users in 7.6.0** (PR #408) — the server flag is now a **rollback lever**, not a rollout gate | prod at **100%**: the sample-buffer renderer is served to everyone via the server flag. Kill lever (rollback): flip `SAMPLE_BUFFER_RENDERER_ALLOWED=false` (or clear the enabled env) to revert the whole population to the legacy renderer at each user's next app launch (backend locks per process). Watch Mixpanel `render_backend` on Listening Session Started + Sentry `render_backend` tag; hold ✅ until metrics clean across a full release cycle | 2026-09-10 | PR #404 · #408 |
+| Clip share | 🔵 in progress | ⟨owner: current step⟩ | none (standard release) | 2026-09-10 | PR #219 |
+| Rewards → Your Library | 🔵 in progress | Rewards→Profile, Library tab, Presets move | none | 2026-09-10 | PR #372 · `fix-library-requests-ui` |
+| Siri "Play on Playola" (App Intents media schema) | 🟢 planning | Approach B decided (2026-06-14); not started | n/a | 2026-10-01 | — |
+| View/Model pattern cleanup | 🔵 in progress (opportunistic) | ongoing, fix-on-touch | none | — | `TODO_VIEW_MODEL_VIOLATIONS.md` |
+| Prettify iPad screens | 🔵 in progress | Profile (screen 4 of N) | none (standard release) | 2026-09-10 | specs in `docs/superpowers/specs/2026-08-0*-ipad-*-design.md` |
+| Artist 3-tab IA (broadcast redesign) | 🔵 in progress | Step 2: Dashboard health + Listeners cards + 8-week chart wired; Station tab's third link row now pushes a new Breakers Library category list (categories fetch, non-song + zero-clip filter) with a per-category detail page (per-clip audio preview, play/stop toggle + scrubber) landed in PR #417; re-homing next — **must not merge until Step 3 re-homes Broadcast/Library/Listeners** | none (standard release) | 2026-09-10 | designs `design/exports/in-progress/3-tab-ia` · `design/exports/breakers-library` · `design/DESIGN_STATUS.md` |
+| Artist Dashboard API Repair | 🟡 soaking | iOS repoint merged to `develop`; **shipping to prod in 7.7.0** | **prod gate cleared**: server `main` (merged 2026-10-16, playola PR #1065) serves `programming-health`, station-scoped `listener-counts`, and `stationId`-filtered `listening-sessions/active`. Watch Sentry for dashboard request errors after 7.7.0 goes live | 2026-11-05 | see "Artist Dashboard API Repair" section below |
 
 ---
 
@@ -208,6 +216,99 @@ by adopting the App Intents media Assistant Schema (approach B, decided 2026-06-
 
 ---
 
+## Artist 3-tab IA (broadcast redesign)
+
+**Goal:** replace the broadcast-mode experience with the 3-tab IA from
+`design/exports/in-progress/3-tab-ia` (Dashboard · Station · Profile). No existing
+screens are eliminated — they move a level below the new tab roots (e.g. the
+broadcast schedule screen will hang off the new Station tab).
+
+- **Status:** 🔵 in progress.
+- **Steps:**
+  1. New tabs + placeholder pages — broadcast-mode tabs are now
+     Dashboard (`ArtistDashboardPage`) / Station (`ArtistStationPage`) / Profile
+     (old ContactPage), with hardcoded model values to lock the visuals. Old
+     Broadcast/Library/Listeners tabs removed from the tab bar (pages kept).
+     Revised per design v2 (2026-08-28): Home renamed to Station, Dashboard
+     moved first and absorbed the improve-your-station checklist.
+  2. Wire real data into Station + Dashboard models — **in progress.** Dashboard's
+     Station Health ring + improve-your-station list are live against
+     `GET /v1/stations/:id/programming-health`; the Listeners cards (NOW / THIS WEEK /
+     THIS MONTH) are live against `GET /v1/listening-sessions/active` (global path,
+     `stationId` query param) and the "Last 8 Weeks" chart against
+     `GET /v1/stations/:id/listener-counts` (station-scoped path, `granularity=week`
+     + explicit `startDate`/`endDate` query params) —
+     (`ListenerAnalytics` DTOs + `api.getActiveListeningSessions` /
+     `api.getListenerCounts`; see the "Artist Dashboard API Repair" entry below for
+     why these paths changed from the original station-scoped ones). Remaining: the
+     weekly-report header trend ("↑ 12%", awaiting the percent-change deltas
+     fast-follow) and the Station tab.
+  3. `⟨re-home the old screens (schedule, library, listeners) a level below⟩`
+- **Merge gate:** this work must **not** merge to `develop` on its own until Step 3
+  re-homes Broadcast, Library, and Listeners. Steps 1–2 remove those tabs from the
+  tab bar while their destinations are still unreachable, so merging before Step 3
+  would strand live screens and leave `develop` non-deployable. Keep the whole
+  effort on the feature branch until Step 3 lands (or lands in the same PR).
+- **Soak:** none (standard release), but don't cut an App Store release while
+  broadcast mode is mid-transition in a way that strands a screen.
+- **Notes:** design status per frame lives in `design/DESIGN_STATUS.md`
+  (3-Tab IA rows `tscZI` / `NLnb0` / `LeACy` → Implementing). Home v2 2-tab
+  alternative (`ccNgg`) pending an explicit Dropped decision.
+
+---
+
+## Artist Dashboard API Repair
+
+**Goal:** the Artist Dashboard (Step 2 of the 3-tab IA above) called three
+station-scoped server endpoints that a server tree-reset deleted before the
+dashboard ever shipped. Repoint the client to the endpoints that actually
+exist post-reset, matching a contract the two repos agreed on.
+
+**Why this is cross-repo (2 PRs):** the client-facing contract required real
+server changes (a new `programming-health` response shape, a `stationId`
+filter + authz on the previously-global `listener-counts`/`active` endpoints),
+so this can't land as a single-repo PR.
+
+- **PR 1 (server, playola repo, base `develop`):** provide the station-scoped
+  analytics the client consumes — a `stationId`-filtered active-listeners count
+  on `GET /v1/listening-sessions/active` (query param) and a station-scoped
+  `GET /v1/stations/:id/listener-counts`, both with participant authz (admin or
+  owner/contributor/viewer of that station). **Owned by a separate human
+  implementer as of 2026-09-12 — not built or tracked in detail from this
+  repo.**
+- **PR 2 (iOS, this repo):** repoint `APIClient+Live.swift` to the
+  agreed-on contract — `getActiveListeningSessions` now hits the global
+  `/v1/listening-sessions/active` path with a `stationId` query param;
+  `getListenerCounts` hits the station-scoped
+  `/v1/stations/:id/listener-counts` path with explicit `startDate`/`endDate`
+  (America/Chicago week range, computed client-side) and `granularity=week`;
+  `getStationHealthScore` is renamed to
+  `getProgrammingHealth` and returns the new `ProgrammingHealth` model
+  (`freshPct`-driven health ring, server-owned `status`, per-check progress).
+  Old `StationHealth` model deleted. Status: implemented, tests green, ready
+  for an authenticated staging smoke pass against the server's `develop`
+  branch once PR 1 lands.
+
+**Production gate (load-bearing):** the server must ship `programming-health`
++ the station-filtered `listener-counts`/`active` work to **production**
+before any App Store release that contains the Artist Dashboard. Verified
+2026-09-12: the dashboard has never shipped (not in `origin/main`, not in any
+release tag through v7.6.0-b105) — no production user has a broken dashboard
+today, so there's no compat shim to maintain; the gate only sequences the
+*future* release. No environment gating in the client (hard project rule):
+the dashboard points at the same endpoints in every environment, and the
+server release date is what gates the App Store release, not a runtime check.
+
+**Advance when:** PR 1 merges to the server's `develop` and deploys to
+staging → run the authenticated iOS smoke pass against staging → once clean,
+this task's remaining gate is the server's production deploy, tracked here
+until it ships and an App Store release containing the dashboard is cut.
+
+**Links:** iOS PR 2 branch `briankeane/artist-dashboard-api-repair` (this
+repo). Server PR 1 tracked in the playola repo by its own implementer.
+
+---
+
 ## View/Model pattern cleanup
 
 Standing, **opportunistic** cleanup (fix-on-touch, not a scheduled task) —
@@ -219,4 +320,52 @@ you're already in a file.
 
 ## Done
 
-_(none yet — move tasks here with their completion date once their soak clears)_
+### Ask Me Anything live show — ✅ done 2026-09-28
+
+**Goal:** give station hosts a live "Ask Me Anything" page: build and persist
+an opening playlist (intro + songs + optional voicetracks), start the show,
+watch/edit the live schedule (listener count, grouped Q&A rows, filler hidden
+except a promoted low-buffer song), and end through a recorded outro.
+
+**Why this was multi-PR:** the feature landed as a sequence of iterative
+follow-ups on one long-lived branch (`briankeane/ama-api-client`), each adding
+owner-requested behavior on top of the previous approved slice — durable setup
+drafts across restarts, independent local scheduling positions for pending
+voicetracks, airtime-spinner scoping on moves, and forwarding the Shows page
+directly to an already-active show. Full history and verification counts per
+step are in `design/features/ama-live-show/implementation-plan.md`.
+
+**Completed:** PR #434 merged to `develop` on 2026-09-21 and PR #437 merged to
+`develop` on 2026-09-28. All planned live-show slices are implemented and
+tested (210+ regression tests across the touched suites as of the last logged
+step); no soak or remaining server gate applied.
+
+**Server dependency:** the live-show endpoints (`POST
+/v1/stations/:id/liveShow`, `.../end`) and auto-tagging of ordinary
+insert/move spins with the active show ID already existed on the server's
+`develop` (confirmed at `365e2cc1` in the `playola` repo). No further server
+work was required.
+
+**Follow-on:** the picker polish on `briankeane/ama-questions-list-colors`
+matches the answer-screen colors, shows real answer lengths, inserts live
+questions at the bottom, and pauses polling in the background.
+
+**Follow-on (branch `briankeane/ask-me-anything-flow`, PR #437):** client-only
+host refinements on top of #434 — (1) tapping an already-answered question now opens
+a **read-only review screen** (view/play the existing answer, set/change/remove
+the trailing song, "Add to Show") instead of re-recording and airing directly;
+(2) the **pre-show "Add to Show" now works** by staging the answered Q&A into the
+opening playlist and appending its block ids (question → answer → [trailing]) to
+the flat `audioBlockIds` sent to Start Show; (3) restoring question decline and
+guarding live Q&A insertion against duplicate submissions and stale schedules.
+
+**Deferred — server-side Q&A grouping (Option A):** the pre-show path is
+intentionally **flat** (D2): a staged Q&A airs as separate, independently-editable
+rows once live (labeled "Question from …" / "Answer to …"), with the trailing song
+as an ordinary row — there is **no `spinGroupId` grouping pre-show**. The live path
+still groups via `insertListenerQuestionSpin`. Making pre-show Q&As air as one
+grouped unit needs a server change (accept grouped blocks at Start Show) and is a
+future item; not scheduled.
+
+**Links:** PR #434 · PR #437 (this repo) · plan
+`design/features/ama-live-show/implementation-plan.md`.

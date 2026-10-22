@@ -1,0 +1,633 @@
+{
+  "type": "frame",
+  "id": "pSULo",
+  "x": 9235,
+  "y": 16590,
+  "name": "AMA Recorder · C2b · Review Recording",
+  "clip": true,
+  "width": 393,
+  "height": 852,
+  "fill": "#000000",
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "aVIJ6",
+      "name": "iOS Status Bar",
+      "width": "fill_container",
+      "height": 44,
+      "padding": [
+        0,
+        24
+      ],
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "vjVvh",
+          "name": "Time",
+          "fill": "#FFFFFF",
+          "content": "9:41",
+          "fontFamily": "Inter",
+          "fontSize": 14,
+          "fontWeight": "600"
+        },
+        {
+          "type": "frame",
+          "id": "FDEWA",
+          "name": "Status Icons",
+          "gap": 6,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "Ijv2F",
+              "name": "Cellular",
+              "width": 15,
+              "height": 15,
+              "icon": "signal",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            },
+            {
+              "type": "icon",
+              "id": "DFaXU",
+              "name": "Wi-Fi",
+              "width": 15,
+              "height": 15,
+              "icon": "wifi",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            },
+            {
+              "type": "icon",
+              "id": "K283x",
+              "name": "Battery",
+              "width": 21,
+              "height": 21,
+              "icon": "battery-full",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "MTI4N",
+      "name": "Navigation",
+      "width": "fill_container",
+      "height": 64,
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "InitO",
+          "x": 14,
+          "y": 10,
+          "name": "Back Button",
+          "width": 44,
+          "height": 44,
+          "fill": "#444444",
+          "cornerRadius": 22,
+          "stroke": "#FFFFFF26",
+          "strokeWidth": 1,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "i5ujb",
+              "name": "Back Chevron",
+              "width": 20,
+              "height": 20,
+              "icon": "chevron-left",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "OFqco",
+          "x": 0,
+          "y": 21,
+          "name": "Screen Title",
+          "fill": "#FFFFFF",
+          "textGrowth": "fixed-width",
+          "width": 393,
+          "content": "Review Recording",
+          "textAlign": "center",
+          "fontFamily": "Inter",
+          "fontSize": 17,
+          "fontWeight": "600"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "E8OwNK",
+      "name": "Cue Deck Content",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "#00000000",
+      "layout": "vertical",
+      "gap": 28,
+      "padding": [
+        12,
+        16,
+        24,
+        16
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "YcQXH",
+          "name": "Recording Header",
+          "width": "fill_container",
+          "fill": "#00000000",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "frame",
+              "id": "C8RoDZ",
+              "name": "Recording Metadata",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "UAE8a",
+                  "name": "Step Label",
+                  "fill": "#EF6962",
+                  "content": "RECORDING SAVED",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                  "letterSpacing": 0.8
+                },
+                {
+                  "type": "frame",
+                  "id": "JV3iY",
+                  "name": "Natural Take Tag",
+                  "height": 28,
+                  "fill": "#1A1A1A",
+                  "cornerRadius": 14,
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "v06rEu",
+                      "name": "Natural Take Label",
+                      "fill": "#C7C7C7",
+                      "content": "READY TO REVIEW",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.6
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "vIoY6",
+              "name": "Recording Heading",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "How does it sound?",
+              "lineHeight": 1.15,
+              "fontFamily": "Space Grotesk",
+              "fontSize": 27,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "mbptY",
+              "name": "Recording Subtitle",
+              "fill": "#C7C7C7",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Listen back, then re-record or use this recording.",
+              "lineHeight": 1.4,
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "baAoa",
+          "name": "Recording Review Player",
+          "width": "fill_container",
+          "fill": "#2A2A2A",
+          "cornerRadius": 16,
+          "stroke": "#FFFFFF26",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "hXLAo",
+              "name": "Review Status Row",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "H55gqo",
+                  "name": "Recorded Status Badge",
+                  "height": 28,
+                  "fill": "#3A1212",
+                  "cornerRadius": 14,
+                  "gap": 7,
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "c1TMF",
+                      "name": "Recorded Check Icon",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "check",
+                      "library": "lucide",
+                      "fill": "#EF6962"
+                    },
+                    {
+                      "type": "text",
+                      "id": "vdYx0",
+                      "name": "Recorded Status Label",
+                      "fill": "#EF6962",
+                      "content": "RECORDED",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.7
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "R4TWZ",
+                  "name": "Recording Duration",
+                  "fill": "#C7C7C7",
+                  "content": "0:22",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "f5RHhu",
+              "name": "Recording Playback Preview",
+              "width": "fill_container",
+              "fill": "#444444",
+              "cornerRadius": 12,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "D4lMlO",
+                  "name": "Playback Waveform Row",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "P33vJW",
+                      "name": "Play Recording Button",
+                      "width": 48,
+                      "height": 48,
+                      "fill": "#EF6962",
+                      "cornerRadius": 24,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "YO3pg",
+                          "name": "Play Recording Icon",
+                          "width": 20,
+                          "height": 20,
+                          "icon": "play",
+                          "library": "lucide",
+                          "fill": "#FFFFFF"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "GeQGm",
+                      "name": "Recorded Waveform",
+                      "width": "fill_container",
+                      "height": 52,
+                      "gap": 5,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "AAcOk",
+                          "name": "Review Wave Bar 01",
+                          "fill": "#EF6962",
+                          "width": 4,
+                          "height": 16
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "pi1xl",
+                          "name": "Review Wave Bar 02",
+                          "fill": "#EF6962",
+                          "width": 4,
+                          "height": 28
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "xFtAh",
+                          "name": "Review Wave Bar 03",
+                          "fill": "#EF6962",
+                          "width": 4,
+                          "height": 38
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "a38rj",
+                          "name": "Review Wave Bar 04",
+                          "fill": "#EF6962",
+                          "width": 4,
+                          "height": 22
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "XhhF0",
+                          "name": "Review Wave Bar 05",
+                          "fill": "#EF6962",
+                          "width": 4,
+                          "height": 44
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "qBEV5",
+                          "name": "Review Wave Bar 06",
+                          "fill": "#C7C7C7",
+                          "width": 4,
+                          "height": 32
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "NDMSY",
+                          "name": "Review Wave Bar 07",
+                          "fill": "#C7C7C7",
+                          "width": 4,
+                          "height": 20
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "Q1iHyf",
+                          "name": "Review Wave Bar 08",
+                          "fill": "#C7C7C7",
+                          "width": 4,
+                          "height": 40
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "JXIS9",
+                          "name": "Review Wave Bar 09",
+                          "fill": "#C7C7C7",
+                          "width": 4,
+                          "height": 26
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "ya5WO",
+                          "name": "Review Wave Bar 10",
+                          "fill": "#C7C7C7",
+                          "width": 4,
+                          "height": 34
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "L1cJQ",
+                          "name": "Review Wave Bar 11",
+                          "fill": "#C7C7C7",
+                          "width": 4,
+                          "height": 18
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "vW8Ip",
+                          "name": "Review Wave Bar 12",
+                          "fill": "#C7C7C7",
+                          "width": 4,
+                          "height": 30
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "K4zSMT",
+                  "name": "Playback Timeline",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "A7WQp",
+                      "name": "Playback Elapsed",
+                      "fill": "#C7C7C7",
+                      "content": "0:00",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "o3e5D",
+                      "name": "Playback Seek Track",
+                      "width": "fill_container",
+                      "height": 12,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "qaiaG",
+                          "x": 0,
+                          "y": 4,
+                          "name": "Playback Seek Rail",
+                          "opacity": 0.4,
+                          "fill": "#C7C7C7",
+                          "width": 235,
+                          "height": 4
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "ZnrKN",
+                          "x": 0,
+                          "y": 4,
+                          "name": "Playback Progress",
+                          "fill": "#EF6962",
+                          "width": 2,
+                          "height": 4
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "iDF1Y",
+                          "x": 0,
+                          "y": 0,
+                          "name": "Playback Seek Thumb",
+                          "fill": "#EF6962",
+                          "width": 12,
+                          "height": 12
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "nJ9cO",
+                      "name": "Playback Total",
+                      "fill": "#C7C7C7",
+                      "content": "0:22",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "i1UUz",
+              "name": "Recording Review Actions",
+              "width": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "xGZvW",
+                  "name": "Re-record Button",
+                  "width": "fill_container",
+                  "height": 48,
+                  "fill": "#444444",
+                  "cornerRadius": 24,
+                  "gap": 7,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "B0IoWU",
+                      "name": "Re-record Icon",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "rotate-ccw",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    },
+                    {
+                      "type": "text",
+                      "id": "vzBbr",
+                      "name": "Re-record Label",
+                      "fill": "#FFFFFF",
+                      "content": "Re-record",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "cAq7R",
+                  "name": "Use Recording Button",
+                  "width": "fill_container",
+                  "height": 48,
+                  "fill": "#EF6962",
+                  "cornerRadius": 24,
+                  "gap": 7,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "f6oCi",
+                      "name": "Use Recording Check Icon",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "check",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    },
+                    {
+                      "type": "text",
+                      "id": "IKYZJ",
+                      "name": "Use Recording Label",
+                      "fill": "#FFFFFF",
+                      "content": "Use recording",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "EanDz",
+              "name": "Recording Review Helper",
+              "fill": "#C7C7C7",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "You can change this before starting the show.",
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

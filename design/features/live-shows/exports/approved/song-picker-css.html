@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter%3Awght%40100..900&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      *, ::before, ::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+      }
+    </style>
+    <title>Song Picker</title>
+  </head>
+  <body>
+    <div style="height: 852px; position: relative; width: 866px">
+      <div
+        data-pencil-name="AMA · Song Search · Sheet"
+        style="align-items: flex-start; background-color: #000000; border-radius: 24px 24px 0px 0px; box-sizing: border-box; display: flex; flex-direction: column; gap: 0px; height: 852px; justify-content: flex-start; left: 0px; overflow: hidden; position: absolute; top: 0px; width: 393px"
+      >
+        <div
+          data-pencil-name="Sheet drag handle area"
+          style="align-items: center; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 24px; justify-content: center; width: 100%"
+        >
+          <div
+            data-pencil-name="Sheet drag handle"
+            style="background-color: #444444; border-radius: 3px; box-sizing: border-box; flex-shrink: 0; height: 5px; width: 36px"
+          ></div>
+        </div>
+        <div
+          data-pencil-name="Navigation"
+          style="box-sizing: border-box; flex-shrink: 0; height: 64px; position: relative; width: 100%"
+        >
+          <div
+            data-pencil-name="Close sheet"
+            style="align-items: center; background-color: #2A2A2A; border-radius: 22px; box-sizing: border-box; display: flex; flex-direction: row; gap: 0px; height: 44px; justify-content: center; left: 335px; outline-offset: -0.5px; outline: 1px solid #FFFFFF26; position: absolute; top: 10px; width: 44px; z-index: 0"
+          >
+            <svg
+              data-pencil-name="Close icon"
+              data-icon-name="x"
+              data-icon-set="lucide"
+              viewBox="0 0 13.99993896484375 14"
+              preserveAspectRatio="xMidYMid meet"
+              xmlns="http://www.w3.org/2000/svg"
+              style="box-sizing: border-box; flex-shrink: 0; height: 20px; width: 20px"
+            >
+              <path
+                d="M3.34619 2.93945q-0.25293 0.08545-0.37939 0.30762-0.04102 0.08545-0.04102 0.25293 0 0.16748 0.04102 0.25293 0.04443 0.08203 1.62353 1.66455l1.58252 1.58252-1.58252 1.58252q-1.5791 1.58252-1.62353 1.66797-0.04102 0.08203-0.04102 0.23584 0 0.15381 0.03418 0.23926 0.0376 0.08203 0.1333 0.18115 0.09912 0.0957 0.18115 0.1333 0.08545 0.03418 0.23926 0.03418 0.15381 0 0.23584-0.04102 0.08545-0.04443 1.66797-1.62353l1.58252-1.58252 1.58252 1.58252q1.58252 1.5791 1.66455 1.62353 0.08545 0.04102 0.23926 0.04102 0.15381 0 0.23584-0.03418 0.08545-0.0376 0.18115-0.1333 0.09912-0.09912 0.1333-0.18115 0.0376-0.08545 0.0376-0.23926 0-0.15381-0.04443-0.23584-0.04101-0.08545-1.62012-1.66797l-1.58252-1.58252 1.58252-1.58252q1.5791-1.58252 1.62012-1.66455 0.04443-0.08545 0.04443-0.25293 0-0.16748-0.04102-0.25293-0.09912-0.16748-0.28027-0.2666-0.05811-0.02734-0.09912-0.04102-0.04102-0.01367-0.15381-0.01367-0.11279 0-0.15381 0.01367-0.04101 0.01367-0.11279 0.04102-0.09912 0.05811-1.66455 1.62695l-1.56885 1.56543-2.82666-2.81299q-0.31104-0.29395-0.42041-0.37939-0.08545-0.05469-0.19824-0.05469l-0.02735 0q-0.14014 0-0.18115 0.01367z"
+                fill="#FFFFFF"
+              ></path>
+            </svg>
+          </div>
+          <div
+            data-pencil-name="Screen Title"
+            style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 17px; font-style: normal; font-weight: 600; left: 0px; letter-spacing: 0px; line-height: normal; position: absolute; text-align: center; top: 21px; width: 393px; z-index: 1"
+          >
+            Add a Song
+          </div>
+        </div>
+        <div
+          data-pencil-name="Search and Suggestions tabs"
+          style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 4px; height: fit-content; justify-content: flex-start; padding: 0px 16px 12px 16px; width: 100%"
+        >
+          <div
+            data-pencil-name="Search tab"
+            style="align-items: center; background-color: #444444; border-radius: 10px; box-sizing: border-box; display: flex; flex-direction: row; flex: 1 1 0; gap: 0px; height: 40px; justify-content: center"
+          >
+            <div
+              data-pencil-name="Search tab label"
+              style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+            >
+              Search
+            </div>
+          </div>
+          <div
+            data-pencil-name="Suggestions tab"
+            style="align-items: center; background-color: #000000; border-radius: 10px; box-sizing: border-box; display: flex; flex-direction: row; flex: 1 1 0; gap: 0px; height: 40px; justify-content: center"
+          >
+            <div
+              data-pencil-name="Suggestions tab label"
+              style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+            >
+              Suggestions
+            </div>
+          </div>
+        </div>
+        <div
+          data-pencil-name="Song search results"
+          style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 0; gap: 0px; justify-content: flex-start; width: 100%"
+        >
+          <div
+            data-pencil-name="Available now heading"
+            style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex-shrink: 0; gap: 6px; height: fit-content; justify-content: flex-start; padding: 14px 16px 8px 16px; width: 100%"
+          >
+            <div
+              data-pencil-name="Available now"
+              style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 18px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+            >
+              Available now
+            </div>
+            <div
+              data-pencil-name="Available now description"
+              style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-style: normal; font-weight: 400; letter-spacing: 0px; line-height: 17px; text-align: left; width: 100%"
+            >
+              Ready to add to this show.
+            </div>
+          </div>
+          <div
+            data-pencil-name="Available songs"
+            style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex-shrink: 0; gap: 0px; height: fit-content; justify-content: flex-start; width: 100%"
+          >
+            <div
+              data-pencil-name="Available · Cheat On Your Man"
+              style="align-items: center; background-color: #000000; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 12px; height: 76px; justify-content: flex-start; padding: 8px 16px; width: 100%"
+            >
+              <div
+                data-pencil-name="Artwork"
+                style="align-items: center; background-image: url('images/i.scdn.co/ca5219cb9a593f33.jpg'); background-repeat: no-repeat; background-size: 100% 100%; border-radius: 6px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 50px; justify-content: center; width: 50px"
+              >
+                <div
+                  data-pencil-name="Preview song"
+                  style="align-items: center; background-color: #00000099; border-radius: 11px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 22px; justify-content: center; width: 22px"
+                >
+                  <svg
+                    data-pencil-name="Preview play icon"
+                    data-icon-name="play"
+                    data-icon-set="lucide"
+                    viewBox="0 0 13.99993896484375 14"
+                    preserveAspectRatio="xMidYMid meet"
+                    xmlns="http://www.w3.org/2000/svg"
+                    style="box-sizing: border-box; flex-shrink: 0; height: 12px; width: 12px"
+                  >
+                    <path
+                      d="M3.75293 1.20313q-0.5332 0.09912-0.91943 0.49218-0.38281 0.38965-0.46827 0.90918-0.02734 0.15381-0.02734 4.39551 0 4.2417 0.02734 4.39551 0.08545 0.51953 0.4751 0.90918 0.5332 0.54687 1.31934 0.51953 0.19482-0.01367 0.34179-0.04785 0.14697-0.0376 0.31446-0.10596 0.12646-0.05811 3.58887-2.07812 3.46582-2.02344 3.63671-2.13624 0.23584-0.15381 0.417-0.38281 0.18457-0.23242 0.27343-0.50586 0.09228-0.27344 0.09229-0.56738 0-0.29395-0.08545-0.57422-0.19482-0.5332-0.65625-0.85449-0.11279-0.08203-3.59912-2.11231-3.48633-2.03027-3.61279-2.10205-0.24951-0.12646-0.5503-0.16748-0.30078-0.04102-0.56738 0.01368z m0.56055 1.18945q0.12305 0.04443 3.62988 2.09521 3.51025 2.05078 3.5581 2.10205 0.04785 0.04785 0.10596 0.15723 0.02734 0.07178 0.04102 0.11963 0.01367 0.04785 0.01367 0.1333 0 0.08545-0.01367 0.1333-0.01367 0.04785-0.04102 0.11963-0.05811 0.10938-0.11621 0.16748-0.05469 0.05469-3.61621 2.12939-3.56152 2.07129-3.66748 2.09864-0.10596 0.02734-0.20508 0.01367-0.32129-0.07178-0.44775-0.33496l-0.04102-0.09912 0-8.45606 0.04102-0.09912q0.09912-0.2085 0.32129-0.29053 0.22559-0.08545 0.4375 0.01026z"
+                      fill="#FFFFFF"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+              <div
+                data-pencil-name="Text"
+                style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 0; gap: 2px; height: fit-content; justify-content: flex-start"
+              >
+                <div
+                  data-pencil-name="Title"
+                  style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; width: 100%"
+                >
+                  Cheat On Your Man
+                </div>
+                <div
+                  data-pencil-name="Artist"
+                  style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-style: normal; font-weight: 400; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Bri Bagwell · 3:18
+                </div>
+              </div>
+              <div
+                data-pencil-name="Add to show"
+                style="align-items: center; background-color: #EF6962; border-radius: 22px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 44px; justify-content: center; width: 70px"
+              >
+                <div
+                  data-pencil-name="Add label"
+                  style="box-sizing: border-box; color: #000000; font-family: Inter, system-ui, sans-serif; font-size: 13px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Add
+                </div>
+              </div>
+            </div>
+            <div
+              data-pencil-name="Available · Hummingbird"
+              style="align-items: center; background-color: #000000; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 12px; height: 76px; justify-content: flex-start; padding: 8px 16px; width: 100%"
+            >
+              <div
+                data-pencil-name="Artwork"
+                style="align-items: center; background-image: url('images/static.wixstatic.com/f832357fe101dd5d.jpg'); background-repeat: no-repeat; background-size: 100% 100%; border-radius: 6px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 50px; justify-content: center; width: 50px"
+              >
+                <div
+                  data-pencil-name="Preview song"
+                  style="align-items: center; background-color: #00000099; border-radius: 11px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 22px; justify-content: center; width: 22px"
+                >
+                  <svg
+                    data-pencil-name="Preview play icon"
+                    data-icon-name="play"
+                    data-icon-set="lucide"
+                    viewBox="0 0 13.99993896484375 14"
+                    preserveAspectRatio="xMidYMid meet"
+                    xmlns="http://www.w3.org/2000/svg"
+                    style="box-sizing: border-box; flex-shrink: 0; height: 12px; width: 12px"
+                  >
+                    <path
+                      d="M3.75293 1.20313q-0.5332 0.09912-0.91943 0.49218-0.38281 0.38965-0.46827 0.90918-0.02734 0.15381-0.02734 4.39551 0 4.2417 0.02734 4.39551 0.08545 0.51953 0.4751 0.90918 0.5332 0.54687 1.31934 0.51953 0.19482-0.01367 0.34179-0.04785 0.14697-0.0376 0.31446-0.10596 0.12646-0.05811 3.58887-2.07812 3.46582-2.02344 3.63671-2.13624 0.23584-0.15381 0.417-0.38281 0.18457-0.23242 0.27343-0.50586 0.09228-0.27344 0.09229-0.56738 0-0.29395-0.08545-0.57422-0.19482-0.5332-0.65625-0.85449-0.11279-0.08203-3.59912-2.11231-3.48633-2.03027-3.61279-2.10205-0.24951-0.12646-0.5503-0.16748-0.30078-0.04102-0.56738 0.01368z m0.56055 1.18945q0.12305 0.04443 3.62988 2.09521 3.51025 2.05078 3.5581 2.10205 0.04785 0.04785 0.10596 0.15723 0.02734 0.07178 0.04102 0.11963 0.01367 0.04785 0.01367 0.1333 0 0.08545-0.01367 0.1333-0.01367 0.04785-0.04102 0.11963-0.05811 0.10938-0.11621 0.16748-0.05469 0.05469-3.61621 2.12939-3.56152 2.07129-3.66748 2.09864-0.10596 0.02734-0.20508 0.01367-0.32129-0.07178-0.44775-0.33496l-0.04102-0.09912 0-8.45606 0.04102-0.09912q0.09912-0.2085 0.32129-0.29053 0.22559-0.08545 0.4375 0.01026z"
+                      fill="#FFFFFF"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+              <div
+                data-pencil-name="Text"
+                style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 0; gap: 2px; height: fit-content; justify-content: flex-start"
+              >
+                <div
+                  data-pencil-name="Title"
+                  style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; width: 100%"
+                >
+                  Hummingbird
+                </div>
+                <div
+                  data-pencil-name="Artist"
+                  style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-style: normal; font-weight: 400; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Bri Bagwell · 4:06
+                </div>
+              </div>
+              <div
+                data-pencil-name="Add to show"
+                style="align-items: center; background-color: #EF6962; border-radius: 22px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 44px; justify-content: center; width: 70px"
+              >
+                <div
+                  data-pencil-name="Add label"
+                  style="box-sizing: border-box; color: #000000; font-family: Inter, system-ui, sans-serif; font-size: 13px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Add
+                </div>
+              </div>
+            </div>
+            <div
+              data-pencil-name="Available · My Boots"
+              style="align-items: center; background-color: #000000; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 12px; height: 76px; justify-content: flex-start; padding: 8px 16px; width: 100%"
+            >
+              <div
+                data-pencil-name="Artwork"
+                style="align-items: center; background-image: url('images/i.scdn.co/ca5219cb9a593f33.jpg'); background-repeat: no-repeat; background-size: 100% 100%; border-radius: 6px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 50px; justify-content: center; width: 50px"
+              >
+                <div
+                  data-pencil-name="Preview song"
+                  style="align-items: center; background-color: #00000099; border-radius: 11px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 22px; justify-content: center; width: 22px"
+                >
+                  <svg
+                    data-pencil-name="Preview play icon"
+                    data-icon-name="play"
+                    data-icon-set="lucide"
+                    viewBox="0 0 13.99993896484375 14"
+                    preserveAspectRatio="xMidYMid meet"
+                    xmlns="http://www.w3.org/2000/svg"
+                    style="box-sizing: border-box; flex-shrink: 0; height: 12px; width: 12px"
+                  >
+                    <path
+                      d="M3.75293 1.20313q-0.5332 0.09912-0.91943 0.49218-0.38281 0.38965-0.46827 0.90918-0.02734 0.15381-0.02734 4.39551 0 4.2417 0.02734 4.39551 0.08545 0.51953 0.4751 0.90918 0.5332 0.54687 1.31934 0.51953 0.19482-0.01367 0.34179-0.04785 0.14697-0.0376 0.31446-0.10596 0.12646-0.05811 3.58887-2.07812 3.46582-2.02344 3.63671-2.13624 0.23584-0.15381 0.417-0.38281 0.18457-0.23242 0.27343-0.50586 0.09228-0.27344 0.09229-0.56738 0-0.29395-0.08545-0.57422-0.19482-0.5332-0.65625-0.85449-0.11279-0.08203-3.59912-2.11231-3.48633-2.03027-3.61279-2.10205-0.24951-0.12646-0.5503-0.16748-0.30078-0.04102-0.56738 0.01368z m0.56055 1.18945q0.12305 0.04443 3.62988 2.09521 3.51025 2.05078 3.5581 2.10205 0.04785 0.04785 0.10596 0.15723 0.02734 0.07178 0.04102 0.11963 0.01367 0.04785 0.01367 0.1333 0 0.08545-0.01367 0.1333-0.01367 0.04785-0.04102 0.11963-0.05811 0.10938-0.11621 0.16748-0.05469 0.05469-3.61621 2.12939-3.56152 2.07129-3.66748 2.09864-0.10596 0.02734-0.20508 0.01367-0.32129-0.07178-0.44775-0.33496l-0.04102-0.09912 0-8.45606 0.04102-0.09912q0.09912-0.2085 0.32129-0.29053 0.22559-0.08545 0.4375 0.01026z"
+                      fill="#FFFFFF"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+              <div
+                data-pencil-name="Text"
+                style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 0; gap: 2px; height: fit-content; justify-content: flex-start"
+              >
+                <div
+                  data-pencil-name="Title"
+                  style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; width: 100%"
+                >
+                  My Boots
+                </div>
+                <div
+                  data-pencil-name="Artist"
+                  style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-style: normal; font-weight: 400; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Bri Bagwell · 3:22
+                </div>
+              </div>
+              <div
+                data-pencil-name="Added to show"
+                style="align-items: center; background-color: #2A2A2A; border-radius: 22px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 44px; justify-content: center; width: 70px"
+              >
+                <div
+                  data-pencil-name="Added label"
+                  style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 13px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Added
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            data-pencil-name="Section divider inset"
+            style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: fit-content; justify-content: flex-start; padding: 10px 16px 0px 16px; width: 100%"
+          >
+            <div
+              data-pencil-name="Section divider"
+              style="background-color: #FFFFFF26; box-sizing: border-box; flex: 1 1 0; height: 1px"
+            ></div>
+          </div>
+          <div
+            data-pencil-name="Request for next time heading"
+            style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex-shrink: 0; gap: 6px; height: fit-content; justify-content: flex-start; padding: 14px 16px 8px 16px; width: 100%"
+          >
+            <div
+              data-pencil-name="Request for next time"
+              style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 18px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+            >
+              Request for next time
+            </div>
+            <div
+              data-pencil-name="Request for next time description"
+              style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-style: normal; font-weight: 400; letter-spacing: 0px; line-height: 17px; text-align: left; width: 100%"
+            >
+              Not available yet. Request for a future show.
+            </div>
+          </div>
+          <div
+            data-pencil-name="Songs to request"
+            style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex-shrink: 0; gap: 0px; height: fit-content; justify-content: flex-start; width: 100%"
+          >
+            <div
+              data-pencil-name="Request · Whiskey"
+              style="align-items: center; background-color: #000000; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 12px; height: 72px; justify-content: flex-start; padding: 8px 16px; width: 100%"
+            >
+              <div
+                data-pencil-name="Artwork"
+                style="align-items: center; background-image: url('images/static.wixstatic.com/f832357fe101dd5d.jpg'); background-repeat: no-repeat; background-size: 100% 100%; border-radius: 6px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 50px; justify-content: center; width: 50px"
+              ></div>
+              <div
+                data-pencil-name="Text"
+                style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 0; gap: 2px; height: fit-content; justify-content: flex-start"
+              >
+                <div
+                  data-pencil-name="Title"
+                  style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; width: 100%"
+                >
+                  Whiskey
+                </div>
+                <div
+                  data-pencil-name="Artist"
+                  style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-style: normal; font-weight: 400; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Bri Bagwell
+                </div>
+              </div>
+              <div
+                data-pencil-name="Request for next time"
+                style="align-items: center; background-color: #2A2A2A; border-radius: 22px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 44px; justify-content: center; width: 94px"
+              >
+                <div
+                  data-pencil-name="Request label"
+                  style="box-sizing: border-box; color: #EF6962; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Request
+                </div>
+              </div>
+            </div>
+            <div
+              data-pencil-name="Request · South Texas Rain"
+              style="align-items: center; background-color: #000000; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 12px; height: 72px; justify-content: flex-start; padding: 8px 16px; width: 100%"
+            >
+              <div
+                data-pencil-name="Artwork"
+                style="align-items: center; background-image: url('images/i.scdn.co/ca5219cb9a593f33.jpg'); background-repeat: no-repeat; background-size: 100% 100%; border-radius: 6px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 50px; justify-content: center; width: 50px"
+              ></div>
+              <div
+                data-pencil-name="Text"
+                style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 0; gap: 2px; height: fit-content; justify-content: flex-start"
+              >
+                <div
+                  data-pencil-name="Title"
+                  style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; width: 100%"
+                >
+                  South Texas Rain
+                </div>
+                <div
+                  data-pencil-name="Artist"
+                  style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-style: normal; font-weight: 400; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Bri Bagwell
+                </div>
+              </div>
+              <div
+                data-pencil-name="Request sent"
+                style="align-items: center; background-color: #2A2A2A; border-radius: 22px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 44px; justify-content: center; width: 94px"
+              >
+                <div
+                  data-pencil-name="Requested label"
+                  style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Requested
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          data-pencil-name="Bottom search toolbar"
+          style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: fit-content; justify-content: flex-start; padding: 12px 16px 34px 16px; width: 100%"
+        >
+          <div
+            data-pencil-name="Search songs or artists"
+            style="align-items: center; background-color: #2C2C2ECC; border-radius: 25px; box-sizing: border-box; display: flex; flex-direction: row; flex: 1 1 0; gap: 10px; height: 50px; justify-content: flex-start; outline-offset: -0.5px; outline: 1px solid #FFFFFF26; padding: 0px 12px"
+          >
+            <svg
+              data-pencil-name="Search"
+              data-icon-name="search"
+              data-icon-set="lucide"
+              viewBox="0 0 13.99993896484375 14"
+              preserveAspectRatio="xMidYMid meet"
+              xmlns="http://www.w3.org/2000/svg"
+              style="box-sizing: border-box; flex-shrink: 0; height: 20px; width: 20px"
+            >
+              <path
+                d="M6.00537 1.17578q-0.04102 0.01367-0.23584 0.02734-0.57422 0.07178-1.16211 0.29053-0.58789 0.21533-1.09375 0.5503-0.39307 0.2666-0.74853 0.61181-0.35547 0.3418-0.62207 0.7041-0.646 0.92285-0.86817 2.03028-0.05811 0.28027-0.07861 0.46142-0.02051 0.18115-0.02051 0.57422 0 0.43408 0.02734 0.68018 0.02734 0.24268 0.12647 0.59472 0.19482 0.75537 0.60156 1.43555 0.40674 0.67676 0.96729 1.18262 0.40674 0.3623 0.81689 0.60156 0.41357 0.23926 0.91944 0.43408 1.06299 0.39307 2.21826 0.29395 1.15527-0.09912 2.1499-0.65967 0.12646-0.06836 0.33496-0.2085 0.2085-0.14014 0.29395-0.21191l0.05468-0.05469 1.10743 1.10742q1.12109 1.104 1.20312 1.15528 0.08545 0.04785 0.23926 0.04785 0.15381 0 0.23584-0.03418 0.08545-0.0376 0.18115-0.1333 0.09912-0.09912 0.1333-0.18115 0.0376-0.08545 0.0376-0.23926 0-0.15381-0.05127-0.23584-0.04785-0.08545-1.15186-1.20654l-1.10742-1.10743 0.05469-0.06836q0.05811-0.05469 0.19824-0.25293 0.82373-1.23047 0.89209-2.70703 0.07178-1.47656-0.63916-2.76513-0.5332-0.96729-1.42187-1.64405-0.88867-0.68018-1.95508-0.9331-0.29395-0.06836-0.54004-0.09571-0.24268-0.03076-0.60498-0.04443-0.43408 0-0.49219 0z m0.7417 1.17578q0.37939 0.01367 0.79297 0.14014 0.41357 0.12646 0.78955 0.32129 0.7417 0.39307 1.28857 1.08008 0.54687 0.68359 0.75538 1.49707 0.07178 0.28027 0.09228 0.49902 0.02051 0.21533 0.02051 0.50928 0 0.70068-0.19483 1.30224-0.39307 1.16211-1.33984 1.91065-0.94336 0.74853-2.16016 0.875-0.19824 0.01367-0.49218 0.00683-0.29395-0.00684-0.48877-0.03418-0.5332-0.08545-1.03907-0.30761-0.50244-0.22559-0.93652-0.56055-0.14014-0.12646-0.35205-0.3418-0.2085-0.21875-0.33154-0.37256-0.57422-0.76904-0.7417-1.69531-0.08545-0.43408-0.06494-0.90918 0.02051-0.4751 0.11963-0.89551 0.29395-1.14844 1.18945-1.95849 0.89551-0.81348 2.05762-1.02539 0.18115-0.02734 0.42041-0.04102 0.23926-0.01367 0.34863-0.01367l0.2666 0.01367z"
+                fill="#C7C7C7"
+              ></path>
+            </svg>
+            <div
+              data-pencil-name="Search query"
+              style="box-sizing: border-box; color: #FFFFFF; flex: 1 1 0; font-family: Inter, system-ui, sans-serif; font-size: 16px; font-style: normal; font-weight: 400; letter-spacing: 0px; line-height: normal; text-align: left"
+            >
+              Bri Bagwell
+            </div>
+            <svg
+              data-pencil-name="Clear search"
+              data-icon-name="circle-x"
+              data-icon-set="lucide"
+              viewBox="0 0 13.99993896484375 14"
+              preserveAspectRatio="xMidYMid meet"
+              xmlns="http://www.w3.org/2000/svg"
+              style="box-sizing: border-box; flex-shrink: 0; height: 18px; width: 18px"
+            >
+              <path
+                d="M6.69238 0.60156q-1.16211 0.04102-2.22851 0.50586-1.06299 0.46143-1.90381 1.26807-0.8374 0.80322-1.34326 1.85254-0.48877 1.0083-0.60157 2.15674-0.02734 0.19482-0.02734 0.61523 0 0.42041 0.02734 0.61523 0.11279 1.14844 0.60157 2.15674 0.65967 1.40137 1.89697 2.33789 1.24072 0.93652 2.75146 1.20313 0.5332 0.09912 1.13477 0.09912 0.75537 0 1.43213-0.15381 0.68018-0.15381 1.35351-0.4751 1.26123-0.61865 2.16358-1.70215 0.90234-1.0835 1.25439-2.44384 0.29395-1.11768 0.18116-2.25244-0.11279-1.13477-0.60157-2.17041-0.58789-1.20313-1.62011-2.08497-1.02881-0.88184-2.31397-1.2749-1.0083-0.30762-2.15674-0.25293z m0.96729 1.18946q1.07666 0.14014 1.99267 0.68017 0.91602 0.54004 1.56201 1.4082 0.82715 1.104 1.00831 2.54639 0.01367 0.16748 0.01367 0.57422 0 0.40674-0.01367 0.57422-0.14014 1.16211-0.7212 2.12939-0.58105 0.96387-1.53466 1.62354-0.4751 0.33496-1.04932 0.56055-0.57422 0.22217-1.18945 0.30761-0.25293 0.04102-0.72803 0.04102-0.4751 0-0.72803-0.04102-1.07666-0.15381-1.95849-0.68701-0.88184-0.5332-1.52784-1.3877-0.82715-1.104-1.0083-2.54638-0.01367-0.16748-0.01367-0.57422 0-0.40674 0.01367-0.57422 0.14014-1.12109 0.66993-2.05078 0.5332-0.92969 1.43212-1.58936 0.54346-0.40674 1.20655-0.66992 0.6665-0.2666 1.32617-0.3247l0.25293-0.02735q0.0957-0.01367 0.4751 0 0.37939 0.01367 0.51953 0.02735z m-2.56348 2.89843q-0.25293 0.08545-0.37939 0.30762-0.04102 0.08545-0.04102 0.25293 0 0.16748 0.04785 0.25293 0.05127 0.08203 0.75196 0.79639l0.69726 0.70068-0.69726 0.70068q-0.70068 0.71436-0.75196 0.79981-0.04785 0.08203-0.04785 0.23584 0 0.15381 0.03418 0.23926 0.0376 0.08203 0.1333 0.18115 0.09912 0.0957 0.18115 0.1333 0.08545 0.03418 0.23926 0.03418 0.15381 0 0.23584-0.04785 0.08545-0.05127 0.79981-0.75196l0.70068-0.69726 0.70068 0.69726q0.71436 0.70068 0.79639 0.75196 0.08545 0.04785 0.23926 0.04785 0.15381 0 0.23584-0.03418 0.08545-0.0376 0.18115-0.1333 0.09912-0.09912 0.1333-0.18115 0.0376-0.08545 0.0376-0.23926 0-0.15381-0.05127-0.23584-0.04785-0.08545-0.74854-0.79981l-0.68359-0.70068 0.68359-0.70068q0.70068-0.71436 0.74854-0.79639 0.05127-0.08545 0.05127-0.25293 0-0.16748-0.04102-0.25293-0.09912-0.16748-0.28027-0.2666-0.05811-0.02734-0.09912-0.04102-0.04102-0.01367-0.15381-0.01367l-0.01367 0q-0.14014 0-0.21875 0.0376-0.0752 0.03418-0.24268 0.18799-0.12646 0.10938-0.54687 0.52978l-0.72803 0.7417-0.70068-0.69726q-0.43408-0.43408-0.56055-0.54688-0.18115-0.16748-0.25977-0.20166-0.0752-0.0376-0.20849-0.04443-0.1333-0.00684-0.17432 0.00683z"
+                fill="#999999"
+              ></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div
+        data-pencil-name="AMA · Song Suggestions · Sheet"
+        style="align-items: flex-start; background-color: #000000; border-radius: 24px 24px 0px 0px; box-sizing: border-box; display: flex; flex-direction: column; gap: 0px; height: 852px; justify-content: flex-start; left: 473px; overflow: hidden; position: absolute; top: 0px; width: 393px"
+      >
+        <div
+          data-pencil-name="Sheet drag handle area"
+          style="align-items: center; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 24px; justify-content: center; width: 100%"
+        >
+          <div
+            data-pencil-name="Sheet drag handle"
+            style="background-color: #444444; border-radius: 3px; box-sizing: border-box; flex-shrink: 0; height: 5px; width: 36px"
+          ></div>
+        </div>
+        <div
+          data-pencil-name="Navigation"
+          style="box-sizing: border-box; flex-shrink: 0; height: 64px; position: relative; width: 100%"
+        >
+          <div
+            data-pencil-name="Close sheet"
+            style="align-items: center; background-color: #2A2A2A; border-radius: 22px; box-sizing: border-box; display: flex; flex-direction: row; gap: 0px; height: 44px; justify-content: center; left: 335px; outline-offset: -0.5px; outline: 1px solid #FFFFFF26; position: absolute; top: 10px; width: 44px; z-index: 0"
+          >
+            <svg
+              data-pencil-name="Close icon"
+              data-icon-name="x"
+              data-icon-set="lucide"
+              viewBox="0 0 13.99993896484375 14"
+              preserveAspectRatio="xMidYMid meet"
+              xmlns="http://www.w3.org/2000/svg"
+              style="box-sizing: border-box; flex-shrink: 0; height: 20px; width: 20px"
+            >
+              <path
+                d="M3.34619 2.93945q-0.25293 0.08545-0.37939 0.30762-0.04102 0.08545-0.04102 0.25293 0 0.16748 0.04102 0.25293 0.04443 0.08203 1.62353 1.66455l1.58252 1.58252-1.58252 1.58252q-1.5791 1.58252-1.62353 1.66797-0.04102 0.08203-0.04102 0.23584 0 0.15381 0.03418 0.23926 0.0376 0.08203 0.1333 0.18115 0.09912 0.0957 0.18115 0.1333 0.08545 0.03418 0.23926 0.03418 0.15381 0 0.23584-0.04102 0.08545-0.04443 1.66797-1.62353l1.58252-1.58252 1.58252 1.58252q1.58252 1.5791 1.66455 1.62353 0.08545 0.04102 0.23926 0.04102 0.15381 0 0.23584-0.03418 0.08545-0.0376 0.18115-0.1333 0.09912-0.09912 0.1333-0.18115 0.0376-0.08545 0.0376-0.23926 0-0.15381-0.04443-0.23584-0.04101-0.08545-1.62012-1.66797l-1.58252-1.58252 1.58252-1.58252q1.5791-1.58252 1.62012-1.66455 0.04443-0.08545 0.04443-0.25293 0-0.16748-0.04102-0.25293-0.09912-0.16748-0.28027-0.2666-0.05811-0.02734-0.09912-0.04102-0.04102-0.01367-0.15381-0.01367-0.11279 0-0.15381 0.01367-0.04101 0.01367-0.11279 0.04102-0.09912 0.05811-1.66455 1.62695l-1.56885 1.56543-2.82666-2.81299q-0.31104-0.29395-0.42041-0.37939-0.08545-0.05469-0.19824-0.05469l-0.02735 0q-0.14014 0-0.18115 0.01367z"
+                fill="#FFFFFF"
+              ></path>
+            </svg>
+          </div>
+          <div
+            data-pencil-name="Screen Title"
+            style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 17px; font-style: normal; font-weight: 600; left: 0px; letter-spacing: 0px; line-height: normal; position: absolute; text-align: center; top: 21px; width: 393px; z-index: 1"
+          >
+            Add a Song
+          </div>
+        </div>
+        <div
+          data-pencil-name="Search and Suggestions tabs"
+          style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 4px; height: fit-content; justify-content: flex-start; padding: 0px 16px 12px 16px; width: 100%"
+        >
+          <div
+            data-pencil-name="Search tab"
+            style="align-items: center; background-color: #000000; border-radius: 10px; box-sizing: border-box; display: flex; flex-direction: row; flex: 1 1 0; gap: 0px; height: 40px; justify-content: center"
+          >
+            <div
+              data-pencil-name="Search tab label"
+              style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+            >
+              Search
+            </div>
+          </div>
+          <div
+            data-pencil-name="Suggestions tab"
+            style="align-items: center; background-color: #444444; border-radius: 10px; box-sizing: border-box; display: flex; flex-direction: row; flex: 1 1 0; gap: 0px; height: 40px; justify-content: center"
+          >
+            <div
+              data-pencil-name="Suggestions tab label"
+              style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+            >
+              Suggestions
+            </div>
+          </div>
+        </div>
+        <div
+          data-pencil-name="Song search results"
+          style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 0; gap: 0px; justify-content: flex-start; width: 100%"
+        >
+          <div
+            data-pencil-name="Available now heading"
+            style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex-shrink: 0; gap: 6px; height: fit-content; justify-content: flex-start; padding: 14px 16px 8px 16px; width: 100%"
+          >
+            <div
+              data-pencil-name="Available now"
+              style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 18px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+            >
+              Suggested for this show
+            </div>
+            <div
+              data-pencil-name="Available now description"
+              style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-style: normal; font-weight: 400; letter-spacing: 0px; line-height: 17px; text-align: left; width: 100%"
+            >
+              A few songs to keep your show going. Preview a song, then add it when you’re ready.
+            </div>
+          </div>
+          <div
+            data-pencil-name="Available songs"
+            style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex-shrink: 0; gap: 0px; height: fit-content; justify-content: flex-start; width: 100%"
+          >
+            <div
+              data-pencil-name="Available · Cheat On Your Man"
+              style="align-items: center; background-color: #000000; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 12px; height: 76px; justify-content: flex-start; padding: 8px 16px; width: 100%"
+            >
+              <div
+                data-pencil-name="Artwork"
+                style="align-items: center; background-image: url('images/i.scdn.co/ca5219cb9a593f33.jpg'); background-repeat: no-repeat; background-size: 100% 100%; border-radius: 6px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 50px; justify-content: center; width: 50px"
+              >
+                <div
+                  data-pencil-name="Preview song"
+                  style="align-items: center; background-color: #00000099; border-radius: 11px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 22px; justify-content: center; width: 22px"
+                >
+                  <svg
+                    data-pencil-name="Preview play icon"
+                    data-icon-name="play"
+                    data-icon-set="lucide"
+                    viewBox="0 0 13.99993896484375 14"
+                    preserveAspectRatio="xMidYMid meet"
+                    xmlns="http://www.w3.org/2000/svg"
+                    style="box-sizing: border-box; flex-shrink: 0; height: 12px; width: 12px"
+                  >
+                    <path
+                      d="M3.75293 1.20313q-0.5332 0.09912-0.91943 0.49218-0.38281 0.38965-0.46827 0.90918-0.02734 0.15381-0.02734 4.39551 0 4.2417 0.02734 4.39551 0.08545 0.51953 0.4751 0.90918 0.5332 0.54687 1.31934 0.51953 0.19482-0.01367 0.34179-0.04785 0.14697-0.0376 0.31446-0.10596 0.12646-0.05811 3.58887-2.07812 3.46582-2.02344 3.63671-2.13624 0.23584-0.15381 0.417-0.38281 0.18457-0.23242 0.27343-0.50586 0.09228-0.27344 0.09229-0.56738 0-0.29395-0.08545-0.57422-0.19482-0.5332-0.65625-0.85449-0.11279-0.08203-3.59912-2.11231-3.48633-2.03027-3.61279-2.10205-0.24951-0.12646-0.5503-0.16748-0.30078-0.04102-0.56738 0.01368z m0.56055 1.18945q0.12305 0.04443 3.62988 2.09521 3.51025 2.05078 3.5581 2.10205 0.04785 0.04785 0.10596 0.15723 0.02734 0.07178 0.04102 0.11963 0.01367 0.04785 0.01367 0.1333 0 0.08545-0.01367 0.1333-0.01367 0.04785-0.04102 0.11963-0.05811 0.10938-0.11621 0.16748-0.05469 0.05469-3.61621 2.12939-3.56152 2.07129-3.66748 2.09864-0.10596 0.02734-0.20508 0.01367-0.32129-0.07178-0.44775-0.33496l-0.04102-0.09912 0-8.45606 0.04102-0.09912q0.09912-0.2085 0.32129-0.29053 0.22559-0.08545 0.4375 0.01026z"
+                      fill="#FFFFFF"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+              <div
+                data-pencil-name="Text"
+                style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 0; gap: 2px; height: fit-content; justify-content: flex-start"
+              >
+                <div
+                  data-pencil-name="Title"
+                  style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; width: 100%"
+                >
+                  Cheat On Your Man
+                </div>
+                <div
+                  data-pencil-name="Artist"
+                  style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-style: normal; font-weight: 400; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Bri Bagwell · 3:18
+                </div>
+              </div>
+              <div
+                data-pencil-name="Add to show"
+                style="align-items: center; background-color: #EF6962; border-radius: 22px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 44px; justify-content: center; width: 70px"
+              >
+                <div
+                  data-pencil-name="Add label"
+                  style="box-sizing: border-box; color: #000000; font-family: Inter, system-ui, sans-serif; font-size: 13px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Add
+                </div>
+              </div>
+            </div>
+            <div
+              data-pencil-name="Available · Hummingbird"
+              style="align-items: center; background-color: #000000; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 12px; height: 76px; justify-content: flex-start; padding: 8px 16px; width: 100%"
+            >
+              <div
+                data-pencil-name="Artwork"
+                style="align-items: center; background-image: url('images/static.wixstatic.com/f832357fe101dd5d.jpg'); background-repeat: no-repeat; background-size: 100% 100%; border-radius: 6px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 50px; justify-content: center; width: 50px"
+              >
+                <div
+                  data-pencil-name="Preview song"
+                  style="align-items: center; background-color: #00000099; border-radius: 11px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 22px; justify-content: center; width: 22px"
+                >
+                  <svg
+                    data-pencil-name="Preview play icon"
+                    data-icon-name="play"
+                    data-icon-set="lucide"
+                    viewBox="0 0 13.99993896484375 14"
+                    preserveAspectRatio="xMidYMid meet"
+                    xmlns="http://www.w3.org/2000/svg"
+                    style="box-sizing: border-box; flex-shrink: 0; height: 12px; width: 12px"
+                  >
+                    <path
+                      d="M3.75293 1.20313q-0.5332 0.09912-0.91943 0.49218-0.38281 0.38965-0.46827 0.90918-0.02734 0.15381-0.02734 4.39551 0 4.2417 0.02734 4.39551 0.08545 0.51953 0.4751 0.90918 0.5332 0.54687 1.31934 0.51953 0.19482-0.01367 0.34179-0.04785 0.14697-0.0376 0.31446-0.10596 0.12646-0.05811 3.58887-2.07812 3.46582-2.02344 3.63671-2.13624 0.23584-0.15381 0.417-0.38281 0.18457-0.23242 0.27343-0.50586 0.09228-0.27344 0.09229-0.56738 0-0.29395-0.08545-0.57422-0.19482-0.5332-0.65625-0.85449-0.11279-0.08203-3.59912-2.11231-3.48633-2.03027-3.61279-2.10205-0.24951-0.12646-0.5503-0.16748-0.30078-0.04102-0.56738 0.01368z m0.56055 1.18945q0.12305 0.04443 3.62988 2.09521 3.51025 2.05078 3.5581 2.10205 0.04785 0.04785 0.10596 0.15723 0.02734 0.07178 0.04102 0.11963 0.01367 0.04785 0.01367 0.1333 0 0.08545-0.01367 0.1333-0.01367 0.04785-0.04102 0.11963-0.05811 0.10938-0.11621 0.16748-0.05469 0.05469-3.61621 2.12939-3.56152 2.07129-3.66748 2.09864-0.10596 0.02734-0.20508 0.01367-0.32129-0.07178-0.44775-0.33496l-0.04102-0.09912 0-8.45606 0.04102-0.09912q0.09912-0.2085 0.32129-0.29053 0.22559-0.08545 0.4375 0.01026z"
+                      fill="#FFFFFF"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+              <div
+                data-pencil-name="Text"
+                style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 0; gap: 2px; height: fit-content; justify-content: flex-start"
+              >
+                <div
+                  data-pencil-name="Title"
+                  style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; width: 100%"
+                >
+                  Hummingbird
+                </div>
+                <div
+                  data-pencil-name="Artist"
+                  style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-style: normal; font-weight: 400; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Bri Bagwell · 4:06
+                </div>
+              </div>
+              <div
+                data-pencil-name="Add to show"
+                style="align-items: center; background-color: #EF6962; border-radius: 22px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 44px; justify-content: center; width: 70px"
+              >
+                <div
+                  data-pencil-name="Add label"
+                  style="box-sizing: border-box; color: #000000; font-family: Inter, system-ui, sans-serif; font-size: 13px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Add
+                </div>
+              </div>
+            </div>
+            <div
+              data-pencil-name="Available · My Boots"
+              style="align-items: center; background-color: #000000; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 12px; height: 76px; justify-content: flex-start; padding: 8px 16px; width: 100%"
+            >
+              <div
+                data-pencil-name="Artwork"
+                style="align-items: center; background-image: url('images/i.scdn.co/ca5219cb9a593f33.jpg'); background-repeat: no-repeat; background-size: 100% 100%; border-radius: 6px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 50px; justify-content: center; width: 50px"
+              >
+                <div
+                  data-pencil-name="Preview song"
+                  style="align-items: center; background-color: #00000099; border-radius: 11px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 22px; justify-content: center; width: 22px"
+                >
+                  <svg
+                    data-pencil-name="Preview play icon"
+                    data-icon-name="play"
+                    data-icon-set="lucide"
+                    viewBox="0 0 13.99993896484375 14"
+                    preserveAspectRatio="xMidYMid meet"
+                    xmlns="http://www.w3.org/2000/svg"
+                    style="box-sizing: border-box; flex-shrink: 0; height: 12px; width: 12px"
+                  >
+                    <path
+                      d="M3.75293 1.20313q-0.5332 0.09912-0.91943 0.49218-0.38281 0.38965-0.46827 0.90918-0.02734 0.15381-0.02734 4.39551 0 4.2417 0.02734 4.39551 0.08545 0.51953 0.4751 0.90918 0.5332 0.54687 1.31934 0.51953 0.19482-0.01367 0.34179-0.04785 0.14697-0.0376 0.31446-0.10596 0.12646-0.05811 3.58887-2.07812 3.46582-2.02344 3.63671-2.13624 0.23584-0.15381 0.417-0.38281 0.18457-0.23242 0.27343-0.50586 0.09228-0.27344 0.09229-0.56738 0-0.29395-0.08545-0.57422-0.19482-0.5332-0.65625-0.85449-0.11279-0.08203-3.59912-2.11231-3.48633-2.03027-3.61279-2.10205-0.24951-0.12646-0.5503-0.16748-0.30078-0.04102-0.56738 0.01368z m0.56055 1.18945q0.12305 0.04443 3.62988 2.09521 3.51025 2.05078 3.5581 2.10205 0.04785 0.04785 0.10596 0.15723 0.02734 0.07178 0.04102 0.11963 0.01367 0.04785 0.01367 0.1333 0 0.08545-0.01367 0.1333-0.01367 0.04785-0.04102 0.11963-0.05811 0.10938-0.11621 0.16748-0.05469 0.05469-3.61621 2.12939-3.56152 2.07129-3.66748 2.09864-0.10596 0.02734-0.20508 0.01367-0.32129-0.07178-0.44775-0.33496l-0.04102-0.09912 0-8.45606 0.04102-0.09912q0.09912-0.2085 0.32129-0.29053 0.22559-0.08545 0.4375 0.01026z"
+                      fill="#FFFFFF"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+              <div
+                data-pencil-name="Text"
+                style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 0; gap: 2px; height: fit-content; justify-content: flex-start"
+              >
+                <div
+                  data-pencil-name="Title"
+                  style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; width: 100%"
+                >
+                  My Boots
+                </div>
+                <div
+                  data-pencil-name="Artist"
+                  style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-style: normal; font-weight: 400; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Bri Bagwell · 3:22
+                </div>
+              </div>
+              <div
+                data-pencil-name="Added to show"
+                style="align-items: center; background-color: #2A2A2A; border-radius: 22px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 44px; justify-content: center; width: 70px"
+              >
+                <div
+                  data-pencil-name="Added label"
+                  style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 13px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Added
+                </div>
+              </div>
+            </div>
+            <div
+              data-pencil-name="Suggested · If You Were a Cowboy"
+              style="align-items: center; background-color: #000000; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 12px; height: 76px; justify-content: flex-start; padding: 8px 16px; width: 100%"
+            >
+              <div
+                data-pencil-name="Artwork"
+                style="align-items: center; background-image: url('images/i.scdn.co/ca5219cb9a593f33.jpg'); background-repeat: no-repeat; background-size: 100% 100%; border-radius: 6px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 50px; justify-content: center; width: 50px"
+              >
+                <div
+                  data-pencil-name="Preview song"
+                  style="align-items: center; background-color: #00000099; border-radius: 11px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 22px; justify-content: center; width: 22px"
+                >
+                  <svg
+                    data-pencil-name="Preview play icon"
+                    data-icon-name="play"
+                    data-icon-set="lucide"
+                    viewBox="0 0 13.99993896484375 14"
+                    preserveAspectRatio="xMidYMid meet"
+                    xmlns="http://www.w3.org/2000/svg"
+                    style="box-sizing: border-box; flex-shrink: 0; height: 12px; width: 12px"
+                  >
+                    <path
+                      d="M3.75293 1.20313q-0.5332 0.09912-0.91943 0.49218-0.38281 0.38965-0.46827 0.90918-0.02734 0.15381-0.02734 4.39551 0 4.2417 0.02734 4.39551 0.08545 0.51953 0.4751 0.90918 0.5332 0.54687 1.31934 0.51953 0.19482-0.01367 0.34179-0.04785 0.14697-0.0376 0.31446-0.10596 0.12646-0.05811 3.58887-2.07812 3.46582-2.02344 3.63671-2.13624 0.23584-0.15381 0.417-0.38281 0.18457-0.23242 0.27343-0.50586 0.09228-0.27344 0.09229-0.56738 0-0.29395-0.08545-0.57422-0.19482-0.5332-0.65625-0.85449-0.11279-0.08203-3.59912-2.11231-3.48633-2.03027-3.61279-2.10205-0.24951-0.12646-0.5503-0.16748-0.30078-0.04102-0.56738 0.01368z m0.56055 1.18945q0.12305 0.04443 3.62988 2.09521 3.51025 2.05078 3.5581 2.10205 0.04785 0.04785 0.10596 0.15723 0.02734 0.07178 0.04102 0.11963 0.01367 0.04785 0.01367 0.1333 0 0.08545-0.01367 0.1333-0.01367 0.04785-0.04102 0.11963-0.05811 0.10938-0.11621 0.16748-0.05469 0.05469-3.61621 2.12939-3.56152 2.07129-3.66748 2.09864-0.10596 0.02734-0.20508 0.01367-0.32129-0.07178-0.44775-0.33496l-0.04102-0.09912 0-8.45606 0.04102-0.09912q0.09912-0.2085 0.32129-0.29053 0.22559-0.08545 0.4375 0.01026z"
+                      fill="#FFFFFF"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+              <div
+                data-pencil-name="Text"
+                style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 0; gap: 2px; height: fit-content; justify-content: flex-start"
+              >
+                <div
+                  data-pencil-name="Title"
+                  style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; width: 100%"
+                >
+                  If You Were a Cowboy
+                </div>
+                <div
+                  data-pencil-name="Artist"
+                  style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-style: normal; font-weight: 400; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Bri Bagwell · 3:24
+                </div>
+              </div>
+              <div
+                data-pencil-name="Add to show"
+                style="align-items: center; background-color: #EF6962; border-radius: 22px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 44px; justify-content: center; width: 70px"
+              >
+                <div
+                  data-pencil-name="Add label"
+                  style="box-sizing: border-box; color: #000000; font-family: Inter, system-ui, sans-serif; font-size: 13px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Add
+                </div>
+              </div>
+            </div>
+            <div
+              data-pencil-name="Suggested · Trenches"
+              style="align-items: center; background-color: #000000; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 12px; height: 76px; justify-content: flex-start; padding: 8px 16px; width: 100%"
+            >
+              <div
+                data-pencil-name="Artwork"
+                style="align-items: center; background-image: url('images/static.wixstatic.com/f832357fe101dd5d.jpg'); background-repeat: no-repeat; background-size: 100% 100%; border-radius: 6px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 50px; justify-content: center; width: 50px"
+              >
+                <div
+                  data-pencil-name="Preview song"
+                  style="align-items: center; background-color: #00000099; border-radius: 11px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 22px; justify-content: center; width: 22px"
+                >
+                  <svg
+                    data-pencil-name="Preview play icon"
+                    data-icon-name="play"
+                    data-icon-set="lucide"
+                    viewBox="0 0 13.99993896484375 14"
+                    preserveAspectRatio="xMidYMid meet"
+                    xmlns="http://www.w3.org/2000/svg"
+                    style="box-sizing: border-box; flex-shrink: 0; height: 12px; width: 12px"
+                  >
+                    <path
+                      d="M3.75293 1.20313q-0.5332 0.09912-0.91943 0.49218-0.38281 0.38965-0.46827 0.90918-0.02734 0.15381-0.02734 4.39551 0 4.2417 0.02734 4.39551 0.08545 0.51953 0.4751 0.90918 0.5332 0.54687 1.31934 0.51953 0.19482-0.01367 0.34179-0.04785 0.14697-0.0376 0.31446-0.10596 0.12646-0.05811 3.58887-2.07812 3.46582-2.02344 3.63671-2.13624 0.23584-0.15381 0.417-0.38281 0.18457-0.23242 0.27343-0.50586 0.09228-0.27344 0.09229-0.56738 0-0.29395-0.08545-0.57422-0.19482-0.5332-0.65625-0.85449-0.11279-0.08203-3.59912-2.11231-3.48633-2.03027-3.61279-2.10205-0.24951-0.12646-0.5503-0.16748-0.30078-0.04102-0.56738 0.01368z m0.56055 1.18945q0.12305 0.04443 3.62988 2.09521 3.51025 2.05078 3.5581 2.10205 0.04785 0.04785 0.10596 0.15723 0.02734 0.07178 0.04102 0.11963 0.01367 0.04785 0.01367 0.1333 0 0.08545-0.01367 0.1333-0.01367 0.04785-0.04102 0.11963-0.05811 0.10938-0.11621 0.16748-0.05469 0.05469-3.61621 2.12939-3.56152 2.07129-3.66748 2.09864-0.10596 0.02734-0.20508 0.01367-0.32129-0.07178-0.44775-0.33496l-0.04102-0.09912 0-8.45606 0.04102-0.09912q0.09912-0.2085 0.32129-0.29053 0.22559-0.08545 0.4375 0.01026z"
+                      fill="#FFFFFF"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+              <div
+                data-pencil-name="Text"
+                style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 0; gap: 2px; height: fit-content; justify-content: flex-start"
+              >
+                <div
+                  data-pencil-name="Title"
+                  style="box-sizing: border-box; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; width: 100%"
+                >
+                  Trenches
+                </div>
+                <div
+                  data-pencil-name="Artist"
+                  style="box-sizing: border-box; color: #C7C7C7; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-style: normal; font-weight: 400; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Bri Bagwell · 3:45
+                </div>
+              </div>
+              <div
+                data-pencil-name="Add to show"
+                style="align-items: center; background-color: #EF6962; border-radius: 22px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 0px; height: 44px; justify-content: center; width: 70px"
+              >
+                <div
+                  data-pencil-name="Add label"
+                  style="box-sizing: border-box; color: #000000; font-family: Inter, system-ui, sans-serif; font-size: 13px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+                >
+                  Add
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            data-pencil-name="More suggestions action"
+            style="align-items: flex-start; box-sizing: border-box; display: flex; flex-direction: column; flex-shrink: 0; gap: 0px; height: fit-content; justify-content: flex-start; padding: 20px 16px 16px 16px; width: 100%"
+          >
+            <div
+              data-pencil-name="More suggestions button"
+              style="align-items: center; background-color: #2A2A2A; border-radius: 24px; box-sizing: border-box; display: flex; flex-direction: row; flex-shrink: 0; gap: 8px; height: 48px; justify-content: center; width: 100%"
+            >
+              <svg
+                data-pencil-name="More suggestions icon"
+                data-icon-name="plus"
+                data-icon-set="lucide"
+                viewBox="0 0 13.99993896484375 14"
+                preserveAspectRatio="xMidYMid meet"
+                xmlns="http://www.w3.org/2000/svg"
+                style="box-sizing: border-box; flex-shrink: 0; height: 18px; width: 18px"
+              >
+                <path
+                  d="M6.90088 2.35156q-0.0957 0.01367-0.17432 0.05127-0.0752 0.03418-0.15381 0.12647-0.0752 0.08887-0.11279 0.16748-0.03418 0.0752-0.03418 0.32812l0 3.40088-3.66748 0-0.08545 0.04102q-0.22217 0.11279-0.30078 0.33838-0.0752 0.22217 0.00684 0.43408 0.05811 0.0957 0.14013 0.18115 0.08545 0.08203 0.16748 0.11963 0.08545 0.03418 0.33838 0.03418l3.40088 0 0 3.40088q0 0.25293 0.03418 0.33838 0.0376 0.08203 0.11963 0.16748 0.08545 0.08203 0.18799 0.1333 0.10596 0.04785 0.23242 0.04785 0.12646 0 0.229-0.04785 0.10596-0.05127 0.18799-0.1333 0.08545-0.08545 0.11963-0.16748 0.0376-0.08545 0.0376-0.33838l0-3.40088 3.40088 0q0.25293 0 0.33496-0.03418 0.08545-0.0376 0.16748-0.11963 0.08545-0.08545 0.1333-0.18799 0.05127-0.10596 0.05127-0.23242 0-0.12646-0.04102-0.23926-0.09912-0.19482-0.29394-0.29394l-0.08545-0.04102-3.66748 0 0-3.38721q0-0.2666-0.02734-0.32128-0.07178-0.19824-0.25293-0.30079-0.18115-0.10596-0.39307-0.06494z"
+                  fill="#EF6962"
+                ></path>
+              </svg>
+              <div
+                data-pencil-name="More suggestions label"
+                style="box-sizing: border-box; color: #EF6962; font-family: Inter, system-ui, sans-serif; font-size: 15px; font-style: normal; font-weight: 600; letter-spacing: 0px; line-height: normal; text-align: left; white-space: nowrap"
+              >
+                More suggestions
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

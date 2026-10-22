@@ -33,6 +33,17 @@ struct Auth: Codable {
   }
 }
 
+struct AuthIdentity: Equatable, Sendable {
+  let jwt: String?
+  let userId: String?
+}
+
+extension Auth {
+  var identity: AuthIdentity {
+    AuthIdentity(jwt: jwt, userId: currentUser?.id)
+  }
+}
+
 struct LoggedInUser: Codable {
   let id: String
   let firstName: String
@@ -190,7 +201,10 @@ class AuthService: @unchecked Sendable {
   func signOut() async {
     @Dependency(\.api) var api
     @Dependency(\.analytics) var analytics
+    @Dependency(\.nowPlayingUpdater) var nowPlayingUpdater
+    @Dependency(\.stationPlayer) var stationPlayer
     @Shared(.auth) var auth
+    @Shared(.lastPlayedStation) var lastPlayedStation
     @Shared(.registeredDeviceId) var registeredDeviceId
     @Shared(.userLikes) var userLikes
     @Shared(.pendingLikeOperations) var pendingLikeOperations
@@ -200,23 +214,15 @@ class AuthService: @unchecked Sendable {
     @Shared(.welcomeMessageEligible) var welcomeMessageEligible
     @Shared(.welcomeMessageShownThisSession) var welcomeMessageShownThisSession
     @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled
-    @Shared(.activeGiveaway) var activeGiveaway
-    @Shared(.upcomingGiveaways) var upcomingGiveaways
-    @Shared(.giveawayBanner) var giveawayBanner
-    @Shared(.giveawayParticipations) var giveawayParticipations
-    @Shared(.dismissedGiveawayBannerIds) var dismissedGiveawayBannerIds
-    @Shared(.pendingCongratsActions) var pendingCongratsActions
 
-    let jwt = auth.jwt
-    let deviceId = registeredDeviceId
-
-    if let jwt, let deviceId {
+    if let jwt = auth.jwt, let deviceId = registeredDeviceId {
       try? await api.unregisterDevice(jwt, deviceId)
     }
 
     await analytics.reset()
 
     $auth.withLock { $0 = Auth() }
+    $lastPlayedStation.withLock { $0 = nil }
     $registeredDeviceId.withLock { $0 = nil }
     $userLikes.withLock { $0 = [:] }
     $pendingLikeOperations.withLock { $0 = [] }
@@ -226,14 +232,39 @@ class AuthService: @unchecked Sendable {
     $welcomeMessageEligible.withLock { $0 = false }
     $welcomeMessageShownThisSession.withLock { $0 = false }
     $sampleBufferRendererEnabled.withLock { $0 = false }
+    clearGiveawayState()
+
+    // Sign-out is the one real teardown event for the remote command center.
+    // Stop any active playback first (the snapshot is already cleared above, so
+    // the resulting stopped state can't repopulate Now Playing from a persisted
+    // station), then clear the lock-screen entry and unregister the play/stop
+    // handlers now that there is no account-scoped station to resume.
+    await MainActor.run {
+      stationPlayer.stop()
+      nowPlayingUpdater.releaseRemoteControlCenter()
+    }
+
+    UserDefaults.standard.removeObject(forKey: "analytics_session_paused_at")
+  }
+
+  private func clearGiveawayState() {
+    @Shared(.activeGiveaway) var activeGiveaway
+    @Shared(.upcomingGiveaways) var upcomingGiveaways
+    @Shared(.giveawayBanner) var giveawayBanner
+    @Shared(.giveawayParticipations) var giveawayParticipations
+    @Shared(.fulfillmentRequests) var fulfillmentRequests
+    @Shared(.claimFormDrafts) var claimFormDrafts
+    @Shared(.dismissedGiveawayBannerIds) var dismissedGiveawayBannerIds
+    @Shared(.pendingCongratsActions) var pendingCongratsActions
+
     $activeGiveaway.withLock { $0 = nil }
     $upcomingGiveaways.withLock { $0 = [] }
     $giveawayBanner.withLock { $0 = nil }
     $giveawayParticipations.withLock { $0 = [:] }
+    $fulfillmentRequests.withLock { $0 = [] }
+    $claimFormDrafts.withLock { $0 = [:] }
     $dismissedGiveawayBannerIds.withLock { $0 = [] }
     $pendingCongratsActions.withLock { $0 = [:] }
-
-    UserDefaults.standard.removeObject(forKey: "analytics_session_paused_at")
   }
 
 }

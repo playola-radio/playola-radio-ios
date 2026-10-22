@@ -68,12 +68,12 @@ struct HomePagePadView: View {
 
   private var tilesGrid: some View {
     LazyVGrid(columns: columns, alignment: .leading, spacing: 20) {
-      ForEach(model.visibleFeatureTileModels, id: \.label) { tile in
+      ForEach(Array(model.visibleFeatureTileModels.enumerated()), id: \.offset) { entry in
         HomePadTile(
-          label: tile.label,
-          value: tile.content,
-          buttonText: tile.buttonText ?? "",
-          action: { await tile.onButtonTapped() })
+          label: entry.element.label,
+          value: entry.element.content,
+          buttonText: entry.element.buttonText ?? "",
+          action: { await entry.element.onButtonTapped() })
       }
 
       HomePadTile(

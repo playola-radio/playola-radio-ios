@@ -9,6 +9,7 @@
 // swiftlint:disable file_length
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import IdentifiedCollections
@@ -61,6 +62,145 @@ func createTestJWT(
 @Suite(.freshSharedState)
 @MainActor
 struct MainContainerTests {
+  // MARK: - Upside-Down Orientation Tests
+
+  @Test
+  func testUpsideDownFlowVisibilityChangedFlipsWindowThenEnablesKeyboardAndBannerWhenShowIsOpen()
+    async
+  {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
+    @Shared(.auth) var auth = Auth(jwtToken: createTestJWT())
+    let calls = LockIsolated<[String]>([])
+    let model = withDependencies {
+      $0.windowOrientation.setUpsideDown = { isUpsideDown in
+        calls.withValue { $0.append("window upsideDown=\(isUpsideDown)") }
+      }
+      $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
+        calls.withValue { $0.append("keyboard enabled=\(isEnabled)") }
+      }
+      $0.upsideDownNotificationBanner.setUpsideDownModeEnabled = { isEnabled in
+        calls.withValue { $0.append("banner enabled=\(isEnabled)") }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+    model.mainContainerNavigationCoordinator.artistDashboardPath = [
+      .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "station-abc"))
+    ]
+
+    await model.upsideDownFlowVisibilityChanged()
+
+    expectNoDifference(
+      calls.value, ["window upsideDown=true", "keyboard enabled=true", "banner enabled=true"])
+  }
+
+  @Test
+  func testUpsideDownFlowVisibilityChangedIgnoresStaleRotationWhenShowReopens() async {
+    await withMainSerialExecutor {
+      @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
+      @Shared(.auth) var auth = Auth(jwtToken: createTestJWT())
+      let calls = LockIsolated<[String]>([])
+      let rotations = LockIsolated<[CheckedContinuation<Void, Never>]>([])
+      let model = withDependencies {
+        $0.windowOrientation.setUpsideDown = { isUpsideDown in
+          calls.withValue { $0.append("window upsideDown=\(isUpsideDown)") }
+          await withCheckedContinuation { continuation in
+            rotations.withValue { $0.append(continuation) }
+          }
+        }
+        $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
+          calls.withValue { $0.append("keyboard enabled=\(isEnabled)") }
+        }
+        $0.upsideDownNotificationBanner.setUpsideDownModeEnabled = { isEnabled in
+          calls.withValue { $0.append("banner enabled=\(isEnabled)") }
+        }
+      } operation: {
+        MainContainerModel()
+      }
+
+      model.mainContainerNavigationCoordinator.artistDashboardPath = [
+        .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "station-abc"))
+      ]
+      let firstEnter = Task { await model.upsideDownFlowVisibilityChanged() }
+      await Task.megaYield()
+      model.mainContainerNavigationCoordinator.artistDashboardPath = []
+      let exit = Task { await model.upsideDownFlowVisibilityChanged() }
+      await Task.megaYield()
+      model.mainContainerNavigationCoordinator.artistDashboardPath = [
+        .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "station-abc"))
+      ]
+      let secondEnter = Task { await model.upsideDownFlowVisibilityChanged() }
+      await Task.megaYield()
+
+      for rotation in rotations.value { rotation.resume() }
+      await firstEnter.value
+      await exit.value
+      await secondEnter.value
+
+      expectNoDifference(
+        calls.value,
+        [
+          "window upsideDown=true",
+          "keyboard enabled=false", "banner enabled=false", "window upsideDown=false",
+          "window upsideDown=true", "keyboard enabled=true", "banner enabled=true",
+        ]
+      )
+    }
+  }
+
+  @Test
+  func testUpsideDownFlowVisibilityChangedDisablesKeyboardThenRestoresWindowWhenShowIsClosed() async
+  {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
+    let calls = LockIsolated<[String]>([])
+    let model = withDependencies {
+      $0.windowOrientation.setUpsideDown = { isUpsideDown in
+        calls.withValue { $0.append("window upsideDown=\(isUpsideDown)") }
+      }
+      $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
+        calls.withValue { $0.append("keyboard enabled=\(isEnabled)") }
+      }
+      $0.upsideDownNotificationBanner.setUpsideDownModeEnabled = { isEnabled in
+        calls.withValue { $0.append("banner enabled=\(isEnabled)") }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await model.upsideDownFlowVisibilityChanged()
+
+    expectNoDifference(
+      calls.value, ["keyboard enabled=false", "banner enabled=false", "window upsideDown=false"])
+  }
+
+  @Test
+  func testUpsideDownFlowVisibilityChangedDisablesKeyboardThenRestoresWindowWhenLoggedOut() async {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
+    @Shared(.auth) var auth = Auth()
+    let calls = LockIsolated<[String]>([])
+    let model = withDependencies {
+      $0.windowOrientation.setUpsideDown = { isUpsideDown in
+        calls.withValue { $0.append("window upsideDown=\(isUpsideDown)") }
+      }
+      $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
+        calls.withValue { $0.append("keyboard enabled=\(isEnabled)") }
+      }
+      $0.upsideDownNotificationBanner.setUpsideDownModeEnabled = { isEnabled in
+        calls.withValue { $0.append("banner enabled=\(isEnabled)") }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+    model.mainContainerNavigationCoordinator.artistDashboardPath = [
+      .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "station-abc"))
+    ]
+
+    await model.upsideDownFlowVisibilityChanged()
+
+    expectNoDifference(
+      calls.value, ["keyboard enabled=false", "banner enabled=false", "window upsideDown=false"])
+  }
+
   // MARK: - ViewAppeared Tests
 
   @Test
@@ -359,6 +499,88 @@ struct MainContainerTests {
     let errorState = StationPlayer.State(playbackStatus: .error)
     mainContainerModel.processNewStationState(errorState)
     #expect(mainContainerModel.mainContainerNavigationCoordinator.presentedSheet == nil)
+  }
+
+  @Test
+  func testProcessNewStationStateKeepsAnOpenClaimSheetWhenStartingNewStation() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    let mainContainerModel = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      MainContainerModel()
+    }
+    let claim = makeRewardClaimSheet()
+    coordinator.presentedSheet = .claim(claim)
+
+    mainContainerModel.processNewStationState(
+      StationPlayer.State(playbackStatus: .startingNewStation(.mock)))
+
+    guard case .claim(let current) = coordinator.presentedSheet else {
+      Issue.record("Expected the claim sheet to stay open")
+      return
+    }
+    #expect(current === claim)
+    #expect(mainContainerModel.shouldShowSmallPlayer)
+  }
+
+  @Test
+  func testProcessNewStationStateStillReplacesOtherSheetsWhenStartingNewStation() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    let mainContainerModel = withDependencies {
+      $0.stationPlayer = StationPlayerMock()
+    } operation: {
+      MainContainerModel()
+    }
+    coordinator.presentedSheet = .share(ShareSheetModel(items: ["x"]))
+
+    mainContainerModel.processNewStationState(
+      StationPlayer.State(playbackStatus: .startingNewStation(.mock)))
+
+    if case .player = coordinator.presentedSheet {
+      // Test passes
+    } else {
+      Issue.record("Expected player sheet to replace the share sheet")
+    }
+  }
+
+  // MARK: - Sheet Dismissal Tests
+
+  @Test
+  func testSwipeDismissingAClaimSheetGoesToLater() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    let closeCount = LockIsolated(0)
+    let mainContainerModel = MainContainerModel()
+    coordinator.presentedSheet = .claim(
+      makeRewardClaimSheet(onClose: { closeCount.withValue { $0 += 1 } }))
+
+    mainContainerModel.presentedSheetChanged(to: nil)
+
+    #expect(closeCount.value == 1)
+    #expect(coordinator.presentedSheet == nil)
+  }
+
+  @Test
+  func testSwipeDismissingAnotherSheetJustClearsIt() {
+    @Shared(.mainContainerNavigationCoordinator)
+    var coordinator = MainContainerNavigationCoordinator()
+    let mainContainerModel = MainContainerModel()
+    coordinator.presentedSheet = .share(ShareSheetModel(items: ["x"]))
+
+    mainContainerModel.presentedSheetChanged(to: nil)
+
+    #expect(coordinator.presentedSheet == nil)
+  }
+
+  private func makeRewardClaimSheet(onClose: @escaping () -> Void = {}) -> ClaimSheetModel {
+    ClaimSheetModel(
+      entry: .reward(
+        RewardClaim(
+          prizeId: "p", prizeSlug: "koozie", prizeTitle: "Koozie", prizeImageUrl: nil,
+          requiredHours: 50)),
+      onClaimed: {}, onClose: onClose)
   }
 
   // MARK: - Dismiss Button Tests
@@ -963,49 +1185,25 @@ struct MainContainerTests {
   }
 
   @Test
-  func testEnsureBroadcastModelsCreatesBroadcastPageModel() {
+  func testBroadcastStationIdTracksStationSwitch() {
     @Shared(.mainContainerNavigationCoordinator)
     var coordinator = MainContainerNavigationCoordinator()
-    coordinator.appMode = .broadcasting(stationId: "station-123")
+    coordinator.switchToBroadcastMode(stationId: "station-A")
 
     let mainContainerModel = MainContainerModel()
-    #expect(mainContainerModel.broadcastPageModel == nil)
+    #expect(mainContainerModel.broadcastStationId == "station-A")
 
-    mainContainerModel.ensureBroadcastModels()
-
-    #expect(mainContainerModel.broadcastPageModel != nil)
-    #expect(mainContainerModel.broadcastPageModel?.stationId == "station-123")
+    coordinator.switchToBroadcastMode(stationId: "station-B")
+    #expect(mainContainerModel.broadcastStationId == "station-B")
   }
 
   @Test
-  func testEnsureBroadcastModelsDoesNothingWhenListening() {
-    @Shared(.mainContainerNavigationCoordinator)
-    var coordinator = MainContainerNavigationCoordinator()
-    coordinator.appMode = .listening
-
+  func testBroadcastModeTabTitles() {
     let mainContainerModel = MainContainerModel()
-    mainContainerModel.ensureBroadcastModels()
 
-    #expect(mainContainerModel.broadcastPageModel == nil)
-  }
-
-  @Test
-  func testEnsureBroadcastModelsRecreatesModelsWhenStationIdChanges() {
-    @Shared(.mainContainerNavigationCoordinator)
-    var coordinator = MainContainerNavigationCoordinator()
-    coordinator.appMode = .broadcasting(stationId: "station-123")
-
-    let mainContainerModel = MainContainerModel()
-    mainContainerModel.ensureBroadcastModels()
-
-    let originalModel = mainContainerModel.broadcastPageModel
-    #expect(originalModel?.stationId == "station-123")
-
-    coordinator.appMode = .broadcasting(stationId: "station-456")
-    mainContainerModel.ensureBroadcastModels()
-
-    #expect(mainContainerModel.broadcastPageModel?.stationId == "station-456")
-    #expect(!(mainContainerModel.broadcastPageModel === originalModel))
+    expectNoDifference(mainContainerModel.artistDashboardTabTitle, "Dashboard")
+    expectNoDifference(mainContainerModel.artistStationTabTitle, "Station")
+    expectNoDifference(mainContainerModel.settingsTabTitle, "Profile")
   }
 
   // MARK: - Giveaway Resolution Arbiter Tests
@@ -1014,40 +1212,6 @@ struct MainContainerTests {
   // `@Shared(.giveawayParticipations)`. `withMainSerialExecutor` serializes async execution so a
   // parallel test's write to the same shared key can't clobber the participation mid-`await` (see
   // .claude/TESTING.md).
-  @Test func processGiveawayResolutionsPresentsWinnerSheetOnce() async {
-    await withMainSerialExecutor {
-      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
-      navCoordinator.presentedSheet = nil
-      @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
-      $participations.withLock {
-        $0 = [
-          "e": GiveawayParticipation(
-            id: "e", stationId: "s", prizeName: "P", winningNumber: 9, tapNumber: 9,
-            status: .resolvedWon(submissionCompleted: false),
-            tappedAt: Date(timeIntervalSince1970: 100))
-        ]
-      }
-      let model = withDependencies {
-        $0.date = .constant(Date(timeIntervalSince1970: 555))
-      } operation: {
-        MainContainerModel()
-      }
-
-      await model.processGiveawayResolutions()
-
-      #expect(participations["e"]?.winnerSheetPresentedAt == Date(timeIntervalSince1970: 555))
-      if case .giveawayWinner = navCoordinator.presentedSheet {
-        // Test passes
-      } else {
-        Issue.record("Expected giveaway winner sheet to be presented")
-      }
-
-      // Idempotent: a second pass must not re-present or re-stamp.
-      await model.processGiveawayResolutions()
-      #expect(participations["e"]?.winnerSheetPresentedAt == Date(timeIntervalSince1970: 555))
-    }
-  }
-
   @Test func processGiveawayResolutionsFiresLoserToastOnce() async {
     await withMainSerialExecutor {
       @Shared(.mainContainerNavigationCoordinator) var navCoordinator
@@ -1079,62 +1243,6 @@ struct MainContainerTests {
     }
   }
 
-  @Test func processGiveawayResolutionsRepresentsUnclaimedWinnerAfterDismissal() async {
-    await withMainSerialExecutor {
-      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
-      navCoordinator.presentedSheet = nil
-      // Winner was already presented once (stamp set) but dismissed without submitting — must NOT be
-      // stranded. With no sheet currently up, the next pass re-presents it.
-      @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
-      $participations.withLock {
-        $0 = [
-          "e": GiveawayParticipation(
-            id: "e", stationId: "s", prizeName: "P", winningNumber: 9, tapNumber: 9,
-            status: .resolvedWon(submissionCompleted: false),
-            tappedAt: Date(timeIntervalSince1970: 100),
-            winnerSheetPresentedAt: Date(timeIntervalSince1970: 50))
-        ]
-      }
-      let model = MainContainerModel()
-
-      await model.processGiveawayResolutions()
-
-      if case .giveawayWinner = navCoordinator.presentedSheet {
-        // Test passes
-      } else {
-        Issue.record("Expected an unclaimed winner to be re-presented")
-      }
-      // The original stamp is preserved (we record first-presentation, not every present).
-      #expect(participations["e"]?.winnerSheetPresentedAt == Date(timeIntervalSince1970: 50))
-    }
-  }
-
-  @Test func processGiveawayResolutionsDoesNotClobberAnotherSheet() async {
-    await withMainSerialExecutor {
-      @Shared(.mainContainerNavigationCoordinator) var navCoordinator
-      navCoordinator.presentedSheet = .share(ShareSheetModel(items: ["x"]))
-      @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
-      $participations.withLock {
-        $0 = [
-          "e": GiveawayParticipation(
-            id: "e", stationId: "s", prizeName: "P", winningNumber: 9, tapNumber: 9,
-            status: .resolvedWon(submissionCompleted: false), tappedAt: Date())
-        ]
-      }
-      let model = MainContainerModel()
-
-      await model.processGiveawayResolutions()
-
-      // The unrelated share sheet must be left intact; the win waits for the next foreground.
-      if case .share = navCoordinator.presentedSheet {
-        // Test passes
-      } else {
-        Issue.record("Expected the share sheet to be left untouched")
-      }
-      #expect(participations["e"]?.winnerSheetPresentedAt == nil)
-    }
-  }
-
   @Test func processGiveawayResolutionsFiresLossToastEvenWhilePlayerIsOpen() async {
     await withMainSerialExecutor {
       @Shared(.mainContainerNavigationCoordinator) var navCoordinator
@@ -1160,6 +1268,322 @@ struct MainContainerTests {
       #expect(shown.value.count == 1)
       #expect(
         participations["e"]?.status == GiveawayParticipationStatus.resolvedLost(toastShown: true))
+    }
+  }
+}
+
+// MARK: - Giveaway Claim Sheet Tests
+
+@MainActor
+extension MainContainerTests {
+
+  @Test func winPresentsMatchingRequestOnce() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "token")
+      @Shared(.giveawayParticipations) var participations = [
+        "event-1": GiveawayParticipation.mockWon(id: "event-1")
+      ]
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let model = withDependencies {
+        $0.api.getMyFulfillmentRequests = { _ in [.mock(giveawayEventId: "event-1")] }
+        $0.date = .constant(Date(timeIntervalSince1970: 100))
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      guard case .claim(let sheet) = coordinator.presentedSheet else {
+        Issue.record("expected claim sheet")
+        return
+      }
+      #expect(sheet.request?.id == "request-1")
+      #expect(participations["event-1"]?.winnerSheetPresentedAt == Date(timeIntervalSince1970: 100))
+
+      coordinator.presentedSheet = nil
+      await model.processGiveawayResolutions()
+      #expect(coordinator.presentedSheet == nil)
+    }
+  }
+
+  @Test func winAlreadyShownByOldBuildGetsTileOnly() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "token")
+      @Shared(.giveawayParticipations) var participations = [
+        "event-1": GiveawayParticipation.mockWon(id: "event-1", winnerSheetPresentedAt: Date())
+      ]
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let model = withDependencies {
+        $0.api.getMyFulfillmentRequests = { _ in [.mock(giveawayEventId: "event-1")] }
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      #expect(coordinator.presentedSheet == nil)
+    }
+  }
+
+  @Test func noMatchingRequestPresentsNothingAndDoesNotStamp() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "token")
+      @Shared(.giveawayParticipations) var participations = [
+        "event-1": GiveawayParticipation.mockWon(id: "event-1")
+      ]
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let model = withDependencies {
+        $0.api.getMyFulfillmentRequests = { _ in [] }
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      #expect(coordinator.presentedSheet == nil)
+      #expect(participations["event-1"]?.winnerSheetPresentedAt == nil)
+    }
+  }
+
+  @Test func winWithoutMatchDoesNotBlockLaterWinWithMatch() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "token")
+      var older = GiveawayParticipation.mockWon(id: "event-old")
+      older.tappedAt = Date(timeIntervalSince1970: 1)
+      @Shared(.giveawayParticipations) var participations = [
+        "event-old": older, "event-1": GiveawayParticipation.mockWon(id: "event-1"),
+      ]
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 100))
+        $0.api.getMyFulfillmentRequests = { _ in [.mock(giveawayEventId: "event-1")] }
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      guard case .claim = coordinator.presentedSheet else {
+        Issue.record("expected claim sheet")
+        return
+      }
+      #expect(participations["event-old"]?.winnerSheetPresentedAt == nil)
+    }
+  }
+
+  @Test func readyToShipMatchShowsNothingToFillIn() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "token")
+      @Shared(.giveawayParticipations) var participations = [
+        "event-1": GiveawayParticipation.mockWon(id: "event-1")
+      ]
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 100))
+        $0.api.getMyFulfillmentRequests = { _ in
+          [.mock(status: .readyToShip, giveawayEventId: "event-1", infoFields: [])]
+        }
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      guard case .claim(let sheet) = coordinator.presentedSheet else {
+        Issue.record("expected claim sheet")
+        return
+      }
+      expectNoDifference(sheet.phase, .nothingToFillIn)
+    }
+  }
+
+  @Test func slotTakenDuringFetchDefersWin() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "token")
+      @Shared(.giveawayParticipations) var participations = [
+        "event-1": GiveawayParticipation.mockWon(id: "event-1")
+      ]
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let model = withDependencies {
+        $0.api.getMyFulfillmentRequests = { _ in
+          await MainActor.run {
+            @Shared(.mainContainerNavigationCoordinator) var navCoordinator
+            navCoordinator.presentedSheet = .share(ShareSheetModel(items: ["x"]))
+          }
+          return [.mock(giveawayEventId: "event-1")]
+        }
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.processGiveawayResolutions()
+
+      #expect(coordinator.presentedSheet == .share(ShareSheetModel(items: ["x"])))
+      #expect(participations["event-1"]?.winnerSheetPresentedAt == nil)
+    }
+  }
+
+  @Test func overlappingTriggersFetchOnce() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "token")
+      @Shared(.giveawayParticipations) var participations = [
+        "event-1": GiveawayParticipation.mockWon(id: "event-1")
+      ]
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let fetches = LockIsolated(0)
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 100))
+        $0.api.getMyFulfillmentRequests = { _ in
+          fetches.withValue { $0 += 1 }
+          return [.mock(giveawayEventId: "event-1")]
+        }
+      } operation: {
+        MainContainerModel()
+      }
+
+      async let first: Void = model.processGiveawayResolutions()
+      async let second: Void = model.processGiveawayResolutions()
+      _ = await (first, second)
+
+      #expect(fetches.value == 1)
+    }
+  }
+
+  @Test func triggerArrivingMidFlightIsRerunNotDropped() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "token")
+      @Shared(.giveawayParticipations) var participations = [
+        "event-1": GiveawayParticipation.mockWon(id: "event-1")
+      ]
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let fetches = LockIsolated(0)
+      let (fetchStarted, startedContinuation) = AsyncStream<Void>.makeStream()
+      let (fetchGate, gateContinuation) = AsyncStream<Void>.makeStream()
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 100))
+        $0.api.getMyFulfillmentRequests = { _ in
+          let attempt = fetches.withValue { count -> Int in
+            count += 1
+            return count
+          }
+          guard attempt == 1 else { return [.mock(giveawayEventId: "event-1")] }
+          startedContinuation.yield()
+          for await _ in fetchGate { break }
+          return []
+        }
+      } operation: {
+        MainContainerModel()
+      }
+
+      let first = Task { await model.processGiveawayResolutions() }
+      for await _ in fetchStarted { break }
+      await model.processGiveawayResolutions()
+      gateContinuation.yield()
+      await first.value
+
+      #expect(fetches.value == 2)
+      guard case .claim(let sheet) = coordinator.presentedSheet else {
+        Issue.record("expected claim sheet")
+        return
+      }
+      #expect(sheet.request?.id == "request-1")
+    }
+  }
+
+  @Test func closingClaimSheetDoesNotClobberAReplacementSheet() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "token")
+      @Shared(.giveawayParticipations) var participations = [
+        "event-1": GiveawayParticipation.mockWon(id: "event-1")
+      ]
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 100))
+        $0.api.getMyFulfillmentRequests = { _ in [.mock(giveawayEventId: "event-1")] }
+      } operation: {
+        MainContainerModel()
+      }
+      await model.processGiveawayResolutions()
+      guard case .claim(let sheet) = coordinator.presentedSheet else {
+        Issue.record("expected claim sheet")
+        return
+      }
+
+      coordinator.presentedSheet = .share(ShareSheetModel(items: ["x"]))
+      sheet.laterTapped()
+
+      #expect(coordinator.presentedSheet == .share(ShareSheetModel(items: ["x"])))
+    }
+  }
+
+  @Test func closingAnOlderClaimSheetDoesNotDismissANewerClaimSheet() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "token")
+      @Shared(.giveawayParticipations) var participations = [
+        "event-1": GiveawayParticipation.mockWon(id: "event-1")
+      ]
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 100))
+        $0.api.getMyFulfillmentRequests = { _ in [.mock(giveawayEventId: "event-1")] }
+      } operation: {
+        MainContainerModel()
+      }
+      await model.processGiveawayResolutions()
+      guard case .claim(let older) = coordinator.presentedSheet else {
+        Issue.record("expected claim sheet")
+        return
+      }
+      let newer = ClaimSheetModel(
+        entry: .reward(
+          RewardClaim(
+            prizeId: "p", prizeSlug: "koozie", prizeTitle: "Koozie", prizeImageUrl: nil,
+            requiredHours: 50)),
+        onClaimed: {}, onClose: {})
+      coordinator.presentedSheet = .claim(newer)
+
+      older.laterTapped()
+
+      guard case .claim(let current) = coordinator.presentedSheet else {
+        Issue.record("the newer claim sheet was dismissed")
+        return
+      }
+      #expect(current === newer)
+    }
+  }
+
+  @Test func foregroundPresentsGiveawayClaimBeforeKoozie() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "token")
+      @Shared(.giveawayParticipations) var participations = [
+        "event-1": GiveawayParticipation.mockWon(id: "event-1")
+      ]
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let model = withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 100))
+        $0.api.getMyFulfillmentRequests = { _ in [.mock(giveawayEventId: "event-1")] }
+      } operation: {
+        MainContainerModel()
+      }
+
+      await model.refreshOnForeground()
+
+      guard case .claim(let sheet) = coordinator.presentedSheet else {
+        Issue.record("expected claim sheet")
+        return
+      }
+      #expect(sheet.request?.giveawayEventId == "event-1")
     }
   }
 }
@@ -1201,21 +1625,17 @@ extension MainContainerTests {
     }
   }
 
-  @Test func processGiveawayResolutionsPrefersWinnerSheetOverCongrats() async {
+  @Test func processGiveawayResolutionsPrefersClaimSheetOverCongrats() async {
     await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "token")
       @Shared(.mainContainerNavigationCoordinator) var navCoordinator
       navCoordinator.presentedSheet = nil
       @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
-      $participations.withLock {
-        $0 = [
-          "w": GiveawayParticipation(
-            id: "w", stationId: "s", prizeName: "P", winningNumber: 9, tapNumber: 9,
-            status: .resolvedWon(submissionCompleted: false), tappedAt: Date())
-        ]
-      }
+      $participations.withLock { $0 = ["w": GiveawayParticipation.mockWon(id: "w")] }
       @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
       $actions.withLock { $0 = ["e1": pendingCongrats()] }
       let model = withDependencies {
+        $0.api.getMyFulfillmentRequests = { _ in [.mock(giveawayEventId: "w")] }
         $0.date = .constant(Date(timeIntervalSince1970: 200))
       } operation: {
         MainContainerModel()
@@ -1223,11 +1643,11 @@ extension MainContainerTests {
 
       await model.processGiveawayResolutions()
 
-      // The owner-side congrats must yield to the listener-side winner sheet.
-      if case .giveawayWinner = navCoordinator.presentedSheet {
+      // The owner-side congrats must yield to the listener-side claim sheet.
+      if case .claim = navCoordinator.presentedSheet {
         // Test passes
       } else {
-        Issue.record("Expected the winner sheet to win the stage over congrats")
+        Issue.record("Expected the claim sheet to win the stage over congrats")
       }
       $participations.withLock { $0 = [:] }
       $actions.withLock { $0 = [:] }
@@ -1373,3 +1793,90 @@ private func waitForFeedbackSheet(on coordinator: MainContainerNavigationCoordin
   }
 }
 // swiftlint:enable force_try
+
+extension MainContainerTests {
+  // MARK: - Analytics Identity Tests
+
+  @Test
+  func viewAppearedIdentifiesSignedInUserWithAnalytics() async {
+    @Shared(.auth) var auth = Auth(jwtToken: createTestJWT(id: "user-42"))
+    @Shared(.stationListsLoaded) var stationListsLoaded = false
+    let identifiedIds = LockIsolated<[String]>([])
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { StationList.mocks }
+      $0.api.getAirings = { _, _ in [] }
+      $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.analytics.identify = { userId in identifiedIds.withValue { $0.append(userId) } }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.viewAppeared()
+
+    expectNoDifference(identifiedIds.value, ["user-42"])
+  }
+
+  @Test
+  func fetchBroadcasterStatusSetsIsBroadcasterUserProperty() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let isBroadcasterValues = LockIsolated<[Bool?]>([])
+
+    let mainContainerModel = withDependencies {
+      $0.api.fetchUserStations = { _ in [Station.mockWith(id: "station-1")] }
+      $0.analytics.setUserProperties = { properties in
+        isBroadcasterValues.withValue { $0.append(properties["is_broadcaster"] as? Bool) }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.fetchBroadcasterStatus()
+
+    expectNoDifference(isBroadcasterValues.value, [true])
+  }
+
+  @Test
+  func fetchBroadcasterStatusSetsIsBroadcasterFalseForListeners() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let isBroadcasterValues = LockIsolated<[Bool?]>([])
+
+    let mainContainerModel = withDependencies {
+      $0.api.fetchUserStations = { _ in [] }
+      $0.analytics.setUserProperties = { properties in
+        isBroadcasterValues.withValue { $0.append(properties["is_broadcaster"] as? Bool) }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.fetchBroadcasterStatus()
+
+    expectNoDifference(isBroadcasterValues.value, [false])
+  }
+
+  @Test
+  func fetchBroadcasterStatusIgnoresResultWhenAccountChangedDuringFetch() async {
+    @Shared(.auth) var auth = Auth(jwt: "account-a-jwt")
+    @Shared(.isBroadcaster) var isBroadcaster = false
+    let isBroadcasterValues = LockIsolated<[Bool?]>([])
+    let sharedAuth = $auth
+
+    let mainContainerModel = withDependencies {
+      $0.api.fetchUserStations = { _ in
+        sharedAuth.withLock { $0 = Auth(jwt: "account-b-jwt") }
+        return [Station.mockWith(id: "station-1")]
+      }
+      $0.analytics.setUserProperties = { properties in
+        isBroadcasterValues.withValue { $0.append(properties["is_broadcaster"] as? Bool) }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.fetchBroadcasterStatus()
+
+    expectNoDifference(isBroadcasterValues.value, [])
+    #expect(!isBroadcaster)
+  }
+}

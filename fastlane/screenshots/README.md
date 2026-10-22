@@ -33,7 +33,16 @@ and the store match.
 
 ### 2. Replace the images
 
-Drop new PNGs into `fastlane/screenshots/en-US/`. Notes:
+**iPhone shots are generated** — build the Debug app and run
+`fastlane/capture-screenshots.sh` (see the header of that script and
+`PlayolaRadio/ScreenshotHarness.swift`). Every shot is deterministic fixture
+data; no account or manual navigation needed.
+
+**iPad shots are still manual**: create an iPad Pro (12.9-inch) (6th generation)
+sim on iOS 18.1+, sign in with a real account, navigate, and
+`xcrun simctl io <udid> screenshot`.
+
+Notes on the files in `fastlane/screenshots/en-US/`:
 
 - **Device is auto-detected from the image resolution**, so all sizes live in the
   same locale folder together — **except iPad Pro 12.9", which needs an explicit

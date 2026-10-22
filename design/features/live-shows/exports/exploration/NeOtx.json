@@ -1,0 +1,1065 @@
+{
+  "status": "Proposed AMA Q/A picker revised S35; awaiting visual approval",
+  "screen": {
+    "type": "frame",
+    "id": "NeOtx",
+    "x": 0,
+    "y": 18806,
+    "name": "AMA Q/A · Q1 · Question Picker",
+    "clip": true,
+    "width": 393,
+    "height": 852,
+    "fill": "#000000",
+    "layout": "vertical",
+    "children": [
+      {
+        "type": "frame",
+        "id": "YwAnU",
+        "name": "iOS status bar",
+        "width": "fill_container",
+        "height": 44,
+        "padding": [
+          0,
+          24
+        ],
+        "justifyContent": "space_between",
+        "alignItems": "center",
+        "children": [
+          {
+            "type": "text",
+            "id": "miq9K",
+            "name": "Time",
+            "fill": "#FFFFFF",
+            "content": "9:41",
+            "fontFamily": "Inter",
+            "fontSize": 14,
+            "fontWeight": "600"
+          },
+          {
+            "type": "frame",
+            "id": "h33BN9",
+            "name": "Status icons",
+            "gap": 6,
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "icon",
+                "id": "UBcF5",
+                "name": "Cellular",
+                "width": 15,
+                "height": 15,
+                "icon": "signal",
+                "library": "lucide",
+                "fill": "#FFFFFF"
+              },
+              {
+                "type": "icon",
+                "id": "KCsww",
+                "name": "Wi-Fi",
+                "width": 15,
+                "height": 15,
+                "icon": "wifi",
+                "library": "lucide",
+                "fill": "#FFFFFF"
+              },
+              {
+                "type": "icon",
+                "id": "p7XA7d",
+                "name": "Battery",
+                "width": 21,
+                "height": 21,
+                "icon": "battery-full",
+                "library": "lucide",
+                "fill": "#FFFFFF"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "fLghP",
+        "name": "Navigation",
+        "width": "fill_container",
+        "height": 64,
+        "layout": "none",
+        "children": [
+          {
+            "type": "frame",
+            "id": "wm0O3",
+            "x": 14,
+            "y": 10,
+            "name": "Back Button",
+            "width": 44,
+            "height": 44,
+            "fill": "#2A2A2A",
+            "cornerRadius": 22,
+            "stroke": "#FFFFFF26",
+            "strokeWidth": 1,
+            "justifyContent": "center",
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "icon",
+                "id": "oZlNG",
+                "name": "Back Chevron",
+                "width": 20,
+                "height": 20,
+                "icon": "chevron-left",
+                "library": "lucide",
+                "fill": "#FFFFFF"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "id": "UImE1",
+            "x": 0,
+            "y": 21,
+            "name": "Screen Title",
+            "fill": "#FFFFFF",
+            "textGrowth": "fixed-width",
+            "width": 393,
+            "content": "Questions",
+            "textAlign": "center",
+            "fontFamily": "Inter",
+            "fontSize": 17,
+            "fontWeight": "600"
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "Khhu9",
+        "name": "Question status filters",
+        "width": "fill_container",
+        "height": 64,
+        "gap": 8,
+        "padding": [
+          10,
+          16
+        ],
+        "alignItems": "center",
+        "children": [
+          {
+            "type": "frame",
+            "id": "oH1ks",
+            "name": "All filter",
+            "height": 44,
+            "fill": "#EF6962",
+            "cornerRadius": 22,
+            "padding": [
+              0,
+              16
+            ],
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "uwCNq",
+                "name": "All label",
+                "fill": "#FFFFFF",
+                "content": "All",
+                "fontFamily": "Inter",
+                "fontSize": 14,
+                "fontWeight": "500"
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "clDWT",
+            "name": "Unanswered filter",
+            "height": 44,
+            "fill": "#2A2A2A",
+            "cornerRadius": 22,
+            "padding": [
+              0,
+              16
+            ],
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "j5SbLP",
+                "name": "Unanswered label",
+                "fill": "#FFFFFF",
+                "content": "Unanswered",
+                "fontFamily": "Inter",
+                "fontSize": 14,
+                "fontWeight": "500"
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "nBLuv",
+            "name": "Answered filter",
+            "height": 44,
+            "fill": "#2A2A2A",
+            "cornerRadius": 22,
+            "padding": [
+              0,
+              16
+            ],
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "uiBw2",
+                "name": "Answered label",
+                "fill": "#FFFFFF",
+                "content": "Answered",
+                "fontFamily": "Inter",
+                "fontSize": 14,
+                "fontWeight": "500"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "vZ1RH",
+        "name": "All questions · new first",
+        "clip": true,
+        "width": "fill_container",
+        "height": "fill_container",
+        "layout": "vertical",
+        "gap": 12,
+        "padding": [
+          6,
+          16
+        ],
+        "children": [
+          {
+            "type": "frame",
+            "id": "Yzkb7",
+            "name": "Question · Maya Chen",
+            "width": "fill_container",
+            "fill": "#2A2A2A",
+            "cornerRadius": 12,
+            "layout": "vertical",
+            "children": [
+              {
+                "type": "frame",
+                "id": "Yzkb7/CQG8x",
+                "name": "Header",
+                "width": "fill_container",
+                "gap": 12,
+                "padding": [
+                  12,
+                  16,
+                  8,
+                  16
+                ],
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "frame",
+                    "id": "Yzkb7/F1JeE0",
+                    "name": "Who",
+                    "layout": "vertical",
+                    "gap": 2,
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "Yzkb7/flGDe",
+                        "name": "Name",
+                        "fill": "#FFFFFF",
+                        "content": "Maya Chen",
+                        "fontFamily": "Inter",
+                        "fontSize": 15,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "text",
+                        "id": "Yzkb7/IyXeU",
+                        "name": "Time Ago",
+                        "fill": "#C7C7C7",
+                        "content": "Just now · New this show",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "normal"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "Yzkb7/h8N1k",
+                    "name": "Spacer",
+                    "width": "fill_container",
+                    "height": 1
+                  },
+                  {
+                    "type": "frame",
+                    "id": "Yzkb7/dNGy0",
+                    "name": "Play Button",
+                    "height": 44,
+                    "fill": "#EF6962",
+                    "cornerRadius": 22,
+                    "gap": 6,
+                    "padding": [
+                      0,
+                      12
+                    ],
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "Yzkb7/rue71",
+                        "name": "Glyph",
+                        "width": 12,
+                        "height": 12,
+                        "icon": "play",
+                        "library": "lucide",
+                        "fill": "#FFFFFF"
+                      },
+                      {
+                        "type": "text",
+                        "id": "Yzkb7/G8f98C",
+                        "name": "Duration",
+                        "fill": "#FFFFFF",
+                        "content": "0:28",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "icon",
+                    "id": "Yzkb7/mqpM8",
+                    "name": "Chevron",
+                    "width": 14,
+                    "height": 14,
+                    "icon": "chevron-right",
+                    "library": "lucide",
+                    "fill": "#C7C7C7"
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "Yzkb7/IQZez",
+                "name": "Transcript Body",
+                "width": "fill_container",
+                "layout": "vertical",
+                "gap": 8,
+                "padding": [
+                  0,
+                  16,
+                  14,
+                  16
+                ],
+                "children": [
+                  {
+                    "type": "frame",
+                    "id": "Yzkb7/im9DJ",
+                    "name": "Transcript Preview",
+                    "clip": true,
+                    "width": "fill_container",
+                    "height": 38,
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "Yzkb7/RVsHS",
+                        "name": "Transcript",
+                        "fill": "#FFFFFF",
+                        "textGrowth": "fixed-width",
+                        "width": "fill_container",
+                        "content": "What comes first when you write a song—the words or the melody?…",
+                        "lineHeight": 1.25,
+                        "fontFamily": "Inter",
+                        "fontSize": 14,
+                        "fontWeight": "normal"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "h5FFxG",
+                    "name": "Transcript action and answer status",
+                    "width": "fill_container",
+                    "height": 44,
+                    "gap": 8,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "yKHop",
+                        "name": "Expand transcript",
+                        "fill": "#EF6962",
+                        "content": "Expand transcript",
+                        "fontFamily": "Inter",
+                        "fontSize": 13,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "qvg6b",
+                        "name": "Status spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "frame",
+                        "id": "B4WUc",
+                        "name": "Unanswered badge",
+                        "height": 24,
+                        "fill": "#444444",
+                        "cornerRadius": 12,
+                        "padding": [
+                          0,
+                          9
+                        ],
+                        "alignItems": "center",
+                        "children": [
+                          {
+                            "type": "text",
+                            "id": "J1t1XB",
+                            "name": "Answer status",
+                            "fill": "#C7C7C7",
+                            "content": "Unanswered",
+                            "fontFamily": "Inter",
+                            "fontSize": 11,
+                            "fontWeight": "500"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "uR5ui",
+            "name": "Question · Sam Rivera",
+            "width": "fill_container",
+            "fill": "#2A2A2A",
+            "cornerRadius": 12,
+            "layout": "vertical",
+            "children": [
+              {
+                "type": "frame",
+                "id": "uR5ui/CQG8x",
+                "name": "Header",
+                "width": "fill_container",
+                "gap": 12,
+                "padding": [
+                  12,
+                  16,
+                  8,
+                  16
+                ],
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "frame",
+                    "id": "uR5ui/F1JeE0",
+                    "name": "Who",
+                    "layout": "vertical",
+                    "gap": 2,
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "uR5ui/flGDe",
+                        "name": "Name",
+                        "fill": "#FFFFFF",
+                        "content": "Sam Rivera",
+                        "fontFamily": "Inter",
+                        "fontSize": 15,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "text",
+                        "id": "uR5ui/IyXeU",
+                        "name": "Time Ago",
+                        "fill": "#C7C7C7",
+                        "content": "Yesterday",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "normal"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "uR5ui/h8N1k",
+                    "name": "Spacer",
+                    "width": "fill_container",
+                    "height": 1
+                  },
+                  {
+                    "type": "frame",
+                    "id": "uR5ui/dNGy0",
+                    "name": "Play Button",
+                    "height": 44,
+                    "fill": "#EF6962",
+                    "cornerRadius": 22,
+                    "gap": 6,
+                    "padding": [
+                      0,
+                      12
+                    ],
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "uR5ui/rue71",
+                        "name": "Glyph",
+                        "width": 12,
+                        "height": 12,
+                        "icon": "play",
+                        "library": "lucide",
+                        "fill": "#FFFFFF"
+                      },
+                      {
+                        "type": "text",
+                        "id": "uR5ui/G8f98C",
+                        "name": "Duration",
+                        "fill": "#FFFFFF",
+                        "content": "0:16",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "icon",
+                    "id": "uR5ui/mqpM8",
+                    "name": "Chevron",
+                    "width": 14,
+                    "height": 14,
+                    "icon": "chevron-right",
+                    "library": "lucide",
+                    "fill": "#C7C7C7"
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "uR5ui/IQZez",
+                "name": "Transcript Body",
+                "width": "fill_container",
+                "layout": "vertical",
+                "gap": 8,
+                "padding": [
+                  0,
+                  16,
+                  14,
+                  16
+                ],
+                "children": [
+                  {
+                    "type": "frame",
+                    "id": "uR5ui/im9DJ",
+                    "name": "Transcript Preview",
+                    "clip": true,
+                    "width": "fill_container",
+                    "height": 38,
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "uR5ui/RVsHS",
+                        "name": "Transcript",
+                        "fill": "#FFFFFF",
+                        "textGrowth": "fixed-width",
+                        "width": "fill_container",
+                        "content": "Which song on the new record surprised you the most?",
+                        "lineHeight": 1.25,
+                        "fontFamily": "Inter",
+                        "fontSize": 14,
+                        "fontWeight": "normal"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "B18lo",
+                    "name": "Transcript action and answer status",
+                    "width": "fill_container",
+                    "height": 28,
+                    "gap": 8,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "frame",
+                        "id": "Y43swR",
+                        "name": "Status spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "frame",
+                        "id": "OYXSv",
+                        "name": "Answered badge",
+                        "height": 24,
+                        "fill": "#173B2C",
+                        "cornerRadius": 12,
+                        "padding": [
+                          0,
+                          9
+                        ],
+                        "alignItems": "center",
+                        "children": [
+                          {
+                            "type": "text",
+                            "id": "FQI23",
+                            "name": "Answer status",
+                            "fill": "#34C759",
+                            "content": "Answered",
+                            "fontFamily": "Inter",
+                            "fontSize": 11,
+                            "fontWeight": "500"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "JDa4z",
+            "name": "Question · Alex Morgan",
+            "width": "fill_container",
+            "fill": "#2A2A2A",
+            "cornerRadius": 12,
+            "layout": "vertical",
+            "children": [
+              {
+                "type": "frame",
+                "id": "JDa4z/CQG8x",
+                "name": "Header",
+                "width": "fill_container",
+                "gap": 12,
+                "padding": [
+                  12,
+                  16,
+                  8,
+                  16
+                ],
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "frame",
+                    "id": "JDa4z/F1JeE0",
+                    "name": "Who",
+                    "layout": "vertical",
+                    "gap": 2,
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "JDa4z/flGDe",
+                        "name": "Name",
+                        "fill": "#FFFFFF",
+                        "content": "Alex Morgan",
+                        "fontFamily": "Inter",
+                        "fontSize": 15,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "text",
+                        "id": "JDa4z/IyXeU",
+                        "name": "Time Ago",
+                        "fill": "#C7C7C7",
+                        "content": "2 days ago",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "normal"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "JDa4z/h8N1k",
+                    "name": "Spacer",
+                    "width": "fill_container",
+                    "height": 1
+                  },
+                  {
+                    "type": "frame",
+                    "id": "JDa4z/dNGy0",
+                    "name": "Play Button",
+                    "height": 44,
+                    "fill": "#EF6962",
+                    "cornerRadius": 22,
+                    "gap": 6,
+                    "padding": [
+                      0,
+                      12
+                    ],
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "JDa4z/rue71",
+                        "name": "Glyph",
+                        "width": 12,
+                        "height": 12,
+                        "icon": "play",
+                        "library": "lucide",
+                        "fill": "#FFFFFF"
+                      },
+                      {
+                        "type": "text",
+                        "id": "JDa4z/G8f98C",
+                        "name": "Duration",
+                        "fill": "#FFFFFF",
+                        "content": "0:21",
+                        "fontFamily": "Inter",
+                        "fontSize": 12,
+                        "fontWeight": "500"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "icon",
+                    "id": "JDa4z/mqpM8",
+                    "name": "Chevron",
+                    "width": 14,
+                    "height": 14,
+                    "icon": "chevron-right",
+                    "library": "lucide",
+                    "fill": "#C7C7C7"
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "JDa4z/IQZez",
+                "name": "Transcript Body",
+                "width": "fill_container",
+                "layout": "vertical",
+                "gap": 8,
+                "padding": [
+                  0,
+                  16,
+                  14,
+                  16
+                ],
+                "children": [
+                  {
+                    "type": "frame",
+                    "id": "JDa4z/im9DJ",
+                    "name": "Transcript Preview",
+                    "clip": true,
+                    "width": "fill_container",
+                    "height": 38,
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "JDa4z/RVsHS",
+                        "name": "Transcript",
+                        "fill": "#FFFFFF",
+                        "textGrowth": "fixed-width",
+                        "width": "fill_container",
+                        "content": "What is your favorite part of playing a small room?",
+                        "lineHeight": 1.25,
+                        "fontFamily": "Inter",
+                        "fontSize": 14,
+                        "fontWeight": "normal"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "CV2v7",
+                    "name": "Transcript action and answer status",
+                    "width": "fill_container",
+                    "height": 28,
+                    "gap": 8,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "frame",
+                        "id": "s8G8gF",
+                        "name": "Status spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "frame",
+                        "id": "QTjU2",
+                        "name": "Unanswered badge",
+                        "height": 24,
+                        "fill": "#444444",
+                        "cornerRadius": 12,
+                        "padding": [
+                          0,
+                          9
+                        ],
+                        "alignItems": "center",
+                        "children": [
+                          {
+                            "type": "text",
+                            "id": "KLY1x",
+                            "name": "Answer status",
+                            "fill": "#C7C7C7",
+                            "content": "Unanswered",
+                            "fontFamily": "Inter",
+                            "fontSize": 11,
+                            "fontWeight": "500"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "c5nq82",
+        "name": "Live show buffer",
+        "width": "fill_container",
+        "height": 64,
+        "layout": "vertical",
+        "gap": 8,
+        "padding": [
+          12,
+          16
+        ],
+        "children": [
+          {
+            "type": "frame",
+            "id": "j2GLNx",
+            "name": "Live buffer readout",
+            "width": "fill_container",
+            "justifyContent": "space_between",
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "text",
+                "id": "fZsTQ",
+                "name": "Scheduled buffer remaining",
+                "fill": "#FFFFFF",
+                "content": "6:32 buffered",
+                "fontFamily": "Inter",
+                "fontSize": 13,
+                "fontWeight": "600"
+              },
+              {
+                "type": "text",
+                "id": "hGjdT",
+                "name": "Percent of target buffer",
+                "fill": "#C7C7C7",
+                "content": "65% of 10 min",
+                "fontFamily": "Inter",
+                "fontSize": 12,
+                "fontWeight": "normal"
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "FATfq",
+            "name": "Live buffer progress",
+            "width": "fill_container",
+            "height": 4,
+            "fill": "#444444",
+            "cornerRadius": 2,
+            "layout": "none",
+            "children": [
+              {
+                "type": "rectangle",
+                "cornerRadius": 2,
+                "id": "YbiDR",
+                "x": 0,
+                "y": 0,
+                "name": "Scheduled buffer fill",
+                "fill": "#34C759",
+                "width": 235.85,
+                "height": 4
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "HPfHN",
+        "name": "Familiar broadcast navigation",
+        "width": "fill_container",
+        "height": 80,
+        "layout": "vertical",
+        "padding": [
+          4,
+          16,
+          20,
+          16
+        ],
+        "children": [
+          {
+            "type": "frame",
+            "id": "C7WiQB",
+            "name": "Broadcast tabs",
+            "width": "fill_container",
+            "height": 56,
+            "fill": "#2C2C2ECC",
+            "cornerRadius": 28,
+            "stroke": "#FFFFFF26",
+            "strokeWidth": 1,
+            "justifyContent": "space_around",
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "frame",
+                "id": "C7WiQB/wd9Lk",
+                "name": "Broadcast",
+                "width": 80,
+                "layout": "vertical",
+                "gap": 4,
+                "padding": [
+                  8,
+                  0
+                ],
+                "justifyContent": "center",
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "icon",
+                    "id": "C7WiQB/wd9Lk/Mb28I",
+                    "name": "Icon",
+                    "width": 24,
+                    "height": 24,
+                    "icon": "antenna",
+                    "library": "lucide",
+                    "fill": "#FFFFFF"
+                  },
+                  {
+                    "type": "text",
+                    "id": "C7WiQB/wd9Lk/x7cAoO",
+                    "name": "Label",
+                    "fill": "#FFFFFF",
+                    "content": "Broadcast",
+                    "fontFamily": "Inter",
+                    "fontSize": 10,
+                    "fontWeight": "500"
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "C7WiQB/pzhJy",
+                "name": "Library",
+                "width": 80,
+                "layout": "vertical",
+                "gap": 4,
+                "padding": [
+                  8,
+                  0
+                ],
+                "justifyContent": "center",
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "icon",
+                    "id": "C7WiQB/pzhJy/Mb28I",
+                    "name": "Icon",
+                    "width": 24,
+                    "height": 24,
+                    "icon": "list-music",
+                    "library": "lucide",
+                    "fill": "#868686"
+                  },
+                  {
+                    "type": "text",
+                    "id": "C7WiQB/pzhJy/x7cAoO",
+                    "name": "Label",
+                    "fill": "#868686",
+                    "content": "Library",
+                    "fontFamily": "Inter",
+                    "fontSize": 10,
+                    "fontWeight": "500"
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "C7WiQB/d2EwSK",
+                "name": "Listeners",
+                "width": 80,
+                "layout": "vertical",
+                "gap": 4,
+                "padding": [
+                  8,
+                  0
+                ],
+                "justifyContent": "center",
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "icon",
+                    "id": "C7WiQB/d2EwSK/Mb28I",
+                    "name": "Icon",
+                    "width": 24,
+                    "height": 24,
+                    "icon": "messages-square",
+                    "library": "lucide",
+                    "fill": "#868686"
+                  },
+                  {
+                    "type": "text",
+                    "id": "C7WiQB/d2EwSK/x7cAoO",
+                    "name": "Label",
+                    "fill": "#868686",
+                    "content": "Listeners",
+                    "fontFamily": "Inter",
+                    "fontSize": 10,
+                    "fontWeight": "500"
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "C7WiQB/H6k6F",
+                "name": "Profile",
+                "width": 80,
+                "layout": "vertical",
+                "gap": 4,
+                "padding": [
+                  8,
+                  0
+                ],
+                "justifyContent": "center",
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "icon",
+                    "id": "C7WiQB/H6k6F/Mb28I",
+                    "name": "Icon",
+                    "width": 24,
+                    "height": 24,
+                    "icon": "user",
+                    "library": "lucide",
+                    "fill": "#868686"
+                  },
+                  {
+                    "type": "text",
+                    "id": "C7WiQB/H6k6F/x7cAoO",
+                    "name": "Label",
+                    "fill": "#868686",
+                    "content": "Profile",
+                    "fontFamily": "Inter",
+                    "fontSize": 10,
+                    "fontWeight": "500"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

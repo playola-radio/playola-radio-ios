@@ -1,0 +1,204 @@
+{
+  "type": "frame",
+  "id": "n2xDx4",
+  "x": 3944,
+  "y": 23300,
+  "name": "Claim Sheet · 09 · Nothing to Fill In",
+  "clip": true,
+  "width": 393,
+  "height": 852,
+  "fill": "#000000",
+  "cornerRadius": [
+    24,
+    24,
+    0,
+    0
+  ],
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "huwoM",
+      "name": "Sheet drag handle area",
+      "width": "fill_container",
+      "height": 24,
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "rectangle",
+          "cornerRadius": 3,
+          "id": "o0nacq",
+          "name": "Sheet drag handle",
+          "fill": "#444444",
+          "width": 36,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "pumCZ",
+      "name": "Hero",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 10,
+      "padding": [
+        16,
+        24,
+        8,
+        24
+      ],
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "HpTIF",
+          "name": "Prize image",
+          "width": 120,
+          "height": 120,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/static.wixstatic.com/f832357fe101dd5d.jpg",
+            "mode": "cover"
+          },
+          "cornerRadius": 14
+        },
+        {
+          "type": "frame",
+          "id": "pZcij",
+          "name": "Won pill",
+          "fill": "#AF52DE33",
+          "cornerRadius": 999,
+          "gap": 6,
+          "padding": [
+            4,
+            10
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "EORSe",
+              "name": "Trophy",
+              "width": 13,
+              "height": 13,
+              "icon": "trophy",
+              "library": "lucide",
+              "fill": "#AF52DE"
+            },
+            {
+              "type": "text",
+              "id": "VllG5",
+              "name": "Won label",
+              "fill": "#AF52DE",
+              "content": "YOU WON",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "700",
+              "letterSpacing": 1
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "VccNb",
+          "name": "Prize title",
+          "fill": "#FFFFFF",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Signed Bri Bagwell tour shirt",
+          "textAlign": "center",
+          "fontFamily": "Space Grotesk",
+          "fontSize": 26,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "wQ8wD",
+          "name": "Instructions",
+          "fill": "#C7C7C7",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Nothing else needed from you — we'll take it from here.",
+          "lineHeight": 1.4,
+          "textAlign": "center",
+          "fontFamily": "Inter",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "HoG4E",
+      "name": "Spacer",
+      "width": "fill_container",
+      "height": "fill_container"
+    },
+    {
+      "type": "frame",
+      "id": "yVK4M",
+      "name": "Actions",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 4,
+      "padding": [
+        16,
+        24,
+        34,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "iopyw",
+          "name": "Submit button",
+          "width": "fill_container",
+          "height": 54,
+          "fill": "#EF6962",
+          "cornerRadius": 14,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "nQWBi",
+              "name": "Submit label",
+              "fill": "#FFFFFF",
+              "content": "Done",
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "o7Jc2",
+          "x": 24,
+          "y": 74,
+          "name": "Later button",
+          "enabled": false,
+          "width": "fill_container(345)",
+          "height": 48,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "i4akI6",
+              "name": "Later label",
+              "fill": "#C7C7C7",
+              "content": "I'll finish this later",
+              "fontFamily": "Inter",
+              "fontSize": 15,
+              "fontWeight": "500"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

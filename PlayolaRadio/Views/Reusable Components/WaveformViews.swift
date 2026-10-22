@@ -13,7 +13,8 @@ struct LiveWaveformView: View {
 
   var body: some View {
     GeometryReader { geometry in
-      let barWidth = (geometry.size.width - CGFloat(Self.barCount - 1) * 2) / CGFloat(Self.barCount)
+      let barWidth = max(
+        1, (geometry.size.width - CGFloat(Self.barCount - 1) * 2) / CGFloat(Self.barCount))
       HStack(alignment: .center, spacing: 2) {
         let displaySamples = recentSamples()
         ForEach(0..<Self.barCount, id: \.self) { index in
@@ -48,7 +49,8 @@ struct WaveformView: View {
 
   var body: some View {
     GeometryReader { geometry in
-      let barWidth = (geometry.size.width - CGFloat(Self.barCount - 1) * 2) / CGFloat(Self.barCount)
+      let barWidth = max(
+        1, (geometry.size.width - CGFloat(Self.barCount - 1) * 2) / CGFloat(Self.barCount))
       HStack(alignment: .center, spacing: 2) {
         let normalizedSamples = resampledSamples()
         ForEach(0..<Self.barCount, id: \.self) { barIndex in

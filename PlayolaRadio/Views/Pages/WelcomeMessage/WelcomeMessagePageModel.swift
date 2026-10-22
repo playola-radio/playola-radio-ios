@@ -229,7 +229,7 @@ class WelcomeMessagePageModel: ViewModel {
     // While playing, only true end-of-file (>= 0.995) completes. Once playback stops, the
     // engine often halts a hair early, so a lower threshold (>= 0.97) still counts as done.
     guard hasStartedPlaying, !isComplete else { return }
-    if state.progress >= 0.995 || (!state.isPlaying && state.progress >= 0.97) {
+    if state.didFinish || state.progress >= 0.995 || (!state.isPlaying && state.progress >= 0.97) {
       isComplete = true
     }
   }

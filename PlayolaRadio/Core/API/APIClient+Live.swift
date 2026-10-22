@@ -5,6 +5,8 @@
 //  Created by Brian D Keane on 12/17/25.
 //
 
+// swiftlint:disable file_length
+
 import Alamofire
 import Dependencies
 import Foundation
@@ -18,14 +20,41 @@ private struct MoveSpinParameters: Encodable, Sendable {
   let placeAfterSpinId: String?
 }
 
+struct UpdateTrailingAudioBlockParameters: Encodable, Sendable {
+  let trailingAudioBlockId: String?
+  func encode(to encoder: any Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(trailingAudioBlockId, forKey: .trailingAudioBlockId)
+  }
+  private enum CodingKeys: String, CodingKey { case trailingAudioBlockId }
+}
+
 private struct CreateVoicetrackParameters: Encodable, Sendable {
   let s3Key: String
   let durationMS: Int
 }
 
+private struct StartLiveShowParameters: Encodable, Sendable {
+  let type: String
+  let audioBlockIds: [String]
+}
+
+private struct EndLiveShowParameters: Encodable, Sendable {
+  let audioBlockId: String
+}
+
 // MARK: - Request Helpers
 
 private let sharedIsoDecoder = JSONDecoderWithIsoFull()
+
+func decodeRewardRedemptionResponse(_ data: Data) throws -> FulfillmentRequest {
+  do {
+    return try sharedIsoDecoder.decode(FulfillmentRequest.self, from: data)
+  } catch {
+    // The redemption exists; let the caller treat it as already claimed.
+    throw ClaimAPIError.conflict
+  }
+}
 
 // Playola API requests prefer HTTP/3 (QUIC). Some listeners sit behind networks that
 // interfere with TCP to *.playola.fm specifically (host/SNI-targeted resets) while leaving
@@ -73,6 +102,26 @@ private func signInPost(
 private func transportFailure(_ underlying: AFError?) -> Error {
   if let underlying { return underlying }
   return APIError.dataNotValid
+}
+
+private struct LiveShowConflictEnvelope: Decodable {
+  let error: LiveShowConflictErrorBody?
+}
+
+private struct LiveShowConflictErrorBody: Decodable {
+  let data: LiveShowConflictDataBody?
+}
+
+private struct LiveShowConflictDataBody: Decodable {
+  let delayUntil: Date?
+}
+
+/// Parses the `delayUntil` timestamp out of a live-show 409 conflict envelope
+/// (`{ error: { data: { delayUntil: ISO8601 } } }`). Returns nil when absent (e.g. the
+/// unfinished-show conflict, which carries no delayUntil).
+func parseLiveShowDelayUntil(from data: Data) -> Date? {
+  let decoder = JSONDecoderWithIsoFull()
+  return (try? decoder.decode(LiveShowConflictEnvelope.self, from: data))?.error?.data?.delayUntil
 }
 
 private func authenticatedGet<T: Decodable & Sendable>(
@@ -285,54 +334,37 @@ extension APIClient: DependencyKey {
       getUserPrizes: { jwtToken in
         try await authenticatedGet(path: "/v1/rewards/users/me/prizes", token: jwtToken)
       },
-      redeemPrize: { jwtToken, prizeId, stationId in
-        var params: [String: String] = [:]
-        if let stationId { params["stationId"] = stationId }
-        return try await authenticatedPost(
-          path: "/v1/rewards/users/me/prizes/\(prizeId)/redeem",
-          token: jwtToken,
-          parameters: params
-        )
+      getMyFulfillmentRequests: { jwtToken in
+        try await authenticatedGet(path: "/v1/users/me/fulfillment-requests", token: jwtToken)
       },
-      redeemKooziePrize: { jwtToken, prizeId, address in
+      submitFulfillmentAnswers: { jwtToken, requestId, body in
         let url =
-          "\(Config.shared.baseUrl.absoluteString)/v1/rewards/users/me/prizes/\(prizeId)/redeem"
+          "\(Config.shared.baseUrl.absoluteString)/v1/fulfillment-requests/\(requestId)/answers"
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-        let body = RedeemKooziePrizeRequest(shippingAddress: address)
-
-        let dataResponse = await apiSession.request(
-          url, method: .post, parameters: body, encoder: JSONParameterEncoder.default,
+        let response = await apiSession.request(
+          url, method: .put, parameters: body, encoder: JSONParameterEncoder.default,
           headers: headers
         )
         .serializingData()
         .response
-
-        guard let statusCode = dataResponse.response?.statusCode else {
-          throw transportFailure(dataResponse.error)
-        }
-        // 409 "already redeemed" is idempotent success (e.g. a concurrent double-tap).
-        if (200..<300).contains(statusCode) || statusCode == 409 { return }
-        let message =
-          dataResponse.value.flatMap { parsePlayolaErrorMessage(from: $0) }
-          ?? "Could not claim your koozie. Please try again."
-        throw APIError.validationError(message)
+        let status = response.response?.statusCode
+        if let status, (200..<300).contains(status) { return }
+        throw ClaimAPIError(status: status)
       },
-      markKoozieCongratsSeen: { jwtToken in
-        let url = "\(Config.shared.baseUrl.absoluteString)/v1/rewards/users/me/koozie-congrats-seen"
+      createRewardRedemption: { jwtToken, prizeId in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me/reward-redemptions"
         let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
-
-        let dataResponse = await apiSession.request(url, method: .post, headers: headers)
-          .serializingData()
-          .response
-
-        guard let statusCode = dataResponse.response?.statusCode else {
-          throw transportFailure(dataResponse.error)
+        let response = await apiSession.request(
+          url, method: .post, parameters: CreateRewardRedemptionRequest(prizeId: prizeId),
+          encoder: JSONParameterEncoder.default, headers: headers
+        )
+        .serializingData()
+        .response
+        let status = response.response?.statusCode
+        guard let status, (200..<300).contains(status), let data = response.data else {
+          throw ClaimAPIError(status: status)
         }
-        if (200..<300).contains(statusCode) || statusCode == 409 { return }
-        let message =
-          dataResponse.value.flatMap { parsePlayolaErrorMessage(from: $0) }
-          ?? "Could not dismiss the koozie message."
-        throw APIError.validationError(message)
+        return try decodeRewardRedemptionResponse(data)
       },
       updateUser: { jwtToken, firstName, lastName, verifiedEmail in
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/users/me"
@@ -677,6 +709,81 @@ extension APIClient: DependencyKey {
           parameters: ["answerAudioBlockId": answerAudioBlockId]
         )
       },
+      updateListenerQuestionTrailingAudioBlock: {
+        jwtToken, stationId, questionId, trailingAudioBlockId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/listener-questions/\(questionId)"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        let parameters = UpdateTrailingAudioBlockParameters(
+          trailingAudioBlockId: trailingAudioBlockId)
+
+        let dataResponse = await apiSession.request(
+          url,
+          method: .put,
+          parameters: parameters,
+          encoder: JSONParameterEncoder.default,
+          headers: headers
+        )
+        .serializingData()
+        .response
+
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw transportFailure(dataResponse.error)
+        }
+
+        guard let data = dataResponse.value else {
+          throw APIError.dataNotValid
+        }
+
+        if statusCode >= 200, statusCode < 300 {
+          return try isoDecoder.decode(ListenerQuestion.self, from: data)
+        } else {
+          let message =
+            parsePlayolaErrorMessage(from: data) ?? "Failed to update trailing audio"
+          throw APIError.validationError(message)
+        }
+      },
+      insertListenerQuestionSpin: { jwtToken, listenerQuestionId, placeAfterSpinId in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/spins"
+        @Shared(.registeredDeviceId) var registeredDeviceId
+        var headers: HTTPHeaders = ["Authorization": "Bearer \(jwtToken)"]
+        if let deviceId = registeredDeviceId {
+          headers.add(name: "X-Device-Id", value: deviceId)
+        }
+        let parameters: [String: String] = [
+          "listenerQuestionId": listenerQuestionId,
+          "placeAfterSpinId": placeAfterSpinId,
+        ]
+
+        let dataResponse = await apiSession.request(
+          url,
+          method: .post,
+          parameters: parameters,
+          encoding: JSONEncoding.default,
+          headers: headers
+        )
+        .serializingData()
+        .response
+
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw transportFailure(dataResponse.error)
+        }
+
+        guard let data = dataResponse.value else {
+          throw APIError.dataNotValid
+        }
+
+        if statusCode >= 200, statusCode < 300 {
+          let spins = try isoDecoder.decode([Spin].self, from: data)
+          return spins
+        } else {
+          let message = parsePlayolaErrorMessage(from: data) ?? "Failed to air question"
+          if statusCode >= 500 {
+            throw APIError.serverError(message)
+          }
+          throw APIError.validationError(message)
+        }
+      },
       declineListenerQuestion: { jwtToken, stationId, questionId in
         try await authenticatedPost(
           path: "/v1/stations/\(stationId)/listener-questions/\(questionId)/decline",
@@ -712,6 +819,10 @@ extension APIClient: DependencyKey {
         try await authenticatedPostVoid(
           path: "/v1/songs/requests", token: jwtToken, parameters: parameters
         )
+      },
+      getSongSuggestions: { jwtToken, stationId in
+        try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/song-suggestions", token: jwtToken)
       },
       registerDevice: { jwtToken, deviceToken, platform, appVersion in
         try await authenticatedPost(
@@ -780,11 +891,6 @@ extension APIClient: DependencyKey {
       giveawayEventMyResult: { jwtToken, eventId in
         try await authenticatedGet(
           path: "/v1/giveaway-events/\(eventId)/my-result", token: jwtToken)
-      },
-      submitGiveawayWinnerDetails: { jwtToken, eventId, body in
-        try await authenticatedPostVoid(
-          path: "/v1/giveaway-events/\(eventId)/winner-submission",
-          token: jwtToken, parameters: body.asParameters)
       },
       recordGiveawayEventCongrats: { jwtToken, eventId, audioBlockId in
         do {
@@ -917,6 +1023,12 @@ extension APIClient: DependencyKey {
           token: jwtToken
         )
       },
+      getStationCategories: { jwtToken, stationId in
+        try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/categories",
+          token: jwtToken
+        )
+      },
       getArtistRecordingAudioBlockIds: { jwtToken, stationId in
         let url =
           "\(Config.shared.productionBaseUrl.absoluteString)/v1/ios/stations/\(stationId)/source-tapes/audio-block-ids"
@@ -945,6 +1057,96 @@ extension APIClient: DependencyKey {
       removeArtistSuggestionVote: { jwtToken, artistSuggestionId in
         try await authenticatedDelete(
           path: "/v1/artist-suggestions/\(artistSuggestionId)/vote", token: jwtToken)
+      },
+      getProgrammingHealth: { jwtToken, stationId in
+        try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/programming-health", token: jwtToken)
+      },
+      getStationSetupProgress: { jwtToken, stationId in
+        try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/setup-progress", token: jwtToken)
+      },
+      getDraftStationCategoryProgress: { jwtToken, stationId in
+        try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/station-categories",
+          token: jwtToken,
+          queryParams: ["version": "draft"])
+      },
+      // MARK: - Live Shows (Ask Me Anything)
+      startLiveShow: { token, stationId, audioBlockIds in
+        let url = "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/liveShow"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
+        let parameters = StartLiveShowParameters(
+          type: "ask-me-anything", audioBlockIds: audioBlockIds)
+
+        let dataResponse = await apiSession.request(
+          url, method: .post, parameters: parameters,
+          encoder: JSONParameterEncoder.default, headers: headers
+        )
+        .serializingData()
+        .response
+
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw transportFailure(dataResponse.error)
+        }
+        guard let data = dataResponse.value else { throw APIError.dataNotValid }
+
+        if statusCode >= 200, statusCode < 300 {
+          return try isoDecoder.decode(StartLiveShowResponse.self, from: data)
+        } else if statusCode == 409 {
+          throw APIError.liveShowUnavailable(delayUntil: parseLiveShowDelayUntil(from: data))
+        } else {
+          throw APIError.validationError(
+            parsePlayolaErrorMessage(from: data) ?? "Failed to start live show")
+        }
+      },
+      endLiveShow: { token, stationId, liveShowId, audioBlockId in
+        let url =
+          "\(Config.shared.baseUrl.absoluteString)/v1/stations/\(stationId)/liveShow/\(liveShowId)/end"
+        let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
+        let parameters = EndLiveShowParameters(audioBlockId: audioBlockId)
+
+        let dataResponse = await apiSession.request(
+          url, method: .post, parameters: parameters,
+          encoder: JSONParameterEncoder.default, headers: headers
+        )
+        .serializingData()
+        .response
+
+        guard let statusCode = dataResponse.response?.statusCode else {
+          throw transportFailure(dataResponse.error)
+        }
+        guard let data = dataResponse.value else { throw APIError.dataNotValid }
+
+        if statusCode >= 200, statusCode < 300 {
+          return try isoDecoder.decode(EndLiveShowResponse.self, from: data)
+        } else if statusCode == 409 {
+          throw APIError.liveShowReplaced
+        } else if statusCode == 400 {
+          throw APIError.liveShowFinished
+        } else {
+          throw APIError.validationError(
+            parsePlayolaErrorMessage(from: data) ?? "Failed to end live show")
+        }
+      },
+      getActiveListeningSessions: { jwtToken, stationId, airtime, endTime in
+        var queryParams: [String: String] = [
+          "stationId": stationId,
+          "airtime": airtime.ISO8601Format(),
+          "limit": "1",
+        ]
+        if let endTime {
+          queryParams["endTime"] = endTime.ISO8601Format()
+        }
+        return try await authenticatedGet(
+          path: "/v1/listening-sessions/active",
+          token: jwtToken,
+          queryParams: queryParams)
+      },
+      getListenerCounts: { jwtToken, stationId, startDate, endDate in
+        try await authenticatedGet(
+          path: "/v1/stations/\(stationId)/listener-counts", token: jwtToken,
+          queryParams: ["granularity": "week", "startDate": startDate, "endDate": endDate])
       },
       getAppVersionRequirements: {
         let url = "\(Config.shared.baseUrl.absoluteString)/v1/app-version-requirements"

@@ -31,9 +31,10 @@ class ChooseStationToBroadcastPageModel: ViewModel {
   let stations: [Station]
   let navigationTitle = "Choose Station"
 
+  /// Includes in-development stations (`active == false`) so artists can open one and land on the
+  /// station-setup Dashboard. The Dashboard tab routes active vs. setup on its own.
   var sortedStations: [Station] {
     stations
-      .filter { $0.active != false }
       .sorted {
         $0.curatorName.localizedCaseInsensitiveCompare($1.curatorName) == .orderedAscending
       }

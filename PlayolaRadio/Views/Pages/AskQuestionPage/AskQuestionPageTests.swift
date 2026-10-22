@@ -4,6 +4,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -34,6 +35,35 @@ struct AskQuestionPageTests {
     let model = AskQuestionPageModel(station: station)
 
     #expect(model.curatorName == "Bri Bagwell")
+  }
+
+  @Test
+  func testInstructionsTextInvitesAnyMessage() {
+    let model = AskQuestionPageModel(station: .mock)
+
+    expectNoDifference(
+      model.instructionsText,
+      "Start with your name and where you’re listening from, then say or ask "
+        + "whatever you want: a question, a shout-out, a story. "
+        + "If they choose yours, your message and their response will air on the station."
+    )
+  }
+
+  @Test
+  func viewAppearedTracksViewedScreen() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    await withDependencies {
+      $0.audioRecorder.prepareForRecording = {}
+      $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+    } operation: {
+      let model = AskQuestionPageModel(station: .mockWith(id: "station-123"))
+
+      await model.viewAppeared()
+    }
+
+    expectNoDifference(
+      capturedEvents.value, [.viewedScreen(screen: .askArtist, stationId: "station-123")])
   }
 
   // MARK: - Recording

@@ -1,0 +1,902 @@
+{
+  "screen": {
+    "type": "frame",
+    "id": "KHugh",
+    "x": 986,
+    "y": 4550,
+    "name": "Station Health (Detail)",
+    "clip": true,
+    "width": 393,
+    "height": 852,
+    "fill": "$surface-base",
+    "layout": "vertical",
+    "children": [
+      {
+        "type": "frame",
+        "id": "Jn5Ky",
+        "name": "Nav Bar",
+        "width": "fill_container",
+        "height": 56,
+        "justifyContent": "center",
+        "alignItems": "center",
+        "children": [
+          {
+            "type": "text",
+            "id": "AnkZJ",
+            "name": "Title",
+            "fill": "$text-primary",
+            "content": "Station Health",
+            "fontFamily": "$font-body",
+            "fontSize": 17,
+            "fontWeight": "600"
+          },
+          {
+            "type": "icon",
+            "id": "ihlm7",
+            "layoutPosition": "absolute",
+            "x": 12,
+            "y": 17,
+            "name": "Back",
+            "width": 22,
+            "height": 22,
+            "icon": "chevron-left",
+            "library": "lucide",
+            "fill": "$text-primary"
+          }
+        ]
+      },
+      {
+        "type": "frame",
+        "id": "tCHc9",
+        "name": "Content",
+        "width": "fill_container",
+        "layout": "vertical",
+        "gap": 16,
+        "padding": [
+          12,
+          16,
+          20,
+          16
+        ],
+        "children": [
+          {
+            "type": "frame",
+            "id": "w6LBs",
+            "name": "Hero",
+            "width": "fill_container",
+            "layout": "vertical",
+            "gap": 6,
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "frame",
+                "id": "xhpuF",
+                "name": "Big Ring",
+                "width": 100,
+                "height": 100,
+                "layout": "none",
+                "children": [
+                  {
+                    "type": "ellipse",
+                    "id": "PXCk2",
+                    "x": 0,
+                    "y": 0,
+                    "name": "Track",
+                    "innerRadius": 0.88,
+                    "fill": "$surface-control",
+                    "width": 100,
+                    "height": 100
+                  },
+                  {
+                    "type": "ellipse",
+                    "id": "imR4G",
+                    "x": 0,
+                    "y": 0,
+                    "name": "Progress",
+                    "innerRadius": 0.88,
+                    "startAngle": 90,
+                    "sweepAngle": -331,
+                    "fill": "$success-green",
+                    "width": 100,
+                    "height": 100
+                  },
+                  {
+                    "type": "text",
+                    "id": "Br5WM",
+                    "x": 0,
+                    "y": 36,
+                    "name": "Value",
+                    "fill": "$text-primary",
+                    "textGrowth": "fixed-width",
+                    "width": 100,
+                    "content": "92%",
+                    "textAlign": "center",
+                    "fontFamily": "$font-display",
+                    "fontSize": 24,
+                    "fontWeight": "600"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "id": "P0LIFI",
+                "name": "Status",
+                "fill": "$text-primary",
+                "content": "In good shape",
+                "fontFamily": "$font-display",
+                "fontSize": 19,
+                "fontWeight": "600"
+              },
+              {
+                "type": "text",
+                "id": "Iu0O6",
+                "name": "Sub",
+                "fill": "$text-tertiary",
+                "content": "↓ 3 since last week — it drifts as things age",
+                "fontFamily": "$font-body",
+                "fontSize": 13,
+                "fontWeight": "normal"
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "Fsinb",
+            "name": "Components",
+            "width": "fill_container",
+            "layout": "vertical",
+            "gap": 10,
+            "children": [
+              {
+                "type": "text",
+                "id": "RcqMo",
+                "name": "Header",
+                "fill": "$text-disabled",
+                "content": "WHAT FEEDS IT",
+                "fontFamily": "$font-body",
+                "fontSize": 11,
+                "fontWeight": "600",
+                "letterSpacing": 1.2
+              },
+              {
+                "type": "frame",
+                "id": "jCeYV",
+                "name": "Comp · Intros & voicetracks",
+                "width": "fill_container",
+                "fill": "$surface-section",
+                "cornerRadius": 12,
+                "layout": "vertical",
+                "gap": 6,
+                "padding": [
+                  10,
+                  12
+                ],
+                "children": [
+                  {
+                    "type": "frame",
+                    "id": "Mmrbt",
+                    "name": "Top",
+                    "width": "fill_container",
+                    "gap": 10,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "tm2wO",
+                        "name": "Icon",
+                        "width": 16,
+                        "height": 16,
+                        "icon": "mic",
+                        "library": "lucide",
+                        "fill": "$text-secondary"
+                      },
+                      {
+                        "type": "text",
+                        "id": "cBPZ7",
+                        "name": "Title",
+                        "fill": "$text-primary",
+                        "content": "Intros & voicetracks",
+                        "fontFamily": "$font-body",
+                        "fontSize": 14,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "GvicI",
+                        "name": "Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "text",
+                        "id": "nP0eH",
+                        "name": "Points",
+                        "fill": "$text-secondary",
+                        "content": "36/40",
+                        "fontFamily": "$font-body",
+                        "fontSize": 13,
+                        "fontWeight": "600"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "gEHFC",
+                    "name": "Meter",
+                    "clip": true,
+                    "width": "fill_container",
+                    "height": 6,
+                    "fill": "$progress-track",
+                    "cornerRadius": 3,
+                    "children": [
+                      {
+                        "type": "rectangle",
+                        "cornerRadius": 3,
+                        "id": "ghDOD",
+                        "name": "Fill",
+                        "fill": "$success-green",
+                        "width": 303,
+                        "height": 6
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "id": "SyEVA",
+                    "name": "Note",
+                    "fill": "$text-tertiary",
+                    "content": "Newest intro is 6 days old",
+                    "fontFamily": "$font-body",
+                    "fontSize": 12,
+                    "fontWeight": "normal"
+                  },
+                  {
+                    "type": "frame",
+                    "id": "r9g5X",
+                    "name": "Fix",
+                    "width": "fill_container",
+                    "fill": "$warm-surface",
+                    "cornerRadius": 8,
+                    "gap": 10,
+                    "padding": [
+                      8,
+                      10
+                    ],
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "L7NW1N",
+                        "name": "Points",
+                        "fill": "$success-green",
+                        "content": "+4",
+                        "fontFamily": "$font-display",
+                        "fontSize": 13,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "text",
+                        "id": "gXPSM",
+                        "name": "Title",
+                        "fill": "$text-primary",
+                        "content": "Record 2 fresh intros",
+                        "fontFamily": "$font-body",
+                        "fontSize": 13,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "CUViw",
+                        "name": "Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "icon",
+                        "id": "Tpw6n",
+                        "name": "Chevron",
+                        "width": 13,
+                        "height": 13,
+                        "icon": "chevron-right",
+                        "library": "lucide",
+                        "fill": "$warm-text-secondary"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "W9NCA",
+                "name": "Comp · Song rotation",
+                "width": "fill_container",
+                "fill": "$surface-section",
+                "cornerRadius": 12,
+                "layout": "vertical",
+                "gap": 6,
+                "padding": [
+                  10,
+                  12
+                ],
+                "children": [
+                  {
+                    "type": "frame",
+                    "id": "QlBGF",
+                    "name": "Top",
+                    "width": "fill_container",
+                    "gap": 10,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "nAEcJ",
+                        "name": "Icon",
+                        "width": 16,
+                        "height": 16,
+                        "icon": "disc-3",
+                        "library": "lucide",
+                        "fill": "$text-secondary"
+                      },
+                      {
+                        "type": "text",
+                        "id": "q0iuw",
+                        "name": "Title",
+                        "fill": "$text-primary",
+                        "content": "Song rotation",
+                        "fontFamily": "$font-body",
+                        "fontSize": 14,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "lPM4u",
+                        "name": "Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "text",
+                        "id": "DmLVd",
+                        "name": "Points",
+                        "fill": "$text-secondary",
+                        "content": "32/35",
+                        "fontFamily": "$font-body",
+                        "fontSize": 13,
+                        "fontWeight": "600"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "y2inM",
+                    "name": "Meter",
+                    "clip": true,
+                    "width": "fill_container",
+                    "height": 6,
+                    "fill": "$progress-track",
+                    "cornerRadius": 3,
+                    "children": [
+                      {
+                        "type": "rectangle",
+                        "cornerRadius": 3,
+                        "id": "IdB83",
+                        "name": "Fill",
+                        "fill": "$success-green",
+                        "width": 308,
+                        "height": 6
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "id": "YQoZH",
+                    "name": "Note",
+                    "fill": "$text-tertiary",
+                    "content": "6 songs unchanged since June",
+                    "fontFamily": "$font-body",
+                    "fontSize": 12,
+                    "fontWeight": "normal"
+                  },
+                  {
+                    "type": "frame",
+                    "id": "ytt2N",
+                    "name": "Fix",
+                    "width": "fill_container",
+                    "fill": "$warm-surface",
+                    "cornerRadius": 8,
+                    "gap": 10,
+                    "padding": [
+                      8,
+                      10
+                    ],
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "cZqwv",
+                        "name": "Points",
+                        "fill": "$success-green",
+                        "content": "+3",
+                        "fontFamily": "$font-display",
+                        "fontSize": 13,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "text",
+                        "id": "PAFrj",
+                        "name": "Title",
+                        "fill": "$text-primary",
+                        "content": "Swap 3 songs in Medium Rotation",
+                        "fontFamily": "$font-body",
+                        "fontSize": 13,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "perqh",
+                        "name": "Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "icon",
+                        "id": "E1HyK",
+                        "name": "Chevron",
+                        "width": 13,
+                        "height": 13,
+                        "icon": "chevron-right",
+                        "library": "lucide",
+                        "fill": "$warm-text-secondary"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "e48h7",
+                "name": "Comp · Listener connection",
+                "width": "fill_container",
+                "fill": "$surface-section",
+                "cornerRadius": 12,
+                "layout": "vertical",
+                "gap": 6,
+                "padding": [
+                  10,
+                  12
+                ],
+                "children": [
+                  {
+                    "type": "frame",
+                    "id": "xk101",
+                    "name": "Top",
+                    "width": "fill_container",
+                    "gap": 10,
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "icon",
+                        "id": "W2GZA",
+                        "name": "Icon",
+                        "width": 16,
+                        "height": 16,
+                        "icon": "message-circle",
+                        "library": "lucide",
+                        "fill": "$text-secondary"
+                      },
+                      {
+                        "type": "text",
+                        "id": "YWTHh",
+                        "name": "Title",
+                        "fill": "$text-primary",
+                        "content": "Listener connection",
+                        "fontFamily": "$font-body",
+                        "fontSize": 14,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "P9MHu",
+                        "name": "Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "text",
+                        "id": "znw7z",
+                        "name": "Points",
+                        "fill": "$text-secondary",
+                        "content": "24/25",
+                        "fontFamily": "$font-body",
+                        "fontSize": 13,
+                        "fontWeight": "600"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "frame",
+                    "id": "X2m5Xm",
+                    "name": "Meter",
+                    "clip": true,
+                    "width": "fill_container",
+                    "height": 6,
+                    "fill": "$progress-track",
+                    "cornerRadius": 3,
+                    "children": [
+                      {
+                        "type": "rectangle",
+                        "cornerRadius": 3,
+                        "id": "wPTui",
+                        "name": "Fill",
+                        "fill": "$success-green",
+                        "width": 324,
+                        "height": 6
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "id": "JJ8DD",
+                    "name": "Note",
+                    "fill": "$text-tertiary",
+                    "content": "1 question waiting on you",
+                    "fontFamily": "$font-body",
+                    "fontSize": 12,
+                    "fontWeight": "normal"
+                  },
+                  {
+                    "type": "frame",
+                    "id": "srHGl",
+                    "name": "Fix",
+                    "width": "fill_container",
+                    "fill": "$warm-surface",
+                    "cornerRadius": 8,
+                    "gap": 10,
+                    "padding": [
+                      8,
+                      10
+                    ],
+                    "alignItems": "center",
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "YISvZ",
+                        "name": "Points",
+                        "fill": "$success-green",
+                        "content": "+1",
+                        "fontFamily": "$font-display",
+                        "fontSize": 13,
+                        "fontWeight": "600"
+                      },
+                      {
+                        "type": "text",
+                        "id": "D4WcY",
+                        "name": "Title",
+                        "fill": "$text-primary",
+                        "content": "Answer Jenna’s question",
+                        "fontFamily": "$font-body",
+                        "fontSize": 13,
+                        "fontWeight": "500"
+                      },
+                      {
+                        "type": "frame",
+                        "id": "VmTAf",
+                        "name": "Spacer",
+                        "width": "fill_container",
+                        "height": 1
+                      },
+                      {
+                        "type": "icon",
+                        "id": "ZNZdl",
+                        "name": "Chevron",
+                        "width": 13,
+                        "height": 13,
+                        "icon": "chevron-right",
+                        "library": "lucide",
+                        "fill": "$warm-text-secondary"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "frame",
+            "id": "e6SYm1",
+            "name": "How It Works",
+            "width": "fill_container",
+            "fill": "$surface-section",
+            "cornerRadius": 12,
+            "gap": 10,
+            "padding": [
+              12,
+              14
+            ],
+            "alignItems": "center",
+            "children": [
+              {
+                "type": "icon",
+                "id": "hKaR4",
+                "name": "Icon",
+                "width": 16,
+                "height": 16,
+                "icon": "info",
+                "library": "lucide",
+                "fill": "$info-blue"
+              },
+              {
+                "type": "text",
+                "id": "I3xcCO",
+                "name": "Text",
+                "fill": "$text-secondary",
+                "textGrowth": "fixed-width",
+                "width": "fill_container",
+                "content": "Health drifts down slowly while your station runs on autopilot. Fresh intros, swapped songs, and answered questions top it back up.",
+                "lineHeight": 1.4,
+                "fontFamily": "$font-body",
+                "fontSize": 12,
+                "fontWeight": "normal"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "components": {},
+  "variables": {
+    "surface-base": {
+      "type": "color",
+      "value": "#000000"
+    },
+    "surface-section": {
+      "type": "color",
+      "value": "#1A1A1A"
+    },
+    "surface-raised": {
+      "type": "color",
+      "value": "#2A2A2A"
+    },
+    "surface-row": {
+      "type": "color",
+      "value": "#333333"
+    },
+    "surface-control": {
+      "type": "color",
+      "value": "#444444"
+    },
+    "surface-muted": {
+      "type": "color",
+      "value": "#4A4A4A"
+    },
+    "warm-base": {
+      "type": "color",
+      "value": "#130000"
+    },
+    "warm-surface": {
+      "type": "color",
+      "value": "#3A1212"
+    },
+    "warm-surface-raised": {
+      "type": "color",
+      "value": "#471818"
+    },
+    "warm-control-disabled": {
+      "type": "color",
+      "value": "#2A1313"
+    },
+    "warm-text-secondary": {
+      "type": "color",
+      "value": "#D7BFBF"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#C7C7C7"
+    },
+    "text-tertiary": {
+      "type": "color",
+      "value": "#999999"
+    },
+    "text-disabled": {
+      "type": "color",
+      "value": "#868686"
+    },
+    "brand-primary": {
+      "type": "color",
+      "value": "#EF6962"
+    },
+    "radius-xs": {
+      "type": "number",
+      "value": 4
+    },
+    "radius-sm": {
+      "type": "number",
+      "value": 6
+    },
+    "radius-md": {
+      "type": "number",
+      "value": 8
+    },
+    "radius-lg": {
+      "type": "number",
+      "value": 12
+    },
+    "radius-pill": {
+      "type": "number",
+      "value": 24
+    },
+    "space-1": {
+      "type": "number",
+      "value": 4
+    },
+    "space-2": {
+      "type": "number",
+      "value": 8
+    },
+    "space-3": {
+      "type": "number",
+      "value": 12
+    },
+    "space-4": {
+      "type": "number",
+      "value": 16
+    },
+    "space-5": {
+      "type": "number",
+      "value": 20
+    },
+    "space-6": {
+      "type": "number",
+      "value": 24
+    },
+    "space-8": {
+      "type": "number",
+      "value": 32
+    },
+    "font-body": {
+      "type": "string",
+      "value": "Inter"
+    },
+    "font-display": {
+      "type": "string",
+      "value": "Space Grotesk"
+    },
+    "icon-inactive": {
+      "type": "color",
+      "value": "#BABABA"
+    },
+    "text-system-gray": {
+      "type": "color",
+      "value": "#8E8E93"
+    },
+    "star-active": {
+      "type": "color",
+      "value": "#FFD24A"
+    },
+    "star-inactive": {
+      "type": "color",
+      "value": "$text-quaternary"
+    },
+    "text-quaternary": {
+      "type": "color",
+      "value": "#888888"
+    },
+    "live-on-air": {
+      "type": "color",
+      "value": "#34C759"
+    },
+    "text-muted": {
+      "type": "color",
+      "value": "#AAAAAA"
+    },
+    "system-red": {
+      "type": "color",
+      "value": "#FF3B30"
+    },
+    "overlay-scrim-85": {
+      "type": "color",
+      "value": "#000000D9"
+    },
+    "giveaway-purple": {
+      "type": "color",
+      "value": "#AF52DE"
+    },
+    "border-dashed": {
+      "type": "color",
+      "value": "#4D4D4D"
+    },
+    "overlay-scrim-70": {
+      "type": "color",
+      "value": "#000000B3"
+    },
+    "glass-fill": {
+      "type": "color",
+      "value": "#2C2C2ECC"
+    },
+    "glass-hairline": {
+      "type": "color",
+      "value": "#FFFFFF26"
+    },
+    "surface-placeholder": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "surface-tile": {
+      "type": "color",
+      "value": "#262626"
+    },
+    "cta-dusty-red": {
+      "type": "color",
+      "value": "#CC6666"
+    },
+    "ring-stroke": {
+      "type": "color",
+      "value": "#1F1F1F"
+    },
+    "surface-art-placeholder": {
+      "type": "color",
+      "value": "#4D4D4D"
+    },
+    "warm-gray-900": {
+      "type": "color",
+      "value": "#3D3634"
+    },
+    "warm-gray-700": {
+      "type": "color",
+      "value": "#6B6260"
+    },
+    "warm-gray-600": {
+      "type": "color",
+      "value": "#827876"
+    },
+    "warm-gray-400": {
+      "type": "color",
+      "value": "#B0A7A5"
+    },
+    "info-blue": {
+      "type": "color",
+      "value": "#6EC6FF"
+    },
+    "schedule-row": {
+      "type": "color",
+      "value": "#333333"
+    },
+    "schedule-row-locked": {
+      "type": "color",
+      "value": "#444444"
+    },
+    "progress-track": {
+      "type": "color",
+      "value": "#5E5F5F"
+    },
+    "commercial-green": {
+      "type": "color",
+      "value": "#2E7D32"
+    },
+    "success-green": {
+      "type": "color",
+      "value": "#34C759"
+    },
+    "disabled-fill": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "disabled-stroke": {
+      "type": "color",
+      "value": "#888888"
+    },
+    "success-material": {
+      "type": "color",
+      "value": "#4CAF50"
+    },
+    "warning-amber": {
+      "type": "color",
+      "value": "#FFC107"
+    }
+  }
+}

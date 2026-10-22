@@ -28,9 +28,15 @@ struct ListenerQuestion: Codable, Identifiable, Equatable {
   let listener: ListenerQuestionListener?
   let audioBlock: AudioBlock?
   let answerAudioBlock: AudioBlock?
+  let trailingAudioBlock: AudioBlock?
 
   var transcription: String? { audioBlock?.transcription }
   var durationMS: Int? { audioBlock?.durationMS }
+
+  func wasAskedDuringShow(startingAt showStartedAt: Date?) -> Bool {
+    guard let showStartedAt else { return false }
+    return createdAt >= showStartedAt
+  }
 }
 
 struct ListenerQuestionListener: Codable, Equatable {
@@ -68,7 +74,8 @@ extension ListenerQuestion {
     createdAt: Date = Date(),
     listener: ListenerQuestionListener? = .mockWith(),
     audioBlock: AudioBlock? = nil,
-    answerAudioBlock: AudioBlock? = nil
+    answerAudioBlock: AudioBlock? = nil,
+    trailingAudioBlock: AudioBlock? = nil
   ) -> ListenerQuestion {
     ListenerQuestion(
       id: id,
@@ -84,7 +91,8 @@ extension ListenerQuestion {
       createdAt: createdAt,
       listener: listener,
       audioBlock: audioBlock,
-      answerAudioBlock: answerAudioBlock
+      answerAudioBlock: answerAudioBlock,
+      trailingAudioBlock: trailingAudioBlock
     )
   }
 }

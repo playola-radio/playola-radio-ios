@@ -1,0 +1,133 @@
+{
+  "type": "frame",
+  "id": "GWKZh",
+  "x": 986,
+  "y": 24640,
+  "name": "Listening Tile · Koozie · Earned, Not Claimed",
+  "width": 393,
+  "fill": "#000000",
+  "layout": "vertical",
+  "padding": 24,
+  "children": [
+    {
+      "type": "frame",
+      "id": "NjYGh",
+      "name": "Listening Time Tile",
+      "width": "fill_container",
+      "fill": "#262626",
+      "cornerRadius": 8,
+      "layout": "vertical",
+      "gap": 16,
+      "padding": 20,
+      "children": [
+        {
+          "type": "frame",
+          "id": "tnc8U",
+          "name": "Head",
+          "gap": 8,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "Z5qFj",
+              "name": "Icon",
+              "width": 17,
+              "height": 17,
+              "icon": "headphones",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            },
+            {
+              "type": "text",
+              "id": "kGwHZ",
+              "name": "Label",
+              "fill": "#FFFFFF",
+              "content": "Listening Time",
+              "fontFamily": "Space Grotesk",
+              "fontSize": 16,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "xaVRL",
+          "name": "Total",
+          "fill": "#FFFFFF",
+          "content": "52h 14m 08s",
+          "fontFamily": "Inter",
+          "fontSize": 32,
+          "fontWeight": "700"
+        },
+        {
+          "type": "frame",
+          "id": "GLN0Y",
+          "name": "Koozie Section · Earned",
+          "width": "fill_container",
+          "fill": "#2A2A2A",
+          "cornerRadius": 12,
+          "gap": 12,
+          "padding": 16,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "PyGIY",
+              "name": "Koozie Icon",
+              "width": 40,
+              "height": 40,
+              "fill": "#EF6962",
+              "cornerRadius": 8,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "y4Jiri",
+                  "name": "Koozie Glyph",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "cup-soda",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "hBfJY",
+              "name": "Copy",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "j9QmW",
+                  "name": "Title",
+                  "fill": "#FFFFFF",
+                  "content": "You earned a koozie!",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "dVXEZ",
+                  "name": "Subtitle",
+                  "fill": "#C7C7C7",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Claim it from your prize tile above.",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

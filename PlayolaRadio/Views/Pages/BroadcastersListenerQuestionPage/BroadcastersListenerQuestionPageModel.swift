@@ -17,7 +17,7 @@ enum ListenerQuestionFilter: CaseIterable, Equatable {
   var displayText: String {
     switch self {
     case .pending: return "Pending"
-    case .answered: return "Answered"
+    case .answered: return "Replied"
     case .all: return "All"
     }
   }
@@ -32,6 +32,7 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.analytics) var analytics
 
   // MARK: - Shared State
 
@@ -49,13 +50,13 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
   // MARK: - Properties
 
   let stationId: String
-  let navigationTitle = "Listener Questions"
+  let navigationTitle = "Listener Messages"
   let filterOptions: [ListenerQuestionFilter] = [.pending, .answered, .all]
 
-  let emptyStateTitle = "No Questions Yet"
-  let emptyStateMessage = "When listeners send you questions,\nthey'll appear here."
+  let emptyStateTitle = "No Messages Yet"
+  let emptyStateMessage = "When listeners send you messages,\nthey'll appear here."
   let declineButtonText = "Decline"
-  let answeredBadgeText = "Answered"
+  let answeredBadgeText = "Replied"
   let missingTranscriptionText = "No transcription available"
   let unknownListenerText = "Unknown Listener"
   let showMoreText = "Show more"
@@ -84,26 +85,27 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
     case .pending:
       return "All Caught Up!"
     case .answered:
-      return "No Answered Questions"
+      return "No Replies Yet"
     case .all:
-      return "No Questions"
+      return "No Messages"
     }
   }
 
   var filteredEmptyStateMessage: String {
     switch selectedFilter {
     case .pending:
-      return "You've responded to all your questions."
+      return "You've responded to all your messages."
     case .answered:
-      return "Questions you've answered will appear here."
+      return "Messages you've replied to will appear here."
     case .all:
-      return "No questions to display."
+      return "No messages to display."
     }
   }
 
   // MARK: - User Actions
 
   func viewAppeared() async {
+    await analytics.track(.viewedScreen(screen: .listenerQuestions, stationId: stationId))
     await fetchQuestions()
   }
 
@@ -215,7 +217,7 @@ extension PlayolaAlert {
 
   static func fetchQuestionsError(_ message: String) -> PlayolaAlert {
     PlayolaAlert(
-      title: "Error Loading Questions",
+      title: "Error Loading Messages",
       message: message,
       dismissButton: .cancel(Text("OK"))
     )
@@ -223,7 +225,7 @@ extension PlayolaAlert {
 
   static func declineQuestionError(_ message: String) -> PlayolaAlert {
     PlayolaAlert(
-      title: "Error Declining Question",
+      title: "Error Declining Message",
       message: message,
       dismissButton: .cancel(Text("OK"))
     )

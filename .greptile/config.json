@@ -92,7 +92,7 @@
     },
     {
       "id": "api-error-handling",
-      "rule": "All API calls must be wrapped in do/catch blocks. Errors should set `presentedAlert` to an appropriate `PlayolaAlert` case with the error's `localizedDescription`. Never silently swallow API errors.",
+      "rule": "Never silently swallow errors. Every API call must be wrapped in do/catch, and every caught error must do BOTH: (1) let us know — report it via `errorReporting.reportError` (task cancellation and connectivity blips identified by `NetworkErrorClassifier.isNetworkError` may skip reporting); and (2) let the user know why something isn't working, using a surface that fits the flow. Use a blocking `PlayolaAlert` (`presentedAlert`) only when an action the user deliberately just took failed (e.g. tapping Save, Submit, Send, Record). For data that loads as a page appears or refreshes (dashboards, lists, stats, schedules — pages a user may just be passing through on the way somewhere else), use a non-interrupting surface instead: a toast via the `toast` dependency, or an inline error state in the affected section — never a blocking alert, and never more than one toast per load. Background or periodic refreshes the user did not start may skip the user-facing part, but must still report. An empty, log-only, or analytics-only catch is a violation.",
       "scope": ["PlayolaRadio/Views/**/*Model.swift"],
       "severity": "high"
     },

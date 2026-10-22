@@ -1,0 +1,281 @@
+import PlayolaPlayer
+import SwiftUI
+
+struct AMALiveRowData: Identifiable {
+  let id: String
+  let spins: [Spin]
+  let title: String
+  let subtitle: String
+  let icon: String
+  let artworkURL: URL?
+  let artworkColor: Color
+  let airtime: String
+  let trailingIcon: String
+  let isEditable: Bool
+  let isProcessing: Bool
+  var processingOpacity: Double { isProcessing ? 1 : 0 }
+  var airtimeOpacity: Double { isProcessing ? 0 : 1 }
+  var processingLabel: String { "Updating schedule" }
+}
+
+// Mirrors the server's LIVE_SHOW_FILLER_REVEAL_MS (180000) in server/src/lib/scheduler/scheduler.ts.
+private let liveShowFillerRevealSeconds: TimeInterval = 180
+
+private let amaAirtimeFormatter: DateFormatter = {
+  let formatter = DateFormatter()
+  formatter.dateFormat = "h:mm:ssa"
+  return formatter
+}()
+
+extension AskMeAnythingLivePageModel {
+  func playbackTick() {
+    guard isShowActive else { return }
+    if isAwaitingStartedSchedule { displayDate = now }
+    broadcast.tick()
+    schedulePlaybackChanged()
+  }
+
+  func updateLivePresentation() {
+    if isAwaitingStartedSchedule { displayDate = now }
+    guard let showId = broadcast.liveShowId, let schedule = broadcast.schedule else { return }
+    displayDate = now
+    if let endingSpinId, schedule.spins.contains(where: { $0.id == endingSpinId }),
+      let outroStagingId
+    {
+      broadcast.stagingItems.removeAll { $0.stagingId == outroStagingId }
+      pendingPredecessors[outroStagingId] = nil
+    }
+    if isAwaitingStartedSchedule, schedule.spins.contains(where: { $0.liveShowId == showId }) {
+      isAwaitingStartedSchedule = false
+      openingItems.removeAll()
+    }
+    let showSpins = schedule.current().filter { $0.liveShowId == showId }
+    if scheduledStartsAt == nil {
+      let observedStart = schedule.spins.filter { $0.liveShowId == showId }.map(\.airtime).min()
+      scheduledStartsAt = amaShowStartTimes[showId] ?? observedStart
+      if let scheduledStartsAt, amaShowStartTimes[showId] == nil {
+        $amaShowStartTimes.withLock { $0[showId] = scheduledStartsAt }
+      }
+    }
+    let filler = showSpins.filter { $0.isFiller == true }
+    broadcast.visibleFillerIds.formIntersection(Set(filler.map(\.id)))
+    let newlyVisible = filler.filter {
+      $0.airtime <= displayDate.addingTimeInterval(liveShowFillerRevealSeconds)
+        && !broadcast.visibleFillerIds.contains($0.id)
+    }
+    broadcast.visibleFillerIds.formUnion(newlyVisible.map(\.id))
+    if hasPresentedSchedule, let promoted = newlyVisible.last, promoted.airtime > displayDate {
+      lastPromotedFiller = (promoted.audioBlock.title, displayDate)
+    }
+    hasPresentedSchedule = true
+  }
+
+  func loadLiveMetadata() async {
+    async let listenerCountRefresh: Void = refreshListenerCount()
+    async let questionsRefresh: Void = refreshListenerQuestions()
+    _ = await (listenerCountRefresh, questionsRefresh)
+  }
+
+  func refreshListenerCount() async {
+    listenerCountGeneration &+= 1
+    let generation = listenerCountGeneration
+    guard let jwt = auth.jwt else { return }
+    do {
+      let count = try await api.getActiveListeningSessions(jwt, stationId, now, nil)
+        .summary.uniqueUsers
+      guard generation == listenerCountGeneration, !Task.isCancelled else { return }
+      listenerCount = count
+    } catch {
+      guard generation == listenerCountGeneration, !Task.isCancelled,
+        !(error is CancellationError), (error as? URLError)?.code != .cancelled,
+        !NetworkErrorClassifier.isNetworkError(error)
+      else { return }
+      var tags = NetworkErrorClassifier.errorTags(for: error)
+      tags["endpoint"] = "getActiveListeningSessions"
+      await errorReporting.reportError(error, tags)
+    }
+  }
+
+  var isWaitingToAir: Bool {
+    isShowActive && displayDate != .distantPast
+      && (scheduledStartsAt.map { $0 > displayDate } ?? false)
+  }
+  var waitingHeight: CGFloat { isWaitingToAir ? 64 : 0 }
+  var waitingOpacity: Double { isWaitingToAir ? 1 : 0 }
+  var waitingFooterHeight: CGFloat { isWaitingToAir ? 40 : 0 }
+  var liveFooterHeight: CGFloat { isWaitingToAir ? 0 : (bufferMessage.isEmpty ? 112 : 142) }
+  var liveFooterOpacity: Double { isWaitingToAir ? 0 : 1 }
+  var setupHeaderHeight: CGFloat { isShowActive ? 0 : 44 }
+  var listenerCountLabel: String { listenerCount.map { "\($0) listening" } ?? "— listening" }
+  var waitingTitle: String {
+    "Your Show Starts in \(secondsLabel(scheduledStartsAt?.timeIntervalSince(displayDate) ?? 0))"
+  }
+  var waitingSubtitle: String {
+    guard let starts = scheduledStartsAt else { return "" }
+    return "After \(nowPlayingTitle) finishes · \(airtimeString(starts))"
+  }
+  var waitingFooterLabel: String { "Show starts automatically" }
+  var nowPlayingTitle: String { broadcast.nowPlaying?.audioBlock.title ?? "Your station" }
+  var nowPlayingArtist: String { broadcast.nowPlaying?.audioBlock.artist ?? "" }
+  var nowPlayingArtworkURL: URL? { broadcast.nowPlaying?.audioBlock.imageUrl }
+  var nowPlayingProgress: Double { broadcast.nowPlaying?.progress(at: displayDate) ?? 0 }
+  var liveNowLabel: String { "LIVE NOW" }
+  var liveAddTitle: String { "Add to Show" }
+  var liveAddExplanation: String { "Added to the end of your playlist" }
+  var isScheduleProcessing: Bool {
+    isStartingShow || isAddingToShow || isEditingSchedule || isEndingShow || broadcast.isLoading
+  }
+  var liveScheduleRetryTitles: [String] { scheduleRetryVisible ? [scheduleRetryTitle] : [] }
+  var canEditLiveQueue: Bool { !isScheduleProcessing && !isAwaitingStartedSchedule }
+  var canAddLiveAudio: Bool {
+    isShowActive && !isAwaitingStartedSchedule && !isStartingShow && !isEndingShow
+      && !isEditingSchedule && !broadcast.isLoading && !isCheckingSchedule
+      && outroStagingId == nil && effectiveEndsAt == nil
+  }
+  var canAddQuestion: Bool { canAddLiveAudio && !isScheduleProcessing }
+  var deleteRowLabel: String { "Delete" }
+
+  private var nextReserveFiller: Spin? {
+    broadcast.schedule?.current().first {
+      $0.liveShowId == broadcast.liveShowId && $0.isFiller == true
+        && !broadcast.visibleFillerIds.contains($0.id)
+    }
+  }
+  var bufferedSeconds: TimeInterval {
+    let end = broadcast.schedule?.current().filter {
+      $0.liveShowId == broadcast.liveShowId
+        && ($0.isFiller != true || broadcast.visibleFillerIds.contains($0.id))
+    }.map(\.endtime).max()
+    return max(0, end?.timeIntervalSince(displayDate) ?? 0)
+  }
+  var bufferLabel: String { "\(secondsLabel(bufferedSeconds)) buffered" }
+  var bufferProgress: Double { min(1, bufferedSeconds / 600) }
+  var bufferPercentLabel: String { "\(Int((bufferProgress * 100).rounded()))% of 10 min" }
+  var isBufferLow: Bool { bufferedSeconds <= 210 }
+  var bufferColor: Color { isBufferLow ? .playolaBufferAmber : .playolaSuccessGreen }
+  var bufferTextColor: Color { isBufferLow ? .playolaBufferAmber : .playolaTextPrimary }
+  var bufferMessage: String {
+    if isBufferLow, let filler = nextReserveFiller {
+      return "Adding \(filler.audioBlock.title) in "
+        + secondsLabel(filler.airtime.timeIntervalSince(displayDate) - liveShowFillerRevealSeconds)
+    }
+    if let promoted = lastPromotedFiller, displayDate.timeIntervalSince(promoted.date) < 5 {
+      return "\(promoted.title) added to keep your show going"
+    }
+    return ""
+  }
+  var bufferMessageColor: Color { isBufferLow ? .playolaBufferAmber : .playolaTextSecondary }
+  var bufferMessageFont: Font {
+    .custom(
+      isBufferLow ? FontNames.Inter_600_SemiBold : FontNames.Inter_400_Regular,
+      size: isBufferLow ? 13 : 12)
+  }
+  var bufferMessages: [String] { bufferMessage.isEmpty ? [] : [bufferMessage] }
+
+  var liveRows: [AMALiveRowData] {
+    if isAwaitingStartedSchedule {
+      return openingRows.map { row in
+        AMALiveRowData(
+          id: row.id.uuidString, spins: [], title: row.title, subtitle: row.subtitle,
+          icon: row.iconSystemName == "music.note" ? "music" : "mic",
+          artworkURL: row.albumImageUrl,
+          artworkColor: row.iconSystemName == "music.note" ? .playolaSurfaceMuted : .playolaRed,
+          airtime: "", trailingIcon: row.trailingIconSystemName == "pin" ? "pin" : "lock-keyhole",
+          isEditable: false, isProcessing: isScheduleProcessing)
+      }
+    }
+    let spins = broadcast.upcomingSpins
+    var consumed: Set<String> = []
+    return spins.compactMap { spin in
+      guard !consumed.contains(spin.id) else { return nil }
+      let question = listenerQuestions.first {
+        $0.audioBlockId == spin.audioBlock.id || $0.answerAudioBlockId == spin.audioBlock.id
+      }
+      let answerAudioBlockId = question.flatMap {
+        locallyAiredAnswerAudioBlockIds[$0.id] ?? $0.answerAudioBlockId
+      }
+      // The airing's group also holds the attached song, which renders as its own row.
+      let pair = spins.filter {
+        spin.spinGroupId != nil && $0.spinGroupId == spin.spinGroupId
+          && ($0.audioBlock.id == question?.audioBlockId
+            || $0.audioBlock.id == answerAudioBlockId)
+      }
+      let members = pair.isEmpty ? [spin] : pair
+      consumed.formUnion(members.map(\.id))
+      let isIntro = isWaitingToAir && spin.airtime == scheduledStartsAt
+      let isOutro = spin.id == endingSpinId
+      let isVoice = spin.audioBlock.type == "voiceTrack"
+      let listenerName = question?.listener?.firstName ?? "Listener"
+      let isAnswerSpin = answerAudioBlockId == spin.audioBlock.id
+      // Classify a matched question spin once, driving both title and subtitle: the grouped
+      // (spinGroupId) pair renders as a merged "Question and Answer" row, while flat pre-show
+      // spins render as separate question / answer rows.
+      let qaLabels: (title: String, subtitleWord: String)?
+      if question == nil {
+        qaLabels = nil
+      } else if members.count > 1 {
+        qaLabels = ("Question and Answer: \(listenerName)", "Question and answer")
+      } else if isAnswerSpin {
+        qaLabels = ("Answer to \(listenerName)", "Answer")
+      } else {
+        qaLabels = ("Question from \(listenerName)", "Question")
+      }
+      let title =
+        qaLabels?.title
+        ?? (isIntro
+          ? "Show Intro"
+          : (isOutro ? "Show Outro" : (isVoice ? "VoiceTrack" : spin.audioBlock.title)))
+      let duration = secondsLabel(
+        members.reduce(0) { $0 + $1.endtime.timeIntervalSince($1.airtime) })
+      let subtitle: String
+      if let qaLabels {
+        subtitle = "\(duration) · \(qaLabels.subtitleWord)"
+      } else if isIntro {
+        subtitle = "Your voice"
+      } else if isVoice {
+        subtitle = "\(duration) · Your voice"
+      } else {
+        subtitle = spin.audioBlock.artist + (isWaitingToAir ? "" : " · \(duration)")
+      }
+      let editable =
+        canEditLiveQueue && !isIntro && !isOutro
+        && members.allSatisfy { broadcast.canDeleteSpin($0) }
+      return AMALiveRowData(
+        id: spin.id, spins: members, title: title, subtitle: subtitle,
+        icon: question != nil
+          ? "messages-square" : (isIntro || isVoice ? "mic" : "music"),
+        artworkURL: question != nil || isIntro || isVoice ? nil : spin.audioBlock.imageUrl,
+        artworkColor: question != nil || isIntro || isVoice ? .playolaRed : .playolaSurfaceMuted,
+        airtime: "at \(airtimeString(spin.airtime))",
+        trailingIcon: isIntro ? "pin" : (editable ? "menu" : "lock-keyhole"),
+        isEditable: editable,
+        isProcessing: members.contains { broadcast.spinIdsBeingRescheduled.contains($0.id) })
+    }
+  }
+
+  func deleteLiveRow(_ row: AMALiveRowData) async {
+    guard let current = liveRows.first(where: { $0.id == row.id }), current.isEditable
+    else { return }
+    isEditingSchedule = true
+    // The existing endpoint deletes one spin. Delete the answer first so the
+    // question's airtime does not move across the safety boundary mid-operation.
+    for member in current.spins.reversed() {
+      guard let latest = broadcast.schedule?.current().first(where: { $0.id == member.id }),
+        broadcast.canDeleteSpin(latest)
+      else { break }
+      await broadcast.deleteSpin(latest)
+      if broadcast.schedule?.current().contains(where: { $0.id == member.id }) == true { break }
+    }
+    isEditingSchedule = false
+    schedulePlaybackChanged()
+    await schedulePendingAudio()
+  }
+
+  private func secondsLabel(_ seconds: TimeInterval) -> String {
+    let total = Int(max(0, seconds).rounded(.up))
+    return String(format: "%d:%02d", total / 60, total % 60)
+  }
+  private func airtimeString(_ date: Date) -> String {
+    amaAirtimeFormatter.string(from: date).lowercased()
+  }
+}

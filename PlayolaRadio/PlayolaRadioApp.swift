@@ -24,10 +24,24 @@ extension Notification.Name {
   static let scheduleUpdated = Notification.Name("scheduleUpdated")
 }
 
+/// Screenshot captures must stay deterministic: skip live startup work
+/// (Sentry, analytics, connectivity probe) that would run outside the
+/// harness's fixture dependency scope.
+@MainActor
+private var isScreenshotMode: Bool {
+  #if DEBUG
+    ScreenshotHarness.requestedPage != nil
+  #else
+    false
+  #endif
+}
+
 @MainActor
 class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotificationCenterDelegate
 {
   @Dependency(\.pushNotifications) var pushNotifications
+  @Dependency(\.upsideDownKeyboard) var upsideDownKeyboard
+  @Dependency(\.upsideDownNotificationBanner) var upsideDownNotificationBanner
 
   func application(
     _ application: UIApplication,
@@ -35,7 +49,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
   ) -> Bool {
     #if canImport(Sentry)
       let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-      if !isRunningTests {
+      if !isRunningTests && !isScreenshotMode {
         SentrySDK.start { options in
           options.dsn =
             "https://c024cbc3afc46a4539e4cd73ea4f32c0@o4511043985801216.ingest.us.sentry.io/4511043987898368"
@@ -72,15 +86,12 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
           // 2.0s is the SDK default; set explicitly as the tuning knob if these
           // turn out noisy.
           options.appHangTimeoutInterval = 2.0
-          // Ignore non-fully-blocking hangs (app stutters but still renders a
-          // few frames): their stacks don't pinpoint the blocking location, so
-          // they add noise without being actionable.
-          options.enableReportNonFullyBlockingAppHangs = false
         }
       }
     #endif
 
     UNUserNotificationCenter.current().delegate = self
+    upsideDownKeyboard.start()
     return true
   }
 
@@ -186,11 +197,34 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
         NotificationCenter.default.post(name: .refreshSupportMessages, object: nil)
         completionHandler([])
       } else {
-        completionHandler([.banner, .sound])
+        completionHandler(
+          bannerPresentationOptions(
+            identifier: notification.request.identifier,
+            content: notification.request.content
+          ))
       }
     } else {
-      completionHandler([.banner, .sound])
+      completionHandler(
+        bannerPresentationOptions(
+          identifier: notification.request.identifier,
+          content: notification.request.content
+        ))
     }
+  }
+
+  /// The system banner appears right-side up even while the app is flipped, so when upside down
+  /// we show an in-app copy instead and only let the system play the sound.
+  func bannerPresentationOptions(
+    identifier: String,
+    content: UNNotificationContent
+  ) -> UNNotificationPresentationOptions {
+    let userInfo = content.userInfo.sendablePayload()
+    let isShowingCopy = upsideDownNotificationBanner.showBanner(content.title, content.body) {
+      [weak self] in
+      self?.handleNotificationResponse(
+        identifier: identifier, userInfo: userInfo, completionHandler: {})
+    }
+    return isShowingCopy ? [.sound] : [.banner, .sound]
   }
 
   func userNotificationCenter(
@@ -249,6 +283,8 @@ struct PlayolaRadioApp: App {
     @Dependency(\.nowPlayingUpdater) var nowPlayingUpdater
     nowPlayingUpdater.setupRemoteControlCenter()
 
+    guard !isScreenshotMode else { return }
+
     // Initialize analytics
     Task {
       @Dependency(\.analytics) var analytics
@@ -271,21 +307,33 @@ struct PlayolaRadioApp: App {
         // NB: Don't run application in tests to avoid interference between the app and the test.
         EmptyView()
       } else {
-        ContentView()
-          // Playola is a dark-only app (every screen draws on black). Lock the
-          // interface style so system semantic colors (e.g. the glass mini
-          // player's `.primary`/`.secondary` text) resolve to the dark palette
-          // on light-mode devices instead of rendering black-on-black.
-          .preferredColorScheme(.dark)
-          .onOpenURL { url in
-            GIDSignIn.sharedInstance.handle(url)
+        #if DEBUG
+          if let screenshotPage = ScreenshotHarness.requestedPage {
+            ScreenshotHarness(page: screenshotPage)
+          } else {
+            appContent
           }
-          .onAppear {
-            GIDSignIn.sharedInstance.restorePreviousSignIn { _, _ in
-              // Check if `user` exists; otherwise, do something with `error`
-            }
-          }
+        #else
+          appContent
+        #endif
       }
     }
+  }
+
+  private var appContent: some View {
+    ContentView()
+      // Playola is a dark-only app (every screen draws on black). Lock the
+      // interface style so system semantic colors (e.g. the glass mini
+      // player's `.primary`/`.secondary` text) resolve to the dark palette
+      // on light-mode devices instead of rendering black-on-black.
+      .preferredColorScheme(.dark)
+      .onOpenURL { url in
+        GIDSignIn.sharedInstance.handle(url)
+      }
+      .onAppear {
+        GIDSignIn.sharedInstance.restorePreviousSignIn { _, _ in
+          // Check if `user` exists; otherwise, do something with `error`
+        }
+      }
   }
 }

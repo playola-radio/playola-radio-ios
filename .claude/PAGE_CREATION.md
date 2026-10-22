@@ -20,6 +20,8 @@ class MyNewPageModel: ViewModel {
   // MARK: - Dependencies
 
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+  @ObservationIgnored @Dependency(\.toast) var toast
 
   // MARK: - Shared State
 
@@ -63,11 +65,19 @@ class MyNewPageModel: ViewModel {
     do {
       items = try await IdentifiedArray(uniqueElements: api.getItems(token))
     } catch {
-      presentedAlert = .errorLoadingItems
+      guard !Task.isCancelled, !(error is CancellationError),
+        (error as? URLError)?.code != .cancelled
+      else { return }
+      if !NetworkErrorClassifier.isNetworkError(error) {
+        await errorReporting.reportError(error, ["endpoint": "getItems"])
+      }
+      await toast.show(PlayolaToast(message: "Items couldn't load.", buttonTitle: "OK"))
     }
   }
 }
 ```
+
+Use alerts only when a deliberate user action fails; page-load failures use a toast or inline state.
 
 ## 2. Create the View
 

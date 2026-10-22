@@ -22,7 +22,6 @@ struct RewardsProfile: Codable, Sendable {
   // source-compatible with existing positional call sites.
   var rewardsExperience: String?
   var koozieEarned: Bool?
-  var shouldShowKoozieCongrats: Bool?
 
   var rewardsExperienceType: RewardsExperience {
     RewardsExperience(rawServerValue: rewardsExperience)

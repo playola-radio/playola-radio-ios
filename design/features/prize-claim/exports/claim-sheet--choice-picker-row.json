@@ -1,0 +1,160 @@
+{
+  "type": "frame",
+  "id": "S28a1a",
+  "x": 986,
+  "y": 21900,
+  "name": "Choice Field · 3 · Picker Row",
+  "width": 393,
+  "fill": "#000000",
+  "cornerRadius": 16,
+  "layout": "vertical",
+  "gap": 16,
+  "padding": 24,
+  "children": [
+    {
+      "type": "text",
+      "id": "EbS2X",
+      "name": "Rule caption",
+      "fill": "#0A6FD6",
+      "textGrowth": "fixed-width",
+      "width": "fill_container",
+      "content": "7+ options → disclosure row opening a picker sheet; search field when > 12 options",
+      "lineHeight": 1.4,
+      "fontFamily": "Inter",
+      "fontSize": 13,
+      "fontWeight": "600"
+    },
+    {
+      "type": "frame",
+      "id": "jb6iD",
+      "name": "Field · SINGLE_CHOICE · picker",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 16,
+      "children": [
+        {
+          "type": "frame",
+          "id": "UKjzR",
+          "name": "Empty",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "text",
+              "id": "I6NdM",
+              "name": "Field label",
+              "fill": "#888888",
+              "content": "Pick a song for your dedication",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "wjkSy",
+              "name": "Picker row · empty",
+              "width": "fill_container",
+              "height": 48,
+              "fill": "#1A1A1A",
+              "cornerRadius": 8,
+              "gap": 8,
+              "padding": [
+                0,
+                12,
+                0,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "i7d0or",
+                  "name": "Value",
+                  "fill": "#999999",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Choose one",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "icon",
+                  "id": "DJBns",
+                  "name": "Chevron",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "chevron-right",
+                  "library": "lucide",
+                  "fill": "#999999"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "w09VZZ",
+          "name": "Chosen",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "text",
+              "id": "sO8by",
+              "name": "Field label",
+              "fill": "#888888",
+              "content": "Pick a song for your dedication",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "jNjju",
+              "name": "Picker row · chosen",
+              "width": "fill_container",
+              "height": 48,
+              "fill": "#1A1A1A",
+              "cornerRadius": 8,
+              "gap": 8,
+              "padding": [
+                0,
+                12,
+                0,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "xpk9Q",
+                  "name": "Value",
+                  "fill": "#FFFFFF",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Cheat On Your Man",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "icon",
+                  "id": "Az2H3",
+                  "name": "Chevron",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "chevron-right",
+                  "library": "lucide",
+                  "fill": "#999999"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

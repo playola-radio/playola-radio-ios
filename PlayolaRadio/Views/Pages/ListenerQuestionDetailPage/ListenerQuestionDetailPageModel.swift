@@ -40,6 +40,7 @@ class ListenerQuestionDetailPageModel: ViewModel {
   var recordingPhase: AnswerRecordingPhase = .idle
   var recordingState: RecordingState = .idle
   private var recordingSession: RecordingSession?
+  private var recordingUpdatesTask: Task<Void, Never>?
   var recordingURL: URL?
 
   // Answer playback
@@ -57,14 +58,15 @@ class ListenerQuestionDetailPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
 
   // MARK: - Display Text
 
-  let navigationTitle = "Listener Question"
-  let questionSectionTitle = "QUESTION"
+  let navigationTitle = "Listener Message"
+  let questionSectionTitle = "MESSAGE"
   let responseSectionTitle = "YOUR RESPONSE"
   let discardButtonTitle = "Discard"
   let uploadButtonTitle = "Upload Response"
@@ -108,12 +110,33 @@ class ListenerQuestionDetailPageModel: ViewModel {
 
   // MARK: - Question Playback Display
 
+  /// Total question length in seconds. Once playback is underway the live player's duration is
+  /// authoritative; before that it falls back to the server-sent `durationMS` so the scrubber can
+  /// show the full length at rest. Preferring the live duration avoids showing an impossible
+  /// position/duration pair (e.g. `0:09 / 0:08`) when the two sources disagree.
+  var questionDuration: TimeInterval {
+    if questionPlaybackState.duration > 0 {
+      return questionPlaybackState.duration
+    }
+    guard let durationMS = question.durationMS else {
+      return questionPlaybackState.duration
+    }
+    return TimeInterval(durationMS) / 1000
+  }
+
   var questionDurationText: String {
-    formatTime(questionPlaybackState.duration)
+    formatTime(questionDuration)
   }
 
   var questionPlaybackPositionText: String {
     formatTime(questionPlaybackState.currentTime)
+  }
+
+  /// The scrubber fill fraction (`0...1`), guarded against a zero/unknown duration.
+  var questionPlaybackProgress: Double {
+    let duration = questionDuration
+    guard duration > 0 else { return 0 }
+    return min(1, max(0, questionPlaybackState.currentTime / duration))
   }
 
   var questionPlayButtonIcon: String {
@@ -135,6 +158,12 @@ class ListenerQuestionDetailPageModel: ViewModel {
 
   var showRecordingIndicator: Bool {
     recordingPhase == .recording
+  }
+
+  /// Hides the tab bar during an active recording so an accidental tab switch
+  /// can't discard in-progress audio. Restored once recording stops.
+  var tabBarVisibility: Visibility {
+    recordingPhase == .recording ? .hidden : .automatic
   }
 
   var waveformSamples: [Float] {
@@ -220,6 +249,8 @@ class ListenerQuestionDetailPageModel: ViewModel {
   // MARK: - View Lifecycle
 
   func viewAppeared() async {
+    await analytics.track(
+      .viewedScreen(screen: .listenerQuestionDetail, stationId: question.stationId))
     do {
       try await audioRecorder.prepareForRecording()
     } catch {
@@ -256,6 +287,19 @@ class ListenerQuestionDetailPageModel: ViewModel {
     }
   }
 
+  /// Seeks the question audio to the drag location. The View passes the raw gesture x and the
+  /// track width so the fraction math (and the zero-width guard that avoids a NaN seek) lives in
+  /// the model rather than the View. Also rejects a non-finite target, since an indeterminate
+  /// stream can report a `+inf`/`NaN` duration that would otherwise seek to a bad timestamp. A
+  /// no-op until playback has started, matching the answer scrubber.
+  func questionScrubberDragged(locationX: CGFloat, trackWidth: CGFloat) async {
+    guard trackWidth > 0 else { return }
+    let percent = min(1, max(0, locationX / trackWidth))
+    let target = TimeInterval(percent) * questionDuration
+    guard target.isFinite else { return }
+    await questionPlaybackSession?.seek(target)
+  }
+
   // MARK: - Recording Actions
 
   func recordButtonTapped() async {
@@ -285,6 +329,9 @@ class ListenerQuestionDetailPageModel: ViewModel {
     if answerPlaybackState.isPlaying {
       await answerPlaybackSession?.pause()
     } else {
+      // Question and answer each own an isolated player, so starting the answer no longer stops
+      // the question implicitly — do it explicitly (mirrors playQuestionButtonTapped).
+      await stopQuestionPlayback()
       if answerPlaybackSession == nil, let url = recordingURL {
         do {
           answerPlaybackSession = try await audioPlayer.startPlayback(url) { [weak self] state in
@@ -325,8 +372,13 @@ class ListenerQuestionDetailPageModel: ViewModel {
     await stopQuestionPlayback()
 
     do {
-      recordingSession = try await audioRecorder.startRecordingWithUpdates { [weak self] state in
-        self?.recordingState = state
+      let (session, updates) = try await audioRecorder.startRecordingUpdates()
+      recordingSession = session
+      recordingUpdatesTask = Task { [weak self] in
+        for await state in updates {
+          guard !Task.isCancelled else { return }
+          self?.recordingState = state
+        }
       }
       recordingPhase = .recording
     } catch AudioRecorderError.permissionDenied {
@@ -337,6 +389,8 @@ class ListenerQuestionDetailPageModel: ViewModel {
   }
 
   private func stopRecording() async {
+    recordingUpdatesTask?.cancel()
+    recordingUpdatesTask = nil
     do {
       let url = try await recordingSession?.stop()
       recordingURL = url
@@ -446,6 +500,8 @@ class ListenerQuestionDetailPageModel: ViewModel {
     await stopAnswerPlayback()
     await recordingSession?.cancel()
     recordingSession = nil
+    recordingUpdatesTask?.cancel()
+    recordingUpdatesTask = nil
   }
 
   private func formatTime(_ seconds: TimeInterval) -> String {

@@ -1,0 +1,8 @@
+version: 2
+
+secret:
+  # Encrypted Pencil design files (`design/*.pen`) carry a `fileToken` field — a
+  # design-file identifier, not a credential. GitGuardian's generic high-entropy
+  # detector flags it as a false positive, so exclude these files from secret scanning.
+  ignored-paths:
+    - "design/*.pen"

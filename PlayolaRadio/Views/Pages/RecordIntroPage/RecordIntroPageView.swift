@@ -48,7 +48,6 @@ struct RecordIntroPageView: View {
         bottomSection
       }
     }
-    .rotationEffect(.degrees(180))
     .background(Color.black.ignoresSafeArea())
     .navigationBarHidden(true)
     .playolaAlert($model.presentedAlert)
