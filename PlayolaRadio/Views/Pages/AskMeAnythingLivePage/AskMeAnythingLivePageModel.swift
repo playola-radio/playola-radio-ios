@@ -23,6 +23,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   @ObservationIgnored @Dependency(\.audioRecorder) var audioRecorder
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+  @ObservationIgnored @Dependency(\.analytics) var analytics
 
   // MARK: - Shared State
 
@@ -88,6 +89,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   // MARK: - User Actions
 
   func task() async {
+    await analytics.track(.viewedScreen(screen: .askMeAnythingLiveShow, stationId: stationId))
     await viewAppeared()
     while !Task.isCancelled {
       do {

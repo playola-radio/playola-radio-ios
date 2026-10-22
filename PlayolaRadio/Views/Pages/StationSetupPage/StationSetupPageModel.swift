@@ -127,6 +127,7 @@ class StationSetupPageModel: ViewModel {
     // Bump first so a no-auth reload still invalidates any older in-flight loads before returning.
     loadGeneration += 1
     let generation = loadGeneration
+    await analytics.track(.viewedScreen(screen: .stationSetup, stationId: station.id))
     guard let token = auth.jwt else { return }
     async let setupLoad: Void = loadSetupProgress(
       token: token, stationId: station.id, generation: generation)

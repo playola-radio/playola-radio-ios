@@ -40,6 +40,7 @@ struct CuratorSongPickerPageView: View {
       }
     }
     .playolaAlert($model.presentedAlert)
+    .task { await model.viewAppeared() }
     .task(id: model.selectedTab) { await model.selectedTabAppeared() }
     .onDisappear { Task { await model.viewDisappeared() } }
   }

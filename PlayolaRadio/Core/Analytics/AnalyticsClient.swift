@@ -27,7 +27,8 @@ struct AnalyticsClient: Sendable {
   var reset: @Sendable () async -> Void
 
   /// Set user properties for the current user
-  var setUserProperties: @Sendable (_ properties: [String: String]) async -> Void
+  var setUserProperties:
+    @Sendable (_ properties: [String: any MixpanelType & Sendable]) async -> Void
 
   // MARK: Session Management
 
@@ -122,7 +123,7 @@ extension AnalyticsClient: DependencyKey {
       },
       setUserProperties: { properties in
         await MainActor.run {
-          let mixpanelProps: [String: any MixpanelType] = properties
+          let mixpanelProps: [String: any MixpanelType] = properties.mapValues { $0 }
           MixpanelHolder.shared().people.set(properties: mixpanelProps)
         }
       },

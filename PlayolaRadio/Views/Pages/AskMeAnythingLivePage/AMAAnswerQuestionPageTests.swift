@@ -524,6 +524,25 @@ struct AMAAnswerQuestionPageTests {
 
   // MARK: - Review Mode
 
+  @Test func viewAppearedTracksViewedScreenEvenInReviewMode() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    let model = withDependencies {
+      $0.audioPlayer = .testValue
+      $0.audioRecorder = .testValue
+      $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+    } operation: {
+      AMAAnswerQuestionPageModel(
+        answeredQuestion: .mockWith(id: "q1", stationId: "s1", status: .answered),
+        addToShow: { _ in })
+    }
+
+    await model.viewAppeared()
+
+    expectNoDifference(
+      capturedEvents.value,
+      [.viewedScreen(screen: .askMeAnythingAnswerQuestion, stationId: "s1")])
+  }
+
   @Test func reviewModeDoesNoRecorderOrUploadWork() async {
     @Shared(.auth) var auth = Auth(currentUser: nil, jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator) var nav = MainContainerNavigationCoordinator()

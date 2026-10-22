@@ -49,6 +49,23 @@ struct AskQuestionPageTests {
     )
   }
 
+  @Test
+  func viewAppearedTracksViewedScreen() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    await withDependencies {
+      $0.audioRecorder.prepareForRecording = {}
+      $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+    } operation: {
+      let model = AskQuestionPageModel(station: .mockWith(id: "station-123"))
+
+      await model.viewAppeared()
+    }
+
+    expectNoDifference(
+      capturedEvents.value, [.viewedScreen(screen: .askArtist, stationId: "station-123")])
+  }
+
   // MARK: - Recording
 
   @Test

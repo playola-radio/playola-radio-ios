@@ -49,6 +49,7 @@ class AMAAnswerQuestionPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.analytics) var analytics
 
   // MARK: - Shared State
 
@@ -357,6 +358,8 @@ class AMAAnswerQuestionPageModel: ViewModel {
   // MARK: - View Lifecycle
 
   func viewAppeared() async {
+    await analytics.track(
+      .viewedScreen(screen: .askMeAnythingAnswerQuestion, stationId: question.stationId))
     guard mode == .record else { return }
     do {
       try await audioRecorder.prepareForRecording()

@@ -4,6 +4,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -16,6 +17,24 @@ import Testing
 @Suite(.freshSharedState)
 @MainActor
 struct ListenerQuestionDetailPageTests {
+
+  @Test
+  func viewAppearedTracksViewedScreen() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    let model = withDependencies {
+      $0.audioRecorder.prepareForRecording = {}
+      $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+    } operation: {
+      ListenerQuestionDetailPageModel(question: .mockWith(stationId: "station-123"))
+    }
+
+    await model.viewAppeared()
+
+    expectNoDifference(
+      capturedEvents.value,
+      [.viewedScreen(screen: .listenerQuestionDetail, stationId: "station-123")])
+  }
 
   // MARK: - Display Text Tests
 

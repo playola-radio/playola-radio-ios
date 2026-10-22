@@ -166,7 +166,7 @@ struct ArtistDashboardPageView: View {
 
       ForEach(model.improvementItems) { item in
         Button {
-          model.improvementItemTapped(item)
+          Task { await model.improvementItemTapped(item) }
         } label: {
           improvementRow(item)
         }

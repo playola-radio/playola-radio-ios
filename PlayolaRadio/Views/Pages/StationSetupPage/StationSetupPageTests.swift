@@ -88,6 +88,19 @@ struct StationSetupPageTests {
     }
   }
 
+  // MARK: - Analytics
+
+  @Test func viewAppearedTracksViewedScreen() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    _ = await makeModel {
+      $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+    }
+
+    expectNoDifference(
+      capturedEvents.value, [.viewedScreen(screen: .stationSetup, stationId: "station-abc")])
+  }
+
   // MARK: - Ring
 
   @Test func ringUsesServerDisplayPercentageDirectly() async {

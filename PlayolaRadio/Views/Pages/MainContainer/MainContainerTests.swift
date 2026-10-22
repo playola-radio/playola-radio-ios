@@ -1778,3 +1778,65 @@ private func waitForFeedbackSheet(on coordinator: MainContainerNavigationCoordin
   }
 }
 // swiftlint:enable force_try
+
+extension MainContainerTests {
+  // MARK: - Analytics Identity Tests
+
+  @Test
+  func viewAppearedIdentifiesSignedInUserWithAnalytics() async {
+    @Shared(.auth) var auth = Auth(jwtToken: createTestJWT(id: "user-42"))
+    @Shared(.stationListsLoaded) var stationListsLoaded = false
+    let identifiedIds = LockIsolated<[String]>([])
+
+    let mainContainerModel = withDependencies {
+      $0.api.getStations = { StationList.mocks }
+      $0.api.getAirings = { _, _ in [] }
+      $0.pushNotifications.registerForRemoteNotifications = {}
+      $0.analytics.identify = { userId in identifiedIds.withValue { $0.append(userId) } }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.viewAppeared()
+
+    expectNoDifference(identifiedIds.value, ["user-42"])
+  }
+
+  @Test
+  func fetchBroadcasterStatusSetsIsBroadcasterUserProperty() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let isBroadcasterValues = LockIsolated<[Bool?]>([])
+
+    let mainContainerModel = withDependencies {
+      $0.api.fetchUserStations = { _ in [Station.mockWith(id: "station-1")] }
+      $0.analytics.setUserProperties = { properties in
+        isBroadcasterValues.withValue { $0.append(properties["is_broadcaster"] as? Bool) }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.fetchBroadcasterStatus()
+
+    expectNoDifference(isBroadcasterValues.value, [true])
+  }
+
+  @Test
+  func fetchBroadcasterStatusSetsIsBroadcasterFalseForListeners() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let isBroadcasterValues = LockIsolated<[Bool?]>([])
+
+    let mainContainerModel = withDependencies {
+      $0.api.fetchUserStations = { _ in [] }
+      $0.analytics.setUserProperties = { properties in
+        isBroadcasterValues.withValue { $0.append(properties["is_broadcaster"] as? Bool) }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.fetchBroadcasterStatus()
+
+    expectNoDifference(isBroadcasterValues.value, [false])
+  }
+}

@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import Dependencies
 import IdentifiedCollections
 import Sharing
 import SwiftUI
@@ -10,6 +11,10 @@ import SwiftUI
 @MainActor
 @Observable
 class ShowsPageModel: ViewModel {
+
+  // MARK: - Dependencies
+
+  @ObservationIgnored @Dependency(\.analytics) var analytics
 
   // MARK: - Shared State
 
@@ -37,6 +42,37 @@ class ShowsPageModel: ViewModel {
       viewDisappeared()
       return
     }
+    await analytics.track(.viewedScreen(screen: .shows, stationId: stationId))
+    await checkForActiveShow()
+  }
+
+  func retryButtonTapped() async {
+    guard isCurrentPage else {
+      viewDisappeared()
+      return
+    }
+    await checkForActiveShow()
+  }
+
+  func viewDisappeared() {
+    checkGeneration += 1
+    isCheckingForShow = false
+    isLoading = true
+    hasLoadFailed = false
+  }
+
+  func showTypeRowTapped(_ row: ShowTypeRow) {
+    guard canChooseShow, isCurrentPage else { return }
+    switch row.id {
+    case .askMeAnything:
+      navigationCoordinator.push(
+        .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: stationId)))
+    }
+  }
+
+  // MARK: - Private Helpers
+
+  private func checkForActiveShow() async {
     guard !isCheckingForShow else { return }
     let generation = checkGeneration
     isCheckingForShow = true
@@ -68,22 +104,6 @@ class ShowsPageModel: ViewModel {
     var path = navigationCoordinator.path
     path[path.count - 1] = .askMeAnythingLivePage(show)
     navigationCoordinator.path = path
-  }
-
-  func viewDisappeared() {
-    checkGeneration += 1
-    isCheckingForShow = false
-    isLoading = true
-    hasLoadFailed = false
-  }
-
-  func showTypeRowTapped(_ row: ShowTypeRow) {
-    guard canChooseShow, isCurrentPage else { return }
-    switch row.id {
-    case .askMeAnything:
-      navigationCoordinator.push(
-        .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: stationId)))
-    }
   }
 
   // MARK: - View Helpers

@@ -61,6 +61,15 @@ enum AnalyticsEvent: Equatable {
   case broadcastSongAdded(
     stationId: String, stationName: String, songTitle: String, artistName: String)
 
+  // MARK: Station Dashboard
+  /// `healthStatus` is the server status raw value, or "unavailable" when health failed to load.
+  case viewedStationDashboard(
+    stationId: String, healthStatus: String, healthScore: Int?, checksDone: Int, checksTotal: Int)
+  case tappedStationHealthItem(stationId: String, checkKind: String, checkStatus: String)
+
+  // MARK: Screens
+  case viewedScreen(screen: AnalyticsScreen, stationId: String)
+
   // MARK: Engagement
   case audioOutputChanged(outputTypes: [String])
   case carPlayInitialized
@@ -126,6 +135,9 @@ extension AnalyticsEvent {
     case .broadcastVoicetrackUploaded: return "Broadcast Voicetrack Uploaded"
     case .broadcastSongSearchTapped: return "Broadcast Song Search Tapped"
     case .broadcastSongAdded: return "Broadcast Song Added"
+    case .viewedStationDashboard: return "Viewed Station Dashboard"
+    case .tappedStationHealthItem: return "Tapped Station Health Item"
+    case .viewedScreen: return "Viewed Screen"
     case .audioOutputChanged: return "Audio Output Changed"
     case .carPlayInitialized: return "CarPlay Initialized"
     case .stationChanged: return "Station Changed"
@@ -306,6 +318,32 @@ extension AnalyticsEvent {
         "artist_name": artistName,
       ]
 
+    case .viewedStationDashboard(
+      let stationId, let healthStatus, let healthScore, let checksDone, let checksTotal):
+      var props: [String: any MixpanelType] = [
+        "station_id": stationId,
+        "health_status": healthStatus,
+        "checks_done": checksDone,
+        "checks_total": checksTotal,
+      ]
+      if let healthScore {
+        props["health_score"] = healthScore
+      }
+      return props
+
+    case .tappedStationHealthItem(let stationId, let checkKind, let checkStatus):
+      return [
+        "station_id": stationId,
+        "check_kind": checkKind,
+        "check_status": checkStatus,
+      ]
+
+    case .viewedScreen(let screen, let stationId):
+      return [
+        "screen": screen.rawValue,
+        "station_id": stationId,
+      ]
+
     case .audioOutputChanged(let outputTypes):
       return ["output_types": outputTypes]
 
@@ -376,6 +414,22 @@ enum UpdateGateTrigger: String {
   case broadcaster = "broadcaster"
   /// The user was newly discovered to be a broadcaster mid-session while below the broadcaster minimum.
   case broadcasterDiscovered = "broadcaster_discovered"
+}
+
+enum AnalyticsScreen: String {
+  case askMeAnythingLiveShow = "ama_live_show"
+  case askMeAnythingQuestionPicker = "ama_question_picker"
+  case askMeAnythingAnswerQuestion = "ama_answer_question"
+  case askArtist = "ask_artist"
+  case listenerQuestions = "listener_questions"
+  case listenerQuestionDetail = "listener_question_detail"
+  case musicLibrary = "music_library"
+  case musicCategoryDetail = "music_category_detail"
+  case breakersLibrary = "breakers_library"
+  case breakerCategoryDetail = "breaker_category_detail"
+  case curatorSongPicker = "curator_song_picker"
+  case shows = "shows"
+  case stationSetup = "station_setup"
 }
 
 enum AuthMethod: String {

@@ -22,6 +22,7 @@ struct BreakerCategoryDetailPageView: View {
     .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .playolaAlert($model.presentedAlert)
+    .task { await model.viewAppeared() }
     .onDisappear { Task { await model.viewDisappeared() } }
   }
 
@@ -146,6 +147,7 @@ struct BreakerCategoryDetailPageView: View {
   NavigationStack {
     BreakerCategoryDetailPageView(
       model: BreakerCategoryDetailPageModel(
+        stationId: "preview-station",
         category: .mockWith(
           name: "Intros",
           audioBlocks: [

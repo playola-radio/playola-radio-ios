@@ -137,6 +137,10 @@ class MainContainerModel: ViewModel {
     // stall station loading for up to the 60s request timeout.
     Task { await loadClientConfig() }
 
+    if let userId = auth.currentUser?.id {
+      await analytics.identify(userId)
+    }
+
     // Register for remote notifications (user is now logged in)
     await pushNotifications.registerForRemoteNotifications()
 
@@ -589,6 +593,7 @@ class MainContainerModel: ViewModel {
       let stations = try await api.fetchUserStations(jwt)
       let wasBroadcaster = isBroadcaster
       $isBroadcaster.withLock { $0 = !stations.isEmpty }
+      await analytics.setUserProperties(["is_broadcaster": !stations.isEmpty])
 
       if !wasBroadcaster, !stations.isEmpty, let requirements = appVersionRequirements,
         let currentVersion = Bundle.main.releaseVersionNumber,

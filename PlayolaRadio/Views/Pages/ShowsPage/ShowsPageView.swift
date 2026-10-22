@@ -45,7 +45,7 @@ struct ShowsPageView: View {
         .foregroundColor(.playolaTextSecondary)
         .multilineTextAlignment(.center)
       ForEach(model.retryTitles, id: \.self) { title in
-        Button(title) { Task { await model.viewAppeared() } }
+        Button(title) { Task { await model.retryButtonTapped() } }
           .buttonStyle(.borderedProminent)
           .tint(.playolaRed)
       }

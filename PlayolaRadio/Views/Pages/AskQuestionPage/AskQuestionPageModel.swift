@@ -52,6 +52,7 @@ class AskQuestionPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
+  @ObservationIgnored @Dependency(\.analytics) var analytics
 
   // MARK: - Shared State
 
@@ -138,6 +139,7 @@ class AskQuestionPageModel: ViewModel {
   // MARK: - Lifecycle
 
   func viewAppeared() async {
+    await analytics.track(.viewedScreen(screen: .askArtist, stationId: station.id))
     pauseStationIfPlaying()
     do {
       try await audioRecorder.prepareForRecording()

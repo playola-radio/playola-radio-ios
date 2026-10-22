@@ -210,17 +210,25 @@ class ArtistDashboardPageModel: ViewModel {
     async let trend: Void = loadWeeklyTrend(
       token: token, stationId: stationId, generation: generation)
     _ = await (health, listeners, counts, trend)
+    guard generation == loadGeneration else { return }
+    await trackDashboardViewed(stationId: stationId)
   }
 
   func weeklyReportTapped() {}
 
   func statsLinkTapped() {}
 
-  func improvementItemTapped(_ item: ImprovementItem) {
-    guard let stationId, item.isTappable else { return }
-    navigationCoordinator.push(
-      .broadcastersListenerQuestionPage(BroadcastersListenerQuestionPageModel(stationId: stationId))
-    )
+  func improvementItemTapped(_ item: ImprovementItem) async {
+    guard let stationId else { return }
+    if item.isTappable {
+      navigationCoordinator.push(
+        .broadcastersListenerQuestionPage(
+          BroadcastersListenerQuestionPageModel(stationId: stationId)))
+    }
+    let status = knownChecks.first { $0.kind == item.id }?.status ?? .unknown
+    await analytics.track(
+      .tappedStationHealthItem(
+        stationId: stationId, checkKind: item.id, checkStatus: status.rawValue))
   }
 
   // MARK: - View Helpers
@@ -260,6 +268,17 @@ class ArtistDashboardPageModel: ViewModel {
       return stationId
     }
     return nil
+  }
+
+  private func trackDashboardViewed(stationId: String) async {
+    let checks = knownChecks
+    await analytics.track(
+      .viewedStationDashboard(
+        stationId: stationId,
+        healthStatus: programmingHealth?.status.rawValue ?? "unavailable",
+        healthScore: programmingHealth?.freshPct,
+        checksDone: checks.filter { $0.status == .healthy }.count,
+        checksTotal: checks.count))
   }
 
   private func loadProgrammingHealth(token: String, stationId: String, generation: Int) async {

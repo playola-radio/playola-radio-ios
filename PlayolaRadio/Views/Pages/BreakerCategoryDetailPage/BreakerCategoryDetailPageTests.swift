@@ -55,6 +55,20 @@ struct BreakerCategoryDetailPageTests {
     )
   }
 
+  @Test func viewAppearedTracksViewedScreen() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    let model = withDependencies {
+      $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+    } operation: {
+      BreakerCategoryDetailPageModel(stationId: "station-1", category: .mockWith())
+    }
+
+    await model.viewAppeared()
+
+    expectNoDifference(
+      capturedEvents.value, [.viewedScreen(screen: .breakerCategoryDetail, stationId: "station-1")])
+  }
+
   @Test func navigationTitleIsCategoryName() {
     let model = BreakerCategoryDetailPageModel(category: .mockWith(name: "Fan Spotlights"))
 
@@ -617,5 +631,11 @@ struct BreakerCategoryDetailPageTests {
 
     #expect(!model.isActive(block))
     #expect(lateSessionStopped.value)
+  }
+}
+
+extension BreakerCategoryDetailPageModel {
+  fileprivate convenience init(category: StationCategory) {
+    self.init(stationId: "station-1", category: category)
   }
 }

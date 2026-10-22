@@ -42,6 +42,43 @@ struct ShowsPageTests {
       ])
   }
 
+  @Test func viewAppearedTracksViewedScreen() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.api.fetchSchedule = { _, _ in [] }
+      $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+    } operation: {
+      let model = ShowsPageModel(stationId: testStationId)
+      coordinator.push(.showsPage(model))
+
+      await model.viewAppeared()
+    }
+
+    expectNoDifference(
+      capturedEvents.value, [.viewedScreen(screen: .shows, stationId: testStationId)])
+  }
+
+  @Test func retryButtonTappedDoesNotTrackViewedScreen() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.api.fetchSchedule = { _, _ in [] }
+      $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+    } operation: {
+      let model = ShowsPageModel(stationId: testStationId)
+      coordinator.push(.showsPage(model))
+
+      await model.retryButtonTapped()
+    }
+
+    expectNoDifference(capturedEvents.value, [])
+  }
+
   @Test func askMeAnythingRowTappedPushesSetupAfterNoActiveShowCheck() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()

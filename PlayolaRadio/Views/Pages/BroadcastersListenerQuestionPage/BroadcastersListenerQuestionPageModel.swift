@@ -32,6 +32,7 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.analytics) var analytics
 
   // MARK: - Shared State
 
@@ -104,6 +105,7 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
   // MARK: - User Actions
 
   func viewAppeared() async {
+    await analytics.track(.viewedScreen(screen: .listenerQuestions, stationId: stationId))
     await fetchQuestions()
   }
 

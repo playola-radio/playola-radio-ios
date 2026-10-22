@@ -36,6 +36,7 @@ struct MusicCategoryDetailPageView: View {
       .navigationBarTitleDisplayMode(.inline)
       .safeAreaInset(edge: .bottom) { searchBar }
       .playolaAlert($model.presentedAlert)
+      .task { await model.viewAppeared() }
       .onDisappear { Task { await model.viewDisappeared() } }
     }
   }
@@ -246,6 +247,7 @@ struct MusicCategoryDetailPageView: View {
   NavigationStack {
     MusicCategoryDetailPageView(
       model: MusicCategoryDetailPageModel(
+        stationId: "preview-station",
         title: "All Songs",
         songs: [
           .mockWith(id: "1", title: "Back Down Home", artist: "Bri Bagwell", durationMS: 222_000),
