@@ -16,6 +16,9 @@ final class UpsideDownNotificationBannerModel: ViewModel {
     let id: UUID
     let title: String
     let body: String
+
+    /// The system banner is announced to VoiceOver; the copy has to announce itself.
+    var accessibilityAnnouncement: String { "\(title). \(body)" }
   }
 
   // MARK: - Dependencies

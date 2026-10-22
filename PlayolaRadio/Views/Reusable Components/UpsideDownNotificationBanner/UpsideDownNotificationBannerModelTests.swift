@@ -25,6 +25,7 @@ struct UpsideDownNotificationBannerModelTests {
         id: UUID(0), title: "New message", body: "Hi there")
     }
     expectNoDifference(model.visibleBanners.map(\.title), ["New message"])
+    expectNoDifference(model.banner?.accessibilityAnnouncement, "New message. Hi there")
   }
 
   @Test

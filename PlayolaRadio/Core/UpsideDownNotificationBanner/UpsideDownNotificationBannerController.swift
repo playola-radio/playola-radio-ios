@@ -49,7 +49,6 @@ final class UpsideDownNotificationBannerController {
     else { return false }
     showOverlay(over: window, in: scene)
     bannerModel.show(title: title, body: body, onTap: onTap)
-    UIAccessibility.post(notification: .announcement, argument: "\(title). \(body)")
     return true
   }
 

@@ -13,6 +13,9 @@ struct UpsideDownNotificationBannerView: View {
       ForEach(model.visibleBanners) { banner in
         bannerCard(banner)
           .transition(.move(edge: .top).combined(with: .opacity))
+          .onAppear {
+            AccessibilityNotification.Announcement(banner.accessibilityAnnouncement).post()
+          }
           .task { await model.bannerAppeared() }
       }
     }
