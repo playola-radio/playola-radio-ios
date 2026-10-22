@@ -214,13 +214,6 @@ class AuthService: @unchecked Sendable {
     @Shared(.welcomeMessageEligible) var welcomeMessageEligible
     @Shared(.welcomeMessageShownThisSession) var welcomeMessageShownThisSession
     @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled
-    @Shared(.activeGiveaway) var activeGiveaway
-    @Shared(.upcomingGiveaways) var upcomingGiveaways
-    @Shared(.giveawayBanner) var giveawayBanner
-    @Shared(.giveawayParticipations) var giveawayParticipations
-    @Shared(.fulfillmentRequests) var fulfillmentRequests
-    @Shared(.dismissedGiveawayBannerIds) var dismissedGiveawayBannerIds
-    @Shared(.pendingCongratsActions) var pendingCongratsActions
 
     if let jwt = auth.jwt, let deviceId = registeredDeviceId {
       try? await api.unregisterDevice(jwt, deviceId)
@@ -239,13 +232,7 @@ class AuthService: @unchecked Sendable {
     $welcomeMessageEligible.withLock { $0 = false }
     $welcomeMessageShownThisSession.withLock { $0 = false }
     $sampleBufferRendererEnabled.withLock { $0 = false }
-    $activeGiveaway.withLock { $0 = nil }
-    $upcomingGiveaways.withLock { $0 = [] }
-    $giveawayBanner.withLock { $0 = nil }
-    $giveawayParticipations.withLock { $0 = [:] }
-    $fulfillmentRequests.withLock { $0 = [] }
-    $dismissedGiveawayBannerIds.withLock { $0 = [] }
-    $pendingCongratsActions.withLock { $0 = [:] }
+    clearGiveawayState()
 
     // Sign-out is the one real teardown event for the remote command center.
     // Stop any active playback first (the snapshot is already cleared above, so
@@ -258,6 +245,26 @@ class AuthService: @unchecked Sendable {
     }
 
     UserDefaults.standard.removeObject(forKey: "analytics_session_paused_at")
+  }
+
+  private func clearGiveawayState() {
+    @Shared(.activeGiveaway) var activeGiveaway
+    @Shared(.upcomingGiveaways) var upcomingGiveaways
+    @Shared(.giveawayBanner) var giveawayBanner
+    @Shared(.giveawayParticipations) var giveawayParticipations
+    @Shared(.fulfillmentRequests) var fulfillmentRequests
+    @Shared(.claimFormDrafts) var claimFormDrafts
+    @Shared(.dismissedGiveawayBannerIds) var dismissedGiveawayBannerIds
+    @Shared(.pendingCongratsActions) var pendingCongratsActions
+
+    $activeGiveaway.withLock { $0 = nil }
+    $upcomingGiveaways.withLock { $0 = [] }
+    $giveawayBanner.withLock { $0 = nil }
+    $giveawayParticipations.withLock { $0 = [:] }
+    $fulfillmentRequests.withLock { $0 = [] }
+    $claimFormDrafts.withLock { $0 = [:] }
+    $dismissedGiveawayBannerIds.withLock { $0 = [] }
+    $pendingCongratsActions.withLock { $0 = [:] }
   }
 
 }

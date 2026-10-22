@@ -22,6 +22,7 @@ func refreshFulfillmentRequests() async -> Bool {
   @Shared(.auth) var auth
   @Shared(.fulfillmentRequests) var requests
   @Shared(.fulfillmentRefreshGenerations) var generations
+  @Shared(.claimFormDrafts) var drafts
   guard let jwt = auth.jwt else { return false }
   let identity = auth.identity
   $generations.withLock { $0.started += 1 }
@@ -32,6 +33,8 @@ func refreshFulfillmentRequests() async -> Bool {
     guard generation > generations.applied else { return true }
     $generations.withLock { $0.applied = generation }
     $requests.withLock { $0 = fetched }
+    let awaitingInfoIds = Set(fetched.filter { $0.status == .awaitingInfo }.map(\.id))
+    $drafts.withLock { $0 = $0.filter { awaitingInfoIds.contains($0.key) } }
     return true
   } catch {
     await analytics.track(

@@ -94,9 +94,10 @@ struct StationPlayerLastPlayedTests {
   }
 
   @Test
-  func signOutClearsFulfillmentRequests() async {
+  func signOutClearsFulfillmentRequestsAndClaimFormDrafts() async {
     @Shared(.auth) var auth = Auth()
     @Shared(.fulfillmentRequests) var requests = [FulfillmentRequest.mock()]
+    @Shared(.claimFormDrafts) var drafts = ["request-1": ["note": .text("Jane")]]
     let player = StationPlayer(
       playolaStationPlayer: SpyPlayolaStationPlayer(),
       audioSessionCoordinator: AudioSessionCoordinator(session: SpyAudioSession()))
@@ -111,6 +112,7 @@ struct StationPlayerLastPlayedTests {
     }
 
     expectNoDifference(requests, [])
+    expectNoDifference(drafts, [:])
   }
 
   @Test
