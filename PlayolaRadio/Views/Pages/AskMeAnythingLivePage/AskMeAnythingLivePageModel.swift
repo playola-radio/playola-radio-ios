@@ -50,6 +50,7 @@ class AskMeAnythingLivePageModel: ViewModel {
 
   var displayDate = Date.distantPast
   var scheduledStartsAt: Date?
+  @ObservationIgnored var listenerCountGeneration = 0
   var listenerCount: Int?
   var listenerQuestions: [ListenerQuestion] = []
   @ObservationIgnored var locallyAiredAnswerAudioBlockIds: [String: String] = [:]
@@ -91,6 +92,24 @@ class AskMeAnythingLivePageModel: ViewModel {
   func task() async {
     await analytics.track(.viewedScreen(screen: .askMeAnythingLiveShow, stationId: stationId))
     await viewAppeared()
+    async let listenerCountPolling: Void = pollListenerCount()
+    async let listenerQuestionsPolling: Void = pollListenerQuestions()
+    _ = await (listenerCountPolling, listenerQuestionsPolling)
+  }
+
+  private func pollListenerCount() async {
+    while !Task.isCancelled {
+      do {
+        try await clock.sleep(for: .seconds(10))
+      } catch {
+        break
+      }
+      guard isShowActive else { continue }
+      await refreshListenerCount()
+    }
+  }
+
+  private func pollListenerQuestions() async {
     while !Task.isCancelled {
       do {
         try await clock.sleep(for: .seconds(10))

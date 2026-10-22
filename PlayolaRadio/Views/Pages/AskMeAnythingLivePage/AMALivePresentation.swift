@@ -71,11 +71,29 @@ extension AskMeAnythingLivePageModel {
   }
 
   func loadLiveMetadata() async {
-    guard let jwt = auth.jwt else { return }
-    async let sessions = try? api.getActiveListeningSessions(jwt, stationId, now, nil)
+    async let listenerCountRefresh: Void = refreshListenerCount()
     async let questionsRefresh: Void = refreshListenerQuestions()
-    listenerCount = await sessions?.summary.uniqueUsers
-    await questionsRefresh
+    _ = await (listenerCountRefresh, questionsRefresh)
+  }
+
+  func refreshListenerCount() async {
+    listenerCountGeneration &+= 1
+    let generation = listenerCountGeneration
+    guard let jwt = auth.jwt else { return }
+    do {
+      let count = try await api.getActiveListeningSessions(jwt, stationId, now, nil)
+        .summary.uniqueUsers
+      guard generation == listenerCountGeneration, !Task.isCancelled else { return }
+      listenerCount = count
+    } catch {
+      guard generation == listenerCountGeneration, !Task.isCancelled,
+        !(error is CancellationError), (error as? URLError)?.code != .cancelled,
+        !NetworkErrorClassifier.isNetworkError(error)
+      else { return }
+      var tags = NetworkErrorClassifier.errorTags(for: error)
+      tags["endpoint"] = "getActiveListeningSessions"
+      await errorReporting.reportError(error, tags)
+    }
   }
 
   var isWaitingToAir: Bool {

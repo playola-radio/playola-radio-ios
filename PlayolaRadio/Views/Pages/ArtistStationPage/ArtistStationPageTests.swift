@@ -58,6 +58,52 @@ struct ArtistStationPageTests {
     }
   }
 
+  private func waitUntilCancelledOrReleased(
+    release: LockIsolated<CheckedContinuation<Void, Never>?>,
+    entered: AsyncStream<Void>.Continuation
+  ) async {
+    await withTaskCancellationHandler {
+      await withCheckedContinuation { continuation in
+        if Task.isCancelled {
+          continuation.resume()
+        } else {
+          release.setValue(continuation)
+          entered.yield()
+        }
+      }
+    } onCancel: {
+      release.withValue {
+        $0?.resume()
+        $0 = nil
+      }
+    }
+  }
+
+  private func postScheduleUpdate(
+    through notificationCenter: NotificationCenter,
+    stationId: String,
+    after ready: AsyncStream<Void>
+  ) async {
+    var readyIterator = ready.makeAsyncIterator()
+    await readyIterator.next()
+    notificationCenter.post(
+      name: .scheduleUpdated, object: nil, userInfo: ["stationId": stationId])
+  }
+
+  private func loadSchedule(
+    with model: ArtistStationPageModel,
+    fromNotifications: Bool,
+    observerReady: AsyncStream<Void>.Continuation
+  ) -> Task<Void, Never> {
+    Task {
+      if fromNotifications {
+        await model.observeScheduleUpdates { observerReady.yield() }
+      } else {
+        await model.viewAppeared()
+      }
+    }
+  }
+
   // MARK: - Static Placeholder Content
 
   @Test func displaysPlaceholderHeader() {
@@ -117,13 +163,21 @@ struct ArtistStationPageTests {
   }
 
   @Test func showsErrorWhenScheduleFailsToLoad() async {
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let reports = LockIsolated(0)
     let model = await makeModel {
       $0.api.fetchSchedule = { _, _ in throw ArtistStationTestError.failed }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+      $0.errorReporting.reportError = { _, _ in reports.withValue { $0 += 1 } }
     }
 
     #expect(model.hasLoadError)
     expectNoDifference(model.nowPlayingTitle, "Unable to load broadcast")
     expectNoDifference(model.nowPlayingSubtitle, "")
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(shownToasts.value.map(\.message), ["The station schedule couldn't load."])
+    expectNoDifference(shownToasts.value.map(\.buttonTitle), ["OK"])
+    expectNoDifference(reports.value, 1)
   }
 
   @Test func doesNotLoadWhenNotBroadcasting() async {
@@ -409,4 +463,166 @@ struct ArtistStationPageTests {
 
 private enum ArtistStationTestError: Error {
   case failed
+}
+
+extension ArtistStationPageTests {
+  @Test(arguments: [0, 1, 2], [false, true])
+  func cancellationDoesNotPublishScheduleErrors(kind: Int, notification: Bool) async {
+    let stationId = UUID().uuidString
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: stationId)
+    await withMainSerialExecutor {
+      let entered = AsyncStream<Void>.makeStream()
+      let release = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
+      let (reports, shownToasts) = (LockIsolated(0), LockIsolated<[PlayolaToast]>([]))
+      let notificationCenter = NotificationCenter()
+      let observerReady = AsyncStream<Void>.makeStream()
+      let model = withDependencies {
+        $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+        $0.notificationCenter = notificationCenter
+        $0.api.fetchSchedule = { _, _ in
+          await self.waitUntilCancelledOrReleased(
+            release: release, entered: entered.continuation)
+          if kind == 0 { throw CancellationError() }
+          if kind == 1 { throw URLError(.cancelled) }
+          throw URLError(.badServerResponse)
+        }
+        $0.errorReporting.reportError = { _, _ in reports.withValue { $0 += 1 } }
+        $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+      } operation: {
+        ArtistStationPageModel()
+      }
+      let task = loadSchedule(
+        with: model, fromNotifications: notification, observerReady: observerReady.continuation)
+      if notification {
+        await postScheduleUpdate(
+          through: notificationCenter, stationId: stationId, after: observerReady.stream)
+      }
+      var iterator = entered.stream.makeAsyncIterator()
+      await iterator.next()
+      if kind == 2 { task.cancel() }
+      if kind != 2 {
+        release.withValue {
+          $0?.resume()
+          $0 = nil
+        }
+      }
+      if notification {
+        task.cancel()
+      }
+      await task.value
+      expectNoDifference(model.hasLoadError, false)
+      expectNoDifference(model.presentedAlert, nil)
+      expectNoDifference(model.isLoading, false)
+      expectNoDifference(reports.value, 0)
+      expectNoDifference(shownToasts.value, [])
+    }
+  }
+
+  @Test func successfulReloadClearsScheduleError() async {
+    let fail = LockIsolated(true)
+    let model = await makeModel {
+      $0.api.fetchSchedule = { _, _ in
+        if fail.value { throw URLError(.badServerResponse) }
+        return []
+      }
+    }
+    expectNoDifference(model.hasLoadError, true)
+    expectNoDifference(model.presentedAlert, nil)
+    fail.setValue(false)
+    await model.viewAppeared()
+    expectNoDifference(model.hasLoadError, false)
+    expectNoDifference(model.presentedAlert, nil)
+  }
+
+  @Test func scheduleNetworkFailureShowsToastWithoutReporting() async {
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let reports = LockIsolated(0)
+    let model = await makeModel {
+      $0.api.fetchSchedule = { _, _ in throw URLError(.notConnectedToInternet) }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+      $0.errorReporting.reportError = { _, _ in reports.withValue { $0 += 1 } }
+    }
+
+    expectNoDifference(model.hasLoadError, true)
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(shownToasts.value.map(\.message), ["The station schedule couldn't load."])
+    expectNoDifference(reports.value, 0)
+  }
+
+  @Test func notificationScheduleFailureReportsWithoutToast() async {
+    let stationId = UUID().uuidString
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: stationId)
+    let entered = AsyncStream<Void>.makeStream()
+    let reported = AsyncStream<Void>.makeStream()
+    let reports = LockIsolated(0)
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let notificationCenter = NotificationCenter()
+    let observerReady = AsyncStream<Void>.makeStream()
+    let model = withDependencies {
+      $0.notificationCenter = notificationCenter
+      $0.api.fetchSchedule = { _, _ in
+        entered.continuation.yield()
+        throw ArtistStationTestError.failed
+      }
+      $0.errorReporting.reportError = { _, _ in
+        reports.withValue { $0 += 1 }
+        reported.continuation.yield()
+      }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    } operation: {
+      ArtistStationPageModel()
+    }
+    let task = Task { await model.observeScheduleUpdates { observerReady.continuation.yield() } }
+    var readyIterator = observerReady.stream.makeAsyncIterator()
+    await readyIterator.next()
+    notificationCenter.post(
+      name: .scheduleUpdated, object: nil, userInfo: ["stationId": stationId])
+    var iterator = entered.stream.makeAsyncIterator()
+    await iterator.next()
+    var reportIterator = reported.stream.makeAsyncIterator()
+    await reportIterator.next()
+    task.cancel()
+    await task.value
+
+    expectNoDifference(model.hasLoadError, true)
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(shownToasts.value, [])
+    expectNoDifference(reports.value, 1)
+  }
+
+  @Test func oldCancellationDoesNotFinishNewerLoading() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+    let entered = AsyncStream<Void>.makeStream()
+    let releases = LockIsolated<[CheckedContinuation<Void, Never>]>([])
+    let model = withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.api.fetchSchedule = { _, _ in
+        await withCheckedContinuation { continuation in
+          releases.withValue { $0.append(continuation) }
+          entered.continuation.yield()
+        }
+        throw CancellationError()
+      }
+    } operation: {
+      ArtistStationPageModel()
+    }
+    let first = Task { await model.viewAppeared() }
+    var iterator = entered.stream.makeAsyncIterator()
+    await iterator.next()
+    let second = Task { await model.viewAppeared() }
+    await iterator.next()
+    releases.value[0].resume()
+    await first.value
+    expectNoDifference(model.isLoading, true)
+    releases.value[1].resume()
+    await second.value
+    expectNoDifference(model.isLoading, false)
+    expectNoDifference(model.hasLoadError, false)
+  }
 }

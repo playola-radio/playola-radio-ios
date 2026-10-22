@@ -4,6 +4,7 @@
 //
 
 import Dependencies
+import IdentifiedCollections
 import Observation
 import PlayolaPlayer
 import Sharing
@@ -74,7 +75,7 @@ class StationSetupPageModel: ViewModel {
   var componentsSectionTitle: String { "STATION COMPONENTS" }
   var componentsCompletionLabel: String { "\(completeComponentCount) OF 4 COMPLETE" }
 
-  var componentRows: [ComponentRow] {
+  var componentRows: IdentifiedArrayOf<ComponentRow> {
     guard let factors = progress?.factors else { return [] }
     return [
       ComponentRow(
@@ -113,12 +114,17 @@ class StationSetupPageModel: ViewModel {
   }
 
   var categorySectionTitle: String { "CATEGORY PROGRESS" }
-  var categoryCountLabel: String { "\(categoryResponse?.categories.count ?? 0) CATEGORIES" }
+  var categoryCountLabel: String { "\(categories.count) CATEGORIES" }
 
-  var categoryRows: [CategoryRow] {
-    (categoryResponse?.categories ?? [])
+  var categoryRows: IdentifiedArrayOf<CategoryRow> {
+    IdentifiedArray(uniqueElements: categories.map(Self.categoryRow(from:)))
+  }
+
+  private var categories: [StationCategoryProgress] {
+    var seenCategoryIDs = Set<String>()
+    return (categoryResponse?.categories ?? [])
       .sorted { $0.sortOrder < $1.sortOrder }
-      .map(Self.categoryRow(from:))
+      .filter { seenCategoryIDs.insert($0.id).inserted }
   }
 
   // MARK: - User Actions

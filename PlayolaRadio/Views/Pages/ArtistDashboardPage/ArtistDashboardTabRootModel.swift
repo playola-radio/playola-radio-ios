@@ -17,6 +17,8 @@ class ArtistDashboardTabRootModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+  @ObservationIgnored @Dependency(\.toast) var toast
 
   // MARK: - Shared State
 
@@ -38,6 +40,7 @@ class ArtistDashboardTabRootModel: ViewModel {
   /// started must not clobber the newer route, mirroring `ArtistDashboardPageModel`'s guard.
   private var loadGeneration = 0
   var route: Route = .loading
+  var presentedAlert: PlayolaAlert?
 
   // MARK: - Properties
 
@@ -78,6 +81,13 @@ class ArtistDashboardTabRootModel: ViewModel {
       guard !isCancellation(error) else { return }
       guard generation == loadGeneration else { return }
       route = .failed
+      if !NetworkErrorClassifier.isNetworkError(error) {
+        var tags = NetworkErrorClassifier.errorTags(for: error)
+        tags["endpoint"] = "fetchStation"
+        await errorReporting.reportError(error, tags)
+      }
+      guard generation == loadGeneration, !Task.isCancelled else { return }
+      await toast.show(PlayolaToast(message: "The dashboard couldn't load.", buttonTitle: "OK"))
       await analytics.track(
         .apiError(endpoint: "fetchStation", error: error.localizedDescription))
     }
@@ -96,6 +106,6 @@ class ArtistDashboardTabRootModel: ViewModel {
   /// `AFError.explicitlyCancelled`, so `Task.isCancelled` is already set). Treat that as a
   /// non-event: leave the route as-is for a navigation away.
   private func isCancellation(_ error: any Error) -> Bool {
-    Task.isCancelled || error is CancellationError
+    Task.isCancelled || error is CancellationError || (error as? URLError)?.code == .cancelled
   }
 }

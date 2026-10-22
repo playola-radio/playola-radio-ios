@@ -5,18 +5,80 @@
 
 import SwiftUI
 
+@MainActor
+@Observable
+final class SectionIndexModel {
+  static let accessibilityLabel = "Section index"
+
+  var letters: [String]
+  private(set) var selectedLetter: String?
+  private var accessibilityIndex = 0
+  private let onSelectLetter: (String) -> Void
+
+  init(letters: [String], onSelectLetter: @escaping (String) -> Void) {
+    self.letters = letters
+    self.onSelectLetter = onSelectLetter
+  }
+
+  var accessibilityValue: String {
+    guard letters.indices.contains(accessibilityIndex) else { return "" }
+    return letters[accessibilityIndex]
+  }
+
+  func lettersChanged(_ letters: [String]) {
+    self.letters = letters
+    selectedLetter = nil
+    accessibilityIndex = min(accessibilityIndex, max(0, letters.count - 1))
+  }
+
+  func dragChanged(locationY: CGFloat) {
+    let index = Int(
+      (locationY - SectionIndexView.Layout.verticalPadding) / SectionIndexView.Layout.rowPitch)
+    guard letters.indices.contains(index) else { return }
+    select(letters[index])
+  }
+
+  func dragEnded() {
+    selectedLetter = nil
+  }
+
+  func accessibilityAdjusted(_ direction: AccessibilityAdjustmentDirection) {
+    guard !letters.isEmpty else { return }
+    let current = min(accessibilityIndex, letters.count - 1)
+    switch direction {
+    case .increment:
+      accessibilityIndex = min(letters.count - 1, current + 1)
+    case .decrement:
+      accessibilityIndex = max(0, current - 1)
+    @unknown default:
+      return
+    }
+    onSelectLetter(letters[accessibilityIndex])
+  }
+
+  private func select(_ letter: String) {
+    guard selectedLetter != letter else { return }
+    selectedLetter = letter
+    onSelectLetter(letter)
+  }
+}
+
 struct SectionIndexView: View {
   let letters: [String]
-  let onSelectLetter: (String) -> Void
 
   @GestureState private var isDragging = false
-  @State private var selectedLetter: String?
-  @State private var accessibilityIndex = 0
+  @State private var model: SectionIndexModel
+
+  init(letters: [String], onSelectLetter: @escaping (String) -> Void) {
+    self.letters = letters
+    _model = State(
+      initialValue: SectionIndexModel(letters: letters, onSelectLetter: onSelectLetter))
+  }
 
   // Layout constants the drag math is derived from, so the hit-testing can't drift from the
   // rendered geometry. Each letter cell is `letterHeight` tall with `letterSpacing` between cells
   // (row pitch), and the whole strip is inset by `verticalPadding` at the top and bottom.
-  private enum Layout {
+  fileprivate enum Layout {
     static let letterHeight: CGFloat = 14
     static let letterSpacing: CGFloat = 2
     static let verticalPadding: CGFloat = 4
@@ -28,7 +90,7 @@ struct SectionIndexView: View {
       ForEach(letters, id: \.self) { letter in
         Text(letter)
           .font(.system(size: 11, weight: .semibold))
-          .foregroundColor(selectedLetter == letter ? .playolaRed : .playolaGray)
+          .foregroundColor(model.selectedLetter == letter ? .playolaRed : .playolaGray)
           .frame(width: 16, height: Layout.letterHeight)
       }
     }
@@ -41,50 +103,20 @@ struct SectionIndexView: View {
           state = true
         }
         .onChanged { value in
-          // Subtract the top inset before mapping to a row so a touch lands on the letter under
-          // the finger; without it every row is shifted down by `verticalPadding`.
-          let index = Int((value.location.y - Layout.verticalPadding) / Layout.rowPitch)
-          if index >= 0 && index < letters.count {
-            let letter = letters[index]
-            if selectedLetter != letter {
-              selectedLetter = letter
-              onSelectLetter(letter)
-            }
-          }
+          model.dragChanged(locationY: value.location.y)
         }
         .onEnded { _ in
-          selectedLetter = nil
+          model.dragEnded()
         }
     )
+    .onChange(of: letters) { _, letters in model.lettersChanged(letters) }
     // Touch users scrub with the drag gesture above; expose the strip as a single adjustable
     // element so VoiceOver / Switch Control / Voice Control users can step through the sections too.
     .accessibilityElement()
-    .accessibilityLabel("Section index")
-    .accessibilityValue(accessibilityValue)
+    .accessibilityLabel(SectionIndexModel.accessibilityLabel)
+    .accessibilityValue(model.accessibilityValue)
     .accessibilityAdjustableAction { direction in
-      accessibilityAdjust(direction)
+      model.accessibilityAdjusted(direction)
     }
-  }
-
-  private var accessibilityValue: String {
-    guard letters.indices.contains(accessibilityIndex) else { return "" }
-    return letters[accessibilityIndex]
-  }
-
-  private func accessibilityAdjust(_ direction: AccessibilityAdjustmentDirection) {
-    guard !letters.isEmpty else { return }
-    // `letters` can shrink (e.g. search narrows the index) while this view's identity — and so its
-    // persisted `accessibilityIndex` — stays put. Re-clamp the stale index into the current range
-    // before adjusting so the subscript below can never go out of bounds.
-    let current = min(accessibilityIndex, letters.count - 1)
-    switch direction {
-    case .increment:
-      accessibilityIndex = min(letters.count - 1, current + 1)
-    case .decrement:
-      accessibilityIndex = max(0, current - 1)
-    @unknown default:
-      return
-    }
-    onSelectLetter(letters[accessibilityIndex])
   }
 }

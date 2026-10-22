@@ -5,7 +5,6 @@
 //  Created by Brian D Keane on 8/28/26.
 //
 
-import Combine
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -24,6 +23,9 @@ class ArtistStationPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+  @ObservationIgnored @Dependency(\.notificationCenter) var notificationCenter
+  @ObservationIgnored @Dependency(\.toast) var toast
 
   // MARK: - Shared State
 
@@ -35,8 +37,8 @@ class ArtistStationPageModel: ViewModel {
   var currentDate: Date?
   var isLoading = false
   var hasLoadError = false
+  var presentedAlert: PlayolaAlert?
 
-  @ObservationIgnored private var scheduleUpdateCancellable: AnyCancellable?
   @ObservationIgnored private var loadGeneration = 0
 
   var navigationTitle: String { "Station" }
@@ -92,8 +94,17 @@ class ArtistStationPageModel: ViewModel {
 
   func viewAppeared() async {
     currentDate = now
-    startObservingScheduleUpdates()
-    await loadSchedule()
+    await loadSchedule(isUserInitiated: true)
+  }
+
+  func observeScheduleUpdates(onReady: @escaping @MainActor () -> Void = {}) async {
+    let notifications = notificationCenter.notifications(named: .scheduleUpdated)
+    onReady()
+    for await notification in notifications {
+      guard !Task.isCancelled else { return }
+      guard notification.userInfo?["stationId"] as? String == stationId else { continue }
+      await loadSchedule(isUserInitiated: false)
+    }
   }
 
   func stationTabVisible() async {
@@ -133,31 +144,31 @@ class ArtistStationPageModel: ViewModel {
     return nil
   }
 
-  private func loadSchedule() async {
+  private func loadSchedule(isUserInitiated: Bool) async {
     guard let stationId else { return }
     loadGeneration += 1
     let generation = loadGeneration
     isLoading = true
-    hasLoadError = false
+    defer { if generation == loadGeneration { isLoading = false } }
     do {
       let spins = try await api.fetchSchedule(stationId, true)
-      guard generation == loadGeneration else { return }
+      guard generation == loadGeneration, !Task.isCancelled else { return }
+      hasLoadError = false
       schedule = Schedule(
         stationId: stationId, spins: spins, dateProvider: DependencyDateProvider())
     } catch {
-      guard generation == loadGeneration else { return }
+      guard generation == loadGeneration, !Task.isCancelled,
+        !(error is CancellationError), (error as? URLError)?.code != .cancelled
+      else { return }
       hasLoadError = true
-    }
-    isLoading = false
-  }
-
-  private func startObservingScheduleUpdates() {
-    guard scheduleUpdateCancellable == nil, stationId != nil else { return }
-    scheduleUpdateCancellable = NotificationCenter.default.publisher(for: .scheduleUpdated)
-      .compactMap { $0.userInfo?["stationId"] as? String }
-      .sink { [weak self] notificationStationId in
-        guard let self, notificationStationId == self.stationId else { return }
-        Task { [weak self] in await self?.loadSchedule() }
+      if !NetworkErrorClassifier.isNetworkError(error) {
+        var tags = NetworkErrorClassifier.errorTags(for: error)
+        tags["endpoint"] = "fetchSchedule"
+        await errorReporting.reportError(error, tags)
       }
+      guard generation == loadGeneration, !Task.isCancelled, isUserInitiated else { return }
+      await toast.show(
+        PlayolaToast(message: "The station schedule couldn't load.", buttonTitle: "OK"))
+    }
   }
 }

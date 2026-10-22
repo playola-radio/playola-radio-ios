@@ -234,6 +234,19 @@ struct ArtistDashboardPageTests {
     expectNoDifference(model.improveCountLabel, "1 OF 3 DONE")
   }
 
+  @Test func duplicateKnownChecksUseTheFirstDisplayedCheckForTheCount() async {
+    let health = makeHealth(
+      freshPct: 50, status: .warning,
+      checks: [
+        makeCheck(kind: "appearances", status: .warning, current: 1, required: 3),
+        makeCheck(kind: "appearances", status: .healthy, current: 3, required: 3),
+      ])
+    let model = await makeModel(returning: health)
+
+    expectNoDifference(model.improvementItems.count, 1)
+    expectNoDifference(model.improveCountLabel, "0 OF 1 DONE")
+  }
+
   @Test func completionCountsAreNeverRederivedFromProgress() async {
     // status says healthy even though current < required — status is the single source of
     // truth for completion, never re-derived from progress client-side.
@@ -562,18 +575,22 @@ struct ArtistDashboardPageTests {
     expectNoDifference(captured.value, testStationId)
   }
 
-  @Test func loadFailureLeavesNeutralHealthState() async {
+  @Test func loadFailureLeavesNeutralHealthStateWithoutAlert() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     coordinator.switchToBroadcastMode(stationId: testStationId)
 
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let reportedErrors = LockIsolated(0)
     let model = await withDependencies {
       $0.date = .constant(fixedNow)
       $0.calendar = fixedCalendar
       $0.api.getProgrammingHealth = { _, _ in throw TestError.networkError }
       $0.api.getActiveListeningSessions = { _, _, _, _ in Self.emptyActive }
       $0.api.getListenerCounts = { _, _, _, _ in Self.emptyCounts }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+      $0.errorReporting.reportError = { _, _ in reportedErrors.withValue { $0 += 1 } }
     } operation: {
       let model = ArtistDashboardPageModel()
       await model.viewAppeared()
@@ -583,7 +600,10 @@ struct ArtistDashboardPageTests {
     expectNoDifference(model.healthScoreLabel, "—")
     expectNoDifference(model.improvementItems.isEmpty, true)
     expectNoDifference(model.improveCountLabel, "0 OF 0 DONE")
-    expectNoDifference(model.presentedAlert != nil, true)
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(shownToasts.value.map(\.message), ["Some dashboard stats couldn't load."])
+    expectNoDifference(shownToasts.value.map(\.buttonTitle), ["OK"])
+    expectNoDifference(reportedErrors.value, 1)
     expectNoDifference(model.isLoading, false)
   }
 
@@ -658,7 +678,7 @@ struct ArtistDashboardPageTests {
     expectNoDifference(windows.value.count, 5)
   }
 
-  @Test func listenerCardDegradesIndependentlyOnFailure() async {
+  @Test func listenerCardDegradesIndependentlyOnFailureWithoutAlert() async {
     let startOfToday = fixedCalendar.startOfDay(for: fixedNow)
     let weekStart = fixedCalendar.date(byAdding: .day, value: -7, to: startOfToday)!
 
@@ -670,7 +690,7 @@ struct ArtistDashboardPageTests {
     }
 
     expectNoDifference(model.stats.map(\.value), ["50", "—", "50"])
-    expectNoDifference(model.presentedAlert == nil, true)
+    expectNoDifference(model.presentedAlert, nil)
   }
 
   // MARK: - Weekly Bar Chart
@@ -714,13 +734,28 @@ struct ArtistDashboardPageTests {
     expectNoDifference(model.weekBars.map(\.heightFraction), [0, 0])
   }
 
+  @Test func duplicateWeekBucketsUseTheFirstVisibleBucketForChartScaling() async {
+    let model = await makeBroadcastingModel {
+      $0.api.getListenerCounts = { _, _, _, _ in
+        Self.counts([
+          Self.bucket("2024-07-21", uniqueUsers: 10),
+          Self.bucket("2024-07-21", uniqueUsers: 100),
+          Self.bucket("2024-07-28", uniqueUsers: 5),
+        ])
+      }
+    }
+
+    expectNoDifference(model.weekBars.map(\.id), ["2024-07-21", "2024-07-28"])
+    expectNoDifference(model.weekBars.map(\.heightFraction), [1.0, 0.5])
+  }
+
   @Test func chartFailureLeavesEmptyBarsWithoutAlert() async {
     let model = await makeBroadcastingModel {
       $0.api.getListenerCounts = { _, _, _, _ in throw TestError.networkError }
     }
 
     expectNoDifference(model.weekBars.isEmpty, true)
-    expectNoDifference(model.presentedAlert == nil, true)
+    expectNoDifference(model.presentedAlert, nil)
   }
 
   @Test func weekBarsCapAtMostRecentEightWeeks() async {
@@ -882,7 +917,7 @@ struct ArtistDashboardPageTests {
 
     expectNoDifference(model.weeklyReportTrendLabel, "")
     expectNoDifference(model.weeklyReportTrendColor, .clear)
-    expectNoDifference(model.presentedAlert == nil, true)
+    expectNoDifference(model.presentedAlert, nil)
   }
 
   @Test func weeklyTrendUsesRollingSevenDayWindows() async {
@@ -978,7 +1013,7 @@ struct ArtistDashboardPageTests {
     await model.viewAppeared()
 
     expectNoDifference(model.healthScoreLabel, "—")
-    expectNoDifference(model.presentedAlert != nil, true)
+    expectNoDifference(model.presentedAlert, nil)
   }
 
   @Test func countsReloadFailureClearsStaleBuckets() async {
@@ -1145,4 +1180,108 @@ struct ArtistDashboardPageTests {
 
 private enum TestError: Error {
   case networkError
+}
+
+extension ArtistDashboardPageTests {
+  @Test func multipleConcurrentSectionFailuresShowOneToastAndReportEveryError() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let reports = LockIsolated(0)
+    let model = await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.calendar = fixedCalendar
+      $0.api.getProgrammingHealth = { _, _ in throw TestError.networkError }
+      $0.api.getActiveListeningSessions = { _, _, _, _ in throw TestError.networkError }
+      $0.api.getListenerCounts = { _, _, _, _ in throw TestError.networkError }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+      $0.errorReporting.reportError = { _, _ in
+        reports.withValue { $0 += 1 }
+      }
+    } operation: {
+      let model = ArtistDashboardPageModel()
+      await model.viewAppeared()
+      return model
+    }
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(model.stats.map(\.value), ["—", "—", "—"])
+    expectNoDifference(model.weekBars.count, 0)
+    expectNoDifference(shownToasts.value.map(\.message), ["Some dashboard stats couldn't load."])
+    expectNoDifference(reports.value, 7)
+  }
+
+  @Test func dashboardNetworkFailureShowsToastWithoutReporting() async {
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let reports = LockIsolated(0)
+    let model = await makeBroadcastingModel {
+      $0.api.getListenerCounts = { _, _, _, _ in throw URLError(.notConnectedToInternet) }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+      $0.errorReporting.reportError = { _, _ in reports.withValue { $0 += 1 } }
+    }
+
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(shownToasts.value.map(\.message), ["Some dashboard stats couldn't load."])
+    expectNoDifference(reports.value, 0)
+  }
+
+  @Test func dashboardCancellationShowsNeitherToastNorReport() async {
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let reports = LockIsolated(0)
+    let model = await makeBroadcastingModel {
+      $0.api.getProgrammingHealth = { _, _ in throw CancellationError() }
+      $0.api.getActiveListeningSessions = { _, _, _, _ in throw CancellationError() }
+      $0.api.getListenerCounts = { _, _, _, _ in throw CancellationError() }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+      $0.errorReporting.reportError = { _, _ in reports.withValue { $0 += 1 } }
+    }
+
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(shownToasts.value, [])
+    expectNoDifference(reports.value, 0)
+  }
+
+  @Test func staleListenerFailuresCannotAlertAfterANewerLoad() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: "old")
+    let entered = AsyncStream<Void>.makeStream()
+    let releases = LockIsolated<[CheckedContinuation<Void, Never>]>([])
+    let errors = LockIsolated(0)
+    let model = withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.calendar = fixedCalendar
+      $0.api.getProgrammingHealth = { _, station in
+        ProgrammingHealth(stationId: station, status: .healthy, freshPct: 99, checks: [])
+      }
+      $0.api.getActiveListeningSessions = { _, station, _, _ in
+        if station == "old" {
+          await withCheckedContinuation { continuation in
+            releases.withValue { $0.append(continuation) }
+            entered.continuation.yield()
+          }
+          throw URLError(.badServerResponse)
+        }
+        return Self.active(12)
+      }
+      $0.api.getListenerCounts = { _, _, _, _ in Self.emptyCounts }
+      $0.analytics.track = { event in
+        if case .apiError = event { errors.withValue { $0 += 1 } }
+      }
+    } operation: {
+      ArtistDashboardPageModel()
+    }
+    let task = Task { await model.viewAppeared() }
+    var iterator = entered.stream.makeAsyncIterator()
+    for _ in 0..<5 { await iterator.next() }
+    coordinator.switchToBroadcastMode(stationId: "new")
+    await model.viewAppeared()
+    for continuation in releases.value { continuation.resume() }
+    await task.value
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(model.stats.map(\.value), ["12", "12", "12"])
+    expectNoDifference(errors.value, 0)
+  }
 }

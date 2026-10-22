@@ -152,8 +152,12 @@ struct ArtistDashboardTabRootTests {
       MainContainerNavigationCoordinator()
     coordinator.switchToBroadcastMode(stationId: testStationId)
 
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let reports = LockIsolated(0)
     let model = await withDependencies {
       $0.api.fetchStation = { _, _ in throw TestError.networkError }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+      $0.errorReporting.reportError = { _, _ in reports.withValue { $0 += 1 } }
     } operation: {
       let model = ArtistDashboardTabRootModel()
       await model.viewAppeared()
@@ -161,6 +165,31 @@ struct ArtistDashboardTabRootTests {
     }
 
     expectNoDifference(routeCase(model.route), "failed")
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(shownToasts.value.map(\.message), ["The dashboard couldn't load."])
+    expectNoDifference(reports.value, 1)
+  }
+
+  @Test func cancelledFetchDoesNotShowToastOrReport() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let reports = LockIsolated(0)
+    let model = await withDependencies {
+      $0.api.fetchStation = { _, _ in throw URLError(.cancelled) }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+      $0.errorReporting.reportError = { _, _ in reports.withValue { $0 += 1 } }
+    } operation: {
+      let model = ArtistDashboardTabRootModel()
+      await model.viewAppeared()
+      return model
+    }
+
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(shownToasts.value, [])
+    expectNoDifference(reports.value, 0)
   }
 
   // MARK: - Preconditions

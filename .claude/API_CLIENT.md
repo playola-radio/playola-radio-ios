@@ -55,6 +55,8 @@ try await authenticatedDelete(path: "/v1/...", token: token)
 
 ```swift
 @ObservationIgnored @Dependency(\.api) var api
+@ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+@ObservationIgnored @Dependency(\.toast) var toast
 @ObservationIgnored @Shared(.auth) var auth
 
 func loadItems() async {
@@ -62,10 +64,18 @@ func loadItems() async {
   do {
     items = try await api.getItems(token, stationId)
   } catch {
-    presentedAlert = .errorLoadingItems
+    guard !Task.isCancelled, !(error is CancellationError),
+      (error as? URLError)?.code != .cancelled
+    else { return }
+    if !NetworkErrorClassifier.isNetworkError(error) {
+      await errorReporting.reportError(error, ["endpoint": "getItems"])
+    }
+    await toast.show(PlayolaToast(message: "Items couldn't load.", buttonTitle: "OK"))
   }
 }
 ```
+
+Use alerts only when a deliberate user action fails; page-load failures use a toast or inline state.
 
 ## State Management
 

@@ -6,6 +6,7 @@
 //
 
 import Dependencies
+import IdentifiedCollections
 import Sharing
 import SwiftUI
 
@@ -24,6 +25,8 @@ class ArtistDashboardPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.calendar) var calendar
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+  @ObservationIgnored @Dependency(\.toast) var toast
 
   // MARK: - Shared State
 
@@ -84,6 +87,7 @@ class ArtistDashboardPageModel: ViewModel {
   /// the common navigation-away case; this closes the narrow window where an in-flight request has
   /// already returned before cancellation propagates.
   private var loadGeneration = 0
+  private var toastedGeneration: Int?
   var isLoading = false
   var presentedAlert: PlayolaAlert?
 
@@ -119,7 +123,7 @@ class ArtistDashboardPageModel: ViewModel {
 
   var listenersSectionTitle: String { "LISTENERS" }
 
-  var stats: [Stat] {
+  var stats: IdentifiedArrayOf<Stat> {
     [
       Stat(id: "now", value: Self.statValue(nowUniqueUsers), label: "NOW"),
       Stat(id: "this-week", value: Self.statValue(weekUniqueUsers), label: "THIS WEEK"),
@@ -139,23 +143,26 @@ class ArtistDashboardPageModel: ViewModel {
   /// older buckets are dropped rather than overflowing the row.
   private static let maxVisibleWeeks = 8
 
-  var weekBars: [WeekBar] {
-    let visibleBuckets = listenerBuckets.suffix(Self.maxVisibleWeeks)
+  var weekBars: IdentifiedArrayOf<WeekBar> {
+    var seenBucketStarts = Set<String>()
+    let uniqueBuckets = listenerBuckets.filter { seenBucketStarts.insert($0.bucketStart).inserted }
+    let visibleBuckets = uniqueBuckets.suffix(Self.maxVisibleWeeks)
     let maxUsers = visibleBuckets.map { max(0, $0.uniqueUsers) }.max() ?? 0
-    return visibleBuckets.map { bucket in
-      let rawFraction = maxUsers == 0 ? 0 : Double(max(0, bucket.uniqueUsers)) / Double(maxUsers)
-      let fraction = min(1, max(0, rawFraction))
-      if bucket.isLive {
+    return IdentifiedArray(
+      visibleBuckets.map { bucket in
+        let rawFraction = maxUsers == 0 ? 0 : Double(max(0, bucket.uniqueUsers)) / Double(maxUsers)
+        let fraction = min(1, max(0, rawFraction))
+        if bucket.isLive {
+          return WeekBar(
+            id: bucket.bucketStart, label: "SO FAR", labelColor: Color(hex: "#FFC107"),
+            labelFontName: FontNames.Inter_700_Bold, labelFontSize: 7,
+            barColor: Color(hex: "#FFC107"), heightFraction: fraction)
+        }
         return WeekBar(
-          id: bucket.bucketStart, label: "SO FAR", labelColor: Color(hex: "#FFC107"),
-          labelFontName: FontNames.Inter_700_Bold, labelFontSize: 7,
-          barColor: Color(hex: "#FFC107"), heightFraction: fraction)
-      }
-      return WeekBar(
-        id: bucket.bucketStart, label: Self.monthDayLabel(bucket.bucketStart),
-        labelColor: .playolaGray, labelFontName: FontNames.Inter_500_Medium, labelFontSize: 8,
-        barColor: .playolaRed, heightFraction: fraction)
-    }
+          id: bucket.bucketStart, label: Self.monthDayLabel(bucket.bucketStart),
+          labelColor: .playolaGray, labelFontName: FontNames.Inter_500_Medium, labelFontSize: 8,
+          barColor: .playolaRed, heightFraction: fraction)
+      }, uniquingIDsWith: { first, _ in first })
   }
 
   var improveSectionTitle: String { "IMPROVE YOUR STATION" }
@@ -174,7 +181,10 @@ class ArtistDashboardPageModel: ViewModel {
   ]
 
   private var knownChecks: [ProgrammingHealthCheck] {
-    (programmingHealth?.checks ?? []).filter { Self.knownCheckKinds.contains($0.kind) }
+    var seenKinds = Set<String>()
+    return (programmingHealth?.checks ?? []).filter {
+      Self.knownCheckKinds.contains($0.kind) && seenKinds.insert($0.kind).inserted
+    }
   }
 
   var improveCountLabel: String {
@@ -185,8 +195,9 @@ class ArtistDashboardPageModel: ViewModel {
 
   var improveCountColor: Color { Color(hex: "#34C759") }
 
-  var improvementItems: [ImprovementItem] {
-    knownChecks.map(Self.improvementItem(from:))
+  var improvementItems: IdentifiedArrayOf<ImprovementItem> {
+    IdentifiedArray(
+      knownChecks.map(Self.improvementItem(from:)), uniquingIDsWith: { first, _ in first })
   }
 
   // MARK: - User Actions
@@ -296,7 +307,7 @@ class ArtistDashboardPageModel: ViewModel {
       guard !isCancellation(error) else { return }
       guard generation == loadGeneration else { return }
       programmingHealth = nil
-      presentedAlert = .stationHealthError(error.localizedDescription)
+      await handleLoadFailure(error, endpoint: "getProgrammingHealth", generation: generation)
       await analytics.track(
         .apiError(endpoint: "getProgrammingHealth", error: error.localizedDescription))
     }
@@ -321,16 +332,15 @@ class ArtistDashboardPageModel: ViewModel {
     do {
       let (now, week, month) = try await (nowCount, weekCount, monthCount)
       guard generation == loadGeneration else { return }
-      nowUniqueUsers = now
-      weekUniqueUsers = week
-      monthUniqueUsers = month
+      let nowValue = await listenerValue(now, generation: generation)
+      let weekValue = await listenerValue(week, generation: generation)
+      let monthValue = await listenerValue(month, generation: generation)
+      guard generation == loadGeneration, !Task.isCancelled else { return }
+      nowUniqueUsers = nowValue
+      weekUniqueUsers = weekValue
+      monthUniqueUsers = monthValue
     } catch {
-      // The task was cancelled (navigation away / remount): keep the cards' prior values and
-      // skip analytics, mirroring `loadProgrammingHealth` / `loadListenerCounts`. Reached only when
-      // cancelled — a genuine one-card failure on a live task is swallowed inside `uniqueUsers`
-      // (tracked there, returns `nil`) so only that card degrades to "—". (If a real error
-      // happens to surface while the task is already cancelled, it is dropped here on purpose:
-      // the view is going away.)
+      // Cancellation preserves the cards' prior values.
     }
   }
 
@@ -358,12 +368,13 @@ class ArtistDashboardPageModel: ViewModel {
     do {
       let (trailingUsers, priorUsers) = try await (trailing, prior)
       guard generation == loadGeneration else { return }
-      trailingWeekUsers = trailingUsers
-      priorWeekUsers = priorUsers
+      let trailingValue = await listenerValue(trailingUsers, generation: generation)
+      let priorValue = await listenerValue(priorUsers, generation: generation)
+      guard generation == loadGeneration, !Task.isCancelled else { return }
+      trailingWeekUsers = trailingValue
+      priorWeekUsers = priorValue
     } catch {
-      // Cancelled (navigation away / remount): keep the prior trend values, mirroring the other
-      // loads. A genuine one-window failure is swallowed inside `uniqueUsers` (returns `nil`),
-      // which hides the trend rather than reaching here.
+      // Cancellation preserves the prior trend values.
     }
   }
 
@@ -379,16 +390,43 @@ class ArtistDashboardPageModel: ViewModel {
 
   private func uniqueUsers(
     token: String, stationId: String, airtime: Date, endTime: Date?
-  ) async throws -> Int? {
+  ) async throws -> Result<Int, Error> {
     do {
-      return try await api.getActiveListeningSessions(token, stationId, airtime, endTime)
+      let count = try await api.getActiveListeningSessions(token, stationId, airtime, endTime)
         .summary.uniqueUsers
+      try Task.checkCancellation()
+      return .success(count)
     } catch {
       guard !isCancellation(error) else { throw error }
+      return .failure(error)
+    }
+  }
+
+  private func listenerValue(_ result: Result<Int, Error>, generation: Int) async -> Int? {
+    guard generation == loadGeneration, !Task.isCancelled else { return nil }
+    switch result {
+    case .success(let count): return count
+    case .failure(let error):
+      await handleLoadFailure(
+        error, endpoint: "getActiveListeningSessions", generation: generation)
       await analytics.track(
         .apiError(endpoint: "getActiveListeningSessions", error: error.localizedDescription))
       return nil
     }
+  }
+
+  private func handleLoadFailure(_ error: Error, endpoint: String, generation: Int) async {
+    guard generation == loadGeneration, !Task.isCancelled else { return }
+    if !NetworkErrorClassifier.isNetworkError(error) {
+      var tags = NetworkErrorClassifier.errorTags(for: error)
+      tags["endpoint"] = endpoint
+      await errorReporting.reportError(error, tags)
+    }
+    guard generation == loadGeneration, toastedGeneration != generation, !Task.isCancelled
+    else { return }
+    toastedGeneration = generation
+    await toast.show(
+      PlayolaToast(message: "Some dashboard stats couldn't load.", buttonTitle: "OK"))
   }
 
   private func loadListenerCounts(token: String, stationId: String, generation: Int) async {
@@ -403,6 +441,7 @@ class ArtistDashboardPageModel: ViewModel {
       guard !isCancellation(error) else { return }
       guard generation == loadGeneration else { return }
       listenerBuckets = []
+      await handleLoadFailure(error, endpoint: "getListenerCounts", generation: generation)
       await analytics.track(
         .apiError(endpoint: "getListenerCounts", error: error.localizedDescription))
     }
@@ -412,7 +451,7 @@ class ArtistDashboardPageModel: ViewModel {
   /// `AFError.explicitlyCancelled`, so `Task.isCancelled` is already set). Treat that as a
   /// non-event: don't clear loaded state, alert, or record an API error for a navigation away.
   private func isCancellation(_ error: any Error) -> Bool {
-    Task.isCancelled || error is CancellationError
+    Task.isCancelled || error is CancellationError || (error as? URLError)?.code == .cancelled
   }
 
   private static func statValue(_ count: Int?) -> String {
@@ -539,17 +578,5 @@ class ArtistDashboardPageModel: ViewModel {
       progressTrackColor: trackColor,
       chevronOpacity: chevronOpacity,
       isTappable: isTappable)
-  }
-}
-
-// MARK: - Alerts
-
-extension PlayolaAlert {
-  static func stationHealthError(_ message: String) -> PlayolaAlert {
-    PlayolaAlert(
-      title: "Error",
-      message: message,
-      dismissButton: .cancel(Text("OK"))
-    )
   }
 }

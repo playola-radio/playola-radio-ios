@@ -36,6 +36,16 @@ public struct AudioRecorderClient: Sendable {
     ) async throws -> RecordingSession
 }
 
+extension AudioRecorderClient {
+  func startRecordingUpdates() async throws -> (RecordingSession, AsyncStream<RecordingState>) {
+    let (stream, continuation) = AsyncStream<RecordingState>.makeStream()
+    let session = try await startRecordingWithUpdates { state in
+      continuation.yield(state)
+    }
+    return (session, stream)
+  }
+}
+
 // MARK: - Recording Session
 
 public final class RecordingSession: Sendable {
