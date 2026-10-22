@@ -173,11 +173,14 @@ extension AskMeAnythingLivePageModel {
       let question = listenerQuestions.first {
         $0.audioBlockId == spin.audioBlock.id || $0.answerAudioBlockId == spin.audioBlock.id
       }
+      let answerAudioBlockId = question.flatMap {
+        locallyAiredAnswerAudioBlockIds[$0.id] ?? $0.answerAudioBlockId
+      }
       // The airing's group also holds the attached song, which renders as its own row.
       let pair = spins.filter {
         spin.spinGroupId != nil && $0.spinGroupId == spin.spinGroupId
           && ($0.audioBlock.id == question?.audioBlockId
-            || $0.audioBlock.id == question?.answerAudioBlockId)
+            || $0.audioBlock.id == answerAudioBlockId)
       }
       let members = pair.isEmpty ? [spin] : pair
       consumed.formUnion(members.map(\.id))
@@ -185,7 +188,7 @@ extension AskMeAnythingLivePageModel {
       let isOutro = spin.id == endingSpinId
       let isVoice = spin.audioBlock.type == "voiceTrack"
       let listenerName = question?.listener?.firstName ?? "Listener"
-      let isAnswerSpin = question?.answerAudioBlockId == spin.audioBlock.id
+      let isAnswerSpin = answerAudioBlockId == spin.audioBlock.id
       // Classify a matched question spin once, driving both title and subtitle: the grouped
       // (spinGroupId) pair renders as a merged "Question and Answer" row, while flat pre-show
       // spins render as separate question / answer rows.

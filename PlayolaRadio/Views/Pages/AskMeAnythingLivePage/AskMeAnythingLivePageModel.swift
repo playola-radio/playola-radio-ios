@@ -51,6 +51,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   var scheduledStartsAt: Date?
   var listenerCount: Int?
   var listenerQuestions: [ListenerQuestion] = []
+  @ObservationIgnored var locallyAiredAnswerAudioBlockIds: [String: String] = [:]
   @ObservationIgnored var listenerQuestionsRequestCount = 0
   @ObservationIgnored var appliedListenerQuestionsRequest = 0
   var lastPromotedFiller: (title: String, date: Date)?
