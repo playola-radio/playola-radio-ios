@@ -25,8 +25,10 @@ final class UpsideDownNotificationBannerModel: ViewModel {
 
   // MARK: - Properties
 
-  var banner: Banner?
-  @ObservationIgnored private var onTap: @MainActor () -> Void = {}
+  /// Notifications arriving while one is showing wait their turn, since their system banners
+  /// were already suppressed.
+  private var queue: [(banner: Banner, onTap: @MainActor () -> Void)] = []
+  var banner: Banner? { queue.first?.banner }
 
   let displayDuration = Duration.seconds(5)
   private let dismissDragDistance: CGFloat = 20
@@ -34,14 +36,14 @@ final class UpsideDownNotificationBannerModel: ViewModel {
   // MARK: - User Actions
 
   func bannerTapped() {
-    let onTap = onTap
-    hide()
+    guard let onTap = queue.first?.onTap else { return }
+    dismissCurrentBanner()
     onTap()
   }
 
   func bannerDragEnded(verticalTranslation: CGFloat) {
     guard verticalTranslation < -dismissDragDistance else { return }
-    hide()
+    dismissCurrentBanner()
   }
 
   func bannerAppeared() async {
@@ -52,7 +54,7 @@ final class UpsideDownNotificationBannerModel: ViewModel {
       return
     }
     guard banner == shownBanner else { return }
-    hide()
+    dismissCurrentBanner()
   }
 
   // MARK: - View Helpers
@@ -62,12 +64,17 @@ final class UpsideDownNotificationBannerModel: ViewModel {
   // MARK: - Presentation
 
   func show(title: String, body: String, onTap: @escaping @MainActor () -> Void) {
-    banner = Banner(id: uuid(), title: title, body: body)
-    self.onTap = onTap
+    queue.append((Banner(id: uuid(), title: title, body: body), onTap))
   }
 
-  func hide() {
-    banner = nil
-    onTap = {}
+  func hideAll() {
+    queue = []
+  }
+
+  // MARK: - Private Helpers
+
+  private func dismissCurrentBanner() {
+    guard !queue.isEmpty else { return }
+    queue.removeFirst()
   }
 }

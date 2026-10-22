@@ -67,16 +67,41 @@ struct UpsideDownBannerControllerTests {
     #expect(controller.showBanner(title: "New message", body: "Hi", onTap: {}) == false)
   }
 
+  @Test
+  func testHiddenAppWindowKeepsSystemBanner() throws {
+    let window = try makeWindow()
+    window.transform = upsideDown
+    window.isHidden = true
+    let controller = makeController(appWindow: window)
+    controller.setUpsideDownModeEnabled(true)
+
+    #expect(controller.showBanner(title: "New message", body: "Hi", onTap: {}) == false)
+  }
+
+  @Test
+  func testInactiveSceneKeepsSystemBanner() throws {
+    let window = try makeWindow()
+    window.transform = upsideDown
+    let controller = makeController(appWindow: window, isSceneActive: false)
+    controller.setUpsideDownModeEnabled(true)
+
+    #expect(controller.showBanner(title: "New message", body: "Hi", onTap: {}) == false)
+  }
+
   // MARK: - Helpers
 
   private let upsideDown = CGAffineTransform(rotationAngle: .pi)
 
-  private func makeController(appWindow: UIWindow?) -> UpsideDownNotificationBannerController {
+  private func makeController(
+    appWindow: UIWindow?,
+    isSceneActive: Bool = true
+  ) -> UpsideDownNotificationBannerController {
     withDependencies {
       $0.continuousClock = TestClock()
       $0.uuid = .incrementing
     } operation: {
-      UpsideDownNotificationBannerController(appWindow: { appWindow })
+      UpsideDownNotificationBannerController(
+        appWindow: { appWindow }, isSceneActive: { _ in isSceneActive })
     }
   }
 

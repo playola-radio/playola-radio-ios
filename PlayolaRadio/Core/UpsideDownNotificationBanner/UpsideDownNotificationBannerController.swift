@@ -11,53 +11,66 @@ import UIKit
 /// an overlay window with the same rotation as the app, so the caller can suppress the original.
 ///
 /// A copy is only ever shown when upside-down mode is enabled and the app window is actually
-/// rotated.
+/// rotated and visible in an active scene.
 @MainActor
 final class UpsideDownNotificationBannerController {
   let bannerModel = UpsideDownNotificationBannerModel()
 
   private let appWindow: @MainActor () -> UIWindow?
+  private let isSceneActive: @MainActor (UIWindowScene) -> Bool
   private var isModeEnabled = false
   private var overlayWindow: BannerOverlayWindow?
   private var bannerTopConstraint: NSLayoutConstraint?
 
   var isShowingBanner: Bool { overlayWindow?.isHidden == false && bannerModel.banner != nil }
 
-  init(appWindow: @escaping @MainActor () -> UIWindow? = { UIApplication.shared.keyWindow }) {
+  init(
+    appWindow: @escaping @MainActor () -> UIWindow? = { UIApplication.shared.keyWindow },
+    isSceneActive: @escaping @MainActor (UIWindowScene) -> Bool = {
+      $0.activationState == .foregroundActive
+    }
+  ) {
     self.appWindow = appWindow
+    self.isSceneActive = isSceneActive
   }
 
   func setUpsideDownModeEnabled(_ isEnabled: Bool) {
     isModeEnabled = isEnabled
     guard !isEnabled else { return }
-    bannerModel.hide()
+    bannerModel.hideAll()
     overlayWindow?.isHidden = true
   }
 
-  /// Returns `false` without showing anything when the app isn't upside down, so the caller
-  /// keeps the system banner.
+  /// Returns `false` without showing anything when the app isn't visibly upside down, so the
+  /// caller keeps the system banner.
   func showBanner(title: String, body: String, onTap: @escaping @MainActor () -> Void) -> Bool {
-    guard isModeEnabled, let window = appWindow(), window.transform.a < 0 else { return false }
-    showOverlay(over: window)
+    guard isModeEnabled, let window = appWindow(), window.transform.a < 0, !window.isHidden,
+      let scene = window.windowScene, isSceneActive(scene)
+    else { return false }
+    showOverlay(over: window, in: scene)
     bannerModel.show(title: title, body: body, onTap: onTap)
+    UIAccessibility.post(notification: .announcement, argument: "\(title). \(body)")
     return true
   }
 
   // MARK: - Private Helpers
 
-  private func showOverlay(over window: UIWindow) {
-    guard let scene = window.windowScene else { return }
-    if overlayWindow?.windowScene !== scene {
-      overlayWindow?.isHidden = true
-      overlayWindow = makeOverlayWindow(in: scene)
-    }
-    guard let overlayWindow else { return }
+  private func showOverlay(over window: UIWindow, in scene: UIWindowScene) {
+    let overlayWindow = currentOverlayWindow(in: scene)
     // Above the app and the upside-down keyboard's overlay window.
     overlayWindow.windowLevel = window.windowLevel + 2
     overlayWindow.transform = window.transform
     // Flipped, the window's bottom safe area (home indicator) is at the app's top edge.
     bannerTopConstraint?.constant = window.safeAreaInsets.bottom + 8
     overlayWindow.isHidden = false
+  }
+
+  private func currentOverlayWindow(in scene: UIWindowScene) -> BannerOverlayWindow {
+    if let overlayWindow, overlayWindow.windowScene === scene { return overlayWindow }
+    overlayWindow?.isHidden = true
+    let newOverlayWindow = makeOverlayWindow(in: scene)
+    overlayWindow = newOverlayWindow
+    return newOverlayWindow
   }
 
   private func makeOverlayWindow(in scene: UIWindowScene) -> BannerOverlayWindow {

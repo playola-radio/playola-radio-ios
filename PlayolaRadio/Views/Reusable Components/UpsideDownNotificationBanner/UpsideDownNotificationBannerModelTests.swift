@@ -43,15 +43,33 @@ struct UpsideDownNotificationBannerModelTests {
   }
 
   @Test
-  func testBannerTappedAfterHideDoesNotRunStaleTapAction() {
+  func testBannerTappedAfterHideAllDoesNotRunStaleTapAction() {
     let model = makeModel()
     let tapCount = LockIsolated(0)
-    model.show(title: "New message", body: "Hi there") { tapCount.withValue { $0 += 1 } }
-    model.hide()
+    model.show(title: "First", body: "") { tapCount.withValue { $0 += 1 } }
+    model.show(title: "Second", body: "") { tapCount.withValue { $0 += 1 } }
+    model.hideAll()
 
     model.bannerTapped()
 
+    #expect(model.banner == nil)
     #expect(tapCount.value == 0)
+  }
+
+  @Test
+  func testBurstOfNotificationsShowsEachInTurn() {
+    let model = makeModel()
+    let tappedTitles = LockIsolated<[String]>([])
+    model.show(title: "First", body: "") { tappedTitles.withValue { $0.append("First") } }
+    model.show(title: "Second", body: "") { tappedTitles.withValue { $0.append("Second") } }
+    expectNoDifference(model.banner?.title, "First")
+
+    model.bannerDragEnded(verticalTranslation: -40)
+    expectNoDifference(model.banner?.title, "Second")
+
+    model.bannerTapped()
+    #expect(model.banner == nil)
+    expectNoDifference(tappedTitles.value, ["Second"])
   }
 
   @Test
@@ -93,14 +111,15 @@ struct UpsideDownNotificationBannerModelTests {
   }
 
   @Test
-  func testOlderBannerTimerDoesNotHideNewerBanner() async {
+  func testOlderBannerTimerDoesNotHideNextQueuedBanner() async {
     await withMainSerialExecutor {
       let clock = TestClock()
       let model = makeModel(clock: clock)
       model.show(title: "First", body: "", onTap: {})
+      model.show(title: "Second", body: "", onTap: {})
       let firstAppeared = Task { await model.bannerAppeared() }
       await Task.megaYield()
-      model.show(title: "Second", body: "", onTap: {})
+      model.bannerDragEnded(verticalTranslation: -40)
 
       await clock.advance(by: model.displayDuration)
       await firstAppeared.value
