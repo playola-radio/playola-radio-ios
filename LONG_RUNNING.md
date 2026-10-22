@@ -19,7 +19,7 @@ not ✅ done until its soak clears.
 > Entries marked `⟨owner: …⟩` are placeholders the task owner should fill in —
 > I scaffolded them from open PRs/branches but don't know the internal plan.
 
-_Last updated: 2026-09-28_
+_Last updated: 2026-10-22_
 
 ---
 
@@ -41,7 +41,7 @@ we need to tackle?" (or run the `whats-due` skill) to see what's due.
 | View/Model pattern cleanup | 🔵 in progress (opportunistic) | ongoing, fix-on-touch | none | — | `TODO_VIEW_MODEL_VIOLATIONS.md` |
 | Prettify iPad screens | 🔵 in progress | Profile (screen 4 of N) | none (standard release) | 2026-09-10 | specs in `docs/superpowers/specs/2026-08-0*-ipad-*-design.md` |
 | Artist 3-tab IA (broadcast redesign) | 🔵 in progress | Step 2: Dashboard health + Listeners cards + 8-week chart wired; Station tab's third link row now pushes a new Breakers Library category list (categories fetch, non-song + zero-clip filter) with a per-category detail page (per-clip audio preview, play/stop toggle + scrubber) landed in PR #417; re-homing next — **must not merge until Step 3 re-homes Broadcast/Library/Listeners** | none (standard release) | 2026-09-10 | designs `design/exports/in-progress/3-tab-ia` · `design/exports/breakers-library` · `design/DESIGN_STATUS.md` |
-| Artist Dashboard API Repair | 🔵 in progress | iOS PR (this repo) repointed to the new/renamed endpoints and is ready for staging verification; server PR (playola repo) is owned by a separate human implementer, not tracked here in detail | **prod gate**: server must ship `programming-health` + the station-filtered `listener-counts`/`active` work to production before any App Store release containing the dashboard | 2026-09-19 | see "Artist Dashboard API Repair" section below |
+| Artist Dashboard API Repair | 🟡 soaking | iOS repoint merged to `develop`; **shipping to prod in 7.7.0** | **prod gate cleared**: server `main` (merged 2026-10-16, playola PR #1065) serves `programming-health`, station-scoped `listener-counts`, and `stationId`-filtered `listening-sessions/active`. Watch Sentry for dashboard request errors after 7.7.0 goes live | 2026-11-05 | see "Artist Dashboard API Repair" section below |
 
 ---
 
