@@ -165,4 +165,22 @@ struct AudioSessionCoordinatorTests {
 
     #expect(spyDelegate.pauseCount == 0)
   }
+
+  @Test
+  func carAudioIsAPersonalListeningOutput() {
+    #expect(AudioSessionCoordinator.isPersonalListeningOutput(.carAudio))
+  }
+
+  @Test
+  func headphonesAndBluetoothAreAPersonalListeningOutput() {
+    #expect(AudioSessionCoordinator.isPersonalListeningOutput(.headphones))
+    #expect(AudioSessionCoordinator.isPersonalListeningOutput(.bluetoothA2DP))
+    #expect(AudioSessionCoordinator.isPersonalListeningOutput(.bluetoothHFP))
+  }
+
+  @Test
+  func airPlayAndBuiltInSpeakerAreNotAPersonalListeningOutput() {
+    #expect(!AudioSessionCoordinator.isPersonalListeningOutput(.airPlay))
+    #expect(!AudioSessionCoordinator.isPersonalListeningOutput(.builtInSpeaker))
+  }
 }

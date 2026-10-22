@@ -166,7 +166,6 @@ struct NowPlayingUpdaterTests {
       return NowPlayingUpdater(stationPlayer: stationPlayer)
     }
 
-    // Stopped with a durable snapshot: the play command accepts and restarts it.
     #expect(updater.handlePlayCommand() == .success)
   }
 
@@ -182,15 +181,11 @@ struct NowPlayingUpdaterTests {
       return NowPlayingUpdater(stationPlayer: stationPlayer)
     }
 
-    // Nothing was ever played: there is genuinely nothing to resume.
     #expect(updater.handlePlayCommand() == .commandFailed)
   }
 
   @Test
   func handlePlayCommandRefusesNonPlayolaSnapshot() {
-    // Only `.playola` is ever persisted, but enforce the invariant at the resume
-    // boundary: a stale/corrupt `.url` snapshot must never reach the retiring URL
-    // backend via the play command.
     @Shared(.lastPlayedStation) var persisted: LastPlayedStation? =
       LastPlayedStation(station: .mockUrl())
     let updater = withDependencies {
@@ -221,6 +216,140 @@ struct NowPlayingUpdaterTests {
 
     // Interruption pause: the play command resumes the live backend directly.
     #expect(updater.handlePlayCommand() == .success)
+  }
+
+  @Test
+  func pauseSupersedesQueuedPlayCommand() async {
+    let playola = SpyPlayolaStationPlayer()
+    let station = AnyStation.mockPlayola()
+    let stationPlayer = StationPlayer(
+      playolaStationPlayer: playola,
+      audioSessionCoordinator: AudioSessionCoordinator(session: NoOpAudioSession()))
+    stationPlayer.state = StationPlayer.State(playbackStatus: .paused(station))
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      NowPlayingUpdater(stationPlayer: stationPlayer)
+    }
+    await withMainSerialExecutor {
+      expectNoDifference(updater.handlePlayCommand(), .success)
+      stationPlayer.pauseWithoutAutoResume()
+      await Task.yield()
+      expectNoDifference(playola.resumeAfterInterruptionCount, 0)
+
+      stationPlayer.state = StationPlayer.State(playbackStatus: .paused(station))
+      expectNoDifference(updater.handlePlayCommand(), .success)
+      await Task.yield()
+      expectNoDifference(playola.resumeAfterInterruptionCount, 1)
+    }
+  }
+
+  // MARK: - Remote Play Command Analytics Tests
+
+  private func makeUpdaterTrackingRemotePlay(
+    status: StationPlayer.PlaybackStatus?,
+    launchedAt: Date = Date(),
+    commandAt: Date = Date(),
+    onEvent: @escaping @Sendable (AnalyticsEvent) -> Void
+  ) -> NowPlayingUpdater {
+    withDependencies {
+      $0.analytics.track = { event in
+        if case .remotePlayCommandReceived = event { onEvent(event) }
+      }
+      $0.date = .constant(commandAt)
+    } operation: {
+      let stationPlayer = StationPlayer(
+        playolaStationPlayer: SpyPlayolaStationPlayer(),
+        audioSessionCoordinator: AudioSessionCoordinator(session: NoOpAudioSession()))
+      if let status {
+        stationPlayer.state = StationPlayer.State(playbackStatus: status)
+      }
+      return NowPlayingUpdater(stationPlayer: stationPlayer, launchedAt: launchedAt)
+    }
+  }
+
+  @Test
+  func handlePlayCommandTracksResumeWhenPaused() async {
+    let launch = Date(timeIntervalSince1970: 1_000)
+    let event = await withCheckedContinuation { continuation in
+      let updater = makeUpdaterTrackingRemotePlay(
+        status: .paused(.mockPlayola()),
+        launchedAt: launch,
+        commandAt: launch.addingTimeInterval(42)
+      ) { continuation.resume(returning: $0) }
+      _ = updater.handlePlayCommand()
+    }
+
+    guard case .remotePlayCommandReceived(let action, _, let secondsSinceLaunch) = event else {
+      Issue.record("Expected remotePlayCommandReceived, got: \(event)")
+      return
+    }
+    #expect(action == "resume")
+    #expect(secondsSinceLaunch == 42)
+  }
+
+  @Test
+  func handlePlayCommandTracksRestartWhenStoppedWithLastStation() async {
+    @Shared(.lastPlayedStation) var persisted: LastPlayedStation? =
+      LastPlayedStation(station: .mockPlayola())
+    let event = await withCheckedContinuation { continuation in
+      let updater = makeUpdaterTrackingRemotePlay(status: nil) {
+        continuation.resume(returning: $0)
+      }
+      _ = updater.handlePlayCommand()
+    }
+
+    guard case .remotePlayCommandReceived(let action, _, _) = event else {
+      Issue.record("Expected remotePlayCommandReceived, got: \(event)")
+      return
+    }
+    #expect(action == "restart_last_station")
+  }
+
+  @Test
+  func handlePlayCommandTracksNoneWhenNothingToResume() async {
+    let event = await withCheckedContinuation { continuation in
+      let updater = makeUpdaterTrackingRemotePlay(status: nil) {
+        continuation.resume(returning: $0)
+      }
+      _ = updater.handlePlayCommand()
+    }
+
+    guard case .remotePlayCommandReceived(let action, _, _) = event else {
+      Issue.record("Expected remotePlayCommandReceived, got: \(event)")
+      return
+    }
+    #expect(action == "none")
+  }
+
+  @Test
+  func remotePlayCommandReceivedEventNameAndProperties() {
+    let event = AnalyticsEvent.remotePlayCommandReceived(
+      action: "resume", appState: "background", secondsSinceLaunch: 7)
+
+    #expect(event.name == "Remote Play Command Received")
+    #expect(event.properties["action"] as? String == "resume")
+    #expect(event.properties["app_state"] as? String == "background")
+    #expect(event.properties["seconds_since_launch"] as? Int == 7)
+  }
+
+  // MARK: - Remote Command Tests
+
+  @Test
+  func setupRemoteControlCenterEnablesPauseCommand() {
+    let commandCenter = MPRemoteCommandCenter.shared()
+    commandCenter.pauseCommand.isEnabled = false
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      NowPlayingUpdater()
+    }
+
+    updater.setupRemoteControlCenter()
+
+    #expect(commandCenter.pauseCommand.isEnabled)
   }
 
   // MARK: - Analytics Tests

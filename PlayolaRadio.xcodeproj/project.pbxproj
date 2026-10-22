@@ -657,8 +657,11 @@
 		F9A35F1CB53E4F9D4E750430 /* StationListLiveSortTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B83C3893A771EB211B3AF8F /* StationListLiveSortTests.swift */; };
 		FAE000000000000000000002 /* AudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000001 /* AudioSessionCoordinator.swift */; };
 		FAE000000000000000000003 /* AudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000001 /* AudioSessionCoordinator.swift */; };
+		FAE000000000000000000031 /* ClientConfigLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000030 /* ClientConfigLoader.swift */; };
+		FAE000000000000000000032 /* ClientConfigLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000030 /* ClientConfigLoader.swift */; };
 		FAE000000000000000000005 /* AudioSessionCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */; };
 		FAE000000000000000000011 /* SingleNowPlayingWriterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000010 /* SingleNowPlayingWriterTests.swift */; };
+		FAE000000000000000000021 /* UIImageCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000020 /* UIImageCacheTests.swift */; };
 		FAF000000000000000000002 /* AudioRecorderClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF000000000000000000001 /* AudioRecorderClientTests.swift */; };
 		FAF000000000000000000011 /* AudioPlayerClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF000000000000000000010 /* AudioPlayerClientTests.swift */; };
 		FE01A0C72DFCB368002BAC30 /* SharedStateTestTrait.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */; };
@@ -1097,8 +1100,10 @@
 		F5283C7C8C9FAF45659BA98E /* GiveawayParticipationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayParticipationTests.swift; sourceTree = "<group>"; };
 		FAD00000000000000000000B /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		FAE000000000000000000001 /* AudioSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinator.swift; sourceTree = "<group>"; };
+		FAE000000000000000000030 /* ClientConfigLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientConfigLoader.swift; sourceTree = "<group>"; };
 		FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinatorTests.swift; sourceTree = "<group>"; };
 		FAE000000000000000000010 /* SingleNowPlayingWriterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleNowPlayingWriterTests.swift; sourceTree = "<group>"; };
+		FAE000000000000000000020 /* UIImageCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageCacheTests.swift; sourceTree = "<group>"; };
 		FAF000000000000000000001 /* AudioRecorderClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderClientTests.swift; sourceTree = "<group>"; };
 		FAF000000000000000000010 /* AudioPlayerClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerClientTests.swift; sourceTree = "<group>"; };
 		FBD876AFF9DD0588179EB37B /* RewardsExperience.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RewardsExperience.swift; sourceTree = "<group>"; };
@@ -1738,6 +1743,7 @@
 				D3536A362BFA6520006942D6 /* Bundle+Misc.swift */,
 				D3536A372BFA6520006942D6 /* Color+Hex.swift */,
 				D3536A382BFA6520006942D6 /* UIImage+Cache.swift */,
+				FAE000000000000000000020 /* UIImageCacheTests.swift */,
 				D339E56E2BFD306600B9E35B /* FRadioPlayerMetadata+Equatable.swift */,
 				A0D10B0C2E90000000000001 /* AudioBlock+Identifiable.swift */,
 				D39728572F5F040F008591E3 /* Version+Comparison */,
@@ -2075,6 +2081,7 @@
 				D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */,
 				D3A1B2C42F101A76000F64A4 /* StationPlayerLastPlayedTests.swift */,
 				FAE000000000000000000001 /* AudioSessionCoordinator.swift */,
+				FAE000000000000000000030 /* ClientConfigLoader.swift */,
 				FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */,
 				FAE000000000000000000010 /* SingleNowPlayingWriterTests.swift */,
 				D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */,
@@ -2571,6 +2578,7 @@
 				B2D0E00D2F90000000C0FFEE /* UpsideDownKeyboardView.swift in Sources */,
 				A9F1000000000000000000C2 /* ClaimAPIError.swift in Sources */,
 				FAE000000000000000000002 /* AudioSessionCoordinator.swift in Sources */,
+				FAE000000000000000000031 /* ClientConfigLoader.swift in Sources */,
 				D35EFC4D2F1A9911000F64A4 /* ConversationListPageModel.swift in Sources */,
 				D39728692F60CF59008591E3 /* StationSuggestionPageModel.swift in Sources */,
 				D397286A2F60CF59008591E3 /* StationSuggestionPageView.swift in Sources */,
@@ -2844,6 +2852,7 @@
 				B2D0E00E2F90000000C0FFEE /* UpsideDownKeyboardView.swift in Sources */,
 				A9F1000000000000000000C3 /* ClaimAPIError.swift in Sources */,
 				FAE000000000000000000003 /* AudioSessionCoordinator.swift in Sources */,
+				FAE000000000000000000032 /* ClientConfigLoader.swift in Sources */,
 				D35EFC502F1A9911000F64A4 /* ConversationListPageModel.swift in Sources */,
 				D397286B2F60CF59008591E3 /* StationSuggestionPageModel.swift in Sources */,
 				D397286C2F60CF59008591E3 /* StationSuggestionPageView.swift in Sources */,
@@ -3118,6 +3127,7 @@
 				FAF000000000000000000011 /* AudioPlayerClientTests.swift in Sources */,
 				FAE000000000000000000005 /* AudioSessionCoordinatorTests.swift in Sources */,
 				FAE000000000000000000011 /* SingleNowPlayingWriterTests.swift in Sources */,
+				FAE000000000000000000021 /* UIImageCacheTests.swift in Sources */,
 				D35EFC142F1595C5000F64A4 /* SeriesCardTests.swift in Sources */,
 				D3776A1D2F243F8600200ADF /* BroadcastersListenerQuestionPageTests.swift in Sources */,
 				D35EFC532F1A99E6000F64A4 /* ConversationListPageTests.swift in Sources */,

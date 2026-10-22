@@ -19,7 +19,7 @@ not ✅ done until its soak clears.
 > Entries marked `⟨owner: …⟩` are placeholders the task owner should fill in —
 > I scaffolded them from open PRs/branches but don't know the internal plan.
 
-_Last updated: 2026-09-28_
+_Last updated: 2026-10-19_
 
 ---
 
@@ -34,7 +34,8 @@ we need to tackle?" (or run the `whats-due` skill) to see what's due.
 | Task | Status | Current step | Soak | Next check | Links |
 |------|--------|--------------|------|------------|-------|
 | Host-owned audio → Sonos | 🟡 soaking | Phase 1 done (7.4.2 at 100% since ~2026-08-09, canary clean); Phase 2+3 shipping to prod in 7.5.1 | Phase 2+3: prod phased rollout via 7.5.1 (submission held on device matrix) | 2026-09-03 | PR #345 · #384 · #402 · plan |
-| AirPlay-2 sample-buffer renderer (Phase 5) | 🟡 soaking | App on SDK **0.21.0 (stable)**; **shipping to 100% of users in 7.6.0** (PR #408) — the server flag is now a **rollback lever**, not a rollout gate | prod at **100%**: the sample-buffer renderer is served to everyone via the server flag. Kill lever (rollback): flip `SAMPLE_BUFFER_RENDERER_ALLOWED=false` (or clear the enabled env) to revert the whole population to the legacy renderer at each user's next app launch (backend locks per process). Watch Mixpanel `render_backend` on Listening Session Started + Sentry `render_backend` tag; hold ✅ until metrics clean across a full release cycle | 2026-09-10 | PR #404 · #408 |
+| AirPlay-2 sample-buffer renderer (Phase 5) | 🟡 soaking | App on SDK **0.21.0 (stable)**; **shipping to 100% of users in 7.6.0** (PR #408) — the server flag is now a **rollback lever**, not a rollout gate | prod at **100%**: the sample-buffer renderer is served to everyone via the server flag. Kill lever (rollback): flip `SAMPLE_BUFFER_RENDERER_ALLOWED=false` to revert the whole population to the legacy renderer at each user's next app launch (backend locks per process). Clearing the enabled env now takes effect one launch later, because the enabled flag is persisted locally; every process launch, including a background relaunch from the car, refreshes the flags, so a rollback lands on the next launch (the `ALLOWED` kill gate is unchanged). Watch Mixpanel `render_backend` on Listening Session Started + Sentry `render_backend` tag; hold ✅ until metrics clean across a full release cycle | 2026-09-10 | PR #404 · #408 |
+| Car reconnect auto-resume | 🔵 in progress | Pause / CarPlay-disconnect / observability / persisted renderer flag / idle memory trim shipped in this PR | Real-car verification on Bluetooth + CarPlay: disconnect pauses (no phone speaker); reconnect + play resumes hands-free; system eviction tested separately from swipe-to-force-quit. Watch Mixpanel "Remote Play Command Received" by `action`/`app_state` and Sentry `source:playback_start` | 2026-11-02 | branch `briankeane/airplay-2-auto-resume` |
 | Clip share | 🔵 in progress | ⟨owner: current step⟩ | none (standard release) | 2026-09-10 | PR #219 |
 | Rewards → Your Library | 🔵 in progress | Rewards→Profile, Library tab, Presets move | none | 2026-09-10 | PR #372 · `fix-library-requests-ui` |
 | Siri "Play on Playola" (App Intents media schema) | 🟢 planning | Approach B decided (2026-06-14); not started | n/a | 2026-10-01 | — |
