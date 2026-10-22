@@ -1839,4 +1839,29 @@ extension MainContainerTests {
 
     expectNoDifference(isBroadcasterValues.value, [false])
   }
+
+  @Test
+  func fetchBroadcasterStatusIgnoresResultWhenAccountChangedDuringFetch() async {
+    @Shared(.auth) var auth = Auth(jwt: "account-a-jwt")
+    @Shared(.isBroadcaster) var isBroadcaster = false
+    let isBroadcasterValues = LockIsolated<[Bool?]>([])
+    let sharedAuth = $auth
+
+    let mainContainerModel = withDependencies {
+      $0.api.fetchUserStations = { _ in
+        sharedAuth.withLock { $0 = Auth(jwt: "account-b-jwt") }
+        return [Station.mockWith(id: "station-1")]
+      }
+      $0.analytics.setUserProperties = { properties in
+        isBroadcasterValues.withValue { $0.append(properties["is_broadcaster"] as? Bool) }
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await mainContainerModel.fetchBroadcasterStatus()
+
+    expectNoDifference(isBroadcasterValues.value, [])
+    #expect(!isBroadcaster)
+  }
 }

@@ -591,6 +591,7 @@ class MainContainerModel: ViewModel {
     guard let jwt = auth.jwt else { return }
     do {
       let stations = try await api.fetchUserStations(jwt)
+      guard auth.jwt == jwt else { return }
       let wasBroadcaster = isBroadcaster
       $isBroadcaster.withLock { $0 = !stations.isEmpty }
       await analytics.setUserProperties(["is_broadcaster": !stations.isEmpty])

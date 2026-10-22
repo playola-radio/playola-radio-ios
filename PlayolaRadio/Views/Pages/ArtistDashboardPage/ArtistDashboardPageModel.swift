@@ -219,12 +219,10 @@ class ArtistDashboardPageModel: ViewModel {
   func statsLinkTapped() {}
 
   func improvementItemTapped(_ item: ImprovementItem) async {
-    guard let stationId else { return }
-    if item.isTappable {
-      navigationCoordinator.push(
-        .broadcastersListenerQuestionPage(
-          BroadcastersListenerQuestionPageModel(stationId: stationId)))
-    }
+    guard let stationId, item.isTappable else { return }
+    navigationCoordinator.push(
+      .broadcastersListenerQuestionPage(BroadcastersListenerQuestionPageModel(stationId: stationId))
+    )
     let status = knownChecks.first { $0.kind == item.id }?.status ?? .unknown
     await analytics.track(
       .tappedStationHealthItem(

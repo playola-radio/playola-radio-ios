@@ -505,7 +505,7 @@ struct ArtistDashboardPageTests {
     let health = makeHealth(
       freshPct: 40, status: .unhealthy,
       checks: [
-        makeCheck(kind: "songCategoryFreshness", status: .warning, current: 4, required: 12)
+        makeCheck(kind: "pendingListenerQuestions", status: .warning, current: 3, required: 0)
       ])
     let model = await makeBroadcastingModel {
       $0.api.getProgrammingHealth = { _, _ in health }
@@ -523,7 +523,7 @@ struct ArtistDashboardPageTests {
       captured.value,
       [
         .tappedStationHealthItem(
-          stationId: testStationId, checkKind: "songCategoryFreshness", checkStatus: "warning")
+          stationId: testStationId, checkKind: "pendingListenerQuestions", checkStatus: "warning")
       ])
   }
 
