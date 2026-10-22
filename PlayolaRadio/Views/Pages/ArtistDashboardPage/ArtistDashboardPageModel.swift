@@ -25,6 +25,8 @@ class ArtistDashboardPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.calendar) var calendar
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+  @ObservationIgnored @Dependency(\.toast) var toast
 
   // MARK: - Shared State
 
@@ -85,7 +87,7 @@ class ArtistDashboardPageModel: ViewModel {
   /// the common navigation-away case; this closes the narrow window where an in-flight request has
   /// already returned before cancellation propagates.
   private var loadGeneration = 0
-  private var alertedGeneration: Int?
+  private var toastedGeneration: Int?
   var isLoading = false
   var presentedAlert: PlayolaAlert?
 
@@ -300,7 +302,7 @@ class ArtistDashboardPageModel: ViewModel {
       guard !isCancellation(error) else { return }
       guard generation == loadGeneration else { return }
       programmingHealth = nil
-      presentLoadAlert(.stationHealthError(error.localizedDescription), generation: generation)
+      await handleLoadFailure(error, endpoint: "getProgrammingHealth", generation: generation)
       await analytics.track(
         .apiError(endpoint: "getProgrammingHealth", error: error.localizedDescription))
     }
@@ -400,18 +402,26 @@ class ArtistDashboardPageModel: ViewModel {
     switch result {
     case .success(let count): return count
     case .failure(let error):
-      presentLoadAlert(.dashboardLoadError(error.localizedDescription), generation: generation)
+      await handleLoadFailure(
+        error, endpoint: "getActiveListeningSessions", generation: generation)
       await analytics.track(
         .apiError(endpoint: "getActiveListeningSessions", error: error.localizedDescription))
       return nil
     }
   }
 
-  private func presentLoadAlert(_ alert: PlayolaAlert, generation: Int) {
-    guard generation == loadGeneration, alertedGeneration != generation, !Task.isCancelled
+  private func handleLoadFailure(_ error: Error, endpoint: String, generation: Int) async {
+    guard generation == loadGeneration, !Task.isCancelled else { return }
+    if !NetworkErrorClassifier.isNetworkError(error) {
+      var tags = NetworkErrorClassifier.errorTags(for: error)
+      tags["endpoint"] = endpoint
+      await errorReporting.reportError(error, tags)
+    }
+    guard generation == loadGeneration, toastedGeneration != generation, !Task.isCancelled
     else { return }
-    alertedGeneration = generation
-    presentedAlert = alert
+    toastedGeneration = generation
+    await toast.show(
+      PlayolaToast(message: "Some dashboard stats couldn't load.", buttonTitle: "OK"))
   }
 
   private func loadListenerCounts(token: String, stationId: String, generation: Int) async {
@@ -426,7 +436,7 @@ class ArtistDashboardPageModel: ViewModel {
       guard !isCancellation(error) else { return }
       guard generation == loadGeneration else { return }
       listenerBuckets = []
-      presentLoadAlert(.dashboardLoadError(error.localizedDescription), generation: generation)
+      await handleLoadFailure(error, endpoint: "getListenerCounts", generation: generation)
       await analytics.track(
         .apiError(endpoint: "getListenerCounts", error: error.localizedDescription))
     }
@@ -563,23 +573,5 @@ class ArtistDashboardPageModel: ViewModel {
       progressTrackColor: trackColor,
       chevronOpacity: chevronOpacity,
       isTappable: isTappable)
-  }
-}
-
-// MARK: - Alerts
-
-extension PlayolaAlert {
-  static func dashboardLoadError(_ message: String) -> PlayolaAlert {
-    PlayolaAlert(
-      title: "Unable to Load Dashboard", message: message,
-      dismissButton: .cancel(Text("OK")))
-  }
-
-  static func stationHealthError(_ message: String) -> PlayolaAlert {
-    PlayolaAlert(
-      title: "Error",
-      message: message,
-      dismissButton: .cancel(Text("OK"))
-    )
   }
 }

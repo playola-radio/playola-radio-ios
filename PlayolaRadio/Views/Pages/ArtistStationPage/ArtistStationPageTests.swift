@@ -117,13 +117,21 @@ struct ArtistStationPageTests {
   }
 
   @Test func showsErrorWhenScheduleFailsToLoad() async {
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let reports = LockIsolated(0)
     let model = await makeModel {
       $0.api.fetchSchedule = { _, _ in throw ArtistStationTestError.failed }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+      $0.errorReporting.reportError = { _, _ in reports.withValue { $0 += 1 } }
     }
 
     #expect(model.hasLoadError)
     expectNoDifference(model.nowPlayingTitle, "Unable to load broadcast")
     expectNoDifference(model.nowPlayingSubtitle, "")
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(shownToasts.value.map(\.message), ["The station schedule couldn't load."])
+    expectNoDifference(shownToasts.value.map(\.buttonTitle), ["OK"])
+    expectNoDifference(reports.value, 1)
   }
 
   @Test func doesNotLoadWhenNotBroadcasting() async {
@@ -421,6 +429,7 @@ extension ArtistStationPageTests {
       let entered = AsyncStream<Void>.makeStream()
       let release = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
       let reports = LockIsolated(0)
+      let shownToasts = LockIsolated<[PlayolaToast]>([])
       let model = withDependencies {
         $0.date.now = Date(timeIntervalSince1970: 1_000_000)
         $0.api.fetchSchedule = { _, _ in
@@ -433,6 +442,7 @@ extension ArtistStationPageTests {
           throw URLError(.badServerResponse)
         }
         $0.errorReporting.reportError = { _, _ in reports.withValue { $0 += 1 } }
+        $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
       } operation: {
         ArtistStationPageModel()
       }
@@ -458,6 +468,7 @@ extension ArtistStationPageTests {
       expectNoDifference(model.presentedAlert, nil)
       expectNoDifference(model.isLoading, false)
       expectNoDifference(reports.value, 0)
+      expectNoDifference(shownToasts.value, [])
     }
   }
 
@@ -470,11 +481,64 @@ extension ArtistStationPageTests {
       }
     }
     expectNoDifference(model.hasLoadError, true)
-    expectNoDifference(model.presentedAlert, .errorLoadingSchedule)
+    expectNoDifference(model.presentedAlert, nil)
     fail.setValue(false)
     await model.viewAppeared()
     expectNoDifference(model.hasLoadError, false)
     expectNoDifference(model.presentedAlert, nil)
+  }
+
+  @Test func scheduleNetworkFailureShowsToastWithoutReporting() async {
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let reports = LockIsolated(0)
+    let model = await makeModel {
+      $0.api.fetchSchedule = { _, _ in throw URLError(.notConnectedToInternet) }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+      $0.errorReporting.reportError = { _, _ in reports.withValue { $0 += 1 } }
+    }
+
+    expectNoDifference(model.hasLoadError, true)
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(shownToasts.value.map(\.message), ["The station schedule couldn't load."])
+    expectNoDifference(reports.value, 0)
+  }
+
+  @Test func notificationScheduleFailureReportsWithoutToast() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+    let entered = AsyncStream<Void>.makeStream()
+    let reported = AsyncStream<Void>.makeStream()
+    let reports = LockIsolated(0)
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let model = withDependencies {
+      $0.api.fetchSchedule = { _, _ in
+        entered.continuation.yield()
+        throw ArtistStationTestError.failed
+      }
+      $0.errorReporting.reportError = { _, _ in
+        reports.withValue { $0 += 1 }
+        reported.continuation.yield()
+      }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    } operation: {
+      ArtistStationPageModel()
+    }
+    let task = Task { await model.observeScheduleUpdates() }
+    await Task.yield()
+    NotificationCenter.default.post(
+      name: .scheduleUpdated, object: nil, userInfo: ["stationId": testStationId])
+    var iterator = entered.stream.makeAsyncIterator()
+    await iterator.next()
+    var reportIterator = reported.stream.makeAsyncIterator()
+    await reportIterator.next()
+    task.cancel()
+    await task.value
+
+    expectNoDifference(model.hasLoadError, true)
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(shownToasts.value, [])
+    expectNoDifference(reports.value, 1)
   }
 
   @Test func oldCancellationDoesNotFinishNewerLoading() async {

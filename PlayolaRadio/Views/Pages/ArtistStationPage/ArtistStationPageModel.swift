@@ -24,6 +24,7 @@ class ArtistStationPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+  @ObservationIgnored @Dependency(\.toast) var toast
 
   // MARK: - Shared State
 
@@ -150,7 +151,6 @@ class ArtistStationPageModel: ViewModel {
       let spins = try await api.fetchSchedule(stationId, true)
       guard generation == loadGeneration, !Task.isCancelled else { return }
       hasLoadError = false
-      if presentedAlert == .errorLoadingSchedule { presentedAlert = nil }
       schedule = Schedule(
         stationId: stationId, spins: spins, dateProvider: DependencyDateProvider())
     } catch {
@@ -158,13 +158,14 @@ class ArtistStationPageModel: ViewModel {
         !(error is CancellationError), (error as? URLError)?.code != .cancelled
       else { return }
       hasLoadError = true
-      if isUserInitiated {
-        presentedAlert = .errorLoadingSchedule
-      } else if !NetworkErrorClassifier.isNetworkError(error) {
+      if !NetworkErrorClassifier.isNetworkError(error) {
         var tags = NetworkErrorClassifier.errorTags(for: error)
         tags["endpoint"] = "fetchSchedule"
         await errorReporting.reportError(error, tags)
       }
+      guard generation == loadGeneration, !Task.isCancelled, isUserInitiated else { return }
+      await toast.show(
+        PlayolaToast(message: "The station schedule couldn't load.", buttonTitle: "OK"))
     }
   }
 }
