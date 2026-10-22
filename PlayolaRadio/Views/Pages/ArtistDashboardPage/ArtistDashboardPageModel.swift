@@ -85,6 +85,7 @@ class ArtistDashboardPageModel: ViewModel {
   /// the common navigation-away case; this closes the narrow window where an in-flight request has
   /// already returned before cancellation propagates.
   private var loadGeneration = 0
+  private var alertedGeneration: Int?
   var isLoading = false
   var presentedAlert: PlayolaAlert?
 
@@ -121,12 +122,11 @@ class ArtistDashboardPageModel: ViewModel {
   var listenersSectionTitle: String { "LISTENERS" }
 
   var stats: IdentifiedArrayOf<Stat> {
-    IdentifiedArray(
-      [
-        Stat(id: "now", value: Self.statValue(nowUniqueUsers), label: "NOW"),
-        Stat(id: "this-week", value: Self.statValue(weekUniqueUsers), label: "THIS WEEK"),
-        Stat(id: "this-month", value: Self.statValue(monthUniqueUsers), label: "THIS MONTH"),
-      ], uniquingIDsWith: { first, _ in first })
+    [
+      Stat(id: "now", value: Self.statValue(nowUniqueUsers), label: "NOW"),
+      Stat(id: "this-week", value: Self.statValue(weekUniqueUsers), label: "THIS WEEK"),
+      Stat(id: "this-month", value: Self.statValue(monthUniqueUsers), label: "THIS MONTH"),
+    ]
   }
 
   var chartSectionTitle: String { "LAST \(Self.maxVisibleWeeks) WEEKS" }
@@ -300,7 +300,7 @@ class ArtistDashboardPageModel: ViewModel {
       guard !isCancellation(error) else { return }
       guard generation == loadGeneration else { return }
       programmingHealth = nil
-      presentedAlert = .stationHealthError(error.localizedDescription)
+      presentLoadAlert(.stationHealthError(error.localizedDescription), generation: generation)
       await analytics.track(
         .apiError(endpoint: "getProgrammingHealth", error: error.localizedDescription))
     }
@@ -325,16 +325,15 @@ class ArtistDashboardPageModel: ViewModel {
     do {
       let (now, week, month) = try await (nowCount, weekCount, monthCount)
       guard generation == loadGeneration else { return }
-      nowUniqueUsers = now
-      weekUniqueUsers = week
-      monthUniqueUsers = month
+      let nowValue = await listenerValue(now, generation: generation)
+      let weekValue = await listenerValue(week, generation: generation)
+      let monthValue = await listenerValue(month, generation: generation)
+      guard generation == loadGeneration, !Task.isCancelled else { return }
+      nowUniqueUsers = nowValue
+      weekUniqueUsers = weekValue
+      monthUniqueUsers = monthValue
     } catch {
-      // The task was cancelled (navigation away / remount): keep the cards' prior values and
-      // skip analytics, mirroring `loadProgrammingHealth` / `loadListenerCounts`. Reached only when
-      // cancelled — a genuine one-card failure on a live task is swallowed inside `uniqueUsers`
-      // (tracked there, returns `nil`) so only that card degrades to "—". (If a real error
-      // happens to surface while the task is already cancelled, it is dropped here on purpose:
-      // the view is going away.)
+      // Cancellation preserves the cards' prior values.
     }
   }
 
@@ -362,12 +361,13 @@ class ArtistDashboardPageModel: ViewModel {
     do {
       let (trailingUsers, priorUsers) = try await (trailing, prior)
       guard generation == loadGeneration else { return }
-      trailingWeekUsers = trailingUsers
-      priorWeekUsers = priorUsers
+      let trailingValue = await listenerValue(trailingUsers, generation: generation)
+      let priorValue = await listenerValue(priorUsers, generation: generation)
+      guard generation == loadGeneration, !Task.isCancelled else { return }
+      trailingWeekUsers = trailingValue
+      priorWeekUsers = priorValue
     } catch {
-      // Cancelled (navigation away / remount): keep the prior trend values, mirroring the other
-      // loads. A genuine one-window failure is swallowed inside `uniqueUsers` (returns `nil`),
-      // which hides the trend rather than reaching here.
+      // Cancellation preserves the prior trend values.
     }
   }
 
@@ -383,17 +383,35 @@ class ArtistDashboardPageModel: ViewModel {
 
   private func uniqueUsers(
     token: String, stationId: String, airtime: Date, endTime: Date?
-  ) async throws -> Int? {
+  ) async throws -> Result<Int, Error> {
     do {
-      return try await api.getActiveListeningSessions(token, stationId, airtime, endTime)
+      let count = try await api.getActiveListeningSessions(token, stationId, airtime, endTime)
         .summary.uniqueUsers
+      try Task.checkCancellation()
+      return .success(count)
     } catch {
       guard !isCancellation(error) else { throw error }
-      presentedAlert = .dashboardLoadError(error.localizedDescription)
+      return .failure(error)
+    }
+  }
+
+  private func listenerValue(_ result: Result<Int, Error>, generation: Int) async -> Int? {
+    guard generation == loadGeneration, !Task.isCancelled else { return nil }
+    switch result {
+    case .success(let count): return count
+    case .failure(let error):
+      presentLoadAlert(.dashboardLoadError(error.localizedDescription), generation: generation)
       await analytics.track(
         .apiError(endpoint: "getActiveListeningSessions", error: error.localizedDescription))
       return nil
     }
+  }
+
+  private func presentLoadAlert(_ alert: PlayolaAlert, generation: Int) {
+    guard generation == loadGeneration, alertedGeneration != generation, !Task.isCancelled
+    else { return }
+    alertedGeneration = generation
+    presentedAlert = alert
   }
 
   private func loadListenerCounts(token: String, stationId: String, generation: Int) async {
@@ -408,7 +426,7 @@ class ArtistDashboardPageModel: ViewModel {
       guard !isCancellation(error) else { return }
       guard generation == loadGeneration else { return }
       listenerBuckets = []
-      presentedAlert = .dashboardLoadError(error.localizedDescription)
+      presentLoadAlert(.dashboardLoadError(error.localizedDescription), generation: generation)
       await analytics.track(
         .apiError(endpoint: "getListenerCounts", error: error.localizedDescription))
     }
@@ -418,7 +436,7 @@ class ArtistDashboardPageModel: ViewModel {
   /// `AFError.explicitlyCancelled`, so `Task.isCancelled` is already set). Treat that as a
   /// non-event: don't clear loaded state, alert, or record an API error for a navigation away.
   private func isCancellation(_ error: any Error) -> Bool {
-    Task.isCancelled || error is CancellationError
+    Task.isCancelled || error is CancellationError || (error as? URLError)?.code == .cancelled
   }
 
   private static func statValue(_ count: Int?) -> String {

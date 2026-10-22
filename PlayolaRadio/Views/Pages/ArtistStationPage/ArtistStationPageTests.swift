@@ -410,3 +410,102 @@ struct ArtistStationPageTests {
 private enum ArtistStationTestError: Error {
   case failed
 }
+
+extension ArtistStationPageTests {
+  @Test(arguments: [0, 1, 2], [false, true])
+  func cancellationDoesNotPublishScheduleErrors(kind: Int, notification: Bool) async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+    await withMainSerialExecutor {
+      let entered = AsyncStream<Void>.makeStream()
+      let release = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
+      let reports = LockIsolated(0)
+      let model = withDependencies {
+        $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+        $0.api.fetchSchedule = { _, _ in
+          await withCheckedContinuation {
+            release.setValue($0)
+            entered.continuation.yield()
+          }
+          if kind == 0 { throw CancellationError() }
+          if kind == 1 { throw URLError(.cancelled) }
+          throw URLError(.badServerResponse)
+        }
+        $0.errorReporting.reportError = { _, _ in reports.withValue { $0 += 1 } }
+      } operation: {
+        ArtistStationPageModel()
+      }
+      let task = Task {
+        if notification { await model.observeScheduleUpdates() } else { await model.viewAppeared() }
+      }
+      if notification {
+        await Task.yield()
+        NotificationCenter.default.post(
+          name: .scheduleUpdated, object: nil, userInfo: ["stationId": testStationId])
+      }
+      var iterator = entered.stream.makeAsyncIterator()
+      await iterator.next()
+      if kind == 2 { task.cancel() }
+      release.value?.resume()
+      if notification {
+        await Task.yield()
+        await Task.yield()
+        task.cancel()
+      }
+      await task.value
+      expectNoDifference(model.hasLoadError, false)
+      expectNoDifference(model.presentedAlert, nil)
+      expectNoDifference(model.isLoading, false)
+      expectNoDifference(reports.value, 0)
+    }
+  }
+
+  @Test func successfulReloadClearsScheduleError() async {
+    let fail = LockIsolated(true)
+    let model = await makeModel {
+      $0.api.fetchSchedule = { _, _ in
+        if fail.value { throw URLError(.badServerResponse) }
+        return []
+      }
+    }
+    expectNoDifference(model.hasLoadError, true)
+    expectNoDifference(model.presentedAlert, .errorLoadingSchedule)
+    fail.setValue(false)
+    await model.viewAppeared()
+    expectNoDifference(model.hasLoadError, false)
+    expectNoDifference(model.presentedAlert, nil)
+  }
+
+  @Test func oldCancellationDoesNotFinishNewerLoading() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+    let entered = AsyncStream<Void>.makeStream()
+    let releases = LockIsolated<[CheckedContinuation<Void, Never>]>([])
+    let model = withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.api.fetchSchedule = { _, _ in
+        await withCheckedContinuation { continuation in
+          releases.withValue { $0.append(continuation) }
+          entered.continuation.yield()
+        }
+        throw CancellationError()
+      }
+    } operation: {
+      ArtistStationPageModel()
+    }
+    let first = Task { await model.viewAppeared() }
+    var iterator = entered.stream.makeAsyncIterator()
+    await iterator.next()
+    let second = Task { await model.viewAppeared() }
+    await iterator.next()
+    releases.value[0].resume()
+    await first.value
+    expectNoDifference(model.isLoading, true)
+    releases.value[1].resume()
+    await second.value
+    expectNoDifference(model.isLoading, false)
+    expectNoDifference(model.hasLoadError, false)
+  }
+}

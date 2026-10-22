@@ -50,6 +50,7 @@ class AskMeAnythingLivePageModel: ViewModel {
 
   var displayDate = Date.distantPast
   var scheduledStartsAt: Date?
+  @ObservationIgnored var listenerCountGeneration = 0
   var listenerCount: Int?
   var listenerQuestions: [ListenerQuestion] = []
   @ObservationIgnored var locallyAiredAnswerAudioBlockIds: [String: String] = [:]

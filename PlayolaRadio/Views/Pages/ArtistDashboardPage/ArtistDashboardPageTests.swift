@@ -1146,3 +1146,90 @@ struct ArtistDashboardPageTests {
 private enum TestError: Error {
   case networkError
 }
+
+extension ArtistDashboardPageTests {
+  @Test func dismissedAlertIsNotPresentedAgainDuringTheSameLoad() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+    let healthReported = AsyncStream<Void>.makeStream()
+    let entered = AsyncStream<Void>.makeStream()
+    let releases = LockIsolated<[CheckedContinuation<Void, Never>]>([])
+    let model = withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.calendar = fixedCalendar
+      $0.api.getProgrammingHealth = { _, _ in throw URLError(.badServerResponse) }
+      $0.api.getActiveListeningSessions = { _, _, _, _ in
+        await withCheckedContinuation { continuation in
+          releases.withValue { $0.append(continuation) }
+          entered.continuation.yield()
+        }
+        throw URLError(.badServerResponse)
+      }
+      $0.api.getListenerCounts = { _, _, _, _ in Self.emptyCounts }
+      $0.analytics.track = { event in
+        if case .apiError(let endpoint, _) = event, endpoint == "getProgrammingHealth" {
+          healthReported.continuation.yield()
+        }
+      }
+    } operation: {
+      ArtistDashboardPageModel()
+    }
+    let task = Task { await model.viewAppeared() }
+    var healthIterator = healthReported.stream.makeAsyncIterator()
+    await healthIterator.next()
+    expectNoDifference(model.presentedAlert != nil, true)
+    model.presentedAlert = nil
+    var iterator = entered.stream.makeAsyncIterator()
+    for _ in 0..<5 { await iterator.next() }
+    for continuation in releases.value { continuation.resume() }
+    await task.value
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(model.stats.map(\.value), ["—", "—", "—"])
+    expectNoDifference(model.weekBars.count, 0)
+  }
+
+  @Test func staleListenerFailuresCannotAlertAfterANewerLoad() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: "old")
+    let entered = AsyncStream<Void>.makeStream()
+    let releases = LockIsolated<[CheckedContinuation<Void, Never>]>([])
+    let errors = LockIsolated(0)
+    let model = withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.calendar = fixedCalendar
+      $0.api.getProgrammingHealth = { _, station in
+        ProgrammingHealth(stationId: station, status: .healthy, freshPct: 99, checks: [])
+      }
+      $0.api.getActiveListeningSessions = { _, station, _, _ in
+        if station == "old" {
+          await withCheckedContinuation { continuation in
+            releases.withValue { $0.append(continuation) }
+            entered.continuation.yield()
+          }
+          throw URLError(.badServerResponse)
+        }
+        return Self.active(12)
+      }
+      $0.api.getListenerCounts = { _, _, _, _ in Self.emptyCounts }
+      $0.analytics.track = { event in
+        if case .apiError = event { errors.withValue { $0 += 1 } }
+      }
+    } operation: {
+      ArtistDashboardPageModel()
+    }
+    let task = Task { await model.viewAppeared() }
+    var iterator = entered.stream.makeAsyncIterator()
+    for _ in 0..<5 { await iterator.next() }
+    coordinator.switchToBroadcastMode(stationId: "new")
+    await model.viewAppeared()
+    for continuation in releases.value { continuation.resume() }
+    await task.value
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(model.stats.map(\.value), ["12", "12", "12"])
+    expectNoDifference(errors.value, 0)
+  }
+}

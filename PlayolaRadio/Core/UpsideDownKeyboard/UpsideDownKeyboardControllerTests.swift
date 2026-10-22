@@ -3,7 +3,6 @@
 //  PlayolaRadio
 //
 
-import ConcurrencyExtras
 import CustomDump
 import SwiftUI
 import Testing
@@ -182,10 +181,9 @@ struct UpsideDownKeyboardControllerTests {
   }
 
   @Test
-  func testStartedControllerFollowsRealFirstResponderChanges() async throws {
+  func testStartedControllerFollowsRealFirstResponderChanges() throws {
     let controller = UpsideDownKeyboardController()
     controller.start()
-    await Task.megaYield()
     let (window, field) = try makeWindowWithTextField()
     let restoreKeyWindow = makeKey(window)
     defer { restoreKeyWindow() }
@@ -193,21 +191,18 @@ struct UpsideDownKeyboardControllerTests {
     controller.setUpsideDownModeEnabled(true)
 
     field.becomeFirstResponder()
-    await Task.megaYield()
     #expect(controller.isShowingCustomKeyboard)
 
     field.resignFirstResponder()
-    await Task.megaYield()
     #expect(controller.isShowingCustomKeyboard == false)
     #expect(field.inputView == nil)
     controller.setUpsideDownModeEnabled(false)
   }
 
   @Test
-  func testKeyTapsTypeIntoSwiftUITextFieldAndReturnSubmitsOnce() async throws {
+  func testKeyTapsTypeIntoSwiftUITextFieldAndReturnSubmitsOnce() throws {
     let controller = UpsideDownKeyboardController()
     controller.start()
-    await Task.megaYield()
     let fields = SwiftUIFields()
     let (window, host) = try makeWindow(hosting: SwiftUIFieldsView(fields: fields))
     let restoreKeyWindow = makeKey(window)
@@ -216,7 +211,6 @@ struct UpsideDownKeyboardControllerTests {
     controller.setUpsideDownModeEnabled(true)
     let textField = try #require(firstSubview(of: UITextField.self, in: host.view))
     textField.becomeFirstResponder()
-    await Task.megaYield()
 
     controller.keyboardModel.keyTapped(.character("h"))
     controller.keyboardModel.keyTapped(.character("i"))
@@ -228,10 +222,9 @@ struct UpsideDownKeyboardControllerTests {
   }
 
   @Test
-  func testKeyTapsTypeIntoSwiftUITextEditor() async throws {
+  func testKeyTapsTypeIntoSwiftUITextEditor() throws {
     let controller = UpsideDownKeyboardController()
     controller.start()
-    await Task.megaYield()
     let fields = SwiftUIFields()
     let (window, host) = try makeWindow(hosting: SwiftUIFieldsView(fields: fields))
     let restoreKeyWindow = makeKey(window)
@@ -240,7 +233,6 @@ struct UpsideDownKeyboardControllerTests {
     controller.setUpsideDownModeEnabled(true)
     let textView = try #require(firstSubview(of: UITextView.self, in: host.view))
     textView.becomeFirstResponder()
-    await Task.megaYield()
 
     controller.keyboardModel.keyTapped(.character("h"))
     controller.keyboardModel.keyTapped(.returnKey)

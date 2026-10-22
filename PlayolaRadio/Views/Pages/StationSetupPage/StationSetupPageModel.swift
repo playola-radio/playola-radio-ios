@@ -77,41 +77,40 @@ class StationSetupPageModel: ViewModel {
 
   var componentRows: IdentifiedArrayOf<ComponentRow> {
     guard let factors = progress?.factors else { return [] }
-    return IdentifiedArray(
-      [
-        ComponentRow(
-          id: "sourceTapes",
-          iconSystemName: "mic.fill",
-          tint: tint(for: factors.sourceTapes),
-          label: "Source tapes",
-          valueText: Self.countValueText(factors.sourceTapes),
-          progress: Self.clamp01(factors.sourceTapes.progress),
-          weightCaption: Self.weightCaption(factors.sourceTapes.weight)),
-        ComponentRow(
-          id: "welcome",
-          iconSystemName: "speaker.wave.2.fill",
-          tint: tint(for: factors.welcome),
-          label: "Welcome message",
-          valueText: Self.readinessValueText(factors.welcome),
-          progress: Self.clamp01(factors.welcome.progress),
-          weightCaption: Self.weightCaption(factors.welcome.weight)),
-        ComponentRow(
-          id: "songs",
-          iconSystemName: "music.note",
-          tint: tint(for: factors.songs),
-          label: "Songs",
-          valueText: Self.countValueText(factors.songs),
-          progress: Self.clamp01(factors.songs.progress),
-          weightCaption: Self.weightCaption(factors.songs.weight)),
-        ComponentRow(
-          id: "breakers",
-          iconSystemName: "dot.radiowaves.left.and.right",
-          tint: tint(for: factors.breakers),
-          label: "Breakers",
-          valueText: Self.countValueText(factors.breakers),
-          progress: Self.clamp01(factors.breakers.progress),
-          weightCaption: Self.weightCaption(factors.breakers.weight)),
-      ], uniquingIDsWith: { first, _ in first })
+    return [
+      ComponentRow(
+        id: "sourceTapes",
+        iconSystemName: "mic.fill",
+        tint: tint(for: factors.sourceTapes),
+        label: "Source tapes",
+        valueText: Self.countValueText(factors.sourceTapes),
+        progress: Self.clamp01(factors.sourceTapes.progress),
+        weightCaption: Self.weightCaption(factors.sourceTapes.weight)),
+      ComponentRow(
+        id: "welcome",
+        iconSystemName: "speaker.wave.2.fill",
+        tint: tint(for: factors.welcome),
+        label: "Welcome message",
+        valueText: Self.readinessValueText(factors.welcome),
+        progress: Self.clamp01(factors.welcome.progress),
+        weightCaption: Self.weightCaption(factors.welcome.weight)),
+      ComponentRow(
+        id: "songs",
+        iconSystemName: "music.note",
+        tint: tint(for: factors.songs),
+        label: "Songs",
+        valueText: Self.countValueText(factors.songs),
+        progress: Self.clamp01(factors.songs.progress),
+        weightCaption: Self.weightCaption(factors.songs.weight)),
+      ComponentRow(
+        id: "breakers",
+        iconSystemName: "dot.radiowaves.left.and.right",
+        tint: tint(for: factors.breakers),
+        label: "Breakers",
+        valueText: Self.countValueText(factors.breakers),
+        progress: Self.clamp01(factors.breakers.progress),
+        weightCaption: Self.weightCaption(factors.breakers.weight)),
+    ]
   }
 
   var categorySectionTitle: String { "CATEGORY PROGRESS" }

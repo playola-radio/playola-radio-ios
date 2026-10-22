@@ -145,14 +145,18 @@ class ArtistStationPageModel: ViewModel {
     loadGeneration += 1
     let generation = loadGeneration
     isLoading = true
-    hasLoadError = false
+    defer { if generation == loadGeneration { isLoading = false } }
     do {
       let spins = try await api.fetchSchedule(stationId, true)
-      guard generation == loadGeneration else { return }
+      guard generation == loadGeneration, !Task.isCancelled else { return }
+      hasLoadError = false
+      if presentedAlert == .errorLoadingSchedule { presentedAlert = nil }
       schedule = Schedule(
         stationId: stationId, spins: spins, dateProvider: DependencyDateProvider())
     } catch {
-      guard generation == loadGeneration else { return }
+      guard generation == loadGeneration, !Task.isCancelled,
+        !(error is CancellationError), (error as? URLError)?.code != .cancelled
+      else { return }
       hasLoadError = true
       if isUserInitiated {
         presentedAlert = .errorLoadingSchedule
@@ -162,6 +166,5 @@ class ArtistStationPageModel: ViewModel {
         await errorReporting.reportError(error, tags)
       }
     }
-    isLoading = false
   }
 }

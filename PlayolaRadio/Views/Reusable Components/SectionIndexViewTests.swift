@@ -37,3 +37,19 @@ struct SectionIndexViewTests {
     expectNoDifference(selections, ["B", "C", "A"])
   }
 }
+
+extension SectionIndexViewTests {
+  @Test func accessibilityAlwaysSelectsAfterLettersChange() {
+    var selections: [String] = []
+    let model = SectionIndexModel(letters: ["A", "B"]) { selections.append($0) }
+    model.accessibilityAdjusted(.increment)
+    model.lettersChanged(["B"])
+    model.accessibilityAdjusted(.increment)
+    model.accessibilityAdjusted(.increment)
+    model.dragChanged(locationY: 5)
+    model.dragChanged(locationY: 5)
+    model.lettersChanged(["B", "C"])
+    model.dragChanged(locationY: 5)
+    expectNoDifference(selections, ["B", "B", "B", "B", "B"])
+  }
+}

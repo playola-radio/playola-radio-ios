@@ -27,6 +27,8 @@ final class SectionIndexModel {
 
   func lettersChanged(_ letters: [String]) {
     self.letters = letters
+    selectedLetter = nil
+    accessibilityIndex = min(accessibilityIndex, max(0, letters.count - 1))
   }
 
   func dragChanged(locationY: CGFloat) {
@@ -51,7 +53,7 @@ final class SectionIndexModel {
     @unknown default:
       return
     }
-    select(letters[accessibilityIndex])
+    onSelectLetter(letters[accessibilityIndex])
   }
 
   private func select(_ letter: String) {

@@ -90,6 +90,8 @@ class AMAAnswerQuestionPageModel: ViewModel {
   @ObservationIgnored let addToShow: @MainActor (AMAQuestionAnswer) async throws -> Void
   let maxAnswerSeconds: TimeInterval = 120
 
+  @ObservationIgnored private var playbackLifecycle = 0
+
   // Question playback
   var questionPlaybackState: PlaybackState = .idle
   @ObservationIgnored private var questionPlaybackSession: PlaybackSession?
@@ -374,6 +376,7 @@ class AMAAnswerQuestionPageModel: ViewModel {
   // MARK: - Question Playback Actions
 
   func playQuestionButtonTapped() async {
+    let lifecycle = playbackLifecycle
     guard let audioBlock = question.audioBlock, let downloadUrl = audioBlock.downloadUrl
     else { return }
 
@@ -381,21 +384,27 @@ class AMAAnswerQuestionPageModel: ViewModel {
       await stopQuestionPlayback()
     } else {
       await stopAnswerPlayback()
+      guard lifecycle == playbackLifecycle, !Task.isCancelled else { return }
       questionPlaybackGeneration &+= 1
       let generation = questionPlaybackGeneration
       do {
         let session = try await audioPlayer.startPlayback(downloadUrl) {
           [weak self] state in
-          guard self?.questionPlaybackGeneration == generation else { return }
+          guard self?.playbackLifecycle == lifecycle, self?.questionPlaybackGeneration == generation
+          else { return }
           self?.questionPlaybackState = state
         }
-        guard questionPlaybackGeneration == generation else {
+        guard lifecycle == playbackLifecycle, questionPlaybackGeneration == generation,
+          !Task.isCancelled
+        else {
           await session.stop()
           return
         }
         questionPlaybackSession = session
       } catch {
-        guard questionPlaybackGeneration == generation else { return }
+        guard lifecycle == playbackLifecycle, questionPlaybackGeneration == generation,
+          !Task.isCancelled
+        else { return }
         presentedAlert = .audioPlaybackError(error.localizedDescription)
       }
     }
@@ -425,32 +434,42 @@ class AMAAnswerQuestionPageModel: ViewModel {
   // MARK: - Answer Playback Actions
 
   func answerPlayPauseButtonTapped() async {
+    let lifecycle = playbackLifecycle
     if answerPlaybackState.isPlaying {
       await answerPlaybackSession?.pause()
     } else {
       await stopQuestionPlayback()
+      guard lifecycle == playbackLifecycle, !Task.isCancelled else { return }
       if answerPlaybackSession == nil || answerPlaybackState.isComplete,
         let url = answerPlaybackURL
       {
         await stopAnswerPlayback()
+        guard lifecycle == playbackLifecycle, !Task.isCancelled else { return }
         answerPlaybackGeneration &+= 1
         let generation = answerPlaybackGeneration
         do {
           let session = try await audioPlayer.startPlayback(url) { [weak self] state in
-            guard self?.answerPlaybackGeneration == generation else { return }
+            guard self?.playbackLifecycle == lifecycle, self?.answerPlaybackGeneration == generation
+            else { return }
             self?.answerPlaybackState = state
           }
-          guard answerPlaybackGeneration == generation else {
+          guard lifecycle == playbackLifecycle, answerPlaybackGeneration == generation,
+            !Task.isCancelled
+          else {
             await session.stop()
             return
           }
           answerPlaybackSession = session
         } catch {
-          guard answerPlaybackGeneration == generation else { return }
+          guard lifecycle == playbackLifecycle, answerPlaybackGeneration == generation,
+            !Task.isCancelled
+          else { return }
           presentedAlert = .audioPlaybackError(error.localizedDescription)
         }
       } else {
-        await answerPlaybackSession?.play()
+        let session = answerPlaybackSession
+        await session?.play()
+        if lifecycle != playbackLifecycle || Task.isCancelled { await session?.stop() }
       }
     }
   }
@@ -496,6 +515,7 @@ class AMAAnswerQuestionPageModel: ViewModel {
   }
 
   func viewDisappeared() async {
+    playbackLifecycle &+= 1
     await stopAllPlayback()
   }
 
@@ -707,6 +727,7 @@ class AMAAnswerQuestionPageModel: ViewModel {
   }
 
   private func navigateBack() async {
+    playbackLifecycle &+= 1
     await stopAllPlayback()
     if let url = recordingURL { await audioRecorder.deleteRecording(url) }
     navigationCoordinator.pop()
@@ -714,26 +735,38 @@ class AMAAnswerQuestionPageModel: ViewModel {
 
   // MARK: - Private Playback Helpers
 
-  private func stopQuestionPlayback() async {
+  private func detachQuestionPlayback() -> PlaybackSession? {
     questionPlaybackGeneration &+= 1
-    await questionPlaybackSession?.stop()
+    let session = questionPlaybackSession
     questionPlaybackSession = nil
     questionPlaybackState = .idle
+    return session
+  }
+
+  private func detachAnswerPlayback() -> PlaybackSession? {
+    answerPlaybackGeneration &+= 1
+    let session = answerPlaybackSession
+    answerPlaybackSession = nil
+    answerPlaybackState = .idle
+    return session
+  }
+
+  private func stopQuestionPlayback() async {
+    await detachQuestionPlayback()?.stop()
   }
 
   private func stopAnswerPlayback() async {
-    answerPlaybackGeneration &+= 1
-    await answerPlaybackSession?.stop()
-    answerPlaybackSession = nil
-    answerPlaybackState = .idle
+    await detachAnswerPlayback()?.stop()
   }
 
   private func stopAllPlayback() async {
     recordingLifecycleId &+= 1
     recordingUpdatesTask?.cancel()
     recordingUpdatesTask = nil
-    await stopQuestionPlayback()
-    await stopAnswerPlayback()
+    let questionSession = detachQuestionPlayback()
+    let answerSession = detachAnswerPlayback()
+    await questionSession?.stop()
+    await answerSession?.stop()
     guard !isStoppingRecording else {
       shouldDiscardRecordingAfterStop = true
       return
