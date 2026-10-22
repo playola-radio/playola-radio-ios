@@ -93,11 +93,13 @@ class AMAAnswerQuestionPageModel: ViewModel {
   // Question playback
   var questionPlaybackState: PlaybackState = .idle
   @ObservationIgnored private var questionPlaybackSession: PlaybackSession?
+  @ObservationIgnored private var questionPlaybackGeneration = 0
 
   // Answer recording
   var recordingPhase: AnswerRecordingPhase = .idle
   var recordingState: RecordingState = .idle
   @ObservationIgnored private var recordingSession: RecordingSession?
+  @ObservationIgnored private var recordingUpdatesTask: Task<Void, Never>?
   @ObservationIgnored private var isStoppingRecording = false
   @ObservationIgnored private var isCancellingRecording = false
   @ObservationIgnored private var shouldDiscardRecordingAfterStop = false
@@ -108,6 +110,7 @@ class AMAAnswerQuestionPageModel: ViewModel {
   // Answer playback
   var answerPlaybackState: PlaybackState = .idle
   @ObservationIgnored private var answerPlaybackSession: PlaybackSession?
+  @ObservationIgnored private var answerPlaybackGeneration = 0
 
   // Trailing song draft
   var trailingDraft: AMATrailingSongDraft = .unchanged
@@ -378,12 +381,21 @@ class AMAAnswerQuestionPageModel: ViewModel {
       await stopQuestionPlayback()
     } else {
       await stopAnswerPlayback()
+      questionPlaybackGeneration &+= 1
+      let generation = questionPlaybackGeneration
       do {
-        questionPlaybackSession = try await audioPlayer.startPlayback(downloadUrl) {
+        let session = try await audioPlayer.startPlayback(downloadUrl) {
           [weak self] state in
+          guard self?.questionPlaybackGeneration == generation else { return }
           self?.questionPlaybackState = state
         }
+        guard questionPlaybackGeneration == generation else {
+          await session.stop()
+          return
+        }
+        questionPlaybackSession = session
       } catch {
+        guard questionPlaybackGeneration == generation else { return }
         presentedAlert = .audioPlaybackError(error.localizedDescription)
       }
     }
@@ -417,12 +429,24 @@ class AMAAnswerQuestionPageModel: ViewModel {
       await answerPlaybackSession?.pause()
     } else {
       await stopQuestionPlayback()
-      if answerPlaybackSession == nil, let url = answerPlaybackURL {
+      if answerPlaybackSession == nil || answerPlaybackState.isComplete,
+        let url = answerPlaybackURL
+      {
+        await stopAnswerPlayback()
+        answerPlaybackGeneration &+= 1
+        let generation = answerPlaybackGeneration
         do {
-          answerPlaybackSession = try await audioPlayer.startPlayback(url) { [weak self] state in
+          let session = try await audioPlayer.startPlayback(url) { [weak self] state in
+            guard self?.answerPlaybackGeneration == generation else { return }
             self?.answerPlaybackState = state
           }
+          guard answerPlaybackGeneration == generation else {
+            await session.stop()
+            return
+          }
+          answerPlaybackSession = session
         } catch {
+          guard answerPlaybackGeneration == generation else { return }
           presentedAlert = .audioPlaybackError(error.localizedDescription)
         }
       } else {
@@ -483,18 +507,21 @@ class AMAAnswerQuestionPageModel: ViewModel {
     await stopQuestionPlayback()
     await stopAnswerPlayback()
     do {
-      let session = try await audioRecorder.startRecordingWithUpdates { [weak self] state in
-        guard let self else { return }
-        recordingState = state
-        if recordingPhase == .recording, state.currentTime >= maxAnswerSeconds {
-          Task { await self.stopRecording() }
-        }
-      }
+      let (session, updates) = try await audioRecorder.startRecordingUpdates()
       guard lifecycleId == recordingLifecycleId else {
         await session.cancel()
         return
       }
       recordingSession = session
+      recordingUpdatesTask = Task { [weak self] in
+        for await state in updates {
+          guard let self, !Task.isCancelled else { return }
+          recordingState = state
+          if recordingPhase == .recording, state.currentTime >= maxAnswerSeconds {
+            await stopRecording()
+          }
+        }
+      }
     } catch AudioRecorderError.permissionDenied {
       guard lifecycleId == recordingLifecycleId else { return }
       recordingPhase = .idle
@@ -519,6 +546,8 @@ class AMAAnswerQuestionPageModel: ViewModel {
     isStoppingRecording = true
     defer { isStoppingRecording = false }
     let recordedSeconds = recordingState.currentTime
+    recordingUpdatesTask?.cancel()
+    recordingUpdatesTask = nil
     do {
       let url = try await recordingSession?.stop()
       if shouldDiscardRecordingAfterStop {
@@ -686,12 +715,14 @@ class AMAAnswerQuestionPageModel: ViewModel {
   // MARK: - Private Playback Helpers
 
   private func stopQuestionPlayback() async {
+    questionPlaybackGeneration &+= 1
     await questionPlaybackSession?.stop()
     questionPlaybackSession = nil
     questionPlaybackState = .idle
   }
 
   private func stopAnswerPlayback() async {
+    answerPlaybackGeneration &+= 1
     await answerPlaybackSession?.stop()
     answerPlaybackSession = nil
     answerPlaybackState = .idle
@@ -699,6 +730,8 @@ class AMAAnswerQuestionPageModel: ViewModel {
 
   private func stopAllPlayback() async {
     recordingLifecycleId &+= 1
+    recordingUpdatesTask?.cancel()
+    recordingUpdatesTask = nil
     await stopQuestionPlayback()
     await stopAnswerPlayback()
     guard !isStoppingRecording else {

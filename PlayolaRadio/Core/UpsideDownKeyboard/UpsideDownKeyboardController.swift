@@ -23,7 +23,7 @@ final class UpsideDownKeyboardController {
   private var insetBaselines: [InsetBaseline] = []
   private var overlayWindow: KeyboardOverlayWindow?
   private var keyboardBottomConstraint: NSLayoutConstraint?
-  private let observerTokens = ObserverTokens()
+  private var observationTask: Task<Void, Never>?
 
   var isShowingCustomKeyboard: Bool { overlayWindow?.isHidden == false }
 
@@ -32,13 +32,31 @@ final class UpsideDownKeyboardController {
   }
 
   func start() {
-    guard observerTokens.tokens.isEmpty else { return }
-    observerTokens.tokens = [
-      observe(UITextField.textDidBeginEditingNotification) { $0.editingBegan($1) },
-      observe(UITextView.textDidBeginEditingNotification) { $0.editingBegan($1) },
-      observe(UITextField.textDidEndEditingNotification) { $0.editingEnded($1) },
-      observe(UITextView.textDidEndEditingNotification) { $0.editingEnded($1) },
-    ]
+    guard observationTask == nil else { return }
+    observationTask = Task { [weak self] in
+      await withTaskGroup(of: Void.self) { group in
+        group.addTask { [weak self] in
+          await Self.observe(UITextField.textDidBeginEditingNotification) { [weak self] input in
+            self?.editingBegan(input)
+          }
+        }
+        group.addTask { [weak self] in
+          await Self.observe(UITextView.textDidBeginEditingNotification) { [weak self] input in
+            self?.editingBegan(input)
+          }
+        }
+        group.addTask { [weak self] in
+          await Self.observe(UITextField.textDidEndEditingNotification) { [weak self] input in
+            self?.editingEnded(input)
+          }
+        }
+        group.addTask { [weak self] in
+          await Self.observe(UITextView.textDidEndEditingNotification) { [weak self] input in
+            self?.editingEnded(input)
+          }
+        }
+      }
+    }
   }
 
   func setUpsideDownModeEnabled(_ isEnabled: Bool) {
@@ -63,17 +81,14 @@ final class UpsideDownKeyboardController {
 
   // MARK: - Private Helpers
 
-  private func observe(
+  private static func observe(
     _ name: Notification.Name,
-    handler: @escaping @MainActor @Sendable (UpsideDownKeyboardController, UIView) -> Void
-  ) -> NSObjectProtocol {
-    NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) {
-      [weak self] notification in
-      let input = notification.object as? UIView
-      MainActor.assumeIsolated {
-        guard let self, let input else { return }
-        handler(self, input)
-      }
+    action: @escaping @MainActor @Sendable (UIView) -> Void
+  ) async {
+    for await notification in NotificationCenter.default.notifications(named: name) {
+      guard !Task.isCancelled else { return }
+      guard let input = notification.object as? UIView else { continue }
+      action(input)
     }
   }
 
@@ -203,14 +218,6 @@ private struct SuppressedInput {
 private struct InsetBaseline {
   weak var controller: UIViewController?
   let original: UIEdgeInsets
-}
-
-private final class ObserverTokens {
-  var tokens: [NSObjectProtocol] = []
-
-  deinit {
-    tokens.forEach(NotificationCenter.default.removeObserver)
-  }
 }
 
 /// A zero-height input view: hides the system keyboard without drawing anything in its place.

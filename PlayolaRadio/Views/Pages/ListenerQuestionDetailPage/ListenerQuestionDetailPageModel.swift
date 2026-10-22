@@ -40,6 +40,7 @@ class ListenerQuestionDetailPageModel: ViewModel {
   var recordingPhase: AnswerRecordingPhase = .idle
   var recordingState: RecordingState = .idle
   private var recordingSession: RecordingSession?
+  private var recordingUpdatesTask: Task<Void, Never>?
   var recordingURL: URL?
 
   // Answer playback
@@ -371,8 +372,13 @@ class ListenerQuestionDetailPageModel: ViewModel {
     await stopQuestionPlayback()
 
     do {
-      recordingSession = try await audioRecorder.startRecordingWithUpdates { [weak self] state in
-        self?.recordingState = state
+      let (session, updates) = try await audioRecorder.startRecordingUpdates()
+      recordingSession = session
+      recordingUpdatesTask = Task { [weak self] in
+        for await state in updates {
+          guard !Task.isCancelled else { return }
+          self?.recordingState = state
+        }
       }
       recordingPhase = .recording
     } catch AudioRecorderError.permissionDenied {
@@ -383,6 +389,8 @@ class ListenerQuestionDetailPageModel: ViewModel {
   }
 
   private func stopRecording() async {
+    recordingUpdatesTask?.cancel()
+    recordingUpdatesTask = nil
     do {
       let url = try await recordingSession?.stop()
       recordingURL = url
@@ -492,6 +500,8 @@ class ListenerQuestionDetailPageModel: ViewModel {
     await stopAnswerPlayback()
     await recordingSession?.cancel()
     recordingSession = nil
+    recordingUpdatesTask?.cancel()
+    recordingUpdatesTask = nil
   }
 
   private func formatTime(_ seconds: TimeInterval) -> String {

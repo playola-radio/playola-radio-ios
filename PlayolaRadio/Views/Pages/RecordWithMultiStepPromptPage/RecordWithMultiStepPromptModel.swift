@@ -78,6 +78,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
   var recordingURL: URL?
   var recordedDuration: TimeInterval = 0
   @ObservationIgnored private var recordingSession: RecordingSession?
+  @ObservationIgnored private var recordingUpdatesTask: Task<Void, Never>?
   var playbackState: PlaybackState = .idle
   @ObservationIgnored private var playbackSession: PlaybackSession?
   var uploadProgress: Double = 0
@@ -436,14 +437,18 @@ class RecordWithMultiStepPromptModel: ViewModel {
   private func startRecording() async {
     await stopPlayback()
     do {
-      let session = try await audioRecorder.startRecordingWithUpdates { [weak self] state in
-        self?.recordingState = state
-      }
+      let (session, updates) = try await audioRecorder.startRecordingUpdates()
       guard !isLeaving else {
         await session.cancel()
         return
       }
       recordingSession = session
+      recordingUpdatesTask = Task { [weak self] in
+        for await state in updates {
+          guard !Task.isCancelled else { return }
+          self?.recordingState = state
+        }
+      }
       recordingPhase = .recording
     } catch AudioRecorderError.permissionDenied {
       if !isLeaving {
@@ -458,6 +463,8 @@ class RecordWithMultiStepPromptModel: ViewModel {
 
   private func stopRecording() async {
     let captured = recordingState.currentTime
+    recordingUpdatesTask?.cancel()
+    recordingUpdatesTask = nil
     do {
       let url = try await recordingSession?.stop()
       recordingSession = nil
@@ -512,6 +519,8 @@ class RecordWithMultiStepPromptModel: ViewModel {
 
   private func teardown() async {
     stopProcessingTimer()
+    recordingUpdatesTask?.cancel()
+    recordingUpdatesTask = nil
     await stopPlayback()
     await recordingSession?.cancel()
     recordingSession = nil

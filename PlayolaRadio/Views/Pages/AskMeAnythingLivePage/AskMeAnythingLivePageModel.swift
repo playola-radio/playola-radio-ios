@@ -98,7 +98,9 @@ class AskMeAnythingLivePageModel: ViewModel {
         break
       }
       guard isShowActive else { continue }
-      await refreshListenerQuestions()
+      async let listenerCountRefresh: Void = refreshListenerCount()
+      async let questionsRefresh: Void = refreshListenerQuestions()
+      _ = await (listenerCountRefresh, questionsRefresh)
     }
   }
 

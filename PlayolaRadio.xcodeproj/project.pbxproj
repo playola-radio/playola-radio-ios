@@ -202,6 +202,7 @@
 		CURA700000000000000022 /* CuratorSongPickerPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CURA700000000000000020 /* CuratorSongPickerPageView.swift */; };
 		CC0000000000000000000505 /* SectionIndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000504 /* SectionIndexView.swift */; };
 		CC0000000000000000000506 /* SectionIndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000504 /* SectionIndexView.swift */; };
+		CC0000000000000000000508 /* SectionIndexViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000507 /* SectionIndexViewTests.swift */; };
 		D0CD5FE434D4950E16A7B1F9 /* GiveawayOverlayModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A4D634B4C9B84C1C25F6458 /* GiveawayOverlayModel.swift */; };
 		D302576B2E63423D00F4228B /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302576A2E63423B00F4228B /* Toast.swift */; };
 		D302576D2E63428800F4228B /* ToastClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302576C2E63428700F4228B /* ToastClient.swift */; };
@@ -685,6 +686,8 @@
 		DDA0000000000000000A0043 /* AMAAnswerQuestionPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000A0041 /* AMAAnswerQuestionPageView.swift */; };
 		DDA0000000000000000B0002 /* AMAQuestionPickerPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000B0001 /* AMAQuestionPickerPageTests.swift */; };
 		DDA0000000000000000B0012 /* AMAAnswerQuestionPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000B0011 /* AMAAnswerQuestionPageTests.swift */; };
+		DDA0000000000000000B0014 /* AMAPlaybackLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000B0013 /* AMAPlaybackLifecycleTests.swift */; };
+		DDA0000000000000000B0016 /* AMALiveRefreshTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000B0015 /* AMALiveRefreshTests.swift */; };
 		DDA0000000000000000B0092 /* AskMeAnythingLiveAirQuestionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0000000000000000B0091 /* AskMeAnythingLiveAirQuestionTests.swift */; };
 		AF1000000000000000000001 /* AMAQueuePlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000003 /* AMAQueuePlacement.swift */; };
 		AF1000000000000000000002 /* AMAQueuePlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1000000000000000000003 /* AMAQueuePlacement.swift */; };
@@ -849,6 +852,7 @@
 		CURA700000000000000010 /* CuratorSongPickerPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuratorSongPickerPageTests.swift; sourceTree = "<group>"; };
 		CURA700000000000000020 /* CuratorSongPickerPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuratorSongPickerPageView.swift; sourceTree = "<group>"; };
 		CC0000000000000000000504 /* SectionIndexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionIndexView.swift; sourceTree = "<group>"; };
+		CC0000000000000000000507 /* SectionIndexViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionIndexViewTests.swift; sourceTree = "<group>"; };
 		CCD2F408E712B42EAED9BE68 /* GiveawayCoordinatorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiveawayCoordinatorTests.swift; sourceTree = "<group>"; };
 		D302576A2E63423B00F4228B /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		D302576C2E63428700F4228B /* ToastClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastClient.swift; sourceTree = "<group>"; };
@@ -1126,6 +1130,8 @@
 		DDA0000000000000000A0041 /* AMAAnswerQuestionPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAAnswerQuestionPageView.swift; sourceTree = "<group>"; };
 		DDA0000000000000000B0001 /* AMAQuestionPickerPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQuestionPickerPageTests.swift; sourceTree = "<group>"; };
 		DDA0000000000000000B0011 /* AMAAnswerQuestionPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAAnswerQuestionPageTests.swift; sourceTree = "<group>"; };
+		DDA0000000000000000B0013 /* AMAPlaybackLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAPlaybackLifecycleTests.swift; sourceTree = "<group>"; };
+		DDA0000000000000000B0015 /* AMALiveRefreshTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMALiveRefreshTests.swift; sourceTree = "<group>"; };
 		DDA0000000000000000B0091 /* AskMeAnythingLiveAirQuestionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeAnythingLiveAirQuestionTests.swift; sourceTree = "<group>"; };
 		AF1000000000000000000003 /* AMAQueuePlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQueuePlacement.swift; sourceTree = "<group>"; };
 		AF1000000000000000000005 /* AMAQueuePlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMAQueuePlacementTests.swift; sourceTree = "<group>"; };
@@ -1374,6 +1380,8 @@
 				DDA0000000000000000A0041 /* AMAAnswerQuestionPageView.swift */,
 				DDA0000000000000000B0001 /* AMAQuestionPickerPageTests.swift */,
 				DDA0000000000000000B0011 /* AMAAnswerQuestionPageTests.swift */,
+				DDA0000000000000000B0013 /* AMAPlaybackLifecycleTests.swift */,
+				DDA0000000000000000B0015 /* AMALiveRefreshTests.swift */,
 				DDA0000000000000000B0091 /* AskMeAnythingLiveAirQuestionTests.swift */,
 				AF1000000000000000000003 /* AMAQueuePlacement.swift */,
 				B613D7A104E349D9A15E0554 /* AMADraftTests.swift */,
@@ -1679,6 +1687,7 @@
 				D3776A3A2F2918DE00200ADF /* WaveformViews.swift */,
 				73585D96F0A0EB79FFD39F8E /* UpcomingGiveawayBadge.swift */,
 				CC0000000000000000000504 /* SectionIndexView.swift */,
+				CC0000000000000000000507 /* SectionIndexViewTests.swift */,
 			);
 			path = "Reusable Components";
 			sourceTree = "<group>";
@@ -3195,6 +3204,9 @@
 				AF1000000000000000000004 /* AMAQueuePlacementTests.swift in Sources */,
 				DDA0000000000000000B0002 /* AMAQuestionPickerPageTests.swift in Sources */,
 				DDA0000000000000000B0012 /* AMAAnswerQuestionPageTests.swift in Sources */,
+				DDA0000000000000000B0014 /* AMAPlaybackLifecycleTests.swift in Sources */,
+				DDA0000000000000000B0016 /* AMALiveRefreshTests.swift in Sources */,
+				CC0000000000000000000508 /* SectionIndexViewTests.swift in Sources */,
 				DDA0000000000000000B0092 /* AskMeAnythingLiveAirQuestionTests.swift in Sources */,
 				CC0000000000000000000908 /* RecordWithMultiStepPromptTests.swift in Sources */,
 				CC0000000000000000000408 /* MusicCategoryDetailPageTests.swift in Sources */,
