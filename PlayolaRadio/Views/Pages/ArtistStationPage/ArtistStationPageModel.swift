@@ -24,6 +24,7 @@ class ArtistStationPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+  @ObservationIgnored @Dependency(\.notificationCenter) var notificationCenter
   @ObservationIgnored @Dependency(\.toast) var toast
 
   // MARK: - Shared State
@@ -96,8 +97,10 @@ class ArtistStationPageModel: ViewModel {
     await loadSchedule(isUserInitiated: true)
   }
 
-  func observeScheduleUpdates() async {
-    for await notification in NotificationCenter.default.notifications(named: .scheduleUpdated) {
+  func observeScheduleUpdates(onReady: @escaping @MainActor () -> Void = {}) async {
+    let notifications = notificationCenter.notifications(named: .scheduleUpdated)
+    onReady()
+    for await notification in notifications {
       guard !Task.isCancelled else { return }
       guard notification.userInfo?["stationId"] as? String == stationId else { continue }
       await loadSchedule(isUserInitiated: false)

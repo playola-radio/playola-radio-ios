@@ -58,6 +58,52 @@ struct ArtistStationPageTests {
     }
   }
 
+  private func waitUntilCancelledOrReleased(
+    release: LockIsolated<CheckedContinuation<Void, Never>?>,
+    entered: AsyncStream<Void>.Continuation
+  ) async {
+    await withTaskCancellationHandler {
+      await withCheckedContinuation { continuation in
+        if Task.isCancelled {
+          continuation.resume()
+        } else {
+          release.setValue(continuation)
+          entered.yield()
+        }
+      }
+    } onCancel: {
+      release.withValue {
+        $0?.resume()
+        $0 = nil
+      }
+    }
+  }
+
+  private func postScheduleUpdate(
+    through notificationCenter: NotificationCenter,
+    stationId: String,
+    after ready: AsyncStream<Void>
+  ) async {
+    var readyIterator = ready.makeAsyncIterator()
+    await readyIterator.next()
+    notificationCenter.post(
+      name: .scheduleUpdated, object: nil, userInfo: ["stationId": stationId])
+  }
+
+  private func loadSchedule(
+    with model: ArtistStationPageModel,
+    fromNotifications: Bool,
+    observerReady: AsyncStream<Void>.Continuation
+  ) -> Task<Void, Never> {
+    Task {
+      if fromNotifications {
+        await model.observeScheduleUpdates { observerReady.yield() }
+      } else {
+        await model.viewAppeared()
+      }
+    }
+  }
+
   // MARK: - Static Placeholder Content
 
   @Test func displaysPlaceholderHeader() {
@@ -422,21 +468,22 @@ private enum ArtistStationTestError: Error {
 extension ArtistStationPageTests {
   @Test(arguments: [0, 1, 2], [false, true])
   func cancellationDoesNotPublishScheduleErrors(kind: Int, notification: Bool) async {
+    let stationId = UUID().uuidString
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
-    coordinator.switchToBroadcastMode(stationId: testStationId)
+    coordinator.switchToBroadcastMode(stationId: stationId)
     await withMainSerialExecutor {
       let entered = AsyncStream<Void>.makeStream()
       let release = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
-      let reports = LockIsolated(0)
-      let shownToasts = LockIsolated<[PlayolaToast]>([])
+      let (reports, shownToasts) = (LockIsolated(0), LockIsolated<[PlayolaToast]>([]))
+      let notificationCenter = NotificationCenter()
+      let observerReady = AsyncStream<Void>.makeStream()
       let model = withDependencies {
         $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+        $0.notificationCenter = notificationCenter
         $0.api.fetchSchedule = { _, _ in
-          await withCheckedContinuation {
-            release.setValue($0)
-            entered.continuation.yield()
-          }
+          await self.waitUntilCancelledOrReleased(
+            release: release, entered: entered.continuation)
           if kind == 0 { throw CancellationError() }
           if kind == 1 { throw URLError(.cancelled) }
           throw URLError(.badServerResponse)
@@ -446,21 +493,22 @@ extension ArtistStationPageTests {
       } operation: {
         ArtistStationPageModel()
       }
-      let task = Task {
-        if notification { await model.observeScheduleUpdates() } else { await model.viewAppeared() }
-      }
+      let task = loadSchedule(
+        with: model, fromNotifications: notification, observerReady: observerReady.continuation)
       if notification {
-        await Task.yield()
-        NotificationCenter.default.post(
-          name: .scheduleUpdated, object: nil, userInfo: ["stationId": testStationId])
+        await postScheduleUpdate(
+          through: notificationCenter, stationId: stationId, after: observerReady.stream)
       }
       var iterator = entered.stream.makeAsyncIterator()
       await iterator.next()
       if kind == 2 { task.cancel() }
-      release.value?.resume()
+      if kind != 2 {
+        release.withValue {
+          $0?.resume()
+          $0 = nil
+        }
+      }
       if notification {
-        await Task.yield()
-        await Task.yield()
         task.cancel()
       }
       await task.value
@@ -504,14 +552,18 @@ extension ArtistStationPageTests {
   }
 
   @Test func notificationScheduleFailureReportsWithoutToast() async {
+    let stationId = UUID().uuidString
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
-    coordinator.switchToBroadcastMode(stationId: testStationId)
+    coordinator.switchToBroadcastMode(stationId: stationId)
     let entered = AsyncStream<Void>.makeStream()
     let reported = AsyncStream<Void>.makeStream()
     let reports = LockIsolated(0)
     let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let notificationCenter = NotificationCenter()
+    let observerReady = AsyncStream<Void>.makeStream()
     let model = withDependencies {
+      $0.notificationCenter = notificationCenter
       $0.api.fetchSchedule = { _, _ in
         entered.continuation.yield()
         throw ArtistStationTestError.failed
@@ -524,10 +576,11 @@ extension ArtistStationPageTests {
     } operation: {
       ArtistStationPageModel()
     }
-    let task = Task { await model.observeScheduleUpdates() }
-    await Task.yield()
-    NotificationCenter.default.post(
-      name: .scheduleUpdated, object: nil, userInfo: ["stationId": testStationId])
+    let task = Task { await model.observeScheduleUpdates { observerReady.continuation.yield() } }
+    var readyIterator = observerReady.stream.makeAsyncIterator()
+    await readyIterator.next()
+    notificationCenter.post(
+      name: .scheduleUpdated, object: nil, userInfo: ["stationId": stationId])
     var iterator = entered.stream.makeAsyncIterator()
     await iterator.next()
     var reportIterator = reported.stream.makeAsyncIterator()
