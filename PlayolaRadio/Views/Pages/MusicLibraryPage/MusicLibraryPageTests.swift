@@ -31,6 +31,19 @@ struct MusicLibraryPageTests {
     }
   }
 
+  @Test func viewAppearedTracksViewedScreen() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    _ = await makeModel {
+      $0.api.getStationCategories = { _, _ in [] }
+      $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+    }
+
+    expectNoDifference(
+      capturedEvents.value, [.viewedScreen(screen: .musicLibrary, stationId: testStationId)])
+  }
+
   @Test func keepsOnlySongCategoriesAndSortsByName() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
@@ -258,6 +271,7 @@ struct MusicLibraryPageTests {
       return
     }
     expectNoDifference(pushedModel.title, "All Songs")
+    expectNoDifference(pushedModel.stationId, testStationId)
     // Songs follow sorted-category order then first-seen: "Current Rotation" (b, c) precedes
     // "Texas Country" (a, b), and the duplicate b is dropped on its second appearance.
     expectNoDifference(pushedModel.songs.map(\.id), ["b", "c", "a"])

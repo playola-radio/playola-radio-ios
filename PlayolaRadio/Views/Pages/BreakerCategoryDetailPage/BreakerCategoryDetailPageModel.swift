@@ -14,17 +14,20 @@ class BreakerCategoryDetailPageModel: ViewModel {
 
   // MARK: - Dependencies
 
+  @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.audioPlayer) var audioPlayer
 
   // MARK: - Initialization
 
-  init(category: StationCategory) {
+  init(stationId: String, category: StationCategory) {
+    self.stationId = stationId
     self.category = category
     super.init()
   }
 
   // MARK: - Properties
 
+  let stationId: String
   let category: StationCategory
   var presentedAlert: PlayolaAlert?
 
@@ -100,6 +103,10 @@ class BreakerCategoryDetailPageModel: ViewModel {
   }
 
   // MARK: - User Actions
+
+  func viewAppeared() async {
+    await analytics.track(.viewedScreen(screen: .breakerCategoryDetail, stationId: stationId))
+  }
 
   func playButtonTapped(_ block: AudioBlock) async {
     guard let downloadUrl = block.downloadUrl else { return }

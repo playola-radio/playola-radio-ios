@@ -23,6 +23,7 @@ class CuratorSongPickerPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+  @ObservationIgnored @Dependency(\.analytics) var analytics
 
   // MARK: - Shared State
 
@@ -83,6 +84,10 @@ class CuratorSongPickerPageModel: ViewModel {
   private let suggestionsPageSize = 20
 
   // MARK: - User Actions
+
+  func viewAppeared() async {
+    await analytics.track(.viewedScreen(screen: .curatorSongPicker, stationId: stationId))
+  }
 
   func tabSelected(_ tab: Tab) async {
     guard tab != selectedTab else { return }

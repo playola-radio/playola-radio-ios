@@ -33,6 +33,18 @@ struct BreakersLibraryPageTests {
     }
   }
 
+  @Test func viewAppearedTracksViewedScreen() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+
+    _ = await makeModel {
+      $0.api.getStationCategories = { _, _ in [] }
+      $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+    }
+
+    expectNoDifference(
+      capturedEvents.value, [.viewedScreen(screen: .breakersLibrary, stationId: testStationId)])
+  }
+
   @Test func filtersOutSongCategoriesAndSortsByName() async {
     let categories: [StationCategory] = [
       .mockWith(
@@ -157,6 +169,7 @@ struct BreakersLibraryPageTests {
       return
     }
     expectNoDifference(pushedModel.category.id, category.id)
+    expectNoDifference(pushedModel.stationId, testStationId)
   }
 }
 

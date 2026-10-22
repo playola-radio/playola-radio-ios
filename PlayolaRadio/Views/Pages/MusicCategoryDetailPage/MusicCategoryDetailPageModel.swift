@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import Dependencies
 import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
@@ -12,9 +13,14 @@ import SwiftUI
 @Observable
 class MusicCategoryDetailPageModel: ViewModel {
 
+  // MARK: - Dependencies
+
+  @ObservationIgnored @Dependency(\.analytics) var analytics
+
   // MARK: - Initialization
 
-  init(title: String, songs: [AudioBlock]) {
+  init(stationId: String, title: String, songs: [AudioBlock]) {
+    self.stationId = stationId
     self.title = title
     self.songs = IdentifiedArray(songs, uniquingIDsWith: { first, _ in first })
     let preview = SongPreviewPlayer()
@@ -34,6 +40,7 @@ class MusicCategoryDetailPageModel: ViewModel {
 
   // MARK: - Properties
 
+  let stationId: String
   let title: String
   let songs: IdentifiedArrayOf<AudioBlock>
   let preview: SongPreviewPlayer
@@ -215,6 +222,10 @@ class MusicCategoryDetailPageModel: ViewModel {
   }
 
   // MARK: - User Actions
+
+  func viewAppeared() async {
+    await analytics.track(.viewedScreen(screen: .musicCategoryDetail, stationId: stationId))
+  }
 
   func sortModeTapped(_ mode: SortMode) {
     sortMode = mode

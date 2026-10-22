@@ -42,6 +42,43 @@ struct ShowsPageTests {
       ])
   }
 
+  @Test func viewAppearedTracksViewedScreen() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.api.fetchSchedule = { _, _ in [] }
+      $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+    } operation: {
+      let model = ShowsPageModel(stationId: testStationId)
+      coordinator.push(.showsPage(model))
+
+      await model.viewAppeared()
+    }
+
+    expectNoDifference(
+      capturedEvents.value, [.viewedScreen(screen: .shows, stationId: testStationId)])
+  }
+
+  @Test func retryButtonTappedDoesNotTrackViewedScreen() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.api.fetchSchedule = { _, _ in [] }
+      $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+    } operation: {
+      let model = ShowsPageModel(stationId: testStationId)
+      coordinator.push(.showsPage(model))
+
+      await model.retryButtonTapped()
+    }
+
+    expectNoDifference(capturedEvents.value, [])
+  }
+
   @Test func askMeAnythingRowTappedPushesSetupAfterNoActiveShowCheck() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
@@ -267,6 +304,51 @@ struct ShowsPageTests {
       await oldCheck.value
       #expect(model.canChooseShow)
       expectNoDifference(coordinator.path, [.showsPage(model)])
+    }
+  }
+
+  @Test func returningWhileCancelledAnalyticsIsPausedStartsFreshCheck() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let analyticsStarted = AsyncStream<Void>.makeStream()
+    let analyticsReplies = LockIsolated<[CheckedContinuation<Void, Never>]>([])
+    let scheduleStarted = AsyncStream<Void>.makeStream()
+    let scheduleReply = LockIsolated<CheckedContinuation<[Spin], Never>?>(nil)
+    await withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.analytics.track = { _ in
+        await withCheckedContinuation { continuation in
+          analyticsReplies.withValue { $0.append(continuation) }
+          analyticsStarted.continuation.yield(())
+        }
+      }
+      $0.api.fetchSchedule = { _, _ in
+        scheduleStarted.continuation.yield(())
+        return await withCheckedContinuation { continuation in
+          scheduleReply.setValue(continuation)
+        }
+      }
+    } operation: {
+      let model = ShowsPageModel(stationId: testStationId)
+      coordinator.push(.showsPage(model))
+      let oldAppearance = Task { await model.viewAppeared() }
+      for await _ in analyticsStarted.stream { break }
+      model.viewDisappeared()
+      oldAppearance.cancel()
+
+      let returningAppearance = Task { await model.viewAppeared() }
+      for await _ in analyticsStarted.stream { break }
+      let replies = analyticsReplies.value
+      for reply in replies {
+        reply.resume()
+      }
+      for await _ in scheduleStarted.stream { break }
+      scheduleReply.value?.resume(returning: [])
+      await oldAppearance.value
+      await returningAppearance.value
+
+      #expect(model.canChooseShow)
+      expectNoDifference(model.retryTitles, [])
     }
   }
 

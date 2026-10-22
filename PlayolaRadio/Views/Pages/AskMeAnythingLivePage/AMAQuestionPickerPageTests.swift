@@ -52,6 +52,32 @@ struct AMAQuestionPickerPageTests {
     }
   }
 
+  @Test func taskTracksViewedScreenOnceAndNotOnPoll() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+      let model = withDependencies {
+        $0.date.now = baseDate
+        $0.continuousClock = clock
+        $0.api.getListenerQuestions = { _, _ in [] }
+        $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+      } operation: {
+        AMAQuestionPickerPageModel(stationId: stationId, showStartedAt: nil, addToShow: noopAdd)
+      }
+      let task = Task { await model.task() }
+
+      await clock.advance(by: .seconds(1))
+      await clock.advance(by: .seconds(10))
+
+      expectNoDifference(
+        capturedEvents.value,
+        [.viewedScreen(screen: .askMeAnythingQuestionPicker, stationId: stationId)])
+      task.cancel()
+      await task.value
+    }
+  }
+
   @Test func newQuestionsArrivingWhileOpenAreAppendedAtTheBottom() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     await withMainSerialExecutor {

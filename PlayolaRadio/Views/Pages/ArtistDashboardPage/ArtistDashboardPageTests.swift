@@ -395,7 +395,7 @@ struct ArtistDashboardPageTests {
     expectNoDifference(item.isTappable, true)
     expectNoDifference(item.chevronOpacity, 1)
 
-    model.improvementItemTapped(item)
+    await model.improvementItemTapped(item)
 
     @Shared(.mainContainerNavigationCoordinator) var coordinator
     guard
@@ -420,7 +420,7 @@ struct ArtistDashboardPageTests {
       Issue.record("expected an improvement item")
       return
     }
-    model.improvementItemTapped(item)
+    await model.improvementItemTapped(item)
 
     @Shared(.mainContainerNavigationCoordinator) var coordinator
     guard
@@ -447,10 +447,111 @@ struct ArtistDashboardPageTests {
     expectNoDifference(item.isTappable, false)
     expectNoDifference(item.chevronOpacity, 0)
 
-    model.improvementItemTapped(item)
+    await model.improvementItemTapped(item)
 
     @Shared(.mainContainerNavigationCoordinator) var coordinator
     expectNoDifference(coordinator.artistDashboardPath.isEmpty, true)
+  }
+
+  // MARK: - Analytics
+
+  @Test func viewAppearedTracksViewedStationDashboardWithHealthSummary() async {
+    let captured = LockIsolated<[AnalyticsEvent]>([])
+    let health = makeHealth(
+      freshPct: 40, status: .unhealthy,
+      checks: [
+        makeCheck(kind: "appearances", status: .healthy, current: 3, required: 3),
+        makeCheck(kind: "songCategoryFreshness", status: .warning, current: 4, required: 12),
+        makeCheck(kind: "brandNewCheckKind", status: .healthy, current: 1, required: 1),
+      ])
+
+    _ = await makeBroadcastingModel {
+      $0.api.getProgrammingHealth = { _, _ in health }
+      $0.analytics.track = { event in captured.withValue { $0.append(event) } }
+    }
+
+    expectNoDifference(
+      captured.value,
+      [
+        .viewedStationDashboard(
+          stationId: testStationId, healthStatus: "unhealthy", healthScore: 40, checksDone: 1,
+          checksTotal: 2)
+      ])
+  }
+
+  @Test func viewAppearedTracksUnavailableHealthWhenHealthFailsToLoad() async {
+    let captured = LockIsolated<[AnalyticsEvent]>([])
+
+    _ = await makeBroadcastingModel {
+      $0.api.getProgrammingHealth = { _, _ in throw TestError.networkError }
+      $0.analytics.track = { event in captured.withValue { $0.append(event) } }
+    }
+
+    let dashboardEvents = captured.value.filter {
+      if case .viewedStationDashboard = $0 { return true }
+      return false
+    }
+    expectNoDifference(
+      dashboardEvents,
+      [
+        .viewedStationDashboard(
+          stationId: testStationId, healthStatus: "unavailable", healthScore: nil, checksDone: 0,
+          checksTotal: 0)
+      ])
+  }
+
+  @Test func viewAppearedDoesNotTrackDashboardViewWhenLeftBeforeHealthLoads() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      coordinator.switchToBroadcastMode(stationId: testStationId)
+      let captured = LockIsolated<[AnalyticsEvent]>([])
+      let model = withDependencies {
+        $0.date = .constant(fixedNow)
+        $0.calendar = fixedCalendar
+        $0.api.getProgrammingHealth = { _, _ in try await Task.never() }
+        $0.api.getActiveListeningSessions = { _, _, _, _ in Self.emptyActive }
+        $0.api.getListenerCounts = { _, _, _, _ in Self.emptyCounts }
+        $0.analytics.track = { event in captured.withValue { $0.append(event) } }
+      } operation: {
+        ArtistDashboardPageModel()
+      }
+
+      let task = Task { await model.viewAppeared() }
+      await Task.yield()
+      task.cancel()
+      await task.value
+
+      expectNoDifference(captured.value, [])
+    }
+  }
+
+  @Test func tappingHealthItemTracksKindAndStatus() async {
+    let captured = LockIsolated<[AnalyticsEvent]>([])
+    let health = makeHealth(
+      freshPct: 40, status: .unhealthy,
+      checks: [
+        makeCheck(kind: "pendingListenerQuestions", status: .warning, current: 3, required: 0)
+      ])
+    let model = await makeBroadcastingModel {
+      $0.api.getProgrammingHealth = { _, _ in health }
+      $0.analytics.track = { event in captured.withValue { $0.append(event) } }
+    }
+    captured.setValue([])
+
+    guard let item = model.improvementItems.first else {
+      Issue.record("expected an improvement item")
+      return
+    }
+    await model.improvementItemTapped(item)
+
+    expectNoDifference(
+      captured.value,
+      [
+        .tappedStationHealthItem(
+          stationId: testStationId, checkKind: "pendingListenerQuestions", checkStatus: "warning")
+      ])
   }
 
   // MARK: - Loading Behavior

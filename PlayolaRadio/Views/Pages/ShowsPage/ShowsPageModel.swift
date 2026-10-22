@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import Dependencies
 import IdentifiedCollections
 import Sharing
 import SwiftUI
@@ -10,6 +11,10 @@ import SwiftUI
 @MainActor
 @Observable
 class ShowsPageModel: ViewModel {
+
+  // MARK: - Dependencies
+
+  @ObservationIgnored @Dependency(\.analytics) var analytics
 
   // MARK: - Shared State
 
@@ -37,37 +42,18 @@ class ShowsPageModel: ViewModel {
       viewDisappeared()
       return
     }
-    guard !isCheckingForShow else { return }
     let generation = checkGeneration
-    isCheckingForShow = true
-    isLoading = true
-    hasLoadFailed = false
-    defer {
-      if generation == checkGeneration {
-        isCheckingForShow = false
-        if isLoading && isCurrentPage {
-          hasLoadFailed = true
-          isLoading = false
-        }
-      }
-    }
-
-    let show = AskMeAnythingLivePageModel(stationId: stationId)
-    await show.broadcast.loadSchedule()
+    await analytics.track(.viewedScreen(screen: .shows, stationId: stationId))
     guard generation == checkGeneration, !Task.isCancelled, isCurrentPage else { return }
-    guard show.broadcast.schedule != nil else {
-      hasLoadFailed = true
-      isLoading = false
+    await checkForActiveShow()
+  }
+
+  func retryButtonTapped() async {
+    guard isCurrentPage else {
+      viewDisappeared()
       return
     }
-    show.schedulePlaybackChanged()
-    guard show.isShowActive else {
-      isLoading = false
-      return
-    }
-    var path = navigationCoordinator.path
-    path[path.count - 1] = .askMeAnythingLivePage(show)
-    navigationCoordinator.path = path
+    await checkForActiveShow()
   }
 
   func viewDisappeared() {
@@ -117,6 +103,42 @@ class ShowsPageModel: ViewModel {
   var isCurrentPage: Bool {
     guard case .showsPage(let model) = navigationCoordinator.path.last else { return false }
     return model === self
+  }
+
+  // MARK: - Private Helpers
+
+  private func checkForActiveShow() async {
+    guard !isCheckingForShow else { return }
+    let generation = checkGeneration
+    isCheckingForShow = true
+    isLoading = true
+    hasLoadFailed = false
+    defer {
+      if generation == checkGeneration {
+        isCheckingForShow = false
+        if isLoading && isCurrentPage {
+          hasLoadFailed = true
+          isLoading = false
+        }
+      }
+    }
+
+    let show = AskMeAnythingLivePageModel(stationId: stationId)
+    await show.broadcast.loadSchedule()
+    guard generation == checkGeneration, !Task.isCancelled, isCurrentPage else { return }
+    guard show.broadcast.schedule != nil else {
+      hasLoadFailed = true
+      isLoading = false
+      return
+    }
+    show.schedulePlaybackChanged()
+    guard show.isShowActive else {
+      isLoading = false
+      return
+    }
+    var path = navigationCoordinator.path
+    path[path.count - 1] = .askMeAnythingLivePage(show)
+    navigationCoordinator.path = path
   }
 
 }

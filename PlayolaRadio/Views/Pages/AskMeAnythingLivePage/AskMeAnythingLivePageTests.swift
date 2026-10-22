@@ -38,6 +38,37 @@ struct AskMeAnythingLivePageTests {
     try recorder.onRecordingAccepted?(URL(fileURLWithPath: "/tmp/\(name)"), 10)
   }
 
+  @Test func taskTracksViewedScreenOnceAndNotOnRefresh() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+      let model = withDependencies {
+        $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+        $0.continuousClock = clock
+        $0.api.fetchSchedule = { _, _ in [] }
+        $0.api.getActiveListeningSessions = { _, _, _, _ in
+          .init(summary: .init(uniqueUsers: 1))
+        }
+        $0.api.getListenerQuestions = { _, _ in [] }
+        $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+      } operation: {
+        AskMeAnythingLivePageModel(stationId: testStationId)
+      }
+      let task = Task { await model.task() }
+
+      await clock.advance(by: .seconds(1))
+      await model.viewAppeared()
+      await clock.advance(by: .seconds(10))
+
+      expectNoDifference(
+        capturedEvents.value,
+        [.viewedScreen(screen: .askMeAnythingLiveShow, stationId: testStationId)])
+      task.cancel()
+      await task.value
+    }
+  }
+
   @Test func startShowSendsTheReadyOpenerInOrder() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let capturedIds = LockIsolated<[String]>([])

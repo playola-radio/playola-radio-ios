@@ -17,6 +17,7 @@ class MusicLibraryPageModel: ViewModel {
   // MARK: - Dependencies
 
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.analytics) var analytics
 
   // MARK: - Shared State
 
@@ -77,13 +78,15 @@ class MusicLibraryPageModel: ViewModel {
   // MARK: - User Actions
 
   func viewAppeared() async {
+    await analytics.track(.viewedScreen(screen: .musicLibrary, stationId: stationId))
     await loadCategories()
   }
 
   func rowTapped(_ row: MusicLibraryRow) {
     let songs = row.isAllSongs ? allSongs : (categories[id: row.id]?.audioBlocks ?? [])
     navigationCoordinator.push(
-      .musicCategoryDetailPage(MusicCategoryDetailPageModel(title: row.title, songs: songs)))
+      .musicCategoryDetailPage(
+        MusicCategoryDetailPageModel(stationId: stationId, title: row.title, songs: songs)))
   }
 
   // MARK: - Private Helpers

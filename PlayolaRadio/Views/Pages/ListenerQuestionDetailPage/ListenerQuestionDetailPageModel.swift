@@ -57,6 +57,7 @@ class ListenerQuestionDetailPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.voicetrackUploadService) var voicetrackUploadService
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
@@ -247,6 +248,8 @@ class ListenerQuestionDetailPageModel: ViewModel {
   // MARK: - View Lifecycle
 
   func viewAppeared() async {
+    await analytics.track(
+      .viewedScreen(screen: .listenerQuestionDetail, stationId: question.stationId))
     do {
       try await audioRecorder.prepareForRecording()
     } catch {

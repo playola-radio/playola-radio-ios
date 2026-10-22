@@ -34,6 +34,7 @@ class AMAQuestionPickerPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+  @ObservationIgnored @Dependency(\.analytics) var analytics
 
   // MARK: - Shared State
 
@@ -117,6 +118,7 @@ class AMAQuestionPickerPageModel: ViewModel {
   // MARK: - User Actions
 
   func task() async {
+    await analytics.track(.viewedScreen(screen: .askMeAnythingQuestionPicker, stationId: stationId))
     await viewAppeared()
     while !Task.isCancelled {
       do {

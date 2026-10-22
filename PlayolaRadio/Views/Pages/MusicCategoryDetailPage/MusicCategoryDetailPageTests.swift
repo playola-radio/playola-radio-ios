@@ -67,6 +67,22 @@ struct MusicCategoryDetailPageTests {
       spotifyId: base.spotifyId, imageUrl: base.imageUrl, transcription: base.transcription)
   }
 
+  // MARK: - Analytics
+
+  @Test func viewAppearedTracksViewedScreen() async {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    let model = withDependencies {
+      $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+    } operation: {
+      MusicCategoryDetailPageModel(stationId: "station-1", title: "Texas Country", songs: [])
+    }
+
+    await model.viewAppeared()
+
+    expectNoDifference(
+      capturedEvents.value, [.viewedScreen(screen: .musicCategoryDetail, stationId: "station-1")])
+  }
+
   // MARK: - Display
 
   @Test func navigationTitleIsTheProvidedTitle() {
@@ -940,5 +956,11 @@ struct MusicCategoryDetailPageTests {
 
     #expect(!model.isPlayButtonEnabled(for: noUrl))
     #expect(model.isPlayButtonEnabled(for: playable))
+  }
+}
+
+extension MusicCategoryDetailPageModel {
+  fileprivate convenience init(title: String, songs: [AudioBlock]) {
+    self.init(stationId: "station-1", title: title, songs: songs)
   }
 }

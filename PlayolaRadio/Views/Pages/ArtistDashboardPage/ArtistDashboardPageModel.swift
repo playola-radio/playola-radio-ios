@@ -209,18 +209,28 @@ class ArtistDashboardPageModel: ViewModel {
       token: token, stationId: stationId, generation: generation)
     async let trend: Void = loadWeeklyTrend(
       token: token, stationId: stationId, generation: generation)
-    _ = await (health, listeners, counts, trend)
+    // Health rows become tappable as soon as health resolves, so record the view then rather than
+    // after the slower listener loads — and not at all if the curator left before it resolved.
+    await health
+    if generation == loadGeneration, !Task.isCancelled {
+      await trackDashboardViewed(stationId: stationId)
+    }
+    _ = await (listeners, counts, trend)
   }
 
   func weeklyReportTapped() {}
 
   func statsLinkTapped() {}
 
-  func improvementItemTapped(_ item: ImprovementItem) {
+  func improvementItemTapped(_ item: ImprovementItem) async {
     guard let stationId, item.isTappable else { return }
     navigationCoordinator.push(
       .broadcastersListenerQuestionPage(BroadcastersListenerQuestionPageModel(stationId: stationId))
     )
+    let status = knownChecks.first { $0.kind == item.id }?.status ?? .unknown
+    await analytics.track(
+      .tappedStationHealthItem(
+        stationId: stationId, checkKind: item.id, checkStatus: status.rawValue))
   }
 
   // MARK: - View Helpers
@@ -260,6 +270,17 @@ class ArtistDashboardPageModel: ViewModel {
       return stationId
     }
     return nil
+  }
+
+  private func trackDashboardViewed(stationId: String) async {
+    let checks = knownChecks
+    await analytics.track(
+      .viewedStationDashboard(
+        stationId: stationId,
+        healthStatus: programmingHealth?.status.rawValue ?? "unavailable",
+        healthScore: programmingHealth?.freshPct,
+        checksDone: checks.filter { $0.status == .healthy }.count,
+        checksTotal: checks.count))
   }
 
   private func loadProgrammingHealth(token: String, stationId: String, generation: Int) async {

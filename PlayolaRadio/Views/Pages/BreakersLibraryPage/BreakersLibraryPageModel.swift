@@ -16,6 +16,7 @@ class BreakersLibraryPageModel: ViewModel {
   // MARK: - Dependencies
 
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.analytics) var analytics
 
   // MARK: - Shared State
 
@@ -45,12 +46,14 @@ class BreakersLibraryPageModel: ViewModel {
   // MARK: - User Actions
 
   func viewAppeared() async {
+    await analytics.track(.viewedScreen(screen: .breakersLibrary, stationId: stationId))
     await loadCategories()
   }
 
   func categoryRowTapped(_ category: StationCategory) {
     navigationCoordinator.push(
-      .breakerCategoryDetailPage(BreakerCategoryDetailPageModel(category: category)))
+      .breakerCategoryDetailPage(
+        BreakerCategoryDetailPageModel(stationId: stationId, category: category)))
   }
 
   // MARK: - View Helpers
