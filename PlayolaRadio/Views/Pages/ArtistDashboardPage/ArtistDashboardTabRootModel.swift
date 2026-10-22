@@ -38,6 +38,7 @@ class ArtistDashboardTabRootModel: ViewModel {
   /// started must not clobber the newer route, mirroring `ArtistDashboardPageModel`'s guard.
   private var loadGeneration = 0
   var route: Route = .loading
+  var presentedAlert: PlayolaAlert?
 
   // MARK: - Properties
 
@@ -78,6 +79,7 @@ class ArtistDashboardTabRootModel: ViewModel {
       guard !isCancellation(error) else { return }
       guard generation == loadGeneration else { return }
       route = .failed
+      presentedAlert = .dashboardLoadError(error.localizedDescription)
       await analytics.track(
         .apiError(endpoint: "fetchStation", error: error.localizedDescription))
     }

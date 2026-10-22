@@ -670,7 +670,7 @@ struct ArtistDashboardPageTests {
     }
 
     expectNoDifference(model.stats.map(\.value), ["50", "—", "50"])
-    expectNoDifference(model.presentedAlert == nil, true)
+    expectNoDifference(model.presentedAlert?.title, "Unable to Load Dashboard")
   }
 
   // MARK: - Weekly Bar Chart
@@ -714,13 +714,13 @@ struct ArtistDashboardPageTests {
     expectNoDifference(model.weekBars.map(\.heightFraction), [0, 0])
   }
 
-  @Test func chartFailureLeavesEmptyBarsWithoutAlert() async {
+  @Test func chartFailureLeavesEmptyBarsAndShowsAlert() async {
     let model = await makeBroadcastingModel {
       $0.api.getListenerCounts = { _, _, _, _ in throw TestError.networkError }
     }
 
     expectNoDifference(model.weekBars.isEmpty, true)
-    expectNoDifference(model.presentedAlert == nil, true)
+    expectNoDifference(model.presentedAlert?.title, "Unable to Load Dashboard")
   }
 
   @Test func weekBarsCapAtMostRecentEightWeeks() async {
@@ -872,7 +872,7 @@ struct ArtistDashboardPageTests {
     expectNoDifference(model.weeklyReportTrendColor, .clear)
   }
 
-  @Test func weeklyTrendHiddenWhenWindowFailsWithoutAlert() async {
+  @Test func weeklyTrendHiddenWhenWindowFailsAndShowsAlert() async {
     let model = await makeBroadcastingModel {
       $0.api.getActiveListeningSessions = { [rollingWeekAgo] _, _, airtime, _ in
         if airtime == rollingWeekAgo { throw TestError.networkError }
@@ -882,7 +882,7 @@ struct ArtistDashboardPageTests {
 
     expectNoDifference(model.weeklyReportTrendLabel, "")
     expectNoDifference(model.weeklyReportTrendColor, .clear)
-    expectNoDifference(model.presentedAlert == nil, true)
+    expectNoDifference(model.presentedAlert?.title, "Unable to Load Dashboard")
   }
 
   @Test func weeklyTrendUsesRollingSevenDayWindows() async {

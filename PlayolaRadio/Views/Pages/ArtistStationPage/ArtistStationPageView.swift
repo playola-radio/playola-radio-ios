@@ -29,6 +29,10 @@ struct ArtistStationPageView: View {
     .task {
       await model.stationTabVisible()
     }
+    .task {
+      await model.observeScheduleUpdates()
+    }
+    .playolaAlert($model.presentedAlert)
   }
 
   private var header: some View {

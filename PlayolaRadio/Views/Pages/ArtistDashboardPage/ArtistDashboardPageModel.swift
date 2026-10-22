@@ -6,6 +6,7 @@
 //
 
 import Dependencies
+import IdentifiedCollections
 import Sharing
 import SwiftUI
 
@@ -119,12 +120,13 @@ class ArtistDashboardPageModel: ViewModel {
 
   var listenersSectionTitle: String { "LISTENERS" }
 
-  var stats: [Stat] {
-    [
-      Stat(id: "now", value: Self.statValue(nowUniqueUsers), label: "NOW"),
-      Stat(id: "this-week", value: Self.statValue(weekUniqueUsers), label: "THIS WEEK"),
-      Stat(id: "this-month", value: Self.statValue(monthUniqueUsers), label: "THIS MONTH"),
-    ]
+  var stats: IdentifiedArrayOf<Stat> {
+    IdentifiedArray(
+      [
+        Stat(id: "now", value: Self.statValue(nowUniqueUsers), label: "NOW"),
+        Stat(id: "this-week", value: Self.statValue(weekUniqueUsers), label: "THIS WEEK"),
+        Stat(id: "this-month", value: Self.statValue(monthUniqueUsers), label: "THIS MONTH"),
+      ], uniquingIDsWith: { first, _ in first })
   }
 
   var chartSectionTitle: String { "LAST \(Self.maxVisibleWeeks) WEEKS" }
@@ -139,23 +141,24 @@ class ArtistDashboardPageModel: ViewModel {
   /// older buckets are dropped rather than overflowing the row.
   private static let maxVisibleWeeks = 8
 
-  var weekBars: [WeekBar] {
+  var weekBars: IdentifiedArrayOf<WeekBar> {
     let visibleBuckets = listenerBuckets.suffix(Self.maxVisibleWeeks)
     let maxUsers = visibleBuckets.map { max(0, $0.uniqueUsers) }.max() ?? 0
-    return visibleBuckets.map { bucket in
-      let rawFraction = maxUsers == 0 ? 0 : Double(max(0, bucket.uniqueUsers)) / Double(maxUsers)
-      let fraction = min(1, max(0, rawFraction))
-      if bucket.isLive {
+    return IdentifiedArray(
+      visibleBuckets.map { bucket in
+        let rawFraction = maxUsers == 0 ? 0 : Double(max(0, bucket.uniqueUsers)) / Double(maxUsers)
+        let fraction = min(1, max(0, rawFraction))
+        if bucket.isLive {
+          return WeekBar(
+            id: bucket.bucketStart, label: "SO FAR", labelColor: Color(hex: "#FFC107"),
+            labelFontName: FontNames.Inter_700_Bold, labelFontSize: 7,
+            barColor: Color(hex: "#FFC107"), heightFraction: fraction)
+        }
         return WeekBar(
-          id: bucket.bucketStart, label: "SO FAR", labelColor: Color(hex: "#FFC107"),
-          labelFontName: FontNames.Inter_700_Bold, labelFontSize: 7,
-          barColor: Color(hex: "#FFC107"), heightFraction: fraction)
-      }
-      return WeekBar(
-        id: bucket.bucketStart, label: Self.monthDayLabel(bucket.bucketStart),
-        labelColor: .playolaGray, labelFontName: FontNames.Inter_500_Medium, labelFontSize: 8,
-        barColor: .playolaRed, heightFraction: fraction)
-    }
+          id: bucket.bucketStart, label: Self.monthDayLabel(bucket.bucketStart),
+          labelColor: .playolaGray, labelFontName: FontNames.Inter_500_Medium, labelFontSize: 8,
+          barColor: .playolaRed, heightFraction: fraction)
+      }, uniquingIDsWith: { first, _ in first })
   }
 
   var improveSectionTitle: String { "IMPROVE YOUR STATION" }
@@ -185,8 +188,9 @@ class ArtistDashboardPageModel: ViewModel {
 
   var improveCountColor: Color { Color(hex: "#34C759") }
 
-  var improvementItems: [ImprovementItem] {
-    knownChecks.map(Self.improvementItem(from:))
+  var improvementItems: IdentifiedArrayOf<ImprovementItem> {
+    IdentifiedArray(
+      knownChecks.map(Self.improvementItem(from:)), uniquingIDsWith: { first, _ in first })
   }
 
   // MARK: - User Actions
@@ -385,6 +389,7 @@ class ArtistDashboardPageModel: ViewModel {
         .summary.uniqueUsers
     } catch {
       guard !isCancellation(error) else { throw error }
+      presentedAlert = .dashboardLoadError(error.localizedDescription)
       await analytics.track(
         .apiError(endpoint: "getActiveListeningSessions", error: error.localizedDescription))
       return nil
@@ -403,6 +408,7 @@ class ArtistDashboardPageModel: ViewModel {
       guard !isCancellation(error) else { return }
       guard generation == loadGeneration else { return }
       listenerBuckets = []
+      presentedAlert = .dashboardLoadError(error.localizedDescription)
       await analytics.track(
         .apiError(endpoint: "getListenerCounts", error: error.localizedDescription))
     }
@@ -545,6 +551,12 @@ class ArtistDashboardPageModel: ViewModel {
 // MARK: - Alerts
 
 extension PlayolaAlert {
+  static func dashboardLoadError(_ message: String) -> PlayolaAlert {
+    PlayolaAlert(
+      title: "Unable to Load Dashboard", message: message,
+      dismissButton: .cancel(Text("OK")))
+  }
+
   static func stationHealthError(_ message: String) -> PlayolaAlert {
     PlayolaAlert(
       title: "Error",

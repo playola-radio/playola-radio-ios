@@ -5,7 +5,6 @@
 //  Created by Brian D Keane on 8/28/26.
 //
 
-import Combine
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -24,6 +23,7 @@ class ArtistStationPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
 
   // MARK: - Shared State
 
@@ -35,8 +35,8 @@ class ArtistStationPageModel: ViewModel {
   var currentDate: Date?
   var isLoading = false
   var hasLoadError = false
+  var presentedAlert: PlayolaAlert?
 
-  @ObservationIgnored private var scheduleUpdateCancellable: AnyCancellable?
   @ObservationIgnored private var loadGeneration = 0
 
   var navigationTitle: String { "Station" }
@@ -92,8 +92,15 @@ class ArtistStationPageModel: ViewModel {
 
   func viewAppeared() async {
     currentDate = now
-    startObservingScheduleUpdates()
-    await loadSchedule()
+    await loadSchedule(isUserInitiated: true)
+  }
+
+  func observeScheduleUpdates() async {
+    for await notification in NotificationCenter.default.notifications(named: .scheduleUpdated) {
+      guard !Task.isCancelled else { return }
+      guard notification.userInfo?["stationId"] as? String == stationId else { continue }
+      await loadSchedule(isUserInitiated: false)
+    }
   }
 
   func stationTabVisible() async {
@@ -133,7 +140,7 @@ class ArtistStationPageModel: ViewModel {
     return nil
   }
 
-  private func loadSchedule() async {
+  private func loadSchedule(isUserInitiated: Bool) async {
     guard let stationId else { return }
     loadGeneration += 1
     let generation = loadGeneration
@@ -147,17 +154,14 @@ class ArtistStationPageModel: ViewModel {
     } catch {
       guard generation == loadGeneration else { return }
       hasLoadError = true
+      if isUserInitiated {
+        presentedAlert = .errorLoadingSchedule
+      } else if !NetworkErrorClassifier.isNetworkError(error) {
+        var tags = NetworkErrorClassifier.errorTags(for: error)
+        tags["endpoint"] = "fetchSchedule"
+        await errorReporting.reportError(error, tags)
+      }
     }
     isLoading = false
-  }
-
-  private func startObservingScheduleUpdates() {
-    guard scheduleUpdateCancellable == nil, stationId != nil else { return }
-    scheduleUpdateCancellable = NotificationCenter.default.publisher(for: .scheduleUpdated)
-      .compactMap { $0.userInfo?["stationId"] as? String }
-      .sink { [weak self] notificationStationId in
-        guard let self, notificationStationId == self.stationId else { return }
-        Task { [weak self] in await self?.loadSchedule() }
-      }
   }
 }

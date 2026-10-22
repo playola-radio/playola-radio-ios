@@ -6,11 +6,12 @@
 import SwiftUI
 
 struct ArtistDashboardTabRootView: View {
-  let model: ArtistDashboardTabRootModel
+  @Bindable var model: ArtistDashboardTabRootModel
 
   var body: some View {
     routedContent
       .task { await model.viewAppeared() }
+      .playolaAlert($model.presentedAlert)
   }
 
   @ViewBuilder
