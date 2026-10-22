@@ -500,6 +500,33 @@ struct ArtistDashboardPageTests {
       ])
   }
 
+  @Test func viewAppearedDoesNotTrackDashboardViewWhenLeftBeforeHealthLoads() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      coordinator.switchToBroadcastMode(stationId: testStationId)
+      let captured = LockIsolated<[AnalyticsEvent]>([])
+      let model = withDependencies {
+        $0.date = .constant(fixedNow)
+        $0.calendar = fixedCalendar
+        $0.api.getProgrammingHealth = { _, _ in try await Task.never() }
+        $0.api.getActiveListeningSessions = { _, _, _, _ in Self.emptyActive }
+        $0.api.getListenerCounts = { _, _, _, _ in Self.emptyCounts }
+        $0.analytics.track = { event in captured.withValue { $0.append(event) } }
+      } operation: {
+        ArtistDashboardPageModel()
+      }
+
+      let task = Task { await model.viewAppeared() }
+      await Task.yield()
+      task.cancel()
+      await task.value
+
+      expectNoDifference(captured.value, [])
+    }
+  }
+
   @Test func tappingHealthItemTracksKindAndStatus() async {
     let captured = LockIsolated<[AnalyticsEvent]>([])
     let health = makeHealth(

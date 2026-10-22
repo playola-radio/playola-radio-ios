@@ -209,9 +209,13 @@ class ArtistDashboardPageModel: ViewModel {
       token: token, stationId: stationId, generation: generation)
     async let trend: Void = loadWeeklyTrend(
       token: token, stationId: stationId, generation: generation)
-    _ = await (health, listeners, counts, trend)
-    guard generation == loadGeneration else { return }
-    await trackDashboardViewed(stationId: stationId)
+    // Health rows become tappable as soon as health resolves, so record the view then rather than
+    // after the slower listener loads — and not at all if the curator left before it resolved.
+    await health
+    if generation == loadGeneration, !Task.isCancelled {
+      await trackDashboardViewed(stationId: stationId)
+    }
+    _ = await (listeners, counts, trend)
   }
 
   func weeklyReportTapped() {}
