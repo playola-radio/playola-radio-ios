@@ -9,6 +9,7 @@ import ConcurrencyExtras
 import CustomDump
 import Dependencies
 import Foundation
+import Observation
 import PlayolaPlayer
 import Sharing
 import Testing
@@ -144,6 +145,70 @@ struct ArtistStationPageTests {
 
     #expect(!capturedFetch.value)
     #expect(model.schedule == nil)
+  }
+
+  @Test func nowPlayingTitleNotifiesObserversWhenTheSongChanges() async {
+    await withMainSerialExecutor {
+      let spins = [
+        spin(id: "now", airtimeOffset: -60, title: "Cheat On Your Man", artist: "Bri Bagwell"),
+        spin(id: "next", airtimeOffset: 120, title: "My Boots", artist: "Bri Bagwell"),
+      ]
+      let currentDate = LockIsolated(fixedNow)
+      let clock = TestClock()
+      let model = await makeModel {
+        $0.api.fetchSchedule = { _, _ in spins }
+        $0.date = DateGenerator { currentDate.value }
+        $0.continuousClock = clock
+      }
+      let ticking = Task { await model.stationTabVisible() }
+      await Task.megaYield()
+      let didChange = LockIsolated(false)
+      withObservationTracking {
+        _ = model.nowPlayingTitle
+      } onChange: {
+        didChange.setValue(true)
+      }
+
+      currentDate.setValue(fixedNow.addingTimeInterval(130))
+      await clock.advance(by: .seconds(1))
+
+      #expect(didChange.value)
+      expectNoDifference(model.nowPlayingTitle, "My Boots")
+      ticking.cancel()
+      await ticking.value
+    }
+  }
+
+  @Test func nowPlayingProgressNotifiesObserversAsTimePasses() async {
+    await withMainSerialExecutor {
+      let spins = [
+        spin(id: "now", airtimeOffset: -60, title: "Cheat On Your Man", artist: "Bri Bagwell")
+      ]
+      let currentDate = LockIsolated(fixedNow)
+      let clock = TestClock()
+      let model = await makeModel {
+        $0.api.fetchSchedule = { _, _ in spins }
+        $0.date = DateGenerator { currentDate.value }
+        $0.continuousClock = clock
+      }
+      let ticking = Task { await model.stationTabVisible() }
+      await Task.megaYield()
+      let initialProgress = model.nowPlayingProgress
+      let didChange = LockIsolated(false)
+      withObservationTracking {
+        _ = model.nowPlayingProgress
+      } onChange: {
+        didChange.setValue(true)
+      }
+
+      currentDate.setValue(fixedNow.addingTimeInterval(60))
+      await clock.advance(by: .seconds(1))
+
+      #expect(didChange.value)
+      #expect(model.nowPlayingProgress > initialProgress)
+      ticking.cancel()
+      await ticking.value
+    }
   }
 
   @Test func staleScheduleResponseDoesNotOverwriteNewerData() async {
