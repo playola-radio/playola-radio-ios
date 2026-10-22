@@ -22,6 +22,7 @@ class ArtistStationPageModel: ViewModel {
   // MARK: - Dependencies
 
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.date.now) var now
 
   // MARK: - Shared State
@@ -31,6 +32,7 @@ class ArtistStationPageModel: ViewModel {
   // MARK: - Properties
 
   var schedule: Schedule?
+  var currentDate: Date?
   var isLoading = false
   var hasLoadError = false
 
@@ -59,8 +61,8 @@ class ArtistStationPageModel: ViewModel {
   }
 
   var nowPlayingProgress: Double {
-    guard let spin = nowPlayingSpin else { return 0 }
-    return spin.progress(at: now)
+    guard let spin = nowPlayingSpin, let currentDate else { return 0 }
+    return spin.progress(at: currentDate)
   }
 
   var lastWentLiveLabel: String { "Last went live 4 days ago" }
@@ -72,14 +74,34 @@ class ArtistStationPageModel: ViewModel {
 
   // MARK: - View Helpers
 
-  var nowPlayingSpin: Spin? { schedule?.nowPlaying() }
-  var upNextSpin: Spin? { schedule?.current().first { $0.airtime > now } }
+  var nowPlayingSpin: Spin? {
+    guard let currentDate else { return nil }
+    return schedule?.spins
+      .filter { $0.airtime <= currentDate && currentDate < $0.endtime }
+      .max { $0.airtime < $1.airtime }
+  }
+
+  var upNextSpin: Spin? {
+    guard let currentDate else { return nil }
+    return schedule?.spins
+      .filter { $0.airtime > currentDate }
+      .min { $0.airtime < $1.airtime }
+  }
 
   // MARK: - User Actions
 
   func viewAppeared() async {
+    currentDate = now
     startObservingScheduleUpdates()
     await loadSchedule()
+  }
+
+  func stationTabVisible() async {
+    currentDate = now
+    while !Task.isCancelled {
+      do { try await clock.sleep(for: .milliseconds(500)) } catch { break }
+      currentDate = now
+    }
   }
 
   func broadcastCardTapped() {

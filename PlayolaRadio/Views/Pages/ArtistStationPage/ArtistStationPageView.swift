@@ -26,6 +26,9 @@ struct ArtistStationPageView: View {
     .task {
       await model.viewAppeared()
     }
+    .task {
+      await model.stationTabVisible()
+    }
   }
 
   private var header: some View {
@@ -66,39 +69,37 @@ struct ArtistStationPageView: View {
         }
       }
 
-      TimelineView(.periodic(from: .now, by: 0.5)) { _ in
-        VStack(spacing: 10) {
-          HStack(spacing: 12) {
-            RoundedRectangle(cornerRadius: 4)
-              .fill(Color(hex: "#4D4D4D"))
-              .frame(width: 45, height: 45)
-              .overlay(
-                Image(systemName: "music.note")
-                  .font(.system(size: 20))
-                  .foregroundColor(Color(hex: "#999999"))
-              )
-            VStack(alignment: .leading, spacing: 2) {
-              Text(model.nowPlayingTitle)
-                .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
-                .foregroundColor(.white)
-              Text(model.nowPlayingSubtitle)
-                .font(.custom(FontNames.Inter_400_Regular, size: 12))
-                .foregroundColor(.playolaGray)
-            }
-            Spacer(minLength: 0)
+      VStack(spacing: 10) {
+        HStack(spacing: 12) {
+          RoundedRectangle(cornerRadius: 4)
+            .fill(Color(hex: "#4D4D4D"))
+            .frame(width: 45, height: 45)
+            .overlay(
+              Image(systemName: "music.note")
+                .font(.system(size: 20))
+                .foregroundColor(Color(hex: "#999999"))
+            )
+          VStack(alignment: .leading, spacing: 2) {
+            Text(model.nowPlayingTitle)
+              .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+              .foregroundColor(.white)
+            Text(model.nowPlayingSubtitle)
+              .font(.custom(FontNames.Inter_400_Regular, size: 12))
+              .foregroundColor(.playolaGray)
           }
-
-          GeometryReader { proxy in
-            ZStack(alignment: .leading) {
-              RoundedRectangle(cornerRadius: 2)
-                .fill(Color(hex: "#5E5F5F"))
-              RoundedRectangle(cornerRadius: 2)
-                .fill(Color.playolaRed)
-                .frame(width: proxy.size.width * model.nowPlayingProgress)
-            }
-          }
-          .frame(height: 4)
+          Spacer(minLength: 0)
         }
+
+        GeometryReader { proxy in
+          ZStack(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 2)
+              .fill(Color(hex: "#5E5F5F"))
+            RoundedRectangle(cornerRadius: 2)
+              .fill(Color.playolaRed)
+              .frame(width: proxy.size.width * model.nowPlayingProgress)
+          }
+        }
+        .frame(height: 4)
       }
 
       HStack {
