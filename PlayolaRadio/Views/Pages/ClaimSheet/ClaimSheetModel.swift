@@ -94,7 +94,6 @@ class ClaimSheetModel: ViewModel {
   private(set) var request: FulfillmentRequest?
   @ObservationIgnored private var hasClosed = false
   @ObservationIgnored private var draftOwner: AuthIdentity?
-  @ObservationIgnored private var serverAnswers: [String: InfoAnswer] = [:]
 
   // MARK: - User Actions
   func viewAppeared() {
@@ -367,14 +366,9 @@ class ClaimSheetModel: ViewModel {
   private func adopt(_ newRequest: FulfillmentRequest) {
     request = newRequest
     draftOwner = auth.identity
-    let serverFields = Self.fieldModels(for: newRequest, answers: newRequest.infoAnswers)
-    serverAnswers = Self.answers(of: serverFields)
-    if let edits = claimFormDrafts[newRequest.id] {
-      fields = Self.fieldModels(
-        for: newRequest, answers: newRequest.infoAnswers.merging(edits) { $1 })
-    } else {
-      fields = serverFields
-    }
+    let edits = claimFormDrafts[newRequest.id] ?? [:]
+    fields = Self.fieldModels(
+      for: newRequest, answers: newRequest.infoAnswers.merging(edits) { $1 })
     let needsInfo =
       newRequest.status == .awaitingInfo && newRequest.infoFields.contains(where: \.required)
     phase = needsInfo ? .form : .nothingToFillIn
@@ -386,6 +380,8 @@ class ClaimSheetModel: ViewModel {
   private func saveDraft() {
     guard let request, auth.identity == draftOwner else { return }
     let current = answeredFields
+    let serverAnswers = Self.answers(
+      of: Self.fieldModels(for: request, answers: request.infoAnswers))
     let edits: [String: InfoAnswer] = fields.ids.reduce(into: [:]) { result, key in
       guard current[key] != serverAnswers[key] else { return }
       result[key] = current[key] ?? .text("")

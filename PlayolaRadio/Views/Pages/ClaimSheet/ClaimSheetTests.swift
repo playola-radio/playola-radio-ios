@@ -629,7 +629,7 @@ struct ClaimSheetTests {
 
     let reopened = ClaimSheetModel(entry: .request(request), onClose: {})
 
-    #expect(reopened.fields.first?.selectedOption == "M")
+    expectNoDifference(reopened.fields.first?.selectedOption, "M")
   }
 
   @Test func testDraftKeepsAFieldTheUserCleared() {
@@ -645,7 +645,7 @@ struct ClaimSheetTests {
 
     let reopened = ClaimSheetModel(entry: .request(request), onClose: {})
 
-    #expect(reopened.fields.first?.answer == nil)
+    expectNoDifference(reopened.fields.first?.answer, nil)
   }
 
   @Test func testUntouchedFieldShowsNewerServerAnswer() {
@@ -663,7 +663,7 @@ struct ClaimSheetTests {
       entry: .request(.mock(infoFields: fields, infoAnswers: ["addr": fullAddress])),
       onClose: {})
 
-    #expect(reopened.fields[id: "addr"]?.answer == fullAddress)
+    expectNoDifference(reopened.fields[id: "addr"]?.answer, fullAddress)
   }
 
   @Test func testLaterWithoutEditsSavesNoDraft() {

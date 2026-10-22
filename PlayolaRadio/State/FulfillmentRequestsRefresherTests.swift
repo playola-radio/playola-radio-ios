@@ -34,6 +34,23 @@ struct FulfillmentRequestsRefresherTests {
     expectNoDifference(requests, [])
   }
 
+  @Test func testSuccessDropsDraftsForRequestsNoLongerAwaitingInfo() async {
+    @Shared(.auth) var auth = Auth(jwt: "token")
+    @Shared(.claimFormDrafts) var drafts = [
+      "open": ["note": InfoAnswer.text("Jane")],
+      "shipped": ["note": .text("Jane")],
+      "gone": ["note": .text("Jane")],
+    ]
+    await withDependencies {
+      $0.api.getMyFulfillmentRequests = { _ in
+        [.mock(id: "open"), .mock(id: "shipped", status: .readyToShip)]
+      }
+    } operation: {
+      await refreshFulfillmentRequests()
+    }
+    expectNoDifference(drafts, ["open": ["note": .text("Jane")]])
+  }
+
   @Test func testAccountChangeDiscardsFetchedList() async {
     let initialAuth = Auth(
       loggedInUser: LoggedInUser(
