@@ -65,6 +65,15 @@ struct AskMeAnythingLiveAirQuestionTests {
     ]
   }
 
+  nonisolated private static func airedPairWithTrailingSong(now: Date) -> [Spin] {
+    airedPair(now: now) + [
+      .mockWith(
+        id: "aired-song", airtime: now.addingTimeInterval(114),
+        audioBlock: .mockWith(id: "s", title: "Attached Song", endOfMessageMS: 180_000),
+        spinGroupId: "pair", liveShowId: "show")
+    ]
+  }
+
   @Test func airingAnsweredQuestionInsertsThePairAndRefreshesQuestions() async throws {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let now = Date(timeIntervalSince1970: 1_000_000)
@@ -146,7 +155,7 @@ struct AskMeAnythingLiveAirQuestionTests {
     expectNoDifference(insertCalls.value, 0)
   }
 
-  @Test func refreshFailureAfterAiringKeepsTheNewScheduleWithoutReinserting() async throws {
+  @Test func refreshFailureAfterAiringKeepsTheQuestionAndAnswerTogether() async throws {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let now = Date(timeIntervalSince1970: 1_000_000)
     let insertCalls = LockIsolated(0)
@@ -154,7 +163,7 @@ struct AskMeAnythingLiveAirQuestionTests {
       now: now,
       insert: { _, _, _ in
         insertCalls.withValue { $0 += 1 }
-        return Self.airedPair(now: now)
+        return Self.airedPairWithTrailingSong(now: now)
       },
       fetchSchedule: { _, _ in throw APIError.dataNotValid },
       getQuestions: { _, _ in throw APIError.dataNotValid })
@@ -162,11 +171,19 @@ struct AskMeAnythingLiveAirQuestionTests {
     try await withDependencies {
       $0.date.now = now
     } operation: {
+      model.listenerQuestions = [
+        .mockWith(
+          id: "question-1", audioBlockId: "q",
+          listener: .mockWith(firstName: "Test"))
+      ]
       try await model.airQuestion(Self.qaPayload(questionId: "question-1"))
 
       expectNoDifference(insertCalls.value, 1)
       expectNoDifference(
-        model.broadcast.upcomingSpins.map(\.id), ["aired-question", "aired-answer"])
+        model.broadcast.upcomingSpins.map(\.id), ["aired-question", "aired-answer", "aired-song"])
+      expectNoDifference(
+        model.liveRows.map { $0.spins.map(\.id) },
+        [["aired-question", "aired-answer"], ["aired-song"]])
       #expect(model.presentedAlert == nil)
     }
   }

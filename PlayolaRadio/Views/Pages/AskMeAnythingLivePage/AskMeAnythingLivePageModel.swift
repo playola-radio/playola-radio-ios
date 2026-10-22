@@ -51,6 +51,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   var scheduledStartsAt: Date?
   var listenerCount: Int?
   var listenerQuestions: [ListenerQuestion] = []
+  @ObservationIgnored var locallyAiredAnswerAudioBlockIds: [String: String] = [:]
   @ObservationIgnored var listenerQuestionsRequestCount = 0
   @ObservationIgnored var appliedListenerQuestionsRequest = 0
   var lastPromotedFiller: (title: String, date: Date)?
@@ -341,8 +342,10 @@ class AskMeAnythingLivePageModel: ViewModel {
         case .questionAnswer(let qa):
           let subtitle =
             qa.trailingBlock.map { "Question, answer & \($0.title)" } ?? "Question & answer"
+          let titlePrefix =
+            qa.trailingBlock == nil ? "Question and Answer" : "Question, Answer, and Song"
           return AMAOpeningRowData(
-            id: item.id, title: "Question and Answer: \(qa.listenerName)", subtitle: subtitle,
+            id: item.id, title: "\(titlePrefix): \(qa.listenerName)", subtitle: subtitle,
             subtitleColor: .playolaTextDisabled, iconSystemName: "bubble.left.and.bubble.right",
             albumImageUrl: nil, leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
             trailingText: durationLabel(item.readyDurationMS), trailingIconSystemName: "checkmark",

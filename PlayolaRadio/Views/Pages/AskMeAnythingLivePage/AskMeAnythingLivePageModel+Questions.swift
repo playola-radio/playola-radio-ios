@@ -70,6 +70,7 @@ extension AskMeAnythingLivePageModel {
   func airQuestion(_ questionAnswer: AMAQuestionAnswer) async throws {
     guard let showId = broadcast.liveShowId, canAddQuestion else { throw CancellationError() }
 
+    locallyAiredAnswerAudioBlockIds[questionAnswer.questionId] = questionAnswer.answerBlock.id
     isAddingToShow = true
     defer { isAddingToShow = false }
 
