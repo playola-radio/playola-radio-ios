@@ -167,8 +167,8 @@ class ArtistDashboardPageModel: ViewModel {
     "pendingListenerQuestions",
   ]
 
-  /// Kinds whose row navigates to the listener-questions list: answering questions is how
-  /// appearances get made, so both the backlog and the completion counter for it land there.
+  /// Kinds whose row navigates somewhere: appearances open the broadcast page (where DJ
+  /// appearances are made); the listener-questions backlog opens the questions list.
   private static let navigableCheckKinds: Set<String> = [
     "appearances", "pendingListenerQuestions",
   ]
@@ -224,9 +224,13 @@ class ArtistDashboardPageModel: ViewModel {
 
   func improvementItemTapped(_ item: ImprovementItem) async {
     guard let stationId, item.isTappable else { return }
-    navigationCoordinator.push(
-      .broadcastersListenerQuestionPage(BroadcastersListenerQuestionPageModel(stationId: stationId))
-    )
+    if item.id == "appearances" {
+      navigationCoordinator.push(.broadcastPage(BroadcastPageModel(stationId: stationId)))
+    } else {
+      navigationCoordinator.push(
+        .broadcastersListenerQuestionPage(
+          BroadcastersListenerQuestionPageModel(stationId: stationId)))
+    }
     let status = knownChecks.first { $0.kind == item.id }?.status ?? .unknown
     await analytics.track(
       .tappedStationHealthItem(

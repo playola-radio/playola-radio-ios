@@ -382,7 +382,7 @@ struct ArtistDashboardPageTests {
 
   // MARK: - Improve Item Navigation
 
-  @Test func tappingAppearancesRowPushesListenerQuestionsList() async {
+  @Test func tappingAppearancesRowPushesBroadcastPage() async {
     let health = makeHealth(
       freshPct: 40, status: .unhealthy,
       checks: [makeCheck(kind: "appearances", status: .warning, current: 0, required: 3)])
@@ -398,10 +398,8 @@ struct ArtistDashboardPageTests {
     await model.improvementItemTapped(item)
 
     @Shared(.mainContainerNavigationCoordinator) var coordinator
-    guard
-      case .broadcastersListenerQuestionPage(let pushed) = coordinator.artistDashboardPath.last
-    else {
-      Issue.record("expected broadcastersListenerQuestionPage to be pushed")
+    guard case .broadcastPage(let pushed) = coordinator.artistDashboardPath.last else {
+      Issue.record("expected broadcastPage to be pushed")
       return
     }
     expectNoDifference(pushed.stationId, testStationId)
