@@ -65,7 +65,9 @@ struct MainContainerTests {
   // MARK: - Upside-Down Orientation Tests
 
   @Test
-  func testUpsideDownFlowVisibilityChangedFlipsWindowThenEnablesKeyboardWhenShowIsOpen() async {
+  func testUpsideDownFlowVisibilityChangedFlipsWindowThenEnablesKeyboardAndBannerWhenShowIsOpen()
+    async
+  {
     @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
     @Shared(.auth) var auth = Auth(jwtToken: createTestJWT())
     let calls = LockIsolated<[String]>([])
@@ -76,6 +78,9 @@ struct MainContainerTests {
       $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
         calls.withValue { $0.append("keyboard enabled=\(isEnabled)") }
       }
+      $0.upsideDownNotificationBanner.setUpsideDownModeEnabled = { isEnabled in
+        calls.withValue { $0.append("banner enabled=\(isEnabled)") }
+      }
     } operation: {
       MainContainerModel()
     }
@@ -85,7 +90,8 @@ struct MainContainerTests {
 
     await model.upsideDownFlowVisibilityChanged()
 
-    expectNoDifference(calls.value, ["window upsideDown=true", "keyboard enabled=true"])
+    expectNoDifference(
+      calls.value, ["window upsideDown=true", "keyboard enabled=true", "banner enabled=true"])
   }
 
   @Test
@@ -104,6 +110,9 @@ struct MainContainerTests {
         }
         $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
           calls.withValue { $0.append("keyboard enabled=\(isEnabled)") }
+        }
+        $0.upsideDownNotificationBanner.setUpsideDownModeEnabled = { isEnabled in
+          calls.withValue { $0.append("banner enabled=\(isEnabled)") }
         }
       } operation: {
         MainContainerModel()
@@ -132,10 +141,8 @@ struct MainContainerTests {
         calls.value,
         [
           "window upsideDown=true",
-          "keyboard enabled=false",
-          "window upsideDown=false",
-          "window upsideDown=true",
-          "keyboard enabled=true",
+          "keyboard enabled=false", "banner enabled=false", "window upsideDown=false",
+          "window upsideDown=true", "keyboard enabled=true", "banner enabled=true",
         ]
       )
     }
@@ -153,13 +160,17 @@ struct MainContainerTests {
       $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
         calls.withValue { $0.append("keyboard enabled=\(isEnabled)") }
       }
+      $0.upsideDownNotificationBanner.setUpsideDownModeEnabled = { isEnabled in
+        calls.withValue { $0.append("banner enabled=\(isEnabled)") }
+      }
     } operation: {
       MainContainerModel()
     }
 
     await model.upsideDownFlowVisibilityChanged()
 
-    expectNoDifference(calls.value, ["keyboard enabled=false", "window upsideDown=false"])
+    expectNoDifference(
+      calls.value, ["keyboard enabled=false", "banner enabled=false", "window upsideDown=false"])
   }
 
   @Test
@@ -174,6 +185,9 @@ struct MainContainerTests {
       $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
         calls.withValue { $0.append("keyboard enabled=\(isEnabled)") }
       }
+      $0.upsideDownNotificationBanner.setUpsideDownModeEnabled = { isEnabled in
+        calls.withValue { $0.append("banner enabled=\(isEnabled)") }
+      }
     } operation: {
       MainContainerModel()
     }
@@ -183,7 +197,8 @@ struct MainContainerTests {
 
     await model.upsideDownFlowVisibilityChanged()
 
-    expectNoDifference(calls.value, ["keyboard enabled=false", "window upsideDown=false"])
+    expectNoDifference(
+      calls.value, ["keyboard enabled=false", "banner enabled=false", "window upsideDown=false"])
   }
 
   // MARK: - ViewAppeared Tests

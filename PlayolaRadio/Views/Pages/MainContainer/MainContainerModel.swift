@@ -27,6 +27,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
   @ObservationIgnored @Dependency(\.windowOrientation) var windowOrientation
   @ObservationIgnored @Dependency(\.upsideDownKeyboard) var upsideDownKeyboard
+  @ObservationIgnored @Dependency(\.upsideDownNotificationBanner) var upsideDownNotificationBanner
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
   @ObservationIgnored @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
@@ -402,8 +403,10 @@ class MainContainerModel: ViewModel {
       await windowOrientation.setUpsideDown(true)
       guard transition == upsideDownTransition else { return }
       upsideDownKeyboard.setUpsideDownModeEnabled(true)
+      upsideDownNotificationBanner.setUpsideDownModeEnabled(true)
     } else {
       upsideDownKeyboard.setUpsideDownModeEnabled(false)
+      upsideDownNotificationBanner.setUpsideDownModeEnabled(false)
       await windowOrientation.setUpsideDown(false)
     }
   }

@@ -41,6 +41,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
 {
   @Dependency(\.pushNotifications) var pushNotifications
   @Dependency(\.upsideDownKeyboard) var upsideDownKeyboard
+  @Dependency(\.upsideDownNotificationBanner) var upsideDownNotificationBanner
 
   func application(
     _ application: UIApplication,
@@ -196,11 +197,34 @@ class AppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotifi
         NotificationCenter.default.post(name: .refreshSupportMessages, object: nil)
         completionHandler([])
       } else {
-        completionHandler([.banner, .sound])
+        completionHandler(
+          bannerPresentationOptions(
+            identifier: notification.request.identifier,
+            content: notification.request.content
+          ))
       }
     } else {
-      completionHandler([.banner, .sound])
+      completionHandler(
+        bannerPresentationOptions(
+          identifier: notification.request.identifier,
+          content: notification.request.content
+        ))
     }
+  }
+
+  /// The system banner appears right-side up even while the app is flipped, so when upside down
+  /// we show an in-app copy instead and only let the system play the sound.
+  func bannerPresentationOptions(
+    identifier: String,
+    content: UNNotificationContent
+  ) -> UNNotificationPresentationOptions {
+    let userInfo = content.userInfo.sendablePayload()
+    let isShowingCopy = upsideDownNotificationBanner.showBanner(content.title, content.body) {
+      [weak self] in
+      self?.handleNotificationResponse(
+        identifier: identifier, userInfo: userInfo, completionHandler: {})
+    }
+    return isShowingCopy ? [.sound] : [.banner, .sound]
   }
 
   func userNotificationCenter(

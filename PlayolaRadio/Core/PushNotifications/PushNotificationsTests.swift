@@ -12,6 +12,7 @@ import Foundation
 import IdentifiedCollections
 import Sharing
 import Testing
+import UserNotifications
 
 @testable import PlayolaRadio
 
@@ -155,6 +156,67 @@ struct PushNotificationsTests {
       ["stationId": "station-abc", "source": "push"]
     )
     #expect(completionCalled.value)
+  }
+
+  // MARK: - bannerPresentationOptions
+
+  @Test
+  func testBannerPresentationOptionsKeepsSystemBannerWhenRightSideUp() {
+    let options = withDependencies {
+      $0.upsideDownNotificationBanner.showBanner = { _, _, _ in false }
+    } operation: {
+      AppDelegate().bannerPresentationOptions(
+        identifier: "notification-123", content: makeNotificationContent())
+    }
+
+    #expect(options == [.banner, .sound])
+  }
+
+  @Test
+  func testBannerPresentationOptionsShowsInAppCopyInsteadOfSystemBannerWhenUpsideDown() {
+    let shownText = LockIsolated<[String]>([])
+    let options = withDependencies {
+      $0.upsideDownNotificationBanner.showBanner = { title, body, _ in
+        shownText.withValue { $0 = [title, body] }
+        return true
+      }
+    } operation: {
+      AppDelegate().bannerPresentationOptions(
+        identifier: "notification-123", content: makeNotificationContent())
+    }
+
+    #expect(options == [.sound])
+    expectNoDifference(shownText.value, ["New message", "Hi there"])
+  }
+
+  @Test
+  func testTappingInAppCopyRoutesLikeTappingSystemBanner() async throws {
+    let removedIdentifiers = LockIsolated<[String]>([])
+    let handledPayload = LockIsolated<[String: String]?>(nil)
+
+    await withMainSerialExecutor {
+      await withDependencies {
+        $0.pushNotifications.removeDeliveredNotification = { identifier in
+          removedIdentifiers.withValue { $0.append(identifier) }
+        }
+        $0.pushNotifications.handleNotificationTap = { userInfo in
+          handledPayload.setValue(userInfo.compactMapValues { $0 as? String })
+          return true
+        }
+        $0.upsideDownNotificationBanner.showBanner = { _, _, onTap in
+          onTap()
+          return true
+        }
+      } operation: {
+        let appDelegate = AppDelegate()
+        _ = appDelegate.bannerPresentationOptions(
+          identifier: "notification-123", content: makeNotificationContent())
+        await Task.yield()
+      }
+    }
+
+    expectNoDifference(removedIdentifiers.value, ["notification-123"])
+    expectNoDifference(try #require(handledPayload.value), ["stationId": "station-abc"])
   }
 
   @Test
@@ -465,5 +527,13 @@ struct PushNotificationsTests {
     ])
     #expect(!handled)
     #expect(actions.isEmpty)
+  }
+
+  private func makeNotificationContent() -> UNNotificationContent {
+    let content = UNMutableNotificationContent()
+    content.title = "New message"
+    content.body = "Hi there"
+    content.userInfo = ["stationId": "station-abc"]
+    return content
   }
 }
