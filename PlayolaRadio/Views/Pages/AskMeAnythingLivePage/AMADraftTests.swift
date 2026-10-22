@@ -40,6 +40,15 @@ struct AMADraftTests {
     expectNoDifference(noTrailing.readyDurationMS, 135_000)
   }
 
+  @Test func openingQuestionAnswerTitleMentionsItsAttachedSong() {
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    model.openingItems = [questionAnswerItem(trailing: true), questionAnswerItem(trailing: false)]
+
+    expectNoDifference(
+      model.openingRows.map(\.title),
+      ["Question, Answer, and Song: Sarah", "Question and Answer: Sarah"])
+  }
+
   @Test func stagedQuestionAnswerSurvivesLeavingAndReopeningSetup() {
     @Shared(.auth) var auth = Auth(
       loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
