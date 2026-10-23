@@ -247,6 +247,26 @@ struct UpsideDownKeyboardModelTests {
     }
   }
 
+  @Test
+  func testTouchFarFromEveryKeyTypesNothing() {
+    let model = UpsideDownKeyboardModel()
+    var commands: [UpsideDownKeyboardModel.Command] = []
+    model.onCommand = { commands.append($0) }
+
+    model.keyboardTouchEnded(at: CGPoint(x: 194, y: 300), keyboardWidth: 388)
+
+    expectNoDifference(commands, [])
+  }
+
+  @Test
+  func testTouchesFarFromEveryKeyPressNothing() {
+    let model = UpsideDownKeyboardModel()
+
+    model.keyboardTouchesChanged(at: [CGPoint(x: 194, y: 300)], keyboardWidth: 388)
+
+    expectNoDifference(model.pressedKeys, [])
+  }
+
   // MARK: - Helpers
 
   private func keys(in row: UpsideDownKeyboardModel.Row) -> [UpsideDownKeyboardModel.Key] {

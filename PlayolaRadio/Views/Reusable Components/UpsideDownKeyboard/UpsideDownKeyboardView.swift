@@ -68,10 +68,10 @@ private struct KeyboardTouchSurface: UIViewRepresentable {
 private final class TouchSurfaceView: UIView {
   var touchesChanged: ([CGPoint]) -> Void = { _ in }
   var touchEnded: (CGPoint) -> Void = { _ in }
-  private var activeTouches: Set<UITouch> = []
+  private var activeTouches: [UITouch] = []
 
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-    activeTouches.formUnion(touches)
+    activeTouches.append(contentsOf: touches)
     reportActiveTouches()
   }
 
@@ -80,15 +80,16 @@ private final class TouchSurfaceView: UIView {
   }
 
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-    activeTouches.subtract(touches)
-    for touch in touches {
+    let ended = activeTouches.filter(touches.contains)
+    activeTouches.removeAll(where: touches.contains)
+    for touch in ended {
       touchEnded(touch.location(in: self))
     }
     reportActiveTouches()
   }
 
   override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-    activeTouches.subtract(touches)
+    activeTouches.removeAll(where: touches.contains)
     reportActiveTouches()
   }
 

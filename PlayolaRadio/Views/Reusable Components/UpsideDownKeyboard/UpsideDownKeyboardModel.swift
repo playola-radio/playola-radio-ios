@@ -63,6 +63,7 @@ final class UpsideDownKeyboardModel: ViewModel {
     static let keyHeight: CGFloat = 44
     static let topInset: CGFloat = 8
     static let slotsPerRow = 10.0
+    static let maxTouchDistance: CGFloat = 30
   }
 
   // MARK: - Properties
@@ -93,7 +94,7 @@ final class UpsideDownKeyboardModel: ViewModel {
   }
 
   /// Like the system keyboard, a touch types the key nearest to where it lifted, so the gaps
-  /// between keys are never dead zones.
+  /// between keys are never dead zones. Dragging well away from every key cancels the press.
   func keyboardTouchEnded(at point: CGPoint, keyboardWidth: CGFloat) {
     guard let key = nearestKey(to: point, keyboardWidth: keyboardWidth) else { return }
     keyTapped(key.action)
@@ -153,15 +154,19 @@ final class UpsideDownKeyboardModel: ViewModel {
   // MARK: - Private Helpers
 
   private func nearestKey(to point: CGPoint, keyboardWidth: CGFloat) -> Key? {
-    placedKeys(keyboardWidth: keyboardWidth)
-      .min { distance(from: point, to: $0.frame) < distance(from: point, to: $1.frame) }?
-      .key
+    let distances = placedKeys(keyboardWidth: keyboardWidth).map {
+      (key: $0.key, distance: squaredDistance(from: point, to: $0.frame))
+    }
+    guard let nearest = distances.min(by: { $0.distance < $1.distance }),
+      nearest.distance <= Metrics.maxTouchDistance * Metrics.maxTouchDistance
+    else { return nil }
+    return nearest.key
   }
 
-  private func distance(from point: CGPoint, to rect: CGRect) -> CGFloat {
+  private func squaredDistance(from point: CGPoint, to rect: CGRect) -> CGFloat {
     let dx = max(rect.minX - point.x, 0, point.x - rect.maxX)
     let dy = max(rect.minY - point.y, 0, point.y - rect.maxY)
-    return (dx * dx + dy * dy).squareRoot()
+    return dx * dx + dy * dy
   }
 
   private func slots(_ keys: IdentifiedArrayOf<Key>) -> Double {
