@@ -178,6 +178,28 @@ struct UpsideDownKeyboardModelTests {
   }
 
   @Test
+  func testNumbersThirdRowKeysStaySeparateAndEmitDistinctCommands() {
+    let model = UpsideDownKeyboardModel()
+    var commands: [UpsideDownKeyboardModel.Command] = []
+    model.onCommand = { commands.append($0) }
+
+    model.keyTapped(.layoutToggle)
+    let thirdRow = model.placedKeys(keyboardWidth: 388).filter { $0.frame.minY == 120 }
+    let equals = thirdRow.first { $0.key.action == .character("=") }!
+    let delete = thirdRow.first { $0.key.action == .delete }!
+
+    #expect(equals.frame.maxX < delete.frame.minX)
+    #expect(equals.frame.minX >= 0)
+    #expect(delete.frame.maxX <= 388)
+    model.keyboardTouchEnded(
+      at: CGPoint(x: equals.frame.midX, y: equals.frame.midY), keyboardWidth: 388)
+    model.keyboardTouchEnded(
+      at: CGPoint(x: delete.frame.midX, y: delete.frame.midY), keyboardWidth: 388)
+
+    expectNoDifference(commands, [.insertText("="), .deleteBackward])
+  }
+
+  @Test
   func testTouchInsideKeyTypesThatKey() {
     let model = UpsideDownKeyboardModel()
     var commands: [UpsideDownKeyboardModel.Command] = []
@@ -221,6 +243,20 @@ struct UpsideDownKeyboardModelTests {
     model.keyboardTouchEnded(at: CGPoint(x: 10, y: 86), keyboardWidth: 388)
 
     expectNoDifference(commands, [.insertText("A")])
+  }
+
+  @Test
+  func testSimultaneousTouchEndsUseTheLayoutFromBeforeEitherAction() {
+    let model = UpsideDownKeyboardModel()
+    var commands: [UpsideDownKeyboardModel.Command] = []
+    model.onCommand = { commands.append($0) }
+
+    model.keyboardTouchesEnded(
+      at: [CGPoint(x: 23, y: 198), CGPoint(x: 137, y: 30)],
+      keyboardWidth: 388
+    )
+
+    expectNoDifference(commands, [.insertText("r")])
   }
 
   @Test

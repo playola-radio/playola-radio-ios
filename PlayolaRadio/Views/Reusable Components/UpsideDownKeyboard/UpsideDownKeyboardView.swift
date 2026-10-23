@@ -23,7 +23,7 @@ struct UpsideDownKeyboardView: View {
       .overlay {
         KeyboardTouchSurface(
           touchesChanged: { model.keyboardTouchesChanged(at: $0, keyboardWidth: width) },
-          touchEnded: { model.keyboardTouchEnded(at: $0, keyboardWidth: width) }
+          touchesEnded: { model.keyboardTouchesEnded(at: $0, keyboardWidth: width) }
         )
         .accessibilityHidden(true)
       }
@@ -50,7 +50,7 @@ struct UpsideDownKeyboardView: View {
 /// tracks several fingers at once for fast two-thumb typing.
 private struct KeyboardTouchSurface: UIViewRepresentable {
   let touchesChanged: ([CGPoint]) -> Void
-  let touchEnded: (CGPoint) -> Void
+  let touchesEnded: ([CGPoint]) -> Void
 
   func makeUIView(context: Context) -> TouchSurfaceView {
     let view = TouchSurfaceView()
@@ -61,13 +61,13 @@ private struct KeyboardTouchSurface: UIViewRepresentable {
 
   func updateUIView(_ view: TouchSurfaceView, context: Context) {
     view.touchesChanged = touchesChanged
-    view.touchEnded = touchEnded
+    view.touchesEnded = touchesEnded
   }
 }
 
 private final class TouchSurfaceView: UIView {
   var touchesChanged: ([CGPoint]) -> Void = { _ in }
-  var touchEnded: (CGPoint) -> Void = { _ in }
+  var touchesEnded: ([CGPoint]) -> Void = { _ in }
   private var activeTouches: [UITouch] = []
 
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -82,9 +82,7 @@ private final class TouchSurfaceView: UIView {
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     let ended = activeTouches.filter(touches.contains)
     activeTouches.removeAll(where: touches.contains)
-    for touch in ended {
-      touchEnded(touch.location(in: self))
-    }
+    touchesEnded(ended.map { $0.location(in: self) })
     reportActiveTouches()
   }
 

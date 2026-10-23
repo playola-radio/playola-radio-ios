@@ -100,6 +100,11 @@ final class UpsideDownKeyboardModel: ViewModel {
     keyTapped(key.action)
   }
 
+  func keyboardTouchesEnded(at points: [CGPoint], keyboardWidth: CGFloat) {
+    let actions = points.compactMap { nearestKey(to: $0, keyboardWidth: keyboardWidth)?.action }
+    actions.forEach(keyTapped)
+  }
+
   func keyboardTouchesChanged(at points: [CGPoint], keyboardWidth: CGFloat) {
     pressedKeys = Set(
       points.compactMap { nearestKey(to: $0, keyboardWidth: keyboardWidth)?.action })
