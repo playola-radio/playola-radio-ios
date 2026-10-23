@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import CoreGraphics
 import CustomDump
 import Testing
 
@@ -163,6 +164,87 @@ struct UpsideDownKeyboardModelTests {
       keys(in: model.rows[2]).map(\.accessibilityLabel),
       ["Shift", "Z", "X", "C", "V", "B", "N", "M", "Delete"]
     )
+  }
+
+  @Test
+  func testPlacedKeysUseSystemKeyboardSpacing() {
+    let model = UpsideDownKeyboardModel()
+
+    let frames = model.placedKeys(keyboardWidth: 388).map(\.frame)
+
+    expectNoDifference(frames[0], CGRect(x: 7, y: 8, width: 32, height: 44))
+    expectNoDifference(frames[9].maxX, 381)
+    expectNoDifference(frames[10], CGRect(x: 26, y: 64, width: 32, height: 44))
+  }
+
+  @Test
+  func testTouchInsideKeyTypesThatKey() {
+    let model = UpsideDownKeyboardModel()
+    var commands: [UpsideDownKeyboardModel.Command] = []
+    model.onCommand = { commands.append($0) }
+
+    model.keyboardTouchEnded(at: CGPoint(x: 99, y: 30), keyboardWidth: 388)
+
+    expectNoDifference(commands, [.insertText("E")])
+  }
+
+  @Test
+  func testTouchInGapBetweenKeysTypesTheNearerKey() {
+    let model = UpsideDownKeyboardModel()
+    var commands: [UpsideDownKeyboardModel.Command] = []
+    model.onCommand = { commands.append($0) }
+
+    model.keyboardTouchEnded(at: CGPoint(x: 116, y: 30), keyboardWidth: 388)
+    model.keyboardTouchEnded(at: CGPoint(x: 120, y: 30), keyboardWidth: 388)
+
+    expectNoDifference(commands, [.insertText("E"), .insertText("r")])
+  }
+
+  @Test
+  func testTouchBetweenRowsTypesTheNearerRow() {
+    let model = UpsideDownKeyboardModel()
+    var commands: [UpsideDownKeyboardModel.Command] = []
+    model.onCommand = { commands.append($0) }
+
+    model.keyboardTouchEnded(at: CGPoint(x: 30, y: 55), keyboardWidth: 388)
+    model.keyboardTouchEnded(at: CGPoint(x: 30, y: 62), keyboardWidth: 388)
+
+    expectNoDifference(commands, [.insertText("Q"), .insertText("a")])
+  }
+
+  @Test
+  func testTouchInSecondRowMarginTypesTheEdgeKey() {
+    let model = UpsideDownKeyboardModel()
+    var commands: [UpsideDownKeyboardModel.Command] = []
+    model.onCommand = { commands.append($0) }
+
+    model.keyboardTouchEnded(at: CGPoint(x: 10, y: 86), keyboardWidth: 388)
+
+    expectNoDifference(commands, [.insertText("A")])
+  }
+
+  @Test
+  func testTouchesChangedPressesTheTouchedKeys() {
+    let model = UpsideDownKeyboardModel()
+
+    model.keyboardTouchesChanged(
+      at: [CGPoint(x: 23, y: 30), CGPoint(x: 365, y: 30)],
+      keyboardWidth: 388
+    )
+
+    expectNoDifference(model.pressedKeys, [.character("q"), .character("p")])
+  }
+
+  @Test
+  func testTouchesChangedWithNoTouchesReleasesKeys() {
+    let model = UpsideDownKeyboardModel()
+    model.keyboardTouchesChanged(at: [CGPoint(x: 23, y: 30)], keyboardWidth: 388)
+
+    expectDifference(model.pressedKeys) {
+      model.keyboardTouchesChanged(at: [], keyboardWidth: 388)
+    } changes: {
+      $0 = []
+    }
   }
 
   // MARK: - Helpers

@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import CoreGraphics
 import IdentifiedCollections
 import Observation
 
@@ -48,10 +49,27 @@ final class UpsideDownKeyboardModel: ViewModel {
     var trailing: IdentifiedArrayOf<Key> = []
   }
 
+  struct PlacedKey: Identifiable {
+    let key: Key
+    let frame: CGRect
+    var id: Action { key.action }
+  }
+
+  /// Spacing matches the iOS system keyboard: 7pt side margins, 6pt key gaps, 12pt row gaps.
+  private enum Metrics {
+    static let sideMargin: CGFloat = 7
+    static let keyGap: CGFloat = 6
+    static let rowGap: CGFloat = 12
+    static let keyHeight: CGFloat = 44
+    static let topInset: CGFloat = 8
+    static let slotsPerRow = 10.0
+  }
+
   // MARK: - Properties
 
   var layout = Layout.letters
   var isShifted = true
+  var pressedKeys: Set<Action> = []
   @ObservationIgnored var onCommand: (Command) -> Void = { _ in }
 
   // MARK: - User Actions
@@ -72,6 +90,18 @@ final class UpsideDownKeyboardModel: ViewModel {
     case .returnKey:
       onCommand(.returnKey)
     }
+  }
+
+  /// Like the system keyboard, a touch types the key nearest to where it lifted, so the gaps
+  /// between keys are never dead zones.
+  func keyboardTouchEnded(at point: CGPoint, keyboardWidth: CGFloat) {
+    guard let key = nearestKey(to: point, keyboardWidth: keyboardWidth) else { return }
+    keyTapped(key.action)
+  }
+
+  func keyboardTouchesChanged(at points: [CGPoint], keyboardWidth: CGFloat) {
+    pressedKeys = Set(
+      points.compactMap { nearestKey(to: $0, keyboardWidth: keyboardWidth)?.action })
   }
 
   func editingBegan() {
@@ -100,7 +130,64 @@ final class UpsideDownKeyboardModel: ViewModel {
     }
   }
 
+  func placedKeys(keyboardWidth: CGFloat) -> [PlacedKey] {
+    let slotWidth = (keyboardWidth - 2 * Metrics.sideMargin + Metrics.keyGap) / Metrics.slotsPerRow
+    return rows.enumerated().flatMap { index, row in
+      let rowTop = Metrics.topInset + CGFloat(index) * (Metrics.keyHeight + Metrics.rowGap)
+      let leadingSlots = slots(row.leading)
+      let trailingSlots = slots(row.trailing)
+      let centerStart =
+        leadingSlots + (Metrics.slotsPerRow - leadingSlots - slots(row.center) - trailingSlots) / 2
+      return place(row.leading, fromSlot: 0, rowTop: rowTop, slotWidth: slotWidth)
+        + place(row.center, fromSlot: centerStart, rowTop: rowTop, slotWidth: slotWidth)
+        + place(
+          row.trailing, fromSlot: Metrics.slotsPerRow - trailingSlots, rowTop: rowTop,
+          slotWidth: slotWidth)
+    }
+  }
+
+  func keyOpacity(_ key: PlacedKey) -> Double {
+    pressedKeys.contains(key.id) ? 0.5 : 1
+  }
+
   // MARK: - Private Helpers
+
+  private func nearestKey(to point: CGPoint, keyboardWidth: CGFloat) -> Key? {
+    placedKeys(keyboardWidth: keyboardWidth)
+      .min { distance(from: point, to: $0.frame) < distance(from: point, to: $1.frame) }?
+      .key
+  }
+
+  private func distance(from point: CGPoint, to rect: CGRect) -> CGFloat {
+    let dx = max(rect.minX - point.x, 0, point.x - rect.maxX)
+    let dy = max(rect.minY - point.y, 0, point.y - rect.maxY)
+    return (dx * dx + dy * dy).squareRoot()
+  }
+
+  private func slots(_ keys: IdentifiedArrayOf<Key>) -> Double {
+    keys.map(\.widthInSlots).reduce(0, +)
+  }
+
+  private func place(
+    _ keys: IdentifiedArrayOf<Key>,
+    fromSlot startSlot: Double,
+    rowTop: CGFloat,
+    slotWidth: CGFloat
+  ) -> [PlacedKey] {
+    var slot = startSlot
+    return keys.map { key in
+      defer { slot += key.widthInSlots }
+      return PlacedKey(
+        key: key,
+        frame: CGRect(
+          x: Metrics.sideMargin + slot * slotWidth,
+          y: rowTop,
+          width: key.widthInSlots * slotWidth - Metrics.keyGap,
+          height: Metrics.keyHeight
+        )
+      )
+    }
+  }
 
   private var shiftKey: Key {
     Key(action: .shift, label: "⇧", accessibilityLabel: "Shift", widthInSlots: 1.3)
