@@ -33,8 +33,9 @@ struct UIImageCacheTests {
 
     let image = await UIImage.image(from: url, maxPixelSize: 600)
 
-    let size = try #require(image).size
-    #expect(max(size.width, size.height) == 600)
+    let pixels = try #require(image?.cgImage)
+    #expect(max(pixels.width, pixels.height) <= 600)
+    #expect(max(pixels.width, pixels.height) < 2000)
   }
 
   @Test

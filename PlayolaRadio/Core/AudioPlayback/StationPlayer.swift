@@ -382,7 +382,8 @@ class StationPlayer: ObservableObject {
       playToken += 1
       pausedBySystem = false
     case .error:
-      break
+      playToken += 1
+      pausedBySystem = false
     }
   }
 
