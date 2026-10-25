@@ -4,6 +4,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import IdentifiedCollections
@@ -51,7 +52,7 @@ struct YourLibraryPageTests {
   }
 
   @Test
-  func testPresetTileTappedIgnoresUnplayableSecret() async {
+  func testPresetTileTappedIgnoresSecretWhenLocked() async {
     @Shared(.showSecretStations) var showSecretStations = false
     let item = APIStationItem(
       sortOrder: 0, visibility: .hidden,
@@ -68,10 +69,26 @@ struct YourLibraryPageTests {
 
     await model.presetTileTapped(display)
     #expect(stationPlayerMock.callsToPlay.isEmpty)
+  }
 
-    $showSecretStations.withLock { $0 = true }
+  @Test
+  func testPresetTileTappedPlaysSecretWhenUnlocked() async {
+    @Shared(.showSecretStations) var showSecretStations = true
+    let item = APIStationItem(
+      sortOrder: 0, visibility: .hidden,
+      station: Station.mockWith(id: "secret"), urlStation: nil)
+    let display = PresetDisplayItem(id: "p1", stationItem: item, isPending: false)
+
+    let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+    let model = withDependencies {
+      $0.stationPlayer = stationPlayerMock
+      $0.analytics.track = { _ in }
+    } operation: {
+      YourLibraryPageModel()
+    }
+
     await model.presetTileTapped(display)
-    #expect(stationPlayerMock.callsToPlay.map(\.id) == ["secret"])
+    expectNoDifference(stationPlayerMock.callsToPlay.map(\.id), ["secret"])
   }
 
   @Test

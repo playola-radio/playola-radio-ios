@@ -185,7 +185,7 @@ struct NowPlayingUpdaterTests {
       LastPlayedStation(station: .mockPlayola())
     let updater = makeStoppedUpdater()
 
-    #expect(updater.handlePlayCommand() == .commandFailed)
+    expectNoDifference(updater.handlePlayCommand(), .commandFailed)
   }
 
   @Test
@@ -197,7 +197,7 @@ struct NowPlayingUpdaterTests {
       LastPlayedStation(station: .playola(station))
     let updater = makeStoppedUpdater()
 
-    #expect(updater.handlePlayCommand() == .commandFailed)
+    expectNoDifference(updater.handlePlayCommand(), .commandFailed)
   }
 
   @Test
@@ -250,6 +250,9 @@ struct NowPlayingUpdaterTests {
 
   @Test
   func handlePlayCommandResumesPausedStation() {
+    let station = Station.mockWith(id: "paused-visible-id")
+    @Shared(.stationLists) var stationLists = makeLists(containing: station, visibility: .visible)
+    @Shared(.showSecretStations) var showSecretStations = false
     let updater = withDependencies {
       $0.analytics.track = { _ in }
       $0.date = .constant(Date())
@@ -257,12 +260,31 @@ struct NowPlayingUpdaterTests {
       let stationPlayer = StationPlayer(
         playolaStationPlayer: SpyPlayolaStationPlayer(),
         audioSessionCoordinator: AudioSessionCoordinator(session: NoOpAudioSession()))
-      stationPlayer.state = StationPlayer.State(playbackStatus: .paused(.mockPlayola()))
+      stationPlayer.state = StationPlayer.State(playbackStatus: .paused(.playola(station)))
       return NowPlayingUpdater(stationPlayer: stationPlayer)
     }
 
     // Interruption pause: the play command resumes the live backend directly.
     #expect(updater.handlePlayCommand() == .success)
+  }
+
+  @Test
+  func handlePlayCommandRefusesPausedStationThatBecameSecretWhenLocked() {
+    let station = Station.mockWith(id: "paused-secret-id")
+    @Shared(.stationLists) var stationLists = makeLists(containing: station, visibility: .hidden)
+    @Shared(.showSecretStations) var showSecretStations = false
+    let updater = withDependencies {
+      $0.analytics.track = { _ in }
+      $0.date = .constant(Date())
+    } operation: {
+      let stationPlayer = StationPlayer(
+        playolaStationPlayer: SpyPlayolaStationPlayer(),
+        audioSessionCoordinator: AudioSessionCoordinator(session: NoOpAudioSession()))
+      stationPlayer.state = StationPlayer.State(playbackStatus: .paused(.playola(station)))
+      return NowPlayingUpdater(stationPlayer: stationPlayer)
+    }
+
+    expectNoDifference(updater.handlePlayCommand(), .commandFailed)
   }
 
   // MARK: - Analytics Tests

@@ -1,3 +1,4 @@
+import CustomDump
 import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
@@ -81,8 +82,8 @@ struct StationVoiceCatalogTests {
     let catalog = StationVoiceCatalog()
 
     #expect(!catalog.suggestedStations().map(\.id).contains("kftx-id"))
-    #expect(catalog.station(id: "kftx-id") == nil)
-    #expect(catalog.match(id: "kftx-id") == nil)
+    expectNoDifference(catalog.station(id: "kftx-id")?.id, nil)
+    expectNoDifference(catalog.match(id: "kftx-id")?.id, nil)
     #expect(catalog.matches(query: "97.5 KFTX").isEmpty)
   }
 
@@ -93,7 +94,7 @@ struct StationVoiceCatalogTests {
     let catalog = StationVoiceCatalog()
 
     #expect(!catalog.suggestedStations().map(\.id).contains("lakes-country-id"))
-    #expect(catalog.station(id: "lakes-country-id") == nil)
+    expectNoDifference(catalog.station(id: "lakes-country-id")?.id, nil)
     #expect(catalog.matches(query: "Lakes Country").isEmpty)
   }
 
@@ -103,8 +104,8 @@ struct StationVoiceCatalogTests {
     @Shared(.showSecretStations) var showSecretStations = false
     let catalog = StationVoiceCatalog()
 
-    #expect(catalog.station(id: "mock-playola-id")?.id == "mock-playola-id")
-    #expect(catalog.matches(query: "Banned Radio").first?.id == "mock-playola-id")
+    expectNoDifference(catalog.station(id: "mock-playola-id")?.id, "mock-playola-id")
+    expectNoDifference(catalog.matches(query: "Banned Radio").first?.id, "mock-playola-id")
   }
 
   @Test

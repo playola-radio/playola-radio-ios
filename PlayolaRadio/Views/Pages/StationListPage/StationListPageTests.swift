@@ -27,8 +27,8 @@ struct StationListPageTests {
     @Shared(.stationLists) var stationLists = StationList.mocks
     let model = StationListModel()
     await model.viewAppeared()
-    #expect(model.stationListsForDisplay == stationLists)
-    #expect(model.segmentTitles == ["All"] + stationLists.map { $0.title })
+    expectNoDifference(model.stationListsForDisplay, stationLists)
+    expectNoDifference(model.segmentTitles, ["All"] + stationLists.map { $0.title })
     #expect(model.selectedSegment == "All")
   }
 
@@ -150,7 +150,7 @@ struct StationListPageTests {
     }
 
     #expect(model.selectedSegment == "All")
-    #expect(model.stationListsForDisplay == stationLists)
+    expectNoDifference(model.stationListsForDisplay, stationLists)
   }
 
   @Test
@@ -317,7 +317,7 @@ struct StationListPageTests {
 
     await model.stationSelected(secretItem)
 
-    #expect(stationPlayerMock.callsToPlay.map(\.id) == [secretItem.anyStation.id])
+    expectNoDifference(stationPlayerMock.callsToPlay.map(\.id), [secretItem.anyStation.id])
   }
 
   @Test
@@ -335,13 +335,13 @@ struct StationListPageTests {
     let model = StationListModel()
     await model.viewAppeared()
 
-    #expect(model.segmentTitles == ["All", "Flagged"])
-    #expect(model.stationListsForDisplay.map(\.id) == ["flagged-list"])
+    expectNoDifference(model.segmentTitles, ["All", "Flagged"])
+    expectNoDifference(model.stationListsForDisplay.map(\.id), ["flagged-list"])
 
     $showSecretStations.withLock { $0 = true }
     await model.viewAppeared()
 
-    #expect(model.segmentTitles == ["All", "Flagged", "All Secret"])
+    expectNoDifference(model.segmentTitles, ["All", "Flagged", "All Secret"])
   }
 
   @Test

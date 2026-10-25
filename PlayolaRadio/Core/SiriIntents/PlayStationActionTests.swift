@@ -1,3 +1,4 @@
+import CustomDump
 import Dependencies
 import Foundation
 import IdentifiedCollections
@@ -61,7 +62,7 @@ struct PlayStationActionTests {
     } operation: {
       await PlayStationAction().run(stationID: "kftx-id")
     }
-    #expect(outcome == .notFound)
+    expectNoDifference(outcome, .notFound)
     #expect(player.callsToPlay.isEmpty)
   }
 

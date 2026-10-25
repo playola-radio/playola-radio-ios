@@ -670,7 +670,7 @@ struct StationPlayerTests {
     await play(stationPlayer, station: allStations[0])
     await seekNext(stationPlayer)
 
-    #expect(stationPlayer.currentStation?.id == allStations[2].id)
+    expectNoDifference(stationPlayer.currentStation?.id, allStations[2].id)
   }
 
   @Test

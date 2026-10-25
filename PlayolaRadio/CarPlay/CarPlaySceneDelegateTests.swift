@@ -4,6 +4,7 @@
 //
 
 @preconcurrency import CarPlay
+import CustomDump
 import Dependencies
 import IdentifiedCollections
 import Sharing
@@ -50,7 +51,7 @@ struct CarPlaySceneDelegateTests {
     let templates = delegate.generateTemplates(
       [list(visibilities: [.visible, .hidden, .comingSoon])])
 
-    #expect(rows(of: templates[0]).count == 2)
+    expectNoDifference(rows(of: templates[0]).count, 2)
   }
 
   @Test
@@ -61,7 +62,7 @@ struct CarPlaySceneDelegateTests {
     let templates = delegate.generateTemplates(
       [list(visibilities: [.visible, .hidden, .comingSoon])])
 
-    #expect(rows(of: templates[0]).count == 3)
+    expectNoDifference(rows(of: templates[0]).count, 3)
   }
 
   @Test
@@ -71,7 +72,7 @@ struct CarPlaySceneDelegateTests {
 
     let templates = delegate.generateTemplates([list(hidden: true, visibilities: [.visible])])
 
-    #expect(templates.count == 1)
+    expectNoDifference(templates.count, 1)
   }
 
   @Test
@@ -100,7 +101,7 @@ struct CarPlaySceneDelegateTests {
     tap(tappedRows[1])
     await waitForFirstPlay(on: player)
 
-    #expect(player.callsToPlay.map(\.id) == ["list-1"])
+    expectNoDifference(player.callsToPlay.map(\.id), ["list-1"])
   }
 
   @Test
@@ -120,7 +121,7 @@ struct CarPlaySceneDelegateTests {
     tap(tappedRows[1])
     await waitForFirstPlay(on: player)
 
-    #expect(player.callsToPlay.map(\.id) == ["list-1"])
+    expectNoDifference(player.callsToPlay.map(\.id), ["list-1"])
   }
 
   @Test
@@ -131,12 +132,12 @@ struct CarPlaySceneDelegateTests {
     let delegate = CarPlaySceneDelegate()
     delegate.tabBarTemplate = CPTabBarTemplate(templates: delegate.generateTemplates(stationLists))
     delegate.observeStationCatalog()
-    #expect(connectedRowCount(of: delegate) == 2)
+    expectNoDifference(connectedRowCount(of: delegate), 2)
 
     $showSecretStations.withLock { $0 = false }
     await yieldUntil { connectedRowCount(of: delegate) == 1 }
 
-    #expect(connectedRowCount(of: delegate) == 1)
+    expectNoDifference(connectedRowCount(of: delegate), 1)
   }
 
   private func connectedRowCount(of delegate: CarPlaySceneDelegate) -> Int {

@@ -165,7 +165,9 @@ struct StationList: Codable, Identifiable, Equatable, Sendable {
   /// Non-playback consumers only (contact, notification settings, screenshots);
   /// playback surfaces go through `StationListingPolicy`.
   var playolaStations: [PlayolaPlayer.Station] {
-    sortedItems.filter { $0.visibility != .hidden }.compactMap(\.station)
+    sortedItems.filter {
+      $0.visibility != .hidden && $0.visibility != .unknown
+    }.compactMap(\.station)
   }
 
   init(

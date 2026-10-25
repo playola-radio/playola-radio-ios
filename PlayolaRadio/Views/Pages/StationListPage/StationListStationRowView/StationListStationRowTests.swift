@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 9/26/25.
 //
 
+import CustomDump
 import Foundation
 import PlayolaPlayer
 import Sharing
@@ -207,8 +208,8 @@ struct StationListStationRowTests {
 
     let model = StationListStationRowModel(item: item)
 
-    #expect(model.subtitleText == "Coming Soon")
-    #expect(model.subtitleColor == Color.playolaRed)
+    expectNoDifference(model.subtitleText, "Coming Soon")
+    expectNoDifference(model.subtitleColor, Color.playolaRed)
   }
 
   @Test
@@ -233,8 +234,8 @@ struct StationListStationRowTests {
 
     let model = StationListStationRowModel(item: item)
 
-    #expect(model.subtitleText == "Coming Dec 25th")
-    #expect(model.subtitleColor == Color.playolaRed)
+    expectNoDifference(model.subtitleText, "Coming Dec 25th")
+    expectNoDifference(model.subtitleColor, Color.playolaRed)
   }
 
   @Test

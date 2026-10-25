@@ -464,7 +464,10 @@ class NowPlayingUpdater {
   /// after a cold-but-alive launch. `.commandFailed` only when there is genuinely
   /// nothing to resume.
   func handlePlayCommand() -> MPRemoteCommandHandlerStatus {
-    if case .paused = stationPlayer.state.playbackStatus {
+    if case .paused(let station) = stationPlayer.state.playbackStatus,
+      stationPlayer.stationLists.playableItem(
+        stationId: station.id, unlocked: showSecretStations) != nil
+    {
       Task { @MainActor in await stationPlayer.resume() }
       return .success
     }

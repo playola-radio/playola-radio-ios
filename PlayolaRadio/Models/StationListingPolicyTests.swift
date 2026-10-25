@@ -1,3 +1,4 @@
+import CustomDump
 import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
@@ -32,8 +33,8 @@ struct StationListingPolicyTests {
     playable: Bool
   ) {
     let subject = item(visibility, active: active)
-    #expect(subject.isListed(unlocked: unlocked) == listed)
-    #expect(subject.isPlayable(unlocked: unlocked) == playable)
+    expectNoDifference(subject.isListed(unlocked: unlocked), listed)
+    expectNoDifference(subject.isPlayable(unlocked: unlocked), playable)
   }
 
   @Test
@@ -50,15 +51,27 @@ struct StationListingPolicyTests {
       "description":"d","active":true,"createdAt":0,"updatedAt":0}}
       """
     let decoded = try JSONDecoder().decode(APIStationItem.self, from: Data(json.utf8))
-    #expect(decoded.visibility == .unknown)
+    expectNoDifference(decoded.visibility, .unknown)
   }
 
   @Test
   func testPlayableItemLookupRefusesSecretOnLockedDevice() {
     let list = StationList.mockArtistList(items: [item(.hidden, active: true)])
     let lists = IdentifiedArrayOf(uniqueElements: [list])
-    #expect(lists.playableItem(stationId: "s1", unlocked: false) == nil)
-    #expect(lists.playableItem(stationId: "s1", unlocked: true)?.station?.id == "s1")
-    #expect(lists.playableItem(stationId: "missing", unlocked: true) == nil)
+    expectNoDifference(lists.playableItem(stationId: "s1", unlocked: false)?.station?.id, nil)
+    expectNoDifference(lists.playableItem(stationId: "s1", unlocked: true)?.station?.id, "s1")
+    expectNoDifference(lists.playableItem(stationId: "missing", unlocked: true)?.station?.id, nil)
+  }
+
+  @Test
+  func testPlayolaStationsExcludeUnknownVisibility() {
+    let known = Station.mockWith(id: "known")
+    let unknown = Station.mockWith(id: "unknown")
+    let list = StationList.mockArtistList(items: [
+      APIStationItem(sortOrder: 0, visibility: .visible, station: known, urlStation: nil),
+      APIStationItem(sortOrder: 1, visibility: .unknown, station: unknown, urlStation: nil),
+    ])
+
+    expectNoDifference(list.playolaStations.map(\.id), [known.id])
   }
 }

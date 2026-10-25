@@ -20,6 +20,7 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
+  @ObservationIgnored @Dependency(\.siriShortcuts) var siriShortcuts
 
   // MARK: - Shared State
 
@@ -175,6 +176,7 @@ class HomePageModel: ViewModel {
 
   func playolaIconTapped10Times() {
     $showSecretStations.withLock { $0 = !$0 }
+    siriShortcuts.refreshSuggestions()
     presentedAlert = showSecretStations ? .secretStationsTurnedOnAlert : .secretStationsHiddenAlert
   }
 

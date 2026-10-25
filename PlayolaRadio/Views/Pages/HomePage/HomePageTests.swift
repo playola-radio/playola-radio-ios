@@ -27,6 +27,22 @@ struct HomePageTests {
   // MARK: - ViewAppeared Tests
 
   @Test
+  func testSecretStationToggleRefreshesSiriSuggestions() {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let refreshCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.siriShortcuts.refreshSuggestions = { refreshCount.withValue { $0 += 1 } }
+    } operation: {
+      HomePageModel()
+    }
+
+    model.playolaIconTapped10Times()
+
+    #expect(showSecretStations)
+    expectNoDifference(refreshCount.value, 1)
+  }
+
+  @Test
   func testViewAppearedPopulatesForYouStationsBasedOnInitialValueOfSharedStationLists() async {
     @Shared(.stationLists) var stationLists = StationList.mocks
     let artistStations = stationLists.first {
@@ -35,7 +51,7 @@ struct HomePageTests {
     #expect(artistStations != nil)
     let model = HomePageModel()
     await model.viewAppeared()
-    #expect(model.forYouStations.elements == artistStations!.items!.map(\.anyStation))
+    expectNoDifference(model.forYouStations.elements, artistStations!.items!.map(\.anyStation))
   }
 
   @Test
@@ -55,7 +71,7 @@ struct HomePageTests {
     let model = HomePageModel()
     await model.viewAppeared()
 
-    #expect(model.forYouStations.elements == artistStations!.items!.map(\.anyStation))
+    expectNoDifference(model.forYouStations.elements, artistStations!.items!.map(\.anyStation))
 
     $stationLists.withLock {
       $0 = IdentifiedArray(
@@ -130,7 +146,7 @@ struct HomePageTests {
     let model = HomePageModel()
     await model.viewAppeared()
 
-    #expect(model.forYouStations.map(\.id) == [visibleStation.id])
+    expectNoDifference(model.forYouStations.map(\.id), [visibleStation.id])
 
     $showSecretStations.withLock { $0 = true }
 
@@ -189,7 +205,7 @@ struct HomePageTests {
 
     await model.stationTapped(.playola(station))
 
-    #expect(stationPlayerMock.callsToPlay.map(\.id) == [station.id])
+    expectNoDifference(stationPlayerMock.callsToPlay.map(\.id), [station.id])
   }
 
   @Test

@@ -893,7 +893,7 @@ struct PresetsModelTests {
   }
 
   @Test
-  func testDisplayPresetsListsSecretOnlyWhenUnlocked() async {
+  func testDisplayPresetsHidesSecretWhenLocked() async {
     @Shared(.showSecretStations) var showSecretStations = false
     let item = APIStationItem(
       sortOrder: 0, visibility: .hidden,
@@ -909,11 +909,26 @@ struct PresetsModelTests {
     let model = PresetsModel()
 
     #expect(model.displayPresets.isEmpty)
+  }
 
-    $showSecretStations.withLock { $0 = true }
+  @Test
+  func testDisplayPresetsListsSecretWhenUnlocked() async {
+    @Shared(.showSecretStations) var showSecretStations = true
+    let item = APIStationItem(
+      sortOrder: 0, visibility: .hidden,
+      station: Station.mockWith(id: "s1"), urlStation: nil)
+    @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList> = [
+      StationList(
+        id: "preset-test-list", name: "Test List", slug: "preset-test-list",
+        hidden: false, sortOrder: 0, createdAt: Date(), updatedAt: Date(), items: [item])
+    ]
+    @Shared(.presets) var presets: IdentifiedArrayOf<Preset> = [
+      Preset.mockPlayola(id: "p1", stationId: "s1", position: 0)
+    ]
+    let model = PresetsModel()
 
-    #expect(model.displayPresets.map(\.id) == ["p1"])
-    #expect(model.displayPresets.first?.subtitleText == nil)
+    expectNoDifference(model.displayPresets.map(\.id), ["p1"])
+    expectNoDifference(model.displayPresets.first?.subtitleText, nil)
   }
 
   private func presetSubtitle(for item: APIStationItem) -> String? {
