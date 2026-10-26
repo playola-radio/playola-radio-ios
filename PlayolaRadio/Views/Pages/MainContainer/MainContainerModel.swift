@@ -33,8 +33,7 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker
   @ObservationIgnored @Shared(.welcomeMessageEligible) var welcomeMessageEligible: Bool = false
-  @ObservationIgnored @Shared(.sampleBufferRendererEnabled)
-  var sampleBufferRendererEnabled: Bool = false
+  @ObservationIgnored @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled
   @ObservationIgnored @Shared(.sampleBufferRendererAllowed)
   var sampleBufferRendererAllowed: Bool = true
   @ObservationIgnored @Shared(.auth) var auth
@@ -271,15 +270,15 @@ class MainContainerModel: ViewModel {
       // request was in flight, drop it — the new session refetches on launch.
       guard auth.jwt == jwt else { return }
       $sampleBufferRendererEnabled.withLock {
-        $0 = config.sampleBufferRendererEnabled ?? false
+        $0 = config.sampleBufferRendererEnabled ?? true
       }
       $sampleBufferRendererAllowed.withLock {
         $0 = config.sampleBufferRendererAllowed ?? true
       }
     } catch {
-      // Deliberately quiet: the conservative default (false ⇒ legacy renderer)
-      // is the correct behavior when the fetch fails, and this endpoint may 404
-      // until the server side ships — analytics noise would drown real errors.
+      // Deliberately quiet: the defaults (sample-buffer renderer, plus any
+      // persisted kill-gate) are the correct behavior when the fetch fails —
+      // analytics noise would drown real errors.
     }
   }
 

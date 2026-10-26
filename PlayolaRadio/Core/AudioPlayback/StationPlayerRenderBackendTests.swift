@@ -11,6 +11,7 @@
 
 import AVFAudio
 import Combine
+import CustomDump
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -63,6 +64,29 @@ struct StationPlayerRenderBackendTests {
   }
 
   // MARK: - Seam (StationPlayer.play)
+
+  @Test
+  func playBeforeClientConfigLoadsSelectsSampleBuffer() async {
+    let transport = RenderBackendSpyTransport()
+    let player = makePlayer(transport: transport)
+
+    // No client config has landed: a fast tap, CarPlay, Siri, or a cold resume
+    // must not lock this process onto the legacy engine.
+    await player.play(station: AnyStation.mockPlayola())
+
+    expectNoDifference(transport.events.first, .setRenderBackend(.sampleBuffer))
+  }
+
+  @Test
+  func killGateForcesLegacyWithDefaultServerFlag() async {
+    @Shared(.sampleBufferRendererAllowed) var sampleBufferRendererAllowed = false
+    let transport = RenderBackendSpyTransport()
+    let player = makePlayer(transport: transport)
+
+    await player.play(station: AnyStation.mockPlayola())
+
+    expectNoDifference(transport.events.first, .setRenderBackend(.legacyEngine))
+  }
 
   @Test
   func flagOffAssertsLegacyBackendAndSkipsLatency() async {
@@ -222,9 +246,28 @@ struct StationPlayerRenderBackendTests {
   }
 
   @Test
-  func loadClientConfigClearsFlagWhenServerOmitsIt() async {
+  func loadClientConfigDisablingFlagSelectsLegacyForNextPlay() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = true
+    let transport = RenderBackendSpyTransport()
+    let player = makePlayer(transport: transport)
+
+    let model = withDependencies {
+      $0.api.getClientConfig = { _ in ClientConfig(sampleBufferRendererEnabled: false) }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await model.loadClientConfig()
+    await player.play(station: AnyStation.mockPlayola())
+
+    expectNoDifference(transport.events.first, .setRenderBackend(.legacyEngine))
+  }
+
+  @Test
+  func loadClientConfigKeepsSampleBufferWhenServerOmitsFlag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let transport = RenderBackendSpyTransport()
+    let player = makePlayer(transport: transport)
 
     let model = withDependencies {
       $0.api.getClientConfig = { _ in ClientConfig() }
@@ -233,8 +276,9 @@ struct StationPlayerRenderBackendTests {
     }
 
     await model.loadClientConfig()
+    await player.play(station: AnyStation.mockPlayola())
 
-    #expect(sampleBufferRendererEnabled == false)
+    expectNoDifference(transport.events.first, .setRenderBackend(.sampleBuffer))
   }
 
   @Test
@@ -281,9 +325,10 @@ struct StationPlayerRenderBackendTests {
   }
 
   @Test
-  func loadClientConfigFailureLeavesConservativeDefault() async {
+  func loadClientConfigFailureLeavesSampleBufferDefault() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = false
+    let transport = RenderBackendSpyTransport()
+    let player = makePlayer(transport: transport)
 
     struct FetchFailed: Error {}
     let model = withDependencies {
@@ -293,7 +338,28 @@ struct StationPlayerRenderBackendTests {
     }
 
     await model.loadClientConfig()
+    await player.play(station: AnyStation.mockPlayola())
 
-    #expect(sampleBufferRendererEnabled == false)
+    expectNoDifference(transport.events.first, .setRenderBackend(.sampleBuffer))
+  }
+
+  // MARK: - Sign-out (AuthService.signOut)
+
+  @Test
+  func signOutResetsFlagToSampleBuffer() async {
+    @Shared(.auth) var auth = Auth()
+    @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled = false
+    let player = makePlayer(transport: RenderBackendSpyTransport())
+
+    await withDependencies {
+      $0.analytics.reset = {}
+      $0.analytics.track = { _ in }
+      $0.stationPlayer = player
+      $0.nowPlayingUpdater = NowPlayingUpdater(stationPlayer: player)
+    } operation: {
+      await AuthService.shared.signOut()
+    }
+
+    expectNoDifference(sampleBufferRendererEnabled, true)
   }
 }

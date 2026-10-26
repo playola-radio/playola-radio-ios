@@ -43,11 +43,13 @@ extension SharedKey where Self == InMemoryKey<Bool>.Default {
     Self[.inMemory("welcomeMessageShownThisSession"), default: false]
   }
 
-  /// Server-driven opt-in for the SDK's sample-buffer render backend (AirPlay-2 long-form),
-  /// refreshed from the client config on launch. In-memory only: the backend locks at the
-  /// first `play()`, so a persisted stale value could not take effect mid-session anyway.
+  /// Server-driven flag for the SDK's sample-buffer render backend (AirPlay-2 long-form),
+  /// refreshed from the client config on launch. Defaults true so a `play()` that beats the
+  /// config fetch (fast tap, CarPlay, Siri, cold resume) doesn't lock the legacy engine for
+  /// the whole process. In-memory only: the backend locks at the first `play()`, so a
+  /// persisted stale value could not take effect mid-session anyway.
   static var sampleBufferRendererEnabled: Self {
-    Self[.inMemory("sampleBufferRendererEnabled"), default: false]
+    Self[.inMemory("sampleBufferRendererEnabled"), default: true]
   }
 
 }
@@ -65,7 +67,10 @@ extension SharedKey where Self == AppStorageKey<Bool>.Default {
   /// allowed) so local testing works before the endpoint ships and offline. Persisted so a
   /// received kill survives relaunch and holds before the next config fetch resolves — an
   /// in-memory value would reopen the override-beats-the-fetch race on every cold launch.
-  /// Device-level safety, not account state: NOT reset on sign-out.
+  /// This is the real kill switch: with `sampleBufferRendererEnabled` defaulting true, a
+  /// kill takes effect from the launch after the app has seen it (plus any not-yet-locked
+  /// play after the response lands). Device-level safety, not account state: NOT reset on
+  /// sign-out.
   static var sampleBufferRendererAllowed: Self {
     Self[.appStorage("sampleBufferRendererAllowed"), default: true]
   }

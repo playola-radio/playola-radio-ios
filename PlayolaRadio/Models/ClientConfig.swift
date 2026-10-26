@@ -14,7 +14,7 @@ import Foundation
 /// site) and the memberwise init stays source-compatible as fields are added.
 struct ClientConfig: Codable, Equatable, Sendable {
   /// Opt-in for the SDK's sample-buffer render backend (AirPlay-2 long-form,
-  /// PlayolaPlayer 0.21.0+). Absent ⇒ false ⇒ legacy engine.
+  /// PlayolaPlayer 0.21.0+). Absent ⇒ true ⇒ sample-buffer renderer.
   var sampleBufferRendererEnabled: Bool?
 
   /// Server kill-gate for the sample-buffer renderer: when false, neither the

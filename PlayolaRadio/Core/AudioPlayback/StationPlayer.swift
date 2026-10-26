@@ -21,8 +21,7 @@ class StationPlayer: ObservableObject {
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
-  @ObservationIgnored @Shared(.sampleBufferRendererEnabled)
-  var sampleBufferRendererEnabled: Bool = false
+  @ObservationIgnored @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled
   @ObservationIgnored @Shared(.sampleBufferRendererAllowed)
   var sampleBufferRendererAllowed: Bool = true
   @ObservationIgnored @Shared(.sampleBufferRendererLocalOverride)
