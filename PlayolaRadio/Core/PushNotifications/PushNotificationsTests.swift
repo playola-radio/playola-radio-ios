@@ -277,6 +277,22 @@ struct PushNotificationsTests {
   }
 
   @Test
+  func testStationPushForSecretStationWhenLockedReturnsFalse() async {
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    @Shared(.showSecretStations) var showSecretStations = false
+    let stationPlayer = StationPlayerMock()
+
+    let handled = await withDependencies {
+      $0.stationPlayer = stationPlayer
+    } operation: {
+      await PushNotificationsClient.liveValue.handleNotificationTap(["stationId": "kftx-id"])
+    }
+
+    #expect(!handled)
+    #expect(stationPlayer.callsToPlay.isEmpty)
+  }
+
+  @Test
   func testHandleNotificationTapReturnsFalseWhenPlaybackFails() async {
     @Shared(.stationLists) var stationLists = StationList.mocks
     let stationPlayer = StationPlayerMock()

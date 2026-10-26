@@ -67,10 +67,7 @@ class YourLibraryPageModel: ViewModel {
     let item = display.stationItem
     let station = item.anyStation
 
-    // A preset shown as unavailable ("Coming Soon" / inactive) must not attempt
-    // playback — mirror the availability guards in StationListModel.stationSelected.
-    if item.visibility == .comingSoon && showSecretStations == false { return }
-    guard station.active else { return }
+    guard item.isPlayable(unlocked: showSecretStations) else { return }
 
     let position = presetsModel.displayPresets.firstIndex(where: { $0.id == display.id }) ?? 0
     await analytics.track(

@@ -1,3 +1,4 @@
+import CustomDump
 import Dependencies
 import Foundation
 import IdentifiedCollections
@@ -48,6 +49,21 @@ struct PlayStationActionTests {
       await PlayStationAction().run(stationID: "does-not-exist")
     }
     #expect(outcome == .notFound)
+  }
+
+  @Test
+  func testRunReturnsNotFoundForSecretStationWhenLocked() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.showSecretStations) var showSecretStations = false
+    @Shared(.stationLists) var stationLists = StationList.mocks
+    let player = StationPlayerMock()
+    let outcome = await withDependencies {
+      $0.stationPlayer = player
+    } operation: {
+      await PlayStationAction().run(stationID: "kftx-id")
+    }
+    expectNoDifference(outcome, .notFound)
+    #expect(player.callsToPlay.isEmpty)
   }
 
   @Test

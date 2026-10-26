@@ -401,15 +401,9 @@ class StationPlayer: ObservableObject {
       return []
     }
 
-    let items = artistList.stationItems(
-      includeHidden: showSecretStations,
-      includeComingSoon: showSecretStations
-    )
-
-    return
-      items
-      .map { $0.anyStation }
-      .filter { $0.active }
+    return artistList.listedItems(unlocked: showSecretStations)
+      .filter { $0.isPlayable(unlocked: showSecretStations) }
+      .compactMap(\.anyStationIfPresent)
   }
 
   func processPlayolaStationPlayerState(

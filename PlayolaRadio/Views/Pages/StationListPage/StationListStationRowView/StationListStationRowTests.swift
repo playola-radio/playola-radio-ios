@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 9/26/25.
 //
 
+import CustomDump
 import Foundation
 import PlayolaPlayer
 import Sharing
@@ -19,8 +20,7 @@ struct StationListStationRowTests {
   @Test
   func testModelInitializationFromStation() {
     @Shared(.showSecretStations) var showSecretStations: Bool = true
-    let stationList = StationList.mocks.first { !$0.visibleStationItems.isEmpty }!
-    let item = stationList.visibleStationItems.first!
+    let item = StationList.mocks.flatMap { $0.items ?? [] }.first!
     let station = item.anyStation
 
     let model = StationListStationRowModel(item: item)
@@ -186,6 +186,56 @@ struct StationListStationRowTests {
 
     // Should show Dec 25th (the UTC date), not Dec 24th (what it would be in US timezones)
     #expect(model.subtitleText == "Coming Dec 25th")
+  }
+
+  @Test
+  func testRowSubtitleInactiveVisibleWithDateIsUndatedComingSoon() {
+    @Shared(.showSecretStations) var showSecretStations: Bool = false
+    let now = Date(timeIntervalSince1970: 1_758_915_200)
+    let station = PlayolaPlayer.Station(
+      id: "inactive-visible",
+      name: "Dormant Station",
+      curatorName: "Inactive DJ",
+      imageUrl: URL(string: "https://example.com/inactive.png"),
+      description: "Inactive",
+      active: false,
+      releaseDate: Calendar.current.date(from: DateComponents(year: 2025, month: 12, day: 25))!,
+      createdAt: now,
+      updatedAt: now
+    )
+    let item = APIStationItem(
+      sortOrder: 0, visibility: .visible, station: station, urlStation: nil)
+
+    let model = StationListStationRowModel(item: item)
+
+    expectNoDifference(model.subtitleText, "Coming Soon")
+    expectNoDifference(model.subtitleColor, Color.playolaRed)
+  }
+
+  @Test
+  func testRowSubtitleComingSoonWithDateIsDated() {
+    @Shared(.showSecretStations) var showSecretStations: Bool = false
+    let now = Date(timeIntervalSince1970: 1_758_915_200)
+    var utcCalendar = Calendar(identifier: .gregorian)
+    utcCalendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    let station = PlayolaPlayer.Station(
+      id: "coming-soon-dated",
+      name: "Moondog Radio",
+      curatorName: "Jacob Stelly",
+      imageUrl: URL(string: "https://example.com/moondog.png"),
+      description: "Coming soon",
+      active: false,
+      releaseDate: utcCalendar.date(from: DateComponents(year: 2025, month: 12, day: 25))!,
+      createdAt: now,
+      updatedAt: now
+    )
+    let item = APIStationItem(
+      sortOrder: 0, visibility: .comingSoon, station: station, urlStation: nil)
+
+    let model = StationListStationRowModel(item: item)
+
+    expectNoDifference(model.subtitleText, "Coming Dec 25th")
+    expectNoDifference(model.subtitleColor, Color.playolaRed)
   }
 
   @Test

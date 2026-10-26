@@ -197,6 +197,7 @@ extension PushNotificationsClient: DependencyKey {
     },
     handleNotificationTap: { userInfo in
       @Shared(.stationLists) var stationLists
+      @Shared(.showSecretStations) var showSecretStations
       @Shared(.mainContainerNavigationCoordinator) var navCoordinator
       let navCoordinatorShared = $navCoordinator
 
@@ -227,10 +228,10 @@ extension PushNotificationsClient: DependencyKey {
         return false
       }
 
-      let allStations = stationLists.flatMap { $0.stationItems(includeHidden: true) }
-        .map { $0.anyStation }
-
-      guard let station = allStations.first(where: { $0.id == stationId }) else {
+      guard
+        let station = stationLists.playableItem(
+          stationId: stationId, unlocked: showSecretStations)?.anyStationIfPresent
+      else {
         return false
       }
 
