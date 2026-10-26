@@ -11,6 +11,7 @@
 
 import AVFAudio
 import Combine
+import CustomDump
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -73,7 +74,7 @@ struct StationPlayerRenderBackendTests {
     // must not lock this process onto the legacy engine.
     await player.play(station: AnyStation.mockPlayola())
 
-    #expect(transport.events.first == .setRenderBackend(.sampleBuffer))
+    expectNoDifference(transport.events.first, .setRenderBackend(.sampleBuffer))
   }
 
   @Test
@@ -84,7 +85,7 @@ struct StationPlayerRenderBackendTests {
 
     await player.play(station: AnyStation.mockPlayola())
 
-    #expect(transport.events.first == .setRenderBackend(.legacyEngine))
+    expectNoDifference(transport.events.first, .setRenderBackend(.legacyEngine))
   }
 
   @Test
@@ -259,7 +260,7 @@ struct StationPlayerRenderBackendTests {
     await model.loadClientConfig()
     await player.play(station: AnyStation.mockPlayola())
 
-    #expect(transport.events.first == .setRenderBackend(.legacyEngine))
+    expectNoDifference(transport.events.first, .setRenderBackend(.legacyEngine))
   }
 
   @Test
@@ -277,7 +278,7 @@ struct StationPlayerRenderBackendTests {
     await model.loadClientConfig()
     await player.play(station: AnyStation.mockPlayola())
 
-    #expect(transport.events.first == .setRenderBackend(.sampleBuffer))
+    expectNoDifference(transport.events.first, .setRenderBackend(.sampleBuffer))
   }
 
   @Test
@@ -326,7 +327,8 @@ struct StationPlayerRenderBackendTests {
   @Test
   func loadClientConfigFailureLeavesSampleBufferDefault() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled
+    let transport = RenderBackendSpyTransport()
+    let player = makePlayer(transport: transport)
 
     struct FetchFailed: Error {}
     let model = withDependencies {
@@ -336,8 +338,9 @@ struct StationPlayerRenderBackendTests {
     }
 
     await model.loadClientConfig()
+    await player.play(station: AnyStation.mockPlayola())
 
-    #expect(sampleBufferRendererEnabled == true)
+    expectNoDifference(transport.events.first, .setRenderBackend(.sampleBuffer))
   }
 
   // MARK: - Sign-out (AuthService.signOut)
@@ -357,6 +360,6 @@ struct StationPlayerRenderBackendTests {
       await AuthService.shared.signOut()
     }
 
-    #expect(sampleBufferRendererEnabled == true)
+    expectNoDifference(sampleBufferRendererEnabled, true)
   }
 }
