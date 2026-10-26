@@ -529,6 +529,7 @@
 		D3A08A2F2E4E2A35002468E0 /* AnalyticsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A08A2E2E4E2A31002468E0 /* AnalyticsClient.swift */; };
 		D3A08A312E4E2E2A002468E0 /* AnalyticsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A08A302E4E2E0F002468E0 /* AnalyticsEvent.swift */; };
 		D3A08A352E4E6F66002468E0 /* NowPlayingUpdaterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A08A332E4E6F5D002468E0 /* NowPlayingUpdaterTests.swift */; };
+		D3A08A372E4E6F70002468E0 /* NowPlayingUpdaterResumeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A08A362E4E6F70002468E0 /* NowPlayingUpdaterResumeTests.swift */; };
 		D3A1B2C001000000000000A4 /* StationVoiceCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000A2 /* StationVoiceCatalog.swift */; };
 		D3A1B2C001000000000000A5 /* StationVoiceCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000A2 /* StationVoiceCatalog.swift */; };
 		D3A1B2C001000000000000A6 /* StationVoiceCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C001000000000000A3 /* StationVoiceCatalogTests.swift */; };
@@ -1035,6 +1036,7 @@
 		D3A08A2E2E4E2A31002468E0 /* AnalyticsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsClient.swift; sourceTree = "<group>"; };
 		D3A08A302E4E2E0F002468E0 /* AnalyticsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEvent.swift; sourceTree = "<group>"; };
 		D3A08A332E4E6F5D002468E0 /* NowPlayingUpdaterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingUpdaterTests.swift; sourceTree = "<group>"; };
+		D3A08A362E4E6F70002468E0 /* NowPlayingUpdaterResumeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingUpdaterResumeTests.swift; sourceTree = "<group>"; };
 		D3A1B2C001000000000000A2 /* StationVoiceCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationVoiceCatalog.swift; sourceTree = "<group>"; };
 		D3A1B2C001000000000000A3 /* StationVoiceCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationVoiceCatalogTests.swift; sourceTree = "<group>"; };
 		D3A1B2C001000000000000B2 /* PlaybackBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackBootstrap.swift; sourceTree = "<group>"; };
@@ -2238,6 +2240,7 @@
 			isa = PBXGroup;
 			children = (
 				D3A08A332E4E6F5D002468E0 /* NowPlayingUpdaterTests.swift */,
+				D3A08A362E4E6F70002468E0 /* NowPlayingUpdaterResumeTests.swift */,
 				D35673C72D3EBFB000E4E926 /* NowPlayingUpdater.swift */,
 			);
 			path = NowPlayingUpdater;
@@ -3244,6 +3247,7 @@
 				D35EFC172F159728000F64A4 /* SeriesListPageTests.swift in Sources */,
 				D3F493C02EEDD2D2008ED463 /* RecordPageTests.swift in Sources */,
 				D3A08A352E4E6F66002468E0 /* NowPlayingUpdaterTests.swift in Sources */,
+				D3A08A372E4E6F70002468E0 /* NowPlayingUpdaterResumeTests.swift in Sources */,
 				D317C0D62EF33DB000DBC82E /* PushNotificationsTests.swift in Sources */,
 				D317C0CF2EF200D100DBC82E /* VoicetrackUploadServiceTests.swift in Sources */,
 				D35EFBFA2F1579E5000F64A4 /* NewFeatureTileTests.swift in Sources */,

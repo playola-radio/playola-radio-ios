@@ -1,6 +1,8 @@
 import CustomDump
 import Dependencies
 import Foundation
+import IdentifiedCollections
+import PlayolaPlayer
 import Sharing
 import Testing
 
@@ -300,8 +302,14 @@ struct StationPlayerPlaybackAttemptTests {
 
   @Test
   func pauseSupersedesQueuedPlayCommandFromError() async {
+    let listed = Station.mockWith(id: "queued-play-from-error-id")
+    @Shared(.stationLists) var stationLists = IdentifiedArrayOf(uniqueElements: [
+      StationList.mockArtistList(items: [
+        APIStationItem(sortOrder: 0, visibility: .visible, station: listed, urlStation: nil)
+      ])
+    ])
     @Shared(.lastPlayedStation) var lastPlayedStation: LastPlayedStation? =
-      LastPlayedStation(station: .mockPlayola())
+      LastPlayedStation(station: .playola(listed))
     let playola = SpyPlayolaStationPlayer()
     let player = StationPlayer(
       playolaStationPlayer: playola,
