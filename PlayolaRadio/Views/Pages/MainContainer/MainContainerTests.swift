@@ -328,6 +328,7 @@ struct MainContainerTests {
     ]
 
     let mainContainerModel = withDependencies {
+      $0.api.stubMainContainerRefreshes()
       $0.api.getStations = { StationList.mocks }
       $0.api.getAirings = { _, _ in
         getAiringsCallCount.withValue { $0 += 1 }
@@ -681,6 +682,7 @@ struct MainContainerTests {
     ]
 
     let mainContainerModel = withDependencies {
+      $0.api.stubMainContainerRefreshes()
       $0.api.getStations = {
         getStationsCallCount.withValue { $0 += 1 }
         return StationList.mocks
@@ -759,6 +761,7 @@ struct MainContainerTests {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     let mainContainerModel = withDependencies {
+      $0.api.stubMainContainerRefreshes()
       $0.api.getStations = {
         throw TestError()
       }
@@ -791,6 +794,7 @@ struct MainContainerTests {
     let getSupportConversationCallCount = LockIsolated(0)
 
     let mainContainerModel = withDependencies {
+      $0.api.stubMainContainerRefreshes()
       $0.api.getStations = { [] }
       $0.api.getAirings = { _, _ in [] }
       $0.api.getSupportConversation = { _ in
@@ -831,6 +835,7 @@ struct MainContainerTests {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     let mainContainerModel = withDependencies {
+      $0.api.stubMainContainerRefreshes()
       $0.api.getStations = { [] }
       $0.api.getAirings = { _, _ in
         throw TestError()
@@ -1571,6 +1576,7 @@ extension MainContainerTests {
       @Shared(.mainContainerNavigationCoordinator) var coordinator =
         MainContainerNavigationCoordinator()
       let model = withDependencies {
+        $0.api.stubMainContainerRefreshes()
         $0.date = .constant(Date(timeIntervalSince1970: 100))
         $0.api.getMyFulfillmentRequests = { _ in [.mock(giveawayEventId: "event-1")] }
       } operation: {
@@ -1804,6 +1810,7 @@ extension MainContainerTests {
     let identifiedIds = LockIsolated<[String]>([])
 
     let mainContainerModel = withDependencies {
+      $0.api.stubMainContainerRefreshes()
       $0.api.getStations = { StationList.mocks }
       $0.api.getAirings = { _, _ in [] }
       $0.pushNotifications.registerForRemoteNotifications = {}

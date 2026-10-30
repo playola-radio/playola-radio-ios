@@ -1039,6 +1039,10 @@ func parsePlayolaErrorMessage(from data: Data) -> String? {
   return message
 }
 
+extension APIClient: TestDependencyKey {
+  static let testValue = Self()
+}
+
 extension DependencyValues {
   var api: APIClient {
     get { self[APIClient.self] }

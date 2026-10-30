@@ -127,6 +127,7 @@ struct AMALivePresentationTests {
     let response = LockIsolated<[Spin]>([])
     let date = Date(timeIntervalSince1970: 1_000_000)
     try await withDependencies {
+      $0.api.stubLiveShowRefreshes()
       $0.date.now = date
       $0.uuid = .incrementing
       $0.audioRecorder.deleteRecording = { _ in }
@@ -465,6 +466,7 @@ struct AMALivePresentationTests {
     let date = Date(timeIntervalSince1970: 1_000_000)
     let fetches = LockIsolated(0)
     await withDependencies {
+      $0.api.stubLiveShowRefreshes()
       $0.date.now = date
       $0.api.startLiveShow = { _, _, _ in
         .init(
@@ -907,6 +909,7 @@ struct AMALivePresentationTests {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     let date = Date(timeIntervalSince1970: 1_000_000)
     await withDependencies {
+      $0.api.stubLiveShowRefreshes()
       $0.date.now = date
       $0.api.getActiveListeningSessions = { jwt, station, airtime, end in
         expectNoDifference(jwt, "jwt")

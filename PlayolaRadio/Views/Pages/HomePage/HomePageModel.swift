@@ -86,20 +86,22 @@ class HomePageModel: ViewModel {
   @ObservationIgnored private var hasLoadedPrizeList = false
 
   @ObservationIgnored lazy var listeningTimeTileModel: ListeningTimeTileModel = {
-    let tile = ListeningTimeTileModel(
-      buttonText: "Redeem Your Rewards!",
-      buttonAction: { [weak self] in
-        guard let self = self else { return }
-        await self.analytics.track(.navigatedToRewardsFromListeningTile)
-        await self.$activeTab.withLock { $0 = .profile }
-        // Idempotent: don't stack duplicate Rewards pages on repeat taps.
-        if case .rewardsPage = await self.mainContainerNavigationCoordinator.profilePath.last {
-          return
+    let tile = withDependencies(from: self) {
+      ListeningTimeTileModel(
+        buttonText: "Redeem Your Rewards!",
+        buttonAction: { [weak self] in
+          guard let self = self else { return }
+          await self.analytics.track(.navigatedToRewardsFromListeningTile)
+          await self.$activeTab.withLock { $0 = .profile }
+          // Idempotent: don't stack duplicate Rewards pages on repeat taps.
+          if case .rewardsPage = await self.mainContainerNavigationCoordinator.profilePath.last {
+            return
+          }
+          // Guarded for koozie-only users (no-op) even though the koozie tile hides this button.
+          await self.mainContainerNavigationCoordinator.pushRewards(RewardsPageModel())
         }
-        // Guarded for koozie-only users (no-op) even though the koozie tile hides this button.
-        await self.mainContainerNavigationCoordinator.pushRewards(RewardsPageModel())
-      }
-    )
+      )
+    }
     tile.onKoozieBecameClaimable = { [weak self] in
       guard let self, self.hasLoadedPrizeList else { return }
       self.presentKoozieClaimIfNeeded()

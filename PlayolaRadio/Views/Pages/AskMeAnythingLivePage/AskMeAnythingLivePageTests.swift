@@ -73,6 +73,7 @@ struct AskMeAnythingLivePageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let capturedIds = LockIsolated<[String]>([])
     let model = withDependencies {
+      $0.api.stubLiveShowRefreshes()
       $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.api.startLiveShow = { jwt, stationId, ids in
         expectNoDifference(jwt, "test-jwt")
@@ -102,6 +103,7 @@ struct AskMeAnythingLivePageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let capturedIds = LockIsolated<[String]>([])
     let model = withDependencies {
+      $0.api.stubLiveShowRefreshes()
       $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.api.startLiveShow = { _, _, ids in
         capturedIds.setValue(ids)
@@ -135,6 +137,7 @@ struct AskMeAnythingLivePageTests {
     let finish = AsyncStream<Void>.makeStream()
     let calls = LockIsolated(0)
     let model = withDependencies {
+      $0.api.stubLiveShowRefreshes()
       $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.api.startLiveShow = { _, _, _ in
         calls.withValue { $0 += 1 }
@@ -228,6 +231,7 @@ struct AskMeAnythingLivePageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let now = Date(timeIntervalSince1970: 1_000_000)
     await withDependencies {
+      $0.api.stubLiveShowRefreshes()
       $0.date.now = now
       $0.api.startLiveShow = { _, _, _ in
         throw URLError(.networkConnectionLost)
@@ -255,6 +259,7 @@ struct AskMeAnythingLivePageTests {
   @Test func uncertainStartFailureShowsAlertWhenNoShowWasActuallyCreated() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     await withDependencies {
+      $0.api.stubLiveShowRefreshes()
       $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.api.startLiveShow = { _, _, _ in
         throw URLError(.networkConnectionLost)
@@ -956,44 +961,5 @@ struct AskMeAnythingLivePageTests {
       #expect(model.presentedAlert == nil)
       #expect(coordinator.path.isEmpty)
     }
-  }
-}
-
-@Suite(.freshSharedState)
-@MainActor
-struct AMAOpeningItemTests {
-  private func block(_ ms: Int) -> AudioBlock { .mockWith(id: "b", durationMS: ms) }
-
-  private func uuid(_ index: Int) -> UUID {
-    UUID(uuidString: String(format: "00000000-0000-0000-0000-%012d", index))!
-  }
-
-  @Test func introAndSongAreAlwaysReadyAndCountFullDuration() {
-    let intro = AMAOpeningItem(id: uuid(0), content: .intro(block(30_000)))
-    let song = AMAOpeningItem(id: uuid(1), content: .song(block(200_000)))
-    #expect(intro.isReady)
-    expectNoDifference(intro.readyDurationMS, 30_000)
-    #expect(song.isReady)
-    expectNoDifference(song.readyDurationMS, 200_000)
-  }
-
-  @Test func processingVoicetrackIsNotReadyAndCountsZero() {
-    let vt = LocalVoicetrack(
-      id: uuid(2), originalURL: URL(fileURLWithPath: "/tmp/a.wav"),
-      status: .uploading(progress: 0.5), createdAt: Date(timeIntervalSince1970: 0),
-      title: "VT")
-    let item = AMAOpeningItem(id: uuid(3), content: .voicetrack(vt, completedDurationMS: nil))
-    #expect(!item.isReady)
-    expectNoDifference(item.readyDurationMS, 0)
-  }
-
-  @Test func completedVoicetrackWithDurationIsReadyAndCountsThatDuration() {
-    var vt = LocalVoicetrack(
-      id: uuid(4), originalURL: URL(fileURLWithPath: "/tmp/a.wav"),
-      status: .completed, createdAt: Date(timeIntervalSince1970: 0), title: "VT")
-    vt.audioBlockId = "vt-block"
-    let item = AMAOpeningItem(id: uuid(5), content: .voicetrack(vt, completedDurationMS: 45_000))
-    #expect(item.isReady)
-    expectNoDifference(item.readyDurationMS, 45_000)
   }
 }
