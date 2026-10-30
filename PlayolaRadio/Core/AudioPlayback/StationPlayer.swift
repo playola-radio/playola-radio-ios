@@ -62,11 +62,24 @@ class StationPlayer: ObservableObject {
   /// start a backend or clobber newer state. Station equality alone can't tell
   /// two attempts for the same station apart.
   private var playToken = 0
+  private var resumingToken: Int?
 
   /// Claims and returns a fresh token for a new playback attempt.
-  private func beginPlaybackAttempt() -> Int {
+  func beginPlaybackAttempt() -> Int {
     playToken += 1
     return playToken
+  }
+
+  func beginResumeAttempt() -> Int? {
+    guard resumingToken == nil else { return nil }
+    let token = beginPlaybackAttempt()
+    resumingToken = token
+    return token
+  }
+
+  private func finishResumeAttempt(_ token: Int?) {
+    guard let token, resumingToken == token else { return }
+    resumingToken = nil
   }
 
   /// The currently playing radio station, if any
@@ -250,6 +263,12 @@ class StationPlayer: ObservableObject {
     return finishPlaybackAttempt(playbackAttempt, started: started)
   }
 
+  @discardableResult
+  func play(station: AnyStation, intentToken: Int) async -> Bool {
+    guard intentToken == playToken else { return false }
+    return await play(station: station)
+  }
+
   /// The renderer-selection seam (server-flagged, PlayolaPlayer 0.21.0+). Runs
   /// after `configureForPlayback()` (the session is set) and before the SDK
   /// `play()` — the backend locks at the first play, and `setRenderBackend` is a
@@ -308,6 +327,7 @@ class StationPlayer: ObservableObject {
   /// superseded this attempt and owns the current state.
   func handlePlayFailure(_ error: Error) {
     if error is CancellationError { return }
+    Task { await errorReporting.reportError(error, ["source": "playback_start"]) }
     setState(State(playbackStatus: .error))
   }
 
@@ -333,18 +353,61 @@ class StationPlayer: ObservableObject {
     }
   }
 
+  /// An explicit pause that must stick: the car / lock-screen Pause, or losing the
+  /// output route. Disarms interruption auto-resume and invalidates any in-flight
+  /// play()/resume() so it can't start audio after the pause. A start that hasn't
+  /// produced audio yet is stopped instead — there is nothing to pause, and Play
+  /// then restarts the persisted last station.
+  func pauseWithoutAutoResume() {
+    switch state.playbackStatus {
+    case .playing:
+      playToken += 1
+      pausedBySystem = false
+      pause()
+    case .paused:
+      let resumeInFlight = resumingToken == playToken
+      playToken += 1
+      pausedBySystem = false
+      if resumeInFlight {
+        // The SDK consumes its saved station before awaiting the engine restart, so
+        // pausing mid-resume can't be undone by a later SDK resume. Stopping makes
+        // Play restart the persisted last station instead.
+        stop()
+      } else {
+        pause()
+      }
+    case .loading, .startingNewStation:
+      stop()
+    case .stopped:
+      playToken += 1
+      pausedBySystem = false
+    case .error:
+      playToken += 1
+      pausedBySystem = false
+    }
+  }
+
   /// Resumes the active backend after an interruption. We own the session now,
   /// so reactivate it first; a failure surfaces as .error via handlePlayFailure.
-  func resume() async {
+  func resume(intentToken: Int? = nil) async {
     // Clearing here also covers the manual lock-screen resume path, so a stale
     // interruption-ended event can't trigger a second resume.
     pausedBySystem = false
+    defer { finishResumeAttempt(intentToken) }
     // Snapshot the station and claim a token: activation hops off the main actor
     // (see AudioSessionCoordinator), so this method suspends below. If a stop()
     // or another play()/resume() lands in that window, this resume is stale and
     // must not reactivate/resume against state the user has moved on from.
     guard let station = currentStation else { return }
-    let token = beginPlaybackAttempt()
+    let token: Int
+    if let intentToken {
+      guard intentToken == playToken, resumingToken == intentToken else { return }
+      token = intentToken
+    } else {
+      guard let claimedToken = beginResumeAttempt() else { return }
+      token = claimedToken
+    }
+    defer { finishResumeAttempt(token) }
     do {
       try await audioSessionCoordinator.configureForPlayback()
       guard token == playToken else { return }
@@ -553,9 +616,14 @@ extension StationPlayer.PlaybackStatus {
 extension StationPlayer: AudioInterruptionDelegate {
   /// The coordinator detected an interruption begin or a personal-listening
   /// route loss. Arm auto-resume only for interruptions (`shouldAutoResume`);
-  /// a route loss requires manual resume (lock-screen play), so we do not arm
-  /// the flag and a later unrelated `.shouldResume` cannot restart it.
+  /// a route loss is an explicit pause that requires manual resume (lock-screen
+  /// play), so it also cancels any in-flight start and a later unrelated
+  /// `.shouldResume` cannot restart it.
   func audioSessionShouldPause(shouldAutoResume: Bool) {
+    guard shouldAutoResume else {
+      pauseWithoutAutoResume()
+      return
+    }
     // Only arm auto-resume when we were actively playing. If we are already
     // paused (e.g. a prior route loss that requires manual resume), a later
     // interruption must not flip the flag back on — otherwise its `.shouldResume`
@@ -567,7 +635,7 @@ extension StationPlayer: AudioInterruptionDelegate {
     case .paused, .stopped, .error:
       wasActivelyPlaying = false
     }
-    pausedBySystem = shouldAutoResume && wasActivelyPlaying
+    pausedBySystem = wasActivelyPlaying
     pause()
   }
 
@@ -577,7 +645,11 @@ extension StationPlayer: AudioInterruptionDelegate {
   func audioSessionShouldResume() {
     guard pausedBySystem else { return }
     pausedBySystem = false
+    let token = playToken
     Task { @MainActor in
+      // An explicit pause in the meantime bumps the token even though the state
+      // is still .paused.
+      guard token == self.playToken else { return }
       // Re-check on the next turn: if the user switched stations or stopped
       // between the interruption ending and this Task running, we are no longer
       // paused and must not resume a superseded station/backend. Also bail if a

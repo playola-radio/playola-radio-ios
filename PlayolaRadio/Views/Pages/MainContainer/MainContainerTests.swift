@@ -14,6 +14,7 @@ import Dependencies
 import Foundation
 import IdentifiedCollections
 import PlayolaPlayer
+import SDWebImage
 import Sharing
 import Testing
 
@@ -1880,5 +1881,67 @@ extension MainContainerTests {
 
     expectNoDifference(isBroadcasterValues.value, [])
     #expect(!isBroadcaster)
+  }
+}
+
+@Suite(.serialized, .freshSharedState)
+@MainActor
+struct MainContainerImageMemoryTrimTests {
+  private func makeModelWithCachedImage(
+    key: String, player: StationPlayerMock = .mockStoppedPlayer()
+  ) -> MainContainerModel {
+    SDImageCache.shared.storeImage(toMemory: UIImage(), forKey: key)
+    return withDependencies {
+      $0.stationPlayer = player
+    } operation: {
+      MainContainerModel()
+    }
+  }
+
+  @Test
+  func testBackgroundedAndStoppedClearsImageMemoryCache() {
+    let key = "trim-test-background-stopped"
+    let model = makeModelWithCachedImage(key: key)
+
+    model.handleScenePhaseChange(.background)
+    model.processNewStationState(StationPlayer.State(playbackStatus: .stopped))
+
+    #expect(SDImageCache.shared.imageFromMemoryCache(forKey: key) == nil)
+  }
+
+  @Test
+  func testBackgroundedAndPlayingKeepsImageMemoryCache() {
+    let key = "trim-test-background-playing"
+    let model = makeModelWithCachedImage(key: key, player: .mockPlayingPlayer())
+
+    model.handleScenePhaseChange(.background)
+    model.processNewStationState(StationPlayer.State(playbackStatus: .playing(.mock)))
+
+    #expect(SDImageCache.shared.imageFromMemoryCache(forKey: key) != nil)
+    SDImageCache.shared.removeImageFromMemory(forKey: key)
+  }
+
+  @Test
+  func testActiveAndStoppedKeepsImageMemoryCache() {
+    let key = "trim-test-active-stopped"
+    let model = makeModelWithCachedImage(key: key)
+
+    model.handleScenePhaseChange(.active)
+    model.processNewStationState(StationPlayer.State(playbackStatus: .stopped))
+
+    #expect(SDImageCache.shared.imageFromMemoryCache(forKey: key) != nil)
+    SDImageCache.shared.removeImageFromMemory(forKey: key)
+  }
+
+  @Test
+  func testPausingWhileBackgroundedClearsImageMemoryCache() {
+    let key = "trim-test-background-paused"
+    let model = makeModelWithCachedImage(key: key)
+
+    model.handleScenePhaseChange(.background)
+    SDImageCache.shared.storeImage(toMemory: UIImage(), forKey: key)
+    model.processNewStationState(StationPlayer.State(playbackStatus: .paused(.mock)))
+
+    #expect(SDImageCache.shared.imageFromMemoryCache(forKey: key) == nil)
   }
 }

@@ -87,9 +87,15 @@ class NowPlayingUpdater {
   @ObservationIgnored @Shared(.lastPlayedStation) var persistedLastStation: LastPlayedStation?
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
 
+  private let launchedAt: Date
   private var disposeBag = Set<AnyCancellable>()
   var lastPlayedStation: AnyStation?
   private var currentArtworkURL: String?
+
+  /// Lock-screen / car artwork is drawn at a few hundred points; decoding the
+  /// full-resolution station image just to show it that small wastes memory the
+  /// system may reclaim by evicting the app while it sits idle in the background.
+  static let artworkMaxPixelSize: CGFloat = 600
 
   // Local source of truth for the now-playing dictionary. We never read
   // MPNowPlayingInfoCenter.default().nowPlayingInfo: that getter performs a
@@ -233,9 +239,9 @@ class NowPlayingUpdater {
       // Interruption pause OR a user Stop: keep the Now Playing entry and remote
       // controls alive so the lock-screen / car play button stays live and can
       // resume. Presented as `.paused` (never `.stopped`, which greys the button
-      // out). No teardown — the audio session is already released on Stop, and
-      // keeping the metadata + command handlers registered costs nothing. The
-      // command center is (re)registered so a cold-but-alive launch is resumable.
+      // out). No teardown — Stop never deactivates the audio session, and keeping
+      // the metadata + command handlers registered costs nothing. The command
+      // center is (re)registered so a cold-but-alive launch is resumable.
       setupRemoteControlCenter()
       MPNowPlayingInfoCenter.default().playbackState = .paused
     case .error:
@@ -363,7 +369,7 @@ class NowPlayingUpdater {
 
     // For CarPlay/Lock Screen: always use station image, ignore album artwork
     Task {
-      let image = await station.getImage()
+      let image = await station.getImage(maxPixelSize: Self.artworkMaxPixelSize)
       // Artwork loads asynchronously; a fast station switch can resolve a stale
       // image. Only apply it if this station is still the current one.
       guard self.isStillCurrent(station) else { return }
@@ -395,9 +401,10 @@ class NowPlayingUpdater {
   // When the updater is deallocated, `disposeBag` releases the cancellables
   // and the subscriptions are torn down — without `[weak self]` the strong
   // self/closure/disposeBag cycle would keep replaced updaters alive forever.
-  init(stationPlayer: StationPlayer? = nil) {
+  init(stationPlayer: StationPlayer? = nil, launchedAt: Date = Date()) {
     @Dependency(\.stationPlayer) var injectedStationPlayer
     self.stationPlayer = stationPlayer ?? injectedStationPlayer
+    self.launchedAt = launchedAt
     self.stationPlayer.$state
       .sink { [weak self] state in
         self?.updateNowPlaying(with: state)
@@ -420,6 +427,7 @@ class NowPlayingUpdater {
 
     commandCenter.stopCommand.removeTarget(nil)
     commandCenter.playCommand.removeTarget(nil)
+    commandCenter.pauseCommand.removeTarget(nil)
     commandCenter.nextTrackCommand.removeTarget(nil)
     commandCenter.previousTrackCommand.removeTarget(nil)
 
@@ -447,6 +455,13 @@ class NowPlayingUpdater {
       return .success
     }
 
+    // Pause command - the car / lock-screen Pause button on a live stream.
+    commandCenter.pauseCommand.isEnabled = true
+    commandCenter.pauseCommand.addTarget { [weak self] _ in
+      self?.stationPlayer.pauseWithoutAutoResume()
+      return .success
+    }
+
     // Play command - resume a station paused by an interruption, or restart the
     // durably persisted last station when stopped.
     commandCenter.playCommand.isEnabled = true
@@ -468,16 +483,39 @@ class NowPlayingUpdater {
       stationPlayer.stationLists.playableItem(
         stationId: station.id, unlocked: showSecretStations) != nil
     {
-      Task { @MainActor in await stationPlayer.resume() }
+      trackRemotePlayCommand(action: "resume")
+      guard let token = stationPlayer.beginResumeAttempt() else { return .success }
+      Task { @MainActor in await stationPlayer.resume(intentToken: token) }
       return .success
     }
     guard stationPlayer.currentStation == nil,
       let resumeStation = stationToResume()
-    else { return .commandFailed }
+    else {
+      trackRemotePlayCommand(action: "none")
+      return .commandFailed
+    }
+    trackRemotePlayCommand(action: "restart_last_station")
+    let token = stationPlayer.beginPlaybackAttempt()
     Task { @MainActor in
-      await stationPlayer.play(station: resumeStation)
+      await stationPlayer.play(station: resumeStation, intentToken: token)
     }
     return .success
+  }
+
+  private func trackRemotePlayCommand(action: String) {
+    let appState: String
+    switch UIApplication.shared.applicationState {
+    case .active: appState = "active"
+    case .inactive: appState = "inactive"
+    case .background: appState = "background"
+    @unknown default: appState = "unknown"
+    }
+    let event = AnalyticsEvent.remotePlayCommandReceived(
+      action: action,
+      appState: appState,
+      secondsSinceLaunch: Int(now.timeIntervalSince(launchedAt))
+    )
+    Task { await analytics.track(event) }
   }
 
   /// The persisted last Playola station, if the current catalog still lets this device play it.
@@ -495,6 +533,7 @@ class NowPlayingUpdater {
 
     // Remove all targets from commands
     commandCenter.playCommand.removeTarget(nil)
+    commandCenter.pauseCommand.removeTarget(nil)
     commandCenter.stopCommand.removeTarget(nil)
     commandCenter.nextTrackCommand.removeTarget(nil)
     commandCenter.previousTrackCommand.removeTarget(nil)
