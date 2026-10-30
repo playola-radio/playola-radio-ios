@@ -97,6 +97,7 @@ struct SongSearchPageTests {
       ]
 
       await withDependencies {
+        $0.api.searchSongRequests = { _, _ in [] }
         $0.continuousClock = clock
         $0.date = .constant(Date())
         $0.api.searchSongs = { _, _ in mockResults }
@@ -120,6 +121,7 @@ struct SongSearchPageTests {
       @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
       await withDependencies {
+        $0.api.searchSongRequests = { _, _ in [] }
         $0.continuousClock = clock
         $0.date = .constant(Date())
         $0.api.searchSongs = { _, _ in [AudioBlock.mockWith()] }
@@ -144,6 +146,7 @@ struct SongSearchPageTests {
       @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
       await withDependencies {
+        $0.api.searchSongRequests = { _, _ in [] }
         $0.continuousClock = clock
         $0.date = .constant(Date())
         $0.api.searchSongs = { _, _ in
@@ -192,6 +195,7 @@ struct SongSearchPageTests {
       let capturedKeywords = LockIsolated<String?>(nil)
 
       await withDependencies {
+        $0.api.searchSongRequests = { _, _ in [] }
         $0.continuousClock = clock
         $0.date = .constant(Date())
         $0.api.searchSongs = { _, keywords in
@@ -217,6 +221,7 @@ struct SongSearchPageTests {
       let capturedKeywords = LockIsolated<String?>(nil)
 
       await withDependencies {
+        $0.api.searchSongRequests = { _, _ in [] }
         $0.continuousClock = clock
         $0.date = .constant(Date())
         $0.api.searchSongs = { _, keywords in
@@ -242,6 +247,7 @@ struct SongSearchPageTests {
       let searchCount = LockIsolated(0)
 
       await withDependencies {
+        $0.api.searchSongRequests = { _, _ in [] }
         $0.continuousClock = clock
         $0.date = .constant(Date())
         $0.api.searchSongs = { _, _ in
@@ -271,6 +277,7 @@ struct SongSearchPageTests {
       let searchCount = LockIsolated(0)
 
       await withDependencies {
+        $0.api.searchSongRequests = { _, _ in [] }
         $0.continuousClock = clock
         $0.date = .constant(Date())
         $0.api.searchSongs = { _, _ in
@@ -300,6 +307,7 @@ struct SongSearchPageTests {
       let searchCount = LockIsolated(0)
 
       await withDependencies {
+        $0.api.searchSongRequests = { _, _ in [] }
         $0.continuousClock = clock
         $0.date = .constant(Date())
         $0.api.searchSongs = { _, _ in

@@ -80,6 +80,7 @@ struct AMAQuestionBadgeTests {
     @Shared(.amaShowStartTimes) var amaShowStartTimes = ["old-show": .distantPast]
     let startsAt = Self.now.addingTimeInterval(120)
     let model = withDependencies {
+      $0.api.stubLiveShowRefreshes()
       $0.date.now = Self.now
       $0.api.startLiveShow = { _, _, _ in
         StartLiveShowResponse(

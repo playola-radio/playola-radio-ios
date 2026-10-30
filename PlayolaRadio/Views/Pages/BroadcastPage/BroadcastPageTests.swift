@@ -520,6 +520,7 @@ struct BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in mockSpins }
       $0.api.moveSpin = { _, _, _ in reorderedSpins }
@@ -547,6 +548,7 @@ struct BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in mockSpins }
       $0.api.moveSpin = { _, _, _ in reorderedSpins }
@@ -595,6 +597,7 @@ struct BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in mockSpins }
       $0.api.moveSpin = { _, _, _ in reorderedSpins }
@@ -621,6 +624,7 @@ struct BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in mockSpins }
     } operation: {
@@ -643,6 +647,7 @@ struct BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in mockSpins }
       $0.api.moveSpin = { _, spinId, placeAfter in
@@ -667,6 +672,7 @@ struct BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in mockSpins }
       $0.api.moveSpin = { _, spinId, placeAfter in
@@ -694,6 +700,7 @@ struct BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in mockSpins }
     } operation: {
@@ -716,6 +723,7 @@ struct BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in mockSpins }
       $0.api.moveSpin = { _, spinId, placeAfter in
@@ -743,6 +751,7 @@ struct BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in mockSpins }
       $0.api.deleteSpin = { _, spinId in
@@ -772,6 +781,7 @@ struct BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in mockSpins }
       $0.api.deleteSpin = { _, spinId in
@@ -978,6 +988,7 @@ struct BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in mockSpins }
       $0.api.moveSpin = { _, _, _ in reorderedSpins }
@@ -1064,6 +1075,7 @@ extension BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.moveSpin = { _, spinId, placeAfterSpinId in
@@ -1092,6 +1104,7 @@ extension BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.moveSpin = { _, spinId, placeAfterSpinId in
@@ -1128,6 +1141,7 @@ extension BroadcastPageTests {
     let started = AsyncStream<Void>.makeStream()
     let finish = AsyncStream<Void>.makeStream()
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.moveSpin = { _, _, _ in
@@ -1155,6 +1169,7 @@ extension BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.moveSpin = { _, _, _ in
@@ -1181,6 +1196,7 @@ extension BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.moveSpin = { _, _, _ in
@@ -1210,6 +1226,7 @@ extension BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.deleteSpin = { _, spinId in
@@ -1238,6 +1255,7 @@ extension BroadcastPageTests {
     let deleteContinuation = LockIsolated<CheckedContinuation<Void, Never>?>(nil)
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.deleteSpin = { _, _ in
@@ -1279,6 +1297,7 @@ extension BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.deleteSpin = { _, _ in
@@ -1305,6 +1324,7 @@ extension BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.deleteSpin = { _, _ in
@@ -1337,6 +1357,7 @@ extension BroadcastPageTests {
     let capturedPlaceAfterSpinId = LockIsolated<String?>(nil)
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.insertSpin = { _, audioBlockId, placeAfterSpinId in
@@ -1366,6 +1387,7 @@ extension BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.insertSpin = { _, _, _ in initialSpins }
@@ -1391,6 +1413,7 @@ extension BroadcastPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.insertSpin = { _, _, _ in updatedSpins }
@@ -1423,6 +1446,7 @@ extension BroadcastPageTests {
     let capturedPlaceAfterSpinId = LockIsolated<String?>(nil)
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in allSpins }
       $0.api.insertSpin = { _, _, placeAfterSpinId in
@@ -1455,6 +1479,7 @@ extension BroadcastPageTests {
     let insertContinuation = LockIsolated<CheckedContinuation<[Spin], Never>?>(nil)
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in initialSpins }
       $0.api.insertSpin = { _, _, _ in
@@ -1503,6 +1528,7 @@ extension BroadcastPageTests {
     let apiWasCalled = LockIsolated(false)
 
     await withDependencies {
+      $0.api.fetchStation = { _, _ in nil }
       $0.date.now = fixedNow
       $0.api.fetchSchedule = { _, _ in upcomingSpins }
       $0.api.insertSpin = { _, _, _ in
