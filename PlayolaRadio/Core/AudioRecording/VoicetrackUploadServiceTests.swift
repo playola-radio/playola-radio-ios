@@ -156,4 +156,58 @@ struct VoicetrackUploadServiceTests {
 
     #expect(capturedS3Key.value == s3KeyWithSlashes)
   }
+
+  @Test
+  func testProcessVoicetrackWaitsLongerForLongerRecordingsThenTimesOut() async throws {
+    let statusChecks = LockIsolated(0)
+    let createCalls = LockIsolated(0)
+    let voicetrack = createTestVoicetrack()
+
+    let service = withDependencies {
+      $0.continuousClock = NonYieldingClock()
+      $0.audioConverter = .testValue
+      $0.audioConverter.getDuration = { _ in 600_000 }
+      $0.api.getVoicetrackPresignedURL = { _, _ in
+        PresignedURLResponse(
+          presignedUrl: URL(string: "https://intake.s3.amazonaws.com/test.m4a")!,
+          s3Key: "test.m4a",
+          voicetrackUrl: URL(string: "https://voicetracks.s3.amazonaws.com/test.m4a")!
+        )
+      }
+      $0.api.uploadToS3 = { _, _, _, _ in }
+      $0.api.getVoicetrackStatus = { _, _, s3Key in
+        statusChecks.withValue { $0 += 1 }
+        return VoicetrackStatusResponse(ready: false, s3Key: s3Key)
+      }
+      $0.api.createVoicetrack = { _, _, _, _ in
+        createCalls.withValue { $0 += 1 }
+        return AudioBlock.mockWith()
+      }
+    } operation: {
+      VoicetrackUploadService.liveValue
+    }
+
+    await #expect(throws: VoicetrackUploadError.normalizationTimeout) {
+      _ = try await service.processVoicetrack(voicetrack, testStationId, testJwtToken) { _ in }
+    }
+
+    // 2 minutes of headroom plus the 10-minute recording, polled every 2 seconds
+    #expect(statusChecks.value == 360)
+    #expect(createCalls.value == 0)
+  }
+}
+
+/// Sleeps return immediately without yielding, so a poll loop with hundreds of iterations finishes
+/// instantly (`ImmediateClock` yields on every sleep, which made this test take over a minute).
+private struct NonYieldingClock: Clock {
+  struct Instant: InstantProtocol {
+    var offset: Duration = .zero
+    func advanced(by duration: Duration) -> Self { Self(offset: offset + duration) }
+    func duration(to other: Self) -> Duration { other.offset - offset }
+    static func < (lhs: Self, rhs: Self) -> Bool { lhs.offset < rhs.offset }
+  }
+
+  var now: Instant { Instant() }
+  var minimumResolution: Duration { .zero }
+  func sleep(until deadline: Instant, tolerance: Duration?) async throws {}
 }

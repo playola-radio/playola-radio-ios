@@ -396,6 +396,33 @@ struct AMAAnswerQuestionPageTests {
     expectNoDifference(model.recordingURL, recordingURL)
   }
 
+  @Test func recordingContinuesPastTwoMinutesUntilTheHostStops() async {
+    await withMainSerialExecutor {
+      let onStateChange = LockIsolated<(@MainActor @Sendable (RecordingState) -> Void)?>(nil)
+      let model = withDependencies {
+        $0.audioRecorder.startRecordingWithUpdates = { callback in
+          onStateChange.setValue(callback)
+          return RecordingSession(stop: { self.recordingURL }, cancel: {}, delete: { _ in })
+        }
+      } operation: {
+        AMAAnswerQuestionPageModel(question: .mock, addToShow: noopAdd)
+      }
+
+      await model.recordButtonTapped()
+      onStateChange.value?(
+        RecordingState(currentTime: 300, waveformSamples: [], isRecording: true))
+      await Task.megaYield()
+
+      expectNoDifference(model.recordingPhase, .recording)
+      expectNoDifference(model.recordingTimeText, "5:00")
+
+      await model.recordButtonTapped()
+
+      expectNoDifference(model.recordingPhase, .review)
+      expectNoDifference(model.answerDurationText, "5:00")
+    }
+  }
+
   @Test func reRecordingDeletesTheCompletedRecording() async {
     let deleted = LockIsolated<[URL]>([])
     let model = withDependencies {

@@ -88,7 +88,6 @@ class AMAAnswerQuestionPageModel: ViewModel {
   let question: ListenerQuestion
   let mode: AMAAnswerMode
   @ObservationIgnored let addToShow: @MainActor (AMAQuestionAnswer) async throws -> Void
-  let maxAnswerSeconds: TimeInterval = 120
 
   @ObservationIgnored private var playbackLifecycle = 0
 
@@ -137,7 +136,6 @@ class AMAAnswerQuestionPageModel: ViewModel {
   let questionSectionTitle = "QUESTION"
   let responseSectionTitle = "YOUR RESPONSE"
   let idleInstruction = "Tap the mic to record your response"
-  let idleMaxLength = "Up to 2:00"
   let idleRecordLabel = "Tap to start recording"
   let recordingLabel = "Recording"
   let stopRecordingLabel = "Stop recording"
@@ -243,19 +241,12 @@ class AMAAnswerQuestionPageModel: ViewModel {
 
   // MARK: - Recording Display
 
-  var recordingTimeText: String {
-    "\(formatTime(recordingState.currentTime)) / \(formatTime(maxAnswerSeconds))"
-  }
+  var recordingTimeText: String { formatTime(recordingState.currentTime) }
 
   // MARK: - Review Display
 
   var reviewStatusText: String { mode == .reviewAnswer ? "Your recorded answer" : reviewLabel }
-  var answerDurationText: String {
-    switch mode {
-    case .record: return "\(formatTime(answerDurationSeconds)) / \(formatTime(maxAnswerSeconds))"
-    case .reviewAnswer: return formatTime(answerDurationSeconds)
-    }
-  }
+  var answerDurationText: String { formatTime(answerDurationSeconds) }
 
   var answerPlayButtonIcon: String {
     answerPlaybackState.isPlaying ? "pause.fill" : "play.fill"
@@ -537,9 +528,6 @@ class AMAAnswerQuestionPageModel: ViewModel {
         for await state in updates {
           guard let self, !Task.isCancelled else { return }
           recordingState = state
-          if recordingPhase == .recording, state.currentTime >= maxAnswerSeconds {
-            await stopRecording()
-          }
         }
       }
     } catch AudioRecorderError.permissionDenied {
@@ -581,7 +569,7 @@ class AMAAnswerQuestionPageModel: ViewModel {
         return
       }
       recordingURL = url
-      answerDurationSeconds = min(recordedSeconds, maxAnswerSeconds)
+      answerDurationSeconds = recordedSeconds
       recordingSession = nil
       recordingPhase = .review
     } catch {

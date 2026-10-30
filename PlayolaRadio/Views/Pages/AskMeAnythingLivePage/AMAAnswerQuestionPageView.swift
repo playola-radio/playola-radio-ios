@@ -265,13 +265,8 @@ struct AMAAnswerQuestionPageView: View {
 
   private var idleResponse: some View {
     VStack(spacing: 10) {
-      VStack(spacing: 8) {
-        Text(model.idleInstruction)
-          .font(.custom(FontNames.Inter_500_Medium, size: 14))
-        Text(model.idleMaxLength)
-          .font(.custom(FontNames.Inter_400_Regular, size: 12))
-          .foregroundStyle(Color.playolaTextSecondary)
-      }
+      Text(model.idleInstruction)
+        .font(.custom(FontNames.Inter_500_Medium, size: 14))
 
       Button {
         Task { await model.recordButtonTapped() }

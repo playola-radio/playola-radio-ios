@@ -25,6 +25,7 @@ extension VoicetrackUploadService: DependencyKey {
   static var liveValue: VoicetrackUploadService {
     @Dependency(\.audioConverter) var audioConverter
     @Dependency(\.api) var api
+    @Dependency(\.continuousClock) var clock
 
     return VoicetrackUploadService(
       processVoicetrack: { voicetrack, stationId, jwtToken, onStatusChange in
@@ -48,23 +49,26 @@ extension VoicetrackUploadService: DependencyKey {
           }
         }
 
-        // Step 4: Wait for normalization to complete
+        // Step 4: Wait for normalization to complete. Processing time grows with the
+        // recording's length, so long recordings get proportionally more time.
         await onStatusChange(.normalizing)
-        let maxWaitTimeSeconds = 120
-        let pollIntervalSeconds: UInt64 = 2
-        let startTime = Date()
+        let maxWait = Duration.seconds(120) + .milliseconds(durationMS)
+        let pollInterval = Duration.seconds(2)
+        var waited = Duration.zero
+        var isReady = false
 
-        while Date().timeIntervalSince(startTime) < Double(maxWaitTimeSeconds) {
-          let status = try await api.getVoicetrackStatus(
+        while !isReady, waited < maxWait {
+          isReady = try await api.getVoicetrackStatus(
             jwtToken,
             stationId,
             presignedResponse.s3Key
-          )
-          if status.ready {
-            break
+          ).ready
+          if !isReady {
+            try await clock.sleep(for: pollInterval)
+            waited += pollInterval
           }
-          try await Task.sleep(nanoseconds: pollIntervalSeconds * 1_000_000_000)
         }
+        guard isReady else { throw VoicetrackUploadError.normalizationTimeout }
 
         // Step 5: Create voicetrack
         await onStatusChange(.finalizing)
@@ -82,6 +86,17 @@ extension VoicetrackUploadService: DependencyKey {
         return audioBlock
       }
     )
+  }
+}
+
+enum VoicetrackUploadError: Error, LocalizedError {
+  case normalizationTimeout
+
+  var errorDescription: String? {
+    switch self {
+    case .normalizationTimeout:
+      return "Audio processing is taking longer than expected. Please try again."
+    }
   }
 }
 
