@@ -156,4 +156,35 @@ struct VoicetrackUploadServiceTests {
 
     #expect(capturedS3Key.value == s3KeyWithSlashes)
   }
+
+  @Test
+  func testProcessVoicetrackRemovesConvertedFileWhenUploadIsCancelled() async throws {
+    let m4aURL = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString)
+      .appendingPathExtension("m4a")
+    try Data().write(to: m4aURL)
+
+    let service = withDependencies {
+      $0.audioConverter.convertToM4A = { _ in m4aURL }
+      $0.audioConverter.getDuration = { _ in 1000 }
+      $0.api.getVoicetrackPresignedURL = { _, _ in
+        PresignedURLResponse(
+          presignedUrl: URL(string: "https://intake.s3.amazonaws.com/test.m4a")!,
+          s3Key: "test.m4a",
+          voicetrackUrl: URL(string: "https://voicetracks.s3.amazonaws.com/test.m4a")!
+        )
+      }
+      $0.api.uploadToS3 = { _, _, _, _ in throw CancellationError() }
+    } operation: {
+      VoicetrackUploadService.liveValue
+    }
+
+    await #expect(throws: CancellationError.self) {
+      try await service.processVoicetrack(createTestVoicetrack(), testStationId, testJwtToken) {
+        _ in
+      }
+    }
+
+    #expect(!FileManager.default.fileExists(atPath: m4aURL.path()))
+  }
 }
