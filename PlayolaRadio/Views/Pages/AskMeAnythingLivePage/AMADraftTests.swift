@@ -153,7 +153,6 @@ struct AMADraftTests {
       $0.api.stubLiveShowRefreshes()
       $0.uuid = .incrementing
       $0.date.now = Date(timeIntervalSince1970: 1_000_000)
-      $0.api.fetchSchedule = { _, _ in [] }
       $0.audioRecorder.deleteRecording = { url in deleted.withValue { $0.append(url) } }
       $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, status in
         let attempt = attempts.withValue {

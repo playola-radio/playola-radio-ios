@@ -264,7 +264,6 @@ struct AskMeAnythingLivePageTests {
       $0.api.startLiveShow = { _, _, _ in
         throw URLError(.networkConnectionLost)
       }
-      $0.api.fetchSchedule = { _, _ in [] }
     } operation: {
       let model = AskMeAnythingLivePageModel(stationId: testStationId)
       model.openingItems.append(introItem(durationMS: 600_000))

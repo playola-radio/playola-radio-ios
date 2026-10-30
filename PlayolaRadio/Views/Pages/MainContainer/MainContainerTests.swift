@@ -765,7 +765,6 @@ struct MainContainerTests {
       $0.api.getStations = {
         throw TestError()
       }
-      $0.api.getAirings = { _, _ in [] }
       $0.analytics.track = { @Sendable event in
         capturedEvents.withValue { $0.append(event) }
       }
@@ -795,8 +794,6 @@ struct MainContainerTests {
 
     let mainContainerModel = withDependencies {
       $0.api.stubMainContainerRefreshes()
-      $0.api.getStations = { [] }
-      $0.api.getAirings = { _, _ in [] }
       $0.api.getSupportConversation = { _ in
         getSupportConversationCallCount.withValue { $0 += 1 }
         return SupportConversationResponse(
@@ -836,7 +833,6 @@ struct MainContainerTests {
 
     let mainContainerModel = withDependencies {
       $0.api.stubMainContainerRefreshes()
-      $0.api.getStations = { [] }
       $0.api.getAirings = { _, _ in
         throw TestError()
       }
@@ -1812,7 +1808,6 @@ extension MainContainerTests {
     let mainContainerModel = withDependencies {
       $0.api.stubMainContainerRefreshes()
       $0.api.getStations = { StationList.mocks }
-      $0.api.getAirings = { _, _ in [] }
       $0.pushNotifications.registerForRemoteNotifications = {}
       $0.analytics.identify = { userId in identifiedIds.withValue { $0.append(userId) } }
     } operation: {
