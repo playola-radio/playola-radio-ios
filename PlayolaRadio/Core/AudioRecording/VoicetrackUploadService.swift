@@ -32,6 +32,7 @@ extension VoicetrackUploadService: DependencyKey {
         // Step 1: Convert .wav to .m4a
         await onStatusChange(.converting)
         let m4aURL = try await audioConverter.convertToM4A(voicetrack.originalURL)
+        defer { try? FileManager.default.removeItem(at: m4aURL) }
         let durationMS = try await audioConverter.getDuration(m4aURL)
 
         // Step 2: Get presigned URL
@@ -53,22 +54,13 @@ extension VoicetrackUploadService: DependencyKey {
         // recording's length, so long recordings get proportionally more time.
         await onStatusChange(.normalizing)
         let maxWait = Duration.seconds(120) + .milliseconds(durationMS)
-        let pollInterval = Duration.seconds(2)
-        var waited = Duration.zero
-        var isReady = false
-
-        while !isReady, waited < maxWait {
-          isReady = try await api.getVoicetrackStatus(
+        try await waitForNormalization(clock: clock, maxWait: maxWait) {
+          try await api.getVoicetrackStatus(
             jwtToken,
             stationId,
             presignedResponse.s3Key
           ).ready
-          if !isReady {
-            try await clock.sleep(for: pollInterval)
-            waited += pollInterval
-          }
         }
-        guard isReady else { throw VoicetrackUploadError.normalizationTimeout }
 
         // Step 5: Create voicetrack
         await onStatusChange(.finalizing)
@@ -79,12 +71,34 @@ extension VoicetrackUploadService: DependencyKey {
           durationMS
         )
 
-        // Step 5: Cleanup temp files
-        try? FileManager.default.removeItem(at: m4aURL)
-
         await onStatusChange(.completed)
         return audioBlock
       }
+    )
+  }
+}
+
+private func waitForNormalization<C: Clock>(
+  clock: C,
+  maxWait: Duration,
+  getStatus: @Sendable () async throws -> Bool
+) async throws where C.Duration == Duration {
+  let deadline = clock.now.advanced(by: maxWait)
+  let pollInterval = Duration.seconds(2)
+
+  while true {
+    if try await getStatus() {
+      return
+    }
+
+    let now = clock.now
+    guard now < deadline else {
+      throw VoicetrackUploadError.normalizationTimeout
+    }
+
+    try await clock.sleep(
+      until: min(now.advanced(by: pollInterval), deadline),
+      tolerance: nil
     )
   }
 }
