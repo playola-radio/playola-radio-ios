@@ -43,9 +43,6 @@ struct ContentView: View {
         SignInPage(model: SignInPageModel())
       }
     }
-    .onChange(of: mainContainerModel.shouldShowUpsideDown) {
-      Task { await mainContainerModel.upsideDownFlowVisibilityChanged() }
-    }
     .playolaAlert($versionGate.presentedAlert)
     .task {
       await versionGate.checkVersionRequirements()
