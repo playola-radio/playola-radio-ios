@@ -55,9 +55,13 @@ struct RecordPageView: View {
         }
       }
     }
+    .flipToRecordOverlay(model.flipToRecord)
     .alert(item: $model.presentedAlert) { $0.alert }
     .task {
       await model.viewAppeared()
+    }
+    .onDisappear {
+      Task { await model.viewDisappeared() }
     }
   }
 
