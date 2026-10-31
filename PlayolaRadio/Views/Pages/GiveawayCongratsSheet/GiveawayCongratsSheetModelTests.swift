@@ -277,6 +277,10 @@ struct GiveawayCongratsSheetModelTests {
     // RIFF / WAVE magic bytes.
     try Data([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x41, 0x56, 0x45]).write(to: source)
     let model = withDependencies {
+      $0.audioRecorder.requestPermission = { true }
+      $0.audioRecorder.startRecording = {}
+      $0.audioRecorder.currentTime = { 0 }
+      $0.audioRecorder.getAudioLevel = { 0 }
       $0.audioRecorder.stopRecording = { source }
       $0.audioPlayer.loadFile = { _ in }
       $0.audioPlayer.duration = { 5 }
@@ -284,6 +288,7 @@ struct GiveawayCongratsSheetModelTests {
     } operation: {
       GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
     }
+    await model.onRecordTapped()
     await model.onStopTapped()
     // Renaming WAV bytes to `.m4a` makes AVAssetExportSession fail ("Audio conversion failed") on
     // every Send — the persisted file must keep the recorder's container extension.
@@ -308,6 +313,10 @@ struct GiveawayCongratsSheetModelTests {
       .appendingPathComponent("voicetrack_\(UUID().uuidString)")
     try Data([0, 0, 0, 0x18, 0x66, 0x74, 0x79, 0x70, 0x4D, 0x34, 0x41, 0x20]).write(to: source)
     let model = withDependencies {
+      $0.audioRecorder.requestPermission = { true }
+      $0.audioRecorder.startRecording = {}
+      $0.audioRecorder.currentTime = { 0 }
+      $0.audioRecorder.getAudioLevel = { 0 }
       $0.audioRecorder.stopRecording = { source }
       $0.audioPlayer.loadFile = { _ in }
       $0.audioPlayer.duration = { 5 }
@@ -315,6 +324,7 @@ struct GiveawayCongratsSheetModelTests {
     } operation: {
       GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
     }
+    await model.onRecordTapped()
     await model.onStopTapped()
     #expect(model.recordingURL?.pathExtension == "m4a")
     if let url = model.recordingURL { try? FileManager.default.removeItem(at: url) }
@@ -335,6 +345,10 @@ struct GiveawayCongratsSheetModelTests {
       .appendingPathComponent("voicetrack_\(UUID().uuidString).mov")
     try Data([0, 0, 0, 0x14, 0x66, 0x74, 0x79, 0x70, 0x71, 0x74, 0x20, 0x20]).write(to: source)
     let model = withDependencies {
+      $0.audioRecorder.requestPermission = { true }
+      $0.audioRecorder.startRecording = {}
+      $0.audioRecorder.currentTime = { 0 }
+      $0.audioRecorder.getAudioLevel = { 0 }
       $0.audioRecorder.stopRecording = { source }
       $0.audioPlayer.loadFile = { _ in }
       $0.audioPlayer.duration = { 5 }
@@ -342,6 +356,7 @@ struct GiveawayCongratsSheetModelTests {
     } operation: {
       GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
     }
+    await model.onRecordTapped()
     await model.onStopTapped()
     // Unrecognized container falls back to the source extension — never silently renamed `.m4a`.
     #expect(model.recordingURL?.pathExtension == "mov")
@@ -427,5 +442,73 @@ struct GiveawayCongratsSheetModelTests {
     await model.skipButtonTapped()
     #expect(stopped.value)
     expectNoDifference(actions["e1"]?.state, CongratsActionState.skipped)
+  }
+
+  @Test func recordTappedWithBuiltInMicAsksToFlipInsteadOfRecording() async {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock {
+      $0 = [
+        "e1": CongratsAction(
+          eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
+          state: .pending, startedAt: Date())
+      ]
+    }
+    let startRecordingCalled = LockIsolated(false)
+
+    await withMainSerialExecutor {
+      let model = withDependencies {
+        $0.audioRecorder.requestPermission = { true }
+        $0.audioRecorder.usesExternalMicrophone = { false }
+        $0.audioRecorder.startRecording = { startRecordingCalled.setValue(true) }
+        $0.devicePose.updates = { AsyncStream { $0.finish() } }
+      } operation: {
+        GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
+      }
+
+      await model.onRecordTapped()
+      await Task.megaYield()
+
+      expectNoDifference(model.flipToRecord.phase, .prompting)
+      #expect(!startRecordingCalled.value)
+      #expect(model.recordingPhase == .idle)
+    }
+  }
+
+  @Test func secondStopDoesNotStopTheRecorderAgain() async throws {
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
+    $actions.withLock {
+      $0 = [
+        "e1": CongratsAction(
+          eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
+          state: .pending, startedAt: Date())
+      ]
+    }
+    let source = FileManager.default.temporaryDirectory
+      .appendingPathComponent("voicetrack_\(UUID().uuidString).wav")
+    try Data([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x41, 0x56, 0x45]).write(to: source)
+    let stopCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.audioRecorder.requestPermission = { true }
+      $0.audioRecorder.startRecording = {}
+      $0.audioRecorder.currentTime = { 0 }
+      $0.audioRecorder.getAudioLevel = { 0 }
+      $0.audioRecorder.stopRecording = {
+        stopCount.withValue { $0 += 1 }
+        return source
+      }
+      $0.audioPlayer.loadFile = { _ in }
+      $0.audioPlayer.duration = { 1 }
+    } operation: {
+      GiveawayCongratsSheetModel(action: actions["e1"]!, onClose: {})
+    }
+    await model.onRecordTapped()
+
+    await model.onStopTapped()
+    await model.onStopTapped()
+
+    #expect(stopCount.value == 1)
+    #expect(model.presentedAlert == nil)
+    if let url = model.recordingURL { try? FileManager.default.removeItem(at: url) }
+    try? FileManager.default.removeItem(at: source)
   }
 }
