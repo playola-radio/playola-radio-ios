@@ -396,6 +396,54 @@ struct AMAAnswerQuestionPageTests {
     expectNoDifference(model.recordingURL, recordingURL)
   }
 
+  @Test func recordButtonTappedWithBuiltInMicAsksToFlipInsteadOfRecording() async {
+    let startCalled = LockIsolated(false)
+
+    await withMainSerialExecutor {
+      let model = withDependencies {
+        $0.audioRecorder.usesExternalMicrophone = { false }
+        $0.audioRecorder.requestPermission = { true }
+        $0.audioRecorder.startRecordingWithUpdates = { _ in
+          startCalled.setValue(true)
+          return RecordingSession(stop: { self.recordingURL }, cancel: {}, delete: { _ in })
+        }
+        $0.devicePose.updates = { AsyncStream { $0.finish() } }
+      } operation: {
+        AMAAnswerQuestionPageModel(question: .mock, addToShow: noopAdd)
+      }
+
+      await model.recordButtonTapped()
+      await Task.megaYield()
+
+      expectNoDifference(model.flipToRecord.phase, .prompting)
+      #expect(!startCalled.value)
+      expectNoDifference(model.recordingPhase, .idle)
+    }
+  }
+
+  @Test func secondStopDoesNotStopTheRecorderAgain() async {
+    let stopCalls = LockIsolated(0)
+    let model = withDependencies {
+      $0.audioRecorder.startRecordingWithUpdates = { _ in
+        RecordingSession(
+          stop: {
+            stopCalls.withValue { $0 += 1 }
+            return self.recordingURL
+          }, cancel: {}, delete: { _ in })
+      }
+    } operation: {
+      AMAAnswerQuestionPageModel(question: .mock, addToShow: noopAdd)
+    }
+    await model.recordButtonTapped()
+
+    await model.recordButtonTapped()
+    await model.flipToRecord.stop()
+
+    expectNoDifference(stopCalls.value, 1)
+    expectNoDifference(model.recordingPhase, .review)
+    #expect(model.presentedAlert == nil)
+  }
+
   @Test func reRecordingDeletesTheCompletedRecording() async {
     let deleted = LockIsolated<[URL]>([])
     let model = withDependencies {
