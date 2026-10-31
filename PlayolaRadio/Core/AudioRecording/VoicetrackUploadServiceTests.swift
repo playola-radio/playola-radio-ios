@@ -6,6 +6,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -39,6 +40,7 @@ struct VoicetrackUploadServiceTests {
     let s3KeyWithSlash = "station123/mock-uuid.m4a"
 
     let service = withDependencies {
+      $0.continuousClock = AdvancingClock()
       $0.audioConverter = .testValue
       $0.api.getVoicetrackPresignedURL = { _, _ in
         PresignedURLResponse(
@@ -73,6 +75,7 @@ struct VoicetrackUploadServiceTests {
     let voicetrack = createTestVoicetrack()
 
     let service = withDependencies {
+      $0.continuousClock = AdvancingClock()
       $0.audioConverter = .testValue
       $0.api.getVoicetrackPresignedURL = { _, _ in
         PresignedURLResponse(
@@ -130,6 +133,7 @@ struct VoicetrackUploadServiceTests {
     let capturedS3Key = LockIsolated<String?>(nil)
 
     let service = withDependencies {
+      $0.continuousClock = AdvancingClock()
       $0.audioConverter = .testValue
       $0.api.getVoicetrackPresignedURL = { _, _ in
         PresignedURLResponse(
@@ -155,5 +159,113 @@ struct VoicetrackUploadServiceTests {
     ) { _ in }
 
     #expect(capturedS3Key.value == s3KeyWithSlashes)
+  }
+
+  @Test
+  func testProcessVoicetrackWaitsLongerForLongerRecordingsThenTimesOut() async throws {
+    let clock = AdvancingClock()
+    let statusChecks = LockIsolated(0)
+    let createCalls = LockIsolated(0)
+    let voicetrack = createTestVoicetrack()
+
+    let service = withDependencies {
+      $0.continuousClock = clock
+      $0.audioConverter = .testValue
+      $0.audioConverter.getDuration = { _ in 600_000 }
+      $0.api.getVoicetrackPresignedURL = { _, _ in
+        PresignedURLResponse(
+          presignedUrl: URL(string: "https://intake.s3.amazonaws.com/test.m4a")!,
+          s3Key: "test.m4a",
+          voicetrackUrl: URL(string: "https://voicetracks.s3.amazonaws.com/test.m4a")!
+        )
+      }
+      $0.api.uploadToS3 = { _, _, _, _ in }
+      $0.api.getVoicetrackStatus = { _, _, s3Key in
+        statusChecks.withValue { $0 += 1 }
+        return VoicetrackStatusResponse(ready: false, s3Key: s3Key)
+      }
+      $0.api.createVoicetrack = { _, _, _, _ in
+        createCalls.withValue { $0 += 1 }
+        return AudioBlock.mockWith()
+      }
+    } operation: {
+      VoicetrackUploadService.liveValue
+    }
+
+    await #expect(throws: VoicetrackUploadError.normalizationTimeout) {
+      _ = try await service.processVoicetrack(voicetrack, testStationId, testJwtToken) { _ in }
+    }
+
+    // 2 minutes of headroom plus the 10-minute recording, polled every 2 seconds, including
+    // one final status check at the deadline.
+    expectNoDifference(statusChecks.value, 361)
+    expectNoDifference(createCalls.value, 0)
+  }
+
+  @Test
+  func testProcessVoicetrackCountsStatusRequestTimeTowardTimeout() async throws {
+    let clock = AdvancingClock()
+    let statusChecks = LockIsolated(0)
+    let createCalls = LockIsolated(0)
+    let voicetrack = createTestVoicetrack()
+    let convertedURL = FileManager.default.temporaryDirectory.appendingPathComponent(
+      UUID().uuidString + ".m4a")
+    try Data().write(to: convertedURL)
+
+    let service = withDependencies {
+      $0.continuousClock = clock
+      $0.audioConverter = .testValue
+      $0.audioConverter.convertToM4A = { _ in convertedURL }
+      $0.audioConverter.getDuration = { _ in 600_000 }
+      $0.api.getVoicetrackPresignedURL = { _, _ in
+        PresignedURLResponse(
+          presignedUrl: URL(string: "https://intake.s3.amazonaws.com/test.m4a")!,
+          s3Key: "test.m4a",
+          voicetrackUrl: URL(string: "https://voicetracks.s3.amazonaws.com/test.m4a")!
+        )
+      }
+      $0.api.uploadToS3 = { _, _, _, _ in }
+      $0.api.getVoicetrackStatus = { _, _, s3Key in
+        statusChecks.withValue { $0 += 1 }
+        clock.advance(by: .seconds(10))
+        return VoicetrackStatusResponse(ready: false, s3Key: s3Key)
+      }
+      $0.api.createVoicetrack = { _, _, _, _ in
+        createCalls.withValue { $0 += 1 }
+        return AudioBlock.mockWith()
+      }
+    } operation: {
+      VoicetrackUploadService.liveValue
+    }
+
+    await #expect(throws: VoicetrackUploadError.normalizationTimeout) {
+      _ = try await service.processVoicetrack(voicetrack, testStationId, testJwtToken) { _ in }
+    }
+
+    expectNoDifference(statusChecks.value, 61)
+    expectNoDifference(createCalls.value, 0)
+    expectNoDifference(FileManager.default.fileExists(atPath: convertedURL.path), false)
+  }
+}
+
+/// Time advances immediately without yielding, so polling tests stay fast and exercise deadlines.
+private final class AdvancingClock: Clock, @unchecked Sendable {
+  struct Instant: InstantProtocol {
+    var offset: Duration = .zero
+    func advanced(by duration: Duration) -> Self { Self(offset: offset + duration) }
+    func duration(to other: Self) -> Duration { other.offset - offset }
+    static func < (lhs: Self, rhs: Self) -> Bool { lhs.offset < rhs.offset }
+  }
+
+  private let currentInstant = LockIsolated(Instant())
+
+  var now: Instant { currentInstant.value }
+  var minimumResolution: Duration { .zero }
+  func sleep(until deadline: Instant, tolerance: Duration?) async throws {
+    currentInstant.withValue { $0 = max($0, deadline) }
+  }
+
+  func advance(by duration: Duration) {
+    currentInstant.withValue { $0 = $0.advanced(by: duration) }
   }
 }

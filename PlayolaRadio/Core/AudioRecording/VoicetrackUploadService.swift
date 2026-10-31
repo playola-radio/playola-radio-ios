@@ -25,12 +25,14 @@ extension VoicetrackUploadService: DependencyKey {
   static var liveValue: VoicetrackUploadService {
     @Dependency(\.audioConverter) var audioConverter
     @Dependency(\.api) var api
+    @Dependency(\.continuousClock) var clock
 
     return VoicetrackUploadService(
       processVoicetrack: { voicetrack, stationId, jwtToken, onStatusChange in
         // Step 1: Convert .wav to .m4a
         await onStatusChange(.converting)
         let m4aURL = try await audioConverter.convertToM4A(voicetrack.originalURL)
+        defer { try? FileManager.default.removeItem(at: m4aURL) }
         let durationMS = try await audioConverter.getDuration(m4aURL)
 
         // Step 2: Get presigned URL
@@ -48,22 +50,16 @@ extension VoicetrackUploadService: DependencyKey {
           }
         }
 
-        // Step 4: Wait for normalization to complete
+        // Step 4: Wait for normalization to complete. Processing time grows with the
+        // recording's length, so long recordings get proportionally more time.
         await onStatusChange(.normalizing)
-        let maxWaitTimeSeconds = 120
-        let pollIntervalSeconds: UInt64 = 2
-        let startTime = Date()
-
-        while Date().timeIntervalSince(startTime) < Double(maxWaitTimeSeconds) {
-          let status = try await api.getVoicetrackStatus(
+        let maxWait = Duration.seconds(120) + .milliseconds(durationMS)
+        try await waitForNormalization(clock: clock, maxWait: maxWait) {
+          try await api.getVoicetrackStatus(
             jwtToken,
             stationId,
             presignedResponse.s3Key
-          )
-          if status.ready {
-            break
-          }
-          try await Task.sleep(nanoseconds: pollIntervalSeconds * 1_000_000_000)
+          ).ready
         }
 
         // Step 5: Create voicetrack
@@ -75,13 +71,46 @@ extension VoicetrackUploadService: DependencyKey {
           durationMS
         )
 
-        // Step 5: Cleanup temp files
-        try? FileManager.default.removeItem(at: m4aURL)
-
         await onStatusChange(.completed)
         return audioBlock
       }
     )
+  }
+}
+
+private func waitForNormalization<C: Clock>(
+  clock: C,
+  maxWait: Duration,
+  getStatus: @Sendable () async throws -> Bool
+) async throws where C.Duration == Duration {
+  let deadline = clock.now.advanced(by: maxWait)
+  let pollInterval = Duration.seconds(2)
+
+  while true {
+    if try await getStatus() {
+      return
+    }
+
+    let now = clock.now
+    guard now < deadline else {
+      throw VoicetrackUploadError.normalizationTimeout
+    }
+
+    try await clock.sleep(
+      until: min(now.advanced(by: pollInterval), deadline),
+      tolerance: nil
+    )
+  }
+}
+
+enum VoicetrackUploadError: Error, LocalizedError {
+  case normalizationTimeout
+
+  var errorDescription: String? {
+    switch self {
+    case .normalizationTimeout:
+      return "Audio processing is taking longer than expected. Please try again."
+    }
   }
 }
 
