@@ -407,6 +407,21 @@ struct FlipToRecordModelTests {
   }
 
   @Test
+  func testLeavingWhileStartIsPendingDoesNotStopTheRecording() async {
+    await withMainSerialExecutor {
+      let (gate, openGate) = AsyncStream<Void>.makeStream()
+      let harness = FlipHarness(startGate: gate)
+      await harness.startRecording()
+
+      await harness.model.recordingStopped()
+      openGate.yield()
+      await Task.megaYield()
+
+      expectNoDifference(harness.events.value, ["rotate true", "start", "rotate false"])
+    }
+  }
+
+  @Test
   func testPageStopWhileFlippedRotatesBack() async {
     await withMainSerialExecutor {
       let harness = FlipHarness()

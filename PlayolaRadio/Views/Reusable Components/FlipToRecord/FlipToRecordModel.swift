@@ -51,6 +51,7 @@ final class FlipToRecordModel {
   private(set) var phase: Phase = .idle
 
   @ObservationIgnored private var take = 0
+  @ObservationIgnored private var uprightStopTake: Int?
   @ObservationIgnored private var orientationOwner: UUID?
   @ObservationIgnored private var poseTask: Task<Void, Never>?
   @ObservationIgnored private var flipTimer: Task<Void, Never>?
@@ -248,7 +249,7 @@ final class FlipToRecordModel {
     phase = .recordingFlipped
     let current = take
     let started = await start()
-    if current != take, started {
+    if started, current != take, uprightStopTake == current {
       await stop()
     } else if current == take, !started {
       await recordingStopped()
@@ -267,6 +268,7 @@ final class FlipToRecordModel {
   private func uprightHeld() async {
     uprightTimer = nil
     guard phase == .recordingFlipped else { return }
+    uprightStopTake = take
     await stop()
   }
 }
