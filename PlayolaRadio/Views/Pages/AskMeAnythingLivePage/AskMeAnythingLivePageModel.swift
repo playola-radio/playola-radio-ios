@@ -216,7 +216,12 @@ class AskMeAnythingLivePageModel: ViewModel {
     uploadTasks[id]?.cancel()
     openingItems.remove(id: id)
     guard case .voicetrack(let recording, _) = item.content else { return }
-    do { try await $amaOpeningDrafts.save() } catch { return }
+    do {
+      try await $amaOpeningDrafts.save()
+    } catch {
+      await errorReporting.reportError(error, ["operation": "saveAMAOpeningDraft"])
+      return
+    }
     await audioRecorder.deleteRecording(recording.originalURL)
   }
 

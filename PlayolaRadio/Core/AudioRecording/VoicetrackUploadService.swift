@@ -68,6 +68,7 @@ extension VoicetrackUploadService: DependencyKey {
         }
 
         // Step 5: Create voicetrack
+        try Task.checkCancellation()
         await onStatusChange(.finalizing)
         let audioBlock = try await api.createVoicetrack(
           jwtToken,
