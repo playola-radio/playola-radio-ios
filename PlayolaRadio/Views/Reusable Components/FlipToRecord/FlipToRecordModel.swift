@@ -6,6 +6,7 @@
 import Dependencies
 import Foundation
 import Observation
+import SwiftUI
 
 /// Asks the user to flip the phone so they talk into the bottom mic, then rotates the window and
 /// counts down before calling the page's own `start`. While recording flipped, holding the phone
@@ -84,10 +85,17 @@ final class FlipToRecordModel {
   func recordWithoutFlippingTapped() async {
     guard phase == .prompting else { return }
     await recordingStopped()
-    _ = await start()
+    phase = .checkingPose
+    await startUpright(take: take)
   }
 
   func cancelTapped() async {
+    await recordingStopped()
+  }
+
+  /// A recording already underway keeps going in the background; anything before it is dropped.
+  func scenePhaseChanged(newPhase: ScenePhase) async {
+    guard newPhase == .background, phase != .recordingFlipped else { return }
     await recordingStopped()
   }
 
@@ -217,17 +225,21 @@ final class FlipToRecordModel {
   }
 
   private func runCountdown(owner: UUID) async {
-    let acquired = await recordingOrientation.acquire(owner)
     guard !Task.isCancelled else { return }
+    let acquired = await recordingOrientation.acquire(owner)
+    guard !Task.isCancelled else {
+      await recordingOrientation.release(owner)
+      return
+    }
     guard acquired else {
-      cancelCountdown()
+      await recordingStopped()
       return
     }
     for remaining in stride(from: Self.countdownStart, through: 1, by: -1) {
       phase = .countdown(remaining)
       guard (try? await clock.sleep(for: .seconds(1))) != nil else { return }
       guard recordingOrientation.isOwner(owner) else {
-        cancelCountdown()
+        await recordingStopped()
         return
       }
     }
@@ -236,8 +248,11 @@ final class FlipToRecordModel {
     phase = .recordingFlipped
     let current = take
     let started = await start()
-    guard current == take, !started else { return }
-    await recordingStopped()
+    if current != take, started {
+      await stop()
+    } else if current == take, !started {
+      await recordingStopped()
+    }
   }
 
   private func cancelCountdown() {

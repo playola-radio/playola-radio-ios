@@ -191,16 +191,31 @@ struct FlipToRecordModelTests {
   }
 
   @Test
-  func testLeavingThePageDuringCountdownNeverStartsAndRotatesBack() async {
+  func testCancelAfterRotationFinishesLateReleasesIt() async {
     await withMainSerialExecutor {
-      let harness = FlipHarness()
+      let (gate, openGate) = AsyncStream<Void>.makeStream()
+      let owner = LockIsolated<UUID?>(nil)
+      let orientation = RecordingOrientationClient(
+        acquire: { id in
+          for await _ in gate { break }
+          owner.setValue(id)
+          return true
+        },
+        release: { id in
+          guard owner.value == id else { return }
+          owner.setValue(nil)
+        },
+        isOwner: { owner.value == $0 },
+        forceReset: { owner.setValue(nil) }
+      )
+      let harness = FlipHarness(orientation: orientation)
       await harness.startCountdown()
 
-      await harness.model.recordingStopped()
-      await harness.clock.advance(by: .seconds(3))
+      await harness.model.cancelTapped()
+      openGate.yield()
+      await Task.megaYield()
 
-      expectNoDifference(harness.model.phase, .idle)
-      expectNoDifference(harness.events.value, ["rotate true", "rotate false"])
+      expectNoDifference(owner.value, nil)
     }
   }
 
@@ -224,16 +239,46 @@ struct FlipToRecordModelTests {
   }
 
   @Test
-  func testBackgroundResetDuringCountdownReturnsToPrompt() async {
+  func testOrientationResetDuringCountdownGoesIdle() async {
     await withMainSerialExecutor {
       let harness = FlipHarness()
       await harness.startCountdown()
 
       await harness.controller.forceReset()
-      await harness.clock.advance(by: .seconds(3))
+      await harness.clock.advance(by: .seconds(1))
+      await harness.send(.upsideDown)
+      await harness.clock.advance(by: .seconds(5))
 
-      expectNoDifference(harness.model.phase, .prompting)
+      expectNoDifference(harness.model.phase, .idle)
       expectNoDifference(harness.events.value, ["rotate true", "rotate false"])
+    }
+  }
+
+  @Test
+  func testBackgroundingWhileWaitingForFlipGoesIdle() async {
+    await withMainSerialExecutor {
+      let harness = FlipHarness()
+      await harness.model.recordTapped()
+      await harness.send(.upsideDown)
+
+      await harness.model.scenePhaseChanged(newPhase: .background)
+      await harness.clock.advance(by: .seconds(5))
+
+      expectNoDifference(harness.model.phase, .idle)
+      expectNoDifference(harness.events.value, [])
+    }
+  }
+
+  @Test
+  func testBackgroundingWhileRecordingFlippedKeepsRecording() async {
+    await withMainSerialExecutor {
+      let harness = FlipHarness()
+      await harness.startRecording()
+
+      await harness.model.scenePhaseChanged(newPhase: .background)
+
+      expectNoDifference(harness.model.phase, .recordingFlipped)
+      expectNoDifference(harness.events.value, ["rotate true", "start"])
     }
   }
 
@@ -250,6 +295,25 @@ struct FlipToRecordModelTests {
 
       expectNoDifference(harness.model.phase, .idle)
       expectNoDifference(harness.events.value, ["start"])
+    }
+  }
+
+  @Test
+  func testRecordTapWhileStartingWithoutFlippingIsIgnored() async {
+    await withMainSerialExecutor {
+      let (gate, openGate) = AsyncStream<Void>.makeStream()
+      let harness = FlipHarness(startGate: gate)
+      await harness.model.recordTapped()
+      await harness.send(.upright)
+
+      let tap = Task { await harness.model.recordWithoutFlippingTapped() }
+      await Task.megaYield()
+      await harness.model.recordTapped()
+      openGate.yield()
+      await tap.value
+
+      expectNoDifference(harness.model.phase, .idle)
+      expectNoDifference(harness.updatesCalls.value, 1)
     }
   }
 
@@ -326,6 +390,23 @@ struct FlipToRecordModelTests {
   }
 
   @Test
+  func testUprightWhileStartIsPendingStopsTheRecordingOnceItBegins() async {
+    await withMainSerialExecutor {
+      let (gate, openGate) = AsyncStream<Void>.makeStream()
+      let harness = FlipHarness(startGate: gate)
+      await harness.startRecording()
+
+      await harness.send(.upright)
+      await harness.clock.advance(by: .seconds(1))
+      openGate.yield()
+      await Task.megaYield()
+
+      expectNoDifference(
+        harness.events.value, ["rotate true", "start", "stop", "rotate false", "stop"])
+    }
+  }
+
+  @Test
   func testPageStopWhileFlippedRotatesBack() async {
     await withMainSerialExecutor {
       let harness = FlipHarness()
@@ -353,7 +434,9 @@ private final class FlipHarness {
     hasPermission: Bool = true,
     startSucceeds: Bool = true,
     permissionGate: AsyncStream<Void>? = nil,
-    rotationGate: AsyncStream<Void>? = nil
+    rotationGate: AsyncStream<Void>? = nil,
+    startGate: AsyncStream<Void>? = nil,
+    orientation: RecordingOrientationClient? = nil
   ) {
     let (poses, poseInput) = AsyncStream<DevicePose>.makeStream()
     self.poseInput = poseInput
@@ -386,23 +469,32 @@ private final class FlipHarness {
         updatesCalls.withValue { $0 += 1 }
         return poses
       }
-      $0.recordingOrientation = RecordingOrientationClient(
-        acquire: { await controller.acquire($0) },
-        release: { await controller.release($0) },
-        isOwner: { controller.isOwner($0) },
-        forceReset: { await controller.forceReset() }
-      )
+      $0.recordingOrientation = orientation ?? Self.orientation(controlledBy: controller)
     } operation: {
       FlipToRecordModel()
     }
     model.start = {
       events.withValue { $0.append("start") }
+      if let startGate {
+        for await _ in startGate { break }
+      }
       return startSucceeds
     }
     model.stop = { [weak model] in
       events.withValue { $0.append("stop") }
       await model?.recordingStopped()
     }
+  }
+
+  private static func orientation(
+    controlledBy controller: RecordingOrientationController
+  ) -> RecordingOrientationClient {
+    RecordingOrientationClient(
+      acquire: { await controller.acquire($0) },
+      release: { await controller.release($0) },
+      isOwner: { controller.isOwner($0) },
+      forceReset: { await controller.forceReset() }
+    )
   }
 
   func send(_ pose: DevicePose) async {

@@ -12,6 +12,7 @@ extension View {
 }
 
 struct FlipToRecordOverlay: View {
+  @Environment(\.scenePhase) private var scenePhase
   let model: FlipToRecordModel
 
   var body: some View {
@@ -21,6 +22,9 @@ struct FlipToRecordOverlay: View {
       prompt
     }
     .animation(.easeInOut(duration: 0.25), value: model.phase)
+    .onChange(of: scenePhase) { _, newPhase in
+      Task { await model.scenePhaseChanged(newPhase: newPhase) }
+    }
   }
 
   private var prompt: some View {
@@ -57,14 +61,17 @@ struct FlipToRecordOverlay: View {
           .multilineTextAlignment(.center)
           .padding(.top, 12)
 
-        Label(model.waitingLabel, systemImage: "arrow.clockwise")
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
-          .foregroundStyle(Color.textPrimary)
-          .labelStyle(WaitingLabelStyle())
-          .padding(.horizontal, 18)
-          .padding(.vertical, 11)
-          .background(Color.elevatedSurface, in: Capsule())
-          .padding(.top, 20)
+        HStack(spacing: 10) {
+          Image(systemName: "arrow.clockwise")
+            .foregroundStyle(Color.playolaRed)
+          Text(model.waitingLabel)
+        }
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
+        .foregroundStyle(Color.textPrimary)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 11)
+        .background(Color.elevatedSurface, in: Capsule())
+        .padding(.top, 20)
 
         Button(model.recordWithoutFlippingTitle) {
           Task { await model.recordWithoutFlippingTapped() }
@@ -148,15 +155,5 @@ struct FlipToRecordOverlay: View {
       .opacity(model.uprightHintOpacity)
       .allowsHitTesting(false)
       .accessibilityHidden(!model.isUprightHintVisible)
-  }
-}
-
-private struct WaitingLabelStyle: LabelStyle {
-  func makeBody(configuration: Configuration) -> some View {
-    HStack(spacing: 10) {
-      configuration.icon
-        .foregroundStyle(Color.playolaRed)
-      configuration.title
-    }
   }
 }

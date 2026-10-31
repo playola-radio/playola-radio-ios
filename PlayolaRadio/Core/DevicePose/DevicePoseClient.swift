@@ -49,11 +49,18 @@ extension DevicePoseClient: DependencyKey {
       updates: {
         AsyncStream { continuation in
           nonisolated(unsafe) let manager = CMMotionManager()
+          guard manager.isDeviceMotionAvailable else {
+            continuation.finish()
+            return
+          }
           let queue = OperationQueue()
           queue.maxConcurrentOperationCount = 1
           manager.deviceMotionUpdateInterval = 1.0 / 20
           manager.startDeviceMotionUpdates(to: queue) { motion, _ in
-            guard let gravity = motion?.gravity else { return }
+            guard let gravity = motion?.gravity else {
+              continuation.finish()
+              return
+            }
             continuation.yield(DevicePose(gravityX: gravity.x, gravityY: gravity.y))
           }
           continuation.onTermination = { _ in manager.stopDeviceMotionUpdates() }
