@@ -36,12 +36,12 @@ Before writing Swift, invoke `pfw-dependencies`, `pfw-observable-models`, `pfw-t
 - `enum DevicePose { upright, upsideDown, indeterminate }` with `init(gravityX:gravityY:)`: `y <= -0.65 && |y| > |x|` → upright, `y >= 0.65 && |y| > |x|` → upsideDown, else indeterminate.
 - `@DependencyClient struct DevicePoseClient { var updates: @Sendable () -> AsyncStream<DevicePose> }`. Live: `CMMotionManager` device motion at 20 Hz on a private `OperationQueue`, yields classified samples, stops in `onTermination`. `testValue` = unimplemented default from the macro.
 **Tests:** classification boundaries (upright, upside down, flat on table, landscape, 45° mic tilt).
-**Status:** In Progress
+**Status:** Complete
 
 ## Stage 2: External mic check
 **Goal:** `AudioRecorderClient.usesExternalMicrophone`.
 **Tests:** port classification helper (`builtInMic` → false; `headsetMic`, `bluetoothHFP`, `usbAudio`, `carAudio` → true; empty → false).
-**Status:** Not Started
+**Status:** Complete
 
 ## Stage 3: FlipToRecordModel + overlay
 **Goal:** `PlayolaRadio/Views/Reusable Components/FlipToRecord/FlipToRecordModel.swift`, `FlipToRecordOverlay.swift`, tests.
@@ -51,7 +51,7 @@ Before writing Swift, invoke `pfw-dependencies`, `pfw-observable-models`, `pfw-t
 - Also `RecordingOrientationController` + `RecordingOrientationClient` in `Core/WindowOrientation/`, with `ContentView` calling `forceReset()` on background and sign-out. Safe-area adjustment goes in the live `WindowOrientationClient`.
 - All display text lives on the model (title, body, waiting label, link titles, "Recording in", cancel hint, "Turn your phone upright to stop"), plus opacity/hit-testing booleans so the overlay has no control flow.
 **Tests:** controller: acquire/release ownership, stale release ignored, forceReset during an in-flight acquire leaves keyboard/banner off. Flip model (TestClock): external mic skips prompt; stream ending while checking shows prompt; take cancelled during rotation never starts; forceReset during countdown cancels it; denied permission calls start directly; already upside down → countdown; prompt → 250 ms steady flip → countdown → start; brief flip under 250 ms does nothing; upright during countdown → prompt + rotated back; leaving the page during the countdown never starts and rotates back; without-flipping starts with no rotation; cancel; upright 1 s → stop + rotate back; upside-down mid-timer cancels stop; indeterminate keeps the timer; start failure rotates back; duplicate taps ignored.
-**Status:** Not Started
+**Status:** Complete
 
 ## Stage 4: Seven-screen cutover + removal
 **Goal:** every screen owns `let flipToRecord = FlipToRecordModel()`, wires hooks in `init` with `[weak self]`, routes its idle Record action through `flipToRecord.recordTapped()`, calls `recordingStopped()` at the top of every stop path and on disappear. Views add `.flipToRecordOverlay(model.flipToRecord)`.

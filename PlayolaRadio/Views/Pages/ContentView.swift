@@ -23,6 +23,7 @@ struct ContentView: View {
 
   @Dependency(\.stationPlayer) private var stationPlayer
   @Dependency(\.nowPlayingUpdater) private var nowPlayingUpdater
+  @Dependency(\.recordingOrientation) private var recordingOrientation
 
   var mainContainerModel = MainContainerModel()
 
@@ -63,6 +64,12 @@ struct ContentView: View {
     }
     .onChange(of: scenePhase) { _, newPhase in
       versionGate.scenePhaseChanged(newPhase: newPhase)
+      guard newPhase == .background else { return }
+      Task { await recordingOrientation.forceReset() }
+    }
+    .onChange(of: auth.isLoggedIn) { _, isLoggedIn in
+      guard !isLoggedIn else { return }
+      Task { await recordingOrientation.forceReset() }
     }
   }
 
