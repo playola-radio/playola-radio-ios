@@ -210,6 +210,32 @@ class AskMeAnythingLivePageModel: ViewModel {
     navigationCoordinator.push(.amaQuestionPickerPage(picker))
   }
 
+  func openingRowDeleteTapped(_ id: UUID) async {
+    guard isOpeningPlaylistEditable, let item = openingItems[id: id], !item.content.is(\.intro)
+    else { return }
+    uploadTasks[id]?.cancel()
+    openingItems.remove(id: id)
+    do {
+      try await $amaOpeningDrafts.save()
+    } catch {
+      await errorReporting.reportError(error, ["operation": "saveAMAOpeningDraft"])
+      presentedAlert = showAlert(
+        title: "Unable to Update Playlist",
+        message: "Your playlist change could not be saved. Please try again.")
+      return
+    }
+    guard case .voicetrack(let recording, _) = item.content else { return }
+    await audioRecorder.deleteRecording(recording.originalURL)
+  }
+
+  func openingRowsMoved(from source: IndexSet, to destination: Int) {
+    let pinnedCount = openingItems.prefix { $0.content.is(\.intro) }.count
+    guard isOpeningPlaylistEditable, destination >= pinnedCount,
+      source.allSatisfy({ $0 >= pinnedCount })
+    else { return }
+    openingItems.move(fromOffsets: source, toOffset: destination)
+  }
+
   func startShowButtonTapped() async {
     guard isStartShowEnabled else { return }
     guard let jwt = auth.jwt else {
@@ -343,14 +369,14 @@ class AskMeAnythingLivePageModel: ViewModel {
             subtitleColor: .playolaTextDisabled, iconSystemName: "mic", albumImageUrl: nil,
             leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
             trailingText: durationLabel(block.durationMS), trailingIconSystemName: "pin",
-            processingOpacity: 0, completedOpacity: 1)
+            processingOpacity: 0, completedOpacity: 1, isEditable: false)
         case .song(let block):
           return AMAOpeningRowData(
             id: item.id, title: block.title, subtitle: block.artist,
             subtitleColor: .playolaTextDisabled, iconSystemName: "music.note",
             albumImageUrl: block.imageUrl, leadingArtworkOpacity: 1, leadingFallbackOpacity: 0,
             trailingText: durationLabel(block.durationMS), trailingIconSystemName: "checkmark",
-            processingOpacity: 0, completedOpacity: 1)
+            processingOpacity: 0, completedOpacity: 1, isEditable: true)
         case .voicetrack(let voicetrack, let completedDurationMS):
           let isProcessing = voicetrack.isProcessing
           return AMAOpeningRowData(
@@ -359,7 +385,7 @@ class AskMeAnythingLivePageModel: ViewModel {
             leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
             trailingText: completedDurationMS.map { durationLabel($0) } ?? "",
             trailingIconSystemName: "checkmark", processingOpacity: isProcessing ? 1 : 0,
-            completedOpacity: isProcessing ? 0 : 1)
+            completedOpacity: isProcessing ? 0 : 1, isEditable: true)
         case .questionAnswer(let qa):
           let subtitle =
             qa.trailingBlock.map { "Question, answer & \($0.title)" } ?? "Question & answer"
@@ -370,7 +396,7 @@ class AskMeAnythingLivePageModel: ViewModel {
             subtitleColor: .playolaTextDisabled, iconSystemName: "bubble.left.and.bubble.right",
             albumImageUrl: nil, leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
             trailingText: durationLabel(item.readyDurationMS), trailingIconSystemName: "checkmark",
-            processingOpacity: 0, completedOpacity: 1)
+            processingOpacity: 0, completedOpacity: 1, isEditable: true)
         }
       })
   }
@@ -464,6 +490,8 @@ class AskMeAnythingLivePageModel: ViewModel {
   private func showAlert(title: String, message: String) -> PlayolaAlert {
     PlayolaAlert(title: title, message: message, dismissButton: .cancel(Text("OK")))
   }
+
+  private var isOpeningPlaylistEditable: Bool { !isShowActive && !isStartingShow }
 
   private var addedSongIds: Set<String> {
     Set(
