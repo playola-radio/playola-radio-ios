@@ -34,6 +34,14 @@ public struct AudioRecorderClient: Sendable {
     @Sendable (
       _ onStateChange: @escaping @MainActor @Sendable (RecordingState) -> Void
     ) async throws -> RecordingSession
+
+  /// Whether recording would use a mic other than the phone's own (AirPods, wired, USB, car).
+  /// When it would, there's no point asking the user to flip the phone.
+  public var usesExternalMicrophone: @Sendable () async -> Bool = { true }
+
+  static func isExternalMicrophone(inputs: [AVAudioSession.Port]) -> Bool {
+    inputs.contains { $0 != .builtInMic }
+  }
 }
 
 extension AudioRecorderClient {
@@ -142,7 +150,8 @@ extension AudioRecorderClient: DependencyKey {
             await recorder.deleteRecording(url)
           }
         )
-      }
+      },
+      usesExternalMicrophone: { await recorder.usesExternalMicrophone() }
     )
   }
 }
@@ -234,6 +243,19 @@ private actor LiveAudioRecorder {
     self.audioRecorder = recorder
     self.recordingURL = url
     self.waveformSamples = []
+  }
+
+  /// Inputs are only reported under a recording category, so this briefly switches to it and then
+  /// restores the playback category. A failure to switch counts as the built-in mic.
+  func usesExternalMicrophone() async -> Bool {
+    guard (try? await coordinator.configureForRecording()) != nil else { return false }
+    let inputs = AVAudioSession.sharedInstance().currentRoute.inputs.map(\.portType)
+    do {
+      try await coordinator.restorePlaybackCategory()
+    } catch {
+      reportIssue("Failed to restore playback category after the input route check: \(error)")
+    }
+    return AudioRecorderClient.isExternalMicrophone(inputs: inputs)
   }
 
   func appendWaveformSample(_ sample: Float) {
