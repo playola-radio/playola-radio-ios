@@ -20,6 +20,7 @@ struct AMAOpeningRowData: Identifiable, Equatable {
   let trailingIconSystemName: String
   let processingOpacity: Double
   let completedOpacity: Double
+  let isEditable: Bool
 }
 
 struct AMAOpeningRowView: View {

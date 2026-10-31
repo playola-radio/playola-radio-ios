@@ -31,6 +31,7 @@ extension VoicetrackUploadService: DependencyKey {
         // Step 1: Convert .wav to .m4a
         await onStatusChange(.converting)
         let m4aURL = try await audioConverter.convertToM4A(voicetrack.originalURL)
+        defer { try? FileManager.default.removeItem(at: m4aURL) }
         let durationMS = try await audioConverter.getDuration(m4aURL)
 
         // Step 2: Get presigned URL
@@ -67,6 +68,7 @@ extension VoicetrackUploadService: DependencyKey {
         }
 
         // Step 5: Create voicetrack
+        try Task.checkCancellation()
         await onStatusChange(.finalizing)
         let audioBlock = try await api.createVoicetrack(
           jwtToken,
@@ -74,9 +76,6 @@ extension VoicetrackUploadService: DependencyKey {
           presignedResponse.s3Key,
           durationMS
         )
-
-        // Step 5: Cleanup temp files
-        try? FileManager.default.removeItem(at: m4aURL)
 
         await onStatusChange(.completed)
         return audioBlock

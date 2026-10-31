@@ -279,6 +279,112 @@ struct AMADraftTests {
     }
   }
 
+  @Test func onlyTheIntroRowIsPinnedInTheOpeningPlaylist() {
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    model.openingItems = [
+      introItem(durationMS: 30_000),
+      AMAOpeningItem(id: UUID(), content: .song(.mockWith(id: "song"))),
+      questionAnswerItem(trailing: false),
+    ]
+
+    expectNoDifference(model.openingRows.map(\.isEditable), [false, true, true])
+  }
+
+  @Test func deletingAnOpeningRowRemovesItFromTheSavedPlaylist() async {
+    @Shared(.auth) var auth = Auth(
+      loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    let song = AMAOpeningItem(
+      id: UUID(), content: .song(.mockWith(id: "song", durationMS: 570_000)))
+    model.openingItems = [introItem(durationMS: 30_000), song]
+    #expect(model.isStartShowEnabled)
+
+    await expectDifference(model.openingItems) {
+      await model.openingRowDeleteTapped(song.id)
+    } changes: {
+      $0.remove(id: song.id)
+    }
+    #expect(!model.isStartShowEnabled)
+    expectNoDifference(
+      AskMeAnythingLivePageModel(stationId: testStationId).openingItems, model.openingItems)
+  }
+
+  @Test func introRowCannotBeDeleted() async {
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    let intro = introItem(durationMS: 30_000)
+    model.openingItems = [intro]
+
+    await model.openingRowDeleteTapped(intro.id)
+
+    expectNoDifference(model.openingItems, [intro])
+  }
+
+  @Test func deletingAnUploadingVoicetrackStopsTheUploadAndDiscardsTheRecording() async throws {
+    @Shared(.auth) var auth = Auth(
+      loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
+    let started = AsyncStream<Void>.makeStream()
+    let suspended = AsyncStream<Void>.makeStream()
+    let deleted = LockIsolated<[URL]>([])
+    try await withDependencies {
+      $0.uuid = .incrementing
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.audioRecorder.deleteRecording = { url in deleted.withValue { $0.append(url) } }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, status in
+        await status(.uploading(progress: 0.5))
+        started.continuation.yield(())
+        for await _ in suspended.stream {}
+        return .mockWith(id: "uploaded", durationMS: 20_000)
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      let intro = introItem(durationMS: 30_000)
+      model.openingItems.append(intro)
+      let source = URL(fileURLWithPath: "/tmp/discarded.wav")
+      try model.acceptVoicetrack(url: source)
+      for await _ in started.stream { break }
+      let voicetrackId = try #require(model.openingItems.last?.id)
+
+      await model.openingRowDeleteTapped(voicetrackId)
+      suspended.continuation.finish()
+      await model.waitForPendingUploads()
+
+      expectNoDifference(model.openingItems, [intro])
+      expectNoDifference(deleted.value, [source])
+      #expect(model.presentedAlert == nil)
+    }
+  }
+
+  @Test func movingAnOpeningRowReordersTheSavedPlaylist() {
+    @Shared(.auth) var auth = Auth(
+      loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    let first = AMAOpeningItem(id: UUID(), content: .song(.mockWith(id: "first")))
+    let second = AMAOpeningItem(id: UUID(), content: .song(.mockWith(id: "second")))
+    model.openingItems = [introItem(durationMS: 30_000), first, second]
+
+    expectDifference(model.openingItems) {
+      model.openingRowsMoved(from: [2], to: 1)
+    } changes: {
+      $0.move(fromOffsets: [2], toOffset: 1)
+    }
+    expectNoDifference(
+      AskMeAnythingLivePageModel(stationId: testStationId).openingItems.compactMap(\.audioBlockId),
+      ["intro", "second", "first"])
+  }
+
+  @Test func openingRowsCannotMoveAboveOrDisplaceTheIntro() {
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    model.openingItems = [
+      introItem(durationMS: 30_000),
+      AMAOpeningItem(id: UUID(), content: .song(.mockWith(id: "song"))),
+    ]
+    let original = model.openingItems
+
+    model.openingRowsMoved(from: [1], to: 0)
+    model.openingRowsMoved(from: [0], to: 2)
+
+    expectNoDifference(model.openingItems, original)
+  }
 }
 
 @Suite(.freshSharedState)
