@@ -215,7 +215,6 @@ class AskMeAnythingLivePageModel: ViewModel {
     else { return }
     uploadTasks[id]?.cancel()
     openingItems.remove(id: id)
-    guard case .voicetrack(let recording, _) = item.content else { return }
     do {
       try await $amaOpeningDrafts.save()
     } catch {
@@ -225,6 +224,7 @@ class AskMeAnythingLivePageModel: ViewModel {
         message: "Your playlist change could not be saved. Please try again.")
       return
     }
+    guard case .voicetrack(let recording, _) = item.content else { return }
     await audioRecorder.deleteRecording(recording.originalURL)
   }
 
