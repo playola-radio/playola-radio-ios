@@ -45,6 +45,8 @@ class RecordIntroPageModel: ViewModel {
     self.stationId = stationId
     self.audioBlockId = audioBlockId
     super.init()
+    flipToRecord.start = { [weak self] in await self?.startRecording() ?? false }
+    flipToRecord.stop = { [weak self] in await self?.onStopTapped() }
   }
 
   // MARK: - Properties
@@ -57,6 +59,7 @@ class RecordIntroPageModel: ViewModel {
     "If you mess up, just keep recording! We'll edit it — you can lean on us!",
   ]
 
+  let flipToRecord = FlipToRecordModel()
   var recordingPhase: RecordingPhase = .idle
   var recordingDuration: TimeInterval = 0
   var playbackPosition: TimeInterval = 0
@@ -142,24 +145,17 @@ class RecordIntroPageModel: ViewModel {
     }
   }
 
-  func onRecordTapped() async {
-    let hasPermission = await audioRecorder.requestPermission()
-    guard hasPermission else {
-      presentedAlert = .microphonePermissionDeniedAlert
-      return
-    }
+  func viewDisappeared() async {
+    await flipToRecord.recordingStopped()
+  }
 
-    do {
-      waveformSamples = []
-      try await audioRecorder.startRecording()
-      recordingPhase = .recording
-      startRecordingUpdates()
-    } catch {
-      presentedAlert = .recordingFailedAlert(error.localizedDescription)
-    }
+  func onRecordTapped() async {
+    await flipToRecord.recordTapped()
   }
 
   func onStopTapped() async {
+    await flipToRecord.recordingStopped()
+    guard recordingTask != nil else { return }
     stopRecordingUpdates()
     do {
       let url = try await audioRecorder.stopRecording()
@@ -241,6 +237,25 @@ class RecordIntroPageModel: ViewModel {
   }
 
   // MARK: - Private Helpers
+
+  private func startRecording() async -> Bool {
+    let hasPermission = await audioRecorder.requestPermission()
+    guard hasPermission else {
+      presentedAlert = .microphonePermissionDeniedAlert
+      return false
+    }
+
+    do {
+      waveformSamples = []
+      try await audioRecorder.startRecording()
+      recordingPhase = .recording
+      startRecordingUpdates()
+      return true
+    } catch {
+      presentedAlert = .recordingFailedAlert(error.localizedDescription)
+      return false
+    }
+  }
 
   private func startUpload() async {
     guard let url = recordingURL, let jwt = auth.jwt else { return }
