@@ -167,34 +167,42 @@ final class FlipToRecordModel {
     case .idle:
       return
     case .checkingPose, .prompting:
-      guard pose == .upsideDown else {
-        flipTimer?.cancel()
-        flipTimer = nil
-        phase = .prompting
-        return
-      }
-      guard flipTimer == nil else { return }
-      flipTimer = Task { [weak self, clock] in
-        guard (try? await clock.sleep(for: Self.flipHold)) != nil else { return }
-        self?.flipHeld()
-      }
+      waitingForFlipPoseChanged(pose)
     case .countdown:
       guard pose == .upright else { return }
       cancelCountdown()
     case .recordingFlipped:
-      switch pose {
-      case .upright:
-        guard uprightTimer == nil else { return }
-        uprightTimer = Task { [weak self, clock] in
-          guard (try? await clock.sleep(for: Self.uprightHold)) != nil else { return }
-          await self?.uprightHeld()
-        }
-      case .upsideDown:
-        uprightTimer?.cancel()
-        uprightTimer = nil
-      case .indeterminate:
-        return
+      recordingFlippedPoseChanged(pose)
+    }
+  }
+
+  private func waitingForFlipPoseChanged(_ pose: DevicePose) {
+    guard pose == .upsideDown else {
+      flipTimer?.cancel()
+      flipTimer = nil
+      phase = .prompting
+      return
+    }
+    guard flipTimer == nil else { return }
+    flipTimer = Task { [weak self, clock] in
+      guard (try? await clock.sleep(for: Self.flipHold)) != nil else { return }
+      self?.flipHeld()
+    }
+  }
+
+  private func recordingFlippedPoseChanged(_ pose: DevicePose) {
+    switch pose {
+    case .upright:
+      guard uprightTimer == nil else { return }
+      uprightTimer = Task { [weak self, clock] in
+        guard (try? await clock.sleep(for: Self.uprightHold)) != nil else { return }
+        await self?.uprightHeld()
       }
+    case .upsideDown:
+      uprightTimer?.cancel()
+      uprightTimer = nil
+    case .indeterminate:
+      return
     }
   }
 
