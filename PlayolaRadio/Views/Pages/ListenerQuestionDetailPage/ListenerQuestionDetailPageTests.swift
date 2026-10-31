@@ -3,6 +3,8 @@
 //  PlayolaRadio
 //
 
+// swiftlint:disable file_length
+
 import ConcurrencyExtras
 import CustomDump
 import Dependencies
@@ -899,6 +901,78 @@ struct ListenerQuestionDetailPageTests {
     await model.recordButtonTapped()
 
     #expect(model.presentedAlert != nil)
+  }
+
+  @Test
+  func testRecordButtonTappedWithBuiltInMicAsksToFlipInsteadOfRecording() async {
+    let startRecordingCalled = LockIsolated(false)
+
+    await withMainSerialExecutor {
+      let model = withDependencies {
+        $0.audioPlayer = .testValue
+        $0.voicetrackUploadService = .testValue
+        $0.devicePose.updates = { AsyncStream { $0.finish() } }
+        $0.audioRecorder = AudioRecorderClient(
+          requestPermission: { true },
+          prepareForRecording: {},
+          startRecording: {},
+          stopRecording: { URL(fileURLWithPath: "/tmp/test.wav") },
+          currentTime: { 0 },
+          deleteRecording: { _ in },
+          getAudioLevel: { 0 },
+          startRecordingWithUpdates: { _ in
+            startRecordingCalled.setValue(true)
+            return RecordingSession(
+              stop: { URL(fileURLWithPath: "/tmp/test.wav") }, cancel: {}, delete: { _ in })
+          },
+          usesExternalMicrophone: { false }
+        )
+      } operation: {
+        ListenerQuestionDetailPageModel(question: .mock)
+      }
+
+      await model.recordButtonTapped()
+      await Task.megaYield()
+
+      expectNoDifference(model.flipToRecord.phase, .prompting)
+      #expect(!startRecordingCalled.value)
+      #expect(model.recordingPhase == .idle)
+    }
+  }
+
+  @Test
+  func testSecondStopDoesNotStopTheRecorderAgain() async {
+    let stopCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.audioPlayer = .testValue
+      $0.voicetrackUploadService = .testValue
+      $0.audioRecorder = AudioRecorderClient(
+        requestPermission: { true },
+        prepareForRecording: {},
+        startRecording: {},
+        stopRecording: { URL(fileURLWithPath: "/tmp/test.wav") },
+        currentTime: { 0 },
+        deleteRecording: { _ in },
+        getAudioLevel: { 0 },
+        startRecordingWithUpdates: { _ in
+          RecordingSession(
+            stop: {
+              stopCount.withValue { $0 += 1 }
+              return URL(fileURLWithPath: "/tmp/test.wav")
+            }, cancel: {}, delete: { _ in })
+        }
+      )
+    } operation: {
+      ListenerQuestionDetailPageModel(question: .mock)
+    }
+    await model.recordButtonTapped()
+
+    await model.recordButtonTapped()
+    await model.flipToRecord.stop()
+
+    #expect(stopCount.value == 1)
+    #expect(model.recordingPhase == .review)
+    #expect(model.presentedAlert == nil)
   }
 
   // MARK: - Helper

@@ -30,6 +30,7 @@ struct ListenerQuestionDetailPageView: View {
     .toolbarBackground(Color.background, for: .navigationBar)
     .toolbarColorScheme(.dark, for: .navigationBar)
     .toolbar(model.tabBarVisibility, for: .tabBar)
+    .flipToRecordOverlay(model.flipToRecord)
     .alert(item: $model.presentedAlert) { $0.alert }
     .task { await model.viewAppeared() }
     .onDisappear { Task { await model.viewDisappeared() } }
