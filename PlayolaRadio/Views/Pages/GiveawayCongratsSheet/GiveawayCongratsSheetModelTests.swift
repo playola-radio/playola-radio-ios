@@ -445,14 +445,11 @@ struct GiveawayCongratsSheetModelTests {
   }
 
   @Test func recordTappedWithBuiltInMicAsksToFlipInsteadOfRecording() async {
-    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
-    $actions.withLock {
-      $0 = [
-        "e1": CongratsAction(
-          eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
-          state: .pending, startedAt: Date())
-      ]
-    }
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [
+      "e1": CongratsAction(
+        eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
+        state: .pending, startedAt: Date())
+    ]
     let startRecordingCalled = LockIsolated(false)
 
     await withMainSerialExecutor {
@@ -469,20 +466,17 @@ struct GiveawayCongratsSheetModelTests {
       await Task.megaYield()
 
       expectNoDifference(model.flipToRecord.phase, .prompting)
-      #expect(!startRecordingCalled.value)
-      #expect(model.recordingPhase == .idle)
+      expectNoDifference(startRecordingCalled.value, false)
+      expectNoDifference(model.recordingPhase, .idle)
     }
   }
 
   @Test func secondStopDoesNotStopTheRecorderAgain() async throws {
-    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [:]
-    $actions.withLock {
-      $0 = [
-        "e1": CongratsAction(
-          eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
-          state: .pending, startedAt: Date())
-      ]
-    }
+    @Shared(.pendingCongratsActions) var actions: [String: CongratsAction] = [
+      "e1": CongratsAction(
+        eventId: "e1", stationId: "s1", winnerName: nil, prizeName: nil, congratsExpiresAt: nil,
+        state: .pending, startedAt: Date())
+    ]
     let source = FileManager.default.temporaryDirectory
       .appendingPathComponent("voicetrack_\(UUID().uuidString).wav")
     try Data([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x41, 0x56, 0x45]).write(to: source)
@@ -506,8 +500,8 @@ struct GiveawayCongratsSheetModelTests {
     await model.onStopTapped()
     await model.onStopTapped()
 
-    #expect(stopCount.value == 1)
-    #expect(model.presentedAlert == nil)
+    expectNoDifference(stopCount.value, 1)
+    expectNoDifference(model.presentedAlert, nil)
     if let url = model.recordingURL { try? FileManager.default.removeItem(at: url) }
     try? FileManager.default.removeItem(at: source)
   }

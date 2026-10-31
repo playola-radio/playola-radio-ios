@@ -7,7 +7,8 @@ import SwiftUI
 
 extension View {
   func flipToRecordOverlay(_ model: FlipToRecordModel) -> some View {
-    overlay { FlipToRecordOverlay(model: model) }
+    accessibilityHidden(model.blocksUnderlyingAccessibility)
+      .overlay { FlipToRecordOverlay(model: model) }
   }
 }
 

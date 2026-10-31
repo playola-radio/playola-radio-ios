@@ -428,9 +428,60 @@ struct FlipToRecordModelTests {
       await harness.startRecording()
 
       await harness.model.recordingStopped()
+      await Task.megaYield()
 
       expectNoDifference(harness.model.phase, .idle)
       expectNoDifference(harness.events.value, ["rotate true", "start", "rotate false"])
+    }
+  }
+
+  @Test
+  func testRecordingStoppedDoesNotWaitForRotationToFinish() async {
+    await withMainSerialExecutor {
+      let (releaseGate, openReleaseGate) = AsyncStream<Void>.makeStream()
+      let owner = LockIsolated<UUID?>(nil)
+      let orientation = RecordingOrientationClient(
+        acquire: {
+          owner.setValue($0)
+          return true
+        },
+        release: { id in
+          guard owner.value == id else { return }
+          for await _ in releaseGate { break }
+          owner.setValue(nil)
+        },
+        isOwner: { owner.value == $0 },
+        forceReset: { owner.setValue(nil) }
+      )
+      let harness = FlipHarness(orientation: orientation)
+      await harness.startRecording()
+      let cleanupFinished = LockIsolated(false)
+      let cleanup = Task {
+        await harness.model.recordingStopped()
+        cleanupFinished.setValue(true)
+      }
+      defer { openReleaseGate.yield() }
+
+      await Task.megaYield()
+
+      expectNoDifference(cleanupFinished.value, true)
+      await cleanup.value
+    }
+  }
+
+  @Test
+  func testPromptAndCountdownBlockUnderlyingAccessibilityElements() async {
+    await withMainSerialExecutor {
+      let harness = FlipHarness()
+      await harness.model.recordTapped()
+      await harness.send(.upright)
+
+      expectNoDifference(harness.model.blocksUnderlyingAccessibility, true)
+
+      await harness.send(.upsideDown)
+      await harness.clock.advance(by: .milliseconds(250))
+
+      expectNoDifference(harness.model.blocksUnderlyingAccessibility, true)
     }
   }
 }

@@ -113,7 +113,9 @@ final class FlipToRecordModel {
     phase = .idle
     guard let owner = orientationOwner else { return }
     orientationOwner = nil
-    await recordingOrientation.release(owner)
+    Task { [recordingOrientation] in
+      await recordingOrientation.release(owner)
+    }
   }
 
   // MARK: - View Helpers
@@ -142,6 +144,8 @@ final class FlipToRecordModel {
   }
 
   var isUprightHintVisible: Bool { phase == .recordingFlipped }
+
+  var blocksUnderlyingAccessibility: Bool { isPromptVisible || isCountdownVisible }
 
   var promptOpacity: Double { isPromptVisible ? 1 : 0 }
   var countdownOpacity: Double { isCountdownVisible ? 1 : 0 }
