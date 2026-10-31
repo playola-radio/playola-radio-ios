@@ -220,6 +220,9 @@ class AskMeAnythingLivePageModel: ViewModel {
       try await $amaOpeningDrafts.save()
     } catch {
       await errorReporting.reportError(error, ["operation": "saveAMAOpeningDraft"])
+      presentedAlert = showAlert(
+        title: "Unable to Update Playlist",
+        message: "Your playlist change could not be saved. Please try again.")
       return
     }
     await audioRecorder.deleteRecording(recording.originalURL)
