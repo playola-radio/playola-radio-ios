@@ -59,7 +59,7 @@ Before writing Swift, invoke `pfw-dependencies`, `pfw-observable-models`, `pfw-t
 - Pose stop hook goes through each host's guarded stop path (`recordButtonTapped` toggle for MultiStep / ListenerQuestion / AMA; `onStopTapped` / `stopTapped` elsewhere).
 - Remove `isShowingUpsideDownFlow`, `shouldShowUpsideDown`, `upsideDownFlowVisibilityChanged`, `upsideDownTransition`, the three deps on `MainContainerModel`, the `ContentView` `.onChange`, and their tests.
 **Tests:** per page, external mic path still records (existing tests), built-in path shows the prompt and doesn't start; full pre-existing suites for all seven pages, MainContainer, navigation coordinator.
-**Status:** Not Started
+**Status:** Complete
 
 ## Stage 5: Device validation (Brian)
 Thresholds, motion permission, AirPods/wired/USB routing, rotated safe areas on sheet vs cover vs push, banners while rotated, rapid flip cycles.

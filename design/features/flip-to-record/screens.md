@@ -38,7 +38,8 @@ The mockups use the broadcaster reply screen (`ListenerQuestionDetailPage`) as t
   - Countdown finishes → recording starts on the same rotated screen
   - Phone held upright ~1 s while recording, or Stop recording tapped → window rotates back, host screen's existing review state
   - Phone turned upright during the countdown → window rotates back, flip prompt returns
-  - Back during the countdown → countdown cancelled, window rotates back, host screen pops as it does today
+  - Cancel during the countdown → countdown cancelled, window rotates back, host screen returns to idle
+  - Leaving the screen during the countdown (nav Back, tab switch, sheet dismiss) → countdown cancelled, window rotates back, recording never starts. The countdown blocks touches on the page itself; navigation chrome outside the page stays live
 - **Changed from today:** recording screens never rotate today, and the Broadcast and AMA screens that do rotate stop rotating (see [spec.md](./spec.md#removed)). Current screen: ![Listener reply — idle today](exports/existing/listener-reply--idle.png)
 
 | State | When it shows | Node | Mockup |
