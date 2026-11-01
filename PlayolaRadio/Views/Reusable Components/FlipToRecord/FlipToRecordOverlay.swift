@@ -74,19 +74,12 @@ struct FlipToRecordOverlay: View {
         .background(Color.elevatedSurface, in: Capsule())
         .padding(.top, 20)
 
-        Button(model.recordWithoutFlippingTitle) {
-          Task { await model.recordWithoutFlippingTapped() }
-        }
-        .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
-        .foregroundStyle(Color.playolaRed)
-        .padding(.top, 22)
-
         Button(model.cancelTitle) {
           Task { await model.cancelTapped() }
         }
         .font(.custom(FontNames.Inter_400_Regular, size: 16))
         .foregroundStyle(Color.textSecondary)
-        .padding(.top, 18)
+        .padding(.top, 22)
         .padding(.bottom, 12)
       }
       .padding(.horizontal, 24)

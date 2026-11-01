@@ -25,15 +25,14 @@ Flipping is tied to the act of recording, not to which screen is open.
 
 On every recording screen, tapping **Record** runs the following flow:
 
-1. **Flip prompt.** A prompt appears over the screen. Its title gives starting and stopping equal weight: "Flip your phone to start. Flip it back to stop." The body says to talk into the bottom, like a microphone. It also has a **Record without flipping** link.
+1. **Flip prompt.** A prompt appears over the screen. Its title gives starting and stopping equal weight: "Flip your phone to start. Flip it back to stop." The body says to talk into the bottom, like a microphone. Its only other control is **Cancel**.
    - The prompt is skipped and recording starts exactly as it does today when an external microphone is the active input (AirPods, wired, USB or Bluetooth headset).
    - When the phone is already physically upside down, the prompt is skipped and the flow goes straight to step 2.
+   - When the phone gives no motion readings, the flip can never be detected, so recording starts upright exactly as it does today.
 2. **Flip detected.** About 250 ms of steady upside-down pose is required. Then the window rotates 180° and a **3-2-1 countdown** runs on the rotated screen. The countdown cannot be skipped. Turning the phone upright during the countdown cancels it, rotates the window back, and returns to the prompt. The countdown overlay blocks touches to the page underneath and has its own **Cancel** button, which cancels the take.
 3. **Recording.** Recording starts on the rotated screen and uses the page's existing recording UI, shown flipped.
 4. **Flip back to stop.** Holding the phone upright for about 1 second stops the recording and enters the page's existing review state. The Stop button still works. Face-up, face-down and landscape readings are ignored: they neither stop recording nor reset the 1-second timer.
 5. **Window returns upright.** The window always rotates back upright when recording ends, whatever the reason: flip back, Stop, duration limit, error, leaving the screen, swipe-dismiss, backgrounding or sign-out.
-
-**Record without flipping** records exactly the way it does today, with the screen upright and no countdown.
 
 ### Recording screens in scope (all seven)
 
@@ -121,7 +120,7 @@ Phase 5 (Codex, adversarial) failed the first plan with 13 findings. Phase 7 (Co
 | P5-7 | Pass-through touches expose AMA controls and the tab bar | Resolved: countdown overlay blocks touches. This replaces "Back stays tappable" in the approved countdown mockup |
 | P5-8 | Stop causes can race | Resolved: pose stop goes through each host's existing guarded stop action |
 | P5-9 | Cleanup at the end of stop paths misses early returns | Resolved: `recordingStopped()` at the top of every stop path, cancelling timers before any await |
-| P5-10 | Missing motion samples strand the user | Resolved: stream ending before a sample shows the prompt |
+| P5-10 | Missing motion samples strand the user | Resolved: if the motion stream ends before a flip, recording starts upright |
 | P5-11 | Route can change between check and start | Accepted: worst case records upright, same as today |
 | P5-12 | Direct `AudioRecorderClient(...)` initializers and AMA start/stop tests | Resolved: new field has a default; existing suites run unchanged |
 | P5-13 | Safe-area swap deferred | Resolved: implemented in the live window client |
@@ -137,3 +136,4 @@ Phase 5 (Codex, adversarial) failed the first plan with 13 findings. Phase 7 (Co
 | 2026-10-31 | Recording screen, flipped: Countdown state (rotated window, dark backdrop, "Recording in" 3-2-1 ring, "Turn your phone back over to cancel.", Back stays tappable) | canvas `gK9Vw` |
 | 2026-10-31 | Recording screen, flipped: Recording state (page's existing recorder unchanged, plus a "Turn your phone upright to stop" hint pill under it). All screens approved; Brian: "let's try it" | canvas `iqEG4` |
 | 2026-11-01 | Flip prompt title changed to two equal lines, "Flip your phone to start." / "Flip it back to stop.", so stopping is taught before recording starts. Recording-state hint left as is. Brian, in chat | canvas `z8wAhd` |
+| 2026-11-01 | "Record without flipping" link removed from the flip prompt; with no motion readings, recording starts upright instead. Brian, in chat | canvas `z8wAhd` |

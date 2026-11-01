@@ -19,7 +19,6 @@ The mockups use the broadcaster reply screen (`ListenerQuestionDetailPage`) as t
   - Any of the seven recording screens → Record button, when the built-in mic is the active input and the phone is not already upside down
 - **Navigates to:**
   - Phone flipped upside down (held ~250 ms) → countdown on the rotated recording screen
-  - "Record without flipping" → host screen records upright, exactly as today
   - "Cancel" or tap the scrim → host screen, idle
 
 | State | When it shows | Node | Mockup |

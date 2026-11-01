@@ -547,16 +547,6 @@
             },
             {
               "type": "text",
-              "id": "V6Zzz",
-              "name": "Record Without Flipping",
-              "fill": "#EF6962",
-              "content": "Record without flipping",
-              "fontFamily": "Inter",
-              "fontSize": 15,
-              "fontWeight": "600"
-            },
-            {
-              "type": "text",
               "id": "cRclz",
               "name": "Cancel",
               "fill": "#D7BFBF",

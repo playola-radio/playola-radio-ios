@@ -911,7 +911,7 @@ struct ListenerQuestionDetailPageTests {
       let model = withDependencies {
         $0.audioPlayer = .testValue
         $0.voicetrackUploadService = .testValue
-        $0.devicePose.updates = { AsyncStream { $0.finish() } }
+        $0.devicePose.updates = { AsyncStream { $0.yield(.upright) } }
         $0.audioRecorder = AudioRecorderClient(
           requestPermission: { true },
           prepareForRecording: {},

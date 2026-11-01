@@ -83,13 +83,6 @@ final class FlipToRecordModel {
     watchPose()
   }
 
-  func recordWithoutFlippingTapped() async {
-    guard phase == .prompting else { return }
-    await recordingStopped()
-    phase = .checkingPose
-    await startUpright(take: take)
-  }
-
   func cancelTapped() async {
     await recordingStopped()
   }
@@ -125,7 +118,6 @@ final class FlipToRecordModel {
     "Talk into the bottom, like a microphone. Recording starts after a 3‑second countdown."
   }
   var waitingLabel: String { "Waiting for you to flip…" }
-  var recordWithoutFlippingTitle: String { "Record without flipping" }
   var cancelTitle: String { "Cancel" }
   var countdownLabel: String { "Recording in" }
   var countdownCancelHint: String { "Turn your phone back over to cancel." }
@@ -166,13 +158,18 @@ final class FlipToRecordModel {
         self?.poseChanged(pose)
       }
       guard !Task.isCancelled else { return }
-      self?.poseStreamEnded()
+      await self?.poseStreamEnded()
     }
   }
 
-  private func poseStreamEnded() {
-    guard phase == .checkingPose else { return }
-    phase = .prompting
+  /// Without motion readings the flip can never be detected, so record upright instead.
+  private func poseStreamEnded() async {
+    guard phase == .checkingPose || phase == .prompting else { return }
+    poseTask = nil
+    flipTimer?.cancel()
+    flipTimer = nil
+    phase = .checkingPose
+    await startUpright(take: take)
   }
 
   private func poseChanged(_ pose: DevicePose) {

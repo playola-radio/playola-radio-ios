@@ -62,7 +62,7 @@ struct FlipToRecordModelTests {
   }
 
   @Test
-  func testPoseStreamEndingBeforeAnySampleShowsPrompt() async {
+  func testPoseStreamEndingBeforeAnySampleRecordsUpright() async {
     await withMainSerialExecutor {
       let harness = FlipHarness()
 
@@ -70,7 +70,23 @@ struct FlipToRecordModelTests {
       harness.poseInput.finish()
       await Task.megaYield()
 
-      expectNoDifference(harness.model.phase, .prompting)
+      expectNoDifference(harness.model.phase, .idle)
+      expectNoDifference(harness.events.value, ["start"])
+    }
+  }
+
+  @Test
+  func testPoseStreamEndingWhilePromptingRecordsUpright() async {
+    await withMainSerialExecutor {
+      let harness = FlipHarness()
+      await harness.model.recordTapped()
+      await harness.send(.upright)
+
+      harness.poseInput.finish()
+      await Task.megaYield()
+
+      expectNoDifference(harness.model.phase, .idle)
+      expectNoDifference(harness.events.value, ["start"])
     }
   }
 
@@ -320,34 +336,17 @@ struct FlipToRecordModelTests {
   }
 
   @Test
-  func testRecordWithoutFlippingStartsUpright() async {
-    await withMainSerialExecutor {
-      let harness = FlipHarness()
-      await harness.model.recordTapped()
-      await harness.send(.upright)
-
-      await harness.model.recordWithoutFlippingTapped()
-      await harness.send(.upsideDown)
-      await harness.clock.advance(by: .seconds(5))
-
-      expectNoDifference(harness.model.phase, .idle)
-      expectNoDifference(harness.events.value, ["start"])
-    }
-  }
-
-  @Test
-  func testRecordTapWhileStartingWithoutFlippingIsIgnored() async {
+  func testRecordTapWhileStartingWithoutMotionIsIgnored() async {
     await withMainSerialExecutor {
       let (gate, openGate) = AsyncStream<Void>.makeStream()
       let harness = FlipHarness(startGate: gate)
       await harness.model.recordTapped()
-      await harness.send(.upright)
-
-      let tap = Task { await harness.model.recordWithoutFlippingTapped() }
+      harness.poseInput.finish()
       await Task.megaYield()
+
       await harness.model.recordTapped()
       openGate.yield()
-      await tap.value
+      await Task.megaYield()
 
       expectNoDifference(harness.model.phase, .idle)
       expectNoDifference(harness.updatesCalls.value, 1)

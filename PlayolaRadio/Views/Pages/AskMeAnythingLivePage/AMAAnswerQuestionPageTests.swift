@@ -407,7 +407,7 @@ struct AMAAnswerQuestionPageTests {
           startCalled.setValue(true)
           return RecordingSession(stop: { self.recordingURL }, cancel: {}, delete: { _ in })
         }
-        $0.devicePose.updates = { AsyncStream { $0.finish() } }
+        $0.devicePose.updates = { AsyncStream { $0.yield(.upright) } }
       } operation: {
         AMAAnswerQuestionPageModel(question: .mock, addToShow: noopAdd)
       }

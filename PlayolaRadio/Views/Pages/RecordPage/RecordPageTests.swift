@@ -168,7 +168,7 @@ struct RecordPageTests {
         $0.audioRecorder.requestPermission = { true }
         $0.audioRecorder.usesExternalMicrophone = { false }
         $0.audioRecorder.startRecording = { startRecordingCalled.setValue(true) }
-        $0.devicePose.updates = { AsyncStream { $0.finish() } }
+        $0.devicePose.updates = { AsyncStream { $0.yield(.upright) } }
       } operation: {
         let model = RecordPageModel()
 
