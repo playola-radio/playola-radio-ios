@@ -4,11 +4,13 @@
 //
 
 import AVFoundation
+import CustomDump
 import Dependencies
 import Testing
 
 @testable import PlayolaRadio
 
+@Suite(.freshSharedState)
 @MainActor
 struct AudioRecorderClientTests {
   @Test
@@ -28,5 +30,28 @@ struct AudioRecorderClientTests {
     // AVAudioSession directly.
     #expect(spy.categories.last?.category == .playAndRecord)
     #expect(spy.activations.last == true)
+  }
+
+  @Test
+  func testBuiltInMicIsNotExternal() {
+    expectNoDifference(AudioRecorderClient.isExternalMicrophone(inputs: [.builtInMic]), false)
+  }
+
+  @Test
+  func testNoInputsIsNotExternal() {
+    expectNoDifference(AudioRecorderClient.isExternalMicrophone(inputs: []), false)
+  }
+
+  @Test
+  func testActiveOrStartingRecordingKeepsRecordingCategoryAfterRouteCheck() {
+    expectNoDifference(
+      AudioRecorderClient.shouldRestorePlaybackCategory(recordingIsActiveOrStarting: true), false)
+  }
+
+  @Test(arguments: [
+    AVAudioSession.Port.headsetMic, .bluetoothHFP, .usbAudio, .carAudio,
+  ])
+  func testHeadsetBluetoothUSBAndCarInputsAreExternal(port: AVAudioSession.Port) {
+    expectNoDifference(AudioRecorderClient.isExternalMicrophone(inputs: [port]), true)
   }
 }

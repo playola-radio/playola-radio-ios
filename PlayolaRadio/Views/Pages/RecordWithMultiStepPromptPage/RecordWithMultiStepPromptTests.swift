@@ -141,6 +141,72 @@ struct RecordWithMultiStepPromptTests {
     expectNoDifference(model.useRecordingButtonTitle, "Use recording")
   }
 
+  @Test func recordButtonTappedWithBuiltInMicAsksToFlipInsteadOfRecording() async {
+    let startCalled = LockIsolated(false)
+
+    await withMainSerialExecutor {
+      let model = withDependencies {
+        $0.audioPlayer = .testValue
+        $0.devicePose.updates = { AsyncStream { $0.yield(.upright) } }
+        $0.audioRecorder = AudioRecorderClient(
+          requestPermission: { true },
+          prepareForRecording: {},
+          startRecording: {},
+          stopRecording: { URL(fileURLWithPath: "/tmp/test.wav") },
+          currentTime: { 0 },
+          deleteRecording: { _ in },
+          getAudioLevel: { 0 },
+          startRecordingWithUpdates: { _ in
+            startCalled.setValue(true)
+            return RecordingSession(
+              stop: { URL(fileURLWithPath: "/tmp/test.wav") }, cancel: {}, delete: { _ in })
+          },
+          usesExternalMicrophone: { false })
+      } operation: {
+        makeReadyModel()
+      }
+
+      await model.recordButtonTapped()
+      await Task.megaYield()
+
+      expectNoDifference(model.flipToRecord.phase, .prompting)
+      #expect(!startCalled.value)
+      expectNoDifference(model.recordingPhase, .ready)
+    }
+  }
+
+  @Test func secondStopDoesNotStopTheRecorderAgain() async {
+    let stopCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.audioPlayer = .testValue
+      $0.audioRecorder = AudioRecorderClient(
+        requestPermission: { true },
+        prepareForRecording: {},
+        startRecording: {},
+        stopRecording: { URL(fileURLWithPath: "/tmp/test.wav") },
+        currentTime: { 0 },
+        deleteRecording: { _ in },
+        getAudioLevel: { 0 },
+        startRecordingWithUpdates: { _ in
+          RecordingSession(
+            stop: {
+              stopCount.withValue { $0 += 1 }
+              return URL(fileURLWithPath: "/tmp/test.wav")
+            }, cancel: {}, delete: { _ in })
+        })
+    } operation: {
+      makeReadyModel()
+    }
+    await model.recordButtonTapped()
+
+    await model.recordButtonTapped()
+    await model.flipToRecord.stop()
+
+    expectNoDifference(stopCount.value, 1)
+    expectNoDifference(model.recordingPhase, .review)
+    #expect(model.presentedAlert == nil)
+  }
+
   @Test func startRecordingDeniedShowsPermissionAlert() async {
     let model = withDependencies {
       $0.audioPlayer = .testValue

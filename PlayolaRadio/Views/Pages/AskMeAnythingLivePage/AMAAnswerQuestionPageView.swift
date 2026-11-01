@@ -28,6 +28,7 @@ struct AMAAnswerQuestionPageView: View {
     .toolbar(.hidden, for: .navigationBar)
     .toolbar(model.tabBarVisibility, for: .tabBar)
     .accessibilityAction(.escape) { model.backButtonTapped() }
+    .flipToRecordOverlay(model.flipToRecord)
     .playolaAlert($model.presentedAlert)
     .task { await model.viewAppeared() }
     .onDisappear { Task { await model.viewDisappeared() } }

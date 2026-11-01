@@ -15,6 +15,7 @@ struct RecordWithMultiStepPromptView: View {
     }
     .navigationBarHidden(true)
     .toolbar(model.tabBarVisibility, for: .tabBar)
+    .flipToRecordOverlay(model.flipToRecord)
     .playolaAlert($model.presentedAlert)
     .onAppear { model.viewAppeared() }
     .onDisappear { Task { await model.viewDisappeared() } }

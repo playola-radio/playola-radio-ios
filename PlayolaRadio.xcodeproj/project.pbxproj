@@ -438,7 +438,11 @@
 		D35EFC532F1A99E6000F64A4 /* ConversationListPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC4A2F1A9911000F64A4 /* ConversationListPageTests.swift */; };
 		D35EFC562F1AFF76000F64A4 /* AppRatingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC542F1AFF76000F64A4 /* AppRatingClient.swift */; };
 		A1F0E0032F90000000C0FFEE /* WindowOrientationClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F0E0012F90000000C0FFEE /* WindowOrientationClient.swift */; };
+		CCB688D511EC2A1E2FDD88A1 /* RecordingOrientationClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B6234F3E8DCBBBC0DA7948B /* RecordingOrientationClient.swift */; };
+		ED1A7B7382A18E8A2C41960E /* DevicePoseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9449946DEAE74B815E8F1917 /* DevicePoseClient.swift */; };
 		A1F0E0042F90000000C0FFEE /* WindowOrientationClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F0E0012F90000000C0FFEE /* WindowOrientationClient.swift */; };
+		B9FF1C31CD8D46DA8A24992A /* RecordingOrientationClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B6234F3E8DCBBBC0DA7948B /* RecordingOrientationClient.swift */; };
+		6AACB1CEEA40109BD1D75898 /* DevicePoseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9449946DEAE74B815E8F1917 /* DevicePoseClient.swift */; };
 		D35EFC572F1AFF76000F64A4 /* AppRatingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC542F1AFF76000F64A4 /* AppRatingClient.swift */; };
 		D35EFC592F1B0472000F64A4 /* AppRatingClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFC582F1B0472000F64A4 /* AppRatingClientTests.swift */; };
 		D36FBCC02E37FC8100D1241C /* PrizeTierRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D36FBCBF2E37FC7800D1241C /* PrizeTierRow.swift */; };
@@ -666,6 +670,7 @@
 		FAE000000000000000000005 /* AudioSessionCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */; };
 		FAE000000000000000000011 /* SingleNowPlayingWriterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE000000000000000000010 /* SingleNowPlayingWriterTests.swift */; };
 		FAF000000000000000000002 /* AudioRecorderClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF000000000000000000001 /* AudioRecorderClientTests.swift */; };
+		93755B68CD299947FC97A5BC /* RecordingOrientationControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70156A7D2065B7205272F1C4 /* RecordingOrientationControllerTests.swift */; };
 		FAF000000000000000000011 /* AudioPlayerClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF000000000000000000010 /* AudioPlayerClientTests.swift */; };
 		FE01A0C72DFCB368002BAC30 /* SharedStateTestTrait.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */; };
 		FE110A0000000000000000B2 /* WelcomeMessagePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F2 /* WelcomeMessagePageModel.swift */; };
@@ -716,17 +721,23 @@
 		B2D0E0062F90000000C0FFEE /* UpsideDownKeyboardController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0E0042F90000000C0FFEE /* UpsideDownKeyboardController.swift */; };
 		B2D0E1062F90000000C0FFEE /* UpsideDownNotificationBannerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0E1042F90000000C0FFEE /* UpsideDownNotificationBannerController.swift */; };
 		B2D0E0082F90000000C0FFEE /* UpsideDownKeyboardControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0E0072F90000000C0FFEE /* UpsideDownKeyboardControllerTests.swift */; };
+		C228FB2F906D366A498B36EA /* DevicePoseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4597E1AF5FEBB012470D0AC7 /* DevicePoseTests.swift */; };
 		B2D0E1082F90000000C0FFEE /* UpsideDownNotificationBannerControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0E1072F90000000C0FFEE /* UpsideDownNotificationBannerControllerTests.swift */; };
 		B2D0E00A2F90000000C0FFEE /* UpsideDownKeyboardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0E0092F90000000C0FFEE /* UpsideDownKeyboardModel.swift */; };
 		B2D0E10A2F90000000C0FFEE /* UpsideDownNotificationBannerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0E1092F90000000C0FFEE /* UpsideDownNotificationBannerModel.swift */; };
+		E08FF8DE7A0ABCF36920E4C2 /* FlipToRecordOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090C83E4C7ED4F92DA05E5FB /* FlipToRecordOverlay.swift */; };
+		1CED89C5DB5B2CD66170FD39 /* FlipToRecordModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2360AD444D58D139D8443081 /* FlipToRecordModel.swift */; };
 		B2D0E00B2F90000000C0FFEE /* UpsideDownKeyboardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0E0092F90000000C0FFEE /* UpsideDownKeyboardModel.swift */; };
 		B2D0E10B2F90000000C0FFEE /* UpsideDownNotificationBannerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0E1092F90000000C0FFEE /* UpsideDownNotificationBannerModel.swift */; };
+		166A9D111EB6AA1B641A933B /* FlipToRecordOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090C83E4C7ED4F92DA05E5FB /* FlipToRecordOverlay.swift */; };
+		A8B80C4B23D205638DCF7C9D /* FlipToRecordModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2360AD444D58D139D8443081 /* FlipToRecordModel.swift */; };
 		B2D0E00D2F90000000C0FFEE /* UpsideDownKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0E00C2F90000000C0FFEE /* UpsideDownKeyboardView.swift */; };
 		B2D0E10D2F90000000C0FFEE /* UpsideDownNotificationBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0E10C2F90000000C0FFEE /* UpsideDownNotificationBannerView.swift */; };
 		B2D0E00E2F90000000C0FFEE /* UpsideDownKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0E00C2F90000000C0FFEE /* UpsideDownKeyboardView.swift */; };
 		B2D0E10E2F90000000C0FFEE /* UpsideDownNotificationBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0E10C2F90000000C0FFEE /* UpsideDownNotificationBannerView.swift */; };
 		B2D0E0102F90000000C0FFEE /* UpsideDownKeyboardModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0E00F2F90000000C0FFEE /* UpsideDownKeyboardModelTests.swift */; };
 		B2D0E1102F90000000C0FFEE /* UpsideDownNotificationBannerModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0E10F2F90000000C0FFEE /* UpsideDownNotificationBannerModelTests.swift */; };
+		B10C3580CBC2E30F8C5DDA21 /* FlipToRecordModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CA4A7C645509FE961C7121C /* FlipToRecordModelTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -972,6 +983,8 @@
 		D35EFC4A2F1A9911000F64A4 /* ConversationListPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationListPageTests.swift; sourceTree = "<group>"; };
 		D35EFC4B2F1A9911000F64A4 /* ConversationListPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationListPageView.swift; sourceTree = "<group>"; };
 		D35EFC542F1AFF76000F64A4 /* AppRatingClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRatingClient.swift; sourceTree = "<group>"; };
+		9449946DEAE74B815E8F1917 /* DevicePoseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicePoseClient.swift; sourceTree = "<group>"; };
+		1B6234F3E8DCBBBC0DA7948B /* RecordingOrientationClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingOrientationClient.swift; sourceTree = "<group>"; };
 		A1F0E0012F90000000C0FFEE /* WindowOrientationClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowOrientationClient.swift; sourceTree = "<group>"; };
 		D35EFC582F1B0472000F64A4 /* AppRatingClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRatingClientTests.swift; sourceTree = "<group>"; };
 		D36FBCBF2E37FC7800D1241C /* PrizeTierRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTierRow.swift; sourceTree = "<group>"; };
@@ -1122,6 +1135,7 @@
 		FAE000000000000000000001 /* AudioSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinator.swift; sourceTree = "<group>"; };
 		FAE000000000000000000004 /* AudioSessionCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinatorTests.swift; sourceTree = "<group>"; };
 		FAE000000000000000000010 /* SingleNowPlayingWriterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleNowPlayingWriterTests.swift; sourceTree = "<group>"; };
+		70156A7D2065B7205272F1C4 /* RecordingOrientationControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingOrientationControllerTests.swift; sourceTree = "<group>"; };
 		FAF000000000000000000001 /* AudioRecorderClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderClientTests.swift; sourceTree = "<group>"; };
 		FAF000000000000000000010 /* AudioPlayerClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerClientTests.swift; sourceTree = "<group>"; };
 		FBD876AFF9DD0588179EB37B /* RewardsExperience.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RewardsExperience.swift; sourceTree = "<group>"; };
@@ -1155,13 +1169,17 @@
 		B2D0E1012F90000000C0FFEE /* UpsideDownNotificationBannerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpsideDownNotificationBannerClient.swift; sourceTree = "<group>"; };
 		B2D0E0042F90000000C0FFEE /* UpsideDownKeyboardController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpsideDownKeyboardController.swift; sourceTree = "<group>"; };
 		B2D0E1042F90000000C0FFEE /* UpsideDownNotificationBannerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpsideDownNotificationBannerController.swift; sourceTree = "<group>"; };
+		4597E1AF5FEBB012470D0AC7 /* DevicePoseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicePoseTests.swift; sourceTree = "<group>"; };
 		B2D0E0072F90000000C0FFEE /* UpsideDownKeyboardControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpsideDownKeyboardControllerTests.swift; sourceTree = "<group>"; };
 		B2D0E1072F90000000C0FFEE /* UpsideDownNotificationBannerControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpsideDownNotificationBannerControllerTests.swift; sourceTree = "<group>"; };
 		B2D0E0092F90000000C0FFEE /* UpsideDownKeyboardModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpsideDownKeyboardModel.swift; sourceTree = "<group>"; };
+		2360AD444D58D139D8443081 /* FlipToRecordModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlipToRecordModel.swift; sourceTree = "<group>"; };
+		090C83E4C7ED4F92DA05E5FB /* FlipToRecordOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlipToRecordOverlay.swift; sourceTree = "<group>"; };
 		B2D0E1092F90000000C0FFEE /* UpsideDownNotificationBannerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpsideDownNotificationBannerModel.swift; sourceTree = "<group>"; };
 		B2D0E00C2F90000000C0FFEE /* UpsideDownKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpsideDownKeyboardView.swift; sourceTree = "<group>"; };
 		B2D0E10C2F90000000C0FFEE /* UpsideDownNotificationBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpsideDownNotificationBannerView.swift; sourceTree = "<group>"; };
 		B2D0E00F2F90000000C0FFEE /* UpsideDownKeyboardModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpsideDownKeyboardModelTests.swift; sourceTree = "<group>"; };
+		4CA4A7C645509FE961C7121C /* FlipToRecordModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlipToRecordModelTests.swift; sourceTree = "<group>"; };
 		B2D0E10F2F90000000C0FFEE /* UpsideDownNotificationBannerModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpsideDownNotificationBannerModelTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1673,6 +1691,16 @@
 			path = Pages;
 			sourceTree = "<group>";
 		};
+		08ADAD1D81BB6EC593D0BC58 /* FlipToRecord */ = {
+			isa = PBXGroup;
+			children = (
+				090C83E4C7ED4F92DA05E5FB /* FlipToRecordOverlay.swift */,
+				4CA4A7C645509FE961C7121C /* FlipToRecordModelTests.swift */,
+				2360AD444D58D139D8443081 /* FlipToRecordModel.swift */,
+			);
+			path = FlipToRecord;
+			sourceTree = "<group>";
+		};
 		D339E55D2BFD0FC200B9E35B /* Reusable Components */ = {
 			isa = PBXGroup;
 			children = (
@@ -1683,6 +1711,7 @@
 				D3FACE020000000000000001 /* RemoteArtwork.swift */,
 				B2D0E0122F90000000C0FFEE /* UpsideDownKeyboard */,
 				B2D0E1122F90000000C0FFEE /* UpsideDownNotificationBanner */,
+				08ADAD1D81BB6EC593D0BC58 /* FlipToRecord */,
 				D3FACE020000000000000010 /* SongPreviewPlayer.swift */,
 				D3FACE020000000000000020 /* SongPreviewPlayerTests.swift */,
 				D35EFBF42F1576EF000F64A4 /* NewFeatureTile */,
@@ -1942,6 +1971,8 @@
 			isa = PBXGroup;
 			children = (
 				A1F0E0012F90000000C0FFEE /* WindowOrientationClient.swift */,
+				1B6234F3E8DCBBBC0DA7948B /* RecordingOrientationClient.swift */,
+				70156A7D2065B7205272F1C4 /* RecordingOrientationControllerTests.swift */,
 			);
 			path = WindowOrientation;
 			sourceTree = "<group>";
@@ -2072,6 +2103,15 @@
 			path = LibraryPage;
 			sourceTree = "<group>";
 		};
+		8954077185EFE3B8883B4134 /* DevicePose */ = {
+			isa = PBXGroup;
+			children = (
+				4597E1AF5FEBB012470D0AC7 /* DevicePoseTests.swift */,
+				9449946DEAE74B815E8F1917 /* DevicePoseClient.swift */,
+			);
+			path = DevicePose;
+			sourceTree = "<group>";
+		};
 		D378CCD12E58C37D00497A4A /* Core */ = {
 			isa = PBXGroup;
 			children = (
@@ -2079,6 +2119,7 @@
 				D378CCD32E58C3B100497A4A /* API */,
 				D35EFC552F1AFF76000F64A4 /* AppRating */,
 				A1F0E0022F90000000C0FFEE /* WindowOrientation */,
+				8954077185EFE3B8883B4134 /* DevicePose */,
 				B2D0E0112F90000000C0FFEE /* UpsideDownKeyboard */,
 				B2D0E1112F90000000C0FFEE /* UpsideDownNotificationBanner */,
 				D378CCD42E58C3DC00497A4A /* AudioPlayback */,
@@ -2631,6 +2672,8 @@
 				B2D0E1052F90000000C0FFEE /* UpsideDownNotificationBannerController.swift in Sources */,
 				B2D0E00A2F90000000C0FFEE /* UpsideDownKeyboardModel.swift in Sources */,
 				B2D0E10A2F90000000C0FFEE /* UpsideDownNotificationBannerModel.swift in Sources */,
+				E08FF8DE7A0ABCF36920E4C2 /* FlipToRecordOverlay.swift in Sources */,
+				1CED89C5DB5B2CD66170FD39 /* FlipToRecordModel.swift in Sources */,
 				B2D0E00D2F90000000C0FFEE /* UpsideDownKeyboardView.swift in Sources */,
 				B2D0E10D2F90000000C0FFEE /* UpsideDownNotificationBannerView.swift in Sources */,
 				A9F1000000000000000000C2 /* ClaimAPIError.swift in Sources */,
@@ -2691,6 +2734,8 @@
 				D35EFC022F157E59000F64A4 /* SeriesCard.swift in Sources */,
 				D35EFC562F1AFF76000F64A4 /* AppRatingClient.swift in Sources */,
 				A1F0E0032F90000000C0FFEE /* WindowOrientationClient.swift in Sources */,
+				CCB688D511EC2A1E2FDD88A1 /* RecordingOrientationClient.swift in Sources */,
+				ED1A7B7382A18E8A2C41960E /* DevicePoseClient.swift in Sources */,
 				D35EFC032F157E59000F64A4 /* EpisodeRow.swift in Sources */,
 				D30F005B2E8592F0007BCC73 /* View+ListInstalledFonts.swift in Sources */,
 				D35EFBF12F1092D7000F64A4 /* RRuleFormatter.swift in Sources */,
@@ -2909,6 +2954,8 @@
 				B2D0E1062F90000000C0FFEE /* UpsideDownNotificationBannerController.swift in Sources */,
 				B2D0E00B2F90000000C0FFEE /* UpsideDownKeyboardModel.swift in Sources */,
 				B2D0E10B2F90000000C0FFEE /* UpsideDownNotificationBannerModel.swift in Sources */,
+				166A9D111EB6AA1B641A933B /* FlipToRecordOverlay.swift in Sources */,
+				A8B80C4B23D205638DCF7C9D /* FlipToRecordModel.swift in Sources */,
 				B2D0E00E2F90000000C0FFEE /* UpsideDownKeyboardView.swift in Sources */,
 				B2D0E10E2F90000000C0FFEE /* UpsideDownNotificationBannerView.swift in Sources */,
 				A9F1000000000000000000C3 /* ClaimAPIError.swift in Sources */,
@@ -2969,6 +3016,8 @@
 				D35EFC062F157E59000F64A4 /* SeriesCard.swift in Sources */,
 				D35EFC572F1AFF76000F64A4 /* AppRatingClient.swift in Sources */,
 				A1F0E0042F90000000C0FFEE /* WindowOrientationClient.swift in Sources */,
+				B9FF1C31CD8D46DA8A24992A /* RecordingOrientationClient.swift in Sources */,
+				6AACB1CEEA40109BD1D75898 /* DevicePoseClient.swift in Sources */,
 				D35EFC072F157E59000F64A4 /* EpisodeRow.swift in Sources */,
 				D37257BD2DF893C6001BC6F9 /* View+ListInstalledFonts.swift in Sources */,
 				D35EFBF02F1092D7000F64A4 /* RRuleFormatter.swift in Sources */,
@@ -3182,11 +3231,14 @@
 			files = (
 				A9F1000000000000000000F2 /* FulfillmentRequestsRefresherTests.swift in Sources */,
 				B2D0E0082F90000000C0FFEE /* UpsideDownKeyboardControllerTests.swift in Sources */,
+				C228FB2F906D366A498B36EA /* DevicePoseTests.swift in Sources */,
 				B2D0E1082F90000000C0FFEE /* UpsideDownNotificationBannerControllerTests.swift in Sources */,
 				B2D0E0102F90000000C0FFEE /* UpsideDownKeyboardModelTests.swift in Sources */,
 				B2D0E1102F90000000C0FFEE /* UpsideDownNotificationBannerModelTests.swift in Sources */,
+				B10C3580CBC2E30F8C5DDA21 /* FlipToRecordModelTests.swift in Sources */,
 				A9F1000000000000000000D2 /* ClaimAPIErrorTests.swift in Sources */,
 				FAF000000000000000000002 /* AudioRecorderClientTests.swift in Sources */,
+				93755B68CD299947FC97A5BC /* RecordingOrientationControllerTests.swift in Sources */,
 				FAF000000000000000000011 /* AudioPlayerClientTests.swift in Sources */,
 				FAE000000000000000000005 /* AudioSessionCoordinatorTests.swift in Sources */,
 				FAE000000000000000000011 /* SingleNowPlayingWriterTests.swift in Sources */,

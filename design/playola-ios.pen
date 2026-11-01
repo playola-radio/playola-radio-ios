@@ -1,6 +1,81 @@
 {
-  "version": "2.20",
+  "version": "2.21",
   "children": [
+    {
+      "type": "frame",
+      "id": "r5VSzh",
+      "x": -523,
+      "y": 26200,
+      "name": "Zone · Proposal · Flip to Record",
+      "width": 1469,
+      "height": 1052,
+      "fill": "#111D29",
+      "cornerRadius": 16,
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "dvAPw",
+          "x": 60,
+          "y": 240,
+          "name": "Flip to Record brief",
+          "width": 300,
+          "layout": "vertical",
+          "gap": 16,
+          "children": [
+            {
+              "type": "text",
+              "id": "Y6ndk",
+              "name": "Brief Title",
+              "fill": "$text-primary",
+              "content": "Flip to record",
+              "fontFamily": "$font-display",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "w6snSi",
+              "name": "Brief Body",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Tapping Record on any of the 7 recording screens asks the user to flip the phone and talk into the bottom mic.\n\nSkipped when an external mic is active or the phone is already upside down.\n\nPrompt direction A: bottom sheet over the recorder.\nPrompt direction B: full-screen takeover with the speaking-position illustration.",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-body",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "r9JcU",
+          "x": 523,
+          "y": 17,
+          "name": "A / SHEET",
+          "fill": "#6EC6FF",
+          "content": "A / FLIP PROMPT · SHEET",
+          "fontFamily": "$font-body",
+          "fontSize": 14,
+          "fontWeight": "600",
+          "letterSpacing": 0.7
+        },
+        {
+          "type": "text",
+          "id": "bB5fA",
+          "x": 1016,
+          "y": 17,
+          "name": "B / FULL SCREEN",
+          "fill": "#6EC6FF",
+          "content": "B / FLIP PROMPT · FULL SCREEN",
+          "fontFamily": "$font-body",
+          "fontSize": 14,
+          "fontWeight": "600",
+          "letterSpacing": 0.7
+        }
+      ]
+    },
     {
       "type": "rectangle",
       "cornerRadius": 32,
@@ -36095,7 +36170,7 @@
           "fill": {
             "type": "image",
             "enabled": true,
-            "url": "generated-assets/recording-position-v6.png",
+            "url": "generated-assets/recording-position-v8.png",
             "mode": "contain"
           }
         },
@@ -65514,6 +65589,1907 @@
               ]
             }
           ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "z8wAhd",
+      "x": 0,
+      "y": 26260,
+      "name": "Flip to Record · Prompt · A · Sheet",
+      "clip": true,
+      "width": 393,
+      "height": 852,
+      "fill": "$warm-base",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "UwbEF",
+          "name": "Navigation",
+          "width": "fill_container",
+          "height": 64,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "bBCJN",
+              "x": 14,
+              "y": 10,
+              "name": "Back Button",
+              "width": 44,
+              "height": 44,
+              "fill": "$warm-surface-raised",
+              "cornerRadius": 22,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "N2vcQh",
+                  "name": "Back Chevron",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "chevron-left",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "bm6xS",
+              "x": 0,
+              "y": 21,
+              "name": "Screen Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": 393,
+              "content": "Listener Question",
+              "textAlign": "center",
+              "fontFamily": "$font-body",
+              "fontSize": 17,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Q7ZsT",
+          "name": "Question Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            12,
+            16,
+            0,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "uyFAz",
+              "name": "Question Label",
+              "fill": "$warm-text-secondary",
+              "content": "QUESTION",
+              "fontFamily": "$font-body",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "I910f2",
+              "name": "Joe McCulley Question",
+              "width": "fill_container",
+              "fill": "$warm-surface",
+              "cornerRadius": 12,
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "dx7Ep",
+                  "name": "Listener Identity",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "WvQux",
+                      "name": "Avatar · JM",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "$warm-surface-raised",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "GMqE6",
+                          "name": "Initials",
+                          "fill": "$warm-text-secondary",
+                          "content": "JM",
+                          "fontFamily": "$font-body",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "U9jSbA",
+                      "name": "Listener Details",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "U9Zm2o",
+                          "name": "Listener Name",
+                          "fill": "$text-primary",
+                          "content": "Joe McCulley",
+                          "fontFamily": "$font-body",
+                          "fontSize": 15,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "AhNud",
+                          "name": "Asked At",
+                          "fill": "$warm-text-secondary",
+                          "content": "3 months ago",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "Oj2CW",
+                  "name": "Question Transcript",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Hey this is Joe McCulley from listening from Orange Beach. What's your favorite song?",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "BB5Jj",
+                  "name": "Question Audio Transport",
+                  "width": "fill_container",
+                  "height": 48,
+                  "fill": "$warm-surface-raised",
+                  "cornerRadius": 10,
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "j8EQe3",
+                      "name": "Idle Play Button",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "$brand-primary",
+                      "cornerRadius": 16,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "Z4TrK0",
+                          "name": "Idle Play Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "play",
+                          "library": "lucide",
+                          "fill": "$text-primary"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "HIkFs",
+                      "name": "Idle Elapsed Time",
+                      "fill": "$warm-text-secondary",
+                      "content": "0:00",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "pPb6K",
+                      "name": "Idle Seek Track",
+                      "width": "fill_container",
+                      "height": 12,
+                      "fill": "#00000000",
+                      "cornerRadius": 2,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "BZqmm",
+                          "x": 0,
+                          "y": 4,
+                          "name": "Idle Seek Rail",
+                          "opacity": 0.45,
+                          "fill": "$warm-text-secondary",
+                          "width": 199,
+                          "height": 4
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "pGaLL",
+                          "x": 0,
+                          "y": 4,
+                          "name": "Idle Played Progress",
+                          "fill": "$brand-primary",
+                          "width": 2,
+                          "height": 4
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "yqpWz",
+                          "x": 0,
+                          "y": 0,
+                          "name": "Idle Seek Thumb",
+                          "fill": "$brand-primary",
+                          "width": 12,
+                          "height": 12
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "e7ax5V",
+                      "name": "Idle Total Duration",
+                      "fill": "$warm-text-secondary",
+                      "content": "0:08",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "DNLDd",
+          "name": "Response Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            20,
+            16,
+            0,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "p67b9r",
+              "name": "Response Label",
+              "fill": "$warm-text-secondary",
+              "content": "YOUR RESPONSE",
+              "fontFamily": "$font-body",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "E4oMnW",
+              "name": "Response Recorder · Idle",
+              "width": "fill_container",
+              "fill": "$warm-surface",
+              "cornerRadius": 12,
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Jabr3",
+                  "name": "Idle Preview",
+                  "width": "fill_container",
+                  "height": 84,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "WEgz0",
+                      "name": "Idle Microphone",
+                      "width": 26,
+                      "height": 26,
+                      "icon": "mic",
+                      "library": "lucide",
+                      "fill": "$brand-primary"
+                    },
+                    {
+                      "type": "text",
+                      "id": "i3DwaU",
+                      "name": "Idle Instruction",
+                      "fill": "$text-primary",
+                      "content": "Tap the mic to record your response",
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "m5MGFY",
+                      "name": "Maximum Length",
+                      "fill": "$warm-text-secondary",
+                      "content": "Up to 2:00",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "mrmzB",
+                  "name": "Start Recording Button",
+                  "width": 52,
+                  "height": 52,
+                  "fill": "$brand-primary",
+                  "cornerRadius": 26,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "VArBc",
+                      "name": "Start Microphone",
+                      "width": 24,
+                      "height": 24,
+                      "icon": "mic",
+                      "library": "lucide",
+                      "fill": "$text-primary"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "fYMvE",
+                  "name": "Start Recording Label",
+                  "fill": "$warm-text-secondary",
+                  "content": "Tap to start recording",
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ko4MZ",
+          "type": "ref",
+          "ref": "k7Cd7m",
+          "name": "Tab Bar (Broadcast)",
+          "layoutPosition": "absolute",
+          "x": 16,
+          "y": 762,
+          "descendants": {
+            "wd9Lk/Mb28I": {
+              "fill": "$text-disabled"
+            },
+            "wd9Lk/x7cAoO": {
+              "fill": "$text-disabled"
+            },
+            "d2EwSK/Mb28I": {
+              "fill": "$text-primary"
+            },
+            "d2EwSK/x7cAoO": {
+              "fill": "$text-primary"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "kk7wv",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 0,
+          "name": "Scrim",
+          "width": 393,
+          "height": 852,
+          "fill": "$overlay-scrim-70",
+          "layout": "vertical",
+          "justifyContent": "end",
+          "children": [
+            {
+              "type": "frame",
+              "id": "n1qH9V",
+              "name": "Flip Prompt Sheet",
+              "width": "fill_container",
+              "fill": "$warm-surface",
+              "cornerRadius": [
+                24,
+                24,
+                0,
+                0
+              ],
+              "layout": "vertical",
+              "gap": 16,
+              "padding": [
+                10,
+                24,
+                34,
+                24
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 3,
+                  "id": "k9LwRz",
+                  "name": "Grabber",
+                  "fill": "$warm-text-secondary",
+                  "width": 36,
+                  "height": 5
+                },
+                {
+                  "type": "frame",
+                  "id": "DGqFV",
+                  "name": "Speaking Position Art",
+                  "width": "fill_container",
+                  "height": 220,
+                  "fill": [
+                    "$surface-section",
+                    {
+                      "type": "image",
+                      "enabled": true,
+                      "url": "generated-assets/recording-position-v8.png",
+                      "mode": "contain"
+                    }
+                  ],
+                  "cornerRadius": 16
+                },
+                {
+                  "type": "text",
+                  "id": "f79hR",
+                  "name": "Flip Title",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Flip your phone to start.\nFlip it back to stop.",
+                  "lineHeight": 1.25,
+                  "textAlign": "center",
+                  "fontFamily": "$font-display",
+                  "fontSize": 24,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "N2sDe",
+                  "name": "Flip Body",
+                  "fill": "$warm-text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Talk into the bottom, like a microphone. Recording starts after a 3‑second countdown.",
+                  "lineHeight": 1.4,
+                  "textAlign": "center",
+                  "fontFamily": "$font-body",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "V01zk",
+                  "name": "Waiting Status",
+                  "height": 40,
+                  "fill": "$warm-surface-raised",
+                  "cornerRadius": 20,
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "S7xIfW",
+                      "name": "Rotate Icon",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "rotate-cw",
+                      "library": "lucide",
+                      "fill": "$brand-primary"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Nc5iB",
+                      "name": "Waiting Label",
+                      "fill": "$text-primary",
+                      "content": "Waiting for you to flip…",
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "cRclz",
+                  "name": "Cancel",
+                  "fill": "$warm-text-secondary",
+                  "content": "Cancel",
+                  "fontFamily": "$font-body",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "t3o0m",
+      "x": 493,
+      "y": 26260,
+      "name": "Flip to Record · Prompt · B · Full Screen",
+      "clip": true,
+      "width": 393,
+      "height": 852,
+      "fill": "$warm-base",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "dFWCV",
+          "name": "Navigation",
+          "width": "fill_container",
+          "height": 64,
+          "padding": [
+            10,
+            14
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "oXHfS",
+              "name": "Close Button",
+              "width": 44,
+              "height": 44,
+              "fill": "$warm-surface-raised",
+              "cornerRadius": 22,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "fHj4E",
+                  "name": "Close Icon",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "x",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "h58eYE",
+          "name": "Prompt Content",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 20,
+          "padding": [
+            8,
+            24,
+            40,
+            24
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "Hd8yE",
+              "name": "Speaking Position Art",
+              "width": "fill_container",
+              "height": 400,
+              "fill": [
+                "$surface-section",
+                {
+                  "type": "image",
+                  "enabled": true,
+                  "url": "generated-assets/recording-position-v8.png",
+                  "mode": "contain"
+                }
+              ],
+              "cornerRadius": 24
+            },
+            {
+              "type": "text",
+              "id": "u1wVY",
+              "name": "Flip Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Flip your phone over",
+              "textAlign": "center",
+              "fontFamily": "$font-display",
+              "fontSize": 30,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "f4MxJ",
+              "name": "Flip Body",
+              "fill": "$warm-text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Talk into the bottom, like a microphone. Recording starts after a 3‑second countdown.",
+              "lineHeight": 1.4,
+              "textAlign": "center",
+              "fontFamily": "$font-body",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "KReRZ",
+              "name": "Waiting Status",
+              "height": 40,
+              "fill": "$warm-surface-raised",
+              "cornerRadius": 20,
+              "gap": 8,
+              "padding": [
+                0,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "wa57T",
+                  "name": "Rotate Icon",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "rotate-cw",
+                  "library": "lucide",
+                  "fill": "$brand-primary"
+                },
+                {
+                  "type": "text",
+                  "id": "gwtqq",
+                  "name": "Waiting Label",
+                  "fill": "$text-primary",
+                  "content": "Waiting for you to flip…",
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "XajQG",
+              "name": "Spacer Push",
+              "width": "fill_container",
+              "height": "fill_container"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "gK9Vw",
+      "x": 986,
+      "y": 26260,
+      "name": "Flip to Record · Countdown · Rotated",
+      "clip": true,
+      "width": 393,
+      "height": 852,
+      "fill": "$warm-base",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "lWLza",
+          "name": "Navigation",
+          "width": "fill_container",
+          "height": 64,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "NlybV",
+              "x": 14,
+              "y": 10,
+              "name": "Back Button",
+              "width": 44,
+              "height": 44,
+              "fill": "$warm-surface-raised",
+              "cornerRadius": 22,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "Ag0hT",
+                  "name": "Back Chevron",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "chevron-left",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "U5tNb",
+              "x": 0,
+              "y": 21,
+              "name": "Screen Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": 393,
+              "content": "Listener Question",
+              "textAlign": "center",
+              "fontFamily": "$font-body",
+              "fontSize": 17,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "p6diy",
+          "name": "Question Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            12,
+            16,
+            0,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "pna8Z",
+              "name": "Question Label",
+              "fill": "$warm-text-secondary",
+              "content": "QUESTION",
+              "fontFamily": "$font-body",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "P60E1",
+              "name": "Joe McCulley Question",
+              "width": "fill_container",
+              "fill": "$warm-surface",
+              "cornerRadius": 12,
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "m3Zl6",
+                  "name": "Listener Identity",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "k6NkJ",
+                      "name": "Avatar · JM",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "$warm-surface-raised",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "dGoU6",
+                          "name": "Initials",
+                          "fill": "$warm-text-secondary",
+                          "content": "JM",
+                          "fontFamily": "$font-body",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "r8lLQ8",
+                      "name": "Listener Details",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "p7nqvG",
+                          "name": "Listener Name",
+                          "fill": "$text-primary",
+                          "content": "Joe McCulley",
+                          "fontFamily": "$font-body",
+                          "fontSize": 15,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "bz6DV",
+                          "name": "Asked At",
+                          "fill": "$warm-text-secondary",
+                          "content": "3 months ago",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "Ey2sP",
+                  "name": "Question Transcript",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Hey this is Joe McCulley from listening from Orange Beach. What's your favorite song?",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "G3WbB",
+                  "name": "Question Audio Transport",
+                  "width": "fill_container",
+                  "height": 48,
+                  "fill": "$warm-surface-raised",
+                  "cornerRadius": 10,
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "x075X",
+                      "name": "Idle Play Button",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "$brand-primary",
+                      "cornerRadius": 16,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "uMD1v",
+                          "name": "Idle Play Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "play",
+                          "library": "lucide",
+                          "fill": "$text-primary"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "C2QJeH",
+                      "name": "Idle Elapsed Time",
+                      "fill": "$warm-text-secondary",
+                      "content": "0:00",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "N9WAQ",
+                      "name": "Idle Seek Track",
+                      "width": "fill_container",
+                      "height": 12,
+                      "fill": "#00000000",
+                      "cornerRadius": 2,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "O9CPX8",
+                          "x": 0,
+                          "y": 4,
+                          "name": "Idle Seek Rail",
+                          "opacity": 0.45,
+                          "fill": "$warm-text-secondary",
+                          "width": 199,
+                          "height": 4
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "Jz3It",
+                          "x": 0,
+                          "y": 4,
+                          "name": "Idle Played Progress",
+                          "fill": "$brand-primary",
+                          "width": 2,
+                          "height": 4
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "yO6Q0",
+                          "x": 0,
+                          "y": 0,
+                          "name": "Idle Seek Thumb",
+                          "fill": "$brand-primary",
+                          "width": 12,
+                          "height": 12
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "HELAv",
+                      "name": "Idle Total Duration",
+                      "fill": "$warm-text-secondary",
+                      "content": "0:08",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ws2RW",
+          "name": "Response Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            20,
+            16,
+            0,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "TWDcl",
+              "name": "Response Label",
+              "fill": "$warm-text-secondary",
+              "content": "YOUR RESPONSE",
+              "fontFamily": "$font-body",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "EtRKp",
+              "name": "Response Recorder · Idle",
+              "width": "fill_container",
+              "fill": "$warm-surface",
+              "cornerRadius": 12,
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "wFdXv",
+                  "name": "Idle Preview",
+                  "width": "fill_container",
+                  "height": 84,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "VxKw1",
+                      "name": "Idle Microphone",
+                      "width": 26,
+                      "height": 26,
+                      "icon": "mic",
+                      "library": "lucide",
+                      "fill": "$brand-primary"
+                    },
+                    {
+                      "type": "text",
+                      "id": "DykGX",
+                      "name": "Idle Instruction",
+                      "fill": "$text-primary",
+                      "content": "Tap the mic to record your response",
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "D2qR1",
+                      "name": "Maximum Length",
+                      "fill": "$warm-text-secondary",
+                      "content": "Up to 2:00",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "KRkwZ",
+                  "name": "Start Recording Button",
+                  "width": 52,
+                  "height": 52,
+                  "fill": "$brand-primary",
+                  "cornerRadius": 26,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "L1isHW",
+                      "name": "Start Microphone",
+                      "width": 24,
+                      "height": 24,
+                      "icon": "mic",
+                      "library": "lucide",
+                      "fill": "$text-primary"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "VxbLt",
+                  "name": "Start Recording Label",
+                  "fill": "$warm-text-secondary",
+                  "content": "Tap to start recording",
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "Rw0EF",
+          "type": "ref",
+          "ref": "k7Cd7m",
+          "name": "Tab Bar (Broadcast)",
+          "layoutPosition": "absolute",
+          "x": 16,
+          "y": 737,
+          "descendants": {
+            "wd9Lk/Mb28I": {
+              "fill": "$text-disabled"
+            },
+            "wd9Lk/x7cAoO": {
+              "fill": "$text-disabled"
+            },
+            "d2EwSK/Mb28I": {
+              "fill": "$text-primary"
+            },
+            "d2EwSK/x7cAoO": {
+              "fill": "$text-primary"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "aeyn3",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 64,
+          "name": "Scrim",
+          "width": 393,
+          "height": 788,
+          "fill": "#130000F2",
+          "layout": "vertical",
+          "gap": 20,
+          "padding": [
+            0,
+            32,
+            80,
+            32
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "B0jvF1",
+              "name": "Countdown Label",
+              "fill": "$warm-text-secondary",
+              "content": "Recording in",
+              "fontFamily": "$font-body",
+              "fontSize": 17,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "L6DbtK",
+              "name": "Countdown Ring",
+              "width": 180,
+              "height": 180,
+              "cornerRadius": 90,
+              "stroke": "$brand-primary",
+              "strokeWidth": 6,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "OKrbp",
+                  "name": "Countdown Number",
+                  "fill": "$text-primary",
+                  "content": "3",
+                  "fontFamily": "$font-display",
+                  "fontSize": 96,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "kJi6M",
+              "name": "Countdown Hint",
+              "fill": "$warm-text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Turn your phone back over to cancel.",
+              "lineHeight": 1.4,
+              "textAlign": "center",
+              "fontFamily": "$font-body",
+              "fontSize": 15,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "S4gWS",
+              "name": "Countdown Cancel",
+              "fill": "$warm-surface-raised",
+              "cornerRadius": 999,
+              "padding": [
+                12,
+                28
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "x2rtV",
+                  "name": "Cancel Label",
+                  "fill": "$warm-text-secondary",
+                  "content": "Cancel",
+                  "fontFamily": "$font-body",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 3,
+          "id": "iaeyX",
+          "layoutPosition": "absolute",
+          "x": 129.5,
+          "y": 8,
+          "name": "Home Indicator (rotated, top)",
+          "fill": "$text-primary",
+          "width": 134,
+          "height": 5
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 19,
+          "id": "kTj0i",
+          "layoutPosition": "absolute",
+          "x": 133.5,
+          "y": 804,
+          "name": "Dynamic Island (rotated, bottom)",
+          "fill": "#000000",
+          "width": 126,
+          "height": 37,
+          "stroke": "$glass-hairline",
+          "strokeWidth": 1
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "iqEG4",
+      "x": 1479,
+      "y": 26260,
+      "name": "Flip to Record · Recording · Rotated",
+      "clip": true,
+      "width": 393,
+      "height": 852,
+      "fill": "$warm-base",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "kGgBk",
+          "name": "Navigation",
+          "width": "fill_container",
+          "height": 64,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "zJ0gj",
+              "x": 14,
+              "y": 10,
+              "name": "Back Button",
+              "width": 44,
+              "height": 44,
+              "fill": "$warm-surface-raised",
+              "cornerRadius": 22,
+              "stroke": "$glass-hairline",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "q3L2uv",
+                  "name": "Back Chevron",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "chevron-left",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "bWbIq",
+              "x": 0,
+              "y": 21,
+              "name": "Screen Title",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": 393,
+              "content": "Listener Question",
+              "textAlign": "center",
+              "fontFamily": "$font-body",
+              "fontSize": 17,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "s8igk",
+          "name": "Question Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            12,
+            16,
+            0,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "Yhi1g",
+              "name": "Question Label",
+              "fill": "$warm-text-secondary",
+              "content": "QUESTION",
+              "fontFamily": "$font-body",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "EDlkI",
+              "name": "Joe McCulley Question",
+              "width": "fill_container",
+              "fill": "$warm-surface",
+              "cornerRadius": 12,
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "vEjHN",
+                  "name": "Listener Identity",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "iwFrG",
+                      "name": "Avatar · JM",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "$warm-surface-raised",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "N86Z2",
+                          "name": "Initials",
+                          "fill": "$warm-text-secondary",
+                          "content": "JM",
+                          "fontFamily": "$font-body",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "XWtvf",
+                      "name": "Listener Details",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "D9JBFE",
+                          "name": "Listener Name",
+                          "fill": "$text-primary",
+                          "content": "Joe McCulley",
+                          "fontFamily": "$font-body",
+                          "fontSize": 15,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "vPuWL",
+                          "name": "Asked At",
+                          "fill": "$warm-text-secondary",
+                          "content": "3 months ago",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "aFfEq",
+                  "name": "Question Transcript",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Hey this is Joe McCulley from listening from Orange Beach. What's your favorite song?",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "xATi7",
+                  "name": "Question Audio Transport",
+                  "width": "fill_container",
+                  "height": 48,
+                  "fill": "$warm-surface-raised",
+                  "cornerRadius": 10,
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "kkL2S",
+                      "name": "Recording Play Button",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "$brand-primary",
+                      "cornerRadius": 16,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "j8YTkL",
+                          "name": "Recording Play Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "play",
+                          "library": "lucide",
+                          "fill": "$text-primary"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "ElE3h",
+                      "name": "Recording Elapsed Time",
+                      "fill": "$warm-text-secondary",
+                      "content": "0:00",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "nTsKy",
+                      "name": "Recording Seek Track",
+                      "width": "fill_container",
+                      "height": 12,
+                      "fill": "#00000000",
+                      "cornerRadius": 2,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "LAFFe",
+                          "x": 0,
+                          "y": 4,
+                          "name": "Recording Seek Rail",
+                          "opacity": 0.45,
+                          "fill": "$warm-text-secondary",
+                          "width": 199,
+                          "height": 4
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "yD3mX",
+                          "x": 0,
+                          "y": 4,
+                          "name": "Recording Played Progress",
+                          "fill": "$brand-primary",
+                          "width": 2,
+                          "height": 4
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "Uv1Sb",
+                          "x": 0,
+                          "y": 0,
+                          "name": "Recording Seek Thumb",
+                          "fill": "$brand-primary",
+                          "width": 12,
+                          "height": 12
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "w5treP",
+                      "name": "Recording Total Duration",
+                      "fill": "$warm-text-secondary",
+                      "content": "0:08",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ydk2S",
+          "name": "Response Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            20,
+            16,
+            0,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "q2gjj",
+              "name": "Response Label",
+              "fill": "$warm-text-secondary",
+              "content": "YOUR RESPONSE",
+              "fontFamily": "$font-body",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "Gt1fG",
+              "name": "Response Recorder · Recording",
+              "width": "fill_container",
+              "fill": "$warm-surface",
+              "cornerRadius": 12,
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "UjNwB",
+                  "name": "Recording Status",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "D0H5d",
+                      "name": "Live Indicator",
+                      "gap": 7,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "cCp6W",
+                          "name": "Live Dot",
+                          "fill": "$brand-primary",
+                          "width": 8,
+                          "height": 8
+                        },
+                        {
+                          "type": "text",
+                          "id": "Xi2GU",
+                          "name": "Recording Label",
+                          "fill": "$text-primary",
+                          "content": "Recording",
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "CVzDU",
+                      "name": "Recording Timer",
+                      "fill": "$text-primary",
+                      "content": "0:37 / 2:00",
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "kU1AH",
+                  "name": "Live Waveform",
+                  "width": "fill_container",
+                  "height": 72,
+                  "fill": "$warm-surface-raised",
+                  "cornerRadius": 8,
+                  "gap": 5,
+                  "padding": [
+                    0,
+                    16
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "s1HkC",
+                      "name": "Wave Bar 1",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 18
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "VoD1I",
+                      "name": "Wave Bar 2",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 34
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "qzwJg",
+                      "name": "Wave Bar 3",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 24
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "ePnnZ",
+                      "name": "Wave Bar 4",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 48
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "RNbrs",
+                      "name": "Wave Bar 5",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 30
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "rYygu",
+                      "name": "Wave Bar 6",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 56
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "nsCgI",
+                      "name": "Wave Bar 7",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 40
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "wwamF",
+                      "name": "Wave Bar 8",
+                      "fill": "$brand-primary",
+                      "width": 4,
+                      "height": 22
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "HWkUC",
+                      "name": "Wave Bar 9",
+                      "fill": "$warm-text-secondary",
+                      "width": 4,
+                      "height": 50
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "zdRTv",
+                      "name": "Wave Bar 10",
+                      "fill": "$warm-text-secondary",
+                      "width": 4,
+                      "height": 32
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "Q1W1N",
+                      "name": "Wave Bar 11",
+                      "fill": "$warm-text-secondary",
+                      "width": 4,
+                      "height": 44
+                    },
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "zIqL6",
+                      "name": "Wave Bar 12",
+                      "fill": "$warm-text-secondary",
+                      "width": 4,
+                      "height": 20
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "w82mQb",
+                  "name": "Stop Recording Button",
+                  "height": 44,
+                  "fill": "$brand-primary",
+                  "cornerRadius": 22,
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    20
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "siqnb",
+                      "name": "Stop Icon",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "square",
+                      "library": "lucide",
+                      "fill": "$text-primary"
+                    },
+                    {
+                      "type": "text",
+                      "id": "S1sqo2",
+                      "name": "Stop Label",
+                      "fill": "$text-primary",
+                      "content": "Stop recording",
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "DAofG",
+          "name": "Flip Back Hint Row",
+          "width": "fill_container",
+          "padding": [
+            16,
+            16,
+            0,
+            16
+          ],
+          "justifyContent": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "X76Zsd",
+              "name": "Flip Back Hint",
+              "height": 40,
+              "fill": "$warm-surface-raised",
+              "cornerRadius": 20,
+              "gap": 8,
+              "padding": [
+                0,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "B6oR1o",
+                  "name": "Flip Back Icon",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "rotate-ccw",
+                  "library": "lucide",
+                  "fill": "$warm-text-secondary"
+                },
+                {
+                  "type": "text",
+                  "id": "t4MHnt",
+                  "name": "Flip Back Text",
+                  "fill": "$warm-text-secondary",
+                  "content": "Turn your phone upright to stop",
+                  "fontFamily": "$font-body",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "D9UemB",
+          "type": "ref",
+          "ref": "k7Cd7m",
+          "name": "Tab Bar (Broadcast)",
+          "layoutPosition": "absolute",
+          "x": 16,
+          "y": 737,
+          "descendants": {
+            "wd9Lk/Mb28I": {
+              "fill": "$text-disabled"
+            },
+            "wd9Lk/x7cAoO": {
+              "fill": "$text-disabled"
+            },
+            "d2EwSK/Mb28I": {
+              "fill": "$text-primary"
+            },
+            "d2EwSK/x7cAoO": {
+              "fill": "$text-primary"
+            }
+          }
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 3,
+          "id": "N8PzWN",
+          "layoutPosition": "absolute",
+          "x": 129.5,
+          "y": 8,
+          "name": "Home Indicator (rotated, top)",
+          "fill": "$text-primary",
+          "width": 134,
+          "height": 5
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 19,
+          "id": "T3T30P",
+          "layoutPosition": "absolute",
+          "x": 133.5,
+          "y": 804,
+          "name": "Dynamic Island (rotated, bottom)",
+          "fill": "#000000",
+          "width": 126,
+          "height": 37,
+          "stroke": "$glass-hairline",
+          "strokeWidth": 1
         }
       ]
     }

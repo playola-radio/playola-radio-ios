@@ -75,17 +75,6 @@ final class MainContainerNavigationCoordinator {
     }
   }
 
-  /// True while the broadcast page or the AMA live show page (or anything pushed on top of
-  /// either) is on the active tab's stack.
-  var isShowingUpsideDownFlow: Bool {
-    path.contains {
-      switch $0 {
-      case .broadcastPage, .askMeAnythingLivePage: return true
-      default: return false
-      }
-    }
-  }
-
   func setPath(
     _ newValue: [Path],
     at keyPath: ReferenceWritableKeyPath<MainContainerNavigationCoordinator, [Path]>
