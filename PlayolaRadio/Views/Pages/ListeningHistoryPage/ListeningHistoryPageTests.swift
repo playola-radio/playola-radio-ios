@@ -51,6 +51,10 @@ struct ListeningHistoryPageTests {
 
     clock.setValue(Date(timeIntervalSince1970: 1_700_000_061))
     await model.detailAppeared()
+    expectNoDifference(calls.value, 1)
+
+    model.detailWillOpen()
+    await model.detailAppeared()
     expectNoDifference(calls.value, 2)
   }
 

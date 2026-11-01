@@ -76,6 +76,7 @@ class YourLibraryPageModel: ViewModel {
       !mainContainerNavigationCoordinator.yourLibraryPath.contains(
         .listeningHistoryPage(listeningHistoryModel))
     else { return }
+    listeningHistoryModel.detailWillOpen()
     mainContainerNavigationCoordinator.push(.listeningHistoryPage(listeningHistoryModel))
   }
 

@@ -100,6 +100,7 @@ final class ListeningHistoryPageModel: ViewModel {
   @ObservationIgnored private var ownerUserID: String?
   @ObservationIgnored private var requestGeneration = 0
   @ObservationIgnored private var lastSuccessfulFetchAt: Date?
+  @ObservationIgnored private var shouldCheckFreshnessOnAppearance = true
   @ObservationIgnored private var firstPageTask: Task<Void, Never>?
   @ObservationIgnored private var laterPageTask: Task<Void, Never>?
   @ObservationIgnored private var authCancellable: AnyCancellable?
@@ -165,8 +166,14 @@ final class ListeningHistoryPageModel: ViewModel {
     await refresh(showFailureToast: false)
   }
 
+  func detailWillOpen() {
+    shouldCheckFreshnessOnAppearance = true
+  }
+
   func detailAppeared() async {
     resetIfAccountChanged()
+    guard shouldCheckFreshnessOnAppearance else { return }
+    shouldCheckFreshnessOnAppearance = false
     if let firstPageTask {
       await firstPageTask.value
       return
@@ -322,6 +329,7 @@ final class ListeningHistoryPageModel: ViewModel {
     nextOffset = 0
     hasMore = false
     lastSuccessfulFetchAt = nil
+    shouldCheckFreshnessOnAppearance = true
     firstPageTask = nil
     laterPageTask = nil
     isLoadingMore = false
