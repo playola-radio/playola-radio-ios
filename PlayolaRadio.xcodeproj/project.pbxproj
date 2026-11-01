@@ -339,6 +339,11 @@
 		D317C0D92EF3500B00DBC82E /* APIClient+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = D317C0D72EF3500500DBC82E /* APIClient+Live.swift */; };
 		A6BFA1000000000000000002 /* ListeningHistoryResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BFA1000000000000000001 /* ListeningHistoryResponse.swift */; };
 		A6BFA1000000000000000003 /* ListeningHistoryResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BFA1000000000000000001 /* ListeningHistoryResponse.swift */; };
+		A6BFA2000000000000000003 /* ListeningHistoryPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BFA2000000000000000002 /* ListeningHistoryPageTests.swift */; };
+		A6BFA2000000000000000005 /* ListeningHistoryPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BFA2000000000000000004 /* ListeningHistoryPageModel.swift */; };
+		A6BFA2000000000000000006 /* ListeningHistoryPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BFA2000000000000000004 /* ListeningHistoryPageModel.swift */; };
+		A6BFA2000000000000000008 /* ListeningHistoryPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BFA2000000000000000007 /* ListeningHistoryPageView.swift */; };
+		A6BFA2000000000000000009 /* ListeningHistoryPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BFA2000000000000000007 /* ListeningHistoryPageView.swift */; };
 		D31C43A82D3C19640021AAE4 /* StationPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */; };
 		D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31C43A92D3C390C0021AAE4 /* StationPlayerMock.swift */; };
 		D31C43D42D3C783B0021AAE4 /* PlayolaPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = D31C43D32D3C783B0021AAE4 /* PlayolaPlayer */; };
@@ -910,6 +915,9 @@
 		D317C0D32EF33DA600DBC82E /* PushNotificationsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationsTests.swift; sourceTree = "<group>"; };
 		D317C0D72EF3500500DBC82E /* APIClient+Live.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "APIClient+Live.swift"; sourceTree = "<group>"; };
 		A6BFA1000000000000000001 /* ListeningHistoryResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningHistoryResponse.swift; sourceTree = "<group>"; };
+		A6BFA2000000000000000002 /* ListeningHistoryPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningHistoryPageTests.swift; sourceTree = "<group>"; };
+		A6BFA2000000000000000004 /* ListeningHistoryPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningHistoryPageModel.swift; sourceTree = "<group>"; };
+		A6BFA2000000000000000007 /* ListeningHistoryPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningHistoryPageView.swift; sourceTree = "<group>"; };
 		D31C43A72D3C195B0021AAE4 /* StationPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayer.swift; sourceTree = "<group>"; };
 		D31C43A92D3C390C0021AAE4 /* StationPlayerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerMock.swift; sourceTree = "<group>"; };
 		D31CD5222DFBA1EC009B9780 /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
@@ -1289,6 +1297,16 @@
 				A6613FD7A13B448187CB8595 /* PresetTests.swift */,
 			);
 			path = Preset;
+			sourceTree = "<group>";
+		};
+		A6BFA2000000000000000001 /* ListeningHistoryPage */ = {
+			isa = PBXGroup;
+			children = (
+				A6BFA2000000000000000004 /* ListeningHistoryPageModel.swift */,
+				A6BFA2000000000000000002 /* ListeningHistoryPageTests.swift */,
+				A6BFA2000000000000000007 /* ListeningHistoryPageView.swift */,
+			);
+			path = ListeningHistoryPage;
 			sourceTree = "<group>";
 		};
 		A54D4D5A8EFD52CF2764EF6B /* YourLibraryPage */ = {
@@ -1672,6 +1690,7 @@
 				D37257AC2DF88B89001BC6F9 /* HomePage */,
 				D3776A482F2BE7ED00200ADF /* LibraryPage */,
 				D30257852E63B6AD00F4228B /* LikedSongsPage */,
+				A6BFA2000000000000000001 /* ListeningHistoryPage */,
 				D3776A2C2F2695B800200ADF /* ListenerQuestionDetailPage */,
 				D37257C72DFA2470001BC6F9 /* MainContainer */,
 				D3367BF82F08B7DC00AF87FA /* NotificationsSettingsPage */,
@@ -2836,6 +2855,8 @@
 				D35EFC1D2F17D361000F64A4 /* LiveStationInfo.swift in Sources */,
 				D30F007C2E8592F0007BCC73 /* RewardsPageModel.swift in Sources */,
 				6DB99ADC7A25C5E364543B5E /* YourLibraryPageModel.swift in Sources */,
+				A6BFA2000000000000000005 /* ListeningHistoryPageModel.swift in Sources */,
+				A6BFA2000000000000000008 /* ListeningHistoryPageView.swift in Sources */,
 				D30F007D2E8592F0007BCC73 /* ToastClient.swift in Sources */,
 				D30F007E2E8592F0007BCC73 /* RewardsProfile.swift in Sources */,
 				AB0A00000000000000000007 /* ClientConfig.swift in Sources */,
@@ -3119,6 +3140,8 @@
 				D35EFC1C2F17D361000F64A4 /* LiveStationInfo.swift in Sources */,
 				D3B744C02E3131730042A427 /* RewardsPageModel.swift in Sources */,
 				BD3E0D31823FDD5950701308 /* YourLibraryPageModel.swift in Sources */,
+				A6BFA2000000000000000006 /* ListeningHistoryPageModel.swift in Sources */,
+				A6BFA2000000000000000009 /* ListeningHistoryPageView.swift in Sources */,
 				D302576D2E63428800F4228B /* ToastClient.swift in Sources */,
 				D3B744B02E2FE6FB0042A427 /* RewardsProfile.swift in Sources */,
 				AB0A00000000000000000008 /* ClientConfig.swift in Sources */,
@@ -3292,6 +3315,7 @@
 				D3B744CB2E313B230042A427 /* ListeningTimeTileTests.swift in Sources */,
 				D3B744C52E31318A0042A427 /* RewardsPageTests.swift in Sources */,
 				2891A2D21D67E32129F5F2ED /* YourLibraryPageTests.swift in Sources */,
+				A6BFA2000000000000000003 /* ListeningHistoryPageTests.swift in Sources */,
 				D35EFC172F159728000F64A4 /* SeriesListPageTests.swift in Sources */,
 				D3F493C02EEDD2D2008ED463 /* RecordPageTests.swift in Sources */,
 				D3A08A352E4E6F66002468E0 /* NowPlayingUpdaterTests.swift in Sources */,

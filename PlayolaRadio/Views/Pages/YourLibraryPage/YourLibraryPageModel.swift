@@ -20,6 +20,9 @@ class YourLibraryPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.likesManager) var likesManager: LikesManager
 
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
+
   // MARK: - Shared State
 
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
@@ -27,6 +30,7 @@ class YourLibraryPageModel: ViewModel {
   // MARK: - Sub-Models
 
   let presetsModel: PresetsModel
+  let listeningHistoryModel: ListeningHistoryPageModel
 
   // MARK: - Properties
 
@@ -34,8 +38,12 @@ class YourLibraryPageModel: ViewModel {
 
   // MARK: - Initialization
 
-  init(presetsModel: PresetsModel = PresetsModel()) {
+  init(
+    presetsModel: PresetsModel = PresetsModel(),
+    listeningHistoryModel: ListeningHistoryPageModel = ListeningHistoryPageModel()
+  ) {
     self.presetsModel = presetsModel
+    self.listeningHistoryModel = listeningHistoryModel
     super.init()
   }
 
@@ -43,6 +51,8 @@ class YourLibraryPageModel: ViewModel {
 
   var navigationTitle: String { "Your Library" }
   var likedSongsSectionTitle: String { "Liked Songs" }
+  var listeningHistoryTitle: String { "Listening History" }
+  var listeningHistorySubtitle: String { "Songs and channels you’ve heard" }
 
   /// All liked songs, newest first (flat — no date grouping).
   var likedSongs: [(AudioBlock, Date)] {
@@ -59,6 +69,10 @@ class YourLibraryPageModel: ViewModel {
 
   func viewAppeared() async {
     await presetsModel.loadPresetsIfNeeded()
+  }
+
+  func listeningHistoryTapped() {
+    mainContainerNavigationCoordinator.push(.listeningHistoryPage(listeningHistoryModel))
   }
 
   func presetTileTapped(_ display: PresetDisplayItem) async {
