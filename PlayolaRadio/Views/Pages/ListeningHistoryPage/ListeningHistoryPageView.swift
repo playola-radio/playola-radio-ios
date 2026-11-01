@@ -3,7 +3,6 @@ import SDWebImageSwiftUI
 import SwiftUI
 
 struct ListeningHistoryPageView: View {
-  @Environment(\.dismiss) private var dismiss
   @Environment(\.displayScale) private var displayScale
   @Bindable var model: ListeningHistoryPageModel
 
@@ -11,7 +10,7 @@ struct ListeningHistoryPageView: View {
     VStack(spacing: 0) {
       HStack(spacing: 18) {
         Button(
-          action: { dismiss() },
+          action: { model.backButtonTapped() },
           label: {
             Image(systemName: "chevron.left")
               .font(.system(size: 22, weight: .semibold))
@@ -54,6 +53,7 @@ struct ListeningHistoryPageView: View {
     .background(Color.black)
     .navigationBarHidden(true)
     .task { await model.detailAppeared() }
+    .task { await model.observeDayChanges() }
   }
 
   private var historyContent: some View {
@@ -68,9 +68,8 @@ struct ListeningHistoryPageView: View {
         ForEach(section.rows) { row in
           historyRow(row)
             .padding(.bottom, 24)
-            .onAppear {
-              Task { await model.loadMoreIfNeeded(visibleSpinID: row.id) }
-            }
+            .onAppear { Task { await model.rowAppeared(row) } }
+            .onDisappear { model.rowDisappeared(row) }
         }
       }
 

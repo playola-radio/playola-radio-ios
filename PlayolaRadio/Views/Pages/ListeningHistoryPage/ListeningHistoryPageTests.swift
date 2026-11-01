@@ -387,6 +387,45 @@ struct ListeningHistoryPageTests {
   }
 
   @Test
+  func libraryPrefetchFailureIsReportedWithoutAToast() async {
+    @Shared(.auth) var auth = Auth(jwtToken: createTestJWT(id: "listener-one"))
+    let reportedCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.date = .constant(Date(timeIntervalSince1970: 1_700_000_000))
+      $0.api.getListeningHistory = { _, _ in
+        throw AFError.responseValidationFailed(reason: .unacceptableStatusCode(code: 500))
+      }
+      $0.errorReporting.reportError = { _, _ in reportedCount.withValue { $0 += 1 } }
+    } operation: {
+      ListeningHistoryPageModel()
+    }
+
+    await model.libraryTabSelected()
+
+    expectNoDifference(reportedCount.value, 1)
+  }
+
+  @Test
+  func refreshPagesAgainWhenTheLastRowIsStillVisible() async {
+    @Shared(.auth) var auth = Auth(jwtToken: createTestJWT(id: "listener-one"))
+    let firstPage = makeHistoryPage(ids: ["one"], hasMore: true)
+    let secondPage = makeHistoryPage(ids: ["two"])
+    let model = withDependencies {
+      $0.date = .constant(Date(timeIntervalSince1970: 1_700_000_000))
+      $0.api.getListeningHistory = { _, offset in offset == 0 ? firstPage : secondPage }
+    } operation: {
+      ListeningHistoryPageModel()
+    }
+    await model.libraryTabSelected()
+    await model.rowAppeared(model.sections[0].rows[0])
+    expectNoDifference(model.displaySpins.map(\.id), ["one", "two"])
+
+    await model.refreshRequested()
+
+    expectNoDifference(model.displaySpins.map(\.id), ["one", "two"])
+  }
+
+  @Test
   func heartAddsTheSongToExistingLikedSongs() async {
     @Shared(.auth) var auth = Auth(jwtToken: createTestJWT(id: "listener-one"))
     let page = makeHistoryPage(ids: ["one"])

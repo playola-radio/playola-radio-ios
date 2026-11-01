@@ -1,24 +1,30 @@
 import Alamofire
-import Combine
 import Dependencies
 import Foundation
+import IdentifiedCollections
 import Observation
 import PlayolaPlayer
 import Sharing
+import UIKit
 
 @MainActor
 @Observable
 final class ListeningHistoryPageModel: ViewModel {
+
+  // MARK: - Dependencies
   @ObservationIgnored @Dependency(\.api) private var api
   @ObservationIgnored @Dependency(\.date.now) private var now
   @ObservationIgnored @Dependency(\.toast) private var toast
   @ObservationIgnored @Dependency(\.errorReporting) private var errorReporting
   @ObservationIgnored @Dependency(\.likesManager) private var likesManager: LikesManager
+
+  // MARK: - Shared State
   @ObservationIgnored @Shared(.auth) private var auth
   @ObservationIgnored @Shared(.activeTab) private var activeTab
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   private var navigationCoordinator
 
+  // MARK: - Properties
   enum PageState: Equatable {
     case loading
     case loaded
@@ -30,7 +36,7 @@ final class ListeningHistoryPageModel: ViewModel {
   struct Section: Identifiable {
     let id: Date
     let title: String
-    var rows: [Row]
+    var rows: IdentifiedArrayOf<Row>
   }
 
   struct Row: Identifiable {
@@ -53,12 +59,21 @@ final class ListeningHistoryPageModel: ViewModel {
     let hasMore: Bool
   }
 
-  private(set) var spins: [ListeningHistorySpin] = []
+  private(set) var spins: IdentifiedArrayOf<ListeningHistorySpin> = []
   @ObservationIgnored private var nextOffset = 0
   private(set) var hasMore = false
   private(set) var pageState: PageState = .loading
   private(set) var isLoadingMore = false
   private(set) var loadMoreFailed = false
+  private var displayDate: Date?
+
+  @ObservationIgnored private var ownerUserID: String?
+  @ObservationIgnored private var requestGeneration = 0
+  @ObservationIgnored private var lastSuccessfulFetchAt: Date?
+  @ObservationIgnored private var shouldCheckFreshnessOnAppearance = true
+  @ObservationIgnored private var visibleSpinIDs: Set<String> = []
+  @ObservationIgnored private var firstPageTask: Task<Void, Never>?
+  @ObservationIgnored private var laterPageTask: Task<Void, Never>?
 
   var navigationTitle: String { "Listening History" }
   var backButtonLabel: String { "Back to Your Library" }
@@ -97,37 +112,20 @@ final class ListeningHistoryPageModel: ViewModel {
     return pageState
   }
 
-  @ObservationIgnored private var ownerUserID: String?
-  @ObservationIgnored private var requestGeneration = 0
-  @ObservationIgnored private var lastSuccessfulFetchAt: Date?
-  @ObservationIgnored private var shouldCheckFreshnessOnAppearance = true
-  @ObservationIgnored private var firstPageTask: Task<Void, Never>?
-  @ObservationIgnored private var laterPageTask: Task<Void, Never>?
-  @ObservationIgnored private var authCancellable: AnyCancellable?
-
-  override init() {
-    super.init()
-    authCancellable = $auth.publisher.sink { [weak self] _ in
-      Task { @MainActor [weak self] in
-        self?.resetIfAccountChanged()
-      }
-    }
-  }
-
-  var displaySpins: [ListeningHistorySpin] {
+  var displaySpins: IdentifiedArrayOf<ListeningHistorySpin> {
     guard ownerUserID == auth.currentUser?.id else { return [] }
     return spins
   }
 
-  var sections: [Section] {
+  var sections: IdentifiedArrayOf<Section> {
     let calendar = Calendar.current
-    var result: [Section] = []
+    var result: IdentifiedArrayOf<Section> = []
     for spin in displaySpins {
       guard let audioBlock = spin.audioBlock, let station = spin.station else { continue }
       let row = Row(spin: spin, audioBlock: audioBlock, stationName: station.name)
       let day = calendar.startOfDay(for: spin.airtime)
-      if result.last?.id == day {
-        result[result.count - 1].rows.append(row)
+      if result[id: day] != nil {
+        result[id: day]?.rows.append(row)
       } else {
         result.append(Section(id: day, title: title(for: spin.airtime), rows: [row]))
       }
@@ -135,28 +133,7 @@ final class ListeningHistoryPageModel: ViewModel {
     return result
   }
 
-  func isLiked(_ row: Row) -> Bool {
-    likesManager.isLiked(row.audioBlock.id)
-  }
-
-  func heartSymbol(for row: Row) -> String {
-    isLiked(row) ? "heart.fill" : "heart"
-  }
-
-  func heartButtonLabel(for row: Row) -> String {
-    isLiked(row) ? "Remove from Favorites" : "Add to Favorites"
-  }
-
-  func heartButtonTapped(for row: Row) {
-    likesManager.toggleLike(row.audioBlock, spinId: row.id)
-  }
-
-  func subtitle(for row: Row) -> String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "h:mm a"
-    return "\(row.stationName) · \(formatter.string(from: row.spin.airtime))"
-  }
-
+  // MARK: - User Actions
   func libraryTabSelected() async {
     resetIfAccountChanged()
     if let firstPageTask {
@@ -187,6 +164,10 @@ final class ListeningHistoryPageModel: ViewModel {
     await refresh(showFailureToast: true)
   }
 
+  func backButtonTapped() {
+    navigationCoordinator.pop()
+  }
+
   func refreshRequested() async {
     resetIfAccountChanged()
     await refresh(showFailureToast: true)
@@ -205,6 +186,15 @@ final class ListeningHistoryPageModel: ViewModel {
     await AuthService.shared.signOut()
   }
 
+  func rowAppeared(_ row: Row) async {
+    visibleSpinIDs.insert(row.id)
+    await loadMoreIfNeeded(visibleSpinID: row.id)
+  }
+
+  func rowDisappeared(_ row: Row) {
+    visibleSpinIDs.remove(row.id)
+  }
+
   func loadMoreIfNeeded(visibleSpinID: String) async {
     guard !loadMoreFailed else { return }
     guard displaySpins.suffix(5).contains(where: { $0.id == visibleSpinID }) else { return }
@@ -215,6 +205,37 @@ final class ListeningHistoryPageModel: ViewModel {
     await loadMore()
   }
 
+  func observeDayChanges() async {
+    async let dayChanges: Void = refreshDisplayDate(onEach: .NSCalendarDayChanged)
+    async let foregrounds: Void = refreshDisplayDate(
+      onEach: UIApplication.didBecomeActiveNotification)
+    _ = await (dayChanges, foregrounds)
+  }
+
+  // MARK: - View Helpers
+  func isLiked(_ row: Row) -> Bool {
+    likesManager.isLiked(row.audioBlock.id)
+  }
+
+  func heartSymbol(for row: Row) -> String {
+    isLiked(row) ? "heart.fill" : "heart"
+  }
+
+  func heartButtonLabel(for row: Row) -> String {
+    isLiked(row) ? "Remove from Favorites" : "Add to Favorites"
+  }
+
+  func heartButtonTapped(for row: Row) {
+    likesManager.toggleLike(row.audioBlock, spinId: row.id)
+  }
+
+  func subtitle(for row: Row) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "h:mm a"
+    return "\(row.stationName) · \(formatter.string(from: row.spin.airtime))"
+  }
+
+  // MARK: - Private Helpers
   private func refresh(showFailureToast: Bool) async {
     guard let userID = auth.currentUser?.id, let token = auth.jwt else {
       pageState = .signedOut
@@ -235,7 +256,7 @@ final class ListeningHistoryPageModel: ViewModel {
       do {
         let page = try await fetchVisiblePage(token: token, startingAt: 0, excluding: [])
         guard requestGeneration == generation, auth.currentUser?.id == userID else { return }
-        spins = page.spins
+        spins = IdentifiedArray(page.spins, uniquingIDsWith: { first, _ in first })
         nextOffset = page.nextOffset
         hasMore = page.hasMore
         lastSuccessfulFetchAt = now
@@ -248,6 +269,21 @@ final class ListeningHistoryPageModel: ViewModel {
     }
     firstPageTask = task
     await task.value
+    guard requestGeneration == generation else { return }
+    await loadMoreIfVisibleTail()
+  }
+
+  private func refreshDisplayDate(onEach name: Notification.Name) async {
+    for await _ in NotificationCenter.default.notifications(named: name).map({ _ in () }) {
+      displayDate = now
+    }
+  }
+
+  private func loadMoreIfVisibleTail() async {
+    guard displaySpins.suffix(5).contains(where: { visibleSpinIDs.contains($0.id) }) else {
+      return
+    }
+    await loadMore()
   }
 
   private func loadMore() async {
@@ -260,17 +296,21 @@ final class ListeningHistoryPageModel: ViewModel {
     loadMoreFailed = false
     let task = Task { [weak self] in
       guard let self else { return }
+      defer {
+        if requestGeneration == generation {
+          isLoadingMore = false
+          laterPageTask = nil
+        }
+      }
       do {
         let page = try await fetchVisiblePage(
-          token: token, startingAt: offset, excluding: Set(spins.map(\.id)))
+          token: token, startingAt: offset, excluding: Set(spins.ids))
         guard requestGeneration == generation, auth.currentUser?.id == userID else { return }
-        spins += page.spins
+        spins.append(contentsOf: page.spins)
         nextOffset = page.nextOffset
         hasMore = page.hasMore
-        isLoadingMore = false
       } catch {
         guard requestGeneration == generation, auth.currentUser?.id == userID else { return }
-        isLoadingMore = false
         if isUnauthorized(error) {
           spins = []
           hasMore = false
@@ -280,7 +320,6 @@ final class ListeningHistoryPageModel: ViewModel {
         }
         await reportLoadError(error)
       }
-      if requestGeneration == generation { laterPageTask = nil }
     }
     laterPageTask = task
     await task.value
@@ -316,7 +355,7 @@ final class ListeningHistoryPageModel: ViewModel {
         await toast.show(PlayolaToast(message: "History couldn't refresh.", buttonTitle: "OK"))
       }
     }
-    if showFailureToast { await reportLoadError(error) }
+    await reportLoadError(error)
   }
 
   private func resetIfAccountChanged() {
@@ -339,8 +378,9 @@ final class ListeningHistoryPageModel: ViewModel {
 
   private func title(for date: Date) -> String {
     let calendar = Calendar.current
-    if calendar.isDate(date, inSameDayAs: now) { return "Today" }
-    if let yesterday = calendar.date(byAdding: .day, value: -1, to: now),
+    let today = displayDate ?? now
+    if calendar.isDate(date, inSameDayAs: today) { return "Today" }
+    if let yesterday = calendar.date(byAdding: .day, value: -1, to: today),
       calendar.isDate(date, inSameDayAs: yesterday)
     {
       return "Yesterday"
