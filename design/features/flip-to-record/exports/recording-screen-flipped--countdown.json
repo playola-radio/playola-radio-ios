@@ -488,6 +488,31 @@
           "fontFamily": "Inter",
           "fontSize": 15,
           "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "S4gWS",
+          "name": "Countdown Cancel",
+          "fill": "#471818",
+          "cornerRadius": 999,
+          "padding": [
+            12,
+            28
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "x2rtV",
+              "name": "Cancel Label",
+              "fill": "#D7BFBF",
+              "content": "Cancel",
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "600"
+            }
+          ]
         }
       ]
     },
