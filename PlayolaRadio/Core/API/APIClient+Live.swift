@@ -416,6 +416,13 @@ extension APIClient: DependencyKey {
       getLikedSongs: { jwtToken in
         try await authenticatedGet(path: "/v1/users/me/likes", token: jwtToken)
       },
+      getListeningHistory: { jwtToken, offset in
+        try await authenticatedGet(
+          path: "/v1/users/me/play-history",
+          token: jwtToken,
+          queryParams: ["type": "song", "limit": "20", "offset": String(offset)]
+        )
+      },
       getShows: { jwtToken, includeSegments, stationId in
         var queryParams: [String: String] = [:]
         if includeSegments { queryParams["includeSegments"] = "true" }

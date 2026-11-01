@@ -144,6 +144,15 @@ struct APIClient: Sendable {
   /// - Throws: APIError if the request fails
   var getLikedSongs: @Sendable (_ jwtToken: String) async throws -> [UserSongLike] = { _ in [] }
 
+  var getListeningHistory:
+    @Sendable (_ jwtToken: String, _ offset: Int) async throws -> ListeningHistoryResponse = {
+      _, _ in
+      ListeningHistoryResponse(
+        spins: [],
+        pagination: .init(limit: 20, offset: 0, total: 0, hasMore: false)
+      )
+    }
+
   /// Fetches all shows for the authenticated user
   /// - Parameters:
   ///   - jwtToken: The JWT token for authentication
