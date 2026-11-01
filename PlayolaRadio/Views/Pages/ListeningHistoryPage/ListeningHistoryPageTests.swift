@@ -90,6 +90,37 @@ struct ListeningHistoryPageTests {
   }
 
   @Test
+  func failedLaterPageWaitsForExplicitRetry() async {
+    @Shared(.auth) var auth = Auth(jwtToken: createTestJWT(id: "listener-one"))
+    let calls = LockIsolated(0)
+    let firstPage = makeHistoryPage(ids: ["one"], hasMore: true)
+    let secondPage = makeHistoryPage(ids: ["two"], offset: 1)
+    let model = withDependencies {
+      $0.date = .constant(Date(timeIntervalSince1970: 1_700_000_000))
+      $0.api.getListeningHistory = { _, offset in
+        if offset == 0 { return firstPage }
+        let count = calls.withValue { value in
+          value += 1
+          return value
+        }
+        if count == 1 { throw URLError(.notConnectedToInternet) }
+        return secondPage
+      }
+    } operation: {
+      ListeningHistoryPageModel()
+    }
+
+    await model.libraryTabSelected()
+    await model.loadMoreIfNeeded(visibleSpinID: "one")
+    #expect(model.loadMoreFailed)
+    await model.loadMoreIfNeeded(visibleSpinID: "one")
+    #expect(calls.value == 1)
+    await model.loadMoreRetryButtonTapped()
+    #expect(calls.value == 2)
+    expectNoDifference(model.displaySpins.map(\.id), ["one", "two"])
+  }
+
+  @Test
   func accountSwitchHidesPriorRowsBeforeLoadingTheNewAccount() async {
     let firstToken = createTestJWT(id: "listener-one")
     let secondToken = createTestJWT(id: "listener-two")

@@ -18,7 +18,7 @@ struct ListeningHistoryPageView: View {
               .foregroundColor(.white)
           }
         )
-        .accessibilityLabel("Back to Your Library")
+        .accessibilityLabel(model.backButtonLabel)
         Text(model.navigationTitle)
           .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 32))
           .foregroundColor(.white)
@@ -35,29 +35,11 @@ struct ListeningHistoryPageView: View {
             case .idle, .loading:
               loadingContent
             case .empty:
-              stateContent(
-                symbol: "music.note",
-                title: "No listening history yet",
-                message: "Songs you hear on Playola channels will appear here.",
-                buttonTitle: "Explore Stations",
-                action: model.exploreStationsButtonTapped
-              )
+              stateContent(model.emptyContent, action: model.exploreStationsButtonTapped)
             case .error:
-              stateContent(
-                symbol: "wifi.slash",
-                title: "Couldn’t load your history",
-                message: "Check your connection and try again.",
-                buttonTitle: "Try Again",
-                action: { Task { await model.retryButtonTapped() } }
-              )
+              stateContent(model.errorContent) { Task { await model.retryButtonTapped() } }
             case .signedOut:
-              stateContent(
-                symbol: "person.crop.circle",
-                title: "Sign in to see your history",
-                message: "Your listening history is tied to your account.",
-                buttonTitle: "Sign In",
-                action: { Task { await model.signInButtonTapped() } }
-              )
+              stateContent(model.signedOutContent) { Task { await model.signInButtonTapped() } }
             case .loaded:
               historyContent
             }
@@ -83,11 +65,11 @@ struct ListeningHistoryPageView: View {
           .padding(.top, 24)
           .padding(.bottom, 14)
 
-        ForEach(section.spins) { spin in
-          historyRow(spin)
+        ForEach(section.rows) { row in
+          historyRow(row)
             .padding(.bottom, 24)
             .onAppear {
-              Task { await model.loadMoreIfNeeded(visibleSpinID: spin.id) }
+              Task { await model.loadMoreIfNeeded(visibleSpinID: row.id) }
             }
         }
       }
@@ -99,9 +81,9 @@ struct ListeningHistoryPageView: View {
           .padding(.vertical, 24)
       } else if model.loadMoreFailed {
         HStack(spacing: 8) {
-          Text("Couldn’t load more songs.")
+          Text(model.loadMoreErrorMessage)
             .foregroundColor(Color(hex: "#C7C7C7"))
-          Button("Retry") { Task { await model.loadMoreRetryButtonTapped() } }
+          Button(model.loadMoreRetryTitle) { Task { await model.loadMoreRetryButtonTapped() } }
             .foregroundColor(Color(hex: "#EF6662"))
         }
         .font(.custom(FontNames.Inter_400_Regular, size: 14))
@@ -114,54 +96,52 @@ struct ListeningHistoryPageView: View {
     .frame(maxWidth: .infinity, alignment: .topLeading)
   }
 
-  private func historyRow(_ spin: ListeningHistorySpin) -> some View {
+  private func historyRow(_ row: ListeningHistoryPageModel.Row) -> some View {
     HStack(spacing: 12) {
-      if let audioBlock = spin.audioBlock {
-        WebImage(
-          url: audioBlock.imageUrl,
-          context: RemoteArtwork.downsampleContext(
-            CGSize(width: 56, height: 56), scale: displayScale)
-        ) { image in
-          image.resizable().scaledToFill()
-        } placeholder: {
-          RoundedRectangle(cornerRadius: 7)
-            .fill(Color(hex: "#666666"))
-            .overlay {
-              Image(systemName: "music.note")
-                .font(.system(size: 24))
-                .foregroundColor(Color(hex: "#B5B5B5"))
-            }
-        }
-        .frame(width: 56, height: 56)
-        .clipShape(RoundedRectangle(cornerRadius: 7))
-
-        VStack(alignment: .leading, spacing: 3) {
-          Text(audioBlock.title)
-            .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
-            .foregroundColor(.white)
-          Text(audioBlock.artist)
-            .font(.custom(FontNames.Inter_400_Regular, size: 14))
-            .foregroundColor(Color(hex: "#D1D1D1"))
-          Text(model.subtitle(for: spin))
-            .font(.custom(FontNames.Inter_400_Regular, size: 12))
-            .foregroundColor(Color(hex: "#A9A9A9"))
-        }
-        .lineLimit(1)
-
-        Spacer(minLength: 4)
-
-        Button(
-          action: { model.heartButtonTapped(for: spin) },
-          label: {
-            Image(systemName: model.isLiked(spin) ? "heart.fill" : "heart")
-              .font(.system(size: 22))
-              .foregroundColor(.white)
-              .frame(width: 42, height: 42)
-              .background(Color(hex: "#303030"), in: Circle())
+      WebImage(
+        url: row.audioBlock.imageUrl,
+        context: RemoteArtwork.downsampleContext(
+          CGSize(width: 56, height: 56), scale: displayScale)
+      ) { image in
+        image.resizable().scaledToFill()
+      } placeholder: {
+        RoundedRectangle(cornerRadius: 7)
+          .fill(Color(hex: "#666666"))
+          .overlay {
+            Image(systemName: "music.note")
+              .font(.system(size: 24))
+              .foregroundColor(Color(hex: "#B5B5B5"))
           }
-        )
-        .accessibilityLabel(model.isLiked(spin) ? "Remove from Favorites" : "Add to Favorites")
       }
+      .frame(width: 56, height: 56)
+      .clipShape(RoundedRectangle(cornerRadius: 7))
+
+      VStack(alignment: .leading, spacing: 3) {
+        Text(row.audioBlock.title)
+          .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
+          .foregroundColor(.white)
+        Text(row.audioBlock.artist)
+          .font(.custom(FontNames.Inter_400_Regular, size: 14))
+          .foregroundColor(Color(hex: "#D1D1D1"))
+        Text(model.subtitle(for: row.spin))
+          .font(.custom(FontNames.Inter_400_Regular, size: 12))
+          .foregroundColor(Color(hex: "#A9A9A9"))
+      }
+      .lineLimit(1)
+
+      Spacer(minLength: 4)
+
+      Button(
+        action: { model.heartButtonTapped(for: row.spin) },
+        label: {
+          Image(systemName: model.heartSymbol(for: row.spin))
+            .font(.system(size: 22))
+            .foregroundColor(.white)
+            .frame(width: 42, height: 42)
+            .background(Color(hex: "#303030"), in: Circle())
+        }
+      )
+      .accessibilityLabel(model.heartButtonLabel(for: row.spin))
     }
   }
 
@@ -190,25 +170,22 @@ struct ListeningHistoryPageView: View {
   }
 
   private func stateContent(
-    symbol: String,
-    title: String,
-    message: String,
-    buttonTitle: String,
+    _ content: ListeningHistoryPageModel.StateContent,
     action: @escaping () -> Void
   ) -> some View {
     VStack(spacing: 16) {
-      Image(systemName: symbol)
+      Image(systemName: content.symbol)
         .font(.system(size: 40))
         .foregroundColor(Color(hex: "#C7C7C7"))
-      Text(title)
+      Text(content.title)
         .font(.custom(FontNames.SpaceGrotesk_700_Bold, size: 23))
         .foregroundColor(.white)
-      Text(message)
+      Text(content.message)
         .font(.custom(FontNames.Inter_400_Regular, size: 16))
         .foregroundColor(Color(hex: "#C7C7C7"))
         .multilineTextAlignment(.center)
       Button(action: action) {
-        Text(buttonTitle)
+        Text(content.buttonTitle)
           .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
           .foregroundColor(.white)
           .padding(.horizontal, 22)

@@ -3,6 +3,7 @@ import Combine
 import Dependencies
 import Foundation
 import Observation
+import PlayolaPlayer
 import Sharing
 
 @MainActor
@@ -30,7 +31,20 @@ final class ListeningHistoryPageModel: ViewModel {
   struct Section: Identifiable {
     let id: Date
     let title: String
-    var spins: [ListeningHistorySpin]
+    var rows: [Row]
+  }
+
+  struct Row: Identifiable {
+    let spin: ListeningHistorySpin
+    let audioBlock: AudioBlock
+    var id: String { spin.id }
+  }
+
+  struct StateContent {
+    let symbol: String
+    let title: String
+    let message: String
+    let buttonTitle: String
   }
 
   private(set) var spins: [ListeningHistorySpin] = []
@@ -41,6 +55,33 @@ final class ListeningHistoryPageModel: ViewModel {
   private(set) var loadMoreFailed = false
 
   var navigationTitle: String { "Listening History" }
+  var backButtonLabel: String { "Back to Your Library" }
+  var loadMoreErrorMessage: String { "Couldn’t load more songs." }
+  var loadMoreRetryTitle: String { "Retry" }
+  var emptyContent: StateContent {
+    StateContent(
+      symbol: "music.note",
+      title: "No listening history yet",
+      message: "Songs you hear on Playola channels will appear here.",
+      buttonTitle: "Explore Stations"
+    )
+  }
+  var errorContent: StateContent {
+    StateContent(
+      symbol: "wifi.slash",
+      title: "Couldn’t load your history",
+      message: "Check your connection and try again.",
+      buttonTitle: "Try Again"
+    )
+  }
+  var signedOutContent: StateContent {
+    StateContent(
+      symbol: "person.crop.circle",
+      title: "Sign in to see your history",
+      message: "Your listening history is tied to your account.",
+      buttonTitle: "Sign In"
+    )
+  }
 
   var displayState: PageState {
     if ownerUserID != auth.currentUser?.id {
@@ -76,11 +117,13 @@ final class ListeningHistoryPageModel: ViewModel {
     let calendar = Calendar.current
     var result: [Section] = []
     for spin in displaySpins {
+      guard let audioBlock = spin.audioBlock else { continue }
+      let row = Row(spin: spin, audioBlock: audioBlock)
       let day = calendar.startOfDay(for: spin.airtime)
       if result.last?.id == day {
-        result[result.count - 1].spins.append(spin)
+        result[result.count - 1].rows.append(row)
       } else {
-        result.append(Section(id: day, title: title(for: spin.airtime), spins: [spin]))
+        result.append(Section(id: day, title: title(for: spin.airtime), rows: [row]))
       }
     }
     return result
@@ -89,6 +132,14 @@ final class ListeningHistoryPageModel: ViewModel {
   func isLiked(_ spin: ListeningHistorySpin) -> Bool {
     guard let audioBlock = spin.audioBlock else { return false }
     return likesManager.isLiked(audioBlock.id)
+  }
+
+  func heartSymbol(for spin: ListeningHistorySpin) -> String {
+    isLiked(spin) ? "heart.fill" : "heart"
+  }
+
+  func heartButtonLabel(for spin: ListeningHistorySpin) -> String {
+    isLiked(spin) ? "Remove from Favorites" : "Add to Favorites"
   }
 
   func heartButtonTapped(for spin: ListeningHistorySpin) {
@@ -145,6 +196,7 @@ final class ListeningHistoryPageModel: ViewModel {
   }
 
   func loadMoreIfNeeded(visibleSpinID: String) async {
+    guard !loadMoreFailed else { return }
     guard displaySpins.suffix(5).contains(where: { $0.id == visibleSpinID }) else { return }
     await loadMore()
   }
