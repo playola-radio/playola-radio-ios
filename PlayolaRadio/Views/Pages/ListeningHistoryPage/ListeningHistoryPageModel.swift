@@ -14,11 +14,15 @@ final class ListeningHistoryPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.errorReporting) private var errorReporting
   @ObservationIgnored @Dependency(\.likesManager) private var likesManager: LikesManager
   @ObservationIgnored @Shared(.auth) private var auth
+  @ObservationIgnored @Shared(.activeTab) private var activeTab
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  private var navigationCoordinator
 
   enum PageState: Equatable {
     case idle
     case loading
     case loaded
+    case empty
     case error
     case signedOut
   }
@@ -37,6 +41,15 @@ final class ListeningHistoryPageModel: ViewModel {
   private(set) var loadMoreFailed = false
 
   var navigationTitle: String { "Listening History" }
+
+  var displayState: PageState {
+    if ownerUserID != auth.currentUser?.id {
+      return auth.currentUser == nil ? .signedOut : .loading
+    }
+    if pageState == .loaded && displaySpins.isEmpty { return .empty }
+    if pageState == .idle { return .loading }
+    return pageState
+  }
 
   @ObservationIgnored private var ownerUserID: String?
   @ObservationIgnored private var requestGeneration = 0
@@ -116,6 +129,19 @@ final class ListeningHistoryPageModel: ViewModel {
   func refreshRequested() async {
     resetIfAccountChanged()
     await refresh(showFailureToast: true)
+  }
+
+  func retryButtonTapped() async {
+    await refreshRequested()
+  }
+
+  func exploreStationsButtonTapped() {
+    navigationCoordinator.yourLibraryPath = []
+    $activeTab.withLock { $0 = .stationsList }
+  }
+
+  func signInButtonTapped() async {
+    await AuthService.shared.signOut()
   }
 
   func loadMoreIfNeeded(visibleSpinID: String) async {

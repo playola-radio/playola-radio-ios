@@ -44,6 +44,28 @@ struct YourLibraryPageView: View {
             onRetryTapped: { await model.presetsModel.retryLoadPresetsTapped() }
           )
 
+          Button(action: model.listeningHistoryTapped) {
+            HStack(spacing: 12) {
+              VStack(alignment: .leading, spacing: 5) {
+                Text(model.listeningHistoryTitle)
+                  .font(.custom(FontNames.Inter_600_SemiBold, size: 18))
+                  .foregroundColor(.white)
+                Text(model.listeningHistorySubtitle)
+                  .font(.custom(FontNames.Inter_400_Regular, size: 14))
+                  .foregroundColor(Color(hex: "#C7C7C7"))
+              }
+              Spacer(minLength: 0)
+              Image(systemName: "chevron.right")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(Color(hex: "#C7C7C7"))
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(hex: "#242424"), in: RoundedRectangle(cornerRadius: 16))
+          }
+          .buttonStyle(.plain)
+          .padding(.horizontal, 20)
+
           LikedSongsSection(
             title: model.likedSongsSectionTitle,
             songs: model.likedSongs,
