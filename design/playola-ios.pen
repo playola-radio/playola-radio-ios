@@ -66082,7 +66082,8 @@
                   "fill": "$text-primary",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "Flip your phone over",
+                  "content": "Flip your phone to start.\nFlip it back to stop.",
+                  "lineHeight": 1.25,
                   "textAlign": "center",
                   "fontFamily": "$font-display",
                   "fontSize": 24,
@@ -66137,16 +66138,6 @@
                       "fontWeight": "600"
                     }
                   ]
-                },
-                {
-                  "type": "text",
-                  "id": "V6Zzz",
-                  "name": "Record Without Flipping",
-                  "fill": "$brand-primary",
-                  "content": "Record without flipping",
-                  "fontFamily": "$font-body",
-                  "fontSize": 15,
-                  "fontWeight": "600"
                 },
                 {
                   "type": "text",
@@ -66317,16 +66308,6 @@
               "name": "Spacer Push",
               "width": "fill_container",
               "height": "fill_container"
-            },
-            {
-              "type": "text",
-              "id": "GZypj",
-              "name": "Record Without Flipping",
-              "fill": "$brand-primary",
-              "content": "Record without flipping",
-              "fontFamily": "$font-body",
-              "fontSize": 16,
-              "fontWeight": "600"
             }
           ]
         }
