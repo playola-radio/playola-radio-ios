@@ -42,6 +42,12 @@ struct AudioRecorderClientTests {
     expectNoDifference(AudioRecorderClient.isExternalMicrophone(inputs: []), false)
   }
 
+  @Test
+  func testActiveOrStartingRecordingKeepsRecordingCategoryAfterRouteCheck() {
+    expectNoDifference(
+      AudioRecorderClient.shouldRestorePlaybackCategory(recordingIsActiveOrStarting: true), false)
+  }
+
   @Test(arguments: [
     AVAudioSession.Port.headsetMic, .bluetoothHFP, .usbAudio, .carAudio,
   ])

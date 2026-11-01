@@ -42,6 +42,10 @@ public struct AudioRecorderClient: Sendable {
   static func isExternalMicrophone(inputs: [AVAudioSession.Port]) -> Bool {
     inputs.contains { $0 != .builtInMic }
   }
+
+  static func shouldRestorePlaybackCategory(recordingIsActiveOrStarting: Bool) -> Bool {
+    !recordingIsActiveOrStarting
+  }
 }
 
 extension AudioRecorderClient {
@@ -195,6 +199,7 @@ private actor LiveAudioRecorder {
   private var audioRecorder: AVAudioRecorder?
   private var recordingURL: URL?
   private var isPrepared = false
+  private var isStartingRecording = false
   private var waveformSamples: [Float] = []
 
   /// The app's single AVAudioSession owner. The recorder no longer touches the
@@ -232,6 +237,9 @@ private actor LiveAudioRecorder {
   }
 
   func startRecording(at url: URL) async throws {
+    isStartingRecording = true
+    defer { isStartingRecording = false }
+
     // Always prepare audio session before recording - the session may have been
     // reconfigured by other audio components (e.g., StationPlayer) since last prepare
     try await prepareForRecording()
@@ -255,10 +263,14 @@ private actor LiveAudioRecorder {
       return false
     }
     let inputs = AVAudioSession.sharedInstance().currentRoute.inputs.map(\.portType)
-    do {
-      try await coordinator.restorePlaybackCategory()
-    } catch {
-      reportIssue("Failed to restore playback category after the input route check: \(error)")
+    if AudioRecorderClient.shouldRestorePlaybackCategory(
+      recordingIsActiveOrStarting: audioRecorder != nil || isStartingRecording)
+    {
+      do {
+        try await coordinator.restorePlaybackCategory()
+      } catch {
+        reportIssue("Failed to restore playback category after the input route check: \(error)")
+      }
     }
     return AudioRecorderClient.isExternalMicrophone(inputs: inputs)
   }
