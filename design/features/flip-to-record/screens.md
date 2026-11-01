@@ -24,7 +24,7 @@ The mockups use the broadcaster reply screen (`ListenerQuestionDetailPage`) as t
 
 | State | When it shows | Node | Mockup |
 |---|---|---|---|
-| Waiting | Prompt is up and the phone has not been flipped | `z8wAhd` | ![Flip prompt — waiting](exports/flip-prompt--waiting.png) |
+| Waiting | Prompt is up and the phone has not been flipped. Title: "Flip your phone to start." / "Flip it back to stop." (two equal lines) | `z8wAhd` | ![Flip prompt — waiting](exports/flip-prompt--waiting.png) |
 
 ## Recording screen, flipped
 - **Status:** Changed (applies to all seven recording screens)

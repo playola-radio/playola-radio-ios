@@ -120,7 +120,7 @@ final class FlipToRecordModel {
 
   // MARK: - View Helpers
 
-  var promptTitle: String { "Flip your phone over" }
+  var promptTitle: String { "Flip your phone to start.\nFlip it back to stop." }
   var promptBody: String {
     "Talk into the bottom, like a microphone. Recording starts after a 3‑second countdown."
   }

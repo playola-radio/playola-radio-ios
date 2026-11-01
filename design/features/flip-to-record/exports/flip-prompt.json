@@ -488,11 +488,12 @@
               "fill": "#FFFFFF",
               "textGrowth": "fixed-width",
               "width": "fill_container",
-              "content": "Flip your phone over",
+              "content": "Flip your phone to start.\nFlip it back to stop.",
               "textAlign": "center",
               "fontFamily": "Space Grotesk",
               "fontSize": 24,
-              "fontWeight": "700"
+              "fontWeight": "700",
+              "lineHeight": 1.25
             },
             {
               "type": "text",

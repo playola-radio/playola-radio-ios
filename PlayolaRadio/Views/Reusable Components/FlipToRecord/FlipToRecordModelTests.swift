@@ -41,6 +41,14 @@ struct FlipToRecordModelTests {
   }
 
   @Test
+  func testPromptTitleExplainsHowToStartAndStop() {
+    let harness = FlipHarness()
+
+    expectNoDifference(
+      harness.model.promptTitle, "Flip your phone to start.\nFlip it back to stop.")
+  }
+
+  @Test
   func testHeldUprightShowsPrompt() async {
     await withMainSerialExecutor {
       let harness = FlipHarness()

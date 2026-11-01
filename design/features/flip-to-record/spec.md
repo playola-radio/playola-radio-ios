@@ -25,7 +25,7 @@ Flipping is tied to the act of recording, not to which screen is open.
 
 On every recording screen, tapping **Record** runs the following flow:
 
-1. **Flip prompt.** A prompt appears over the screen: "Flip your phone over and talk into the bottom, like a microphone." It also has a **Record without flipping** link.
+1. **Flip prompt.** A prompt appears over the screen. Its title gives starting and stopping equal weight: "Flip your phone to start. Flip it back to stop." The body says to talk into the bottom, like a microphone. It also has a **Record without flipping** link.
    - The prompt is skipped and recording starts exactly as it does today when an external microphone is the active input (AirPods, wired, USB or Bluetooth headset).
    - When the phone is already physically upside down, the prompt is skipped and the flow goes straight to step 2.
 2. **Flip detected.** About 250 ms of steady upside-down pose is required. Then the window rotates 180° and a **3-2-1 countdown** runs on the rotated screen. The countdown cannot be skipped. Turning the phone upright during the countdown cancels it, rotates the window back, and returns to the prompt. The countdown overlay blocks touches to the page underneath and has its own **Cancel** button, which cancels the take.
@@ -136,3 +136,4 @@ Phase 5 (Codex, adversarial) failed the first plan with 13 findings. Phase 7 (Co
 | 2026-10-31 | Flip prompt: direction A (bottom sheet over the recording screen), "Waiting" state, illustration v8 (phone moved closer to the mouth, floating mic badge removed); direction B (full screen) rejected | canvas `z8wAhd`, `generated-assets/recording-position-v8.png` |
 | 2026-10-31 | Recording screen, flipped: Countdown state (rotated window, dark backdrop, "Recording in" 3-2-1 ring, "Turn your phone back over to cancel.", Back stays tappable) | canvas `gK9Vw` |
 | 2026-10-31 | Recording screen, flipped: Recording state (page's existing recorder unchanged, plus a "Turn your phone upright to stop" hint pill under it). All screens approved; Brian: "let's try it" | canvas `iqEG4` |
+| 2026-11-01 | Flip prompt title changed to two equal lines, "Flip your phone to start." / "Flip it back to stop.", so stopping is taught before recording starts. Recording-state hint left as is. Brian, in chat | canvas `z8wAhd` |
