@@ -48,12 +48,6 @@ struct AudioRecorderClientTests {
       AudioRecorderClient.shouldRestorePlaybackCategory(recordingIsActiveOrStarting: true), false)
   }
 
-  @Test
-  func routeCheckWithoutRecordingDeactivatesTheSession() {
-    expectNoDifference(
-      AudioRecorderClient.shouldDeactivateAfterRouteCheck(recordingIsActiveOrStarting: false), true)
-  }
-
   @Test(arguments: [
     AVAudioSession.Port.headsetMic, .bluetoothHFP, .usbAudio, .carAudio,
   ])

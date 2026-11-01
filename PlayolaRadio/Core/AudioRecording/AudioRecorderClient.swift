@@ -46,10 +46,6 @@ public struct AudioRecorderClient: Sendable {
   static func shouldRestorePlaybackCategory(recordingIsActiveOrStarting: Bool) -> Bool {
     !recordingIsActiveOrStarting
   }
-
-  static func shouldDeactivateAfterRouteCheck(recordingIsActiveOrStarting: Bool) -> Bool {
-    shouldRestorePlaybackCategory(recordingIsActiveOrStarting: recordingIsActiveOrStarting)
-  }
 }
 
 extension AudioRecorderClient {
@@ -267,18 +263,13 @@ private actor LiveAudioRecorder {
       return false
     }
     let inputs = AVAudioSession.sharedInstance().currentRoute.inputs.map(\.portType)
-    if AudioRecorderClient.shouldDeactivateAfterRouteCheck(
+    if AudioRecorderClient.shouldRestorePlaybackCategory(
       recordingIsActiveOrStarting: audioRecorder != nil || isStartingRecording)
     {
       do {
         try await coordinator.restorePlaybackCategory()
       } catch {
         reportIssue("Failed to restore playback category after the input route check: \(error)")
-      }
-      do {
-        try await coordinator.deactivate()
-      } catch {
-        reportIssue("Failed to deactivate the audio session after the input route check: \(error)")
       }
     }
     return AudioRecorderClient.isExternalMicrophone(inputs: inputs)
