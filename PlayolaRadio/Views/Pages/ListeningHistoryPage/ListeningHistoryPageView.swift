@@ -32,7 +32,7 @@ struct ListeningHistoryPageView: View {
         ScrollView {
           Group {
             switch model.displayState {
-            case .idle, .loading:
+            case .loading:
               loadingContent
             case .empty:
               stateContent(model.emptyContent, action: model.exploreStationsButtonTapped)
@@ -123,7 +123,7 @@ struct ListeningHistoryPageView: View {
         Text(row.audioBlock.artist)
           .font(.custom(FontNames.Inter_400_Regular, size: 14))
           .foregroundColor(Color(hex: "#D1D1D1"))
-        Text(model.subtitle(for: row.spin))
+        Text(model.subtitle(for: row))
           .font(.custom(FontNames.Inter_400_Regular, size: 12))
           .foregroundColor(Color(hex: "#A9A9A9"))
       }
@@ -132,16 +132,16 @@ struct ListeningHistoryPageView: View {
       Spacer(minLength: 4)
 
       Button(
-        action: { model.heartButtonTapped(for: row.spin) },
+        action: { model.heartButtonTapped(for: row) },
         label: {
-          Image(systemName: model.heartSymbol(for: row.spin))
+          Image(systemName: model.heartSymbol(for: row))
             .font(.system(size: 22))
             .foregroundColor(.white)
             .frame(width: 42, height: 42)
             .background(Color(hex: "#303030"), in: Circle())
         }
       )
-      .accessibilityLabel(model.heartButtonLabel(for: row.spin))
+      .accessibilityLabel(model.heartButtonLabel(for: row))
     }
   }
 

@@ -10,9 +10,6 @@ struct ListeningHistoryResponse: Decodable, Sendable {
   }
 
   struct Pagination: Decodable, Sendable {
-    let limit: Int
-    let offset: Int
-    let total: Int
     let hasMore: Bool
   }
 }
@@ -25,6 +22,5 @@ struct ListeningHistorySpin: Decodable, Sendable, Identifiable {
 }
 
 struct ListeningHistoryStation: Decodable, Sendable {
-  let id: String
   let name: String
 }

@@ -123,6 +123,12 @@ class MainContainerModel: ViewModel {
 
   func activeTabChanged() async {
     guard activeTab == .yourLibrary, !isInBroadcastMode else { return }
+    let historyOpen = mainContainerNavigationCoordinator.yourLibraryPath.contains(where: {
+      if case .listeningHistoryPage = $0 { return true }
+      return false
+    })
+    let historyState = yourLibraryPageModel.listeningHistoryModel.displayState
+    if historyOpen && (historyState == .loaded || historyState == .empty) { return }
     await yourLibraryPageModel.listeningHistoryModel.libraryTabSelected()
   }
 

@@ -25,6 +25,9 @@ struct YourLibraryPageTests {
     let model = YourLibraryPageModel()
 
     model.listeningHistoryTapped()
+    model.listeningHistoryTapped()
+
+    #expect(coordinator.yourLibraryPath.count == 1)
 
     if case .listeningHistoryPage(let pushedModel) = coordinator.yourLibraryPath.last {
       #expect(pushedModel === model.listeningHistoryModel)

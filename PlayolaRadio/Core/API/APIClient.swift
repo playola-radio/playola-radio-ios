@@ -149,7 +149,7 @@ struct APIClient: Sendable {
       _, _ in
       ListeningHistoryResponse(
         spins: [],
-        pagination: .init(limit: 20, offset: 0, total: 0, hasMore: false)
+        pagination: .init(hasMore: false)
       )
     }
 

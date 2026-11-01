@@ -15,17 +15,7 @@ struct ListeningHistoryPageTests {
   @Test
   func libraryEntryLoadsTheFirstServerPage() async {
     @Shared(.auth) var auth = Auth(jwtToken: createTestJWT(id: "listener-one"))
-    let page = ListeningHistoryResponse(
-      spins: [
-        ListeningHistorySpin(
-          id: "spin-one",
-          airtime: Date(timeIntervalSince1970: 1_700_000_000),
-          audioBlock: AudioBlock.mockWith(id: "song-one"),
-          station: ListeningHistoryStation(id: "station-one", name: "Texas Country")
-        )
-      ],
-      pagination: .init(limit: 20, offset: 0, total: 1, hasMore: false)
-    )
+    let page = makeHistoryPage(ids: ["one"])
     let model = withDependencies {
       $0.date = .constant(Date(timeIntervalSince1970: 1_700_000_000))
       $0.api.getListeningHistory = { _, _ in page }
@@ -35,8 +25,7 @@ struct ListeningHistoryPageTests {
 
     await model.libraryTabSelected()
 
-    expectNoDifference(model.displaySpins.map(\.id), ["spin-one"])
-    expectNoDifference(model.nextOffset, 1)
+    expectNoDifference(model.displaySpins.map(\.id), ["one"])
     expectNoDifference(model.pageState, .loaded)
   }
 
@@ -86,7 +75,66 @@ struct ListeningHistoryPageTests {
 
     expectNoDifference(offsets.value, [0, 2])
     expectNoDifference(model.displaySpins.map(\.id), ["one", "two", "three"])
-    expectNoDifference(model.nextOffset, 4)
+  }
+
+  @Test
+  func filteredFirstPageContinuesToTheNextServerPage() async {
+    @Shared(.auth) var auth = Auth(jwtToken: createTestJWT(id: "listener-one"))
+    let offsets = LockIsolated<[Int]>([])
+    let missingSong = ListeningHistoryResponse(
+      spins: [
+        ListeningHistorySpin(
+          id: "missing", airtime: Date(timeIntervalSince1970: 1_700_000_000),
+          audioBlock: nil,
+          station: ListeningHistoryStation(name: "Texas Country")
+        )
+      ],
+      pagination: .init(hasMore: true)
+    )
+    let nextPage = makeHistoryPage(ids: ["one"], offset: 1)
+    let model = withDependencies {
+      $0.date = .constant(Date(timeIntervalSince1970: 1_700_000_000))
+      $0.api.getListeningHistory = { _, offset in
+        offsets.withValue { $0.append(offset) }
+        return offset == 0 ? missingSong : nextPage
+      }
+    } operation: {
+      ListeningHistoryPageModel()
+    }
+
+    await model.libraryTabSelected()
+
+    expectNoDifference(offsets.value, [0, 1])
+    expectNoDifference(model.displaySpins.map(\.id), ["one"])
+    expectNoDifference(model.displayState, .loaded)
+  }
+
+  @Test
+  func duplicateOnlyLaterPageContinuesUntilItAddsRows() async {
+    @Shared(.auth) var auth = Auth(jwtToken: createTestJWT(id: "listener-one"))
+    let offsets = LockIsolated<[Int]>([])
+    let first = makeHistoryPage(ids: ["one"], hasMore: true)
+    let duplicate = makeHistoryPage(ids: ["one"], offset: 1, hasMore: true)
+    let final = makeHistoryPage(ids: ["two"], offset: 2)
+    let model = withDependencies {
+      $0.date = .constant(Date(timeIntervalSince1970: 1_700_000_000))
+      $0.api.getListeningHistory = { _, offset in
+        offsets.withValue { $0.append(offset) }
+        switch offset {
+        case 0: return first
+        case 1: return duplicate
+        default: return final
+        }
+      }
+    } operation: {
+      ListeningHistoryPageModel()
+    }
+
+    await model.libraryTabSelected()
+    await model.loadMoreIfNeeded(visibleSpinID: "one")
+
+    expectNoDifference(offsets.value, [0, 1, 2])
+    expectNoDifference(model.displaySpins.map(\.id), ["one", "two"])
   }
 
   @Test
@@ -281,6 +329,28 @@ struct ListeningHistoryPageTests {
   }
 
   @Test
+  func unauthorizedLaterPageShowsSignedOutState() async {
+    @Shared(.auth) var auth = Auth(jwtToken: createTestJWT(id: "listener-one"))
+    let firstPage = makeHistoryPage(ids: ["one"], hasMore: true)
+    let model = withDependencies {
+      $0.date = .constant(Date(timeIntervalSince1970: 1_700_000_000))
+      $0.api.getListeningHistory = { _, offset in
+        if offset == 0 { return firstPage }
+        throw AFError.responseValidationFailed(reason: .unacceptableStatusCode(code: 401))
+      }
+      $0.errorReporting.reportError = { _, _ in }
+    } operation: {
+      ListeningHistoryPageModel()
+    }
+
+    await model.libraryTabSelected()
+    await model.loadMoreIfNeeded(visibleSpinID: "one")
+
+    expectNoDifference(model.displayState, .signedOut)
+    expectNoDifference(model.displaySpins.map(\.id), [])
+  }
+
+  @Test
   func historyGroupsSpinsByThePhonesCurrentDay() async {
     @Shared(.auth) var auth = Auth(jwtToken: createTestJWT(id: "listener-one"))
     let currentDay = Date(timeIntervalSince1970: 1_700_000_000)
@@ -290,15 +360,15 @@ struct ListeningHistoryPageTests {
         ListeningHistorySpin(
           id: "today", airtime: currentDay,
           audioBlock: AudioBlock.mockWith(id: "song-today"),
-          station: ListeningHistoryStation(id: "station-one", name: "Texas Country")
+          station: ListeningHistoryStation(name: "Texas Country")
         ),
         ListeningHistorySpin(
           id: "yesterday", airtime: priorDay,
           audioBlock: AudioBlock.mockWith(id: "song-yesterday"),
-          station: ListeningHistoryStation(id: "station-one", name: "Texas Country")
+          station: ListeningHistoryStation(name: "Texas Country")
         ),
       ],
-      pagination: .init(limit: 20, offset: 0, total: 2, hasMore: false)
+      pagination: .init(hasMore: false)
     )
     let model = withDependencies {
       $0.date = .constant(currentDay)
@@ -333,12 +403,12 @@ struct ListeningHistoryPageTests {
     }
 
     await model.libraryTabSelected()
-    let spin = model.displaySpins[0]
-    expectNoDifference(model.isLiked(spin), false)
+    let row = model.sections[0].rows[0]
+    expectNoDifference(model.isLiked(row), false)
 
-    model.heartButtonTapped(for: spin)
+    model.heartButtonTapped(for: row)
 
-    expectNoDifference(model.isLiked(spin), true)
+    expectNoDifference(model.isLiked(row), true)
     expectNoDifference(likes.userLikes["song-one"]?.spinId, "one")
   }
 
@@ -351,10 +421,10 @@ struct ListeningHistoryPageTests {
           id: id,
           airtime: Date(timeIntervalSince1970: 1_700_000_000),
           audioBlock: AudioBlock.mockWith(id: "song-\(id)"),
-          station: ListeningHistoryStation(id: "station-one", name: "Texas Country")
+          station: ListeningHistoryStation(name: "Texas Country")
         )
       },
-      pagination: .init(limit: 20, offset: offset, total: 10, hasMore: hasMore)
+      pagination: .init(hasMore: hasMore)
     )
   }
 }

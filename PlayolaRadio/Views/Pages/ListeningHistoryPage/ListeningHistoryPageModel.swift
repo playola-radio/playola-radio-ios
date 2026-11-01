@@ -20,7 +20,6 @@ final class ListeningHistoryPageModel: ViewModel {
   private var navigationCoordinator
 
   enum PageState: Equatable {
-    case idle
     case loading
     case loaded
     case empty
@@ -37,6 +36,7 @@ final class ListeningHistoryPageModel: ViewModel {
   struct Row: Identifiable {
     let spin: ListeningHistorySpin
     let audioBlock: AudioBlock
+    let stationName: String
     var id: String { spin.id }
   }
 
@@ -47,10 +47,16 @@ final class ListeningHistoryPageModel: ViewModel {
     let buttonTitle: String
   }
 
+  private struct FetchedPage {
+    let spins: [ListeningHistorySpin]
+    let nextOffset: Int
+    let hasMore: Bool
+  }
+
   private(set) var spins: [ListeningHistorySpin] = []
-  private(set) var nextOffset = 0
+  @ObservationIgnored private var nextOffset = 0
   private(set) var hasMore = false
-  private(set) var pageState: PageState = .idle
+  private(set) var pageState: PageState = .loading
   private(set) var isLoadingMore = false
   private(set) var loadMoreFailed = false
 
@@ -88,7 +94,6 @@ final class ListeningHistoryPageModel: ViewModel {
       return auth.currentUser == nil ? .signedOut : .loading
     }
     if pageState == .loaded && displaySpins.isEmpty { return .empty }
-    if pageState == .idle { return .loading }
     return pageState
   }
 
@@ -117,8 +122,8 @@ final class ListeningHistoryPageModel: ViewModel {
     let calendar = Calendar.current
     var result: [Section] = []
     for spin in displaySpins {
-      guard let audioBlock = spin.audioBlock else { continue }
-      let row = Row(spin: spin, audioBlock: audioBlock)
+      guard let audioBlock = spin.audioBlock, let station = spin.station else { continue }
+      let row = Row(spin: spin, audioBlock: audioBlock, stationName: station.name)
       let day = calendar.startOfDay(for: spin.airtime)
       if result.last?.id == day {
         result[result.count - 1].rows.append(row)
@@ -129,28 +134,26 @@ final class ListeningHistoryPageModel: ViewModel {
     return result
   }
 
-  func isLiked(_ spin: ListeningHistorySpin) -> Bool {
-    guard let audioBlock = spin.audioBlock else { return false }
-    return likesManager.isLiked(audioBlock.id)
+  func isLiked(_ row: Row) -> Bool {
+    likesManager.isLiked(row.audioBlock.id)
   }
 
-  func heartSymbol(for spin: ListeningHistorySpin) -> String {
-    isLiked(spin) ? "heart.fill" : "heart"
+  func heartSymbol(for row: Row) -> String {
+    isLiked(row) ? "heart.fill" : "heart"
   }
 
-  func heartButtonLabel(for spin: ListeningHistorySpin) -> String {
-    isLiked(spin) ? "Remove from Favorites" : "Add to Favorites"
+  func heartButtonLabel(for row: Row) -> String {
+    isLiked(row) ? "Remove from Favorites" : "Add to Favorites"
   }
 
-  func heartButtonTapped(for spin: ListeningHistorySpin) {
-    guard let audioBlock = spin.audioBlock else { return }
-    likesManager.toggleLike(audioBlock, spinId: spin.id)
+  func heartButtonTapped(for row: Row) {
+    likesManager.toggleLike(row.audioBlock, spinId: row.id)
   }
 
-  func subtitle(for spin: ListeningHistorySpin) -> String {
+  func subtitle(for row: Row) -> String {
     let formatter = DateFormatter()
     formatter.dateFormat = "h:mm a"
-    return "\(spin.station?.name ?? "") · \(formatter.string(from: spin.airtime))"
+    return "\(row.stationName) · \(formatter.string(from: row.spin.airtime))"
   }
 
   func libraryTabSelected() async {
@@ -202,7 +205,6 @@ final class ListeningHistoryPageModel: ViewModel {
   }
 
   func loadMoreRetryButtonTapped() async {
-    guard loadMoreFailed else { return }
     await loadMore()
   }
 
@@ -212,6 +214,8 @@ final class ListeningHistoryPageModel: ViewModel {
       return
     }
     requestGeneration += 1
+    firstPageTask?.cancel()
+    laterPageTask?.cancel()
     let generation = requestGeneration
     ownerUserID = userID
     laterPageTask = nil
@@ -222,27 +226,16 @@ final class ListeningHistoryPageModel: ViewModel {
     let task = Task { [weak self] in
       guard let self else { return }
       do {
-        let response = try await api.getListeningHistory(token, 0)
+        let page = try await fetchVisiblePage(token: token, startingAt: 0, excluding: [])
         guard requestGeneration == generation, auth.currentUser?.id == userID else { return }
-        spins = response.displaySpins
-        nextOffset = response.spins.count
-        hasMore = response.pagination.hasMore
+        spins = page.spins
+        nextOffset = page.nextOffset
+        hasMore = page.hasMore
         lastSuccessfulFetchAt = now
         pageState = .loaded
       } catch {
         guard requestGeneration == generation, auth.currentUser?.id == userID else { return }
-        if isUnauthorized(error) {
-          spins = []
-          pageState = .signedOut
-        } else if spins.isEmpty {
-          pageState = .error
-        } else {
-          pageState = .loaded
-          if showFailureToast {
-            await toast.show(PlayolaToast(message: "History couldn't refresh.", buttonTitle: "OK"))
-          }
-        }
-        await reportLoadError(error)
+        await handleFirstPageError(error, showFailureToast: showFailureToast)
       }
       if requestGeneration == generation { firstPageTask = nil }
     }
@@ -261,17 +254,23 @@ final class ListeningHistoryPageModel: ViewModel {
     let task = Task { [weak self] in
       guard let self else { return }
       do {
-        let response = try await api.getListeningHistory(token, offset)
+        let page = try await fetchVisiblePage(
+          token: token, startingAt: offset, excluding: Set(spins.map(\.id)))
         guard requestGeneration == generation, auth.currentUser?.id == userID else { return }
-        let existingIDs = Set(spins.map(\.id))
-        spins += response.displaySpins.filter { !existingIDs.contains($0.id) }
-        nextOffset = offset + response.spins.count
-        hasMore = response.pagination.hasMore
+        spins += page.spins
+        nextOffset = page.nextOffset
+        hasMore = page.hasMore
         isLoadingMore = false
       } catch {
         guard requestGeneration == generation, auth.currentUser?.id == userID else { return }
         isLoadingMore = false
-        loadMoreFailed = true
+        if isUnauthorized(error) {
+          spins = []
+          hasMore = false
+          pageState = .signedOut
+        } else {
+          loadMoreFailed = true
+        }
         await reportLoadError(error)
       }
       if requestGeneration == generation { laterPageTask = nil }
@@ -280,9 +279,44 @@ final class ListeningHistoryPageModel: ViewModel {
     await task.value
   }
 
+  private func fetchVisiblePage(
+    token: String,
+    startingAt offset: Int,
+    excluding existingIDs: Set<String>
+  ) async throws -> FetchedPage {
+    var nextOffset = offset
+    while true {
+      try Task.checkCancellation()
+      let response = try await api.getListeningHistory(token, nextOffset)
+      let visible = response.displaySpins.filter { !existingIDs.contains($0.id) }
+      nextOffset += response.spins.count
+      let hasMore = response.pagination.hasMore && !response.spins.isEmpty
+      if !visible.isEmpty || !hasMore {
+        return FetchedPage(spins: visible, nextOffset: nextOffset, hasMore: hasMore)
+      }
+    }
+  }
+
+  private func handleFirstPageError(_ error: Error, showFailureToast: Bool) async {
+    if isUnauthorized(error) {
+      spins = []
+      pageState = .signedOut
+    } else if spins.isEmpty {
+      pageState = .error
+    } else {
+      pageState = .loaded
+      if showFailureToast {
+        await toast.show(PlayolaToast(message: "History couldn't refresh.", buttonTitle: "OK"))
+      }
+    }
+    if showFailureToast { await reportLoadError(error) }
+  }
+
   private func resetIfAccountChanged() {
     guard ownerUserID != auth.currentUser?.id else { return }
     requestGeneration += 1
+    firstPageTask?.cancel()
+    laterPageTask?.cancel()
     ownerUserID = auth.currentUser?.id
     spins = []
     nextOffset = 0
@@ -292,7 +326,7 @@ final class ListeningHistoryPageModel: ViewModel {
     laterPageTask = nil
     isLoadingMore = false
     loadMoreFailed = false
-    pageState = auth.currentUser == nil ? .signedOut : .idle
+    pageState = auth.currentUser == nil ? .signedOut : .loading
   }
 
   private func title(for date: Date) -> String {

@@ -73,7 +73,7 @@ struct MainContainerTests {
         calls.withValue { $0 += 1 }
         return ListeningHistoryResponse(
           spins: [],
-          pagination: .init(limit: 20, offset: 0, total: 0, hasMore: false)
+          pagination: .init(hasMore: false)
         )
       }
     } operation: {
@@ -83,6 +83,12 @@ struct MainContainerTests {
     await model.activeTabChanged()
     #expect(calls.value == 0)
     $activeTab.withLock { $0 = .yourLibrary }
+    await model.activeTabChanged()
+    #expect(calls.value == 1)
+
+    model.mainContainerNavigationCoordinator.yourLibraryPath = [
+      .listeningHistoryPage(model.yourLibraryPageModel.listeningHistoryModel)
+    ]
     await model.activeTabChanged()
     #expect(calls.value == 1)
   }

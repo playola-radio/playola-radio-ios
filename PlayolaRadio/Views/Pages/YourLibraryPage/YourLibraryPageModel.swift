@@ -72,6 +72,10 @@ class YourLibraryPageModel: ViewModel {
   }
 
   func listeningHistoryTapped() {
+    guard
+      !mainContainerNavigationCoordinator.yourLibraryPath.contains(
+        .listeningHistoryPage(listeningHistoryModel))
+    else { return }
     mainContainerNavigationCoordinator.push(.listeningHistoryPage(listeningHistoryModel))
   }
 
