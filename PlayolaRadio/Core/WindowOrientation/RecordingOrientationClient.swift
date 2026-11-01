@@ -58,7 +58,10 @@ final class RecordingOrientationController {
     self.owner = owner
     transition += 1
     let current = transition
-    await windowOrientation.setUpsideDown(true)
+    guard await windowOrientation.setUpsideDown(true) else {
+      self.owner = nil
+      return false
+    }
     guard current == transition else { return false }
     upsideDownKeyboard.setUpsideDownModeEnabled(true)
     upsideDownNotificationBanner.setUpsideDownModeEnabled(true)
@@ -79,6 +82,6 @@ final class RecordingOrientationController {
     transition += 1
     upsideDownKeyboard.setUpsideDownModeEnabled(false)
     upsideDownNotificationBanner.setUpsideDownModeEnabled(false)
-    await windowOrientation.setUpsideDown(false)
+    _ = await windowOrientation.setUpsideDown(false)
   }
 }

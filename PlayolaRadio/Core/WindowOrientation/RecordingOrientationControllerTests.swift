@@ -61,8 +61,9 @@ struct RecordingOrientationControllerTests {
       let events = LockIsolated<[String]>([])
       let (gate, openGate) = AsyncStream<Void>.makeStream()
       let controller = makeController(events: events) { isUpsideDown in
-        guard isUpsideDown else { return }
+        guard isUpsideDown else { return true }
         for await _ in gate { break }
+        return true
       }
 
       let acquire = Task { await controller.acquire(first) }
@@ -78,14 +79,26 @@ struct RecordingOrientationControllerTests {
     }
   }
 
+  @Test
+  func testAcquireFailsWhenTheWindowDoesNotRotate() async {
+    let events = LockIsolated<[String]>([])
+    let controller = makeController(events: events) { _ in false }
+
+    let acquired = await controller.acquire(first)
+
+    #expect(!acquired)
+    #expect(!controller.isOwner(first))
+    expectNoDifference(events.value, ["rotate true"])
+  }
+
   private func makeController(
     events: LockIsolated<[String]>,
-    onRotate: @escaping @MainActor @Sendable (Bool) async -> Void = { _ in }
+    onRotate: @escaping @MainActor @Sendable (Bool) async -> Bool = { _ in true }
   ) -> RecordingOrientationController {
     withDependencies {
       $0.windowOrientation.setUpsideDown = { isUpsideDown in
         events.withValue { $0.append("rotate \(isUpsideDown)") }
-        await onRotate(isUpsideDown)
+        return await onRotate(isUpsideDown)
       }
       $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
         events.withValue { $0.append("keyboard \(isEnabled)") }

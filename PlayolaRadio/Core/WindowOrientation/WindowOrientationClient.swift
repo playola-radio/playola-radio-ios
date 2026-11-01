@@ -13,7 +13,7 @@ import UIKit
 /// bottom, so the bottom safe area grows to match the top. Returns once the rotation has finished.
 @DependencyClient
 struct WindowOrientationClient: Sendable {
-  var setUpsideDown: @MainActor @Sendable (_ isUpsideDown: Bool) async -> Void
+  var setUpsideDown: @MainActor @Sendable (_ isUpsideDown: Bool) async -> Bool = { _ in false }
 }
 
 extension WindowOrientationClient: TestDependencyKey {
@@ -31,16 +31,16 @@ extension WindowOrientationClient: DependencyKey {
   static var liveValue: Self {
     Self(
       setUpsideDown: { isUpsideDown in
-        guard let window = UIApplication.shared.keyWindow else { return }
+        guard let window = UIApplication.shared.keyWindow else { return false }
         let transform: CGAffineTransform =
           isUpsideDown ? CGAffineTransform(rotationAngle: .pi) : .identity
-        guard window.transform != transform else { return }
-        await withCheckedContinuation { continuation in
+        guard window.transform != transform else { return true }
+        return await withCheckedContinuation { continuation in
           UIView.animate(withDuration: 0.5) {
             window.transform = transform
             rotatedSafeArea.update(window: window, isUpsideDown: isUpsideDown)
           } completion: { _ in
-            continuation.resume()
+            continuation.resume(returning: true)
           }
         }
       }

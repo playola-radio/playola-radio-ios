@@ -248,7 +248,12 @@ private actor LiveAudioRecorder {
   /// Inputs are only reported under a recording category, so this briefly switches to it and then
   /// restores the playback category. A failure to switch counts as the built-in mic.
   func usesExternalMicrophone() async -> Bool {
-    guard (try? await coordinator.configureForRecording()) != nil else { return false }
+    do {
+      try await coordinator.configureForRecording()
+    } catch {
+      reportIssue("Failed to switch to a recording category for the input route check: \(error)")
+      return false
+    }
     let inputs = AVAudioSession.sharedInstance().currentRoute.inputs.map(\.portType)
     do {
       try await coordinator.restorePlaybackCategory()

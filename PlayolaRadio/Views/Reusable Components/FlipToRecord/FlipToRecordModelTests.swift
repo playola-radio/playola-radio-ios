@@ -129,6 +129,21 @@ struct FlipToRecordModelTests {
   }
 
   @Test
+  func testCancelledFlipHoldDoesNotStartCountdown() async {
+    await withMainSerialExecutor {
+      let harness = FlipHarness()
+      await harness.model.recordTapped()
+      await harness.send(.upsideDown)
+
+      await harness.model.recordingStopped()
+      await harness.clock.advance(by: .milliseconds(250))
+
+      expectNoDifference(harness.model.phase, .idle)
+      expectNoDifference(harness.events.value, [])
+    }
+  }
+
+  @Test
   func testFlipFromPromptCountsDownThenStartsRecording() async {
     await withMainSerialExecutor {
       let harness = FlipHarness()
@@ -178,6 +193,20 @@ struct FlipToRecordModelTests {
 
   @Test
   func testCancelDuringCountdownNeverStartsAndRotatesBack() async {
+    await withMainSerialExecutor {
+      let harness = FlipHarness()
+      await harness.startCountdown()
+
+      await harness.model.cancelTapped()
+      await harness.clock.advance(by: .seconds(3))
+
+      expectNoDifference(harness.model.phase, .idle)
+      expectNoDifference(harness.events.value, ["rotate true", "rotate false"])
+    }
+  }
+
+  @Test
+  func testCancelledCountdownAfterATickDoesNotContinue() async {
     await withMainSerialExecutor {
       let harness = FlipHarness()
       await harness.startCountdown()
@@ -512,8 +541,9 @@ private final class FlipHarness {
     controller = withDependencies {
       $0.windowOrientation.setUpsideDown = { isUpsideDown in
         events.withValue { $0.append("rotate \(isUpsideDown)") }
-        guard isUpsideDown, let rotationGate else { return }
+        guard isUpsideDown, let rotationGate else { return true }
         for await _ in rotationGate { break }
+        return true
       }
       $0.upsideDownKeyboard.setUpsideDownModeEnabled = { _ in }
       $0.upsideDownNotificationBanner.setUpsideDownModeEnabled = { _ in }

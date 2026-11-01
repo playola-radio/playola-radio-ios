@@ -20,7 +20,7 @@ The mockups use the broadcaster reply screen (`ListenerQuestionDetailPage`) as t
 - **Navigates to:**
   - Phone flipped upside down (held ~250 ms) → countdown on the rotated recording screen
   - "Record without flipping" → host screen records upright, exactly as today
-  - "Cancel" or swipe down → host screen, idle
+  - "Cancel" or tap the scrim → host screen, idle
 
 | State | When it shows | Node | Mockup |
 |---|---|---|---|
@@ -39,7 +39,7 @@ The mockups use the broadcaster reply screen (`ListenerQuestionDetailPage`) as t
   - Phone held upright ~1 s while recording, or Stop recording tapped → window rotates back, host screen's existing review state
   - Phone turned upright during the countdown → window rotates back, flip prompt returns
   - Cancel during the countdown → countdown cancelled, window rotates back, host screen returns to idle
-  - Leaving the screen during the countdown (nav Back, tab switch, sheet dismiss) → countdown cancelled, window rotates back, recording never starts. The countdown blocks touches on the page itself; navigation chrome outside the page stays live
+  - Leaving the screen during the countdown (nav Back, tab switch, sheet dismiss) → countdown cancelled, window rotates back, recording never starts. The countdown blocks touches on the page itself and has its own Cancel; navigation chrome stays live, and using it cancels the countdown and rotates the window back
 - **Changed from today:** recording screens never rotate today, and the Broadcast and AMA screens that do rotate stop rotating (see [spec.md](./spec.md#removed)). Current screen: ![Listener reply — idle today](exports/existing/listener-reply--idle.png)
 
 | State | When it shows | Node | Mockup |

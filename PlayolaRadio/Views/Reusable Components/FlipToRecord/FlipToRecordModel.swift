@@ -197,9 +197,10 @@ final class FlipToRecordModel {
       return
     }
     guard flipTimer == nil else { return }
+    let current = take
     flipTimer = Task { [weak self, clock] in
       guard (try? await clock.sleep(for: Self.flipHold)) != nil else { return }
-      self?.flipHeld()
+      self?.flipHeld(take: current)
     }
   }
 
@@ -219,7 +220,8 @@ final class FlipToRecordModel {
     }
   }
 
-  private func flipHeld() {
+  private func flipHeld(take current: Int) {
+    guard current == take, phase == .checkingPose || phase == .prompting else { return }
     flipTimer = nil
     let owner = uuid()
     orientationOwner = owner
@@ -242,7 +244,7 @@ final class FlipToRecordModel {
     }
     for remaining in stride(from: Self.countdownStart, through: 1, by: -1) {
       phase = .countdown(remaining)
-      guard (try? await clock.sleep(for: .seconds(1))) != nil else { return }
+      guard (try? await clock.sleep(for: .seconds(1))) != nil, !Task.isCancelled else { return }
       guard recordingOrientation.isOwner(owner) else {
         await recordingStopped()
         return
