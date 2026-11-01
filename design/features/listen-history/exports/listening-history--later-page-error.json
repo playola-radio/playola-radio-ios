@@ -1,0 +1,919 @@
+{
+  "type": "frame",
+  "id": "m5BmO",
+  "x": 4438,
+  "y": 27582,
+  "name": "Listen History · Detail · More Error",
+  "clip": true,
+  "width": 393,
+  "height": 852,
+  "fill": "#000000",
+  "layout": "vertical",
+  "justifyContent": "space_between",
+  "children": [
+    {
+      "type": "frame",
+      "id": "UWohH",
+      "name": "Header",
+      "width": "fill_container",
+      "fill": "#000000",
+      "gap": 12,
+      "padding": [
+        20,
+        20,
+        24,
+        20
+      ],
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "icon",
+          "id": "p95Z5V",
+          "name": "Back to Your Library",
+          "width": 26,
+          "height": 26,
+          "icon": "chevron-left",
+          "library": "lucide",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "id": "GJilf",
+          "name": "Title",
+          "fill": "#FFFFFF",
+          "content": "Listening History",
+          "fontFamily": "Space Grotesk",
+          "fontSize": 28,
+          "fontWeight": "700"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "f0GwWR",
+      "name": "Content",
+      "clip": true,
+      "width": "fill_container",
+      "height": "fill_container",
+      "layout": "vertical",
+      "gap": 12,
+      "padding": [
+        8,
+        20,
+        24,
+        20
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "f1GY95",
+          "name": "Today Group",
+          "width": "fill_container",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "text",
+              "id": "q95va",
+              "name": "Today Header",
+              "fill": "#FFFFFF",
+              "content": "Today",
+              "fontFamily": "Space Grotesk",
+              "fontSize": 22,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "wXx2z",
+              "name": "Heard · Keep the Wolves Away",
+              "width": "fill_container",
+              "height": 82,
+              "gap": 11,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "vtiVD",
+                  "name": "Album Art · Keep the Wolves Away",
+                  "width": 54,
+                  "height": 54,
+                  "fill": "#696969",
+                  "cornerRadius": 7,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "TfQPU",
+                      "name": "Music Placeholder",
+                      "width": 23,
+                      "height": 23,
+                      "icon": "music-2",
+                      "library": "lucide",
+                      "fill": "#B8B8B8"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "qNo6N",
+                  "name": "Song Details",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ED4TB",
+                      "name": "Song Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Keep the Wolves Away",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "kmeQl",
+                      "name": "Artist Name",
+                      "fill": "#D4D4D4",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Uncle Lucius",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "tFcVn",
+                      "name": "Channel and Time",
+                      "fill": "#A5A5A5",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Texas Country · 10:42 AM",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "IIEqg",
+                  "name": "Add to Favorites · Keep the Wolves Away",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "#303030",
+                  "cornerRadius": 20,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "ZrXBb",
+                      "name": "Favorite Heart",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "heart",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "qrqyZ",
+              "name": "Heard · Feathered Indians",
+              "width": "fill_container",
+              "height": 82,
+              "gap": 11,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "QccEB",
+                  "name": "Album Art · Feathered Indians",
+                  "width": 54,
+                  "height": 54,
+                  "fill": "#696969",
+                  "cornerRadius": 7,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "DGsST",
+                      "name": "Music Placeholder",
+                      "width": 23,
+                      "height": 23,
+                      "icon": "music-2",
+                      "library": "lucide",
+                      "fill": "#B8B8B8"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "H3Oxz",
+                  "name": "Song Details",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Dfhxy",
+                      "name": "Song Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Feathered Indians",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "kQT9k",
+                      "name": "Artist Name",
+                      "fill": "#D4D4D4",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Tyler Childers",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "TTRTP",
+                      "name": "Channel and Time",
+                      "fill": "#A5A5A5",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Americana Radio · 9:18 AM",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "mriA8",
+                  "name": "Add to Favorites · Feathered Indians",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "#303030",
+                  "cornerRadius": 20,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "YsMSy",
+                      "name": "Favorite Heart",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "heart",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "HeJNf",
+              "name": "Heard · Sleeping on the Blacktop",
+              "width": "fill_container",
+              "height": 82,
+              "gap": 11,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "veLJF",
+                  "name": "Album Art · Sleeping on the Blacktop",
+                  "width": 54,
+                  "height": 54,
+                  "fill": "#696969",
+                  "cornerRadius": 7,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "Repi6",
+                      "name": "Music Placeholder",
+                      "width": 23,
+                      "height": 23,
+                      "icon": "music-2",
+                      "library": "lucide",
+                      "fill": "#B8B8B8"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "xy3Kz",
+                  "name": "Song Details",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "L6pid",
+                      "name": "Song Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Sleeping on the Blacktop",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "o2mM3",
+                      "name": "Artist Name",
+                      "fill": "#D4D4D4",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Colter Wall",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "CwLv8",
+                      "name": "Channel and Time",
+                      "fill": "#A5A5A5",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Bri Bagwell Radio · 8:04 AM",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "cwPJw",
+                  "name": "Add to Favorites · Sleeping on the Blacktop",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "#303030",
+                  "cornerRadius": 20,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "vTF3q",
+                      "name": "Favorite Heart",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "heart",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "RCQIU",
+          "name": "Yesterday Group",
+          "width": "fill_container",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "text",
+              "id": "c958tn",
+              "name": "Yesterday Header",
+              "fill": "#FFFFFF",
+              "content": "Yesterday",
+              "fontFamily": "Space Grotesk",
+              "fontSize": 22,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "GnIQu",
+              "name": "Heard · Broken Window Serenade",
+              "width": "fill_container",
+              "height": 82,
+              "gap": 11,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "TZPff",
+                  "name": "Album Art · Broken Window Serenade",
+                  "width": 54,
+                  "height": 54,
+                  "fill": "#696969",
+                  "cornerRadius": 7,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "eyeGB",
+                      "name": "Music Placeholder",
+                      "width": 23,
+                      "height": 23,
+                      "icon": "music-2",
+                      "library": "lucide",
+                      "fill": "#B8B8B8"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "iHcGV",
+                  "name": "Song Details",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "E1lbl",
+                      "name": "Song Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Broken Window Serenade",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "l98XX1",
+                      "name": "Artist Name",
+                      "fill": "#D4D4D4",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Whiskey Myers",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "dZYe1",
+                      "name": "Channel and Time",
+                      "fill": "#A5A5A5",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Texas Country · 6:32 PM",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "gHrOY",
+                  "name": "Add to Favorites · Broken Window Serenade",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "#303030",
+                  "cornerRadius": 20,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "DJLUB",
+                      "name": "Favorite Heart",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "heart",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "d31J6s",
+              "name": "Heard · Turtles All the Way Down",
+              "width": "fill_container",
+              "height": 82,
+              "gap": 11,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "QSfBG",
+                  "name": "Album Art · Turtles All the Way Down",
+                  "width": 54,
+                  "height": 54,
+                  "fill": "#696969",
+                  "cornerRadius": 7,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "qfEdW",
+                      "name": "Music Placeholder",
+                      "width": 23,
+                      "height": 23,
+                      "icon": "music-2",
+                      "library": "lucide",
+                      "fill": "#B8B8B8"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "B38BnM",
+                  "name": "Song Details",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "JSeMB",
+                      "name": "Song Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Turtles All the Way Down",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "LFnzv",
+                      "name": "Artist Name",
+                      "fill": "#D4D4D4",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Sturgill Simpson",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "bZU2n",
+                      "name": "Channel and Time",
+                      "fill": "#A5A5A5",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Americana Radio · 3:15 PM",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "RojPA",
+                  "name": "Add to Favorites · Turtles All the Way Down",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "#303030",
+                  "cornerRadius": 20,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "RZoqK",
+                      "name": "Favorite Heart",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "heart",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "WJ5fO",
+          "name": "Pagination error",
+          "width": "fill_container",
+          "height": 66,
+          "gap": 8,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "DtLRx",
+              "name": "More error label",
+              "fill": "#C7C7C7",
+              "content": "Couldn’t load more songs.",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "k4qkFD",
+              "name": "Retry link",
+              "fill": "#EF6962",
+              "content": "Retry",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "nOvQ2",
+      "layoutPosition": "absolute",
+      "x": 16,
+      "y": 690,
+      "name": "Small Player (Glass)",
+      "width": 361,
+      "height": 64,
+      "fill": "#2C2C2ECC",
+      "cornerRadius": 26,
+      "stroke": "#FFFFFF26",
+      "strokeWidth": 1,
+      "gap": 12,
+      "padding": [
+        0,
+        16
+      ],
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "nOvQ2/y1lXft",
+          "name": "Artwork",
+          "width": 40,
+          "height": 40,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/bri.jpg",
+            "mode": "cover"
+          },
+          "cornerRadius": 8
+        },
+        {
+          "type": "frame",
+          "id": "nOvQ2/yEeoi",
+          "name": "Meta",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 4,
+          "children": [
+            {
+              "type": "text",
+              "id": "nOvQ2/HRbjx",
+              "name": "Title",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Bri Bagwell",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "500"
+            },
+            {
+              "type": "text",
+              "id": "nOvQ2/OKOxh",
+              "name": "Subtitle",
+              "fill": "#C7C7C7",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Bri Bagwell - Cheat On Me",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "icon",
+          "id": "nOvQ2/HV0H5",
+          "name": "Heart",
+          "width": 22,
+          "height": 22,
+          "icon": "heart",
+          "library": "lucide",
+          "fill": "#C7C7C7"
+        },
+        {
+          "type": "frame",
+          "id": "nOvQ2/YWPPt",
+          "name": "Stop Button",
+          "width": 34,
+          "height": 34,
+          "fill": "#FFFFFF",
+          "cornerRadius": 17,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "rectangle",
+              "cornerRadius": 1.5,
+              "id": "nOvQ2/cjI2e",
+              "name": "Stop Glyph",
+              "fill": "#000000",
+              "width": 12,
+              "height": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "VODOT",
+      "layoutPosition": "absolute",
+      "x": 16,
+      "y": 762,
+      "name": "Tab Bar (Glass)",
+      "width": 361,
+      "height": 56,
+      "fill": "#2C2C2ECC",
+      "cornerRadius": 28,
+      "stroke": "#FFFFFF26",
+      "strokeWidth": 1,
+      "justifyContent": "space_around",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "VODOT/KiWbV",
+          "name": "Home",
+          "width": 80,
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            8,
+            0
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "VODOT/KiWbV/Mb28I",
+              "name": "Icon",
+              "width": 24,
+              "height": 24,
+              "icon": "house",
+              "library": "lucide",
+              "fill": "#868686"
+            },
+            {
+              "type": "text",
+              "id": "VODOT/KiWbV/x7cAoO",
+              "name": "Label",
+              "fill": "#868686",
+              "content": "Home",
+              "fontFamily": "Inter",
+              "fontSize": 10,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "VODOT/N1YIr",
+          "name": "Radio Stations",
+          "width": 80,
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            8,
+            0
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "VODOT/N1YIr/Mb28I",
+              "name": "Icon",
+              "width": 24,
+              "height": 24,
+              "icon": "radio",
+              "library": "lucide",
+              "fill": "#868686"
+            },
+            {
+              "type": "text",
+              "id": "VODOT/N1YIr/x7cAoO",
+              "name": "Label",
+              "fill": "#868686",
+              "content": "Radio Stations",
+              "fontFamily": "Inter",
+              "fontSize": 10,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "VODOT/lwmmM",
+          "name": "Your Library",
+          "width": 80,
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            8,
+            0
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "VODOT/lwmmM/Mb28I",
+              "name": "Icon",
+              "width": 24,
+              "height": 24,
+              "icon": "heart",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            },
+            {
+              "type": "text",
+              "id": "VODOT/lwmmM/x7cAoO",
+              "name": "Label",
+              "fill": "#FFFFFF",
+              "content": "Your Library",
+              "fontFamily": "Inter",
+              "fontSize": 10,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "VODOT/NhsUt",
+          "name": "Your Profile",
+          "width": 80,
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            8,
+            0
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "VODOT/NhsUt/Mb28I",
+              "name": "Icon",
+              "width": 24,
+              "height": 24,
+              "icon": "user",
+              "library": "lucide",
+              "fill": "#868686"
+            },
+            {
+              "type": "text",
+              "id": "VODOT/NhsUt/x7cAoO",
+              "name": "Label",
+              "fill": "#868686",
+              "content": "Your Profile",
+              "fontFamily": "Inter",
+              "fontSize": 10,
+              "fontWeight": "500"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

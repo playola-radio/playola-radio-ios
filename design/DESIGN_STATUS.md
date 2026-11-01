@@ -214,6 +214,23 @@ full-track audio preview + scrubber. Exports under `exports/in-progress/music-li
 | Music Library · Categories | `z2PgEC` | Implementing (#418) | Song categories + "All Songs" row, deduped counts, drill-down |
 | Music Library · All Songs / Category Detail | `SeRvJ` | Implementing (#418) | Detail page; sort control, A–Z index, per-song play/pause + scrubber |
 
+### Proposal · Song Listen History (zone `hFtDu`, label `GwloX`)
+
+Personal song history reached from a compact Your Library entry, with channel, server-reported play time and a heart action on the detail page. Visual design and exports: `features/listen-history/`. The selected screens and all detail states are visually approved. The app reads the existing server history; the amber proposal zone remains until implementation.
+
+| Frame | Node ID | Status | Notes |
+|---|---|---|---|
+| Listen History · A · Library Entry | `VnLyt` | Approved | Chosen compact entry; visually locked by user |
+| Listen History · B · Recent Preview | `ZEn1P` | Exploring | Unchosen two recent plays exploration |
+| Listen History · C · Blended Entry | `oS2Y9` | Exploring | Unchosen blended card exploration |
+| Listen History · Detail · Recent Plays | `DageM` | Approved | Dated songs, channels, times and heart actions |
+| Listen History · Detail · Empty | `Nnpzb` | Approved | No available history |
+| Listen History · Detail · Loading | `GNMt9` | Approved | Initial loading |
+| Listen History · Detail · Load Error | `W16HKe` | Approved | Initial request failure |
+| Listen History · Detail · Signed Out | `kyCIW` | Approved | Sign-in state |
+| Listen History · Detail · Loading More | `d8xmZF` | Approved | Later page loading |
+| Listen History · Detail · More Error | `m5BmO` | Approved | Later page failure and retry |
+
 ### Supporting components (artist/DJ)
 
 | Component | Node ID | Status |
