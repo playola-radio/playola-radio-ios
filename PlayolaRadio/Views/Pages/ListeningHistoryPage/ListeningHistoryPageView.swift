@@ -90,6 +90,7 @@ struct ListeningHistoryPageView: View {
           .frame(maxWidth: .infinity)
           .padding(.vertical, 24)
           .opacity(model.loadMoreLoadingOpacity)
+          .allowsHitTesting(false)
           .accessibilityHidden(model.loadMoreLoadingAccessibilityHidden)
         HStack(spacing: 8) {
           Text(model.loadMoreErrorMessage)

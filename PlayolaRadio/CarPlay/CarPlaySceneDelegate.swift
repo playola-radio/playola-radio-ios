@@ -5,7 +5,7 @@
 //  Created by Brian D Keane on 1/19/25.
 //
 @preconcurrency import CarPlay
-import Combine
+@preconcurrency import Combine
 import Dependencies
 import IdentifiedCollections
 import Sharing
@@ -180,19 +180,13 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     stationCatalogObservationTask = Task { [weak self] in
       guard let self else { return }
       let changes = AsyncStream<StationCatalogChange> { continuation in
-        let stationListsTask = Task {
-          for await stationLists in self.$stationLists.publisher.values {
-            continuation.yield(.stationLists(stationLists))
-          }
-        }
-        let unlockedTask = Task {
-          for await unlocked in self.$showSecretStations.publisher.values {
-            continuation.yield(.unlocked(unlocked))
-          }
-        }
+        let stationListsObserver = self.$stationLists.publisher
+          .sink { continuation.yield(.stationLists($0)) }
+        let unlockedObserver = self.$showSecretStations.publisher
+          .sink { continuation.yield(.unlocked($0)) }
         continuation.onTermination = { _ in
-          stationListsTask.cancel()
-          unlockedTask.cancel()
+          stationListsObserver.cancel()
+          unlockedObserver.cancel()
         }
       }
       var currentStationLists = stationLists

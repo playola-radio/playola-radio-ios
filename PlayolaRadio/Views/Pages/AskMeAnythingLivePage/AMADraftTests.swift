@@ -309,6 +309,26 @@ struct AMADraftTests {
       AskMeAnythingLivePageModel(stationId: testStationId).openingItems, model.openingItems)
   }
 
+  @Test func differentSignedInUserCannotDeleteAnOpeningRow() async {
+    @Shared(.auth) var auth = Auth(
+      loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    let song = AMAOpeningItem(
+      id: UUID(), content: .song(.mockWith(id: "song", durationMS: 570_000)))
+    model.openingItems = [introItem(durationMS: 30_000), song]
+    let originalItems = model.openingItems
+    let originalDrafts = model.amaOpeningDrafts
+    $auth.withLock {
+      $0 = Auth(
+        loggedInUser: LoggedInUser(id: "other", firstName: "Other", email: "other@example.com"))
+    }
+
+    await model.openingRowDeleteTapped(song.id)
+
+    expectNoDifference(model.openingItems, originalItems)
+    expectNoDifference(model.amaOpeningDrafts, originalDrafts)
+  }
+
   @Test func introRowCannotBeDeleted() async {
     let model = AskMeAnythingLivePageModel(stationId: testStationId)
     let intro = introItem(durationMS: 30_000)
