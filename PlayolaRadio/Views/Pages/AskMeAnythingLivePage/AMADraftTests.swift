@@ -354,6 +354,48 @@ struct AMADraftTests {
     }
   }
 
+  @Test func failedOpeningRowDeletionKeepsTheRowAndUploadForRetry() async throws {
+    @Shared(.auth) var auth = Auth(
+      loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
+    let draftURL = URL.documentsDirectory.appending(component: "ama-opening-drafts.json")
+    try? FileManager.default.removeItem(at: draftURL)
+    try FileManager.default.createDirectory(at: draftURL, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: draftURL) }
+    let started = AsyncStream<Void>.makeStream()
+    let suspended = AsyncStream<Void>.makeStream()
+    let deleted = LockIsolated<[URL]>([])
+    try await withDependencies {
+      $0.defaultFileStorage = .fileSystem
+      $0.uuid = .incrementing
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.audioRecorder.deleteRecording = { url in deleted.withValue { $0.append(url) } }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, status in
+        await status(.uploading(progress: 0.5))
+        started.continuation.yield(())
+        for await _ in suspended.stream {}
+        return .mockWith(id: "uploaded", durationMS: 20_000)
+      }
+      $0.errorReporting.reportError = { _, _ in }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      model.openingItems.append(introItem(durationMS: 30_000))
+      let source = URL(fileURLWithPath: "/tmp/retry.wav")
+      try model.acceptVoicetrack(url: source)
+      for await _ in started.stream { break }
+      let voicetrackId = try #require(model.openingItems.last?.id)
+
+      await model.openingRowDeleteTapped(voicetrackId)
+
+      #expect(model.openingItems[id: voicetrackId] != nil)
+      #expect(model.uploadTasks[voicetrackId]?.isCancelled == false)
+      #expect(deleted.value.isEmpty)
+      #expect(model.presentedAlert != nil)
+
+      suspended.continuation.finish()
+      await model.waitForPendingUploads()
+    }
+  }
+
   @Test func movingAnOpeningRowReordersTheSavedPlaylist() {
     @Shared(.auth) var auth = Auth(
       loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
