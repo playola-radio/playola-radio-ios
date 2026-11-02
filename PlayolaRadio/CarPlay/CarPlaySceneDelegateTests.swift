@@ -132,12 +132,32 @@ struct CarPlaySceneDelegateTests {
     let delegate = CarPlaySceneDelegate()
     delegate.tabBarTemplate = CPTabBarTemplate(templates: delegate.generateTemplates(stationLists))
     delegate.observeStationCatalog()
+    defer { delegate.stationCatalogObservationTask?.cancel() }
     expectNoDifference(connectedRowCount(of: delegate), 2)
 
     $showSecretStations.withLock { $0 = false }
     await yieldUntil { connectedRowCount(of: delegate) == 1 }
 
     expectNoDifference(connectedRowCount(of: delegate), 1)
+  }
+
+  @Test
+  func testCatalogChangeWhileConnectedRebuildsRows() async {
+    @Shared(.showSecretStations) var showSecretStations = true
+    @Shared(.stationLists) var stationLists = IdentifiedArray(
+      uniqueElements: [list(visibilities: [.visible])])
+    let delegate = CarPlaySceneDelegate()
+    delegate.tabBarTemplate = CPTabBarTemplate(templates: delegate.generateTemplates(stationLists))
+    delegate.observeStationCatalog()
+    defer { delegate.stationCatalogObservationTask?.cancel() }
+    expectNoDifference(connectedRowCount(of: delegate), 1)
+
+    $stationLists.withLock {
+      $0 = IdentifiedArray(uniqueElements: [list(visibilities: [.visible, .hidden])])
+    }
+    await yieldUntil { connectedRowCount(of: delegate) == 2 }
+
+    expectNoDifference(connectedRowCount(of: delegate), 2)
   }
 
   private func connectedRowCount(of delegate: CarPlaySceneDelegate) -> Int {

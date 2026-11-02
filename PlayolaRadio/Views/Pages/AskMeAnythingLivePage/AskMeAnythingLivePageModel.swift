@@ -24,6 +24,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.amaOpeningDraftSaver) var amaOpeningDraftSaver
 
   // MARK: - Shared State
 
@@ -211,19 +212,24 @@ class AskMeAnythingLivePageModel: ViewModel {
   }
 
   func openingRowDeleteTapped(_ id: UUID) async {
-    guard isOpeningPlaylistEditable, let item = openingItems[id: id], !item.content.is(\.intro)
+    guard isOpeningPlaylistEditable, auth.currentUser?.id == openingDraftUserId,
+      let item = openingItems[id: id], !item.content.is(\.intro)
     else { return }
-    uploadTasks[id]?.cancel()
-    openingItems.remove(id: id)
+    if let openingDraftUserId {
+      _ = $amaOpeningDrafts.withLock { $0[openingDraftUserId]?[stationId]?.remove(id: id) }
+    }
     do {
-      try await $amaOpeningDrafts.save()
+      try await amaOpeningDraftSaver.save($amaOpeningDrafts)
     } catch {
+      persistOpeningDraft()
       await errorReporting.reportError(error, ["operation": "saveAMAOpeningDraft"])
       presentedAlert = showAlert(
         title: "Unable to Update Playlist",
         message: "Your playlist change could not be saved. Please try again.")
       return
     }
+    uploadTasks[id]?.cancel()
+    openingItems.remove(id: id)
     guard case .voicetrack(let recording, _) = item.content else { return }
     await audioRecorder.deleteRecording(recording.originalURL)
   }
