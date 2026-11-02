@@ -7,6 +7,7 @@
 
 import CustomDump
 import Foundation
+import PlayolaPlayer
 import Testing
 
 @testable import PlayolaRadio
@@ -14,6 +15,57 @@ import Testing
 @Suite(.freshSharedState)
 @MainActor
 struct APIClientTests {
+
+  @Test
+  func listeningHistoryDecodesPopulatedSpinsAndSkipsMissingRelations() throws {
+    let data = Data(
+      """
+      {
+        "spins": [
+          {
+            "id": "spin-one", "airtime": "2026-11-01T18:00:00.000Z",
+            "station": {"id": "station-one", "name": "Texas Country"},
+            "audioBlock": {
+              "id": "song-one", "title": "Keep the Wolves Away", "artist": "Uncle Lucius",
+              "durationMS": 240000, "endOfMessageMS": 240000,
+              "beginningOfOutroMS": 220000, "endOfIntroMS": 10000,
+              "lengthOfOutroMS": 20000, "s3Key": "song-one.mp3",
+              "s3BucketName": "songs", "type": "song",
+              "createdAt": "2026-01-01T00:00:00.000Z",
+              "updatedAt": "2026-01-01T00:00:00.000Z"
+            }
+          },
+          {
+            "id": "spin-without-song", "airtime": "2026-11-01T17:00:00.000Z",
+            "station": {"id": "station-one", "name": "Texas Country"},
+            "audioBlock": null
+          },
+          {
+            "id": "spin-without-station", "airtime": "2026-11-01T16:00:00.000Z",
+            "station": null,
+            "audioBlock": null
+          }
+        ],
+        "pagination": {"limit": 20, "offset": 0, "total": 3, "hasMore": false}
+      }
+      """.utf8)
+
+    let page = try JSONDecoderWithIsoFull().decode(ListeningHistoryResponse.self, from: data)
+
+    expectNoDifference(page.spins.count, 3)
+    expectNoDifference(page.displaySpins.map(\.id), ["spin-one"])
+    expectNoDifference(page.displaySpins.first?.station?.name, "Texas Country")
+    expectNoDifference(page.displaySpins.first?.audioBlock?.title, "Keep the Wolves Away")
+    expectNoDifference(page.pagination.hasMore, false)
+  }
+
+  @Test
+  func listeningHistoryRejectsMissingPagination() {
+    let data = Data("{\"spins\":[]}".utf8)
+    #expect(throws: DecodingError.self) {
+      try JSONDecoderWithIsoFull().decode(ListeningHistoryResponse.self, from: data)
+    }
+  }
 
   @Test
   func rewardRedemptionResponseDecodesFulfillmentRequest() throws {

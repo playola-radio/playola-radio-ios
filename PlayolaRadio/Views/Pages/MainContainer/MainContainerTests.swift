@@ -62,6 +62,37 @@ func createTestJWT(
 @Suite(.freshSharedState)
 @MainActor
 struct MainContainerTests {
+  @Test
+  func enteringLibraryRefreshesListeningHistory() async {
+    @Shared(.auth) var auth = Auth(jwtToken: createTestJWT())
+    @Shared(.activeTab) var activeTab = MainContainerModel.ActiveTab.home
+    let calls = LockIsolated(0)
+    let model = withDependencies {
+      $0.date = .constant(Date(timeIntervalSince1970: 1_700_000_000))
+      $0.api.getListeningHistory = { _, _ in
+        calls.withValue { $0 += 1 }
+        return ListeningHistoryResponse(
+          spins: [],
+          pagination: .init(hasMore: false)
+        )
+      }
+    } operation: {
+      MainContainerModel()
+    }
+
+    await model.activeTabChanged()
+    expectNoDifference(calls.value, 0)
+    $activeTab.withLock { $0 = .yourLibrary }
+    await model.activeTabChanged()
+    expectNoDifference(calls.value, 1)
+
+    model.mainContainerNavigationCoordinator.yourLibraryPath = [
+      .listeningHistoryPage(model.yourLibraryPageModel.listeningHistoryModel)
+    ]
+    await model.activeTabChanged()
+    expectNoDifference(calls.value, 1)
+  }
+
   // MARK: - ViewAppeared Tests
 
   @Test

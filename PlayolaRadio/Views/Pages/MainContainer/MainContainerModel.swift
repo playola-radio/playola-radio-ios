@@ -121,6 +121,17 @@ class MainContainerModel: ViewModel {
     return nil
   }
 
+  func activeTabChanged() async {
+    guard activeTab == .yourLibrary, !isInBroadcastMode else { return }
+    let historyOpen = mainContainerNavigationCoordinator.yourLibraryPath.contains(where: {
+      if case .listeningHistoryPage = $0 { return true }
+      return false
+    })
+    let historyState = yourLibraryPageModel.listeningHistoryModel.displayState
+    if historyOpen && (historyState == .loaded || historyState == .empty) { return }
+    await yourLibraryPageModel.listeningHistoryModel.libraryTabSelected()
+  }
+
   func viewAppeared() async {
     // Kick off the client-config fetch first but do NOT await it: the renderer
     // flag only matters if it beats the first play() of the process (the SDK

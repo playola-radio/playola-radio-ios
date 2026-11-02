@@ -18,6 +18,29 @@ import Testing
 @MainActor
 struct YourLibraryPageTests {
   @Test
+  func listeningHistoryEntryPushesTheLibraryOwnedDetailModel() {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .yourLibrary
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = withDependencies {
+      $0.date = .constant(Date(timeIntervalSince1970: 1_700_000_000))
+    } operation: {
+      YourLibraryPageModel()
+    }
+
+    model.listeningHistoryTapped()
+    model.listeningHistoryTapped()
+
+    expectNoDifference(coordinator.yourLibraryPath.count, 1)
+
+    if case .listeningHistoryPage(let pushedModel) = coordinator.yourLibraryPath.last {
+      #expect(pushedModel === model.listeningHistoryModel)
+    } else {
+      Issue.record("Listening History was not pushed on the Library stack")
+    }
+  }
+
+  @Test
   func testNavigationTitleIsYourLibrary() {
     let model = YourLibraryPageModel()
     #expect(model.navigationTitle == "Your Library")
