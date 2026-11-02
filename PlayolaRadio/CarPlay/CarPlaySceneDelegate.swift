@@ -5,13 +5,18 @@
 //  Created by Brian D Keane on 1/19/25.
 //
 @preconcurrency import CarPlay
-import Combine
+@preconcurrency import Combine
 import Dependencies
 import IdentifiedCollections
 import Sharing
 
 @MainActor
 class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
+  private enum StationCatalogChange {
+    case stationLists(IdentifiedArrayOf<StationList>)
+    case unlocked(Bool)
+  }
+
   private func tabImage(_ identifier: String) -> UIImage? {
     switch identifier {
     case StationList.KnownIDs.artistList.rawValue:
@@ -33,6 +38,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   var tabBarTemplate: CPTabBarTemplate?
 
   var observers = Set<AnyCancellable>()
+  var stationCatalogObservationTask: Task<Void, Never>?
 
   @Dependency(\.analytics) var analytics
   @Dependency(\.stationPlayer) var stationPlayer
@@ -161,6 +167,8 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         observer.cancel()
       }
       observers.removeAll()
+      stationCatalogObservationTask?.cancel()
+      stationCatalogObservationTask = nil
       CPListItem.clearImageCache()
     }
   }
@@ -168,13 +176,33 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   /// Rebuilds the tab templates when the catalog changes or the secret-stations switch flips,
   /// so rows hidden by a relock (or revealed by an unlock) update without waiting for a refresh.
   func observeStationCatalog() {
-    Publishers.CombineLatest($stationLists.publisher, $showSecretStations.publisher)
-      .sink { [weak self] stationLists, unlocked in
-        guard let self else { return }
-        self.tabBarTemplate?.updateTemplates(
-          self.generateTemplates(stationLists, unlocked: unlocked))
+    stationCatalogObservationTask?.cancel()
+    stationCatalogObservationTask = Task { [weak self] in
+      guard let self else { return }
+      let changes = AsyncStream<StationCatalogChange> { continuation in
+        let stationListsObserver = self.$stationLists.publisher
+          .sink { continuation.yield(.stationLists($0)) }
+        let unlockedObserver = self.$showSecretStations.publisher
+          .sink { continuation.yield(.unlocked($0)) }
+        continuation.onTermination = { _ in
+          stationListsObserver.cancel()
+          unlockedObserver.cancel()
+        }
       }
-      .store(in: &observers)
+      var currentStationLists = stationLists
+      var currentUnlocked = showSecretStations
+      for await change in changes {
+        guard !Task.isCancelled else { return }
+        switch change {
+        case .stationLists(let emittedStationLists):
+          currentStationLists = emittedStationLists
+        case .unlocked(let emittedUnlocked):
+          currentUnlocked = emittedUnlocked
+        }
+        tabBarTemplate?.updateTemplates(
+          generateTemplates(currentStationLists, unlocked: currentUnlocked))
+      }
+    }
   }
 
   private func setupNowPlayingTemplate() {

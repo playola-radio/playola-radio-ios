@@ -185,6 +185,25 @@ final class ListeningHistoryPageModel: ViewModel {
     )
   }
 
+  func contentOpacity(for state: PageState) -> Double {
+    displayState == state ? 1 : 0
+  }
+
+  func contentAllowsHitTesting(for state: PageState) -> Bool {
+    displayState == state
+  }
+
+  func contentAccessibilityHidden(for state: PageState) -> Bool {
+    displayState != state
+  }
+
+  var loadMoreLoadingOpacity: Double { isLoadingMore ? 1 : 0 }
+  var loadMoreLoadingAccessibilityHidden: Bool { !isLoadingMore }
+  var loadMoreErrorOpacity: Double { loadMoreFailed ? 1 : 0 }
+  var loadMoreErrorAllowsHitTesting: Bool { loadMoreFailed }
+  var loadMoreErrorAccessibilityHidden: Bool { !loadMoreFailed }
+  var loadMoreFooterHeight: CGFloat? { isLoadingMore || loadMoreFailed ? nil : 0 }
+
   var displayState: PageState {
     if ownerUserID != auth.currentUser?.id {
       return auth.currentUser == nil ? .signedOut : .loading

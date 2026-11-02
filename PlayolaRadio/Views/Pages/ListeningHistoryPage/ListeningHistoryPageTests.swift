@@ -27,6 +27,11 @@ struct ListeningHistoryPageTests {
 
     expectNoDifference(model.displaySpins.map(\.id), ["one"])
     expectNoDifference(model.pageState, .loaded)
+    expectNoDifference(model.contentOpacity(for: .loaded), 1)
+    expectNoDifference(model.contentOpacity(for: .loading), 0)
+    expectNoDifference(model.contentAllowsHitTesting(for: .loaded), true)
+    expectNoDifference(model.contentAccessibilityHidden(for: .loading), true)
+    expectNoDifference(model.loadMoreFooterHeight, 0)
   }
 
   @Test
@@ -165,6 +170,11 @@ struct ListeningHistoryPageTests {
     await model.libraryTabSelected()
     await model.loadMoreIfNeeded(visibleSpinID: "one")
     expectNoDifference(model.loadMoreFailed, true)
+    expectNoDifference(model.loadMoreErrorOpacity, 1)
+    expectNoDifference(model.loadMoreLoadingOpacity, 0)
+    expectNoDifference(model.loadMoreErrorAllowsHitTesting, true)
+    expectNoDifference(model.loadMoreErrorAccessibilityHidden, false)
+    expectNoDifference(model.loadMoreFooterHeight, nil)
     await model.loadMoreIfNeeded(visibleSpinID: "one")
     expectNoDifference(calls.value, 1)
     await model.loadMoreRetryButtonTapped()
