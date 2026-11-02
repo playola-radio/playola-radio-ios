@@ -24,6 +24,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.amaOpeningDraftSaver) var amaOpeningDraftSaver
 
   // MARK: - Shared State
 
@@ -213,16 +214,13 @@ class AskMeAnythingLivePageModel: ViewModel {
   func openingRowDeleteTapped(_ id: UUID) async {
     guard isOpeningPlaylistEditable, let item = openingItems[id: id], !item.content.is(\.intro)
     else { return }
-    let savedItems = openingDraftUserId.flatMap { amaOpeningDrafts[$0]?[stationId] }
     if let openingDraftUserId {
       _ = $amaOpeningDrafts.withLock { $0[openingDraftUserId]?[stationId]?.remove(id: id) }
     }
     do {
-      try await $amaOpeningDrafts.save()
+      try await amaOpeningDraftSaver.save($amaOpeningDrafts)
     } catch {
-      if let openingDraftUserId {
-        $amaOpeningDrafts.withLock { $0[openingDraftUserId]?[stationId] = savedItems }
-      }
+      persistOpeningDraft()
       await errorReporting.reportError(error, ["operation": "saveAMAOpeningDraft"])
       presentedAlert = showAlert(
         title: "Unable to Update Playlist",

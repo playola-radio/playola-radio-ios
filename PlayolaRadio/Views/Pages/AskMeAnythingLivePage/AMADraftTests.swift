@@ -354,18 +354,17 @@ struct AMADraftTests {
     }
   }
 
-  @Test func failedOpeningRowDeletionKeepsTheRowAndUploadForRetry() async throws {
-    @Shared(.auth) var auth = Auth(
-      loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
-    let draftURL = URL.documentsDirectory.appending(component: "ama-opening-drafts.json")
-    try? FileManager.default.removeItem(at: draftURL)
-    try FileManager.default.createDirectory(at: draftURL, withIntermediateDirectories: true)
-    defer { try? FileManager.default.removeItem(at: draftURL) }
+  @Test func failedOpeningRowDeletionKeepsCurrentPlaylistAndUploadForRetry() async throws {
+    struct SaveFailure: Error {}
+
+    let files = LockIsolated<[URL: Data]>([:])
+    let saveStarted = AsyncStream<Void>.makeStream()
+    let resumeSave = AsyncStream<Void>.makeStream()
     let started = AsyncStream<Void>.makeStream()
     let suspended = AsyncStream<Void>.makeStream()
     let deleted = LockIsolated<[URL]>([])
     try await withDependencies {
-      $0.defaultFileStorage = .fileSystem
+      $0.defaultFileStorage = .inMemory(fileSystem: files)
       $0.uuid = .incrementing
       $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.audioRecorder.deleteRecording = { url in deleted.withValue { $0.append(url) } }
@@ -375,21 +374,36 @@ struct AMADraftTests {
         for await _ in suspended.stream {}
         return .mockWith(id: "uploaded", durationMS: 20_000)
       }
+      $0.amaOpeningDraftSaver.save = { _ in
+        saveStarted.continuation.yield(())
+        for await _ in resumeSave.stream { break }
+        throw SaveFailure()
+      }
       $0.errorReporting.reportError = { _, _ in }
     } operation: {
+      @Shared(.auth) var auth = Auth(
+        loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
       let model = AskMeAnythingLivePageModel(stationId: testStationId)
       model.openingItems.append(introItem(durationMS: 30_000))
       let source = URL(fileURLWithPath: "/tmp/retry.wav")
       try model.acceptVoicetrack(url: source)
       for await _ in started.stream { break }
       let voicetrackId = try #require(model.openingItems.last?.id)
+      let laterSong = AMAOpeningItem(id: UUID(), content: .song(.mockWith(id: "later-song")))
 
-      await model.openingRowDeleteTapped(voicetrackId)
+      let deletion = Task { await model.openingRowDeleteTapped(voicetrackId) }
+      for await _ in saveStarted.stream { break }
+      model.openingItems.append(laterSong)
+      resumeSave.continuation.finish()
+      await deletion.value
 
       #expect(model.openingItems[id: voicetrackId] != nil)
       #expect(model.uploadTasks[voicetrackId]?.isCancelled == false)
       #expect(deleted.value.isEmpty)
       #expect(model.presentedAlert != nil)
+      let restored = AskMeAnythingLivePageModel(stationId: testStationId)
+      expectNoDifference(restored.openingItems.ids, model.openingItems.ids)
+      #expect(restored.openingItems[id: laterSong.id] != nil)
 
       suspended.continuation.finish()
       await model.waitForPendingUploads()

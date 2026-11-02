@@ -1,6 +1,7 @@
 import Dependencies
 import Foundation
 import IdentifiedCollections
+import Sharing
 
 extension AskMeAnythingLivePageModel {
   func persistOpeningDraft() {
@@ -85,5 +86,25 @@ struct AMARecordingFiles: Sendable, DependencyKey {
 
   static var testValue: Self {
     Self(preserve: { source, _ in source }, restore: { $0 })
+  }
+}
+
+struct AMAOpeningDraftSaver: Sendable {
+  var save:
+    @Sendable (Shared<[String: [String: IdentifiedArrayOf<AMAOpeningItem>]]>) async throws -> Void
+}
+
+extension AMAOpeningDraftSaver: DependencyKey {
+  static var liveValue: Self {
+    Self(save: { try await $0.save() })
+  }
+
+  static var testValue: Self { liveValue }
+}
+
+extension DependencyValues {
+  var amaOpeningDraftSaver: AMAOpeningDraftSaver {
+    get { self[AMAOpeningDraftSaver.self] }
+    set { self[AMAOpeningDraftSaver.self] = newValue }
   }
 }

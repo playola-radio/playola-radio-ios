@@ -208,10 +208,10 @@ the top of Your Library.
 
 **Goal:** let listeners open the server's paged song history from Your Library, see the station and time for each play, and like songs from the list. Refresh page one when they enter Your Library.
 
-- **Status:** 🔵 in progress — screens approved; iOS implementation in draft PR #473.
+- **Status:** ✅ done — design PR #472 and iOS implementation PR #473 merged to `develop`; shipping in 7.8.0.
 - **Steps:** design PR → one iOS implementation PR (Library entry, reload, paged detail, hearts). The previously discussed backend work and recorder were removed at the user's direction.
-- **Soak:** none planned; verify real history and error rates after the app release.
-- **Next check:** 2026-11-08 — confirm design PR #472 merges before implementation PR #473.
+- **Soak:** none (standard release).
+- **Next check:** —
 - **Links:** PR #472 · PR #473 · `design/features/listen-history/`.
 
 ---

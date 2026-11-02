@@ -132,6 +132,7 @@ struct CarPlaySceneDelegateTests {
     let delegate = CarPlaySceneDelegate()
     delegate.tabBarTemplate = CPTabBarTemplate(templates: delegate.generateTemplates(stationLists))
     delegate.observeStationCatalog()
+    defer { delegate.stationCatalogObservationTask?.cancel() }
     expectNoDifference(connectedRowCount(of: delegate), 2)
 
     $showSecretStations.withLock { $0 = false }
@@ -148,6 +149,7 @@ struct CarPlaySceneDelegateTests {
     let delegate = CarPlaySceneDelegate()
     delegate.tabBarTemplate = CPTabBarTemplate(templates: delegate.generateTemplates(stationLists))
     delegate.observeStationCatalog()
+    defer { delegate.stationCatalogObservationTask?.cancel() }
     expectNoDifference(connectedRowCount(of: delegate), 1)
 
     $stationLists.withLock {
