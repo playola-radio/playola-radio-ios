@@ -459,12 +459,75 @@ struct ListeningHistoryPageTests {
       ListeningHistoryPageModel()
     }
     await model.libraryTabSelected()
-    await model.rowAppeared(model.sections[0].rows[0])
+    model.rowAppeared(model.sections[0].rows[0])
+    await model.loadMoreIfNeeded(visibleSpinID: "one")
     expectNoDifference(model.displaySpins.map(\.id), ["one", "two"])
 
     await model.refreshRequested()
 
     expectNoDifference(model.displaySpins.map(\.id), ["one", "two"])
+  }
+
+  @Test
+  func detailRetriesWhenAnInFlightPrefetchFails() async {
+    @Shared(.auth) var auth = Auth(jwtToken: createTestJWT(id: "listener-one"))
+    let started = AsyncStream.makeStream(of: Void.self)
+    let pending = LockIsolated<CheckedContinuation<ListeningHistoryResponse, Error>?>(nil)
+    let calls = LockIsolated(0)
+    let page = makeHistoryPage(ids: ["one"])
+    let model = withDependencies {
+      $0.date = .constant(Date(timeIntervalSince1970: 1_700_000_000))
+      $0.toast.show = { _ in }
+      $0.api.getListeningHistory = { _, _ in
+        let call = calls.withValue { value -> Int in
+          value += 1
+          return value
+        }
+        if call > 1 { return page }
+        started.continuation.yield()
+        return try await withCheckedThrowingContinuation { pending.setValue($0) }
+      }
+    } operation: {
+      ListeningHistoryPageModel()
+    }
+
+    let libraryLoad = Task { await model.libraryTabSelected() }
+    var starts = started.stream.makeAsyncIterator()
+    _ = await starts.next()
+    let detailLoad = Task { await model.detailAppeared() }
+    pending.withValue { continuation in
+      continuation?.resume(throwing: URLError(.notConnectedToInternet))
+      continuation = nil
+    }
+    await libraryLoad.value
+    await detailLoad.value
+
+    expectNoDifference(calls.value, 2)
+    expectNoDifference(model.displaySpins.map(\.id), ["one"])
+  }
+
+  @Test
+  func rowThatDisappearedIsNotTreatedAsVisibleAfterRefresh() async {
+    @Shared(.auth) var auth = Auth(jwtToken: createTestJWT(id: "listener-one"))
+    let calls = LockIsolated(0)
+    let firstPage = makeHistoryPage(ids: ["one"], hasMore: true)
+    let model = withDependencies {
+      $0.date = .constant(Date(timeIntervalSince1970: 1_700_000_000))
+      $0.api.getListeningHistory = { _, _ in
+        calls.withValue { $0 += 1 }
+        return firstPage
+      }
+    } operation: {
+      ListeningHistoryPageModel()
+    }
+    await model.libraryTabSelected()
+    let row = model.sections[0].rows[0]
+    model.rowAppeared(row)
+    model.rowDisappeared(row)
+
+    await model.refreshRequested()
+
+    expectNoDifference(calls.value, 2)
   }
 
   @Test

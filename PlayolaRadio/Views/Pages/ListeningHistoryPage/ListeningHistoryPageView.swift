@@ -68,7 +68,10 @@ struct ListeningHistoryPageView: View {
         ForEach(section.rows) { row in
           historyRow(row)
             .padding(.bottom, 24)
-            .onAppear { Task { await model.rowAppeared(row) } }
+            .onAppear {
+              model.rowAppeared(row)
+              Task { await model.loadMoreIfNeeded(visibleSpinID: row.id) }
+            }
             .onDisappear { model.rowDisappeared(row) }
         }
       }

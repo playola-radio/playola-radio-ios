@@ -96,6 +96,7 @@ final class ListeningHistoryPageModel: ViewModel {
     shouldCheckFreshnessOnAppearance = false
     if let firstPageTask {
       await firstPageTask.value
+      if pageState == .error { await refresh(showFailureToast: true) }
       return
     }
     if let lastSuccessfulFetchAt,
@@ -129,9 +130,8 @@ final class ListeningHistoryPageModel: ViewModel {
     await AuthService.shared.signOut()
   }
 
-  func rowAppeared(_ row: Row) async {
+  func rowAppeared(_ row: Row) {
     visibleSpinIDs.insert(row.id)
-    await loadMoreIfNeeded(visibleSpinID: row.id)
   }
 
   func rowDisappeared(_ row: Row) {
