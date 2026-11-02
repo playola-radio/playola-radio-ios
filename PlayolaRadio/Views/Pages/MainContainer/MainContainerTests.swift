@@ -81,16 +81,16 @@ struct MainContainerTests {
     }
 
     await model.activeTabChanged()
-    #expect(calls.value == 0)
+    expectNoDifference(calls.value, 0)
     $activeTab.withLock { $0 = .yourLibrary }
     await model.activeTabChanged()
-    #expect(calls.value == 1)
+    expectNoDifference(calls.value, 1)
 
     model.mainContainerNavigationCoordinator.yourLibraryPath = [
       .listeningHistoryPage(model.yourLibraryPageModel.listeningHistoryModel)
     ]
     await model.activeTabChanged()
-    #expect(calls.value == 1)
+    expectNoDifference(calls.value, 1)
   }
 
   // MARK: - ViewAppeared Tests

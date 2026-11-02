@@ -75,64 +75,6 @@ final class ListeningHistoryPageModel: ViewModel {
   @ObservationIgnored private var firstPageTask: Task<Void, Never>?
   @ObservationIgnored private var laterPageTask: Task<Void, Never>?
 
-  var navigationTitle: String { "Listening History" }
-  var backButtonLabel: String { "Back to Your Library" }
-  var loadMoreErrorMessage: String { "Couldn’t load more songs." }
-  var loadMoreRetryTitle: String { "Retry" }
-  var emptyContent: StateContent {
-    StateContent(
-      symbol: "music.note",
-      title: "No listening history yet",
-      message: "Songs you hear on Playola channels will appear here.",
-      buttonTitle: "Explore Stations"
-    )
-  }
-  var errorContent: StateContent {
-    StateContent(
-      symbol: "wifi.slash",
-      title: "Couldn’t load your history",
-      message: "Check your connection and try again.",
-      buttonTitle: "Try Again"
-    )
-  }
-  var signedOutContent: StateContent {
-    StateContent(
-      symbol: "person.crop.circle",
-      title: "Sign in to see your history",
-      message: "Your listening history is tied to your account.",
-      buttonTitle: "Sign In"
-    )
-  }
-
-  var displayState: PageState {
-    if ownerUserID != auth.currentUser?.id {
-      return auth.currentUser == nil ? .signedOut : .loading
-    }
-    if pageState == .loaded && displaySpins.isEmpty { return .empty }
-    return pageState
-  }
-
-  var displaySpins: IdentifiedArrayOf<ListeningHistorySpin> {
-    guard ownerUserID == auth.currentUser?.id else { return [] }
-    return spins
-  }
-
-  var sections: IdentifiedArrayOf<Section> {
-    let calendar = Calendar.current
-    var result: IdentifiedArrayOf<Section> = []
-    for spin in displaySpins {
-      guard let audioBlock = spin.audioBlock, let station = spin.station else { continue }
-      let row = Row(spin: spin, audioBlock: audioBlock, stationName: station.name)
-      let day = calendar.startOfDay(for: spin.airtime)
-      if result[id: day] != nil {
-        result[id: day]?.rows.append(row)
-      } else {
-        result.append(Section(id: day, title: title(for: spin.airtime), rows: [row]))
-      }
-    }
-    return result
-  }
-
   // MARK: - User Actions
   func libraryTabSelected() async {
     resetIfAccountChanged()
@@ -144,6 +86,7 @@ final class ListeningHistoryPageModel: ViewModel {
   }
 
   func detailWillOpen() {
+    displayDate = now
     shouldCheckFreshnessOnAppearance = true
   }
 
@@ -213,6 +156,64 @@ final class ListeningHistoryPageModel: ViewModel {
   }
 
   // MARK: - View Helpers
+  var navigationTitle: String { "Listening History" }
+  var backButtonLabel: String { "Back to Your Library" }
+  var loadMoreErrorMessage: String { "Couldn’t load more songs." }
+  var loadMoreRetryTitle: String { "Retry" }
+  var emptyContent: StateContent {
+    StateContent(
+      symbol: "music.note",
+      title: "No listening history yet",
+      message: "Songs you hear on Playola channels will appear here.",
+      buttonTitle: "Explore Stations"
+    )
+  }
+  var errorContent: StateContent {
+    StateContent(
+      symbol: "wifi.slash",
+      title: "Couldn’t load your history",
+      message: "Check your connection and try again.",
+      buttonTitle: "Try Again"
+    )
+  }
+  var signedOutContent: StateContent {
+    StateContent(
+      symbol: "person.crop.circle",
+      title: "Sign in to see your history",
+      message: "Your listening history is tied to your account.",
+      buttonTitle: "Sign In"
+    )
+  }
+
+  var displayState: PageState {
+    if ownerUserID != auth.currentUser?.id {
+      return auth.currentUser == nil ? .signedOut : .loading
+    }
+    if pageState == .loaded && displaySpins.isEmpty { return .empty }
+    return pageState
+  }
+
+  var displaySpins: IdentifiedArrayOf<ListeningHistorySpin> {
+    guard ownerUserID == auth.currentUser?.id else { return [] }
+    return spins
+  }
+
+  var sections: IdentifiedArrayOf<Section> {
+    let calendar = Calendar.current
+    var result: IdentifiedArrayOf<Section> = []
+    for spin in displaySpins {
+      guard let audioBlock = spin.audioBlock, let station = spin.station else { continue }
+      let row = Row(spin: spin, audioBlock: audioBlock, stationName: station.name)
+      let day = calendar.startOfDay(for: spin.airtime)
+      if result[id: day] != nil {
+        result[id: day]?.rows.append(row)
+      } else {
+        result.append(Section(id: day, title: title(for: spin.airtime), rows: [row]))
+      }
+    }
+    return result
+  }
+
   func isLiked(_ row: Row) -> Bool {
     likesManager.isLiked(row.audioBlock.id)
   }

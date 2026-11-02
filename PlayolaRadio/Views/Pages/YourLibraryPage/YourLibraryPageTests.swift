@@ -22,12 +22,16 @@ struct YourLibraryPageTests {
     @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .yourLibrary
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
-    let model = YourLibraryPageModel()
+    let model = withDependencies {
+      $0.date = .constant(Date(timeIntervalSince1970: 1_700_000_000))
+    } operation: {
+      YourLibraryPageModel()
+    }
 
     model.listeningHistoryTapped()
     model.listeningHistoryTapped()
 
-    #expect(coordinator.yourLibraryPath.count == 1)
+    expectNoDifference(coordinator.yourLibraryPath.count, 1)
 
     if case .listeningHistoryPage(let pushedModel) = coordinator.yourLibraryPath.last {
       #expect(pushedModel === model.listeningHistoryModel)

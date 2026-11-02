@@ -164,11 +164,11 @@ struct ListeningHistoryPageTests {
 
     await model.libraryTabSelected()
     await model.loadMoreIfNeeded(visibleSpinID: "one")
-    #expect(model.loadMoreFailed)
+    expectNoDifference(model.loadMoreFailed, true)
     await model.loadMoreIfNeeded(visibleSpinID: "one")
-    #expect(calls.value == 1)
+    expectNoDifference(calls.value, 1)
     await model.loadMoreRetryButtonTapped()
-    #expect(calls.value == 2)
+    expectNoDifference(calls.value, 2)
     expectNoDifference(model.displaySpins.map(\.id), ["one", "two"])
   }
 
@@ -384,6 +384,48 @@ struct ListeningHistoryPageTests {
     await model.libraryTabSelected()
 
     expectNoDifference(model.sections.map(\.title), ["Today", "Yesterday"])
+  }
+
+  @Test
+  func reopeningHistoryAfterMidnightRefreshesTheTodayLabel() async {
+    @Shared(.auth) var auth = Auth(jwtToken: createTestJWT(id: "listener-one"))
+    let dayOne = Date(timeIntervalSince1970: 1_700_000_000)
+    let dayTwo = Calendar.current.date(byAdding: .day, value: 1, to: dayOne)!
+    let clock = LockIsolated(dayOne)
+    let clockReads = LockIsolated(0)
+    let page = ListeningHistoryResponse(
+      spins: [
+        ListeningHistorySpin(
+          id: "one", airtime: dayOne,
+          audioBlock: AudioBlock.mockWith(id: "song-one"),
+          station: ListeningHistoryStation(name: "Texas Country")
+        )
+      ],
+      pagination: .init(hasMore: false)
+    )
+    let model = withDependencies {
+      $0.date = DateGenerator {
+        clockReads.withValue { $0 += 1 }
+        return clock.value
+      }
+      $0.api.getListeningHistory = { _, _ in page }
+    } operation: {
+      ListeningHistoryPageModel()
+    }
+    await model.libraryTabSelected()
+    let readsBeforeObserving = clockReads.value
+    let observer = Task { await model.observeDayChanges() }
+    for _ in 0..<10_000 where clockReads.value == readsBeforeObserving {
+      NotificationCenter.default.post(name: .NSCalendarDayChanged, object: nil)
+      await Task.yield()
+    }
+    observer.cancel()
+    expectNoDifference(model.sections.map(\.title), ["Today"])
+
+    clock.setValue(dayTwo)
+    model.detailWillOpen()
+
+    expectNoDifference(model.sections.map(\.title), ["Yesterday"])
   }
 
   @Test
