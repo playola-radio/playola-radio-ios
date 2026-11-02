@@ -19,7 +19,7 @@ not ✅ done until its soak clears.
 > Entries marked `⟨owner: …⟩` are placeholders the task owner should fill in —
 > I scaffolded them from open PRs/branches but don't know the internal plan.
 
-_Last updated: 2026-10-22_
+_Last updated: 2026-11-01_
 
 ---
 
@@ -37,6 +37,7 @@ we need to tackle?" (or run the `whats-due` skill) to see what's due.
 | AirPlay-2 sample-buffer renderer (Phase 5) | 🟡 soaking | App on SDK **0.21.0 (stable)**; served to 100% via the server flag since 2026-10-23 (clean: no listening drop, ~½ the legacy playback-error rate). **Next app version makes it the client default** (enabled flag defaults `true`), closing the launch race that left ~24% of 7.6.0 sessions on legacy when a play beat the client-config fetch | prod at **100%**. Kill lever (rollback): flip `SAMPLE_BUFFER_RENDERER_ALLOWED=false` — persisted on device, it reverts each user to the legacy renderer from the launch after the app has seen it (backend locks per process). Clearing the enabled env alone is no longer a reliable kill once the default ships: it only affects plays after the config response lands. Watch Mixpanel `render_backend` on Listening Session Started + Sentry `render_backend` tag; hold ✅ until metrics clean across a full release cycle | 2026-11-23 | PR #404 · #408 |
 | Clip share | 🔵 in progress | ⟨owner: current step⟩ | none (standard release) | 2026-09-10 | PR #219 |
 | Rewards → Your Library | 🔵 in progress | Rewards→Profile, Library tab, Presets move | none | 2026-09-10 | PR #372 · `fix-library-requests-ui` |
+| Listener song history | 🟢 planning | Design handoff in progress; one iOS implementation PR using existing server history | none (standard release) | 2026-11-08 | `design/features/listen-history/` |
 | Siri "Play on Playola" (App Intents media schema) | 🟢 planning | Approach B decided (2026-06-14); not started | n/a | 2026-10-01 | — |
 | View/Model pattern cleanup | 🔵 in progress (opportunistic) | ongoing, fix-on-touch | none | — | `TODO_VIEW_MODEL_VIOLATIONS.md` |
 | Prettify iPad screens | 🔵 in progress | Profile (screen 4 of N) | none (standard release) | 2026-09-10 | specs in `docs/superpowers/specs/2026-08-0*-ipad-*-design.md` |
@@ -200,6 +201,18 @@ the top of Your Library.
 - **Steps:** `⟨owner: is this one PR or a Library-area cluster? (a fix-library-requests-ui branch exists)⟩`
 - **Soak:** none (UI reorg).
 - **Links:** PR #372, branch `fix-library-requests-ui`.
+
+---
+
+## Listener song history
+
+**Goal:** let listeners open the server's paged song history from Your Library, see the station and time for each play, and like songs from the list. Refresh page one when they enter Your Library.
+
+- **Status:** 🟢 planning — screens approved; server-only history scope chosen 2026-11-01.
+- **Steps:** design PR → one iOS implementation PR (Library entry, reload, paged detail, hearts). The previously discussed backend work and recorder were removed at the user's direction.
+- **Soak:** none planned; verify real history and error rates after the app release.
+- **Next check:** 2026-11-08 — confirm the design PR and iOS implementation handoff.
+- **Links:** `design/features/listen-history/`.
 
 ---
 

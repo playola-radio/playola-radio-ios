@@ -1,0 +1,1264 @@
+{
+  "type": "frame",
+  "id": "VnLyt",
+  "x": 10,
+  "y": 27582,
+  "name": "Listen History · A · Library Entry",
+  "clip": true,
+  "width": 393,
+  "height": 852,
+  "fill": "#000000",
+  "layout": "vertical",
+  "justifyContent": "space_between",
+  "children": [
+    {
+      "type": "frame",
+      "id": "JK8lp",
+      "name": "Header",
+      "width": "fill_container",
+      "fill": "#000000",
+      "padding": [
+        20,
+        20,
+        24,
+        20
+      ],
+      "children": [
+        {
+          "type": "text",
+          "id": "ebpja",
+          "name": "Title",
+          "fill": "#FFFFFF",
+          "content": "Your Library",
+          "fontFamily": "Space Grotesk",
+          "fontSize": 32,
+          "fontWeight": "700"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "RNTN4",
+      "name": "Content",
+      "clip": true,
+      "width": "fill_container",
+      "height": "fill_container",
+      "layout": "vertical",
+      "gap": 20,
+      "padding": [
+        8,
+        0,
+        24,
+        0
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "Mnlqr",
+          "name": "Presets Carousel",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "frame",
+              "id": "UY4m7",
+              "name": "Section Header",
+              "width": "fill_container",
+              "padding": [
+                0,
+                20
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ozcZE",
+                  "name": "Title",
+                  "fill": "#FFFFFF",
+                  "content": "Presets",
+                  "fontFamily": "Space Grotesk",
+                  "fontSize": 28,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "IY20O",
+              "name": "Tiles",
+              "clip": true,
+              "width": "fill_container",
+              "gap": 12,
+              "padding": [
+                0,
+                20
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "hK3P5",
+                  "name": "Bri Bagwell",
+                  "width": 92,
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "hK3P5/M95Nr4",
+                      "name": "Artwork",
+                      "clip": true,
+                      "width": 92,
+                      "height": 92,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "images/bri.jpg",
+                        "mode": "cover"
+                      },
+                      "cornerRadius": 8
+                    },
+                    {
+                      "type": "frame",
+                      "id": "hK3P5/tlqs8",
+                      "name": "Meta",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "hK3P5/abf7W",
+                          "name": "Title",
+                          "fill": "#FFFFFF",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Bri Bagwell",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "hK3P5/y4zl06",
+                          "x": 0,
+                          "y": 22,
+                          "name": "Subtitle",
+                          "enabled": false,
+                          "fill": "#EF6962",
+                          "textGrowth": "fixed-width",
+                          "width": 92,
+                          "content": "Coming Soon",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "c55d3F",
+                  "name": "Cory Morrow",
+                  "width": 92,
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "c55d3F/M95Nr4",
+                      "name": "Artwork",
+                      "clip": true,
+                      "width": 92,
+                      "height": 92,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "images/cory.jpg",
+                        "mode": "cover"
+                      },
+                      "cornerRadius": 8
+                    },
+                    {
+                      "type": "frame",
+                      "id": "c55d3F/tlqs8",
+                      "name": "Meta",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "c55d3F/abf7W",
+                          "name": "Title",
+                          "fill": "#FFFFFF",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Cory Morrow",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "c55d3F/y4zl06",
+                          "x": 0,
+                          "y": 22,
+                          "name": "Subtitle",
+                          "enabled": false,
+                          "fill": "#EF6962",
+                          "textGrowth": "fixed-width",
+                          "width": 92,
+                          "content": "Coming Soon",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "pbjkb",
+                  "name": "Jamie Lin Wilson",
+                  "width": 92,
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "pbjkb/M95Nr4",
+                      "name": "Artwork",
+                      "clip": true,
+                      "width": 92,
+                      "height": 92,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "images/jlw.jpg",
+                        "mode": "cover"
+                      },
+                      "cornerRadius": 8
+                    },
+                    {
+                      "type": "frame",
+                      "id": "pbjkb/tlqs8",
+                      "name": "Meta",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "pbjkb/abf7W",
+                          "name": "Title",
+                          "fill": "#FFFFFF",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Jamie Lin Wilson",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "pbjkb/y4zl06",
+                          "x": 0,
+                          "y": 22,
+                          "name": "Subtitle",
+                          "enabled": false,
+                          "fill": "#EF6962",
+                          "textGrowth": "fixed-width",
+                          "width": 92,
+                          "content": "Coming Soon",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Gbm80",
+                  "name": "Adam Hood",
+                  "width": 92,
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Gbm80/M95Nr4",
+                      "name": "Artwork",
+                      "clip": true,
+                      "width": 92,
+                      "height": 92,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "images/hood.jpg",
+                        "mode": "cover"
+                      },
+                      "cornerRadius": 8
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Gbm80/tlqs8",
+                      "name": "Meta",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Gbm80/abf7W",
+                          "name": "Title",
+                          "fill": "#FFFFFF",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Adam Hood",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Gbm80/y4zl06",
+                          "x": 0,
+                          "y": 22,
+                          "name": "Subtitle",
+                          "enabled": false,
+                          "fill": "#EF6962",
+                          "textGrowth": "fixed-width",
+                          "width": 92,
+                          "content": "Coming Soon",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "g9S5lV",
+          "name": "Listening History Entry",
+          "width": "fill_container",
+          "height": 86,
+          "fill": "#242424",
+          "cornerRadius": 12,
+          "padding": [
+            12,
+            20
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "D5UpAd",
+              "name": "Entry Copy",
+              "width": 290,
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "YRbFK",
+                  "name": "Entry Title",
+                  "fill": "#FFFFFF",
+                  "content": "Listening History",
+                  "fontFamily": "Space Grotesk",
+                  "fontSize": 20,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "J8Dz3S",
+                  "name": "Entry Description",
+                  "fill": "#B6B6B6",
+                  "content": "Songs and channels you’ve heard",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "D6Y6J7",
+              "name": "Open History Arrow",
+              "fill": "#B6B6B6",
+              "content": "›",
+              "fontFamily": "Inter",
+              "fontSize": 30,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "sKybI",
+          "name": "Liked Songs",
+          "width": "fill_container",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "sgFn7",
+              "name": "Section Header",
+              "width": "fill_container",
+              "padding": [
+                24,
+                20,
+                8,
+                20
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "AM9CD",
+                  "name": "Title",
+                  "fill": "#FFFFFF",
+                  "content": "Liked Songs",
+                  "fontFamily": "Space Grotesk",
+                  "fontSize": 28,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "d1Cy66",
+              "name": "Cheat On Me",
+              "width": "fill_container",
+              "gap": 12,
+              "padding": [
+                8,
+                20
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "d1Cy66/ltqO0",
+                  "name": "Artwork",
+                  "width": 56,
+                  "height": 56,
+                  "fill": "#666666",
+                  "cornerRadius": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "d1Cy66/qO7do",
+                      "name": "Note",
+                      "width": 24,
+                      "height": 24,
+                      "icon": "music",
+                      "library": "lucide",
+                      "fill": "#999999"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "d1Cy66/XZlCu",
+                  "name": "Meta",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "d1Cy66/R6MU1u",
+                      "name": "Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Cheat On Me",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "d1Cy66/eGc3g",
+                      "name": "Artist",
+                      "fill": "#C7C7C7",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Bri Bagwell",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "d1Cy66/mFqYG",
+                      "name": "Date",
+                      "fill": "#888888",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Yesterday",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "d1Cy66/IUak1",
+                  "name": "Menu",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "ellipsis",
+                  "library": "lucide",
+                  "fill": "#C7C7C7"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ImwsF",
+              "name": "Welcome To Hard Times",
+              "width": "fill_container",
+              "gap": 12,
+              "padding": [
+                8,
+                20
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ImwsF/ltqO0",
+                  "name": "Artwork",
+                  "width": 56,
+                  "height": 56,
+                  "fill": "#666666",
+                  "cornerRadius": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "ImwsF/qO7do",
+                      "name": "Note",
+                      "width": 24,
+                      "height": 24,
+                      "icon": "music",
+                      "library": "lucide",
+                      "fill": "#999999"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ImwsF/XZlCu",
+                  "name": "Meta",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ImwsF/R6MU1u",
+                      "name": "Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Welcome To Hard Times",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ImwsF/eGc3g",
+                      "name": "Artist",
+                      "fill": "#C7C7C7",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Charley Crockett",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ImwsF/mFqYG",
+                      "name": "Date",
+                      "fill": "#888888",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "2 days ago",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "ImwsF/IUak1",
+                  "name": "Menu",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "ellipsis",
+                  "library": "lucide",
+                  "fill": "#C7C7C7"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "AZ8GY",
+              "name": "Death & Life",
+              "width": "fill_container",
+              "gap": 12,
+              "padding": [
+                8,
+                20
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "AZ8GY/ltqO0",
+                  "name": "Artwork",
+                  "width": 56,
+                  "height": 56,
+                  "fill": "#666666",
+                  "cornerRadius": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "AZ8GY/qO7do",
+                      "name": "Note",
+                      "width": 24,
+                      "height": 24,
+                      "icon": "music",
+                      "library": "lucide",
+                      "fill": "#999999"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "AZ8GY/XZlCu",
+                  "name": "Meta",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "AZ8GY/R6MU1u",
+                      "name": "Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Death & Life",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "AZ8GY/eGc3g",
+                      "name": "Artist",
+                      "fill": "#C7C7C7",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Jamie Lin Wilson",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "AZ8GY/mFqYG",
+                      "name": "Date",
+                      "fill": "#888888",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Last week",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "AZ8GY/IUak1",
+                  "name": "Menu",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "ellipsis",
+                  "library": "lucide",
+                  "fill": "#C7C7C7"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "OTXNc",
+              "name": "Sway",
+              "width": "fill_container",
+              "gap": 12,
+              "padding": [
+                8,
+                20
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "OTXNc/ltqO0",
+                  "name": "Artwork",
+                  "width": 56,
+                  "height": 56,
+                  "fill": "#666666",
+                  "cornerRadius": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "OTXNc/qO7do",
+                      "name": "Note",
+                      "width": 24,
+                      "height": 24,
+                      "icon": "music",
+                      "library": "lucide",
+                      "fill": "#999999"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "OTXNc/XZlCu",
+                  "name": "Meta",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "OTXNc/R6MU1u",
+                      "name": "Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Sway",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "OTXNc/eGc3g",
+                      "name": "Artist",
+                      "fill": "#C7C7C7",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Kelsey Waldon",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "OTXNc/mFqYG",
+                      "name": "Date",
+                      "fill": "#888888",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Last week",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "OTXNc/IUak1",
+                  "name": "Menu",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "ellipsis",
+                  "library": "lucide",
+                  "fill": "#C7C7C7"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "FmETQ",
+              "name": "My Boots",
+              "width": "fill_container",
+              "gap": 12,
+              "padding": [
+                8,
+                20
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "FmETQ/ltqO0",
+                  "name": "Artwork",
+                  "width": 56,
+                  "height": 56,
+                  "fill": "#666666",
+                  "cornerRadius": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "FmETQ/qO7do",
+                      "name": "Note",
+                      "width": 24,
+                      "height": 24,
+                      "icon": "music",
+                      "library": "lucide",
+                      "fill": "#999999"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "FmETQ/XZlCu",
+                  "name": "Meta",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "FmETQ/R6MU1u",
+                      "name": "Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "My Boots",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "FmETQ/eGc3g",
+                      "name": "Artist",
+                      "fill": "#C7C7C7",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Bri Bagwell",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "FmETQ/mFqYG",
+                      "name": "Date",
+                      "fill": "#888888",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Mar 14",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "FmETQ/IUak1",
+                  "name": "Menu",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "ellipsis",
+                  "library": "lucide",
+                  "fill": "#C7C7C7"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "uSA7P",
+              "name": "Run Wild",
+              "width": "fill_container",
+              "gap": 12,
+              "padding": [
+                8,
+                20
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "uSA7P/ltqO0",
+                  "name": "Artwork",
+                  "width": 56,
+                  "height": 56,
+                  "fill": "#666666",
+                  "cornerRadius": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "uSA7P/qO7do",
+                      "name": "Note",
+                      "width": 24,
+                      "height": 24,
+                      "icon": "music",
+                      "library": "lucide",
+                      "fill": "#999999"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "uSA7P/XZlCu",
+                  "name": "Meta",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "uSA7P/R6MU1u",
+                      "name": "Title",
+                      "fill": "#FFFFFF",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Run Wild",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "uSA7P/eGc3g",
+                      "name": "Artist",
+                      "fill": "#C7C7C7",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Charley Crockett",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "uSA7P/mFqYG",
+                      "name": "Date",
+                      "fill": "#888888",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Mar 11",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "uSA7P/IUak1",
+                  "name": "Menu",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "ellipsis",
+                  "library": "lucide",
+                  "fill": "#C7C7C7"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "dBBG6",
+      "layoutPosition": "absolute",
+      "x": 16,
+      "y": 690,
+      "name": "Small Player (Glass)",
+      "width": 361,
+      "height": 64,
+      "fill": "#2C2C2ECC",
+      "cornerRadius": 26,
+      "stroke": "#FFFFFF26",
+      "strokeWidth": 1,
+      "gap": 12,
+      "padding": [
+        0,
+        16
+      ],
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "dBBG6/y1lXft",
+          "name": "Artwork",
+          "width": 40,
+          "height": 40,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/bri.jpg",
+            "mode": "cover"
+          },
+          "cornerRadius": 8
+        },
+        {
+          "type": "frame",
+          "id": "dBBG6/yEeoi",
+          "name": "Meta",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 4,
+          "children": [
+            {
+              "type": "text",
+              "id": "dBBG6/HRbjx",
+              "name": "Title",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Bri Bagwell",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "500"
+            },
+            {
+              "type": "text",
+              "id": "dBBG6/OKOxh",
+              "name": "Subtitle",
+              "fill": "#C7C7C7",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Bri Bagwell - Cheat On Me",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "icon",
+          "id": "dBBG6/HV0H5",
+          "name": "Heart",
+          "width": 22,
+          "height": 22,
+          "icon": "heart",
+          "library": "lucide",
+          "fill": "#C7C7C7"
+        },
+        {
+          "type": "frame",
+          "id": "dBBG6/YWPPt",
+          "name": "Stop Button",
+          "width": 34,
+          "height": 34,
+          "fill": "#FFFFFF",
+          "cornerRadius": 17,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "rectangle",
+              "cornerRadius": 1.5,
+              "id": "dBBG6/cjI2e",
+              "name": "Stop Glyph",
+              "fill": "#000000",
+              "width": 12,
+              "height": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Xk2XQ",
+      "layoutPosition": "absolute",
+      "x": 16,
+      "y": 762,
+      "name": "Tab Bar (Glass)",
+      "width": 361,
+      "height": 56,
+      "fill": "#2C2C2ECC",
+      "cornerRadius": 28,
+      "stroke": "#FFFFFF26",
+      "strokeWidth": 1,
+      "justifyContent": "space_around",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "Xk2XQ/KiWbV",
+          "name": "Home",
+          "width": 80,
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            8,
+            0
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "Xk2XQ/KiWbV/Mb28I",
+              "name": "Icon",
+              "width": 24,
+              "height": 24,
+              "icon": "house",
+              "library": "lucide",
+              "fill": "#868686"
+            },
+            {
+              "type": "text",
+              "id": "Xk2XQ/KiWbV/x7cAoO",
+              "name": "Label",
+              "fill": "#868686",
+              "content": "Home",
+              "fontFamily": "Inter",
+              "fontSize": 10,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Xk2XQ/N1YIr",
+          "name": "Radio Stations",
+          "width": 80,
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            8,
+            0
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "Xk2XQ/N1YIr/Mb28I",
+              "name": "Icon",
+              "width": 24,
+              "height": 24,
+              "icon": "radio",
+              "library": "lucide",
+              "fill": "#868686"
+            },
+            {
+              "type": "text",
+              "id": "Xk2XQ/N1YIr/x7cAoO",
+              "name": "Label",
+              "fill": "#868686",
+              "content": "Radio Stations",
+              "fontFamily": "Inter",
+              "fontSize": 10,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Xk2XQ/lwmmM",
+          "name": "Your Library",
+          "width": 80,
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            8,
+            0
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "Xk2XQ/lwmmM/Mb28I",
+              "name": "Icon",
+              "width": 24,
+              "height": 24,
+              "icon": "heart",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            },
+            {
+              "type": "text",
+              "id": "Xk2XQ/lwmmM/x7cAoO",
+              "name": "Label",
+              "fill": "#FFFFFF",
+              "content": "Your Library",
+              "fontFamily": "Inter",
+              "fontSize": 10,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Xk2XQ/NhsUt",
+          "name": "Your Profile",
+          "width": 80,
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            8,
+            0
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "Xk2XQ/NhsUt/Mb28I",
+              "name": "Icon",
+              "width": 24,
+              "height": 24,
+              "icon": "user",
+              "library": "lucide",
+              "fill": "#868686"
+            },
+            {
+              "type": "text",
+              "id": "Xk2XQ/NhsUt/x7cAoO",
+              "name": "Label",
+              "fill": "#868686",
+              "content": "Your Profile",
+              "fontFamily": "Inter",
+              "fontSize": 10,
+              "fontWeight": "500"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
