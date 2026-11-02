@@ -29,19 +29,27 @@ struct ListeningHistoryPageView: View {
 
       GeometryReader { geometry in
         ScrollView {
-          Group {
-            switch model.displayState {
-            case .loading:
-              loadingContent
-            case .empty:
-              stateContent(model.emptyContent, action: model.exploreStationsButtonTapped)
-            case .error:
-              stateContent(model.errorContent) { Task { await model.retryButtonTapped() } }
-            case .signedOut:
-              stateContent(model.signedOutContent) { Task { await model.signInButtonTapped() } }
-            case .loaded:
-              historyContent
-            }
+          ZStack {
+            loadingContent
+              .opacity(model.contentOpacity(for: .loading))
+              .allowsHitTesting(model.contentAllowsHitTesting(for: .loading))
+              .accessibilityHidden(model.contentAccessibilityHidden(for: .loading))
+            stateContent(model.emptyContent, action: model.exploreStationsButtonTapped)
+              .opacity(model.contentOpacity(for: .empty))
+              .allowsHitTesting(model.contentAllowsHitTesting(for: .empty))
+              .accessibilityHidden(model.contentAccessibilityHidden(for: .empty))
+            stateContent(model.errorContent) { Task { await model.retryButtonTapped() } }
+              .opacity(model.contentOpacity(for: .error))
+              .allowsHitTesting(model.contentAllowsHitTesting(for: .error))
+              .accessibilityHidden(model.contentAccessibilityHidden(for: .error))
+            stateContent(model.signedOutContent) { Task { await model.signInButtonTapped() } }
+              .opacity(model.contentOpacity(for: .signedOut))
+              .allowsHitTesting(model.contentAllowsHitTesting(for: .signedOut))
+              .accessibilityHidden(model.contentAccessibilityHidden(for: .signedOut))
+            historyContent
+              .opacity(model.contentOpacity(for: .loaded))
+              .allowsHitTesting(model.contentAllowsHitTesting(for: .loaded))
+              .accessibilityHidden(model.contentAccessibilityHidden(for: .loaded))
           }
           .frame(maxWidth: .infinity, minHeight: geometry.size.height)
         }
@@ -76,12 +84,13 @@ struct ListeningHistoryPageView: View {
         }
       }
 
-      if model.isLoadingMore {
+      ZStack {
         ProgressView()
           .tint(.white)
           .frame(maxWidth: .infinity)
           .padding(.vertical, 24)
-      } else if model.loadMoreFailed {
+          .opacity(model.loadMoreLoadingOpacity)
+          .accessibilityHidden(model.loadMoreLoadingAccessibilityHidden)
         HStack(spacing: 8) {
           Text(model.loadMoreErrorMessage)
             .foregroundColor(Color(hex: "#C7C7C7"))
@@ -91,7 +100,11 @@ struct ListeningHistoryPageView: View {
         .font(.custom(FontNames.Inter_400_Regular, size: 14))
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
+        .opacity(model.loadMoreErrorOpacity)
+        .allowsHitTesting(model.loadMoreErrorAllowsHitTesting)
+        .accessibilityHidden(model.loadMoreErrorAccessibilityHidden)
       }
+      .frame(height: model.loadMoreFooterHeight)
     }
     .padding(.horizontal, 20)
     .padding(.bottom, 24)
