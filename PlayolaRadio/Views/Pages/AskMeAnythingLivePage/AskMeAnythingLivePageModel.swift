@@ -31,6 +31,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.amaOpeningDrafts) var amaOpeningDrafts
+  @ObservationIgnored @Shared(.pendingAMAOpeningDeletionIds) var pendingAMAOpeningDeletionIds
   @ObservationIgnored @Shared(.amaShowStartTimes) var amaShowStartTimes
 
   // MARK: - Initialization
@@ -212,9 +213,19 @@ class AskMeAnythingLivePageModel: ViewModel {
   }
 
   func openingRowDeleteTapped(_ id: UUID) async {
-    guard isOpeningPlaylistEditable, auth.currentUser?.id == openingDraftUserId,
-      let item = openingItems[id: id], !item.content.is(\.intro)
+    guard isOpeningPlaylistEditable, let userId = openingDraftUserId,
+      auth.currentUser?.id == userId, let item = openingItems[id: id], !item.content.is(\.intro),
+      $pendingAMAOpeningDeletionIds.withLock({
+        $0[userId, default: [:]][stationId, default: []].insert(id).inserted
+      })
     else { return }
+    defer {
+      $pendingAMAOpeningDeletionIds.withLock {
+        $0[userId]?[stationId]?.remove(id)
+        if $0[userId]?[stationId]?.isEmpty == true { $0[userId]?[stationId] = nil }
+        if $0[userId]?.isEmpty == true { $0[userId] = nil }
+      }
+    }
     if let openingDraftUserId {
       _ = $amaOpeningDrafts.withLock { $0[openingDraftUserId]?[stationId]?.remove(id: id) }
     }
@@ -243,6 +254,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   }
 
   func startShowButtonTapped() async {
+    restoreOpeningDraft()
     guard isStartShowEnabled else { return }
     guard let jwt = auth.jwt else {
       presentedAlert = showAlert(title: "Sign In Required", message: "Sign in to start your show.")
@@ -438,6 +450,9 @@ class AskMeAnythingLivePageModel: ViewModel {
   var readinessHint: String {
     guard hasRecordedIntro else { return "Record your intro" }
     if !openingItems.allSatisfy(\.isReady) { return "Waiting for recordings to upload" }
+    if readyMilliseconds >= targetMilliseconds && !pendingOpeningDeletionIds.isEmpty {
+      return "Saving playlist change"
+    }
     if isStartShowEnabled { return "Ready to start" }
     return "Add \(durationLabelCeil(max(0, targetMilliseconds - readyMilliseconds))) more"
   }
@@ -455,7 +470,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   var isStartShowEnabled: Bool {
     readyMilliseconds >= targetMilliseconds
       && openingItems.allSatisfy(\.isReady) && !isStartingShow && !isCheckingSchedule
-      && !hasScheduleLoadFailed && !isShowActive
+      && !hasScheduleLoadFailed && !isShowActive && pendingOpeningDeletionIds.isEmpty
   }
   var startShowButtonTitleColor: Color { isStartShowEnabled ? .white : .playolaGray }
   var startShowButtonBackgroundColor: Color {
@@ -466,6 +481,11 @@ class AskMeAnythingLivePageModel: ViewModel {
   }
 
   // MARK: - Private Helpers
+
+  private var pendingOpeningDeletionIds: Set<UUID> {
+    guard let userId = openingDraftUserId else { return [] }
+    return pendingAMAOpeningDeletionIds[userId]?[stationId] ?? []
+  }
 
   private func updateShowFromSchedule() {
     guard !isAwaitingStartedSchedule else { return }
