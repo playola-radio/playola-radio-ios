@@ -85,6 +85,7 @@ class NowPlayingUpdater {
   /// is the resume source for the lock-screen / car play command. The in-memory
   /// `lastPlayedStation` below is only an analytics cache for the current session.
   @ObservationIgnored @Shared(.lastPlayedStation) var persistedLastStation: LastPlayedStation?
+  @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
 
   private var disposeBag = Set<AnyCancellable>()
   var lastPlayedStation: AnyStation?
@@ -463,7 +464,10 @@ class NowPlayingUpdater {
   /// after a cold-but-alive launch. `.commandFailed` only when there is genuinely
   /// nothing to resume.
   func handlePlayCommand() -> MPRemoteCommandHandlerStatus {
-    if case .paused = stationPlayer.state.playbackStatus {
+    if case .paused(let station) = stationPlayer.state.playbackStatus,
+      stationPlayer.stationLists.playableItem(
+        stationId: station.id, unlocked: showSecretStations) != nil
+    {
       Task { @MainActor in await stationPlayer.resume() }
       return .success
     }
@@ -476,23 +480,14 @@ class NowPlayingUpdater {
     return .success
   }
 
-  /// The station a stopped play command should resume: the durably persisted last
-  /// Playola station, re-resolved against the loaded station lists for fresher
-  /// metadata / an active check when it appears there, and otherwise the raw
-  /// snapshot so a cold launch with no lists still resumes with zero network.
-  /// Refuses (nil) only when the station IS present in the lists and provably
-  /// inactive — never merely because lists haven't loaded.
+  /// The persisted last Playola station, if the current catalog still lets this device play it.
+  /// Not in any fetched list (including lists not loaded yet) => no resume (spec "iOS runtime behavior").
   private func stationToResume() -> AnyStation? {
-    guard let snapshotStation = persistedLastStation?.station,
-      case .playola = snapshotStation
+    guard let snapshotStation = persistedLastStation?.station, case .playola = snapshotStation
     else { return nil }
-    if let resolved = stationPlayer.stationLists
-      .flatMap({ $0.stations })
-      .first(where: { $0.id == snapshotStation.id })
-    {
-      return resolved.active ? resolved : nil
-    }
-    return snapshotStation
+    return stationPlayer.stationLists
+      .playableItem(stationId: snapshotStation.id, unlocked: showSecretStations)?
+      .anyStationIfPresent
   }
 
   func releaseRemoteControlCenter() {

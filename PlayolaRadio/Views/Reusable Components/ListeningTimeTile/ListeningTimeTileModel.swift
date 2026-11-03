@@ -63,7 +63,7 @@ class ListeningTimeTileModel: ViewModel {
   func refreshFromTracker() {
     let isKoozie = listeningTracker?.rewardsProfile.rewardsExperienceType == .koozieOnly
     if isKoozie, koozieTileModel == nil {
-      koozieTileModel = KoozieTileModel()
+      koozieTileModel = withDependencies(from: self) { KoozieTileModel() }
     } else if !isKoozie, koozieTileModel != nil {
       koozieTileModel?.cancelTiersLoad()
       koozieTileModel = nil

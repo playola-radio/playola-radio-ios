@@ -62,143 +62,35 @@ func createTestJWT(
 @Suite(.freshSharedState)
 @MainActor
 struct MainContainerTests {
-  // MARK: - Upside-Down Orientation Tests
-
   @Test
-  func testUpsideDownFlowVisibilityChangedFlipsWindowThenEnablesKeyboardAndBannerWhenShowIsOpen()
-    async
-  {
-    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
+  func enteringLibraryRefreshesListeningHistory() async {
     @Shared(.auth) var auth = Auth(jwtToken: createTestJWT())
-    let calls = LockIsolated<[String]>([])
+    @Shared(.activeTab) var activeTab = MainContainerModel.ActiveTab.home
+    let calls = LockIsolated(0)
     let model = withDependencies {
-      $0.windowOrientation.setUpsideDown = { isUpsideDown in
-        calls.withValue { $0.append("window upsideDown=\(isUpsideDown)") }
-      }
-      $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
-        calls.withValue { $0.append("keyboard enabled=\(isEnabled)") }
-      }
-      $0.upsideDownNotificationBanner.setUpsideDownModeEnabled = { isEnabled in
-        calls.withValue { $0.append("banner enabled=\(isEnabled)") }
+      $0.date = .constant(Date(timeIntervalSince1970: 1_700_000_000))
+      $0.api.getListeningHistory = { _, _ in
+        calls.withValue { $0 += 1 }
+        return ListeningHistoryResponse(
+          spins: [],
+          pagination: .init(hasMore: false)
+        )
       }
     } operation: {
       MainContainerModel()
     }
-    model.mainContainerNavigationCoordinator.artistDashboardPath = [
-      .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "station-abc"))
+
+    await model.activeTabChanged()
+    expectNoDifference(calls.value, 0)
+    $activeTab.withLock { $0 = .yourLibrary }
+    await model.activeTabChanged()
+    expectNoDifference(calls.value, 1)
+
+    model.mainContainerNavigationCoordinator.yourLibraryPath = [
+      .listeningHistoryPage(model.yourLibraryPageModel.listeningHistoryModel)
     ]
-
-    await model.upsideDownFlowVisibilityChanged()
-
-    expectNoDifference(
-      calls.value, ["window upsideDown=true", "keyboard enabled=true", "banner enabled=true"])
-  }
-
-  @Test
-  func testUpsideDownFlowVisibilityChangedIgnoresStaleRotationWhenShowReopens() async {
-    await withMainSerialExecutor {
-      @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
-      @Shared(.auth) var auth = Auth(jwtToken: createTestJWT())
-      let calls = LockIsolated<[String]>([])
-      let rotations = LockIsolated<[CheckedContinuation<Void, Never>]>([])
-      let model = withDependencies {
-        $0.windowOrientation.setUpsideDown = { isUpsideDown in
-          calls.withValue { $0.append("window upsideDown=\(isUpsideDown)") }
-          await withCheckedContinuation { continuation in
-            rotations.withValue { $0.append(continuation) }
-          }
-        }
-        $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
-          calls.withValue { $0.append("keyboard enabled=\(isEnabled)") }
-        }
-        $0.upsideDownNotificationBanner.setUpsideDownModeEnabled = { isEnabled in
-          calls.withValue { $0.append("banner enabled=\(isEnabled)") }
-        }
-      } operation: {
-        MainContainerModel()
-      }
-
-      model.mainContainerNavigationCoordinator.artistDashboardPath = [
-        .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "station-abc"))
-      ]
-      let firstEnter = Task { await model.upsideDownFlowVisibilityChanged() }
-      await Task.megaYield()
-      model.mainContainerNavigationCoordinator.artistDashboardPath = []
-      let exit = Task { await model.upsideDownFlowVisibilityChanged() }
-      await Task.megaYield()
-      model.mainContainerNavigationCoordinator.artistDashboardPath = [
-        .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "station-abc"))
-      ]
-      let secondEnter = Task { await model.upsideDownFlowVisibilityChanged() }
-      await Task.megaYield()
-
-      for rotation in rotations.value { rotation.resume() }
-      await firstEnter.value
-      await exit.value
-      await secondEnter.value
-
-      expectNoDifference(
-        calls.value,
-        [
-          "window upsideDown=true",
-          "keyboard enabled=false", "banner enabled=false", "window upsideDown=false",
-          "window upsideDown=true", "keyboard enabled=true", "banner enabled=true",
-        ]
-      )
-    }
-  }
-
-  @Test
-  func testUpsideDownFlowVisibilityChangedDisablesKeyboardThenRestoresWindowWhenShowIsClosed() async
-  {
-    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
-    let calls = LockIsolated<[String]>([])
-    let model = withDependencies {
-      $0.windowOrientation.setUpsideDown = { isUpsideDown in
-        calls.withValue { $0.append("window upsideDown=\(isUpsideDown)") }
-      }
-      $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
-        calls.withValue { $0.append("keyboard enabled=\(isEnabled)") }
-      }
-      $0.upsideDownNotificationBanner.setUpsideDownModeEnabled = { isEnabled in
-        calls.withValue { $0.append("banner enabled=\(isEnabled)") }
-      }
-    } operation: {
-      MainContainerModel()
-    }
-
-    await model.upsideDownFlowVisibilityChanged()
-
-    expectNoDifference(
-      calls.value, ["keyboard enabled=false", "banner enabled=false", "window upsideDown=false"])
-  }
-
-  @Test
-  func testUpsideDownFlowVisibilityChangedDisablesKeyboardThenRestoresWindowWhenLoggedOut() async {
-    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
-    @Shared(.auth) var auth = Auth()
-    let calls = LockIsolated<[String]>([])
-    let model = withDependencies {
-      $0.windowOrientation.setUpsideDown = { isUpsideDown in
-        calls.withValue { $0.append("window upsideDown=\(isUpsideDown)") }
-      }
-      $0.upsideDownKeyboard.setUpsideDownModeEnabled = { isEnabled in
-        calls.withValue { $0.append("keyboard enabled=\(isEnabled)") }
-      }
-      $0.upsideDownNotificationBanner.setUpsideDownModeEnabled = { isEnabled in
-        calls.withValue { $0.append("banner enabled=\(isEnabled)") }
-      }
-    } operation: {
-      MainContainerModel()
-    }
-    model.mainContainerNavigationCoordinator.artistDashboardPath = [
-      .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "station-abc"))
-    ]
-
-    await model.upsideDownFlowVisibilityChanged()
-
-    expectNoDifference(
-      calls.value, ["keyboard enabled=false", "banner enabled=false", "window upsideDown=false"])
+    await model.activeTabChanged()
+    expectNoDifference(calls.value, 1)
   }
 
   // MARK: - ViewAppeared Tests
@@ -328,6 +220,7 @@ struct MainContainerTests {
     ]
 
     let mainContainerModel = withDependencies {
+      $0.api.stubMainContainerRefreshes()
       $0.api.getStations = { StationList.mocks }
       $0.api.getAirings = { _, _ in
         getAiringsCallCount.withValue { $0 += 1 }
@@ -681,6 +574,7 @@ struct MainContainerTests {
     ]
 
     let mainContainerModel = withDependencies {
+      $0.api.stubMainContainerRefreshes()
       $0.api.getStations = {
         getStationsCallCount.withValue { $0 += 1 }
         return StationList.mocks
@@ -759,10 +653,10 @@ struct MainContainerTests {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     let mainContainerModel = withDependencies {
+      $0.api.stubMainContainerRefreshes()
       $0.api.getStations = {
         throw TestError()
       }
-      $0.api.getAirings = { _, _ in [] }
       $0.analytics.track = { @Sendable event in
         capturedEvents.withValue { $0.append(event) }
       }
@@ -791,8 +685,7 @@ struct MainContainerTests {
     let getSupportConversationCallCount = LockIsolated(0)
 
     let mainContainerModel = withDependencies {
-      $0.api.getStations = { [] }
-      $0.api.getAirings = { _, _ in [] }
+      $0.api.stubMainContainerRefreshes()
       $0.api.getSupportConversation = { _ in
         getSupportConversationCallCount.withValue { $0 += 1 }
         return SupportConversationResponse(
@@ -831,7 +724,7 @@ struct MainContainerTests {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 
     let mainContainerModel = withDependencies {
-      $0.api.getStations = { [] }
+      $0.api.stubMainContainerRefreshes()
       $0.api.getAirings = { _, _ in
         throw TestError()
       }
@@ -1571,6 +1464,7 @@ extension MainContainerTests {
       @Shared(.mainContainerNavigationCoordinator) var coordinator =
         MainContainerNavigationCoordinator()
       let model = withDependencies {
+        $0.api.stubMainContainerRefreshes()
         $0.date = .constant(Date(timeIntervalSince1970: 100))
         $0.api.getMyFulfillmentRequests = { _ in [.mock(giveawayEventId: "event-1")] }
       } operation: {
@@ -1804,8 +1698,8 @@ extension MainContainerTests {
     let identifiedIds = LockIsolated<[String]>([])
 
     let mainContainerModel = withDependencies {
+      $0.api.stubMainContainerRefreshes()
       $0.api.getStations = { StationList.mocks }
-      $0.api.getAirings = { _, _ in [] }
       $0.pushNotifications.registerForRemoteNotifications = {}
       $0.analytics.identify = { userId in identifiedIds.withValue { $0.append(userId) } }
     } operation: {

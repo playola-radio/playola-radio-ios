@@ -37,6 +37,8 @@ class GiveawayCongratsSheetModel: ViewModel {
     self.prizeName = action.prizeName
     self.onClose = onClose
     super.init()
+    flipToRecord.start = { [weak self] in await self?.startRecording() ?? false }
+    flipToRecord.stop = { [weak self] in await self?.onStopTapped() }
     switch action.state {
     case .recorded(let path):
       recordingURL = URL(fileURLWithPath: path)
@@ -53,6 +55,7 @@ class GiveawayCongratsSheetModel: ViewModel {
   }
 
   // MARK: - Properties
+  let flipToRecord = FlipToRecordModel()
   var recordingPhase: Phase = .idle
   var recordingDuration: TimeInterval = 0
   var playbackPosition: TimeInterval = 0
@@ -102,23 +105,12 @@ class GiveawayCongratsSheetModel: ViewModel {
     // Guard synchronously (before the first await) so a rapid double-tap can't start two recorder
     // sessions while permission/start are in flight.
     guard recordingPhase == .idle, !isStartingRecording else { return }
-    isStartingRecording = true
-    defer { isStartingRecording = false }
-    guard await audioRecorder.requestPermission() else {
-      presentedAlert = .congratsMicPermissionDenied
-      return
-    }
-    do {
-      waveformSamples = []
-      try await audioRecorder.startRecording()
-      recordingPhase = .recording
-      startRecordingUpdates()
-    } catch {
-      presentedAlert = .congratsRecordingFailed(error.localizedDescription)
-    }
+    await flipToRecord.recordTapped()
   }
 
   func onStopTapped() async {
+    await flipToRecord.recordingStopped()
+    guard recordingTask != nil else { return }
     stopRecordingUpdates()
     do {
       let url = try await audioRecorder.stopRecording()
@@ -236,6 +228,25 @@ class GiveawayCongratsSheetModel: ViewModel {
 
   // MARK: - Private Helpers
 
+  private func startRecording() async -> Bool {
+    isStartingRecording = true
+    defer { isStartingRecording = false }
+    guard await audioRecorder.requestPermission() else {
+      presentedAlert = .congratsMicPermissionDenied
+      return false
+    }
+    do {
+      waveformSamples = []
+      try await audioRecorder.startRecording()
+      recordingPhase = .recording
+      startRecordingUpdates()
+      return true
+    } catch {
+      presentedAlert = .congratsRecordingFailed(error.localizedDescription)
+      return false
+    }
+  }
+
   private func uploadThenSubmit(url: URL) async {
     guard let jwt = auth.jwt else {
       presentedAlert = .congratsRecordingFailed("Not signed in.")
@@ -308,6 +319,7 @@ class GiveawayCongratsSheetModel: ViewModel {
   /// Tear down any in-flight recording or playback before the sheet closes, so the mic and the
   /// update loops don't keep running (and keeping `self` alive) after the owner dismisses the flow.
   private func stopActiveCapture() async {
+    await flipToRecord.recordingStopped()
     stopRecordingUpdates()
     stopPlaybackUpdates()
     if recordingPhase == .recording {

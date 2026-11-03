@@ -80,7 +80,7 @@ struct StationListStationRowView: View {
 
 #Preview("Station Row") {
   let sampleList = StationList.mocks.first!
-  let sampleItem = sampleList.visibleStationItems.first!
+  let sampleItem = sampleList.items!.first!
   return StationListStationRowView(
     model: StationListStationRowModel(item: sampleItem),
     action: {},

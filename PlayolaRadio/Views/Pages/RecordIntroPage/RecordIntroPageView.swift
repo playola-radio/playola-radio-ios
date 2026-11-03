@@ -50,9 +50,13 @@ struct RecordIntroPageView: View {
     }
     .background(Color.black.ignoresSafeArea())
     .navigationBarHidden(true)
+    .flipToRecordOverlay(model.flipToRecord)
     .playolaAlert($model.presentedAlert)
     .task {
       await model.viewAppeared()
+    }
+    .onDisappear {
+      Task { await model.viewDisappeared() }
     }
   }
 

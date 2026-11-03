@@ -37,6 +37,7 @@ struct MainContainer: View {
     .playolaAlert($model.presentedAlert)
     .onChange(of: model.activeTab) {
       model.checkAndShowRatingPromptIfNeeded()
+      Task { await model.activeTabChanged() }
     }
     .sheet(
       item: Binding(
@@ -128,7 +129,10 @@ struct MainContainer: View {
       }
     }
     .animation(.easeInOut(duration: 0.3), value: model.presentedToast)
-    .onAppear { Task { await model.viewAppeared() } }
+    .onAppear {
+      Task { await model.viewAppeared() }
+      Task { await model.activeTabChanged() }
+    }
     .onChange(of: scenePhase) { _, newPhase in
       model.handleScenePhaseChange(newPhase)
       if newPhase == .active {

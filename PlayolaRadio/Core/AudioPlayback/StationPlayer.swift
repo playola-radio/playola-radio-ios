@@ -21,8 +21,7 @@ class StationPlayer: ObservableObject {
   @ObservationIgnored @Shared(.stationLists) var stationLists: IdentifiedArrayOf<StationList>
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
   @ObservationIgnored @Shared(.nowPlaying) var nowPlaying
-  @ObservationIgnored @Shared(.sampleBufferRendererEnabled)
-  var sampleBufferRendererEnabled: Bool = false
+  @ObservationIgnored @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled
   @ObservationIgnored @Shared(.sampleBufferRendererAllowed)
   var sampleBufferRendererAllowed: Bool = true
   @ObservationIgnored @Shared(.sampleBufferRendererLocalOverride)
@@ -402,15 +401,9 @@ class StationPlayer: ObservableObject {
       return []
     }
 
-    let items = artistList.stationItems(
-      includeHidden: showSecretStations,
-      includeComingSoon: showSecretStations
-    )
-
-    return
-      items
-      .map { $0.anyStation }
-      .filter { $0.active }
+    return artistList.listedItems(unlocked: showSecretStations)
+      .filter { $0.isPlayable(unlocked: showSecretStations) }
+      .compactMap(\.anyStationIfPresent)
   }
 
   func processPlayolaStationPlayerState(

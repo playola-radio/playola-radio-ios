@@ -25,11 +25,10 @@ struct StationListPageTests {
   func testViewAppearedPopulatesFromInitialSharedStationLists() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
-    let expectedVisibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
     let model = StationListModel()
     await model.viewAppeared()
-    #expect(model.stationListsForDisplay == expectedVisibleLists)
-    #expect(model.segmentTitles == ["All"] + expectedVisibleLists.map { $0.title })
+    expectNoDifference(model.stationListsForDisplay, stationLists)
+    expectNoDifference(model.segmentTitles, ["All"] + stationLists.map { $0.title })
     #expect(model.selectedSegment == "All")
   }
 
@@ -66,9 +65,8 @@ struct StationListPageTests {
   func testSegmentSelectionFiltersWhenSegmentSelected() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
-    let visibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
-    guard let firstList = visibleLists.first else {
-      Issue.record("StationList.mocks should have at least one non-development list")
+    guard let firstList = stationLists.first else {
+      Issue.record("StationList.mocks should have at least one list")
       return
     }
     let model = StationListModel()
@@ -84,9 +82,8 @@ struct StationListPageTests {
   func testSharedStationListsUpdatesKeepsSelectedSegmentWhenStillPresent() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
-    let visibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
-    guard let targetList = visibleLists.first else {
-      Issue.record("StationList.mocks should have at least one non-development list")
+    guard let targetList = stationLists.first else {
+      Issue.record("StationList.mocks should have at least one list")
       return
     }
 
@@ -106,7 +103,7 @@ struct StationListPageTests {
             sortOrder: 0,
             createdAt: Date(),
             updatedAt: Date(),
-            items: []
+            items: [makeVisibleItem()]
           )
         ]
       )
@@ -121,9 +118,9 @@ struct StationListPageTests {
   func testSharedStationListsUpdatesResetsSelectedSegmentWhenSegmentMissing() async {
     @Shared(.showSecretStations) var showSecretStations = false
     @Shared(.stationLists) var stationLists = StationList.mocks
-    let visibleLists = stationLists.filter { $0.id != StationList.inDevelopmentListId }
-    guard let targetList = visibleLists.first else {
-      Issue.record("StationList.mocks should have at least one non-development list")
+    let originalLists = stationLists
+    guard let targetList = originalLists.first else {
+      Issue.record("StationList.mocks should have at least one list")
       return
     }
 
@@ -135,7 +132,7 @@ struct StationListPageTests {
     $stationLists.withLock { lists in
       lists = IdentifiedArray(
         uniqueElements:
-          visibleLists
+          originalLists
           .filter { $0.id != targetList.id }
           .map {
             StationList(
@@ -146,17 +143,14 @@ struct StationListPageTests {
               sortOrder: 0,
               createdAt: Date(),
               updatedAt: Date(),
-              items: []
+              items: [makeVisibleItem()]
             )
           }
       )
     }
 
-    let expectedVisibleAfterUpdate = stationLists.filter {
-      $0.id != StationList.inDevelopmentListId
-    }
     #expect(model.selectedSegment == "All")
-    #expect(model.stationListsForDisplay == expectedVisibleAfterUpdate)
+    expectNoDifference(model.stationListsForDisplay, stationLists)
   }
 
   @Test
@@ -296,6 +290,61 @@ struct StationListPageTests {
   }
 
   @Test
+  func testStationSelectedDoesNotPlaySecretStationWhenLocked() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let secretItem = makeSecretItem()
+    let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    let model = makeStationListModel(
+      analyticsSink: capturedEvents, stationPlayer: stationPlayerMock)
+    model.stationListsForDisplay = IdentifiedArray(uniqueElements: [makeList(with: [secretItem])])
+
+    await model.stationSelected(secretItem)
+
+    #expect(stationPlayerMock.callsToPlay.isEmpty)
+    #expect(capturedEvents.value.isEmpty)
+  }
+
+  @Test
+  func testStationSelectedPlaysSecretStationWhenUnlocked() async {
+    @Shared(.showSecretStations) var showSecretStations = true
+    let secretItem = makeSecretItem()
+    let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    let model = makeStationListModel(
+      analyticsSink: capturedEvents, stationPlayer: stationPlayerMock)
+    model.stationListsForDisplay = IdentifiedArray(uniqueElements: [makeList(with: [secretItem])])
+
+    await model.stationSelected(secretItem)
+
+    expectNoDifference(stationPlayerMock.callsToPlay.map(\.id), [secretItem.anyStation.id])
+  }
+
+  @Test
+  func testListLevelHiddenFlagNoLongerHidesList() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let flaggedList = StationList(
+      id: "flagged-list", name: "Flagged", slug: "flagged-list", hidden: true, sortOrder: 0,
+      createdAt: Date(), updatedAt: Date(), items: [makeVisibleItem()])
+    let emptyList = StationList(
+      id: "all-secret-list", name: "All Secret", slug: "all-secret-list", hidden: false,
+      sortOrder: 1, createdAt: Date(), updatedAt: Date(), items: [makeSecretItem()])
+    @Shared(.stationLists) var stationLists = IdentifiedArray(
+      uniqueElements: [flaggedList, emptyList])
+
+    let model = StationListModel()
+    await model.viewAppeared()
+
+    expectNoDifference(model.segmentTitles, ["All", "Flagged"])
+    expectNoDifference(model.stationListsForDisplay.map(\.id), ["flagged-list"])
+
+    $showSecretStations.withLock { $0 = true }
+    await model.viewAppeared()
+
+    expectNoDifference(model.segmentTitles, ["All", "Flagged", "All Secret"])
+  }
+
+  @Test
   func testInactiveStationDoesNotPlay() async {
     @Shared(.showSecretStations) var showSecretStations = true
 
@@ -382,8 +431,7 @@ struct StationListPageTests {
 
     model.stationListsForDisplay = IdentifiedArray(uniqueElements: [secretList])
 
-    let includeHidden = model.showSecretStations || !secretList.hidden
-    let filteredItems = secretList.stationItems(includeHidden: includeHidden)
+    let filteredItems = secretList.listedItems(unlocked: model.showSecretStations)
 
     #expect(filteredItems.count == 1)
     #expect(filteredItems.first?.visibility == .visible)
@@ -435,8 +483,7 @@ struct StationListPageTests {
 
     model.stationListsForDisplay = IdentifiedArray(uniqueElements: [secretList])
 
-    let includeHidden = model.showSecretStations || !secretList.hidden
-    let filteredItems = secretList.stationItems(includeHidden: includeHidden)
+    let filteredItems = secretList.listedItems(unlocked: model.showSecretStations)
 
     #expect(filteredItems.count == 2)
     #expect(filteredItems.last?.visibility == .hidden)
@@ -728,6 +775,22 @@ private func makeComingSoonItem(active: Bool, date: Date) -> APIStationItem {
     station: station,
     urlStation: nil
   )
+}
+
+private func makeSecretItem() -> APIStationItem {
+  let date = Date()
+  let station = PlayolaPlayer.Station(
+    id: "secret-station",
+    name: "Secret Radio",
+    curatorName: "Secret DJ",
+    imageUrl: URL(string: "https://example.com/secret.png"),
+    description: "A secret station",
+    active: true,
+    createdAt: date,
+    updatedAt: date
+  )
+
+  return APIStationItem(sortOrder: 0, visibility: .hidden, station: station, urlStation: nil)
 }
 
 private func makeVisibleItem(date: Date = Date()) -> APIStationItem {

@@ -106,7 +106,7 @@ swift-identified-collections, swift-custom-dump, SwiftLintPlugins have one.)
 
 ## CI Xcode version check
 
-CircleCI jobs pin a macOS Xcode image (`xcode: 26.2`, five places in
+CircleCI jobs pin a macOS Xcode image (`xcode: 26.5`, five places in
 `.circleci/config.yml`). Quarterly:
 
 1. Check what Xcode versions CircleCI offers and what the App Store currently

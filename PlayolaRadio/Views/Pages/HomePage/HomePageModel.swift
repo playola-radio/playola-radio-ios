@@ -20,6 +20,7 @@ class HomePageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
+  @ObservationIgnored @Dependency(\.siriShortcuts) var siriShortcuts
 
   // MARK: - Shared State
 
@@ -85,20 +86,22 @@ class HomePageModel: ViewModel {
   @ObservationIgnored private var hasLoadedPrizeList = false
 
   @ObservationIgnored lazy var listeningTimeTileModel: ListeningTimeTileModel = {
-    let tile = ListeningTimeTileModel(
-      buttonText: "Redeem Your Rewards!",
-      buttonAction: { [weak self] in
-        guard let self = self else { return }
-        await self.analytics.track(.navigatedToRewardsFromListeningTile)
-        await self.$activeTab.withLock { $0 = .profile }
-        // Idempotent: don't stack duplicate Rewards pages on repeat taps.
-        if case .rewardsPage = await self.mainContainerNavigationCoordinator.profilePath.last {
-          return
+    let tile = withDependencies(from: self) {
+      ListeningTimeTileModel(
+        buttonText: "Redeem Your Rewards!",
+        buttonAction: { [weak self] in
+          guard let self = self else { return }
+          await self.analytics.track(.navigatedToRewardsFromListeningTile)
+          await self.$activeTab.withLock { $0 = .profile }
+          // Idempotent: don't stack duplicate Rewards pages on repeat taps.
+          if case .rewardsPage = await self.mainContainerNavigationCoordinator.profilePath.last {
+            return
+          }
+          // Guarded for koozie-only users (no-op) even though the koozie tile hides this button.
+          await self.mainContainerNavigationCoordinator.pushRewards(RewardsPageModel())
         }
-        // Guarded for koozie-only users (no-op) even though the koozie tile hides this button.
-        await self.mainContainerNavigationCoordinator.pushRewards(RewardsPageModel())
-      }
-    )
+      )
+    }
     tile.onKoozieBecameClaimable = { [weak self] in
       guard let self, self.hasLoadedPrizeList else { return }
       self.presentKoozieClaimIfNeeded()
@@ -175,15 +178,18 @@ class HomePageModel: ViewModel {
 
   func playolaIconTapped10Times() {
     $showSecretStations.withLock { $0 = !$0 }
+    siriShortcuts.refreshSuggestions()
     presentedAlert = showSecretStations ? .secretStationsTurnedOnAlert : .secretStationsHiddenAlert
   }
 
   func stationTapped(_ station: AnyStation) async {
-    if let item = stationItem(for: station),
-      WelcomeMessagePageModel.shouldPresent(
-        for: item,
-        eligible: welcomeMessageEligible,
-        alreadyShownThisSession: welcomeMessageShownThisSession)
+    guard let item = stationLists.playableItem(stationId: station.id, unlocked: showSecretStations)
+    else { return }
+
+    if WelcomeMessagePageModel.shouldPresent(
+      for: item,
+      eligible: welcomeMessageEligible,
+      alreadyShownThisSession: welcomeMessageShownThisSession)
     {
       presentWelcomeMessage(for: station)
       return
@@ -227,9 +233,8 @@ class HomePageModel: ViewModel {
 
     let stations =
       artistList
-      .stationItems(includeHidden: showSecretStations, includeComingSoon: true)
-      .filter { shouldShowStationItem($0, showSecretStations: showSecretStations) }
-      .filter { $0.anyStationIfPresent != nil }
+      .listedItems(unlocked: showSecretStations)
+      .filter { $0.visibility != .comingSoon || $0.isPlayable(unlocked: showSecretStations) }
       .sorted { $0.liveSortPriority(liveStations) < $1.liveSortPriority(liveStations) }
       .compactMap { $0.anyStationIfPresent }
 
@@ -367,12 +372,6 @@ class HomePageModel: ViewModel {
     return true
   }
 
-  private func stationItem(for station: AnyStation) -> APIStationItem? {
-    stationLists
-      .flatMap { $0.stationItems(includeHidden: true) }
-      .first { $0.anyStation.id == station.id }
-  }
-
   // Mirrors StationListModel.presentWelcomeMessage — the server "seen" stamp happens in
   // WelcomeMessagePageModel once the recording actually plays.
   private func presentWelcomeMessage(for station: AnyStation) {
@@ -479,11 +478,5 @@ class HomePageModel: ViewModel {
   private func navigateToSeriesListPage() {
     let model = SeriesListPageModel()
     mainContainerNavigationCoordinator.push(.seriesListPage(model))
-  }
-
-  private func shouldShowStationItem(_ item: APIStationItem, showSecretStations: Bool) -> Bool {
-    guard item.visibility == .comingSoon else { return true }
-    guard showSecretStations else { return false }
-    return item.station?.active == true
   }
 }

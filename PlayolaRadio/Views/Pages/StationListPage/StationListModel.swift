@@ -167,28 +167,12 @@ class StationListModel: ViewModel {
   }
 
   func stationSelected(_ item: APIStationItem) async {
-    if item.visibility == .comingSoon && showSecretStations == false {
-      return
-    }
+    guard item.isPlayable(unlocked: showSecretStations) else { return }
 
     let station = item.anyStation
 
-    if case .playola(let playolaStation) = station,
-      let isActive = playolaStation.active,
-      isActive == false
-    {
-      return
-    }
-
-    if case .url(let urlStation) = station,
-      let isActive = urlStation.active,
-      isActive == false
-    {
-      return
-    }
-
     let allItems = stationListsForDisplay.flatMap {
-      $0.stationItems(includeHidden: showSecretStations)
+      $0.listedItems(unlocked: showSecretStations)
     }
 
     let allStations = allItems.map { $0.anyStation }
@@ -252,7 +236,7 @@ class StationListModel: ViewModel {
     for list: StationList,
     liveStations: [LiveStationInfo]
   ) -> [APIStationItem] {
-    list.stationItems(includeHidden: showSecretStations).sorted { item1, item2 in
+    list.listedItems(unlocked: showSecretStations).sorted { item1, item2 in
       item1.liveSortPriority(liveStations) < item2.liveSortPriority(liveStations)
     }
   }
@@ -273,8 +257,7 @@ class StationListModel: ViewModel {
   ) {
     let liveStations = liveStations ?? self.liveStations
     let upcomingGiveaways = upcomingGiveaways ?? self.upcomingGiveaways
-    let includeHidden = showSecretStations
-    let visibleLists = includeHidden ? rawList : rawList.filter { !$0.hidden }
+    let visibleLists = rawList.filter { !$0.listedItems(unlocked: showSecretStations).isEmpty }
 
     var titles = ["All"]
     titles.append(contentsOf: visibleLists.map { $0.title })

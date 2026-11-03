@@ -76,6 +76,7 @@ struct GiveawayCongratsSheetView: View {
       .padding(.horizontal, 24)
       .padding(.vertical, 32)
     }
+    .flipToRecordOverlay(model.flipToRecord)
     .playolaAlert($model.presentedAlert)
     .task { await model.viewAppeared() }
     .onDisappear { Task { await model.viewDisappeared() } }

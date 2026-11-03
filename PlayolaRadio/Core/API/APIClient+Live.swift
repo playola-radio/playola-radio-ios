@@ -416,6 +416,13 @@ extension APIClient: DependencyKey {
       getLikedSongs: { jwtToken in
         try await authenticatedGet(path: "/v1/users/me/likes", token: jwtToken)
       },
+      getListeningHistory: { jwtToken, offset in
+        try await authenticatedGet(
+          path: "/v1/users/me/play-history",
+          token: jwtToken,
+          queryParams: ["type": "song", "limit": "20", "offset": String(offset)]
+        )
+      },
       getShows: { jwtToken, includeSegments, stationId in
         var queryParams: [String: String] = [:]
         if includeSegments { queryParams["includeSegments"] = "true" }
@@ -576,23 +583,28 @@ extension APIClient: DependencyKey {
           "Content-Type": contentType
         ]
 
-        try await withCheckedThrowingContinuation {
-          (continuation: CheckedContinuation<Void, Error>) in
-          apiSession.upload(fileURL, to: presignedURL, method: .put, headers: headers)
-            .uploadProgress { progress in
-              onProgress(progress.fractionCompleted)
-            }
-            .response { response in
-              if let error = response.error {
-                continuation.resume(throwing: error)
-              } else if let statusCode = response.response?.statusCode,
-                statusCode >= 200, statusCode < 300
-              {
-                continuation.resume(returning: ())
-              } else {
-                continuation.resume(throwing: APIError.validationError("S3 upload failed"))
+        let request = apiSession.upload(fileURL, to: presignedURL, method: .put, headers: headers)
+        try await withTaskCancellationHandler {
+          try await withCheckedThrowingContinuation {
+            (continuation: CheckedContinuation<Void, Error>) in
+            request
+              .uploadProgress { progress in
+                onProgress(progress.fractionCompleted)
               }
-            }
+              .response { response in
+                if let error = response.error {
+                  continuation.resume(throwing: error)
+                } else if let statusCode = response.response?.statusCode,
+                  statusCode >= 200, statusCode < 300
+                {
+                  continuation.resume(returning: ())
+                } else {
+                  continuation.resume(throwing: APIError.validationError("S3 upload failed"))
+                }
+              }
+          }
+        } onCancel: {
+          request.cancel()
         }
       },
       createVoicetrack: { jwtToken, stationId, s3Key, durationMS in

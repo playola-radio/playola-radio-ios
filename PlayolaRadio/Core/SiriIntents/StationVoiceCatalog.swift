@@ -13,6 +13,7 @@ struct StationMatch: Equatable, Identifiable {
 @MainActor
 struct StationVoiceCatalog {
   @Shared(.stationLists) var stationLists
+  @Shared(.showSecretStations) var showSecretStations
 
   /// Lowercase, strip possessive "'s", strip punctuation, drop the filler words
   /// "radio"/"station", collapse whitespace. Applied to both station aliases and
@@ -69,25 +70,14 @@ struct StationVoiceCatalog {
     let catalogIndex: Int
   }
 
-  /// Every station the app considers playable, deduped by id.
-  ///
-  /// Siri fails toward inclusion: hidden lists, hidden items, and coming-soon
-  /// items are all voice-playable regardless of the `showSecretStations` unlock,
-  /// so a user can always say "Play <station>" for anything in their catalog.
-  /// The only exclusion is `active == false` — stations the app itself refuses
-  /// to play (see `StationListModel.stationSelected`); offering those would let
-  /// Siri claim "Playing <name>" and then dead-air. A station can appear in more
-  /// than one list, so we keep the first occurrence to stay dedup-correct and
-  /// preserve catalog order for deterministic match tie-breaking.
+  /// Only stations this device may play per the listing policy (D5) — the same rule as the station list.
   private func allStations() -> [AnyStation] {
     var seen = Set<String>()
     return
       stationLists
-      .flatMap { list in
-        list.stationItems(includeHidden: true, includeComingSoon: true)
-          .compactMap(\.anyStationIfPresent)
-      }
-      .filter(\.active)
+      .flatMap { $0.listedItems(unlocked: showSecretStations) }
+      .filter { $0.isPlayable(unlocked: showSecretStations) }
+      .compactMap(\.anyStationIfPresent)
       .filter { seen.insert($0.id).inserted }
   }
 

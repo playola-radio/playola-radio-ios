@@ -5,13 +5,18 @@
 //  Created by Brian D Keane on 1/19/25.
 //
 @preconcurrency import CarPlay
-import Combine
+@preconcurrency import Combine
 import Dependencies
 import IdentifiedCollections
 import Sharing
 
 @MainActor
 class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
+  private enum StationCatalogChange {
+    case stationLists(IdentifiedArrayOf<StationList>)
+    case unlocked(Bool)
+  }
+
   private func tabImage(_ identifier: String) -> UIImage? {
     switch identifier {
     case StationList.KnownIDs.artistList.rawValue:
@@ -33,6 +38,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   var tabBarTemplate: CPTabBarTemplate?
 
   var observers = Set<AnyCancellable>()
+  var stationCatalogObservationTask: Task<Void, Never>?
 
   @Dependency(\.analytics) var analytics
   @Dependency(\.stationPlayer) var stationPlayer
@@ -75,11 +81,14 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     setNowPlaying(visible: true)
   }
 
-  private func sectionFromStations(_ stations: [AnyStation]) -> CPListSection {
-    let listItems: [CPListItem] = stations.map { station in
+  private func sectionFromStations(_ items: [APIStationItem]) -> CPListSection {
+    let listItems: [CPListItem] = items.compactMap { item in
+      guard let station = item.anyStationIfPresent else { return nil }
       let listItem = self.cPListItemFrom(station: station)
       listItem.handler = { _, completion in
-        self.playStation(station)
+        if item.isPlayable(unlocked: self.showSecretStations) {
+          self.playStation(station)
+        }
         completion()
       }
       return listItem
@@ -87,8 +96,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     return CPListSection(items: listItems)
   }
 
-  private func templateFromStationList(_ stationList: StationList) -> CPListTemplate {
-    let section = sectionFromStations(stationList.stations)
+  private func templateFromStationList(_ stationList: StationList, unlocked: Bool) -> CPListTemplate
+  {
+    let section = sectionFromStations(stationList.listedItems(unlocked: unlocked))
     let template = CPListTemplate(title: stationList.title, sections: [section])
     template.tabTitle = stationList.title
     template.tabImage = tabImage(stationList.id)
@@ -96,10 +106,17 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   }
 
   func generateTemplates(_ stationLists: IdentifiedArrayOf<StationList>) -> [CPListTemplate] {
+    generateTemplates(stationLists, unlocked: showSecretStations)
+  }
+
+  /// The shared publisher emits before `showSecretStations` reflects the new value,
+  /// so observers must pass the emitted value instead of reading the property.
+  private func generateTemplates(
+    _ stationLists: IdentifiedArrayOf<StationList>, unlocked: Bool
+  ) -> [CPListTemplate] {
     stationLists
-      .filter { $0.stations.count > 0 }
-      .filter { $0.id != StationList.KnownIDs.inDevelopmentList.rawValue || showSecretStations }
-      .map { templateFromStationList($0) }
+      .filter { !$0.listedItems(unlocked: unlocked).isEmpty }
+      .map { templateFromStationList($0, unlocked: unlocked) }
   }
 
   nonisolated func templateApplicationScene(
@@ -110,12 +127,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
       Task {
         await analytics.track(.carPlayInitialized)
       }
-      $stationLists.publisher
-        .sink { stationLists in
-          let newTemplates = self.generateTemplates(stationLists)
-          self.tabBarTemplate?.updateTemplates(newTemplates)
-        }
-        .store(in: &observers)
+      observeStationCatalog()
 
       self.interfaceController = interfaceController
       self.interfaceController?.delegate = self
@@ -155,7 +167,41 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         observer.cancel()
       }
       observers.removeAll()
+      stationCatalogObservationTask?.cancel()
+      stationCatalogObservationTask = nil
       CPListItem.clearImageCache()
+    }
+  }
+
+  /// Rebuilds the tab templates when the catalog changes or the secret-stations switch flips,
+  /// so rows hidden by a relock (or revealed by an unlock) update without waiting for a refresh.
+  func observeStationCatalog() {
+    stationCatalogObservationTask?.cancel()
+    stationCatalogObservationTask = Task { [weak self] in
+      guard let self else { return }
+      let changes = AsyncStream<StationCatalogChange> { continuation in
+        let stationListsObserver = self.$stationLists.publisher
+          .sink { continuation.yield(.stationLists($0)) }
+        let unlockedObserver = self.$showSecretStations.publisher
+          .sink { continuation.yield(.unlocked($0)) }
+        continuation.onTermination = { _ in
+          stationListsObserver.cancel()
+          unlockedObserver.cancel()
+        }
+      }
+      var currentStationLists = stationLists
+      var currentUnlocked = showSecretStations
+      for await change in changes {
+        guard !Task.isCancelled else { return }
+        switch change {
+        case .stationLists(let emittedStationLists):
+          currentStationLists = emittedStationLists
+        case .unlocked(let emittedUnlocked):
+          currentUnlocked = emittedUnlocked
+        }
+        tabBarTemplate?.updateTemplates(
+          generateTemplates(currentStationLists, unlocked: currentUnlocked))
+      }
     }
   }
 
@@ -373,14 +419,6 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
       remoteImageUrl: station.imageUrl,
       placeholder: placeholder
     )
-    listItem.handler = { _, completion in
-      if station.active {
-        Task { @MainActor in
-          await self.stationPlayer.play(station: station)
-        }
-      }
-      completion()
-    }
     return listItem
   }
 }

@@ -231,7 +231,7 @@ class AuthService: @unchecked Sendable {
     $isBroadcaster.withLock { $0 = false }
     $welcomeMessageEligible.withLock { $0 = false }
     $welcomeMessageShownThisSession.withLock { $0 = false }
-    $sampleBufferRendererEnabled.withLock { $0 = false }
+    $sampleBufferRendererEnabled.withLock { $0 = true }
     clearGiveawayState()
 
     // Sign-out is the one real teardown event for the remote command center.

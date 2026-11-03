@@ -25,16 +25,12 @@ class MainContainerModel: ViewModel {
   @ObservationIgnored @Dependency(\.siriShortcuts) var siriShortcuts
   @ObservationIgnored @Dependency(\.appRating) var appRating
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
-  @ObservationIgnored @Dependency(\.windowOrientation) var windowOrientation
-  @ObservationIgnored @Dependency(\.upsideDownKeyboard) var upsideDownKeyboard
-  @ObservationIgnored @Dependency(\.upsideDownNotificationBanner) var upsideDownNotificationBanner
   @ObservationIgnored @Shared(.stationLists) var stationLists
   @ObservationIgnored @Shared(.stationListsLoaded) var stationListsLoaded: Bool = false
   @ObservationIgnored @Shared(.airings) var airings: IdentifiedArrayOf<Airing> = []
   @ObservationIgnored @Shared(.listeningTracker) var listeningTracker
   @ObservationIgnored @Shared(.welcomeMessageEligible) var welcomeMessageEligible: Bool = false
-  @ObservationIgnored @Shared(.sampleBufferRendererEnabled)
-  var sampleBufferRendererEnabled: Bool = false
+  @ObservationIgnored @Shared(.sampleBufferRendererEnabled) var sampleBufferRendererEnabled
   @ObservationIgnored @Shared(.sampleBufferRendererAllowed)
   var sampleBufferRendererAllowed: Bool = true
   @ObservationIgnored @Shared(.auth) var auth
@@ -50,7 +46,6 @@ class MainContainerModel: ViewModel {
 
   @ObservationIgnored private var isPresentingGiveawayClaim = false
   @ObservationIgnored private var needsGiveawayClaimRerun = false
-  @ObservationIgnored private var upsideDownTransition = 0
 
   /// Client-side ceiling for presenting a congrats whose push carried no `congratsExpiresAt`. After
   /// this long past `startedAt` we stop prompting the owner (the schedule slot is almost certainly gone).
@@ -126,8 +121,15 @@ class MainContainerModel: ViewModel {
     return nil
   }
 
-  var shouldShowUpsideDown: Bool {
-    auth.isLoggedIn && mainContainerNavigationCoordinator.isShowingUpsideDownFlow
+  func activeTabChanged() async {
+    guard activeTab == .yourLibrary, !isInBroadcastMode else { return }
+    let historyOpen = mainContainerNavigationCoordinator.yourLibraryPath.contains(where: {
+      if case .listeningHistoryPage = $0 { return true }
+      return false
+    })
+    let historyState = yourLibraryPageModel.listeningHistoryModel.displayState
+    if historyOpen && (historyState == .loaded || historyState == .empty) { return }
+    await yourLibraryPageModel.listeningHistoryModel.libraryTabSelected()
   }
 
   func viewAppeared() async {
@@ -271,15 +273,15 @@ class MainContainerModel: ViewModel {
       // request was in flight, drop it — the new session refetches on launch.
       guard auth.jwt == jwt else { return }
       $sampleBufferRendererEnabled.withLock {
-        $0 = config.sampleBufferRendererEnabled ?? false
+        $0 = config.sampleBufferRendererEnabled ?? true
       }
       $sampleBufferRendererAllowed.withLock {
         $0 = config.sampleBufferRendererAllowed ?? true
       }
     } catch {
-      // Deliberately quiet: the conservative default (false ⇒ legacy renderer)
-      // is the correct behavior when the fetch fails, and this endpoint may 404
-      // until the server side ships — analytics noise would drown real errors.
+      // Deliberately quiet: the defaults (sample-buffer renderer, plus any
+      // persisted kill-gate) are the correct behavior when the fetch fails —
+      // analytics noise would drown real errors.
     }
   }
 
@@ -397,21 +399,6 @@ class MainContainerModel: ViewModel {
       default:
         self.shouldShowSmallPlayer = false
       }
-    }
-  }
-
-  func upsideDownFlowVisibilityChanged() async {
-    upsideDownTransition += 1
-    let transition = upsideDownTransition
-    if shouldShowUpsideDown {
-      await windowOrientation.setUpsideDown(true)
-      guard transition == upsideDownTransition else { return }
-      upsideDownKeyboard.setUpsideDownModeEnabled(true)
-      upsideDownNotificationBanner.setUpsideDownModeEnabled(true)
-    } else {
-      upsideDownKeyboard.setUpsideDownModeEnabled(false)
-      upsideDownNotificationBanner.setUpsideDownModeEnabled(false)
-      await windowOrientation.setUpsideDown(false)
     }
   }
 

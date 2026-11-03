@@ -18,8 +18,17 @@ enum RecordingPhase: Equatable {
 @MainActor
 @Observable
 class RecordPageModel: ViewModel {
+  // MARK: - Initialization
+
+  override init() {
+    super.init()
+    flipToRecord.start = { [weak self] in await self?.startRecording() ?? false }
+    flipToRecord.stop = { [weak self] in await self?.onStopTapped() }
+  }
+
   // MARK: - State
 
+  let flipToRecord = FlipToRecordModel()
   var recordingPhase: RecordingPhase = .idle
   var recordingDuration: TimeInterval = 0
   var playbackPosition: TimeInterval = 0
@@ -66,26 +75,19 @@ class RecordPageModel: ViewModel {
     }
   }
 
+  func viewDisappeared() async {
+    await flipToRecord.recordingStopped()
+  }
+
   // MARK: - Recording Actions
 
   func onRecordTapped() async {
-    let hasPermission = await audioRecorder.requestPermission()
-    guard hasPermission else {
-      presentedAlert = .microphonePermissionDeniedAlert
-      return
-    }
-
-    do {
-      waveformSamples = []
-      try await audioRecorder.startRecording()
-      recordingPhase = .recording
-      startRecordingUpdates()
-    } catch {
-      presentedAlert = .recordingFailedAlert(error.localizedDescription)
-    }
+    await flipToRecord.recordTapped()
   }
 
   func onStopTapped() async {
+    await flipToRecord.recordingStopped()
+    guard recordingTask != nil else { return }
     stopRecordingUpdates()
     do {
       let url = try await audioRecorder.stopRecording()
@@ -95,6 +97,25 @@ class RecordPageModel: ViewModel {
       recordingPhase = .review
     } catch {
       presentedAlert = .recordingFailedAlert(error.localizedDescription)
+    }
+  }
+
+  private func startRecording() async -> Bool {
+    let hasPermission = await audioRecorder.requestPermission()
+    guard hasPermission else {
+      presentedAlert = .microphonePermissionDeniedAlert
+      return false
+    }
+
+    do {
+      waveformSamples = []
+      try await audioRecorder.startRecording()
+      recordingPhase = .recording
+      startRecordingUpdates()
+      return true
+    } catch {
+      presentedAlert = .recordingFailedAlert(error.localizedDescription)
+      return false
     }
   }
 

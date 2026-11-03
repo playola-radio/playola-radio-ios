@@ -24,14 +24,6 @@ struct StationListStationRowModel {
     return item.anyStation.name
   }
 
-  var comingSoonText: String {
-    if let date = item.station?.releaseDate {
-      return "Coming \(formattedMonthDay(with: date))"
-    } else {
-      return "Coming Soon"
-    }
-  }
-
   func formattedMonthDay(with date: Date) -> String {
     // Use UTC calendar to match how releaseDate is parsed from server
     var calendar = Calendar(identifier: .gregorian)
@@ -61,17 +53,15 @@ struct StationListStationRowModel {
   }
 
   var subtitleText: String {
-    let isInactive = !item.anyStation.active
-    let isComingSoonAndHidden = item.visibility == .comingSoon && !showSecretStations
-
-    if isInactive || isComingSoonAndHidden {
-      return comingSoonText
+    if item.isPlayable(unlocked: showSecretStations) { return item.anyStation.stationName }
+    if item.visibility == .comingSoon, let date = item.station?.releaseDate {
+      return "Coming \(formattedMonthDay(with: date))"
     }
-    return item.anyStation.stationName
+    return "Coming Soon"
   }
 
   var subtitleColor: Color {
-    return subtitleText == comingSoonText ? Color.playolaRed : Color.white
+    item.isPlayable(unlocked: showSecretStations) ? Color.white : Color.playolaRed
   }
 
   init(item: APIStationItem, liveStatus: LiveStatus? = nil, hasUpcomingGiveaway: Bool = false) {

@@ -156,4 +156,77 @@ struct VoicetrackUploadServiceTests {
 
     #expect(capturedS3Key.value == s3KeyWithSlashes)
   }
+
+  @Test
+  func testProcessVoicetrackRemovesConvertedFileWhenUploadIsCancelled() async throws {
+    let m4aURL = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString)
+      .appendingPathExtension("m4a")
+    try Data().write(to: m4aURL)
+
+    let service = withDependencies {
+      $0.audioConverter.convertToM4A = { _ in m4aURL }
+      $0.audioConverter.getDuration = { _ in 1000 }
+      $0.api.getVoicetrackPresignedURL = { _, _ in
+        PresignedURLResponse(
+          presignedUrl: URL(string: "https://intake.s3.amazonaws.com/test.m4a")!,
+          s3Key: "test.m4a",
+          voicetrackUrl: URL(string: "https://voicetracks.s3.amazonaws.com/test.m4a")!
+        )
+      }
+      $0.api.uploadToS3 = { _, _, _, _ in throw CancellationError() }
+    } operation: {
+      VoicetrackUploadService.liveValue
+    }
+
+    await #expect(throws: CancellationError.self) {
+      try await service.processVoicetrack(createTestVoicetrack(), testStationId, testJwtToken) {
+        _ in
+      }
+    }
+
+    #expect(!FileManager.default.fileExists(atPath: m4aURL.path()))
+  }
+
+  @Test
+  func testProcessVoicetrackDoesNotCreateVoicetrackWhenCancelledDuringUpload() async throws {
+    let uploadStarted = AsyncStream<Void>.makeStream()
+    let uploadFinished = AsyncStream<Void>.makeStream()
+    let createdVoicetrack = LockIsolated(false)
+
+    let service = withDependencies {
+      $0.audioConverter = .testValue
+      $0.api.getVoicetrackPresignedURL = { _, _ in
+        PresignedURLResponse(
+          presignedUrl: URL(string: "https://intake.s3.amazonaws.com/test.m4a")!,
+          s3Key: "test.m4a",
+          voicetrackUrl: URL(string: "https://voicetracks.s3.amazonaws.com/test.m4a")!
+        )
+      }
+      $0.api.uploadToS3 = { _, _, _, _ in
+        uploadStarted.continuation.yield(())
+        for await _ in uploadFinished.stream {}
+      }
+      $0.api.getVoicetrackStatus = { _, _, s3Key in
+        VoicetrackStatusResponse(ready: true, s3Key: s3Key)
+      }
+      $0.api.createVoicetrack = { _, _, _, _ in
+        createdVoicetrack.setValue(true)
+        return AudioBlock.mockWith()
+      }
+    } operation: {
+      VoicetrackUploadService.liveValue
+    }
+
+    let voicetrack = createTestVoicetrack()
+    let upload = Task {
+      try await service.processVoicetrack(voicetrack, testStationId, testJwtToken) { _ in }
+    }
+    for await _ in uploadStarted.stream { break }
+    upload.cancel()
+    uploadFinished.continuation.finish()
+
+    await #expect(throws: CancellationError.self) { try await upload.value }
+    #expect(!createdVoicetrack.value)
+  }
 }

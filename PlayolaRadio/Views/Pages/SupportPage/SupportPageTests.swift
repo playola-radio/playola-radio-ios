@@ -82,6 +82,8 @@ struct SupportPageTests {
     ]
 
     let model = withDependencies {
+      $0.api.markConversationRead = { _, _ in }
+      $0.pushNotifications.clearSupportBadge = {}
       $0.api.getSupportConversation = { _ in
         SupportConversationResponse(conversation: testConversation, unreadCount: 0)
       }
@@ -127,6 +129,8 @@ struct SupportPageTests {
     )
 
     let model = withDependencies {
+      $0.api.markConversationRead = { _, _ in }
+      $0.pushNotifications.clearSupportBadge = {}
       $0.api.getSupportConversation = { _ in
         SupportConversationResponse(conversation: testConversation, unreadCount: 0)
       }
@@ -176,6 +180,8 @@ struct SupportPageTests {
     )
 
     let model = withDependencies {
+      $0.api.markConversationRead = { _, _ in }
+      $0.pushNotifications.clearSupportBadge = {}
       $0.api.getSupportConversation = { _ in
         SupportConversationResponse(conversation: testConversation, unreadCount: 0)
       }
@@ -502,6 +508,8 @@ struct SupportPageTests {
     let createCalled = LockIsolated(false)
 
     let model = withDependencies {
+      $0.api.markConversationRead = { _, _ in }
+      $0.pushNotifications.clearSupportBadge = {}
       $0.api.getSupportConversation = { _ in
         SupportConversationResponse(conversation: existingConversation, unreadCount: 0)
       }

@@ -20,6 +20,9 @@ class YourLibraryPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.likesManager) var likesManager: LikesManager
 
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
+  var mainContainerNavigationCoordinator
+
   // MARK: - Shared State
 
   @ObservationIgnored @Shared(.showSecretStations) var showSecretStations: Bool
@@ -27,6 +30,7 @@ class YourLibraryPageModel: ViewModel {
   // MARK: - Sub-Models
 
   let presetsModel: PresetsModel
+  let listeningHistoryModel: ListeningHistoryPageModel
 
   // MARK: - Properties
 
@@ -34,8 +38,12 @@ class YourLibraryPageModel: ViewModel {
 
   // MARK: - Initialization
 
-  init(presetsModel: PresetsModel = PresetsModel()) {
+  init(
+    presetsModel: PresetsModel = PresetsModel(),
+    listeningHistoryModel: ListeningHistoryPageModel = ListeningHistoryPageModel()
+  ) {
     self.presetsModel = presetsModel
+    self.listeningHistoryModel = listeningHistoryModel
     super.init()
   }
 
@@ -43,6 +51,8 @@ class YourLibraryPageModel: ViewModel {
 
   var navigationTitle: String { "Your Library" }
   var likedSongsSectionTitle: String { "Liked Songs" }
+  var listeningHistoryTitle: String { "Listening History" }
+  var listeningHistorySubtitle: String { "Songs and channels you’ve heard" }
 
   /// All liked songs, newest first (flat — no date grouping).
   var likedSongs: [(AudioBlock, Date)] {
@@ -61,16 +71,22 @@ class YourLibraryPageModel: ViewModel {
     await presetsModel.loadPresetsIfNeeded()
   }
 
+  func listeningHistoryTapped() {
+    guard
+      !mainContainerNavigationCoordinator.yourLibraryPath.contains(
+        .listeningHistoryPage(listeningHistoryModel))
+    else { return }
+    listeningHistoryModel.detailWillOpen()
+    mainContainerNavigationCoordinator.push(.listeningHistoryPage(listeningHistoryModel))
+  }
+
   func presetTileTapped(_ display: PresetDisplayItem) async {
     guard !presetsModel.isEditingPresets else { return }
 
     let item = display.stationItem
     let station = item.anyStation
 
-    // A preset shown as unavailable ("Coming Soon" / inactive) must not attempt
-    // playback — mirror the availability guards in StationListModel.stationSelected.
-    if item.visibility == .comingSoon && showSecretStations == false { return }
-    guard station.active else { return }
+    guard item.isPlayable(unlocked: showSecretStations) else { return }
 
     let position = presetsModel.displayPresets.firstIndex(where: { $0.id == display.id }) ?? 0
     await analytics.track(

@@ -4,6 +4,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import IdentifiedCollections
@@ -16,6 +17,29 @@ import Testing
 @Suite(.freshSharedState)
 @MainActor
 struct YourLibraryPageTests {
+  @Test
+  func listeningHistoryEntryPushesTheLibraryOwnedDetailModel() {
+    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .yourLibrary
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = withDependencies {
+      $0.date = .constant(Date(timeIntervalSince1970: 1_700_000_000))
+    } operation: {
+      YourLibraryPageModel()
+    }
+
+    model.listeningHistoryTapped()
+    model.listeningHistoryTapped()
+
+    expectNoDifference(coordinator.yourLibraryPath.count, 1)
+
+    if case .listeningHistoryPage(let pushedModel) = coordinator.yourLibraryPath.last {
+      #expect(pushedModel === model.listeningHistoryModel)
+    } else {
+      Issue.record("Listening History was not pushed on the Library stack")
+    }
+  }
+
   @Test
   func testNavigationTitleIsYourLibrary() {
     let model = YourLibraryPageModel()
@@ -48,6 +72,46 @@ struct YourLibraryPageTests {
       return false
     }
     #expect(tracked)
+  }
+
+  @Test
+  func testPresetTileTappedIgnoresSecretWhenLocked() async {
+    @Shared(.showSecretStations) var showSecretStations = false
+    let item = APIStationItem(
+      sortOrder: 0, visibility: .hidden,
+      station: Station.mockWith(id: "secret"), urlStation: nil)
+    let display = PresetDisplayItem(id: "p1", stationItem: item, isPending: false)
+
+    let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+    let model = withDependencies {
+      $0.stationPlayer = stationPlayerMock
+      $0.analytics.track = { _ in }
+    } operation: {
+      YourLibraryPageModel()
+    }
+
+    await model.presetTileTapped(display)
+    #expect(stationPlayerMock.callsToPlay.isEmpty)
+  }
+
+  @Test
+  func testPresetTileTappedPlaysSecretWhenUnlocked() async {
+    @Shared(.showSecretStations) var showSecretStations = true
+    let item = APIStationItem(
+      sortOrder: 0, visibility: .hidden,
+      station: Station.mockWith(id: "secret"), urlStation: nil)
+    let display = PresetDisplayItem(id: "p1", stationItem: item, isPending: false)
+
+    let stationPlayerMock: StationPlayerMock = .mockStoppedPlayer()
+    let model = withDependencies {
+      $0.stationPlayer = stationPlayerMock
+      $0.analytics.track = { _ in }
+    } operation: {
+      YourLibraryPageModel()
+    }
+
+    await model.presetTileTapped(display)
+    expectNoDifference(stationPlayerMock.callsToPlay.map(\.id), ["secret"])
   }
 
   @Test

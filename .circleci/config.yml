@@ -24,7 +24,7 @@ parameters:
 jobs:
   swiftlint_check:
     macos:
-      xcode: 26.2
+      xcode: 26.5
     resource_class: m4pro.medium
     steps:
       - checkout
@@ -55,7 +55,7 @@ jobs:
 
   build-and-test:
     macos:
-      xcode: 26.2
+      xcode: 26.5
     resource_class: m4pro.medium
     environment:
       FL_OUTPUT_DIR: output
@@ -83,7 +83,7 @@ jobs:
 
   release_build:
     macos:
-      xcode: 26.2
+      xcode: 26.5
     resource_class: m4pro.medium
     steps:
       - checkout
@@ -120,7 +120,7 @@ jobs:
 
   release_staging_build:
     macos:
-      xcode: 26.2
+      xcode: 26.5
     resource_class: m4pro.medium
     steps:
       - checkout
@@ -155,7 +155,7 @@ jobs:
 
   adhoc:
     macos:
-      xcode: 26.2
+      xcode: 26.5
     resource_class: m4pro.medium
     environment:
       FL_OUTPUT_DIR: output

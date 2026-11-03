@@ -126,7 +126,7 @@ extension UrlStation {
   }
 
   static var mock: UrlStation {
-    StationList.mocks.first(where: { !$0.urlStations.isEmpty })!.urlStations.first!
+    StationList.mocks.flatMap { $0.items ?? [] }.compactMap(\.urlStation).first!
   }
 
   static func mockWith(
