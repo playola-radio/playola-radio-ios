@@ -309,6 +309,83 @@ struct AMADraftTests {
       AskMeAnythingLivePageModel(stationId: testStationId).openingItems, model.openingItems)
   }
 
+  @Test func startShowIsBlockedWhileAnOpeningRowDeletionIsSaving() async {
+    let saveStarted = AsyncStream<Void>.makeStream()
+    let resumeSave = AsyncStream<Void>.makeStream()
+    let startedBlockIds = LockIsolated<[[String]]>([])
+    await withDependencies {
+      $0.amaOpeningDraftSaver.save = { _ in
+        saveStarted.continuation.yield(())
+        for await _ in resumeSave.stream { break }
+      }
+      $0.api.startLiveShow = { _, _, audioBlockIds in
+        startedBlockIds.withValue { $0.append(audioBlockIds) }
+        throw APIError.liveShowUnavailable(delayUntil: nil)
+      }
+    } operation: {
+      @Shared(.auth) var auth = Auth(
+        loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      let unwanted = AMAOpeningItem(
+        id: UUID(), content: .song(.mockWith(id: "unwanted", durationMS: 570_000)))
+      let kept = AMAOpeningItem(
+        id: UUID(), content: .song(.mockWith(id: "kept", durationMS: 570_000)))
+      model.openingItems = [introItem(durationMS: 30_000), unwanted, kept]
+
+      let deletion = Task { await model.openingRowDeleteTapped(unwanted.id) }
+      for await _ in saveStarted.stream { break }
+
+      #expect(!model.isStartShowEnabled)
+      expectNoDifference(model.readinessHint, "Saving playlist change")
+      await model.startShowButtonTapped()
+      expectNoDifference(startedBlockIds.value, [])
+
+      resumeSave.continuation.finish()
+      await deletion.value
+
+      #expect(model.isStartShowEnabled)
+      await model.startShowButtonTapped()
+      expectNoDifference(startedBlockIds.value, [["intro", "kept"]])
+    }
+  }
+
+  @Test func reopeningSetupAfterFailedDeletionUsesTheRestoredPlaylist() async {
+    let saveStarted = AsyncStream<Void>.makeStream()
+    let resumeSave = AsyncStream<Void>.makeStream()
+    let startedBlockIds = LockIsolated<[[String]]>([])
+    await withDependencies {
+      $0.amaOpeningDraftSaver.save = { _ in
+        saveStarted.continuation.yield(())
+        for await _ in resumeSave.stream { break }
+        throw CocoaError(.fileWriteUnknown)
+      }
+      $0.api.startLiveShow = { _, _, audioBlockIds in
+        startedBlockIds.withValue { $0.append(audioBlockIds) }
+        throw APIError.liveShowUnavailable(delayUntil: nil)
+      }
+    } operation: {
+      @Shared(.auth) var auth = Auth(
+        loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
+      let original = AskMeAnythingLivePageModel(stationId: testStationId)
+      let removed = AMAOpeningItem(
+        id: UUID(), content: .song(.mockWith(id: "removed", durationMS: 570_000)))
+      let kept = AMAOpeningItem(
+        id: UUID(), content: .song(.mockWith(id: "kept", durationMS: 570_000)))
+      original.openingItems = [introItem(durationMS: 30_000), removed, kept]
+
+      let deletion = Task { await original.openingRowDeleteTapped(removed.id) }
+      for await _ in saveStarted.stream { break }
+      let reopened = AskMeAnythingLivePageModel(stationId: testStationId)
+      #expect(!reopened.isStartShowEnabled)
+
+      resumeSave.continuation.finish()
+      await deletion.value
+      await reopened.startShowButtonTapped()
+
+      expectNoDifference(startedBlockIds.value, [["intro", "removed", "kept"]])
+    }
+  }
+
   @Test func differentSignedInUserCannotDeleteAnOpeningRow() async {
     @Shared(.auth) var auth = Auth(
       loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
