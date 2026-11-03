@@ -71,6 +71,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   var isCheckingSchedule = false
   var isStartingShow = false
   var isEndingShow = false
+  private var pendingOpeningDeletionIds: Set<UUID> = []
   private var hasScheduleLoadFailed = false
   var outroStagingId: String?
   var endingSpinId: String?
@@ -213,8 +214,10 @@ class AskMeAnythingLivePageModel: ViewModel {
 
   func openingRowDeleteTapped(_ id: UUID) async {
     guard isOpeningPlaylistEditable, auth.currentUser?.id == openingDraftUserId,
-      let item = openingItems[id: id], !item.content.is(\.intro)
+      let item = openingItems[id: id], !item.content.is(\.intro),
+      pendingOpeningDeletionIds.insert(id).inserted
     else { return }
+    defer { pendingOpeningDeletionIds.remove(id) }
     if let openingDraftUserId {
       _ = $amaOpeningDrafts.withLock { $0[openingDraftUserId]?[stationId]?.remove(id: id) }
     }
@@ -455,7 +458,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   var isStartShowEnabled: Bool {
     readyMilliseconds >= targetMilliseconds
       && openingItems.allSatisfy(\.isReady) && !isStartingShow && !isCheckingSchedule
-      && !hasScheduleLoadFailed && !isShowActive
+      && !hasScheduleLoadFailed && !isShowActive && pendingOpeningDeletionIds.isEmpty
   }
   var startShowButtonTitleColor: Color { isStartShowEnabled ? .white : .playolaGray }
   var startShowButtonBackgroundColor: Color {
