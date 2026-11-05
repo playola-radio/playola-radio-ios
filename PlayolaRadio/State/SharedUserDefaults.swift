@@ -324,6 +324,12 @@ extension SharedKey where Self == InMemoryKey<Set<String>>.Default {
   }
 }
 
+extension SharedKey where Self == InMemoryKey<[String: [String: Set<UUID>]]>.Default {
+  static var pendingAMAOpeningDeletionIds: Self {
+    Self[.inMemory("pendingAMAOpeningDeletionIds"), default: [:]]
+  }
+}
+
 extension SharedKey
 where Self == FileStorageKey<[String: [String: IdentifiedArrayOf<AMAOpeningItem>]]>.Default {
   static var amaOpeningDrafts: Self {

@@ -259,6 +259,7 @@ struct WelcomeMessagePageModelTests {
       $0.date.now = now
       $0.analytics.track = { _ in }
       $0.stationPlayer = StationPlayerMock()
+      $0.api.markWelcomeMessageSeen = { _, _ in }
       $0.api.fetchSchedule = { _, _ in spins }
       $0.api.getStationWelcomeMessage = { _, _ in
         AudioBlock.mockWith(downloadUrl: URL(string: "https://example.com/welcome.m4a"))
@@ -297,6 +298,7 @@ struct WelcomeMessagePageModelTests {
       $0.date.now = now
       $0.analytics.track = { _ in }
       $0.stationPlayer = StationPlayerMock()
+      $0.api.markWelcomeMessageSeen = { _, _ in }
       $0.api.fetchSchedule = { _, _ in endedSpin }
       $0.api.getStationWelcomeMessage = { _, _ in
         AudioBlock.mockWith(downloadUrl: URL(string: "https://example.com/welcome.m4a"))
@@ -343,6 +345,7 @@ struct WelcomeMessagePageModelTests {
       $0.date.now = start.addingTimeInterval(10)
       $0.analytics.track = { _ in }
       $0.stationPlayer = StationPlayerMock()
+      $0.api.markWelcomeMessageSeen = { _, _ in }
       $0.api.fetchSchedule = { _, _ in spins }
       $0.api.getStationWelcomeMessage = { _, _ in
         AudioBlock.mockWith(downloadUrl: URL(string: "https://example.com/welcome.m4a"))

@@ -214,6 +214,23 @@ full-track audio preview + scrubber. Exports under `exports/in-progress/music-li
 | Music Library · Categories | `z2PgEC` | Implementing (#418) | Song categories + "All Songs" row, deduped counts, drill-down |
 | Music Library · All Songs / Category Detail | `SeRvJ` | Implementing (#418) | Detail page; sort control, A–Z index, per-song play/pause + scrubber |
 
+### Proposal · Song Listen History (zone `hFtDu`, label `GwloX`)
+
+Personal song history reached from a compact Your Library entry, with channel, server-reported play time and a heart action on the detail page. Visual design and exports: `features/listen-history/`. The selected screens and all detail states are visually approved. The iOS implementation is in draft PR #473, after design PR #472; the app reads the existing server history.
+
+| Frame | Node ID | Status | Notes |
+|---|---|---|---|
+| Listen History · A · Library Entry | `VnLyt` | Implementing (#473) | Chosen compact entry; visually locked by user |
+| Listen History · B · Recent Preview | `ZEn1P` | Exploring | Unchosen two recent plays exploration |
+| Listen History · C · Blended Entry | `oS2Y9` | Exploring | Unchosen blended card exploration |
+| Listen History · Detail · Recent Plays | `DageM` | Implementing (#473) | Dated songs, channels, times and heart actions |
+| Listen History · Detail · Empty | `Nnpzb` | Implementing (#473) | No available history |
+| Listen History · Detail · Loading | `GNMt9` | Implementing (#473) | Initial loading |
+| Listen History · Detail · Load Error | `W16HKe` | Implementing (#473) | Initial request failure |
+| Listen History · Detail · Signed Out | `kyCIW` | Implementing (#473) | Sign-in state |
+| Listen History · Detail · Loading More | `d8xmZF` | Implementing (#473) | Later page loading |
+| Listen History · Detail · More Error | `m5BmO` | Implementing (#473) | Later page failure and retry |
+
 ### Supporting components (artist/DJ)
 
 | Component | Node ID | Status |

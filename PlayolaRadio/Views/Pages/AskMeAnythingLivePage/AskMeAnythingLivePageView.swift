@@ -39,19 +39,19 @@ struct AskMeAnythingLivePageView: View {
   }
 
   private var setupContent: some View {
-    ScrollView {
-      ZStack(alignment: .top) {
+    ZStack(alignment: .top) {
+      ScrollView {
         introPromptContent
           .padding(.horizontal, 16)
-          .opacity(model.introPromptOpacity)
-          .allowsHitTesting(model.introPromptInteractive)
-          .accessibilityHidden(model.introPromptAccessibilityHidden)
-        openingPlaylistContent
-          .opacity(model.openingPlaylistOpacity)
-          .allowsHitTesting(model.openingPlaylistInteractive)
-          .accessibilityHidden(model.openingPlaylistAccessibilityHidden)
+          .padding(.top, 20)
       }
-      .padding(.top, 20)
+      .opacity(model.introPromptOpacity)
+      .allowsHitTesting(model.introPromptInteractive)
+      .accessibilityHidden(model.introPromptAccessibilityHidden)
+      openingPlaylistContent
+        .opacity(model.openingPlaylistOpacity)
+        .allowsHitTesting(model.openingPlaylistInteractive)
+        .accessibilityHidden(model.openingPlaylistAccessibilityHidden)
     }
     .safeAreaInset(edge: .bottom) { bottomBar }
   }
@@ -152,17 +152,39 @@ struct AskMeAnythingLivePageView: View {
   // MARK: - Build-your-opening state (01b)
 
   private var openingPlaylistContent: some View {
-    VStack(alignment: .leading, spacing: 16) {
+    List {
       openingPlaylistHeading
+        .padding(.top, 20)
         .padding(.horizontal, 16)
-      VStack(spacing: 0) {
-        ForEach(model.openingRows) { row in
-          AMAOpeningRowView(data: row)
-        }
+        .padding(.bottom, 16)
+        .listRowInsets(EdgeInsets())
+        .listRowSeparator(.hidden)
+        .listRowBackground(Color.clear)
+      ForEach(model.openingRows) { row in
+        AMAOpeningRowView(data: row)
+          .moveDisabled(!row.isEditable)
+          .swipeActions {
+            Button(model.deleteRowLabel, role: .destructive) {
+              Task { await model.openingRowDeleteTapped(row.id) }
+            }
+            .disabled(!row.isEditable)
+          }
       }
+      .onMove { model.openingRowsMoved(from: $0, to: $1) }
+      .listRowInsets(EdgeInsets())
+      .listRowSeparator(.hidden)
+      .listRowBackground(Color.playolaSurfaceRow)
       addToShowCard
+        .padding(.top, 16)
         .padding(.horizontal, 16)
+        .listRowInsets(EdgeInsets())
+        .listRowSeparator(.hidden)
+        .listRowBackground(Color.clear)
     }
+    .listStyle(.plain)
+    .environment(\.defaultMinListRowHeight, 0)
+    .contentMargins(.all, 0, for: .scrollContent)
+    .scrollContentBackground(.hidden)
   }
 
   private var openingPlaylistHeading: some View {

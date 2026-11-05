@@ -107,6 +107,7 @@ struct AMADraftTests {
     @Shared(.auth) var auth = Auth(
       loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
     let model = withDependencies {
+      $0.api.stubLiveShowRefreshes()
       $0.date.now = Date(timeIntervalSince1970: 1_000_000)
       $0.api.startLiveShow = { _, _, _ in
         StartLiveShowResponse(
@@ -149,9 +150,9 @@ struct AMADraftTests {
     let attempts = LockIsolated(0)
     let deleted = LockIsolated<[URL]>([])
     try await withDependencies {
+      $0.api.stubLiveShowRefreshes()
       $0.uuid = .incrementing
       $0.date.now = Date(timeIntervalSince1970: 1_000_000)
-      $0.api.fetchSchedule = { _, _ in [] }
       $0.audioRecorder.deleteRecording = { url in deleted.withValue { $0.append(url) } }
       $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, status in
         let attempt = attempts.withValue {
@@ -246,6 +247,7 @@ struct AMADraftTests {
     let attempts = LockIsolated(0)
     let date = Date(timeIntervalSince1970: 1_000_000)
     await withDependencies {
+      $0.api.stubLiveShowRefreshes()
       $0.date.now = date
       $0.api.fetchSchedule = { _, _ in
         guard showExists else { throw APIError.liveShowFinished }
@@ -277,4 +279,302 @@ struct AMADraftTests {
     }
   }
 
+  @Test func onlyTheIntroRowIsPinnedInTheOpeningPlaylist() {
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    model.openingItems = [
+      introItem(durationMS: 30_000),
+      AMAOpeningItem(id: UUID(), content: .song(.mockWith(id: "song"))),
+      questionAnswerItem(trailing: false),
+    ]
+
+    expectNoDifference(model.openingRows.map(\.isEditable), [false, true, true])
+  }
+
+  @Test func deletingAnOpeningRowRemovesItFromTheSavedPlaylist() async {
+    @Shared(.auth) var auth = Auth(
+      loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    let song = AMAOpeningItem(
+      id: UUID(), content: .song(.mockWith(id: "song", durationMS: 570_000)))
+    model.openingItems = [introItem(durationMS: 30_000), song]
+    #expect(model.isStartShowEnabled)
+
+    await expectDifference(model.openingItems) {
+      await model.openingRowDeleteTapped(song.id)
+    } changes: {
+      $0.remove(id: song.id)
+    }
+    #expect(!model.isStartShowEnabled)
+    expectNoDifference(
+      AskMeAnythingLivePageModel(stationId: testStationId).openingItems, model.openingItems)
+  }
+
+  @Test func startShowIsBlockedWhileAnOpeningRowDeletionIsSaving() async {
+    let saveStarted = AsyncStream<Void>.makeStream()
+    let resumeSave = AsyncStream<Void>.makeStream()
+    let startedBlockIds = LockIsolated<[[String]]>([])
+    await withDependencies {
+      $0.amaOpeningDraftSaver.save = { _ in
+        saveStarted.continuation.yield(())
+        for await _ in resumeSave.stream { break }
+      }
+      $0.api.startLiveShow = { _, _, audioBlockIds in
+        startedBlockIds.withValue { $0.append(audioBlockIds) }
+        throw APIError.liveShowUnavailable(delayUntil: nil)
+      }
+    } operation: {
+      @Shared(.auth) var auth = Auth(
+        loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      let unwanted = AMAOpeningItem(
+        id: UUID(), content: .song(.mockWith(id: "unwanted", durationMS: 570_000)))
+      let kept = AMAOpeningItem(
+        id: UUID(), content: .song(.mockWith(id: "kept", durationMS: 570_000)))
+      model.openingItems = [introItem(durationMS: 30_000), unwanted, kept]
+
+      let deletion = Task { await model.openingRowDeleteTapped(unwanted.id) }
+      for await _ in saveStarted.stream { break }
+
+      #expect(!model.isStartShowEnabled)
+      expectNoDifference(model.readinessHint, "Saving playlist change")
+      await model.startShowButtonTapped()
+      expectNoDifference(startedBlockIds.value, [])
+
+      resumeSave.continuation.finish()
+      await deletion.value
+
+      #expect(model.isStartShowEnabled)
+      await model.startShowButtonTapped()
+      expectNoDifference(startedBlockIds.value, [["intro", "kept"]])
+    }
+  }
+
+  @Test func reopeningSetupAfterFailedDeletionUsesTheRestoredPlaylist() async {
+    let saveStarted = AsyncStream<Void>.makeStream()
+    let resumeSave = AsyncStream<Void>.makeStream()
+    let startedBlockIds = LockIsolated<[[String]]>([])
+    await withDependencies {
+      $0.amaOpeningDraftSaver.save = { _ in
+        saveStarted.continuation.yield(())
+        for await _ in resumeSave.stream { break }
+        throw CocoaError(.fileWriteUnknown)
+      }
+      $0.api.startLiveShow = { _, _, audioBlockIds in
+        startedBlockIds.withValue { $0.append(audioBlockIds) }
+        throw APIError.liveShowUnavailable(delayUntil: nil)
+      }
+    } operation: {
+      @Shared(.auth) var auth = Auth(
+        loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
+      let original = AskMeAnythingLivePageModel(stationId: testStationId)
+      let removed = AMAOpeningItem(
+        id: UUID(), content: .song(.mockWith(id: "removed", durationMS: 570_000)))
+      let kept = AMAOpeningItem(
+        id: UUID(), content: .song(.mockWith(id: "kept", durationMS: 570_000)))
+      original.openingItems = [introItem(durationMS: 30_000), removed, kept]
+
+      let deletion = Task { await original.openingRowDeleteTapped(removed.id) }
+      for await _ in saveStarted.stream { break }
+      let reopened = AskMeAnythingLivePageModel(stationId: testStationId)
+      #expect(!reopened.isStartShowEnabled)
+
+      resumeSave.continuation.finish()
+      await deletion.value
+      await reopened.startShowButtonTapped()
+
+      expectNoDifference(startedBlockIds.value, [["intro", "removed", "kept"]])
+    }
+  }
+
+  @Test func differentSignedInUserCannotDeleteAnOpeningRow() async {
+    @Shared(.auth) var auth = Auth(
+      loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    let song = AMAOpeningItem(
+      id: UUID(), content: .song(.mockWith(id: "song", durationMS: 570_000)))
+    model.openingItems = [introItem(durationMS: 30_000), song]
+    let originalItems = model.openingItems
+    let originalDrafts = model.amaOpeningDrafts
+    $auth.withLock {
+      $0 = Auth(
+        loggedInUser: LoggedInUser(id: "other", firstName: "Other", email: "other@example.com"))
+    }
+
+    await model.openingRowDeleteTapped(song.id)
+
+    expectNoDifference(model.openingItems, originalItems)
+    expectNoDifference(model.amaOpeningDrafts, originalDrafts)
+  }
+
+  @Test func introRowCannotBeDeleted() async {
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    let intro = introItem(durationMS: 30_000)
+    model.openingItems = [intro]
+
+    await model.openingRowDeleteTapped(intro.id)
+
+    expectNoDifference(model.openingItems, [intro])
+  }
+
+  @Test func deletingAnUploadingVoicetrackStopsTheUploadAndDiscardsTheRecording() async throws {
+    @Shared(.auth) var auth = Auth(
+      loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
+    let started = AsyncStream<Void>.makeStream()
+    let suspended = AsyncStream<Void>.makeStream()
+    let deleted = LockIsolated<[URL]>([])
+    try await withDependencies {
+      $0.uuid = .incrementing
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.audioRecorder.deleteRecording = { url in deleted.withValue { $0.append(url) } }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, status in
+        await status(.uploading(progress: 0.5))
+        started.continuation.yield(())
+        for await _ in suspended.stream {}
+        return .mockWith(id: "uploaded", durationMS: 20_000)
+      }
+    } operation: {
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      let intro = introItem(durationMS: 30_000)
+      model.openingItems.append(intro)
+      let source = URL(fileURLWithPath: "/tmp/discarded.wav")
+      try model.acceptVoicetrack(url: source)
+      for await _ in started.stream { break }
+      let voicetrackId = try #require(model.openingItems.last?.id)
+
+      await model.openingRowDeleteTapped(voicetrackId)
+      suspended.continuation.finish()
+      await model.waitForPendingUploads()
+
+      expectNoDifference(model.openingItems, [intro])
+      expectNoDifference(deleted.value, [source])
+      #expect(model.presentedAlert == nil)
+    }
+  }
+
+  @Test func failedOpeningRowDeletionKeepsCurrentPlaylistAndUploadForRetry() async throws {
+    struct SaveFailure: Error {}
+
+    let files = LockIsolated<[URL: Data]>([:])
+    let saveStarted = AsyncStream<Void>.makeStream()
+    let resumeSave = AsyncStream<Void>.makeStream()
+    let started = AsyncStream<Void>.makeStream()
+    let suspended = AsyncStream<Void>.makeStream()
+    let deleted = LockIsolated<[URL]>([])
+    try await withDependencies {
+      $0.defaultFileStorage = .inMemory(fileSystem: files)
+      $0.uuid = .incrementing
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.audioRecorder.deleteRecording = { url in deleted.withValue { $0.append(url) } }
+      $0.voicetrackUploadService = VoicetrackUploadService { _, _, _, status in
+        await status(.uploading(progress: 0.5))
+        started.continuation.yield(())
+        for await _ in suspended.stream {}
+        return .mockWith(id: "uploaded", durationMS: 20_000)
+      }
+      $0.amaOpeningDraftSaver.save = { _ in
+        saveStarted.continuation.yield(())
+        for await _ in resumeSave.stream { break }
+        throw SaveFailure()
+      }
+      $0.errorReporting.reportError = { _, _ in }
+    } operation: {
+      @Shared(.auth) var auth = Auth(
+        loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
+      let model = AskMeAnythingLivePageModel(stationId: testStationId)
+      model.openingItems.append(introItem(durationMS: 30_000))
+      let source = URL(fileURLWithPath: "/tmp/retry.wav")
+      try model.acceptVoicetrack(url: source)
+      for await _ in started.stream { break }
+      let voicetrackId = try #require(model.openingItems.last?.id)
+      let laterSong = AMAOpeningItem(id: UUID(), content: .song(.mockWith(id: "later-song")))
+
+      let deletion = Task { await model.openingRowDeleteTapped(voicetrackId) }
+      for await _ in saveStarted.stream { break }
+      model.openingItems.append(laterSong)
+      resumeSave.continuation.finish()
+      await deletion.value
+
+      #expect(model.openingItems[id: voicetrackId] != nil)
+      #expect(model.uploadTasks[voicetrackId]?.isCancelled == false)
+      #expect(deleted.value.isEmpty)
+      #expect(model.presentedAlert != nil)
+      let restored = AskMeAnythingLivePageModel(stationId: testStationId)
+      expectNoDifference(restored.openingItems.ids, model.openingItems.ids)
+      #expect(restored.openingItems[id: laterSong.id] != nil)
+
+      suspended.continuation.finish()
+      await model.waitForPendingUploads()
+    }
+  }
+
+  @Test func movingAnOpeningRowReordersTheSavedPlaylist() {
+    @Shared(.auth) var auth = Auth(
+      loggedInUser: LoggedInUser(id: "host", firstName: "Host", email: "host@example.com"))
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    let first = AMAOpeningItem(id: UUID(), content: .song(.mockWith(id: "first")))
+    let second = AMAOpeningItem(id: UUID(), content: .song(.mockWith(id: "second")))
+    model.openingItems = [introItem(durationMS: 30_000), first, second]
+
+    expectDifference(model.openingItems) {
+      model.openingRowsMoved(from: [2], to: 1)
+    } changes: {
+      $0.move(fromOffsets: [2], toOffset: 1)
+    }
+    expectNoDifference(
+      AskMeAnythingLivePageModel(stationId: testStationId).openingItems.compactMap(\.audioBlockId),
+      ["intro", "second", "first"])
+  }
+
+  @Test func openingRowsCannotMoveAboveOrDisplaceTheIntro() {
+    let model = AskMeAnythingLivePageModel(stationId: testStationId)
+    model.openingItems = [
+      introItem(durationMS: 30_000),
+      AMAOpeningItem(id: UUID(), content: .song(.mockWith(id: "song"))),
+    ]
+    let original = model.openingItems
+
+    model.openingRowsMoved(from: [1], to: 0)
+    model.openingRowsMoved(from: [0], to: 2)
+
+    expectNoDifference(model.openingItems, original)
+  }
+}
+
+@Suite(.freshSharedState)
+@MainActor
+struct AMAOpeningItemTests {
+  private func block(_ ms: Int) -> AudioBlock { .mockWith(id: "b", durationMS: ms) }
+
+  private func uuid(_ index: Int) -> UUID {
+    UUID(uuidString: String(format: "00000000-0000-0000-0000-%012d", index))!
+  }
+
+  @Test func introAndSongAreAlwaysReadyAndCountFullDuration() {
+    let intro = AMAOpeningItem(id: uuid(0), content: .intro(block(30_000)))
+    let song = AMAOpeningItem(id: uuid(1), content: .song(block(200_000)))
+    #expect(intro.isReady)
+    expectNoDifference(intro.readyDurationMS, 30_000)
+    #expect(song.isReady)
+    expectNoDifference(song.readyDurationMS, 200_000)
+  }
+
+  @Test func processingVoicetrackIsNotReadyAndCountsZero() {
+    let vt = LocalVoicetrack(
+      id: uuid(2), originalURL: URL(fileURLWithPath: "/tmp/a.wav"),
+      status: .uploading(progress: 0.5), createdAt: Date(timeIntervalSince1970: 0),
+      title: "VT")
+    let item = AMAOpeningItem(id: uuid(3), content: .voicetrack(vt, completedDurationMS: nil))
+    #expect(!item.isReady)
+    expectNoDifference(item.readyDurationMS, 0)
+  }
+
+  @Test func completedVoicetrackWithDurationIsReadyAndCountsThatDuration() {
+    var vt = LocalVoicetrack(
+      id: uuid(4), originalURL: URL(fileURLWithPath: "/tmp/a.wav"),
+      status: .completed, createdAt: Date(timeIntervalSince1970: 0), title: "VT")
+    vt.audioBlockId = "vt-block"
+    let item = AMAOpeningItem(id: uuid(5), content: .voicetrack(vt, completedDurationMS: 45_000))
+    #expect(item.isReady)
+    expectNoDifference(item.readyDurationMS, 45_000)
+  }
 }

@@ -30,6 +30,7 @@ class AskQuestionPageModel: ViewModel {
   // MARK: - State
 
   let station: Station
+  let flipToRecord = FlipToRecordModel()
 
   var recordingPhase: AskQuestionRecordingPhase = .idle
   var uploadPhase: AskQuestionUploadPhase = .notStarted
@@ -134,6 +135,8 @@ class AskQuestionPageModel: ViewModel {
   init(station: Station) {
     self.station = station
     super.init()
+    flipToRecord.start = { [weak self] in await self?.startRecording() ?? false }
+    flipToRecord.stop = { [weak self] in await self?.stopTapped() }
   }
 
   // MARK: - Lifecycle
@@ -150,24 +153,17 @@ class AskQuestionPageModel: ViewModel {
 
   // MARK: - Recording Actions
 
-  func recordTapped() async {
-    let hasPermission = await audioRecorder.requestPermission()
-    guard hasPermission else {
-      presentedAlert = .microphonePermissionDeniedAlert
-      return
-    }
+  func viewDisappeared() async {
+    await flipToRecord.recordingStopped()
+  }
 
-    do {
-      waveformSamples = []
-      try await audioRecorder.startRecording()
-      recordingPhase = .recording
-      startRecordingUpdates()
-    } catch {
-      presentedAlert = .recordingFailedAlert(error.localizedDescription)
-    }
+  func recordTapped() async {
+    await flipToRecord.recordTapped()
   }
 
   func stopTapped() async {
+    await flipToRecord.recordingStopped()
+    guard recordingTask != nil else { return }
     stopRecordingUpdates()
     do {
       let url = try await audioRecorder.stopRecording()
@@ -177,6 +173,25 @@ class AskQuestionPageModel: ViewModel {
       recordingPhase = .review
     } catch {
       presentedAlert = .recordingFailedAlert(error.localizedDescription)
+    }
+  }
+
+  private func startRecording() async -> Bool {
+    let hasPermission = await audioRecorder.requestPermission()
+    guard hasPermission else {
+      presentedAlert = .microphonePermissionDeniedAlert
+      return false
+    }
+
+    do {
+      waveformSamples = []
+      try await audioRecorder.startRecording()
+      recordingPhase = .recording
+      startRecordingUpdates()
+      return true
+    } catch {
+      presentedAlert = .recordingFailedAlert(error.localizedDescription)
+      return false
     }
   }
 
@@ -267,6 +282,7 @@ class AskQuestionPageModel: ViewModel {
   }
 
   func confirmCancel() async {
+    await flipToRecord.recordingStopped()
     stopPlaybackUpdates()
     await audioPlayer.stop()
     if let url = recordingURL {

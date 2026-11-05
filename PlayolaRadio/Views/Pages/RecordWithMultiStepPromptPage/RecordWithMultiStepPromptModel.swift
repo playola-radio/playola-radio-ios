@@ -42,6 +42,8 @@ class RecordWithMultiStepPromptModel: ViewModel {
     self.steps = IdentifiedArray(uniqueElements: steps)
     self.trackLabel = trackLabel
     super.init()
+    flipToRecord.start = { [weak self] in await self?.startRecording() ?? false }
+    flipToRecord.stop = { [weak self] in await self?.stopRecording() }
   }
 
   // MARK: - Properties
@@ -73,6 +75,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
   /// `onUseRecording`, which blocks the recorder through upload+processing before popping.
   @ObservationIgnored var onRecordingAccepted: (@MainActor (URL, TimeInterval) throws -> Void)?
 
+  let flipToRecord = FlipToRecordModel()
   var recordingPhase: RecordPromptPhase = .ready
   var recordingState: RecordingState = .idle
   var recordingURL: URL?
@@ -85,6 +88,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
   var processingProgress: Double = 0
   var presentedAlert: PlayolaAlert?
   @ObservationIgnored private var isRecordingActionInFlight = false
+  @ObservationIgnored private var isStoppingRecording = false
   @ObservationIgnored private var isPlaybackActionInFlight = false
   @ObservationIgnored private var isLeaving = false
   @ObservationIgnored private var processingTimerTask: Task<Void, Never>?
@@ -123,7 +127,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
     isRecordingActionInFlight = true
     defer { isRecordingActionInFlight = false }
     switch recordingPhase {
-    case .ready: await startRecording()
+    case .ready: await flipToRecord.recordTapped()
     case .recording: await stopRecording()
     case .review, .uploading, .processing: break
     }
@@ -434,13 +438,13 @@ class RecordWithMultiStepPromptModel: ViewModel {
     processingTimerTask = nil
   }
 
-  private func startRecording() async {
+  private func startRecording() async -> Bool {
     await stopPlayback()
     do {
       let (session, updates) = try await audioRecorder.startRecordingUpdates()
       guard !isLeaving else {
         await session.cancel()
-        return
+        return false
       }
       recordingSession = session
       recordingUpdatesTask = Task { [weak self] in
@@ -450,18 +454,25 @@ class RecordWithMultiStepPromptModel: ViewModel {
         }
       }
       recordingPhase = .recording
+      return true
     } catch AudioRecorderError.permissionDenied {
       if !isLeaving {
         presentedAlert = .microphonePermissionDeniedAlert
       }
+      return false
     } catch {
       if !isLeaving {
         presentedAlert = .recordingFailedAlert(error.localizedDescription)
       }
+      return false
     }
   }
 
   private func stopRecording() async {
+    await flipToRecord.recordingStopped()
+    guard recordingPhase == .recording, !isStoppingRecording else { return }
+    isStoppingRecording = true
+    defer { isStoppingRecording = false }
     let captured = recordingState.currentTime
     recordingUpdatesTask?.cancel()
     recordingUpdatesTask = nil
@@ -518,6 +529,7 @@ class RecordWithMultiStepPromptModel: ViewModel {
   }
 
   private func teardown() async {
+    await flipToRecord.recordingStopped()
     stopProcessingTimer()
     recordingUpdatesTask?.cancel()
     recordingUpdatesTask = nil

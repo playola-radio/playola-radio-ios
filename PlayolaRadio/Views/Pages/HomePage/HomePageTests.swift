@@ -498,6 +498,8 @@ struct HomePageTests {
     )
 
     await withDependencies {
+      $0.api.getMyListenerQuestionAirings = { _ in [] }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
       $0.date.now = now
       $0.api.getAirings = { _, _ in [futureAiring] }
     } operation: {
@@ -514,6 +516,8 @@ struct HomePageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.getMyListenerQuestionAirings = { _ in [] }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
       $0.api.getAirings = { _, _ in [] }
     } operation: {
       let model = HomePageModel()
@@ -529,6 +533,8 @@ struct HomePageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.getMyListenerQuestionAirings = { _ in [] }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
       $0.api.getAirings = { _, _ in
         throw APIError.dataNotValid
       }
@@ -578,6 +584,8 @@ struct HomePageTests {
     ]
 
     await withDependencies {
+      $0.api.getMyListenerQuestionAirings = { _ in [] }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
       $0.date.now = now
       $0.api.getAirings = { _, _ in endedAirings }
     } operation: {
@@ -602,6 +610,8 @@ struct HomePageTests {
     )
 
     await withDependencies {
+      $0.api.getAirings = { _, _ in [] }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
       $0.api.getMyListenerQuestionAirings = { _ in [expectedAiring] }
     } operation: {
       let model = HomePageModel()
@@ -619,6 +629,8 @@ struct HomePageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.getAirings = { _, _ in [] }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
       $0.api.getMyListenerQuestionAirings = { _ in [] }
     } operation: {
       let model = HomePageModel()
@@ -635,6 +647,8 @@ struct HomePageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     await withDependencies {
+      $0.api.getAirings = { _, _ in [] }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
       $0.api.getMyListenerQuestionAirings = { _ in
         throw APIError.dataNotValid
       }
@@ -678,6 +692,8 @@ struct HomePageTests {
     )
 
     await withDependencies {
+      $0.api.getAirings = { _, _ in [] }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
       $0.api.getMyListenerQuestionAirings = { _ in [airing] }
     } operation: {
       let model = HomePageModel()
@@ -707,6 +723,8 @@ struct HomePageTests {
     )
 
     await withDependencies {
+      $0.api.getAirings = { _, _ in [] }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
       $0.api.getMyListenerQuestionAirings = { _ in [airing] }
     } operation: {
       let model = HomePageModel()
@@ -736,6 +754,8 @@ struct HomePageTests {
     )
 
     await withDependencies {
+      $0.api.getAirings = { _, _ in [] }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
       $0.api.getMyListenerQuestionAirings = { _ in [airing] }
     } operation: {
       let model = HomePageModel()

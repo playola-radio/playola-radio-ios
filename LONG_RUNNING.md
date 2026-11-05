@@ -19,7 +19,7 @@ not ✅ done until its soak clears.
 > Entries marked `⟨owner: …⟩` are placeholders the task owner should fill in —
 > I scaffolded them from open PRs/branches but don't know the internal plan.
 
-_Last updated: 2026-10-22_
+_Last updated: 2026-11-02_
 
 ---
 
@@ -38,6 +38,7 @@ we need to tackle?" (or run the `whats-due` skill) to see what's due.
 | Car reconnect auto-resume | 🔵 in progress | Pause / CarPlay-disconnect / observability / idle memory trim shipped in this PR | Real-car verification on Bluetooth + CarPlay: disconnect pauses (no phone speaker); reconnect + play resumes hands-free; system eviction tested separately from swipe-to-force-quit. Watch Mixpanel "Remote Play Command Received" by `action`/`app_state` and Sentry `source:playback_start` | 2026-11-02 | branch `briankeane/airplay-2-auto-resume` |
 | Clip share | 🔵 in progress | ⟨owner: current step⟩ | none (standard release) | 2026-09-10 | PR #219 |
 | Rewards → Your Library | 🔵 in progress | Rewards→Profile, Library tab, Presets move | none | 2026-09-10 | PR #372 · `fix-library-requests-ui` |
+| Listener song history | ✅ done | Shipping in 7.8.0; design PR #472 and iOS implementation PR #473 merged to develop | none (standard release) | — | PR #472 · PR #473 · `design/features/listen-history/` |
 | Siri "Play on Playola" (App Intents media schema) | 🟢 planning | Approach B decided (2026-06-14); not started | n/a | 2026-10-01 | — |
 | View/Model pattern cleanup | 🔵 in progress (opportunistic) | ongoing, fix-on-touch | none | — | `TODO_VIEW_MODEL_VIOLATIONS.md` |
 | Prettify iPad screens | 🔵 in progress | Profile (screen 4 of N) | none (standard release) | 2026-09-10 | specs in `docs/superpowers/specs/2026-08-0*-ipad-*-design.md` |
@@ -201,6 +202,18 @@ the top of Your Library.
 - **Steps:** `⟨owner: is this one PR or a Library-area cluster? (a fix-library-requests-ui branch exists)⟩`
 - **Soak:** none (UI reorg).
 - **Links:** PR #372, branch `fix-library-requests-ui`.
+
+---
+
+## Listener song history
+
+**Goal:** let listeners open the server's paged song history from Your Library, see the station and time for each play, and like songs from the list. Refresh page one when they enter Your Library.
+
+- **Status:** ✅ done — design PR #472 and iOS implementation PR #473 merged to `develop`; shipping in 7.8.0.
+- **Steps:** design PR → one iOS implementation PR (Library entry, reload, paged detail, hearts). The previously discussed backend work and recorder were removed at the user's direction.
+- **Soak:** none (standard release).
+- **Next check:** —
+- **Links:** PR #472 · PR #473 · `design/features/listen-history/`.
 
 ---
 

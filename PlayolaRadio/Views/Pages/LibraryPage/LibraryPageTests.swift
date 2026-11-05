@@ -42,6 +42,7 @@ struct LibraryPageTests {
       $0.date = .constant(Date())
       $0.api.getStationLibrary = { _, _ in .mockWith(songs: songs) }
       $0.api.getStationLibraryRequests = { _, _, _ in requests }
+      $0.api.getArtistRecordingAudioBlockIds = { _, _ in [] }
       configure?(&$0)
     } operation: {
       let model = LibraryPageModel(stationId: stationId)

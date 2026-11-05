@@ -37,6 +37,8 @@ class ListenerQuestionDetailPageModel: ViewModel {
   private var questionPlaybackSession: PlaybackSession?
 
   // Answer recording
+  let flipToRecord = FlipToRecordModel()
+  @ObservationIgnored private var isStoppingRecording = false
   var recordingPhase: AnswerRecordingPhase = .idle
   var recordingState: RecordingState = .idle
   private var recordingSession: RecordingSession?
@@ -244,6 +246,8 @@ class ListenerQuestionDetailPageModel: ViewModel {
   init(question: ListenerQuestion) {
     self.question = question
     super.init()
+    flipToRecord.start = { [weak self] in await self?.startRecording() ?? false }
+    flipToRecord.stop = { [weak self] in await self?.stopRecording() }
   }
 
   // MARK: - View Lifecycle
@@ -259,6 +263,7 @@ class ListenerQuestionDetailPageModel: ViewModel {
   }
 
   func viewDisappeared() async {
+    await flipToRecord.recordingStopped()
     await stopAllPlayback()
   }
 
@@ -305,7 +310,7 @@ class ListenerQuestionDetailPageModel: ViewModel {
   func recordButtonTapped() async {
     switch recordingPhase {
     case .idle:
-      await startRecording()
+      await flipToRecord.recordTapped()
     case .recording:
       await stopRecording()
     case .review:
@@ -368,7 +373,7 @@ class ListenerQuestionDetailPageModel: ViewModel {
 
   // MARK: - Private Recording Logic
 
-  private func startRecording() async {
+  private func startRecording() async -> Bool {
     await stopQuestionPlayback()
 
     do {
@@ -381,14 +386,21 @@ class ListenerQuestionDetailPageModel: ViewModel {
         }
       }
       recordingPhase = .recording
+      return true
     } catch AudioRecorderError.permissionDenied {
       presentedAlert = .microphonePermissionDeniedAlert
+      return false
     } catch {
       presentedAlert = .recordingFailedAlert(error.localizedDescription)
+      return false
     }
   }
 
   private func stopRecording() async {
+    await flipToRecord.recordingStopped()
+    guard recordingPhase == .recording, !isStoppingRecording else { return }
+    isStoppingRecording = true
+    defer { isStoppingRecording = false }
     recordingUpdatesTask?.cancel()
     recordingUpdatesTask = nil
     do {
@@ -474,6 +486,7 @@ class ListenerQuestionDetailPageModel: ViewModel {
   }
 
   private func navigateBack() async {
+    await flipToRecord.recordingStopped()
     await stopAllPlayback()
     if let url = recordingURL {
       await audioRecorder.deleteRecording(url)

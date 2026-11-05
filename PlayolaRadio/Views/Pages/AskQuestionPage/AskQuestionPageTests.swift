@@ -125,15 +125,66 @@ struct AskQuestionPageTests {
       $0.audioRecorder.stopRecording = { expectedURL }
       $0.audioPlayer.loadFile = { _ in }
       $0.audioPlayer.duration = { 5.0 }
+      $0.audioRecorder.requestPermission = { true }
+      $0.audioRecorder.startRecording = {}
     } operation: {
       let model = AskQuestionPageModel(station: .mock)
-      model.recordingPhase = .recording
+      await model.recordTapped()
 
       await model.stopTapped()
 
       #expect(model.recordingPhase == .review)
       #expect(model.recordingURL == expectedURL)
       #expect(model.recordingDuration == 5.0)
+    }
+  }
+
+  @Test
+  func testRecordTappedWithBuiltInMicAsksToFlipInsteadOfRecording() async {
+    let startRecordingCalled = LockIsolated(false)
+
+    await withMainSerialExecutor {
+      await withDependencies {
+        $0.audioRecorder.requestPermission = { true }
+        $0.audioRecorder.usesExternalMicrophone = { false }
+        $0.audioRecorder.startRecording = { startRecordingCalled.setValue(true) }
+        $0.devicePose.updates = { AsyncStream { $0.yield(.upright) } }
+      } operation: {
+        let model = AskQuestionPageModel(station: .mock)
+
+        await model.recordTapped()
+        await Task.megaYield()
+
+        expectNoDifference(model.flipToRecord.phase, .prompting)
+        #expect(!startRecordingCalled.value)
+        #expect(model.recordingPhase == .idle)
+      }
+    }
+  }
+
+  @Test
+  func testSecondStopDoesNotStopTheRecorderAgain() async {
+    let stopCount = LockIsolated(0)
+
+    await withDependencies {
+      $0.audioRecorder.requestPermission = { true }
+      $0.audioRecorder.startRecording = {}
+      $0.audioRecorder.currentTime = { 1 }
+      $0.audioRecorder.stopRecording = {
+        stopCount.withValue { $0 += 1 }
+        return URL(fileURLWithPath: "/tmp/test-recording.wav")
+      }
+      $0.audioPlayer.loadFile = { _ in }
+      $0.audioPlayer.duration = { 1 }
+    } operation: {
+      let model = AskQuestionPageModel(station: .mock)
+      await model.recordTapped()
+
+      await model.stopTapped()
+      await model.stopTapped()
+
+      #expect(stopCount.value == 1)
+      #expect(model.presentedAlert == nil)
     }
   }
 

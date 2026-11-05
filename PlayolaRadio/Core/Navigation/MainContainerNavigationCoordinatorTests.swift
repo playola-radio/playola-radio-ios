@@ -406,52 +406,6 @@ struct MainContainerNavigationCoordinatorTests {
     }
   }
 
-  // MARK: - isShowingUpsideDownFlow Tests
-
-  @Test
-  func testIsShowingUpsideDownFlowWhenActiveTabHasBroadcastPageChild() {
-    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistStation
-    let coordinator = MainContainerNavigationCoordinator()
-    coordinator.artistStationPath = [
-      .broadcastPage(BroadcastPageModel(stationId: "station-abc")),
-      .showsPage(ShowsPageModel(stationId: "station-abc")),
-    ]
-
-    #expect(coordinator.isShowingUpsideDownFlow)
-  }
-
-  @Test
-  func testIsShowingUpsideDownFlowWhenActiveTabHasLiveShowPage() {
-    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
-    let coordinator = MainContainerNavigationCoordinator()
-    coordinator.artistDashboardPath = [
-      .showsPage(ShowsPageModel(stationId: "station-abc")),
-      .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "station-abc")),
-    ]
-
-    #expect(coordinator.isShowingUpsideDownFlow)
-  }
-
-  @Test
-  func testIsNotShowingUpsideDownFlowWhenLiveShowPageIsOnAnotherTab() {
-    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistStation
-    let coordinator = MainContainerNavigationCoordinator()
-    coordinator.artistDashboardPath = [
-      .askMeAnythingLivePage(AskMeAnythingLivePageModel(stationId: "station-abc"))
-    ]
-
-    #expect(!coordinator.isShowingUpsideDownFlow)
-  }
-
-  @Test
-  func testIsNotShowingUpsideDownFlowWithoutBroadcastOrLiveShowPage() {
-    @Shared(.activeTab) var activeTab: MainContainerModel.ActiveTab = .artistDashboard
-    let coordinator = MainContainerNavigationCoordinator()
-    coordinator.artistDashboardPath = [.showsPage(ShowsPageModel(stationId: "station-abc"))]
-
-    #expect(!coordinator.isShowingUpsideDownFlow)
-  }
-
   // MARK: - Koozie route guard
 
   private func koozieTracker(koozieOnly: Bool) -> ListeningTracker {

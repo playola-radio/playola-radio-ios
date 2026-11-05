@@ -75,17 +75,6 @@ final class MainContainerNavigationCoordinator {
     }
   }
 
-  /// True while the broadcast page or the AMA live show page (or anything pushed on top of
-  /// either) is on the active tab's stack.
-  var isShowingUpsideDownFlow: Bool {
-    path.contains {
-      switch $0 {
-      case .broadcastPage, .askMeAnythingLivePage: return true
-      default: return false
-      }
-    }
-  }
-
   func setPath(
     _ newValue: [Path],
     at keyPath: ReferenceWritableKeyPath<MainContainerNavigationCoordinator, [Path]>
@@ -97,6 +86,7 @@ final class MainContainerNavigationCoordinator {
   enum Path: Hashable, Equatable {
     case editProfilePage(EditProfilePageModel)
     case likedSongsPage(LikedSongsPageModel)
+    case listeningHistoryPage(ListeningHistoryPageModel)
     case rewardsPage(RewardsPageModel)
     case broadcastPage(BroadcastPageModel)
     case chooseStationToBroadcastPage(ChooseStationToBroadcastPageModel)
@@ -125,6 +115,8 @@ final class MainContainerNavigationCoordinator {
         EditProfilePageView(model: model)
       case .likedSongsPage(let model):
         LikedSongsPage(model: model)
+      case .listeningHistoryPage(let model):
+        ListeningHistoryPageView(model: model)
       case .rewardsPage(let model):
         RewardsPageView(model: model)
       case .broadcastPage(let model):

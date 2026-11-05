@@ -24,12 +24,14 @@ class AskMeAnythingLivePageModel: ViewModel {
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.amaOpeningDraftSaver) var amaOpeningDraftSaver
 
   // MARK: - Shared State
 
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Shared(.amaOpeningDrafts) var amaOpeningDrafts
+  @ObservationIgnored @Shared(.pendingAMAOpeningDeletionIds) var pendingAMAOpeningDeletionIds
   @ObservationIgnored @Shared(.amaShowStartTimes) var amaShowStartTimes
 
   // MARK: - Initialization
@@ -210,7 +212,49 @@ class AskMeAnythingLivePageModel: ViewModel {
     navigationCoordinator.push(.amaQuestionPickerPage(picker))
   }
 
+  func openingRowDeleteTapped(_ id: UUID) async {
+    guard isOpeningPlaylistEditable, let userId = openingDraftUserId,
+      auth.currentUser?.id == userId, let item = openingItems[id: id], !item.content.is(\.intro),
+      $pendingAMAOpeningDeletionIds.withLock({
+        $0[userId, default: [:]][stationId, default: []].insert(id).inserted
+      })
+    else { return }
+    defer {
+      $pendingAMAOpeningDeletionIds.withLock {
+        $0[userId]?[stationId]?.remove(id)
+        if $0[userId]?[stationId]?.isEmpty == true { $0[userId]?[stationId] = nil }
+        if $0[userId]?.isEmpty == true { $0[userId] = nil }
+      }
+    }
+    if let openingDraftUserId {
+      _ = $amaOpeningDrafts.withLock { $0[openingDraftUserId]?[stationId]?.remove(id: id) }
+    }
+    do {
+      try await amaOpeningDraftSaver.save($amaOpeningDrafts)
+    } catch {
+      persistOpeningDraft()
+      await errorReporting.reportError(error, ["operation": "saveAMAOpeningDraft"])
+      presentedAlert = showAlert(
+        title: "Unable to Update Playlist",
+        message: "Your playlist change could not be saved. Please try again.")
+      return
+    }
+    uploadTasks[id]?.cancel()
+    openingItems.remove(id: id)
+    guard case .voicetrack(let recording, _) = item.content else { return }
+    await audioRecorder.deleteRecording(recording.originalURL)
+  }
+
+  func openingRowsMoved(from source: IndexSet, to destination: Int) {
+    let pinnedCount = openingItems.prefix { $0.content.is(\.intro) }.count
+    guard isOpeningPlaylistEditable, destination >= pinnedCount,
+      source.allSatisfy({ $0 >= pinnedCount })
+    else { return }
+    openingItems.move(fromOffsets: source, toOffset: destination)
+  }
+
   func startShowButtonTapped() async {
+    restoreOpeningDraft()
     guard isStartShowEnabled else { return }
     guard let jwt = auth.jwt else {
       presentedAlert = showAlert(title: "Sign In Required", message: "Sign in to start your show.")
@@ -343,14 +387,14 @@ class AskMeAnythingLivePageModel: ViewModel {
             subtitleColor: .playolaTextDisabled, iconSystemName: "mic", albumImageUrl: nil,
             leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
             trailingText: durationLabel(block.durationMS), trailingIconSystemName: "pin",
-            processingOpacity: 0, completedOpacity: 1)
+            processingOpacity: 0, completedOpacity: 1, isEditable: false)
         case .song(let block):
           return AMAOpeningRowData(
             id: item.id, title: block.title, subtitle: block.artist,
             subtitleColor: .playolaTextDisabled, iconSystemName: "music.note",
             albumImageUrl: block.imageUrl, leadingArtworkOpacity: 1, leadingFallbackOpacity: 0,
             trailingText: durationLabel(block.durationMS), trailingIconSystemName: "checkmark",
-            processingOpacity: 0, completedOpacity: 1)
+            processingOpacity: 0, completedOpacity: 1, isEditable: true)
         case .voicetrack(let voicetrack, let completedDurationMS):
           let isProcessing = voicetrack.isProcessing
           return AMAOpeningRowData(
@@ -359,7 +403,7 @@ class AskMeAnythingLivePageModel: ViewModel {
             leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
             trailingText: completedDurationMS.map { durationLabel($0) } ?? "",
             trailingIconSystemName: "checkmark", processingOpacity: isProcessing ? 1 : 0,
-            completedOpacity: isProcessing ? 0 : 1)
+            completedOpacity: isProcessing ? 0 : 1, isEditable: true)
         case .questionAnswer(let qa):
           let subtitle =
             qa.trailingBlock.map { "Question, answer & \($0.title)" } ?? "Question & answer"
@@ -370,7 +414,7 @@ class AskMeAnythingLivePageModel: ViewModel {
             subtitleColor: .playolaTextDisabled, iconSystemName: "bubble.left.and.bubble.right",
             albumImageUrl: nil, leadingArtworkOpacity: 0, leadingFallbackOpacity: 1,
             trailingText: durationLabel(item.readyDurationMS), trailingIconSystemName: "checkmark",
-            processingOpacity: 0, completedOpacity: 1)
+            processingOpacity: 0, completedOpacity: 1, isEditable: true)
         }
       })
   }
@@ -406,6 +450,9 @@ class AskMeAnythingLivePageModel: ViewModel {
   var readinessHint: String {
     guard hasRecordedIntro else { return "Record your intro" }
     if !openingItems.allSatisfy(\.isReady) { return "Waiting for recordings to upload" }
+    if readyMilliseconds >= targetMilliseconds && !pendingOpeningDeletionIds.isEmpty {
+      return "Saving playlist change"
+    }
     if isStartShowEnabled { return "Ready to start" }
     return "Add \(durationLabelCeil(max(0, targetMilliseconds - readyMilliseconds))) more"
   }
@@ -423,7 +470,7 @@ class AskMeAnythingLivePageModel: ViewModel {
   var isStartShowEnabled: Bool {
     readyMilliseconds >= targetMilliseconds
       && openingItems.allSatisfy(\.isReady) && !isStartingShow && !isCheckingSchedule
-      && !hasScheduleLoadFailed && !isShowActive
+      && !hasScheduleLoadFailed && !isShowActive && pendingOpeningDeletionIds.isEmpty
   }
   var startShowButtonTitleColor: Color { isStartShowEnabled ? .white : .playolaGray }
   var startShowButtonBackgroundColor: Color {
@@ -434,6 +481,11 @@ class AskMeAnythingLivePageModel: ViewModel {
   }
 
   // MARK: - Private Helpers
+
+  private var pendingOpeningDeletionIds: Set<UUID> {
+    guard let userId = openingDraftUserId else { return [] }
+    return pendingAMAOpeningDeletionIds[userId]?[stationId] ?? []
+  }
 
   private func updateShowFromSchedule() {
     guard !isAwaitingStartedSchedule else { return }
@@ -464,6 +516,8 @@ class AskMeAnythingLivePageModel: ViewModel {
   private func showAlert(title: String, message: String) -> PlayolaAlert {
     PlayolaAlert(title: title, message: message, dismissButton: .cancel(Text("OK")))
   }
+
+  private var isOpeningPlaylistEditable: Bool { !isShowActive && !isStartingShow }
 
   private var addedSongIds: Set<String> {
     Set(

@@ -67,6 +67,8 @@ class AMAAnswerQuestionPageModel: ViewModel {
     self.mode = .record
     self.persistedTrailingId = question.trailingAudioBlock?.id
     super.init()
+    flipToRecord.start = { [weak self] in await self?.startRecording() ?? false }
+    flipToRecord.stop = { [weak self] in await self?.stopRecording() }
   }
 
   init(
@@ -81,6 +83,8 @@ class AMAAnswerQuestionPageModel: ViewModel {
       ?? 0
     self.persistedTrailingId = question.trailingAudioBlock?.id
     super.init()
+    flipToRecord.start = { [weak self] in await self?.startRecording() ?? false }
+    flipToRecord.stop = { [weak self] in await self?.stopRecording() }
   }
 
   // MARK: - Properties
@@ -98,6 +102,7 @@ class AMAAnswerQuestionPageModel: ViewModel {
   @ObservationIgnored private var questionPlaybackGeneration = 0
 
   // Answer recording
+  let flipToRecord = FlipToRecordModel()
   var recordingPhase: AnswerRecordingPhase = .idle
   var recordingState: RecordingState = .idle
   @ObservationIgnored private var recordingSession: RecordingSession?
@@ -423,7 +428,7 @@ class AMAAnswerQuestionPageModel: ViewModel {
   func recordButtonTapped() async {
     guard mode == .record, controlsInteractive else { return }
     switch recordingPhase {
-    case .idle: await startRecording()
+    case .idle: await flipToRecord.recordTapped()
     case .recording: await stopRecording()
     case .review:
       guard !hasRegisteredAnswer else { return }
@@ -521,7 +526,7 @@ class AMAAnswerQuestionPageModel: ViewModel {
 
   // MARK: - Private Recording Logic
 
-  private func startRecording() async {
+  private func startRecording() async -> Bool {
     let lifecycleId = recordingLifecycleId
     recordingPhase = .recording
     await stopQuestionPlayback()
@@ -530,7 +535,7 @@ class AMAAnswerQuestionPageModel: ViewModel {
       let (session, updates) = try await audioRecorder.startRecordingUpdates()
       guard lifecycleId == recordingLifecycleId else {
         await session.cancel()
-        return
+        return false
       }
       recordingSession = session
       recordingUpdatesTask = Task { [weak self] in
@@ -542,18 +547,22 @@ class AMAAnswerQuestionPageModel: ViewModel {
           }
         }
       }
+      return true
     } catch AudioRecorderError.permissionDenied {
-      guard lifecycleId == recordingLifecycleId else { return }
+      guard lifecycleId == recordingLifecycleId else { return false }
       recordingPhase = .idle
       presentedAlert = .microphonePermissionDeniedAlert
+      return false
     } catch {
-      guard lifecycleId == recordingLifecycleId else { return }
+      guard lifecycleId == recordingLifecycleId else { return false }
       recordingPhase = .idle
       presentedAlert = .recordingFailedAlert(error.localizedDescription)
+      return false
     }
   }
 
   private func stopRecording() async {
+    await flipToRecord.recordingStopped()
     guard recordingPhase == .recording, !isStoppingRecording else { return }
     guard recordingSession != nil else {
       recordingLifecycleId &+= 1
@@ -760,6 +769,7 @@ class AMAAnswerQuestionPageModel: ViewModel {
   }
 
   private func stopAllPlayback() async {
+    await flipToRecord.recordingStopped()
     recordingLifecycleId &+= 1
     recordingUpdatesTask?.cancel()
     recordingUpdatesTask = nil
