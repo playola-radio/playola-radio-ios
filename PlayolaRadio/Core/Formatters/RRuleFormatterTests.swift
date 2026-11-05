@@ -5,6 +5,7 @@
 //  Created by Claude on 1/8/26.
 //
 
+import CustomDump
 import Foundation
 import Testing
 
@@ -185,7 +186,7 @@ struct RRuleFormatterTests {
 
     let result = RRuleFormatter.formatToPlainEnglish(rrule: rrule, airtime: airtime)
 
-    #expect(result == nil)
+    expectNoDifference(result, nil)
   }
 
   @Test
@@ -195,7 +196,7 @@ struct RRuleFormatterTests {
 
     let result = RRuleFormatter.formatToPlainEnglish(rrule: rrule, airtime: airtime)
 
-    #expect(result == "Mondays at 4pm")
+    expectNoDifference(result, "Mondays at 4pm")
   }
 
   @Test
