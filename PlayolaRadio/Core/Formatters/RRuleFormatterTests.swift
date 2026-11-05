@@ -179,6 +179,26 @@ struct RRuleFormatterTests {
   }
 
   @Test
+  func testReturnsNilForUnrecognizedDays() {
+    let rrule = "FREQ=WEEKLY;BYDAY=XX"
+    let airtime = dateAt(hour: 16, minute: 0)
+
+    let result = RRuleFormatter.formatToPlainEnglish(rrule: rrule, airtime: airtime)
+
+    #expect(result == nil)
+  }
+
+  @Test
+  func testIgnoresUnrecognizedDaysAlongsideKnownDays() {
+    let rrule = "FREQ=WEEKLY;BYDAY=MO,XX"
+    let airtime = dateAt(hour: 16, minute: 0)
+
+    let result = RRuleFormatter.formatToPlainEnglish(rrule: rrule, airtime: airtime)
+
+    #expect(result == "Mondays at 4pm")
+  }
+
+  @Test
   func testHandlesDaysInDifferentOrder() {
     let rrule = "FREQ=WEEKLY;BYDAY=FR,MO,WE"
     let airtime = dateAt(hour: 16, minute: 0)
