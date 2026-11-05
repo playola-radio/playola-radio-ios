@@ -430,13 +430,14 @@ class HomePageModel: ViewModel {
   private func shareQuestionAiringButtonTapped() async {
     guard let airing = upcomingQuestionAiring else { return }
 
+    let airtime = formattedAirtime(airing.airtime)
     let shareMessage: String
     if let curatorName = airing.station?.curatorName {
       shareMessage =
-        "I'm going to be on \(curatorName)'s radio station tomorrow at 6pm. Here's a link to download the app!"
+        "I'm going to be on \(curatorName)'s radio station \(airtime). Here's a link to download the app!"
     } else {
       shareMessage =
-        "I'm going to be on an internet radio station tomorrow at 6pm. Here's a link to download the app!"
+        "I'm going to be on an internet radio station \(airtime). Here's a link to download the app!"
     }
 
     let shareModel = ShareSheetModel(items: [shareMessage, Self.appStoreUrl])

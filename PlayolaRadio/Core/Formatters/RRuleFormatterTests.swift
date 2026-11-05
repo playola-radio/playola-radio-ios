@@ -5,6 +5,7 @@
 //  Created by Claude on 1/8/26.
 //
 
+import CustomDump
 import Foundation
 import Testing
 
@@ -176,6 +177,26 @@ struct RRuleFormatterTests {
     let result = RRuleFormatter.formatToPlainEnglish(rrule: nil, airtime: Date())
 
     #expect(result == nil)
+  }
+
+  @Test
+  func testReturnsNilForUnrecognizedDays() {
+    let rrule = "FREQ=WEEKLY;BYDAY=XX"
+    let airtime = dateAt(hour: 16, minute: 0)
+
+    let result = RRuleFormatter.formatToPlainEnglish(rrule: rrule, airtime: airtime)
+
+    expectNoDifference(result, nil)
+  }
+
+  @Test
+  func testIgnoresUnrecognizedDaysAlongsideKnownDays() {
+    let rrule = "FREQ=WEEKLY;BYDAY=MO,XX"
+    let airtime = dateAt(hour: 16, minute: 0)
+
+    let result = RRuleFormatter.formatToPlainEnglish(rrule: rrule, airtime: airtime)
+
+    expectNoDifference(result, "Mondays at 4pm")
   }
 
   @Test
